@@ -60,32 +60,24 @@ struct MessageObject final : public GUIObject {
 
     void updateBounds() override
     {
-        pd->enqueueFunction([this, _this = SafePointer(this)]() {
-            if (!_this)
-                return;
+        pd->getCallbackLock()->enter();
 
-            int x = 0, y = 0, w = 0, h = 0;
+        int x = 0, y = 0, w = 0, h = 0;
 
-            // If it's a text object, we need to handle the resizable width, which pd saves in amount of text characters
-            auto* textObj = static_cast<t_text*>(ptr);
+        // If it's a text object, we need to handle the resizable width, which pd saves in amount of text characters
+        auto* textObj = static_cast<t_text*>(ptr);
 
-            libpd_get_object_bounds(cnv->patch.getPointer(), ptr, &x, &y, &w, &h);
+        libpd_get_object_bounds(cnv->patch.getPointer(), ptr, &x, &y, &w, &h);
 
-            w = textObj->te_width * glist_fontwidth(cnv->patch.getPointer());
+        w = textObj->te_width * glist_fontwidth(cnv->patch.getPointer());
 
-            if (textObj->te_width == 0) {
-                w = Font(15).getStringWidth(getText()) + 19;
-            }
+        if (textObj->te_width == 0) {
+            w = Font(15).getStringWidth(getText()) + 19;
+        }
+        
+        pd->getCallbackLock()->exit();
 
-            auto bounds = Rectangle<int>(x, y, w, h);
-
-            MessageManager::callAsync([this, _this = SafePointer(this), bounds]() mutable {
-                if (!_this)
-                    return;
-
-                box->setObjectBounds(bounds);
-            });
-        });
+        box->setObjectBounds({x, y, w, h});
     }
 
     void checkBounds() override

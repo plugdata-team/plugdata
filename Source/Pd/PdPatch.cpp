@@ -65,11 +65,12 @@ Patch::Patch(void* patchPtr, Instance* parentInstance, File patchFile)
     , instance(parentInstance)
     , currentFile(patchFile)
 {
+    /*
     if (auto* cnv = getPointer()) {
         parentInstance->enqueueFunction([this]() {
-            // setZoom(1);
+            setZoom(1);
         });
-    }
+    } */
 }
 
 Rectangle<int> Patch::getBounds() const
@@ -99,32 +100,38 @@ bool Patch::isDirty() const
 
 void Patch::savePatch(File const& location)
 {
-    String fullPathname = location.getParentDirectory().getFullPathName();
-    String filename = location.getFileName();
-
-    auto* dir = gensym(fullPathname.toRawUTF8());
-    auto* file = gensym(filename.toRawUTF8());
-    libpd_savetofile(getPointer(), file, dir);
-
-    setTitle(filename);
-
+    location.deleteFile();
+    
+    FileOutputStream fstream(location);
+    fstream.setNewLineString("\n");
+    fstream << getCanvasContent();
+    fstream.flush();
+    
+    setTitle(location.getFileName());
+    
     canvas_dirty(getPointer(), 0);
     currentFile = location;
+    
+    instance->logMessage("saved to: " + location.getFullPathName());
 }
+
 
 void Patch::savePatch()
 {
-    String fullPathname = currentFile.getParentDirectory().getFullPathName();
     String filename = currentFile.getFileName();
 
-    auto* dir = gensym(fullPathname.toRawUTF8());
-    auto* file = gensym(filename.toRawUTF8());
-
-    libpd_savetofile(getPointer(), file, dir);
-
+    currentFile.deleteFile();
+    
+    FileOutputStream fstream(currentFile);
+    fstream.setNewLineString("\n");
+    fstream << getCanvasContent();
+    fstream.flush();
+    
     setTitle(filename);
 
     canvas_dirty(getPointer(), 0);
+    
+    instance->logMessage("saved to: " + currentFile.getFullPathName());
 }
 
 void Patch::setCurrent(bool lock)
@@ -161,9 +168,6 @@ int Patch::getIndex(void* obj)
     auto* cnv = getPointer();
 
     for (t_gobj* y = cnv->gl_list; y; y = y->g_next) {
-        if (Storage::isInfoParent(y))
-            continue;
-
         if (obj == y) {
             return i;
         }
@@ -205,8 +209,6 @@ std::vector<void*> Patch::getObjects(bool onlyGui)
         t_canvas const* cnv = getPointer();
 
         for (t_gobj* y = cnv->gl_list; y; y = y->g_next) {
-            if (Storage::isInfoParent(y))
-                continue;
 
             if ((onlyGui && y->g_pd->c_gobj) || !onlyGui) {
                 objects.push_back(static_cast<void*>(y));

@@ -20,7 +20,7 @@ extern "C"
 #include "Utility/GraphArea.h"
 #include "Utility/SuggestionComponent.h"
 
-Canvas::Canvas(PlugDataPluginEditor& parent, pd::Patch& p, Component* parentGraph) : main(parent), pd(&parent.pd), patch(p), storage(patch.getPointer(), pd)
+Canvas::Canvas(PlugDataPluginEditor& parent, pd::Patch& p, Component* parentGraph) : main(parent), pd(&parent.pd), patch(p)
 {
     isGraphChild = glist_isgraph(p.getPointer());
     hideNameAndArgs = static_cast<bool>(p.getPointer()->gl_hidetext);
@@ -263,21 +263,12 @@ void Canvas::synchronise(bool updatePosition)
                 auto& c = *(*it);
 
                 auto currentId = c.getId();
-                if (c.lastId.isNotEmpty() && c.lastId != currentId)
-                {
-                    storage.setInfoId(c.lastId, currentId);
-                }
-
-                c.lastId = currentId;
-
-                auto info = storage.getInfo(currentId, "Path");
+                auto info = pd::Storage::getInfo(this, currentId, "Path");
                 if (info.length()) c.setState(info);
 
                 c.repaint();
             }
         }
-
-        storage.confirmIds();
 
         setTransform(main.transform);
     }
@@ -780,7 +771,7 @@ void Canvas::removeSelection()
 void Canvas::undo()
 {
     // Performs undo on storage data if the next undo event if a dummy
-    storage.undoIfNeeded();
+    pd::Storage::undoIfNeeded(this);
 
     // Tell pd to undo the last action
     patch.undo();
@@ -794,7 +785,7 @@ void Canvas::undo()
 void Canvas::redo()
 {
     // Performs redo on storage data if the next redo event if a dummy
-    storage.redoIfNeeded();
+    pd::Storage::redoIfNeeded(this);
 
     // Tell pd to undo the last action
     patch.redo();

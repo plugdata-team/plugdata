@@ -20,7 +20,7 @@ struct DocumentBrowserViewBase : public TreeView
 struct DocumentBrowserBase : public Component {
     DocumentBrowserBase(PlugDataAudioProcessor* processor)
         : pd(processor)
-        , filter("*.pd", "*", "pure-data files")
+        , filter("*", "*", "All files")
         , updateThread("browserThread")
         , directory(&filter, updateThread) {
 
@@ -357,10 +357,21 @@ public:
     {
         if (file.isDirectory()) {
             file.revealToUser();
-        } else if (file.existsAsFile()) {
+        }
+        else if (file.existsAsFile() && file.hasFileExtension("pd")) {
             browser->pd->loadPatch(file);
         }
+        else if(file.existsAsFile()) {
+            if(auto* editor = dynamic_cast<PlugDataPluginEditor*>(browser->pd->getActiveEditor())) {
+                auto* cnv = editor->getCurrentCanvas();
+                cnv->attachNextObjectToMouse = true;
+                
+                auto lastPosition = cnv->viewport->getViewArea().getConstrainedPoint(cnv->getMouseXYRelative() - Point<int>(Box::margin, Box::margin));
+                cnv->boxes.add(new Box(cnv, "msg " + file.getFullPathName(), lastPosition));
+            }
+        }
     }
+        
     void selectionChanged() override
     {
         browser->repaint();

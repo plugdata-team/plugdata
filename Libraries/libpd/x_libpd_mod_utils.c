@@ -43,70 +43,6 @@ extern void canvas_savedeclarationsto(t_canvas* x, t_binbuf* b);
 extern void canvas_doaddtemplate(t_symbol* templatesym,
     int* p_ntemplates, t_symbol*** p_templatevec);
 
-static void canvas_saveto(t_canvas* x, t_binbuf* b)
-{
-    t_gobj* y;
-    t_linetraverser t;
-    t_outconnect* oc;
-
-    /* subpatch */
-    if (x->gl_owner && !x->gl_env) {
-        /* have to go to original binbuf to find out how we were named. */
-        t_binbuf* bz = binbuf_new();
-        t_symbol* patchsym;
-        binbuf_addbinbuf(bz, x->gl_obj.ob_binbuf);
-        patchsym = atom_getsymbolarg(1, binbuf_getnatom(bz), binbuf_getvec(bz));
-        binbuf_free(bz);
-        binbuf_addv(b, "ssiiiisi;", gensym("#N"), gensym("canvas"),
-            (int)(x->gl_screenx1),
-            (int)(x->gl_screeny1),
-            (int)(x->gl_screenx2 - x->gl_screenx1),
-            (int)(x->gl_screeny2 - x->gl_screeny1),
-            (patchsym != &s_ ? patchsym : gensym("(subpatch)")),
-            x->gl_mapped);
-    }
-    /* root or abstraction */
-    else {
-        binbuf_addv(b, "ssiiiii;", gensym("#N"), gensym("canvas"),
-            (int)(x->gl_screenx1),
-            (int)(x->gl_screeny1),
-            (int)(x->gl_screenx2 - x->gl_screenx1),
-            (int)(x->gl_screeny2 - x->gl_screeny1),
-            (int)x->gl_font);
-        canvas_savedeclarationsto(x, b);
-    }
-    for (y = x->gl_list; y; y = y->g_next)
-        gobj_save(y, b);
-
-    linetraverser_start(&t, x);
-    while ((oc = linetraverser_next(&t))) {
-        int srcno = canvas_getindex(x, &t.tr_ob->ob_g);
-        int sinkno = canvas_getindex(x, &t.tr_ob2->ob_g);
-        binbuf_addv(b, "ssiiii;", gensym("#X"), gensym("connect"),
-            srcno, t.tr_outno, sinkno, t.tr_inno);
-    }
-    /* unless everything is the default (as in ordinary subpatches)
-    print out a "coords" message to set up the coordinate systems */
-    if (x->gl_isgraph || x->gl_x1 || x->gl_y1 || x->gl_x2 != 1 || x->gl_y2 != 1 || x->gl_pixwidth || x->gl_pixheight) {
-        if (x->gl_isgraph && x->gl_goprect)
-            /* if we have a graph-on-parent rectangle, we're new style.
-            The format is arranged so
-            that old versions of Pd can at least do something with it. */
-            binbuf_addv(b, "ssfffffffff;", gensym("#X"), gensym("coords"),
-                x->gl_x1, x->gl_y1,
-                x->gl_x2, x->gl_y2,
-                (t_float)x->gl_pixwidth, (t_float)x->gl_pixheight,
-                (t_float)((x->gl_hidetext) ? 2. : 1.),
-                (t_float)x->gl_xmargin, (t_float)x->gl_ymargin);
-        /* otherwise write in 0.38-compatible form */
-        else
-            binbuf_addv(b, "ssfffffff;", gensym("#X"), gensym("coords"),
-                x->gl_x1, x->gl_y1,
-                x->gl_x2, x->gl_y2,
-                (t_float)x->gl_pixwidth, (t_float)x->gl_pixheight,
-                (t_float)x->gl_isgraph);
-    }
-}
 
 static void canvas_addtemplatesforscalar(t_symbol* templatesym,
     t_word* w, int* p_ntemplates, t_symbol*** p_templatevec)
@@ -147,51 +83,6 @@ static void canvas_collecttemplatesfor(t_canvas* x, int* ntemplatesp,
     }
 }
 
-static void canvas_savetemplatesto(t_canvas* x, t_binbuf* b, int wholething)
-{
-    t_symbol** templatevec = getbytes(0);
-    int i, ntemplates = 0;
-    canvas_collecttemplatesfor(x, &ntemplates, &templatevec, wholething);
-    for (i = 0; i < ntemplates; i++) {
-        t_template* template = template_findbyname(templatevec[i]);
-        int j, m;
-        if (!template) {
-            bug("canvas_savetemplatesto");
-            continue;
-        }
-        m = template->t_n;
-        /* drop "pd-" prefix from template symbol to print */
-        binbuf_addv(b, "sss", &s__N, gensym("struct"),
-            gensym(templatevec[i]->s_name + 3));
-        for (j = 0; j < m; j++) {
-            t_symbol* type;
-            switch (template->t_vec[j].ds_type) {
-            case DT_FLOAT:
-                type = &s_float;
-                break;
-            case DT_SYMBOL:
-                type = &s_symbol;
-                break;
-            case DT_ARRAY:
-                type = gensym("array");
-                break;
-            case DT_TEXT:
-                type = gensym("text");
-                break;
-            default:
-                type = &s_float;
-                bug("canvas_write");
-            }
-            if (template->t_vec[j].ds_type == DT_ARRAY)
-                binbuf_addv(b, "sss", type, template->t_vec[j].ds_name,
-                    gensym(template->t_vec[j].ds_arraytemplate->s_name + 3));
-            else
-                binbuf_addv(b, "ss", type, template->t_vec[j].ds_name);
-        }
-        binbuf_addsemi(b);
-    }
-    freebytes(templatevec, ntemplates * sizeof(*templatevec));
-}
 
 /* displace the selection by (dx, dy) pixels */
 void libpd_moveselection(t_canvas* cnv, int dx, int dy)
@@ -581,7 +472,7 @@ static void libpd_savetemplatesto(t_canvas* cnv, t_binbuf* b)
         t_template* template = template_findbyname(templatevec[i]);
         int j, m;
         if (!template) {
-            bug("canvas_savetemplatesto");
+            bug("libpd_savetemplatesto");
             continue;
         }
         m = template->t_n;
@@ -623,8 +514,8 @@ static void libpd_savetemplatesto(t_canvas* cnv, t_binbuf* b)
 void libpd_savetofile(t_canvas* cnv, t_symbol* filename, t_symbol* dir)
 {
     t_binbuf* b = binbuf_new();
-    canvas_savetemplatesto(cnv, b, 1);
-    canvas_saveto(cnv, b);
+    libpd_savetemplatesto(cnv, b);
+    libpd_canvas_saveto(cnv, b);
     if (binbuf_write(b, filename->s_name, dir->s_name, 0))
         post("%s/%s: %s", dir->s_name, filename->s_name,
             (errno ? strerror(errno) : "write failed"));
@@ -660,7 +551,7 @@ t_pd* libpd_creategraphonparent(t_canvas* cnv, int x, int y)
     t_float px2 = x + 200.0f;
     t_float py2 = y + 140.0f;
 
-    t_symbol* sym = gensym("");
+    t_symbol* sym = gensym("graph");
 
     SETSYMBOL(argv, sym);
     SETFLOAT(argv + 1, x1);
@@ -688,7 +579,6 @@ t_pd* libpd_creategraphonparent(t_canvas* cnv, int x, int y)
 
 t_pd* libpd_creategraph(t_canvas* cnv, char const* name, int size, int x, int y)
 {
-
     int argc = 4;
 
     t_atom argv[4];
