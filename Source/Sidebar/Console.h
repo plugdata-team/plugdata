@@ -71,14 +71,13 @@ struct Console : public Component, public Timer {
     }
     
     void timerCallback() override {
-        
+        console->update();
         stopTimer();
     }
     
     void update()
     {
         if(!isTimerRunning()) {
-            console->update();
             startTimer(10);
         }
     }
@@ -220,19 +219,35 @@ struct Console : public Component, public Timer {
                     messages[row]->idx--;
                 }
             }
+            
             while (messages.size() < pd->consoleMessages.size()) {
                 messages.push_back(std::make_unique<ConsoleMessage>(messages.size(), *this));
             }
             
+            bool showMessages = buttons[2].getToggleState();
+            bool showErrors = buttons[3].getToggleState();
+
+            int totalHeight = 0;
             for (int row = 0; row < static_cast<int>(pd->consoleMessages.size()); row++) {
+                auto [message, type, length] = pd->consoleMessages[row];
+                int numLines = getNumLines(getWidth(), length);
+                int height = numLines * 22 + 2;
+                
                 if (messages[row]->idx != row) {
                     messages[row]->idx = row;
+                    //messages[row]->setBounds(0, totalHeight, getWidth(), height);
                     messages[row]->repaint();
                 }
+                
+                if ((type == 1 && !showMessages) || (length == 0 && !showErrors))
+                    continue;
+                
+                totalHeight += std::max(0, height);
             }
 
             setSize(viewport.getWidth(), std::max<int>(getTotalHeight(), viewport.getHeight()));
             resized();
+
             
             if (buttons[4].getToggleState()) {
                 viewport.setViewPositionProportionately(0.0f, 1.0f);
@@ -263,7 +278,7 @@ struct Console : public Component, public Timer {
             int totalHeight = 0;
 
             for (auto& [message, type, length] : pd->consoleMessages) {
-                int numLines = message.containsNonWhitespaceChars() ? getNumLines(getWidth(), length) : 1;
+                int numLines = getNumLines(getWidth(), length);
                 int height = numLines * 22 + 2;
 
                 if ((type == 1 && !showMessages) || (length == 0 && !showErrors))

@@ -357,6 +357,7 @@ public:
     void processMidiEvent(midievent event);
     void processSend(dmessage mess);
 
+    String getExtraInfo(File const& toOpen);
     Patch openPatch(File const& toOpen);
 
     virtual Colour getForegroundColour() = 0;

@@ -61,7 +61,7 @@ $(working_dir)/Stamp/install-libs:
 	(cd $(working_dir)/$(ogg_version) && CFLAGS=$(FLAGS) ./configure $(config_options) || 1 && make all install)
 	(cd $(working_dir)/$(vorbis_version) && CFLAGS=$(FLAGS) ./configure --disable-oggtest $(config_options) && make all install)
 	(cd $(working_dir)/$(flac_version) && CFLAGS=$(FLAGS) ./configure $(config_options) --disable-thorough-tests --disable-cpplibs  --disable-examples  --disable-oggtest --disable-doxygen-docs --disable-xmms-plugin && make all install)
-	(cd $(working_dir)/$(opus_version) && CFLAGS=$(FLAGS) ./configure $(config_options) --disable-rtcd --disable-extra-programs --disable-doc && make all install)
+	(cd $(working_dir)/$(opus_version) && CFLAGS=$(FLAGS) ./configure $(config_options) --disable-rtcd --disable-extra-programs --disable-doc && make all install) || 1
 	(cd $(working_dir)/$(sndfile_name) && CFLAGS=$(FLAGS) ./configure $(sndfile_options) && make all install)
 	(cd $(working_dir)/fluidsynth && mkdir -p Build && cd Build && cmake ${fluidsynth_options} .. && cmake --build . --target libfluidsynth)
 	(cd $(working_dir) && cp ./fluidsynth/Build/src/libfluidsynth.a $(build_dir)/lib/libfluidsynth.a && cp -rf ./fluidsynth/Build/include/* $(build_dir)/include && cp -rf ./fluidsynth/include/* $(build_dir)/include)

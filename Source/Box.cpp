@@ -796,7 +796,6 @@ void Box::openSubpatch() const
             return;
         }
     }
-
     auto* newPatch = cnv->main.pd.patches.add(new pd::Patch(*subpatch));
     auto* newCanvas = cnv->main.canvases.add(new Canvas(cnv->main, *newPatch, nullptr));
 

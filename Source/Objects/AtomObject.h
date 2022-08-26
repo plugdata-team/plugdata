@@ -52,25 +52,20 @@ struct AtomObject : public GUIObject {
 
     void updateBounds() override
     {
-        pd->enqueueFunction([this, _this = SafePointer(this)]() {
-            if (!_this)
-                return;
+        pd->getCallbackLock()->enter();
+        
+        
+        int x, y, w, h;
+        libpd_get_object_bounds(cnv->patch.getPointer(), ptr, &x, &y, &w, &h);
 
-            auto* gatom = static_cast<t_fake_gatom*>(ptr);
-            int x, y, w, h;
+        auto* gatom = static_cast<t_fake_gatom*>(ptr);
+        w = std::max<int>(4, gatom->a_text.te_width) * glist_fontwidth(cnv->patch.getPointer());
 
-            libpd_get_object_bounds(cnv->patch.getPointer(), ptr, &x, &y, &w, &h);
-
-            w = std::max<int>(4, gatom->a_text.te_width) * glist_fontwidth(cnv->patch.getPointer());
-
-            auto bounds = Rectangle<int>(x, y, w, getAtomHeight());
-
-            MessageManager::callAsync([this, _this = SafePointer(this), bounds]() {
-                if (!_this)
-                    return;
-                box->setObjectBounds(bounds);
-            });
-        });
+        auto bounds = Rectangle<int>(x, y, w, getAtomHeight());
+        
+        pd->getCallbackLock()->exit();
+        
+        box->setObjectBounds(bounds);
     }
 
     void checkBounds() override
