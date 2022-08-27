@@ -276,15 +276,28 @@ void* Patch::createObject(String const& name, int x, int y)
     if (guiDefaults.find(tokens[0]) != guiDefaults.end()) {
         auto preset = guiDefaults.at(tokens[0]);
 
-        auto bg = instance->getBackgroundColour().toString().substring(2);
-        auto fg = instance->getForegroundColour().toString().substring(2);
-        auto lbl = instance->getTextColour().toString().substring(2);
-        auto ln = instance->getOutlineColour().toString().substring(2);
+        
+        auto bg = instance->getBackgroundColour();
+        auto fg = instance->getForegroundColour();
+        auto lbl = instance->getTextColour();
+        auto ln = instance->getOutlineColour();
+        
+        auto bg_str = bg.toString().substring(2);
+        auto fg_str = fg.toString().substring(2);
+        auto lbl_str = lbl.toString().substring(2);
+        auto ln_str = ln.toString().substring(2);
 
-        preset = preset.replace("bgColour", "#" + bg);
-        preset = preset.replace("fgColour", "#" + fg);
-        preset = preset.replace("lblColour", "#" + lbl);
-        preset = preset.replace("lnColour", "#" + ln);
+        preset = preset.replace("bgColour_rgb", String(bg.getRed()) + " " + String(bg.getGreen()) + " " + String(bg.getBlue()));
+        preset = preset.replace("fgColour_rgb", String(fg.getRed()) + " " + String(fg.getGreen()) + " " + String(fg.getBlue()));
+        preset = preset.replace("lblColour_rgb", String(lbl.getRed()) + " " + String(lbl.getGreen()) + " " + String(lbl.getBlue()));
+        preset = preset.replace("lnColour_rgb", String(ln.getRed()) + " " + String(ln.getGreen()) + " " + String(ln.getBlue()));
+        
+        preset = preset.replace("bgColour", "#" + bg_str);
+        preset = preset.replace("fgColour", "#" + fg_str);
+        preset = preset.replace("lblColour", "#" + lbl_str);
+        preset = preset.replace("lnColour", "#" + ln_str);
+        
+
 
         tokens.addTokens(preset, false);
     }

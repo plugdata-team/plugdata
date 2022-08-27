@@ -27,6 +27,7 @@ extern "C" {
 #include "MessageObject.h"
 #include "MouseObject.h"
 #include "BangObject.h"
+#include "ButtonObject.h"
 #include "RadioObject.h"
 #include "SliderObject.h"
 #include "ArrayObject.h"
@@ -334,6 +335,9 @@ ObjectBase* GUIObject::createGui(void* ptr, Box* parent)
     const String name = libpd_get_object_class_name(ptr);
     if (name == "bng") {
         return new BangObject(ptr, parent);
+    }
+    if (name == "button") {
+        return new ButtonObject(ptr, parent);
     }
     if (name == "hsl") {
         return new SliderObject(false, ptr, parent);
