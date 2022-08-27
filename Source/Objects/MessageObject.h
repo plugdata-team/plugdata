@@ -54,11 +54,6 @@ struct MessageObject final : public GUIObject, public KeyListener {
             
             editor->addKeyListener(this);
         };
-        
-        input.onEditorHide = [this]() {
-            auto* editor = input.getCurrentTextEditor();
-            editor->removeKeyListener(this);
-        };
 
         input.setMinimumHorizontalScale(0.9f);
 

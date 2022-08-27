@@ -29,11 +29,6 @@ struct SymbolAtomObject final : public AtomObject, public KeyListener {
             editor->setBorder({ 1, 1, 0, 0 });
             editor->addKeyListener(this);
         };
-        
-        input.onEditorHide = [this]() {
-            auto* editor = input.getCurrentTextEditor();
-            editor->removeKeyListener(this);
-        };
 
         input.setMinimumHorizontalScale(0.9f);
 
