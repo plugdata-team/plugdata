@@ -155,7 +155,9 @@ private:
         { "vu", "20 120 empty empty -1 -8 0 10 bgColour lblColour 1 0" },
         { "floatatom", "5 -3.40282e+38 3.40282e+38 0 empty - - 12" },
         { "listbox", "9 0 0 0 empty - - 0" },
-        { "numbox~", "4 16 100 bgColour fgColour 10 0 0 0" } };
+        { "numbox~", "4 16 100 bgColour fgColour 10 0 0 0" },
+        { "button", "25 25 bgColour_rgb fgColour_rgb" }
+    };
 
     friend class Instance;
     friend class Gui;
