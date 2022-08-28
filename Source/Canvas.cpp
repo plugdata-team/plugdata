@@ -826,11 +826,13 @@ void Canvas::valueChanged(Value& v)
     if (v.refersToSameSourceAs(locked))
     {
         if (!connectingEdges.isEmpty()) connectingEdges.clear();
-        deselectAll();
+        
+        // This would hinder many keyboard shortcuts like cmd-a, cmd-c, cmd-1 etc.
+        if(!main.statusbar.commandLocked && locked == var(true)) deselectAll();
         repaint();
         
         // Makes sure no objects keep keyboard focus after locking/unlocking
-        if(isShowing() && isVisible()) grabKeyboardFocus();
+        if(!main.statusbar.commandLocked && isShowing() && isVisible()) grabKeyboardFocus();
     }
     // Should only get called when the canvas isn't a real graph
     else if (v.refersToSameSourceAs(presentationMode))
