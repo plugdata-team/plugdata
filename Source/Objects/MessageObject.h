@@ -186,8 +186,6 @@ struct MessageObject final : public GUIObject, public KeyListener {
     {
         isDown = false;
         repaint();
-        
-        std::cout << "he" << std::endl;
     }
 
     void valueChanged(Value& v) override

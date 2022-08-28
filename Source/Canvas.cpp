@@ -645,7 +645,7 @@ void Canvas::deselectAll()
     // Deselect boxes
     for (auto c : selectedComponents)
         if (!c.wasObjectDeleted()) c->repaint();
-
+    
     selectedComponents.deselectAll();
     main.sidebar.hideParameters();
 }
@@ -826,13 +826,15 @@ void Canvas::valueChanged(Value& v)
     if (v.refersToSameSourceAs(locked))
     {
         if (!connectingEdges.isEmpty()) connectingEdges.clear();
-        
         // This would hinder many keyboard shortcuts like cmd-a, cmd-c, cmd-1 etc.
-        if(!main.statusbar.commandLocked && locked == var(true)) deselectAll();
-        repaint();
+        if(!main.statusbar.commandLocked && locked == var(true)) {
+            deselectAll();
+            
+            // Makes sure no objects keep keyboard focus after locking/unlocking
+            if(isShowing() && isVisible()) grabKeyboardFocus();
+        }
         
-        // Makes sure no objects keep keyboard focus after locking/unlocking
-        if(!main.statusbar.commandLocked && isShowing() && isVisible()) grabKeyboardFocus();
+        repaint();
     }
     // Should only get called when the canvas isn't a real graph
     else if (v.refersToSameSourceAs(presentationMode))
