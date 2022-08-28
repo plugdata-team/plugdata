@@ -11,7 +11,9 @@ struct FastStringWidth {
     {
         for(char i = 0; i < num_items; i++)
         {
-            widths[i] = font.getStringWidth(String::fromUTF8(&i, 1));
+            char* chr = new char((char)i);
+            widths[i] = font.getStringWidth(String(CharPointer_UTF8(chr), 1));
+            delete chr;
         }
     }
     
@@ -27,6 +29,14 @@ struct FastStringWidth {
         }
         
         // In real text, letters are slightly closer together
-        return totalWidth * 0.8f;
+        return totalWidth * 0.9f;
+    }
+    
+    /*
+    // some tests
+    const String testString = "The quick brown fox jumps over the lazy dog";
+    void test(Font font) {
+        std::cout << "accuracy:" << getStringWidth(testString) / font.getStringWidthFloat(testString) << std::endl;
+        
     }
 };
