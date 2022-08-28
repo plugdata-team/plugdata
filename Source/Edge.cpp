@@ -51,7 +51,7 @@ void Edge::paint(Graphics& g)
     // Instead of drawing pie segments, just clip the graphics region to the visible edges of the box
     // This is much faster!
     bool stateSaved = false;
-    if (!(box->isOver() || over || isTargeted) || isLocked)
+    if (!(box->isMouseOverOrDragging(true) || over || isTargeted) || isLocked)
     {
         g.saveState();
         g.reduceClipRegion(getLocalArea(box, box->getLocalBounds().reduced(Box::margin)));
