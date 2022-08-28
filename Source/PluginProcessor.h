@@ -73,25 +73,6 @@ class PlugDataAudioProcessor : public AudioProcessor, public pd::Instance, publi
 
     void synchroniseCanvas(void* cnv) override;
 
-    void receivePrint(const String& message) override
-    {
-        if (message.isNotEmpty())
-        {
-            if (message.startsWith("error:"))
-            {
-                logError(message.substring(7));
-            }
-            else if (message.startsWith("verbose(4):"))
-            {
-                logError(message.substring(12));
-            }
-            else
-            {
-                logMessage(message);
-            }
-        }
-    };
-
     void process(dsp::AudioBlock<float>, MidiBuffer&);
 
     void setCallbackLock(const CriticalSection* lock)

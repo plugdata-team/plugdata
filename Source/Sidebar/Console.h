@@ -4,7 +4,7 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
-struct Console : public Component, public Timer {
+struct Console : public Component {
     explicit Console(pd::Instance* instance)
     {
         // Viewport takes ownership
@@ -69,17 +69,10 @@ struct Console : public Component, public Timer {
         viewport.setBounds(bounds.toNearestInt());
         console->setSize(viewport.getWidth(), std::max<int>(console->getTotalHeight(), viewport.getHeight()));
     }
-    
-    void timerCallback() override {
-        console->update();
-        stopTimer();
-    }
-    
+
     void update()
     {
-        if(!isTimerRunning()) {
-            startTimer(10);
-        }
+        console->update();
     }
 
     void deselect()
@@ -160,7 +153,7 @@ struct Console : public Component, public Timer {
                 g.fillRect(getLocalBounds());
 
                 // Get console message
-                auto& [message, type, length] = console.pd->consoleMessages[idx];
+                auto& [message, type, length] = console.pd->getConsoleMessages()[idx];
 
                 // Check if message type should be visible
                 if ((type == 1 && !showMessages) || (type == 0 && !showErrors)) {
@@ -199,10 +192,10 @@ struct Console : public Component, public Timer {
 
         bool keyPressed(KeyPress const& key) override
         {
-            if (isPositiveAndBelow(selectedItem, pd->consoleMessages.size())) {
+            if (isPositiveAndBelow(selectedItem, pd->getConsoleMessages().size())) {
                 // Copy console item
                 if (key == KeyPress('c', ModifierKeys::commandModifier, 0)) {
-                    SystemClipboard::copyTextToClipboard(std::get<0>(pd->consoleMessages[selectedItem]));
+                    SystemClipboard::copyTextToClipboard(std::get<0>(pd->getConsoleMessages()[selectedItem]));
                     return true;
                 }
             }
@@ -211,7 +204,7 @@ struct Console : public Component, public Timer {
 
         void update()
         {
-            while (messages.size() > pd->consoleMessages.size() || messages.size() >= 800) {
+            while (messages.size() > pd->getConsoleMessages().size() || messages.size() >= 800) {
                 messages.pop_front();
 
                 // Make sure we don't trigger a repaint for all messages when the console is full
@@ -220,7 +213,7 @@ struct Console : public Component, public Timer {
                 }
             }
             
-            while (messages.size() < pd->consoleMessages.size()) {
+            while (messages.size() < pd->getConsoleMessages().size()) {
                 messages.push_back(std::make_unique<ConsoleMessage>(messages.size(), *this));
             }
             
@@ -228,14 +221,13 @@ struct Console : public Component, public Timer {
             bool showErrors = buttons[3].getToggleState();
 
             int totalHeight = 0;
-            for (int row = 0; row < static_cast<int>(pd->consoleMessages.size()); row++) {
-                auto [message, type, length] = pd->consoleMessages[row];
+            for (int row = 0; row < static_cast<int>(pd->getConsoleMessages().size()); row++) {
+                auto [message, type, length] = pd->getConsoleMessages()[row];
                 int numLines = getNumLines(getWidth(), length);
                 int height = numLines * 22 + 2;
                 
                 if (messages[row]->idx != row) {
                     messages[row]->idx = row;
-                    //messages[row]->setBounds(0, totalHeight, getWidth(), height);
                     messages[row]->repaint();
                 }
                 
@@ -256,15 +248,15 @@ struct Console : public Component, public Timer {
 
         void clear()
         {
-            pd->consoleHistory.insert(pd->consoleHistory.end(), pd->consoleMessages.begin(), pd->consoleMessages.end());
-            pd->consoleMessages.clear();
+            pd->getConsoleHistory().insert(pd->getConsoleHistory().end(), pd->getConsoleMessages().begin(), pd->getConsoleMessages().end());
+            pd->getConsoleMessages().clear();
             update();
         }
 
         void restore()
         {
-            pd->consoleMessages.insert(pd->consoleMessages.begin(), pd->consoleHistory.begin(), pd->consoleHistory.end());
-            pd->consoleHistory.clear();
+            pd->getConsoleMessages().insert(pd->getConsoleMessages().begin(), pd->getConsoleHistory().begin(), pd->getConsoleHistory().end());
+            pd->getConsoleHistory().clear();
             update();
         }
 
@@ -277,7 +269,7 @@ struct Console : public Component, public Timer {
             auto font = Font(Font::getDefaultSansSerifFontName(), 13, 0);
             int totalHeight = 0;
 
-            for (auto& [message, type, length] : pd->consoleMessages) {
+            for (auto& [message, type, length] : pd->getConsoleMessages()) {
                 int numLines = getNumLines(getWidth(), length);
                 int height = numLines * 22 + 2;
 
@@ -285,6 +277,7 @@ struct Console : public Component, public Timer {
                     continue;
                 
                 totalHeight += std::max(0, height);
+
             }
 
             return totalHeight;
@@ -293,11 +286,11 @@ struct Console : public Component, public Timer {
         void resized() override
         {
             int totalHeight = 0;
-            for (int row = 0; row < static_cast<int>(pd->consoleMessages.size()); row++) {
+            for (int row = 0; row < static_cast<int>(pd->getConsoleMessages().size()); row++) {
                 if (row >= messages.size())
                     break;
 
-                auto& [message, type, length] = pd->consoleMessages[row];
+                auto& [message, type, length] = pd->getConsoleMessages()[row];
 
                 int numLines = getNumLines(getWidth(), length);
                 int height = numLines * 22 + 2;
@@ -318,6 +311,8 @@ struct Console : public Component, public Timer {
 private:
     ConsoleComponent* console;
     Viewport viewport;
+    
+    int pendingUpdates = 0;
 
     std::array<TextButton, 5> buttons = { TextButton(Icons::Clear), TextButton(Icons::Restore), TextButton(Icons::Error), TextButton(Icons::Message), TextButton(Icons::AutoScroll) };
 };

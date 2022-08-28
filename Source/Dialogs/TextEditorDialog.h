@@ -1126,6 +1126,8 @@ float TextDocument::getVerticalPosition(int row, Metric metric) const
         return lineHeight * row + gap + font.getAscent() + font.getDescent();
     case Metric::bottom:
         return lineHeight * row + lineHeight;
+    default:
+        return lineHeight * row;
     }
 }
 

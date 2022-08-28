@@ -99,42 +99,14 @@ struct pd::Instance::internal {
 
     static void instance_multi_print(pd::Instance* ptr, char const* s)
     {
-        auto* concatenatedLine = ptr->printConcatBuffer;
-        static int length = 0;
-        concatenatedLine[length] = '\0';
-
-        int len = (int)strlen(s);
-        while (length + len >= 2048) {
-            int d = 2048 - 1 - length;
-            strncat(concatenatedLine, s, d);
-
-            // Send concatenated line to PlugData!
-            ptr->processPrint(String::fromUTF8(concatenatedLine));
-            
-            s += d;
-            len -= d;
-            length = 0;
-            concatenatedLine[0] = '\0';
-        }
-
-        strncat(concatenatedLine, s, len);
-        length += len;
-
-        if (length > 0 && concatenatedLine[length - 1] == '\n') {
-            concatenatedLine[length - 1] = '\0';
-
-            // Send concatenated line to PlugData!
-            ptr->processPrint(String::fromUTF8(concatenatedLine));
-
-            length = 0;
-        }
+            ptr->consoleHandler.processPrint(s);
     }
 };
 }
 
 namespace pd {
 
-Instance::Instance(String const& symbol) : fastStringWidth(Font(14))
+Instance::Instance(String const& symbol) : consoleHandler(this)
 {
     libpd_multi_init();
 
@@ -431,12 +403,6 @@ void Instance::processMidiEvent(midievent event)
         receiveMidiByte(event.midi1, event.midi2);
 }
 
-void Instance::processPrint(String print)
-{
-    MessageManager::callAsync([this, print]() mutable {
-        receivePrint(print);
-    });
-}
 
 void Instance::processSend(dmessage mess)
 {
@@ -576,6 +542,29 @@ void Instance::setThis()
     libpd_set_instance(static_cast<t_pdinstance*>(m_instance));
 }
 
+void Instance::logMessage(String const& message)
+{
+    consoleHandler.logMessage(message);
+}
+
+void Instance::logError(String const& error)
+{
+    consoleHandler.logError(error);
+}
+
+
+std::deque<std::tuple<String, int, int>>& Instance::getConsoleMessages()
+{
+    return consoleHandler.consoleMessages;
+}
+
+std::deque<std::tuple<String, int, int>>& Instance::getConsoleHistory()
+{
+    return consoleHandler.consoleHistory;
+}
+
+
+
 void Instance::createPanel(int type, char const* snd, char const* location)
 {
 
@@ -628,24 +617,6 @@ void Instance::createPanel(int type, char const* snd, char const* location)
     }
 }
 
-void Instance::logMessage(String const& message)
-{
-    
-    consoleMessages.emplace_back(message, 0, fastStringWidth.getStringWidth(message) + 12);
 
-    if (consoleMessages.size() > 800)
-        consoleMessages.pop_front();
 
-    updateConsole();
-}
-
-void Instance::logError(String const& error)
-{
-    consoleMessages.emplace_back(error, 1, fastStringWidth.getStringWidth(error) + 12);
-
-    if (consoleMessages.size() > 800)
-        consoleMessages.pop_front();
-
-    updateConsole();
-}
 } // namespace pd

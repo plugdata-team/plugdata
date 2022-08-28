@@ -149,17 +149,6 @@ struct ButtonObject : public GUIObject {
 
     }
 
-    float getValue() override
-    {
-        /*
-        // hack to trigger off the bang if no GUI update
-        if ((static_cast<t_fake_button*>(ptr))->x_flashed > 0) {
-            static_cast<t_fake_button*>(ptr)->x_flashed = 0;
-            return 1.0f;
-        }
-        return 0.0f; */
-    }
-
     ObjectParameters defineParameters() override
     {
         return {
