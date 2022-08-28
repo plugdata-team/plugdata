@@ -38,5 +38,5 @@ struct FastStringWidth {
     void test(Font font) {
         std::cout << "accuracy:" << getStringWidth(testString) / font.getStringWidthFloat(testString) << std::endl;
         
-    }
+    } */
 };
