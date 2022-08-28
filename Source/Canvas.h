@@ -114,7 +114,6 @@ class Canvas : public Component, public Value::Listener, public LassoSource<Weak
     OwnedArray<Connection> connections;
 
     Value locked;
-    Value commandLocked;
     Value presentationMode;
     Value gridEnabled = Value(var(true));
 

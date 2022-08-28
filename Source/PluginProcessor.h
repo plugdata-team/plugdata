@@ -140,7 +140,6 @@ class PlugDataAudioProcessor : public AudioProcessor, public pd::Instance, publi
     File abstractions = appDir.getChildFile("Abstractions");
 
     Value locked = Value(var(false));
-    Value commandLocked = Value(var(false));
     Value zoomScale = Value(1.0f);
 
     AudioProcessorValueTreeState parameters;

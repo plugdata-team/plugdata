@@ -96,12 +96,13 @@ struct CommentObject final : public TextBase, public KeyListener {
 
             editor->setAlwaysOnTop(true);
 
-            editor->setMultiLine(false);
-            editor->setReturnKeyStartsNewLine(false);
+            editor->setMultiLine(true);
+            editor->setReturnKeyStartsNewLine(true);
             editor->setBorder(border);
             editor->setIndents(0, 0);
             editor->setJustification(justification);
 
+            
             editor->onFocusLost = [this]() {
                 // Necessary so the editor doesn't close when clicking on a suggestion
                 if (!reinterpret_cast<Component*>(cnv->suggestor)->hasKeyboardFocus(true)) {
@@ -141,6 +142,10 @@ struct CommentObject final : public TextBase, public KeyListener {
                 return true;
             }
         }
+        /*
+        if (key == KeyPress::returnK) {
+            
+        } */
         return false;
     }
 };
