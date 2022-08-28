@@ -1,32 +1,30 @@
 ---
 title: bpm
 
-description:
+description: Convert to/from bpm
 
 categories:
 - object
 
-pdcategory:
+pdcategory: Math
 
-arguments:
-- description:
-  type:
-  default:
+arguments: none
 
 inlets:
   1st:
-  - type:
-    description:
-  2nd:
-  - type:
-    description:
+  - type: float
+    description: input to convert
 
 outlets:
   1st:
-  - type:
-    description:
+  - type: float
+    description: converted output
+
+flags:
+- name: -samps
+  description: sets conversion to/from samples
 
 draft: false
 ---
 
-LONG DESCRIPTION HERE
+[bpm] calculates a conversion to and from bpm (beats per minute). By default it converts to and from ms, but you can also set it to convert to and from samples.
