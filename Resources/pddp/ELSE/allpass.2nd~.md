@@ -18,6 +18,11 @@ arguments:
     description: resonance
     default: 1
 
+flags:
+- name: -bw
+  description: sets resonance parameter to bandwidth in octaves
+
+
 inlets:
   1st:
   - type: signal
