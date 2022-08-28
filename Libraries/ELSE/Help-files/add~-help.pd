@@ -1,13 +1,13 @@
 #N canvas 468 31 566 479 10;
-#X obj 6 314 cnv 3 550 4 empty empty inlets 8 12 0 13 #dcdcdc #000000
+#X obj 6 314 cnv 3 550 3 empty empty inlets 8 12 0 13 #dcdcdc #000000
 0;
-#X obj 6 394 cnv 3 550 4 empty empty outlets 8 12 0 13 #dcdcdc #000000
+#X obj 6 394 cnv 3 550 3 empty empty outlets 8 12 0 13 #dcdcdc #000000
 0;
-#X obj 6 426 cnv 3 550 4 empty empty arguments 8 12 0 13 #dcdcdc #000000
+#X obj 6 426 cnv 3 550 3 empty empty arguments 8 12 0 13 #dcdcdc #000000
 0;
-#X obj 118 403 cnv 17 4 17 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
+#X obj 118 403 cnv 17 3 17 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
 ;
-#X obj 119 321 cnv 17 4 49 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
+#X obj 119 321 cnv 17 3 49 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
 ;
 #X obj 6 453 cnv 15 552 21 empty empty empty 20 12 0 14 #e0e0e0 #202020
 0;
@@ -15,11 +15,7 @@
 0;
 #X obj 308 4 cnv 15 250 40 empty empty empty 12 13 0 18 #7c7c7c #e0e4dc
 0;
-#N canvas 0 22 450 278 (subpatch) 1;
 #N canvas 0 22 450 278 (subpatch) 0;
-#X text 0 0 plugdatainfo;
-#X coords 0 1 100 -1 1 1 1;
-#X restore 0 0 graph;
 #X coords 0 1 100 -1 302 42 1;
 #X restore 4 3 graph;
 #X obj 347 11 cnv 10 10 10 empty empty ELSE 0 15 2 30 #7c7c7c #e0e4dc
@@ -43,11 +39,12 @@
 #X text 230 321 - value to accumulate;
 #X text 178 404 signal;
 #X text 230 404 - the accumulated value;
-#X obj 118 374 cnv 17 4 17 empty empty 1 5 9 0 16 #dcdcdc #9c9c9c 0
+#X obj 118 374 cnv 17 3 17 empty empty 1 5 9 0 16 #dcdcdc #9c9c9c 0
 ;
 #X text 180 375 signal;
-#N canvas 207 34 366 264 (subpatch) 1;
-#X obj 51 101 tgl 42 0 \$0-tgl-s \$0-tgl-r empty 1 8 1 9 #4a4f51 #cde5c3
+#X text 230 374 - impulse ressets to starting value;
+#N canvas 207 34 366 264 (subpatch) 0;
+#X obj 51 101 tgl 42 0 \$0-tgl-s \$0-tgl-r empty 1 8 1 9 #dcdcdc #7c7c7c
 #fcfcfc 0 1;
 #X obj 215 68 route dsp;
 #X obj 215 37 receive pd;
@@ -116,18 +113,14 @@
 #X connect 7 0 1 0;
 #X restore 215 165 pd set_color;
 #X obj 135 122 r \$0-tgl-s;
-#N canvas 121 482 450 300 (subpatch) 1;
-#X obj 101 101 cnv 25 40 25 empty \$0-cnv DSP 3 13 0 20 #4a4f51 #cde5c3
+#N canvas 121 482 450 300 (subpatch) 0;
+#X obj 101 101 cnv 25 40 25 empty \$0-cnv DSP 3 13 0 20 #dcdcdc #7c7c7c
 0;
-#N canvas 0 22 450 278 (subpatch) 0;
-#X text 0 0 plugdatainfo;
-#X coords 0 1 100 -1 1 1 1;
-#X restore 0 0 graph;
 #X coords 0 -1 1 1 42 27 1 100 100;
 #X restore 51 144 pd;
 #X obj 226 139 s \$0-tgl-r;
-#X msg 226 115 set \$1, f 9;
-#X msg 135 177 \; pd dsp \$1, f 13;
+#X msg 226 115 set \$1;
+#X msg 135 177 \; pd dsp \$1;
 #N canvas 256 32 278 194 load_check 0;
 #X obj 136 53 sig~ 1;
 #X obj 74 24 loadbang;
@@ -145,10 +138,6 @@
 #X connect 3 0 5 0;
 #X connect 5 0 6 0;
 #X restore 51 72 pd load_check;
-#N canvas 0 22 450 278 (subpatch) 0;
-#X text 0 0 plugdatainfo;
-#X coords 0 1 100 -1 1 1 1;
-#X restore 0 0 graph;
 #X connect 1 0 3 0;
 #X connect 1 0 7 0;
 #X connect 2 0 1 0;
@@ -158,15 +147,11 @@
 #X connect 9 0 0 0;
 #X coords 0 -1 1 1 44 72 2 50 100;
 #X restore 507 61 pd;
-#N canvas 0 22 450 278 (subpatch) 1;
 #N canvas 0 22 450 278 (subpatch) 0;
-#X text 0 0 plugdatainfo;
-#X coords 0 1 100 -1 1 1 1;
-#X restore 0 0 graph;
 #X coords 0 1 100 -1 252 42 1 0 0;
 #X restore 307 3 graph;
 #X text 317 165 reset;
-#X msg 244 188 set 1, f 7;
+#X msg 244 188 set 1;
 #X obj 200 188 bng 15 250 50 0 empty empty empty 17 7 0 10 #dcdcdc
 #000000 #000000;
 #X text 154 187 reset;
@@ -174,29 +159,22 @@
 #X text 192 338 bang;
 #X obj 227 161 sig~ 0.01;
 #X obj 200 284 print~;
-#X obj 227 249 display~ 8;
-#X obj 296 192 impseq~;
+#X obj 296 192 else/impseq~;
 #X text 144 321 float/signal;
+#X text 230 338 - ressets sum to starting point;
 #X text 230 354 - sets starting sum;
 #X text 166 431 1) float - starting sum (default 0);
-#X obj 227 219 add~ 10;
-#N canvas 0 22 450 278 (subpatch) 0;
-#X text 0 0 plugdatainfo <?xml version="1.0" encoding="UTF-8"?> <PlugDataInfo/>
-;
-#X coords 0 1 100 -1 1 1 1;
-#X restore 0 0 graph;
-#X text 73 87 [add~] starts accumulating input values to a starting
+#X text 64 92 [add~] starts accumulating input values to a starting
 sum value (0 by default). The starting sum can be set as an argument
-or via the 'set' message. You can reset the sum to the starting sum
-value with a bang or with an impulse signal to the right inlet., f
-64;
-#X text 230 338 - resets sum to starting point;
-#X text 230 374 - impulse resets to starting value;
+or the 'set' message. You can resset the to the starting sum point
+with a bang or with an impulse signal in the right inlet.;
+#X obj 227 219 else/add~ 10;
+#X obj 227 249 else/numbox~ 8 12 100 #c0c0c4 #440008 10 0 0 0;
 #X connect 17 0 34 0;
-#X connect 26 0 38 0;
-#X connect 27 0 32 0;
-#X connect 27 0 38 0;
-#X connect 31 0 38 0;
-#X connect 33 0 32 0;
-#X connect 34 0 38 1;
-#X connect 38 0 33 0;
+#X connect 27 0 40 0;
+#X connect 28 0 33 0;
+#X connect 28 0 40 0;
+#X connect 32 0 40 0;
+#X connect 34 0 40 1;
+#X connect 40 0 41 0;
+#X connect 41 0 33 0;

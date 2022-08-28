@@ -70,7 +70,7 @@ enum PlugDataColour
 
 struct Resources
 {
-    Typeface::Ptr defaultTypeface = Typeface::createSystemTypefaceFor(BinaryData::InterRegular_otf, BinaryData::InterRegular_otfSize);
+    Typeface::Ptr defaultTypeface = Typeface::createSystemTypefaceFor(BinaryData::InterRegular_ttf, BinaryData::InterRegular_ttfSize);
 
     Typeface::Ptr iconTypeface = Typeface::createSystemTypefaceFor(BinaryData::PlugDataFont_ttf, BinaryData::PlugDataFont_ttfSize);
 };
@@ -849,7 +849,7 @@ struct PlugDataLook : public LookAndFeel_V4
     static void setDefaultFont(String fontName)
     {
         auto& lnf = dynamic_cast<PlugDataLook&>(getDefaultLookAndFeel());
-        if (fontName == "Inter")
+        if (fontName.isEmpty() || fontName == "Inter")
         {
             lnf.setDefaultSansSerifTypeface(lnf.defaultFont.getTypefacePtr());
         }

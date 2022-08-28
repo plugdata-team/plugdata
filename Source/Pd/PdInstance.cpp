@@ -21,7 +21,7 @@ extern "C" {
 
 extern "C" {
 struct pd::Instance::internal {
-    
+
     static void instance_multi_bang(pd::Instance* ptr, char const* recv)
     {
         ptr->enqueueFunctionAsync([ptr, recv]() { ptr->processMessage({ String("bang"), String(recv) }); });
@@ -99,41 +99,14 @@ struct pd::Instance::internal {
 
     static void instance_multi_print(pd::Instance* ptr, char const* s)
     {
-        auto* concatenatedLine = ptr->printConcatBuffer;
-        static int length = 0;
-        concatenatedLine[length] = '\0';
-
-        int len = (int) strlen(s);
-        while (length + len >= 2048) {
-          int d = 2048 - 1 - length;
-          strncat(concatenatedLine, s, d);
-            
-          // Send concatenated line to PlugData!
-          ptr->enqueueFunctionAsync([ptr, mess = String(concatenatedLine)]() mutable { ptr->processPrint(mess); });
-          s += d;
-          len -= d;
-          length = 0;
-          concatenatedLine[0] = '\0';
-        }
-
-        strncat(concatenatedLine, s, len);
-        length += len;
-
-        if (length > 0 && concatenatedLine[length - 1] == '\n') {
-          concatenatedLine[length - 1] = '\0';
-            
-          // Send concatenated line to PlugData!
-          ptr->enqueueFunctionAsync([ptr, mess = String(concatenatedLine)]() mutable { ptr->processPrint(mess); });
-            
-          length = 0;
-        }
+            ptr->consoleHandler.processPrint(s);
     }
 };
 }
 
 namespace pd {
 
-Instance::Instance(String const& symbol)
+Instance::Instance(String const& symbol) : consoleHandler(this)
 {
     libpd_multi_init();
 
@@ -176,6 +149,8 @@ Instance::Instance(String const& symbol)
     register_gui_triggers(static_cast<t_pdinstance*>(m_instance), this, gui_trigger, panel_trigger, synchronise_trigger, parameter_trigger);
 
     // HACK: create full path names for c-coded externals
+    // Temporarily disabled because bugs
+    /*
     int i;
     t_class* o = pd_objectmaker;
 
@@ -200,11 +175,11 @@ Instance::Instance(String const& symbol)
         if (name == "accum") {
             insideCyclone = true;
         }
-        if (name == "above") {
+        if (name == "above~") {
             insideElse = true;
         }
 
-        if ((insideCyclone || insideElse) && !(name.contains("cyclone") || name.contains("else") || name == "Pow~")) {
+        if ((insideCyclone || insideElse) && !(name.contains("cyclone") || name.contains("else") || name == "Pow~" || name == "del~")) {
             auto newName = insideCyclone ? "cyclone/" + name : "else/" + name;
 
             std::array<t_atomtype, 6> args;
@@ -216,10 +191,10 @@ Instance::Instance(String const& symbol)
 
             newMethods.push_back({ newName, method, args });
         }
-        if (name == "zerox") {
+        if (name == "zerox~") {
             insideCyclone = false;
         }
-        if (name == "zerocross") {
+        if (name == "zerocross~") {
             insideElse = false;
         }
     }
@@ -230,8 +205,9 @@ Instance::Instance(String const& symbol)
         class_addcreator(method, gensym(name.toRawUTF8()), args[0], args[1], args[2], args[3], args[4], args[5]);
     }
 
+     */
+    
     libpd_set_verbose(0);
-
     setThis();
 }
 
@@ -389,7 +365,6 @@ void Instance::sendMessage(char const* receiver, char const* msg, std::vector<At
     libpd_message(receiver, msg, static_cast<int>(list.size()), argv);
 }
 
-
 void Instance::processMessage(Message mess)
 {
     if (mess.destination == "param") {
@@ -428,11 +403,6 @@ void Instance::processMidiEvent(midievent event)
         receiveMidiByte(event.midi1, event.midi2);
 }
 
-void Instance::processPrint(String print)
-{
-    print = print.trimEnd();
-    MessageManager::callAsync([this, print]() mutable { receivePrint(print); });
-}
 
 void Instance::processSend(dmessage mess)
 {
@@ -460,7 +430,6 @@ void Instance::processSend(dmessage mess)
             sys_lock();
             pd_symbol(static_cast<t_pd*>(mess.object), gensym(mess.list[0].getSymbol().toRawUTF8()));
             sys_unlock();
-            
         }
     } else {
         sendMessage(mess.destination.toRawUTF8(), mess.selector.toRawUTF8(), mess.list);
@@ -529,6 +498,16 @@ void Instance::sendMessagesFromQueue()
     }
 }
 
+String Instance::getExtraInfo(File const& toOpen)
+{
+    String content = toOpen.loadFileAsString();
+    if(content.contains("_plugdatainfo_")) {
+        return content.fromFirstOccurrenceOf("_plugdatainfo_", false, false).fromFirstOccurrenceOf("[INFOSTART]", false, false).upToFirstOccurrenceOf("[INFOEND]", false, false);
+    }
+    
+    return String();
+}
+
 Patch Instance::openPatch(File const& toOpen)
 {
     t_canvas* cnv = nullptr;
@@ -552,13 +531,39 @@ Patch Instance::openPatch(File const& toOpen)
         waitForStateUpdate();
     }
 
-    return Patch(cnv, this, toOpen);
+    auto patch = Patch(cnv, this, toOpen);
+    Storage::setContent(cnv, getExtraInfo(toOpen));
+
+    return patch;
 }
 
 void Instance::setThis()
 {
     libpd_set_instance(static_cast<t_pdinstance*>(m_instance));
 }
+
+void Instance::logMessage(String const& message)
+{
+    consoleHandler.logMessage(message);
+}
+
+void Instance::logError(String const& error)
+{
+    consoleHandler.logError(error);
+}
+
+
+std::deque<std::tuple<String, int, int>>& Instance::getConsoleMessages()
+{
+    return consoleHandler.consoleMessages;
+}
+
+std::deque<std::tuple<String, int, int>>& Instance::getConsoleHistory()
+{
+    return consoleHandler.consoleHistory;
+}
+
+
 
 void Instance::createPanel(int type, char const* snd, char const* location)
 {
@@ -612,23 +617,6 @@ void Instance::createPanel(int type, char const* snd, char const* location)
     }
 }
 
-void Instance::logMessage(String const& message)
-{
-    consoleMessages.emplace_back(message, 0, Font(14).getStringWidth(message) + 12);
 
-    if (consoleMessages.size() > 800)
-        consoleMessages.pop_front();
 
-    updateConsole();
-}
-
-void Instance::logError(String const& error)
-{
-    consoleMessages.emplace_back(error, 1, Font(14).getStringWidth(error) + 12);
-
-    if (consoleMessages.size() > 800)
-        consoleMessages.pop_front();
-
-    updateConsole();
-}
 } // namespace pd

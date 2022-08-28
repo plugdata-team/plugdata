@@ -85,32 +85,23 @@ struct RadioObject final : public IEMObject {
 
     void updateBounds() override
     {
+        pd->getCallbackLock()->enter();
+
         int x = 0, y = 0, w = 0, h = 0;
         libpd_get_object_bounds(cnv->patch.getPointer(), ptr, &x, &y, &w, &h);
+        auto bounds = Rectangle<int>(x, y, w, h);
 
-        pd->enqueueFunction([this, _this = SafePointer(this)]() {
-            if (!_this)
-                return;
+        if (isVertical) {
+            auto* dial = static_cast<t_vdial*>(ptr);
+            bounds.setSize(dial->x_gui.x_w, dial->x_gui.x_h * dial->x_number);
+        } else {
+            auto* dial = static_cast<t_hdial*>(ptr);
+            bounds.setSize(dial->x_gui.x_w * dial->x_number, dial->x_gui.x_h);
+        }
 
-            int x = 0, y = 0, w = 0, h = 0;
-            libpd_get_object_bounds(cnv->patch.getPointer(), ptr, &x, &y, &w, &h);
-            auto bounds = Rectangle<int>(x, y, w, h);
-
-            if (isVertical) {
-                auto* dial = static_cast<t_vdial*>(ptr);
-                bounds.setSize(dial->x_gui.x_w, dial->x_gui.x_h * dial->x_number);
-            } else {
-                auto* dial = static_cast<t_hdial*>(ptr);
-                bounds.setSize(dial->x_gui.x_w * dial->x_number, dial->x_gui.x_h);
-            }
-
-            MessageManager::callAsync([this, _this = SafePointer(this), bounds]() mutable {
-                if (!_this)
-                    return;
-
-                box->setObjectBounds(bounds);
-            });
-        });
+        pd->getCallbackLock()->exit();
+    
+        box->setObjectBounds(bounds);
     }
 
     void updateRange()

@@ -118,9 +118,3 @@ void Dialogs::showObjectMenu(PlugDataPluginEditor* parent, Component* target)
             }
         });
 }
-
-// Make sure the singleton gets initialised to begin downloading package data in the background
-void Dialogs::initialiseDeken()
-{
-    PackageManager::getInstance();
-}

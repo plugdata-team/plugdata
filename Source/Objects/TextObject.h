@@ -34,6 +34,8 @@ struct TextBase : public ObjectBase
         numLines = getNumLines(currentText, width);
         int height = numLines * 15 + 6;
 
+        width = std::max(width, 25);
+
         if (getWidth() != width || getHeight() != height) {
             box->setSize(width + Box::doubleMargin, height + Box::doubleMargin);
         }
@@ -97,46 +99,38 @@ struct TextBase : public ObjectBase
 
     void updateBounds() override
     {
+        pd->getCallbackLock()->enter();
 
-        // If it's a text object, we need to handle the resizable width, which pd saves in amount of text characters
+        int x, y, w, h;
 
-        pd->enqueueFunction([this, _this = SafePointer(this)]() {
-            if (!_this)
-                return;
+        auto* textObj = static_cast<t_text*>(ptr);
 
-            int x, y, w, h;
+        libpd_get_object_bounds(cnv->patch.getPointer(), ptr, &x, &y, &w, &h);
 
-            auto* textObj = static_cast<t_text*>(ptr);
+        Rectangle<int> bounds = { x, y, textObj->te_width, h };
 
-            libpd_get_object_bounds(cnv->patch.getPointer(), ptr, &x, &y, &w, &h);
+        int fontWidth = glist_fontwidth(cnv->patch.getPointer());
+        int textWidth = getBestTextWidth(currentText);
 
-            Rectangle<int> bounds = { x, y, textObj->te_width, h };
+        pd->getCallbackLock()->exit();
+        
+        // We need to handle the resizable width, which pd saves in amount of text characters
+        textWidthOffset = textWidth % fontWidth;
+        textObjectWidth = bounds.getWidth();
 
-            int fontWidth = glist_fontwidth(cnv->patch.getPointer());
-            int textWidth = getBestTextWidth(currentText);
+        if (textObjectWidth == 0) {
+            textObjectWidth = (textWidth - textWidthOffset) / fontWidth;
+        }
 
-            MessageManager::callAsync([this, _this = SafePointer(this), bounds, fontWidth, textWidth]() mutable {
-                if (!_this)
-                    return;
+        int width = textObjectWidth * fontWidth + textWidthOffset;
 
-                textWidthOffset = textWidth % fontWidth;
-                textObjectWidth = bounds.getWidth();
+        numLines = getNumLines(currentText, width);
+        int height = numLines * 15 + 6;
 
-                if (textObjectWidth == 0) {
-                    textObjectWidth = (textWidth - textWidthOffset) / fontWidth;
-                }
+        bounds.setWidth(width);
+        bounds.setHeight(width);
 
-                int width = textObjectWidth * fontWidth + textWidthOffset;
-
-                numLines = getNumLines(currentText, width);
-                int height = numLines * 15 + 6;
-
-                bounds.setWidth(width);
-                bounds.setHeight(width);
-
-                box->setObjectBounds(bounds);
-            });
-        });
+        box->setObjectBounds(bounds);
     }
 
     void hideEditor() override

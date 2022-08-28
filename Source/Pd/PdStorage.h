@@ -10,52 +10,35 @@
 #include <array>
 #include <vector>
 
-#include "PdInstance.h"
-
 extern "C" {
 #include "x_libpd_mod_utils.h"
 }
 
+class Canvas;
+
+
 namespace pd {
 
-class Storage {
-    t_glist* parentPatch = nullptr;
-    Instance* instance = nullptr;
+class Instance;
 
-    t_gobj* infoObject = nullptr;
-    t_glist* infoParent = nullptr;
+class Storage {
 
 public:
-    Storage(t_glist* patch, Instance* inst);
 
-    Storage() = delete;
+    static void setContent(t_glist* patch, String content);
+    static ValueTree getContent(t_glist* patch);
 
-    void setInfoId(String const& oldId, String const& newId);
-    void confirmIds();
+    static void undoIfNeeded(Canvas* cnv);
+    static void redoIfNeeded(Canvas* cnv);
 
-    bool hasInfo(String const& id) const;
-    void storeInfo();
-    void loadInfoFromPatch();
+    static void createUndoAction(Canvas* cnv);
 
-    void undoIfNeeded();
-    void redoIfNeeded();
-
-    void createUndoAction();
-
-    static bool isInfoParent(t_gobj* obj);
-    static bool isInfoParent(t_glist* glist);
-
-    String getInfo(String const& id, String const& property) const;
-    void setInfo(String const& id, String const& property, String const& info, bool undoable = true);
+    static String getInfo(Canvas* cnv, String const& id, String const& property);
+    static void setInfo(Canvas* cnv, String const& id, String const& property, String const& info, bool undoable = true);
+    
+    static std::pair<ValueTree, UndoManager*> getInfoForPatch(void* patch);
 
 private:
-    void createObject();
-
-    UndoManager undoManager;
-
-    ValueTree extraInfo = ValueTree("PlugDataInfo");
-
-    friend class Instance;
-    friend class Patch;
+    static inline std::unordered_map<void*, std::pair<ValueTree, std::unique_ptr<UndoManager>>> canvasInfo = std::unordered_map<void*, std::pair<ValueTree, std::unique_ptr<UndoManager>>>();
 };
 } // namespace pd

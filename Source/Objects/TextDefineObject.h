@@ -19,7 +19,7 @@ struct t_fake_text_define {
     unsigned char x_keep; /* whether to embed contents in patch on save */
 };
 
-//void binbuf_gettext(const t_binbuf *x, char **bufp, int *lengthp);
+// void binbuf_gettext(const t_binbuf *x, char **bufp, int *lengthp);
 
 // Actual text object, marked final for optimisation
 struct TextDefineObject final : public TextBase {
@@ -49,7 +49,7 @@ struct TextDefineObject final : public TextBase {
             return;
         }
 
-        auto name = String(static_cast<t_fake_text_define*>(ptr)->x_bindsym->s_name);
+        auto name = String::fromUTF8(static_cast<t_fake_text_define*>(ptr)->x_bindsym->s_name);
 
         textEditor.reset(
             Dialogs::showTextEditorDialog(getText(), name, [this](String lastText, bool hasChanged) {
@@ -73,18 +73,18 @@ struct TextDefineObject final : public TextBase {
     void setText(String text)
     {
         auto& textbuf = static_cast<t_fake_text_define*>(ptr)->x_textbuf;
-        
+
         text = text.removeCharacters("\r");
         auto lines = StringArray::fromTokens(text, ";", "\"");
         auto atoms = std::vector<t_atom>();
         atoms.reserve(lines.size());
-        
-        for(int i = 0; i < lines.size(); i++)
-        {
-            if(lines[i].isEmpty()) continue;
-            
+
+        for (int i = 0; i < lines.size(); i++) {
+            if (lines[i].isEmpty())
+                continue;
+
             auto words = StringArray::fromTokens(lines[i], " ", "\"");
-            for(int j = 0; j < words.size(); j++) {
+            for (int j = 0; j < words.size(); j++) {
                 atoms.emplace_back();
                 if (words[j].containsOnly("0123456789e.-+") && words[j] != "-") {
                     SETFLOAT(&atoms.back(), words[j].getFloatValue());
@@ -92,15 +92,15 @@ struct TextDefineObject final : public TextBase {
                     SETSYMBOL(&atoms.back(), gensym((words[j].toRawUTF8())));
                 }
             }
-            
+
             atoms.emplace_back();
             SETSYMBOL(&atoms.back(), gensym(";"));
         }
 
         pd->enqueueFunction([this, atoms, &textbuf]() mutable {
             binbuf_clear(textbuf.b_binbuf);
-            
-            t_binbuf *z = binbuf_new();
+
+            t_binbuf* z = binbuf_new();
             binbuf_restore(z, atoms.size(), atoms.data());
             binbuf_add(textbuf.b_binbuf, binbuf_getnatom(z), binbuf_getvec(z));
             binbuf_free(z);
@@ -114,9 +114,9 @@ struct TextDefineObject final : public TextBase {
 
         char* bufp;
         int lenp;
-        
+
         binbuf_gettext(binbuf, &bufp, &lenp);
-        
-        return String(bufp, lenp);
+
+        return String::fromUTF8(bufp, lenp);
     }
 };

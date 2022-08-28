@@ -42,7 +42,7 @@ struct PictureObject final : public GUIObject {
         auto* pic = static_cast<t_pic*>(ptr);
 
         if (pic && pic->x_filename) {
-            auto filePath = String(pic->x_filename->s_name);
+            auto filePath = String::fromUTF8(pic->x_filename->s_name);
             if (File(filePath).existsAsFile()) {
                 path = filePath;
             }
@@ -89,21 +89,15 @@ struct PictureObject final : public GUIObject {
 
     void updateBounds() override
     {
-        pd->enqueueFunction([this, _this = SafePointer(this)]() {
-            if (!_this)
-                return;
+        pd->getCallbackLock()->enter();
 
-            int x = 0, y = 0, w = 0, h = 0;
-            libpd_get_object_bounds(cnv->patch.getPointer(), ptr, &x, &y, &w, &h);
-            auto bounds = Rectangle<int>(x, y, w, h);
+        int x = 0, y = 0, w = 0, h = 0;
+        libpd_get_object_bounds(cnv->patch.getPointer(), ptr, &x, &y, &w, &h);
+        auto bounds = Rectangle<int>(x, y, w, h);
 
-            MessageManager::callAsync([this, _this = SafePointer(this), bounds]() mutable {
-                if (!_this)
-                    return;
-
-                box->setObjectBounds(bounds);
-            });
-        });
+        pd->getCallbackLock()->exit();
+    
+        box->setObjectBounds(bounds);
     }
 
     void checkBounds() override
@@ -123,7 +117,7 @@ struct PictureObject final : public GUIObject {
 
         String pathString = location;
 
-        auto searchPath = File(String(canvas_getdir(cnv->patch.getPointer())->s_name));
+        auto searchPath = File(String::fromUTF8(canvas_getdir(cnv->patch.getPointer())->s_name));
 
         if (searchPath.getChildFile(pathString).existsAsFile()) {
             imageFile = searchPath.getChildFile(pathString);

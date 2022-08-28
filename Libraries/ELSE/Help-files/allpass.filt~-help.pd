@@ -1,25 +1,21 @@
 #N canvas 510 48 564 535 10;
-#X obj 4 334 cnv 3 550 4 empty empty inlets 8 12 0 13 #dcdcdc #000000
+#X obj 4 334 cnv 3 550 3 empty empty inlets 8 12 0 13 #dcdcdc #000000
 0;
-#X obj 4 411 cnv 3 550 4 empty empty outlets 8 12 0 13 #dcdcdc #000000
+#X obj 4 411 cnv 3 550 3 empty empty outlets 8 12 0 13 #dcdcdc #000000
 0;
-#X obj 4 444 cnv 3 550 4 empty empty arguments 8 12 0 13 #dcdcdc #000000
+#X obj 4 444 cnv 3 550 3 empty empty arguments 8 12 0 13 #dcdcdc #000000
 0;
 #X obj 3 507 cnv 15 552 21 empty empty empty 20 12 0 14 #e0e0e0 #202020
 0;
-#X obj 129 420 cnv 17 4 17 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
+#X obj 129 420 cnv 17 3 17 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
 ;
-#X obj 129 342 cnv 17 4 17 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
+#X obj 129 342 cnv 17 3 17 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
 ;
 #X text 201 342 signal;
 #X text 201 420 signal;
 #X obj 306 4 cnv 15 250 40 empty empty empty 12 13 0 18 #7c7c7c #e0e4dc
 0;
-#N canvas 382 141 749 319 (subpatch) 1;
-#N canvas 0 22 450 278 (subpatch) 0;
-#X text 0 0 plugdatainfo;
-#X coords 0 1 100 -1 1 1 1;
-#X restore 0 0 graph;
+#N canvas 382 141 749 319 (subpatch) 0;
 #X coords 0 -1 1 1 252 42 2 0 0;
 #X restore 305 3 pd;
 #X obj 345 11 cnv 10 10 10 empty empty ELSE 0 15 2 30 #7c7c7c #e0e4dc
@@ -41,45 +37,36 @@
 #000000 #000000 0 256;
 #X text 250 420 - filtered signal;
 #X text 250 342 - signal to be filtered;
-#X obj 129 364 cnv 17 4 17 empty empty 1 5 9 0 16 #dcdcdc #9c9c9c 0
+#X obj 129 364 cnv 17 3 17 empty empty 1 5 9 0 16 #dcdcdc #9c9c9c 0
 ;
-#X obj 129 387 cnv 17 4 17 empty empty 2 5 9 0 16 #dcdcdc #9c9c9c 0
+#X obj 129 387 cnv 17 3 17 empty empty 2 5 9 0 16 #dcdcdc #9c9c9c 0
 ;
 #X text 165 364 float/signal;
 #X text 165 387 float/signal;
+#X text 249 363 - central frequency in Hertz;
 #X obj 2 3 cnv 15 301 42 empty empty allpass.filt~ 20 20 2 37 #e0e0e0
 #000000 0;
-#N canvas 0 22 450 278 (subpatch) 1;
 #N canvas 0 22 450 278 (subpatch) 0;
-#X text 0 0 plugdatainfo;
-#X coords 0 1 100 -1 1 1 1;
-#X restore 0 0 graph;
 #X coords 0 1 100 -1 302 42 1;
 #X restore 2 3 graph;
-#X obj 42 248 allpass.2nd~;
+#X text 72 89 [allpass.filt~] is an allpass filter that you can set
+its order with the first argument (needs to be a multiple of 2). This
+is an abstraction that stacks many [allpass.2nd~] objects in cascade.
+, f 63;
+#X obj 42 248 else/allpass.2nd~;
 #X text 44 227 see also:;
 #X text 250 387 - filter resonance (Q);
 #X text 152 454 1) float - order from 2 to 64 (default 2);
-#X obj 192 264 out~;
+#X obj 192 264 else/out~;
 #X obj 192 230 +~;
+#X text 152 485 3) float - q (default 1), f 41;
 #X text 152 469 2) float - frequency in hz (default 10), f 41;
-#X obj 207 208 allpass.filt~ 4;
+#X obj 207 208 else/allpass.filt~ 4;
 #X text 323 144 resonant/center frequency, f 23;
 #X text 382 180 q - resonance;
-#N canvas 0 22 450 278 (subpatch) 0;
-#X text 0 0 plugdatainfo <?xml version="1.0" encoding="UTF-8"?> <PlugDataInfo/>
-;
-#X coords 0 1 100 -1 1 1 1;
-#X restore 0 0 graph;
-#X text 72 89 [allpass.filt~] is an allpass filter whose order can
-be set via the first argument (must be a multiple of 2). This is an
-abstraction that stacks many [allpass.2nd~] objects in cascade., f
-63;
-#X text 152 485 3) float - filter Q (default 1), f 41;
-#X text 249 363 - central frequency in hz;
-#X connect 16 0 32 0;
 #X connect 16 0 34 0;
-#X connect 17 0 34 1;
-#X connect 18 0 34 2;
-#X connect 32 0 31 0;
-#X connect 34 0 32 1;
+#X connect 16 0 37 0;
+#X connect 17 0 37 1;
+#X connect 18 0 37 2;
+#X connect 34 0 33 0;
+#X connect 37 0 34 1;

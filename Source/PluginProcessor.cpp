@@ -155,9 +155,6 @@ PlugDataAudioProcessor::PlugDataAudioProcessor()
     logMessage("Libraries:");
     logMessage(else_version);
     logMessage(cyclone_version);
-    
-    // Start package manager to download package info in the background
-    Dialogs::initialiseDeken();
 }
 
 PlugDataAudioProcessor::~PlugDataAudioProcessor()
@@ -171,13 +168,34 @@ void PlugDataAudioProcessor::initialiseFilesystem()
     // Check if the abstractions directory exists, if not, unzip it from binaryData
     if (!homeDir.exists() || !abstractions.exists())
     {
-        homeDir.createDirectory();
-
-        MemoryInputStream binaryAbstractions(BinaryData::Library_zip, BinaryData::Library_zipSize, false);
-        auto file = ZipFile(binaryAbstractions);
+        MemoryInputStream binaryFilesystem(BinaryData::Filesystem_zip, BinaryData::Filesystem_zipSize, false);
+        auto file = ZipFile(binaryFilesystem);
         file.uncompressTo(homeDir);
+        
+        // Create filesystem for this specific version
+        homeDir.getChildFile("plugdata_version").moveFileTo(appDir);
+        
+        auto library = homeDir.getChildFile("Library");
+        auto deken = homeDir.getChildFile("Deken");
+        
+        // For transitioning between v0.5.3 -> v0.6.0
+        auto library_backup = homeDir.getChildFile("Library_backup");
+        if(!library.exists()) {
+            library.createDirectory();
+        }
+        else if(library.getChildFile("Deken").isDirectory() &&
+                !library.getChildFile("Deken").isSymbolicLink()){
+            library.moveFileTo(library_backup);
+            library.createDirectory();
+        }
+        
+        deken.createDirectory();
+        
+        appDir.getChildFile("Abstractions").createSymbolicLink(library.getChildFile("Abstractions"), true);
+        appDir.getChildFile("Documentation").createSymbolicLink(library.getChildFile("Documentation"), true);
+        deken.createSymbolicLink(library.getChildFile("Deken"), true);
     }
-
+    
     // Check if settings file exists, if not, create the default
     if (!settingsFile.existsAsFile())
     {
@@ -360,7 +378,6 @@ void PlugDataAudioProcessor::prepareToPlay(double sampleRate, int samplesPerBloc
     
     oversampler->initProcessing (samplesPerBlock);
     
-    
     audioAdvancement = 0;
     const auto blksize = static_cast<size_t>(Instance::getBlockSize());
     const auto numIn = std::max(static_cast<size_t>(getTotalNumInputChannels()), static_cast<size_t>(2));
@@ -434,6 +451,8 @@ void PlugDataAudioProcessor::processBlock(AudioBuffer<float>& buffer, MidiBuffer
     continuityChecker.setNonRealtime(isNonRealtime());
     continuityChecker.setTimer();
     
+    setThis();
+    sendParameters();
 
     for (int i = totalNumInputChannels; i < totalNumOutputChannels; ++i)
     {
@@ -618,8 +637,6 @@ void PlugDataAudioProcessor::sendParameters()
 #else
     for (int n = 0; n < numParameters; n++)
     {
-        //if(parameterTimers[n].isTimerRunning()) continue;
-        
         if (parameterValues[n]->load() != lastParameters[n])
         {
             lastParameters[n] = parameterValues[n]->load();
@@ -809,7 +826,6 @@ void PlugDataAudioProcessor::processInternal()
     // Dequeue messages
     sendMessagesFromQueue();
     sendPlayhead();
-    sendParameters();
     sendMidiBuffer();
 
     // Process audio
@@ -897,6 +913,7 @@ void PlugDataAudioProcessor::setStateInformation(const void* data, int sizeInByt
 
     // By calling this asynchronously on the message thread and also suspending processing on the audio thread, we can make sure this is safe
     // The DAW can call this function from basically any thread, hence the need for this
+    // Audio will only be reactivated once this action is completed
     MessageManager::callAsync(
         [this, copy, sizeInBytes]() mutable
         {
@@ -950,8 +967,11 @@ void PlugDataAudioProcessor::setStateInformation(const void* data, int sizeInByt
 
             std::unique_ptr<XmlElement> xmlState(getXmlFromBinary(xmlData, xmlSize));
 
-            if (xmlState)
-                if (xmlState->hasTagName(parameters.state.getType())) parameters.replaceState(ValueTree::fromXml(*xmlState));
+            if (xmlState) {
+                if (xmlState->hasTagName(parameters.state.getType())) {
+                    parameters.replaceState(ValueTree::fromXml(*xmlState));
+                }
+            }
 
             setLatencySamples(latency);
             setOversampling(oversampling);
@@ -959,26 +979,50 @@ void PlugDataAudioProcessor::setStateInformation(const void* data, int sizeInByt
             suspendProcessing(false);
 
             freebytes(copy, sizeInBytes);
+            
         });
 }
 
 pd::Patch* PlugDataAudioProcessor::loadPatch(const File& patchFile)
 {
-    auto newPatch = openPatch(patchFile);
 
+    // First, check if patch is already opened
+    
+    int i = 0;
+    for(auto* patch : patches) {
+        if(patch->getCurrentFile() == patchFile)
+        {
+            if (auto* editor = dynamic_cast<PlugDataPluginEditor*>(getActiveEditor()))
+            {
+                MessageManager::callAsync([i, _editor = Component::SafePointer(editor)]() mutable {
+                    if(!_editor) return;
+                    _editor->tabbar.setCurrentTabIndex(i);
+                });
+            }
+        
+            // Patch is already opened
+            return nullptr;
+        }
+        i++;
+    }
+
+    auto newPatch = openPatch(patchFile);
+    
     if (!newPatch.getPointer())
     {
         logError("Couldn't open patch");
         return nullptr;
     }
-
+    
     auto* patch = patches.add(new pd::Patch(newPatch));
 
     if (auto* editor = dynamic_cast<PlugDataPluginEditor*>(getActiveEditor()))
     {
-        const MessageManagerLock mmLock;
-        auto* cnv = editor->canvases.add(new Canvas(*editor, *patch, nullptr));
-        editor->addTab(cnv, true);
+        MessageManager::callAsync([i, patch, _editor = Component::SafePointer(editor)]() mutable {
+            if(!_editor) return;
+            auto* cnv = _editor->canvases.add(new Canvas(*_editor, *patch, nullptr));
+            _editor->addTab(cnv, true);
+        });
     }
 
     patch->setCurrentFile(patchFile);
@@ -1120,7 +1164,7 @@ void PlugDataAudioProcessor::receiveParameter(int idx, float value)
     standaloneParams[idx - 1] = value;
     if (auto* editor = dynamic_cast<PlugDataPluginEditor*>(getActiveEditor()))
     {
-        editor->sidebar.updateParameters();
+        editor->sidebar.updateAutomationParameters();
     }
 #else
     auto* parameter = parameters.getParameter("param" + String(idx));
@@ -1151,8 +1195,6 @@ void PlugDataAudioProcessor::receiveGuiUpdate(int type)
     }
 }
 
-
-// TODO: Don't do this here!!!
 void PlugDataAudioProcessor::timerCallback()
 {
     if (auto* editor = dynamic_cast<PlugDataPluginEditor*>(getActiveEditor()))

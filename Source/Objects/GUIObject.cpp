@@ -27,6 +27,7 @@ extern "C" {
 #include "MessageObject.h"
 #include "MouseObject.h"
 #include "BangObject.h"
+#include "ButtonObject.h"
 #include "RadioObject.h"
 #include "SliderObject.h"
 #include "ArrayObject.h"
@@ -66,7 +67,8 @@ String ObjectBase::getText()
 
     libpd_get_object_text(ptr, &text, &size);
     if (text && size) {
-        String txt(text, size);
+
+        auto txt = String::fromUTF8(text, size);
         freebytes(static_cast<void*>(text), static_cast<size_t>(size) * sizeof(char));
         return txt;
     }
@@ -227,7 +229,7 @@ void GUIObject::updateParameters()
     auto params = getParameters();
     for (auto& [name, type, cat, value, list] : params) {
         value->addListener(this);
-        
+
         // Push current parameters to pd
         valueChanged(*value);
     }
@@ -294,19 +296,18 @@ void GUIObject::stopEdition()
 void GUIObject::updateValue()
 {
     if (!edited) {
-        auto thisPtr = SafePointer<GUIObject>(this);
         pd->enqueueFunction(
-            [thisPtr]() {
-                if (!thisPtr)
+            [_this = SafePointer(this)]() {
+                if (!_this)
                     return;
 
-                float const v = thisPtr->getValue();
-                if (thisPtr->value != v) {
+                float const v = _this->getValue();
+                if (_this->value != v) {
                     MessageManager::callAsync(
-                        [thisPtr, v]() mutable {
-                            if (thisPtr) {
-                                thisPtr->value = v;
-                                thisPtr->update();
+                        [_this, v]() mutable {
+                            if (_this) {
+                                _this->value = v;
+                                _this->update();
                             }
                         });
                 }
@@ -334,6 +335,9 @@ ObjectBase* GUIObject::createGui(void* ptr, Box* parent)
     const String name = libpd_get_object_class_name(ptr);
     if (name == "bng") {
         return new BangObject(ptr, parent);
+    }
+    if (name == "button") {
+        return new ButtonObject(ptr, parent);
     }
     if (name == "hsl") {
         return new SliderObject(false, ptr, parent);
@@ -393,7 +397,7 @@ ObjectBase* GUIObject::createGui(void* ptr, Box* parent)
     } else if (name == "canvas" || name == "graph") {
         if (static_cast<t_canvas*>(ptr)->gl_list) {
             t_class* c = static_cast<t_canvas*>(ptr)->gl_list->g_pd;
-            if (c && c->c_name && (String(c->c_name->s_name) == "array")) {
+            if (c && c->c_name && (String::fromUTF8(c->c_name->s_name) == "array")) {
                 return new ArrayObject(ptr, parent);
             } else if (static_cast<t_canvas*>(ptr)->gl_isgraph) {
                 return new GraphOnParent(ptr, parent);

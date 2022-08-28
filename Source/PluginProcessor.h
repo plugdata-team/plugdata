@@ -73,25 +73,6 @@ class PlugDataAudioProcessor : public AudioProcessor, public pd::Instance, publi
 
     void synchroniseCanvas(void* cnv) override;
 
-    void receivePrint(const String& message) override
-    {
-        if (message.isNotEmpty())
-        {
-            if (message.startsWith("error:"))
-            {
-                logError(message.substring(7));
-            }
-            else if (message.startsWith("verbose(4):"))
-            {
-                logError(message.substring(12));
-            }
-            else
-            {
-                logMessage(message);
-            }
-        }
-    };
-
     void process(dsp::AudioBlock<float>, MidiBuffer&);
 
     void setCallbackLock(const CriticalSection* lock)
@@ -153,7 +134,7 @@ class PlugDataAudioProcessor : public AudioProcessor, public pd::Instance, publi
     pd::Library objectLibrary;
 
     File homeDir = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory).getChildFile("PlugData");
-    File appDir = homeDir.getChildFile("Library");
+    File appDir = homeDir.getChildFile(ProjectInfo::versionString);
 
     File settingsFile = homeDir.getChildFile("Settings.xml");
     File abstractions = appDir.getChildFile("Abstractions");
@@ -209,7 +190,7 @@ class PlugDataAudioProcessor : public AudioProcessor, public pd::Instance, publi
 
     const CriticalSection* audioLock;
     
-    static inline const String else_version = "ELSE v1.0-rc2";
+    static inline const String else_version = "ELSE v1.0-rc3";
     static inline const String cyclone_version = "cyclone v0.6-1";
 
 #if !PLUGDATA_STANDALONE
@@ -226,7 +207,7 @@ class PlugDataAudioProcessor : public AudioProcessor, public pd::Instance, publi
                 parameter = param;
                 parameter->beginChangeGesture();
             }
-            startTimer(500);
+            startTimer(300);
         }
 
         void timerCallback() override
@@ -238,7 +219,6 @@ class PlugDataAudioProcessor : public AudioProcessor, public pd::Instance, publi
 
     ParameterTimer parameterTimers[numParameters];
 
-    
 #endif
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PlugDataAudioProcessor)
 };

@@ -20,8 +20,7 @@ struct ListObject final : public AtomObject {
         listLabel.onEditorShow = [this]() {
             auto* editor = listLabel.getCurrentTextEditor();
             if (editor != nullptr) {
-                //editor->setIndents(1, 2);
-                editor->setBorder({1, 2, 0, 0});
+                editor->setBorder({ 1, 2, 0, 0 });
             }
         };
 
@@ -32,7 +31,10 @@ struct ListObject final : public AtomObject {
         listLabel.dragEnd = [this]() { stopEdition(); };
 
         listLabel.addMouseListener(this, false);
-        
+
+        listLabel.setText("0 0", dontSendNotification);
+        updateFromGui();
+
         updateValue();
     }
 
@@ -124,11 +126,11 @@ struct ListObject final : public AtomObject {
     {
         cnv->pd->enqueueDirectMessages(ptr, value);
     }
-    
-    void mouseUp(const MouseEvent& e) override
+
+    void mouseUp(MouseEvent const& e) override
     {
         if (static_cast<bool>(box->locked.getValue()) && !e.mouseWasDraggedSinceMouseDown()) {
-            
+
             listLabel.showEditor();
         }
     }
