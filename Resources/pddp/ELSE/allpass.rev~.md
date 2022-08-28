@@ -11,7 +11,7 @@ pdcategory: Audio Filters, Audio Delays, General Audio Manipulation
 arguments:
   1st:
   - type: float
-    description: maximum and initial decay time in ms
+    description: maximum and initial delay time in ms
     default: 0
   2nd:
   - type: float

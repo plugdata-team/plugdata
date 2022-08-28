@@ -24,10 +24,10 @@ inlets:
 outlets:
   1st:
   - type: signal
-    description:
+    description: when left inlet value rises above the threshold
   2nd:
   - type: signal
-    description:
+    description: when left inlet falls back below the threshold
 
 draft: false
 ---
