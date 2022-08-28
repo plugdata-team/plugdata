@@ -116,11 +116,9 @@ public:
         // This canvas will not be restored, and therefore ignored by Pd
         // This allows us to append more info to the patch
         
-        
         content +=
         String("#N canvas 0 22 450 278 (_plugdatainfo_) 0;\n") +
-        "#X text [INFOSTART]" + Storage::getContent(getPointer()).toXmlString() + "[INFOEND]\n" +
-        "#X coords 0 1 100 -1 200 140 0;\n";
+        "#X text 0 0 [INFOSTART]" + Storage::getContent(getPointer()).toXmlString() + "[INFOEND]\n;\n";
         
         return content;
     }

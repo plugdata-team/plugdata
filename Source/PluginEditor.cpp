@@ -1112,7 +1112,7 @@ bool PlugDataPluginEditor::perform(const InvocationInfo& info)
         case CommandIDs::Lock:
         {
             statusbar.lockButton->triggerClick();
-            statusbar.commandLocked = false;
+            
             return true;
         }
         case CommandIDs::ConnectionPathfind:

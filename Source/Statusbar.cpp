@@ -231,7 +231,17 @@ Statusbar::Statusbar(PlugDataAudioProcessor& processor) : pd(processor)
     lockButton->setConnectedEdges(12);
     lockButton->setName("statusbar:lock");
     lockButton->onClick = [this](){
-        locked = lockButton->getToggleState();
+        commandLocked = false;
+        
+        if(locked == lockButton->getToggleState())
+        {
+            locked.getValueSource().sendChangeMessage(true);
+        }
+        else {
+            locked = lockButton->getToggleState();
+        }
+        
+        
     };
     
     addAndMakeVisible(lockButton.get());
