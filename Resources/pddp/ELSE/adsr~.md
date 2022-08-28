@@ -26,6 +26,10 @@ arguments:
     description: release time in ms
     default: 0
 
+flags:
+- name: -log
+  description: sets to log mode (default=linear)
+
 inlets:
   1st:
   - type: float/signal

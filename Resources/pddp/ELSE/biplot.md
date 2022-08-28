@@ -1,7 +1,7 @@
----
+---TODO
 title: biplot
 
-description:
+description: Biquad plot
 
 categories:
 - object

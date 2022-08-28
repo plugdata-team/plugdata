@@ -25,9 +25,9 @@ arguments:
 inlets:
   1st:
   - type: bang
-    description: generates list
+    description: generate list
   - type: list
-    description: set start/end/step-count and generates list
+    description: set start/end/step-count and generate list
   2nd:
   - type: float
     description: sets start
