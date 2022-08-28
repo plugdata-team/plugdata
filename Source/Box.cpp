@@ -93,12 +93,10 @@ void Box::initialise()
 
     // Updates lock/unlock mode
     locked.referTo(cnv->pd->locked);
-    commandLocked.referTo(cnv->pd->commandLocked);
     presentationMode.referTo(cnv->presentationMode);
 
     presentationMode.addListener(this);
     locked.addListener(this);
-    commandLocked.addListener(this);
 
     originalBounds.setBounds(0, 0, 0, 0);
 }
@@ -119,7 +117,7 @@ void Box::valueChanged(Value& v)
 
     if (gui)
     {
-        gui->lock(locked == var(true) || commandLocked == var(true));
+        gui->lock(locked == var(true));
     }
 
     resized();
@@ -476,7 +474,7 @@ void Box::mouseDown(const MouseEvent& e)
         return;
     }
 
-    if (cnv->isGraph || cnv->presentationMode == var(true) || locked == var(true) || commandLocked == var(true)) {
+    if (cnv->isGraph || cnv->presentationMode == var(true) || locked == var(true)) {
         wasLockedOnMouseDown = true;
         return;
     }
