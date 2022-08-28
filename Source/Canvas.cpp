@@ -20,7 +20,7 @@ extern "C"
 #include "Utility/GraphArea.h"
 #include "Utility/SuggestionComponent.h"
 
-Canvas::Canvas(PlugDataPluginEditor& parent, pd::Patch& p, Component* parentGraph) : main(parent), pd(&parent.pd), patch(p), storage(patch.getPointer(), pd)
+Canvas::Canvas(PlugDataPluginEditor& parent, pd::Patch& p, Component* parentGraph) : main(parent), pd(&parent.pd), patch(p)
 {
     isGraphChild = glist_isgraph(p.getPointer());
     hideNameAndArgs = static_cast<bool>(p.getPointer()->gl_hidetext);
@@ -263,30 +263,22 @@ void Canvas::synchronise(bool updatePosition)
                 auto& c = *(*it);
 
                 auto currentId = c.getId();
-                if (c.lastId.isNotEmpty() && c.lastId != currentId)
-                {
-                    storage.setInfoId(c.lastId, currentId);
-                }
-
-                c.lastId = currentId;
-
-                auto info = storage.getInfo(currentId, "Path");
+                auto info = pd::Storage::getInfo(this, currentId, "Path");
                 if (info.length()) c.setState(info);
 
                 c.repaint();
             }
         }
 
-        storage.confirmIds();
-
         setTransform(main.transform);
     }
 
     // Resize canvas to fit objects
     // By checking asynchronously, we make sure the boxes bounds have been updated
-    MessageManager::callAsync([this](){
-        pd->waitForStateUpdate();
-        checkBounds();
+    MessageManager::callAsync([_this = SafePointer(this)](){
+        if(!_this) return;
+        _this->pd->waitForStateUpdate();
+        _this->checkBounds();
     });
     
 
@@ -297,6 +289,8 @@ void Canvas::synchronise(bool updatePosition)
 void Canvas::mouseDown(const MouseEvent& e)
 {
     auto* source = e.originalComponent;
+    
+    PopupMenu::dismissAllActiveMenus();
     
     // Middle mouse click
     if(viewport && ModifierKeys::getCurrentModifiers().isMiddleButtonDown()) {
@@ -345,14 +339,24 @@ void Canvas::mouseDown(const MouseEvent& e)
 
         Box* box = nullptr;
         if (hasSelection && !multiple) box = selectedBoxes.getFirst();
-
+        
+        Array<Box*> parents;
+        for (auto* p = source->getParentComponent(); p != nullptr; p = p->getParentComponent()) {
+            if (auto* target = dynamic_cast<Box*> (p)) parents.add(target);
+        }
+        
+        // Get top-level parent box... A bit clumsy but otherwise it will open subpatchers deeper down the chain
+        if (parents.size() && !hasSelection)  {
+            box = parents.getLast();
+            hasSelection = true;
+        }
+        
         bool isSubpatch = box && box->gui && box->gui->getPatch();
 
         // Create popup menu
         popupMenu.clear();
 
         popupMenu.addItem(1, "Open", hasSelection && !multiple && isSubpatch);  // for opening subpatches
-        // popupMenu.addItem(10, "Edit", isGui);
         popupMenu.addSeparator();
 
         popupMenu.addCommandItem(&main, CommandIDs::Cut);
@@ -646,8 +650,8 @@ bool Canvas::keyPressed(const KeyPress& key)
 void Canvas::deselectAll()
 {
     // Deselect boxes
-    for (auto* c : selectedComponents)
-        if (c) c->repaint();
+    for (auto c : selectedComponents)
+        if (!c.wasObjectDeleted()) c->repaint();
 
     selectedComponents.deselectAll();
     main.sidebar.hideParameters();
@@ -656,9 +660,9 @@ void Canvas::deselectAll()
 void Canvas::copySelection()
 {
     // Tell pd to select all objects that are currently selected
-    for (auto* sel : getLassoSelection())
+    for (auto sel : getLassoSelection())
     {
-        if (auto* box = dynamic_cast<Box*>(sel))
+        if (auto* box = dynamic_cast<Box*>(sel.get()))
         {
             patch.selectObject(box->getPointer());
         }
@@ -691,9 +695,9 @@ void Canvas::pasteSelection()
 void Canvas::duplicateSelection()
 {
     // Tell pd to select all objects that are currently selected
-    for (auto* sel : getLassoSelection())
+    for (auto sel : getLassoSelection())
     {
-        if (auto* box = dynamic_cast<Box*>(sel))
+        if (auto* box = dynamic_cast<Box*>(sel.get()))
         {
             patch.selectObject(box->getPointer());
         }
@@ -727,9 +731,9 @@ void Canvas::removeSelection()
 
     // Find selected objects and make them selected in pd
     Array<void*> objects;
-    for (auto* sel : getLassoSelection())
+    for (auto sel : getLassoSelection())
     {
-        if (auto* box = dynamic_cast<Box*>(sel))
+        if (auto* box = dynamic_cast<Box*>(sel.get()))
         {
             if (box->getPointer())
             {
@@ -767,7 +771,7 @@ void Canvas::removeSelection()
 void Canvas::undo()
 {
     // Performs undo on storage data if the next undo event if a dummy
-    storage.undoIfNeeded();
+    pd::Storage::undoIfNeeded(this);
 
     // Tell pd to undo the last action
     patch.undo();
@@ -781,7 +785,7 @@ void Canvas::undo()
 void Canvas::redo()
 {
     // Performs redo on storage data if the next redo event if a dummy
-    storage.redoIfNeeded();
+    pd::Storage::redoIfNeeded(this);
 
     // Tell pd to undo the last action
     patch.redo();
@@ -916,9 +920,9 @@ void Canvas::handleMouseDown(Component* component, const MouseEvent& e)
         if (!(e.mods.isShiftDown() || e.mods.isCommandDown()))  {
             
             // Deselect boxes and connections
-            for (auto* c : selectedComponents) {
-                if (c != this)  {
-                    setSelected(c, false);
+            for (auto c : selectedComponents) {
+                if (!c.wasObjectDeleted() || c.get() != this)  {
+                    setSelected(c.get(), false);
                     c->repaint();
                 }
             }
@@ -952,9 +956,9 @@ void Canvas::handleMouseUp(Component* component, const MouseEvent& e)
     {
         auto objects = std::vector<void*>();
 
-        for (auto* component : getLassoSelection())
+        for (auto component : getLassoSelection())
         {
-            if (auto* box = dynamic_cast<Box*>(component))
+            if (auto* box = dynamic_cast<Box*>(component.get()))
             {
                 if (box->getPointer()) objects.push_back(box->getPointer());
             }
@@ -1005,7 +1009,10 @@ void Canvas::handleMouseDrag(const MouseEvent& e)
     /** Ensure tiny movements don't start a drag. */
     if (!didStartDragging && e.getDistanceFromDragStart() < minimumMovementToStartDrag) return;
 
-    didStartDragging = true;
+    if(!didStartDragging)  {
+        didStartDragging = true;
+        main.updateCommandStatus();
+    }
 
     auto dragDistance = e.getOffsetFromDragStart();
 
@@ -1039,19 +1046,43 @@ void Canvas::handleMouseDrag(const MouseEvent& e)
     
     if(e.mods.isShiftDown() && selection.size() == 1) {
         auto* box = selection.getFirst();
-        if(box->numInputs >= 1 && box->numOutputs >= 0)
-        for(auto* connection : connections) {
-            if(connection->intersectsObject(box)) {
-                box->edges[0]->isTargeted = true;
-                box->edges[box->numInputs]->isTargeted = true;
-                connectionToSnapInbetween = connection;
-                boxSnappingInbetween = box;
+        if(box->numInputs >= 1 && box->numOutputs >= 1) {
+            
+            /*
+            std::vector<Connection*> start;
+            std::vector<Connection*> end;
+            for(auto* connection : connections) {
+                if(connection->outlet == box->edges[box->numOutputs]) start.push_back(connection);
+                if(connection->inlet == box->edges[0])                end.push_back(connection);
             }
+            
+            // Don't handle ambiguous cases
+            if(start.size() == 1 && end.size() == 1)
+            {
+                patch.removeConnection(start->outbox->getPointer(), start->outIdx, start->inbox->getPointer(), start->inIdx);
+                patch.removeConnection(end->outbox->getPointer(), end->outIdx, end->inbox->getPointer(), end->inIdx);
+                patch.createConnection(start->outbox->getPointer(), start->outIdx, end->outbox->getPointer(), end->outIdx);
+                synchronise();
+            } */
+            
+            for(auto* connection : connections) {
+                if(connection->intersectsObject(box)) {
+                    box->edges[0]->isTargeted = true;
+                    box->edges[box->numInputs]->isTargeted = true;
+                    connectionToSnapInbetween = connection;
+                    boxSnappingInbetween = box;
+                    break;
+                }
+            }
+            
+            
         }
+        
+        
     }
 }
 
-SelectedItemSet<Component*>& Canvas::getLassoSelection()
+SelectedItemSet<WeakReference<Component>>& Canvas::getLassoSelection()
 {
     return selectedComponents;
 }
@@ -1061,7 +1092,7 @@ void Canvas::removeSelectedComponent(Component* component)
     selectedComponents.deselect(component);
 }
 
-void Canvas::findLassoItemsInArea(Array<Component*>& itemsFound, const Rectangle<int>& area)
+void Canvas::findLassoItemsInArea(Array<WeakReference<Component>>& itemsFound, const Rectangle<int>& area)
 {
     for (auto* element : boxes)
     {

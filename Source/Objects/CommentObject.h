@@ -4,7 +4,7 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
-struct CommentObject final : public TextBase {
+struct CommentObject final : public TextBase, public KeyListener {
     CommentObject(void* obj, Box* box)
         : TextBase(obj, box)
     {
@@ -63,18 +63,18 @@ struct CommentObject final : public TextBase {
             // update if the name has changed, or if pdobject is unassigned
             if (changed) {
                 cnv->pd->enqueueFunction(
-                    [this, obj = SafePointer<CommentObject>(this)]() mutable {
-                        if (!obj)
+                    [this, _this = SafePointer<CommentObject>(this)]() mutable {
+                        if (!_this)
                             return;
 
                         auto* newName = currentText.toRawUTF8();
                         libpd_renameobj(cnv->patch.getPointer(), static_cast<t_gobj*>(ptr), newName, currentText.getNumBytesAsUTF8());
 
                         MessageManager::callAsync(
-                            [obj]() {
-                                if (!obj)
+                            [_this]() {
+                                if (!_this)
                                     return;
-                                obj->box->updateBounds();
+                                _this->box->updateBounds();
                             });
                     });
 
@@ -114,6 +114,7 @@ struct CommentObject final : public TextBase {
 
             editor->setText(currentText, false);
             editor->addListener(this);
+            editor->addKeyListener(this);
 
             if (editor == nullptr) // may be deleted by a callback
                 return;
@@ -129,6 +130,17 @@ struct CommentObject final : public TextBase {
 
     bool hideInGraph() override
     {
+        return false;
+    }
+    
+    bool keyPressed(const KeyPress& key, Component* component) override
+    {
+        if (key == KeyPress::rightKey) {
+            if(editor){
+                editor->setCaretPosition(editor->getHighlightedRegion().getEnd());
+                return true;
+            }
+        }
         return false;
     }
 };

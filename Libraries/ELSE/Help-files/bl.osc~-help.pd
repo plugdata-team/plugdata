@@ -1,0 +1,148 @@
+#N canvas 416 28 562 532 10;
+#X obj 306 4 cnv 15 250 40 empty empty empty 12 13 0 18 #7c7c7c #e0e4dc
+0;
+#N canvas 382 141 749 319 (subpatch) 0;
+#X coords 0 -1 1 1 252 42 2 0 0;
+#X restore 305 3 pd;
+#X obj 345 11 cnv 10 10 10 empty empty ELSE 0 15 2 30 #7c7c7c #e0e4dc
+0;
+#X obj 458 11 cnv 10 10 10 empty empty EL 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 478 11 cnv 10 10 10 empty empty Locus 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 515 11 cnv 10 10 10 empty empty Solus' 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 464 26 cnv 10 10 10 empty empty ELSE 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 502 26 cnv 10 10 10 empty empty library 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 123 40 cnv 4 4 4 empty empty oscillator 0 28 2 18 #e0e0e0 #000000
+0;
+#X obj 3 267 cnv 3 550 3 empty empty inlets 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 3 376 cnv 3 550 3 empty empty outlets 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 3 412 cnv 3 550 3 empty empty arguments 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 123 385 cnv 17 3 17 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X obj 123 275 cnv 17 3 50 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X obj 3 505 cnv 15 552 21 empty empty empty 20 12 0 14 #e0e0e0 #202020
+0;
+#X text 155 276 float/signal -;
+#X text 255 276 frequency in hz;
+#X obj 123 329 cnv 17 3 17 empty empty 1 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X text 191 385 signal -;
+#X text 256 352 phase offset (modulation input);
+#X obj 204 139 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+#dcdcdc #000000 #000000 0 256;
+#X obj 3 3 cnv 15 301 42 empty empty bl.osc~ 20 20 2 37 #e0e0e0 #000000
+0;
+#N canvas 0 22 450 278 (subpatch) 0;
+#X coords 0 1 100 -1 302 42 1;
+#X restore 2 3 graph;
+#X obj 204 197 else/out~;
+#X obj 22 40 cnv 4 4 4 empty empty Bandlimited 0 28 2 18 #e0e0e0 #000000
+0;
+#X text 172 467 - frequency in hertz (default 0), f 60;
+#X text 264 138 <-- hz;
+#X obj 123 351 cnv 17 3 17 empty empty 2 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X text 172 483 - initial phase offset (default 0), f 60;
+#N canvas 611 58 517 609 example 0;
+#X floatatom 171 126 9 0 0 0 - - - 0;
+#X obj 174 93 hsl 128 15 50 2000 1 0 empty empty empty -2 -8 0 10 #dfdfdf
+#000000 #000000 0 1;
+#X obj 171 159 sig~ 200;
+#X obj 245 200 /~ 2.01;
+#X obj 245 225 osc~;
+#X obj 98 251 *~ 1.52;
+#X obj 245 249 *~ 0.3;
+#X obj 95 529 else/out~;
+#X obj 171 251 else/imp~;
+#X text 298 250 Phase Modulation;
+#X text 61 93 master frequency;
+#X text 39 245 synced frequency, f 9;
+#X obj 121 335 else/oscope~ 371 133 8 3 128 -1.1 1.1 300 0 0 0 30 30
+30 190 190 190 160 160 160 0 empty;
+#X obj 95 501 else/plate.rev~;
+#X obj 98 279 else/bl.osc~ square 20, f 25;
+#X text 76 30 Here's an example with hard sync via impulses and phase
+modulation of a band limited square wave. Note that hard sync and phase
+modulation cause aliasing.;
+#X connect 0 0 2 0;
+#X connect 1 0 0 0;
+#X connect 2 0 5 0;
+#X connect 2 0 8 0;
+#X connect 2 0 3 0;
+#X connect 3 0 4 0;
+#X connect 4 0 6 0;
+#X connect 5 0 14 0;
+#X connect 6 0 14 2;
+#X connect 8 0 14 1;
+#X connect 13 0 7 0;
+#X connect 13 1 7 1;
+#X connect 14 0 12 0;
+#X connect 14 0 13 0;
+#X restore 441 225 pd example;
+#X text 109 425 1) symbol;
+#X text 171 425 -;
+#X obj 204 167 else/bl.osc~ saw 10 200;
+#X text 191 330 signal -;
+#X text 256 330 phase sync (impulse ressets internal phase);
+#X text 257 385 bandlimited oscillator signal;
+#X text 184 423 (optional) sets waveform: saw (default) \, saw2 \,
+tri \, square and imp);
+#X text 115 450 2) float;
+#X text 115 467 3) float;
+#X text 115 483 4) float;
+#X text 172 450 - number of partials (default 1), f 60;
+#X text 191 352 signal -;
+#X text 173 293 n <float> -;
+#X text 255 293 set number of partials (rewrites all tables);
+#X text 179 310 anything -;
+#X text 255 310 set waveforms: saw \, saw2 \, tri \, square & imp;
+#X text 60 86 [bl.osc~] is a bandlimited oscillator based on [else/wavetable~].
+It has wavetables built with a variable number of partials for different
+waveforms: 'saw' \, 'saw2' \, 'tri' \, 'square' and 'imp'., f 67;
+#N canvas 527 93 572 563 details 0;
+#X obj 128 108 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+#dcdcdc #000000 #000000 0 256;
+#X obj 128 461 else/out~;
+#X msg 177 179 saw2;
+#X msg 169 158 saw;
+#X msg 156 136 tri;
+#X msg 183 203 square;
+#X msg 194 224 imp;
+#X text 347 119 see also:;
+#X obj 347 170 else/saw~;
+#X obj 347 196 else/saw2~;
+#X obj 347 146 else/tri~;
+#X obj 347 220 else/square~;
+#X obj 347 245 else/imp~;
+#X msg 67 203 n \$1;
+#X floatatom 67 175 5 1 20 0 - - - 0;
+#X text 11 154 set number of partials, f 13;
+#X text 68 20 There are 2 versions of sawtooth waveforms (see else/saw~
+and else/saw2~) \, plus a triangular waveform (see else/tri~) \, a
+square (see else/square~) and impulse (see else/imp~). Setting the
+number of partials rewrites all internal tables (whatch for clicks).
+, f 75;
+#X obj 160 312 else/oscope~ 371 133 8 3 128 -1.1 1.1 300 0 0 0 30 30
+30 190 190 190 160 160 160 0 empty;
+#X obj 128 276 else/bl.osc~ tri 20 400;
+#X connect 0 0 18 0;
+#X connect 2 0 18 0;
+#X connect 3 0 18 0;
+#X connect 4 0 18 0;
+#X connect 5 0 18 0;
+#X connect 6 0 18 0;
+#X connect 13 0 18 0;
+#X connect 14 0 13 0;
+#X connect 18 0 1 0;
+#X connect 18 0 17 0;
+#X restore 441 201 pd details;
+#X connect 20 0 32 0;
+#X connect 32 0 23 0;

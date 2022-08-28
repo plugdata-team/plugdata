@@ -482,10 +482,14 @@ void setup_bend0x2eout();
 void setup_bl0x2esaw_tilde();
 void setup_bl0x2esaw2_tilde();
 void setup_bl0x2eimp_tilde();
+void setup_bl0x2eimp2_tilde();
 void setup_bl0x2esquare_tilde();
 void setup_bl0x2etri_tilde();
 void setup_bl0x2evsaw_tilde();
+void setup_bl0x2eosc_tilde();
 void bicoeff_setup();
+void bicoeff2_setup();
+void bitnormal_tilde_setup();
 void biquads_tilde_setup();
 void blocksize_tilde_setup();
 void break_setup();
@@ -523,6 +527,7 @@ void crossover_tilde_setup();
 void setup_ctl0x2ein();
 void setup_ctl0x2eout();
 void cusp_tilde_setup();
+void db2lin_tilde_setup();
 void decay_tilde_setup();
 void decay2_tilde_setup();
 void default_setup();
@@ -646,6 +651,7 @@ void setup_rand0x2eseq();
 #if ENABLE_SFONT
 void sfont_tilde_setup();
 #endif
+void route2_setup();
 void randpulse_tilde_setup();
 void randpulse2_tilde_setup();
 void range_tilde_setup();
@@ -961,10 +967,14 @@ void libpd_multi_init(void)
         setup_bl0x2esaw_tilde();
         setup_bl0x2esaw2_tilde();
         setup_bl0x2eimp_tilde();
+        setup_bl0x2eimp2_tilde();
         setup_bl0x2esquare_tilde();
         setup_bl0x2etri_tilde();
         setup_bl0x2evsaw_tilde();
+        setup_bl0x2eosc_tilde();
         bicoeff_setup();
+        bicoeff2_setup();
+        bitnormal_tilde_setup();
         biquads_tilde_setup();
         blocksize_tilde_setup();
         break_setup();
@@ -1003,6 +1013,7 @@ void libpd_multi_init(void)
         setup_ctl0x2ein();
         setup_ctl0x2eout();
         cusp_tilde_setup();
+        db2lin_tilde_setup();
         decay_tilde_setup();
         decay2_tilde_setup();
         default_setup();
@@ -1127,6 +1138,7 @@ void libpd_multi_init(void)
         setup_rand0x2ei();
         setup_rand0x2ei_tilde();
         setup_rand0x2eseq();
+        route2_setup();
         randpulse_tilde_setup();
         randpulse2_tilde_setup();
         range_tilde_setup();
@@ -1447,4 +1459,3 @@ int parse_startup_arguments(char const** argv, size_t argc)
 
     return (0);
 }
-

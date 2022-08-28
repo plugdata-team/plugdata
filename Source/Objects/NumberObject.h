@@ -2,7 +2,7 @@
 
 struct NumberObject final : public IEMObject {
     DraggableNumber input;
-    
+
     NumberObject(void* obj, Box* parent)
         : IEMObject(obj, parent)
     {
@@ -30,7 +30,7 @@ struct NumberObject final : public IEMObject {
 
         min = getMinimum();
         max = getMaximum();
-        
+
         addMouseListener(this, true);
 
         input.dragStart = [this]() { startEdition(); };
@@ -42,26 +42,20 @@ struct NumberObject final : public IEMObject {
 
     void updateBounds() override
     {
-        pd->enqueueFunction([this, _this = SafePointer(this)]() {
-            if (!_this)
-                return;
+        pd->getCallbackLock()->enter();
 
-            int x = 0, y = 0, w = 0, h = 0;
-            libpd_get_object_bounds(cnv->patch.getPointer(), ptr, &x, &y, &w, &h);
-            auto bounds = Rectangle<int>(x, y, w, h);
-
-            MessageManager::callAsync([this, _this = SafePointer(this), bounds]() mutable {
-                if (!_this)
-                    return;
-
-                box->setObjectBounds(bounds);
-            });
-        });
+        int x = 0, y = 0, w = 0, h = 0;
+        libpd_get_object_bounds(cnv->patch.getPointer(), ptr, &x, &y, &w, &h);
+        auto bounds = Rectangle<int>(x, y, w, h);
+        
+        pd->getCallbackLock()->exit();
+    
+        box->setObjectBounds(bounds);
     }
 
     void checkBounds() override
     {
-        const int widthIncrement = 9;
+        int const widthIncrement = 9;
         int width = jlimit(27, maxSize, (getWidth() / widthIncrement) * widthIncrement);
         int height = jlimit(18, maxSize, getHeight());
         if (getWidth() != width || getHeight() != height) {
@@ -77,34 +71,34 @@ struct NumberObject final : public IEMObject {
         int fontWidth = glist_fontwidth(cnv->patch.getPointer());
 
         auto* nbx = static_cast<t_my_numbox*>(ptr);
-        
+
         nbx->x_gui.x_w = b.getWidth();
         nbx->x_gui.x_h = b.getHeight();
-        
+
         nbx->x_numwidth = (b.getWidth() / 9) - 1;
     }
-    
+
     void resized() override
     {
         input.setBounds(getLocalBounds());
         input.setFont(getHeight() - 6);
     }
-    
+
     void focusGained(FocusChangeType cause) override
     {
         repaint();
     }
-    
+
     void focusLost(FocusChangeType cause) override
     {
         repaint();
     }
-    
-    void focusOfChildComponentChanged (FocusChangeType cause) override
+
+    void focusOfChildComponentChanged(FocusChangeType cause) override
     {
         repaint();
     }
-    
+
     void lock(bool isLocked) override
     {
         setInterceptsMouseClicks(isLocked, isLocked);
@@ -147,7 +141,7 @@ struct NumberObject final : public IEMObject {
         auto normalColour = Colour(getForegroundColour()).interpolatedWith(box->findColour(PlugDataColour::toolbarColourId), 0.5f);
         auto highlightColour = findColour(PlugDataColour::highlightColourId);
         bool highlighed = hasKeyboardFocus(true) && static_cast<bool>(box->locked.getValue());
-        
+
         g.setColour(highlighed ? highlightColour : normalColour);
         g.fillPath(triangle);
     }

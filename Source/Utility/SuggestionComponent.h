@@ -1,18 +1,19 @@
 
 // Suggestions component that shows up when objects are edited
-class SuggestionComponent : public Component, public KeyListener, public TextEditor::InputFilter
-{
-    class Suggestion : public TextButton
-    {
+class SuggestionComponent : public Component
+    , public KeyListener
+    , public TextEditor::InputFilter {
+    class Suggestion : public TextButton {
         int idx = 0;
         int type = -1;
 
-        Array<String> letters = {"pd", "~"};
+        Array<String> letters = { "pd", "~" };
 
         String objectDescription;
 
-       public:
-        Suggestion(int i) : idx(i)
+    public:
+        Suggestion(int i)
+            : idx(i)
         {
             setText("", "", false);
             setWantsKeyboardFocus(true);
@@ -22,7 +23,7 @@ class SuggestionComponent : public Component, public KeyListener, public TextEdi
             setColour(TextButton::buttonOnColourId, findColour(ScrollBar::thumbColourId));
         }
 
-        void setText(const String& name, const String& description, bool icon)
+        void setText(String const& name, String const& description, bool icon)
         {
             objectDescription = description;
             setButtonText(name);
@@ -48,10 +49,10 @@ class SuggestionComponent : public Component, public KeyListener, public TextEdi
             auto rightIndent = jmin(fontHeight, 2 + cornerSize / (isConnectedOnRight() ? 4 : 2));
             auto textWidth = getWidth() - leftIndent - rightIndent;
 
-            if (textWidth > 0) g.drawFittedText(getButtonText(), leftIndent, yIndent, textWidth, getHeight() - yIndent * 2, Justification::left, 2);
+            if (textWidth > 0)
+                g.drawFittedText(getButtonText(), leftIndent, yIndent, textWidth, getHeight() - yIndent * 2, Justification::left, 2);
 
-            if (objectDescription.isNotEmpty())
-            {
+            if (objectDescription.isNotEmpty()) {
                 auto textLength = font.getStringWidth(getButtonText());
 
                 g.setColour(getToggleState() ? Colours::white : findColour(PlugDataColour::canvasOutlineColourId));
@@ -66,11 +67,11 @@ class SuggestionComponent : public Component, public KeyListener, public TextEdi
                 g.drawText("- " + objectDescription, Rectangle<int>(leftIndent, yIndent, textWidth, getHeight() - yIndent * 2), Justification::left);
             }
 
-            if (type == -1) return;
+            if (type == -1)
+                return;
 
-            if (drawIcon)
-            {
-                
+            if (drawIcon) {
+
                 auto dataColour = findColour(PlugDataColour::highlightColourId);
                 auto signalColour = findColour(PlugDataColour::signalColourId);
                 g.setColour(type ? signalColour : dataColour);
@@ -87,16 +88,17 @@ class SuggestionComponent : public Component, public KeyListener, public TextEdi
         bool drawIcon = true;
     };
 
-   public:
+public:
     bool selecting = false;
 
-    SuggestionComponent() : resizer(this, &constrainer), currentBox(nullptr)
+    SuggestionComponent()
+        : resizer(this, &constrainer)
+        , currentBox(nullptr)
     {
         // Set up the button list that contains our suggestions
         buttonholder = std::make_unique<Component>();
 
-        for (int i = 0; i < 20; i++)
-        {
+        for (int i = 0; i < 20; i++) {
             Suggestion* but = buttons.add(new Suggestion(i));
             buttonholder->addAndMakeVisible(buttons[i]);
 
@@ -139,23 +141,20 @@ class SuggestionComponent : public Component, public KeyListener, public TextEdi
         editor->addKeyListener(this);
 
         // Should run after the input filter
-        editor->onTextChange = [this, editor, box]()
-        {
-            if (state == ShowingObjects && !editor->getText().containsChar(' '))
-            {
-                editor->setHighlightedRegion({highlightStart, highlightEnd});
+        editor->onTextChange = [this, editor, box]() {
+            if (state == ShowingObjects && !editor->getText().containsChar(' ')) {
+                editor->setHighlightedRegion({ highlightStart, highlightEnd });
             }
         };
 
-        for (int i = 0; i < buttons.size(); i++)
-        {
+        for (int i = 0; i < buttons.size(); i++) {
             auto* but = buttons[i];
             but->setAlwaysOnTop(true);
 
-            but->onClick = [this, i, editor]() mutable
-            {
+            but->onClick = [this, i, editor]() mutable {
                 move(0, i);
-                if (!editor->isVisible()) editor->setVisible(true);
+                if (!editor->isVisible())
+                    editor->setVisible(true);
                 editor->grabKeyboardFocus();
             };
         }
@@ -167,25 +166,25 @@ class SuggestionComponent : public Component, public KeyListener, public TextEdi
         setTopLeftPosition(box->getScreenX(), box->getScreenBounds().getBottom());
         repaint();
     }
-    
-    void removeCalloutBox() {
-        if (isOnDesktop())
-        {
+
+    void removeCalloutBox()
+    {
+        if (isOnDesktop()) {
             removeFromDesktop();
         }
-        
-        if(openedEditor) {
+
+        if (openedEditor) {
             openedEditor->setInputFilter(nullptr, false);
         }
-        
-        
+
         openedEditor = nullptr;
         currentBox = nullptr;
     }
 
     void move(int offset, int setto = -1)
     {
-        if (!openedEditor) return;
+        if (!openedEditor)
+            return;
 
         // Calculate new selected index
         if (setto == -1)
@@ -193,7 +192,8 @@ class SuggestionComponent : public Component, public KeyListener, public TextEdi
         else
             currentidx = setto;
 
-        if (numOptions == 0) return;
+        if (numOptions == 0)
+            return;
 
         // Limit it to minimum of the number of buttons and the number of suggestions
         int numButtons = std::min(20, numOptions);
@@ -202,23 +202,20 @@ class SuggestionComponent : public Component, public KeyListener, public TextEdi
         auto* but = buttons[currentidx];
 
         // If we use setto, the toggle state should already be set
-        if (setto == -1) but->setToggleState(true, dontSendNotification);
+        if (setto == -1)
+            but->setToggleState(true, dontSendNotification);
 
-        if (openedEditor)
-        {
+        if (openedEditor) {
             String newText = buttons[currentidx]->getButtonText();
             openedEditor->setText(newText, dontSendNotification);
             highlightEnd = newText.length();
-            openedEditor->setHighlightedRegion({highlightStart, highlightEnd});
+            openedEditor->setHighlightedRegion({ highlightStart, highlightEnd });
         }
 
         // Auto-scroll item into viewport bounds
-        if (port->getViewPositionY() > but->getY())
-        {
+        if (port->getViewPositionY() > but->getY()) {
             port->setViewPosition(0, but->getY());
-        }
-        else if (port->getViewPositionY() + port->getMaximumVisibleHeight() < but->getY() + but->getHeight())
-        {
+        } else if (port->getViewPositionY() + port->getMaximumVisibleHeight() < but->getY() + but->getHeight()) {
             port->setViewPosition(0, but->getY() - (but->getHeight() * 4));
         }
     }
@@ -231,10 +228,11 @@ class SuggestionComponent : public Component, public KeyListener, public TextEdi
         int yScroll = port->getViewPositionY();
         port->setBounds(getLocalBounds());
         buttonholder->setBounds(0, 0, getWidth(), std::min(numOptions, 20) * 22 + 2);
-        
-        for (int i = 0; i < buttons.size(); i++) buttons[i]->setBounds(2, (i * 22) + 2, getWidth() - 2, 23);
 
-        const int resizerSize = 12;
+        for (int i = 0; i < buttons.size(); i++)
+            buttons[i]->setBounds(2, (i * 22) + 2, getWidth() - 2, 23);
+
+        int const resizerSize = 12;
 
         resizer.setBounds(getWidth() - (resizerSize + 1), getHeight() - (resizerSize + 1), resizerSize, resizerSize);
 
@@ -242,7 +240,7 @@ class SuggestionComponent : public Component, public KeyListener, public TextEdi
         repaint();
     }
 
-   private:
+private:
     void paint(Graphics& g) override
     {
         g.setColour(findColour(PlugDataColour::toolbarColourId));
@@ -255,24 +253,33 @@ class SuggestionComponent : public Component, public KeyListener, public TextEdi
         g.drawRoundedRectangle(port->getBounds().reduced(1).toFloat(), 3.0f, 2.5f);
     }
 
-    bool keyPressed(const KeyPress& key, Component* originatingComponent) override
+    bool keyPressed(KeyPress const& key, Component* originatingComponent) override
     {
-        if (state != ShowingObjects) return false;
+        if (!currentBox) {
+            return false;
+        }
+        
+        if (key == KeyPress::rightKey) {
+            openedEditor->setCaretPosition(openedEditor->getHighlightedRegion().getEnd());
+            return true;
+        }
+        
+        if (state != ShowingObjects)
+            return false;
 
-        if (key == KeyPress::upKey || key == KeyPress::downKey)
-        {
+        if (key == KeyPress::upKey || key == KeyPress::downKey) {
             move(key == KeyPress::downKey ? 1 : -1);
             return true;
         }
         return false;
     }
 
-    String filterNewText(TextEditor& e, const String& newInput) override
+    String filterNewText(TextEditor& e, String const& newInput) override
     {
-        if(!currentBox)  {
+        if (!currentBox) {
             return newInput;
         }
-        
+
         String mutableInput = newInput;
 
         // Find start of highlighted region
@@ -290,21 +297,19 @@ class SuggestionComponent : public Component, public KeyListener, public TextEdi
         auto& library = currentBox->cnv->pd->objectLibrary;
 
         // If there's a space, open arguments panel
-        if ((e.getText() + mutableInput).contains(" "))
-        {
+        if ((e.getText() + mutableInput).contains(" ")) {
             state = ShowingArguments;
             auto found = library.getArguments()[typedText.upToFirstOccurrenceOf(" ", false, false)];
-            for (int i = 0; i < std::min<int>(buttons.size(), static_cast<int>(found.size())); i++)
-            {
+            for (int i = 0; i < std::min<int>(buttons.size(), static_cast<int>(found.size())); i++) {
                 auto& [type, description, init] = found[i];
                 buttons[i]->setText(type, description, false);
                 buttons[i]->setInterceptsMouseClicks(false, false);
                 buttons[i]->setToggleState(false, dontSendNotification);
             }
-            
+
             numOptions = static_cast<int>(found.size());
 
-            for (int i = numOptions; i < buttons.size(); i++)  {
+            for (int i = numOptions; i < buttons.size(); i++) {
                 buttons[i]->setText("", "", false);
                 buttons[i]->setToggleState(false, dontSendNotification);
             }
@@ -316,71 +321,63 @@ class SuggestionComponent : public Component, public KeyListener, public TextEdi
         }
 
         buttons[currentidx]->setToggleState(true, dontSendNotification);
-        
+
         // Update suggestions
         auto found = library.autocomplete(typedText.toStdString());
 
         numOptions = static_cast<int>(found.size());
-        
-        for (int i = 0; i < std::min<int>(buttons.size(), numOptions); i++)
-        {
+
+        for (int i = 0; i < std::min<int>(buttons.size(), numOptions); i++) {
             auto& [name, autocomplete] = found[i];
-            
+
             auto descriptions = library.getObjectDescriptions();
 
-            if (descriptions.find(name) != descriptions.end())
-            {
+            if (descriptions.find(name) != descriptions.end()) {
                 buttons[i]->setText(name, descriptions[name], true);
-            }
-            else
-            {
+            } else {
                 buttons[i]->setText(name, "", true);
             }
             buttons[i]->setInterceptsMouseClicks(true, false);
         }
 
-        for (int i = numOptions; i < buttons.size(); i++) buttons[i]->setText("", "", false);
+        for (int i = numOptions; i < buttons.size(); i++)
+            buttons[i]->setText("", "", false);
 
         // Get length of user-typed text
         int textlen = e.getText().substring(0, start).length();
 
-        if (found.empty() || textlen == 0)
-        {
+        if (found.empty() || textlen == 0) {
             state = Hidden;
             setVisible(false);
             highlightEnd = 0;
             return mutableInput;
         }
 
-        if (newInput.isEmpty() || e.getCaretPosition() != textlen)
-        {
+        if (newInput.isEmpty() || e.getCaretPosition() != textlen) {
             highlightEnd = 0;
             return mutableInput;
         }
-        
+
         // Limit it to minimum of the number of buttons and the number of suggestions
         int numButtons = std::min(20, numOptions);
-        
+
         currentidx = (currentidx + numButtons) % numButtons;
-        
+
         // Retrieve best suggestion
-        const auto& fullName = found[currentidx].first;
+        auto const& fullName = found[currentidx].first;
 
         state = ShowingObjects;
-        if (fullName.length() > textlen)
-        {
+        if (fullName.length() > textlen) {
             mutableInput = fullName.substring(textlen);
         }
 
         setVisible(true);
         highlightEnd = fullName.length();
 
-        
         return mutableInput;
     }
 
-    enum SugesstionState
-    {
+    enum SugesstionState {
         Hidden,
         ShowingObjects,
         ShowingArguments
@@ -396,7 +393,7 @@ class SuggestionComponent : public Component, public KeyListener, public TextEdi
     ResizableCornerComponent resizer;
     ComponentBoundsConstrainer constrainer;
 
-    Array<Colour> colours = {findColour(PlugDataColour::toolbarColourId), findColour(PlugDataColour::canvasColourId)};
+    Array<Colour> colours = { findColour(PlugDataColour::toolbarColourId), findColour(PlugDataColour::canvasColourId) };
 
     Colour bordercolor = Colour(142, 152, 155);
 

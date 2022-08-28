@@ -18,7 +18,7 @@ class SuggestionComponent;
 struct GraphArea;
 class Edge;
 class PlugDataPluginEditor;
-class Canvas : public Component, public Value::Listener, public LassoSource<Component*>
+class Canvas : public Component, public Value::Listener, public LassoSource<WeakReference<Component>>
 {    
    public:
     
@@ -70,10 +70,10 @@ class Canvas : public Component, public Value::Listener, public LassoSource<Comp
     void handleMouseUp(Component* component, const MouseEvent& e);
     void handleMouseDrag(const MouseEvent& e);
 
-    SelectedItemSet<Component*>& getLassoSelection() override;
+    SelectedItemSet<WeakReference<Component>>& getLassoSelection() override;
 
     void removeSelectedComponent(Component* component);
-    void findLassoItemsInArea(Array<Component*>& itemsFound, const Rectangle<int>& area) override;
+    void findLassoItemsInArea(Array<WeakReference<Component>>& itemsFound, const Rectangle<int>& area) override;
 
     void updateSidebarSelection();
 
@@ -85,9 +85,9 @@ class Canvas : public Component, public Value::Listener, public LassoSource<Comp
     {
         Array<T*> result;
 
-        for (auto* obj : selectedComponents)
+        for (auto obj : selectedComponents)
         {
-            if (auto* objOfType = dynamic_cast<T*>(obj))
+            if (auto* objOfType = dynamic_cast<T*>(obj.get()))
             {
                 result.add(objOfType);
             }
@@ -107,7 +107,7 @@ class Canvas : public Component, public Value::Listener, public LassoSource<Comp
     pd::Patch& patch;
 
     // Needs to be allocated before box and connection so they can deselect themselves in the destructor
-    SelectedItemSet<Component*> selectedComponents;
+    SelectedItemSet<WeakReference<Component>> selectedComponents;
     
     OwnedArray<Box> boxes;
     OwnedArray<Connection> connections;
@@ -134,24 +134,24 @@ class Canvas : public Component, public Value::Listener, public LassoSource<Comp
 
     GraphArea* graphArea = nullptr;
     SuggestionComponent* suggestor = nullptr;
-
-    pd::Storage storage;
-
+    
     bool attachNextObjectToMouse = false;
-
+    
+    // Multi-dragger variables
+    bool didStartDragging = false;
+    const int minimumMovementToStartDrag = 5;
+    Box* componentBeingDragged = nullptr;
+    
    private:
     
     SafePointer<Box> boxSnappingInbetween;
     SafePointer<Connection> connectionToSnapInbetween;
     SafePointer<TabbedComponent> tabbar;
 
-    LassoComponent<Component*> lasso;
+    LassoComponent<WeakReference<Component>> lasso;
+    
+    // Static makes sure there can only be one
     PopupMenu popupMenu;
-
-    // Multi-dragger variables
-    const int minimumMovementToStartDrag = 10;
-    bool didStartDragging = false;
-    Box* componentBeingDragged = nullptr;
 
     // Properties that can be shown in the inspector by right-clicking on canvas
     ObjectParameters parameters = {{"Is graph", tBool, cGeneral, &isGraphChild, {"No", "Yes"}}, {"Hide name and arguments", tBool, cGeneral, &hideNameAndArgs, {"No", "Yes"}}};

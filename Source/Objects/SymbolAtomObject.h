@@ -1,5 +1,5 @@
 
-struct SymbolAtomObject final : public AtomObject {
+struct SymbolAtomObject final : public AtomObject, public KeyListener {
     bool isDown = false;
     bool isLocked = false;
 
@@ -10,7 +10,7 @@ struct SymbolAtomObject final : public AtomObject {
     {
         addAndMakeVisible(input);
 
-        input.setInterceptsMouseClicks(false, false);
+        input.addMouseListener(this, false);
 
         input.onTextChange = [this]() {
             startEdition();
@@ -22,12 +22,12 @@ struct SymbolAtomObject final : public AtomObject {
                 box->setSize(width, box->getHeight());
                 checkBounds();
             }
-            
         };
-        
-        input.onEditorShow = [this](){
+
+        input.onEditorShow = [this]() {
             auto* editor = input.getCurrentTextEditor();
-            editor->setBorder({1, 1, 0, 0});
+            editor->setBorder({ 1, 1, 0, 0 });
+            editor->addKeyListener(this);
         };
 
         input.setMinimumHorizontalScale(0.9f);
@@ -50,7 +50,7 @@ struct SymbolAtomObject final : public AtomObject {
 
     void update() override
     {
-        input.setText(String(getSymbol()), sendNotification);
+        input.setText(getSymbol(), sendNotification);
     }
 
     void setSymbol(String const& value)
@@ -61,7 +61,7 @@ struct SymbolAtomObject final : public AtomObject {
     String getSymbol()
     {
         cnv->pd->setThis();
-        return atom_getsymbol(fake_gatom_getatom(static_cast<t_fake_gatom*>(ptr)))->s_name;
+        return String::fromUTF8(atom_getsymbol(fake_gatom_getatom(static_cast<t_fake_gatom*>(ptr)))->s_name);
     }
 
     void updateValue() override
@@ -99,6 +99,18 @@ struct SymbolAtomObject final : public AtomObject {
             AtomObject::valueChanged(v);
         }
     }
+    
+    bool keyPressed(const KeyPress& key, Component* originalComponent) override
+    {
+        if (key == KeyPress::rightKey) {
+            if(auto* editor = input.getCurrentTextEditor()) {
+                editor->setCaretPosition(editor->getHighlightedRegion().getEnd());
+                return true;
+            }
+        }
+        return false;
+    }
+
 
     Label input;
 };

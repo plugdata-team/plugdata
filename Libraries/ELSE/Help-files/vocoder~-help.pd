@@ -45,7 +45,6 @@
 #X text 127 316 freq <list> -;
 #X text 222 400 vocoder output;
 #X text 103 435 1) float -;
-#X text 182 435 number of channels (obrigatory), f 38;
 #X text 103 455 2) float -;
 #X text 222 316 list of frequency (in MIDI) for each channel;
 #X text 60 90 [vocoder~] is classic cross synthesis channel vocoder
@@ -119,8 +118,9 @@ equally dividing the range in MIDI from 28 and 108 for the number of
 channels);
 #X obj 125 188 else/vocoder~ 16 75, f 40;
 #X text 425 161 Q;
-#X connect 36 0 39 0;
-#X connect 37 0 43 1;
-#X connect 39 0 43 0;
-#X connect 40 0 43 2;
-#X connect 43 0 38 0;
+#X text 182 435 number of channels (obligatory), f 38;
+#X connect 35 0 38 0;
+#X connect 36 0 42 1;
+#X connect 38 0 42 0;
+#X connect 39 0 42 2;
+#X connect 42 0 37 0;

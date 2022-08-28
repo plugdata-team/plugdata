@@ -1,0 +1,39 @@
+#N canvas 536 141 700 308 12;
+#X obj 87 249 outlet;
+#X obj 254 249 s param;
+#X obj 269 34 inlet;
+#X obj 102 44 r param\$1;
+#N canvas 0 22 450 278 (subpatch) 0;
+#X text 0 0 plugdatainfo <?xml version="1.0" encoding="UTF-8"?> <PlugDataInfo><InfoObj
+ID="16.F....T..........B....." Updated="0" Segmented="1" Path="48.................Q.....E...PD....PA...z....vZ....M....rF...PD...."/><InfoObj
+ID="16.E....b..........B....." Updated="0" Segmented="1" Path="32.................L....z6+++OC....89+++mD...."/><InfoObj
+ID="16.F....H................" Updated="0" Segmented="0" Path="32.+++++K....v+++++L....z3+++OC....M9+++CB...."/><InfoObj
+ID="16.I....b..........B....." Updated="0" Segmented="0" Path="48.D....D.....A....M....PE...PC....TA...jA....Y....Y....PF...PR...."/><InfoObj
+ID="16.D....H................" Updated="0" Segmented="0" Path="32.................T..........E.........bB...."/><InfoObj
+ID="16.E....L....P..........." Updated="0" Segmented="0" Path="32.................HA.........R..........I...."/><InfoObj
+ID="16......T..........B....." Updated="0" Segmented="0" Path="32.................K.........vB.........TA...."/><InfoObj
+ID="16.G....X..........A....." Updated="0" Segmented="0" Path="32.................E.........PA.........j....."/><InfoObj
+ID="16.H....b..........B....." Updated="0" Segmented="0" Path="32.................M.........PC.........jA...."/><InfoObj
+ID="16.E....f..........A....." Updated="0" Segmented="0" Path="32.................N....z6+++uC....89+++yA...."/><InfoObj
+ID="16.I....f..........A....." Updated="0" Segmented="0" Path="32.................L....n++++OC....5++++eA...."/><InfoObj
+ID="16.I....P....P.....B....." Updated="0" Segmented="0" Path="32.................v..........L.........7E...."/><InfoObj
+ID="16.A....j..........B....." Updated="0" Segmented="0" Path="32.................U....7....PE....O....jB...."/></PlugDataInfo>
+;
+#X coords 0 1 100 -1 1 1 1;
+#X restore 0 0 graph;
+#X obj 269 92 list prepend \$1;
+#X obj 87 208 gate;
+#X obj 170 92 t b;
+#X obj 170 128 timed.gate 50;
+#X obj 170 170 expr 1 - $f1;
+#X obj 254 170 gate;
+#X connect 2 0 5 0;
+#X connect 2 0 7 0;
+#X connect 3 0 6 1;
+#X connect 5 0 10 1;
+#X connect 6 0 0 0;
+#X connect 7 0 8 0;
+#X connect 8 0 9 0;
+#X connect 8 0 10 0;
+#X connect 9 0 6 0;
+#X connect 10 0 1 0;

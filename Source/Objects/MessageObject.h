@@ -11,7 +11,7 @@ typedef struct _message {
     t_clock* m_clock;
 } t_message;
 
-struct MessageObject final : public GUIObject {
+struct MessageObject final : public GUIObject, public KeyListener {
     bool isDown = false;
     bool isLocked = false;
 
@@ -22,8 +22,8 @@ struct MessageObject final : public GUIObject {
     {
         addAndMakeVisible(input);
 
-        input.setInterceptsMouseClicks(false, false);
-
+        input.addMouseListener(this, false);
+        
         input.onTextChange = [this]() {
             startEdition();
             setSymbol(input.getText().toStdString());
@@ -42,8 +42,8 @@ struct MessageObject final : public GUIObject {
 
             editor->setMultiLine(true, true);
             editor->setReturnKeyStartsNewLine(true);
-            editor->setBorder({0, 1, 3, 0});
-            
+            editor->setBorder({ 0, 1, 3, 0 });
+
             editor->onTextChange = [this, editor]() {
                 auto width = input.getFont().getStringWidth(editor->getText()) + 35;
 
@@ -51,6 +51,8 @@ struct MessageObject final : public GUIObject {
                     box->setSize(width, box->getHeight());
                 }
             };
+            
+            editor->addKeyListener(this);
         };
 
         input.setMinimumHorizontalScale(0.9f);
@@ -60,32 +62,24 @@ struct MessageObject final : public GUIObject {
 
     void updateBounds() override
     {
-        pd->enqueueFunction([this, _this = SafePointer(this)]() {
-            if (!_this)
-                return;
+        pd->getCallbackLock()->enter();
 
-            int x = 0, y = 0, w = 0, h = 0;
+        int x = 0, y = 0, w = 0, h = 0;
 
-            // If it's a text object, we need to handle the resizable width, which pd saves in amount of text characters
-            auto* textObj = static_cast<t_text*>(ptr);
+        // If it's a text object, we need to handle the resizable width, which pd saves in amount of text characters
+        auto* textObj = static_cast<t_text*>(ptr);
 
-            libpd_get_object_bounds(cnv->patch.getPointer(), ptr, &x, &y, &w, &h);
+        libpd_get_object_bounds(cnv->patch.getPointer(), ptr, &x, &y, &w, &h);
 
-            w = textObj->te_width * glist_fontwidth(cnv->patch.getPointer());
+        w = textObj->te_width * glist_fontwidth(cnv->patch.getPointer());
 
-            if (textObj->te_width == 0) {
-                w = Font(15).getStringWidth(getText()) + 19;
-            }
+        if (textObj->te_width == 0) {
+            w = Font(15).getStringWidth(getText()) + 19;
+        }
+        
+        pd->getCallbackLock()->exit();
 
-            auto bounds = Rectangle<int>(x, y, w, h);
-
-            MessageManager::callAsync([this, _this = SafePointer(this), bounds]() mutable {
-                if (!_this)
-                    return;
-
-                box->setObjectBounds(bounds);
-            });
-        });
+        box->setObjectBounds({x, y, w, h});
     }
 
     void checkBounds() override
@@ -110,12 +104,12 @@ struct MessageObject final : public GUIObject {
         input.setColour(TextEditor::textColourId, box->findColour(PlugDataColour::textColourId));
 
         input.showEditor();
+        input.getCurrentTextEditor()->addKeyListener(this);
     }
 
     void lock(bool locked) override
     {
         isLocked = locked;
-        setInterceptsMouseClicks(isLocked, isLocked);
     }
 
     void applyBounds() override
@@ -137,7 +131,7 @@ struct MessageObject final : public GUIObject {
 
     void update() override
     {
-        input.setText(String(getSymbol()), sendNotification);
+        input.setText(getSymbol(), sendNotification);
     }
 
     void paintOverChildren(Graphics& g) override
@@ -187,10 +181,13 @@ struct MessageObject final : public GUIObject {
         cnv->pd->enqueueDirectMessages(ptr, 0);
     }
 
+    
     void mouseUp(MouseEvent const& e) override
     {
         isDown = false;
         repaint();
+        
+        std::cout << "he" << std::endl;
     }
 
     void valueChanged(Value& v) override
@@ -207,7 +204,7 @@ struct MessageObject final : public GUIObject {
 
         binbuf_gettext(static_cast<t_message*>(ptr)->m_text.te_binbuf, &text, &size);
 
-        auto result = String(text, size);
+        auto result = String::fromUTF8(text, size);
         freebytes(text, size);
 
         return result;
@@ -216,13 +213,24 @@ struct MessageObject final : public GUIObject {
     void setSymbol(String const& value)
     {
         cnv->pd->enqueueFunction(
-            [this, value]() mutable {
+            [ptr = this->ptr, value]() mutable {
                 auto* cstr = value.toRawUTF8();
                 auto* messobj = static_cast<t_message*>(ptr);
                 binbuf_clear(messobj->m_text.te_binbuf);
                 binbuf_text(messobj->m_text.te_binbuf, cstr, value.getNumBytesAsUTF8());
                 glist_retext(messobj->m_glist, &messobj->m_text);
             });
+    }
+    
+    bool keyPressed(const KeyPress& key, Component* originalComponent) override
+    {
+        if (key == KeyPress::rightKey) {
+            if(auto* editor = input.getCurrentTextEditor()){
+                editor->setCaretPosition(editor->getHighlightedRegion().getEnd());
+                return true;
+            }
+        }
+        return false;
     }
 
     bool hideInGraph() override

@@ -235,7 +235,9 @@ void Box::setType(const String& newType, void* existingObject)
 
             // Synchronise to make sure connections are preserved correctly
             // Asynchronous because it could possibly delete this object
-            MessageManager::callAsync([this]() { cnv->synchronise(false); });
+            MessageManager::callAsync([cnv = SafePointer(cnv)]() {
+                if(cnv) cnv->synchronise(false);
+            });
         }
         else
         {
@@ -478,7 +480,7 @@ void Box::mouseDown(const MouseEvent& e)
             createEditorOnMouseDown = false;
 
             // Prevent losing focus because of click event
-            MessageManager::callAsync([this]() { showEditor(); });
+            MessageManager::callAsync([_this = SafePointer(this)]() { _this->showEditor(); });
         }
 
         return;
@@ -526,9 +528,8 @@ void Box::mouseUp(const MouseEvent& e)
     {
         originalBounds.setBounds(0, 0, 0, 0);
 
-        auto box = SafePointer<Box>(this);
         cnv->pd->enqueueFunction(
-            [this, box, e]() mutable
+            [this, box = SafePointer<Box>(this), e]() mutable
             {
                 if (!box || !gui) return;
 
@@ -543,9 +544,9 @@ void Box::mouseUp(const MouseEvent& e)
                 if (!cnv->viewport->getViewArea().contains(getBounds()))
                 {
                     MessageManager::callAsync(
-                        [this]()
+                        [box]()
                         {
-                            cnv->checkBounds();
+                            if(box) box->cnv->checkBounds();
                         });
                 }
             });
@@ -704,7 +705,7 @@ void Box::openHelpPatch() const
     cnv->pd->setThis();
     
     // Find name of help file
-    static File appDir = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory).getChildFile("PlugData").getChildFile("Library");
+    static File appDir = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory).getChildFile("PlugData").getChildFile(ProjectInfo::versionString);
 
     auto* ptr = getPointer();
     if (!ptr)  {
@@ -723,7 +724,7 @@ void Box::openHelpPatch() const
         if (ac < 1)
             return;
         atom_string(av, namebuf, MAXPDSTRING);
-        helpName = String(namebuf).fromLastOccurrenceOf("/", false, false);
+        helpName = String::fromUTF8(namebuf).fromLastOccurrenceOf("/", false, false);
     }
     else {
         helpName = class_gethelpname(pdclass);
@@ -749,33 +750,21 @@ void Box::openHelpPatch() const
     // Paths to search
     // First, only search vanilla, then search all documentation
     std::vector<File> paths = {appDir.getChildFile("Documentation").getChildFile("5.reference"), appDir.getChildFile("Documentation")};
-
-    pd::Patch helpPatch = {nullptr, nullptr};
     
     for (auto& path : paths)
     {
         auto file = findHelpPatch(path);
         if (file.existsAsFile())
         {
-            auto name = file.getFileName();
-            auto fullPath = file.getParentDirectory().getFullPathName();
-            sys_lock();
-            auto* pdPatch = glob_evalfile(nullptr, gensym(name.toRawUTF8()), gensym(fullPath.toRawUTF8()));
-            sys_unlock();
-            helpPatch = {pdPatch, cnv->pd, file.getChildFile(secondName)};
+            cnv->pd->enqueueFunction([this, file]() mutable {
+                cnv->pd->loadPatch(file);
+            });
         }
-    }
-
-    if (!helpPatch.getPointer())
-    {
-        cnv->pd->logMessage("Couldn't find help file");
+        
         return;
     }
-
-    auto* patch = cnv->main.pd.patches.add(new pd::Patch(helpPatch));
-    auto* newCnv = cnv->main.canvases.add(new Canvas(cnv->main, *patch));
-
-    cnv->main.addTab(newCnv, true);
+    
+    cnv->pd->logMessage("Couldn't find help file");
 }
 
 void Box::openSubpatch() const
@@ -795,7 +784,7 @@ void Box::openSubpatch() const
 
     if (abstraction)
     {
-        path = File(String(canvas_getdir(subpatch->getPointer())->s_name) + "/" + String(glist->gl_name->s_name)).withFileExtension("pd");
+        path = File(String::fromUTF8(canvas_getdir(subpatch->getPointer())->s_name) + "/" + String::fromUTF8(glist->gl_name->s_name)).withFileExtension("pd");
     }
 
     for (int n = 0; n < cnv->main.tabbar.getNumTabs(); n++)
@@ -807,7 +796,6 @@ void Box::openSubpatch() const
             return;
         }
     }
-
     auto* newPatch = cnv->main.pd.patches.add(new pd::Patch(*subpatch));
     auto* newCanvas = cnv->main.canvases.add(new Canvas(cnv->main, *newPatch, nullptr));
 

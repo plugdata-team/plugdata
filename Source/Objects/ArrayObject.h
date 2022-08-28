@@ -38,7 +38,7 @@ public:
     String getUnexpandedName() const
     {
         libpd_set_instance(static_cast<t_pdinstance*>(instance));
-        return libpd_array_get_unexpanded_name(ptr);
+        return String::fromUTF8(libpd_array_get_unexpanded_name(ptr));
     }
 
     PdArray::DrawType getDrawType() const
@@ -286,13 +286,13 @@ public:
         auto changed = std::vector<float>(vec.begin() + interpStart, vec.begin() + interpEnd + 1);
 
         pd->enqueueFunction(
-            [this, interpStart, changed]() mutable {
+            [_this = SafePointer(this), interpStart, changed]() mutable {
                 try {
                     for (int n = 0; n < changed.size(); n++) {
-                        array.write(interpStart + n, changed[n]);
+                        _this->array.write(interpStart + n, changed[n]);
                     }
                 } catch (...) {
-                    error = true;
+                    _this->error = true;
                 }
             });
 
@@ -394,23 +394,15 @@ public:
 
     void updateBounds() override
     {
-        pd->enqueueFunction([this, _this = SafePointer(this)]() {
-            if (!_this)
-                return;
-
-            int x = 0, y = 0, w = 0, h = 0;
-            libpd_get_object_bounds(cnv->patch.getPointer(), ptr, &x, &y, &w, &h);
-
-            auto* glist = static_cast<_glist*>(ptr);
-            auto bounds = Rectangle<int>(x, y, glist->gl_pixwidth, glist->gl_pixheight);
-
-            MessageManager::callAsync([this, _this = SafePointer(this), bounds]() mutable {
-                if (!_this)
-                    return;
-
-                box->setObjectBounds(bounds);
-            });
-        });
+        pd->getCallbackLock()->enter();
+        
+        int x = 0, y = 0, w = 0, h = 0;
+        libpd_get_object_bounds(cnv->patch.getPointer(), ptr, &x, &y, &w, &h);
+        
+        auto* glist = static_cast<_glist*>(ptr);
+        auto bounds = Rectangle<int>(x, y, glist->gl_pixwidth, glist->gl_pixheight);
+        
+        pd->getCallbackLock()->exit();
     }
 
     void checkBounds() override
@@ -479,12 +471,17 @@ public:
         int flags = arrSaveContents + 2 * static_cast<int>(arrDrawMode);
 
         cnv->pd->enqueueFunction(
-            [this, arrName, arrSize, flags]() mutable {
+            [this, _this = SafePointer(this), arrName, arrSize, flags]() mutable {
+                if (!_this)
+                    return;
+
                 auto* garray = reinterpret_cast<t_garray*>(static_cast<t_canvas*>(ptr)->gl_list);
                 garray_arraydialog(garray, gensym(arrName.toRawUTF8()), arrSize, static_cast<float>(flags), 0.0f);
 
                 MessageManager::callAsync(
-                    [this]() {
+                    [this, _this]() {
+                        if (!_this)
+                            return;
                         array = getArray();
                         graph.setArray(array);
                         updateLabel();

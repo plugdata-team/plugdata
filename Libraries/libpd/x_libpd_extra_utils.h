@@ -47,7 +47,6 @@ EXTERN int libpd_array_read(float* dest, void* garray, int offset, int n);
 EXTERN int libpd_array_write(void* garray, int offset,
     float const* src, int n);
 
-
 unsigned int libpd_iemgui_get_background_color(void* ptr);
 unsigned int libpd_iemgui_get_foreground_color(void* ptr);
 unsigned int libpd_iemgui_get_label_color(void* ptr);
@@ -62,7 +61,6 @@ int libpd_process_nodsp(void);
 
 unsigned int convert_from_iem_color(int const color);
 unsigned int convert_to_iem_color(char const* hex);
-
 
 #ifdef __cplusplus
 }
