@@ -65,11 +65,12 @@ Patch::Patch(void* patchPtr, Instance* parentInstance, File patchFile)
     , instance(parentInstance)
     , currentFile(patchFile)
 {
+    /*
     if (auto* cnv = getPointer()) {
         parentInstance->enqueueFunction([this]() {
             setZoom(1);
         });
-    }
+    } */
 }
 
 Rectangle<int> Patch::getBounds() const
@@ -99,32 +100,38 @@ bool Patch::isDirty() const
 
 void Patch::savePatch(File const& location)
 {
-    String fullPathname = location.getParentDirectory().getFullPathName();
-    String filename = location.getFileName();
-
-    auto* dir = gensym(fullPathname.toRawUTF8());
-    auto* file = gensym(filename.toRawUTF8());
-    libpd_savetofile(getPointer(), file, dir);
-
-    setTitle(filename);
-
+    location.deleteFile();
+    
+    FileOutputStream fstream(location);
+    fstream.setNewLineString("\n");
+    fstream << getCanvasContent();
+    fstream.flush();
+    
+    setTitle(location.getFileName());
+    
     canvas_dirty(getPointer(), 0);
     currentFile = location;
+    
+    instance->logMessage("saved to: " + location.getFullPathName());
 }
+
 
 void Patch::savePatch()
 {
-    String fullPathname = currentFile.getParentDirectory().getFullPathName();
     String filename = currentFile.getFileName();
 
-    auto* dir = gensym(fullPathname.toRawUTF8());
-    auto* file = gensym(filename.toRawUTF8());
-
-    libpd_savetofile(getPointer(), file, dir);
-
+    currentFile.deleteFile();
+    
+    FileOutputStream fstream(currentFile);
+    fstream.setNewLineString("\n");
+    fstream << getCanvasContent();
+    fstream.flush();
+    
     setTitle(filename);
 
     canvas_dirty(getPointer(), 0);
+    
+    instance->logMessage("saved to: " + currentFile.getFullPathName());
 }
 
 void Patch::setCurrent(bool lock)
@@ -137,7 +144,6 @@ void Patch::setCurrent(bool lock)
     if (lock)
         instance->getCallbackLock()->enter();
 
-    
     auto* cnv = canvas_getcurrent();
 
     if (cnv) {
@@ -162,9 +168,6 @@ int Patch::getIndex(void* obj)
     auto* cnv = getPointer();
 
     for (t_gobj* y = cnv->gl_list; y; y = y->g_next) {
-        if (Storage::isInfoParent(y))
-            continue;
-
         if (obj == y) {
             return i;
         }
@@ -206,8 +209,6 @@ std::vector<void*> Patch::getObjects(bool onlyGui)
         t_canvas const* cnv = getPointer();
 
         for (t_gobj* y = cnv->gl_list; y; y = y->g_next) {
-            if (Storage::isInfoParent(y))
-                continue;
 
             if ((onlyGui && y->g_pd->c_gobj) || !onlyGui) {
                 objects.push_back(static_cast<void*>(y));
@@ -275,15 +276,28 @@ void* Patch::createObject(String const& name, int x, int y)
     if (guiDefaults.find(tokens[0]) != guiDefaults.end()) {
         auto preset = guiDefaults.at(tokens[0]);
 
-        auto bg = instance->getBackgroundColour().toString().substring(2);
-        auto fg = instance->getForegroundColour().toString().substring(2);
-        auto lbl = instance->getTextColour().toString().substring(2);
-        auto ln = instance->getOutlineColour().toString().substring(2);
+        
+        auto bg = instance->getBackgroundColour();
+        auto fg = instance->getForegroundColour();
+        auto lbl = instance->getTextColour();
+        auto ln = instance->getOutlineColour();
+        
+        auto bg_str = bg.toString().substring(2);
+        auto fg_str = fg.toString().substring(2);
+        auto lbl_str = lbl.toString().substring(2);
+        auto ln_str = ln.toString().substring(2);
 
-        preset = preset.replace("bgColour", "#" + bg);
-        preset = preset.replace("fgColour", "#" + fg);
-        preset = preset.replace("lblColour", "#" + lbl);
-        preset = preset.replace("lnColour", "#" + ln);
+        preset = preset.replace("bgColour_rgb", String(bg.getRed()) + " " + String(bg.getGreen()) + " " + String(bg.getBlue()));
+        preset = preset.replace("fgColour_rgb", String(fg.getRed()) + " " + String(fg.getGreen()) + " " + String(fg.getBlue()));
+        preset = preset.replace("lblColour_rgb", String(lbl.getRed()) + " " + String(lbl.getGreen()) + " " + String(lbl.getBlue()));
+        preset = preset.replace("lnColour_rgb", String(ln.getRed()) + " " + String(ln.getGreen()) + " " + String(ln.getBlue()));
+        
+        preset = preset.replace("bgColour", "#" + bg_str);
+        preset = preset.replace("fgColour", "#" + fg_str);
+        preset = preset.replace("lblColour", "#" + lbl_str);
+        preset = preset.replace("lnColour", "#" + ln_str);
+        
+
 
         tokens.addTokens(preset, false);
     }
@@ -408,7 +422,7 @@ void Patch::copy()
         [this]() {
             int size;
             const char* text = libpd_copy(getPointer(), &size);
-            auto copied = String(CharPointer_UTF8(text), size);
+            auto copied = String::fromUTF8(text, size);
             MessageManager::callAsync([copied]() mutable { SystemClipboard::copyTextToClipboard(copied); });
         });
 }

@@ -44,14 +44,8 @@ static int getNumLines(int width, int stringWidth)
     // On startup, width might be zero, this is a large optimisation in that case
     if (width == 0)
         return 0;
-
-    int numLines = 1;
-    while (width < stringWidth) {
-        stringWidth -= (width - 12);
-        numLines++;
-    }
-
-    return numLines;
+    
+    return (stringWidth / (width - 12)) + 1;
 }
 // Used by text objects for estimating best text height for a set width
 static int getNumLines(String const& text, int width, Font font = Font(Font::getDefaultSansSerifFontName(), 13, 0))
@@ -107,7 +101,7 @@ struct Sidebar : public Component {
     void updateConsole();
 
 #if PLUGDATA_STANDALONE
-    void updateParameters();
+    void updateAutomationParameters();
 #endif
 
     static constexpr int dragbarWidth = 5;

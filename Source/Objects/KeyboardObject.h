@@ -61,7 +61,7 @@ struct MIDIKeyboard : public MidiKeyboardComponent {
     }
 };
 // ELSE keyboard
-struct KeyboardObject final : public GUIObject
+struct KeyboardObject final : public GUIObject, public Timer
     , public MidiKeyboardStateListener {
     typedef struct _edit_proxy {
         t_object p_obj;
@@ -108,6 +108,7 @@ struct KeyboardObject final : public GUIObject
         : GUIObject(ptr, box)
         , keyboard(state, MidiKeyboardComponent::horizontalKeyboard)
     {
+        keyboard.setMidiChannel(1);
         keyboard.setAvailableRange(36, 83);
         keyboard.setScrollButtonsVisible(false);
 
@@ -125,27 +126,23 @@ struct KeyboardObject final : public GUIObject
             lowC = 3;
             octaves = 4;
         }
+        
+        startTimer(150);
     }
 
     void updateBounds() override
     {
-        pd->enqueueFunction([this, _this = SafePointer(this)]() {
-            if (!_this)
-                return;
+        pd->getCallbackLock()->enter();
 
-            int x, y, w, h;
-            libpd_get_object_bounds(cnv->patch.getPointer(), ptr, &x, &y, &w, &h);
+        int x, y, w, h;
+        libpd_get_object_bounds(cnv->patch.getPointer(), ptr, &x, &y, &w, &h);
 
-            auto* keyboard = static_cast<t_keyboard*>(ptr);
+        auto* keyboard = static_cast<t_keyboard*>(ptr);
+        auto bounds = Rectangle<int>(x, y, keyboard->x_width, keyboard->x_height);
 
-            auto bounds = Rectangle<int>(x, y, keyboard->x_width, keyboard->x_height);
-
-            MessageManager::callAsync([this, _this = SafePointer(this), bounds]() mutable {
-                if (!_this)
-                    return;
-                box->setObjectBounds(bounds);
-            });
-        });
+        pd->getCallbackLock()->exit();
+    
+        box->setObjectBounds(bounds);
     }
 
     void checkBounds() override
@@ -182,6 +179,8 @@ struct KeyboardObject final : public GUIObject
 
     void handleNoteOn(MidiKeyboardState* source, int midiChannel, int note, float velocity) override
     {
+        if(midiChannel != 1) return;
+        
         auto* x = (t_keyboard*)ptr;
 
         cnv->pd->enqueueFunction(
@@ -199,6 +198,8 @@ struct KeyboardObject final : public GUIObject
 
     void handleNoteOff(MidiKeyboardState* source, int midiChannel, int note, float velocity) override
     {
+        if(midiChannel != 1) return;
+        
         auto* x = (t_keyboard*)ptr;
 
         cnv->pd->enqueueFunction(
@@ -242,6 +243,32 @@ struct KeyboardObject final : public GUIObject
             checkBounds();
         }
     }
+        
+    
+    void updateValue() override
+    {
+        auto* keyboardObject = static_cast<t_keyboard*>(ptr);
+        
+        for(int i = keyboard.getRangeStart(); i < keyboard.getRangeEnd(); i++)
+        {
+            if(keyboardObject->x_tgl_notes[i] && !(state.isNoteOn(2, i) && state.isNoteOn(1, i))) {
+                state.noteOn(2, i, 1.0f);
+            }
+            if(!keyboardObject->x_tgl_notes[i] && !(state.isNoteOn(2, i) && state.isNoteOn(1, i))) {
+                state.noteOff(2, i, 1.0f);
+            }
+        }
+    }
+        
+    void timerCallback() override
+    {
+        pd->enqueueFunction([_this = SafePointer(this)]{
+            if(!_this) return;
+            _this->updateValue();
+        });
+    }
+
+    
 
     void paintOverChildren(Graphics& g) override
     {

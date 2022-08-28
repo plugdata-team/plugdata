@@ -282,7 +282,6 @@ struct _clock {
     t_float c_unit; // >0 if in TIMEUNITS; <0 if in samples
 };
 
-
 static void sched_tick_nodsp(void)
 {
     double next_sys_time = pd_this->pd_systime + SYSTIMEPERTICK;

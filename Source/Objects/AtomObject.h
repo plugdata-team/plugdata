@@ -52,25 +52,20 @@ struct AtomObject : public GUIObject {
 
     void updateBounds() override
     {
-        pd->enqueueFunction([this, _this = SafePointer(this)]() {
-            if (!_this)
-                return;
+        pd->getCallbackLock()->enter();
+        
+        
+        int x, y, w, h;
+        libpd_get_object_bounds(cnv->patch.getPointer(), ptr, &x, &y, &w, &h);
 
-            auto* gatom = static_cast<t_fake_gatom*>(ptr);
-            int x, y, w, h;
+        auto* gatom = static_cast<t_fake_gatom*>(ptr);
+        w = std::max<int>(4, gatom->a_text.te_width) * glist_fontwidth(cnv->patch.getPointer());
 
-            libpd_get_object_bounds(cnv->patch.getPointer(), ptr, &x, &y, &w, &h);
-
-            w = std::max<int>(4, gatom->a_text.te_width) * glist_fontwidth(cnv->patch.getPointer());
-
-            auto bounds = Rectangle<int>(x, y, w, getAtomHeight());
-
-            MessageManager::callAsync([this, _this = SafePointer(this), bounds]() {
-                if (!_this)
-                    return;
-                box->setObjectBounds(bounds);
-            });
-        });
+        auto bounds = Rectangle<int>(x, y, w, getAtomHeight());
+        
+        pd->getCallbackLock()->exit();
+        
+        box->setObjectBounds(bounds);
     }
 
     void checkBounds() override
@@ -241,7 +236,7 @@ struct AtomObject : public GUIObject {
         auto* gatom = static_cast<t_fake_gatom*>(ptr);
         t_symbol const* sym = canvas_realizedollar(gatom->a_glist, gatom->a_label);
         if (sym) {
-            auto const text = String(sym->s_name);
+            auto const text = String::fromUTF8(sym->s_name);
             if (text.isNotEmpty() && text != "empty") {
                 return text;
             }
@@ -255,7 +250,7 @@ struct AtomObject : public GUIObject {
         auto* gatom = static_cast<t_fake_gatom*>(ptr);
         t_symbol const* sym = gatom->a_label;
         if (sym) {
-            auto const text = String(sym->s_name);
+            auto const text = String::fromUTF8(sym->s_name);
             if (text.isNotEmpty() && text != "empty") {
                 return text;
             }
@@ -266,9 +261,6 @@ struct AtomObject : public GUIObject {
 
     void setLabelText(String newText)
     {
-        if (newText.isEmpty())
-            newText = "empty";
-
         auto* atom = static_cast<t_fake_gatom*>(ptr);
         atom->a_label = gensym(newText.toRawUTF8());
     }
@@ -282,13 +274,13 @@ struct AtomObject : public GUIObject {
     String getSendSymbol()
     {
         auto* atom = static_cast<t_fake_gatom*>(ptr);
-        return String(atom->a_symfrom->s_name);
+        return String::fromUTF8(atom->a_symfrom->s_name);
     }
 
     String getReceiveSymbol()
     {
         auto* atom = static_cast<t_fake_gatom*>(ptr);
-        return String(atom->a_symto->s_name);
+        return String::fromUTF8(atom->a_symto->s_name);
     }
 
     void setSendSymbol(String const& symbol) const

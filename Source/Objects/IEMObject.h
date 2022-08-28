@@ -17,7 +17,7 @@ struct IEMObject : public GUIObject {
 
         iemgui_all_dollar2raute(srlsym);
         iemgui_all_sym2dollararg(iemgui, srlsym);
-        String label = String(srlsym[2]->s_name).removeCharacters("\\");
+        String label = String::fromUTF8(srlsym[2]->s_name).removeCharacters("\\");
         iemgui->x_lab_unexpanded = gensym(label.toRawUTF8());
 
         labelText = getLabelText();
@@ -106,7 +106,7 @@ struct IEMObject : public GUIObject {
         } else if (v.refersToSameSourceAs(primaryColour)) {
             auto colour = Colour::fromString(primaryColour.toString());
             setForegroundColour(colour);
-            
+
             // TODO: move this!
             getLookAndFeel().setColour(TextButton::buttonOnColourId, colour);
             getLookAndFeel().setColour(Slider::thumbColourId, colour);
@@ -150,19 +150,12 @@ struct IEMObject : public GUIObject {
 
     void updateBounds() override
     {
-        pd->enqueueFunction([this, _this = SafePointer(this)]() {
-            if (!_this)
-                return;
-
-            auto* iemgui = static_cast<t_iemgui*>(ptr);
-            auto bounds = Rectangle<int>(iemgui->x_obj.te_xpix, iemgui->x_obj.te_ypix, iemgui->x_w, iemgui->x_h);
-
-            MessageManager::callAsync([this, _this = SafePointer(this), bounds]() mutable {
-                if (!_this)
-                    return;
-                box->setObjectBounds(bounds);
-            });
-        });
+        pd->getCallbackLock()->enter();
+        auto* iemgui = static_cast<t_iemgui*>(ptr);
+        auto bounds = Rectangle<int>(iemgui->x_obj.te_xpix, iemgui->x_obj.te_ypix, iemgui->x_w, iemgui->x_h);
+        pd->getCallbackLock()->exit();
+        
+        box->setObjectBounds(bounds);
     }
 
     void updateLabel() override
@@ -349,7 +342,7 @@ struct IEMObject : public GUIObject {
     {
         t_symbol const* sym = static_cast<t_iemgui*>(ptr)->x_lab;
         if (sym) {
-            auto const text = String(sym->s_name);
+            auto const text = String::fromUTF8(sym->s_name);
             if (text.isNotEmpty() && text != "empty") {
                 return text;
             }
@@ -362,7 +355,7 @@ struct IEMObject : public GUIObject {
     {
         t_symbol const* sym = static_cast<t_iemgui*>(ptr)->x_lab_unexpanded;
         if (sym) {
-            auto const text = String(sym->s_name);
+            auto const text = String::fromUTF8(sym->s_name);
             if (text.isNotEmpty() && text != "empty") {
                 return text;
             }

@@ -3,18 +3,10 @@
 0;
 #X obj 306 4 cnv 15 250 40 empty empty empty 12 13 0 18 #7c7c7c #e0e4dc
 0;
-#N canvas 0 22 450 278 (subpatch) 1;
 #N canvas 0 22 450 278 (subpatch) 0;
-#X text 0 0 plugdatainfo;
-#X coords 0 1 100 -1 1 1 1;
-#X restore 0 0 graph;
 #X coords 0 1 100 -1 302 42 1 0 0;
 #X restore 3 3 graph;
-#N canvas 382 141 749 319 (subpatch) 1;
-#N canvas 0 22 450 278 (subpatch) 0;
-#X text 0 0 plugdatainfo;
-#X coords 0 1 100 -1 1 1 1;
-#X restore 0 0 graph;
+#N canvas 382 141 749 319 (subpatch) 0;
 #X coords 0 -1 1 1 252 42 2 100 100;
 #X restore 305 3 pd;
 #X obj 345 11 cnv 10 10 10 empty empty ELSE 0 15 2 30 #7c7c7c #e0e4dc
@@ -37,31 +29,33 @@
 #X obj 107 40 cnv 4 4 4 empty empty a 0 28 2 18 #e0e0e0 #000000 0;
 #X obj 126 40 cnv 4 4 4 empty empty close 0 28 2 18 #e0e0e0 #000000
 0;
-#X obj 4 293 cnv 3 550 4 empty empty inlets 8 12 0 13 #dcdcdc #000000
+#X obj 4 293 cnv 3 550 3 empty empty inlets 8 12 0 13 #dcdcdc #000000
 0;
-#X obj 4 370 cnv 3 550 4 empty empty outlets 8 12 0 13 #dcdcdc #000000
+#X obj 4 370 cnv 3 550 3 empty empty outlets 8 12 0 13 #dcdcdc #000000
 0;
-#X obj 4 404 cnv 3 550 4 empty empty arguments 8 12 0 13 #dcdcdc #000000
+#X obj 4 404 cnv 3 550 3 empty empty arguments 8 12 0 13 #dcdcdc #000000
 0;
-#X obj 135 378 cnv 17 4 17 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
+#X obj 135 378 cnv 17 3 17 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
 ;
 #X obj 4 436 cnv 15 552 21 empty empty empty 20 12 0 14 #e0e0e0 #202020
 0;
-#X obj 133 301 cnv 17 4 34 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
+#X obj 133 301 cnv 17 3 34 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
 ;
+#X text 223 379 list;
+#X text 256 379 - scale in cents;
 #X text 217 302 float;
-#X obj 133 344 cnv 17 4 17 empty empty 1 5 9 0 16 #dcdcdc #9c9c9c 0
+#X obj 133 344 cnv 17 3 17 empty empty 1 5 9 0 16 #dcdcdc #9c9c9c 0
 ;
 #X text 222 345 list;
 #X text 130 412 1) list - scale in cents (default: equal temperament)
 ;
 #X obj 172 40 cnv 4 4 4 empty empty scale 0 28 2 18 #e0e0e0 #000000
 0;
-#X floatatom 138 170 0 -3.40282e+38 3.40282e+38 0 empty - - 0;
+#X floatatom 138 170 0 0 0 0 - - - 0;
 #X obj 386 195 osc~;
 #X obj 386 223 out~;
 #X text 17 227 see also:;
-#X obj 16 247 autotune;
+#X obj 16 247 else/autotune;
 #X obj 141 142 hsl 200 18 -2400 2400 0 0 empty empty empty -2 -8 0
 10 #dcdcdc #000000 #000000 0 1;
 #X obj 138 235 nbx 8 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 12
@@ -73,27 +67,20 @@
 and then retunes incoming cents values to the closest step in the scale.
 , f 67;
 #X text 256 344 - scale in cents;
-#X obj 138 196 autotune2 0 110 190 320 410 480 590 610 690 805 895
-990 1110 1200, f 36;
+#X text 256 301 - cents value to be retuned;
+#X obj 138 196 else/autotune2 0 110 190 320 410 480 590 610 690 805
+895 990 1110 1200, f 36;
 #X text 163 319 bypass <float>;
 #X text 256 319 - non zero sets to bypass mode;
-#X msg 60 163 bypass \$1, f 13;
+#X msg 60 163 bypass \$1;
 #X obj 60 141 tgl 15 0 empty empty empty 17 7 0 10 #fcfcfc #000000
 #000000 0 1;
-#N canvas 0 22 450 278 (subpatch) 0;
-#X text 0 0 plugdatainfo <?xml version="1.0" encoding="UTF-8"?> <PlugDataInfo/>
-;
-#X coords 0 1 100 -1 1 1 1;
-#X restore 0 0 graph;
-#X text 223 379 float;
-#X text 256 301 - pitch value in cents to be retuned;
-#X text 256 379 - retuned pitch in cents;
-#X connect 26 0 38 0;
-#X connect 27 0 28 0;
-#X connect 31 0 26 0;
-#X connect 32 0 33 0;
+#X connect 28 0 41 0;
+#X connect 29 0 30 0;
+#X connect 33 0 28 0;
 #X connect 34 0 35 0;
-#X connect 35 0 27 0;
-#X connect 38 0 32 0;
-#X connect 41 0 38 0;
-#X connect 42 0 41 0;
+#X connect 36 0 37 0;
+#X connect 37 0 29 0;
+#X connect 41 0 34 0;
+#X connect 44 0 41 0;
+#X connect 45 0 44 0;

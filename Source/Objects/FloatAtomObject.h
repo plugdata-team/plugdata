@@ -10,8 +10,8 @@ struct FloatAtomObject final : public AtomObject {
         input.onEditorShow = [this]() {
             auto* editor = input.getCurrentTextEditor();
             startEdition();
-            
-            editor->setBorder({0, 1, 3, 0});
+
+            editor->setBorder({ 0, 1, 3, 0 });
 
             if (editor != nullptr) {
                 editor->setInputRestrictions(0, ".-0123456789");
@@ -38,29 +38,29 @@ struct FloatAtomObject final : public AtomObject {
 
         input.dragEnd = [this]() { stopEdition(); };
     }
-    
+
     void focusGained(FocusChangeType cause) override
     {
         repaint();
     }
-    
+
     void focusLost(FocusChangeType cause) override
     {
         repaint();
     }
-    
-    void focusOfChildComponentChanged (FocusChangeType cause) override
+
+    void focusOfChildComponentChanged(FocusChangeType cause) override
     {
         repaint();
     }
-    
+
     void paintOverChildren(Graphics& g) override
     {
         AtomObject::paintOverChildren(g);
-        
+
         bool highlighed = hasKeyboardFocus(true) && static_cast<bool>(box->locked.getValue());
-        
-        if(highlighed) {
+
+        if (highlighed) {
             g.setColour(findColour(PlugDataColour::highlightColourId));
             g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(1.0f), 2.0f, 2.0f);
         }
@@ -78,8 +78,7 @@ struct FloatAtomObject final : public AtomObject {
     {
         input.setText(input.formatNumber(getValueOriginal()), dontSendNotification);
     }
-    
-    
+
     void lock(bool isLocked) override
     {
         setInterceptsMouseClicks(isLocked, isLocked);
