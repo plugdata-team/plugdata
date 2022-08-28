@@ -1,24 +1,39 @@
 ---
 title: bend.in
-description:
+
+description: MIDI pitch bend input
+
 categories:
  - object
-pdcategory: General
+
+pdcategory: I/O MIDI, OSC, and FUDI
+
 arguments:
-- type: gimme
-  description:
-  default:
+- type: float
+  description: sets channel number
+  default: default=0 - OMNI
+
+flags:
+- name: -raw
+  description: sets to raw output mode (0-16383)
+
 inlets:
   1st:
   - type: float
-    description:
+    description: raw MIDI data stream
   2nd:
   - type: float
-    description:
+    description: MIDI channel
+
 outlets:
   1st:
   - type: float
-    description:
+    description: MIDI pitch bend value (from -1 to 1)
   2nd:
   - type: float
-    description:
+    description: MIDI channel
+
+draft: false
+---
+
+[bend.in] extracts MIDI Pitch Bend information from raw MIDI input (such as from [midiin]). By default, output values are normalized to floats from -1 to 1, but you can change it to "raw" mode (output integers from 0 to 16383).
