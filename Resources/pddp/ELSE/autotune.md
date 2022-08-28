@@ -13,6 +13,10 @@ arguments:
     type: list
     default: equal temperament
 
+flags:
+- name: -base <float> 
+  description: base MIDI pitch (default 60)
+
 inlets:
   1st:
   - type: float

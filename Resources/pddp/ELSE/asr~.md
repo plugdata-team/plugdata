@@ -18,6 +18,10 @@ arguments:
     description: release time in  ms
     default: 0
 
+flags:
+- name: -log
+  description: sets to log mode (no arg/default=linear)
+
 inlets:
   1st:
   - type: float/signal
@@ -38,11 +42,6 @@ outlets:
   2nd:
   - type: float
     description: envelope status (on=1 / off=0)
-
-flags:
-  - type: -log
-    description: sets to log mode
-    default: linear
 
 draft: false
 ---

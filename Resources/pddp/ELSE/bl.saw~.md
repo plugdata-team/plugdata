@@ -1,32 +1,40 @@
 ---
 title: bl.saw~
 
-description:
+description: Bandlimited sawtooth oscillator
 
 categories:
 - object
 
-pdcategory:
+pdcategory: Audio Oscillators and Tables
 
 arguments:
-- description:
-  type:
-  default:
+  1st:
+  - description:  frequency in Hz
+    type: float
+    default: 0
+  2nd:
+  - description: initial phase offset
+    type: float
+    default: 0
 
 inlets:
   1st:
-  - type:
-    description:
+  - type: float/signal
+    description: frequency in Hz
   2nd:
-  - type:
-    description:
+  - type: float/signal
+    description: phase sync (resets internal phase)
+  3rd:
+  - type: float/signal
+    description: phase offset (modulation input)
 
 outlets:
   1st:
-  - type:
-    description:
+  - type: signal
+    description: sawtooth wave signal
 
 draft: false
 ---
 
-LONG DESCRIPTION HERE
+[bl.saw~] is a sawtooth oscillator like [else/saw~], but it is bandlimited.

@@ -27,7 +27,7 @@ outlets:
     description: when left inlet value rises above the threshold value
   2nd:
   - type: bang
-    description: when left inlet falls back or below a threshold
+    description: when left inlet falls back to or below the threshold
 
 draft: false
 ---
