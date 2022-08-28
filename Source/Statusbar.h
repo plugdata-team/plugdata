@@ -29,8 +29,10 @@ struct Statusbar : public Component, public Value::Listener, public Timer
     void zoom(float zoomAmount);
     void defaultZoom();
 
-    bool lastLockMode = false;
-
+    bool lastLockMode = false; // For restoring lock state after presentation mode
+    bool commandLocked = false; // Temporary lock mode
+    bool wasLocked = false; // Make sure it doesn't re-lock after unlocking (because cmd is still down)
+    
     LevelMeter* levelMeter;
     MidiBlinker* midiBlinker;
 
@@ -43,7 +45,6 @@ struct Statusbar : public Component, public Value::Listener, public Timer
     Slider volumeSlider;
 
     Value locked;
-    Value commandLocked;
     Value presentationMode;
 
     Value zoomScale;

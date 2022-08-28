@@ -43,9 +43,6 @@ Canvas::Canvas(PlugDataPluginEditor& parent, pd::Patch& p, Component* parentGrap
 
     suggestor = new SuggestionComponent;
 
-    commandLocked.referTo(pd->commandLocked);
-    commandLocked.addListener(this);
-
     gridEnabled.referTo(parent.statusbar.gridEnabled);
 
     locked.referTo(pd->locked);
@@ -113,7 +110,7 @@ void Canvas::paint(Graphics& g)
         g.drawLine(canvasOrigin.x - 1, canvasOrigin.y - 1, getWidth() + 2, canvasOrigin.y - 1);
     }
 
-    if (locked == var(false) && commandLocked == var(false) && !isGraph)
+    if (locked == var(false) && !isGraph)
     {
         const int objectGridSize = 25;
         const Rectangle<int> clipBounds = g.getClipBounds();
@@ -403,7 +400,7 @@ void Canvas::mouseDown(const MouseEvent& e)
 void Canvas::mouseDrag(const MouseEvent& e)
 {
     // Ignore on graphs or when locked
-    if (isGraph || locked == var(true) || commandLocked == var(true))  {
+    if (isGraph || locked == var(true))  {
         bool hasToggled = false;
         
         // Behaviour for dragging over toggles, bang and radiogroup to toggle them
@@ -539,12 +536,8 @@ void Canvas::updateSidebarSelection()
     {
         auto* box = lassoSelection.getFirst();
         auto params = box->gui ? box->gui->getParameters() : ObjectParameters();
-
-        if (commandLocked == var(true))
-        {
-            main.sidebar.hideParameters();
-        }
-        else if (!params.empty() || main.sidebar.isPinned())
+        
+        if (!params.empty() || main.sidebar.isPinned())
         {
             main.sidebar.showParameters(params);
         }
@@ -839,10 +832,6 @@ void Canvas::valueChanged(Value& v)
         // Makes sure no objects keep keyboard focus after locking/unlocking
         if(isShowing() && isVisible()) grabKeyboardFocus();
     }
-    else if (v.refersToSameSourceAs(commandLocked))
-    {
-        repaint();
-    }
     // Should only get called when the canvas isn't a real graph
     else if (v.refersToSameSourceAs(presentationMode))
     {
@@ -850,7 +839,7 @@ void Canvas::valueChanged(Value& v)
 
         if (presentationMode == var(true)) connections.clear();
 
-        commandLocked.setValue(presentationMode.getValue());
+        locked.setValue(presentationMode.getValue());
 
         synchronise();
     }
