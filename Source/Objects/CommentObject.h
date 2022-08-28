@@ -19,7 +19,7 @@ struct CommentObject final : public TextBase, public KeyListener {
         g.drawFittedText(currentText, textArea, justification, numLines, minimumHorizontalScale);
 
         auto selected = cnv->isSelected(box);
-        if (box->locked == var(false) && (box->isOver() || selected) && !cnv->isGraph) {
+        if (box->locked == var(false) && (box->isMouseOverOrDragging(true) || selected) && !cnv->isGraph) {
             g.setColour(selected ? box->findColour(PlugDataColour::highlightColourId) : box->findColour(PlugDataColour::canvasOutlineColourId));
 
             g.drawRect(getLocalBounds().toFloat(), 0.5f);

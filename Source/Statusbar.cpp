@@ -341,6 +341,10 @@ Statusbar::Statusbar(PlugDataAudioProcessor& processor) : pd(processor)
     levelMeter->toBehind(&volumeSlider);
 
     setSize(getWidth(), statusbarHeight);
+    
+    // Timer to make sure modifier keys are up-to-date...
+    // Hoping to find a better solution for this
+    startTimer(150);
 
 }
 
@@ -411,7 +415,19 @@ void Statusbar::resized()
 
 void Statusbar::modifierKeysChanged(const ModifierKeys& modifiers)
 {
+    if(auto* editor = dynamic_cast<PlugDataPluginEditor*>(pd.getActiveEditor()))
+    {
+        auto* cnv = editor->getCurrentCanvas();
+        if(cnv && (cnv->didStartDragging || cnv->isDraggingLasso)) {
+            return;
+        }
+    }
     commandLocked = modifiers.isCommandDown() && locked.getValue() == var(false);
+}
+
+void Statusbar::timerCallback()
+{
+    modifierKeysChanged(ModifierKeys::getCurrentModifiers());
 }
 
 void Statusbar::zoom(bool zoomIn)

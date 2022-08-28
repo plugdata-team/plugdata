@@ -47,13 +47,14 @@ class Canvas : public Component, public Value::Listener, public LassoSource<Weak
     void synchronise(bool updatePosition = true);
 
     bool keyPressed(const KeyPress& key) override;
-
+    
     void copySelection();
     void removeSelection();
     void pasteSelection();
     void duplicateSelection();
 
     void valueChanged(Value& v) override;
+    
 
     void checkBounds();
 
