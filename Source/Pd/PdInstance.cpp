@@ -123,6 +123,10 @@ Instance::Instance(String const& symbol) : consoleHandler(this)
 
     m_parameter_receiver = libpd_multi_receiver_new(this, "param", reinterpret_cast<t_libpd_multi_banghook>(internal::instance_multi_bang), reinterpret_cast<t_libpd_multi_floathook>(internal::instance_multi_float), reinterpret_cast<t_libpd_multi_symbolhook>(internal::instance_multi_symbol),
         reinterpret_cast<t_libpd_multi_listhook>(internal::instance_multi_list), reinterpret_cast<t_libpd_multi_messagehook>(internal::instance_multi_message));
+    
+    m_parameter_change_receiver = libpd_multi_receiver_new(this, "param_change", reinterpret_cast<t_libpd_multi_banghook>(internal::instance_multi_bang), reinterpret_cast<t_libpd_multi_floathook>(internal::instance_multi_float), reinterpret_cast<t_libpd_multi_symbolhook>(internal::instance_multi_symbol),
+        reinterpret_cast<t_libpd_multi_listhook>(internal::instance_multi_list), reinterpret_cast<t_libpd_multi_messagehook>(internal::instance_multi_message));
+    
     m_atoms = malloc(sizeof(t_atom) * 512);
 
     // Register callback when pd's gui changes
@@ -217,6 +221,7 @@ Instance::~Instance()
     pd_free(static_cast<t_pd*>(m_midi_receiver));
     pd_free(static_cast<t_pd*>(m_print_receiver));
     pd_free(static_cast<t_pd*>(m_parameter_receiver));
+    pd_free(static_cast<t_pd*>(m_parameter_change_receiver));
 
     libpd_set_instance(static_cast<t_pdinstance*>(m_instance));
     libpd_free_instance(static_cast<t_pdinstance*>(m_instance));
@@ -370,19 +375,31 @@ void Instance::processMessage(Message mess)
     if (mess.destination == "param") {
         int index = mess.list[0].getFloat();
         float value = std::clamp(mess.list[1].getFloat(), 0.0f, 1.0f);
-        receiveParameter(index, value);
-    } else if (mess.selector == "bang")
+        enqueueParameterChange(0, index, value);
+    }
+    else if (mess.destination == "param_change") {
+        int index = mess.list[0].getFloat();
+        int state = mess.list[1].getFloat() != 0;
+        enqueueParameterChange(1, index, state);
+    }
+    else if (mess.selector == "bang") {
         receiveBang(mess.destination);
-    else if (mess.selector == "float")
+    }
+    else if (mess.selector == "float") {
         receiveFloat(mess.destination, mess.list[0].getFloat());
-    else if (mess.selector == "symbol")
+    }
+    else if (mess.selector == "symbol") {
         receiveSymbol(mess.destination, mess.list[0].getSymbol());
-    else if (mess.selector == "list")
+    }
+    else if (mess.selector == "list") {
         receiveList(mess.destination, mess.list);
-    else if (mess.selector == "dsp")
+    }
+    else if (mess.selector == "dsp") {
         receiveDSPState(mess.list[0].getFloat());
-    else
+    }
+    else {
         receiveMessage(mess.destination, mess.selector, mess.list);
+    }
 }
 
 void Instance::processMidiEvent(midievent event)
@@ -436,6 +453,7 @@ void Instance::processSend(dmessage mess)
     }
 }
 
+
 void Instance::enqueueFunction(std::function<void(void)> const& fn)
 {
     // This should be the way to do it, but it currently causes some issues
@@ -471,6 +489,11 @@ void Instance::enqueueDirectMessages(void* object, String const& msg)
 void Instance::enqueueDirectMessages(void* object, float const msg)
 {
     enqueueFunction([this, object, msg]() mutable { processSend(dmessage { object, String(), "float", std::vector<Atom>(1, msg) }); });
+}
+
+void Instance::enqueueParameterChange(int type, int idx, float value)
+{
+    m_parameter_queue.enqueue({type, idx, value});
 }
 
 void Instance::waitForStateUpdate()

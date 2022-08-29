@@ -64,7 +64,7 @@ class PlugDataAudioProcessor : public AudioProcessor, public pd::Instance, publi
     void receivePolyAftertouch(const int channel, const int pitch, const int value) override;
     void receiveMidiByte(const int port, const int byte) override;
 
-    void receiveParameter(int idx, float value) override;
+    void processParameters();
 
     void receiveDSPState(bool dsp) override;
     void receiveGuiUpdate(int type) override;
@@ -180,6 +180,7 @@ class PlugDataAudioProcessor : public AudioProcessor, public pd::Instance, publi
 
     std::array<std::atomic<float>*, numParameters> parameterValues = {nullptr};
     std::array<float, numParameters> lastParameters = {0};
+    std::array<float, numParameters> changeGestureState = {0};
 
     std::vector<pd::Atom> atoms_playhead;
 
@@ -192,33 +193,6 @@ class PlugDataAudioProcessor : public AudioProcessor, public pd::Instance, publi
     
     static inline const String else_version = "ELSE v1.0-rc3";
     static inline const String cyclone_version = "cyclone v0.6-1";
-
-#if !PLUGDATA_STANDALONE
-
-    // Timer for grouping change messages when informing the DAW
-    struct ParameterTimer : public Timer
-    {
-        RangedAudioParameter* parameter;
-
-        void notifyChange(RangedAudioParameter* param)
-        {
-            if (!isTimerRunning())
-            {
-                parameter = param;
-                parameter->beginChangeGesture();
-            }
-            startTimer(300);
-        }
-
-        void timerCallback() override
-        {
-            parameter->endChangeGesture();
-            stopTimer();
-        }
-    };
-
-    ParameterTimer parameterTimers[numParameters];
-
-#endif
+    
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PlugDataAudioProcessor)
 };
