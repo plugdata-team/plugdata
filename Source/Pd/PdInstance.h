@@ -101,8 +101,6 @@ private:
     String symbol;
 };
 
-class Patch;
-
 struct ContinuityChecker : public Timer {
 
     struct BackupTimer : public HighResolutionTimer {
