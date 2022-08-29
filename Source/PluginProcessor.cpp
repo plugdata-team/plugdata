@@ -890,7 +890,6 @@ void PlugDataAudioProcessor::getStateInformation(MemoryBlock& destData)
 
     for (auto& patch : patches)
     {
-        std::cout << patch->getCanvasContent() << std::endl;
         ostream.writeString(patch->getCanvasContent());
         ostream.writeString(patch->getCurrentFile().getFullPathName());
     }
