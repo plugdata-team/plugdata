@@ -114,6 +114,7 @@ class Canvas : public Component, public Value::Listener, public LassoSource<Weak
     OwnedArray<Connection> connections;
 
     Value locked;
+    Value commandLocked;
     Value presentationMode;
     Value gridEnabled = Value(var(true));
 
@@ -149,6 +150,8 @@ class Canvas : public Component, public Value::Listener, public LassoSource<Weak
     SafePointer<TabbedComponent> tabbar;
 
     LassoComponent<WeakReference<Component>> lasso;
+    
+    pd::Storage storage;
     
     // Static makes sure there can only be one
     PopupMenu popupMenu;

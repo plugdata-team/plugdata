@@ -93,10 +93,12 @@ void Box::initialise()
 
     // Updates lock/unlock mode
     locked.referTo(cnv->pd->locked);
+    commandLocked.referTo(cnv->pd->commandLocked);
     presentationMode.referTo(cnv->presentationMode);
 
     presentationMode.addListener(this);
     locked.addListener(this);
+    commandLocked.addListener(this);
 
     originalBounds.setBounds(0, 0, 0, 0);
 }
@@ -117,7 +119,7 @@ void Box::valueChanged(Value& v)
 
     if (gui)
     {
-        gui->lock(locked == var(true));
+        gui->lock(locked == var(true) || commandLocked == var(true));
     }
 
     resized();
@@ -474,12 +476,7 @@ void Box::mouseDown(const MouseEvent& e)
         return;
     }
 
-    if (cnv->isGraph || cnv->presentationMode == var(true) || locked == var(true)) {
-        wasLockedOnMouseDown = true;
-        return;
-    }
-
-    wasLockedOnMouseDown = false;
+    if (cnv->isGraph || cnv->presentationMode == var(true) || locked == var(true) || commandLocked == var(true)) return;
     
     for (auto& rect : getCorners())
     {
@@ -510,8 +507,8 @@ void Box::mouseUp(const MouseEvent& e)
 {
     resizeZone = ResizableBorderComponent::Zone();
 
-    if (wasLockedOnMouseDown) return;
-    
+    if (cnv->isGraph || cnv->presentationMode == var(true) || locked == var(true) || commandLocked == var(true)) return;
+
     if (e.getDistanceFromDragStart() > 10 || e.getLengthOfMousePress() > 600)
     {
         cnv->connectingEdges.clear();
@@ -558,7 +555,7 @@ void Box::mouseUp(const MouseEvent& e)
 
 void Box::mouseDrag(const MouseEvent& e)
 {
-    if (wasLockedOnMouseDown) return;
+    if (cnv->isGraph || cnv->presentationMode == var(true) || locked == var(true) || commandLocked == var(true)) return;
 
     
     if (resizeZone.isDraggingTopEdge() || resizeZone.isDraggingLeftEdge() || resizeZone.isDraggingBottomEdge() || resizeZone.isDraggingRightEdge())
@@ -789,6 +786,7 @@ void Box::openSubpatch() const
             return;
         }
     }
+
     auto* newPatch = cnv->main.pd.patches.add(new pd::Patch(*subpatch));
     auto* newCanvas = cnv->main.canvases.add(new Canvas(cnv->main, *newPatch, nullptr));
 

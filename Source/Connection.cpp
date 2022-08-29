@@ -46,7 +46,7 @@ Connection::Connection(Canvas* parent, Edge* s, Edge* e, bool exists) : cnv(pare
     }
     else
     {
-        auto info = pd::Storage::getInfo(cnv, getId(), "Path");
+        auto info = cnv->storage.getInfo(getId(), "Path");
         if (!info.isEmpty()) setState(info);
     }
     
@@ -252,7 +252,7 @@ bool Connection::isSegmented()
 void Connection::setSegmented(bool isSegmented)
 {
     segmented = isSegmented;
-    pd::Storage::setInfo(cnv, getId(), "Segmented", segmented ? "1" : "0");
+    cnv->storage.setInfo(getId(), "Segmented", segmented ? "1" : "0");
     updatePath();
     repaint();
 }
@@ -363,7 +363,7 @@ void Connection::mouseUp(const MouseEvent& e)
         auto state = getState();
         lastId = getId();
         
-        pd::Storage::setInfo(cnv, lastId, "Path", state);
+        cnv->storage.setInfo(lastId, "Path", state);
         dragIdx = -1;
     }
     
@@ -453,7 +453,7 @@ void Connection::componentMovedOrResized(Component& component, bool wasMoved, bo
     auto pstart = getStartPoint();
     auto pend = getEndPoint();
     
-    if (currentPlan.size() <= 2 || pd::Storage::getInfo(cnv, getId(), "Style") == "0")
+    if (currentPlan.size() <= 2 || cnv->storage.getInfo(getId(), "Style") == "0")
     {
         updatePath();
         return;
@@ -521,7 +521,7 @@ void Connection::updatePath()
     
     if(lastId.isEmpty()) lastId = getId();
     
-    segmented = pd::Storage::getInfo(cnv, lastId, "Segmented") == "1";
+    segmented = cnv->storage.getInfo(lastId, "Segmented") == "1";
     
     if (!segmented)
     {
@@ -708,7 +708,7 @@ void Connection::findPath()
     
     auto state = getState();
     lastId = getId();
-    pd::Storage::setInfo(cnv, lastId, "Path", state);
+    cnv->storage.setInfo(lastId, "Path", state);
 }
 
 int Connection::findLatticePaths(PathPlan& bestPath, PathPlan& pathStack, Point<int> pstart, Point<int> pend, Point<int> increment)
