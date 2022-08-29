@@ -325,9 +325,7 @@ public:
     virtual void receiveMessage(String const& dest, String const& msg, std::vector<pd::Atom> const& list)
     {
     }
-    virtual void receiveParameter(int idx, float value)
-    {
-    }
+
 
     virtual void receiveDSPState(bool dsp) {};
 
@@ -343,6 +341,8 @@ public:
     void enqueueDirectMessages(void* object, std::vector<pd::Atom> const& list);
     void enqueueDirectMessages(void* object, String const& msg);
     void enqueueDirectMessages(void* object, float const msg);
+    
+    void enqueueParameterChange(int type, int idx, float value);
 
     void logMessage(String const& message);
     void logError(String const& message);
@@ -356,7 +356,7 @@ public:
     void processMessage(Message mess);
     void processMidiEvent(midievent event);
     void processSend(dmessage mess);
-
+    
     String getExtraInfo(File const& toOpen);
     Patch openPatch(File const& toOpen);
 
@@ -379,6 +379,7 @@ public:
     void* m_atoms = nullptr;
     void* m_message_receiver = nullptr;
     void* m_parameter_receiver = nullptr;
+    void* m_parameter_change_receiver = nullptr;
     void* m_midi_receiver = nullptr;
     void* m_print_receiver = nullptr;
 
@@ -395,10 +396,12 @@ private:
     std::unique_ptr<FileChooser> openChooser;
 
     WaitableEvent updateWait;
-
+    
 protected:
     ContinuityChecker continuityChecker;
 
+    moodycamel::ConcurrentQueue<std::tuple<int, int, float>> m_parameter_queue = moodycamel::ConcurrentQueue<std::tuple<int, int, float>>();
+    
     struct internal;
     
     struct ConsoleHandler : public Timer

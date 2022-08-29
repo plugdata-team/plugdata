@@ -405,7 +405,7 @@ void Library::parseDocumentation(String const& path)
 Suggestions Library::autocomplete(String query) const
 {
     Suggestions result;
-    searchTree->autocomplete(std::move(query), result);
+    if(searchTree) searchTree->autocomplete(std::move(query), result);
     return result;
 }
 

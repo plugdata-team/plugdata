@@ -452,7 +452,6 @@ void PlugDataAudioProcessor::processBlock(AudioBuffer<float>& buffer, MidiBuffer
     continuityChecker.setTimer();
     
     setThis();
-    sendParameters();
 
     for (int i = totalNumInputChannels; i < totalNumOutputChannels; ++i)
     {
@@ -615,39 +614,6 @@ void PlugDataAudioProcessor::process(dsp::AudioBlock<float> buffer, MidiBuffer& 
             audioAdvancement = remaining;
         }
     }
-}
-
-void PlugDataAudioProcessor::sendParameters()
-{
-#if PLUGDATA_STANDALONE
-    for (int n = 0; n < numParameters; n++)
-    {
-        if (standaloneParams[n].load() != lastParameters[n])
-        {
-            float value = standaloneParams[n].load();
-            lastParameters[n] = value;
-
-            parameterAtom[0] = {pd::Atom(value)};
-
-            String toSend = ("param" + String(n + 1));
-            sendList(toSend.toRawUTF8(), parameterAtom);
-        }
-    }
-
-#else
-    for (int n = 0; n < numParameters; n++)
-    {
-        if (parameterValues[n]->load() != lastParameters[n])
-        {
-            lastParameters[n] = parameterValues[n]->load();
-
-            parameterAtom[0] = {pd::Atom(lastParameters[n])};
-
-            String toSend = ("param" + String(n + 1));
-            sendList(toSend.toRawUTF8(), parameterAtom);
-        }
-    }
-#endif
 }
 
 void PlugDataAudioProcessor::sendPlayhead()
@@ -827,6 +793,7 @@ void PlugDataAudioProcessor::processInternal()
     sendMessagesFromQueue();
     sendPlayhead();
     sendMidiBuffer();
+    processParameters();
 
     // Process audio
     FloatVectorOperations::copy(audioBufferIn.data() + (2 * 64), audioBufferOut.data() + (2 * 64), (minOut - 2) * 64);
@@ -1158,18 +1125,70 @@ void PlugDataAudioProcessor::receiveMidiByte(const int port, const int byte)
     }
 }
 
-void PlugDataAudioProcessor::receiveParameter(int idx, float value)
+void PlugDataAudioProcessor::processParameters()
 {
-#if PLUGDATA_STANDALONE
-    standaloneParams[idx - 1] = value;
-    if (auto* editor = dynamic_cast<PlugDataPluginEditor*>(getActiveEditor()))
+    
+    auto parameterChange = std::tuple<int, int, float>();
+    while(m_parameter_queue.try_dequeue(parameterChange))
     {
-        editor->sidebar.updateAutomationParameters();
-    }
+        auto& [type, idx, value] = parameterChange;
+        
+        if(type == 1) {
+            if(changeGestureState[idx] == value) {
+                logMessage("parameter change " + String(idx) + (value ? " already started" : " not started"));
+            }
+            else {
+                auto* parameter = parameters.getParameter("param" + String(idx));
+                value ? parameter->beginChangeGesture() : parameter->endChangeGesture();
+                changeGestureState[idx] = value;
+            }
+        }
+        else {
+            //if(value == lastParameters[idx]) continue;
+            
+#if PLUGDATA_STANDALONE
+            standaloneParams[idx - 1] = value;
+            if (auto* editor = dynamic_cast<PlugDataPluginEditor*>(getActiveEditor()))
+            {
+                editor->sidebar.updateAutomationParameters();
+            }
 #else
-    auto* parameter = parameters.getParameter("param" + String(idx));
-    parameterTimers[idx - 1].notifyChange(parameter);
-    parameter->setValueNotifyingHost(value);
+            
+            auto* parameter = parameters.getParameter("param" + String(idx));
+            lastParameters[idx - 1] = value;
+            parameter->setValueNotifyingHost(value);
+#endif
+        }
+    }
+    
+#if PLUGDATA_STANDALONE
+    for (int idx = 0; idx < numParameters; idx++)
+    {
+        if (standaloneParams[idx].load() != lastParameters[idx])
+        {
+            float value = standaloneParams[idx].load();
+            lastParameters[idx] = value;
+
+            parameterAtom[0] = {pd::Atom(value)};
+
+            String toSend = ("param" + String(idx + 1));
+            sendList(toSend.toRawUTF8(), parameterAtom);
+        }
+    }
+
+#else
+    for (int idx = 0; idx < numParameters; idx++)
+    {
+        if (parameterValues[idx]->load() != lastParameters[idx])
+        {
+            lastParameters[idx] = parameterValues[idx]->load();
+
+            parameterAtom[0] = {pd::Atom(lastParameters[idx])};
+
+            String toSend = ("param" + String(idx + 1));
+            sendList(toSend.toRawUTF8(), parameterAtom);
+        }
+    }
 #endif
 }
 

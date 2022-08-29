@@ -180,7 +180,6 @@ struct MessageObject final : public GUIObject, public KeyListener {
     {
         cnv->pd->enqueueDirectMessages(ptr, 0);
     }
-
     
     void mouseUp(MouseEvent const& e) override
     {

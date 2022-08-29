@@ -44,7 +44,8 @@ Box::Box(Canvas* parent, const String& name, Point<int> position) : cnv(parent)
 
     // Open the text editor of a new object if it has one
     // Don't do this if the object is attached to the mouse
-    if (attachedToMouse)
+    // Param objects are an exception where we don't want to open on mouse-down
+    if (attachedToMouse && !name.startsWith("param"))
     {
         createEditorOnMouseDown = true;
     }
