@@ -71,6 +71,7 @@ class Box : public Component, public Value::Listener, public Timer, private Text
     int numOutputs = 0;
 
     Value locked;
+    Value commandLocked;
     Value presentationMode;
 
     Canvas* cnv;

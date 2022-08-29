@@ -511,7 +511,7 @@ String Instance::getExtraInfo(File const& toOpen)
 Patch Instance::openPatch(File const& toOpen)
 {
     t_canvas* cnv = nullptr;
-
+    
     bool done = false;
     enqueueFunction(
         [this, toOpen, &cnv, &done]() mutable {
@@ -532,7 +532,7 @@ Patch Instance::openPatch(File const& toOpen)
     }
 
     auto patch = Patch(cnv, this, toOpen);
-    Storage::setContent(cnv, getExtraInfo(toOpen));
+    //Storage::setContent(cnv, getExtraInfo(toOpen));
 
     return patch;
 }

@@ -20,7 +20,7 @@ extern "C"
 #include "Utility/GraphArea.h"
 #include "Utility/SuggestionComponent.h"
 
-Canvas::Canvas(PlugDataPluginEditor& parent, pd::Patch& p, Component* parentGraph) : main(parent), pd(&parent.pd), patch(p)
+Canvas::Canvas(PlugDataPluginEditor& parent, pd::Patch& p, Component* parentGraph) : main(parent), pd(&parent.pd), patch(p), storage(patch.getPointer(), pd)
 {
     isGraphChild = glist_isgraph(p.getPointer());
     hideNameAndArgs = static_cast<bool>(p.getPointer()->gl_hidetext);
@@ -42,6 +42,9 @@ Canvas::Canvas(PlugDataPluginEditor& parent, pd::Patch& p, Component* parentGrap
     }
 
     suggestor = new SuggestionComponent;
+
+    commandLocked.referTo(pd->commandLocked);
+    commandLocked.addListener(this);
 
     gridEnabled.referTo(parent.statusbar.gridEnabled);
 
@@ -110,7 +113,7 @@ void Canvas::paint(Graphics& g)
         g.drawLine(canvasOrigin.x - 1, canvasOrigin.y - 1, getWidth() + 2, canvasOrigin.y - 1);
     }
 
-    if (locked == var(false) && !isGraph)
+    if (locked == var(false) && commandLocked == var(false) && !isGraph)
     {
         const int objectGridSize = 25;
         const Rectangle<int> clipBounds = g.getClipBounds();
@@ -260,12 +263,21 @@ void Canvas::synchronise(bool updatePosition)
                 auto& c = *(*it);
 
                 auto currentId = c.getId();
-                auto info = pd::Storage::getInfo(this, currentId, "Path");
+                if (c.lastId.isNotEmpty() && c.lastId != currentId)
+                {
+                    storage.setInfoId(c.lastId, currentId);
+                }
+
+                c.lastId = currentId;
+
+                auto info = storage.getInfo(currentId, "Path");
                 if (info.length()) c.setState(info);
 
                 c.repaint();
             }
         }
+
+        storage.confirmIds();
 
         setTransform(main.transform);
     }
@@ -400,7 +412,7 @@ void Canvas::mouseDown(const MouseEvent& e)
 void Canvas::mouseDrag(const MouseEvent& e)
 {
     // Ignore on graphs or when locked
-    if (isGraph || locked == var(true))  {
+    if (isGraph || locked == var(true) || commandLocked == var(true))  {
         bool hasToggled = false;
         
         // Behaviour for dragging over toggles, bang and radiogroup to toggle them
@@ -536,8 +548,12 @@ void Canvas::updateSidebarSelection()
     {
         auto* box = lassoSelection.getFirst();
         auto params = box->gui ? box->gui->getParameters() : ObjectParameters();
-        
-        if (!params.empty() || main.sidebar.isPinned())
+
+        if (commandLocked == var(true))
+        {
+            main.sidebar.hideParameters();
+        }
+        else if (!params.empty() || main.sidebar.isPinned())
         {
             main.sidebar.showParameters(params);
         }
@@ -645,7 +661,7 @@ void Canvas::deselectAll()
     // Deselect boxes
     for (auto c : selectedComponents)
         if (!c.wasObjectDeleted()) c->repaint();
-    
+
     selectedComponents.deselectAll();
     main.sidebar.hideParameters();
 }
@@ -764,7 +780,7 @@ void Canvas::removeSelection()
 void Canvas::undo()
 {
     // Performs undo on storage data if the next undo event if a dummy
-    pd::Storage::undoIfNeeded(this);
+    storage.undoIfNeeded();
 
     // Tell pd to undo the last action
     patch.undo();
@@ -778,7 +794,7 @@ void Canvas::undo()
 void Canvas::redo()
 {
     // Performs redo on storage data if the next redo event if a dummy
-    pd::Storage::redoIfNeeded(this);
+    storage.redoIfNeeded();
 
     // Tell pd to undo the last action
     patch.redo();
@@ -826,14 +842,14 @@ void Canvas::valueChanged(Value& v)
     if (v.refersToSameSourceAs(locked))
     {
         if (!connectingEdges.isEmpty()) connectingEdges.clear();
-        // This would hinder many keyboard shortcuts like cmd-a, cmd-c, cmd-1 etc.
-        if(!main.statusbar.commandLocked && locked == var(true)) {
-            deselectAll();
-            
-            // Makes sure no objects keep keyboard focus after locking/unlocking
-            if(isShowing() && isVisible()) grabKeyboardFocus();
-        }
+        deselectAll();
+        repaint();
         
+        // Makes sure no objects keep keyboard focus after locking/unlocking
+        if(isShowing() && isVisible()) grabKeyboardFocus();
+    }
+    else if (v.refersToSameSourceAs(commandLocked))
+    {
         repaint();
     }
     // Should only get called when the canvas isn't a real graph
@@ -843,7 +859,7 @@ void Canvas::valueChanged(Value& v)
 
         if (presentationMode == var(true)) connections.clear();
 
-        locked.setValue(presentationMode.getValue());
+        commandLocked.setValue(presentationMode.getValue());
 
         synchronise();
     }
@@ -1039,39 +1055,15 @@ void Canvas::handleMouseDrag(const MouseEvent& e)
     
     if(e.mods.isShiftDown() && selection.size() == 1) {
         auto* box = selection.getFirst();
-        if(box->numInputs >= 1 && box->numOutputs >= 1) {
-            
-            /*
-            std::vector<Connection*> start;
-            std::vector<Connection*> end;
-            for(auto* connection : connections) {
-                if(connection->outlet == box->edges[box->numOutputs]) start.push_back(connection);
-                if(connection->inlet == box->edges[0])                end.push_back(connection);
+        if(box->numInputs >= 1 && box->numOutputs >= 0)
+        for(auto* connection : connections) {
+            if(connection->intersectsObject(box)) {
+                box->edges[0]->isTargeted = true;
+                box->edges[box->numInputs]->isTargeted = true;
+                connectionToSnapInbetween = connection;
+                boxSnappingInbetween = box;
             }
-            
-            // Don't handle ambiguous cases
-            if(start.size() == 1 && end.size() == 1)
-            {
-                patch.removeConnection(start->outbox->getPointer(), start->outIdx, start->inbox->getPointer(), start->inIdx);
-                patch.removeConnection(end->outbox->getPointer(), end->outIdx, end->inbox->getPointer(), end->inIdx);
-                patch.createConnection(start->outbox->getPointer(), start->outIdx, end->outbox->getPointer(), end->outIdx);
-                synchronise();
-            } */
-            
-            for(auto* connection : connections) {
-                if(connection->intersectsObject(box)) {
-                    box->edges[0]->isTargeted = true;
-                    box->edges[box->numInputs]->isTargeted = true;
-                    connectionToSnapInbetween = connection;
-                    boxSnappingInbetween = box;
-                    break;
-                }
-            }
-            
-            
         }
-        
-        
     }
 }
 

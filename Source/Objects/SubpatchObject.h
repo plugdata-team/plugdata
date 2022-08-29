@@ -8,6 +8,8 @@ struct SubpatchObject final : public TextBase
         isGraphChild = false;
         hideNameAndArgs = static_cast<bool>(subpatch.getPointer()->gl_hidetext);
 
+        
+        
         isGraphChild.addListener(this);
         hideNameAndArgs.addListener(this);
     }

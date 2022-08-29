@@ -145,13 +145,17 @@ Statusbar::Statusbar(PlugDataAudioProcessor& processor) : pd(processor)
     setWantsKeyboardFocus(true);
 
     locked.referTo(pd.locked);
+    commandLocked.referTo(pd.commandLocked);
     zoomScale.referTo(pd.zoomScale);
 
     locked.addListener(this);
+    commandLocked.addListener(this);
+    
     
     oversampleSelector.setTooltip("Set oversampling");
     oversampleSelector.setName("statusbar:oversample");
     oversampleSelector.setColour(ComboBox::outlineColourId, Colours::transparentBlack);
+    
     
     oversampleSelector.setButtonText(String(1 << pd.oversampling) + "x");
     
@@ -230,20 +234,7 @@ Statusbar::Statusbar(PlugDataAudioProcessor& processor) : pd(processor)
     lockButton->setClickingTogglesState(true);
     lockButton->setConnectedEdges(12);
     lockButton->setName("statusbar:lock");
-    lockButton->onClick = [this](){
-        commandLocked = false;
-        
-        if(locked == lockButton->getToggleState())
-        {
-            locked.getValueSource().sendChangeMessage(true);
-        }
-        else {
-            locked = lockButton->getToggleState();
-        }
-        
-        
-    };
-    
+    lockButton->getToggleStateValue().referTo(locked);
     addAndMakeVisible(lockButton.get());
     lockButton->setButtonText(locked == var(true) ? Icons::Lock : Icons::Unlock);
 
@@ -365,17 +356,15 @@ Statusbar::~Statusbar()
 
 void Statusbar::valueChanged(Value& v)
 {
-    
-    if(commandLocked) {
-        lockButton->setColour(TextButton::textColourOffId, findColour(PlugDataColour::highlightColourId).withAlpha(0.6f));
+    if (v.refersToSameSourceAs(locked))
+    {
+        lockButton->setButtonText(locked == var(true) ? Icons::Lock : Icons::Unlock);
     }
-    else {
-        wasLocked = true;
-        lockButton->setColour(TextButton::textColourOffId, findColour(PlugDataColour::textColourId));
-        lockButton->setToggleState(locked == var(true), dontSendNotification);
+    if (v.refersToSameSourceAs(commandLocked))
+    {
+        auto c = static_cast<bool>(commandLocked.getValue()) ? findColour(PlugDataColour::highlightColourId).brighter(0.2f) : findColour(PlugDataColour::textColourId);
+        lockButton->setColour(TextButton::textColourOffId, c);
     }
-    
-    lockButton->setButtonText(locked == var(true) ? Icons::Lock : Icons::Unlock);
 }
 
 void Statusbar::resized()
@@ -433,19 +422,7 @@ void Statusbar::modifierKeysChanged(const ModifierKeys& modifiers)
             return;
         }
     }
-    
-    if(modifiers.isCommandDown() && locked.getValue() == var(false) && !wasLocked) {
-        locked = true;
-        commandLocked = true;
-    }
-    else if(!modifiers.isCommandDown() && commandLocked && locked.getValue() == var(true)) {
-        locked = false;
-        commandLocked = false;
-    }
-    else if(!modifiers.isCommandDown() && wasLocked)
-    {
-        wasLocked = false;
-    }
+    commandLocked = modifiers.isCommandDown() && locked.getValue() == var(false);
 }
 
 void Statusbar::timerCallback()
