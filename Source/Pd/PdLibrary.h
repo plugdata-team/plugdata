@@ -134,7 +134,7 @@ private:
 
     std::unordered_map<String, std::pair<StringArray, StringArray>> edgeDescriptions;
 
-    std::unique_ptr<Trie> searchTree;
+    std::unique_ptr<Trie> searchTree = nullptr;
 
     File appDataDir;
     FileSystemWatcher watcher;

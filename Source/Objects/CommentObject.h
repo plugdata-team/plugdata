@@ -77,8 +77,6 @@ struct CommentObject final : public TextBase, public KeyListener {
                                 _this->box->updateBounds();
                             });
                     });
-
-                box->setType(newText);
             }
         }
     }
@@ -96,8 +94,8 @@ struct CommentObject final : public TextBase, public KeyListener {
 
             editor->setAlwaysOnTop(true);
 
-            editor->setMultiLine(true);
-            editor->setReturnKeyStartsNewLine(true);
+            editor->setMultiLine(false);
+            editor->setReturnKeyStartsNewLine(false);
             editor->setBorder(border);
             editor->setIndents(0, 0);
             editor->setJustification(justification);
