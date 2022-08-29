@@ -476,7 +476,12 @@ void Box::mouseDown(const MouseEvent& e)
         return;
     }
 
-    if (cnv->isGraph || cnv->presentationMode == var(true) || locked == var(true) || commandLocked == var(true)) return;
+    if (cnv->isGraph || cnv->presentationMode == var(true) || locked == var(true) || commandLocked == var(true)) {
+        wasLockedOnMouseDown = true;
+        return;
+    }
+        
+    wasLockedOnMouseDown = false;
     
     for (auto& rect : getCorners())
     {
@@ -507,7 +512,7 @@ void Box::mouseUp(const MouseEvent& e)
 {
     resizeZone = ResizableBorderComponent::Zone();
 
-    if (cnv->isGraph || cnv->presentationMode == var(true) || locked == var(true) || commandLocked == var(true)) return;
+    if (wasLockedOnMouseDown) return;
 
     if (e.getDistanceFromDragStart() > 10 || e.getLengthOfMousePress() > 600)
     {
@@ -555,8 +560,7 @@ void Box::mouseUp(const MouseEvent& e)
 
 void Box::mouseDrag(const MouseEvent& e)
 {
-    if (cnv->isGraph || cnv->presentationMode == var(true) || locked == var(true) || commandLocked == var(true)) return;
-
+    if (wasLockedOnMouseDown) return;
     
     if (resizeZone.isDraggingTopEdge() || resizeZone.isDraggingLeftEdge() || resizeZone.isDraggingBottomEdge() || resizeZone.isDraggingRightEdge())
     {
