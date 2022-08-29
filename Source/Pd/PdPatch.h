@@ -20,7 +20,6 @@ namespace pd {
 
 using Connections = std::vector<std::tuple<int, t_object*, int, t_object*>>;
 class Instance;
-class Storage;
 
 // The Pd patch.
 //! @details The class is a wrapper around a Pd patch. The lifetime of the internal patch\n
@@ -113,13 +112,6 @@ public:
         libpd_getcontent(static_cast<t_canvas*>(ptr), &buf, &bufsize);
         
         auto content = String(buf, static_cast<size_t>(bufsize));
-        // This canvas will not be restored, and therefore ignored by Pd
-        // This allows us to append more info to the patch
-        
-        content +=
-        String("#N canvas 0 22 450 278 (_plugdatainfo_) 0;\n") +
-        "#X text 0 0 [INFOSTART]" + Storage::getContent(getPointer()).toXmlString() + "[INFOEND]\n;\n";
-        
         return content;
     }
     

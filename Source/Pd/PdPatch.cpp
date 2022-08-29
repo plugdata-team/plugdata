@@ -65,12 +65,6 @@ Patch::Patch(void* patchPtr, Instance* parentInstance, File patchFile)
     , instance(parentInstance)
     , currentFile(patchFile)
 {
-    /*
-    if (auto* cnv = getPointer()) {
-        parentInstance->enqueueFunction([this]() {
-            setZoom(1);
-        });
-    } */
 }
 
 Rectangle<int> Patch::getBounds() const
