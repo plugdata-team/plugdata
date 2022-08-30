@@ -128,7 +128,7 @@ struct TextBase : public ObjectBase
         int height = numLines * 15 + 6;
 
         bounds.setWidth(width);
-        bounds.setHeight(width);
+        bounds.setHeight(height);
 
         box->setObjectBounds(bounds);
     }

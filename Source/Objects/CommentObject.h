@@ -140,10 +140,6 @@ struct CommentObject final : public TextBase, public KeyListener {
                 return true;
             }
         }
-        /*
-        if (key == KeyPress::returnK) {
-            
-        } */
         return false;
     }
 };
