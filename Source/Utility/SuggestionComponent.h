@@ -316,6 +316,8 @@ private:
 
             setVisible(numOptions);
             currentidx = 0;
+            
+            resized();
 
             return mutableInput;
         }
@@ -342,6 +344,8 @@ private:
 
         for (int i = numOptions; i < buttons.size(); i++)
             buttons[i]->setText("", "", false);
+        
+        resized();
 
         // Get length of user-typed text
         int textlen = e.getText().substring(0, start).length();
