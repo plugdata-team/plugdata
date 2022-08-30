@@ -4,7 +4,7 @@ struct TextBase : public ObjectBase
     TextBase(void* obj, Box* parent, bool valid = true)
         : ObjectBase(obj, parent)
         , isValid(valid)
-    {
+        {
         currentText = getText();
 
         // To get enter/exit messages
