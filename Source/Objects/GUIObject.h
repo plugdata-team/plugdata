@@ -95,7 +95,7 @@ struct ObjectBase : public Component
 
     void closeOpenedSubpatchers();
 
-    String getText();
+    virtual String getText();
 };
 
 // Class for non-patchable objects

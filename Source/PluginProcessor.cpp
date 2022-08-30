@@ -135,8 +135,6 @@ PlugDataAudioProcessor::PlugDataAudioProcessor()
         
         updateSearchPaths();
         setTheme(static_cast<bool>(settingsTree.getProperty("Theme")));
-        
-
     };
 
     if (settingsTree.hasProperty("Theme"))
@@ -148,6 +146,8 @@ PlugDataAudioProcessor::PlugDataAudioProcessor()
         oversampling = static_cast<int>(settingsTree.getProperty("Oversampling"));
     }
 
+    updateSearchPaths();
+    
     setLatencySamples(pd::Instance::getBlockSize());
 
     logMessage("PlugData v" + String(ProjectInfo::versionString));
