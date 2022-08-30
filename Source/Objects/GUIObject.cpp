@@ -43,6 +43,7 @@ extern "C" {
 #include "SubpatchObject.h"
 #include "CloneObject.h"
 #include "CommentObject.h"
+#include "CycloneCommentObject.h"
 #include "FloatAtomObject.h"
 #include "SymbolAtomObject.h"
 #include "ScalarObject.h"
@@ -373,6 +374,9 @@ ObjectBase* GUIObject::createGui(void* ptr, Box* parent)
         } else {
             return new CommentObject(ptr, parent);
         }
+    }
+    if (name == "comment") {
+        return new CycloneCommentObject(ptr, parent);
     }
     // Check size to prevent confusing it with else/message
     if (name == "message" && static_cast<t_gobj*>(ptr)->g_pd->c_size == sizeof(t_message)) {

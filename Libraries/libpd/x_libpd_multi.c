@@ -386,6 +386,7 @@ void change_tilde_setup(void);
 void click_tilde_setup(void);
 void clip_tilde_setup(void);
 void comb_tilde_setup(void);
+void comment_setup(void);
 void cosh_tilde_setup(void);
 void cosx_tilde_setup(void);
 void count_tilde_setup(void);
@@ -870,6 +871,7 @@ void libpd_multi_init(void)
         click_tilde_setup();
         clip_tilde_setup();
         comb_tilde_setup();
+        comment_setup();
         cosh_tilde_setup();
         cosx_tilde_setup();
         count_tilde_setup();
