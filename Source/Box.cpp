@@ -754,9 +754,8 @@ void Box::openHelpPatch() const
             cnv->pd->enqueueFunction([this, file]() mutable {
                 cnv->pd->loadPatch(file);
             });
-        }
-        
-        return;
+            return;
+        }        
     }
     
     cnv->pd->logMessage("Couldn't find help file");

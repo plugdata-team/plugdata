@@ -97,6 +97,7 @@ void Edge::mouseUp(const MouseEvent& e)
         if(box->cnv->connectingEdges.size() == 1 && e.mods.isShiftDown()) needsClearing = false;
         createConnection();
         if(needsClearing) box->cnv->connectingEdges.clear();
+        box->cnv->repaint();
     }
 
     if (box->cnv->nearestEdge && !box->cnv->connectingEdges.isEmpty() && box->cnv->connectingEdges.getReference(0).getComponent() == this && getLocalBounds().contains(e.getPosition()))
@@ -105,7 +106,6 @@ void Edge::mouseUp(const MouseEvent& e)
         box->cnv->nearestEdge->repaint();
         box->cnv->nearestEdge = nullptr;
         box->cnv->connectingEdges.clear();
-        
     }
 }
 
