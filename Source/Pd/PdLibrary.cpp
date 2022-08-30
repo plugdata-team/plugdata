@@ -334,9 +334,36 @@ void Library::parseDocumentation(String const& path)
         return text;
     };
 
-    auto parseFile = [this, getSections, formatText](File& f) {
+    auto sectionsFromHyphens = [](String text) {
+        StringArray lines = StringArray::fromLines(text);
+        
+        int lastIdx = 0;
+        for(int i = 0; i < lines.size(); i++)
+        {
+            auto& line = lines.getReference(i);
+            auto& lastLine = lines.getReference(lastIdx);
+            
+            if(!line.trim().startsWith("-"))
+            {
+                lastLine += line;
+                line.clear();
+                
+            }
+            else {
+                lastLine = lastLine.fromFirstOccurrenceOf("-", false, false);
+                lastIdx = i;
+            }
+            
+        }
+        
+        lines.removeEmptyStrings();
+        
+        return lines;
+    };
+    
+    auto parseFile = [this, getSections, formatText, sectionsFromHyphens](File& f) {
         String contents = f.loadFileAsString();
-        auto sections = getSections(contents, { "\ntitle", "\ndescription", "\npdcategory", "\ncategories", "\narguments", "\nlast_update", "\ninlets", "\noutlets", "\ndraft" });
+        auto sections = getSections(contents, { "\ntitle", "\ndescription", "\npdcategory", "\ncategories", "\nflags", "\narguments", "\nlast_update", "\ninlets", "\noutlets", "\ndraft" });
 
         if (!sections.count("title"))
             return;
@@ -347,12 +374,17 @@ void Library::parseDocumentation(String const& path)
             objectDescriptions[name] = sections["description"].first;
         }
 
-        if (sections.count("arguments")) {
+        if (sections.count("arguments") || sections.count("flags")) {
             Arguments args;
 
-            for (auto& argument : StringArray::fromTokens(sections["arguments"].first.fromFirstOccurrenceOf("-", false, false), "-", "\"")) {
+            for (auto& argument : sectionsFromHyphens(sections["arguments"].first)) {
                 auto sectionMap = getSections(argument, { "type", "description", "default" });
                 args.push_back({ sectionMap["type"].first, sectionMap["description"].first, sectionMap["default"].first });
+            }
+            
+            for (auto& flag : sectionsFromHyphens(sections["flags"].first)) {
+                auto sectionMap = getSections(flag, { "name", "description"});
+                args.push_back({ sectionMap["name"].first, sectionMap["description"].first, ""});
             }
 
             arguments[name] = args;
@@ -364,7 +396,7 @@ void Library::parseDocumentation(String const& path)
             inletDescriptions[name].resize(static_cast<int>(section.size()));
             for (auto [number, content] : section) {
                 String tooltip;
-                for (auto& argument : StringArray::fromTokens(content.first, "-", "\"")) {
+                for (auto& argument : sectionsFromHyphens(content.first)) {
                     auto sectionMap = getSections(argument, { "type", "description" });
                     if (sectionMap["type"].first.isEmpty())
                         continue;
@@ -381,7 +413,7 @@ void Library::parseDocumentation(String const& path)
             for (auto [number, content] : section) {
                 String tooltip;
 
-                for (auto& argument : StringArray::fromTokens(content.first, "-", "\"")) {
+                for (auto& argument : sectionsFromHyphens(content.first)) {
                     auto sectionMap = getSections(argument, { "type", "description" });
                     if (sectionMap["type"].first.isEmpty())
                         continue;

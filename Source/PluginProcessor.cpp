@@ -134,6 +134,8 @@ PlugDataAudioProcessor::PlugDataAudioProcessor()
 
         
         updateSearchPaths();
+        objectLibrary.updateLibrary();
+        
         setTheme(static_cast<bool>(settingsTree.getProperty("Theme")));
     };
 
@@ -288,8 +290,6 @@ void PlugDataAudioProcessor::updateSearchPaths()
     }
 
     getCallbackLock()->exit();
-    
-    objectLibrary.updateLibrary();
 }
 
 const String PlugDataAudioProcessor::getName() const
