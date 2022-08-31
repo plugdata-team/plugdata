@@ -199,9 +199,9 @@ void PlugDataAudioProcessor::initialiseFilesystem()
         deken.createDirectory();
         
 #if JUCE_WINDOWS
-        appDir.getChildFile("Abstractions").createShortcut("Abstractions", library.getChildFile("Abstractions"), true);
-        appDir.getChildFile("Documentation").createShortcut("Documentation", library.getChildFile("Documentation"), true);
-        deken.createShortcut("Deken", library.getChildFile("Deken"), true);
+        appDir.getChildFile("Abstractions").createShortcut("Abstractions", library.getChildFile("Abstractions"));
+        appDir.getChildFile("Documentation").createShortcut("Documentation", library.getChildFile("Documentation"));
+        deken.createShortcut("Deken", library.getChildFile("Deken"));
 #else
         appDir.getChildFile("Abstractions").createSymbolicLink(library.getChildFile("Abstractions"), true);
         appDir.getChildFile("Documentation").createSymbolicLink(library.getChildFile("Documentation"), true);
@@ -1154,7 +1154,6 @@ void PlugDataAudioProcessor::sendParameters()
 
 void PlugDataAudioProcessor::performParameterChange(int type, int idx, float value)
 {
-    
     // Type == 1 means it sets the change gesture state
     if(type)
     {
@@ -1193,6 +1192,7 @@ void PlugDataAudioProcessor::parameterValueChanged (int idx, float value)
 {
     auto paramID = "param" + String(idx);
     sendFloat(paramID.toRawUTF8(), value);
+    lastParameters[idx] = value;
 }
 
 void PlugDataAudioProcessor::parameterGestureChanged (int parameterIndex, bool gestureIsStarting)

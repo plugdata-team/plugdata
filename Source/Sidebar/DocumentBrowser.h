@@ -407,7 +407,8 @@ public:
                 auto alias = browser->directory.getDirectory().getChildFile(file.getFileName());
 
 #if JUCE_WINDOWS
-                file.createShortcut(file.getFileName(), alias, true);
+                if(alias.exists()) alias.deleteRecursively();
+                file.createShortcut(file.getFileName(), alias);
 #else
                 file.createSymbolicLink(alias, true);
 #endif
