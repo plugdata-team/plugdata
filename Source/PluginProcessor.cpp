@@ -199,9 +199,9 @@ void PlugDataAudioProcessor::initialiseFilesystem()
         deken.createDirectory();
         
 #if JUCE_WINDOWS
-        appDir.getChildFile("Abstractions").createShortcut(library.getChildFile("Abstractions"), true);
-        appDir.getChildFile("Documentation").createShortcut(library.getChildFile("Documentation"), true);
-        deken.createShortcut(library.getChildFile("Deken"), true);
+        appDir.getChildFile("Abstractions").createShortcut("Abstractions", library.getChildFile("Abstractions"), true);
+        appDir.getChildFile("Documentation").createShortcut("Documentation", library.getChildFile("Documentation"), true);
+        deken.createShortcut("Deken", library.getChildFile("Deken"), true);
 #else
         appDir.getChildFile("Abstractions").createSymbolicLink(library.getChildFile("Abstractions"), true);
         appDir.getChildFile("Documentation").createSymbolicLink(library.getChildFile("Documentation"), true);
