@@ -61,16 +61,16 @@ typedef struct _comment{
     t_pd           *x_handle;
 }t_fake_comment;
 
-
-struct CycloneCommentObject final : public TextBase, public KeyListener {
+// This object is a dumb version of [cyclone/comment] that only serves to make cyclone's documentation readable
+struct CycloneCommentObject final : public GUIObject {
     
     Colour textColour;
+    Font font;
+    BorderSize<int> border { 1, 7, 1, 2 };
     
     CycloneCommentObject(void* obj, Box* box)
-        : TextBase(obj, box)
+        : GUIObject(obj, box)
     {
-        currentText = getText();
-        
         auto* comment = static_cast<t_fake_comment*>(ptr);
         font = font.withHeight(comment->x_fontsize);
         
@@ -81,9 +81,6 @@ struct CycloneCommentObject final : public TextBase, public KeyListener {
     {
         auto b = box->getObjectBounds();
         libpd_moveobj(cnv->patch.getPointer(), static_cast<t_gobj*>(ptr), b.getX(), b.getY());
-
-        auto* comment = static_cast<t_fake_comment*>(ptr);
-        comment->x_text_n = textObjectWidth;
     }
     
     void resized() override
@@ -91,17 +88,12 @@ struct CycloneCommentObject final : public TextBase, public KeyListener {
         auto* comment = static_cast<t_fake_comment*>(ptr);
 
         int width = getBestTextWidth(getText());
-        numLines = getNumLines(currentText, width);
-        int height = numLines * comment->x_fontsize + 6;
+        int height =  comment->x_fontsize + 6;
 
         width = std::max(width, 25);
 
         if (getWidth() != width || getHeight() != height) {
             box->setSize(width + Box::doubleMargin, height + Box::doubleMargin);
-        }
-
-        if (editor) {
-            editor->setBounds(getLocalBounds());
         }
     }
     
@@ -113,7 +105,7 @@ struct CycloneCommentObject final : public TextBase, public KeyListener {
         g.setFont(font.withHeight(comment->x_fontsize));
 
         auto textArea = border.subtractedFrom(getLocalBounds());
-        g.drawFittedText(getText(), textArea, justification, numLines, minimumHorizontalScale);
+        g.drawFittedText(getText(), textArea, Justification::centredLeft, 1, 0.9f);
 
         auto selected = cnv->isSelected(box);
         if (box->locked == var(false) && (box->isMouseOverOrDragging(true) || selected) && !cnv->isGraph) {
@@ -134,145 +126,22 @@ struct CycloneCommentObject final : public TextBase, public KeyListener {
     }
 
     
-    void hideEditor() override
-    {
-        if (editor != nullptr) {
-            WeakReference<Component> deletionChecker(this);
-            std::unique_ptr<TextEditor> outgoingEditor;
-            std::swap(outgoingEditor, editor);
-
-            outgoingEditor->setInputFilter(nullptr, false);
-
-            auto newText = outgoingEditor->getText();
-
-            bool changed;
-            if (currentText != newText) {
-                currentText = newText;
-                repaint();
-                changed = true;
-            } else {
-                changed = false;
-            }
-
-            outgoingEditor.reset();
-
-            repaint();
-
-            // update if the name has changed, or if pdobject is unassigned
-            if (changed) {
-                cnv->pd->enqueueFunction(
-                    [this, _this = SafePointer<CycloneCommentObject>(this)]() mutable {
-                        if (!_this)
-                            return;
-
-                        auto* comment = static_cast<t_fake_comment*>(ptr);
-                        comment->x_buf = currentText.toRawUTF8();
-                        comment->x_bufsize = currentText.getNumBytesAsUTF8();
-                        
-                        MessageManager::callAsync(
-                            [_this]() {
-                                if (!_this)
-                                    return;
-                                _this->box->updateBounds();
-                            });
-                    });
-            }
-        }
-    }
-
-    void showEditor() override
-    {
-        if (editor == nullptr) {
-            editor = std::make_unique<TextEditor>(getName());
-            editor->applyFontToAllText(font);
-
-            copyAllExplicitColoursTo(*editor);
-            editor->setColour(Label::textWhenEditingColourId, findColour(TextEditor::textColourId));
-            editor->setColour(Label::backgroundWhenEditingColourId, findColour(TextEditor::backgroundColourId));
-            editor->setColour(Label::outlineWhenEditingColourId, findColour(TextEditor::focusedOutlineColourId));
-
-            editor->setAlwaysOnTop(true);
-
-            editor->setMultiLine(false);
-            editor->setReturnKeyStartsNewLine(false);
-            editor->setBorder(border);
-            editor->setIndents(0, 0);
-            editor->setJustification(justification);
-
-            
-            editor->onFocusLost = [this]() {
-                // Necessary so the editor doesn't close when clicking on a suggestion
-                if (!reinterpret_cast<Component*>(cnv->suggestor)->hasKeyboardFocus(true)) {
-                    hideEditor();
-                }
-            };
-
-            editor->setSize(10, 10);
-            addAndMakeVisible(editor.get());
-
-            editor->setText(currentText, false);
-            editor->addListener(this);
-            editor->addKeyListener(this);
-
-            if (editor == nullptr) // may be deleted by a callback
-                return;
-
-            editor->setHighlightedRegion(Range<int>(0, currentText.length()));
-
-            resized();
-            repaint();
-
-            editor->grabKeyboardFocus();
-        }
-    }
-
     bool hideInGraph() override
     {
         return false;
     }
     
-    bool keyPressed(const KeyPress& key, Component* component) override
-    {
-        if (key == KeyPress::rightKey) {
-            if(editor){
-                editor->setCaretPosition(editor->getHighlightedRegion().getEnd());
-                return true;
-            }
-        }
-        /*
-        if (key == KeyPress::returnK) {
-            
-        } */
-        return false;
-    }
-    
-    
     void updateBounds() override
     {
         pd->getCallbackLock()->enter();
-
-        int x, y, w, h;
-
         auto* comment = static_cast<t_fake_comment*>(ptr);
-
-        libpd_get_object_bounds(cnv->patch.getPointer(), ptr, &x, &y, &w, &h);
-
-        Rectangle<int> bounds = { x, y, comment->x_text_n, h };
-
-        int fontWidth = comment->x_fontsize;
-
+        int fontsize = comment->x_fontsize;
         pd->getCallbackLock()->exit();
         
-
         int width = getBestTextWidth(getText());
+        int height = fontsize + 6;
 
-        numLines = getNumLines(currentText, width, Font(comment->x_fontsize));
-        int height = numLines * comment->x_fontsize + 6;
-
-        bounds.setWidth(width);
-        bounds.setHeight(height);
-
-        box->setObjectBounds(bounds);
+        box->setObjectBounds({comment->x_obj.te_xpix, comment->x_obj.te_ypix, width, height});
     }
     
     
@@ -282,4 +151,9 @@ struct CycloneCommentObject final : public TextBase, public KeyListener {
         return String::fromUTF8(comment->x_buf, comment->x_bufsize);
     }
 
+    int getBestTextWidth(String const& text)
+    {
+        return std::max<float>(round(font.getStringWidthFloat(text) + 14.0f), 32);
+    }
+    
 };
