@@ -18,14 +18,14 @@ cp -R ../pddp ./Documentation/pddp
 cp -R ../../Libraries/ELSE/Help-files/ ./Documentation/9.else
 cp ../../Libraries/ELSE/sfont~/sfont~-help.pd ./Documentation/9.else
 cp ../param-help.pd ./Documentation/5.reference
+cp ../playhead-help.pd ./Documentation/5.reference
 cp -R ../../Libraries/cyclone/documentation/help_files ./Documentation/10.cyclone
 cp -R ../../Libraries/ELSE/Live-Electronics-Tutorial/ ./Documentation/11.live-electronics-tutorial
 
 # Remove else prefix in helpfiles
-find ./Abstractions/else/ -name '*.pd' -print0 | xargs -0 sed -i "" "s/else\///g"
-find ./Documentation/9.else/ -name '*.pd' -print0 | xargs -0 sed -i "" "s/else\///g"
-find ./Documentation/10.cyclone/ -name '*.pd' -print0 | xargs -0 sed -i "" "s/cyclone\///g"
-
+find ./Abstractions/else/ -type f -name "*.pd" -exec sed -i "" "s/else\///g" {} +
+find ./Documentation/9.else/ -type f -name "*.pd" -exec sed -i "" "s/else\///g" {} +
+find ./Documentation/10.cyclone/ -type f -name "*.pd" -exec sed -i "" "s/cyclone\///g" {} +
 
 rm ./Documentation/Makefile.am
 
