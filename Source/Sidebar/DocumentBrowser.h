@@ -406,9 +406,12 @@ public:
             if (file.exists() && (file.isDirectory() || file.hasFileExtension("pd"))) {
                 auto alias = browser->directory.getDirectory().getChildFile(file.getFileName());
 
-                if (alias.exists())
-                    alias.deleteFile();
-                File::createSymbolicLink(alias, file.getFullPathName(), false);
+#if JUCE_WINDOWS
+                file.createShortcut(alias, true);
+#else
+                file.createSymbolicLink(alias, true);
+#endif
+                
             }
         }
 

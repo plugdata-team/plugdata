@@ -400,8 +400,6 @@ private:
 protected:
     ContinuityChecker continuityChecker;
     
-    moodycamel::ConcurrentQueue<std::tuple<int, int, float>> m_parameter_queue = moodycamel::ConcurrentQueue<std::tuple<int, int, float>>();
-    
     struct internal;
     
     struct ConsoleHandler : public Timer
