@@ -132,7 +132,6 @@ PlugDataAudioProcessor::PlugDataAudioProcessor()
             }
         }
 
-        
         updateSearchPaths();
         objectLibrary.updateLibrary();
         

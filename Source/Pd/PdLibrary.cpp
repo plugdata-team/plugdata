@@ -212,20 +212,20 @@ void Library::initialiseLibrary()
 
         appDataDir = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory).getChildFile("PlugData");
 
-        updateLibrary();
-
         auto pddocPath = appDataDir.getChildFile(ProjectInfo::versionString).getChildFile("Documentation").getChildFile("pddp").getFullPathName();
 
+        updateLibrary();
         parseDocumentation(pddocPath);
-
-        watcher.addFolder(appDataDir);
-        watcher.addListener(this);
-
+        
         if (thread->threadShouldExit())
             return;
 
         // Update docs in GUI
         MessageManager::callAsync([this]() {
+            
+            watcher.addFolder(appDataDir);
+            watcher.addListener(this);
+            
             if (appDirChanged)
                 appDirChanged();
         });
@@ -247,6 +247,7 @@ void Library::updateLibrary()
 
         searchTree = std::make_unique<Trie>();
 
+        // Get available objects directly from pd
         int i;
         t_class* o = pd_objectmaker;
 
@@ -265,6 +266,7 @@ void Library::updateLibrary()
 
         searchTree->insert("graph");
 
+        // Find patches in our search tree
         for (auto path : pathTree) {
             auto filePath = File(path.getProperty("Path").toString());
 
@@ -478,7 +480,6 @@ String Library::getInletOutletTooltip(String boxname, int idx, int total, bool i
 void Library::fsChangeCallback()
 {
     appDirChanged();
-    updateLibrary();
 }
 
 ObjectMap Library::getObjectDescriptions()
