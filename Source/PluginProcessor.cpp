@@ -203,7 +203,7 @@ void PlugDataAudioProcessor::initialiseFilesystem()
         settingsFile.create();
 
         // Add default settings
-        settingsTree.setProperty("BrowserPath", abstractions.getParentDirectory().getFullPathName(), nullptr);
+        settingsTree.setProperty("BrowserPath", homeDir.getChildFile("Library").getFullPathName(), nullptr);
         settingsTree.setProperty("Theme", 1, nullptr);
         settingsTree.setProperty("GridEnabled", 1, nullptr);
 
