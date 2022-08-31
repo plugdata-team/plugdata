@@ -260,8 +260,12 @@ private:
             return false;
         }
         
-        if (key == KeyPress::rightKey) {
+        if (key == KeyPress::rightKey && !openedEditor->getHighlightedRegion().isEmpty()) {
             openedEditor->setCaretPosition(openedEditor->getHighlightedRegion().getEnd());
+            return true;
+        }
+        if (key == KeyPress::leftKey && !openedEditor->getHighlightedRegion().isEmpty()) {
+            openedEditor->setCaretPosition(openedEditor->getHighlightedRegion().getStart());
             return true;
         }
         

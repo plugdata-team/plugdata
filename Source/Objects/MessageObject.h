@@ -219,13 +219,16 @@ struct MessageObject final : public GUIObject, public KeyListener {
             });
     }
     
-    bool keyPressed(const KeyPress& key, Component* originalComponent) override
+    bool keyPressed(const KeyPress& key, Component* component) override
     {
-        if (key == KeyPress::rightKey) {
-            if(auto* editor = input.getCurrentTextEditor()){
-                editor->setCaretPosition(editor->getHighlightedRegion().getEnd());
-                return true;
-            }
+        auto* editor = input.getCurrentTextEditor();
+        if (key == KeyPress::rightKey && editor && !editor->getHighlightedRegion().isEmpty()) {
+            editor->setCaretPosition(editor->getHighlightedRegion().getEnd());
+            return true;
+        }
+        if (key == KeyPress::leftKey && editor && !editor->getHighlightedRegion().isEmpty()) {
+            editor->setCaretPosition(editor->getHighlightedRegion().getStart());
+            return true;
         }
         return false;
     }
