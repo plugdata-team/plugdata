@@ -64,6 +64,7 @@ class SuggestionComponent : public Component
                 auto rightIndent = jmin(fontHeight, 2 + cornerSize / 2);
                 auto textWidth = getWidth() - leftIndent - rightIndent;
 
+                // Draw seperator (which is an en dash)
                 g.drawText(String::fromUTF8("\xe2\x80\x93 ") + objectDescription, Rectangle<int>(leftIndent, yIndent, textWidth, getHeight() - yIndent * 2), Justification::left);
             }
 
