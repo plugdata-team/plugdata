@@ -134,11 +134,13 @@ struct CommentObject final : public TextBase, public KeyListener {
     
     bool keyPressed(const KeyPress& key, Component* component) override
     {
-        if (key == KeyPress::rightKey) {
-            if(editor){
-                editor->setCaretPosition(editor->getHighlightedRegion().getEnd());
-                return true;
-            }
+        if (key == KeyPress::rightKey && editor && !editor->getHighlightedRegion().isEmpty()) {
+            editor->setCaretPosition(editor->getHighlightedRegion().getEnd());
+            return true;
+        }
+        if (key == KeyPress::leftKey && editor && !editor->getHighlightedRegion().isEmpty()) {
+            editor->setCaretPosition(editor->getHighlightedRegion().getStart());
+            return true;
         }
         return false;
     }
