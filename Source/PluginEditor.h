@@ -47,6 +47,7 @@ enum CommandIDs
     NewObject,
     NewComment,
     NewBang,
+    NewButton,
     NewMessage,
     NewToggle,
     NewNumbox,
