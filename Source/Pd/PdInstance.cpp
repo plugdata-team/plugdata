@@ -47,7 +47,7 @@ struct pd::Instance::internal {
                 mess.list[i] = Atom(String(atom_getsymbol(argv + i)->s_name));
         }
 
-        ptr->enqueueFunctionAsync([ptr, mess]() mutable { ptr->processMessage(std::move(mess)); });
+        ptr->enqueueFunctionAsync([ptr, mess]() mutable { ptr->processMessage(mess); });
     }
 
     static void instance_multi_message(pd::Instance* ptr, char const* recv, char const* msg, int argc, t_atom* argv)
