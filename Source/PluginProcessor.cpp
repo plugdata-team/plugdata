@@ -961,7 +961,7 @@ pd::Patch* PlugDataAudioProcessor::loadPatch(const File& patchFile)
                 MessageManager::callAsync([i, _editor = Component::SafePointer(editor)]() mutable {
                     if(!_editor) return;
                     _editor->tabbar.setCurrentTabIndex(i);
-                    _editor->pd.logError("Patch is already opened");
+                    _editor->pd.logError("Patch is already open");
                 });
             }
         
