@@ -886,6 +886,12 @@ void PlugDataPluginEditor::getCommandInfo(const CommandID commandID, Application
             result.setActive(!isDragging && pd.locked == var(false));
             break;
         }
+        case CommandIDs::NewButton:
+        {
+            result.setInfo("New Button", "Create new button", "Objects", 0);
+            result.setActive(!isDragging && pd.locked == var(false));
+            break;
+        }
         case CommandIDs::NewMessage:
         {
             result.setInfo("New Message", "Create new message", "Objects", 0);
