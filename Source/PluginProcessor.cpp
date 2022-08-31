@@ -65,9 +65,9 @@ PlugDataAudioProcessor::PlugDataAudioProcessor()
     for (int n = 0; n < numParameters; n++)
     {
         auto id = ParameterID("param" + String(n + 1), 1);
-        parameters.createAndAddParameter(std::make_unique<AudioParameterFloat>(id, "Parameter " + String(n + 1), 0.0f, 1.0f, 0.0f));
-        parameterValues[n] = parameters.getRawParameterValue(id.getParamID());
+        auto* parameter = parameters.createAndAddParameter(std::make_unique<AudioParameterFloat>(id, "Parameter " + String(n + 1), 0.0f, 1.0f, 0.0f));
         lastParameters[n] = 0;
+        parameter->addListener(this);
     }
 
     volume = parameters.getRawParameterValue("volume");
@@ -1126,68 +1126,55 @@ void PlugDataAudioProcessor::receiveMidiByte(const int port, const int byte)
 void PlugDataAudioProcessor::processParameters()
 {
     
-    auto parameterChange = std::tuple<int, int, float>();
-    while(m_parameter_queue.try_dequeue(parameterChange))
-    {
-        auto& [type, idx, value] = parameterChange;
-        
-        if(type == 1) {
-            if(changeGestureState[idx] == value) {
-                logMessage("parameter change " + String(idx) + (value ? " already started" : " not started"));
-            }
-            else {
-                auto* parameter = parameters.getParameter("param" + String(idx));
-                value ? parameter->beginChangeGesture() : parameter->endChangeGesture();
-                changeGestureState[idx] = value;
-            }
-        }
-        else {
-            //if(value == lastParameters[idx]) continue;
-            
-#if PLUGDATA_STANDALONE
-            standaloneParams[idx - 1] = value;
-            if (auto* editor = dynamic_cast<PlugDataPluginEditor*>(getActiveEditor()))
-            {
-                editor->sidebar.updateAutomationParameters();
-            }
-#else
-            
-            auto* parameter = parameters.getParameter("param" + String(idx));
-            lastParameters[idx - 1] = value;
-            parameter->setValueNotifyingHost(value);
-#endif
-        }
-    }
-    
 #if PLUGDATA_STANDALONE
     for (int idx = 0; idx < numParameters; idx++)
     {
         if (standaloneParams[idx].load() != lastParameters[idx])
         {
             float value = standaloneParams[idx].load();
-            lastParameters[idx] = value;
-
-            parameterAtom[0] = {pd::Atom(value)};
-
-            String toSend = ("param" + String(idx + 1));
-            sendList(toSend.toRawUTF8(), parameterAtom);
+            auto paramID = "param" + String(idx + 1);
+            sendFloat(paramID.toRawUTF8(), value);
         }
     }
 
 #else
-    for (int idx = 0; idx < numParameters; idx++)
+    
+#endif
+}
+
+void PlugDataAudioProcessor::performParameterChange(int type, int idx, float value)
+{
+    if(type)
     {
-        if (parameterValues[idx]->load() != lastParameters[idx])
-        {
-            lastParameters[idx] = parameterValues[idx]->load();
-
-            parameterAtom[0] = {pd::Atom(lastParameters[idx])};
-
-            String toSend = ("param" + String(idx + 1));
-            sendList(toSend.toRawUTF8(), parameterAtom);
+        if(changeGestureState[idx] == value) {
+            logMessage("parameter change " + String(idx) + (value ? " already started" : " not started"));
+        }
+        else {
+            auto* parameter = parameters.getParameter("param" + String(idx + 1));
+            value ? parameter->beginChangeGesture() : parameter->endChangeGesture();
+            changeGestureState[idx] = value;
         }
     }
-#endif
+    else {
+        auto paramID = "param" + String(idx + 1);
+        if(lastParameters[idx] == value) return;
+        parameters.getParameter(paramID)->setValueNotifyingHost(value);
+        lastParameters[idx] = value;
+    }
+}
+
+
+void PlugDataAudioProcessor::parameterValueChanged (int idx, float value)
+{
+    auto paramID = "param" + String(idx);
+    //if(value == lastParameters[idx - 1]) return;
+    sendFloat(paramID.toRawUTF8(), value);
+    //lastParameters[idx - 1] = value;
+}
+
+void PlugDataAudioProcessor::parameterGestureChanged (int parameterIndex, bool gestureIsStarting)
+{
+    
 }
 
 void PlugDataAudioProcessor::receiveDSPState(bool dsp)

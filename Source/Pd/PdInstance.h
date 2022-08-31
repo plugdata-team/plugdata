@@ -342,7 +342,7 @@ public:
     void enqueueDirectMessages(void* object, String const& msg);
     void enqueueDirectMessages(void* object, float const msg);
     
-    void enqueueParameterChange(int type, int idx, float value);
+    virtual void performParameterChange(int type, int idx, float value) {};
 
     void logMessage(String const& message);
     void logError(String const& message);
@@ -399,7 +399,7 @@ private:
     
 protected:
     ContinuityChecker continuityChecker;
-
+    
     moodycamel::ConcurrentQueue<std::tuple<int, int, float>> m_parameter_queue = moodycamel::ConcurrentQueue<std::tuple<int, int, float>>();
     
     struct internal;
