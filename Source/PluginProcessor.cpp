@@ -951,9 +951,7 @@ void PlugDataAudioProcessor::setStateInformation(const void* data, int sizeInByt
 
 pd::Patch* PlugDataAudioProcessor::loadPatch(const File& patchFile)
 {
-
     // First, check if patch is already opened
-    
     int i = 0;
     for(auto* patch : patches) {
         if(patch->getCurrentFile() == patchFile)
@@ -963,6 +961,7 @@ pd::Patch* PlugDataAudioProcessor::loadPatch(const File& patchFile)
                 MessageManager::callAsync([i, _editor = Component::SafePointer(editor)]() mutable {
                     if(!_editor) return;
                     _editor->tabbar.setCurrentTabIndex(i);
+                    _editor->pd.logError("Patch is already opened");
                 });
             }
         
