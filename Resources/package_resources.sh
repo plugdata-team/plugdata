@@ -23,9 +23,9 @@ cp -R ../../Libraries/cyclone/documentation/help_files ./Documentation/10.cyclon
 cp -R ../../Libraries/ELSE/Live-Electronics-Tutorial/ ./Documentation/11.live-electronics-tutorial
 
 # Remove else prefix in helpfiles
-find ./Abstractions/else/ -type f -name "*.pd" -exec sed -i "" "s/else\///g" {} +
-find ./Documentation/9.else/ -type f -name "*.pd" -exec sed -i "" "s/else\///g" {} +
-find ./Documentation/10.cyclone/ -type f -name "*.pd" -exec sed -i "" "s/cyclone\///g" {} +
+sed -i -- 's/else\///g' ./Abstractions/else/*.pd
+sed -i -- 's/else\///g' ./Documentation/9.else/*.pd
+sed -i -- 's/cyclone\///g' ./Documentation/10.cyclone/*.pd
 
 rm ./Documentation/Makefile.am
 

@@ -88,6 +88,7 @@ void Dialogs::showObjectMenu(PlugDataPluginEditor* parent, Component* target)
     menu.addItem(createCommandItem(CommandIDs::NewMessage, "Message"));
     menu.addItem(createCommandItem(CommandIDs::NewBang, "Bang"));
     menu.addItem(createCommandItem(CommandIDs::NewToggle, "Toggle"));
+    menu.addItem(createCommandItem(CommandIDs::NewMessage, "Button"));
     menu.addItem(createCommandItem(CommandIDs::NewVerticalSlider, "Vertical Slider"));
     menu.addItem(createCommandItem(CommandIDs::NewHorizontalSlider, "Horizontal Slider"));
     menu.addItem(createCommandItem(CommandIDs::NewVerticalRadio, "Vertical Radio"));

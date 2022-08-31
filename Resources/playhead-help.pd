@@ -1,0 +1,103 @@
+#N canvas 637 37 657 479 10;
+#X obj 5 263 cnv 3 550 4 empty empty outlets 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 129 274 cnv 17 4 17 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X obj 305 6 cnv 15 250 40 empty empty empty 12 13 0 18 #7c7c7c #e0e4dc
+0;
+#N canvas 382 141 749 319 (subpatch) 1;
+#N canvas 0 22 450 278 (subpatch) 0;
+#X text 0 0 plugdatainfo;
+#X coords 0 1 100 -1 1 1 1;
+#X restore 0 0 graph;
+#X coords 0 -1 1 1 252 42 2 0 0;
+#X restore 304 5 pd;
+#X obj 368 11 cnv 10 10 10 empty empty PlugData 0 15 2 30 #7c7c7c #e0e4dc
+0;
+#X obj 24 42 cnv 4 4 4 empty empty Receive\ DAW\ playhead 0 28 2 18
+#e0e0e0 #000000 0;
+#X obj 4 5 cnv 15 301 42 empty empty param 20 20 2 37 #e0e0e0 #000000
+0;
+#N canvas 0 22 450 278 (subpatch) 1;
+#N canvas 0 22 450 278 (subpatch) 0;
+#X text 0 0 plugdatainfo;
+#X coords 0 1 100 -1 1 1 1;
+#X restore 0 0 graph;
+#X coords 0 1 100 -1 302 42 1;
+#X restore 4 5 graph;
+#N canvas 0 22 450 278 (subpatch) 0;
+#X text 0 0 plugdatainfo <?xml version="1.0" encoding="UTF-8"?> <PlugDataInfo/>
+;
+#X coords 0 1 100 -1 1 1 1;
+#X restore 0 0 graph;
+#X obj 37 140 playhead, f 84;
+#X obj 518 184 unpack f f f, f 22;
+#X text 175 269 float - playing (1 if playing \, 0 if stopped);
+#X obj 129 296 cnv 17 4 17 empty empty 1 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X obj 129 318 cnv 17 4 17 empty empty 2 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X obj 129 340 cnv 17 4 17 empty empty 3 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X obj 129 360 cnv 17 4 17 empty empty 4 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X obj 129 384 cnv 17 4 17 empty empty 5 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X text 175 291 float - recording (1 if recording \, 0 if not);
+#X obj 129 409 cnv 17 4 17 empty empty 6 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X obj 129 435 cnv 17 4 17 empty empty 7 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X obj 129 459 cnv 17 4 17 empty empty 8 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X text 175 335 float - edittime;
+#X text 175 355 float - framerate;
+#X text 175 379 float - bpm;
+#X text 175 404 float - lastbar;
+#X text 175 430 float - timesig;
+#X text 175 313 list<float \, float> - start and end of loop if looping
+\, otherwise 0;
+#X text 175 454 list<float \, float \, float> - position <ppq position
+\, time in samples \, time in seconds>;
+#X obj 518 216 nbx 4 21 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+#e4e4e4 #5a5a5a #5a5a5a 0 256;
+#X obj 573 216 nbx 4 21 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+#e4e4e4 #5a5a5a #5a5a5a 0 256;
+#X obj 628 216 nbx 4 21 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+#e4e4e4 #5a5a5a #5a5a5a 0 256;
+#X text 49 93 [playhead] receives the playhead from the DAW \, including
+tempo \, current time in ms or samples \, and more. Only works in plugin
+version!, f 64;
+#X obj 37 218 nbx 4 21 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+#e4e4e4 #5a5a5a #5a5a5a 0 256;
+#X obj 92 218 nbx 4 21 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+#e4e4e4 #5a5a5a #5a5a5a 0 256;
+#X obj 258 218 nbx 4 21 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+#e4e4e4 #5a5a5a #5a5a5a 0 256;
+#X obj 314 218 nbx 4 21 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+#e4e4e4 #5a5a5a #5a5a5a 0 256;
+#X obj 365 218 nbx 4 21 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+#e4e4e4 #5a5a5a #5a5a5a 0 256;
+#X obj 416 218 nbx 4 21 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+#e4e4e4 #5a5a5a #5a5a5a 0 256;
+#X obj 466 218 nbx 4 21 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+#e4e4e4 #5a5a5a #5a5a5a 0 256;
+#X obj 148 184 unpack f f;
+#X obj 148 218 nbx 4 21 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+#e4e4e4 #5a5a5a #5a5a5a 0 256;
+#X obj 203 218 nbx 4 21 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+#e4e4e4 #5a5a5a #5a5a5a 0 256;
+#X connect 9 0 32 0;
+#X connect 9 1 33 0;
+#X connect 9 2 39 0;
+#X connect 9 3 34 0;
+#X connect 9 4 35 0;
+#X connect 9 5 36 0;
+#X connect 9 6 37 0;
+#X connect 9 7 38 0;
+#X connect 9 8 10 0;
+#X connect 10 0 28 0;
+#X connect 10 1 29 0;
+#X connect 10 2 30 0;
+#X connect 39 0 40 0;
+#X connect 39 1 41 0;
