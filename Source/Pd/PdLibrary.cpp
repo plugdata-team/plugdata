@@ -212,7 +212,7 @@ void Library::initialiseLibrary()
 
         appDataDir = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory).getChildFile("PlugData");
 
-        auto pddocPath = appDataDir.getChildFile(ProjectInfo::versionString).getChildFile("Documentation").getChildFile("pddp").getFullPathName();
+        auto pddocPath = appDataDir.getChildFile("Library").getChildFile("Documentation").getChildFile("pddp").getFullPathName();
 
         updateLibrary();
         parseDocumentation(pddocPath);
