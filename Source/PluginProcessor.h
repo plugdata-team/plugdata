@@ -63,8 +63,6 @@ class PlugDataAudioProcessor : public AudioProcessor, public pd::Instance, publi
     void receiveAftertouch(const int channel, const int value) override;
     void receivePolyAftertouch(const int channel, const int pitch, const int value) override;
     void receiveMidiByte(const int port, const int byte) override;
-
-    void processParameters();
     
     void parameterValueChanged (int parameterIndex, float newValue) override;
     void parameterGestureChanged (int parameterIndex, bool gestureIsStarting) override;
@@ -179,8 +177,6 @@ class PlugDataAudioProcessor : public AudioProcessor, public pd::Instance, publi
     uint8 midiByteBuffer[512] = {0};
     size_t midiByteIndex = 0;
 
-    std::array<std::atomic<float>*, numParameters> parameterValues = {nullptr};
-    std::array<std::atomic<float>, numParameters> parameterSetValues = {0};
     std::array<float, numParameters> lastParameters = {0};
     std::array<float, numParameters> changeGestureState = {0};
 
