@@ -403,6 +403,8 @@ public:
         auto bounds = Rectangle<int>(x, y, glist->gl_pixwidth, glist->gl_pixheight);
         
         pd->getCallbackLock()->exit();
+        
+        box->setObjectBounds(bounds);
     }
 
     void checkBounds() override
