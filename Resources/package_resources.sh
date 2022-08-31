@@ -17,6 +17,7 @@ cp -R ../../Libraries/pure-data/doc ./Documentation
 cp -R ../pddp ./Documentation/pddp
 cp -R ../../Libraries/ELSE/Help-files/ ./Documentation/9.else
 cp ../Libraries/ELSE/sfont~/sfont~-help.pd ./Documentation/9.else
+cp ../param-help.pd ./Documentation/5.reference
 cp -R ../../Libraries/cyclone/documentation/help_files ./Documentation/10.cyclone
 cp -R ../../Libraries/ELSE/Live-Electronics-Tutorial/ ./Documentation/11.live-electronics-tutorial
 
@@ -24,6 +25,7 @@ cp -R ../../Libraries/ELSE/Live-Electronics-Tutorial/ ./Documentation/11.live-el
 find ./Abstractions/else/ -name '*.pd' -print0 | xargs -0 sed -i "" "s/else\///g"
 find ./Documentation/9.else/ -name '*.pd' -print0 | xargs -0 sed -i "" "s/else\///g"
 find ./Documentation/10.cyclone/ -name '*.pd' -print0 | xargs -0 sed -i "" "s/cyclone\///g"
+
 
 rm ./Documentation/Makefile.am
 
