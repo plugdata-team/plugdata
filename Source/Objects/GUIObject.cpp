@@ -80,11 +80,22 @@ String ObjectBase::getText()
 String ObjectBase::getType() const
 {
     if (ptr) {
-        char const* name = libpd_get_object_class_name(ptr);
-        if (name) {
-            return { name };
+        if(pd_class(static_cast<t_pd*>(ptr)) == canvas_class && canvas_isabstraction((t_canvas *)ptr)) {
+            char namebuf[MAXPDSTRING];
+            t_object *ob = (t_object *)ptr;
+            int ac = binbuf_getnatom(ob->te_binbuf);
+            t_atom *av = binbuf_getvec(ob->te_binbuf);
+            if (ac < 1)
+                return;
+            atom_string(av, namebuf, MAXPDSTRING);
+            
+            return String::fromUTF8(namebuf).fromLastOccurrenceOf("/", false, false);
+        }
+        if (auto* name = libpd_get_object_class_name(ptr)) {
+            return String(name);
         }
     }
+    
     return {};
 }
 
