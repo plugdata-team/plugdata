@@ -16,7 +16,7 @@ rm ./Abstractions/else/All_objects.pd
 cp -R ../../Libraries/pure-data/doc ./Documentation
 cp -R ../pddp ./Documentation/pddp
 cp -R ../../Libraries/ELSE/Help-files/ ./Documentation/9.else
-cp ../Libraries/ELSE/sfont~/sfont~-help.pd ./Documentation/9.else
+cp ../../Libraries/ELSE/sfont~/sfont~-help.pd ./Documentation/9.else
 cp ../param-help.pd ./Documentation/5.reference
 cp -R ../../Libraries/cyclone/documentation/help_files ./Documentation/10.cyclone
 cp -R ../../Libraries/ELSE/Live-Electronics-Tutorial/ ./Documentation/11.live-electronics-tutorial
