@@ -375,12 +375,12 @@ void Instance::processMessage(Message mess)
     if (mess.destination == "param") {
         int index = mess.list[0].getFloat();
         float value = std::clamp(mess.list[1].getFloat(), 0.0f, 1.0f);
-        enqueueParameterChange(0, index, value);
+        performParameterChange(0, index - 1, value);
     }
     else if (mess.destination == "param_change") {
         int index = mess.list[0].getFloat();
         int state = mess.list[1].getFloat() != 0;
-        enqueueParameterChange(1, index, state);
+        performParameterChange(1, index - 1, state);
     }
     else if (mess.selector == "bang") {
         receiveBang(mess.destination);
@@ -489,11 +489,6 @@ void Instance::enqueueDirectMessages(void* object, String const& msg)
 void Instance::enqueueDirectMessages(void* object, float const msg)
 {
     enqueueFunction([this, object, msg]() mutable { processSend(dmessage { object, String(), "float", std::vector<Atom>(1, msg) }); });
-}
-
-void Instance::enqueueParameterChange(int type, int idx, float value)
-{
-    m_parameter_queue.enqueue({type, idx, value});
 }
 
 void Instance::waitForStateUpdate()

@@ -86,7 +86,7 @@ String ObjectBase::getType() const
             int ac = binbuf_getnatom(ob->te_binbuf);
             t_atom *av = binbuf_getvec(ob->te_binbuf);
             if (ac < 1)
-                return;
+                return String();
             atom_string(av, namebuf, MAXPDSTRING);
             
             return String::fromUTF8(namebuf).fromLastOccurrenceOf("/", false, false);

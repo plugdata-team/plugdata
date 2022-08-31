@@ -9,7 +9,7 @@ struct FastStringWidth {
     
     FastStringWidth(Font font)
     {
-        for(char i = 0; i < num_items; i++)
+        for(int i = 0; i < num_items; i++)
         {
             char* chr = new char((char)i);
             widths[i] = font.getStringWidth(String(CharPointer_UTF8(chr), 1));

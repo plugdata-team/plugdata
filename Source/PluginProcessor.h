@@ -16,7 +16,7 @@
 class PlugDataLook;
 
 class PlugDataPluginEditor;
-class PlugDataAudioProcessor : public AudioProcessor, public pd::Instance, public Timer
+class PlugDataAudioProcessor : public AudioProcessor, public pd::Instance, public Timer, public AudioProcessorParameter::Listener
 {
    public:
     PlugDataAudioProcessor();
@@ -65,7 +65,10 @@ class PlugDataAudioProcessor : public AudioProcessor, public pd::Instance, publi
     void receiveMidiByte(const int port, const int byte) override;
 
     void processParameters();
-
+    
+    void parameterValueChanged (int parameterIndex, float newValue) override;
+    void parameterGestureChanged (int parameterIndex, bool gestureIsStarting) override;
+    
     void receiveDSPState(bool dsp) override;
     void receiveGuiUpdate(int type) override;
 
@@ -105,6 +108,7 @@ class PlugDataAudioProcessor : public AudioProcessor, public pd::Instance, publi
     void sendParameters();
 
     void messageEnqueued() override;
+    void performParameterChange(int type, int idx, float value) override;
 
     pd::Patch* loadPatch(String patch);
     pd::Patch* loadPatch(const File& patch);
@@ -124,10 +128,7 @@ class PlugDataAudioProcessor : public AudioProcessor, public pd::Instance, publi
     int lastUIWidth = 1000, lastUIHeight = 650;
 
     std::vector<float*> channelPointers;
-
     std::atomic<float>* volume;
-
-    std::vector<pd::Atom> parameterAtom = std::vector<pd::Atom>(1);
 
     ValueTree settingsTree = ValueTree("PlugDataSettings");
 
@@ -179,6 +180,7 @@ class PlugDataAudioProcessor : public AudioProcessor, public pd::Instance, publi
     size_t midiByteIndex = 0;
 
     std::array<std::atomic<float>*, numParameters> parameterValues = {nullptr};
+    std::array<std::atomic<float>, numParameters> parameterSetValues = {0};
     std::array<float, numParameters> lastParameters = {0};
     std::array<float, numParameters> changeGestureState = {0};
 
