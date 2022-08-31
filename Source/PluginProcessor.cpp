@@ -184,17 +184,29 @@ void PlugDataAudioProcessor::initialiseFilesystem()
         if(!library.exists()) {
             library.createDirectory();
         }
+
         else if(library.getChildFile("Deken").isDirectory() &&
-                !library.getChildFile("Deken").isSymbolicLink()){
+#if JUCE_WINDOWS
+                !library.getChildFile("Deken").isShortcut()
+#else
+                !library.getChildFile("Deken").isSymbolicLink()
+#endif
+){
             library.moveFileTo(library_backup);
             library.createDirectory();
         }
         
         deken.createDirectory();
         
+#if JUCE_WINDOWS
+        appDir.getChildFile("Abstractions").createShortcut(library.getChildFile("Abstractions"), true);
+        appDir.getChildFile("Documentation").createShortcut(library.getChildFile("Documentation"), true);
+        deken.createShortcut(library.getChildFile("Deken"), true);
+#else
         appDir.getChildFile("Abstractions").createSymbolicLink(library.getChildFile("Abstractions"), true);
         appDir.getChildFile("Documentation").createSymbolicLink(library.getChildFile("Documentation"), true);
         deken.createSymbolicLink(library.getChildFile("Deken"), true);
+#endif
     }
     
     // Check if settings file exists, if not, create the default
@@ -792,7 +804,7 @@ void PlugDataAudioProcessor::processInternal()
     sendMessagesFromQueue();
     sendPlayhead();
     sendMidiBuffer();
-    processParameters();
+    sendParameters();
 
     // Process audio
     FloatVectorOperations::copy(audioBufferIn.data() + (2 * 64), audioBufferOut.data() + (2 * 64), (minOut - 2) * 64);
@@ -1123,53 +1135,64 @@ void PlugDataAudioProcessor::receiveMidiByte(const int port, const int byte)
     }
 }
 
-void PlugDataAudioProcessor::processParameters()
+// Only for standalone: check which parameters have changed and forward them to pd
+void PlugDataAudioProcessor::sendParameters()
 {
-    
 #if PLUGDATA_STANDALONE
     for (int idx = 0; idx < numParameters; idx++)
     {
-        if (standaloneParams[idx].load() != lastParameters[idx])
+        float value = standaloneParams[idx].load();
+        if (value != lastParameters[idx])
         {
-            float value = standaloneParams[idx].load();
             auto paramID = "param" + String(idx + 1);
             sendFloat(paramID.toRawUTF8(), value);
+            lastParameters[idx] = value;
         }
     }
-
-#else
-    
 #endif
 }
 
 void PlugDataAudioProcessor::performParameterChange(int type, int idx, float value)
 {
+    
+    // Type == 1 means it sets the change gesture state
     if(type)
     {
         if(changeGestureState[idx] == value) {
             logMessage("parameter change " + String(idx) + (value ? " already started" : " not started"));
         }
         else {
+            #if !PLUGDATA_STANDALONE
             auto* parameter = parameters.getParameter("param" + String(idx + 1));
             value ? parameter->beginChangeGesture() : parameter->endChangeGesture();
+            #endif
             changeGestureState[idx] = value;
         }
     }
-    else {
+    else { // otherwise set parameter value
+#if PLUGDATA_STANDALONE
+        // Set the value
+        standaloneParams[idx].store(value);
+        lastParameters[idx] = value;
+        // Update values in automation panel
+        if(auto* editor = dynamic_cast<PlugDataPluginEditor*>(getActiveEditor())) {
+            editor->sidebar.updateAutomationParameters();
+        }
+#else
         auto paramID = "param" + String(idx + 1);
-        if(lastParameters[idx] == value) return;
+        if(lastParameters[idx] == value) return; // Prevent feedback
+        // Send new value to DAW
         parameters.getParameter(paramID)->setValueNotifyingHost(value);
         lastParameters[idx] = value;
+#endif
     }
 }
 
-
+// Callback when parameter values change
 void PlugDataAudioProcessor::parameterValueChanged (int idx, float value)
 {
     auto paramID = "param" + String(idx);
-    //if(value == lastParameters[idx - 1]) return;
     sendFloat(paramID.toRawUTF8(), value);
-    //lastParameters[idx - 1] = value;
 }
 
 void PlugDataAudioProcessor::parameterGestureChanged (int parameterIndex, bool gestureIsStarting)

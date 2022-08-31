@@ -316,8 +316,12 @@ void Instance::sendMidiByte(int const port, int const byte) const
 
 void Instance::sendBang(char const* receiver) const
 {
+#if !PLUGDATA_STANDALONE
     if (!m_instance)
         return;
+    
+    libpd_set_instance(static_cast<t_pdinstance*>(m_instance));
+#endif
 
     libpd_set_instance(static_cast<t_pdinstance*>(m_instance));
     libpd_bang(receiver);
@@ -325,17 +329,25 @@ void Instance::sendBang(char const* receiver) const
 
 void Instance::sendFloat(char const* receiver, float const value) const
 {
+#if !PLUGDATA_STANDALONE
     if (!m_instance)
         return;
-
+    
     libpd_set_instance(static_cast<t_pdinstance*>(m_instance));
+#endif
+    
+    
     libpd_float(receiver, value);
 }
 
 void Instance::sendSymbol(char const* receiver, char const* symbol) const
 {
+#if !PLUGDATA_STANDALONE
     if (!m_instance)
         return;
+    
+    libpd_set_instance(static_cast<t_pdinstance*>(m_instance));
+#endif
 
     libpd_set_instance(static_cast<t_pdinstance*>(m_instance));
     libpd_symbol(receiver, symbol);
