@@ -53,7 +53,7 @@ struct AutomationComponent : public Component {
 #else
             auto* param = pd->parameters.getParameter("param" + String(p + 1));
             auto range = param->getNormalisableRange().getRange();
-            attachments.add(new SliderParameterAttachment(*param, *slider, nullptr));
+            //attachments.add(new SliderParameterAttachment(*param, *slider, nullptr));
 #endif
         }
     }
