@@ -886,12 +886,6 @@ void PlugDataPluginEditor::getCommandInfo(const CommandID commandID, Application
             result.setActive(!isDragging && pd.locked == var(false));
             break;
         }
-        case CommandIDs::NewButton:
-        {
-            result.setInfo("New Button", "Create new button", "Objects", 0);
-            result.setActive(!isDragging && pd.locked == var(false));
-            break;
-        }
         case CommandIDs::NewMessage:
         {
             result.setInfo("New Message", "Create new message", "Objects", 0);
@@ -989,6 +983,12 @@ void PlugDataPluginEditor::getCommandInfo(const CommandID commandID, Application
         case CommandIDs::NewVUMeterObject:
         {
             result.setInfo("New VU Meter", "Create new VU meter", "Objects", 0);
+            result.setActive(!isDragging && pd.locked == var(false));
+            break;
+        }
+        case CommandIDs::NewButton:
+        {
+            result.setInfo("New Button", "Create new button", "Objects", 0);
             result.setActive(!isDragging && pd.locked == var(false));
             break;
         }
@@ -1174,7 +1174,7 @@ bool PlugDataPluginEditor::perform(const InvocationInfo& info)
 
         default:
         {
-            const StringArray objectNames = {"", "comment", "bng", "msg", "tgl", "nbx", "vsl", "hsl", "vradio", "hradio", "floatatom", "symbolatom", "listbox", "array", "graph", "cnv", "keyboard", "vu"};
+            const StringArray objectNames = {"", "comment", "bng", "msg", "tgl", "nbx", "vsl", "hsl", "vradio", "hradio", "floatatom", "symbolatom", "listbox", "array", "graph", "cnv", "keyboard", "vu", "button"};
 
             jassert(objectNames.size() == CommandIDs::NumItems - CommandIDs::NewObject);
 

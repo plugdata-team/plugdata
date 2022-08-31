@@ -47,7 +47,6 @@ enum CommandIDs
     NewObject,
     NewComment,
     NewBang,
-    NewButton,
     NewMessage,
     NewToggle,
     NewNumbox,
@@ -63,6 +62,7 @@ enum CommandIDs
     NewCanvas,
     NewKeyboard,
     NewVUMeterObject,
+    NewButton,
     NumItems
 };
 
