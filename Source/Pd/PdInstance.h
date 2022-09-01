@@ -20,7 +20,6 @@ extern "C" {
 #include "concurrentqueue.h"
 #include "../Utility/FastStringWidth.h"
 
-
 namespace pd {
 
 class Atom {
@@ -326,7 +325,6 @@ public:
     {
     }
 
-
     virtual void receiveDSPState(bool dsp) {};
 
     virtual void updateConsole() {};
@@ -341,22 +339,22 @@ public:
     void enqueueDirectMessages(void* object, std::vector<pd::Atom> const& list);
     void enqueueDirectMessages(void* object, String const& msg);
     void enqueueDirectMessages(void* object, float const msg);
-    
+
     virtual void performParameterChange(int type, int idx, float value) {};
 
     void logMessage(String const& message);
     void logError(String const& message);
-    
+
     std::deque<std::tuple<String, int, int>>& getConsoleMessages();
     std::deque<std::tuple<String, int, int>>& getConsoleHistory();
-    
+
     virtual void messageEnqueued() {};
 
     void sendMessagesFromQueue();
     void processMessage(Message mess);
     void processMidiEvent(midievent event);
     void processSend(dmessage mess);
-    
+
     String getExtraInfo(File const& toOpen);
     Patch openPatch(File const& toOpen);
 
@@ -390,77 +388,71 @@ public:
 
 private:
     moodycamel::ConcurrentQueue<std::function<void(void)>> m_function_queue = moodycamel::ConcurrentQueue<std::function<void(void)>>(4096);
-    
 
     std::unique_ptr<FileChooser> saveChooser;
     std::unique_ptr<FileChooser> openChooser;
 
     WaitableEvent updateWait;
-    
+
 protected:
     ContinuityChecker continuityChecker;
-    
+
     struct internal;
-    
-    struct ConsoleHandler : public Timer
-    {
+
+    struct ConsoleHandler : public Timer {
         Instance* instance;
-        
-        ConsoleHandler(Instance* parent) : instance(parent), fastStringWidth(Font(14))
+
+        ConsoleHandler(Instance* parent)
+            : instance(parent)
+            , fastStringWidth(Font(14))
         {
-            
         }
-        
+
         void timerCallback() override
         {
             auto item = std::pair<String, bool>();
-            while(pendingMessages.try_dequeue(item)) {
+            while (pendingMessages.try_dequeue(item)) {
                 auto& [message, type] = item;
                 consoleMessages.emplace_back(message, type, fastStringWidth.getStringWidth(message) + 12);
 
                 if (consoleMessages.size() > 800)
                     consoleMessages.pop_front();
             }
-            
+
             // Check if any item got assigned
-            if(std::get<0>(item).isNotEmpty()) {
+            if (std::get<0>(item).isNotEmpty()) {
                 instance->updateConsole();
             }
-            
+
             stopTimer();
         }
-        
+
         void logMessage(String const& message)
         {
-            pendingMessages.enqueue({message, false});
+            pendingMessages.enqueue({ message, false });
             startTimer(10);
         }
 
         void logError(String const& error)
         {
-            pendingMessages.enqueue({error, 1});
+            pendingMessages.enqueue({ error, 1 });
             startTimer(10);
         }
-        
-        void processPrint(const char* message)
+
+        void processPrint(char const* message)
         {
             std::function<void(String)> forwardMessage =
-            [this](String message) {
-                if (message.startsWith("error:"))
-                {
-                    
-                    logError(message.substring(7));
-                }
-                else if (message.startsWith("verbose(4):"))
-                {
-                    logError(message.substring(12));
-                }
-                else
-                {
-                    logMessage(message);
-                }
-            };
-            
+                [this](String message) {
+                    if (message.startsWith("error:")) {
+
+                        logError(message.substring(7));
+                    } else if (message.startsWith("verbose(4):")) {
+                        logError(message.substring(12));
+                    } else {
+                        logMessage(message);
+                    }
+                };
+
             static int length = 0;
             printConcatBuffer[length] = '\0';
 
@@ -471,7 +463,7 @@ protected:
 
                 // Send concatenated line to PlugData!
                 forwardMessage(String::fromUTF8(printConcatBuffer));
-                
+
                 message += d;
                 len -= d;
                 length = 0;
@@ -491,17 +483,16 @@ protected:
             }
         }
 
-        
         std::deque<std::tuple<String, int, int>> consoleMessages;
         std::deque<std::tuple<String, int, int>> consoleHistory;
 
         char printConcatBuffer[2048];
-        
+
         moodycamel::ConcurrentQueue<std::pair<String, bool>> pendingMessages;
-        
+
         FastStringWidth fastStringWidth; // For formatting console messages more quickly
     };
-    
+
     ConsoleHandler consoleHandler;
 };
 } // namespace pd

@@ -216,16 +216,15 @@ void Library::initialiseLibrary()
 
         updateLibrary();
         parseDocumentation(pddocPath);
-        
+
         if (thread->threadShouldExit())
             return;
 
         // Update docs in GUI
         MessageManager::callAsync([this]() {
-            
             watcher.addFolder(appDataDir);
             watcher.addListener(this);
-            
+
             if (appDirChanged)
                 appDirChanged();
         });
@@ -338,31 +337,27 @@ void Library::parseDocumentation(String const& path)
 
     auto sectionsFromHyphens = [](String text) {
         StringArray lines = StringArray::fromLines(text);
-        
+
         int lastIdx = 0;
-        for(int i = 0; i < lines.size(); i++)
-        {
+        for (int i = 0; i < lines.size(); i++) {
             auto& line = lines.getReference(i);
             auto& lastLine = lines.getReference(lastIdx);
-            
-            if(!line.trim().startsWith("-"))
-            {
+
+            if (!line.trim().startsWith("-")) {
                 lastLine += line;
                 line.clear();
-                
-            }
-            else {
+
+            } else {
                 lastLine = lastLine.fromFirstOccurrenceOf("-", false, false);
                 lastIdx = i;
             }
-            
         }
-        
+
         lines.removeEmptyStrings();
-        
+
         return lines;
     };
-    
+
     auto parseFile = [this, getSections, formatText, sectionsFromHyphens](File& f) {
         String contents = f.loadFileAsString();
         auto sections = getSections(contents, { "\ntitle", "\ndescription", "\npdcategory", "\ncategories", "\nflags", "\narguments", "\nlast_update", "\ninlets", "\noutlets", "\ndraft" });
@@ -383,10 +378,10 @@ void Library::parseDocumentation(String const& path)
                 auto sectionMap = getSections(argument, { "type", "description", "default" });
                 args.push_back({ sectionMap["type"].first, sectionMap["description"].first, sectionMap["default"].first });
             }
-            
+
             for (auto& flag : sectionsFromHyphens(sections["flags"].first)) {
-                auto sectionMap = getSections(flag, { "name", "description"});
-                args.push_back({ sectionMap["name"].first, sectionMap["description"].first, ""});
+                auto sectionMap = getSections(flag, { "name", "description" });
+                args.push_back({ sectionMap["name"].first, sectionMap["description"].first, "" });
             }
 
             arguments[name] = args;
@@ -439,7 +434,8 @@ void Library::parseDocumentation(String const& path)
 Suggestions Library::autocomplete(String query) const
 {
     Suggestions result;
-    if(searchTree) searchTree->autocomplete(std::move(query), result);
+    if (searchTree)
+        searchTree->autocomplete(std::move(query), result);
     return result;
 }
 

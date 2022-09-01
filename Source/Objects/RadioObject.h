@@ -100,7 +100,7 @@ struct RadioObject final : public IEMObject {
         }
 
         pd->getCallbackLock()->exit();
-    
+
         box->setObjectBounds(bounds);
     }
 

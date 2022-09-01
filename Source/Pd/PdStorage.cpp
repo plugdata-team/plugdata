@@ -94,7 +94,8 @@ void Storage::loadInfoFromPatch()
 
     // TODO: fix data race
     auto* previousCanvas = canvas_getcurrent();
-    if(previousCanvas) canvas_unsetcurrent(previousCanvas);
+    if (previousCanvas)
+        canvas_unsetcurrent(previousCanvas);
 
     // Make sure the canvas has a window to ensure correct behaviour
     canvas_setcurrent(infoParent);
@@ -109,7 +110,7 @@ void Storage::loadInfoFromPatch()
     String content = String::fromUTF8(text, size).fromFirstOccurrenceOf("plugdatainfo ", false, false);
 
     canvas_unsetcurrent(infoParent);
-    
+
     // Set parent to be current again
     canvas_setcurrent(parentPatch);
     canvas_map(infoParent, 0);
@@ -125,9 +126,10 @@ void Storage::loadInfoFromPatch()
     } catch (...) {
         std::cerr << "error loading state" << std::endl;
     }
-    
+
     canvas_unsetcurrent(parentPatch);
-    if(previousCanvas) canvas_setcurrent(previousCanvas);
+    if (previousCanvas)
+        canvas_setcurrent(previousCanvas);
 }
 
 // Function to store state tree in pd patch

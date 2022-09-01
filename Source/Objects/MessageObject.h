@@ -11,7 +11,8 @@ typedef struct _message {
     t_clock* m_clock;
 } t_message;
 
-struct MessageObject final : public GUIObject, public KeyListener {
+struct MessageObject final : public GUIObject
+    , public KeyListener {
     bool isDown = false;
     bool isLocked = false;
 
@@ -23,7 +24,7 @@ struct MessageObject final : public GUIObject, public KeyListener {
         addAndMakeVisible(input);
 
         input.addMouseListener(this, false);
-        
+
         input.onTextChange = [this]() {
             startEdition();
             setSymbol(input.getText().toStdString());
@@ -51,7 +52,7 @@ struct MessageObject final : public GUIObject, public KeyListener {
                     box->setSize(width, box->getHeight());
                 }
             };
-            
+
             editor->addKeyListener(this);
         };
 
@@ -76,10 +77,10 @@ struct MessageObject final : public GUIObject, public KeyListener {
         if (textObj->te_width == 0) {
             w = Font(15).getStringWidth(getText()) + 19;
         }
-        
+
         pd->getCallbackLock()->exit();
 
-        box->setObjectBounds({x, y, w, h});
+        box->setObjectBounds({ x, y, w, h });
     }
 
     void checkBounds() override
@@ -180,7 +181,7 @@ struct MessageObject final : public GUIObject, public KeyListener {
     {
         cnv->pd->enqueueDirectMessages(ptr, 0);
     }
-    
+
     void mouseUp(MouseEvent const& e) override
     {
         isDown = false;
@@ -218,8 +219,8 @@ struct MessageObject final : public GUIObject, public KeyListener {
                 glist_retext(messobj->m_glist, &messobj->m_text);
             });
     }
-    
-    bool keyPressed(const KeyPress& key, Component* component) override
+
+    bool keyPressed(KeyPress const& key, Component* component) override
     {
         auto* editor = input.getCurrentTextEditor();
         if (key == KeyPress::rightKey && editor && !editor->getHighlightedRegion().isEmpty()) {

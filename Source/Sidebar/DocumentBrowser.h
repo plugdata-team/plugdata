@@ -10,18 +10,15 @@
 
 #include "../Utility/FileSystemWatcher.h"
 
-
-
 #if JUCE_WINDOWS
-#include <filesystem>
+#    include <filesystem>
 
-#if _WIN64
-extern "C"
-{
-    // Need this to create directory junctions on Windows
-    unsigned int WinExec(const char* lpCmdLine, unsigned int uCmdShow);
+#    if _WIN64
+extern "C" {
+// Need this to create directory junctions on Windows
+unsigned int WinExec(char const* lpCmdLine, unsigned int uCmdShow);
 }
-#endif
+#    endif
 #endif
 
 // Base classes for communication between parent and child classes
@@ -371,22 +368,20 @@ public:
     {
         if (file.isDirectory()) {
             file.revealToUser();
-        }
-        else if (file.existsAsFile() && file.hasFileExtension("pd")) {
+        } else if (file.existsAsFile() && file.hasFileExtension("pd")) {
             browser->pd->loadPatch(file);
-        }
-        else if(file.existsAsFile()) {
-            if(auto* editor = dynamic_cast<PlugDataPluginEditor*>(browser->pd->getActiveEditor())) {
+        } else if (file.existsAsFile()) {
+            if (auto* editor = dynamic_cast<PlugDataPluginEditor*>(browser->pd->getActiveEditor())) {
                 auto* cnv = editor->getCurrentCanvas();
                 cnv->attachNextObjectToMouse = true;
-                
+
                 auto lastPosition = cnv->viewport->getViewArea().getConstrainedPoint(cnv->getMouseXYRelative() - Point<int>(Box::margin, Box::margin));
                 auto filePath = file.getFullPathName().replaceCharacter('\\', '/');
                 cnv->boxes.add(new Box(cnv, "msg " + filePath, lastPosition));
             }
         }
     }
-        
+
     void selectionChanged() override
     {
         browser->repaint();
@@ -422,20 +417,20 @@ public:
                 auto alias = browser->directory.getDirectory().getChildFile(file.getFileName());
 
 #if JUCE_WINDOWS
-                if(alias.exists()) alias.deleteRecursively();
-                
+                if (alias.exists())
+                    alias.deleteRecursively();
+
                 // Symlinks on Windows are weird!
-                if(file.isDirectory()) {
+                if (file.isDirectory()) {
                     // Create directory junction command
                     auto aliasCommand = "cmd.exe /k mklink /J " + alias.getFullPathName().replaceCharacters("/", "\\") + " " + file.getFullPathName();
                     // Execute command
-#if _WIN64
+#    if _WIN64
                     WinExec(aliasCommand.toRawUTF8(), 0);
-#else
+#    else
                     system(aliasCommand.fromFirstOccurrenceOf("/k", false, false).toRawUTF8());
-#endif
-                }
-                else {
+#    endif
+                } else {
                     // Create hard link
                     std::filesystem::create_hard_link(file.getFullPathName().toStdString(), alias.getFullPathName().toStdString());
                 }
@@ -443,7 +438,6 @@ public:
 #else
                 file.createSymbolicLink(alias, true);
 #endif
-                
             }
         }
 

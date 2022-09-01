@@ -64,11 +64,10 @@ struct BangObject final : public IEMObject {
         g.setColour(box->findColour(PlugDataColour::canvasOutlineColourId));
         g.drawEllipse(bounds.reduced(width - circleOuter), circleThickness);
 
-        if(bangState) {
+        if (bangState) {
             g.setColour(getForegroundColour());
             g.fillEllipse(bounds.reduced(width - circleOuter + circleThickness));
         }
-        
     }
 
     float getValue() override

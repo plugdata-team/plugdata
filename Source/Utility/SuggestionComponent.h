@@ -123,7 +123,7 @@ public:
         setSize(250, 115);
 
         addAndMakeVisible(resizer);
-        
+
         setInterceptsMouseClicks(true, true);
         setAlwaysOnTop(true);
     }
@@ -137,9 +137,9 @@ public:
     {
         currentBox = box;
         openedEditor = editor;
-        
+
         setTransform(box->cnv->main.getTransform());
-        
+
         editor->setInputFilter(this, false);
         editor->addKeyListener(this);
 
@@ -166,7 +166,7 @@ public:
         setVisible(false);
         toFront(false);
 
-        auto scale =  getTransform().getScaleFactor();
+        auto scale = std::sqrt(std::abs(getTransform().getDeterminant()));
         setTopLeftPosition(box->getScreenX() / scale, box->getScreenBounds().getBottom() / scale);
         repaint();
     }
@@ -262,7 +262,7 @@ private:
         if (!currentBox) {
             return false;
         }
-        
+
         if (key == KeyPress::rightKey && !openedEditor->getHighlightedRegion().isEmpty()) {
             openedEditor->setCaretPosition(openedEditor->getHighlightedRegion().getEnd());
             return true;
@@ -271,7 +271,7 @@ private:
             openedEditor->setCaretPosition(openedEditor->getHighlightedRegion().getStart());
             return true;
         }
-        
+
         if (state != ShowingObjects)
             return false;
 
@@ -324,7 +324,7 @@ private:
 
             setVisible(numOptions);
             currentidx = 0;
-            
+
             resized();
 
             return mutableInput;
@@ -352,7 +352,7 @@ private:
 
         for (int i = numOptions; i < buttons.size(); i++)
             buttons[i]->setText("", "", false);
-        
+
         resized();
 
         // Get length of user-typed text
