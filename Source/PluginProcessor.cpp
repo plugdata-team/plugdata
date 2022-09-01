@@ -1205,9 +1205,11 @@ void PlugDataAudioProcessor::performParameterChange(int type, int idx, float val
 // Callback when parameter values change
 void PlugDataAudioProcessor::parameterValueChanged (int idx, float value)
 {
-    auto paramID = "param" + String(idx);
-    sendFloat(paramID.toRawUTF8(), value);
-    lastParameters[idx] = value;
+    enqueueFunction([this, idx, value]() mutable {
+        auto paramID = "param" + String(idx);
+        sendFloat(paramID.toRawUTF8(), value);
+        lastParameters[idx - 1] = value;
+    });
 }
 
 void PlugDataAudioProcessor::parameterGestureChanged (int parameterIndex, bool gestureIsStarting)

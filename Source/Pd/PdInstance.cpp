@@ -368,11 +368,13 @@ void Instance::sendList(char const* receiver, std::vector<Atom> const& list) con
 
 void Instance::sendMessage(char const* receiver, char const* msg, std::vector<Atom> const& list) const
 {
+#if !PLUGDATA_STANDALONE
     if (!static_cast<t_pdinstance*>(m_instance))
         return;
-
-    auto* argv = static_cast<t_atom*>(m_atoms);
     libpd_set_instance(static_cast<t_pdinstance*>(m_instance));
+#endif
+    auto* argv = static_cast<t_atom*>(m_atoms);
+
     for (size_t i = 0; i < list.size(); ++i) {
         if (list[i].isFloat())
             libpd_set_float(argv + i, list[i].getFloat());
