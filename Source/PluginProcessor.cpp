@@ -15,9 +15,9 @@ extern "C"
 {
     #include "x_libpd_extra_utils.h"
     EXTERN char* pd_version;
-#if JUCE_WINDOWS
+#if JUCE_WINDOWS && _WIN64
     // Need this to create directory junctions on Windows
-    unsigned int WinExec(const char* lpCmdLine, unsigned int uCmdShow);
+    unsigned int WinExec(_Null_terminated_ const char* lpCmdLine, unsigned int uCmdShow);
 #endif
 }
 
@@ -217,9 +217,16 @@ void PlugDataAudioProcessor::initialiseFilesystem()
         
         // Execute junction command
         // TODO: write real C++ code for creating junctions
+#if _WIN64
+        // For some reason, this only links with 64-bit targets
         WinExec(abstractionsCommand.toRawUTF8(), 0);
         WinExec(documentationCommand.toRawUTF8(), 0);
         WinExec(dekenCommand.toRawUTF8(), 0);
+#else   
+        system(abstractionsCommand.toRawUTF8());
+        system(documentationCommand.toRawUTF8());
+        system(dekenCommand.toRawUTF8());
+#endif
 
 #else
         appDir.getChildFile("Abstractions").createSymbolicLink(library.getChildFile("Abstractions"), true);
