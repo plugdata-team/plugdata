@@ -19,13 +19,12 @@ struct t_fake_text_define {
     unsigned char x_keep; /* whether to embed contents in patch on save */
 };
 
-// void binbuf_gettext(const t_binbuf *x, char **bufp, int *lengthp);
-
 // Actual text object, marked final for optimisation
 struct TextDefineObject final : public TextBase {
 
     std::unique_ptr<Component> textEditor;
-
+    std::unique_ptr<Dialog> saveDialog;
+    
     TextDefineObject(void* obj, Box* parent, bool isValid = true)
         : TextBase(obj, parent, isValid)
         , textEditor(nullptr)
@@ -58,7 +57,7 @@ struct TextDefineObject final : public TextBase {
                     return;
                 }
 
-                Dialogs::showSaveDialog(textEditor.get(), "", [this, lastText](int result) mutable {
+                Dialogs::showSaveDialog(&saveDialog, textEditor.get(), "", [this, lastText](int result) mutable {
                     if (result == 2) {
                         setText(lastText);
                         textEditor.reset(nullptr);

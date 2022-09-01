@@ -17,7 +17,7 @@ struct ArrayDialog : public Component {
             MessageManager::callAsync(
                 [this, parent]() {
                     cb(0, "", "");
-                    parent->onClose();
+                    parent->closeDialog();
                 });
         };
 
@@ -37,7 +37,7 @@ struct ArrayDialog : public Component {
                 MessageManager::callAsync(
                     [this, parent]() {
                         cb(1, nameEditor.getText(), sizeEditor.getText());
-                        parent->onClose();
+                        parent->closeDialog();
                     });
             }
         };
@@ -70,6 +70,7 @@ struct ArrayDialog : public Component {
         nameLabel.setBounds(8, 45, 52, 25);
         sizeLabel.setBounds(8, 85, 52, 25);
     }
+    
 
     std::function<void(int, String, String)> cb;
 
