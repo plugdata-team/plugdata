@@ -15,11 +15,13 @@
 #if JUCE_WINDOWS
 #include <filesystem>
 
+#if _WIN64
 extern "C"
 {
     // Need this to create directory junctions on Windows
     unsigned int WinExec(const char* lpCmdLine, unsigned int uCmdShow);
 }
+#endif
 #endif
 
 // Base classes for communication between parent and child classes
@@ -427,7 +429,11 @@ public:
                     // Create directory junction command
                     auto aliasCommand = "cmd.exe /k mklink /J " + alias.getFullPathName().replaceCharacters("/", "\\") + " " + file.getFullPathName();
                     // Execute command
+#if _WIN64
                     WinExec(aliasCommand.toRawUTF8(), 0);
+#else
+                    system(aliasCommand.toRawUTF8());
+#endif
                 }
                 else {
                     // Create hard link
