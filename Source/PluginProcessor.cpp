@@ -188,18 +188,13 @@ void PlugDataAudioProcessor::initialiseFilesystem()
             library.createDirectory();
         }
         
-        /*
-        else if(library.getChildFile("Deken").isDirectory() &&
-#if JUCE_WINDOWS
-                !std::filesystem::is_symlink(library.getChildFile("Deken").getFullPathName().toStdString())
-#else
-               
-                !library.getChildFile("Deken").isSymbolicLink()
-#endif
-){
+#if !JUCE_WINDOWS
+        // This may not work on Windows, Windows users REALLY need to thrash their PlugData folder
+        else if(library.getChildFile("Deken").isDirectory() && !library.getChildFile("Deken").isSymbolicLink()) {
             library.moveFileTo(library_backup);
             library.createDirectory();
-        } */
+        }
+#endif
         
         deken.createDirectory();
         
