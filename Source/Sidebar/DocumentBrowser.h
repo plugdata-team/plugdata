@@ -9,6 +9,7 @@
 // 2. Improve simplicity and efficiency by not using OS file icons (they look bad anyway)
 
 #include "../Utility/FileSystemWatcher.h"
+#include <filesystem>
 
 // Base classes for communication between parent and child classes
 struct DocumentBrowserViewBase : public TreeView
@@ -367,7 +368,8 @@ public:
                 cnv->attachNextObjectToMouse = true;
                 
                 auto lastPosition = cnv->viewport->getViewArea().getConstrainedPoint(cnv->getMouseXYRelative() - Point<int>(Box::margin, Box::margin));
-                cnv->boxes.add(new Box(cnv, "msg " + file.getFullPathName(), lastPosition));
+                auto filePath = file.getFullPathName().replaceCharacter('\\', '/');
+                cnv->boxes.add(new Box(cnv, "msg " + filePath, lastPosition));
             }
         }
     }
@@ -408,7 +410,8 @@ public:
 
 #if JUCE_WINDOWS
                 if(alias.exists()) alias.deleteRecursively();
-                file.createShortcut(file.getFileName(), alias);
+                
+                std::filesystem::create_directory_symlink(file.getFullPathName().toStdString(), alias.getFullPathName().toStdString());
 #else
                 file.createSymbolicLink(alias, true);
 #endif

@@ -10,6 +10,7 @@
 #include "Canvas.h"
 #include "PluginEditor.h"
 #include "LookAndFeel.h"
+#include <filesystem>
 
 extern "C"
 {
@@ -187,8 +188,9 @@ void PlugDataAudioProcessor::initialiseFilesystem()
 
         else if(library.getChildFile("Deken").isDirectory() &&
 #if JUCE_WINDOWS
-                !library.getChildFile("Deken").isShortcut()
+                !std::filesystem::is_symlink(library.getChildFile("Deken").getFullPathName().toStdString())
 #else
+               
                 !library.getChildFile("Deken").isSymbolicLink()
 #endif
 ){
@@ -199,9 +201,13 @@ void PlugDataAudioProcessor::initialiseFilesystem()
         deken.createDirectory();
         
 #if JUCE_WINDOWS
-        appDir.getChildFile("Abstractions").createShortcut("Abstractions", library.getChildFile("Abstractions"));
-        appDir.getChildFile("Documentation").createShortcut("Documentation", library.getChildFile("Documentation"));
-        deken.createShortcut("Deken", library.getChildFile("Deken"));
+        auto abstractionsPath = appDir.getChildFile("Abstractions").getFullPathName().toStdString();
+        auto documentationPath = appDir.getChildFile("Documentation").getFullPathName().toStdString();
+        auto dekenPath = deken.getFullPathName().toStdString();
+        
+        std::filesystem::create_directory_symlink(abstractionsPath, library.getChildFile("Abstractions").getFullPathName().toStdString());
+        std::filesystem::create_directory_symlink(documentationPath, library.getChildFile("Documentation").getFullPathName().toStdString());
+        std::filesystem::create_directory_symlink(dekenPath, library.getChildFile("Deken").getFullPathName().toStdString());
 #else
         appDir.getChildFile("Abstractions").createSymbolicLink(library.getChildFile("Abstractions"), true);
         appDir.getChildFile("Documentation").createSymbolicLink(library.getChildFile("Documentation"), true);
