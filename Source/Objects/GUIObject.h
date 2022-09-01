@@ -54,8 +54,6 @@ struct ObjectBase : public Component
     virtual bool canOpenFromMenu() { return false; }
         
     virtual void openFromMenu() {};
-    
-    virtual void openSubpatch();
 
     // Flag to make object visible or hidden inside a GraphOnParent
     virtual bool hideInGraph()
@@ -100,7 +98,8 @@ struct ObjectBase : public Component
     }
 
     void closeOpenedSubpatchers();
-
+    void openSubpatch();
+        
     virtual String getText();
 };
 
