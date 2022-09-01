@@ -185,7 +185,8 @@ void PlugDataAudioProcessor::initialiseFilesystem()
         if(!library.exists()) {
             library.createDirectory();
         }
-
+        
+        /*
         else if(library.getChildFile("Deken").isDirectory() &&
 #if JUCE_WINDOWS
                 !std::filesystem::is_symlink(library.getChildFile("Deken").getFullPathName().toStdString())
@@ -196,7 +197,7 @@ void PlugDataAudioProcessor::initialiseFilesystem()
 ){
             library.moveFileTo(library_backup);
             library.createDirectory();
-        }
+        } */
         
         deken.createDirectory();
         
@@ -205,9 +206,16 @@ void PlugDataAudioProcessor::initialiseFilesystem()
         auto documentationPath = appDir.getChildFile("Documentation").getFullPathName().toStdString();
         auto dekenPath = deken.getFullPathName().toStdString();
         
-        std::filesystem::create_directory_symlink(abstractionsPath, library.getChildFile("Abstractions").getFullPathName().toStdString());
-        std::filesystem::create_directory_symlink(documentationPath, library.getChildFile("Documentation").getFullPathName().toStdString());
-        std::filesystem::create_directory_symlink(dekenPath, library.getChildFile("Deken").getFullPathName().toStdString());
+        try
+        {
+            std::filesystem::create_directory_symlink(abstractionsPath, library.getChildFile("Abstractions").getFullPathName().toStdString());
+            std::filesystem::create_directory_symlink(documentationPath, library.getChildFile("Documentation").getFullPathName().toStdString());
+            std::filesystem::create_directory_symlink(dekenPath, library.getChildFile("Deken").getFullPathName().toStdString());
+        }
+        catch (...)
+        {
+            std::cout << "Failed to create symlinks!" << std::endl;
+        }
 #else
         appDir.getChildFile("Abstractions").createSymbolicLink(library.getChildFile("Abstractions"), true);
         appDir.getChildFile("Documentation").createSymbolicLink(library.getChildFile("Documentation"), true);
