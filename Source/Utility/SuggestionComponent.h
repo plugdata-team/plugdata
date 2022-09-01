@@ -222,6 +222,8 @@ public:
         } else if (port->getViewPositionY() + port->getMaximumVisibleHeight() < but->getY() + but->getHeight()) {
             port->setViewPosition(0, but->getY() - (but->getHeight() * 4));
         }
+        
+        repaint();
     }
 
     TextEditor* openedEditor = nullptr;
