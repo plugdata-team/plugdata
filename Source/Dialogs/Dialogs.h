@@ -12,11 +12,13 @@
 class PlugDataPluginEditor;
 
 struct Dialog : public Component {
-    Dialog(Component* editor, int childWidth, int childHeight, int yPosition, bool showCloseButton)
+        
+    Dialog(std::unique_ptr<Dialog>* ownerPtr, Component* editor, int childWidth, int childHeight, int yPosition, bool showCloseButton)
         : parentComponent(editor)
         , height(childHeight)
         , width(childWidth)
         , y(yPosition)
+        , owner(ownerPtr)
     {
         parentComponent->addAndMakeVisible(this);
         setBounds(0, 0, parentComponent->getWidth(), parentComponent->getHeight());
@@ -26,7 +28,9 @@ struct Dialog : public Component {
         if (showCloseButton) {
             closeButton.reset(getLookAndFeel().createDocumentWindowButton(4));
             addAndMakeVisible(closeButton.get());
-            closeButton->onClick = [this]() { onClose(); };
+            closeButton->onClick = [this]() {
+                closeDialog();
+            };
             closeButton->setAlwaysOnTop(true);
         }
     }
@@ -36,6 +40,11 @@ struct Dialog : public Component {
         viewedComponent.reset(child);
         addAndMakeVisible(child);
         resized();
+    }
+    
+    Component* getViewedComponent()
+    {
+        return viewedComponent.get();
     }
 
     void paint(Graphics& g)
@@ -70,26 +79,32 @@ struct Dialog : public Component {
 
     void mouseDown(MouseEvent const& e)
     {
-        onClose();
+        closeDialog();
+    }
+    
+    void closeDialog() {
+        MessageManager::callAsync([_this = SafePointer(this)](){
+            if(!_this) return;
+            _this->owner->reset(nullptr);
+        });
     }
 
     int height, width, y;
 
     Component* parentComponent;
 
-    std::function<void()> onClose = [this]() { delete this; };
-
     std::unique_ptr<Component> viewedComponent = nullptr;
     std::unique_ptr<Button> closeButton = nullptr;
+    std::unique_ptr<Dialog>* owner;
 };
 
 struct Dialogs {
     static Component* showTextEditorDialog(String text, String filename, std::function<void(String, bool)> callback);
 
-    static Component* showSaveDialog(Component* centre, String filename, std::function<void(int)> callback);
-    static Component* showArrayDialog(Component* centre, std::function<void(int, String, String)> callback);
+    static void showSaveDialog(std::unique_ptr<Dialog>* target, Component* centre, String filename, std::function<void(int)> callback);
+    static void showArrayDialog(std::unique_ptr<Dialog>* target, Component* centre, std::function<void(int, String, String)> callback);
 
-    static Component* createSettingsDialog(AudioProcessor& processor, AudioDeviceManager* manager, ValueTree const& settingsTree);
+    static void createSettingsDialog(std::unique_ptr<Dialog>* target, AudioProcessor& processor, AudioDeviceManager* manager, ValueTree const& settingsTree);
 
     static void showObjectMenu(PlugDataPluginEditor* parent, Component* target);
 };

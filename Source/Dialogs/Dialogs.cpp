@@ -24,31 +24,38 @@ Component* Dialogs::showTextEditorDialog(String text, String filename, std::func
     return editor;
 }
 
-Component* Dialogs::showSaveDialog(Component* centre, String filename, std::function<void(int)> callback)
+void Dialogs::showSaveDialog(std::unique_ptr<Dialog>* target, Component* centre, String filename, std::function<void(int)> callback)
 {
-    auto* dialog = new Dialog(centre, 400, 130, 160, false);
+    if(*target) return;
+    
+    auto* dialog = new Dialog(target, centre, 400, 130, 160, false);
     auto* saveDialog = new SaveDialog(centre, dialog, filename);
 
     dialog->setViewedComponent(saveDialog);
     saveDialog->cb = std::move(callback);
-    return saveDialog;
+    target->reset(dialog);
 }
-Component* Dialogs::showArrayDialog(Component* centre, std::function<void(int, String, String)> callback)
+void Dialogs::showArrayDialog(std::unique_ptr<Dialog>* target, Component* centre, std::function<void(int, String, String)> callback)
 {
-    auto* dialog = new Dialog(centre, 300, 180, 200, false);
+    if(*target) return;
+    
+    auto* dialog = new Dialog(target, centre, 300, 180, 200, false);
     auto* arrayDialog = new ArrayDialog(centre, dialog);
     dialog->setViewedComponent(arrayDialog);
     arrayDialog->cb = std::move(callback);
-    return arrayDialog;
+    target->reset(dialog);
+
 }
 
-Component* Dialogs::createSettingsDialog(AudioProcessor& processor, AudioDeviceManager* manager, ValueTree const& settingsTree)
+void Dialogs::createSettingsDialog(std::unique_ptr<Dialog>* target, AudioProcessor& processor, AudioDeviceManager* manager, ValueTree const& settingsTree)
 {
+    if(*target) return;
+    
     auto* editor = processor.getActiveEditor();
-    auto* dialog = new Dialog(editor->getParentComponent(), 675, 500, editor->getBounds().getCentreY() + 250, true);
+    auto* dialog = new Dialog(target, editor, 675, 500, editor->getBounds().getCentreY() + 250, true);
     auto* settingsDialog = new SettingsDialog(processor, dialog, manager, settingsTree);
     dialog->setViewedComponent(settingsDialog);
-    return dialog;
+    target->reset(dialog);
 }
 
 void Dialogs::showObjectMenu(PlugDataPluginEditor* parent, Component* target)

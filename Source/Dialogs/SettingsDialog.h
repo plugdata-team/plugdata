@@ -260,12 +260,6 @@ struct SettingsDialog : public Component {
 
         toolbarButtons[currentPanel]->setToggleState(true, sendNotification);
 
-        dialog->onClose = [this, dialog]() {
-            if (auto* editor = dynamic_cast<PlugDataPluginEditor*>(audioProcessor.getActiveEditor())) {
-                editor->settingsDialog.reset(nullptr);
-            }
-        };
-
         constrainer.setMinimumOnscreenAmounts(600, 400, 400, 400);
     }
 
