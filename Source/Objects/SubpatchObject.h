@@ -28,7 +28,7 @@ struct SubpatchObject final : public TextBase
     {
         //  If locked and it's a left click
         if ((box->locked == var(true)) && !ModifierKeys::getCurrentModifiers().isRightButtonDown()) {
-            box->openSubpatch();
+            openSubpatch();
 
             return;
         } else {
@@ -60,6 +60,14 @@ struct SubpatchObject final : public TextBase
             subpatch.getPointer()->gl_hidetext = static_cast<bool>(hideNameAndArgs.getValue());
             repaint();
         }
+    }
+        
+    bool canOpenFromMenu() override {
+        return true;
+    }
+
+    void openFromMenu() override {
+        openSubpatch();
     }
 
 protected:

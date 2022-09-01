@@ -179,6 +179,15 @@ public:
             repaint();
         }
     }
+    
+    bool canOpenFromMenu() override {
+        return true;
+    }
+
+    void openFromMenu() override {
+        openSubpatch();
+    }
+
 
 private:
     Value isGraphChild = Value(var(false));

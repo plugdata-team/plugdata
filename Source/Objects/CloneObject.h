@@ -80,6 +80,14 @@ struct CloneObject final : public TextBase {
         return String::fromUTF8(static_cast<t_fake_clone*>(ptr)->x_s->s_name);
     }
 
+    bool canOpenFromMenu() override {
+        return true;
+    }
+
+    void openFromMenu() override {
+        openSubpatch();
+    }
+    
 protected:
     pd::Patch subpatch;
 };
