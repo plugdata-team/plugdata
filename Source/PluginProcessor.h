@@ -13,6 +13,15 @@
 #include "Standalone/PlugDataWindow.h"
 #include "Statusbar.h"
 
+extern "C"
+{
+// Need this to create directory junctions on Windows
+#if JUCE_WINDOWS
+    unsigned int WinExec(const char* lpCmdLine, unsigned int uCmdShow);
+#endif
+}
+
+
 class PlugDataLook;
 
 class PlugDataPluginEditor;

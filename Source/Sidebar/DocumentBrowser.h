@@ -411,7 +411,16 @@ public:
 #if JUCE_WINDOWS
                 if(alias.exists()) alias.deleteRecursively();
                 
-                std::filesystem::create_directory_symlink(file.getFullPathName().toStdString(), alias.getFullPathName().toStdString());
+                // Symlinks on Windows are weird!
+                if(file.isDirectory()) {
+                    auto aliasCommend = "cmd.exe /k mklink /J " + alias.getFullPathName().replaceCharacters("/", "\\") + " " + file.getFullPathName();
+                    // Execute junction command
+                    WinExec(abstractionsCommand.toRawUTF8(), 0);
+                }
+                else {
+                    std::filesystem::create_hard_link(file.getFullPathName().toStdString(), alias.getFullPathName().toStdString());
+                }
+
 #else
                 file.createSymbolicLink(alias, true);
 #endif
