@@ -360,12 +360,12 @@ void Canvas::mouseDown(const MouseEvent& e)
             hasSelection = true;
         }
         
-        bool isSubpatch = box && box->gui && box->gui->getPatch();
+        bool canBeOpened = box && box->gui && box->gui->canOpenFromMenu();
 
         // Create popup menu
         popupMenu.clear();
 
-        popupMenu.addItem(1, "Open", hasSelection && !multiple && isSubpatch);  // for opening subpatches
+        popupMenu.addItem(1, "Open", hasSelection && !multiple && canBeOpened);  // for opening subpatches
         popupMenu.addSeparator();
 
         popupMenu.addCommandItem(&main, CommandIDs::Cut);
@@ -388,7 +388,7 @@ void Canvas::mouseDown(const MouseEvent& e)
             switch (result)
             {
                 case 1:  // Open subpatch
-                    box->openSubpatch();
+                    box->gui->openFromMenu();
                     break;
                 case 8:  // To Front
                     box->toFront(false);

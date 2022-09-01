@@ -118,4 +118,12 @@ struct TextDefineObject final : public TextBase {
 
         return String::fromUTF8(bufp, lenp);
     }
+    
+    bool canOpenFromMenu() override {
+        return true;
+    }
+
+    void openFromMenu() override {
+        openTextEditor();
+    }
 };
