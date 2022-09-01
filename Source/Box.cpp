@@ -761,42 +761,4 @@ void Box::openHelpPatch() const
     cnv->pd->logMessage("Couldn't find help file");
 }
 
-void Box::openSubpatch() const
-{
-    if (!gui) return;
-
-    auto* subpatch = gui->getPatch();
-
-    if (!subpatch) return;
-
-    auto* glist = subpatch->getPointer();
-
-    if (!glist) return;
-
-    auto abstraction = canvas_isabstraction(glist);
-    File path;
-
-    if (abstraction)
-    {
-        path = File(String::fromUTF8(canvas_getdir(subpatch->getPointer())->s_name) + "/" + String::fromUTF8(glist->gl_name->s_name)).withFileExtension("pd");
-    }
-
-    for (int n = 0; n < cnv->main.tabbar.getNumTabs(); n++)
-    {
-        auto* tabCanvas = cnv->main.getCanvas(n);
-        if (tabCanvas->patch == *subpatch)
-        {
-            cnv->main.tabbar.setCurrentTabIndex(n);
-            return;
-        }
-    }
-
-    auto* newPatch = cnv->main.pd.patches.add(new pd::Patch(*subpatch));
-    auto* newCanvas = cnv->main.canvases.add(new Canvas(cnv->main, *newPatch, nullptr));
-
-    newPatch->setCurrentFile(path);
-
-    cnv->main.addTab(newCanvas);
-    newCanvas->checkBounds();
-}
 
