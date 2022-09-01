@@ -15,11 +15,6 @@ extern "C"
 {
     #include "x_libpd_extra_utils.h"
     EXTERN char* pd_version;
-
-// Need this to create directory junctions on Windows
-#if JUCE_WINDOWS
-    unsigned int WinExec(const char* lpCmdLine, unsigned int uCmdShow);
-#endif
 }
 
 void* ShellExecute(void* hwnd, const char* lpOperation, const char* lpFile, const char* lpParameters, const char* lpDirectory, int nShowCmd);
@@ -1195,11 +1190,13 @@ void PlugDataAudioProcessor::performParameterChange(int type, int idx, float val
 #if PLUGDATA_STANDALONE
         // Set the value
         standaloneParams[idx].store(value);
-        lastParameters[idx] = value;
+        
         // Update values in automation panel
+        if(lastParameters[idx] == value) return;
         if(auto* editor = dynamic_cast<PlugDataPluginEditor*>(getActiveEditor())) {
             editor->sidebar.updateAutomationParameters();
         }
+        lastParameters[idx] = value;
 #else
         auto paramID = "param" + String(idx + 1);
         if(lastParameters[idx] == value) return; // Prevent feedback
