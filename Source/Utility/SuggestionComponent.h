@@ -123,7 +123,7 @@ public:
         setSize(250, 115);
 
         addAndMakeVisible(resizer);
-
+        
         setInterceptsMouseClicks(true, true);
         setAlwaysOnTop(true);
     }
@@ -137,6 +137,8 @@ public:
     {
         currentBox = box;
         openedEditor = editor;
+        
+        setTransform(box->cnv->main.getTransform());
 
         editor->setInputFilter(this, false);
         editor->addKeyListener(this);
