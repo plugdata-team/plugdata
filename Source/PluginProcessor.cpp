@@ -10,14 +10,19 @@
 #include "Canvas.h"
 #include "PluginEditor.h"
 #include "LookAndFeel.h"
-#include <filesystem>
 
 extern "C"
 {
     #include "x_libpd_extra_utils.h"
     EXTERN char* pd_version;
+
+// Need this to create directory junctions on Windows
+#if JUCE_WINDOWS
+    unsigned int WinExec(const char* lpCmdLine, unsigned int uCmdShow);
+#endif
 }
 
+void* ShellExecute(void* hwnd, const char* lpOperation, const char* lpFile, const char* lpParameters, const char* lpDirectory, int nShowCmd);
 
 AudioProcessor::BusesProperties PlugDataAudioProcessor::buildBusesProperties()
 {
@@ -202,20 +207,23 @@ void PlugDataAudioProcessor::initialiseFilesystem()
         deken.createDirectory();
         
 #if JUCE_WINDOWS
-        auto abstractionsPath = appDir.getChildFile("Abstractions").getFullPathName().toStdString();
-        auto documentationPath = appDir.getChildFile("Documentation").getFullPathName().toStdString();
-        auto dekenPath = deken.getFullPathName().toStdString();
+        // Get paths that need symlinks
+        auto abstractionsPath = appDir.getChildFile("Abstractions").getFullPathName().replaceCharacters("/", "\\");
+        auto documentationPath = appDir.getChildFile("Documentation").getFullPathName().replaceCharacters("/", "\\");
+        auto dekenPath = deken.getFullPathName();
         
-        try
-        {
-            std::filesystem::create_directory_symlink(abstractionsPath, library.getChildFile("Abstractions").getFullPathName().replace("/", "\\").toStdString());
-            std::filesystem::create_directory_symlink(documentationPath, library.getChildFile("Documentation").getFullPathName().replace("/", "\\").toStdString());
-            std::filesystem::create_directory_symlink(dekenPath, library.getChildFile("Deken").getFullPathName().replace("/", "\\").toStdString());
-        }
-        catch (...)
-        {
-            std::cout << "Failed to create symlinks!" << std::endl;
-        }
+        // The mklink /J command creates a directory junction. This is the closest thing I can get to a directory symlink on Windows
+        // Regular symlinks can only created by administrators
+        auto abstractionsCommand = "cmd.exe /k mklink /J " + library.getChildFile("Abstractions").getFullPathName().replaceCharacters("/", "\\") + " " + abstractionsPath;
+        auto documentationCommand = "cmd.exe /k mklink /J " + library.getChildFile("Documentation").getFullPathName().replaceCharacters("/", "\\") + " " + documentationPath;
+        auto dekenCommand = "cmd.exe /k mklink /J " + library.getChildFile("Deken").getFullPathName().replaceCharacters("/", "\\") + " " + dekenPath;
+        
+        // Execute junction command
+        // TODO: write real C++ code for creating junctions
+        WinExec(abstractionsCommand.toRawUTF8(), 0);
+        WinExec(documentationCommand.toRawUTF8(), 0);
+        WinExec(dekenCommand.toRawUTF8(), 0);
+
 #else
         appDir.getChildFile("Abstractions").createSymbolicLink(library.getChildFile("Abstractions"), true);
         appDir.getChildFile("Documentation").createSymbolicLink(library.getChildFile("Documentation"), true);
