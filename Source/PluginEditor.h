@@ -147,7 +147,8 @@ class PlugDataPluginEditor : public AudioProcessorEditor, public Value::Listener
 
     std::atomic<bool> canUndo = false, canRedo = false;
 
-    std::unique_ptr<Component> settingsDialog = nullptr;
+    std::unique_ptr<Dialog> settingsDialog = nullptr;
+    std::unique_ptr<Dialog> openedDialog = nullptr;
     
    private:
     std::unique_ptr<FileChooser> saveChooser;

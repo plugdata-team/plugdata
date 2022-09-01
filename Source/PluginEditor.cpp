@@ -139,10 +139,9 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p) : AudioPro
 #ifdef PLUGDATA_STANDALONE
             // Initialise settings dialog for DAW and standalone
             auto* pluginHolder = StandalonePluginHolder::getInstance();
-
-            settingsDialog.reset(Dialogs::createSettingsDialog(pd, &pluginHolder->deviceManager, pd.settingsTree));
+            Dialogs::createSettingsDialog(&settingsDialog, pd, &pluginHolder->deviceManager, pd.settingsTree);
 #else
-            settingsDialog.reset(Dialogs::createSettingsDialog(pd, nullptr, pd.settingsTree));
+            Dialogs::createSettingsDialog(&settingsDialog, pd, nullptr, pd.settingsTree));
 #endif
         }
 
@@ -237,9 +236,25 @@ void PlugDataPluginEditor::paint(Graphics& g)
 void PlugDataPluginEditor::paintOverChildren(Graphics& g)
 {
     int roundedOffset = PLUGDATA_ROUNDED;
-    g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
+    
+    g.saveState();
+    
+    if(openedDialog) {
+        g.excludeClipRegion(openedDialog->getViewedComponent()->getBounds());
+    }
+    
+    if(openedDialog || settingsDialog) {
+        // Hack: if there's a dialog, make the outline colour darker to make it fit in
+        g.setColour(findColour(PlugDataColour::toolbarOutlineColourId).interpolatedWith(Colours::black, 0.5f));
+    }
+    else {
+        g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
+    }
+    
     g.drawLine(0.0f, toolbarHeight + roundedOffset, static_cast<float>(getWidth()), toolbarHeight + roundedOffset);
     g.drawLine(0.0f, getHeight() - statusbar.getHeight(), static_cast<float>(getWidth()), getHeight() - statusbar.getHeight());
+    
+    g.restoreState();
 }
 
 void PlugDataPluginEditor::resized()
@@ -557,7 +572,7 @@ void PlugDataPluginEditor::addTab(Canvas* cnv, bool deleteWhenClosed)
                 auto cnv = SafePointer(getCanvas(idx));
                 if (cnv && cnv->patch.isDirty())
                 {
-                    Dialogs::showSaveDialog(getParentComponent(), cnv->patch.getTitle(),
+                    Dialogs::showSaveDialog(&openedDialog, this, cnv->patch.getTitle(),
                                             [this, deleteFunc, cnv](int result) mutable
                                             {
                                                 if(!cnv) return;
@@ -1035,7 +1050,7 @@ bool PlugDataPluginEditor::perform(const InvocationInfo& info)
                 
                 if (cnv->patch.isDirty())
                 {
-                    Dialogs::showSaveDialog(getParentComponent(), cnv->patch.getTitle(),
+                    Dialogs::showSaveDialog(&openedDialog, this, cnv->patch.getTitle(),
                                             [this](int result) mutable
                                             {
                         if (result == 2)
@@ -1159,7 +1174,8 @@ bool PlugDataPluginEditor::perform(const InvocationInfo& info)
         }
         case CommandIDs::NewArray:
         {
-            Dialogs::showArrayDialog(getParentComponent(),
+            
+            Dialogs::showArrayDialog(&openedDialog, this,
                                      [this](int result, const String& name, const String& size)
                                      {
                                          if (result)
