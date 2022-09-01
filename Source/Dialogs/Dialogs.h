@@ -83,10 +83,7 @@ struct Dialog : public Component {
     }
     
     void closeDialog() {
-        MessageManager::callAsync([_this = SafePointer(this)](){
-            if(!_this) return;
-            _this->owner->reset(nullptr);
-        });
+        owner->reset(nullptr);
     }
 
     int height, width, y;
