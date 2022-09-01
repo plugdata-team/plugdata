@@ -15,9 +15,11 @@ extern "C"
 {
     #include "x_libpd_extra_utils.h"
     EXTERN char* pd_version;
+#if JUCE_WINDOWS
+    // Need this to create directory junctions on Windows
+    unsigned int WinExec(const char* lpCmdLine, unsigned int uCmdShow);
+#endif
 }
-
-void* ShellExecute(void* hwnd, const char* lpOperation, const char* lpFile, const char* lpParameters, const char* lpDirectory, int nShowCmd);
 
 AudioProcessor::BusesProperties PlugDataAudioProcessor::buildBusesProperties()
 {
