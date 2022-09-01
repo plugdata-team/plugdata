@@ -55,7 +55,6 @@ struct AutomationComponent : public Component {
             auto range = param->getNormalisableRange().getRange();
             attachments.add(new SliderParameterAttachment(*param, *slider, nullptr));
 #endif
-            setTransform(pd->getActiveEditor()->getTransform());
         }
     }
 
