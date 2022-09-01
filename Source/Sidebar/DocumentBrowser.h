@@ -432,7 +432,7 @@ public:
 #if _WIN64
                     WinExec(aliasCommand.toRawUTF8(), 0);
 #else
-                    system(aliasCommand.toRawUTF8());
+                    system(aliasCommand.fromFirstOccuranceOf("/k", false, false).toRawUTF8());
 #endif
                 }
                 else {
