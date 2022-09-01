@@ -61,7 +61,8 @@ struct MIDIKeyboard : public MidiKeyboardComponent {
     }
 };
 // ELSE keyboard
-struct KeyboardObject final : public GUIObject, public Timer
+struct KeyboardObject final : public GUIObject
+    , public Timer
     , public MidiKeyboardStateListener {
     typedef struct _edit_proxy {
         t_object p_obj;
@@ -126,7 +127,7 @@ struct KeyboardObject final : public GUIObject, public Timer
             lowC = 3;
             octaves = 4;
         }
-        
+
         startTimer(150);
     }
 
@@ -141,7 +142,7 @@ struct KeyboardObject final : public GUIObject, public Timer
         auto bounds = Rectangle<int>(x, y, keyboard->x_width, keyboard->x_height);
 
         pd->getCallbackLock()->exit();
-    
+
         box->setObjectBounds(bounds);
     }
 
@@ -179,8 +180,9 @@ struct KeyboardObject final : public GUIObject, public Timer
 
     void handleNoteOn(MidiKeyboardState* source, int midiChannel, int note, float velocity) override
     {
-        if(midiChannel != 1) return;
-        
+        if (midiChannel != 1)
+            return;
+
         auto* x = (t_keyboard*)ptr;
 
         cnv->pd->enqueueFunction(
@@ -198,8 +200,9 @@ struct KeyboardObject final : public GUIObject, public Timer
 
     void handleNoteOff(MidiKeyboardState* source, int midiChannel, int note, float velocity) override
     {
-        if(midiChannel != 1) return;
-        
+        if (midiChannel != 1)
+            return;
+
         auto* x = (t_keyboard*)ptr;
 
         cnv->pd->enqueueFunction(
@@ -243,32 +246,29 @@ struct KeyboardObject final : public GUIObject, public Timer
             checkBounds();
         }
     }
-        
-    
+
     void updateValue() override
     {
         auto* keyboardObject = static_cast<t_keyboard*>(ptr);
-        
-        for(int i = keyboard.getRangeStart(); i < keyboard.getRangeEnd(); i++)
-        {
-            if(keyboardObject->x_tgl_notes[i] && !(state.isNoteOn(2, i) && state.isNoteOn(1, i))) {
+
+        for (int i = keyboard.getRangeStart(); i < keyboard.getRangeEnd(); i++) {
+            if (keyboardObject->x_tgl_notes[i] && !(state.isNoteOn(2, i) && state.isNoteOn(1, i))) {
                 state.noteOn(2, i, 1.0f);
             }
-            if(!keyboardObject->x_tgl_notes[i] && !(state.isNoteOn(2, i) && state.isNoteOn(1, i))) {
+            if (!keyboardObject->x_tgl_notes[i] && !(state.isNoteOn(2, i) && state.isNoteOn(1, i))) {
                 state.noteOff(2, i, 1.0f);
             }
         }
     }
-        
+
     void timerCallback() override
     {
-        pd->enqueueFunction([_this = SafePointer(this)]{
-            if(!_this) return;
+        pd->enqueueFunction([_this = SafePointer(this)] {
+            if (!_this)
+                return;
             _this->updateValue();
         });
     }
-
-    
 
     void paintOverChildren(Graphics& g) override
     {

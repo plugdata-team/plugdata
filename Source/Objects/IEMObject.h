@@ -154,7 +154,7 @@ struct IEMObject : public GUIObject {
         auto* iemgui = static_cast<t_iemgui*>(ptr);
         auto bounds = Rectangle<int>(iemgui->x_obj.te_xpix, iemgui->x_obj.te_ypix, iemgui->x_w, iemgui->x_h);
         pd->getCallbackLock()->exit();
-        
+
         box->setObjectBounds(bounds);
     }
 

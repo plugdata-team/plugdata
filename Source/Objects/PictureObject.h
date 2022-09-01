@@ -96,7 +96,7 @@ struct PictureObject final : public GUIObject {
         auto bounds = Rectangle<int>(x, y, w, h);
 
         pd->getCallbackLock()->exit();
-    
+
         box->setObjectBounds(bounds);
     }
 

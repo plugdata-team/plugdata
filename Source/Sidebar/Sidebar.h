@@ -44,7 +44,7 @@ static int getNumLines(int width, int stringWidth)
     // On startup, width might be zero, this is a large optimisation in that case
     if (width == 0)
         return 0;
-    
+
     return (stringWidth / (width - 12)) + 1;
 }
 // Used by text objects for estimating best text height for a set width

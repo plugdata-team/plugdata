@@ -4,7 +4,8 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
-struct CommentObject final : public TextBase, public KeyListener {
+struct CommentObject final : public TextBase
+    , public KeyListener {
     CommentObject(void* obj, Box* box)
         : TextBase(obj, box)
     {
@@ -100,7 +101,6 @@ struct CommentObject final : public TextBase, public KeyListener {
             editor->setIndents(0, 0);
             editor->setJustification(justification);
 
-            
             editor->onFocusLost = [this]() {
                 // Necessary so the editor doesn't close when clicking on a suggestion
                 if (!reinterpret_cast<Component*>(cnv->suggestor)->hasKeyboardFocus(true)) {
@@ -131,8 +131,8 @@ struct CommentObject final : public TextBase, public KeyListener {
     {
         return false;
     }
-    
-    bool keyPressed(const KeyPress& key, Component* component) override
+
+    bool keyPressed(KeyPress const& key, Component* component) override
     {
         if (key == KeyPress::rightKey && editor && !editor->getHighlightedRegion().isEmpty()) {
             editor->setCaretPosition(editor->getHighlightedRegion().getEnd());

@@ -99,14 +99,15 @@ struct pd::Instance::internal {
 
     static void instance_multi_print(pd::Instance* ptr, char const* s)
     {
-            ptr->consoleHandler.processPrint(s);
+        ptr->consoleHandler.processPrint(s);
     }
 };
 }
 
 namespace pd {
 
-Instance::Instance(String const& symbol) : consoleHandler(this)
+Instance::Instance(String const& symbol)
+    : consoleHandler(this)
 {
     libpd_multi_init();
 
@@ -123,10 +124,10 @@ Instance::Instance(String const& symbol) : consoleHandler(this)
 
     m_parameter_receiver = libpd_multi_receiver_new(this, "param", reinterpret_cast<t_libpd_multi_banghook>(internal::instance_multi_bang), reinterpret_cast<t_libpd_multi_floathook>(internal::instance_multi_float), reinterpret_cast<t_libpd_multi_symbolhook>(internal::instance_multi_symbol),
         reinterpret_cast<t_libpd_multi_listhook>(internal::instance_multi_list), reinterpret_cast<t_libpd_multi_messagehook>(internal::instance_multi_message));
-    
+
     m_parameter_change_receiver = libpd_multi_receiver_new(this, "param_change", reinterpret_cast<t_libpd_multi_banghook>(internal::instance_multi_bang), reinterpret_cast<t_libpd_multi_floathook>(internal::instance_multi_float), reinterpret_cast<t_libpd_multi_symbolhook>(internal::instance_multi_symbol),
         reinterpret_cast<t_libpd_multi_listhook>(internal::instance_multi_list), reinterpret_cast<t_libpd_multi_messagehook>(internal::instance_multi_message));
-    
+
     m_atoms = malloc(sizeof(t_atom) * 512);
 
     // Register callback when pd's gui changes
@@ -210,7 +211,7 @@ Instance::Instance(String const& symbol) : consoleHandler(this)
     }
 
      */
-    
+
     libpd_set_verbose(0);
     setThis();
 }
@@ -319,7 +320,7 @@ void Instance::sendBang(char const* receiver) const
 #if !PLUGDATA_STANDALONE
     if (!m_instance)
         return;
-    
+
     libpd_set_instance(static_cast<t_pdinstance*>(m_instance));
 #endif
 
@@ -332,11 +333,10 @@ void Instance::sendFloat(char const* receiver, float const value) const
 #if !PLUGDATA_STANDALONE
     if (!m_instance)
         return;
-    
+
     libpd_set_instance(static_cast<t_pdinstance*>(m_instance));
 #endif
-    
-    
+
     libpd_float(receiver, value);
 }
 
@@ -345,7 +345,7 @@ void Instance::sendSymbol(char const* receiver, char const* symbol) const
 #if !PLUGDATA_STANDALONE
     if (!m_instance)
         return;
-    
+
     libpd_set_instance(static_cast<t_pdinstance*>(m_instance));
 #endif
 
@@ -390,28 +390,21 @@ void Instance::processMessage(Message mess)
         int index = mess.list[0].getFloat();
         float value = std::clamp(mess.list[1].getFloat(), 0.0f, 1.0f);
         performParameterChange(0, index - 1, value);
-    }
-    else if (mess.destination == "param_change") {
+    } else if (mess.destination == "param_change") {
         int index = mess.list[0].getFloat();
         int state = mess.list[1].getFloat() != 0;
         performParameterChange(1, index - 1, state);
-    }
-    else if (mess.selector == "bang") {
+    } else if (mess.selector == "bang") {
         receiveBang(mess.destination);
-    }
-    else if (mess.selector == "float") {
+    } else if (mess.selector == "float") {
         receiveFloat(mess.destination, mess.list[0].getFloat());
-    }
-    else if (mess.selector == "symbol") {
+    } else if (mess.selector == "symbol") {
         receiveSymbol(mess.destination, mess.list[0].getSymbol());
-    }
-    else if (mess.selector == "list") {
+    } else if (mess.selector == "list") {
         receiveList(mess.destination, mess.list);
-    }
-    else if (mess.selector == "dsp") {
+    } else if (mess.selector == "dsp") {
         receiveDSPState(mess.list[0].getFloat());
-    }
-    else {
+    } else {
         receiveMessage(mess.destination, mess.selector, mess.list);
     }
 }
@@ -433,7 +426,6 @@ void Instance::processMidiEvent(midievent event)
     else if (event.type == midievent::MIDIBYTE)
         receiveMidiByte(event.midi1, event.midi2);
 }
-
 
 void Instance::processSend(dmessage mess)
 {
@@ -466,7 +458,6 @@ void Instance::processSend(dmessage mess)
         sendMessage(mess.destination.toRawUTF8(), mess.selector.toRawUTF8(), mess.list);
     }
 }
-
 
 void Instance::enqueueFunction(std::function<void(void)> const& fn)
 {
@@ -533,17 +524,17 @@ void Instance::sendMessagesFromQueue()
 String Instance::getExtraInfo(File const& toOpen)
 {
     String content = toOpen.loadFileAsString();
-    if(content.contains("_plugdatainfo_")) {
+    if (content.contains("_plugdatainfo_")) {
         return content.fromFirstOccurrenceOf("_plugdatainfo_", false, false).fromFirstOccurrenceOf("[INFOSTART]", false, false).upToFirstOccurrenceOf("[INFOEND]", false, false);
     }
-    
+
     return String();
 }
 
 Patch Instance::openPatch(File const& toOpen)
 {
     t_canvas* cnv = nullptr;
-    
+
     bool done = false;
     enqueueFunction(
         [this, toOpen, &cnv, &done]() mutable {
@@ -564,7 +555,7 @@ Patch Instance::openPatch(File const& toOpen)
     }
 
     auto patch = Patch(cnv, this, toOpen);
-    //Storage::setContent(cnv, getExtraInfo(toOpen));
+    // Storage::setContent(cnv, getExtraInfo(toOpen));
 
     return patch;
 }
@@ -584,7 +575,6 @@ void Instance::logError(String const& error)
     consoleHandler.logError(error);
 }
 
-
 std::deque<std::tuple<String, int, int>>& Instance::getConsoleMessages()
 {
     return consoleHandler.consoleMessages;
@@ -594,8 +584,6 @@ std::deque<std::tuple<String, int, int>>& Instance::getConsoleHistory()
 {
     return consoleHandler.consoleHistory;
 }
-
-
 
 void Instance::createPanel(int type, char const* snd, char const* location)
 {
@@ -648,7 +636,5 @@ void Instance::createPanel(int type, char const* snd, char const* location)
             });
     }
 }
-
-
 
 } // namespace pd

@@ -44,7 +44,7 @@ struct SaveDialog : public Component {
         save.setBounds(300, 80, 80, 25);
     }
 
-    static inline std::function<void(int)> cb = [](int){};
+    static inline std::function<void(int)> cb = [](int) {};
 
 private:
     Label savelabel;

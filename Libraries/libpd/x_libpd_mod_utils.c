@@ -43,7 +43,6 @@ extern void canvas_savedeclarationsto(t_canvas* x, t_binbuf* b);
 extern void canvas_doaddtemplate(t_symbol* templatesym,
     int* p_ntemplates, t_symbol*** p_templatevec);
 
-
 static void canvas_addtemplatesforscalar(t_symbol* templatesym,
     t_word* w, int* p_ntemplates, t_symbol*** p_templatevec)
 {
@@ -82,7 +81,6 @@ static void canvas_collecttemplatesfor(t_canvas* x, int* ntemplatesp,
                 ntemplatesp, templatevecp, 1);
     }
 }
-
 
 /* displace the selection by (dx, dy) pixels */
 void libpd_moveselection(t_canvas* cnv, int dx, int dy)

@@ -7,7 +7,7 @@ struct DraggableNumber : public Label {
     bool shift = false;
     int decimalDrag = 0;
     int numDecimalsToShow = 0;
-    
+
     float lastValue = 0.0f;
 
     bool isMinLimited = false, isMaxLimited = false;
@@ -76,10 +76,10 @@ struct DraggableNumber : public Label {
 
         return false;
     }
-    
+
     void setValue(float newValue)
     {
-        if(lastValue != newValue) {
+        if (lastValue != newValue) {
             lastValue = newValue;
             setText(String(newValue), sendNotification);
             valueChanged(newValue);

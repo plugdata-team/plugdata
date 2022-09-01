@@ -12,7 +12,7 @@
 class PlugDataPluginEditor;
 
 struct Dialog : public Component {
-        
+
     Dialog(std::unique_ptr<Dialog>* ownerPtr, Component* editor, int childWidth, int childHeight, int yPosition, bool showCloseButton)
         : parentComponent(editor)
         , height(childHeight)
@@ -41,7 +41,7 @@ struct Dialog : public Component {
         addAndMakeVisible(child);
         resized();
     }
-    
+
     Component* getViewedComponent()
     {
         return viewedComponent.get();
@@ -81,8 +81,9 @@ struct Dialog : public Component {
     {
         closeDialog();
     }
-    
-    void closeDialog() {
+
+    void closeDialog()
+    {
         owner->reset(nullptr);
     }
 

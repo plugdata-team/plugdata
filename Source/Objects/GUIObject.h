@@ -50,9 +50,9 @@ struct ObjectBase : public Component
     virtual void updateDrawables() {};
 
     virtual void updateParameters() {};
-        
+
     virtual bool canOpenFromMenu() { return false; }
-        
+
     virtual void openFromMenu() {};
 
     // Flag to make object visible or hidden inside a GraphOnParent
@@ -99,7 +99,7 @@ struct ObjectBase : public Component
 
     void closeOpenedSubpatchers();
     void openSubpatch();
-        
+
     virtual String getText();
 };
 

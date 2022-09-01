@@ -121,10 +121,10 @@ struct MousePadObject final : public GUIObject {
 
         int x = 0, y = 0, w = 0, h = 0;
         libpd_get_object_bounds(cnv->patch.getPointer(), ptr, &x, &y, &w, &h);
-       
+
         pd->getCallbackLock()->exit();
-    
-        box->setObjectBounds({x, y, w, h});
+
+        box->setObjectBounds({ x, y, w, h });
     }
 
     void lock(bool locked) override

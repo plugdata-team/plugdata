@@ -53,8 +53,7 @@ struct AtomObject : public GUIObject {
     void updateBounds() override
     {
         pd->getCallbackLock()->enter();
-        
-        
+
         int x, y, w, h;
         libpd_get_object_bounds(cnv->patch.getPointer(), ptr, &x, &y, &w, &h);
 
@@ -62,9 +61,9 @@ struct AtomObject : public GUIObject {
         w = std::max<int>(4, gatom->a_text.te_width) * glist_fontwidth(cnv->patch.getPointer());
 
         auto bounds = Rectangle<int>(x, y, w, getAtomHeight());
-        
+
         pd->getCallbackLock()->exit();
-        
+
         box->setObjectBounds(bounds);
     }
 
