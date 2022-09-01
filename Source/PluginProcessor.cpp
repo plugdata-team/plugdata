@@ -208,9 +208,9 @@ void PlugDataAudioProcessor::initialiseFilesystem()
         
         try
         {
-            std::filesystem::create_directory_symlink(abstractionsPath, library.getChildFile("Abstractions").getFullPathName().replaceAllOccurancesOf("/", "\\").toStdString());
-            std::filesystem::create_directory_symlink(documentationPath, library.getChildFile("Documentation").getFullPathName().replaceAllOccurancesOf("/", "\\").toStdString());
-            std::filesystem::create_directory_symlink(dekenPath, library.getChildFile("Deken").getFullPathName().replaceAllOccurancesOf("/", "\\").toStdString());
+            std::filesystem::create_directory_symlink(abstractionsPath, library.getChildFile("Abstractions").getFullPathName().replace("/", "\\").toStdString());
+            std::filesystem::create_directory_symlink(documentationPath, library.getChildFile("Documentation").getFullPathName().replace("/", "\\").toStdString());
+            std::filesystem::create_directory_symlink(dekenPath, library.getChildFile("Deken").getFullPathName().replace("/", "\\").toStdString());
         }
         catch (...)
         {
