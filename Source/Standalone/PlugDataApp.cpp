@@ -214,8 +214,8 @@ void PlugDataWindow::closeButtonPressed()
     // Show an ask to save dialog for each patch that is dirty
     // Because save dialog uses an asynchronous callback, we can't loop over them (so have to chain them)
     if (auto* editor = dynamic_cast<PlugDataPluginEditor*>(pluginHolder->processor->getActiveEditor())) {
-        std::function<void(int)> checkCanvas;
-        checkCanvas = [this, editor, checkCanvas](int i) mutable {
+        static std::function<void(int)> checkCanvas;
+        checkCanvas = [this, editor](int i) mutable {
             auto* cnv = editor->canvases[i];
             bool isLast = i == editor->canvases.size() - 1;
             editor->tabbar.setCurrentTabIndex(i);
@@ -223,11 +223,12 @@ void PlugDataWindow::closeButtonPressed()
             i++;
 
             if (cnv->patch.isDirty()) {
+                std::cout << "Hier?" << std::endl;
                 Dialogs::showSaveDialog(&editor->openedDialog, editor, cnv->patch.getTitle(),
-                    [this, editor, cnv, checkCanvas, i, isLast](int result) mutable {
+                    [this, editor, cnv, i, isLast](int result) mutable {
                         if (result == 2) {
                             editor->saveProject(
-                                [this, cnv, editor, checkCanvas, i, isLast]() mutable {
+                                [this, cnv, editor, i, isLast]() mutable {
                                     if (isLast) {
                                         JUCEApplication::quit();
                                     } else {
