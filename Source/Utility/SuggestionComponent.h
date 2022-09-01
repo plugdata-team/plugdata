@@ -139,7 +139,7 @@ public:
         openedEditor = editor;
         
         setTransform(box->cnv->main.getTransform());
-
+        
         editor->setInputFilter(this, false);
         editor->addKeyListener(this);
 
@@ -166,7 +166,8 @@ public:
         setVisible(false);
         toFront(false);
 
-        setTopLeftPosition(box->getScreenX(), box->getScreenBounds().getBottom());
+        auto scale =  getTransform().getScaleFactor();
+        setTopLeftPosition(box->getScreenX() / scale, box->getScreenBounds().getBottom() / scale);
         repaint();
     }
 
