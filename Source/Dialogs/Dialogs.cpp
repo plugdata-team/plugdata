@@ -108,7 +108,6 @@ void Dialogs::showObjectMenu(PlugDataPluginEditor* parent, Component* target)
     menu.addItem(createCommandItem(CommandIDs::NewFloatAtom, "Float Atom"));
     menu.addItem(createCommandItem(CommandIDs::NewSymbolAtom, "Symbol Atom"));
     menu.addItem(createCommandItem(CommandIDs::NewListAtom, "List Atom"));
-
     menu.addSeparator();
 
     menu.addItem(createCommandItem(CommandIDs::NewArray, "Array"));
@@ -118,6 +117,7 @@ void Dialogs::showObjectMenu(PlugDataPluginEditor* parent, Component* target)
     menu.addSeparator();
     menu.addItem(createCommandItem(CommandIDs::NewKeyboard, "Keyboard"));
     menu.addItem(createCommandItem(CommandIDs::NewVUMeterObject, "VU Meter"));
+    menu.addItem(createCommandItem(CommandIDs::NewNumboxTilde, "Numbox~"));
 
     menu.showMenuAsync(PopupMenu::Options().withMinimumWidth(100).withMaximumNumColumns(1).withTargetComponent(target).withParentComponent(parent),
         [parent](int result) {
