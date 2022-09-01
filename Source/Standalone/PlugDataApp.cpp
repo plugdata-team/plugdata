@@ -223,7 +223,6 @@ void PlugDataWindow::closeButtonPressed()
             i++;
 
             if (cnv->patch.isDirty()) {
-                std::cout << "Hier?" << std::endl;
                 Dialogs::showSaveDialog(&editor->openedDialog, editor, cnv->patch.getTitle(),
                     [this, editor, cnv, i, isLast](int result) mutable {
                         if (result == 2) {
