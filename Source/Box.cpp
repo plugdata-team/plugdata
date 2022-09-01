@@ -552,7 +552,7 @@ void Box::mouseUp(const MouseEvent& e)
         cnv->handleMouseUp(this, e);
     }
     
-    if(gui && !selectionStateChanged && cnv->isSelected(this) && !e.mouseWasDraggedSinceMouseDown()) {
+    if(gui && !selectionStateChanged && cnv->isSelected(this) && !e.mouseWasDraggedSinceMouseDown() && !e.mods.isRightButtonDown()) {
         gui->showEditor();
     }
     
