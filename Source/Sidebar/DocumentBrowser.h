@@ -9,7 +9,18 @@
 // 2. Improve simplicity and efficiency by not using OS file icons (they look bad anyway)
 
 #include "../Utility/FileSystemWatcher.h"
+
+
+
+#if JUCE_WINDOWS
 #include <filesystem>
+
+extern "C"
+{
+    // Need this to create directory junctions on Windows
+    unsigned int WinExec(const char* lpCmdLine, unsigned int uCmdShow);
+}
+#endif
 
 // Base classes for communication between parent and child classes
 struct DocumentBrowserViewBase : public TreeView
@@ -413,11 +424,13 @@ public:
                 
                 // Symlinks on Windows are weird!
                 if(file.isDirectory()) {
-                    auto aliasCommend = "cmd.exe /k mklink /J " + alias.getFullPathName().replaceCharacters("/", "\\") + " " + file.getFullPathName();
-                    // Execute junction command
-                    WinExec(abstractionsCommand.toRawUTF8(), 0);
+                    // Create directory junction command
+                    auto aliasCommand = "cmd.exe /k mklink /J " + alias.getFullPathName().replaceCharacters("/", "\\") + " " + file.getFullPathName();
+                    // Execute command
+                    WinExec(aliasCommand.toRawUTF8(), 0);
                 }
                 else {
+                    // Create hard link
                     std::filesystem::create_hard_link(file.getFullPathName().toStdString(), alias.getFullPathName().toStdString());
                 }
 
