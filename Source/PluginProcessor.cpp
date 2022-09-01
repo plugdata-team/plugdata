@@ -223,9 +223,9 @@ void PlugDataAudioProcessor::initialiseFilesystem()
         WinExec(documentationCommand.toRawUTF8(), 0);
         WinExec(dekenCommand.toRawUTF8(), 0);
 #else   
-        system(abstractionsCommand.fromFirstOccuranceOf("/k", false, false).toRawUTF8());
-        system(documentationCommand.fromFirstOccuranceOf("/k", false, false).toRawUTF8());
-        system(dekenCommand.fromFirstOccuranceOf("/k", false, false).toRawUTF8());
+        system(abstractionsCommand.fromFirstOccurenceOf("/k", false, false).toRawUTF8());
+        system(documentationCommand.fromFirstOccurenceOf("/k", false, false).toRawUTF8());
+        system(dekenCommand.fromFirstOccurenceOf("/k", false, false).toRawUTF8());
 #endif
 
 #else
