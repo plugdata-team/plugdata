@@ -234,12 +234,13 @@ void PlugDataAudioProcessor::initialiseFilesystem()
         settingsTree.setProperty("GridEnabled", 1, nullptr);
 
         auto pathTree = ValueTree("Paths");
+        auto library = homeDir.getChildFile("Library");
 
         auto firstPath = ValueTree("Path");
-        firstPath.setProperty("Path", abstractions.getFullPathName(), nullptr);
+        firstPath.setProperty("Path", library.getChildFile("Abstractions").getFullPathName(), nullptr);
 
         auto secondPath = ValueTree("Path");
-        secondPath.setProperty("Path", appDir.getChildFile("Deken").getFullPathName(), nullptr);
+        secondPath.setProperty("Path", library.getChildFile("Deken").getFullPathName(), nullptr);
 
         pathTree.appendChild(firstPath, nullptr);
         pathTree.appendChild(secondPath, nullptr);
