@@ -70,7 +70,6 @@ struct ArrayDialog : public Component {
         nameLabel.setBounds(8, 45, 52, 25);
         sizeLabel.setBounds(8, 85, 52, 25);
     }
-    
 
     std::function<void(int, String, String)> cb;
 

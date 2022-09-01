@@ -24,7 +24,7 @@ struct TextDefineObject final : public TextBase {
 
     std::unique_ptr<Component> textEditor;
     std::unique_ptr<Dialog> saveDialog;
-    
+
     TextDefineObject(void* obj, Box* parent, bool isValid = true)
         : TextBase(obj, parent, isValid)
         , textEditor(nullptr)
@@ -118,12 +118,14 @@ struct TextDefineObject final : public TextBase {
 
         return String::fromUTF8(bufp, lenp);
     }
-    
-    bool canOpenFromMenu() override {
+
+    bool canOpenFromMenu() override
+    {
         return true;
     }
 
-    void openFromMenu() override {
+    void openFromMenu() override
+    {
         openTextEditor();
     }
 };

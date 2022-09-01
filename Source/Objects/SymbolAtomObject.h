@@ -1,5 +1,6 @@
 
-struct SymbolAtomObject final : public AtomObject, public KeyListener {
+struct SymbolAtomObject final : public AtomObject
+    , public KeyListener {
     bool isDown = false;
     bool isLocked = false;
 
@@ -99,18 +100,17 @@ struct SymbolAtomObject final : public AtomObject, public KeyListener {
             AtomObject::valueChanged(v);
         }
     }
-    
-    bool keyPressed(const KeyPress& key, Component* originalComponent) override
+
+    bool keyPressed(KeyPress const& key, Component* originalComponent) override
     {
         if (key == KeyPress::rightKey) {
-            if(auto* editor = input.getCurrentTextEditor()) {
+            if (auto* editor = input.getCurrentTextEditor()) {
                 editor->setCaretPosition(editor->getHighlightedRegion().getEnd());
                 return true;
             }
         }
         return false;
     }
-
 
     Label input;
 };

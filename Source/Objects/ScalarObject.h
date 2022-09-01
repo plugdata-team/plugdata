@@ -95,8 +95,9 @@ struct DrawableTemplate final : public DrawablePath {
         }
 
         // TODO: hacky workaround for potential crash. Doens't always work. Fix this.
-        if(!scalar || !scalar->sc_template) return;
-        
+        if (!scalar || !scalar->sc_template)
+            return;
+
         auto* glist = canvas->patch.getPointer();
         auto* templ = template_findbyname(scalar->sc_template);
 
@@ -171,7 +172,7 @@ struct DrawableTemplate final : public DrawablePath {
             }
 
             auto drawBounds = toDraw.getBounds();
-            
+
             // tcl/tk will show a dot for a 0px polygon
             // JUCE doesn't do this, so we have to fake it
             if (closed && drawBounds.isEmpty()) {

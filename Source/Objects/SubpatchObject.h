@@ -8,8 +8,6 @@ struct SubpatchObject final : public TextBase
         isGraphChild = false;
         hideNameAndArgs = static_cast<bool>(subpatch.getPointer()->gl_hidetext);
 
-        
-        
         isGraphChild.addListener(this);
         hideNameAndArgs.addListener(this);
     }
@@ -61,12 +59,14 @@ struct SubpatchObject final : public TextBase
             repaint();
         }
     }
-        
-    bool canOpenFromMenu() override {
+
+    bool canOpenFromMenu() override
+    {
         return true;
     }
 
-    void openFromMenu() override {
+    void openFromMenu() override
+    {
         openSubpatch();
     }
 

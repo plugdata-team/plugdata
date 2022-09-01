@@ -60,9 +60,9 @@ public:
         int x = 0, y = 0, w = 0, h = 0;
         libpd_get_object_bounds(cnv->patch.getPointer(), ptr, &x, &y, &w, &h);
         auto bounds = Rectangle<int>(x, y, w, h);
-        
+
         pd->getCallbackLock()->exit();
-    
+
         box->setObjectBounds(bounds);
     }
 
@@ -179,15 +179,16 @@ public:
             repaint();
         }
     }
-    
-    bool canOpenFromMenu() override {
+
+    bool canOpenFromMenu() override
+    {
         return true;
     }
 
-    void openFromMenu() override {
+    void openFromMenu() override
+    {
         openSubpatch();
     }
-
 
 private:
     Value isGraphChild = Value(var(false));

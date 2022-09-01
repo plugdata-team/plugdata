@@ -4,7 +4,7 @@ struct TextBase : public ObjectBase
     TextBase(void* obj, Box* parent, bool valid = true)
         : ObjectBase(obj, parent)
         , isValid(valid)
-        {
+    {
         currentText = getText();
 
         // To get enter/exit messages
@@ -113,7 +113,7 @@ struct TextBase : public ObjectBase
         int textWidth = getBestTextWidth(currentText);
 
         pd->getCallbackLock()->exit();
-        
+
         // We need to handle the resizable width, which pd saves in amount of text characters
         textWidthOffset = textWidth % fontWidth;
         textObjectWidth = bounds.getWidth();

@@ -80,22 +80,22 @@ String ObjectBase::getText()
 String ObjectBase::getType() const
 {
     if (ptr) {
-        if(pd_class(static_cast<t_pd*>(ptr)) == canvas_class && canvas_isabstraction((t_canvas *)ptr)) {
+        if (pd_class(static_cast<t_pd*>(ptr)) == canvas_class && canvas_isabstraction((t_canvas*)ptr)) {
             char namebuf[MAXPDSTRING];
-            t_object *ob = (t_object *)ptr;
+            t_object* ob = (t_object*)ptr;
             int ac = binbuf_getnatom(ob->te_binbuf);
-            t_atom *av = binbuf_getvec(ob->te_binbuf);
+            t_atom* av = binbuf_getvec(ob->te_binbuf);
             if (ac < 1)
                 return String();
             atom_string(av, namebuf, MAXPDSTRING);
-            
+
             return String::fromUTF8(namebuf).fromLastOccurrenceOf("/", false, false);
         }
         if (auto* name = libpd_get_object_class_name(ptr)) {
             return String(name);
         }
     }
-    
+
     return {};
 }
 
@@ -133,40 +133,38 @@ void ObjectBase::closeOpenedSubpatchers()
 void ObjectBase::openSubpatch()
 {
     auto* subpatch = getPatch();
-    
-    if (!subpatch) return;
-    
+
+    if (!subpatch)
+        return;
+
     auto* glist = subpatch->getPointer();
-    
-    if (!glist) return;
-    
+
+    if (!glist)
+        return;
+
     auto abstraction = canvas_isabstraction(glist);
     File path;
-    
-    if (abstraction)
-    {
+
+    if (abstraction) {
         path = File(String::fromUTF8(canvas_getdir(subpatch->getPointer())->s_name) + "/" + String::fromUTF8(glist->gl_name->s_name)).withFileExtension("pd");
     }
-    
-    for (int n = 0; n < cnv->main.tabbar.getNumTabs(); n++)
-    {
+
+    for (int n = 0; n < cnv->main.tabbar.getNumTabs(); n++) {
         auto* tabCanvas = cnv->main.getCanvas(n);
-        if (tabCanvas->patch == *subpatch)
-        {
+        if (tabCanvas->patch == *subpatch) {
             cnv->main.tabbar.setCurrentTabIndex(n);
             return;
         }
     }
-    
+
     auto* newPatch = cnv->main.pd.patches.add(new pd::Patch(*subpatch));
     auto* newCanvas = cnv->main.canvases.add(new Canvas(cnv->main, *newPatch, nullptr));
-    
+
     newPatch->setCurrentFile(path);
-    
+
     cnv->main.addTab(newCanvas);
     newCanvas->checkBounds();
 }
-
 
 void ObjectBase::moveToFront()
 {
