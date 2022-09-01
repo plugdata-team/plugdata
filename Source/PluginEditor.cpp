@@ -925,6 +925,13 @@ void PlugDataPluginEditor::getCommandInfo(const CommandID commandID, Application
             
             break;
         }
+        case CommandIDs::NewNumboxTilde:
+        {
+            result.setInfo("New Numbox~", "Create new numbox~ object", "Objects", 0);
+            result.setActive(!isDragging && pd.locked == var(false));
+            
+            break;
+        }
         case CommandIDs::NewFloatAtom:
         {
             result.setInfo("New Floatatom", "Create new floatatom", "Objects", 0);
@@ -1190,7 +1197,7 @@ bool PlugDataPluginEditor::perform(const InvocationInfo& info)
 
         default:
         {
-            const StringArray objectNames = {"", "comment", "bng", "msg", "tgl", "nbx", "vsl", "hsl", "vradio", "hradio", "floatatom", "symbolatom", "listbox", "array", "graph", "cnv", "keyboard", "vu", "button"};
+            const StringArray objectNames = {"", "comment", "bng", "msg", "tgl", "nbx", "vsl", "hsl", "vradio", "hradio", "floatatom", "symbolatom", "listbox", "array", "graph", "cnv", "keyboard", "vu", "button", "numbox~"};
 
             jassert(objectNames.size() == CommandIDs::NumItems - CommandIDs::NewObject);
 

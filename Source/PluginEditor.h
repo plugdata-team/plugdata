@@ -63,6 +63,7 @@ enum CommandIDs
     NewKeyboard,
     NewVUMeterObject,
     NewButton,
+    NewNumboxTilde,
     NumItems
 };
 
