@@ -114,6 +114,10 @@ Instance::Instance(String const& symbol)
     m_instance = libpd_new_instance();
 
     libpd_set_instance(static_cast<t_pdinstance*>(m_instance));
+    
+    libpd_init_else();
+    libpd_init_cyclone();
+    
     m_midi_receiver = libpd_multi_midi_new(this, reinterpret_cast<t_libpd_multi_noteonhook>(internal::instance_multi_noteon), reinterpret_cast<t_libpd_multi_controlchangehook>(internal::instance_multi_controlchange), reinterpret_cast<t_libpd_multi_programchangehook>(internal::instance_multi_programchange),
         reinterpret_cast<t_libpd_multi_pitchbendhook>(internal::instance_multi_pitchbend), reinterpret_cast<t_libpd_multi_aftertouchhook>(internal::instance_multi_aftertouch), reinterpret_cast<t_libpd_multi_polyaftertouchhook>(internal::instance_multi_polyaftertouch),
         reinterpret_cast<t_libpd_multi_midibytehook>(internal::instance_multi_midibyte));
