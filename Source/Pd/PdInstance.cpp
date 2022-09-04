@@ -79,7 +79,7 @@ struct pd::Instance::internal {
 
     static void instance_multi_pitchbend(pd::Instance* ptr, int channel, int value)
     {
-        ptr->enqueueFunctionAsync([ptr, channel, value]() mutable { ptr->processMidiEvent({ midievent::PROGRAMCHANGE, channel, value, 0 }); });
+        ptr->enqueueFunctionAsync([ptr, channel, value]() mutable { ptr->processMidiEvent({ midievent::PITCHBEND, channel, value, 0 }); });
     }
 
     static void instance_multi_aftertouch(pd::Instance* ptr, int channel, int value)
