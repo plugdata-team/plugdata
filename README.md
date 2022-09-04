@@ -75,6 +75,7 @@ I might release some smaller versions inbetween if any serious bugs are being fo
 
 FEATURES:
 - Object discovery panel: a place where all objects (with descriptions) are listed by category
+- Range options for automation parameters
 
 PD COMPATIBILITY:
 - Fix broken objects
