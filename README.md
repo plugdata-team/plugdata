@@ -88,6 +88,7 @@ OTHER:
 - Restructure build directory
 - Clean up and document code
 - Codesign executables for Windows
+- Support for Gem and Ofelia
 
 
 Please contact me if you wish to contribute, I could use some help! Bug reports are also appreciated, they help me to get to a stable version much faster.
