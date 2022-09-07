@@ -24,10 +24,15 @@ Canvas::Canvas(PlugDataPluginEditor& parent, pd::Patch& p, Component* parentGrap
 {
     isGraphChild = glist_isgraph(p.getPointer());
     hideNameAndArgs = static_cast<bool>(p.getPointer()->gl_hidetext);
-
+    xRange = Array<var>{var(p.getPointer()->gl_x1), var(p.getPointer()->gl_x2)};
+    yRange = Array<var>{var(p.getPointer()->gl_y2), var(p.getPointer()->gl_y1)};
+                                                    
+    
     isGraphChild.addListener(this);
     hideNameAndArgs.addListener(this);
-
+    xRange.addListener(this);
+    yRange.addListener(this);
+    
     // Check if canvas belongs to a graph
     if (parentGraph)
     {
@@ -295,6 +300,40 @@ void Canvas::synchronise(bool updatePosition)
     repaint();
 }
 
+void Canvas::updateDrawables()
+{
+    for (auto* box : boxes)
+    {
+        if (box->gui)
+        {
+            box->gui->updateDrawables();
+        }
+    }
+}
+
+void Canvas::updateGuiValues()
+{
+    for (auto* box : boxes)
+    {
+        if (box->gui)
+        {
+            box->gui->updateValue();
+        }
+    }
+}
+
+void Canvas::updateGuiParameters()
+{
+    for (auto& box : boxes)
+    {
+        if (box->gui)
+        {
+            box->gui->updateParameters();
+            box->gui->repaint();
+        }
+    }
+}
+
 void Canvas::mouseDown(const MouseEvent& e)
 {
     auto* source = e.originalComponent;
@@ -398,7 +437,7 @@ void Canvas::mouseDown(const MouseEvent& e)
                     box->openHelpPatch();
                     break;
                 case 10:  // Open help
-                    main.sidebar.showParameters(parameters);
+                    main.sidebar.showParameters("Canvas", parameters);
                     break;
                 default:
                     break;
@@ -555,7 +594,7 @@ void Canvas::updateSidebarSelection()
         }
         else if (!params.empty() || main.sidebar.isPinned())
         {
-            main.sidebar.showParameters(params);
+            main.sidebar.showParameters(box->gui->getText(), params);
         }
         else
         {
@@ -885,6 +924,20 @@ void Canvas::valueChanged(Value& v)
     {
         patch.getPointer()->gl_hidetext = static_cast<bool>(hideNameAndArgs.getValue());
         repaint();
+    }
+    else if (v.refersToSameSourceAs(xRange))
+    {
+        auto* glist = patch.getPointer();
+        glist->gl_x1 = static_cast<float>(xRange.getValue().getArray()->getReference(0));
+        glist->gl_x2 = static_cast<float>(xRange.getValue().getArray()->getReference(1));
+        updateDrawables();
+    }
+    else if (v.refersToSameSourceAs(yRange))
+    {
+        auto* glist = patch.getPointer();
+        glist->gl_y2 = static_cast<float>(yRange.getValue().getArray()->getReference(0));
+        glist->gl_y1 = static_cast<float>(yRange.getValue().getArray()->getReference(1));
+        updateDrawables();
     }
 }
 

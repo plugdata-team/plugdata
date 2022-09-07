@@ -6,26 +6,56 @@
 
 #include "../Utility/PropertiesPanel.h"
 
-struct Inspector : public PropertiesPanel {
+
+struct Inspector : public Component {
+    
+    PropertiesPanel panel;
+    String title;
+    
+    Inspector() {
+        addAndMakeVisible(panel);
+    }
+    
+    void paint(Graphics& g) override
+    {
+        
+        g.setColour(findColour(PlugDataColour::textColourId));
+        g.drawText(title, getLocalBounds().removeFromTop(23), Justification::centred);
+        
+        g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
+        g.drawLine(0, 23, getWidth(), 23);
+    }
+    
+    void resized() override
+    {
+        panel.setBounds(getLocalBounds().withTrimmedTop(28));
+        
+    }
+    
+    void setTitle(const String& name)
+    {
+        title = name;
+    }
+    
     PropertyComponent* createPanel(int type, String const& name, Value* value, int idx, std::vector<String>& options)
     {
         switch (type) {
         case tString:
-            return new EditableComponent<String>(name, *value, idx);
+            return new PropertiesPanel::EditableComponent<String>(name, *value, idx);
         case tFloat:
-            return new EditableComponent<float>(name, *value, idx);
+            return new PropertiesPanel::EditableComponent<float>(name, *value, idx);
         case tInt:
-            return new EditableComponent<int>(name, *value, idx);
+            return new PropertiesPanel::EditableComponent<int>(name, *value, idx);
         case tColour:
-            return new ColourComponent(name, *value, idx);
+            return new PropertiesPanel::ColourComponent(name, *value, idx);
         case tBool:
-            return new BoolComponent(name, *value, idx, options);
+            return new PropertiesPanel::BoolComponent(name, *value, idx, options);
         case tCombo:
-            return new ComboComponent(name, *value, idx, options);
+            return new PropertiesPanel::ComboComponent(name, *value, idx, options);
         case tRange:
-            return new RangeComponent(name, *value, idx);
+            return new PropertiesPanel::RangeComponent(name, *value, idx);
         default:
-            return new EditableComponent<String>(name, *value, idx);
+            return new PropertiesPanel::EditableComponent<String>(name, *value, idx);
         }
     }
 
@@ -33,7 +63,7 @@ struct Inspector : public PropertiesPanel {
     {
         StringArray names = { "General", "Appearance", "Label", "Extra" };
 
-        clear();
+        panel.clear();
 
         for (int i = 0; i < 4; i++) {
             Array<PropertyComponent*> panels;
@@ -46,7 +76,7 @@ struct Inspector : public PropertiesPanel {
                 }
             }
             if (!panels.isEmpty()) {
-                addSection(names[i], panels);
+                panel.addSection(names[i], panels);
             }
         }
     }

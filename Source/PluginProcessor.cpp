@@ -1253,18 +1253,20 @@ void PlugDataAudioProcessor::timerCallback()
     if (auto* editor = dynamic_cast<PlugDataPluginEditor*>(getActiveEditor()))
     {
         if (!callbackType) return;
-
-        if (callbackType & 2)
-        {
-             editor->updateValues();
-        }
-        if (callbackType & 4)
-        {
-             editor->updateDrawables();
-        }
-        if (callbackType & 8)
-        {
-             editor->updateGuiParameters();
+        
+        if(auto* cnv = editor->getCurrentCanvas()) {
+            if (callbackType & 2)
+            {
+                cnv->updateGuiValues();
+            }
+            if (callbackType & 4)
+            {
+                cnv->updateDrawables();
+            }
+            if (callbackType & 8)
+            {
+                cnv->updateGuiParameters();
+            }
         }
 
         callbackType = 0;
