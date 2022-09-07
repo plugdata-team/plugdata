@@ -3,6 +3,7 @@
 class SuggestionComponent : public Component
     , public KeyListener
     , public TextEditor::InputFilter {
+        
     class Suggestion : public TextButton {
         int idx = 0;
         int type = -1;
@@ -16,7 +17,7 @@ class SuggestionComponent : public Component
             : idx(i)
         {
             setText("", "", false);
-            setWantsKeyboardFocus(true);
+            setWantsKeyboardFocus(false);
             setConnectedEdges(12);
             setClickingTogglesState(true);
             setRadioGroupId(1001);
@@ -31,6 +32,12 @@ class SuggestionComponent : public Component
             drawIcon = icon;
 
             repaint();
+        }
+        
+        // TODO: why is this necessary?
+        void mouseDown(const MouseEvent& e) override
+        {
+            onClick();
         }
 
         void paint(Graphics& g) override
@@ -126,6 +133,7 @@ public:
 
         setInterceptsMouseClicks(true, true);
         setAlwaysOnTop(true);
+        setWantsKeyboardFocus(false);
     }
 
     ~SuggestionComponent() override
@@ -205,9 +213,7 @@ public:
 
         auto* but = buttons[currentidx];
 
-        // If we use setto, the toggle state should already be set
-        if (setto == -1)
-            but->setToggleState(true, dontSendNotification);
+        but->setToggleState(true, dontSendNotification);
 
         if (openedEditor) {
             String newText = buttons[currentidx]->getButtonText();

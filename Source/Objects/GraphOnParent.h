@@ -8,15 +8,24 @@ public:
         : GUIObject(obj, box)
         , subpatch({ ptr, cnv->pd })
     {
+        auto* glist = static_cast<t_canvas*>(ptr);
         isGraphChild = true;
         hideNameAndArgs = static_cast<bool>(subpatch.getPointer()->gl_hidetext);
-
+        xRange = Array<var>{var(glist->gl_x1), var(glist->gl_x2)};
+        yRange = Array<var>{var(glist->gl_y2), var(glist->gl_y1)};
+        
         isGraphChild.addListener(this);
         hideNameAndArgs.addListener(this);
-
+        xRange.addListener(this);
+        yRange.addListener(this);
+        
         updateCanvas();
-
         resized();
+    }
+    
+    
+    void resized() override
+    {
         updateDrawables();
     }
 
@@ -166,7 +175,8 @@ public:
 
     ObjectParameters getParameters() override
     {
-        return { { "Is graph", tBool, cGeneral, &isGraphChild, { "No", "Yes" } }, { "Hide name and arguments", tBool, cGeneral, &hideNameAndArgs, { "No", "Yes" } } };
+        return { { "Is graph", tBool, cGeneral, &isGraphChild, { "No", "Yes" } }, { "Hide name and arguments", tBool, cGeneral, &hideNameAndArgs, { "No", "Yes" } }, {"X range", tRange, cGeneral, &xRange, {}},
+            {"Y range", tRange, cGeneral, &yRange, {}} };
     };
 
     void valueChanged(Value& v) override
@@ -174,9 +184,24 @@ public:
         if (v.refersToSameSourceAs(isGraphChild)) {
             subpatch.getPointer()->gl_isgraph = static_cast<bool>(isGraphChild.getValue());
             updateValue();
-        } else if (v.refersToSameSourceAs(hideNameAndArgs)) {
+        }
+        else if (v.refersToSameSourceAs(hideNameAndArgs)) {
             subpatch.getPointer()->gl_hidetext = static_cast<bool>(hideNameAndArgs.getValue());
             repaint();
+        }
+        else if (v.refersToSameSourceAs(xRange))
+        {
+            auto* glist = static_cast<t_canvas*>(ptr);
+            glist->gl_x1 = static_cast<float>(xRange.getValue().getArray()->getReference(0));
+            glist->gl_x2 = static_cast<float>(xRange.getValue().getArray()->getReference(1));
+            updateDrawables();
+        }
+        else if (v.refersToSameSourceAs(yRange))
+        {
+            auto* glist = static_cast<t_canvas*>(ptr);
+            glist->gl_y2 = static_cast<float>(yRange.getValue().getArray()->getReference(0));
+            glist->gl_y1 = static_cast<float>(yRange.getValue().getArray()->getReference(1));
+            updateDrawables();
         }
     }
 
@@ -193,6 +218,7 @@ public:
 private:
     Value isGraphChild = Value(var(false));
     Value hideNameAndArgs = Value(var(false));
+    Value xRange, yRange;
 
     pd::Patch subpatch;
     std::unique_ptr<Canvas> canvas;

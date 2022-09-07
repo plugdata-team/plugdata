@@ -82,7 +82,7 @@ struct Sidebar : public Component {
     void mouseMove(MouseEvent const& e) override;
     void mouseExit(MouseEvent const& e) override;
 
-    void showParameters(ObjectParameters& params);
+    void showParameters(const String& name, ObjectParameters& params);
     void showParameters();
     void hideParameters();
 

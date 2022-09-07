@@ -45,7 +45,11 @@ class Canvas : public Component, public Value::Listener, public LassoSource<Weak
     void mouseMove(const MouseEvent& e) override;
 
     void synchronise(bool updatePosition = true);
-
+    
+    void updateDrawables();
+    void updateGuiValues();
+    void updateGuiParameters();
+    
     bool keyPressed(const KeyPress& key) override;
     
     void copySelection();
@@ -99,8 +103,6 @@ class Canvas : public Component, public Value::Listener, public LassoSource<Weak
 
     Viewport* viewport = nullptr;
 
-    OwnedArray<DrawablePath> drawables;
-
     bool connectingWithDrag = false;
     Array<SafePointer<Edge>> connectingEdges;
     SafePointer<Edge> nearestEdge;
@@ -126,7 +128,8 @@ class Canvas : public Component, public Value::Listener, public LassoSource<Weak
     
     Value isGraphChild = Value(var(false));
     Value hideNameAndArgs = Value(var(false));
-
+    Value xRange, yRange;
+    
     ObjectGrid grid = ObjectGrid(this);
 
     Point<int> canvasOrigin = {0, 0};
@@ -157,7 +160,12 @@ class Canvas : public Component, public Value::Listener, public LassoSource<Weak
     PopupMenu popupMenu;
 
     // Properties that can be shown in the inspector by right-clicking on canvas
-    ObjectParameters parameters = {{"Is graph", tBool, cGeneral, &isGraphChild, {"No", "Yes"}}, {"Hide name and arguments", tBool, cGeneral, &hideNameAndArgs, {"No", "Yes"}}};
+    ObjectParameters parameters =
+    {{"Is graph", tBool, cGeneral, &isGraphChild, {"No", "Yes"}},
+     {"Hide name and arguments", tBool, cGeneral, &hideNameAndArgs, {"No", "Yes"}},
+     {"X range", tRange, cGeneral, &xRange, {}},
+     {"Y range", tRange, cGeneral, &yRange, {}}
+    };
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(Canvas)
 };
