@@ -658,8 +658,13 @@ void Box::openNewObjectEditor()
         editor->setIndents(0, 0);
         editor->setJustification(Justification::left);
 
-        editor->onFocusLost = [this]()
+        editor->onFocusLost = [this, editor]()
         {
+            if(reinterpret_cast<Component*>(cnv->suggestor)->hasKeyboardFocus(true) || Component::getCurrentlyFocusedComponent() == editor) {
+                editor->grabKeyboardFocus();
+                 return;
+            }
+           
             hideEditor();
         };
 

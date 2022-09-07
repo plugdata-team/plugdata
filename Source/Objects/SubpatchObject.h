@@ -24,14 +24,23 @@ struct SubpatchObject final : public TextBase
 
     void mouseDown(MouseEvent const& e) override
     {
+        
         //  If locked and it's a left click
-        if ((box->locked == var(true)) && !ModifierKeys::getCurrentModifiers().isRightButtonDown()) {
+        if (locked && !ModifierKeys::getCurrentModifiers().isRightButtonDown()) {
             openSubpatch();
 
             return;
         } else {
             TextBase::mouseDown(e);
         }
+    }
+        
+    // Most objects ignore mouseclicks when locked
+    // Objects can override this to do custom locking behaviour
+    void lock(bool isLocked) override
+    {
+        setInterceptsMouseClicks(isLocked, isLocked);
+        locked = isLocked;
     }
 
     ~SubpatchObject()
@@ -74,4 +83,6 @@ protected:
     pd::Patch subpatch;
     Value isGraphChild = Value(var(false));
     Value hideNameAndArgs = Value(var(false));
+        
+    bool locked = false;
 };

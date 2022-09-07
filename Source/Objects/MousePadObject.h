@@ -3,6 +3,8 @@
 struct MousePadObject final : public GUIObject {
     bool isLocked = false;
     bool isPressed = false;
+    
+    Point<int> lastPosition;
 
     typedef struct _pad {
         t_object x_obj;
@@ -24,7 +26,8 @@ struct MousePadObject final : public GUIObject {
     {
         Desktop::getInstance().addGlobalMouseListener(this);
 
-        // setInterceptsMouseClicks(box->locked, box->locked);
+        // Only intercept global mouse events
+        setInterceptsMouseClicks(false, false);
 
         // addMouseListener(box, false);
     }
@@ -37,6 +40,11 @@ struct MousePadObject final : public GUIObject {
 
     void paint(Graphics& g) override
     {
+        auto* x = static_cast<t_pad*>(ptr);
+        auto fillColour = Colour(x->x_color[0], x->x_color[1], x->x_color[2]);
+        g.setColour(fillColour);
+        g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), 2.0f);
+        
         auto outlineColour = box->findColour(cnv->isSelected(box) && !cnv->isGraph ? PlugDataColour::highlightColourId : PlugDataColour::canvasOutlineColourId);
 
         g.setColour(outlineColour);
@@ -45,17 +53,16 @@ struct MousePadObject final : public GUIObject {
 
     void mouseDown(MouseEvent const& e) override
     {
-        if (!getScreenBounds().contains(e.getScreenPosition()) || !isLocked)
+        auto relativeEvent = e.getEventRelativeTo(this);
+        
+        if (!getLocalBounds().contains(relativeEvent.getPosition()) || !isLocked || !box->cnv->isShowing())
             return;
 
         auto* x = static_cast<t_pad*>(ptr);
         t_atom at[3];
 
-        auto relativeEvent = e.getEventRelativeTo(this);
-
-        // int xpos = text_xpix(&x->x_obj, glist), ypos = text_ypix(&x->x_obj, glist);
-        x->x_x = (relativeEvent.getPosition().x / (float)getWidth()) * 127.0f;
-        x->x_y = (relativeEvent.getPosition().y / (float)getHeight()) * 127.0f;
+        x->x_x = relativeEvent.getPosition().x;
+        x->x_y = relativeEvent.getPosition().y;
 
         SETFLOAT(at, 1.0f);
         sys_lock();
@@ -63,8 +70,6 @@ struct MousePadObject final : public GUIObject {
         sys_unlock();
 
         isPressed = true;
-
-        // glist_grab(x->x_glist, &x->x_obj.te_g, (t_glistmotionfn)pad_motion, 0, (float)xpix, (float)ypix);
     }
 
     void mouseDrag(MouseEvent const& e) override
@@ -74,20 +79,24 @@ struct MousePadObject final : public GUIObject {
 
     void mouseMove(MouseEvent const& e) override
     {
-        if (!getScreenBounds().contains(e.getScreenPosition()) || !isLocked)
+        if ((!getScreenBounds().contains(e.getScreenPosition()) && !isPressed) || !isLocked)
             return;
 
         auto* x = static_cast<t_pad*>(ptr);
         t_atom at[3];
 
         auto relativeEvent = e.getEventRelativeTo(this);
+        
+        // Don't repeat values
+        if(relativeEvent.getPosition() == lastPosition) return;
 
-        // int xpos = text_xpix(&x->x_obj, glist), ypos = text_ypix(&x->x_obj, glist);
-        x->x_x = (relativeEvent.getPosition().x / (float)getWidth()) * 127.0f;
-        x->x_y = (relativeEvent.getPosition().y / (float)getHeight()) * 127.0f;
-
+        x->x_x = relativeEvent.getPosition().x;
+        x->x_y = relativeEvent.getPosition().y;
+        
         SETFLOAT(at, x->x_x);
         SETFLOAT(at + 1, x->x_y);
+        
+        lastPosition = {x->x_x, x->x_y};
 
         sys_lock();
         outlet_anything(x->x_obj.ob_outlet, &s_list, 2, at);
@@ -96,13 +105,14 @@ struct MousePadObject final : public GUIObject {
 
     void mouseUp(MouseEvent const& e) override
     {
-        if (!getScreenBounds().contains(e.getScreenPosition()) && !isPressed)
+        if ((!getScreenBounds().contains(e.getScreenPosition()) && !isPressed) || !isLocked)
             return;
 
         auto* x = static_cast<t_pad*>(ptr);
         t_atom at[1];
         SETFLOAT(at, 0);
         outlet_anything(x->x_obj.ob_outlet, gensym("click"), 1, at);
+        isPressed = false;
     }
 
     void applyBounds() override

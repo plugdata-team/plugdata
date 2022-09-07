@@ -82,9 +82,9 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p) : AudioPro
         }
 
         cnv->synchronise();
-        updateValues();
-        updateDrawables();
-        updateGuiParameters();
+        cnv->updateGuiValues();
+        cnv->updateDrawables();
+        cnv->updateGuiParameters();
     };
 
     tabbar.setOutline(0);
@@ -418,54 +418,6 @@ void PlugDataPluginEditor::saveProject(const std::function<void()>& nestedCallba
     {
         saveProjectAs(nestedCallback);
     }
-}
-
-void PlugDataPluginEditor::updateGuiParameters()
-{
-    auto* cnv = getCurrentCanvas();
-
-    if (!cnv) return;
-
-    for (auto& box : cnv->boxes)
-    {
-        if (box->gui)
-        {
-            box->gui->updateParameters();
-            box->gui->repaint();
-        }
-    }
-}
-
-void PlugDataPluginEditor::updateValues()
-{
-    auto* cnv = getCurrentCanvas();
-
-    if (!cnv) return;
-
-    for (auto& box : cnv->boxes)
-    {
-        if (box->gui)
-        {
-            box->gui->updateValue();
-        }
-    }
-}
-
-void PlugDataPluginEditor::updateDrawables()
-{
-    auto* cnv = getCurrentCanvas();
-
-    if (!cnv) return;
-
-    for (auto& box : cnv->boxes)
-    {
-        if (box->gui)
-        {
-            box->gui->updateDrawables();
-        }
-    }
-
-    updateCommandStatus();
 }
 
 Canvas* PlugDataPluginEditor::getCurrentCanvas()
