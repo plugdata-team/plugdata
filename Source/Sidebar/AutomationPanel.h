@@ -43,7 +43,7 @@ struct AutomationSlider : public Component {
         
             auto* param = pd->parameters.getParameter("param" + String(index + 1));
             auto range = param->getNormalisableRange().getRange();
-            attachment = SliderParameterAttachment(*param, *slider, nullptr);
+            attachment = std::make_unique<SliderParameterAttachment>(*param, slider, nullptr);
             valueLabel.setText(String(param->getValue(), 2), dontSendNotification);
 #endif
         valueLabel.onEditorShow = [this]() mutable {
@@ -73,8 +73,8 @@ struct AutomationSlider : public Component {
     void resized() override
     {
         auto bounds = getLocalBounds();
-        nameLabel.setBounds(bounds.removeFromLeft(20));
-        slider.setBounds(bounds.removeFromLeft(getWidth() - 110));
+        nameLabel.setBounds(bounds.removeFromLeft(30));
+        slider.setBounds(bounds.removeFromLeft(getWidth() - 120));
         valueLabel.setBounds(bounds.removeFromLeft(30));
         createButton.setBounds(bounds.removeFromLeft(23));
         settingsButton.setBounds(bounds.removeFromLeft(23));
@@ -113,7 +113,7 @@ struct AutomationSlider : public Component {
     int index;
     
 #if !PLUGDATA_STANDALONE
-    SliderParameterAttachment attachment;
+    std::unique_ptr<SliderParameterAttachment> attachment;
 #endif
 };
 
