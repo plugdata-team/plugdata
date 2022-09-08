@@ -1,7 +1,7 @@
 #N canvas 536 141 700 308 12;
-#X obj 87 187 outlet;
-#X obj 180 249 s param;
-#X obj 87 127 r param\$1;
+#X obj 273 422 outlet;
+#X obj 161 422 s param;
+#X obj 273 306 r param\$1;
 #N canvas 0 22 450 278 (subpatch) 0;
 #X text 0 0 plugdatainfo <?xml version="1.0" encoding="UTF-8"?> <PlugDataInfo><InfoObj
 ID="16.F....T..........B....." Updated="0" Segmented="1" Path="48.................Q.....E...PD....PA...z....vZ....M....rF...PD...."/><InfoObj
@@ -16,17 +16,53 @@ ID="16.H....b..........B....." Updated="0" Segmented="0" Path="32...............
 ID="16.E....f..........A....." Updated="0" Segmented="0" Path="32.................N....z6+++uC....89+++yA...."/><InfoObj
 ID="16.I....f..........A....." Updated="0" Segmented="0" Path="32.................L....n++++OC....5++++eA...."/><InfoObj
 ID="16.I....P....P.....B....." Updated="0" Segmented="0" Path="32.................v..........L.........7E...."/><InfoObj
-ID="16.A....j..........B....." Updated="0" Segmented="0" Path="32.................U....7....PE....O....jB...."/></PlugDataInfo>
+ID="16.A....j..........B....." Updated="0" Segmented="0" Path="32.................U....7....PE....O....jB...."/><InfoObj
+ID="16.I....v................" Updated="0" Segmented="1" Path="32.................V.........fE.........vB...."/><InfoObj
+ID="16.J....v................" Updated="0" Segmented="1" Path="32.................V....LD...fE....CA...vB...."/><InfoObj
+ID="16.N....r..........C....." Updated="0" Segmented="1" Path="32.................r....79+++OK....u++++CC...."/><InfoObj
+ID="16.H....3....v.....A....." Updated="0" Segmented="1" Path="32.................I....37+++eB....N++++qD...."/><InfoObj
+ID="16.H....3.....A....A....." Updated="0" Segmented="1" Path="32.................k....38+++eI....d++++qD...."/><InfoObj
+ID="16.H....j....v.....B....." Updated="0" Segmented="1" Path="32.................hA...zA...fX....c....LL...."/><InfoObj
+ID="16.O....j....P.....B....." Updated="0" Segmented="1" Path="32..................A...71+++OP....u8+++OL...."/><InfoObj
+ID="16.O....n....f.....B....." Updated="0" Segmented="1" Path="48.................C....v8++++.....b+++++D....O++++OA...vy++++v...."/><InfoObj
+ID="16.O....P................" Updated="0" Segmented="1" Path="32.................M....jD...PC....IA...7P...."/><InfoObj
+ID="16.O.....A.........C....." Updated="0" Segmented="1" Path="32.................vA...D.....b....A....7M...."/><InfoObj
+ID="16.I.....A.........A....." Updated="0" Segmented="1" Path="32.................C....nN...v.....pC...f....."/><InfoObj
+ID="16.J.....A.........B....." Updated="0" Segmented="1" Path="32.................M....jP...PC....ID...nA...."/></PlugDataInfo>
 ;
 #X coords 0 1 100 -1 1 1 1;
 #X restore 0 0 graph;
-#X obj 311 249 s param_change;
-#X obj 180 127 inlet;
-#X obj 311 122 inlet;
-#X obj 180 187 list prepend \$1;
-#X obj 311 187 list prepend \$1;
-#X connect 2 0 0 0;
-#X connect 5 0 7 0;
+#X obj 538 188 s param_change;
+#X obj 88 61 inlet;
+#X obj 538 61 inlet;
+#X obj 161 389 list prepend \$1;
+#X obj 538 126 list prepend \$1;
+#X obj 273 352 scale 0 1, f 22;
+#X obj 322 137 float \$2;
+#X obj 389 137 float \$3;
+#X obj 389 181 sel 0, f 11;
+#X obj 322 73 loadbang;
+#X msg 389 215 1, f 5;
+#X obj 389 258 t f;
+#X obj 161 352 scale 0 1 0 1, f 15;
+#X obj 88 91 route min max;
+#X connect 2 0 9 0;
+#X connect 5 0 17 0;
 #X connect 6 0 8 0;
 #X connect 7 0 1 0;
 #X connect 8 0 4 0;
+#X connect 9 0 0 0;
+#X connect 10 0 9 3;
+#X connect 10 0 16 1;
+#X connect 11 0 12 0;
+#X connect 11 0 16 2;
+#X connect 12 0 14 0;
+#X connect 12 1 15 0;
+#X connect 13 0 10 0;
+#X connect 13 0 11 0;
+#X connect 14 0 15 0;
+#X connect 15 0 9 4;
+#X connect 16 0 7 0;
+#X connect 17 0 10 0;
+#X connect 17 1 11 0;
+#X connect 17 2 16 0;
