@@ -551,7 +551,6 @@ struct PlugDataLook : public LookAndFeel_V4
             int dimension = std::min(bounds.getHeight(), bounds.getWidth()) / 2.0f;
             auto centre = bounds.getCentre();
             auto ellpiseBounds = Rectangle<float>(centre.translated(-dimension, -dimension), centre.translated(dimension, dimension));
-            // g.fillRoundedRectangle (bounds, cornerSize);
             g.fillEllipse(ellpiseBounds);
 
             g.setColour(button.findColour(ComboBox::outlineColourId));

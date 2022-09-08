@@ -275,8 +275,6 @@ public:
         float min = index == interpStart ? current : start;
         float max = index == interpStart ? start : current;
 
-        // const CriticalSection* cs = pd->getCallbackLock();
-
         // Fix to make sure we don't leave any gaps while dragging
         for (int n = interpStart; n <= interpEnd; n++) {
             vec[n] = jmap<float>(n, interpStart, interpEnd + 1, min, max);

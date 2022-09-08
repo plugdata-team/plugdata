@@ -662,7 +662,6 @@ void Caret::paint(Graphics& g)
 
 float Caret::squareWave(float wt) const
 {
-    //(Time::getCurrentTime().getMillisecondCounter() % 2000) > 2000
     float const delta = 0.222f;
     float const A = 1.0;
     return 0.5f + A / 3.14159f * std::atan(std::cos(wt) / delta);

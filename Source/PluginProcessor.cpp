@@ -438,7 +438,6 @@ void PlugDataAudioProcessor::releaseResources()
     releaseDSP();
 }
 
-//#ifndef JucePlugin_PreferredChannelConfigurations
 bool PlugDataAudioProcessor::isBusesLayoutSupported(const BusesLayout& layouts) const
 {
 #if JucePlugin_IsMidiEffect

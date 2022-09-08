@@ -819,8 +819,6 @@ int libpd_type_exists(char const* type)
     return 0;
 }
 
-// typedef struct _outlet t_outlet;
-
 // Some duplicates and modifications of pure-data functions
 // We do this so we can keep pure-data and libpd intact and easily updatable
 
