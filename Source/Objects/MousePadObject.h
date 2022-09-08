@@ -105,7 +105,7 @@ struct MousePadObject final : public GUIObject {
 
     void mouseUp(MouseEvent const& e) override
     {
-        if ((!getScreenBounds().contains(e.getScreenPosition()) && !isPressed) || !isLocked)
+        if ((!getScreenBounds().contains(e.getScreenPosition()) && !isPressed))
             return;
 
         auto* x = static_cast<t_pad*>(ptr);

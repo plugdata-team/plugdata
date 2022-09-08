@@ -253,8 +253,8 @@ void Box::setType(const String& newType, void* existingObject)
     }
 
     // Update inlets/outlets
-    updateBounds();
     updatePorts();
+    updateBounds();
 
     cnv->main.updateCommandStatus();
 }
