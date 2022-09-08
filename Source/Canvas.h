@@ -56,6 +56,8 @@ class Canvas : public Component, public Value::Listener, public LassoSource<Weak
     void removeSelection();
     void pasteSelection();
     void duplicateSelection();
+    
+    void encapsulateSelection();
 
     void valueChanged(Value& v) override;
     

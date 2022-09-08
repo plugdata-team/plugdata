@@ -116,17 +116,22 @@ void ObjectBase::closeOpenedSubpatchers()
             main.canvases.removeObject(cnv);
             tabbar->removeTab(n);
             main.pd.patches.removeObject(deleted_patch, false);
+            
+            // Make sure there's at least one patch open
+            if(tabbar->getNumTabs() == 0) {
+                main.newProject();
+            }
+            
+            break;
         }
     }
 
     if (tabbar->getNumTabs() > 1) {
         tabbar->getTabbedButtonBar().setVisible(true);
         tabbar->setTabBarDepth(28);
-        // main.resized(); TODO: this currently crashes because it will access the deleted object, fix this!
     } else {
         tabbar->getTabbedButtonBar().setVisible(false);
         tabbar->setTabBarDepth(1);
-        // main.resized();  TODO: same thing
     }
 }
 
