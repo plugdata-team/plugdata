@@ -106,7 +106,7 @@ struct TextDefineObject final : public TextBase {
         });
     }
 
-    String getText()
+    String getText() override
     {
         auto& textbuf = static_cast<t_fake_text_define*>(ptr)->x_textbuf;
         auto* binbuf = textbuf.b_binbuf;
