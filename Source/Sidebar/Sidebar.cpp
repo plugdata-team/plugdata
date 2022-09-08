@@ -30,8 +30,6 @@ Sidebar::Sidebar(PlugDataAudioProcessor* instance)
 
     browser->setAlwaysOnTop(true);
     browser->addMouseListener(this, true);
-
-    // setBounds(editor->getWidth() - lastWidth, 40, lastWidth, editor->getHeight() - 40);
 }
 
 Sidebar::~Sidebar()
@@ -100,7 +98,6 @@ void Sidebar::mouseDrag(MouseEvent const& e)
 void Sidebar::mouseUp(MouseEvent const& e)
 {
     if (draggingSidebar) {
-        // getCurrentCanvas()->checkBounds(); fix this
         draggingSidebar = false;
     }
 }

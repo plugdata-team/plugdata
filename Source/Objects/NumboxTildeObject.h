@@ -228,7 +228,6 @@ struct NumboxTildeObject final : public GUIObject
 
         pd->getCallbackLock()->enter();
         pd_float(static_cast<t_pd*>(ptr), newValue);
-        // pd_typedmess(static_cast<t_pd*>(ptr), gensym("set"), 1, &at);
         pd->getCallbackLock()->exit();
     }
 

@@ -162,10 +162,6 @@ struct IEMObject : public GUIObject {
     {
         int fontHeight = getFontHeight();
 
-        if (fontHeight == 0) {
-            // fontHeight = glist_getfont(box->cnv->patch.getPointer());
-        }
-
         const String text = getExpandedLabelText();
 
         if (text.isNotEmpty()) {
@@ -267,9 +263,6 @@ struct IEMObject : public GUIObject {
         if (symbol == "empty") {
             rcvable = false;
         }
-
-        // iemgui_all_raute2dollar(srl);
-        // iemgui_all_dollararg2sym(iemgui, srl);
 
         if (rcvable) {
             if (strcmp(symbol.toRawUTF8(), iemgui->x_rcv_unexpanded->s_name)) {
