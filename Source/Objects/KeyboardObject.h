@@ -26,7 +26,6 @@ struct MIDIKeyboard : public MidiKeyboardComponent {
 
         // Rounded first and last keys to fix boxes
         if (midiNoteNumber == getRangeStart()) {
-            // area = area.expanded(0.0f, -0.5f);
             Path keyPath;
             keyPath.addRoundedRectangle(area.getX() + 0.5f, area.getY(), area.getWidth() - 0.5f, area.getHeight(), 2.0f, 2.0f, true, false, true, false);
 

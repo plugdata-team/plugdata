@@ -294,8 +294,6 @@ struct SettingsDialog : public Component {
 
     void paint(Graphics& g) override
     {
-        // g.fillAll(findColour(PlugDataColour::canvasColourId));
-
         g.setColour(findColour(PlugDataColour::canvasColourId));
         g.fillRoundedRectangle(getLocalBounds().reduced(1).toFloat(), 5.0f);
 

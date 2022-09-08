@@ -443,7 +443,6 @@ void Box::updatePorts()
 
 void Box::mouseDown(const MouseEvent& e)
 {
-    //assert(getLocalBounds().contains(e.getPosition()));
     if(!getLocalBounds().contains(e.getPosition())) return;
     
     if (!static_cast<bool>(locked.getValue()) && ModifierKeys::getCurrentModifiers().isAltDown())
