@@ -34,16 +34,14 @@ enum CommandIDs
     ZoomIn,
     ZoomOut,
     ZoomNormal,
-
     Copy,
     Paste,
     Cut,
     Delete,
     Duplicate,
+    Encapsulate,
     SelectAll,
-
     ShowBrowser,
-
     NewObject,
     NewComment,
     NewBang,
@@ -106,6 +104,7 @@ class PlugDataPluginEditor : public AudioProcessorEditor, public Value::Listener
     ComponentDragger windowDragger;
 #endif
 
+    void newProject();
     void openProject();
     void saveProject(const std::function<void()>& nestedCallback = []() {});
     void saveProjectAs(const std::function<void()>& nestedCallback = []() {});

@@ -651,6 +651,13 @@ void Box::openNewObjectEditor()
         editor->setColour(Label::backgroundWhenEditingColourId, findColour(TextEditor::backgroundColourId));
         editor->setColour(Label::outlineWhenEditingColourId, findColour(TextEditor::focusedOutlineColourId));
 
+        // Allow cancelling object creation with escape
+        editor->onEscapeKey = [this](){
+            MessageManager::callAsync([_this = SafePointer(this)](){
+                if(!_this) return;
+                _this->cnv->boxes.removeObject(_this.getComponent());
+            });
+        };
         editor->setAlwaysOnTop(true);
         editor->setMultiLine(false);
         editor->setReturnKeyStartsNewLine(false);

@@ -15,15 +15,17 @@ struct CommentObject final : public TextBase
     {
         g.setColour(findColour(PlugDataColour::textColourId));
         g.setFont(font);
-
-        auto textArea = border.subtractedFrom(getLocalBounds());
-        g.drawFittedText(currentText, textArea, justification, numLines, minimumHorizontalScale);
-
-        auto selected = cnv->isSelected(box);
-        if (box->locked == var(false) && (box->isMouseOverOrDragging(true) || selected) && !cnv->isGraph) {
-            g.setColour(selected ? box->findColour(PlugDataColour::highlightColourId) : box->findColour(PlugDataColour::canvasOutlineColourId));
-
-            g.drawRect(getLocalBounds().toFloat(), 0.5f);
+        
+        if(!editor) {
+            auto textArea = border.subtractedFrom(getLocalBounds());
+            g.drawFittedText(currentText, textArea, justification, numLines, minimumHorizontalScale);
+            
+            auto selected = cnv->isSelected(box);
+            if (box->locked == var(false) && (box->isMouseOverOrDragging(true) || selected) && !cnv->isGraph) {
+                g.setColour(selected ? box->findColour(PlugDataColour::highlightColourId) : box->findColour(PlugDataColour::canvasOutlineColourId));
+                
+                g.drawRect(getLocalBounds().toFloat(), 0.5f);
+            }
         }
     }
 
@@ -90,9 +92,10 @@ struct CommentObject final : public TextBase
 
             copyAllExplicitColoursTo(*editor);
             editor->setColour(Label::textWhenEditingColourId, findColour(TextEditor::textColourId));
-            editor->setColour(Label::backgroundWhenEditingColourId, findColour(TextEditor::backgroundColourId));
+            editor->setColour(Label::backgroundWhenEditingColourId, Colours::transparentWhite);
             editor->setColour(Label::outlineWhenEditingColourId, findColour(TextEditor::focusedOutlineColourId));
-
+            editor->setColour(TextEditor::backgroundColourId, Colours::transparentWhite);
+            
             editor->setAlwaysOnTop(true);
 
             editor->setMultiLine(false);
@@ -100,6 +103,8 @@ struct CommentObject final : public TextBase
             editor->setBorder(border);
             editor->setIndents(0, 0);
             editor->setJustification(justification);
+            
+            currentText = "";
 
             editor->onFocusLost = [this]() {
                 // Necessary so the editor doesn't close when clicking on a suggestion

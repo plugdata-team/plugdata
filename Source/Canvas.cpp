@@ -378,8 +378,6 @@ void Canvas::mouseDown(const MouseEvent& e)
     else
     {
         // Info about selection status
-        auto& lassoSelection = getLassoSelection();
-
         auto selectedBoxes = getSelectionOfType<Box>();
 
         bool hasSelection = !selectedBoxes.isEmpty();
@@ -534,7 +532,7 @@ void Canvas::mouseUp(const MouseEvent& e)
     if (auto* box = dynamic_cast<Box*>(e.originalComponent))
     {
         
-        if (!popupMenu.getNumItems() && !ModifierKeys::getCurrentModifiers().isShiftDown() && !ModifierKeys::getCurrentModifiers().isCommandDown() && e.getDistanceFromDragStart() < 2)
+        if (!popupMenu.getNumItems() && !ModifierKeys::getCurrentModifiers().isShiftDown() && !ModifierKeys::getCurrentModifiers().isCommandDown() && e.getDistanceFromDragStart() < 2 && box->getParentComponent() == this)
         {
             deselectAll();
         }
@@ -708,12 +706,9 @@ void Canvas::deselectAll()
 void Canvas::copySelection()
 {
     // Tell pd to select all objects that are currently selected
-    for (auto sel : getLassoSelection())
+    for (auto* box : getSelectionOfType<Box>())
     {
-        if (auto* box = dynamic_cast<Box*>(sel.get()))
-        {
-            patch.selectObject(box->getPointer());
-        }
+        patch.selectObject(box->getPointer());
     }
 
     // Tell pd to copy
@@ -743,12 +738,9 @@ void Canvas::pasteSelection()
 void Canvas::duplicateSelection()
 {
     // Tell pd to select all objects that are currently selected
-    for (auto sel : getLassoSelection())
+    for (auto* box : getSelectionOfType<Box>())
     {
-        if (auto* box = dynamic_cast<Box*>(sel.get()))
-        {
-            patch.selectObject(box->getPointer());
-        }
+        patch.selectObject(box->getPointer());
     }
 
     // Tell pd to duplicate
@@ -779,15 +771,12 @@ void Canvas::removeSelection()
 
     // Find selected objects and make them selected in pd
     Array<void*> objects;
-    for (auto sel : getLassoSelection())
+    for (auto* box : getSelectionOfType<Box>())
     {
-        if (auto* box = dynamic_cast<Box*>(sel.get()))
+        if (box->getPointer())
         {
-            if (box->getPointer())
-            {
-                patch.selectObject(box->getPointer());
-                objects.add(box->getPointer());
-            }
+            patch.selectObject(box->getPointer());
+            objects.add(box->getPointer());
         }
     }
 
@@ -814,6 +803,109 @@ void Canvas::removeSelection()
     synchronise(false);
 
     patch.deselectAll();
+}
+
+void Canvas::encapsulateSelection()
+{
+    auto selectedBoxes = getSelectionOfType<Box>();
+
+    // If two connections have the same target inlet/outlet, we only need 1 [inlet/outlet] object
+    auto usedEdges = Array<Edge*>();
+    auto targetEdges = Array<Edge*>();
+    
+    int numIn = 0;
+    
+    auto newInternalConnections = String();
+    auto newExternalConnections = String();
+    
+    int subpatchIdx = (patch.getIndex(boxes.getLast()->getPointer()) + 2) - selectedBoxes.size();
+    
+    for(auto* connection : connections) {
+        int numEdges = usedEdges.size();
+        if(selectedBoxes.contains(connection->inbox.getComponent()) &&
+           !selectedBoxes.contains(connection->outbox.getComponent()))
+        {
+            
+            if(usedEdges.addIfNotAlreadyThere(connection->inlet.getComponent())) {
+                targetEdges.add(connection->outlet.getComponent());
+            }
+            
+            int outboxIdx = patch.getIndex(connection->outbox->getPointer()) - selectedBoxes.size();
+            
+            newExternalConnections += "#X connect " + String(outboxIdx) + " " + String(connection->outIdx) + " " + String(subpatchIdx) + " " + String(numIn) + ";\n";
+            
+            int inboxIdx = selectedBoxes.indexOf(connection->inbox.getComponent());
+            int inletObjectIdx = selectedBoxes.size() + numEdges;
+            newInternalConnections += "#X connect " + String(inletObjectIdx) + " 0 " + String(inboxIdx) + " " + String(connection->inIdx) + ";\n";
+            
+            numIn++;
+        }
+        else if(selectedBoxes.contains(connection->outbox.getComponent()) &&
+           !selectedBoxes.contains(connection->inbox.getComponent()))
+        {
+            if(usedEdges.addIfNotAlreadyThere(connection->outlet.getComponent())) {
+                targetEdges.add(connection->inlet.getComponent());
+            }
+            
+            int inboxIdx = patch.getIndex(connection->inbox->getPointer()) + 1;
+
+            //newExternalConnections += "#X connect " + String(outboxIdx) + " " + String(connection->outIdx) + " " + String(subpatchIdx) + " " + String(numIn) + ";\n";
+            
+            int outboxIdx = selectedBoxes.indexOf(connection->outbox.getComponent());
+            int outletObjectIdx = selectedBoxes.size() + numEdges;
+            newInternalConnections += "#X connect " + String(outboxIdx) + " " + String(connection->outIdx) + " " + String(outletObjectIdx) + " 0;\n";
+        }
+    }
+    
+    auto newEdgeObjects = String();
+
+    for(int i = 0; i < usedEdges.size(); i++) {
+        auto type = usedEdges[i]->isInlet ? "inlet" : "outlet";
+        auto pos = targetEdges[i]->getCanvasBounds().getPosition();
+        newEdgeObjects += "#X obj " + String(pos.x) + " " + String(pos.y) + " " + type + ";\n";
+    }
+    
+    patch.deselectAll();
+    
+    auto bounds = Rectangle<int>();
+    for(auto* box : selectedBoxes) {
+        if(box->getPointer())  {
+            bounds = bounds.getUnion(box->getBounds());
+            patch.selectObject(box->getPointer());
+        }
+    }
+    auto centre = bounds.getCentre();
+    
+    pd->enqueueFunction([this, newEdgeObjects, newInternalConnections, newExternalConnections, centre]() mutable{
+        int size;
+        const char* text = libpd_copy(patch.getPointer(), &size);
+        auto copied = String::fromUTF8(text, size);
+        
+        libpd_removeselection(patch.getPointer());
+        
+        auto replacement =
+        "#N canvas 733 172 450 300 0 1;\n" +
+        copied + "\n" +
+        newEdgeObjects +
+        newInternalConnections +
+        "#X restore " + String(centre.x) + " " + String(centre.y) + " pd;\n"
+        ;
+        
+        libpd_paste(patch.getPointer(), replacement.toRawUTF8());
+        
+        canvas_setcurrent(patch.getPointer());
+        libpd_paste(patch.getPointer(), newExternalConnections.toRawUTF8());
+        
+        libpd_createconnection(<#struct _glist *cnv#>, <#t_object *src#>, <#int nout#>, <#t_object *sink#>, <#int nin#>)
+    });
+    
+    
+
+    synchronise(true);
+
+    patch.deselectAll();
+    
+    
 }
 
 void Canvas::undo()
@@ -1018,12 +1110,9 @@ void Canvas::handleMouseUp(Component* component, const MouseEvent& e)
     {
         auto objects = std::vector<void*>();
 
-        for (auto component : getLassoSelection())
+        for (auto* box : getSelectionOfType<Box>())
         {
-            if (auto* box = dynamic_cast<Box*>(component.get()))
-            {
-                if (box->getPointer()) objects.push_back(box->getPointer());
-            }
+            if (box->getPointer()) objects.push_back(box->getPointer());
         }
 
         auto distance = Point<int>(e.getDistanceFromDragStartX(), e.getDistanceFromDragStartY());

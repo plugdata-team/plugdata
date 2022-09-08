@@ -648,7 +648,8 @@ void Patch::keyPress(int keycode, int shift)
 
 String Patch::getTitle() const
 {
-    return { getPointer()->gl_name->s_name };
+    String name = String::fromUTF8(getPointer()->gl_name->s_name);
+    return name.isEmpty() ? "Untitled Patcher" : name;
 }
 
 void Patch::setTitle(String const& title)
