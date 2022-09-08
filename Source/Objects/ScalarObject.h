@@ -173,11 +173,11 @@ struct DrawableTemplate final : public DrawablePath {
                 float xCoord = (baseX + fielddesc_getcoord(f, templ, data, 1)) / (glist->gl_x2 - glist->gl_x1);
                 float yCoord = (baseY + fielddesc_getcoord(f + 1, templ, data, 1)) / (glist->gl_y1 - glist->gl_y2);
                 
+                // In a graph, offset the position by canvas margin
+                // This will make sure the drawing is shown at origin in the original subpatch,
+                // but at the graph's origin when shown inside a graph
                 auto xOffset = canvas->isGraph ? glist->gl_xmargin : 0;
                 auto yOffset = canvas->isGraph ? glist->gl_ymargin : 0;
-                
-                std::cout << xCoord << std::endl;
-                std::cout << yCoord << std::endl;
                 
                 pix[2 * i] = xCoord * bounds.getWidth() + xOffset;
                 pix[2 * i + 1] = yCoord * bounds.getHeight() + yOffset;
