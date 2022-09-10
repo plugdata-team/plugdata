@@ -51,6 +51,9 @@ class Canvas : public Component, public Value::Listener, public LassoSource<Weak
     void updateGuiParameters();
     
     bool keyPressed(const KeyPress& key) override;
+    void valueChanged(Value& v) override;
+    
+    void hideAllActiveEditors();
     
     void copySelection();
     void removeSelection();
@@ -59,17 +62,13 @@ class Canvas : public Component, public Value::Listener, public LassoSource<Weak
     
     void encapsulateSelection();
 
-    void valueChanged(Value& v) override;
-    
-
-    void checkBounds();
-
     void undo();
     void redo();
 
-    // Multi-dragger functions
-    void deselectAll();
+    void checkBounds();
 
+    // Multi-dragger functions
+    void deselectAll();    
     void setSelected(Component* component, bool shouldNowBeSelected);
     bool isSelected(Component* component) const;
 

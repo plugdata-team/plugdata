@@ -4,7 +4,7 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
-struct _fielddesc {
+struct t_fake_fielddesc {
     char fd_type; /* LATER consider removing this? */
     char fd_var;
     union {
@@ -19,19 +19,29 @@ struct _fielddesc {
     float fd_quantum; /* quantization in value */
 };
 
-struct t_curve {
+struct t_fake_curve {
     t_object x_obj;
     int x_flags; /* CLOSED, BEZ, NOMOUSERUN, NOMOUSEEDIT */
-    t_fielddesc x_fillcolor;
-    t_fielddesc x_outlinecolor;
-    t_fielddesc x_width;
-    t_fielddesc x_vis;
+    t_fake_fielddesc x_fillcolor;
+    t_fake_fielddesc x_outlinecolor;
+    t_fake_fielddesc x_width;
+    t_fake_fielddesc x_vis;
     int x_npoints;
-    t_fielddesc* x_vec;
+    t_fake_fielddesc* x_vec;
     t_canvas* x_canvas;
 };
 
-
+struct t_fake_drawnumber
+{
+    t_object x_obj;
+    t_symbol *x_fieldname;
+    t_fake_fielddesc x_xloc;
+    t_fake_fielddesc x_yloc;
+    t_fake_fielddesc x_color;
+    t_fake_fielddesc x_vis;
+    t_symbol *x_label;
+    t_canvas *x_canvas;
+};
 
 extern "C"
 {
@@ -49,17 +59,13 @@ int scalar_doclick(t_word* data, t_template* t, t_scalar* sc,
 #define NOVERTICES 16 /* disable only vertex grabbing in run mode */
 #define A_ARRAY 55    /* LATER decide whether to enshrine this in m_pd.h */
 
-struct t_curve;
-struct DrawableTemplate final : public DrawablePath {
-    t_scalar* scalar;
-    t_curve* object;
-    int baseX, baseY;
-    Canvas* canvas;
-    bool isLocked;
+struct DrawableTemplate : public DrawablePath
+{
+    virtual void update() = 0;
     
     /* getting and setting values via fielddescs -- note confusing names;
      the above are setting up the fielddesc itself. */
-    static t_float fielddesc_getfloat(t_fielddesc* f, t_template* templ, t_word* wp, int loud)
+    static t_float fielddesc_getfloat(t_fake_fielddesc* f, t_template* templ, t_word* wp, int loud)
     {
         if (f->fd_type == A_FLOAT) {
             if (f->fd_var)
@@ -91,9 +97,18 @@ struct DrawableTemplate final : public DrawablePath {
         sprintf(s, "#%2.2x%2.2x%2.2x", rangecolor(red), rangecolor(blue), rangecolor(green));
     }
     
-    DrawableTemplate(t_scalar* s, t_gobj* obj, Canvas* cnv, int x, int y)
+    bool isLocked;
+};
+
+struct DrawableCurve final : public DrawableTemplate {
+    t_scalar* scalar;
+    t_fake_curve* object;
+    int baseX, baseY;
+    Canvas* canvas;
+    
+    DrawableCurve(t_scalar* s, t_gobj* obj, Canvas* cnv, int x, int y)
     : scalar(s)
-    , object(reinterpret_cast<t_curve*>(obj))
+    , object(reinterpret_cast<t_fake_curve*>(obj))
     , canvas(cnv)
     , baseX(x)
     , baseY(y)
@@ -101,7 +116,7 @@ struct DrawableTemplate final : public DrawablePath {
         Desktop::getInstance().addGlobalMouseListener(this);
     }
     
-    ~DrawableTemplate(){
+    ~DrawableCurve(){
         Desktop::getInstance().removeGlobalMouseListener(this);
     }
     
@@ -119,48 +134,38 @@ struct DrawableTemplate final : public DrawablePath {
         
         t_template *t = template_findbyname(scalar->sc_template);
         scalar_doclick(scalar->sc_vec, t, scalar, 0, canvas->patch.getPointer(), 0, 0, relativeEvent.x, relativeEvent.y, shift, alt, dbl, 1);
-        updateAllDrawables();
-    }
-    
-    void updateAllDrawables() {
+       
+        // Update all drawables
         for(auto* box : canvas->boxes)  {
-            
             if(!box->gui) continue;
-            
             box->gui->updateDrawables();
         }
     }
     
-    void update()
-    {
-        if (String::fromUTF8(object->x_obj.te_g.g_pd->c_name->s_name) == "drawtext") {
-            return; // not supported yet
-        }
-        
-        // TODO: hacky workaround for potential crash. Doens't always work. Fix this.
+    void update() override {
+
         if (!scalar || !scalar->sc_template)
             return;
         
         auto* glist = canvas->patch.getPointer();
         auto* templ = template_findbyname(scalar->sc_template);
         
-        int i, n = object->x_npoints;
-        t_fielddesc* f = object->x_vec;
-        
+        auto* x = reinterpret_cast<t_fake_curve*>(object);
+        int i, n = x->x_npoints;
+        t_fake_fielddesc* f = x->x_vec;
         auto* data = scalar->sc_vec;
         
-        /* see comment in plot_vis() */
-        if (!fielddesc_getfloat(&object->x_vis, templ, data, 0)) {
+        if (!fielddesc_getfloat(&x->x_vis, templ, data, 0)) {
             return;
         }
         
         auto bounds = canvas->isGraph ? canvas->getParentComponent()->getLocalBounds() : canvas->getLocalBounds();
         
         if (n > 1) {
-            int flags = object->x_flags;
+            int flags = x->x_flags;
             int closed = flags & CLOSED;
             
-            t_float width = fielddesc_getfloat(&object->x_width, templ, data, 1);
+            t_float width = fielddesc_getfloat(&x->x_width, templ, data, 1);
             
             char outline[20], fill[20];
             int pix[200];
@@ -169,9 +174,9 @@ struct DrawableTemplate final : public DrawablePath {
             
             canvas->pd->getCallbackLock()->enter();
             
-            for (i = 0, f = object->x_vec; i < n; i++, f += 2) {
-                float xCoord = (baseX + fielddesc_getcoord(f, templ, data, 1)) / (glist->gl_x2 - glist->gl_x1);
-                float yCoord = (baseY + fielddesc_getcoord(f + 1, templ, data, 1)) / (glist->gl_y1 - glist->gl_y2);
+            for (i = 0, f = x->x_vec; i < n; i++, f += 2) {
+                float xCoord = (baseX + fielddesc_getcoord((t_fielddesc*)f, templ, data, 1)) / (glist->gl_x2 - glist->gl_x1);
+                float yCoord = (baseY + fielddesc_getcoord((t_fielddesc*)(f + 1), templ, data, 1)) / (glist->gl_y1 - glist->gl_y2);
                 
                 // In a graph, offset the position by canvas margin
                 // This will make sure the drawing is shown at origin in the original subpatch,
@@ -190,12 +195,12 @@ struct DrawableTemplate final : public DrawablePath {
             if (glist->gl_isgraph)
                 width *= glist_getzoom(glist);
             
-            numbertocolor(fielddesc_getfloat(&object->x_outlinecolor, templ, data, 1), outline);
+            numbertocolor(fielddesc_getfloat(&x->x_outlinecolor, templ, data, 1), outline);
             setStrokeFill(Colour::fromString("FF" + String::fromUTF8(outline + 1)));
             setStrokeThickness(width);
             
             if (closed) {
-                numbertocolor(fielddesc_getfloat(&object->x_fillcolor, templ, data, 1), fill);
+                numbertocolor(fielddesc_getfloat(&x->x_fillcolor, templ, data, 1), fill);
                 setFill(Colour::fromString("FF" + String::fromUTF8(fill + 1)));
             }
             else {
@@ -229,25 +234,102 @@ struct DrawableTemplate final : public DrawablePath {
             post("warning: curves need at least two points to be graphed");
         }
     }
+};
 
+struct DrawableSymbol final : public DrawableTemplate {
+    t_scalar* scalar;
+    t_fake_drawnumber* object;
+    int baseX, baseY;
+    Canvas* canvas;
     
-    static void graphRect(t_gobj *z, t_glist *glist,
-                          int *xp1, int *yp1, int *xp2, int *yp2)
+    DrawableSymbol(t_scalar* s, t_gobj* obj, Canvas* cnv, int x, int y)
+    : scalar(s)
+    , object(reinterpret_cast<t_fake_drawnumber*>(obj))
+    , canvas(cnv)
+    , baseX(x)
+    , baseY(y)
     {
-        t_glist *x = (t_glist *)z;
-        int x1 = text_xpix(&x->gl_obj, glist);
-        int y1 = text_ypix(&x->gl_obj, glist);
-        int x2, y2;
-        x2 = x1 + x->gl_zoom * x->gl_pixwidth;
-        y2 = y1 + x->gl_zoom * x->gl_pixheight;
-        
-        *xp1 = x1;
-        *yp1 = y1;
-        *xp2 = x2;
-        *yp2 = y2;
+        Desktop::getInstance().addGlobalMouseListener(this);
     }
     
+    ~DrawableSymbol(){
+        Desktop::getInstance().removeGlobalMouseListener(this);
+    }
+    
+    // TODO: implement number dragging
+    void mouseDown(const MouseEvent& e) override
+    {
+    }
+
+    
+#define DRAWNUMBER_BUFSIZE 1024
+    void update() override {
+        // TODO: hacky workaround for potential crash. Doens't always work. Fix this.
+        if (!scalar || !scalar->sc_template)
+            return;
+        
+        auto* glist = canvas->patch.getPointer();
+        auto* templ = template_findbyname(scalar->sc_template);
+        
+        auto* x = reinterpret_cast<t_fake_drawnumber*>(object);
+        
+        auto* data = scalar->sc_vec;
+        t_atom at;
+        
+        int xloc = glist_xtopixels(glist, baseX + fielddesc_getcoord((t_fielddesc*)&x->x_xloc, templ, data, 0));
+        int yloc = glist_ytopixels(glist, baseY + fielddesc_getcoord((t_fielddesc*)&x->x_yloc, templ, data, 0));
+        char colorstring[20], buf[DRAWNUMBER_BUFSIZE];
+        numbertocolor(fielddesc_getfloat(&x->x_color, templ, data, 1), colorstring);
+        
+        int type, onset;
+        t_symbol *arraytype;
+        if (!template_find_field(templ, x->x_fieldname, &onset, &type, &arraytype) || type != DT_ARRAY) {
+            type = -1;
+        }
+        
+        int nchars;
+        if (type < 0)
+            buf[0] = 0;
+        else
+        {
+            strncpy(buf, x->x_label->s_name, DRAWNUMBER_BUFSIZE);
+            buf[DRAWNUMBER_BUFSIZE - 1] = 0;
+            nchars = (int)strlen(buf);
+            if (type == DT_TEXT)
+            {
+                char *buf2;
+                int size2, ncopy;
+                binbuf_gettext(((t_word *)((char *)data + onset))->w_binbuf,
+                    &buf2, &size2);
+                ncopy = (size2 > DRAWNUMBER_BUFSIZE-1-nchars ?
+                    DRAWNUMBER_BUFSIZE-1-nchars: size2);
+                memcpy(buf+nchars, buf2, ncopy);
+                buf[nchars+ncopy] = 0;
+                if (nchars+ncopy == DRAWNUMBER_BUFSIZE-1)
+                    strcpy(buf+(DRAWNUMBER_BUFSIZE-4), "...");
+                t_freebytes(buf2, size2);
+            }
+            else
+            {
+                t_atom at;
+                if (type == DT_FLOAT)
+                    SETFLOAT(&at, ((t_word *)((char *)data + onset))->w_float);
+                else SETSYMBOL(&at, ((t_word *)((char *)data + onset))->w_symbol);
+                atom_string(&at, buf + nchars, DRAWNUMBER_BUFSIZE - nchars);
+            }
+        }
+        
+
+        sys_vgui(".x%lx.c create text %d %d -anchor nw -fill %s -text {%s}",
+                glist_getcanvas(glist), xloc, yloc, colorstring, buf);
+        sys_vgui(" -font {{%s} -%d %s}", sys_font,
+            sys_hostfontsize(glist_getfont(glist), glist_getzoom(glist)),
+                sys_fontweight);
+        sys_vgui(" -tags [list drawnumber%lx label]\n", data);
+
+    }
 };
+
 
 struct ScalarObject final : public NonPatchable {
     OwnedArray<DrawableTemplate> templates;
@@ -269,8 +351,19 @@ struct ScalarObject final : public NonPatchable {
             if (!wb)
                 continue;
             
-            auto* drawable = templates.add(new DrawableTemplate(x, y, cnv, static_cast<int>(basex), static_cast<int>(basey)));
-            cnv->addAndMakeVisible(drawable);
+            DrawableTemplate* drawable = nullptr;
+            auto name = String::fromUTF8(y->g_pd->c_name->s_name);
+            if (name == "drawtext" || name == "drawnumber" || name == "drawsymbol") {
+                drawable = templates.add(new DrawableSymbol(x, y, cnv, static_cast<int>(basex), static_cast<int>(basey)));
+            }
+            else if(name == "drawpolygon" || name == "drawcurve" || name == "filledpolygon" || name == "filledcurve") {
+                drawable = templates.add(new DrawableCurve(x, y, cnv, static_cast<int>(basex), static_cast<int>(basey)));
+            }
+            else if(name == "plot") {
+                // TODO: implement this
+            }
+            
+            if(drawable) cnv->addAndMakeVisible(drawable);
         }
         
         updateDrawables();
