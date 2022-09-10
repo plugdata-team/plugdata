@@ -267,6 +267,9 @@ void Canvas::synchronise(bool updatePosition)
                 // Update storage ids for connections
                 auto& c = *(*it);
 
+                c.inIdx = c.inlet->edgeIdx;
+                c.outIdx = c.outlet->edgeIdx;
+                
                 auto currentId = c.getId();
                 if (c.lastId.isNotEmpty() && c.lastId != currentId)
                 {
@@ -563,7 +566,8 @@ void Canvas::mouseUp(const MouseEvent& e)
         connectingWithDrag = false;
         repaint();
     }
-    else if (connectingWithDrag)
+    // Unless the call originates from a connection, clear any connections that are being created
+    else if (connectingWithDrag && !dynamic_cast<Connection*>(e.originalComponent))
     {
         connectingEdges.clear();
         connectingWithDrag = false;
@@ -704,6 +708,13 @@ void Canvas::deselectAll()
     main.sidebar.hideParameters();
 }
 
+void Canvas::hideAllActiveEditors()
+{
+    for(auto* box : boxes)  {
+        box->hideEditor();
+    }
+}
+
 void Canvas::copySelection()
 {
     // Tell pd to select all objects that are currently selected
@@ -809,68 +820,87 @@ void Canvas::removeSelection()
 void Canvas::encapsulateSelection()
 {
     auto selectedBoxes = getSelectionOfType<Box>();
-
+    
+    // Sort by index in pd patch
+    std::sort(selectedBoxes.begin(), selectedBoxes.end(),
+        [this](auto* a, auto* b) -> bool
+    {
+        return boxes.indexOf(a) < boxes.indexOf(b);
+    });
+    
     // If two connections have the same target inlet/outlet, we only need 1 [inlet/outlet] object
     auto usedEdges = Array<Edge*>();
     auto targetEdges = std::map<Edge*, Array<Edge*>>();
-    
-    int numIn = 0;
-    
+        
     auto newInternalConnections = String();
-    auto newExternalConnections = Array<std::pair<Edge*, int>>();
+    auto newExternalConnections = std::map<int, Array<Edge*>>();
     
     int subpatchIdx = (patch.getIndex(boxes.getLast()->getPointer()) + 1) - selectedBoxes.size();
     
+    // First, find all the incoming and outgoing connections
     for(auto* connection : connections) {
         if(selectedBoxes.contains(connection->inbox.getComponent()) &&
            !selectedBoxes.contains(connection->outbox.getComponent()))
         {
             auto* inlet = connection->inlet.getComponent();
-            bool added = usedEdges.addIfNotAlreadyThere(inlet);
-            int numEdges = usedEdges.size() - 1;
             targetEdges[inlet].add(connection->outlet.getComponent());
+            usedEdges.addIfNotAlreadyThere(inlet);
             
-            newExternalConnections.add({connection->outlet.getComponent(), numEdges});
-            
-            if(added) {
-                int inboxIdx = selectedBoxes.indexOf(connection->inbox.getComponent());
-                int inletObjectIdx = selectedBoxes.size() + numEdges;
-                newInternalConnections += "#X connect " + String(inletObjectIdx) + " 0 " + String(inboxIdx) + " " + String(connection->inIdx) + ";\n";
-                
-                numIn++;
-            }
         }
     }
-    
     for(auto* connection : connections) {
         if(selectedBoxes.contains(connection->outbox.getComponent()) &&
            !selectedBoxes.contains(connection->inbox.getComponent()))
         {
             auto* outlet = connection->outlet.getComponent();
-            
-            bool added = usedEdges.addIfNotAlreadyThere(outlet);
-            int numEdges = usedEdges.size() - 1;
-            
             targetEdges[outlet].add(connection->inlet.getComponent());
-            
-            newExternalConnections.add({connection->inlet.getComponent(), numEdges - numIn});
-            
-            if(added) {
-                int outboxIdx = selectedBoxes.indexOf(connection->outbox.getComponent());
-                int outletObjectIdx = selectedBoxes.size() + numEdges;
-                newInternalConnections += "#X connect " + String(outboxIdx) + " " + String(connection->outIdx) + " " + String(outletObjectIdx) + " 0;\n";
-            }
+            usedEdges.addIfNotAlreadyThere(outlet);
         }
     }
     
     auto newEdgeObjects = String();
 
-    for(auto* edge : usedEdges) {
+    // Sort by position
+    std::sort(usedEdges.begin(), usedEdges.end(),
+        [](auto* a, auto* b) -> bool
+    {
+        // Inlets before outlets
+        if(a->isInlet != b->isInlet) return a->isInlet;
+        
+        auto apos = a->getCanvasBounds().getPosition();
+        auto bpos = b->getCanvasBounds().getPosition();
+        
+        if(apos.x == bpos.x) {
+            return apos.y < bpos.y;
+        }
+        
+        return apos.x < bpos.x;
+    });
+    
+    int i = 0;
+    int numIn = 0;
+    for(auto* edge : usedEdges)
+    {
+        auto type = String(edge->isInlet ? "inlet" : "outlet") + String(edge->isSignal ? "~" : "");
         auto* targetEdge = targetEdges[edge][0];
-        auto type = String(edge->isInlet ? "inlet" : "outlet");
-        if(edge->isSignal && targetEdge->isSignal) type += "~";
-        auto pos = targetEdge->getCanvasBounds().getPosition();
+        auto pos = targetEdge->box->getPosition();
         newEdgeObjects += "#X obj " + String(pos.x) + " " + String(pos.y) + " " + type + ";\n";
+    
+        int boxIdx = selectedBoxes.indexOf(edge->box);
+        int ioletObjectIdx = selectedBoxes.size() + i;
+        if(edge->isInlet) {
+            newInternalConnections += "#X connect " + String(ioletObjectIdx) + " 0 " + String(boxIdx) + " " + String(edge->edgeIdx) + ";\n";
+            numIn++;
+        }
+        else {
+            newInternalConnections += "#X connect " + String(boxIdx) + " " + String(edge->edgeIdx) + " " + String(ioletObjectIdx) + " 0;\n";
+        }
+        
+        for(auto* target : targetEdges[edge]) {
+            newExternalConnections[i].add(target);
+        }
+        
+        i++;
     }
     
     patch.deselectAll();
@@ -879,40 +909,44 @@ void Canvas::encapsulateSelection()
     for(auto* box : selectedBoxes) {
         if(box->getPointer())  {
             bounds = bounds.getUnion(box->getBounds());
-            patch.selectObject(box->getPointer());
+            patch.selectObject(box->getPointer()); // TODO: do this inside enqueue
         }
     }
     auto centre = bounds.getCentre();
     
     auto copypasta =
     String("#N canvas 733 172 450 300 0 1;\n") +
-    "$$_COPY_HERE_$$\n" +
+    "$$_COPY_HERE_$$" +
     newEdgeObjects +
     newInternalConnections +
     "#X restore " + String(centre.x) + " " + String(centre.y) + " pd;\n";
     
-    pd->enqueueFunction([this, copypasta, newExternalConnections]() mutable {
-        
+    // Apply the changed on Pd's thread
+    pd->enqueueFunction([this, copypasta, newExternalConnections, numIn]() mutable {
         int size;
         const char* text = libpd_copy(patch.getPointer(), &size);
         auto copied = String::fromUTF8(text, size);
         
+        // Wrap it in an undo sequence, to allow undoing everything in 1 step
         patch.startUndoSequence("encapsulate");
         
         libpd_removeselection(patch.getPointer());
         
         auto replacement = copypasta.replace("$$_COPY_HERE_$$", copied);
+        SystemClipboard::copyTextToClipboard(replacement);
         
         libpd_paste(patch.getPointer(), replacement.toRawUTF8());
         auto* newObject = static_cast<t_object*>(patch.getObjects().back());
         
-        for(auto [edge, idx] : newExternalConnections) {
-            auto* externalObject = static_cast<t_object*>(edge->box->getPointer());
-            if(edge->isInlet) {
-                libpd_createconnection(patch.getPointer(), newObject, idx, externalObject, edge->edgeIdx);
-            }
-            else {
-                libpd_createconnection(patch.getPointer(), externalObject, edge->edgeIdx, newObject, idx);
+        for(auto& [idx, edges] : newExternalConnections) {
+            for(auto* edge : edges) {
+                auto* externalObject = static_cast<t_object*>(edge->box->getPointer());
+                if(edge->isInlet) {
+                    libpd_createconnection(patch.getPointer(), newObject, idx - numIn, externalObject, edge->edgeIdx);
+                }
+                else {
+                    libpd_createconnection(patch.getPointer(), externalObject, edge->edgeIdx, newObject, idx);
+                }
             }
         }
         

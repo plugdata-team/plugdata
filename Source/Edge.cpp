@@ -121,6 +121,8 @@ void Edge::mouseExit(const MouseEvent& e)
 
 void Edge::createConnection()
 {
+    box->cnv->hideAllActiveEditors();
+    
     // Check if this is the start or end action of connecting
     if (!box->cnv->connectingEdges.isEmpty())
     {
