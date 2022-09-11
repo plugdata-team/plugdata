@@ -4,8 +4,8 @@ struct GraphOnParent final : public GUIObject {
 
 public:
     // Graph On Parent
-    GraphOnParent(void* obj, Box* box)
-        : GUIObject(obj, box)
+    GraphOnParent(void* obj, Object* object)
+        : GUIObject(obj, object)
         , subpatch({ ptr, cnv->pd })
     {
         auto* glist = static_cast<t_canvas*>(ptr);
@@ -29,7 +29,7 @@ public:
         updateDrawables();
     }
 
-    // Called by box to make sure clicks on empty parts of the graph are passed on
+    // Called by object to make sure clicks on empty parts of the graph are passed on
     bool canReceiveMouseEvent(int x, int y) override
     {
         if (!canvas)
@@ -37,11 +37,11 @@ public:
         if (!isLocked)
             return true;
 
-        for (auto& obj : canvas->boxes) {
+        for (auto& obj : canvas->objects) {
             if (!obj->gui)
                 continue;
 
-            auto localPoint = obj->getLocalPoint(box, Point<int>(x, y));
+            auto localPoint = obj->getLocalPoint(object, Point<int>(x, y));
 
             if (obj->hitTest(localPoint.x, localPoint.y)) {
                 return true;
@@ -54,11 +54,11 @@ public:
     void checkBounds() override
     {
         // Apply size limits
-        int w = jlimit(25, maxSize, box->getWidth());
-        int h = jlimit(25, maxSize, box->getHeight());
+        int w = jlimit(25, maxSize, object->getWidth());
+        int h = jlimit(25, maxSize, object->getHeight());
 
-        if (w != box->getWidth() || h != box->getHeight()) {
-            box->setSize(w, h);
+        if (w != object->getWidth() || h != object->getHeight()) {
+            object->setSize(w, h);
         }
     }
 
@@ -72,7 +72,7 @@ public:
 
         pd->getCallbackLock()->exit();
 
-        box->setObjectBounds(bounds);
+        object->setObjectBounds(bounds);
     }
 
     ~GraphOnParent() override
@@ -82,7 +82,7 @@ public:
 
     void applyBounds() override
     {
-        auto b = box->getObjectBounds();
+        auto b = object->getObjectBounds();
         libpd_moveobj(cnv->patch.getPointer(), static_cast<t_gobj*>(ptr), b.getX(), b.getY());
 
         auto* graph = static_cast<_glist*>(ptr);
@@ -115,9 +115,9 @@ public:
     {
         // Change from subpatch to graph
         if (!static_cast<t_canvas*>(ptr)->gl_isgraph) {
-            cnv->setSelected(box, false);
-            box->cnv->main.sidebar.hideParameters();
-            box->setType(getText(), ptr);
+            cnv->setSelected(object, false);
+            object->cnv->main.sidebar.hideParameters();
+            object->setType(getText(), ptr);
             return;
         }
 
@@ -126,9 +126,9 @@ public:
         if (!canvas)
             return;
 
-        for (auto& box : canvas->boxes) {
-            if (box->gui) {
-                box->gui->updateValue();
+        for (auto& object : canvas->objects) {
+            if (object->gui) {
+                object->gui->updateValue();
             }
         }
     }
@@ -137,9 +137,9 @@ public:
     {
         if (!canvas)
             return;
-        for (auto& box : canvas->boxes) {
-            if (box->gui) {
-                box->gui->updateDrawables();
+        for (auto& object : canvas->objects) {
+            if (object->gui) {
+                object->gui->updateDrawables();
             }
         }
     }
@@ -147,7 +147,7 @@ public:
     // override to make transparent
     void paint(Graphics& g) override
     {
-        auto outlineColour = box->findColour(cnv->isSelected(box) && !cnv->isGraph ? PlugDataColour::highlightColourId : PlugDataColour::canvasOutlineColourId);
+        auto outlineColour = object->findColour(cnv->isSelected(object) && !cnv->isGraph ? PlugDataColour::highlightColourId : PlugDataColour::canvasOutlineColourId);
 
         g.setColour(outlineColour);
         g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), 2.0f, 1.0f);
@@ -156,7 +156,7 @@ public:
         auto text = getText();
 
         if (!static_cast<bool>(hideNameAndArgs.getValue()) && text != "graph") {
-            g.setColour(box->findColour(PlugDataColour::textColourId));
+            g.setColour(object->findColour(PlugDataColour::textColourId));
             g.setFont(Font(15));
             auto textArea = getLocalBounds().removeFromTop(20).withTrimmedLeft(5);
             g.drawFittedText(text, textArea, Justification::left, 1, 1.0f);

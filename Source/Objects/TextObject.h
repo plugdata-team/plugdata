@@ -1,24 +1,24 @@
 // Text base class that text objects with special implementation details can derive from
 struct TextBase : public ObjectBase
     , public TextEditor::Listener {
-    TextBase(void* obj, Box* parent, bool valid = true)
+    TextBase(void* obj, Object* parent, bool valid = true)
         : ObjectBase(obj, parent)
         , isValid(valid)
     {
         currentText = getText();
 
         // To get enter/exit messages
-        addMouseListener(box, false);
+        addMouseListener(object, false);
     }
 
     ~TextBase()
     {
-        removeMouseListener(box);
+        removeMouseListener(object);
     }
 
     void applyBounds() override
     {
-        auto b = box->getObjectBounds();
+        auto b = object->getObjectBounds();
         libpd_moveobj(cnv->patch.getPointer(), static_cast<t_gobj*>(ptr), b.getX(), b.getY());
 
         auto* textObj = static_cast<t_text*>(ptr);
@@ -31,13 +31,13 @@ struct TextBase : public ObjectBase
         textObjectWidth = (getWidth() - textWidthOffset) / fontWidth;
 
         int width = textObjectWidth * fontWidth + textWidthOffset;
-        width = std::max(width, std::max({1, box->numInputs, box->numOutputs}) * 18);
+        width = std::max(width, std::max({1, object->numInputs, object->numOutputs}) * 18);
         
         numLines = getNumLines(currentText, width);
         int height = numLines * 15 + 6;
 
         if (getWidth() != width || getHeight() != height) {
-            box->setSize(width + Box::doubleMargin, height + Box::doubleMargin);
+            object->setSize(width + Object::doubleMargin, height + Object::doubleMargin);
         }
 
         if (editor) {
@@ -47,7 +47,7 @@ struct TextBase : public ObjectBase
 
     void paint(Graphics& g) override
     {
-        g.setColour(box->findColour(PlugDataColour::canvasColourId));
+        g.setColour(object->findColour(PlugDataColour::canvasColourId));
         g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), 2.0f);
 
         g.setColour(findColour(PlugDataColour::textColourId));
@@ -56,7 +56,7 @@ struct TextBase : public ObjectBase
         auto textArea = border.subtractedFrom(getLocalBounds());
         g.drawFittedText(currentText, textArea, justification, numLines, minimumHorizontalScale);
 
-        bool selected = cnv->isSelected(box);
+        bool selected = cnv->isSelected(object);
 
         auto outlineColour = findColour(selected && !cnv->isGraph ? PlugDataColour::highlightColourId : PlugDataColour::canvasOutlineColourId);
 
@@ -123,7 +123,7 @@ struct TextBase : public ObjectBase
         }
 
         int width = textObjectWidth * fontWidth + textWidthOffset;
-        width = std::max(width, std::max({1, box->numInputs, box->numOutputs}) * 18);
+        width = std::max(width, std::max({1, object->numInputs, object->numOutputs}) * 18);
         
         numLines = getNumLines(currentText, width);
         int height = numLines * 15 + 6;
@@ -131,7 +131,7 @@ struct TextBase : public ObjectBase
         bounds.setWidth(width);
         bounds.setHeight(height);
 
-        box->setObjectBounds(bounds);
+        object->setObjectBounds(bounds);
     }
 
     void hideEditor() override
@@ -162,7 +162,7 @@ struct TextBase : public ObjectBase
 
             // update if the name has changed, or if pdobject is unassigned
             if (changed) {
-                box->setType(newText);
+                object->setType(newText);
             }
         }
     }
@@ -193,7 +193,7 @@ struct TextBase : public ObjectBase
                 }
             };
 
-            cnv->showSuggestions(box, editor.get());
+            cnv->showSuggestions(object, editor.get());
 
             editor->setSize(10, 10);
             addAndMakeVisible(editor.get());
@@ -245,7 +245,7 @@ protected:
 
 // Actual text object, marked final for optimisation
 struct TextObject final : public TextBase {
-    TextObject(void* obj, Box* parent, bool isValid = true)
+    TextObject(void* obj, Object* parent, bool isValid = true)
         : TextBase(obj, parent, isValid)
     {
     }

@@ -6,15 +6,15 @@
 #include "Connection.h"
 
 #include "Canvas.h"
-#include "Edge.h"
+#include "Iolet.h"
 #include "LookAndFeel.h"
 
-Connection::Connection(Canvas* parent, Edge* s, Edge* e, bool exists) : cnv(parent), outlet(s->isInlet ? e : s), inlet(s->isInlet ? s : e), outbox(outlet->box), inbox(inlet->box)
+Connection::Connection(Canvas* parent, Iolet* s, Iolet* e, bool exists) : cnv(parent), outlet(s->isInlet ? e : s), inlet(s->isInlet ? s : e), outbox(outlet->object), inbox(inlet->object)
 {
     
     locked.referTo(parent->locked);
     
-    // Make sure it's not 2x the same edge
+    // Make sure it's not 2x the same iolet
     if (!outlet || !inlet || outlet->isInlet == inlet->isInlet)
     {
         outlet = nullptr;
@@ -50,7 +50,7 @@ Connection::Connection(Canvas* parent, Edge* s, Edge* e, bool exists) : cnv(pare
         if (!info.isEmpty()) setState(info);
     }
     
-    // Listen to changes at edges
+    // Listen to changes at iolets
     outbox->addComponentListener(this);
     inbox->addComponentListener(this);
     outlet->addComponentListener(this);
@@ -113,7 +113,7 @@ String Connection::getId() const
 {
     MemoryOutputStream stream;
     
-    // TODO: check if connection is still valid before requesting idx from box
+    // TODO: check if connection is still valid before requesting idx from object
     
     stream.writeInt(cnv->patch.getIndex(inbox->getPointer()));
     stream.writeInt(cnv->patch.getIndex(outbox->getPointer()));
@@ -408,7 +408,7 @@ int Connection::getClosestLineIdx(const Point<int>& position, const PathPlan& pl
     return -1;
 }
 
-void Connection::reconnect(Edge* target, bool dragged)
+void Connection::reconnect(Iolet* target, bool dragged)
 {
     if(!reconnecting.isEmpty()) return;
     
@@ -417,7 +417,7 @@ void Connection::reconnect(Edge* target, bool dragged)
     Array<Connection*> connections = {this};
     
     if(Desktop::getInstance().getMainMouseSource().getCurrentModifiers().isShiftDown()) {
-        for(auto* c : otherEdge->box->getConnections()) {
+        for(auto* c : otherEdge->object->getConnections()) {
             if(c == this || !cnv->isSelected(c)) continue;
             
             connections.add(c);
@@ -632,9 +632,9 @@ void Connection::findPath()
     auto obstacles = Array<Rectangle<int>>();
     auto searchBounds = Rectangle<int>(pstart, pend);
     
-    for(auto* box : cnv->boxes) {
-        if(box->getBounds().intersects(searchBounds)) {
-            obstacles.add(box->getBounds());
+    for(auto* object : cnv->objects) {
+        if(object->getBounds().intersects(searchBounds)) {
+            obstacles.add(object->getBounds());
         }
     }
     
@@ -714,12 +714,12 @@ void Connection::findPath()
 int Connection::findLatticePaths(PathPlan& bestPath, PathPlan& pathStack, Point<int> pstart, Point<int> pend, Point<int> increment)
 {
     
-    auto obstacles = Array<Box*>();
+    auto obstacles = Array<Object*>();
     auto searchBounds = Rectangle<int>(pstart, pend);
     
-    for(auto* box : cnv->boxes) {
-        if(box->getBounds().intersects(searchBounds)) {
-            obstacles.add(box);
+    for(auto* object : cnv->objects) {
+        if(object->getBounds().intersects(searchBounds)) {
+            obstacles.add(object);
         }
     }
     
@@ -729,7 +729,7 @@ int Connection::findLatticePaths(PathPlan& bestPath, PathPlan& pathStack, Point<
     // Add point to path
     pathStack.push_back(pstart);
     
-    // Check if it intersects any box
+    // Check if it intersects any object
     if (pathStack.size() > 1 && straightLineIntersectsObject(Line<int>(pathStack.back(), *(pathStack.end() - 2)), obstacles))
     {
         return 0;
@@ -796,7 +796,7 @@ int Connection::findLatticePaths(PathPlan& bestPath, PathPlan& pathStack, Point<
     return count;
 }
 
-bool Connection::intersectsObject(Box* object)
+bool Connection::intersectsObject(Object* object)
 {
     auto b = (object->getBounds() - getPosition()).toFloat();
     return toDraw.intersectsLine({b.getTopLeft(), b.getTopRight()})
@@ -806,14 +806,14 @@ bool Connection::intersectsObject(Box* object)
 }
 
 
-bool Connection::straightLineIntersectsObject(Line<int> toCheck, Array<Box*>& boxes)
+bool Connection::straightLineIntersectsObject(Line<int> toCheck, Array<Object*>& objects)
 {
     
-    for (const auto& box : boxes)
+    for (const auto& object : objects)
     {
-        auto bounds = box->getBounds().expanded(1);
+        auto bounds = object->getBounds().expanded(1);
         
-        if (box == outbox || box == inbox || !bounds.intersects(getBounds())) continue;
+        if (object == outbox || object == inbox || !bounds.intersects(getBounds())) continue;
         
         auto intersectV = [](Line<int> first, Line<int> second)
         {

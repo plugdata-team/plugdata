@@ -1,9 +1,9 @@
 
 struct CanvasObject final : public IEMObject {
-    CanvasObject(void* ptr, Box* box)
-        : IEMObject(ptr, box)
+    CanvasObject(void* ptr, Object* object)
+        : IEMObject(ptr, object)
     {
-        box->setColour(PlugDataColour::canvasOutlineColourId, Colours::transparentBlack);
+        object->setColour(PlugDataColour::canvasOutlineColourId, Colours::transparentBlack);
     }
 
     void updateBounds() override
@@ -17,7 +17,7 @@ struct CanvasObject final : public IEMObject {
 
         pd->getCallbackLock()->exit();
 
-        box->setObjectBounds(bounds);
+        object->setObjectBounds(bounds);
     }
 
     void resized() override
@@ -29,11 +29,11 @@ struct CanvasObject final : public IEMObject {
     void checkBounds() override
     {
         // Apply size limits
-        int w = jlimit(20, maxSize, box->getWidth());
-        int h = jlimit(20, maxSize, box->getHeight());
+        int w = jlimit(20, maxSize, object->getWidth());
+        int h = jlimit(20, maxSize, object->getHeight());
 
-        if (w != box->getWidth() || h != box->getHeight()) {
-            box->setSize(w, h);
+        if (w != object->getWidth() || h != object->getHeight()) {
+            object->setSize(w, h);
         }
     }
 
@@ -41,7 +41,7 @@ struct CanvasObject final : public IEMObject {
     {
         g.fillAll(Colour::fromString(secondaryColour.toString()));
 
-        auto outlineColour = box->findColour(cnv->isSelected(box) && !cnv->isGraph ? PlugDataColour::highlightColourId : PlugDataColour::canvasOutlineColourId);
+        auto outlineColour = object->findColour(cnv->isSelected(object) && !cnv->isGraph ? PlugDataColour::highlightColourId : PlugDataColour::canvasOutlineColourId);
         g.setColour(outlineColour);
         g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), 2.0f, 1.0f);
     }

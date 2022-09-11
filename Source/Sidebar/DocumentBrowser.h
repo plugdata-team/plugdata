@@ -375,9 +375,9 @@ public:
                 auto* cnv = editor->getCurrentCanvas();
                 cnv->attachNextObjectToMouse = true;
 
-                auto lastPosition = cnv->viewport->getViewArea().getConstrainedPoint(cnv->getMouseXYRelative() - Point<int>(Box::margin, Box::margin));
+                auto lastPosition = cnv->viewport->getViewArea().getConstrainedPoint(cnv->getMouseXYRelative() - Point<int>(Object::margin, Object::margin));
                 auto filePath = file.getFullPathName().replaceCharacter('\\', '/');
-                cnv->boxes.add(new Box(cnv, "msg " + filePath, lastPosition));
+                cnv->objects.add(new Object(cnv, "msg " + filePath, lastPosition));
             }
         }
     }

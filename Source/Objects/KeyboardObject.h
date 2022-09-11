@@ -24,7 +24,7 @@ struct MIDIKeyboard : public MidiKeyboardComponent {
 
         g.setColour(c);
 
-        // Rounded first and last keys to fix boxes
+        // Rounded first and last keys to fix objects
         if (midiNoteNumber == getRangeStart()) {
             Path keyPath;
             keyPath.addRoundedRectangle(area.getX() + 0.5f, area.getY(), area.getWidth() - 0.5f, area.getHeight(), 2.0f, 2.0f, true, false, true, false);
@@ -104,8 +104,8 @@ struct KeyboardObject final : public GUIObject
         t_outlet* x_out;
     } t_keyboard;
 
-    KeyboardObject(void* ptr, Box* box)
-        : GUIObject(ptr, box)
+    KeyboardObject(void* ptr, Object* object)
+        : GUIObject(ptr, object)
         , keyboard(state, MidiKeyboardComponent::horizontalKeyboard)
     {
         keyboard.setMidiChannel(1);
@@ -142,7 +142,7 @@ struct KeyboardObject final : public GUIObject
 
         pd->getCallbackLock()->exit();
 
-        box->setObjectBounds(bounds);
+        object->setObjectBounds(bounds);
     }
 
     void checkBounds() override
@@ -152,8 +152,8 @@ struct KeyboardObject final : public GUIObject
 
         auto* keyboardObject = static_cast<t_keyboard*>(ptr);
 
-        if (box->getWidth() / ratio != box->getHeight()) {
-            box->setSize(box->getHeight() * ratio, box->getHeight());
+        if (object->getWidth() / ratio != object->getHeight()) {
+            object->setSize(object->getHeight() * ratio, object->getHeight());
 
             if (getWidth() > 0) {
                 keyboard.setKeyWidth(getWidth() / (numKeys * 0.584f));
@@ -164,7 +164,7 @@ struct KeyboardObject final : public GUIObject
 
     void applyBounds() override
     {
-        auto b = box->getObjectBounds();
+        auto b = object->getObjectBounds();
         libpd_moveobj(cnv->patch.getPointer(), static_cast<t_gobj*>(ptr), b.getX(), b.getY());
 
         auto* keyboard = static_cast<t_keyboard*>(ptr);
@@ -271,7 +271,7 @@ struct KeyboardObject final : public GUIObject
 
     void paintOverChildren(Graphics& g) override
     {
-        auto outlineColour = box->findColour(cnv->isSelected(box) && !cnv->isGraph ? PlugDataColour::highlightColourId : PlugDataColour::canvasOutlineColourId);
+        auto outlineColour = object->findColour(cnv->isSelected(object) && !cnv->isGraph ? PlugDataColour::highlightColourId : PlugDataColour::canvasOutlineColourId);
         g.setColour(outlineColour);
         g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), 2.0f, 1.0f);
     }

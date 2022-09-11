@@ -5,7 +5,7 @@ char* pdgui_strnescape(char* dst, size_t dstlen, char const* src, size_t srclen)
 }
 
 struct IEMObject : public GUIObject {
-    IEMObject(void* ptr, Box* parent)
+    IEMObject(void* ptr, Object* parent)
         : GUIObject(ptr, parent)
     {
         auto* iemgui = static_cast<t_iemgui*>(ptr);
@@ -35,7 +35,7 @@ struct IEMObject : public GUIObject {
         g.setColour(getBackgroundColour());
         g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), 2.0f);
 
-        auto outlineColour = box->findColour(cnv->isSelected(box) && !cnv->isGraph ? PlugDataColour::highlightColourId : PlugDataColour::canvasOutlineColourId);
+        auto outlineColour = object->findColour(cnv->isSelected(object) && !cnv->isGraph ? PlugDataColour::highlightColourId : PlugDataColour::canvasOutlineColourId);
 
         g.setColour(outlineColour);
         g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), 2.0f, 1.0f);
@@ -43,7 +43,7 @@ struct IEMObject : public GUIObject {
 
     void applyBounds() override
     {
-        auto b = box->getObjectBounds();
+        auto b = object->getObjectBounds();
 
         auto* iemgui = static_cast<t_iemgui*>(ptr);
         iemgui->x_obj.te_xpix = b.getX();
@@ -155,7 +155,7 @@ struct IEMObject : public GUIObject {
         auto bounds = Rectangle<int>(iemgui->x_obj.te_xpix, iemgui->x_obj.te_ypix, iemgui->x_w, iemgui->x_h);
         pd->getCallbackLock()->exit();
 
-        box->setObjectBounds(bounds);
+        object->setObjectBounds(bounds);
     }
 
     void updateLabel() override
@@ -184,13 +184,13 @@ struct IEMObject : public GUIObject {
 
             label->setColour(Label::textColourId, getLabelColour());
 
-            box->cnv->addAndMakeVisible(label.get());
+            object->cnv->addAndMakeVisible(label.get());
         }
     }
 
     Rectangle<int> getLabelBounds() const
     {
-        auto objectBounds = box->getBounds().reduced(Box::margin);
+        auto objectBounds = object->getBounds().reduced(Object::margin);
 
         t_symbol const* sym = canvas_realizedollar(static_cast<t_iemgui*>(ptr)->x_glist, static_cast<t_iemgui*>(ptr)->x_lab);
         if (sym) {
