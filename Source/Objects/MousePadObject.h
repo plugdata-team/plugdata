@@ -3,7 +3,7 @@
 struct MousePadObject final : public GUIObject {
     bool isLocked = false;
     bool isPressed = false;
-    
+
     Point<int> lastPosition;
 
     typedef struct _pad {
@@ -44,7 +44,7 @@ struct MousePadObject final : public GUIObject {
         auto fillColour = Colour(x->x_color[0], x->x_color[1], x->x_color[2]);
         g.setColour(fillColour);
         g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), 2.0f);
-        
+
         auto outlineColour = object->findColour(cnv->isSelected(object) && !cnv->isGraph ? PlugDataColour::highlightColourId : PlugDataColour::canvasOutlineColourId);
 
         g.setColour(outlineColour);
@@ -54,7 +54,7 @@ struct MousePadObject final : public GUIObject {
     void mouseDown(MouseEvent const& e) override
     {
         auto relativeEvent = e.getEventRelativeTo(this);
-        
+
         if (!getLocalBounds().contains(relativeEvent.getPosition()) || !isLocked || !object->cnv->isShowing())
             return;
 
@@ -86,17 +86,18 @@ struct MousePadObject final : public GUIObject {
         t_atom at[3];
 
         auto relativeEvent = e.getEventRelativeTo(this);
-        
+
         // Don't repeat values
-        if(relativeEvent.getPosition() == lastPosition) return;
+        if (relativeEvent.getPosition() == lastPosition)
+            return;
 
         x->x_x = relativeEvent.getPosition().x;
         x->x_y = relativeEvent.getPosition().y;
-        
+
         SETFLOAT(at, x->x_x);
         SETFLOAT(at + 1, x->x_y);
-        
-        lastPosition = {x->x_x, x->x_y};
+
+        lastPosition = { x->x_x, x->x_y };
 
         sys_lock();
         outlet_anything(x->x_obj.ob_outlet, &s_list, 2, at);

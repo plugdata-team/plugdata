@@ -3,7 +3,7 @@
 class SuggestionComponent : public Component
     , public KeyListener
     , public TextEditor::InputFilter {
-        
+
     class Suggestion : public TextButton {
         int idx = 0;
         int type = -1;
@@ -33,9 +33,9 @@ class SuggestionComponent : public Component
 
             repaint();
         }
-        
+
         // TODO: why is this necessary?
-        void mouseDown(const MouseEvent& e) override
+        void mouseDown(MouseEvent const& e) override
         {
             onClick();
         }
@@ -228,7 +228,7 @@ public:
         } else if (port->getViewPositionY() + port->getMaximumVisibleHeight() < but->getY() + but->getHeight()) {
             port->setViewPosition(0, but->getY() - (but->getHeight() * 4));
         }
-        
+
         repaint();
     }
 

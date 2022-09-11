@@ -111,7 +111,6 @@ struct SymbolAtomObject final : public AtomObject
         }
         return false;
     }
-        
 
     Label input;
 };

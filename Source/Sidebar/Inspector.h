@@ -6,37 +6,36 @@
 
 #include "../Utility/PropertiesPanel.h"
 
-
 struct Inspector : public Component {
-    
+
     PropertiesPanel panel;
     String title;
-    
-    Inspector() {
+
+    Inspector()
+    {
         addAndMakeVisible(panel);
     }
-    
+
     void paint(Graphics& g) override
     {
-        
+
         g.setColour(findColour(PlugDataColour::textColourId));
         g.drawText(title, getLocalBounds().removeFromTop(23), Justification::centred);
-        
+
         g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
         g.drawLine(0, 23, getWidth(), 23);
     }
-    
+
     void resized() override
     {
         panel.setBounds(getLocalBounds().withTrimmedTop(28));
-        
     }
-    
-    void setTitle(const String& name)
+
+    void setTitle(String const& name)
     {
         title = name;
     }
-    
+
     PropertyComponent* createPanel(int type, String const& name, Value* value, int idx, std::vector<String>& options)
     {
         switch (type) {
