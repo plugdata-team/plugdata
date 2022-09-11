@@ -498,7 +498,8 @@ File Library::findHelpfile(t_object* obj)
         int ac = binbuf_getnatom(ob->te_binbuf);
         t_atom *av = binbuf_getvec(ob->te_binbuf);
         if (ac < 1)
-            return;
+            return File();
+        
         atom_string(av, namebuf, MAXPDSTRING);
         helpName = String::fromUTF8(namebuf).fromLastOccurrenceOf("/", false, false);
     }
