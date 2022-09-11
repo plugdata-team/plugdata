@@ -112,6 +112,10 @@ struct Library : public FileSystemWatcher::Listener {
     String getInletOutletTooltip(String objname, int idx, int total, bool isInlet);
 
     void fsChangeCallback() override;
+    
+    File findHelpfile(t_object* obj);
+
+    std::vector<File> helpPaths;
 
     LambdaThread* thread;
 

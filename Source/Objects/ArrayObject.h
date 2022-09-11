@@ -54,6 +54,9 @@ public:
         float min = -1, max = 1;
         libpd_set_instance(static_cast<t_pdinstance*>(instance));
         libpd_array_get_scale(ptr, &min, &max);
+        
+        if(min == max) max += 1e-6;
+        
         return { min, max };
     }
 
@@ -162,9 +165,13 @@ public:
         std::vector<float> points = vec;
 
         if (!points.empty()) {
-            const std::array<float, 2> scale = array.getScale();
-            if (scale[0] >= scale[1])
-                return;
+            std::array<float, 2> scale = array.getScale();
+            bool invert = false;
+            
+            if (scale[0] >= scale[1]) {
+                invert = true;
+                std::swap(scale[0], scale[1]);
+            }
 
             // More than a point per pixel will cause insane loads, and isn't actually helpful
             // Instead, linearly interpolate the vector to a max size of width in pixels
@@ -186,6 +193,8 @@ public:
                     float const y3 = h - (std::clamp(points[i + 1], scale[0], scale[1]) - scale[0]) * dh;
                     p.cubicTo(static_cast<float>(i - 1) * dw, y1, static_cast<float>(i) * dw, y2, static_cast<float>(i + 1) * dw, y3);
                 }
+                
+                if(invert) p.applyTransform(AffineTransform::verticalFlip(getHeight()));
 
                 g.setColour(object->findColour(PlugDataColour::canvasOutlineColourId));
                 g.strokePath(p, PathStrokeType(1));
@@ -204,6 +213,8 @@ public:
                     p.addLineSegment({ lastPoint, newPoint }, 1.0f);
                     lastPoint = newPoint;
                 }
+                
+                if(invert) p.applyTransform(AffineTransform::verticalFlip(getHeight()));
 
                 g.setColour(object->findColour(PlugDataColour::canvasOutlineColourId));
                 g.fillPath(p);
@@ -212,7 +223,8 @@ public:
             case PdArray::DrawType::Points: {
                 g.setColour(object->findColour(PlugDataColour::canvasOutlineColourId));
                 for (size_t i = 0; i < points.size(); i++) {
-                    float const y = h - (std::clamp(points[i], scale[0], scale[1]) - scale[0]) * dh;
+                    float y = h - (std::clamp(points[i], scale[0], scale[1]) - scale[0]) * dh;
+                    if(invert) y = getHeight() - y;
                     g.drawHorizontalLine(y, static_cast<float>(i) * dw, static_cast<float>(i + 1) * dw);
                 }
                 break;
@@ -263,7 +275,8 @@ public:
         auto const x = static_cast<float>(e.x);
         auto const y = static_cast<float>(e.y);
 
-        const std::array<float, 2> scale = array.getScale();
+        std::array<float, 2> scale = array.getScale();
+        
         int const index = static_cast<int>(std::round(std::clamp(x / w, 0.f, 1.f) * s));
 
         float start = vec[lastIndex];

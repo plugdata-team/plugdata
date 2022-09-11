@@ -709,67 +709,23 @@ void Object::textEditorTextChanged(TextEditor& ed)
 void Object::openHelpPatch() const
 {
     cnv->pd->setThis();
-    
-    // Find name of help file
-    static File appDir = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory).getChildFile("PlugData").getChildFile("Library");
 
-    auto* ptr = getPointer();
-    if (!ptr)  {
-        cnv->pd->logMessage("Couldn't find help file");
-        return;
-    }
-
-    auto* pdclass = pd_class(static_cast<t_pd*>(ptr));
-    String helpName;
-    
-    if(pdclass == canvas_class && canvas_isabstraction((t_canvas *)getPointer())) {
-        char namebuf[MAXPDSTRING];
-        t_object *ob = (t_object *)getPointer();
-        int ac = binbuf_getnatom(ob->te_binbuf);
-        t_atom *av = binbuf_getvec(ob->te_binbuf);
-        if (ac < 1)
+    if (auto* ptr = static_cast<t_object*>(getPointer())) {
+        
+        auto file = cnv->pd->objectLibrary.findHelpfile(ptr);
+        
+        if(!file.existsAsFile()) {
+            cnv->pd->logMessage("Couldn't find help file");
             return;
-        atom_string(av, namebuf, MAXPDSTRING);
-        helpName = String::fromUTF8(namebuf).fromLastOccurrenceOf("/", false, false);
-    }
-    else {
-        helpName = class_gethelpname(pdclass);
-    }
-
-    String firstName = helpName + "-help.pd";
-    String secondName = "help-" + helpName + ".pd";
-
-    auto findHelpPatch = [&firstName, &secondName](const File& searchDir) -> File
-    {
-        for (const auto& fileIter : RangedDirectoryIterator(searchDir, true))
-        {
-            auto file = fileIter.getFile();
-            if (file.getFileName() == firstName || file.getFileName() == secondName)
-            {
-                return file;
-            }
         }
-
-        return File();
-    };
-
-    // Paths to search
-    // First, only search vanilla, then search all documentation
-    std::vector<File> paths = {appDir.getChildFile("Documentation").getChildFile("5.reference"), appDir.getChildFile("Documentation")};
-    
-    for (auto& path : paths)
-    {
-        auto file = findHelpPatch(path);
-        if (file.existsAsFile())
-        {
-            cnv->pd->enqueueFunction([this, file]() mutable {
-                cnv->pd->loadPatch(file);
-            });
-            return;
-        }        
+        
+        cnv->pd->enqueueFunction([this, file]() mutable {
+            cnv->pd->loadPatch(file);
+            
+        });
+        
+        return;
     }
     
     cnv->pd->logMessage("Couldn't find help file");
 }
-
-
