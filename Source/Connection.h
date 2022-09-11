@@ -25,7 +25,7 @@ class Connection : public Component, public ComponentListener
     int outIdx;
 
     SafePointer<Iolet> inlet, outlet;
-    SafePointer<Object> inbox, outbox;
+    SafePointer<Object> inobj, outobj;
 
     Path toDraw;
     String lastId;
