@@ -21,20 +21,20 @@ struct MousePadObject final : public GUIObject {
         unsigned char x_color[3];
     } t_pad;
 
-    MousePadObject(void* ptr, Box* box)
-        : GUIObject(ptr, box)
+    MousePadObject(void* ptr, Object* object)
+        : GUIObject(ptr, object)
     {
         Desktop::getInstance().addGlobalMouseListener(this);
 
         // Only intercept global mouse events
         setInterceptsMouseClicks(false, false);
 
-        // addMouseListener(box, false);
+        // addMouseListener(object, false);
     }
 
     ~MousePadObject()
     {
-        removeMouseListener(box);
+        removeMouseListener(object);
         Desktop::getInstance().removeGlobalMouseListener(this);
     }
 
@@ -45,7 +45,7 @@ struct MousePadObject final : public GUIObject {
         g.setColour(fillColour);
         g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), 2.0f);
         
-        auto outlineColour = box->findColour(cnv->isSelected(box) && !cnv->isGraph ? PlugDataColour::highlightColourId : PlugDataColour::canvasOutlineColourId);
+        auto outlineColour = object->findColour(cnv->isSelected(object) && !cnv->isGraph ? PlugDataColour::highlightColourId : PlugDataColour::canvasOutlineColourId);
 
         g.setColour(outlineColour);
         g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), 2.0f, 1.0f);
@@ -55,7 +55,7 @@ struct MousePadObject final : public GUIObject {
     {
         auto relativeEvent = e.getEventRelativeTo(this);
         
-        if (!getLocalBounds().contains(relativeEvent.getPosition()) || !isLocked || !box->cnv->isShowing())
+        if (!getLocalBounds().contains(relativeEvent.getPosition()) || !isLocked || !object->cnv->isShowing())
             return;
 
         auto* x = static_cast<t_pad*>(ptr);
@@ -117,7 +117,7 @@ struct MousePadObject final : public GUIObject {
 
     void applyBounds() override
     {
-        auto b = box->getObjectBounds();
+        auto b = object->getObjectBounds();
         libpd_moveobj(cnv->patch.getPointer(), static_cast<t_gobj*>(ptr), b.getX(), b.getY());
 
         auto* pad = static_cast<t_pad*>(ptr);
@@ -134,7 +134,7 @@ struct MousePadObject final : public GUIObject {
 
         pd->getCallbackLock()->exit();
 
-        box->setObjectBounds({ x, y, w, h });
+        object->setObjectBounds({ x, y, w, h });
     }
 
     void lock(bool locked) override

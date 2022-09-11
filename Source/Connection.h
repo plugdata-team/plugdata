@@ -13,7 +13,7 @@ extern "C"
 #include <m_pd.h>
 }
 
-#include "Edge.h"
+#include "Iolet.h"
 
 using PathPlan = std::vector<Point<int>>;
 
@@ -24,13 +24,13 @@ class Connection : public Component, public ComponentListener
     int inIdx;
     int outIdx;
 
-    SafePointer<Edge> inlet, outlet;
-    SafePointer<Box> inbox, outbox;
+    SafePointer<Iolet> inlet, outlet;
+    SafePointer<Object> inbox, outbox;
 
     Path toDraw;
     String lastId;
 
-    Connection(Canvas* parent, Edge* start, Edge* end, bool exists = false);
+    Connection(Canvas* parent, Iolet* start, Iolet* end, bool exists = false);
     ~Connection() override;
 
     void paint(Graphics&) override;
@@ -51,7 +51,7 @@ class Connection : public Component, public ComponentListener
     Point<int> getStartPoint();
     Point<int> getEndPoint();
 
-    void reconnect(Edge* target, bool dragged);
+    void reconnect(Iolet* target, bool dragged);
 
     bool intersects(Rectangle<float> toCheck, int accuracy = 4) const;
     int getClosestLineIdx(const Point<int>& position, const PathPlan& plan);
@@ -68,8 +68,8 @@ class Connection : public Component, public ComponentListener
 
     void findPath();
 
-    bool intersectsObject(Box* object);
-    bool straightLineIntersectsObject(Line<int> toCheck, Array<Box*>& boxes);
+    bool intersectsObject(Object* object);
+    bool straightLineIntersectsObject(Line<int> toCheck, Array<Object*>& objects);
 
    private:
     bool wasSelected = false;

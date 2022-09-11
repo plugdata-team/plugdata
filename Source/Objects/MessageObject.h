@@ -18,7 +18,7 @@ struct MessageObject final : public GUIObject
 
     String lastMessage;
 
-    MessageObject(void* obj, Box* parent)
+    MessageObject(void* obj, Object* parent)
         : GUIObject(obj, parent)
     {
         addAndMakeVisible(input);
@@ -31,8 +31,8 @@ struct MessageObject final : public GUIObject
             stopEdition();
 
             auto width = Font(15).getStringWidth(input.getText()) + 35;
-            if (width < box->getWidth()) {
-                box->setSize(width, box->getHeight());
+            if (width < object->getWidth()) {
+                object->setSize(width, object->getHeight());
                 checkBounds();
             }
         };
@@ -48,8 +48,8 @@ struct MessageObject final : public GUIObject
             editor->onTextChange = [this, editor]() {
                 auto width = input.getFont().getStringWidth(editor->getText()) + 35;
 
-                if (width > box->getWidth()) {
-                    box->setSize(width, box->getHeight());
+                if (width > object->getWidth()) {
+                    object->setSize(width, object->getHeight());
                 }
             };
 
@@ -58,7 +58,7 @@ struct MessageObject final : public GUIObject
 
         input.setMinimumHorizontalScale(0.9f);
 
-        box->addMouseListener(this, false);
+        object->addMouseListener(this, false);
     }
 
     void updateBounds() override
@@ -80,29 +80,29 @@ struct MessageObject final : public GUIObject
 
         pd->getCallbackLock()->exit();
 
-        box->setObjectBounds({ x, y, w, h });
+        object->setObjectBounds({ x, y, w, h });
     }
 
     void checkBounds() override
     {
-        int numLines = getNumLines(getText(), box->getWidth() - Box::doubleMargin - 5);
+        int numLines = getNumLines(getText(), object->getWidth() - Object::doubleMargin - 5);
         int fontWidth = glist_fontwidth(cnv->patch.getPointer());
-        int newHeight = (numLines * 19) + Box::doubleMargin + 2;
+        int newHeight = (numLines * 19) + Object::doubleMargin + 2;
         int newWidth = getWidth() / fontWidth;
 
         static_cast<t_text*>(ptr)->te_width = newWidth;
-        newWidth = std::max((newWidth * fontWidth), 35) + Box::doubleMargin;
+        newWidth = std::max((newWidth * fontWidth), 35) + Object::doubleMargin;
 
-        if (getParentComponent() && (box->getHeight() != newHeight || newWidth != box->getWidth())) {
-            box->setSize(newWidth, newHeight);
+        if (getParentComponent() && (object->getHeight() != newHeight || newWidth != object->getWidth())) {
+            object->setSize(newWidth, newHeight);
         }
     }
 
     void showEditor() override
     {
-        input.setColour(Label::textColourId, box->findColour(PlugDataColour::textColourId));
-        input.setColour(Label::textWhenEditingColourId, box->findColour(PlugDataColour::textColourId));
-        input.setColour(TextEditor::textColourId, box->findColour(PlugDataColour::textColourId));
+        input.setColour(Label::textColourId, object->findColour(PlugDataColour::textColourId));
+        input.setColour(Label::textWhenEditingColourId, object->findColour(PlugDataColour::textColourId));
+        input.setColour(TextEditor::textColourId, object->findColour(PlugDataColour::textColourId));
 
         input.showEditor();
         input.getCurrentTextEditor()->addKeyListener(this);
@@ -115,7 +115,7 @@ struct MessageObject final : public GUIObject
 
     void applyBounds() override
     {
-        auto b = box->getObjectBounds();
+        auto b = object->getObjectBounds();
         libpd_moveobj(cnv->patch.getPointer(), static_cast<t_gobj*>(ptr), b.getX(), b.getY());
 
         auto* textObj = static_cast<t_text*>(ptr);
@@ -144,7 +144,7 @@ struct MessageObject final : public GUIObject
         Path flagPath;
         flagPath.addQuadrilateral(b.getRight(), b.getY(), b.getRight() - 4, b.getY() + 4, b.getRight() - 4, b.getBottom() - 4, b.getRight(), b.getBottom());
 
-        g.setColour(box->findColour(PlugDataColour::canvasOutlineColourId));
+        g.setColour(object->findColour(PlugDataColour::canvasOutlineColourId));
         g.fillPath(flagPath);
 
         if (isDown) {

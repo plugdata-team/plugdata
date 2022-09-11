@@ -4,12 +4,12 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
-#include "Box.h"
+#include "Object.h"
 #include <memory>
 
 #include "Canvas.h"
 #include "Connection.h"
-#include "Edge.h"
+#include "Iolet.h"
 #include "LookAndFeel.h"
 
 extern "C"
@@ -18,7 +18,7 @@ extern "C"
 #include <m_imp.h>
 }
 
-Box::Box(Canvas* parent, const String& name, Point<int> position) : cnv(parent)
+Object::Object(Canvas* parent, const String& name, Point<int> position) : cnv(parent)
 {
     setTopLeftPosition(position - Point<int>(margin, margin));
 
@@ -55,7 +55,7 @@ Box::Box(Canvas* parent, const String& name, Point<int> position) : cnv(parent)
     }
 }
 
-Box::Box(void* object, Canvas* parent)
+Object::Object(void* object, Canvas* parent)
 {
     cnv = parent;
 
@@ -64,7 +64,7 @@ Box::Box(void* object, Canvas* parent)
     setType("", object);
 }
 
-Box::~Box()
+Object::~Object()
 {
     if(!cnv->isBeingDeleted) {
         // Ensure there's no pointer to this object in the selection
@@ -77,17 +77,17 @@ Box::~Box()
     }
 }
 
-Rectangle<int> Box::getObjectBounds()
+Rectangle<int> Object::getObjectBounds()
 {
     return getBounds().reduced(margin) - cnv->canvasOrigin;
 }
 
-void Box::setObjectBounds(Rectangle<int> bounds)
+void Object::setObjectBounds(Rectangle<int> bounds)
 {
     setBounds(bounds.expanded(margin) + cnv->canvasOrigin);
 }
 
-void Box::initialise()
+void Object::initialise()
 {
     addMouseListener(cnv, true);  // Receive mouse messages on canvas
     cnv->addAndMakeVisible(this);
@@ -104,7 +104,7 @@ void Box::initialise()
     originalBounds.setBounds(0, 0, 0, 0);
 }
 
-void Box::timerCallback()
+void Object::timerCallback()
 {
     auto pos = cnv->getMouseXYRelative();
     if (pos != getBounds().getCentre())
@@ -113,7 +113,7 @@ void Box::timerCallback()
     }
 }
 
-void Box::valueChanged(Value& v)
+void Object::valueChanged(Value& v)
 {
     // Hide certain objects in GOP
     resized();
@@ -127,7 +127,7 @@ void Box::valueChanged(Value& v)
     repaint();
 }
 
-bool Box::hitTest(int x, int y)
+bool Object::hitTest(int x, int y)
 {
     if(gui && !gui->canReceiveMouseEvent(x, y)) {
         return false;
@@ -139,10 +139,10 @@ bool Box::hitTest(int x, int y)
         return true;
     }
 
-    // Mouse over edges
-    for (auto* edge : edges)
+    // Mouse over iolets
+    for (auto* iolet : iolets)
     {
-        if (edge->getBounds().contains(x, y)) return true;
+        if (iolet->getBounds().contains(x, y)) return true;
     }
 
     // Mouse over corners
@@ -158,18 +158,18 @@ bool Box::hitTest(int x, int y)
 }
 
 
-// To make edges show/hide
-void Box::mouseEnter(const MouseEvent& e)
+// To make iolets show/hide
+void Object::mouseEnter(const MouseEvent& e)
 {
     repaint();
 }
 
-void Box::mouseExit(const MouseEvent& e)
+void Object::mouseExit(const MouseEvent& e)
 {
     repaint();
 }
 
-void Box::mouseMove(const MouseEvent& e)
+void Object::mouseMove(const MouseEvent& e)
 {
     if (!cnv->isSelected(this) || locked == var(true))
     {
@@ -195,7 +195,7 @@ void Box::mouseMove(const MouseEvent& e)
     updateMouseCursor();
 }
 
-void Box::updateBounds()
+void Object::updateBounds()
 {
     if (gui)
     {
@@ -205,9 +205,9 @@ void Box::updateBounds()
     resized();
 }
 
-void Box::setType(const String& newType, void* existingObject)
+void Object::setType(const String& newType, void* existingObject)
 {
-    // Change box type
+    // Change object type
     String type = newType.upToFirstOccurrenceOf(" ", false, false);
 
     void* objectPtr;
@@ -259,7 +259,7 @@ void Box::setType(const String& newType, void* existingObject)
     cnv->main.updateCommandStatus();
 }
 
-Array<Rectangle<float>> Box::getCorners() const
+Array<Rectangle<float>> Object::getCorners() const
 {
     auto rect = getLocalBounds().reduced(margin);
     const float offset = 2.0f;
@@ -270,26 +270,26 @@ Array<Rectangle<float>> Box::getCorners() const
     return corners;
 }
 
-void Box::paintOverChildren(Graphics& g)
+void Object::paintOverChildren(Graphics& g)
 {
     if (attachedToMouse)
     {
         g.saveState();
 
-        // Don't draw line over edges!
-        for (auto& edge : edges)
+        // Don't draw line over iolets!
+        for (auto& iolet : iolets)
         {
-            g.excludeClipRegion(edge->getBounds().reduced(2));
+            g.excludeClipRegion(iolet->getBounds().reduced(2));
         }
 
         g.setColour(Colours::lightgreen);
-        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(Box::margin + 1.0f), 2.0f, 2.0f);
+        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(Object::margin + 1.0f), 2.0f, 2.0f);
 
         g.restoreState();
     }
 }
 
-void Box::paint(Graphics& g)
+void Object::paint(Graphics& g)
 {
     if (cnv->isSelected(this) && !cnv->isGraph)
     {
@@ -298,7 +298,7 @@ void Box::paint(Graphics& g)
         g.saveState();
         g.excludeClipRegion(getLocalBounds().reduced(margin + 1));
 
-        // Draw resize edges when selected
+        // Draw resize iolets when selected
         for (auto& rect : getCorners())
         {
             g.fillRoundedRectangle(rect, 2.0f);
@@ -307,7 +307,7 @@ void Box::paint(Graphics& g)
     }
 }
 
-void Box::resized()
+void Object::resized()
 {
     setVisible(!((cnv->isGraph || cnv->presentationMode == var(true)) && gui && gui->hideInGraph()));
 
@@ -346,9 +346,9 @@ void Box::resized()
     }
 
     int index = 0;
-    for (auto& edge : edges)
+    for (auto& iolet : iolets)
     {
-        const bool isInlet = edge->isInlet;
+        const bool isInlet = iolet->isInlet;
         const int position = index < numInputs ? index : index - numInputs;
         const int total = isInlet ? numInputs : numOutputs;
         const float yPosition = (isInlet ? (margin + 1) : getHeight() - margin) - edgeSize / 2.0f;
@@ -358,19 +358,19 @@ void Box::resized()
         if (total == 1 && position == 0)
         {
             int xPosition = getWidth() < 40 ? getLocalBounds().getCentreX() - edgeSize / 2.0f : bounds.getX();
-            edge->setBounds(xPosition, yPosition, edgeSize, edgeSize);
+            iolet->setBounds(xPosition, yPosition, edgeSize, edgeSize);
         }
         else if (total > 1)
         {
             const float ratio = (bounds.getWidth() - edgeSize) / static_cast<float>(total - 1);
-            edge->setBounds(bounds.getX() + ratio * position, yPosition, edgeSize, edgeSize);
+            iolet->setBounds(bounds.getX() + ratio * position, yPosition, edgeSize, edgeSize);
         }
 
         index++;
     }
 }
 
-void Box::updatePorts()
+void Object::updatePorts()
 {
     if (!getPointer()) return;
 
@@ -379,9 +379,9 @@ void Box::updatePorts()
     int oldNumInputs = 0;
     int oldNumOutputs = 0;
 
-    for (auto& edge : edges)
+    for (auto& iolet : iolets)
     {
-        edge->isInlet ? oldNumInputs++ : oldNumOutputs++;
+        iolet->isInlet ? oldNumInputs++ : oldNumOutputs++;
     }
 
     numInputs = 0;
@@ -393,10 +393,10 @@ void Box::updatePorts()
         numOutputs = libpd_noutlets(ptr);
     }
 
-    while (numInputs < oldNumInputs) edges.remove(--oldNumInputs);
-    while (numInputs > oldNumInputs) edges.insert(oldNumInputs++, new Edge(this, true));
-    while (numOutputs < oldNumOutputs) edges.remove(numInputs + (--oldNumOutputs));
-    while (numOutputs > oldNumOutputs) edges.insert(numInputs + (++oldNumOutputs), new Edge(this, false));
+    while (numInputs < oldNumInputs) iolets.remove(--oldNumInputs);
+    while (numInputs > oldNumInputs) iolets.insert(oldNumInputs++, new Iolet(this, true));
+    while (numOutputs < oldNumOutputs) iolets.remove(numInputs + (--oldNumOutputs));
+    while (numOutputs > oldNumOutputs) iolets.insert(numInputs + (++oldNumOutputs), new Iolet(this, false));
     
     if(gui) {
         gui->setTooltip(cnv->pd->objectLibrary.getObjectDescriptions()[gui->getType()]);
@@ -407,8 +407,8 @@ void Box::updatePorts()
 
     for (int i = 0; i < numInputs + numOutputs; i++)
     {
-        auto* edge = edges[i];
-        bool input = edge->isInlet;
+        auto* iolet = iolets[i];
+        bool input = iolet->isInlet;
 
         bool isSignal;
         if (i < numInputs)
@@ -420,19 +420,19 @@ void Box::updatePorts()
             isSignal = libpd_issignaloutlet(pd::Patch::checkObject(getPointer()), i - numInputs);
         }
 
-        edge->edgeIdx = input ? numIn : numOut;
-        edge->isSignal = isSignal;
-        edge->setAlwaysOnTop(true);
+        iolet->edgeIdx = input ? numIn : numOut;
+        iolet->isSignal = isSignal;
+        iolet->setAlwaysOnTop(true);
 
         if (gui)
         {
-            String tooltip = cnv->pd->objectLibrary.getInletOutletTooltip(gui->getType(), edge->edgeIdx, input ? numInputs : numOutputs, input);
-            edge->setTooltip(tooltip);
+            String tooltip = cnv->pd->objectLibrary.getInletOutletTooltip(gui->getType(), iolet->edgeIdx, input ? numInputs : numOutputs, input);
+            iolet->setTooltip(tooltip);
         }
 
         // Don't show for graphs or presentation mode
-        edge->setVisible(!(cnv->isGraph || cnv->presentationMode == var(true)));
-        edge->repaint();
+        iolet->setVisible(!(cnv->isGraph || cnv->presentationMode == var(true)));
+        iolet->repaint();
 
         numIn += input;
         numOut += !input;
@@ -441,7 +441,7 @@ void Box::updatePorts()
     resized();
 }
 
-void Box::mouseDown(const MouseEvent& e)
+void Object::mouseDown(const MouseEvent& e)
 {
     if(!getLocalBounds().contains(e.getPosition())) return;
     
@@ -456,12 +456,12 @@ void Box::mouseDown(const MouseEvent& e)
         stopTimer();
         repaint();
 
-        auto box = SafePointer<Box>(this);
+        auto object = SafePointer<Object>(this);
         // Tell pd about new position
         cnv->pd->enqueueFunction(
-            [this, box]()
+            [this, object]()
             {
-                if (!box || !box->gui) return;
+                if (!object || !object->gui) return;
                 gui->applyBounds();
             });
 
@@ -508,7 +508,7 @@ void Box::mouseDown(const MouseEvent& e)
     
 }
 
-void Box::mouseUp(const MouseEvent& e)
+void Object::mouseUp(const MouseEvent& e)
 {
     resizeZone = ResizableBorderComponent::Zone();
 
@@ -524,9 +524,9 @@ void Box::mouseUp(const MouseEvent& e)
         originalBounds.setBounds(0, 0, 0, 0);
 
         cnv->pd->enqueueFunction(
-            [this, box = SafePointer<Box>(this), e]() mutable
+            [this, object = SafePointer<Object>(this), e]() mutable
             {
-                if (!box || !gui) return;
+                if (!object || !gui) return;
 
                 // Used for size changes, could also be used for properties
                 auto* obj = static_cast<t_gobj*>(getPointer());
@@ -539,9 +539,9 @@ void Box::mouseUp(const MouseEvent& e)
                 if (!cnv->viewport->getViewArea().contains(getBounds()))
                 {
                     MessageManager::callAsync(
-                        [box]()
+                        [object]()
                         {
-                            if(box) box->cnv->checkBounds();
+                            if(object) object->cnv->checkBounds();
                         });
                 }
             });
@@ -558,7 +558,7 @@ void Box::mouseUp(const MouseEvent& e)
     selectionStateChanged = false;
 }
 
-void Box::mouseDrag(const MouseEvent& e)
+void Object::mouseDrag(const MouseEvent& e)
 {
     if (wasLockedOnMouseDown) return;
     
@@ -578,7 +578,7 @@ void Box::mouseDrag(const MouseEvent& e)
     }
 }
 
-void Box::showEditor()
+void Object::showEditor()
 {
     if (!gui)
     {
@@ -590,7 +590,7 @@ void Box::showEditor()
     }
 }
 
-void Box::hideEditor()
+void Object::hideEditor()
 {
     if (gui)
     {
@@ -615,14 +615,14 @@ void Box::hideEditor()
     }
 }
 
-Array<Connection*> Box::getConnections() const
+Array<Connection*> Object::getConnections() const
 {
     Array<Connection*> result;
     for (auto* con : cnv->connections)
     {
-        for (auto* edge : edges)
+        for (auto* iolet : iolets)
         {
-            if (con->inlet == edge || con->outlet == edge)
+            if (con->inlet == iolet || con->outlet == iolet)
             {
                 result.add(con);
             }
@@ -631,12 +631,12 @@ Array<Connection*> Box::getConnections() const
     return result;
 }
 
-void* Box::getPointer() const
+void* Object::getPointer() const
 {
     return gui ? gui->ptr : nullptr;
 }
 
-void Box::openNewObjectEditor()
+void Object::openNewObjectEditor()
 {
     if (!newObjectEditor)
     {
@@ -654,7 +654,7 @@ void Box::openNewObjectEditor()
         editor->onEscapeKey = [this](){
             MessageManager::callAsync([_this = SafePointer(this)](){
                 if(!_this) return;
-                _this->cnv->boxes.removeObject(_this.getComponent());
+                _this->cnv->objects.removeObject(_this.getComponent());
             });
         };
         editor->setAlwaysOnTop(true);
@@ -687,7 +687,7 @@ void Box::openNewObjectEditor()
     }
 }
 
-void Box::textEditorReturnKeyPressed(TextEditor& ed)
+void Object::textEditorReturnKeyPressed(TextEditor& ed)
 {
     if (newObjectEditor)
     {
@@ -695,7 +695,7 @@ void Box::textEditorReturnKeyPressed(TextEditor& ed)
     }
 }
 
-void Box::textEditorTextChanged(TextEditor& ed)
+void Object::textEditorTextChanged(TextEditor& ed)
 {
     // For resize-while-typing behaviour
     auto width = Font(14.5).getStringWidth(ed.getText()) + 25;
@@ -706,7 +706,7 @@ void Box::textEditorTextChanged(TextEditor& ed)
     }
 }
 
-void Box::openHelpPatch() const
+void Object::openHelpPatch() const
 {
     cnv->pd->setThis();
     

@@ -68,8 +68,8 @@ struct CycloneCommentObject final : public GUIObject {
     Font font;
     BorderSize<int> border { 1, 7, 1, 2 };
 
-    CycloneCommentObject(void* obj, Box* box)
-        : GUIObject(obj, box)
+    CycloneCommentObject(void* obj, Object* object)
+        : GUIObject(obj, object)
     {
         auto* comment = static_cast<t_fake_comment*>(ptr);
         font = font.withHeight(comment->x_fontsize);
@@ -79,7 +79,7 @@ struct CycloneCommentObject final : public GUIObject {
 
     void applyBounds() override
     {
-        auto b = box->getObjectBounds();
+        auto b = object->getObjectBounds();
         libpd_moveobj(cnv->patch.getPointer(), static_cast<t_gobj*>(ptr), b.getX(), b.getY());
     }
 
@@ -93,7 +93,7 @@ struct CycloneCommentObject final : public GUIObject {
         width = std::max(width, 25);
 
         if (getWidth() != width || getHeight() != height) {
-            box->setSize(width + Box::doubleMargin, height + Box::doubleMargin);
+            object->setSize(width + Object::doubleMargin, height + Object::doubleMargin);
         }
     }
 
@@ -107,9 +107,9 @@ struct CycloneCommentObject final : public GUIObject {
         auto textArea = border.subtractedFrom(getLocalBounds());
         g.drawFittedText(getText(), textArea, Justification::centredLeft, 1, 0.9f);
 
-        auto selected = cnv->isSelected(box);
-        if (box->locked == var(false) && (box->isMouseOverOrDragging(true) || selected) && !cnv->isGraph) {
-            g.setColour(selected ? box->findColour(PlugDataColour::highlightColourId) : box->findColour(PlugDataColour::canvasOutlineColourId));
+        auto selected = cnv->isSelected(object);
+        if (object->locked == var(false) && (object->isMouseOverOrDragging(true) || selected) && !cnv->isGraph) {
+            g.setColour(selected ? object->findColour(PlugDataColour::highlightColourId) : object->findColour(PlugDataColour::canvasOutlineColourId));
 
             g.drawRect(getLocalBounds().toFloat(), 0.5f);
         }
@@ -140,7 +140,7 @@ struct CycloneCommentObject final : public GUIObject {
         int width = getBestTextWidth(getText());
         int height = fontsize + 6;
 
-        box->setObjectBounds({ comment->x_obj.te_xpix, comment->x_obj.te_ypix, width, height });
+        object->setObjectBounds({ comment->x_obj.te_xpix, comment->x_obj.te_ypix, width, height });
     }
 
     String getText() override

@@ -13,8 +13,8 @@ struct MouseObject final : public TextBase {
         t_outlet* x_vertical;
     } t_mouse;
 
-    MouseObject(void* ptr, Box* box)
-        : TextBase(ptr, box)
+    MouseObject(void* ptr, Object* object)
+        : TextBase(ptr, object)
     {
         Desktop::getInstance().addGlobalMouseListener(this);
     }

@@ -1,5 +1,5 @@
 #include "ObjectGrid.h"
-#include "Box.h"
+#include "Object.h"
 #include "Connection.h"
 #include "Canvas.h"
 #include "LookAndFeel.h"
@@ -57,8 +57,8 @@ void ObjectGrid::updateMarker()
         if (!start[i] || !end[i] || !snapped[i])
             continue;
 
-        auto b1 = start[i]->getBounds().reduced(Box::margin);
-        auto b2 = end[i]->getBounds().reduced(Box::margin);
+        auto b1 = start[i]->getBounds().reduced(Object::margin);
+        auto b2 = end[i]->getBounds().reduced(Object::margin);
 
         auto t = b1.getY() < b2.getY() ? b1 : b2;
         auto b = b1.getY() > b2.getY() ? b1 : b2;
@@ -100,7 +100,7 @@ void ObjectGrid::clear(bool horizontal)
     updateMarker();
 }
 
-Point<int> ObjectGrid::handleMouseDrag(Box* toDrag, Point<int> dragOffset, Rectangle<int> viewBounds)
+Point<int> ObjectGrid::handleMouseDrag(Object* toDrag, Point<int> dragOffset, Rectangle<int> viewBounds)
 {
     gridLines[0].setStrokeFill(FillType(toDrag->findColour(PlugDataColour::highlightColourId)));
     gridLines[1].setStrokeFill(FillType(toDrag->findColour(PlugDataColour::highlightColourId)));
@@ -118,7 +118,7 @@ Point<int> ObjectGrid::handleMouseDrag(Box* toDrag, Point<int> dragOffset, Recta
     return dragOffset;
 }
 
-Point<int> ObjectGrid::performVerticalSnap(Box* toDrag, Point<int> dragOffset, Rectangle<int> viewBounds)
+Point<int> ObjectGrid::performVerticalSnap(Object* toDrag, Point<int> dragOffset, Rectangle<int> viewBounds)
 {
     auto* cnv = toDrag->cnv;
 
@@ -131,37 +131,37 @@ Point<int> ObjectGrid::performVerticalSnap(Box* toDrag, Point<int> dragOffset, R
         return { dragOffset.x, position[0].y };
     }
 
-    for (auto* box : cnv->boxes) {
-        if (cnv->isSelected(box))
+    for (auto* object : cnv->objects) {
+        if (cnv->isSelected(object))
             continue; // don't look at selected objects
 
-        if (!viewBounds.intersects(box->getBounds()))
-            continue; // if the box is out of viewport bounds
+        if (!viewBounds.intersects(object->getBounds()))
+            continue; // if the object is out of viewport bounds
 
-        auto b1 = box->getBounds().reduced(Box::margin);
-        auto b2 = toDrag->getBounds().withPosition(toDrag->mouseDownPos + dragOffset).reduced(Box::margin);
+        auto b1 = object->getBounds().reduced(Object::margin);
+        auto b2 = toDrag->getBounds().withPosition(toDrag->mouseDownPos + dragOffset).reduced(Object::margin);
 
-        start[0] = box;
+        start[0] = object;
         end[0] = toDrag;
 
         if (trySnap(b1.getY() - b2.getY())) {
             orientation[0] = SnappedLeft;
-            return setState(true, totalSnaps, Point<int>(0, b1.getY() - b2.getY()) + dragOffset, box, toDrag, false);
+            return setState(true, totalSnaps, Point<int>(0, b1.getY() - b2.getY()) + dragOffset, object, toDrag, false);
         }
         if (trySnap(b1.getCentreY() - b2.getCentreY())) {
             orientation[0] = SnappedCentre;
-            return setState(true, totalSnaps, Point<int>(0, b1.getCentreY() - b2.getCentreY()) + dragOffset, box, toDrag, false);
+            return setState(true, totalSnaps, Point<int>(0, b1.getCentreY() - b2.getCentreY()) + dragOffset, object, toDrag, false);
         }
         if (trySnap(b1.getBottom() - b2.getBottom())) {
             orientation[0] = SnappedRight;
-            return setState(true, totalSnaps, Point<int>(0, b1.getBottom() - b2.getBottom()) + dragOffset, box, toDrag, false);
+            return setState(true, totalSnaps, Point<int>(0, b1.getBottom() - b2.getBottom()) + dragOffset, object, toDrag, false);
         }
     }
 
     return dragOffset;
 }
 
-Point<int> ObjectGrid::performHorizontalSnap(Box* toDrag, Point<int> dragOffset, Rectangle<int> viewBounds)
+Point<int> ObjectGrid::performHorizontalSnap(Object* toDrag, Point<int> dragOffset, Rectangle<int> viewBounds)
 {
 
     auto* cnv = toDrag->cnv;
@@ -214,17 +214,17 @@ Point<int> ObjectGrid::performHorizontalSnap(Box* toDrag, Point<int> dragOffset,
         }
     }
 
-    for (auto* box : cnv->boxes) {
-        if (cnv->isSelected(box))
+    for (auto* object : cnv->objects) {
+        if (cnv->isSelected(object))
             continue; // don't look at selected objects
 
-        if (!viewBounds.intersects(box->getBounds()))
-            continue; // if the box is out of viewport bounds
+        if (!viewBounds.intersects(object->getBounds()))
+            continue; // if the object is out of viewport bounds
 
-        auto b1 = box->getBounds().reduced(Box::margin);
-        auto b2 = toDrag->getBounds().withPosition(toDrag->mouseDownPos + dragOffset).reduced(Box::margin);
+        auto b1 = object->getBounds().reduced(Object::margin);
+        auto b2 = toDrag->getBounds().withPosition(toDrag->mouseDownPos + dragOffset).reduced(Object::margin);
 
-        start[1] = box;
+        start[1] = object;
         end[1] = toDrag;
 
         auto t = b1.getY() < b2.getY() ? b1 : b2;
@@ -234,15 +234,15 @@ Point<int> ObjectGrid::performHorizontalSnap(Box* toDrag, Point<int> dragOffset,
 
         if (trySnap(b1.getX() - b2.getX())) {
             orientation[1] = SnappedLeft;
-            return setState(true, totalSnaps, Point<int>(b1.getX() - b2.getX(), 0) + dragOffset, box, toDrag, true);
+            return setState(true, totalSnaps, Point<int>(b1.getX() - b2.getX(), 0) + dragOffset, object, toDrag, true);
         }
         if (trySnap(b1.getCentreX() - b2.getCentreX())) {
             orientation[1] = SnappedCentre;
-            return setState(true, totalSnaps, Point<int>(b1.getCentreX() - b2.getCentreX(), 0) + dragOffset, box, toDrag, true);
+            return setState(true, totalSnaps, Point<int>(b1.getCentreX() - b2.getCentreX(), 0) + dragOffset, object, toDrag, true);
         }
         if (trySnap(b1.getRight() - b2.getRight())) {
             orientation[1] = SnappedRight;
-            return setState(true, totalSnaps, Point<int>(b1.getRight() - b2.getRight(), 0) + dragOffset, box, toDrag, true);
+            return setState(true, totalSnaps, Point<int>(b1.getRight() - b2.getRight(), 0) + dragOffset, object, toDrag, true);
         }
     }
 

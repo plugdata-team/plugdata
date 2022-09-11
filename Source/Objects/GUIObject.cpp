@@ -13,7 +13,7 @@ extern "C" {
 #include <g_all_guis.h>
 }
 
-#include "Box.h"
+#include "Object.h"
 #include "Canvas.h"
 #include "PluginEditor.h"
 #include "LookAndFeel.h"
@@ -49,11 +49,11 @@ extern "C" {
 #include "ScalarObject.h"
 #include "TextDefineObject.h"
 
-ObjectBase::ObjectBase(void* obj, Box* parent)
+ObjectBase::ObjectBase(void* obj, Object* parent)
     : ptr(obj)
-    , box(parent)
-    , cnv(box->cnv)
-    , pd(box->cnv->pd)
+    , object(parent)
+    , cnv(object->cnv)
+    , pd(object->cnv->pd)
 {
 }
 
@@ -103,7 +103,7 @@ String ObjectBase::getType() const
 // Makes sure that any tabs refering to the now deleted patch will be closed
 void ObjectBase::closeOpenedSubpatchers()
 {
-    auto& main = box->cnv->main;
+    auto& main = object->cnv->main;
     auto* tabbar = &main.tabbar;
 
     if (!tabbar)
@@ -223,36 +223,36 @@ void ObjectBase::paint(Graphics& g)
 {
     // make sure text is readable
     // TODO: move this to places where it's relevant
-    getLookAndFeel().setColour(Label::textColourId, box->findColour(PlugDataColour::textColourId));
-    getLookAndFeel().setColour(Label::textWhenEditingColourId, box->findColour(PlugDataColour::textColourId));
-    getLookAndFeel().setColour(TextEditor::textColourId, box->findColour(PlugDataColour::textColourId));
+    getLookAndFeel().setColour(Label::textColourId, object->findColour(PlugDataColour::textColourId));
+    getLookAndFeel().setColour(Label::textWhenEditingColourId, object->findColour(PlugDataColour::textColourId));
+    getLookAndFeel().setColour(TextEditor::textColourId, object->findColour(PlugDataColour::textColourId));
 
-    g.setColour(box->findColour(PlugDataColour::toolbarColourId));
+    g.setColour(object->findColour(PlugDataColour::toolbarColourId));
     g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), 2.0f);
 
-    auto outlineColour = box->findColour(cnv->isSelected(box) && !cnv->isGraph ? PlugDataColour::highlightColourId : PlugDataColour::canvasOutlineColourId);
+    auto outlineColour = object->findColour(cnv->isSelected(object) && !cnv->isGraph ? PlugDataColour::highlightColourId : PlugDataColour::canvasOutlineColourId);
 
     g.setColour(outlineColour);
     g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), 2.0f, 1.0f);
 }
 
-NonPatchable::NonPatchable(void* obj, Box* parent)
+NonPatchable::NonPatchable(void* obj, Object* parent)
     : ObjectBase(obj, parent)
 {
     // Make object invisible
-    box->setVisible(false);
+    object->setVisible(false);
 }
 
 NonPatchable::~NonPatchable()
 {
 }
 
-GUIObject::GUIObject(void* obj, Box* parent)
+GUIObject::GUIObject(void* obj, Object* parent)
     : ObjectBase(obj, parent)
     , processor(*parent->cnv->pd)
     , edited(false)
 {
-    box->addComponentListener(this);
+    object->addComponentListener(this);
     updateLabel(); // TODO: fix virtual call from constructor
 
     setWantsKeyboardFocus(true);
@@ -268,7 +268,7 @@ GUIObject::GUIObject(void* obj, Box* parent)
 
 GUIObject::~GUIObject()
 {
-    box->removeComponentListener(this);
+    object->removeComponentListener(this);
     auto* lnf = &getLookAndFeel();
     setLookAndFeel(nullptr);
     delete lnf;
@@ -276,8 +276,8 @@ GUIObject::~GUIObject()
 
 void GUIObject::updateParameters()
 {
-    getLookAndFeel().setColour(Label::textWhenEditingColourId, box->findColour(Label::textWhenEditingColourId));
-    getLookAndFeel().setColour(Label::textColourId, box->findColour(Label::textColourId));
+    getLookAndFeel().setColour(Label::textWhenEditingColourId, object->findColour(Label::textWhenEditingColourId));
+    getLookAndFeel().setColour(Label::textColourId, object->findColour(Label::textColourId));
 
     auto params = getParameters();
     for (auto& [name, type, cat, value, list] : params) {
@@ -383,7 +383,7 @@ void GUIObject::setValue(float value)
     cnv->pd->enqueueDirectMessages(ptr, value);
 }
 
-ObjectBase* GUIObject::createGui(void* ptr, Box* parent)
+ObjectBase* GUIObject::createGui(void* ptr, Object* parent)
 {
     const String name = libpd_get_object_class_name(ptr);
     if (name == "bng") {
@@ -465,7 +465,11 @@ ObjectBase* GUIObject::createGui(void* ptr, Box* parent)
         } else {
             return new SubpatchObject(ptr, parent);
         }
-    } else if (name == "clone") {
+    }
+    else if (name == "array define") {
+        return new ArrayDefineObject(ptr, parent);
+    }
+    else if (name == "clone") {
         return new CloneObject(ptr, parent);
     } else if (name == "pd") {
         return new SubpatchObject(ptr, parent);
