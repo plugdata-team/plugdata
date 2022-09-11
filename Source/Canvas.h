@@ -151,7 +151,7 @@ class Canvas : public Component, public Value::Listener, public LassoSource<Weak
     
    private:
     
-    SafePointer<Object> boxSnappingInbetween;
+    SafePointer<Object> objectSnappingInbetween;
     SafePointer<Connection> connectionToSnapInbetween;
     SafePointer<TabbedComponent> tabbar;
 

@@ -321,25 +321,25 @@ void Object::resized()
         newObjectEditor->setBounds(getLocalBounds().reduced(margin));
     }
 
-    int edgeSize = 13;
-    int edgeHitBox = 4;
+    int ioletSize = 13;
+    int ioletHitBox = 4;
     int borderWidth = 14;
 
     if (getWidth() < 45 && (numInputs > 1 || numOutputs > 1))
     {
         borderWidth = 9;
-        edgeSize = 10;
+        ioletSize = 10;
     }
 
     auto inletBounds = getLocalBounds();
-    if (auto spaceToRemove = jlimit<int>(0, borderWidth, inletBounds.getWidth() - (edgeHitBox * numInputs) - borderWidth))
+    if (auto spaceToRemove = jlimit<int>(0, borderWidth, inletBounds.getWidth() - (ioletHitBox * numInputs) - borderWidth))
     {
         inletBounds.removeFromLeft(spaceToRemove);
         inletBounds.removeFromRight(spaceToRemove);
     }
 
     auto outletBounds = getLocalBounds();
-    if (auto spaceToRemove = jlimit<int>(0, borderWidth, outletBounds.getWidth() - (edgeHitBox * numOutputs) - borderWidth))
+    if (auto spaceToRemove = jlimit<int>(0, borderWidth, outletBounds.getWidth() - (ioletHitBox * numOutputs) - borderWidth))
     {
         outletBounds.removeFromLeft(spaceToRemove);
         outletBounds.removeFromRight(spaceToRemove);
@@ -351,19 +351,19 @@ void Object::resized()
         const bool isInlet = iolet->isInlet;
         const int position = index < numInputs ? index : index - numInputs;
         const int total = isInlet ? numInputs : numOutputs;
-        const float yPosition = (isInlet ? (margin + 1) : getHeight() - margin) - edgeSize / 2.0f;
+        const float yPosition = (isInlet ? (margin + 1) : getHeight() - margin) - ioletSize / 2.0f;
 
         const auto bounds = isInlet ? inletBounds : outletBounds;
 
         if (total == 1 && position == 0)
         {
-            int xPosition = getWidth() < 40 ? getLocalBounds().getCentreX() - edgeSize / 2.0f : bounds.getX();
-            iolet->setBounds(xPosition, yPosition, edgeSize, edgeSize);
+            int xPosition = getWidth() < 40 ? getLocalBounds().getCentreX() - ioletSize / 2.0f : bounds.getX();
+            iolet->setBounds(xPosition, yPosition, ioletSize, ioletSize);
         }
         else if (total > 1)
         {
-            const float ratio = (bounds.getWidth() - edgeSize) / static_cast<float>(total - 1);
-            iolet->setBounds(bounds.getX() + ratio * position, yPosition, edgeSize, edgeSize);
+            const float ratio = (bounds.getWidth() - ioletSize) / static_cast<float>(total - 1);
+            iolet->setBounds(bounds.getX() + ratio * position, yPosition, ioletSize, ioletSize);
         }
 
         index++;
@@ -420,13 +420,13 @@ void Object::updatePorts()
             isSignal = libpd_issignaloutlet(pd::Patch::checkObject(getPointer()), i - numInputs);
         }
 
-        iolet->edgeIdx = input ? numIn : numOut;
+        iolet->ioletIdx = input ? numIn : numOut;
         iolet->isSignal = isSignal;
         iolet->setAlwaysOnTop(true);
 
         if (gui)
         {
-            String tooltip = cnv->pd->objectLibrary.getInletOutletTooltip(gui->getType(), iolet->edgeIdx, input ? numInputs : numOutputs, input);
+            String tooltip = cnv->pd->objectLibrary.getInletOutletTooltip(gui->getType(), iolet->ioletIdx, input ? numInputs : numOutputs, input);
             iolet->setTooltip(tooltip);
         }
 

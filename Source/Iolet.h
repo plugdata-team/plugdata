@@ -34,7 +34,7 @@ class Iolet : public Component, public SettableTooltipClient
 
     Rectangle<int> getCanvasBounds();
 
-    int edgeIdx;
+    int ioletIdx;
     bool isInlet;
     bool isSignal;
 
