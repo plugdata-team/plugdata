@@ -470,6 +470,8 @@ public:
 
         packageManager->addActionListener(this);
         filterResults();
+        
+        
     }
 
     ~Deken()
