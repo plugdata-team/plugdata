@@ -116,12 +116,12 @@ void ObjectBase::closeOpenedSubpatchers()
             main.canvases.removeObject(cnv);
             tabbar->removeTab(n);
             main.pd.patches.removeObject(deleted_patch, false);
-            
+
             // Make sure there's at least one patch open
-            if(tabbar->getNumTabs() == 0) {
+            if (tabbar->getNumTabs() == 0) {
                 main.newProject();
             }
-            
+
             break;
         }
     }
@@ -465,11 +465,9 @@ ObjectBase* GUIObject::createGui(void* ptr, Object* parent)
         } else {
             return new SubpatchObject(ptr, parent);
         }
-    }
-    else if (name == "array define") {
+    } else if (name == "array define") {
         return new ArrayDefineObject(ptr, parent);
-    }
-    else if (name == "clone") {
+    } else if (name == "clone") {
         return new CloneObject(ptr, parent);
     } else if (name == "pd") {
         return new SubpatchObject(ptr, parent);

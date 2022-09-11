@@ -997,7 +997,6 @@ void libpd_init_else(void)
     xselect_tilde_setup();
     xselect2_tilde_setup();
     zerocross_tilde_setup();
-
 }
 
 void libpd_init_cyclone(void)
@@ -1093,7 +1092,7 @@ void libpd_init_cyclone(void)
     xnotein_setup();
     xnoteout_setup();
     zl_setup();
-    
+
     acos_tilde_setup();
     acosh_tilde_setup();
     allpass_tilde_setup();
@@ -1196,7 +1195,6 @@ void libpd_init_cyclone(void)
     vectral_tilde_setup();
     wave_tilde_setup();
     zerox_tilde_setup();
-
 }
 
 void libpd_multi_init(void)

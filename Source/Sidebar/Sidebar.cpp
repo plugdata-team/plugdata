@@ -180,12 +180,12 @@ bool Sidebar::isPinned()
     return pinned;
 }
 
-void Sidebar::showParameters(const String& name, ObjectParameters& params)
+void Sidebar::showParameters(String const& name, ObjectParameters& params)
 {
     lastParameters = params;
     inspector->loadParameters(params);
     inspector->setTitle(name.upToFirstOccurrenceOf(" ", false, false));
-    
+
     if (!pinned) {
         browser->setVisible(false);
         inspector->setVisible(true);
