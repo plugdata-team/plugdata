@@ -57,7 +57,7 @@ int scalar_doclick(t_word* data, t_template* t, t_scalar* sc,
 #define NOVERTICES 16 /* disable only vertex grabbing in run mode */
 #define A_ARRAY 55    /* LATER decide whether to enshrine this in m_pd.h */
 
-struct DrawableTemplate : public DrawablePath {
+struct DrawableTemplate {
     virtual void update() = 0;
 
     /* getting and setting values via fielddescs -- note confusing names;
@@ -97,7 +97,7 @@ struct DrawableTemplate : public DrawablePath {
     bool isLocked;
 };
 
-struct DrawableCurve final : public DrawableTemplate {
+struct DrawableCurve final : public DrawableTemplate, public DrawablePath {
     t_scalar* scalar;
     t_fake_curve* object;
     int baseX, baseY;
@@ -110,13 +110,8 @@ struct DrawableCurve final : public DrawableTemplate {
         , baseX(x)
         , baseY(y)
     {
-        Desktop::getInstance().addGlobalMouseListener(this);
     }
 
-    ~DrawableCurve()
-    {
-        Desktop::getInstance().removeGlobalMouseListener(this);
-    }
 
     void mouseDown(MouseEvent const& e) override
     {
@@ -234,7 +229,7 @@ struct DrawableCurve final : public DrawableTemplate {
     }
 };
 
-struct DrawableSymbol final : public DrawableTemplate {
+struct DrawableSymbol final : public DrawableTemplate, public DrawableText {
     t_scalar* scalar;
     t_fake_drawnumber* object;
     int baseX, baseY;
@@ -247,14 +242,8 @@ struct DrawableSymbol final : public DrawableTemplate {
         , baseX(x)
         , baseY(y)
     {
-        Desktop::getInstance().addGlobalMouseListener(this);
     }
-
-    ~DrawableSymbol()
-    {
-        Desktop::getInstance().removeGlobalMouseListener(this);
-    }
-
+    
     // TODO: implement number dragging
     void mouseDown(MouseEvent const& e) override
     {
@@ -282,7 +271,7 @@ struct DrawableSymbol final : public DrawableTemplate {
 
         int type, onset;
         t_symbol* arraytype;
-        if (!template_find_field(templ, x->x_fieldname, &onset, &type, &arraytype) || type != DT_ARRAY) {
+        if (!template_find_field(templ, x->x_fieldname, &onset, &type, &arraytype) || type == DT_ARRAY) {
             type = -1;
         }
 
@@ -314,17 +303,25 @@ struct DrawableSymbol final : public DrawableTemplate {
             }
         }
 
+        setColour(Colour::fromString("FF" + String::fromUTF8(colorstring + 1)));
+        setBoundingBox(Parallelogram<float>(Rectangle<float>(xloc, yloc, 200, 100)));
+        setFontHeight(sys_hostfontsize(glist_getfont(glist), glist_getzoom(glist)));
+        setText(String::fromUTF8(buf));
+        
+        std::cout << getText() << std::endl;
+        
+        /*
         sys_vgui(".x%lx.c create text %d %d -anchor nw -fill %s -text {%s}",
             glist_getcanvas(glist), xloc, yloc, colorstring, buf);
         sys_vgui(" -font {{%s} -%d %s}", sys_font,
             sys_hostfontsize(glist_getfont(glist), glist_getzoom(glist)),
             sys_fontweight);
-        sys_vgui(" -tags [list drawnumber%lx label]\n", data);
+        sys_vgui(" -tags [list drawnumber%lx label]\n", data); */
     }
 };
 
 struct ScalarObject final : public NonPatchable {
-    OwnedArray<DrawableTemplate> templates;
+    OwnedArray<Component> templates;
 
     ScalarObject(void* obj, Object* object)
         : NonPatchable(obj, object)
@@ -343,7 +340,7 @@ struct ScalarObject final : public NonPatchable {
             if (!wb)
                 continue;
 
-            DrawableTemplate* drawable = nullptr;
+            Component* drawable = nullptr;
             auto name = String::fromUTF8(y->g_pd->c_name->s_name);
             if (name == "drawtext" || name == "drawnumber" || name == "drawsymbol") {
                 drawable = templates.add(new DrawableSymbol(x, y, cnv, static_cast<int>(basex), static_cast<int>(basey)));
@@ -353,24 +350,32 @@ struct ScalarObject final : public NonPatchable {
                 // TODO: implement this
             }
 
-            if (drawable)
-                cnv->addAndMakeVisible(drawable);
+            cnv->addAndMakeVisible(drawable);
+            Desktop::getInstance().addGlobalMouseListener(drawable);
         }
 
         updateDrawables();
     }
+    
+    ~ScalarObject() {
+        for(auto* drawable : templates)
+        {
+            cnv->removeChildComponent(drawable);
+            Desktop::getInstance().removeGlobalMouseListener(drawable);
+        }
+    }
 
     void updateDrawables() override
     {
-        for (auto& drawable : templates) {
-            drawable->update();
+        for (auto* drawable : templates) {
+            dynamic_cast<DrawableTemplate*>(drawable)->update();
         }
     }
 
     void lock(bool locked) override
     {
         for (auto& drawable : templates) {
-            drawable->isLocked = locked;
+            dynamic_cast<DrawableTemplate*>(drawable)->isLocked = locked;
         }
     }
 };
