@@ -31,8 +31,8 @@ struct TextBase : public ObjectBase
         textObjectWidth = (getWidth() - textWidthOffset) / fontWidth;
 
         int width = textObjectWidth * fontWidth + textWidthOffset;
-        width = std::max(width, std::max({1, object->numInputs, object->numOutputs}) * 18);
-        
+        width = std::max(width, std::max({ 1, object->numInputs, object->numOutputs }) * 18);
+
         numLines = getNumLines(currentText, width);
         int height = numLines * 15 + 6;
 
@@ -123,8 +123,8 @@ struct TextBase : public ObjectBase
         }
 
         int width = textObjectWidth * fontWidth + textWidthOffset;
-        width = std::max(width, std::max({1, object->numInputs, object->numOutputs}) * 18);
-        
+        width = std::max(width, std::max({ 1, object->numInputs, object->numOutputs }) * 18);
+
         numLines = getNumLines(currentText, width);
         int height = numLines * 15 + 6;
 

@@ -24,7 +24,7 @@ struct SubpatchObject final : public TextBase
 
     void mouseDown(MouseEvent const& e) override
     {
-        
+
         //  If locked and it's a left click
         if (locked && !ModifierKeys::getCurrentModifiers().isRightButtonDown()) {
             openSubpatch();
@@ -34,7 +34,7 @@ struct SubpatchObject final : public TextBase
             TextBase::mouseDown(e);
         }
     }
-        
+
     // Most objects ignore mouseclicks when locked
     // Objects can override this to do custom locking behaviour
     void lock(bool isLocked) override
@@ -83,6 +83,6 @@ protected:
     pd::Patch subpatch;
     Value isGraphChild = Value(var(false));
     Value hideNameAndArgs = Value(var(false));
-        
+
     bool locked = false;
 };

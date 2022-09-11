@@ -348,8 +348,8 @@ struct ArrayEditorDialog : public Component {
 
     ArrayEditorDialog(PlugDataAudioProcessor* instance, PdArray& arr, Object* parent)
         : resizer(this, &constrainer)
-        , title(arr.getExpandedName()),
-          array(instance, arr, parent)
+        , title(arr.getExpandedName())
+        , array(instance, arr, parent)
     {
 
         closeButton.reset(LookAndFeel::getDefaultLookAndFeel().createDocumentWindowButton(DocumentWindow::closeButton));
@@ -358,7 +358,7 @@ struct ArrayEditorDialog : public Component {
         constrainer.setMinimumSize(500, 200);
 
         closeButton->onClick = [this]() {
-            MessageManager::callAsync([this](){
+            MessageManager::callAsync([this]() {
                 onClose();
             });
         };
@@ -606,7 +606,7 @@ public:
 
         return { glist, cnv->pd->m_instance };
     }
-    
+
     bool canOpenFromMenu() override
     {
         return true;
@@ -616,8 +616,7 @@ public:
     {
         openSubpatch();
         dialog = std::make_unique<ArrayEditorDialog>(cnv->pd, array, object);
-        dialog->onClose = [this]()
-        {
+        dialog->onClose = [this]() {
             updateValue();
             dialog.reset(nullptr);
         };
@@ -625,7 +624,7 @@ public:
 
 private:
     Value name, size, drawMode, saveContents, range;
-    
+
     PdArray array;
     GraphicalArray graph;
     std::unique_ptr<ArrayEditorDialog> dialog;
@@ -654,16 +653,15 @@ struct ArrayDefineObject final : public TextBase {
     {
         return true;
     }
-    
+
     void openArrayEditor()
     {
         auto* c = reinterpret_cast<t_canvas*>(static_cast<t_canvas*>(ptr)->gl_list);
         auto* glist = reinterpret_cast<t_garray*>(c->gl_list);
         auto array = PdArray(glist, cnv->pd->m_instance);
-        
+
         editor = std::make_unique<ArrayEditorDialog>(cnv->pd, array, object);
-        editor->onClose = [this]()
-        {
+        editor->onClose = [this]() {
             updateValue();
             editor.reset(nullptr);
         };

@@ -15,15 +15,15 @@ struct CommentObject final : public TextBase
     {
         g.setColour(findColour(PlugDataColour::textColourId));
         g.setFont(font);
-        
-        if(!editor) {
+
+        if (!editor) {
             auto textArea = border.subtractedFrom(getLocalBounds());
             g.drawFittedText(currentText, textArea, justification, numLines, minimumHorizontalScale);
-            
+
             auto selected = cnv->isSelected(object);
             if (object->locked == var(false) && (object->isMouseOverOrDragging(true) || selected) && !cnv->isGraph) {
                 g.setColour(selected ? object->findColour(PlugDataColour::highlightColourId) : object->findColour(PlugDataColour::canvasOutlineColourId));
-                
+
                 g.drawRect(getLocalBounds().toFloat(), 0.5f);
             }
         }
@@ -95,7 +95,7 @@ struct CommentObject final : public TextBase
             editor->setColour(Label::backgroundWhenEditingColourId, Colours::transparentWhite);
             editor->setColour(Label::outlineWhenEditingColourId, findColour(TextEditor::focusedOutlineColourId));
             editor->setColour(TextEditor::backgroundColourId, Colours::transparentWhite);
-            
+
             editor->setAlwaysOnTop(true);
 
             editor->setMultiLine(false);
@@ -103,7 +103,7 @@ struct CommentObject final : public TextBase
             editor->setBorder(border);
             editor->setIndents(0, 0);
             editor->setJustification(justification);
-            
+
             currentText = "";
 
             editor->onFocusLost = [this]() {

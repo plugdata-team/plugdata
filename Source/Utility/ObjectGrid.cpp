@@ -41,13 +41,13 @@ void ObjectGrid::updateMarker()
     Path toDraw;
 
     if (snapped[1] && orientation[1] == SnappedConnection && start[1] && end[1]) {
-        
+
         auto b1 = start[1]->getParentComponent()->getBounds();
         auto b2 = end[1]->getParentComponent()->getBounds();
 
         b1.translate(start[1]->getX() - 2, 0);
         b2.translate(end[1]->getX() - 2, 0);
-        
+
         toDraw.addLineSegment(Line<float>(b1.getX() - 2, b1.getBottom() + 2, b1.getX() - 2, b2.getY() - 2), 1.0f);
         gridLines[1].setPath(toDraw);
         return;
