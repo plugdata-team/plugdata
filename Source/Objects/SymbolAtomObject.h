@@ -6,7 +6,7 @@ struct SymbolAtomObject final : public AtomObject
 
     String lastMessage;
 
-    SymbolAtomObject(void* obj, Box* parent)
+    SymbolAtomObject(void* obj, Object* parent)
         : AtomObject(obj, parent)
     {
         addAndMakeVisible(input);
@@ -19,8 +19,8 @@ struct SymbolAtomObject final : public AtomObject
             stopEdition();
 
             auto width = input.getFont().getStringWidth(input.getText()) + 36;
-            if (width < box->getWidth()) {
-                box->setSize(width, box->getHeight());
+            if (width < object->getWidth()) {
+                object->setSize(width, object->getHeight());
                 checkBounds();
             }
         };
@@ -33,7 +33,7 @@ struct SymbolAtomObject final : public AtomObject
 
         input.setMinimumHorizontalScale(0.9f);
 
-        box->addMouseListener(this, false);
+        object->addMouseListener(this, false);
     }
 
     void lock(bool locked) override
@@ -94,7 +94,7 @@ struct SymbolAtomObject final : public AtomObject
         if (v.refersToSameSourceAs(labelHeight)) {
             updateLabel();
             if (getParentComponent()) {
-                box->updateBounds(); // update box size based on new font
+                object->updateBounds(); // update object size based on new font
             }
         } else {
             AtomObject::valueChanged(v);
@@ -111,6 +111,7 @@ struct SymbolAtomObject final : public AtomObject
         }
         return false;
     }
+        
 
     Label input;
 };

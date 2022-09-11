@@ -29,7 +29,7 @@ struct ButtonObject : public GUIObject {
     bool state = false;
     bool alreadyTriggered = false;
 
-    ButtonObject(void* obj, Box* parent)
+    ButtonObject(void* obj, Object* parent)
         : GUIObject(obj, parent)
     {
     }
@@ -37,9 +37,9 @@ struct ButtonObject : public GUIObject {
     void checkBounds() override
     {
         // Fix aspect ratio and apply limits
-        int size = jlimit(30, maxSize, box->getWidth());
-        if (size != box->getHeight() || size != box->getWidth()) {
-            box->setSize(size, size);
+        int size = jlimit(30, maxSize, object->getWidth());
+        if (size != object->getHeight() || size != object->getWidth()) {
+            object->setSize(size, size);
         }
     }
 
@@ -95,12 +95,12 @@ struct ButtonObject : public GUIObject {
 
         pd->getCallbackLock()->exit();
 
-        box->setObjectBounds(bounds);
+        object->setObjectBounds(bounds);
     }
 
     void applyBounds() override
     {
-        auto b = box->getObjectBounds();
+        auto b = object->getObjectBounds();
         libpd_moveobj(cnv->patch.getPointer(), static_cast<t_gobj*>(ptr), b.getX(), b.getY());
 
         auto* button = static_cast<t_fake_button*>(ptr);
@@ -136,7 +136,7 @@ struct ButtonObject : public GUIObject {
         g.setColour(Colour::fromString(secondaryColour.toString()));
         g.fillRoundedRectangle(bounds.reduced(1), 3.0f);
 
-        g.setColour(box->findColour(PlugDataColour::canvasOutlineColourId));
+        g.setColour(object->findColour(PlugDataColour::canvasOutlineColourId));
         g.drawRoundedRectangle(bounds.reduced(1), 3.0f, 1.0f);
         g.drawRoundedRectangle(bounds.reduced(6), 3.0f, 2.0f);
 

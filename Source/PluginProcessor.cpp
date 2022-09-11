@@ -131,7 +131,7 @@ PlugDataAudioProcessor::PlugDataAudioProcessor()
             
             for(auto* cnv : editor->canvases) {
                 // Make sure inlets/outlets are updated
-                for(auto* box : cnv->boxes) box->updatePorts();
+                for(auto* object : cnv->objects) object->updatePorts();
             }
         }
 
@@ -1056,7 +1056,7 @@ void PlugDataAudioProcessor::setTheme(bool themeToUse)
             cnv->viewport->repaint();
 
             // Some objects with setBufferedToImage need manual repainting
-            for (auto* box : cnv->boxes) box->repaint();
+            for (auto* object : cnv->objects) object->repaint();
             for (auto* con : cnv->connections) reinterpret_cast<Component*>(con)->repaint();
             cnv->repaint();
         }

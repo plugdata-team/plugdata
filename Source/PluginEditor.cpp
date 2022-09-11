@@ -69,10 +69,10 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p) : AudioPro
         if (idx == -1) return;
 
         // update GraphOnParent when changing tabs
-        for (auto* box : getCurrentCanvas()->boxes)
+        for (auto* object : getCurrentCanvas()->objects)
         {
-            if (!box->gui) continue;
-            if (auto* cnv = box->gui->getCanvas()) cnv->synchronise();
+            if (!object->gui) continue;
+            if (auto* cnv = object->gui->getCanvas()) cnv->synchronise();
         }
 
         auto* cnv = getCurrentCanvas();
@@ -695,7 +695,7 @@ void PlugDataPluginEditor::getCommandInfo(const CommandID commandID, Application
     
     if (auto* cnv = getCurrentCanvas())
     {
-        auto selectedBoxes = cnv->getSelectionOfType<Box>();
+        auto selectedBoxes = cnv->getSelectionOfType<Object>();
         auto selectedConnections = cnv->getSelectionOfType<Connection>();
 
         hasBoxSelection = !selectedBoxes.isEmpty();
@@ -891,7 +891,7 @@ void PlugDataPluginEditor::getCommandInfo(const CommandID commandID, Application
         }
         case CommandIDs::NewNumbox:
         {
-            result.setInfo("New Number", "Create new number box", "Objects", 0);
+            result.setInfo("New Number", "Create new number object", "Objects", 0);
             result.addDefaultKeypress(51, ModifierKeys::commandModifier);
             result.addDefaultKeypress(73, ModifierKeys::noModifiers);
             result.setActive(!isDragging && pd.locked == var(false));
@@ -996,7 +996,7 @@ bool PlugDataPluginEditor::perform(const InvocationInfo& info)
 {
     auto* cnv = getCurrentCanvas();
 
-    auto lastPosition = cnv->viewport->getViewArea().getConstrainedPoint(cnv->getMouseXYRelative() - Point<int>(Box::margin, Box::margin));
+    auto lastPosition = cnv->viewport->getViewArea().getConstrainedPoint(cnv->getMouseXYRelative() - Point<int>(Object::margin, Object::margin));
 
     switch (info.commandID)
     {
@@ -1096,9 +1096,9 @@ bool PlugDataPluginEditor::perform(const InvocationInfo& info)
         }
         case CommandIDs::SelectAll:
         {
-            for (auto* box : cnv->boxes)
+            for (auto* object : cnv->objects)
             {
-                cnv->setSelected(box, true);
+                cnv->setSelected(object, true);
             }
             for (auto* con : cnv->connections)
             {
@@ -1165,8 +1165,8 @@ bool PlugDataPluginEditor::perform(const InvocationInfo& info)
                                          if (result)
                                          {
                                              auto* cnv = getCurrentCanvas();
-                                             auto* box = new Box(cnv, "graph " + name + " " + size, cnv->viewport->getViewArea().getCentre());
-                                             cnv->boxes.add(box);
+                                             auto* object = new Object(cnv, "graph " + name + " " + size, cnv->viewport->getViewArea().getCentre());
+                                             cnv->objects.add(object);
                                          }
                                      });
             return true;
@@ -1181,7 +1181,7 @@ bool PlugDataPluginEditor::perform(const InvocationInfo& info)
             int idx = static_cast<int>(info.commandID) - CommandIDs::NewObject;
             if (isPositiveAndBelow(idx, objectNames.size()))
             {
-                cnv->boxes.add(new Box(cnv, objectNames[idx], lastPosition));
+                cnv->objects.add(new Object(cnv, objectNames[idx], lastPosition));
                 return true;
             }
 

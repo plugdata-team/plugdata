@@ -8,7 +8,7 @@
 
 #include <JuceHeader.h>
 
-#include "Box.h"
+#include "Object.h"
 #include "Pd/PdPatch.h"
 #include "Pd/PdStorage.h"
 #include "PluginProcessor.h"
@@ -16,7 +16,7 @@
 
 class SuggestionComponent;
 struct GraphArea;
-class Edge;
+class Iolet;
 class PlugDataPluginEditor;
 class Canvas : public Component, public Value::Listener, public LassoSource<WeakReference<Component>>
 {    
@@ -83,7 +83,7 @@ class Canvas : public Component, public Value::Listener, public LassoSource<Weak
 
     void updateSidebarSelection();
 
-    void showSuggestions(Box* box, TextEditor* editor);
+    void showSuggestions(Object* object, TextEditor* editor);
     void hideSuggestions();
 
     template <typename T>
@@ -105,15 +105,15 @@ class Canvas : public Component, public Value::Listener, public LassoSource<Weak
     Viewport* viewport = nullptr;
 
     bool connectingWithDrag = false;
-    Array<SafePointer<Edge>> connectingEdges;
-    SafePointer<Edge> nearestEdge;
+    Array<SafePointer<Iolet>> connectingEdges;
+    SafePointer<Iolet> nearestEdge;
 
     pd::Patch& patch;
 
-    // Needs to be allocated before box and connection so they can deselect themselves in the destructor
+    // Needs to be allocated before object and connection so they can deselect themselves in the destructor
     SelectedItemSet<WeakReference<Component>> selectedComponents;
     
-    OwnedArray<Box> boxes;
+    OwnedArray<Object> objects;
     OwnedArray<Connection> connections;
 
     Value locked;
@@ -145,13 +145,13 @@ class Canvas : public Component, public Value::Listener, public LassoSource<Weak
     // Multi-dragger variables
     bool didStartDragging = false;
     const int minimumMovementToStartDrag = 5;
-    Box* componentBeingDragged = nullptr;
+    Object* componentBeingDragged = nullptr;
     
     pd::Storage storage;
     
    private:
     
-    SafePointer<Box> boxSnappingInbetween;
+    SafePointer<Object> boxSnappingInbetween;
     SafePointer<Connection> connectionToSnapInbetween;
     SafePointer<TabbedComponent> tabbar;
 

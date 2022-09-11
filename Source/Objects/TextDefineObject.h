@@ -25,7 +25,7 @@ struct TextDefineObject final : public TextBase {
     std::unique_ptr<Component> textEditor;
     std::unique_ptr<Dialog> saveDialog;
 
-    TextDefineObject(void* obj, Box* parent, bool isValid = true)
+    TextDefineObject(void* obj, Object* parent, bool isValid = true)
         : TextBase(obj, parent, isValid)
         , textEditor(nullptr)
     {

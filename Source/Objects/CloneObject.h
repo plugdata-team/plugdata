@@ -40,8 +40,8 @@ typedef struct _clone {
 }
 
 struct CloneObject final : public TextBase {
-    CloneObject(void* obj, Box* box)
-        : TextBase(obj, box)
+    CloneObject(void* obj, Object* object)
+        : TextBase(obj, object)
         , subpatch({ nullptr, nullptr })
     {
         auto* gobj = static_cast<t_gobj*>(ptr);
@@ -53,9 +53,9 @@ struct CloneObject final : public TextBase {
     void updateValue() override
     {
         // Pd sometimes sets the isgraph flag too late...
-        // In that case we tell the box to create the gui
+        // In that case we tell the object to create the gui
         if (static_cast<t_canvas*>(ptr)->gl_isgraph) {
-            box->setType(currentText, ptr);
+            object->setType(currentText, ptr);
         }
     };
 

@@ -3,7 +3,7 @@
 struct NumberObject final : public IEMObject {
     DraggableNumber input;
 
-    NumberObject(void* obj, Box* parent)
+    NumberObject(void* obj, Object* parent)
         : IEMObject(obj, parent)
     {
         input.onEditorShow = [this]() {
@@ -50,7 +50,7 @@ struct NumberObject final : public IEMObject {
 
         pd->getCallbackLock()->exit();
 
-        box->setObjectBounds(bounds);
+        object->setObjectBounds(bounds);
     }
 
     void checkBounds() override
@@ -59,13 +59,13 @@ struct NumberObject final : public IEMObject {
         int width = jlimit(27, maxSize, (getWidth() / widthIncrement) * widthIncrement);
         int height = jlimit(18, maxSize, getHeight());
         if (getWidth() != width || getHeight() != height) {
-            box->setSize(width + Box::doubleMargin, height + Box::doubleMargin);
+            object->setSize(width + Object::doubleMargin, height + Object::doubleMargin);
         }
     }
 
     void applyBounds() override
     {
-        auto b = box->getObjectBounds();
+        auto b = object->getObjectBounds();
         libpd_moveobj(cnv->patch.getPointer(), static_cast<t_gobj*>(ptr), b.getX(), b.getY());
 
         int fontWidth = glist_fontwidth(cnv->patch.getPointer());
@@ -138,9 +138,9 @@ struct NumberObject final : public IEMObject {
 
         triangle.addTriangle(iconBounds.getTopLeft().toFloat(), iconBounds.getTopRight().toFloat() + Point<float>(0, (iconBounds.getHeight() / 2.)), iconBounds.getBottomLeft().toFloat());
 
-        auto normalColour = Colour(getForegroundColour()).interpolatedWith(box->findColour(PlugDataColour::toolbarColourId), 0.5f);
+        auto normalColour = Colour(getForegroundColour()).interpolatedWith(object->findColour(PlugDataColour::toolbarColourId), 0.5f);
         auto highlightColour = findColour(PlugDataColour::highlightColourId);
-        bool highlighed = hasKeyboardFocus(true) && static_cast<bool>(box->locked.getValue());
+        bool highlighed = hasKeyboardFocus(true) && static_cast<bool>(object->locked.getValue());
 
         g.setColour(highlighed ? highlightColour : normalColour);
         g.fillPath(triangle);

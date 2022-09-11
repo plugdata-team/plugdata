@@ -136,9 +136,9 @@ struct DrawableCurve final : public DrawableTemplate {
         scalar_doclick(scalar->sc_vec, t, scalar, 0, canvas->patch.getPointer(), 0, 0, relativeEvent.x, relativeEvent.y, shift, alt, dbl, 1);
        
         // Update all drawables
-        for(auto* box : canvas->boxes)  {
-            if(!box->gui) continue;
-            box->gui->updateDrawables();
+        for(auto* object : canvas->objects)  {
+            if(!object->gui) continue;
+            object->gui->updateDrawables();
         }
     }
     
@@ -334,10 +334,10 @@ struct DrawableSymbol final : public DrawableTemplate {
 struct ScalarObject final : public NonPatchable {
     OwnedArray<DrawableTemplate> templates;
     
-    ScalarObject(void* obj, Box* box)
-    : NonPatchable(obj, box)
+    ScalarObject(void* obj, Object* object)
+    : NonPatchable(obj, object)
     {
-        box->setVisible(false);
+        object->setVisible(false);
         
         auto* x = reinterpret_cast<t_scalar*>(obj);
         auto* templ = template_findbyname(x->sc_template);

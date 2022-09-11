@@ -5,7 +5,7 @@ struct ToggleObject final : public IEMObject {
     bool alreadyToggled = false;
     Value nonZero;
 
-    ToggleObject(void* obj, Box* parent)
+    ToggleObject(void* obj, Object* parent)
         : IEMObject(obj, parent)
     {
     }
@@ -21,7 +21,7 @@ struct ToggleObject final : public IEMObject {
         IEMObject::paint(g);
 
         auto toggledColour = getForegroundColour();
-        auto untoggledColour = toggledColour.interpolatedWith(box->findColour(PlugDataColour::toolbarColourId), 0.8f);
+        auto untoggledColour = toggledColour.interpolatedWith(object->findColour(PlugDataColour::toolbarColourId), 0.8f);
         g.setColour(toggleState ? toggledColour : untoggledColour);
 
         auto crossBounds = getLocalBounds().reduced(6).toFloat();
@@ -71,9 +71,9 @@ struct ToggleObject final : public IEMObject {
     void checkBounds() override
     {
         // Fix aspect ratio and apply limits
-        int size = jlimit(30, maxSize, box->getWidth());
-        if (size != box->getHeight() || size != box->getWidth()) {
-            box->setSize(size, size);
+        int size = jlimit(30, maxSize, object->getWidth());
+        if (size != object->getHeight() || size != object->getWidth()) {
+            object->setSize(size, size);
         }
     }
 

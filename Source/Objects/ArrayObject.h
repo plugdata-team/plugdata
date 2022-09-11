@@ -101,13 +101,13 @@ public:
 
 struct GraphicalArray : public Component {
 public:
-    Box* box;
+    Object* object;
 
-    GraphicalArray(PlugDataAudioProcessor* instance, PdArray& arr, Box* parent)
+    GraphicalArray(PlugDataAudioProcessor* instance, PdArray& arr, Object* parent)
         : array(arr)
         , edited(false)
         , pd(instance)
-        , box(parent)
+        , object(parent)
     {
         if (!array.ptr)
             return;
@@ -187,7 +187,7 @@ public:
                     p.cubicTo(static_cast<float>(i - 1) * dw, y1, static_cast<float>(i) * dw, y2, static_cast<float>(i + 1) * dw, y3);
                 }
 
-                g.setColour(box->findColour(PlugDataColour::canvasOutlineColourId));
+                g.setColour(object->findColour(PlugDataColour::canvasOutlineColourId));
                 g.strokePath(p, PathStrokeType(1));
                 break;
             }
@@ -205,12 +205,12 @@ public:
                     lastPoint = newPoint;
                 }
 
-                g.setColour(box->findColour(PlugDataColour::canvasOutlineColourId));
+                g.setColour(object->findColour(PlugDataColour::canvasOutlineColourId));
                 g.fillPath(p);
                 break;
             }
             case PdArray::DrawType::Points: {
-                g.setColour(box->findColour(PlugDataColour::canvasOutlineColourId));
+                g.setColour(object->findColour(PlugDataColour::canvasOutlineColourId));
                 for (size_t i = 0; i < points.size(); i++) {
                     float const y = h - (std::clamp(points[i], scale[0], scale[1]) - scale[0]) * dh;
                     g.drawHorizontalLine(y, static_cast<float>(i) * dw, static_cast<float>(i + 1) * dw);
@@ -225,11 +225,11 @@ public:
 
     void paint(Graphics& g) override
     {
-        g.setColour(box->findColour(PlugDataColour::toolbarColourId));
+        g.setColour(object->findColour(PlugDataColour::toolbarColourId));
         g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), 2.0f);
 
         if (error) {
-            g.setColour(box->findColour(PlugDataColour::textColourId));
+            g.setColour(object->findColour(PlugDataColour::textColourId));
             g.drawText("array " + array.getUnexpandedName() + " is invalid", 0, 0, getWidth(), getHeight(), Justification::centred);
             error = false;
         } else {
@@ -335,13 +335,89 @@ public:
     PlugDataAudioProcessor* pd;
 };
 
+struct ArrayEditorDialog : public Component {
+    ResizableBorderComponent resizer;
+    std::unique_ptr<Button> closeButton;
+    ComponentDragger windowDragger;
+    ComponentBoundsConstrainer constrainer;
+
+    std::function<void()> onClose;
+    GraphicalArray array;
+
+    String title;
+
+    ArrayEditorDialog(PlugDataAudioProcessor* instance, PdArray& arr, Object* parent)
+        : resizer(this, &constrainer)
+        , title(arr.getExpandedName()),
+          array(instance, arr, parent)
+    {
+
+        closeButton.reset(LookAndFeel::getDefaultLookAndFeel().createDocumentWindowButton(DocumentWindow::closeButton));
+        addAndMakeVisible(closeButton.get());
+
+        constrainer.setMinimumSize(500, 200);
+
+        closeButton->onClick = [this]() {
+            MessageManager::callAsync([this](){
+                onClose();
+            });
+        };
+
+        addToDesktop(ComponentPeer::windowIsTemporary | ComponentPeer::windowHasDropShadow);
+        setVisible(true);
+
+        // Position in centre of screen
+        setBounds(Desktop::getInstance().getDisplays().getPrimaryDisplay()->userArea.withSizeKeepingCentre(600, 400));
+
+        addAndMakeVisible(array);
+        addAndMakeVisible(resizer);
+    }
+
+    void resized()
+    {
+        resizer.setBounds(getLocalBounds());
+        closeButton->setBounds(getLocalBounds().removeFromTop(30).removeFromRight(30).translated(-5, 5));
+        array.setBounds(getLocalBounds().withTrimmedTop(40));
+    }
+
+    void mouseDown(MouseEvent const& e)
+    {
+        windowDragger.startDraggingComponent(this, e);
+    }
+
+    void mouseDrag(MouseEvent const& e)
+    {
+        windowDragger.dragComponent(this, e, nullptr);
+    }
+
+    void paintOverChildren(Graphics& g)
+    {
+        g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
+        g.drawRoundedRectangle(getLocalBounds().toFloat(), 6.0f, 1.0f);
+    }
+
+    void paint(Graphics& g)
+    {
+        g.setColour(findColour(PlugDataColour::toolbarColourId));
+        g.fillRoundedRectangle(getLocalBounds().toFloat(), 6.0f);
+
+        g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
+        g.drawHorizontalLine(39, 0, getWidth());
+
+        if (!title.isEmpty()) {
+            g.setColour(findColour(PlugDataColour::textColourId));
+            g.drawText(title, 0, 0, getWidth(), 40, Justification::centred);
+        }
+    }
+};
+
 struct ArrayObject final : public GUIObject {
 public:
     // Array component
-    ArrayObject(void* obj, Box* box)
-        : GUIObject(obj, box)
+    ArrayObject(void* obj, Object* object)
+        : GUIObject(obj, object)
         , array(getArray())
-        , graph(cnv->pd, array, box)
+        , graph(cnv->pd, array, object)
     {
         setInterceptsMouseClicks(false, true);
         graph.setBounds(getLocalBounds());
@@ -355,7 +431,7 @@ public:
         name = String(array.getUnexpandedName());
         drawMode = static_cast<int>(array.getDrawType()) + 1;
 
-        labelColour = box->findColour(PlugDataColour::textColourId).toString();
+        labelColour = object->findColour(PlugDataColour::textColourId).toString();
 
         updateLabel();
     }
@@ -371,7 +447,7 @@ public:
                 label = std::make_unique<Label>();
             }
 
-            auto bounds = box->getBounds().reduced(Box::margin).removeFromTop(fontHeight + 2);
+            auto bounds = object->getBounds().reduced(Object::margin).removeFromTop(fontHeight + 2);
 
             bounds.translate(2, -(fontHeight + 2));
 
@@ -384,9 +460,9 @@ public:
             label->setEditable(false, false);
             label->setInterceptsMouseClicks(false, false);
 
-            label->setColour(Label::textColourId, box->findColour(PlugDataColour::textColourId));
+            label->setColour(Label::textColourId, object->findColour(PlugDataColour::textColourId));
 
-            box->cnv->addAndMakeVisible(label.get());
+            object->cnv->addAndMakeVisible(label.get());
         }
     }
 
@@ -402,17 +478,17 @@ public:
 
         pd->getCallbackLock()->exit();
 
-        box->setObjectBounds(bounds);
+        object->setObjectBounds(bounds);
     }
 
     void checkBounds() override
     {
         // Apply size limits
-        int w = jlimit(100, maxSize, box->getWidth());
-        int h = jlimit(40, maxSize, box->getHeight());
+        int w = jlimit(100, maxSize, object->getWidth());
+        int h = jlimit(40, maxSize, object->getHeight());
 
-        if (w != box->getWidth() || h != box->getHeight()) {
-            box->setSize(w, h);
+        if (w != object->getWidth() || h != object->getHeight()) {
+            object->setSize(w, h);
         }
     }
 
@@ -429,7 +505,7 @@ public:
 
     void applyBounds() override
     {
-        auto b = box->getObjectBounds();
+        auto b = object->getObjectBounds();
         libpd_moveobj(cnv->patch.getPointer(), static_cast<t_gobj*>(ptr), b.getX(), b.getY());
 
         auto* array = static_cast<_glist*>(ptr);
@@ -518,7 +594,7 @@ public:
 
     void paintOverChildren(Graphics& g) override
     {
-        auto outlineColour = box->findColour(cnv->isSelected(box) && !cnv->isGraph ? PlugDataColour::highlightColourId : PlugDataColour::canvasOutlineColourId);
+        auto outlineColour = object->findColour(cnv->isSelected(object) && !cnv->isGraph ? PlugDataColour::highlightColourId : PlugDataColour::canvasOutlineColourId);
         g.setColour(outlineColour);
         g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), 2.0f, 1.0f);
     }
@@ -530,10 +606,71 @@ public:
 
         return { glist, cnv->pd->m_instance };
     }
+    
+    bool canOpenFromMenu() override
+    {
+        return true;
+    }
+
+    void openFromMenu() override
+    {
+        openSubpatch();
+        dialog = std::make_unique<ArrayEditorDialog>(cnv->pd, array, object);
+        dialog->onClose = [this]()
+        {
+            updateValue();
+            dialog.reset(nullptr);
+        };
+    }
 
 private:
     Value name, size, drawMode, saveContents, range;
-
+    
     PdArray array;
     GraphicalArray graph;
+    std::unique_ptr<ArrayEditorDialog> dialog;
+};
+
+// Actual text object, marked final for optimisation
+struct ArrayDefineObject final : public TextBase {
+    std::unique_ptr<ArrayEditorDialog> editor;
+
+    ArrayDefineObject(void* obj, Object* parent, bool isValid = true)
+        : TextBase(obj, parent, isValid)
+    {
+    }
+
+    void lock(bool isLocked) override
+    {
+        setInterceptsMouseClicks(isLocked, false);
+    }
+
+    void mouseDown(MouseEvent const& e) override
+    {
+        openArrayEditor();
+    }
+
+    bool canOpenFromMenu() override
+    {
+        return true;
+    }
+    
+    void openArrayEditor()
+    {
+        auto* c = reinterpret_cast<t_canvas*>(static_cast<t_canvas*>(ptr)->gl_list);
+        auto* glist = reinterpret_cast<t_garray*>(c->gl_list);
+        auto array = PdArray(glist, cnv->pd->m_instance);
+        
+        editor = std::make_unique<ArrayEditorDialog>(cnv->pd, array, object);
+        editor->onClose = [this]()
+        {
+            updateValue();
+            editor.reset(nullptr);
+        };
+    }
+
+    void openFromMenu() override
+    {
+        openArrayEditor();
+    }
 };

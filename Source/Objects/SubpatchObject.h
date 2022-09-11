@@ -1,8 +1,8 @@
 
 struct SubpatchObject final : public TextBase
     , public Value::Listener {
-    SubpatchObject(void* obj, Box* box)
-        : TextBase(obj, box)
+    SubpatchObject(void* obj, Object* object)
+        : TextBase(obj, object)
         , subpatch({ ptr, cnv->pd })
     {
         isGraphChild = false;
@@ -16,9 +16,9 @@ struct SubpatchObject final : public TextBase
     {
         // Change from subpatch to graph
         if (static_cast<t_canvas*>(ptr)->gl_isgraph) {
-            cnv->setSelected(box, false);
-            box->cnv->main.sidebar.hideParameters();
-            box->setType(currentText, ptr);
+            cnv->setSelected(object, false);
+            object->cnv->main.sidebar.hideParameters();
+            object->setType(currentText, ptr);
         }
     };
 

@@ -141,18 +141,18 @@ public:
         buttons.clear();
     }
 
-    void createCalloutBox(Box* box, TextEditor* editor)
+    void createCalloutBox(Object* object, TextEditor* editor)
     {
-        currentBox = box;
+        currentBox = object;
         openedEditor = editor;
 
-        setTransform(box->cnv->main.getTransform());
+        setTransform(object->cnv->main.getTransform());
 
         editor->setInputFilter(this, false);
         editor->addKeyListener(this);
 
         // Should run after the input filter
-        editor->onTextChange = [this, editor, box]() {
+        editor->onTextChange = [this, editor, object]() {
             if (state == ShowingObjects && !editor->getText().containsChar(' ')) {
                 editor->setHighlightedRegion({ highlightStart, highlightEnd });
             }
@@ -175,7 +175,7 @@ public:
         toFront(false);
 
         auto scale = std::sqrt(std::abs(getTransform().getDeterminant()));
-        setTopLeftPosition(box->getScreenX() / scale, box->getScreenBounds().getBottom() / scale);
+        setTopLeftPosition(object->getScreenX() / scale, object->getScreenBounds().getBottom() / scale);
         repaint();
     }
 
@@ -233,7 +233,7 @@ public:
     }
 
     TextEditor* openedEditor = nullptr;
-    SafePointer<Box> currentBox;
+    SafePointer<Object> currentBox;
 
     void resized() override
     {
