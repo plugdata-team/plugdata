@@ -186,13 +186,13 @@ Point<int> ObjectGrid::performHorizontalSnap(Object* toDrag, Point<int> dragOffs
             continue;
 
         auto recentDragOffset = (toDrag->mouseDownPos + dragOffset) - toDrag->getPosition();
-        if (connection->inbox == toDrag) {
+        if (connection->inobj == toDrag) {
             // Skip if both objects are selected
-            if (cnv->isSelected(connection->outbox))
+            if (cnv->isSelected(connection->outobj))
                 continue;
             inletBounds += recentDragOffset;
         } else {
-            if (cnv->isSelected(connection->inbox))
+            if (cnv->isSelected(connection->inobj))
                 continue;
             outletBounds += recentDragOffset;
         }
@@ -200,7 +200,7 @@ Point<int> ObjectGrid::performHorizontalSnap(Object* toDrag, Point<int> dragOffs
         int snapDistance = inletBounds.getX() - outletBounds.getX();
 
         // Check if the inlet or outlet is being moved, and invert if needed
-        if (connection->inbox == toDrag)
+        if (connection->inobj == toDrag)
             snapDistance = -snapDistance;
 
         if (trySnap(snapDistance)) {

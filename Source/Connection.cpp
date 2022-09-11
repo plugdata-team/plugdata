@@ -9,7 +9,7 @@
 #include "Iolet.h"
 #include "LookAndFeel.h"
 
-Connection::Connection(Canvas* parent, Iolet* s, Iolet* e, bool exists) : cnv(parent), outlet(s->isInlet ? e : s), inlet(s->isInlet ? s : e), outbox(outlet->object), inbox(inlet->object)
+Connection::Connection(Canvas* parent, Iolet* s, Iolet* e, bool exists) : cnv(parent), outlet(s->isInlet ? e : s), inlet(s->isInlet ? s : e), outobj(outlet->object), inobj(inlet->object)
 {
     
     locked.referTo(parent->locked);
@@ -23,8 +23,8 @@ Connection::Connection(Canvas* parent, Iolet* s, Iolet* e, bool exists) : cnv(pa
         return;
     }
     
-    inIdx = inlet->edgeIdx;
-    outIdx = outlet->edgeIdx;
+    inIdx = inlet->ioletIdx;
+    outIdx = outlet->ioletIdx;
     
     outlet->repaint();
     inlet->repaint();
@@ -32,7 +32,7 @@ Connection::Connection(Canvas* parent, Iolet* s, Iolet* e, bool exists) : cnv(pa
     // If it doesn't already exist in pd, create connection in pd
     if (!exists)
     {
-        bool canConnect = parent->patch.createConnection(outbox->getPointer(), outIdx, inbox->getPointer(), inIdx);
+        bool canConnect = parent->patch.createConnection(outobj->getPointer(), outIdx, inobj->getPointer(), inIdx);
         
         if (!canConnect)
         {
@@ -51,8 +51,8 @@ Connection::Connection(Canvas* parent, Iolet* s, Iolet* e, bool exists) : cnv(pa
     }
     
     // Listen to changes at iolets
-    outbox->addComponentListener(this);
-    inbox->addComponentListener(this);
+    outobj->addComponentListener(this);
+    inobj->addComponentListener(this);
     outlet->addComponentListener(this);
     inlet->addComponentListener(this);
     
@@ -115,10 +115,10 @@ String Connection::getId() const
     
     // TODO: check if connection is still valid before requesting idx from object
     
-    stream.writeInt(cnv->patch.getIndex(inbox->getPointer()));
-    stream.writeInt(cnv->patch.getIndex(outbox->getPointer()));
+    stream.writeInt(cnv->patch.getIndex(inobj->getPointer()));
+    stream.writeInt(cnv->patch.getIndex(outobj->getPointer()));
     stream.writeInt(inIdx);
-    stream.writeInt(outbox->numInputs + outIdx);
+    stream.writeInt(outobj->numInputs + outIdx);
     
     return stream.getMemoryBlock().toBase64Encoding();
 }
@@ -135,9 +135,9 @@ Connection::~Connection()
         outlet->repaint();
         outlet->removeComponentListener(this);
     }
-    if (outbox)
+    if (outobj)
     {
-        outbox->removeComponentListener(this);
+        outobj->removeComponentListener(this);
     }
     
     if (inlet)
@@ -145,9 +145,9 @@ Connection::~Connection()
         inlet->repaint();
         inlet->removeComponentListener(this);
     }
-    if (inbox)
+    if (inobj)
     {
-        inbox->removeComponentListener(this);
+        inobj->removeComponentListener(this);
     }
 }
 
@@ -426,10 +426,10 @@ void Connection::reconnect(Iolet* target, bool dragged)
     
     for(auto* c : connections) {
         
-        if (cnv->patch.hasConnection(c->outbox->getPointer(), c->outIdx, c->inbox->getPointer(), c->inIdx))
+        if (cnv->patch.hasConnection(c->outobj->getPointer(), c->outIdx, c->inobj->getPointer(), c->inIdx))
         {
             // Delete connection from pd if we haven't done that yet
-            cnv->patch.removeConnection(c->outbox->getPointer(), c->outIdx, c->inbox->getPointer(), c->inIdx);
+            cnv->patch.removeConnection(c->outobj->getPointer(), c->outIdx, c->inobj->getPointer(), c->inIdx);
         }
         
         // Create new connection
@@ -460,7 +460,7 @@ void Connection::componentMovedOrResized(Component& component, bool wasMoved, bo
     }
     
     // If both inlet and outlet are selected we can just move the connection cord
-    if ((cnv->isSelected(outbox) && cnv->isSelected(inbox)) || cnv->updatingBounds)
+    if ((cnv->isSelected(outobj) && cnv->isSelected(inobj)) || cnv->updatingBounds)
     {
         auto offset = pstart - currentPlan[0];
         for (auto& point : currentPlan) point += offset;
@@ -472,7 +472,7 @@ void Connection::componentMovedOrResized(Component& component, bool wasMoved, bo
     int idx2 = 1;
     
     auto& position = pstart;
-    if (&component == inlet || &component == inbox)
+    if (&component == inlet || &component == inobj)
     {
         idx1 = static_cast<int>(currentPlan.size() - 1);
         idx2 = static_cast<int>(currentPlan.size() - 2);
@@ -813,7 +813,7 @@ bool Connection::straightLineIntersectsObject(Line<int> toCheck, Array<Object*>&
     {
         auto bounds = object->getBounds().expanded(1);
         
-        if (object == outbox || object == inbox || !bounds.intersects(getBounds())) continue;
+        if (object == outobj || object == inobj || !bounds.intersects(getBounds())) continue;
         
         auto intersectV = [](Line<int> first, Line<int> second)
         {

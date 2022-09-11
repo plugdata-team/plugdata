@@ -439,10 +439,10 @@ Suggestions Library::autocomplete(String query) const
     return result;
 }
 
-String Library::getInletOutletTooltip(String boxname, int idx, int total, bool isInlet)
+String Library::getInletOutletTooltip(String objname, int idx, int total, bool isInlet)
 {
-    auto name = boxname.upToFirstOccurrenceOf(" ", false, false);
-    auto args = StringArray::fromTokens(boxname.fromFirstOccurrenceOf(" ", false, false), true);
+    auto name = objname.upToFirstOccurrenceOf(" ", false, false);
+    auto args = StringArray::fromTokens(objname.fromFirstOccurrenceOf(" ", false, false), true);
 
     auto findInfo = [&name, &args, &total, &idx](IODescriptionMap map) {
         if (map.count(name)) {

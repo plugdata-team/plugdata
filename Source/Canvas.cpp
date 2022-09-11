@@ -159,14 +159,14 @@ void Canvas::synchronise(bool updatePosition)
         {
             auto* connection = connections[n];
 
-            if (!connection->inlet || !connection->outlet || isObjectDeprecated(connection->inbox->getPointer()) || isObjectDeprecated(connection->outbox->getPointer()))
+            if (!connection->inlet || !connection->outlet || isObjectDeprecated(connection->inobj->getPointer()) || isObjectDeprecated(connection->outobj->getPointer()))
             {
                 connections.remove(n);
             }
             else
             {
-                auto* inlet = static_cast<t_text*>(connection->inbox->getPointer());
-                auto* outlet = static_cast<t_text*>(connection->outbox->getPointer());
+                auto* inlet = static_cast<t_text*>(connection->inobj->getPointer());
+                auto* outlet = static_cast<t_text*>(connection->outobj->getPointer());
 
                 if (!canvas_isconnected(patch.getPointer(), outlet, connection->outIdx, inlet, connection->inIdx))
                 {
@@ -252,8 +252,8 @@ void Canvas::synchronise(bool updatePosition)
 
                                        if (!c->inlet || !c->outlet) return false;
 
-                                       bool sameStart = c->outbox == objects[srcno];
-                                       bool sameEnd = c->inbox == objects[sinkno];
+                                       bool sameStart = c->outobj == objects[srcno];
+                                       bool sameEnd = c->inobj == objects[sinkno];
 
                                        return c->inIdx == inno && c->outIdx == outno && sameStart && sameEnd;
                                    });
@@ -267,8 +267,8 @@ void Canvas::synchronise(bool updatePosition)
                 // Update storage ids for connections
                 auto& c = *(*it);
 
-                c.inIdx = c.inlet->edgeIdx;
-                c.outIdx = c.outlet->edgeIdx;
+                c.inIdx = c.inlet->ioletIdx;
+                c.outIdx = c.outlet->ioletIdx;
                 
                 auto currentId = c.getId();
                 if (c.lastId.isNotEmpty() && c.lastId != currentId)
@@ -617,10 +617,10 @@ void Canvas::paintOverChildren(Graphics& g)
     // Draw connections in the making over everything else
     for(auto& iolet : connectingEdges)
     {
-        Point<int> edgePos = iolet->getCanvasBounds().getCentre();
+        Point<int> ioletPos = iolet->getCanvasBounds().getCentre();
 
         Path path;
-        path.startNewSubPath(edgePos.toFloat());
+        path.startNewSubPath(ioletPos.toFloat());
         path.lineTo(mousePos);
 
         g.setColour(Colours::grey);
@@ -800,9 +800,9 @@ void Canvas::removeSelection()
     {
         if (isSelected(con))
         {
-            if (!(objects.contains(con->outbox->getPointer()) || objects.contains(con->inbox->getPointer())))
+            if (!(objects.contains(con->outobj->getPointer()) || objects.contains(con->inobj->getPointer())))
             {
-                patch.removeConnection(con->outbox->getPointer(), con->outIdx, con->inbox->getPointer(), con->inIdx);
+                patch.removeConnection(con->outobj->getPointer(), con->outIdx, con->inobj->getPointer(), con->inIdx);
             }
         }
     }
@@ -839,8 +839,8 @@ void Canvas::encapsulateSelection()
     
     // First, find all the incoming and outgoing connections
     for(auto* connection : connections) {
-        if(selectedBoxes.contains(connection->inbox.getComponent()) &&
-           !selectedBoxes.contains(connection->outbox.getComponent()))
+        if(selectedBoxes.contains(connection->inobj.getComponent()) &&
+           !selectedBoxes.contains(connection->outobj.getComponent()))
         {
             auto* inlet = connection->inlet.getComponent();
             targetEdges[inlet].add(connection->outlet.getComponent());
@@ -849,8 +849,8 @@ void Canvas::encapsulateSelection()
         }
     }
     for(auto* connection : connections) {
-        if(selectedBoxes.contains(connection->outbox.getComponent()) &&
-           !selectedBoxes.contains(connection->inbox.getComponent()))
+        if(selectedBoxes.contains(connection->outobj.getComponent()) &&
+           !selectedBoxes.contains(connection->inobj.getComponent()))
         {
             auto* outlet = connection->outlet.getComponent();
             targetEdges[outlet].add(connection->inlet.getComponent());
@@ -886,14 +886,14 @@ void Canvas::encapsulateSelection()
         auto pos = targetEdge->object->getPosition();
         newEdgeObjects += "#X obj " + String(pos.x) + " " + String(pos.y) + " " + type + ";\n";
     
-        int boxIdx = selectedBoxes.indexOf(iolet->object);
+        int objIdx = selectedBoxes.indexOf(iolet->object);
         int ioletObjectIdx = selectedBoxes.size() + i;
         if(iolet->isInlet) {
-            newInternalConnections += "#X connect " + String(ioletObjectIdx) + " 0 " + String(boxIdx) + " " + String(iolet->edgeIdx) + ";\n";
+            newInternalConnections += "#X connect " + String(ioletObjectIdx) + " 0 " + String(objIdx) + " " + String(iolet->ioletIdx) + ";\n";
             numIn++;
         }
         else {
-            newInternalConnections += "#X connect " + String(boxIdx) + " " + String(iolet->edgeIdx) + " " + String(ioletObjectIdx) + " 0;\n";
+            newInternalConnections += "#X connect " + String(objIdx) + " " + String(iolet->ioletIdx) + " " + String(ioletObjectIdx) + " 0;\n";
         }
         
         for(auto* target : targetEdges[iolet]) {
@@ -942,10 +942,10 @@ void Canvas::encapsulateSelection()
             for(auto* iolet : iolets) {
                 auto* externalObject = static_cast<t_object*>(iolet->object->getPointer());
                 if(iolet->isInlet) {
-                    libpd_createconnection(patch.getPointer(), newObject, idx - numIn, externalObject, iolet->edgeIdx);
+                    libpd_createconnection(patch.getPointer(), newObject, idx - numIn, externalObject, iolet->ioletIdx);
                 }
                 else {
-                    libpd_createconnection(patch.getPointer(), externalObject, iolet->edgeIdx, newObject, idx);
+                    libpd_createconnection(patch.getPointer(), externalObject, iolet->ioletIdx, newObject, idx);
                 }
             }
         }
@@ -1183,17 +1183,17 @@ void Canvas::handleMouseUp(Component* component, const MouseEvent& e)
         didStartDragging = false;
     }
     
-    if(boxSnappingInbetween) {
+    if(objectSnappingInbetween) {
         auto* c = connectionToSnapInbetween.getComponent();
         
-        patch.removeConnection(c->outbox->getPointer(), c->outIdx, c->inbox->getPointer(), c->inIdx);
+        patch.removeConnection(c->outobj->getPointer(), c->outIdx, c->inobj->getPointer(), c->inIdx);
         
-        patch.createConnection(c->outbox->getPointer(), c->outIdx, boxSnappingInbetween->getPointer(), 0);
-        patch.createConnection(boxSnappingInbetween->getPointer(), 0, c->inbox->getPointer(), c->inIdx);
+        patch.createConnection(c->outobj->getPointer(), c->outIdx, objectSnappingInbetween->getPointer(), 0);
+        patch.createConnection(objectSnappingInbetween->getPointer(), 0, c->inobj->getPointer(), c->inIdx);
         
-        boxSnappingInbetween->iolets[0]->isTargeted = false;
-        boxSnappingInbetween->iolets[boxSnappingInbetween->numInputs]->isTargeted = false;
-        boxSnappingInbetween = nullptr;
+        objectSnappingInbetween->iolets[0]->isTargeted = false;
+        objectSnappingInbetween->iolets[objectSnappingInbetween->numInputs]->isTargeted = false;
+        objectSnappingInbetween = nullptr;
 
         synchronise();
     }
@@ -1231,17 +1231,17 @@ void Canvas::handleMouseDrag(const MouseEvent& e)
     }
     
     // Behaviour for shift-dragging objects over
-    if(boxSnappingInbetween) {
+    if(objectSnappingInbetween) {
         bool stillSnapped = false;
-        if(connectionToSnapInbetween->intersectsObject(boxSnappingInbetween)) {
+        if(connectionToSnapInbetween->intersectsObject(objectSnappingInbetween)) {
             stillSnapped = true;
             return;
         }
         
         // If we're here, it's not snapping anymore
-        boxSnappingInbetween->iolets[0]->isTargeted = false;
-        boxSnappingInbetween->iolets[boxSnappingInbetween->numInputs]->isTargeted = false;
-        boxSnappingInbetween = nullptr;
+        objectSnappingInbetween->iolets[0]->isTargeted = false;
+        objectSnappingInbetween->iolets[objectSnappingInbetween->numInputs]->isTargeted = false;
+        objectSnappingInbetween = nullptr;
     }
     
     if(e.mods.isShiftDown() && selection.size() == 1) {
@@ -1252,7 +1252,7 @@ void Canvas::handleMouseDrag(const MouseEvent& e)
                     object->iolets[0]->isTargeted = true;
                     object->iolets[object->numInputs]->isTargeted = true;
                     connectionToSnapInbetween = connection;
-                    boxSnappingInbetween = object;
+                    objectSnappingInbetween = object;
                 }
             }
         }
@@ -1280,14 +1280,14 @@ void Canvas::handleMouseDrag(const MouseEvent& e)
             auto* outlet = inputs[0]->outlet.getComponent();
             
             for(auto* c : outputs) {
-                patch.removeConnection(c->outbox->getPointer(), c->outIdx, c->inbox->getPointer(), c->inIdx);
+                patch.removeConnection(c->outobj->getPointer(), c->outIdx, c->inobj->getPointer(), c->inIdx);
                 
                 connections.add(new Connection(this, outlet, c->inlet, false));
                 connections.removeObject(c);
             }
             
             auto* c = inputs[0];
-            patch.removeConnection(c->outbox->getPointer(), c->outIdx, c->inbox->getPointer(), c->inIdx);
+            patch.removeConnection(c->outobj->getPointer(), c->outIdx, c->inobj->getPointer(), c->inIdx);
             connections.removeObject(c);
             
             object->iolets[0]->isTargeted = false;
@@ -1295,20 +1295,20 @@ void Canvas::handleMouseDrag(const MouseEvent& e)
             object->iolets[0]->repaint();
             object->iolets[object->numInputs]->repaint();
             
-            boxSnappingInbetween = nullptr;
+            objectSnappingInbetween = nullptr;
         }
         else if(inputs.size() && outputs.size() == 1) {
             auto* inlet = outputs[0]->inlet.getComponent();
             
             for(auto* c : inputs) {
-                patch.removeConnection(c->outbox->getPointer(), c->outIdx, c->inbox->getPointer(), c->inIdx);
+                patch.removeConnection(c->outobj->getPointer(), c->outIdx, c->inobj->getPointer(), c->inIdx);
                 
                 connections.add(new Connection(this, c->outlet, inlet, false));
                 connections.removeObject(c);
             }
             
             auto* c = outputs[0];
-            patch.removeConnection(c->outbox->getPointer(), c->outIdx, c->inbox->getPointer(), c->inIdx);
+            patch.removeConnection(c->outobj->getPointer(), c->outIdx, c->inobj->getPointer(), c->inIdx);
             connections.removeObject(c);
             
             object->iolets[0]->isTargeted = false;
@@ -1316,7 +1316,7 @@ void Canvas::handleMouseDrag(const MouseEvent& e)
             object->iolets[0]->repaint();
             object->iolets[object->numInputs]->repaint();
             
-            boxSnappingInbetween = nullptr;
+            objectSnappingInbetween = nullptr;
         }
 
     }
