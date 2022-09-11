@@ -219,6 +219,14 @@ void Library::initialiseLibrary()
 
         if (thread->threadShouldExit())
             return;
+        
+        
+        // Paths to search
+        // First, only search vanilla, then search all documentation
+        // Lastly, check the deken folder
+        helpPaths = {appDataDir.getChildFile("Documentation").getChildFile("Library").getChildFile("5.reference"), appDataDir.getChildFile("Library").getChildFile("Documentation"),
+            appDataDir.getChildFile("Deken")
+        };
 
         // Update docs in GUI
         MessageManager::callAsync([this]() {
@@ -476,6 +484,54 @@ String Library::getInletOutletTooltip(String objname, int idx, int total, bool i
 void Library::fsChangeCallback()
 {
     appDirChanged();
+}
+
+File Library::findHelpfile(t_object* obj)
+{
+    String helpName;
+    
+    auto* pdclass = pd_class(reinterpret_cast<t_pd*>(obj));
+    
+    if(pdclass == canvas_class && canvas_isabstraction(reinterpret_cast<t_canvas*>(obj))) {
+        char namebuf[MAXPDSTRING];
+        t_object *ob = obj;
+        int ac = binbuf_getnatom(ob->te_binbuf);
+        t_atom *av = binbuf_getvec(ob->te_binbuf);
+        if (ac < 1)
+            return;
+        atom_string(av, namebuf, MAXPDSTRING);
+        helpName = String::fromUTF8(namebuf).fromLastOccurrenceOf("/", false, false);
+    }
+    else {
+        helpName = class_gethelpname(pdclass);
+    }
+
+    String firstName = helpName + "-help.pd";
+    String secondName = "help-" + helpName + ".pd";
+
+    auto findHelpPatch = [&firstName, &secondName](const File& searchDir) -> File
+    {
+        for (const auto& fileIter : RangedDirectoryIterator(searchDir, true))
+        {
+            auto file = fileIter.getFile();
+            if (file.getFileName() == firstName || file.getFileName() == secondName)
+            {
+                return file;
+            }
+        }
+        return File();
+    };
+    
+    for (auto& path : helpPaths)
+    {
+        auto file = findHelpPatch(path);
+        if (file.existsAsFile())
+        {
+            return file;
+        }
+    }
+    
+    return File();
 }
 
 ObjectMap Library::getObjectDescriptions()
