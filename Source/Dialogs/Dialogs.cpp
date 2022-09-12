@@ -128,3 +128,18 @@ void Dialogs::showObjectMenu(PlugDataPluginEditor* parent, Component* target)
             }
         });
 }
+
+StringArray DekenInterface::getExternalPaths()
+{
+    StringArray searchPaths;
+    
+    for(auto package : PackageManager::getInstance()->packageState) {
+        if(!package.hasProperty("AddToPath") || !static_cast<bool>(package.getProperty("AddToPath"))) {
+            continue;
+        }
+        
+        searchPaths.add(package.getProperty("Path"));
+    }
+    
+    return searchPaths;
+}

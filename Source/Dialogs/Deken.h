@@ -268,23 +268,17 @@ struct PackageManager : public Thread
     // When a property in our pkginfo changes, save it immediately
     void valueTreePropertyChanged(ValueTree& treeWhosePropertyHasChanged, Identifier const& property) override
     {
-        if (treeWhosePropertyHasChanged == packageState) {
-            pkgInfo.replaceWithText(packageState.toXmlString());
-        }
+        pkgInfo.replaceWithText(packageState.toXmlString());
     }
 
     void valueTreeChildAdded(ValueTree& parentTree, ValueTree& childWhichHasBeenAdded) override
     {
-        if (parentTree == packageState) {
-            pkgInfo.replaceWithText(packageState.toXmlString());
-        }
+        pkgInfo.replaceWithText(packageState.toXmlString());
     }
 
     void valueTreeChildRemoved(ValueTree& parentTree, ValueTree& childWhichHasBeenRemoved, int indexFromWhichChildWasRemoved) override
     {
-        if (parentTree == packageState) {
-            pkgInfo.replaceWithText(packageState.toXmlString());
-        }
+        pkgInfo.replaceWithText(packageState.toXmlString());
     }
 
     void uninstall(PackageInfo& packageInfo)
@@ -716,9 +710,10 @@ private:
         TextButton installButton = TextButton(Icons::SaveAs);
         TextButton reinstallButton = TextButton(Icons::Refresh);
         TextButton uninstallButton = TextButton(Icons::Clear);
+        TextButton addToPathButton = TextButton(Icons::AddCircled);
 
         float installProgress;
-        ValueTree packageState;
+        ValueTree& packageState;
 
         DekenRowComponent(Deken& parent, PackageInfo& info)
             : deken(parent)
@@ -728,11 +723,19 @@ private:
             addChildComponent(installButton);
             addChildComponent(reinstallButton);
             addChildComponent(uninstallButton);
+            addChildComponent(addToPathButton);
 
+            // Use statusbar button style
             installButton.setName("statusbar:install");
             reinstallButton.setName("statusbar:reinstall");
             uninstallButton.setName("statusbar:uninstall");
-
+            addToPathButton.setName("statusbar:addtopath");
+            
+            installButton.setTooltip("Install package");
+            reinstallButton.setTooltip("Reinstall package");
+            uninstallButton.setTooltip("Uninstall package");
+            addToPathButton.setTooltip("Add to path");
+            
             uninstallButton.onClick = [this]() {
                 setInstalled(false);
                 deken.packageManager->uninstall(packageInfo);
@@ -748,7 +751,18 @@ private:
                 auto* downloadTask = deken.packageManager->install(packageInfo);
                 attachToDownload(downloadTask);
             };
-
+           
+            addToPathButton.onClick = [this]() {
+                auto state = packageState.getChildWithProperty("ID", packageInfo.packageId);
+                state.setProperty("AddToPath", var(addToPathButton.getToggleState()), nullptr);
+            };
+            
+            addToPathButton.setClickingTogglesState(true);
+            auto state = packageState.getChildWithProperty("ID", packageInfo.packageId);
+            if(state.hasProperty("AddToPath")) {
+                addToPathButton.setToggleState(static_cast<bool>(state.getProperty("AddToPath")), dontSendNotification);
+            }
+           
             // Check if package is already installed
             setInstalled(deken.packageManager->packageExists(packageInfo));
 
@@ -783,6 +797,7 @@ private:
             installButton.setVisible(false);
             reinstallButton.setVisible(false);
             uninstallButton.setVisible(false);
+            addToPathButton.setVisible(false);
         }
 
         // Enables or disables buttons based on package state
@@ -791,6 +806,7 @@ private:
             installButton.setVisible(!installed);
             reinstallButton.setVisible(installed);
             uninstallButton.setVisible(installed);
+            addToPathButton.setVisible(installed);
             installProgress = 0.0f;
 
             repaint();
@@ -822,7 +838,7 @@ private:
             } else {
                 g.drawFittedText(packageInfo.version, 150, 0, 150, getHeight(), Justification::centredLeft, 1, 0.8f);
                 g.drawFittedText(packageInfo.author, 330, 0, 110, getHeight(), Justification::centredLeft, 1, 0.8f);
-                g.drawFittedText(packageInfo.timestamp, 455, 0, 200, getHeight(), Justification::centredLeft, 1, 0.8f);
+                g.drawFittedText(packageInfo.timestamp, 435, 0, 200, getHeight(), Justification::centredLeft, 1, 0.8f);
             }
         }
 
@@ -831,6 +847,7 @@ private:
             installButton.setBounds(getWidth() - 40, 1, 26, 30);
             uninstallButton.setBounds(getWidth() - 40, 1, 26, 30);
             reinstallButton.setBounds(getWidth() - 70, 1, 26, 30);
+            addToPathButton.setBounds(getWidth() - 100, 1, 26, 30);
         }
     };
 };

@@ -308,8 +308,6 @@ struct DrawableSymbol final : public DrawableTemplate, public DrawableText {
         setFontHeight(sys_hostfontsize(glist_getfont(glist), glist_getzoom(glist)));
         setText(String::fromUTF8(buf));
         
-        std::cout << getText() << std::endl;
-        
         /*
         sys_vgui(".x%lx.c create text %d %d -anchor nw -fill %s -text {%s}",
             glist_getcanvas(glist), xloc, yloc, colorstring, buf);

@@ -1113,7 +1113,7 @@ void Canvas::setSelected(Component* component, bool shouldNowBeSelected)
 
 bool Canvas::isSelected(Component* component) const
 {
-    return std::find(selectedComponents.begin(), selectedComponents.end(), component) != selectedComponents.end();
+    return selectedComponents.isSelected(component);
 }
 
 void Canvas::handleMouseDown(Component* component, const MouseEvent& e)
@@ -1340,7 +1340,6 @@ void Canvas::findLassoItemsInArea(Array<WeakReference<Component>>& itemsFound, c
         {
             itemsFound.add(element);
             setSelected(element, true);
-            element->repaint();
         }
         else if (!ModifierKeys::getCurrentModifiers().isAnyModifierKeyDown())
         {

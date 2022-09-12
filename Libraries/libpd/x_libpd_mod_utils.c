@@ -694,8 +694,6 @@ void libpd_renameobj(t_canvas* cnv, t_gobj* obj, char const* buf, size_t bufsize
     cnv->gl_editor->e_textedfor = 0;
     cnv->gl_editor->e_textdirty = 0;
 
-    canvas_destroy_editor(cnv);
-
     canvas_editmode(cnv, 0);
     sys_unlock();
 }
