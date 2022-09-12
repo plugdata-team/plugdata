@@ -291,6 +291,7 @@ void Object::paintOverChildren(Graphics& g)
 
 void Object::paint(Graphics& g)
 {
+    
     if (cnv->isSelected(this) && !cnv->isGraph)
     {
         g.setColour(findColour(PlugDataColour::highlightColourId));
@@ -554,6 +555,7 @@ void Object::mouseUp(const MouseEvent& e)
     if(gui && !selectionStateChanged && cnv->isSelected(this) && !e.mouseWasDraggedSinceMouseDown() && !e.mods.isRightButtonDown()) {
         gui->showEditor();
     }
+
     
     selectionStateChanged = false;
 }

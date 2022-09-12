@@ -106,3 +106,9 @@ struct Dialogs {
 
     static void showObjectMenu(PlugDataPluginEditor* parent, Component* target);
 };
+
+
+struct DekenInterface
+{
+    static StringArray getExternalPaths();
+};

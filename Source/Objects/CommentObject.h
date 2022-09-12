@@ -103,8 +103,8 @@ struct CommentObject final : public TextBase
             editor->setBorder(border);
             editor->setIndents(0, 0);
             editor->setJustification(justification);
-
-            currentText = "";
+            
+            
 
             editor->onFocusLost = [this]() {
                 // Necessary so the editor doesn't close when clicking on a suggestion
@@ -117,14 +117,16 @@ struct CommentObject final : public TextBase
             addAndMakeVisible(editor.get());
 
             editor->setText(currentText, false);
+            currentText = "";
+            
             editor->addListener(this);
             editor->addKeyListener(this);
 
             if (editor == nullptr) // may be deleted by a callback
                 return;
 
-            editor->setHighlightedRegion(Range<int>(0, currentText.length()));
-
+            editor->selectAll();
+            
             resized();
             repaint();
 
