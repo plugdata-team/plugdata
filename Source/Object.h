@@ -97,6 +97,7 @@ class Object : public Component, public Value::Listener, public Timer, private T
     bool selectionStateChanged = false;
     bool wasLockedOnMouseDown = false;
 
+
     std::unique_ptr<TextEditor> newObjectEditor;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(Object)

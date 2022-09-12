@@ -321,6 +321,11 @@ void PlugDataAudioProcessor::updateSearchPaths()
         auto location = elsePath.getFullPathName();
         libpd_add_to_search_path(location.toRawUTF8());
     }
+    
+    for (auto path : DekenInterface::getExternalPaths())
+    {
+        libpd_add_to_search_path(path.toRawUTF8());
+    }
 
     getCallbackLock()->exit();
 }
