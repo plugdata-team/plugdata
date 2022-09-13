@@ -242,20 +242,17 @@ struct PropertiesPanel : public PropertyPanel {
             maxLabel.addMouseListener(this, true);
             maxLabel.setText(String(max), dontSendNotification);
 
-            maxLabel.setMinimum(min);
-            minLabel.setMaximum(max);
-
             auto setMinimum = [this](float value) {
                 min = value;
                 Array<var> arr = { min, max };
-                maxLabel.setMinimum(min + 1e-5f);
+                //maxLabel.setMinimum(min + 1e-5f);
                 property = var(arr);
             };
 
             auto setMaximum = [this](float value) {
                 max = value;
                 Array<var> arr = { min, max };
-                minLabel.setMaximum(max - 1e-5f);
+                //minLabel.setMaximum(max - 1e-5f);
                 property = var(arr);
             };
 
