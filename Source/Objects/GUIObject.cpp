@@ -48,6 +48,7 @@ extern "C" {
 #include "SymbolAtomObject.h"
 #include "ScalarObject.h"
 #include "TextDefineObject.h"
+#include "CanvasListenerObjects.h"
 
 ObjectBase::ObjectBase(void* obj, Object* parent)
     : ptr(obj)
@@ -476,10 +477,27 @@ ObjectBase* GUIObject::createGui(void* ptr, Object* parent)
         if (gobj->g_pd == scalar_class) {
             return new ScalarObject(ptr, parent);
         }
-    } else if (!pd_checkobject(static_cast<t_pd*>(ptr))) {
+    }
+    else if (name == "canvas.active") {
+        return new CanvasActiveObject(ptr, parent);
+    }
+    else if (name == "canvas.mouse") {
+        return new CanvasMouseObject(ptr, parent);
+    }
+    else if (name == "canvas.vis") {
+        return new CanvasVisibleObject(ptr, parent);
+    }
+    else if (name == "canvas.zoom") {
+        return new CanvasZoomObject(ptr, parent);
+    }
+    else if (name == "canvas.edit") {
+        return new CanvasEditObject(ptr, parent);
+    }
+    else if (!pd_checkobject(static_cast<t_pd*>(ptr))) {
         // Object is not a patcher object but something else
         return new NonPatchable(ptr, parent);
     }
+    
 
     return new TextObject(ptr, parent);
 }

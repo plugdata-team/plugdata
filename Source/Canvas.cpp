@@ -1142,6 +1142,7 @@ void Canvas::handleMouseDown(Component* component, const MouseEvent& e)
     for (auto* object : getSelectionOfType<Object>())
     {
         object->mouseDownPos = object->getPosition();
+        object->setBufferedToImage(true);
     }
 
     if (component)
@@ -1196,6 +1197,12 @@ void Canvas::handleMouseUp(Component* component, const MouseEvent& e)
         objectSnappingInbetween = nullptr;
 
         synchronise();
+    }
+    
+    for (auto* object : getSelectionOfType<Object>())
+    {
+        object->setBufferedToImage(false);
+        object->repaint();
     }
 
     componentBeingDragged = nullptr;

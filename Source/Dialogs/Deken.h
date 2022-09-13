@@ -257,6 +257,7 @@ struct PackageManager : public Thread
                 for (auto object : version.getChildWithName("Objects")) {
                     objects.add(object.getProperty("Name").toString());
                 }
+                
                 packages.add(PackageInfo(name, author, timestamp, url, description, versionNumber, objects));
                 break;
             }
