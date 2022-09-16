@@ -11,8 +11,9 @@ struct BangObject final : public IEMObject {
     BangObject(void* obj, Object* parent)
         : IEMObject(obj, parent)
     {
-        bangInterrupt = static_cast<t_bng*>(ptr)->x_flashtime_break;
-        bangHold = static_cast<t_bng*>(ptr)->x_flashtime_hold;
+        auto* bng = static_cast<t_bng*>(ptr);
+        bangInterrupt = bng->x_flashtime_break;
+        bangHold = bng->x_flashtime_hold;
     }
 
     void checkBounds() override
