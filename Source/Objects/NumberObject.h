@@ -4,7 +4,7 @@ struct NumberObject final : public IEMObject {
     DraggableNumber input;
 
     NumberObject(void* obj, Object* parent)
-        : IEMObject(obj, parent)
+        : IEMObject(obj, parent), input(false)
     {
         input.onEditorShow = [this]() {
             auto* editor = input.getCurrentTextEditor();

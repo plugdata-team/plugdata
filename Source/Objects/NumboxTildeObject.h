@@ -37,7 +37,7 @@ struct NumboxTildeObject final : public GUIObject
     Value interval, ramp, init;
 
     NumboxTildeObject(void* obj, Object* parent)
-        : GUIObject(obj, parent)
+        : GUIObject(obj, parent), input(false)
     {
         input.onEditorShow = [this]() {
             auto* editor = input.getCurrentTextEditor();

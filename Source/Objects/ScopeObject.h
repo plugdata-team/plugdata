@@ -91,7 +91,6 @@ struct ScopeObject final : public GUIObject, public Timer {
         delay.addListener(this);
         triggerMode.addListener(this);
         triggerValue.addListener(this);
-        //range
     }
     
     Colour colourFromHexArray(unsigned char* hex) {
@@ -186,6 +185,7 @@ struct ScopeObject final : public GUIObject, public Timer {
         int bufsize, mode;
         float min, max;
         
+        if(object->iolets.size() == 3) object->iolets[2]->setVisible(false);
 
         if(pd->getCallbackLock()->tryEnter())
         {
@@ -220,7 +220,7 @@ struct ScopeObject final : public GUIObject, public Timer {
 
         for(int n = 0; n < bufsize; n++) {
             if(mode == 1) {
-                y_buffer[n] = jmap<float>(x_buffer[n], min, max, 0, getHeight());
+                y_buffer[n] = jmap<float>(x_buffer[n], min, max, getHeight(), 0);
                 x_buffer[n] = oldx;
                 oldx += dx;
             }
@@ -231,7 +231,7 @@ struct ScopeObject final : public GUIObject, public Timer {
             }
             else if(mode == 3) {
                 x_buffer[n] = jmap<float>(x_buffer[n], min, max, 0, getWidth());
-                y_buffer[n] = jmap<float>(y_buffer[n], min, max, 0, getHeight());
+                y_buffer[n] = jmap<float>(y_buffer[n], min, max, getHeight(), 0);
             }
         }
         
