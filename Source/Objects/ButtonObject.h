@@ -158,15 +158,17 @@ struct ButtonObject : public GUIObject {
     {
         auto* button = static_cast<t_fake_button*>(ptr);
         if (value.refersToSameSourceAs(primaryColour)) {
-            button->x_fgcolor[0] = Colour::fromString(primaryColour.toString()).getRed();
-            button->x_fgcolor[1] = Colour::fromString(primaryColour.toString()).getGreen();
-            button->x_fgcolor[2] = Colour::fromString(primaryColour.toString()).getBlue();
+            auto col = Colour::fromString(primaryColour.toString());
+            button->x_fgcolor[0] = col.getRed();
+            button->x_fgcolor[1] = col.getGreen();
+            button->x_fgcolor[2] = col.getBlue();
             repaint();
         }
         if (value.refersToSameSourceAs(secondaryColour)) {
-            button->x_bgcolor[0] = Colour::fromString(secondaryColour.toString()).getRed();
-            button->x_bgcolor[1] = Colour::fromString(secondaryColour.toString()).getGreen();
-            button->x_bgcolor[2] = Colour::fromString(secondaryColour.toString()).getBlue();
+            auto col = Colour::fromString(secondaryColour.toString());
+            button->x_bgcolor[0] = col.getRed();
+            button->x_bgcolor[1] = col.getGreen();
+            button->x_bgcolor[2] = col.getBlue();
             repaint();
         }
     }
