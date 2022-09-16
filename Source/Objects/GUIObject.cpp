@@ -49,6 +49,7 @@ extern "C" {
 #include "ScalarObject.h"
 #include "TextDefineObject.h"
 #include "CanvasListenerObjects.h"
+#include "ScopeObject.h"
 
 ObjectBase::ObjectBase(void* obj, Object* parent)
     : ptr(obj)
@@ -477,6 +478,10 @@ ObjectBase* GUIObject::createGui(void* ptr, Object* parent)
         if (gobj->g_pd == scalar_class) {
             return new ScalarObject(ptr, parent);
         }
+    }
+    // ELSE's [oscope~] and cyclone [scope~] are basically the same object
+    else if (name == "oscope~" || name == "scope~") {
+        return new ScopeObject(ptr, parent);
     }
     else if (name == "canvas.active") {
         return new CanvasActiveObject(ptr, parent);

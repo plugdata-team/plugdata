@@ -147,7 +147,11 @@ private:
         { "floatatom", "5 -3.40282e+38 3.40282e+38 0 empty - - 12" },
         { "listbox", "9 0 0 0 empty - - 0" },
         { "numbox~", "4 16 100 bgColour fgColour 10 0 0 0" },
-        { "button", "25 25 bgColour_rgb fgColour_rgb" } };
+        { "button", "25 25 bgColour_rgb fgColour_rgb" },
+        { "oscope~", "130 130 256 3 128 -1 1 0 0 0 0 fgColour_rgb bgColour_rgb lnColour_rgb 0 empty" },
+        { "scope~", "130 130 256 3 128 -1 1 0 0 0 0 fgColour_rgb bgColour_rgb lnColour_rgb 0 empty" }
+    };
+    
 
     friend class Instance;
     friend class Gui;
