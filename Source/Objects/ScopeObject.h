@@ -74,8 +74,10 @@ struct ScopeObject final : public GUIObject, public Timer {
         secondaryColour = colourFromHexArray(scope->x_bg).toString();
         primaryColour = colourFromHexArray(scope->x_fg).toString();
         gridColour = colourFromHexArray(scope->x_gg).toString();
-        receiveSymbol = String(scope->x_rcv_raw->s_name);
         
+        auto rcv = String(scope->x_rcv_raw->s_name);
+        if(rcv == "empty") rcv = "";
+        receiveSymbol = rcv;
         
         Array<var> arr = { scope->x_min, scope->x_max };
         signalRange = var(arr);
