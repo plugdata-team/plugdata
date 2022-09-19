@@ -511,7 +511,7 @@ void Canvas::mouseDrag(const MouseEvent& e)
         
         auto* nearest = Iolet::findNearestEdge(this, e.getEventRelativeTo(this).getPosition(), !connectingEdge->isInlet, connectingEdge->object);
 
-        if (connectingWithDrag && nearest && nearestEdge != nearest)
+        if (nearest && nearestEdge != nearest)
         {
             nearest->isTargeted = true;
 
@@ -1237,36 +1237,8 @@ void Canvas::handleMouseDrag(const MouseEvent& e)
         object->setTopLeftPosition(object->mouseDownPos + dragDistance + canvasMoveOffset);
     }
     
-    // Behaviour for shift-dragging objects over
-    if(objectSnappingInbetween) {
-        bool stillSnapped = false;
-        if(connectionToSnapInbetween->intersectsObject(objectSnappingInbetween)) {
-            stillSnapped = true;
-            return;
-        }
-        
-        // If we're here, it's not snapping anymore
-        objectSnappingInbetween->iolets[0]->isTargeted = false;
-        objectSnappingInbetween->iolets[objectSnappingInbetween->numInputs]->isTargeted = false;
-        objectSnappingInbetween = nullptr;
-    }
-    
-    if(e.mods.isShiftDown() && selection.size() == 1) {
-        auto* object = selection.getFirst();
-        if(object->numInputs >= 1 && object->numOutputs >= 0) {
-            for(auto* connection : connections) {
-                if(connection->intersectsObject(object)) {
-                    object->iolets[0]->isTargeted = true;
-                    object->iolets[object->numInputs]->isTargeted = true;
-                    connectionToSnapInbetween = connection;
-                    objectSnappingInbetween = object;
-                }
-            }
-        }
-    }
-    
     // This handles the "unsnap" action when you shift-drag a connected object
-    if(e.mods.isShiftDown() && selection.size() == 1) {
+    if(e.mods.isShiftDown() && selection.size() == 1 && e.getDistanceFromDragStart() > 15) {
         auto* object = selection.getFirst();
         
         Array<Connection*> inputs, outputs;
@@ -1327,6 +1299,44 @@ void Canvas::handleMouseDrag(const MouseEvent& e)
         }
 
     }
+    
+    
+    // Behaviour for shift-dragging objects over
+    if(objectSnappingInbetween) {
+        bool stillSnapped = false;
+        if(connectionToSnapInbetween->intersectsObject(objectSnappingInbetween)) {
+            stillSnapped = true;
+            return;
+        }
+        
+        // If we're here, it's not snapping anymore
+        objectSnappingInbetween->iolets[0]->isTargeted = false;
+        objectSnappingInbetween->iolets[objectSnappingInbetween->numInputs]->isTargeted = false;
+        objectSnappingInbetween = nullptr;
+    }
+    
+    if(e.mods.isShiftDown() && selection.size() == 1) {
+        auto* object = selection.getFirst();
+        if(object->numInputs >= 1 && object->numOutputs >= 0) {
+            for(auto* connection : connections) {
+                if(connection->intersectsObject(object)) {
+                    object->iolets[0]->isTargeted = true;
+                    object->iolets[object->numInputs]->isTargeted = true;
+                    object->iolets[0]->repaint();
+                    object->iolets[object->numInputs]->repaint();
+                    connectionToSnapInbetween = connection;
+                    objectSnappingInbetween = object;
+                }
+                else {
+                    object->iolets[0]->isTargeted = false;
+                    object->iolets[object->numInputs]->isTargeted = false;
+                    object->iolets[0]->repaint();
+                    object->iolets[object->numInputs]->repaint();
+                }
+            }
+        }
+    }
+    
 }
 
 SelectedItemSet<WeakReference<Component>>& Canvas::getLassoSelection()
