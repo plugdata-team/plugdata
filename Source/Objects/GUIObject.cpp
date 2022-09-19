@@ -50,6 +50,7 @@ extern "C" {
 #include "TextDefineObject.h"
 #include "CanvasListenerObjects.h"
 #include "ScopeObject.h"
+#include "FunctionObject.h"
 
 ObjectBase::ObjectBase(void* obj, Object* parent)
     : ptr(obj)
@@ -482,6 +483,9 @@ ObjectBase* GUIObject::createGui(void* ptr, Object* parent)
     // ELSE's [oscope~] and cyclone [scope~] are basically the same object
     else if (name == "oscope~" || name == "scope~") {
         return new ScopeObject(ptr, parent);
+    }
+    else if (name == "function") {
+        return new FunctionObject(ptr, parent);
     }
     else if (name == "canvas.active") {
         return new CanvasActiveObject(ptr, parent);

@@ -17,6 +17,7 @@ struct MessageObject final : public GUIObject
     bool isLocked = false;
 
     String lastMessage;
+    Label input;
 
     MessageObject(void* obj, Object* parent)
         : GUIObject(obj, parent)
@@ -238,6 +239,4 @@ struct MessageObject final : public GUIObject
     {
         return true;
     }
-
-    Label input;
 };
