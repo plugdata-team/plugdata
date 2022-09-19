@@ -1,5 +1,6 @@
 #include "Deken.h"
 #include "SearchPathComponent.h"
+#include "KeyMappingComponent.h"
 #include "../Utility/PropertiesPanel.h"
 
 struct ThemePanel : public Component
@@ -243,7 +244,7 @@ struct SettingsDialog : public Component {
         }
         panels.add(new ThemePanel(settingsTree));
         panels.add(new SearchPathComponent(settingsTree.getChildWithName("Paths")));
-        panels.add(new KeyMappingEditorComponent(*editor->getKeyMappings(), true));
+        panels.add(new KeyMappingComponent(*editor->getKeyMappings()));
         panels.add(new Deken());
         panels.add(new AboutPanel());
 
