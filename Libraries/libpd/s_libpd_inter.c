@@ -58,6 +58,8 @@
 #    define PDGUIDIR "tcl/"
 #endif
 
+#define TEST_LOCKING 0
+
 #ifndef WISH
 #    if defined _WIN32
 #        define WISH "wish85.exe"
@@ -1646,6 +1648,9 @@ void pd_globalunlock(void)
 #    endif /* PDINSTANCE */
 }
 
+// For checking deadlocks in standalone
+static int amlocked;
+
 /* routines to lock/unlock a Pd instance for thread safety.  Call pd_setinsance
  first.  The "pd_this"  variable can be written and read thread-safely as it
  is defined as per-thread storage. */
@@ -1656,8 +1661,14 @@ void sys_lock(void)
     pthread_rwlock_rdlock(&sys_rwlock);
     pd_this->pd_islocked = 1;
 #    else
+#if TEST_LOCKING
+    if (amlocked)
+        bug("duplicate lock");
+    amlocked = 1;
+#endif
+    
     pthread_mutex_lock(&sys_mutex);
-#    endif
+#endif
 }
 
 void sys_unlock(void)
@@ -1667,6 +1678,11 @@ void sys_unlock(void)
     pthread_rwlock_unlock(&sys_rwlock);
     pthread_mutex_unlock(&INTER->i_mutex);
 #    else
+#if TEST_LOCKING
+    if (!amlocked)
+        bug("duplicate unlock");
+    amlocked = 0;
+#endif
     pthread_mutex_unlock(&sys_mutex);
 #    endif
 }
@@ -1691,8 +1707,10 @@ int sys_trylock(void)
 
 #else /* PDTHREADS */
 
+
+
 #    ifdef TEST_LOCKING /* run standalone Pd with this to find deadlocks */
-static int amlocked;
+
 void sys_lock(void)
 {
     if (amlocked)

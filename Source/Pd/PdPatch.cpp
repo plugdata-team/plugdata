@@ -137,10 +137,12 @@ void Patch::setCurrent(bool lock)
     if (cnv) {
         canvas_unsetcurrent(cnv);
     }
-
+    
     canvas_setcurrent(getPointer());
     canvas_vis(getPointer(), 1.);
     canvas_map(getPointer(), 1.);
+    
+    canvas_create_editor(getPointer());
 
     t_atom argv[1];
     SETFLOAT(argv, 1);

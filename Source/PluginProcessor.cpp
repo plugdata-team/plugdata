@@ -660,6 +660,7 @@ void PlugDataAudioProcessor::sendPlayhead()
     
     auto infos = playhead->getPosition();
     
+    setThis();
     if (infos.hasValue())
     {
         atoms_playhead[0] = static_cast<float>(infos->getIsPlaying());
