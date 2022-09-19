@@ -854,7 +854,6 @@ void PlugDataPluginEditor::getCommandInfo(const CommandID commandID, Application
         case CommandIDs::NewObject:
         {
             result.setInfo("New Object", "Create new object", "Objects", 0);
-            result.addDefaultKeypress(78, ModifierKeys::noModifiers);
             result.addDefaultKeypress(49, ModifierKeys::commandModifier);
             result.setActive(!isDragging && pd.locked == var(false));
             break;
@@ -863,14 +862,13 @@ void PlugDataPluginEditor::getCommandInfo(const CommandID commandID, Application
         {
             result.setInfo("New Comment", "Create new comment", "Objects", 0);
             result.addDefaultKeypress(53, ModifierKeys::commandModifier);
-            result.addDefaultKeypress(67, ModifierKeys::noModifiers);
             result.setActive(!isDragging && pd.locked == var(false));
             break;
         }
         case CommandIDs::NewBang:
         {
             result.setInfo("New Bang", "Create new bang", "Objects", 0);
-            result.addDefaultKeypress(66, ModifierKeys::noModifiers);
+            result.addDefaultKeypress(66, ModifierKeys::commandModifier | ModifierKeys::shiftModifier);
             result.setActive(!isDragging && pd.locked == var(false));
             break;
         }
@@ -878,14 +876,13 @@ void PlugDataPluginEditor::getCommandInfo(const CommandID commandID, Application
         {
             result.setInfo("New Message", "Create new message", "Objects", 0);
             result.addDefaultKeypress(50, ModifierKeys::commandModifier);
-            result.addDefaultKeypress(77, ModifierKeys::noModifiers);
             result.setActive(!isDragging && pd.locked == var(false));
             break;
         }
         case CommandIDs::NewToggle:
         {
             result.setInfo("New Toggle", "Create new toggle", "Objects", 0);
-            result.addDefaultKeypress(84, ModifierKeys::noModifiers);
+            result.addDefaultKeypress(84, ModifierKeys::commandModifier | ModifierKeys::shiftModifier);
             result.setActive(!isDragging && pd.locked == var(false));
             break;
         }
@@ -893,7 +890,6 @@ void PlugDataPluginEditor::getCommandInfo(const CommandID commandID, Application
         {
             result.setInfo("New Number", "Create new number object", "Objects", 0);
             result.addDefaultKeypress(51, ModifierKeys::commandModifier);
-            result.addDefaultKeypress(73, ModifierKeys::noModifiers);
             result.setActive(!isDragging && pd.locked == var(false));
             
             break;
@@ -922,7 +918,7 @@ void PlugDataPluginEditor::getCommandInfo(const CommandID commandID, Application
         case CommandIDs::NewFloatAtom:
         {
             result.setInfo("New Floatatom", "Create new floatatom", "Objects", 0);
-            result.addDefaultKeypress(70, ModifierKeys::noModifiers);
+            result.addDefaultKeypress(70, ModifierKeys::commandModifier | ModifierKeys::shiftModifier);
             result.setActive(!isDragging && pd.locked == var(false));
             break;
         }
@@ -936,50 +932,55 @@ void PlugDataPluginEditor::getCommandInfo(const CommandID commandID, Application
         {
             result.setInfo("New Listatom", "Create new listatom", "Objects", 0);
             result.addDefaultKeypress(52, ModifierKeys::commandModifier);
-            result.addDefaultKeypress(76, ModifierKeys::noModifiers);
             result.setActive(!isDragging && pd.locked == var(false));
             break;
         }
         case CommandIDs::NewVerticalSlider:
         {
             result.setInfo("New Vertical Slider", "Create new vertical slider", "Objects", 0);
-            result.addDefaultKeypress(83, ModifierKeys::noModifiers);
+            result.addDefaultKeypress(86, ModifierKeys::commandModifier | ModifierKeys::shiftModifier);
             result.setActive(!isDragging && pd.locked == var(false));
             break;
         }
         case CommandIDs::NewHorizontalSlider:
         {
             result.setInfo("New Horizontal Slider", "Create new horizontal slider", "Objects", 0);
+            result.addDefaultKeypress(74, ModifierKeys::commandModifier | ModifierKeys::shiftModifier);
             result.setActive(!isDragging && pd.locked == var(false));
             break;
         }
         case CommandIDs::NewVerticalRadio:
         {
             result.setInfo("New Vertical Radio", "Create new vertical radio", "Objects", 0);
+            result.addDefaultKeypress(68, ModifierKeys::commandModifier | ModifierKeys::shiftModifier);
             result.setActive(!isDragging && pd.locked == var(false));
             break;
         }
         case CommandIDs::NewHorizontalRadio:
         {
             result.setInfo("New Horizontal Radio", "Create new horizontal radio", "Objects", 0);
+            result.addDefaultKeypress(73, ModifierKeys::commandModifier | ModifierKeys::shiftModifier);
             result.setActive(!isDragging && pd.locked == var(false));
             break;
         }
         case CommandIDs::NewArray:
         {
             result.setInfo("New Array", "Create new array", "Objects", 0);
+            result.addDefaultKeypress(65, ModifierKeys::commandModifier | ModifierKeys::shiftModifier);
             result.setActive(!isDragging && pd.locked == var(false));
             break;
         }
         case CommandIDs::NewGraphOnParent:
         {
             result.setInfo("New GraphOnParent", "Create new graph on parent", "Objects", 0);
+            result.addDefaultKeypress(71, ModifierKeys::commandModifier | ModifierKeys::shiftModifier);
             result.setActive(!isDragging && pd.locked == var(false));
             break;
         }
         case CommandIDs::NewCanvas:
         {
             result.setInfo("New Canvas", "Create new canvas object", "Objects", 0);
+            result.addDefaultKeypress(67, ModifierKeys::commandModifier | ModifierKeys::shiftModifier);
             result.setActive(!isDragging && pd.locked == var(false));
             break;
         }
@@ -992,6 +993,7 @@ void PlugDataPluginEditor::getCommandInfo(const CommandID commandID, Application
         case CommandIDs::NewVUMeterObject:
         {
             result.setInfo("New VU Meter", "Create new VU meter", "Objects", 0);
+            result.addDefaultKeypress(85, ModifierKeys::commandModifier | ModifierKeys::shiftModifier);
             result.setActive(!isDragging && pd.locked == var(false));
             break;
         }
