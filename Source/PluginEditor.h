@@ -62,6 +62,8 @@ enum CommandIDs
     NewVUMeterObject,
     NewButton,
     NewNumboxTilde,
+    NewOscilloscope,
+    NewFunction,
     NumItems
 };
 

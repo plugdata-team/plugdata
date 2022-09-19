@@ -905,6 +905,20 @@ void PlugDataPluginEditor::getCommandInfo(const CommandID commandID, Application
             
             break;
         }
+        case CommandIDs::NewOscilloscope:
+        {
+            result.setInfo("New Oscilloscope", "Create new oscilloscope object", "Objects", 0);
+            result.setActive(!isDragging && pd.locked == var(false));
+            
+            break;
+        }
+        case CommandIDs::NewFunction:
+        {
+            result.setInfo("New Function", "Create new function object", "Objects", 0);
+            result.setActive(!isDragging && pd.locked == var(false));
+            
+            break;
+        }
         case CommandIDs::NewFloatAtom:
         {
             result.setInfo("New Floatatom", "Create new floatatom", "Objects", 0);
@@ -1174,7 +1188,7 @@ bool PlugDataPluginEditor::perform(const InvocationInfo& info)
 
         default:
         {
-            const StringArray objectNames = {"", "comment", "bng", "msg", "tgl", "nbx", "vsl", "hsl", "vradio", "hradio", "floatatom", "symbolatom", "listbox", "array", "graph", "cnv", "keyboard", "vu", "button", "numbox~"};
+            const StringArray objectNames = {"", "comment", "bng", "msg", "tgl", "nbx", "vsl", "hsl", "vradio", "hradio", "floatatom", "symbolatom", "listbox", "array", "graph", "cnv", "keyboard", "vu", "button", "numbox~", "oscope~", "function"};
 
             jassert(objectNames.size() == CommandIDs::NumItems - CommandIDs::NewObject);
 
