@@ -117,7 +117,7 @@ void Dialogs::showObjectMenu(PlugDataPluginEditor* parent, Component* target)
     menu.addSeparator();
     menu.addItem(createCommandItem(CommandIDs::NewKeyboard, "Keyboard"));
     menu.addItem(createCommandItem(CommandIDs::NewVUMeterObject, "VU Meter"));
-    menu.addItem(createCommandItem(CommandIDs::NewNumboxTilde, "Numbox~"));
+    menu.addItem(createCommandItem(CommandIDs::NewNumboxTilde, "Signal Numbox"));
     menu.addItem(createCommandItem(CommandIDs::NewOscilloscope, "Oscilloscope"));
     menu.addItem(createCommandItem(CommandIDs::NewFunction, "Function"));
 
