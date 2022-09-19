@@ -732,10 +732,15 @@ void Canvas::pasteSelection()
 {
     // Tell pd to paste
     patch.paste();
+    
+    int oldSize = objects.size();
 
     // Load state from pd, don't update positions
     synchronise(false);
 
+    patch.setCurrent();
+    
+    sys_lock();
     for (auto* object : objects)
     {
         if (glist_isselected(patch.getPointer(), static_cast<t_gobj*>(object->getPointer())))
@@ -743,6 +748,7 @@ void Canvas::pasteSelection()
             setSelected(object, true);
         }
     }
+    sys_unlock();
 
     patch.deselectAll();
 }

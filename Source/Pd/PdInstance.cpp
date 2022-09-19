@@ -372,11 +372,8 @@ void Instance::sendList(char const* receiver, std::vector<Atom> const& list) con
 
 void Instance::sendMessage(char const* receiver, char const* msg, std::vector<Atom> const& list) const
 {
-#if !PLUGDATA_STANDALONE
-    if (!static_cast<t_pdinstance*>(m_instance))
-        return;
     libpd_set_instance(static_cast<t_pdinstance*>(m_instance));
-#endif
+    
     auto* argv = static_cast<t_atom*>(m_atoms);
 
     for (size_t i = 0; i < list.size(); ++i) {
@@ -385,7 +382,11 @@ void Instance::sendMessage(char const* receiver, char const* msg, std::vector<At
         else
             libpd_set_symbol(argv + i, list[i].getSymbol().toRawUTF8());
     }
-    libpd_message(receiver, msg, static_cast<int>(list.size()), argv);
+    auto* obj = gensym(receiver)->s_thing;
+    
+    if(!obj) return;
+    
+    pd_typedmess(gensym(receiver)->s_thing, gensym(msg), static_cast<int>(list.size()), argv);
 }
 
 void Instance::processMessage(Message mess)
