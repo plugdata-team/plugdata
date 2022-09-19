@@ -148,6 +148,9 @@ struct FunctionObject final : public GUIObject {
     
     void updateValue() override {
         
+        // Don't update while dragging
+        if(dragIdx != -1) return;
+        
         points.clear();
         auto* function = static_cast<t_fake_function*>(ptr);
         
@@ -337,9 +340,8 @@ struct FunctionObject final : public GUIObject {
         return Colour(hex[0], hex[1], hex[2]);
     }
     void colourToHexArray(Colour colour, unsigned char* hex) {
-        auto col = Colour::fromString(primaryColour.toString());
-        hex[0] = col.getRed();
-        hex[1] = col.getGreen();
-        hex[2] = col.getBlue();
+        hex[0] = colour.getRed();
+        hex[1] = colour.getGreen();
+        hex[2] = colour.getBlue();
     }
 };

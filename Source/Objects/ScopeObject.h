@@ -97,10 +97,9 @@ struct ScopeObject final : public GUIObject, public Timer {
         return Colour(hex[0], hex[1], hex[2]);
     }
     void colourToHexArray(Colour colour, unsigned char* hex) {
-        auto col = Colour::fromString(primaryColour.toString());
-        hex[0] = col.getRed();
-        hex[1] = col.getGreen();
-        hex[2] = col.getBlue();
+        hex[0] = colour.getRed();
+        hex[1] = colour.getGreen();
+        hex[2] = colour.getBlue();
     }
 
     void updateBounds() override
