@@ -55,7 +55,6 @@ What works:
 - Receive DAW playhead position, tempo and more using the [playhead] abstraction
 
 Known issues:
-- Externals are broken on Windows
 - Broken ELSE objects: 
   - [oscope~]
   - [function]
@@ -75,14 +74,12 @@ I might release some smaller versions inbetween if any serious bugs are being fo
 
 FEATURES:
 - Object discovery panel: a place where all objects (with descriptions) are listed by category
-- Range options for automation parameters
+- Search in patch
+- Autosave
 
 PD COMPATIBILITY:
 - Fix broken objects
 - Some properties are not updated in the panel when set with a message
-
-BUGS:
-- Fix MIDI sysex and bend issues
 
 OTHER:
 - Expand documentation with more object descriptions and inlet/outlet hover messages
