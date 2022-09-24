@@ -65,8 +65,6 @@ class Box : public Component, public Value::Listener, public Timer, private Text
     
     bool hitTest(int x, int y) override;
 
-    bool isOver();
-
     Array<Rectangle<float>> getCorners() const;
 
     int numInputs = 0;
@@ -98,6 +96,7 @@ class Box : public Component, public Value::Listener, public Timer, private Text
     Rectangle<int> originalBounds;
     bool createEditorOnMouseDown = false;
     bool selectionStateChanged = false;
+    bool wasLockedOnMouseDown = false;
 
     std::unique_ptr<TextEditor> newObjectEditor;
 

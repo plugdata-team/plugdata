@@ -10,7 +10,7 @@ struct LevelMeter;
 struct MidiBlinker;
 struct PlugDataAudioProcessor;
 
-struct Statusbar : public Component, public Value::Listener
+struct Statusbar : public Component, public Value::Listener, public Timer
 {
     PlugDataAudioProcessor& pd;
 
@@ -22,6 +22,8 @@ struct Statusbar : public Component, public Value::Listener
     void modifierKeysChanged(const ModifierKeys& modifiers) override;
 
     void valueChanged(Value& v) override;
+    
+    void timerCallback() override;
 
     void zoom(bool zoomIn);
     void zoom(float zoomAmount);
