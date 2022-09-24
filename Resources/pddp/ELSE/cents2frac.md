@@ -1,32 +1,31 @@
 ---
 title: cents2frac
 
-description:
+description: Cents/Fraction conversion
 
 categories:
 - object
 
-pdcategory:
+pdcategory: Tuning / Scale Tools
 
 arguments:
-- description:
-  type:
-  default:
+- description: conversion resolution
+  type: float
+  default: 1000, min 10
 
 inlets:
   1st:
-  - type:
-    description:
-  2nd:
-  - type:
-    description:
+  - type: list
+    description: cents value(s)
+  - type: res <float>
+    description: set conversion resolution
 
 outlets:
   1st:
-  - type:
-    description:
+  - type: list
+    description: converted fractional value(s)
 
 draft: false
 ---
 
-LONG DESCRIPTION HERE
+Use [cents2frac] to convert a list of cents to intervals defined as fraction symbols or lists.
