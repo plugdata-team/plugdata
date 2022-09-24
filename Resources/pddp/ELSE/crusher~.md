@@ -1,32 +1,38 @@
 ---
 title: crusher~
 
-description:
+description: Bitcrush/Decimator
 
 categories:
 - object
 
-pdcategory:
+pdcategory: DSP (Assorted)
 
 arguments:
-- description:
-  type:
-  default:
+  1st:
+  - description: bit reduction
+    type: float
+  2nd:
+  - description: decimation
+    type: float
 
 inlets:
   1st:
-  - type:
-    description:
+  - type: signal
+    description: signal to be crushed (resampled and quantized)
+  2nd: 
+  - type: float/signal
+    description: bit reduction from 0-1
   2nd:
-  - type:
-    description:
+  - type: float/signal
+    description: decimation (sample rate reduction) from 0-1
 
 outlets:
   1st:
-  - type:
-    description:
+  - type: signal
+    description: resampled and quantized signal
 
 draft: false
 ---
 
-LONG DESCRIPTION HERE
+[crusher~] is a bit-crusher/reducer and decimator abstraction based on the objects [quantizer~] and [downsample~], where an input signal is resampled and quantized.

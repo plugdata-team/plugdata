@@ -1,15 +1,29 @@
 ---
 title: changed2~
-description:
+
+description: Detect direction changes
+
 categories:
  - object
-pdcategory: General
-arguments:
+
+pdcategory: Analysis
+
+arguments: none
+
 inlets:
+  1st:
+  - type: signal
+    description: signal to detect direction changes
+
 outlets:
   1st:
   - type: signal
-    description:
+    description: impulse at detected direction change
   2nd:
   - type: signal
-    description:
+    description: status (1, -1 or 0)
+
+draft: false
+---
+
+[changed2~] sends an impulse whenever an input value changes its direction. The right outlet sends the status information (1 when increasing, -1 when decreasing and 0 for no change).
