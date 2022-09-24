@@ -30,8 +30,6 @@ Sidebar::Sidebar(PlugDataAudioProcessor* instance)
 
     browser->setAlwaysOnTop(true);
     browser->addMouseListener(this, true);
-
-    // setBounds(editor->getWidth() - lastWidth, 40, lastWidth, editor->getHeight() - 40);
 }
 
 Sidebar::~Sidebar()
@@ -100,7 +98,6 @@ void Sidebar::mouseDrag(MouseEvent const& e)
 void Sidebar::mouseUp(MouseEvent const& e)
 {
     if (draggingSidebar) {
-        // getCurrentCanvas()->checkBounds(); fix this
         draggingSidebar = false;
     }
 }
@@ -150,7 +147,7 @@ void Sidebar::updateAutomationParameters()
 {
     if (automationPanel) {
         // Might be called from audio thread
-        MessageManager::callAsync([this]() { automationPanel->sliders.updateParameters(); });
+        MessageManager::callAsync([this]() { automationPanel->updateParameters(); });
     };
 };
 #endif
@@ -183,10 +180,11 @@ bool Sidebar::isPinned()
     return pinned;
 }
 
-void Sidebar::showParameters(ObjectParameters& params)
+void Sidebar::showParameters(String const& name, ObjectParameters& params)
 {
     lastParameters = params;
     inspector->loadParameters(params);
+    inspector->setTitle(name.upToFirstOccurrenceOf(" ", false, false));
 
     if (!pinned) {
         browser->setVisible(false);

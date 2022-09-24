@@ -17,16 +17,16 @@ namespace pd {
 class Patch;
 }
 
-class Box;
+class Object;
 
 struct ObjectBase : public Component
     , public SettableTooltipClient {
     void* ptr;
-    Box* box;
+    Object* object;
     Canvas* cnv;
     PlugDataAudioProcessor* pd;
 
-    ObjectBase(void* obj, Box* parent);
+    ObjectBase(void* obj, Object* parent);
 
     void paint(Graphics& g) override;
 
@@ -40,7 +40,7 @@ struct ObjectBase : public Component
     // Called whenever any GUI object's value changes
     virtual void updateValue() = 0;
 
-    // Gets position from pd and applies it to Box
+    // Gets position from pd and applies it to Object
     virtual void updateBounds() = 0;
 
     // Push current object bounds into pd
@@ -50,6 +50,10 @@ struct ObjectBase : public Component
     virtual void updateDrawables() {};
 
     virtual void updateParameters() {};
+
+    virtual bool canOpenFromMenu() { return false; }
+
+    virtual void openFromMenu() {};
 
     // Flag to make object visible or hidden inside a GraphOnParent
     virtual bool hideInGraph()
@@ -94,13 +98,14 @@ struct ObjectBase : public Component
     }
 
     void closeOpenedSubpatchers();
+    void openSubpatch();
 
-    String getText();
+    virtual String getText();
 };
 
 // Class for non-patchable objects
 struct NonPatchable : public ObjectBase {
-    NonPatchable(void* obj, Box* parent);
+    NonPatchable(void* obj, Object* parent);
     ~NonPatchable();
 
     virtual void updateValue() {};
@@ -111,7 +116,7 @@ struct NonPatchable : public ObjectBase {
 struct GUIObject : public ObjectBase
     , public ComponentListener
     , public Value::Listener {
-    GUIObject(void* obj, Box* parent);
+    GUIObject(void* obj, Object* parent);
 
     ~GUIObject() override;
 
@@ -124,7 +129,7 @@ struct GUIObject : public ObjectBase
 
     void componentMovedOrResized(Component& component, bool moved, bool resized) override;
 
-    static ObjectBase* createGui(void* ptr, Box* parent);
+    static ObjectBase* createGui(void* ptr, Object* parent);
 
     // Get rid of this mess!!
     virtual ObjectParameters defineParameters();

@@ -82,9 +82,6 @@ struct LevelMeter : public Component, public Timer
 
                 g.fillRoundedRectangle(x + outerBorderWidth + (i * blockWidth) + blockRectSpacing, y + outerBorderWidth, blockRectWidth, blockHeight, blockCornerSize);
             }
-
-            // g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
-            // g.drawRect(outerBorderWidth + x, y, getWidth() - (2 * (outerBorderWidth + blockRectSpacing)), blockHeight + 2.0f, 1.0f);
         }
     }
 
@@ -189,7 +186,7 @@ Statusbar::Statusbar(PlugDataAudioProcessor& processor) : pd(processor)
     presentationButton = std::make_unique<TextButton>(Icons::Presentation);
     gridButton = std::make_unique<TextButton>(Icons::Grid);
     themeButton = std::make_unique<TextButton>(Icons::Theme);
-    browserButton = std::make_unique<TextButton>(Icons::Folder);
+    browserButton = std::make_unique<TextButton>(Icons::Documentation);
     automationButton = std::make_unique<TextButton>(Icons::Parameters);
 
     presentationButton->setTooltip("Presentation Mode");

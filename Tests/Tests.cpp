@@ -61,17 +61,17 @@ TEST_CASE("Create and delete objects", "[name]")
         
         editor->getCurrentCanvas()->synchronise();
         
-        REQUIRE(editor->getCurrentCanvas()->boxes.getFirst()->getObjectBounds().getPosition() == Point<int>(200, 500));
+        REQUIRE(editor->getCurrentCanvas()->objects.getFirst()->getObjectBounds().getPosition() == Point<int>(200, 500));
         
-        REQUIRE(editor->getCurrentCanvas()->boxes[0]->getPointer() == obj1);
-        REQUIRE(editor->getCurrentCanvas()->boxes[1]->getPointer() == obj2);
+        REQUIRE(editor->getCurrentCanvas()->objects[0]->getPointer() == obj1);
+        REQUIRE(editor->getCurrentCanvas()->objects[1]->getPointer() == obj2);
         
         editor->getCurrentCanvas()->patch.removeObject(obj1);
         editor->getCurrentCanvas()->patch.removeObject(obj2);
         
         editor->getCurrentCanvas()->synchronise();
         
-        REQUIRE(editor->getCurrentCanvas()->boxes.size() == 0);
+        REQUIRE(editor->getCurrentCanvas()->objects.size() == 0);
     
     });
     

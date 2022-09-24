@@ -9,15 +9,15 @@
 #include <JuceHeader.h>
 
 class Connection;
-class Box;
+class Object;
 class Canvas;
 
-class Edge : public Component, public SettableTooltipClient
+class Iolet : public Component, public SettableTooltipClient
 {
    public:
-    Box* box;
+    Object* object;
 
-    Edge(Box* parent, bool isInlet);
+    Iolet(Object* parent, bool isInlet);
 
     void paint(Graphics&) override;
     void resized() override;
@@ -28,13 +28,13 @@ class Edge : public Component, public SettableTooltipClient
     void mouseEnter(const MouseEvent& e) override;
     void mouseExit(const MouseEvent& e) override;
 
-    static Edge* findNearestEdge(Canvas* cnv, Point<int> position, bool inlet, Box* boxToExclude = nullptr);
+    static Iolet* findNearestEdge(Canvas* cnv, Point<int> position, bool inlet, Object* boxToExclude = nullptr);
 
     void createConnection();
 
     Rectangle<int> getCanvasBounds();
 
-    int edgeIdx;
+    int ioletIdx;
     bool isInlet;
     bool isSignal;
 
@@ -43,5 +43,5 @@ class Edge : public Component, public SettableTooltipClient
     bool isTargeted = false;
 
    private:
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(Edge)
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(Iolet)
 };

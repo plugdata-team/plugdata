@@ -13,7 +13,7 @@ extern "C" {
 #include <g_all_guis.h>
 }
 
-#include "Box.h"
+#include "Object.h"
 #include "Canvas.h"
 #include "PluginEditor.h"
 #include "LookAndFeel.h"
@@ -43,16 +43,20 @@ extern "C" {
 #include "SubpatchObject.h"
 #include "CloneObject.h"
 #include "CommentObject.h"
+#include "CycloneCommentObject.h"
 #include "FloatAtomObject.h"
 #include "SymbolAtomObject.h"
 #include "ScalarObject.h"
 #include "TextDefineObject.h"
+#include "CanvasListenerObjects.h"
+#include "ScopeObject.h"
+#include "FunctionObject.h"
 
-ObjectBase::ObjectBase(void* obj, Box* parent)
+ObjectBase::ObjectBase(void* obj, Object* parent)
     : ptr(obj)
-    , box(parent)
-    , cnv(box->cnv)
-    , pd(box->cnv->pd)
+    , object(parent)
+    , cnv(object->cnv)
+    , pd(object->cnv->pd)
 {
 }
 
@@ -79,11 +83,22 @@ String ObjectBase::getText()
 String ObjectBase::getType() const
 {
     if (ptr) {
-        char const* name = libpd_get_object_class_name(ptr);
-        if (name) {
-            return { name };
+        if (pd_class(static_cast<t_pd*>(ptr)) == canvas_class && canvas_isabstraction((t_canvas*)ptr)) {
+            char namebuf[MAXPDSTRING];
+            t_object* ob = (t_object*)ptr;
+            int ac = binbuf_getnatom(ob->te_binbuf);
+            t_atom* av = binbuf_getvec(ob->te_binbuf);
+            if (ac < 1)
+                return String();
+            atom_string(av, namebuf, MAXPDSTRING);
+
+            return String::fromUTF8(namebuf).fromLastOccurrenceOf("/", false, false);
+        }
+        if (auto* name = libpd_get_object_class_name(ptr)) {
+            return String(name);
         }
     }
+
     return {};
 }
 
@@ -91,7 +106,7 @@ String ObjectBase::getType() const
 // Makes sure that any tabs refering to the now deleted patch will be closed
 void ObjectBase::closeOpenedSubpatchers()
 {
-    auto& main = box->cnv->main;
+    auto& main = object->cnv->main;
     auto* tabbar = &main.tabbar;
 
     if (!tabbar)
@@ -104,18 +119,59 @@ void ObjectBase::closeOpenedSubpatchers()
             main.canvases.removeObject(cnv);
             tabbar->removeTab(n);
             main.pd.patches.removeObject(deleted_patch, false);
+
+            // Make sure there's at least one patch open
+            if (tabbar->getNumTabs() == 0) {
+                main.newProject();
+            }
+
+            break;
         }
     }
 
     if (tabbar->getNumTabs() > 1) {
         tabbar->getTabbedButtonBar().setVisible(true);
         tabbar->setTabBarDepth(28);
-        // main.resized(); TODO: this currently crashes because it will access the deleted object, fix this!
     } else {
         tabbar->getTabbedButtonBar().setVisible(false);
         tabbar->setTabBarDepth(1);
-        // main.resized();  TODO: same thing
     }
+}
+
+void ObjectBase::openSubpatch()
+{
+    auto* subpatch = getPatch();
+
+    if (!subpatch)
+        return;
+
+    auto* glist = subpatch->getPointer();
+
+    if (!glist)
+        return;
+
+    auto abstraction = canvas_isabstraction(glist);
+    File path;
+
+    if (abstraction) {
+        path = File(String::fromUTF8(canvas_getdir(subpatch->getPointer())->s_name) + "/" + String::fromUTF8(glist->gl_name->s_name)).withFileExtension("pd");
+    }
+
+    for (int n = 0; n < cnv->main.tabbar.getNumTabs(); n++) {
+        auto* tabCanvas = cnv->main.getCanvas(n);
+        if (tabCanvas->patch == *subpatch) {
+            cnv->main.tabbar.setCurrentTabIndex(n);
+            return;
+        }
+    }
+
+    auto* newPatch = cnv->main.pd.patches.add(new pd::Patch(*subpatch));
+    auto* newCanvas = cnv->main.canvases.add(new Canvas(cnv->main, *newPatch, nullptr));
+
+    newPatch->setCurrentFile(path);
+
+    cnv->main.addTab(newCanvas);
+    newCanvas->checkBounds();
 }
 
 void ObjectBase::moveToFront()
@@ -170,36 +226,36 @@ void ObjectBase::paint(Graphics& g)
 {
     // make sure text is readable
     // TODO: move this to places where it's relevant
-    getLookAndFeel().setColour(Label::textColourId, box->findColour(PlugDataColour::textColourId));
-    getLookAndFeel().setColour(Label::textWhenEditingColourId, box->findColour(PlugDataColour::textColourId));
-    getLookAndFeel().setColour(TextEditor::textColourId, box->findColour(PlugDataColour::textColourId));
+    getLookAndFeel().setColour(Label::textColourId, object->findColour(PlugDataColour::textColourId));
+    getLookAndFeel().setColour(Label::textWhenEditingColourId, object->findColour(PlugDataColour::textColourId));
+    getLookAndFeel().setColour(TextEditor::textColourId, object->findColour(PlugDataColour::textColourId));
 
-    g.setColour(box->findColour(PlugDataColour::toolbarColourId));
+    g.setColour(object->findColour(PlugDataColour::toolbarColourId));
     g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), 2.0f);
 
-    auto outlineColour = box->findColour(cnv->isSelected(box) && !cnv->isGraph ? PlugDataColour::highlightColourId : PlugDataColour::canvasOutlineColourId);
+    auto outlineColour = object->findColour(cnv->isSelected(object) && !cnv->isGraph ? PlugDataColour::highlightColourId : PlugDataColour::canvasOutlineColourId);
 
     g.setColour(outlineColour);
     g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), 2.0f, 1.0f);
 }
 
-NonPatchable::NonPatchable(void* obj, Box* parent)
+NonPatchable::NonPatchable(void* obj, Object* parent)
     : ObjectBase(obj, parent)
 {
     // Make object invisible
-    box->setVisible(false);
+    object->setVisible(false);
 }
 
 NonPatchable::~NonPatchable()
 {
 }
 
-GUIObject::GUIObject(void* obj, Box* parent)
+GUIObject::GUIObject(void* obj, Object* parent)
     : ObjectBase(obj, parent)
     , processor(*parent->cnv->pd)
     , edited(false)
 {
-    box->addComponentListener(this);
+    object->addComponentListener(this);
     updateLabel(); // TODO: fix virtual call from constructor
 
     setWantsKeyboardFocus(true);
@@ -215,7 +271,7 @@ GUIObject::GUIObject(void* obj, Box* parent)
 
 GUIObject::~GUIObject()
 {
-    box->removeComponentListener(this);
+    object->removeComponentListener(this);
     auto* lnf = &getLookAndFeel();
     setLookAndFeel(nullptr);
     delete lnf;
@@ -223,8 +279,8 @@ GUIObject::~GUIObject()
 
 void GUIObject::updateParameters()
 {
-    getLookAndFeel().setColour(Label::textWhenEditingColourId, box->findColour(Label::textWhenEditingColourId));
-    getLookAndFeel().setColour(Label::textColourId, box->findColour(Label::textColourId));
+    getLookAndFeel().setColour(Label::textWhenEditingColourId, object->findColour(Label::textWhenEditingColourId));
+    getLookAndFeel().setColour(Label::textColourId, object->findColour(Label::textColourId));
 
     auto params = getParameters();
     for (auto& [name, type, cat, value, list] : params) {
@@ -330,7 +386,7 @@ void GUIObject::setValue(float value)
     cnv->pd->enqueueDirectMessages(ptr, value);
 }
 
-ObjectBase* GUIObject::createGui(void* ptr, Box* parent)
+ObjectBase* GUIObject::createGui(void* ptr, Object* parent)
 {
     const String name = libpd_get_object_class_name(ptr);
     if (name == "bng") {
@@ -374,6 +430,9 @@ ObjectBase* GUIObject::createGui(void* ptr, Box* parent)
             return new CommentObject(ptr, parent);
         }
     }
+    if (name == "comment") {
+        return new CycloneCommentObject(ptr, parent);
+    }
     // Check size to prevent confusing it with else/message
     if (name == "message" && static_cast<t_gobj*>(ptr)->g_pd->c_size == sizeof(t_message)) {
         return new MessageObject(ptr, parent);
@@ -409,6 +468,8 @@ ObjectBase* GUIObject::createGui(void* ptr, Box* parent)
         } else {
             return new SubpatchObject(ptr, parent);
         }
+    } else if (name == "array define") {
+        return new ArrayDefineObject(ptr, parent);
     } else if (name == "clone") {
         return new CloneObject(ptr, parent);
     } else if (name == "pd") {
@@ -418,10 +479,34 @@ ObjectBase* GUIObject::createGui(void* ptr, Box* parent)
         if (gobj->g_pd == scalar_class) {
             return new ScalarObject(ptr, parent);
         }
-    } else if (!pd_checkobject(static_cast<t_pd*>(ptr))) {
+    }
+    // ELSE's [oscope~] and cyclone [scope~] are basically the same object
+    else if (name == "oscope~" || name == "scope~") {
+        return new ScopeObject(ptr, parent);
+    }
+    else if (name == "function") {
+        return new FunctionObject(ptr, parent);
+    }
+    else if (name == "canvas.active") {
+        return new CanvasActiveObject(ptr, parent);
+    }
+    else if (name == "canvas.mouse") {
+        return new CanvasMouseObject(ptr, parent);
+    }
+    else if (name == "canvas.vis") {
+        return new CanvasVisibleObject(ptr, parent);
+    }
+    else if (name == "canvas.zoom") {
+        return new CanvasZoomObject(ptr, parent);
+    }
+    else if (name == "canvas.edit") {
+        return new CanvasEditObject(ptr, parent);
+    }
+    else if (!pd_checkobject(static_cast<t_pd*>(ptr))) {
         // Object is not a patcher object but something else
         return new NonPatchable(ptr, parent);
     }
+    
 
     return new TextObject(ptr, parent);
 }

@@ -53,10 +53,10 @@ public:
         addAndMakeVisible(resetButton);
         resetButton.setConnectedEdges(12);
         resetButton.onClick = [this]() {
-            auto libraryDir = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory).getChildFile("PlugData").getChildFile(ProjectInfo::versionString);
+            auto libraryDir = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory).getChildFile("PlugData").getChildFile("Library");
 
             auto abstractionsDir = libraryDir.getChildFile("Abstractions");
-            auto dekenDir = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory).getChildFile("PlugData").getChildFile("Deken").getLinkedTarget();
+            auto dekenDir = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory).getChildFile("PlugData").getChildFile("Library").getChildFile("Deken");
 
             path = FileSearchPath();
             path.add(abstractionsDir);

@@ -3,6 +3,7 @@
 class SuggestionComponent : public Component
     , public KeyListener
     , public TextEditor::InputFilter {
+
     class Suggestion : public TextButton {
         int idx = 0;
         int type = -1;
@@ -16,7 +17,7 @@ class SuggestionComponent : public Component
             : idx(i)
         {
             setText("", "", false);
-            setWantsKeyboardFocus(true);
+            setWantsKeyboardFocus(false);
             setConnectedEdges(12);
             setClickingTogglesState(true);
             setRadioGroupId(1001);
@@ -31,6 +32,12 @@ class SuggestionComponent : public Component
             drawIcon = icon;
 
             repaint();
+        }
+
+        // TODO: why is this necessary?
+        void mouseDown(MouseEvent const& e) override
+        {
+            onClick();
         }
 
         void paint(Graphics& g) override
@@ -64,7 +71,8 @@ class SuggestionComponent : public Component
                 auto rightIndent = jmin(fontHeight, 2 + cornerSize / 2);
                 auto textWidth = getWidth() - leftIndent - rightIndent;
 
-                g.drawText("- " + objectDescription, Rectangle<int>(leftIndent, yIndent, textWidth, getHeight() - yIndent * 2), Justification::left);
+                // Draw seperator (which is an en dash)
+                g.drawText(String::fromUTF8("\xe2\x80\x93 ") + objectDescription, Rectangle<int>(leftIndent, yIndent, textWidth, getHeight() - yIndent * 2), Justification::left);
             }
 
             if (type == -1)
@@ -125,6 +133,7 @@ public:
 
         setInterceptsMouseClicks(true, true);
         setAlwaysOnTop(true);
+        setWantsKeyboardFocus(false);
     }
 
     ~SuggestionComponent() override
@@ -132,16 +141,18 @@ public:
         buttons.clear();
     }
 
-    void createCalloutBox(Box* box, TextEditor* editor)
+    void createCalloutBox(Object* object, TextEditor* editor)
     {
-        currentBox = box;
+        currentBox = object;
         openedEditor = editor;
+
+        setTransform(object->cnv->main.getTransform());
 
         editor->setInputFilter(this, false);
         editor->addKeyListener(this);
 
         // Should run after the input filter
-        editor->onTextChange = [this, editor, box]() {
+        editor->onTextChange = [this, editor, object]() {
             if (state == ShowingObjects && !editor->getText().containsChar(' ')) {
                 editor->setHighlightedRegion({ highlightStart, highlightEnd });
             }
@@ -163,7 +174,8 @@ public:
         setVisible(false);
         toFront(false);
 
-        setTopLeftPosition(box->getScreenX(), box->getScreenBounds().getBottom());
+        auto scale = std::sqrt(std::abs(getTransform().getDeterminant()));
+        setTopLeftPosition(object->getScreenX() / scale, object->getScreenBounds().getBottom() / scale);
         repaint();
     }
 
@@ -201,9 +213,7 @@ public:
 
         auto* but = buttons[currentidx];
 
-        // If we use setto, the toggle state should already be set
-        if (setto == -1)
-            but->setToggleState(true, dontSendNotification);
+        but->setToggleState(true, dontSendNotification);
 
         if (openedEditor) {
             String newText = buttons[currentidx]->getButtonText();
@@ -218,10 +228,12 @@ public:
         } else if (port->getViewPositionY() + port->getMaximumVisibleHeight() < but->getY() + but->getHeight()) {
             port->setViewPosition(0, but->getY() - (but->getHeight() * 4));
         }
+
+        repaint();
     }
 
     TextEditor* openedEditor = nullptr;
-    SafePointer<Box> currentBox;
+    SafePointer<Object> currentBox;
 
     void resized() override
     {
@@ -258,12 +270,16 @@ private:
         if (!currentBox) {
             return false;
         }
-        
-        if (key == KeyPress::rightKey) {
+
+        if (key == KeyPress::rightKey && !openedEditor->getHighlightedRegion().isEmpty()) {
             openedEditor->setCaretPosition(openedEditor->getHighlightedRegion().getEnd());
             return true;
         }
-        
+        if (key == KeyPress::leftKey && !openedEditor->getHighlightedRegion().isEmpty()) {
+            openedEditor->setCaretPosition(openedEditor->getHighlightedRegion().getStart());
+            return true;
+        }
+
         if (state != ShowingObjects)
             return false;
 
@@ -317,6 +333,8 @@ private:
             setVisible(numOptions);
             currentidx = 0;
 
+            resized();
+
             return mutableInput;
         }
 
@@ -342,6 +360,8 @@ private:
 
         for (int i = numOptions; i < buttons.size(); i++)
             buttons[i]->setText("", "", false);
+
+        resized();
 
         // Get length of user-typed text
         int textlen = e.getText().substring(0, start).length();

@@ -1,6 +1,6 @@
 
 struct ListObject final : public AtomObject {
-    ListObject(void* obj, Box* parent)
+    ListObject(void* obj, Object* parent)
         : AtomObject(obj, parent)
     {
         listLabel.setBounds(2, 0, getWidth() - 2, getHeight() - 1);
@@ -69,13 +69,13 @@ struct ListObject final : public AtomObject {
 
     void paint(Graphics& g) override
     {
-        getLookAndFeel().setColour(Label::textWhenEditingColourId, box->findColour(Label::textWhenEditingColourId));
-        getLookAndFeel().setColour(Label::textColourId, box->findColour(Label::textColourId));
+        getLookAndFeel().setColour(Label::textWhenEditingColourId, object->findColour(Label::textWhenEditingColourId));
+        getLookAndFeel().setColour(Label::textColourId, object->findColour(Label::textColourId));
 
-        g.setColour(box->findColour(PlugDataColour::toolbarColourId));
+        g.setColour(object->findColour(PlugDataColour::toolbarColourId));
         g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), 2.0f);
 
-        g.setColour(box->findColour(PlugDataColour::canvasOutlineColourId));
+        g.setColour(object->findColour(PlugDataColour::canvasOutlineColourId));
 
         Path bottomTriangle;
         bottomTriangle.addTriangle(Point<float>(getWidth() - 8, getHeight()), Point<float>(getWidth(), getHeight()), Point<float>(getWidth(), getHeight() - 8));
@@ -129,7 +129,7 @@ struct ListObject final : public AtomObject {
 
     void mouseUp(MouseEvent const& e) override
     {
-        if (static_cast<bool>(box->locked.getValue()) && !e.mouseWasDraggedSinceMouseDown()) {
+        if (static_cast<bool>(object->locked.getValue()) && !e.mouseWasDraggedSinceMouseDown()) {
 
             listLabel.showEditor();
         }

@@ -36,8 +36,8 @@ struct NumboxTildeObject final : public GUIObject
 
     Value interval, ramp, init;
 
-    NumboxTildeObject(void* obj, Box* parent)
-        : GUIObject(obj, parent)
+    NumboxTildeObject(void* obj, Object* parent)
+        : GUIObject(obj, parent), input(false)
     {
         input.onEditorShow = [this]() {
             auto* editor = input.getCurrentTextEditor();
@@ -90,8 +90,8 @@ struct NumboxTildeObject final : public GUIObject
         auto bounds = Rectangle<int>(x, y, w, h);
 
         pd->getCallbackLock()->exit();
-    
-        box->setObjectBounds(bounds);
+
+        object->setObjectBounds(bounds);
     }
 
     void checkBounds() override
@@ -106,13 +106,13 @@ struct NumboxTildeObject final : public GUIObject
 
         int height = jlimit(18, maxSize, getHeight());
         if (getWidth() != width || getHeight() != height) {
-            box->setSize(width + Box::doubleMargin, height + Box::doubleMargin);
+            object->setSize(width + Object::doubleMargin, height + Object::doubleMargin);
         }
     }
 
     void applyBounds() override
     {
-        auto b = box->getObjectBounds();
+        auto b = object->getObjectBounds();
         libpd_moveobj(cnv->patch.getPointer(), static_cast<t_gobj*>(ptr), b.getX(), b.getY());
 
         auto* nbx = static_cast<t_numbox*>(ptr);
@@ -193,7 +193,7 @@ struct NumboxTildeObject final : public GUIObject
 
         auto iconBounds = Rectangle<int>(2, 0, getHeight(), getHeight());
 
-        auto font = dynamic_cast<PlugDataLook&>(box->getLookAndFeel()).iconFont.withHeight(getHeight() - 8);
+        auto font = dynamic_cast<PlugDataLook&>(object->getLookAndFeel()).iconFont.withHeight(getHeight() - 8);
         g.setFont(font);
 
         g.drawFittedText(mode ? Icons::ThinDown : Icons::Sine, iconBounds,
@@ -205,7 +205,7 @@ struct NumboxTildeObject final : public GUIObject
         g.setColour(Colour::fromString(secondaryColour.toString()));
         g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), 2.0f);
 
-        auto outlineColour = box->findColour(cnv->isSelected(box) && !cnv->isGraph ? PlugDataColour::highlightColourId : PlugDataColour::canvasOutlineColourId);
+        auto outlineColour = object->findColour(cnv->isSelected(object) && !cnv->isGraph ? PlugDataColour::highlightColourId : PlugDataColour::canvasOutlineColourId);
 
         g.setColour(outlineColour);
         g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), 2.0f, 1.0f);
@@ -228,7 +228,6 @@ struct NumboxTildeObject final : public GUIObject
 
         pd->getCallbackLock()->enter();
         pd_float(static_cast<t_pd*>(ptr), newValue);
-        // pd_typedmess(static_cast<t_pd*>(ptr), gensym("set"), 1, &at);
         pd->getCallbackLock()->exit();
     }
 

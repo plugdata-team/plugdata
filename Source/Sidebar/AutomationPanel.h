@@ -6,6 +6,104 @@
 
 #include "Canvas.h"
 
+struct AutomationSlider : public Component {
+
+    AutomationSlider(int idx, PlugDataAudioProcessor* pd)
+        : index(idx)
+    {
+        createButton.setName("statusbar:createbutton");
+
+        nameLabel.setText(String(idx + 1), dontSendNotification);
+
+        createButton.onClick = [this, pd]() mutable {
+            if (auto* editor = dynamic_cast<PlugDataPluginEditor*>(pd->getActiveEditor())) {
+                auto* cnv = editor->getCurrentCanvas();
+                if (cnv) {
+                    cnv->attachNextObjectToMouse = true;
+                    cnv->objects.add(new Object(cnv, "param " + String(index + 1)));
+                }
+            }
+        };
+
+        slider.setScrollWheelEnabled(false);
+        slider.setTextBoxStyle(Slider::NoTextBox, false, 45, 13);
+
+#if PLUGDATA_STANDALONE
+        slider.setValue(pd->standaloneParams[idx]);
+        slider.setRange(0.0f, 1.0f);
+        valueLabel.setText(String(pd->standaloneParams[idx], 2), dontSendNotification);
+        slider.onValueChange = [this, pd, idx]() mutable {
+            float value = slider.getValue();
+            pd->standaloneParams[idx] = value;
+            valueLabel.setText(String(value, 2), dontSendNotification);
+        };
+#else
+        slider.onValueChange = [this, pd, idx]() mutable {
+            float value = slider.getValue();
+            valueLabel.setText(String(value, 2), dontSendNotification);
+        };
+        auto* param = pd->parameters.getParameter("param" + String(index + 1));
+        auto range = param->getNormalisableRange().getRange();
+        attachment = std::make_unique<SliderParameterAttachment>(*param, slider, nullptr);
+        valueLabel.setText(String(param->getValue(), 2), dontSendNotification);
+#endif
+        valueLabel.onEditorShow = [this]() mutable {
+            if (auto* editor = valueLabel.getCurrentTextEditor()) {
+                editor->setInputRestrictions(-1, "0123456789.");
+            }
+        };
+
+        valueLabel.onEditorHide = [this, pd]() mutable {
+            auto* param = pd->parameters.getParameter("param" + String(index + 1));
+            param->setValue(valueLabel.getText().getFloatValue());
+        };
+
+        valueLabel.setMinimumHorizontalScale(1.0f);
+        nameLabel.setMinimumHorizontalScale(1.0f);
+        nameLabel.setJustificationType(Justification::centred);
+
+        valueLabel.setEditable(true);
+
+        addAndMakeVisible(nameLabel);
+        addAndMakeVisible(slider);
+        addAndMakeVisible(valueLabel);
+        addAndMakeVisible(createButton);
+    }
+
+    void resized() override
+    {
+        auto bounds = getLocalBounds();
+        nameLabel.setBounds(bounds.removeFromLeft(30).expanded(4, 0));
+        slider.setBounds(bounds.removeFromLeft(getWidth() - 100));
+        valueLabel.setBounds(bounds.removeFromLeft(30).expanded(4, 0));
+        createButton.setBounds(bounds.removeFromLeft(23));
+    }
+
+    void paint(Graphics& g) override
+    {
+        slider.setColour(Slider::backgroundColourId, findColour(index & 1 ? PlugDataColour::canvasColourId : PlugDataColour::toolbarColourId));
+        slider.setColour(Slider::trackColourId, findColour(PlugDataColour::textColourId));
+
+        auto offColour = findColour(PlugDataColour::toolbarColourId);
+        auto onColour = findColour(PlugDataColour::canvasColourId);
+
+        g.setColour(index & 1 ? offColour : onColour);
+        g.fillRect(getLocalBounds());
+    }
+
+    TextButton createButton = TextButton(Icons::Add);
+
+    Label nameLabel;
+    Label valueLabel;
+    Slider slider;
+
+    int index;
+
+#if !PLUGDATA_STANDALONE
+    std::unique_ptr<SliderParameterAttachment> attachment;
+#endif
+};
+
 struct AutomationComponent : public Component {
     PlugDataAudioProcessor* pd;
 
@@ -13,115 +111,23 @@ struct AutomationComponent : public Component {
         : pd(processor)
     {
         for (int p = 0; p < PlugDataAudioProcessor::numParameters; p++) {
-            auto* slider = sliders.add(new Slider());
-            auto* label = labels.add(new Label());
-            auto* button = createButtons.add(new TextButton(Icons::Add));
-
-            button->setName("statusbar:createbutton");
-
-            String name = "param " + String(p + 1);
-            label->setText(name, dontSendNotification);
-            // label->attachToComponent(slider, true);
-
-            slider->setScrollWheelEnabled(false);
-            slider->setTextBoxStyle(Slider::TextBoxRight, false, 45, 13);
-
-#if PLUGDATA_STANDALONE
-            slider->onValueChange = [this, slider, p]() mutable {
-                float value = slider->getValue();
-                pd->standaloneParams[p] = value;
-            };
-#endif
-
-            button->onClick = [this, name]() mutable {
-                if (auto* editor = dynamic_cast<PlugDataPluginEditor*>(pd->getActiveEditor())) {
-                    auto* cnv = editor->getCurrentCanvas();
-                    if (cnv) {
-                        cnv->attachNextObjectToMouse = true;
-                        cnv->boxes.add(new Box(cnv, name));
-                    }
-                }
-            };
-
-            addAndMakeVisible(label);
+            auto* slider = rows.add(new AutomationSlider(p, processor));
             addAndMakeVisible(slider);
-            addAndMakeVisible(button);
-
-#if PLUGDATA_STANDALONE
-            sliders[p]->setValue(pd->standaloneParams[p]);
-            sliders[p]->setRange(0.0f, 1.0f);
-#else
-            auto* param = pd->parameters.getParameter("param" + String(p + 1));
-            auto range = param->getNormalisableRange().getRange();
-            attachments.add(new SliderParameterAttachment(*param, *slider, nullptr));
-#endif
-        }
-    }
-
-#if PLUGDATA_STANDALONE
-    void updateParameters()
-    {
-        for (int p = 0; p < PlugDataAudioProcessor::numParameters; p++) {
-            sliders[p]->setValue(pd->standaloneParams[p]);
-        }
-    }
-#endif
-
-    void paint(Graphics& g) override
-    {
-        for (int p = 0; p < PlugDataAudioProcessor::numParameters; p++) {
-
-            auto rect = Rectangle<int>(0, sliders[p]->getY(), getWidth(), sliders[p]->getHeight());
-            if (!g.clipRegionIntersects(rect))
-                continue;
-
-            sliders[p]->setColour(Slider::backgroundColourId, findColour(p & 1 ? PlugDataColour::canvasColourId : PlugDataColour::toolbarColourId));
-            sliders[p]->setColour(Slider::trackColourId, findColour(PlugDataColour::textColourId));
-
-            auto offColour = findColour(PlugDataColour::toolbarColourId);
-            auto onColour = findColour(PlugDataColour::canvasColourId);
-
-            g.setColour(p & 1 ? offColour : onColour);
-            g.fillRect(rect);
         }
     }
 
     void resized() override
     {
-        auto fb = FlexBox(FlexBox::Direction::column, FlexBox::Wrap::noWrap, FlexBox::AlignContent::flexStart, FlexBox::AlignItems::stretch, FlexBox::JustifyContent::flexStart);
-
+        int height = 23;
+        int y = 0;
         for (int p = 0; p < PlugDataAudioProcessor::numParameters; p++) {
-            auto item = FlexItem(*sliders[p]).withMinHeight(19.0f).withMaxHeight(27);
-            item.flexGrow = 1.0f;
-            item.flexShrink = 1.0f;
-            fb.items.add(item);
-        }
-
-        fb.performLayout(getLocalBounds().withTrimmedLeft(55).withTrimmedRight(40).toFloat());
-
-        fb.items.clear();
-
-        for (int p = 0; p < PlugDataAudioProcessor::numParameters; p++) {
-            auto item = FlexItem(*labels[p]).withMinHeight(19.0f).withMaxHeight(27);
-            item.flexGrow = 1.0f;
-            item.flexShrink = 1.0f;
-            fb.items.add(item);
-        }
-
-        fb.performLayout(getLocalBounds().removeFromLeft(55));
-
-        for (int p = 0; p < PlugDataAudioProcessor::numParameters; p++) {
-            createButtons[p]->setBounds(sliders[p]->getBounds().withX(getWidth() - 40).withWidth(30));
+            auto rect = Rectangle<int>(0, y, getWidth(), height);
+            y += height;
+            rows[p]->setBounds(rect);
         }
     }
 
-    OwnedArray<TextButton> createButtons;
-    OwnedArray<Label> labels;
-    OwnedArray<Slider> sliders;
-
-#if !PLUGDATA_STANDALONE
-    OwnedArray<SliderParameterAttachment> attachments;
-#endif
+    OwnedArray<AutomationSlider> rows;
 };
 
 struct AutomationPanel : public Component
@@ -162,8 +168,17 @@ struct AutomationPanel : public Component
     void resized() override
     {
         viewport.setBounds(getLocalBounds().withTrimmedTop(30).withTrimmedBottom(30).withTrimmedLeft(Sidebar::dragbarWidth));
-        sliders.setSize(getWidth(), 10000);
+        sliders.setSize(getWidth(), PlugDataAudioProcessor::numParameters * 23);
     }
+
+#if PLUGDATA_STANDALONE
+    void updateParameters()
+    {
+        for (int p = 0; p < PlugDataAudioProcessor::numParameters; p++) {
+            sliders.rows[p]->slider.setValue(sliders.pd->standaloneParams[p]);
+        }
+    }
+#endif
 
     Viewport viewport;
     AutomationComponent sliders;

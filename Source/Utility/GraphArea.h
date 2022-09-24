@@ -53,6 +53,8 @@ struct GraphArea : public Component
         setPdBounds();
         resizer.setBounds(getWidth() - handleSize, getHeight() - handleSize, handleSize, handleSize);
 
+        canvas->updateDrawables();
+
         repaint();
     }
 
@@ -63,6 +65,7 @@ struct GraphArea : public Component
         if (cnv) {
             cnv->gl_pixwidth = getWidth();
             cnv->gl_pixheight = getHeight();
+
             cnv->gl_xmargin = getX() - canvas->canvasOrigin.x;
             cnv->gl_ymargin = getY() - canvas->canvasOrigin.y;
         }

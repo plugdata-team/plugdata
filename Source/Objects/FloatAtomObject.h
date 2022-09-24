@@ -4,8 +4,8 @@ struct FloatAtomObject final : public AtomObject {
 
     DraggableNumber input;
 
-    FloatAtomObject(void* obj, Box* parent)
-        : AtomObject(obj, parent)
+    FloatAtomObject(void* obj, Object* parent)
+        : AtomObject(obj, parent), input(false)
     {
         input.onEditorShow = [this]() {
             auto* editor = input.getCurrentTextEditor();
@@ -58,7 +58,7 @@ struct FloatAtomObject final : public AtomObject {
     {
         AtomObject::paintOverChildren(g);
 
-        bool highlighed = hasKeyboardFocus(true) && static_cast<bool>(box->locked.getValue());
+        bool highlighed = hasKeyboardFocus(true) && static_cast<bool>(object->locked.getValue());
 
         if (highlighed) {
             g.setColour(findColour(PlugDataColour::highlightColourId));

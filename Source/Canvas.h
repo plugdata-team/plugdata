@@ -8,7 +8,7 @@
 
 #include <JuceHeader.h>
 
-#include "Box.h"
+#include "Object.h"
 #include "Pd/PdPatch.h"
 #include "Pd/PdStorage.h"
 #include "PluginProcessor.h"
@@ -16,7 +16,7 @@
 
 class SuggestionComponent;
 struct GraphArea;
-class Edge;
+class Iolet;
 class PlugDataPluginEditor;
 class Canvas : public Component, public Value::Listener, public LassoSource<WeakReference<Component>>
 {    
@@ -45,25 +45,30 @@ class Canvas : public Component, public Value::Listener, public LassoSource<Weak
     void mouseMove(const MouseEvent& e) override;
 
     void synchronise(bool updatePosition = true);
-
+    
+    void updateDrawables();
+    void updateGuiValues();
+    void updateGuiParameters();
+    
     bool keyPressed(const KeyPress& key) override;
+    void valueChanged(Value& v) override;
+    
+    void hideAllActiveEditors();
     
     void copySelection();
     void removeSelection();
     void pasteSelection();
     void duplicateSelection();
-
-    void valueChanged(Value& v) override;
     
-
-    void checkBounds();
+    void encapsulateSelection();
 
     void undo();
     void redo();
 
-    // Multi-dragger functions
-    void deselectAll();
+    void checkBounds();
 
+    // Multi-dragger functions
+    void deselectAll();    
     void setSelected(Component* component, bool shouldNowBeSelected);
     bool isSelected(Component* component) const;
 
@@ -78,7 +83,7 @@ class Canvas : public Component, public Value::Listener, public LassoSource<Weak
 
     void updateSidebarSelection();
 
-    void showSuggestions(Box* box, TextEditor* editor);
+    void showSuggestions(Object* object, TextEditor* editor);
     void hideSuggestions();
 
     template <typename T>
@@ -99,18 +104,16 @@ class Canvas : public Component, public Value::Listener, public LassoSource<Weak
 
     Viewport* viewport = nullptr;
 
-    OwnedArray<DrawablePath> drawables;
-
     bool connectingWithDrag = false;
-    Array<SafePointer<Edge>> connectingEdges;
-    SafePointer<Edge> nearestEdge;
+    Array<SafePointer<Iolet>> connectingEdges;
+    SafePointer<Iolet> nearestEdge;
 
     pd::Patch& patch;
 
-    // Needs to be allocated before box and connection so they can deselect themselves in the destructor
+    // Needs to be allocated before object and connection so they can deselect themselves in the destructor
     SelectedItemSet<WeakReference<Component>> selectedComponents;
     
-    OwnedArray<Box> boxes;
+    OwnedArray<Object> objects;
     OwnedArray<Connection> connections;
 
     Value locked;
@@ -126,7 +129,8 @@ class Canvas : public Component, public Value::Listener, public LassoSource<Weak
     
     Value isGraphChild = Value(var(false));
     Value hideNameAndArgs = Value(var(false));
-
+    Value xRange, yRange;
+    
     ObjectGrid grid = ObjectGrid(this);
 
     Point<int> canvasOrigin = {0, 0};
@@ -141,11 +145,13 @@ class Canvas : public Component, public Value::Listener, public LassoSource<Weak
     // Multi-dragger variables
     bool didStartDragging = false;
     const int minimumMovementToStartDrag = 5;
-    Box* componentBeingDragged = nullptr;
+    Object* componentBeingDragged = nullptr;
+    
+    pd::Storage storage;
     
    private:
     
-    SafePointer<Box> boxSnappingInbetween;
+    SafePointer<Object> objectSnappingInbetween;
     SafePointer<Connection> connectionToSnapInbetween;
     SafePointer<TabbedComponent> tabbar;
 
@@ -155,7 +161,12 @@ class Canvas : public Component, public Value::Listener, public LassoSource<Weak
     PopupMenu popupMenu;
 
     // Properties that can be shown in the inspector by right-clicking on canvas
-    ObjectParameters parameters = {{"Is graph", tBool, cGeneral, &isGraphChild, {"No", "Yes"}}, {"Hide name and arguments", tBool, cGeneral, &hideNameAndArgs, {"No", "Yes"}}};
+    ObjectParameters parameters =
+    {{"Is graph", tBool, cGeneral, &isGraphChild, {"No", "Yes"}},
+     {"Hide name and arguments", tBool, cGeneral, &hideNameAndArgs, {"No", "Yes"}},
+     {"X range", tRange, cGeneral, &xRange, {}},
+     {"Y range", tRange, cGeneral, &yRange, {}}
+    };
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(Canvas)
 };

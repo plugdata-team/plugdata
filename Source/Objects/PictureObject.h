@@ -36,8 +36,8 @@ struct PictureObject final : public GUIObject {
         t_outlet* x_outlet;
     } t_pic;
 
-    PictureObject(void* ptr, Box* box)
-        : GUIObject(ptr, box)
+    PictureObject(void* ptr, Object* object)
+        : GUIObject(ptr, object)
     {
         auto* pic = static_cast<t_pic*>(ptr);
 
@@ -60,11 +60,11 @@ struct PictureObject final : public GUIObject {
             g.drawImageAt(img, 0, 0);
         } else {
             g.setFont(30);
-            g.setColour(box->findColour(PlugDataColour::textColourId));
+            g.setColour(object->findColour(PlugDataColour::textColourId));
             g.drawText("?", getLocalBounds(), Justification::centred);
         }
 
-        auto outlineColour = box->findColour(cnv->isSelected(box) && !cnv->isGraph ? PlugDataColour::highlightColourId : PlugDataColour::canvasOutlineColourId);
+        auto outlineColour = object->findColour(cnv->isSelected(object) && !cnv->isGraph ? PlugDataColour::highlightColourId : PlugDataColour::canvasOutlineColourId);
 
         g.setColour(outlineColour);
         g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), 2.0f, 1.0f);
@@ -79,7 +79,7 @@ struct PictureObject final : public GUIObject {
 
     void applyBounds() override
     {
-        auto b = box->getObjectBounds();
+        auto b = object->getObjectBounds();
         libpd_moveobj(cnv->patch.getPointer(), static_cast<t_gobj*>(ptr), b.getX(), b.getY());
 
         auto* pic = static_cast<t_pic*>(ptr);
@@ -96,8 +96,8 @@ struct PictureObject final : public GUIObject {
         auto bounds = Rectangle<int>(x, y, w, h);
 
         pd->getCallbackLock()->exit();
-    
-        box->setObjectBounds(bounds);
+
+        object->setObjectBounds(bounds);
     }
 
     void checkBounds() override
@@ -105,9 +105,9 @@ struct PictureObject final : public GUIObject {
         auto* pic = static_cast<t_pic*>(ptr);
 
         if (!imageFile.existsAsFile()) {
-            box->setSize(50, 50);
+            object->setSize(50, 50);
         } else if (pic->x_height != img.getHeight() || pic->x_width != img.getWidth()) {
-            box->setSize(img.getWidth(), img.getHeight());
+            object->setSize(img.getWidth(), img.getHeight());
         }
     }
 
@@ -136,7 +136,7 @@ struct PictureObject final : public GUIObject {
         pic->x_width = img.getWidth();
         pic->x_height = img.getHeight();
 
-        box->updateBounds();
+        object->updateBounds();
         repaint();
     }
 

@@ -1,5 +1,5 @@
 /*
- // Copyright (c) 2015-2018 Pierre Guillot.
+ // Copyright (c) 2015-2022 Pierre Guillot and Timothy Schoen
  // For information on usage and redistribution, and for a DISCLAIMER OF ALL
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
@@ -47,7 +47,7 @@ struct pd::Instance::internal {
                 mess.list[i] = Atom(String(atom_getsymbol(argv + i)->s_name));
         }
 
-        ptr->enqueueFunctionAsync([ptr, mess]() mutable { ptr->processMessage(std::move(mess)); });
+        ptr->enqueueFunctionAsync([ptr, mess]() mutable { ptr->processMessage(mess); });
     }
 
     static void instance_multi_message(pd::Instance* ptr, char const* recv, char const* msg, int argc, t_atom* argv)
@@ -79,7 +79,7 @@ struct pd::Instance::internal {
 
     static void instance_multi_pitchbend(pd::Instance* ptr, int channel, int value)
     {
-        ptr->enqueueFunctionAsync([ptr, channel, value]() mutable { ptr->processMidiEvent({ midievent::PROGRAMCHANGE, channel, value, 0 }); });
+        ptr->enqueueFunctionAsync([ptr, channel, value]() mutable { ptr->processMidiEvent({ midievent::PITCHBEND, channel, value, 0 }); });
     }
 
     static void instance_multi_aftertouch(pd::Instance* ptr, int channel, int value)
@@ -99,20 +99,25 @@ struct pd::Instance::internal {
 
     static void instance_multi_print(pd::Instance* ptr, char const* s)
     {
-            ptr->consoleHandler.processPrint(s);
+        ptr->consoleHandler.processPrint(s);
     }
 };
 }
 
 namespace pd {
 
-Instance::Instance(String const& symbol) : consoleHandler(this)
+Instance::Instance(String const& symbol)
+    : consoleHandler(this)
 {
     libpd_multi_init();
 
     m_instance = libpd_new_instance();
 
     libpd_set_instance(static_cast<t_pdinstance*>(m_instance));
+
+    libpd_init_else();
+    libpd_init_cyclone();
+
     m_midi_receiver = libpd_multi_midi_new(this, reinterpret_cast<t_libpd_multi_noteonhook>(internal::instance_multi_noteon), reinterpret_cast<t_libpd_multi_controlchangehook>(internal::instance_multi_controlchange), reinterpret_cast<t_libpd_multi_programchangehook>(internal::instance_multi_programchange),
         reinterpret_cast<t_libpd_multi_pitchbendhook>(internal::instance_multi_pitchbend), reinterpret_cast<t_libpd_multi_aftertouchhook>(internal::instance_multi_aftertouch), reinterpret_cast<t_libpd_multi_polyaftertouchhook>(internal::instance_multi_polyaftertouch),
         reinterpret_cast<t_libpd_multi_midibytehook>(internal::instance_multi_midibyte));
@@ -123,6 +128,10 @@ Instance::Instance(String const& symbol) : consoleHandler(this)
 
     m_parameter_receiver = libpd_multi_receiver_new(this, "param", reinterpret_cast<t_libpd_multi_banghook>(internal::instance_multi_bang), reinterpret_cast<t_libpd_multi_floathook>(internal::instance_multi_float), reinterpret_cast<t_libpd_multi_symbolhook>(internal::instance_multi_symbol),
         reinterpret_cast<t_libpd_multi_listhook>(internal::instance_multi_list), reinterpret_cast<t_libpd_multi_messagehook>(internal::instance_multi_message));
+
+    m_parameter_change_receiver = libpd_multi_receiver_new(this, "param_change", reinterpret_cast<t_libpd_multi_banghook>(internal::instance_multi_bang), reinterpret_cast<t_libpd_multi_floathook>(internal::instance_multi_float), reinterpret_cast<t_libpd_multi_symbolhook>(internal::instance_multi_symbol),
+        reinterpret_cast<t_libpd_multi_listhook>(internal::instance_multi_list), reinterpret_cast<t_libpd_multi_messagehook>(internal::instance_multi_message));
+
     m_atoms = malloc(sizeof(t_atom) * 512);
 
     // Register callback when pd's gui changes
@@ -206,7 +215,7 @@ Instance::Instance(String const& symbol) : consoleHandler(this)
     }
 
      */
-    
+
     libpd_set_verbose(0);
     setThis();
 }
@@ -217,6 +226,7 @@ Instance::~Instance()
     pd_free(static_cast<t_pd*>(m_midi_receiver));
     pd_free(static_cast<t_pd*>(m_print_receiver));
     pd_free(static_cast<t_pd*>(m_parameter_receiver));
+    pd_free(static_cast<t_pd*>(m_parameter_change_receiver));
 
     libpd_set_instance(static_cast<t_pdinstance*>(m_instance));
     libpd_free_instance(static_cast<t_pdinstance*>(m_instance));
@@ -311,8 +321,12 @@ void Instance::sendMidiByte(int const port, int const byte) const
 
 void Instance::sendBang(char const* receiver) const
 {
+#if !PLUGDATA_STANDALONE
     if (!m_instance)
         return;
+
+    libpd_set_instance(static_cast<t_pdinstance*>(m_instance));
+#endif
 
     libpd_set_instance(static_cast<t_pdinstance*>(m_instance));
     libpd_bang(receiver);
@@ -320,17 +334,24 @@ void Instance::sendBang(char const* receiver) const
 
 void Instance::sendFloat(char const* receiver, float const value) const
 {
+#if !PLUGDATA_STANDALONE
     if (!m_instance)
         return;
 
     libpd_set_instance(static_cast<t_pdinstance*>(m_instance));
+#endif
+
     libpd_float(receiver, value);
 }
 
 void Instance::sendSymbol(char const* receiver, char const* symbol) const
 {
+#if !PLUGDATA_STANDALONE
     if (!m_instance)
         return;
+
+    libpd_set_instance(static_cast<t_pdinstance*>(m_instance));
+#endif
 
     libpd_set_instance(static_cast<t_pdinstance*>(m_instance));
     libpd_symbol(receiver, symbol);
@@ -351,18 +372,21 @@ void Instance::sendList(char const* receiver, std::vector<Atom> const& list) con
 
 void Instance::sendMessage(char const* receiver, char const* msg, std::vector<Atom> const& list) const
 {
-    if (!static_cast<t_pdinstance*>(m_instance))
-        return;
-
-    auto* argv = static_cast<t_atom*>(m_atoms);
     libpd_set_instance(static_cast<t_pdinstance*>(m_instance));
+    
+    auto* argv = static_cast<t_atom*>(m_atoms);
+
     for (size_t i = 0; i < list.size(); ++i) {
         if (list[i].isFloat())
             libpd_set_float(argv + i, list[i].getFloat());
         else
             libpd_set_symbol(argv + i, list[i].getSymbol().toRawUTF8());
     }
-    libpd_message(receiver, msg, static_cast<int>(list.size()), argv);
+    auto* obj = gensym(receiver)->s_thing;
+    
+    if(!obj) return;
+    
+    pd_typedmess(gensym(receiver)->s_thing, gensym(msg), static_cast<int>(list.size()), argv);
 }
 
 void Instance::processMessage(Message mess)
@@ -370,19 +394,24 @@ void Instance::processMessage(Message mess)
     if (mess.destination == "param") {
         int index = mess.list[0].getFloat();
         float value = std::clamp(mess.list[1].getFloat(), 0.0f, 1.0f);
-        receiveParameter(index, value);
-    } else if (mess.selector == "bang")
+        performParameterChange(0, index - 1, value);
+    } else if (mess.destination == "param_change") {
+        int index = mess.list[0].getFloat();
+        int state = mess.list[1].getFloat() != 0;
+        performParameterChange(1, index - 1, state);
+    } else if (mess.selector == "bang") {
         receiveBang(mess.destination);
-    else if (mess.selector == "float")
+    } else if (mess.selector == "float") {
         receiveFloat(mess.destination, mess.list[0].getFloat());
-    else if (mess.selector == "symbol")
+    } else if (mess.selector == "symbol") {
         receiveSymbol(mess.destination, mess.list[0].getSymbol());
-    else if (mess.selector == "list")
+    } else if (mess.selector == "list") {
         receiveList(mess.destination, mess.list);
-    else if (mess.selector == "dsp")
+    } else if (mess.selector == "dsp") {
         receiveDSPState(mess.list[0].getFloat());
-    else
+    } else {
         receiveMessage(mess.destination, mess.selector, mess.list);
+    }
 }
 
 void Instance::processMidiEvent(midievent event)
@@ -402,7 +431,6 @@ void Instance::processMidiEvent(midievent event)
     else if (event.type == midievent::MIDIBYTE)
         receiveMidiByte(event.midi1, event.midi2);
 }
-
 
 void Instance::processSend(dmessage mess)
 {
@@ -501,10 +529,10 @@ void Instance::sendMessagesFromQueue()
 String Instance::getExtraInfo(File const& toOpen)
 {
     String content = toOpen.loadFileAsString();
-    if(content.contains("_plugdatainfo_")) {
+    if (content.contains("_plugdatainfo_")) {
         return content.fromFirstOccurrenceOf("_plugdatainfo_", false, false).fromFirstOccurrenceOf("[INFOSTART]", false, false).upToFirstOccurrenceOf("[INFOEND]", false, false);
     }
-    
+
     return String();
 }
 
@@ -532,7 +560,6 @@ Patch Instance::openPatch(File const& toOpen)
     }
 
     auto patch = Patch(cnv, this, toOpen);
-    Storage::setContent(cnv, getExtraInfo(toOpen));
 
     return patch;
 }
@@ -552,7 +579,6 @@ void Instance::logError(String const& error)
     consoleHandler.logError(error);
 }
 
-
 std::deque<std::tuple<String, int, int>>& Instance::getConsoleMessages()
 {
     return consoleHandler.consoleMessages;
@@ -562,8 +588,6 @@ std::deque<std::tuple<String, int, int>>& Instance::getConsoleHistory()
 {
     return consoleHandler.consoleHistory;
 }
-
-
 
 void Instance::createPanel(int type, char const* snd, char const* location)
 {
@@ -616,7 +640,5 @@ void Instance::createPanel(int type, char const* snd, char const* location)
             });
     }
 }
-
-
 
 } // namespace pd

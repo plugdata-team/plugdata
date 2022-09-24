@@ -1278,5 +1278,4 @@ void oscope_tilde_setup(void){
     scope_widgetbehavior.w_deletefn   = scope_delete;
     scope_widgetbehavior.w_visfn      = scope_vis;
     scope_widgetbehavior.w_clickfn    = (t_clickfn)scope_click;
-    #include "oscope~_dialog.c"
 }

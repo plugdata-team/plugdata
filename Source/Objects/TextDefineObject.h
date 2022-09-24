@@ -19,14 +19,13 @@ struct t_fake_text_define {
     unsigned char x_keep; /* whether to embed contents in patch on save */
 };
 
-// void binbuf_gettext(const t_binbuf *x, char **bufp, int *lengthp);
-
 // Actual text object, marked final for optimisation
 struct TextDefineObject final : public TextBase {
 
     std::unique_ptr<Component> textEditor;
+    std::unique_ptr<Dialog> saveDialog;
 
-    TextDefineObject(void* obj, Box* parent, bool isValid = true)
+    TextDefineObject(void* obj, Object* parent, bool isValid = true)
         : TextBase(obj, parent, isValid)
         , textEditor(nullptr)
     {
@@ -58,7 +57,7 @@ struct TextDefineObject final : public TextBase {
                     return;
                 }
 
-                Dialogs::showSaveDialog(textEditor.get(), "", [this, lastText](int result) mutable {
+                Dialogs::showSaveDialog(&saveDialog, textEditor.get(), "", [this, lastText](int result) mutable {
                     if (result == 2) {
                         setText(lastText);
                         textEditor.reset(nullptr);
@@ -107,7 +106,7 @@ struct TextDefineObject final : public TextBase {
         });
     }
 
-    String getText()
+    String getText() override
     {
         auto& textbuf = static_cast<t_fake_text_define*>(ptr)->x_textbuf;
         auto* binbuf = textbuf.b_binbuf;
@@ -118,5 +117,15 @@ struct TextDefineObject final : public TextBase {
         binbuf_gettext(binbuf, &bufp, &lenp);
 
         return String::fromUTF8(bufp, lenp);
+    }
+
+    bool canOpenFromMenu() override
+    {
+        return true;
+    }
+
+    void openFromMenu() override
+    {
+        openTextEditor();
     }
 };

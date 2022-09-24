@@ -14,18 +14,18 @@ extern "C"
 }
 
 #include "Utility/ObjectGrid.h"
-#include "Edge.h"
+#include "Iolet.h"
 #include "Objects/GUIObject.h"
 
 class Canvas;
-class Box : public Component, public Value::Listener, public Timer, private TextEditor::Listener
+class Object : public Component, public Value::Listener, public Timer, private TextEditor::Listener
 {
    public:
-    Box(Canvas* parent, const String& name = "", Point<int> position = {100, 100});
+    Object(Canvas* parent, const String& name = "", Point<int> position = {100, 100});
 
-    Box(void* object, Canvas* parent);
+    Object(void* object, Canvas* parent);
 
-    ~Box();
+    ~Object();
 
     void valueChanged(Value& v) override;
 
@@ -47,7 +47,6 @@ class Box : public Component, public Value::Listener, public Timer, private Text
     void setObjectBounds(Rectangle<int> bounds);
 
     void openHelpPatch() const;
-    void openSubpatch() const;
     void* getPointer() const;
 
     Array<Connection*> getConnections() const;
@@ -78,7 +77,7 @@ class Box : public Component, public Value::Listener, public Timer, private Text
 
     std::unique_ptr<ObjectBase> gui = nullptr;
 
-    OwnedArray<Edge> edges;
+    OwnedArray<Iolet> iolets;
     ResizableBorderComponent::Zone resizeZone;
 
     static inline constexpr int margin = 8;
@@ -98,9 +97,10 @@ class Box : public Component, public Value::Listener, public Timer, private Text
     bool selectionStateChanged = false;
     bool wasLockedOnMouseDown = false;
 
+
     std::unique_ptr<TextEditor> newObjectEditor;
 
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(Box)
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(Object)
 };
 
 

@@ -3,7 +3,7 @@ struct RadioObject final : public IEMObject {
     int lastState = 0;
     bool isVertical;
 
-    RadioObject(bool vertical, void* obj, Box* parent)
+    RadioObject(bool vertical, void* obj, Object* parent)
         : IEMObject(obj, parent)
     {
         isVertical = vertical;
@@ -34,9 +34,9 @@ struct RadioObject final : public IEMObject {
 
         // Fix aspect ratio
         if (isVertical) {
-            box->setSize(std::max(box->getWidth(), minSize + Box::doubleMargin), size * radioButtons.size() + Box::doubleMargin);
+            object->setSize(std::max(object->getWidth(), minSize + Object::doubleMargin), size * radioButtons.size() + Object::doubleMargin);
         } else {
-            box->setSize(size * radioButtons.size() + Box::doubleMargin, std::max(box->getHeight(), minSize + Box::doubleMargin));
+            object->setSize(size * radioButtons.size() + Object::doubleMargin, std::max(object->getHeight(), minSize + Object::doubleMargin));
         }
 
         if (isVertical) {
@@ -100,8 +100,8 @@ struct RadioObject final : public IEMObject {
         }
 
         pd->getCallbackLock()->exit();
-    
-        box->setObjectBounds(bounds);
+
+        object->setObjectBounds(bounds);
     }
 
     void updateRange()
@@ -146,7 +146,7 @@ struct RadioObject final : public IEMObject {
                 skipped = true;
                 continue;
             }
-            g.setColour(box->findColour(PlugDataColour::canvasOutlineColourId));
+            g.setColour(object->findColour(PlugDataColour::canvasOutlineColourId));
             if (isVertical) {
                 g.drawLine({ button->getBounds().getTopLeft().toFloat(), button->getBounds().getTopRight().toFloat() }, 1.0f);
             } else {
@@ -154,7 +154,7 @@ struct RadioObject final : public IEMObject {
             }
         }
 
-        auto outlineColour = box->findColour(cnv->isSelected(box) && !cnv->isGraph ? PlugDataColour::highlightColourId : PlugDataColour::canvasOutlineColourId);
+        auto outlineColour = object->findColour(cnv->isSelected(object) && !cnv->isGraph ? PlugDataColour::highlightColourId : PlugDataColour::canvasOutlineColourId);
 
         g.setColour(outlineColour);
         g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), 2.0f, 1.0f);

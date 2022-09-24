@@ -6,15 +6,15 @@
 #include "Connection.h"
 
 #include "Canvas.h"
-#include "Edge.h"
+#include "Iolet.h"
 #include "LookAndFeel.h"
 
-Connection::Connection(Canvas* parent, Edge* s, Edge* e, bool exists) : cnv(parent), outlet(s->isInlet ? e : s), inlet(s->isInlet ? s : e), outbox(outlet->box), inbox(inlet->box)
+Connection::Connection(Canvas* parent, Iolet* s, Iolet* e, bool exists) : cnv(parent), outlet(s->isInlet ? e : s), inlet(s->isInlet ? s : e), outobj(outlet->object), inobj(inlet->object)
 {
     
     locked.referTo(parent->locked);
     
-    // Make sure it's not 2x the same edge
+    // Make sure it's not 2x the same iolet
     if (!outlet || !inlet || outlet->isInlet == inlet->isInlet)
     {
         outlet = nullptr;
@@ -23,8 +23,8 @@ Connection::Connection(Canvas* parent, Edge* s, Edge* e, bool exists) : cnv(pare
         return;
     }
     
-    inIdx = inlet->edgeIdx;
-    outIdx = outlet->edgeIdx;
+    inIdx = inlet->ioletIdx;
+    outIdx = outlet->ioletIdx;
     
     outlet->repaint();
     inlet->repaint();
@@ -32,7 +32,7 @@ Connection::Connection(Canvas* parent, Edge* s, Edge* e, bool exists) : cnv(pare
     // If it doesn't already exist in pd, create connection in pd
     if (!exists)
     {
-        bool canConnect = parent->patch.createConnection(outbox->getPointer(), outIdx, inbox->getPointer(), inIdx);
+        bool canConnect = parent->patch.createConnection(outobj->getPointer(), outIdx, inobj->getPointer(), inIdx);
         
         if (!canConnect)
         {
@@ -46,13 +46,13 @@ Connection::Connection(Canvas* parent, Edge* s, Edge* e, bool exists) : cnv(pare
     }
     else
     {
-        auto info = pd::Storage::getInfo(cnv, getId(), "Path");
+        auto info = cnv->storage.getInfo(getId(), "Path");
         if (!info.isEmpty()) setState(info);
     }
     
-    // Listen to changes at edges
-    outbox->addComponentListener(this);
-    inbox->addComponentListener(this);
+    // Listen to changes at iolets
+    outobj->addComponentListener(this);
+    inobj->addComponentListener(this);
     outlet->addComponentListener(this);
     inlet->addComponentListener(this);
     
@@ -113,12 +113,12 @@ String Connection::getId() const
 {
     MemoryOutputStream stream;
     
-    // TODO: check if connection is still valid before requesting idx from box
+    // TODO: check if connection is still valid before requesting idx from object
     
-    stream.writeInt(cnv->patch.getIndex(inbox->getPointer()));
-    stream.writeInt(cnv->patch.getIndex(outbox->getPointer()));
+    stream.writeInt(cnv->patch.getIndex(inobj->getPointer()));
+    stream.writeInt(cnv->patch.getIndex(outobj->getPointer()));
     stream.writeInt(inIdx);
-    stream.writeInt(outbox->numInputs + outIdx);
+    stream.writeInt(outobj->numInputs + outIdx);
     
     return stream.getMemoryBlock().toBase64Encoding();
 }
@@ -135,9 +135,9 @@ Connection::~Connection()
         outlet->repaint();
         outlet->removeComponentListener(this);
     }
-    if (outbox)
+    if (outobj)
     {
-        outbox->removeComponentListener(this);
+        outobj->removeComponentListener(this);
     }
     
     if (inlet)
@@ -145,9 +145,9 @@ Connection::~Connection()
         inlet->repaint();
         inlet->removeComponentListener(this);
     }
-    if (inbox)
+    if (inobj)
     {
-        inbox->removeComponentListener(this);
+        inobj->removeComponentListener(this);
     }
 }
 
@@ -252,7 +252,7 @@ bool Connection::isSegmented()
 void Connection::setSegmented(bool isSegmented)
 {
     segmented = isSegmented;
-    pd::Storage::setInfo(cnv, getId(), "Segmented", segmented ? "1" : "0");
+    cnv->storage.setInfo(getId(), "Segmented", segmented ? "1" : "0");
     updatePath();
     repaint();
 }
@@ -363,7 +363,7 @@ void Connection::mouseUp(const MouseEvent& e)
         auto state = getState();
         lastId = getId();
         
-        pd::Storage::setInfo(cnv, lastId, "Path", state);
+        cnv->storage.setInfo(lastId, "Path", state);
         dragIdx = -1;
     }
     
@@ -408,7 +408,7 @@ int Connection::getClosestLineIdx(const Point<int>& position, const PathPlan& pl
     return -1;
 }
 
-void Connection::reconnect(Edge* target, bool dragged)
+void Connection::reconnect(Iolet* target, bool dragged)
 {
     if(!reconnecting.isEmpty()) return;
     
@@ -417,7 +417,7 @@ void Connection::reconnect(Edge* target, bool dragged)
     Array<Connection*> connections = {this};
     
     if(Desktop::getInstance().getMainMouseSource().getCurrentModifiers().isShiftDown()) {
-        for(auto* c : otherEdge->box->getConnections()) {
+        for(auto* c : otherEdge->object->getConnections()) {
             if(c == this || !cnv->isSelected(c)) continue;
             
             connections.add(c);
@@ -426,10 +426,10 @@ void Connection::reconnect(Edge* target, bool dragged)
     
     for(auto* c : connections) {
         
-        if (cnv->patch.hasConnection(c->outbox->getPointer(), c->outIdx, c->inbox->getPointer(), c->inIdx))
+        if (cnv->patch.hasConnection(c->outobj->getPointer(), c->outIdx, c->inobj->getPointer(), c->inIdx))
         {
             // Delete connection from pd if we haven't done that yet
-            cnv->patch.removeConnection(c->outbox->getPointer(), c->outIdx, c->inbox->getPointer(), c->inIdx);
+            cnv->patch.removeConnection(c->outobj->getPointer(), c->outIdx, c->inobj->getPointer(), c->inIdx);
         }
         
         // Create new connection
@@ -453,14 +453,14 @@ void Connection::componentMovedOrResized(Component& component, bool wasMoved, bo
     auto pstart = getStartPoint();
     auto pend = getEndPoint();
     
-    if (currentPlan.size() <= 2 || pd::Storage::getInfo(cnv, getId(), "Style") == "0")
+    if (currentPlan.size() <= 2 || cnv->storage.getInfo(getId(), "Style") == "0")
     {
         updatePath();
         return;
     }
     
     // If both inlet and outlet are selected we can just move the connection cord
-    if ((cnv->isSelected(outbox) && cnv->isSelected(inbox)) || cnv->updatingBounds)
+    if ((cnv->isSelected(outobj) && cnv->isSelected(inobj)) || cnv->updatingBounds)
     {
         auto offset = pstart - currentPlan[0];
         for (auto& point : currentPlan) point += offset;
@@ -472,7 +472,7 @@ void Connection::componentMovedOrResized(Component& component, bool wasMoved, bo
     int idx2 = 1;
     
     auto& position = pstart;
-    if (&component == inlet || &component == inbox)
+    if (&component == inlet || &component == inobj)
     {
         idx1 = static_cast<int>(currentPlan.size() - 1);
         idx2 = static_cast<int>(currentPlan.size() - 2);
@@ -521,7 +521,7 @@ void Connection::updatePath()
     
     if(lastId.isEmpty()) lastId = getId();
     
-    segmented = pd::Storage::getInfo(cnv, lastId, "Segmented") == "1";
+    segmented = cnv->storage.getInfo(lastId, "Segmented") == "1";
     
     if (!segmented)
     {
@@ -632,9 +632,9 @@ void Connection::findPath()
     auto obstacles = Array<Rectangle<int>>();
     auto searchBounds = Rectangle<int>(pstart, pend);
     
-    for(auto* box : cnv->boxes) {
-        if(box->getBounds().intersects(searchBounds)) {
-            obstacles.add(box->getBounds());
+    for(auto* object : cnv->objects) {
+        if(object->getBounds().intersects(searchBounds)) {
+            obstacles.add(object->getBounds());
         }
     }
     
@@ -708,18 +708,18 @@ void Connection::findPath()
     
     auto state = getState();
     lastId = getId();
-    pd::Storage::setInfo(cnv, lastId, "Path", state);
+    cnv->storage.setInfo(lastId, "Path", state);
 }
 
 int Connection::findLatticePaths(PathPlan& bestPath, PathPlan& pathStack, Point<int> pstart, Point<int> pend, Point<int> increment)
 {
     
-    auto obstacles = Array<Box*>();
+    auto obstacles = Array<Object*>();
     auto searchBounds = Rectangle<int>(pstart, pend);
     
-    for(auto* box : cnv->boxes) {
-        if(box->getBounds().intersects(searchBounds)) {
-            obstacles.add(box);
+    for(auto* object : cnv->objects) {
+        if(object->getBounds().intersects(searchBounds)) {
+            obstacles.add(object);
         }
     }
     
@@ -729,7 +729,7 @@ int Connection::findLatticePaths(PathPlan& bestPath, PathPlan& pathStack, Point<
     // Add point to path
     pathStack.push_back(pstart);
     
-    // Check if it intersects any box
+    // Check if it intersects any object
     if (pathStack.size() > 1 && straightLineIntersectsObject(Line<int>(pathStack.back(), *(pathStack.end() - 2)), obstacles))
     {
         return 0;
@@ -796,7 +796,7 @@ int Connection::findLatticePaths(PathPlan& bestPath, PathPlan& pathStack, Point<
     return count;
 }
 
-bool Connection::intersectsObject(Box* object)
+bool Connection::intersectsObject(Object* object)
 {
     auto b = (object->getBounds() - getPosition()).toFloat();
     return toDraw.intersectsLine({b.getTopLeft(), b.getTopRight()})
@@ -806,14 +806,14 @@ bool Connection::intersectsObject(Box* object)
 }
 
 
-bool Connection::straightLineIntersectsObject(Line<int> toCheck, Array<Box*>& boxes)
+bool Connection::straightLineIntersectsObject(Line<int> toCheck, Array<Object*>& objects)
 {
     
-    for (const auto& box : boxes)
+    for (const auto& object : objects)
     {
-        auto bounds = box->getBounds().expanded(1);
+        auto bounds = object->getBounds().expanded(1);
         
-        if (box == outbox || box == inbox || !bounds.intersects(getBounds())) continue;
+        if (object == outobj || object == inobj || !bounds.intersects(getBounds())) continue;
         
         auto intersectV = [](Line<int> first, Line<int> second)
         {

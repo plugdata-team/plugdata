@@ -43,7 +43,6 @@ extern void canvas_savedeclarationsto(t_canvas* x, t_binbuf* b);
 extern void canvas_doaddtemplate(t_symbol* templatesym,
     int* p_ntemplates, t_symbol*** p_templatevec);
 
-
 static void canvas_addtemplatesforscalar(t_symbol* templatesym,
     t_word* w, int* p_ntemplates, t_symbol*** p_templatevec)
 {
@@ -82,7 +81,6 @@ static void canvas_collecttemplatesfor(t_canvas* x, int* ntemplatesp,
                 ntemplatesp, templatevecp, 1);
     }
 }
-
 
 /* displace the selection by (dx, dy) pixels */
 void libpd_moveselection(t_canvas* cnv, int dx, int dy)
@@ -174,12 +172,15 @@ void libpd_finishremove(t_canvas* cnv)
 }
 void libpd_removeselection(t_canvas* cnv)
 {
+    sys_lock();
     canvas_undo_add(cnv, UNDO_SEQUENCE_START, "clear", 0);
 
     canvas_undo_add(cnv, UNDO_CUT, "clear",
         canvas_undo_set_cut(cnv, 2));
 
     libpd_canvas_doclear(cnv);
+    
+    sys_unlock();
 }
 
 void libpd_start_undo_sequence(t_canvas* cnv, char const* name)
@@ -347,9 +348,12 @@ char const* libpd_copy(t_canvas* cnv, int* size)
 
 void libpd_paste(t_canvas* cnv, char const* buf)
 {
-    int len = strlen(buf);
+    size_t len = strlen(buf);
     binbuf_text(pd_this->pd_gui->i_editor->copy_binbuf, buf, len);
+    
+    sys_lock();
     pd_typedmess((t_pd*)cnv, gensym("paste"), 0, NULL);
+    sys_unlock();
 }
 
 void libpd_undo(t_canvas* cnv)
@@ -633,12 +637,14 @@ t_pd* libpd_createobj(t_canvas* cnv, t_symbol* s, int argc, t_atom* argv)
 
 void libpd_removeobj(t_canvas* cnv, t_gobj* obj)
 {
-
+    
+    sys_lock();
     glist_noselect(cnv);
     glist_select(cnv, obj);
     libpd_canvas_doclear(cnv);
 
     glist_noselect(cnv);
+    sys_unlock();
 }
 
 /* recursively deselect everything in a gobj "g", if it happens to be
@@ -679,8 +685,6 @@ void libpd_renameobj(t_canvas* cnv, t_gobj* obj, char const* buf, size_t bufsize
     glist_noselect(cnv);
     glist_select(cnv, obj);
 
-    canvas_create_editor(cnv);
-
     t_rtext* fuddy = glist_findrtext(cnv, (t_text*)obj);
     cnv->gl_editor->e_textedfor = fuddy;
 
@@ -695,8 +699,6 @@ void libpd_renameobj(t_canvas* cnv, t_gobj* obj, char const* buf, size_t bufsize
 
     cnv->gl_editor->e_textedfor = 0;
     cnv->gl_editor->e_textdirty = 0;
-
-    canvas_destroy_editor(cnv);
 
     canvas_editmode(cnv, 0);
     sys_unlock();
@@ -820,8 +822,6 @@ int libpd_type_exists(char const* type)
 
     return 0;
 }
-
-// typedef struct _outlet t_outlet;
 
 // Some duplicates and modifications of pure-data functions
 // We do this so we can keep pure-data and libpd intact and easily updatable

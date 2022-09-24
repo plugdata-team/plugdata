@@ -1,5 +1,5 @@
 /*
- // Copyright (c) 2015-2018 Pierre Guillot.
+ // Copyright (c) 2015-2022 Pierre Guillot and Timothy Schoen.
  // For information on usage and redistribution, and for a DISCLAIMER OF ALL
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
@@ -20,7 +20,6 @@ namespace pd {
 
 using Connections = std::vector<std::tuple<int, t_object*, int, t_object*>>;
 class Instance;
-class Storage;
 
 // The Pd patch.
 //! @details The class is a wrapper around a Pd patch. The lifetime of the internal patch\n
@@ -72,7 +71,7 @@ public:
         Remove = 0,
         Move
     };
-    
+
     void setCurrent(bool lock = false);
 
     bool isDirty() const;
@@ -111,20 +110,11 @@ public:
         char* buf;
         int bufsize;
         libpd_getcontent(static_cast<t_canvas*>(ptr), &buf, &bufsize);
-        
+
         auto content = String(buf, static_cast<size_t>(bufsize));
-        // This canvas will not be restored, and therefore ignored by Pd
-        // This allows us to append more info to the patch
-        
-        
-        content +=
-        String("#N canvas 0 22 450 278 (_plugdatainfo_) 0;\n") +
-        "#X text [INFOSTART]" + Storage::getContent(getPointer()).toXmlString() + "[INFOEND]\n" +
-        "#X coords 0 1 100 -1 200 140 0;\n";
-        
         return content;
     }
-    
+
     int getIndex(void* obj);
 
     static t_object* checkObject(void* obj);
@@ -137,7 +127,6 @@ public:
     Instance* instance = nullptr;
 
 private:
-    
     File currentFile;
 
     void* ptr = nullptr;
@@ -146,7 +135,9 @@ private:
     // Taken from pd save files, this will make sure that it directly initialises objects with the right parameters
     static inline const std::map<String, String> guiDefaults = { { "tgl", "25 0 empty empty empty 17 7 0 10 bgColour fgColour lblColour 0 1" },
         { "hsl", "128 17 0 127 0 0 empty empty empty -2 -8 0 10 bgColour fgColour lblColour 0 1" },
+        { "hslider", "128 17 0 127 0 0 empty empty empty -2 -8 0 10 bgColour fgColour lblColour 0 1" },
         { "vsl", "17 128 0 127 0 0 empty empty empty 0 -9 0 10 bgColour fgColour lblColour 0 1" },
+        { "vslider", "17 128 0 127 0 0 empty empty empty 0 -9 0 10 bgColour fgColour lblColour 0 1" },
         { "bng", "25 250 50 0 empty empty empty 17 7 0 10 bgColour fgColour lblColour" },
         { "nbx", "4 21 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10 bgColour lblColour lblColour 0 256" },
         { "hradio", "20 1 0 8 empty empty empty 0 -8 0 10 bgColour fgColour lblColour 0" },
@@ -156,8 +147,12 @@ private:
         { "floatatom", "5 -3.40282e+38 3.40282e+38 0 empty - - 12" },
         { "listbox", "9 0 0 0 empty - - 0" },
         { "numbox~", "4 16 100 bgColour fgColour 10 0 0 0" },
-        { "button", "25 25 bgColour_rgb fgColour_rgb" }
+        { "button", "25 25 bgColour_rgb fgColour_rgb" },
+        { "oscope~", "130 130 256 3 128 -1 1 0 0 0 0 fgColour_rgb bgColour_rgb lnColour_rgb 0 empty" },
+        { "scope~", "130 130 256 3 128 -1 1 0 0 0 0 fgColour_rgb bgColour_rgb lnColour_rgb 0 empty" },
+        { "function", "200 100 empty empty 0 1 bgColour_rgb lblColour_rgb 0 0 0 0 0 1000 0"}
     };
+    
 
     friend class Instance;
     friend class Gui;

@@ -18,13 +18,13 @@ inline GridType operator&(GridType a, GridType b)
     return static_cast<GridType>(static_cast<int>(a) & static_cast<int>(b));
 }
 
-class Box;
+class Object;
 class Canvas;
 struct ObjectGrid {
 
     ObjectGrid(Canvas* parent);
 
-    Point<int> handleMouseDrag(Box* toDrag, Point<int> dragOffset, Rectangle<int> viewBounds);
+    Point<int> handleMouseDrag(Object* toDrag, Point<int> dragOffset, Rectangle<int> viewBounds);
     Point<int> handleMouseUp(Point<int> dragOffset);
 
     static constexpr int range = 5;
@@ -53,8 +53,8 @@ private:
     void updateMarker();
     void clear(bool horizontal);
 
-    Point<int> performVerticalSnap(Box* toDrag, Point<int> dragOffset, Rectangle<int> viewBounds);
-    Point<int> performHorizontalSnap(Box* toDrag, Point<int> dragOffset, Rectangle<int> viewBounds);
+    Point<int> performVerticalSnap(Object* toDrag, Point<int> dragOffset, Rectangle<int> viewBounds);
+    Point<int> performHorizontalSnap(Object* toDrag, Point<int> dragOffset, Rectangle<int> viewBounds);
 
     bool trySnap(int distance);
 };
