@@ -7,17 +7,18 @@ struct DraggableNumber : public Label {
     bool shift = false;
     int decimalDrag = 0;
     int numDecimalsToShow = 0;
-    
+
     float lastValue = 0.0f;
 
     bool isMinLimited = false, isMaxLimited = false;
+    bool onlyIntegers = false;
     float min, max;
 
     std::function<void(float)> valueChanged = [](float) {};
     std::function<void()> dragStart = []() {};
     std::function<void()> dragEnd = []() {};
 
-    DraggableNumber()
+    DraggableNumber(bool integerDrag) : onlyIntegers(integerDrag)
     {
         setWantsKeyboardFocus(true);
     }
@@ -76,10 +77,10 @@ struct DraggableNumber : public Label {
 
         return false;
     }
-    
+
     void setValue(float newValue)
     {
-        if(lastValue != newValue) {
+        if (lastValue != newValue) {
             lastValue = newValue;
             setText(String(newValue), sendNotification);
             valueChanged(newValue);
@@ -118,6 +119,13 @@ struct DraggableNumber : public Label {
         GlyphArrangement glyphs;
         glyphs.addFittedText(getFont(), formatNumber(dragValue), textArea.getX(), 0., textArea.getWidth(), getHeight(), Justification::centredLeft, 1, getMinimumHorizontalScale());
 
+        
+        if(onlyIntegers) {
+            decimalDrag = 0;
+            numDecimalsToShow = 0;
+            return;
+        }
+        
         float decimalX = getWidth();
         for (int i = 0; i < glyphs.getNumGlyphs(); ++i) {
             auto const& glyph = glyphs.getGlyph(i);
@@ -235,7 +243,7 @@ struct DraggableListNumber : public DraggableNumber {
 
     bool targetFound = false;
 
-    explicit DraggableListNumber()
+    explicit DraggableListNumber() : DraggableNumber(true)
     {
         setEditableOnClick(true);
     }

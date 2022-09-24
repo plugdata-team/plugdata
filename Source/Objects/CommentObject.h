@@ -4,9 +4,10 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
-struct CommentObject final : public TextBase, public KeyListener {
-    CommentObject(void* obj, Box* box)
-        : TextBase(obj, box)
+struct CommentObject final : public TextBase
+    , public KeyListener {
+    CommentObject(void* obj, Object* object)
+        : TextBase(obj, object)
     {
     }
 
@@ -15,14 +16,16 @@ struct CommentObject final : public TextBase, public KeyListener {
         g.setColour(findColour(PlugDataColour::textColourId));
         g.setFont(font);
 
-        auto textArea = border.subtractedFrom(getLocalBounds());
-        g.drawFittedText(currentText, textArea, justification, numLines, minimumHorizontalScale);
+        if (!editor) {
+            auto textArea = border.subtractedFrom(getLocalBounds());
+            g.drawFittedText(currentText, textArea, justification, numLines, minimumHorizontalScale);
 
-        auto selected = cnv->isSelected(box);
-        if (box->locked == var(false) && (box->isMouseOverOrDragging(true) || selected) && !cnv->isGraph) {
-            g.setColour(selected ? box->findColour(PlugDataColour::highlightColourId) : box->findColour(PlugDataColour::canvasOutlineColourId));
+            auto selected = cnv->isSelected(object);
+            if (object->locked == var(false) && (object->isMouseOverOrDragging(true) || selected) && !cnv->isGraph) {
+                g.setColour(selected ? object->findColour(PlugDataColour::highlightColourId) : object->findColour(PlugDataColour::canvasOutlineColourId));
 
-            g.drawRect(getLocalBounds().toFloat(), 0.5f);
+                g.drawRect(getLocalBounds().toFloat(), 0.5f);
+            }
         }
     }
 
@@ -74,11 +77,9 @@ struct CommentObject final : public TextBase, public KeyListener {
                             [_this]() {
                                 if (!_this)
                                     return;
-                                _this->box->updateBounds();
+                                _this->object->updateBounds();
                             });
                     });
-
-                box->setType(newText);
             }
         }
     }
@@ -91,8 +92,9 @@ struct CommentObject final : public TextBase, public KeyListener {
 
             copyAllExplicitColoursTo(*editor);
             editor->setColour(Label::textWhenEditingColourId, findColour(TextEditor::textColourId));
-            editor->setColour(Label::backgroundWhenEditingColourId, findColour(TextEditor::backgroundColourId));
+            editor->setColour(Label::backgroundWhenEditingColourId, Colours::transparentWhite);
             editor->setColour(Label::outlineWhenEditingColourId, findColour(TextEditor::focusedOutlineColourId));
+            editor->setColour(TextEditor::backgroundColourId, Colours::transparentWhite);
 
             editor->setAlwaysOnTop(true);
 
@@ -101,6 +103,8 @@ struct CommentObject final : public TextBase, public KeyListener {
             editor->setBorder(border);
             editor->setIndents(0, 0);
             editor->setJustification(justification);
+            
+            
 
             editor->onFocusLost = [this]() {
                 // Necessary so the editor doesn't close when clicking on a suggestion
@@ -113,14 +117,16 @@ struct CommentObject final : public TextBase, public KeyListener {
             addAndMakeVisible(editor.get());
 
             editor->setText(currentText, false);
+            currentText = "";
+            
             editor->addListener(this);
             editor->addKeyListener(this);
 
             if (editor == nullptr) // may be deleted by a callback
                 return;
 
-            editor->setHighlightedRegion(Range<int>(0, currentText.length()));
-
+            editor->selectAll();
+            
             resized();
             repaint();
 
@@ -132,14 +138,16 @@ struct CommentObject final : public TextBase, public KeyListener {
     {
         return false;
     }
-    
-    bool keyPressed(const KeyPress& key, Component* component) override
+
+    bool keyPressed(KeyPress const& key, Component* component) override
     {
-        if (key == KeyPress::rightKey) {
-            if(editor){
-                editor->setCaretPosition(editor->getHighlightedRegion().getEnd());
-                return true;
-            }
+        if (key == KeyPress::rightKey && editor && !editor->getHighlightedRegion().isEmpty()) {
+            editor->setCaretPosition(editor->getHighlightedRegion().getEnd());
+            return true;
+        }
+        if (key == KeyPress::leftKey && editor && !editor->getHighlightedRegion().isEmpty()) {
+            editor->setCaretPosition(editor->getHighlightedRegion().getStart());
+            return true;
         }
         return false;
     }

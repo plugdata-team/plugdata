@@ -212,11 +212,11 @@ struct Console : public Component {
                     messages[row]->idx--;
                 }
             }
-            
+
             while (messages.size() < pd->getConsoleMessages().size()) {
                 messages.push_back(std::make_unique<ConsoleMessage>(messages.size(), *this));
             }
-            
+
             bool showMessages = buttons[2].getToggleState();
             bool showErrors = buttons[3].getToggleState();
 
@@ -225,22 +225,21 @@ struct Console : public Component {
                 auto [message, type, length] = pd->getConsoleMessages()[row];
                 int numLines = getNumLines(getWidth(), length);
                 int height = numLines * 22 + 2;
-                
+
                 if (messages[row]->idx != row) {
                     messages[row]->idx = row;
                     messages[row]->repaint();
                 }
-                
+
                 if ((type == 1 && !showMessages) || (length == 0 && !showErrors))
                     continue;
-                
+
                 totalHeight += std::max(0, height);
             }
 
             setSize(viewport.getWidth(), std::max<int>(getTotalHeight(), viewport.getHeight()));
             resized();
 
-            
             if (buttons[4].getToggleState()) {
                 viewport.setViewPositionProportionately(0.0f, 1.0f);
             }
@@ -275,9 +274,8 @@ struct Console : public Component {
 
                 if ((type == 1 && !showMessages) || (length == 0 && !showErrors))
                     continue;
-                
-                totalHeight += std::max(0, height);
 
+                totalHeight += std::max(0, height);
             }
 
             return totalHeight;
@@ -311,7 +309,7 @@ struct Console : public Component {
 private:
     ConsoleComponent* console;
     Viewport viewport;
-    
+
     int pendingUpdates = 0;
 
     std::array<TextButton, 5> buttons = { TextButton(Icons::Clear), TextButton(Icons::Restore), TextButton(Icons::Error), TextButton(Icons::Message), TextButton(Icons::AutoScroll) };

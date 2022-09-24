@@ -69,10 +69,10 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p) : AudioPro
         if (idx == -1) return;
 
         // update GraphOnParent when changing tabs
-        for (auto* box : getCurrentCanvas()->boxes)
+        for (auto* object : getCurrentCanvas()->objects)
         {
-            if (!box->gui) continue;
-            if (auto* cnv = box->gui->getCanvas()) cnv->synchronise();
+            if (!object->gui) continue;
+            if (auto* cnv = object->gui->getCanvas()) cnv->synchronise();
         }
 
         auto* cnv = getCurrentCanvas();
@@ -82,9 +82,9 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p) : AudioPro
         }
 
         cnv->synchronise();
-        updateValues();
-        updateDrawables();
-        updateGuiParameters();
+        cnv->updateGuiValues();
+        cnv->updateDrawables();
+        cnv->updateGuiParameters();
     };
 
     tabbar.setOutline(0);
@@ -102,8 +102,7 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p) : AudioPro
     toolbarButtons[0]->setTooltip("New Project");
     toolbarButtons[0]->onClick = [this]()
     {
-        auto* patch = pd.loadPatch(pd::Instance::defaultPatch);
-        patch->setTitle("Untitled Patcher");
+        newProject();
     };
 
     // Open button
@@ -139,10 +138,9 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p) : AudioPro
 #ifdef PLUGDATA_STANDALONE
             // Initialise settings dialog for DAW and standalone
             auto* pluginHolder = StandalonePluginHolder::getInstance();
-
-            settingsDialog.reset(Dialogs::createSettingsDialog(pd, &pluginHolder->deviceManager, pd.settingsTree));
+            Dialogs::createSettingsDialog(&settingsDialog, pd, &pluginHolder->deviceManager, pd.settingsTree);
 #else
-            settingsDialog.reset(Dialogs::createSettingsDialog(pd, nullptr, pd.settingsTree));
+            Dialogs::createSettingsDialog(&settingsDialog, pd, nullptr, pd.settingsTree);
 #endif
         }
 
@@ -205,6 +203,8 @@ PlugDataPluginEditor::~PlugDataPluginEditor()
     pd.zoomScale.removeListener(this);
 }
 
+
+
 void PlugDataPluginEditor::paint(Graphics& g)
 {
     auto baseColour = findColour(PlugDataColour::toolbarColourId);
@@ -237,9 +237,25 @@ void PlugDataPluginEditor::paint(Graphics& g)
 void PlugDataPluginEditor::paintOverChildren(Graphics& g)
 {
     int roundedOffset = PLUGDATA_ROUNDED;
-    g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
+    
+    g.saveState();
+    
+    if(openedDialog) {
+        g.excludeClipRegion(openedDialog->getViewedComponent()->getBounds());
+    }
+    
+    if(openedDialog || settingsDialog) {
+        // Hack: if there's a dialog, make the outline colour darker to make it fit in
+        g.setColour(findColour(PlugDataColour::toolbarOutlineColourId).interpolatedWith(Colours::black, 0.5f));
+    }
+    else {
+        g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
+    }
+    
     g.drawLine(0.0f, toolbarHeight + roundedOffset, static_cast<float>(getWidth()), toolbarHeight + roundedOffset);
     g.drawLine(0.0f, getHeight() - statusbar.getHeight(), static_cast<float>(getWidth()), getHeight() - statusbar.getHeight());
+    
+    g.restoreState();
 }
 
 void PlugDataPluginEditor::resized()
@@ -345,6 +361,11 @@ void PlugDataPluginEditor::mouseDrag(const MouseEvent& e)
 }
 #endif
 
+void PlugDataPluginEditor::newProject() {
+    auto* patch = pd.loadPatch(pd::Instance::defaultPatch);
+    patch->setTitle("Untitled Patcher");
+}
+
 void PlugDataPluginEditor::openProject()
 {
     auto openFunc = [this](const FileChooser& f)
@@ -403,54 +424,6 @@ void PlugDataPluginEditor::saveProject(const std::function<void()>& nestedCallba
     {
         saveProjectAs(nestedCallback);
     }
-}
-
-void PlugDataPluginEditor::updateGuiParameters()
-{
-    auto* cnv = getCurrentCanvas();
-
-    if (!cnv) return;
-
-    for (auto& box : cnv->boxes)
-    {
-        if (box->gui)
-        {
-            box->gui->updateParameters();
-            box->gui->repaint();
-        }
-    }
-}
-
-void PlugDataPluginEditor::updateValues()
-{
-    auto* cnv = getCurrentCanvas();
-
-    if (!cnv) return;
-
-    for (auto& box : cnv->boxes)
-    {
-        if (box->gui)
-        {
-            box->gui->updateValue();
-        }
-    }
-}
-
-void PlugDataPluginEditor::updateDrawables()
-{
-    auto* cnv = getCurrentCanvas();
-
-    if (!cnv) return;
-
-    for (auto& box : cnv->boxes)
-    {
-        if (box->gui)
-        {
-            box->gui->updateDrawables();
-        }
-    }
-
-    updateCommandStatus();
 }
 
 Canvas* PlugDataPluginEditor::getCurrentCanvas()
@@ -543,12 +516,20 @@ void PlugDataPluginEditor::addTab(Canvas* cnv, bool deleteWhenClosed)
             int numTabs = tabbar.getNumTabs();
             tabbar.setCurrentTabIndex(numTabs - 1, true);
 
-            if (numTabs == 1)
+            // Make sure there's at least one patch open
+            if(numTabs == 0) {
+                newProject();
+                tabbar.getTabbedButtonBar().setVisible(false);
+                tabbar.setTabBarDepth(1);
+                resized();
+            }
+            else if (numTabs == 1)
             {
                 tabbar.getTabbedButtonBar().setVisible(false);
                 tabbar.setTabBarDepth(1);
                 resized();
             }
+            
         };
 
         MessageManager::callAsync(
@@ -557,7 +538,7 @@ void PlugDataPluginEditor::addTab(Canvas* cnv, bool deleteWhenClosed)
                 auto cnv = SafePointer(getCanvas(idx));
                 if (cnv && cnv->patch.isDirty())
                 {
-                    Dialogs::showSaveDialog(getParentComponent(), cnv->patch.getTitle(),
+                    Dialogs::showSaveDialog(&openedDialog, this, cnv->patch.getTitle(),
                                             [this, deleteFunc, cnv](int result) mutable
                                             {
                                                 if(!cnv) return;
@@ -714,7 +695,7 @@ void PlugDataPluginEditor::getCommandInfo(const CommandID commandID, Application
     
     if (auto* cnv = getCurrentCanvas())
     {
-        auto selectedBoxes = cnv->getSelectionOfType<Box>();
+        auto selectedBoxes = cnv->getSelectionOfType<Object>();
         auto selectedConnections = cnv->getSelectionOfType<Connection>();
 
         hasBoxSelection = !selectedBoxes.isEmpty();
@@ -840,6 +821,13 @@ void PlugDataPluginEditor::getCommandInfo(const CommandID commandID, Application
             result.setActive(!isDragging && pd.locked == var(false) && hasSelection);
             break;
         }
+        case CommandIDs::Encapsulate:
+        {
+            result.setInfo("Encapsulate", "Encapsulate objects", "Edit", 0);
+            result.addDefaultKeypress(69, ModifierKeys::commandModifier | ModifierKeys::shiftModifier);
+            result.setActive(!isDragging && pd.locked == var(false) && hasSelection);
+            break;
+        }
         case CommandIDs::Duplicate:
         {
             
@@ -866,7 +854,6 @@ void PlugDataPluginEditor::getCommandInfo(const CommandID commandID, Application
         case CommandIDs::NewObject:
         {
             result.setInfo("New Object", "Create new object", "Objects", 0);
-            result.addDefaultKeypress(78, ModifierKeys::noModifiers);
             result.addDefaultKeypress(49, ModifierKeys::commandModifier);
             result.setActive(!isDragging && pd.locked == var(false));
             break;
@@ -875,14 +862,13 @@ void PlugDataPluginEditor::getCommandInfo(const CommandID commandID, Application
         {
             result.setInfo("New Comment", "Create new comment", "Objects", 0);
             result.addDefaultKeypress(53, ModifierKeys::commandModifier);
-            result.addDefaultKeypress(67, ModifierKeys::noModifiers);
             result.setActive(!isDragging && pd.locked == var(false));
             break;
         }
         case CommandIDs::NewBang:
         {
             result.setInfo("New Bang", "Create new bang", "Objects", 0);
-            result.addDefaultKeypress(66, ModifierKeys::noModifiers);
+            result.addDefaultKeypress(66, ModifierKeys::commandModifier | ModifierKeys::shiftModifier);
             result.setActive(!isDragging && pd.locked == var(false));
             break;
         }
@@ -890,22 +876,41 @@ void PlugDataPluginEditor::getCommandInfo(const CommandID commandID, Application
         {
             result.setInfo("New Message", "Create new message", "Objects", 0);
             result.addDefaultKeypress(50, ModifierKeys::commandModifier);
-            result.addDefaultKeypress(77, ModifierKeys::noModifiers);
             result.setActive(!isDragging && pd.locked == var(false));
             break;
         }
         case CommandIDs::NewToggle:
         {
             result.setInfo("New Toggle", "Create new toggle", "Objects", 0);
-            result.addDefaultKeypress(84, ModifierKeys::noModifiers);
+            result.addDefaultKeypress(84, ModifierKeys::commandModifier | ModifierKeys::shiftModifier);
             result.setActive(!isDragging && pd.locked == var(false));
             break;
         }
         case CommandIDs::NewNumbox:
         {
-            result.setInfo("New Number", "Create new number box", "Objects", 0);
+            result.setInfo("New Number", "Create new number object", "Objects", 0);
             result.addDefaultKeypress(51, ModifierKeys::commandModifier);
-            result.addDefaultKeypress(73, ModifierKeys::noModifiers);
+            result.setActive(!isDragging && pd.locked == var(false));
+            
+            break;
+        }
+        case CommandIDs::NewNumboxTilde:
+        {
+            result.setInfo("New Numbox~", "Create new numbox~ object", "Objects", 0);
+            result.setActive(!isDragging && pd.locked == var(false));
+            
+            break;
+        }
+        case CommandIDs::NewOscilloscope:
+        {
+            result.setInfo("New Oscilloscope", "Create new oscilloscope object", "Objects", 0);
+            result.setActive(!isDragging && pd.locked == var(false));
+            
+            break;
+        }
+        case CommandIDs::NewFunction:
+        {
+            result.setInfo("New Function", "Create new function object", "Objects", 0);
             result.setActive(!isDragging && pd.locked == var(false));
             
             break;
@@ -913,7 +918,7 @@ void PlugDataPluginEditor::getCommandInfo(const CommandID commandID, Application
         case CommandIDs::NewFloatAtom:
         {
             result.setInfo("New Floatatom", "Create new floatatom", "Objects", 0);
-            result.addDefaultKeypress(70, ModifierKeys::noModifiers);
+            result.addDefaultKeypress(70, ModifierKeys::commandModifier | ModifierKeys::shiftModifier);
             result.setActive(!isDragging && pd.locked == var(false));
             break;
         }
@@ -927,50 +932,55 @@ void PlugDataPluginEditor::getCommandInfo(const CommandID commandID, Application
         {
             result.setInfo("New Listatom", "Create new listatom", "Objects", 0);
             result.addDefaultKeypress(52, ModifierKeys::commandModifier);
-            result.addDefaultKeypress(76, ModifierKeys::noModifiers);
             result.setActive(!isDragging && pd.locked == var(false));
             break;
         }
         case CommandIDs::NewVerticalSlider:
         {
             result.setInfo("New Vertical Slider", "Create new vertical slider", "Objects", 0);
-            result.addDefaultKeypress(83, ModifierKeys::noModifiers);
+            result.addDefaultKeypress(86, ModifierKeys::commandModifier | ModifierKeys::shiftModifier);
             result.setActive(!isDragging && pd.locked == var(false));
             break;
         }
         case CommandIDs::NewHorizontalSlider:
         {
             result.setInfo("New Horizontal Slider", "Create new horizontal slider", "Objects", 0);
+            result.addDefaultKeypress(74, ModifierKeys::commandModifier | ModifierKeys::shiftModifier);
             result.setActive(!isDragging && pd.locked == var(false));
             break;
         }
         case CommandIDs::NewVerticalRadio:
         {
             result.setInfo("New Vertical Radio", "Create new vertical radio", "Objects", 0);
+            result.addDefaultKeypress(68, ModifierKeys::commandModifier | ModifierKeys::shiftModifier);
             result.setActive(!isDragging && pd.locked == var(false));
             break;
         }
         case CommandIDs::NewHorizontalRadio:
         {
             result.setInfo("New Horizontal Radio", "Create new horizontal radio", "Objects", 0);
+            result.addDefaultKeypress(73, ModifierKeys::commandModifier | ModifierKeys::shiftModifier);
             result.setActive(!isDragging && pd.locked == var(false));
             break;
         }
         case CommandIDs::NewArray:
         {
             result.setInfo("New Array", "Create new array", "Objects", 0);
+            result.addDefaultKeypress(65, ModifierKeys::commandModifier | ModifierKeys::shiftModifier);
             result.setActive(!isDragging && pd.locked == var(false));
             break;
         }
         case CommandIDs::NewGraphOnParent:
         {
             result.setInfo("New GraphOnParent", "Create new graph on parent", "Objects", 0);
+            result.addDefaultKeypress(71, ModifierKeys::commandModifier | ModifierKeys::shiftModifier);
             result.setActive(!isDragging && pd.locked == var(false));
             break;
         }
         case CommandIDs::NewCanvas:
         {
             result.setInfo("New Canvas", "Create new canvas object", "Objects", 0);
+            result.addDefaultKeypress(67, ModifierKeys::commandModifier | ModifierKeys::shiftModifier);
             result.setActive(!isDragging && pd.locked == var(false));
             break;
         }
@@ -983,6 +993,13 @@ void PlugDataPluginEditor::getCommandInfo(const CommandID commandID, Application
         case CommandIDs::NewVUMeterObject:
         {
             result.setInfo("New VU Meter", "Create new VU meter", "Objects", 0);
+            result.addDefaultKeypress(85, ModifierKeys::commandModifier | ModifierKeys::shiftModifier);
+            result.setActive(!isDragging && pd.locked == var(false));
+            break;
+        }
+        case CommandIDs::NewButton:
+        {
+            result.setInfo("New Button", "Create new button", "Objects", 0);
             result.setActive(!isDragging && pd.locked == var(false));
             break;
         }
@@ -995,14 +1012,13 @@ bool PlugDataPluginEditor::perform(const InvocationInfo& info)
 {
     auto* cnv = getCurrentCanvas();
 
-    auto lastPosition = cnv->viewport->getViewArea().getConstrainedPoint(cnv->getMouseXYRelative() - Point<int>(Box::margin, Box::margin));
+    auto lastPosition = cnv->viewport->getViewArea().getConstrainedPoint(cnv->getMouseXYRelative() - Point<int>(Object::margin, Object::margin));
 
     switch (info.commandID)
     {
         case CommandIDs::NewProject:
         {
-            // could be nicer
-            toolbarButtons[0]->triggerClick();
+            newProject();
             return true;
         }
         case CommandIDs::OpenProject:
@@ -1029,7 +1045,7 @@ bool PlugDataPluginEditor::perform(const InvocationInfo& info)
                 
                 if (cnv->patch.isDirty())
                 {
-                    Dialogs::showSaveDialog(getParentComponent(), cnv->patch.getTitle(),
+                    Dialogs::showSaveDialog(&openedDialog, this, cnv->patch.getTitle(),
                                             [this](int result) mutable
                                             {
                         if (result == 2)
@@ -1089,11 +1105,16 @@ bool PlugDataPluginEditor::perform(const InvocationInfo& info)
             cnv->duplicateSelection();
             return true;
         }
+        case CommandIDs::Encapsulate:
+        {
+            cnv->encapsulateSelection();
+            return true;
+        }
         case CommandIDs::SelectAll:
         {
-            for (auto* box : cnv->boxes)
+            for (auto* object : cnv->objects)
             {
-                cnv->setSelected(box, true);
+                cnv->setSelected(object, true);
             }
             for (auto* con : cnv->connections)
             {
@@ -1153,14 +1174,15 @@ bool PlugDataPluginEditor::perform(const InvocationInfo& info)
         }
         case CommandIDs::NewArray:
         {
-            Dialogs::showArrayDialog(getParentComponent(),
+            
+            Dialogs::showArrayDialog(&openedDialog, this,
                                      [this](int result, const String& name, const String& size)
                                      {
                                          if (result)
                                          {
                                              auto* cnv = getCurrentCanvas();
-                                             auto* box = new Box(cnv, "graph " + name + " " + size, cnv->viewport->getViewArea().getCentre());
-                                             cnv->boxes.add(box);
+                                             auto* object = new Object(cnv, "graph " + name + " " + size, cnv->viewport->getViewArea().getCentre());
+                                             cnv->objects.add(object);
                                          }
                                      });
             return true;
@@ -1168,14 +1190,14 @@ bool PlugDataPluginEditor::perform(const InvocationInfo& info)
 
         default:
         {
-            const StringArray objectNames = {"", "comment", "bng", "msg", "tgl", "nbx", "vsl", "hsl", "vradio", "hradio", "floatatom", "symbolatom", "listbox", "array", "graph", "cnv", "keyboard", "vu"};
+            const StringArray objectNames = {"", "comment", "bng", "msg", "tgl", "nbx", "vsl", "hsl", "vradio", "hradio", "floatatom", "symbolatom", "listbox", "array", "graph", "cnv", "keyboard", "vu", "button", "numbox~", "oscope~", "function"};
 
             jassert(objectNames.size() == CommandIDs::NumItems - CommandIDs::NewObject);
 
             int idx = static_cast<int>(info.commandID) - CommandIDs::NewObject;
             if (isPositiveAndBelow(idx, objectNames.size()))
             {
-                cnv->boxes.add(new Box(cnv, objectNames[idx], lastPosition));
+                cnv->objects.add(new Object(cnv, objectNames[idx], lastPosition));
                 return true;
             }
 

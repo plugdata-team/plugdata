@@ -1,11 +1,12 @@
 
-struct SymbolAtomObject final : public AtomObject, public KeyListener {
+struct SymbolAtomObject final : public AtomObject
+    , public KeyListener {
     bool isDown = false;
     bool isLocked = false;
 
     String lastMessage;
 
-    SymbolAtomObject(void* obj, Box* parent)
+    SymbolAtomObject(void* obj, Object* parent)
         : AtomObject(obj, parent)
     {
         addAndMakeVisible(input);
@@ -18,8 +19,8 @@ struct SymbolAtomObject final : public AtomObject, public KeyListener {
             stopEdition();
 
             auto width = input.getFont().getStringWidth(input.getText()) + 36;
-            if (width < box->getWidth()) {
-                box->setSize(width, box->getHeight());
+            if (width < object->getWidth()) {
+                object->setSize(width, object->getHeight());
                 checkBounds();
             }
         };
@@ -32,7 +33,7 @@ struct SymbolAtomObject final : public AtomObject, public KeyListener {
 
         input.setMinimumHorizontalScale(0.9f);
 
-        box->addMouseListener(this, false);
+        object->addMouseListener(this, false);
     }
 
     void lock(bool locked) override
@@ -93,24 +94,23 @@ struct SymbolAtomObject final : public AtomObject, public KeyListener {
         if (v.refersToSameSourceAs(labelHeight)) {
             updateLabel();
             if (getParentComponent()) {
-                box->updateBounds(); // update box size based on new font
+                object->updateBounds(); // update object size based on new font
             }
         } else {
             AtomObject::valueChanged(v);
         }
     }
-    
-    bool keyPressed(const KeyPress& key, Component* originalComponent) override
+
+    bool keyPressed(KeyPress const& key, Component* originalComponent) override
     {
         if (key == KeyPress::rightKey) {
-            if(auto* editor = input.getCurrentTextEditor()) {
+            if (auto* editor = input.getCurrentTextEditor()) {
                 editor->setCaretPosition(editor->getHighlightedRegion().getEnd());
                 return true;
             }
         }
         return false;
     }
-
 
     Label input;
 };

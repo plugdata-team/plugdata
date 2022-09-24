@@ -8,7 +8,7 @@ typedef struct _fake_gatom {
     t_float a_toggle;      /* value to toggle to */
     t_float a_draghi;      /* high end of drag range */
     t_float a_draglo;      /* low end of drag range */
-    t_symbol* a_label;     /* symbol to show as label next to box */
+    t_symbol* a_label;     /* symbol to show as label next to object */
     t_symbol* a_symfrom;   /* "receive" name -- bind ourselves to this */
     t_symbol* a_symto;     /* "send" name -- send to this on output */
     t_binbuf* a_revertbuf; /* binbuf to revert to if typing canceled */
@@ -36,7 +36,7 @@ static t_atom* fake_gatom_getatom(t_fake_gatom* x)
 }
 
 struct AtomObject : public GUIObject {
-    AtomObject(void* ptr, Box* parent)
+    AtomObject(void* ptr, Object* parent)
         : GUIObject(ptr, parent)
     {
         auto* atom = static_cast<t_fake_gatom*>(ptr);
@@ -53,8 +53,7 @@ struct AtomObject : public GUIObject {
     void updateBounds() override
     {
         pd->getCallbackLock()->enter();
-        
-        
+
         int x, y, w, h;
         libpd_get_object_bounds(cnv->patch.getPointer(), ptr, &x, &y, &w, &h);
 
@@ -62,26 +61,26 @@ struct AtomObject : public GUIObject {
         w = std::max<int>(4, gatom->a_text.te_width) * glist_fontwidth(cnv->patch.getPointer());
 
         auto bounds = Rectangle<int>(x, y, w, getAtomHeight());
-        
+
         pd->getCallbackLock()->exit();
-        
-        box->setObjectBounds(bounds);
+
+        object->setObjectBounds(bounds);
     }
 
     void checkBounds() override
     {
         // Apply size limits
-        int w = jlimit(30, maxSize, box->getWidth());
-        int h = getAtomHeight() + Box::doubleMargin;
+        int w = jlimit(30, maxSize, object->getWidth());
+        int h = getAtomHeight() + Object::doubleMargin;
 
-        if (w != box->getWidth() || h != box->getHeight()) {
-            box->setSize(w, h);
+        if (w != object->getWidth() || h != object->getHeight()) {
+            object->setSize(w, h);
         }
     }
 
     void applyBounds() override
     {
-        auto b = box->getObjectBounds();
+        auto b = object->getObjectBounds();
         libpd_moveobj(cnv->patch.getPointer(), static_cast<t_gobj*>(ptr), b.getX(), b.getY());
 
         int fontWidth = glist_fontwidth(cnv->patch.getPointer());
@@ -96,7 +95,7 @@ struct AtomObject : public GUIObject {
         int width = jlimit(30, maxSize, (getWidth() / fontWidth) * fontWidth);
         int height = jlimit(18, maxSize, getHeight());
         if (getWidth() != width || getHeight() != height) {
-            box->setSize(width + Box::doubleMargin, height + Box::doubleMargin);
+            object->setSize(width + Object::doubleMargin, height + Object::doubleMargin);
         }
     }
 
@@ -112,23 +111,23 @@ struct AtomObject : public GUIObject {
 
     void paint(Graphics& g) override
     {
-        getLookAndFeel().setColour(Label::textWhenEditingColourId, box->findColour(PlugDataColour::textColourId));
-        getLookAndFeel().setColour(Label::textColourId, box->findColour(PlugDataColour::textColourId));
-        getLookAndFeel().setColour(TextEditor::textColourId, box->findColour(PlugDataColour::textColourId));
+        getLookAndFeel().setColour(Label::textWhenEditingColourId, object->findColour(PlugDataColour::textColourId));
+        getLookAndFeel().setColour(Label::textColourId, object->findColour(PlugDataColour::textColourId));
+        getLookAndFeel().setColour(TextEditor::textColourId, object->findColour(PlugDataColour::textColourId));
 
-        g.setColour(box->findColour(PlugDataColour::toolbarColourId));
+        g.setColour(object->findColour(PlugDataColour::toolbarColourId));
         g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), 2.0f);
     }
 
     void paintOverChildren(Graphics& g) override
     {
-        g.setColour(box->findColour(PlugDataColour::canvasOutlineColourId));
+        g.setColour(object->findColour(PlugDataColour::canvasOutlineColourId));
         Path triangle;
         triangle.addTriangle(Point<float>(getWidth() - 8, 0), Point<float>(getWidth(), 0), Point<float>(getWidth(), 8));
         triangle = triangle.createPathWithRoundedCorners(4.0f);
         g.fillPath(triangle);
 
-        auto outlineColour = box->findColour(cnv->isSelected(box) && !cnv->isGraph ? PlugDataColour::highlightColourId : PlugDataColour::canvasOutlineColourId);
+        auto outlineColour = object->findColour(cnv->isSelected(object) && !cnv->isGraph ? PlugDataColour::highlightColourId : PlugDataColour::canvasOutlineColourId);
         g.setColour(outlineColour);
         g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), 2.0f, 1.0f);
     }
@@ -193,9 +192,9 @@ struct AtomObject : public GUIObject {
             label->setEditable(false, false);
             label->setInterceptsMouseClicks(false, false);
 
-            label->setColour(Label::textColourId, box->findColour(PlugDataColour::textColourId));
+            label->setColour(Label::textColourId, object->findColour(PlugDataColour::textColourId));
 
-            box->cnv->addAndMakeVisible(label.get());
+            object->cnv->addAndMakeVisible(label.get());
         }
     }
 
@@ -211,7 +210,7 @@ struct AtomObject : public GUIObject {
 
     Rectangle<int> getLabelBounds() const
     {
-        auto objectBounds = box->getBounds().reduced(Box::margin);
+        auto objectBounds = object->getBounds().reduced(Object::margin);
         int fontHeight = getAtomHeight() - 6;
 
         int labelLength = Font(fontHeight).getStringWidth(getExpandedLabelText());

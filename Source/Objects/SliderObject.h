@@ -6,7 +6,7 @@ struct SliderObject : public IEMObject {
 
     Slider slider;
 
-    SliderObject(bool vertical, void* obj, Box* parent)
+    SliderObject(bool vertical, void* obj, Object* parent)
         : IEMObject(obj, parent)
     {
         isVertical = vertical;
@@ -52,17 +52,17 @@ struct SliderObject : public IEMObject {
     void checkBounds() override
     {
         // Apply size limits
-        int w = jlimit(isVertical ? 23 : 50, maxSize, box->getWidth());
-        int h = jlimit(isVertical ? 77 : 25, maxSize, box->getHeight());
+        int w = jlimit(isVertical ? 23 : 50, maxSize, object->getWidth());
+        int h = jlimit(isVertical ? 77 : 25, maxSize, object->getHeight());
 
-        if (w != box->getWidth() || h != box->getHeight()) {
-            box->setSize(w, h);
+        if (w != object->getWidth() || h != object->getHeight()) {
+            object->setSize(w, h);
         }
     }
 
     void paintOverChildren(Graphics& g) override
     {
-        auto outlineColour = box->findColour(cnv->isSelected(box) && !cnv->isGraph ? PlugDataColour::highlightColourId : PlugDataColour::canvasOutlineColourId);
+        auto outlineColour = object->findColour(cnv->isSelected(object) && !cnv->isGraph ? PlugDataColour::highlightColourId : PlugDataColour::canvasOutlineColourId);
 
         g.setColour(outlineColour);
         g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), 2.0f, 1.0f);

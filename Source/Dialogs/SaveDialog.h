@@ -11,22 +11,22 @@ struct SaveDialog : public Component {
         cancel.onClick = [this, parent] {
             MessageManager::callAsync(
                 [this, parent]() {
+                    parent->closeDialog();
                     cb(0);
-                    parent->onClose();
                 });
         };
         save.onClick = [this, parent] {
             MessageManager::callAsync(
                 [this, parent]() {
+                    parent->closeDialog();
                     cb(2);
-                    parent->onClose();
                 });
         };
         dontsave.onClick = [this, parent] {
             MessageManager::callAsync(
                 [this, parent]() {
+                    parent->closeDialog();
                     cb(1);
-                    parent->onClose();
                 });
         };
 
@@ -44,7 +44,7 @@ struct SaveDialog : public Component {
         save.setBounds(300, 80, 80, 25);
     }
 
-    std::function<void(int)> cb;
+    static inline std::function<void(int)> cb = [](int) {};
 
 private:
     Label savelabel;

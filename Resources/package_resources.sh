@@ -16,13 +16,16 @@ rm ./Abstractions/else/All_objects.pd
 cp -R ../../Libraries/pure-data/doc ./Documentation
 cp -R ../pddp ./Documentation/pddp
 cp -R ../../Libraries/ELSE/Help-files/ ./Documentation/9.else
+cp ../../Libraries/ELSE/sfont~/sfont~-help.pd ./Documentation/9.else
+cp ../param-help.pd ./Documentation/5.reference
+cp ../playhead-help.pd ./Documentation/5.reference
 cp -R ../../Libraries/cyclone/documentation/help_files ./Documentation/10.cyclone
 cp -R ../../Libraries/ELSE/Live-Electronics-Tutorial/ ./Documentation/11.live-electronics-tutorial
 
 # Remove else prefix in helpfiles
-find ./Abstractions/else/ -name '*.pd' -print0 | xargs -0 sed -i "" "s/else\///g"
-find ./Documentation/9.else/ -name '*.pd' -print0 | xargs -0 sed -i "" "s/else\///g"
-find ./Documentation/10.cyclone/ -name '*.pd' -print0 | xargs -0 sed -i "" "s/cyclone\///g"
+sed -i -- 's/else\///g' ./Abstractions/else/*.pd
+sed -i -- 's/else\///g' ./Documentation/9.else/*.pd
+sed -i -- 's/cyclone\///g' ./Documentation/10.cyclone/*.pd
 
 rm ./Documentation/Makefile.am
 

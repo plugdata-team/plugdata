@@ -55,7 +55,6 @@ void* libpd_create_canvas(char const* name, char const* path)
     t_canvas* cnv = (t_canvas*)libpd_openfile(name, path);
     if (cnv) {
         canvas_vis(cnv, 1.f);
-        glob_setfilename(NULL, gensym(name), gensym(path));
         canvas_rename(cnv, gensym(name), gensym(path));
     }
     return cnv;

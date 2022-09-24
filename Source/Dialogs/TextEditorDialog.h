@@ -407,7 +407,7 @@ public:
     /** Return the bounds of the entire document. */
     Rectangle<float> getBounds() const;
 
-    /** Return the bounding box for the glyphs on the given row, and within
+    /** Return the bounding object for the glyphs on the given row, and within
      the given range of columns. The range start must not be negative, and
      must be smaller than ncols. The range end is exclusive, and may be as
      large as ncols + 1, in which case the bounds include an imaginary
@@ -662,7 +662,6 @@ void Caret::paint(Graphics& g)
 
 float Caret::squareWave(float wt) const
 {
-    //(Time::getCurrentTime().getMillisecondCounter() % 2000) > 2000
     float const delta = 0.222f;
     float const A = 1.0;
     return 0.5f + A / 3.14159f * std::atan(std::cos(wt) / delta);
@@ -2117,8 +2116,8 @@ struct TextEditorDialog : public Component {
 
     void paintOverChildren(Graphics& g)
     {
-        // g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
-        // g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), 6.0f, 1.0f);
+        g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
+        g.drawRoundedRectangle(getLocalBounds().toFloat(), 6.0f, 1.0f);
     }
 
     void paint(Graphics& g)

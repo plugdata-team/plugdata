@@ -1,23 +1,23 @@
 
 struct CanvasObject final : public IEMObject {
-    CanvasObject(void* ptr, Box* box)
-        : IEMObject(ptr, box)
+    CanvasObject(void* ptr, Object* object)
+        : IEMObject(ptr, object)
     {
-        box->setColour(PlugDataColour::canvasOutlineColourId, Colours::transparentBlack);
+        object->setColour(PlugDataColour::canvasOutlineColourId, Colours::transparentBlack);
     }
 
     void updateBounds() override
     {
         pd->getCallbackLock()->enter();
-        
+
         int x = 0, y = 0, w = 0, h = 0;
         libpd_get_object_bounds(cnv->patch.getPointer(), ptr, &x, &y, &w, &h);
 
         auto bounds = Rectangle<int>(x, y, static_cast<t_my_canvas*>(ptr)->x_vis_w, static_cast<t_my_canvas*>(ptr)->x_vis_h);
 
         pd->getCallbackLock()->exit();
-        
-        box->setObjectBounds(bounds);
+
+        object->setObjectBounds(bounds);
     }
 
     void resized() override
@@ -29,11 +29,11 @@ struct CanvasObject final : public IEMObject {
     void checkBounds() override
     {
         // Apply size limits
-        int w = jlimit(20, maxSize, box->getWidth());
-        int h = jlimit(20, maxSize, box->getHeight());
+        int w = jlimit(20, maxSize, object->getWidth());
+        int h = jlimit(20, maxSize, object->getHeight());
 
-        if (w != box->getWidth() || h != box->getHeight()) {
-            box->setSize(w, h);
+        if (w != object->getWidth() || h != object->getHeight()) {
+            object->setSize(w, h);
         }
     }
 
@@ -41,7 +41,7 @@ struct CanvasObject final : public IEMObject {
     {
         g.fillAll(Colour::fromString(secondaryColour.toString()));
 
-        auto outlineColour = box->findColour(cnv->isSelected(box) && !cnv->isGraph ? PlugDataColour::highlightColourId : PlugDataColour::canvasOutlineColourId);
+        auto outlineColour = object->findColour(cnv->isSelected(object) && !cnv->isGraph ? PlugDataColour::highlightColourId : PlugDataColour::canvasOutlineColourId);
         g.setColour(outlineColour);
         g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), 2.0f, 1.0f);
     }

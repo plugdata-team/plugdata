@@ -228,6 +228,8 @@ struct PropertiesPanel : public PropertyPanel {
         RangeComponent(String propertyName, Value& value, int idx)
             : Property(propertyName, idx)
             , property(value)
+            , minLabel(false)
+            , maxLabel(false)
         {
             min = value.getValue().getArray()->getReference(0);
             max = value.getValue().getArray()->getReference(1);
@@ -242,20 +244,17 @@ struct PropertiesPanel : public PropertyPanel {
             maxLabel.addMouseListener(this, true);
             maxLabel.setText(String(max), dontSendNotification);
 
-            maxLabel.setMinimum(min);
-            minLabel.setMaximum(max);
-
             auto setMinimum = [this](float value) {
                 min = value;
                 Array<var> arr = { min, max };
-                maxLabel.setMinimum(min + 1e-5f);
+                //maxLabel.setMinimum(min + 1e-5f);
                 property = var(arr);
             };
 
             auto setMaximum = [this](float value) {
                 max = value;
                 Array<var> arr = { min, max };
-                minLabel.setMaximum(max - 1e-5f);
+                //minLabel.setMaximum(max - 1e-5f);
                 property = var(arr);
             };
 
@@ -288,7 +287,7 @@ struct PropertiesPanel : public PropertyPanel {
             , property(value)
         {
             if constexpr (std::is_arithmetic<T>::value) {
-                label = std::make_unique<DraggableNumber>();
+                label = std::make_unique<DraggableNumber>(std::is_integral<T>::value);
 
                 dynamic_cast<DraggableNumber*>(label.get())->valueChanged = [this](float value) {
                     property = value;
@@ -306,7 +305,7 @@ struct PropertiesPanel : public PropertyPanel {
 
             label->onEditorShow = [this]() {
                 auto* editor = label->getCurrentTextEditor();
-
+                
                 if constexpr (std::is_floating_point<T>::value) {
                     editor->setInputRestrictions(0, "0123456789.-");
                 } else if constexpr (std::is_integral<T>::value) {
