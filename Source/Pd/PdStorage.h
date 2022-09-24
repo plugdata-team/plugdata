@@ -1,5 +1,5 @@
 /*
- // Copyright (c) 2015-2018 Pierre Guillot.
+ // Copyright (c) 2021-2022 Timothy Schoen
  // For information on usage and redistribution, and for a DISCLAIMER OF ALL
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
@@ -14,31 +14,47 @@ extern "C" {
 #include "x_libpd_mod_utils.h"
 }
 
-class Canvas;
-
-
 namespace pd {
 
 class Instance;
-
 class Storage {
+    t_glist* parentPatch = nullptr;
+    Instance* instance = nullptr;
+
+    t_gobj* infoObject = nullptr;
+    t_glist* infoParent = nullptr;
 
 public:
+    Storage(t_glist* patch, Instance* inst);
 
-    static void setContent(t_glist* patch, String content);
-    static ValueTree getContent(t_glist* patch);
+    Storage() = delete;
 
-    static void undoIfNeeded(Canvas* cnv);
-    static void redoIfNeeded(Canvas* cnv);
+    void setInfoId(String const& oldId, String const& newId);
+    void confirmIds();
 
-    static void createUndoAction(Canvas* cnv);
+    bool hasInfo(String const& id) const;
+    void storeInfo();
+    void loadInfoFromPatch();
 
-    static String getInfo(Canvas* cnv, String const& id, String const& property);
-    static void setInfo(Canvas* cnv, String const& id, String const& property, String const& info, bool undoable = true);
-    
-    static std::pair<ValueTree, UndoManager*> getInfoForPatch(void* patch);
+    void undoIfNeeded();
+    void redoIfNeeded();
+
+    void createUndoAction();
+
+    static bool isInfoParent(t_gobj* obj);
+    static bool isInfoParent(t_glist* glist);
+
+    String getInfo(String const& id, String const& property) const;
+    void setInfo(String const& id, String const& property, String const& info, bool undoable = true);
 
 private:
-    static inline std::unordered_map<void*, std::pair<ValueTree, std::unique_ptr<UndoManager>>> canvasInfo = std::unordered_map<void*, std::pair<ValueTree, std::unique_ptr<UndoManager>>>();
+    void createObject();
+
+    UndoManager undoManager;
+
+    ValueTree extraInfo = ValueTree("PlugDataInfo");
+
+    friend class Instance;
+    friend class Patch;
 };
 } // namespace pd

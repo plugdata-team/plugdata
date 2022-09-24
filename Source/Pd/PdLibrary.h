@@ -109,9 +109,13 @@ struct Library : public FileSystemWatcher::Listener {
 
     Suggestions autocomplete(String query) const;
 
-    String getInletOutletTooltip(String boxname, int idx, int total, bool isInlet);
+    String getInletOutletTooltip(String objname, int idx, int total, bool isInlet);
 
     void fsChangeCallback() override;
+    
+    File findHelpfile(t_object* obj);
+
+    std::vector<File> helpPaths;
 
     LambdaThread* thread;
 
@@ -132,9 +136,7 @@ private:
 
     std::mutex libraryLock;
 
-    std::unordered_map<String, std::pair<StringArray, StringArray>> edgeDescriptions;
-
-    std::unique_ptr<Trie> searchTree;
+    std::unique_ptr<Trie> searchTree = nullptr;
 
     File appDataDir;
     FileSystemWatcher watcher;

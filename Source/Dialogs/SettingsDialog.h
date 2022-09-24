@@ -1,5 +1,6 @@
 #include "Deken.h"
 #include "SearchPathComponent.h"
+#include "KeyMappingComponent.h"
 #include "../Utility/PropertiesPanel.h"
 
 struct ThemePanel : public Component
@@ -243,7 +244,7 @@ struct SettingsDialog : public Component {
         }
         panels.add(new ThemePanel(settingsTree));
         panels.add(new SearchPathComponent(settingsTree.getChildWithName("Paths")));
-        panels.add(new KeyMappingEditorComponent(*editor->getKeyMappings(), true));
+        panels.add(new KeyMappingComponent(*editor->getKeyMappings()));
         panels.add(new Deken());
         panels.add(new AboutPanel());
 
@@ -259,12 +260,6 @@ struct SettingsDialog : public Component {
         }
 
         toolbarButtons[currentPanel]->setToggleState(true, sendNotification);
-
-        dialog->onClose = [this, dialog]() {
-            if (auto* editor = dynamic_cast<PlugDataPluginEditor*>(audioProcessor.getActiveEditor())) {
-                editor->settingsDialog.reset(nullptr);
-            }
-        };
 
         constrainer.setMinimumOnscreenAmounts(600, 400, 400, 400);
     }
@@ -300,8 +295,6 @@ struct SettingsDialog : public Component {
 
     void paint(Graphics& g) override
     {
-        // g.fillAll(findColour(PlugDataColour::canvasColourId));
-
         g.setColour(findColour(PlugDataColour::canvasColourId));
         g.fillRoundedRectangle(getLocalBounds().reduced(1).toFloat(), 5.0f);
 

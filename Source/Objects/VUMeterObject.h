@@ -1,19 +1,19 @@
 
 
 struct VUMeterObject final : public IEMObject {
-    VUMeterObject(void* ptr, Box* box)
-        : IEMObject(ptr, box)
+    VUMeterObject(void* ptr, Object* object)
+        : IEMObject(ptr, object)
     {
     }
 
     void checkBounds() override
     {
         // Apply size limits
-        int w = jlimit(30, maxSize, box->getWidth());
-        int h = jlimit(80, maxSize, box->getHeight());
+        int w = jlimit(30, maxSize, object->getWidth());
+        int h = jlimit(80, maxSize, object->getHeight());
 
-        if (w != box->getWidth() || h != box->getHeight()) {
-            box->setSize(w, h);
+        if (w != object->getWidth() || h != object->getHeight()) {
+            object->setSize(w, h);
         }
     }
 
@@ -38,7 +38,7 @@ struct VUMeterObject final : public IEMObject {
         int height = getHeight();
         int width = getWidth();
 
-        g.setColour(box->findColour(PlugDataColour::toolbarColourId));
+        g.setColour(object->findColour(PlugDataColour::toolbarColourId));
         g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), 2.0f);
 
         auto outerBorderWidth = 2.0f;
@@ -95,7 +95,7 @@ struct VUMeterObject final : public IEMObject {
             g.drawFittedText(String(std::max(values[1], -96.0f), 0), Rectangle<int>(getLocalBounds().removeFromBottom(20)).reduced(2), Justification::centred, 1, 0.6f);
         }
 
-        auto outlineColour = box->findColour(cnv->isSelected(box) && !cnv->isGraph ? PlugDataColour::highlightColourId : PlugDataColour::canvasOutlineColourId);
+        auto outlineColour = object->findColour(cnv->isSelected(object) && !cnv->isGraph ? PlugDataColour::highlightColourId : PlugDataColour::canvasOutlineColourId);
 
         g.setColour(outlineColour);
         g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), 2.0f, 1.0f);

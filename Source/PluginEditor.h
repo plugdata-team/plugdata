@@ -34,16 +34,14 @@ enum CommandIDs
     ZoomIn,
     ZoomOut,
     ZoomNormal,
-
     Copy,
     Paste,
     Cut,
     Delete,
     Duplicate,
+    Encapsulate,
     SelectAll,
-
     ShowBrowser,
-
     NewObject,
     NewComment,
     NewBang,
@@ -62,6 +60,10 @@ enum CommandIDs
     NewCanvas,
     NewKeyboard,
     NewVUMeterObject,
+    NewButton,
+    NewNumboxTilde,
+    NewOscilloscope,
+    NewFunction,
     NumItems
 };
 
@@ -104,6 +106,7 @@ class PlugDataPluginEditor : public AudioProcessorEditor, public Value::Listener
     ComponentDragger windowDragger;
 #endif
 
+    void newProject();
     void openProject();
     void saveProject(const std::function<void()>& nestedCallback = []() {});
     void saveProjectAs(const std::function<void()>& nestedCallback = []() {});
@@ -112,10 +115,6 @@ class PlugDataPluginEditor : public AudioProcessorEditor, public Value::Listener
 
     Canvas* getCurrentCanvas();
     Canvas* getCanvas(int idx);
-
-    void updateValues();
-    void updateDrawables();
-    void updateGuiParameters();
     
     // Pass modifier keys to statusbar
     void modifierKeysChanged(const ModifierKeys& modifiers) override { statusbar.modifierKeysChanged(modifiers); }
@@ -146,7 +145,8 @@ class PlugDataPluginEditor : public AudioProcessorEditor, public Value::Listener
 
     std::atomic<bool> canUndo = false, canRedo = false;
 
-    std::unique_ptr<Component> settingsDialog = nullptr;
+    std::unique_ptr<Dialog> settingsDialog = nullptr;
+    std::unique_ptr<Dialog> openedDialog = nullptr;
     
    private:
     std::unique_ptr<FileChooser> saveChooser;

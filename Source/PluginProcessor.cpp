@@ -15,8 +15,11 @@ extern "C"
 {
     #include "x_libpd_extra_utils.h"
     EXTERN char* pd_version;
+#if JUCE_WINDOWS && _WIN64
+    // Need this to create directory junctions on Windows
+    unsigned int WinExec(_Null_terminated_ const char* lpCmdLine, unsigned int uCmdShow);
+#endif
 }
-
 
 AudioProcessor::BusesProperties PlugDataAudioProcessor::buildBusesProperties()
 {
@@ -65,9 +68,9 @@ PlugDataAudioProcessor::PlugDataAudioProcessor()
     for (int n = 0; n < numParameters; n++)
     {
         auto id = ParameterID("param" + String(n + 1), 1);
-        parameters.createAndAddParameter(std::make_unique<AudioParameterFloat>(id, "Parameter " + String(n + 1), 0.0f, 1.0f, 0.0f));
-        parameterValues[n] = parameters.getRawParameterValue(id.getParamID());
+        auto* parameter = parameters.createAndAddParameter(std::make_unique<AudioParameterFloat>(id, "Parameter " + String(n + 1), 0.0f, 1.0f, 0.0f));
         lastParameters[n] = 0;
+        parameter->addListener(this);
     }
 
     volume = parameters.getRawParameterValue("volume");
@@ -128,15 +131,14 @@ PlugDataAudioProcessor::PlugDataAudioProcessor()
             
             for(auto* cnv : editor->canvases) {
                 // Make sure inlets/outlets are updated
-                for(auto* box : cnv->boxes) box->updatePorts();
+                for(auto* object : cnv->objects) object->updatePorts();
             }
         }
 
-        
         updateSearchPaths();
-        setTheme(static_cast<bool>(settingsTree.getProperty("Theme")));
+        objectLibrary.updateLibrary();
         
-
+        setTheme(static_cast<bool>(settingsTree.getProperty("Theme")));
     };
 
     if (settingsTree.hasProperty("Theme"))
@@ -148,6 +150,8 @@ PlugDataAudioProcessor::PlugDataAudioProcessor()
         oversampling = static_cast<int>(settingsTree.getProperty("Oversampling"));
     }
 
+    updateSearchPaths();
+    
     setLatencySamples(pd::Instance::getBlockSize());
 
     logMessage("PlugData v" + String(ProjectInfo::versionString));
@@ -183,17 +187,47 @@ void PlugDataAudioProcessor::initialiseFilesystem()
         if(!library.exists()) {
             library.createDirectory();
         }
-        else if(library.getChildFile("Deken").isDirectory() &&
-                !library.getChildFile("Deken").isSymbolicLink()){
+        
+#if !JUCE_WINDOWS
+        // This may not work on Windows, Windows users REALLY need to thrash their PlugData folder
+        else if(library.getChildFile("Deken").isDirectory() && !library.getChildFile("Deken").isSymbolicLink()) {
             library.moveFileTo(library_backup);
             library.createDirectory();
         }
+#endif
         
         deken.createDirectory();
         
+#if JUCE_WINDOWS
+        // Get paths that need symlinks
+        auto abstractionsPath = appDir.getChildFile("Abstractions").getFullPathName().replaceCharacters("/", "\\");
+        auto documentationPath = appDir.getChildFile("Documentation").getFullPathName().replaceCharacters("/", "\\");
+        auto dekenPath = deken.getFullPathName();
+        
+        // The mklink /J command creates a directory junction. This is the closest thing I can get to a directory symlink on Windows
+        // Regular symlinks can only created by administrators
+        auto abstractionsCommand = "cmd.exe /k mklink /J " + library.getChildFile("Abstractions").getFullPathName().replaceCharacters("/", "\\") + " " + abstractionsPath;
+        auto documentationCommand = "cmd.exe /k mklink /J " + library.getChildFile("Documentation").getFullPathName().replaceCharacters("/", "\\") + " " + documentationPath;
+        auto dekenCommand = "cmd.exe /k mklink /J " + library.getChildFile("Deken").getFullPathName().replaceCharacters("/", "\\") + " " + dekenPath;
+        
+        // Execute junction command
+        // TODO: write real C++ code for creating junctions
+#if _WIN64
+        // For some reason, this only links with 64-bit targets
+        WinExec(abstractionsCommand.toRawUTF8(), 0);
+        WinExec(documentationCommand.toRawUTF8(), 0);
+        WinExec(dekenCommand.toRawUTF8(), 0);
+#else   
+        system(abstractionsCommand.fromFirstOccurrenceOf("/k", false, false).toRawUTF8());
+        system(documentationCommand.fromFirstOccurrenceOf("/k", false, false).toRawUTF8());
+        system(dekenCommand.fromFirstOccurrenceOf("/k", false, false).toRawUTF8());
+#endif
+
+#else
         appDir.getChildFile("Abstractions").createSymbolicLink(library.getChildFile("Abstractions"), true);
         appDir.getChildFile("Documentation").createSymbolicLink(library.getChildFile("Documentation"), true);
         deken.createSymbolicLink(library.getChildFile("Deken"), true);
+#endif
     }
     
     // Check if settings file exists, if not, create the default
@@ -202,17 +236,18 @@ void PlugDataAudioProcessor::initialiseFilesystem()
         settingsFile.create();
 
         // Add default settings
-        settingsTree.setProperty("BrowserPath", abstractions.getParentDirectory().getFullPathName(), nullptr);
+        settingsTree.setProperty("BrowserPath", homeDir.getChildFile("Library").getFullPathName(), nullptr);
         settingsTree.setProperty("Theme", 1, nullptr);
         settingsTree.setProperty("GridEnabled", 1, nullptr);
 
         auto pathTree = ValueTree("Paths");
+        auto library = homeDir.getChildFile("Library");
 
         auto firstPath = ValueTree("Path");
-        firstPath.setProperty("Path", abstractions.getFullPathName(), nullptr);
+        firstPath.setProperty("Path", library.getChildFile("Abstractions").getFullPathName(), nullptr);
 
         auto secondPath = ValueTree("Path");
-        secondPath.setProperty("Path", appDir.getChildFile("Deken").getFullPathName(), nullptr);
+        secondPath.setProperty("Path", library.getChildFile("Deken").getFullPathName(), nullptr);
 
         pathTree.appendChild(firstPath, nullptr);
         pathTree.appendChild(secondPath, nullptr);
@@ -286,10 +321,13 @@ void PlugDataAudioProcessor::updateSearchPaths()
         auto location = elsePath.getFullPathName();
         libpd_add_to_search_path(location.toRawUTF8());
     }
+    
+    for (auto path : DekenInterface::getExternalPaths())
+    {
+        libpd_add_to_search_path(path.toRawUTF8());
+    }
 
     getCallbackLock()->exit();
-    
-    objectLibrary.updateLibrary();
 }
 
 const String PlugDataAudioProcessor::getName() const
@@ -405,7 +443,6 @@ void PlugDataAudioProcessor::releaseResources()
     releaseDSP();
 }
 
-//#ifndef JucePlugin_PreferredChannelConfigurations
 bool PlugDataAudioProcessor::isBusesLayoutSupported(const BusesLayout& layouts) const
 {
 #if JucePlugin_IsMidiEffect
@@ -452,7 +489,6 @@ void PlugDataAudioProcessor::processBlock(AudioBuffer<float>& buffer, MidiBuffer
     continuityChecker.setTimer();
     
     setThis();
-    sendParameters();
 
     for (int i = totalNumInputChannels; i < totalNumOutputChannels; ++i)
     {
@@ -617,39 +653,6 @@ void PlugDataAudioProcessor::process(dsp::AudioBlock<float> buffer, MidiBuffer& 
     }
 }
 
-void PlugDataAudioProcessor::sendParameters()
-{
-#if PLUGDATA_STANDALONE
-    for (int n = 0; n < numParameters; n++)
-    {
-        if (standaloneParams[n].load() != lastParameters[n])
-        {
-            float value = standaloneParams[n].load();
-            lastParameters[n] = value;
-
-            parameterAtom[0] = {pd::Atom(value)};
-
-            String toSend = ("param" + String(n + 1));
-            sendList(toSend.toRawUTF8(), parameterAtom);
-        }
-    }
-
-#else
-    for (int n = 0; n < numParameters; n++)
-    {
-        if (parameterValues[n]->load() != lastParameters[n])
-        {
-            lastParameters[n] = parameterValues[n]->load();
-
-            parameterAtom[0] = {pd::Atom(lastParameters[n])};
-
-            String toSend = ("param" + String(n + 1));
-            sendList(toSend.toRawUTF8(), parameterAtom);
-        }
-    }
-#endif
-}
-
 void PlugDataAudioProcessor::sendPlayhead()
 {
     AudioPlayHead* playhead = getPlayHead();
@@ -657,6 +660,7 @@ void PlugDataAudioProcessor::sendPlayhead()
     
     auto infos = playhead->getPosition();
     
+    setThis();
     if (infos.hasValue())
     {
         atoms_playhead[0] = static_cast<float>(infos->getIsPlaying());
@@ -827,6 +831,7 @@ void PlugDataAudioProcessor::processInternal()
     sendMessagesFromQueue();
     sendPlayhead();
     sendMidiBuffer();
+    sendParameters();
 
     // Process audio
     FloatVectorOperations::copy(audioBufferIn.data() + (2 * 64), audioBufferOut.data() + (2 * 64), (minOut - 2) * 64);
@@ -985,9 +990,7 @@ void PlugDataAudioProcessor::setStateInformation(const void* data, int sizeInByt
 
 pd::Patch* PlugDataAudioProcessor::loadPatch(const File& patchFile)
 {
-
     // First, check if patch is already opened
-    
     int i = 0;
     for(auto* patch : patches) {
         if(patch->getCurrentFile() == patchFile)
@@ -997,6 +1000,7 @@ pd::Patch* PlugDataAudioProcessor::loadPatch(const File& patchFile)
                 MessageManager::callAsync([i, _editor = Component::SafePointer(editor)]() mutable {
                     if(!_editor) return;
                     _editor->tabbar.setCurrentTabIndex(i);
+                    _editor->pd.logError("Patch is already open");
                 });
             }
         
@@ -1058,7 +1062,7 @@ void PlugDataAudioProcessor::setTheme(bool themeToUse)
             cnv->viewport->repaint();
 
             // Some objects with setBufferedToImage need manual repainting
-            for (auto* box : cnv->boxes) box->repaint();
+            for (auto* object : cnv->objects) object->repaint();
             for (auto* con : cnv->connections) reinterpret_cast<Component*>(con)->repaint();
             cnv->repaint();
         }
@@ -1158,19 +1162,73 @@ void PlugDataAudioProcessor::receiveMidiByte(const int port, const int byte)
     }
 }
 
-void PlugDataAudioProcessor::receiveParameter(int idx, float value)
+// Only for standalone: check which parameters have changed and forward them to pd
+void PlugDataAudioProcessor::sendParameters()
 {
 #if PLUGDATA_STANDALONE
-    standaloneParams[idx - 1] = value;
-    if (auto* editor = dynamic_cast<PlugDataPluginEditor*>(getActiveEditor()))
+    for (int idx = 0; idx < numParameters; idx++)
     {
-        editor->sidebar.updateAutomationParameters();
+        float value = standaloneParams[idx].load();
+        if (value != lastParameters[idx])
+        {
+            auto paramID = "param" + String(idx + 1);
+            sendFloat(paramID.toRawUTF8(), value);
+            lastParameters[idx] = value;
+        }
     }
-#else
-    auto* parameter = parameters.getParameter("param" + String(idx));
-    parameterTimers[idx - 1].notifyChange(parameter);
-    parameter->setValueNotifyingHost(value);
 #endif
+}
+
+void PlugDataAudioProcessor::performParameterChange(int type, int idx, float value)
+{
+    // Type == 1 means it sets the change gesture state
+    if(type)
+    {
+        if(changeGestureState[idx] == value) {
+            logMessage("parameter change " + String(idx) + (value ? " already started" : " not started"));
+        }
+        else {
+            #if !PLUGDATA_STANDALONE
+            auto* parameter = parameters.getParameter("param" + String(idx + 1));
+            value ? parameter->beginChangeGesture() : parameter->endChangeGesture();
+            #endif
+            changeGestureState[idx] = value;
+        }
+    }
+    else { // otherwise set parameter value
+#if PLUGDATA_STANDALONE
+        // Set the value
+        standaloneParams[idx].store(value);
+        
+        // Update values in automation panel
+        if(lastParameters[idx] == value) return;
+        if(auto* editor = dynamic_cast<PlugDataPluginEditor*>(getActiveEditor())) {
+            editor->sidebar.updateAutomationParameters();
+        }
+        lastParameters[idx] = value;
+#else
+        auto paramID = "param" + String(idx + 1);
+        if(lastParameters[idx] == value) return; // Prevent feedback
+        // Send new value to DAW
+        parameters.getParameter(paramID)->setValueNotifyingHost(value);
+        lastParameters[idx] = value;
+#endif
+    }
+}
+
+// Callback when parameter values change
+void PlugDataAudioProcessor::parameterValueChanged (int idx, float value)
+{
+    enqueueFunction([this, idx, value]() mutable {
+        auto paramID = "param" + String(idx);
+        sendFloat(paramID.toRawUTF8(), value);
+        lastParameters[idx - 1] = value;
+    });
+}
+
+void PlugDataAudioProcessor::parameterGestureChanged (int parameterIndex, bool gestureIsStarting)
+{
+    
 }
 
 void PlugDataAudioProcessor::receiveDSPState(bool dsp)
@@ -1200,18 +1258,20 @@ void PlugDataAudioProcessor::timerCallback()
     if (auto* editor = dynamic_cast<PlugDataPluginEditor*>(getActiveEditor()))
     {
         if (!callbackType) return;
-
-        if (callbackType & 2)
-        {
-             editor->updateValues();
-        }
-        if (callbackType & 4)
-        {
-             editor->updateDrawables();
-        }
-        if (callbackType & 8)
-        {
-             editor->updateGuiParameters();
+        
+        if(auto* cnv = editor->getCurrentCanvas()) {
+            if (callbackType & 2)
+            {
+                cnv->updateGuiValues();
+            }
+            if (callbackType & 4)
+            {
+                cnv->updateDrawables();
+            }
+            if (callbackType & 8)
+            {
+                cnv->updateGuiParameters();
+            }
         }
 
         callbackType = 0;

@@ -212,20 +212,27 @@ void Library::initialiseLibrary()
 
         appDataDir = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory).getChildFile("PlugData");
 
+        auto pddocPath = appDataDir.getChildFile("Library").getChildFile("Documentation").getChildFile("pddp").getFullPathName();
+
         updateLibrary();
-
-        auto pddocPath = appDataDir.getChildFile(ProjectInfo::versionString).getChildFile("Documentation").getChildFile("pddp").getFullPathName();
-
         parseDocumentation(pddocPath);
-
-        watcher.addFolder(appDataDir);
-        watcher.addListener(this);
 
         if (thread->threadShouldExit())
             return;
+        
+        
+        // Paths to search
+        // First, only search vanilla, then search all documentation
+        // Lastly, check the deken folder
+        helpPaths = {appDataDir.getChildFile("Documentation").getChildFile("Library").getChildFile("5.reference"), appDataDir.getChildFile("Library").getChildFile("Documentation"),
+            appDataDir.getChildFile("Deken")
+        };
 
         // Update docs in GUI
         MessageManager::callAsync([this]() {
+            watcher.addFolder(appDataDir);
+            watcher.addListener(this);
+
             if (appDirChanged)
                 appDirChanged();
         });
@@ -247,6 +254,7 @@ void Library::updateLibrary()
 
         searchTree = std::make_unique<Trie>();
 
+        // Get available objects directly from pd
         int i;
         t_class* o = pd_objectmaker;
 
@@ -265,6 +273,7 @@ void Library::updateLibrary()
 
         searchTree->insert("graph");
 
+        // Find patches in our search tree
         for (auto path : pathTree) {
             auto filePath = File(path.getProperty("Path").toString());
 
@@ -334,9 +343,32 @@ void Library::parseDocumentation(String const& path)
         return text;
     };
 
-    auto parseFile = [this, getSections, formatText](File& f) {
+    auto sectionsFromHyphens = [](String text) {
+        StringArray lines = StringArray::fromLines(text);
+
+        int lastIdx = 0;
+        for (int i = 0; i < lines.size(); i++) {
+            auto& line = lines.getReference(i);
+            auto& lastLine = lines.getReference(lastIdx);
+
+            if (!line.trim().startsWith("-")) {
+                lastLine += line;
+                line.clear();
+
+            } else {
+                lastLine = lastLine.fromFirstOccurrenceOf("-", false, false);
+                lastIdx = i;
+            }
+        }
+
+        lines.removeEmptyStrings();
+
+        return lines;
+    };
+
+    auto parseFile = [this, getSections, formatText, sectionsFromHyphens](File& f) {
         String contents = f.loadFileAsString();
-        auto sections = getSections(contents, { "\ntitle", "\ndescription", "\npdcategory", "\ncategories", "\narguments", "\nlast_update", "\ninlets", "\noutlets", "\ndraft" });
+        auto sections = getSections(contents, { "\ntitle", "\ndescription", "\npdcategory", "\ncategories", "\nflags", "\narguments", "\nlast_update", "\ninlets", "\noutlets", "\ndraft" });
 
         if (!sections.count("title"))
             return;
@@ -347,12 +379,17 @@ void Library::parseDocumentation(String const& path)
             objectDescriptions[name] = sections["description"].first;
         }
 
-        if (sections.count("arguments")) {
+        if (sections.count("arguments") || sections.count("flags")) {
             Arguments args;
 
-            for (auto& argument : StringArray::fromTokens(sections["arguments"].first.fromFirstOccurrenceOf("-", false, false), "-", "\"")) {
+            for (auto& argument : sectionsFromHyphens(sections["arguments"].first)) {
                 auto sectionMap = getSections(argument, { "type", "description", "default" });
                 args.push_back({ sectionMap["type"].first, sectionMap["description"].first, sectionMap["default"].first });
+            }
+
+            for (auto& flag : sectionsFromHyphens(sections["flags"].first)) {
+                auto sectionMap = getSections(flag, { "name", "description" });
+                args.push_back({ sectionMap["name"].first, sectionMap["description"].first, "" });
             }
 
             arguments[name] = args;
@@ -364,7 +401,7 @@ void Library::parseDocumentation(String const& path)
             inletDescriptions[name].resize(static_cast<int>(section.size()));
             for (auto [number, content] : section) {
                 String tooltip;
-                for (auto& argument : StringArray::fromTokens(content.first, "-", "\"")) {
+                for (auto& argument : sectionsFromHyphens(content.first)) {
                     auto sectionMap = getSections(argument, { "type", "description" });
                     if (sectionMap["type"].first.isEmpty())
                         continue;
@@ -381,7 +418,7 @@ void Library::parseDocumentation(String const& path)
             for (auto [number, content] : section) {
                 String tooltip;
 
-                for (auto& argument : StringArray::fromTokens(content.first, "-", "\"")) {
+                for (auto& argument : sectionsFromHyphens(content.first)) {
                     auto sectionMap = getSections(argument, { "type", "description" });
                     if (sectionMap["type"].first.isEmpty())
                         continue;
@@ -405,14 +442,15 @@ void Library::parseDocumentation(String const& path)
 Suggestions Library::autocomplete(String query) const
 {
     Suggestions result;
-    searchTree->autocomplete(std::move(query), result);
+    if (searchTree)
+        searchTree->autocomplete(std::move(query), result);
     return result;
 }
 
-String Library::getInletOutletTooltip(String boxname, int idx, int total, bool isInlet)
+String Library::getInletOutletTooltip(String objname, int idx, int total, bool isInlet)
 {
-    auto name = boxname.upToFirstOccurrenceOf(" ", false, false);
-    auto args = StringArray::fromTokens(boxname.fromFirstOccurrenceOf(" ", false, false), true);
+    auto name = objname.upToFirstOccurrenceOf(" ", false, false);
+    auto args = StringArray::fromTokens(objname.fromFirstOccurrenceOf(" ", false, false), true);
 
     auto findInfo = [&name, &args, &total, &idx](IODescriptionMap map) {
         if (map.count(name)) {
@@ -446,7 +484,55 @@ String Library::getInletOutletTooltip(String boxname, int idx, int total, bool i
 void Library::fsChangeCallback()
 {
     appDirChanged();
-    updateLibrary();
+}
+
+File Library::findHelpfile(t_object* obj)
+{
+    String helpName;
+    
+    auto* pdclass = pd_class(reinterpret_cast<t_pd*>(obj));
+    
+    if(pdclass == canvas_class && canvas_isabstraction(reinterpret_cast<t_canvas*>(obj))) {
+        char namebuf[MAXPDSTRING];
+        t_object *ob = obj;
+        int ac = binbuf_getnatom(ob->te_binbuf);
+        t_atom *av = binbuf_getvec(ob->te_binbuf);
+        if (ac < 1)
+            return File();
+        
+        atom_string(av, namebuf, MAXPDSTRING);
+        helpName = String::fromUTF8(namebuf).fromLastOccurrenceOf("/", false, false);
+    }
+    else {
+        helpName = class_gethelpname(pdclass);
+    }
+
+    String firstName = helpName + "-help.pd";
+    String secondName = "help-" + helpName + ".pd";
+
+    auto findHelpPatch = [&firstName, &secondName](const File& searchDir) -> File
+    {
+        for (const auto& fileIter : RangedDirectoryIterator(searchDir, true))
+        {
+            auto file = fileIter.getFile();
+            if (file.getFileName() == firstName || file.getFileName() == secondName)
+            {
+                return file;
+            }
+        }
+        return File();
+    };
+    
+    for (auto& path : helpPaths)
+    {
+        auto file = findHelpPatch(path);
+        if (file.existsAsFile())
+        {
+            return file;
+        }
+    }
+    
+    return File();
 }
 
 ObjectMap Library::getObjectDescriptions()

@@ -13,6 +13,8 @@ extern "C" {
 #include <z_libpd.h>
 
 void libpd_multi_init(void);
+void libpd_init_else(void);
+void libpd_init_cyclone(void);
 
 typedef void (*t_libpd_multi_banghook)(void* ptr, char const* recv);
 typedef void (*t_libpd_multi_floathook)(void* ptr, char const* recv, float f);

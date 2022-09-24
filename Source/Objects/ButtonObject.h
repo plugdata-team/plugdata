@@ -1,36 +1,35 @@
 
 
-typedef struct _edit_proxy{
-    t_object    p_obj;
-    t_symbol   *p_sym;
-    t_clock    *p_clock;
-    struct      _button *p_cnv;
-}t_edit_proxy;
+typedef struct _edit_proxy {
+    t_object p_obj;
+    t_symbol* p_sym;
+    t_clock* p_clock;
+    struct _button* p_cnv;
+} t_edit_proxy;
 
-
-typedef struct _button{
-    t_object        x_obj;
-    t_glist        *x_glist;
-    t_edit_proxy   *x_proxy;
-    t_symbol       *x_bindname;
-    int             x_x;
-    int             x_y;
-    int             x_w;
-    int             x_h;
-    int             x_sel;
-    int             x_zoom;
-    int             x_edit;
-    int             x_state;
-    unsigned char   x_bgcolor[3];
-    unsigned char   x_fgcolor[3];
-}t_fake_button;
+typedef struct _button {
+    t_object x_obj;
+    t_glist* x_glist;
+    t_edit_proxy* x_proxy;
+    t_symbol* x_bindname;
+    int x_x;
+    int x_y;
+    int x_w;
+    int x_h;
+    int x_sel;
+    int x_zoom;
+    int x_edit;
+    int x_state;
+    unsigned char x_bgcolor[3];
+    unsigned char x_fgcolor[3];
+} t_fake_button;
 
 struct ButtonObject : public GUIObject {
-    
+
     bool state = false;
     bool alreadyTriggered = false;
 
-    ButtonObject(void* obj, Box* parent)
+    ButtonObject(void* obj, Object* parent)
         : GUIObject(obj, parent)
     {
     }
@@ -38,19 +37,19 @@ struct ButtonObject : public GUIObject {
     void checkBounds() override
     {
         // Fix aspect ratio and apply limits
-        int size = jlimit(30, maxSize, box->getWidth());
-        if (size != box->getHeight() || size != box->getWidth()) {
-            box->setSize(size, size);
+        int size = jlimit(30, maxSize, object->getWidth());
+        if (size != object->getHeight() || size != object->getWidth()) {
+            object->setSize(size, size);
         }
     }
-    
+
     void updateParameters() override
     {
         auto* button = static_cast<t_fake_button*>(ptr);
-        
+
         primaryColour = Colour(button->x_fgcolor[0], button->x_fgcolor[1], button->x_fgcolor[2]).toString();
         secondaryColour = Colour(button->x_bgcolor[0], button->x_bgcolor[1], button->x_bgcolor[2]).toString();
-        
+
         auto params = getParameters();
         for (auto& [name, type, cat, value, list] : params) {
             value->addListener(this);
@@ -65,9 +64,9 @@ struct ButtonObject : public GUIObject {
     /*
     void toggleObject(Point<int> position) override
     {
-        
+
         if (!alreadyBanged) {
-            
+
             auto* button = static_cast<t_fake_button*>(ptr);
             outlet_float(button->x_obj.ob_outlet, 1);
             update();
@@ -76,7 +75,7 @@ struct ButtonObject : public GUIObject {
     }
     void untoggleObject() override
     {
-       
+
         if(alreadyBanged)
         {
             auto* button = static_cast<t_fake_button*>(ptr);
@@ -95,13 +94,13 @@ struct ButtonObject : public GUIObject {
         auto bounds = Rectangle<int>(x, y, w, h);
 
         pd->getCallbackLock()->exit();
-    
-        box->setObjectBounds(bounds);
+
+        object->setObjectBounds(bounds);
     }
-    
+
     void applyBounds() override
     {
-        auto b = box->getObjectBounds();
+        auto b = object->getObjectBounds();
         libpd_moveobj(cnv->patch.getPointer(), static_cast<t_gobj*>(ptr), b.getX(), b.getY());
 
         auto* button = static_cast<t_fake_button*>(ptr);
@@ -120,7 +119,7 @@ struct ButtonObject : public GUIObject {
 
         repaint();
     }
-    
+
     void mouseUp(MouseEvent const& e) override
     {
         alreadyTriggered = false;
@@ -130,23 +129,21 @@ struct ButtonObject : public GUIObject {
         repaint();
     }
 
-
     void paint(Graphics& g) override
     {
         auto const bounds = getLocalBounds().toFloat();
-        
+
         g.setColour(Colour::fromString(secondaryColour.toString()));
         g.fillRoundedRectangle(bounds.reduced(1), 3.0f);
 
-        g.setColour(box->findColour(PlugDataColour::canvasOutlineColourId));
+        g.setColour(object->findColour(PlugDataColour::canvasOutlineColourId));
         g.drawRoundedRectangle(bounds.reduced(1), 3.0f, 1.0f);
         g.drawRoundedRectangle(bounds.reduced(6), 3.0f, 2.0f);
 
-        if(state) {
+        if (state) {
             g.setColour(Colour::fromString(primaryColour.toString()));
             g.fillRoundedRectangle(bounds.reduced(6), 3.0f);
         }
-
     }
 
     ObjectParameters defineParameters() override
@@ -161,15 +158,17 @@ struct ButtonObject : public GUIObject {
     {
         auto* button = static_cast<t_fake_button*>(ptr);
         if (value.refersToSameSourceAs(primaryColour)) {
-            button->x_fgcolor[0] = Colour::fromString(primaryColour.toString()).getRed();
-            button->x_fgcolor[1] = Colour::fromString(primaryColour.toString()).getGreen();
-            button->x_fgcolor[2] = Colour::fromString(primaryColour.toString()).getBlue();
+            auto col = Colour::fromString(primaryColour.toString());
+            button->x_fgcolor[0] = col.getRed();
+            button->x_fgcolor[1] = col.getGreen();
+            button->x_fgcolor[2] = col.getBlue();
             repaint();
         }
         if (value.refersToSameSourceAs(secondaryColour)) {
-            button->x_bgcolor[0] = Colour::fromString(secondaryColour.toString()).getRed();
-            button->x_bgcolor[1] = Colour::fromString(secondaryColour.toString()).getGreen();
-            button->x_bgcolor[2] = Colour::fromString(secondaryColour.toString()).getBlue();
+            auto col = Colour::fromString(secondaryColour.toString());
+            button->x_bgcolor[0] = col.getRed();
+            button->x_bgcolor[1] = col.getGreen();
+            button->x_bgcolor[2] = col.getBlue();
             repaint();
         }
     }

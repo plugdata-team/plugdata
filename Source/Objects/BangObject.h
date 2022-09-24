@@ -8,19 +8,20 @@ struct BangObject final : public IEMObject {
     bool bangState = false;
     bool alreadyBanged = false;
 
-    BangObject(void* obj, Box* parent)
+    BangObject(void* obj, Object* parent)
         : IEMObject(obj, parent)
     {
-        bangInterrupt = static_cast<t_bng*>(ptr)->x_flashtime_break;
-        bangHold = static_cast<t_bng*>(ptr)->x_flashtime_hold;
+        auto* bng = static_cast<t_bng*>(ptr);
+        bangInterrupt = bng->x_flashtime_break;
+        bangHold = bng->x_flashtime_hold;
     }
 
     void checkBounds() override
     {
         // Fix aspect ratio and apply limits
-        int size = jlimit(30, maxSize, box->getWidth());
-        if (size != box->getHeight() || size != box->getWidth()) {
-            box->setSize(size, size);
+        int size = jlimit(30, maxSize, object->getWidth());
+        if (size != object->getHeight() || size != object->getWidth()) {
+            object->setSize(size, size);
         }
     }
     void toggleObject(Point<int> position) override
@@ -61,14 +62,13 @@ struct BangObject final : public IEMObject {
         float const circleOuter = 80.f * (width * 0.01f);
         float const circleThickness = std::max(width * 0.06f, 1.5f);
 
-        g.setColour(box->findColour(PlugDataColour::canvasOutlineColourId));
+        g.setColour(object->findColour(PlugDataColour::canvasOutlineColourId));
         g.drawEllipse(bounds.reduced(width - circleOuter), circleThickness);
 
-        if(bangState) {
+        if (bangState) {
             g.setColour(getForegroundColour());
             g.fillEllipse(bounds.reduced(width - circleOuter + circleThickness));
         }
-        
     }
 
     float getValue() override

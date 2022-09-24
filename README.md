@@ -50,50 +50,43 @@ Supported by [Deskew Technologies](https://gigperformer.com)
 What works:
 - Nearly complete support for pd
 - Most ELSE and cyclone library objects work
-- LV2, AU and VST3 formats available, tested on Windows (x64), Mac (ARM/x64) and Linux (ARM/x64), also works as AU MIDI processor for Logic
-- Receive 512 DAW parameters using [receive param1], [receive param2], etc. 
+- LV2, AU and VST3 formats available, tested on Windows (x64), Mac (ARM/x64) and Linux (ARM/x64)
+- Receive 512 DAW parameters using the [param] abstraction
 - Receive DAW playhead position, tempo and more using the [playhead] abstraction
 
 Known issues:
-- Externals are broken on Windows
-- Broken objects:
-  - text define
-  - netreceive
-  - store
-  - rec
-  - oscilloscope
-  - canvas manipulation objects in ELSE
-  - Possibly more
+- Broken ELSE objects: 
+  - [oscope~]
+  - [function]
+  - [bicoeff]
+  - [messbox]
+  - [note]
+  - [canvas.active]
+  - [canvas.mouse]
+  - [canvas.vis]
+  - [canvas.zoom]
 - There may still be some more bugs
 
 ## Roadmap
 
-These are all the things I'm hoping to implement before version 0.6.
+These are all the things I'm hoping to implement before version 0.7
 I might release some smaller versions inbetween if any serious bugs are being found.
 
 FEATURES:
-- Smart patching:
-	- Shift-drag to place object inbetween connection
-	- Shift while creating connection to create multiple connections
-	- Dragging over toggles and radiocomponents to activate them
-	- Move objects with arrow keys
-	- More stuff
-- Oversampling
+- Object discovery panel: a place where all objects (with descriptions) are listed by category
+- Search in patch
+- Autosave
 
 PD COMPATIBILITY:
-- Fix missing canvas properties
 - Fix broken objects
-- Support for dynamic patching
-
-BUGS:
-- Fix externals on Windows
-- Improve stability of custom connection paths
+- Some properties are not updated in the panel when set with a message
 
 OTHER:
-- Improve performance
 - Expand documentation with more object descriptions and inlet/outlet hover messages
 - Restructure build directory
 - Clean up and document code
+- Codesign executables for Windows
+- Support for Gem and Ofelia
 
 
-Please contact me if you wish to contribute, I could use some help! Bug reports are also appricated, they help me to get to a stable version much faster.
+Please contact me if you wish to contribute, I could use some help! Bug reports are also appreciated, they help me to get to a stable version much faster.

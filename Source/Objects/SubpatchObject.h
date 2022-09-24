@@ -1,8 +1,8 @@
 
 struct SubpatchObject final : public TextBase
     , public Value::Listener {
-    SubpatchObject(void* obj, Box* box)
-        : TextBase(obj, box)
+    SubpatchObject(void* obj, Object* object)
+        : TextBase(obj, object)
         , subpatch({ ptr, cnv->pd })
     {
         isGraphChild = false;
@@ -16,22 +16,31 @@ struct SubpatchObject final : public TextBase
     {
         // Change from subpatch to graph
         if (static_cast<t_canvas*>(ptr)->gl_isgraph) {
-            cnv->setSelected(box, false);
-            box->cnv->main.sidebar.hideParameters();
-            box->setType(currentText, ptr);
+            cnv->setSelected(object, false);
+            object->cnv->main.sidebar.hideParameters();
+            object->setType(currentText, ptr);
         }
     };
 
     void mouseDown(MouseEvent const& e) override
     {
+
         //  If locked and it's a left click
-        if ((box->locked == var(true) || box->commandLocked == var(true)) && !ModifierKeys::getCurrentModifiers().isRightButtonDown()) {
-            box->openSubpatch();
+        if (locked && !ModifierKeys::getCurrentModifiers().isRightButtonDown()) {
+            openSubpatch();
 
             return;
         } else {
             TextBase::mouseDown(e);
         }
+    }
+
+    // Most objects ignore mouseclicks when locked
+    // Objects can override this to do custom locking behaviour
+    void lock(bool isLocked) override
+    {
+        setInterceptsMouseClicks(isLocked, isLocked);
+        locked = isLocked;
     }
 
     ~SubpatchObject()
@@ -60,8 +69,20 @@ struct SubpatchObject final : public TextBase
         }
     }
 
+    bool canOpenFromMenu() override
+    {
+        return true;
+    }
+
+    void openFromMenu() override
+    {
+        openSubpatch();
+    }
+
 protected:
     pd::Patch subpatch;
     Value isGraphChild = Value(var(false));
     Value hideNameAndArgs = Value(var(false));
+
+    bool locked = false;
 };

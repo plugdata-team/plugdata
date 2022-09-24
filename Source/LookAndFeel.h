@@ -51,8 +51,10 @@ struct Icons
     inline static const CharPointer_UTF8 Up = CharPointer_UTF8("\xef\x81\xa2");
     inline static const CharPointer_UTF8 Down = CharPointer_UTF8("\xef\x81\xa3");
     inline static const CharPointer_UTF8 Edit = CharPointer_UTF8("\xef\x81\x80");
-    inline static const CharPointer_UTF8 ThinDown = CharPointer_UTF8 ("\xef\x84\x87");
-    inline static const CharPointer_UTF8 Sine = CharPointer_UTF8 ("\xee\xa1\x95");
+    inline static const CharPointer_UTF8 ThinDown = CharPointer_UTF8("\xef\x84\x87");
+    inline static const CharPointer_UTF8 Sine = CharPointer_UTF8("\xee\xa1\x95");
+    inline static const CharPointer_UTF8 Documentation = CharPointer_UTF8("\xef\x80\xad");
+    inline static const CharPointer_UTF8 AddCircled = CharPointer_UTF8("\xef\x81\x95");
 };
 
 enum PlugDataColour
@@ -399,18 +401,18 @@ struct PlugDataLook : public LookAndFeel_V4
         g.fillRect(rect);
     }
     
-    void drawComboBox(Graphics& g, int width, int height, bool, int, int, int, int, ComboBox& box) override
+    void drawComboBox(Graphics& g, int width, int height, bool, int, int, int, int, ComboBox& object) override
     {
-        bool inspectorElement = box.getName().startsWith("inspector");
+        bool inspectorElement = object.getName().startsWith("inspector");
         auto cornerSize = inspectorElement ? 0.0f : 3.0f;
         Rectangle<int> boxBounds(0, 0, width, height);
 
-        g.setColour(box.findColour(ComboBox::backgroundColourId));
+        g.setColour(object.findColour(ComboBox::backgroundColourId));
         g.fillRoundedRectangle(boxBounds.toFloat(), cornerSize);
 
         if (!inspectorElement)
         {
-            g.setColour(box.findColour(ComboBox::outlineColourId));
+            g.setColour(object.findColour(ComboBox::outlineColourId));
             g.drawRoundedRectangle(boxBounds.toFloat().reduced(0.5f, 0.5f), cornerSize, 1.0f);
         }
 
@@ -419,7 +421,7 @@ struct PlugDataLook : public LookAndFeel_V4
         path.startNewSubPath((float)arrowZone.getX() + 3.0f, (float)arrowZone.getCentreY() - 2.0f);
         path.lineTo((float)arrowZone.getCentreX(), (float)arrowZone.getCentreY() + 3.0f);
         path.lineTo((float)arrowZone.getRight() - 3.0f, (float)arrowZone.getCentreY() - 2.0f);
-        g.setColour(box.findColour(ComboBox::arrowColourId).withAlpha((box.isEnabled() ? 0.9f : 0.2f)));
+        g.setColour(object.findColour(ComboBox::arrowColourId).withAlpha((object.isEnabled() ? 0.9f : 0.2f)));
 
         g.strokePath(path, PathStrokeType(2.0f));
     }
@@ -550,7 +552,6 @@ struct PlugDataLook : public LookAndFeel_V4
             int dimension = std::min(bounds.getHeight(), bounds.getWidth()) / 2.0f;
             auto centre = bounds.getCentre();
             auto ellpiseBounds = Rectangle<float>(centre.translated(-dimension, -dimension), centre.translated(dimension, dimension));
-            // g.fillRoundedRectangle (bounds, cornerSize);
             g.fillEllipse(ellpiseBounds);
 
             g.setColour(button.findColour(ComboBox::outlineColourId));

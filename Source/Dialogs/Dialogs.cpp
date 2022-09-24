@@ -24,31 +24,40 @@ Component* Dialogs::showTextEditorDialog(String text, String filename, std::func
     return editor;
 }
 
-Component* Dialogs::showSaveDialog(Component* centre, String filename, std::function<void(int)> callback)
+void Dialogs::showSaveDialog(std::unique_ptr<Dialog>* target, Component* centre, String filename, std::function<void(int)> callback)
 {
-    auto* dialog = new Dialog(centre, 400, 130, 160, false);
+    if (*target)
+        return;
+
+    auto* dialog = new Dialog(target, centre, 400, 130, 160, false);
     auto* saveDialog = new SaveDialog(centre, dialog, filename);
 
     dialog->setViewedComponent(saveDialog);
     saveDialog->cb = std::move(callback);
-    return saveDialog;
+    target->reset(dialog);
 }
-Component* Dialogs::showArrayDialog(Component* centre, std::function<void(int, String, String)> callback)
+void Dialogs::showArrayDialog(std::unique_ptr<Dialog>* target, Component* centre, std::function<void(int, String, String)> callback)
 {
-    auto* dialog = new Dialog(centre, 300, 180, 200, false);
+    if (*target)
+        return;
+
+    auto* dialog = new Dialog(target, centre, 300, 180, 200, false);
     auto* arrayDialog = new ArrayDialog(centre, dialog);
     dialog->setViewedComponent(arrayDialog);
     arrayDialog->cb = std::move(callback);
-    return arrayDialog;
+    target->reset(dialog);
 }
 
-Component* Dialogs::createSettingsDialog(AudioProcessor& processor, AudioDeviceManager* manager, ValueTree const& settingsTree)
+void Dialogs::createSettingsDialog(std::unique_ptr<Dialog>* target, AudioProcessor& processor, AudioDeviceManager* manager, ValueTree const& settingsTree)
 {
+    if (*target)
+        return;
+
     auto* editor = processor.getActiveEditor();
-    auto* dialog = new Dialog(editor->getParentComponent(), 675, 500, editor->getBounds().getCentreY() + 250, true);
+    auto* dialog = new Dialog(target, editor, 675, 500, editor->getBounds().getCentreY() + 250, true);
     auto* settingsDialog = new SettingsDialog(processor, dialog, manager, settingsTree);
     dialog->setViewedComponent(settingsDialog);
-    return dialog;
+    target->reset(dialog);
 }
 
 void Dialogs::showObjectMenu(PlugDataPluginEditor* parent, Component* target)
@@ -88,6 +97,7 @@ void Dialogs::showObjectMenu(PlugDataPluginEditor* parent, Component* target)
     menu.addItem(createCommandItem(CommandIDs::NewMessage, "Message"));
     menu.addItem(createCommandItem(CommandIDs::NewBang, "Bang"));
     menu.addItem(createCommandItem(CommandIDs::NewToggle, "Toggle"));
+    menu.addItem(createCommandItem(CommandIDs::NewButton, "Button"));
     menu.addItem(createCommandItem(CommandIDs::NewVerticalSlider, "Vertical Slider"));
     menu.addItem(createCommandItem(CommandIDs::NewHorizontalSlider, "Horizontal Slider"));
     menu.addItem(createCommandItem(CommandIDs::NewVerticalRadio, "Vertical Radio"));
@@ -98,7 +108,6 @@ void Dialogs::showObjectMenu(PlugDataPluginEditor* parent, Component* target)
     menu.addItem(createCommandItem(CommandIDs::NewFloatAtom, "Float Atom"));
     menu.addItem(createCommandItem(CommandIDs::NewSymbolAtom, "Symbol Atom"));
     menu.addItem(createCommandItem(CommandIDs::NewListAtom, "List Atom"));
-
     menu.addSeparator();
 
     menu.addItem(createCommandItem(CommandIDs::NewArray, "Array"));
@@ -108,6 +117,9 @@ void Dialogs::showObjectMenu(PlugDataPluginEditor* parent, Component* target)
     menu.addSeparator();
     menu.addItem(createCommandItem(CommandIDs::NewKeyboard, "Keyboard"));
     menu.addItem(createCommandItem(CommandIDs::NewVUMeterObject, "VU Meter"));
+    menu.addItem(createCommandItem(CommandIDs::NewNumboxTilde, "Signal Numbox"));
+    menu.addItem(createCommandItem(CommandIDs::NewOscilloscope, "Oscilloscope"));
+    menu.addItem(createCommandItem(CommandIDs::NewFunction, "Function"));
 
     menu.showMenuAsync(PopupMenu::Options().withMinimumWidth(100).withMaximumNumColumns(1).withTargetComponent(target).withParentComponent(parent),
         [parent](int result) {
@@ -117,4 +129,19 @@ void Dialogs::showObjectMenu(PlugDataPluginEditor* parent, Component* target)
                 }
             }
         });
+}
+
+StringArray DekenInterface::getExternalPaths()
+{
+    StringArray searchPaths;
+    
+    for(auto package : PackageManager::getInstance()->packageState) {
+        if(!package.hasProperty("AddToPath") || !static_cast<bool>(package.getProperty("AddToPath"))) {
+            continue;
+        }
+        
+        searchPaths.add(package.getProperty("Path"));
+    }
+    
+    return searchPaths;
 }
