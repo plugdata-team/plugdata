@@ -1,12 +1,26 @@
 ---
 title: ceil~
-description:
+
+description: Ceil function (for signals)
+
 categories:
  - object
-pdcategory: General
-arguments:
+
+pdcategory: Math Functions
+
+arguments: none
+
 inlets:
+  1st:
+  - type: signal
+    description: input value
+
 outlets:
   1st:
   - type: signal
-    description:
+    description: ceiled value
+
+draft: false
+---
+
+[ceil~] is a ceil math function for signals.
