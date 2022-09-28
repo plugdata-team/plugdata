@@ -1,11 +1,27 @@
-# PlugData
-Plugin wrapper around PureData to allow patching in a wide selection of DAWs.
+
+<p align="center">
+  <a href="https://github.com/timothyschoen/PlugData/wiki">
+    <img src="https://user-images.githubusercontent.com/44585538/192791960-dca1f63b-ea3a-4f45-bb22-e317826ff328.png" alt="Logo" width=72 height=72>
+  </a>
+  <h1 align="center">PlugData</h1>
+  <p align="center">
+    Plugin wrapper around Pure Data to allow patching in a wide selection of DAWs.
+  </p>
+  <p align="center">
+    <a href="https://github.com/timothyschoen/PlugData/actions/workflows/cmake.yml"><img src="https://github.com/timothyschoen/PlugData/actions/workflows/cmake.yml/badge.svg" alt="Workflows"></a>
+  </p>
+  <p align="center">
+    <a href="https://github.com/timothyschoen/PlugData/releases/latest"><img src="https://img.shields.io/github/downloads/timothyschoen/PlugData/total.svg?colorB=007ec6" alt="Downloads"></a>
+    <a href="https://github.com/timothyschoen/PlugData/releases/latest"><img src="https://img.shields.io/github/release/timothyschoen/PlugData.svg?include_prereleases" alt="Release"></a>
+    <a href="https://github.com/timothyschoen/PlugData/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-GPL--v3-blue.svg" alt="License"></a>
+  </p>
+</p>
 
 <img width="1054" alt="Screenshot 2022-06-29 at 00 14 03" src="https://user-images.githubusercontent.com/44585538/176311724-b6e2e92b-1a0b-4f8d-a328-fc1c9cf0666c.png">
 
 <img width="1054" alt="Screenshot 2022-06-29 at 00 18 35" src="https://user-images.githubusercontent.com/44585538/176312569-dca8f9f1-c4c7-4176-82c1-17378daf17fd.png">
 
-PlugData is a plugin wrapper for PureData, featuring a new GUI made with JUCE. This is still a WIP, and there are probably still some bugs. By default, it ships with the ELSE collection of externals and abstractions. The aim is to provide a more comfortable patching experience for a large selection of DAWs. It can also be used as a standalone replacement for pure-data.
+PlugData is a plugin wrapper for Pure Data, featuring a new GUI made with JUCE. This is still a WIP, and there are probably still some bugs. By default, it ships with the ELSE collection of externals and abstractions. The aim is to provide a more comfortable patching experience for a large selection of DAWs. It can also be used as a standalone replacement for pure-data.
 
 Join the Discord here, for sharing patches, reporting issues or requesting features: https://discord.gg/eT2RxdF9Nq
 
