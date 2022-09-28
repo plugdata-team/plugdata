@@ -1,15 +1,24 @@
 ---
 title: canvas.bounds
-description:
+
+description: Report canvas bounds
+
 categories:
  - object
-pdcategory: General
+
+pdcategory: Subpatch Management
+
 arguments:
 - type: float
-  description:
-  default:
+  description: depth
+  default: 0 (current window)
 inlets:
 outlets:
   1st:
-  - type: ?
-    description:
+  - type: list
+    description: bounds coordinates
+
+draft: false
+---
+
+The [canvas.bounds] object outputs bounds coordinates in pixels, top left coordinate (horizontal, vertical) and bottom right (horizontal, vertical). Try moving the patch window or change window size to see changes.

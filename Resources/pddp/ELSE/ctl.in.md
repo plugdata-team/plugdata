@@ -1,30 +1,41 @@
 ---
 title: ctl.in
-description:
+
+description: Midi control input
+
 categories:
  - object
-pdcategory: General
+
+pdcategory: MIDI
+
 arguments:
-- type: gimme
-  description:
-  default:
+- type: list
+  description: one value sets channel number. Two values set control number
+  default: 0=Omni, 1=All
+
 inlets:
   1st:
   - type: float
-    description:
+    description: raw MIDI data stream
   2nd:
   - type: float
-    description:
+    description: Controller number
   3rd:
   - type: float
-    description:
+    description: MIDI channel (0 for omni)
+
 outlets:
   1st:
   - type: float
-    description:
+    description: control value
   2nd:
   - type: float
-    description:
+    description: control number
   3rd:
   - type: float
-    description:
+    description: MIDI channel
+
+draft: false
+---
+
+[ctl.in] extracts MIDI control information from raw MIDI input (such as from [midiin]).
