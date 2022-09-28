@@ -1,15 +1,26 @@
 ---
 title: canvas.setname
-description:
+
+description: Set canvas name
+
 categories:
  - object
-pdcategory: General
+
+pdcategory: Subpatch Management
+
 arguments:
 - type: symbol
-  description:
-  default:
+  description: canvas name
+  default: none
 - type: float
-  description:
-  default:
-inlets:
-outlets:
+  description: depth level
+  default: 0
+
+inlets: none
+
+outlets: none
+
+draft: false
+---
+
+[canvas.setname] sets a symbol name to a canvas so you can send it messages. It's the same as [namecanvas] but it also allows you to set the name of a parent patch with the second optional depth argument - (1) is parent patch (2) is parent's parent patch and so on...

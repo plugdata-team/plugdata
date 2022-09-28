@@ -1,24 +1,35 @@
 ---
 title: ctl.out
-description:
+
+description: MIDI control output
+
 categories:
  - object
-pdcategory: General
+
+pdcategory: MIDI
+
 arguments:
-- type: gimme
-  description:
-  default:
+- type: list
+  description: float sets channel number. Two floats set control number and channel
+  default: 1
+
 inlets:
   1st:
   - type: float
-    description:
+    description: control value
   2nd:
   - type: float
-    description:
+    description: control number
   3rd:
   - type: float
-    description:
+    description: MIDI channel
+
 outlets:
   1st:
   - type: float
-    description:
+    description: raw MIDI stream
+
+draft: false
+---
+
+[ctl.out] formats and sends raw MIDI control messages. An argument sets channel number (the default is 1).

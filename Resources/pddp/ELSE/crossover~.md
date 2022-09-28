@@ -1,24 +1,38 @@
 ---
 title: crossover~
-description:
+
+description: Crossover filter
+
 categories:
  - object
-pdcategory: General
+
+pdcategory: DSP (Filters)
+
 arguments:
 - type: float
-  description:
-  default:
+  description: cutoff frequency
+  default: 1000
+
 inlets:
   1st:
   - type: signal
-    description:
+    description: signal to be filtered
+  - type: clear
+    description: clears filter's memory
   2nd:
-  - type: signal
-    description:
+  - type: float/signal
+    description: cutoff frequency
+
 outlets:
   1st:
   - type: signal
-    description:
+    description: lowpass output
   2nd:
   - type: signal
-    description:
+    description: highpass output
+
+draft: false
+---
+
+[crossover~] is a of 3rd order butterworth crossover filter.
+It has two outlets for lowpass (left) and highpass (right) filters that you can use separately or in combination to form a crossover filter.
