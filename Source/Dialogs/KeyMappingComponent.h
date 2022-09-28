@@ -75,6 +75,8 @@ public:
         mappings.addKeyPress(CommandIDs::NewNumbox, KeyPress(73, ModifierKeys::noModifiers, 'i'));
         mappings.addKeyPress(CommandIDs::NewFloatAtom, KeyPress(70, ModifierKeys::noModifiers, 'f'));
         mappings.addKeyPress(CommandIDs::NewVerticalSlider, KeyPress(83, ModifierKeys::noModifiers, 's'));
+        
+        mappings.sendChangeMessage();
     }
     
     
