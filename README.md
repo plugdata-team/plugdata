@@ -26,9 +26,11 @@ Join the Discord here, for sharing patches, reporting issues or requesting featu
 
 ## Installation
 
-Linux users are advised to install PlugData using the repositories [here](https://software.opensuse.org//download.html?project=home%3Aplugdata&package=plugdata). Arch users can also install [the AUR package](https://aur.archlinux.org/packages/plugdata-git).
+Linux users are advised to install PlugData using the repositories [here](https://software.opensuse.org//download.html?project=home%3Aplugdata&package=plugdata). In the Arch User Repository, you can use the [plugdata-bin](https://aur.archlinux.org/packages/plugdata-bin) package for the latest stable version, or the [plugdata-git](https://aur.archlinux.org/packages/plugdata-git) package for the latest experimental build.
 
-For Mac and Windows, you can find the last stable-ish release in the releases section on the right, or download a recent build from the actions tab.
+On MacOS, PlugData can also be installed through the [homebrew package](https://formulae.brew.sh/cask/plugdata).
+
+For Mac and Windows, you can find the last release in the "Releases" section on the right. If you have a GitHub account, you can also download a recent experimental build from the actions tab.
 
 ## Build
 
