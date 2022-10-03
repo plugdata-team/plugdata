@@ -195,16 +195,30 @@ struct DAWAudioSettings : public Component {
         addAndMakeVisible(latencyLabel);
         latencyLabel.setText("Latency", dontSendNotification);
         latencyLabel.attachToComponent(&latencySlider, true);
-
+       
+        addAndMakeVisible(nativeDialogLabel);
+        nativeDialogLabel.setText("Use native file dialog", dontSendNotification);
+        nativeDialogLabel.attachToComponent(&nativeDialogToggle, true);
+        
         auto* proc = dynamic_cast<PlugDataAudioProcessor*>(&processor);
         latencySlider.onValueChange = [this, proc]() { proc->setLatencySamples(latencySlider.getValue() + proc->pd::Instance::getBlockSize()); };
         tailLengthSlider.onValueChange = [this, proc]() { proc->tailLength.setValue(tailLengthSlider.getValue()); };
+        
+        auto& settingsTree = dynamic_cast<PlugDataAudioProcessor&>(p).settingsTree;
+        
+        if(!settingsTree.hasProperty("NativeDialog")) {
+            settingsTree.setProperty("NativeDialog", true, nullptr);
+        }
+        
+        nativeDialogToggle.getToggleStateValue().referTo(settingsTree.getPropertyAsValue("NativeDialog", nullptr));
+        addAndMakeVisible(nativeDialogToggle);
     }
 
     void resized() override
     {
-        latencySlider.setBounds(90, 5, getWidth() - 130, 20);
-        tailLengthSlider.setBounds(90, 30, getWidth() - 130, 20);
+        latencySlider.setBounds(120, 5, getWidth() - 130, 20);
+        tailLengthSlider.setBounds(120, 30, getWidth() - 130, 20);
+        nativeDialogToggle.setBounds(120, 55, 25, 25);
     }
 
     void visibilityChanged() override
@@ -220,9 +234,12 @@ struct DAWAudioSettings : public Component {
     AudioProcessor& processor;
     Label latencyLabel;
     Label tailLengthLabel;
+    Label nativeDialogLabel;
 
     Slider latencySlider;
     Slider tailLengthSlider;
+    
+    ToggleButton nativeDialogToggle;
 };
 
 struct SettingsDialog : public Component {
