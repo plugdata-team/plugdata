@@ -1,5 +1,7 @@
 #pragma once
 
+bool wantsNativeDialog();
+
 class SearchPathComponent : public Component
     , public SettableTooltipClient
     , public FileDragAndDropTarget
@@ -129,7 +131,7 @@ public:
 
     void returnKeyPressed(int row) override
     {
-        chooser = std::make_unique<FileChooser>(TRANS("Change folder..."), path[row], "*");
+        chooser = std::make_unique<FileChooser>(TRANS("Change folder..."), path[row], "*", wantsNativeDialog());
         auto chooserFlags = FileBrowserComponent::openMode | FileBrowserComponent::canSelectDirectories;
 
         chooser->launchAsync(chooserFlags,

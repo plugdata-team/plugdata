@@ -13,6 +13,25 @@
 #include "Dialogs/Dialogs.h"
 
 
+bool wantsNativeDialog() {
+#if PLUGDATA_STANDALONE
+    return false;
+#endif
+    
+    File homeDir = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory).getChildFile("PlugData");
+    File settingsFile = homeDir.getChildFile("Settings.xml");
+    
+    
+    auto settingsTree = ValueTree::fromXml(settingsFile.loadFileAsString());
+    
+    if(!settingsTree.hasProperty("NativeDialog")) {
+        return true;
+    }
+    
+    return static_cast<bool>(settingsTree.getProperty("NativeDialog"));
+}
+
+
 PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p) : AudioProcessorEditor(&p), pd(p), statusbar(p), sidebar(&p)
 {
     toolbarButtons = {new TextButton(Icons::New),  new TextButton(Icons::Open), new TextButton(Icons::Save),     new TextButton(Icons::SaveAs), new TextButton(Icons::Undo),
@@ -380,14 +399,14 @@ void PlugDataPluginEditor::openProject()
         }
     };
 
-    openChooser = std::make_unique<FileChooser>("Choose file to open", File(pd.settingsTree.getProperty("LastChooserPath")), "*.pd");
+    openChooser = std::make_unique<FileChooser>("Choose file to open", File(pd.settingsTree.getProperty("LastChooserPath")), "*.pd", wantsNativeDialog());
 
     openChooser->launchAsync(FileBrowserComponent::openMode | FileBrowserComponent::canSelectFiles, openFunc);
 }
 
 void PlugDataPluginEditor::saveProjectAs(const std::function<void()>& nestedCallback)
 {
-    saveChooser = std::make_unique<FileChooser>("Select a save file", File(pd.settingsTree.getProperty("LastChooserPath")), "*.pd");
+    saveChooser = std::make_unique<FileChooser>("Select a save file", File(pd.settingsTree.getProperty("LastChooserPath")), "*.pd", wantsNativeDialog());
 
     saveChooser->launchAsync(FileBrowserComponent::saveMode | FileBrowserComponent::warnAboutOverwriting,
                              [this, nestedCallback](const FileChooser& f) mutable

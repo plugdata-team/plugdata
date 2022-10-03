@@ -133,6 +133,9 @@ struct PlugDataLook : public LookAndFeel_V4
 
     void fillResizableWindowBackground(Graphics& g, int w, int h, const BorderSize<int>& border, ResizableWindow& window) override
     {
+        if(auto* dialog = dynamic_cast<FileChooserDialogBox*>(&window)) {
+            g.fillAll(findColour(PlugDataColour::canvasColourId));
+        }
     }
 
     void drawResizableWindowBorder(Graphics&, int w, int h, const BorderSize<int>& border, ResizableWindow&) override
@@ -802,7 +805,10 @@ struct PlugDataLook : public LookAndFeel_V4
         setColour(TextButton::buttonOnColourId, firstColour);
         setColour(ComboBox::backgroundColourId, firstColour);
         setColour(ListBox::backgroundColourId, firstColour);
-
+        setColour(FileBrowserComponent::currentPathBoxTextColourId, textColour);
+        setColour(FileBrowserComponent::currentPathBoxArrowColourId, textColour);
+        setColour(FileBrowserComponent::filenameBoxTextColourId, textColour);
+        
         setColour(AlertWindow::backgroundColourId, firstColour);
         getCurrentColourScheme().setUIColour(ColourScheme::UIColour::widgetBackground, firstColour);
 
@@ -836,6 +842,8 @@ struct PlugDataLook : public LookAndFeel_V4
         setColour(FileBrowserComponent::currentPathBoxArrowColourId, textColour);
         setColour(Slider::textBoxTextColourId, textColour);
         setColour(AlertWindow::textColourId, textColour);
+        setColour(FileBrowserComponent::currentPathBoxBackgroundColourId, firstColour);
+        setColour(FileBrowserComponent::filenameBoxBackgroundColourId, firstColour);
         
         setColour(DirectoryContentsDisplayComponent::highlightedTextColourId, Colours::white);
 
@@ -845,6 +853,9 @@ struct PlugDataLook : public LookAndFeel_V4
 
         setColour(Slider::textBoxOutlineColourId, Colours::transparentBlack);
         setColour(TreeView::backgroundColourId, Colours::transparentBlack);
+        
+
+
     }
 
     static void setDefaultFont(String fontName)
