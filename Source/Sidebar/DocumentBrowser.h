@@ -21,6 +21,8 @@ unsigned int WinExec(char const* lpCmdLine, unsigned int uCmdShow);
 #    endif
 #endif
 
+bool wantsNativeDialog();
+
 // Base classes for communication between parent and child classes
 struct DocumentBrowserViewBase : public TreeView
     , public DirectoryContentsDisplayComponent {
@@ -727,7 +729,7 @@ struct DocumentBrowser : public DocumentBrowserBase
         addAndMakeVisible(resetFolderButton);
 
         loadFolderButton.onClick = [this]() {
-            openChooser = std::make_unique<FileChooser>("Open...", directory.getDirectory().getFullPathName(), "", true);
+            openChooser = std::make_unique<FileChooser>("Open...", directory.getDirectory().getFullPathName(), "", wantsNativeDialog());
 
             openChooser->launchAsync(FileBrowserComponent::openMode | FileBrowserComponent::canSelectDirectories,
                 [this](FileChooser const& fileChooser) {

@@ -104,6 +104,8 @@ struct pd::Instance::internal {
 };
 }
 
+bool wantsNativeDialog();
+
 namespace pd {
 
 Instance::Instance(String const& symbol)
@@ -600,7 +602,7 @@ void Instance::createPanel(int type, char const* snd, char const* location)
         MessageManager::callAsync(
             [this, obj, defaultFile]() mutable {
                 auto constexpr folderChooserFlags = FileBrowserComponent::openMode | FileBrowserComponent::canSelectDirectories | FileBrowserComponent::canSelectFiles;
-                openChooser = std::make_unique<FileChooser>("Open...", defaultFile, "", true);
+                openChooser = std::make_unique<FileChooser>("Open...", defaultFile, "", wantsNativeDialog());
                 openChooser->launchAsync(folderChooserFlags,
                     [this, obj](FileChooser const& fileChooser) {
                         auto const file = fileChooser.getResult();
