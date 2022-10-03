@@ -805,9 +805,6 @@ struct PlugDataLook : public LookAndFeel_V4
         setColour(TextButton::buttonOnColourId, firstColour);
         setColour(ComboBox::backgroundColourId, firstColour);
         setColour(ListBox::backgroundColourId, firstColour);
-        setColour(FileBrowserComponent::currentPathBoxTextColourId, textColour);
-        setColour(FileBrowserComponent::currentPathBoxArrowColourId, textColour);
-        setColour(FileBrowserComponent::filenameBoxTextColourId, textColour);
         
         setColour(AlertWindow::backgroundColourId, firstColour);
         getCurrentColourScheme().setUIColour(ColourScheme::UIColour::widgetBackground, firstColour);
@@ -820,7 +817,9 @@ struct PlugDataLook : public LookAndFeel_V4
         setColour(Slider::backgroundColourId, secondColour);
         setColour(Slider::trackColourId, firstColour);
         setColour(TextEditor::backgroundColourId, secondColour);
-
+        setColour(FileBrowserComponent::currentPathBoxBackgroundColourId, firstColour);
+        setColour(FileBrowserComponent::filenameBoxBackgroundColourId, firstColour);
+        
         setColour(TooltipWindow::textColourId, textColour);
         setColour(TextButton::textColourOffId, textColour);
         setColour(ComboBox::textColourId, textColour);
@@ -839,11 +838,12 @@ struct PlugDataLook : public LookAndFeel_V4
         setColour(ToggleButton::tickDisabledColourId, textColour);
         setColour(ComboBox::arrowColourId, textColour);
         setColour(DirectoryContentsDisplayComponent::textColourId, textColour);
-        setColour(FileBrowserComponent::currentPathBoxArrowColourId, textColour);
         setColour(Slider::textBoxTextColourId, textColour);
         setColour(AlertWindow::textColourId, textColour);
-        setColour(FileBrowserComponent::currentPathBoxBackgroundColourId, firstColour);
-        setColour(FileBrowserComponent::filenameBoxBackgroundColourId, firstColour);
+        setColour(FileBrowserComponent::currentPathBoxTextColourId, textColour);
+        setColour(FileBrowserComponent::currentPathBoxArrowColourId, textColour);
+        setColour(FileBrowserComponent::filenameBoxTextColourId, textColour);
+        setColour(FileChooserDialogBox::titleTextColourId, textColour);
         
         setColour(DirectoryContentsDisplayComponent::highlightedTextColourId, Colours::white);
 
