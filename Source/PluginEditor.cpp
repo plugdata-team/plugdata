@@ -15,7 +15,7 @@
 
 bool wantsNativeDialog() {
 #if PLUGDATA_STANDALONE
-    return false;
+    return true;
 #endif
     
     File homeDir = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory).getChildFile("PlugData");
