@@ -616,8 +616,7 @@ t_pd* libpd_createobj(t_canvas* cnv, t_symbol* s, int argc, t_atom* argv)
 
     sys_lock();
     pd_typedmess((t_pd*)cnv, s, argc, argv);
-    sys_unlock();
-
+    
     canvas_undo_add(cnv, UNDO_CREATE, "create",
         (void*)canvas_undo_set_create(cnv));
 
@@ -629,7 +628,8 @@ t_pd* libpd_createobj(t_canvas* cnv, t_symbol* s, int argc, t_atom* argv)
         else if (zgetfn(new_object, gensym("loadbang")))
             vmess(new_object, gensym("loadbang"), "f", LB_LOAD);
     }
-
+    sys_unlock();
+    
     glist_noselect(cnv);
 
     return new_object;
