@@ -17,8 +17,14 @@ struct CommentObject final : public TextBase
         g.setFont(font);
 
         if (!editor) {
+            TextLayout textLayout;
             auto textArea = border.subtractedFrom(getLocalBounds());
-            g.drawFittedText(currentText, textArea, justification, numLines, minimumHorizontalScale);
+            AttributedString attributedCurrentText(currentText);
+            attributedCurrentText.setColour(findColour(PlugDataColour::textColourId));
+            attributedCurrentText.setFont(font);
+            attributedCurrentText.setJustification(justification);
+            textLayout.createLayout(attributedCurrentText, textArea.getWidth());
+            textLayout.draw(g, textArea.toFloat());
 
             auto selected = cnv->isSelected(object);
             if (object->locked == var(false) && (object->isMouseOverOrDragging(true) || selected) && !cnv->isGraph) {
