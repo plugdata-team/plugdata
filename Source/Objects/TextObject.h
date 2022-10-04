@@ -50,11 +50,14 @@ struct TextBase : public ObjectBase
         g.setColour(object->findColour(PlugDataColour::canvasColourId));
         g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), 2.0f);
 
-        g.setColour(findColour(PlugDataColour::textColourId));
-        g.setFont(font);
-
+        TextLayout textLayout;
         auto textArea = border.subtractedFrom(getLocalBounds());
-        g.drawFittedText(currentText, textArea, justification, numLines, minimumHorizontalScale);
+        AttributedString attributedCurrentText(currentText);
+        attributedCurrentText.setColour(findColour(PlugDataColour::textColourId));
+        attributedCurrentText.setFont(font);
+        attributedCurrentText.setJustification(justification);
+        textLayout.createLayout(attributedCurrentText, textArea.getWidth());
+        textLayout.draw(g, textArea.toFloat());
 
         bool selected = cnv->isSelected(object);
 
