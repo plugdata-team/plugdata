@@ -597,9 +597,6 @@ t_pd* libpd_creategraph(t_canvas* cnv, char const* name, int size, int x, int y)
     pd_typedmess((t_pd*)cnv, gensym("arraydialog"), argc, argv);
     sys_unlock();
 
-    // canvas_undo_add(cnv, UNDO_CREATE, "create",
-    //                 (void *)canvas_undo_set_create(cnv));
-
     glist_noselect(cnv);
 
     t_pd* arr = libpd_newest(cnv);
