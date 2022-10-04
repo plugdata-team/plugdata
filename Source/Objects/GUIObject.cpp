@@ -11,6 +11,7 @@ extern "C" {
 #include <g_canvas.h>
 #include <m_imp.h>
 #include <g_all_guis.h>
+#include <g_undo.h>
 }
 
 #include "Object.h"
