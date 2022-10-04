@@ -20,8 +20,6 @@ extern "C" {
 #include "concurrentqueue.h"
 #include "../Utility/FastStringWidth.h"
 
-#include "../ipc/boost/interprocess/ipc/message_queue.hpp"
-
 namespace pd {
 
 class Atom {
@@ -226,7 +224,7 @@ struct ContinuityChecker : public Timer {
     BackupTimer backupTimer;
 };
 
-class Instance : public ChildProcess {
+class Instance {
     struct Message {
         String selector;
         String destination;
@@ -494,11 +492,6 @@ protected:
 
         FastStringWidth fastStringWidth; // For formatting console messages more quickly
     };
-    
-public:
-    
-    std::unique_ptr<boost::interprocess::message_queue> send_queue;
-    std::unique_ptr<boost::interprocess::message_queue> receive_queue;
 
     ConsoleHandler consoleHandler;
 };

@@ -827,7 +827,6 @@ void PlugDataAudioProcessor::processInternal()
         midiBufferOut.clear();
     }
 
-
     // Dequeue messages
     sendMessagesFromQueue();
     sendPlayhead();
