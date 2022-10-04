@@ -356,14 +356,6 @@ void* Patch::createObject(String const& name, int x, int y)
     while (!done) {
         instance->waitForStateUpdate();
     }
-    
-    MemoryOutputStream ostream;
-    ostream.writeInt(0);
-    ostream.writeString("CreateObject");
-    ostream.writeString("cnv_id"); // TODO: use canvas ID
-    ostream.writeString("obj 20 40 metro 200");
-    
-    instance->send_queue->send(ostream.getData(), ostream.getDataSize(), 1);
 
     assert(pdobject);
     return pdobject;

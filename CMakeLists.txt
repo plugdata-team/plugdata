@@ -90,29 +90,11 @@ file(GLOB PlugDataStandaloneSources
     ${SOURCES_DIRECTORY}/Standalone/*.h)
 source_group("Source\\Standalone" FILES ${PlugDataStandaloneSources})
 
-file(GLOB PdRemoteSources
-    ${CMAKE_CURRENT_SOURCE_DIR}/Remote/Source/*.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Remote/Source/*.h)
-source_group("Remote\\Source" FILES ${PdRemoteSources})
-
 
 #source_group("Source\\Pd" FILES ${PlugDataPdSources})
 
 file(READ "${CMAKE_CURRENT_SOURCE_DIR}/Resources/Info.plist" INFO_PLIST)
 
-juce_add_gui_app(PdRemote
-    VERSION                     ${PLUGDATA_VERSION}
-    COMPANY_NAME                ${PLUGDATA_COMPANY_NAME}
-    COMPANY_COPYRIGHT           ${PLUGDATA_COMPANY_COPYRIGHT}
-    COMPANY_WEBSITE             ${PLUGDATA_COMPANY_WEBSITE}
-    PLUGIN_DESCRIPTION          "A plugin that loads Pure Data patches"
-    ICON_BIG                    ${PLUGDATA_ICON_BIG}
-    MICROPHONE_PERMISSION_ENABLED TRUE
-    HARDENED_RUNTIME_ENABLED    ${HARDENED_RUNTIME_ENABLED}
-    HARDENED_RUNTIME_OPTIONS    ${HARDENED_RUNTIME_OPTIONS}
-    PRODUCT_NAME                "PdRemote"
-    PLIST_TO_MERGE              ${INFO_PLIST}
-    )
 
 juce_add_plugin(PlugDataStandalone
     VERSION                     ${PLUGDATA_VERSION}
@@ -217,10 +199,6 @@ set_target_properties(PlugData PROPERTIES CMAKE_XCODE_ATTRIBUTE_CLANG_CXX_LIBRAR
 set_target_properties(PlugDataFx PROPERTIES CMAKE_XCODE_ATTRIBUTE_CLANG_CXX_LIBRARY "libc++")
 endif()
 
-juce_generate_juce_header(PdRemote)
-set_target_properties(PdRemote PROPERTIES CXX_STANDARD 20)
-target_sources(PdRemote PRIVATE ${PdRemoteSources})
-
 juce_generate_juce_header(PlugDataStandalone)
 set_target_properties(PlugDataStandalone PROPERTIES CXX_STANDARD 20)
 target_sources(PlugDataStandalone PRIVATE ${PlugDataSources} ${PlugDataStandaloneSources})
@@ -271,10 +249,8 @@ if(UNIX AND NOT APPLE)
     JUCE_USE_XRENDER=1
     )
     target_link_libraries(PlugDataStandalone PUBLIC "-Wl,-export-dynamic")
-    target_link_libraries(PdRemote PUBLIC "-Wl,-export-dynamic")
 endif()
 
-target_compile_definitions(PdRemote PUBLIC ${PLUGDATA_COMPILE_DEFINITIONS} ${STANDALONE_COMPILE_DEFINITIONS})
 target_compile_definitions(PlugDataStandalone PUBLIC ${PLUGDATA_COMPILE_DEFINITIONS} ${STANDALONE_COMPILE_DEFINITIONS})
 
 target_compile_definitions(PlugData PUBLIC ${PLUGDATA_COMPILE_DEFINITIONS})
@@ -294,7 +270,6 @@ list(APPEND PLUGDATA_INCLUDE_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/Libraries/co
 
 list(APPEND PLUGDATA_INCLUDE_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/Source/")
 
-target_include_directories(PdRemote PUBLIC "$<BUILD_INTERFACE:${PLUGDATA_INCLUDE_DIRECTORY}>")
 target_include_directories(PlugDataStandalone PUBLIC "$<BUILD_INTERFACE:${PLUGDATA_INCLUDE_DIRECTORY}>")
 target_include_directories(PlugData PUBLIC "$<BUILD_INTERFACE:${PLUGDATA_INCLUDE_DIRECTORY}>")
 target_include_directories(PlugDataFx PUBLIC "$<BUILD_INTERFACE:${PLUGDATA_INCLUDE_DIRECTORY}>")
@@ -334,8 +309,6 @@ elseif(APPLE)
 elseif(UNIX AND NOT APPLE)
   list(APPEND libs curl)
 endif()
-
-target_link_libraries(PdRemote PRIVATE pd ${libs})
 
 if(MSVC)
 #target_compile_definitions(PlugDataStandalone PRIVATE PD_INTERNAL=0)
