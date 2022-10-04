@@ -108,11 +108,21 @@ bool wantsNativeDialog();
 
 namespace pd {
 
-Instance::Instance(String const& symbol)
-    : consoleHandler(this)
+Instance::Instance(String const& symbol) :
+    consoleHandler(this)
 {
     libpd_multi_init();
-
+    
+    auto ID = Uuid().toString();
+    auto path = String("/Users/timschoen/Projecten/PlugData/XCode/PdRemote_artefacts/Debug/PdRemote.app/Contents/MacOS/PdRemote");
+    
+    send_queue = std::make_unique<boost::interprocess::message_queue>(boost::interprocess::open_or_create, (ID + "_receive").toRawUTF8(), 100, 1024);
+    
+    receive_queue = std::make_unique<boost::interprocess::message_queue>(boost::interprocess::open_or_create, (ID + "_send").toRawUTF8(), 100, 1024);
+    
+    StringArray args = {path, ID};
+    start(args);
+    
     m_instance = libpd_new_instance();
 
     libpd_set_instance(static_cast<t_pdinstance*>(m_instance));
@@ -229,6 +239,8 @@ Instance::~Instance()
     pd_free(static_cast<t_pd*>(m_print_receiver));
     pd_free(static_cast<t_pd*>(m_parameter_receiver));
     pd_free(static_cast<t_pd*>(m_parameter_change_receiver));
+    
+    kill();
 
     libpd_set_instance(static_cast<t_pdinstance*>(m_instance));
     libpd_free_instance(static_cast<t_pdinstance*>(m_instance));
