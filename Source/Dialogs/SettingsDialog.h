@@ -21,15 +21,25 @@ struct ThemePanel : public Component
         panels.add(new PropertiesPanel::FontComponent("Default font", fontValue, 0));
 
         // Get current colour
-        auto numColours = PlugDataLook::colourNames[0].size();
+        auto numColours = PlugDataLook::colourSettings.at("dark").size();
         colours.resize(2);
 
-        for (int i = 0; i < numColours; i++) {
-            for (int j = 0; j < 2; j++) {
-                colours[j].resize(numColours);
-                colours[j][i].setValue(PlugDataLook::colourSettings[j][i].toString());
-                colours[j][i].addListener(this);
-                panels.add(new PropertiesPanel::ColourComponent(PlugDataLook::colourNames[j][i], colours[j][i], 1));
+//        for (int i = 0; i < numColours; i++) {
+//            for (int j = 0; j < 2; j++) {
+//                colours[j].resize(numColours);
+//                colours[j][i].setValue(PlugDataLook::colourSettings[j][i].toString());
+//                colours[j][i].addListener(this);
+//                panels.add(new PropertiesPanel::ColourComponent(PlugDataLook::colourNames[j][i], colours[j][i], 1));
+//            }
+//        }
+        
+        for (auto const& pair : PlugDataLook::colourSettings) {
+            auto name = pair.first;
+            auto theme = pair.second;
+            auto tree = ValueTree(name);
+            for (auto const& colour : theme) {
+//                colour.second();
+                
             }
         }
 
@@ -44,20 +54,20 @@ struct ThemePanel : public Component
         resetButton.setConnectedEdges(12);
         resetButton.onClick = [this]() {
             auto& lnf = dynamic_cast<PlugDataLook&>(getLookAndFeel());
-            lnf.colourSettings = lnf.defaultColours;
+//            lnf.colourSettings = lnf.defaultColours;
 
             dynamic_cast<PropertiesPanel::FontComponent*>(panels[0])->setFont("Inter");
             fontValue = "Inter";
             lnf.setDefaultFont(fontValue.toString());
             settingsTree.setProperty("DefaultFont", fontValue.getValue(), nullptr);
 
-            auto numColours = PlugDataLook::colourNames[0].size();
-            for (int i = 0; i < 2; i++) {
-                for (int j = 0; j < numColours; j++) {
-                    colours[i][j] = lnf.colourSettings[i][j].toString();
-                    settingsTree.setProperty(lnf.colourNames[i][j], lnf.colourSettings[i][j].toString(), nullptr);
-                }
-            }
+//            auto numColours = PlugDataLook::colourNames[0].size();
+//            for (int i = 0; i < 2; i++) {
+//                for (int j = 0; j < numColours; j++) {
+//                    colours[i][j] = lnf.colourSettings[i][j].toString();
+//                    settingsTree.setProperty(lnf.colourNames[i][j], lnf.colourSettings[i][j].toString(), nullptr);
+//                }
+//            }
 
             lnf.setTheme(lnf.isUsingLightTheme);
             getTopLevelComponent()->repaint();
@@ -80,17 +90,17 @@ struct ThemePanel : public Component
             getTopLevelComponent()->repaint();
         }
 
-        auto numColours = PlugDataLook::colourNames[0].size();
-        for (int i = 0; i < 2; i++) {
-            for (int j = 0; j < numColours; j++) {
-                if (v.refersToSameSourceAs(colours[i][j])) {
-                    lnf.colourSettings[i][j] = Colour::fromString(v.toString());
-                    settingsTree.setProperty(lnf.colourNames[i][j], lnf.colourSettings[i][j].toString(), nullptr);
-                    lnf.setTheme(lnf.isUsingLightTheme);
-                    getTopLevelComponent()->repaint();
-                }
-            }
-        }
+//        auto numColours = PlugDataLook::colourNames[0].size();
+//        for (int i = 0; i < 2; i++) {
+//            for (int j = 0; j < numColours; j++) {
+//                if (v.refersToSameSourceAs(colours[i][j])) {
+//                    lnf.colourSettings[i][j] = Colour::fromString(v.toString());
+//                    settingsTree.setProperty(lnf.colourNames[i][j], lnf.colourSettings[i][j].toString(), nullptr);
+//                    lnf.setTheme(lnf.isUsingLightTheme);
+//                    getTopLevelComponent()->repaint();
+//                }
+//            }
+//        }
     }
 
     void paint(Graphics& g) override
@@ -99,7 +109,7 @@ struct ThemePanel : public Component
 
         auto bounds = getLocalBounds().removeFromLeft(getWidth() / 2).withTrimmedLeft(6);
 
-        g.setColour(findColour(PlugDataColour::textColourId));
+        g.setColour(findColour(PlugDataColour::panelTextColourId));
         g.drawText("Font", bounds.removeFromTop(23), Justification::left);
 
         auto themeRow = bounds.removeFromTop(23);
@@ -146,7 +156,7 @@ struct AboutPanel : public Component {
     void paint(Graphics& g) override
     {
         g.setFont(30);
-        g.setColour(findColour(PlugDataColour::textColourId));
+        g.setColour(findColour(PlugDataColour::panelTextColourId));
         g.drawFittedText("PlugData " + String(ProjectInfo::versionString), 150, 20, 300, 30, Justification::left, 1);
 
         g.setFont(16);
@@ -178,15 +188,15 @@ struct DAWAudioSettings : public Component {
         latencySlider.setRange(0, 88200, 1);
         latencySlider.setTextValueSuffix(" Samples");
         latencySlider.setTextBoxStyle(Slider::TextEntryBoxPosition::TextBoxRight, false, 100, 20);
-        latencySlider.setColour(Slider::trackColourId, findColour(PlugDataColour::textColourId));
-        latencySlider.setColour(Slider::backgroundColourId, findColour(PlugDataColour::toolbarColourId));
+        latencySlider.setColour(Slider::trackColourId, findColour(PlugDataColour::scrollbarBackgroundColourId));
+        latencySlider.setColour(Slider::backgroundColourId, findColour(PlugDataColour::panelBackgroundColourId));
 
         addAndMakeVisible(tailLengthSlider);
         tailLengthSlider.setRange(0, 10.0f, 0.01f);
         tailLengthSlider.setTextValueSuffix(" Seconds");
         tailLengthSlider.setTextBoxStyle(Slider::TextEntryBoxPosition::TextBoxRight, false, 100, 20);
-        tailLengthSlider.setColour(Slider::trackColourId, findColour(PlugDataColour::textColourId));
-        tailLengthSlider.setColour(Slider::backgroundColourId, findColour(PlugDataColour::toolbarColourId));
+        tailLengthSlider.setColour(Slider::trackColourId, findColour(PlugDataColour::scrollbarBackgroundColourId));
+        tailLengthSlider.setColour(Slider::backgroundColourId, findColour(PlugDataColour::panelBackgroundColourId));
 
         addAndMakeVisible(tailLengthLabel);
         tailLengthLabel.setText("Tail Length", dontSendNotification);
@@ -312,10 +322,10 @@ struct SettingsDialog : public Component {
 
     void paint(Graphics& g) override
     {
-        g.setColour(findColour(PlugDataColour::canvasColourId));
+        g.setColour(findColour(PlugDataColour::panelBackgroundColourId));
         g.fillRoundedRectangle(getLocalBounds().reduced(1).toFloat(), 5.0f);
 
-        g.setColour(findColour(PlugDataColour::toolbarColourId));
+        g.setColour(findColour(PlugDataColour::toolbarBackgroundColourId));
 
         auto toolbarBounds = Rectangle<float>(1, 1, getWidth() - 2, toolbarHeight);
         g.fillRoundedRectangle(toolbarBounds, 5.0f);
@@ -323,7 +333,7 @@ struct SettingsDialog : public Component {
 
         if (currentPanel > 0) {
             auto statusbarBounds = getLocalBounds().reduced(1).removeFromBottom(32).toFloat();
-            g.setColour(findColour(PlugDataColour::toolbarColourId));
+            g.setColour(findColour(PlugDataColour::toolbarBackgroundColourId));
 
             g.fillRect(statusbarBounds.withHeight(20));
             g.fillRoundedRectangle(statusbarBounds, 5.0f);
@@ -332,7 +342,8 @@ struct SettingsDialog : public Component {
 
     void paintOverChildren(Graphics& g) override
     {
-        g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
+        // TODO:
+        g.setColour(findColour(PlugDataColour::toolbarBackgroundColourId));
         g.drawLine(0.0f, toolbarHeight, getWidth(), toolbarHeight);
 
         if (currentPanel > 0) {
