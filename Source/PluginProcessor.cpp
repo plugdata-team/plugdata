@@ -258,6 +258,7 @@ void PlugDataAudioProcessor::initialiseFilesystem()
 
         settingsTree.setProperty("DefaultFont", "Inter", nullptr);
         auto colourThemesTree = ValueTree("ColourThemes");
+        settingsTree.appendChild(colourThemesTree, nullptr);
         for (auto const& theme : lnf->colourSettings) {
             auto name = theme.first;
             auto colours = theme.second;
