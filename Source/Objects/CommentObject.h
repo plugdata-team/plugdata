@@ -13,14 +13,14 @@ struct CommentObject final : public TextBase
 
     void paint(Graphics& g) override
     {
-        g.setColour(findColour(PlugDataColour::textColourId));
+        g.setColour(findColour(PlugDataColour::canvasTextColourId));
         g.setFont(font);
 
         if (!editor) {
             TextLayout textLayout;
             auto textArea = border.subtractedFrom(getLocalBounds());
             AttributedString attributedCurrentText(currentText);
-            attributedCurrentText.setColour(findColour(PlugDataColour::textColourId));
+            attributedCurrentText.setColour(findColour(PlugDataColour::canvasTextColourId));
             attributedCurrentText.setFont(font);
             attributedCurrentText.setJustification(justification);
             textLayout.createLayout(attributedCurrentText, textArea.getWidth());
@@ -28,7 +28,7 @@ struct CommentObject final : public TextBase
 
             auto selected = cnv->isSelected(object);
             if (object->locked == var(false) && (object->isMouseOverOrDragging(true) || selected) && !cnv->isGraph) {
-                g.setColour(selected ? object->findColour(PlugDataColour::highlightColourId) : object->findColour(PlugDataColour::canvasOutlineColourId));
+                g.setColour(selected ? object->findColour(PlugDataColour::canvasActiveColourId) : object->findColour(PlugDataColour::outlineColourId));
 
                 g.drawRect(getLocalBounds().toFloat(), 0.5f);
             }

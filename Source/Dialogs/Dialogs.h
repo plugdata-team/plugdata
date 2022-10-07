@@ -57,10 +57,10 @@ struct Dialog : public Component {
         g.fillRect(getLocalBounds());
 #endif
         if (viewedComponent) {
-            g.setColour(findColour(PlugDataColour::toolbarColourId));
+            g.setColour(findColour(PlugDataColour::panelBackgroundColourId));
             g.fillRoundedRectangle(viewedComponent->getBounds().toFloat(), 5.0f);
 
-            g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
+            g.setColour(findColour(PlugDataColour::panelActiveBackgroundColourId));
             g.drawRoundedRectangle(viewedComponent->getBounds().toFloat(), 5.0f, 1.0f);
         }
     }

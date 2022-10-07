@@ -42,7 +42,7 @@ struct MIDIKeyboard : public MidiKeyboardComponent {
             g.fillRect(area);
         }
 
-        g.setColour(findColour(PlugDataColour::canvasOutlineColourId));
+        g.setColour(findColour(PlugDataColour::outlineColourId));
         g.fillRect(area.withWidth(1.0f));
     }
 
@@ -271,7 +271,7 @@ struct KeyboardObject final : public GUIObject
 
     void paintOverChildren(Graphics& g) override
     {
-        auto outlineColour = object->findColour(cnv->isSelected(object) && !cnv->isGraph ? PlugDataColour::highlightColourId : PlugDataColour::canvasOutlineColourId);
+        auto outlineColour = object->findColour(cnv->isSelected(object) && !cnv->isGraph ? PlugDataColour::canvasActiveColourId : PlugDataColour::outlineColourId);
         g.setColour(outlineColour);
         g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), 2.0f, 1.0f);
     }
