@@ -77,9 +77,10 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p) : AudioPro
         p.settingsTree.appendChild(ValueTree("Keymap"), nullptr);
     }
 
-    tabbar.setColour(TabbedButtonBar::frontOutlineColourId, findColour(PlugDataColour::toolbarColourId));
-    tabbar.setColour(TabbedButtonBar::tabOutlineColourId, findColour(PlugDataColour::toolbarColourId));
-    tabbar.setColour(TabbedComponent::outlineColourId, findColour(PlugDataColour::toolbarColourId));
+    // TODO: rename the ones called border to outline
+    tabbar.setColour(TabbedButtonBar::frontOutlineColourId, findColour(PlugDataColour::activeTabBorderColourId));
+    tabbar.setColour(TabbedButtonBar::tabOutlineColourId, findColour(PlugDataColour::tabBorderColourId));
+    tabbar.setColour(TabbedComponent::outlineColourId, findColour(PlugDataColour::tabBorderColourId));
 
     addAndMakeVisible(statusbar);
 
@@ -226,7 +227,7 @@ PlugDataPluginEditor::~PlugDataPluginEditor()
 
 void PlugDataPluginEditor::paint(Graphics& g)
 {
-    auto baseColour = findColour(PlugDataColour::toolbarColourId);
+    auto baseColour = findColour(PlugDataColour::toolbarBackgroundColourId);
 
 #if PLUGDATA_ROUNDED
     // Toolbar background
@@ -248,8 +249,7 @@ void PlugDataPluginEditor::paint(Graphics& g)
     g.setColour(baseColour);
     g.fillRect(0, getHeight() - statusbar.getHeight(), getWidth(), statusbar.getHeight());
 #endif
-
-    g.setColour(findColour(PlugDataColour::canvasColourId));
+    g.setColour(findColour(PlugDataColour::tabBackgroundColourId));
     g.fillRect(tabbar.getBounds());
 }
 
@@ -265,10 +265,10 @@ void PlugDataPluginEditor::paintOverChildren(Graphics& g)
     
     if(openedDialog || settingsDialog) {
         // Hack: if there's a dialog, make the outline colour darker to make it fit in
-        g.setColour(findColour(PlugDataColour::toolbarOutlineColourId).interpolatedWith(Colours::black, 0.5f));
+        g.setColour(findColour(PlugDataColour::signalColourId).interpolatedWith(Colours::black, 0.5f));
     }
     else {
-        g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
+        g.setColour(findColour(PlugDataColour::signalColourId));
     }
     
     g.drawLine(0.0f, toolbarHeight + roundedOffset, static_cast<float>(getWidth()), toolbarHeight + roundedOffset);

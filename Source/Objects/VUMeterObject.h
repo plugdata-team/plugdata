@@ -38,7 +38,7 @@ struct VUMeterObject final : public IEMObject {
         int height = getHeight();
         int width = getWidth();
 
-        g.setColour(object->findColour(PlugDataColour::toolbarColourId));
+        g.setColour(object->findColour(PlugDataColour::defaultObjectBackgroundColourId));
         g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), 2.0f);
 
         auto outerBorderWidth = 2.0f;
@@ -95,7 +95,7 @@ struct VUMeterObject final : public IEMObject {
             g.drawFittedText(String(std::max(values[1], -96.0f), 0), Rectangle<int>(getLocalBounds().removeFromBottom(20)).reduced(2), Justification::centred, 1, 0.6f);
         }
 
-        auto outlineColour = object->findColour(cnv->isSelected(object) && !cnv->isGraph ? PlugDataColour::highlightColourId : PlugDataColour::canvasOutlineColourId);
+        auto outlineColour = object->findColour(cnv->isSelected(object) && !cnv->isGraph ? PlugDataColour::canvasActiveColourId : PlugDataColour::outlineColourId);
 
         g.setColour(outlineColour);
         g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), 2.0f, 1.0f);

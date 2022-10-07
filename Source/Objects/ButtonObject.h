@@ -136,7 +136,7 @@ struct ButtonObject : public GUIObject {
         g.setColour(Colour::fromString(secondaryColour.toString()));
         g.fillRoundedRectangle(bounds.reduced(1), 3.0f);
 
-        g.setColour(object->findColour(PlugDataColour::canvasOutlineColourId));
+        g.setColour(object->findColour(PlugDataColour::outlineColourId));
         g.drawRoundedRectangle(bounds.reduced(1), 3.0f, 1.0f);
         g.drawRoundedRectangle(bounds.reduced(6), 3.0f, 2.0f);
 

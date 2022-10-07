@@ -14,7 +14,7 @@ struct GraphArea : public Component
 
     void paint(Graphics& g) override
     {
-        g.setColour(findColour(PlugDataColour::highlightColourId));
+        g.setColour(findColour(PlugDataColour::canvasActiveColourId));
         g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(1.f), 2.0f, 4.0f);
     }
 

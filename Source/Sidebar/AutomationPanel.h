@@ -81,11 +81,11 @@ struct AutomationSlider : public Component {
 
     void paint(Graphics& g) override
     {
-        slider.setColour(Slider::backgroundColourId, findColour(index & 1 ? PlugDataColour::canvasColourId : PlugDataColour::toolbarColourId));
-        slider.setColour(Slider::trackColourId, findColour(PlugDataColour::textColourId));
+        slider.setColour(Slider::backgroundColourId, findColour(index & 1 ? PlugDataColour::panelBackgroundOffsetColourId : PlugDataColour::panelBackgroundColourId));
+        slider.setColour(Slider::trackColourId, findColour(PlugDataColour::panelTextColourId));
 
-        auto offColour = findColour(PlugDataColour::toolbarColourId);
-        auto onColour = findColour(PlugDataColour::canvasColourId);
+        auto offColour = findColour(PlugDataColour::panelBackgroundOffsetColourId);
+        auto onColour = findColour(PlugDataColour::panelBackgroundColourId);
 
         g.setColour(index & 1 ? offColour : onColour);
         g.fillRect(getLocalBounds());
@@ -153,16 +153,16 @@ struct AutomationPanel : public Component
 
     void paint(Graphics& g) override
     {
-        g.setColour(findColour(PlugDataColour::toolbarColourId));
+        g.setColour(findColour(PlugDataColour::panelBackgroundColourId));
         g.fillRect(getLocalBounds().withTrimmedLeft(Sidebar::dragbarWidth));
         g.fillRect(getLocalBounds().withTrimmedLeft(Sidebar::dragbarWidth).withHeight(viewport.getY()));
 
-        g.setColour(findColour(PlugDataColour::textColourId));
+        g.setColour(findColour(PlugDataColour::panelTextColourId));
         g.setFont(15);
         g.drawFittedText("Parameters", 0, 3, getWidth(), viewport.getY(), Justification::centred, 1);
 
-        g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
-        g.drawLine(0, 0.5f, getWidth(), 0.5f);
+//        g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
+//        g.drawLine(0, 0.5f, getWidth(), 0.5f);
     }
 
     void resized() override
