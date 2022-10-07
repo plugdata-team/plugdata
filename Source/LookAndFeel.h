@@ -7,6 +7,7 @@
 #pragma once
 
 #include <JuceHeader.h>
+#include <map>
 
 struct Icons
 {
@@ -59,15 +60,34 @@ struct Icons
 
 enum PlugDataColour
 {
-    toolbarColourId,
-    canvasColourId,
-    highlightColourId,
-    textColourId,
-    toolbarOutlineColourId,
-    canvasOutlineColourId,
-    meterColourId,
+    toolbarBackgroundColourId,
+    toolbarTextColourId,
+    toolbarActiveColourId,
+    
+    tabBackgroundColourId,
+    tabTextColourId,
+    tabBorderColourId,
+    activeTabBackgroundColourId,
+    activeTabTextColourId,
+    activeTabBorderColourId,
+    
+    canvasBackgroundColourId,
+    canvasTextColourId,
+    canvasActiveColourId,
+
+    defaultObjectBackgroundColourId,
+    outlineColourId,
+    dataColourId,
     connectionColourId,
-    signalColourId
+    signalColourId,
+    
+    panelBackgroundColourId,
+    panelBackgroundOffsetColourId,
+    panelTextColourId,
+    panelActiveBackgroundColourId,
+    panelActiveTextColourId,
+    
+    scrollbarBackgroundColourId
 };
 
 struct Resources
@@ -80,48 +100,48 @@ struct Resources
 struct PlugDataLook : public LookAndFeel_V4
 {
     SharedResourcePointer<Resources> resources;
-
+    
     Font defaultFont;
     Font iconFont;
-
+    
     PlugDataLook() : defaultFont(resources->defaultTypeface), iconFont(resources->iconTypeface)
     {
         setTheme(false);
         setDefaultSansSerifTypeface(resources->defaultTypeface);
     }
-
+    
     class PlugData_DocumentWindowButton : public Button
     {
-       public:
+    public:
         PlugData_DocumentWindowButton(const String& name, Path normal, Path toggled) : Button(name), normalShape(std::move(normal)), toggledShape(std::move(toggled))
         {
         }
-
+        
         void paintButton(Graphics& g, bool shouldDrawButtonAsHighlighted, bool shouldDrawButtonAsDown) override
         {
             auto colour = findColour(TextButton::textColourOffId);
-
+            
             g.setColour((!isEnabled() || shouldDrawButtonAsDown) ? colour.withAlpha(0.6f) : colour);
-
+            
             if (shouldDrawButtonAsHighlighted)
             {
                 g.setColour(findColour(Slider::thumbColourId));
             }
-
+            
             auto& p = getToggleState() ? toggledShape : normalShape;
-
+            
             auto reducedRect = Justification(Justification::centred).appliedToRectangle(Rectangle<int>(getHeight(), getHeight()), getLocalBounds()).toFloat().reduced(getHeight() * 0.3f);
-
+            
             g.fillPath(p, p.getTransformToScaleToFit(reducedRect, true));
         }
-
-       private:
+        
+    private:
         Colour colour;
         Path normalShape, toggledShape;
-
+        
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PlugData_DocumentWindowButton)
     };
-
+    
     int getSliderThumbRadius(Slider& s) override
     {
         if (s.getName().startsWith("statusbar"))
@@ -130,22 +150,22 @@ struct PlugDataLook : public LookAndFeel_V4
         }
         return LookAndFeel_V4::getSliderThumbRadius(s);
     }
-
+    
     void fillResizableWindowBackground(Graphics& g, int w, int h, const BorderSize<int>& border, ResizableWindow& window) override
     {
         if(auto* dialog = dynamic_cast<FileChooserDialogBox*>(&window)) {
-            g.fillAll(findColour(PlugDataColour::canvasColourId));
+            g.fillAll(findColour(PlugDataColour::canvasBackgroundColourId));
         }
     }
-
+    
     void drawResizableWindowBorder(Graphics&, int w, int h, const BorderSize<int>& border, ResizableWindow&) override
     {
     }
-
+    
     void drawButtonBackground(Graphics& g, Button& button, const Colour& backgroundColour, bool shouldDrawButtonAsHighlighted, bool shouldDrawButtonAsDown) override
     {
         if (button.getName().startsWith("tab")) return;
-
+        
         if (button.getName().startsWith("toolbar"))
         {
             drawToolbarButton(g, button, backgroundColour, shouldDrawButtonAsHighlighted, shouldDrawButtonAsDown);
@@ -171,7 +191,7 @@ struct PlugDataLook : public LookAndFeel_V4
             LookAndFeel_V4::drawButtonBackground(g, button, backgroundColour, shouldDrawButtonAsHighlighted, shouldDrawButtonAsDown);
         }
     }
-
+    
     void drawButtonText(Graphics& g, TextButton& button, bool isMouseOverButton, bool isButtonDown) override
     {
         if (button.getName().startsWith("suggestions"))
@@ -187,7 +207,7 @@ struct PlugDataLook : public LookAndFeel_V4
             LookAndFeel_V4::drawButtonText(g, button, isMouseOverButton, isButtonDown);
         }
     }
-
+    
     Font getTextButtonFont(TextButton& but, int buttonHeight) override
     {
         if (but.getName().startsWith("toolbar"))
@@ -206,10 +226,10 @@ struct PlugDataLook : public LookAndFeel_V4
         {
             return getSuggestionFont(buttonHeight);
         }
-
+        
         return {buttonHeight / 1.7f};
     }
-
+    
     void drawLinearSlider(Graphics& g, int x, int y, int width, int height, float sliderPos, float minSliderPos, float maxSliderPos, const Slider::SliderStyle style, Slider& slider) override
     {
         if (slider.getName().startsWith("statusbar"))
@@ -221,48 +241,48 @@ struct PlugDataLook : public LookAndFeel_V4
             LookAndFeel_V4::drawLinearSlider(g, x, y, width, height, sliderPos, minSliderPos, maxSliderPos, style, slider);
         }
     }
-
+    
     void drawDocumentWindowTitleBar(DocumentWindow& window, Graphics& g, int w, int h, int titleSpaceX, int titleSpaceW, const Image* icon, bool drawTitleTextOnLeft) override
     {
         if (w * h == 0) return;
-
+        
         g.setColour(findColour(ComboBox::backgroundColourId));
         g.fillAll();
-
+        
         Font font(h * 0.65f, Font::plain);
         g.setFont(font);
-
+        
         g.setColour(getCurrentColourScheme().getUIColour(ColourScheme::defaultText));
-
+        
         g.setColour(Colours::white);
         g.drawText(window.getName(), 0, 0, w, h, Justification::centred, true);
     }
-
+    
     Button* createDocumentWindowButton(int buttonType) override
     {
         Path shape;
         auto crossThickness = 0.15f;
-
+        
         if (buttonType == DocumentWindow::closeButton)
         {
             shape.addLineSegment({0.0f, 0.0f, 1.0f, 1.0f}, crossThickness);
             shape.addLineSegment({1.0f, 0.0f, 0.0f, 1.0f}, crossThickness);
-
+            
             return new PlugData_DocumentWindowButton("close", shape, shape);
         }
-
+        
         if (buttonType == DocumentWindow::minimiseButton)
         {
             shape.addLineSegment({0.0f, 0.5f, 1.0f, 0.5f}, crossThickness);
-
+            
             return new PlugData_DocumentWindowButton("minimise", shape, shape);
         }
-
+        
         if (buttonType == DocumentWindow::maximiseButton)
         {
             shape.addLineSegment({0.5f, 0.0f, 0.5f, 1.0f}, crossThickness);
             shape.addLineSegment({0.0f, 0.5f, 1.0f, 0.5f}, crossThickness);
-
+            
             Path fullscreenShape;
             fullscreenShape.startNewSubPath(45.0f, 100.0f);
             fullscreenShape.lineTo(0.0f, 100.0f);
@@ -271,20 +291,20 @@ struct PlugDataLook : public LookAndFeel_V4
             fullscreenShape.lineTo(100.0f, 45.0f);
             fullscreenShape.addRectangle(45.0f, 45.0f, 100.0f, 100.0f);
             PathStrokeType(30.0f).createStrokedPath(fullscreenShape, fullscreenShape);
-
+            
             return new PlugData_DocumentWindowButton("maximise", shape, fullscreenShape);
         }
-
+        
         jassertfalse;
         return nullptr;
     }
-
+    
     int getTabButtonBestWidth(TabBarButton& button, int tabDepth) override
     {
         auto& buttonBar = button.getTabbedButtonBar();
         return (buttonBar.getWidth() / buttonBar.getNumTabs()) + 1;
     }
-
+    
     int getTabButtonOverlap(int tabDepth) override
     {
         return 0;
@@ -292,54 +312,63 @@ struct PlugDataLook : public LookAndFeel_V4
     
     void drawTabButton(TabBarButton& button, Graphics& g, bool isMouseOver, bool isMouseDown) override
     {
-        g.setColour(findColour(button.getToggleState() ? PlugDataColour::canvasColourId : PlugDataColour::toolbarColourId));
-
+        bool isActive = button.getToggleState();
+        g.setColour(findColour(isActive ? PlugDataColour::activeTabBackgroundColourId : PlugDataColour::tabBackgroundColourId));
+        
         g.fillRect(button.getLocalBounds());
-
+        
         int w = button.getWidth();
         int h = button.getHeight();
-
-        g.setColour(button.findColour(PlugDataColour::toolbarOutlineColourId));
+        
+        g.setColour(button.findColour(isActive ? PlugDataColour::activeTabBorderColourId : PlugDataColour::tabBorderColourId ));
         g.drawLine(Line<float>(0, h - 0.5f, w, h - 0.5f), 1.0f);
-
+        
         if (button.getIndex() != button.getTabbedButtonBar().getNumTabs() - 1)
         {
             g.drawLine(Line<float>(w - 0.5f, 0, w - 0.5f, h), 1.0f);
         }
-
-        drawTabButtonText(button, g, isMouseOver, isMouseDown);
+        
+        TextLayout textLayout;
+        auto textArea = button.getLocalBounds();
+        AttributedString attributedTabTitle(button.getTitle());
+        auto tabTextColour = findColour(isActive ? PlugDataColour::activeTabTextColourId : PlugDataColour::tabTextColourId);
+        attributedTabTitle.setColour(tabTextColour);
+        attributedTabTitle.setFont(defaultFont);
+        attributedTabTitle.setJustification(Justification::centred);
+        textLayout.createLayout(attributedTabTitle, textArea.getWidth());
+        textLayout.draw(g, textArea.toFloat());
     }
     
     void drawTabAreaBehindFrontButton(TabbedButtonBar& bar, Graphics& g, const int w, const int h) override
     {
     }
-
+    
     Font getTabButtonFont(TabBarButton&, float height) override
     {
         return {height * 0.4f};
     }
-
+    
     Font getToolbarFont(int buttonHeight)
     {
         return iconFont.withHeight(buttonHeight / 3.5);
     }
-
+    
     Font getStatusbarFont(int buttonHeight)
     {
         return iconFont.withHeight(buttonHeight / 2.5);
     }
-
+    
     Font getSuggestionFont(int buttonHeight)
     {
         return {buttonHeight / 1.9f};
     }
-
+    
     void drawPopupMenuBackground(Graphics& g, int width, int height) override
     {
         // Add a bit of alpha to disable the opaque flag
         auto background = findColour(PopupMenu::backgroundColourId);
         g.setColour(background);
-
+        
         // Fill background if there's no support for transparent popupmenus
 #ifdef PLUGDATA_STANDALONE
         if (!Desktop::canUseSemiTransparentWindows())
@@ -347,28 +376,28 @@ struct PlugDataLook : public LookAndFeel_V4
             g.fillAll(findColour(ResizableWindow::backgroundColourId));
         }
 #endif
-
+        
         // On linux, the canUseSemiTransparentWindows flag sometimes incorrectly returns true
 #ifdef JUCE_LINUX
         g.fillAll(findColour(ResizableWindow::backgroundColourId));
 #endif
-
+        
         auto bounds = Rectangle<float>(2, 2, width - 4, height - 4);
         g.fillRoundedRectangle(bounds, 3.0f);
-
-        g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
+        
+        g.setColour(findColour(PopupMenu::textColourId));
         g.drawRoundedRectangle(bounds, 3.0f, 1.0f);
     }
-
+    
     int getPopupMenuBorderSize() override
     {
         return 5;
     };
-
+    
     void drawTextEditorOutline(Graphics& g, int width, int height, TextEditor& textEditor) override
     {
         if (textEditor.getName() == "sidebar::searcheditor") return;
-
+        
         if (dynamic_cast<AlertWindow*>(textEditor.getParentComponent()) == nullptr)
         {
             if (textEditor.isEnabled())
@@ -386,19 +415,19 @@ struct PlugDataLook : public LookAndFeel_V4
             }
         }
     }
-
+    
     void drawTreeviewPlusMinusBox(Graphics& g, const Rectangle<float>& area, Colour backgroundColour, bool isOpen, bool isMouseOver) override
     {
         Path p;
         p.addTriangle(0.0f, 0.0f, 1.0f, isOpen ? 0.0f : 0.5f, isOpen ? 0.5f : 0.0f, 1.0f);
-        g.setColour(findColour(PlugDataColour::textColourId).withAlpha(isMouseOver ? 0.7f : 1.0f));
+        g.setColour(findColour(PlugDataColour::panelTextColourId).withAlpha(isMouseOver ? 0.7f : 1.0f));
         g.fillPath(p, p.getTransformToScaleToFit(area.reduced(2, area.getHeight() / 4), true));
     }
-
+    
     void drawToolbarButton(Graphics& g, Button& button, const Colour& backgroundColour, bool shouldDrawButtonAsHighlighted, bool shouldDrawButtonAsDown)
     {
         auto rect = button.getLocalBounds();
-
+        
         auto baseColour = findColour(ComboBox::backgroundColourId);
         g.setColour(baseColour);
         g.fillRect(rect);
@@ -409,38 +438,38 @@ struct PlugDataLook : public LookAndFeel_V4
         bool inspectorElement = object.getName().startsWith("inspector");
         auto cornerSize = inspectorElement ? 0.0f : 3.0f;
         Rectangle<int> boxBounds(0, 0, width, height);
-
+        
         g.setColour(object.findColour(ComboBox::backgroundColourId));
         g.fillRoundedRectangle(boxBounds.toFloat(), cornerSize);
-
+        
         if (!inspectorElement)
         {
             g.setColour(object.findColour(ComboBox::outlineColourId));
             g.drawRoundedRectangle(boxBounds.toFloat().reduced(0.5f, 0.5f), cornerSize, 1.0f);
         }
-
+        
         Rectangle<int> arrowZone(width - 20, 2, 14, height - 4);
         Path path;
         path.startNewSubPath((float)arrowZone.getX() + 3.0f, (float)arrowZone.getCentreY() - 2.0f);
         path.lineTo((float)arrowZone.getCentreX(), (float)arrowZone.getCentreY() + 3.0f);
         path.lineTo((float)arrowZone.getRight() - 3.0f, (float)arrowZone.getCentreY() - 2.0f);
         g.setColour(object.findColour(ComboBox::arrowColourId).withAlpha((object.isEnabled() ? 0.9f : 0.2f)));
-
+        
         g.strokePath(path, PathStrokeType(2.0f));
     }
-
+    
     void drawStatusbarButton(Graphics& g, Button& button, const Colour& backgroundColour, bool shouldDrawButtonAsHighlighted, bool shouldDrawButtonAsDown)
     {
     }
-
+    
     void drawResizableFrame(Graphics& g, int w, int h, const BorderSize<int>& border) override
     {
     }
-
+    
     void drawSuggestionButton(Graphics& g, Button& button, const Colour& backgroundColour, bool shouldDrawButtonAsHighlighted, bool shouldDrawButtonAsDown)
     {
         auto buttonArea = button.getLocalBounds();
-
+        
         if (shouldDrawButtonAsDown)
         {
             g.setColour(backgroundColour.darker());
@@ -453,25 +482,25 @@ struct PlugDataLook : public LookAndFeel_V4
         {
             g.setColour(backgroundColour);
         }
-
+        
         g.fillRect(buttonArea.toFloat());
     }
-
+    
     void drawInspectorButton(Graphics& g, Button& button, const Colour& backgroundColour, bool shouldDrawButtonAsHighlighted, bool shouldDrawButtonAsDown)
     {
         auto bounds = button.getLocalBounds().toFloat().reduced(0.5f, 0.5f);
-
+        
         auto baseColour = backgroundColour.withMultipliedSaturation(button.hasKeyboardFocus(true) ? 1.3f : 0.9f).withMultipliedAlpha(button.isEnabled() ? 1.0f : 0.5f);
-
+        
         if (shouldDrawButtonAsDown || shouldDrawButtonAsHighlighted) baseColour = baseColour.contrasting(shouldDrawButtonAsDown ? 0.2f : 0.05f);
-
+        
         if (!shouldDrawButtonAsHighlighted && !button.getToggleState()) baseColour = Colours::transparentBlack;
-
+        
         g.setColour(baseColour);
         g.fillRect(bounds);
         g.setColour(button.findColour(ComboBox::outlineColourId));
     }
-
+    
     void drawSuggestionButtonText(Graphics& g, TextButton& button, bool shouldDrawButtonAsHighlighted, bool shouldDrawButtonAsDown)
     {
         auto font = getTextButtonFont(button, button.getHeight());
@@ -483,15 +512,15 @@ struct PlugDataLook : public LookAndFeel_V4
         auto leftIndent = 28;
         auto rightIndent = jmin(fontHeight, 2 + cornerSize / (button.isConnectedOnRight() ? 4 : 2));
         auto textWidth = button.getWidth() - leftIndent - rightIndent;
-
+        
         if (textWidth > 0) g.drawFittedText(button.getButtonText(), leftIndent, yIndent, textWidth, button.getHeight() - yIndent * 2, Justification::left, 2);
     }
-
+    
     void drawStatusbarButtonText(Graphics& g, TextButton& button, bool shouldDrawButtonAsHighlighted, bool shouldDrawButtonAsDown)
     {
         Font font(getTextButtonFont(button, button.getHeight()));
         g.setFont(font);
-
+        
         if (!button.isEnabled())
         {
             g.setColour(Colours::grey);
@@ -508,45 +537,45 @@ struct PlugDataLook : public LookAndFeel_V4
         {
             g.setColour(button.findColour(TextButton::textColourOffId));
         }
-
+        
         const int yIndent = jmin(4, button.proportionOfHeight(0.3f));
         const int cornerSize = jmin(button.getHeight(), button.getWidth()) / 2;
-
+        
         const int fontHeight = roundToInt(font.getHeight() * 0.6f);
         const int leftIndent = jmin(fontHeight, 2 + cornerSize / (button.isConnectedOnLeft() ? 4 : 2));
         const int rightIndent = jmin(fontHeight, 2 + cornerSize / (button.isConnectedOnRight() ? 4 : 2));
         const int textWidth = button.getWidth() - leftIndent - rightIndent;
-
+        
         if (textWidth > 0) g.drawFittedText(button.getButtonText(), leftIndent, yIndent, textWidth, button.getHeight() - yIndent * 2, Justification::centred, 2);
     }
-
+    
     void drawPdButton(Graphics& g, Button& button, const Colour& backgroundColour, bool shouldDrawButtonAsHighlighted, bool shouldDrawButtonAsDown)
     {
         auto cornerSize = 6.0f;
         auto bounds = button.getLocalBounds().toFloat();
-
+        
         auto baseColour = findColour(TextButton::buttonColourId);
-
+        
         auto highlightColour = findColour(TextButton::buttonOnColourId);
-
+        
         if (shouldDrawButtonAsDown || button.getToggleState()) baseColour = highlightColour;
-
+        
         baseColour = baseColour.withMultipliedSaturation(button.hasKeyboardFocus(true) ? 1.3f : 0.9f).withMultipliedAlpha(button.isEnabled() ? 1.0f : 0.5f);
-
+        
         g.setColour(baseColour);
-
+        
         auto flatOnLeft = button.isConnectedOnLeft();
         auto flatOnRight = button.isConnectedOnRight();
         auto flatOnTop = button.isConnectedOnTop();
         auto flatOnBottom = button.isConnectedOnBottom();
-
+        
         if (flatOnLeft || flatOnRight || flatOnTop || flatOnBottom)
         {
             Path path;
             path.addRoundedRectangle(bounds.getX(), bounds.getY(), bounds.getWidth(), bounds.getHeight(), cornerSize, cornerSize, !(flatOnLeft || flatOnTop), !(flatOnRight || flatOnTop), !(flatOnLeft || flatOnBottom), !(flatOnRight || flatOnBottom));
-
+            
             g.fillPath(path);
-
+            
             g.setColour(button.findColour(ComboBox::outlineColourId));
             g.strokePath(path, PathStrokeType(1.0f));
         }
@@ -556,18 +585,18 @@ struct PlugDataLook : public LookAndFeel_V4
             auto centre = bounds.getCentre();
             auto ellpiseBounds = Rectangle<float>(centre.translated(-dimension, -dimension), centre.translated(dimension, dimension));
             g.fillEllipse(ellpiseBounds);
-
+            
             g.setColour(button.findColour(ComboBox::outlineColourId));
             g.drawEllipse(ellpiseBounds, 1.0f);
         }
     }
-
+    
     void drawVolumeSlider(Graphics& g, int x, int y, int width, int height, float sliderPos, float minSliderPos, float maxSliderPos, const Slider::SliderStyle style, Slider& slider)
     {
         float trackWidth = 6.;
         Point<float> startPoint(slider.isHorizontal() ? x : x + width * 0.5f, slider.isHorizontal() ? y + height * 0.5f : height + y);
         Point<float> endPoint(slider.isHorizontal() ? width + x : startPoint.x, slider.isHorizontal() ? startPoint.y : y);
-
+        
         Path backgroundTrack;
         backgroundTrack.startNewSubPath(startPoint);
         backgroundTrack.lineTo(endPoint);
@@ -582,32 +611,32 @@ struct PlugDataLook : public LookAndFeel_V4
         auto thumbWidth = getSliderThumbRadius(slider);
         valueTrack.startNewSubPath(minPoint);
         valueTrack.lineTo(maxPoint);
-
+        
         g.setColour(slider.findColour(TextButton::buttonColourId));
         g.strokePath(valueTrack, {trackWidth, PathStrokeType::mitered});
         g.setColour(slider.findColour(Slider::thumbColourId));
-
+        
         g.fillRoundedRectangle(Rectangle<float>(static_cast<float>(thumbWidth), static_cast<float>(24)).withCentre(maxPoint), 2.0f);
-
+        
         g.setColour(findColour(ComboBox::backgroundColourId));
         g.drawRoundedRectangle(Rectangle<float>(static_cast<float>(thumbWidth), static_cast<float>(24)).withCentre(maxPoint), 2.0f, 1.0f);
     }
-
+    
     void drawPropertyPanelSectionHeader(Graphics& g, const String& name, bool isOpen, int width, int height) override
     {
         auto buttonSize = (float)height * 0.75f;
         auto buttonIndent = ((float)height - buttonSize) * 0.5f;
-
+        
         drawTreeviewPlusMinusBox(g, {buttonIndent, buttonIndent, buttonSize, buttonSize}, findColour(ResizableWindow::backgroundColourId), isOpen, false);
-
+        
         auto textX = static_cast<int>((buttonIndent * 2.0f + buttonSize + 2.0f));
-
+        
         g.setColour(findColour(PropertyComponent::labelTextColourId));
-
+        
         g.setFont({(float)height * 0.6f, Font::bold});
         g.drawText(name, textX, 0, width - textX - 4, height, Justification::centredLeft, true);
     }
-
+    
     struct PdLook : public LookAndFeel_V4
     {
         PdLook()
@@ -615,30 +644,30 @@ struct PlugDataLook : public LookAndFeel_V4
             // FIX THIS!
             setColour(TextButton::buttonColourId, Colour(23, 23, 23));
             setColour(TextButton::buttonOnColourId, Colour(0xff42a2c8));
-
+            
             setColour(Slider::thumbColourId, Colour(0xff42a2c8));
             setColour(ComboBox::backgroundColourId, Colour(23, 23, 23));
             setColour(ListBox::backgroundColourId, Colour(23, 23, 23));
             setColour(Slider::backgroundColourId, Colour(60, 60, 60));
             setColour(Slider::trackColourId, Colour(90, 90, 90));
-
+            
             setColour(TextEditor::backgroundColourId, Colour(45, 45, 45));
             setColour(TextEditor::textColourId, Colours::white);
             setColour(TextEditor::outlineColourId, findColour(ComboBox::outlineColourId));
-
-            setColour(PlugDataColour::toolbarColourId, findColour(ComboBox::backgroundColourId));
-            setColour(PlugDataColour::canvasColourId, findColour(ResizableWindow::backgroundColourId));
-            setColour(PlugDataColour::highlightColourId, Colour(0xff42a2c8));
-            setColour(PlugDataColour::textColourId, findColour(ComboBox::textColourId));
-            setColour(PlugDataColour::toolbarOutlineColourId, findColour(ComboBox::outlineColourId).interpolatedWith(findColour(ComboBox::backgroundColourId), 0.5f));
-            setColour(PlugDataColour::canvasOutlineColourId, findColour(ComboBox::outlineColourId));
+            
+            setColour(PlugDataColour::toolbarBackgroundColourId, findColour(ComboBox::backgroundColourId));
+            setColour(PlugDataColour::canvasBackgroundColourId, findColour(ResizableWindow::backgroundColourId));
+            setColour(PlugDataColour::toolbarTextColourId, findColour(ComboBox::textColourId));
+            setColour(PlugDataColour::canvasTextColourId, findColour(ComboBox::textColourId));
+            //            setColour(PlugDataColour::toolbarOutlineColourId, findColour(ComboBox::outlineColourId).interpolatedWith(findColour(ComboBox::backgroundColourId), 0.5f));
+            //            setColour(PlugDataColour::canvasOutlineColourId, findColour(ComboBox::outlineColourId));
         }
-
+        
         int getSliderThumbRadius(Slider&) override
         {
             return 0;
         }
-
+        
         void drawTextEditorOutline(Graphics& g, int width, int height, TextEditor& textEditor) override
         {
             if (dynamic_cast<AlertWindow*>(textEditor.getParentComponent()) == nullptr)
@@ -658,14 +687,14 @@ struct PlugDataLook : public LookAndFeel_V4
                 }
             }
         }
-
+        
         void drawLinearSlider(Graphics& g, int x, int y, int width, int height, float sliderPos, float minSliderPos, float maxSliderPos, const Slider::SliderStyle style, Slider& slider) override
         {
             auto sliderBounds = slider.getLocalBounds().toFloat().reduced(1.0f);
-
+            
             g.setColour(findColour(Slider::backgroundColourId));
             g.fillRect(sliderBounds);
-
+            
             Path toDraw;
             if (slider.isHorizontal())
             {
@@ -679,27 +708,27 @@ struct PlugDataLook : public LookAndFeel_V4
                 auto b = sliderBounds.withTrimmedTop(sliderPos);
                 toDraw.addRoundedRectangle(b.getX(), b.getY(), b.getWidth(), b.getHeight(), 1.0f, 1.0f, false, false, true, true);
             }
-
+            
             g.setColour(findColour(Slider::trackColourId));
             g.fillPath(toDraw);
         }
-
+        
         void drawButtonBackground(Graphics& g, Button& button, const Colour& backgroundColour, bool shouldDrawButtonAsHighlighted, bool shouldDrawButtonAsDown) override
         {
             auto baseColour = button.findColour(TextButton::buttonColourId);
-
+            
             auto highlightColour = button.findColour(TextButton::buttonOnColourId);
-
+            
             Path path;
             path.addRectangle(button.getLocalBounds());
-
+            
             g.setColour(baseColour);
-
+            
             g.fillRect(button.getLocalBounds());
-
+            
             g.setColour(button.findColour(ComboBox::outlineColourId));
             g.strokePath(path, PathStrokeType(1.0f));
-
+            
             if (shouldDrawButtonAsDown || button.getToggleState())
             {
                 g.setColour(highlightColour);
@@ -707,157 +736,171 @@ struct PlugDataLook : public LookAndFeel_V4
             }
         }
     };
-
+    
     void drawCornerResizer(Graphics& g, int w, int h, bool isMouseOver, bool isMouseDragging) override
     {
         Path corner;
-
+        
         corner.addTriangle(Point<float>(0, h), Point<float>(w, h), Point<float>(w, 0));
         corner = corner.createPathWithRoundedCorners(2.0f);
-
+        
         g.setColour(findColour(Slider::thumbColourId).withAlpha(isMouseOver ? 1.0f : 0.6f));
         g.fillPath(corner);
     }
-
+    
     void drawTooltip(Graphics& g, const String& text, int width, int height) override
     {
         Rectangle<int> bounds(width, height);
         auto cornerSize = 5.0f;
-
+        
         g.setColour(findColour(TooltipWindow::backgroundColourId));
         g.fillRoundedRectangle(bounds.toFloat(), cornerSize);
-
+        
         g.setColour(findColour(TooltipWindow::outlineColourId));
         g.drawRoundedRectangle(bounds.toFloat().reduced(0.5f, 0.5f), cornerSize, 0.5f);
-
+        
         const float tooltipFontSize = 13.0f;
         const int maxToolTipWidth = 400;
-
+        
         AttributedString s;
         s.setJustification(Justification::centred);
         s.append(text, Font(tooltipFontSize, Font::bold), findColour(TooltipWindow::textColourId));
-
+        
         TextLayout tl;
         tl.createLayoutWithBalancedLineLengths(s, (float)maxToolTipWidth);
         tl.draw(g, {static_cast<float>(width), static_cast<float>(height)});
     }
-
+    
     LookAndFeel* getPdLook()
     {
         return new PdLook;
     }
-
+    
     static void paintStripes(Graphics& g, int itemHeight, int totalHeight, Component& owner, int selected, int offset, bool invert = false)
     {
         totalHeight += offset;
         int y = -offset;
         int i = 0;
-
+        
         while (totalHeight)
         {
             if (totalHeight < itemHeight)
             {
                 itemHeight = totalHeight;
             }
-
+            
             if (selected >= 0 && selected == i)
             {
-                g.setColour(owner.findColour(PlugDataColour::highlightColourId));
+                g.setColour(owner.findColour(PlugDataColour::panelActiveBackgroundColourId));
             }
             else
             {
-                auto offColour = owner.findColour(PlugDataColour::toolbarColourId);
-                auto onColour = owner.findColour(PlugDataColour::canvasColourId);
+                auto offColour = owner.findColour(PlugDataColour::panelBackgroundOffsetColourId);
+                auto onColour = owner.findColour(PlugDataColour::panelBackgroundColourId);
                 g.setColour((i + invert) & 1 ? onColour : offColour);
             }
-
+            
             g.fillRect(0, y, owner.getWidth(), itemHeight);
-
+            
             y += itemHeight;
             totalHeight -= itemHeight;
             i++;
         }
     }
-
-    void setColours(std::vector<Colour> colours)
+    
+    void setColours(std::map<String, Colour> colours)
     {
-        Colour firstColour = colours[0], secondColour = colours[1], textColour = colours[2], highlightColour = colours[3], outlineColour = colours[4], connectionColour = colours[5], signalColour = colours[6];
+        setColour(PlugDataColour::toolbarBackgroundColourId, colours.at("toolbarBackground"));
+        setColour(PlugDataColour::defaultObjectBackgroundColourId, colours.at("defaultObjectBackground"));
+        setColour(PlugDataColour::toolbarTextColourId, colours.at("toolbarText"));
+        setColour(PlugDataColour::toolbarActiveColourId, colours.at("toolbarActive"));
 
-        setColour(PlugDataColour::toolbarColourId, firstColour);
-        setColour(PlugDataColour::canvasColourId, secondColour);
-        setColour(PlugDataColour::highlightColourId, highlightColour);
-        setColour(PlugDataColour::textColourId, textColour);
-        setColour(PlugDataColour::toolbarOutlineColourId, outlineColour.interpolatedWith(firstColour, 0.6f));
-        setColour(PlugDataColour::canvasOutlineColourId, outlineColour);
-        setColour(PlugDataColour::meterColourId, secondColour.brighter());
-        setColour(PlugDataColour::connectionColourId, connectionColour);
-        setColour(PlugDataColour::signalColourId, signalColour);
-        
-        
-        setColour(PopupMenu::highlightedBackgroundColourId, highlightColour);
-        setColour(TextButton::textColourOnId, highlightColour);
-        setColour(Slider::thumbColourId, highlightColour);
-        setColour(ScrollBar::thumbColourId, highlightColour);
-        setColour(DirectoryContentsDisplayComponent::highlightColourId, highlightColour);
-        setColour(CaretComponent::caretColourId, highlightColour);
-                  
-        setColour(TextButton::buttonColourId, firstColour);
-        setColour(TextButton::buttonOnColourId, firstColour);
-        setColour(ComboBox::backgroundColourId, firstColour);
-        setColour(ListBox::backgroundColourId, firstColour);
-        
-        setColour(AlertWindow::backgroundColourId, firstColour);
-        getCurrentColourScheme().setUIColour(ColourScheme::UIColour::widgetBackground, firstColour);
+        setColour(PlugDataColour::tabBackgroundColourId, colours.at("tabBackground"));
+        setColour(PlugDataColour::tabTextColourId, colours.at("tabText"));
+        setColour(PlugDataColour::tabBorderColourId, colours.at("tabBorder"));
+        setColour(PlugDataColour::activeTabBackgroundColourId, colours.at("activeTabBackground"));
+        setColour(PlugDataColour::activeTabTextColourId, colours.at("activeTabText"));
+        setColour(PlugDataColour::activeTabBorderColourId, colours.at("activeTabBorder"));
 
-        setColour(TooltipWindow::backgroundColourId, firstColour.withAlpha(0.8f));
-        setColour(PopupMenu::backgroundColourId, firstColour.withAlpha(0.95f));
+        setColour(PlugDataColour::canvasBackgroundColourId, colours.at("canvasBackground"));
+        setColour(PlugDataColour::canvasTextColourId, colours.at("canvasText"));
+        setColour(PlugDataColour::canvasActiveColourId, colours.at("canvasActive"));
 
-        setColour(KeyMappingEditorComponent::backgroundColourId, secondColour);
-        setColour(ResizableWindow::backgroundColourId, secondColour);
-        setColour(Slider::backgroundColourId, secondColour);
-        setColour(Slider::trackColourId, firstColour);
-        setColour(TextEditor::backgroundColourId, secondColour);
-        setColour(FileBrowserComponent::currentPathBoxBackgroundColourId, firstColour);
-        setColour(FileBrowserComponent::filenameBoxBackgroundColourId, firstColour);
-        
-        setColour(TooltipWindow::textColourId, textColour);
-        setColour(TextButton::textColourOffId, textColour);
-        setColour(ComboBox::textColourId, textColour);
-        setColour(TableListBox::textColourId, textColour);
-        setColour(Label::textColourId, textColour);
-        setColour(Label::textWhenEditingColourId, textColour);
-        setColour(ListBox::textColourId, textColour);
-        setColour(TextEditor::textColourId, textColour);
-        setColour(PropertyComponent::labelTextColourId, textColour);
-        setColour(PopupMenu::textColourId, textColour);
-        setColour(KeyMappingEditorComponent::textColourId, textColour);
-        setColour(TabbedButtonBar::frontTextColourId, textColour);
-        setColour(TabbedButtonBar::tabTextColourId, textColour);
-        setColour(ToggleButton::textColourId, textColour);
-        setColour(ToggleButton::tickColourId, textColour);
-        setColour(ToggleButton::tickDisabledColourId, textColour);
-        setColour(ComboBox::arrowColourId, textColour);
-        setColour(DirectoryContentsDisplayComponent::textColourId, textColour);
-        setColour(Slider::textBoxTextColourId, textColour);
-        setColour(AlertWindow::textColourId, textColour);
-        setColour(FileBrowserComponent::currentPathBoxTextColourId, textColour);
-        setColour(FileBrowserComponent::currentPathBoxArrowColourId, textColour);
-        setColour(FileBrowserComponent::filenameBoxTextColourId, textColour);
-        setColour(FileChooserDialogBox::titleTextColourId, textColour);
-        
-        setColour(DirectoryContentsDisplayComponent::highlightedTextColourId, Colours::white);
+        setColour(PlugDataColour::outlineColourId, colours.at("outline"));
+        setColour(PlugDataColour::dataColourId, colours.at("data"));
+        setColour(PlugDataColour::connectionColourId, colours.at("connection"));
+        setColour(PlugDataColour::signalColourId, colours.at("signal"));
 
-        setColour(TooltipWindow::outlineColourId, outlineColour);
-        setColour(ComboBox::outlineColourId, outlineColour);
-        setColour(TextEditor::outlineColourId, outlineColour);
+        setColour(PlugDataColour::panelBackgroundColourId, colours.at("panelBackground"));
+        setColour(PlugDataColour::panelBackgroundOffsetColourId, colours.at("panelBackgroundOffset"));
+        setColour(PlugDataColour::panelTextColourId, colours.at("panelText"));
+        setColour(PlugDataColour::panelActiveBackgroundColourId, colours.at("panelActiveBackground"));
+        setColour(PlugDataColour::panelActiveTextColourId, colours.at("panelActiveText"));
 
+        setColour(PlugDataColour::scrollbarBackgroundColourId, colours.at("scrollbarBackground"));
+            
+        setColour(PopupMenu::highlightedBackgroundColourId, colours.at("panelActiveBackground"));
+        setColour(TextButton::textColourOnId, colours.at("toolbarActive"));
+        setColour(Slider::thumbColourId, colours.at("scrollbarBackground"));
+        setColour(ScrollBar::thumbColourId, colours.at("scrollbarBackground"));
+        setColour(DirectoryContentsDisplayComponent::highlightColourId, colours.at("panelActiveBackground"));
+        // TODO: possibly add a colour for this
+        setColour(CaretComponent::caretColourId, colours.at("toolbarActive"));
+            
+        setColour(TextButton::buttonColourId, colours.at("toolbarBackground"));
+        setColour(TextButton::buttonOnColourId, colours.at("toolbarBackground"));
+        setColour(ComboBox::backgroundColourId, colours.at("toolbarBackground"));
+        setColour(ListBox::backgroundColourId, colours.at("toolbarBackground"));
+            
+        setColour(AlertWindow::backgroundColourId, colours.at("panelBackground"));
+        getCurrentColourScheme().setUIColour(ColourScheme::UIColour::widgetBackground, colours.at("panelBackground"));
+            
+        setColour(TooltipWindow::backgroundColourId, colours.at("panelBackground").withAlpha(0.8f));
+        setColour(PopupMenu::backgroundColourId, colours.at("panelBackground").withAlpha(0.95f));
+            
+        setColour(KeyMappingEditorComponent::backgroundColourId, colours.at("panelBackground"));
+        setColour(ResizableWindow::backgroundColourId, colours.at("canvasBackground"));
+        setColour(Slider::backgroundColourId, colours.at("canvasBackground"));
+        setColour(Slider::trackColourId, colours.at("scrollbarBackground"));
+        setColour(TextEditor::backgroundColourId, colours.at("canvasBackground"));
+        setColour(FileBrowserComponent::currentPathBoxBackgroundColourId, colours.at("panelBackground"));
+        setColour(FileBrowserComponent::filenameBoxBackgroundColourId, colours.at("panelBackground"));
+            
+        setColour(TooltipWindow::textColourId, colours.at("panelText"));
+        setColour(TextButton::textColourOffId, colours.at("panelText"));
+        setColour(ComboBox::textColourId, colours.at("canvasText"));
+        setColour(TableListBox::textColourId, colours.at("canvasText"));
+        setColour(Label::textColourId, colours.at("canvasText"));
+        setColour(Label::textWhenEditingColourId, colours.at("canvasText"));
+        setColour(ListBox::textColourId, colours.at("canvasText"));
+        setColour(TextEditor::textColourId, colours.at("canvasText"));
+        setColour(PropertyComponent::labelTextColourId, colours.at("canvasText"));
+        setColour(PopupMenu::textColourId, colours.at("panelText"));
+        setColour(KeyMappingEditorComponent::textColourId, colours.at("panelText"));
+        setColour(TabbedButtonBar::frontTextColourId, colours.at("activeTabText"));
+        setColour(TabbedButtonBar::tabTextColourId, colours.at("tabText"));
+        setColour(ToggleButton::textColourId, colours.at("canvasText"));
+        setColour(ToggleButton::tickColourId, colours.at("canvasText"));
+        setColour(ToggleButton::tickDisabledColourId, colours.at("canvasText"));
+        setColour(ComboBox::arrowColourId, colours.at("canvasText"));
+        setColour(DirectoryContentsDisplayComponent::textColourId, colours.at("canvasText"));
+        setColour(Slider::textBoxTextColourId, colours.at("canvasText"));
+        setColour(AlertWindow::textColourId, colours.at("panelText"));
+        setColour(FileBrowserComponent::currentPathBoxTextColourId, colours.at("panelActiveText"));
+        setColour(FileBrowserComponent::currentPathBoxArrowColourId, colours.at("panelActiveText"));
+        setColour(FileBrowserComponent::filenameBoxTextColourId, colours.at("panelText"));
+        setColour(FileChooserDialogBox::titleTextColourId, colours.at("panelText"));
+            
+        setColour(DirectoryContentsDisplayComponent::highlightedTextColourId, colours.at("panelActiveText"));
+            
+        setColour(TooltipWindow::outlineColourId, colours.at("panelBackground"));
+        setColour(ComboBox::outlineColourId, colours.at("outline"));
+        setColour(TextEditor::outlineColourId, colours.at("outline"));
+            
         setColour(Slider::textBoxOutlineColourId, Colours::transparentBlack);
         setColour(TreeView::backgroundColourId, Colours::transparentBlack);
-        
-
-
     }
-
+    
     static void setDefaultFont(String fontName)
     {
         auto& lnf = dynamic_cast<PlugDataLook&>(getDefaultLookAndFeel());
@@ -871,24 +914,82 @@ struct PlugDataLook : public LookAndFeel_V4
             lnf.setDefaultSansSerifTypeface(newFont.getTypefacePtr());
         }
     }
-
-    inline static const std::vector<std::vector<String>> colourNames = {{"tbLightColour", "cnvLightColour", "textLightColour", "dataLightColour", "outlineLightColour", "connectionLightColour", "signalLightColour"},
-                                                                        {"tbDarkColour", "cnvDarkColour", "textDarkColour", "dataDarkColour", "outlineDarkColour", "connectionDarkColour", "signalDarkColour"}};
-
-    inline static const std::vector<std::vector<Colour>> defaultColours = {{Colour(228, 228, 228), Colour(250, 250, 250), Colour(90, 90, 90), Colour(0, 122, 255), Colour(168, 168, 168), Colour(179, 179, 179), Colour(255, 133, 0)},
-                                                                           {Colour(25, 25, 25), Colour(35, 35, 35), Colour(255, 255, 255), Colour(66, 162, 200), Colour(105, 105, 105), Colour(225, 225, 225), Colour(255, 133, 0)}};
-
-    inline static std::vector<std::vector<Colour>> colourSettings = defaultColours;
+    
+    
+    inline static const std::map<String, std::map<String, Colour>> defaultColours = {
+        {"dark", {
+            {"toolbarBackground", Colour(25, 25, 25)},
+            {"toolbarText", Colour(255, 255, 255)},
+            {"toolbarActive", Colour(66, 162, 200)},
+    
+            {"tabBackground", Colour(25, 25, 25)},
+            {"tabText", Colour(255, 255, 255)},
+            {"tabBorder", Colour(105, 105, 105)},
+            {"activeTabBackground", Colour(35, 35, 35)},
+            {"activeTabText", Colour(255, 255, 255)},
+            {"activeTabBorder", Colour(105, 105, 105)},
+            
+            {"canvasBackground", Colour(35, 35, 35)},
+            {"canvasText", Colour(255, 255, 255)},
+            {"canvasActive", Colour(66, 162, 200)},
+            
+            {"outline", Colour(255, 255, 255)},
+            {"data", Colour(66, 162, 200)},
+            {"connection", Colour(225, 225, 225)},
+            {"signal", Colour(255, 133, 0)},
+            {"defaultObjectBackground", Colour(25, 25, 25)},
+            
+            {"panelBackground", Colour(35, 35, 35)},
+            {"panelBackgroundOffset", Colour(50, 50, 50)},
+            {"panelText", Colour(255, 255, 255)},
+            {"panelActiveBackground", Colour(66, 162, 200)},
+            {"panelActiveText", Colour(0, 0, 0)},
+    
+            {"scrollbarBackground", Colour(66, 162, 200)}
+        }},
+        {"light", {
+            {"toolbarBackground", Colour(228, 228, 228)},
+            {"toolbarText", Colour(90, 90, 90)},
+            {"toolbarActive", Colour(0, 122, 255)},
+            
+            {"tabBackground", Colour(228, 228, 228)},
+            {"tabText", Colour(90, 90, 90)},
+            {"tabBorder", Colour(168, 168, 168)},
+            {"activeTabBackground", Colour(250, 250, 250)},
+            {"activeTabText", Colour(90, 90, 90)},
+            {"activeTabBorder", Colour(168, 168, 168)},
+            
+            {"canvasBackground", Colour(250, 250, 250)},
+            {"canvasText", Colour(90, 90, 90)},
+            {"canvasActive", Colour(0, 122, 255)},
+            
+            {"outline", Colour(168, 168, 168)},
+            {"data", Colour(0, 122, 255)},
+            {"connection", Colour(179, 179, 179)},
+            {"signal", Colour(255, 133, 0)},
+            {"defaultObjectBackground", Colour(228, 228, 228)},
+            
+            {"panelBackground", Colour(250, 250, 250)},
+            {"panelBackgroundOffset", Colour(228, 228, 228)},
+            {"panelText", Colour(90, 90, 90)},
+            {"panelActiveBackground", Colour(0, 122, 255)},
+            {"panelActiveText", Colour(0, 0, 0)},
+            
+            {"scrollbarBackground", Colour(66, 162, 200)},
+        }}
+    };
+    
+    inline static const std::map<String, std::map<String, Colour>> colourSettings = defaultColours;
 
     void setTheme(bool useLightTheme)
     {
         if (useLightTheme)
         {
-            setColours(colourSettings[0]);
+            setColours(colourSettings.at("light"));
         }
         else
         {
-            setColours(colourSettings[1]);
+            setColours(colourSettings.at("dark"));
         }
 
         isUsingLightTheme = useLightTheme;
