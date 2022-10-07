@@ -7,7 +7,7 @@ struct ThemePanel : public Component
     , public Value::Listener {
     ValueTree settingsTree;
     Value fontValue;
-    std::map<String, std::map<String, Value>> colours;
+    std::unordered_map<String, std::unordered_map<String, Value>> swatches;
 
     TextButton resetButton = TextButton(Icons::Refresh);
 
@@ -21,12 +21,13 @@ struct ThemePanel : public Component
         panels.add(new PropertiesPanel::FontComponent("Default font", fontValue, 0));
 
         for (auto const& pair : PlugDataLook::colourSettings) {
-            auto name = pair.first;
-            auto theme = pair.second;
-            for (auto const& colour : theme) {
-                colours[name][colour.first].setValue(colour.second.toString());
-                colours[name][colour.first].addListener(this);
-                panels.add(new PropertiesPanel::ColourComponent(colour.first, colours[name][colour.first], 1));
+            auto themeName = pair.first;
+            auto themeColours = pair.second;
+            for (auto const& colour : PlugDataLook::defaultDarkTheme) {
+                auto colourName = colour.first;
+                swatches[themeName][colourName].setValue(themeColours.at(colourName).toString());
+                swatches[themeName][colourName].addListener(this);
+                panels.add(new PropertiesPanel::ColourComponent(colourName, swatches[themeName][colourName], 1));
             }
         }
 
@@ -52,12 +53,10 @@ struct ThemePanel : public Component
             for (auto const& pair : lnf.colourSettings) {
                 auto name = pair.first;
                 auto theme = pair.second;
-                if (colourThemesTree.hasProperty(name)) {
-                    auto themeTree = colourThemesTree.getChildWithName(name);
-                    for (auto const& colour : theme) {
-                        colours[name][colour.first] = colour.second.toString();
-                        themeTree.setProperty(name, colour.second.toString(), nullptr);
-                    }
+                auto themeTree = colourThemesTree.getChildWithName(name);
+                for (auto const& colour : theme) {
+                    swatches[name][colour.first] = colour.second.toString();
+                    themeTree.setProperty(name, colour.second.toString(), nullptr);
                 }
             }
 
@@ -86,15 +85,11 @@ struct ThemePanel : public Component
         for (auto const& pair : lnf.colourSettings) {
             auto themeName = pair.first;
             auto theme = pair.second;
-            // TODO: perhaps an else block here that creates the theme
-            if (colourThemesTree.hasProperty(themeName)) {
-                auto themeTree = colourThemesTree.getChildWithName(themeName);
-                for (auto const& colour : theme) {
-                    if (v.refersToSameSourceAs(colours[themeName][colour.first])) {
-                        lnf.colourSettings[themeName][colour.first] = Colour::fromString(v.toString());
-                        themeTree.setProperty(colour.first, v.toString(), nullptr);
-                        colourThemesTree.child
-                    }
+            auto themeTree = colourThemesTree.getChildWithName(themeName);
+            for (auto const& colour : theme) {
+                if (v.refersToSameSourceAs(swatches[themeName][colour.first])) {
+                    lnf.colourSettings[themeName][colour.first] = Colour::fromString(v.toString());
+                    themeTree.setProperty(colour.first, v.toString(), nullptr);
                     lnf.setTheme(lnf.isUsingLightTheme);
                     getTopLevelComponent()->repaint();
                 }
@@ -113,18 +108,12 @@ struct ThemePanel : public Component
 
         auto themeRow = bounds.removeFromTop(23);
         g.drawText("Theme", themeRow, Justification::left);
-        g.drawText("Dark", themeRow.withX(getWidth() * 0.5f).withWidth(getWidth() / 4), Justification::centred);
-        g.drawText("Light", themeRow.withX(getWidth() * 0.75f).withWidth(getWidth() / 4), Justification::centred);
+        g.drawText("Light", themeRow.withX(getWidth() * 0.5f).withWidth(getWidth() / 4), Justification::centred);
+        g.drawText("Dark", themeRow.withX(getWidth() * 0.75f).withWidth(getWidth() / 4), Justification::centred);
 
-        g.drawText("Toolbar colour", bounds.removeFromTop(23), Justification::left);
-        g.drawText("Canvas colour", bounds.removeFromTop(23), Justification::left);
-
-        g.drawText("Text colour", bounds.removeFromTop(23), Justification::left);
-        g.drawText("Data colour", bounds.removeFromTop(23), Justification::left);
-        g.drawText("Outline colour", bounds.removeFromTop(23), Justification::left);
-        g.drawText("Connection colour", bounds.removeFromTop(23), Justification::left);
-        g.drawText("Signal colour", bounds.removeFromTop(23), Justification::left);
-
+        for (auto const& colour : PlugDataLook::defaultDarkTheme) {
+            g.drawText(colour.first, bounds.removeFromTop(23), Justification::left);
+        }
         bounds.removeFromTop(23);
     }
 
@@ -268,6 +257,8 @@ struct SettingsDialog : public Component {
         } else {
             panels.add(new DAWAudioSettings(processor));
         }
+
+
         panels.add(new ThemePanel(settingsTree));
         panels.add(new SearchPathComponent(settingsTree.getChildWithName("Paths")));
         panels.add(new KeyMappingComponent(*editor->getKeyMappings()));
