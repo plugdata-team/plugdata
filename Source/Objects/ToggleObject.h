@@ -21,7 +21,7 @@ struct ToggleObject final : public IEMObject {
         IEMObject::paint(g);
         
         auto toggledColour = getForegroundColour();
-        auto untoggledColour = toggledColour.interpolatedWith(object->findColour(PlugDataColour::toolbarColourId), 0.8f);
+        auto untoggledColour = getBackgroundColour();
         g.setColour(toggleState ? toggledColour : untoggledColour);
 
         auto crossBounds = getLocalBounds().reduced(6).toFloat();

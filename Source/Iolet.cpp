@@ -39,13 +39,13 @@ void Iolet::paint(Graphics& g)
         bounds = bounds.reduced(2);
     }
     
-    auto backgroundColour = isSignal ? findColour(PlugDataColour::signalColourId) : findColour(PlugDataColour::highlightColourId);
+    auto backgroundColour = isSignal ? findColour(PlugDataColour::signalColourId) : findColour(PlugDataColour::dataColourId);
 
     if ((down || over) && !isLocked) backgroundColour = backgroundColour.contrasting(down ? 0.2f : 0.05f);
 
     if (isLocked)
     {
-        backgroundColour = findColour(PlugDataColour::canvasColourId).contrasting(0.5f);
+        backgroundColour = findColour(PlugDataColour::canvasBackgroundColourId).contrasting(0.5f);
     }
 
     // Instead of drawing pie segments, just clip the graphics region to the visible iolets of the object
@@ -61,7 +61,7 @@ void Iolet::paint(Graphics& g)
     g.setColour(backgroundColour);
     g.fillEllipse(bounds);
 
-    g.setColour(findColour(PlugDataColour::canvasOutlineColourId));
+    g.setColour(findColour(PlugDataColour::outlineColourId));
     g.drawEllipse(bounds, 1.0f);
 
     if (stateSaved)

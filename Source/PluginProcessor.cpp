@@ -257,11 +257,14 @@ void PlugDataAudioProcessor::initialiseFilesystem()
         settingsTree.appendChild(ValueTree("Keymap"), nullptr);
 
         settingsTree.setProperty("DefaultFont", "Inter", nullptr);
-        for (int i = 0; i < lnf->colourNames.size(); i++)
-        {
-            for (int j = 0; j < lnf->colourNames[i].size(); j++)
-            {
-                settingsTree.setProperty(lnf->colourNames[i][j], PlugDataLook::colourSettings[i][j].toString(), nullptr);
+        auto colourThemesTree = ValueTree("ColourThemes");
+        for (auto const& theme : lnf->colourSettings) {
+            auto name = theme.first;
+            auto colours = theme.second;
+            auto tree = ValueTree(name);
+            colourThemesTree.appendChild(tree, nullptr);
+            for (auto const& colour : colours) {
+                tree.setProperty(colour.first, colour.second.toString(), nullptr);
             }
         }
 
@@ -277,14 +280,17 @@ void PlugDataAudioProcessor::initialiseFilesystem()
             String fontname = settingsTree.getProperty("DefaultFont").toString();
             PlugDataLook::setDefaultFont(fontname);
         }
-
-        for (int i = 0; i < lnf->colourNames.size(); i++)
-        {
-            for (int j = 0; j < lnf->colourNames[i].size(); j++)
-            {
-                if (settingsTree.hasProperty(lnf->colourNames[i][j]))
-                {
-                    PlugDataLook::colourSettings[i][j] = Colour::fromString(settingsTree.getProperty(lnf->colourNames[i][j]).toString());
+        
+        if (settingsTree.hasProperty("ColourThemes")) {
+            auto colourThemesTree = settingsTree.getChildWithName("ColourThemes");
+            for (auto const& theme : lnf->colourSettings) {
+                auto name = theme.first;
+                auto colours = theme.second;
+                if (colourThemesTree.hasProperty(name)) {
+                    auto themeTree = colourThemesTree.getChildWithName(name);
+                    for (auto const& colour : colours) {
+                        colours[colour.first] = Colour::fromString(themeTree.getProperty(name).toString());
+                    }
                 }
             }
         }
@@ -1071,24 +1077,22 @@ void PlugDataAudioProcessor::setTheme(bool themeToUse)
 
 Colour PlugDataAudioProcessor::getOutlineColour()
 {
-    // currently the same as text colour, but still a function to make it easy to change in the future
-    return lnf->findColour(PlugDataColour::canvasOutlineColourId);
+    return lnf->findColour(PlugDataColour::outlineColourId);
 }
 
 Colour PlugDataAudioProcessor::getForegroundColour()
 {
-    // currently the same as text colour, but still a function to make it easy to change in the future
-    return lnf->findColour(PlugDataColour::textColourId).interpolatedWith(lnf->findColour(PlugDataColour::canvasColourId), 0.25f);
+    return lnf->findColour(PlugDataColour::canvasTextColourId);
 }
 
 Colour PlugDataAudioProcessor::getBackgroundColour()
 {
-    return lnf->findColour(PlugDataColour::toolbarColourId);
+    return lnf->findColour(PlugDataColour::toolbarBackgroundColourId);
 }
 
 Colour PlugDataAudioProcessor::getTextColour()
 {
-    return lnf->findColour(PlugDataColour::textColourId);
+    return lnf->findColour(PlugDataColour::toolbarTextColourId);
 }
 
 void PlugDataAudioProcessor::receiveNoteOn(const int channel, const int pitch, const int velocity)

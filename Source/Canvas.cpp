@@ -105,11 +105,11 @@ void Canvas::paint(Graphics& g)
 
     if (!isGraph)
     {
-        lasso.setColour(LassoComponent<Object>::lassoFillColourId, findColour(PlugDataColour::highlightColourId).withAlpha(0.3f));
+        lasso.setColour(LassoComponent<Object>::lassoFillColourId, findColour(PlugDataColour::canvasActiveColourId).withAlpha(0.3f));
 
-        g.fillAll(findColour(PlugDataColour::toolbarColourId));
+        g.fillAll(findColour(PlugDataColour::toolbarBackgroundColourId));
 
-        g.setColour(findColour(PlugDataColour::canvasColourId));
+        g.setColour(findColour(PlugDataColour::canvasBackgroundColourId));
         g.fillRect(canvasOrigin.x, canvasOrigin.y, getWidth(), getHeight());
 
         // draw origin
@@ -123,7 +123,7 @@ void Canvas::paint(Graphics& g)
         const int objectGridSize = 25;
         const Rectangle<int> clipBounds = g.getClipBounds();
 
-        g.setColour(findColour(PlugDataColour::canvasColourId).contrasting(0.42));
+        g.setColour(findColour(PlugDataColour::canvasBackgroundColourId).contrasting(0.42));
 
         for (int x = canvasOrigin.getX() + objectGridSize; x < clipBounds.getRight(); x += objectGridSize)
         {
