@@ -808,7 +808,7 @@ struct PlugDataLook : public LookAndFeel_V4
         }
     }
     
-    void setColours(std::map<String, Colour> colours)
+    void setColours(std::unordered_map<String, Colour> colours)
     {
         setColour(PlugDataColour::toolbarBackgroundColourId, colours.at("toolbarBackground"));
         setColour(PlugDataColour::defaultObjectBackgroundColourId, colours.at("defaultObjectBackground"));
@@ -914,82 +914,78 @@ struct PlugDataLook : public LookAndFeel_V4
             lnf.setDefaultSansSerifTypeface(newFont.getTypefacePtr());
         }
     }
-    
-    
-    inline static const std::map<String, std::map<String, Colour>> defaultColours = {
-        {"dark", {
-            {"toolbarBackground", Colour(25, 25, 25)},
-            {"toolbarText", Colour(255, 255, 255)},
-            {"toolbarActive", Colour(66, 162, 200)},
-    
-            {"tabBackground", Colour(25, 25, 25)},
-            {"tabText", Colour(255, 255, 255)},
-            {"tabBorder", Colour(105, 105, 105)},
-            {"activeTabBackground", Colour(35, 35, 35)},
-            {"activeTabText", Colour(255, 255, 255)},
-            {"activeTabBorder", Colour(105, 105, 105)},
-            
-            {"canvasBackground", Colour(35, 35, 35)},
-            {"canvasText", Colour(255, 255, 255)},
-            {"canvasActive", Colour(66, 162, 200)},
-            
-            {"outline", Colour(255, 255, 255)},
-            {"data", Colour(66, 162, 200)},
-            {"connection", Colour(225, 225, 225)},
-            {"signal", Colour(255, 133, 0)},
-            {"defaultObjectBackground", Colour(25, 25, 25)},
-            
-            {"panelBackground", Colour(35, 35, 35)},
-            {"panelBackgroundOffset", Colour(50, 50, 50)},
-            {"panelText", Colour(255, 255, 255)},
-            {"panelActiveBackground", Colour(66, 162, 200)},
-            {"panelActiveText", Colour(0, 0, 0)},
-    
-            {"scrollbarBackground", Colour(66, 162, 200)}
-        }},
-        {"light", {
-            {"toolbarBackground", Colour(228, 228, 228)},
-            {"toolbarText", Colour(90, 90, 90)},
-            {"toolbarActive", Colour(0, 122, 255)},
-            
-            {"tabBackground", Colour(228, 228, 228)},
-            {"tabText", Colour(90, 90, 90)},
-            {"tabBorder", Colour(168, 168, 168)},
-            {"activeTabBackground", Colour(250, 250, 250)},
-            {"activeTabText", Colour(90, 90, 90)},
-            {"activeTabBorder", Colour(168, 168, 168)},
-            
-            {"canvasBackground", Colour(250, 250, 250)},
-            {"canvasText", Colour(90, 90, 90)},
-            {"canvasActive", Colour(0, 122, 255)},
-            
-            {"outline", Colour(168, 168, 168)},
-            {"data", Colour(0, 122, 255)},
-            {"connection", Colour(179, 179, 179)},
-            {"signal", Colour(255, 133, 0)},
-            {"defaultObjectBackground", Colour(228, 228, 228)},
-            
-            {"panelBackground", Colour(250, 250, 250)},
-            {"panelBackgroundOffset", Colour(228, 228, 228)},
-            {"panelText", Colour(90, 90, 90)},
-            {"panelActiveBackground", Colour(0, 122, 255)},
-            {"panelActiveText", Colour(0, 0, 0)},
-            
-            {"scrollbarBackground", Colour(66, 162, 200)},
-        }}
+
+    inline static const std::unordered_map<String, Colour> defaultDarkTheme = {
+        {"toolbarBackground", Colour(25, 25, 25)},
+        {"toolbarText", Colour(255, 255, 255)},
+        {"toolbarActive", Colour(66, 162, 200)},
+
+        {"tabBackground", Colour(25, 25, 25)},
+        {"tabText", Colour(255, 255, 255)},
+        {"tabBorder", Colour(105, 105, 105)},
+        {"activeTabBackground", Colour(35, 35, 35)},
+        {"activeTabText", Colour(255, 255, 255)},
+        {"activeTabBorder", Colour(105, 105, 105)},
+
+        {"canvasBackground", Colour(35, 35, 35)},
+        {"canvasText", Colour(255, 255, 255)},
+        {"canvasActive", Colour(66, 162, 200)},
+
+        {"outline", Colour(255, 255, 255)},
+        {"data", Colour(66, 162, 200)},
+        {"connection", Colour(225, 225, 225)},
+        {"signal", Colour(255, 133, 0)},
+        {"defaultObjectBackground", Colour(25, 25, 25)},
+
+        {"panelBackground", Colour(35, 35, 35)},
+        {"panelBackgroundOffset", Colour(50, 50, 50)},
+        {"panelText", Colour(255, 255, 255)},
+        {"panelActiveBackground", Colour(66, 162, 200)},
+        {"panelActiveText", Colour(0, 0, 0)},
+
+        {"scrollbarBackground", Colour(66, 162, 200)}
+    };
+
+    inline static const std::unordered_map<String, Colour> defaultLightTheme = {
+        {"toolbarBackground", Colour(228, 228, 228)},
+        {"toolbarText", Colour(90, 90, 90)},
+        {"toolbarActive", Colour(0, 122, 255)},
+
+        {"tabBackground", Colour(228, 228, 228)},
+        {"tabText", Colour(90, 90, 90)},
+        {"tabBorder", Colour(168, 168, 168)},
+        {"activeTabBackground", Colour(250, 250, 250)},
+        {"activeTabText", Colour(90, 90, 90)},
+        {"activeTabBorder", Colour(168, 168, 168)},
+
+        {"canvasBackground", Colour(250, 250, 250)},
+        {"canvasText", Colour(90, 90, 90)},
+        {"canvasActive", Colour(0, 122, 255)},
+
+        {"outline", Colour(168, 168, 168)},
+        {"data", Colour(0, 122, 255)},
+        {"connection", Colour(179, 179, 179)},
+        {"signal", Colour(255, 133, 0)},
+        {"defaultObjectBackground", Colour(228, 228, 228)},
+
+        {"panelBackground", Colour(250, 250, 250)},
+        {"panelBackgroundOffset", Colour(228, 228, 228)},
+        {"panelText", Colour(90, 90, 90)},
+        {"panelActiveBackground", Colour(0, 122, 255)},
+        {"panelActiveText", Colour(0, 0, 0)},
+
+        {"scrollbarBackground", Colour(66, 162, 200)},
     };
     
-    inline static std::map<String, std::map<String, Colour>> colourSettings = defaultColours;
+    inline static const std::unordered_map<String, std::unordered_map<String, Colour>> defaultThemes = {
+        {"dark", defaultDarkTheme},
+        {"light", defaultLightTheme}
+    };
+    
+    inline static std::unordered_map<String, std::unordered_map<String, Colour>> colourSettings = defaultThemes;
     
     void resetColours() {
-        colourSettings = defaultColours;
-        for (auto const& pair : defaultColours) {
-            auto name = pair.first;
-            auto theme = pair.second;
-            for (auto const& colour : theme) {
-                colourSettings[name][colour.first] = colour.second;
-            }
-        }
+        colourSettings = defaultThemes;
     }
     
     void setThemeColour(String themeName, String colourName, Colour colour) {
@@ -1010,6 +1006,7 @@ struct PlugDataLook : public LookAndFeel_V4
         isUsingLightTheme = useLightTheme;
     }
 
+    // TODO: swap this out for a string theme name perhaps?
     static inline bool isUsingLightTheme = true;
     std::unique_ptr<Drawable> folderImage;
 };

@@ -260,15 +260,16 @@ void PlugDataAudioProcessor::initialiseFilesystem()
         auto colourThemesTree = ValueTree("ColourThemes");
         settingsTree.appendChild(colourThemesTree, nullptr);
         for (auto const& theme : lnf->colourSettings) {
-            auto name = theme.first;
-            auto colours = theme.second;
-            auto tree = ValueTree(name);
-            colourThemesTree.appendChild(tree, nullptr);
-            for (auto const& colour : colours) {
-                tree.setProperty(colour.first, colour.second.toString(), nullptr);
+            auto themeName = theme.first;
+            auto themeColours = theme.second;
+            auto themeTree = ValueTree(themeName);
+            colourThemesTree.appendChild(themeTree, nullptr);
+            themeTree.setProperty("theme", themeName, nullptr);
+            for (auto const& defaultColours : lnf->defaultDarkTheme) {
+                auto colourName = defaultColours.first;
+                themeTree.setProperty(colourName, themeColours.at(colourName).toString(), nullptr);
             }
         }
-
         saveSettings();
     }
     else
@@ -281,18 +282,13 @@ void PlugDataAudioProcessor::initialiseFilesystem()
             String fontname = settingsTree.getProperty("DefaultFont").toString();
             PlugDataLook::setDefaultFont(fontname);
         }
-        
-        if (settingsTree.hasProperty("ColourThemes")) {
-            auto colourThemesTree = settingsTree.getChildWithName("ColourThemes");
-            for (auto const& theme : lnf->colourSettings) {
-                auto name = theme.first;
-                auto colours = theme.second;
-                if (colourThemesTree.hasProperty(name)) {
-                    auto themeTree = colourThemesTree.getChildWithName(name);
-                    for (auto const& colour : colours) {
-                        colours[colour.first] = Colour::fromString(themeTree.getProperty(name).toString());
-                    }
-                }
+
+        auto colourThemesTree = settingsTree.getChildWithName("ColourThemes");
+        for (auto const& themeTree : colourThemesTree) {
+            auto themeName = themeTree.getProperty("theme");
+            for (auto const& defaultColours : lnf->defaultDarkTheme) {
+                auto colourName = defaultColours.first;
+                lnf->colourSettings[themeName][colourName] = Colour::fromString(themeTree.getProperty(colourName).toString());
             }
         }
     }
