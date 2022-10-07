@@ -7,7 +7,7 @@ struct ThemePanel : public Component
     , public Value::Listener {
     ValueTree settingsTree;
     Value fontValue;
-    std::vector<std::vector<Value>> colours;
+    std::map<String, std::map<String, Value>> colours;
 
     TextButton resetButton = TextButton(Icons::Refresh);
 
@@ -20,26 +20,13 @@ struct ThemePanel : public Component
         fontValue.addListener(this);
         panels.add(new PropertiesPanel::FontComponent("Default font", fontValue, 0));
 
-        // Get current colour
-        auto numColours = PlugDataLook::colourSettings.at("dark").size();
-        colours.resize(2);
-
-//        for (int i = 0; i < numColours; i++) {
-//            for (int j = 0; j < 2; j++) {
-//                colours[j].resize(numColours);
-//                colours[j][i].setValue(PlugDataLook::colourSettings[j][i].toString());
-//                colours[j][i].addListener(this);
-//                panels.add(new PropertiesPanel::ColourComponent(PlugDataLook::colourNames[j][i], colours[j][i], 1));
-//            }
-//        }
-        
         for (auto const& pair : PlugDataLook::colourSettings) {
             auto name = pair.first;
             auto theme = pair.second;
-            auto tree = ValueTree(name);
             for (auto const& colour : theme) {
-//                colour.second();
-                
+                colours[name][colour.first].setValue(colour.second.toString());
+                colours[name][colour.first].addListener(this);
+                panels.add(new PropertiesPanel::ColourComponent(colour.first, colours[name][colour.first], 1));
             }
         }
 
@@ -54,20 +41,25 @@ struct ThemePanel : public Component
         resetButton.setConnectedEdges(12);
         resetButton.onClick = [this]() {
             auto& lnf = dynamic_cast<PlugDataLook&>(getLookAndFeel());
-//            lnf.colourSettings = lnf.defaultColours;
+            lnf.resetColours();
 
             dynamic_cast<PropertiesPanel::FontComponent*>(panels[0])->setFont("Inter");
             fontValue = "Inter";
             lnf.setDefaultFont(fontValue.toString());
             settingsTree.setProperty("DefaultFont", fontValue.getValue(), nullptr);
 
-//            auto numColours = PlugDataLook::colourNames[0].size();
-//            for (int i = 0; i < 2; i++) {
-//                for (int j = 0; j < numColours; j++) {
-//                    colours[i][j] = lnf.colourSettings[i][j].toString();
-//                    settingsTree.setProperty(lnf.colourNames[i][j], lnf.colourSettings[i][j].toString(), nullptr);
-//                }
-//            }
+            auto colourThemesTree = settingsTree.getChildWithName("ColourThemes");
+            for (auto const& pair : lnf.colourSettings) {
+                auto name = pair.first;
+                auto theme = pair.second;
+                if (colourThemesTree.hasProperty(name)) {
+                    auto themeTree = colourThemesTree.getChildWithName(name);
+                    for (auto const& colour : theme) {
+                        colours[name][colour.first] = colour.second.toString();
+                        themeTree.setProperty(name, colour.second.toString(), nullptr);
+                    }
+                }
+            }
 
             lnf.setTheme(lnf.isUsingLightTheme);
             getTopLevelComponent()->repaint();
@@ -90,17 +82,24 @@ struct ThemePanel : public Component
             getTopLevelComponent()->repaint();
         }
 
-//        auto numColours = PlugDataLook::colourNames[0].size();
-//        for (int i = 0; i < 2; i++) {
-//            for (int j = 0; j < numColours; j++) {
-//                if (v.refersToSameSourceAs(colours[i][j])) {
-//                    lnf.colourSettings[i][j] = Colour::fromString(v.toString());
-//                    settingsTree.setProperty(lnf.colourNames[i][j], lnf.colourSettings[i][j].toString(), nullptr);
-//                    lnf.setTheme(lnf.isUsingLightTheme);
-//                    getTopLevelComponent()->repaint();
-//                }
-//            }
-//        }
+        auto colourThemesTree = settingsTree.getChildWithName("ColourThemes");
+        for (auto const& pair : lnf.colourSettings) {
+            auto themeName = pair.first;
+            auto theme = pair.second;
+            // TODO: perhaps an else block here that creates the theme
+            if (colourThemesTree.hasProperty(themeName)) {
+                auto themeTree = colourThemesTree.getChildWithName(themeName);
+                for (auto const& colour : theme) {
+                    if (v.refersToSameSourceAs(colours[themeName][colour.first])) {
+                        lnf.colourSettings[themeName][colour.first] = Colour::fromString(v.toString());
+                        themeTree.setProperty(colour.first, v.toString(), nullptr);
+                        colourThemesTree.child
+                    }
+                    lnf.setTheme(lnf.isUsingLightTheme);
+                    getTopLevelComponent()->repaint();
+                }
+            }
+        }
     }
 
     void paint(Graphics& g) override

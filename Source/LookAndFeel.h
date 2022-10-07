@@ -979,7 +979,22 @@ struct PlugDataLook : public LookAndFeel_V4
         }}
     };
     
-    inline static const std::map<String, std::map<String, Colour>> colourSettings = defaultColours;
+    inline static std::map<String, std::map<String, Colour>> colourSettings = defaultColours;
+    
+    void resetColours() {
+        colourSettings = defaultColours;
+        for (auto const& pair : defaultColours) {
+            auto name = pair.first;
+            auto theme = pair.second;
+            for (auto const& colour : theme) {
+                colourSettings[name][colour.first] = colour.second;
+            }
+        }
+    }
+    
+    void setThemeColour(String themeName, String colourName, Colour colour) {
+        colourSettings[themeName][colourName] = colour;
+    }
 
     void setTheme(bool useLightTheme)
     {
