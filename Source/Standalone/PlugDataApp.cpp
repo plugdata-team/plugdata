@@ -217,6 +217,12 @@ void PlugDataWindow::closeButtonPressed()
         static std::function<void(int)> checkCanvas;
         checkCanvas = [this, editor](int i) mutable {
             auto* cnv = editor->canvases[i];
+            
+            if(!cnv)  {
+                JUCEApplication::quit();
+                return;
+            }
+            
             bool isLast = i == editor->canvases.size() - 1;
             editor->tabbar.setCurrentTabIndex(i);
 
@@ -249,6 +255,7 @@ void PlugDataWindow::closeButtonPressed()
                 JUCEApplication::quit();
             }
         };
+        
 
         checkCanvas(0);
     }
