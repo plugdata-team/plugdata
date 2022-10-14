@@ -73,6 +73,10 @@ enum PlugDataColour
 struct Resources
 {
     Typeface::Ptr defaultTypeface = Typeface::createSystemTypefaceFor(BinaryData::InterRegular_ttf, BinaryData::InterRegular_ttfSize);
+    
+    Typeface::Ptr thinTypeface = Typeface::createSystemTypefaceFor(BinaryData::InterThin_ttf, BinaryData::InterThin_ttfSize);
+    
+    Typeface::Ptr boldTypeface = Typeface::createSystemTypefaceFor(BinaryData::InterBold_ttf, BinaryData::InterBold_ttfSize);
 
     Typeface::Ptr iconTypeface = Typeface::createSystemTypefaceFor(BinaryData::PlugDataFont_ttf, BinaryData::PlugDataFont_ttfSize);
 };
@@ -82,9 +86,15 @@ struct PlugDataLook : public LookAndFeel_V4
     SharedResourcePointer<Resources> resources;
 
     Font defaultFont;
+    Font boldFont;
+    Font thinFont;
     Font iconFont;
-
-    PlugDataLook() : defaultFont(resources->defaultTypeface), iconFont(resources->iconTypeface)
+    
+    PlugDataLook() :
+    defaultFont(resources->defaultTypeface),
+    boldFont(resources->boldTypeface),
+    thinFont(resources->thinTypeface),
+    iconFont(resources->iconTypeface)
     {
         setTheme(false);
         setDefaultSansSerifTypeface(resources->defaultTypeface);
@@ -144,9 +154,7 @@ struct PlugDataLook : public LookAndFeel_V4
 
     void drawButtonBackground(Graphics& g, Button& button, const Colour& backgroundColour, bool shouldDrawButtonAsHighlighted, bool shouldDrawButtonAsDown) override
     {
-        if (button.getName().startsWith("tab")) return;
-
-        if (button.getName().startsWith("toolbar"))
+        if (button.getName().startsWith("toolbar") || button.getName().startsWith("tabbar"))
         {
             drawToolbarButton(g, button, backgroundColour, shouldDrawButtonAsHighlighted, shouldDrawButtonAsDown);
         }
@@ -197,6 +205,10 @@ struct PlugDataLook : public LookAndFeel_V4
         if (but.getName().startsWith("statusbar:oversample"))
         {
             return {buttonHeight / 2.2f};
+        }
+        if (but.getName().startsWith("tabbar"))
+        {
+            return iconFont.withHeight(buttonHeight / 2.7f);
         }
         if (but.getName().startsWith("statusbar") || but.getName().startsWith("tab"))
         {
@@ -280,9 +292,9 @@ struct PlugDataLook : public LookAndFeel_V4
     }
 
     int getTabButtonBestWidth(TabBarButton& button, int tabDepth) override
-    {
+    {        
         auto& buttonBar = button.getTabbedButtonBar();
-        return (buttonBar.getWidth() / buttonBar.getNumTabs()) + 1;
+        return (buttonBar.getWidth() / buttonBar.getNumTabs()) - 1;
     }
 
     int getTabButtonOverlap(int tabDepth) override
@@ -299,11 +311,9 @@ struct PlugDataLook : public LookAndFeel_V4
         int w = button.getWidth();
         int h = button.getHeight();
 
-        g.setColour(button.findColour(PlugDataColour::toolbarOutlineColourId));
-        g.drawLine(Line<float>(0, h - 0.5f, w, h - 0.5f), 1.0f);
-
         if (button.getIndex() != button.getTabbedButtonBar().getNumTabs() - 1)
         {
+            g.setColour(button.findColour(PlugDataColour::toolbarOutlineColourId));
             g.drawLine(Line<float>(w - 0.5f, 0, w - 0.5f, h), 1.0f);
         }
 

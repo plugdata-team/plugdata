@@ -281,6 +281,8 @@ endif()
 file(GLOB PlugDataBinaryDataSources
     ${CMAKE_CURRENT_SOURCE_DIR}/Resources/PlugDataFont.ttf
     ${CMAKE_CURRENT_SOURCE_DIR}/Resources/InterRegular.ttf
+    ${CMAKE_CURRENT_SOURCE_DIR}/Resources/InterBold.ttf
+    ${CMAKE_CURRENT_SOURCE_DIR}/Resources/InterThin.ttf
     ${CMAKE_CURRENT_SOURCE_DIR}/Resources/plugd_logo.png
     ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Filesystem.zip
     )

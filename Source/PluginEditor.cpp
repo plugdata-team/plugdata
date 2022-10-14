@@ -32,11 +32,15 @@ bool wantsNativeDialog() {
 }
 
 
+
+
+
 PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p) : AudioProcessorEditor(&p), pd(p), statusbar(p), sidebar(&p)
 {
-    toolbarButtons = {new TextButton(Icons::New),  new TextButton(Icons::Open), new TextButton(Icons::Save),     new TextButton(Icons::SaveAs), new TextButton(Icons::Undo),
+    toolbarButtons = {new TextButton(Icons::Open), new TextButton(Icons::Save),     new TextButton(Icons::SaveAs), new TextButton(Icons::Undo),
                       new TextButton(Icons::Redo), new TextButton(Icons::Add),  new TextButton(Icons::Settings), new TextButton(Icons::Hide),   new TextButton(Icons::Pin)};
-
+    
+    
 #if PLUGDATA_ROUNDED
     setResizable(true, false);
 #else
@@ -81,8 +85,21 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p) : AudioPro
     tabbar.setColour(TabbedButtonBar::tabOutlineColourId, findColour(PlugDataColour::toolbarColourId));
     tabbar.setColour(TabbedComponent::outlineColourId, findColour(PlugDataColour::toolbarColourId));
 
+
+    
     addAndMakeVisible(statusbar);
 
+    tabbar.newTab = [this]()
+    {
+        newProject();
+    };
+    
+    
+    tabbar.openProject = [this]()
+    {
+        openProject();
+    };
+    
     tabbar.onTabChange = [this](int idx)
     {
         if (idx == -1) return;
@@ -104,6 +121,8 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p) : AudioPro
         cnv->updateGuiValues();
         cnv->updateDrawables();
         cnv->updateGuiParameters();
+        
+        updateCommandStatus();
     };
 
     tabbar.setOutline(0);
@@ -116,13 +135,6 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p) : AudioPro
         button->setConnectedEdges(12);
         addAndMakeVisible(button);
     }
-
-    // New button
-    toolbarButtons[0]->setTooltip("New Project");
-    toolbarButtons[0]->onClick = [this]()
-    {
-        newProject();
-    };
 
     // Open button
     toolbarButton(Open)->setTooltip("Open Project");
@@ -203,9 +215,9 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p) : AudioPro
     tabbar.toFront(false);
     sidebar.toFront(false);
     
-    
     // Make sure existing console messages are processed
     sidebar.updateConsole();
+    updateCommandStatus();
 }
 PlugDataPluginEditor::~PlugDataPluginEditor()
 {
@@ -258,18 +270,19 @@ void PlugDataPluginEditor::paintOverChildren(Graphics& g)
     int roundedOffset = PLUGDATA_ROUNDED;
     
     g.saveState();
-    
-    if(openedDialog) {
-        g.excludeClipRegion(openedDialog->getViewedComponent()->getBounds());
-    }
-    
+
     if(openedDialog || settingsDialog) {
+        auto& dialog = openedDialog ? openedDialog : settingsDialog;
+        g.excludeClipRegion(dialog->getViewedComponent()->getBounds());
+        
         // Hack: if there's a dialog, make the outline colour darker to make it fit in
         g.setColour(findColour(PlugDataColour::toolbarOutlineColourId).interpolatedWith(Colours::black, 0.5f));
     }
     else {
         g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
     }
+    
+    // TODO: don't do this!
     
     g.drawLine(0.0f, toolbarHeight + roundedOffset, static_cast<float>(getWidth()), toolbarHeight + roundedOffset);
     g.drawLine(0.0f, getHeight() - statusbar.getHeight(), static_cast<float>(getWidth()), getHeight() - statusbar.getHeight());
@@ -292,11 +305,11 @@ void PlugDataPluginEditor::resized()
     {
         auto* button = toolbarButtons[b];
 
-        auto item = FlexItem(*button).withMinWidth(50.0f).withMinHeight(8.0f).withMaxWidth(80.0f);
+        auto item = FlexItem(*button).withMinWidth(80.0f).withMinHeight(8.0f).withMaxWidth(120.0f);
         item.flexGrow = 1.0f;
         item.flexShrink = 1.0f;
 
-        if (b == 4 || b == 6)
+        if (b == 3 || b == 5)
         {
             auto separator = FlexItem(seperators[b == 4]).withMinWidth(1.0f).withMaxWidth(12.0f);
             separator.flexGrow = 1.0f;
@@ -473,24 +486,12 @@ Canvas* PlugDataPluginEditor::getCanvas(int idx)
 void PlugDataPluginEditor::addTab(Canvas* cnv, bool deleteWhenClosed)
 {
     tabbar.addTab(cnv->patch.getTitle(), findColour(ResizableWindow::backgroundColourId), cnv->viewport, true);
+    
 
     int tabIdx = tabbar.getNumTabs() - 1;
 
     tabbar.setCurrentTabIndex(tabIdx);
     tabbar.setTabBackgroundColour(tabIdx, Colours::transparentBlack);
-
-    if (tabbar.getNumTabs() > 1)
-    {
-        tabbar.getTabbedButtonBar().setVisible(true);
-        tabbar.setTabBarDepth(28);
-        resized();
-    }
-    else
-    {
-        tabbar.getTabbedButtonBar().setVisible(false);
-        tabbar.setTabBarDepth(1);
-        resized();
-    }
 
     auto* tabButton = tabbar.getTabbedButtonBar().getTabButton(tabIdx);
 
@@ -532,23 +533,8 @@ void PlugDataPluginEditor::addTab(Canvas* cnv, bool deleteWhenClosed)
             tabbar.removeTab(idx);
             pd.patches.removeObject(patch);
 
-            int numTabs = tabbar.getNumTabs();
-            tabbar.setCurrentTabIndex(numTabs - 1, true);
-
-            // Make sure there's at least one patch open
-            if(numTabs == 0) {
-                newProject();
-                tabbar.getTabbedButtonBar().setVisible(false);
-                tabbar.setTabBarDepth(1);
-                resized();
-            }
-            else if (numTabs == 1)
-            {
-                tabbar.getTabbedButtonBar().setVisible(false);
-                tabbar.setTabBarDepth(1);
-                resized();
-            }
-            
+            tabbar.setCurrentTabIndex(tabbar.getNumTabs() - 1, true);
+            updateCommandStatus();
         };
 
         MessageManager::callAsync(
@@ -589,6 +575,8 @@ void PlugDataPluginEditor::addTab(Canvas* cnv, bool deleteWhenClosed)
     tabbar.repaint();
 
     cnv->setVisible(true);
+    
+    updateCommandStatus();
 }
 
 void PlugDataPluginEditor::valueChanged(Value& v)
@@ -596,7 +584,6 @@ void PlugDataPluginEditor::valueChanged(Value& v)
     // Update undo state when locking/unlocking
     if (v.refersToSameSourceAs(pd.locked))
     {
-        toolbarButton(Add)->setEnabled(pd.locked == var(false));
         updateCommandStatus();
     }
     // Update zoom
@@ -689,6 +676,33 @@ void PlugDataPluginEditor::updateCommandStatus()
                         commandStatusChanged();
                     });
             });
+        
+        statusbar.lockButton->setEnabled(true);
+        statusbar.presentationButton->setEnabled(true);
+        statusbar.gridButton->setEnabled(true);
+        
+        toolbarButton(Save)->setEnabled(true);
+        toolbarButton(SaveAs)->setEnabled(true);
+        toolbarButton(Add)->setEnabled(pd.locked == var(false));
+    }
+    else {
+        statusbar.connectionStyleButton->setEnabled(false);
+        statusbar.connectionPathfind->setEnabled(false);
+        statusbar.lockButton->setEnabled(false);
+        statusbar.zoomIn->setEnabled(false);
+        statusbar.zoomOut->setEnabled(false);
+        
+        statusbar.lockButton->setEnabled(false);
+        statusbar.presentationButton->setEnabled(false);
+        statusbar.gridButton->setEnabled(false);
+        
+        toolbarButton(Save)->setEnabled(false);
+        toolbarButton(SaveAs)->setEnabled(false);
+        toolbarButton(Undo)->setEnabled(false);
+        toolbarButton(Redo)->setEnabled(false);
+        toolbarButton(Add)->setEnabled(false);
+        
+        
     }
 }
 
@@ -711,6 +725,7 @@ void PlugDataPluginEditor::getCommandInfo(const CommandID commandID, Application
     bool hasBoxSelection = false;
     bool hasSelection = false;
     bool isDragging = false;
+    bool hasCanvas = true;
     
     if (auto* cnv = getCurrentCanvas())
     {
@@ -720,6 +735,9 @@ void PlugDataPluginEditor::getCommandInfo(const CommandID commandID, Application
         hasBoxSelection = !selectedBoxes.isEmpty();
         hasSelection = hasBoxSelection || !selectedConnections.isEmpty();
         isDragging = cnv->didStartDragging && !cnv->isDraggingLasso && statusbar.locked == var(false);
+    }
+    else {
+        hasCanvas = false;
     }
 
     switch (commandID)
@@ -739,25 +757,28 @@ void PlugDataPluginEditor::getCommandInfo(const CommandID commandID, Application
         {
             result.setInfo("Save Project", "Save project at current location", "General", 0);
             result.addDefaultKeypress(83, ModifierKeys::commandModifier);
+            result.setActive(hasCanvas);
             break;
         }
         case CommandIDs::SaveProjectAs:
         {
             result.setInfo("Save Project As", "Save project in chosen location", "General", 0);
             result.addDefaultKeypress(83, ModifierKeys::commandModifier | ModifierKeys::shiftModifier);
+            result.setActive(hasCanvas);
             break;
         }
         case CommandIDs::CloseTab:
         {
             result.setInfo("Close tab", "Close currently opened tab", "General", 0);
             result.addDefaultKeypress(87, ModifierKeys::commandModifier);
+            result.setActive(hasCanvas);
             break;
         }
         case CommandIDs::Undo:
         {
             result.setInfo("Undo", "Undo action", "General", 0);
             result.addDefaultKeypress(90, ModifierKeys::commandModifier);
-            result.setActive(!isDragging && canUndo);
+            result.setActive(hasCanvas && !isDragging && canUndo);
 
             break;
         }
@@ -766,69 +787,69 @@ void PlugDataPluginEditor::getCommandInfo(const CommandID commandID, Application
         {
             result.setInfo("Redo", "Redo action", "General", 0);
             result.addDefaultKeypress(90, ModifierKeys::commandModifier | ModifierKeys::shiftModifier);
-            result.setActive(!isDragging && canRedo);
+            result.setActive(hasCanvas && !isDragging && canRedo);
             break;
         }
         case CommandIDs::Lock:
         {
             result.setInfo("Lock", "Lock patch", "Edit", 0);
             result.addDefaultKeypress(69, ModifierKeys::commandModifier);
-            result.setActive(!static_cast<bool>(!isDragging && statusbar.presentationMode.getValue()));
+            result.setActive(hasCanvas && !isDragging && !static_cast<bool>(statusbar.presentationMode.getValue()));
             break;
         }
         case CommandIDs::ConnectionPathfind:
         {
             result.setInfo("Tidy connection", "Find best path for connection", "Edit", 0);
             result.addDefaultKeypress(89, ModifierKeys::commandModifier | ModifierKeys::shiftModifier);
-            result.setActive(!isDragging);
+            result.setActive(hasCanvas && !isDragging);
             break;
         }
         case CommandIDs::ConnectionStyle:
         {
             result.setInfo("Connection style", "Set connection style", "Edit", 0);
-            result.setActive(!isDragging && statusbar.connectionStyleButton->isEnabled());
+            result.setActive(hasCanvas && !isDragging && statusbar.connectionStyleButton->isEnabled());
             break;
         }
         case CommandIDs::ZoomIn:
         {
             result.setInfo("Zoom in", "Zoom in", "Edit", 0);
             result.addDefaultKeypress(61, ModifierKeys::commandModifier);
-            result.setActive(!isDragging);
+            result.setActive(hasCanvas && !isDragging);
             break;
         }
         case CommandIDs::ZoomOut:
         {
             result.setInfo("Zoom out", "Zoom out", "Edit", 0);
             result.addDefaultKeypress(45, ModifierKeys::commandModifier);
-            result.setActive(!isDragging);
+            result.setActive(hasCanvas && !isDragging);
             break;
         }
         case CommandIDs::ZoomNormal:
         {
             result.setInfo("Zoom 100%", "Revert zoom to 100%", "Edit", 0);
             result.addDefaultKeypress(33, ModifierKeys::commandModifier | ModifierKeys::shiftModifier);
-            result.setActive(!isDragging);
+            result.setActive(hasCanvas && !isDragging);
             break;
         }
         case CommandIDs::Copy:
         {
             result.setInfo("Copy", "Copy", "Edit", 0);
             result.addDefaultKeypress(67, ModifierKeys::commandModifier);
-            result.setActive(pd.locked == var(false) && hasBoxSelection && !isDragging);
+            result.setActive(hasCanvas && pd.locked == var(false) && hasBoxSelection && !isDragging);
             break;
         }
         case CommandIDs::Cut:
         {
             result.setInfo("Cut", "Cut selection", "Edit", 0);
             result.addDefaultKeypress(88, ModifierKeys::commandModifier);
-            result.setActive(pd.locked == var(false) && hasSelection && !isDragging);
+            result.setActive(hasCanvas && pd.locked == var(false) && hasSelection && !isDragging);
             break;
         }
         case CommandIDs::Paste:
         {
             result.setInfo("Paste", "Paste", "Edit", 0);
             result.addDefaultKeypress(86, ModifierKeys::commandModifier);
-            result.setActive(pd.locked == var(false) && !isDragging);
+            result.setActive(hasCanvas && pd.locked == var(false) && !isDragging);
             break;
         }
         case CommandIDs::Delete:
@@ -837,14 +858,14 @@ void PlugDataPluginEditor::getCommandInfo(const CommandID commandID, Application
             result.addDefaultKeypress(KeyPress::backspaceKey, ModifierKeys::noModifiers);
             result.addDefaultKeypress(KeyPress::deleteKey, ModifierKeys::noModifiers);
 
-            result.setActive(!isDragging && pd.locked == var(false) && hasSelection);
+            result.setActive(hasCanvas && !isDragging && pd.locked == var(false) && hasSelection);
             break;
         }
         case CommandIDs::Encapsulate:
         {
             result.setInfo("Encapsulate", "Encapsulate objects", "Edit", 0);
             result.addDefaultKeypress(69, ModifierKeys::commandModifier | ModifierKeys::shiftModifier);
-            result.setActive(!isDragging && pd.locked == var(false) && hasSelection);
+            result.setActive(hasCanvas && !isDragging && pd.locked == var(false) && hasSelection);
             break;
         }
         case CommandIDs::Duplicate:
@@ -852,14 +873,14 @@ void PlugDataPluginEditor::getCommandInfo(const CommandID commandID, Application
             
             result.setInfo("Duplicate", "Duplicate selection", "Edit", 0);
             result.addDefaultKeypress(68, ModifierKeys::commandModifier);
-            result.setActive(!isDragging && pd.locked == var(false) && hasBoxSelection);
+            result.setActive(hasCanvas && !isDragging && pd.locked == var(false) && hasBoxSelection);
             break;
         }
         case CommandIDs::SelectAll:
         {
             result.setInfo("Select all", "Select all objects and connections", "Edit", 0);
             result.addDefaultKeypress(65, ModifierKeys::commandModifier);
-            result.setActive(!isDragging && pd.locked == var(false));
+            result.setActive(hasCanvas && !isDragging && pd.locked == var(false));
             break;
         }
         case CommandIDs::ShowBrowser:
@@ -874,63 +895,63 @@ void PlugDataPluginEditor::getCommandInfo(const CommandID commandID, Application
         {
             result.setInfo("New Object", "Create new object", "Objects", 0);
             result.addDefaultKeypress(49, ModifierKeys::commandModifier);
-            result.setActive(!isDragging && pd.locked == var(false));
+            result.setActive(hasCanvas && !isDragging && pd.locked == var(false));
             break;
         }
         case CommandIDs::NewComment:
         {
             result.setInfo("New Comment", "Create new comment", "Objects", 0);
             result.addDefaultKeypress(53, ModifierKeys::commandModifier);
-            result.setActive(!isDragging && pd.locked == var(false));
+            result.setActive(hasCanvas && !isDragging && pd.locked == var(false));
             break;
         }
         case CommandIDs::NewBang:
         {
             result.setInfo("New Bang", "Create new bang", "Objects", 0);
             result.addDefaultKeypress(66, ModifierKeys::commandModifier | ModifierKeys::shiftModifier);
-            result.setActive(!isDragging && pd.locked == var(false));
+            result.setActive(hasCanvas && !isDragging && pd.locked == var(false));
             break;
         }
         case CommandIDs::NewMessage:
         {
             result.setInfo("New Message", "Create new message", "Objects", 0);
             result.addDefaultKeypress(50, ModifierKeys::commandModifier);
-            result.setActive(!isDragging && pd.locked == var(false));
+            result.setActive(hasCanvas && !isDragging && pd.locked == var(false));
             break;
         }
         case CommandIDs::NewToggle:
         {
             result.setInfo("New Toggle", "Create new toggle", "Objects", 0);
             result.addDefaultKeypress(84, ModifierKeys::commandModifier | ModifierKeys::shiftModifier);
-            result.setActive(!isDragging && pd.locked == var(false));
+            result.setActive(hasCanvas && !isDragging && pd.locked == var(false));
             break;
         }
         case CommandIDs::NewNumbox:
         {
             result.setInfo("New Number", "Create new number object", "Objects", 0);
             result.addDefaultKeypress(51, ModifierKeys::commandModifier);
-            result.setActive(!isDragging && pd.locked == var(false));
+            result.setActive(hasCanvas && !isDragging && pd.locked == var(false));
             
             break;
         }
         case CommandIDs::NewNumboxTilde:
         {
             result.setInfo("New Numbox~", "Create new numbox~ object", "Objects", 0);
-            result.setActive(!isDragging && pd.locked == var(false));
+            result.setActive(hasCanvas && !isDragging && pd.locked == var(false));
             
             break;
         }
         case CommandIDs::NewOscilloscope:
         {
             result.setInfo("New Oscilloscope", "Create new oscilloscope object", "Objects", 0);
-            result.setActive(!isDragging && pd.locked == var(false));
+            result.setActive(hasCanvas && !isDragging && pd.locked == var(false));
             
             break;
         }
         case CommandIDs::NewFunction:
         {
             result.setInfo("New Function", "Create new function object", "Objects", 0);
-            result.setActive(!isDragging && pd.locked == var(false));
+            result.setActive(hasCanvas && !isDragging && pd.locked == var(false));
             
             break;
         }
@@ -938,88 +959,88 @@ void PlugDataPluginEditor::getCommandInfo(const CommandID commandID, Application
         {
             result.setInfo("New Floatatom", "Create new floatatom", "Objects", 0);
             result.addDefaultKeypress(70, ModifierKeys::commandModifier | ModifierKeys::shiftModifier);
-            result.setActive(!isDragging && pd.locked == var(false));
+            result.setActive(hasCanvas && !isDragging && pd.locked == var(false));
             break;
         }
         case CommandIDs::NewSymbolAtom:
         {
             result.setInfo("New Symbolatom", "Create new symbolatom", "Objects", 0);
-            result.setActive(!isDragging && pd.locked == var(false));
+            result.setActive(hasCanvas && !isDragging && pd.locked == var(false));
             break;
         }
         case CommandIDs::NewListAtom:
         {
             result.setInfo("New Listatom", "Create new listatom", "Objects", 0);
             result.addDefaultKeypress(52, ModifierKeys::commandModifier);
-            result.setActive(!isDragging && pd.locked == var(false));
+            result.setActive(hasCanvas && !isDragging && pd.locked == var(false));
             break;
         }
         case CommandIDs::NewVerticalSlider:
         {
             result.setInfo("New Vertical Slider", "Create new vertical slider", "Objects", 0);
             result.addDefaultKeypress(86, ModifierKeys::commandModifier | ModifierKeys::shiftModifier);
-            result.setActive(!isDragging && pd.locked == var(false));
+            result.setActive(hasCanvas && !isDragging && pd.locked == var(false));
             break;
         }
         case CommandIDs::NewHorizontalSlider:
         {
             result.setInfo("New Horizontal Slider", "Create new horizontal slider", "Objects", 0);
             result.addDefaultKeypress(74, ModifierKeys::commandModifier | ModifierKeys::shiftModifier);
-            result.setActive(!isDragging && pd.locked == var(false));
+            result.setActive(hasCanvas && !isDragging && pd.locked == var(false));
             break;
         }
         case CommandIDs::NewVerticalRadio:
         {
             result.setInfo("New Vertical Radio", "Create new vertical radio", "Objects", 0);
             result.addDefaultKeypress(68, ModifierKeys::commandModifier | ModifierKeys::shiftModifier);
-            result.setActive(!isDragging && pd.locked == var(false));
+            result.setActive(hasCanvas && !isDragging && pd.locked == var(false));
             break;
         }
         case CommandIDs::NewHorizontalRadio:
         {
             result.setInfo("New Horizontal Radio", "Create new horizontal radio", "Objects", 0);
             result.addDefaultKeypress(73, ModifierKeys::commandModifier | ModifierKeys::shiftModifier);
-            result.setActive(!isDragging && pd.locked == var(false));
+            result.setActive(hasCanvas && !isDragging && pd.locked == var(false));
             break;
         }
         case CommandIDs::NewArray:
         {
             result.setInfo("New Array", "Create new array", "Objects", 0);
             result.addDefaultKeypress(65, ModifierKeys::commandModifier | ModifierKeys::shiftModifier);
-            result.setActive(!isDragging && pd.locked == var(false));
+            result.setActive(hasCanvas && !isDragging && pd.locked == var(false));
             break;
         }
         case CommandIDs::NewGraphOnParent:
         {
             result.setInfo("New GraphOnParent", "Create new graph on parent", "Objects", 0);
             result.addDefaultKeypress(71, ModifierKeys::commandModifier | ModifierKeys::shiftModifier);
-            result.setActive(!isDragging && pd.locked == var(false));
+            result.setActive(hasCanvas && !isDragging && pd.locked == var(false));
             break;
         }
         case CommandIDs::NewCanvas:
         {
             result.setInfo("New Canvas", "Create new canvas object", "Objects", 0);
             result.addDefaultKeypress(67, ModifierKeys::commandModifier | ModifierKeys::shiftModifier);
-            result.setActive(!isDragging && pd.locked == var(false));
+            result.setActive(hasCanvas && !isDragging && pd.locked == var(false));
             break;
         }
         case CommandIDs::NewKeyboard:
         {
             result.setInfo("New Keyboard", "Create new keyboard", "Objects", 0);
-            result.setActive(!isDragging && pd.locked == var(false));
+            result.setActive(hasCanvas && !isDragging && pd.locked == var(false));
             break;
         }
         case CommandIDs::NewVUMeterObject:
         {
             result.setInfo("New VU Meter", "Create new VU meter", "Objects", 0);
             result.addDefaultKeypress(85, ModifierKeys::commandModifier | ModifierKeys::shiftModifier);
-            result.setActive(!isDragging && pd.locked == var(false));
+            result.setActive(hasCanvas && !isDragging && pd.locked == var(false));
             break;
         }
         case CommandIDs::NewButton:
         {
             result.setInfo("New Button", "Create new button", "Objects", 0);
-            result.setActive(!isDragging && pd.locked == var(false));
+            result.setActive(hasCanvas && !isDragging && pd.locked == var(false));
             break;
         }
         default:
@@ -1057,6 +1078,7 @@ bool PlugDataPluginEditor::perform(const InvocationInfo& info)
         }
         case CommandIDs::CloseTab:
         {
+            /*
             if(tabbar.getNumTabs() <= 1)  {
                 
                 // In the standalone, if we close the last tab, ask to save it and close the window
@@ -1088,7 +1110,7 @@ bool PlugDataPluginEditor::perform(const InvocationInfo& info)
                 }
 #endif
                 return true;
-            }
+            } */
             
             int currentIdx = tabbar.getCurrentTabIndex();
             auto* closeButton = dynamic_cast<TextButton*>(tabbar.getTabbedButtonBar().getTabButton(currentIdx)->getExtraComponent());

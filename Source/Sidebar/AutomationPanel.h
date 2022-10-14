@@ -6,16 +6,18 @@
 
 #include "Canvas.h"
 
-struct AutomationSlider : public Component {
+struct AutomationSlider : public Component, public Value::Listener {
 
-    AutomationSlider(int idx, PlugDataAudioProcessor* pd)
-        : index(idx)
+    PlugDataAudioProcessor* pd;
+    
+    AutomationSlider(int idx, PlugDataAudioProcessor* processor)
+        : index(idx), pd(processor)
     {
         createButton.setName("statusbar:createbutton");
 
         nameLabel.setText(String(idx + 1), dontSendNotification);
 
-        createButton.onClick = [this, pd]() mutable {
+        createButton.onClick = [this]() mutable {
             if (auto* editor = dynamic_cast<PlugDataPluginEditor*>(pd->getActiveEditor())) {
                 auto* cnv = editor->getCurrentCanvas();
                 if (cnv) {
@@ -24,21 +26,23 @@ struct AutomationSlider : public Component {
                 }
             }
         };
+        
+        pd->locked.addListener(this);
 
         slider.setScrollWheelEnabled(false);
         slider.setTextBoxStyle(Slider::NoTextBox, false, 45, 13);
 
 #if PLUGDATA_STANDALONE
-        slider.setValue(pd->standaloneParams[idx]);
+        slider.setValue(pd->standaloneParams[index]);
         slider.setRange(0.0f, 1.0f);
-        valueLabel.setText(String(pd->standaloneParams[idx], 2), dontSendNotification);
-        slider.onValueChange = [this, pd, idx]() mutable {
+        valueLabel.setText(String(pd->standaloneParams[index], 2), dontSendNotification);
+        slider.onValueChange = [this]() mutable {
             float value = slider.getValue();
-            pd->standaloneParams[idx] = value;
+            pd->standaloneParams[index] = value;
             valueLabel.setText(String(value, 2), dontSendNotification);
         };
 #else
-        slider.onValueChange = [this, pd, idx]() mutable {
+        slider.onValueChange = [this]() mutable {
             float value = slider.getValue();
             valueLabel.setText(String(value, 2), dontSendNotification);
         };
@@ -53,7 +57,7 @@ struct AutomationSlider : public Component {
             }
         };
 
-        valueLabel.onEditorHide = [this, pd]() mutable {
+        valueLabel.onEditorHide = [this]() mutable {
             auto* param = pd->parameters.getParameter("param" + String(index + 1));
             param->setValue(valueLabel.getText().getFloatValue());
         };
@@ -68,6 +72,16 @@ struct AutomationSlider : public Component {
         addAndMakeVisible(slider);
         addAndMakeVisible(valueLabel);
         addAndMakeVisible(createButton);
+    }
+    
+    ~AutomationSlider() {
+        pd->locked.removeListener(this);
+    }
+    
+    
+    void valueChanged(Value& v) override
+    {
+        createButton.setEnabled(!static_cast<bool>(v.getValue()));
     }
 
     void resized() override
