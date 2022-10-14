@@ -121,21 +121,8 @@ void ObjectBase::closeOpenedSubpatchers()
             tabbar->removeTab(n);
             main.pd.patches.removeObject(deleted_patch, false);
 
-            // Make sure there's at least one patch open
-            if (tabbar->getNumTabs() == 0) {
-                main.newProject();
-            }
-
             break;
         }
-    }
-
-    if (tabbar->getNumTabs() > 1) {
-        tabbar->getTabbedButtonBar().setVisible(true);
-        tabbar->setTabBarDepth(28);
-    } else {
-        tabbar->getTabbedButtonBar().setVisible(false);
-        tabbar->setTabBarDepth(1);
     }
 }
 
