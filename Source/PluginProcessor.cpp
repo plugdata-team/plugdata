@@ -108,30 +108,34 @@ PlugDataAudioProcessor::PlugDataAudioProcessor()
 
     objectLibrary.appDirChanged = [this]()
     {
-        auto newTree = ValueTree::fromXml(settingsFile.loadFileAsString());
-
-        // Prevents causing an update loop
-        if (auto* editor = dynamic_cast<PlugDataPluginEditor*>(getActiveEditor()))
-        {
-            settingsTree.removeListener(editor);
-        }
-
-        settingsTree.getChildWithName("Paths").copyPropertiesAndChildrenFrom(newTree.getChildWithName("Paths"), nullptr);
-
-        // Direct children shouldn't be overwritten as that would break some valueTree links, for example in SettingsDialog
-        for (auto child : settingsTree)
-        {
-            child.copyPropertiesAndChildrenFrom(newTree.getChildWithName(child.getType()), nullptr);
-        }
-        settingsTree.copyPropertiesFrom(newTree, nullptr);
-
-        if (auto* editor = dynamic_cast<PlugDataPluginEditor*>(getActiveEditor()))
-        {
-            settingsTree.addListener(editor);
+        // If we changed the settings from within the app, don't reload
+        if(!settingsChangedInternally) {
             
-            for(auto* cnv : editor->canvases) {
-                // Make sure inlets/outlets are updated
-                for(auto* object : cnv->objects) object->updatePorts();
+            auto newTree = ValueTree::fromXml(settingsFile.loadFileAsString());
+            
+            // Prevents causing an update loop
+            if (auto* editor = dynamic_cast<PlugDataPluginEditor*>(getActiveEditor()))
+            {
+                settingsTree.removeListener(editor);
+            }
+            
+            settingsTree.getChildWithName("Paths").copyPropertiesAndChildrenFrom(newTree.getChildWithName("Paths"), nullptr);
+            
+            // Direct children shouldn't be overwritten as that would break some valueTree links, for example in SettingsDialog
+            for (auto child : settingsTree)
+            {
+                child.copyPropertiesAndChildrenFrom(newTree.getChildWithName(child.getType()), nullptr);
+            }
+            settingsTree.copyPropertiesFrom(newTree, nullptr);
+            
+            if (auto* editor = dynamic_cast<PlugDataPluginEditor*>(getActiveEditor()))
+            {
+                settingsTree.addListener(editor);
+                
+                for(auto* cnv : editor->canvases) {
+                    // Make sure inlets/outlets are updated
+                    for(auto* object : cnv->objects) object->updatePorts();
+                }
             }
         }
 
@@ -239,6 +243,7 @@ void PlugDataAudioProcessor::initialiseFilesystem()
         settingsTree.setProperty("BrowserPath", homeDir.getChildFile("Library").getFullPathName(), nullptr);
         settingsTree.setProperty("Theme", 1, nullptr);
         settingsTree.setProperty("GridEnabled", 1, nullptr);
+        settingsTree.setProperty("Zoom", 1.0f, nullptr);
 
         auto pathTree = ValueTree("Paths");
         auto library = homeDir.getChildFile("Library");
@@ -271,7 +276,7 @@ void PlugDataAudioProcessor::initialiseFilesystem()
     {
         // Or load the settings when they exist already
         settingsTree = ValueTree::fromXml(settingsFile.loadFileAsString());
-
+        
         if (settingsTree.hasProperty("DefaultFont"))
         {
             String fontname = settingsTree.getProperty("DefaultFont").toString();
@@ -289,6 +294,17 @@ void PlugDataAudioProcessor::initialiseFilesystem()
             }
         }
     }
+    
+    if(!settingsTree.hasProperty("Zoom")) {
+        zoomScale.referTo(settingsTree.getPropertyAsValue("Zoom", nullptr));
+        zoomScale = 1.0f;
+    }
+    else {
+        zoomScale.referTo(settingsTree.getPropertyAsValue("Zoom", nullptr));
+    }
+    
+    
+    
 }
 
 void PlugDataAudioProcessor::saveSettings()
@@ -856,6 +872,10 @@ AudioProcessorEditor* PlugDataAudioProcessor::createEditor()
     }
 
     editor->resized();
+    
+    if(isPositiveAndBelow(lastTab, patches.size())) {
+        editor->tabbar.setCurrentTabIndex(lastTab);
+    }
 
     return editor;
 }
