@@ -53,8 +53,6 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p) : AudioPro
     addKeyListener(getKeyMappings());
 
     pd.locked.addListener(this);
-    pd.zoomScale.addListener(this);
-
     pd.settingsTree.addListener(this);
 
     setWantsKeyboardFocus(true);
@@ -85,7 +83,11 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p) : AudioPro
     tabbar.setColour(TabbedButtonBar::tabOutlineColourId, findColour(PlugDataColour::toolbarColourId));
     tabbar.setColour(TabbedComponent::outlineColourId, findColour(PlugDataColour::toolbarColourId));
 
-
+    theme.referTo(pd.settingsTree.getPropertyAsValue("Theme", nullptr));
+    theme.addListener(this);
+    
+    zoomScale.referTo(pd.settingsTree.getPropertyAsValue("Zoom", nullptr));
+    zoomScale.addListener(this);
     
     addAndMakeVisible(statusbar);
 
@@ -166,18 +168,13 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p) : AudioPro
     toolbarButton(Settings)->setTooltip("Settings");
     toolbarButton(Settings)->onClick = [this]()
     {
-        if (!settingsDialog)
-        {
 #ifdef PLUGDATA_STANDALONE
             // Initialise settings dialog for DAW and standalone
             auto* pluginHolder = StandalonePluginHolder::getInstance();
-            Dialogs::createSettingsDialog(&settingsDialog, pd, &pluginHolder->deviceManager, pd.settingsTree);
+            Dialogs::createSettingsDialog(pd, &pluginHolder->deviceManager, toolbarButton(Settings), pd.settingsTree);
 #else
             Dialogs::createSettingsDialog(&settingsDialog, pd, nullptr, pd.settingsTree);
 #endif
-        }
-
-        settingsDialog->setVisible(true);
     };
 
     // Hide sidebar
@@ -221,8 +218,10 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p) : AudioPro
     sidebar.updateConsole();
     updateCommandStatus();
     
+    addChildComponent(zoomLabel);
+    
     // Initialise zoom factor
-    valueChanged(pd.zoomScale);
+    valueChanged(zoomScale);
 }
 PlugDataPluginEditor::~PlugDataPluginEditor()
 {
@@ -236,10 +235,9 @@ PlugDataPluginEditor::~PlugDataPluginEditor()
 
     pd.settingsTree.removeListener(this);
     pd.locked.removeListener(this);
-    pd.zoomScale.removeListener(this);
+    zoomScale.removeListener(this);
+    theme.removeListener(this);
 }
-
-
 
 void PlugDataPluginEditor::paint(Graphics& g)
 {
@@ -268,31 +266,11 @@ void PlugDataPluginEditor::paint(Graphics& g)
 
     g.setColour(findColour(PlugDataColour::canvasColourId));
     g.fillRect(tabbar.getBounds());
-}
-
-void PlugDataPluginEditor::paintOverChildren(Graphics& g)
-{
+    
     int roundedOffset = PLUGDATA_ROUNDED;
     
-    g.saveState();
-
-    if(openedDialog || settingsDialog) {
-        auto& dialog = openedDialog ? openedDialog : settingsDialog;
-        g.excludeClipRegion(dialog->getViewedComponent()->getBounds());
-        
-        // Hack: if there's a dialog, make the outline colour darker to make it fit in
-        g.setColour(findColour(PlugDataColour::toolbarOutlineColourId).interpolatedWith(Colours::black, 0.5f));
-    }
-    else {
-        g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
-    }
-    
-    // TODO: don't do this!
-    
-    g.drawLine(0.0f, toolbarHeight + roundedOffset, static_cast<float>(getWidth()), toolbarHeight + roundedOffset);
-    g.drawLine(0.0f, getHeight() - statusbar.getHeight(), static_cast<float>(getWidth()), getHeight() - statusbar.getHeight());
-    
-    g.restoreState();
+   g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
+   g.drawLine(0.0f, toolbarHeight + 1, static_cast<float>(getWidth()), toolbarHeight + 1, 1.0f);
 }
 
 void PlugDataPluginEditor::resized()
@@ -349,11 +327,15 @@ void PlugDataPluginEditor::resized()
 
     pd.lastUIWidth = getWidth();
     pd.lastUIHeight = getHeight();
-
+    
+    zoomLabel.setTopLeftPosition(5, statusbar.getY() - 28);
+    zoomLabel.setSize(50, 23);
+    
     if (auto* cnv = getCurrentCanvas())
     {
         cnv->checkBounds();
     }
+
 }
 
 void PlugDataPluginEditor::mouseWheelMove(const MouseEvent& e, const MouseWheelDetails& wheel)
@@ -376,8 +358,12 @@ void PlugDataPluginEditor::mouseMagnify(const MouseEvent& e, float scrollFactor)
 
     auto oldMousePos = cnv->getLocalPoint(this, e.getPosition());
 
-    statusbar.zoom(scrollFactor);
-    valueChanged(pd.zoomScale);  // trigger change to make the anchoring work
+    float value = static_cast<float>(zoomScale.getValue());
+    
+    // Apply and limit zoom
+    value = std::clamp(value * scrollFactor, 0.5f, 2.0f);
+
+    zoomScale = value;
 
     auto newMousePos = cnv->getLocalPoint(this, e.getPosition());
 
@@ -595,12 +581,12 @@ void PlugDataPluginEditor::valueChanged(Value& v)
         updateCommandStatus();
     }
     // Update zoom
-    else if (v.refersToSameSourceAs(pd.zoomScale))
+    else if (v.refersToSameSourceAs(zoomScale))
     {
         float scale = static_cast<float>(v.getValue());
         
         if(scale == 0)  {
-            pd.zoomScale = 1.0f;
+            zoomScale = 1.0f;
         }
         
         transform = AffineTransform().scaled(scale);
@@ -615,6 +601,13 @@ void PlugDataPluginEditor::valueChanged(Value& v)
         if(auto* cnv = getCurrentCanvas()) {
             cnv->checkBounds();
         }
+        
+        zoomLabel.setZoomLevel(scale);
+    }
+    // Update theme
+    else if (v.refersToSameSourceAs(theme))
+    {
+        pd.setTheme(static_cast<bool>(theme.getValue()));
     }
 }
 
@@ -1097,39 +1090,7 @@ bool PlugDataPluginEditor::perform(const InvocationInfo& info)
         }
         case CommandIDs::CloseTab:
         {
-            /*
-            if(tabbar.getNumTabs() <= 1)  {
-                
-                // In the standalone, if we close the last tab, ask to save it and close the window
-#if PLUGDATA_STANDALONE
-                
-                if (cnv->patch.isDirty())
-                {
-                    Dialogs::showSaveDialog(&openedDialog, this, cnv->patch.getTitle(),
-                                            [this](int result) mutable
-                                            {
-                        if (result == 2)
-                        {
-                            saveProject(
-                                        [this]() mutable
-                                        {
-                                            JUCEApplication::quit();
-                                        });
-                        }
-                        else if (result == 1)
-                        {
-                            JUCEApplication::quit();
-                        }
-                                            // last option: cancel, where we end the chain
-                    });
-                }
-                else
-                {
-                    JUCEApplication::quit();
-                }
-#endif
-                return true;
-            } */
+            if(tabbar.getNumTabs() == 0) return true;
             
             int currentIdx = tabbar.getCurrentTabIndex();
             auto* closeButton = dynamic_cast<TextButton*>(tabbar.getTabbedButtonBar().getTabButton(currentIdx)->getExtraComponent());
@@ -1184,8 +1145,7 @@ bool PlugDataPluginEditor::perform(const InvocationInfo& info)
         }
         case CommandIDs::ShowBrowser:
         {
-            sidebar.showBrowser(!sidebar.isShowingBrowser());
-            statusbar.browserButton->setToggleState(sidebar.isShowingBrowser(), dontSendNotification);
+            sidebar.showPanel(sidebar.isShowingBrowser() ? 1 : 0);
             return true;
         }
         case CommandIDs::Lock:
@@ -1209,17 +1169,21 @@ bool PlugDataPluginEditor::perform(const InvocationInfo& info)
         }
         case CommandIDs::ZoomIn:
         {
-            statusbar.zoom(true);
+            float newScale = static_cast<float>(zoomScale.getValue()) + 0.1f;
+            zoomScale = static_cast<float>(static_cast<int>(round(std::clamp(newScale, 0.5f, 2.0f) * 10.))) / 10.;
+            
             return true;
         }
         case CommandIDs::ZoomOut:
         {
-            statusbar.zoom(false);
+            float newScale = static_cast<float>(zoomScale.getValue()) - 0.1f;
+            zoomScale = static_cast<float>(static_cast<int>(round(std::clamp(newScale, 0.5f, 2.0f) * 10.))) / 10.;
+            
             return true;
         }
         case CommandIDs::ZoomNormal:
         {
-            statusbar.defaultZoom();
+            zoomScale = 1.0f;
             return true;
         }
         case CommandIDs::Undo:

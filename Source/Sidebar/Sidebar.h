@@ -74,6 +74,7 @@ struct Sidebar : public Component {
     ~Sidebar() override;
 
     void paint(Graphics& g) override;
+    void paintOverChildren(Graphics& g) override;
     void resized() override;
 
     void mouseDown(MouseEvent const& e) override;
@@ -86,13 +87,11 @@ struct Sidebar : public Component {
     void showParameters();
     void hideParameters();
 
-    void showBrowser(bool show);
     bool isShowingBrowser();
 
-    void showAutomationPanel(bool show);
+    void showPanel(int panelToShow);
 
     bool isShowingConsole() const;
-
     void showSidebar(bool show);
 
     void pinSidebar(bool pin);
@@ -109,11 +108,16 @@ struct Sidebar : public Component {
 private:
     PlugDataAudioProcessor* pd;
     ObjectParameters lastParameters;
-
+    
+    TextButton browserButton = TextButton(Icons::Documentation);
+    TextButton automationButton = TextButton(Icons::Parameters);
+    TextButton consoleButton = TextButton(Icons::Console);
+    
     Console* console;
     Inspector* inspector;
     DocumentBrowser* browser;
-    AutomationPanel* automationPanel = nullptr;
+    AutomationPanel* automationPanel;
+    
 
     int dragStartWidth = 0;
     bool draggingSidebar = false;

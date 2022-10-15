@@ -141,7 +141,6 @@ class PlugDataAudioProcessor : public AudioProcessor, public pd::Instance, publi
 
     Value locked = Value(var(false));
     Value commandLocked = Value(var(false));
-    Value zoomScale = Value(1.0f);
 
     AudioProcessorValueTreeState parameters;
 
@@ -188,7 +187,6 @@ class PlugDataAudioProcessor : public AudioProcessor, public pd::Instance, publi
 
     int minIn = 2;
     int minOut = 2;
-    
 
     
     std::unique_ptr<dsp::Oversampling<float>> oversampler;

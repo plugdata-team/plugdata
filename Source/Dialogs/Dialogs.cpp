@@ -48,16 +48,9 @@ void Dialogs::showArrayDialog(std::unique_ptr<Dialog>* target, Component* centre
     target->reset(dialog);
 }
 
-void Dialogs::createSettingsDialog(std::unique_ptr<Dialog>* target, AudioProcessor& processor, AudioDeviceManager* manager, ValueTree const& settingsTree)
+void Dialogs::createSettingsDialog(AudioProcessor& processor, AudioDeviceManager* manager, Component* centre, ValueTree const& settingsTree)
 {
-    if (*target)
-        return;
-
-    auto* editor = processor.getActiveEditor();
-    auto* dialog = new Dialog(target, editor, 675, 500, editor->getBounds().getCentreY() + 250, true);
-    auto* settingsDialog = new SettingsDialog(processor, dialog, manager, settingsTree);
-    dialog->setViewedComponent(settingsDialog);
-    target->reset(dialog);
+    SettingsPopup::showSettingsPopup(processor, manager, centre, settingsTree);
 }
 
 void Dialogs::showObjectMenu(PlugDataPluginEditor* parent, Component* target)

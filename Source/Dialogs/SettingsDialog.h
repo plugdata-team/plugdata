@@ -141,6 +141,7 @@ EXTERN char* pd_version;
 }
 
 struct AboutPanel : public Component {
+    
     Image logo = ImageFileFormat::loadFrom(BinaryData::plugd_logo_png, BinaryData::plugd_logo_pngSize);
 
     void paint(Graphics& g) override
@@ -243,12 +244,13 @@ struct DAWAudioSettings : public Component {
 };
 
 struct SettingsDialog : public Component {
+    
     SettingsDialog(AudioProcessor& processor, Dialog* dialog, AudioDeviceManager* manager, ValueTree const& settingsTree)
         : audioProcessor(processor)
     {
         setVisible(false);
 
-        toolbarButtons = { new TextButton(Icons::Audio), new TextButton(Icons::Pencil), new TextButton(Icons::Search), new TextButton(Icons::Keyboard), new TextButton(Icons::Externals), new TextButton(Icons::Info) };
+        toolbarButtons = { new TextButton(Icons::Audio), new TextButton(Icons::Pencil), new TextButton(Icons::Search), new TextButton(Icons::Keyboard), new TextButton(Icons::Externals)};
 
         currentPanel = std::clamp(lastPanel.load(), 0, toolbarButtons.size() - 1);
 
@@ -263,7 +265,6 @@ struct SettingsDialog : public Component {
         panels.add(new SearchPathComponent(settingsTree.getChildWithName("Paths")));
         panels.add(new KeyMappingComponent(*editor->getKeyMappings()));
         panels.add(new Deken());
-        panels.add(new AboutPanel());
 
         for (int i = 0; i < toolbarButtons.size(); i++) {
             toolbarButtons[i]->setClickingTogglesState(true);
@@ -293,11 +294,6 @@ struct SettingsDialog : public Component {
 
         int toolbarPosition = 2;
         for (auto& button : toolbarButtons) {
-            if (button == toolbarButtons.getLast()) {
-                button->setBounds(getWidth() - 100, 1, 70, toolbarHeight - 2);
-                break;
-            }
-
             button->setBounds(toolbarPosition, 1, 70, toolbarHeight - 2);
             toolbarPosition += 70;
         }
@@ -307,7 +303,6 @@ struct SettingsDialog : public Component {
         panels[2]->setBounds(b.reduced(6, 0));
         panels[3]->setBounds(b);
         panels[4]->setBounds(b);
-        panels[5]->setBounds(b);
     }
 
     void paint(Graphics& g) override
@@ -359,4 +354,217 @@ struct SettingsDialog : public Component {
     AudioDeviceManager* deviceManager = nullptr;
 
     OwnedArray<TextButton> toolbarButtons;
+};
+
+struct SettingsPopup : public PopupMenu {
+    
+
+    SettingsPopup(AudioProcessor& processor, ValueTree tree) :
+    settingsTree(tree),
+    themeSelector(tree),
+    zoomSelector(tree),
+    gridSelector(tree, "GridEnabled", "Enable grid")
+    {
+        addCustomItem(1, themeSelector, 70, 45, false);
+        addCustomItem(2, zoomSelector, 70, 30, false);
+        addCustomItem(3, gridSelector, 70, 30, false);
+        
+        addSeparator();
+        addItem(4, "Settings");
+        addItem(5, "About");
+    }
+    
+    static void showSettingsPopup(AudioProcessor& processor, AudioDeviceManager* manager, Component* centre, ValueTree settingsTree) {
+        auto* popup = new SettingsPopup(processor, settingsTree);
+        auto* editor = dynamic_cast<PlugDataPluginEditor*>(processor.getActiveEditor());
+        
+        popup->showMenuAsync(PopupMenu::Options().withMinimumWidth(170).withMaximumNumColumns(1).withTargetComponent(centre).withParentComponent(editor),
+            [editor, &processor, popup, manager, centre, settingsTree](int result) {
+            
+                if (result == 4) {
+                    
+                    auto* dialog = new Dialog(&editor->openedDialog, editor, 675, 500, editor->getBounds().getCentreY() + 250, true);
+                    auto* settingsDialog = new SettingsDialog(processor, dialog, manager, settingsTree);
+                    dialog->setViewedComponent(settingsDialog);
+                    editor->openedDialog.reset(dialog);
+                }
+                if (result == 5) {
+                    auto* dialog = new Dialog(&editor->openedDialog, editor, 675, 500, editor->getBounds().getCentreY() + 250, true);
+                    auto* aboutPanel = new AboutPanel();
+                    dialog->setViewedComponent(aboutPanel);
+                    editor->openedDialog.reset(dialog);
+                }
+             
+            
+            MessageManager::callAsync([popup](){
+                delete popup;
+            });
+            
+            });
+    }
+    
+    struct ZoomSelector : public Component
+    {
+        TextButton zoomIn;
+        TextButton zoomOut;
+        TextButton zoomReset;
+        
+        Value zoomValue;
+        
+        ZoomSelector(ValueTree settingsTree)
+        {
+            zoomValue = settingsTree.getPropertyAsValue("Zoom", nullptr);
+            
+            zoomIn.setButtonText("+");
+            zoomReset.setButtonText(String(static_cast<float>(zoomValue.getValue()) * 100, 1) + "%");
+            zoomOut.setButtonText("-");
+            
+            addAndMakeVisible(zoomIn);
+            addAndMakeVisible(zoomReset);
+            addAndMakeVisible(zoomOut);
+            
+            zoomIn.setConnectedEdges(Button::ConnectedOnLeft);
+            zoomOut.setConnectedEdges(Button::ConnectedOnRight);
+            zoomReset.setConnectedEdges(12);
+            
+            zoomIn.onClick = [this](){
+                applyZoom(true);
+            };
+            zoomOut.onClick = [this](){
+                applyZoom(false);
+            };
+            zoomReset.onClick = [this](){
+                resetZoom();
+            };
+        }
+        
+        void applyZoom(bool zoomIn)
+        {
+            float value = static_cast<float>(zoomValue.getValue());
+
+            // Apply limits
+            value = std::clamp(zoomIn ? value + 0.1f : value - 0.1f, 0.5f, 2.0f);
+
+            // Round in case we zoomed with scrolling
+            value = static_cast<float>(static_cast<int>(round(value * 10.))) / 10.;
+
+            zoomValue = value;
+
+            zoomReset.setButtonText(String(value * 100.0f, 1) + "%");
+        }
+        
+        void resetZoom() {
+            zoomValue = 1.0f;
+            zoomReset.setButtonText("100.0%");
+        }
+        
+        void resized() override
+        {
+            auto bounds = getLocalBounds().reduced(8, 4);
+            int buttonWidth = (getWidth() - 8) / 3;
+            
+            zoomOut.setBounds(bounds.removeFromLeft(buttonWidth).expanded(1, 0));
+            zoomReset.setBounds(bounds.removeFromLeft(buttonWidth).expanded(1, 0));
+            zoomIn.setBounds(bounds.removeFromLeft(buttonWidth).expanded(1, 0));
+        }
+    };
+    
+    struct PopupToggleComponent : public Component
+    {
+        ToggleButton toggle;
+        
+        String labelText;
+        
+        PopupToggleComponent(ValueTree settingsTree, String propertyName, String name) {
+            labelText = name;
+
+            toggle.getToggleStateValue().referTo(settingsTree.getPropertyAsValue(propertyName, nullptr));
+            
+            addAndMakeVisible(toggle);
+        }
+        
+        void resized() override
+        {
+            auto bounds = getLocalBounds().reduced(5, 4);
+            toggle.setBounds(bounds.removeFromLeft(25));
+        }
+        
+        void paint(Graphics& g) override
+        {
+            auto textBounds = getLocalBounds().reduced(5, 4);
+            textBounds.removeFromLeft(30);
+            
+            g.setColour(findColour(PlugDataColour::textColourId));
+            g.setFont(15);
+            g.drawText(labelText, textBounds, Justification::centredLeft);
+        }
+    };
+
+    struct ThemeSelector : public Component
+    {
+        ThemeSelector(ValueTree settingsTree) {
+            theme.referTo(settingsTree.getPropertyAsValue("Theme", nullptr));
+        }
+        
+        void paint(Graphics& g)
+        {
+            auto firstBounds = getLocalBounds();
+            auto secondBounds = firstBounds.removeFromLeft(getWidth() / 2.0f);
+            
+            firstBounds = firstBounds.withSizeKeepingCentre(30, 30);
+            secondBounds = secondBounds.withSizeKeepingCentre(30, 30);
+            
+            g.setColour(Colour(25, 25, 25));
+            g.fillEllipse(firstBounds.toFloat());
+            
+            g.setColour(Colour(240, 240, 240));
+            g.fillEllipse(secondBounds.toFloat());
+
+            g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
+            g.drawEllipse(firstBounds.toFloat(), 1.0f);
+            g.drawEllipse(secondBounds.toFloat(), 1.0f);
+            
+            auto tick = getLookAndFeel().getTickShape(0.6f);
+            auto tickBounds = Rectangle<int>();
+            
+            if(!static_cast<bool>(theme.getValue())) {
+                g.setColour(Colour(240, 240, 240));
+                tickBounds = firstBounds;
+            }
+            else {
+                g.setColour(Colour(25, 25, 25));
+                tickBounds = secondBounds;
+            }
+            
+            g.fillPath (tick, tick.getTransformToScaleToFit (tickBounds.reduced (9, 9).toFloat(), false));
+
+        }
+        
+        void mouseUp(const MouseEvent& e)
+        {
+            auto firstBounds = getLocalBounds();
+            auto secondBounds = firstBounds.removeFromLeft(getWidth() / 2.0f);
+            
+            firstBounds = firstBounds.withSizeKeepingCentre(30, 30);
+            secondBounds = secondBounds.withSizeKeepingCentre(30, 30);
+            
+            if(firstBounds.contains(e.x, e.y)) {
+                theme = false;
+                repaint();
+            }
+            else if(secondBounds.contains(e.x, e.y)) {
+                theme = true;
+                repaint();
+            }
+        }
+        
+        Value theme;
+    };
+    
+    ThemeSelector themeSelector;
+    PopupToggleComponent gridSelector;
+    ZoomSelector zoomSelector;
+
+    
+    ValueTree settingsTree;
 };

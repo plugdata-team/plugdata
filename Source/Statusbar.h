@@ -16,6 +16,8 @@ struct Statusbar : public Component, public Value::Listener, public Timer
 
     explicit Statusbar(PlugDataAudioProcessor& processor);
     ~Statusbar();
+    
+    void paint(Graphics& g) override;
 
     void resized() override;
 
@@ -24,10 +26,6 @@ struct Statusbar : public Component, public Value::Listener, public Timer
     void valueChanged(Value& v) override;
     
     void timerCallback() override;
-
-    void zoom(bool zoomIn);
-    void zoom(float zoomAmount);
-    void defaultZoom();
 
     bool lastLockMode = false; // For restoring lock state after presentation mode
     bool wasLocked = false; // Make sure it doesn't re-lock after unlocking (because cmd is still down)
@@ -47,10 +45,7 @@ struct Statusbar : public Component, public Value::Listener, public Timer
     Value commandLocked; // Temporary lock mode
     Value presentationMode;
 
-    Value zoomScale;
 
-    Value gridEnabled;
-    Value theme;
 
     static constexpr int statusbarHeight = 28;
 

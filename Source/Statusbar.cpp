@@ -143,7 +143,6 @@ Statusbar::Statusbar(PlugDataAudioProcessor& processor) : pd(processor)
 
     locked.referTo(pd.locked);
     commandLocked.referTo(pd.commandLocked);
-    zoomScale.referTo(pd.zoomScale);
 
     locked.addListener(this);
     commandLocked.addListener(this);
@@ -259,70 +258,6 @@ Statusbar::Statusbar(PlugDataAudioProcessor& processor) : pd(processor)
     connectionPathfind->setEnabled(connectionStyleButton->getToggleState());
     addAndMakeVisible(connectionPathfind.get());
 
-    addAndMakeVisible(zoomLabel);
-    zoomLabel.setText(String(static_cast<float>(zoomScale.getValue()) * 100, 1) + "%", dontSendNotification);
-    zoomLabel.setFont(Font(11));
-    zoomLabel.setJustificationType(Justification::right);
-
-    zoomIn->setTooltip("Zoom In");
-    zoomIn->setConnectedEdges(12);
-    zoomIn->setName("statusbar:zoomin");
-    zoomIn->onClick = [this]() { zoom(true); };
-    addAndMakeVisible(zoomIn.get());
-    
-
-    themeButton->setTooltip("Switch dark mode");
-    themeButton->setConnectedEdges(12);
-    themeButton->setName("statusbar:darkmode");
-    themeButton->onClick = [this]()
-    {
-        pd.setTheme(themeButton->getToggleState());
-        lockButton->setColour(TextButton::textColourOffId, findColour(PlugDataColour::textColourId));
-    };
-
-    theme.referTo(pd.settingsTree.getPropertyAsValue("Theme", nullptr));
-    themeButton->getToggleStateValue().referTo(theme);
-    themeButton->setClickingTogglesState(true);
-    addAndMakeVisible(themeButton.get());
-
-    browserButton->setTooltip("Open documentation browser");
-    browserButton->setConnectedEdges(12);
-    browserButton->setName("statusbar:browser");
-    browserButton->onClick = [this]()
-    {
-        auto* editor = dynamic_cast<PlugDataPluginEditor*>(pd.getActiveEditor());
-        editor->sidebar.showBrowser(browserButton->getToggleState());
-    };
-    browserButton->setClickingTogglesState(true);
-    addAndMakeVisible(browserButton.get());
-
-    automationButton->setTooltip("Open automation panel");
-    automationButton->setConnectedEdges(12);
-    automationButton->setName("statusbar:browser");
-    automationButton->setClickingTogglesState(true);
-    automationButton->onClick = [this]()
-    {
-        auto* editor = dynamic_cast<PlugDataPluginEditor*>(pd.getActiveEditor());
-        editor->sidebar.showAutomationPanel(automationButton->getToggleState());
-    };
-    addAndMakeVisible(automationButton.get());
-
-    gridButton->setTooltip("Enable grid");
-    gridButton->setConnectedEdges(12);
-    gridButton->setName("statusbar:grid");
-    gridButton->onClick = [this]() { pd.saveSettings(); };
-
-    gridEnabled.referTo(pd.settingsTree.getPropertyAsValue("GridEnabled", nullptr));
-    gridButton->getToggleStateValue().referTo(gridEnabled);
-    gridButton->setClickingTogglesState(true);
-    addAndMakeVisible(gridButton.get());
-
-    zoomOut->setTooltip("Zoom Out");
-    zoomOut->setConnectedEdges(12);
-    zoomOut->setName("statusbar:zoomout");
-    zoomOut->onClick = [this]() { zoom(false); };
-
-    addAndMakeVisible(zoomOut.get());
 
     addAndMakeVisible(volumeSlider);
     volumeSlider.setTextBoxStyle(Slider::NoTextBox, false, 0, 0);
@@ -365,6 +300,12 @@ void Statusbar::valueChanged(Value& v)
     }
 }
 
+void Statusbar::paint(Graphics &g)
+{
+    g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
+    g.drawLine(0.0f, 0.5f, static_cast<float>(getWidth()), 0.5f);
+}
+
 void Statusbar::resized()
 {
     int pos = 0;
@@ -383,22 +324,11 @@ void Statusbar::resized()
     connectionPathfind->setBounds(position(getHeight()), 0, getHeight(), getHeight());
 
     position(5);  // Seperator
-
-    zoomLabel.setBounds(position(getHeight() * 1.25f), 0, getHeight() * 1.25f, getHeight());
-
-    zoomIn->setBounds(position(getHeight()), 0, getHeight(), getHeight());
-    zoomOut->setBounds(position(getHeight()), 0, getHeight(), getHeight());
-
-    position(5);  // Seperator
-
+    
     presentationButton->setBounds(position(getHeight()), 0, getHeight(), getHeight());
-    gridButton->setBounds(position(getHeight()), 0, getHeight(), getHeight());
-    themeButton->setBounds(position(getHeight()), 0, getHeight(), getHeight());
 
     pos = 0;  // reset position for elements on the left
 
-    automationButton->setBounds(position(getHeight(), true), 0, getHeight(), getHeight());
-    browserButton->setBounds(position(getHeight(), true), 0, getHeight(), getHeight());
     powerButton->setBounds(position(getHeight(), true), 0, getHeight(), getHeight());
 
     int levelMeterPosition = position(100, true);
@@ -426,41 +356,6 @@ void Statusbar::modifierKeysChanged(const ModifierKeys& modifiers)
 void Statusbar::timerCallback()
 {
     modifierKeysChanged(ModifierKeys::getCurrentModifiers());
-}
-
-void Statusbar::zoom(bool zoomIn)
-{
-    float value = static_cast<float>(zoomScale.getValue());
-
-    // Zoom limits
-    value = std::clamp(zoomIn ? value + 0.1f : value - 0.1f, 0.5f, 2.0f);
-
-    // Round in case we zoomed with scrolling
-    value = static_cast<float>(static_cast<int>(round(value * 10.))) / 10.;
-
-    zoomScale = value;
-
-    zoomLabel.setText(String(value * 100.0f) + "%", dontSendNotification);
-}
-
-void Statusbar::zoom(float zoomAmount)
-{
-    float value = static_cast<float>(zoomScale.getValue());
-    value *= zoomAmount;
-
-    // Zoom limits
-    value = std::clamp(value, 0.5f, 2.0f);
-
-    zoomScale = value;
-
-    zoomLabel.setText(String(value * 100.0f, 1) + "%", dontSendNotification);
-}
-
-void Statusbar::defaultZoom()
-{
-    zoomScale = 1.0;
-
-    zoomLabel.setText("100%", dontSendNotification);
 }
 
 StatusbarSource::StatusbarSource()

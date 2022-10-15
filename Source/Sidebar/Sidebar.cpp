@@ -23,13 +23,52 @@ Sidebar::Sidebar(PlugDataAudioProcessor* instance)
     console = new Console(pd);
     inspector = new Inspector;
     browser = new DocumentBrowser(pd);
-
+    automationPanel = new AutomationPanel(pd);
+    
     addAndMakeVisible(console);
     addAndMakeVisible(inspector);
     addChildComponent(browser);
-
+    addChildComponent(automationPanel);
+    
     browser->setAlwaysOnTop(true);
     browser->addMouseListener(this, true);
+    
+    browserButton.setTooltip("Open documentation browser");
+    browserButton.setConnectedEdges(12);
+    browserButton.setName("statusbar:browser");
+    browserButton.onClick = [this]()
+    {
+        showPanel(1);
+    };
+    browserButton.setClickingTogglesState(true);
+    addAndMakeVisible(browserButton);
+
+    automationButton.setTooltip("Open automation panel");
+    automationButton.setConnectedEdges(12);
+    automationButton.setName("statusbar:browser");
+    automationButton.setClickingTogglesState(true);
+    automationButton.onClick = [this]()
+    {
+        showPanel(2);
+    };
+    addAndMakeVisible(automationButton);
+    
+    consoleButton.setTooltip("Open automation panel");
+    consoleButton.setConnectedEdges(12);
+    consoleButton.setName("statusbar:console");
+    consoleButton.setClickingTogglesState(true);
+    consoleButton.onClick = [this]()
+    {
+        showPanel(0);
+    };
+    
+    browserButton.setRadioGroupId(1100);
+    automationButton.setRadioGroupId(1100);
+    consoleButton.setRadioGroupId(1100);
+    
+    consoleButton.setToggleState(true, dontSendNotification);
+    
+    addAndMakeVisible(consoleButton);
 }
 
 Sidebar::~Sidebar()
@@ -61,16 +100,31 @@ void Sidebar::paint(Graphics& g)
     g.drawLine(0.5f, 0, 0.5f, getHeight() - 27.5f);
 }
 
+void Sidebar::paintOverChildren(Graphics& g)
+{
+    g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
+    g.drawLine(0, 0, getWidth(), 0);
+    g.drawLine(0, 28, getWidth(), 28);
+    g.drawLine(0.0f, getHeight() - 27.5f, static_cast<float>(getWidth()), getHeight() - 27.5f);
+}
+
 void Sidebar::resized()
 {
     auto bounds = getLocalBounds();
+    
+    auto tabbarBounds = bounds.removeFromTop(28);
     bounds.removeFromLeft(dragbarWidth);
+    
+    int buttonWidth = getWidth() / 3;
+    
+    consoleButton.setBounds(tabbarBounds.removeFromLeft(buttonWidth));
+    browserButton.setBounds(tabbarBounds.removeFromLeft(buttonWidth));
+    automationButton.setBounds(tabbarBounds.removeFromLeft(buttonWidth));
 
     console->setBounds(bounds);
     inspector->setBounds(bounds);
-    browser->setBounds(getLocalBounds());
-    if (automationPanel)
-        automationPanel->setBounds(getLocalBounds().withTop(getHeight() - 300));
+    browser->setBounds(getLocalBounds().withTrimmedTop(28));
+    automationPanel->setBounds(getLocalBounds().withTrimmedTop(28));
 }
 
 void Sidebar::mouseDown(MouseEvent const& e)
@@ -113,13 +167,11 @@ void Sidebar::mouseExit(MouseEvent const& e)
     setMouseCursor(MouseCursor::NormalCursor);
 }
 
-void Sidebar::showBrowser(bool show)
+void Sidebar::showPanel(int panelToShow)
 {
-    browser->setVisible(show);
-    pinned = show;
-    if (show) {
-        browser->grabKeyboardFocus();
-    }
+    browser->setVisible(panelToShow == 1);
+    automationPanel->setVisible(panelToShow == 2);
+    
 }
 
 bool Sidebar::isShowingBrowser()
@@ -127,27 +179,15 @@ bool Sidebar::isShowingBrowser()
     return browser->isVisible();
 }
 
-void Sidebar::showAutomationPanel(bool show)
-{
-    if (show) {
-        automationPanel = new AutomationPanel(pd);
-        addAndMakeVisible(automationPanel);
-        automationPanel->setAlwaysOnTop(true);
-        automationPanel->toFront(false);
-    } else {
-        delete automationPanel;
-        automationPanel = nullptr;
-    }
-
-    resized();
-}
 
 #if PLUGDATA_STANDALONE
 void Sidebar::updateAutomationParameters()
 {
     if (automationPanel) {
         // Might be called from audio thread
-        MessageManager::callAsync([this]() { automationPanel->updateParameters(); });
+        MessageManager::callAsync([this]() { //automationPanel->updateParameters();
+            
+        });
     };
 };
 #endif

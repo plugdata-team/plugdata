@@ -55,6 +55,7 @@ struct Icons
     inline static const CharPointer_UTF8 Sine = CharPointer_UTF8("\xee\xa1\x95");
     inline static const CharPointer_UTF8 Documentation = CharPointer_UTF8("\xef\x80\xad");
     inline static const CharPointer_UTF8 AddCircled = CharPointer_UTF8("\xef\x81\x95");
+    inline static const CharPointer_UTF8 Console = CharPointer_UTF8("\xef\x84\xa0");
 };
 
 enum PlugDataColour
@@ -294,7 +295,7 @@ struct PlugDataLook : public LookAndFeel_V4
     int getTabButtonBestWidth(TabBarButton& button, int tabDepth) override
     {        
         auto& buttonBar = button.getTabbedButtonBar();
-        return (buttonBar.getWidth() / buttonBar.getNumTabs()) - 1;
+        return (buttonBar.getWidth() / buttonBar.getNumTabs()) + 1;
     }
 
     int getTabButtonOverlap(int tabDepth) override
