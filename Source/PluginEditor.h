@@ -304,6 +304,8 @@ class PlugDataPluginEditor : public AudioProcessorEditor, public Value::Listener
     std::unique_ptr<Dialog> openedDialog = nullptr;
     
    private:
+    
+    
     std::unique_ptr<FileChooser> saveChooser;
     std::unique_ptr<FileChooser> openChooser;
 

@@ -161,7 +161,10 @@ class PlugDataAudioProcessor : public AudioProcessor, public pd::Instance, publi
     
     // Zero means no oversampling
     int oversampling = 0;
-
+    int lastTab = -1;
+    
+    bool settingsChangedInternally = false;
+    
    private:
     void processInternal();
 
@@ -185,6 +188,8 @@ class PlugDataAudioProcessor : public AudioProcessor, public pd::Instance, publi
 
     int minIn = 2;
     int minOut = 2;
+    
+
     
     std::unique_ptr<dsp::Oversampling<float>> oversampler;
 

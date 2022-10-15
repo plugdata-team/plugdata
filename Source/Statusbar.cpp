@@ -260,7 +260,7 @@ Statusbar::Statusbar(PlugDataAudioProcessor& processor) : pd(processor)
     addAndMakeVisible(connectionPathfind.get());
 
     addAndMakeVisible(zoomLabel);
-    zoomLabel.setText("100%", dontSendNotification);
+    zoomLabel.setText(String(static_cast<float>(zoomScale.getValue()) * 100, 1) + "%", dontSendNotification);
     zoomLabel.setFont(Font(11));
     zoomLabel.setJustificationType(Justification::right);
 
@@ -269,6 +269,7 @@ Statusbar::Statusbar(PlugDataAudioProcessor& processor) : pd(processor)
     zoomIn->setName("statusbar:zoomin");
     zoomIn->onClick = [this]() { zoom(true); };
     addAndMakeVisible(zoomIn.get());
+    
 
     themeButton->setTooltip("Switch dark mode");
     themeButton->setConnectedEdges(12);

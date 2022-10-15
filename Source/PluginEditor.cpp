@@ -123,6 +123,8 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p) : AudioPro
         cnv->updateGuiParameters();
         
         updateCommandStatus();
+        
+        pd.lastTab = idx;
     };
 
     tabbar.setOutline(0);
@@ -218,6 +220,9 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p) : AudioPro
     // Make sure existing console messages are processed
     sidebar.updateConsole();
     updateCommandStatus();
+    
+    // Initialise zoom factor
+    valueChanged(pd.zoomScale);
 }
 PlugDataPluginEditor::~PlugDataPluginEditor()
 {
@@ -362,6 +367,9 @@ void PlugDataPluginEditor::mouseWheelMove(const MouseEvent& e, const MouseWheelD
 void PlugDataPluginEditor::mouseMagnify(const MouseEvent& e, float scrollFactor)
 {
     auto* cnv = getCurrentCanvas();
+    
+    if(!cnv) return;
+    
     auto* viewport = getCurrentCanvas()->viewport;
 
     auto event = e.getEventRelativeTo(viewport);
@@ -589,7 +597,13 @@ void PlugDataPluginEditor::valueChanged(Value& v)
     // Update zoom
     else if (v.refersToSameSourceAs(pd.zoomScale))
     {
-        transform = AffineTransform().scaled(static_cast<float>(v.getValue()));
+        float scale = static_cast<float>(v.getValue());
+        
+        if(scale == 0)  {
+            pd.zoomScale = 1.0f;
+        }
+        
+        transform = AffineTransform().scaled(scale);
         for (auto& canvas : canvases)
         {
             if (!canvas->isGraph)
@@ -598,20 +612,25 @@ void PlugDataPluginEditor::valueChanged(Value& v)
                 canvas->setTransform(transform);
             }
         }
-        getCurrentCanvas()->checkBounds();
+        if(auto* cnv = getCurrentCanvas()) {
+            cnv->checkBounds();
+        }
     }
 }
 
 void PlugDataPluginEditor::valueTreePropertyChanged(ValueTree& treeWhosePropertyHasChanged, const Identifier& property)
 {
+    pd.settingsChangedInternally = true;
     startTimer(300);
 }
 void PlugDataPluginEditor::valueTreeChildAdded(ValueTree& parentTree, ValueTree& childWhichHasBeenAdded)
 {
+    pd.settingsChangedInternally = true;
     startTimer(300);
 }
 void PlugDataPluginEditor::valueTreeChildRemoved(ValueTree& parentTree, ValueTree& childWhichHasBeenRemoved, int indexFromWhichChildWasRemoved)
 {
+    pd.settingsChangedInternally = true;
     startTimer(300);
 }
 
