@@ -11,6 +11,8 @@
 #include "PluginEditor.h"
 #include "LookAndFeel.h"
 
+#include "Utility/PluginParameter.h"
+
 extern "C"
 {
     #include "x_libpd_extra_utils.h"
@@ -68,7 +70,7 @@ PlugDataAudioProcessor::PlugDataAudioProcessor()
     for (int n = 0; n < numParameters; n++)
     {
         auto id = ParameterID("param" + String(n + 1), 1);
-        auto* parameter = parameters.createAndAddParameter(std::make_unique<AudioParameterFloat>(id, "Parameter " + String(n + 1), 0.0f, 1.0f, 0.0f));
+        auto* parameter = parameters.createAndAddParameter(std::make_unique<PlugDataParameter>("Parameter " + String(n + 1),  "", 0.0f));
         lastParameters[n] = 0;
         parameter->addListener(this);
     }
@@ -245,6 +247,7 @@ void PlugDataAudioProcessor::initialiseFilesystem()
         settingsTree.setProperty("GridEnabled", 1, nullptr);
         settingsTree.setProperty("Zoom", 1.0f, nullptr);
 
+        
         auto pathTree = ValueTree("Paths");
         auto library = homeDir.getChildFile("Library");
 
@@ -294,17 +297,10 @@ void PlugDataAudioProcessor::initialiseFilesystem()
             }
         }
     }
-    
+
     if(!settingsTree.hasProperty("Zoom")) {
-        zoomScale.referTo(settingsTree.getPropertyAsValue("Zoom", nullptr));
-        zoomScale = 1.0f;
+        settingsTree.setProperty("Zoom", 1.0f, nullptr);
     }
-    else {
-        zoomScale.referTo(settingsTree.getPropertyAsValue("Zoom", nullptr));
-    }
-    
-    
-    
 }
 
 void PlugDataAudioProcessor::saveSettings()

@@ -230,9 +230,36 @@ struct TabComponent : public TabbedComponent
         g.drawLine(0, getTabBarDepth(), getWidth(), getTabBarDepth());
         
         g.drawLine(Line<float>(getTabBarDepth() - 0.5f, 0, getTabBarDepth() - 0.5f, getTabBarDepth()), 1.0f);
+
+        g.drawLine(0, 0, getWidth(), 0);
+
     }
     
     WelcomePanel welcomePanel;
+};
+
+struct ZoomLabel : public TextButton, public Timer
+{
+    ZoomLabel() {
+        setInterceptsMouseClicks(false, false);
+    }
+
+    void setZoomLevel(float value)
+    {
+        setButtonText(String(value * 100, 1) + "%");
+        startTimer(2000);
+        
+        if(!labelAnimator.isAnimating(this)) {
+            labelAnimator.fadeIn(this, 200);
+        }
+    }
+    
+    void timerCallback() override
+    {
+        labelAnimator.fadeOut(this, 200);
+    }
+    
+    ComponentAnimator labelAnimator;
 };
 
 struct WelcomeButton;
@@ -246,7 +273,6 @@ class PlugDataPluginEditor : public AudioProcessorEditor, public Value::Listener
     ~PlugDataPluginEditor() override;
 
     void paint(Graphics& g) override;
-    void paintOverChildren(Graphics& g) override;
 
     void resized() override;
 
@@ -300,11 +326,12 @@ class PlugDataPluginEditor : public AudioProcessorEditor, public Value::Listener
 
     std::atomic<bool> canUndo = false, canRedo = false;
 
-    std::unique_ptr<Dialog> settingsDialog = nullptr;
     std::unique_ptr<Dialog> openedDialog = nullptr;
     
-   private:
+    Value theme;
+    Value zoomScale;
     
+   private:
     
     std::unique_ptr<FileChooser> saveChooser;
     std::unique_ptr<FileChooser> openChooser;
@@ -320,6 +347,9 @@ class PlugDataPluginEditor : public AudioProcessorEditor, public Value::Listener
     SharedResourcePointer<TooltipWindow> tooltipWindow;
 
     TextButton seperators[2];
+    
+    ZoomLabel zoomLabel;
+
 
     enum ToolbarButtonType
     {
