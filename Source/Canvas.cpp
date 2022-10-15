@@ -51,7 +51,7 @@ Canvas::Canvas(PlugDataPluginEditor& parent, pd::Patch& p, Component* parentGrap
     commandLocked.referTo(pd->commandLocked);
     commandLocked.addListener(this);
 
-    gridEnabled.referTo(parent.statusbar.gridEnabled);
+    gridEnabled.referTo(pd->settingsTree.getPropertyAsValue("GridEnabled", nullptr));
 
     locked.referTo(pd->locked);
     locked.addListener(this);
@@ -491,7 +491,7 @@ void Canvas::mouseDrag(const MouseEvent& e)
     }
 
     // For fixing coords when zooming
-    float scale = (1.0f / static_cast<float>(pd->zoomScale.getValue()));
+    float scale = (1.0f / static_cast<float>(main.zoomScale.getValue()));
 
     
     // Auto scroll when dragging close to the iolet
@@ -995,7 +995,7 @@ void Canvas::checkBounds()
     
     updatingBounds = true;
 
-    float scale = (1.0f / static_cast<float>(pd->zoomScale.getValue()));
+    float scale = (1.0f / static_cast<float>(main.zoomScale.getValue()));
 
     auto viewBounds = Rectangle<int>(canvasOrigin.x, canvasOrigin.y, viewport->getMaximumVisibleWidth() * scale, viewport->getMaximumVisibleHeight() * scale);
 
