@@ -58,37 +58,45 @@ struct Icons
     inline static const CharPointer_UTF8 AddCircled = CharPointer_UTF8("\xef\x81\x95");
 };
 
+
 enum PlugDataColour
 {
     toolbarBackgroundColourId,
     toolbarTextColourId,
     toolbarActiveColourId,
-    
+    toolbarOutlineColourId,
+
     tabBackgroundColourId,
     tabTextColourId,
-    tabBorderColourId,
+    tabBorderColourId, /* TODO: rename to outline */
     activeTabBackgroundColourId,
     activeTabTextColourId,
-    activeTabBorderColourId,
-    
+    activeTabBorderColourId, /* TODO: rename to outline */
+
     canvasBackgroundColourId,
     canvasTextColourId,
-    canvasActiveColourId,
+    canvasLockedOutlineColourId,
+    canvasUnlockedOutlineColourId,
 
     defaultObjectBackgroundColourId,
-    outlineColourId,
+    outlineColourId,  /* TODO: rename to objectOutlineColourId */
+    canvasActiveColourId, /* TODO: rename to selectedObjectOutlineColourId */
     dataColourId,
     connectionColourId,
     signalColourId,
-    
+
     panelBackgroundColourId,
     panelBackgroundOffsetColourId,
     panelTextColourId,
-    panelActiveBackgroundColourId,
-    panelActiveTextColourId,
-    
-    scrollbarBackgroundColourId
+    panelActiveBackgroundColourId, /* TODO: rename to panelSelectedItemBackgroundColourId */
+    panelActiveTextColourId, /* TODO: rename to panelSelectedItemTextColourId */
+
+    scrollbarBackgroundColourId, /* TODO: rename */
+
+    /* iteration hack */
+    numberOfColours
 };
+
 
 struct Resources
 {
@@ -659,7 +667,7 @@ struct PlugDataLook : public LookAndFeel_V4
             setColour(PlugDataColour::canvasBackgroundColourId, findColour(ResizableWindow::backgroundColourId));
             setColour(PlugDataColour::toolbarTextColourId, findColour(ComboBox::textColourId));
             setColour(PlugDataColour::canvasTextColourId, findColour(ComboBox::textColourId));
-            //            setColour(PlugDataColour::toolbarOutlineColourId, findColour(ComboBox::outlineColourId).interpolatedWith(findColour(ComboBox::backgroundColourId), 0.5f));
+                setColour(PlugDataColour::toolbarOutlineColourId, findColour(ComboBox::outlineColourId).interpolatedWith(findColour(ComboBox::backgroundColourId), 0.5f));
             //            setColour(PlugDataColour::canvasOutlineColourId, findColour(ComboBox::outlineColourId));
         }
         
@@ -808,97 +816,122 @@ struct PlugDataLook : public LookAndFeel_V4
         }
     }
     
-    void setColours(std::unordered_map<String, Colour> colours)
+    void setColours(std::map<PlugDataColour, Colour> colours)
     {
-        setColour(PlugDataColour::toolbarBackgroundColourId, colours.at("toolbarBackground"));
-        setColour(PlugDataColour::defaultObjectBackgroundColourId, colours.at("defaultObjectBackground"));
-        setColour(PlugDataColour::toolbarTextColourId, colours.at("toolbarText"));
-        setColour(PlugDataColour::toolbarActiveColourId, colours.at("toolbarActive"));
-
-        setColour(PlugDataColour::tabBackgroundColourId, colours.at("tabBackground"));
-        setColour(PlugDataColour::tabTextColourId, colours.at("tabText"));
-        setColour(PlugDataColour::tabBorderColourId, colours.at("tabBorder"));
-        setColour(PlugDataColour::activeTabBackgroundColourId, colours.at("activeTabBackground"));
-        setColour(PlugDataColour::activeTabTextColourId, colours.at("activeTabText"));
-        setColour(PlugDataColour::activeTabBorderColourId, colours.at("activeTabBorder"));
-
-        setColour(PlugDataColour::canvasBackgroundColourId, colours.at("canvasBackground"));
-        setColour(PlugDataColour::canvasTextColourId, colours.at("canvasText"));
-        setColour(PlugDataColour::canvasActiveColourId, colours.at("canvasActive"));
-
-        setColour(PlugDataColour::outlineColourId, colours.at("outline"));
-        setColour(PlugDataColour::dataColourId, colours.at("data"));
-        setColour(PlugDataColour::connectionColourId, colours.at("connection"));
-        setColour(PlugDataColour::signalColourId, colours.at("signal"));
-
-        setColour(PlugDataColour::panelBackgroundColourId, colours.at("panelBackground"));
-        setColour(PlugDataColour::panelBackgroundOffsetColourId, colours.at("panelBackgroundOffset"));
-        setColour(PlugDataColour::panelTextColourId, colours.at("panelText"));
-        setColour(PlugDataColour::panelActiveBackgroundColourId, colours.at("panelActiveBackground"));
-        setColour(PlugDataColour::panelActiveTextColourId, colours.at("panelActiveText"));
-
-        setColour(PlugDataColour::scrollbarBackgroundColourId, colours.at("scrollbarBackground"));
+        for (auto colourId = 0; colourId < PlugDataColour::numberOfColours; colourId++) {
+            setColour(colourId, colours.at(static_cast<PlugDataColour>(colourId)));
+        }
             
-        setColour(PopupMenu::highlightedBackgroundColourId, colours.at("panelActiveBackground"));
-        setColour(TextButton::textColourOnId, colours.at("toolbarActive"));
-        setColour(Slider::thumbColourId, colours.at("scrollbarBackground"));
-        setColour(ScrollBar::thumbColourId, colours.at("scrollbarBackground"));
-        setColour(DirectoryContentsDisplayComponent::highlightColourId, colours.at("panelActiveBackground"));
+        setColour(PopupMenu::highlightedBackgroundColourId,
+                  colours.at(PlugDataColour::panelActiveBackgroundColourId));
+        setColour(TextButton::textColourOnId,
+                  colours.at(PlugDataColour::toolbarActiveColourId));
+        setColour(Slider::thumbColourId,
+                  colours.at(PlugDataColour::scrollbarBackgroundColourId));
+        setColour(ScrollBar::thumbColourId,
+                  colours.at(PlugDataColour::scrollbarBackgroundColourId));
+        setColour(DirectoryContentsDisplayComponent::highlightColourId,
+                  colours.at(PlugDataColour::panelActiveBackgroundColourId));
         // TODO: possibly add a colour for this
-        setColour(CaretComponent::caretColourId, colours.at("toolbarActive"));
+        setColour(CaretComponent::caretColourId,
+                  colours.at(PlugDataColour::toolbarActiveColourId));
             
-        setColour(TextButton::buttonColourId, colours.at("toolbarBackground"));
-        setColour(TextButton::buttonOnColourId, colours.at("toolbarBackground"));
-        setColour(ComboBox::backgroundColourId, colours.at("toolbarBackground"));
-        setColour(ListBox::backgroundColourId, colours.at("toolbarBackground"));
+        setColour(TextButton::buttonColourId,
+                  colours.at(PlugDataColour::toolbarBackgroundColourId));
+        setColour(TextButton::buttonOnColourId,
+                  colours.at(PlugDataColour::toolbarBackgroundColourId));
+        setColour(ComboBox::backgroundColourId,
+                  colours.at(PlugDataColour::toolbarBackgroundColourId));
+        setColour(ListBox::backgroundColourId,
+                  colours.at(PlugDataColour::toolbarBackgroundColourId));
             
-        setColour(AlertWindow::backgroundColourId, colours.at("panelBackground"));
-        getCurrentColourScheme().setUIColour(ColourScheme::UIColour::widgetBackground, colours.at("panelBackground"));
+        setColour(AlertWindow::backgroundColourId,
+                  colours.at(PlugDataColour::panelBackgroundColourId));
+        getCurrentColourScheme().setUIColour(ColourScheme::UIColour::widgetBackground, colours.at(PlugDataColour::panelBackgroundColourId));
             
-        setColour(TooltipWindow::backgroundColourId, colours.at("panelBackground").withAlpha(0.8f));
-        setColour(PopupMenu::backgroundColourId, colours.at("panelBackground").withAlpha(0.95f));
+        setColour(TooltipWindow::backgroundColourId,
+                  colours.at(PlugDataColour::panelBackgroundColourId));
+        setColour(PopupMenu::backgroundColourId,
+                  colours.at(PlugDataColour::panelBackgroundColourId));
             
-        setColour(KeyMappingEditorComponent::backgroundColourId, colours.at("panelBackground"));
-        setColour(ResizableWindow::backgroundColourId, colours.at("canvasBackground"));
-        setColour(Slider::backgroundColourId, colours.at("canvasBackground"));
-        setColour(Slider::trackColourId, colours.at("scrollbarBackground"));
-        setColour(TextEditor::backgroundColourId, colours.at("canvasBackground"));
-        setColour(FileBrowserComponent::currentPathBoxBackgroundColourId, colours.at("panelBackground"));
-        setColour(FileBrowserComponent::filenameBoxBackgroundColourId, colours.at("panelBackground"));
+        setColour(KeyMappingEditorComponent::backgroundColourId,
+                  colours.at(PlugDataColour::panelBackgroundColourId));
+        setColour(ResizableWindow::backgroundColourId,
+                  colours.at(PlugDataColour::canvasBackgroundColourId));
+        setColour(Slider::backgroundColourId,
+                  colours.at(PlugDataColour::canvasBackgroundColourId));
+        setColour(Slider::trackColourId,
+                  colours.at(PlugDataColour::scrollbarBackgroundColourId));
+        setColour(TextEditor::backgroundColourId,
+                  colours.at(PlugDataColour::canvasBackgroundColourId));
+        setColour(FileBrowserComponent::currentPathBoxBackgroundColourId,
+                  colours.at(PlugDataColour::panelBackgroundColourId));
+        setColour(FileBrowserComponent::filenameBoxBackgroundColourId,
+                  colours.at(PlugDataColour::panelBackgroundColourId));
             
-        setColour(TooltipWindow::textColourId, colours.at("panelText"));
-        setColour(TextButton::textColourOffId, colours.at("panelText"));
-        setColour(ComboBox::textColourId, colours.at("canvasText"));
-        setColour(TableListBox::textColourId, colours.at("canvasText"));
-        setColour(Label::textColourId, colours.at("canvasText"));
-        setColour(Label::textWhenEditingColourId, colours.at("canvasText"));
-        setColour(ListBox::textColourId, colours.at("canvasText"));
-        setColour(TextEditor::textColourId, colours.at("canvasText"));
-        setColour(PropertyComponent::labelTextColourId, colours.at("canvasText"));
-        setColour(PopupMenu::textColourId, colours.at("panelText"));
-        setColour(KeyMappingEditorComponent::textColourId, colours.at("panelText"));
-        setColour(TabbedButtonBar::frontTextColourId, colours.at("activeTabText"));
-        setColour(TabbedButtonBar::tabTextColourId, colours.at("tabText"));
-        setColour(ToggleButton::textColourId, colours.at("canvasText"));
-        setColour(ToggleButton::tickColourId, colours.at("canvasText"));
-        setColour(ToggleButton::tickDisabledColourId, colours.at("canvasText"));
-        setColour(ComboBox::arrowColourId, colours.at("canvasText"));
-        setColour(DirectoryContentsDisplayComponent::textColourId, colours.at("canvasText"));
-        setColour(Slider::textBoxTextColourId, colours.at("canvasText"));
-        setColour(AlertWindow::textColourId, colours.at("panelText"));
-        setColour(FileBrowserComponent::currentPathBoxTextColourId, colours.at("panelActiveText"));
-        setColour(FileBrowserComponent::currentPathBoxArrowColourId, colours.at("panelActiveText"));
-        setColour(FileBrowserComponent::filenameBoxTextColourId, colours.at("panelText"));
-        setColour(FileChooserDialogBox::titleTextColourId, colours.at("panelText"));
+        setColour(TooltipWindow::textColourId,
+                  colours.at(PlugDataColour::panelTextColourId));
+        setColour(TextButton::textColourOffId,
+                  colours.at(PlugDataColour::panelTextColourId));
+        setColour(ComboBox::textColourId,
+                  colours.at(PlugDataColour::canvasTextColourId));
+        setColour(TableListBox::textColourId,
+                  colours.at(PlugDataColour::canvasTextColourId));
+        setColour(Label::textColourId,
+                  colours.at(PlugDataColour::canvasTextColourId));
+        setColour(Label::textWhenEditingColourId,
+                  colours.at(PlugDataColour::canvasTextColourId));
+        setColour(ListBox::textColourId,
+                  colours.at(PlugDataColour::canvasTextColourId));
+        setColour(TextEditor::textColourId,
+                  colours.at(PlugDataColour::canvasTextColourId));
+        setColour(PropertyComponent::labelTextColourId,
+                  colours.at(PlugDataColour::canvasTextColourId));
+        setColour(PopupMenu::textColourId,
+                  colours.at(PlugDataColour::panelTextColourId));
+        setColour(KeyMappingEditorComponent::textColourId,
+                  colours.at(PlugDataColour::panelTextColourId));
+        setColour(TabbedButtonBar::frontTextColourId,
+                  colours.at(PlugDataColour::activeTabTextColourId));
+        setColour(TabbedButtonBar::tabTextColourId,
+                  colours.at(PlugDataColour::tabTextColourId));
+        setColour(ToggleButton::textColourId,
+                  colours.at(PlugDataColour::canvasTextColourId));
+        setColour(ToggleButton::tickColourId,
+                  colours.at(PlugDataColour::canvasTextColourId));
+        setColour(ToggleButton::tickDisabledColourId,
+                  colours.at(PlugDataColour::canvasTextColourId));
+        setColour(ComboBox::arrowColourId,
+                  colours.at(PlugDataColour::canvasTextColourId));
+        setColour(DirectoryContentsDisplayComponent::textColourId,
+                  colours.at(PlugDataColour::canvasTextColourId));
+        setColour(Slider::textBoxTextColourId,
+                  colours.at(PlugDataColour::canvasTextColourId));
+        setColour(AlertWindow::textColourId,
+                  colours.at(PlugDataColour::panelTextColourId));
+        setColour(FileBrowserComponent::currentPathBoxTextColourId,
+                  colours.at(PlugDataColour::panelActiveTextColourId));
+        setColour(FileBrowserComponent::currentPathBoxArrowColourId,
+                  colours.at(PlugDataColour::panelActiveTextColourId));
+        setColour(FileBrowserComponent::filenameBoxTextColourId,
+                  colours.at(PlugDataColour::panelTextColourId));
+        setColour(FileChooserDialogBox::titleTextColourId,
+                  colours.at(PlugDataColour::panelTextColourId));
             
-        setColour(DirectoryContentsDisplayComponent::highlightedTextColourId, colours.at("panelActiveText"));
+        setColour(DirectoryContentsDisplayComponent::highlightedTextColourId,
+                  colours.at(PlugDataColour::panelActiveTextColourId));
             
-        setColour(TooltipWindow::outlineColourId, colours.at("panelBackground"));
-        setColour(ComboBox::outlineColourId, colours.at("outline"));
-        setColour(TextEditor::outlineColourId, colours.at("outline"));
+        setColour(TooltipWindow::outlineColourId,
+                  colours.at(PlugDataColour::panelBackgroundColourId));
+        setColour(ComboBox::outlineColourId,
+                  colours.at(PlugDataColour::outlineColourId));
+        setColour(TextEditor::outlineColourId,
+                  colours.at(PlugDataColour::outlineColourId));
             
-        setColour(Slider::textBoxOutlineColourId, Colours::transparentBlack);
-        setColour(TreeView::backgroundColourId, Colours::transparentBlack);
+        setColour(Slider::textBoxOutlineColourId,
+                  Colours::transparentBlack);
+        setColour(TreeView::backgroundColourId,
+                  Colours::transparentBlack);
     }
     
     static void setDefaultFont(String fontName)
@@ -915,81 +948,87 @@ struct PlugDataLook : public LookAndFeel_V4
         }
     }
 
-    inline static const std::unordered_map<String, Colour> defaultDarkTheme = {
-        {"toolbarBackground", Colour(25, 25, 25)},
-        {"toolbarText", Colour(255, 255, 255)},
-        {"toolbarActive", Colour(66, 162, 200)},
+    inline static const std::map<PlugDataColour, Colour> defaultDarkTheme = {
+        {PlugDataColour::toolbarBackgroundColourId, Colour(25, 25, 25)},
+        {PlugDataColour::toolbarTextColourId, Colour(255, 255, 255)},
+        {PlugDataColour::toolbarActiveColourId, Colour(66, 162, 200)},
+        {PlugDataColour::toolbarOutlineColourId, Colour(255, 255, 255)},
 
-        {"tabBackground", Colour(25, 25, 25)},
-        {"tabText", Colour(255, 255, 255)},
-        {"tabBorder", Colour(105, 105, 105)},
-        {"activeTabBackground", Colour(35, 35, 35)},
-        {"activeTabText", Colour(255, 255, 255)},
-        {"activeTabBorder", Colour(105, 105, 105)},
+        {PlugDataColour::tabBackgroundColourId, Colour(25, 25, 25)},
+        {PlugDataColour::tabTextColourId, Colour(255, 255, 255)},
+        {PlugDataColour::tabBorderColourId, Colour(105, 105, 105)},
+        {PlugDataColour::activeTabBackgroundColourId, Colour(35, 35, 35)},
+        {PlugDataColour::activeTabTextColourId, Colour(255, 255, 255)},
+        {PlugDataColour::activeTabBorderColourId, Colour(105, 105, 105)},
 
-        {"canvasBackground", Colour(35, 35, 35)},
-        {"canvasText", Colour(255, 255, 255)},
-        {"canvasActive", Colour(66, 162, 200)},
+        {PlugDataColour::canvasBackgroundColourId, Colour(35, 35, 35)},
+        {PlugDataColour::canvasTextColourId, Colour(255, 255, 255)},
+        {PlugDataColour::canvasLockedOutlineColourId, Colour(255, 255, 255)},
+        {PlugDataColour::canvasUnlockedOutlineColourId, Colour(255, 255, 255)},
 
-        {"outline", Colour(255, 255, 255)},
-        {"data", Colour(66, 162, 200)},
-        {"connection", Colour(225, 225, 225)},
-        {"signal", Colour(255, 133, 0)},
-        {"defaultObjectBackground", Colour(25, 25, 25)},
+        {PlugDataColour::outlineColourId, Colour(255, 255, 255)},
+        {PlugDataColour::canvasActiveColourId, Colour(66, 162, 200)},
+        {PlugDataColour::defaultObjectBackgroundColourId, Colour(25, 25, 25)},
 
-        {"panelBackground", Colour(35, 35, 35)},
-        {"panelBackgroundOffset", Colour(50, 50, 50)},
-        {"panelText", Colour(255, 255, 255)},
-        {"panelActiveBackground", Colour(66, 162, 200)},
-        {"panelActiveText", Colour(0, 0, 0)},
+        {PlugDataColour::dataColourId, Colour(66, 162, 200)},
+        {PlugDataColour::connectionColourId, Colour(225, 225, 225)},
+        {PlugDataColour::signalColourId, Colour(255, 133, 0)},
 
-        {"scrollbarBackground", Colour(66, 162, 200)}
+        {PlugDataColour::panelBackgroundColourId, Colour(35, 35, 35)},
+        {PlugDataColour::panelBackgroundOffsetColourId, Colour(50, 50, 50)},
+        {PlugDataColour::panelTextColourId, Colour(255, 255, 255)},
+        {PlugDataColour::panelActiveBackgroundColourId, Colour(66, 162, 200)},
+        {PlugDataColour::panelActiveTextColourId, Colour(0, 0, 0)},
+
+        {PlugDataColour::scrollbarBackgroundColourId, Colour(66, 162, 200)},
+
+        /* TODO: add toolbar outline, panel outline and canvas outline. add canvas locked and unlocked outline */
     };
 
-    inline static const std::unordered_map<String, Colour> defaultLightTheme = {
-        {"toolbarBackground", Colour(228, 228, 228)},
-        {"toolbarText", Colour(90, 90, 90)},
-        {"toolbarActive", Colour(0, 122, 255)},
+    inline static const std::map<PlugDataColour, Colour> defaultLightTheme = {
+        {PlugDataColour::toolbarBackgroundColourId, Colour(228, 228, 228)},
+        {PlugDataColour::toolbarTextColourId, Colour(90, 90, 90)},
+        {PlugDataColour::toolbarActiveColourId, Colour(0, 122, 255)},
 
-        {"tabBackground", Colour(228, 228, 228)},
-        {"tabText", Colour(90, 90, 90)},
-        {"tabBorder", Colour(168, 168, 168)},
-        {"activeTabBackground", Colour(250, 250, 250)},
-        {"activeTabText", Colour(90, 90, 90)},
-        {"activeTabBorder", Colour(168, 168, 168)},
+        {PlugDataColour::tabBackgroundColourId, Colour(228, 228, 228)},
+        {PlugDataColour::tabTextColourId, Colour(90, 90, 90)},
+        {PlugDataColour::tabBorderColourId, Colour(168, 168, 168)},
+        {PlugDataColour::activeTabBackgroundColourId, Colour(250, 250, 250)},
+        {PlugDataColour::activeTabTextColourId, Colour(90, 90, 90)},
+        {PlugDataColour::activeTabBorderColourId, Colour(168, 168, 168)},
 
-        {"canvasBackground", Colour(250, 250, 250)},
-        {"canvasText", Colour(90, 90, 90)},
-        {"canvasActive", Colour(0, 122, 255)},
+        {PlugDataColour::canvasBackgroundColourId, Colour(250, 250, 250)},
+        {PlugDataColour::canvasTextColourId, Colour(90, 90, 90)},
+        {PlugDataColour::canvasActiveColourId, Colour(0, 122, 255)},
 
-        {"outline", Colour(168, 168, 168)},
-        {"data", Colour(0, 122, 255)},
-        {"connection", Colour(179, 179, 179)},
-        {"signal", Colour(255, 133, 0)},
-        {"defaultObjectBackground", Colour(228, 228, 228)},
+        {PlugDataColour::outlineColourId, Colour(168, 168, 168)},
+        {PlugDataColour::dataColourId, Colour(0, 122, 255)},
+        {PlugDataColour::connectionColourId, Colour(179, 179, 179)},
+        {PlugDataColour::signalColourId, Colour(255, 133, 0)},
+        {PlugDataColour::defaultObjectBackgroundColourId, Colour(228, 228, 228)},
 
-        {"panelBackground", Colour(250, 250, 250)},
-        {"panelBackgroundOffset", Colour(228, 228, 228)},
-        {"panelText", Colour(90, 90, 90)},
-        {"panelActiveBackground", Colour(0, 122, 255)},
-        {"panelActiveText", Colour(0, 0, 0)},
+        {PlugDataColour::panelBackgroundColourId, Colour(250, 250, 250)},
+        {PlugDataColour::panelBackgroundOffsetColourId, Colour(228, 228, 228)},
+        {PlugDataColour::panelTextColourId, Colour(90, 90, 90)},
+        {PlugDataColour::panelActiveBackgroundColourId, Colour(0, 122, 255)},
+        {PlugDataColour::panelActiveTextColourId, Colour(0, 0, 0)},
 
-        {"scrollbarBackground", Colour(66, 162, 200)},
+        {PlugDataColour::scrollbarBackgroundColourId, Colour(66, 162, 200)},
     };
     
-    inline static const std::unordered_map<String, std::unordered_map<String, Colour>> defaultThemes = {
+    inline static const std::map<String, std::map<PlugDataColour, Colour>> defaultThemes = {
         {"dark", defaultDarkTheme},
         {"light", defaultLightTheme}
     };
     
-    inline static std::unordered_map<String, std::unordered_map<String, Colour>> colourSettings = defaultThemes;
+    inline static std::map<String, std::map<PlugDataColour, Colour>> colourSettings = defaultThemes;
     
     void resetColours() {
         colourSettings = defaultThemes;
     }
     
-    void setThemeColour(String themeName, String colourName, Colour colour) {
-        colourSettings[themeName][colourName] = colour;
+    void setThemeColour(String themeName, PlugDataColour colourId, Colour colour) {
+        colourSettings[themeName][colourId] = colour;
     }
 
     void setTheme(bool useLightTheme)
