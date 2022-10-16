@@ -1059,8 +1059,8 @@ inline static const std::map<PlugDataColour, std::pair<String, String>> PlugData
         };
         
         inline static const std::map<String, std::map<PlugDataColour, Colour>> defaultThemes = {
-            {"dark", defaultDarkTheme},
-            {"light", defaultLightTheme}
+            {"light", defaultLightTheme},
+            {"dark", defaultDarkTheme}
         };
         
         inline static std::map<String, std::map<PlugDataColour, Colour>> colourSettings = defaultThemes;

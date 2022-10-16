@@ -27,9 +27,11 @@ struct ThemePanel : public Component
                 
                 auto colourName = PlugDataColourNames.at(colour.first).second;
                 
-                swatches[themeName][colourName].setValue(themeColours.at(colour.first).toString());
+                auto value = settingsTree.getChildWithName("ColourThemes").getChildWithName(themeName).getPropertyAsValue(colourName, nullptr);
+                
+                swatches[themeName][colourName].referTo(value);
                 swatches[themeName][colourName].addListener(this);
-                panels.add(new PropertiesPanel::ColourComponent(colourName, swatches[themeName][String(colourName)], 1));
+                panels.add(new PropertiesPanel::ColourComponent(colourName, swatches[themeName][colourName], 1));
             }
         }
 
@@ -84,26 +86,19 @@ struct ThemePanel : public Component
             return;
         }
 
-        auto colourThemesTree = settingsTree.getChildWithName("ColourThemes");
         for (auto const& pair : lnf.colourSettings) {
             auto themeName = pair.first;
             auto theme = pair.second;
-            auto themeTree = colourThemesTree.getChildWithName(themeName);
-            
             for (auto const& colour : theme) {
                 auto colourName = PlugDataColourNames.at(colour.first).second;
                 if (v.refersToSameSourceAs(swatches[themeName][colourName])) {
                     
                     lnf.colourSettings[themeName][colour.first] = Colour::fromString(v.toString());
-                    themeTree.setProperty(colourName, v.toString(), nullptr);
-                    
                     lnf.setTheme(lnf.isUsingLightTheme);
                     getTopLevelComponent()->repaint();
                 }
             }
         }
-        
-
     }
 
     void paint(Graphics& g) override
@@ -120,9 +115,9 @@ struct ThemePanel : public Component
         g.drawText("Light", themeRow.withX(getWidth() * 0.5f).withWidth(getWidth() / 4), Justification::centred);
         g.drawText("Dark", themeRow.withX(getWidth() * 0.75f).withWidth(getWidth() / 4), Justification::centred);
 
-        for (auto const& colour : PlugDataLook::defaultDarkTheme)
+        for (auto const& [identifier, name] : PlugDataColourNames)
         {
-            g.drawText(PlugDataColourNames.at(colour.first).first, bounds.removeFromTop(23), Justification::left);
+            g.drawText(name.first, bounds.removeFromTop(23), Justification::left);
         }
         bounds.removeFromTop(23);
     }
