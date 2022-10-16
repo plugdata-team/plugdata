@@ -174,7 +174,7 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p) : AudioPro
             auto* pluginHolder = StandalonePluginHolder::getInstance();
             Dialogs::createSettingsDialog(pd, &pluginHolder->deviceManager, toolbarButton(Settings), pd.settingsTree);
 #else
-            Dialogs::createSettingsDialog(&settingsDialog, pd, nullptr, pd.settingsTree);
+            Dialogs::createSettingsDialog(pd, nullptr, toolbarButton(Settings), pd.settingsTree);
 #endif
     };
 
