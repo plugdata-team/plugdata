@@ -146,7 +146,7 @@ public:
     // override to make transparent
     void paint(Graphics& g) override
     {
-        auto outlineColour = object->findColour(cnv->isSelected(object) && !cnv->isGraph ? PlugDataColour::highlightColourId : PlugDataColour::canvasOutlineColourId);
+        auto outlineColour = object->findColour(cnv->isSelected(object) && !cnv->isGraph ? PlugDataColour::canvasActiveColourId : PlugDataColour::outlineColourId);
 
         g.setColour(outlineColour);
         g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), 2.0f, 1.0f);
@@ -155,7 +155,7 @@ public:
         auto text = getText();
 
         if (!static_cast<bool>(hideNameAndArgs.getValue()) && text != "graph") {
-            g.setColour(object->findColour(PlugDataColour::textColourId));
+            g.setColour(object->findColour(PlugDataColour::canvasTextColourId));
             g.setFont(Font(15));
             auto textArea = getLocalBounds().removeFromTop(20).withTrimmedLeft(5);
             g.drawFittedText(text, textArea, Justification::left, 1, 1.0f);

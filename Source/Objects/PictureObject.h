@@ -60,11 +60,11 @@ struct PictureObject final : public GUIObject {
             g.drawImageAt(img, 0, 0);
         } else {
             g.setFont(30);
-            g.setColour(object->findColour(PlugDataColour::textColourId));
+            g.setColour(object->findColour(PlugDataColour::canvasTextColourId));
             g.drawText("?", getLocalBounds(), Justification::centred);
         }
 
-        auto outlineColour = object->findColour(cnv->isSelected(object) && !cnv->isGraph ? PlugDataColour::highlightColourId : PlugDataColour::canvasOutlineColourId);
+        auto outlineColour = object->findColour(cnv->isSelected(object) && !cnv->isGraph ? PlugDataColour::canvasActiveColourId : PlugDataColour::outlineColourId);
 
         g.setColour(outlineColour);
         g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), 2.0f, 1.0f);

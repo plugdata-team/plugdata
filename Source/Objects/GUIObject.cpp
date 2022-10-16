@@ -214,14 +214,14 @@ void ObjectBase::paint(Graphics& g)
 {
     // make sure text is readable
     // TODO: move this to places where it's relevant
-    getLookAndFeel().setColour(Label::textColourId, object->findColour(PlugDataColour::textColourId));
-    getLookAndFeel().setColour(Label::textWhenEditingColourId, object->findColour(PlugDataColour::textColourId));
-    getLookAndFeel().setColour(TextEditor::textColourId, object->findColour(PlugDataColour::textColourId));
+    getLookAndFeel().setColour(Label::textColourId, object->findColour(PlugDataColour::canvasTextColourId));
+    getLookAndFeel().setColour(Label::textWhenEditingColourId, object->findColour(PlugDataColour::canvasTextColourId));
+    getLookAndFeel().setColour(TextEditor::textColourId, object->findColour(PlugDataColour::canvasTextColourId));
 
-    g.setColour(object->findColour(PlugDataColour::toolbarColourId));
+    g.setColour(object->findColour(PlugDataColour::defaultObjectBackgroundColourId));
     g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), 2.0f);
 
-    auto outlineColour = object->findColour(cnv->isSelected(object) && !cnv->isGraph ? PlugDataColour::highlightColourId : PlugDataColour::canvasOutlineColourId);
+    auto outlineColour = object->findColour(cnv->isSelected(object) && !cnv->isGraph ? PlugDataColour::canvasActiveColourId : PlugDataColour::outlineColourId);
 
     g.setColour(outlineColour);
     g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), 2.0f, 1.0f);
