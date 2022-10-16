@@ -153,7 +153,7 @@ struct PropertiesPanel : public PropertyPanel {
     };
 
     struct ColourComponent : public Property
-        , public ChangeListener {
+        , public ChangeListener, public Value::Listener {
         ColourComponent(String const& propertyName, Value& value, int idx)
             : Property(propertyName, idx)
             , currentColour(value)
@@ -167,6 +167,8 @@ struct PropertiesPanel : public PropertyPanel {
 
             addAndMakeVisible(button);
             updateColour();
+            
+            value.addListener(this);
 
             button.onClick = [this]() {
                 std::unique_ptr<ColourSelector> colourSelector = std::make_unique<ColourSelector>(ColourSelector::showColourAtTop | ColourSelector::showSliders | ColourSelector::showColourspace);
@@ -178,6 +180,11 @@ struct PropertiesPanel : public PropertyPanel {
 
                 CallOutBox::launchAsynchronously(std::move(colourSelector), button.getScreenBounds(), nullptr);
             };
+        }
+            
+        void valueChanged(Value& v) override
+        {
+            updateColour();
         }
 
         void updateColour()
