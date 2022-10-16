@@ -196,7 +196,7 @@ public:
                 
                 if(invert) p.applyTransform(AffineTransform::verticalFlip(getHeight()));
 
-                g.setColour(object->findColour(PlugDataColour::canvasOutlineColourId));
+                g.setColour(object->findColour(PlugDataColour::outlineColourId));
                 g.strokePath(p, PathStrokeType(1));
                 break;
             }
@@ -216,12 +216,12 @@ public:
                 
                 if(invert) p.applyTransform(AffineTransform::verticalFlip(getHeight()));
 
-                g.setColour(object->findColour(PlugDataColour::canvasOutlineColourId));
+                g.setColour(object->findColour(PlugDataColour::outlineColourId));
                 g.fillPath(p);
                 break;
             }
             case PdArray::DrawType::Points: {
-                g.setColour(object->findColour(PlugDataColour::canvasOutlineColourId));
+                g.setColour(object->findColour(PlugDataColour::outlineColourId));
                 for (size_t i = 0; i < points.size(); i++) {
                     float y = h - (std::clamp(points[i], scale[0], scale[1]) - scale[0]) * dh;
                     if(invert) y = getHeight() - y;
@@ -237,11 +237,12 @@ public:
 
     void paint(Graphics& g) override
     {
-        g.setColour(object->findColour(PlugDataColour::toolbarColourId));
+        g.setColour(object->findColour(PlugDataColour::defaultObjectBackgroundColourId));
         g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), 2.0f);
 
         if (error) {
-            g.setColour(object->findColour(PlugDataColour::textColourId));
+            // TODO: error colour
+            g.setColour(object->findColour(PlugDataColour::canvasTextColourId));
             g.drawText("array " + array.getUnexpandedName() + " is invalid", 0, 0, getWidth(), getHeight(), Justification::centred);
             error = false;
         } else {
@@ -405,20 +406,20 @@ struct ArrayEditorDialog : public Component {
 
     void paintOverChildren(Graphics& g)
     {
-        g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
+        g.setColour(findColour(PlugDataColour::defaultObjectBackgroundColourId));
         g.drawRoundedRectangle(getLocalBounds().toFloat(), 6.0f, 1.0f);
     }
 
     void paint(Graphics& g)
     {
-        g.setColour(findColour(PlugDataColour::toolbarColourId));
+        g.setColour(findColour(PlugDataColour::defaultObjectBackgroundColourId));
         g.fillRoundedRectangle(getLocalBounds().toFloat(), 6.0f);
 
-        g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
+        g.setColour(findColour(PlugDataColour::canvasTextColourId));
         g.drawHorizontalLine(39, 0, getWidth());
 
         if (!title.isEmpty()) {
-            g.setColour(findColour(PlugDataColour::textColourId));
+            g.setColour(findColour(PlugDataColour::canvasTextColourId));
             g.drawText(title, 0, 0, getWidth(), 40, Justification::centred);
         }
     }
@@ -444,7 +445,7 @@ public:
         name = String(array.getUnexpandedName());
         drawMode = static_cast<int>(array.getDrawType()) + 1;
 
-        labelColour = object->findColour(PlugDataColour::textColourId).toString();
+        labelColour = object->findColour(PlugDataColour::canvasTextColourId).toString();
 
         updateLabel();
     }
@@ -473,7 +474,7 @@ public:
             label->setEditable(false, false);
             label->setInterceptsMouseClicks(false, false);
 
-            label->setColour(Label::textColourId, object->findColour(PlugDataColour::textColourId));
+            label->setColour(Label::textColourId, object->findColour(PlugDataColour::canvasTextColourId));
 
             object->cnv->addAndMakeVisible(label.get());
         }
@@ -607,7 +608,7 @@ public:
 
     void paintOverChildren(Graphics& g) override
     {
-        auto outlineColour = object->findColour(cnv->isSelected(object) && !cnv->isGraph ? PlugDataColour::highlightColourId : PlugDataColour::canvasOutlineColourId);
+        auto outlineColour = object->findColour(cnv->isSelected(object) && !cnv->isGraph ? PlugDataColour::canvasActiveColourId : PlugDataColour::outlineColourId);
         g.setColour(outlineColour);
         g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), 2.0f, 1.0f);
     }

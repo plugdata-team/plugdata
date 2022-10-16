@@ -72,10 +72,10 @@ struct ListObject final : public AtomObject {
         getLookAndFeel().setColour(Label::textWhenEditingColourId, object->findColour(Label::textWhenEditingColourId));
         getLookAndFeel().setColour(Label::textColourId, object->findColour(Label::textColourId));
 
-        g.setColour(object->findColour(PlugDataColour::toolbarColourId));
+        g.setColour(object->findColour(PlugDataColour::panelBackgroundOffsetColourId));
         g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), 2.0f);
 
-        g.setColour(object->findColour(PlugDataColour::canvasOutlineColourId));
+        g.setColour(object->findColour(PlugDataColour::outlineColourId));
 
         Path bottomTriangle;
         bottomTriangle.addTriangle(Point<float>(getWidth() - 8, getHeight()), Point<float>(getWidth(), getHeight()), Point<float>(getWidth(), getHeight() - 8));

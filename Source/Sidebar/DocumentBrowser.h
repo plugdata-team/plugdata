@@ -79,7 +79,7 @@ public:
     {
         Path p;
         p.addTriangle(0.0f, 0.0f, 1.0f, isOpen() ? 0.0f : 0.5f, isOpen() ? 0.5f : 0.0f, 1.0f);
-        g.setColour(isSelected() ? Colours::white : getOwnerView()->findColour(PlugDataColour::textColourId).withAlpha(isMouseOver ? 0.7f : 1.0f));
+        g.setColour(isSelected() ? getOwnerView()->findColour(PlugDataColour::panelActiveTextColourId) : getOwnerView()->findColour(PlugDataColour::panelTextColourId).withAlpha(isMouseOver ? 0.7f : 1.0f));
         g.fillPath(p, p.getTransformToScaleToFit(area.reduced(2, area.getHeight() / 4), true));
     }
 
@@ -355,7 +355,7 @@ public:
     void paintOverChildren(Graphics& g) override
     {
         if (isDraggingFile) {
-            g.setColour(findColour(PlugDataColour::highlightColourId));
+            g.setColour(findColour(PlugDataColour::panelBackgroundColourId));
             g.drawRect(getLocalBounds().reduced(1), 2.0f);
         }
     }
@@ -553,7 +553,7 @@ public:
     void paintOverChildren(Graphics& g) override
     {
         g.setFont(getLookAndFeel().getTextButtonFont(closeButton, 30));
-        g.setColour(findColour(PlugDataColour::textColourId));
+        g.setColour(findColour(PlugDataColour::panelTextColourId));
 
         g.drawText(Icons::Search, 0, 0, 30, 30, Justification::centred);
     }
@@ -561,11 +561,11 @@ public:
     void paintListBoxItem(int rowNumber, Graphics& g, int w, int h, bool rowIsSelected) override
     {
         if (rowIsSelected) {
-            g.setColour(findColour(PlugDataColour::highlightColourId));
+            g.setColour(findColour(PlugDataColour::panelActiveBackgroundColourId));
             g.fillRect(1, 0, w - 3, h);
         }
 
-        g.setColour(rowIsSelected ? Colours::white : findColour(ComboBox::textColourId));
+        g.setColour(rowIsSelected ? findColour(PlugDataColour::panelActiveTextColourId) : findColour(ComboBox::textColourId));
         const String item = searchResult[rowNumber].getFileName();
 
         g.setFont(Font());
@@ -812,19 +812,20 @@ struct DocumentBrowser : public DocumentBrowserBase
 
     void paint(Graphics& g) override
     {
-        g.fillAll(findColour(PlugDataColour::toolbarColourId));
+        g.fillAll(findColour(PlugDataColour::panelBackgroundColourId));
     }
 
     void paintOverChildren(Graphics& g) override
     {
         // Draggable bar
-        g.setColour(findColour(PlugDataColour::toolbarColourId));
+        g.setColour(findColour(PlugDataColour::panelBackgroundColourId));
         g.fillRect(0, 28, Sidebar::dragbarWidth + 1, getHeight());
 
-        g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
+        // TODO: add outline colours for panel
+        g.setColour(findColour(PlugDataColour::panelBackgroundOffsetColourId));
         g.drawLine(0.5f, 0, 0.5f, getHeight() - 27.5f);
 
-        g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
+        g.setColour(findColour(PlugDataColour::panelBackgroundOffsetColourId));
         g.drawLine(0, 28, getWidth(), 28);
     }
 

@@ -138,8 +138,8 @@ struct NumberObject final : public IEMObject {
 
         triangle.addTriangle(iconBounds.getTopLeft().toFloat(), iconBounds.getTopRight().toFloat() + Point<float>(0, (iconBounds.getHeight() / 2.)), iconBounds.getBottomLeft().toFloat());
 
-        auto normalColour = Colour(getForegroundColour()).interpolatedWith(object->findColour(PlugDataColour::toolbarColourId), 0.5f);
-        auto highlightColour = findColour(PlugDataColour::highlightColourId);
+        auto normalColour = findColour(PlugDataColour::canvasTextColourId);
+        auto highlightColour = findColour(PlugDataColour::canvasActiveColourId);
         bool highlighed = hasKeyboardFocus(true) && static_cast<bool>(object->locked.getValue());
 
         g.setColour(highlighed ? highlightColour : normalColour);

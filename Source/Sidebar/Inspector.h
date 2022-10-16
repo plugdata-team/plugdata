@@ -19,10 +19,11 @@ struct Inspector : public Component {
     void paint(Graphics& g) override
     {
 
-        g.setColour(findColour(PlugDataColour::textColourId));
+        g.setColour(findColour(PlugDataColour::panelTextColourId));
         g.drawText(title, getLocalBounds().removeFromTop(23), Justification::centred);
 
-        g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
+        // TODO: this was a border
+        g.setColour(findColour(PlugDataColour::panelBackgroundColourId));
         g.drawLine(0, 23, getWidth(), 23);
     }
 

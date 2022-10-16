@@ -76,10 +76,10 @@ struct MessageObject final : public TextBase
     {
         BorderSize<int> border { 1, 6, 1, 4 };
         
-        g.setColour(object->findColour(PlugDataColour::toolbarColourId));
+        g.setColour(object->findColour(PlugDataColour::defaultObjectBackgroundColourId));
         g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), 2.0f);
 
-        g.setColour(findColour(PlugDataColour::textColourId));
+        g.setColour(findColour(PlugDataColour::canvasTextColourId));
         g.setFont(font);
 
         auto textArea = border.subtractedFrom(getLocalBounds());
@@ -87,7 +87,7 @@ struct MessageObject final : public TextBase
 
         bool selected = cnv->isSelected(object);
 
-        auto outlineColour = findColour(selected && !cnv->isGraph ? PlugDataColour::highlightColourId : PlugDataColour::canvasOutlineColourId);
+        auto outlineColour = findColour(selected && !cnv->isGraph ? PlugDataColour::canvasActiveColourId : PlugDataColour::outlineColourId);
 
         if (!isValid) {
             outlineColour = selected && !cnv->isGraph ? Colours::red.brighter(1.5) : Colours::red;
@@ -106,7 +106,7 @@ struct MessageObject final : public TextBase
         Path flagPath;
         flagPath.addQuadrilateral(b.getRight(), b.getY(), b.getRight() - 4, b.getY() + 4, b.getRight() - 4, b.getBottom() - 4, b.getRight(), b.getBottom());
         
-        g.setColour(object->findColour(PlugDataColour::canvasOutlineColourId));
+        g.setColour(object->findColour(PlugDataColour::outlineColourId));
         g.fillPath(flagPath);
         
         if (isDown) {
@@ -137,7 +137,7 @@ struct MessageObject final : public TextBase
 
             copyAllExplicitColoursTo(*editor);
             editor->setColour(Label::textWhenEditingColourId, findColour(TextEditor::textColourId));
-            editor->setColour(TextEditor::backgroundColourId, object->findColour(PlugDataColour::toolbarColourId));
+            editor->setColour(TextEditor::backgroundColourId, object->findColour(PlugDataColour::defaultObjectBackgroundColourId));
             editor->setColour(Label::outlineWhenEditingColourId, findColour(TextEditor::focusedOutlineColourId));
 
             editor->setAlwaysOnTop(true);

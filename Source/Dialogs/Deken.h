@@ -23,7 +23,7 @@ struct Spinner : public Component
 
     void paint(Graphics& g) override
     {
-        getLookAndFeel().drawSpinningWaitAnimation(g, findColour(PlugDataColour::textColourId), 3, 3, getWidth() - 6, getHeight() - 6);
+        getLookAndFeel().drawSpinningWaitAnimation(g, findColour(PlugDataColour::panelTextColourId), 3, 3, getWidth() - 6, getHeight() - 6);
     }
 };
 
@@ -530,18 +530,19 @@ public:
     void paintOverChildren(Graphics& g) override
     {
         g.setFont(getLookAndFeel().getTextButtonFont(clearButton, 30));
-        g.setColour(findColour(PlugDataColour::textColourId));
+        g.setColour(findColour(PlugDataColour::panelTextColourId));
 
         g.drawText(Icons::Search, 0, 0, 30, 30, Justification::centred);
 
         if (input.getText().isEmpty()) {
-            g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
+            // TODO: is this meant to be a placeholder text? less contrasted?
+            g.setColour(findColour(PlugDataColour::panelTextColourId));
             g.setFont(Font());
             g.drawText("Type to search for objects or libraries", 32, 0, 350, 30, Justification::centredLeft);
         }
 
-        g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
-        g.drawLine(0, 28, getWidth(), 28);
+//        g.setColour(findColour(PlugDataColour::outlineColourId));
+//        g.drawLine(0, 28, getWidth(), 28);
     }
 
     int getNumRows() override
@@ -831,10 +832,10 @@ private:
                 Path fullPath;
                 fullPath.addLineSegment({ 90, 15, width, 15 }, 1.0f);
 
-                g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
+                g.setColour(findColour(PlugDataColour::panelTextColourId));
                 g.strokePath(fullPath, PathStrokeType(11.0f, PathStrokeType::JointStyle::curved, PathStrokeType::EndCapStyle::rounded));
 
-                g.setColour(findColour(PlugDataColour::highlightColourId));
+                g.setColour(findColour(PlugDataColour::panelActiveBackgroundColourId));
                 g.strokePath(downloadPath, PathStrokeType(8.0f, PathStrokeType::JointStyle::curved, PathStrokeType::EndCapStyle::rounded));
             } else {
                 g.drawFittedText(packageInfo.version, 150, 0, 150, getHeight(), Justification::centredLeft, 1, 0.8f);
