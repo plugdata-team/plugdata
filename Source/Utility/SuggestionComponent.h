@@ -42,13 +42,13 @@ class SuggestionComponent : public Component
 
         void paint(Graphics& g) override
         {
-            auto colour = idx & 1 ? PlugDataColour::toolbarColourId : PlugDataColour::canvasColourId;
+            auto colour = idx & 1 ? PlugDataColour::panelBackgroundOffsetColourId : PlugDataColour::panelBackgroundColourId;
 
-            getLookAndFeel().drawButtonBackground(g, *this, findColour(getToggleState() ? PlugDataColour::highlightColourId : colour), isMouseOver(), isMouseButtonDown());
+            getLookAndFeel().drawButtonBackground(g, *this, findColour(getToggleState() ? PlugDataColour::panelActiveBackgroundColourId : colour), isMouseOver(), isMouseButtonDown());
 
             auto font = getLookAndFeel().getTextButtonFont(*this, getHeight());
             g.setFont(font);
-            g.setColour(getToggleState() ? Colours::white : findColour(PlugDataColour::textColourId));
+            g.setColour(getToggleState() ? findColour(PlugDataColour::panelActiveTextColourId) : findColour(PlugDataColour::panelTextColourId));
             auto yIndent = jmin(4, proportionOfHeight(0.3f));
             auto cornerSize = jmin(getHeight(), getWidth()) / 2;
             auto fontHeight = roundToInt(font.getHeight() * 0.6f);
@@ -62,7 +62,7 @@ class SuggestionComponent : public Component
             if (objectDescription.isNotEmpty()) {
                 auto textLength = font.getStringWidth(getButtonText());
 
-                g.setColour(getToggleState() ? Colours::white : findColour(PlugDataColour::canvasOutlineColourId));
+                g.setColour(getToggleState() ? findColour(PlugDataColour::panelActiveTextColourId) : findColour(PlugDataColour::panelTextColourId));
 
                 auto yIndent = jmin(4, proportionOfHeight(0.3f));
                 auto cornerSize = jmin(getHeight(), getWidth()) / 2;
@@ -80,7 +80,7 @@ class SuggestionComponent : public Component
 
             if (drawIcon) {
 
-                auto dataColour = findColour(PlugDataColour::highlightColourId);
+                auto dataColour = findColour(PlugDataColour::dataColourId);
                 auto signalColour = findColour(PlugDataColour::signalColourId);
                 g.setColour(type ? signalColour : dataColour);
                 Rectangle<int> iconbound = getLocalBounds().reduced(4);
@@ -255,7 +255,7 @@ public:
 private:
     void paint(Graphics& g) override
     {
-        g.setColour(findColour(PlugDataColour::toolbarColourId));
+        g.setColour(findColour(PlugDataColour::toolbarBackgroundColourId));
         g.fillRect(port->getBounds());
     }
 
@@ -413,7 +413,7 @@ private:
     ResizableCornerComponent resizer;
     ComponentBoundsConstrainer constrainer;
 
-    Array<Colour> colours = { findColour(PlugDataColour::toolbarColourId), findColour(PlugDataColour::canvasColourId) };
+    Array<Colour> colours = { findColour(PlugDataColour::panelBackgroundColourId), findColour(PlugDataColour::panelBackgroundOffsetColourId) };
 
     Colour bordercolor = Colour(142, 152, 155);
 

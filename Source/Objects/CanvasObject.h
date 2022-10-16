@@ -3,7 +3,7 @@ struct CanvasObject final : public IEMObject {
     CanvasObject(void* ptr, Object* object)
         : IEMObject(ptr, object)
     {
-        object->setColour(PlugDataColour::canvasOutlineColourId, Colours::transparentBlack);
+        object->setColour(PlugDataColour::outlineColourId, Colours::transparentBlack);
     }
 
     void updateBounds() override
@@ -41,7 +41,7 @@ struct CanvasObject final : public IEMObject {
     {
         g.fillAll(Colour::fromString(secondaryColour.toString()));
 
-        auto outlineColour = object->findColour(cnv->isSelected(object) && !cnv->isGraph ? PlugDataColour::highlightColourId : PlugDataColour::canvasOutlineColourId);
+        auto outlineColour = object->findColour(cnv->isSelected(object) && !cnv->isGraph ? PlugDataColour::canvasActiveColourId : PlugDataColour::outlineColourId);
         g.setColour(outlineColour);
         g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), 2.0f, 1.0f);
     }

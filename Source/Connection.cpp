@@ -204,7 +204,7 @@ bool Connection::intersects(Rectangle<float> toCheck, int accuracy) const
 void Connection::paint(Graphics& g)
 {
     auto baseColour = findColour(PlugDataColour::connectionColourId);
-    auto dataColour = findColour(PlugDataColour::highlightColourId);
+    auto dataColour = findColour(PlugDataColour::dataColourId);
     auto signalColour = findColour(PlugDataColour::signalColourId);
     auto handleColour = outlet->isSignal ? dataColour : signalColour;
     
@@ -239,7 +239,7 @@ void Connection::paint(Graphics& g)
         g.fillEllipse(startReconnectHandle.expanded(overStart ? 3.0f : 0.0f));
         g.fillEllipse(endReconnectHandle.expanded(overEnd ? 3.0f : 0.0f));
         
-        g.setColour(findColour(PlugDataColour::canvasOutlineColourId));
+        g.setColour(findColour(PlugDataColour::outlineColourId));
         g.drawEllipse(startReconnectHandle.expanded(overStart ? 3.0f : 0.0f), 0.5f);
         g.drawEllipse(endReconnectHandle.expanded(overEnd ? 3.0f : 0.0f), 0.5f);
     }

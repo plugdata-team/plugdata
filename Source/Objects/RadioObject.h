@@ -146,7 +146,7 @@ struct RadioObject final : public IEMObject {
                 skipped = true;
                 continue;
             }
-            g.setColour(object->findColour(PlugDataColour::canvasOutlineColourId));
+            g.setColour(object->findColour(PlugDataColour::outlineColourId));
             if (isVertical) {
                 g.drawLine({ button->getBounds().getTopLeft().toFloat(), button->getBounds().getTopRight().toFloat() }, 1.0f);
             } else {
@@ -154,7 +154,7 @@ struct RadioObject final : public IEMObject {
             }
         }
 
-        auto outlineColour = object->findColour(cnv->isSelected(object) && !cnv->isGraph ? PlugDataColour::highlightColourId : PlugDataColour::canvasOutlineColourId);
+        auto outlineColour = object->findColour(cnv->isSelected(object) && !cnv->isGraph ? PlugDataColour::canvasActiveColourId : PlugDataColour::outlineColourId);
 
         g.setColour(outlineColour);
         g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), 2.0f, 1.0f);
