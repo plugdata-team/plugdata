@@ -111,23 +111,23 @@ struct AtomObject : public GUIObject {
 
     void paint(Graphics& g) override
     {
-        getLookAndFeel().setColour(Label::textWhenEditingColourId, object->findColour(PlugDataColour::textColourId));
-        getLookAndFeel().setColour(Label::textColourId, object->findColour(PlugDataColour::textColourId));
-        getLookAndFeel().setColour(TextEditor::textColourId, object->findColour(PlugDataColour::textColourId));
+        getLookAndFeel().setColour(Label::textWhenEditingColourId, object->findColour(PlugDataColour::canvasTextColourId));
+        getLookAndFeel().setColour(Label::textColourId, object->findColour(PlugDataColour::canvasTextColourId));
+        getLookAndFeel().setColour(TextEditor::textColourId, object->findColour(PlugDataColour::canvasTextColourId));
 
-        g.setColour(object->findColour(PlugDataColour::toolbarColourId));
+        g.setColour(object->findColour(PlugDataColour::defaultObjectBackgroundColourId));
         g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), 2.0f);
     }
 
     void paintOverChildren(Graphics& g) override
     {
-        g.setColour(object->findColour(PlugDataColour::canvasOutlineColourId));
+        g.setColour(object->findColour(PlugDataColour::outlineColourId));
         Path triangle;
         triangle.addTriangle(Point<float>(getWidth() - 8, 0), Point<float>(getWidth(), 0), Point<float>(getWidth(), 8));
         triangle = triangle.createPathWithRoundedCorners(4.0f);
         g.fillPath(triangle);
 
-        auto outlineColour = object->findColour(cnv->isSelected(object) && !cnv->isGraph ? PlugDataColour::highlightColourId : PlugDataColour::canvasOutlineColourId);
+        auto outlineColour = object->findColour(cnv->isSelected(object) && !cnv->isGraph ? PlugDataColour::canvasActiveColourId : PlugDataColour::outlineColourId);
         g.setColour(outlineColour);
         g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), 2.0f, 1.0f);
     }
@@ -192,7 +192,7 @@ struct AtomObject : public GUIObject {
             label->setEditable(false, false);
             label->setInterceptsMouseClicks(false, false);
 
-            label->setColour(Label::textColourId, object->findColour(PlugDataColour::textColourId));
+            label->setColour(Label::textColourId, object->findColour(PlugDataColour::canvasTextColourId));
 
             object->cnv->addAndMakeVisible(label.get());
         }

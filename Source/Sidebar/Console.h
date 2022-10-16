@@ -94,8 +94,8 @@ struct Console : public Component {
             }
             auto b = Rectangle<int>(0, y, getWidth(), h);
 
-            auto offColour = findColour(PlugDataColour::toolbarColourId);
-            auto onColour = findColour(PlugDataColour::canvasColourId);
+            auto offColour = findColour(PlugDataColour::panelBackgroundOffsetColourId);
+            auto onColour = findColour(PlugDataColour::panelBackgroundColourId);
             auto background = (idx & 1) ? offColour : onColour;
 
             g.setColour(background);
@@ -122,7 +122,7 @@ struct Console : public Component {
             Colour colourWithType(int type)
             {
                 if (type == 0)
-                    return findColour(PlugDataColour::textColourId);
+                    return findColour(PlugDataColour::panelTextColourId);
                 else if (type == 1)
                     return Colours::orange;
                 else
@@ -145,11 +145,11 @@ struct Console : public Component {
                 bool showErrors = console.buttons[3].getToggleState();
 
                 // Draw background
-                auto offColour = findColour(PlugDataColour::toolbarColourId);
-                auto onColour = findColour(PlugDataColour::canvasColourId);
+                auto offColour = findColour(PlugDataColour::panelBackgroundOffsetColourId);
+                auto onColour = findColour(PlugDataColour::panelBackgroundColourId);
                 auto background = (idx & 1) ? offColour : onColour;
 
-                g.setColour(isSelected ? findColour(PlugDataColour::highlightColourId) : background);
+                g.setColour(isSelected ? findColour(PlugDataColour::panelActiveBackgroundColourId) : background);
                 g.fillRect(getLocalBounds());
 
                 // Get console message
@@ -164,7 +164,7 @@ struct Console : public Component {
                 int numLines = getNumLines(console.getWidth(), length);
 
                 // Draw text
-                g.setColour(isSelected ? Colours::white : colourWithType(type));
+                g.setColour(isSelected ? findColour(PlugDataColour::panelActiveTextColourId) : colourWithType(type));
                 g.drawFittedText(message, getLocalBounds().reduced(4, 0), Justification::centredLeft, numLines, 1.0f);
             }
         };

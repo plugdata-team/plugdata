@@ -7,7 +7,7 @@ struct ThemePanel : public Component
     , public Value::Listener {
     ValueTree settingsTree;
     Value fontValue;
-    std::vector<std::vector<Value>> colours;
+    std::unordered_map<String, std::unordered_map<String, Value>> swatches;
 
     TextButton resetButton = TextButton(Icons::Refresh);
 
@@ -20,16 +20,16 @@ struct ThemePanel : public Component
         fontValue.addListener(this);
         panels.add(new PropertiesPanel::FontComponent("Default font", fontValue, 0));
 
-        // Get current colour
-        auto numColours = PlugDataLook::colourNames[0].size();
-        colours.resize(2);
-
-        for (int i = 0; i < numColours; i++) {
-            for (int j = 0; j < 2; j++) {
-                colours[j].resize(numColours);
-                colours[j][i].setValue(PlugDataLook::colourSettings[j][i].toString());
-                colours[j][i].addListener(this);
-                panels.add(new PropertiesPanel::ColourComponent(PlugDataLook::colourNames[j][i], colours[j][i], 1));
+        for (auto const& pair : PlugDataLook::colourSettings) {
+            auto themeName = String(pair.first);
+            auto themeColours = pair.second;
+            for (auto const& colour : themeColours) {
+                
+                auto colourName = PlugDataColourNames.at(colour.first).second;
+                
+                swatches[themeName][colourName].setValue(themeColours.at(colour.first).toString());
+                swatches[themeName][colourName].addListener(this);
+                panels.add(new PropertiesPanel::ColourComponent(colourName, swatches[themeName][String(colourName)], 1));
             }
         }
 
@@ -44,18 +44,21 @@ struct ThemePanel : public Component
         resetButton.setConnectedEdges(12);
         resetButton.onClick = [this]() {
             auto& lnf = dynamic_cast<PlugDataLook&>(getLookAndFeel());
-            lnf.colourSettings = lnf.defaultColours;
+            lnf.resetColours();
 
             dynamic_cast<PropertiesPanel::FontComponent*>(panels[0])->setFont("Inter");
             fontValue = "Inter";
             lnf.setDefaultFont(fontValue.toString());
             settingsTree.setProperty("DefaultFont", fontValue.getValue(), nullptr);
 
-            auto numColours = PlugDataLook::colourNames[0].size();
-            for (int i = 0; i < 2; i++) {
-                for (int j = 0; j < numColours; j++) {
-                    colours[i][j] = lnf.colourSettings[i][j].toString();
-                    settingsTree.setProperty(lnf.colourNames[i][j], lnf.colourSettings[i][j].toString(), nullptr);
+            auto colourThemesTree = settingsTree.getChildWithName("ColourThemes");
+            for (auto const& pair : lnf.colourSettings) {
+                auto name = String(pair.first);
+                auto theme = pair.second;
+                auto themeTree = colourThemesTree.getChildWithName(name);
+                for (auto const& colour : theme) {
+                    swatches[name][String(colour.first)] = colour.second.toString();
+                    themeTree.setProperty(name, colour.second.toString(), nullptr);
                 }
             }
 
@@ -78,19 +81,29 @@ struct ThemePanel : public Component
             lnf.setDefaultFont(fontValue.toString());
             settingsTree.setProperty("DefaultFont", fontValue.getValue(), nullptr);
             getTopLevelComponent()->repaint();
+            return;
         }
 
-        auto numColours = PlugDataLook::colourNames[0].size();
-        for (int i = 0; i < 2; i++) {
-            for (int j = 0; j < numColours; j++) {
-                if (v.refersToSameSourceAs(colours[i][j])) {
-                    lnf.colourSettings[i][j] = Colour::fromString(v.toString());
-                    settingsTree.setProperty(lnf.colourNames[i][j], lnf.colourSettings[i][j].toString(), nullptr);
+        auto colourThemesTree = settingsTree.getChildWithName("ColourThemes");
+        for (auto const& pair : lnf.colourSettings) {
+            auto themeName = pair.first;
+            auto theme = pair.second;
+            auto themeTree = colourThemesTree.getChildWithName(themeName);
+            
+            for (auto const& colour : theme) {
+                auto colourName = PlugDataColourNames.at(colour.first).second;
+                if (v.refersToSameSourceAs(swatches[themeName][colourName])) {
+                    
+                    lnf.colourSettings[themeName][colour.first] = Colour::fromString(v.toString());
+                    themeTree.setProperty(colourName, v.toString(), nullptr);
+                    
                     lnf.setTheme(lnf.isUsingLightTheme);
                     getTopLevelComponent()->repaint();
                 }
             }
         }
+        
+
     }
 
     void paint(Graphics& g) override
@@ -99,23 +112,18 @@ struct ThemePanel : public Component
 
         auto bounds = getLocalBounds().removeFromLeft(getWidth() / 2).withTrimmedLeft(6);
 
-        g.setColour(findColour(PlugDataColour::textColourId));
+        g.setColour(findColour(PlugDataColour::panelTextColourId));
         g.drawText("Font", bounds.removeFromTop(23), Justification::left);
 
         auto themeRow = bounds.removeFromTop(23);
         g.drawText("Theme", themeRow, Justification::left);
-        g.drawText("Dark", themeRow.withX(getWidth() * 0.5f).withWidth(getWidth() / 4), Justification::centred);
-        g.drawText("Light", themeRow.withX(getWidth() * 0.75f).withWidth(getWidth() / 4), Justification::centred);
+        g.drawText("Light", themeRow.withX(getWidth() * 0.5f).withWidth(getWidth() / 4), Justification::centred);
+        g.drawText("Dark", themeRow.withX(getWidth() * 0.75f).withWidth(getWidth() / 4), Justification::centred);
 
-        g.drawText("Toolbar colour", bounds.removeFromTop(23), Justification::left);
-        g.drawText("Canvas colour", bounds.removeFromTop(23), Justification::left);
-
-        g.drawText("Text colour", bounds.removeFromTop(23), Justification::left);
-        g.drawText("Data colour", bounds.removeFromTop(23), Justification::left);
-        g.drawText("Outline colour", bounds.removeFromTop(23), Justification::left);
-        g.drawText("Connection colour", bounds.removeFromTop(23), Justification::left);
-        g.drawText("Signal colour", bounds.removeFromTop(23), Justification::left);
-
+        for (auto const& colour : PlugDataLook::defaultDarkTheme)
+        {
+            g.drawText(PlugDataColourNames.at(colour.first).first, bounds.removeFromTop(23), Justification::left);
+        }
         bounds.removeFromTop(23);
     }
 
@@ -147,7 +155,7 @@ struct AboutPanel : public Component {
     void paint(Graphics& g) override
     {
         g.setFont(30);
-        g.setColour(findColour(PlugDataColour::textColourId));
+        g.setColour(findColour(PlugDataColour::panelTextColourId));
         g.drawFittedText("PlugData " + String(ProjectInfo::versionString), 150, 20, 300, 30, Justification::left, 1);
 
         g.setFont(16);
@@ -179,15 +187,15 @@ struct DAWAudioSettings : public Component {
         latencySlider.setRange(0, 88200, 1);
         latencySlider.setTextValueSuffix(" Samples");
         latencySlider.setTextBoxStyle(Slider::TextEntryBoxPosition::TextBoxRight, false, 100, 20);
-        latencySlider.setColour(Slider::trackColourId, findColour(PlugDataColour::textColourId));
-        latencySlider.setColour(Slider::backgroundColourId, findColour(PlugDataColour::toolbarColourId));
+        latencySlider.setColour(Slider::trackColourId, findColour(PlugDataColour::scrollbarBackgroundColourId));
+        latencySlider.setColour(Slider::backgroundColourId, findColour(PlugDataColour::panelBackgroundColourId));
 
         addAndMakeVisible(tailLengthSlider);
         tailLengthSlider.setRange(0, 10.0f, 0.01f);
         tailLengthSlider.setTextValueSuffix(" Seconds");
         tailLengthSlider.setTextBoxStyle(Slider::TextEntryBoxPosition::TextBoxRight, false, 100, 20);
-        tailLengthSlider.setColour(Slider::trackColourId, findColour(PlugDataColour::textColourId));
-        tailLengthSlider.setColour(Slider::backgroundColourId, findColour(PlugDataColour::toolbarColourId));
+        tailLengthSlider.setColour(Slider::trackColourId, findColour(PlugDataColour::scrollbarBackgroundColourId));
+        tailLengthSlider.setColour(Slider::backgroundColourId, findColour(PlugDataColour::panelBackgroundColourId));
 
         addAndMakeVisible(tailLengthLabel);
         tailLengthLabel.setText("Tail Length", dontSendNotification);
@@ -261,6 +269,8 @@ struct SettingsDialog : public Component {
         } else {
             panels.add(new DAWAudioSettings(processor));
         }
+
+
         panels.add(new ThemePanel(settingsTree));
         panels.add(new SearchPathComponent(settingsTree.getChildWithName("Paths")));
         panels.add(new KeyMappingComponent(*editor->getKeyMappings()));
@@ -307,10 +317,10 @@ struct SettingsDialog : public Component {
 
     void paint(Graphics& g) override
     {
-        g.setColour(findColour(PlugDataColour::canvasColourId));
+        g.setColour(findColour(PlugDataColour::panelBackgroundColourId));
         g.fillRoundedRectangle(getLocalBounds().reduced(1).toFloat(), 5.0f);
 
-        g.setColour(findColour(PlugDataColour::toolbarColourId));
+        g.setColour(findColour(PlugDataColour::toolbarBackgroundColourId));
 
         auto toolbarBounds = Rectangle<float>(1, 1, getWidth() - 2, toolbarHeight);
         g.fillRoundedRectangle(toolbarBounds, 5.0f);
@@ -318,7 +328,7 @@ struct SettingsDialog : public Component {
 
         if (currentPanel > 0) {
             auto statusbarBounds = getLocalBounds().reduced(1).removeFromBottom(32).toFloat();
-            g.setColour(findColour(PlugDataColour::toolbarColourId));
+            g.setColour(findColour(PlugDataColour::toolbarBackgroundColourId));
 
             g.fillRect(statusbarBounds.withHeight(20));
             g.fillRoundedRectangle(statusbarBounds, 5.0f);
@@ -327,7 +337,8 @@ struct SettingsDialog : public Component {
 
     void paintOverChildren(Graphics& g) override
     {
-        g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
+        // TODO:
+        g.setColour(findColour(PlugDataColour::toolbarBackgroundColourId));
         g.drawLine(0.0f, toolbarHeight, getWidth(), toolbarHeight);
 
         if (currentPanel > 0) {
@@ -494,7 +505,7 @@ struct SettingsPopup : public PopupMenu {
             auto textBounds = getLocalBounds().reduced(5, 4);
             textBounds.removeFromLeft(30);
             
-            g.setColour(findColour(PlugDataColour::textColourId));
+            g.setColour(findColour(PlugDataColour::toolbarTextColourId));
             g.setFont(15);
             g.drawText(labelText, textBounds, Justification::centredLeft);
         }
@@ -520,7 +531,7 @@ struct SettingsPopup : public PopupMenu {
             g.setColour(Colour(240, 240, 240));
             g.fillEllipse(secondBounds.toFloat());
 
-            g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
+            g.setColour(findColour(PlugDataColour::outlineColourId));
             g.drawEllipse(firstBounds.toFloat(), 1.0f);
             g.drawEllipse(secondBounds.toFloat(), 1.0f);
             
