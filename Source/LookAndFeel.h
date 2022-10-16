@@ -97,7 +97,7 @@ enum PlugDataColour
     numberOfColours
 };
 
-inline static const std::map<PlugDataColour, std::pair<String, String>> PlugDataColourNames = {
+inline const std::map<PlugDataColour, std::pair<String, String>> PlugDataColourNames = {
     
     {toolbarBackgroundColourId, {"Toolbar Background", "toolbar_background"}},
     {toolbarTextColourId, {"Toolbar Text", "toolbar_text"}},
@@ -118,10 +118,10 @@ inline static const std::map<PlugDataColour, std::pair<String, String>> PlugData
     {dataColourId, {"Data Colour", "data_colour"}},
     {connectionColourId, {"Connection Colour", "connection_colour"}},
     {signalColourId, {"Signal Colour", "signal_colour"}},
-    {panelBackgroundColourId, {"Sidebar Background", "sidebar_colour"}},
-    {panelBackgroundOffsetColourId, {"Sidebar Offset", "sidebar_offset"}},
-    {panelTextColourId, {"Sidebar Text", "sidebar_text"}},
-    {panelActiveBackgroundColourId, {"Sidebar Background Active", "sidebar_background_active"}}, /* TODO: rename to {panelSelectedItemBackgroundColourId */
+    {panelBackgroundColourId, {"Panel Background", "panel_colour"}},
+    {panelBackgroundOffsetColourId, {"Panel Offset", "panel_offset"}},
+    {panelTextColourId, {"Panel Text", "panel_text"}},
+    {panelActiveBackgroundColourId, {"Panel Background Active", "panel_background_active"}}, /* TODO: rename to {panelSelectedItemBackgroundColourId */
     {panelActiveTextColourId, {"Panel Active Text", "panel_active_text"}}, /* TODO: rename to {panelSelectedItemTextColourId */
     {scrollbarBackgroundColourId, {"Scrollbar Background", "scrollbar_background"}}, /* TODO: rename */
 };
@@ -240,6 +240,11 @@ inline static const std::map<PlugDataColour, std::pair<String, String>> PlugData
         
         void drawButtonText(Graphics& g, TextButton& button, bool isMouseOverButton, bool isButtonDown) override
         {
+            if (button.getName().startsWith("toolbar"))
+            {
+                button.setColour(TextButton::textColourOnId, findColour(PlugDataColour::toolbarActiveColourId));
+                button.setColour(TextButton::textColourOffId, findColour(PlugDataColour::toolbarTextColourId));
+            }
             if (button.getName().startsWith("suggestions"))
             {
                 drawSuggestionButtonText(g, button, isMouseOverButton, isButtonDown);
@@ -378,10 +383,10 @@ inline static const std::map<PlugDataColour, std::pair<String, String>> PlugData
             
             TextLayout textLayout;
             auto textArea = button.getLocalBounds();
-            AttributedString attributedTabTitle(button.getTitle());
+            AttributedString attributedTabTitle(button.getButtonText());
             auto tabTextColour = findColour(isActive ? PlugDataColour::activeTabTextColourId : PlugDataColour::tabTextColourId);
             attributedTabTitle.setColour(tabTextColour);
-            attributedTabTitle.setFont(defaultFont);
+            attributedTabTitle.setFont(defaultFont.withHeight(12));
             attributedTabTitle.setJustification(Justification::centred);
             textLayout.createLayout(attributedTabTitle, textArea.getWidth());
             textLayout.draw(g, textArea.toFloat());
@@ -425,7 +430,7 @@ inline static const std::map<PlugDataColour, std::pair<String, String>> PlugData
             }
 #endif
             
-            // On linux, the canUseSemiTransparentWindows flag sometimes incorrectly returns true
+            // On Linux, the canUseSemiTransparentWindows flag sometimes incorrectly returns true
 #ifdef JUCE_LINUX
             g.fillAll(findColour(ResizableWindow::backgroundColourId));
 #endif
@@ -433,7 +438,7 @@ inline static const std::map<PlugDataColour, std::pair<String, String>> PlugData
             auto bounds = Rectangle<float>(2, 2, width - 4, height - 4);
             g.fillRoundedRectangle(bounds, 3.0f);
             
-            g.setColour(findColour(PopupMenu::textColourId));
+            g.setColour(findColour(PlugDataColour::outlineColourId));
             g.drawRoundedRectangle(bounds, 3.0f, 1.0f);
         }
         
@@ -441,6 +446,12 @@ inline static const std::map<PlugDataColour, std::pair<String, String>> PlugData
         {
             return 5;
         };
+        
+        int getMenuWindowFlags()
+        {
+            return ComponentPeer::windowHasDropShadow | ComponentPeer::windowIsSemiTransparent;
+        }
+
         
         void drawTextEditorOutline(Graphics& g, int width, int height, TextEditor& textEditor) override
         {
@@ -891,8 +902,10 @@ inline static const std::map<PlugDataColour, std::pair<String, String>> PlugData
             
             setColour(TooltipWindow::backgroundColourId,
                       colours.at(PlugDataColour::panelBackgroundColourId));
+            
+            // Add dummy alpha to prevent JUCE from making it opaque
             setColour(PopupMenu::backgroundColourId,
-                      colours.at(PlugDataColour::panelBackgroundColourId));
+                      colours.at(PlugDataColour::panelBackgroundOffsetColourId).withAlpha(0.99f));
             
             setColour(KeyMappingEditorComponent::backgroundColourId,
                       colours.at(PlugDataColour::panelBackgroundColourId));
@@ -962,7 +975,7 @@ inline static const std::map<PlugDataColour, std::pair<String, String>> PlugData
                       colours.at(PlugDataColour::panelActiveTextColourId));
             
             setColour(TooltipWindow::outlineColourId,
-                      colours.at(PlugDataColour::panelBackgroundColourId));
+                      colours.at(PlugDataColour::outlineColourId));
             setColour(ComboBox::outlineColourId,
                       colours.at(PlugDataColour::outlineColourId));
             setColour(TextEditor::outlineColourId,

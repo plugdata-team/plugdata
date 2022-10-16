@@ -60,7 +60,7 @@ struct Dialog : public Component {
             g.setColour(findColour(PlugDataColour::panelBackgroundColourId));
             g.fillRoundedRectangle(viewedComponent->getBounds().toFloat(), 5.0f);
 
-            g.setColour(findColour(PlugDataColour::panelActiveBackgroundColourId));
+            g.setColour(findColour(PlugDataColour::outlineColourId));
             g.drawRoundedRectangle(viewedComponent->getBounds().toFloat(), 5.0f, 1.0f);
         }
     }

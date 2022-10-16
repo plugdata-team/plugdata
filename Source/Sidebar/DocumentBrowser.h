@@ -661,7 +661,6 @@ public:
 
         closeButton.setBounds(inputBounds.removeFromRight(30));
 
-        tableBounds.removeFromLeft(Sidebar::dragbarWidth);
         listBox.setBounds(tableBounds);
     }
 
