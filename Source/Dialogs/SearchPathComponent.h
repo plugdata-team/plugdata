@@ -109,10 +109,10 @@ public:
 
     void paintListBoxItem(int rowNumber, Graphics& g, int width, int height, bool rowIsSelected) override
     {
-        g.setColour(rowIsSelected ? Colours::white : findColour(PlugDataColour::textColourId));
+        g.setColour(rowIsSelected ? findColour(PlugDataColour::panelActiveTextColourId) : findColour(PlugDataColour::panelTextColourId));
 
         if (rowIsSelected)
-            g.fillAll(findColour(PlugDataColour::highlightColourId));
+            g.fillAll(findColour(PlugDataColour::panelActiveBackgroundColourId));
 
         Font f((float)height * 0.6f);
         f.setHorizontalScale(1.0f);

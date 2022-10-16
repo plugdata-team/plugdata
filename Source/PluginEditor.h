@@ -92,7 +92,7 @@ struct WelcomePanel : public Component
         {
             auto* lnf = dynamic_cast<PlugDataLook*>(&getLookAndFeel());
             
-            g.setColour(findColour(PlugDataColour::textColourId));
+            g.setColour(findColour(PlugDataColour::canvasTextColourId));
             
             g.setFont(lnf->iconFont.withHeight(24));
             g.drawText(iconText, 20, 5, 40, 40, Justification::centredLeft);
@@ -146,14 +146,14 @@ struct WelcomePanel : public Component
         
         auto* lnf = dynamic_cast<PlugDataLook*>(&getLookAndFeel());
         
-        g.setColour(findColour(PlugDataColour::textColourId));
+        g.setColour(findColour(PlugDataColour::canvasTextColourId));
         g.setFont(lnf->boldFont.withHeight(32));
         g.drawText("No Patch Open", 0, getHeight() / 2 - 150, getWidth(), 40, Justification::centred);
         
         g.setFont(lnf->thinFont.withHeight(23));
         g.drawText("Open a file to begin patching", 0,  getHeight() / 2 - 120, getWidth(), 40, Justification::centred);
         
-        g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
+        g.setColour(findColour(PlugDataColour::outlineColourId));
     }
     
     std::unique_ptr<WelcomeButton> newButton;
@@ -226,7 +226,7 @@ struct TabComponent : public TabbedComponent
     
     void paintOverChildren(Graphics& g) override
     {
-        g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
+        g.setColour(findColour(PlugDataColour::outlineColourId));
         g.drawLine(0, getTabBarDepth(), getWidth(), getTabBarDepth());
         
         g.drawLine(Line<float>(getTabBarDepth() - 0.5f, 0, getTabBarDepth() - 0.5f, getTabBarDepth()), 1.0f);

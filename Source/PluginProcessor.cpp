@@ -70,7 +70,7 @@ PlugDataAudioProcessor::PlugDataAudioProcessor()
     for (int n = 0; n < numParameters; n++)
     {
         auto id = ParameterID("param" + String(n + 1), 1);
-        auto* parameter = parameters.createAndAddParameter(std::make_unique<PlugDataParameter>("Parameter " + String(n + 1),  "", 0.0f));
+        auto* parameter = parameters.createAndAddParameter(std::make_unique<PlugDataParameter>(this, "Parameter " + String(n + 1),  "", 0.0f));
         lastParameters[n] = 0;
         parameter->addListener(this);
     }
@@ -265,14 +265,20 @@ void PlugDataAudioProcessor::initialiseFilesystem()
         settingsTree.appendChild(ValueTree("Keymap"), nullptr);
 
         settingsTree.setProperty("DefaultFont", "Inter", nullptr);
-        for (int i = 0; i < lnf->colourNames.size(); i++)
-        {
-            for (int j = 0; j < lnf->colourNames[i].size(); j++)
-            {
-                settingsTree.setProperty(lnf->colourNames[i][j], PlugDataLook::colourSettings[i][j].toString(), nullptr);
+        auto colourThemesTree = ValueTree("ColourThemes");
+        settingsTree.appendChild(colourThemesTree, nullptr);
+        
+        for (auto const& theme : lnf->colourSettings) {
+            auto themeName = theme.first;
+            auto themeColours = theme.second;
+            auto themeTree = ValueTree(themeName);
+            colourThemesTree.appendChild(themeTree, nullptr);
+            themeTree.setProperty("theme", themeName, nullptr);
+            for (auto const& defaultColours : lnf->defaultDarkTheme) {
+                auto colourName = PlugDataColourNames.at(defaultColours.first).second;
+                themeTree.setProperty(colourName, themeColours.at(defaultColours.first).toString(), nullptr);
             }
         }
-
         saveSettings();
     }
     else
@@ -286,14 +292,13 @@ void PlugDataAudioProcessor::initialiseFilesystem()
             PlugDataLook::setDefaultFont(fontname);
         }
 
-        for (int i = 0; i < lnf->colourNames.size(); i++)
-        {
-            for (int j = 0; j < lnf->colourNames[i].size(); j++)
-            {
-                if (settingsTree.hasProperty(lnf->colourNames[i][j]))
-                {
-                    PlugDataLook::colourSettings[i][j] = Colour::fromString(settingsTree.getProperty(lnf->colourNames[i][j]).toString());
-                }
+        auto colourThemesTree = settingsTree.getChildWithName("ColourThemes");
+        for (auto const& themeTree : colourThemesTree) {
+            auto themeName = themeTree.getProperty("theme");
+            for (auto const& defaultColours : lnf->defaultDarkTheme) {
+                auto colourName = PlugDataColourNames.at(defaultColours.first).second;
+                
+                lnf->colourSettings[themeName][defaultColours.first] = Colour::fromString(themeTree.getProperty(String(colourName)).toString());
             }
         }
     }
@@ -1070,24 +1075,22 @@ void PlugDataAudioProcessor::setTheme(bool themeToUse)
 
 Colour PlugDataAudioProcessor::getOutlineColour()
 {
-    // currently the same as text colour, but still a function to make it easy to change in the future
-    return lnf->findColour(PlugDataColour::canvasOutlineColourId);
+    return lnf->findColour(PlugDataColour::outlineColourId);
 }
 
 Colour PlugDataAudioProcessor::getForegroundColour()
 {
-    // currently the same as text colour, but still a function to make it easy to change in the future
-    return lnf->findColour(PlugDataColour::textColourId).interpolatedWith(lnf->findColour(PlugDataColour::canvasColourId), 0.25f);
+    return lnf->findColour(PlugDataColour::canvasTextColourId);
 }
 
 Colour PlugDataAudioProcessor::getBackgroundColour()
 {
-    return lnf->findColour(PlugDataColour::toolbarColourId);
+    return lnf->findColour(PlugDataColour::toolbarBackgroundColourId);
 }
 
 Colour PlugDataAudioProcessor::getTextColour()
 {
-    return lnf->findColour(PlugDataColour::textColourId);
+    return lnf->findColour(PlugDataColour::toolbarTextColourId);
 }
 
 void PlugDataAudioProcessor::receiveNoteOn(const int channel, const int pitch, const int velocity)

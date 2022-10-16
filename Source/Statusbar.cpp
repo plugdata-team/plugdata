@@ -67,7 +67,7 @@ struct LevelMeter : public Component, public Timer
         auto blockRectWidth = (1.0f - 2.0f * spacingFraction) * blockWidth;
         auto blockRectSpacing = spacingFraction * blockWidth;
         auto blockCornerSize = 0.1f * blockWidth;
-        auto c = findColour(PlugDataColour::highlightColourId);
+        auto c = findColour(PlugDataColour::dataColourId);
 
         for (int ch = 0; ch < numChannels; ch++)
         {
@@ -76,7 +76,9 @@ struct LevelMeter : public Component, public Timer
             for (auto i = 0; i < totalBlocks; ++i)
             {
                 if (i >= blocks[ch])
-                    g.setColour(findColour(PlugDataColour::meterColourId));
+                    // TODO: this again but right
+//                    g.setColour(findColour(PlugDataColour::meterColourId));
+                    g.setColour(findColour(PlugDataColour::signalColourId));
                 else
                     g.setColour(i < totalBlocks - 1 ? c : Colours::red);
 
@@ -109,10 +111,11 @@ struct MidiBlinker : public Component, public Timer
         auto midiInRect = Rectangle<float>(38.0f, 8.0f, 15.0f, 3.0f);
         auto midiOutRect = Rectangle<float>(38.0f, 17.0f, 15.0f, 3.0f);
 
-        g.setColour(blinkMidiIn ? findColour(PlugDataColour::highlightColourId) : findColour(PlugDataColour::meterColourId));
+        // TODO: what happened to meterColourId???
+        g.setColour(blinkMidiIn ? findColour(PlugDataColour::dataColourId) : findColour(PlugDataColour::canvasBackgroundColourId));
         g.fillRoundedRectangle(midiInRect, 1.0f);
 
-        g.setColour(blinkMidiOut ? findColour(PlugDataColour::highlightColourId) : findColour(PlugDataColour::meterColourId));
+        g.setColour(blinkMidiOut ? findColour(PlugDataColour::dataColourId) : findColour(PlugDataColour::canvasBackgroundColourId));
         g.fillRoundedRectangle(midiOutRect, 1.0f);
     }
 
@@ -258,7 +261,6 @@ Statusbar::Statusbar(PlugDataAudioProcessor& processor) : pd(processor)
     connectionPathfind->setEnabled(connectionStyleButton->getToggleState());
     addAndMakeVisible(connectionPathfind.get());
 
-
     addAndMakeVisible(volumeSlider);
     volumeSlider.setTextBoxStyle(Slider::NoTextBox, false, 0, 0);
 
@@ -295,14 +297,14 @@ void Statusbar::valueChanged(Value& v)
     }
     if (v.refersToSameSourceAs(commandLocked))
     {
-        auto c = static_cast<bool>(commandLocked.getValue()) ? findColour(PlugDataColour::highlightColourId).brighter(0.2f) : findColour(PlugDataColour::textColourId);
+        auto c = static_cast<bool>(commandLocked.getValue()) ? findColour(PlugDataColour::toolbarActiveColourId).brighter(0.2f) : findColour(PlugDataColour::toolbarTextColourId);
         lockButton->setColour(TextButton::textColourOffId, c);
     }
 }
 
 void Statusbar::paint(Graphics &g)
 {
-    g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
+    g.setColour(findColour(PlugDataColour::outlineColourId));
     g.drawLine(0.0f, 0.5f, static_cast<float>(getWidth()), 0.5f);
 }
 

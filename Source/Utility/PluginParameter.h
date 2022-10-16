@@ -17,11 +17,13 @@ class PlugDataParameter : public RangedAudioParameter
 {
 public:
     
+    PlugDataAudioProcessor& processor;
     
-    PlugDataParameter(const String& name, const String& label, const float def) :
+    PlugDataParameter(PlugDataAudioProcessor* p, const String& name, const String& label, const float def) :
     RangedAudioParameter(name.toLowerCase().replaceCharacter(' ', '_'), name, label),
     norm_range(0.0f, 1.0f),
-    default_value(def)
+    default_value(def),
+    processor(*p)
     {
         value = convertFrom0to1(getDefaultValue());
     }
