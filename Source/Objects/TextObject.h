@@ -47,13 +47,13 @@ struct TextBase : public ObjectBase
 
     void paint(Graphics& g) override
     {
-        g.setColour(object->findColour(PlugDataColour::canvasColourId));
+        g.setColour(object->findColour(PlugDataColour::canvasBackgroundColourId));
         g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), 2.0f);
 
         TextLayout textLayout;
         auto textArea = border.subtractedFrom(getLocalBounds());
         AttributedString attributedCurrentText(currentText);
-        attributedCurrentText.setColour(findColour(PlugDataColour::textColourId));
+        attributedCurrentText.setColour(findColour(PlugDataColour::canvasTextColourId));
         attributedCurrentText.setFont(font);
         attributedCurrentText.setJustification(justification);
         textLayout.createLayout(attributedCurrentText, textArea.getWidth());
@@ -61,7 +61,7 @@ struct TextBase : public ObjectBase
 
         bool selected = cnv->isSelected(object);
 
-        auto outlineColour = findColour(selected && !cnv->isGraph ? PlugDataColour::highlightColourId : PlugDataColour::canvasOutlineColourId);
+        auto outlineColour = findColour(selected && !cnv->isGraph ? PlugDataColour::canvasActiveColourId : PlugDataColour::outlineColourId);
 
         if (!isValid) {
             outlineColour = selected && !cnv->isGraph ? Colours::red.brighter(1.5) : Colours::red;

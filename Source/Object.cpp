@@ -294,7 +294,7 @@ void Object::paint(Graphics& g)
     
     if (cnv->isSelected(this) && !cnv->isGraph)
     {
-        g.setColour(findColour(PlugDataColour::highlightColourId));
+        g.setColour(findColour(PlugDataColour::canvasActiveColourId));
 
         g.saveState();
         g.excludeClipRegion(getLocalBounds().reduced(margin + 1));

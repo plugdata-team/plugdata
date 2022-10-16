@@ -89,20 +89,20 @@ void Sidebar::paint(Graphics& g)
     int sWidth = sidebarHidden ? dragbarWidth : std::max(dragbarWidth, getWidth());
 
     // Sidebar
-    g.setColour(findColour(PlugDataColour::toolbarColourId));
+    g.setColour(findColour(PlugDataColour::panelBackgroundColourId));
     g.fillRect(getWidth() - sWidth, 0, sWidth, getHeight() - 28);
 
     // Draggable bar
-    g.setColour(findColour(PlugDataColour::toolbarColourId));
+    g.setColour(findColour(PlugDataColour::panelTextColourId));
     g.fillRect(getWidth() - sWidth, 0, dragbarWidth + 1, getHeight());
 
-    g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
+    g.setColour(findColour(PlugDataColour::panelBackgroundColourId));
     g.drawLine(0.5f, 0, 0.5f, getHeight() - 27.5f);
 }
 
 void Sidebar::paintOverChildren(Graphics& g)
 {
-    g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
+    g.setColour(findColour(PlugDataColour::outlineColourId));
     g.drawLine(0, 0, getWidth(), 0);
     g.drawLine(0, 28, getWidth(), 28);
     g.drawLine(0.0f, getHeight() - 27.5f, static_cast<float>(getWidth()), getHeight() - 27.5f);

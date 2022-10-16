@@ -4,7 +4,7 @@
 struct PropertiesPanel : public PropertyPanel {
     void paint(Graphics& g) override
     {
-        g.setColour(findColour(PlugDataColour::toolbarColourId));
+        g.setColour(findColour(PlugDataColour::panelBackgroundColourId));
         g.fillRect(getLocalBounds().withHeight(getTotalContentHeight()));
     }
 
@@ -30,7 +30,7 @@ struct PropertiesPanel : public PropertyPanel {
             if (hideLabel)
                 return;
 
-            auto bg = idx & 1 ? findColour(PlugDataColour::toolbarColourId) : findColour(PlugDataColour::canvasColourId);
+            auto bg = idx & 1 ? findColour(PlugDataColour::panelBackgroundOffsetColourId) : findColour(PlugDataColour::panelBackgroundColourId);
 
             g.fillAll(bg);
             getLookAndFeel().drawPropertyComponentLabel(g, getWidth(), getHeight() * 0.9, *this);
@@ -72,7 +72,7 @@ struct PropertiesPanel : public PropertyPanel {
 
         void paint(Graphics& g) override
         {
-            g.setColour(findColour(PlugDataColour::textColourId));
+            g.setColour(findColour(PlugDataColour::panelTextColourId));
 
             auto font = Font(fontName, 15, Font::plain);
             g.setFont(font);
@@ -173,7 +173,7 @@ struct PropertiesPanel : public PropertyPanel {
                 colourSelector->setName("background");
                 colourSelector->addChangeListener(this);
                 colourSelector->setSize(300, 400);
-                colourSelector->setColour(ColourSelector::backgroundColourId, findColour(PlugDataColour::toolbarColourId));
+                colourSelector->setColour(ColourSelector::backgroundColourId, findColour(PlugDataColour::panelBackgroundColourId));
                 colourSelector->setCurrentColour(Colour::fromString(currentColour.toString()));
 
                 CallOutBox::launchAsynchronously(std::move(colourSelector), button.getScreenBounds(), nullptr);
