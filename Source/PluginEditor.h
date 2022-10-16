@@ -146,6 +146,8 @@ struct WelcomePanel : public Component
         
         auto* lnf = dynamic_cast<PlugDataLook*>(&getLookAndFeel());
         
+        g.fillAll(findColour(PlugDataColour::canvasBackgroundColourId));
+        
         g.setColour(findColour(PlugDataColour::canvasTextColourId));
         g.setFont(lnf->boldFont.withHeight(32));
         g.drawText("No Patch Open", 0, getHeight() / 2 - 150, getWidth(), 40, Justification::centred);

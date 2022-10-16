@@ -30,6 +30,11 @@ Sidebar::Sidebar(PlugDataAudioProcessor* instance)
     addChildComponent(browser);
     addChildComponent(automationPanel);
     
+    console->addMouseListener(this, true);
+    inspector->addMouseListener(this, true);
+    browser->addMouseListener(this, true);
+    automationPanel->addMouseListener(this, true);
+    
     browser->setAlwaysOnTop(true);
     browser->addMouseListener(this, true);
     
@@ -93,11 +98,11 @@ void Sidebar::paint(Graphics& g)
     g.fillRect(getWidth() - sWidth, 0, sWidth, getHeight() - 28);
 
     // Draggable bar
-    g.setColour(findColour(PlugDataColour::panelTextColourId));
-    g.fillRect(getWidth() - sWidth, 0, dragbarWidth + 1, getHeight());
+    //g.setColour(findColour(PlugDataColour::outlineColourId));
+    //g.fillRect(getWidth() - sWidth, 0, dragbarWidth + 1, getHeight());
 
-    g.setColour(findColour(PlugDataColour::panelBackgroundColourId));
-    g.drawLine(0.5f, 0, 0.5f, getHeight() - 27.5f);
+    
+
 }
 
 void Sidebar::paintOverChildren(Graphics& g)
@@ -106,6 +111,7 @@ void Sidebar::paintOverChildren(Graphics& g)
     g.drawLine(0, 0, getWidth(), 0);
     g.drawLine(0, 28, getWidth(), 28);
     g.drawLine(0.0f, getHeight() - 27.5f, static_cast<float>(getWidth()), getHeight() - 27.5f);
+    g.drawLine(0.5f, 0, 0.5f, getHeight() - 27.5f);
 }
 
 void Sidebar::resized()
@@ -113,7 +119,6 @@ void Sidebar::resized()
     auto bounds = getLocalBounds();
     
     auto tabbarBounds = bounds.removeFromTop(28);
-    bounds.removeFromLeft(dragbarWidth);
     
     int buttonWidth = getWidth() / 3;
     
@@ -123,8 +128,8 @@ void Sidebar::resized()
 
     console->setBounds(bounds);
     inspector->setBounds(bounds);
-    browser->setBounds(getLocalBounds().withTrimmedTop(28));
-    automationPanel->setBounds(getLocalBounds().withTrimmedTop(28));
+    browser->setBounds(bounds);
+    automationPanel->setBounds(bounds);
 }
 
 void Sidebar::mouseDown(MouseEvent const& e)
@@ -158,13 +163,14 @@ void Sidebar::mouseUp(MouseEvent const& e)
 
 void Sidebar::mouseMove(MouseEvent const& e)
 {
+    
     bool resizeCursor = e.getPosition().getX() < dragbarWidth;
-    setMouseCursor(resizeCursor ? MouseCursor::LeftRightResizeCursor : MouseCursor::NormalCursor);
+    e.originalComponent->setMouseCursor(resizeCursor ? MouseCursor::LeftRightResizeCursor : MouseCursor::NormalCursor);
 }
 
 void Sidebar::mouseExit(MouseEvent const& e)
 {
-    setMouseCursor(MouseCursor::NormalCursor);
+    e.originalComponent->setMouseCursor(MouseCursor::NormalCursor);
 }
 
 void Sidebar::showPanel(int panelToShow)
