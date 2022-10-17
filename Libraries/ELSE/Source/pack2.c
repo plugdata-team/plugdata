@@ -8,19 +8,19 @@ static t_class* pack2_inlet_class;
 struct _pack2_inlet;
 
 typedef struct _pack2{
-    t_object                x_obj;
-    t_int                   x_n;
-    t_atom*                 x_vec;
-    t_atom*                 x_out;
-    struct _pack2_inlet*    x_ins;
+    t_object             x_obj;
+    t_int                x_n;
+    t_atom*              x_vec;
+    t_atom*              x_out;
+    struct _pack2_inlet* x_ins;
 }t_pack2;
 
 typedef struct _pack2_inlet{
-    t_class*    x_pd;
-    t_atom*     x_atoms;
-    t_int       x_max;
-    t_pack2*    x_owner;
-    int         x_idx; //index of inlet
+    t_class* x_pd;
+    t_atom*  x_atoms;
+    t_int    x_max;
+    t_pack2* x_owner;
+    int      x_idx; //index of inlet
 }t_pack2_inlet;
 
 static void pack2_bang(t_pack2 *x){

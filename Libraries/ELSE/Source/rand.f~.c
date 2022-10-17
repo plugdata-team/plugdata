@@ -13,12 +13,11 @@ typedef struct _randf{
     t_int           x_trig_bang;
     t_inlet        *x_low_let;
     t_inlet        *x_high_let;
+    int             x_id;
 }t_randf;
 
-static unsigned int instanc_n = 0;
-
 static void randf_seed(t_randf *x, t_symbol *s, int ac, t_atom *av){
-    random_init(&x->x_rstate, get_seed(s, ac, av, ++instanc_n));
+    random_init(&x->x_rstate, get_seed(s, ac, av, x->x_id));
 }
 
 static void randf_bang(t_randf *x){
@@ -84,6 +83,7 @@ static void *randf_free(t_randf *x){
 static void *randf_new(t_symbol *s, int ac, t_atom *av){
     s = NULL;
     t_randf *x = (t_randf *)pd_new(randf_class);
+    x->x_id = random_get_id();
     randf_seed(x, s, 0, NULL);
     float low = -1, high = 1;
     if(ac){
@@ -97,14 +97,14 @@ static void *randf_new(t_symbol *s, int ac, t_atom *av){
             else
                 goto errstate;
         }
-        if(ac == 1)
-            high = atom_getfloat(av);
-        else if(ac >= 2){
-            low = atom_getfloatarg(0, ac, av);
-            high = atom_getfloatarg(1, ac, av);
+        if(ac && av->a_type == A_FLOAT){
+            low = atom_getfloat(av);
+            ac--, av++;
+            if(ac && av->a_type == A_FLOAT){
+                high = atom_getfloat(av);
+                ac--, av++;
+            }
         }
-        else
-            goto errstate;
     }
     x->x_lastin = 0;
     x->x_low_let = inlet_new((t_object *)x, (t_pd *)x, &s_signal, &s_signal);

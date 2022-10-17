@@ -10,12 +10,11 @@ typedef struct _randf{
     t_random_state  x_rstate;
     t_float         x_min;
     t_float         x_max;
+    int             x_id;
 }t_randf;
 
-static unsigned int instanc_n = 0;
-
 static void randf_seed(t_randf *x, t_symbol *s, int ac, t_atom *av){
-    random_init(&x->x_rstate, get_seed(s, ac, av, ++instanc_n));
+    random_init(&x->x_rstate, get_seed(s, ac, av, x->x_id));
 }
 
 static void randf_bang(t_randf *x){
@@ -40,11 +39,12 @@ static void randf_bang(t_randf *x){
 
 static void *randf_new(t_symbol *s, int ac, t_atom *av){
     t_randf *x = (t_randf *)pd_new(randf_class);
+    x->x_id = random_get_id();
     randf_seed(x, s, 0, NULL);
-    int flagset = 0, numargs = 0;
+    x->x_min = 0;
+    x->x_max = 1;
     while(ac){
         if(av->a_type == A_SYMBOL){
-            flagset = 1;
             if(ac >= 2 && atom_getsymbol(av) == gensym("-seed")){
                 t_atom at[1];
                 SETFLOAT(at, atom_getfloat(av+1));
@@ -54,23 +54,13 @@ static void *randf_new(t_symbol *s, int ac, t_atom *av){
             else
                 goto errstate;
         }
-        else{
-            switch(numargs){
-                case 0: x->x_min = atom_getfloatarg(0, ac, av);
-                    numargs++;
-                    ac--;
-                    av++;
-                    break;
-                case 1: x->x_max = atom_getfloatarg(0, ac, av);
-                    numargs++;
-                    ac--;
-                    av++;
-                    break;
-                default:
-                    ac--;
-                    av++;
-                    break;
-            };
+        if(ac && av->a_type == A_FLOAT){
+            x->x_min = atom_getfloat(av);
+            ac--, av++;
+            if(ac && av->a_type == A_FLOAT){
+                x->x_max = atom_getfloat(av);
+                ac--, av++;
+            }
         }
     }
     floatinlet_new((t_object *)x, &x->x_min);

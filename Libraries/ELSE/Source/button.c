@@ -37,7 +37,7 @@ static void button_draw_io_let(t_button *x){
         sys_vgui(".x%lx.c create rectangle %d %d %d %d -fill black -tags %lx_in\n",
             cv, xpos, ypos, xpos+(IOWIDTH*x->x_zoom), ypos+(IHEIGHT*x->x_zoom), x);
         sys_vgui(".x%lx.c create rectangle %d %d %d %d -fill black -tags %lx_out\n",
-            cv, xpos, ypos+x->x_h, xpos+IOWIDTH*x->x_zoom, ypos+x->x_h-IHEIGHT*x->x_zoom, x);
+            cv, xpos, ypos+x->x_h*x->x_zoom, xpos+IOWIDTH*x->x_zoom, ypos+x->x_h*x->x_zoom-IHEIGHT*x->x_zoom, x);
     }
 }
 

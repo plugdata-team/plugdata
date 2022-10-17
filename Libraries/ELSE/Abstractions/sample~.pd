@@ -1,13 +1,13 @@
 #N canvas 474 108 522 369 10;
 #X declare -path else;
 #X obj 89 31 inlet;
-#N canvas 580 168 810 593 \$0-buffers 0;
+#N canvas 440 115 810 593 \$0-buffers 0;
 #X obj 6 20 cnv 15 448 80 empty empty empty 3 10 2 14 #e0e0e0 #404040
 0;
-#N canvas 0 22 450 300 ch0_1053 0;
-#X array sample_1053 44100 float 2;
-#X coords 0 1 44100 -1 450 82 2 0 0;
-#X restore 5 19 pd ch0_1053;
+#N canvas 0 22 450 300 ch0_1018 0;
+#X array 1003-buffer 534167 float 2;
+#X coords 0 1 534167 -1 450 82 2 0 0;
+#X restore 5 19 pd ch0_1018;
 #X coords 0 0 0 0 10 20 0;
 #X restore 247 161 pd \$0-buffers;
 #X obj 89 99 soundfiler;
@@ -592,7 +592,7 @@
 #X obj 146 285 outlet;
 #X text 236 116 Part of ELSE \; https://github.com/porres/pd-else;
 #X text 238 97 Alexandre Torres Porres (2018);
-#N canvas 645 250 257 181 init 0;
+#N canvas 645 250 257 181 init 1;
 #N canvas 462 23 522 606 args 0;
 #X obj 233 308 s \$0-name;
 #X obj 37 23 inlet;
@@ -889,7 +889,7 @@
 #X connect 12 0 4 0;
 #X connect 12 0 9 0;
 #X restore 85 118 pd init-buffers;
-#N canvas 524 372 585 266 loadbang 0;
+#N canvas 524 372 585 266 loadbang 1;
 #X obj 175 119 samplerate~;
 #X obj 189 148 s \$0-sr;
 #X obj 76 78 trigger bang bang;
@@ -899,7 +899,7 @@
 #X text 313 110 <== in case abstraction is corrupted, f 12;
 #X obj 174 174 / 1000;
 #X obj 173 198 s \$0-kh;
-#X obj 76 47 else/loadbanger;
+#X obj 76 47 else/loadbanger -init;
 #X connect 0 0 1 0;
 #X connect 0 0 7 0;
 #X connect 2 0 5 0;

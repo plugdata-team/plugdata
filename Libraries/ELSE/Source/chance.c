@@ -9,17 +9,15 @@ typedef struct _chance{
     t_object    x_obj;
     t_atom     *x_av;
     t_random_state x_rstate;
-    int         x_index;
     int         x_ac;
     int         x_bytes;
     int         x_coin;
+    int         x_id;
     float       x_chance;
     t_float     x_range;
     t_outlet  **x_outs;
     t_outlet   *x_out_index;
 }t_chance;
-
-static unsigned int instanc_n = 0;
 
 static void chance_output(t_chance *x, t_floatarg f){
     int n;
@@ -28,7 +26,7 @@ static void chance_output(t_chance *x, t_floatarg f){
     else{
         for(n = 0; n < x->x_ac; n++){
             if(f < x->x_av[n].a_w.w_float){
-                x->x_index ? outlet_float(x->x_out_index, n+1) : outlet_bang(x->x_outs[n]);
+                outlet_bang(x->x_outs[n]);
                 return;
             }
         }
@@ -60,14 +58,14 @@ static void chance_list(t_chance *x, t_symbol *s, int argc, t_atom *argv){
 }
 
 static void chance_seed(t_chance *x, t_symbol *s, int ac, t_atom *av){
-    random_init(&x->x_rstate, get_seed(s, ac, av, ++instanc_n));
+    random_init(&x->x_rstate, get_seed(s, ac, av, x->x_id));
 }
 
 static void *chance_new(t_symbol *s, int argc, t_atom *argv){
     s = NULL;
     t_chance *x = (t_chance *)pd_new(chance_class);
+    x->x_id = random_get_id();
     x->x_range = 0;
-    x->x_index = 0;
     x->x_coin = 0;
     chance_seed(x, s, 0, NULL);
     t_outlet **outs;
@@ -113,11 +111,7 @@ static void *chance_new(t_symbol *s, int argc, t_atom *argv){
                 n++, argv++, argc--;
             }
             else if(argv->a_type == A_SYMBOL && !n){
-                if(atom_getsymbolarg(0, argc, argv) == gensym("-index")){
-                    x->x_index = 1;
-                    x->x_ac--, argc--, argv++;
-                }
-                else if(atom_getsymbolarg(0, argc, argv) == gensym("-seed")){
+                if(atom_getsymbolarg(0, argc, argv) == gensym("-seed")){
                     t_atom at[1];
                     SETFLOAT(at, atom_getfloat(argv+1));
                     x->x_ac-=2, argc-=2, argv+=2;
@@ -129,15 +123,12 @@ static void *chance_new(t_symbol *s, int argc, t_atom *argv){
             else
                 goto errstate;
         }
-        if(!x->x_index){
-            for(int i = 0; i < x->x_ac; i++)
-                x->x_outs[i] = outlet_new(&x->x_obj, &s_bang);
-        }
+        for(int i = 0; i < x->x_ac; i++)
+            x->x_outs[i] = outlet_new(&x->x_obj, &s_bang);
+        
     }
     if(x->x_coin)
         floatinlet_new(&x->x_obj, &x->x_chance);
-    if(x->x_index)
-        x->x_out_index = outlet_new(&x->x_obj, &s_float);
     return(x);
 errstate:
     pd_error(x, "[chance]: improper args");
