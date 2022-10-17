@@ -528,6 +528,7 @@ void crossover_tilde_setup();
 void setup_ctl0x2ein();
 void setup_ctl0x2eout();
 void cusp_tilde_setup();
+void datetime_setup();
 void db2lin_tilde_setup();
 void decay_tilde_setup();
 void decay2_tilde_setup();
@@ -645,6 +646,7 @@ void rad2hz_setup();
 void ramp_tilde_setup();
 void rampnoise_tilde_setup();
 void setup_rand0x2ef();
+void setup_rand0x2ehist();
 void setup_rand0x2ef_tilde();
 void setup_rand0x2ei();
 void setup_rand0x2ei_tilde();
@@ -796,6 +798,7 @@ void libpd_init_else(void)
     setup_ctl0x2ein();
     setup_ctl0x2eout();
     cusp_tilde_setup();
+    datetime_setup();
     db2lin_tilde_setup();
     decay_tilde_setup();
     decay2_tilde_setup();
@@ -914,6 +917,7 @@ void libpd_init_else(void)
     rampnoise_tilde_setup();
     setup_rand0x2ef();
     setup_rand0x2ef_tilde();
+    setup_rand0x2ehist();
     s2f_tilde_setup();
 #if ENABLE_SFONT
     sfont_tilde_setup();
