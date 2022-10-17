@@ -22,8 +22,7 @@ struct Inspector : public Component {
         g.setColour(findColour(PlugDataColour::panelTextColourId));
         g.drawText(title, getLocalBounds().removeFromTop(23), Justification::centred);
 
-        // TODO: this was a border
-        g.setColour(findColour(PlugDataColour::panelBackgroundColourId));
+        g.setColour(findColour(PlugDataColour::outlineColourId));
         g.drawLine(0, 23, getWidth(), 23);
     }
 

@@ -70,7 +70,10 @@ PlugDataAudioProcessor::PlugDataAudioProcessor()
     for (int n = 0; n < numParameters; n++)
     {
         auto id = ParameterID("param" + String(n + 1), 1);
-        auto* parameter = parameters.createAndAddParameter(std::make_unique<PlugDataParameter>(this, "Parameter " + String(n + 1),  "", 0.0f));
+        //auto* parameter = parameters.createAndAddParameter(std::make_unique<PlugDataParameter>(this, "Parameter " + String(n + 1),  "", 0.0f));
+        
+        auto* parameter = parameters.createAndAddParameter(std::make_unique<AudioParameterFloat>(id, "Parameter " + String(n + 1), 0.0f, 1.0f, 0.0f));
+        
         lastParameters[n] = 0;
         parameter->addListener(this);
     }
@@ -141,6 +144,8 @@ PlugDataAudioProcessor::PlugDataAudioProcessor()
             }
         }
 
+        settingsChangedInternally = false;
+        
         updateSearchPaths();
         objectLibrary.updateLibrary();
         

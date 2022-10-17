@@ -189,7 +189,7 @@ struct NumboxTildeObject final : public GUIObject
 
     void paintOverChildren(Graphics& g) override
     {
-        g.setColour(findColour(PlugDataColour::dataColourId));
+        g.setColour(object->findColour(PlugDataColour::dataColourId));
 
         auto iconBounds = Rectangle<int>(2, 0, getHeight(), getHeight());
 
@@ -205,8 +205,14 @@ struct NumboxTildeObject final : public GUIObject
         g.setColour(Colour::fromString(secondaryColour.toString()));
         g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), 2.0f);
 
-        auto outlineColour = object->findColour(cnv->isSelected(object) && !cnv->isGraph ? PlugDataColour::canvasActiveColourId : PlugDataColour::outlineColourId);
+        Colour outlineColour;
 
+        if(cnv->isSelected(object) && !cnv->isGraph) {
+            outlineColour = object->findColour(PlugDataColour::canvasActiveColourId);
+        }
+        else {
+            outlineColour = object->findColour(static_cast<bool>(object->locked.getValue()) ? PlugDataColour::canvasLockedOutlineColourId : PlugDataColour::canvasUnlockedOutlineColourId);
+        }
         g.setColour(outlineColour);
         g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), 2.0f, 1.0f);
     }
