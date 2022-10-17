@@ -1,0 +1,83 @@
+#N canvas 347 94 915 524 12;
+#X declare -path else;
+#X floatatom 55 225 3 0 0 0 - - - 0;
+#X obj 55 305 mtof;
+#X obj 55 275 display;
+#X obj 55 354 osc~;
+#X obj 101 354 decay2~ 50 500;
+#X obj 101 332 bng 15 250 50 0 empty empty empty 17 7 0 10 #dcdcdc
+#000000 #000000;
+#X obj 83 385 *~;
+#X obj 83 426 out~;
+#X obj 736 24 declare -path else;
+#X obj 55 249 sequencer 60 64 69 71 76;
+#X obj 55 199 + 1;
+#X obj 573 115 keyboard 17 80 2 3 0 0 empty empty;
+#X obj 573 241 histogram \$0-hist;
+#A saved;
+#X obj 55 172 rand.hist 4 1 3 2 1;
+#X text 23 10 The [rand.hist] object can be initialized with a histogram
+and a bang outputs an index according to its probability. It's much
+like having a histogram array and [array random]. In the example below
+\, [rand.hist] generates values from 0 to 4 and the occurrence is:
+0 (4 times) \, 1 (once) \, 2 (3 times) \, 3 (2 times) and 4 (once).
+We use the output to read from a [sequencer] object., f 61;
+#X obj 55 142 tempo 160 50 -on;
+#X text 84 225 <-- element number;
+#X text 479 54 The [histogram] object can be used to generate histograms
+and it can export arrays that feed [rand.hist].;
+#X obj 716 282 rand.hist -u;
+#X msg 594 210 export;
+#X obj 716 314 mtof;
+#X obj 716 363 osc~;
+#X obj 762 363 decay2~ 50 500;
+#X obj 762 341 bng 15 250 50 0 empty empty empty 17 7 0 10 #dcdcdc
+#000000 #000000;
+#X obj 744 394 *~;
+#X obj 744 435 out~;
+#X obj 797 311 bng 15 250 50 0 empty empty empty 17 7 0 10 #dfdfdf
+#000000 #000000;
+#X obj 716 236 bng 30 250 50 0 empty empty empty 17 7 0 10 #dfdfdf
+#000000 #000000;
+#X text 266 345 Feed [histogram] on the example to the right to generate
+an array then hit 'export' to send it to [rand.hist]. Note that [rand.hist]
+has the '-u' flag here. In this "unrepeat" mode \, a whole sequence
+is generated according to the weight \, without repetition. for example
+"2 1" would generate a sequence where the 1st element is output twice
+and the 2nd once. After the sequence is finished \, a bang is output
+on the right outlet. Check the help file for more details., f 57;
+#X obj 318 264 rand.list 13 60 500 700;
+#X obj 318 220 bng 27 250 50 0 empty empty empty 17 7 0 10 #dfdfdf
+#000000 #000000;
+#X floatatom 318 294 5 0 0 0 - - - 0;
+#X text 222 134 The [rand.list] object is a bit related. But it's like
+all outputs have equal chance since it's a uniform distribution. Hence
+you can use it to output random elements from a sequence., f 45;
+#X text 352 217 Output random value from a list, f 19;
+#X text 755 241 Output random value, f 19;
+#X connect 0 0 9 0;
+#X connect 1 0 3 0;
+#X connect 1 0 5 0;
+#X connect 2 0 1 0;
+#X connect 3 0 6 0;
+#X connect 4 0 6 1;
+#X connect 5 0 4 0;
+#X connect 6 0 7 0;
+#X connect 9 0 2 0;
+#X connect 10 0 0 0;
+#X connect 11 0 12 0;
+#X connect 12 1 18 0;
+#X connect 13 0 10 0;
+#X connect 15 0 13 0;
+#X connect 18 0 20 0;
+#X connect 18 1 26 0;
+#X connect 19 0 12 0;
+#X connect 20 0 21 0;
+#X connect 20 0 23 0;
+#X connect 21 0 24 0;
+#X connect 22 0 24 1;
+#X connect 23 0 22 0;
+#X connect 24 0 25 0;
+#X connect 27 0 18 0;
+#X connect 29 0 31 0;
+#X connect 30 0 29 0;

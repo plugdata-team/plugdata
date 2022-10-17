@@ -1,0 +1,79 @@
+#N canvas 293 59 903 601 12;
+#X declare -path else;
+#X obj 693 39 declare -path else;
+#X text 48 19 A stochastic process is also referred to as a random
+process. In this sense \, a stochastic process is described by a random
+probability distribution. We'll see in this section what that means
+and also many stochastic processes common in computer music. But first
+let's talk about the simplest form of probability distribution \, which
+is a "uniform distribution". This means that all events have the same
+chance of occurring and this is opposed to what is known as a weighted
+random \, where particular elements can have more chances of occuring
+than others (which is defined by a probability density function).,
+f 61;
+#X text 130 383 - vanilla object for generating integer random numbers
+;
+#X obj 48 411 expr random(0 \, 100);
+#X obj 48 384 random 100;
+#X text 193 411 - expr also has a built in random function;
+#X obj 48 438 rand.i 0 99;
+#X text 139 438 - random integer numbers;
+#X obj 48 464 rand.i 0 1;
+#X text 139 464 - random float numbers;
+#X obj 48 491 rand.i~;
+#X obj 108 491 rand.f~;
+#X text 167 492 - signal versions;
+#X obj 48 357 randpulse;
+#X obj 120 357 randpulse2;
+#X obj 200 357 randpulse~;
+#X obj 280 357 randpulse2~;
+#X text 367 356 - random pulses;
+#X obj 47 306 rampnoise;
+#X obj 119 306 rampnoise~;
+#X obj 199 306 stepnoise;
+#X obj 47 330 stepnoise~;
+#X obj 127 330 lfnoise;
+#X obj 186 330 lfnoise~;
+#X obj 47 279 noise~;
+#X obj 102 279 white~;
+#X text 48 181 Hence \, all regular random (that is "unformly distributed"
+random) objects in Pd are "stochastic. We've seen many of them already
+in this tutorial \, let's now list them all. Starting wit white noise
+generators \, which are also random number generators with a uniform
+distribution., f 61;
+#X text 156 279 - White noise;
+#X text 277 317 - Low frequency noise;
+#X obj 48 519 dust~;
+#X obj 93 519 dust2~;
+#X text 146 518 - random impulses;
+#X obj 48 546 tempo;
+#X obj 93 546 tempo~;
+#X text 146 545 - metronomes with random fluctuations;
+#X obj 580 264 bng 18 250 50 0 empty empty empty 17 7 0 10 #dcdcdc
+#000000 #000000;
+#X floatatom 690 310 5 1 12 0 - - - 0;
+#X obj 580 524 else/display;
+#X text 609 263 generate a random series;
+#X msg 690 353 size \$1;
+#X obj 580 423 rand.u 12;
+#X obj 640 453 bng 18 250 50 0 empty empty empty 17 7 0 10 #dcdcdc
+#000000 #000000;
+#X obj 580 487 group;
+#X obj 580 353 loop -b 12;
+#X text 730 309 <-- new size;
+#X text 534 95 And now for a new object \, [rand.u] \, which generates
+random values without repetition. With an argument of '12' (as in the
+example below) it generates random values from 0 to 11 and a whole
+sequence is generated without any value being repeated. In practice
+\, this generates a dodecaphonic sequence. When the sequence is over
+\, a bang is output in the right outlet., f 44;
+#X text 665 453 done;
+#X connect 35 0 43 0;
+#X connect 36 0 39 0;
+#X connect 36 0 43 1;
+#X connect 39 0 40 0;
+#X connect 40 0 42 0;
+#X connect 40 1 41 0;
+#X connect 41 0 42 0;
+#X connect 42 0 37 0;
+#X connect 43 0 40 0;
