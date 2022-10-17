@@ -1,12 +1,12 @@
-#N canvas 739 60 520 727 12;
+#N canvas 479 23 520 672 12;
 #X declare -path else;
-#X obj 93 449 out~;
-#X obj 314 20 declare -path else;
-#X obj 288 351 s \$0-waveform;
-#X msg 288 271 sinesum 4096 1 0.5 0.4 0.3 0.2 0.1 \, normalize, f
+#X obj 93 419 out~;
+#X obj 334 18 declare -path else;
+#X obj 288 321 s \$0-waveform;
+#X msg 288 241 sinesum 4096 1 0.5 0.4 0.3 0.2 0.1 \, normalize, f
 22;
-#X obj 288 240 loadbang;
-#X obj 295 409 cnv 15 148 98 empty empty empty 20 12 0 14 -233017 -66577
+#X obj 288 210 loadbang;
+#X obj 295 379 cnv 15 148 98 empty empty empty 20 12 0 14 #e0e0e0 #404040
 0;
 #N canvas 0 22 450 278 (subpatch) 0;
 #X array \$0-waveform 4099 float 1;
@@ -568,33 +568,33 @@
 -0.0376585 -0.0322836 -0.0269077 -0.0215309 -0.0161534 -0.0107754 -0.00539711
 -1.86084e-05 0.00535989;
 #X coords 0 1 4098 -1 150 100 1 0 0;
-#X restore 294 408 graph;
-#X msg 307 315 sinesum 4096 1;
-#X text 417 315 <= sine;
-#X obj 80 300 bng 18 250 50 0 empty empty empty 17 7 0 10 -228856 -1
--1;
-#X msg 80 327 all bang;
-#X obj 80 267 metro 1000;
-#X obj 80 237 tgl 17 0 empty empty empty 17 7 0 10 -228856 -1 -1 0
-1;
-#X text 42 168 Each grain has its own random set of parameters \, including
+#X restore 294 378 graph;
+#X msg 307 285 sinesum 4096 1;
+#X text 417 285 <= sine;
+#X obj 80 270 bng 18 250 50 0 empty empty empty 17 7 0 10 #dcdcdc #000000
+#000000;
+#X msg 80 297 all bang;
+#X obj 80 237 metro 1000;
+#X obj 80 207 tgl 17 0 empty empty empty 17 7 0 10 #dcdcdc #000000
+#000000 0 1;
+#X text 42 148 Each grain has its own random set of parameters \, including
 pitch. Open the [clone] object to see how it works., f 62;
-#X obj 331 573 grain.synth~;
-#X text 78 557 This example is the basis of the [grain.synth~] abstraction
+#X obj 331 543 grain.synth~;
+#X text 78 527 This example is the basis of the [grain.synth~] abstraction
 from ELSE \, check its help file., f 33;
-#X obj 196 322 tgl 18 0 empty empty empty 17 7 0 10 -228856 -1 -1 0
-1;
-#X msg 196 354 all \$1;
-#X obj 80 384 clone grain.synth 16 \$0-waveform, f 17;
-#X text 180 300 synchronous;
-#X text 215 321 on/off;
-#X text 42 73 In this section we use [clone] to generate clouds of
+#X obj 196 292 tgl 18 0 empty empty empty 17 7 0 10 #dcdcdc #000000
+#000000 0 1;
+#X msg 196 324 all \$1;
+#X obj 80 354 clone grain.synth 16 \$0-waveform, f 17;
+#X text 180 270 synchronous;
+#X text 215 291 on/off;
+#X text 42 53 In this section we use [clone] to generate clouds of
 grains \, which is just a bunch of grains fired within a time frame.
 They can be trggered at random intervals (asynchronous) or equally
 spaced (synchronous). Here we have a window of one second and 16 grains
 triggered by a bang. This example is a synthesizer based on a wavetable.
 , f 62;
-#X text 108 618 One difference is that it can "autotune" with the [autotune]
+#X text 108 588 One difference is that it can "autotune" with the [autotune]
 object. Another is that it also offers different envelopes via an internal
 [function~] object., f 40;
 #X connect 3 0 2 0;

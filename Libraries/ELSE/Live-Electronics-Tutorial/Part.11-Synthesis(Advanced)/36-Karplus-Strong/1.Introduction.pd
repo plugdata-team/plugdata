@@ -12,7 +12,7 @@
 #N canvas 0 22 450 300 (subpatch) 0;
 #X array \$0-noise 44100 float 0;
 #X coords 0 1 44099 -1 400 100 1 0 0;
-#X restore 28 169 graph;
+#X restore 28 168 graph;
 #X obj 616 295 v sr;
 #X msg 500 339 0 \$1;
 #X obj 500 366 tabplay~ \$0-noise, f 8;
