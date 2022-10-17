@@ -3,12 +3,8 @@
 #include "m_pd.h"
 #include <time.h>
 
-#if (defined __WIN32__)
-# if (defined __i386__) && (defined __MINGW32__)
-// unless compiling under mingw/32bit, we want USE_TIMEB in redmond-land
-# else
+#ifdef _MSC_VER
 #  define USE_TIMEB
-# endif
 #endif
 
 #ifdef __APPLE__
