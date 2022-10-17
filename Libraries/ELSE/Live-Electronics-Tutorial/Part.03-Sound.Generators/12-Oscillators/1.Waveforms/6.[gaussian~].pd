@@ -1,4 +1,4 @@
-#N canvas 420 47 792 480 12;
+#N canvas 420 47 790 562 12;
 #X declare -path else;
 #X obj 96 163 nbx 5 14 -1e+37 1e+37 0 0 empty hz empty 0 -8 0 10 #dcdcdc
 #000000 #000000 0 256;
@@ -28,6 +28,9 @@ about the formula and function is given in the envelope section of
 this tutorial., f 43;
 #X obj 459 298 oscope~ 280 152 256 3 128 -1 1 0 0 0 0 30 30 30 190
 190 190 160 160 160 0 empty;
+#X text 116 507 See also the [tabgen] object which can generate a Gaussian
+function., f 68;
+#X obj 619 509 tabgen;
 #X connect 0 0 4 0;
 #X connect 4 0 1 0;
 #X connect 4 0 2 0;

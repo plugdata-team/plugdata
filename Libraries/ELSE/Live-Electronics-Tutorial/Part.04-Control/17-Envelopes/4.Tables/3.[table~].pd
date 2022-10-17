@@ -1,31 +1,36 @@
-#N canvas 695 73 512 500 12;
+#N canvas 695 73 543 489 12;
 #X declare -path else;
 #X obj 113 365 *~;
 #X obj 55 312 osc~ 440;
-#X obj 163 221 nbx 5 17 0 2000 0 0 empty empty empty 0 -8 0 12 -228856
--1 -1 0 256;
-#X obj 123 218 bng 25 250 50 0 empty empty empty 17 7 0 10 -228856
--1 -1;
+#X obj 163 221 nbx 5 17 0 2000 0 0 empty empty empty 0 -8 0 12 #dcdcdc
+#000000 #000000 0 256;
+#X obj 123 218 bng 25 250 50 0 empty empty empty 17 7 0 10 #dcdcdc
+#000000 #000000;
 #X obj 113 406 out~;
 #X obj 131 256 f 500;
 #X text 166 199 ms;
 #X obj 131 312 envgen~;
-#X obj 218 264 initmess \; \$0-hann cosinesum 1024 0.5 -0.5;
-#X text 291 241 Generates hann table;
-#X obj 344 302 table \$0-hann;
+#X text 306 228 Generates hann table;
 #X obj 131 340 table~ \$0-hann;
 #X msg 131 285 0 \$1 1;
 #X obj 322 33 declare -path else;
+#X obj 280 381 array define \$0-hann 1024;
+#X obj 326 324 tabgen \$0-hann;
+#X msg 326 291 hanning;
+#X obj 326 263 loadbang;
 #X text 53 77 Now let's see some more convenient solutions with objects
 from the ELSE library. Let's have a first superficial look into the
 [table~] object \, which is similar to [tabread4~] \, but by default
-it has an index input from 0 to 1 (excluding guard points) \, which
-makes us not worry about the table size and index range.;
+it has an index input from 0 to 1 \, which makes us not worry about
+the table size and index range. You also don't need to worry about
+guard points.;
 #X connect 0 0 4 0;
 #X connect 1 0 0 0;
 #X connect 2 0 5 1;
 #X connect 3 0 5 0;
-#X connect 5 0 12 0;
-#X connect 7 0 11 0;
-#X connect 11 0 0 1;
-#X connect 12 0 7 0;
+#X connect 5 0 10 0;
+#X connect 7 0 9 0;
+#X connect 9 0 0 1;
+#X connect 10 0 7 0;
+#X connect 14 0 13 0;
+#X connect 15 0 14 0;

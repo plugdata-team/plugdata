@@ -1,13 +1,13 @@
 #N canvas 520 23 508 685 12;
 #X declare -path else;
-#X obj 157 502 bng 15 250 50 0 empty empty empty 17 7 0 10 #dcdcdc
+#X obj 157 497 bng 20 250 50 0 empty empty empty 17 7 0 10 #dcdcdc
 #000000 #000000;
 #X obj 272 467 sh~;
 #X obj 272 592 out~;
 #X obj 116 612 out~;
 #X obj 67 429 zerocross~;
 #X obj 116 497 sh~;
-#X obj 157 472 trig2bang~;
+#X obj 157 470 trig2bang~;
 #X obj 73 87 noise~;
 #X obj 111 222 out~;
 #X obj 111 122 sh~;
@@ -19,8 +19,6 @@
 #X obj 272 188 bl.saw~;
 #X obj 272 151 rescale~ 100 400;
 #X obj 272 114 downsample~ 2;
-#X obj 328 476 bng 15 250 50 0 empty empty empty 17 7 0 10 #dcdcdc
-#000000 #000000;
 #X obj 328 449 trig2bang~;
 #X obj 272 550 bl.saw~;
 #X obj 272 513 rescale~ 50 150;
@@ -37,10 +35,12 @@ hold unit., f 33;
 in many different ways. Use the many impulse and trigger generators
 from ELSE to control it. Below we pass [white~] through a sample and
 hold to get random values., f 64;
-#X connect 1 0 21 0;
+#X obj 328 476 bng 20 250 50 0 empty empty empty 17 7 0 10 #dcdcdc
+#000000 #000000;
+#X connect 1 0 20 0;
 #X connect 4 2 5 1;
 #X connect 4 2 6 0;
-#X connect 5 0 22 0;
+#X connect 5 0 21 0;
 #X connect 6 0 0 0;
 #X connect 7 0 9 0;
 #X connect 9 0 11 0;
@@ -51,13 +51,13 @@ hold to get random values., f 64;
 #X connect 15 0 14 0;
 #X connect 16 0 15 0;
 #X connect 17 0 16 0;
-#X connect 19 0 18 0;
-#X connect 20 0 2 0;
-#X connect 21 0 20 0;
-#X connect 22 0 23 0;
-#X connect 23 0 3 0;
-#X connect 24 0 4 0;
-#X connect 27 0 1 1;
-#X connect 27 0 19 0;
-#X connect 28 0 5 0;
-#X connect 29 0 1 0;
+#X connect 18 0 30 0;
+#X connect 19 0 2 0;
+#X connect 20 0 19 0;
+#X connect 21 0 22 0;
+#X connect 22 0 3 0;
+#X connect 23 0 4 0;
+#X connect 26 0 1 1;
+#X connect 26 0 18 0;
+#X connect 27 0 5 0;
+#X connect 28 0 1 0;
