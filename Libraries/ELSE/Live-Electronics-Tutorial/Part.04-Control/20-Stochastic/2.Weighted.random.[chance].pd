@@ -1,0 +1,85 @@
+#N canvas 301 78 805 463 12;
+#X declare -path else;
+#X obj 589 55 declare -path else;
+#X obj 107 154 random 100;
+#X obj 107 188 moses 70;
+#X obj 160 221 bng 17 250 50 0 empty empty empty 17 7 0 10 #dcdcdc
+#000000 #000000;
+#X obj 107 124 bng 17 250 50 0 empty empty empty 17 7 0 10 #dcdcdc
+#000000 #000000;
+#X obj 107 221 bng 17 250 50 0 empty empty empty 17 7 0 10 #dcdcdc
+#000000 #000000;
+#X text 103 244 70%;
+#X text 158 244 30%;
+#X obj 288 154 random 100;
+#X obj 288 125 bng 17 250 50 0 empty empty empty 17 7 0 10 #dcdcdc
+#000000 #000000;
+#X obj 288 221 bng 17 250 50 0 empty empty empty 17 7 0 10 #dcdcdc
+#000000 #000000;
+#X obj 288 188 moses 50;
+#X obj 370 221 bng 17 250 50 0 empty empty empty 17 7 0 10 #dcdcdc
+#000000 #000000;
+#X obj 370 188 moses 75;
+#X text 366 244 25%;
+#X obj 423 221 bng 17 250 50 0 empty empty empty 17 7 0 10 #dcdcdc
+#000000 #000000;
+#X text 419 244 25%;
+#X text 283 244 50%;
+#X obj 347 322 random 100;
+#X obj 347 292 bng 17 250 50 0 empty empty empty 17 7 0 10 #dcdcdc
+#000000 #000000;
+#X obj 347 389 bng 17 250 50 0 empty empty empty 17 7 0 10 #dcdcdc
+#000000 #000000;
+#X text 342 412 50%;
+#X obj 347 356 spread 50 75;
+#X obj 387 389 bng 17 250 50 0 empty empty empty 17 7 0 10 #dcdcdc
+#000000 #000000;
+#X text 383 412 25%;
+#X obj 428 389 bng 17 250 50 0 empty empty empty 17 7 0 10 #dcdcdc
+#000000 #000000;
+#X text 424 412 25%;
+#X text 29 316 The ELSE library has the [spread] object that is similar
+to [moses] but offers many outputs so you don't need to stack lots
+of [moses] objects. But the library also offers other options that
+are more proper., f 40;
+#X obj 589 201 bng 17 250 50 0 empty empty empty 17 7 0 10 #dcdcdc
+#000000 #000000;
+#X obj 589 232 chance 50 25 25, f 16;
+#X obj 589 271 bng 17 250 50 0 empty empty empty 17 7 0 10 #dcdcdc
+#000000 #000000;
+#X text 584 294 50%;
+#X obj 643 271 bng 17 250 50 0 empty empty empty 17 7 0 10 #dcdcdc
+#000000 #000000;
+#X text 639 294 25%;
+#X obj 698 270 bng 17 250 50 0 empty empty empty 17 7 0 10 #dcdcdc
+#000000 #000000;
+#X text 694 293 25%;
+#X text 546 125 A more proper weighted random is possible with [chance].
+check its help file., f 34;
+#X text 18 19 You can use random generators (like [random]/[rand.i]/rand.f])
+to generate random values as sequences and you probably know about
+that already. But now we'll talk about "Weighted random" \, where some
+random values have more probabilities of happening than others. A simple
+vanilla mechanism for this is with [moses] \, and you can stack many
+of them for that matter., f 74;
+#X text 531 348 Above \, each output has the weigthed chance according
+to its corresponding argument., f 37;
+#X connect 1 0 2 0;
+#X connect 2 0 5 0;
+#X connect 2 1 3 0;
+#X connect 4 0 1 0;
+#X connect 8 0 11 0;
+#X connect 9 0 8 0;
+#X connect 11 0 10 0;
+#X connect 11 1 13 0;
+#X connect 13 0 12 0;
+#X connect 13 1 15 0;
+#X connect 18 0 22 0;
+#X connect 19 0 18 0;
+#X connect 22 0 20 0;
+#X connect 22 1 23 0;
+#X connect 22 2 25 0;
+#X connect 28 0 29 0;
+#X connect 29 0 30 0;
+#X connect 29 1 32 0;
+#X connect 29 2 34 0;

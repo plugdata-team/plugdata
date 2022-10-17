@@ -1,0 +1,48 @@
+#N canvas 351 156 859 419 12;
+#X declare -path else;
+#X obj 364 123 declare -path else, f 7;
+#X obj 96 122 keyboard 17 80 2 3 0 0 empty empty;
+#X obj 96 221 stripnote;
+#X obj 96 354 tabwrite \$0-histogram;
+#X obj 569 159 array random \$0-histogram;
+#X obj 96 323 + 1;
+#X obj 96 292 tabread \$0-histogram;
+#X obj 96 261 trigger float float, f 23;
+#X obj 297 269 array define \$0-histogram 128;
+#X f 16;
+#X obj 569 118 bng 20 250 50 0 empty empty empty 17 7 0 10 #dfdfdf
+#000000 #000000;
+#X floatatom 569 191 5 0 0 0 - - - 0;
+#X text 466 28 Hence \, the resulting array is a histogram that can
+be used as weights for random output. The [array random] object uses
+an array as a histogram \, so if you send it a bang it outputs an index
+value according to its probability., f 53;
+#X obj 569 221 mtof;
+#X obj 635 270 decay2~ 50 500;
+#X obj 635 248 bng 15 250 50 0 empty empty empty 17 7 0 10 #dcdcdc
+#000000 #000000;
+#X obj 617 301 *~;
+#X obj 617 342 out~;
+#X text 28 27 A histogram represents how many times a an event occurred.
+Below we use the input of a [keyboard] and treat it as an index of
+a table and increment its value each time it occurs. Click on the keyboard
+to generate the histogram.;
+#X msg 297 235 const 0;
+#X text 360 235 clear array;
+#X obj 569 270 bl.saw~;
+#X connect 1 0 2 0;
+#X connect 2 0 7 0;
+#X connect 4 0 10 0;
+#X connect 5 0 3 0;
+#X connect 6 0 5 0;
+#X connect 7 0 6 0;
+#X connect 7 1 3 1;
+#X connect 9 0 4 0;
+#X connect 10 0 12 0;
+#X connect 12 0 14 0;
+#X connect 12 0 20 0;
+#X connect 13 0 15 1;
+#X connect 14 0 13 0;
+#X connect 15 0 16 0;
+#X connect 18 0 8 0;
+#X connect 20 0 15 0;
