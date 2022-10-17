@@ -182,8 +182,14 @@ void Sidebar::mouseExit(MouseEvent const& e)
 
 void Sidebar::showPanel(int panelToShow)
 {
-    browser->setVisible(panelToShow == 1);
-    automationPanel->setVisible(panelToShow == 2);
+    bool showBrowser = panelToShow == 1;
+    bool showAutomation = panelToShow == 2;
+    browser->setVisible(showBrowser);
+    browser->setInterceptsMouseClicks(showBrowser, showBrowser);
+    
+    automationPanel->setVisible(showAutomation);
+    automationPanel->setInterceptsMouseClicks(showAutomation, showAutomation);
+    
     
     if(auto* editor =  dynamic_cast<PlugDataPluginEditor*>(pd->getActiveEditor())) {
         editor->toolbarButton(PlugDataPluginEditor::Pin)->setEnabled(panelToShow == 0);
