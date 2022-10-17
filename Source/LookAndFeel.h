@@ -68,10 +68,10 @@ enum PlugDataColour
     
     tabBackgroundColourId,
     tabTextColourId,
-    tabBorderColourId, /* TODO: rename to outline */
+    tabOutlineColourId,
     activeTabBackgroundColourId,
     activeTabTextColourId,
-    activeTabBorderColourId, /* TODO: rename to outline */
+    activeTabOutlineColourId,
     
     canvasBackgroundColourId,
     canvasTextColourId,
@@ -79,8 +79,8 @@ enum PlugDataColour
     canvasUnlockedOutlineColourId,
     
     defaultObjectBackgroundColourId,
-    outlineColourId,  /* TODO: rename to objectOutlineColourId */
-    canvasActiveColourId, /* TODO: rename to selectedObjectOutlineColourId */
+    outlineColourId,
+    canvasActiveColourId,
     dataColourId,
     connectionColourId,
     signalColourId,
@@ -88,10 +88,10 @@ enum PlugDataColour
     panelBackgroundColourId,
     panelBackgroundOffsetColourId,
     panelTextColourId,
-    panelActiveBackgroundColourId, /* TODO: rename to panelSelectedItemBackgroundColourId */
-    panelActiveTextColourId, /* TODO: rename to panelSelectedItemTextColourId */
+    panelActiveBackgroundColourId,
+    panelActiveTextColourId,
     
-    scrollbarBackgroundColourId, /* TODO: rename */
+    scrollbarThumbColourId,
     
     /* iteration hack */
     numberOfColours
@@ -104,28 +104,27 @@ inline const std::map<PlugDataColour, std::pair<String, String>> PlugDataColourN
     {toolbarActiveColourId, {"Toolbar Active", "toolbar_active"}},
     {tabBackgroundColourId, {"Tab Background", "tab_background"}},
     {tabTextColourId, {"Tab Text", "tab_text"}},
-    {tabBorderColourId, {"Tab Border", "tab_border"}}, /* TODO: rename to outline */
+    {tabOutlineColourId, {"Tab Border", "tab_border"}},
     {activeTabBackgroundColourId, {"Active Tab Background", "active_tab_background"}},
     {activeTabTextColourId, {"Active Tab Text", "active_tab_text"}},
-    {activeTabBorderColourId, {"Active Tab Border", "active_tab_border"}}, /* TODO: rename to outline */
+    {activeTabOutlineColourId, {"Active Tab Border", "active_tab_border"}},
     {canvasBackgroundColourId, {"Canvas Background", "canvas_background"}},
     {canvasTextColourId, {"Canvas Text", "canvas_text"}},
     {canvasLockedOutlineColourId, {"Canvas Locked Outline", "canvas_locked_outline"}},
     {canvasUnlockedOutlineColourId, {"Canvas Unlocked Outline", "canvas_unlocked_outline"}},
     {defaultObjectBackgroundColourId, {"Default Object Background", "default_object_background"}},
-    {outlineColourId, {"Outline Colour", "outline_colour"}},  /* TODO: rename to objectOutlineColourId */
-    {canvasActiveColourId, {"Canvas Active Colour", "canvas_active_colour"}}, /* TODO: rename to {selectedObjectOutlineColourId */
+    {outlineColourId, {"Outline Colour", "outline_colour"}},
+    {canvasActiveColourId, {"Canvas Active Colour", "canvas_active_colour"}},
     {dataColourId, {"Data Colour", "data_colour"}},
     {connectionColourId, {"Connection Colour", "connection_colour"}},
     {signalColourId, {"Signal Colour", "signal_colour"}},
     {panelBackgroundColourId, {"Panel Background", "panel_colour"}},
     {panelBackgroundOffsetColourId, {"Panel Offset", "panel_offset"}},
     {panelTextColourId, {"Panel Text", "panel_text"}},
-    {panelActiveBackgroundColourId, {"Panel Background Active", "panel_background_active"}}, /* TODO: rename to {panelSelectedItemBackgroundColourId */
-    {panelActiveTextColourId, {"Panel Active Text", "panel_active_text"}}, /* TODO: rename to {panelSelectedItemTextColourId */
-    {scrollbarBackgroundColourId, {"Scrollbar Background", "scrollbar_background"}}, /* TODO: rename */
+    {panelActiveBackgroundColourId, {"Panel Background Active", "panel_background_active"}},
+    {panelActiveTextColourId, {"Panel Active Text", "panel_active_text"}},
+    {scrollbarThumbColourId, {"Scrollbar Thumb", "scrollbar_thumb"}}
 };
-    
     
     struct Resources
     {
@@ -419,7 +418,7 @@ inline const std::map<PlugDataColour, std::pair<String, String>> PlugDataColourN
         void drawPopupMenuBackground(Graphics& g, int width, int height) override
         {
             // Add a bit of alpha to disable the opaque flag
-            auto background = findColour(PopupMenu::backgroundColourId);
+            auto background = findColour(PlugDataColour::toolbarBackgroundColourId);
             g.setColour(background);
             
             // Fill background if there's no support for transparent popupmenus
@@ -446,12 +445,6 @@ inline const std::map<PlugDataColour, std::pair<String, String>> PlugDataColourN
         {
             return 5;
         };
-        
-        int getMenuWindowFlags()
-        {
-            return ComponentPeer::windowHasDropShadow | ComponentPeer::windowIsSemiTransparent;
-        }
-
         
         void drawTextEditorOutline(Graphics& g, int width, int height, TextEditor& textEditor) override
         {
@@ -878,9 +871,9 @@ inline const std::map<PlugDataColour, std::pair<String, String>> PlugDataColourN
             setColour(TextButton::textColourOnId,
                       colours.at(PlugDataColour::toolbarActiveColourId));
             setColour(Slider::thumbColourId,
-                      colours.at(PlugDataColour::scrollbarBackgroundColourId));
+                      colours.at(PlugDataColour::scrollbarThumbColourId));
             setColour(ScrollBar::thumbColourId,
-                      colours.at(PlugDataColour::scrollbarBackgroundColourId));
+                      colours.at(PlugDataColour::scrollbarThumbColourId));
             setColour(DirectoryContentsDisplayComponent::highlightColourId,
                       colours.at(PlugDataColour::panelActiveBackgroundColourId));
             // TODO: possibly add a colour for this
@@ -914,7 +907,7 @@ inline const std::map<PlugDataColour, std::pair<String, String>> PlugDataColourN
             setColour(Slider::backgroundColourId,
                       colours.at(PlugDataColour::canvasBackgroundColourId));
             setColour(Slider::trackColourId,
-                      colours.at(PlugDataColour::scrollbarBackgroundColourId));
+                      colours.at(PlugDataColour::scrollbarThumbColourId));
             setColour(TextEditor::backgroundColourId,
                       colours.at(PlugDataColour::canvasBackgroundColourId));
             setColour(FileBrowserComponent::currentPathBoxBackgroundColourId,
@@ -1005,21 +998,20 @@ inline const std::map<PlugDataColour, std::pair<String, String>> PlugDataColourN
             {PlugDataColour::toolbarBackgroundColourId, Colour(25, 25, 25)},
             {PlugDataColour::toolbarTextColourId, Colour(255, 255, 255)},
             {PlugDataColour::toolbarActiveColourId, Colour(66, 162, 200)},
-            {PlugDataColour::outlineColourId, Colour(255, 255, 255)},
             
             {PlugDataColour::tabBackgroundColourId, Colour(25, 25, 25)},
             {PlugDataColour::tabTextColourId, Colour(255, 255, 255)},
-            {PlugDataColour::tabBorderColourId, Colour(105, 105, 105)},
+            {PlugDataColour::tabOutlineColourId, Colour(105, 105, 105)},
             {PlugDataColour::activeTabBackgroundColourId, Colour(35, 35, 35)},
             {PlugDataColour::activeTabTextColourId, Colour(255, 255, 255)},
-            {PlugDataColour::activeTabBorderColourId, Colour(105, 105, 105)},
+            {PlugDataColour::activeTabOutlineColourId, Colour(105, 105, 105)},
             
             {PlugDataColour::canvasBackgroundColourId, Colour(35, 35, 35)},
             {PlugDataColour::canvasTextColourId, Colour(255, 255, 255)},
-            {PlugDataColour::canvasLockedOutlineColourId, Colour(255, 255, 255)},
-            {PlugDataColour::canvasUnlockedOutlineColourId, Colour(255, 255, 255)},
+            {PlugDataColour::canvasLockedOutlineColourId, Colour(105, 105, 105)},
+            {PlugDataColour::canvasUnlockedOutlineColourId, Colour(105, 105, 105)},
             
-            {PlugDataColour::outlineColourId, Colour(255, 255, 255)},
+            {PlugDataColour::outlineColourId, Colour(57, 57, 57)},
             {PlugDataColour::canvasActiveColourId, Colour(66, 162, 200)},
             {PlugDataColour::defaultObjectBackgroundColourId, Colour(25, 25, 25)},
             
@@ -1028,14 +1020,13 @@ inline const std::map<PlugDataColour, std::pair<String, String>> PlugDataColourN
             {PlugDataColour::signalColourId, Colour(255, 133, 0)},
             
             {PlugDataColour::panelBackgroundColourId, Colour(35, 35, 35)},
-            {PlugDataColour::panelBackgroundOffsetColourId, Colour(50, 50, 50)},
+            {PlugDataColour::panelBackgroundOffsetColourId, Colour(25, 25, 25)},
             {PlugDataColour::panelTextColourId, Colour(255, 255, 255)},
             {PlugDataColour::panelActiveBackgroundColourId, Colour(66, 162, 200)},
-            {PlugDataColour::panelActiveTextColourId, Colour(0, 0, 0)},
+            {PlugDataColour::panelActiveTextColourId, Colour(255, 255, 255)},
             
-            {PlugDataColour::scrollbarBackgroundColourId, Colour(66, 162, 200)},
+            {PlugDataColour::scrollbarThumbColourId, Colour(66, 162, 200)},
             
-            /* TODO: add toolbar outline, panel outline and canvas outline. add canvas locked and unlocked outline */
         };
         
         inline static const std::map<PlugDataColour, Colour> defaultLightTheme = {
@@ -1045,10 +1036,10 @@ inline const std::map<PlugDataColour, std::pair<String, String>> PlugDataColourN
             
             {PlugDataColour::tabBackgroundColourId, Colour(228, 228, 228)},
             {PlugDataColour::tabTextColourId, Colour(90, 90, 90)},
-            {PlugDataColour::tabBorderColourId, Colour(168, 168, 168)},
+            {PlugDataColour::tabOutlineColourId, Colour(168, 168, 168)},
             {PlugDataColour::activeTabBackgroundColourId, Colour(250, 250, 250)},
             {PlugDataColour::activeTabTextColourId, Colour(90, 90, 90)},
-            {PlugDataColour::activeTabBorderColourId, Colour(168, 168, 168)},
+            {PlugDataColour::activeTabOutlineColourId, Colour(168, 168, 168)},
             
             {PlugDataColour::canvasBackgroundColourId, Colour(250, 250, 250)},
             {PlugDataColour::canvasTextColourId, Colour(90, 90, 90)},
@@ -1056,7 +1047,7 @@ inline const std::map<PlugDataColour, std::pair<String, String>> PlugDataColourN
             {PlugDataColour::canvasLockedOutlineColourId, Colour(168, 168, 168)},
             {PlugDataColour::canvasUnlockedOutlineColourId, Colour(168, 168, 168)},
             
-            {PlugDataColour::outlineColourId, Colour(168, 168, 168)},
+            {PlugDataColour::outlineColourId, Colour(200, 200, 200)},
             {PlugDataColour::dataColourId, Colour(0, 122, 255)},
             {PlugDataColour::connectionColourId, Colour(179, 179, 179)},
             {PlugDataColour::signalColourId, Colour(255, 133, 0)},
@@ -1066,9 +1057,9 @@ inline const std::map<PlugDataColour, std::pair<String, String>> PlugDataColourN
             {PlugDataColour::panelBackgroundOffsetColourId, Colour(228, 228, 228)},
             {PlugDataColour::panelTextColourId, Colour(90, 90, 90)},
             {PlugDataColour::panelActiveBackgroundColourId, Colour(0, 122, 255)},
-            {PlugDataColour::panelActiveTextColourId, Colour(0, 0, 0)},
+            {PlugDataColour::panelActiveTextColourId, Colour(255, 255, 255)},
             
-            {PlugDataColour::scrollbarBackgroundColourId, Colour(66, 162, 200)},
+            {PlugDataColour::scrollbarThumbColourId, Colour(66, 162, 200)},
         };
         
         inline static const std::map<String, std::map<PlugDataColour, Colour>> defaultThemes = {

@@ -188,7 +188,7 @@ struct TabComponent : public TabbedComponent
             openProject();
         };
   
-        
+        setVisible(false);
         setTabBarDepth(0);
         
         
@@ -198,9 +198,11 @@ struct TabComponent : public TabbedComponent
     {
         if(getNumTabs() == 0) {
             setTabBarDepth(0);
+            getTabbedButtonBar().setVisible(false);
             welcomePanel.setVisible(true);
         }
         else {
+            getTabbedButtonBar().setVisible(true);
             welcomePanel.setVisible(false);
             setTabBarDepth(28);
         }
@@ -270,6 +272,22 @@ class PlugDataAudioProcessor;
 class PlugDataPluginEditor : public AudioProcessorEditor, public Value::Listener, public ValueTree::Listener, public ApplicationCommandTarget, public ApplicationCommandManager, public Timer
 {
    public:
+    
+    
+    enum ToolbarButtonType
+    {
+        Open = 0,
+        Save,
+        SaveAs,
+        Undo,
+        Redo,
+        Add,
+        Settings,
+        Hide,
+        Pin
+    };
+    
+    
     explicit PlugDataPluginEditor(PlugDataAudioProcessor&);
 
     ~PlugDataPluginEditor() override;
@@ -316,6 +334,12 @@ class PlugDataPluginEditor : public AudioProcessorEditor, public Value::Listener
     void valueTreeChildRemoved(ValueTree& parentTree, ValueTree& childWhichHasBeenRemoved, int indexFromWhichChildWasRemoved) override;
 
     void timerCallback() override;
+    
+    TextButton* toolbarButton(ToolbarButtonType type)
+    {
+        return toolbarButtons[static_cast<int>(type)];
+    }
+    
 
     PlugDataAudioProcessor& pd;
 
@@ -332,7 +356,7 @@ class PlugDataPluginEditor : public AudioProcessorEditor, public Value::Listener
     
     Value theme;
     Value zoomScale;
-    
+
    private:
     
     std::unique_ptr<FileChooser> saveChooser;
@@ -352,25 +376,6 @@ class PlugDataPluginEditor : public AudioProcessorEditor, public Value::Listener
     
     ZoomLabel zoomLabel;
 
-
-    enum ToolbarButtonType
-    {
-        Open = 0,
-        Save,
-        SaveAs,
-        Undo,
-        Redo,
-        Add,
-        Settings,
-        Hide,
-        Pin
-    };
-
-    TextButton* toolbarButton(ToolbarButtonType type)
-    {
-        return toolbarButtons[static_cast<int>(type)];
-    }
-    
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PlugDataPluginEditor)
 };

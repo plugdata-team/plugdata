@@ -79,7 +79,7 @@ struct MessageObject final : public TextBase
         g.setColour(object->findColour(PlugDataColour::defaultObjectBackgroundColourId));
         g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), 2.0f);
 
-        g.setColour(findColour(PlugDataColour::canvasTextColourId));
+        g.setColour(object->findColour(PlugDataColour::canvasTextColourId));
         g.setFont(font);
 
         auto textArea = border.subtractedFrom(getLocalBounds());
@@ -87,8 +87,15 @@ struct MessageObject final : public TextBase
 
         bool selected = cnv->isSelected(object);
 
-        auto outlineColour = findColour(selected && !cnv->isGraph ? PlugDataColour::canvasActiveColourId : PlugDataColour::outlineColourId);
+        Colour outlineColour;
 
+        if(cnv->isSelected(object) && !cnv->isGraph) {
+            outlineColour = object->findColour(PlugDataColour::canvasActiveColourId);
+        }
+        else {
+            outlineColour = object->findColour(static_cast<bool>(object->locked.getValue()) ? PlugDataColour::canvasLockedOutlineColourId : PlugDataColour::canvasUnlockedOutlineColourId);
+        }
+        
         if (!isValid) {
             outlineColour = selected && !cnv->isGraph ? Colours::red.brighter(1.5) : Colours::red;
         }
