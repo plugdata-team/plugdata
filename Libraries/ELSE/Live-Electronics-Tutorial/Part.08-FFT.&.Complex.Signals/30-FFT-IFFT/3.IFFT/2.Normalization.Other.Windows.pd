@@ -1,0 +1,546 @@
+#N canvas 551 51 558 650 12;
+#X declare -path else;
+#X floatatom 348 100 5 0 0 0 - - - 0;
+#X obj 102 166 nbx 5 14 64 1e+37 0 0 empty empty empty 0 -8 0 10 #dcdcdc
+#000000 #000000 0 256;
+#X obj 216 166 nbx 2 14 1 1e+37 0 0 empty empty empty 0 -8 0 10 #dcdcdc
+#000000 #000000 0 256;
+#N canvas 353 23 518 586 Hamming 0;
+#X text 86 67 1;
+#X text 85 182 0;
+#X obj 124 406 osc~;
+#X obj 124 328 samplerate~;
+#X msg 190 375 0.5;
+#X obj 124 377 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+#dcdcdc #000000 #000000 0 256;
+#X obj 116 293 trigger bang bang bang;
+#X obj 116 272 bng 15 250 50 0 empty empty empty 0 -6 0 8 #dcdcdc #000000
+#000000;
+#X obj 101 76 cnv 15 198 118 empty empty empty 20 12 0 14 #dcdcdc #404040
+0;
+#N canvas 0 22 450 300 (subpatch) 0;
+#X array \$0-hamming 2048 float 0;
+#X coords 0 1 2047 0 200 120 1;
+#X restore 100 75 graph;
+#X obj 116 246 loadbang;
+#X obj 124 352 / 2048;
+#X obj 124 447 *~ 0.46;
+#X obj 124 470 +~ 0.54;
+#X text 207 226 formula:;
+#X obj 116 509 tabwrite~ \$0-hamming;
+#X text 216 244 (cos(x) * 0.46) + 0.54;
+#X text 31 352 window size;
+#X connect 2 0 12 0;
+#X connect 3 0 11 0;
+#X connect 4 0 2 1;
+#X connect 5 0 2 0;
+#X connect 6 0 15 0;
+#X connect 6 1 3 0;
+#X connect 6 2 4 0;
+#X connect 7 0 6 0;
+#X connect 10 0 7 0;
+#X connect 11 0 5 0;
+#X connect 12 0 13 0;
+#X connect 13 0 15 0;
+#X restore 189 356 pd Hamming;
+#N canvas 131 45 395 514 Cosine 0;
+#X text 91 38 1;
+#X text 90 153 0;
+#X obj 109 283 samplerate~;
+#X obj 109 332 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+#dcdcdc #000000 #000000 0 256;
+#X obj 101 248 trigger bang bang bang;
+#X obj 101 227 bng 15 250 50 0 empty empty empty 0 -6 0 8 #dcdcdc #000000
+#000000;
+#X obj 106 47 cnv 15 198 118 empty empty empty 20 12 0 14 #dcdcdc #404040
+0;
+#N canvas 0 22 450 300 (subpatch) 0;
+#X array \$0-cosine 2048 float 0;
+#X coords 0 1 2047 0 200 120 1;
+#X restore 105 46 graph;
+#X obj 101 201 loadbang;
+#X obj 109 307 / 2048;
+#X obj 109 361 phasor~;
+#X obj 101 441 tabwrite~ \$0-cosine;
+#X msg 176 327 0;
+#X obj 109 385 /~ 2;
+#X obj 109 412 sin~;
+#X text 189 205 Half the sine wave;
+#X connect 2 0 9 0;
+#X connect 3 0 10 0;
+#X connect 4 0 11 0;
+#X connect 4 1 2 0;
+#X connect 4 2 12 0;
+#X connect 5 0 4 0;
+#X connect 8 0 5 0;
+#X connect 9 0 3 0;
+#X connect 10 0 13 0;
+#X connect 12 0 10 1;
+#X connect 13 0 14 0;
+#X connect 14 0 11 0;
+#X restore 276 356 pd Cosine;
+#N canvas 195 35 612 504 Welch 0;
+#X text 34 27 1;
+#X text 33 142 0;
+#X text 50 158 0;
+#X obj 49 36 cnv 15 198 118 empty empty empty 20 12 0 14 #dcdcdc #404040
+0;
+#N canvas 0 22 450 300 (subpatch) 0;
+#X array \$0-welch 2048 float 0;
+#X coords 0 1 2047 0 200 120 1;
+#X restore 48 35 graph;
+#X text 239 159 2048;
+#X text 179 252 i - N/2;
+#X text 190 277 N/2;
+#X text 178 259 _______;
+#X text 229 238 2;
+#X text 79 263 welch (i) = 1 -;
+#X obj 310 400 expr 1 - $f1;
+#X obj 310 433 tabwrite \$0-welch;
+#X obj 403 292 / 2;
+#X msg 376 187 2048;
+#X obj 376 164 loadbang;
+#X obj 310 298 t f f;
+#X text 113 302 onde 0 <= i < N;
+#X text 148 373 1 - (X/A);
+#X text 203 367 2;
+#X text 108 350 simplificando:;
+#X obj 310 346 /;
+#X text 60 326 -----------------------------------;
+#X text 218 237 _;
+#X text 221 245 |;
+#X text 221 253 |;
+#X text 221 260 |;
+#X text 221 268 |;
+#X text 221 275 |;
+#X text 213 237 _;
+#X text 221 283 |;
+#X text 218 282 _;
+#X text 213 282 _;
+#X text 172 245 |;
+#X text 172 253 |;
+#X text 172 260 |;
+#X text 172 268 |;
+#X text 172 275 |;
+#X text 174 237 _;
+#X text 172 283 |;
+#X text 174 282 _;
+#X text 179 237 _;
+#X text 179 282 _;
+#X text 156 397 X = i - N/2;
+#X text 165 418 A = N/2;
+#X text 119 410 onde:;
+#X text 417 322 X;
+#X text 456 364 2;
+#X text 388 401 1 - (X/A);
+#X text 457 395 2;
+#X text 416 370 (X/A);
+#X text 431 290 A;
+#X text 335 346 X/A;
+#X obj 376 212 t f f;
+#X text 34 216 Formula for a window size of N:;
+#X obj 310 321 -;
+#X obj 310 271 loop;
+#X text 416 187 window size (N);
+#X obj 310 370 pow 2;
+#X connect 11 0 12 0;
+#X connect 13 0 21 1;
+#X connect 13 0 55 1;
+#X connect 14 0 53 0;
+#X connect 15 0 14 0;
+#X connect 16 0 55 0;
+#X connect 16 1 12 1;
+#X connect 21 0 58 0;
+#X connect 53 0 56 0;
+#X connect 53 1 13 0;
+#X connect 55 0 21 0;
+#X connect 56 0 16 0;
+#X connect 58 0 11 0;
+#X restore 208 380 pd Welch;
+#N canvas 455 28 352 514 Connes 0;
+#X text 49 31 1;
+#X text 48 146 0;
+#X obj 64 40 cnv 15 198 118 empty empty empty 20 12 0 14 #dcdcdc #404040
+0;
+#N canvas 0 22 450 300 (subpatch) 0;
+#X array \$0-connes 2048 float 0;
+#X coords 0 1 2047 0 200 120 1;
+#X restore 63 39 graph;
+#X obj 81 416 expr 1 - $f1;
+#X obj 147 329 / 2;
+#X msg 81 242 2048;
+#X obj 81 214 loadbang;
+#X obj 81 317 t f f;
+#X obj 81 365 /;
+#X text 106 365 X/A;
+#X obj 81 465 tabwrite \$0-connes;
+#X obj 81 294 loop;
+#X obj 81 266 t f f;
+#X text 202 310 A Welch function raised to the power of 2, f 16;
+#X obj 81 340 -;
+#X text 121 242 window size;
+#X obj 81 441 pow 2;
+#X obj 81 389 pow 2;
+#X connect 4 0 17 0;
+#X connect 5 0 9 1;
+#X connect 5 0 15 1;
+#X connect 6 0 13 0;
+#X connect 7 0 6 0;
+#X connect 8 0 15 0;
+#X connect 8 1 11 1;
+#X connect 9 0 18 0;
+#X connect 12 0 8 0;
+#X connect 13 0 12 0;
+#X connect 13 1 5 0;
+#X connect 15 0 9 0;
+#X connect 17 0 11 0;
+#X connect 18 0 4 0;
+#X restore 276 380 pd Connes;
+#N canvas 596 122 641 409 Blackman 0;
+#X text 44 50 1;
+#X text 43 165 0;
+#X obj 370 103 samplerate~;
+#X obj 370 152 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+#dcdcdc #000000 #000000 0 256;
+#X obj 295 68 trigger bang bang bang;
+#X obj 295 47 bng 15 250 50 0 empty empty empty 0 -6 0 8 #dcdcdc #000000
+#000000;
+#X obj 59 59 cnv 15 198 118 empty empty empty 20 12 0 14 #dcdcdc #404040
+0;
+#N canvas 0 22 450 300 (subpatch) 0;
+#X array \$0-blackman 2048 float 0;
+#X coords 0 1 2047 0 200 120 1;
+#X restore 58 58 graph;
+#X obj 295 21 loadbang;
+#X obj 416 332 tabwrite~ \$0-blackman;
+#X obj 416 181 phasor~;
+#X msg 461 103 0;
+#X obj 416 216 cos~;
+#X obj 416 240 *~ 0.5;
+#X obj 540 239 *~ 2;
+#X obj 540 263 cos~;
+#X obj 540 289 *~ 0.08;
+#X obj 416 290 +~;
+#X obj 416 263 expr~ 0.42 - $v1;
+#X obj 370 127 / 2048;
+#X text 29 285 (0.42 - (cos(x) * 0.5)) + (cos(2x) * 0.08);
+#X text 66 252 Formula:;
+#X connect 2 0 19 0;
+#X connect 3 0 10 0;
+#X connect 4 0 9 0;
+#X connect 4 1 2 0;
+#X connect 4 2 11 0;
+#X connect 5 0 4 0;
+#X connect 8 0 5 0;
+#X connect 10 0 12 0;
+#X connect 10 0 14 0;
+#X connect 11 0 10 1;
+#X connect 12 0 13 0;
+#X connect 13 0 18 0;
+#X connect 14 0 15 0;
+#X connect 15 0 16 0;
+#X connect 16 0 17 1;
+#X connect 17 0 9 0;
+#X connect 18 0 17 0;
+#X connect 19 0 3 0;
+#X restore 349 380 pd Blackman;
+#N canvas 599 77 491 557 Lanczos 0;
+#X text 43 36 1;
+#X text 42 151 0;
+#X obj 67 356 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+#dcdcdc #000000 #000000 0 256;
+#X obj 45 251 bng 15 250 50 0 empty empty empty 0 -6 0 8 #dcdcdc #000000
+#000000;
+#X obj 58 44 cnv 15 198 118 empty empty empty 20 12 0 14 #dcdcdc #404040
+0;
+#N canvas 0 22 450 300 (subpatch) 0;
+#X array \$0-lanczos 2048 float 0;
+#X coords 0 1 2047 0 200 120 1;
+#X restore 57 43 graph;
+#X obj 45 225 loadbang;
+#X obj 67 385 phasor~;
+#X obj 45 516 tabwrite~ \$0-lanczos;
+#X msg 157 301 0;
+#X obj 67 412 expr~ ($v1 - 0.5) * 2;
+#X text 99 485 sin(x)/(x);
+#X obj 67 437 expr~ $v1 * pi;
+#X obj 196 301 v pi;
+#X obj 67 484 /~;
+#X obj 67 462 expr~ sin($v1);
+#X text 201 225 A normalized sync function;
+#X text 290 262 formula: sin(x)/(x);
+#X text 283 283 where x is from -pi to pi;
+#X obj 196 274 pi;
+#X text 222 411 -1 to 1;
+#X text 173 436 -pi to pi;
+#X obj 45 272 t b b b;
+#X obj 68 303 samplerate~;
+#X obj 68 330 / 2048;
+#X connect 2 0 7 0;
+#X connect 3 0 22 0;
+#X connect 6 0 3 0;
+#X connect 7 0 10 0;
+#X connect 9 0 7 1;
+#X connect 10 0 12 0;
+#X connect 12 0 14 1;
+#X connect 12 0 15 0;
+#X connect 14 0 8 0;
+#X connect 15 0 14 0;
+#X connect 19 0 13 0;
+#X connect 22 0 8 0;
+#X connect 22 1 23 0;
+#X connect 22 2 19 0;
+#X connect 22 2 9 0;
+#X connect 23 0 24 0;
+#X connect 24 0 2 0;
+#X restore 349 356 pd Lanczos;
+#N canvas 687 117 496 629 Gaussian 0;
+#X text 119 38 1;
+#X text 118 153 0;
+#X obj 154 318 samplerate~;
+#X obj 154 367 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+#dcdcdc #000000 #000000 0 256;
+#X obj 79 289 trigger bang bang bang;
+#X obj 79 268 bng 15 250 50 0 empty empty empty 0 -6 0 8 #dcdcdc #000000
+#000000;
+#X obj 134 46 cnv 15 198 118 empty empty empty 20 12 0 14 #dcdcdc #404040
+0;
+#N canvas 0 22 450 300 (subpatch) 0;
+#X array \$0-gauss 2048 float 0;
+#X coords 0 1 2047 0 200 120 1;
+#X restore 133 45 graph;
+#X obj 79 242 loadbang;
+#X obj 154 342 / 2048;
+#X obj 154 396 phasor~;
+#X msg 245 318 0;
+#X obj 154 420 -~ 0.5;
+#X obj 79 559 tabwrite~ \$0-gauss;
+#X obj 163 228 hsl 128 15 4 20 0 0 empty empty empty -2 -8 0 10 #dcdcdc
+#000000 #000000 0 1;
+#X obj 160 254 trigger bang float;
+#X text 300 227 X;
+#X text 150 186 the X parameter defines the steepness of the curve
+, f 26;
+#X floatatom 283 435 5 0 0 0 - - - 0;
+#X obj 258 494 expr~ exp(-$v1*$v1);
+#X obj 258 466 *~ 4;
+#X connect 2 0 9 0;
+#X connect 3 0 10 0;
+#X connect 4 0 13 0;
+#X connect 4 1 2 0;
+#X connect 4 2 11 0;
+#X connect 5 0 4 0;
+#X connect 8 0 5 0;
+#X connect 9 0 3 0;
+#X connect 10 0 12 0;
+#X connect 11 0 10 1;
+#X connect 12 0 20 0;
+#X connect 14 0 15 0;
+#X connect 15 0 4 0;
+#X connect 15 1 18 0;
+#X connect 18 0 20 1;
+#X connect 19 0 13 0;
+#X connect 20 0 19 0;
+#X restore 437 380 pd Gaussian;
+#X obj 348 199 out~;
+#X text 21 258 OTHER WINDOW TYPES:;
+#X obj 102 202 s \$0-size;
+#X obj 216 202 s \$0-overlap;
+#X text 249 163 overlaps;
+#X text 21 25 This example allows for a change in the window size and
+overlap. Both data are used to calculate the normalization factor.
+Open the subpatch to see how it is done., f 50;
+#N canvas 247 242 738 435 normalize 0;
+#X obj 72 143 rfft~;
+#X obj 72 41 inlet~;
+#X obj 112 363 outlet~;
+#X obj 72 180 rifft~;
+#X obj 72 103 hann~;
+#X obj 72 220 hann~;
+#X obj 460 156 hann~;
+#X obj 460 130 sig~ 1;
+#X obj 112 282 /~;
+#X msg 205 144 set \$1 \$2;
+#X obj 237 80 r \$0-overlap;
+#X obj 162 78 r \$0-size;
+#X obj 205 115 pack2;
+#X obj 205 182 block~;
+#X obj 281 211 r \$0-overlap;
+#X obj 130 240 expr $f1 * $f2 * 0.375;
+#X text 143 281 normalization;
+#X obj 513 156 r \$0-size;
+#X text 384 47 Applying the hann window twice requires a normalization
+factor of 0.375 (or 3/8). this value is obtained from an average of
+the hann window mupltiplied twice., f 42;
+#X obj 130 216 blocksize~;
+#X msg 523 189 size \$1;
+#X obj 460 226 mov.avg~;
+#X text 378 298 Like before \, we get the normalization factor by multiplying
+the block size to the overlap number \, but now also to this normalization
+factor. Other window types require another factor dependent on the
+average., f 42;
+#X obj 460 191 *~;
+#X obj 460 256 numbox~ 6 12 100 #C0C0C4 #440008 10 0 0 0;
+#X connect 0 0 3 0;
+#X connect 0 1 3 1;
+#X connect 1 0 4 0;
+#X connect 3 0 5 0;
+#X connect 4 0 0 0;
+#X connect 5 0 8 0;
+#X connect 6 0 23 0;
+#X connect 6 0 23 1;
+#X connect 7 0 6 0;
+#X connect 8 0 2 0;
+#X connect 9 0 13 0;
+#X connect 10 0 12 1;
+#X connect 11 0 12 0;
+#X connect 12 0 9 0;
+#X connect 14 0 15 1;
+#X connect 15 0 8 1;
+#X connect 17 0 20 0;
+#X connect 17 0 21 1;
+#X connect 19 0 15 0;
+#X connect 20 0 21 0;
+#X connect 21 0 24 0;
+#X connect 23 0 21 0;
+#X restore 348 163 pd normalize;
+#X obj 216 123 initmess 4;
+#X obj 102 121 initmess 2048;
+#X obj 402 43 declare -path else;
+#X obj 348 130 bl.saw~ 400;
+#X msg 44 349 hamming;
+#X msg 55 374 hanning;
+#X msg 79 424 welch;
+#X msg 107 500 blackman;
+#X msg 114 526 gauss 0.25;
+#X msg 68 399 tri;
+#X obj 286 434 cnv 15 198 98 empty empty empty 20 12 0 14 #e0e0e0 #404040
+0;
+#N canvas 0 22 450 278 (subpatch) 0;
+#X array fft-window 512 float 1;
+#A 0 0.0884805 0.0912617 0.0940753 0.0969211 0.0997992 0.102709 0.105652
+0.108626 0.111632 0.11467 0.117739 0.12084 0.123973 0.127137 0.130332
+0.133559 0.136816 0.140104 0.143423 0.146773 0.150152 0.153563 0.157003
+0.160473 0.163973 0.167502 0.171061 0.174649 0.178266 0.181912 0.185587
+0.18929 0.193021 0.19678 0.200567 0.204381 0.208223 0.212092 0.215988
+0.21991 0.223858 0.227833 0.231833 0.235859 0.239911 0.243987 0.248088
+0.252213 0.256363 0.260536 0.264733 0.268953 0.273196 0.277462 0.28175
+0.28606 0.290391 0.294744 0.299118 0.303513 0.307928 0.312363 0.316817
+0.321291 0.325783 0.330294 0.334824 0.339371 0.343935 0.348516 0.353115
+0.357729 0.362359 0.367005 0.371665 0.376341 0.38103 0.385734 0.390451
+0.395181 0.399923 0.404678 0.409444 0.414222 0.41901 0.42381 0.428618
+0.433437 0.438265 0.443101 0.447946 0.452798 0.457658 0.462524 0.467397
+0.472275 0.47716 0.482049 0.486942 0.49184 0.496741 0.501646 0.506553
+0.511462 0.516372 0.521284 0.526196 0.531109 0.536021 0.540933 0.545843
+0.550751 0.555658 0.560561 0.565461 0.570357 0.575249 0.580136 0.585018
+0.589894 0.594763 0.599626 0.604481 0.609329 0.614168 0.618999 0.62382
+0.628631 0.633432 0.638222 0.643 0.647767 0.652521 0.657262 0.66199
+0.666704 0.671403 0.676088 0.680757 0.68541 0.690046 0.694666 0.699268
+0.703852 0.708417 0.712964 0.717491 0.721998 0.726485 0.73095 0.735394
+0.739817 0.744216 0.748593 0.752946 0.757275 0.76158 0.76586 0.770115
+0.774343 0.778546 0.782721 0.78687 0.79099 0.795082 0.799146 0.803181
+0.807185 0.81116 0.815104 0.819018 0.8229 0.82675 0.830567 0.834352
+0.838104 0.841822 0.845506 0.849156 0.852771 0.856351 0.859895 0.863402
+0.866873 0.870307 0.873704 0.877064 0.880384 0.883667 0.886911 0.890115
+0.89328 0.896404 0.899489 0.902532 0.905534 0.908495 0.911415 0.914291
+0.917126 0.919918 0.922667 0.925371 0.928032 0.93065 0.933222 0.935751
+0.938233 0.940671 0.943063 0.94541 0.94771 0.949963 0.95217 0.95433
+0.956443 0.958507 0.960525 0.962494 0.964416 0.966288 0.968113 0.969888
+0.971614 0.973291 0.974918 0.976496 0.978024 0.979502 0.980929 0.982306
+0.983633 0.984909 0.986133 0.987307 0.98843 0.989501 0.990521 0.991489
+0.992406 0.993271 0.994084 0.994845 0.995554 0.996211 0.996815 0.997367
+0.997867 0.998315 0.998709 0.999051 0.999341 0.999578 0.999763 0.999894
+0.999973 1 0.999973 0.999894 0.999763 0.999578 0.999341 0.999051 0.998709
+0.998315 0.997867 0.997367 0.996815 0.996211 0.995554 0.994845 0.994084
+0.993271 0.992406 0.991489 0.990521 0.989501 0.98843 0.987307 0.986133
+0.984909 0.983633 0.982306 0.980929 0.979502 0.978024 0.976496 0.974918
+0.973291 0.971614 0.969888 0.968113 0.966288 0.964416 0.962494 0.960525
+0.958507 0.956443 0.95433 0.95217 0.949963 0.94771 0.94541 0.943063
+0.940671 0.938233 0.935751 0.933222 0.93065 0.928032 0.925371 0.922667
+0.919918 0.917126 0.914291 0.911415 0.908495 0.905534 0.902532 0.899489
+0.896404 0.89328 0.890115 0.886911 0.883667 0.880384 0.877064 0.873704
+0.870307 0.866873 0.863402 0.859895 0.856351 0.852771 0.849156 0.845506
+0.841822 0.838104 0.834352 0.830567 0.82675 0.8229 0.819018 0.815104
+0.81116 0.807185 0.803181 0.799146 0.795082 0.79099 0.78687 0.782721
+0.778546 0.774343 0.770115 0.76586 0.76158 0.757275 0.752946 0.748593
+0.744216 0.739817 0.735394 0.73095 0.726485 0.721998 0.717491 0.712964
+0.708417 0.703852 0.699268 0.694666 0.690046 0.68541 0.680757 0.676088
+0.671403 0.666704 0.66199 0.657262 0.652521 0.647767 0.643 0.638222
+0.633432 0.628631 0.62382 0.618999 0.614168 0.609329 0.604481 0.599626
+0.594763 0.589894 0.585018 0.580136 0.575249 0.570357 0.565461 0.560561
+0.555658 0.550751 0.545843 0.540933 0.536021 0.531109 0.526196 0.521284
+0.516372 0.511462 0.506553 0.501646 0.496741 0.49184 0.486942 0.482049
+0.47716 0.472275 0.467397 0.462524 0.457658 0.452798 0.447946 0.443101
+0.438265 0.433437 0.428618 0.42381 0.41901 0.414222 0.409444 0.404678
+0.399923 0.395181 0.390451 0.385734 0.38103 0.376341 0.371665 0.367005
+0.362359 0.357729 0.353115 0.348516 0.343935 0.339371 0.334824 0.330294
+0.325783 0.321291 0.316817 0.312363 0.307928 0.303513 0.299118 0.294744
+0.290391 0.28606 0.28175 0.277462 0.273196 0.268953 0.264733 0.260536
+0.256363 0.252213 0.248088 0.243987 0.239911 0.235859 0.231833 0.227833
+0.223858 0.21991 0.215988 0.212092 0.208223 0.204381 0.200567 0.19678
+0.193021 0.18929 0.185587 0.181912 0.178266 0.174649 0.171061 0.167502
+0.163973 0.160473 0.157003 0.153563 0.150152 0.146773 0.143423 0.140104
+0.136816 0.133559 0.130332 0.127137 0.123973 0.12084 0.117739 0.11467
+0.111632 0.108626 0.105652 0.102709 0.0997992 0.0969211 0.0940753 0.0912617
+;
+#X coords 0 1 511 0 200 100 1 0 0;
+#X restore 285 433 graph;
+#X text 22 283 Here are other FFT windows commonly used \, though the
+hann window is the one we'll use for all the spectral processing examples.
+See suboatches below and also the [tabgen] object that can also generate
+them., f 71;
+#X text 446 163 <-- click;
+#X text 45 159 window size, f 6;
+#X msg 87 450 connes;
+#N canvas 444 241 589 301 Triangular 0;
+#X text 60 82 1;
+#X text 59 197 0;
+#X obj 75 91 cnv 15 198 118 empty empty empty 20 12 0 14 #dcdcdc #404040
+0;
+#N canvas 0 22 450 300 (subpatch) 0;
+#X array \$0-barlett 2048 float 0;
+#X coords 0 1 2047 0 200 120 1 0 0;
+#X restore 74 90 graph;
+#X obj 368 236 tabwrite~ \$0-barlett;
+#X obj 389 93 samplerate~;
+#X obj 389 142 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+#dcdcdc #000000 #000000 0 256;
+#X obj 389 117 / 2048;
+#X obj 366 65 t b b b;
+#X obj 366 39 loadbang;
+#X obj 389 197 rescale~;
+#X obj 389 168 tri~;
+#X msg 450 141 0.75;
+#X text 76 29 Simply a triangular function.;
+#X connect 5 0 7 0;
+#X connect 6 0 11 0;
+#X connect 7 0 6 0;
+#X connect 8 0 4 0;
+#X connect 8 1 5 0;
+#X connect 8 2 12 0;
+#X connect 9 0 8 0;
+#X connect 10 0 4 0;
+#X connect 11 0 10 0;
+#X connect 12 0 11 1;
+#X restore 430 356 pd Triangular;
+#X msg 96 475 lanczos;
+#X obj 56 602 tabgen fft-window;
+#X msg 122 567 kaiser 4;
+#X text 195 559 also check the help file for the kaiser function \,
+since there's no example in a subpatch here., f 49;
+#X connect 0 0 20 0;
+#X connect 1 0 12 0;
+#X connect 2 0 13 0;
+#X connect 16 0 10 0;
+#X connect 17 0 2 0;
+#X connect 18 0 1 0;
+#X connect 20 0 16 0;
+#X connect 21 0 35 0;
+#X connect 22 0 35 0;
+#X connect 23 0 35 0;
+#X connect 24 0 35 0;
+#X connect 25 0 35 0;
+#X connect 26 0 35 0;
+#X connect 32 0 35 0;
+#X connect 34 0 35 0;
+#X connect 36 0 35 0;
