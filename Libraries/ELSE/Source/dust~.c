@@ -11,12 +11,11 @@ typedef struct _dust{
     t_random_state x_rstate;
     t_float        x_density;
     t_float        x_lastout;
+    int            x_id;
 }t_dust;
 
-static unsigned int instanc_n = 0;
-
 static void dust_seed(t_dust *x, t_symbol *s, int ac, t_atom *av){
-    random_init(&x->x_rstate, get_seed(s, ac, av, ++instanc_n));
+    random_init(&x->x_rstate, get_seed(s, ac, av, x->x_id));
 }
 
 static t_int *dust_perform(t_int *w){
@@ -49,6 +48,7 @@ static void dust_dsp(t_dust *x, t_signal **sp){
 
 static void *dust_new(t_symbol *s, int ac, t_atom *av){
     t_dust *x = (t_dust *)pd_new(dust_class);
+    x->x_id = random_get_id();
     dust_seed(x, s, 0, NULL);
     if(av->a_type == A_SYMBOL){
         if(ac >= 2 && atom_getsymbol(av) == gensym("-seed")){

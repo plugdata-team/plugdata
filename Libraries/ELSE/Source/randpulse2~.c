@@ -17,9 +17,8 @@ typedef struct _randpulse2{
     float      x_sr;
     float      x_lastout;
     float      x_output;
+    int        x_id;
 }t_randpulse2;
-
-static unsigned int instanc_n = 0;
 
 static void randpulse2_rand(t_randpulse2 *x, t_float f){
     x->x_rand = f != 0;
@@ -28,7 +27,7 @@ static void randpulse2_rand(t_randpulse2 *x, t_float f){
 static void randpulse2_seed(t_randpulse2 *x, t_symbol *s, int ac, t_atom *av){
     x->x_output = 0;
     x->x_phase = x->x_freq >= 0;
-    random_init(&x->x_rstate, get_seed(s, ac, av, ++instanc_n));
+    random_init(&x->x_rstate, get_seed(s, ac, av, x->x_id));
     uint32_t *s1 = &x->x_rstate.s1;
     uint32_t *s2 = &x->x_rstate.s2;
     uint32_t *s3 = &x->x_rstate.s3;
@@ -107,6 +106,7 @@ static void *randpulse2_free(t_randpulse2 *x){
 static void *randpulse2_new(t_symbol *s, int ac, t_atom *av){
     t_randpulse2 *x = (t_randpulse2 *)pd_new(randpulse2_class);
     s = NULL;
+    x->x_id = random_get_id();
 // default seed
     randpulse2_seed(x, s, 0, NULL);
     x->x_lastout = x->x_output = 0.;

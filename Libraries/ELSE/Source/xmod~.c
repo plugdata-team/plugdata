@@ -106,14 +106,10 @@ static void *xmod_new(t_symbol *s, int ac, t_atom *av){
     t_int pm = 0;
     t_int argnum = 0;
     while(ac > 0){
-        if(av->a_type == A_SYMBOL && !argnum){
-            if(atom_getsymbolarg(0, ac, av) == gensym("-pm")){
-                if(ac == 1){
-                    pm = 1;
-                    ac--, av++;
-                }
-                else
-                    goto errstate;
+        if(av->a_type == A_SYMBOL){
+            if(!argnum && atom_getsymbolarg(0, ac, av) == gensym("-pm")){
+                pm = 1;
+                ac--, av++;
             }
             else
                 goto errstate;
@@ -159,8 +155,7 @@ errstate:
 }
 
 void xmod_tilde_setup(void){
-    xmod_class = class_new(gensym("xmod~"),
-        (t_newmethod)xmod_new, (t_method)xmod_free,
+    xmod_class = class_new(gensym("xmod~"), (t_newmethod)xmod_new, (t_method)xmod_free,
         sizeof(t_xmod), CLASS_DEFAULT, A_GIMME, 0);
     CLASS_MAINSIGNALIN(xmod_class, t_xmod, x_freq);
     class_addmethod(xmod_class, (t_method)xmod_dsp, gensym("dsp"), A_CANT, 0);

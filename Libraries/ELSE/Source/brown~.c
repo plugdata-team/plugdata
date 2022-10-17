@@ -15,12 +15,11 @@ typedef struct _brown{
     t_float        x_lastout;
     t_float        x_step;
     t_float        x_inmode;
+    int            x_id;
 }t_brown;
 
-static unsigned int instanc_n = 0;
-
 static void brown_seed(t_brown *x, t_symbol *s, int ac, t_atom *av){
-    random_init(&x->x_rstate, get_seed(s, ac, av, ++instanc_n));
+    random_init(&x->x_rstate, get_seed(s, ac, av, x->x_id));
 }
 
 static void brown_step(t_brown *x, t_floatarg f){
@@ -30,12 +29,11 @@ static void brown_step(t_brown *x, t_floatarg f){
 static t_int *brown_perform(t_int *w){
     t_brown *x = (t_brown *)(w[1]);
     int nblock = (t_int)(w[2]);
-    t_random_state *rstate = (t_random_state *)(w[3]);
-    t_sample *in = (t_sample *)(w[4]);
-    t_sample *out = (t_sample *)(w[5]);
-    uint32_t *s1 = &rstate->s1;
-    uint32_t *s2 = &rstate->s2;
-    uint32_t *s3 = &rstate->s3;
+    t_sample *in = (t_sample *)(w[3]);
+    t_sample *out = (t_sample *)(w[4]);
+    uint32_t *s1 = &x->x_rstate.s1;
+    uint32_t *s2 = &x->x_rstate.s2;
+    uint32_t *s3 = &x->x_rstate.s3;
     t_float lastout = x->x_lastout;
     while(nblock--){
         if(x->x_inmode){
@@ -61,16 +59,17 @@ static t_int *brown_perform(t_int *w){
         }
     }
     x->x_lastout = lastout;
-    return(w+6);
+    return(w+5);
 }
 
 static void brown_dsp(t_brown *x, t_signal **sp){
     x->x_inmode = magic_inlet_connection((t_object *)x, x->x_glist, 0, &s_signal);
-    dsp_add(brown_perform, 5, x, sp[0]->s_n, &x->x_rstate, sp[0]->s_vec, sp[1]->s_vec);
+    dsp_add(brown_perform, 4, x, sp[0]->s_n, sp[0]->s_vec, sp[1]->s_vec);
 }
 
 static void *brown_new(t_symbol *s, int ac, t_atom *av){
     t_brown *x = (t_brown *)pd_new(brown_class);
+    x->x_id = random_get_id();
     x->x_glist = (t_glist *)canvas_getcurrent();
     x->x_step = 0.125;
     if(ac >= 2 && (atom_getsymbol(av) == gensym("-seed"))){

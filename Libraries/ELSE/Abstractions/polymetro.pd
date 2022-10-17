@@ -21,7 +21,7 @@
 #X obj 572 318 else/clock -s;
 #X obj 572 439 spigot 1;
 #X obj 523 285 b;
-#X obj 250 18 inlet;
+#X obj 234 18 inlet;
 #X obj 93 157 else/clock;
 #X obj 43 182 sel 0;
 #N canvas 540 107 629 409 args 0;
@@ -61,7 +61,7 @@
 #X obj 43 109 change;
 #X obj 43 84 != 0;
 #X obj 306 53 else/changed;
-#X obj 190 18 inlet;
+#X obj 306 16 inlet;
 #X obj 306 105 route float, f 15;
 #X obj 306 129 else/dec2frac;
 #X obj 425 399 else/router;

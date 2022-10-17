@@ -16,9 +16,8 @@ typedef struct _pink{
     int            x_octaves;
     int            x_octaves_set;
     t_random_state x_rstate;
+    int             x_id;
 }t_pink;
-
-static unsigned int instanc_n = 0;
 
 static void pink_init(t_pink *x){
     float *signals = x->x_signals;
@@ -36,7 +35,7 @@ static void pink_init(t_pink *x){
 }
 
 static void pink_seed(t_pink *x, t_symbol *s, int ac, t_atom *av){
-    random_init(&x->x_rstate, get_seed(s, ac, av, ++instanc_n));
+    random_init(&x->x_rstate, get_seed(s, ac, av, x->x_id));
     pink_init(x);
 }
 
@@ -87,6 +86,7 @@ static void pink_dsp(t_pink *x, t_signal **sp){
 
 static void *pink_new(t_symbol *s, int ac, t_atom *av){
     t_pink *x = (t_pink *)pd_new(pink_class);
+    x->x_id = random_get_id();
     outlet_new(&x->x_obj, &s_signal);
     x->x_sr = 0;
     if(ac >= 2 && (atom_getsymbol(av) == gensym("-seed"))){
