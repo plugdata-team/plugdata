@@ -106,6 +106,18 @@ struct ColourProperties : public Component, public Value::Listener
         lnf.setDefaultFont(fontValue.toString());
         settingsTree.setProperty("DefaultFont", fontValue.getValue(), nullptr);
 
+        auto colourThemesTree = settingsTree.getChildWithName("ColourThemes");
+        
+        
+        for (auto const& [themeName, theme] : lnf.colourSettings) {
+            auto themeTree = colourThemesTree.getChildWithName(themeName);
+            for (auto const& [colourId, colourValue] : theme) {
+                auto colourName = PlugDataColourNames.at(colourId).second;
+                swatches[themeName][colourName] = colourValue.toString();
+                themeTree.setProperty(colourName, colourValue.toString(), nullptr);
+            }
+        }
+
 
         lnf.setTheme(lnf.isUsingLightTheme);
         getTopLevelComponent()->repaint();
@@ -147,7 +159,9 @@ struct ThemePanel : public Component
 
     void resized() override
     {
-        int numRows = colourProperties.panels.size() / 2;
+        // Add a row for font as well
+        int numRows = PlugDataColour::numberOfColours + 1;
+        
         colourProperties.setBounds(0, 0, getWidth(), numRows * 23);
         viewport.setBounds(getLocalBounds().withTrimmedBottom(28));
         resetButton.setBounds(getWidth() - 40, getHeight() - 24, 28, 28);
@@ -197,14 +211,14 @@ struct DAWAudioSettings : public Component {
         latencySlider.setRange(0, 88200, 1);
         latencySlider.setTextValueSuffix(" Samples");
         latencySlider.setTextBoxStyle(Slider::TextEntryBoxPosition::TextBoxRight, false, 100, 20);
-        latencySlider.setColour(Slider::trackColourId, findColour(PlugDataColour::scrollbarBackgroundColourId));
+        latencySlider.setColour(Slider::trackColourId, findColour(PlugDataColour::scrollbarThumbColourId));
         latencySlider.setColour(Slider::backgroundColourId, findColour(PlugDataColour::panelBackgroundColourId));
 
         addAndMakeVisible(tailLengthSlider);
         tailLengthSlider.setRange(0, 10.0f, 0.01f);
         tailLengthSlider.setTextValueSuffix(" Seconds");
         tailLengthSlider.setTextBoxStyle(Slider::TextEntryBoxPosition::TextBoxRight, false, 100, 20);
-        tailLengthSlider.setColour(Slider::trackColourId, findColour(PlugDataColour::scrollbarBackgroundColourId));
+        tailLengthSlider.setColour(Slider::trackColourId, findColour(PlugDataColour::scrollbarThumbColourId));
         tailLengthSlider.setColour(Slider::backgroundColourId, findColour(PlugDataColour::panelBackgroundColourId));
 
         addAndMakeVisible(tailLengthLabel);
@@ -347,8 +361,7 @@ struct SettingsDialog : public Component {
 
     void paintOverChildren(Graphics& g) override
     {
-        // TODO:
-        g.setColour(findColour(PlugDataColour::toolbarBackgroundColourId));
+        g.setColour(findColour(PlugDataColour::outlineColourId));
         g.drawLine(0.0f, toolbarHeight, getWidth(), toolbarHeight);
 
         if (currentPanel > 0) {

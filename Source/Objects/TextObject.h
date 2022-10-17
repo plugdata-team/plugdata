@@ -53,7 +53,7 @@ struct TextBase : public ObjectBase
         TextLayout textLayout;
         auto textArea = border.subtractedFrom(getLocalBounds());
         AttributedString attributedCurrentText(currentText);
-        attributedCurrentText.setColour(findColour(PlugDataColour::canvasTextColourId));
+        attributedCurrentText.setColour(object->findColour(PlugDataColour::canvasTextColourId));
         attributedCurrentText.setFont(font);
         attributedCurrentText.setJustification(justification);
         textLayout.createLayout(attributedCurrentText, textArea.getWidth());
@@ -61,8 +61,15 @@ struct TextBase : public ObjectBase
 
         bool selected = cnv->isSelected(object);
 
-        auto outlineColour = findColour(selected && !cnv->isGraph ? PlugDataColour::canvasActiveColourId : PlugDataColour::outlineColourId);
+        Colour outlineColour;
 
+        if(cnv->isSelected(object) && !cnv->isGraph) {
+            outlineColour = object->findColour(PlugDataColour::canvasActiveColourId);
+        }
+        else {
+            outlineColour = object->findColour(static_cast<bool>(object->locked.getValue()) ? PlugDataColour::canvasLockedOutlineColourId : PlugDataColour::canvasUnlockedOutlineColourId);
+        }
+        
         if (!isValid) {
             outlineColour = selected && !cnv->isGraph ? Colours::red.brighter(1.5) : Colours::red;
         }

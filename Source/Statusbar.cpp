@@ -76,9 +76,7 @@ struct LevelMeter : public Component, public Timer
             for (auto i = 0; i < totalBlocks; ++i)
             {
                 if (i >= blocks[ch])
-                    // TODO: this again but right
-//                    g.setColour(findColour(PlugDataColour::meterColourId));
-                    g.setColour(findColour(PlugDataColour::signalColourId));
+                    g.setColour(findColour(PlugDataColour::panelBackgroundColourId));
                 else
                     g.setColour(i < totalBlocks - 1 ? c : Colours::red);
 

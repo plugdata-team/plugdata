@@ -548,6 +548,7 @@ public:
         if (listBox.isVisible()) {
             PlugDataLook::paintStripes(g, 24, listBox.getHeight() + 24, *this, -1, listBox.getViewport()->getViewPositionY() - 4);
         }
+
     }
 
     void paintOverChildren(Graphics& g) override
@@ -655,7 +656,7 @@ public:
     void resized() override
     {
         auto tableBounds = getLocalBounds();
-        auto inputBounds = tableBounds.removeFromTop(28);
+        auto inputBounds = tableBounds.removeFromTop(28).removeFromLeft(5);
 
         input.setBounds(inputBounds);
 
@@ -812,19 +813,22 @@ struct DocumentBrowser : public DocumentBrowserBase
     void paint(Graphics& g) override
     {
         g.fillAll(findColour(PlugDataColour::panelBackgroundColourId));
+        
+        // Background for statusbar part
+        g.setColour(findColour(PlugDataColour::toolbarBackgroundColourId));
+        g.fillRect(0, getHeight() - 28, getWidth(), 28);
     }
 
     void paintOverChildren(Graphics& g) override
     {
         // Draggable bar
-        g.setColour(findColour(PlugDataColour::panelBackgroundColourId));
+        g.setColour(findColour(PlugDataColour::panelBackgroundOffsetColourId));
         g.fillRect(0, 28, Sidebar::dragbarWidth + 1, getHeight());
 
-        // TODO: add outline colours for panel
-        g.setColour(findColour(PlugDataColour::panelBackgroundOffsetColourId));
+        g.setColour(findColour(PlugDataColour::outlineColourId));
         g.drawLine(0.5f, 0, 0.5f, getHeight() - 27.5f);
 
-        g.setColour(findColour(PlugDataColour::panelBackgroundOffsetColourId));
+        g.setColour(findColour(PlugDataColour::outlineColourId));
         g.drawLine(0, 28, getWidth(), 28);
     }
 

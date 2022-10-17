@@ -221,8 +221,15 @@ void ObjectBase::paint(Graphics& g)
     g.setColour(object->findColour(PlugDataColour::defaultObjectBackgroundColourId));
     g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), 2.0f);
 
-    auto outlineColour = object->findColour(cnv->isSelected(object) && !cnv->isGraph ? PlugDataColour::canvasActiveColourId : PlugDataColour::outlineColourId);
+    Colour outlineColour;
 
+    if(cnv->isSelected(object) && !cnv->isGraph) {
+        outlineColour = object->findColour(PlugDataColour::canvasActiveColourId);
+    }
+    else {
+        outlineColour = findColour(static_cast<bool>(object->locked.getValue()) ? PlugDataColour::canvasLockedOutlineColourId : PlugDataColour::canvasUnlockedOutlineColourId);
+    }
+    
     g.setColour(outlineColour);
     g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), 2.0f, 1.0f);
 }

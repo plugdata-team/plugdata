@@ -91,18 +91,21 @@ void Sidebar::paint(Graphics& g)
     if (automationPanel)
         automationPanel->viewport.repaint();
 
-    int sWidth = sidebarHidden ? dragbarWidth : std::max(dragbarWidth, getWidth());
-
     // Sidebar
     g.setColour(findColour(PlugDataColour::panelBackgroundColourId));
-    g.fillRect(getWidth() - sWidth, 0, sWidth, getHeight() - 28);
-
-    // Draggable bar
-    //g.setColour(findColour(PlugDataColour::outlineColourId));
-    //g.fillRect(getWidth() - sWidth, 0, dragbarWidth + 1, getHeight());
-
+    g.fillRect(0, 0, getWidth(), getHeight() - 28);
     
-
+    // Background for statusbar part
+    g.setColour(findColour(PlugDataColour::toolbarBackgroundColourId));
+    g.fillRect(0, getHeight() - 28, getWidth(), 28);
+    
+    // Background for buttons
+    g.setColour(findColour(PlugDataColour::toolbarBackgroundColourId));
+    g.fillRect(0, 0, getWidth(), 28);
+    
+    // Draggable bar
+    g.setColour(findColour(PlugDataColour::panelBackgroundOffsetColourId));
+    g.fillRect(0.0f, 28.0f, 5.0f, getHeight() - 55.0f);
 }
 
 void Sidebar::paintOverChildren(Graphics& g)
@@ -126,9 +129,13 @@ void Sidebar::resized()
     browserButton.setBounds(tabbarBounds.removeFromLeft(buttonWidth));
     automationButton.setBounds(tabbarBounds.removeFromLeft(buttonWidth));
 
+    browser->setBounds(bounds);
+    
+    bounds.removeFromLeft(dragbarWidth);
+    
     console->setBounds(bounds);
     inspector->setBounds(bounds);
-    browser->setBounds(bounds);
+    
     automationPanel->setBounds(bounds);
 }
 
@@ -178,6 +185,10 @@ void Sidebar::showPanel(int panelToShow)
     browser->setVisible(panelToShow == 1);
     automationPanel->setVisible(panelToShow == 2);
     
+    if(auto* editor =  dynamic_cast<PlugDataPluginEditor*>(pd->getActiveEditor())) {
+        editor->toolbarButton(PlugDataPluginEditor::Pin)->setEnabled(panelToShow == 0);
+    };
+
 }
 
 bool Sidebar::isShowingBrowser()

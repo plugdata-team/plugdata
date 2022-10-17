@@ -79,10 +79,9 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p) : AudioPro
         p.settingsTree.appendChild(ValueTree("Keymap"), nullptr);
     }
 
-    // TODO: rename the ones called border to outline
-    tabbar.setColour(TabbedButtonBar::frontOutlineColourId, findColour(PlugDataColour::activeTabBorderColourId));
-    tabbar.setColour(TabbedButtonBar::tabOutlineColourId, findColour(PlugDataColour::tabBorderColourId));
-    tabbar.setColour(TabbedComponent::outlineColourId, findColour(PlugDataColour::tabBorderColourId));
+    tabbar.setColour(TabbedButtonBar::frontOutlineColourId, findColour(PlugDataColour::activeTabOutlineColourId));
+    tabbar.setColour(TabbedButtonBar::tabOutlineColourId, findColour(PlugDataColour::tabOutlineColourId));
+    tabbar.setColour(TabbedComponent::outlineColourId, findColour(PlugDataColour::tabOutlineColourId));
 
     theme.referTo(pd.settingsTree.getPropertyAsValue("Theme", nullptr));
     theme.addListener(this);
@@ -242,6 +241,9 @@ PlugDataPluginEditor::~PlugDataPluginEditor()
 
 void PlugDataPluginEditor::paint(Graphics& g)
 {
+    
+    //g.fillAll(findColour(<#int colourID#>));
+    
     auto baseColour = findColour(PlugDataColour::toolbarBackgroundColourId);
 
 #if PLUGDATA_ROUNDED

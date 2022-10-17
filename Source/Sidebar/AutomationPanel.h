@@ -95,7 +95,7 @@ struct AutomationSlider : public Component, public Value::Listener {
 
     void paint(Graphics& g) override
     {
-        slider.setColour(Slider::backgroundColourId, findColour(index & 1 ? PlugDataColour::panelBackgroundOffsetColourId : PlugDataColour::panelBackgroundColourId));
+        slider.setColour(Slider::backgroundColourId, findColour(index & 1 ? PlugDataColour::panelBackgroundColourId : PlugDataColour::panelBackgroundOffsetColourId));
         slider.setColour(Slider::trackColourId, findColour(PlugDataColour::panelTextColourId));
 
         auto offColour = findColour(PlugDataColour::panelBackgroundOffsetColourId);
@@ -167,21 +167,25 @@ struct AutomationPanel : public Component
 
     void paint(Graphics& g) override
     {
-        g.setColour(findColour(PlugDataColour::panelBackgroundColourId));
+        g.setColour(findColour(PlugDataColour::panelBackgroundOffsetColourId));
         g.fillRect(getLocalBounds().withTrimmedLeft(Sidebar::dragbarWidth));
-        g.fillRect(getLocalBounds().withTrimmedLeft(Sidebar::dragbarWidth).withHeight(viewport.getY()));
+        g.fillRect(getLocalBounds().withHeight(viewport.getY()));
 
         g.setColour(findColour(PlugDataColour::panelTextColourId));
-        g.setFont(15);
-        g.drawFittedText("Parameters", 0, 3, getWidth(), viewport.getY(), Justification::centred, 1);
+        g.setFont(14);
+        g.drawFittedText("Parameters", 0, 1, getWidth(), viewport.getY(), Justification::centred, 1);
+        
+        // Background for statusbar part
+        g.setColour(findColour(PlugDataColour::toolbarBackgroundColourId));
+        g.fillRect(0, getHeight() - 28, getWidth(), 28);
 
-//        g.setColour(findColour(PlugDataColour::outlineColourId));
-//        g.drawLine(0, 0.5f, getWidth(), 0.5f);
+        g.setColour(findColour(PlugDataColour::outlineColourId));
+        g.drawLine(0, 27, getWidth(), 27);
     }
 
     void resized() override
     {
-        viewport.setBounds(getLocalBounds().withTrimmedTop(30).withTrimmedBottom(30).withTrimmedLeft(Sidebar::dragbarWidth));
+        viewport.setBounds(getLocalBounds().withTrimmedTop(28).withTrimmedBottom(28));
         sliders.setSize(getWidth(), PlugDataAudioProcessor::numParameters * 23);
     }
 

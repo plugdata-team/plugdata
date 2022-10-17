@@ -61,7 +61,7 @@ struct FloatAtomObject final : public AtomObject {
         bool highlighed = hasKeyboardFocus(true) && static_cast<bool>(object->locked.getValue());
 
         if (highlighed) {
-            g.setColour(findColour(PlugDataColour::canvasActiveColourId));
+            g.setColour(object->findColour(PlugDataColour::canvasActiveColourId));
             g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(1.0f), 2.0f, 2.0f);
         }
     }
