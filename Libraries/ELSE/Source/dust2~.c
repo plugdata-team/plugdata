@@ -5,18 +5,17 @@
 
 static t_class *dust2_class;
 
-static unsigned int instanc_n = 0;
-
 typedef struct _dust2{
     t_object       x_obj;
     t_float        x_sample_dur;
     t_random_state x_rstate;
     t_float        x_density;
     t_float        x_lastout;
+    int            x_id;
 }t_dust2;
 
 static void dust2_seed(t_dust2 *x, t_symbol *s, int ac, t_atom *av){
-    random_init(&x->x_rstate, get_seed(s, ac, av, ++instanc_n));
+    random_init(&x->x_rstate, get_seed(s, ac, av, x->x_id));
 }
 
 static t_int *dust2_perform(t_int *w){
@@ -49,6 +48,7 @@ static void dust2_dsp(t_dust2 *x, t_signal **sp){
 
 static void *dust2_new(t_symbol *s, int ac, t_atom *av){
     t_dust2 *x = (t_dust2 *)pd_new(dust2_class);
+    x->x_id = random_get_id();
     dust2_seed(x, s, 0, NULL);
     if(av->a_type == A_SYMBOL){
         if(ac >= 2 && atom_getsymbol(av) == gensym("-seed")){

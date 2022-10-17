@@ -15,20 +15,12 @@ typedef struct _randpulse{
     t_inlet        *x_inlet_width;
     t_inlet        *x_inlet_sync;
     t_float         x_sr;
+    int             x_id;
 }t_randpulse;
-
-static unsigned int instanc_n = 0;
 
 static void randpulse_seed(t_randpulse *x, t_symbol *s, int ac, t_atom *av){
     x->x_phase = x->x_freq >= 0 ? 1.0 : 0.0;
-//    unsigned int seed;
-//    random_init(&x->x_rstate, seed = get_seed(s, ac, av, ++instanc_n));
-    random_init(&x->x_rstate, get_seed(s, ac, av, ++instanc_n));
-/*    uint32_t *s1 = &x->x_rstate.s1;
-    uint32_t *s2 = &x->x_rstate.s2;
-    uint32_t *s3 = &x->x_rstate.s3;
-    x->x_random = (t_float)(random_frand(s1, s2, s3));
-    post("seed = %u //// x->x_random = %f", seed, x->x_random);*/
+    random_init(&x->x_rstate, get_seed(s, ac, av, x->x_id));
 }
 
 static t_int *randpulse_perform(t_int *w){
@@ -101,6 +93,7 @@ static void *randpulse_free(t_randpulse *x){
 static void *randpulse_new(t_symbol *s, int ac, t_atom *av){
     s = NULL;
     t_randpulse *x = (t_randpulse *)pd_new(randpulse_class);
+    x->x_id = random_get_id();
     randpulse_seed(x, s, 0, NULL);
     t_float init_freq = 0, init_width = 0.5;//, f3 = init_seed;
     if(av->a_type == A_SYMBOL){

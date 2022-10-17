@@ -15,39 +15,38 @@
 #define MIN_HEIGHT      30
 #define BORDER          5
 
-typedef struct _messbox_proxy
-{
-    t_object  p_ob;
-    struct _messbox   *p_master;
-    t_symbol   *x_bind_sym;
-} t_messbox_proxy;
+typedef struct _messbox_proxy{
+    t_object         p_ob;
+    struct _messbox *p_master;
+    t_symbol        *x_bind_sym;
+}t_messbox_proxy;
 
 typedef struct _messbox{
-    t_object        x_obj;
-    t_canvas       *x_canvas;
-    t_glist        *x_glist;
-    t_symbol   *x_bind_sym;
-    t_messbox_proxy  *x_proxy;
+    t_object         x_obj;
+    t_canvas        *x_canvas;
+    t_glist         *x_glist;
+    t_symbol        *x_bind_sym;
+    t_messbox_proxy *x_proxy;
     t_symbol        *x_dollzero;
-    int             x_flag;
-    int             x_height;
-    int             x_width;
-    int             x_resizing;
-    int             x_active;
-    int             x_selected;
-    char            x_fgcolor[8];
-    unsigned int    x_fg[3];    // fg RGB color
-    char            x_bgcolor[8];
-    unsigned int    x_bg[3];    // bg RGB color
-    int             x_font_size;
-    t_symbol       *x_font_weight;
-    char           *tcl_namespace;
-    char           *x_cv_id;
-    char           *frame_id;
-    char           *text_id;
-    char           *handle_id;
-    char           *window_tag;
-    char           *all_tag;
+    int              x_flag;
+    int              x_height;
+    int              x_width;
+    int              x_resizing;
+    int              x_active;
+    int              x_selected;
+    char             x_fgcolor[8];
+    unsigned int     x_fg[3];    // fg RGB color
+    char             x_bgcolor[8];
+    unsigned int     x_bg[3];    // bg RGB color
+    int              x_font_size;
+    t_symbol        *x_font_weight;
+    char            *tcl_namespace;
+    char            *x_cv_id;
+    char            *frame_id;
+    char            *text_id;
+    char            *handle_id;
+    char            *window_tag;
+    char            *all_tag;
 }t_messbox;
 
 static t_class *messbox_class;
@@ -220,19 +219,6 @@ static void messbox_vis(t_gobj *z, t_glist *gl, int vis){
 }
 
 /////////// METHODS !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-/*
-static void messbox_proxy_output(t_messbox_proxy* x, t_symbol *s, int ac,
-    t_atom *av){
-    if(!ac)
-        return;
-    else if(av->a_type == A_FLOAT)
-        outlet_list(x->p_master->x_obj.ob_outlet, s, ac, av);
-    else
-        outlet_anything(x->p_master->x_obj.ob_outlet, atom_getsymbol(av),
-            ac-1, av+1);
-}
-*/
-
 static void messbox_list(t_messbox* x, t_symbol *s, int ac, t_atom *av){
     s = NULL;
     if(!ac){ // bang
@@ -250,12 +236,14 @@ static void messbox_list(t_messbox* x, t_symbol *s, int ac, t_atom *av){
         sprintf(symbuf, " \\$%i ", i+1);
         tmplength = strlen(symbuf);
         length -= tmplength;
-        if (length <= 0) break;
+        if(length <= 0)
+            break;
         strncat(buf, symbuf, tmplength);
         atom_string(av + i, symbuf, 32);
         tmplength = strlen(symbuf);
         length -= tmplength;
-        if (length <= 0) break;
+        if(length <= 0)
+            break;
         strncat(buf, symbuf, tmplength);
     }
     sys_vgui("pdsend \"%s [string map {%s} [%s get 0.0 end]]\"\n",

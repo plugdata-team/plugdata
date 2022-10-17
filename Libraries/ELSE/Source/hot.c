@@ -43,24 +43,16 @@ static void hot_doit(t_hot *x){
         outlet_bang(x->x_outs[i]);
         else if (s == &s_float)
         outlet_float(x->x_outs[i], p[i]->p_float);
-        else if (s == &s_symbol && p[i]->p_symbol){
+        else if (s == &s_symbol && p[i]->p_symbol)
             outlet_symbol(x->x_outs[i], p[i]->p_symbol);
-            /* LATER rethink */
-            /* old code
-             if (x->x_multiatom)
-             outlet_symbol(x->x_outs[i], p[i]->p_symbol);
-             else
-             outlet_anything(x->x_outs[i], p[i]->p_symbol, 0, 0);
-             */
-        }
         else if (s == &s_pointer){
-            /* LATER */
+            // LATER ??
         }
         else if (s == &s_list)
             outlet_list(x->x_outs[i], s, p[i]->p_natoms, p[i]->p_message);
-        else if (s)  /* CHECKED: a slot may be inactive (in multiatom mode) */
+        else if (s)  // a slot may be inactive (in multiatom mode)
             outlet_anything(x->x_outs[i], s, p[i]->p_natoms, p[i]->p_message);
-        //added for 1-elt anythings that are symbols
+        // added for 1-elt anythings that are symbols
         else if(!s && (p[i]->p_symbol != &s_ || p[i]->p_symbol != NULL) && p[i]->p_natoms == 0)
             outlet_anything(x->x_outs[i], p[i]->p_symbol, 0, 0);
     }
@@ -115,10 +107,9 @@ static void hot_proxy_pointer(t_hot_proxy *x, t_gpointer *gp){
     hot_proxy_dopointer(x, gp, 1);
 }
 
-/* CHECKED: the slots fire in right-to-left order,
-   but they trigger only once (refman error) */
-static void hot_distribute(t_hot *x, int startid,
-			     t_symbol *s, int ac, t_atom *av, int doit){
+// CHECKED: the slots fire in right-to-left order,
+// but they trigger only once (refman error)
+static void hot_distribute(t_hot *x, int startid, t_symbol *s, int ac, t_atom *av, int doit){
     t_atom *ap = av;
     t_hot_proxy **pp;
     int id = startid + ac;
@@ -127,14 +118,15 @@ static void hot_distribute(t_hot *x, int startid,
 	id = x->x_nslots;
     ap += id - startid;
     pp = (t_hot_proxy **)(x->x_proxies + id);
-    if (s) ap--;
-    while (ap-- > av){
+    if(s)
+        ap--;
+    while(ap-- > av){
         pp--;
-        if (ap->a_type == A_FLOAT)
+        if(ap->a_type == A_FLOAT)
             hot_proxy_dofloat(*pp, ap->a_w.w_float, 0);
-        else if (ap->a_type == A_SYMBOL)
+        else if(ap->a_type == A_SYMBOL)
             hot_proxy_donosymbol(*pp, ap->a_w.w_symbol, 0);
-        else if (ap->a_type == A_POINTER)
+        else if(ap->a_type == A_POINTER)
             hot_proxy_dopointer(*pp, ap->a_w.w_gpointer, 0);
     }
     if(s)
@@ -144,16 +136,16 @@ static void hot_distribute(t_hot *x, int startid,
 }
 
 static void hot_proxy_domultiatom(t_hot_proxy *x, int ac, t_atom *av, int doit){
-    if (ac > x->p_size){
+    if(ac > x->p_size)
         pd_error(x, "hot: maximum size is %d elements", (int)HOT_SIZE);
-    }
     x->p_natoms = ac;
     memcpy(x->p_message, av, ac * sizeof(*x->p_message));
-    if (doit) hot_arm(x->p_master);
+    if(doit)
+        hot_arm(x->p_master);
 }
 
 static void hot_proxy_dolist(t_hot_proxy *x, int ac, t_atom *av, int doit){
-    if (x->p_master->x_multiatom){
+    if(x->p_master->x_multiatom){
         x->p_selector = &s_list;
         hot_proxy_domultiatom(x, ac, av, doit);
     }
@@ -178,8 +170,7 @@ static void hot_proxy_list(t_hot_proxy *x, t_symbol *s, int ac, t_atom *av){
 }
 
 static void hot_proxy_doanything(t_hot_proxy *x, t_symbol *s, int ac, t_atom *av, int doit){
-    if (x->p_master->x_multiatom){
-        /* LATER rethink and CHECKME */
+    if (x->p_master->x_multiatom){ // LATER rethink and CHECKME
         if (s == &s_symbol){
             if (ac && av->a_type == A_SYMBOL)
             hot_proxy_dosymbol(x, av->a_w.w_symbol, doit);

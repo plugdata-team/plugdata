@@ -12,13 +12,12 @@ typedef struct _stepnoise{
     double          x_phase;
     t_float         x_val;
     float           x_sr;
+    int             x_id;
 }t_stepnoise;
-
-static unsigned int instanc_n = 0;
 
 static void stepnoise_seed(t_stepnoise *x, t_symbol *s, int ac, t_atom *av){
     x->x_phase = 0;
-    random_init(&x->x_rstate, get_seed(s, ac, av, ++instanc_n));
+    random_init(&x->x_rstate, get_seed(s, ac, av, x->x_id));
     uint32_t *s1 = &x->x_rstate.s1;
     uint32_t *s2 = &x->x_rstate.s2;
     uint32_t *s3 = &x->x_rstate.s3;
@@ -69,11 +68,11 @@ static void stepnoise_dsp(t_stepnoise *x, t_signal **sp){
 static void *stepnoise_new(t_symbol *s, int ac, t_atom *av){
     s = NULL;
     t_stepnoise *x = (t_stepnoise *)pd_new(stepnoise_class);
+    x->x_id = random_get_id();
     stepnoise_seed(x, s, 0, NULL);
 // default parameters
     t_float hz = 0;
-    int numargs = 0;
-    while(ac){
+    if(ac){
         if(av->a_type == A_SYMBOL){
             if(ac >= 2 && atom_getsymbol(av) == gensym("-seed")){
                 t_atom at[1];
@@ -84,31 +83,13 @@ static void *stepnoise_new(t_symbol *s, int ac, t_atom *av){
             else
                 goto errstate;
         }
-        else{
-            switch(numargs){
-                case 0: hz = atom_getintarg(0, ac, av);
-                    numargs++;
-                    ac--;
-                    av++;
-                    break;
-                default:
-                    ac--;
-                    av++;
-                    break;
-            };
-        }
+        else if(av->a_type == A_FLOAT)
+           hz = atom_getfloat(av);
     }
     if(hz >= 0)
         x->x_phase = 1.;
     x->x_freq = hz;
-/* get 1st output
-    uint32_t *s1 = &x->x_rstate.s1;
-    uint32_t *s2 = &x->x_rstate.s2;
-    uint32_t *s3 = &x->x_rstate.s3;
-    x->x_ynp1 = (t_float)(random_frand(s1, s2, s3));*/
-// in/out
     outlet_new(&x->x_obj, &s_signal);
-// done
     return(x);
 errstate:
     pd_error(x, "[stepnoise~]: improper args");

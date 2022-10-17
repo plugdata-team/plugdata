@@ -10,12 +10,11 @@ typedef struct _gray{
     t_object       x_obj;
     int            x_base;
     t_random_state x_rstate;
+    int            x_id;
 }t_gray;
 
-static unsigned int instanc_n = 0;
-
 static void gray_seed(t_gray *x, t_symbol *s, int ac, t_atom *av){
-    random_init(&x->x_rstate, get_seed(s, ac, av, ++instanc_n));
+    random_init(&x->x_rstate, get_seed(s, ac, av, x->x_id));
     x->x_base = x->x_rstate.s1 ^ x->x_rstate.s2 ^ x->x_rstate.s3;
 }
 
@@ -42,6 +41,7 @@ static void gray_dsp(t_gray *x, t_signal **sp){
 
 static void *gray_new(t_symbol *s, int ac, t_atom *av){
     t_gray *x = (t_gray *)pd_new(gray_class);
+    x->x_id = random_get_id();
     if(ac >= 2 && (atom_getsymbol(av) == gensym("-seed"))){
         t_atom at[1];
         SETFLOAT(at, atom_getfloat(av+1));

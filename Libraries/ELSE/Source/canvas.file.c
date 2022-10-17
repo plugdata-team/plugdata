@@ -25,6 +25,12 @@ static void canvas_file_symbol(t_canvas_file *x, t_symbol *file){
         outlet_symbol(x->x_fail, file);
 }
 
+static void canvas_file_anything(t_canvas_file *x, t_symbol *s, int ac, t_atom *av){
+    ac = 0;
+    av = NULL;
+    canvas_file_symbol(x, s);
+}
+
 static void *canvas_file_new(t_floatarg f){
     t_canvas_file *x = (t_canvas_file *)pd_new(canvas_file_class);
     x->x_cv = canvas_getrootfor(canvas_getcurrent());
@@ -40,4 +46,5 @@ void setup_canvas0x2efile(void){
     canvas_file_class = class_new(gensym("canvas.file"), (t_newmethod)canvas_file_new,
         0, sizeof(t_canvas_file), 0, A_DEFFLOAT, 0);
     class_addsymbol(canvas_file_class, canvas_file_symbol);
+    class_addanything(canvas_file_class, canvas_file_anything);
 }

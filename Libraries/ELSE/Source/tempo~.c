@@ -21,14 +21,13 @@ typedef struct _tempo{
     t_float        x_last_sync;
     t_float        x_swing;
     t_float        x_mode;
+    int            x_id;
 }t_tempo;
 
 static t_class *tempo_class;
 
-static unsigned int instanc_n = 0;
-
 static void tempo_seed(t_tempo *x, t_symbol *s, int ac, t_atom *av){
-    random_init(&x->x_rstate, get_seed(s, ac, av, ++instanc_n));
+    random_init(&x->x_rstate, get_seed(s, ac, av, x->x_id));
     x->x_deviation = x->x_phase = 1;
 }
 
@@ -148,8 +147,9 @@ static void *tempo_free(t_tempo *x){
 }
 
 static void *tempo_new(t_symbol *s, int ac, t_atom *av){
-    t_tempo *x = (t_tempo *)pd_new(tempo_class);
     s = NULL;
+    t_tempo *x = (t_tempo *)pd_new(tempo_class);
+    x->x_id = random_get_id();
     tempo_seed(x, s, 0, NULL);
     t_float init_swing = 0, init_tempo = 0;
     t_float on = 0, mode = 0, mul = 1;

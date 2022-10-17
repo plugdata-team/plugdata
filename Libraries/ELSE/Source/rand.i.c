@@ -6,27 +6,25 @@
 static t_class *randi_class;
 
 typedef struct _randi{
-    t_object        x_obj;
-    t_random_state  x_rstate;
-    t_float         x_min;
-    t_float         x_max;
+    t_object       x_obj;
+    t_random_state x_rstate;
+    t_float        x_min;
+    t_float        x_max;
+    int            x_id;
 }t_randi;
 
-static unsigned int instanc_n = 0;
-
 static void randi_seed(t_randi *x, t_symbol *s, int ac, t_atom *av){
-    random_init(&x->x_rstate, get_seed(s, ac, av, ++instanc_n));
+    random_init(&x->x_rstate, get_seed(s, ac, av, x->x_id));
 }
 
 static void randi_bang(t_randi *x){
-    int min = (int)x->x_min; // Output LOW
-    int max = (int)x->x_max + 1; // Output HIGH
+    int min = (int)x->x_min, max = (int)x->x_max + 1;
     if(min > max){
         int temp = min;
         min = max;
         max = temp;
     }
-    int range = max - min; // range
+    int range = max - min;
     int random = min;
     if(range){
         uint32_t *s1 = &x->x_rstate.s1;
@@ -40,11 +38,12 @@ static void randi_bang(t_randi *x){
 
 static void *randi_new(t_symbol *s, int ac, t_atom *av){
     t_randi *x = (t_randi *)pd_new(randi_class);
+    x->x_id = random_get_id();
     randi_seed(x, s, 0, NULL);
-    int flagset = 0, numargs = 0;
+    x->x_min = 0;
+    x->x_max = 1;
     while(ac){
         if(av->a_type == A_SYMBOL){
-            flagset = 1;
             if(ac >= 2 && atom_getsymbol(av) == gensym("-seed")){
                 t_atom at[1];
                 SETFLOAT(at, atom_getfloat(av+1));
@@ -54,23 +53,13 @@ static void *randi_new(t_symbol *s, int ac, t_atom *av){
             else
                 goto errstate;
         }
-        else{
-            switch(numargs){
-                case 0: x->x_min = atom_getintarg(0, ac, av);
-                    numargs++;
-                    ac--;
-                    av++;
-                    break;
-                case 1: x->x_max = atom_getintarg(0, ac, av);
-                    numargs++;
-                    ac--;
-                    av++;
-                    break;
-                default:
-                    ac--;
-                    av++;
-                    break;
-            };
+        if(ac && av->a_type == A_FLOAT){
+            x->x_min = atom_getintarg(0, ac, av);
+            ac--, av++;
+            if(ac && av->a_type == A_FLOAT){
+                x->x_max = atom_getintarg(0, ac, av);
+                ac--, av++;
+            }
         }
     }
     floatinlet_new((t_object *)x, &x->x_min);

@@ -13,13 +13,12 @@ typedef struct _rampnoise{
     t_float         x_ynp1;
     t_float         x_yn;
     float           x_sr;
+    int             x_id;
 }t_rampnoise;
-
-static unsigned int instanc_n = 0;
 
 static void rampnoise_seed(t_rampnoise *x, t_symbol *s, int ac, t_atom *av){
     x->x_phase = 0;
-    random_init(&x->x_rstate, get_seed(s, ac, av, ++instanc_n));
+    random_init(&x->x_rstate, get_seed(s, ac, av, x->x_id));
     uint32_t *s1 = &x->x_rstate.s1;
     uint32_t *s2 = &x->x_rstate.s2;
     uint32_t *s3 = &x->x_rstate.s3;
@@ -81,11 +80,11 @@ static void rampnoise_dsp(t_rampnoise *x, t_signal **sp){
 static void *rampnoise_new(t_symbol *s, int ac, t_atom *av){
     s = NULL;
     t_rampnoise *x = (t_rampnoise *)pd_new(rampnoise_class);
+    x->x_id = random_get_id();
     rampnoise_seed(x, s, 0, NULL);
 // default parameters
     t_float hz = 0;
-    int numargs = 0;
-    while(ac){
+    if(ac){
         if(av->a_type == A_SYMBOL){
             if(ac >= 2 && atom_getsymbol(av) == gensym("-seed")){
                 t_atom at[1];
@@ -96,19 +95,8 @@ static void *rampnoise_new(t_symbol *s, int ac, t_atom *av){
             else
                 goto errstate;
         }
-        else{
-            switch(numargs){
-                case 0: hz = atom_getfloat(av);
-                    numargs++;
-                    ac--;
-                    av++;
-                    break;
-                default:
-                    ac--;
-                    av++;
-                    break;
-            };
-        }
+        else if(av->a_type == A_FLOAT)
+            hz = atom_getfloat(av);
     }
     if(hz >= 0)
         x->x_phase = 1.;

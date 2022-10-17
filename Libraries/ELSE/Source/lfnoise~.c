@@ -15,9 +15,8 @@ typedef struct _lfnoise{
     t_int           x_interp;
     t_inlet        *x_inlet_sync;
     float           x_sr;
+    int             x_id;
 }t_lfnoise;
-
-static unsigned int instanc_n = 0;
 
 static void lfnoise_interp(t_lfnoise *x, t_floatarg f){
     x->x_interp = (int)f != 0;
@@ -25,7 +24,7 @@ static void lfnoise_interp(t_lfnoise *x, t_floatarg f){
 
 static void lfnoise_seed(t_lfnoise *x, t_symbol *s, int ac, t_atom *av){
     x->x_phase = 0;
-    random_init(&x->x_rstate, get_seed(s, ac, av, ++instanc_n));
+    random_init(&x->x_rstate, get_seed(s, ac, av, x->x_id));
     uint32_t *s1 = &x->x_rstate.s1;
     uint32_t *s2 = &x->x_rstate.s2;
     uint32_t *s3 = &x->x_rstate.s3;
@@ -104,6 +103,7 @@ static void *lfnoise_free(t_lfnoise *x){
 static void *lfnoise_new(t_symbol *s, int ac, t_atom *av){
     s = NULL;
     t_lfnoise *x = (t_lfnoise *)pd_new(lfnoise_class);
+    x->x_id = random_get_id();
     lfnoise_seed(x, s, 0, NULL);
 // default parameters
     t_float hz = 0;

@@ -56,7 +56,7 @@ typedef struct _butter_state{
     t_float s_c2;
 }butter_state;
 
-void blimp_butter_bang_smooth (butter_state states[3], t_float input, t_float* output, t_float smooth){
+static void butter_bang_smooth (butter_state states[3], t_float input, t_float* output, t_float smooth){
     for(int i = 0; i < 3; i++){
         butter_state* s = states + i;
         t_float d1t = s->s_ar * s->d1A + s->s_ai * s->d2A + input;
@@ -72,7 +72,7 @@ void blimp_butter_bang_smooth (butter_state states[3], t_float input, t_float* o
     }
 }
 
-void blimp_butter_init(butter_state states[3]){
+static void butter_init(butter_state states[3]){
     for(int i = 0; i < 3; i++){
         butter_state* s = states + i;
         s->d1A = s->d1B = s->d2A = s->d2B = 0.0;
@@ -81,51 +81,51 @@ void blimp_butter_init(butter_state states[3]){
     }
 }
 
-t_complex blimp_complex_div_f(t_float in1, t_complex in2) {
+static t_complex complex_div_f(t_float in1, t_complex in2) {
     double real = (double)in1 / creal(in2);
     double imag = (double)in1 / cimag(in2);
     
     return (t_complex){real,imag};
 }
 
-t_complex blimp_complex_mult(t_complex in1, t_complex in2) {
+static t_complex complex_mult(t_complex in1, t_complex in2) {
     double real = creal(in1) * creal(in2) - cimag(in1) * cimag(in2);
     double imag = creal(in1) * cimag(in2) + creal(in2) * cimag(in1);
     return (t_complex){real,imag};
 }
 
-t_complex blimp_complex_div(t_complex in1, t_complex in2)
+static t_complex complex_div(t_complex in1, t_complex in2)
  {
     double real = (creal(in1) * creal(in2) + cimag(in1) * cimag(in2)) / (creal(in2) * creal(in2) + cimag(in2) * cimag(in2));
     double imag = (cimag(in1) * creal(in2) - creal(in1) * cimag(in2)) / (creal(in2) * creal(in2) + cimag(in2) * cimag(in2));
     return (t_complex){real,imag};
  }
 
-t_complex blimp_complex_add(t_complex in1, t_complex in2) {
+static t_complex complex_add(t_complex in1, t_complex in2) {
     double real = creal(in1) + creal(in2);
     double imag = cimag(in1) + cimag(in2);
     return (t_complex){real,imag};
 }
 
-t_complex blimp_complex_subtract(t_complex in1, t_complex in2) {
+static t_complex complex_subtract(t_complex in1, t_complex in2) {
     double real = creal(in1) - creal(in2);
     double imag = cimag(in1) - cimag(in2);
     return (t_complex){real,imag};
 }
 
 
-t_complex blimp_complex_with_angle(const t_float angle){
+static t_complex complex_with_angle(const t_float angle){
     return (t_complex){cosf(angle), sinf(angle)};
 }
 
-t_float blimp_complex_norm2(const t_complex x){
+static t_float complex_norm2(const t_complex x){
     return creal(x) * creal(x) + cimag(x) * cimag(x);
 }
-t_float blimp_complex_norm(const t_complex x){
-    return sqrt(blimp_complex_norm2(x));
+static t_float complex_norm(const t_complex x){
+    return sqrt(complex_norm2(x));
 }
 
-void blimp_set_butter_hp(butter_state states[3], t_float freq){
+static void set_butter_hp(butter_state states[3], t_float freq){
     //  This computes the poles for a highpass butterworth filter, transformed to the
     // digital domain using a bilinear transform. Every biquad section is normalized at NY.
     t_float epsilon = .0001; // stability guard
@@ -138,26 +138,26 @@ void blimp_set_butter_hp(butter_state states[3], t_float freq){
         freq = max;
     // prewarp cutoff frequency
     t_float omega = 2.0 * tan(M_PI * freq);
-    t_complex pole = blimp_complex_with_angle( (2*sections + 1) * M_PI / (4*sections)); // first pole of lowpass filter with omega == 1
-    t_complex pole_inc = blimp_complex_with_angle(M_PI / (2*sections)); // phasor to get to next pole, see Porat p. 331
+    t_complex pole = complex_with_angle( (2*sections + 1) * M_PI / (4*sections)); // first pole of lowpass filter with omega == 1
+    t_complex pole_inc = complex_with_angle(M_PI / (2*sections)); // phasor to get to next pole, see Porat p. 331
     t_complex b = (t_complex){-1.0, 0.0}; // normalize at NY
     t_complex c = (t_complex){1.0, 0.0};  // all zeros will be at DC
     for(int i = 0; i < sections; i++){
         butter_state* s = states + i;
         // setup the biquad with the computed pole and zero and unit gain at NY
-        pole = blimp_complex_mult(pole, pole_inc);            // comp next (lowpass) pole
-        t_complex a = blimp_complex_div_f(omega, pole);
+        pole = complex_mult(pole, pole_inc);            // comp next (lowpass) pole
+        t_complex a = complex_div_f(omega, pole);
         s->ar = creal(a);
         s->ai = cimag(a);
         s->c0 = 1.0;
         s->c1 = 2.0 * (creal(a) - creal(b));
-        s->c2 = (blimp_complex_norm2(a) - blimp_complex_norm2(b) - s->c1 * creal(a)) / cimag(a);
-        t_complex invComplexGain = blimp_complex_div(
-        blimp_complex_mult(blimp_complex_subtract(c, a), blimp_complex_subtract(c, conj(a))),
-        blimp_complex_mult(blimp_complex_subtract(c, b), blimp_complex_subtract(c, conj(b)))
+        s->c2 = (complex_norm2(a) - complex_norm2(b) - s->c1 * creal(a)) / cimag(a);
+        t_complex invComplexGain = complex_div(
+        complex_mult(complex_subtract(c, a), complex_subtract(c, conj(a))),
+        complex_mult(complex_subtract(c, b), complex_subtract(c, conj(b)))
         );
         
-        t_float invGain = blimp_complex_norm(invComplexGain);
+        t_float invGain = complex_norm(invComplexGain);
         s->c0 *= invGain;
         s->c1 *= invGain;
         s->c2 *= invGain;
@@ -253,12 +253,12 @@ static t_int *blimp_perform_imp(t_int *w){
     t_blimpctl *ctl   = (t_blimpctl *)(w[1]);
     t_int n           = (t_int)(w[2]);
     // set postfilter cutoff
-    blimp_set_butter_hp(ctl->c_butter, 0.85 * (*freq / sys_getsr()));
+    set_butter_hp(ctl->c_butter, 0.85 * (*freq / sys_getsr()));
     while(n--){
         t_float frequency = *freq++;
         t_float sample = _get_bandlimited_discontinuity(ctl, bli);
         // highpass filter output to remove DC offset and low frequency aliasing
-        blimp_butter_bang_smooth(ctl->c_butter, sample, &sample, 0.05);
+        butter_bang_smooth(ctl->c_butter, sample, &sample, 0.05);
         *out++ = sample * 2;
         _bang_phasor(ctl, frequency); // advance phasor
     }
@@ -384,7 +384,7 @@ static void build_tables(void){
     // store bli table
     _store(bli, real, (t_float)S, N);
     // _printm(bli, "h", N);
-    // integrate impulse and invert to produce a step function from 1->0 
+    // integrate impulse and invert to produce a step function from 1->0
     sum = 0.0;
     for(i = 0; i < N; i++){
         sum += real[i];
@@ -402,7 +402,7 @@ static void blimp_dsp(t_blimp *x, t_signal **sp){
 static void *blimp_new(t_symbol *s){
     t_blimp *x = (t_blimp *)pd_new(blimp_class);
     outlet_new(&x->x_obj, gensym("signal"));
-    blimp_butter_init(x->x_ctl.c_butter);
+    butter_init(x->x_ctl.c_butter);
     // init oscillators
     for(int i = 0; i < VOICES; i++){
       x->x_ctl.c_index[i] = N-2;

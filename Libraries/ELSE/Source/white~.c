@@ -10,16 +10,15 @@ typedef struct _white{
     t_object       x_obj;
     int            x_clip;
     t_random_state x_rstate;
+    int            x_id;
 }t_white;
-
-static unsigned int instanc_n = 0;
 
 static void white_clip(t_white *x, t_floatarg f){
     x->x_clip = f != 0;
 }
 
 static void white_seed(t_white *x, t_symbol *s, int ac, t_atom *av){
-    random_init(&x->x_rstate, get_seed(s, ac, av, ++instanc_n));
+    random_init(&x->x_rstate, get_seed(s, ac, av, x->x_id));
 }
 
 static t_int *white_perform(t_int *w){
@@ -45,6 +44,7 @@ static void white_dsp(t_white *x, t_signal **sp){
 
 static void *white_new(t_symbol *s, int ac, t_atom *av){
     t_white *x = (t_white *)pd_new(white_class);
+    x->x_id = random_get_id();
     outlet_new(&x->x_obj, &s_signal);
     x->x_clip = 0;
     white_seed(x, s, 0, NULL);

@@ -6,10 +6,10 @@
 static t_class *gcd_class;
 
 typedef struct _gcd{
-    t_object    x_obj;
-    float       x_right;
-    float       x_output;
-    t_outlet   *x_outlet;
+    t_object  x_obj;
+    float     x_right;
+    float     x_output;
+    t_outlet *x_outlet;
 }t_gcd;
 
 float gcd_calculate(float f1, float f2){
