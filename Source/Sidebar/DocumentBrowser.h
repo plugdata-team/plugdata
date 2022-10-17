@@ -80,7 +80,9 @@ public:
         Path p;
         p.addTriangle(0.0f, 0.0f, 1.0f, isOpen() ? 0.0f : 0.5f, isOpen() ? 0.5f : 0.0f, 1.0f);
         g.setColour(isSelected() ? getOwnerView()->findColour(PlugDataColour::panelActiveTextColourId) : getOwnerView()->findColour(PlugDataColour::panelTextColourId).withAlpha(isMouseOver ? 0.7f : 1.0f));
-        g.fillPath(p, p.getTransformToScaleToFit(area.reduced(2, area.getHeight() / 4), true));
+        
+        auto pathArea = area.translated(4, 0);
+        g.fillPath(p, p.getTransformToScaleToFit(pathArea.reduced(2, pathArea.getHeight() / 4), true));
     }
 
     //==============================================================================
@@ -167,7 +169,7 @@ public:
 
     void paintItem(Graphics& g, int width, int height) override
     {
-        int const x = 32;
+        int const x = 35;
 
         if (isSelected())
             g.setColour(owner.findColour(DirectoryContentsDisplayComponent::highlightedTextColourId));
@@ -508,6 +510,7 @@ public:
             input.repaint();
         };
 
+        input.setInterceptsMouseClicks(true, true);
         closeButton.setAlwaysOnTop(true);
 
         addAndMakeVisible(closeButton);
@@ -656,12 +659,13 @@ public:
     void resized() override
     {
         auto tableBounds = getLocalBounds();
-        auto inputBounds = tableBounds.removeFromTop(28).removeFromLeft(5);
+        auto inputBounds = tableBounds.removeFromTop(28);
 
         input.setBounds(inputBounds);
 
         closeButton.setBounds(inputBounds.removeFromRight(30));
 
+        tableBounds.removeFromTop(28);
         listBox.setBounds(tableBounds);
     }
 
@@ -744,7 +748,7 @@ struct DocumentBrowser : public DocumentBrowserBase
         };
 
         resetFolderButton.onClick = [this]() {
-            auto location = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory).getChildFile("PlugData");
+            auto location = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory).getChildFile("PlugData").getChildFile("Library");
             auto path = location.getFullPathName();
             pd->settingsTree.setProperty("BrowserPath", path, nullptr);
             directory.setDirectory(path, true, true);
@@ -792,6 +796,7 @@ struct DocumentBrowser : public DocumentBrowserBase
     void resized() override
     {
         searchComponent.setBounds(getLocalBounds().withHeight(getHeight() - 28));
+        
         fileList.setBounds(getLocalBounds().withHeight(getHeight() - 58).withY(28).withLeft(5));
 
         auto fb = FlexBox(FlexBox::Direction::row, FlexBox::Wrap::noWrap, FlexBox::AlignContent::flexStart, FlexBox::AlignItems::stretch, FlexBox::JustifyContent::flexStart);
