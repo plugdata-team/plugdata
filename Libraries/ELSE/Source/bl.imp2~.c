@@ -6,6 +6,12 @@
 #include <string.h>
 #include <complex.h>
 
+#if _MSC_VER
+#define t_complex _Dcomplex
+#else
+#define t_complex complex double
+#endif
+
 // TODO: some of these aren't used
 #define LPHASOR      (8*sizeof(uint32_t)) // the phasor logsize
 #define VOICES       8 // the number of waveform voices
@@ -74,15 +80,53 @@ static void butter_init(butter_state states[3]){
     }
 }
 
-static complex double complex_with_angle(const t_float angle){ return cos(angle) + sin(angle) * I; }
-static t_float complex_norm2(const complex double x){return creal(x)*creal(x)+cimag(x)*cimag(x);}
-static t_float complex_norm(const complex double x){return sqrt(complex_norm2(x));}
+static t_complex complex_div_f(t_float in1, t_complex in2) {
+    double real = (double)in1 / creal(in2);
+    double imag = (double)in1 / cimag(in2);
+    
+    return (t_complex){real,imag};
+}
+
+static t_complex complex_mult(t_complex in1, t_complex in2) {
+    double real = creal(in1) * creal(in2) - cimag(in1) * cimag(in2);
+    double imag = creal(in1) * cimag(in2) + creal(in2) * cimag(in1);
+    return (t_complex){real,imag};
+}
+
+static t_complex complex_div(t_complex in1, t_complex in2)
+ {
+    double real = (creal(in1) * creal(in2) + cimag(in1) * cimag(in2)) / (creal(in2) * creal(in2) + cimag(in2) * cimag(in2));
+    double imag = (cimag(in1) * creal(in2) - creal(in1) * cimag(in2)) / (creal(in2) * creal(in2) + cimag(in2) * cimag(in2));
+    return (t_complex){real,imag};
+ }
+
+static t_complex complex_add(t_complex in1, t_complex in2) {
+    double real = creal(in1) + creal(in2);
+    double imag = cimag(in1) + cimag(in2);
+    return (t_complex){real,imag};
+}
+
+static t_complex complex_subtract(t_complex in1, t_complex in2) {
+    double real = creal(in1) - creal(in2);
+    double imag = cimag(in1) - cimag(in2);
+    return (t_complex){real,imag};
+}
+
+
+static t_complex complex_with_angle(const t_float angle){
+    return (t_complex){cosf(angle), sinf(angle)};
+}
+
+static t_float complex_norm2(const t_complex x){
+    return creal(x) * creal(x) + cimag(x) * cimag(x);
+}
+static t_float complex_norm(const t_complex x){
+    return sqrt(complex_norm2(x));
+}
 
 static void set_butter_hp(butter_state states[3], t_float freq){
-    /*  This member function computes the poles for a highpass butterworth filter.
-     *  The filter is transformed to the digital domain using a bilinear transform.
-     *  Every biquad section is normalized at NY.
-     */
+    //  This computes the poles for a highpass butterworth filter, transformed to the
+    // digital domain using a bilinear transform. Every biquad section is normalized at NY.
     t_float epsilon = .0001; // stability guard
     t_float min = 0.0 + epsilon;
     t_float max = 0.5 - epsilon;
@@ -93,21 +137,25 @@ static void set_butter_hp(butter_state states[3], t_float freq){
         freq = max;
     // prewarp cutoff frequency
     t_float omega = 2.0 * tan(M_PI * freq);
-    complex double pole = complex_with_angle( (2*sections + 1) * M_PI / (4*sections)); // first pole of lowpass filter with omega == 1
-    complex double pole_inc = complex_with_angle(M_PI / (2*sections)); // phasor to get to next pole, see Porat p. 331
-    complex double b = -1;  //normalize at NY
-    complex double c = 1;  //all zeros will be at DC
+    t_complex pole = complex_with_angle( (2*sections + 1) * M_PI / (4*sections)); // first pole of lowpass filter with omega == 1
+    t_complex pole_inc = complex_with_angle(M_PI / (2*sections)); // phasor to get to next pole, see Porat p. 331
+    t_complex b = (t_complex){-1.0, 0.0}; // normalize at NY
+    t_complex c = (t_complex){1.0, 0.0};  // all zeros will be at DC
     for(int i = 0; i < sections; i++){
         butter_state* s = states + i;
         // setup the biquad with the computed pole and zero and unit gain at NY
-        pole *= pole_inc;            // comp next (lowpass) pole
-        complex double a = omega/pole;
+        pole = complex_mult(pole, pole_inc);            // comp next (lowpass) pole
+        t_complex a = complex_div_f(omega, pole);
         s->ar = creal(a);
         s->ai = cimag(a);
         s->c0 = 1.0;
         s->c1 = 2.0 * (creal(a) - creal(b));
         s->c2 = (complex_norm2(a) - complex_norm2(b) - s->c1 * creal(a)) / cimag(a);
-        complex double invComplexGain = ((c-a)*(c-conj(a)))/((c-b)*(c-conj(b)));
+        t_complex invComplexGain = complex_div(
+        complex_mult(complex_subtract(c, a), complex_subtract(c, conj(a))),
+        complex_mult(complex_subtract(c, b), complex_subtract(c, conj(b)))
+        );
+        
         t_float invGain = complex_norm(invComplexGain);
         s->c0 *= invGain;
         s->c1 *= invGain;
