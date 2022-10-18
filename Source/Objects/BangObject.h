@@ -63,7 +63,7 @@ struct BangObject final : public IEMObject {
         float const circleThickness = std::max(width * 0.06f, 1.5f);
 
 
-        g.setColour(object->findColour(PlugDataColour::outlineColourId));
+        g.setColour(object->findColour(PlugDataColour::objectOutlineColourId));
         g.drawEllipse(bounds.reduced(width - circleOuter), circleThickness);
 
         if (bangState) {

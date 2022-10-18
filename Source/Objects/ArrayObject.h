@@ -196,7 +196,7 @@ public:
                 
                 if(invert) p.applyTransform(AffineTransform::verticalFlip(getHeight()));
 
-                g.setColour(object->findColour(PlugDataColour::outlineColourId));
+                g.setColour(object->findColour(PlugDataColour::objectOutlineColourId));
                 g.strokePath(p, PathStrokeType(1));
                 break;
             }
