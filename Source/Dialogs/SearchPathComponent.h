@@ -118,7 +118,7 @@ public:
         f.setHorizontalScale(1.0f);
         g.setFont(f);
 
-        g.drawText(path[rowNumber].getFullPathName(), 4, 0, width - 6, height, Justification::centredLeft, true);
+        g.drawText(path[rowNumber].getFullPathName(), 6, 0, width - 6, height, Justification::centredLeft, true);
     }
 
     void deleteKeyPressed(int row) override

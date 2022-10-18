@@ -334,7 +334,7 @@ struct SettingsDialog : public Component {
 
         panels[0]->setBounds(b);
         panels[1]->setBounds(b);
-        panels[2]->setBounds(b.reduced(6, 0));
+        panels[2]->setBounds(b);
         panels[3]->setBounds(b);
         panels[4]->setBounds(b);
     }
