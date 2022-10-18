@@ -817,11 +817,9 @@ struct DocumentBrowser : public DocumentBrowserBase
 
     void paint(Graphics& g) override
     {
-        g.fillAll(findColour(PlugDataColour::panelBackgroundColourId));
-        
         // Background for statusbar part
         g.setColour(findColour(PlugDataColour::toolbarBackgroundColourId));
-        g.fillRect(0, getHeight() - 28, getWidth(), 28);
+        g.fillRoundedRectangle(0, getHeight() - 28, getWidth(), 28, 6.0f);
     }
 
     void paintOverChildren(Graphics& g) override

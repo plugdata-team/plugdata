@@ -177,7 +177,7 @@ struct AutomationPanel : public Component
         
         // Background for statusbar part
         g.setColour(findColour(PlugDataColour::toolbarBackgroundColourId));
-        g.fillRect(0, getHeight() - 28, getWidth(), 28);
+        g.fillRoundedRectangle(0, getHeight() - 28, getWidth(), 28, 6.0f);
 
         g.setColour(findColour(PlugDataColour::outlineColourId));
         g.drawLine(0, 27, getWidth(), 27);
