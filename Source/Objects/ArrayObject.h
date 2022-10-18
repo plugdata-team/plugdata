@@ -216,12 +216,12 @@ public:
                 
                 if(invert) p.applyTransform(AffineTransform::verticalFlip(getHeight()));
 
-                g.setColour(object->findColour(PlugDataColour::outlineColourId));
+                g.setColour(object->findColour(PlugDataColour::objectOutlineColourId));
                 g.fillPath(p);
                 break;
             }
             case PdArray::DrawType::Points: {
-                g.setColour(object->findColour(PlugDataColour::outlineColourId));
+                g.setColour(object->findColour(PlugDataColour::objectOutlineColourId));
                 for (size_t i = 0; i < points.size(); i++) {
                     float y = h - (std::clamp(points[i], scale[0], scale[1]) - scale[0]) * dh;
                     if(invert) y = getHeight() - y;
