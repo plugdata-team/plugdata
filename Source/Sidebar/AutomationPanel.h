@@ -168,7 +168,7 @@ struct AutomationPanel : public Component
     void paint(Graphics& g) override
     {
         g.setColour(findColour(PlugDataColour::panelBackgroundOffsetColourId));
-        g.fillRect(getLocalBounds().withTrimmedLeft(Sidebar::dragbarWidth));
+        g.fillRect(getLocalBounds().withTrimmedLeft(Sidebar::dragbarWidth).withTrimmedBottom(28));
         g.fillRect(getLocalBounds().withHeight(viewport.getY()));
 
         g.setColour(findColour(PlugDataColour::panelTextColourId));
