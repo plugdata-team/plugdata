@@ -1090,7 +1090,7 @@ Colour PlugDataAudioProcessor::getForegroundColour()
 
 Colour PlugDataAudioProcessor::getBackgroundColour()
 {
-    return lnf->findColour(PlugDataColour::toolbarBackgroundColourId);
+    return lnf->findColour(PlugDataColour::defaultObjectBackgroundColourId);
 }
 
 Colour PlugDataAudioProcessor::getTextColour()
