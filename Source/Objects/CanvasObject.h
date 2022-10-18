@@ -40,12 +40,6 @@ struct CanvasObject final : public IEMObject {
     void paint(Graphics& g) override
     {
         g.fillAll(Colour::fromString(secondaryColour.toString()));
-
-        bool selected = cnv->isSelected(object) && !cnv->isGraph;
-        auto outlineColour = object->findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : objectOutlineColourId);
-        
-        g.setColour(outlineColour);
-        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), 2.0f, 1.0f);
     }
 
     void updateValue() override {};
