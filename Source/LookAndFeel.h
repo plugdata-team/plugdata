@@ -208,9 +208,13 @@ struct PlugDataLook : public LookAndFeel_V4
     
     void drawButtonBackground(Graphics& g, Button& button, const Colour& backgroundColour, bool shouldDrawButtonAsHighlighted, bool shouldDrawButtonAsDown) override
     {
-        if (button.getName().startsWith("toolbar") || button.getName().startsWith("tabbar"))
+        if (button.getName().startsWith("toolbar"))
         {
             drawToolbarButton(g, button, backgroundColour, shouldDrawButtonAsHighlighted, shouldDrawButtonAsDown);
+        }
+        else if (button.getName().startsWith("tabbar"))
+        {
+            g.fillAll(findColour(PlugDataColour::tabBackgroundColourId));
         }
         else if (button.getName().startsWith("statusbar"))
         {
