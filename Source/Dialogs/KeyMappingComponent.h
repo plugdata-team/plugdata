@@ -355,7 +355,7 @@ private:
             g.setColour (owner.findColour (KeyMappingEditorComponent::textColourId));
             
             g.drawFittedText (owner.getCommandManager().getNameOfCommand (commandID),
-                              4, 0, jmax (40, getChildComponent (0)->getX() - 5), getHeight(),
+                              6, 0, jmax (40, getChildComponent (0)->getX() - 5), getHeight(),
                               Justification::centredLeft, true);
         }
         
@@ -428,7 +428,13 @@ private:
             g.setFont (Font ((float) height * 0.7f, Font::bold));
             g.setColour (owner.findColour (KeyMappingEditorComponent::textColourId));
             
-            g.drawText (categoryName, 2, 0, width - 2, height, Justification::centredLeft, true);
+            g.drawText (categoryName, 6, 0, width - 2, height, Justification::centredLeft, true);
+        }
+        
+        void paintOpenCloseButton (Graphics& g, const Rectangle<float>& area, Colour backgroundColour, bool isMouseOver) override
+        {
+            getOwnerView()->getLookAndFeel()
+               .drawTreeviewPlusMinusBox (g, area.translated(4, 0), backgroundColour, isOpen(), isMouseOver);
         }
         
         void itemOpennessChanged (bool isNowOpen) override
