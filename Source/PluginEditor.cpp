@@ -266,7 +266,7 @@ void PlugDataPluginEditor::paint(Graphics& g)
     int roundedOffset = PLUGDATA_ROUNDED;
 
     g.setColour(findColour(PlugDataColour::outlineColourId));
-    g.drawLine(0.0f, toolbarHeight + 1, static_cast<float>(getWidth()), toolbarHeight + 1, 1.0f);
+    g.drawLine(0.0f, toolbarHeight + roundedOffset, static_cast<float>(getWidth()), toolbarHeight + roundedOffset, 1.0f);
 }
 
 void PlugDataPluginEditor::resized()
