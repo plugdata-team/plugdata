@@ -475,11 +475,6 @@ struct PlugDataLook : public LookAndFeel_V4
     
     void drawToolbarButton(Graphics& g, Button& button, const Colour& backgroundColour, bool shouldDrawButtonAsHighlighted, bool shouldDrawButtonAsDown)
     {
-        auto rect = button.getLocalBounds();
-        
-        auto baseColour = findColour(ComboBox::backgroundColourId);
-        g.setColour(baseColour);
-        g.fillRect(rect);
     }
     
     void drawComboBox(Graphics& g, int width, int height, bool, int, int, int, int, ComboBox& object) override
