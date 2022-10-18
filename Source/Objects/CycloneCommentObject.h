@@ -109,7 +109,7 @@ struct CycloneCommentObject final : public GUIObject {
 
         auto selected = cnv->isSelected(object);
         if (object->locked == var(false) && (object->isMouseOverOrDragging(true) || selected) && !cnv->isGraph) {
-            g.setColour(selected ? object->findColour(PlugDataColour::canvasActiveColourId) : object->findColour(PlugDataColour::outlineColourId));
+            g.setColour(selected ? object->findColour(PlugDataColour::objectSelectedOutlineColourId) : object->findColour(PlugDataColour::objectOutlineColourId));
 
             g.drawRect(getLocalBounds().toFloat(), 0.5f);
         }

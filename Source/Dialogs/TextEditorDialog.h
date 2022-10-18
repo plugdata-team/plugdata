@@ -754,7 +754,7 @@ void GutterComponent::paint(Graphics& g)
     }
 
     for (auto const& r : rowData) {
-        g.setColour(getParentComponent()->findColour(r.isRowSelected ? PlugDataColour::canvasActiveColourId : PlugDataColour::canvasTextColourId));
+        g.setColour(getParentComponent()->findColour(r.isRowSelected ? PlugDataColour::objectSelectedOutlineColourId : PlugDataColour::canvasTextColourId));
         memoizedGlyphArrangements(r.rowNumber).draw(g, verticalTransform);
     }
 }

@@ -136,7 +136,10 @@ struct ButtonObject : public GUIObject {
         g.setColour(Colour::fromString(secondaryColour.toString()));
         g.fillRoundedRectangle(bounds.reduced(1), 3.0f);
 
-        g.setColour(object->findColour(PlugDataColour::outlineColourId));
+        bool selected = cnv->isSelected(object) && !cnv->isGraph;
+        auto outlineColour = object->findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : objectOutlineColourId);
+        
+        g.setColour(outlineColour);
         g.drawRoundedRectangle(bounds.reduced(1), 3.0f, 1.0f);
         g.drawRoundedRectangle(bounds.reduced(6), 3.0f, 2.0f);
 
