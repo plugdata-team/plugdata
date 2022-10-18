@@ -79,10 +79,6 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p) : AudioPro
         p.settingsTree.appendChild(ValueTree("Keymap"), nullptr);
     }
 
-    tabbar.setColour(TabbedButtonBar::frontOutlineColourId, findColour(PlugDataColour::activeTabOutlineColourId));
-    tabbar.setColour(TabbedButtonBar::tabOutlineColourId, findColour(PlugDataColour::tabOutlineColourId));
-    tabbar.setColour(TabbedComponent::outlineColourId, findColour(PlugDataColour::tabOutlineColourId));
-
     theme.referTo(pd.settingsTree.getPropertyAsValue("Theme", nullptr));
     theme.addListener(this);
     
@@ -241,8 +237,8 @@ PlugDataPluginEditor::~PlugDataPluginEditor()
 
 void PlugDataPluginEditor::paint(Graphics& g)
 {
-    
-    //g.fillAll(findColour(<#int colourID#>));
+    g.setColour(findColour(PlugDataColour::canvasBackgroundColourId));
+    g.fillRoundedRectangle(getLocalBounds().toFloat(), 6.0f);
     
     auto baseColour = findColour(PlugDataColour::toolbarBackgroundColourId);
 
@@ -266,8 +262,6 @@ void PlugDataPluginEditor::paint(Graphics& g)
     g.setColour(baseColour);
     g.fillRect(0, getHeight() - statusbar.getHeight(), getWidth(), statusbar.getHeight());
 #endif
-    g.setColour(findColour(PlugDataColour::tabBackgroundColourId));
-    g.fillRect(tabbar.getBounds());
     
     int roundedOffset = PLUGDATA_ROUNDED;
 
@@ -278,9 +272,11 @@ void PlugDataPluginEditor::paint(Graphics& g)
 void PlugDataPluginEditor::resized()
 {
     int roundedOffset = PLUGDATA_ROUNDED;
+    
+    sidebar.setBounds(getWidth() - sidebar.getWidth(), toolbarHeight + roundedOffset, sidebar.getWidth(), getHeight() - toolbarHeight - roundedOffset);
+    
     tabbar.setBounds(0, toolbarHeight + roundedOffset, (getWidth() - sidebar.getWidth()) + 1, getHeight() - toolbarHeight - (statusbar.getHeight() + roundedOffset));
 
-    sidebar.setBounds(getWidth() - sidebar.getWidth(), toolbarHeight + roundedOffset, sidebar.getWidth(), getHeight() - toolbarHeight - roundedOffset);
 
     statusbar.setBounds(0, getHeight() - statusbar.getHeight(), getWidth() - sidebar.getWidth(), statusbar.getHeight());
 
@@ -337,6 +333,8 @@ void PlugDataPluginEditor::resized()
     {
         cnv->checkBounds();
     }
+    
+    repaint();
 
 }
 

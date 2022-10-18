@@ -21,7 +21,7 @@ struct ToggleObject final : public IEMObject {
         IEMObject::paint(g);
         
         auto toggledColour = getForegroundColour();
-        auto untoggledColour = toggledColour.withAlpha(0.2f);
+        auto untoggledColour = toggledColour.interpolatedWith(getBackgroundColour(), 0.8f);
         g.setColour(toggleState ? toggledColour : untoggledColour);
 
         auto crossBounds = getLocalBounds().reduced(6).toFloat();

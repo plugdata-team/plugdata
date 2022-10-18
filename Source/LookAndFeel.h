@@ -68,19 +68,18 @@ enum PlugDataColour
     
     tabBackgroundColourId,
     tabTextColourId,
-    tabOutlineColourId,
     activeTabBackgroundColourId,
     activeTabTextColourId,
-    activeTabOutlineColourId,
     
     canvasBackgroundColourId,
     canvasTextColourId,
-    canvasLockedOutlineColourId,
-    canvasUnlockedOutlineColourId,
+    canvasDotsColourId,
     
     defaultObjectBackgroundColourId,
+    objectOutlineColourId,
+    objectSelectedOutlineColourId,
     outlineColourId,
-    canvasActiveColourId,
+    
     dataColourId,
     connectionColourId,
     signalColourId,
@@ -104,17 +103,15 @@ inline const std::map<PlugDataColour, std::pair<String, String>> PlugDataColourN
     {toolbarActiveColourId, {"Toolbar Active", "toolbar_active"}},
     {tabBackgroundColourId, {"Tab Background", "tab_background"}},
     {tabTextColourId, {"Tab Text", "tab_text"}},
-    {tabOutlineColourId, {"Tab Border", "tab_border"}},
     {activeTabBackgroundColourId, {"Active Tab Background", "active_tab_background"}},
     {activeTabTextColourId, {"Active Tab Text", "active_tab_text"}},
-    {activeTabOutlineColourId, {"Active Tab Border", "active_tab_border"}},
     {canvasBackgroundColourId, {"Canvas Background", "canvas_background"}},
     {canvasTextColourId, {"Canvas Text", "canvas_text"}},
-    {canvasLockedOutlineColourId, {"Canvas Locked Outline", "canvas_locked_outline"}},
-    {canvasUnlockedOutlineColourId, {"Canvas Unlocked Outline", "canvas_unlocked_outline"}},
+    {canvasDotsColourId, {"Canvas Dots Colour", "canvas_dots"}},
     {defaultObjectBackgroundColourId, {"Default Object Background", "default_object_background"}},
     {outlineColourId, {"Outline Colour", "outline_colour"}},
-    {canvasActiveColourId, {"Canvas Active Colour", "canvas_active_colour"}},
+    {objectOutlineColourId, {"Object outline colour",  "object_outline_colour"}},
+    {objectSelectedOutlineColourId, {"Selected object outline colour", "selected_object_outline_colour"}},
     {dataColourId, {"Data Colour", "data_colour"}},
     {connectionColourId, {"Connection Colour", "connection_colour"}},
     {signalColourId, {"Signal Colour", "signal_colour"}},
@@ -579,15 +576,15 @@ struct PlugDataLook : public LookAndFeel_V4
         }
         else if (button.getToggleState())
         {
-            g.setColour(button.findColour(Slider::thumbColourId));
+            g.setColour(button.findColour(PlugDataColour::toolbarActiveColourId));
         }
         else if (shouldDrawButtonAsHighlighted)
         {
-            g.setColour(button.findColour(Slider::thumbColourId).brighter(0.8f));
+            g.setColour(button.findColour(PlugDataColour::toolbarActiveColourId).brighter(0.8f));
         }
         else
         {
-            g.setColour(button.findColour(TextButton::textColourOffId));
+            g.setColour(button.findColour(PlugDataColour::toolbarTextColourId));
         }
         
         const int yIndent = jmin(4, button.proportionOfHeight(0.3f));
@@ -849,7 +846,7 @@ struct PlugDataLook : public LookAndFeel_V4
             {
                 auto offColour = owner.findColour(PlugDataColour::panelBackgroundOffsetColourId);
                 auto onColour = owner.findColour(PlugDataColour::panelBackgroundColourId);
-                g.setColour((i + invert) & 1 ? onColour : offColour);
+                g.setColour((i + invert) & 1 ? offColour : onColour);
             }
             
             g.fillRect(0, y, owner.getWidth(), itemHeight);
@@ -898,10 +895,8 @@ struct PlugDataLook : public LookAndFeel_V4
         
         // Add dummy alpha to prevent JUCE from making it opaque
         setColour(PopupMenu::backgroundColourId,
-                  colours.at(PlugDataColour::panelBackgroundOffsetColourId).withAlpha(0.99f));
+                  colours.at(PlugDataColour::toolbarBackgroundColourId).withAlpha(0.99f));
         
-        setColour(KeyMappingEditorComponent::backgroundColourId,
-                  colours.at(PlugDataColour::panelBackgroundColourId));
         setColour(ResizableWindow::backgroundColourId,
                   colours.at(PlugDataColour::canvasBackgroundColourId));
         setColour(Slider::backgroundColourId,
@@ -973,6 +968,8 @@ struct PlugDataLook : public LookAndFeel_V4
                   colours.at(PlugDataColour::outlineColourId));
         setColour(TextEditor::outlineColourId,
                   colours.at(PlugDataColour::outlineColourId));
+        setColour(ListBox::outlineColourId,
+                  colours.at(PlugDataColour::outlineColourId));
         
         setColour(Slider::textBoxOutlineColourId,
                   Colours::transparentBlack);
@@ -1001,19 +998,18 @@ struct PlugDataLook : public LookAndFeel_V4
         
         {PlugDataColour::tabBackgroundColourId, Colour(25, 25, 25)},
         {PlugDataColour::tabTextColourId, Colour(255, 255, 255)},
-        {PlugDataColour::tabOutlineColourId, Colour(105, 105, 105)},
         {PlugDataColour::activeTabBackgroundColourId, Colour(35, 35, 35)},
         {PlugDataColour::activeTabTextColourId, Colour(255, 255, 255)},
-        {PlugDataColour::activeTabOutlineColourId, Colour(105, 105, 105)},
         
         {PlugDataColour::canvasBackgroundColourId, Colour(35, 35, 35)},
         {PlugDataColour::canvasTextColourId, Colour(255, 255, 255)},
-        {PlugDataColour::canvasLockedOutlineColourId, Colour(105, 105, 105)},
-        {PlugDataColour::canvasUnlockedOutlineColourId, Colour(105, 105, 105)},
+        {PlugDataColour::canvasDotsColourId, Colour(127, 127, 127)},
         
         {PlugDataColour::outlineColourId, Colour(57, 57, 57)},
-        {PlugDataColour::canvasActiveColourId, Colour(66, 162, 200)},
+        
         {PlugDataColour::defaultObjectBackgroundColourId, Colour(25, 25, 25)},
+        {PlugDataColour::objectOutlineColourId, Colour(105, 105, 105)},
+        {PlugDataColour::objectSelectedOutlineColourId, Colour(66, 162, 200)},
         
         {PlugDataColour::dataColourId, Colour(66, 162, 200)},
         {PlugDataColour::connectionColourId, Colour(225, 225, 225)},
@@ -1036,22 +1032,21 @@ struct PlugDataLook : public LookAndFeel_V4
         
         {PlugDataColour::tabBackgroundColourId, Colour(228, 228, 228)},
         {PlugDataColour::tabTextColourId, Colour(90, 90, 90)},
-        {PlugDataColour::tabOutlineColourId, Colour(168, 168, 168)},
         {PlugDataColour::activeTabBackgroundColourId, Colour(250, 250, 250)},
         {PlugDataColour::activeTabTextColourId, Colour(90, 90, 90)},
-        {PlugDataColour::activeTabOutlineColourId, Colour(168, 168, 168)},
         
         {PlugDataColour::canvasBackgroundColourId, Colour(250, 250, 250)},
         {PlugDataColour::canvasTextColourId, Colour(90, 90, 90)},
-        {PlugDataColour::canvasActiveColourId, Colour(0, 122, 255)},
-        {PlugDataColour::canvasLockedOutlineColourId, Colour(168, 168, 168)},
-        {PlugDataColour::canvasUnlockedOutlineColourId, Colour(168, 168, 168)},
+        {PlugDataColour::canvasDotsColourId, Colour(144, 144, 144)},
         
         {PlugDataColour::outlineColourId, Colour(200, 200, 200)},
         {PlugDataColour::dataColourId, Colour(0, 122, 255)},
         {PlugDataColour::connectionColourId, Colour(179, 179, 179)},
         {PlugDataColour::signalColourId, Colour(255, 133, 0)},
+        
         {PlugDataColour::defaultObjectBackgroundColourId, Colour(228, 228, 228)},
+        {PlugDataColour::objectOutlineColourId, Colour(168, 168, 168)},
+        {PlugDataColour::objectSelectedOutlineColourId, Colour(0, 122, 255)},
         
         {PlugDataColour::panelBackgroundColourId, Colour(250, 250, 250)},
         {PlugDataColour::panelBackgroundOffsetColourId, Colour(228, 228, 228)},
@@ -1059,7 +1054,7 @@ struct PlugDataLook : public LookAndFeel_V4
         {PlugDataColour::panelActiveBackgroundColourId, Colour(0, 122, 255)},
         {PlugDataColour::panelActiveTextColourId, Colour(255, 255, 255)},
         
-        {PlugDataColour::scrollbarThumbColourId, Colour(66, 162, 200)},
+        {PlugDataColour::scrollbarThumbColourId, Colour(0, 122, 255)},
     };
     
     inline static const std::map<String, std::map<PlugDataColour, Colour>> defaultThemes = {

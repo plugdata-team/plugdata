@@ -86,13 +86,13 @@ struct ColourProperties : public Component, public Value::Listener
         auto bounds = getLocalBounds().removeFromRight(getWidth() / 2);
         panels[0]->setBounds(bounds.removeFromTop(23));
 
+        // Space for dark/light labels
         bounds.removeFromTop(23);
 
-        int numRows = panels.size() / 2;
-        for (int i = 1; i < numRows; i++) {
+        for (int i = 1; i < numberOfColours + 1; i++) {
             auto panelBounds = bounds.removeFromTop(23);
             panels[i]->setBounds(panelBounds.removeFromRight(getWidth() / 4));
-            panels[numRows + i]->setBounds(panelBounds);
+            panels[numberOfColours + i]->setBounds(panelBounds);
         }
     }
     
@@ -159,8 +159,8 @@ struct ThemePanel : public Component
 
     void resized() override
     {
-        // Add a row for font as well
-        int numRows = PlugDataColour::numberOfColours + 1;
+        // Add a row for font and light/dark labels
+        int numRows = PlugDataColour::numberOfColours + 2;
         
         colourProperties.setBounds(0, 0, getWidth(), numRows * 23);
         viewport.setBounds(getLocalBounds().withTrimmedBottom(28));

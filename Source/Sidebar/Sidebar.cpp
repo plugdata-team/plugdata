@@ -30,11 +30,6 @@ Sidebar::Sidebar(PlugDataAudioProcessor* instance)
     addChildComponent(browser);
     addChildComponent(automationPanel);
     
-    console->addMouseListener(this, true);
-    inspector->addMouseListener(this, true);
-    browser->addMouseListener(this, true);
-    automationPanel->addMouseListener(this, true);
-    
     browser->setAlwaysOnTop(true);
     browser->addMouseListener(this, true);
     
@@ -74,6 +69,9 @@ Sidebar::Sidebar(PlugDataAudioProcessor* instance)
     consoleButton.setToggleState(true, dontSendNotification);
     
     addAndMakeVisible(consoleButton);
+    
+    inspector->setVisible(false);
+    showPanel(0);
 }
 
 Sidebar::~Sidebar()
@@ -184,13 +182,14 @@ void Sidebar::showPanel(int panelToShow)
 {
     bool showBrowser = panelToShow == 1;
     bool showAutomation = panelToShow == 2;
+    
     browser->setVisible(showBrowser);
     browser->setInterceptsMouseClicks(showBrowser, showBrowser);
     
     automationPanel->setVisible(showAutomation);
     automationPanel->setInterceptsMouseClicks(showAutomation, showAutomation);
     
-    
+
     if(auto* editor =  dynamic_cast<PlugDataPluginEditor*>(pd->getActiveEditor())) {
         editor->toolbarButton(PlugDataPluginEditor::Pin)->setEnabled(panelToShow == 0);
     };

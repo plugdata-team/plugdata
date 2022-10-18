@@ -28,7 +28,7 @@ struct CommentObject final : public TextBase
 
             auto selected = cnv->isSelected(object);
             if (object->locked == var(false) && (object->isMouseOverOrDragging(true) || selected) && !cnv->isGraph) {
-                g.setColour(selected ? object->findColour(PlugDataColour::canvasActiveColourId) : object->findColour(PlugDataColour::outlineColourId));
+                g.setColour(object->findColour(selected ?  PlugDataColour::objectSelectedOutlineColourId : PlugDataColour::objectOutlineColourId));
 
                 g.drawRect(getLocalBounds().toFloat(), 0.5f);
             }

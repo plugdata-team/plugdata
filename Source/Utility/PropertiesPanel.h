@@ -30,7 +30,7 @@ struct PropertiesPanel : public PropertyPanel {
             if (hideLabel)
                 return;
 
-            auto bg = idx & 1 ? findColour(PlugDataColour::panelBackgroundOffsetColourId) : findColour(PlugDataColour::panelBackgroundColourId);
+            auto bg = idx & 1 ? findColour(PlugDataColour::panelBackgroundColourId) : findColour(PlugDataColour::panelBackgroundOffsetColourId);
 
             g.fillAll(bg);
             getLookAndFeel().drawPropertyComponentLabel(g, getWidth(), getHeight() * 0.9, *this);

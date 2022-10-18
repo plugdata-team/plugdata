@@ -59,19 +59,11 @@ struct TextBase : public ObjectBase
         textLayout.createLayout(attributedCurrentText, textArea.getWidth());
         textLayout.draw(g, textArea.toFloat());
 
-        bool selected = cnv->isSelected(object);
-
-        Colour outlineColour;
-
-        if(cnv->isSelected(object) && !cnv->isGraph) {
-            outlineColour = object->findColour(PlugDataColour::canvasActiveColourId);
-        }
-        else {
-            outlineColour = object->findColour(static_cast<bool>(object->locked.getValue()) ? PlugDataColour::canvasLockedOutlineColourId : PlugDataColour::canvasUnlockedOutlineColourId);
-        }
+        bool selected = cnv->isSelected(object) && !cnv->isGraph;
+        auto outlineColour = object->findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : objectOutlineColourId);
         
         if (!isValid) {
-            outlineColour = selected && !cnv->isGraph ? Colours::red.brighter(1.5) : Colours::red;
+            outlineColour = selected ? Colours::red.brighter(1.5) : Colours::red;
         }
 
         g.setColour(outlineColour);
