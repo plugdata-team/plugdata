@@ -93,10 +93,6 @@ void Sidebar::paint(Graphics& g)
     g.setColour(findColour(PlugDataColour::panelBackgroundColourId));
     g.fillRect(0, 0, getWidth(), getHeight() - 28);
     
-    // Background for statusbar part
-    g.setColour(findColour(PlugDataColour::toolbarBackgroundColourId));
-    g.fillRect(0, getHeight() - 28, getWidth(), 28);
-    
     // Background for buttons
     g.setColour(findColour(PlugDataColour::toolbarBackgroundColourId));
     g.fillRect(0, 0, getWidth(), 28);
