@@ -57,7 +57,7 @@ struct Dialog : public Component {
         g.fillRect(getLocalBounds());
 #endif
         if (viewedComponent) {
-            g.setColour(findColour(PlugDataColour::panelBackgroundColourId));
+            g.setColour(findColour(PlugDataColour::panelBackgroundOffsetColourId));
             g.fillRoundedRectangle(viewedComponent->getBounds().toFloat(), 5.0f);
 
             g.setColour(findColour(PlugDataColour::outlineColourId));

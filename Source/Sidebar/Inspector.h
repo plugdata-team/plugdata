@@ -18,12 +18,11 @@ struct Inspector : public Component {
 
     void paint(Graphics& g) override
     {
-
-        g.setColour(findColour(PlugDataColour::panelTextColourId));
-        g.drawText(title, getLocalBounds().removeFromTop(23), Justification::centred);
-        
         g.setColour(findColour(PlugDataColour::panelBackgroundOffsetColourId));
         g.fillRect(getLocalBounds().removeFromTop(23));
+        
+        g.setColour(findColour(PlugDataColour::panelTextColourId));
+        g.drawText(title, getLocalBounds().removeFromTop(23), Justification::centred);
         
         g.setColour(findColour(PlugDataColour::outlineColourId));
         g.drawLine(0, 23, getWidth(), 23);

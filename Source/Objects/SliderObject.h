@@ -62,14 +62,8 @@ struct SliderObject : public IEMObject {
 
     void paintOverChildren(Graphics& g) override
     {
-        Colour outlineColour;
-
-        if(cnv->isSelected(object) && !cnv->isGraph) {
-            outlineColour = object->findColour(PlugDataColour::canvasActiveColourId);
-        }
-        else {
-            outlineColour = object->findColour(static_cast<bool>(object->locked.getValue()) ? PlugDataColour::canvasLockedOutlineColourId : PlugDataColour::canvasUnlockedOutlineColourId);
-        }
+        bool selected = cnv->isSelected(object) && !cnv->isGraph;
+        auto outlineColour = object->findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : objectOutlineColourId);
         
         g.setColour(outlineColour);
         g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), 2.0f, 1.0f);

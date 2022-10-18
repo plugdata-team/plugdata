@@ -35,7 +35,7 @@ public:
 
         addAndMakeVisible (tree);
         tree.setTitle ("Key Mappings");
-        tree.setColour (TreeView::backgroundColourId, findColour (backgroundColourId));
+        tree.setColour (TreeView::backgroundColourId, findColour (PlugDataColour::panelBackgroundColourId));
         tree.setRootItemVisible (false);
         tree.setDefaultOpenness (true);
         tree.setRootItem (treeItem.get());
@@ -100,20 +100,6 @@ public:
         return key.getTextDescription();
     }
     
-    //==============================================================================
-    /** A set of colour IDs to use to change the colour of various aspects of the editor.
-     
-     These constants can be used either via the Component::setColour(), or LookAndFeel::setColour()
-     methods.
-     
-     @see Component::setColour, Component::findColour, LookAndFeel::setColour, LookAndFeel::findColour
-     */
-    enum ColourIds
-    {
-        backgroundColourId  = 0x100ad00,    /**< The background colour to fill the editor background. */
-        textColourId        = 0x100ad01,    /**< The colour for the text. */
-    };
-    
     
     void parentHierarchyChanged() override
     {
@@ -136,6 +122,7 @@ public:
 
         tree.setBounds(0, 0, getWidth(), h);
     }
+
     
     
 private:
@@ -365,7 +352,7 @@ private:
         void paint (Graphics& g) override
         {
             g.setFont ((float) getHeight() * 0.7f);
-            g.setColour (owner.findColour (KeyMappingComponent::textColourId));
+            g.setColour (owner.findColour (KeyMappingEditorComponent::textColourId));
             
             g.drawFittedText (owner.getCommandManager().getNameOfCommand (commandID),
                               4, 0, jmax (40, getChildComponent (0)->getX() - 5), getHeight(),
@@ -439,7 +426,7 @@ private:
         void paintItem (Graphics& g, int width, int height) override
         {
             g.setFont (Font ((float) height * 0.7f, Font::bold));
-            g.setColour (owner.findColour (KeyMappingComponent::textColourId));
+            g.setColour (owner.findColour (KeyMappingEditorComponent::textColourId));
             
             g.drawText (categoryName, 2, 0, width - 2, height, Justification::centredLeft, true);
         }

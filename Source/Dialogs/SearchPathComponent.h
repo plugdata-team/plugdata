@@ -175,7 +175,7 @@ public:
 
     void paint(Graphics& g) override
     {
-        PlugDataLook::paintStripes(g, listBox.getRowHeight(), listBox.getHeight(), listBox, listBox.getSelectedRow(), listBox.getViewport()->getViewPositionY(), true);
+        PlugDataLook::paintStripes(g, listBox.getRowHeight(), listBox.getHeight(), listBox, listBox.getSelectedRow(), listBox.getViewport()->getViewPositionY());
     }
 
     bool isInterestedInFileDrag(StringArray const&) override
