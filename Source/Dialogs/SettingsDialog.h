@@ -15,8 +15,13 @@ struct ColourProperties : public Component, public Value::Listener
     {
         fontValue.setValue(LookAndFeel::getDefaultLookAndFeel().getTypefaceForFont(Font())->getName());
         fontValue.addListener(this);
-        panels.add(new PropertiesPanel::FontComponent("Default font", fontValue, 0));
+        
+        auto* fontPanel = panels.add(new PropertiesPanel::FontComponent("Default font", fontValue, 0));
+        fontPanel->setHideLabel(true);
+        
+        addAndMakeVisible(fontPanel);
 
+        
         for (auto const& [themeName, themeColours] : PlugDataLook::colourSettings) {
             for (auto const& colour : themeColours) {
                 auto colourName = PlugDataColourNames.at(colour.first).second;
@@ -331,12 +336,11 @@ struct SettingsDialog : public Component {
             button->setBounds(toolbarPosition, 1, 70, toolbarHeight - 2);
             toolbarPosition += 70;
         }
-
-        panels[0]->setBounds(b);
-        panels[1]->setBounds(b);
-        panels[2]->setBounds(b);
-        panels[3]->setBounds(b);
-        panels[4]->setBounds(b);
+        
+        for(auto* panel : panels)
+        {
+            panel->setBounds(b);
+        }
     }
 
     void paint(Graphics& g) override
