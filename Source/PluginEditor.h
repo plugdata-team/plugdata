@@ -177,7 +177,7 @@ struct TabComponent : public TabbedComponent
         newButton.onClick = [this](){
             newTab();
         };
-        
+
         addAndMakeVisible(welcomePanel);
         
         welcomePanel.newButton->onClick = [this](){
