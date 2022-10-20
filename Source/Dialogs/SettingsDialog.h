@@ -168,8 +168,8 @@ struct ThemePanel : public Component
         int numRows = PlugDataColour::numberOfColours + 2;
         
         colourProperties.setBounds(0, 0, getWidth(), numRows * 23);
-        viewport.setBounds(getLocalBounds().withTrimmedBottom(28));
-        resetButton.setBounds(getWidth() - 40, getHeight() - 24, 28, 28);
+        viewport.setBounds(getLocalBounds().withTrimmedBottom(32));
+        resetButton.setBounds(getWidth() - 32, getHeight() - 24, 32, 32);
     }
 };
 
@@ -208,76 +208,64 @@ struct AboutPanel : public Component {
     }
 };
 
-struct DAWAudioSettings : public Component {
+struct DAWAudioSettings : public Component, public Value::Listener {
     explicit DAWAudioSettings(AudioProcessor& p)
         : processor(p)
     {
-        addAndMakeVisible(latencySlider);
-        latencySlider.setRange(0, 88200, 1);
-        latencySlider.setTextValueSuffix(" Samples");
-        latencySlider.setTextBoxStyle(Slider::TextEntryBoxPosition::TextBoxRight, false, 100, 20);
-        latencySlider.setColour(Slider::trackColourId, findColour(PlugDataColour::scrollbarThumbColourId));
-        latencySlider.setColour(Slider::backgroundColourId, findColour(PlugDataColour::panelBackgroundColourId));
-
-        addAndMakeVisible(tailLengthSlider);
-        tailLengthSlider.setRange(0, 10.0f, 0.01f);
-        tailLengthSlider.setTextValueSuffix(" Seconds");
-        tailLengthSlider.setTextBoxStyle(Slider::TextEntryBoxPosition::TextBoxRight, false, 100, 20);
-        tailLengthSlider.setColour(Slider::trackColourId, findColour(PlugDataColour::scrollbarThumbColourId));
-        tailLengthSlider.setColour(Slider::backgroundColourId, findColour(PlugDataColour::panelBackgroundColourId));
-
-        addAndMakeVisible(tailLengthLabel);
-        tailLengthLabel.setText("Tail Length", dontSendNotification);
-        tailLengthLabel.attachToComponent(&tailLengthSlider, true);
-
-        addAndMakeVisible(latencyLabel);
-        latencyLabel.setText("Latency", dontSendNotification);
-        latencyLabel.attachToComponent(&latencySlider, true);
-       
-        addAndMakeVisible(nativeDialogLabel);
-        nativeDialogLabel.setText("Use native file dialog", dontSendNotification);
-        nativeDialogLabel.attachToComponent(&nativeDialogToggle, true);
+        addAndMakeVisible(latencyNumberBox);
+        addAndMakeVisible(tailLengthNumberBox);
+        addAndMakeVisible(nativeDialogToggle);
+        
+        dynamic_cast<DraggableNumber*>(latencyNumberBox.label.get())->setMinimum(64);
         
         auto* proc = dynamic_cast<PlugDataAudioProcessor*>(&processor);
-        latencySlider.onValueChange = [this, proc]() { proc->setLatencySamples(latencySlider.getValue() + proc->pd::Instance::getBlockSize()); };
-        tailLengthSlider.onValueChange = [this, proc]() { proc->tailLength.setValue(tailLengthSlider.getValue()); };
-        
         auto& settingsTree = dynamic_cast<PlugDataAudioProcessor&>(p).settingsTree;
         
         if(!settingsTree.hasProperty("NativeDialog")) {
             settingsTree.setProperty("NativeDialog", true, nullptr);
         }
         
-        nativeDialogToggle.getToggleStateValue().referTo(settingsTree.getPropertyAsValue("NativeDialog", nullptr));
-        addAndMakeVisible(nativeDialogToggle);
+        tailLengthValue.referTo(proc->tailLength);
+        nativeDialogValue.referTo(settingsTree.getPropertyAsValue("NativeDialog", nullptr));
+        
+        tailLengthValue.addListener(this);
+        latencyValue.addListener(this);
+        nativeDialogValue.addListener(this);
+        
+        latencyValue = proc->getLatencySamples();
+        
     }
 
     void resized() override
     {
-        latencySlider.setBounds(120, 5, getWidth() - 130, 20);
-        tailLengthSlider.setBounds(120, 30, getWidth() - 130, 20);
-        nativeDialogToggle.setBounds(120, 55, 25, 25);
+        auto bounds = getLocalBounds();
+        latencyNumberBox.setBounds(bounds.removeFromTop(23));
+        tailLengthNumberBox.setBounds(bounds.removeFromTop(23));
+        nativeDialogToggle.setBounds(bounds.removeFromTop(23));
     }
-
-    void visibilityChanged() override
+    
+    
+    void valueChanged(Value& v) override
     {
-        if (!isVisible())
-            return;
-
-        auto* proc = dynamic_cast<PlugDataAudioProcessor*>(&processor);
-        latencySlider.setValue(processor.getLatencySamples());
-        tailLengthSlider.setValue(static_cast<float>(proc->tailLength.getValue()));
+        if(v.refersToSameSourceAs(latencyValue)) {
+            processor.setLatencySamples(static_cast<int>(latencyValue.getValue()));
+        }
+    }
+    
+    void paint(Graphics& g) override
+    {
+        PlugDataLook::paintStripes(g, 23, getHeight() - 30, *this, -1, 0, true);
     }
 
     AudioProcessor& processor;
-    Label latencyLabel;
-    Label tailLengthLabel;
-    Label nativeDialogLabel;
-
-    Slider latencySlider;
-    Slider tailLengthSlider;
     
-    ToggleButton nativeDialogToggle;
+    Value latencyValue;
+    Value tailLengthValue;
+    Value nativeDialogValue;
+    
+    PropertiesPanel::EditableComponent<int> latencyNumberBox = PropertiesPanel::EditableComponent<int>("Latency (samples)", latencyValue, 0);
+    PropertiesPanel::EditableComponent<float> tailLengthNumberBox = PropertiesPanel::EditableComponent<float>("Tail Length (seconds)", tailLengthValue, 1);
+    PropertiesPanel::BoolComponent nativeDialogToggle = PropertiesPanel::BoolComponent("Use Native Dialog", tailLengthValue, 2,  {"No", "Yes"});
 };
 
 struct SettingsDialog : public Component {
@@ -354,7 +342,14 @@ struct SettingsDialog : public Component {
         g.fillRoundedRectangle(toolbarBounds, 5.0f);
         g.fillRect(toolbarBounds.withTop(10.0f));
 
-        if (currentPanel > 0) {
+#ifdef PLUGDATA_STANDALONE
+        bool drawStatusbar = currentPanel > 0;
+#else
+        bool drawStatusbar = true;
+#endif
+        
+        
+        if (drawStatusbar) {
             auto statusbarBounds = getLocalBounds().reduced(1).removeFromBottom(32).toFloat();
             g.setColour(findColour(PlugDataColour::toolbarBackgroundColourId));
 
