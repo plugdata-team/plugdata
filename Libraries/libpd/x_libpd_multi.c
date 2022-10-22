@@ -13,8 +13,6 @@
 #include <assert.h>
 #include "x_libpd_multi.h"
 
-static t_namelist* sys_openlist;
-static t_namelist* sys_messagelist;
 
 static t_class* libpd_multi_receiver_class;
 
@@ -1229,7 +1227,7 @@ void libpd_multi_init(void)
     }
 }
 
-int parse_startup_arguments(char const** argv, size_t argc)
+int parse_startup_arguments(char const** argv, size_t argc, t_namelist* sys_openlist, t_namelist* sys_messagelist)
 {
     sys_lock();
 
