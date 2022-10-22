@@ -4,6 +4,9 @@
 
 class  KeyMappingComponent  : public Component
 {
+    
+    std::unique_ptr<Dialog> confirmationDialog;
+    
 public:
     KeyMappingComponent (KeyPressMappingSet& mappingSet) : mappings (mappingSet),
     resetPdButton ("Reset to Pd defaults"), resetMaxButton ("Reset to Max defaults")
@@ -13,24 +16,20 @@ public:
         addAndMakeVisible (resetPdButton);
         resetPdButton.onClick = [this]
         {
-            AlertWindow::showOkCancelBox (MessageBoxIconType::QuestionIcon,
-                                          "Reset to defaults",
-                                          "Are you sure you want to reset all the key-mappings",
-                                          "Reset",
-                                          {}, this,
-                                          ModalCallbackFunction::forComponent (resetKeyMappingsToPdCallback, this));
+            Dialogs::showOkayCancelDialog(&confirmationDialog, getParentComponent(), "Are you sure you want to reset all the key-mappings?",
+                                          [this](int result){
+                resetKeyMappingsToPdCallback(result, this);
+            });
         };
         
         
         addAndMakeVisible (resetMaxButton);
         resetMaxButton.onClick = [this]
         {
-            AlertWindow::showOkCancelBox (MessageBoxIconType::QuestionIcon,
-                                          "Reset to defaults",
-                                          "Are you sure you want to reset all the key-mappings?",
-                                          "Reset",
-                                          {}, this,
-                                          ModalCallbackFunction::forComponent (resetKeyMappingsToMaxCallback, this));
+            Dialogs::showOkayCancelDialog(&confirmationDialog, getParentComponent(), "Are you sure you want to reset all the key-mappings?",
+                                          [this](int result){
+                resetKeyMappingsToMaxCallback(result, this);
+            });
         };
 
         addAndMakeVisible (tree);
