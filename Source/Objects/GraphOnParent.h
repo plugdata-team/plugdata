@@ -153,9 +153,8 @@ public:
         g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), 2.0f, 1.0f);
 
         // Strangly, the title goes below the graph content in pd
-        auto text = getText();
-
-        if (!static_cast<bool>(hideNameAndArgs.getValue()) && text != "graph") {
+        if (!static_cast<bool>(hideNameAndArgs.getValue()) && getText() != "graph") {
+            auto text = getText();
             g.setColour(object->findColour(PlugDataColour::canvasTextColourId));
             g.setFont(Font(15));
             auto textArea = getLocalBounds().removeFromTop(20).withTrimmedLeft(5);
