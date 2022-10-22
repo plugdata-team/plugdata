@@ -16,12 +16,13 @@ struct MouseObject final : public TextBase {
     MouseObject(void* ptr, Object* object)
         : TextBase(ptr, object)
     {
-        Desktop::getInstance().addGlobalMouseListener(this);
+        cnv->addMouseListener(this, true);
+        
     }
 
     ~MouseObject()
     {
-        Desktop::getInstance().removeGlobalMouseListener(this);
+        cnv->removeMouseListener(this);
     }
 
     void mouseDown(MouseEvent const& e) override

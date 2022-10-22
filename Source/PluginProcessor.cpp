@@ -1282,6 +1282,7 @@ void PlugDataAudioProcessor::timerCallback()
         }
 
         callbackType = 0;
+        stopTimer();
     }
 }
 

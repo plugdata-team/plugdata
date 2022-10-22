@@ -303,6 +303,7 @@ void Canvas::synchronise(bool updatePosition)
 
 void Canvas::updateDrawables()
 {
+
     for (auto* object : objects)
     {
         if (object->gui)

@@ -74,6 +74,7 @@ struct DrawableTemplate {
         }
     }
 
+
     static int rangecolor(int n) /* 0 to 9 in 5 steps */
     {
         int n2 = (n == 9 ? 8 : n); /* 0 to 8 */
@@ -324,8 +325,6 @@ struct ScalarObject final : public NonPatchable {
     ScalarObject(void* obj, Object* object)
         : NonPatchable(obj, object)
     {
-        object->setVisible(false);
-
         auto* x = reinterpret_cast<t_scalar*>(obj);
         auto* templ = template_findbyname(x->sc_template);
         auto* templatecanvas = template_findcanvas(templ);
@@ -348,8 +347,10 @@ struct ScalarObject final : public NonPatchable {
                 // TODO: implement this
             }
 
+            cnv->addMouseListener(drawable, true);
+            
             cnv->addAndMakeVisible(drawable);
-            Desktop::getInstance().addGlobalMouseListener(drawable);
+
         }
 
         updateDrawables();
@@ -358,6 +359,7 @@ struct ScalarObject final : public NonPatchable {
     ~ScalarObject() {
         for(auto* drawable : templates)
         {
+            cnv->removeMouseListener(drawable);
             cnv->removeChildComponent(drawable);
             Desktop::getInstance().removeGlobalMouseListener(drawable);
         }
