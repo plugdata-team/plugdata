@@ -95,7 +95,7 @@ String ObjectBase::getType() const
 
             return String::fromUTF8(namebuf).fromLastOccurrenceOf("/", false, false);
         }
-        if(libpd_get_object_class_name(ptr) == String("text") && static_cast<t_text*>(ptr)->te_type == T_OBJECT)
+        if(String(libpd_get_object_class_name(ptr)) == "text" && static_cast<t_text*>(ptr)->te_type == T_OBJECT)
         {
             return String("invalid");
         }
