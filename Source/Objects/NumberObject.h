@@ -163,11 +163,13 @@ struct NumberObject final : public IEMObject {
 
     void setMinimum(float value)
     {
+        input.setMinimum(value);
         static_cast<t_my_numbox*>(ptr)->x_min = value;
     }
 
     void setMaximum(float value)
     {
+        input.setMaximum(value);
         static_cast<t_my_numbox*>(ptr)->x_max = value;
     }
 };
