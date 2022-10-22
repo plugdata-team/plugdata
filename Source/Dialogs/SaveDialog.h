@@ -11,22 +11,25 @@ struct SaveDialog : public Component {
         cancel.onClick = [this, parent] {
             MessageManager::callAsync(
                 [this, parent]() {
-                    parent->closeDialog();
                     cb(0);
+                    parent->closeDialog();
+                    
                 });
         };
         save.onClick = [this, parent] {
             MessageManager::callAsync(
                 [this, parent]() {
-                    parent->closeDialog();
                     cb(2);
+                    parent->closeDialog();
+                    
                 });
         };
         dontsave.onClick = [this, parent] {
             MessageManager::callAsync(
                 [this, parent]() {
-                    parent->closeDialog();
                     cb(1);
+                    parent->closeDialog();
+                    
                 });
         };
 
