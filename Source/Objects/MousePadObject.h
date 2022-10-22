@@ -24,18 +24,15 @@ struct MousePadObject final : public GUIObject {
     MousePadObject(void* ptr, Object* object)
         : GUIObject(ptr, object)
     {
-        Desktop::getInstance().addGlobalMouseListener(this);
+        cnv->addMouseListener(this, true);
 
         // Only intercept global mouse events
         setInterceptsMouseClicks(false, false);
-
-        // addMouseListener(object, false);
     }
 
     ~MousePadObject()
     {
-        removeMouseListener(object);
-        Desktop::getInstance().removeGlobalMouseListener(this);
+        cnv->removeMouseListener(this);
     }
 
     void paint(Graphics& g) override

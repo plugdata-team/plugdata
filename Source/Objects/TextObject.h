@@ -9,6 +9,7 @@ struct TextBase : public ObjectBase
 
         // To get enter/exit messages
         addMouseListener(object, false);
+        
     }
 
     ~TextBase()
