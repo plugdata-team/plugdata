@@ -37,53 +37,13 @@ extern "C" {
 #    define snprintf _snprintf
 #endif
 
+struct t_namelist /* element in a linked list of stored strings */
+{
+    struct t_namelist* nl_next; /* next in list */
+    char* nl_string;            /* the string */
+};
+
 class PlugDataApp : public JUCEApplication {
-    struct t_namelist /* element in a linked list of stored strings */
-    {
-        struct t_namelist* nl_next; /* next in list */
-        char* nl_string;            /* the string */
-    };
-
-    t_namelist* namelist_append_files(t_namelist* listwas, char const* s)
-    {
-        char const* npos;
-        char temp[MAXPDSTRING];
-        t_namelist* nl = listwas;
-
-        npos = s;
-        do {
-            npos = strtokcpy(temp, sizeof(temp), npos, ':');
-            if (!*temp)
-                continue;
-            nl = namelist_append(nl, temp, 0);
-        } while (npos);
-        return (nl);
-    }
-
-    t_namelist* namelist_append(t_namelist* listwas, char const* s, int allowdup)
-    {
-        t_namelist *nl, *nl2;
-        nl2 = (t_namelist*)(getbytes(sizeof(*nl)));
-        nl2->nl_next = 0;
-        nl2->nl_string = (char*)getbytes(strlen(s) + 1);
-        strcpy(nl2->nl_string, s);
-        sys_unbashfilename(nl2->nl_string, nl2->nl_string);
-        if (!listwas)
-            return (nl2);
-        else {
-            for (nl = listwas;;) {
-                if (!allowdup && !strcmp(nl->nl_string, s)) {
-                    freebytes(nl2->nl_string, strlen(nl2->nl_string) + 1);
-                    return (listwas);
-                }
-                if (!nl->nl_next)
-                    break;
-                nl = nl->nl_next;
-            }
-            nl->nl_next = nl2;
-        }
-        return (listwas);
-    }
 
     void namelist_free(t_namelist* listwas)
     {
@@ -143,7 +103,8 @@ public:
     // For opening files with PlugData standalone and parsing commandline arguments
     void anotherInstanceStarted(String const& commandLine) override
     {
-        auto file = File(commandLine.upToFirstOccurrenceOf(" ", false, false));
+        auto tokens = StringArray::fromTokens(commandLine, " ", "\"");
+        auto file = File(tokens[0].unquoted());
         if (file.existsAsFile()) {
             auto* pd = dynamic_cast<PlugDataAudioProcessor*>(mainWindow->getAudioProcessor());
 
@@ -271,18 +232,15 @@ int PlugDataApp::parseSystemArguments(String const& arguments)
         argv[i] = args.getReference(i).toRawUTF8();
     }
 
-    int retval = parse_startup_arguments(argv, argc);
-
-    static t_namelist* sys_openlist;
-    static t_namelist* sys_messagelist;
-
-    for (; argc > 0; argc--, argv++)
-        sys_openlist = namelist_append_files(sys_openlist, *argv);
+    t_namelist* openlist = nullptr;
+    t_namelist* messagelist = nullptr;
+    
+    int retval = parse_startup_arguments(argv, argc, openlist, messagelist);
 
     /* open patches specifies with "-open" args */
-    for (auto* nl = sys_openlist; nl; nl = nl->nl_next) {
+    for (auto* nl = openlist; nl; nl = nl->nl_next) {
 
-        auto toOpen = File(String(nl->nl_string));
+        auto toOpen = File(String(nl->nl_string).unquoted());
 
         auto* pd = dynamic_cast<PlugDataAudioProcessor*>(mainWindow->getAudioProcessor());
         if (pd && toOpen.existsAsFile()) {
@@ -291,15 +249,16 @@ int PlugDataApp::parseSystemArguments(String const& arguments)
     }
 
     /* send messages specified with "-send" args */
-    for (auto* nl = sys_messagelist; nl; nl = nl->nl_next) {
+    for (auto* nl = messagelist; nl; nl = nl->nl_next) {
         t_binbuf* b = binbuf_new();
         binbuf_text(b, nl->nl_string, strlen(nl->nl_string));
         binbuf_eval(b, nullptr, 0, nullptr);
         binbuf_free(b);
     }
 
-    namelist_free(sys_messagelist);
-    sys_messagelist = nullptr;
+    namelist_free(openlist);
+    namelist_free(messagelist);
+    messagelist = nullptr;
 
     return retval;
 }
