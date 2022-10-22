@@ -17,7 +17,6 @@ struct MouseObject final : public TextBase {
         : TextBase(ptr, object)
     {
         cnv->addMouseListener(this, true);
-        
     }
 
     ~MouseObject()
