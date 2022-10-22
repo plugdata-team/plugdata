@@ -546,8 +546,12 @@ public:
     void updateSettings()
     {
         auto arrName = name.getValue().toString();
-        auto arrSize = static_cast<int>(size.getValue());
+        auto arrSize = std::max(0, static_cast<int>(size.getValue()));
         auto arrDrawMode = static_cast<int>(drawMode.getValue()) - 1;
+        
+        if(arrSize != static_cast<int>(size.getValue())) {
+            size = arrSize;
+        }
 
         // This flag is swapped for some reason
         if (arrDrawMode == 0) {
