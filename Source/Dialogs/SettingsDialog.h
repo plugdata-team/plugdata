@@ -169,7 +169,7 @@ struct ThemePanel : public Component
         
         colourProperties.setBounds(0, 0, getWidth(), numRows * 23);
         viewport.setBounds(getLocalBounds().withTrimmedBottom(32));
-        resetButton.setBounds(getWidth() - 32, getHeight() - 24, 32, 32);
+        resetButton.setBounds(getWidth() - 36, getHeight() - 26, 32, 32);
     }
 };
 

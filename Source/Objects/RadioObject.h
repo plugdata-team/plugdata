@@ -171,7 +171,7 @@ struct RadioObject final : public IEMObject {
     void valueChanged(Value& value) override
     {
         if (value.refersToSameSourceAs(max)) {
-            setMaximum(static_cast<int>(max.getValue()));
+            setMaximum(limitValueMin(value, 0));
             updateRange();
         } else {
             IEMObject::valueChanged(value);
