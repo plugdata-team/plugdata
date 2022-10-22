@@ -30,10 +30,9 @@ void Dialogs::showSaveDialog(std::unique_ptr<Dialog>* target, Component* centre,
         return;
 
     auto* dialog = new Dialog(target, centre, 400, 130, 160, false);
-    auto* saveDialog = new SaveDialog(centre, dialog, filename);
+    auto* saveDialog = new SaveDialog(centre, dialog, filename, callback);
 
     dialog->setViewedComponent(saveDialog);
-    saveDialog->cb = std::move(callback);
     target->reset(dialog);
 }
 void Dialogs::showArrayDialog(std::unique_ptr<Dialog>* target, Component* centre, std::function<void(int, String, String)> callback)
@@ -42,9 +41,8 @@ void Dialogs::showArrayDialog(std::unique_ptr<Dialog>* target, Component* centre
         return;
 
     auto* dialog = new Dialog(target, centre, 300, 180, 200, false);
-    auto* arrayDialog = new ArrayDialog(centre, dialog);
+    auto* arrayDialog = new ArrayDialog(centre, dialog, callback);
     dialog->setViewedComponent(arrayDialog);
-    arrayDialog->cb = std::move(callback);
     target->reset(dialog);
 }
 
@@ -122,6 +120,57 @@ void Dialogs::showObjectMenu(PlugDataPluginEditor* parent, Component* target)
                 }
             }
         });
+}
+
+
+struct OkayCancelDialog : public Component {
+    
+    OkayCancelDialog(Dialog* dialog, String const& title, std::function<void(bool)> callback)
+        : label("", title)
+    {
+        setSize(400, 200);
+        addAndMakeVisible(label);
+        addAndMakeVisible(cancel);
+        addAndMakeVisible(okay);
+
+        cancel.onClick = [this, dialog, callback] {
+            dialog->closeDialog();
+            callback(false);
+        };
+        
+        okay.onClick = [this, dialog, callback] {
+            dialog->closeDialog();
+            callback(true);
+        };
+
+        cancel.changeWidthToFitText();
+        okay.changeWidthToFitText();
+        setOpaque(false);
+    }
+    
+
+    void resized() override
+    {
+        label.setBounds(20, 25, 360, 30);
+        cancel.setBounds(20, 80, 80, 25);
+        okay.setBounds(300, 80, 80, 25);
+    }
+
+private:
+    Label label;
+
+    TextButton cancel = TextButton("Cancel");
+    TextButton okay = TextButton("OK");
+};
+
+
+void Dialogs::showOkayCancelDialog(std::unique_ptr<Dialog>* target, Component* parent, const String& title, std::function<void(bool)> callback)
+{
+    auto* dialog = new Dialog(target, parent, 400, 130, 160, false);
+    auto* dialogContent = new OkayCancelDialog(dialog, title, callback);
+
+    dialog->setViewedComponent(dialogContent);
+    target->reset(dialog);
 }
 
 StringArray DekenInterface::getExternalPaths()

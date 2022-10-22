@@ -5,7 +5,7 @@
  */
 
 struct ArrayDialog : public Component {
-    ArrayDialog(Component* editor, Dialog* parent)
+    ArrayDialog(Component* editor, Dialog* parent, std::function<void(int, String, String)> callback) : cb(callback)
     {
         setSize(400, 200);
         

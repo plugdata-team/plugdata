@@ -1,6 +1,6 @@
 struct SaveDialog : public Component {
-    SaveDialog(Component* editor, Dialog* parent, String const& filename)
-        : savelabel("savelabel", filename.isEmpty() ? "Save Changes?" : "Save Changes to \"" + filename + "\"?")
+    SaveDialog(Component* editor, Dialog* parent, String const& filename, std::function<void(int)> callback)
+        : savelabel("savelabel", filename.isEmpty() ? "Save Changes?" : "Save Changes to \"" + filename + "\"?"), cb(callback)
     {
         setSize(400, 200);
         addAndMakeVisible(savelabel);
@@ -44,7 +44,7 @@ struct SaveDialog : public Component {
         save.setBounds(300, 80, 80, 25);
     }
 
-    static inline std::function<void(int)> cb = [](int) {};
+    std::function<void(int)> cb = [](int){};
 
 private:
     Label savelabel;

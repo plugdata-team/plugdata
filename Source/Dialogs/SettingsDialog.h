@@ -143,6 +143,8 @@ struct ThemePanel : public Component
     Viewport viewport;
     
     TextButton resetButton = TextButton(Icons::Refresh);
+    
+    std::unique_ptr<Dialog> confirmationDialog;
 
     explicit ThemePanel(ValueTree settingsTree)
         : colourProperties(settingsTree)
@@ -152,7 +154,12 @@ struct ThemePanel : public Component
         addAndMakeVisible(resetButton);
         resetButton.setConnectedEdges(12);
         resetButton.onClick = [this]() {
-            colourProperties.resetColours();
+            Dialogs::showOkayCancelDialog(&confirmationDialog, getParentComponent(), "Are you sure you want to reset to default theme settings?",
+                                          [this](bool result){
+                if(result) {
+                    colourProperties.resetColours();
+                }
+            });
         };
         
         addAndMakeVisible(viewport);
@@ -356,10 +363,7 @@ struct SettingsDialog : public Component {
             g.fillRect(statusbarBounds.withHeight(20));
             g.fillRoundedRectangle(statusbarBounds, 5.0f);
         }
-    }
-
-    void paintOverChildren(Graphics& g) override
-    {
+        
         g.setColour(findColour(PlugDataColour::outlineColourId));
         g.drawLine(0.0f, toolbarHeight, getWidth(), toolbarHeight);
 
