@@ -253,10 +253,10 @@ struct ScopeObject final : public GUIObject, public Timer {
             colourToHexArray(Colour::fromString(gridColour.toString()), scope->x_gg);
         }
         else if(v.refersToSameSourceAs(bufferSize)) {
-            scope->x_bufsize = static_cast<int>(bufferSize.getValue());
+            scope->x_bufsize = limitValueMin(v, 0);
         }
         else if(v.refersToSameSourceAs(samplesPerPoint)) {
-            scope->x_period = static_cast<int>(samplesPerPoint.getValue());
+            scope->x_period = limitValueMin(v, 0);
         }
         else if (v.refersToSameSourceAs(signalRange)) {
             auto min = static_cast<float>(signalRange.getValue().getArray()->getReference(0));

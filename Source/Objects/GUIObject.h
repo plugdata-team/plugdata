@@ -164,6 +164,20 @@ struct GUIObject : public ObjectBase
     }
 
     void setValue(float value);
+        
+    template<typename T>
+    T limitValueMax(Value& v, T max) {
+        auto clampedValue = std::min<T>(max, static_cast<T>(v.getValue()));
+        v = clampedValue;
+        return clampedValue;
+    }
+        
+    template<typename T>
+    T limitValueMin(Value& v, T min) {
+        auto clampedValue = std::max<T>(min, static_cast<T>(v.getValue()));
+        v = clampedValue;
+        return clampedValue;
+    }
 
 protected:
     std::unique_ptr<Label> label;
