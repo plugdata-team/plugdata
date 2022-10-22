@@ -633,6 +633,8 @@ void Canvas::mouseMove(const MouseEvent& e)
     {
         repaint();
     }
+    
+    lastMousePosition = e.getPosition();
 }
 
 bool Canvas::keyPressed(const KeyPress& key)
