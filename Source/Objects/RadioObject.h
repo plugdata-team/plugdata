@@ -131,7 +131,13 @@ struct RadioObject final : public IEMObject {
         }
 
         int idx = getValueOriginal();
-        radioButtons[idx]->setToggleState(true, dontSendNotification);
+        
+        if(isPositiveAndBelow(idx, radioButtons.size())) {
+            radioButtons[idx]->setToggleState(true, dontSendNotification);
+        }
+        else {
+            setValueOriginal(radioButtons.size() - 1);
+        }
 
         if (getWidth() != 0 && getHeight() != 0) {
             resized();
