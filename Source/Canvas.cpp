@@ -451,8 +451,10 @@ void Canvas::mouseDown(const MouseEvent& e)
 
 void Canvas::mouseDrag(const MouseEvent& e)
 {
+    
+    bool draggingLabel = dynamic_cast<Label*>(e.originalComponent) != nullptr;
     // Ignore on graphs or when locked
-    if (isGraph || locked == var(true) || commandLocked == var(true))  {
+    if ((isGraph || locked == var(true) || commandLocked == var(true)) && !draggingLabel)  {
         bool hasToggled = false;
         
         // Behaviour for dragging over toggles, bang and radiogroup to toggle them
