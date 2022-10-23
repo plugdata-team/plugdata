@@ -694,7 +694,7 @@ bool Canvas::keyPressed(const KeyPress& key)
         return false;
     }
 
-    patch.keyPress(keycode, key.getModifiers().isShiftDown());
+    //patch.keyPress(keycode, key.getModifiers().isShiftDown());
 
     return false;
 }
