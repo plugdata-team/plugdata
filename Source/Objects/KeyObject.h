@@ -45,6 +45,9 @@ struct KeyObject final : public TextBase, public KeyListener {
             
             pd_list((t_pd*)ptr, gensym("list"), 2, argv);
         }
+        
+        // Never claim the keypress
+        return false;
     }
     
     bool keyStateChanged (bool isKeyDown, Component *originatingComponent) override
@@ -77,6 +80,8 @@ struct KeyObject final : public TextBase, public KeyListener {
             
 
         }
+        
+        // Never claim the keychange
         return false;
     }
     
