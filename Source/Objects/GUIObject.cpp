@@ -34,6 +34,7 @@ extern "C" {
 #include "ArrayObject.h"
 #include "GraphOnParent.h"
 #include "KeyboardObject.h"
+#include "KeyObject.h"
 #include "MousePadObject.h"
 #include "NumberObject.h"
 #include "NumboxTildeObject.h"
@@ -472,6 +473,13 @@ ObjectBase* GUIObject::createGui(void* ptr, Object* parent)
         if (gobj->g_pd == scalar_class) {
             return new ScalarObject(ptr, parent);
         }
+    } else if (name == "key") {
+        return new KeyObject(ptr, parent, KeyObject::Key);
+    } else if (name == "keyname") {
+        return new KeyObject(ptr, parent, KeyObject::KeyName);
+    }
+    else if (name == "keyup") {
+        return new KeyObject(ptr, parent, KeyObject::KeyUp);
     }
     // ELSE's [oscope~] and cyclone [scope~] are basically the same object
     else if (name == "oscope~" || name == "scope~") {
