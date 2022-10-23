@@ -293,17 +293,37 @@ void PlugDataAudioProcessor::initialiseFilesystem()
         
         if (settingsTree.hasProperty("DefaultFont"))
         {
-            String fontname = settingsTree.getProperty("DefaultFont").toString();
+            auto fontname = settingsTree.getProperty("DefaultFont").toString();
             PlugDataLook::setDefaultFont(fontname);
         }
 
-        auto colourThemesTree = settingsTree.getChildWithName("ColourThemes");
-        for (auto const& themeTree : colourThemesTree) {
-            auto themeName = themeTree.getProperty("theme");
-            for (auto const& defaultColours : lnf->defaultDarkTheme) {
-                auto colourName = PlugDataColourNames.at(defaultColours.first).second;
-                
-                lnf->colourSettings[themeName][defaultColours.first] = Colour::fromString(themeTree.getProperty(String(colourName)).toString());
+        if(!settingsTree.getChildWithName("ColourThemes").isValid()) {
+            auto colourThemesTree = ValueTree("ColourThemes");
+            
+            for (auto const& theme : lnf->colourSettings) {
+                auto themeName = theme.first;
+                auto themeColours = theme.second;
+                auto themeTree = ValueTree(themeName);
+                colourThemesTree.appendChild(themeTree, nullptr);
+                themeTree.setProperty("theme", themeName, nullptr);
+                for (auto const& defaultColours : lnf->defaultDarkTheme) {
+                    auto colourName = PlugDataColourNames.at(defaultColours.first).second;
+                    themeTree.setProperty(colourName, themeColours.at(defaultColours.first).toString(), nullptr);
+                }
+            }
+            
+            settingsTree.appendChild(colourThemesTree, nullptr);
+            saveSettings();
+        }
+        else {
+            auto colourThemesTree = settingsTree.getChildWithName("ColourThemes");
+            for (auto const& themeTree : colourThemesTree) {
+                auto themeName = themeTree.getProperty("theme");
+                for (auto const& defaultColours : lnf->defaultDarkTheme) {
+                    auto colourName = PlugDataColourNames.at(defaultColours.first).second;
+                    
+                    lnf->colourSettings[themeName][defaultColours.first] = Colour::fromString(themeTree.getProperty(String(colourName)).toString());
+                }
             }
         }
     }
@@ -893,9 +913,11 @@ void PlugDataAudioProcessor::getStateInformation(MemoryBlock& destData)
     suspendProcessing(true);  // These functions can be called from any thread, so suspend processing prevent threading issues
 
     setThis();
-    auto state = parameters.copyState();
-    std::unique_ptr<XmlElement> xml(state.createXml());
-    copyXmlToBinary(*xml, xmlBlock);
+    auto stateXml = parameters.copyState().createXml();
+    
+    stateXml->setAttribute("Version", JucePlugin_VersionString);
+    
+    copyXmlToBinary(*stateXml, xmlBlock);
 
     // Store pure-data state
     MemoryOutputStream ostream(destData, false);
@@ -981,6 +1003,11 @@ void PlugDataAudioProcessor::setStateInformation(const void* data, int sizeInByt
 
             std::unique_ptr<XmlElement> xmlState(getXmlFromBinary(xmlData, xmlSize));
 
+            auto saveVersion = String("0.6.1");
+            if(xmlState->hasAttribute("Version")) {
+                saveVersion = xmlState->getStringAttribute("Version");
+            }
+            
             if (xmlState) {
                 if (xmlState->hasTagName(parameters.state.getType())) {
                     parameters.replaceState(ValueTree::fromXml(*xmlState));

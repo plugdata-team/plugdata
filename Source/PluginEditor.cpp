@@ -586,6 +586,7 @@ void PlugDataPluginEditor::valueChanged(Value& v)
         float scale = static_cast<float>(v.getValue());
         
         if(scale == 0)  {
+            scale = 1.0f;
             zoomScale = 1.0f;
         }
         
