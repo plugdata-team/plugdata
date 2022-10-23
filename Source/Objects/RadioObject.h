@@ -78,7 +78,8 @@ struct RadioObject final : public IEMObject {
     {
         int selected = getValueOriginal();
 
-        if (selected < radioButtons.size()) {
+        
+        if (isPositiveAndBelow(selected, radioButtons.size())) {
             radioButtons[selected]->setToggleState(true, dontSendNotification);
         }
     }
