@@ -128,7 +128,7 @@ public:
         mainWindow.reset(createWindow());
 
         mainWindow->setVisible(true);
-x
+
         parseSystemArguments(arguments);
     }
 
