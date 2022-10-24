@@ -221,12 +221,6 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p) : AudioPro
 }
 PlugDataPluginEditor::~PlugDataPluginEditor()
 {
-    auto keymap = pd.settingsTree.getChildWithName("Keymap");
-    if (keymap.isValid())
-    {
-        keymap.setProperty("keyxml", getKeyMappings()->createXml(true)->toString(), nullptr);
-    }
-
     setConstrainer(nullptr);
 
     pd.settingsTree.removeListener(this);
