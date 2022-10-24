@@ -109,14 +109,6 @@ to [zerocross~];
 #000000 #000000;
 #X obj 108 430 cnv 17 3 17 empty empty 1 5 9 0 16 #dcdcdc #9c9c9c 0
 ;
-<<<<<<< HEAD
-#X coords 0 1 100 -1 1 1 1;
-#X restore 0 0 graph;
-#X text 134 374 float/signal - threshold value, f 37;
-#X text 176 406 signal - when left inlet value rises above the threshold
-value;
-#X text 176 430 signal - when left inlet falls back below the threshold
-=======
 #X obj 210 168 else/randpulse~ 1;
 #X obj 210 230 else/above~ 0.1;
 #X text 57 95 [above~] sends an impulse on its left output when it
@@ -126,7 +118,6 @@ to the threshold or past it. You can set the threshold value with the
 argument or the 2nd inlet., f 69;
 #X text 176 406 signal - impulse when raises above a threshold;
 #X text 176 430 signal - impulse when falls back or below a threshold
->>>>>>> f005d9837cffcb51b518c56250bccd182fdde685
 ;
 #X obj 210 271 else/out~;
 #X obj 210 195 else/numbox~ 6 12 100 #c0c0c4 #440008 10 0 0 0;

@@ -1,0 +1,249 @@
+#N canvas 485 24 565 684 10;
+#X obj 4 320 cnv 3 550 3 empty empty inlets 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 4 489 cnv 3 550 3 empty empty outlets 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 4 620 cnv 3 550 3 empty empty arguments 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 89 327 cnv 17 3 154 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X obj 88 498 cnv 17 3 17 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X obj 88 519 cnv 17 3 17 empty empty 1 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X obj 4 655 cnv 1 550 1 empty empty empty 0 0 0 4 #fcfcfc #fcfcfc
+0;
+#X obj 4 654 cnv 15 552 21 empty empty empty 20 12 0 14 #e0e0e0 #202020
+0;
+#X text 170 327 bang;
+#X text 165 519 bang;
+#X text 158 499 float;
+#X obj 158 193 bng 20 250 50 0 empty empty empty 0 -6 0 8 #d0d0d0 #404040
+#000000;
+#X text 191 278 random numbers, f 7;
+#X obj 306 4 cnv 15 250 40 empty empty empty 12 13 0 18 #7c7c7c #e0e4dc
+0;
+#N canvas 382 141 749 319 (subpatch) 0;
+#X coords 0 -1 1 1 252 42 2 100 100;
+#X restore 305 3 pd;
+#X obj 345 11 cnv 10 10 10 empty empty ELSE 0 15 2 30 #7c7c7c #e0e4dc
+0;
+#X obj 458 11 cnv 10 10 10 empty empty EL 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 478 11 cnv 10 10 10 empty empty Locus 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 515 12 cnv 10 10 10 empty empty Solus' 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 464 26 cnv 10 10 10 empty empty ELSE 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 502 26 cnv 10 10 10 empty empty library 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 158 280 else/display 3;
+#X text 134 451 eq <float>;
+#X text 205 451 - sets an equal number of occurrences for all elements
+;
+#X text 128 372 inc <float>;
+#X text 170 341 list;
+#X text 134 404 set <f \, f>;
+#X text 199 519 - right after the sequence finishes;
+#N canvas 526 131 730 432 example 0;
+#X floatatom 375 172 5 1 12 0 - - - 0;
+#X obj 321 344 else/display;
+#X obj 83 276 mtof;
+#X obj 75 361 else/out~;
+#X obj 83 242 else/display;
+#X text 126 161 play random notes with different weights., f 23;
+#X obj 83 302 t b f;
+#X obj 75 334 else/pluck~ 0 3000;
+#X obj 321 307 else/group;
+#X msg 375 196 size \$1;
+#X msg 111 74 2 0 2 0 1;
+#X msg 124 98 4 1 3 2 1;
+#X obj 83 214 else/sequencer 30 34 39 41 46;
+#X obj 83 170 + 1;
+#X floatatom 83 149 3 0 0 0 - - - 0;
+#X floatatom 83 193 3 0 0 0 - - - 0;
+#X text 412 171 <- new size;
+#X obj 40 81 bng 19 250 50 0 empty empty empty 17 7 0 10 #dcdcdc #000000
+#000000;
+#X obj 83 127 else/rand.hist 4 1 3 2 1;
+#X obj 321 258 else/rand.hist -u -size 12 -eq 1;
+#X obj 586 59 else/rand.u 12;
+#X obj 321 112 bng 19 250 50 0 empty empty empty 17 7 0 10 #dcdcdc
+#000000 #000000;
+#X text 347 113 Generate a random series;
+#X obj 83 47 else/tempo -on 120 50;
+#X text 42 14 Play random values from a sequence.;
+#X msg 395 228 eq 2;
+#X text 434 228 set occurances to "2";
+#X text 339 41 The example below \, by default \, generates a dodecaphonic
+series. It is the same as:, f 43;
+#X obj 321 173 until;
+#X obj 510 282 s \$0-done;
+#X obj 348 143 r \$0-done;
+#X connect 0 0 9 0;
+#X connect 2 0 6 0;
+#X connect 4 0 2 0;
+#X connect 6 0 7 0;
+#X connect 6 1 7 1;
+#X connect 7 0 3 0;
+#X connect 8 0 1 0;
+#X connect 9 0 19 0;
+#X connect 10 0 18 0;
+#X connect 11 0 18 0;
+#X connect 12 0 4 0;
+#X connect 13 0 15 0;
+#X connect 14 0 13 0;
+#X connect 15 0 12 0;
+#X connect 17 0 18 0;
+#X connect 18 0 14 0;
+#X connect 19 0 8 0;
+#X connect 19 1 8 0;
+#X connect 19 1 29 0;
+#X connect 21 0 28 0;
+#X connect 23 0 18 0;
+#X connect 25 0 19 0;
+#X connect 28 0 19 0;
+#X connect 30 0 28 1;
+#X restore 477 240 pd example;
+#X obj 34 40 cnv 4 4 4 empty empty Random\\\ values\\\ from\\\ histogram
+0 28 2 18 #e0e0e0 #000000 0;
+#X text 146 419 seed <f>;
+#X text 205 419 - sets seed value \, no float creates a new unique
+one, f 53;
+#X obj 4 542 cnv 3 550 3 empty empty flags 8 12 0 13 #dcdcdc #000000
+0;
+#X text 203 630 1) list;
+#X text 128 388 dec <float>;
+#X text 122 435 size <float>;
+#X text 205 327 - generates a random output, f 53;
+#X text 97 550 -seed <float>: sets seed value (default \, unique one)
+;
+#X obj 3 3 cnv 15 301 42 empty empty rand.hist 20 20 2 37 #e0e0e0 #000000
+0;
+#N canvas 0 22 450 278 (subpatch) 0;
+#X coords 0 1 100 -1 302 42 1 0 0;
+#X restore 3 3 graph;
+#X text 199 499 - random index output from histogram, f 38;
+#X obj 395 286 bng 19 250 50 0 empty empty empty 0 -6 0 8 #d0d0d0 #404040
+#000000;
+#X obj 308 285 else/display 3;
+#X obj 308 193 bng 20 250 50 0 empty empty empty 0 -6 0 8 #d0d0d0 #404040
+#000000;
+#X msg 211 219 3 5;
+#X text 421 284 bang when finished, f 9;
+#X msg 193 196 2 1 0 1;
+#X obj 19 239 else/histogram;
+#A saved;
+#X obj 19 264 else/rand.d;
+#X text 205 341 - sets new histogram and clears memory, f 53;
+#X text 205 372 - set index and increase occurance by 1, f 53;
+#X text 205 388 - set index and decrease occurance by 1, f 53;
+#X text 205 357 - clears memory so you can restart a new series, f
+53;
+#X text 164 357 clear;
+#X obj 158 251 ./rand.hist 3 2 5;
+#X text 20 191 see also:;
+#X msg 346 206 unrepeat \$1;
+#X obj 308 258 ./rand.hist 3 2;
+#X obj 346 180 tgl 17 0 empty empty empty 17 7 0 10 #dfdfdf #000000
+#000000 0 1;
+#X obj 19 215 else/chance;
+#X text 97 566 -size <float>: sets histogram size (default 128), f
+61;
+#X text 97 581 -eq <float>: sets equal number of occurrences for all
+indexes (default 0), f 73;
+#X text 253 630 - sets histogram;
+#X text 205 435 - clears the memory and sets a new 'n' size, f 53
+;
+#X text 98 466 unrepeat <float>;
+#X text 205 467 - nonzero sets to unrepeat mode;
+#X text 99 600 -u: sets to unrepeat mode;
+#X obj 19 288 else/rand.u;
+#X text 205 404 - set index and occurrence value, f 53;
+#N canvas 423 72 869 542 details 0;
+#X obj 27 99 else/keyboard 17 80 3 3 0 0 empty empty;
+#X obj 102 192 bng 20 250 50 0 empty empty empty 17 7 0 10 #dcdcdc
+#000000 #000000;
+#X msg 161 383 seed 1234;
+#X msg 172 407 seed;
+#X text 228 382 set a seed to reproduce sequence;
+#X text 207 408 unique seed based on system time;
+#X obj 102 472 else/display 3;
+#X msg 117 224 inc 60;
+#X msg 123 250 dec 60;
+#X obj 27 195 stripnote;
+#X msg 27 224 inc \$1;
+#X text 201 440 by default we have a size of 128 and 0 occurances,
+f 26;
+#X obj 480 238 else/histogram;
+#A saved;
+#X text 437 382 By default \, [rand.hist] loads a unique seed value
+based on system every time you open the patch. Each copy of the object
+has its own unique seed. You can set a specific seed that reproduces
+the same sequence with the 'seed' message or flag \, which can be any
+integer number. A 'seed' message without a float resets the seed to
+a unique value based on the system time., f 59;
+#X text 166 223 increase occurance of index 60;
+#X text 170 250 decrease occurance off index 60;
+#X msg 142 299 eq 2;
+#X msg 133 276 set 60 2;
+#X obj 102 445 else/rand.hist;
+#X text 129 194 Generate random value;
+#X msg 148 326 clear;
+#X text 188 327 same as "eq 0";
+#X text 194 278 set index and occurance;
+#X text 178 298 set equal occurance for all indexes;
+#X msg 152 353 size 100;
+#X text 212 355 clears and resizes histogram;
+#X text 21 18 You can use [keyboard] and the "inc" message to feed
+and generate the internal histogram. The 'dec' message decreases it.
+The set message sets index and occurance. The 'eq' message sets equal
+occurances for all indexes. The clear message clears the histogram
+and is like the 'eq 0' message. The size message clears and resizes
+the histogram., f 68;
+#X obj 480 102 else/keyboard 17 80 3 3 0 0 empty empty;
+#X msg 519 207 export;
+#X obj 520 318 else/display 3;
+#X obj 520 287 else/rand.hist;
+#X text 474 37 A list input sets a new histogram. Note can also use
+[histogram] to create a histogram from MIDI note inputs. Use the 'export'
+message to output a list of occurances., f 56;
+#X connect 0 0 9 0;
+#X connect 1 0 18 0;
+#X connect 2 0 18 0;
+#X connect 3 0 18 0;
+#X connect 7 0 18 0;
+#X connect 8 0 18 0;
+#X connect 9 0 10 0;
+#X connect 10 0 18 0;
+#X connect 12 1 30 0;
+#X connect 16 0 18 0;
+#X connect 17 0 18 0;
+#X connect 18 0 6 0;
+#X connect 20 0 18 0;
+#X connect 24 0 18 0;
+#X connect 27 0 12 0;
+#X connect 28 0 12 0;
+#X connect 30 0 29 0;
+#X restore 477 218 pd details;
+#X msg 360 231 restart;
+#X text 35 83 [rand.hist] generates weighted randomnumbers based on
+a histogram (which specifies how many times an index is output). Below
+to the left we have a random sequence where 0 has a 30% chance of occurring
+\, 1 has 20% and 2 has 50%. A list sets a new histogram. In "unrepeat"
+mode \, a random sequence is output without repetition \, below to
+the right \, the random sequence contains index 0 three times and index
+1 twice. When the sequence is finished \, a bang comes out the right
+outlet. In this case \, the 'restart' message clears the memory so
+you can start a new sequence., f 82;
+#X connect 11 0 54 0;
+#X connect 43 0 57 0;
+#X connect 44 0 54 0;
+#X connect 46 0 54 0;
+#X connect 54 0 21 0;
+#X connect 56 0 57 0;
+#X connect 57 0 42 0;
+#X connect 57 1 41 0;
+#X connect 58 0 56 0;
+#X connect 70 0 57 0;
