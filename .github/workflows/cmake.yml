@@ -5,6 +5,7 @@ on: [push, workflow_dispatch]
 env:
   # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
   BUILD_TYPE: Release
+  CMAKE_BUILD_PARALLEL_LEVEL: 3
 
 jobs:
   macos-universal-build:
@@ -16,7 +17,7 @@ jobs:
         submodules: recursive
 
     - name: Create Build Environment
-      run: cmake -E make_directory ${{github.workspace}}/build
+      run: cmake -E make_directory ${{github.workspace}}/build        
 
     - name: Configure CMake
       working-directory: ${{github.workspace}}/build
