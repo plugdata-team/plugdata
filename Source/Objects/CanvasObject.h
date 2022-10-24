@@ -15,6 +15,8 @@ struct CanvasObject final : public IEMObject {
         return !locked;
     }
     
+    
+    
     void lock(bool isLocked) override
     {
         locked = isLocked;
