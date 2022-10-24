@@ -16,11 +16,11 @@ jobs:
       with:
         submodules: recursive
 
-    - name: Create Build Environment
-      run: cmake -E make_directory ${{github.workspace}}/build        
-
     - name: ccache
       uses: hendrikmuhs/ccache-action@v1.2
+      
+    - name: Create Build Environment
+      run: cmake -E make_directory ${{github.workspace}}/build        
 
     - name: Configure CMake
       working-directory: ${{github.workspace}}/build
