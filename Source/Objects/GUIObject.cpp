@@ -84,6 +84,8 @@ String ObjectBase::getText()
 
 String ObjectBase::getType() const
 {
+    ScopedLock lock(*pd->getCallbackLock());
+    
     if (ptr) {
         if (pd_class(static_cast<t_pd*>(ptr)) == canvas_class && canvas_isabstraction((t_canvas*)ptr)) {
             char namebuf[MAXPDSTRING];
@@ -104,6 +106,8 @@ String ObjectBase::getType() const
             return String(name);
         }
     }
+    
+    sys_unlock();
 
     return {};
 }
