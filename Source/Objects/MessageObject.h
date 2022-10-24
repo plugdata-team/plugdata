@@ -32,9 +32,9 @@ struct MessageObject final : public TextBase
         
         libpd_get_object_bounds(cnv->patch.getPointer(), ptr, &x, &y, &w, &h);
         
-        w = textObj->te_width * glist_fontwidth(cnv->patch.getPointer());
+        w = std::max(35, textObj->te_width * glist_fontwidth(cnv->patch.getPointer()));
         
-        if (textObj->te_width == 0) {
+        if (textObj->te_width == 0 && !getText().isEmpty()) {
             w = Font(15).getStringWidth(getText()) + 19;
         }
         
