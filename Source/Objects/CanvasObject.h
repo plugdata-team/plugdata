@@ -4,6 +4,12 @@ struct CanvasObject final : public IEMObject {
         : IEMObject(ptr, object)
     {
         object->setColour(PlugDataColour::outlineColourId, Colours::transparentBlack);
+        setInterceptsMouseClicks(false, false);
+    }
+    
+    void lock(bool locked) override
+    {
+        object->setInterceptsMouseClicks(!locked, !locked);
     }
 
     void updateBounds() override
