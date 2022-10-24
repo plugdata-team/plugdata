@@ -2,15 +2,15 @@
 
 // Keymapping object based on JUCE's KeyMappingEditorComponent
 
-class  KeyMappingComponent  : public Component
+class KeyMappingComponent : public Component, public ChangeListener
 {
-    
-    std::unique_ptr<Dialog> confirmationDialog;
-    
 public:
-    KeyMappingComponent (KeyPressMappingSet& mappingSet) : mappings (mappingSet),
+    KeyMappingComponent (KeyPressMappingSet& mappingSet, ValueTree settingsValueTree) : mappings (mappingSet), settingsTree(settingsValueTree),
     resetPdButton ("Reset to Pd defaults"), resetMaxButton ("Reset to Max defaults")
     {
+        
+        mappingSet.addChangeListener(this);
+        
         treeItem.reset (new TopLevelItem (*this));
 
         addAndMakeVisible (resetPdButton);
@@ -44,7 +44,21 @@ public:
     /** Destructor. */
     ~KeyMappingComponent()
     {
+        mappings.removeChangeListener(this);
         tree.setRootItem (nullptr);
+    }
+    
+    void changeListenerCallback (ChangeBroadcaster *source) override
+    {
+        auto newTree = mappings.createXml(true)->toString();
+        if(settingsTree.getChildWithName("Keymap").isValid()) {
+            settingsTree.getChildWithName("Keymap").setProperty("keyxml", newTree, nullptr);
+        }
+        else {
+            auto keyMap = ValueTree("Keymap");
+            keyMap.setProperty("keyxml", newTree, nullptr);
+            settingsTree.appendChild(keyMap, nullptr);
+        }
     }
     
     static void resetKeyMappingsToPdCallback (int result, KeyMappingComponent* owner)
@@ -137,6 +151,9 @@ private:
     class CategoryItem;
     class ItemComponent;
     std::unique_ptr<TopLevelItem> treeItem;
+    
+    std::unique_ptr<Dialog> confirmationDialog;
+    ValueTree settingsTree;
     
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (KeyMappingComponent)
     

@@ -297,7 +297,7 @@ struct SettingsDialog : public Component {
 
         panels.add(new ThemePanel(settingsTree));
         panels.add(new SearchPathComponent(settingsTree.getChildWithName("Paths")));
-        panels.add(new KeyMappingComponent(*editor->getKeyMappings()));
+        panels.add(new KeyMappingComponent(*editor->getKeyMappings(), settingsTree));
         panels.add(new Deken());
 
         for (int i = 0; i < toolbarButtons.size(); i++) {
