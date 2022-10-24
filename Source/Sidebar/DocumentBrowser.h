@@ -573,10 +573,10 @@ public:
         const String item = searchResult[rowNumber].getFileName();
 
         g.setFont(Font());
-        g.drawText(item, 24, 0, w - 4, h, Justification::centredLeft, true);
+        g.drawText(item, 28, 2, w - 4, h, Justification::centredLeft, true);
 
         g.setFont(getLookAndFeel().getTextButtonFont(closeButton, 23));
-        g.drawText(Icons::File, 8, 2, 24, 24, Justification::centredLeft);
+        g.drawText(Icons::File, 12, 2, 24, 24, Justification::centredLeft);
     }
 
     int getNumRows() override
@@ -665,7 +665,6 @@ public:
 
         closeButton.setBounds(inputBounds.removeFromRight(30));
 
-        tableBounds.removeFromTop(28);
         listBox.setBounds(tableBounds);
     }
 
