@@ -33,6 +33,10 @@
 #    define CUSTOM_SHADOW 0
 #endif
 
+
+
+
+
 namespace pd {
 class Patch;
 };
@@ -513,7 +517,7 @@ public:
         store its settings (it can also be null). If takeOwnershipOfSettings is
         true, then the settings object will be owned and deleted by this object.
     */
-    PlugDataWindow(String const& title, Colour backgroundColour, PropertySet* settingsToUse, bool takeOwnershipOfSettings, String const& preferredDefaultDeviceName = String(), AudioDeviceManager::AudioDeviceSetup const* preferredSetupOptions = nullptr,
+    PlugDataWindow(String const& systemArguments, String const& title, Colour backgroundColour, PropertySet* settingsToUse, bool takeOwnershipOfSettings, String const& preferredDefaultDeviceName = String(), AudioDeviceManager::AudioDeviceSetup const* preferredSetupOptions = nullptr,
         Array<PluginInOuts> const& constrainToConfiguration = {},
 #if JUCE_ANDROID || JUCE_IOS
         bool autoOpenMidiDevices = true
@@ -532,6 +536,8 @@ public:
 
         pluginHolder = std::make_unique<StandalonePluginHolder>(settingsToUse, takeOwnershipOfSettings, preferredDefaultDeviceName, preferredSetupOptions, constrainToConfiguration, autoOpenMidiDevices);
 
+        parseSystemArguments(systemArguments);
+        
         setOpaque(false);
 
         auto* mainComponent = new MainContentComponent(*this);
@@ -569,6 +575,8 @@ public:
 
         setResizable(true, false);
     }
+    
+    int parseSystemArguments(String const& arguments);
 
     ~PlugDataWindow() override
     {

@@ -43,31 +43,31 @@ struct t_namelist /* element in a linked list of stored strings */
     char* nl_string;            /* the string */
 };
 
+static void namelist_free(t_namelist* listwas)
+{
+    t_namelist *nl, *nl2;
+    for (nl = listwas; nl; nl = nl2) {
+        nl2 = nl->nl_next;
+        t_freebytes(nl->nl_string, strlen(nl->nl_string) + 1);
+        t_freebytes(nl, sizeof(*nl));
+    }
+}
+static char const* strtokcpy(char* to, size_t to_len, char const* from, char delim)
+{
+    unsigned int i = 0;
+
+    for (; i < (to_len - 1) && from[i] && from[i] != delim; i++)
+        to[i] = from[i];
+    to[i] = '\0';
+
+    if (i && from[i] != '\0')
+        return from + i + 1;
+
+    return NULL;
+}
+
 class PlugDataApp : public JUCEApplication {
-
-    void namelist_free(t_namelist* listwas)
-    {
-        t_namelist *nl, *nl2;
-        for (nl = listwas; nl; nl = nl2) {
-            nl2 = nl->nl_next;
-            t_freebytes(nl->nl_string, strlen(nl->nl_string) + 1);
-            t_freebytes(nl, sizeof(*nl));
-        }
-    }
-    static char const* strtokcpy(char* to, size_t to_len, char const* from, char delim)
-    {
-        unsigned int i = 0;
-
-        for (; i < (to_len - 1) && from[i] && from[i] != delim; i++)
-            to[i] = from[i];
-        to[i] = '\0';
-
-        if (i && from[i] != '\0')
-            return from + i + 1;
-
-        return NULL;
-    }
-
+    
 public:
     PlugDataApp()
     {
@@ -114,22 +114,18 @@ public:
         }
     }
 
-    virtual PlugDataWindow* createWindow()
+    PlugDataWindow* createWindow(const String& systemArgs)
     {
-        return new PlugDataWindow(getApplicationName(), LookAndFeel::getDefaultLookAndFeel().findColour(ResizableWindow::backgroundColourId), appProperties.getUserSettings(), false, {}, nullptr, {});
+        return new PlugDataWindow(systemArgs, getApplicationName(), LookAndFeel::getDefaultLookAndFeel().findColour(ResizableWindow::backgroundColourId), appProperties.getUserSettings(), false, {}, nullptr, {});
     }
-
-    int parseSystemArguments(String const& arguments);
 
     void initialise(String const& arguments) override
     {
         LookAndFeel::getDefaultLookAndFeel().setColour(ResizableWindow::backgroundColourId, Colours::transparentBlack);
 
-        mainWindow.reset(createWindow());
+        mainWindow.reset(createWindow(arguments));
 
         mainWindow->setVisible(true);
-
-        parseSystemArguments(arguments);
     }
 
     void shutdown() override
@@ -222,7 +218,7 @@ void PlugDataWindow::closeButtonPressed()
     }
 }
 
-int PlugDataApp::parseSystemArguments(String const& arguments)
+int PlugDataWindow::parseSystemArguments(String const& arguments)
 {
     auto args = StringArray::fromTokens(arguments, true);
     size_t argc = args.size();
@@ -242,7 +238,7 @@ int PlugDataApp::parseSystemArguments(String const& arguments)
 
         auto toOpen = File(String(nl->nl_string).unquoted());
 
-        auto* pd = dynamic_cast<PlugDataAudioProcessor*>(mainWindow->getAudioProcessor());
+        auto* pd = dynamic_cast<PlugDataAudioProcessor*>(getAudioProcessor());
         if (pd && toOpen.existsAsFile()) {
             pd->loadPatch(toOpen);
         }
