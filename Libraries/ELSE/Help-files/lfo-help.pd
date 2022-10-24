@@ -118,7 +118,6 @@ of these objects for more details.;
 #X obj 266 105 vsl 22 80 0 127 0 0 dsfsdgs sddfjhgj empty 0 -9 0 10
 #dcdcdc #000000 #000000 0 1;
 #X obj 266 200 else/rescale 30 42;
-#X obj 266 79 else/lfo 5.3 0 270 -tri;
 #X obj 49 243 else/rescale 200 500;
 #X text 25 18 The refresh rate determines the output rate in ms for
 the waveform output. The minimum and default is 5 ms. This can also
@@ -130,23 +129,24 @@ from the waveforms., f 66;
 #X obj 266 303 else/plate.rev~ 50 0.6 0.5 0.8 0.6, f 18;
 #X obj 275 346 else/out~;
 #X obj 57 344 else/out~;
-#X connect 0 0 8 0;
-#X connect 1 0 11 0;
+#X obj 266 79 else/lfo -tri 5.3 0 270;
+#X connect 0 0 7 0;
+#X connect 1 0 10 0;
 #X connect 2 0 1 0;
 #X connect 3 0 4 2;
 #X connect 4 0 0 0;
 #X connect 5 0 6 0;
 #X connect 6 0 2 0;
-#X connect 7 0 5 0;
-#X connect 8 0 10 0;
+#X connect 7 0 9 0;
+#X connect 9 0 11 0;
 #X connect 10 0 12 0;
-#X connect 11 0 13 0;
-#X connect 12 0 15 0;
-#X connect 12 1 15 1;
-#X connect 13 0 14 0;
-#X connect 13 1 14 1;
+#X connect 11 0 14 0;
+#X connect 11 1 14 1;
+#X connect 12 0 13 0;
+#X connect 12 1 13 1;
+#X connect 15 0 5 0;
 #X restore 428 279 pd refresh rate;
-#N canvas 905 217 409 547 rescale 0;
+#N canvas 905 199 409 547 rescale 0;
 #X text 38 16 The output range if from 0 to 127 \, which is the whole
 MIDI default range. Use the [rescale] object if you want a different
 range for the output., f 53;
@@ -161,26 +161,26 @@ range for the output., f 53;
 #X obj 119 226 else/rescale 200 700;
 #X obj 118 384 else/plate.rev~ 50 0.9 0.9 0.9 0.7, f 18;
 #X obj 119 281 else/bicoeff2 lowpass 500 30;
-#X obj 119 82 else/lfo 0.15 -tri;
 #X obj 129 431 else/out~;
 #X obj 145 321 else/bl.saw~ 35;
+#X obj 119 82 else/lfo -tri 0.15;
 #X connect 1 0 2 0;
 #X connect 2 0 6 0;
 #X connect 3 0 8 0;
 #X connect 5 0 7 0;
 #X connect 6 0 3 0;
-#X connect 7 0 10 0;
-#X connect 7 1 10 1;
+#X connect 7 0 9 0;
+#X connect 7 1 9 1;
 #X connect 8 0 5 0;
-#X connect 9 0 1 0;
-#X connect 11 0 5 0;
+#X connect 10 0 5 0;
+#X connect 11 0 1 0;
 #X restore 457 234 pd rescale;
 #X text 64 91 [lfo] is a control rate LFO with some common waveforms.
 It doesn't need the DSP on to function \,, f 73;
-#X obj 195 192 else/lfo 0.25 -tri;
 #X text 192 342 sets waveform (sine \, tri \, saw \, vsaw and square)
 ;
+#X obj 195 192 else/lfo -tri 0.25;
 #X connect 17 0 18 0;
-#X connect 18 0 57 0;
-#X connect 21 0 57 1;
-#X connect 57 0 24 0;
+#X connect 18 0 58 0;
+#X connect 21 0 58 1;
+#X connect 58 0 24 0;

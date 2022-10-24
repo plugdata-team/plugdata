@@ -1,4 +1,4 @@
-#N canvas 475 24 563 498 10;
+#N canvas 475 24 563 490 10;
 #X obj 2 3 cnv 15 301 42 empty empty rand.i 20 20 2 37 #e0e0e0 #000000
 0;
 #N canvas 0 22 450 278 (subpatch) 0;
@@ -10,7 +10,7 @@
 0;
 #X obj 223 39 cnv 4 4 4 empty empty generator 0 28 2 18 #e0e0e0 #000000
 0;
-#X obj 3 465 cnv 15 552 21 empty empty empty 20 12 0 14 #e0e0e0 #202020
+#X obj 3 461 cnv 15 552 21 empty empty empty 20 12 0 14 #e0e0e0 #202020
 0;
 #X obj 4 346 cnv 3 550 3 empty empty outlets 8 12 0 13 #dcdcdc #000000
 0;
@@ -27,7 +27,6 @@
 #dcdcdc #000000 #000000 0 256;
 #X text 136 280 seed <float>;
 #X text 225 357 - random values;
-#X text 99 422 1) list -;
 #X obj 111 302 cnv 17 3 17 empty empty 1 5 9 0 16 #dcdcdc #9c9c9c 0
 ;
 #X obj 111 323 cnv 17 3 17 empty empty 2 5 9 0 16 #dcdcdc #9c9c9c 0
@@ -78,22 +77,22 @@ a reproducible output.;
 #X text 199 140 generate a random series;
 #X msg 108 140 seed 123;
 #X msg 68 140 seed;
+#X obj 174 169 else/loop -b 12;
+#X obj 174 229 else/group 12;
+#X obj 174 202 else/rand.i -seed 123 10 20;
 #X text 93 15 The example below generates a sequence of 12 numbers.
 By default \, [rand.i] loads a unique seed value based on system every
 time you open the patch. Each copy of the object has its own unique
 seed. You can set a specific seed that reproduces the same sequence
-with the 'seed' message or third argument \, which can be any integer
+with the 'seed' message or '-seed' flag \, which can be any integer
 number. A 'seed' message without a float resets the seed to a unique
 value based on the system time., f 53;
-#X obj 174 202 else/rand.i 10 20 123;
-#X obj 174 169 else/loop -b 12;
-#X obj 174 229 else/group 12;
-#X connect 0 0 7 0;
-#X connect 3 0 6 0;
-#X connect 4 0 6 0;
-#X connect 6 0 8 0;
+#X connect 0 0 5 0;
+#X connect 3 0 7 0;
+#X connect 4 0 7 0;
+#X connect 5 0 7 0;
+#X connect 6 0 1 0;
 #X connect 7 0 6 0;
-#X connect 8 0 1 0;
 #X restore 463 203 pd example;
 #N canvas 529 124 603 329 seed 0;
 #X text 26 21 Pseudo random number generators aren't true random number
@@ -133,15 +132,14 @@ repeat the output., f 52;
 0;
 #X text 135 388 -seed <float>: seed value (default: unique internal)
 ;
-#X text 164 421 floats set random's range \, 2 floats sets minimum
-and maximum - no arguments loads default values (0 and 1). 1 float
-sets maximum value (and lowest value is set to 0).;
 #X text 15 168 see also:;
 #X obj 15 190 else/rand.i~;
 #X obj 15 215 else/rand.f;
-#X connect 11 0 39 0;
+#X text 166 421 1) float - minimum (default 0);
+#X text 166 438 2) float - maximum (default 1);
+#X connect 11 0 38 0;
 #X connect 12 0 11 0;
-#X connect 20 0 39 1;
-#X connect 21 0 39 2;
-#X connect 25 0 39 0;
-#X connect 39 0 40 0;
+#X connect 19 0 38 1;
+#X connect 20 0 38 2;
+#X connect 24 0 38 0;
+#X connect 38 0 39 0;

@@ -1,4 +1,4 @@
-#N canvas 423 25 563 540 10;
+#N canvas 423 25 563 531 10;
 #X obj 2 3 cnv 15 301 42 empty empty rand.i~ 20 20 2 37 #e0e0e0 #000000
 0;
 #N canvas 0 22 450 278 (subpatch) 0;
@@ -10,7 +10,7 @@
 0;
 #X obj 223 39 cnv 4 4 4 empty empty generator 0 28 2 18 #e0e0e0 #000000
 0;
-#X obj 3 509 cnv 15 552 21 empty empty empty 20 12 0 14 #e0e0e0 #202020
+#X obj 3 501 cnv 15 552 21 empty empty empty 20 12 0 14 #e0e0e0 #202020
 0;
 #X obj 4 384 cnv 3 550 3 empty empty outlets 8 12 0 13 #dcdcdc #000000
 0;
@@ -151,7 +151,6 @@
 #X connect 9 0 0 0;
 #X coords 0 -1 1 1 44 72 2 50 100;
 #X restore 505 61 pd;
-#X text 110 461 1) list -;
 #X obj 278 174 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
 #dcdcdc #000000 #000000 0 256;
 #X obj 370 175 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
@@ -159,9 +158,6 @@
 #X text 286 153 low;
 #X text 381 155 high;
 #X obj 187 164 else/imp~ 5;
-#X text 175 460 floats set random's range \, 2 floats sets minimum
-and maximum - no arguments loads default values (0 and 1). 1 float
-sets maximum value (and lowest value is set to 0).;
 #X obj 93 40 cnv 4 4 4 empty empty integer 0 28 2 18 #e0e0e0 #000000
 0;
 #X obj 306 4 cnv 15 250 40 empty empty empty 12 13 0 18 #7c7c7c #e0e4dc
@@ -245,9 +241,11 @@ to repeat the output., f 52;
 #X text 14 193 see also:;
 #X obj 14 240 else/rand.i;
 #X obj 14 215 else/rand.f~;
-#X connect 10 0 31 0;
+#X text 180 461 1) float - minimum (default 0);
+#X text 180 478 2) float - maximum (default 1);
+#X connect 10 0 29 0;
 #X connect 11 0 10 0;
-#X connect 16 0 31 1;
-#X connect 17 0 31 2;
-#X connect 20 0 31 0;
-#X connect 31 0 46 0;
+#X connect 15 0 29 1;
+#X connect 16 0 29 2;
+#X connect 19 0 29 0;
+#X connect 29 0 44 0;

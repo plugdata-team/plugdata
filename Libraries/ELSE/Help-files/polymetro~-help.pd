@@ -1,4 +1,4 @@
-#N canvas 579 23 564 532 10;
+#N canvas 443 23 564 532 10;
 #X obj 350 259 trig2bang~;
 #X obj 350 291 bng 17 250 50 0 empty empty empty 17 7 0 10 #dfdfdf
 #000000 #000000;
@@ -37,92 +37,94 @@
 0;
 #X obj 502 26 cnv 10 10 10 empty empty library 0 6 2 13 #7c7c7c #e0e4dc
 0;
-#X obj 350 206 nbx 3 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+#X obj 284 206 nbx 3 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
 #dcdcdc #000000 #000000 0 256;
 #X obj 3 3 cnv 15 301 42 empty empty polymetro~ 20 20 2 37 #e0e0e0
 #000000 0;
 #N canvas 0 22 450 278 (subpatch) 0;
 #X coords 0 1 100 -1 302 42 1 0 0;
 #X restore 3 3 graph;
-#X text 391 207 tempo;
+#X text 284 190 tempo;
 #X text 160 329 float;
-#X text 160 389 float;
+#X text 160 368 float;
 #X obj 106 389 cnv 17 3 17 empty empty 2 5 9 0 16 #dcdcdc #9c9c9c 0
 ;
 #X obj 106 439 cnv 17 3 17 empty empty 1 5 9 0 16 #dcdcdc #9c9c9c 0
 ;
-#X text 196 389 - set tempo value in BPM, f 47;
+#X text 196 368 - set tempo value in BPM, f 47;
 #X text 22 212 see also:;
 #X obj 22 258 else/clock;
 #X obj 23 279 else/metronome~;
 #X text 196 329 - non-zero starts \, zero stops, f 47;
-#X msg 285 167 2/3;
-#X msg 316 167 3/2;
+#X msg 380 167 2/3;
+#X msg 411 167 3/2;
 #X obj 106 366 cnv 17 3 17 empty empty 1 5 9 0 16 #dcdcdc #9c9c9c 0
 ;
-#X text 142 366 anything;
-#X msg 255 167 1.5;
+#X text 142 389 anything;
+#X msg 350 167 1.5;
 #X text 110 484 2) symbol/float - polyrhythmic ratio (default 1/1)
 or float;
 #X text 152 469 1) float - tempo in BPM (default 120), f 49;
-#N canvas 795 78 416 502 example 0;
-#X obj 159 418 else/out~;
-#X obj 117 194 tgl 20 0 empty empty empty 17 7 0 10 #dfdfdf #000000
+#N canvas 548 87 484 558 example 0;
+#X obj 159 466 else/out~;
+#X obj 117 242 tgl 20 0 empty empty empty 17 7 0 10 #dfdfdf #000000
 #000000 0 1;
-#X floatatom 246 203 5 0 0 0 - - - 12;
-#X obj 117 349 else/resonant~ 600 200, f 14;
-#X obj 246 349 else/resonant~ 750 200, f 14;
-#X text 282 311 relative;
-#X text 147 310 base rhythm;
-#X text 290 204 tempo;
-#X msg 181 44 10/13;
-#X obj 181 98 display;
-#X msg 224 44 7/5;
-#X msg 151 44 9/7;
-#X msg 121 44 5/7;
-#X msg 257 44 8/13;
-#X msg 91 44 3/2;
-#X msg 61 44 2/3;
-#X msg 297 44 19/13;
-#X listbox 193 135 11 0 0 0 - - - 12;
-#X obj 117 237 else/polymetro~ 60 3/2;
-#X obj 260 311 bng 17 250 50 0 empty empty empty 17 7 0 10 #dfdfdf
+#X floatatom 181 251 5 0 0 0 - - - 12;
+#X obj 117 397 else/resonant~ 600 200, f 14;
+#X obj 246 397 else/resonant~ 750 200, f 14;
+#X text 282 359 relative;
+#X text 147 358 base rhythm;
+#X text 179 232 tempo;
+#X obj 117 285 else/polymetro~ 60 3/2;
+#X obj 260 359 bng 17 250 50 0 empty empty empty 17 7 0 10 #dfdfdf
 #000000 #000000;
-#X obj 126 309 bng 17 250 50 0 empty empty empty 17 7 0 10 #dfdfdf
+#X obj 126 357 bng 17 250 50 0 empty empty empty 17 7 0 10 #dfdfdf
 #000000 #000000;
-#X obj 260 279 else/trig2bang~;
-#X obj 126 277 else/trig2bang~;
-#X text 76 18 Test different options for multipliers;
-#X obj 84 194 bng 20 250 50 0 empty empty empty 17 7 0 10 #dfdfdf #000000
+#X obj 260 327 else/trig2bang~;
+#X obj 126 325 else/trig2bang~;
+#X obj 84 242 bng 20 250 50 0 empty empty empty 17 7 0 10 #dfdfdf #000000
 #000000;
-#X obj 84 154 else/changed;
-#X text 279 137 <-- try;
-#X floatatom 210 166 5 0 0 0 - - - 0;
-#X text 246 167 <-- float multiplier;
-#X connect 1 0 18 0;
-#X connect 2 0 18 2;
+#X obj 84 212 else/changed;
+#X msg 224 52 10/13;
+#X obj 224 106 display;
+#X msg 267 52 7/5;
+#X msg 194 52 9/7;
+#X msg 164 52 5/7;
+#X msg 300 52 8/13;
+#X msg 134 52 3/2;
+#X msg 104 52 2/3;
+#X msg 340 52 19/13;
+#X listbox 246 143 11 0 0 0 - - - 12;
+#X text 119 26 Test different options for multipliers;
+#X text 332 145 <-- try;
+#X floatatom 263 174 5 0 0 0 - - - 0;
+#X text 299 175 <-- float multiplier;
+#X connect 1 0 8 0;
+#X connect 2 0 8 1;
 #X connect 3 0 0 0;
 #X connect 4 0 0 1;
-#X connect 8 0 9 0;
-#X connect 9 0 18 1;
-#X connect 9 0 25 0;
-#X connect 10 0 9 0;
+#X connect 8 0 3 0;
+#X connect 8 0 12 0;
+#X connect 8 1 4 0;
+#X connect 8 1 11 0;
 #X connect 11 0 9 0;
-#X connect 12 0 9 0;
-#X connect 13 0 9 0;
-#X connect 14 0 9 0;
-#X connect 15 0 9 0;
-#X connect 16 0 9 0;
-#X connect 17 0 18 1;
-#X connect 18 0 3 0;
-#X connect 18 0 22 0;
-#X connect 18 1 4 0;
-#X connect 18 1 21 0;
-#X connect 21 0 19 0;
-#X connect 22 0 20 0;
-#X connect 24 0 18 0;
-#X connect 25 0 24 0;
-#X connect 27 0 18 1;
+#X connect 12 0 10 0;
+#X connect 13 0 8 0;
+#X connect 14 0 13 0;
+#X connect 15 0 16 0;
+#X connect 16 0 8 2;
+#X connect 16 0 14 0;
+#X connect 17 0 16 0;
+#X connect 18 0 16 0;
+#X connect 19 0 16 0;
+#X connect 20 0 16 0;
+#X connect 21 0 16 0;
+#X connect 22 0 16 0;
+#X connect 23 0 16 0;
+#X connect 24 0 8 2;
+#X connect 24 0 14 0;
+#X connect 27 0 8 2;
+#X connect 27 0 14 0;
 #X restore 466 286 pd example;
 #X obj 221 167 bng 17 250 50 0 empty empty empty 17 7 0 10 #dcdcdc
 #000000 #000000;
@@ -131,7 +133,7 @@ or float;
 #X text 129 197 start/stop;
 #X text 186 166 sync;
 #X obj 221 231 else/polymetro~ 60 3/2;
-#X text 346 167 multiplier;
+#X text 441 167 multiplier;
 #X text 39 85 [polymetro~] is a polyrhythmic metronome for signal rate
 that outputs impulses. Polyrhythms are better specified with fractions
 \, but you can set it as floats \, which is a tempo multiplier value
@@ -145,14 +147,14 @@ This is an abstraction based on [pimp~] and [pimpmul~] objects., f
 #X text 196 440 - impulse for relative rhythm, f 47;
 #X obj 23 237 else/polymetro;
 #X text 196 344 - syncs/resets;
-#X text 196 366 - multiplier as a float or fraction (any/symbol/float)
+#X text 196 389 - multiplier as a float or fraction (any/symbol/float)
 ;
 #X connect 0 0 1 0;
 #X connect 2 0 3 0;
-#X connect 20 0 45 2;
-#X connect 33 0 45 1;
-#X connect 34 0 45 1;
-#X connect 37 0 45 1;
+#X connect 20 0 45 1;
+#X connect 33 0 45 2;
+#X connect 34 0 45 2;
+#X connect 37 0 45 2;
 #X connect 41 0 45 0;
 #X connect 42 0 45 0;
 #X connect 45 0 2 0;

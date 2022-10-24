@@ -10,7 +10,7 @@
 0;
 #X obj 213 39 cnv 4 4 4 empty empty generator 0 28 2 18 #e0e0e0 #000000
 0;
-#X obj 3 501 cnv 15 552 21 empty empty empty 20 12 0 14 #e0e0e0 #202020
+#X obj 3 500 cnv 15 552 21 empty empty empty 20 12 0 14 #e0e0e0 #202020
 0;
 #X obj 4 378 cnv 3 550 3 empty empty outlets 8 12 0 13 #dcdcdc #000000
 0;
@@ -155,10 +155,6 @@
 #X connect 9 0 0 0;
 #X coords 0 -1 1 1 44 72 2 50 100;
 #X restore 505 61 pd;
-#X text 110 459 1) list -;
-#X text 175 458 floats set random's range \, 2 floats sets minimum
-and maximum - no arguments loads default values (-1 and 1). 1 float
-sets maximum value (and lowest value is set to 0).;
 #X text 220 280 - trigger signal;
 #X obj 101 334 cnv 17 3 17 empty empty 1 5 9 0 16 #dcdcdc #9c9c9c 0
 ;
@@ -243,9 +239,11 @@ to repeat the output., f 52;
 #X text 14 193 see also:;
 #X obj 14 212 else/rand.f;
 #X obj 14 237 else/rand.i~;
-#X connect 13 0 44 0;
+#X text 163 459 1) float - minimum (default 0);
+#X text 163 476 2) float - maximum (default 1);
+#X connect 13 0 42 0;
 #X connect 14 0 13 0;
-#X connect 28 0 44 1;
-#X connect 29 0 44 2;
-#X connect 32 0 44 0;
-#X connect 44 0 46 0;
+#X connect 26 0 42 1;
+#X connect 27 0 42 2;
+#X connect 30 0 42 0;
+#X connect 42 0 44 0;
