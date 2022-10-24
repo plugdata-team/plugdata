@@ -1,6 +1,7 @@
 
 struct RadioObject final : public IEMObject {
-    int lastState = 0;
+
+    bool alreadyToggled = false;
     bool isVertical;
 
     RadioObject(bool vertical, void* obj, Object* parent)
@@ -11,11 +12,9 @@ struct RadioObject final : public IEMObject {
         max = getMaximum();
         max.addListener(this);
 
-        updateRange();
-
         int selected = getValueOriginal();
-        if (selected < radioButtons.size()) {
-            radioButtons[selected]->setToggleState(true, dontSendNotification);
+        if (selected > static_cast<int>(max.getValue())) {
+            setValueOriginal(std::min<int>(static_cast<int>(max.getValue()) - 1, selected));
         }
     }
 
@@ -24,19 +23,14 @@ struct RadioObject final : public IEMObject {
         int size = (isVertical ? getWidth() : getHeight());
         int minSize = 12;
         size = std::max(size, minSize);
-
-        for (int i = 0; i < radioButtons.size(); i++) {
-            if (isVertical)
-                radioButtons[i]->setBounds(0, i * size, size, size);
-            else
-                radioButtons[i]->setBounds(i * size, 0, size, size);
-        }
+        
+        int numItems = static_cast<int>(max.getValue());
 
         // Fix aspect ratio
         if (isVertical) {
-            object->setSize(std::max(object->getWidth(), minSize + Object::doubleMargin), size * radioButtons.size() + Object::doubleMargin);
+            object->setSize(std::max(object->getWidth(), minSize + Object::doubleMargin), size * numItems + Object::doubleMargin);
         } else {
-            object->setSize(size * radioButtons.size() + Object::doubleMargin, std::max(object->getHeight(), minSize + Object::doubleMargin));
+            object->setSize(size * numItems + Object::doubleMargin, std::max(object->getHeight(), minSize + Object::doubleMargin));
         }
 
         if (isVertical) {
@@ -53,20 +47,43 @@ struct RadioObject final : public IEMObject {
 
     void toggleObject(Point<int> position) override
     {
-        for (auto* button : radioButtons) {
-            if (button->getBounds().contains(position)) {
-                button->triggerClick();
-            }
+        if(alreadyToggled)  {
+            alreadyToggled = false;
         }
+        
+        float pos = isVertical ? position.y : position.x;
+        float div = isVertical ? getHeight() : getWidth();
+        int numItems = static_cast<int>(max.getValue());
+        
+        int idx = (pos / div) * numItems;
+        
+        if(idx != static_cast<int>(getValueOriginal())) {
+            startEdition();
+            setValueOriginal(idx);
+            stopEdition();
+            repaint();
+        }
+    }
+    
+    void untoggleObject() override
+    {
+        alreadyToggled = false;
     }
 
     void mouseDown(MouseEvent const& e) override
     {
-        for (auto* button : radioButtons) {
-            if (button->getBounds().contains(e.getPosition())) {
-                button->triggerClick();
-            }
-        }
+        float pos = isVertical ? e.y : e.x;
+        float div = isVertical ? getHeight() : getWidth();
+        int numItems = static_cast<int>(max.getValue());
+        
+        int idx = (pos / div) * numItems;
+        
+        alreadyToggled = true;
+        startEdition();
+        setValueOriginal(idx);
+        stopEdition();
+        
+        repaint();
     }
 
     float getValue() override
@@ -76,12 +93,7 @@ struct RadioObject final : public IEMObject {
 
     void update() override
     {
-        int selected = getValueOriginal();
-
-        
-        if (isPositiveAndBelow(selected, radioButtons.size())) {
-            radioButtons[selected]->setToggleState(true, dontSendNotification);
-        }
+        repaint();
     }
 
     void updateBounds() override
@@ -105,61 +117,42 @@ struct RadioObject final : public IEMObject {
         object->setObjectBounds(bounds);
     }
 
-    void updateRange()
+    
+    void paint(Graphics& g) override
     {
-        radioButtons.clear();
-
-        for (int i = 0; i < max; i++) {
-            radioButtons.add(new TextButton);
-            radioButtons[i]->setConnectedEdges(12);
-            radioButtons[i]->setRadioGroupId(1001);
-            radioButtons[i]->setClickingTogglesState(true);
-            radioButtons[i]->setName("radiobutton");
-            radioButtons[i]->setInterceptsMouseClicks(false, false);
-            radioButtons[i]->setTriggeredOnMouseDown(true);
-
-            radioButtons[i]->setColour(ComboBox::outlineColourId, Colours::transparentBlack);
-            radioButtons[i]->setColour(TextButton::buttonColourId, Colours::transparentBlack);
-            addAndMakeVisible(radioButtons[i]);
-
-            // Only gets called through triggerclick, needed to handle dragging
-            radioButtons[i]->onClick = [this, i]() mutable {
-                lastState = i;
-                startEdition();
-                setValueOriginal(i);
-                stopEdition();
-            };
-        }
-
-        int idx = getValueOriginal();
+        g.setColour(getBackgroundColour());
+        g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), 2.0f);
         
-        if(isPositiveAndBelow(idx, radioButtons.size())) {
-            radioButtons[idx]->setToggleState(true, dontSendNotification);
+        
+        int size = (isVertical ? getWidth() : getHeight());
+        int minSize = 12;
+        size = std::max(size, minSize);
+        
+        g.setColour(object->findColour(PlugDataColour::objectOutlineColourId));
+        
+        for (int i = 1; i < static_cast<int>(max.getValue()); i++) {
+            if (isVertical)
+            {
+                g.drawLine(0, i * size, size, i * size);
+            }
+            else
+            {
+                g.drawLine(i * size, 0, i * size, size);
+            }
         }
-        else {
-            setValueOriginal(radioButtons.size() - 1);
-        }
+        
+        g.setColour(getForegroundColour());
+        
+        int currentValue = getValueOriginal();
+        int selectionX = isVertical ? 0 : currentValue * size;
+        int selectionY = isVertical ? currentValue * size : 0;
 
-        if (getWidth() != 0 && getHeight() != 0) {
-            resized();
-        }
+        auto selectionBounds = Rectangle<int>(selectionX, selectionY, size, size);
+        g.fillRect(selectionBounds.reduced(5));
     }
 
     void paintOverChildren(Graphics& g) override
     {
-        bool skipped = false;
-        for (auto& button : radioButtons) {
-            if (!skipped) {
-                skipped = true;
-                continue;
-            }
-            g.setColour(object->findColour(PlugDataColour::outlineColourId));
-            if (isVertical) {
-                g.drawLine({ button->getBounds().getTopLeft().toFloat(), button->getBounds().getTopRight().toFloat() }, 1.0f);
-            } else {
-                g.drawLine({ button->getBounds().getTopLeft().toFloat(), button->getBounds().getBottomLeft().toFloat() }, 1.0f);
-            }
-        }
 
         bool selected = cnv->isSelected(object) && !cnv->isGraph;
         auto outlineColour = object->findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : objectOutlineColourId);
@@ -167,8 +160,6 @@ struct RadioObject final : public IEMObject {
         g.setColour(outlineColour);
         g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), 2.0f, 1.0f);
     }
-
-    OwnedArray<TextButton> radioButtons;
 
     ObjectParameters defineParameters() override
     {
@@ -179,7 +170,7 @@ struct RadioObject final : public IEMObject {
     {
         if (value.refersToSameSourceAs(max)) {
             setMaximum(limitValueMin(value, 1));
-            updateRange();
+            repaint();
         } else {
             IEMObject::valueChanged(value);
         }
