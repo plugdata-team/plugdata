@@ -1,0 +1,80 @@
+#N canvas 452 23 558 434 10;
+#X obj 1 239 cnv 3 550 3 empty empty inlets 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 1 309 cnv 3 550 3 empty empty outlets 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 1 373 cnv 3 550 3 empty empty arguments 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 96 318 cnv 17 3 17 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X obj 1 406 cnv 15 552 21 empty empty empty 20 12 0 14 #e0e0e0 #202020
+0;
+#N canvas 613 176 420 340 examples 0;
+#X listbox 156 110 21 0 0 0 - - - 0;
+#X symbolatom 60 273 9 0 0 0 - - - 24;
+#X obj 60 96 bng 25 250 50 0 empty empty empty 17 7 0 10 #dfdfdf #551312
+#000000;
+#X listbox 156 179 22 0 0 0 - - - 16;
+#X text 56 29 Formating the list values;
+#X obj 60 64 else/tempo -on -ms 1000;
+#X obj 60 133 else/datetime;
+#X obj 156 143 else/format list %d/%.2d/%.2d (%s);
+#X obj 60 230 else/format symbol %.2d:%.2d:%.2d;
+#X connect 0 0 7 0;
+#X connect 2 0 6 0;
+#X connect 5 0 2 0;
+#X connect 6 0 8 0;
+#X connect 6 1 0 0;
+#X connect 7 0 3 0;
+#X connect 8 0 1 0;
+#X restore 463 191 pd examples;
+#X obj 180 127 bng 15 250 50 0 empty empty empty 17 7 0 10 #dcdcdc
+#000000 #000000;
+#X text 130 251 bang;
+#X text 163 267 -;
+#X obj 96 250 cnv 17 3 55 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X obj 305 5 cnv 15 250 40 empty empty empty 12 13 0 18 #7c7c7c #e0e4dc
+0;
+#N canvas 382 141 749 319 (subpatch) 0;
+#X coords 0 -1 1 1 252 42 2 100 100;
+#X restore 304 4 pd;
+#X obj 344 12 cnv 10 10 10 empty empty ELSE 0 15 2 30 #7c7c7c #e0e4dc
+0;
+#X obj 22 41 cnv 4 4 4 empty empty Get\\\ date\\\ and\\\ time 0 28
+2 18 #e0e0e0 #000000 0;
+#X obj 457 12 cnv 10 10 10 empty empty EL 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 477 12 cnv 10 10 10 empty empty Locus 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 514 12 cnv 10 10 10 empty empty Solus' 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 463 27 cnv 10 10 10 empty empty ELSE 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 501 27 cnv 10 10 10 empty empty library 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 2 4 cnv 15 301 42 empty empty datetime 20 20 2 37 #e0e0e0 #000000
+0;
+#N canvas 0 22 450 278 (subpatch) 0;
+#X coords 0 1 100 -1 302 42 1 0 0;
+#X restore 2 4 graph;
+#X obj 180 186 else/display;
+#X text 70 88 [datetime] gives us current/local date (right outlet)
+and time (left outlet) as lists., f 53;
+#X obj 180 155 else/datetime;
+#X obj 255 186 else/display;
+#X text 254 216 date: year/month/day/weekday;
+#X text 118 216 time: hour \, min \, sec;
+#X text 163 251 - outputs date and time, f 53;
+#X text 130 268 seed;
+#X text 175 267 get number of seconds since the beggining of the month
+to use it as a seed value, f 51;
+#X obj 96 342 cnv 17 3 17 empty empty 1 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X text 128 343 list - date: year/month/day/weekday;
+#X text 129 318 list - time: hour \, min \, sec at bang or seed value
+via seed message, f 66;
+#X text 143 383 (none);
+#X connect 6 0 23 0;
+#X connect 23 0 21 0;
+#X connect 23 1 24 0;

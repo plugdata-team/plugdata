@@ -29,7 +29,7 @@
 0;
 #X obj 502 26 cnv 10 10 10 empty empty library 0 6 2 13 #7c7c7c #e0e4dc
 0;
-#X obj 3 476 cnv 15 552 21 empty empty empty 20 12 0 14 #e0e0e0 #202020
+#X obj 3 471 cnv 15 552 21 empty empty empty 20 12 0 14 #e0e0e0 #202020
 0;
 #X obj 4 354 cnv 3 550 3 empty empty outlets 8 12 0 13 #dcdcdc #000000
 0;
@@ -43,7 +43,6 @@
 0;
 #X text 135 288 seed <float>;
 #X text 219 365 - random values;
-#X text 99 432 1) list -;
 #X obj 111 310 cnv 17 3 17 empty empty 1 5 9 0 16 #dcdcdc #9c9c9c 0
 ;
 #X obj 111 331 cnv 17 3 17 empty empty 2 5 9 0 16 #dcdcdc #9c9c9c 0
@@ -56,9 +55,6 @@
 #dcdcdc #000000 #000000 0 256;
 #X text 254 139 low;
 #X text 316 141 high;
-#X text 164 431 floats set random's range \, 2 floats sets minimum
-and maximum - no arguments loads default values (0 and 1). 1 float
-sets maximum value (and lowest value is set to 0).;
 #X obj 188 146 bng 17 250 50 0 empty empty empty 17 7 0 10 #dcdcdc
 #000000 #000000;
 #X text 183 268 bang;
@@ -112,7 +108,9 @@ repeat the output., f 52;
 #X text 14 173 see also:;
 #X obj 14 192 else/rand.f~;
 #X obj 14 217 else/rand.i;
-#X connect 27 0 40 1;
-#X connect 28 0 40 2;
-#X connect 32 0 40 0;
-#X connect 40 0 38 0;
+#X text 168 431 1) float - minimum (default 0);
+#X text 168 448 2) float - maximum (default 1);
+#X connect 26 0 38 1;
+#X connect 27 0 38 2;
+#X connect 30 0 38 0;
+#X connect 38 0 36 0;
