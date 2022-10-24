@@ -55,7 +55,7 @@ struct RadioObject final : public IEMObject {
         float div = isVertical ? getHeight() : getWidth();
         int numItems = static_cast<int>(max.getValue());
         
-        int idx = (pos / div) * numItems;
+        int idx = std::clamp<int>((pos / div) * numItems, 0, numItems - 1);
         
         if(idx != static_cast<int>(getValueOriginal())) {
             startEdition();
@@ -183,10 +183,15 @@ struct RadioObject final : public IEMObject {
 
     void setMaximum(float value)
     {
+        if(getValueOriginal() >= value) {
+            setValueOriginal(value - 1);
+        }
         if (isVertical) {
             static_cast<t_vdial*>(ptr)->x_number = value;
         } else {
             static_cast<t_hdial*>(ptr)->x_number = value;
         }
+        
+        resized();
     }
 };
