@@ -7,9 +7,6 @@ env:
   BUILD_TYPE: Release
   CMAKE_BUILD_PARALLEL_LEVEL: 3
 
-- name: ccache
-  uses: hendrikmuhs/ccache-action@v1.2
-
 jobs:
   macos-universal-build:
     runs-on: macos-latest
@@ -21,6 +18,9 @@ jobs:
 
     - name: Create Build Environment
       run: cmake -E make_directory ${{github.workspace}}/build        
+
+    - name: ccache
+      uses: hendrikmuhs/ccache-action@v1.2
 
     - name: Configure CMake
       working-directory: ${{github.workspace}}/build
