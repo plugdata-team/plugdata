@@ -7,6 +7,9 @@ env:
   BUILD_TYPE: Release
   CMAKE_BUILD_PARALLEL_LEVEL: 3
 
+- name: ccache
+  uses: hendrikmuhs/ccache-action@v1.2
+
 jobs:
   macos-universal-build:
     runs-on: macos-latest
@@ -21,7 +24,7 @@ jobs:
 
     - name: Configure CMake
       working-directory: ${{github.workspace}}/build
-      run: cmake $GITHUB_WORKSPACE -G "Xcode"
+      run: cmake $GITHUB_WORKSPACE -G "Xcode" -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
 
     - name: Import Code-Signing Certificates
       uses: figleafteam/import-codesign-certs@v2
