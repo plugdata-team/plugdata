@@ -134,13 +134,13 @@ struct OkayCancelDialog : public Component {
         addAndMakeVisible(okay);
 
         cancel.onClick = [this, dialog, callback] {
-            dialog->closeDialog();
             callback(false);
+            dialog->closeDialog();
         };
         
         okay.onClick = [this, dialog, callback] {
-            dialog->closeDialog();
             callback(true);
+            dialog->closeDialog();
         };
 
         cancel.changeWidthToFitText();

@@ -327,7 +327,7 @@ void PlugDataPluginEditor::resized()
     pd.lastUIHeight = getHeight();
     
     zoomLabel.setTopLeftPosition(5, statusbar.getY() - 28);
-    zoomLabel.setSize(50, 23);
+    zoomLabel.setSize(55, 23);
     
     if (auto* cnv = getCurrentCanvas())
     {
