@@ -34,6 +34,8 @@
 #endif
 
 #if JUCE_LINUX || JUCE_BSD
+namespace xlib
+{
 extern "C" {
     #include <X11/Xlib.h>
     #include <X11/Xatom.h>
