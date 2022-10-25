@@ -23,16 +23,6 @@
 
 #pragma once
 
-#include <JuceHeader.h>
-
-#include "../PluginEditor.h"
-
-#if !JUCE_MAC
-#    define CUSTOM_SHADOW 1
-#else
-#    define CUSTOM_SHADOW 0
-#endif
-
 #if JUCE_LINUX || JUCE_BSD
 namespace xlib
 {
@@ -58,6 +48,16 @@ extern "C" {
     }
   }
 }
+#endif
+
+#include <JuceHeader.h>
+
+#include "../PluginEditor.h"
+
+#if !JUCE_MAC
+#    define CUSTOM_SHADOW 1
+#else
+#    define CUSTOM_SHADOW 0
 #endif
 
 
