@@ -19,6 +19,32 @@
    DISCLAIMED.
 */
 
+#if JUCE_LINUX || JUCE_BSD
+extern "C" {
+    #include <X11/Xlib.h>
+    #include <X11/Xatom.h>
+
+    void maximizeWindow(Window win) {
+      auto display = XOpenDisplay(NULL);
+
+      XEvent ev;
+      ev.xclient.window = win;
+      ev.xclient.type = ClientMessage;
+      ev.xclient.format = 32;
+      ev.xclient.message_type = XInternAtom(display, "_NET_WM_STATE", False);
+      ev.xclient.data.l[0] = 1;
+      ev.xclient.data.l[1] = XInternAtom(display, "_NET_WM_STATE_MAXIMIZED_HORZ", False);
+      ev.xclient.data.l[2] = XInternAtom(display, "_NET_WM_STATE_MAXIMIZED_VERT", False);
+      ev.xclient.data.l[3] = 1;
+
+      XSendEvent(display, DefaultRootWindow(display), False, SubstructureRedirectMask | SubstructureNotifyMask, &ev);
+      XCloseDisplay(display);
+    }
+  }
+}
+#endif
+
+
 #include <JuceHeader.h>
 #include "PlugDataWindow.h"
 #include "../Canvas.h"
