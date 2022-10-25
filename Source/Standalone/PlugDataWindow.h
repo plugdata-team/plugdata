@@ -620,10 +620,13 @@ public:
     void maximiseButtonPressed() override
     {
 #if JUCE_LINUX
-        xlib::maximizeWindow(this);
+        //xlib::maximizeWindow(this);
+        setFullScreen(!isFullScreen());
 #else
         setFullScreen(!isFullScreen());
 #endif
+        
+        
     }
 
     // Fixes shadow with rounded edges on windows
