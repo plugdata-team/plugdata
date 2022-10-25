@@ -23,6 +23,7 @@
 
 #pragma once
 
+/*
 #if JUCE_LINUX || JUCE_BSD
 namespace xlib
 {
@@ -30,7 +31,7 @@ extern "C" {
     void maximizeWindow(Component* component);
 }
 }
-#endif
+#endif */
 
 #include <JuceHeader.h>
 
