@@ -623,8 +623,8 @@ void Connection::findPath()
     auto distanceX = std::abs(pstart.x - pend.x);
     auto distanceY = std::abs(pstart.y - pend.y);
     
-    int maxXResolution = std::min(distanceX / 10, 14);
-    int maxYResolution = std::min(distanceY / 10, 14);
+    int maxXResolution = std::clamp(distanceX / 10, 4, 14);
+    int maxYResolution = std::clamp(distanceY / 10, 4, 14);
     
     int resolutionX = 6;
     int resolutionY = 6;
@@ -643,8 +643,8 @@ void Connection::findPath()
     {
         
         // Find paths on a resolution*resolution lattice ObjectGrid
-        incrementX = distanceX / resolutionX;
-        incrementY = distanceY / resolutionY;
+        incrementX = std::max(1, distanceX / resolutionX);
+        incrementY = std::max(1, distanceY / resolutionY);
         
         numFound = findLatticePaths(bestPath, pathStack, pend, pstart, {incrementX, incrementY});
         
