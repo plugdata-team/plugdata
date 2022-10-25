@@ -19,6 +19,7 @@
    DISCLAIMED.
 */
 
+/*
 #if JUCE_LINUX || JUCE_BSD
 namespace xlib
 {
@@ -46,7 +47,7 @@ extern "C" {
     }
   }
 }
-#endif
+#endif */
 
 #include <JuceHeader.h>
 #include "PlugDataWindow.h"
