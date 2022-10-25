@@ -248,6 +248,29 @@ NonPatchable::~NonPatchable()
 {
 }
 
+struct Lambda {
+    template<typename Tret, typename T>
+    static Tret lambda_ptr_exec(void* data) {
+        return (Tret) (*(T*)fn<T>())(data);
+    }
+
+    template<typename Tret = void, typename Tfp = Tret(*)(void*), typename T>
+    static Tfp ptr(T& t) {
+        fn<T>(&t);
+        return (Tfp) lambda_ptr_exec<Tret, T>;
+    }
+
+    template<typename T>
+    static void* fn(void* new_fn = nullptr) {
+        static void* fn;
+        if (new_fn != nullptr)
+            fn = new_fn;
+        return fn;
+    }
+};
+
+
+
 GUIObject::GUIObject(void* obj, Object* parent)
     : ObjectBase(obj, parent)
     , processor(*parent->cnv->pd)
@@ -265,10 +288,14 @@ GUIObject::GUIObject(void* obj, Object* parent)
             _this->updateParameters();
         }
     });
+    
+    // TODO: enable this for v0.6.3
+    //pd->registerMessageListener(ptr, this);
 }
 
 GUIObject::~GUIObject()
 {
+    //pd->unregisterMessageListener(ptr, this);
     object->removeComponentListener(this);
     auto* lnf = &getLookAndFeel();
     setLookAndFeel(nullptr);
