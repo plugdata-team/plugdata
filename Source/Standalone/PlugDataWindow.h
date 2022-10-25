@@ -640,8 +640,6 @@ public:
 #else
         setFullScreen(!isFullScreen());
 #endif
-        
-
     }
 
     // Fixes shadow with rounded edges on windows
