@@ -160,7 +160,7 @@ Instance::Instance(String const& symbol)
     auto message_trigger = [](void* instance, void* target, t_symbol* symbol, int argc, t_atom* argv) {
         
         auto& listeners = static_cast<Instance*>(instance)->messageListeners;
-        if(!listeners.contains(target)) return;
+        if(!listeners.count(target)) return;
         
         for(auto* listener : listeners[target]) {
             listener->receiveMessage(String(symbol->s_name), argc, argv);
@@ -483,7 +483,7 @@ void Instance::registerMessageListener(void* object, MessageListener* messageLis
 
 void Instance::unregisterMessageListener(void* object, MessageListener* messageListener)
 {
-    if(messageListeners.contains(object)) return;
+    if(messageListeners.count(object)) return;
     
     auto it = std::find(messageListeners[object].begin(), messageListeners[object].end(), messageListener);
     
