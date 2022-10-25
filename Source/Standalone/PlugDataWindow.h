@@ -618,7 +618,7 @@ public:
     void maximiseButtonPressed() override
     {
 #if JUCE_LINUX
-        xlib::maximizeWindow((xlib::Window)getPeer()->getNativeHandle());
+        xlib::maximizeWindow(this);
 #else
         setFullScreen(!isFullScreen());
 #endif
