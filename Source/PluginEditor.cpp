@@ -372,6 +372,10 @@ void PlugDataPluginEditor::mouseDown(const MouseEvent& e)
         auto* window = getTopLevelComponent();
         windowDragger.startDraggingComponent(window, e.getEventRelativeTo(window));
     }
+    
+    if(e.getNumberOfClicks() == 2) {
+        // TODO: maximise
+    }
 }
 
 void PlugDataPluginEditor::mouseDrag(const MouseEvent& e)
