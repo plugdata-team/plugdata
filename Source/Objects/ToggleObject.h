@@ -53,6 +53,15 @@ struct ToggleObject final : public IEMObject {
     {
         alreadyToggled = false;
     }
+    
+    void receiveMessage(String symbol, int argc, t_atom* argv) override
+    {
+        if(symbol == "color") {
+            primaryColour = Colour(getForegroundColour()).toString();
+            secondaryColour = Colour(getBackgroundColour()).toString();
+            labelColour = Colour(getLabelColour()).toString();
+        }
+    }
 
     void mouseDown(MouseEvent const& e) override
     {

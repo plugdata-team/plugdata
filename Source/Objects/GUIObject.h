@@ -69,7 +69,7 @@ struct ObjectBase : public Component
     {
         setInterceptsMouseClicks(isLocked, isLocked);
     }
-
+        
     String getType() const;
 
     void moveToFront();
@@ -113,7 +113,7 @@ struct NonPatchable : public ObjectBase {
     virtual void applyBounds() {};
 };
 
-struct GUIObject : public ObjectBase
+struct GUIObject : public ObjectBase, public pd::MessageListener
     , public ComponentListener
     , public Value::Listener {
     GUIObject(void* obj, Object* parent);
@@ -180,6 +180,7 @@ struct GUIObject : public ObjectBase
     }
 
 protected:
+        
     std::unique_ptr<Label> label;
 
     static inline constexpr int maxSize = 1000000;

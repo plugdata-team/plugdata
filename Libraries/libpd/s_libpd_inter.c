@@ -133,10 +133,11 @@ struct _instanceinter {
     pd_gui_callback gui_callback;
     pd_panel_callback panel_callback;
     pd_synchronise_callback synchronise_callback;
+    pd_message_callback message_callback;
     void* callback_target;
 };
 
-void register_gui_triggers(t_pdinstance* instance, void* target, pd_gui_callback gui_callback, pd_panel_callback panel_callback, pd_synchronise_callback synchronise_callback, pd_parameter_callback parameter_callback)
+void register_gui_triggers(t_pdinstance* instance, void* target, pd_gui_callback gui_callback, pd_panel_callback panel_callback, pd_synchronise_callback synchronise_callback, pd_parameter_callback parameter_callback, pd_message_callback message_callback)
 {
 
 #if !PDINSTANCE
@@ -147,6 +148,7 @@ void register_gui_triggers(t_pdinstance* instance, void* target, pd_gui_callback
     instance->pd_inter->gui_callback = gui_callback;
     instance->pd_inter->panel_callback = panel_callback;
     instance->pd_inter->synchronise_callback = synchronise_callback;
+    instance->pd_inter->message_callback = message_callback;
     instance->pd_inter->callback_target = target;
 }
 
@@ -1593,6 +1595,8 @@ void s_inter_newpdinstance(void)
     INTER->i_freq = 0;
 #endif
     INTER->i_havegui = 0;
+    
+    INTER->callback_target = NULL;
 }
 
 void s_inter_free(t_instanceinter* inter)
@@ -1734,5 +1738,12 @@ void pd_globallock(void)
 {
 }
 void pd_globalunlock(void) { }
-
 #endif /* PDTHREADS */
+
+
+void plugdata_forward_message(t_pd *x, t_symbol *s, int argc, t_atom *argv)
+{
+    if(INTER && INTER->callback_target) {
+        INTER->message_callback(INTER->callback_target, (void*)x, s, argc, argv);
+    }
+}
