@@ -224,6 +224,11 @@ struct ContinuityChecker : public Timer {
     BackupTimer backupTimer;
 };
 
+struct MessageListener
+{
+    virtual void receiveMessage(String name, int argc, t_atom* argv) {};
+};
+
 class Instance {
     struct Message {
         String selector;
@@ -324,7 +329,10 @@ public:
     virtual void receiveMessage(String const& dest, String const& msg, std::vector<pd::Atom> const& list)
     {
     }
-
+    
+    void registerMessageListener(void* object, MessageListener* messageListener);
+    void unregisterMessageListener(void* object, MessageListener* messageListener);
+    
     virtual void receiveDSPState(bool dsp) {};
 
     virtual void updateConsole() {};
@@ -387,6 +395,9 @@ public:
     inline static const String defaultPatch = "#N canvas 827 239 527 327 12;";
 
 private:
+    
+    std::unordered_map<void*, std::vector<MessageListener*>> messageListeners;
+    
     moodycamel::ConcurrentQueue<std::function<void(void)>> m_function_queue = moodycamel::ConcurrentQueue<std::function<void(void)>>(4096);
 
     std::unique_ptr<FileChooser> saveChooser;
@@ -494,5 +505,7 @@ protected:
     };
 
     ConsoleHandler consoleHandler;
+
+    
 };
 } // namespace pd

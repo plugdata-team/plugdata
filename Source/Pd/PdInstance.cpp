@@ -156,8 +156,18 @@ Instance::Instance(String const& symbol)
     };
 
     auto synchronise_trigger = [](void* instance, void* cnv) { static_cast<Instance*>(instance)->synchroniseCanvas(cnv); };
+    
+    auto message_trigger = [](void* instance, void* target, t_symbol* symbol, int argc, t_atom* argv) {
+        
+        auto& listeners = static_cast<Instance*>(instance)->messageListeners;
+        if(!listeners.contains(target)) return;
+        
+        for(auto* listener : listeners[target]) {
+            listener->receiveMessage(String(symbol->s_name), argc, argv);
+        }
+    };
 
-    register_gui_triggers(static_cast<t_pdinstance*>(m_instance), this, gui_trigger, panel_trigger, synchronise_trigger, parameter_trigger);
+    register_gui_triggers(static_cast<t_pdinstance*>(m_instance), this, gui_trigger, panel_trigger, synchronise_trigger, parameter_trigger, message_trigger);
 
     // HACK: create full path names for c-coded externals
     // Temporarily disabled because bugs
@@ -464,6 +474,20 @@ void Instance::processSend(dmessage mess)
     } else {
         sendMessage(mess.destination.toRawUTF8(), mess.selector.toRawUTF8(), mess.list);
     }
+}
+
+void Instance::registerMessageListener(void* object, MessageListener* messageListener)
+{
+    messageListeners[object].push_back(messageListener);
+}
+
+void Instance::unregisterMessageListener(void* object, MessageListener* messageListener)
+{
+    if(messageListeners.contains(object)) return;
+    
+    auto it = std::find(messageListeners[object].begin(), messageListeners[object].end(), messageListener);
+    
+    messageListeners[object].erase(it);
 }
 
 void Instance::enqueueFunction(std::function<void(void)> const& fn)

@@ -167,7 +167,6 @@ file(GLOB PD_SOURCES
     ${PD_PATH}/src/g_vumeter.c
     ${PD_PATH}/src/m_atom.c
     ${PD_PATH}/src/m_binbuf.c
-    ${PD_PATH}/src/m_class.c
     ${PD_PATH}/src/m_conf.c
     ${PD_PATH}/src/m_glob.c
     ${PD_PATH}/src/m_imp.h
@@ -236,9 +235,9 @@ endif()
 # LIBPD SOURCES
 # ------------------------------------------------------------------------------#
 set(LIBPD_SOURCES
-    ${LIBPD_PATH}/s_libpdmidi.c
-    ${LIBPD_PATH}/x_libpdreceive.c
-    ${LIBPD_PATH}/x_libpdreceive.h
+    ${LIBPD_PATH}/s_libpd_midi.c
+    ${LIBPD_PATH}/x_libpd_receive.c
+    ${LIBPD_PATH}/x_libpd_receive.h
     ${LIBPD_PATH}/x_libpd_extra_utils.c
     ${LIBPD_PATH}/x_libpd_extra_utils.h
     ${LIBPD_PATH}/x_libpd_mod_utils.c
@@ -247,6 +246,7 @@ set(LIBPD_SOURCES
     ${LIBPD_PATH}/x_libpd_multi.h
     ${LIBPD_PATH}/s_libpd_inter.c
     ${LIBPD_PATH}/s_libpd_inter.h
+    ${LIBPD_PATH}/m_libpd_class.c
 )
 
 include_directories(${LIBPD_PATH})
