@@ -376,7 +376,10 @@ class PlugDataPluginEditor : public AudioProcessorEditor, public Value::Listener
     
     ZoomLabel zoomLabel;
 
+#if PLUGDATA_STANDALONE && JUCE_MAC
     Rectangle<int> unmaximisedSize;
     bool isMaximised = false;
+#endif
+    
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PlugDataPluginEditor)
 };
