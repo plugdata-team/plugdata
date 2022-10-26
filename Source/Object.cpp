@@ -288,6 +288,33 @@ void Object::paintOverChildren(Graphics& g)
 
         g.restoreState();
     }
+    else if(indexShown)
+    {
+        int halfHeight = 5;
+        
+        auto text = String(cnv->objects.indexOf(this));
+        auto font = dynamic_cast<PlugDataLook&>(getLookAndFeel()).monoFont.withHeight(10);
+        int textWidth = font.getStringWidth(text) + 5;
+        int left = std::min<int>(getWidth() - (1.5 * margin), getWidth() - textWidth);
+        
+        auto indexBounds = Rectangle<int>(left, (getHeight() / 2) - halfHeight, getWidth() - left, halfHeight * 2);
+        
+        
+        g.setColour(findColour(PlugDataColour::objectSelectedOutlineColourId));
+        g.fillRoundedRectangle(indexBounds.toFloat(), 2.0f);
+        
+        g.setColour(findColour(PlugDataColour::objectSelectedOutlineColourId).contrasting());
+        g.setFont(font);
+        g.drawText(text, indexBounds, Justification::centred);
+    }
+}
+
+void Object::showIndex(bool shouldShowIndex)
+{
+    if(shouldShowIndex != indexShown) {
+        indexShown = shouldShowIndex;
+        repaint();
+    }
 }
 
 void Object::paint(Graphics& g)

@@ -433,6 +433,7 @@ void Canvas::mouseDown(const MouseEvent& e)
                 case 8:  // To Front
                     object->toFront(false);
                     if (object->gui) object->gui->moveToFront();
+                    synchronise();
                     break;
                 case 9:  // Open help
                     object->openHelpPatch();
