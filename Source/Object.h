@@ -42,6 +42,8 @@ class Object : public Component, public Value::Listener, public Timer, private T
 
     void showEditor();
     void hideEditor();
+    
+    void showIndex(bool showIndex);
 
     Rectangle<int> getObjectBounds();
     void setObjectBounds(Rectangle<int> bounds);
@@ -73,6 +75,7 @@ class Object : public Component, public Value::Listener, public Timer, private T
     Value commandLocked;
     Value presentationMode;
 
+
     Canvas* cnv;
 
     std::unique_ptr<ObjectBase> gui = nullptr;
@@ -96,7 +99,8 @@ class Object : public Component, public Value::Listener, public Timer, private T
     bool createEditorOnMouseDown = false;
     bool selectionStateChanged = false;
     bool wasLockedOnMouseDown = false;
-
+    bool indexShown = false;
+    
 
     std::unique_ptr<TextEditor> newObjectEditor;
 

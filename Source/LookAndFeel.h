@@ -132,6 +132,8 @@ struct Resources
     Typeface::Ptr boldTypeface = Typeface::createSystemTypefaceFor(BinaryData::InterBold_ttf, BinaryData::InterBold_ttfSize);
     
     Typeface::Ptr iconTypeface = Typeface::createSystemTypefaceFor(BinaryData::PlugDataFont_ttf, BinaryData::PlugDataFont_ttfSize);
+    
+    Typeface::Ptr monoTypeface = Typeface::createSystemTypefaceFor(BinaryData::IBMPlexMono_ttf, BinaryData::IBMPlexMono_ttfSize);
 };
 
 struct PlugDataLook : public LookAndFeel_V4
@@ -142,13 +144,15 @@ struct PlugDataLook : public LookAndFeel_V4
     Font boldFont;
     Font thinFont;
     Font iconFont;
+    Font monoFont;
     
     
     PlugDataLook() :
     defaultFont(resources->defaultTypeface),
     boldFont(resources->boldTypeface),
     thinFont(resources->thinTypeface),
-    iconFont(resources->iconTypeface)
+    iconFont(resources->iconTypeface),
+    monoFont(resources->monoTypeface)
     {
         setTheme(false);
         setDefaultSansSerifTypeface(resources->defaultTypeface);

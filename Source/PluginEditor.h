@@ -317,8 +317,8 @@ class PlugDataPluginEditor : public AudioProcessorEditor, public Value::Listener
     Canvas* getCurrentCanvas();
     Canvas* getCanvas(int idx);
     
-    // Pass modifier keys to statusbar
-    void modifierKeysChanged(const ModifierKeys& modifiers) override { statusbar.modifierKeysChanged(modifiers); }
+
+    void modifierKeysChanged(const ModifierKeys& modifiers) override;
 
     void valueChanged(Value& v) override;
 
