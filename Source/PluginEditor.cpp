@@ -4,6 +4,10 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
 */
 
+#if PLUGDATA_STANDALONE
+#include "Standalone/PlugDataWindow.h"
+#endif
+
 #include "PluginEditor.h"
 
 #include "LookAndFeel.h"
