@@ -5,6 +5,8 @@
  */
 
 
+#include <JuceHeader.h>
+
 #ifdef JUCE_WINDOWS
 namespace Win32
 {
