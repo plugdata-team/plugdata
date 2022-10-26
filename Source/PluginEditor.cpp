@@ -371,21 +371,39 @@ void PlugDataPluginEditor::mouseMagnify(const MouseEvent& e, float scrollFactor)
 #ifdef PLUGDATA_STANDALONE
 void PlugDataPluginEditor::mouseDown(const MouseEvent& e)
 {
+
+    
+#if PLUGDATA_STANDALONE
+    
+    if(e.getNumberOfClicks() >= 2) {
+
+        if(isMaximised) {
+            getPeer()->setBounds(unmaximisedSize, false);
+        }
+        else {
+            unmaximisedSize = getTopLevelComponent()->getBounds();
+            auto userArea = Desktop::getInstance().getDisplays().getPrimaryDisplay()->userArea;
+            getPeer()->setBounds(userArea, false);
+        }
+        
+        isMaximised = !isMaximised;
+        return;
+    }
+#endif
+    
     if (e.getPosition().getY() < toolbarHeight)
     {
         auto* window = getTopLevelComponent();
         windowDragger.startDraggingComponent(window, e.getEventRelativeTo(window));
     }
-    
-    if(e.getNumberOfClicks() == 2) {
-        // TODO: maximise
-    }
 }
 
 void PlugDataPluginEditor::mouseDrag(const MouseEvent& e)
 {
-    auto* window = getTopLevelComponent();
-    windowDragger.dragComponent(window, e.getEventRelativeTo(window), nullptr);
+    if(!isMaximised) {
+        auto* window = getTopLevelComponent();
+        windowDragger.dragComponent(window, e.getEventRelativeTo(window), nullptr);
+    }
 }
 #endif
 
