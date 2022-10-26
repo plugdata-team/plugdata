@@ -649,7 +649,7 @@ public:
         }
             #else
         if (auto* b = getMaximiseButton())
-            b->setToggleState(isFullscreen(), dontSendNotification);
+            b->setToggleState(isFullScreen(), dontSendNotification);
         #endif
 
         auto titleBarArea = Rectangle<int>(0, 12, getWidth() - 8, 25);

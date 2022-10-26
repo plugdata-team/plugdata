@@ -10,7 +10,7 @@
 
 #include "Pd/PdInstance.h"
 #include "Pd/PdLibrary.h"
-#include "Standalone/PlugDataWindow.h"
+#include "LookAndFeel.h"
 #include "Statusbar.h"
 
 

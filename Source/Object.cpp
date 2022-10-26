@@ -11,6 +11,7 @@
 #include "Connection.h"
 #include "Iolet.h"
 #include "LookAndFeel.h"
+#include "PluginEditor.h"
 
 extern "C"
 {
