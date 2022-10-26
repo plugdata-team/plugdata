@@ -647,7 +647,7 @@ public:
                 b->setToggleState(false, dontSendNotification);
             }
         }
-            #else
+    #else
         if (auto* b = getMaximiseButton())
             b->setToggleState(isFullScreen(), dontSendNotification);
         #endif
