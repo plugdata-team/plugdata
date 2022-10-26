@@ -373,7 +373,7 @@ void PlugDataPluginEditor::mouseDown(const MouseEvent& e)
 {
 
     
-#if PLUGDATA_STANDALONE
+#if PLUGDATA_STANDALONE && JUCE_MAC
     
     if(e.getNumberOfClicks() >= 2) {
 
