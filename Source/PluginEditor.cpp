@@ -393,7 +393,7 @@ void PlugDataPluginEditor::mouseDown(const MouseEvent& e)
         
         
 #else
-        dynamic_cast<PlugDataWindow*>(getTopLevelComponent())->setFullScreen(!isFullScreen());
+        dynamic_cast<PlugDataWindow*>(getTopLevelComponent())->maximiseButtonPressed();
 #endif
     }
 
