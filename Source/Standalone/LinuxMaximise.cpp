@@ -6,8 +6,6 @@ extern "C" {
 #include <X11/Xatom.h>
 }
 
-#include <iostream>
-
 
 typedef enum {
     WINDOW_STATE_NONE               = 0,
@@ -117,11 +115,8 @@ bool isMaximised(void* handle)
         XFree(states);
     }
     
-    bool maximised = state & WINDOW_STATE_MAXIMIZED;
 
-    std::cout << state << std::endl;
-    
-    return maximised;
+    returns state & WINDOW_STATE_MAXIMIZED;
 }
 
 void maximiseLinuxWindow(void* handle) {
