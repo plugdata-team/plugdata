@@ -116,7 +116,7 @@ bool isMaximised(void* handle)
     }
     
 
-    returns state & WINDOW_STATE_MAXIMIZED;
+    return state & WINDOW_STATE_MAXIMIZED;
 }
 
 void maximiseLinuxWindow(void* handle) {
