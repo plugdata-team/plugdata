@@ -368,13 +368,11 @@ void PlugDataPluginEditor::mouseMagnify(const MouseEvent& e, float scrollFactor)
     viewport->setViewPosition(viewport->getViewPositionX() + (oldMousePos.x - newMousePos.x), viewport->getViewPositionY() + (oldMousePos.y - newMousePos.y));
 }
 
-#ifdef PLUGDATA_STANDALONE
+#if PLUGDATA_STANDALONE
+
 void PlugDataPluginEditor::mouseDown(const MouseEvent& e)
 {
 
-    
-#if PLUGDATA_STANDALONE
-    
     if(e.getNumberOfClicks() >= 2) {
 
 #if JUCE_MAC
@@ -390,13 +388,11 @@ void PlugDataPluginEditor::mouseDown(const MouseEvent& e)
         isMaximised = !isMaximised;
         return;
         
-        
-        
 #else
         dynamic_cast<PlugDataWindow*>(getTopLevelComponent())->maximiseButtonPressed();
 #endif
-    }
 
+    }
     
     if (e.getPosition().getY() < toolbarHeight)
     {
