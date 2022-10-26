@@ -1,3 +1,4 @@
+
 /*
 
    This file is part of the JUCE library.
@@ -23,17 +24,13 @@
 
 #pragma once
 
-/*
-#if JUCE_LINUX || JUCE_BSD
-namespace xlib
-{
-extern "C" {
-    void maximizeWindow(Component* component);
-}
-}
-#endif */
-
 #include <JuceHeader.h>
+
+#if JUCE_LINUX
+bool isMaximised(void* handle);
+void maximiseLinuxWindow(void* handle);
+#endif
+
 
 #include "../PluginEditor.h"
 
@@ -620,16 +617,12 @@ public:
 
     void maximiseButtonPressed() override
     {
-#if JUCE_LINUX
-        //xlib::maximizeWindow(this);
+    #if JUCE_LINUX
+        maximiseLinuxWindow(getPeer()->getNativeHandle());
+    #else
         setFullScreen(!isFullScreen());
-#else
-        setFullScreen(!isFullScreen());
-#endif
-        
-        
+    #endif
     }
-
     // Fixes shadow with rounded edges on windows
 #if CUSTOM_SHADOW
     void paint(Graphics& g) override
@@ -645,8 +638,19 @@ public:
     {
         ResizableWindow::resized();
 
+#if JUCE_LINUX
+        if (auto* b = getMaximiseButton()) {
+            if(auto* peer = getPeer()) {
+                 b->setToggleState(isMaximised(peer->getNativeHandle()), dontSendNotification);
+            }
+            else {
+                b->setToggleState(false, dontSendNotification);
+            }
+        }
+            #else
         if (auto* b = getMaximiseButton())
-            b->setToggleState(isFullScreen(), dontSendNotification);
+            b->setToggleState(isFullscreen(), dontSendNotification);
+        #endif
 
         auto titleBarArea = Rectangle<int>(0, 12, getWidth() - 8, 25);
 

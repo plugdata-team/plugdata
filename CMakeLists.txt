@@ -306,7 +306,7 @@ if(MSVC)
 elseif(APPLE)
   target_link_libraries(PlugDataMidi PRIVATE pd-multi ${libs})
 elseif(UNIX AND NOT APPLE)
-  list(APPEND libs curl)
+  list(APPEND libs curl X11)
 endif()
 
 if(MSVC)
