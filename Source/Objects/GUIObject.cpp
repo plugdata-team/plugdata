@@ -219,6 +219,54 @@ void ObjectBase::moveToFront()
         canvas->gl_list = y_next;
 }
 
+void ObjectBase::moveToBack()
+{
+    auto glist_getindex = [](t_glist* x, t_gobj* y) {
+        t_gobj* y2;
+        int indx;
+        for (y2 = x->gl_list, indx = 0; y2 && y2 != y; y2 = y2->g_next)
+            indx++;
+        return (indx);
+    };
+
+    auto glist_nth = [](t_glist* x, int n) -> t_gobj* {
+        t_gobj* y;
+        int indx;
+        for (y = x->gl_list, indx = 0; y; y = y->g_next, indx++)
+            if (indx == n)
+                return (y);
+
+        jassertfalse;
+        return nullptr;
+    };
+
+    auto* canvas = static_cast<t_canvas*>(cnv->patch.getPointer());
+    t_gobj* y = static_cast<t_gobj*>(ptr);
+
+    t_gobj *y_prev = nullptr, *y_next = nullptr;
+
+    /* if there is an object before ours (in other words our index is > 0) */
+    if (int idx = glist_getindex(canvas, y))
+        y_prev = glist_nth(canvas, idx - 1);
+
+    /* if there is an object after ours */
+    if (y->g_next)
+        y_next = y->g_next;
+
+    t_gobj* y_start = canvas->gl_list;
+
+    canvas->gl_list = y;
+    y->g_next = y_start;
+    
+    /* now fix links in the hole made in the list due to moving of the oldy
+     * (we know there is oldy_next as y_end != oldy in canvas_done_popup)
+     */
+    if (y_prev) /* there is indeed more before the oldy position */
+        y_prev->g_next = y_next;
+    else
+        canvas->gl_list = y_next;
+}
+
 void ObjectBase::paint(Graphics& g)
 {
     // make sure text is readable

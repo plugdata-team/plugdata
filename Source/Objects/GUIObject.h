@@ -73,6 +73,7 @@ struct ObjectBase : public Component
     String getType() const;
 
     void moveToFront();
+    void moveToBack();
 
     virtual Canvas* getCanvas()
     {
