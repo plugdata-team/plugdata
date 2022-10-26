@@ -479,29 +479,31 @@ void Canvas::mouseDrag(const MouseEvent& e)
 
         return;
     }
-    
-    auto viewportEvent = e.getEventRelativeTo(viewport);
 
-    float scrollSpeed = 8.5f;
-
-    // Middle mouse pan
-    if (ModifierKeys::getCurrentModifiers().isMiddleButtonDown())
+    if(viewport)
     {
-        auto delta = Point<int>{viewportEvent.getDistanceFromDragStartX(), viewportEvent.getDistanceFromDragStartY()};
+        auto viewportEvent = e.getEventRelativeTo(viewport);
+        const auto scrollSpeed = 8.5f;
         
-        viewport->setViewPosition(viewportPositionBeforeMiddleDrag.x - delta.x, viewportPositionBeforeMiddleDrag.y - delta.y);
-
-        return;  // Middle mouse button cancels any other drag actions
-    }
-
-    // For fixing coords when zooming
-    float scale = (1.0f / static_cast<float>(main.zoomScale.getValue()));
-
-    
-    // Auto scroll when dragging close to the iolet
-    if (viewport->autoScroll(viewportEvent.x * scale, viewportEvent.y * scale, 50, scrollSpeed))
-    {
-        beginDragAutoRepeat(40);
+        // Middle mouse pan
+        if (ModifierKeys::getCurrentModifiers().isMiddleButtonDown() && !draggingLabel)
+        {
+            
+            auto delta = Point<int>{viewportEvent.getDistanceFromDragStartX(), viewportEvent.getDistanceFromDragStartY()};
+            
+            viewport->setViewPosition(viewportPositionBeforeMiddleDrag.x - delta.x, viewportPositionBeforeMiddleDrag.y - delta.y);
+            
+            return;  // Middle mouse button cancels any other drag actions
+        }
+        
+        // For fixing coords when zooming
+        float scale = (1.0f / static_cast<float>(main.zoomScale.getValue()));
+        
+        // Auto scroll when dragging close to the iolet
+        if (viewport->autoScroll(viewportEvent.x * scale, viewportEvent.y * scale, 50, scrollSpeed))
+        {
+            beginDragAutoRepeat(40);
+        }
     }
 
     // Drag lasso
