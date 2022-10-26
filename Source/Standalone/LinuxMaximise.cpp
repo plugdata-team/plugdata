@@ -1,6 +1,6 @@
 
 // Selects Linux and BSD
-#if defined(__unix__) || !defined(__APPLE__)
+#if defined(__unix__) && !defined(__APPLE__)
 extern "C" {
 #include <X11/Xlib.h>
 #include <X11/Xatom.h>
