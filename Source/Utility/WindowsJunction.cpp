@@ -2,6 +2,7 @@
 
 #include <windows.h>
 #include <shlobj.h>
+#include <stdio.h>
 
 void createJunction(std::string szJunctionPtr, std::string szPathPtr) {
     
