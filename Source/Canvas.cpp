@@ -416,10 +416,11 @@ void Canvas::mouseDown(const MouseEvent& e)
         popupMenu.addSeparator();
 
         popupMenu.addItem(8, "To Front", object != nullptr);
+        popupMenu.addItem(9, "To Back", object != nullptr);
         popupMenu.addSeparator();
-        popupMenu.addItem(9, "Help", object != nullptr);
+        popupMenu.addItem(10, "Help", object != nullptr);
         popupMenu.addSeparator();
-        popupMenu.addItem(10, "Properties", e.originalComponent == this);
+        popupMenu.addItem(11, "Properties", e.originalComponent == this);
 
         auto callback = [this, object](int result)
         {
@@ -435,10 +436,15 @@ void Canvas::mouseDown(const MouseEvent& e)
                     if (object->gui) object->gui->moveToFront();
                     synchronise();
                     break;
-                case 9:  // Open help
-                    object->openHelpPatch();
+                case 9:  // To Front
+                    object->toFront(false);
+                    if (object->gui) object->gui->moveToBack();
+                    synchronise();
                     break;
                 case 10:  // Open help
+                    object->openHelpPatch();
+                    break;
+                case 11:  // Open help
                     main.sidebar.showParameters("canvas", parameters);
                     break;
                 default:
