@@ -373,10 +373,11 @@ void PlugDataPluginEditor::mouseDown(const MouseEvent& e)
 {
 
     
-#if PLUGDATA_STANDALONE && JUCE_MAC
+#if PLUGDATA_STANDALONE
     
     if(e.getNumberOfClicks() >= 2) {
 
+#if JUCE_MAC
         if(isMaximised) {
             getPeer()->setBounds(unmaximisedSize, false);
         }
@@ -388,8 +389,14 @@ void PlugDataPluginEditor::mouseDown(const MouseEvent& e)
         
         isMaximised = !isMaximised;
         return;
-    }
+        
+        
+        
+#else
+        dynamic_cast<PlugDataWindow*>(getTopLevelComponent())->setFullScreen(!isFullScreen());
 #endif
+    }
+
     
     if (e.getPosition().getY() < toolbarHeight)
     {
