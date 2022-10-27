@@ -57,6 +57,35 @@ int scalar_doclick(t_word* data, t_template* t, t_scalar* sc,
 #define NOVERTICES 16 /* disable only vertex grabbing in run mode */
 #define A_ARRAY 55    /* LATER decide whether to enshrine this in m_pd.h */
 
+struct GlobalMouseListener : public MouseListener
+{
+    Component* target;
+    
+    GlobalMouseListener(Component* targetComponent) : target(targetComponent) {
+        Desktop::getInstance().addGlobalMouseListener(this);
+    }
+    
+    ~GlobalMouseListener() {
+        Desktop::getInstance().removeGlobalMouseListener(this);
+    }
+    
+    std::function<void(const MouseEvent& e)> globalMouseDown = [](const MouseEvent&){};
+    std::function<void(const MouseEvent& e)> globalMouseUp   = [](const MouseEvent&){};
+    std::function<void(const MouseEvent& e)> globalMouseDrag = [](const MouseEvent&){};
+    
+    void mouseDown(const MouseEvent& e) override {
+        globalMouseDown(e.getEventRelativeTo(target));
+    }
+    
+    void mouseUp(const MouseEvent& e) override {
+        globalMouseUp(e.getEventRelativeTo(target));
+    }
+    
+    void mouseDrag(const MouseEvent& e) override {
+        globalMouseDrag(e.getEventRelativeTo(target));
+    }
+};
+
 struct DrawableTemplate {
     virtual void update() = 0;
 
@@ -103,6 +132,8 @@ struct DrawableCurve final : public DrawableTemplate, public DrawablePath {
     t_fake_curve* object;
     int baseX, baseY;
     Canvas* canvas;
+    
+    GlobalMouseListener mouseListener;
 
     DrawableCurve(t_scalar* s, t_gobj* obj, Canvas* cnv, int x, int y)
         : scalar(s)
@@ -110,15 +141,19 @@ struct DrawableCurve final : public DrawableTemplate, public DrawablePath {
         , canvas(cnv)
         , baseX(x)
         , baseY(y)
+        , mouseListener(this)
     {
+        mouseListener.globalMouseDown = [this](const MouseEvent& e){
+            handleMouseDown(e);
+        };
     }
 
+    ~DrawableCurve() {
+    }
 
-    void mouseDown(MouseEvent const& e) override
+    void handleMouseDown(const MouseEvent& e)
     {
-        auto relativeEvent = e.getEventRelativeTo(this);
-
-        if (!getLocalBounds().contains(relativeEvent.getPosition()) || !isLocked || !canvas->isShowing())
+        if (!getLocalBounds().contains(e.getPosition()) || !isLocked || !canvas->isShowing())
             return;
 
         auto shift = e.mods.isShiftDown();
@@ -126,7 +161,7 @@ struct DrawableCurve final : public DrawableTemplate, public DrawablePath {
         auto dbl = 0;
 
         t_template* t = template_findbyname(scalar->sc_template);
-        scalar_doclick(scalar->sc_vec, t, scalar, 0, canvas->patch.getPointer(), 0, 0, relativeEvent.x, relativeEvent.y, shift, alt, dbl, 1);
+        scalar_doclick(scalar->sc_vec, t, scalar, 0, canvas->patch.getPointer(), 0, 0, e.x, e.y, shift, alt, dbl, 1);
 
         // Update all drawables
         for (auto* object : canvas->objects) {
@@ -347,8 +382,6 @@ struct ScalarObject final : public NonPatchable {
                 // TODO: implement this
             }
 
-            cnv->addMouseListener(drawable, true);
-            
             cnv->addAndMakeVisible(drawable);
 
         }
@@ -359,9 +392,7 @@ struct ScalarObject final : public NonPatchable {
     ~ScalarObject() {
         for(auto* drawable : templates)
         {
-            cnv->removeMouseListener(drawable);
             cnv->removeChildComponent(drawable);
-            Desktop::getInstance().removeGlobalMouseListener(drawable);
         }
     }
 
