@@ -1,8 +1,27 @@
 #if defined (_WIN32) || defined (_WIN64)
 
+#define REPARSE_MOUNTPOINT_HEADER_SIZE   8
+
+#define _WIN32_WINNT		0x0500		// Windows 2000 or later
+#define WIN32_LEAN_AND_MEAN
+#define WIN32_NO_STATUS
+
 #include <windows.h>
+#include <WINIOCTL.H>
 #include <shlobj.h>
+
 #include <stdio.h>
+#include <string>
+
+typedef struct {
+    DWORD ReparseTag;
+    DWORD ReparseDataLength;
+    WORD Reserved;
+    WORD ReparseTargetLength;
+    WORD ReparseTargetMaximumLength;
+    WORD Reserved1;
+    WCHAR ReparseTarget[1];
+} REPARSE_MOUNTPOINT_DATA_BUFFER, * PREPARSE_MOUNTPOINT_DATA_BUFFER;
 
 void createJunction(std::string szJunctionPtr, std::string szPathPtr) {
     
