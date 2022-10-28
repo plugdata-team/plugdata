@@ -1144,6 +1144,10 @@ void Canvas::handleMouseDown(Component* component, const MouseEvent& e)
                     setSelected(object, false);
                 }
             }
+            
+            for(auto* connection : connections) {
+                setSelected(connection, false);
+            }
         }
 
         setSelected(component, true);
