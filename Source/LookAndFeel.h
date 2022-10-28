@@ -390,7 +390,7 @@ struct PlugDataLook : public LookAndFeel_V4
         AttributedString attributedTabTitle(button.getButtonText());
         auto tabTextColour = findColour(isActive ? PlugDataColour::activeTabTextColourId : PlugDataColour::tabTextColourId);
         attributedTabTitle.setColour(tabTextColour);
-        attributedTabTitle.setFont(defaultFont.withHeight(12));
+        attributedTabTitle.setFont(Font(12));
         attributedTabTitle.setJustification(Justification::centred);
         textLayout.createLayout(attributedTabTitle, textArea.getWidth());
         textLayout.draw(g, textArea.toFloat());
