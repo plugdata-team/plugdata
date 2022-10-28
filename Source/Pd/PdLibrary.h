@@ -64,43 +64,12 @@ public:
     int autocomplete(String query, Suggestions& result);
 };
 
-struct LambdaThread : public Thread {
-    LambdaThread()
-        : Thread("Library update thread")
-    {
-    }
-
-    ~LambdaThread()
-    {
-        stopThread(-1);
-    }
-
-    void run() override
-    {
-        fn();
-    }
-
-    void runLambda(std::function<void()> func)
-    {
-        fn = func;
-        startThread();
-    }
-
-private:
-    std::function<void()> fn;
-
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(LambdaThread)
-};
-
 struct Library : public FileSystemWatcher::Listener {
 
     ~Library()
     {
         appDirChanged = nullptr;
-        if (thread) {
-            thread->waitForThreadToExit(-1);
-            delete thread;
-        }
+        libraryUpdateThread.removeAllJobs(true, -1);
     }
     void initialiseLibrary();
 
@@ -117,7 +86,7 @@ struct Library : public FileSystemWatcher::Listener {
 
     std::vector<File> helpPaths;
 
-    LambdaThread* thread;
+    ThreadPool libraryUpdateThread = ThreadPool(1);
 
     ObjectMap getObjectDescriptions();
     KeywordMap getObjectKeywords();
