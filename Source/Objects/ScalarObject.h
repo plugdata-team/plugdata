@@ -57,6 +57,11 @@ int scalar_doclick(t_word* data, t_template* t, t_scalar* sc,
 #define NOVERTICES 16 /* disable only vertex grabbing in run mode */
 #define A_ARRAY 55    /* LATER decide whether to enshrine this in m_pd.h */
 
+// Global mouse listener class:
+// If you attach a normal global mouse listener to a component on canvas, you run the risk of
+// accidentally passing on mouse scroll events to the viewport.
+// This prevents that with a separation layer.
+
 struct GlobalMouseListener : public MouseListener
 {
     Component* target;
@@ -87,6 +92,7 @@ struct GlobalMouseListener : public MouseListener
 };
 
 struct DrawableTemplate {
+    
     virtual void update() = 0;
 
     /* getting and setting values via fielddescs -- note confusing names;
