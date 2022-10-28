@@ -215,10 +215,6 @@ void Library::initialiseLibrary()
 
         updateLibrary();
         parseDocumentation(pddocPath);
-
-        if (thread->threadShouldExit())
-            return;
-        
         
         // Paths to search
         // First, only search vanilla, then search all documentation
@@ -239,8 +235,7 @@ void Library::initialiseLibrary()
         libraryLock.unlock();
     };
 
-    thread = new LambdaThread();
-    thread->runLambda(updateFn);
+    libraryUpdateThread.addJob(updateFn);
 }
 
 void Library::updateLibrary()
@@ -286,8 +281,7 @@ void Library::updateLibrary()
         }
     };
 
-    jassert(thread);
-    thread->runLambda(updateFn);
+    libraryUpdateThread.addJob(updateFn);
 }
 
 void Library::parseDocumentation(String const& path)
