@@ -223,7 +223,7 @@ jobs:
         
   fedora-build:
       runs-on: ubuntu-latest
-      container: fedora:35
+      container: fedora:36
       steps:
       - name: Update git
         run: sudo dnf install -y git
