@@ -239,7 +239,7 @@ jobs:
 
       - name: Prepare Artefacts
         working-directory: ${{github.workspace}}
-        run: ./.github/scripts/package-Linux.sh Fedora-35-x64
+        run: ./.github/scripts/package-Linux.sh Fedora-36-x64
 
       - name: Archive Artifacts
         uses: actions/upload-artifact@v3
@@ -253,7 +253,7 @@ jobs:
         with:
           prerelease: true
           draft: true
-          files: PlugData-Fedora-35-x64
+          files: PlugData-Fedora-36-x64
 
   arch-build:
     runs-on: ubuntu-latest
