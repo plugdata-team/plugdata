@@ -649,6 +649,7 @@ void setup_rand0x2ef_tilde();
 void setup_rand0x2ei();
 void setup_rand0x2ei_tilde();
 void setup_rand0x2eseq();
+void setup_rand0x2eu();
 #if ENABLE_SFONT
 void sfont_tilde_setup();
 #endif
@@ -914,6 +915,7 @@ void libpd_init_else(void)
     ramp_tilde_setup();
     rampnoise_tilde_setup();
     setup_rand0x2ef();
+    setup_rand0x2eu();
     setup_rand0x2ef_tilde();
     setup_rand0x2ehist();
     s2f_tilde_setup();
