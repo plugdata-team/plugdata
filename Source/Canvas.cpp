@@ -1139,12 +1139,9 @@ void Canvas::handleMouseDown(Component* component, const MouseEvent& e)
     if (!isSelected(component))
     {
         if (!(e.mods.isShiftDown() || e.mods.isCommandDown()))  {
-            
-            // Deselect objects and connections
-            for (auto c : selectedComponents) {
-                if (!c.wasObjectDeleted() || c.get() != this)  {
-                    setSelected(c.get(), false);
-                    c->repaint();
+            for(auto* object : objects) {
+                if(isSelected(object)) {
+                    setSelected(object, false);
                 }
             }
         }
