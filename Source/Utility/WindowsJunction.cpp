@@ -12,6 +12,7 @@
 
 #include <stdio.h>
 #include <string>
+#include <filesystem>
 
 typedef struct {
     DWORD ReparseTag;
@@ -23,10 +24,10 @@ typedef struct {
     WCHAR ReparseTarget[1];
 } REPARSE_MOUNTPOINT_DATA_BUFFER, * PREPARSE_MOUNTPOINT_DATA_BUFFER;
 
-void createJunction(std::string szJunctionPtr, std::string szPathPtr) {
+void createJunction(std::string from, std::string to) {
     
-    auto szJunction = (LPCTSTR)szJunctionPtr.c_str();
-    auto szPath = (LPCTSTR)szPathPtr.c_str();
+    auto szJunction = (LPCTSTR)from.c_str();
+    auto szPath = (LPCTSTR)to.c_str();
     
     BYTE buf[sizeof(REPARSE_MOUNTPOINT_DATA_BUFFER) + MAX_PATH * sizeof(WCHAR)];
     REPARSE_MOUNTPOINT_DATA_BUFFER& ReparseBuffer = (REPARSE_MOUNTPOINT_DATA_BUFFER&)buf;
@@ -69,6 +70,10 @@ void createJunction(std::string szJunctionPtr, std::string szPathPtr) {
     }
     
     ::CloseHandle(hDir);
+}
+
+void createHardLink(std::string from, std::string to) {
+    std::filesystem::create_hard_link(file.getFullPathName().toStdString(), alias.getFullPathName().toStdString());
 }
 
 #endif
