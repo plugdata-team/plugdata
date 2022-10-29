@@ -73,7 +73,7 @@ void createJunction(std::string from, std::string to) {
 }
 
 void createHardLink(std::string from, std::string to) {
-    std::filesystem::create_hard_link(file.getFullPathName().toStdString(), alias.getFullPathName().toStdString());
+    std::filesystem::create_hard_link(from, to);
 }
 
 #endif
