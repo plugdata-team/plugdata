@@ -24,6 +24,7 @@ set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 if(ENABLE_SFONT)
     message("-- Building fluidsynth")
     set(SFONT_LIB_DIR "${CMAKE_CURRENT_BINARY_DIR}/fluidsynth")
+    set(SFONT_INCLUDE_DIR "${SFONT_LIB_DIR/include}")
 
     if(MSVC)
     # Building fluidsynth on Windows is a hassle, so I've prebuilt all the static deps once, shipped in a zipfile
@@ -78,6 +79,8 @@ else()
         ${SFONT_LIB_DIR}/lib/libvorbis.a
         ${SFONT_LIB_DIR}/lib/libvorbisenc.a
     )
+
+
 endif()
 endif()
 
@@ -345,6 +348,8 @@ set_target_properties(externals-multi PROPERTIES POSITION_INDEPENDENT_CODE ON)
 
 target_link_libraries(externals ${SFONT_LIBS})
 target_link_libraries(externals-multi ${SFONT_LIBS})
+target_include_directories(externals PRIVATE ${SFONT_INCLUDE_DIR})
+target_include_directories(externals-multi PRIVATE ${SFONT_INCLUDE_DIR})
 # ------------------------------------------------------------------------------#
 # GENERATOR OPTIONS
 # ------------------------------------------------------------------------------#
