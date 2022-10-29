@@ -28,7 +28,7 @@ jobs:
       id: fluidsynth-cache
       with:
         path: ${{github.workspace}}/build/Libraries/fluidsynth
-        key: ${{ runner.os }}-fluidsynth
+        key: ${{ runner.name }}-fluidsynth
 
     - name: Configure CMake (not cached)
       if: steps.fluidsynth-cache.outputs.cache-hit != 'true'
@@ -189,7 +189,7 @@ jobs:
       id: fluidsynth-cache
       with:
         path: ${{github.workspace}}/build/Libraries/fluidsynth
-        key: ${{ runner.os }}-fluidsynth
+        key: ${{ runner.name }}-fluidsynth
 
     - name: Configure CMake (not cached)
       if: steps.fluidsynth-cache.outputs.cache-hit != 'true'
@@ -240,6 +240,12 @@ jobs:
 
     - name: Create Build Environment
       run: cmake -E make_directory ${{github.workspace}}/build
+
+    - uses: actions/cache@v3
+      id: fluidsynth-cache
+      with:
+        path: ${{github.workspace}}/build/Libraries/fluidsynth
+        key: ${{ runner.name }}-fluidsynth
 
     - name: Configure CMake (not cached)
       if: steps.fluidsynth-cache.outputs.cache-hit != 'true'
