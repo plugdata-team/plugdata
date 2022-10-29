@@ -201,9 +201,6 @@ jobs:
       working-directory: ${{github.workspace}}/build
       run: cmake $GITHUB_WORKSPACE -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -G "Unix Makefiles" -DENABLE_TESTING=1 -DCACHED_SFONT=1
 
-
-    - name: Configure CMake
- 
     - name: Build
       working-directory: ${{github.workspace}}/build
       run: cmake --build . --config $BUILD_TYPE
