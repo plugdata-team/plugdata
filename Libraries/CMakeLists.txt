@@ -27,12 +27,6 @@ if(ENABLE_SFONT)
     set(SFONT_LIB_DIR "${CMAKE_CURRENT_BINARY_DIR}/fluidsynth")
 
     if(MSVC)
-        # Building fluidsynth on Windows is a hassle, so I've prebuilt all the static deps once, shipped in a zipfile
-        execute_process(
-            COMMAND ${CMAKE_COMMAND} -E tar xzf ${CMAKE_CURRENT_SOURCE_DIR}/ELSE/sfont~/win_deps.zip
-            WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
-        )
-
         list(APPEND SFONT_LIBS
             ${SFONT_LIB_DIR}/lib64/FLAC.lib
             ${SFONT_LIB_DIR}/lib64/libfluidsynth.lib
@@ -56,20 +50,28 @@ if(ENABLE_SFONT)
             ${SFONT_LIB_DIR}/lib/vorbis.lib
             ${SFONT_LIB_DIR}/lib/vorbisenc.lib
         )
+
+        # Building fluidsynth on Windows is a hassle, so I've prebuilt all the static deps once, shipped in a zipfile
+        add_custom_target(extract_fluidsynth             
+            COMMAND ${CMAKE_COMMAND} -E tar xzf ${CMAKE_CURRENT_SOURCE_DIR}/ELSE/sfont~/win_deps.zip
+            WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+            )
+
+         add_library(
+                fluidsynth
+                STATIC
+                IMPORTED
+            )
+
+        add_dependencies(fluidsynth extract_fluidsynth)
+            
+        set_target_properties(
+            fluidsynth
+             PROPERTIES 
+             IMPORTED_LOCATION ${SFONT_LIBS})
+
     else()
 
-        # Unpack sources of dependencies
-        execute_process(
-            COMMAND ${CMAKE_COMMAND} -E tar xzf ${CMAKE_CURRENT_SOURCE_DIR}/ELSE/sfont~/unix_deps.zip
-            WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
-        )
-
-        # Build fluidsynth and dependencies from source, silence the makefile
-        execute_process(COMMAND make -f ${CMAKE_CURRENT_SOURCE_DIR}/ELSE/sfont~/make-static-libs.mk config
-            WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
-            OUTPUT_QUIET
-            #ERROR_QUIET
-        )
         list(APPEND SFONT_LIBS
             ${SFONT_LIB_DIR}/lib/libfluidsynth.a
             ${SFONT_LIB_DIR}/lib/libsndfile.a
@@ -79,22 +81,35 @@ if(ENABLE_SFONT)
             ${SFONT_LIB_DIR}/lib/libvorbis.a
             ${SFONT_LIB_DIR}/lib/libvorbisenc.a
         )
-    endif()
 
-    # Check if build succeeded, otherwise disable sfont
-    foreach(LIB ${SFONT_LIBS})
-        if(NOT EXISTS ${LIB})
-            set(FAILED_LIBS ${FAILED_LIBS} ${LIB})
-            set(ENABLE_SFONT 0)
-        endif()
-    endforeach()
+        # Unpack sources of dependencies
+        add_custom_target(extract_sfont_sources       
+            COMMAND ${CMAKE_COMMAND} -E tar xzf ${CMAKE_CURRENT_SOURCE_DIR}/ELSE/sfont~/unix_deps.zip
+            WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+        )
 
-    if(FAILED_LIBS)
-    message("Error building fluidsynth: Libraries not found:")
-    foreach(LIB ${FAILED_LIBS})
-        message(${LIB})
-    endforeach()
-    message("Disabling sfont object")
+
+        # Build fluidsynth and dependencies from source, silence the makefile
+        add_custom_target(build_fluidsynth 
+            COMMAND make -f ${CMAKE_CURRENT_SOURCE_DIR}/ELSE/sfont~/make-static-libs.mk config USE_CCACHE=${USE_CCACHE}
+            WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+        )
+
+        add_library(
+            fluidsynth
+            STATIC
+            IMPORTED
+        )
+
+        set_target_properties(
+            fluidsynth
+             PROPERTIES 
+             IMPORTED_LOCATION ${SFONT_LIBS})
+    
+    add_dependencies(build_fluidsynth extract_sfont_sources)    
+    add_dependencies(fluidsynth extract_sfont_sources)
+        
+
     endif()
 endif()
 
@@ -385,12 +400,12 @@ endif()
 if("${CMAKE_SYSTEM}" MATCHES "Linux")
     find_library(MATH_LIB m)
 
-    target_link_libraries(pd ${MATH_LIB} ${CMAKE_DL_LIBS} externals ${SFONT_LIBS})
-    target_link_libraries(pd-multi ${MATH_LIB} ${CMAKE_DL_LIBS} externals-multi ${SFONT_LIBS})
+    target_link_libraries(pd ${MATH_LIB} ${CMAKE_DL_LIBS} externals fluidsynth)
+    target_link_libraries(pd-multi ${MATH_LIB} ${CMAKE_DL_LIBS} externals-multi fluidsynth)
 
 elseif(MSVC)
-    target_link_libraries(pd PUBLIC libpthreadVC3 ws2_32 Shlwapi.lib externals ${SFONT_LIBS})
-    target_link_libraries(pd-multi PUBLIC libpthreadVC3 ws2_32 Shlwapi.lib externals-multi ${SFONT_LIBS})
+    target_link_libraries(pd PUBLIC libpthreadVC3 ws2_32 Shlwapi.lib externals fluidsynth)
+    target_link_libraries(pd-multi PUBLIC libpthreadVC3 ws2_32 Shlwapi.lib externals-multi fluidsynth)
 
     add_custom_command(TARGET pd POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy
@@ -402,8 +417,8 @@ elseif(MSVC)
         "${CMAKE_CURRENT_BINARY_DIR}/$<CONFIGURATION>/pd.lib"
         ${CMAKE_SOURCE_DIR}/Plugins/Standalone/pd.lib)
 elseif(APPLE)
-    target_link_libraries(pd PUBLIC externals ${SFONT_LIBS})
-    target_link_libraries(pd-multi PUBLIC externals-multi ${SFONT_LIBS})
+    target_link_libraries(pd PUBLIC externals fluidsynth)
+    target_link_libraries(pd-multi PUBLIC externals-multi fluidsynth)
 endif()
 
 # LINK PTHREAD
