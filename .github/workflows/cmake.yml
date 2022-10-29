@@ -251,9 +251,9 @@ jobs:
         with:
           submodules: recursive
         env:
+          apt: dnf
           PATH: /usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
       
-      - run: apt update
       - name: ccache
         uses: hendrikmuhs/ccache-action@v1.2
         with:
