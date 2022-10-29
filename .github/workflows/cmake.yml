@@ -251,18 +251,12 @@ jobs:
         with:
           submodules: recursive
         env:
-          apt: dnf
           PATH: /usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
-      
-      - name: ccache
-        uses: hendrikmuhs/ccache-action@v1.2
-        with:
-          key: fedora
 
       - name: Install Dependencies
         run: sudo dnf install -y cmake alsa-lib-devel libXinerama-devel freetype-devel libcurl-devel gcc-c++ libXcomposite-devel freeglut-devel libXrandr-devel libXcursor-devel xz
       - name: Build
-        run: mkdir build && cd build && cmake -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DENABLE_TESTING=1 .. -G "Unix Makefiles" && cmake --build . --config $BUILD_TYPE
+        run: mkdir build && cd build && cmake -DENABLE_TESTING=1 .. -G "Unix Makefiles" && cmake --build . --config $BUILD_TYPE
 
       - name: Prepare Artefacts
         working-directory: ${{github.workspace}}
@@ -297,18 +291,12 @@ jobs:
         submodules: recursive
       env:
         PATH: /usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
-
-    - run: apt update
-    - name: ccache
-      uses: hendrikmuhs/ccache-action@v1.2
-      with:
-        key: arch
         
     - name: Install Dependencies
       run: pacman -S --noconfirm alsa-lib freetype2 libx11 libxcursor libxext libxinerama libxrandr libxrender webkit2gtk cmake make gcc pkgconf python
 
     - name: Build
-      run: mkdir build && cd build && CC=/usr/bin/gcc CXX=/usr/bin/g++ cmake -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DENABLE_TESTING=1 .. -G "Unix Makefiles" && cmake --build . --config $BUILD_TYPE
+      run: mkdir build && cd build && CC=/usr/bin/gcc CXX=/usr/bin/g++ cmake -DENABLE_TESTING=1 .. -G "Unix Makefiles" && cmake --build . --config $BUILD_TYPE
 
     - name: Prepare Artefacts
       working-directory: ${{github.workspace}}
@@ -343,17 +331,11 @@ jobs:
       env:
         PATH: /usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 
-    - run: apt update
-    - name: ccache
-      uses: hendrikmuhs/ccache-action@v1.2
-      with:
-        key: opensuse
-
     - name: Install Dependencies
       run: zypper install -y xz tar gzip cmake alsa-lib-devel libXinerama-devel freetype-devel libcurl-devel libXcomposite-devel freeglut-devel libXrandr-devel libXcursor-devel freetype2-devel gcc gcc-c++
 
     - name: Build
-      run: mkdir build && cd build && cmake -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DENABLE_TESTING=1 .. -G "Unix Makefiles" && cmake --build . --config $BUILD_TYPE
+      run: mkdir build && cd build && cmake -DENABLE_TESTING=1 .. -G "Unix Makefiles" && cmake --build . --config $BUILD_TYPE
 
     - name: Prepare Artefacts
       working-directory: ${{github.workspace}}
