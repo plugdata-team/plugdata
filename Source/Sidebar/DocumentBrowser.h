@@ -10,15 +10,9 @@
 
 #include "../Utility/FileSystemWatcher.h"
 
-#if JUCE_WINDOWS
-#    include <filesystem>
 
-#    if _WIN64
-extern "C" {
-// Need this to create directory junctions on Windows
-unsigned int WinExec(char const* lpCmdLine, unsigned int uCmdShow);
-}
-#    endif
+#if JUCE_WINDOWS
+#include "../Utility/WindowsJunction.h"
 #endif
 
 bool wantsNativeDialog();
@@ -426,14 +420,9 @@ public:
 
                 // Symlinks on Windows are weird!
                 if (file.isDirectory()) {
-                    // Create directory junction command
-                    auto aliasCommand = "cmd.exe /k mklink /J " + alias.getFullPathName().replaceCharacters("/", "\\") + " " + file.getFullPathName();
-                    // Execute command
-#    if _WIN64
-                    WinExec(aliasCommand.toRawUTF8(), 0);
-#    else
-                    system(aliasCommand.fromFirstOccurrenceOf("/k", false, false).toRawUTF8());
-#    endif
+                    
+                    // Create NTFS directory junction
+                    createJunction(alias.getFullPathName().replaceCharacters("/", "\\").toStdString(), file.getFullPathName().toStdString());
                 } else {
                     // Create hard link
                     std::filesystem::create_hard_link(file.getFullPathName().toStdString(), alias.getFullPathName().toStdString());
