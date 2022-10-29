@@ -28,7 +28,7 @@ jobs:
       id: fluidsynth-cache
       with:
         path: ${{github.workspace}}/build/Libraries/fluidsynth
-        key: ${{ runner.name }}-fluidsynth
+        key: macos-fluidsynth
 
     - name: Configure CMake (not cached)
       if: steps.fluidsynth-cache.outputs.cache-hit != 'true'
@@ -189,7 +189,7 @@ jobs:
       id: fluidsynth-cache
       with:
         path: ${{github.workspace}}/build/Libraries/fluidsynth
-        key: ${{ runner.name }}-fluidsynth
+        key: ubuntu-22-fluidsynth
 
     - name: Configure CMake (not cached)
       if: steps.fluidsynth-cache.outputs.cache-hit != 'true'
@@ -245,7 +245,7 @@ jobs:
       id: fluidsynth-cache
       with:
         path: ${{github.workspace}}/build/Libraries/fluidsynth
-        key: ${{ runner.name }}-fluidsynth
+        key: ubuntu-20-fluidsynth
 
     - name: Configure CMake (not cached)
       if: steps.fluidsynth-cache.outputs.cache-hit != 'true'
