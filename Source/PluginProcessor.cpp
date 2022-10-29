@@ -220,9 +220,7 @@ void PlugDataAudioProcessor::initialiseFilesystem()
         auto documentationPath = appDir.getChildFile("Documentation").getFullPathName().replaceCharacters("/", "\\");
         auto dekenPath = deken.getFullPathName();
         
-        // The mklink /J command creates a directory junction. This is the closest thing I can get to a directory symlink on Windows
-        // Regular symlinks can only created by administrators
-        
+        // Create NTFS directory junctions
         createJunction(library.getChildFile("Abstractions").getFullPathName().replaceCharacters("/", "\\").toStdString(), abstractionsPath.toStdString());
         
         createJunction(library.getChildFile("Documentation").getFullPathName().replaceCharacters("/", "\\").toStdString(), documentationPath.toStdString());
