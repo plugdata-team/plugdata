@@ -22,8 +22,6 @@ set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 # Switch to enable/disable sfont~, in case the build fails or you want to speed up the build
 if(ENABLE_SFONT)
-    message("-- Building fluidsynth")
-
     set(SFONT_LIB_DIR "${CMAKE_CURRENT_BINARY_DIR}/fluidsynth")
 
     if(MSVC)
@@ -101,6 +99,11 @@ if(ENABLE_SFONT)
             IMPORTED
         )
 
+        make_directory(${SFONT_LIB_DIR})
+        make_directory(${SFONT_LIB_DIR}/include)
+
+        target_include_directories(fluidsynth INTERFACE ${SFONT_LIB_DIR}/include/)
+
         set_target_properties(
             fluidsynth
              PROPERTIES 
@@ -108,8 +111,6 @@ if(ENABLE_SFONT)
     
     add_dependencies(build_fluidsynth extract_sfont_sources)    
     add_dependencies(fluidsynth extract_sfont_sources)
-        
-
     endif()
 endif()
 
