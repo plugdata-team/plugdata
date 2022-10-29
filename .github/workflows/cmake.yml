@@ -255,7 +255,7 @@ jobs:
     - name: Configure CMake (cached)
       if: steps.fluidsynth-cache.outputs.cache-hit == 'true'
       working-directory: ${{github.workspace}}/build
-      run: cmake $GITHUB_WORKSPACE -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -G "Unix Makefiles" -DENABLE_TESTING=1 -DCACHED_SFONT=0
+      run: cmake $GITHUB_WORKSPACE -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -G "Unix Makefiles" -DENABLE_TESTING=1 -DCACHED_SFONT=1
 
     - name: Build
       working-directory: ${{github.workspace}}/build
