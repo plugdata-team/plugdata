@@ -30,16 +30,15 @@ jobs:
         path: ${{github.workspace}}/build/Libraries/fluidsynth
         key: ${{ runner.os }}-fluidsynth
 
-    - name: Configure CMake
+    - name: Configure CMake (not cached)
       if: steps.fluidsynth-cache.outputs.cache-hit != 'true'
       working-directory: ${{github.workspace}}/build
       run: cmake $GITHUB_WORKSPACE -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCACHED_SFONT=0
 
-    - name: Configure CMake
+    - name: Configure CMake (cached)
       if: steps.fluidsynth-cache.outputs.cache-hit == 'true'
       working-directory: ${{github.workspace}}/build
       run: cmake $GITHUB_WORKSPACE -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCACHED_SFONT=1
-
 
     - name: Import Code-Signing Certificates
       uses: figleafteam/import-codesign-certs@v2
@@ -186,10 +185,25 @@ jobs:
     - name: Create Build Environment
       run: cmake -E make_directory ${{github.workspace}}/build
 
-    - name: Configure CMake
-      working-directory: ${{github.workspace}}/build
-      run: cmake $GITHUB_WORKSPACE -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -G "Unix Makefiles" -DENABLE_TESTING=1
+    - uses: actions/cache@v3
+      id: fluidsynth-cache
+      with:
+        path: ${{github.workspace}}/build/Libraries/fluidsynth
+        key: ${{ runner.os }}-fluidsynth
 
+    - name: Configure CMake (not cached)
+      if: steps.fluidsynth-cache.outputs.cache-hit != 'true'
+      working-directory: ${{github.workspace}}/build
+      run: cmake $GITHUB_WORKSPACE -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -G "Unix Makefiles" -DENABLE_TESTING=1 -DCACHED_SFONT=0
+
+    - name: Configure CMake (cached)
+      if: steps.fluidsynth-cache.outputs.cache-hit == 'true'
+      working-directory: ${{github.workspace}}/build
+      run: cmake $GITHUB_WORKSPACE -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -G "Unix Makefiles" -DENABLE_TESTING=1 -DCACHED_SFONT=1
+
+
+    - name: Configure CMake
+ 
     - name: Build
       working-directory: ${{github.workspace}}/build
       run: cmake --build . --config $BUILD_TYPE
@@ -230,9 +244,15 @@ jobs:
     - name: Create Build Environment
       run: cmake -E make_directory ${{github.workspace}}/build
 
-    - name: Configure CMake
+    - name: Configure CMake (not cached)
+      if: steps.fluidsynth-cache.outputs.cache-hit != 'true'
       working-directory: ${{github.workspace}}/build
-      run: cmake $GITHUB_WORKSPACE -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -G "Unix Makefiles" -DENABLE_TESTING=1
+      run: cmake $GITHUB_WORKSPACE -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -G "Unix Makefiles" -DENABLE_TESTING=1 -DCACHED_SFONT=0
+
+    - name: Configure CMake (cached)
+      if: steps.fluidsynth-cache.outputs.cache-hit == 'true'
+      working-directory: ${{github.workspace}}/build
+      run: cmake $GITHUB_WORKSPACE -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -G "Unix Makefiles" -DENABLE_TESTING=1 -DCACHED_SFONT=0
 
     - name: Build
       working-directory: ${{github.workspace}}/build
