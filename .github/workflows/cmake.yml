@@ -73,6 +73,7 @@ jobs:
       uses: hendrikmuhs/ccache-action@v1.2
       with:
         key: win-64
+        variant: sccache
 
     - name: Create Build Environment
       run: cmake -E make_directory ${{github.workspace}}/build 
@@ -119,6 +120,7 @@ jobs:
       uses: hendrikmuhs/ccache-action@v1.2
       with:
         key: win-32
+        variant: sccache
 
     - name: Create Build Environment
       run: cmake -E make_directory ${{github.workspace}}/build
