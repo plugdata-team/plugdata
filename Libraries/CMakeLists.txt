@@ -25,91 +25,59 @@ if(ENABLE_SFONT)
     set(SFONT_LIB_DIR "${CMAKE_CURRENT_BINARY_DIR}/fluidsynth")
 
     if(MSVC)
-        list(APPEND SFONT_LIBS
-            ${SFONT_LIB_DIR}/lib64/FLAC.lib
-            ${SFONT_LIB_DIR}/lib64/libfluidsynth.lib
-            ${SFONT_LIB_DIR}/lib64/libmp3lame-static.lib
-            ${SFONT_LIB_DIR}/lib64/libmpghip-static.lib
-            ${SFONT_LIB_DIR}/lib64/mpg123.lib
-            ${SFONT_LIB_DIR}/lib64/ogg.lib
-            ${SFONT_LIB_DIR}/lib64/opus.lib
-            ${SFONT_LIB_DIR}/lib64/sndfile.lib
-            ${SFONT_LIB_DIR}/lib64/vorbis.lib
-            ${SFONT_LIB_DIR}/lib64/vorbisenc.lib
-            ${SFONT_LIB_DIR}/lib/FLAC.lib
-            ${SFONT_LIB_DIR}/lib/libfluidsynth.lib
-            ${SFONT_LIB_DIR}/lib/libmp3lame-static.lib
-            ${SFONT_LIB_DIR}/lib/libmpghip-static.lib
-            ${SFONT_LIB_DIR}/lib/mpg123.lib
-            ${SFONT_LIB_DIR}/lib/ogg.lib
-            ${SFONT_LIB_DIR}/lib/opus.lib
-            ${SFONT_LIB_DIR}/lib/sndfile.lib
-            ${SFONT_LIB_DIR}/lib/vorbis.lib
-            ${SFONT_LIB_DIR}/lib/vorbisenc.lib
-        )
+    # Building fluidsynth on Windows is a hassle, so I've prebuilt all the static deps once, shipped in a zipfile
+    execute_process(
+        COMMAND ${CMAKE_COMMAND} -E tar xzf ${CMAKE_CURRENT_SOURCE_DIR}/ELSE/sfont~/win_deps.zip
+        WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+    )
 
-        # Building fluidsynth on Windows is a hassle, so I've prebuilt all the static deps once, shipped in a zipfile
-        add_custom_target(extract_fluidsynth             
-            COMMAND ${CMAKE_COMMAND} -E tar xzf ${CMAKE_CURRENT_SOURCE_DIR}/ELSE/sfont~/win_deps.zip
-            WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
-            )
+    list(APPEND SFONT_LIBS
+        ${SFONT_LIB_DIR}/lib64/FLAC.lib
+        ${SFONT_LIB_DIR}/lib64/libfluidsynth.lib
+        ${SFONT_LIB_DIR}/lib64/libmp3lame-static.lib
+        ${SFONT_LIB_DIR}/lib64/libmpghip-static.lib
+        ${SFONT_LIB_DIR}/lib64/mpg123.lib
+        ${SFONT_LIB_DIR}/lib64/ogg.lib
+        ${SFONT_LIB_DIR}/lib64/opus.lib
+        ${SFONT_LIB_DIR}/lib64/sndfile.lib
+        ${SFONT_LIB_DIR}/lib64/vorbis.lib
+        ${SFONT_LIB_DIR}/lib64/vorbisenc.lib
 
-         add_library(
-                fluidsynth
-                STATIC
-                IMPORTED
-            )
+        ${SFONT_LIB_DIR}/lib/FLAC.lib
+        ${SFONT_LIB_DIR}/lib/libfluidsynth.lib
+        ${SFONT_LIB_DIR}/lib/libmp3lame-static.lib
+        ${SFONT_LIB_DIR}/lib/libmpghip-static.lib
+        ${SFONT_LIB_DIR}/lib/mpg123.lib
+        ${SFONT_LIB_DIR}/lib/ogg.lib
+        ${SFONT_LIB_DIR}/lib/opus.lib
+        ${SFONT_LIB_DIR}/lib/sndfile.lib
+        ${SFONT_LIB_DIR}/lib/vorbis.lib
+        ${SFONT_LIB_DIR}/lib/vorbisenc.lib
+    )
+else()
 
-        add_dependencies(fluidsynth extract_fluidsynth)
-            
-        set_target_properties(
-             fluidsynth
-             PROPERTIES
-             IMPORTED_LOCATION ${SFONT_LIBS})
+    # Unpack sources of dependencies
+    execute_process(
+        COMMAND ${CMAKE_COMMAND} -E tar xzf ${CMAKE_CURRENT_SOURCE_DIR}/ELSE/sfont~/unix_deps.zip
+        WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+    )
 
-    else()
-
-        list(APPEND SFONT_LIBS
-            ${SFONT_LIB_DIR}/lib/libfluidsynth.a
-            ${SFONT_LIB_DIR}/lib/libsndfile.a
-            ${SFONT_LIB_DIR}/lib/libogg.a
-            ${SFONT_LIB_DIR}/lib/libopus.a
-            ${SFONT_LIB_DIR}/lib/libFLAC.a
-            ${SFONT_LIB_DIR}/lib/libvorbis.a
-            ${SFONT_LIB_DIR}/lib/libvorbisenc.a
-        )
-
-        # Unpack sources of dependencies
-        add_custom_target(extract_sfont_sources       
-            COMMAND ${CMAKE_COMMAND} -E tar xzf ${CMAKE_CURRENT_SOURCE_DIR}/ELSE/sfont~/unix_deps.zip
-            WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
-        )
-
-        # Build fluidsynth and dependencies from source
-        add_custom_target(build_fluidsynth 
-            COMMAND make -f ${CMAKE_CURRENT_SOURCE_DIR}/ELSE/sfont~/make-static-libs.mk config USE_CCACHE=${USE_CCACHE}
-            WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
-        )
-
-        add_library(
-            fluidsynth
-            STATIC
-            IMPORTED
-        )
-
-        make_directory(${SFONT_LIB_DIR})
-        make_directory(${SFONT_LIB_DIR}/include)
-
-        target_include_directories(fluidsynth INTERFACE ${SFONT_LIB_DIR}/include)
-
-        set_target_properties(
-             fluidsynth
-             PROPERTIES 
-             IMPORTED_LOCATION ${SFONT_LIBS})
-    
-    add_dependencies(build_fluidsynth extract_sfont_sources)    
-    add_dependencies(fluidsynth build_fluidsynth)
-    endif()
+    # Build fluidsynth and dependencies from source, silence the makefile
+    execute_process(COMMAND make -f ${CMAKE_CURRENT_SOURCE_DIR}/ELSE/sfont~/make-static-libs.mk config USE_CCACHE=${USE_CCACHE}
+        WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+        OUTPUT_QUIET
+        #ERROR_QUIET
+    )
+    list(APPEND SFONT_LIBS
+        ${SFONT_LIB_DIR}/lib/libfluidsynth.a
+        ${SFONT_LIB_DIR}/lib/libsndfile.a
+        ${SFONT_LIB_DIR}/lib/libogg.a
+        ${SFONT_LIB_DIR}/lib/libopus.a
+        ${SFONT_LIB_DIR}/lib/libFLAC.a
+        ${SFONT_LIB_DIR}/lib/libvorbis.a
+        ${SFONT_LIB_DIR}/lib/libvorbisenc.a
+    )
+endif()
 endif()
 
 
