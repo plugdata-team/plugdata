@@ -36,7 +36,6 @@ if(ENABLE_SFONT)
             ${SFONT_LIB_DIR}/lib64/sndfile.lib
             ${SFONT_LIB_DIR}/lib64/vorbis.lib
             ${SFONT_LIB_DIR}/lib64/vorbisenc.lib
-
             ${SFONT_LIB_DIR}/lib/FLAC.lib
             ${SFONT_LIB_DIR}/lib/libfluidsynth.lib
             ${SFONT_LIB_DIR}/lib/libmp3lame-static.lib
