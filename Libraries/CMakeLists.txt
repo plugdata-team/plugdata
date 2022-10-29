@@ -22,6 +22,7 @@ set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 # Switch to enable/disable sfont~, in case the build fails or you want to speed up the build
 if(ENABLE_SFONT)
+    message("-- Building fluidsynth")
     set(SFONT_LIB_DIR "${CMAKE_CURRENT_BINARY_DIR}/fluidsynth")
 
     if(MSVC)
@@ -342,8 +343,8 @@ set_target_properties(pd-multi PROPERTIES POSITION_INDEPENDENT_CODE ON)
 set_target_properties(externals PROPERTIES POSITION_INDEPENDENT_CODE ON)
 set_target_properties(externals-multi PROPERTIES POSITION_INDEPENDENT_CODE ON)
 
-target_link_libraries(externals fluidsynth)
-target_link_libraries(externals-multi fluidsynth)
+target_link_libraries(externals ${SFONT_LIBS})
+target_link_libraries(externals-multi ${SFONT_LIBS})
 # ------------------------------------------------------------------------------#
 # GENERATOR OPTIONS
 # ------------------------------------------------------------------------------#
