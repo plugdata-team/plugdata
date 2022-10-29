@@ -64,8 +64,8 @@ if(ENABLE_SFONT)
         add_dependencies(fluidsynth extract_fluidsynth)
             
         set_target_properties(
-            fluidsynth
-             PROPERTIES 
+             fluidsynth
+             PROPERTIES
              IMPORTED_LOCATION ${SFONT_LIBS})
 
     else()
@@ -86,8 +86,7 @@ if(ENABLE_SFONT)
             WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
         )
 
-
-        # Build fluidsynth and dependencies from source, silence the makefile
+        # Build fluidsynth and dependencies from source
         add_custom_target(build_fluidsynth 
             COMMAND make -f ${CMAKE_CURRENT_SOURCE_DIR}/ELSE/sfont~/make-static-libs.mk config USE_CCACHE=${USE_CCACHE}
             WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
@@ -102,15 +101,15 @@ if(ENABLE_SFONT)
         make_directory(${SFONT_LIB_DIR})
         make_directory(${SFONT_LIB_DIR}/include)
 
-        target_include_directories(fluidsynth INTERFACE ${SFONT_LIB_DIR}/include/)
+        target_include_directories(fluidsynth INTERFACE ${SFONT_LIB_DIR}/include)
 
         set_target_properties(
-            fluidsynth
+             fluidsynth
              PROPERTIES 
              IMPORTED_LOCATION ${SFONT_LIBS})
     
     add_dependencies(build_fluidsynth extract_sfont_sources)    
-    add_dependencies(fluidsynth extract_sfont_sources)
+    add_dependencies(fluidsynth build_fluidsynth)
     endif()
 endif()
 
@@ -376,6 +375,8 @@ set_target_properties(pd-multi PROPERTIES POSITION_INDEPENDENT_CODE ON)
 set_target_properties(externals PROPERTIES POSITION_INDEPENDENT_CODE ON)
 set_target_properties(externals-multi PROPERTIES POSITION_INDEPENDENT_CODE ON)
 
+target_link_libraries(externals fluidsynth)
+target_link_libraries(externals-multi fluidsynth)
 # ------------------------------------------------------------------------------#
 # GENERATOR OPTIONS
 # ------------------------------------------------------------------------------#
@@ -401,12 +402,12 @@ endif()
 if("${CMAKE_SYSTEM}" MATCHES "Linux")
     find_library(MATH_LIB m)
 
-    target_link_libraries(pd ${MATH_LIB} ${CMAKE_DL_LIBS} externals fluidsynth)
-    target_link_libraries(pd-multi ${MATH_LIB} ${CMAKE_DL_LIBS} externals-multi fluidsynth)
+    target_link_libraries(pd ${MATH_LIB} ${CMAKE_DL_LIBS} externals)
+    target_link_libraries(pd-multi ${MATH_LIB} ${CMAKE_DL_LIBS} externals-multi)
 
 elseif(MSVC)
-    target_link_libraries(pd PUBLIC libpthreadVC3 ws2_32 Shlwapi.lib externals fluidsynth)
-    target_link_libraries(pd-multi PUBLIC libpthreadVC3 ws2_32 Shlwapi.lib externals-multi fluidsynth)
+    target_link_libraries(pd PUBLIC libpthreadVC3 ws2_32 Shlwapi.lib externals)
+    target_link_libraries(pd-multi PUBLIC libpthreadVC3 ws2_32 Shlwapi.lib externals-multi)
 
     add_custom_command(TARGET pd POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy
@@ -418,8 +419,8 @@ elseif(MSVC)
         "${CMAKE_CURRENT_BINARY_DIR}/$<CONFIGURATION>/pd.lib"
         ${CMAKE_SOURCE_DIR}/Plugins/Standalone/pd.lib)
 elseif(APPLE)
-    target_link_libraries(pd PUBLIC externals fluidsynth)
-    target_link_libraries(pd-multi PUBLIC externals-multi fluidsynth)
+    target_link_libraries(pd PUBLIC externals)
+    target_link_libraries(pd-multi PUBLIC externals-multi)
 endif()
 
 # LINK PTHREAD
