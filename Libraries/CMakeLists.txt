@@ -20,8 +20,9 @@ set(SFONT_LIBS "")
 set(CMAKE_MACOSX_RPATH ON)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
-# Switch to enable/disable sfont~, in case the build fails or you want to speed up the build
+# Switch to use a pre-cached version of fluidsynth
 if(CACHED_SFONT)
+    set(SFONT_LIB_DIR "${CMAKE_CURRENT_BINARY_DIR}/fluidsynth")
     list(APPEND SFONT_LIBS
     ${SFONT_LIB_DIR}/lib/libfluidsynth.a
     ${SFONT_LIB_DIR}/lib/libsndfile.a
@@ -31,6 +32,7 @@ if(CACHED_SFONT)
     ${SFONT_LIB_DIR}/lib/libvorbis.a
     ${SFONT_LIB_DIR}/lib/libvorbisenc.a
     )
+# Switch to enable/disable the sfont~ object, in case the build fails or you want to speed up the build
 elseif(ENABLE_SFONT)
     message("-- Building fluidsynth")
     set(SFONT_LIB_DIR "${CMAKE_CURRENT_BINARY_DIR}/fluidsynth")
