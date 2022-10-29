@@ -21,7 +21,17 @@ set(CMAKE_MACOSX_RPATH ON)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 # Switch to enable/disable sfont~, in case the build fails or you want to speed up the build
-if(ENABLE_SFONT)
+if(CACHED_SFONT)
+    list(APPEND SFONT_LIBS
+    ${SFONT_LIB_DIR}/lib/libfluidsynth.a
+    ${SFONT_LIB_DIR}/lib/libsndfile.a
+    ${SFONT_LIB_DIR}/lib/libogg.a
+    ${SFONT_LIB_DIR}/lib/libopus.a
+    ${SFONT_LIB_DIR}/lib/libFLAC.a
+    ${SFONT_LIB_DIR}/lib/libvorbis.a
+    ${SFONT_LIB_DIR}/lib/libvorbisenc.a
+    )
+elseif(ENABLE_SFONT)
     message("-- Building fluidsynth")
     set(SFONT_LIB_DIR "${CMAKE_CURRENT_BINARY_DIR}/fluidsynth")
     set(SFONT_INCLUDE_DIR "${SFONT_LIB_DIR/include}")
@@ -79,7 +89,6 @@ else()
         ${SFONT_LIB_DIR}/lib/libvorbis.a
         ${SFONT_LIB_DIR}/lib/libvorbisenc.a
     )
-
 
 endif()
 endif()
