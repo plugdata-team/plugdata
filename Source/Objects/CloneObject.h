@@ -50,15 +50,6 @@ struct CloneObject final : public TextBase {
         }
     }
 
-    void updateValue() override
-    {
-        // Pd sometimes sets the isgraph flag too late...
-        // In that case we tell the object to create the gui
-        if (static_cast<t_canvas*>(ptr)->gl_isgraph) {
-            object->setType(currentText, ptr);
-        }
-    };
-
     ~CloneObject()
     {
         closeOpenedSubpatchers();
