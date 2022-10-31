@@ -319,7 +319,7 @@ void Statusbar::resized()
     auto position = [this, &pos](int width, bool inverse = false) -> int
     {
         int result = 8 + pos;
-        pos += width + 2;
+        pos += width + 3;
         return inverse ? getWidth() - pos : result;
     };
 
