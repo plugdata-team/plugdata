@@ -76,7 +76,9 @@ struct SliderObject : public IEMObject {
 
     void update() override
     {
-        slider.setValue(getValueScaled(), dontSendNotification);
+        auto value = isLogScale() ? std::log(getValueOriginal() / getMinimum()) / std::log(getMaximum() / getMinimum()) : getValueScaled();
+        
+        slider.setValue(value, dontSendNotification);
     }
 
     ObjectParameters defineParameters() override
