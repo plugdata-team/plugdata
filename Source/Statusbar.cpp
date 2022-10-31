@@ -325,12 +325,12 @@ void Statusbar::resized()
 
     lockButton->setBounds(position(getHeight()), 0, getHeight(), getHeight());
 
-    position(5);  // Seperator
+    position(3);  // Seperator
 
     connectionStyleButton->setBounds(position(getHeight()), 0, getHeight(), getHeight());
     connectionPathfind->setBounds(position(getHeight()), 0, getHeight(), getHeight());
 
-    position(5);  // Seperator
+    position(3);  // Seperator
     
     presentationButton->setBounds(position(getHeight()), 0, getHeight(), getHeight());
     
