@@ -222,6 +222,13 @@ Statusbar::Statusbar(PlugDataAudioProcessor& processor) : pd(processor)
     powerButton->setConnectedEdges(12);
     powerButton->setName("statusbar:mute");
     addAndMakeVisible(powerButton.get());
+    
+    gridButton->setTooltip("Enable grid");
+    gridButton->setClickingTogglesState(true);
+    gridButton->setConnectedEdges(12);
+    gridButton->setName("statusbar:grid");
+    gridButton->getToggleStateValue().referTo(pd.settingsTree.getPropertyAsValue("GridEnabled", nullptr));
+    addAndMakeVisible(gridButton.get());
 
     powerButton->onClick = [this]() { powerButton->getToggleState() ? pd.startDSP() : pd.releaseDSP(); };
 
@@ -326,7 +333,9 @@ void Statusbar::resized()
     position(5);  // Seperator
     
     presentationButton->setBounds(position(getHeight()), 0, getHeight(), getHeight());
-
+    
+    gridButton->setBounds(position(getHeight()), 0, getHeight(), getHeight());
+    
     pos = 0;  // reset position for elements on the left
 
     powerButton->setBounds(position(getHeight(), true), 0, getHeight(), getHeight());

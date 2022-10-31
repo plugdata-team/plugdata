@@ -22,7 +22,7 @@ struct Icons
     inline static const CharPointer_UTF8 Hide = CharPointer_UTF8("\xef\x81\x94");
     inline static const CharPointer_UTF8 Show = CharPointer_UTF8("\xef\x81\x93");
     inline static const CharPointer_UTF8 Clear = CharPointer_UTF8("\xef\x80\x8d");
-    inline static const CharPointer_UTF8 Trash = CharPointer_UTF8("\xef\x80\x94");
+    inline static const CharPointer_UTF8 Trash = CharPointer_UTF8("\xef\x87\xb8");
     inline static const CharPointer_UTF8 Lock = CharPointer_UTF8("\xef\x80\xa3");
     inline static const CharPointer_UTF8 Unlock = CharPointer_UTF8("\xef\x82\x9c");
     inline static const CharPointer_UTF8 ConnectionStyle = CharPointer_UTF8("\xee\xa1\xbc");
@@ -32,7 +32,7 @@ struct Icons
     inline static const CharPointer_UTF8 Wand = CharPointer_UTF8("\xef\x83\x90");
     inline static const CharPointer_UTF8 Pencil = CharPointer_UTF8("\xef\x87\xbc");
     inline static const CharPointer_UTF8 Colour = CharPointer_UTF8("\xef\x87\xbb");
-    inline static const CharPointer_UTF8 Grid = CharPointer_UTF8("\xef\x83\x8e");
+    inline static const CharPointer_UTF8 Grid = CharPointer_UTF8("\xef\x84\xb6");
     inline static const CharPointer_UTF8 Theme = CharPointer_UTF8("\xef\x81\x82");
     inline static const CharPointer_UTF8 ZoomIn = CharPointer_UTF8("\xef\x80\x8e");
     inline static const CharPointer_UTF8 ZoomOut = CharPointer_UTF8("\xef\x80\x90");
@@ -46,7 +46,7 @@ struct Icons
     inline static const CharPointer_UTF8 Error = CharPointer_UTF8("\xef\x81\xb1");
     inline static const CharPointer_UTF8 Message = CharPointer_UTF8("\xef\x81\xb5");
     inline static const CharPointer_UTF8 Parameters = CharPointer_UTF8("\xef\x87\x9e");
-    inline static const CharPointer_UTF8 Presentation = CharPointer_UTF8("\xef\x81\xab");
+    inline static const CharPointer_UTF8 Presentation = CharPointer_UTF8("\xef\x86\x94");
     inline static const CharPointer_UTF8 Externals = CharPointer_UTF8("\xef\x84\xae");
     inline static const CharPointer_UTF8 Info = CharPointer_UTF8("\xef\x81\x9a");
     inline static const CharPointer_UTF8 Refresh = CharPointer_UTF8("\xef\x80\xa1");
