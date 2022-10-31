@@ -399,12 +399,10 @@ struct SettingsPopup : public PopupMenu {
     SettingsPopup(AudioProcessor& processor, ValueTree tree) :
     settingsTree(tree),
     themeSelector(tree),
-    zoomSelector(tree),
-    gridSelector(tree, "GridEnabled", "Enable grid")
+    zoomSelector(tree)
     {
         addCustomItem(1, themeSelector, 70, 45, false);
         addCustomItem(2, zoomSelector, 70, 30, false);
-        addCustomItem(3, gridSelector, 70, 30, false);
         
         addSeparator();
         addItem(4, "Settings");
@@ -505,37 +503,6 @@ struct SettingsPopup : public PopupMenu {
             zoomIn.setBounds(bounds.removeFromLeft(buttonWidth).expanded(1, 0));
         }
     };
-    
-    struct PopupToggleComponent : public Component
-    {
-        ToggleButton toggle;
-        
-        String labelText;
-        
-        PopupToggleComponent(ValueTree settingsTree, String propertyName, String name) {
-            labelText = name;
-
-            toggle.getToggleStateValue().referTo(settingsTree.getPropertyAsValue(propertyName, nullptr));
-            
-            addAndMakeVisible(toggle);
-        }
-        
-        void resized() override
-        {
-            auto bounds = getLocalBounds().reduced(5, 4);
-            toggle.setBounds(bounds.removeFromLeft(25));
-        }
-        
-        void paint(Graphics& g) override
-        {
-            auto textBounds = getLocalBounds().reduced(5, 4);
-            textBounds.removeFromLeft(30);
-            
-            g.setColour(findColour(PlugDataColour::toolbarTextColourId));
-            g.setFont(15);
-            g.drawText(labelText, textBounds, Justification::centredLeft);
-        }
-    };
 
     struct ThemeSelector : public Component
     {
@@ -599,7 +566,6 @@ struct SettingsPopup : public PopupMenu {
     };
     
     ThemeSelector themeSelector;
-    PopupToggleComponent gridSelector;
     ZoomSelector zoomSelector;
 
     
