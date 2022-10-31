@@ -22,7 +22,7 @@ struct Icons
     inline static const CharPointer_UTF8 Hide = CharPointer_UTF8("\xef\x81\x94");
     inline static const CharPointer_UTF8 Show = CharPointer_UTF8("\xef\x81\x93");
     inline static const CharPointer_UTF8 Clear = CharPointer_UTF8("\xef\x80\x8d");
-    inline static const CharPointer_UTF8 Trash = CharPointer_UTF8("\xef\x87\xb8");
+    inline static const CharPointer_UTF8 ClearLarge = CharPointer_UTF8("\xef\x86\xa2");
     inline static const CharPointer_UTF8 Lock = CharPointer_UTF8("\xef\x80\xa3");
     inline static const CharPointer_UTF8 Unlock = CharPointer_UTF8("\xef\x82\x9c");
     inline static const CharPointer_UTF8 ConnectionStyle = CharPointer_UTF8("\xee\xa1\xbc");
