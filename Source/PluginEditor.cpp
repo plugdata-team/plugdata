@@ -125,8 +125,6 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p) : AudioPro
         cnv->updateGuiParameters();
         
         updateCommandStatus();
-        
-        pd.lastTab = idx;
     };
 
     tabbar.setOutline(0);
@@ -231,6 +229,8 @@ PlugDataPluginEditor::~PlugDataPluginEditor()
     pd.locked.removeListener(this);
     zoomScale.removeListener(this);
     theme.removeListener(this);
+    
+    pd.lastTab = tabbar.getCurrentTabIndex();
 }
 
 void PlugDataPluginEditor::paint(Graphics& g)
