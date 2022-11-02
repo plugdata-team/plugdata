@@ -38,7 +38,13 @@ set(PLUGDATA_VERSION                    "0.6.2")
 set(PLUGDATA_COMPANY_NAME               "PlugData")
 set(PLUGDATA_COMPANY_COPYRIGHT          "PlugData by Timothy Schoen")
 set(PLUGDATA_COMPANY_WEBSITE            "github.com/timothyschoen/plugdata")
-set(PLUGDATA_ICON_BIG                   "${CMAKE_CURRENT_SOURCE_DIR}/Resources/plugd_logo.png")
+
+if(APPLE)
+set(PLUGDATA_ICON_BIG                   "${CMAKE_CURRENT_SOURCE_DIR}/Resources/plugdata_logo_mac.png")
+else()
+set(PLUGDATA_ICON_BIG                   "${CMAKE_CURRENT_SOURCE_DIR}/Resources/plugdata_logo.png")
+endif()
+
 set(PLUGDATA_PLUGINS_LOCATION           "${CMAKE_CURRENT_SOURCE_DIR}/Plugins")
 
 
@@ -281,7 +287,7 @@ file(GLOB PlugDataBinaryDataSources
     ${CMAKE_CURRENT_SOURCE_DIR}/Resources/InterBold.ttf
     ${CMAKE_CURRENT_SOURCE_DIR}/Resources/InterThin.ttf
     ${CMAKE_CURRENT_SOURCE_DIR}/Resources/IBMPlexMono.ttf
-    ${CMAKE_CURRENT_SOURCE_DIR}/Resources/plugd_logo.png
+    ${CMAKE_CURRENT_SOURCE_DIR}/Resources/plugdata_logo.png
     ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Filesystem.zip
     )
 
