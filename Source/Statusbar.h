@@ -27,7 +27,6 @@ struct Statusbar : public Component, public Value::Listener, public Timer
     
     void timerCallback() override;
 
-    bool lastLockMode = false; // For restoring lock state after presentation mode
     bool wasLocked = false; // Make sure it doesn't re-lock after unlocking (because cmd is still down)
     
     LevelMeter* levelMeter;
