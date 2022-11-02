@@ -76,7 +76,13 @@ struct SliderObject : public IEMObject {
 
     void update() override
     {
-        auto value = isLogScale() ? std::log(getValueOriginal() / getMinimum()) / std::log(getMaximum() / getMinimum()) : getValueScaled();
+    
+        float maxValue = static_cast<float>(max.getValue());
+        float minValue = static_cast<float>(min.getValue()) == 0.0f ? std::numeric_limits<float>::epsilon() : static_cast<float>(min.getValue());
+
+        auto value = isLogScale() ? std::log(getValueOriginal() / minValue) / std::log(maxValue / minValue) : getValueScaled();
+
+        if(!std::isfinite(value)) value = 0.0f;
         
         slider.setValue(value, dontSendNotification);
     }
@@ -138,6 +144,11 @@ struct SliderObject : public IEMObject {
             setLogScale(isLogarithmic == var(true));
             min = getMinimum();
             max = getMaximum();
+            
+            if(static_cast<float>(min.getValue()) == 0.0f && static_cast<bool>(isLogarithmic.getValue())) {
+                min = std::numeric_limits<float>::epsilon();
+                setMinimum(std::numeric_limits<float>::epsilon());
+            }
         } else {
             IEMObject::valueChanged(value);
         }
