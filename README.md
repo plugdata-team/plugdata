@@ -1,6 +1,6 @@
 <p align="center">
   <a href="https://github.com/timothyschoen/PlugData/wiki">
-    <img src="https://user-images.githubusercontent.com/44585538/192803827-b88dcceb-4933-4a59-8a02-7800138a2bf7.png" alt="Logo" width=96 height=96>
+    <img src="https://user-images.githubusercontent.com/44585538/199558692-df4fdd3f-b15b-4d88-82e8-d08ab7309c7c.png" alt="Logo" width=130 height=130>
   </a>
   <h1 align="center">PlugData</h1>
   <p align="center">
