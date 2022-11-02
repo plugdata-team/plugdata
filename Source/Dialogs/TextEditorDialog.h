@@ -715,7 +715,7 @@ void GutterComponent::paint(Graphics& g)
      ------------------------------------------------------------------
      */
     auto bg = getParentComponent()->findColour(PlugDataColour::canvasBackgroundColourId);
-    auto ln = bg.overlaidWith(getParentComponent()->findColour(PlugDataColour::canvasTextColourId));
+    auto ln = bg.overlaidWith(getParentComponent()->findColour(PlugDataColour::toolbarBackgroundColourId));
 
     g.setColour(ln);
     g.fillRect(getLocalBounds().removeFromLeft(GUTTER_WIDTH));
@@ -728,7 +728,7 @@ void GutterComponent::paint(Graphics& g)
         g.setFillType(gradient);
         g.fillRect(shadowRect);
     } else {
-        g.setColour(findColour(PlugDataColour::canvasTextColourId));
+        g.setColour(findColour(PlugDataColour::outlineColourId));
         g.drawVerticalLine(GUTTER_WIDTH - 1.f, 0.f, getHeight());
     }
 
@@ -1757,7 +1757,8 @@ bool PlugDataTextEditor::keyPressed(KeyPress const& key)
     using Target = TextDocument::Target;
     using Direction = TextDocument::Direction;
     auto mods = key.getModifiers();
-    auto isTab = tabKeyUsed && (key.getTextCharacter() == '\t');
+    auto isTab = tabKeyUsed && key == KeyPress::tabKey;
+    auto isBackspace = key == KeyPress::backspaceKey;
 
     // =======================================================================================
     auto nav = [this, mods](Target target, Direction direction) {
@@ -1886,8 +1887,9 @@ bool PlugDataTextEditor::keyPressed(KeyPress const& key)
         return insert(String::charToString(KeyPress::deleteKey));
     if (key.isKeyCode(KeyPress::returnKey))
         return insert("\n");
-    if (key.getTextCharacter() >= ' ' || isTab)
+    if (key.getTextCharacter() >= ' ' || isTab || isBackspace)
         return insert(String::charToString(key.getTextCharacter()));
+    
 
     return false;
 }
