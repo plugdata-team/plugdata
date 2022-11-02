@@ -1,0 +1,162 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg width="100%" height="100%" viewBox="0 0 800 600" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" xmlns:serif="http://www.serif.com/" style="fill-rule:evenodd;clip-rule:evenodd;">
+    <rect x="0" y="0" width="800" height="600" style="fill:rgb(249,247,244);"/>
+    <g transform="matrix(1,0,0,1,18.0036,1.76099)">
+        <g transform="matrix(-1,-1.22465e-16,1.22465e-16,-1,438.63,480.018)">
+            <g>
+                <g>
+                    <g>
+                        <g>
+                            <g transform="matrix(1.22552,0,0,1.22552,-235.08,136.289)">
+                                <path d="M509.513,128.657C509.513,123.469 505.301,119.256 500.112,119.256L416.918,119.256C411.729,119.256 407.517,123.469 407.517,128.657L407.517,211.851C407.517,217.04 411.729,221.253 416.918,221.253L500.112,221.253C505.301,221.253 509.513,217.04 509.513,211.851L509.513,128.657Z" style="fill:rgb(227,223,217);stroke:rgb(152,142,129);stroke-width:10.61px;"/>
+                            </g>
+                            <path d="M264.342,344.94L389.341,344.94" style="fill:none;stroke:rgb(152,142,129);stroke-width:13px;"/>
+                            <g transform="matrix(1,0,0,1,1.20566,0.190348)">
+                                <path d="M297.625,288.781L277.418,288.781C273.7,288.781 270.682,291.799 270.682,295.517L270.682,315.724L290.889,315.724C294.607,315.724 297.625,312.706 297.625,308.988L297.625,288.781Z" style="fill:rgb(255,133,0);"/>
+                                <path d="M310.625,308.988L310.625,275.781L277.418,275.781C266.526,275.781 257.682,284.624 257.682,295.517C257.682,295.517 257.682,328.724 257.682,328.724L290.889,328.724C301.782,328.724 310.625,319.881 310.625,308.988ZM297.625,288.781L277.418,288.781C273.7,288.781 270.682,291.799 270.682,295.517L270.682,315.724L290.889,315.724C294.607,315.724 297.625,312.706 297.625,308.988L297.625,288.781Z" style="fill:rgb(152,142,129);"/>
+                            </g>
+                            <g transform="matrix(1,0,0,1,-0.133637,0.0423026)">
+                                <path d="M383.001,373.868L362.577,373.868C358.82,373.868 355.769,376.919 355.769,380.676L355.769,401.099L376.193,401.099C379.95,401.099 383.001,398.049 383.001,394.292L383.001,373.868Z" style="fill:rgb(66,162,200);"/>
+                                <path d="M396.001,394.292L396.001,360.868L362.577,360.868C351.645,360.868 342.769,369.744 342.769,380.676L342.769,414.099L376.193,414.099C387.125,414.099 396.001,405.224 396.001,394.292ZM383.001,373.868L362.577,373.868C358.82,373.868 355.769,376.919 355.769,380.676L355.769,401.099L376.193,401.099C379.95,401.099 383.001,398.049 383.001,394.292L383.001,373.868Z" style="fill:rgb(152,142,129);"/>
+                            </g>
+                        </g>
+                    </g>
+                </g>
+            </g>
+        </g>
+        <g transform="matrix(1,0,0,1,39.0077,211.588)">
+            <text x="6.047px" y="24px" style="font-family:'InterV_Bold', 'Inter V';font-size:33px;fill:rgb(152,142,129);">p<tspan x="25.563px 33.5px 52.078px 71.593px 91.484px 109.499px 120.905px " y="24px 24px 24px 24px 24px 24px 24px ">ugdata</tspan></text>
+        </g>
+    </g>
+    <g transform="matrix(-1,-1.22465e-16,1.22465e-16,-1,456.457,792.274)">
+        <g>
+            <g>
+                <g>
+                    <g transform="matrix(1.22552,0,0,1.22552,-235.256,136.289)">
+                        <path d="M509.513,139.655C509.513,128.397 500.373,119.256 489.114,119.256L427.916,119.256C416.657,119.256 407.517,128.397 407.517,139.655L407.517,200.853C407.517,212.112 416.657,221.253 427.916,221.253L489.114,221.253C500.373,221.253 509.513,212.112 509.513,200.853L509.513,139.655Z" style="fill:rgb(227,223,217);stroke:rgb(152,142,129);stroke-width:10.61px;"/>
+                    </g>
+                    <path d="M264.165,344.94L389.164,344.94" style="fill:none;stroke:rgb(152,142,129);stroke-width:13px;"/>
+                    <g transform="matrix(1,0,0,1,0,0.172718)">
+                        <path d="M297.625,288.781L287.815,288.781C278.359,288.781 270.682,296.458 270.682,305.913L270.682,315.724L290.889,315.724C294.607,315.724 297.625,312.706 297.625,308.988L297.625,288.781Z" style="fill:rgb(255,133,0);"/>
+                        <path d="M310.625,308.988L310.625,275.781L287.815,275.781C271.184,275.781 257.682,289.283 257.682,305.913C257.682,305.913 257.682,328.724 257.682,328.724L290.889,328.724C301.782,328.724 310.625,319.881 310.625,308.988ZM297.625,288.781L287.815,288.781C278.359,288.781 270.682,296.458 270.682,305.913L270.682,315.724L290.889,315.724C294.607,315.724 297.625,312.706 297.625,308.988L297.625,288.781Z" style="fill:rgb(152,142,129);"/>
+                    </g>
+                    <g transform="matrix(1,0,0,1,-0.36602,-0.197529)">
+                        <path d="M383.001,373.868L362.577,373.868C358.82,373.868 355.769,376.919 355.769,380.676L355.769,401.099L363.391,401.099C374.214,401.099 383.001,392.312 383.001,381.489L383.001,373.868Z" style="fill:rgb(66,162,200);"/>
+                        <path d="M396.001,381.489L396.001,360.868L362.577,360.868C351.645,360.868 342.769,369.744 342.769,380.676C342.769,380.676 342.769,414.099 342.769,414.099L363.391,414.099C381.388,414.099 396.001,399.487 396.001,381.489ZM383.001,373.868L362.577,373.868C358.82,373.868 355.769,376.919 355.769,380.676L355.769,401.099L363.391,401.099C374.214,401.099 383.001,392.312 383.001,381.489L383.001,373.868Z" style="fill:rgb(152,142,129);"/>
+                    </g>
+                </g>
+            </g>
+        </g>
+    </g>
+    <g transform="matrix(-0.286601,-3.50985e-17,3.50985e-17,-0.286601,337.442,501.607)">
+        <g>
+            <g>
+                <g>
+                    <g transform="matrix(1.22552,0,0,1.22552,-235.256,136.289)">
+                        <path d="M509.513,139.655C509.513,128.397 500.373,119.256 489.114,119.256L427.916,119.256C416.657,119.256 407.517,128.397 407.517,139.655L407.517,200.853C407.517,212.112 416.657,221.253 427.916,221.253L489.114,221.253C500.373,221.253 509.513,212.112 509.513,200.853L509.513,139.655Z" style="fill:rgb(227,223,217);stroke:rgb(152,142,129);stroke-width:10.61px;"/>
+                    </g>
+                    <path d="M264.165,344.94L389.164,344.94" style="fill:none;stroke:rgb(152,142,129);stroke-width:13px;"/>
+                    <g transform="matrix(1,0,0,1,0,0.172718)">
+                        <path d="M297.625,288.781L287.815,288.781C278.359,288.781 270.682,296.458 270.682,305.913L270.682,315.724L290.889,315.724C294.607,315.724 297.625,312.706 297.625,308.988L297.625,288.781Z" style="fill:rgb(255,133,0);"/>
+                        <path d="M310.625,308.988L310.625,275.781L287.815,275.781C271.184,275.781 257.682,289.283 257.682,305.913C257.682,305.913 257.682,328.724 257.682,328.724L290.889,328.724C301.782,328.724 310.625,319.881 310.625,308.988ZM297.625,288.781L287.815,288.781C278.359,288.781 270.682,296.458 270.682,305.913L270.682,315.724L290.889,315.724C294.607,315.724 297.625,312.706 297.625,308.988L297.625,288.781Z" style="fill:rgb(152,142,129);"/>
+                    </g>
+                    <g transform="matrix(1,0,0,1,-0.36602,-0.197529)">
+                        <path d="M383.001,373.868L362.577,373.868C358.82,373.868 355.769,376.919 355.769,380.676L355.769,401.099L363.391,401.099C374.214,401.099 383.001,392.312 383.001,381.489L383.001,373.868Z" style="fill:rgb(66,162,200);"/>
+                        <path d="M396.001,381.489L396.001,360.868L362.577,360.868C351.645,360.868 342.769,369.744 342.769,380.676C342.769,380.676 342.769,414.099 342.769,414.099L363.391,414.099C381.388,414.099 396.001,399.487 396.001,381.489ZM383.001,373.868L362.577,373.868C358.82,373.868 355.769,376.919 355.769,380.676L355.769,401.099L363.391,401.099C374.214,401.099 383.001,392.312 383.001,381.489L383.001,373.868Z" style="fill:rgb(152,142,129);"/>
+                    </g>
+                </g>
+            </g>
+        </g>
+    </g>
+    <g transform="matrix(1,0,0,1,429.115,57.0286)">
+        <g>
+            <text x="72.885px" y="24px" style="font-family:'InterV_Bold', 'Inter V';font-size:8px;fill:rgb(152,142,129);">v<tspan x="77.195px 82.051px 84.112px " y="24px 24px 24px ">0.1</tspan></text>
+            <text x="87.684px" y="24px" style="font-family:'InterV_Bold', 'Inter V';font-size:33px;fill:rgb(152,142,129);">p<tspan x="107.199px 115.137px 133.714px 153.23px 173.12px 191.136px 202.542px " y="24px 24px 24px 24px 24px 24px 24px ">ugdata</tspan></text>
+            <text x="229.244px" y="24px" style="font-family:'InterV_Thin', 'Inter V';font-size:33px;fill:rgb(152,142,129);">i<tspan x="235.422px 254.257px 271.825px 289.488px 299.838px 306.016px 316.366px " y="24px 24px 24px 24px 24px 24px 24px ">dentity</tspan></text>
+        </g>
+    </g>
+    <g transform="matrix(1,0,0,1,294.473,188.512)">
+        <text x="0px" y="8.727px" style="font-family:'InterV', 'Inter V';font-size:12px;fill:rgb(152,142,129);"><tspan x="2.886px 9.829px 16.926px " y="8.727px 8.727px 8.727px ">ogo</tspan></text>
+    </g>
+    <g transform="matrix(1,0,0,1,294.473,224.346)">
+        <g>
+            <text x="0px" y="8.727px" style="font-family:'InterV', 'Inter V';font-size:12px;fill:rgb(152,142,129);"><tspan x="2.886px 9.829px 16.926px 23.869px 28.017px 34.482px 41.579px " y="8.727px 8.727px 8.727px 8.727px 8.727px 8.727px 8.727px ">ogotype</tspan></text>
+            <g transform="matrix(12,0,0,12,0,20.7273)">
+                <path d="M0.107,-0.364C0.107,-0.453 0.118,-0.535 0.142,-0.611C0.165,-0.686 0.198,-0.755 0.241,-0.818L0.315,-0.818C0.298,-0.795 0.282,-0.766 0.268,-0.732C0.253,-0.698 0.24,-0.66 0.229,-0.619C0.218,-0.578 0.209,-0.536 0.203,-0.493C0.196,-0.449 0.193,-0.406 0.193,-0.364C0.193,-0.307 0.199,-0.25 0.21,-0.192C0.22,-0.134 0.235,-0.08 0.254,-0.031C0.272,0.019 0.293,0.06 0.315,0.091L0.241,0.091C0.198,0.028 0.165,-0.041 0.142,-0.117C0.118,-0.192 0.107,-0.274 0.107,-0.364Z" style="fill:rgb(152,142,129);fill-rule:nonzero;"/>
+            </g>
+            <text x="4.131px" y="20.727px" style="font-family:'InterV', 'Inter V';font-size:12px;fill:rgb(152,142,129);"><tspan x="4.131px 12.54px 19.483px 22.642px 29.448px 36.391px 40.539px 43.698px 50.249px 53.135px 57.215px 63.988px 68.237px 71.396px 78.629px 81.26px 87.317px 91.464px 98.015px 104.822px 111.305px 118.078px 124.134px " y="20.727px 20.727px 20.727px 20.727px 20.727px 20.727px 20.727px 20.727px 20.727px 20.727px 20.727px 20.727px 20.727px 20.727px 20.727px 20.727px 20.727px 20.727px 20.727px 20.727px 20.727px 20.727px 20.727px ">Do not ater distances)</tspan></text>
+        </g>
+    </g>
+    <g transform="matrix(1,0,0,1,294.473,413.271)">
+        <text x="0px" y="8.727px" style="font-family:'InterV', 'Inter V';font-size:12px;fill:rgb(152,142,129);">i<tspan x="2.631px 9.113px 16.057px " y="8.727px 8.727px 8.727px ">con</tspan></text>
+    </g>
+    <g transform="matrix(1,0,0,1,293.598,494.927)">
+        <g>
+            <text x="0px" y="8.727px" style="font-family:'InterV', 'Inter V';font-size:12px;fill:rgb(152,142,129);">i<tspan x="2.631px 9.113px 16.057px 22.863px 26.022px 29.863px 36.806px " y="8.727px 8.727px 8.727px 8.727px 8.727px 8.727px 8.727px ">con for</tspan></text>
+            <text x="0px" y="20.727px" style="font-family:'InterV', 'Inter V';font-size:12px;fill:rgb(152,142,129);">a<tspan x="6.551px 13.307px 17.386px 24.329px 34.545px 41.096px 45.176px 51.948px 59.181px 62.34px 68.823px 72.868px 79.811px 86.908px 94.004px 96.635px 103.442px 110.538px 113.697px 117.691px 124.464px 131.561px 134.72px 143.129px 145.759px 151.816px 158.299px 165.242px 169.287px 176.52px " y="20.727px 20.727px 20.727px 20.727px 20.727px 20.727px 20.727px 20.727px 20.727px 20.727px 20.727px 20.727px 20.727px 20.727px 20.727px 20.727px 20.727px 20.727px 20.727px 20.727px 20.727px 20.727px 20.727px 20.727px 20.727px 20.727px 20.727px 20.727px 20.727px 20.727px ">utomated cropping (eg Discord)</tspan></text>
+        </g>
+    </g>
+    <g transform="matrix(1,0,0,1,0,43.2083)">
+        <g>
+            <text x="510.775px" y="113.421px" style="font-family:'InterV_Bold', 'Inter V';font-size:12px;fill:rgb(152,142,129);">f<tspan x="514.832px " y="113.421px ">o</tspan>nt:</text>
+            <text x="540.059px" y="113.421px" style="font-family:'InterV', 'Inter V';font-size:12px;fill:rgb(152,142,129);">inter</text>
+            <text x="560.775px" y="137.421px" style="font-family:'InterV_Bold', 'Inter V';font-size:12px;fill:rgb(152,142,129);">bold</text>
+            <text x="589.054px" y="137.421px" style="font-family:'InterV', 'Inter V';font-size:12px;fill:rgb(152,142,129);">f<tspan x="593.11px " y="137.421px ">o</tspan>r isolated w<tspan x="665.639px 672.798px 677.059px " y="137.421px 137.421px 137.421px ">ord</tspan>s &amp;</text>
+            <text x="560.775px" y="149.421px" style="font-family:'InterV', 'Inter V';font-size:12px;fill:rgb(152,142,129);">emphasis</text>
+            <text x="560.775px" y="173.421px" style="font-family:'InterV', 'Inter V';font-size:12px;fill:rgb(152,142,129);">r<tspan x="565.036px " y="173.421px ">e</tspan>gular f<tspan x="607.821px " y="173.421px ">o</tspan>r lar<tspan x="636.696px " y="173.421px ">g</tspan>e amount<tspan x="696.968px " y="173.421px ">s</tspan> of te<tspan x="732.593px " y="173.421px ">x</tspan>t</text>
+            <text x="560.775px" y="185.421px" style="font-family:'InterV', 'Inter V';font-size:12px;fill:rgb(152,142,129);">t<tspan x="565.275px " y="185.421px ">h</tspan>at t<tspan x="591.372px " y="185.421px ">h</tspan>e user<tspan x="633.116px 637.394px 641.656px " y="185.421px 185.421px 185.421px ">/re</tspan>ader has to</text>
+            <text x="560.775px" y="197.421px" style="font-family:'InterV', 'Inter V';font-size:12px;fill:rgb(152,142,129);">consider<tspan x="608.929px " y="197.421px ">,</tspan> such as paragraphs or</text>
+            <text x="560.775px" y="209.421px" style="font-family:'InterV', 'Inter V';font-size:12px;fill:rgb(152,142,129);">wit<tspan x="577.872px " y="209.421px ">h</tspan>in t<tspan x="602.707px " y="209.421px ">h</tspan>e patcher<tspan x="663.031px " y="209.421px ">.</tspan></text>
+            <text x="560.775px" y="234.421px" style="font-family:'InterV_Thin', 'Inter V';font-size:24px;fill:rgb(152,142,129);">t<tspan x="568.575px 581.557px 586.05px " y="234.421px 234.421px 234.421px ">hin</tspan></text>
+            <text x="602.271px" y="234.421px" style="font-family:'InterV', 'Inter V';font-size:12px;fill:rgb(152,142,129);">wit<tspan x="619.367px " y="234.421px ">h</tspan> 50% r<tspan x="662.015px " y="234.421px ">e</tspan>duction in</text>
+            <text x="560.775px" y="246.421px" style="font-family:'InterV', 'Inter V';font-size:12px;fill:rgb(152,142,129);">letterspace f<tspan x="632.196px " y="246.421px ">o</tspan>r v<tspan x="653.639px 660.627px 665.298px " y="246.421px 246.421px 246.421px ">ery</tspan> lmar<tspan x="699.661px " y="246.421px ">g</tspan>e w<tspan x="726.866px 734.025px 738.286px " y="246.421px 246.421px 246.421px ">ord</tspan>s</text>
+            <text x="560.775px" y="270.421px" style="font-family:'InterV', 'Inter V';font-size:12px;fill:rgb(152,142,129);">Capitaliz<tspan x="609.559px " y="270.421px ">e</tspan> sentences, but def<tspan x="725.946px " y="270.421px ">a</tspan>ult</text>
+            <text x="560.775px" y="282.421px" style="font-family:'InterV', 'Inter V';font-size:12px;fill:rgb(152,142,129);">to lo<tspan x="585.389px 594.917px " y="282.421px 282.421px ">we</tspan>r case f<tspan x="643.906px " y="282.421px ">o</tspan>r ot<tspan x="670.565px " y="282.421px ">h</tspan>er conte<tspan x="724.48px 730.957px 735.201px " y="282.421px 282.421px 282.421px ">xts</tspan>.</text>
+            <text x="510.775px" y="306.421px" style="font-family:'InterV_Bold', 'Inter V';font-size:12px;fill:rgb(152,142,129);">color principles f<tspan x="604.525px " y="306.421px ">o</tspan>r inter<tspan x="645.554px 649.696px " y="306.421px 306.421px ">fa</tspan>ce:</text>
+            <text x="558.244px" y="330.421px" style="font-family:'InterV', 'Inter V';font-size:12px;fill:rgb(152,142,129);">warm gr<tspan x="604.607px 611.391px " y="330.421px 330.421px ">ey</tspan>s. Don&apos;t use a  stark</text>
+            <text x="557.775px" y="342.421px" style="font-family:'InterV', 'Inter V';font-size:12px;fill:rgb(152,142,129);">black or white.</text>
+            <text x="558.244px" y="366.421px" style="font-family:'InterV', 'Inter V';font-size:12px;fill:rgb(152,142,129);">V<tspan x="565.744px 572.511px 577.181px " y="366.421px 366.421px 366.421px ">ary</tspan> colors fr<tspan x="633.806px " y="366.421px ">o</tspan>m gr<tspan x="666.346px 673.13px " y="366.421px 366.421px ">ey</tspan>s, not full</text>
+            <text x="557.775px" y="378.421px" style="font-family:'InterV', 'Inter V';font-size:12px;fill:rgb(152,142,129);">saturation.</text>
+            <text x="558.244px" y="402.421px" style="font-family:'InterV', 'Inter V';font-size:12px;fill:rgb(152,142,129);">When distinguishing wit<tspan x="693.056px " y="402.421px ">h</tspan> colors,</text>
+            <text x="557.775px" y="414.421px" style="font-family:'InterV', 'Inter V';font-size:12px;fill:rgb(152,142,129);">use t<tspan x="585.883px " y="414.421px ">h</tspan>em so color blind people can</text>
+            <text x="557.775px" y="426.421px" style="font-family:'InterV', 'Inter V';font-size:12px;fill:rgb(152,142,129);">r<tspan x="562.036px " y="426.421px ">e</tspan>ad t<tspan x="591.116px " y="426.421px ">h</tspan>e distinctions. Use tw<tspan x="719.843px " y="426.421px ">o</tspan> of</text>
+            <text x="557.775px" y="438.421px" style="font-family:'InterV', 'Inter V';font-size:12px;fill:rgb(152,142,129);">hue, saturation, or v<tspan x="670.769px " y="438.421px ">a</tspan>lue to mak<tspan x="736.002px " y="438.421px ">e</tspan></text>
+            <text x="557.775px" y="450.421px" style="font-family:'InterV', 'Inter V';font-size:12px;fill:rgb(152,142,129);">meaningful distinctions.</text>
+            <text x="558.244px" y="474.421px" style="font-family:'InterV', 'Inter V';font-size:12px;fill:rgb(152,142,129);">Orange and blue mean I/O<tspan x="706.181px " y="474.421px ">.</tspan> Don&apos;t</text>
+            <text x="557.775px" y="486.421px" style="font-family:'InterV', 'Inter V';font-size:12px;fill:rgb(152,142,129);">use t<tspan x="585.883px " y="486.421px ">h</tspan>em to mean other t<tspan x="701.264px " y="486.421px ">h</tspan>ings.</text>
+        </g>
+        <g transform="matrix(-0.263281,-3.22426e-17,3.22426e-17,-0.263281,626.134,406.452)">
+            <path d="M297.625,288.781L277.418,288.781C273.7,288.781 270.682,291.799 270.682,295.517L270.682,315.724L290.889,315.724C294.607,315.724 297.625,312.706 297.625,308.988L297.625,288.781Z" style="fill:rgb(255,133,0);stroke:rgb(152,142,129);stroke-width:13px;"/>
+        </g>
+        <g transform="matrix(-0.263281,-3.22426e-17,3.22426e-17,-0.263281,626.134,442.452)">
+            <path d="M297.625,288.781L277.418,288.781C273.7,288.781 270.682,291.799 270.682,295.517L270.682,315.724L290.889,315.724C294.607,315.724 297.625,312.706 297.625,308.988L297.625,288.781Z" style="fill:rgb(255,133,0);stroke:rgb(152,142,129);stroke-width:13px;"/>
+        </g>
+        <g transform="matrix(-0.263281,-3.22426e-17,3.22426e-17,-0.263281,626.134,478.452)">
+            <path d="M297.625,288.781L277.418,288.781C273.7,288.781 270.682,291.799 270.682,295.517L270.682,315.724L290.889,315.724C294.607,315.724 297.625,312.706 297.625,308.988L297.625,288.781Z" style="fill:rgb(255,133,0);stroke:rgb(152,142,129);stroke-width:13px;"/>
+        </g>
+        <g transform="matrix(-0.263281,-3.22426e-17,3.22426e-17,-0.263281,626.134,550.452)">
+            <path d="M297.625,288.781L277.418,288.781C273.7,288.781 270.682,291.799 270.682,295.517L270.682,315.724L290.889,315.724C294.607,315.724 297.625,312.706 297.625,308.988L297.625,288.781Z" style="fill:rgb(255,133,0);stroke:rgb(152,142,129);stroke-width:13px;"/>
+        </g>
+    </g>
+    <g transform="matrix(-0.259526,-3.17828e-17,3.17828e-17,-0.259526,327.693,586.4)">
+        <g>
+            <g>
+                <g>
+                    <g transform="matrix(1.35337,-3.18151e-32,3.18151e-32,1.35337,-293.992,114.637)">
+                        <path d="M509.513,139.655C509.513,128.397 500.373,119.256 489.114,119.256L427.916,119.256C416.657,119.256 407.517,128.397 407.517,139.655L407.517,200.853C407.517,212.112 416.657,221.253 427.916,221.253L489.114,221.253C500.373,221.253 509.513,212.112 509.513,200.853L509.513,139.655Z" style="fill:rgb(227,223,217);"/>
+                    </g>
+                    <path d="M257.531,345.055L302.442,344.94L395.57,344.94" style="fill:none;stroke:rgb(152,142,129);stroke-width:13px;"/>
+                    <g transform="matrix(1,0,0,1,0,0.172718)">
+                        <path d="M297.625,288.781L285.304,288.781C277.234,288.781 270.682,295.333 270.682,303.403L270.682,315.724L290.889,315.724C294.607,315.724 297.625,312.706 297.625,308.988L297.625,288.781Z" style="fill:rgb(255,133,0);"/>
+                        <path d="M310.625,308.988L310.625,275.781L285.304,275.781C270.059,275.781 257.682,288.158 257.682,303.403C257.682,303.403 257.682,328.724 257.682,328.724L290.889,328.724C301.782,328.724 310.625,319.881 310.625,308.988ZM297.625,288.781L285.304,288.781C277.234,288.781 270.682,295.333 270.682,303.403L270.682,315.724L290.889,315.724C294.607,315.724 297.625,312.706 297.625,308.988L297.625,288.781Z" style="fill:rgb(152,142,129);"/>
+                    </g>
+                    <g transform="matrix(1,0,0,1,-0.36602,-0.197529)">
+                        <path d="M383.001,373.868L362.577,373.868C358.82,373.868 355.769,376.919 355.769,380.676L355.769,401.099L368.396,401.099C376.456,401.099 383.001,394.555 383.001,386.495L383.001,373.868Z" style="fill:rgb(66,162,200);"/>
+                        <path d="M396.001,386.495L396.001,360.868L362.577,360.868C351.645,360.868 342.769,369.744 342.769,380.676C342.769,380.676 342.769,414.099 342.769,414.099L368.396,414.099C383.631,414.099 396.001,401.73 396.001,386.495ZM383.001,373.868L362.577,373.868C358.82,373.868 355.769,376.919 355.769,380.676L355.769,401.099L368.396,401.099C376.456,401.099 383.001,394.555 383.001,386.495L383.001,373.868Z" style="fill:rgb(152,142,129);"/>
+                    </g>
+                </g>
+            </g>
+        </g>
+    </g>
+</svg>
