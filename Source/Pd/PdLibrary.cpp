@@ -4,6 +4,7 @@ extern "C" {
 #include <g_canvas.h>
 #include <m_imp.h>
 #include <s_stuff.h>
+#include <z_libpd.h>
 }
 
 #include <utility>
@@ -266,12 +267,24 @@ void Library::updateLibrary()
         }
 
         searchTree->insert("graph");
+        
+        
+        // TODO: fix this hack
+        auto elsePath = appDataDir.getChildFile("Library").getChildFile("Abstractions").getChildFile("else");
+        
+        for (const auto& iter : RangedDirectoryIterator(elsePath, false)) {
+            auto file = iter.getFile();
+            // Get pd files but not help files
+            if (file.getFileExtension() == ".pd" && !(file.getFileNameWithoutExtension().startsWith("help-") || file.getFileNameWithoutExtension().endsWith("-help"))) {
+                searchTree->insert(file.getFileNameWithoutExtension().toStdString());
+            }
+        }
 
         // Find patches in our search tree
         for (auto path : pathTree) {
             auto filePath = File(path.getProperty("Path").toString());
 
-            for (const auto& iter : RangedDirectoryIterator(filePath, true)) {
+            for (const auto& iter : RangedDirectoryIterator(filePath, false)) {
                 auto file = iter.getFile();
                 // Get pd files but not help files
                 if (file.getFileExtension() == ".pd" && !(file.getFileNameWithoutExtension().startsWith("help-") || file.getFileNameWithoutExtension().endsWith("-help"))) {
