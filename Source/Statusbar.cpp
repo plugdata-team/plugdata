@@ -201,17 +201,7 @@ Statusbar::Statusbar(PlugDataAudioProcessor& processor) : pd(processor)
         // A bit different from Max's presentation mode
         if (presentationButton->getToggleState())
         {
-            lastLockMode = static_cast<bool>(locked.getValue());
-            if (!lastLockMode)
-            {
-                locked = var(true);
-            }
-            lockButton->setEnabled(false);
-        }
-        else
-        {
-            locked = var(lastLockMode);
-            lockButton->setEnabled(true);
+            locked = var(true);
         }
     };
 
@@ -241,7 +231,14 @@ Statusbar::Statusbar(PlugDataAudioProcessor& processor) : pd(processor)
     lockButton->getToggleStateValue().referTo(locked);
     addAndMakeVisible(lockButton.get());
     lockButton->setButtonText(locked == var(true) ? Icons::Lock : Icons::Unlock);
-
+    lockButton->onClick = [this]() {
+        if(static_cast<bool>(presentationMode.getValue()))  {
+            presentationMode = false;
+        }
+        
+    };
+    
+    
     connectionStyleButton->setTooltip("Enable segmented connections");
     connectionStyleButton->setClickingTogglesState(true);
     connectionStyleButton->setConnectedEdges(12);
@@ -324,16 +321,15 @@ void Statusbar::resized()
     };
 
     lockButton->setBounds(position(getHeight()), 0, getHeight(), getHeight());
-
+    presentationButton->setBounds(position(getHeight()), 0, getHeight(), getHeight());
+    
     position(3);  // Seperator
 
     connectionStyleButton->setBounds(position(getHeight()), 0, getHeight(), getHeight());
     connectionPathfind->setBounds(position(getHeight()), 0, getHeight(), getHeight());
 
     position(3);  // Seperator
-    
-    presentationButton->setBounds(position(getHeight()), 0, getHeight(), getHeight());
-    
+
     gridButton->setBounds(position(getHeight()), 0, getHeight(), getHeight());
     
     pos = 0;  // reset position for elements on the left
