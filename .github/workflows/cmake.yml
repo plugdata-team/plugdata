@@ -303,8 +303,8 @@ jobs:
       - name: Archive Artifacts
         uses: actions/upload-artifact@v3
         with:
-          name: PlugData-Fedora-35-x64
-          path: PlugData-Fedora-35-x64
+          name: PlugData-Fedora-36-x64
+          path: PlugData-Fedora-36-x64
 
       - name: Release Artifacts
         uses: softprops/action-gh-release@v1
