@@ -1,7 +1,7 @@
 ---
 title: trig2bang
 
-description:
+description: Trigger to bang conversion
 
 categories:
 - object
@@ -15,18 +15,15 @@ arguments:
 
 inlets:
   1st:
-  - type:
-    description:
-  2nd:
-  - type:
-    description:
+  - type: float
+    description: signal to detect triggers
 
 outlets:
   1st:
-  - type:
-    description:
+  - type: bang
+    description: when detecting zero to non-zero transitions
 
 draft: false
 ---
 
-LONG DESCRIPTION HERE
+[trig2bang] detects zero to non-zero transitions. This can be used to detect and convert triggers (a gate) to a bang.
