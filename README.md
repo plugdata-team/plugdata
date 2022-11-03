@@ -74,15 +74,9 @@ What works:
 
 Known issues:
 - Broken ELSE objects: 
-  - [oscope~]
-  - [function]
   - [bicoeff]
   - [messbox]
   - [note]
-  - [canvas.active]
-  - [canvas.mouse]
-  - [canvas.vis]
-  - [canvas.zoom]
 - There may still be some more bugs
 
 ## Roadmap
