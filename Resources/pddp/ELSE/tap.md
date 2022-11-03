@@ -1,32 +1,28 @@
 ---
 title: tap
 
-description:
+description: Tapped tempo
 
 categories:
 - object
 
 pdcategory:
 
-arguments:
-- description:
-  type:
-  default:
+flags:
+- name: -ms
+  description: sets output to ms (default bpm)
 
 inlets:
   1st:
-  - type:
-    description:
-  2nd:
-  - type:
-    description:
+  - type: bang
+    description: tap for tempo
 
 outlets:
   1st:
-  - type:
-    description:
+  - type: float
+    description: tapped tempo
 
 draft: false
 ---
 
-LONG DESCRIPTION HERE
+The [tap] object detects a tapped tempo by analyzing the time distance between two bangs or the time a gate is opened.
