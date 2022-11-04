@@ -1,32 +1,32 @@
 ---
 title: unite
 
-description:
+description: Unite messages into a symbol
 
 categories:
 - object
 
-pdcategory:
+pdcategory: General
 
 arguments:
-- description:
-  type:
-  default:
+  1st:
+  - type: symbol
+    description: separator (default space)
 
 inlets:
   1st:
-  - type:
-    description:
+  - type: anything
+    description: any message to be united/converted into a symbol
   2nd:
-  - type:
-    description:
+  - type: symbol
+    description: set separator
 
 outlets:
   1st:
-  - type:
-    description:
+  - type: symbol
+    description: the converted symbol message
 
 draft: false
 ---
 
-LONG DESCRIPTION HERE
+[unite] unites and converts messages into a symbol message.
