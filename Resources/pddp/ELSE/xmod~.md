@@ -1,7 +1,7 @@
 ---
 title: xmod~
 
-description: Cross modulation
+description: Cross-modulation
 
 categories:
  - object
@@ -58,4 +58,4 @@ outlets:
 draft: false
 ---
 
-[xmod~] performs cross-modulation of two sine oscillators. It can perform either frequency (default) or phase modulation.
+[xmod~] performs cross modulation of two sine oscillators. It can perform either frequency (default) or phase modulation.
