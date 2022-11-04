@@ -1,24 +1,46 @@
 ---
 title: wavetable~
-description:
+
+description: Wavetable oscillator
+
 categories:
  - object
-pdcategory: General
+
+pdcategory: Audio Oscillators And Tables
+
 arguments:
-- type: gimme
-  description:
-  default:
+  1st:
+  - type: symbol
+    description: array name (optional)
+    default: none
+  2nd:
+  - type: float
+    description: sets frequency in Hz
+    default: 0
+  3rd:
+  - type: float
+    description: sets phase offset
+    default: 0
+  
 inlets:
   1st:
-  - type: signal
-    description:
+  - type: float/signal
+    description: sets frequency in hertz
+  - type: set <symbol>
+    description: sets an entire array to be used as a waveform
   2nd:
-  - type: signal
-    description:
+  - type: float/signal
+    description: phase sync (resets internal phase)
   3rd:
-  - type: signal
-    description:
+  - type: float/signal
+    description: phase offset (modulation input)
+    
 outlets:
   1st:
   - type: signal
-    description:
+    description: a periodically repeating waveform
+
+draft: false
+---
+
+[wavetable~] is an interpolating wavetable oscillator like Pd Vanilla's [tabosc4~]. It accepts negative frequencies, has inlets for phase sync and phase modulation.

@@ -1,30 +1,62 @@
 ---
 title: xmod~
-description:
+
+description: Cross modulation
+
 categories:
  - object
-pdcategory: General
+ 
+pdcategory: General Audio Manipulation
+
 arguments:
-- type: gimme
-  description:
-  default:
+  1st:
+  - type: float
+    description: frequency of oscillator 1 in hertz
+    default: 0
+  2nd:
+  - type: float
+    description: modulation index 1
+    default: 0
+  3rd:
+  - type: float
+    description: frequency of oscillator 2 in hertz
+    default: 0
+  4th:
+  - type: float
+    description: modulation index 2
+    default: 0
+
+flags:
+- name: -pm
+  description: sets to phase modulation (default is frequency modulation)
+
+  
 inlets:
   1st:
-  - type: signal
-    description:
+  - type: float/signal
+    description: frequency of oscillator 1
+    pm - sets to phase modulation
+    fm - sets to frequency modulation
+    
   2nd:
   - type: signal
-    description:
+    description: modulation index 1
   3rd:
   - type: signal
-    description:
+    description: frequency of oscillator 2
   4th:
   - type: signal
-    description:
+    description: modulation index 2
+    
 outlets:
   1st:
   - type: signal
-    description:
+    description: output of oscillator 1
   2nd:
   - type: signal
-    description:
+    description: output of oscillator 2
+
+draft: false
+---
+
+[xmod~] performs cross modulation of two sine oscillators. It can perform either frequency (default) or phase modulation.
