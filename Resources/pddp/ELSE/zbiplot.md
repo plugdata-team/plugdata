@@ -1,32 +1,28 @@
 ---
 title: zbiplot
 
-description:
+description: Z-plane Biquad plot
 
 categories:
 - object
 
-pdcategory:
+pdcategory: Data Templates
 
-arguments:
-- description:
-  type:
-  default:
+arguments: (none)
 
 inlets:
   1st:
-  - type:
-    description:
+  - type: coef <list>
+    description: list of coefficients as taken by [biquad~]
+  - type: list
+  - description: list of poles coordinates
   2nd:
-  - type:
-    description:
+  - type: list
+    description: list of zeros coordinates
 
-outlets:
-  1st:
-  - type:
-    description:
+outlets: (none)
 
 draft: false
 ---
 
-LONG DESCRIPTION HERE
+[zbiplot] plots the biquad coefficients as poles and zeros on the Z-Plane.
