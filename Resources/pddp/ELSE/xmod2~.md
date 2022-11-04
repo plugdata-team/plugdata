@@ -5,7 +5,7 @@ description: Cross modulation
 
 categories:
  - object
- - 
+ 
 pdcategory: General Audio Manipulation
 
 arguments:
