@@ -28,7 +28,7 @@ arguments:
 
 flags:
 - name: -pm
-  description: sets to phase modulation (default is frequency modulation)
+  description: sets to phase modulation (default: fm)
  
 inlets:
   1st:
