@@ -1,24 +1,39 @@
 ---
 title: xselect2~
-description:
+
+description: Select channel with crossfade
+
 categories:
  - object
+ 
 pdcategory: General
+
 arguments:
-- type: gimme
-  description:
-  default:
+1st:
+- type: float
+  description: number of channels (min 2, max 500)
+  default: 2
+2nd:
+- type: float
+  description: <1> — indexed mode,  <0> — non-indexed
+  default: 1
+  
 inlets:
   1st:
   - type: signal
-    description:
-  2nd:
+    description: selected channel with crossfade
+  - type: index <float>
+    description: <1> sets to indexed mode, <0> to non-indexed (default)
+  Nth:
   - type: signal
-    description:
-  3rd:
-  - type: signal
-    description:
+    description: secondary inputs are the channels to select from
+    
 outlets:
   1st:
   - type: signal
-    description:
+    description: crossfaded channels
+
+draft: false
+---
+
+[xselect2~] selects between multiple inputs with equal power crossfade between two adjacent channels.
