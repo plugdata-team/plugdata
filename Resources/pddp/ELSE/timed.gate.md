@@ -1,7 +1,7 @@
 ---
 title: timed.gate
 
-description:
+description: Control timed gate
 
 categories:
 - object
@@ -9,24 +9,39 @@ categories:
 pdcategory:
 
 arguments:
-- description:
-  type:
-  default:
+  1st:
+  - type: float
+    description: gate time in ms
+    default: 0, no gate
+  2nd:
+  - type: float
+    description: initial gate amplitude
+    default: 1
+  3rd:
+  - type: float
+    description: non-zero sets to retrigger mode
+    default: 0
 
 inlets:
   1st:
-  - type:
-    description:
+  - type: float
+    description: control trigger with the gate value
+  - type: bang
+    description: control trigger with the last/initial gate value
+  - type: ms <float>
+    description: gate time in ms
+  - type: retrigger <float>
+    description: non-zero sets to retrigger mode
   2nd:
-  - type:
-    description:
+  - type: float
+    description: gate time in ms
 
 outlets:
   1st:
-  - type:
-    description:
+  - type: float
+    description: timed gate
 
 draft: false
 ---
 
-LONG DESCRIPTION HERE
+When receiving a bang or a float, [timed.gate] sends a timed gate (with the value of the float for the given duration, 0 otherwise).
