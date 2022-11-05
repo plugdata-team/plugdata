@@ -1,24 +1,32 @@
 ---
 title: spread~
-description:
+
+description: Spread inputs to outputs
+
 categories:
  - object
+
 pdcategory: General
+
 arguments:
-- type: gimme
-  description:
-  default:
+- type: float
+  description: - 'n' number of inputs (2 to 512)
+  default: 2
+- type: float
+  description: - 'n' number of outputs (2 to 512)
+  default: 2
+
 inlets:
-  1st:
+  nth:
   - type: signal
-    description:
-  2nd:
-  - type: signal
-    description:
+    description: input channels
+
 outlets:
-  1st:
+  nth:
   - type: signal
-    description:
-  2nd:
-  - type: signal
-    description:
+    description: output channels
+
+draft: false
+---
+
+[spread~] spreads any number of input channels across any number of output channels with equal power panning.

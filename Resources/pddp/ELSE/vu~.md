@@ -6,14 +6,12 @@ description: Amplitude detector for [vu]
 categories:
  - object
  
-pdcategory: Audio analysis
+pdcategory: Analysis
 
 arguments:
-  1st:
   - type: float
     description: analyses window size in samples
     default: 1024
-  2nd:
   - type: float
     description: hop size in samples 
     default: half the window size
@@ -22,7 +20,7 @@ inlets:
  1st:
   - type: float
     description: signal to analyze
-  - type: set <float, float>
+  - type: set <f,f>
     description: sets window and hop size in samples
     
 outlets:

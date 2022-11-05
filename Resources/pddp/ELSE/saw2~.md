@@ -1,24 +1,38 @@
 ---
 title: saw2~
-description:
+
+description: Sawtooth oscillator
+
 categories:
  - object
-pdcategory: General
+
+pdcategory: Oscillators 
+
 arguments:
-- type: gimme
-  description:
-  default:
+- type: float
+  description: frequency in Hz
+  default: 0
+- type: float
+  description: initial phase offset
+  default: 0
+
 inlets:
   1st:
-  - type: signal
-    description:
+  - type: float/signal
+    description: frequency in Hz
   2nd:
-  - type: signal
-    description:
+  - type: float/signal
+    description: phase sync (resets internal phase)
   3rd:
-  - type: signal
-    description:
+  - type: float/signal
+    description: phase offset (modulation input)
+
 outlets:
   1st:
   - type: signal
-    description:
+    description: sawtooth wave signal
+
+draft: false
+---
+
+[saw2~] is another sawtooth oscillator that accepts negative frequencies, has inlets for phase sync and phase modulation.
