@@ -348,13 +348,18 @@ void Statusbar::resized()
 
 void Statusbar::modifierKeysChanged(const ModifierKeys& modifiers)
 {
-    if(auto* editor = dynamic_cast<PlugDataPluginEditor*>(pd.getActiveEditor()))
-    {
-        auto* cnv = editor->getCurrentCanvas();
-        if(cnv && (cnv->didStartDragging || cnv->isDraggingLasso)) {
+    auto* editor = dynamic_cast<PlugDataPluginEditor*>(pd.getActiveEditor());
+    
+    if(auto* cnv = editor->getCurrentCanvas()) {
+        if(cnv->didStartDragging || cnv->isDraggingLasso) {
             return;
         }
+        
+        for(auto* object : cnv->objects) {
+            object->showIndex(modifiers.isAltDown());
+        }
     }
+    
     commandLocked = modifiers.isCommandDown() && locked.getValue() == var(false);
 }
 
