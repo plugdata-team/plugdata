@@ -6,13 +6,11 @@ description: Vibrato
 categories:
 - object
 
-pdcategory: General
+pdcategory: General Audio Manipulation
 
 arguments:
-  1st:
   - type: float
     description: rate in hertz (default: 0)
-  2nd:
   - type: float
     description: transposition depth in cents (default: 0)
 

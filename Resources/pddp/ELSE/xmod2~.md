@@ -6,22 +6,18 @@ description: Cross modulation
 categories:
  - object
  
-pdcategory: General Audio Manipulation
+pdcategory: Noise, General Audio Manipulation
 
 arguments:
-  1st:
   - type: float
     description: frequency of oscillator 1 in hertz
     default: 0
-  2nd:
   - type: float
     description: modulation index 1
     default: 0
-  3rd:
   - type: float
     description: frequency of oscillator 2 in hertz
     default: 0
-  4th:
   - type: float
     description: modulation index 2
     default: 0

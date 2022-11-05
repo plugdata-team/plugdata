@@ -1,12 +1,26 @@
 ---
 title: sin~
-description:
+
+description: Signal sine function
+
 categories:
  - object
-pdcategory: General
-arguments:
+
+pdcategory: Math Functions 
+
+arguments: (none)
+
 inlets:
+  1st:
+  - type: float/signal
+    description: input sine function
+
 outlets:
   1st:
   - type: signal
-    description:
+    description: output of sine function
+
+draft: false
+---
+
+[sin~] is similar to [cos~], it outputs the sine of two pi times its signal input.

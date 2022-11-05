@@ -9,17 +9,15 @@ categories:
 pdcategory: General
 
 arguments:
-  1st:
   - type: float
     description: sets number of voices 
     default: 1
-  2nd:
   - type: float
     description: non zero sets voice stealing
     default: 0
 
 flags:
-- name: -rel <float>
+- name: -rel <f>
   description: sets release time in ms (default: 0)
 - name: -retrig
   description: sets to retrigger mode <0, 1 or 2> 
@@ -33,17 +31,17 @@ inlets:
     description: MIDI note messages (note and velocity pair)
  - type: float
     description: note pitch values
- - type: rel <float>
+ - type: rel <f>
     description: sets a release time in ms
- - type: offset <float>
+ - type: offset <f>
     description: sets index offset (in the context of "list" mode)
- - type: retrig <float>
+ - type: retrig <f>
     description: non zero sets to retrigger mode
  - type: clear
     description: clears memory without output
  - type: flush
     description: clears memory and output hanging notes
- - type: voices <float>
+ - type: voices <f>
     description: sets number of voices (in list mode only)
   2nd:
   - type: float
@@ -53,7 +51,7 @@ inlets:
     description: release time in ms
     
 outlets:
-  Nth:
+  nth:
   - type: list
     description: note messages
 
