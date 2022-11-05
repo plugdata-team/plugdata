@@ -1,7 +1,7 @@
 ---
 title: stream
 
-description:
+description: Pack a stream of numbers
 
 categories:
 - object
@@ -9,24 +9,28 @@ categories:
 pdcategory:
 
 arguments:
-- description:
-  type:
-  default:
+- type: float
+  description: N group size
+  default: 1
 
 inlets:
   1st:
-  - type:
-    description:
+  - type: float
+    description: input stream of numbers
+  - type: bang
+    description: resends the last output list
+  - type: clear
+    description: clears the list
   2nd:
   - type:
-    description:
+    description: N group size
 
 outlets:
   1st:
-  - type:
-    description:
+  - type: anything
+    description: the regrouped message
 
 draft: false
 ---
 
-LONG DESCRIPTION HERE
+[stream] mode makes a list with the last N received items. The N is set as an argument or in the right inlet. A negative N inverts the list.

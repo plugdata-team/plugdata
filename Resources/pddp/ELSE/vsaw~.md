@@ -9,15 +9,12 @@ categories:
 pdcategory: Audio Oscillators And Tables
 
 arguments:
-  1st:
   - type: float
     description: frequency in hertz 
     default: 0
-  2nd:
   - type: float
     description: initial width
     default: 0
-  3rd:
   - type: float
     description: initial phase offset
     default: 0
