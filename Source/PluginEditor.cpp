@@ -659,14 +659,7 @@ void PlugDataPluginEditor::timerCallback()
     stopTimer();
 }
 
-void PlugDataPluginEditor::modifierKeysChanged(const ModifierKeys& modifiers) {
-    
-    if(auto* cnv = getCurrentCanvas()) {
-        for(auto* object : cnv->objects) {
-            object->showIndex(modifiers.isAltDown());
-        }
-    }
-    
+void PlugDataPluginEditor::modifierKeysChanged(const ModifierKeys& modifiers) {    
     statusbar.modifierKeysChanged(modifiers);
 }
 
