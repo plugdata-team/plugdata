@@ -356,17 +356,17 @@ void Library::parseDocumentation(String const& path)
         for (int i = 0; i < lines.size(); i++) {
             auto& line = lines.getReference(i);
             auto& lastLine = lines.getReference(lastIdx);
-
-            if (!line.trim().startsWith("-")) {
+            
+            if (line.trim().startsWith("-")) {
+                line = line.fromFirstOccurrenceOf("-", false, false);
+                lastIdx = i;
+            } else {
                 lastLine += line;
                 line.clear();
-
-            } else {
-                lastLine = lastLine.fromFirstOccurrenceOf("-", false, false);
-                lastIdx = i;
+                
             }
         }
-
+        
         lines.removeEmptyStrings();
 
         return lines;
