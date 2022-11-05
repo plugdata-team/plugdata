@@ -1,32 +1,26 @@
 ---
 title: scale2cents
 
-description:
+description: Scale/Cents conversion
 
 categories:
 - object
 
-pdcategory:
+pdcategory: Scale tools
 
-arguments:
-- description:
-  type:
-  default:
+arguments: (none)
 
 inlets:
   1st:
-  - type:
-    description:
-  2nd:
-  - type:
-    description:
+  - type: list
+    description: scale steps
 
 outlets:
   1st:
-  - type:
-    description:
+  - type: list
+    description: converted cents values
 
 draft: false
 ---
 
-LONG DESCRIPTION HERE
+Use [scale2cents] to convert a scale defined as scale steps in semitones to cents.

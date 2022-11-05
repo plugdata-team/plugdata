@@ -6,7 +6,7 @@ description: Z-plane Biquad plot
 categories:
 - object
 
-pdcategory: Data Templates
+pdcategory: GUI
 
 arguments: (none)
 

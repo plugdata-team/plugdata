@@ -1,32 +1,26 @@
 ---
 title: sysrt.out
 
-description:
+description: Midi system/real-time output
 
 categories:
 - object
 
-pdcategory:
+pdcategory: MIDI
 
-arguments:
-- description:
-  type:
-  default:
+arguments: (none)
 
 inlets:
   1st:
-  - type:
-    description:
-  2nd:
-  - type:
-    description:
+  - type: anything
+    description: clock, tick, start, continue, sensing, reset
 
 outlets:
   1st:
-  - type:
-    description:
+  - type: midi
+    description: raw MIDI message
 
 draft: false
 ---
 
-LONG DESCRIPTION HERE
+[sysrt.out] formats and sends raw MIDI system and real-time messages.

@@ -6,18 +6,15 @@ description: Select input with crossfade
 categories:
  - object
  
-pdcategory: General
+pdcategory: Control(Fader/Panning/Routing), General Audio Manipulation
 
 arguments:
-  1st:
   - type: float
     description: number of inputs
     default: 1
-  2nd:
   - type: float
     description: crossfade time in ms 
     default: 0
-  3rd:
   - type: float
     description: initially selected channel
     default: 0
@@ -26,7 +23,7 @@ inlets:
   1st:
   - type: float
     description: selected input (0 is none)
-  - type: time <float>
+  - type: time <f>
     description: crossfade time in ms
   2nd:
   - type: signal
