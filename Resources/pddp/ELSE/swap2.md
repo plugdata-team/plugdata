@@ -1,32 +1,32 @@
 ---
 title: swap2
 
-description:
+description: Swap two messages
 
 categories:
 - object
 
-pdcategory:
+pdcategory: Message Management 
 
-arguments:
-- description:
-  type:
-  default:
+arguments: (none)
 
 inlets:
   1st:
-  - type:
-    description:
+  - type: anything
+    description: any message to be swapped to the right outlet
   2nd:
-  - type:
-    description:
+  - type: anything
+    description: any message to be swapped to the left outlet
 
 outlets:
   1st:
-  - type:
-    description:
+  - type: anything
+    description: swapped messages
+  2st:
+  - type: anything
+    description: swapped massages
 
 draft: false
 ---
 
-LONG DESCRIPTION HERE
+[swap2] is like [swap] but swaps any messages, not just floats.

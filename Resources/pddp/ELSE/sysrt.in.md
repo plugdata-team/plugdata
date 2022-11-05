@@ -1,32 +1,44 @@
 ---
 title: sysrt.in
 
-description:
+description: Midi system/real-time input
 
 categories:
 - object
 
-pdcategory:
+pdcategory: MIDI
 
-arguments:
-- description:
-  type:
-  default:
+arguments: (none)
 
 inlets:
   1st:
-  - type:
-    description:
-  2nd:
-  - type:
-    description:
+  - type: float
+    description: raw MIDI data stream
 
 outlets:
   1st:
-  - type:
-    description:
+  - type: bang
+    description: bang at MIDI clock 
+  2nd:
+  - type: bang
+    description: bang at MIDI tick 
+  3rd:
+  - type: bang
+    description: bang at MIDI start
+  4th:
+  - type: bang
+    description: bang at MIDI continue 
+  5th:
+  - type: bang
+    description: bang at MIDI stop
+  6th:
+  - type: bang
+    description: bang at MIDI active sensing
+  7th:
+  - type: bang
+    description: bang at MIDI reset
 
 draft: false
 ---
 
-LONG DESCRIPTION HERE
+[sysrt.in] detects System and real-time MIDI messages from raw MIDI data.
