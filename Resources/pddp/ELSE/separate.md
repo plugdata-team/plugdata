@@ -1,21 +1,32 @@
 ---
 title: separate
-description:
+
+description: Separate symbols
+
 categories:
  - object
+
 pdcategory: General
+
 arguments:
-- type: gimme
-  description:
-  default:
+- type: symbol
+  description: sets the separator character
+  default: "space"
+
 inlets:
   1st:
-  - type: symbol
-    description:
+  - type: symbol/anything
+    description: the symbol to be converted to a list
   2nd:
   - type: symbol
-    description:
+    description: sets separator symbol
+
 outlets:
   1st:
-  - type: ?
-    description:
+  - type: list
+    description: list with separated elements from a symbol
+
+draft: false
+---
+
+[separate] allows you to separate a symbol into a list with different elements by setting the character that separates one element from the others. The default separator is a "space".

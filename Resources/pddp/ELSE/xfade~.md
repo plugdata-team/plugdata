@@ -6,20 +6,18 @@ description: Multi-channel Crossfade
 categories:
  - object
  
-pdcategory: General
+pdcategory: Control(Fader/Panning/Routing)
 
 arguments:
-  1st:
   - type: float
     description: number of 'n' channels for each source
     default: 1
-  2nd:
   - type: float
     description: initial mix value
     default: 0
   
 inlets:
-  Nth:
+  nth:
   - type: signal
     description: left inlets are the 'n' channels of input A
     middle inlets are the 'n' channels of input B

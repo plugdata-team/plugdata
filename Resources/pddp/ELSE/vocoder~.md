@@ -9,14 +9,14 @@ categories:
 pdcategory: Audio Filter
 
 arguments:
-- description: number of channels (obligatory)
-  type: float
+- type: float
+  description: number of channels (obligatory)
   default:
-- description: filter Q for all channels
-  type: float
+- type: float
+  description: filter Q for all channels
   default: 50
-- description: List of frequency (in MIDI) for each channel
-  type: list
+- type: list
+  description: List of frequency (in MIDI) for each channel
   default: equally dividing the range in MIDI from 28 and 108 for the number of channels
 
 inlets:
