@@ -9,15 +9,12 @@ categories:
 pdcategory: Audio Oscillators And Tables
 
 arguments:
-  1st:
   - type: symbol
     description: array name (optional)
     default: none
-  2nd:
   - type: float
     description: sets frequency in Hz
     default: 0
-  3rd:
   - type: float
     description: sets phase offset
     default: 0

@@ -1,24 +1,38 @@
 ---
 title: schmitt~
-description:
+
+description: Schmitt trigger
+
 categories:
  - object
-pdcategory: General
+
+pdcategory: Control (Triggers)
+
 arguments:
-- type: gimme
-  description:
-  default:
+- type: float
+  description: low threshold
+  default: 0
+- type: float
+  description: high threshold
+  default: 1
+
 inlets:
   1st:
-  - type: signal
-    description:
+  - type: float/signal
+    description: values to analyze
   2nd:
-  - type: signal
-    description:
+  - type: float/signal
+    description: low threshold level
   3rd:
-  - type: signal
-    description:
+  - type: float/signal
+    description: high threshold level
+
 outlets:
   1st:
   - type: signal
-    description:
+    description: 1/0 depending on the analysis
+
+draft: false
+---
+
+[schmitt~] is a Schmitt trigger. When the input is greater than or equal to the high threshold level, the output is 1 and becomes 0 when the signal is equal to or less than the reset level (low threshold).

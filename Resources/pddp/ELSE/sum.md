@@ -1,32 +1,28 @@
 ---
 title: sum
 
-description:
+description: Sum a list
 
 categories:
 - object
 
-pdcategory:
+pdcategory: List Management 
 
-arguments:
-- description:
-  type:
-  default:
+arguments: (none)
 
 inlets:
   1st:
-  - type:
-    description:
-  2nd:
-  - type:
-    description:
+  - type: bang
+    description: sums the last received list
+  - type: list
+    description: list of floats to sum
 
 outlets:
   1st:
-  - type:
-    description:
+  - type: float
+    description: summed value of input list
 
 draft: false
 ---
 
-LONG DESCRIPTION HERE
+[sum] sums a list of values.

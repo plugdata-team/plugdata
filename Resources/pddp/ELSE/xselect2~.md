@@ -6,14 +6,12 @@ description: Select channel with crossfade
 categories:
  - object
  
-pdcategory: General
+pdcategory: Control(Fader/Panning/Routing), General Audio Manipulation
 
 arguments:
-1st:
 - type: float
   description: number of channels (min 2, max 500)
   default: 2
-2nd:
 - type: float
   description: <1> — indexed mode,  <0> — non-indexed
   default: 1
@@ -22,9 +20,9 @@ inlets:
   1st:
   - type: signal
     description: selected channel with crossfade
-  - type: index <float>
-    description: <1> sets to indexed mode, <0> to non-indexed (default)
-  Nth:
+  - type: index <f>
+    description: <1> - indexed mode, <0> - non-indexed (default)
+  nth:
   - type: signal
     description: secondary inputs are the channels to select from
     

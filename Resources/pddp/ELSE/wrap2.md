@@ -6,12 +6,11 @@ description: Wraps between two values
 categories:
  - object
  
-pdcategory: General
+pdcategory: Math Functions
 
 arguments:
-  1st:
   - type: list
-    description: 2 floats sets minimum and maximum. 1 float sets maximum value (and lowest value is set to 0).
+    description: 2 floats — min/max, 1 float — max.
     default: 0 and 1
   
 inlets:
