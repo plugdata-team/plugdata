@@ -4,7 +4,6 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
-
 #pragma once
 #include "DraggableNumber.h"
 
@@ -16,12 +15,10 @@ struct PropertiesPanel : public PropertyPanel {
     }
 
     struct Property : public PropertyComponent {
-        int idx;
         bool hideLabel = false;
 
-        Property(String const& propertyName, int i)
+        Property(String const& propertyName)
             : PropertyComponent(propertyName, 23)
-            , idx(i)
         {
         }
 
@@ -34,21 +31,17 @@ struct PropertiesPanel : public PropertyPanel {
 
         void paint(Graphics& g) override
         {
-            if (hideLabel)
-                return;
-
-            auto bg = idx & 1 ? findColour(PlugDataColour::panelBackgroundColourId) : findColour(PlugDataColour::panelBackgroundOffsetColourId);
-
-            g.fillAll(bg);
-            getLookAndFeel().drawPropertyComponentLabel(g, getWidth(), getHeight() * 0.9, *this);
+            if (!hideLabel) {
+                getLookAndFeel().drawPropertyComponentLabel(g, getWidth(), getHeight() * 0.9, *this);
+            }
         }
 
         void refresh() override {};
     };
 
     struct ComboComponent : public Property {
-        ComboComponent(String const& propertyName, Value& value, int idx, std::vector<String> options)
-            : Property(propertyName, idx)
+        ComboComponent(String const& propertyName, Value& value, std::vector<String> options)
+            : Property(propertyName)
         {
             for (int n = 0; n < options.size(); n++) {
                 comboBox.addItem(options[n], n + 1);
@@ -97,8 +90,8 @@ struct PropertiesPanel : public PropertyPanel {
         Value fontValue;
         StringArray options = Font::findAllTypefaceNames();
 
-        FontComponent(String const& propertyName, Value& value, int idx)
-            : Property(propertyName, idx)
+        FontComponent(String const& propertyName, Value& value)
+            : Property(propertyName)
         {
             options.addIfNotAlreadyThere("Inter");
 
@@ -133,8 +126,8 @@ struct PropertiesPanel : public PropertyPanel {
     };
 
     struct BoolComponent : public Property {
-        BoolComponent(String const& propertyName, Value& value, int idx, std::vector<String> options)
-            : Property(propertyName, idx)
+        BoolComponent(String const& propertyName, Value& value, std::vector<String> options)
+            : Property(propertyName)
         {
             toggleButton.setClickingTogglesState(true);
 
@@ -161,8 +154,8 @@ struct PropertiesPanel : public PropertyPanel {
 
     struct ColourComponent : public Property
         , public ChangeListener {
-        ColourComponent(String const& propertyName, Value& value, int idx)
-            : Property(propertyName, idx)
+        ColourComponent(String const& propertyName, Value& value)
+            : Property(propertyName)
             , currentColour(value)
         {
             String strValue = currentColour.toString();
@@ -232,8 +225,8 @@ struct PropertiesPanel : public PropertyPanel {
 
         float min, max;
 
-        RangeComponent(String propertyName, Value& value, int idx)
-            : Property(propertyName, idx)
+        RangeComponent(String propertyName, Value& value)
+            : Property(propertyName)
             , property(value)
             , minLabel(false)
             , maxLabel(false)
@@ -289,8 +282,8 @@ struct PropertiesPanel : public PropertyPanel {
         std::unique_ptr<Label> label;
         Value& property;
 
-        EditableComponent(String propertyName, Value& value, int idx)
-            : Property(propertyName, idx)
+        EditableComponent(String propertyName, Value& value)
+            : Property(propertyName)
             , property(value)
         {
             if constexpr (std::is_arithmetic<T>::value) {
@@ -326,4 +319,5 @@ struct PropertiesPanel : public PropertyPanel {
             label->setBounds(getLocalBounds().removeFromRight(getWidth() / (2 - hideLabel)));
         }
     };
+    
 };

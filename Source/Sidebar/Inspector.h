@@ -18,7 +18,7 @@ struct Inspector : public Component {
 
     void paint(Graphics& g) override
     {
-        g.setColour(findColour(PlugDataColour::panelBackgroundOffsetColourId));
+        g.setColour(findColour(PlugDataColour::panelBackgroundColourId));
         g.fillRect(getLocalBounds().removeFromTop(23));
         
         g.setColour(findColour(PlugDataColour::panelTextColourId));
@@ -38,25 +38,25 @@ struct Inspector : public Component {
         title = name;
     }
 
-    PropertyComponent* createPanel(int type, String const& name, Value* value, int idx, std::vector<String>& options)
+    PropertyComponent* createPanel(int type, String const& name, Value* value, std::vector<String>& options)
     {
         switch (type) {
         case tString:
-            return new PropertiesPanel::EditableComponent<String>(name, *value, idx);
+            return new PropertiesPanel::EditableComponent<String>(name, *value);
         case tFloat:
-            return new PropertiesPanel::EditableComponent<float>(name, *value, idx);
+            return new PropertiesPanel::EditableComponent<float>(name, *value);
         case tInt:
-            return new PropertiesPanel::EditableComponent<int>(name, *value, idx);
+            return new PropertiesPanel::EditableComponent<int>(name, *value);
         case tColour:
-            return new PropertiesPanel::ColourComponent(name, *value, idx);
+            return new PropertiesPanel::ColourComponent(name, *value);
         case tBool:
-            return new PropertiesPanel::BoolComponent(name, *value, idx, options);
+            return new PropertiesPanel::BoolComponent(name, *value, options);
         case tCombo:
-            return new PropertiesPanel::ComboComponent(name, *value, idx, options);
+            return new PropertiesPanel::ComboComponent(name, *value, options);
         case tRange:
-            return new PropertiesPanel::RangeComponent(name, *value, idx);
+            return new PropertiesPanel::RangeComponent(name, *value);
         default:
-            return new PropertiesPanel::EditableComponent<String>(name, *value, idx);
+            return new PropertiesPanel::EditableComponent<String>(name, *value);
         }
     }
 
@@ -72,7 +72,7 @@ struct Inspector : public Component {
             int idx = 0;
             for (auto& [name, type, category, value, options] : params) {
                 if (static_cast<int>(category) == i) {
-                    panels.add(createPanel(type, name, value, idx, options));
+                    panels.add(createPanel(type, name, value, options));
                     idx++;
                 }
             }

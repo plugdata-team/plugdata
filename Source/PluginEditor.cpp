@@ -1099,7 +1099,7 @@ bool PlugDataPluginEditor::perform(const InvocationInfo& info)
         return true;
     }
     else if(info.commandID == CommandIDs::ShowBrowser) {
-        sidebar.showPanel(sidebar.isShowingBrowser() ? 1 : 0);
+        sidebar.showPanel(sidebar.isShowingBrowser() ? 0 : 1);
         return true;
     }
     

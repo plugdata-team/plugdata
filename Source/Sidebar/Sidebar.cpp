@@ -185,7 +185,6 @@ void Sidebar::showPanel(int panelToShow)
     
     automationPanel->setVisible(showAutomation);
     automationPanel->setInterceptsMouseClicks(showAutomation, showAutomation);
-    
 
     if(auto* editor =  dynamic_cast<PlugDataPluginEditor*>(pd->getActiveEditor())) {
         editor->toolbarButton(PlugDataPluginEditor::Pin)->setEnabled(panelToShow == 0);

@@ -350,10 +350,12 @@ private:
             
             auto keyPresses = owner.getMappings().getKeyPressesAssignedToCommand(commandID);
             
+
             for (int i = 0; i < jmin((int) maxNumAssignments, keyPresses.size()); ++i)
                 addKeyPressButton((keyPresses.getReference(i)).getTextDescription(), i);
             
             addKeyPressButton("Change Key Mapping", -1);
+            
         }
         
         void addKeyPressButton (const String& desc, const int index)
@@ -367,7 +369,7 @@ private:
         
         void paint (Graphics& g) override
         {
-            g.setFont ((float) getHeight() * 0.7f);
+            g.setFont ((float) getHeight() * 0.6f);
             g.setColour (owner.findColour (KeyMappingEditorComponent::textColourId));
             
             g.drawFittedText (owner.getCommandManager().getNameOfCommand (commandID),
@@ -377,15 +379,15 @@ private:
         
         void resized() override
         {
-            int x = getWidth() - 4;
+            int x = getWidth() / 2.0f;
             
             for (int i = keyChangeButtons.size(); --i >= 0;)
             {
                 auto* b = keyChangeButtons.getUnchecked(i);
                 
-                b->fitToContent (getHeight() - 2);
-                b->setTopRightPosition (x, 1);
-                x = b->getX() - 5;
+                b->fitToContent (getHeight() - 6);
+                b->setTopLeftPosition (x, 2);
+                x = b->getRight() + 5;
             }
         }
         
@@ -414,7 +416,7 @@ private:
         
         String getUniqueName() const override                      { return String ((int) commandID) + "_id"; }
         bool mightContainSubItems() override                       { return false; }
-        int getItemHeight() const override                         { return 20; }
+        int getItemHeight() const override                         { return 24; }
         std::unique_ptr<Component> createItemComponent() override  { return std::make_unique<ItemComponent> (owner, commandID); }
         String getAccessibilityName() override                     { return owner.getCommandManager().getNameOfCommand(commandID); }
         
@@ -436,12 +438,12 @@ private:
         
         String getUniqueName() const override       { return categoryName + "_cat"; }
         bool mightContainSubItems() override        { return true; }
-        int getItemHeight() const override          { return 22; }
+        int getItemHeight() const override          { return 24; }
         String getAccessibilityName() override      { return categoryName; }
         
         void paintItem (Graphics& g, int width, int height) override
         {
-            g.setFont (Font ((float) height * 0.7f, Font::bold));
+            g.setFont (Font ((float) height * 0.6f, Font::bold));
             g.setColour (owner.findColour (KeyMappingEditorComponent::textColourId));
             
             g.drawText (categoryName, 6, 0, width - 2, height, Justification::centredLeft, true);
