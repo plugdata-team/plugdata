@@ -1,4 +1,8 @@
-
+/*
+ // Copyright (c) 2021-2022 Timothy Schoen
+ // For information on usage and redistribution, and for a DISCLAIMER OF ALL
+ // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
+ */
 
 extern "C" {
 #include "x_libpd_extra_utils.h"

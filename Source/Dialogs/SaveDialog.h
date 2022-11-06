@@ -1,3 +1,9 @@
+/*
+ // Copyright (c) 2021-2022 Timothy Schoen
+ // For information on usage and redistribution, and for a DISCLAIMER OF ALL
+ // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
+ */
+
 struct SaveDialog : public Component {
     SaveDialog(Component* editor, Dialog* parent, String const& filename, std::function<void(int)> callback)
         : savelabel("savelabel", filename.isEmpty() ? "Save Changes?" : "Save Changes to \"" + filename + "\"?")
