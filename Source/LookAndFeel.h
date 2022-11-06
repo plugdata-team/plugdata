@@ -86,8 +86,9 @@ enum PlugDataColour
     connectionColourId,
     signalColourId,
     
+    dialogBackgroundColourId,
+    
     panelBackgroundColourId,
-    panelBackgroundOffsetColourId,
     panelTextColourId,
     panelActiveBackgroundColourId,
     panelActiveTextColourId,
@@ -118,7 +119,7 @@ inline const std::map<PlugDataColour, std::pair<String, String>> PlugDataColourN
     {connectionColourId, {"Connection Colour", "connection_colour"}},
     {signalColourId, {"Signal Colour", "signal_colour"}},
     {panelBackgroundColourId, {"Panel Background", "panel_colour"}},
-    {panelBackgroundOffsetColourId, {"Panel Offset", "panel_offset"}},
+    {dialogBackgroundColourId, {"Dialog Background", "dialog_background"}},
     {panelTextColourId, {"Panel Text", "panel_text"}},
     {panelActiveBackgroundColourId, {"Panel Background Active", "panel_background_active"}},
     {panelActiveTextColourId, {"Panel Active Text", "panel_active_text"}},
@@ -425,7 +426,7 @@ struct PlugDataLook : public LookAndFeel_V4
     void drawPopupMenuBackground(Graphics& g, int width, int height) override
     {
         // Add a bit of alpha to disable the opaque flag
-        auto background = findColour(PlugDataColour::toolbarBackgroundColourId);
+        auto background = findColour(PlugDataColour::dialogBackgroundColourId);
         g.setColour(background);
         
         // Fill background if there's no support for transparent popupmenus
@@ -446,6 +447,94 @@ struct PlugDataLook : public LookAndFeel_V4
         
         g.setColour(findColour(PlugDataColour::outlineColourId));
         g.drawRoundedRectangle(bounds, 3.0f, 1.0f);
+    }
+    
+    void drawPopupMenuItem (Graphics& g, const Rectangle<int>& area,
+                                            const bool isSeparator, const bool isActive,
+                                            const bool isHighlighted, const bool isTicked,
+                                            const bool hasSubMenu, const String& text,
+                                            const String& shortcutKeyText,
+                                            const Drawable* icon, const Colour* const textColourToUse)
+    {
+        if (isSeparator)
+        {
+            auto r  = area.reduced (5, 0);
+            r.removeFromTop (roundToInt (((float) r.getHeight() * 0.5f) - 0.5f));
+
+            g.setColour (findColour (PopupMenu::textColourId).withAlpha (0.3f));
+            g.fillRect (r.removeFromTop (1));
+        }
+        else
+        {
+            auto textColour = (textColourToUse == nullptr ? findColour (PopupMenu::textColourId)
+                                                          : *textColourToUse);
+
+            auto r  = area.reduced (1);
+
+            if (isHighlighted && isActive)
+            {
+                g.setColour (findColour (PopupMenu::highlightedBackgroundColourId).darker(0.15f));
+                g.fillRoundedRectangle(r.toFloat().withTrimmedLeft(4).withTrimmedRight(4), 4.0f);
+
+                g.setColour (findColour (PopupMenu::textColourId));
+            }
+            else
+            {
+                g.setColour (textColour.withMultipliedAlpha (isActive ? 1.0f : 0.5f));
+            }
+
+            r.reduce (jmin (5, area.getWidth() / 20), 0);
+
+            auto font = getPopupMenuFont();
+
+            auto maxFontHeight = (float) r.getHeight() / 1.3f;
+
+            if (font.getHeight() > maxFontHeight)
+                font.setHeight (maxFontHeight);
+
+            g.setFont (font);
+
+            auto iconArea = r.removeFromLeft (roundToInt (maxFontHeight)).toFloat();
+
+            if (icon != nullptr)
+            {
+                icon->drawWithin (g, iconArea, RectanglePlacement::centred | RectanglePlacement::onlyReduceInSize, 1.0f);
+                r.removeFromLeft (roundToInt (maxFontHeight * 0.5f));
+            }
+            else if (isTicked)
+            {
+                auto tick = getTickShape (1.0f);
+                g.fillPath (tick, tick.getTransformToScaleToFit (iconArea.reduced (iconArea.getWidth() / 5, 0).toFloat(), true));
+            }
+
+            if (hasSubMenu)
+            {
+                auto arrowH = 0.6f * getPopupMenuFont().getAscent();
+
+                auto x = static_cast<float> (r.removeFromRight ((int) arrowH).getX());
+                auto halfH = static_cast<float> (r.getCentreY());
+
+                Path path;
+                path.startNewSubPath (x, halfH - arrowH * 0.5f);
+                path.lineTo (x + arrowH * 0.6f, halfH);
+                path.lineTo (x, halfH + arrowH * 0.5f);
+
+                g.strokePath (path, PathStrokeType (2.0f));
+            }
+
+            r.removeFromRight (3);
+            g.drawFittedText (text, r, Justification::centredLeft, 1);
+
+            if (shortcutKeyText.isNotEmpty())
+            {
+                auto f2 = font;
+                f2.setHeight (f2.getHeight() * 0.75f);
+                f2.setHorizontalScale (0.95f);
+                g.setFont (f2);
+
+                g.drawText (shortcutKeyText, r, Justification::centredRight, true);
+            }
+        }
     }
     
     int getPopupMenuBorderSize() override
@@ -830,39 +919,6 @@ struct PlugDataLook : public LookAndFeel_V4
         return new PdLook;
     }
     
-    static void paintStripes(Graphics& g, int itemHeight, int totalHeight, Component& owner, int selected, int offset, bool invert = false)
-    {
-        /*
-        totalHeight += offset;
-        int y = -offset;
-        int i = 0;
-        
-        while (totalHeight)
-        {
-            if (totalHeight < itemHeight)
-            {
-                itemHeight = totalHeight;
-            }
-            
-            if (selected >= 0 && selected == i)
-            {
-                g.setColour(owner.findColour(PlugDataColour::panelActiveBackgroundColourId));
-            }
-            else
-            {
-                auto offColour = owner.findColour(PlugDataColour::panelBackgroundOffsetColourId);
-                auto onColour = owner.findColour(PlugDataColour::panelBackgroundColourId);
-                g.setColour((i + invert) & 1 ? offColour : onColour);
-            }
-            
-            g.fillRect(0, y, owner.getWidth(), itemHeight);
-            
-            y += itemHeight;
-            totalHeight -= itemHeight;
-            i++;
-        } */
-    }
-    
     void setColours(std::map<PlugDataColour, Colour> colours)
     {
         for (auto colourId = 0; colourId < PlugDataColour::numberOfColours; colourId++) {
@@ -901,7 +957,7 @@ struct PlugDataLook : public LookAndFeel_V4
         
         // Add dummy alpha to prevent JUCE from making it opaque
         setColour(PopupMenu::backgroundColourId,
-                  colours.at(PlugDataColour::toolbarBackgroundColourId).withAlpha(0.99f));
+                  colours.at(PlugDataColour::panelBackgroundColourId).withAlpha(0.99f));
         
         setColour(ResizableWindow::backgroundColourId,
                   colours.at(PlugDataColour::canvasBackgroundColourId));
@@ -1020,9 +1076,8 @@ struct PlugDataLook : public LookAndFeel_V4
         {PlugDataColour::dataColourId, Colour(66, 162, 200)},
         {PlugDataColour::connectionColourId, Colour(225, 225, 225)},
         {PlugDataColour::signalColourId, Colour(255, 133, 0)},
-        
+        {PlugDataColour::dialogBackgroundColourId, Colour(25, 25, 25)},
         {PlugDataColour::panelBackgroundColourId, Colour(35, 35, 35)},
-        {PlugDataColour::panelBackgroundOffsetColourId, Colour(25, 25, 25)},
         {PlugDataColour::panelTextColourId, Colour(255, 255, 255)},
         {PlugDataColour::panelActiveBackgroundColourId, Colour(66, 162, 200)},
         {PlugDataColour::panelActiveTextColourId, Colour(255, 255, 255)},
@@ -1054,11 +1109,11 @@ struct PlugDataLook : public LookAndFeel_V4
         {PlugDataColour::objectOutlineColourId, Colour(168, 168, 168)},
         {PlugDataColour::objectSelectedOutlineColourId, Colour(0, 122, 255)},
         
+        {PlugDataColour::dialogBackgroundColourId, Colour(228, 228, 228)},
         {PlugDataColour::panelBackgroundColourId, Colour(250, 250, 250)},
-        {PlugDataColour::panelBackgroundOffsetColourId, Colour(228, 228, 228)},
         {PlugDataColour::panelTextColourId, Colour(90, 90, 90)},
-        {PlugDataColour::panelActiveBackgroundColourId, Colour(0, 122, 255)},
-        {PlugDataColour::panelActiveTextColourId, Colour(255, 255, 255)},
+        {PlugDataColour::panelActiveBackgroundColourId, Colour(228, 228, 228)},
+        {PlugDataColour::panelActiveTextColourId, Colour(90, 90, 90)},
         
         {PlugDataColour::scrollbarThumbColourId, Colour(0, 122, 255)},
     };

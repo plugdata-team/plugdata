@@ -48,7 +48,7 @@ class SuggestionComponent : public Component
 
         void paint(Graphics& g) override
         {
-            auto colour = idx & 1 ? PlugDataColour::panelBackgroundOffsetColourId : PlugDataColour::panelBackgroundColourId;
+            auto colour = PlugDataColour::panelBackgroundColourId;
 
             getLookAndFeel().drawButtonBackground(g, *this, findColour(getToggleState() ? PlugDataColour::panelActiveBackgroundColourId : colour), isMouseOver(), isMouseButtonDown());
 
@@ -121,7 +121,7 @@ public:
             but->setName("suggestions:button");
 
             // Colour pattern
-            but->setColour(TextButton::buttonColourId, colours[i % 2]);
+            but->setColour(TextButton::buttonColourId, findColour(PlugDataColour::panelBackgroundColourId));
         }
 
         // Set up viewport
@@ -418,8 +418,6 @@ private:
 
     ResizableCornerComponent resizer;
     ComponentBoundsConstrainer constrainer;
-
-    Array<Colour> colours = { findColour(PlugDataColour::panelBackgroundColourId), findColour(PlugDataColour::panelBackgroundOffsetColourId) };
 
     Colour bordercolor = Colour(142, 152, 155);
 

@@ -546,9 +546,8 @@ public:
     void paint(Graphics& g) override
     {
         if (listBox.isVisible()) {
-            PlugDataLook::paintStripes(g, 24, listBox.getHeight() + 24, *this, -1, listBox.getViewport()->getViewPositionY() - 4);
+            g.fillAll(findColour(PlugDataColour::panelBackgroundColourId));
         }
-
     }
 
     void paintOverChildren(Graphics& g) override
