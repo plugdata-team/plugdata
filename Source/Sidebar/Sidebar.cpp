@@ -99,7 +99,7 @@ void Sidebar::paint(Graphics& g)
     g.fillRect(0, 0, getWidth(), 28);
     
     // Draggable bar
-    g.setColour(findColour(PlugDataColour::panelBackgroundOffsetColourId));
+    g.setColour(findColour(PlugDataColour::toolbarBackgroundColourId));
     g.fillRect(0.0f, 28.0f, 5.0f, getHeight() - 55.0f);
 }
 
@@ -182,6 +182,12 @@ void Sidebar::showPanel(int panelToShow)
     
     browser->setVisible(showBrowser);
     browser->setInterceptsMouseClicks(showBrowser, showBrowser);
+    
+    auto buttons = std::vector<TextButton*>{&consoleButton, &browserButton, &automationButton};
+    
+    for(int i = 0; i < buttons.size(); i++) {
+        buttons[i]->setToggleState(i == panelToShow, dontSendNotification);
+    }
     
     automationPanel->setVisible(showAutomation);
     automationPanel->setInterceptsMouseClicks(showAutomation, showAutomation);

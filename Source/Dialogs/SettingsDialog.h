@@ -73,8 +73,6 @@ struct ColourProperties : public Component, public Value::Listener
 
     void paint(Graphics& g) override
     {
-        PlugDataLook::paintStripes(g, 23, getHeight() - 30, *this, -1, 0);
-
         auto bounds = getLocalBounds().removeFromLeft(getWidth() / 2).withTrimmedLeft(6);
 
         g.setColour(findColour(PlugDataColour::panelTextColourId));
@@ -263,11 +261,6 @@ struct DAWAudioSettings : public Component, public Value::Listener {
         if(v.refersToSameSourceAs(latencyValue)) {
             processor.setLatencySamples(static_cast<int>(latencyValue.getValue()));
         }
-    }
-    
-    void paint(Graphics& g) override
-    {
-        PlugDataLook::paintStripes(g, 23, getHeight() - 30, *this, -1, 0, true);
     }
 
     AudioProcessor& processor;

@@ -521,8 +521,6 @@ public:
     
     void paint(Graphics& g) override
     {
-        PlugDataLook::paintStripes(g, 32, listBox.getHeight() + 24, *this, -1, listBox.getViewport()->getViewPositionY() + 4, true);
-        
         if (errorMessage.isNotEmpty()) {
             g.setColour(Colours::red);
             g.drawText(errorMessage, getLocalBounds().removeFromBottom(28).withTrimmedLeft(8).translated(0, 2), Justification::centredLeft);

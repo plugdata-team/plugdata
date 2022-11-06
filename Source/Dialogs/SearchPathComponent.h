@@ -126,8 +126,10 @@ public:
     {
         g.setColour(rowIsSelected ? findColour(PlugDataColour::panelActiveTextColourId) : findColour(PlugDataColour::panelTextColourId));
         
-        if (rowIsSelected)
-            g.fillAll(findColour(PlugDataColour::panelActiveBackgroundColourId));
+        if (rowIsSelected) {
+            g.setColour(findColour(PlugDataColour::panelActiveBackgroundColourId));
+            g.fillRoundedRectangle({2.0f, 2.0f, width - 4.0f, height - 4.0f}, 5.0f);
+        }
         
         Font f((float)height * 0.6f);
         f.setHorizontalScale(1.0f);
@@ -186,11 +188,6 @@ public:
         upButton.setBounds(statusbarBounds.removeFromRight(statusbarHeight));
         changeButton.setBounds(statusbarBounds.removeFromRight(statusbarHeight));
         resetButton.setBounds(statusbarBounds.removeFromRight(statusbarHeight));
-    }
-    
-    void paint(Graphics& g) override
-    {
-        PlugDataLook::paintStripes(g, listBox.getRowHeight(), listBox.getHeight(), listBox, listBox.getSelectedRow(), listBox.getViewport()->getViewPositionY());
     }
     
     bool isInterestedInFileDrag(StringArray const&) override
