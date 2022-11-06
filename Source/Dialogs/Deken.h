@@ -1,3 +1,9 @@
+/*
+ // Copyright (c) 2021-2022 Timothy Schoen
+ // For information on usage and redistribution, and for a DISCLAIMER OF ALL
+ // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
+ */
+
 #pragma once
 
 struct Spinner : public Component
@@ -187,9 +193,6 @@ struct PackageManager : public Thread
         }
         
         packageState.addListener(this);
-        
-        sendActionMessage("");
-        startThread(3);
     }
     
     ~PackageManager()
@@ -453,20 +456,19 @@ public:
             packageManager->sendActionMessage("");
         };
         
-        if (packageManager->isThreadRunning()) {
-            input.setEnabled(false);
-            refreshButton.setEnabled(false);
-            clearButton.setEnabled(false);
-            input.setText("Updating Packages...");
-            updateSpinner.startSpinning();
-        } else {
-            updateSpinner.setVisible(false);
+        packageManager->addActionListener(this);
+        
+        input.setEnabled(false);
+        refreshButton.setEnabled(false);
+        clearButton.setEnabled(false);
+        input.setText("Updating Packages...");
+        updateSpinner.startSpinning();
+        
+        if (!packageManager->isThreadRunning()) {
+            packageManager->startThread(3);
         }
         
-        packageManager->addActionListener(this);
         filterResults();
-        
-        
     }
     
     ~Deken()
