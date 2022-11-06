@@ -6,10 +6,9 @@ description: Unite messages into a symbol
 categories:
 - object
 
-pdcategory: General
+pdcategory: Message Management
 
 arguments:
-  1st:
   - type: symbol
     description: separator (default space)
 

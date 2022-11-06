@@ -1,24 +1,37 @@
 ---
 title: sort
-description:
+
+description: List sort
+
 categories:
  - object
+
 pdcategory: General
+
 arguments:
-- type: float
-  description:
-  default:
+- type: float - order
+  description: >=  ascending, descending otherwise
+  default: 0
+
 inlets:
   1st:
-  - type: float
-    description:
+  - type: anything
+    description: a message to sort
+  - type: bang
+    description: outputs the last incoming message sorted
   2nd:
   - type: float
-    description:
+    description: order (negative is descending, ascending otherwise)
+
 outlets:
   1st:
   - type: list
-    description:
+    description: sorted list
   2nd:
   - type: list
-    description:
+    description: the sorted list as indexes of the original input
+
+draft: false
+---
+
+[sort] sorts messages in ascending or descending order. A bang outputs the last incoming message. If you change the sorting order you can use the bang message to change the sorting direction of the last incoming message. Note upper case letters are sorted before lower case letters.
