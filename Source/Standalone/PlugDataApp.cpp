@@ -216,8 +216,6 @@ void PlugDataWindow::closeButtonPressed()
 
         checkCanvas(0);
     }
-    
-    JUCEApplication::quit();
 }
 
 
