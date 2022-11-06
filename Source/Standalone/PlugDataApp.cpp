@@ -147,7 +147,10 @@ public:
                     if (auto app = JUCEApplicationBase::getInstance())
                         app->systemRequestedQuit();
                 });
-        } else {
+        } else if(mainWindow){
+            mainWindow->closeButtonPressed();
+        }
+        else {
             quit();
         }
     }
@@ -164,11 +167,6 @@ protected:
 
 void PlugDataWindow::closeButtonPressed()
 {
-#if JUCE_MAC
-    if (Desktop::getInstance().getMainMouseSource().getCurrentModifiers().isCommandDown()) {
-        return;
-    }
-#endif
 
     // Show an ask to save dialog for each patch that is dirty
     // Because save dialog uses an asynchronous callback, we can't loop over them (so have to chain them)
@@ -218,6 +216,8 @@ void PlugDataWindow::closeButtonPressed()
 
         checkCanvas(0);
     }
+    
+    JUCEApplication::quit();
 }
 
 
