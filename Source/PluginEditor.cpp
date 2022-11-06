@@ -1090,22 +1090,27 @@ void PlugDataPluginEditor::getCommandInfo(const CommandID commandID, Application
 
 bool PlugDataPluginEditor::perform(const InvocationInfo& info)
 {
+    if(info.commandID == CommandIDs::NewProject) {
+        newProject();
+        return true;
+    }
+    else if(info.commandID == CommandIDs::OpenProject) {
+        openProject();
+        return true;
+    }
+    else if(info.commandID == CommandIDs::ShowBrowser) {
+        sidebar.showPanel(sidebar.isShowingBrowser() ? 1 : 0);
+        return true;
+    }
+    
     auto* cnv = getCurrentCanvas();
+    
+    if(!cnv) return false;
 
     auto lastPosition = cnv->viewport->getViewArea().getConstrainedPoint(cnv->lastMousePosition - Point<int>(Object::margin, Object::margin));
 
     switch (info.commandID)
     {
-        case CommandIDs::NewProject:
-        {
-            newProject();
-            return true;
-        }
-        case CommandIDs::OpenProject:
-        {
-            openProject();
-            return true;
-        }
         case CommandIDs::SaveProject:
         {
             saveProject();
@@ -1169,11 +1174,6 @@ bool PlugDataPluginEditor::perform(const InvocationInfo& info)
             {
                 cnv->setSelected(con, true);
             }
-            return true;
-        }
-        case CommandIDs::ShowBrowser:
-        {
-            sidebar.showPanel(sidebar.isShowingBrowser() ? 1 : 0);
             return true;
         }
         case CommandIDs::Lock:
