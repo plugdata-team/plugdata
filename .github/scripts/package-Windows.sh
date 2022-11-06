@@ -11,7 +11,7 @@ cat > ./PlugData.iss <<-EOL
 AppName=PlugData
 AppContact=timschoen123@gmail.com
 AppCopyright=Distributed under GPLv3 license
-AppPublisher=OCTAGONAUDIO
+AppPublisher=PlugData
 AppPublisherURL=https://github.com/timothyschoen/PlugData
 AppSupportURL=https://github.com/timothyschoen/PlugData
 AppVerName=$VERSION
