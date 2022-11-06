@@ -95,13 +95,10 @@ struct AutomationSlider : public Component, public Value::Listener {
 
     void paint(Graphics& g) override
     {
-        slider.setColour(Slider::backgroundColourId, findColour(index & 1 ? PlugDataColour::panelBackgroundColourId : PlugDataColour::panelBackgroundOffsetColourId));
+        slider.setColour(Slider::backgroundColourId, findColour(PlugDataColour::toolbarBackgroundColourId));
         slider.setColour(Slider::trackColourId, findColour(PlugDataColour::panelTextColourId));
 
-        auto offColour = findColour(PlugDataColour::panelBackgroundOffsetColourId);
-        auto onColour = findColour(PlugDataColour::panelBackgroundColourId);
-
-        g.setColour(index & 1 ? offColour : onColour);
+        g.setColour(findColour(PlugDataColour::panelBackgroundColourId));
         g.fillRect(getLocalBounds());
     }
 
@@ -167,7 +164,7 @@ struct AutomationPanel : public Component
 
     void paint(Graphics& g) override
     {
-        g.setColour(findColour(PlugDataColour::panelBackgroundOffsetColourId));
+        g.setColour(findColour(PlugDataColour::panelBackgroundColourId));
         g.fillRect(getLocalBounds().withTrimmedLeft(Sidebar::dragbarWidth).withTrimmedBottom(28));
         g.fillRect(getLocalBounds().withHeight(viewport.getY()));
 

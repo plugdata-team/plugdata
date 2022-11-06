@@ -832,6 +832,7 @@ struct PlugDataLook : public LookAndFeel_V4
     
     static void paintStripes(Graphics& g, int itemHeight, int totalHeight, Component& owner, int selected, int offset, bool invert = false)
     {
+        /*
         totalHeight += offset;
         int y = -offset;
         int i = 0;
@@ -859,7 +860,7 @@ struct PlugDataLook : public LookAndFeel_V4
             y += itemHeight;
             totalHeight -= itemHeight;
             i++;
-        }
+        } */
     }
     
     void setColours(std::map<PlugDataColour, Colour> colours)
