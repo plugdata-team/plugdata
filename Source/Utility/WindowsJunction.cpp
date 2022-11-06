@@ -1,3 +1,9 @@
+/*
+ // Copyright (c) 2021-2022 Timothy Schoen
+ // For information on usage and redistribution, and for a DISCLAIMER OF ALL
+ // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
+ */
+
 #if defined (_WIN32) || defined (_WIN64)
 
 #define REPARSE_MOUNTPOINT_HEADER_SIZE   8
