@@ -93,14 +93,6 @@ struct Console : public Component {
             if (y + h > console->getHeight()) {
                 h = console->getHeight() - y;
             }
-            auto b = Rectangle<int>(0, y, getWidth(), h);
-
-            auto offColour = findColour(PlugDataColour::panelBackgroundOffsetColourId);
-            auto onColour = findColour(PlugDataColour::panelBackgroundColourId);
-            auto background = (idx & 1) ? offColour : onColour;
-
-            g.setColour(background);
-            g.fillRect(b);
 
             idx++;
             y += h;
@@ -146,12 +138,11 @@ struct Console : public Component {
                 bool showErrors = console.buttons[3].getToggleState();
 
                 // Draw background
-                auto offColour = findColour(PlugDataColour::panelBackgroundOffsetColourId);
-                auto onColour = findColour(PlugDataColour::panelBackgroundColourId);
-                auto background = (idx & 1) ? offColour : onColour;
+                auto background = findColour(PlugDataColour::panelBackgroundColourId);
 
                 g.setColour(isSelected ? findColour(PlugDataColour::panelActiveBackgroundColourId) : background);
                 g.fillRect(getLocalBounds());
+
 
                 // Get console message
                 auto& [message, type, length] = console.pd->getConsoleMessages()[idx];

@@ -22,7 +22,7 @@ struct ColourProperties : public Component, public Value::Listener
         fontValue.setValue(LookAndFeel::getDefaultLookAndFeel().getTypefaceForFont(Font())->getName());
         fontValue.addListener(this);
         
-        auto* fontPanel = panels.add(new PropertiesPanel::FontComponent("Default font", fontValue, 0));
+        auto* fontPanel = panels.add(new PropertiesPanel::FontComponent("Default font", fontValue));
         fontPanel->setHideLabel(true);
         
         addAndMakeVisible(fontPanel);
@@ -37,7 +37,7 @@ struct ColourProperties : public Component, public Value::Listener
                 
                 swatch.referTo(value);
                 swatch.addListener(this);
-                auto* panel = panels.add(new PropertiesPanel::ColourComponent(colourName, swatch, 1));
+                auto* panel = panels.add(new PropertiesPanel::ColourComponent(colourName, swatch));
                 panel->setHideLabel(true);
                 addAndMakeVisible(panel);
             }
@@ -193,7 +193,7 @@ EXTERN char* pd_version;
 struct AboutPanel : public Component {
     
     Image logo = ImageFileFormat::loadFrom(BinaryData::plugdata_logo_png, BinaryData::plugdata_logo_pngSize);
-    
+
     void paint(Graphics& g) override
     {
         g.setFont(30);
@@ -211,11 +211,11 @@ struct AboutPanel : public Component {
         g.drawFittedText("Inter font by Rasmus Andersson", 150, 210, getWidth() - 150, 50, Justification::left, 2);
         g.drawFittedText("Made with JUCE", 150, 230, getWidth() - 150, 50, Justification::left, 2);
 
-        g.drawFittedText("Special thanks to: Deskew Technologies, ludnny, kreth608, Joshua A.C. Newman, QuevasMz, chee, polarity, CyrCom, emptyvesselnz, grabanton, daniellumertz and vasilymilovidov for supporting this project", 150, 270, getWidth() - 200, 80, Justification::left, 3);
+        g.drawFittedText("Special thanks to: Deskew Technologies, ludnny, kreth608, Joshua A.C. Newman, QuevasMz, chee, polarity, CyrCom and emptyvesselnz for supporting this project", 150, 270, getWidth() - 200, 80, Justification::left, 3);
 
         g.drawFittedText("This program is published under the terms of the GPL3 license", 150, 340, getWidth() - 150, 50, Justification::left, 2);
 
-        Rectangle<float> logoBounds = { 20.0f, 20.0f, 110, 110 };
+        Rectangle<float> logoBounds = { 10.0f, 20.0f, 128, 128 };
 
         g.drawImage(logo, logoBounds);
     }
@@ -276,9 +276,9 @@ struct DAWAudioSettings : public Component, public Value::Listener {
     Value tailLengthValue;
     Value nativeDialogValue;
     
-    PropertiesPanel::EditableComponent<int> latencyNumberBox = PropertiesPanel::EditableComponent<int>("Latency (samples)", latencyValue, 0);
-    PropertiesPanel::EditableComponent<float> tailLengthNumberBox = PropertiesPanel::EditableComponent<float>("Tail Length (seconds)", tailLengthValue, 1);
-    PropertiesPanel::BoolComponent nativeDialogToggle = PropertiesPanel::BoolComponent("Use Native Dialog", tailLengthValue, 2,  {"No", "Yes"});
+    PropertiesPanel::EditableComponent<int> latencyNumberBox = PropertiesPanel::EditableComponent<int>("Latency (samples)", latencyValue);
+    PropertiesPanel::EditableComponent<float> tailLengthNumberBox = PropertiesPanel::EditableComponent<float>("Tail Length (seconds)", tailLengthValue);
+    PropertiesPanel::BoolComponent nativeDialogToggle = PropertiesPanel::BoolComponent("Use Native Dialog", tailLengthValue,  {"No", "Yes"});
 };
 
 struct SettingsDialog : public Component {

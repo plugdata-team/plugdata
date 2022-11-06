@@ -166,9 +166,9 @@ public:
         int const x = 35;
 
         if (isSelected())
-            g.setColour(owner.findColour(DirectoryContentsDisplayComponent::highlightedTextColourId));
+            g.setColour(owner.findColour(PlugDataColour::panelActiveTextColourId));
         else
-            g.setColour(owner.findColour(DirectoryContentsDisplayComponent::textColourId));
+            g.setColour(owner.findColour(PlugDataColour::panelTextColourId));
 
         g.setFont(dynamic_cast<PlugDataLook*>(&owner.getLookAndFeel())->iconFont);
 
@@ -177,6 +177,8 @@ public:
         } else {
             g.drawFittedText(Icons::File, Rectangle<int>(2, 2, x - 4, height - 4), Justification::centred, 1);
         }
+        
+
 
         g.setFont(Font());
         g.drawFittedText(file.getFileName(), x, 0, width - x, height, Justification::centredLeft, 1);
@@ -338,20 +340,26 @@ public:
 
     void paint(Graphics& g) override
     {
-        int selectedIdx = -1;
-
+        g.fillAll(findColour(PlugDataColour::panelBackgroundColourId));
+        
         // Paint selected row
         if (getNumSelectedFiles()) {
-            selectedIdx = getSelectedItem(0)->getRowNumberInTree();
+            g.setColour(findColour(PlugDataColour::panelActiveBackgroundColourId));
+            
+            if(auto* c = getItemComponent(getSelectedItem(0))) {
+                auto rect = c->getBounds();
+                rect = rect.withX(0).withWidth(getWidth());
+                g.fillRect(rect);
+            }
         }
 
-        PlugDataLook::paintStripes(g, 24, getViewport()->getHeight(), *this, selectedIdx, getViewport()->getViewPositionY());
+
     }
     // Paint file drop outline
     void paintOverChildren(Graphics& g) override
     {
         if (isDraggingFile) {
-            g.setColour(findColour(PlugDataColour::panelBackgroundColourId));
+            g.setColour(findColour(PlugDataColour::panelActiveBackgroundColourId));
             g.drawRect(getLocalBounds().reduced(1), 2.0f);
         }
     }
@@ -813,7 +821,7 @@ struct DocumentBrowser : public DocumentBrowserBase
     void paintOverChildren(Graphics& g) override
     {
         // Draggable bar
-        g.setColour(findColour(PlugDataColour::panelBackgroundOffsetColourId));
+        g.setColour(findColour(PlugDataColour::toolbarBackgroundColourId));
         g.fillRect(0, 28, Sidebar::dragbarWidth + 1, getHeight());
 
         g.setColour(findColour(PlugDataColour::outlineColourId));
