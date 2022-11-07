@@ -532,7 +532,7 @@ struct PlugDataLook : public LookAndFeel_V4
                 f2.setHorizontalScale (0.95f);
                 g.setFont (f2);
 
-                g.drawText (shortcutKeyText, r, Justification::centredRight, true);
+                g.drawText (shortcutKeyText, r.translated(-2, 0), Justification::centredRight, true);
             }
         }
     }
@@ -1110,7 +1110,7 @@ struct PlugDataLook : public LookAndFeel_V4
         {PlugDataColour::objectSelectedOutlineColourId, Colour(0, 122, 255)},
         
         {PlugDataColour::dialogBackgroundColourId, Colour(228, 228, 228)},
-        {PlugDataColour::panelBackgroundColourId, Colour(250, 250, 250)},
+        {PlugDataColour::panelBackgroundColourId, Colour(241, 241, 241)},
         {PlugDataColour::panelTextColourId, Colour(90, 90, 90)},
         {PlugDataColour::panelActiveBackgroundColourId, Colour(228, 228, 228)},
         {PlugDataColour::panelActiveTextColourId, Colour(90, 90, 90)},
