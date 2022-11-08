@@ -19,11 +19,11 @@ struct CommentObject final : public TextBase
         if (!editor) {
             TextLayout textLayout;
             auto textArea = border.subtractedFrom(getLocalBounds());
-            AttributedString attributedCurrentText(currentText);
-            attributedCurrentText.setColour(findColour(PlugDataColour::canvasTextColourId));
-            attributedCurrentText.setFont(font);
-            attributedCurrentText.setJustification(justification);
-            textLayout.createLayout(attributedCurrentText, textArea.getWidth());
+            AttributedString attributedObjectText(objectText);
+            attributedObjectText.setColour(findColour(PlugDataColour::canvasTextColourId));
+            attributedObjectText.setFont(font);
+            attributedObjectText.setJustification(justification);
+            textLayout.createLayout(attributedObjectText, textArea.getWidth());
             textLayout.draw(g, textArea.toFloat());
 
             auto selected = cnv->isSelected(object);
@@ -57,8 +57,8 @@ struct CommentObject final : public TextBase
             auto newText = outgoingEditor->getText();
 
             bool changed;
-            if (currentText != newText) {
-                currentText = newText;
+            if (objectText != newText) {
+                objectText = newText;
                 repaint();
                 changed = true;
             } else {
@@ -76,8 +76,8 @@ struct CommentObject final : public TextBase
                         if (!_this)
                             return;
 
-                        auto* newName = currentText.toRawUTF8();
-                        libpd_renameobj(cnv->patch.getPointer(), static_cast<t_gobj*>(ptr), newName, currentText.getNumBytesAsUTF8());
+                        auto* newName = objectText.toRawUTF8();
+                        libpd_renameobj(cnv->patch.getPointer(), static_cast<t_gobj*>(ptr), newName, objectText.getNumBytesAsUTF8());
 
                         MessageManager::callAsync(
                             [_this]() {
@@ -122,8 +122,8 @@ struct CommentObject final : public TextBase
             editor->setSize(10, 10);
             addAndMakeVisible(editor.get());
 
-            editor->setText(currentText, false);
-            currentText = "";
+            editor->setText(objectText, false);
+            objectText = "";
             
             editor->addListener(this);
             editor->addKeyListener(this);

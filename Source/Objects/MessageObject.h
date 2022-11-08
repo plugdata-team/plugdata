@@ -88,7 +88,7 @@ struct MessageObject final : public TextBase
         g.setFont(font);
 
         auto textArea = border.subtractedFrom(getLocalBounds());
-        g.drawFittedText(currentText, textArea, justification, numLines, minimumHorizontalScale);
+        g.drawFittedText(objectText, textArea, justification, numLines, minimumHorizontalScale);
 
         bool selected = cnv->isSelected(object) && !cnv->isGraph;
         auto outlineColour = object->findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : PlugDataColour::objectOutlineColourId);
@@ -123,9 +123,9 @@ struct MessageObject final : public TextBase
     {
         String v = getSymbol();
         
-        if (currentText != v && !v.startsWith("click")) {
+        if (objectText != v && !v.startsWith("click")) {
             
-            currentText = v;
+            objectText = v;
             repaint();
         }
     }
@@ -155,7 +155,7 @@ struct MessageObject final : public TextBase
             editor->setSize(10, 10);
             addAndMakeVisible(editor.get());
 
-            editor->setText(currentText, false);
+            editor->setText(objectText, false);
             editor->addListener(this);
             editor->onFocusLost = [this]() {
                 hideEditor();
@@ -164,7 +164,7 @@ struct MessageObject final : public TextBase
             if (editor == nullptr) // may be deleted by a callback
                 return;
 
-            editor->setHighlightedRegion(Range<int>(0, currentText.length()));
+            editor->setHighlightedRegion(Range<int>(0, objectText.length()));
 
             resized();
             repaint();

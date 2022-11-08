@@ -23,7 +23,7 @@ struct SubpatchObject final : public TextBase
         if (static_cast<t_canvas*>(ptr)->gl_isgraph) {
             cnv->setSelected(object, false);
             object->cnv->main.sidebar.hideParameters();
-            object->setType(currentText, ptr);
+            object->setType(objectText, ptr);
         }
     };
 

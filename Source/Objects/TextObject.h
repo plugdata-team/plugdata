@@ -11,7 +11,7 @@ struct TextBase : public ObjectBase
         : ObjectBase(obj, parent)
         , isValid(valid)
     {
-        currentText = getText();
+        objectText = getText();
 
         // To get enter/exit messages
         addMouseListener(object, false);
@@ -40,7 +40,7 @@ struct TextBase : public ObjectBase
         int width = textObjectWidth * fontWidth + textWidthOffset;
         width = std::max(width, std::max({ 1, object->numInputs, object->numOutputs }) * 18);
 
-        numLines = getNumLines(currentText, width);
+        numLines = getNumLines(objectText, width);
         int height = numLines * 15 + 6;
 
         if (getWidth() != width || getHeight() != height) {
@@ -59,11 +59,11 @@ struct TextBase : public ObjectBase
 
         TextLayout textLayout;
         auto textArea = border.subtractedFrom(getLocalBounds());
-        AttributedString attributedCurrentText(currentText);
-        attributedCurrentText.setColour(object->findColour(PlugDataColour::canvasTextColourId));
-        attributedCurrentText.setFont(font);
-        attributedCurrentText.setJustification(justification);
-        textLayout.createLayout(attributedCurrentText, textArea.getWidth());
+        AttributedString attributedObjectText(objectText);
+        attributedObjectText.setColour(object->findColour(PlugDataColour::canvasTextColourId));
+        attributedObjectText.setFont(font);
+        attributedObjectText.setJustification(justification);
+        textLayout.createLayout(attributedObjectText, textArea.getWidth());
         textLayout.draw(g, textArea.toFloat());
 
         bool selected = cnv->isSelected(object) && !cnv->isGraph;
@@ -119,7 +119,7 @@ struct TextBase : public ObjectBase
         Rectangle<int> bounds = { x, y, textObj->te_width, h };
 
         int fontWidth = glist_fontwidth(cnv->patch.getPointer());
-        int textWidth = getBestTextWidth(currentText);
+        int textWidth = getBestTextWidth(objectText);
 
         pd->getCallbackLock()->exit();
 
@@ -134,7 +134,7 @@ struct TextBase : public ObjectBase
         int width = textObjectWidth * fontWidth + textWidthOffset;
         width = std::max(width, std::max({ 1, object->numInputs, object->numOutputs }) * 18);
 
-        numLines = getNumLines(currentText, width);
+        numLines = getNumLines(objectText, width);
         int height = numLines * 15 + 6;
 
         bounds.setWidth(width);
@@ -157,8 +157,8 @@ struct TextBase : public ObjectBase
             auto newText = outgoingEditor->getText();
 
             bool changed;
-            if (currentText != newText) {
-                currentText = newText;
+            if (objectText != newText) {
+                objectText = newText;
                 repaint();
                 changed = true;
             } else {
@@ -207,13 +207,13 @@ struct TextBase : public ObjectBase
             editor->setSize(10, 10);
             addAndMakeVisible(editor.get());
 
-            editor->setText(currentText, false);
+            editor->setText(objectText, false);
             editor->addListener(this);
 
             if (editor == nullptr) // may be deleted by a callback
                 return;
 
-            editor->setHighlightedRegion(Range<int>(0, currentText.length()));
+            editor->setHighlightedRegion(Range<int>(0, objectText.length()));
 
             resized();
             repaint();
@@ -241,7 +241,7 @@ protected:
     BorderSize<int> border { 1, 7, 1, 2 };
     float minimumHorizontalScale = 0.8f;
 
-    String currentText;
+    String objectText;
     Font font { 15.0f };
 
     int textObjectWidth = 0;
