@@ -13,3 +13,6 @@
 [submodule "Libraries/Catch2"]
 	path = Libraries/Catch2
 	url = https://github.com/catchorg/Catch2.git
+[submodule "Libraries/Heavy/hvcc"]
+	path = Libraries/Heavy/hvcc
+	url = https://github.com/Wasted-Audio/hvcc.git
