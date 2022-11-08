@@ -90,6 +90,10 @@ class Object : public Component, public Value::Listener, public Timer, private T
     Point<int> mouseDownPos;
     bool attachedToMouse = false;
 
+    Value hvccMode = Value(var(false));
+    
+    static inline const StringArray hvccObjects = {"!=", "%", "&", "&&", "|", "||", "*", "+", "-", "/", "<", "<<", "<=", "==", ">", ">=", ">>", "abs", "atan", "atan2", "b", "bang", "bendin", "bendout", "bng", "change", "clip", "cnv", "cos", "ctlin", "ctlout", "dbtopow", "dbtorms", "declare", "del", "delay", "div", "exp", "f", "float", "floatatom", "ftom", "hradio", "hsl", "i", "inlet", "int", "line", "loadbang", "log", "msg", "message", "makenote", "max", "metro", "min", "midiin", "midiout", "midirealtimein", "mod", "moses", "mtof", "nbx", "notein", "noteout", "outlet", "pack", "pgmin", "pgmout", "pipe", "poly", "pow", "powtodb", "print", "r", "random", "receive", "rmstodb", "route", "s", "sel", "select", "send", "sin", "spigot", "sqrt", "stripnote", "swap", "symbol", "symbolatom", "t", "table", "tabread", "tabwrite", "tan", "text", "tgl", "timer", "touchin", "touchout", "trigger", "unpack", "until", "vradio", "vsl", "wrap", "*~", "+~", "-~", "/~", "abs~", "adc~", "biquad~", "bp~", "catch~", "clip~", "cos~", "cpole~", "czero_rev~", "czero~", "dac~", "dbtopow~", "dbtorms~", "delread~", "delwrite~", "env~", "exp~", "ftom~", "hip~", "inlet~", "line~", "lop~", "max~", "min~", "mtof~", "noise~", "osc~", "outlet~", "phasor~", "powtodb~", "pow~", "q8_rsqrt~", "q8_sqrt~", "receive~", "rmstodb~", "rpole~", "rsqrt~", "rzero_rev~", "rzero~", "r~", "samphold~", "samplerate~", "send~", "sig~", "snapshot~", "sqrt~", "s~", "tabosc4~", "tabplay~", "tabread4~", "tabread~", "tabwrite~", "throw~", "vcf~", "vd~", "wrap~"};
+    
    private:
     void initialise();
 
@@ -100,10 +104,8 @@ class Object : public Component, public Value::Listener, public Timer, private T
     bool selectionStateChanged = false;
     bool wasLockedOnMouseDown = false;
     bool indexShown = false;
-    
     bool isHvccCompatible = true;
-    
-    static inline const StringArray hvccObjects = {"!=", "%", "&", "&&", "|", "||", "*", "+", "-", "/", "<", "<<", "<=", "==", ">", ">=", ">>", "abs", "atan", "atan2", "b", "bang", "bendin", "bendout", "bng", "change", "clip", "cnv", "cos", "ctlin", "ctlout", "dbtopow", "dbtorms", "declare", "del", "delay", "div", "exp", "f", "float", "floatatom", "ftom", "hradio", "hsl", "i", "inlet", "int", "line", "loadbang", "log", "msg", "makenote", "max", "metro", "min", "midiin", "midiout", "midirealtimein", "mod", "moses", "mtof", "nbx", "notein", "noteout", "outlet", "pack", "pgmin", "pgmout", "pipe", "poly", "pow", "powtodb", "print", "r", "random", "receive", "rmstodb", "route", "s", "sel", "select", "send", "sin", "spigot", "sqrt", "stripnote", "swap", "symbol", "symbolatom", "t", "table", "tabread", "tabwrite", "tan", "text", "tgl", "timer", "touchin", "touchout", "trigger", "unpack", "until", "vradio", "vsl", "wrap", "*~", "+~", "-~", "/~", "abs~", "adc~", "biquad~", "bp~", "catch~", "clip~", "cos~", "cpole~", "czero_rev~", "czero~", "dac~", "dbtopow~", "dbtorms~", "delread~", "delwrite~", "env~", "exp~", "ftom~", "hip~", "inlet~", "line~", "lop~", "max~", "min~", "mtof~", "noise~", "osc~", "outlet~", "phasor~", "powtodb~", "pow~", "q8_rsqrt~", "q8_sqrt~", "receive~", "rmstodb~", "rpole~", "rsqrt~", "rzero_rev~", "rzero~", "r~", "samphold~", "samplerate~", "send~", "sig~", "snapshot~", "sqrt~", "s~", "tabosc4~", "tabplay~", "tabread4~", "tabread~", "tabwrite~", "throw~", "vcf~", "vd~", "wrap~"};
+
 
     std::unique_ptr<TextEditor> newObjectEditor;
 

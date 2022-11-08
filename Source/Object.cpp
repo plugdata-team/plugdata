@@ -71,6 +71,7 @@ Object::~Object()
     if(!cnv->isBeingDeleted) {
         // Ensure there's no pointer to this object in the selection
         cnv->setSelected(this, false);
+        
     }
     
     if (attachedToMouse)
@@ -98,10 +99,12 @@ void Object::initialise()
     locked.referTo(cnv->pd->locked);
     commandLocked.referTo(cnv->pd->commandLocked);
     presentationMode.referTo(cnv->presentationMode);
-
+    hvccMode.referTo(cnv->main.hvccMode);
+    
     presentationMode.addListener(this);
     locked.addListener(this);
     commandLocked.addListener(this);
+    hvccMode.addListener(this);
 
     originalBounds.setBounds(0, 0, 0, 0);
 }
@@ -117,6 +120,25 @@ void Object::timerCallback()
 
 void Object::valueChanged(Value& v)
 {
+    if(v.refersToSameSourceAs(hvccMode))
+    {
+        if(gui) {
+            auto typeName = String(libpd_get_object_class_name(gui->ptr));
+            // Check hvcc compatibility
+            bool isSubpatch = gui ? gui->getPatch() != nullptr : false;
+            isHvccCompatible = !static_cast<bool>(hvccMode.getValue()) || isSubpatch || hvccObjects.contains(typeName);
+
+            if(!isHvccCompatible) {
+                cnv->pd->logError(String("Warning: object \"" + typeName + "\" is not supported in Compiled Mode").toRawUTF8());
+            }
+            
+            repaint();
+        }
+        
+        return;
+    }
+    
+    // else it was a lock/unlock action
     // Hide certain objects in GOP
     resized();
 
@@ -259,7 +281,7 @@ void Object::setType(const String& newType, void* existingObject)
     auto typeName = String(libpd_get_object_class_name(objectPtr));
     // Check hvcc compatibility
     bool isSubpatch = gui ? gui->getPatch() != nullptr : false;
-    isHvccCompatible = !static_cast<bool>(cnv->main.hvccMode.getValue()) || isSubpatch || hvccObjects.contains(typeName);
+    isHvccCompatible = !static_cast<bool>(hvccMode.getValue()) || isSubpatch || hvccObjects.contains(typeName);
 
     if(!isHvccCompatible) {
         cnv->pd->logError(String("Warning: object \"" + typeName + "\" is not supported in Compiled Mode").toRawUTF8());
