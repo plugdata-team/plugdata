@@ -346,11 +346,9 @@ public:
         if (getNumSelectedFiles()) {
             g.setColour(findColour(PlugDataColour::panelActiveBackgroundColourId));
             
-            if(auto* c = getItemComponent(getSelectedItem(0))) {
-                auto rect = c->getBounds();
-                rect = rect.withX(0).withWidth(getWidth());
-                g.fillRect(rect);
-            }
+            auto selectedRect = getSelectedItem(0)->getItemPosition(true);
+            selectedRect = selectedRect.withX(0).withWidth(getWidth());
+            g.fillRect(selectedRect);
         }
 
 
