@@ -167,55 +167,62 @@ protected:
 
 void PlugDataWindow::closeButtonPressed()
 {
-
-    // Show an ask to save dialog for each patch that is dirty
+     // Show an ask to save dialog for each patch that is dirty
     // Because save dialog uses an asynchronous callback, we can't loop over them (so have to chain them)
-    if (auto* editor = dynamic_cast<PlugDataPluginEditor*>(pluginHolder->processor->getActiveEditor())) {
-        static std::function<void(int)> checkCanvas;
-        checkCanvas = [this, editor](int i) mutable {
-            auto* cnv = editor->canvases[i];
-            
-            if(!cnv)  {
-                JUCEApplication::quit();
-                return;
+    if (auto* editor = dynamic_cast<PlugDataPluginEditor*>(pluginHolder->processor->getActiveEditor())) 
+    {
+        int idx = editor->tabbar.getCurrentTabIndex();
+        auto* cnv = editor->getCurrentCanvas();
+    
+        auto deleteFunc = [this, editor, cnv, idx]() mutable
+        { 
+            if (cnv)
+            {
+                cnv->patch.close();
+                // Find a way to removeObject from pd.patches... (none of these work properly):
+//                PlugDataPluginEditor *p;
+//                p->removePatch(idx, cnv);
+//                PlugDataAudioProcessor().patches.removeObject(&cnv->patch, true);
+            }
+            editor->canvases.removeObject(cnv);
+            editor->tabbar.removeTab(idx);
+            editor->tabbar.setCurrentTabIndex(editor->tabbar.getNumTabs() -1, true);
+            editor->updateCommandStatus();
+            closeButtonPressed();
+        };
+
+        if(!cnv) {
+            JUCEApplication::quit();
+            return;
             }
             
-            bool isLast = i == editor->canvases.size() - 1;
-            editor->tabbar.setCurrentTabIndex(i);
-
-            i++;
-
-            if (cnv->patch.isDirty()) {
+        else if (cnv->patch.isDirty()) {
+            Timer::callAfterDelay(10, [this, editor, cnv, deleteFunc]() {
                 Dialogs::showSaveDialog(&editor->openedDialog, editor, cnv->patch.getTitle(),
-                    [this, editor, cnv, i, isLast](int result) mutable {
+                    [this, editor, cnv, deleteFunc](int result) mutable {
                         if (result == 2) {
                             editor->saveProject(
-                                [this, cnv, editor, i, isLast]() mutable {
-                                    if (isLast) {
-                                        JUCEApplication::quit();
-                                    } else {
-                                        checkCanvas(i);
+                                [this, cnv, editor, deleteFunc]() mutable {
+                                    if (cnv) {
+                                        deleteFunc();
                                     }
                                 });
                         } else if (result == 1) {
-                            if (isLast) {
-                                JUCEApplication::quit();
-                            } else {
-                                checkCanvas(i);
+                            if (cnv) {
+                                deleteFunc();
                             }
-                        }
-                        // last option: cancel, where we end the chain
+                        } else if (!result) {
+                        
+                        } 
                     });
-            } else if (!isLast) {
-                checkCanvas(i);
-            } else {
-                JUCEApplication::quit();
-            }
-        };
-        
+            });
+        }
 
-        checkCanvas(0);
-    }
+        else if (cnv)
+        {
+            deleteFunc();
+        }
+     }
 }
 
 
