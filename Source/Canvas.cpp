@@ -557,7 +557,7 @@ void Canvas::mouseUp(const MouseEvent& e)
         }
     }
     
-    if(e.getNumberOfClicks() >= 2 && e.originalComponent == this) {
+    if(e.getNumberOfClicks() >= 2 && e.originalComponent == this && !isGraph) {
         objects.add(new Object(this, "", lastMousePosition));
     }
     
