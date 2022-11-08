@@ -167,14 +167,14 @@ struct SettingsPopup : public PopupMenu {
         popup->showMenuAsync(PopupMenu::Options().withMinimumWidth(170).withMaximumNumColumns(1).withTargetComponent(centre).withParentComponent(editor),
             [editor, &processor, popup, manager, centre, settingsTree](int result) {
             
-                if (result == 4) {
+                if (result == 5) {
                     
                     auto* dialog = new Dialog(&editor->openedDialog, editor, 675, 500, editor->getBounds().getCentreY() + 250, true);
                     auto* settingsDialog = new SettingsDialog(processor, dialog, manager, settingsTree);
                     dialog->setViewedComponent(settingsDialog);
                     editor->openedDialog.reset(dialog);
                 }
-                if (result == 5) {
+                if (result == 6) {
                     auto* dialog = new Dialog(&editor->openedDialog, editor, 675, 500, editor->getBounds().getCentreY() + 250, true);
                     auto* aboutPanel = new AboutPanel();
                     dialog->setViewedComponent(aboutPanel);
