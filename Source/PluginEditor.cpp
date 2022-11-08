@@ -86,8 +86,13 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p) : AudioPro
     theme.referTo(pd.settingsTree.getPropertyAsValue("Theme", nullptr));
     theme.addListener(this);
     
+#if PLUGDATA_STANDALONE
     if(!pd.settingsTree.hasProperty("HvccMode")) pd.settingsTree.setProperty("HvccMode", false, nullptr);
     hvccMode.referTo(pd.settingsTree.getPropertyAsValue("HvccMode", nullptr));
+#else
+    // Don't allow compiled mode in the plugin
+    hvccMode = false;
+#endif
     
     zoomScale.referTo(pd.settingsTree.getPropertyAsValue("Zoom", nullptr));
     zoomScale.addListener(this);
