@@ -140,12 +140,22 @@ struct SettingsPopup : public PopupMenu {
     themeSelector(tree),
     zoomSelector(tree)
     {
+        
+        
         addCustomItem(1, themeSelector, 70, 45, false);
         addCustomItem(2, zoomSelector, 70, 30, false);
-        
         addSeparator();
-        addItem(4, "Settings");
-        addItem(5, "About");
+        
+        // Toggles hvcc compatibility mode
+        bool hvccModeEnabled = settingsTree.hasProperty("HvccMode") ? static_cast<bool>(settingsTree.getProperty("HvccMode")) : false;
+        addItem("Compiled mode", true, hvccModeEnabled, [this]() mutable {
+            bool ticked = settingsTree.hasProperty("HvccMode") ? static_cast<bool>(settingsTree.getProperty("HvccMode")) : false;
+            settingsTree.setProperty("HvccMode", !ticked, nullptr);
+        });
+        //addItem(4, "Code exporter");
+        addSeparator();
+        addItem(5, "Settings");
+        addItem(6, "About");
     }
     
     static void showSettingsPopup(AudioProcessor& processor, AudioDeviceManager* manager, Component* centre, ValueTree settingsTree) {

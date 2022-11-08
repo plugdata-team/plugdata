@@ -557,6 +557,10 @@ void Canvas::mouseUp(const MouseEvent& e)
         }
     }
     
+    if(e.getNumberOfClicks() >= 2) {
+        objects.add(new Object(this, "", lastMousePosition));
+    }
+    
     
     // Releasing a connect-by-drag action
     if (connectingWithDrag && !connectingEdges.isEmpty() && nearestEdge)

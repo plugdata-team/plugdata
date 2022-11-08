@@ -17,6 +17,7 @@ extern "C"
 {
 #include <m_pd.h>
 #include <m_imp.h>
+#include <x_libpd_extra_utils.h>
 }
 
 Object::Object(Canvas* parent, const String& name, Point<int> position) : cnv(parent)
@@ -211,6 +212,7 @@ void Object::setType(const String& newType, void* existingObject)
     // Change object type
     String type = newType.upToFirstOccurrenceOf(" ", false, false);
 
+
     void* objectPtr;
     // "exists" indicates that this object already exists in pd
     // When setting exists to true, the gui needs to be assigned already
@@ -241,7 +243,7 @@ void Object::setType(const String& newType, void* existingObject)
     {
         objectPtr = existingObject;
     }
-
+        
     // Create gui for the object
     gui.reset(GUIObject::createGui(objectPtr, this));
 
@@ -251,6 +253,16 @@ void Object::setType(const String& newType, void* existingObject)
         gui->updateValue();
         gui->addMouseListener(this, true);
         addAndMakeVisible(gui.get());
+    }
+    
+    
+    auto typeName = String(libpd_get_object_class_name(objectPtr));
+    // Check hvcc compatibility
+    bool isSubpatch = gui ? gui->getPatch() != nullptr : false;
+    isHvccCompatible = !static_cast<bool>(cnv->main.hvccMode.getValue()) || isSubpatch || hvccObjects.contains(typeName);
+
+    if(!isHvccCompatible) {
+        cnv->pd->logError(String("Warning: object \"" + typeName + "\" is not supported in Compiled Mode").toRawUTF8());
     }
 
     // Update inlets/outlets
@@ -273,7 +285,21 @@ Array<Rectangle<float>> Object::getCorners() const
 
 void Object::paintOverChildren(Graphics& g)
 {
-    if (attachedToMouse)
+    if(!isHvccCompatible) {
+        g.saveState();
+
+        // Don't draw line over iolets!
+        for (auto& iolet : iolets)
+        {
+            g.excludeClipRegion(iolet->getBounds().reduced(2));
+        }
+
+        g.setColour(Colours::orange);
+        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(Object::margin + 1.0f), 2.0f, 2.0f);
+
+        g.restoreState();
+    }
+    else if (attachedToMouse)
     {
         g.saveState();
 

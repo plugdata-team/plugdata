@@ -388,15 +388,13 @@ struct PlugDataLook : public LookAndFeel_V4
             g.drawLine(Line<float>(w - 0.5f, 0, w - 0.5f, h), 1.0f);
         }
         
-        TextLayout textLayout;
         auto textArea = button.getLocalBounds();
         AttributedString attributedTabTitle(button.getButtonText());
         auto tabTextColour = findColour(isActive ? PlugDataColour::activeTabTextColourId : PlugDataColour::tabTextColourId);
         attributedTabTitle.setColour(tabTextColour);
         attributedTabTitle.setFont(Font(12));
         attributedTabTitle.setJustification(Justification::centred);
-        textLayout.createLayout(attributedTabTitle, textArea.getWidth());
-        textLayout.draw(g, textArea.toFloat());
+        attributedTabTitle.draw(g, textArea.toFloat());
     }
     
     void drawTabAreaBehindFrontButton(TabbedButtonBar& bar, Graphics& g, const int w, const int h) override
@@ -906,7 +904,7 @@ struct PlugDataLook : public LookAndFeel_V4
         const int maxToolTipWidth = 400;
         
         AttributedString s;
-        s.setJustification(Justification::centred);
+        s.setJustification(Justification::left);
         s.append(text, Font(tooltipFontSize, Font::bold), findColour(TooltipWindow::textColourId));
         
         TextLayout tl;
