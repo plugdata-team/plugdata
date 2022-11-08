@@ -966,7 +966,7 @@ void pd_typedmess(t_pd *x, t_symbol *s, int argc, t_atom *argv)
     int narg = 0;
     t_pd *bonzo;
     
-    //plugdata_forward_message(x, s, argc, argv);
+    plugdata_forward_message(x, s, argc, argv);
 
         /* check for messages that are handled by fixed slots in the class
         structure. */
