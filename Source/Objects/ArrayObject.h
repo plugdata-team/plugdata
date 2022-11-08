@@ -179,8 +179,8 @@ public:
 
             // More than a point per pixel will cause insane loads, and isn't actually helpful
             // Instead, linearly interpolate the vector to a max size of width in pixels
-            if (vec.size() >= getWidth()) {
-                points = rescale(points, getWidth());
+            if (vec.size() >= w) {
+                points = rescale(points, w);
             }
 
             float const dh = h / (scale[1] - scale[0]);
@@ -188,9 +188,14 @@ public:
 
             switch (array.getDrawType()) {
             case PdArray::DrawType::Curve: {
+                
+                
+                points.insert(points.begin(), points.front());
+                points.push_back(points.back());
+                
                 Path p;
                 p.startNewSubPath(0, h - (std::clamp(points[0], scale[0], scale[1]) - scale[0]) * dh);
-
+                
                 for (size_t i = 1; i < points.size() - 1; i += 2) {
                     float const y1 = h - (std::clamp(points[i - 1], scale[0], scale[1]) - scale[0]) * dh;
                     float const y2 = h - (std::clamp(points[i], scale[0], scale[1]) - scale[0]) * dh;

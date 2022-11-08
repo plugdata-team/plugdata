@@ -179,6 +179,7 @@ void PlugDataWindow::closeButtonPressed()
             if (cnv)
             {
                 cnv->patch.close();
+                dynamic_cast<PlugDataAudioProcessor*>(getAudioProcessor())->patches.removeObject(&cnv->patch, true);
                 // Find a way to removeObject from pd.patches... (none of these work properly):
 //                PlugDataPluginEditor *p;
 //                p->removePatch(idx, cnv);
