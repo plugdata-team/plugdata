@@ -86,6 +86,9 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p) : AudioPro
     theme.referTo(pd.settingsTree.getPropertyAsValue("Theme", nullptr));
     theme.addListener(this);
     
+    if(!pd.settingsTree.hasProperty("HvccMode")) pd.settingsTree.setProperty("HvccMode", false, nullptr);
+    hvccMode.referTo(pd.settingsTree.getPropertyAsValue("HvccMode", nullptr));
+    
     zoomScale.referTo(pd.settingsTree.getPropertyAsValue("Zoom", nullptr));
     zoomScale.addListener(this);
     

@@ -183,6 +183,8 @@ class PlugDataPluginEditor : public AudioProcessorEditor, public Value::Listener
     Value theme;
     Value zoomScale;
 
+    Value hvccMode;
+    
    private:
     
     std::unique_ptr<FileChooser> saveChooser;
