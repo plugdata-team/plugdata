@@ -116,7 +116,7 @@ void Canvas::paint(Graphics& g)
         g.drawLine(canvasOrigin.x - 1, canvasOrigin.y - 1, getWidth() + 2, canvasOrigin.y - 1);
     }
 
-    if (locked == var(false) && commandLocked == var(false) && !isGraph)
+    if (locked == var(false) && !isGraph)
     {
         const int objectGridSize = 25;
         const Rectangle<int> clipBounds = g.getClipBounds();
