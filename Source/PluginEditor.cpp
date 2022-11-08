@@ -512,9 +512,9 @@ void PlugDataPluginEditor::addTab(Canvas* cnv, bool deleteWhenClosed)
 
     auto* tabButton = tabbar.getTabbedButtonBar().getTabButton(tabIdx);
 
-    auto* closeButton = new TextButton(Icons::Clear);
+    auto* closeTabButton = new TextButton(Icons::Clear);
 
-    closeButton->onClick = [this, tabButton, deleteWhenClosed]() mutable
+    closeTabButton->onClick = [this, tabButton, deleteWhenClosed]() mutable
     {
         // We cant use the index from earlier because it might change!
         int idx = -1;
@@ -581,13 +581,13 @@ void PlugDataPluginEditor::addTab(Canvas* cnv, bool deleteWhenClosed)
             });
     };
 
-    closeButton->setName("tab:close");
-    closeButton->setColour(TextButton::buttonColourId, Colour());
-    closeButton->setColour(TextButton::buttonOnColourId, Colour());
-    closeButton->setColour(ComboBox::outlineColourId, Colour());
-    closeButton->setConnectedEdges(12);
-    tabButton->setExtraComponent(closeButton, TabBarButton::beforeText);
-    closeButton->setSize(28, 28);
+    closeTabButton->setName("tab:close");
+    closeTabButton->setColour(TextButton::buttonColourId, Colour());
+    closeTabButton->setColour(TextButton::buttonOnColourId, Colour());
+    closeTabButton->setColour(ComboBox::outlineColourId, Colour());
+    closeTabButton->setConnectedEdges(12);
+    tabButton->setExtraComponent(closeTabButton, TabBarButton::beforeText);
+    closeTabButton->setSize(28, 28);
 
     tabbar.repaint();
 
@@ -1126,10 +1126,10 @@ bool PlugDataPluginEditor::perform(const InvocationInfo& info)
             if(tabbar.getNumTabs() == 0) return true;
             
             int currentIdx = tabbar.getCurrentTabIndex();
-            auto* closeButton = dynamic_cast<TextButton*>(tabbar.getTabbedButtonBar().getTabButton(currentIdx)->getExtraComponent());
+            auto* closeTabButton = dynamic_cast<TextButton*>(tabbar.getTabbedButtonBar().getTabButton(currentIdx)->getExtraComponent());
             
             // Virtually click the close button
-            closeButton->triggerClick();
+            closeTabButton->triggerClick();
             
             return true;
         }
