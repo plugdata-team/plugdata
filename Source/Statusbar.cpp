@@ -293,14 +293,13 @@ Statusbar::~Statusbar()
 
 void Statusbar::valueChanged(Value& v)
 {
-    if (v.refersToSameSourceAs(locked))
-    {
-        lockButton->setButtonText(locked == var(true) ? Icons::Lock : Icons::Unlock);
-    }
+    bool lockIcon = locked == var(true) || commandLocked == var(true);
+    lockButton->setButtonText(lockIcon ? Icons::Lock : Icons::Unlock);
+    
     if (v.refersToSameSourceAs(commandLocked))
     {
-        auto c = static_cast<bool>(commandLocked.getValue()) ? findColour(PlugDataColour::toolbarActiveColourId).brighter(0.2f) : findColour(PlugDataColour::toolbarTextColourId);
-        lockButton->setColour(TextButton::textColourOffId, c);
+        auto c = static_cast<bool>(commandLocked.getValue()) ? findColour(PlugDataColour::toolbarActiveColourId) : findColour(PlugDataColour::toolbarTextColourId);
+        lockButton->setColour(PlugDataColour::toolbarTextColourId, c);
     }
 }
 
