@@ -613,6 +613,13 @@ public:
         pluginHolder->startPlaying();
     }
 
+    // Prevents CMD+W from terminating app
+    bool keyStateChanged (bool isKeyDown) override { 
+	if (KeyPress (87, ModifierKeys::commandModifier, 0).isCurrentlyDown())
+	return true;
+    else return false;
+    }
+   
     void closeButtonPressed() override; // implemented in PlugDataApp.cpp
 
     void maximiseButtonPressed() override
