@@ -195,7 +195,7 @@ void PlugDataWindow::closeButtonPressed()
             }
             
         else if (cnv->patch.isDirty()) {
-            Timer::callAfterDelay(10, [this, editor, cnv, deleteFunc]() mutable {
+            MessageManager::callAsync([this, editor, cnv, deleteFunc]() mutable {
                 Dialogs::showSaveDialog(&editor->openedDialog, editor, cnv->patch.getTitle(),
                     [this, editor, cnv, deleteFunc](int result) mutable {
                         if (result == 2) {
