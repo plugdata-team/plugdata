@@ -180,11 +180,8 @@ void PlugDataWindow::closeButtonPressed()
             {
                 cnv->patch.close();
                 dynamic_cast<PlugDataAudioProcessor*>(getAudioProcessor())->patches.removeObject(&cnv->patch, true);
-                // Find a way to removeObject from pd.patches... (none of these work properly):
-//                PlugDataPluginEditor *p;
-//                p->removePatch(idx, cnv);
-//                PlugDataAudioProcessor().patches.removeObject(&cnv->patch, true);
             }
+            
             editor->canvases.removeObject(cnv);
             editor->tabbar.removeTab(idx);
             editor->tabbar.setCurrentTabIndex(editor->tabbar.getNumTabs() -1, true);
@@ -198,7 +195,7 @@ void PlugDataWindow::closeButtonPressed()
             }
             
         else if (cnv->patch.isDirty()) {
-            Timer::callAfterDelay(10, [this, editor, cnv, deleteFunc]() {
+            Timer::callAfterDelay(10, [this, editor, cnv, deleteFunc]() mutable {
                 Dialogs::showSaveDialog(&editor->openedDialog, editor, cnv->patch.getTitle(),
                     [this, editor, cnv, deleteFunc](int result) mutable {
                         if (result == 2) {
