@@ -559,6 +559,8 @@ void Canvas::mouseUp(const MouseEvent& e)
     
     if(e.getNumberOfClicks() >= 2 && e.originalComponent == this && !isGraph) {
         objects.add(new Object(this, "", lastMousePosition));
+        deselectAll();
+        setSelected(objects[objects.size()-1], true); // Select newly created object
     }
     
     
