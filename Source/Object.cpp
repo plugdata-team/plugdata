@@ -521,11 +521,6 @@ void Object::updatePorts()
 void Object::mouseDown(const MouseEvent& e)
 {
     if(!getLocalBounds().contains(e.getPosition())) return;
-    
-    if (!static_cast<bool>(locked.getValue()) && ModifierKeys::getCurrentModifiers().isAltDown())
-    {
-        openHelpPatch();
-    }
 
     if (attachedToMouse)
     {
@@ -591,6 +586,11 @@ void Object::mouseUp(const MouseEvent& e)
 
     if (wasLockedOnMouseDown) return;
 
+        if (!cnv->didStartDragging && !static_cast<bool>(locked.getValue()) && ModifierKeys::getCurrentModifiers().isAltDown()) // Show help file on alt+mouseup if object were not draged
+    {
+        openHelpPatch();
+    }
+
     if (e.getDistanceFromDragStart() > 10 || e.getLengthOfMousePress() > 600)
     {
         cnv->connectingEdges.clear();
@@ -647,7 +647,6 @@ void Object::mouseDrag(const MouseEvent& e)
         auto newBounds = resizeZone.resizeRectangleBy(originalBounds, dragDistance);
         setBounds(newBounds);
         if(gui) gui->checkBounds();
-        
     }
     // Let canvas handle moving
     else
