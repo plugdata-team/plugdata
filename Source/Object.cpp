@@ -20,7 +20,8 @@ extern "C"
 #include <x_libpd_extra_utils.h>
 }
 
-Object::Object(Canvas* parent, const String& name, Point<int> position) : cnv(parent)
+Object::Object(Canvas* parent, String const& name, Point<int> position)
+    : cnv(parent)
 {
     setTopLeftPosition(position - Point<int>(margin, margin));
 
@@ -183,17 +184,17 @@ bool Object::hitTest(int x, int y)
 
 
 // To make iolets show/hide
-void Object::mouseEnter(const MouseEvent& e)
+void Object::mouseEnter(MouseEvent const& e)
 {
     repaint();
 }
 
-void Object::mouseExit(const MouseEvent& e)
+void Object::mouseExit(MouseEvent const& e)
 {
     repaint();
 }
 
-void Object::mouseMove(const MouseEvent& e)
+void Object::mouseMove(MouseEvent const& e)
 {
     if (!cnv->isSelected(this) || locked == var(true))
     {
@@ -229,7 +230,7 @@ void Object::updateBounds()
     resized();
 }
 
-void Object::setType(const String& newType, void* existingObject)
+void Object::setType(String const& newType, void* existingObject)
 {
     // Change object type
     String type = newType.upToFirstOccurrenceOf(" ", false, false);
@@ -297,7 +298,7 @@ void Object::setType(const String& newType, void* existingObject)
 Array<Rectangle<float>> Object::getCorners() const
 {
     auto rect = getLocalBounds().reduced(margin);
-    const float offset = 2.0f;
+    float const offset = 2.0f;
 
     Array<Rectangle<float>> corners = {Rectangle<float>(9.0f, 9.0f).withCentre(rect.getTopLeft().toFloat()).translated(offset, offset), Rectangle<float>(9.0f, 9.0f).withCentre(rect.getBottomLeft().toFloat()).translated(offset, -offset),
                                        Rectangle<float>(9.0f, 9.0f).withCentre(rect.getBottomRight().toFloat()).translated(-offset, -offset), Rectangle<float>(9.0f, 9.0f).withCentre(rect.getTopRight().toFloat()).translated(-offset, offset)};
@@ -425,12 +426,12 @@ void Object::resized()
     int index = 0;
     for (auto& iolet : iolets)
     {
-        const bool isInlet = iolet->isInlet;
-        const int position = index < numInputs ? index : index - numInputs;
-        const int total = isInlet ? numInputs : numOutputs;
-        const float yPosition = (isInlet ? (margin + 1) : getHeight() - margin) - ioletSize / 2.0f;
+        bool const isInlet = iolet->isInlet;
+        int const position = index < numInputs ? index : index - numInputs;
+        int const total = isInlet ? numInputs : numOutputs;
+        float const yPosition = (isInlet ? (margin + 1) : getHeight() - margin) - ioletSize / 2.0f;
 
-        const auto bounds = isInlet ? inletBounds : outletBounds;
+        auto const bounds = isInlet ? inletBounds : outletBounds;
 
         if (total == 1 && position == 0)
         {
@@ -439,7 +440,7 @@ void Object::resized()
         }
         else if (total > 1)
         {
-            const float ratio = (bounds.getWidth() - ioletSize) / static_cast<float>(total - 1);
+            float const ratio = (bounds.getWidth() - ioletSize) / static_cast<float>(total - 1);
             iolet->setBounds(bounds.getX() + ratio * position, yPosition, ioletSize, ioletSize);
         }
 
@@ -518,7 +519,7 @@ void Object::updatePorts()
     resized();
 }
 
-void Object::mouseDown(const MouseEvent& e)
+void Object::mouseDown(MouseEvent const& e)
 {
     if(!getLocalBounds().contains(e.getPosition())) return;
 
@@ -580,14 +581,15 @@ void Object::mouseDown(const MouseEvent& e)
     
 }
 
-void Object::mouseUp(const MouseEvent& e)
+void Object::mouseUp(MouseEvent const& e)
 {
     resizeZone = ResizableBorderComponent::Zone();
 
-    if (wasLockedOnMouseDown) return;
+    if (wasLockedOnMouseDown)
+        return;
 
-        if (!cnv->didStartDragging && !static_cast<bool>(locked.getValue()) && ModifierKeys::getCurrentModifiers().isAltDown()) // Show help file on alt+mouseup if object were not draged
-    {
+    if (!cnv->didStartDragging && !static_cast<bool>(locked.getValue()) && ModifierKeys::getCurrentModifiers().isAltDown()) {
+        // Show help file on alt+mouseup if object were not draged
         openHelpPatch();
     }
 
@@ -636,7 +638,7 @@ void Object::mouseUp(const MouseEvent& e)
     selectionStateChanged = false;
 }
 
-void Object::mouseDrag(const MouseEvent& e)
+void Object::mouseDrag(MouseEvent const& e)
 {
     if (wasLockedOnMouseDown) return;
     
