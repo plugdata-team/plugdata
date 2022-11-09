@@ -458,7 +458,6 @@ void Canvas::mouseDown(const MouseEvent& e)
 
 void Canvas::mouseDrag(const MouseEvent& e)
 {
-    
     bool draggingLabel = dynamic_cast<Label*>(e.originalComponent) != nullptr;
     // Ignore on graphs or when locked
     if ((isGraph || locked == var(true) || commandLocked == var(true)) && !draggingLabel)  {
@@ -596,6 +595,8 @@ void Canvas::mouseUp(const MouseEvent& e)
 
     lasso.endLasso();
     isDraggingLasso = false;
+    mouseDownObjectPositions.clear();
+    wasDuplicated = false;
 }
 
 void Canvas::updateSidebarSelection()
@@ -1166,7 +1167,7 @@ void Canvas::handleMouseDown(Component* component, const MouseEvent& e)
 
     for (auto* object : getSelectionOfType<Object>())
     {
-        object->mouseDownPos = object->getPosition();
+        mouseDownObjectPositions.emplace_back(object->getPosition());
         object->setBufferedToImage(true);
     }
 
@@ -1252,14 +1253,26 @@ void Canvas::handleMouseDrag(const MouseEvent& e)
     {
         dragDistance = grid.handleMouseDrag(componentBeingDragged, dragDistance, viewport->getViewArea());
     }
+
+    // alt+drag will duplicate selection
+    if (!wasDuplicated && ModifierKeys::getCurrentModifiers().isAltDown())  
+    {
+        wasDuplicated = true;
+        duplicateSelection();
+    }
+    if (wasDuplicated) // Correct distancing
+    {
+        dragDistance = Point<int>(e.getOffsetFromDragStart().x + 10, e.getOffsetFromDragStart().y + 10);
+    }
     
     auto selection = getSelectionOfType<Object>();
 
-    for (auto* object : selection)
+    // move all selected objects
+    for (auto i = 0; i<selection.size(); ++i)
     {
         // In case we dragged near the iolet and the canvas moved
         auto canvasMoveOffset = canvasDragStartPosition - getPosition();
-        object->setTopLeftPosition(object->mouseDownPos + dragDistance + canvasMoveOffset);
+        selection[i]->setTopLeftPosition(mouseDownObjectPositions[i] + dragDistance + canvasMoveOffset);
     }
     
     // This handles the "unsnap" action when you shift-drag a connected object
@@ -1361,7 +1374,6 @@ void Canvas::handleMouseDrag(const MouseEvent& e)
             }
         }
     }
-    
 }
 
 SelectedItemSet<WeakReference<Component>>& Canvas::getLassoSelection()
