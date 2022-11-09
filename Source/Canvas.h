@@ -141,6 +141,7 @@ class Canvas : public Component, public Value::Listener, public LassoSource<Weak
     SuggestionComponent* suggestor = nullptr;
     
     bool attachNextObjectToMouse = false;
+    bool wasDuplicated = false;
     
     // Multi-dragger variables
     bool didStartDragging = false;
@@ -150,7 +151,8 @@ class Canvas : public Component, public Value::Listener, public LassoSource<Weak
     pd::Storage storage;
     
     Point<int> lastMousePosition;
-    
+    std::vector<Point<int>> mouseDownObjectPositions;
+
    private:
     
     SafePointer<Object> objectSnappingInbetween;
