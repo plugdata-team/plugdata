@@ -285,6 +285,11 @@ private:
             openedEditor->setCaretPosition(openedEditor->getHighlightedRegion().getStart());
             return true;
         }
+        if (key == KeyPress::tabKey && !openedEditor->getHighlightedRegion().isEmpty()) {
+            openedEditor->setCaretPosition(openedEditor->getHighlightedRegion().getEnd());
+            //openedEditor->insertTextAtCaret(" "); // Will show argument suggestions
+            return true;
+        }
 
         if (state != ShowingObjects)
             return false;
