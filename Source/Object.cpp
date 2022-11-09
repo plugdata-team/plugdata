@@ -770,6 +770,7 @@ void Object::textEditorReturnKeyPressed(TextEditor& ed)
     if (newObjectEditor)
     {
         newObjectEditor->giveAwayKeyboardFocus();
+        cnv->grabKeyboardFocus(); 
     }
 }
 
