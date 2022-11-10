@@ -189,7 +189,8 @@ struct ToolchainInstaller : public Component, public Thread
     
     
 #if JUCE_LINUX
-    String getDistroID(){
+    std::pair<String, String> getDistroID()
+    {
         
         auto* cmd = "cat /etc/os-release";
         
@@ -248,11 +249,19 @@ struct ToolchainInstaller : public Component, public Thread
         
         auto items = StringArray::fromLines(String(ret));
         
+        String name;
+        String version;
+        
         for(auto& item : items) {
-            if(item.startsWith("PLATFORM_ID")) {
-                return item.fromFirstOccurrenceOf("=", false, false).trim();
+            if(item.startsWith("ID")) {
+                name = item.fromFirstOccurrenceOf("=", false, false).trim();
+            }
+            else if(item.startsWith("VERSION_ID")) {
+                version = item.fromFirstOccurrenceOf("=", false, false).trim();
             }
         }
+        
+        return {name, version};
     }
 #endif
     
@@ -269,20 +278,21 @@ struct ToolchainInstaller : public Component, public Thread
             downloadLocation += "Heavy-Win64.zip";
 #else
             
-            auto distroID = getDistroID();
+            auto [distroName, distroVersion] = getDistroID();
             
-            std::cout << distroID << std::endl;
+            std::cout << distroName << std::endl;
+            std::cout << distroVersion << std::endl;
             
-            if(distroID == "fedora:36") {
+            if(distroName == "fedora" && distroVersion == "36") {
                 downloadLocation += "Heavy-Fedora-36-x64.zip";
             }
-            else if(distroID == "fedora:35") {
+            else if(distroName == "fedora" && distroVersion == "35") {
                 downloadLocation += "Heavy-Fedora-35-x64.zip";
             }
-            else if(distroID == "ubuntu:22.04") {
+            else if(distroName == "ubuntu" && distroVersion == "22.04") {
                 downloadLocation += "Heavy-Ubuntu-22.04-x64.zip";
             }
-            else if(distroID == "ubuntu:20.04") {
+            else if(distroName == "ubuntu" && distroVersion == "20.04") {
                 downloadLocation += "Heavy-Ubuntu-20.04-x64.zip";
             }
             else {
