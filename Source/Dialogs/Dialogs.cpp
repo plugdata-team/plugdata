@@ -14,6 +14,7 @@
 #include "ArrayDialog.h"
 #include "SettingsDialog.h"
 #include "TextEditorDialog.h"
+#include "HeavyExportDialog.h"
 #include "Canvas.h"
 
 Component* Dialogs::showTextEditorDialog(String text, String filename, std::function<void(String, bool)> callback)
@@ -168,6 +169,15 @@ void Dialogs::showOkayCancelDialog(std::unique_ptr<Dialog>* target, Component* p
 {
     auto* dialog = new Dialog(target, parent, 400, 130, 160, false);
     auto* dialogContent = new OkayCancelDialog(dialog, title, callback);
+
+    dialog->setViewedComponent(dialogContent);
+    target->reset(dialog);
+}
+
+void Dialogs::showHeavyExportDialog(std::unique_ptr<Dialog>* target, Component* parent)
+{
+    auto* dialog = new Dialog(target, parent, 675, 500, parent->getBounds().getCentreY() + 250, false);
+    auto* dialogContent = new HeavyExportDialog(dialog);
 
     dialog->setViewedComponent(dialogContent);
     target->reset(dialog);
