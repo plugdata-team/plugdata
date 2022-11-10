@@ -155,7 +155,12 @@ struct ToolchainInstaller : public Component, public Thread
         {
             auto* lnf = dynamic_cast<PlugDataLook*>(&getLookAndFeel());
             
-            g.setColour(findColour(PlugDataColour::canvasTextColourId));
+            auto textColour = findColour(PlugDataColour::canvasTextColourId);
+            if(!isEnabled()) {
+                textColour = textColour.brighter(0.4f);
+            }
+            
+            g.setColour(textColour);
             
             g.setFont(lnf->iconFont.withHeight(24));
             g.drawText(iconText, 20, 5, 40, 40, Justification::centredLeft);
@@ -166,14 +171,16 @@ struct ToolchainInstaller : public Component, public Thread
             g.setFont(lnf->thinFont.withHeight(14));
             g.drawText(bottomText, 60, 25, getWidth() - 60, 16, Justification::centredLeft);
             
-            if(isMouseOver()) {
+            if(isMouseOver() && isEnabled()) {
                 g.drawRoundedRectangle(1, 1, getWidth() - 2, getHeight() - 2, 4.0f, 0.5f);
             }
         }
         
         void mouseUp(const MouseEvent& e)
         {
-            onClick();
+            if(isEnabled()) {
+                onClick();
+            }
         }
         
         void mouseEnter(const MouseEvent& e)
