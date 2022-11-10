@@ -339,7 +339,7 @@ struct ToolchainInstaller : public Component, public Thread
         
         g.setColour(findColour(PlugDataColour::canvasTextColourId));
         g.setFont(lnf->boldFont.withHeight(32));
-        g.drawText("Only x64 Windows and Linux are supported for now", 0, getHeight() / 2 - 150, getWidth(), 40, Justification::centred);
+        g.drawText("Non x64 platform not supported", 0, getHeight() / 2 - 150, getWidth(), 40, Justification::centred);
         
         g.setFont(lnf->thinFont.withHeight(23));
         g.drawText("We're working on it!", 0,  getHeight() / 2 - 120, getWidth(), 40, Justification::centred);
@@ -376,7 +376,6 @@ struct ToolchainInstaller : public Component, public Thread
     {
         installButton.setBounds(getLocalBounds().withSizeKeepingCentre(450, 50).translated(15, -30));
     }
-    
     
     void run() override
     {
