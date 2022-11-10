@@ -8,6 +8,8 @@
 
 #if JUCE_LINUX
 #include <unistd.h>
+#include <sys/types.h>
+#include <sys/wait.h>
 #endif
 
 class ExporterListBox  : public ListBox, private ListBoxModel
@@ -219,7 +221,7 @@ struct ToolchainInstaller : public Component, public Thread
                 exit(0);
                 break;
             case -1:
-                cerr << "getDistroID/fork() error\n" << endl;
+                std::cerr << "getDistroID/fork() error\n" << std::endl;
                 exit(1);
             default:
                 close(fd[1]);
