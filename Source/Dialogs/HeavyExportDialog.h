@@ -137,7 +137,7 @@ struct ToolchainInstaller : public Component, public Thread
 #if JUCE_MAC
             downloadLocation += "Heavy-MacOS-Universal.zip";
 #elif JUCE_WINDOWS
-            downloadLocation += "Heavy-Win-x64.zip";
+            downloadLocation += "Heavy-Win64.zip";
 #else
             // TODO: differentiate distros
             downloadLocation += "Heavy-Debian-x64.zip";
@@ -146,6 +146,7 @@ struct ToolchainInstaller : public Component, public Thread
             instream = URL(downloadLocation).createInputStream(URL::InputStreamOptions(URL::ParameterHandling::inAddress)
                                                        .withConnectionTimeoutMs(5000)
                                                        .withStatusCode(&statusCode));
+
             startThread(3);
         };
     }
@@ -229,6 +230,11 @@ struct ToolchainInstaller : public Component, public Thread
         if (!result.wasOk()) {
             return;
         }
+        
+        
+        #if JUCE_MAC || JUCE_LINUX
+        system(("chmod +x " + toolchain.getFullPathName() + "/Heavy").toRawUTF8());
+        #endif
         
         installProgress = 0.0f;
         
