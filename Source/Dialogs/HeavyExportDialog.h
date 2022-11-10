@@ -131,10 +131,20 @@ struct ToolchainInstaller : public Component, public Thread
         addAndMakeVisible(&installButton);
         
         installButton.onClick = [this](){
-            instream = URL("https://github.com/timothyschoen/HeavyDistributable/releases/download/v0.0.1/Heavy-MacOS-Universal.zip").createInputStream(URL::InputStreamOptions(URL::ParameterHandling::inAddress)
+            
+            String downloadLocation = "https://github.com/timothyschoen/HeavyDistributable/releases/download/v0.0.1/";
+            
+#if JUCE_MAC
+            downloadLocation += "Heavy-MacOS-Universal.zip";
+#elif JUCE_WINDOWS
+            downloadLocation += "Heavy-Win-x64.zip";
+#else
+            downloadLocation += "Heavy-Debian-x64.zip";
+#endif
+            
+            instream = URL(downloadLocation).createInputStream(URL::InputStreamOptions(URL::ParameterHandling::inAddress)
                                                        .withConnectionTimeoutMs(5000)
                                                        .withStatusCode(&statusCode));
-            
             startThread(3);
         };
     }
