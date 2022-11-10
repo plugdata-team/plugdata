@@ -189,7 +189,7 @@ struct ToolchainInstaller : public Component, public Thread
     
     
 #if JUCE_LINUX
-    std::pair<String, String> getDistroID()
+    std::tuple<String, String, String> getDistroID()
     {
         
         auto* cmd = "cat /etc/os-release";
@@ -250,18 +250,22 @@ struct ToolchainInstaller : public Component, public Thread
         auto items = StringArray::fromLines(String(ret));
         
         String name;
+        String idLike;
         String version;
         
         for(auto& item : items) {
             if(item.startsWith("ID=")) {
                 name = item.fromFirstOccurrenceOf("=", false, false).trim();
             }
+            else if(item.startsWith("ID_LIKE=")) {
+                idLike = item.fromFirstOccurrenceOf("=", false, false).trim();
+            }
             else if(item.startsWith("VERSION_ID=")) {
                 version = item.fromFirstOccurrenceOf("=", false, false).trim();
             }
         }
         
-        return {name, version};
+        return {name, idLike, version};
     }
 #endif
     
@@ -278,7 +282,7 @@ struct ToolchainInstaller : public Component, public Thread
             downloadLocation += "Heavy-Win64.zip";
 #else
             
-            auto [distroName, distroVersion] = getDistroID();
+            auto [distroName, distroBackupId, distroVersion] = getDistroID();
             
             std::cout << distroName << std::endl;
             std::cout << distroVersion << std::endl;
@@ -292,9 +296,22 @@ struct ToolchainInstaller : public Component, public Thread
             else if(distroName == "ubuntu" && distroVersion == "22.04") {
                 downloadLocation += "Heavy-Ubuntu-22.04-x64.zip";
             }
-            else if(distroName == "ubuntu" && distroVersion == "20.04") {
+            else if(distroBackupId == "ubuntu" || (distroName == "ubuntu" && distroVersion == "20.04")) {
                 downloadLocation += "Heavy-Ubuntu-20.04-x64.zip";
             }
+            else if(distroName == "arch" || distroBackupId == "arch") {
+                downloadLocation += "Heavy-Arch-x64.zip";
+            }
+            else if(distroId == "debian" || distroBackupId == "debian") {
+                downloadLocation += "Heavy-Debian-x64.zip";
+            }
+            else if(distroId == "opensuse-leap" || distroBackupId == "suse") {
+                downloadLocation += "Heavy-OpenSUSE-Leap-x64.zip";
+            }
+            else if(distroId == "mageia") {
+                downloadLocation += "Heavy-Mageia-x64.zip";
+            }
+            // If we're not sure, just try the debian one and pray
             else {
                 downloadLocation += "Heavy-Debian-x64.zip";
             }
