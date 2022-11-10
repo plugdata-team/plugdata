@@ -313,7 +313,7 @@ struct ToolchainInstaller : public Component, public Thread
             else if(distroName == "debian" || distroBackupName == "debian") {
                 downloadLocation += "Heavy-Debian-x64.zip";
             }
-            else if(distroName == "opensuse-leap" || distroBackupName == "suse") {
+            else if(distroName == "opensuse-leap" || distroBackupName.contains("suse")) {
                 downloadLocation += "Heavy-OpenSUSE-Leap-x64.zip";
             }
             else if(distroName == "mageia") {
