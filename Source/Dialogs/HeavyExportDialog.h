@@ -295,9 +295,6 @@ struct ToolchainInstaller : public Component, public Thread
             
             auto [distroName, distroBackupName, distroVersion] = getDistroID();
             
-            std::cout << distroName << std::endl;
-            std::cout << distroVersion << std::endl;
-            
             if(distroName == "fedora" && distroVersion == "36") {
                 downloadLocation += "Heavy-Fedora-36-x64.zip";
             }
