@@ -272,6 +272,10 @@ struct ToolchainInstaller : public Component, public Thread
     ToolchainInstaller() : Thread("Toolchain Install Thread") {
         addAndMakeVisible(&installButton);
         
+#if (JUCE_LINUX || JUCE_WINDOWS) && (!defined(__x86_64__) && !defined(_M_X64))
+        installButton.setEnabled(false);
+#endif
+        
         installButton.onClick = [this](){
             
             String downloadLocation = "https://github.com/timothyschoen/HeavyDistributable/releases/download/v0.0.1/";
@@ -331,13 +335,23 @@ struct ToolchainInstaller : public Component, public Thread
         auto* lnf = dynamic_cast<PlugDataLook*>(&getLookAndFeel());
         if(!lnf) return;
         
+#if (JUCE_LINUX || JUCE_WINDOWS) && (!defined(__x86_64__) && !defined(_M_X64))
+        
+        g.setColour(findColour(PlugDataColour::canvasTextColourId));
+        g.setFont(lnf->boldFont.withHeight(32));
+        g.drawText("Only x64 Windows and Linux are supported for now", 0, getHeight() / 2 - 150, getWidth(), 40, Justification::centred);
+        
+        g.setFont(lnf->thinFont.withHeight(23));
+        g.drawText("We're working on it!", 0,  getHeight() / 2 - 120, getWidth(), 40, Justification::centred);
+#else
+        
         g.setColour(findColour(PlugDataColour::canvasTextColourId));
         g.setFont(lnf->boldFont.withHeight(32));
         g.drawText("Toolchain not found", 0, getHeight() / 2 - 150, getWidth(), 40, Justification::centred);
         
         g.setFont(lnf->thinFont.withHeight(23));
         g.drawText("Install the toolchain to get started", 0,  getHeight() / 2 - 120, getWidth(), 40, Justification::centred);
-        
+#endif
         
         if(installProgress != 0.0f)
         {
