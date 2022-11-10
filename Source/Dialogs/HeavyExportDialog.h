@@ -6,6 +6,10 @@
 
 #include "Canvas.h"
 
+#if JUCE_LINUX
+#include <unistd.h>
+#endif
+
 class ExporterListBox  : public ListBox, private ListBoxModel
 {
 public:
@@ -143,7 +147,7 @@ struct ToolchainInstaller : public Component, public Thread
         {
             setInterceptsMouseClicks(true, false);
         }
-
+        
         
         void paint(Graphics& g)
         {
@@ -181,6 +185,76 @@ struct ToolchainInstaller : public Component, public Thread
         }
     };
     
+    
+#if JUCE_LINUX
+    String getDistroID(){
+        
+        auto* cmd = "cat /etc/os-release";
+        
+        int bufSize = 2048;
+        auto* buff = new char[bufSize];
+        
+        char* ret = NULL;
+        std::string str = "";
+        
+        int fd[2];
+        int oldFd[3];
+        pipe(fd);
+        
+        oldFd[0] = dup(STDIN_FILENO);
+        oldFd[1] = dup(STDOUT_FILENO);
+        oldFd[2] = dup(STDERR_FILENO);
+        
+        int pid = fork();
+        switch(pid){
+            case 0:
+                close(fd[0]);
+                close(STDOUT_FILENO);
+                close(STDERR_FILENO);
+                dup2(fd[1], STDOUT_FILENO);
+                dup2(fd[1], STDERR_FILENO);
+                system(cmd);
+                //execlp((const char*)cmd, cmd,0);
+                close (fd[1]);
+                exit(0);
+                break;
+            case -1:
+                cerr << "getDistroID/fork() error\n" << endl;
+                exit(1);
+            default:
+                close(fd[1]);
+                dup2(fd[0], STDIN_FILENO);
+                
+                int rc = 1;
+                while (rc > 0){
+                    rc = read(fd[0], buff, bufSize);
+                    str.append(buff, rc);
+                    //memset(buff, 0, bufSize);
+                }
+                
+                ret = new char [strlen((char*)str.c_str())];
+                
+                strcpy(ret, (char*)str.c_str());
+                
+                waitpid(pid, NULL, 0);
+                close(fd[0]);
+        }
+        
+        dup2(STDIN_FILENO, oldFd[0]);
+        dup2(STDOUT_FILENO, oldFd[1]);
+        dup2(STDERR_FILENO, oldFd[2]);
+        
+        auto items = StringArray::fromLines(String(ret));
+        
+        for(auto& item : items) {
+            if(item.startsWith("PLATFORM_ID")) {
+                return item.fromFirstOccurranceOf("=");
+            }
+        }
+        return ret;
+    }
+#endif
+    
     ToolchainInstaller() : Thread("Toolchain Install Thread") {
         addAndMakeVisible(&installButton);
         
@@ -189,14 +263,29 @@ struct ToolchainInstaller : public Component, public Thread
             String downloadLocation = "https://github.com/timothyschoen/HeavyDistributable/releases/download/v0.0.1/";
             
             auto os = SystemStats::getOperatingSystemName();
-            std::cout << os << std::endl;
+            
 #if JUCE_MAC
             downloadLocation += "Heavy-MacOS-Universal.zip";
 #elif JUCE_WINDOWS
             downloadLocation += "Heavy-Win64.zip";
 #else
-            // TODO: differentiate distros
-            downloadLocation += "Heavy-Debian-x64.zip";
+            
+            auto distroID = getDistroID();
+            if(distroID == "fedora:36") {
+                downloadLocation += "Heavy-Fedora-36-x64.zip";
+            }
+            else if(distroID == "fedora:35") {
+                downloadLocation += "Heavy-Fedora-35-x64.zip";
+            }
+            else if(distroID == "ubuntu:22.04") {
+                downloadLocation += "Heavy-Ubuntu-22.04-x64.zip";
+            }
+            else if(distroID == "ubuntu:20.04") {
+                downloadLocation += "Heavy-Ubuntu-20.04-x64.zip";
+            }
+            else {
+                downloadLocation += "Heavy-Debian-x64.zip";
+            }           
 #endif
             
             instream = URL(downloadLocation).createInputStream(URL::InputStreamOptions(URL::ParameterHandling::inAddress)
@@ -325,7 +414,7 @@ struct ExporterPanel : public Component, public Value::Listener, public Timer, p
     
     TextEditor projectNameEditor;
     TextEditor projectCopyrightEditor;
-
+    
     File patchFile;
     File openedPatchFile;
     
@@ -384,7 +473,7 @@ struct ExporterPanel : public Component, public Value::Listener, public Timer, p
                         validPatchSelected = false;
                     }
                 }
-            );
+                                         );
             };
         };
         
@@ -408,12 +497,12 @@ struct ExporterPanel : public Component, public Value::Listener, public Timer, p
             auto constexpr folderChooserFlags = FileBrowserComponent::saveMode | FileBrowserComponent::canSelectDirectories | FileBrowserComponent::warnAboutOverwriting;
             
             saveChooser = std::make_unique<FileChooser>("Export directory", File::getSpecialLocation(File::userHomeDirectory), "", true);
-
+            
             saveChooser->launchAsync(folderChooserFlags,
-                [this](FileChooser const& fileChooser) {
-                    auto const file = fileChooser.getResult();
-                    outputPathEditor.setText(file.getFullPathName());
-                });
+                                     [this](FileChooser const& fileChooser) {
+                auto const file = fileChooser.getResult();
+                outputPathEditor.setText(file.getFullPathName());
+            });
         };
         
     }
@@ -563,13 +652,13 @@ struct HeavyExportDialog : public Component
     ExporterPanel exporterPanel;
     
     inline static File toolchain = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory).getChildFile("PlugData").getChildFile("Toolchain");
-
+    
     HeavyExportDialog(Dialog* dialog) : exporterPanel(dynamic_cast<PlugDataPluginEditor*>(dialog->parentComponent)) {
         hasToolchain = toolchain.exists();
         
         addChildComponent(installer);
         addChildComponent(exporterPanel);
-
+        
         installer.toolchainInstalledCallback = [this](){
             hasToolchain = true;
             exporterPanel.setVisible(true);
@@ -583,7 +672,7 @@ struct HeavyExportDialog : public Component
             installer.setVisible(true);
         }
     }
-
+    
     
     void paint(Graphics& g)
     {
@@ -598,5 +687,5 @@ struct HeavyExportDialog : public Component
         installer.setBounds(b);
         
     }
-
+    
 };
