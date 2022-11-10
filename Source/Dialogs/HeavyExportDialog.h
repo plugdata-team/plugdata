@@ -248,7 +248,7 @@ struct ToolchainInstaller : public Component, public Thread
         
         for(auto& item : items) {
             if(item.startsWith("PLATFORM_ID")) {
-                return item.fromFirstOccurrenceOf("=");
+                return item.fromFirstOccurrenceOf("=", false, false);
             }
         }
         return ret;
