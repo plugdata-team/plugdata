@@ -348,23 +348,25 @@ void Canvas::mouseDown(MouseEvent const& e)
         viewportPositionBeforeMiddleDrag = viewport->getViewPosition();
     }
     // Left-click
-    else if (!ModifierKeys::getCurrentModifiers().isRightButtonDown())
-    {
+    else if (!ModifierKeys::getCurrentModifiers().isRightButtonDown()) {
         // Connecting objects by dragging
-        if (source == this || source == graphArea)
-        {
-            if (!connectingEdges.isEmpty())
-            {
+        if (source == this || source == graphArea) {
+            if (!connectingEdges.isEmpty()) {
                 connectingEdges.clear();
                 repaint();
             }
 
             lasso.beginLasso(e.getEventRelativeTo(this), this);
             isDraggingLasso = true;
-            
-            if (!ModifierKeys::getCurrentModifiers().isShiftDown() && !ModifierKeys::getCurrentModifiers().isCommandDown())
-            {
+
+            // Lock if cmd + click on canvas
+            if (e.mods.isCommandDown()) {
                 deselectAll();
+                if (locked.getValue()) {
+                    locked.setValue(false);
+                } else {
+                    locked.setValue(true);
+                }
             }
         }
 
@@ -377,8 +379,7 @@ void Canvas::mouseDown(MouseEvent const& e)
         main.updateCommandStatus();
     }
     // Right click
-    else
-    {
+    else {
         // Info about selection status
         auto selectedBoxes = getSelectionOfType<Object>();
 
