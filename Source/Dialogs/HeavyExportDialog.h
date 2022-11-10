@@ -139,6 +139,7 @@ struct ToolchainInstaller : public Component, public Thread
 #elif JUCE_WINDOWS
             downloadLocation += "Heavy-Win-x64.zip";
 #else
+            // TODO: differentiate distros
             downloadLocation += "Heavy-Debian-x64.zip";
 #endif
             
