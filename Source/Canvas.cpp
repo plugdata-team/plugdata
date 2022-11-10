@@ -1153,7 +1153,7 @@ void Canvas::handleMouseDown(Component* component, MouseEvent const& e)
     if (e.mods.isShiftDown()) {
         // select multiple objects
         wasSelectedOnMouseDown = isSelected(component);
-    } else if (!e.mods.isAltDown() || !isSelected(component)) {
+    } else if (!isSelected(component)) {
         // not interfeering with alt + drag
         // unselect all & select clicked object
         for (auto* object : objects) {
@@ -1190,6 +1190,15 @@ void Canvas::handleMouseUp(Component* component, MouseEvent const& e)
     if (e.mods.isShiftDown() && wasSelectedOnMouseDown && !didStartDragging) {
         // Unselect object if selected
         setSelected(component, false);
+    } else if (!e.mods.isShiftDown() && !e.mods.isAltDown() && isSelected(component) && !didStartDragging) {
+        // unselect all & select clicked object
+        for (auto* object : objects) {
+            setSelected(object, false);
+        }
+        for (auto* connection : connections) {
+            setSelected(connection, false);
+        }
+        setSelected(component, true);
     }
 
     if (didStartDragging)
