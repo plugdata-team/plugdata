@@ -253,10 +253,10 @@ struct ToolchainInstaller : public Component, public Thread
         String version;
         
         for(auto& item : items) {
-            if(item.startsWith("ID")) {
+            if(item.startsWith("ID=")) {
                 name = item.fromFirstOccurrenceOf("=", false, false).trim();
             }
-            else if(item.startsWith("VERSION_ID")) {
+            else if(item.startsWith("VERSION_ID=")) {
                 version = item.fromFirstOccurrenceOf("=", false, false).trim();
             }
         }
