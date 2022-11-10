@@ -248,7 +248,7 @@ struct ToolchainInstaller : public Component, public Thread
         
         for(auto& item : items) {
             if(item.startsWith("PLATFORM_ID")) {
-                return item.fromFirstOccurranceOf("=");
+                return item.fromFirstOccurrenceOf("=");
             }
         }
         return ret;
@@ -261,9 +261,7 @@ struct ToolchainInstaller : public Component, public Thread
         installButton.onClick = [this](){
             
             String downloadLocation = "https://github.com/timothyschoen/HeavyDistributable/releases/download/v0.0.1/";
-            
-            auto os = SystemStats::getOperatingSystemName();
-            
+                        
 #if JUCE_MAC
             downloadLocation += "Heavy-MacOS-Universal.zip";
 #elif JUCE_WINDOWS
@@ -285,7 +283,7 @@ struct ToolchainInstaller : public Component, public Thread
             }
             else {
                 downloadLocation += "Heavy-Debian-x64.zip";
-            }           
+            }
 #endif
             
             instream = URL(downloadLocation).createInputStream(URL::InputStreamOptions(URL::ParameterHandling::inAddress)
