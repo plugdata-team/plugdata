@@ -107,6 +107,8 @@ struct Dialogs {
     static void showObjectMenu(PlugDataPluginEditor* parent, Component* target);
     
     static void showOkayCancelDialog(std::unique_ptr<Dialog>* target, Component* parent, const String& title, std::function<void(bool)> callback);
+    
+    static void showHeavyExportDialog(std::unique_ptr<Dialog>* target, Component* parent);
 };
 
 

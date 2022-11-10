@@ -140,7 +140,7 @@ struct SettingsPopup : public PopupMenu {
     themeSelector(tree),
     zoomSelector(tree)
     {
-        
+        auto* editor = dynamic_cast<PlugDataPluginEditor*>(processor.getActiveEditor());
         
         addCustomItem(1, themeSelector, 70, 45, false);
         addCustomItem(2, zoomSelector, 70, 30, false);
@@ -154,6 +154,12 @@ struct SettingsPopup : public PopupMenu {
             settingsTree.setProperty("HvccMode", !ticked, nullptr);
         });
 #endif
+
+        addItem("Compile", [this, editor]() mutable {
+            Dialogs::showHeavyExportDialog(&editor->openedDialog, editor);
+        });
+        
+
         //addItem(4, "Code exporter");
         addSeparator();
         addItem(5, "Settings");
