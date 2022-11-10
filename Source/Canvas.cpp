@@ -519,20 +519,23 @@ void Canvas::mouseDrag(MouseEvent const& e)
     {
         auto& connectingEdge = connectingEdges.getReference(0);
         
-        auto* nearest = Iolet::findNearestEdge(this, e.getEventRelativeTo(this).getPosition(), !connectingEdge->isInlet, connectingEdge->object);
-
-        if (nearest && nearestEdge != nearest)
-        {
-            nearest->isTargeted = true;
-
-            if (nearestEdge)
+        
+        if(connectingEdge) {
+            auto* nearest = Iolet::findNearestEdge(this, e.getEventRelativeTo(this).getPosition(), !connectingEdge->isInlet, connectingEdge->object);
+            
+            if (nearest && nearestEdge != nearest)
             {
-                nearestEdge->isTargeted = false;
+                nearest->isTargeted = true;
+                
+                if (nearestEdge)
+                {
+                    nearestEdge->isTargeted = false;
+                    nearestEdge->repaint();
+                }
+                
+                nearestEdge = nearest;
                 nearestEdge->repaint();
             }
-
-            nearestEdge = nearest;
-            nearestEdge->repaint();
         }
 
         repaint();
@@ -635,6 +638,9 @@ void Canvas::paintOverChildren(Graphics& g)
     // Draw connections in the making over everything else
     for(auto& iolet : connectingEdges)
     {
+        // In case we delete the object while connecting
+        if(!iolet) continue;
+        
         Point<int> ioletPos = iolet->getCanvasBounds().getCentre();
 
         Path path;
