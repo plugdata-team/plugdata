@@ -13,6 +13,7 @@ if(MSVC)
 endif()
 
 add_subdirectory(JUCE)
+add_subdirectory(Heavy)
 
 set(SFONT_LIBS "")
 
