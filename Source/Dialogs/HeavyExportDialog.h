@@ -250,10 +250,9 @@ struct ToolchainInstaller : public Component, public Thread
         
         for(auto& item : items) {
             if(item.startsWith("PLATFORM_ID")) {
-                return item.fromFirstOccurrenceOf("=", false, false);
+                return item.fromFirstOccurrenceOf("=", false, false).trim();
             }
         }
-        return ret;
     }
 #endif
     
@@ -271,6 +270,9 @@ struct ToolchainInstaller : public Component, public Thread
 #else
             
             auto distroID = getDistroID();
+            
+            std::cout << distroID << std::endl;
+            
             if(distroID == "fedora:36") {
                 downloadLocation += "Heavy-Fedora-36-x64.zip";
             }
