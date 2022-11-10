@@ -118,8 +118,8 @@ void Canvas::paint(Graphics& g)
 
     if (locked == var(false) && !isGraph)
     {
-        const int objectGridSize = 25;
-        const Rectangle<int> clipBounds = g.getClipBounds();
+        int const objectGridSize = 25;
+        Rectangle<int> const clipBounds = g.getClipBounds();
 
         g.setColour(findColour(PlugDataColour::canvasDotsColourId));
 
@@ -336,7 +336,7 @@ void Canvas::updateGuiParameters()
     }
 }
 
-void Canvas::mouseDown(const MouseEvent& e)
+void Canvas::mouseDown(MouseEvent const& e)
 {
     auto* source = e.originalComponent;
     
@@ -348,23 +348,25 @@ void Canvas::mouseDown(const MouseEvent& e)
         viewportPositionBeforeMiddleDrag = viewport->getViewPosition();
     }
     // Left-click
-    else if (!ModifierKeys::getCurrentModifiers().isRightButtonDown())
-    {
+    else if (!ModifierKeys::getCurrentModifiers().isRightButtonDown()) {
         // Connecting objects by dragging
-        if (source == this || source == graphArea)
-        {
-            if (!connectingEdges.isEmpty())
-            {
+        if (source == this || source == graphArea) {
+            if (!connectingEdges.isEmpty()) {
                 connectingEdges.clear();
                 repaint();
             }
 
             lasso.beginLasso(e.getEventRelativeTo(this), this);
             isDraggingLasso = true;
-            
-            if (!ModifierKeys::getCurrentModifiers().isShiftDown() && !ModifierKeys::getCurrentModifiers().isCommandDown())
-            {
+
+            // Lock if cmd + click on canvas
+            if (e.mods.isCommandDown()) {
                 deselectAll();
+                if (locked.getValue()) {
+                    locked.setValue(false);
+                } else {
+                    locked.setValue(true);
+                }
             }
         }
 
@@ -377,8 +379,7 @@ void Canvas::mouseDown(const MouseEvent& e)
         main.updateCommandStatus();
     }
     // Right click
-    else
-    {
+    else {
         // Info about selection status
         auto selectedBoxes = getSelectionOfType<Object>();
 
@@ -456,9 +457,8 @@ void Canvas::mouseDown(const MouseEvent& e)
     }
 }
 
-void Canvas::mouseDrag(const MouseEvent& e)
+void Canvas::mouseDrag(MouseEvent const& e)
 {
-    
     bool draggingLabel = dynamic_cast<Label*>(e.originalComponent) != nullptr;
     // Ignore on graphs or when locked
     if ((isGraph || locked == var(true) || commandLocked == var(true)) && !draggingLabel)  {
@@ -489,8 +489,8 @@ void Canvas::mouseDrag(const MouseEvent& e)
     if(viewport)
     {
         auto viewportEvent = e.getEventRelativeTo(viewport);
-        const auto scrollSpeed = 8.5f;
-        
+        auto const scrollSpeed = 8.5f;
+
         // Middle mouse pan
         if (ModifierKeys::getCurrentModifiers().isMiddleButtonDown() && !draggingLabel)
         {
@@ -539,7 +539,7 @@ void Canvas::mouseDrag(const MouseEvent& e)
     }
 }
 
-void Canvas::mouseUp(const MouseEvent& e)
+void Canvas::mouseUp(MouseEvent const& e)
 {
     setMouseCursor(MouseCursor::NormalCursor);
     main.updateCommandStatus();
@@ -559,6 +559,8 @@ void Canvas::mouseUp(const MouseEvent& e)
     
     if(e.getNumberOfClicks() >= 2 && e.originalComponent == this && !isGraph) {
         objects.add(new Object(this, "", lastMousePosition));
+        deselectAll();
+        setSelected(objects[objects.size()-1], true); // Select newly created object
     }
     
     
@@ -594,6 +596,8 @@ void Canvas::mouseUp(const MouseEvent& e)
 
     lasso.endLasso();
     isDraggingLasso = false;
+    mouseDownObjectPositions.clear();
+    wasDuplicated = false;
 }
 
 void Canvas::updateSidebarSelection()
@@ -642,7 +646,7 @@ void Canvas::paintOverChildren(Graphics& g)
     }
 }
 
-void Canvas::mouseMove(const MouseEvent& e)
+void Canvas::mouseMove(MouseEvent const& e)
 {
     if (!connectingEdges.isEmpty())
     {
@@ -652,7 +656,7 @@ void Canvas::mouseMove(const MouseEvent& e)
     lastMousePosition = e.getPosition();
 }
 
-bool Canvas::keyPressed(const KeyPress& key)
+bool Canvas::keyPressed(KeyPress const& key)
 {
     if (main.getCurrentCanvas() != this || isGraph) return false;
 
@@ -1138,24 +1142,22 @@ bool Canvas::isSelected(Component* component) const
     return selectedComponents.isSelected(component);
 }
 
-void Canvas::handleMouseDown(Component* component, const MouseEvent& e)
+void Canvas::handleMouseDown(Component* component, MouseEvent const& e)
 {
-    if (!isSelected(component))
-    {
-        if (!(e.mods.isShiftDown() || e.mods.isCommandDown()))  {
-            for(auto* object : objects) {
-                if(isSelected(object)) {
-                    setSelected(object, false);
-                }
-            }
-            
-            for(auto* connection : connections) {
-                setSelected(connection, false);
-            }
+    if (e.mods.isShiftDown()) {
+        // select multiple objects
+        wasSelectedOnMouseDown = isSelected(component);
+    } else if (!e.mods.isAltDown() || !isSelected(component)) {
+        // not interfeering with alt + drag
+        // unselect all & select clicked object
+        for (auto* object : objects) {
+            setSelected(object, false);
         }
-
-        setSelected(component, true);
+        for (auto* connection : connections) {
+            setSelected(connection, false);
+        }
     }
+    setSelected(component, true);
 
     if (auto* object = dynamic_cast<Object*>(component))
     {
@@ -1164,7 +1166,7 @@ void Canvas::handleMouseDown(Component* component, const MouseEvent& e)
 
     for (auto* object : getSelectionOfType<Object>())
     {
-        object->mouseDownPos = object->getPosition();
+        mouseDownObjectPositions.emplace_back(object->getPosition());
         object->setBufferedToImage(true);
     }
 
@@ -1177,8 +1179,13 @@ void Canvas::handleMouseDown(Component* component, const MouseEvent& e)
 }
 
 // Call from component's mouseUp
-void Canvas::handleMouseUp(Component* component, const MouseEvent& e)
+void Canvas::handleMouseUp(Component* component, MouseEvent const& e)
 {
+    if (e.mods.isShiftDown() && wasSelectedOnMouseDown && !didStartDragging) {
+        // Unselect object if selected
+        setSelected(component, false);
+    }
+
     if (didStartDragging)
     {
         auto objects = std::vector<void*>();
@@ -1234,7 +1241,7 @@ void Canvas::handleMouseUp(Component* component, const MouseEvent& e)
 }
 
 // Call from component's mouseDrag
-void Canvas::handleMouseDrag(const MouseEvent& e)
+void Canvas::handleMouseDrag(MouseEvent const& e)
 {
     /** Ensure tiny movements don't start a drag. */
     if (!didStartDragging && e.getDistanceFromDragStart() < minimumMovementToStartDrag) return;
@@ -1250,14 +1257,26 @@ void Canvas::handleMouseDrag(const MouseEvent& e)
     {
         dragDistance = grid.handleMouseDrag(componentBeingDragged, dragDistance, viewport->getViewArea());
     }
+
+    // alt+drag will duplicate selection
+    if (!wasDuplicated && ModifierKeys::getCurrentModifiers().isAltDown())  
+    {
+        wasDuplicated = true;
+        duplicateSelection();
+    }
+    if (wasDuplicated) // Correct distancing
+    {
+        dragDistance = Point<int>(e.getOffsetFromDragStart().x + 10, e.getOffsetFromDragStart().y + 10);
+    }
     
     auto selection = getSelectionOfType<Object>();
 
-    for (auto* object : selection)
+    // move all selected objects
+    for (auto i = 0; i<selection.size(); ++i)
     {
         // In case we dragged near the iolet and the canvas moved
         auto canvasMoveOffset = canvasDragStartPosition - getPosition();
-        object->setTopLeftPosition(object->mouseDownPos + dragDistance + canvasMoveOffset);
+        selection[i]->setTopLeftPosition(mouseDownObjectPositions[i] + dragDistance + canvasMoveOffset);
     }
     
     // This handles the "unsnap" action when you shift-drag a connected object
@@ -1359,7 +1378,6 @@ void Canvas::handleMouseDrag(const MouseEvent& e)
             }
         }
     }
-    
 }
 
 SelectedItemSet<WeakReference<Component>>& Canvas::getLassoSelection()
@@ -1372,7 +1390,7 @@ void Canvas::removeSelectedComponent(Component* component)
     selectedComponents.deselect(component);
 }
 
-void Canvas::findLassoItemsInArea(Array<WeakReference<Component>>& itemsFound, const Rectangle<int>& area)
+void Canvas::findLassoItemsInArea(Array<WeakReference<Component>>& itemsFound, Rectangle<int> const& area)
 {
     for (auto* element : objects)
     {
