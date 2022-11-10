@@ -286,7 +286,7 @@ struct ToolchainInstaller : public Component, public Thread
             downloadLocation += "Heavy-Win64.zip";
 #else
             
-            auto [distroName, distroBackupId, distroVersion] = getDistroID();
+            auto [distroName, distroBackupName, distroVersion] = getDistroID();
             
             std::cout << distroName << std::endl;
             std::cout << distroVersion << std::endl;
@@ -300,19 +300,19 @@ struct ToolchainInstaller : public Component, public Thread
             else if(distroName == "ubuntu" && distroVersion == "22.04") {
                 downloadLocation += "Heavy-Ubuntu-22.04-x64.zip";
             }
-            else if(distroBackupId == "ubuntu" || (distroName == "ubuntu" && distroVersion == "20.04")) {
+            else if(distroBackupName == "ubuntu" || (distroName == "ubuntu" && distroVersion == "20.04")) {
                 downloadLocation += "Heavy-Ubuntu-20.04-x64.zip";
             }
-            else if(distroName == "arch" || distroBackupId == "arch") {
+            else if(distroName == "arch" || distroBackupName == "arch") {
                 downloadLocation += "Heavy-Arch-x64.zip";
             }
-            else if(distroId == "debian" || distroBackupId == "debian") {
+            else if(distroName == "debian" || distroBackupName == "debian") {
                 downloadLocation += "Heavy-Debian-x64.zip";
             }
-            else if(distroId == "opensuse-leap" || distroBackupId == "suse") {
+            else if(distroName == "opensuse-leap" || distroBackupName == "suse") {
                 downloadLocation += "Heavy-OpenSUSE-Leap-x64.zip";
             }
-            else if(distroId == "mageia") {
+            else if(distroName == "mageia") {
                 downloadLocation += "Heavy-Mageia-x64.zip";
             }
             // If we're not sure, just try the debian one and pray
