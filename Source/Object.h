@@ -88,6 +88,7 @@ class Object : public Component, public Value::Listener, public Timer, private T
     static inline constexpr int height = 37;
 
     Point<int> mouseDownPos;
+    
     bool attachedToMouse = false;
 
     Value hvccMode = Value(var(false));
