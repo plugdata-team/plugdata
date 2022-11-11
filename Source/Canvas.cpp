@@ -549,19 +549,6 @@ void Canvas::mouseUp(MouseEvent const& e)
 {
     setMouseCursor(MouseCursor::NormalCursor);
     main.updateCommandStatus();
-    if (auto* object = dynamic_cast<Object*>(e.originalComponent))
-    {
-        
-        if (!popupMenu.getNumItems() && !ModifierKeys::getCurrentModifiers().isShiftDown() && !ModifierKeys::getCurrentModifiers().isCommandDown() && e.getDistanceFromDragStart() < 2 && object->getParentComponent() == this)
-        {
-            deselectAll();
-        }
-
-        if (locked == var(false) && !isGraph && object->getParentComponent() == this)
-        {
-            setSelected(object, true);
-        }
-    }
     
     if(e.getNumberOfClicks() >= 2 && e.originalComponent == this && !isGraph) {
         objects.add(new Object(this, "", lastMousePosition));
