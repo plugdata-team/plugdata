@@ -368,6 +368,9 @@ void Canvas::mouseDown(MouseEvent const& e)
                     locked.setValue(true);
                 }
             }
+            else if(!e.mods.isShiftDown()) {
+                deselectAll();
+            }
         }
 
         // Update selected object in sidebar when we click a object
@@ -1287,9 +1290,9 @@ void Canvas::handleMouseDrag(MouseEvent const& e)
     auto selection = getSelectionOfType<Object>();
 
     // move all selected objects
-    for (auto i = 0; i<selection.size(); ++i)
+    for (auto i = 0; i < selection.size(); ++i)
     {
-        // In case we dragged near the iolet and the canvas moved
+        // In case we dragged near the edge and the canvas moved
         auto canvasMoveOffset = canvasDragStartPosition - getPosition();
         selection[i]->setTopLeftPosition(mouseDownObjectPositions[i] + dragDistance + canvasMoveOffset);
     }
