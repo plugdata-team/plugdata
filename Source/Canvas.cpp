@@ -589,7 +589,8 @@ void Canvas::mouseUp(MouseEvent const& e)
 
     lasso.endLasso();
     isDraggingLasso = false;
-    mouseDownObjectPositions.clear();
+    for(auto* object : objects) object->mouseDownPos = {0, 0};
+    
     wasDuplicated = false;
 }
 
@@ -1162,7 +1163,7 @@ void Canvas::handleMouseDown(Component* component, MouseEvent const& e)
 
     for (auto* object : getSelectionOfType<Object>())
     {
-        mouseDownObjectPositions.emplace_back(object->getPosition());
+        object->mouseDownPos = object->getPosition();
         object->setBufferedToImage(true);
     }
 
@@ -1277,11 +1278,11 @@ void Canvas::handleMouseDrag(MouseEvent const& e)
     auto selection = getSelectionOfType<Object>();
 
     // move all selected objects
-    for (auto i = 0; i < selection.size(); ++i)
+    for (auto* object : getSelectionOfType<Object>())
     {
         // In case we dragged near the edge and the canvas moved
         auto canvasMoveOffset = canvasDragStartPosition - getPosition();
-        selection[i]->setTopLeftPosition(mouseDownObjectPositions[i] + dragDistance + canvasMoveOffset);
+        object->setTopLeftPosition(object->mouseDownPos + dragDistance + canvasMoveOffset);
     }
     
     // This handles the "unsnap" action when you shift-drag a connected object
