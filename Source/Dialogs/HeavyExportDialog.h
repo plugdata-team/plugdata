@@ -285,7 +285,7 @@ struct ToolchainInstaller : public Component, public Thread
         
         installButton.onClick = [this](){
             
-            String downloadLocation = "https://github.com/timothyschoen/HeavyDistributable/releases/download/v0.0.1/";
+            String downloadLocation = "https://github.com/timothyschoen/HeavyDistributable/releases/download/v0.0.2/";
                         
 #if JUCE_MAC
             downloadLocation += "Heavy-MacOS-Universal.zip";
@@ -332,6 +332,9 @@ struct ToolchainInstaller : public Component, public Thread
             startThread(3);
         };
     }
+    
+    
+
     
     
     void paint(Graphics& g) override {
@@ -450,6 +453,8 @@ struct ToolchainInstaller : public Component, public Thread
 
 struct ExporterPanel : public Component, public Value::Listener, public Timer, public ChildProcess, public Thread
 {
+    inline static File toolchain = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory).getChildFile("PlugData").getChildFile("Toolchain");
+    
     ExporterListBox exporters;
     TextButton exportButton = TextButton("Export");
     
@@ -531,7 +536,6 @@ struct ExporterPanel : public Component, public Value::Listener, public Timer, p
             auto outputDir = File(outputPathEditor.getText());
             targetFolderSelected = outputDir.getParentDirectory().exists() && !outputDir.existsAsFile();
         };
-        
         
         exportButton.onClick = [this, editor](){
             auto outDir = File(outputPathEditor.getText());
@@ -643,6 +647,21 @@ private:
         repaint();
     }
     
+    String createMetadata(String exporter, std::map<String, String> settings) {
+        auto metadata = File::createTempFile(".json");
+        
+        String metaString = "{\n";
+        metaString +=  "\"" + exporter + "\": {\n";
+        for(auto& [key, value] : settings) {
+            metaString += "\"" + key + "\": \"" + value + "\"\n";
+        }
+        metaString += "}\n";
+        metaString += "}";
+        
+        metadata.replaceWithText(metaString);
+        return metadata.getFullPathName();
+    }
+    
     void startExport(String pdPatch, StringArray exporters, String outdir, String name, String copyright, StringArray searchPaths) {
         StringArray args = {heavyExecutable.getFullPathName(), pdPatch, "-o" + outdir};
         
@@ -658,8 +677,13 @@ private:
             args.add("\"" + name + "\"");
         }
         
+        args.add("-m" + createMetadata("daisy", {{"board", "seed"}}));
+        
+        args.add("-gdaisy");
         
         start(args);
+        
+        
         startThread(3);
     }
     
@@ -667,7 +691,19 @@ private:
         startTimer(10);
         waitForProcessToFinish(-1);
         
-        std::cout << readAllProcessOutput() << std::endl;
+        auto bin = toolchain.getChildFile("usr").getChildFile("bin");
+        auto libDaisy = toolchain.getChildFile("usr").getChildFile("utils").getChildFile("libDaisy");
+        auto make = bin.getChildFile("make");
+        auto compiler = bin.getChildFile("arm-none-eabi-gcc");
+                
+        // TODO: thread safety
+        auto outputPath = File(outputPathEditor.getText());
+        libDaisy.copyDirectoryTo(outputPath.getChildFile("daisy").getChildFile("libDaisy"));
+        
+        outputPath.getChildFile("ir").deleteRecursively();
+        outputPath.getChildFile("hv").deleteRecursively();
+        outputPath.getChildFile("c").deleteRecursively();
+        
         MessageManager::callAsync([this](){
             stopTimer();
             exportProgress = 0.0f;
