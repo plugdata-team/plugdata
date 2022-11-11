@@ -904,7 +904,7 @@ struct PlugDataLook : public LookAndFeel_V4
         const int maxToolTipWidth = 400;
         
         AttributedString s;
-        s.setJustification(Justification::left);
+        s.setJustification(Justification::centred);
         s.append(text, Font(tooltipFontSize, Font::bold), findColour(TooltipWindow::textColourId));
         
         TextLayout tl;
