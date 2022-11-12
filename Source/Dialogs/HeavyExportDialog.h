@@ -212,8 +212,9 @@ private:
     
     void run() override {
         startTimer(10);
-        //waitForProcessToFinish(-1);
+
         String output = readAllProcessOutput();
+        std::cout << output << std::endl;
         
         finishExport(outputPathEditor.getText());
         
@@ -346,11 +347,26 @@ public:
         // TODO: thread safety
 
         auto outputFile = File(outPath);
-        libDaisy.copyDirectoryTo(outputFile.getChildFile("daisy").getChildFile("libDaisy"));
+        libDaisy.copyDirectoryTo(outputFile.getChildFile("libDaisy"));
         
         outputFile.getChildFile("ir").deleteRecursively();
         outputFile.getChildFile("hv").deleteRecursively();
         outputFile.getChildFile("c").deleteRecursively();
+        
+        
+        auto workingDir = File::getCurrentWorkingDirectory();
+        auto sourceDir = outputFile.getChildFile("daisy").getChildFile("source");
+        
+        sourceDir.setAsCurrentWorkingDirectory();
+        
+        ChildProcess builder;
+        builder.start("make -f " + sourceDir.getChildFile("Makefile").getFullPathName() + " GCC_PATH=/opt/homebrew/bin/");
+        
+        String output = builder.readAllProcessOutput();
+        std::cout << output << std::endl;
+        
+        workingDir.setAsCurrentWorkingDirectory();
+        
     }
     
     void resized() override
