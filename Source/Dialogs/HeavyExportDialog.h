@@ -340,8 +340,15 @@ public:
     {
         auto bin = toolchain.getChildFile("bin");
         auto libDaisy = toolchain.getChildFile("lib").getChildFile("libDaisy");
+        
+#if JUCE_WINDOWS
+        auto make = bin.getChildFile("make.exe");
+        auto compiler = bin.getChildFile("arm-none-eabi-gcc.exe");
+#else
         auto make = bin.getChildFile("make");
         auto compiler = bin.getChildFile("arm-none-eabi-gcc");
+#endif
+
                 
         // TODO: thread safety
 
@@ -365,8 +372,11 @@ public:
         
         auto projectName = projectNameEditor.getText();
         
+#if JUCE_WINDOWS
         String command = "cd " + sourceDir.getFullPathName() + " && " + make.getFullPathName() + " -j4 -f " + sourceDir.getChildFile("Makefile").getFullPathName() + " GCC_PATH=" + gccPath + " PROJECT_NAME=" + projectName;
-        
+#else
+        String command = "cd " + sourceDir.getFullPathName() + " && " + make.getFullPathName() + " -j4 -f " + sourceDir.getChildFile("Makefile").getFullPathName() + " GCC_PATH=" + gccPath + " PROJECT_NAME=" + projectName;
+#endif
         // Use std::system because on Mac, juce ChildProcess is slow when using Rosetta
         std::system(command.toRawUTF8());
 
@@ -510,12 +520,10 @@ struct ToolchainInstaller : public Component, public Thread
     struct InstallButton : public Component
     {
         
-#if JUCE_MAC
-        String downloadSize = "40 MB";
-#elif JUCE_WINDOWS
-        String downloadSize = "20 MB";
+#if JUCE_WINDOWS
+        String downloadSize = "4 GB";
 #else
-        String downloadSize = "15 MB";
+        String downloadSize = "1 GB";
 #endif
         
         String iconText = Icons::SaveAs;
