@@ -211,10 +211,8 @@ private:
     virtual void finishExport(String outputPath) = 0;
     
     void run() override {
-        startTimer(10);
 
         String output = readAllProcessOutput();
-        std::cout << output << std::endl;
         
         finishExport(outputPathEditor.getText());
         
@@ -242,10 +240,9 @@ public:
         return metadata.getFullPathName();
     }
     
-    
     float exportProgress = 0.0f;
     
-    inline static File heavyExecutable = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory).getChildFile("PlugData").getChildFile("Toolchain").getChildFile("Heavy");
+    inline static File heavyExecutable = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory).getChildFile("PlugData").getChildFile("Toolchain").getChildFile("bin").getChildFile("Heavy").getChildFile("Heavy");
     
     
     Value exporterSelected = Value(var(false));
@@ -282,6 +279,7 @@ public:
     
        start(args);
        startThread(3);
+       startTimer(10);
    }
     
     void finishExport(String outPath) override
@@ -335,12 +333,13 @@ public:
        
        start(args);
        startThread(3);
+       startTimer(35);
    }
     
     void finishExport(String outPath) override
     {
-        auto bin = toolchain.getChildFile("usr").getChildFile("bin");
-        auto libDaisy = toolchain.getChildFile("usr").getChildFile("utils").getChildFile("libDaisy");
+        auto bin = toolchain.getChildFile("bin");
+        auto libDaisy = toolchain.getChildFile("utils").getChildFile("libDaisy");
         auto make = bin.getChildFile("make");
         auto compiler = bin.getChildFile("arm-none-eabi-gcc");
                 
@@ -353,18 +352,24 @@ public:
         outputFile.getChildFile("hv").deleteRecursively();
         outputFile.getChildFile("c").deleteRecursively();
         
-        
         auto workingDir = File::getCurrentWorkingDirectory();
         auto sourceDir = outputFile.getChildFile("daisy").getChildFile("source");
         
         sourceDir.setAsCurrentWorkingDirectory();
         
-        ChildProcess builder;
-        builder.start("make -f " + sourceDir.getChildFile("Makefile").getFullPathName() + " GCC_PATH=/opt/homebrew/bin/");
+        sourceDir.getChildFile("build").createDirectory();
+        toolchain.getChildFile("lib").getChildFile("heavy-static.a").copyFileTo(sourceDir.getChildFile("build").getChildFile("heavy-static.a"));
+        toolchain.getChildFile("utils").getChildFile("daisy_makefile").copyFileTo(sourceDir.getChildFile("Makefile"));
         
-        String output = builder.readAllProcessOutput();
-        std::cout << output << std::endl;
+        auto gccPath = toolchain.getChildFile("bin").getFullPathName();
         
+        auto projectName = projectNameEditor.getText();
+        
+        String command = make.getFullPathName() + " -j4 -f " + sourceDir.getChildFile("Makefile").getFullPathName() + " GCC_PATH=" + gccPath + " PROJECT_NAME=" + projectName;
+        
+        // Use std::system because on Mac, juce ChildProcess is slow when using Rosetta
+        std::system(command.toRawUTF8());
+
         workingDir.setAsCurrentWorkingDirectory();
         
     }
@@ -746,7 +751,7 @@ struct ToolchainInstaller : public Component, public Thread
         
         
 #if JUCE_MAC || JUCE_LINUX
-        system(("chmod +x " + toolchain.getFullPathName() + "/Heavy").toRawUTF8());
+        system(("chmod +x " + toolchain.getFullPathName() + "/bin/Heavy/Heavy").toRawUTF8());
 #endif
         
         installProgress = 0.0f;
