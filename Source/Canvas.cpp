@@ -592,6 +592,7 @@ void Canvas::mouseUp(MouseEvent const& e)
     for(auto* object : objects) object->mouseDownPos = {0, 0};
     
     wasDuplicated = false;
+    mouseDownObjectPositions.clear();
 }
 
 void Canvas::updateSidebarSelection()
@@ -1164,6 +1165,7 @@ void Canvas::handleMouseDown(Component* component, MouseEvent const& e)
     for (auto* object : getSelectionOfType<Object>())
     {
         object->mouseDownPos = object->getPosition();
+        mouseDownObjectPositions.emplace_back(object->getPosition()); //store object positions for alt+drag
         object->setBufferedToImage(true);
     }
 
@@ -1234,7 +1236,11 @@ void Canvas::handleMouseUp(Component* component, MouseEvent const& e)
 
         synchronise();
     }
-    
+
+    if (wasDuplicated) {
+        patch.endUndoSequence("Duplicate");
+    }
+
     for (auto* object : getSelectionOfType<Object>())
     {
         object->setBufferedToImage(false);
@@ -1257,7 +1263,11 @@ void Canvas::handleMouseDrag(MouseEvent const& e)
         main.updateCommandStatus();
     }
 
+    auto selection = getSelectionOfType<Object>();
+
     auto dragDistance = e.getOffsetFromDragStart();
+    // In case we dragged near the edge and the canvas moved
+    auto canvasMoveOffset = canvasDragStartPosition - getPosition();
 
     if (static_cast<bool>(gridEnabled.getValue()) && componentBeingDragged)
     {
@@ -1265,26 +1275,28 @@ void Canvas::handleMouseDrag(MouseEvent const& e)
     }
 
     // alt+drag will duplicate selection
-    if (!wasDuplicated && ModifierKeys::getCurrentModifiers().isAltDown())  
-    {
+    if (!wasDuplicated && ModifierKeys::getCurrentModifiers().isAltDown()) {
+        // Single for undo for duplicate + move
+        patch.startUndoSequence("Duplicate");
+        // Duplicate once
         wasDuplicated = true;
         duplicateSelection();
     }
-    if (wasDuplicated) // Correct distancing
-    {
-        dragDistance = Point<int>(e.getOffsetFromDragStart().x + 10, e.getOffsetFromDragStart().y + 10);
-    }
-    
-    auto selection = getSelectionOfType<Object>();
 
     // move all selected objects
-    for (auto* object : getSelectionOfType<Object>())
-    {
-        // In case we dragged near the edge and the canvas moved
-        auto canvasMoveOffset = canvasDragStartPosition - getPosition();
-        object->setTopLeftPosition(object->mouseDownPos + dragDistance + canvasMoveOffset);
+    if (wasDuplicated) {
+        // Correct distancing
+        dragDistance = Point<int>(e.getOffsetFromDragStart().x + 10, e.getOffsetFromDragStart().y + 10);
+        // Move duplicated objects according to the origin position
+        for (auto object : selection) {
+            object->setTopLeftPosition(mouseDownObjectPositions[selection.indexOf(object)] + dragDistance + canvasMoveOffset);
+        }
+    } else {
+        for (auto* object : selection) {
+            object->setTopLeftPosition(object->mouseDownPos + dragDistance + canvasMoveOffset);
+        }
     }
-    
+
     // This handles the "unsnap" action when you shift-drag a connected object
     if(e.mods.isShiftDown() && selection.size() == 1 && e.getDistanceFromDragStart() > 15) {
         auto* object = selection.getFirst();
