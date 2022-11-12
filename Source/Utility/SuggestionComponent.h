@@ -354,6 +354,16 @@ private:
         // Update suggestions
         auto found = library.autocomplete(typedText.toStdString());
 
+        if(static_cast<bool>(currentBox->cnv->main.hvccMode.getValue())) {
+            std::vector<std::pair<String, bool>> hvccObjectsFound;
+            for(auto& object : found) {
+                if(Object::hvccObjects.contains(object.first)) {
+                    hvccObjectsFound.push_back(object);
+                }
+            }
+            
+            found = hvccObjectsFound;
+        }
         numOptions = static_cast<int>(found.size());
 
         for (int i = 0; i < std::min<int>(buttons.size(), numOptions); i++) {
