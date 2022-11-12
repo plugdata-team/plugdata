@@ -333,13 +333,13 @@ public:
        
        start(args);
        startThread(3);
-       startTimer(35);
+       startTimer(15);
    }
     
     void finishExport(String outPath) override
     {
         auto bin = toolchain.getChildFile("bin");
-        auto libDaisy = toolchain.getChildFile("utils").getChildFile("libDaisy");
+        auto libDaisy = toolchain.getChildFile("lib").getChildFile("libDaisy");
         auto make = bin.getChildFile("make");
         auto compiler = bin.getChildFile("arm-none-eabi-gcc");
                 
@@ -359,13 +359,13 @@ public:
         
         sourceDir.getChildFile("build").createDirectory();
         toolchain.getChildFile("lib").getChildFile("heavy-static.a").copyFileTo(sourceDir.getChildFile("build").getChildFile("heavy-static.a"));
-        toolchain.getChildFile("utils").getChildFile("daisy_makefile").copyFileTo(sourceDir.getChildFile("Makefile"));
+        toolchain.getChildFile("share").getChildFile("daisy_makefile").copyFileTo(sourceDir.getChildFile("Makefile"));
         
         auto gccPath = toolchain.getChildFile("bin").getFullPathName();
         
         auto projectName = projectNameEditor.getText();
         
-        String command = make.getFullPathName() + " -j4 -f " + sourceDir.getChildFile("Makefile").getFullPathName() + " GCC_PATH=" + gccPath + " PROJECT_NAME=" + projectName;
+        String command = "cd " + sourceDir.getFullPathName() + " && " + make.getFullPathName() + " -j4 -f " + sourceDir.getChildFile("Makefile").getFullPathName() + " GCC_PATH=" + gccPath + " PROJECT_NAME=" + projectName;
         
         // Use std::system because on Mac, juce ChildProcess is slow when using Rosetta
         std::system(command.toRawUTF8());
