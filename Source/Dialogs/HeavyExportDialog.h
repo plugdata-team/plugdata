@@ -56,6 +56,8 @@ public:
     
     void logToConsole(String text) {
         console.setText(console.getText() + text);
+        
+        std::cout << "CONSOLE: " << text << std::endl;
     }
     
     void paint(Graphics& g) override
@@ -97,7 +99,7 @@ public:
     
     void resized() override {
         console.setBounds(proportionOfWidth (0.1f), 80, proportionOfWidth (0.8f), getHeight() - 172);
-        continueButton.setBounds(proportionOfWidth (0.45f), getHeight() - 30, proportionOfWidth (0.1f), 24);
+        continueButton.setBounds(proportionOfWidth (0.42f), getHeight() - 45, proportionOfWidth (0.12f), 24);
     }
 };
 
@@ -271,6 +273,7 @@ private:
         char str[maxLength];
         
         int len = readProcessOutput(str, maxLength);
+        std::cout << len << std::endl;
         exportingView->logToConsole(String(str, len));
         exportingView->repaint();
     }
@@ -374,7 +377,8 @@ public:
         targetBoard.addItem("Pod", 2);
         targetBoard.addItem("Petal", 3);
         targetBoard.addItem("Patch", 4);
-
+        targetBoard.addItem("Field", 5);
+        
         targetBoard.setSelectedId(1);
         
         addAndMakeVisible(targetBoard);
@@ -396,7 +400,7 @@ public:
            args.add("\"" + name + "\"");
        }
         
-        auto boards = StringArray{"seed", "pod", "petal", "patch"};
+        auto boards = StringArray{"seed", "pod", "petal", "patch", "field"};
         auto board = boards[targetBoard.getSelectedId() - 1];
        
        args.add("-m" + createMetadata("daisy", {{"board", board}}));
@@ -447,9 +451,9 @@ public:
         auto projectName = projectNameEditor.getText();
         
 #if JUCE_WINDOWS
-        String command = "cd " + sourceDir.getFullPathName() + " && " + make.getFullPathName() + " -j4 -f " + sourceDir.getChildFile("Makefile").getFullPathName() + " GCC_PATH=" + gccPath + " PROJECT_NAME=" + projectName;
+        String command = make.getFullPathName() + " -j4 -f " + sourceDir.getChildFile("Makefile").getFullPathName() + " GCC_PATH=" + gccPath + " PROJECT_NAME=" + projectName;
 #else
-        String command = "cd " + sourceDir.getFullPathName() + " && " + make.getFullPathName() + " -j4 -f " + sourceDir.getChildFile("Makefile").getFullPathName() + " GCC_PATH=" + gccPath + " PROJECT_NAME=" + projectName;
+        String command = make.getFullPathName() + " -j4 -f " + sourceDir.getChildFile("Makefile").getFullPathName() + " GCC_PATH=" + gccPath + " PROJECT_NAME=" + projectName;
 #endif
         // Use std::system because on Mac, juce ChildProcess is slow when using Rosetta
         start(command.toRawUTF8());
