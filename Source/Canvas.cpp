@@ -651,7 +651,7 @@ void Canvas::mouseMove(MouseEvent const& e)
         repaint();
     }
     
-    lastMousePosition = e.getPosition();
+    lastMousePosition = getMouseXYRelative();
 }
 
 bool Canvas::keyPressed(KeyPress const& key)
@@ -748,27 +748,40 @@ void Canvas::copySelection()
 
 void Canvas::pasteSelection()
 {
+    patch.startUndoSequence("Paste");
     // Tell pd to paste
     patch.paste();
-    
-    int oldSize = objects.size();
-
     // Load state from pd, don't update positions
     synchronise(false);
 
     patch.setCurrent();
-    
+
+    std::vector<void*> pastedObjects;
+
     sys_lock();
-    for (auto* object : objects)
-    {
-        if (glist_isselected(patch.getPointer(), static_cast<t_gobj*>(object->getPointer())))
-        {
+    for (auto* object : objects) {
+        if (glist_isselected(patch.getPointer(), static_cast<t_gobj*>(object->getPointer()))) {
             setSelected(object, true);
+            pastedObjects.emplace_back(object->getPointer());
         }
     }
     sys_unlock();
 
+    // Paste at mousePos, adds padding if pasted the same place
+    if (lastMousePosition == pastedPosition) {
+        pastedPadding.addXY(10, 10);
+    } else {
+        pastedPadding.setXY(-10, -10);
+    }
+    pastedPosition = lastMousePosition;
+    auto copyPosition = getSelectionOfType<Object>().getFirst()->getPosition();
+    patch.moveObjects(pastedObjects,
+        pastedPosition.x - copyPosition.x + pastedPadding.x,
+        pastedPosition.y - copyPosition.y + pastedPadding.y);
+
     patch.deselectAll();
+    pastedObjects.clear();
+    patch.endUndoSequence("Paste");
 }
 
 void Canvas::duplicateSelection()
