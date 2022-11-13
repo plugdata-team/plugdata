@@ -733,6 +733,7 @@ void Object::openNewObjectEditor()
         editor->onEscapeKey = [this](){
             MessageManager::callAsync([_this = SafePointer(this)](){
                 if(!_this) return;
+                _this->cnv->hideSuggestions();
                 _this->cnv->objects.removeObject(_this.getComponent());
             });
         };
