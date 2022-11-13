@@ -176,7 +176,7 @@ void Dialogs::showOkayCancelDialog(std::unique_ptr<Dialog>* target, Component* p
 
 void Dialogs::showHeavyExportDialog(std::unique_ptr<Dialog>* target, Component* parent)
 {
-    auto* dialog = new Dialog(target, parent, 625, 400, parent->getBounds().getCentreY() + 200, false);
+    auto* dialog = new Dialog(target, parent, 625, 400, parent->getBounds().getCentreY() + 200, true);
     auto* dialogContent = new HeavyExportDialog(dialog);
 
     dialog->setViewedComponent(dialogContent);
