@@ -82,6 +82,25 @@ static void canvas_collecttemplatesfor(t_canvas* x, int* ntemplatesp,
     }
 }
 
+void libpd_get_search_paths(char** paths, int* numItems) {
+
+    t_namelist* pathList = STUFF->st_searchpath;
+    int i = 0;
+    while(pathList = pathList->nl_next) {
+        i++;
+    }
+    
+    *numItems = i;
+    *paths = malloc(i * sizeof(char*));
+    
+    pathList = STUFF->st_searchpath;
+    i = 0;
+    while(pathList = pathList->nl_next) {
+        paths[i] = pathList->nl_string;
+        i++;
+    }
+}
+
 /* displace the selection by (dx, dy) pixels */
 void libpd_moveselection(t_canvas* cnv, int dx, int dy)
 {
