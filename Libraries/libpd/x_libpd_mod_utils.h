@@ -15,6 +15,8 @@ extern "C" {
 #include <z_libpd.h>
 #include <g_canvas.h>
 
+void libpd_get_search_paths(char** paths, int* numItems);
+
 t_pd* libpd_newest(t_canvas* cnv);
 
 t_pd* libpd_createobj(t_canvas* cnv, t_symbol* s, int argc, t_atom* argv);
