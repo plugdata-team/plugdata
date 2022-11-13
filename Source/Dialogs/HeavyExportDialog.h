@@ -41,12 +41,12 @@ public:
             showState(NotExporting);
         };
         
-
+        
         console.setColour(TextEditor::backgroundColourId, findColour(PlugDataColour::panelBackgroundColourId));
         console.setScrollbarsShown(true);
         console.setMultiLine(true);
         console.setReadOnly(true);
-
+        
     }
     
     void showState(ExportState newState) {
@@ -76,7 +76,7 @@ public:
         if(!lnf) return;
         
         console.setFont(lnf->monoFont);
-
+        
         if(state == Busy)
         {
             g.setColour(findColour(PlugDataColour::canvasBackgroundColourId));
@@ -134,6 +134,7 @@ struct ExporterSettingsPanel : public Component, public Value::Listener, public 
     ExportingView* exportingView;
     
     int labelWidth = 180;
+    bool shouldQuit = false;
     
     ExporterSettingsPanel(PlugDataPluginEditor* editor, ExportingView* exportView) : ThreadPool(2), exportingView(exportView)
     {
@@ -231,6 +232,8 @@ struct ExporterSettingsPanel : public Component, public Value::Listener, public 
                 
                 auto result = performExport(patchPath, outPath, projectTitle, projectCopyright, searchPaths);
                 
+                if(shouldQuit) return;
+                
                 exportingView->showState(result ? ExportingView::Failure : ExportingView::Success);
                 
                 MessageManager::callAsync([this](){
@@ -258,6 +261,12 @@ struct ExporterSettingsPanel : public Component, public Value::Listener, public 
         if(openedPatchFile.existsAsFile()) {
             openedPatchFile.deleteFile();
         }
+        
+        shouldQuit = true;
+        
+        if(isRunning()) kill();
+        
+        removeAllJobs(true, -1);
     }
     
     void valueChanged(Value& v) override
@@ -268,8 +277,8 @@ struct ExporterSettingsPanel : public Component, public Value::Listener, public 
     
     void resized() override
     {
-        auto b = Rectangle<int>(proportionOfWidth (0.1f), 0, proportionOfWidth (0.8f), getHeight());
-        
+        auto b = Rectangle<int>(proportionOfWidth (0.1f), 30, proportionOfWidth (0.8f), getHeight());
+                
         exportButton.setBounds(getLocalBounds().removeFromBottom(23).removeFromRight(80).translated(-10, -10));
         
         b.removeFromTop(20);
@@ -293,7 +302,7 @@ struct ExporterSettingsPanel : public Component, public Value::Listener, public 
     
     void paint(Graphics& g) override
     {
-        auto b = Rectangle<int>(proportionOfWidth (0.1f), 60, labelWidth, getHeight() - 35);
+        auto b = Rectangle<int>(proportionOfWidth (0.1f), 90, labelWidth, getHeight() - 35);
         
         g.setFont(Font(15));
         g.setColour(findColour(PlugDataColour::panelTextColourId));
@@ -320,12 +329,13 @@ private:
                 // This blocks, so we need to run it on another thread
                 int len = readProcessOutput(processOutput, maxLength);
                 
-                MessageManager::callAsync([this, len]() mutable {
-                    exportingView->logToConsole(String(processOutput, len));
+                MessageManager::callAsync([_this = SafePointer(this), len]() mutable {
+                    if(!_this) return;
+                    _this->exportingView->logToConsole(String(_this->processOutput, len));
                 });
             });
         }
-
+        
         exportingView->repaint();
     }
     
@@ -387,8 +397,22 @@ public:
         
         args.add("-v");
         
+        String searchPathArg = "-p\"[";
+        for(auto& path : searchPaths) {
+            searchPathArg += path + ", ";
+        }
+        searchPathArg.trimCharactersAtEnd(", ");
+        
+        searchPathArg += "]";
+        
+        args.add(searchPathArg);
+        
+        if(shouldQuit) return;
+        
         start(args);
         waitForProcessToFinish(-1);
+        
+        if(shouldQuit) return;
         
         auto outputFile = File(outdir);
         outputFile.getChildFile("ir").deleteRecursively();
@@ -447,6 +471,9 @@ public:
         start(args);
         waitForProcessToFinish(-1);
         
+        
+        if(shouldQuit) return;
+        
         int heavyExitCode = getExitCode();
         
         auto bin = toolchain.getChildFile("bin");
@@ -459,7 +486,7 @@ public:
         auto make = bin.getChildFile("make");
         auto compiler = bin.getChildFile("arm-none-eabi-gcc");
 #endif
-
+        
         auto outputFile = File(outdir);
         libDaisy.copyDirectoryTo(outputFile.getChildFile("libDaisy"));
         
@@ -498,7 +525,7 @@ public:
     {
         ExporterSettingsPanel::resized();
         
-        auto b = Rectangle<int>(proportionOfWidth (0.1f), 172, proportionOfWidth (0.8f), getHeight() - 172);
+        auto b = Rectangle<int>(proportionOfWidth (0.1f), 202, proportionOfWidth (0.8f), getHeight() - 202);
         targetBoard.setBounds(b.removeFromTop(23).withTrimmedLeft(labelWidth));
     }
     
@@ -506,7 +533,7 @@ public:
     {
         ExporterSettingsPanel::paint(g);
         
-        auto b = Rectangle<int>(proportionOfWidth (0.1f), 172, proportionOfWidth (0.8f), getHeight() - 172);
+        auto b = Rectangle<int>(proportionOfWidth (0.1f), 202, proportionOfWidth (0.8f), getHeight() - 202);
         
         g.setFont(Font(15));
         g.setColour(findColour(PlugDataColour::panelTextColourId));
@@ -514,8 +541,6 @@ public:
     }
     
 };
-
-
 
 class ExporterPanel  : public Component, private ListBoxModel
 {
@@ -783,7 +808,6 @@ struct ToolchainInstaller : public Component, public Thread
             instream = URL(downloadLocation).createInputStream(URL::InputStreamOptions(URL::ParameterHandling::inAddress)
                                                                .withConnectionTimeoutMs(5000)
                                                                .withStatusCode(&statusCode));
-            
             startThread(3);
         };
     }
@@ -900,9 +924,6 @@ struct ToolchainInstaller : public Component, public Thread
     
     std::unique_ptr<InputStream> instream;
 };
-
-
-
 
 struct HeavyExportDialog : public Component
 {
