@@ -12,6 +12,95 @@
 #include <sys/wait.h>
 #endif
 
+class ExportingView : public Component
+{
+    TextEditor console;
+    
+public:
+    
+    enum ExportState
+    {
+        Busy,
+        Success,
+        Failure,
+        NotExporting
+    };
+    
+    TextButton continueButton = TextButton("Continue");
+    
+    ExportState state = NotExporting;
+    
+    ExportingView() {
+        
+        setVisible(false);
+        addChildComponent(continueButton);
+        
+        addAndMakeVisible(console);
+        console.setReadOnly(true);
+        
+        continueButton.onClick = [this](){
+            showState(NotExporting);
+        };
+    }
+    
+    void showState(ExportState newState) {
+        state = newState;
+        
+        MessageManager::callAsync([this](){
+            setVisible(state < NotExporting);
+            continueButton.setVisible(state >= Success);
+            resized();
+            repaint();
+        });
+    }
+    
+    void logToConsole(String text) {
+        console.setText(console.getText() + text);
+    }
+    
+    void paint(Graphics& g) override
+    {
+        auto* lnf = dynamic_cast<PlugDataLook*>(&getLookAndFeel());
+        
+        if(!lnf) return;
+        
+        if(state == Busy)
+        {
+            g.setColour(findColour(PlugDataColour::canvasBackgroundColourId));
+            g.fillRoundedRectangle(getLocalBounds().toFloat(), 5.0f);
+            
+            g.setColour(findColour(PlugDataColour::canvasTextColourId));
+            g.setFont(lnf->boldFont.withHeight(32));
+            g.drawText("Exporting...", 0, 25, getWidth(), 40, Justification::centred);
+            
+            lnf->drawSpinningWaitAnimation(g, findColour(PlugDataColour::canvasTextColourId), getWidth() / 2 - 16, getHeight() / 2 + 150, 32, 32);
+        }
+        else if(state == Success) {
+            g.setColour(findColour(PlugDataColour::canvasBackgroundColourId));
+            g.fillRoundedRectangle(getLocalBounds().toFloat(), 5.0f);
+            
+            g.setColour(findColour(PlugDataColour::canvasTextColourId));
+            g.setFont(lnf->boldFont.withHeight(32));
+            g.drawText("Exporting successful", 0, 25, getWidth(), 40, Justification::centred);
+            
+        }
+        else if(state == Failure) {
+            g.setColour(findColour(PlugDataColour::canvasBackgroundColourId));
+            g.fillRoundedRectangle(getLocalBounds().toFloat(), 5.0f);
+            
+            g.setColour(findColour(PlugDataColour::canvasTextColourId));
+            g.setFont(lnf->boldFont.withHeight(32));
+            g.drawText("Exporting failed", 0, 25, getWidth(), 40, Justification::centred);
+            
+        }
+    }
+    
+    void resized() override {
+        console.setBounds(proportionOfWidth (0.1f), 80, proportionOfWidth (0.8f), getHeight() - 172);
+        continueButton.setBounds(proportionOfWidth (0.45f), getHeight() - 30, proportionOfWidth (0.1f), 24);
+    }
+};
+
 struct ExporterSettingsPanel : public Component, public Value::Listener, public Timer, public ChildProcess, public Thread
 {
     inline static File toolchain = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory).getChildFile("PlugData").getChildFile("Toolchain");
@@ -29,9 +118,12 @@ struct ExporterSettingsPanel : public Component, public Value::Listener, public 
     File patchFile;
     File openedPatchFile;
     
+    ExportingView* exportingView;
+    
     int labelWidth = 180;
     
-    ExporterSettingsPanel(PlugDataPluginEditor* editor) : Thread ("Heavy Export Thread"){
+    ExporterSettingsPanel(PlugDataPluginEditor* editor, ExportingView* exportView) : Thread ("Heavy Export Thread"), exportingView(exportView)
+    {
         addAndMakeVisible(exportButton);
         addAndMakeVisible(patchChooser);
         addAndMakeVisible(outputPathEditor);
@@ -152,36 +244,7 @@ struct ExporterSettingsPanel : public Component, public Value::Listener, public 
         outputPathBrowseButton.setBounds(outputPathBounds.withTrimmedLeft(-1));
     }
     
-    void paintOverChildren(Graphics& g) override
-    {
-        if(exportProgress != 0.0f)
-        {
-            auto* lnf = dynamic_cast<PlugDataLook*>(&getLookAndFeel());
-            
-            g.setColour(findColour(PlugDataColour::canvasBackgroundColourId));
-            g.fillRoundedRectangle(getLocalBounds().toFloat(), 5.0f);
-            
-            g.setColour(findColour(PlugDataColour::canvasTextColourId));
-            g.setFont(lnf->boldFont.withHeight(32));
-            g.drawText("Exporting...", 0, getHeight() / 2 - 120, getWidth(), 40, Justification::centred);
-            
-            
-            float width = getWidth() - 90.0f;
-            float right = jmap(exportProgress, 90.f, width);
-            
-            Path downloadPath;
-            downloadPath.addLineSegment({ 90, 300, right, 300 }, 1.0f);
-            
-            Path fullPath;
-            fullPath.addLineSegment({ 90, 300, width, 300 }, 1.0f);
-            
-            g.setColour(findColour(PlugDataColour::panelTextColourId));
-            g.strokePath(fullPath, PathStrokeType(11.0f, PathStrokeType::JointStyle::curved, PathStrokeType::EndCapStyle::rounded));
-            
-            g.setColour(findColour(PlugDataColour::panelActiveBackgroundColourId));
-            g.strokePath(downloadPath, PathStrokeType(8.0f, PathStrokeType::JointStyle::curved, PathStrokeType::EndCapStyle::rounded));
-        }
-    }
+
     
     void paint(Graphics& g) override
     {
@@ -203,22 +266,26 @@ struct ExporterSettingsPanel : public Component, public Value::Listener, public 
 private:
     
     void timerCallback() override {
-        exportProgress = std::min(1.0f, exportProgress + 0.001f);
-        repaint();
+        
+        static constexpr int maxLength = 32768;
+        char str[maxLength];
+        
+        int len = readProcessOutput(str, maxLength);
+        exportingView->logToConsole(String(str, len));
+        exportingView->repaint();
     }
 
     virtual void startExport(String pdPatch, String outdir, String name, String copyright, StringArray searchPaths) = 0;
     virtual void finishExport(String outputPath) = 0;
     
     void run() override {
-
+                
         String output = readAllProcessOutput();
         
         finishExport(outputPathEditor.getText());
         
         MessageManager::callAsync([this](){
             stopTimer();
-            exportProgress = 0.0f;
             repaint();
         });
     }
@@ -240,8 +307,6 @@ public:
         return metadata.getFullPathName();
     }
     
-    float exportProgress = 0.0f;
-    
     inline static File heavyExecutable = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory).getChildFile("PlugData").getChildFile("Toolchain").getChildFile("bin").getChildFile("Heavy").getChildFile("Heavy");
     
     
@@ -257,7 +322,7 @@ public:
 class CppSettingsPanel : public ExporterSettingsPanel
 {
 public:
-    CppSettingsPanel(PlugDataPluginEditor* editor) : ExporterSettingsPanel(editor) {
+    CppSettingsPanel(PlugDataPluginEditor* editor, ExportingView* exportingView) : ExporterSettingsPanel(editor, exportingView) {
         
     }
     
@@ -276,10 +341,14 @@ public:
            args.add("--copyright");
            args.add("\"" + name + "\"");
        }
+        
+       args.add("-v");
     
        start(args);
        startThread(3);
        startTimer(10);
+        
+       exportingView->showState(ExportingView::Busy);
    }
     
     void finishExport(String outPath) override
@@ -287,6 +356,8 @@ public:
         auto outputFile = File(outPath);
         outputFile.getChildFile("ir").deleteRecursively();
         outputFile.getChildFile("hv").deleteRecursively();
+        
+        exportingView->showState(getExitCode() ? ExportingView::Failure: ExportingView::Success);
     }
 };
 
@@ -296,7 +367,8 @@ public:
     
     ComboBox targetBoard;
     
-    DaisySettingsPanel(PlugDataPluginEditor* editor) : ExporterSettingsPanel(editor) {
+    DaisySettingsPanel(PlugDataPluginEditor* editor, ExportingView* exportingView) : ExporterSettingsPanel(editor, exportingView)
+    {
         
         targetBoard.addItem("Seed", 1);
         targetBoard.addItem("Pod", 2);
@@ -334,6 +406,8 @@ public:
        start(args);
        startThread(3);
        startTimer(15);
+        
+       exportingView->showState(ExportingView::Busy);
    }
     
     void finishExport(String outPath) override
@@ -378,10 +452,12 @@ public:
         String command = "cd " + sourceDir.getFullPathName() + " && " + make.getFullPathName() + " -j4 -f " + sourceDir.getChildFile("Makefile").getFullPathName() + " GCC_PATH=" + gccPath + " PROJECT_NAME=" + projectName;
 #endif
         // Use std::system because on Mac, juce ChildProcess is slow when using Rosetta
-        std::system(command.toRawUTF8());
-
+        start(command.toRawUTF8());
+        waitForProcessToFinish(-1);
+        
         workingDir.setAsCurrentWorkingDirectory();
         
+        exportingView->showState(getExitCode() ? ExportingView::Failure: ExportingView::Success);
     }
     
     void resized() override
@@ -405,6 +481,8 @@ public:
     
 };
 
+
+
 class ExporterPanel  : public Component, private ListBoxModel
 {
 public:
@@ -421,11 +499,10 @@ public:
     
     StringArray items = {"C++", "Daisy"};
 
-    ExporterPanel(PlugDataPluginEditor* editor)
+    ExporterPanel(PlugDataPluginEditor* editor, ExportingView* exportingView)
     {
-        
-        addChildComponent(views.add(new CppSettingsPanel(editor)));
-        addChildComponent(views.add(new DaisySettingsPanel(editor)));
+        addChildComponent(views.add(new CppSettingsPanel(editor, exportingView)));
+        addChildComponent(views.add(new DaisySettingsPanel(editor, exportingView)));
         
         addAndMakeVisible(listBox);
         
@@ -640,7 +717,7 @@ struct ToolchainInstaller : public Component, public Thread
             else if(distroName == "ubuntu" && distroVersion == "22.04") {
                 downloadLocation += "Heavy-Ubuntu-22.04-x64.zip";
             }
-            else if(distroBackupName == "ubuntu" || (distroName == "ubuntu" && distroVersion == "20.04")) {
+            else if(distroBackupName == "ubuntu" || distroName == "ubuntu") {
                 downloadLocation += "Heavy-Ubuntu-20.04-x64.zip";
             }
             else if(distroName == "arch" || distroBackupName == "arch") {
@@ -790,16 +867,21 @@ struct HeavyExportDialog : public Component
     
     bool hasToolchain = false;
     
+    ExportingView exportingView;
     ToolchainInstaller installer;
     ExporterPanel exporterPanel;
+
     
     inline static File toolchain = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory).getChildFile("PlugData").getChildFile("Toolchain");
     
-    HeavyExportDialog(Dialog* dialog) : exporterPanel(dynamic_cast<PlugDataPluginEditor*>(dialog->parentComponent)) {
+    HeavyExportDialog(Dialog* dialog) : exporterPanel(dynamic_cast<PlugDataPluginEditor*>(dialog->parentComponent), &exportingView) {
         hasToolchain = toolchain.exists();
         
         addChildComponent(installer);
         addChildComponent(exporterPanel);
+        addChildComponent(exportingView);
+        
+        exportingView.setAlwaysOnTop(true);
         
         installer.toolchainInstalledCallback = [this](){
             hasToolchain = true;
@@ -827,6 +909,7 @@ struct HeavyExportDialog : public Component
         auto b = getLocalBounds();
         exporterPanel.setBounds(b);
         installer.setBounds(b);
+        exportingView.setBounds(b);
         
     }
     
