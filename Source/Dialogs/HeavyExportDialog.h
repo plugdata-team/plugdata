@@ -593,8 +593,30 @@ public:
     
     void selectedRowsChanged (int lastRowSelected) override
     {
+        String lastTitle;
+        String lastCopyright;
+        String lastOutdir;
+        File lastPatchFile;
+        int comboBoxSelection;
+        
         for(int i = 0; i < views.size(); i++)
         {
+            if(views[i]->isVisible() && i != lastRowSelected) {
+                lastTitle = views[i]->projectNameEditor.getText();
+                lastCopyright = views[i]->projectCopyrightEditor.getText();
+                lastOutdir = views[i]->outputPathEditor.getText();
+                lastPatchFile = views[i]->patchFile;
+                comboBoxSelection = views[i]->patchChooser.getSelectedId();
+            }
+        }
+        for(int i = 0; i < views.size(); i++)
+        {
+            views[i]->projectNameEditor.setText(lastTitle);
+            views[i]->projectCopyrightEditor.setText(lastCopyright);
+            views[i]->outputPathEditor.setText(lastOutdir);
+            views[i]->patchFile = lastPatchFile;
+            views[i]->patchChooser.setSelectedId(comboBoxSelection);
+            
             views[i]->setVisible(i == lastRowSelected);
         }
     }
