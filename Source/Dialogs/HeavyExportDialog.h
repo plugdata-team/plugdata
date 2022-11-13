@@ -407,12 +407,12 @@ public:
         
         args.add(searchPathArg);
         
-        if(shouldQuit) return;
+        if(shouldQuit) return 1;
         
         start(args);
         waitForProcessToFinish(-1);
         
-        if(shouldQuit) return;
+        if(shouldQuit) return 1;
         
         auto outputFile = File(outdir);
         outputFile.getChildFile("ir").deleteRecursively();
@@ -472,7 +472,7 @@ public:
         waitForProcessToFinish(-1);
         
         
-        if(shouldQuit) return;
+        if(shouldQuit) return 1;
         
         int heavyExitCode = getExitCode();
         
