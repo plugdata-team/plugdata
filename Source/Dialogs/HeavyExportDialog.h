@@ -94,7 +94,7 @@ public:
             
             g.setColour(findColour(PlugDataColour::canvasTextColourId));
             g.setFont(lnf->boldFont.withHeight(32));
-            g.drawText("Exporting successful", 0, 25, getWidth(), 40, Justification::centred);
+            g.drawText("Export successful", 0, 25, getWidth(), 40, Justification::centred);
             
         }
         else if(state == Failure) {
@@ -296,7 +296,7 @@ struct ExporterSettingsPanel : public Component, public Value::Listener, public 
         b.removeFromTop(15);
         
         auto outputPathBounds = b.removeFromTop(23);
-        outputPathEditor.setBounds(outputPathBounds.removeFromLeft(proportionOfWidth (0.7f)).withTrimmedLeft(labelWidth));
+        outputPathEditor.setBounds(outputPathBounds.removeFromLeft(proportionOfWidth (0.65f)).withTrimmedLeft(labelWidth));
         outputPathBrowseButton.setBounds(outputPathBounds.withTrimmedLeft(-1));
     }
     
@@ -665,9 +665,9 @@ struct ToolchainInstaller : public Component, public Thread
     {
         
 #if JUCE_WINDOWS
-        String downloadSize = "4 GB";
+        String downloadSize = "900 MB";
 #else
-        String downloadSize = "1 GB";
+        String downloadSize = "800 MB";
 #endif
         
         String iconText = Icons::SaveAs;
@@ -903,6 +903,10 @@ struct ToolchainInstaller : public Component, public Thread
         
 #if JUCE_MAC || JUCE_LINUX
         system(("chmod +x " + toolchain.getFullPathName() + "/bin/Heavy/Heavy").toRawUTF8());
+        system(("chmod +x " + toolchain.getFullPathName() + "/bin/make").toRawUTF8());
+        system(("chmod +x " + toolchain.getFullPathName() + "/bin/arm-none-eabi-*").toRawUTF8());
+        system(("chmod +x " + toolchain.getFullPathName() + "/arm-none-eabi/bin/*").toRawUTF8());
+        system(("chmod +x " + toolchain.getFullPathName() + "/libexec/gcc/arm-none-eabi/*/*").toRawUTF8());
 #endif
         
         installProgress = 0.0f;
