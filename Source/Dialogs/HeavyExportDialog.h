@@ -178,7 +178,7 @@ struct ExporterSettingsPanel : public Component, public Value::Listener, public 
                 patchFile = openedPatchFile;
                 validPatchSelected = true;
             }
-            else {
+            else if(patchChooser.getSelectedId() == 2) {
                 // Open file browser
                 openChooser = std::make_unique<FileChooser>("Choose file to open", File::getSpecialLocation(File::userHomeDirectory), "*.pd", true);
                 
@@ -190,6 +190,7 @@ struct ExporterSettingsPanel : public Component, public Value::Listener, public 
                         validPatchSelected = true;
                     }
                     else {
+                        patchChooser.setSelectedId(0);
                         patchFile = "";
                         validPatchSelected = false;
                     }
