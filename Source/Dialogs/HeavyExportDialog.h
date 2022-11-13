@@ -12,6 +12,8 @@
 #include <sys/wait.h>
 #endif
 
+#include <z_libpd.h>
+
 class ExportingView : public Component
 {
     TextEditor console;
