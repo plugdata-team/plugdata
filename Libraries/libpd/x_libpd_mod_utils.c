@@ -8,9 +8,12 @@
 #include <m_imp.h>
 #include <g_canvas.h>
 #include <g_undo.h>
+#include <s_stuff.h>
+
 
 #include <errno.h>
 
+#include <stdlib.h>
 #include <string.h>
 #include "x_libpd_mod_utils.h"
 
