@@ -152,6 +152,8 @@ class Canvas : public Component, public Value::Listener, public LassoSource<Weak
     pd::Storage storage;
     
     Point<int> lastMousePosition;
+    Point<int> pastedPosition;
+    Point<int> pastedPadding;
     std::vector<Point<int>> mouseDownObjectPositions; // Stores object positions for alt + drag
 
    private:
