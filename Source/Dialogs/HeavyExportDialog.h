@@ -777,7 +777,7 @@ public:
                 
         String command = sh.getFullPathName() + " --login " + windowsBuildScript.getFullPathName().replaceCharacter('\\', '/');
 #else
-        String command = make.getFullPathName() + " -j4 -f " + sourceDir.getChildFile("Makefile").getFullPathName() + " GCC_PATH=" + gccPath + " PROJECT_NAME=" + projectName
+        String command = make.getFullPathName() + " -j4 -f " + sourceDir.getChildFile("Makefile").getFullPathName() + " GCC_PATH=" + gccPath + " PROJECT_NAME=" + projectName;
 #endif
         // Use std::system because on Mac, juce ChildProcess is slow when using Rosetta
         start(command.toRawUTF8());
