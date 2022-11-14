@@ -775,7 +775,7 @@ public:
         auto windowsBuildScript = sourceDir.getChildFile("build.sh");
         windowsBuildScript.replaceWithText(make.getFullPathName() + " -j4 -f " + sourceDir.getChildFile("Makefile").getFullPathName() + " GCC_PATH=" + gccPath + " PROJECT_NAME=" + projectName);
                 
-        String command = sh.getFullPathName() + " " + windowsBuildScript.getFullPathName();
+        String command = sh.getFullPathName() + " --login " + windowsBuildScript.getFullPathName();
 #else
         String command = make.getFullPathName() + " -j4 -f " + sourceDir.getChildFile("Makefile").getFullPathName() + " GCC_PATH=" + gccPath + " PROJECT_NAME=" + projectName;
 #endif
