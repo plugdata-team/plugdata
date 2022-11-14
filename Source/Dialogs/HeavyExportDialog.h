@@ -14,6 +14,272 @@
 
 #include <z_libpd.h>
 
+struct ToolchainInstaller : public Component, public Thread
+{
+    struct InstallButton : public Component
+    {
+        
+#if JUCE_WINDOWS
+        String downloadSize = "900 MB";
+#else
+        String downloadSize = "800 MB";
+#endif
+        
+        String iconText = Icons::SaveAs;
+        String topText = "Download Toolchain";
+        String bottomText = "Download compilation utilities (" + downloadSize + ")";
+        
+        std::function<void(void)> onClick = [](){};
+        
+        InstallButton()
+        {
+            setInterceptsMouseClicks(true, false);
+        }
+        
+        void paint(Graphics& g)
+        {
+            auto* lnf = dynamic_cast<PlugDataLook*>(&getLookAndFeel());
+            
+            auto textColour = findColour(PlugDataColour::canvasTextColourId);
+            if(!isEnabled()) {
+                textColour = textColour.brighter(0.4f);
+            }
+            
+            g.setColour(textColour);
+            
+            g.setFont(lnf->iconFont.withHeight(24));
+            g.drawText(iconText, 20, 5, 40, 40, Justification::centredLeft);
+            
+            g.setFont(lnf->defaultFont.withHeight(16));
+            g.drawText(topText, 60, 7, getWidth() - 60, 20, Justification::centredLeft);
+            
+            g.setFont(lnf->thinFont.withHeight(14));
+            g.drawText(bottomText, 60, 25, getWidth() - 60, 16, Justification::centredLeft);
+            
+            if(isMouseOver() && isEnabled()) {
+                g.drawRoundedRectangle(1, 1, getWidth() - 2, getHeight() - 2, 4.0f, 0.5f);
+            }
+        }
+        
+        void mouseUp(const MouseEvent& e)
+        {
+            if(isEnabled()) {
+                onClick();
+            }
+        }
+        
+        void mouseEnter(const MouseEvent& e)
+        {
+            repaint();
+        }
+        
+        void mouseExit(const MouseEvent& e)
+        {
+            repaint();
+        }
+    };
+    
+#if JUCE_LINUX
+    std::tuple<String, String, String> getDistroID()
+    {
+        ChildProcess catProcess;
+        catProcess.start({"cat", "/etc/os-release"});
+        
+        auto ret = catProcess.readAllProcessOutput();
+        
+        auto items = StringArray::fromLines(String(ret));
+        
+        String name;
+        String idLike;
+        String version;
+        
+        for(auto& item : items) {
+            if(item.startsWith("ID=")) {
+                name = item.fromFirstOccurrenceOf("=", false, false).trim();
+            }
+            else if(item.startsWith("ID_LIKE=")) {
+                idLike = item.fromFirstOccurrenceOf("=", false, false).trim();
+            }
+            else if(item.startsWith("VERSION_ID=")) {
+                version = item.fromFirstOccurrenceOf("=", false, false).trim();
+            }
+        }
+        
+        return {name, idLike, version};
+    }
+#endif
+    
+    ToolchainInstaller() : Thread("Toolchain Install Thread") {
+        addAndMakeVisible(&installButton);
+        
+#if (JUCE_LINUX || JUCE_WINDOWS) && (!defined(__x86_64__) && !defined(_M_X64))
+        installButton.setEnabled(false);
+#endif
+        
+        installButton.onClick = [this](){
+            String downloadLocation = "https://github.com/timothyschoen/HeavyDistributable/releases/download/v0.0.2/";
+            
+#if JUCE_MAC
+            downloadLocation += "Heavy-MacOS-Universal.zip";
+#elif JUCE_WINDOWS
+            downloadLocation += "Heavy-Win64.zip";
+#else
+            
+            auto [distroName, distroBackupName, distroVersion] = getDistroID();
+            
+            if(distroName == "fedora" && distroVersion == "36") {
+                downloadLocation += "Heavy-Fedora-36-x64.zip";
+            }
+            else if(distroName == "fedora" && distroVersion == "35") {
+                downloadLocation += "Heavy-Fedora-35-x64.zip";
+            }
+            else if(distroName == "ubuntu" && distroVersion == "22.04") {
+                downloadLocation += "Heavy-Ubuntu-22.04-x64.zip";
+            }
+            else if(distroBackupName == "ubuntu" || distroName == "ubuntu") {
+                downloadLocation += "Heavy-Ubuntu-20.04-x64.zip";
+            }
+            else if(distroName == "arch" || distroBackupName == "arch") {
+                downloadLocation += "Heavy-Arch-x64.zip";
+            }
+            else if(distroName == "debian" || distroBackupName == "debian") {
+                downloadLocation += "Heavy-Debian-x64.zip";
+            }
+            else if(distroName == "opensuse-leap" || distroBackupName.contains("suse")) {
+                downloadLocation += "Heavy-OpenSUSE-Leap-x64.zip";
+            }
+            else if(distroName == "mageia") {
+                downloadLocation += "Heavy-Mageia-x64.zip";
+            }
+            // If we're not sure, just try the debian one and pray
+            else {
+                downloadLocation += "Heavy-Debian-x64.zip";
+            }
+#endif
+            instream = URL(downloadLocation).createInputStream(URL::InputStreamOptions(URL::ParameterHandling::inAddress)
+                                                               .withConnectionTimeoutMs(5000)
+                                                               .withStatusCode(&statusCode));
+            startThread(3);
+        };
+    }
+    
+    void paint(Graphics& g) override {
+        
+        auto* lnf = dynamic_cast<PlugDataLook*>(&getLookAndFeel());
+        if(!lnf) return;
+        
+#if (JUCE_LINUX || JUCE_WINDOWS) && (!defined(__x86_64__) && !defined(_M_X64))
+        
+        g.setColour(findColour(PlugDataColour::canvasTextColourId));
+        g.setFont(lnf->boldFont.withHeight(32));
+        g.drawText("Non x64 platform not supported", 0, getHeight() / 2 - 150, getWidth(), 40, Justification::centred);
+        
+        g.setFont(lnf->thinFont.withHeight(23));
+        g.drawText("We're working on it!", 0,  getHeight() / 2 - 120, getWidth(), 40, Justification::centred);
+#else
+        
+        g.setColour(findColour(PlugDataColour::canvasTextColourId));
+        g.setFont(lnf->boldFont.withHeight(32));
+        g.drawText("Toolchain not found", 0, getHeight() / 2 - 150, getWidth(), 40, Justification::centred);
+        
+        g.setFont(lnf->thinFont.withHeight(23));
+        g.drawText("Install the toolchain to get started", 0,  getHeight() / 2 - 120, getWidth(), 40, Justification::centred);
+#endif
+        
+        if(installProgress != 0.0f)
+        {
+            float width = getWidth() - 90.0f;
+            float right = jmap(installProgress, 90.f, width);
+            
+            Path downloadPath;
+            downloadPath.addLineSegment({ 90, 300, right, 300 }, 1.0f);
+            
+            Path fullPath;
+            fullPath.addLineSegment({ 90, 300, width, 300 }, 1.0f);
+            
+            g.setColour(findColour(PlugDataColour::panelTextColourId));
+            g.strokePath(fullPath, PathStrokeType(11.0f, PathStrokeType::JointStyle::curved, PathStrokeType::EndCapStyle::rounded));
+            
+            g.setColour(findColour(PlugDataColour::panelActiveBackgroundColourId));
+            g.strokePath(downloadPath, PathStrokeType(8.0f, PathStrokeType::JointStyle::curved, PathStrokeType::EndCapStyle::rounded));
+        }
+    }
+    
+    void resized() override
+    {
+        installButton.setBounds(getLocalBounds().withSizeKeepingCentre(450, 50).translated(15, -30));
+    }
+    
+    void run() override
+    {
+        MemoryBlock dekData;
+        
+        if(!instream) return; // error!
+        
+        int64 totalBytes = instream->getTotalLength();
+        int64 bytesDownloaded = 0;
+        
+        MemoryOutputStream mo(dekData, true);
+        
+        while (true) {
+            if (threadShouldExit()) {
+                //finish(Result::fail("Download cancelled"));
+                return;
+            }
+            
+            auto written = mo.writeFromInputStream(*instream, 8192);
+            
+            if (written == 0)
+                break;
+            
+            bytesDownloaded += written;
+            
+            float progress = static_cast<long double>(bytesDownloaded) / static_cast<long double>(totalBytes);
+            
+            MessageManager::callAsync([this, progress]() mutable {
+                installProgress = progress;
+                repaint();
+            });
+        }
+        
+        MemoryInputStream input(dekData, false);
+        ZipFile zip(input);
+        
+        auto result = zip.uncompressTo(toolchain);
+        
+        if (!result.wasOk()) {
+            return;
+        }
+        
+        
+#if JUCE_MAC || JUCE_LINUX
+        system(("chmod +x " + toolchain.getFullPathName() + "/bin/Heavy/Heavy").toRawUTF8());
+        system(("chmod +x " + toolchain.getFullPathName() + "/bin/make").toRawUTF8());
+        system(("chmod +x " + toolchain.getFullPathName() + "/bin/arm-none-eabi-*").toRawUTF8());
+        system(("chmod +x " + toolchain.getFullPathName() + "/arm-none-eabi/bin/*").toRawUTF8());
+        system(("chmod +x " + toolchain.getFullPathName() + "/libexec/gcc/arm-none-eabi/*/*").toRawUTF8());
+#endif
+        
+        installProgress = 0.0f;
+        
+        MessageManager::callAsync([this](){
+            toolchainInstalledCallback();
+        });
+    }
+    
+    inline static File toolchain = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory).getChildFile("PlugData").getChildFile("Toolchain");
+    
+    float installProgress = 0.0f;
+    
+    
+    int statusCode;
+    
+    InstallButton installButton;
+    std::function<void()> toolchainInstalledCallback;
+    
+    std::unique_ptr<InputStream> instream;
+};
+
 class ExportingView : public Component
 {
     TextEditor console;
@@ -32,8 +298,8 @@ public:
     
     ExportState state = NotExporting;
     
-    ExportingView() {
-        
+    ExportingView()
+    {
         setVisible(false);
         addChildComponent(continueButton);
         
@@ -144,7 +410,6 @@ struct ExporterSettingsPanel : public Component, public Value::Listener, public 
         addAndMakeVisible(patchChooser);
         addAndMakeVisible(outputPathEditor);
         addAndMakeVisible(outputPathBrowseButton);
-        
         addAndMakeVisible(projectNameEditor);
         addAndMakeVisible(projectCopyrightEditor);
         
@@ -266,9 +531,7 @@ struct ExporterSettingsPanel : public Component, public Value::Listener, public 
         }
         
         shouldQuit = true;
-        
         if(isRunning()) kill();
-        
         removeAllJobs(true, -1);
     }
     
@@ -285,19 +548,15 @@ struct ExporterSettingsPanel : public Component, public Value::Listener, public 
         exportButton.setBounds(getLocalBounds().removeFromBottom(23).removeFromRight(80).translated(-10, -10));
         
         b.removeFromTop(20);
-        
         patchChooser.setBounds(b.removeFromTop(23));
         
         b.removeFromTop(15);
-        
         projectNameEditor.setBounds(b.removeFromTop(23).withTrimmedLeft(labelWidth));
         
         b.removeFromTop(15);
-        
         projectCopyrightEditor.setBounds(b.removeFromTop(23).withTrimmedLeft(labelWidth));
         
         b.removeFromTop(15);
-        
         auto outputPathBounds = b.removeFromTop(23);
         outputPathEditor.setBounds(outputPathBounds.removeFromLeft(proportionOfWidth (0.65f)).withTrimmedLeft(labelWidth));
         outputPathBrowseButton.setBounds(outputPathBounds.withTrimmedLeft(-1));
@@ -504,7 +763,7 @@ public:
         
         sourceDir.getChildFile("build").createDirectory();
         toolchain.getChildFile("lib").getChildFile("heavy-static.a").copyFileTo(sourceDir.getChildFile("build").getChildFile("heavy-static.a"));
-        toolchain.getChildFile("share").getChildFile("daisy_makefile").copyFileTo(sourceDir.getChildFile("Makefile"));
+        //toolchain.getChildFile("share").getChildFile("daisy_makefile").copyFileTo(sourceDir.getChildFile("Makefile"));
         
         auto gccPath = toolchain.getChildFile("bin").getFullPathName();
         
@@ -554,9 +813,7 @@ public:
     TextButton addButton = TextButton(Icons::Add);
     
     OwnedArray<ExporterSettingsPanel> views;
-    
-    StringArray enabledItems;
-    
+        
     std::function<void(int)> onChange;
     
     StringArray items = {"C++", "Daisy"};
@@ -684,285 +941,14 @@ private:
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (ExporterPanel)
 };
 
-struct ToolchainInstaller : public Component, public Thread
-{
-    struct InstallButton : public Component
-    {
-        
-#if JUCE_WINDOWS
-        String downloadSize = "900 MB";
-#else
-        String downloadSize = "800 MB";
-#endif
-        
-        String iconText = Icons::SaveAs;
-        String topText = "Download Toolchain";
-        String bottomText = "Download compilation utilities (" + downloadSize + ")";
-        
-        std::function<void(void)> onClick = [](){};
-        
-        InstallButton()
-        {
-            setInterceptsMouseClicks(true, false);
-        }
-        
-        
-        void paint(Graphics& g)
-        {
-            auto* lnf = dynamic_cast<PlugDataLook*>(&getLookAndFeel());
-            
-            auto textColour = findColour(PlugDataColour::canvasTextColourId);
-            if(!isEnabled()) {
-                textColour = textColour.brighter(0.4f);
-            }
-            
-            g.setColour(textColour);
-            
-            g.setFont(lnf->iconFont.withHeight(24));
-            g.drawText(iconText, 20, 5, 40, 40, Justification::centredLeft);
-            
-            g.setFont(lnf->defaultFont.withHeight(16));
-            g.drawText(topText, 60, 7, getWidth() - 60, 20, Justification::centredLeft);
-            
-            g.setFont(lnf->thinFont.withHeight(14));
-            g.drawText(bottomText, 60, 25, getWidth() - 60, 16, Justification::centredLeft);
-            
-            if(isMouseOver() && isEnabled()) {
-                g.drawRoundedRectangle(1, 1, getWidth() - 2, getHeight() - 2, 4.0f, 0.5f);
-            }
-        }
-        
-        void mouseUp(const MouseEvent& e)
-        {
-            if(isEnabled()) {
-                onClick();
-            }
-        }
-        
-        void mouseEnter(const MouseEvent& e)
-        {
-            repaint();
-        }
-        
-        void mouseExit(const MouseEvent& e)
-        {
-            repaint();
-        }
-    };
-    
-    
-#if JUCE_LINUX
-    std::tuple<String, String, String> getDistroID()
-    {
-        ChildProcess catProcess;
-        catProcess.start({"cat", "/etc/os-release"});
-        
-        auto ret = catProcess.readAllProcessOutput();
-        
-        auto items = StringArray::fromLines(String(ret));
-        
-        String name;
-        String idLike;
-        String version;
-        
-        for(auto& item : items) {
-            if(item.startsWith("ID=")) {
-                name = item.fromFirstOccurrenceOf("=", false, false).trim();
-            }
-            else if(item.startsWith("ID_LIKE=")) {
-                idLike = item.fromFirstOccurrenceOf("=", false, false).trim();
-            }
-            else if(item.startsWith("VERSION_ID=")) {
-                version = item.fromFirstOccurrenceOf("=", false, false).trim();
-            }
-        }
-        
-        return {name, idLike, version};
-    }
-#endif
-    
-    ToolchainInstaller() : Thread("Toolchain Install Thread") {
-        addAndMakeVisible(&installButton);
-        
-#if (JUCE_LINUX || JUCE_WINDOWS) && (!defined(__x86_64__) && !defined(_M_X64))
-        installButton.setEnabled(false);
-#endif
-        
-        installButton.onClick = [this](){
-            
-            String downloadLocation = "https://github.com/timothyschoen/HeavyDistributable/releases/download/v0.0.2/";
-            
-#if JUCE_MAC
-            downloadLocation += "Heavy-MacOS-Universal.zip";
-#elif JUCE_WINDOWS
-            downloadLocation += "Heavy-Win64.zip";
-#else
-            
-            auto [distroName, distroBackupName, distroVersion] = getDistroID();
-            
-            if(distroName == "fedora" && distroVersion == "36") {
-                downloadLocation += "Heavy-Fedora-36-x64.zip";
-            }
-            else if(distroName == "fedora" && distroVersion == "35") {
-                downloadLocation += "Heavy-Fedora-35-x64.zip";
-            }
-            else if(distroName == "ubuntu" && distroVersion == "22.04") {
-                downloadLocation += "Heavy-Ubuntu-22.04-x64.zip";
-            }
-            else if(distroBackupName == "ubuntu" || distroName == "ubuntu") {
-                downloadLocation += "Heavy-Ubuntu-20.04-x64.zip";
-            }
-            else if(distroName == "arch" || distroBackupName == "arch") {
-                downloadLocation += "Heavy-Arch-x64.zip";
-            }
-            else if(distroName == "debian" || distroBackupName == "debian") {
-                downloadLocation += "Heavy-Debian-x64.zip";
-            }
-            else if(distroName == "opensuse-leap" || distroBackupName.contains("suse")) {
-                downloadLocation += "Heavy-OpenSUSE-Leap-x64.zip";
-            }
-            else if(distroName == "mageia") {
-                downloadLocation += "Heavy-Mageia-x64.zip";
-            }
-            // If we're not sure, just try the debian one and pray
-            else {
-                downloadLocation += "Heavy-Debian-x64.zip";
-            }
-#endif
-            
-            instream = URL(downloadLocation).createInputStream(URL::InputStreamOptions(URL::ParameterHandling::inAddress)
-                                                               .withConnectionTimeoutMs(5000)
-                                                               .withStatusCode(&statusCode));
-            startThread(3);
-        };
-    }
-    
-    void paint(Graphics& g) override {
-        
-        auto* lnf = dynamic_cast<PlugDataLook*>(&getLookAndFeel());
-        if(!lnf) return;
-        
-#if (JUCE_LINUX || JUCE_WINDOWS) && (!defined(__x86_64__) && !defined(_M_X64))
-        
-        g.setColour(findColour(PlugDataColour::canvasTextColourId));
-        g.setFont(lnf->boldFont.withHeight(32));
-        g.drawText("Non x64 platform not supported", 0, getHeight() / 2 - 150, getWidth(), 40, Justification::centred);
-        
-        g.setFont(lnf->thinFont.withHeight(23));
-        g.drawText("We're working on it!", 0,  getHeight() / 2 - 120, getWidth(), 40, Justification::centred);
-#else
-        
-        g.setColour(findColour(PlugDataColour::canvasTextColourId));
-        g.setFont(lnf->boldFont.withHeight(32));
-        g.drawText("Toolchain not found", 0, getHeight() / 2 - 150, getWidth(), 40, Justification::centred);
-        
-        g.setFont(lnf->thinFont.withHeight(23));
-        g.drawText("Install the toolchain to get started", 0,  getHeight() / 2 - 120, getWidth(), 40, Justification::centred);
-#endif
-        
-        if(installProgress != 0.0f)
-        {
-            float width = getWidth() - 90.0f;
-            float right = jmap(installProgress, 90.f, width);
-            
-            Path downloadPath;
-            downloadPath.addLineSegment({ 90, 300, right, 300 }, 1.0f);
-            
-            Path fullPath;
-            fullPath.addLineSegment({ 90, 300, width, 300 }, 1.0f);
-            
-            g.setColour(findColour(PlugDataColour::panelTextColourId));
-            g.strokePath(fullPath, PathStrokeType(11.0f, PathStrokeType::JointStyle::curved, PathStrokeType::EndCapStyle::rounded));
-            
-            g.setColour(findColour(PlugDataColour::panelActiveBackgroundColourId));
-            g.strokePath(downloadPath, PathStrokeType(8.0f, PathStrokeType::JointStyle::curved, PathStrokeType::EndCapStyle::rounded));
-        }
-    }
-    
-    void resized() override
-    {
-        installButton.setBounds(getLocalBounds().withSizeKeepingCentre(450, 50).translated(15, -30));
-    }
-    
-    void run() override
-    {
-        MemoryBlock dekData;
-        
-        if(!instream) return; // error!
-        
-        int64 totalBytes = instream->getTotalLength();
-        int64 bytesDownloaded = 0;
-        
-        MemoryOutputStream mo(dekData, true);
-        
-        while (true) {
-            if (threadShouldExit()) {
-                //finish(Result::fail("Download cancelled"));
-                return;
-            }
-            
-            auto written = mo.writeFromInputStream(*instream, 8192);
-            
-            if (written == 0)
-                break;
-            
-            bytesDownloaded += written;
-            
-            float progress = static_cast<long double>(bytesDownloaded) / static_cast<long double>(totalBytes);
-            
-            MessageManager::callAsync([this, progress]() mutable {
-                installProgress = progress;
-                repaint();
-            });
-        }
-        
-        MemoryInputStream input(dekData, false);
-        ZipFile zip(input);
-        
-        auto result = zip.uncompressTo(toolchain);
-        
-        if (!result.wasOk()) {
-            return;
-        }
-        
-        
-#if JUCE_MAC || JUCE_LINUX
-        system(("chmod +x " + toolchain.getFullPathName() + "/bin/Heavy/Heavy").toRawUTF8());
-        system(("chmod +x " + toolchain.getFullPathName() + "/bin/make").toRawUTF8());
-        system(("chmod +x " + toolchain.getFullPathName() + "/bin/arm-none-eabi-*").toRawUTF8());
-        system(("chmod +x " + toolchain.getFullPathName() + "/arm-none-eabi/bin/*").toRawUTF8());
-        system(("chmod +x " + toolchain.getFullPathName() + "/libexec/gcc/arm-none-eabi/*/*").toRawUTF8());
-#endif
-        
-        installProgress = 0.0f;
-        
-        MessageManager::callAsync([this](){
-            toolchainInstalledCallback();
-        });
-    }
-    
-    inline static File toolchain = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory).getChildFile("PlugData").getChildFile("Toolchain");
-    
-    float installProgress = 0.0f;
-    
-    
-    int statusCode;
-    
-    InstallButton installButton;
-    std::function<void()> toolchainInstalledCallback;
-    
-    std::unique_ptr<InputStream> instream;
-};
 
 struct HeavyExportDialog : public Component
 {
-    
     bool hasToolchain = false;
     
     ExportingView exportingView;
     ToolchainInstaller installer;
     ExporterPanel exporterPanel;
-    
     
     inline static File toolchain = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory).getChildFile("PlugData").getChildFile("Toolchain");
     
@@ -989,7 +975,6 @@ struct HeavyExportDialog : public Component
         }
     }
     
-    
     void paint(Graphics& g)
     {
         g.setColour(findColour(PlugDataColour::canvasBackgroundColourId));
@@ -997,7 +982,6 @@ struct HeavyExportDialog : public Component
     }
     
     void resized() {
-        
         auto b = getLocalBounds();
         exporterPanel.setBounds(b);
         installer.setBounds(b);

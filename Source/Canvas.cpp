@@ -374,7 +374,7 @@ void Canvas::mouseDown(MouseEvent const& e)
         }
 
         // Update selected object in sidebar when we click a object
-        if (dynamic_cast<Object*>(source) || source->findParentComponentOfClass<Object>())
+        if (source && (dynamic_cast<Object*>(source) || source->findParentComponentOfClass<Object>()))
         {
             updateSidebarSelection();
         }
@@ -871,9 +871,7 @@ void Canvas::encapsulateSelection()
         
     auto newInternalConnections = String();
     auto newExternalConnections = std::map<int, Array<Iolet*>>();
-    
-    int subpatchIdx = (patch.getIndex(objects.getLast()->getPointer()) + 1) - selectedBoxes.size();
-    
+
     // First, find all the incoming and outgoing connections
     for(auto* connection : connections) {
         if(selectedBoxes.contains(connection->inobj.getComponent()) &&
@@ -1376,9 +1374,7 @@ void Canvas::handleMouseDrag(MouseEvent const& e)
     
     // Behaviour for shift-dragging objects over
     if(objectSnappingInbetween) {
-        bool stillSnapped = false;
         if(connectionToSnapInbetween->intersectsObject(objectSnappingInbetween)) {
-            stillSnapped = true;
             return;
         }
         
