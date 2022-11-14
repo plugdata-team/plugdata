@@ -774,10 +774,13 @@ void Canvas::pasteSelection()
         pastedPadding.setXY(-10, -10);
     }
     pastedPosition = lastMousePosition;
-    auto copyPosition = getSelectionOfType<Object>().getFirst()->getPosition();
-    patch.moveObjects(pastedObjects,
-        pastedPosition.x - copyPosition.x + pastedPadding.x,
-        pastedPosition.y - copyPosition.y + pastedPadding.y);
+    
+    if(getSelectionOfType<Object>().size() > 0) {
+        auto copyPosition = getSelectionOfType<Object>().getFirst()->getPosition();
+        patch.moveObjects(pastedObjects,
+                          pastedPosition.x - copyPosition.x + pastedPadding.x,
+                          pastedPosition.y - copyPosition.y + pastedPadding.y);
+    }
 
     patch.deselectAll();
     pastedObjects.clear();
