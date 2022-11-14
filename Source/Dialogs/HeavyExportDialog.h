@@ -831,7 +831,7 @@ public:
             sourceDir.getChildFile("build").getChildFile("Heavy_" + projectName + ".bin").moveFileTo(outputFile.getChildFile(projectName + ".bin"));
             
             outputFile.getChildFile("daisy").deleteRecursively();
-            outputFile.getChildFile("libdaisy").deleteRecursively();
+            outputFile.getChildFile("libDaisy").deleteRecursively();
             
             return heavyExitCode && getExitCode();
         }
