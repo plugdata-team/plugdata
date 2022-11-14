@@ -839,6 +839,7 @@ public:
             auto outputFile = File(outdir);
             outputFile.getChildFile("ir").deleteRecursively();
             outputFile.getChildFile("hv").deleteRecursively();
+            outputFile.getChildFile("c").deleteRecursively();
             return heavyExitCode;
         }
         
