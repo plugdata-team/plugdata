@@ -837,6 +837,10 @@ public:
         }
         else {
             auto outputFile = File(outdir);
+            
+            auto libDaisy = toolchain.getChildFile("lib").getChildFile("libDaisy");
+            libDaisy.copyDirectoryTo(outputFile.getChildFile("libDaisy"));
+            
             outputFile.getChildFile("ir").deleteRecursively();
             outputFile.getChildFile("hv").deleteRecursively();
             outputFile.getChildFile("c").deleteRecursively();
