@@ -20,7 +20,9 @@ struct ToolchainInstaller : public Component, public Thread
     {
         
 #if JUCE_WINDOWS
-        String downloadSize = "900 MB";
+        String downloadSize = "350 MB";
+#elif JUCE_MAC
+        String downloadSize = "650 MB";
 #else
         String downloadSize = "800 MB";
 #endif
@@ -348,7 +350,10 @@ public:
             setVisible(state < NotExporting);
             continueButton.setVisible(state >= Success);
             if(state == Busy) console.setText("");
-            console.grabKeyboardFocus();
+            if(console.isShowing()) {
+                console.grabKeyboardFocus();
+            }
+            
             resized();
             repaint();
         });
