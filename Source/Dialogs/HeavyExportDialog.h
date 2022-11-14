@@ -717,6 +717,7 @@ class DaisySettingsPanel : public ExporterSettingsPanel
 public:
     
     ComboBox targetBoard;
+    ComboBox exportType;
     
     DaisySettingsPanel(PlugDataPluginEditor* editor, ExportingView* exportingView) : ExporterSettingsPanel(editor, exportingView)
     {
@@ -727,13 +728,21 @@ public:
         targetBoard.addItem("Patch", 4);
         targetBoard.addItem("Field", 5);
         
-        targetBoard.setSelectedId(1);
+        exportType.addItem("Binary", 1);
+        exportType.addItem("Source code", 2);
         
+        targetBoard.setSelectedId(1);
+        exportType.setSelectedId(1);
+        
+        addAndMakeVisible(exportType);
         addAndMakeVisible(targetBoard);
     }
     
     bool performExport(String pdPatch, String outdir, String name, String copyright, StringArray searchPaths) override
     {
+        auto target = targetBoard.getSelectedId() - 1;
+        bool compile = !(exportType.getSelectedId() - 1);
+        
         StringArray args = {heavyExecutable.getFullPathName(), pdPatch, "-o" + outdir};
         
         if(name.isNotEmpty()) {
@@ -749,7 +758,7 @@ public:
         }
         
         auto boards = StringArray{"seed", "pod", "petal", "patch", "field"};
-        auto board = boards[targetBoard.getSelectedId() - 1];
+        auto board = boards[target];
         
         args.add("-m" + createMetadata("daisy", {{"board", board}}));
         
@@ -765,54 +774,70 @@ public:
         
         int heavyExitCode = getExitCode();
         
-        auto bin = toolchain.getChildFile("bin");
-        auto libDaisy = toolchain.getChildFile("lib").getChildFile("libDaisy");
-        
+        if(compile) {
+            
+            auto bin = toolchain.getChildFile("bin");
+            auto libDaisy = toolchain.getChildFile("lib").getChildFile("libDaisy");
+            
 #if JUCE_WINDOWS
-        auto make = bin.getChildFile("make.exe");
-        auto compiler = bin.getChildFile("arm-none-eabi-gcc.exe");
+            auto make = bin.getChildFile("make.exe");
+            auto compiler = bin.getChildFile("arm-none-eabi-gcc.exe");
 #else
-        auto make = bin.getChildFile("make");
-        auto compiler = bin.getChildFile("arm-none-eabi-gcc");
+            auto make = bin.getChildFile("make");
+            auto compiler = bin.getChildFile("arm-none-eabi-gcc");
 #endif
-        
-        auto outputFile = File(outdir);
-        libDaisy.copyDirectoryTo(outputFile.getChildFile("libDaisy"));
-        
-        outputFile.getChildFile("ir").deleteRecursively();
-        outputFile.getChildFile("hv").deleteRecursively();
-        outputFile.getChildFile("c").deleteRecursively();
-        
-        auto workingDir = File::getCurrentWorkingDirectory();
-        auto sourceDir = outputFile.getChildFile("daisy").getChildFile("source");
-        
-        sourceDir.setAsCurrentWorkingDirectory();
-        
-        sourceDir.getChildFile("build").createDirectory();
-        toolchain.getChildFile("lib").getChildFile("heavy-static.a").copyFileTo(sourceDir.getChildFile("build").getChildFile("heavy-static.a"));
-        toolchain.getChildFile("share").getChildFile("daisy_makefile").copyFileTo(sourceDir.getChildFile("Makefile"));
-        
-        auto gccPath = toolchain.getChildFile("bin").getFullPathName();
-        
-        auto projectName = projectNameEditor.getText();
-        
+            
+            auto outputFile = File(outdir);
+            libDaisy.copyDirectoryTo(outputFile.getChildFile("libDaisy"));
+            
+            outputFile.getChildFile("ir").deleteRecursively();
+            outputFile.getChildFile("hv").deleteRecursively();
+            outputFile.getChildFile("c").deleteRecursively();
+            
+            auto workingDir = File::getCurrentWorkingDirectory();
+            auto sourceDir = outputFile.getChildFile("daisy").getChildFile("source");
+            
+            sourceDir.setAsCurrentWorkingDirectory();
+            
+            sourceDir.getChildFile("build").createDirectory();
+            toolchain.getChildFile("lib").getChildFile("heavy-static.a").copyFileTo(sourceDir.getChildFile("build").getChildFile("heavy-static.a"));
+            toolchain.getChildFile("share").getChildFile("daisy_makefile").copyFileTo(sourceDir.getChildFile("Makefile"));
+            
+            auto gccPath = toolchain.getChildFile("bin").getFullPathName();
+            
+            auto projectName = projectNameEditor.getText();
+            
 #if JUCE_WINDOWS
-        
-        auto sh = toolchain.getChildFile("bin").getChildFile("sh.exe");
-        auto windowsBuildScript = sourceDir.getChildFile("build.sh");
-        windowsBuildScript.replaceWithText(make.getFullPathName().replaceCharacter('\\', '/') + " -j4 -f " + sourceDir.getChildFile("Makefile").getFullPathName().replaceCharacter('\\', '/') + " GCC_PATH=" + gccPath.replaceCharacter('\\', '/') + " PROJECT_NAME=" + projectName);
-                
-        String command = sh.getFullPathName() + " --login " + windowsBuildScript.getFullPathName().replaceCharacter('\\', '/');
+            
+            auto sh = toolchain.getChildFile("bin").getChildFile("sh.exe");
+            auto windowsBuildScript = sourceDir.getChildFile("build.sh");
+            windowsBuildScript.replaceWithText(make.getFullPathName().replaceCharacter('\\', '/') + " -j4 -f " + sourceDir.getChildFile("Makefile").getFullPathName().replaceCharacter('\\', '/') + " GCC_PATH=" + gccPath.replaceCharacter('\\', '/') + " PROJECT_NAME=" + projectName);
+            
+            String command = sh.getFullPathName() + " --login " + windowsBuildScript.getFullPathName().replaceCharacter('\\', '/');
 #else
-        String command = make.getFullPathName() + " -j4 -f " + sourceDir.getChildFile("Makefile").getFullPathName() + " GCC_PATH=" + gccPath + " PROJECT_NAME=" + projectName;
+            String command = make.getFullPathName() + " -j4 -f " + sourceDir.getChildFile("Makefile").getFullPathName() + " GCC_PATH=" + gccPath + " PROJECT_NAME=" + projectName;
 #endif
-        // Use std::system because on Mac, juce ChildProcess is slow when using Rosetta
-        start(command.toRawUTF8());
-        waitForProcessToFinish(-1);
+            // Use std::system because on Mac, juce ChildProcess is slow when using Rosetta
+            start(command.toRawUTF8());
+            waitForProcessToFinish(-1);
+            
+            workingDir.setAsCurrentWorkingDirectory();
+            
+            sourceDir.getChildFile("build").getChildFile("Heavy_" + projectName + ".bin").moveFileTo(outputFile.getChildFile(projectName + ".bin"));
+            
+            outputFile.getChildFile("daisy").deleteRecursively();
+            outputFile.getChildFile("libdaisy").deleteRecursively();
+            
+            return heavyExitCode && getExitCode();
+        }
+        else {
+            auto outputFile = File(outdir);
+            outputFile.getChildFile("ir").deleteRecursively();
+            outputFile.getChildFile("hv").deleteRecursively();
+            return heavyExitCode;
+        }
         
-        workingDir.setAsCurrentWorkingDirectory();
-        
-        return heavyExitCode && getExitCode();
+       
     }
     
     void resized() override
@@ -821,17 +846,24 @@ public:
         
         auto b = Rectangle<int>(proportionOfWidth (0.1f), 202, proportionOfWidth (0.8f), getHeight() - 202);
         targetBoard.setBounds(b.removeFromTop(23).withTrimmedLeft(labelWidth));
+        
+        b.removeFromTop(15);
+        
+        exportType.setBounds(b.removeFromTop(23).withTrimmedLeft(labelWidth));
     }
     
     void paint(Graphics& g) override
     {
         ExporterSettingsPanel::paint(g);
         
-        auto b = Rectangle<int>(proportionOfWidth (0.1f), 202, proportionOfWidth (0.8f), getHeight() - 202);
+        auto b = Rectangle<int>(proportionOfWidth (0.1f), 202, labelWidth, getHeight() - 202);
         
         g.setFont(Font(15));
         g.setColour(findColour(PlugDataColour::panelTextColourId));
         g.drawText("Target board", b.removeFromTop(23), Justification::centredLeft);
+        
+        b.removeFromTop(15);
+        g.drawText("Export type", b.removeFromTop(23), Justification::centredLeft);
     }
     
 };
