@@ -763,14 +763,19 @@ public:
         
         sourceDir.getChildFile("build").createDirectory();
         toolchain.getChildFile("lib").getChildFile("heavy-static.a").copyFileTo(sourceDir.getChildFile("build").getChildFile("heavy-static.a"));
-        //toolchain.getChildFile("share").getChildFile("daisy_makefile").copyFileTo(sourceDir.getChildFile("Makefile"));
+        toolchain.getChildFile("share").getChildFile("daisy_makefile").copyFileTo(sourceDir.getChildFile("Makefile"));
         
         auto gccPath = toolchain.getChildFile("bin").getFullPathName();
         
         auto projectName = projectNameEditor.getText();
         
 #if JUCE_WINDOWS
-        String command = make.getFullPathName() + " -j4 -f " + sourceDir.getChildFile("Makefile").getFullPathName() + " GCC_PATH=" + gccPath + " PROJECT_NAME=" + projectName;
+        
+        auto sh = toolchain.getChildFile("usr").getChildFile("bin").getChildFile("sh.exe");
+        auto windowsBuildScript = sourceDir.getChildFile("build.sh");
+        windowsBuildScript.replaceWithText(make.getFullPathName() + " -j4 -f " + sourceDir.getChildFile("Makefile").getFullPathName() + " GCC_PATH=" + gccPath + " PROJECT_NAME=" + projectName);
+                
+        String command = sh.getFullPathName() + " " + windowsBuildScript;
 #else
         String command = make.getFullPathName() + " -j4 -f " + sourceDir.getChildFile("Makefile").getFullPathName() + " GCC_PATH=" + gccPath + " PROJECT_NAME=" + projectName;
 #endif
