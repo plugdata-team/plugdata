@@ -121,7 +121,7 @@ struct ToolchainInstaller : public Component, public Thread
         installButton.onClick = [this](){
             
             // Get latest version
-            auto latestVersion = "v" + URL("https://raw.githubusercontent.com/timothyschoen/HeavyDistributable/main/VERSION").readEntireTextStream();
+            auto latestVersion = "v" + URL("https://raw.githubusercontent.com/timothyschoen/HeavyDistributable/main/VERSION").readEntireTextStream().trim();
             
             if(latestVersion == "v") {
                 errorMessage = "Error: Could not download files (possibly no network connection)";
@@ -1035,8 +1035,8 @@ struct HeavyExportDialog : public Component
         
         // Create integer versions by removing the dots
         // Compare latest version on github to the currently installed version
-        auto latestVersion = URL("https://raw.githubusercontent.com/timothyschoen/HeavyDistributable/main/VERSION").readEntireTextStream().removeCharacters(".").getIntValue();
-        auto installedVersion = toolchain.getChildFile("VERSION").loadFileAsString().removeCharacters(".").getIntValue();
+        auto latestVersion = URL("https://raw.githubusercontent.com/timothyschoen/HeavyDistributable/main/VERSION").readEntireTextStream().trim().removeCharacters(".").getIntValue();
+        auto installedVersion = toolchain.getChildFile("VERSION").loadFileAsString().trim().removeCharacters(".").getIntValue();
    
         if(hasToolchain && latestVersion > installedVersion) {
             installer.needsUpdate = true;
