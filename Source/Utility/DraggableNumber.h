@@ -321,7 +321,6 @@ struct DraggableListNumber : public DraggableNumber {
         auto mouseSource = Desktop::getInstance().getMainMouseSource();
         mouseSource.enableUnboundedMouseMovement(true, true);
 
-        int const decimal = decimalDrag + e.mods.isShiftDown();
         float const increment = 1.;
         float const deltaY = (e.y - e.mouseDownPosition.y) * 0.7f;
 
