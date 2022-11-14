@@ -314,6 +314,14 @@ public:
         console.setScrollbarsShown(true);
         console.setMultiLine(true);
         console.setReadOnly(true);
+        console.setWantsKeyboardFocus(true);
+        
+        // To ensure custom LnF got assigned...
+        MessageManager::callAsync([this](){
+            auto* lnf = dynamic_cast<PlugDataLook*>(&getLookAndFeel());
+            if(!lnf) return;
+            console.setFont(lnf->monoFont);
+        });
         
     }
     
@@ -324,6 +332,7 @@ public:
             setVisible(state < NotExporting);
             continueButton.setVisible(state >= Success);
             if(state == Busy) console.setText("");
+            console.grabKeyboardFocus();
             resized();
             repaint();
         });
@@ -340,10 +349,7 @@ public:
     void paint(Graphics& g) override
     {
         auto* lnf = dynamic_cast<PlugDataLook*>(&getLookAndFeel());
-        
         if(!lnf) return;
-        
-        console.setFont(lnf->monoFont);
         
         if(state == Busy)
         {
@@ -512,7 +518,7 @@ struct ExporterSettingsPanel : public Component, public Value::Listener, public 
         };
         
         outputPathBrowseButton.onClick = [this](){
-            auto constexpr folderChooserFlags = FileBrowserComponent::saveMode | FileBrowserComponent::canSelectDirectories | FileBrowserComponent::warnAboutOverwriting;
+            auto constexpr folderChooserFlags = FileBrowserComponent::saveMode | FileBrowserComponent::canSelectFiles | FileBrowserComponent::warnAboutOverwriting;
             
             saveChooser = std::make_unique<FileChooser>("Export directory", File::getSpecialLocation(File::userHomeDirectory), "", true);
             
