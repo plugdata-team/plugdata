@@ -798,7 +798,7 @@ public:
         
 #if JUCE_WINDOWS
         
-        auto sh = toolchain.getChildFile("usr").getChildFile("bin").getChildFile("sh.exe");
+        auto sh = toolchain.getChildFile("bin").getChildFile("sh.exe");
         auto windowsBuildScript = sourceDir.getChildFile("build.sh");
         windowsBuildScript.replaceWithText(make.getFullPathName().replaceCharacter('\\', '/') + " -j4 -f " + sourceDir.getChildFile("Makefile").getFullPathName().replaceCharacter('\\', '/') + " GCC_PATH=" + gccPath.replaceCharacter('\\', '/') + " PROJECT_NAME=" + projectName);
                 
