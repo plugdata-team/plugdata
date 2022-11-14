@@ -43,9 +43,6 @@ struct ToolchainInstaller : public Component, public Thread
             auto* lnf = dynamic_cast<PlugDataLook*>(&getLookAndFeel());
             
             auto textColour = findColour(PlugDataColour::canvasTextColourId);
-            if(!isEnabled()) {
-                textColour = textColour.brighter(0.4f);
-            }
             
             g.setColour(textColour);
             
@@ -58,16 +55,14 @@ struct ToolchainInstaller : public Component, public Thread
             g.setFont(lnf->thinFont.withHeight(14));
             g.drawText(bottomText, 60, 25, getWidth() - 60, 16, Justification::centredLeft);
             
-            if(isMouseOver() && isEnabled()) {
+            if(isMouseOver()) {
                 g.drawRoundedRectangle(1, 1, getWidth() - 2, getHeight() - 2, 4.0f, 0.5f);
             }
         }
         
         void mouseUp(const MouseEvent& e)
         {
-            if(isEnabled()) {
-                onClick();
-            }
+            onClick();
         }
         
         void mouseEnter(const MouseEvent& e)
@@ -113,10 +108,7 @@ struct ToolchainInstaller : public Component, public Thread
     
     ToolchainInstaller() : Thread("Toolchain Install Thread") {
         addAndMakeVisible(&installButton);
-        
-#if (JUCE_LINUX || JUCE_WINDOWS) && (!defined(__x86_64__) && !defined(_M_X64))
-        installButton.setEnabled(false);
-#endif
+
         
         installButton.onClick = [this](){
             
