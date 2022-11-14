@@ -773,11 +773,11 @@ public:
         
         auto sh = toolchain.getChildFile("usr").getChildFile("bin").getChildFile("sh.exe");
         auto windowsBuildScript = sourceDir.getChildFile("build.sh");
-        windowsBuildScript.replaceWithText(make.getFullPathName() + " -j4 -f " + sourceDir.getChildFile("Makefile").getFullPathName() + " GCC_PATH=" + gccPath + " PROJECT_NAME=" + projectName);
+        windowsBuildScript.replaceWithText(make.getFullPathName().replaceCharacter('\\', '/') + " -j4 -f " + sourceDir.getChildFile("Makefile").getFullPathName().replaceCharacter('\\', '/') + " GCC_PATH=" + gccPath.replaceCharacter('\\', '/') + " PROJECT_NAME=" + projectName);
                 
-        String command = sh.getFullPathName() + " --login " + windowsBuildScript.getFullPathName();
+        String command = sh.getFullPathName() + " --login " + windowsBuildScript.getFullPathName().replaceCharacter('\\', '/');
 #else
-        String command = make.getFullPathName() + " -j4 -f " + sourceDir.getChildFile("Makefile").getFullPathName() + " GCC_PATH=" + gccPath + " PROJECT_NAME=" + projectName;
+        String command = make.getFullPathName() + " -j4 -f " + sourceDir.getChildFile("Makefile").getFullPathName() + " GCC_PATH=" + gccPath + " PROJECT_NAME=" + projectName
 #endif
         // Use std::system because on Mac, juce ChildProcess is slow when using Rosetta
         start(command.toRawUTF8());
