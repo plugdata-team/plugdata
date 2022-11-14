@@ -117,7 +117,11 @@ struct ToolchainInstaller : public Component, public Thread
 #endif
         
         installButton.onClick = [this](){
-            String downloadLocation = "https://github.com/timothyschoen/HeavyDistributable/releases/download/v0.0.2/";
+            
+            // Get latest version
+            auto latestVersion = "v" + URL("https://raw.githubusercontent.com/timothyschoen/HeavyDistributable/main/VERSION").readEntireTextStream();
+            
+            String downloadLocation = "https://github.com/timothyschoen/HeavyDistributable/releases/download/" + latestVersion + "/";
             
 #if JUCE_MAC
             downloadLocation += "Heavy-MacOS-Universal.zip";
@@ -180,10 +184,21 @@ struct ToolchainInstaller : public Component, public Thread
         
         g.setColour(findColour(PlugDataColour::canvasTextColourId));
         g.setFont(lnf->boldFont.withHeight(32));
-        g.drawText("Toolchain not found", 0, getHeight() / 2 - 150, getWidth(), 40, Justification::centred);
+        if(needsUpdate) {
+            g.drawText("Toolchain needs to be updated", 0, getHeight() / 2 - 150, getWidth(), 40, Justification::centred);
+        }
+        else {
+            g.drawText("Toolchain not found", 0, getHeight() / 2 - 150, getWidth(), 40, Justification::centred);
+        }
+
         
         g.setFont(lnf->thinFont.withHeight(23));
-        g.drawText("Install the toolchain to get started", 0,  getHeight() / 2 - 120, getWidth(), 40, Justification::centred);
+        if(needsUpdate) {
+            g.drawText("Update the toolchain to get started", 0,  getHeight() / 2 - 120, getWidth(), 40, Justification::centred);
+        }
+        else {
+            g.drawText("Install the toolchain to get started", 0,  getHeight() / 2 - 120, getWidth(), 40, Justification::centred);
+        }
 #endif
         
         if(installProgress != 0.0f)
@@ -272,6 +287,7 @@ struct ToolchainInstaller : public Component, public Thread
     float installProgress = 0.0f;
     
     
+    bool needsUpdate = false;
     int statusCode;
     
     InstallButton installButton;
@@ -520,7 +536,7 @@ struct ExporterSettingsPanel : public Component, public Value::Listener, public 
         outputPathBrowseButton.onClick = [this](){
             auto constexpr folderChooserFlags = FileBrowserComponent::saveMode | FileBrowserComponent::canSelectFiles | FileBrowserComponent::warnAboutOverwriting;
             
-            saveChooser = std::make_unique<FileChooser>("Export directory", File::getSpecialLocation(File::userHomeDirectory), "", true);
+            saveChooser = std::make_unique<FileChooser>("Export location", File::getSpecialLocation(File::userHomeDirectory), "", true);
             
             saveChooser->launchAsync(folderChooserFlags,
                                      [this](FileChooser const& fileChooser) {
@@ -964,12 +980,24 @@ struct HeavyExportDialog : public Component
     inline static File toolchain = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory).getChildFile("PlugData").getChildFile("Toolchain");
     
     HeavyExportDialog(Dialog* dialog) : exporterPanel(dynamic_cast<PlugDataPluginEditor*>(dialog->parentComponent), &exportingView) {
+        
         hasToolchain = toolchain.exists();
+        
+        // Create integer versions by removing the dots
+        // Compare latest version on github to the currently installed version
+        auto latestVersion = URL("https://raw.githubusercontent.com/timothyschoen/HeavyDistributable/main/VERSION").readEntireTextStream().removeCharacters(".").getIntValue();
+        auto installedVersion = toolchain.getChildFile("VERSION").loadFileAsString().removeCharacters(".").getIntValue();
+   
+        if(hasToolchain && latestVersion > installedVersion) {
+            installer.needsUpdate = true;
+            hasToolchain = false;
+        }
         
         addChildComponent(installer);
         addChildComponent(exporterPanel);
         addChildComponent(exportingView);
         
+
         exportingView.setAlwaysOnTop(true);
         
         installer.toolchainInstalledCallback = [this](){
