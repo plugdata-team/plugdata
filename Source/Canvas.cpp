@@ -1280,6 +1280,7 @@ void Canvas::handleMouseDrag(MouseEvent const& e)
     auto selection = getSelectionOfType<Object>();
 
     auto dragDistance = e.getOffsetFromDragStart();
+    
     // In case we dragged near the edge and the canvas moved
     auto canvasMoveOffset = canvasDragStartPosition - getPosition();
 

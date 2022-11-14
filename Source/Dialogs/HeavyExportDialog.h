@@ -20,7 +20,7 @@ struct ToolchainInstaller : public Component, public Thread
     {
         
 #if JUCE_WINDOWS
-        String downloadSize = "350 MB";
+        String downloadSize = "390 MB";
 #elif JUCE_MAC
         String downloadSize = "650 MB";
 #else
@@ -123,12 +123,20 @@ struct ToolchainInstaller : public Component, public Thread
             // Get latest version
             auto latestVersion = "v" + URL("https://raw.githubusercontent.com/timothyschoen/HeavyDistributable/main/VERSION").readEntireTextStream();
             
+            if(latestVersion == "v") {
+                errorMessage = "Error: Could not download files (possibly no network connection)";
+                installButton.topText = "Try Again";
+                repaint();
+            }
+                        
             String downloadLocation = "https://github.com/timothyschoen/HeavyDistributable/releases/download/" + latestVersion + "/";
             
 #if JUCE_MAC
             downloadLocation += "Heavy-MacOS-Universal.zip";
 #elif JUCE_WINDOWS
             downloadLocation += "Heavy-Win64.zip";
+#elif JUCE_LINUX && __aarch64__
+            downloadLocation += "Heavy-Linux-arm64.zip";
 #else
             
             auto [distroName, distroBackupName, distroVersion] = getDistroID();
@@ -174,16 +182,6 @@ struct ToolchainInstaller : public Component, public Thread
         auto* lnf = dynamic_cast<PlugDataLook*>(&getLookAndFeel());
         if(!lnf) return;
         
-#if (JUCE_LINUX || JUCE_WINDOWS) && (!defined(__x86_64__) && !defined(_M_X64))
-        
-        g.setColour(findColour(PlugDataColour::canvasTextColourId));
-        g.setFont(lnf->boldFont.withHeight(32));
-        g.drawText("Non x64 platform not supported", 0, getHeight() / 2 - 150, getWidth(), 40, Justification::centred);
-        
-        g.setFont(lnf->thinFont.withHeight(23));
-        g.drawText("We're working on it!", 0,  getHeight() / 2 - 120, getWidth(), 40, Justification::centred);
-#else
-        
         g.setColour(findColour(PlugDataColour::canvasTextColourId));
         g.setFont(lnf->boldFont.withHeight(32));
         if(needsUpdate) {
@@ -201,7 +199,6 @@ struct ToolchainInstaller : public Component, public Thread
         else {
             g.drawText("Install the toolchain to get started", 0,  getHeight() / 2 - 120, getWidth(), 40, Justification::centred);
         }
-#endif
         
         if(installProgress != 0.0f)
         {
@@ -220,6 +217,14 @@ struct ToolchainInstaller : public Component, public Thread
             g.setColour(findColour(PlugDataColour::panelActiveBackgroundColourId));
             g.strokePath(downloadPath, PathStrokeType(8.0f, PathStrokeType::JointStyle::curved, PathStrokeType::EndCapStyle::rounded));
         }
+        
+        
+        if(errorMessage.isNotEmpty()) {
+            g.setFont(Font(15));
+            g.setColour(Colours::red);
+            g.drawText(errorMessage, Rectangle<float>(90.0f, 300.0f, getWidth() - 90.0f, 20), Justification::centred);
+        }
+
     }
     
     void resized() override
@@ -265,10 +270,16 @@ struct ToolchainInstaller : public Component, public Thread
         auto result = zip.uncompressTo(toolchain);
         
         if (!result.wasOk()) {
+            MessageManager::callAsync([this](){
+                installButton.topText = "Try Again";
+                errorMessage = "Error: Could not extract downloaded package";
+                repaint();
+            });
             return;
         }
         
         
+        // Make sure downloaded files have executable permission on unix
 #if JUCE_MAC || JUCE_LINUX
         system(("chmod +x " + toolchain.getFullPathName() + "/bin/Heavy/Heavy").toRawUTF8());
         system(("chmod +x " + toolchain.getFullPathName() + "/bin/make").toRawUTF8());
@@ -294,6 +305,8 @@ struct ToolchainInstaller : public Component, public Thread
     
     InstallButton installButton;
     std::function<void()> toolchainInstalledCallback;
+    
+    String errorMessage;
     
     std::unique_ptr<InputStream> instream;
 };
