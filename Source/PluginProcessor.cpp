@@ -324,6 +324,10 @@ void PlugDataAudioProcessor::initialiseFilesystem()
     if(!settingsTree.hasProperty("Zoom")) {
         settingsTree.setProperty("Zoom", 1.0f, nullptr);
     }
+    
+    if(!settingsTree.hasProperty("AutoConnect")) {
+        settingsTree.setProperty("AutoConnect", true, nullptr);
+    }
 }
 
 void PlugDataAudioProcessor::saveSettings()

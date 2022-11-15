@@ -160,7 +160,15 @@ struct SettingsPopup : public PopupMenu {
         });
         
 
-        //addItem(4, "Code exporter");
+        addSeparator();
+        
+        bool autoconnectEnabled = settingsTree.hasProperty("AutoConnect") ? static_cast<bool>(settingsTree.getProperty("AutoConnect")) : false;
+        
+        addItem("Auto-connect objects", true, autoconnectEnabled, [this]() mutable {
+            bool ticked = settingsTree.hasProperty("AutoConnect") ? static_cast<bool>(settingsTree.getProperty("AutoConnect")) : false;
+            settingsTree.setProperty("AutoConnect", !ticked, nullptr);
+        });
+        
         addSeparator();
         addItem(5, "Settings");
         addItem(6, "About");
