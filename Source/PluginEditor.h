@@ -184,6 +184,7 @@ class PlugDataPluginEditor : public AudioProcessorEditor, public Value::Listener
     Value zoomScale;
 
     Value hvccMode;
+    Value autoconnect;
     
    private:
     
