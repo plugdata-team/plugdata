@@ -444,7 +444,7 @@ struct ExporterSettingsPanel : public Component, public Value::Listener, public 
     
     File patchFile;
     File openedPatchFile;
-    File realPatchLocation;
+    File realPatchFile;
     
     ExportingView* exportingView;
     
@@ -478,7 +478,7 @@ struct ExporterSettingsPanel : public Component, public Value::Listener, public 
             patchChooser.setItemEnabled(1, true);
             patchChooser.setSelectedId(1);
             patchFile = openedPatchFile;
-            realPatchLocation = cnv->patch.getCurrentFile();
+            realPatchFile = cnv->patch.getCurrentFile();
         }
         else {
             patchChooser.setItemEnabled(1, false);
@@ -535,8 +535,8 @@ struct ExporterSettingsPanel : public Component, public Value::Listener, public 
             int numItems;
             libpd_get_search_paths(paths, &numItems);
             
-            if(realPatchPath.existsAsFile()) {
-                searchPaths.add(realPatchPath.getParentDirectory().getFullPathName());
+            if(realPatchFile.existsAsFile()) {
+                searchPaths.add(realPatchFile.getParentDirectory().getFullPathName());
             }
             
             for(int i = 0; i < numItems; i++) {
