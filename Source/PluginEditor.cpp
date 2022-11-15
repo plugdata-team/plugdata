@@ -1257,17 +1257,17 @@ bool PlugDataPluginEditor::perform(const InvocationInfo& info)
             int idx = static_cast<int>(info.commandID) - CommandIDs::NewObject;
             if (isPositiveAndBelow(idx, objectNames.size()))
             {
-                if (cnv->selectedComponents.getNumSelected() == 1) // if 1 object is selected, create new object beneath selected
-                {
-                    auto* obj = cnv->getSelectionOfType<Object>()[0];
+                if (cnv->selectedComponents.getNumSelected() == 1) {
+                    // if 1 object is selected, create new object beneath selected
+                    auto obj = cnv->lastSelectedObject = cnv->getSelectionOfType<Object>()[0];
                     cnv->objects.add(new Object(cnv, objectNames[idx], 
                         Point<int>(
-                            obj->getPosition().x + Object::margin,
-                            obj->getPosition().y + obj->getHeight()) // placed beneath object + Object::margin
+                                    // place beneath object + Object::margin
+                                    obj->getPosition().x + Object::margin,
+                                    obj->getPosition().y + obj->getHeight())
                     ));
-                }
-                else // if 0 or several objects are selected, create new object at mouse position
-                {
+                } else {
+                    // if 0 or several objects are selected, create new object at mouse position
                     cnv->objects.add(new Object(cnv, objectNames[idx], lastPosition));
                 }
                 cnv->deselectAll();
