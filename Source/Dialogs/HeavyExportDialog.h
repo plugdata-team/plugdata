@@ -14,7 +14,7 @@
 
 #include <z_libpd.h>
 
-struct ToolchainInstaller : public Component, public Thread
+struct ToolchainInstaller : public Component, public Thread, public Timer
 {
     struct InstallButton : public Component
     {
@@ -76,6 +76,12 @@ struct ToolchainInstaller : public Component, public Thread
         }
     };
     
+    
+    void timerCallback() override
+    {
+        repaint();
+    }
+    
 #if JUCE_LINUX
     std::tuple<String, String, String> getDistroID()
     {
@@ -109,8 +115,10 @@ struct ToolchainInstaller : public Component, public Thread
     ToolchainInstaller() : Thread("Toolchain Install Thread") {
         addAndMakeVisible(&installButton);
 
-        
         installButton.onClick = [this](){
+            
+            errorMessage = "";
+            repaint();
             
             // Get latest version
             auto latestVersion = "v" + URL("https://raw.githubusercontent.com/timothyschoen/HeavyDistributable/main/VERSION").readEntireTextStream().trim();
@@ -210,11 +218,14 @@ struct ToolchainInstaller : public Component, public Thread
             g.strokePath(downloadPath, PathStrokeType(8.0f, PathStrokeType::JointStyle::curved, PathStrokeType::EndCapStyle::rounded));
         }
         
-        
         if(errorMessage.isNotEmpty()) {
             g.setFont(Font(15));
             g.setColour(Colours::red);
             g.drawText(errorMessage, Rectangle<float>(90.0f, 300.0f, getWidth() - 90.0f, 20), Justification::centred);
+        }
+        
+        if(isTimerRunning()) {
+            lnf->drawSpinningWaitAnimation(g, findColour(PlugDataColour::canvasTextColourId), getWidth() / 2 - 16, getHeight() / 2 + 135, 32, 32);
         }
 
     }
@@ -226,18 +237,17 @@ struct ToolchainInstaller : public Component, public Thread
     
     void run() override
     {
-        MemoryBlock dekData;
+        MemoryBlock toolchainData;
         
         if(!instream) return; // error!
         
         int64 totalBytes = instream->getTotalLength();
         int64 bytesDownloaded = 0;
         
-        MemoryOutputStream mo(dekData, true);
+        MemoryOutputStream mo(toolchainData, true);
         
         while (true) {
             if (threadShouldExit()) {
-                //finish(Result::fail("Download cancelled"));
                 return;
             }
             
@@ -256,16 +266,19 @@ struct ToolchainInstaller : public Component, public Thread
             });
         }
         
-        MemoryInputStream input(dekData, false);
+        startTimer(25);
+        
+        MemoryInputStream input(toolchainData, false);
         ZipFile zip(input);
         
         auto result = zip.uncompressTo(toolchain);
         
-        if (!result.wasOk()) {
+        if (!result.wasOk() || (statusCode >= 400)) {
             MessageManager::callAsync([this](){
                 installButton.topText = "Try Again";
                 errorMessage = "Error: Could not extract downloaded package";
                 repaint();
+                stopTimer();
             });
             return;
         }
@@ -281,6 +294,7 @@ struct ToolchainInstaller : public Component, public Thread
 #endif
         
         installProgress = 0.0f;
+        stopTimer();
         
         MessageManager::callAsync([this](){
             toolchainInstalledCallback();
@@ -712,6 +726,9 @@ public:
         outputFile.getChildFile("ir").deleteRecursively();
         outputFile.getChildFile("hv").deleteRecursively();
         
+        // Delay to get correct exit code
+        Time::waitForMillisecondCounter(Time::getMillisecondCounter() + 300);
+        
         return getExitCode();
     }
     
@@ -777,6 +794,9 @@ public:
         
         if(shouldQuit) return 1;
         
+        // Delay to get correct exit code
+        Time::waitForMillisecondCounter(Time::getMillisecondCounter() + 300);
+        
         int heavyExitCode = getExitCode();
         
         if(compile) {
@@ -832,6 +852,9 @@ public:
             
             outputFile.getChildFile("daisy").deleteRecursively();
             outputFile.getChildFile("libDaisy").deleteRecursively();
+            
+            // Delay to get correct exit code
+            Time::waitForMillisecondCounter(Time::getMillisecondCounter() + 300);
             
             return heavyExitCode && getExitCode();
         }
