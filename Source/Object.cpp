@@ -292,6 +292,17 @@ void Object::setType(String const& newType, void* existingObject)
     updatePorts();
     updateBounds();
 
+    // Intelligent auto patching
+    std::cout << "p" << std::endl;
+    if (this->numInputs && cnv->lastSelectedObject && cnv->lastSelectedObject->numOutputs) {
+        auto outlet = cnv->lastSelectedObject->iolets[cnv->lastSelectedObject->numInputs];
+        auto inlet = this->iolets[0];
+        if (!outlet->isSignal && !inlet->isSignal || outlet->isSignal && inlet->isSignal) {
+            cnv->connections.add(new Connection(cnv, outlet, inlet, false));
+        }
+    }
+    cnv->lastSelectedObject = nullptr;
+
     cnv->main.updateCommandStatus();
 }
 
