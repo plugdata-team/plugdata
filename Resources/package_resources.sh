@@ -7,11 +7,12 @@ cd plugdata_version
 mkdir Abstractions
 mkdir Abstractions/else
 cp ../../Libraries/pure-data/extra/*.pd ./Abstractions
+cp ../../Libraries/pure-data/extra/*-help.pd ./Documentation/5.reference
 cp ../../Libraries/ELSE/Abstractions/*.pd ./Abstractions/else
 cp ../playhead.pd ./Abstractions
 cp ../param.pd ./Abstractions
 
-rm ./Abstractions/else/All_objects.pd
+
 
 cp -R ../../Libraries/pure-data/doc ./Documentation
 cp -R ../pddp ./Documentation/pddp
