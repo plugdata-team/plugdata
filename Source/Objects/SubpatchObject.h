@@ -107,7 +107,6 @@ struct SubpatchObject final : public TextBase
                 instance->logError(String("Warning: object \"" + name + "\" is not supported in Compiled Mode").toRawUTF8());
             }
         }
-        
     }
     
 protected:

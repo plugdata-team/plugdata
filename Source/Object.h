@@ -98,6 +98,8 @@ class Object : public Component, public Value::Listener, public Timer, private T
    private:
     void initialise();
 
+    void updateTooltips();
+    
     void openNewObjectEditor();
 
     Rectangle<int> originalBounds;

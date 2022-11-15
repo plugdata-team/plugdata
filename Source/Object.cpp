@@ -459,6 +459,62 @@ void Object::resized()
     }
 }
 
+void Object::updateTooltips() {
+            
+    if(!gui) return;
+    
+    StringArray inletMessages;
+    StringArray outletMessages;
+    
+    // Set object tooltip
+    gui->setTooltip(cnv->pd->objectLibrary.getObjectDescriptions()[gui->getType()]);
+    
+    if(auto* subpatch =  gui->getPatch()) {
+        
+        // Check child objects of subpatch for inlet/outlet messages
+        for(auto* obj : subpatch->getObjects()) {
+            
+            const String name = libpd_get_object_class_name(obj);
+            if(name == "inlet") {
+                
+                int size;
+                char* str_ptr;
+                libpd_get_object_text(obj, &str_ptr, &size);
+                
+                // Anything after the first space will be the comment
+                const auto text = String::fromUTF8(str_ptr, size);
+                inletMessages.add(text.fromFirstOccurrenceOf(" ", false, false));
+            }
+            if(name == "outlet") {
+                int size;
+                char* str_ptr;
+                libpd_get_object_text(obj, &str_ptr, &size);
+                
+                const auto text = String::fromUTF8(str_ptr, size);
+                outletMessages.add(text.fromFirstOccurrenceOf(" ", false, false));
+            }
+        }
+    }
+    
+    for(auto* iolet : iolets) {
+        
+        // Check pd library for pddp tooltips, those have priority
+        String tooltip = cnv->pd->objectLibrary.getInletOutletTooltip(gui->getType(), iolet->ioletIdx, iolet->isInlet ? numInputs : numOutputs, iolet->isInlet);
+        
+        // Don't overwrite custom documentation
+        if(tooltip.isNotEmpty())  {
+            iolet->setTooltip(tooltip);
+            return;
+        }
+        
+        auto& messages = iolet->isInlet ? inletMessages : outletMessages;
+        int idx = messages.size() - 1;
+        iolet->setTooltip(messages[idx]);
+        messages.remove(idx);
+    }
+    
+}
+
 void Object::updatePorts()
 {
     if (!getPointer()) return;
@@ -486,10 +542,7 @@ void Object::updatePorts()
     while (numInputs > oldNumInputs) iolets.insert(oldNumInputs++, new Iolet(this, true));
     while (numOutputs < oldNumOutputs) iolets.remove(numInputs + (--oldNumOutputs));
     while (numOutputs > oldNumOutputs) iolets.insert(numInputs + (++oldNumOutputs), new Iolet(this, false));
-    
-    if(gui) {
-        gui->setTooltip(cnv->pd->objectLibrary.getObjectDescriptions()[gui->getType()]);
-    }
+
 
     int numIn = 0;
     int numOut = 0;
@@ -526,6 +579,8 @@ void Object::updatePorts()
         numIn += input;
         numOut += !input;
     }
+    
+    updateTooltips();
 
     resized();
 }
