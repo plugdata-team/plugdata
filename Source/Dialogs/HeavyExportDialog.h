@@ -788,9 +788,10 @@ public:
         
         args.add("-gdaisy");
         
+        exportingView->logToConsole("Compiling...");
+        
         start(args);
         waitForProcessToFinish(-1);
-        
         
         if(shouldQuit) return 1;
         
