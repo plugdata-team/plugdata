@@ -83,6 +83,8 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p) : AudioPro
         p.settingsTree.appendChild(ValueTree("Keymap"), nullptr);
     }
 
+    autoconnect.referTo(pd.settingsTree.getPropertyAsValue("AutoConnect", nullptr));
+    
     theme.referTo(pd.settingsTree.getPropertyAsValue("Theme", nullptr));
     theme.addListener(this);
     
