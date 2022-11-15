@@ -293,7 +293,6 @@ void Object::setType(String const& newType, void* existingObject)
     updateBounds();
 
     // Intelligent auto patching
-    std::cout << "p" << std::endl;
     if (this->numInputs && cnv->lastSelectedObject && cnv->lastSelectedObject->numOutputs) {
         auto outlet = cnv->lastSelectedObject->iolets[cnv->lastSelectedObject->numInputs];
         auto inlet = this->iolets[0];
