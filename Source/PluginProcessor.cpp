@@ -264,7 +264,6 @@ void PlugDataAudioProcessor::initialiseFilesystem()
 
         settingsTree.setProperty("DefaultFont", "Inter", nullptr);
         auto colourThemesTree = ValueTree("ColourThemes");
-        settingsTree.appendChild(colourThemesTree, nullptr);
         
         for (auto const& theme : lnf->colourSettings) {
             auto themeName = theme.first;
@@ -277,6 +276,8 @@ void PlugDataAudioProcessor::initialiseFilesystem()
                 themeTree.setProperty(colourName, themeColours.at(defaultColours.first).toString(), nullptr);
             }
         }
+        
+        settingsTree.appendChild(colourThemesTree, nullptr);
         saveSettings();
     }
     else
@@ -297,11 +298,12 @@ void PlugDataAudioProcessor::initialiseFilesystem()
                 auto themeName = theme.first;
                 auto themeColours = theme.second;
                 auto themeTree = ValueTree(themeName);
+                
                 colourThemesTree.appendChild(themeTree, nullptr);
                 themeTree.setProperty("theme", themeName, nullptr);
-                for (auto const& defaultColours : lnf->defaultDarkTheme) {
-                    auto colourName = PlugDataColourNames.at(defaultColours.first).second;
-                    themeTree.setProperty(colourName, themeColours.at(defaultColours.first).toString(), nullptr);
+                for (auto const& [colourId, colour] : PlugDataLook::defaultThemes.at(themeName)) {
+                    auto colourName = PlugDataColourNames.at(colourId).second;
+                    themeTree.setProperty(colourName, colour.toString(), nullptr);
                 }
             }
             
@@ -309,15 +311,25 @@ void PlugDataAudioProcessor::initialiseFilesystem()
             saveSettings();
         }
         else {
+            bool wasMissingColours = false;
             auto colourThemesTree = settingsTree.getChildWithName("ColourThemes");
-            for (auto const& themeTree : colourThemesTree) {
+            for (auto themeTree : colourThemesTree) {
                 auto themeName = themeTree.getProperty("theme");
-                for (auto const& defaultColours : lnf->defaultDarkTheme) {
-                    auto colourName = PlugDataColourNames.at(defaultColours.first).second;
+                
+                for (auto const& [colourId, colour] : PlugDataLook::defaultThemes.at(themeName)) {
+                    auto colourName = PlugDataColourNames.at(colourId).second;
                     
-                    lnf->colourSettings[themeName][defaultColours.first] = Colour::fromString(themeTree.getProperty(String(colourName)).toString());
+                    // For when we add new colours in the future
+                    if(!themeTree.hasProperty(colourName)) {
+                        themeTree.setProperty(colourName, colour.toString(), nullptr);
+                        wasMissingColours = true;
+                    }
+                    
+                    lnf->colourSettings[themeName][colourId] = Colour::fromString(themeTree.getProperty(colourName).toString());
                 }
             }
+            
+            if(wasMissingColours) saveSettings();
         }
     }
 
