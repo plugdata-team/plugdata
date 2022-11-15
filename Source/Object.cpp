@@ -747,6 +747,7 @@ void Object::openNewObjectEditor()
                 _this->cnv->hideSuggestions();
                 _this->cnv->objects.removeObject(_this.getComponent());
             });
+            cnv->lastSelectedObject = nullptr;
         };
         editor->setAlwaysOnTop(true);
         editor->setMultiLine(false);
