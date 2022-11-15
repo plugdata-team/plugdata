@@ -463,8 +463,8 @@ void Object::updateTooltips() {
             
     if(!gui) return;
     
-    StringArray inletMessages;
-    StringArray outletMessages;
+    std::vector<std::pair<int, String>> inletMessages;
+    std::vector<std::pair<int, String>> outletMessages;
     
     // Set object tooltip
     gui->setTooltip(cnv->pd->objectLibrary.getObjectDescriptions()[gui->getType()]);
@@ -481,22 +481,39 @@ void Object::updateTooltips() {
                 char* str_ptr;
                 libpd_get_object_text(obj, &str_ptr, &size);
                 
+                int x, y, w, h;
+                libpd_get_object_bounds(subpatch->getPointer(), obj, &x, &y, &w, &h);
+                
                 // Anything after the first space will be the comment
                 const auto text = String::fromUTF8(str_ptr, size);
-                inletMessages.add(text.fromFirstOccurrenceOf(" ", false, false));
+                inletMessages.emplace_back(x, text.fromFirstOccurrenceOf(" ", false, false));
             }
             if(name == "outlet") {
                 int size;
                 char* str_ptr;
                 libpd_get_object_text(obj, &str_ptr, &size);
                 
+                int x, y, w, h;
+                libpd_get_object_bounds(subpatch->getPointer(), obj, &x, &y, &w, &h);
+                
                 const auto text = String::fromUTF8(str_ptr, size);
-                outletMessages.add(text.fromFirstOccurrenceOf(" ", false, false));
+                outletMessages.emplace_back(x, text.fromFirstOccurrenceOf(" ", false, false));
             }
         }
     }
     
-    for(auto* iolet : iolets) {
+    auto sortFunc = [](std::pair<int, String>& a, std::pair<int, String>& b){
+        return a.first < b.first;
+    };
+    
+    std::sort(inletMessages.begin(), inletMessages.end(), sortFunc);
+    std::sort(outletMessages.begin(), outletMessages.end(), sortFunc);
+    
+    int numIn = 0;
+    int numOut = 0;
+    
+    for(int i = 0; i < iolets.size(); i++) {
+        auto* iolet = iolets[i];
         
         // Check pd library for pddp tooltips, those have priority
         String tooltip = cnv->pd->objectLibrary.getInletOutletTooltip(gui->getType(), iolet->ioletIdx, iolet->isInlet ? numInputs : numOutputs, iolet->isInlet);
@@ -507,10 +524,11 @@ void Object::updateTooltips() {
             return;
         }
         
-        auto& messages = iolet->isInlet ? inletMessages : outletMessages;
-        int idx = messages.size() - 1;
-        iolet->setTooltip(messages[idx]);
-        messages.remove(idx);
+        if((iolet->isInlet && numIn >= inletMessages.size()) ||(!iolet->isInlet && numIn >= inletMessages.size())) continue;
+           
+        
+        auto& [x, message] = iolet->isInlet ? inletMessages[numIn++] : outletMessages[numOut++];
+        iolet->setTooltip(message);
     }
     
 }
