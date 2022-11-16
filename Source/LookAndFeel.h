@@ -471,8 +471,8 @@ struct PlugDataLook : public LookAndFeel_V4
 
             if (isHighlighted && isActive)
             {
-                g.setColour (findColour (PopupMenu::highlightedBackgroundColourId).darker(0.15f));
-                g.fillRoundedRectangle(r.toFloat().withTrimmedLeft(4).withTrimmedRight(4), 4.0f);
+                g.setColour (findColour (PopupMenu::highlightedBackgroundColourId).darker(0.07f));
+                g.fillRoundedRectangle(r.toFloat().reduced(4, 1), 3.0f);
 
                 g.setColour (findColour (PopupMenu::textColourId));
             }

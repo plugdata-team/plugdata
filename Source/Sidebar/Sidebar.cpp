@@ -97,10 +97,6 @@ void Sidebar::paint(Graphics& g)
     // Background for buttons
     g.setColour(findColour(PlugDataColour::toolbarBackgroundColourId));
     g.fillRect(0, 0, getWidth(), 28);
-    
-    // Draggable bar
-    g.setColour(findColour(PlugDataColour::toolbarBackgroundColourId));
-    g.fillRect(0.0f, 28.0f, 5.0f, getHeight() - 55.0f);
 }
 
 void Sidebar::paintOverChildren(Graphics& g)
@@ -125,9 +121,6 @@ void Sidebar::resized()
     automationButton.setBounds(tabbarBounds.removeFromLeft(buttonWidth));
 
     browser->setBounds(bounds);
-    
-    bounds.removeFromLeft(dragbarWidth);
-    
     console->setBounds(bounds);
     inspector->setBounds(bounds);
     

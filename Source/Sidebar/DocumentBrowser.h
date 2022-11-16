@@ -75,7 +75,7 @@ public:
         p.addTriangle(0.0f, 0.0f, 1.0f, isOpen() ? 0.0f : 0.5f, isOpen() ? 0.5f : 0.0f, 1.0f);
         g.setColour(isSelected() ? getOwnerView()->findColour(PlugDataColour::panelActiveTextColourId) : getOwnerView()->findColour(PlugDataColour::panelTextColourId).withAlpha(isMouseOver ? 0.7f : 1.0f));
         
-        auto pathArea = area.translated(4, 0);
+        auto pathArea = area.translated(8, 0);
         g.fillPath(p, p.getTransformToScaleToFit(pathArea.reduced(2, pathArea.getHeight() / 4), true));
     }
 
@@ -116,6 +116,8 @@ public:
                 changeListenerCallback(nullptr);
             }
         }
+        
+        owner.repaint();
     }
 
     void removeSubContentsList()
@@ -163,7 +165,7 @@ public:
 
     void paintItem(Graphics& g, int width, int height) override
     {
-        int const x = 35;
+        int const x = 40;
 
         if (isSelected())
             g.setColour(owner.findColour(PlugDataColour::panelActiveTextColourId));
@@ -173,9 +175,9 @@ public:
         g.setFont(dynamic_cast<PlugDataLook*>(&owner.getLookAndFeel())->iconFont);
 
         if (isDirectory) {
-            g.drawFittedText(Icons::Folder, Rectangle<int>(2, 2, x - 4, height - 4), Justification::centred, 1);
+            g.drawFittedText(Icons::Folder, Rectangle<int>(6, 2, x - 4, height - 4), Justification::centred, 1);
         } else {
-            g.drawFittedText(Icons::File, Rectangle<int>(2, 2, x - 4, height - 4), Justification::centred, 1);
+            g.drawFittedText(Icons::File, Rectangle<int>(6, 2, x - 4, height - 4), Justification::centred, 1);
         }
         
 
@@ -347,11 +349,9 @@ public:
             g.setColour(findColour(PlugDataColour::panelActiveBackgroundColourId));
             
             auto selectedRect = getSelectedItem(0)->getItemPosition(true);
-            selectedRect = selectedRect.withX(0).withWidth(getWidth());
-            g.fillRect(selectedRect);
+            selectedRect = selectedRect.withX(0).withWidth(getWidth()).withHeight(24);
+            g.fillRoundedRectangle(selectedRect.reduced(4, 2).toFloat(), 4.0f);
         }
-
-
     }
     // Paint file drop outline
     void paintOverChildren(Graphics& g) override
@@ -390,6 +390,7 @@ public:
     {
         browser->repaint();
     };
+        
     void fileClicked(File const&, MouseEvent const&) override {};
     void browserRootChanged(File const&) override {};
 
@@ -790,7 +791,7 @@ struct DocumentBrowser : public DocumentBrowserBase
     {
         searchComponent.setBounds(getLocalBounds().withHeight(getHeight() - 28));
         
-        fileList.setBounds(getLocalBounds().withHeight(getHeight() - 58).withY(28).withLeft(5));
+        fileList.setBounds(getLocalBounds().withHeight(getHeight() - 58).withY(30));
 
         auto fb = FlexBox(FlexBox::Direction::row, FlexBox::Wrap::noWrap, FlexBox::AlignContent::flexStart, FlexBox::AlignItems::stretch, FlexBox::JustifyContent::flexStart);
 
@@ -817,10 +818,6 @@ struct DocumentBrowser : public DocumentBrowserBase
 
     void paintOverChildren(Graphics& g) override
     {
-        // Draggable bar
-        g.setColour(findColour(PlugDataColour::toolbarBackgroundColourId));
-        g.fillRect(0, 28, Sidebar::dragbarWidth + 1, getHeight());
-
         g.setColour(findColour(PlugDataColour::outlineColourId));
         g.drawLine(0.5f, 0, 0.5f, getHeight() - 27.5f);
 
