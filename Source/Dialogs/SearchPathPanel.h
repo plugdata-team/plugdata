@@ -21,7 +21,7 @@ public:
     : tree(std::move(libraryTree))
     {
         listBox.setOutlineThickness(0);
-        listBox.setRowHeight(26);
+        listBox.setRowHeight(25);
         
         listBox.setModel(this);
         addAndMakeVisible(listBox);
@@ -180,11 +180,6 @@ public:
         auto statusbarBounds = Rectangle<int>(2, statusbarY + 6, getWidth() - 6, statusbarHeight);
         
         addButton.setBounds(statusbarBounds.removeFromLeft(statusbarHeight));
-        removeButton.setBounds(statusbarBounds.removeFromLeft(statusbarHeight));
-        
-        downButton.setBounds(statusbarBounds.removeFromRight(statusbarHeight));
-        upButton.setBounds(statusbarBounds.removeFromRight(statusbarHeight));
-        changeButton.setBounds(statusbarBounds.removeFromRight(statusbarHeight));
         resetButton.setBounds(statusbarBounds.removeFromRight(statusbarHeight));
     }
     
@@ -261,10 +256,25 @@ private:
     {
         bool const anythingSelected = listBox.getNumSelectedRows() > 0;
         
-        removeButton.setEnabled(anythingSelected);
-        changeButton.setEnabled(anythingSelected);
-        upButton.setEnabled(anythingSelected);
-        downButton.setEnabled(anythingSelected);
+        removeButton.setVisible(anythingSelected);
+        changeButton.setVisible(anythingSelected);
+        upButton.setVisible(anythingSelected);
+        downButton.setVisible(anythingSelected);
+        
+        if(anythingSelected) {
+            auto selectionBounds = listBox.getRowPosition(listBox.getSelectedRow(), false).translated(0, 3);
+            auto buttonHeight = selectionBounds.getHeight();
+
+            selectionBounds.removeFromRight(5);
+            
+            removeButton.setBounds(selectionBounds.removeFromRight(buttonHeight));
+            changeButton.setBounds(selectionBounds.removeFromRight(buttonHeight));
+            
+            selectionBounds.removeFromRight(5);
+            
+            downButton.setBounds(selectionBounds.removeFromRight(buttonHeight));
+            upButton.setBounds(selectionBounds.removeFromRight(buttonHeight));
+        }
     }
     
     void addPath()
