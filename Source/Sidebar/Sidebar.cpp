@@ -32,7 +32,11 @@ Sidebar::Sidebar(PlugDataAudioProcessor* instance)
     addChildComponent(automationPanel);
     
     browser->setAlwaysOnTop(true);
+    
     browser->addMouseListener(this, true);
+    console->addMouseListener(this, true);
+    automationPanel->addMouseListener(this, true);
+    inspector->addMouseListener(this, true);
     
     browserButton.setTooltip("Open documentation browser");
     browserButton.setConnectedEdges(12);

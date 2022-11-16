@@ -1110,7 +1110,7 @@ struct PlugDataLook : public LookAndFeel_V4
         {PlugDataColour::dialogBackgroundColourId, Colour(228, 228, 228)},
         {PlugDataColour::panelBackgroundColourId, Colour(241, 241, 241)},
         {PlugDataColour::panelTextColourId, Colour(90, 90, 90)},
-        {PlugDataColour::panelActiveBackgroundColourId, Colour(228, 228, 228)},
+        {PlugDataColour::panelActiveBackgroundColourId, Colour(217, 217, 217)},
         {PlugDataColour::panelActiveTextColourId, Colour(90, 90, 90)},
         
         {PlugDataColour::scrollbarThumbColourId, Colour(0, 122, 255)},
