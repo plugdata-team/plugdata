@@ -25,7 +25,7 @@ struct ColourProperties : public Component, public Value::Listener
         
         for (auto const& [themeName, themeColours] : PlugDataLook::colourSettings) {
             for (auto const& colour : themeColours) {
-                auto colourName = PlugDataColourNames.at(colour.first).second;
+                auto [colourId, colourName, colourCategory] = PlugDataColourNames.at(colour.first);
                 auto& swatch = swatches[themeName][colourName];
                 
                 auto value = settingsTree.getChildWithName("ColourThemes").getChildWithProperty("theme", themeName).getPropertyAsValue(colourName, nullptr);
@@ -54,7 +54,7 @@ struct ColourProperties : public Component, public Value::Listener
 
         for (auto const& [themeName, theme] : lnf.colourSettings) {
             for (auto const& [colourId, value] : theme) {
-                auto colourName = PlugDataColourNames.at(colourId).second;
+                auto [colId, colourName, colCat] = PlugDataColourNames.at(colourId);
                 if (v.refersToSameSourceAs(swatches[themeName][colourName])) {
                     
                     lnf.setThemeColour(themeName, colourId, Colour::fromString(v.toString()));
@@ -80,7 +80,7 @@ struct ColourProperties : public Component, public Value::Listener
 
         for (auto const& [identifier, name] : PlugDataColourNames)
         {
-            g.drawText(name.first, bounds.removeFromTop(23), Justification::left);
+            g.drawText(std::get<0>(name), bounds.removeFromTop(23), Justification::left);
         }
         bounds.removeFromTop(23);
     }
@@ -116,7 +116,7 @@ struct ColourProperties : public Component, public Value::Listener
         for (auto const& [themeName, theme] : lnf.colourSettings) {
             auto themeTree = colourThemesTree.getChildWithName(themeName);
             for (auto const& [colourId, colourValue] : theme) {
-                auto colourName = PlugDataColourNames.at(colourId).second;
+                auto [colId, colourName, colCat] = PlugDataColourNames.at(colourId);
                 swatches[themeName][colourName] = colourValue.toString();
                 themeTree.setProperty(colourName, colourValue.toString(), nullptr);
             }

@@ -138,7 +138,7 @@ struct Console : public Component {
                 bool showErrors = console.buttons[3].getToggleState();
 
                 // Draw background
-                auto background = findColour(PlugDataColour::panelBackgroundColourId);
+                auto background = findColour(PlugDataColour::sidebarBackgroundColourId);
 
                 g.setColour(isSelected ? findColour(PlugDataColour::panelActiveBackgroundColourId) : background);
                 g.fillRoundedRectangle(getLocalBounds().reduced(4, 2).toFloat(), 4.0f);
