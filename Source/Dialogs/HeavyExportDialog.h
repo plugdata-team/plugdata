@@ -26,7 +26,6 @@ struct ToolchainInstaller : public Component, public Thread, public Timer
 #else
         String downloadSize = "800 MB";
 #endif
-        
         String iconText = Icons::SaveAs;
         String topText = "Download Toolchain";
         String bottomText = "Download compilation utilities (" + downloadSize + ")";
@@ -76,7 +75,6 @@ struct ToolchainInstaller : public Component, public Thread, public Timer
         }
     };
     
-    
     void timerCallback() override
     {
         repaint();
@@ -114,9 +112,8 @@ struct ToolchainInstaller : public Component, public Thread, public Timer
     
     ToolchainInstaller() : Thread("Toolchain Install Thread") {
         addAndMakeVisible(&installButton);
-
+        
         installButton.onClick = [this](){
-            
             errorMessage = "";
             repaint();
             
@@ -128,7 +125,7 @@ struct ToolchainInstaller : public Component, public Thread, public Timer
                 installButton.topText = "Try Again";
                 repaint();
             }
-                        
+            
             String downloadLocation = "https://github.com/timothyschoen/HeavyDistributable/releases/download/" + latestVersion + "/";
             
 #if JUCE_MAC
@@ -178,7 +175,6 @@ struct ToolchainInstaller : public Component, public Thread, public Timer
     }
     
     void paint(Graphics& g) override {
-        
         auto* lnf = dynamic_cast<PlugDataLook*>(&getLookAndFeel());
         if(!lnf) return;
         
@@ -190,7 +186,7 @@ struct ToolchainInstaller : public Component, public Thread, public Timer
         else {
             g.drawText("Toolchain not found", 0, getHeight() / 2 - 150, getWidth(), 40, Justification::centred);
         }
-
+        
         
         g.setFont(lnf->thinFont.withHeight(23));
         if(needsUpdate) {
@@ -227,7 +223,6 @@ struct ToolchainInstaller : public Component, public Thread, public Timer
         if(isTimerRunning()) {
             lnf->drawSpinningWaitAnimation(g, findColour(PlugDataColour::canvasTextColourId), getWidth() / 2 - 16, getHeight() / 2 + 135, 32, 32);
         }
-
     }
     
     void resized() override
@@ -247,14 +242,11 @@ struct ToolchainInstaller : public Component, public Thread, public Timer
         MemoryOutputStream mo(toolchainData, true);
         
         while (true) {
-            if (threadShouldExit()) {
-                return;
-            }
+            if (threadShouldExit()) return;
             
             auto written = mo.writeFromInputStream(*instream, 8192);
             
-            if (written == 0)
-                break;
+            if (written == 0) break;
             
             bytesDownloaded += written;
             
@@ -283,7 +275,6 @@ struct ToolchainInstaller : public Component, public Thread, public Timer
             return;
         }
         
-        
         // Make sure downloaded files have executable permission on unix
 #if JUCE_MAC || JUCE_LINUX
         system(("chmod +x " + toolchain.getFullPathName() + "/bin/Heavy/Heavy").toRawUTF8());
@@ -292,7 +283,6 @@ struct ToolchainInstaller : public Component, public Thread, public Timer
         system(("chmod +x " + toolchain.getFullPathName() + "/arm-none-eabi/bin/*").toRawUTF8());
         system(("chmod +x " + toolchain.getFullPathName() + "/libexec/gcc/arm-none-eabi/*/*").toRawUTF8());
 #endif
-        
         installProgress = 0.0f;
         stopTimer();
         
@@ -304,7 +294,6 @@ struct ToolchainInstaller : public Component, public Thread, public Timer
     inline static File toolchain = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory).getChildFile("PlugData").getChildFile("Toolchain");
     
     float installProgress = 0.0f;
-    
     
     bool needsUpdate = false;
     int statusCode;
@@ -322,7 +311,6 @@ class ExportingView : public Component
     TextEditor console;
     
 public:
-    
     enum ExportState
     {
         Busy,
@@ -339,13 +327,11 @@ public:
     {
         setVisible(false);
         addChildComponent(continueButton);
-        
         addAndMakeVisible(console);
         
         continueButton.onClick = [this](){
             showState(NotExporting);
         };
-        
         
         console.setColour(TextEditor::backgroundColourId, findColour(PlugDataColour::panelBackgroundColourId));
         console.setScrollbarsShown(true);
@@ -359,7 +345,6 @@ public:
             if(!lnf) return;
             console.setFont(lnf->monoFont);
         });
-        
     }
     
     void showState(ExportState newState) {
@@ -379,10 +364,13 @@ public:
     }
     
     void logToConsole(String text) {
+        
         if(text.isNotEmpty()) {
-            console.setText(console.getText() + text);
-            console.moveCaretToEnd();
-            console.setScrollToShowCursor(true);
+            MessageManager::callAsync([this, text](){
+                console.setText(console.getText() + text);
+                console.moveCaretToEnd();
+                console.setScrollToShowCursor(true);
+            });
         }
     }
     
@@ -418,7 +406,6 @@ public:
             g.setColour(findColour(PlugDataColour::canvasTextColourId));
             g.setFont(lnf->boldFont.withHeight(32));
             g.drawText("Exporting failed", 0, 25, getWidth(), 40, Justification::centred);
-            
         }
     }
     
@@ -434,13 +421,20 @@ struct ExporterSettingsPanel : public Component, public Value::Listener, public 
     
     TextButton exportButton = TextButton("Export");
     
-    ComboBox patchChooser;
+    Value inputPatchValue;
+    Value outputDirValue;
+    Value projectNameValue;
+    Value projectCopyrightValue;
     
-    TextEditor outputPathEditor;
-    TextButton outputPathBrowseButton = TextButton("Browse");
+    inline static File heavyExecutable = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory).getChildFile("PlugData").getChildFile("Toolchain").getChildFile("bin").getChildFile("Heavy").getChildFile("Heavy");
     
-    TextEditor projectNameEditor;
-    TextEditor projectCopyrightEditor;
+    bool validPatchSelected = false;
+    bool targetFolderSelected = false;
+    
+    std::unique_ptr<FileChooser> saveChooser;
+    std::unique_ptr<FileChooser> openChooser;
+    
+    OwnedArray<PropertiesPanel::Property> properties;
     
     File patchFile;
     File openedPatchFile;
@@ -454,78 +448,55 @@ struct ExporterSettingsPanel : public Component, public Value::Listener, public 
     ExporterSettingsPanel(PlugDataPluginEditor* editor, ExportingView* exportView) : ThreadPool(2), exportingView(exportView)
     {
         addAndMakeVisible(exportButton);
-        addAndMakeVisible(patchChooser);
-        addAndMakeVisible(outputPathEditor);
-        addAndMakeVisible(outputPathBrowseButton);
-        addAndMakeVisible(projectNameEditor);
-        addAndMakeVisible(projectCopyrightEditor);
         
-        outputPathBrowseButton.setConnectedEdges(12);
+        auto* patchChooser = new PropertiesPanel::ComboComponent("Patch to export", inputPatchValue, {"Currently opened patch", "Other patch (browse)"});
+        properties.add(patchChooser);
+        patchChooser->comboBox.setTextWhenNothingSelected("Choose a patch to export...");
+        patchChooser->comboBox.setSelectedId(-1);
         
-        patchChooser.addItem("Currently opened patch", 1);
-        patchChooser.addItem("Other patch (browse)", 2);
-        patchChooser.setTextWhenNothingSelected("Choose a patch to export...");
+        properties.add(new PropertiesPanel::FilePathComponent("Output Path", outputDirValue));
+        properties.add(new PropertiesPanel::EditableComponent<String>("Project Name (optional)", projectNameValue));
+        properties.add(new PropertiesPanel::EditableComponent<String>("Project Copyright (optional)", projectCopyrightValue));
         
-        exporterSelected.addListener(this);
-        validPatchSelected.addListener(this);
-        targetFolderSelected.addListener(this);
+        // A default value for outdir
+        outputDirValue.setValue(File::getSpecialLocation(File::userDocumentsDirectory).getFullPathName());
+        
+        outputDirValue.addListener(this);
+        inputPatchValue.addListener(this);
+        projectNameValue.addListener(this);
+        projectCopyrightValue.addListener(this);
+        
+        for(auto* panel : properties) {
+            addAndMakeVisible(panel);
+        }
         
         if(auto* cnv = editor->getCurrentCanvas())
         {
-            // TODO: because we save it to a tempfile, it's important to add the real path (if applicable) to Heavy's search paths!
             openedPatchFile = File::createTempFile(".pd");
             openedPatchFile.replaceWithText(cnv->patch.getCanvasContent());
-            patchChooser.setItemEnabled(1, true);
-            patchChooser.setSelectedId(1);
+            patchChooser->comboBox.setItemEnabled(1, true);
+            patchChooser->comboBox.setSelectedId(1);
             patchFile = openedPatchFile;
             realPatchFile = cnv->patch.getCurrentFile();
+            
+            if(realPatchFile.existsAsFile()) {
+                projectNameValue = realPatchFile.getFileNameWithoutExtension();
+            }
         }
         else {
-            patchChooser.setItemEnabled(1, false);
-            patchChooser.setSelectedId(0);
+            patchChooser->comboBox.setItemEnabled(1, false);
+            patchChooser->comboBox.setSelectedId(0);
             validPatchSelected = false;
         }
         
-        patchChooser.onChange = [this](){
-            if(patchChooser.getSelectedId() == 1) {
-                patchFile = openedPatchFile;
-                validPatchSelected = true;
-            }
-            else if(patchChooser.getSelectedId() == 2) {
-                // Open file browser
-                openChooser = std::make_unique<FileChooser>("Choose file to open", File::getSpecialLocation(File::userHomeDirectory), "*.pd", true);
-                
-                openChooser->launchAsync(FileBrowserComponent::openMode | FileBrowserComponent::canSelectFiles, [this](FileChooser const& fileChooser){
-                    
-                    auto result = fileChooser.getResult();
-                    if(result.existsAsFile()) {
-                        patchFile = result;
-                        validPatchSelected = true;
-                    }
-                    else {
-                        patchChooser.setSelectedId(0);
-                        patchFile = "";
-                        validPatchSelected = false;
-                    }
-                }
-                                         );
-            };
-        };
-        
-        outputPathEditor.onTextChange = [this](){
-            auto outputDir = File(outputPathEditor.getText());
-            targetFolderSelected = outputDir.getParentDirectory().exists() && !outputDir.existsAsFile();
-        };
-        
         exportButton.onClick = [this, editor](){
-            auto outDir = File(outputPathEditor.getText());
+            auto outDir = File(outputDirValue.toString());
             outDir.createDirectory();
             
             auto patchPath = patchFile.getFullPathName();
             auto outPath = outDir.getFullPathName();
-            auto projectTitle = projectNameEditor.getText();
-            auto projectCopyright = projectCopyrightEditor.getText();
-            
+            auto projectTitle = projectNameValue.toString();
+            auto projectCopyright = projectCopyrightValue.toString();
             
             // Add file location to search paths
             auto searchPaths = StringArray{patchFile.getParentDirectory().getFullPathName()};
@@ -562,19 +533,6 @@ struct ExporterSettingsPanel : public Component, public Value::Listener, public 
                 });
             });
         };
-        
-        outputPathBrowseButton.onClick = [this](){
-            auto constexpr folderChooserFlags = FileBrowserComponent::saveMode | FileBrowserComponent::canSelectFiles | FileBrowserComponent::warnAboutOverwriting;
-            
-            saveChooser = std::make_unique<FileChooser>("Export location", File::getSpecialLocation(File::userHomeDirectory), "", true);
-            
-            saveChooser->launchAsync(folderChooserFlags,
-                                     [this](FileChooser const& fileChooser) {
-                auto const file = fileChooser.getResult();
-                outputPathEditor.setText(file.getFullPathName());
-            });
-        };
-        
     }
     
     ~ExporterSettingsPanel() {
@@ -589,46 +547,64 @@ struct ExporterSettingsPanel : public Component, public Value::Listener, public 
     
     void valueChanged(Value& v) override
     {
-        bool exportReady = static_cast<bool>(validPatchSelected.getValue()) && static_cast<bool>(targetFolderSelected.getValue());
-        exportButton.setEnabled(exportReady);
+        if(v.refersToSameSourceAs(inputPatchValue)) {
+            int idx = static_cast<int>(v.getValue());
+            
+            if(idx == 1) {
+                patchFile = openedPatchFile;
+                validPatchSelected = true;
+            }
+            else if(idx == 2) {
+                // Open file browser
+                openChooser = std::make_unique<FileChooser>("Choose file to open", File::getSpecialLocation(File::userHomeDirectory), "*.pd", true);
+                
+                openChooser->launchAsync(FileBrowserComponent::openMode | FileBrowserComponent::canSelectFiles, [this](FileChooser const& fileChooser){
+                    
+                    auto result = fileChooser.getResult();
+                    if(result.existsAsFile()) {
+                        patchFile = result;
+                        validPatchSelected = true;
+                    }
+                    else {
+                        inputPatchValue = -1;
+                        patchFile = "";
+                        validPatchSelected = false;
+                    }
+                    
+                });
+            }
+        }
+        else if(v.refersToSameSourceAs(outputDirValue)) {
+            targetFolderSelected = File(v.toString()).getParentDirectory().exists();
+        }
+        
+        exportButton.setEnabled(validPatchSelected && targetFolderSelected);
     }
     
     void resized() override
     {
-        auto b = Rectangle<int>(proportionOfWidth (0.1f), 30, proportionOfWidth (0.8f), getHeight());
-                
+        auto b = Rectangle<int>(0, 50, getWidth(), getHeight() - 38);
+        
         exportButton.setBounds(getLocalBounds().removeFromBottom(23).removeFromRight(80).translated(-10, -10));
         
-        b.removeFromTop(20);
-        patchChooser.setBounds(b.removeFromTop(23));
-        
-        b.removeFromTop(15);
-        projectNameEditor.setBounds(b.removeFromTop(23).withTrimmedLeft(labelWidth));
-        
-        b.removeFromTop(15);
-        projectCopyrightEditor.setBounds(b.removeFromTop(23).withTrimmedLeft(labelWidth));
-        
-        b.removeFromTop(15);
-        auto outputPathBounds = b.removeFromTop(23);
-        outputPathEditor.setBounds(outputPathBounds.removeFromLeft(proportionOfWidth (0.65f)).withTrimmedLeft(labelWidth));
-        outputPathBrowseButton.setBounds(outputPathBounds.withTrimmedLeft(-1));
+        for (auto* panel : properties) {
+            auto panelBounds = b.removeFromTop(23);
+            panel->setBounds(panelBounds);
+        }
     }
     
-    void paint(Graphics& g) override
-    {
-        auto b = Rectangle<int>(proportionOfWidth (0.1f), 90, labelWidth, getHeight() - 35);
+    void paintOverChildren(Graphics& g) override {
+        auto b = Rectangle<int>(0, 50, getWidth(), getHeight() - 38);
         
-        g.setFont(Font(15));
-        g.setColour(findColour(PlugDataColour::panelTextColourId));
-        g.drawText("Project Name (optional)", b.removeFromTop(23), Justification::centredLeft);
+        g.setColour(findColour(PlugDataColour::outlineColourId).withAlpha(0.4f));
+        g.drawLine(Line<int>(b.getTopLeft(), b.getTopRight()).toFloat());
         
-        b.removeFromTop(15);
+        for (auto* panel : properties) {
+            auto panelBounds = b.removeFromTop(23);
+            g.drawLine(Line<int>(panelBounds.getBottomLeft(), panelBounds.getBottomRight()).toFloat());
+        }
         
-        g.drawText("Project Copyright (optional)", b.removeFromTop(23), Justification::centredLeft);
-        
-        b.removeFromTop(15);
-        
-        g.drawText("Output Path", b.removeFromTop(23), Justification::centredLeft);
+        g.drawLine((getWidth() / 2.0f) + 1, 50, (getWidth() / 2.0f) + 1, 50 + properties.size() * 23);
     }
     
 private:
@@ -671,24 +647,12 @@ public:
         metadata.replaceWithText(metaString);
         return metadata.getFullPathName();
     }
-    
-    inline static File heavyExecutable = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory).getChildFile("PlugData").getChildFile("Toolchain").getChildFile("bin").getChildFile("Heavy").getChildFile("Heavy");
-    
-    
-    Value exporterSelected = Value(var(false));
-    Value validPatchSelected = Value(var(false));
-    Value targetFolderSelected = Value(var(false));
-    
-    
-    std::unique_ptr<FileChooser> saveChooser;
-    std::unique_ptr<FileChooser> openChooser;
 };
 
 class CppSettingsPanel : public ExporterSettingsPanel
 {
 public:
     CppSettingsPanel(PlugDataPluginEditor* editor, ExportingView* exportingView) : ExporterSettingsPanel(editor, exportingView) {
-        
     }
     
     bool performExport(String pdPatch, String outdir, String name, String copyright, StringArray searchPaths) override
@@ -712,12 +676,10 @@ public:
         args.add("-v");
         
         String searchPathArg = "-p\"[";
-        
         for(auto& path : searchPaths) {
             searchPathArg += path + ", ";
         }
         searchPathArg.trimCharactersAtEnd(", ");
-        
         searchPathArg += "]";
         
         args.add(searchPathArg);
@@ -738,39 +700,25 @@ public:
         
         return getExitCode();
     }
-    
 };
 
 class DaisySettingsPanel : public ExporterSettingsPanel
 {
 public:
     
-    ComboBox targetBoard;
-    ComboBox exportType;
+    Value targetBoardValue = Value(var(1));
+    Value exportTypeValue = Value(var(1));
     
     DaisySettingsPanel(PlugDataPluginEditor* editor, ExportingView* exportingView) : ExporterSettingsPanel(editor, exportingView)
     {
-        
-        targetBoard.addItem("Seed", 1);
-        targetBoard.addItem("Pod", 2);
-        targetBoard.addItem("Petal", 3);
-        targetBoard.addItem("Patch", 4);
-        targetBoard.addItem("Field", 5);
-        
-        exportType.addItem("Binary", 1);
-        exportType.addItem("Source code", 2);
-        
-        targetBoard.setSelectedId(1);
-        exportType.setSelectedId(1);
-        
-        addAndMakeVisible(exportType);
-        addAndMakeVisible(targetBoard);
+        addAndMakeVisible(properties.add(new PropertiesPanel::ComboComponent("Target board", targetBoardValue, {"Seed", "Pod", "Petal", "Patch", "Field"})));
+        addAndMakeVisible(properties.add(new PropertiesPanel::ComboComponent("Export type", exportTypeValue, {"Binary", "Source code"})));
     }
     
     bool performExport(String pdPatch, String outdir, String name, String copyright, StringArray searchPaths) override
     {
-        auto target = targetBoard.getSelectedId() - 1;
-        bool compile = !(exportType.getSelectedId() - 1);
+        auto target = static_cast<int>(targetBoardValue.getValue()) - 1;
+        bool compile = static_cast<int>(targetBoardValue.getValue());
         
         StringArray args = {heavyExecutable.getFullPathName(), pdPatch, "-o" + outdir};
         
@@ -790,15 +738,13 @@ public:
         auto board = boards[target];
         
         args.add("-m" + createMetadata("daisy", {{"board", board}}));
-        
         args.add("-v");
-        
         args.add("-gdaisy");
-        
-        exportingView->logToConsole("Compiling...");
         
         start(args);
         waitForProcessToFinish(-1);
+        
+        exportingView->logToConsole("Compiling...");
         
         if(shouldQuit) return 1;
         
@@ -811,7 +757,6 @@ public:
             
             auto bin = toolchain.getChildFile("bin");
             auto libDaisy = toolchain.getChildFile("lib").getChildFile("libDaisy");
-            
 #if JUCE_WINDOWS
             auto make = bin.getChildFile("make.exe");
             auto compiler = bin.getChildFile("arm-none-eabi-gcc.exe");
@@ -837,8 +782,7 @@ public:
             toolchain.getChildFile("share").getChildFile("daisy_makefile").copyFileTo(sourceDir.getChildFile("Makefile"));
             
             auto gccPath = toolchain.getChildFile("bin").getFullPathName();
-            
-            auto projectName = projectNameEditor.getText();
+            auto projectName = projectNameValue.toString();
             
 #if JUCE_WINDOWS
             
@@ -877,36 +821,7 @@ public:
             outputFile.getChildFile("c").deleteRecursively();
             return heavyExitCode;
         }
-        
-       
     }
-    
-    void resized() override
-    {
-        ExporterSettingsPanel::resized();
-        
-        auto b = Rectangle<int>(proportionOfWidth (0.1f), 202, proportionOfWidth (0.8f), getHeight() - 202);
-        targetBoard.setBounds(b.removeFromTop(23).withTrimmedLeft(labelWidth));
-        
-        b.removeFromTop(15);
-        
-        exportType.setBounds(b.removeFromTop(23).withTrimmedLeft(labelWidth));
-    }
-    
-    void paint(Graphics& g) override
-    {
-        ExporterSettingsPanel::paint(g);
-        
-        auto b = Rectangle<int>(proportionOfWidth (0.1f), 202, labelWidth, getHeight() - 202);
-        
-        g.setFont(Font(15));
-        g.setColour(findColour(PlugDataColour::panelTextColourId));
-        g.drawText("Target board", b.removeFromTop(23), Justification::centredLeft);
-        
-        b.removeFromTop(15);
-        g.drawText("Export type", b.removeFromTop(23), Justification::centredLeft);
-    }
-    
 };
 
 class ExporterPanel  : public Component, private ListBoxModel
@@ -918,7 +833,7 @@ public:
     TextButton addButton = TextButton(Icons::Add);
     
     OwnedArray<ExporterSettingsPanel> views;
-        
+    
     std::function<void(int)> onChange;
     
     StringArray items = {"C++", "Daisy"};
@@ -956,32 +871,20 @@ public:
     
     void selectedRowsChanged (int lastRowSelected) override
     {
-        String lastTitle;
-        String lastCopyright;
-        String lastOutdir;
-        File lastPatchFile;
-        int comboBoxSelection;
-        
-        for(int i = 0; i < views.size(); i++)
+        for(auto* view : views)
         {
-            if(views[i]->isVisible() && i != lastRowSelected) {
-                lastTitle = views[i]->projectNameEditor.getText();
-                lastCopyright = views[i]->projectCopyrightEditor.getText();
-                lastOutdir = views[i]->outputPathEditor.getText();
-                lastPatchFile = views[i]->patchFile;
-                comboBoxSelection = views[i]->patchChooser.getSelectedId();
+            // Make sure we remember common values when switching views
+            if(view->isVisible()) {
+                views[lastRowSelected]->patchFile = view->patchFile;
+                views[lastRowSelected]->projectNameValue = view->projectNameValue.getValue();
+                views[lastRowSelected]->projectCopyrightValue = view->projectCopyrightValue.getValue();
+                views[lastRowSelected]->outputDirValue = view->outputDirValue.getValue();
+                views[lastRowSelected]->inputPatchValue = view->inputPatchValue.getValue();
             }
+            view->setVisible(false);
         }
-        for(int i = 0; i < views.size(); i++)
-        {
-            views[i]->projectNameEditor.setText(lastTitle);
-            views[i]->projectCopyrightEditor.setText(lastCopyright);
-            views[i]->outputPathEditor.setText(lastOutdir);
-            views[i]->patchFile = lastPatchFile;
-            views[i]->patchChooser.setSelectedId(comboBoxSelection);
-            
-            views[i]->setVisible(i == lastRowSelected);
-        }
+        
+        views[lastRowSelected]->setVisible(true);
     }
     
     void resized() override
@@ -1013,35 +916,20 @@ public:
                 g.fillRoundedRectangle(5, 3, width - 10, height - 6, 5.0f);
             }
             
-            auto item = items[row];
-            
-            auto textBounds = Rectangle<int>(15, 0, width - 30, height);
             const auto textColour = findColour(rowIsSelected ? PlugDataColour::panelActiveTextColourId : PlugDataColour::panelTextColourId);
-            
-            AttributedString attributedString { item };
-            attributedString.setColour (textColour);
-            attributedString.setFont (15);
-            attributedString.setJustification (Justification::centredLeft);
-            attributedString.setWordWrap (AttributedString::WordWrap::none);
-            
-            TextLayout textLayout;
-            textLayout.createLayout (attributedString,
-                                     (float) textBounds.getWidth(),
-                                     (float) textBounds.getHeight());
-            textLayout.draw (g, textBounds.toFloat());
+            g.setColour (textColour);
+            g.setFont (15);
+            g.drawText(items[row], Rectangle<int>(15, 0, width - 30, height), Justification::centredLeft);
         }
     }
     
     int getBestHeight (int preferredHeight)
     {
         auto extra = listBox.getOutlineThickness() * 2;
-        
         return jmax (listBox.getRowHeight() * 2 + extra,
                      jmin (listBox.getRowHeight() * getNumRows() + extra,
                            preferredHeight));
     }
-    
-private:
     
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (ExporterPanel)
 };
@@ -1065,7 +953,7 @@ struct HeavyExportDialog : public Component
         // Compare latest version on github to the currently installed version
         auto latestVersion = URL("https://raw.githubusercontent.com/timothyschoen/HeavyDistributable/main/VERSION").readEntireTextStream().trim().removeCharacters(".").getIntValue();
         auto installedVersion = toolchain.getChildFile("VERSION").loadFileAsString().trim().removeCharacters(".").getIntValue();
-   
+        
         if(hasToolchain && latestVersion > installedVersion) {
             installer.needsUpdate = true;
             hasToolchain = false;
@@ -1075,7 +963,6 @@ struct HeavyExportDialog : public Component
         addChildComponent(exporterPanel);
         addChildComponent(exportingView);
         
-
         exportingView.setAlwaysOnTop(true);
         
         installer.toolchainInstalledCallback = [this](){
@@ -1103,7 +990,5 @@ struct HeavyExportDialog : public Component
         exporterPanel.setBounds(b);
         installer.setBounds(b);
         exportingView.setBounds(b);
-        
     }
-    
 };
