@@ -141,8 +141,7 @@ struct Console : public Component {
                 auto background = findColour(PlugDataColour::panelBackgroundColourId);
 
                 g.setColour(isSelected ? findColour(PlugDataColour::panelActiveBackgroundColourId) : background);
-                g.fillRect(getLocalBounds());
-
+                g.fillRoundedRectangle(getLocalBounds().reduced(4, 2).toFloat(), 4.0f);
 
                 // Get console message
                 auto& [message, type, length] = console.pd->getConsoleMessages()[idx];
@@ -157,7 +156,7 @@ struct Console : public Component {
 
                 // Draw text
                 g.setColour(isSelected ? findColour(PlugDataColour::panelActiveTextColourId) : colourWithType(type));
-                g.drawFittedText(message, getLocalBounds().reduced(4, 0), Justification::centredLeft, numLines, 1.0f);
+                g.drawFittedText(message, getLocalBounds().reduced(4, 0).withTrimmedLeft(6), Justification::centredLeft, numLines, 1.0f);
             }
         };
 
@@ -275,7 +274,7 @@ struct Console : public Component {
 
         void resized() override
         {
-            int totalHeight = 0;
+            int totalHeight = 2;
             for (int row = 0; row < static_cast<int>(pd->getConsoleMessages().size()); row++) {
                 if (row >= messages.size())
                     break;
@@ -283,7 +282,7 @@ struct Console : public Component {
                 auto& [message, type, length] = pd->getConsoleMessages()[row];
 
                 int numLines = getNumLines(getWidth(), length);
-                int height = numLines * 22 + 2;
+                int height = numLines * 22 + 4;
 
                 messages[row]->setBounds(0, totalHeight, getWidth(), height);
 

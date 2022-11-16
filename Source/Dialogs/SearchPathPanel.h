@@ -21,7 +21,7 @@ public:
     : tree(std::move(libraryTree))
     {
         listBox.setOutlineThickness(0);
-        listBox.setRowHeight(24);
+        listBox.setRowHeight(26);
         
         listBox.setModel(this);
         addAndMakeVisible(listBox);
@@ -126,16 +126,14 @@ public:
     {
         if (rowIsSelected) {
             g.setColour(findColour(PlugDataColour::panelActiveBackgroundColourId));
-            g.fillRoundedRectangle({2.0f, 2.0f, width - 4.0f, height - 4.0f}, 5.0f);
+            g.fillRoundedRectangle({4.0f, 2.0f, width - 8.0f, height - 4.0f}, 4.0f);
         }
         
         g.setColour(rowIsSelected ? findColour(PlugDataColour::panelActiveTextColourId) : findColour(PlugDataColour::panelTextColourId));
         
-        Font f((float)height * 0.6f);
-        f.setHorizontalScale(1.0f);
-        g.setFont(f);
+        g.setFont(Font(15));
         
-        g.drawText(path[rowNumber].getFullPathName(), 6, 0, width - 6, height, Justification::centredLeft, true);
+        g.drawText(path[rowNumber].getFullPathName(), 12, 0, width - 9, height, Justification::centredLeft, true);
     }
     
     void deleteKeyPressed(int row) override
@@ -177,7 +175,7 @@ public:
         int const statusbarHeight = 32;
         int const statusbarY = getHeight() - statusbarHeight;
         
-        listBox.setBounds(0, 0, getWidth(), statusbarY);
+        listBox.setBounds(0, 4, getWidth(), statusbarY);
         
         auto statusbarBounds = Rectangle<int>(2, statusbarY + 6, getWidth() - 6, statusbarHeight);
         
