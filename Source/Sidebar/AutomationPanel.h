@@ -98,7 +98,7 @@ struct AutomationSlider : public Component, public Value::Listener {
         slider.setColour(Slider::backgroundColourId, findColour(PlugDataColour::toolbarBackgroundColourId));
         slider.setColour(Slider::trackColourId, findColour(PlugDataColour::panelTextColourId));
 
-        g.setColour(findColour(PlugDataColour::panelBackgroundColourId));
+        g.setColour(findColour(PlugDataColour::sidebarBackgroundColourId));
         g.fillRect(getLocalBounds());
     }
 

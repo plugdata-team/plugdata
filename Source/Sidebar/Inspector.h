@@ -18,7 +18,7 @@ struct Inspector : public Component {
 
     void paint(Graphics& g) override
     {
-        g.setColour(findColour(PlugDataColour::panelBackgroundColourId));
+        g.setColour(findColour(PlugDataColour::sidebarBackgroundColourId));
         g.fillRect(getLocalBounds().removeFromTop(23));
         
         g.setColour(findColour(PlugDataColour::panelTextColourId));

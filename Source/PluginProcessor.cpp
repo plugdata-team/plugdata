@@ -272,7 +272,7 @@ void PlugDataAudioProcessor::initialiseFilesystem()
             colourThemesTree.appendChild(themeTree, nullptr);
             themeTree.setProperty("theme", themeName, nullptr);
             for (auto const& defaultColours : lnf->defaultDarkTheme) {
-                auto colourName = PlugDataColourNames.at(defaultColours.first).second;
+                auto [colourId, colourName, colourCategory] = PlugDataColourNames.at(defaultColours.first);
                 themeTree.setProperty(colourName, themeColours.at(defaultColours.first).toString(), nullptr);
             }
         }
@@ -302,7 +302,7 @@ void PlugDataAudioProcessor::initialiseFilesystem()
                 colourThemesTree.appendChild(themeTree, nullptr);
                 themeTree.setProperty("theme", themeName, nullptr);
                 for (auto const& [colourId, colour] : PlugDataLook::defaultThemes.at(themeName)) {
-                    auto colourName = PlugDataColourNames.at(colourId).second;
+                    auto [id, colourName, category] = PlugDataColourNames.at(colourId);
                     themeTree.setProperty(colourName, colour.toString(), nullptr);
                 }
             }
@@ -317,7 +317,7 @@ void PlugDataAudioProcessor::initialiseFilesystem()
                 auto themeName = themeTree.getProperty("theme");
                 
                 for (auto const& [colourId, colour] : PlugDataLook::defaultThemes.at(themeName)) {
-                    auto colourName = PlugDataColourNames.at(colourId).second;
+                    auto [id, colourName, category] = PlugDataColourNames.at(colourId);
                     
                     // For when we add new colours in the future
                     if(!themeTree.hasProperty(colourName)) {

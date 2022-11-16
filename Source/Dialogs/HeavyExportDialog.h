@@ -333,7 +333,7 @@ public:
             showState(NotExporting);
         };
         
-        console.setColour(TextEditor::backgroundColourId, findColour(PlugDataColour::panelBackgroundColourId));
+        console.setColour(TextEditor::backgroundColourId, findColour(PlugDataColour::sidebarBackgroundColourId));
         console.setScrollbarsShown(true);
         console.setMultiLine(true);
         console.setReadOnly(true);
@@ -381,7 +381,7 @@ public:
         
         if(state == Busy)
         {
-            g.setColour(findColour(PlugDataColour::canvasBackgroundColourId));
+            g.setColour(findColour(PlugDataColour::panelBackgroundColourId));
             g.fillRoundedRectangle(getLocalBounds().toFloat(), 5.0f);
             
             g.setColour(findColour(PlugDataColour::canvasTextColourId));
@@ -391,7 +391,7 @@ public:
             lnf->drawSpinningWaitAnimation(g, findColour(PlugDataColour::canvasTextColourId), getWidth() / 2 - 16, getHeight() / 2 + 135, 32, 32);
         }
         else if(state == Success) {
-            g.setColour(findColour(PlugDataColour::canvasBackgroundColourId));
+            g.setColour(findColour(PlugDataColour::panelBackgroundColourId));
             g.fillRoundedRectangle(getLocalBounds().toFloat(), 5.0f);
             
             g.setColour(findColour(PlugDataColour::canvasTextColourId));
@@ -400,7 +400,7 @@ public:
             
         }
         else if(state == Failure) {
-            g.setColour(findColour(PlugDataColour::canvasBackgroundColourId));
+            g.setColour(findColour(PlugDataColour::panelBackgroundColourId));
             g.fillRoundedRectangle(getLocalBounds().toFloat(), 5.0f);
             
             g.setColour(findColour(PlugDataColour::canvasTextColourId));
@@ -467,6 +467,8 @@ struct ExporterSettingsPanel : public Component, public Value::Listener, public 
         projectCopyrightValue.addListener(this);
         
         for(auto* panel : properties) {
+            
+            panel->setColour(ComboBox::backgroundColourId, findColour(PlugDataColour::panelBackgroundColourId));
             addAndMakeVisible(panel);
         }
         
@@ -856,7 +858,7 @@ public:
     {
         auto listboxBounds = getLocalBounds().removeFromLeft(200);
         
-        g.setColour(findColour(PlugDataColour::panelBackgroundColourId));
+        g.setColour(findColour(PlugDataColour::sidebarBackgroundColourId));
         g.fillRoundedRectangle(listboxBounds.toFloat(), 5.0f);
         g.fillRect(listboxBounds.removeFromRight(10));
     }
@@ -981,7 +983,7 @@ struct HeavyExportDialog : public Component
     
     void paint(Graphics& g)
     {
-        g.setColour(findColour(PlugDataColour::canvasBackgroundColourId));
+        g.setColour(findColour(PlugDataColour::panelBackgroundColourId));
         g.fillRoundedRectangle(getLocalBounds().toFloat(), 5.0f);
     }
     

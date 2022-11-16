@@ -342,7 +342,7 @@ public:
 
     void paint(Graphics& g) override
     {
-        g.fillAll(findColour(PlugDataColour::panelBackgroundColourId));
+        g.fillAll(findColour(PlugDataColour::sidebarBackgroundColourId));
         
         // Paint selected row
         if (getNumSelectedFiles()) {
