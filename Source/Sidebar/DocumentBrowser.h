@@ -545,7 +545,7 @@ public:
     void paint(Graphics& g) override
     {
         if (listBox.isVisible()) {
-            g.fillAll(findColour(PlugDataColour::panelBackgroundColourId));
+            g.fillAll(findColour(PlugDataColour::sidebarBackgroundColourId));
         }
     }
 
@@ -561,17 +561,17 @@ public:
     {
         if (rowIsSelected) {
             g.setColour(findColour(PlugDataColour::panelActiveBackgroundColourId));
-            g.fillRect(1, 0, w - 3, h);
+            g.fillRoundedRectangle(4, 2, w - 8, h - 4, 4.0f);
         }
 
         g.setColour(rowIsSelected ? findColour(PlugDataColour::panelActiveTextColourId) : findColour(ComboBox::textColourId));
         const String item = searchResult[rowNumber].getFileName();
 
         g.setFont(Font());
-        g.drawText(item, 28, 2, w - 4, h, Justification::centredLeft, true);
+        g.drawText(item, 28, 0, w - 4, h, Justification::centredLeft, true);
 
         g.setFont(getLookAndFeel().getTextButtonFont(closeButton, 23));
-        g.drawText(Icons::File, 12, 2, 24, 24, Justification::centredLeft);
+        g.drawText(Icons::File, 12, 0, 24, 24, Justification::centredLeft);
     }
 
     int getNumRows() override
