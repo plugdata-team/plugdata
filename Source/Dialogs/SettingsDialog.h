@@ -29,7 +29,7 @@ struct SettingsDialog : public Component {
         auto* editor = dynamic_cast<ApplicationCommandManager*>(processor.getActiveEditor());
 
         if (manager) {
-            panels.add(new AudioDeviceSelectorComponent(*manager, 1, 2, 1, 2, true, true, true, false));
+            panels.add(new AudioDeviceSelectorComponent(*manager, 1, 32, 1, 32, true, true, false, false));
         } else {
             panels.add(new DAWAudioSettings(processor));
         }
