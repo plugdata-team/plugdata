@@ -113,16 +113,6 @@ struct Console : public Component {
                 parent.addAndMakeVisible(this);
             }
 
-            Colour colourWithType(int type)
-            {
-                if (type == 0)
-                    return findColour(PlugDataColour::panelTextColourId);
-                else if (type == 1)
-                    return Colours::orange;
-                else
-                    return Colours::red;
-            }
-
             void mouseDown(MouseEvent const& e)
             {
                 if(!e.mods.isShiftDown() && !e.mods.isCommandDown()) {
@@ -181,8 +171,16 @@ struct Console : public Component {
                 // Approximate number of lines from string length and current width
                 int numLines = getNumLines(console.getWidth(), length);
 
+            
+                auto backgroundColour = findColour(isSelected ? PlugDataColour::panelActiveTextColourId : PlugDataColour::panelTextColourId);
+                
+                if (type == 1)
+                    backgroundColour = Colours::orange;
+                else if (type == 2)
+                    backgroundColour = Colours::red;
+                
                 // Draw text
-                g.setColour(isSelected ? findColour(PlugDataColour::panelActiveTextColourId) : colourWithType(type));
+                g.setColour(backgroundColour);
                 g.drawFittedText(message, getLocalBounds().reduced(4, 0).withTrimmedLeft(6), Justification::centredLeft, numLines, 1.0f);
             }
         };
