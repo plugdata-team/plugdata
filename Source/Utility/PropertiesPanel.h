@@ -8,11 +8,6 @@
 #include "DraggableNumber.h"
 
 struct PropertiesPanel : public PropertyPanel {
-    void paint(Graphics& g) override
-    {
-        g.setColour(findColour(PlugDataColour::panelBackgroundColourId));
-        g.fillRect(getLocalBounds().withHeight(getTotalContentHeight()));
-    }
 
     struct Property : public PropertyComponent {
         bool hideLabel = false;
