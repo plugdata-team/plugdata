@@ -41,9 +41,7 @@ Join the Discord here, for sharing patches, reporting issues or requesting featu
   Has the [plugdata-bin](https://aur.archlinux.org/packages/plugdata-bin) package for the latest stable version, or the [plugdata-git](https://aur.archlinux.org/packages/plugdata-git) package for the latest experimental build.
 - Option 3: Get the binaries from the latest [official release](https://github.com/timothyschoen/PlugData/tags)
 
-On MacOS, PlugData can also be installed through the [homebrew package](https://formulae.brew.sh/cask/plugdata).
-
-For Mac and Windows, you can find the last release in the "Releases" section on the right. If you have a GitHub account, you can also download a recent experimental build from the actions tab.
+If you have a GitHub account, you can also download a recent experimental build from the actions tab.
 
 ## Build
 
