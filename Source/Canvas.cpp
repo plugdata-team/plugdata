@@ -591,7 +591,7 @@ void Canvas::mouseUp(MouseEvent const& e)
     isDraggingLasso = false;
     for(auto* object : objects) object->mouseDownPos = {0, 0};
     
-    wasDuplicated = false;
+    wasDragDuplicated = false;
     mouseDownObjectPositions.clear();
 }
 
@@ -790,9 +790,23 @@ void Canvas::pasteSelection()
 void Canvas::duplicateSelection()
 {
     // Tell pd to select all objects that are currently selected
-    for (auto* object : getSelectionOfType<Object>())
-    {
+    Array<Connection*> conInlets, conOutlets;
+    auto selection = getSelectionOfType<Object>();
+
+    for (auto* object : selection) {
+
         patch.selectObject(object->getPointer());
+        
+        if (!wasDragDuplicated && main.autoconnect.getValue()) {
+            for (auto* connection : connections) {
+                if (connection->inlet == object->iolets[0]) {
+                 conInlets.add(connection);
+               }
+               if (connection->outlet == object->iolets[object->numInputs]) {
+                   conOutlets.add(connection);
+               }
+            }
+        }
     }
 
     // Tell pd to duplicate
@@ -801,16 +815,47 @@ void Canvas::duplicateSelection()
     // Load state from pd, don't update positions
     synchronise(false);
 
-    // Select the newly duplicated objects
-    for (auto* object : objects)
-    {
-        if (glist_isselected(patch.getPointer(), static_cast<t_gobj*>(object->getPointer())))
-        {
-            setSelected(object, true);
+    // Stores the duplicated objects for later selection
+    Array<Object*> duplicated;
+    for (auto* object : objects) {
+        if (glist_isselected(patch.getPointer(), static_cast<t_gobj*>(object->getPointer()))) {
+            duplicated.add(object);
         }
     }
 
+    // Intelligent auto patching
+    if (!wasDragDuplicated && main.autoconnect.getValue()) {
+        for (auto* object : objects) {
+            int iolet = 1;
+            for (auto* objIolet : object->iolets) {
+                for (auto* dup : duplicated) {
+                    for (auto* conIn : conInlets) {
+
+                        if ((conIn->outlet == objIolet) && object->iolets[iolet]) {
+                            connections.add(new Connection(this, dup->iolets[0], object->iolets[iolet], false));
+                            std::cout << "inlet" << std::endl;
+                        }
+                    }
+                    for (auto* conOut : conOutlets) {
+                        if ((conOut->inlet == objIolet) && (iolet < object->numInputs)) {
+                            connections.add(new Connection(this, dup->iolets[dup->numInputs], object->iolets[iolet], false));
+                            std::cout << "outlet" << std::endl;
+                        }
+                    }
+                }
+                iolet = iolet+1;
+            }
+        }
+    }
+
+    // Select the newly duplicated objects
+    for (auto* obj : duplicated) {
+        setSelected(obj, true);
+    }
+
     patch.deselectAll();
+
+
 }
 
 void Canvas::removeSelection()
@@ -1256,7 +1301,7 @@ void Canvas::handleMouseUp(Component* component, MouseEvent const& e)
         synchronise();
     }
 
-    if (wasDuplicated) {
+    if (wasDragDuplicated) {
         patch.endUndoSequence("Duplicate");
     }
 
@@ -1295,16 +1340,16 @@ void Canvas::handleMouseDrag(MouseEvent const& e)
     }
 
     // alt+drag will duplicate selection
-    if (!wasDuplicated && ModifierKeys::getCurrentModifiers().isAltDown()) {
+    if (!wasDragDuplicated && ModifierKeys::getCurrentModifiers().isAltDown()) {
         // Single for undo for duplicate + move
         patch.startUndoSequence("Duplicate");
         // Duplicate once
-        wasDuplicated = true;
+        wasDragDuplicated = true;
         duplicateSelection();
     }
 
     // move all selected objects
-    if (wasDuplicated) {
+    if (wasDragDuplicated) {
         // Correct distancing
         dragDistance = Point<int>(e.getOffsetFromDragStart().x + 10, e.getOffsetFromDragStart().y + 10);
         // Move duplicated objects according to the origin position
