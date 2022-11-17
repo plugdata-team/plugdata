@@ -32,7 +32,7 @@ Join the Discord here, for sharing patches, reporting issues or requesting featu
 
 **-MacOS:**
 - Option 1: Get the installer from the latest [official release](https://github.com/timothyschoen/PlugData/tags)
-- Option 2: Install the [homebrew cask](https://formulae.brew.sh/cask/plugdata). I do no maintain this so they may be outdated. 
+- Option 2: Install the [homebrew cask](https://formulae.brew.sh/cask/plugdata). I do no maintain this so it may be outdated. 
 
 **-Linux:**
 - Option 1: [OBS repository/packages](https://software.opensuse.org//download.html?project=home%3Aplugdata&package=plugdata)
