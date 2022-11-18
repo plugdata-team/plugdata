@@ -1234,10 +1234,18 @@ void Canvas::handleMouseUp(Component* component, MouseEvent const& e)
     if(objectSnappingInbetween) {
         auto* c = connectionToSnapInbetween.getComponent();
         
+        // TODO: this is potentially problematic
+        // since some of these actions might be executed on different threads,
+        // depending on if we can get a lock
+        
+        patch.startUndoSequence("SnapInbetween");
+        
         patch.removeConnection(c->outobj->getPointer(), c->outIdx, c->inobj->getPointer(), c->inIdx);
         
         patch.createConnection(c->outobj->getPointer(), c->outIdx, objectSnappingInbetween->getPointer(), 0);
         patch.createConnection(objectSnappingInbetween->getPointer(), 0, c->inobj->getPointer(), c->inIdx);
+        
+        patch.endUndoSequence("SnapInbetween");
         
         objectSnappingInbetween->iolets[0]->isTargeted = false;
         objectSnappingInbetween->iolets[objectSnappingInbetween->numInputs]->isTargeted = false;
@@ -1386,6 +1394,7 @@ void Canvas::handleMouseDrag(MouseEvent const& e)
     if(e.mods.isShiftDown() && selection.size() == 1) {
         auto* object = selection.getFirst();
         if(object->numInputs >= 1 && object->numOutputs >= 0) {
+            bool intersected = false;
             for(auto* connection : connections) {
                 if(connection->intersectsObject(object)) {
                     object->iolets[0]->isTargeted = true;
@@ -1394,13 +1403,16 @@ void Canvas::handleMouseDrag(MouseEvent const& e)
                     object->iolets[object->numInputs]->repaint();
                     connectionToSnapInbetween = connection;
                     objectSnappingInbetween = object;
+                    intersected = true;
+                    break;
                 }
-                else {
-                    object->iolets[0]->isTargeted = false;
-                    object->iolets[object->numInputs]->isTargeted = false;
-                    object->iolets[0]->repaint();
-                    object->iolets[object->numInputs]->repaint();
-                }
+            }
+            
+            if(!intersected) {
+                object->iolets[0]->isTargeted = false;
+                object->iolets[object->numInputs]->isTargeted = false;
+                object->iolets[0]->repaint();
+                object->iolets[object->numInputs]->repaint();
             }
         }
     }
