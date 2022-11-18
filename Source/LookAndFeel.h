@@ -489,7 +489,7 @@ struct PlugDataLook : public LookAndFeel_V4
             if (isHighlighted && isActive)
             {
                 g.setColour(findColour(PlugDataColour::popupMenuActiveBackgroundColourId));
-                g.fillRoundedRectangle(r.toFloat().reduced(4, 1), 3.0f);
+                g.fillRoundedRectangle(r.toFloat().reduced(4, 0), 4.0f);
 
                 g.setColour(findColour(PlugDataColour::popupMenuActiveTextColourId));
             }
@@ -1142,7 +1142,7 @@ struct PlugDataLook : public LookAndFeel_V4
         {PlugDataColour::sidebarBackgroundColourId, Colour(238, 238, 238)},
         
         {PlugDataColour::popupMenuBackgroundColourId, Colour(228, 228, 228)},
-        {PlugDataColour::popupMenuActiveBackgroundColourId, Colour(217, 217, 217)},
+        {PlugDataColour::popupMenuActiveBackgroundColourId, Colour(207, 207, 207)},
         {PlugDataColour::popupMenuTextColourId, Colour(90, 90, 90)},
         {PlugDataColour::popupMenuActiveTextColourId, Colour(90, 90, 90)}
     };
