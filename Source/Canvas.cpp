@@ -495,7 +495,7 @@ void Canvas::mouseDrag(MouseEvent const& e)
         auto const scrollSpeed = 8.5f;
 
         // Middle mouse pan
-        if (ModifierKeys::getCurrentModifiers().isMiddleButtonDown() && !draggingLabel)
+        if (e.mods.isMiddleButtonDown() && !draggingLabel)
         {
             
             auto delta = Point<int>{viewportEvent.getDistanceFromDragStartX(), viewportEvent.getDistanceFromDragStartY()};
@@ -1254,6 +1254,7 @@ void Canvas::handleMouseUp(Component* component, MouseEvent const& e)
         synchronise();
     }
 
+    // TODO: potentially risky: what if there ever is no mouse-up for a mouse-down?
     if (wasDuplicated) {
         patch.endUndoSequence("Duplicate");
     }
@@ -1293,7 +1294,7 @@ void Canvas::handleMouseDrag(MouseEvent const& e)
     }
 
     // alt+drag will duplicate selection
-    if (!wasDuplicated && ModifierKeys::getCurrentModifiers().isAltDown()) {
+    if (!wasDuplicated && e.mods.isAltDown()) {
         // Single for undo for duplicate + move
         patch.startUndoSequence("Duplicate");
         // Duplicate once

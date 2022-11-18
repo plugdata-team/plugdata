@@ -672,7 +672,7 @@ void Object::mouseUp(MouseEvent const& e)
     if (wasLockedOnMouseDown)
         return;
 
-    if (!cnv->didStartDragging && !static_cast<bool>(locked.getValue()) && ModifierKeys::getCurrentModifiers().isAltDown()) {
+    if (!cnv->didStartDragging && !static_cast<bool>(locked.getValue()) && e.mods.isAltDown()) {
         // Show help file on alt+mouseup if object were not draged
         openHelpPatch();
     }
