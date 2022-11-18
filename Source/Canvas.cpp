@@ -343,12 +343,12 @@ void Canvas::mouseDown(MouseEvent const& e)
     PopupMenu::dismissAllActiveMenus();
     
     // Middle mouse click
-    if(viewport && ModifierKeys::getCurrentModifiers().isMiddleButtonDown()) {
+    if(viewport && e.mods.isMiddleButtonDown()) {
         setMouseCursor(MouseCursor::UpDownLeftRightResizeCursor);
         viewportPositionBeforeMiddleDrag = viewport->getViewPosition();
     }
     // Left-click
-    else if (!ModifierKeys::getCurrentModifiers().isRightButtonDown()) {
+    else if (!e.mods.isRightButtonDown()) {
         // Connecting objects by dragging
         if (source == this || source == graphArea) {
             if (!connectingEdges.isEmpty()) {
@@ -550,7 +550,7 @@ void Canvas::mouseUp(MouseEvent const& e)
     setMouseCursor(MouseCursor::NormalCursor);
     main.updateCommandStatus();
     
-    if(e.getNumberOfClicks() >= 2 && e.originalComponent == this && !isGraph) {
+    if(!e.getNumberOfClicks() >= 2 && e.originalComponent == this && !isGraph) {
         objects.add(new Object(this, "", lastMousePosition));
         deselectAll();
         setSelected(objects[objects.size()-1], true); // Select newly created object
@@ -1192,17 +1192,14 @@ void Canvas::handleMouseDown(Component* component, MouseEvent const& e)
 // Call from component's mouseUp
 void Canvas::handleMouseUp(Component* component, MouseEvent const& e)
 {
+    
     if (e.mods.isShiftDown() && wasSelectedOnMouseDown && !didStartDragging) {
         // Unselect object if selected
         setSelected(component, false);
-    } else if (!e.mods.isShiftDown() && !e.mods.isAltDown() && isSelected(component) && !didStartDragging) {
-        // unselect all & select clicked object
-        for (auto* object : objects) {
-            setSelected(object, false);
-        }
-        for (auto* connection : connections) {
-            setSelected(connection, false);
-        }
+    } else if (!e.mods.isShiftDown() && !e.mods.isAltDown() && isSelected(component) && !didStartDragging && !e.mods.isRightButtonDown()) {
+        
+        deselectAll();
+        
         setSelected(component, true);
     }
 
