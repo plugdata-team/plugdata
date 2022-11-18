@@ -34,7 +34,7 @@ struct AboutPanel : public Component {
 
         g.drawFittedText("This program is published under the terms of the GPL3 license", 150, 340, getWidth() - 150, 50, Justification::left, 2);
 
-        Rectangle<float> logoBounds = { 10.0f, 20.0f, 110.0f, 110.0f };
+        Rectangle<float> logoBounds = { 20.0f, 25.0f, 110.0f, 110.0f };
 
         g.drawImage(logo, logoBounds);
     }
