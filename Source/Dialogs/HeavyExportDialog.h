@@ -1047,7 +1047,7 @@ struct HeavyExportDialog : public Component
     
     inline static File toolchain = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory).getChildFile("PlugData").getChildFile("Toolchain");
     
-    HeavyExportDialog(Dialog* dialog) : exporterPanel(dynamic_cast<PlugDataPluginEditor*>(dialog->parentComponent), &exportingView) {
+    HeavyExportDialog(Dialog* dialog) : exporterPanel(dynamic_cast<PlugDataPluginEditor*>(dialog->parentComponent), &exportingView), installer(dynamic_cast<PlugDataPluginEditor*>(dialog->parentComponent)) {
         
         hasToolchain = toolchain.exists();
         
