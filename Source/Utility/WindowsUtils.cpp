@@ -83,6 +83,8 @@ void createHardLink(std::string from, std::string to) {
     std::filesystem::create_hard_link(from, to);
 }
 
+// Function to run a command as admin on Windows
+// It should spawn a dialog, asking for permissions
 bool runAsAdmin(std::string command, std::string parameters, void* hWndPtr) {
     
     HWND hWnd = (HWND)hWndPtr;
