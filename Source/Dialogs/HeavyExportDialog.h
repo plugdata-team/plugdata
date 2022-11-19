@@ -5,6 +5,7 @@
  */
 
 #include "Canvas.h"
+#include "WindowsUtils.h"
 
 #if JUCE_LINUX
 #include <unistd.h>
@@ -110,7 +111,7 @@ struct ToolchainInstaller : public Component, public Thread, public Timer
     }
 #endif
     
-    ToolchainInstaller() : Thread("Toolchain Install Thread") {
+    ToolchainInstaller(PlugDataPluginEditor* pluginEditor) : Thread("Toolchain Install Thread"), editor(pluginEditor) {
         addAndMakeVisible(&installButton);
         
         installButton.onClick = [this](){
@@ -283,12 +284,17 @@ struct ToolchainInstaller : public Component, public Thread, public Timer
         system(("chmod +x " + toolchain.getFullPathName() + "/arm-none-eabi/bin/*").toRawUTF8());
         system(("chmod +x " + toolchain.getFullPathName() + "/libexec/gcc/arm-none-eabi/*/*").toRawUTF8());
 #endif
-    
+        
 #if JUCE_LINUX
         // Add udev rule for the daisy seed
         // This makes sure we can use dfu-util without admin privileges
         // Kinda sucks that we need to sudo this, but there's no other way AFAIK
         system("echo SUBSYSTEM==\"usb\", ATTR{idVendor}==\"0483\", ATTR{idProduct}==\"df11\", MODE=\"0664\", GROUP=\"plugdev\" | sudo tee /etc/udev/rules.d/50-daisy-stmicro-dfu.rules >/dev/null");
+#elif JUCE_WINDOWS
+        File usbDriverInstaller = toolchain.getChildFile("etc").getChildFile("usb_driver").getChildFile("amd64").getChildFile("install-filter.exe");
+        File driverSpec = toolchain.getChildFile("etc").getChildFile("usb_driver").getChildFile("DFU_in_FS_Mode.inf");
+
+        runAsAdmin(usbDriverInstaller.getFullPathName(), "install --inf=" + driverSpec.getFullPathName(), editor->getComponentPeer()->getNativeHandle());
 #endif
         installProgress = 0.0f;
         stopTimer();
@@ -311,6 +317,8 @@ struct ToolchainInstaller : public Component, public Thread, public Timer
     String errorMessage;
     
     std::unique_ptr<InputStream> instream;
+    
+    PlugDataPluginEditor* editor;
 };
 
 class ExportingView : public Component
@@ -462,7 +470,7 @@ struct ExporterSettingsPanel : public Component, public Value::Listener, public 
         properties.add(patchChooser);
         patchChooser->comboBox.setTextWhenNothingSelected("Choose a patch to export...");
         patchChooser->comboBox.setSelectedId(-1);
-
+        
         properties.add(new PropertiesPanel::EditableComponent<String>("Project Name (optional)", projectNameValue));
         properties.add(new PropertiesPanel::EditableComponent<String>("Project Copyright (optional)", projectCopyrightValue));
         
@@ -599,7 +607,7 @@ struct ExporterSettingsPanel : public Component, public Value::Listener, public 
                 });
             }
         }
-
+        
         exportButton.setEnabled(validPatchSelected);
     }
     
@@ -754,7 +762,7 @@ public:
         ExporterSettingsPanel::resized();
         flashButton.setBounds(exportButton.getBounds());
     }
-
+    
     void valueChanged(Value& v) override
     {
         ExporterSettingsPanel::valueChanged(v);
@@ -764,13 +772,13 @@ public:
         exportButton.setVisible(!flash);
         flashButton.setVisible(flash);
     }
-        
+    
     bool performExport(String pdPatch, String outdir, String name, String copyright, StringArray searchPaths) override
     {
         auto target = static_cast<int>(targetBoardValue.getValue()) - 1;
         bool compile = static_cast<int>(exportTypeValue.getValue()) - 1;
         bool flash = static_cast<int>(exportTypeValue.getValue()) == 3;
-         
+        
         StringArray args = {heavyExecutable.getFullPathName(), pdPatch, "-o" + outdir};
         
         args.add("-n" + name);
@@ -821,12 +829,12 @@ public:
             sourceDir.getChildFile("build").createDirectory();
             toolchain.getChildFile("lib").getChildFile("heavy-static.a").copyFileTo(sourceDir.getChildFile("build").getChildFile("heavy-static.a"));
             toolchain.getChildFile("etc").getChildFile("daisy_makefile").copyFileTo(sourceDir.getChildFile("Makefile"));
-                    
+            
             auto gccPath = bin.getFullPathName();
-
+            
             int ramType = static_cast<int>(romOptimisationType.getValue());
             int romType = static_cast<int>(romOptimisationType.getValue());
-
+            
             
             auto linkerDir = toolchain.getChildFile("etc").getChildFile("linkers");
             File linkerFile;
