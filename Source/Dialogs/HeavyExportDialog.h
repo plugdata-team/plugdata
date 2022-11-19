@@ -294,7 +294,7 @@ struct ToolchainInstaller : public Component, public Thread, public Timer
         File usbDriverInstaller = toolchain.getChildFile("etc").getChildFile("usb_driver").getChildFile("amd64").getChildFile("install-filter.exe");
         File driverSpec = toolchain.getChildFile("etc").getChildFile("usb_driver").getChildFile("DFU_in_FS_Mode.inf");
 
-        runAsAdmin(usbDriverInstaller.getFullPathName(), "install --inf=" + driverSpec.getFullPathName(), editor->getComponentPeer()->getNativeHandle());
+        runAsAdmin(usbDriverInstaller.getFullPathName(), "install --inf=" + driverSpec.getFullPathName(), editor->getPeer()->getNativeHandle());
 #endif
         installProgress = 0.0f;
         stopTimer();
