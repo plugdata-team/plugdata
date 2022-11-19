@@ -340,12 +340,14 @@ struct PropertiesPanel : public PropertyPanel {
             {
                 auto constexpr folderChooserFlags = FileBrowserComponent::saveMode | FileBrowserComponent::canSelectFiles | FileBrowserComponent::warnAboutOverwriting;
                 
-                saveChooser = std::make_unique<FileChooser>("Choose a location...", File::getSpecialLocation(File::userHomeDirectory), "", true);
+                saveChooser = std::make_unique<FileChooser>("Choose a location...", File::getSpecialLocation(File::userHomeDirectory), "", false);
                 
                 saveChooser->launchAsync(folderChooserFlags,
                                          [this](FileChooser const& fileChooser) {
                     auto const file = fileChooser.getResult();
-                    label.setText(file.getFullPathName(), sendNotification);
+                    if(file.getParentDirectory().exists()) {
+                        label.setText(file.getFullPathName(), sendNotification);
+                    }
                 });
             };
         }
