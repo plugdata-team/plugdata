@@ -366,10 +366,12 @@ public:
     void logToConsole(String text) {
         
         if(text.isNotEmpty()) {
-            MessageManager::callAsync([this, text](){
-                console.setText(console.getText() + text);
-                console.moveCaretToEnd();
-                console.setScrollToShowCursor(true);
+            MessageManager::callAsync([_this = SafePointer(this), text](){
+                if(!_this) return;
+                
+                _this->console.setText(_this->console.getText() + text);
+                _this->console.moveCaretToEnd();
+                _this->console.setScrollToShowCursor(true);
             });
         }
     }
@@ -522,6 +524,9 @@ struct ExporterSettingsPanel : public Component, public Value::Listener, public 
         auto projectTitle = projectNameValue.toString();
         auto projectCopyright = projectCopyrightValue.toString();
         
+        
+        if(projectTitle.isEmpty()) projectTitle = "Untitled";
+        
         // Add file location to search paths
         auto searchPaths = StringArray{patchFile.getParentDirectory().getFullPathName()};
         
@@ -672,12 +677,7 @@ public:
         
         StringArray args = {heavyExecutable.getFullPathName(), pdPatch, "-o" + outdir};
         
-        if(name.isNotEmpty()) {
-            args.add("-n" + name);
-        }
-        else {
-            args.add("-nUntitled");
-        }
+        args.add("-n" + name);
         
         if(copyright.isNotEmpty()) {
             args.add("--copyright");
@@ -719,6 +719,9 @@ public:
     
     Value targetBoardValue = Value(var(1));
     Value exportTypeValue = Value(var(3));
+    Value romOptimisationType = Value(var(1));
+    Value ramOptimisationType = Value(var(1));
+    
     
     TextButton flashButton = TextButton("Flash");
     
@@ -726,6 +729,8 @@ public:
     {
         addAndMakeVisible(properties.add(new PropertiesPanel::ComboComponent("Target board", targetBoardValue, {"Seed", "Pod", "Petal", "Patch", "Field"})));
         addAndMakeVisible(properties.add(new PropertiesPanel::ComboComponent("Export type", exportTypeValue, {"Source code", "Binary", "Flash"})));
+        addAndMakeVisible(properties.add(new PropertiesPanel::ComboComponent("ROM Optimisation", romOptimisationType, {"Optimise for size", "Optimise for speed"})));
+        addAndMakeVisible(properties.add(new PropertiesPanel::ComboComponent("RAM Optimisation", ramOptimisationType, {"Optimise for size", "Optimise for speed"})));
         
         exportButton.setVisible(false);
         addAndMakeVisible(flashButton);
@@ -761,12 +766,7 @@ public:
          
         StringArray args = {heavyExecutable.getFullPathName(), pdPatch, "-o" + outdir};
         
-        if(name.isNotEmpty()) {
-            args.add("-n" + name);
-        }
-        else {
-            args.add("-nUntitled");
-        }
+        args.add("-n" + name);
         
         if(copyright.isNotEmpty()) {
             args.add("--copyright");
@@ -813,20 +813,48 @@ public:
             
             sourceDir.getChildFile("build").createDirectory();
             toolchain.getChildFile("lib").getChildFile("heavy-static.a").copyFileTo(sourceDir.getChildFile("build").getChildFile("heavy-static.a"));
-            toolchain.getChildFile("share").getChildFile("daisy_makefile").copyFileTo(sourceDir.getChildFile("Makefile"));
-            
+            toolchain.getChildFile("etc").getChildFile("daisy_makefile").copyFileTo(sourceDir.getChildFile("Makefile"));
+                    
             auto gccPath = bin.getFullPathName();
-            auto projectName = projectNameValue.toString();
+
+            int ramType = static_cast<int>(romOptimisationType.getValue());
+            int romType = static_cast<int>(romOptimisationType.getValue());
+
+            
+            auto linkerDir = toolchain.getChildFile("etc").getChildFile("linkers");
+            File linkerFile;
+            
+            bool bootloader = false;
+            
+            // 1 is size, 2 is speed
+            if(romType == 1) {
+                if(ramType == 1) {
+                    linkerFile = linkerDir.getChildFile("sram_linker_sdram.lds");
+                }
+                else if(ramType == 2) {
+                    linkerFile = linkerDir.getChildFile("sram_linker.lds");
+                }
+                bootloader = true;
+            }
+            else if(romType == 2 && ramType == 1) {
+                linkerFile = linkerDir.getChildFile("default_linker_sdram.lds");
+            }
+            // 2-2 is skipped because it's the default
+            
+            auto makefileText = sourceDir.getChildFile("Makefile").loadFileAsString();
+            if(linkerFile.existsAsFile()) makefileText = makefileText.replace("# LINKER", "LDSCRIPT = " + linkerFile.getFullPathName());
+            if(bootloader) makefileText = makefileText.replace("# BOOTLOADER", "APP_TYPE = BOOT_SRAM");
+            sourceDir.getChildFile("Makefile").replaceWithText(makefileText);
             
 #if JUCE_WINDOWS
             
             auto sh = toolchain.getChildFile("bin").getChildFile("sh.exe");
             auto windowsBuildScript = sourceDir.getChildFile("build.sh");
-            windowsBuildScript.replaceWithText(make.getFullPathName().replaceCharacter('\\', '/') + " -j4 -f " + sourceDir.getChildFile("Makefile").getFullPathName().replaceCharacter('\\', '/') + " GCC_PATH=" + gccPath.replaceCharacter('\\', '/') + " PROJECT_NAME=" + projectName);
+            windowsBuildScript.replaceWithText(make.getFullPathName().replaceCharacter('\\', '/') + " -j4 -f " + sourceDir.getChildFile("Makefile").getFullPathName().replaceCharacter('\\', '/') + " GCC_PATH=" + gccPath.replaceCharacter('\\', '/') + " PROJECT_NAME=" + name);
             
             String command = sh.getFullPathName() + " --login " + windowsBuildScript.getFullPathName().replaceCharacter('\\', '/');
 #else
-            String command = make.getFullPathName() + " -j4 -f " + sourceDir.getChildFile("Makefile").getFullPathName() + " GCC_PATH=" + gccPath + " PROJECT_NAME=" + projectName;
+            String command = make.getFullPathName() + " -j4 -f " + sourceDir.getChildFile("Makefile").getFullPathName() + " GCC_PATH=" + gccPath + " PROJECT_NAME=" + name;
 #endif
             // Use std::system because on Mac, juce ChildProcess is slow when using Rosetta
             start(command.toRawUTF8());
@@ -834,8 +862,8 @@ public:
             
             workingDir.setAsCurrentWorkingDirectory();
             
-            auto binLocation = outputFile.getChildFile(projectName + ".bin");
-            sourceDir.getChildFile("build").getChildFile("Heavy_" + projectName + ".bin").moveFileTo(binLocation);
+            auto binLocation = outputFile.getChildFile(name + ".bin");
+            sourceDir.getChildFile("build").getChildFile("Heavy_" + name + ".bin").moveFileTo(binLocation);
             
             outputFile.getChildFile("daisy").deleteRecursively();
             outputFile.getChildFile("libDaisy").deleteRecursively();
