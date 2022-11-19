@@ -12,7 +12,7 @@
 
 
 #if JUCE_WINDOWS
-#include "../Utility/WindowsJunction.h"
+#include "../Utility/WindowsUtils.h"
 #endif
 
 bool wantsNativeDialog();
