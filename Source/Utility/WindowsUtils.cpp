@@ -15,6 +15,7 @@
 #include <windows.h>
 #include <WINIOCTL.H>
 #include <shlobj.h>
+#include <ShellAPI.h>
 
 #include <stdio.h>
 #include <string>
@@ -88,7 +89,7 @@ bool runAsAdmin(std::string command, std::string parameters, void* hWndPtr) {
     auto lpFile = (LPCTSTR)command.c_str();
     auto lpParameters = (LPCTSTR)parameters.c_str();
     
-    BOOL                retval;
+    BOOL retval;
     SHELLEXECUTEINFO    sei;
     ZeroMemory ( &sei, sizeof(sei) );
 
@@ -106,7 +107,7 @@ bool runAsAdmin(std::string command, std::string parameters, void* hWndPtr) {
         retval = ShellExecuteEx( &sei );
     }
 
-    return retval;
+    return (bool)retval;
 }
 
 #endif
