@@ -288,7 +288,7 @@ struct ToolchainInstaller : public Component, public Thread, public Timer
         // Add udev rule for the daisy seed
         // This makes sure we can use dfu-util without admin privileges
         // Kinda sucks that we need to sudo this, but there's no other way AFAIK
-        system("echo SUBSYSTEM==\"usb\", ATTR{idVendor}==\"0483\", ATTR{idProduct}==\"df11\", MODE=\"0664\", GROUP=\"plugdev\" | sudo tee -a /etc/udev/rules.d/50-daisy-stmicro-dfu.rules >/dev/null");
+        system("echo SUBSYSTEM==\"usb\", ATTR{idVendor}==\"0483\", ATTR{idProduct}==\"df11\", MODE=\"0664\", GROUP=\"plugdev\" | sudo tee /etc/udev/rules.d/50-daisy-stmicro-dfu.rules >/dev/null");
 #endif
         installProgress = 0.0f;
         stopTimer();
