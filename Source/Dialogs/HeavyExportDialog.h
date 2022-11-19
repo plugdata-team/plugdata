@@ -422,14 +422,12 @@ struct ExporterSettingsPanel : public Component, public Value::Listener, public 
     TextButton exportButton = TextButton("Export");
     
     Value inputPatchValue;
-    Value outputDirValue;
     Value projectNameValue;
     Value projectCopyrightValue;
     
     inline static File heavyExecutable = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory).getChildFile("PlugData").getChildFile("Toolchain").getChildFile("bin").getChildFile("Heavy").getChildFile("Heavy");
     
     bool validPatchSelected = false;
-    bool targetFolderSelected = false;
     
     std::unique_ptr<FileChooser> saveChooser;
     std::unique_ptr<FileChooser> openChooser;
@@ -445,7 +443,9 @@ struct ExporterSettingsPanel : public Component, public Value::Listener, public 
     int labelWidth = 180;
     bool shouldQuit = false;
     
-    ExporterSettingsPanel(PlugDataPluginEditor* editor, ExportingView* exportView) : ThreadPool(2), exportingView(exportView)
+    PlugDataPluginEditor* editor;
+    
+    ExporterSettingsPanel(PlugDataPluginEditor* pluginEditor, ExportingView* exportView) : ThreadPool(2), exportingView(exportView), editor(pluginEditor)
     {
         addAndMakeVisible(exportButton);
         
@@ -453,15 +453,10 @@ struct ExporterSettingsPanel : public Component, public Value::Listener, public 
         properties.add(patchChooser);
         patchChooser->comboBox.setTextWhenNothingSelected("Choose a patch to export...");
         patchChooser->comboBox.setSelectedId(-1);
-        
-        properties.add(new PropertiesPanel::FilePathComponent("Output Path", outputDirValue));
+
         properties.add(new PropertiesPanel::EditableComponent<String>("Project Name (optional)", projectNameValue));
         properties.add(new PropertiesPanel::EditableComponent<String>("Project Copyright (optional)", projectCopyrightValue));
         
-        // A default value for outdir
-        outputDirValue.setValue(File::getSpecialLocation(File::userDocumentsDirectory).getFullPathName());
-        
-        outputDirValue.addListener(this);
         inputPatchValue.addListener(this);
         projectNameValue.addListener(this);
         projectCopyrightValue.addListener(this);
@@ -491,49 +486,22 @@ struct ExporterSettingsPanel : public Component, public Value::Listener, public 
             validPatchSelected = false;
         }
         
-        exportButton.onClick = [this, editor](){
-            auto outDir = File(outputDirValue.toString());
-            outDir.createDirectory();
+        exportButton.onClick = [this](){
             
-            auto patchPath = patchFile.getFullPathName();
-            auto outPath = outDir.getFullPathName();
-            auto projectTitle = projectNameValue.toString();
-            auto projectCopyright = projectCopyrightValue.toString();
+            auto constexpr folderChooserFlags = FileBrowserComponent::saveMode | FileBrowserComponent::canSelectFiles | FileBrowserComponent::warnAboutOverwriting;
             
-            // Add file location to search paths
-            auto searchPaths = StringArray{patchFile.getParentDirectory().getFullPathName()};
+            saveChooser = std::make_unique<FileChooser>("Choose a location...", File::getSpecialLocation(File::userHomeDirectory), "", true);
             
-            // Get pd's search paths
-            char* paths[1024];
-            int numItems;
-            libpd_get_search_paths(paths, &numItems);
-            
-            if(realPatchFile.existsAsFile()) {
-                searchPaths.add(realPatchFile.getParentDirectory().getFullPathName());
-            }
-            
-            for(int i = 0; i < numItems; i++) {
-                searchPaths.add(paths[i]);
-            }
-            
-            // Make sure we don't add the file location twice
-            searchPaths.removeDuplicates(false);
-            
-            addJob([this, patchPath, outPath, projectTitle, projectCopyright, searchPaths]() mutable {
-                startTimer(25);
-                exportingView->showState(ExportingView::Busy);
+            saveChooser->launchAsync(folderChooserFlags,
+                                     [this](FileChooser const& fileChooser) {
                 
-                auto result = performExport(patchPath, outPath, projectTitle, projectCopyright, searchPaths);
+                auto const file = fileChooser.getResult();
                 
-                if(shouldQuit) return;
-                
-                exportingView->showState(result ? ExportingView::Failure : ExportingView::Success);
-                
-                MessageManager::callAsync([this](){
-                    stopTimer();
-                    repaint();
-                });
+                if(file.getParentDirectory().exists()) {
+                    startExport(file);
+                }
             });
+            
         };
     }
     
@@ -545,6 +513,49 @@ struct ExporterSettingsPanel : public Component, public Value::Listener, public 
         shouldQuit = true;
         if(isRunning()) kill();
         removeAllJobs(true, -1);
+    }
+    
+    void startExport(File outDir) {
+        
+        auto patchPath = patchFile.getFullPathName();
+        auto outPath = outDir.getFullPathName();
+        auto projectTitle = projectNameValue.toString();
+        auto projectCopyright = projectCopyrightValue.toString();
+        
+        // Add file location to search paths
+        auto searchPaths = StringArray{patchFile.getParentDirectory().getFullPathName()};
+        
+        // Get pd's search paths
+        char* paths[1024];
+        int numItems;
+        libpd_get_search_paths(paths, &numItems);
+        
+        if(realPatchFile.existsAsFile()) {
+            searchPaths.add(realPatchFile.getParentDirectory().getFullPathName());
+        }
+        
+        for(int i = 0; i < numItems; i++) {
+            searchPaths.add(paths[i]);
+        }
+        
+        // Make sure we don't add the file location twice
+        searchPaths.removeDuplicates(false);
+        
+        addJob([this, patchPath, outPath, projectTitle, projectCopyright, searchPaths]() mutable {
+            startTimer(25);
+            exportingView->showState(ExportingView::Busy);
+            
+            auto result = performExport(patchPath, outPath, projectTitle, projectCopyright, searchPaths);
+            
+            if(shouldQuit) return;
+            
+            exportingView->showState(result ? ExportingView::Failure : ExportingView::Success);
+            
+            MessageManager::callAsync([this](){
+                stopTimer();
+                repaint();
+            });
+        });
     }
     
     void valueChanged(Value& v) override
@@ -576,11 +587,8 @@ struct ExporterSettingsPanel : public Component, public Value::Listener, public 
                 });
             }
         }
-        else if(v.refersToSameSourceAs(outputDirValue)) {
-            targetFolderSelected = File(v.toString()).getParentDirectory().exists();
-        }
-        
-        exportButton.setEnabled(validPatchSelected && targetFolderSelected);
+
+        exportButton.setEnabled(validPatchSelected);
     }
     
     void resized() override
@@ -592,6 +600,7 @@ struct ExporterSettingsPanel : public Component, public Value::Listener, public 
         for (auto* panel : properties) {
             auto panelBounds = b.removeFromTop(23);
             panel->setBounds(panelBounds);
+            b.removeFromTop(5);
         }
     }
     
@@ -599,14 +608,14 @@ struct ExporterSettingsPanel : public Component, public Value::Listener, public 
         auto b = Rectangle<int>(0, 50, getWidth(), getHeight() - 38);
         
         g.setColour(findColour(PlugDataColour::outlineColourId).withAlpha(0.4f));
-        g.drawLine(Line<int>(b.getTopLeft(), b.getTopRight()).toFloat());
+        //g.drawLine(Line<int>(b.getTopLeft(), b.getTopRight()).toFloat());
         
         for (auto* panel : properties) {
             auto panelBounds = b.removeFromTop(23);
-            g.drawLine(Line<int>(panelBounds.getBottomLeft(), panelBounds.getBottomRight()).toFloat());
+            //g.drawLine(Line<int>(panelBounds.getBottomLeft(), panelBounds.getBottomRight()).toFloat());
         }
         
-        g.drawLine((getWidth() / 2.0f) + 1, 50, (getWidth() / 2.0f) + 1, 50 + properties.size() * 23);
+        //g.drawLine((getWidth() / 2.0f) + 1, 50, (getWidth() / 2.0f) + 1, 50 + properties.size() * 23);
     }
     
 private:
@@ -709,19 +718,47 @@ class DaisySettingsPanel : public ExporterSettingsPanel
 public:
     
     Value targetBoardValue = Value(var(1));
-    Value exportTypeValue = Value(var(1));
+    Value exportTypeValue = Value(var(3));
+    
+    TextButton flashButton = TextButton("Flash");
     
     DaisySettingsPanel(PlugDataPluginEditor* editor, ExportingView* exportingView) : ExporterSettingsPanel(editor, exportingView)
     {
         addAndMakeVisible(properties.add(new PropertiesPanel::ComboComponent("Target board", targetBoardValue, {"Seed", "Pod", "Petal", "Patch", "Field"})));
-        addAndMakeVisible(properties.add(new PropertiesPanel::ComboComponent("Export type", exportTypeValue, {"Binary", "Source code"})));
+        addAndMakeVisible(properties.add(new PropertiesPanel::ComboComponent("Export type", exportTypeValue, {"Source code", "Binary", "Flash"})));
+        
+        exportButton.setVisible(false);
+        addAndMakeVisible(flashButton);
+        
+        exportTypeValue.addListener(this);
+        
+        flashButton.onClick = [this](){
+            auto tempFolder = File::getSpecialLocation(File::tempDirectory).getChildFile("Heavy-" + Uuid().toString().substring(10));
+            startExport(tempFolder);
+        };
     }
     
+    void resized() override {
+        ExporterSettingsPanel::resized();
+        flashButton.setBounds(exportButton.getBounds());
+    }
+
+    void valueChanged(Value& v) override
+    {
+        ExporterSettingsPanel::valueChanged(v);
+        flashButton.setEnabled(validPatchSelected);
+        
+        bool flash = static_cast<int>(exportTypeValue.getValue()) == 3;
+        exportButton.setVisible(!flash);
+        flashButton.setVisible(flash);
+    }
+        
     bool performExport(String pdPatch, String outdir, String name, String copyright, StringArray searchPaths) override
     {
         auto target = static_cast<int>(targetBoardValue.getValue()) - 1;
-        bool compile = static_cast<int>(targetBoardValue.getValue());
-        
+        bool compile = static_cast<int>(exportTypeValue.getValue()) - 1;
+        bool flash = static_cast<int>(exportTypeValue.getValue()) == 3;
+         
         StringArray args = {heavyExecutable.getFullPathName(), pdPatch, "-o" + outdir};
         
         if(name.isNotEmpty()) {
@@ -759,13 +796,8 @@ public:
             
             auto bin = toolchain.getChildFile("bin");
             auto libDaisy = toolchain.getChildFile("lib").getChildFile("libDaisy");
-#if JUCE_WINDOWS
-            auto make = bin.getChildFile("make.exe");
-            auto compiler = bin.getChildFile("arm-none-eabi-gcc.exe");
-#else
-            auto make = bin.getChildFile("make");
-            auto compiler = bin.getChildFile("arm-none-eabi-gcc");
-#endif
+            auto make = bin.getChildFile("make" + exeSuffix);
+            auto compiler = bin.getChildFile("arm-none-eabi-gcc" + exeSuffix);
             
             auto outputFile = File(outdir);
             libDaisy.copyDirectoryTo(outputFile.getChildFile("libDaisy"));
@@ -783,7 +815,7 @@ public:
             toolchain.getChildFile("lib").getChildFile("heavy-static.a").copyFileTo(sourceDir.getChildFile("build").getChildFile("heavy-static.a"));
             toolchain.getChildFile("share").getChildFile("daisy_makefile").copyFileTo(sourceDir.getChildFile("Makefile"));
             
-            auto gccPath = toolchain.getChildFile("bin").getFullPathName();
+            auto gccPath = bin.getFullPathName();
             auto projectName = projectNameValue.toString();
             
 #if JUCE_WINDOWS
@@ -802,7 +834,8 @@ public:
             
             workingDir.setAsCurrentWorkingDirectory();
             
-            sourceDir.getChildFile("build").getChildFile("Heavy_" + projectName + ".bin").moveFileTo(outputFile.getChildFile(projectName + ".bin"));
+            auto binLocation = outputFile.getChildFile(projectName + ".bin");
+            sourceDir.getChildFile("build").getChildFile("Heavy_" + projectName + ".bin").moveFileTo(binLocation);
             
             outputFile.getChildFile("daisy").deleteRecursively();
             outputFile.getChildFile("libDaisy").deleteRecursively();
@@ -810,7 +843,26 @@ public:
             // Delay to get correct exit code
             Time::waitForMillisecondCounter(Time::getMillisecondCounter() + 300);
             
-            return heavyExitCode && getExitCode();
+            auto compileExitCode = getExitCode();
+            if(flash && !compileExitCode) {
+                
+                exportingView->logToConsole("Flashing...");
+                
+                auto dfuUtil = bin.getChildFile("dfu-util" + exeSuffix);
+                auto dfuCommand = dfuUtil.getFullPathName() + " -a 0 -s 0x08000000:leave -D " + binLocation.getFullPathName() + " -d ,0483:df11";
+                
+                start(dfuCommand.toRawUTF8());
+                waitForProcessToFinish(-1);
+                
+                // Delay to get correct exit code
+                Time::waitForMillisecondCounter(Time::getMillisecondCounter() + 300);
+                
+                auto flashExitCode = getExitCode();
+                
+                return heavyExitCode && compileExitCode && flashExitCode;
+            }
+            
+            return heavyExitCode && compileExitCode;
         }
         else {
             auto outputFile = File(outdir);
@@ -824,6 +876,12 @@ public:
             return heavyExitCode;
         }
     }
+    
+#if JUCE_WINDOWS
+    String exeSuffix = ".exe";
+#else
+    String exeSuffix = "";
+#endif
 };
 
 class ExporterPanel  : public Component, private ListBoxModel
@@ -880,7 +938,6 @@ public:
                 views[lastRowSelected]->patchFile = view->patchFile;
                 views[lastRowSelected]->projectNameValue = view->projectNameValue.getValue();
                 views[lastRowSelected]->projectCopyrightValue = view->projectCopyrightValue.getValue();
-                views[lastRowSelected]->outputDirValue = view->outputDirValue.getValue();
                 views[lastRowSelected]->inputPatchValue = view->inputPatchValue.getValue();
             }
             view->setVisible(false);
