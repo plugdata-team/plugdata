@@ -50,23 +50,23 @@ PlugDataAudioProcessor::PlugDataAudioProcessor()
 {
     // Make sure to use dots for decimal numbers, pd requires that
     std::setlocale(LC_ALL, "C");
-    
+
     // continuityChecker keeps track of whether audio is running and creates a backup scheduler in case it isn't
     continuityChecker.setCallback([this](t_float* in, t_float* out){
-        
+
         if(isNonRealtime()) return;
-        
+
         if(getCallbackLock()->tryEnter()) {
-            
+
             // Dequeue messages
             sendMessagesFromQueue();
-            
+
             libpd_set_instance(static_cast<t_pdinstance*>(m_instance));
             libpd_process_nodsp();
             getCallbackLock()->exit();
         }
     });
-    
+
     parameters.createAndAddParameter(std::make_unique<AudioParameterFloat>(ParameterID("volume", 1), "Volume", NormalisableRange<float>(0.0f, 1.0f, 0.001f, 0.75f, false), 1.0f));
 
     // General purpose automation parameters you can get by using "receive param1" etc.
@@ -74,9 +74,9 @@ PlugDataAudioProcessor::PlugDataAudioProcessor()
     {
         auto id = ParameterID("param" + String(n + 1), 1);
         //auto* parameter = parameters.createAndAddParameter(std::make_unique<PlugDataParameter>(this, "Parameter " + String(n + 1),  "", 0.0f));
-        
+
         auto* parameter = parameters.createAndAddParameter(std::make_unique<AudioParameterFloat>(id, "Parameter " + String(n + 1), 0.0f, 1.0f, 0.0f));
-        
+
         lastParameters[n] = 0;
         parameter->addListener(this);
     }
@@ -85,20 +85,20 @@ PlugDataAudioProcessor::PlugDataAudioProcessor()
 
     // Make sure that the parameter valuetree has a name, to prevent assertion failures
     parameters.replaceState(ValueTree("PlugData"));
-    
+
     // scope for locking message manager
     {
         const MessageManagerLock mmLock;
-        
+
         LookAndFeel::setDefaultLookAndFeel(&lnf.get());
-        
+
         // On first startup, initialise abstractions and settings
         initialiseFilesystem();
-        
+
         // Initialise library for text autocompletion
         objectLibrary.initialiseLibrary();
     }
-    
+
     channelPointers.reserve(32);
 
     // Set up midi buffers
@@ -118,28 +118,28 @@ PlugDataAudioProcessor::PlugDataAudioProcessor()
     {
         // If we changed the settings from within the app, don't reload
         if(!settingsChangedInternally) {
-            
+
             auto newTree = ValueTree::fromXml(settingsFile.loadFileAsString());
-            
+
             // Prevents causing an update loop
             if (auto* editor = dynamic_cast<PlugDataPluginEditor*>(getActiveEditor()))
             {
                 settingsTree.removeListener(editor);
             }
-            
+
             settingsTree.getChildWithName("Paths").copyPropertiesAndChildrenFrom(newTree.getChildWithName("Paths"), nullptr);
-            
+
             // Direct children shouldn't be overwritten as that would break some valueTree links, for example in SettingsDialog
             for (auto child : settingsTree)
             {
                 child.copyPropertiesAndChildrenFrom(newTree.getChildWithName(child.getType()), nullptr);
             }
             settingsTree.copyPropertiesFrom(newTree, nullptr);
-            
+
             if (auto* editor = dynamic_cast<PlugDataPluginEditor*>(getActiveEditor()))
             {
                 settingsTree.addListener(editor);
-                
+
                 for(auto* cnv : editor->canvases) {
                     // Make sure inlets/outlets are updated
                     for(auto* object : cnv->objects) object->updatePorts();
@@ -148,10 +148,10 @@ PlugDataAudioProcessor::PlugDataAudioProcessor()
         }
 
         settingsChangedInternally = false;
-        
+
         updateSearchPaths();
         objectLibrary.updateLibrary();
-        
+
         setTheme(static_cast<bool>(settingsTree.getProperty("Theme")));
     };
 
@@ -159,13 +159,13 @@ PlugDataAudioProcessor::PlugDataAudioProcessor()
     {
         setTheme(static_cast<bool>(settingsTree.getProperty("Theme")));
     }
-    
+
     if(settingsTree.hasProperty("Oversampling")) {
         oversampling = static_cast<int>(settingsTree.getProperty("Oversampling"));
     }
 
     updateSearchPaths();
-    
+
     setLatencySamples(pd::Instance::getBlockSize());
 
     logMessage("PlugData v" + String(ProjectInfo::versionString));
@@ -189,19 +189,19 @@ void PlugDataAudioProcessor::initialiseFilesystem()
         MemoryInputStream binaryFilesystem(BinaryData::Filesystem_zip, BinaryData::Filesystem_zipSize, false);
         auto file = ZipFile(binaryFilesystem);
         file.uncompressTo(homeDir);
-        
+
         // Create filesystem for this specific version
         homeDir.getChildFile("plugdata_version").moveFileTo(appDir);
-        
+
         auto library = homeDir.getChildFile("Library");
         auto deken = homeDir.getChildFile("Deken");
-        
+
         // For transitioning between v0.5.3 -> v0.6.0
         auto library_backup = homeDir.getChildFile("Library_backup");
         if(!library.exists()) {
             library.createDirectory();
         }
-        
+
 #if !JUCE_WINDOWS
         // This may not work on Windows, Windows users REALLY need to thrash their PlugData folder
         else if(library.getChildFile("Deken").isDirectory() && !library.getChildFile("Deken").isSymbolicLink()) {
@@ -209,22 +209,22 @@ void PlugDataAudioProcessor::initialiseFilesystem()
             library.createDirectory();
         }
 #endif
-        
+
         deken.createDirectory();
-        
+
 #if JUCE_WINDOWS
-        
-        
+
+
         // Get paths that need symlinks
         auto abstractionsPath = appDir.getChildFile("Abstractions").getFullPathName().replaceCharacters("/", "\\");
         auto documentationPath = appDir.getChildFile("Documentation").getFullPathName().replaceCharacters("/", "\\");
         auto dekenPath = deken.getFullPathName();
-        
+
         // Create NTFS directory junctions
         createJunction(library.getChildFile("Abstractions").getFullPathName().replaceCharacters("/", "\\").toStdString(), abstractionsPath.toStdString());
-        
+
         createJunction(library.getChildFile("Documentation").getFullPathName().replaceCharacters("/", "\\").toStdString(), documentationPath.toStdString());
-        
+
         createJunction(library.getChildFile("Deken").getFullPathName().replaceCharacters("/", "\\").toStdString(), dekenPath.toStdString());
 
 #else
@@ -233,7 +233,7 @@ void PlugDataAudioProcessor::initialiseFilesystem()
         deken.createSymbolicLink(library.getChildFile("Deken"), true);
 #endif
     }
-    
+
     // Check if settings file exists, if not, create the default
     if (!settingsFile.existsAsFile())
     {
@@ -245,7 +245,7 @@ void PlugDataAudioProcessor::initialiseFilesystem()
         settingsTree.setProperty("GridEnabled", 1, nullptr);
         settingsTree.setProperty("Zoom", 1.0f, nullptr);
 
-        
+
         auto pathTree = ValueTree("Paths");
         auto library = homeDir.getChildFile("Library");
 
@@ -264,7 +264,7 @@ void PlugDataAudioProcessor::initialiseFilesystem()
 
         settingsTree.setProperty("DefaultFont", "Inter", nullptr);
         auto colourThemesTree = ValueTree("ColourThemes");
-        
+
         for (auto const& theme : lnf->colourSettings) {
             auto themeName = theme.first;
             auto themeColours = theme.second;
@@ -276,7 +276,7 @@ void PlugDataAudioProcessor::initialiseFilesystem()
                 themeTree.setProperty(colourName, themeColours.at(defaultColours.first).toString(), nullptr);
             }
         }
-        
+
         settingsTree.appendChild(colourThemesTree, nullptr);
         saveSettings();
     }
@@ -284,7 +284,7 @@ void PlugDataAudioProcessor::initialiseFilesystem()
     {
         // Or load the settings when they exist already
         settingsTree = ValueTree::fromXml(settingsFile.loadFileAsString());
-        
+
         if (settingsTree.hasProperty("DefaultFont"))
         {
             auto fontname = settingsTree.getProperty("DefaultFont").toString();
@@ -293,12 +293,12 @@ void PlugDataAudioProcessor::initialiseFilesystem()
 
         if(!settingsTree.getChildWithName("ColourThemes").isValid()) {
             auto colourThemesTree = ValueTree("ColourThemes");
-            
+
             for (auto const& theme : lnf->colourSettings) {
                 auto themeName = theme.first;
                 auto themeColours = theme.second;
                 auto themeTree = ValueTree(themeName);
-                
+
                 colourThemesTree.appendChild(themeTree, nullptr);
                 themeTree.setProperty("theme", themeName, nullptr);
                 for (auto const& [colourId, colour] : PlugDataLook::defaultThemes.at(themeName)) {
@@ -306,7 +306,7 @@ void PlugDataAudioProcessor::initialiseFilesystem()
                     themeTree.setProperty(colourName, colour.toString(), nullptr);
                 }
             }
-            
+
             settingsTree.appendChild(colourThemesTree, nullptr);
             saveSettings();
         }
@@ -315,20 +315,20 @@ void PlugDataAudioProcessor::initialiseFilesystem()
             auto colourThemesTree = settingsTree.getChildWithName("ColourThemes");
             for (auto themeTree : colourThemesTree) {
                 auto themeName = themeTree.getProperty("theme");
-                
+
                 for (auto const& [colourId, colour] : PlugDataLook::defaultThemes.at(themeName)) {
                     auto [id, colourName, category] = PlugDataColourNames.at(colourId);
-                    
+
                     // For when we add new colours in the future
                     if(!themeTree.hasProperty(colourName)) {
                         themeTree.setProperty(colourName, colour.toString(), nullptr);
                         wasMissingColours = true;
                     }
-                    
+
                     lnf->colourSettings[themeName][colourId] = Colour::fromString(themeTree.getProperty(colourName).toString());
                 }
             }
-            
+
             if(wasMissingColours) saveSettings();
         }
     }
@@ -336,7 +336,7 @@ void PlugDataAudioProcessor::initialiseFilesystem()
     if(!settingsTree.hasProperty("Zoom")) {
         settingsTree.setProperty("Zoom", 1.0f, nullptr);
     }
-    
+
     if(!settingsTree.hasProperty("AutoConnect")) {
         settingsTree.setProperty("AutoConnect", true, nullptr);
     }
@@ -355,9 +355,9 @@ void PlugDataAudioProcessor::updateSearchPaths()
     auto pathTree = settingsTree.getChildWithName("Paths");
 
     setThis();
-    
+
     getCallbackLock()->enter();
-    
+
     libpd_clear_search_path();
     for (auto child : pathTree)
     {
@@ -372,7 +372,15 @@ void PlugDataAudioProcessor::updateSearchPaths()
         auto location = elsePath.getFullPathName();
         libpd_add_to_search_path(location.toRawUTF8());
     }
-    
+
+    // Add heavylib path
+    auto heavylibPath = appDir.getChildFile("Abstractions").getChildFile("heavylib");
+    if (heavylibPath.exists())
+    {
+        auto location = heavylibPath.getFullPathName();
+        libpd_add_to_search_path(location.toRawUTF8());
+    }
+
     for (auto path : DekenInterface::getExternalPaths())
     {
         libpd_add_to_search_path(path.toRawUTF8());
@@ -446,11 +454,11 @@ void PlugDataAudioProcessor::setOversampling(int amount)
 {
     settingsTree.setProperty("Oversampling", var(amount), nullptr);
     saveSettings();
-    
+
     oversampling = amount;
     auto blockSize = AudioProcessor::getBlockSize();
     auto sampleRate = AudioProcessor::getSampleRate();
-    
+
     suspendProcessing(true);
     prepareToPlay(sampleRate, blockSize);
     suspendProcessing(false);
@@ -460,13 +468,13 @@ void PlugDataAudioProcessor::prepareToPlay(double sampleRate, int samplesPerBloc
 {
     float oversampleFactor = 1 << oversampling;
     auto maxChannels = std::max(getTotalNumInputChannels(), getTotalNumOutputChannels());
-    
+
     prepareDSP(getTotalNumInputChannels(), getTotalNumOutputChannels(), sampleRate * oversampleFactor, samplesPerBlock * oversampleFactor);
-    
+
     oversampler.reset (new dsp::Oversampling<float> (maxChannels, oversampling, dsp::Oversampling<float>::filterHalfBandPolyphaseIIR, false));
-    
+
     oversampler->initProcessing (samplesPerBlock);
-    
+
     audioAdvancement = 0;
     const auto blksize = static_cast<size_t>(Instance::getBlockSize());
     const auto numIn = std::max(static_cast<size_t>(getTotalNumInputChannels()), static_cast<size_t>(2));
@@ -538,7 +546,7 @@ void PlugDataAudioProcessor::processBlock(AudioBuffer<float>& buffer, MidiBuffer
 
     continuityChecker.setNonRealtime(isNonRealtime());
     continuityChecker.setTimer();
-    
+
     setThis();
 
     for (int i = totalNumInputChannels; i < totalNumOutputChannels; ++i)
@@ -551,9 +559,9 @@ void PlugDataAudioProcessor::processBlock(AudioBuffer<float>& buffer, MidiBuffer
 
     auto targetBlock = dsp::AudioBlock<float>(buffer);
     auto blockOut = oversampling > 0 ? oversampler->processSamplesUp(targetBlock) : targetBlock;
-    
+
     process(blockOut, midiMessages);
-        
+
     if(oversampling > 0) {
         oversampler->processSamplesDown(targetBlock);
     }
@@ -708,20 +716,20 @@ void PlugDataAudioProcessor::sendPlayhead()
 {
     AudioPlayHead* playhead = getPlayHead();
     if(!playhead) return;
-    
+
     auto infos = playhead->getPosition();
-    
+
     setThis();
     if (infos.hasValue())
     {
         atoms_playhead[0] = static_cast<float>(infos->getIsPlaying());
         sendMessage("playhead", "playing", atoms_playhead);
-        
+
         atoms_playhead[0] = static_cast<float>(infos->getIsRecording());
         sendMessage("playhead", "recording", atoms_playhead);
 
         atoms_playhead[0] = static_cast<float>(infos->getIsLooping());
-        
+
         auto loopPoints = infos->getLoopPoints();
         if(loopPoints.hasValue()) {
             atoms_playhead.push_back(static_cast<float>(loopPoints->ppqStart));
@@ -732,7 +740,7 @@ void PlugDataAudioProcessor::sendPlayhead()
             atoms_playhead.push_back(0.0f);
         }
         sendMessage("playhead", "looping", atoms_playhead);
-        
+
         if(infos->getEditOriginTime().hasValue()) {
             atoms_playhead.resize(1);
             atoms_playhead[0] = static_cast<float>(*infos->getEditOriginTime());
@@ -744,17 +752,17 @@ void PlugDataAudioProcessor::sendPlayhead()
             sendMessage("playhead", "framerate", atoms_playhead);
         }
 
-       
+
         if(infos->getBpm().hasValue()) {
             atoms_playhead[0] = static_cast<float>(*infos->getBpm());
             sendMessage("playhead", "bpm", atoms_playhead);
         }
-        
+
         if(infos->getPpqPositionOfLastBarStart().hasValue()) {
             atoms_playhead[0] = static_cast<float>(*infos->getPpqPositionOfLastBarStart());
             sendMessage("playhead", "lastbar", atoms_playhead);
         }
-        
+
         if(infos->getTimeSignature().hasValue()) {
             atoms_playhead[0] = static_cast<float>(infos->getTimeSignature()->numerator);
             atoms_playhead.push_back(static_cast<float>(infos->getTimeSignature()->denominator));
@@ -762,27 +770,27 @@ void PlugDataAudioProcessor::sendPlayhead()
         }
 
         if(infos->getPpqPosition().hasValue()) {
-            
+
             atoms_playhead[0] = static_cast<float>(*infos->getPpqPosition());
         }
         else {
             atoms_playhead[0] = 0.0f;
         }
-        
+
         if(infos->getTimeInSamples().hasValue()) {
             atoms_playhead[1] = static_cast<float>(*infos->getTimeInSamples());
         }
         else {
             atoms_playhead[1] = 0.0f;
         }
-        
+
         if(infos->getTimeInSeconds().hasValue()) {
             atoms_playhead.push_back(static_cast<float>(*infos->getTimeInSeconds()));
         }
         else {
             atoms_playhead.push_back(0.0f);
         }
-        
+
         sendMessage("playhead", "position", atoms_playhead);
         atoms_playhead.resize(1);
     }
@@ -899,7 +907,7 @@ AudioProcessorEditor* PlugDataAudioProcessor::createEditor()
     auto* editor = new PlugDataPluginEditor(*this);
 
     setThis();
-    
+
     for (auto* patch : patches)
     {
         auto* cnv = editor->canvases.add(new Canvas(*editor, *patch, nullptr));
@@ -907,7 +915,7 @@ AudioProcessorEditor* PlugDataAudioProcessor::createEditor()
     }
 
     editor->resized();
-    
+
     if(isPositiveAndBelow(lastTab, patches.size())) {
         editor->tabbar.setCurrentTabIndex(lastTab);
     }
@@ -923,9 +931,9 @@ void PlugDataAudioProcessor::getStateInformation(MemoryBlock& destData)
 
     setThis();
     auto stateXml = parameters.copyState().createXml();
-    
+
     stateXml->setAttribute("Version", JucePlugin_VersionString);
-    
+
     copyXmlToBinary(*stateXml, xmlBlock);
 
     // Store pure-data state
@@ -1016,7 +1024,7 @@ void PlugDataAudioProcessor::setStateInformation(const void* data, int sizeInByt
             if(xmlState->hasAttribute("Version")) {
                 saveVersion = xmlState->getStringAttribute("Version");
             }
-            
+
             if (xmlState) {
                 if (xmlState->hasTagName(parameters.state.getType())) {
                     parameters.replaceState(ValueTree::fromXml(*xmlState));
@@ -1025,11 +1033,11 @@ void PlugDataAudioProcessor::setStateInformation(const void* data, int sizeInByt
 
             setLatencySamples(latency);
             setOversampling(oversampling);
-            
+
             suspendProcessing(false);
 
             freebytes(copy, sizeInBytes);
-            
+
         });
 }
 
@@ -1048,7 +1056,7 @@ pd::Patch* PlugDataAudioProcessor::loadPatch(const File& patchFile)
                     _editor->pd.logError("Patch is already open");
                 });
             }
-        
+
             // Patch is already opened
             return nullptr;
         }
@@ -1056,13 +1064,13 @@ pd::Patch* PlugDataAudioProcessor::loadPatch(const File& patchFile)
     }
 
     auto newPatch = openPatch(patchFile);
-    
+
     if (!newPatch.getPointer())
     {
         logError("Couldn't open patch");
         return nullptr;
     }
-    
+
     auto* patch = patches.add(new pd::Patch(newPatch));
 
     if (auto* editor = dynamic_cast<PlugDataPluginEditor*>(getActiveEditor()))
@@ -1242,7 +1250,7 @@ void PlugDataAudioProcessor::performParameterChange(int type, int idx, float val
 #if PLUGDATA_STANDALONE
         // Set the value
         standaloneParams[idx].store(value);
-        
+
         // Update values in automation panel
         if(lastParameters[idx] == value) return;
         if(auto* editor = dynamic_cast<PlugDataPluginEditor*>(getActiveEditor())) {
@@ -1271,7 +1279,7 @@ void PlugDataAudioProcessor::parameterValueChanged (int idx, float value)
 
 void PlugDataAudioProcessor::parameterGestureChanged (int parameterIndex, bool gestureIsStarting)
 {
-    
+
 }
 
 void PlugDataAudioProcessor::receiveDSPState(bool dsp)
@@ -1289,7 +1297,7 @@ void PlugDataAudioProcessor::receiveDSPState(bool dsp)
 void PlugDataAudioProcessor::receiveGuiUpdate(int type)
 {
     callbackType |= (1 << type);
-    
+
     if(!isTimerRunning()) {
 
         startTimer(16);
@@ -1301,7 +1309,7 @@ void PlugDataAudioProcessor::timerCallback()
     if (auto* editor = dynamic_cast<PlugDataPluginEditor*>(getActiveEditor()))
     {
         if (!callbackType) return;
-        
+
         if(auto* cnv = editor->getCurrentCanvas()) {
             if (callbackType & 2)
             {
