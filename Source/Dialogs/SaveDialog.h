@@ -43,6 +43,11 @@ struct SaveDialog : public Component {
         cancel.changeWidthToFitText();
         dontsave.changeWidthToFitText();
         save.changeWidthToFitText();
+        
+        cancel.setColour(TextButton::buttonColourId, Colours::transparentBlack);
+        dontsave.setColour(TextButton::buttonColourId, Colours::transparentBlack);
+        save.setColour(TextButton::buttonColourId, Colours::transparentBlack);
+        
         setOpaque(false);
     }
 
