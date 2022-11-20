@@ -1239,23 +1239,6 @@ void Canvas::handleMouseDown(Component* component, MouseEvent const& e)
 // Call from component's mouseUp
 void Canvas::handleMouseUp(Component* component, MouseEvent const& e)
 {
-<<<<<<< HEAD
-
-    if (e.mods.isLeftButtonDown()) {
-        if (e.mods.isShiftDown() && wasSelectedOnMouseDown && !didStartDragging) {
-            // Unselect object if selected
-            setSelected(component, false);
-        } else if (!e.mods.isShiftDown() && !e.mods.isAltDown() && isSelected(component) && !didStartDragging) {
-            // unselect all & select clicked object
-            for (auto* object : objects) {
-                setSelected(object, false);
-            }
-            for (auto* connection : connections) {
-                setSelected(connection, false);
-            }
-            setSelected(component, true);
-        }
-=======
     
     if (e.mods.isShiftDown() && wasSelectedOnMouseDown && !didStartDragging) {
         // Unselect object if selected
@@ -1265,7 +1248,6 @@ void Canvas::handleMouseUp(Component* component, MouseEvent const& e)
         deselectAll();
         
         setSelected(component, true);
->>>>>>> d6c071b6d4b5e27ece3f5a146e05e4a32dd730e5
     }
 
     if (didStartDragging)
@@ -1319,12 +1301,7 @@ void Canvas::handleMouseUp(Component* component, MouseEvent const& e)
         synchronise();
     }
 
-<<<<<<< HEAD
     if (wasDragDuplicated) {
-=======
-    // TODO: potentially risky: what if there ever is no mouse-up for a mouse-down?
-    if (wasDuplicated) {
->>>>>>> d6c071b6d4b5e27ece3f5a146e05e4a32dd730e5
         patch.endUndoSequence("Duplicate");
     }
 
@@ -1363,11 +1340,7 @@ void Canvas::handleMouseDrag(MouseEvent const& e)
     }
 
     // alt+drag will duplicate selection
-<<<<<<< HEAD
-    if (!wasDragDuplicated && ModifierKeys::getCurrentModifiers().isAltDown()) {
-=======
-    if (!wasDuplicated && e.mods.isAltDown()) {
->>>>>>> d6c071b6d4b5e27ece3f5a146e05e4a32dd730e5
+    if (!wasDragDuplicated && e.mods.isAltDown()) {
         // Single for undo for duplicate + move
         patch.startUndoSequence("Duplicate");
         // Duplicate once
