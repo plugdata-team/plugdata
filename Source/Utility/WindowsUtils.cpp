@@ -15,6 +15,7 @@
 #include <windows.h>
 #include <WINIOCTL.H>
 #include <shlobj.h>
+#include <ShellAPI.h>
 
 #include <stdio.h>
 #include <string>
@@ -80,6 +81,35 @@ void createJunction(std::string from, std::string to) {
 
 void createHardLink(std::string from, std::string to) {
     std::filesystem::create_hard_link(from, to);
+}
+
+// Function to run a command as admin on Windows
+// It should spawn a dialog, asking for permissions
+bool runAsAdmin(std::string command, std::string parameters, void* hWndPtr) {
+    
+    HWND hWnd = (HWND)hWndPtr;
+    auto lpFile = (LPCTSTR)command.c_str();
+    auto lpParameters = (LPCTSTR)parameters.c_str();
+    
+    BOOL retval;
+    SHELLEXECUTEINFO    sei;
+    ZeroMemory ( &sei, sizeof(sei) );
+
+    sei.cbSize          = sizeof(SHELLEXECUTEINFO);
+    sei.hwnd            = hWnd;
+    sei.fMask           = SEE_MASK_FLAG_DDEWAIT | SEE_MASK_FLAG_NO_UI;
+    sei.lpVerb          = TEXT("runas");
+    sei.lpFile          = lpFile;
+    sei.lpParameters    = lpParameters;
+    sei.nShow           = SW_SHOWNORMAL;
+    retval = ShellExecuteEx( &sei );
+    // or try as the normal user ... remove if that's not an option
+    if( !retval ) {
+        sei.lpVerb = TEXT("open");
+        retval = ShellExecuteEx( &sei );
+    }
+
+    return (bool)retval;
 }
 
 #endif

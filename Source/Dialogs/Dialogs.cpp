@@ -133,6 +133,9 @@ struct OkayCancelDialog : public Component {
         addAndMakeVisible(label);
         addAndMakeVisible(cancel);
         addAndMakeVisible(okay);
+        
+        cancel.setColour(TextButton::buttonColourId, Colours::transparentBlack);
+        okay.setColour(TextButton::buttonColourId, Colours::transparentBlack);
 
         cancel.onClick = [this, dialog, callback] {
             callback(false);

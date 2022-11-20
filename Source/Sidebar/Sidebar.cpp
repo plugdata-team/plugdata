@@ -95,7 +95,7 @@ void Sidebar::paint(Graphics& g)
         automationPanel->viewport.repaint();
 
     // Sidebar
-    g.setColour(findColour(PlugDataColour::panelBackgroundColourId));
+    g.setColour(findColour(PlugDataColour::sidebarBackgroundColourId));
     g.fillRect(0, 0, getWidth(), getHeight() - 28);
     
     // Background for buttons

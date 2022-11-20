@@ -52,6 +52,7 @@ struct Console : public Component {
     {
     }
 
+    
     void resized() override
     {
         auto fb = FlexBox(FlexBox::Direction::row, FlexBox::Wrap::noWrap, FlexBox::AlignContent::flexStart, FlexBox::AlignItems::stretch, FlexBox::JustifyContent::flexStart);
@@ -78,7 +79,7 @@ struct Console : public Component {
 
     void deselect()
     {
-        console->selectedItem = -1;
+        console->selectedItems.clear();
         repaint();
     }
 
@@ -112,19 +113,13 @@ struct Console : public Component {
                 parent.addAndMakeVisible(this);
             }
 
-            Colour colourWithType(int type)
-            {
-                if (type == 0)
-                    return findColour(PlugDataColour::panelTextColourId);
-                else if (type == 1)
-                    return Colours::orange;
-                else
-                    return Colours::red;
-            }
-
             void mouseDown(MouseEvent const& e)
             {
-                console.selectedItem = idx;
+                if(!e.mods.isShiftDown() && !e.mods.isCommandDown()) {
+                    console.selectedItems.clear();
+                }
+                
+                console.selectedItems.addIfNotAlreadyThere(SafePointer(this));
                 console.repaint();
             }
 
@@ -133,15 +128,37 @@ struct Console : public Component {
                 auto font = Font(Font::getDefaultSansSerifFontName(), 13, 0);
                 g.setFont(font);
 
-                bool isSelected = console.selectedItem == idx;
+                bool isSelected = console.selectedItems.contains(this);
+                
                 bool showMessages = console.buttons[2].getToggleState();
                 bool showErrors = console.buttons[3].getToggleState();
 
-                // Draw background
-                auto background = findColour(PlugDataColour::panelBackgroundColourId);
-
-                g.setColour(isSelected ? findColour(PlugDataColour::panelActiveBackgroundColourId) : background);
-                g.fillRoundedRectangle(getLocalBounds().reduced(4, 2).toFloat(), 4.0f);
+                if(isSelected) {
+                    // Draw selected background
+                    g.setColour(findColour(PlugDataColour::panelActiveBackgroundColourId));
+                    g.fillRoundedRectangle(getLocalBounds().reduced(4, 2).toFloat(), 4.0f);
+                    
+                    bool connectedOnTop = false;
+                    bool connectedOnBottom = false;
+                    for(auto& item : console.selectedItems) {
+                        
+                        if(!item.getComponent()) return;
+                        // Draw connected on top
+                        if(item->idx == idx - 1)  {
+                            g.setColour(findColour(PlugDataColour::panelActiveBackgroundColourId));
+                            g.fillRect(getLocalBounds().reduced(4, 0).toFloat().withTrimmedBottom(5));
+                            
+                            g.setColour(findColour(PlugDataColour::outlineColourId));
+                            g.drawLine(10, 0, getWidth() - 10, 0);
+                        }
+                        
+                        // Draw connected on bottom
+                        if(item->idx == idx + 1)  {
+                            g.setColour(findColour(PlugDataColour::panelActiveBackgroundColourId));
+                            g.fillRect(getLocalBounds().reduced(4, 0).toFloat().withTrimmedTop(5));
+                        }
+                    }
+                }
 
                 // Get console message
                 auto& [message, type, length] = console.pd->getConsoleMessages()[idx];
@@ -154,8 +171,16 @@ struct Console : public Component {
                 // Approximate number of lines from string length and current width
                 int numLines = getNumLines(console.getWidth(), length);
 
+            
+                auto backgroundColour = findColour(isSelected ? PlugDataColour::panelActiveTextColourId : PlugDataColour::panelTextColourId);
+                
+                if (type == 1)
+                    backgroundColour = Colours::orange;
+                else if (type == 2)
+                    backgroundColour = Colours::red;
+                
                 // Draw text
-                g.setColour(isSelected ? findColour(PlugDataColour::panelActiveTextColourId) : colourWithType(type));
+                g.setColour(backgroundColour);
                 g.drawFittedText(message, getLocalBounds().reduced(4, 0).withTrimmedLeft(6), Justification::centredLeft, numLines, 1.0f);
             }
         };
@@ -167,6 +192,8 @@ struct Console : public Component {
 
         pd::Instance* pd; // instance to get console messages from
 
+        Array<SafePointer<ConsoleMessage>> selectedItems;
+        
         ConsoleComponent(pd::Instance* instance, std::array<TextButton, 5>& b, Viewport& v)
             : buttons(b)
             , viewport(v)
@@ -178,18 +205,25 @@ struct Console : public Component {
 
         void focusLost(FocusChangeType cause) override
         {
-            selectedItem = -1;
+            selectedItems.clear();
+            repaint();
         }
 
         bool keyPressed(KeyPress const& key) override
         {
-            if (isPositiveAndBelow(selectedItem, pd->getConsoleMessages().size())) {
-                // Copy console item
-                if (key == KeyPress('c', ModifierKeys::commandModifier, 0)) {
-                    SystemClipboard::copyTextToClipboard(std::get<0>(pd->getConsoleMessages()[selectedItem]));
-                    return true;
+            // Copy from console
+            if (key == KeyPress('c', ModifierKeys::commandModifier, 0)) {
+                String textToCopy;
+                for(auto& item : selectedItems) {
+                    if(!item.getComponent()) continue;
+                    textToCopy += std::get<0>(pd->getConsoleMessages()[item->idx]) + "\n";
                 }
+                
+                textToCopy.trimEnd();
+                SystemClipboard::copyTextToClipboard(textToCopy);
+                return true;
             }
+           
             return false;
         }
 
@@ -271,6 +305,12 @@ struct Console : public Component {
 
             return totalHeight;
         }
+        
+        void mouseDown(const MouseEvent& e) override
+        {
+            selectedItems.clear();
+            repaint();
+        }
 
         void resized() override
         {
@@ -289,13 +329,10 @@ struct Console : public Component {
                 totalHeight += height;
             }
         }
-
-        int selectedItem = -1;
-
-    private:
-    private:
+        
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(ConsoleComponent)
     };
+
 
 private:
     ConsoleComponent* console;

@@ -221,7 +221,7 @@ void Library::initialiseLibrary()
 
         updateLibrary();
         parseDocumentation(pddocPath);
-        
+
         // Paths to search
         // First, only search vanilla, then search all documentation
         // Lastly, check the deken folder
@@ -272,12 +272,23 @@ void Library::updateLibrary()
         }
 
         searchTree->insert("graph");
-        
-        
+
+
         // TODO: fix this hack
         auto elsePath = appDataDir.getChildFile("Library").getChildFile("Abstractions").getChildFile("else");
-        
+
         for (const auto& iter : RangedDirectoryIterator(elsePath, false)) {
+            auto file = iter.getFile();
+            // Get pd files but not help files
+            if (file.getFileExtension() == ".pd" && !(file.getFileNameWithoutExtension().startsWith("help-") || file.getFileNameWithoutExtension().endsWith("-help"))) {
+                searchTree->insert(file.getFileNameWithoutExtension().toStdString());
+            }
+        }
+
+        // TODO: fix this hack as well
+        auto heavylibPath = appDataDir.getChildFile("Library").getChildFile("Abstractions").getChildFile("heavylib");
+
+        for (const auto& iter : RangedDirectoryIterator(heavylibPath, false)) {
             auto file = iter.getFile();
             // Get pd files but not help files
             if (file.getFileExtension() == ".pd" && !(file.getFileNameWithoutExtension().startsWith("help-") || file.getFileNameWithoutExtension().endsWith("-help"))) {
@@ -361,17 +372,17 @@ void Library::parseDocumentation(String const& path)
         for (int i = 0; i < lines.size(); i++) {
             auto& line = lines.getReference(i);
             auto& lastLine = lines.getReference(lastIdx);
-            
+
             if (line.trim().startsWith("-")) {
                 line = line.fromFirstOccurrenceOf("-", false, false);
                 lastIdx = i;
             } else {
                 lastLine += line;
                 line.clear();
-                
+
             }
         }
-        
+
         lines.removeEmptyStrings();
 
         return lines;
@@ -500,9 +511,9 @@ void Library::fsChangeCallback()
 File Library::findHelpfile(t_object* obj)
 {
     String helpName;
-    
+
     auto* pdclass = pd_class(reinterpret_cast<t_pd*>(obj));
-    
+
     if(pdclass == canvas_class && canvas_isabstraction(reinterpret_cast<t_canvas*>(obj))) {
         char namebuf[MAXPDSTRING];
         t_object *ob = obj;
@@ -510,7 +521,7 @@ File Library::findHelpfile(t_object* obj)
         t_atom *av = binbuf_getvec(ob->te_binbuf);
         if (ac < 1)
             return File();
-        
+
         atom_string(av, namebuf, MAXPDSTRING);
         helpName = String::fromUTF8(namebuf).fromLastOccurrenceOf("/", false, false);
     }
@@ -533,7 +544,7 @@ File Library::findHelpfile(t_object* obj)
         }
         return File();
     };
-    
+
     for (auto& path : helpPaths)
     {
         auto file = findHelpPatch(path);
@@ -542,7 +553,7 @@ File Library::findHelpfile(t_object* obj)
             return file;
         }
     }
-    
+
     return File();
 }
 

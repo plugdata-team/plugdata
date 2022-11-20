@@ -475,7 +475,7 @@ void Object::updateTooltips() {
         for(auto* obj : subpatch->getObjects()) {
             
             const String name = libpd_get_object_class_name(obj);
-            if(name == "inlet") {
+            if(name == "inlet" || name == "inlet~") {
                 
                 int size;
                 char* str_ptr;
@@ -488,7 +488,7 @@ void Object::updateTooltips() {
                 const auto text = String::fromUTF8(str_ptr, size);
                 inletMessages.emplace_back(x, text.fromFirstOccurrenceOf(" ", false, false));
             }
-            if(name == "outlet") {
+            if(name == "outlet" || name == "outlet~") {
                 int size;
                 char* str_ptr;
                 libpd_get_object_text(obj, &str_ptr, &size);
@@ -672,7 +672,7 @@ void Object::mouseUp(MouseEvent const& e)
     if (wasLockedOnMouseDown)
         return;
 
-    if (!cnv->didStartDragging && !static_cast<bool>(locked.getValue()) && ModifierKeys::getCurrentModifiers().isAltDown()) {
+    if (!cnv->didStartDragging && !static_cast<bool>(locked.getValue()) && e.mods.isAltDown()) {
         // Show help file on alt+mouseup if object were not draged
         openHelpPatch();
     }

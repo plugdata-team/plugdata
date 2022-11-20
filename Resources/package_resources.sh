@@ -13,7 +13,6 @@ cp ../playhead.pd ./Abstractions
 cp ../param.pd ./Abstractions
 
 
-
 cp -R ../../Libraries/pure-data/doc ./Documentation
 cp -R ../pddp ./Documentation/pddp
 cp -R ../../Libraries/ELSE/Help-files/ ./Documentation/9.else
@@ -21,7 +20,11 @@ cp ../../Libraries/ELSE/sfont~/sfont~-help.pd ./Documentation/9.else
 cp ../param-help.pd ./Documentation/5.reference
 cp ../playhead-help.pd ./Documentation/5.reference
 cp -R ../../Libraries/cyclone/documentation/help_files ./Documentation/10.cyclone
-cp -R ../../Libraries/ELSE/Live-Electronics-Tutorial/ ./Documentation/11.live-electronics-tutorial
+cp -R ../../Libraries/ELSE/Live-Electronics-Tutorial/ ./Documentation/12.live-electronics-tutorial
+
+mkdir Documentation/11.heavylib
+cp -r ../../Libraries/heavylib ./Abstractions/
+mv ./Abstractions/heavylib/*-help.pd ./Documentation/11.heavylib
 
 # Remove else prefix in helpfiles
 sed -i -- 's/else\///g' ./Abstractions/else/*.pd

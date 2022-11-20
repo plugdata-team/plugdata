@@ -343,12 +343,12 @@ void Canvas::mouseDown(MouseEvent const& e)
     PopupMenu::dismissAllActiveMenus();
     
     // Middle mouse click
-    if(viewport && ModifierKeys::getCurrentModifiers().isMiddleButtonDown()) {
+    if(viewport && e.mods.isMiddleButtonDown()) {
         setMouseCursor(MouseCursor::UpDownLeftRightResizeCursor);
         viewportPositionBeforeMiddleDrag = viewport->getViewPosition();
     }
     // Left-click
-    else if (!ModifierKeys::getCurrentModifiers().isRightButtonDown()) {
+    else if (!e.mods.isRightButtonDown()) {
         // Connecting objects by dragging
         if (source == this || source == graphArea) {
             if (!connectingEdges.isEmpty()) {
@@ -495,7 +495,7 @@ void Canvas::mouseDrag(MouseEvent const& e)
         auto const scrollSpeed = 8.5f;
 
         // Middle mouse pan
-        if (ModifierKeys::getCurrentModifiers().isMiddleButtonDown() && !draggingLabel)
+        if (e.mods.isMiddleButtonDown() && !draggingLabel)
         {
             
             auto delta = Point<int>{viewportEvent.getDistanceFromDragStartX(), viewportEvent.getDistanceFromDragStartY()};
@@ -550,7 +550,7 @@ void Canvas::mouseUp(MouseEvent const& e)
     setMouseCursor(MouseCursor::NormalCursor);
     main.updateCommandStatus();
     
-    if(e.getNumberOfClicks() >= 2 && e.originalComponent == this && !isGraph) {
+    if(!e.getNumberOfClicks() >= 2 && e.originalComponent == this && !isGraph) {
         objects.add(new Object(this, "", lastMousePosition));
         deselectAll();
         setSelected(objects[objects.size()-1], true); // Select newly created object
@@ -1074,9 +1074,7 @@ void Canvas::checkBounds()
     
     updatingBounds = true;
 
-    float scale = (1.0f / static_cast<float>(main.zoomScale.getValue()));
-
-    auto viewBounds = Rectangle<int>(canvasOrigin.x, canvasOrigin.y, viewport->getMaximumVisibleWidth() * scale, viewport->getMaximumVisibleHeight() * scale);
+    auto viewBounds = Rectangle<int>(canvasOrigin.x, canvasOrigin.y, viewport->getMaximumVisibleWidth(), viewport->getMaximumVisibleHeight());
 
     for (auto* obj : objects)
     {
@@ -1241,6 +1239,7 @@ void Canvas::handleMouseDown(Component* component, MouseEvent const& e)
 // Call from component's mouseUp
 void Canvas::handleMouseUp(Component* component, MouseEvent const& e)
 {
+<<<<<<< HEAD
 
     if (e.mods.isLeftButtonDown()) {
         if (e.mods.isShiftDown() && wasSelectedOnMouseDown && !didStartDragging) {
@@ -1256,6 +1255,17 @@ void Canvas::handleMouseUp(Component* component, MouseEvent const& e)
             }
             setSelected(component, true);
         }
+=======
+    
+    if (e.mods.isShiftDown() && wasSelectedOnMouseDown && !didStartDragging) {
+        // Unselect object if selected
+        setSelected(component, false);
+    } else if (!e.mods.isShiftDown() && !e.mods.isAltDown() && isSelected(component) && !didStartDragging && !e.mods.isRightButtonDown()) {
+        
+        deselectAll();
+        
+        setSelected(component, true);
+>>>>>>> d6c071b6d4b5e27ece3f5a146e05e4a32dd730e5
     }
 
     if (didStartDragging)
@@ -1289,10 +1299,18 @@ void Canvas::handleMouseUp(Component* component, MouseEvent const& e)
     if(objectSnappingInbetween) {
         auto* c = connectionToSnapInbetween.getComponent();
         
+        // TODO: this is potentially problematic
+        // since some of these actions might be executed on different threads,
+        // depending on if we can get a lock
+        
+        patch.startUndoSequence("SnapInbetween");
+        
         patch.removeConnection(c->outobj->getPointer(), c->outIdx, c->inobj->getPointer(), c->inIdx);
         
         patch.createConnection(c->outobj->getPointer(), c->outIdx, objectSnappingInbetween->getPointer(), 0);
         patch.createConnection(objectSnappingInbetween->getPointer(), 0, c->inobj->getPointer(), c->inIdx);
+        
+        patch.endUndoSequence("SnapInbetween");
         
         objectSnappingInbetween->iolets[0]->isTargeted = false;
         objectSnappingInbetween->iolets[objectSnappingInbetween->numInputs]->isTargeted = false;
@@ -1301,7 +1319,12 @@ void Canvas::handleMouseUp(Component* component, MouseEvent const& e)
         synchronise();
     }
 
+<<<<<<< HEAD
     if (wasDragDuplicated) {
+=======
+    // TODO: potentially risky: what if there ever is no mouse-up for a mouse-down?
+    if (wasDuplicated) {
+>>>>>>> d6c071b6d4b5e27ece3f5a146e05e4a32dd730e5
         patch.endUndoSequence("Duplicate");
     }
 
@@ -1340,7 +1363,11 @@ void Canvas::handleMouseDrag(MouseEvent const& e)
     }
 
     // alt+drag will duplicate selection
+<<<<<<< HEAD
     if (!wasDragDuplicated && ModifierKeys::getCurrentModifiers().isAltDown()) {
+=======
+    if (!wasDuplicated && e.mods.isAltDown()) {
+>>>>>>> d6c071b6d4b5e27ece3f5a146e05e4a32dd730e5
         // Single for undo for duplicate + move
         patch.startUndoSequence("Duplicate");
         // Duplicate once
@@ -1441,6 +1468,7 @@ void Canvas::handleMouseDrag(MouseEvent const& e)
     if(e.mods.isShiftDown() && selection.size() == 1) {
         auto* object = selection.getFirst();
         if(object->numInputs >= 1 && object->numOutputs >= 0) {
+            bool intersected = false;
             for(auto* connection : connections) {
                 if(connection->intersectsObject(object)) {
                     object->iolets[0]->isTargeted = true;
@@ -1449,13 +1477,16 @@ void Canvas::handleMouseDrag(MouseEvent const& e)
                     object->iolets[object->numInputs]->repaint();
                     connectionToSnapInbetween = connection;
                     objectSnappingInbetween = object;
+                    intersected = true;
+                    break;
                 }
-                else {
-                    object->iolets[0]->isTargeted = false;
-                    object->iolets[object->numInputs]->isTargeted = false;
-                    object->iolets[0]->repaint();
-                    object->iolets[object->numInputs]->repaint();
-                }
+            }
+            
+            if(!intersected) {
+                object->iolets[0]->isTargeted = false;
+                object->iolets[object->numInputs]->isTargeted = false;
+                object->iolets[0]->repaint();
+                object->iolets[object->numInputs]->repaint();
             }
         }
     }
