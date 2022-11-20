@@ -42,7 +42,7 @@ struct SubpatchObject final : public TextBase
     void mouseDown(MouseEvent const& e) override
     {
         //  If locked and it's a left click
-        if (locked && !ModifierKeys::getCurrentModifiers().isRightButtonDown()) {
+        if (locked && !e.mods.isRightButtonDown()) {
             openSubpatch();
             
             return;

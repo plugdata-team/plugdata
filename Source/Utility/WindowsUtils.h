@@ -7,3 +7,4 @@
 
 void createJunction(std::string from, std::string to);
 void createHardLink(std::string from, std::string to);
+bool runAsAdmin(std::string file, std::string lpParameters, void* hWnd);

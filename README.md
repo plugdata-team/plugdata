@@ -27,11 +27,21 @@ Join the Discord here, for sharing patches, reporting issues or requesting featu
 
 ## Installation
 
-Linux users are advised to install PlugData using the repositories [here](https://software.opensuse.org//download.html?project=home%3Aplugdata&package=plugdata). In the Arch User Repository, you can use the [plugdata-bin](https://aur.archlinux.org/packages/plugdata-bin) package for the latest stable version, or the [plugdata-git](https://aur.archlinux.org/packages/plugdata-git) package for the latest experimental build.
+**-Windows:**
+- Get the installer from the latest [official release](https://github.com/timothyschoen/PlugData/tags)
 
-On MacOS, PlugData can also be installed through the [homebrew package](https://formulae.brew.sh/cask/plugdata).
+**-MacOS:**
+- Option 1: Get the installer from the latest [official release](https://github.com/timothyschoen/PlugData/tags)
+- Option 2: Install the [homebrew cask](https://formulae.brew.sh/cask/plugdata). I do no maintain this so it may be outdated. 
 
-For Mac and Windows, you can find the last release in the "Releases" section on the right. If you have a GitHub account, you can also download a recent experimental build from the actions tab.
+**-Linux:**
+- Option 1: [OBS repository/packages](https://software.opensuse.org//download.html?project=home%3Aplugdata&package=plugdata)
+  The repository contains the packages plugdata, plugdata-vst3 and plugdata-lv2 (lv2-plugdata and vst3-plugdata on some distros). If you get a package without the repo, it will only contain the standalone version.
+- Option 2: Arch User Repository (Arch only).
+  Has the [plugdata-bin](https://aur.archlinux.org/packages/plugdata-bin) package for the latest stable version, or the [plugdata-git](https://aur.archlinux.org/packages/plugdata-git) package for the latest experimental build.
+- Option 3: Get the binaries from the latest [official release](https://github.com/timothyschoen/PlugData/tags)
+
+If you have a GitHub account, you can also download a recent experimental build from the actions tab.
 
 ## Build
 

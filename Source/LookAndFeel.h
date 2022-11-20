@@ -87,11 +87,17 @@ enum PlugDataColour
     signalColourId,
     
     dialogBackgroundColourId,
+    sidebarBackgroundColourId,
     
     panelBackgroundColourId,
     panelTextColourId,
     panelActiveBackgroundColourId,
     panelActiveTextColourId,
+    
+    popupMenuBackgroundColourId,
+    popupMenuActiveBackgroundColourId,
+    popupMenuTextColourId,
+    popupMenuActiveTextColourId,
     
     scrollbarThumbColourId,
     
@@ -99,31 +105,45 @@ enum PlugDataColour
     numberOfColours
 };
 
-inline const std::map<PlugDataColour, std::pair<String, String>> PlugDataColourNames = {
+
+inline const std::map<PlugDataColour, std::tuple<String, String, String>> PlugDataColourNames = {
     
-    {toolbarBackgroundColourId, {"Toolbar Background", "toolbar_background"}},
-    {toolbarTextColourId, {"Toolbar Text", "toolbar_text"}},
-    {toolbarActiveColourId, {"Toolbar Active", "toolbar_active"}},
-    {tabBackgroundColourId, {"Tab Background", "tab_background"}},
-    {tabTextColourId, {"Tab Text", "tab_text"}},
-    {activeTabBackgroundColourId, {"Active Tab Background", "active_tab_background"}},
-    {activeTabTextColourId, {"Active Tab Text", "active_tab_text"}},
-    {canvasBackgroundColourId, {"Canvas Background", "canvas_background"}},
-    {canvasTextColourId, {"Canvas Text", "canvas_text"}},
-    {canvasDotsColourId, {"Canvas Dots Colour", "canvas_dots"}},
-    {defaultObjectBackgroundColourId, {"Default Object Background", "default_object_background"}},
-    {outlineColourId, {"Outline Colour", "outline_colour"}},
-    {objectOutlineColourId, {"Object outline colour",  "object_outline_colour"}},
-    {objectSelectedOutlineColourId, {"Selected object outline colour", "selected_object_outline_colour"}},
-    {dataColourId, {"Data Colour", "data_colour"}},
-    {connectionColourId, {"Connection Colour", "connection_colour"}},
-    {signalColourId, {"Signal Colour", "signal_colour"}},
-    {panelBackgroundColourId, {"Panel Background", "panel_colour"}},
-    {dialogBackgroundColourId, {"Dialog Background", "dialog_background"}},
-    {panelTextColourId, {"Panel Text", "panel_text"}},
-    {panelActiveBackgroundColourId, {"Panel Background Active", "panel_background_active"}},
-    {panelActiveTextColourId, {"Panel Active Text", "panel_active_text"}},
-    {scrollbarThumbColourId, {"Scrollbar Thumb", "scrollbar_thumb"}}
+    
+    {toolbarBackgroundColourId, {"Toolbar Background", "toolbar_background", "Toolbar"}},
+    {toolbarTextColourId, {"Toolbar Text", "toolbar_text", "Toolbar"}},
+    {toolbarActiveColourId, {"Toolbar Active", "toolbar_active", "Toolbar"}},
+    
+    {tabBackgroundColourId, {"Tab Background", "tab_background", "Tab"}},
+    
+    {tabTextColourId, {"Tab Text", "tab_text", "Tabbar"}},
+    {activeTabBackgroundColourId, {"Active Tab Background", "active_tab_background", "Tabbar"}},
+    {activeTabTextColourId, {"Active Tab Text", "active_tab_text", "Tabbar"}},
+    
+    {canvasBackgroundColourId, {"Canvas Background", "canvas_background", "Canvas"}},
+    {canvasTextColourId, {"Canvas Text", "canvas_text", "Canvas"}},
+    {canvasDotsColourId, {"Canvas Dots Colour", "canvas_dots", "Canvas"}},
+    {defaultObjectBackgroundColourId, {"Default Object Background", "default_object_background", "Canvas"}},
+    {outlineColourId, {"Outline Colour", "outline_colour", "Canvas"}},
+    {objectOutlineColourId, {"Object outline colour",  "object_outline_colour", "Canvas"}},
+    {objectSelectedOutlineColourId, {"Selected object outline colour", "selected_object_outline_colour", "Canvas"}},
+    {dataColourId, {"Data Colour", "data_colour", "Canvas"}},
+    {connectionColourId, {"Connection Colour", "connection_colour", "Canvas"}},
+    {signalColourId, {"Signal Colour", "signal_colour", "Canvas"}},
+
+        
+    {popupMenuBackgroundColourId, {"Popup Menu Background", "popup_background", "Popup Menu"}},
+    {popupMenuActiveBackgroundColourId, {"Popup Menu Background Active", "popup_background_active", "Popup Menu"}},
+    {popupMenuTextColourId, {"Popup Menu Text", "popup_text", "Popup Menu"}},
+    {popupMenuActiveTextColourId, {"Popup Menu Active Text", "popup_active_text", "Popup Menu"}},
+    
+    {sidebarBackgroundColourId, {"Sidebar Background", "sidebar_background", "Other"}},
+    {dialogBackgroundColourId, {"Dialog Background", "dialog_background", "Other"}},
+    {scrollbarThumbColourId, {"Scrollbar Thumb", "scrollbar_thumb", "Other"}},
+    
+    {panelBackgroundColourId, {"Panel Background", "panel_colour", "Panel"}},
+    {panelTextColourId, {"Panel Text", "panel_text", "Panel"}},
+    {panelActiveBackgroundColourId, {"Panel Background Active", "panel_background_active", "Panel"}},
+    {panelActiveTextColourId, {"Panel Active Text", "panel_active_text", "Panel"}},
 };
 
 struct Resources
@@ -424,7 +444,7 @@ struct PlugDataLook : public LookAndFeel_V4
     void drawPopupMenuBackground(Graphics& g, int width, int height) override
     {
         // Add a bit of alpha to disable the opaque flag
-        auto background = findColour(PlugDataColour::dialogBackgroundColourId);
+        auto background = findColour(PlugDataColour::popupMenuBackgroundColourId);
         g.setColour(background);
         
         // Fill background if there's no support for transparent popupmenus
@@ -459,26 +479,23 @@ struct PlugDataLook : public LookAndFeel_V4
             auto r  = area.reduced (5, 0);
             r.removeFromTop (roundToInt (((float) r.getHeight() * 0.5f) - 0.5f));
 
-            g.setColour (findColour (PopupMenu::textColourId).withAlpha (0.3f));
+            g.setColour (findColour (PlugDataColour::popupMenuTextColourId).withAlpha (0.3f));
             g.fillRect (r.removeFromTop (1));
         }
         else
         {
-            auto textColour = (textColourToUse == nullptr ? findColour (PopupMenu::textColourId)
-                                                          : *textColourToUse);
-
             auto r  = area.reduced (1);
 
             if (isHighlighted && isActive)
             {
-                g.setColour (findColour (PopupMenu::highlightedBackgroundColourId).darker(0.07f));
-                g.fillRoundedRectangle(r.toFloat().reduced(4, 1), 3.0f);
+                g.setColour(findColour(PlugDataColour::popupMenuActiveBackgroundColourId));
+                g.fillRoundedRectangle(r.toFloat().reduced(4, 0), 4.0f);
 
-                g.setColour (findColour (PopupMenu::textColourId));
+                g.setColour(findColour(PlugDataColour::popupMenuActiveTextColourId));
             }
             else
             {
-                g.setColour (textColour.withMultipliedAlpha (isActive ? 1.0f : 0.5f));
+                g.setColour(findColour (PopupMenu::textColourId).withMultipliedAlpha (isActive ? 1.0f : 0.5f));
             }
 
             r.reduce (jmin (5, area.getWidth() / 20), 0);
@@ -577,6 +594,7 @@ struct PlugDataLook : public LookAndFeel_V4
     void drawComboBox(Graphics& g, int width, int height, bool, int, int, int, int, ComboBox& object) override
     {
         bool inspectorElement = object.getName().startsWith("inspector");
+        
         auto cornerSize = inspectorElement ? 0.0f : 3.0f;
         Rectangle<int> boxBounds(0, 0, width, height);
         
@@ -1077,10 +1095,16 @@ struct PlugDataLook : public LookAndFeel_V4
         {PlugDataColour::dialogBackgroundColourId, Colour(25, 25, 25)},
         {PlugDataColour::panelBackgroundColourId, Colour(35, 35, 35)},
         {PlugDataColour::panelTextColourId, Colour(255, 255, 255)},
-        {PlugDataColour::panelActiveBackgroundColourId, Colour(66, 162, 200)},
+        {PlugDataColour::panelActiveBackgroundColourId, Colour(65, 65, 65)},
         {PlugDataColour::panelActiveTextColourId, Colour(255, 255, 255)},
         
         {PlugDataColour::scrollbarThumbColourId, Colour(66, 162, 200)},
+        {PlugDataColour::sidebarBackgroundColourId, Colour(0, 0, 0)},
+        
+        {PlugDataColour::popupMenuBackgroundColourId, Colour(35, 35, 35)},
+        {PlugDataColour::popupMenuActiveBackgroundColourId, Colour(65, 65, 65)},
+        {PlugDataColour::popupMenuTextColourId, Colour(255, 255, 255)},
+        {PlugDataColour::popupMenuActiveTextColourId, Colour(255, 255, 255)}
         
     };
     
@@ -1108,12 +1132,19 @@ struct PlugDataLook : public LookAndFeel_V4
         {PlugDataColour::objectSelectedOutlineColourId, Colour(0, 122, 255)},
         
         {PlugDataColour::dialogBackgroundColourId, Colour(228, 228, 228)},
-        {PlugDataColour::panelBackgroundColourId, Colour(241, 241, 241)},
+        {PlugDataColour::panelBackgroundColourId, Colour(250, 250, 250)},
         {PlugDataColour::panelTextColourId, Colour(90, 90, 90)},
         {PlugDataColour::panelActiveBackgroundColourId, Colour(217, 217, 217)},
         {PlugDataColour::panelActiveTextColourId, Colour(90, 90, 90)},
         
         {PlugDataColour::scrollbarThumbColourId, Colour(0, 122, 255)},
+        
+        {PlugDataColour::sidebarBackgroundColourId, Colour(238, 238, 238)},
+        
+        {PlugDataColour::popupMenuBackgroundColourId, Colour(228, 228, 228)},
+        {PlugDataColour::popupMenuActiveBackgroundColourId, Colour(207, 207, 207)},
+        {PlugDataColour::popupMenuTextColourId, Colour(90, 90, 90)},
+        {PlugDataColour::popupMenuActiveTextColourId, Colour(90, 90, 90)}
     };
     
     inline static const std::map<String, std::map<PlugDataColour, Colour>> defaultThemes = {

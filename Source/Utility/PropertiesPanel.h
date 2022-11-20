@@ -8,11 +8,6 @@
 #include "DraggableNumber.h"
 
 struct PropertiesPanel : public PropertyPanel {
-    void paint(Graphics& g) override
-    {
-        g.setColour(findColour(PlugDataColour::panelBackgroundColourId));
-        g.fillRect(getLocalBounds().withHeight(getTotalContentHeight()));
-    }
 
     struct Property : public PropertyComponent {
         bool hideLabel = false;
@@ -58,7 +53,6 @@ struct PropertiesPanel : public PropertyPanel {
             comboBox.setBounds(getLocalBounds().removeFromRight(getWidth() / (2 - hideLabel)));
         }
 
-    private:
         ComboBox comboBox;
     };
 
@@ -320,4 +314,57 @@ struct PropertiesPanel : public PropertyPanel {
         }
     };
     
+    struct FilePathComponent : public Property {
+        Label label;
+        TextButton browseButton = TextButton(Icons::File);
+        Value& property;
+
+        std::unique_ptr<FileChooser> saveChooser;
+        
+        FilePathComponent(String propertyName, Value& value)
+            : Property(propertyName)
+            , property(value)
+        {
+
+            label.setEditable(true, false);
+            label.getTextValue().referTo(property);
+            label.addMouseListener(this, true);
+            label.setFont(Font(14));
+            
+            browseButton.setName("statusbar::browse");
+            
+            addAndMakeVisible(label);
+            addAndMakeVisible(browseButton);
+            
+            browseButton.onClick = [this]()
+            {
+                auto constexpr folderChooserFlags = FileBrowserComponent::saveMode | FileBrowserComponent::canSelectFiles | FileBrowserComponent::warnAboutOverwriting;
+                
+                saveChooser = std::make_unique<FileChooser>("Choose a location...", File::getSpecialLocation(File::userHomeDirectory), "", false);
+                
+                saveChooser->launchAsync(folderChooserFlags,
+                                         [this](FileChooser const& fileChooser) {
+                    auto const file = fileChooser.getResult();
+                    if(file.getParentDirectory().exists()) {
+                        label.setText(file.getFullPathName(), sendNotification);
+                    }
+                });
+            };
+        }
+        
+        void paint(Graphics& g) override {
+            
+            Property::paint(g);
+            
+            g.setColour(findColour(PlugDataColour::panelBackgroundColourId));
+            g.fillRect(getLocalBounds().removeFromRight(getHeight()));
+        }
+
+        void resized() override
+        {
+            auto labelBounds = getLocalBounds().removeFromRight(getWidth() / (2 - hideLabel));
+            label.setBounds(labelBounds);
+            browseButton.setBounds(labelBounds.removeFromRight(getHeight()));
+        }
+    };
 };
