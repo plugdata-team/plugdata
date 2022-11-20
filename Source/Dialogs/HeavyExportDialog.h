@@ -280,6 +280,7 @@ struct ToolchainInstaller : public Component, public Thread, public Timer
 #if JUCE_MAC || JUCE_LINUX
         system(("chmod +x " + toolchain.getFullPathName() + "/bin/Heavy/Heavy").toRawUTF8());
         system(("chmod +x " + toolchain.getFullPathName() + "/bin/make").toRawUTF8());
+        system(("chmod +x " + toolchain.getFullPathName() + "/bin/dfu-util").toRawUTF8());
         system(("chmod +x " + toolchain.getFullPathName() + "/bin/arm-none-eabi-*").toRawUTF8());
         system(("chmod +x " + toolchain.getFullPathName() + "/arm-none-eabi/bin/*").toRawUTF8());
         system(("chmod +x " + toolchain.getFullPathName() + "/libexec/gcc/arm-none-eabi/*/*").toRawUTF8());
