@@ -330,6 +330,7 @@ public:
     enum ExportState
     {
         Busy,
+        WaitingForUserInput,
         Success,
         Failure,
         NotExporting
@@ -339,14 +340,24 @@ public:
     
     ExportState state = NotExporting;
     
+    String userInteractionMessage;
+    WaitableEvent userInteractionWait;
+    TextButton confirmButton = TextButton("Done!");
+    
     ExportingView()
     {
         setVisible(false);
         addChildComponent(continueButton);
+        addChildComponent(confirmButton);
         addAndMakeVisible(console);
         
         continueButton.onClick = [this](){
             showState(NotExporting);
+        };
+        
+        confirmButton.onClick = [this](){
+            showState(Busy);
+            userInteractionWait.signal();
         };
         
         console.setColour(TextEditor::backgroundColourId, findColour(PlugDataColour::sidebarBackgroundColourId));
@@ -368,6 +379,7 @@ public:
         
         MessageManager::callAsync([this](){
             setVisible(state < NotExporting);
+            confirmButton.setVisible(state == WaitingForUserInput);
             continueButton.setVisible(state >= Success);
             if(state == Busy) console.setText("");
             if(console.isShowing()) {
@@ -392,16 +404,28 @@ public:
         }
     }
     
+    
+    // Don't call from message thread!
+    void waitForUserInput(String message) {
+        MessageManager::callAsync([this, message]() mutable {
+            userInteractionMessage = message;
+            showState(WaitingForUserInput);
+            repaint();
+        });
+        
+        userInteractionWait.wait();
+    }
+    
     void paint(Graphics& g) override
     {
         auto* lnf = dynamic_cast<PlugDataLook*>(&getLookAndFeel());
         if(!lnf) return;
         
+        g.setColour(findColour(PlugDataColour::panelBackgroundColourId));
+        g.fillRoundedRectangle(getLocalBounds().toFloat(), 5.0f);
+        
         if(state == Busy)
         {
-            g.setColour(findColour(PlugDataColour::panelBackgroundColourId));
-            g.fillRoundedRectangle(getLocalBounds().toFloat(), 5.0f);
-            
             g.setColour(findColour(PlugDataColour::canvasTextColourId));
             g.setFont(lnf->boldFont.withHeight(32));
             g.drawText("Exporting...", 0, 25, getWidth(), 40, Justification::centred);
@@ -409,27 +433,28 @@ public:
             lnf->drawSpinningWaitAnimation(g, findColour(PlugDataColour::canvasTextColourId), getWidth() / 2 - 16, getHeight() / 2 + 135, 32, 32);
         }
         else if(state == Success) {
-            g.setColour(findColour(PlugDataColour::panelBackgroundColourId));
-            g.fillRoundedRectangle(getLocalBounds().toFloat(), 5.0f);
-            
             g.setColour(findColour(PlugDataColour::canvasTextColourId));
             g.setFont(lnf->boldFont.withHeight(32));
             g.drawText("Export successful", 0, 25, getWidth(), 40, Justification::centred);
             
         }
         else if(state == Failure) {
-            g.setColour(findColour(PlugDataColour::panelBackgroundColourId));
-            g.fillRoundedRectangle(getLocalBounds().toFloat(), 5.0f);
-            
             g.setColour(findColour(PlugDataColour::canvasTextColourId));
             g.setFont(lnf->boldFont.withHeight(32));
             g.drawText("Exporting failed", 0, 25, getWidth(), 40, Justification::centred);
+        }
+        else if(state == WaitingForUserInput)
+        {
+            g.setColour(findColour(PlugDataColour::canvasTextColourId));
+            g.setFont(lnf->boldFont.withHeight(32));
+            g.drawText(userInteractionMessage, 0, 25, getWidth(), 40, Justification::centred);
         }
     }
     
     void resized() override {
         console.setBounds(proportionOfWidth (0.1f), 80, proportionOfWidth (0.8f), getHeight() - 172);
         continueButton.setBounds(proportionOfWidth (0.42f), getHeight() - 60, proportionOfWidth (0.12f), 24);
+        confirmButton.setBounds(proportionOfWidth (0.42f), getHeight() - 60, proportionOfWidth (0.12f), 24);
     }
 };
 
@@ -729,50 +754,6 @@ public:
     }
 };
 
-class DFUModeDialog : public Component
-{
-    TextButton doneButton = TextButton("Done!");
-    
-    WaitableEvent syncTrigger;
-    
-public:
-    
-    DFUModeDialog() {
-        addAndMakeVisible(doneButton);
-        
-        doneButton.onClick = [this](){
-            setVisible(false);
-            syncTrigger.signal();
-        };
-    }
-    
-    void show() {
-        MessageManager::callAsync([this](){
-            setVisible(true);
-        });
-        
-        syncTrigger.wait();
-    }
-    
-    void paint(Graphics& g) override {
-        
-        auto* lnf = dynamic_cast<PlugDataLook*>(&getLookAndFeel());
-        if(!lnf) return;
-        
-        g.setFont(lnf->defaultFont.withHeight(16));
-        g.drawText("Please put your Daisy in DFU mode again", 60, 7, getWidth() - 60, 20, Justification::centredLeft);
-        
-    }
-    
-    void resized() override
-    {
-        auto b = Rectangle<int>(0, 50, getWidth(), getHeight() - 38);
-        
-        doneButton.setBounds(getLocalBounds().removeFromBottom(23).removeFromRight(80).translated(-10, -10));
-        
-    }
-};
-
 class DaisySettingsPanel : public ExporterSettingsPanel
 {
 public:
@@ -781,8 +762,6 @@ public:
     Value exportTypeValue = Value(var(3));
     Value romOptimisationType = Value(var(2));
     Value ramOptimisationType = Value(var(2));
-    
-    DFUModeDialog dfuModeDialog;
     
     TextButton flashButton = TextButton("Flash");
     Component* ramOptimisation;
@@ -797,10 +776,7 @@ public:
         
         exportButton.setVisible(false);
         addAndMakeVisible(flashButton);
-        
-        addChildComponent(dfuModeDialog);
-        dfuModeDialog.setAlwaysOnTop(true);
-        
+
         exportTypeValue.addListener(this);
         
         flashButton.onClick = [this](){
@@ -812,7 +788,6 @@ public:
     void resized() override {
         ExporterSettingsPanel::resized();
         flashButton.setBounds(exportButton.getBounds());
-        dfuModeDialog.setBounds(getLocalBounds());
     }
     
     void valueChanged(Value& v) override
@@ -905,6 +880,7 @@ public:
             if(romType == 1) {
                 if(ramType == 1) {
                     linkerFile = linkerDir.getChildFile("sram_linker_sdram.lds");
+                    
                 }
                 else if(ramType == 2) {
                     linkerFile = linkerDir.getChildFile("sram_linker.lds");
@@ -963,7 +939,7 @@ public:
                     
                     // We need to enable DFU mode again after flashing the bootloader
                     // This will show DFU mode dialog synchonously
-                    dfuModeDialog.show();
+                    exportingView->waitForUserInput("Please put your Daisy in DFU mode again");
                 }
                 
                 exportingView->logToConsole("Flashing...");
