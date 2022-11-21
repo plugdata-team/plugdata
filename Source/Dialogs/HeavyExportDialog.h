@@ -735,8 +735,8 @@ public:
     
     Value targetBoardValue = Value(var(1));
     Value exportTypeValue = Value(var(3));
-    Value romOptimisationType = Value(var(1));
-    Value ramOptimisationType = Value(var(1));
+    Value romOptimisationType = Value(var(2));
+    Value ramOptimisationType = Value(var(2));
     
     
     TextButton flashButton = TextButton("Flash");
