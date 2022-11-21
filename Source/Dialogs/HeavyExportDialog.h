@@ -472,7 +472,13 @@ struct ExporterSettingsPanel : public Component, public Value::Listener, public 
     Value projectNameValue;
     Value projectCopyrightValue;
     
-    inline static File heavyExecutable = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory).getChildFile("PlugData").getChildFile("Toolchain").getChildFile("bin").getChildFile("Heavy").getChildFile("Heavy");
+#if JUCE_WINDOWS
+    const inline static String exeSuffix = ".exe";
+#else
+    const inline static String exeSuffix = "";
+#endif
+    
+    inline static File heavyExecutable = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory).getChildFile("PlugData").getChildFile("Toolchain").getChildFile("bin").getChildFile("Heavy").getChildFile("Heavy" + exeSuffix);
     
     bool validPatchSelected = false;
     
@@ -491,6 +497,7 @@ struct ExporterSettingsPanel : public Component, public Value::Listener, public 
     bool shouldQuit = false;
     
     PlugDataPluginEditor* editor;
+    
     
     ExporterSettingsPanel(PlugDataPluginEditor* pluginEditor, ExportingView* exportView) : ThreadPool(2), exportingView(exportView), editor(pluginEditor)
     {
@@ -708,6 +715,7 @@ public:
         metadata.replaceWithText(metaString);
         return metadata.getFullPathName();
     }
+
 };
 
 class CppSettingsPanel : public ExporterSettingsPanel
@@ -784,6 +792,7 @@ public:
         exportTypeValue.addListener(this);
         
         flashButton.onClick = [this](){
+            
             auto tempFolder = File::getSpecialLocation(File::tempDirectory).getChildFile("Heavy-" + Uuid().toString().substring(10));
             startExport(tempFolder);
         };
@@ -975,12 +984,6 @@ public:
             return heavyExitCode;
         }
     }
-    
-#if JUCE_WINDOWS
-    String exeSuffix = ".exe";
-#else
-    String exeSuffix = "";
-#endif
 };
 
 class ExporterPanel  : public Component, private ListBoxModel
