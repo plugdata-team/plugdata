@@ -295,7 +295,11 @@ struct ToolchainInstaller : public Component, public Thread, public Timer
         File usbDriverInstaller = toolchain.getChildFile("etc").getChildFile("usb_driver").getChildFile("install-filter.exe");
         File driverSpec = toolchain.getChildFile("etc").getChildFile("usb_driver").getChildFile("DFU_in_FS_Mode.inf");
         
-        runAsAdmin(usbDriverInstaller.getFullPathName().toStdString(), ("install --inf=" + driverSpec.getFullPathName()).toStdString(), editor->getPeer()->getNativeHandle());
+        // Since we interact with ComponentPeer, better call it from the message thread
+        MessageManager::callAsync([this, usbDriverInstaller, driverSpec]() mutable {
+            runAsAdmin(usbDriverInstaller.getFullPathName().toStdString(), ("install --inf=" + driverSpec.getFullPathName()).toStdString(), editor->getPeer()->getNativeHandle());
+        })
+
 #endif
         installProgress = 0.0f;
         stopTimer();
