@@ -729,11 +729,13 @@ public:
     }
 };
 
-class DFUModeDialog
+class DFUModeDialog : public Component
 {
     TextButton doneButton = TextButton("Done!");
     
     WaitableEvent syncTrigger;
+    
+public:
     
     DFUModeDialog() {
         addAndMakeVisible(doneButton);
@@ -754,7 +756,7 @@ class DFUModeDialog
     
     void paint(Graphics& g) override {
         
-        auto* lnf = dynamic_cast<PlugDataLook*>(getLookAndFeel());
+        auto* lnf = dynamic_cast<PlugDataLook*>(&getLookAndFeel());
         if(!lnf) return;
         
         g.setFont(lnf->defaultFont.withHeight(16));
@@ -764,6 +766,9 @@ class DFUModeDialog
     
     void resized() override
     {
+        auto b = Rectangle<int>(0, 50, getWidth(), getHeight() - 38);
+        
+        doneButton.setBounds(getLocalBounds().removeFromBottom(23).removeFromRight(80).translated(-10, -10));
         
     }
 };
@@ -807,6 +812,7 @@ public:
     void resized() override {
         ExporterSettingsPanel::resized();
         flashButton.setBounds(exportButton.getBounds());
+        dfuModeDialog.setBounds(getLocalBounds());
     }
     
     void valueChanged(Value& v) override
