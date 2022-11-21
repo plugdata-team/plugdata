@@ -290,7 +290,7 @@ struct ToolchainInstaller : public Component, public Thread, public Timer
         // Add udev rule for the daisy seed
         // This makes sure we can use dfu-util without admin privileges
         // Kinda sucks that we need to sudo this, but there's no other way AFAIK
-        system("echo SUBSYSTEM==\"usb\", ATTR{idVendor}==\"0483\", ATTR{idProduct}==\"df11\", MODE=\"0664\", GROUP=\"plugdev\" | pkexec tee /etc/udev/rules.d/50-daisy-stmicro-dfu.rules >/dev/null");
+        system("echo \'SUBSYSTEMS==\"usb\", ATTRS{idVendor}==\"0483\", ATTRS{idProduct}==\"df11\", MODE=\"0666\", GROUP=\"plugdev\"\' | pkexec tee /etc/udev/rules.d/50-daisy-stmicro-dfu.rules >/dev/null");
 #elif JUCE_WINDOWS
         File usbDriverInstaller = toolchain.getChildFile("etc").getChildFile("usb_driver").getChildFile("install-filter.exe");
         File driverSpec = toolchain.getChildFile("etc").getChildFile("usb_driver").getChildFile("DFU_in_FS_Mode.inf");
