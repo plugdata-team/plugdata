@@ -97,7 +97,7 @@ bool runAsAdmin(std::string command, std::string parameters, void* hWndPtr) {
 
     sei.cbSize          = sizeof(SHELLEXECUTEINFO);
     sei.hwnd            = hWnd;
-    sei.fMask           = SEE_MASK_FLAG_DDEWAIT | SEE_MASK_FLAG_NO_UI;
+    sei.fMask           = SEE_MASK_NOASYNC;
     sei.lpVerb          = TEXT("runas");
     sei.lpFile          = lpFile;
     sei.lpParameters    = lpParameters;

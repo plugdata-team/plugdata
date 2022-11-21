@@ -739,13 +739,15 @@ public:
     Value ramOptimisationType = Value(var(2));
     
     TextButton flashButton = TextButton("Flash");
+    Component* ramOptimisation;
+    Component* romOptimisation;
     
     DaisySettingsPanel(PlugDataPluginEditor* editor, ExportingView* exportingView) : ExporterSettingsPanel(editor, exportingView)
     {
         addAndMakeVisible(properties.add(new PropertiesPanel::ComboComponent("Target board", targetBoardValue, {"Seed", "Pod", "Petal", "Patch", "Field"})));
         addAndMakeVisible(properties.add(new PropertiesPanel::ComboComponent("Export type", exportTypeValue, {"Source code", "Binary", "Flash"})));
-        addAndMakeVisible(properties.add(new PropertiesPanel::ComboComponent("ROM Optimisation", romOptimisationType, {"Optimise for size", "Optimise for speed"})));
-        addAndMakeVisible(properties.add(new PropertiesPanel::ComboComponent("RAM Optimisation", ramOptimisationType, {"Optimise for size", "Optimise for speed"})));
+        addAndMakeVisible(properties.add(new (romOptimisation) PropertiesPanel::ComboComponent("ROM Optimisation", romOptimisationType, {"Optimise for size", "Optimise for speed"})));
+        addAndMakeVisible(properties.add(new (ramOptimisation) PropertiesPanel::ComboComponent("RAM Optimisation", ramOptimisationType, {"Optimise for size", "Optimise for speed"})));
         
         exportButton.setVisible(false);
         addAndMakeVisible(flashButton);
@@ -772,6 +774,10 @@ public:
         bool flash = static_cast<int>(exportTypeValue.getValue()) == 3;
         exportButton.setVisible(!flash);
         flashButton.setVisible(flash);
+        
+        ramOptimisation->setVisible(flash);
+        romOptimisation->setVisible(flash);
+        
     }
     
     bool performExport(String pdPatch, String outdir, String name, String copyright, StringArray searchPaths) override
