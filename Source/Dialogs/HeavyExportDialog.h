@@ -292,7 +292,7 @@ struct ToolchainInstaller : public Component, public Thread, public Timer
         // Kinda sucks that we need to sudo this, but there's no other way AFAIK
         system("echo SUBSYSTEM==\"usb\", ATTR{idVendor}==\"0483\", ATTR{idProduct}==\"df11\", MODE=\"0664\", GROUP=\"plugdev\" | pkexec tee /etc/udev/rules.d/50-daisy-stmicro-dfu.rules >/dev/null");
 #elif JUCE_WINDOWS
-        File usbDriverInstaller = toolchain.getChildFile("etc").getChildFile("usb_driver").getChildFile("amd64").getChildFile("install-filter.exe");
+        File usbDriverInstaller = toolchain.getChildFile("etc").getChildFile("usb_driver").getChildFile("install-filter.exe");
         File driverSpec = toolchain.getChildFile("etc").getChildFile("usb_driver").getChildFile("DFU_in_FS_Mode.inf");
 
         runAsAdmin(usbDriverInstaller.getFullPathName().toStdString(), ("install --inf=" + driverSpec.getFullPathName()).toStdString(), editor->getPeer()->getNativeHandle());
@@ -737,7 +737,6 @@ public:
     Value exportTypeValue = Value(var(3));
     Value romOptimisationType = Value(var(2));
     Value ramOptimisationType = Value(var(2));
-    
     
     TextButton flashButton = TextButton("Flash");
     
