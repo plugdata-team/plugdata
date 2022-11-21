@@ -294,7 +294,7 @@ struct ToolchainInstaller : public Component, public Thread, public Timer
 #elif JUCE_WINDOWS
         File usbDriverInstaller = toolchain.getChildFile("etc").getChildFile("usb_driver").getChildFile("install-filter.exe");
         File driverSpec = toolchain.getChildFile("etc").getChildFile("usb_driver").getChildFile("DFU_in_FS_Mode.inf");
-
+        
         runAsAdmin(usbDriverInstaller.getFullPathName().toStdString(), ("install --inf=" + driverSpec.getFullPathName()).toStdString(), editor->getPeer()->getNativeHandle());
 #endif
         installProgress = 0.0f;
@@ -734,7 +734,7 @@ class DFUModeDialog
     TextButton doneButton = TextButton("Done!");
     
     WaitableEvent syncTrigger;
-        
+    
     DFUModeDialog() {
         addAndMakeVisible(doneButton);
         
@@ -748,7 +748,7 @@ class DFUModeDialog
         MessageManager::callAsync([this](){
             setVisible(true);
         });
-
+        
         syncTrigger.wait();
     }
     
@@ -947,20 +947,6 @@ public:
                 
                 auto dfuUtil = bin.getChildFile("dfu-util" + exeSuffix);
                 
-                auto& flash = [this, dfuUtil]() mutable {
-                    exportingView->logToConsole("Flashing...");
-                    
-                    auto dfuCommand = dfuUtil.getFullPathName() + " -a 0 -s " + flashAddress + ":leave -D " + binLocation.getFullPathName() + " -d ,0483:df11";
-                    
-                    start(dfuCommand.toRawUTF8());
-                    waitForProcessToFinish(-1);
-                    
-                    // Delay to get correct exit code
-                    Time::waitForMillisecondCounter(Time::getMillisecondCounter() + 300);
-                    
-                    auto flashExitCode = getExitCode();
-                }
-                
                 if(bootloader) {
                     exportingView->logToConsole("Flashing bootloader...");
                     auto bootBin = libDaisy.getChildFile("core").getChildFile("dsy_bootloader_v5_4.bin");
@@ -972,17 +958,19 @@ public:
                     // We need to enable DFU mode again after flashing the bootloader
                     // This will show DFU mode dialog synchonously
                     dfuModeDialog.show();
-                    
-                    flash();
-                    
-                }
-                else {
-                    flash();
                 }
                 
+                exportingView->logToConsole("Flashing...");
                 
+                auto dfuCommand = dfuUtil.getFullPathName() + " -a 0 -s " + flashAddress + ":leave -D " + binLocation.getFullPathName() + " -d ,0483:df11";
                 
-
+                start(dfuCommand.toRawUTF8());
+                waitForProcessToFinish(-1);
+                
+                // Delay to get correct exit code
+                Time::waitForMillisecondCounter(Time::getMillisecondCounter() + 300);
+                
+                auto flashExitCode = getExitCode();
                 
                 return heavyExitCode && compileExitCode && flashExitCode;
             }
