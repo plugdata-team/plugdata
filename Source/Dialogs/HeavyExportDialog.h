@@ -729,6 +729,45 @@ public:
     }
 };
 
+class DFUModeDialog
+{
+    TextButton doneButton = TextButton("Done!");
+    
+    WaitableEvent syncTrigger;
+        
+    DFUModeDialog() {
+        addAndMakeVisible(doneButton);
+        
+        doneButton.onClick = [this](){
+            setVisible(false);
+            syncTrigger.signal();
+        };
+    }
+    
+    void show() {
+        MessageManager::callAsync([this](){
+            setVisible(true);
+        });
+
+        syncTrigger.wait();
+    }
+    
+    void paint(Graphics& g) override {
+        
+        auto* lnf = dynamic_cast<PlugDataLook*>(getLookAndFeel());
+        if(!lnf) return;
+        
+        g.setFont(lnf->defaultFont.withHeight(16));
+        g.drawText("Please put your Daisy in DFU mode again", 60, 7, getWidth() - 60, 20, Justification::centredLeft);
+        
+    }
+    
+    void resized() override
+    {
+        
+    }
+};
+
 class DaisySettingsPanel : public ExporterSettingsPanel
 {
 public:
@@ -737,6 +776,8 @@ public:
     Value exportTypeValue = Value(var(3));
     Value romOptimisationType = Value(var(2));
     Value ramOptimisationType = Value(var(2));
+    
+    DFUModeDialog dfuModeDialog;
     
     TextButton flashButton = TextButton("Flash");
     Component* ramOptimisation;
@@ -752,12 +793,14 @@ public:
         exportButton.setVisible(false);
         addAndMakeVisible(flashButton);
         
+        addChildComponent(dfuModeDialog);
+        dfuModeDialog.setAlwaysOnTop(true);
+        
         exportTypeValue.addListener(this);
         
         flashButton.onClick = [this](){
             auto tempFolder = File::getSpecialLocation(File::tempDirectory).getChildFile("Heavy-" + Uuid().toString().substring(10));
             startExport(tempFolder);
-            
         };
     }
     
@@ -777,8 +820,8 @@ public:
         
         ramOptimisation->setVisible(flash);
         romOptimisation->setVisible(flash);
-        
     }
+    
     
     bool performExport(String pdPatch, String outdir, String name, String copyright, StringArray searchPaths) override
     {
@@ -904,6 +947,20 @@ public:
                 
                 auto dfuUtil = bin.getChildFile("dfu-util" + exeSuffix);
                 
+                auto& flash = [this, dfuUtil]() mutable {
+                    exportingView->logToConsole("Flashing...");
+                    
+                    auto dfuCommand = dfuUtil.getFullPathName() + " -a 0 -s " + flashAddress + ":leave -D " + binLocation.getFullPathName() + " -d ,0483:df11";
+                    
+                    start(dfuCommand.toRawUTF8());
+                    waitForProcessToFinish(-1);
+                    
+                    // Delay to get correct exit code
+                    Time::waitForMillisecondCounter(Time::getMillisecondCounter() + 300);
+                    
+                    auto flashExitCode = getExitCode();
+                }
+                
                 if(bootloader) {
                     exportingView->logToConsole("Flashing bootloader...");
                     auto bootBin = libDaisy.getChildFile("core").getChildFile("dsy_bootloader_v5_4.bin");
@@ -911,20 +968,21 @@ public:
                     start(dfuBootloaderCommand.toRawUTF8());
                     waitForProcessToFinish(-1);
                     Time::waitForMillisecondCounter(Time::getMillisecondCounter() + 300);
+                    
+                    // We need to enable DFU mode again after flashing the bootloader
+                    // This will show DFU mode dialog synchonously
+                    dfuModeDialog.show();
+                    
+                    flash();
+                    
+                }
+                else {
+                    flash();
                 }
                 
-                exportingView->logToConsole("Flashing...");
                 
                 
-                auto dfuCommand = dfuUtil.getFullPathName() + " -a 0 -s " + flashAddress + ":leave -D " + binLocation.getFullPathName() + " -d ,0483:df11";
-                
-                start(dfuCommand.toRawUTF8());
-                waitForProcessToFinish(-1);
-                
-                // Delay to get correct exit code
-                Time::waitForMillisecondCounter(Time::getMillisecondCounter() + 300);
-                
-                auto flashExitCode = getExitCode();
+
                 
                 return heavyExitCode && compileExitCode && flashExitCode;
             }
