@@ -102,12 +102,7 @@ bool runAsAdmin(std::string command, std::string parameters, void* hWndPtr) {
     sei.lpFile          = lpFile;
     sei.lpParameters    = lpParameters;
     sei.nShow           = SW_SHOWNORMAL;
-    retval = ShellExecuteEx( &sei );
-    // or try as the normal user ... remove if that's not an option
-    if( !retval ) {
-        sei.lpVerb = TEXT("open");
-        retval = ShellExecuteEx( &sei );
-    }
+    retval = ShellExecuteEx(&sei);
 
     return (bool)retval;
 }
