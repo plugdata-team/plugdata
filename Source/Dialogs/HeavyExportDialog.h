@@ -756,6 +756,7 @@ public:
         flashButton.onClick = [this](){
             auto tempFolder = File::getSpecialLocation(File::tempDirectory).getChildFile("Heavy-" + Uuid().toString().substring(10));
             startExport(tempFolder);
+            
         };
     }
     
@@ -840,6 +841,10 @@ public:
             auto linkerDir = toolchain.getChildFile("etc").getChildFile("linkers");
             File linkerFile;
             
+            String internalAddress = "0x08000000";
+            String qspiAddress = "0x90040000";
+            String flashAddress = internalAddress;
+            
             bool bootloader = false;
             
             // 1 is size, 2 is speed
@@ -850,6 +855,8 @@ public:
                 else if(ramType == 2) {
                     linkerFile = linkerDir.getChildFile("sram_linker.lds");
                 }
+                
+                flashAddress = qspiAddress;
                 bootloader = true;
             }
             else if(romType == 2 && ramType == 1) {
@@ -863,19 +870,19 @@ public:
             sourceDir.getChildFile("Makefile").replaceWithText(makefileText);
             
 #if JUCE_WINDOWS
+            auto buildScript = sourceDir.getChildFile("build.sh");
+            buildScript.replaceWithText(make.getFullPathName().replaceCharacter('\\', '/') + " -j4 -f " + sourceDir.getChildFile("Makefile").getFullPathName().replaceCharacter('\\', '/') + " GCC_PATH=" + gccPath.replaceCharacter('\\', '/') + " PROJECT_NAME=" + name);
             
             auto sh = toolchain.getChildFile("bin").getChildFile("sh.exe");
-            auto windowsBuildScript = sourceDir.getChildFile("build.sh");
-            windowsBuildScript.replaceWithText(make.getFullPathName().replaceCharacter('\\', '/') + " -j4 -f " + sourceDir.getChildFile("Makefile").getFullPathName().replaceCharacter('\\', '/') + " GCC_PATH=" + gccPath.replaceCharacter('\\', '/') + " PROJECT_NAME=" + name);
-            
-            String command = sh.getFullPathName() + " --login " + windowsBuildScript.getFullPathName().replaceCharacter('\\', '/');
+            String command = sh.getFullPathName() + " --login " + buildScript.getFullPathName().replaceCharacter('\\', '/');
 #else
-            String command = make.getFullPathName() + " -j4 -f " + sourceDir.getChildFile("Makefile").getFullPathName() + " GCC_PATH=" + gccPath + " PROJECT_NAME=" + name;
+            String command = make.getFullPathName().replaceCharacter('\\', '/') + " -j4 -f " + sourceDir.getChildFile("Makefile").getFullPathName().replaceCharacter('\\', '/') + " GCC_PATH=" + gccPath.replaceCharacter('\\', '/') + " PROJECT_NAME=" + name;
 #endif
             // Use std::system because on Mac, juce ChildProcess is slow when using Rosetta
             start(command.toRawUTF8());
             waitForProcessToFinish(-1);
             
+            // Restore original working directory
             workingDir.setAsCurrentWorkingDirectory();
             
             auto binLocation = outputFile.getChildFile(name + ".bin");
@@ -890,10 +897,21 @@ public:
             auto compileExitCode = getExitCode();
             if(flash && !compileExitCode) {
                 
+                auto dfuUtil = bin.getChildFile("dfu-util" + exeSuffix);
+                
+                if(bootloader) {
+                    exportingView->logToConsole("Flashing bootloader...");
+                    auto bootBin = libDaisy.getChildFile("core").getChildFile("dsy_bootloader_v5_4.bin");
+                    auto dfuBootloaderCommand = dfuUtil.getFullPathName() + " -a 0 -s " + internalAddress + ":leave -D " + bootBin.getFullPathName() + " -d ,0483:df11";
+                    start(dfuBootloaderCommand.toRawUTF8());
+                    waitForProcessToFinish(-1);
+                    Time::waitForMillisecondCounter(Time::getMillisecondCounter() + 300);
+                }
+                
                 exportingView->logToConsole("Flashing...");
                 
-                auto dfuUtil = bin.getChildFile("dfu-util" + exeSuffix);
-                auto dfuCommand = dfuUtil.getFullPathName() + " -a 0 -s 0x08000000:leave -D " + binLocation.getFullPathName() + " -d ,0483:df11";
+                
+                auto dfuCommand = dfuUtil.getFullPathName() + " -a 0 -s " + flashAddress + ":leave -D " + binLocation.getFullPathName() + " -d ,0483:df11";
                 
                 start(dfuCommand.toRawUTF8());
                 waitForProcessToFinish(-1);
