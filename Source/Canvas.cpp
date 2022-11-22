@@ -789,22 +789,23 @@ void Canvas::pasteSelection()
 
 void Canvas::duplicateSelection()
 {
-    // Tell pd to select all objects that are currently selected
     Array<Connection*> conInlets, conOutlets;
     auto selection = getSelectionOfType<Object>();
+    patch.startUndoSequence("Duplicate");
 
     for (auto* object : selection) {
-
+        // Tell pd to select all objects that are currently selected
         patch.selectObject(object->getPointer());
-        
+
         if (!wasDragDuplicated && main.autoconnect.getValue()) {
+            // Store connections for auto patching
             for (auto* connection : connections) {
                 if (connection->inlet == object->iolets[0]) {
-                 conInlets.add(connection);
-               }
-               if (connection->outlet == object->iolets[object->numInputs]) {
-                   conOutlets.add(connection);
-               }
+                    conInlets.add(connection);
+                }
+                if (connection->outlet == object->iolets[object->numInputs]) {
+                    conOutlets.add(connection);
+                }
             }
         }
     }
@@ -815,7 +816,7 @@ void Canvas::duplicateSelection()
     // Load state from pd, don't update positions
     synchronise(false);
 
-    // Stores the duplicated objects for later selection
+    // Store the duplicated objects for later selection
     Array<Object*> duplicated;
     for (auto* object : objects) {
         if (glist_isselected(patch.getPointer(), static_cast<t_gobj*>(object->getPointer()))) {
@@ -825,37 +826,58 @@ void Canvas::duplicateSelection()
 
     // Intelligent auto patching
     if (!wasDragDuplicated && main.autoconnect.getValue()) {
+        std::vector<void*> moveObjects;
         for (auto* object : objects) {
             int iolet = 1;
             for (auto* objIolet : object->iolets) {
-                for (auto* dup : duplicated) {
-                    for (auto* conIn : conInlets) {
-
-                        if ((conIn->outlet == objIolet) && object->iolets[iolet]) {
-                            connections.add(new Connection(this, dup->iolets[0], object->iolets[iolet], false));
-                            std::cout << "inlet" << std::endl;
+                if (duplicated.size() == 1) {
+                    for (auto* dup : duplicated) {
+                        for (auto* conIn : conInlets) {
+                            if ((conIn->outlet == objIolet) && object->iolets[iolet] && !dup->iolets.contains(conIn->outlet)) {
+                                connections.add(new Connection(this, dup->iolets[0], object->iolets[iolet], false));
+                            }
+                        }
+                        for (auto* conOut : conOutlets) {
+                            if ((conOut->inlet == objIolet) && (iolet < object->numInputs)) {
+                                connections.add(new Connection(this, dup->iolets[dup->numInputs], object->iolets[iolet], false));
+                            }
                         }
                     }
-                    for (auto* conOut : conOutlets) {
-                        if ((conOut->inlet == objIolet) && (iolet < object->numInputs)) {
-                            connections.add(new Connection(this, dup->iolets[dup->numInputs], object->iolets[iolet], false));
-                            std::cout << "outlet" << std::endl;
-                        }
-                    }
+                    iolet = iolet + 1;
                 }
-                iolet = iolet+1;
             }
         }
-    }
+        for (auto* dup : duplicated) {
+            moveObjects.emplace_back(dup->getPointer());
+        }
+        bool overlap;
+        int moveDistance;
+        do {
+            overlap = false;
+            for (auto* object : objects) {
+                if (!(duplicated.contains(object))
+                    && (duplicated[0]->getPosition().y >= object->getPosition().y)
+                    && (duplicated[0]->getPosition().y <= (object->getPosition().y + object->getHeight()))
+                    && (duplicated[0]->getPosition().x >= object->getPosition().x)
+                    && (duplicated[0]->getPosition().x < (object->getPosition().x + object->getWidth()))) {
+                    overlap = true;
+                    patch.moveObjects(moveObjects, object->getWidth() - 10, 0);
+                    duplicated[0]->updateBounds();
+                }
+            }
 
+        } while (overlap);
+        patch.moveObjects(moveObjects, -10, -10);
+        moveObjects.clear();
+    }
+    
     // Select the newly duplicated objects
     for (auto* obj : duplicated) {
         setSelected(obj, true);
     }
 
+    patch.endUndoSequence("Duplicate");
     patch.deselectAll();
-
-
 }
 
 void Canvas::removeSelection()
