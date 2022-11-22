@@ -34,10 +34,12 @@ void maximiseLinuxWindow(void* handle);
 
 #include "../PluginEditor.h"
 
-#if !JUCE_MAC
-#    define CUSTOM_SHADOW 1
-#else
+#include "../Utility/StackShadow.h"
+
+#if JUCE_MAC
 #    define CUSTOM_SHADOW 0
+#else
+#    define CUSTOM_SHADOW 1
 #endif
 
 
@@ -509,10 +511,11 @@ private:
 class PlugDataWindow : public DocumentWindow {
     // Replacement for native Windows shadow, to allow rounded corners
 #if CUSTOM_SHADOW
-    Image shadowImageT, shadowImageB, shadowImageL, shadowImageR;
-    DropShadow shadow = DropShadow(Colour(20, 20, 20).withAlpha(0.3f), 6, Point<int>(0, 0));
+    Image shadowImage;
 #endif
-
+    
+    std::unique_ptr<ResizableBorderComponent> resizer;
+    ComponentBoundsConstrainer constrainer;
 public:
     typedef StandalonePluginHolder::PluginInOuts PluginInOuts;
 
@@ -546,6 +549,7 @@ public:
 
         auto* mainComponent = new MainContentComponent(*this);
         auto* editor = mainComponent->getEditor();
+        
         auto* c = editor->getConstrainer();
         setResizeLimits(c->getMinimumWidth() + 7, c->getMinimumHeight() + 7, c->getMaximumWidth() + 7, c->getMaximumHeight() + 7);
 
@@ -577,7 +581,14 @@ public:
 
         setBoundsConstrained(windowScreenBounds);
 
+#if CUSTOM_SHADOW
+        resizer = std::make_unique<ResizableBorderComponent>(editor, &constrainer);
+        resizer->setBorderThickness(BorderSize(4));
+        resizer->setSize(editor->getWidth(), editor->getHeight());
+        editor->addAndMakeVisible(resizer.get());
+#else
         setResizable(true, false);
+#endif
     }
     
     int parseSystemArguments(String const& arguments);
@@ -634,10 +645,13 @@ public:
 #if CUSTOM_SHADOW
     void paint(Graphics& g) override
     {
-        g.drawImageAt(shadowImageT, 0, 0);
-        g.drawImageAt(shadowImageB, 0, getHeight() - 6);
-        g.drawImageAt(shadowImageL, 0, 6);
-        g.drawImageAt(shadowImageR, getWidth() - 6, 6);
+        g.drawImageAt(shadowImage, 0, 0);
+    }
+    
+    void paintOverChildren(Graphics& g) override
+    {
+        g.setColour(findColour(PlugDataColour::outlineColourId));
+        g.drawRoundedRectangle(getLocalBounds().reduced(16).toFloat(), 6.0f, 1.0f);
     }
 #endif
 
@@ -659,34 +673,24 @@ public:
             b->setToggleState(isFullScreen(), dontSendNotification);
         #endif
 
+#if CUSTOM_SHADOW
+        auto titleBarArea = Rectangle<int>(0, 24, getWidth() - 20, 25);
+#else
         auto titleBarArea = Rectangle<int>(0, 12, getWidth() - 8, 25);
+#endif
 
         getLookAndFeel().positionDocumentWindowButtons(*this, titleBarArea.getX(), titleBarArea.getY(), titleBarArea.getWidth(), titleBarArea.getHeight(), getMinimiseButton(), getMaximiseButton(), getCloseButton(), false);
 
 #if CUSTOM_SHADOW
-        auto shadowImage = Image(Image::PixelFormat::ARGB, getWidth(), getHeight(), true);
+        shadowImage = Image(Image::PixelFormat::ARGB, getWidth(), getHeight(), true);
         Graphics g(shadowImage);
         auto b = getLocalBounds();
         Path localPath;
-        localPath.addRoundedRectangle(b.toFloat().reduced(4), 6.0f);
-        shadow.drawForPath(g, localPath);
-
-        g.setColour(Colour(186, 186, 186));
-        g.drawRoundedRectangle(b.toFloat().reduced(4), 6.0f, 1.0f);
-
-        auto top = b.removeFromTop(6);
-        shadowImageT = shadowImage.getClippedImage(top);
-
-        auto bottom = b.removeFromBottom(6);
-        shadowImageB = shadowImage.getClippedImage(bottom);
-
-        auto left = b.removeFromLeft(6);
-        shadowImageL = shadowImage.getClippedImage(left);
-
-        auto right = b.removeFromRight(6);
-        shadowImageR = shadowImage.getClippedImage(right);
-
+        localPath.addRoundedRectangle(b.toFloat().reduced(19), 6.0f);
+        StackShadow::renderDropShadow(g, localPath, Colour(85, 85, 85), 16, {0, 2});
 #endif
+
+        
         if (auto* content = getContentComponent()) {
             content->repaint();
         }
@@ -704,6 +708,12 @@ private:
         , private ComponentListener
         , public MenuBarModel {
     public:
+#if CUSTOM_SHADOW
+            int margin = 12;
+#else
+            int margin = 0;
+#endif
+            
         MainContentComponent(PlugDataWindow& filterWindow)
             : owner(filterWindow)
             , editor(owner.getAudioProcessor()->hasEditor() ? owner.getAudioProcessor()->createEditorIfNeeded() : new GenericAudioProcessorEditor(*owner.getAudioProcessor()))
@@ -779,7 +789,7 @@ private:
 
         void resized() override
         {
-            auto r = getLocalBounds();
+            auto r = getLocalBounds().reduced(margin);
 
             if (editor != nullptr) {
                 auto const newPos = r.getTopLeft().toFloat().transformedBy(editor->getTransform().inverted());
@@ -806,7 +816,7 @@ private:
         Rectangle<int> getSizeToContainEditor() const
         {
             if (editor != nullptr)
-                return getLocalArea(editor.get(), editor->getLocalBounds());
+                return getLocalArea(editor.get(), editor->getLocalBounds().expanded(margin));
 
             return {};
         }
