@@ -58,8 +58,6 @@ static const char* WINDOW_STATE_NAMES[] = {
 
 bool isMaximised(void* handle)
 {
-
-
     window_t win;
     auto window = (Window)handle;
     auto* display = XOpenDisplay(NULL); 
@@ -72,7 +70,6 @@ bool isMaximised(void* handle)
     for (int i = 0; i < WINDOW_STATE_SIZE; ++i) {
         win.atoms.NET_WM_STATES[i] = XInternAtom(win.dpy, WINDOW_STATE_NAMES[i], False);
     }
-        
 
     long max_length = 1024;
     Atom actual_type;
