@@ -541,6 +541,9 @@ public:
         resizer->setBorderThickness(BorderSize(4));
         resizer->setAlwaysOnTop(true);
         Component::addAndMakeVisible(resizer.get());
+        setResizable(false, false);
+#else
+        setResizable(true, false);
 #endif
 
         setTitleBarHeight(0);
@@ -585,13 +588,9 @@ public:
         }();
 
         setBoundsConstrained(windowScreenBounds);
-
-#if CUSTOM_SHADOW
-        setResizable(false, false);
-#else
-        setResizable(true, false);
-#endif
     }
+    
+    
     
     int parseSystemArguments(String const& arguments);
 
@@ -647,9 +646,17 @@ public:
 #if CUSTOM_SHADOW
     void paint(Graphics& g) override
     {
-        g.drawImageAt(shadowImage, 0, 0);
+        auto b = getLocalBounds();
+        Path localPath;
+        localPath.addRoundedRectangle(b.toFloat().reduced(27.0f), 6.0f);
+        
+        int radius = isActiveWindow() ? 21 : 16;
+        StackShadow::renderDropShadow(g, localPath, Colour(85, 85, 85), radius, {0, 3});
     }
     
+    void activeWindowStatusChanged() override {
+        repaint();
+    }
 #endif
 
     void resized() override
@@ -671,24 +678,15 @@ public:
         #endif
 
 #if CUSTOM_SHADOW
-        auto titleBarArea = Rectangle<int>(0, 24, getWidth() - 20, 25);
+        auto titleBarArea = Rectangle<int>(0, 30, getWidth() - 26, 25);
+        if(resizer) resizer->setBounds(getLocalBounds().reduced(12));
 #else
         auto titleBarArea = Rectangle<int>(0, 12, getWidth() - 8, 25);
 #endif
 
         getLookAndFeel().positionDocumentWindowButtons(*this, titleBarArea.getX(), titleBarArea.getY(), titleBarArea.getWidth(), titleBarArea.getHeight(), getMinimiseButton(), getMaximiseButton(), getCloseButton(), false);
-
-#if CUSTOM_SHADOW
-        shadowImage = Image(Image::PixelFormat::ARGB, getWidth(), getHeight(), true);
-        Graphics g(shadowImage);
-        auto b = getLocalBounds();
-        Path localPath;
-        localPath.addRoundedRectangle(b.toFloat().reduced(19), 6.0f);
-        StackShadow::renderDropShadow(g, localPath, Colour(85, 85, 85), 16, {0, 2});
-#endif
         
-        if (auto* content = getContentComponent()) content->repaint();        
-        if(resizer) resizer->setBounds(getLocalBounds().reduced(12));
+        //if (auto* content = getContentComponent()) content->repaint();
     }
 
     virtual StandalonePluginHolder* getPluginHolder()
@@ -704,7 +702,7 @@ private:
         , public MenuBarModel {
     public:
 #if CUSTOM_SHADOW
-            int margin = 12;
+            int margin = 18;
 #else
             int margin = 0;
 #endif
@@ -740,7 +738,7 @@ private:
         void paintOverChildren(Graphics& g) override
         {
             g.setColour(findColour(PlugDataColour::outlineColourId));
-            g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(12.5f), 6.0f, 1.0f);
+            g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(margin + 0.5f), 6.0f, 1.0f);
         }
 #endif
 
