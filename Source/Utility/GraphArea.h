@@ -22,7 +22,7 @@ struct GraphArea : public Component
     void paint(Graphics& g) override
     {
         g.setColour(findColour(PlugDataColour::objectSelectedOutlineColourId));
-        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(1.f), 2.0f, 4.0f);
+        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(1.f), 3.0f, 4.0f);
     }
 
     bool hitTest(int x, int y) override

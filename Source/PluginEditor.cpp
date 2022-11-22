@@ -288,20 +288,26 @@ void PlugDataPluginEditor::resized()
 
     statusbar.setBounds(0, getHeight() - statusbar.getHeight(), getWidth() - sidebar.getWidth(), statusbar.getHeight());
 
-    auto fb = FlexBox(FlexBox::Direction::row, FlexBox::Wrap::noWrap, FlexBox::AlignContent::flexStart, FlexBox::AlignItems::stretch, FlexBox::JustifyContent::flexStart);
+    auto fb = FlexBox(FlexBox::Direction::row, FlexBox::Wrap::noWrap, FlexBox::AlignContent::flexStart, FlexBox::AlignItems::stretch, FlexBox::JustifyContent::spaceBetween);
 
     for (int b = 0; b < 9; b++)
     {
         auto* button = toolbarButtons[b];
 
-        auto item = FlexItem(*button).withMinWidth(80.0f).withMinHeight(8.0f).withMaxWidth(120.0f);
-        item.flexGrow = 1.0f;
+        auto item = FlexItem(*button).withMinWidth(45.0f).withMinHeight(8.0f).withMaxWidth(55.0f);
+        item.flexGrow = 1.5f;
         item.flexShrink = 1.0f;
 
         if (b == 3 || b == 5)
         {
-            auto separator = FlexItem(seperators[b == 4]).withMinWidth(1.0f).withMaxWidth(12.0f);
+            auto separator = FlexItem(seperators[b]).withMinWidth(8.0f).withMaxWidth(10.0f);
             separator.flexGrow = 1.0f;
+            separator.flexShrink = 1.0f;
+            fb.items.add(separator);
+        }
+        else {
+            auto separator = FlexItem(seperators[b]).withMinWidth(3.0f).withMaxWidth(4.0f);
+            separator.flexGrow = 0.0f;
             separator.flexShrink = 1.0f;
             fb.items.add(separator);
         }
@@ -309,7 +315,7 @@ void PlugDataPluginEditor::resized()
         fb.items.add(item);
     }
 
-    Rectangle<float> toolbarBounds = {5.0f, 0.0f, getWidth() - sidebar.getWidth() + 60.0f, static_cast<float>(toolbarHeight)};
+    Rectangle<float> toolbarBounds = {8.0f, 0.0f, getWidth() - sidebar.getWidth() + 5.0f, static_cast<float>(toolbarHeight)};
     if (toolbarButton(Hide)->getToggleState()) toolbarBounds.setWidth(getWidth() - 50.0f);
 
     fb.performLayout(toolbarBounds);

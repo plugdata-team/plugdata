@@ -1,5 +1,19 @@
 #pragma once
 
+// A Stack Blur implementation, and a copy of JUCE's DropShadower that uses StackBlur
+// We use stack blur for the shadows in the UI, and the window shadows on Linux and Windows
+
+// The Stack Blur Algorithm was invented by Mario Klingemann,
+// mario@quasimondo.com and described here:
+// http://incubator.quasimondo.com/processing/fast_blur_deluxe.php
+
+// Stackblur algorithm by Mario Klingemann
+// Details here:
+// http://www.quasimondo.com/StackBlurForCanvas/StackBlurDemo.html
+// C++ implemenation base from:
+// https://gist.github.com/benjamin9999/3809142
+// http://www.antigrain.com/__code/include/agg_blur.h.html
+
 struct StackShadow
 {
     
@@ -697,16 +711,7 @@ struct StackShadow
         }
     }
     
-    // The Stack Blur Algorithm was invented by Mario Klingemann,
-    // mario@quasimondo.com and described here:
-    // http://incubator.quasimondo.com/processing/fast_blur_deluxe.php
-    
-    // Stackblur algorithm by Mario Klingemann
-    // Details here:
-    // http://www.quasimondo.com/StackBlurForCanvas/StackBlurDemo.html
-    // C++ implemenation base from:
-    // https://gist.github.com/benjamin9999/3809142
-    // http://www.antigrain.com/__code/include/agg_blur.h.html
+
     static void applyStackBlur (Image& img, int radius)
     {
         if (img.getFormat() == Image::ARGB)          applyStackBlurARGB (img, (unsigned int)radius);
@@ -746,4 +751,416 @@ struct StackShadow
         g.drawImageAt (renderedPath, area.getX(), area.getY(), true);
     }
     
+};
+
+namespace juce
+{
+bool isWindowOnCurrentVirtualDesktop (void* x);
+}
+
+
+class StackDropShadower : private ComponentListener
+{
+public:
+    //==============================================================================
+    /** Creates a DropShadower. */
+    StackDropShadower (const DropShadow& shadowType) : shadow (shadowType)  {}
+
+    /** Destructor. */
+    ~StackDropShadower() override
+    {
+        if (virtualDesktopWatcher != nullptr)
+            virtualDesktopWatcher->removeListener (this);
+
+        if (owner != nullptr)
+        {
+            owner->removeComponentListener (this);
+            owner = nullptr;
+        }
+
+        updateParent();
+
+        const ScopedValueSetter<bool> setter (reentrant, true);
+        shadowWindows.clear();
+    }
+
+    /** Attaches the DropShadower to the component you want to shadow. */
+    void setOwner (Component* componentToFollow)
+    {
+        if (componentToFollow != owner)
+        {
+            if (owner != nullptr)
+                owner->removeComponentListener (this);
+
+            // (the component can't be null)
+            jassert (componentToFollow != nullptr);
+
+            owner = componentToFollow;
+            jassert (owner != nullptr);
+
+            updateParent();
+            owner->addComponentListener (this);
+
+            // The visibility of `owner` is transitively affected by the visibility of its parents. Thus we need to trigger the
+            // componentVisibilityChanged() event in case it changes for any of the parents.
+            visibilityChangedListener = std::make_unique<ParentVisibilityChangedListener> (*owner,
+                                                                                           static_cast<ComponentListener&> (*this));
+
+            virtualDesktopWatcher = std::make_unique<VirtualDesktopWatcher> (*owner);
+            virtualDesktopWatcher->addListener (this, [this]() { updateShadows(); });
+
+            
+            updateShadows();
+        }
+    }
+    
+    void repaint()
+    {
+        for (int i = 4; --i >= 0;)
+        {
+            // there seem to be rare situations where the dropshadower may be deleted by
+            // callbacks during this loop, so use a weak ref to watch out for this..
+            WeakReference<Component> sw (shadowWindows[i]);
+            if (sw != nullptr)
+            {
+                sw->repaint();
+            }
+        }
+    }
+    
+private:
+    
+    //==============================================================================
+    void componentMovedOrResized (Component& c, bool, bool) override
+    {
+        if (owner == &c)
+            updateShadows();
+    }
+    
+    void componentBroughtToFront (Component& c) override
+    {
+        if (owner == &c)
+            updateShadows();
+    }
+    
+    void componentChildrenChanged (Component&) override
+    {
+        updateShadows();
+    }
+
+    void componentParentHierarchyChanged (Component& c) override
+    {
+        if (owner == &c)
+        {
+            updateParent();
+            updateShadows();
+        }
+    }
+    
+    void componentVisibilityChanged (Component& c) override
+    {
+        if (owner == &c)
+            updateShadows();
+    }
+    
+    void updateShadows()
+    {
+        if (reentrant)
+            return;
+
+        const ScopedValueSetter<bool> setter (reentrant, true);
+
+        if (owner != nullptr
+            && owner->isShowing()
+            && owner->getWidth() > 0 && owner->getHeight() > 0
+            && (Desktop::canUseSemiTransparentWindows() || owner->getParentComponent() != nullptr)
+            && (virtualDesktopWatcher == nullptr || ! virtualDesktopWatcher->shouldHideDropShadow()))
+        {
+            while (shadowWindows.size() < 4)
+                shadowWindows.add (new ShadowWindow (owner, shadow));
+
+            const int shadowEdge = jmax (shadow.offset.x, shadow.offset.y) + shadow.radius * 2.0f;
+            
+            // Reduce by shadow radius. We'll compensate later by drawing the shadow twice as large
+            auto b = owner->getBounds().reduced(shadow.radius);
+            const int x = b.getX();
+            const int y = b.getY() - shadowEdge;
+            const int w = b.getWidth();
+            const int h = b.getHeight() + shadowEdge + shadowEdge;
+
+            for (int i = 4; --i >= 0;)
+            {
+                // there seem to be rare situations where the dropshadower may be deleted by
+                // callbacks during this loop, so use a weak ref to watch out for this..
+                WeakReference<Component> sw (shadowWindows[i]);
+
+                if (sw != nullptr)
+                {
+                    sw->setAlwaysOnTop (owner->isAlwaysOnTop());
+
+                    if (sw == nullptr)
+                        return;
+
+                    switch (i)
+                    {
+                        case 0: sw->setBounds (x - shadowEdge, y, shadowEdge, h); break;
+                        case 1: sw->setBounds (x + w, y, shadowEdge, h); break;
+                        case 2: sw->setBounds (x, y, w, shadowEdge); break;
+                        case 3: sw->setBounds (x, b.getBottom(), w, shadowEdge); break;
+                        default: break;
+                    }
+
+                    if (sw == nullptr)
+                        return;
+
+                    sw->toBehind (i == 3 ? owner.get() : shadowWindows.getUnchecked (i + 1));
+                }
+            }
+        }
+        else
+        {
+            shadowWindows.clear();
+        }
+    }
+
+    void updateParent()
+    {
+        if (Component* p = lastParentComp)
+            p->removeComponentListener (this);
+
+        lastParentComp = owner != nullptr ? owner->getParentComponent() : nullptr;
+
+        if (Component* p = lastParentComp)
+            p->addComponentListener (this);
+    }
+    
+
+    class ShadowWindow  : public Component
+    {
+    public:
+        ShadowWindow (Component* comp, const DropShadow& ds)
+            : target (comp), shadow (ds)
+        {
+            setVisible (true);
+            setAccessible (false);
+            setInterceptsMouseClicks (false, false);
+
+            if (comp->isOnDesktop())
+            {
+               #if JUCE_WINDOWS
+                const auto scope = [&]() -> std::unique_ptr<ScopedThreadDPIAwarenessSetter>
+                {
+                    if (comp != nullptr)
+                        if (auto* handle = comp->getWindowHandle())
+                            return std::make_unique<ScopedThreadDPIAwarenessSetter> (handle);
+
+                    return nullptr;
+                }();
+               #endif
+
+                setSize (1, 1); // to keep the OS happy by not having zero-size windows
+                addToDesktop (ComponentPeer::windowIgnoresMouseClicks
+                                | ComponentPeer::windowIsTemporary
+                                | ComponentPeer::windowIgnoresKeyPresses);
+            }
+            else if (Component* const parent = comp->getParentComponent())
+            {
+                parent->addChildComponent (this);
+            }
+        }
+
+        void paint (Graphics& g) override
+        {
+            if (auto* c = dynamic_cast<TopLevelWindow*>(target.get())) {
+                auto shadowPath = Path();
+                shadowPath.addRoundedRectangle(getLocalArea(c, c->getLocalBounds().reduced(shadow.radius)).toFloat(), 6.0f);
+                
+                auto radius = c->isActiveWindow() ? shadow.radius * 2.0f : shadow.radius * 1.5f;
+                StackShadow::renderDropShadow(g, shadowPath, shadow.colour, radius, shadow.offset);
+            }
+        }
+
+        void resized() override
+        {
+            repaint();  // (needed for correct repainting)
+        }
+
+        float getDesktopScaleFactor() const override
+        {
+            if (target != nullptr)
+                return target->getDesktopScaleFactor();
+
+            return Component::getDesktopScaleFactor();
+        }
+
+    private:
+        WeakReference<Component> target;
+        DropShadow shadow;
+
+        JUCE_DECLARE_NON_COPYABLE (ShadowWindow)
+    };
+
+    class VirtualDesktopWatcher final  : public ComponentListener,
+                                                       private Timer
+    {
+    public:
+        //==============================================================================
+        VirtualDesktopWatcher (Component& c) : component (&c)
+        {
+            component->addComponentListener (this);
+            update();
+        }
+
+        ~VirtualDesktopWatcher() override
+        {
+            stopTimer();
+
+            if (auto* c = component.get())
+                c->removeComponentListener (this);
+        }
+
+        bool shouldHideDropShadow() const
+        {
+            return hasReasonToHide;
+        }
+
+        void addListener (void* listener, std::function<void()> cb)
+        {
+            listeners[listener] = std::move (cb);
+        }
+
+        void removeListener (void* listener)
+        {
+            listeners.erase (listener);
+        }
+
+        //==============================================================================
+        void componentParentHierarchyChanged (Component& c) override
+        {
+            if (component.get() == &c)
+                update();
+        }
+
+    private:
+        //==============================================================================
+        void update()
+        {
+            const auto newHasReasonToHide = [this]()
+            {
+                if (! component.wasObjectDeleted() && isWindows && component->isOnDesktop())
+                {
+                    startTimerHz (5);
+                    return ! isWindowOnCurrentVirtualDesktop (component->getWindowHandle());
+                }
+
+                stopTimer();
+                return false;
+            }();
+
+            if (std::exchange (hasReasonToHide, newHasReasonToHide) != newHasReasonToHide)
+                for (auto& l : listeners)
+                    l.second();
+        }
+
+        void timerCallback() override
+        {
+            update();
+        }
+
+        //==============================================================================
+        WeakReference<Component> component;
+        const bool isWindows = (SystemStats::getOperatingSystemType() & SystemStats::Windows) != 0;
+        bool hasReasonToHide = false;
+        std::map<void*, std::function<void()>> listeners;
+    };
+
+    class ParentVisibilityChangedListener  : public ComponentListener
+    {
+    public:
+        ParentVisibilityChangedListener (Component& r, ComponentListener& l)
+            : root (&r), listener (&l)
+        {
+            updateParentHierarchy();
+        }
+
+        ~ParentVisibilityChangedListener() override
+        {
+            for (auto& compEntry : observedComponents)
+                if (auto* comp = compEntry.get())
+                    comp->removeComponentListener (this);
+        }
+
+        void componentVisibilityChanged (Component& component) override
+        {
+            if (root != &component)
+                listener->componentVisibilityChanged (*root);
+        }
+
+        void componentParentHierarchyChanged (Component& component) override
+        {
+            if (root == &component)
+                updateParentHierarchy();
+        }
+
+    private:
+        class ComponentWithWeakReference
+        {
+        public:
+            explicit ComponentWithWeakReference (Component& c)
+                : ptr (&c), ref (&c) {}
+
+            Component* get() const { return ref.get(); }
+
+            bool operator< (const ComponentWithWeakReference& other) const { return ptr < other.ptr; }
+
+        private:
+            Component* ptr;
+            WeakReference<Component> ref;
+        };
+
+        void updateParentHierarchy()
+        {
+            const auto lastSeenComponents = std::exchange (observedComponents, [&]
+            {
+                std::set<ComponentWithWeakReference> result;
+
+                for (auto node = root; node != nullptr; node = node->getParentComponent())
+                    result.emplace (*node);
+
+                return result;
+            }());
+
+            const auto withDifference = [] (const auto& rangeA, const auto& rangeB, auto&& callback)
+            {
+                std::vector<ComponentWithWeakReference> result;
+                std::set_difference (rangeA.begin(), rangeA.end(), rangeB.begin(), rangeB.end(), std::back_inserter (result));
+
+                for (const auto& item : result)
+                    if (auto* c = item.get())
+                        callback (*c);
+            };
+
+            withDifference (lastSeenComponents, observedComponents, [this] (auto& comp) { comp.removeComponentListener (this); });
+            withDifference (observedComponents, lastSeenComponents, [this] (auto& comp) { comp.addComponentListener (this); });
+        }
+
+        Component* root = nullptr;
+        ComponentListener* listener = nullptr;
+        std::set<ComponentWithWeakReference> observedComponents;
+
+        JUCE_DECLARE_NON_COPYABLE (ParentVisibilityChangedListener)
+        JUCE_DECLARE_NON_MOVEABLE (ParentVisibilityChangedListener)
+    };
+
+    WeakReference<Component> owner;
+    OwnedArray<Component> shadowWindows;
+    DropShadow shadow;
+    bool reentrant = false;
+    WeakReference<Component> lastParentComp;
+
+    std::unique_ptr<ParentVisibilityChangedListener> visibilityChangedListener;
+    std::unique_ptr<VirtualDesktopWatcher> virtualDesktopWatcher;
+
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (StackDropShadower);
+    JUCE_DECLARE_WEAK_REFERENCEABLE (StackDropShadower);
 };
