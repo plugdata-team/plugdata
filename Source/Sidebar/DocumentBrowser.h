@@ -75,7 +75,7 @@ public:
         p.addTriangle(0.0f, 0.0f, 1.0f, isOpen() ? 0.0f : 0.5f, isOpen() ? 0.5f : 0.0f, 1.0f);
         g.setColour(isSelected() ? getOwnerView()->findColour(PlugDataColour::panelActiveTextColourId) : getOwnerView()->findColour(PlugDataColour::panelTextColourId).withAlpha(isMouseOver ? 0.7f : 1.0f));
         
-        auto pathArea = area.translated(8, 0);
+        auto pathArea = area.translated(10, 0);
         g.fillPath(p, p.getTransformToScaleToFit(pathArea.reduced(2, pathArea.getHeight() / 4), true));
     }
 
@@ -350,7 +350,7 @@ public:
             
             auto selectedRect = getSelectedItem(0)->getItemPosition(true);
             selectedRect = selectedRect.withX(0).withWidth(getWidth()).withHeight(24);
-            g.fillRoundedRectangle(selectedRect.reduced(4, 2).toFloat(), 4.0f);
+            g.fillRoundedRectangle(selectedRect.reduced(6, 2).toFloat(), 4.0f);
         }
     }
     // Paint file drop outline

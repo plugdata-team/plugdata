@@ -113,10 +113,7 @@ struct CommentObject final : public TextBase
             
 
             editor->onFocusLost = [this]() {
-                // Necessary so the editor doesn't close when clicking on a suggestion
-                if (!reinterpret_cast<Component*>(cnv->suggestor)->hasKeyboardFocus(true)) {
-                    hideEditor();
-                }
+                hideEditor();
             };
 
             editor->setSize(10, 10);
