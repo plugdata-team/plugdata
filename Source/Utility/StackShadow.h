@@ -14,6 +14,11 @@
 // https://gist.github.com/benjamin9999/3809142
 // http://www.antigrain.com/__code/include/agg_blur.h.html
 
+#if JUCE_WINDOWS
+#include <juce_gui_basics/native/juce_win32_ScopedThreadDPIAwarenessSetter.h>
+#endif
+
+
 struct StackShadow
 {
     
@@ -913,7 +918,7 @@ private:
                     if (sw == nullptr)
                         return;
 
-                    sw->toBehind (i == 3 ? owner.get() : shadowWindows.getUnchecked (i + 1));
+                    sw->toBehind(owner.get());
                 }
             }
         }

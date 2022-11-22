@@ -36,8 +36,20 @@ void maximiseLinuxWindow(void* handle);
 
 #include "../Utility/StackShadow.h"
 
+
+// For each OS, we have a different approach to rendering the window shadow
+// macOS:
+// - Use the native shadow, it works fine
+// Windows:
+//  - Native shadows don't work with rounded corners
+//  - Putting a transparent margin around the window makes everything very slow
+//  - We use a modified dropshadower class instead
+// Linux:
+// - Native shadow is inconsistent across window managers and distros (sometimes there is no shadow, even though other windows have it...)
+// - Dropshadower is slow and glitchy
+// - We use a transparent margin around the window to draw the shadow in
 #if JUCE_MAC
-#    define CUSTOM_SHADOW 1
+#    define CUSTOM_SHADOW 0
 #else
 #    define CUSTOM_SHADOW 1
 #endif
@@ -510,9 +522,14 @@ private:
 */
 class PlugDataWindow : public DocumentWindow {
     // Replacement for native Windows shadow, to allow rounded corners
-#if CUSTOM_SHADOW
+#if CUSTOM_SHADOW && JUCE_LINUX
+    Image shadowImage;
+    std::unique_ptr<ResizableBorderComponent> resizer;
+    ComponentBoundsConstrainer constrainer;
+#elif CUSTOM_SHADOW
     StackDropShadower dropShadower = StackDropShadower(DropShadow(Colour(85, 85, 85), 20, {0, 3}));
 #endif
+
     
 public:
     typedef StandalonePluginHolder::PluginInOuts PluginInOuts;
@@ -534,10 +551,20 @@ public:
     {
 #if CUSTOM_SHADOW
         setDropShadowEnabled(false);
+        
+#if JUCE_LINUX
+        resizer = std::make_unique<ResizableBorderComponent>(this, &constrainer);
+        resizer->setBorderThickness(BorderSize(4));
+        resizer->setAlwaysOnTop(true);
+        Component::addAndMakeVisible(resizer.get());
+        setResizable(false, false);
+#else
+        setResizable(true, false);
         dropShadower.setOwner(this);
 #endif
-        
+#else
         setResizable(true, false);
+#endif
         
         setOpaque(false);
 
@@ -639,9 +666,25 @@ public:
     }
     
 #if CUSTOM_SHADOW
+    
+#if JUCE_LINUX
+    void paint(Graphics& g) override
+    {
+        auto b = getLocalBounds();
+        Path localPath;
+        localPath.addRoundedRectangle(b.toFloat().reduced(27.0f), 6.0f);
+        
+        int radius = isActiveWindow() ? 21 : 16;
+        StackShadow::renderDropShadow(g, localPath, Colour(85, 85, 85), radius, {0, 3});
+    }
+    void activeWindowStatusChanged() override {
+        repaint();
+    }
+#else
     void activeWindowStatusChanged() override {
         dropShadower.repaint();
     }
+#endif
 #endif
 
     void resized() override
@@ -657,16 +700,18 @@ public:
                 b->setToggleState(false, dontSendNotification);
             }
         }
-    #else
+        
+        auto titleBarArea = Rectangle<int>(0, 30, getWidth() - 26, 25);
+        if(resizer) resizer->setBounds(getLocalBounds().reduced(16));
+#else
+        auto titleBarArea = Rectangle<int>(0, 12, getWidth() - 8, 25);
         if (auto* b = getMaximiseButton())
             b->setToggleState(isFullScreen(), dontSendNotification);
-        #endif
-
-        auto titleBarArea = Rectangle<int>(0, 12, getWidth() - 8, 25);
+#endif
 
         getLookAndFeel().positionDocumentWindowButtons(*this, titleBarArea.getX(), titleBarArea.getY(), titleBarArea.getWidth(), titleBarArea.getHeight(), getMinimiseButton(), getMaximiseButton(), getCloseButton(), false);
         
-        //if (auto* content = getContentComponent()) content->repaint();
+        if (auto* content = getContentComponent()) content->repaint();
     }
 
     virtual StandalonePluginHolder* getPluginHolder()
@@ -680,6 +725,13 @@ private:
     class MainContentComponent : public Component
         , private ComponentListener
         , public MenuBarModel {
+            
+#if CUSTOM_SHADOW && JUCE_LINUX
+            int margin = 18;
+#else
+            int margin = 0;
+#endif
+            
     public:
             
         MainContentComponent(PlugDataWindow& filterWindow)
@@ -713,7 +765,7 @@ private:
         void paintOverChildren(Graphics& g) override
         {
             g.setColour(findColour(PlugDataColour::outlineColourId));
-            g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), 6.0f, 1.0f);
+            g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(margin + 0.5f), 6.0f, 1.0f);
         }
 #endif
 
@@ -768,7 +820,7 @@ private:
 
         void resized() override
         {
-            auto r = getLocalBounds();
+            auto r = getLocalBounds().reduced(margin);
 
             if (editor != nullptr) {
                 auto const newPos = r.getTopLeft().toFloat().transformedBy(editor->getTransform().inverted());
@@ -800,7 +852,7 @@ private:
         Rectangle<int> getSizeToContainEditor() const
         {
             if (editor != nullptr)
-                return getLocalArea(editor.get(), editor->getLocalBounds());
+                return getLocalArea(editor.get(), editor->getLocalBounds()).expanded(margin);
 
             return {};
         }
