@@ -175,7 +175,11 @@ struct TabComponent : public TabbedComponent
         g.drawLine(Line<float>(getTabBarDepth() - 0.5f, 0, getTabBarDepth() - 0.5f, getTabBarDepth()), 1.0f);
 
         g.drawLine(0, 0, getWidth(), 0);
-
+        
+        /*
+        Path shadowPath;
+        shadowPath.addRectangle(0, -2, getWidth(), 2);
+        StackShadow::renderDropShadow(g, shadowPath, Colour(85, 85, 85), 3); */
     }
     
     WelcomePanel welcomePanel;
