@@ -47,7 +47,7 @@ struct Dialog : public Component {
         return viewedComponent.get();
     }
 
-    void paint(Graphics& g)
+    void paint(Graphics& g) override
     {
         g.setColour(Colours::black.withAlpha(0.5f));
 
@@ -64,8 +64,12 @@ struct Dialog : public Component {
             g.drawRoundedRectangle(viewedComponent->getBounds().toFloat(), 5.0f, 1.0f);
         }
     }
+    
+    void parentSizeChanged() override {
+        setBounds(getParentComponent()->getLocalBounds());
+    }
 
-    void resized()
+    void resized() override
     {
         if (viewedComponent) {
             viewedComponent->setSize(width, height);
@@ -77,7 +81,7 @@ struct Dialog : public Component {
         }
     }
 
-    void mouseDown(MouseEvent const& e)
+    void mouseDown(MouseEvent const& e) override
     {
         closeDialog();
     }
