@@ -93,7 +93,7 @@ class SuggestionComponent : public Component
                 g.setColour(type ? signalColour : dataColour);
                 Rectangle<int> iconbound = getLocalBounds().reduced(4);
                 iconbound.setWidth(getHeight() - 8);
-                iconbound.translate(6, 0);
+                iconbound.translate(8, 0);
                 g.fillRoundedRectangle(iconbound.toFloat(), 4.0f);
 
                 g.setColour(Colours::white);
@@ -233,9 +233,9 @@ public:
 
         // Auto-scroll item into viewport bounds
         if (port->getViewPositionY() > but->getY()) {
-            port->setViewPosition(0, but->getY());
+            port->setViewPosition(0, but->getY() - 6);
         } else if (port->getViewPositionY() + port->getMaximumVisibleHeight() < but->getY() + but->getHeight()) {
-            port->setViewPosition(0, but->getY() - (but->getHeight() * 4));
+            port->setViewPosition(0, but->getY() - (but->getHeight() * 4) + 6);
         }
 
         repaint();
@@ -248,7 +248,7 @@ public:
     {
         int yScroll = port->getViewPositionY();
         port->setBounds(getLocalBounds().reduced(15));
-        buttonholder->setBounds(0, 0, getWidth(), std::min(numOptions, 20) * 22 + 2);
+        buttonholder->setBounds(6, 0, getWidth(), std::min(numOptions, 20) * 22 + 8);
 
         for (int i = 0; i < buttons.size(); i++)
             buttons[i]->setBounds(2, (i * 22) + 2, getWidth() - 32, 23);

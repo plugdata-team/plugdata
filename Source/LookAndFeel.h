@@ -633,22 +633,10 @@ struct PlugDataLook : public LookAndFeel_V4
     
     void drawSuggestionButton(Graphics& g, Button& button, const Colour& backgroundColour, bool shouldDrawButtonAsHighlighted, bool shouldDrawButtonAsDown)
     {
-        auto buttonArea = button.getLocalBounds();
-        
-        if (shouldDrawButtonAsDown)
-        {
-            g.setColour(backgroundColour.darker());
-        }
-        else if (shouldDrawButtonAsHighlighted)
-        {
-            g.setColour(backgroundColour.brighter());
-        }
-        else
-        {
-            g.setColour(backgroundColour);
-        }
-        
-        g.fillRoundedRectangle(buttonArea.reduced(6, 2).toFloat(), 6.0f);
+        auto buttonArea = button.getLocalBounds().reduced(6, 2).toFloat();
+
+        g.setColour(backgroundColour);
+        g.fillRoundedRectangle(buttonArea, 6.0f);
     }
     
     void drawInspectorButton(Graphics& g, Button& button, const Colour& backgroundColour, bool shouldDrawButtonAsHighlighted, bool shouldDrawButtonAsDown)
