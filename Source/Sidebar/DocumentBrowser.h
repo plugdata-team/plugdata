@@ -375,8 +375,8 @@ public:
         } else if (file.existsAsFile() && file.hasFileExtension("pd")) {
             browser->pd->loadPatch(file);
         } else if (file.existsAsFile()) {
-            if (auto* editor = dynamic_cast<PlugDataPluginEditor*>(browser->pd->getActiveEditor())) {
-                auto* cnv = editor->getCurrentCanvas();
+            auto* editor = dynamic_cast<PlugDataPluginEditor*>(browser->pd->getActiveEditor());
+            if (auto* cnv = editor->getCurrentCanvas()) {
                 cnv->attachNextObjectToMouse = true;
 
                 auto lastPosition = cnv->viewport->getViewArea().getConstrainedPoint(cnv->getMouseXYRelative() - Point<int>(Object::margin, Object::margin));
