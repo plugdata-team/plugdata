@@ -512,10 +512,10 @@ class PlugDataWindow : public DocumentWindow {
     // Replacement for native Windows shadow, to allow rounded corners
 #if CUSTOM_SHADOW
     Image shadowImage;
-#endif
-    
     std::unique_ptr<ResizableBorderComponent> resizer;
     ComponentBoundsConstrainer constrainer;
+#endif
+    
 public:
     typedef StandalonePluginHolder::PluginInOuts PluginInOuts;
 
@@ -536,6 +536,11 @@ public:
     {
 #if CUSTOM_SHADOW
         setDropShadowEnabled(false);
+        
+        resizer = std::make_unique<ResizableBorderComponent>(this, &constrainer);
+        resizer->setBorderThickness(BorderSize(4));
+        resizer->setAlwaysOnTop(true);
+        Component::addAndMakeVisible(resizer.get());
 #endif
 
         setTitleBarHeight(0);
@@ -582,10 +587,7 @@ public:
         setBoundsConstrained(windowScreenBounds);
 
 #if CUSTOM_SHADOW
-        resizer = std::make_unique<ResizableBorderComponent>(editor, &constrainer);
-        resizer->setBorderThickness(BorderSize(4));
-        resizer->setSize(editor->getWidth(), editor->getHeight());
-        editor->addAndMakeVisible(resizer.get());
+        setResizable(false, false);
 #else
         setResizable(true, false);
 #endif
@@ -625,9 +627,9 @@ public:
     }
 
     // Prevents CMD+W from terminating app
-    bool keyStateChanged (bool isKeyDown) override { 
-	if (KeyPress (87, ModifierKeys::commandModifier, 0).isCurrentlyDown())
-	return true;
+    bool keyStateChanged (bool isKeyDown) override {
+    if (KeyPress (87, ModifierKeys::commandModifier, 0).isCurrentlyDown())
+    return true;
     else return false;
     }
    
@@ -648,11 +650,6 @@ public:
         g.drawImageAt(shadowImage, 0, 0);
     }
     
-    void paintOverChildren(Graphics& g) override
-    {
-        g.setColour(findColour(PlugDataColour::outlineColourId));
-        g.drawRoundedRectangle(getLocalBounds().reduced(16).toFloat(), 6.0f, 1.0f);
-    }
 #endif
 
     void resized() override
@@ -689,11 +686,9 @@ public:
         localPath.addRoundedRectangle(b.toFloat().reduced(19), 6.0f);
         StackShadow::renderDropShadow(g, localPath, Colour(85, 85, 85), 16, {0, 2});
 #endif
-
         
-        if (auto* content = getContentComponent()) {
-            content->repaint();
-        }
+        if (auto* content = getContentComponent()) content->repaint();        
+        if(resizer) resizer->setBounds(getLocalBounds().reduced(12));
     }
 
     virtual StandalonePluginHolder* getPluginHolder()
@@ -721,6 +716,7 @@ private:
             inputMutedValue.referTo(owner.pluginHolder->getMuteInputValue());
 
             if (editor != nullptr) {
+                
                 auto* commandManager = dynamic_cast<ApplicationCommandManager*>(editor.get());
 
                 // Menubar, only for standalone on mac
@@ -735,8 +731,18 @@ private:
 
                 addAndMakeVisible(editor.get());
                 editor->setAlwaysOnTop(true);
+
             }
         }
+        
+
+#if CUSTOM_SHADOW
+        void paintOverChildren(Graphics& g) override
+        {
+            g.setColour(findColour(PlugDataColour::outlineColourId));
+            g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(12.5f), 6.0f, 1.0f);
+        }
+#endif
 
         AudioProcessorEditor* getEditor() { return editor.get(); }
 
@@ -797,8 +803,13 @@ private:
                 if (preventResizingEditor)
                     editor->setTopLeftPosition(newPos.roundToInt());
                 else
-                    editor->setBoundsConstrained(editor->getLocalArea(this, r.toFloat()).withPosition(newPos).toNearestInt());
+                    editor->setBoundsConstrained(r);
+                
+                getTopLevelComponent()->repaint();
             }
+            
+
+            repaint();
         }
 
     private:
@@ -816,7 +827,7 @@ private:
         Rectangle<int> getSizeToContainEditor() const
         {
             if (editor != nullptr)
-                return getLocalArea(editor.get(), editor->getLocalBounds().expanded(margin));
+                return getLocalArea(editor.get(), editor->getLocalBounds()).expanded(margin);
 
             return {};
         }
