@@ -98,7 +98,7 @@ struct MessageObject final : public TextBase
         }
 
         g.setColour(outlineColour);
-        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), 2.0f, 1.0f);
+        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), 3.0f, 1.0f);
     }
     
     void paintOverChildren(Graphics& g) override
@@ -114,7 +114,7 @@ struct MessageObject final : public TextBase
         g.fillPath(flagPath);
         
         if (isDown) {
-            g.drawRoundedRectangle(b.reduced(1).toFloat(), 2.0f, 3.0f);
+            g.drawRoundedRectangle(b.reduced(1).toFloat(), 3.0f, 3.0f);
         }
     }
     

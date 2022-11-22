@@ -282,7 +282,7 @@ void ObjectBase::paint(Graphics& g)
     auto outlineColour = object->findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : objectOutlineColourId);
     
     g.setColour(outlineColour);
-    g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), 2.0f, 1.0f);
+    g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), 3.0f, 1.0f);
 }
 
 NonPatchable::NonPatchable(void* obj, Object* parent)
