@@ -75,7 +75,7 @@ class SuggestionComponent : public Component
                 auto yIndent = jmin(4, proportionOfHeight(0.3f));
                 auto cornerSize = jmin(getHeight(), getWidth()) / 2;
                 auto fontHeight = roundToInt(font.getHeight() * 0.5f);
-                auto leftIndent = drawIcon ? textLength + 32 : textLength + 8;
+                auto leftIndent = drawIcon ? textLength + 36 : textLength + 8;
                 auto rightIndent = jmin(fontHeight, 2 + cornerSize / 2);
                 auto textWidth = getWidth() - leftIndent - rightIndent;
 
