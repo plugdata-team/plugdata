@@ -824,7 +824,7 @@ void Canvas::duplicateSelection()
         }
     }
 
-    // Intelligent auto patching
+    // Auto patching
     if (!wasDragDuplicated && main.autoconnect.getValue()) {
         std::vector<void*> moveObjects;
         for (auto* object : objects) {
