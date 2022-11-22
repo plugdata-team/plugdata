@@ -143,7 +143,7 @@ class Canvas : public Component, public Value::Listener, public LassoSource<Weak
     bool attachNextObjectToMouse = false;
     bool wasDragDuplicated = false;
     bool wasSelectedOnMouseDown = false;
-    Object* lastSelectedObject = nullptr; // For intelligent auto patching
+    Object* lastSelectedObject = nullptr; // For auto patching
     
     // Multi-dragger variables
     bool didStartDragging = false;

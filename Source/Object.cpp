@@ -293,7 +293,7 @@ void Object::setType(String const& newType, void* existingObject)
     updateBounds();
 
    
-    // Intelligent auto patching
+    // Auto patching
     if (static_cast<bool>(cnv->main.autoconnect.getValue()) && numInputs && cnv->lastSelectedObject && cnv->lastSelectedObject->numOutputs) {
         auto outlet = cnv->lastSelectedObject->iolets[cnv->lastSelectedObject->numInputs];
         auto inlet = iolets[0];
