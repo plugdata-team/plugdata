@@ -441,7 +441,7 @@ struct PlugDataLook : public LookAndFeel_V4
         return {buttonHeight / 1.9f};
     }
     
-    void drawPopupMenuBackground(Graphics& g, int width, int height) override
+    void drawPopupMenuBackgroundWithOptions(Graphics& g, int width, int height, const PopupMenu::Options& options) override
     {
         // Add a bit of alpha to disable the opaque flag
         auto background = findColour(PlugDataColour::popupMenuBackgroundColourId);
