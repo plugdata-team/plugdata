@@ -847,6 +847,8 @@ void Canvas::duplicateSelection()
                 }
             }
         }
+
+        // Move duplicated objects if they overlap exisisting objects
         for (auto* dup : duplicated) {
             moveObjects.emplace_back(dup->getPointer());
         }
