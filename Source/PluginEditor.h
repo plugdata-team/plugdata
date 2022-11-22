@@ -201,7 +201,7 @@ class PlugDataPluginEditor : public AudioProcessorEditor, public Value::Listener
 
     SharedResourcePointer<TooltipWindow> tooltipWindow;
 
-    TextButton seperators[2];
+    TextButton seperators[8];
     
     ZoomLabel zoomLabel;
 

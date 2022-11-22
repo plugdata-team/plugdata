@@ -329,7 +329,7 @@ void Object::paintOverChildren(Graphics& g)
         }
 
         g.setColour(Colours::orange);
-        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(Object::margin + 1.0f), 2.0f, 2.0f);
+        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(Object::margin + 1.0f), 3.0f, 2.0f);
 
         g.restoreState();
     }
@@ -344,7 +344,7 @@ void Object::paintOverChildren(Graphics& g)
         }
 
         g.setColour(Colours::lightgreen);
-        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(Object::margin + 1.0f), 2.0f, 2.0f);
+        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(Object::margin + 1.0f), 3.0f, 2.0f);
 
         g.restoreState();
     }
@@ -390,7 +390,7 @@ void Object::paint(Graphics& g)
         // Draw resize iolets when selected
         for (auto& rect : getCorners())
         {
-            g.fillRoundedRectangle(rect, 2.0f);
+            g.fillRoundedRectangle(rect, 3.0f);
         }
         g.restoreState();
     }

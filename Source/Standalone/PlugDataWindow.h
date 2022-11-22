@@ -37,7 +37,7 @@ void maximiseLinuxWindow(void* handle);
 #include "../Utility/StackShadow.h"
 
 #if JUCE_MAC
-#    define CUSTOM_SHADOW 0
+#    define CUSTOM_SHADOW 1
 #else
 #    define CUSTOM_SHADOW 1
 #endif
@@ -511,9 +511,7 @@ private:
 class PlugDataWindow : public DocumentWindow {
     // Replacement for native Windows shadow, to allow rounded corners
 #if CUSTOM_SHADOW
-    Image shadowImage;
-    std::unique_ptr<ResizableBorderComponent> resizer;
-    ComponentBoundsConstrainer constrainer;
+    StackDropShadower dropShadower = StackDropShadower(DropShadow(Colour(85, 85, 85), 20, {0, 3}));
 #endif
     
 public:
@@ -536,15 +534,12 @@ public:
     {
 #if CUSTOM_SHADOW
         setDropShadowEnabled(false);
-        
-        resizer = std::make_unique<ResizableBorderComponent>(this, &constrainer);
-        resizer->setBorderThickness(BorderSize(4));
-        resizer->setAlwaysOnTop(true);
-        Component::addAndMakeVisible(resizer.get());
-        setResizable(false, false);
-#else
-        setResizable(true, false);
+        dropShadower.setOwner(this);
 #endif
+        
+        setResizable(true, false);
+        
+        setOpaque(false);
 
         setTitleBarHeight(0);
         setTitleBarButtonsRequired(DocumentWindow::minimiseButton | DocumentWindow::maximiseButton | DocumentWindow::closeButton, false);
@@ -642,20 +637,10 @@ public:
         setFullScreen(!isFullScreen());
     #endif
     }
-    // Fixes shadow with rounded edges on windows
-#if CUSTOM_SHADOW
-    void paint(Graphics& g) override
-    {
-        auto b = getLocalBounds();
-        Path localPath;
-        localPath.addRoundedRectangle(b.toFloat().reduced(27.0f), 6.0f);
-        
-        int radius = isActiveWindow() ? 21 : 16;
-        StackShadow::renderDropShadow(g, localPath, Colour(85, 85, 85), radius, {0, 3});
-    }
     
+#if CUSTOM_SHADOW
     void activeWindowStatusChanged() override {
-        repaint();
+        dropShadower.repaint();
     }
 #endif
 
@@ -677,12 +662,7 @@ public:
             b->setToggleState(isFullScreen(), dontSendNotification);
         #endif
 
-#if CUSTOM_SHADOW
-        auto titleBarArea = Rectangle<int>(0, 30, getWidth() - 26, 25);
-        if(resizer) resizer->setBounds(getLocalBounds().reduced(12));
-#else
         auto titleBarArea = Rectangle<int>(0, 12, getWidth() - 8, 25);
-#endif
 
         getLookAndFeel().positionDocumentWindowButtons(*this, titleBarArea.getX(), titleBarArea.getY(), titleBarArea.getWidth(), titleBarArea.getHeight(), getMinimiseButton(), getMaximiseButton(), getCloseButton(), false);
         
@@ -701,11 +681,6 @@ private:
         , private ComponentListener
         , public MenuBarModel {
     public:
-#if CUSTOM_SHADOW
-            int margin = 18;
-#else
-            int margin = 0;
-#endif
             
         MainContentComponent(PlugDataWindow& filterWindow)
             : owner(filterWindow)
@@ -738,7 +713,7 @@ private:
         void paintOverChildren(Graphics& g) override
         {
             g.setColour(findColour(PlugDataColour::outlineColourId));
-            g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(margin + 0.5f), 6.0f, 1.0f);
+            g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), 6.0f, 1.0f);
         }
 #endif
 
@@ -793,7 +768,7 @@ private:
 
         void resized() override
         {
-            auto r = getLocalBounds().reduced(margin);
+            auto r = getLocalBounds();
 
             if (editor != nullptr) {
                 auto const newPos = r.getTopLeft().toFloat().transformedBy(editor->getTransform().inverted());
@@ -825,7 +800,7 @@ private:
         Rectangle<int> getSizeToContainEditor() const
         {
             if (editor != nullptr)
-                return getLocalArea(editor.get(), editor->getLocalBounds()).expanded(margin);
+                return getLocalArea(editor.get(), editor->getLocalBounds());
 
             return {};
         }
