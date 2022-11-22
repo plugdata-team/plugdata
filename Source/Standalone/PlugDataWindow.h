@@ -660,6 +660,16 @@ public:
     {
     #if JUCE_LINUX
         maximiseLinuxWindow(getPeer()->getNativeHandle());
+        
+        if (auto* b = getMaximiseButton()) {
+            if(auto* peer = getPeer()) {
+                 b->setToggleState(isMaximised(peer->getNativeHandle()), dontSendNotification);
+            }
+            else {
+                b->setToggleState(false, dontSendNotification);
+            }
+        }
+        
     #else
         setFullScreen(!isFullScreen());
     #endif
@@ -692,15 +702,6 @@ public:
         ResizableWindow::resized();
 
 #if JUCE_LINUX
-        if (auto* b = getMaximiseButton()) {
-            if(auto* peer = getPeer()) {
-                 b->setToggleState(isMaximised(peer->getNativeHandle()), dontSendNotification);
-            }
-            else {
-                b->setToggleState(false, dontSendNotification);
-            }
-        }
-        
         auto titleBarArea = Rectangle<int>(0, 30, getWidth() - 26, 25);
         if(resizer) resizer->setBounds(getLocalBounds().reduced(16));
 #else
