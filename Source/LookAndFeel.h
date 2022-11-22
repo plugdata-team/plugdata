@@ -648,7 +648,7 @@ struct PlugDataLook : public LookAndFeel_V4
             g.setColour(backgroundColour);
         }
         
-        g.fillRect(buttonArea.toFloat());
+        g.fillRoundedRectangle(buttonArea.reduced(6, 2).toFloat(), 6.0f);
     }
     
     void drawInspectorButton(Graphics& g, Button& button, const Colour& backgroundColour, bool shouldDrawButtonAsHighlighted, bool shouldDrawButtonAsDown)
@@ -906,9 +906,12 @@ struct PlugDataLook : public LookAndFeel_V4
     {
         Path corner;
         
-        corner.addTriangle(Point<float>(0, h), Point<float>(w, h), Point<float>(w, 0));
-        corner = corner.createPathWithRoundedCorners(2.0f);
-        
+        corner.startNewSubPath(0, h);
+        corner.lineTo(w, h);
+        corner.lineTo(w, 0);
+        corner = corner.createPathWithRoundedCorners(6.0f);
+        corner.lineTo(0, h);
+               
         g.setColour(findColour(Slider::thumbColourId).withAlpha(isMouseOver ? 1.0f : 0.6f));
         g.fillPath(corner);
     }

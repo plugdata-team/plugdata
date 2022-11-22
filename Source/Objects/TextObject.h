@@ -196,10 +196,12 @@ struct TextBase : public ObjectBase
             editor->setJustification(justification);
 
             editor->onFocusLost = [this]() {
-                // Necessary so the editor doesn't close when clicking on a suggestion
-                if (!reinterpret_cast<Component*>(cnv->suggestor)->hasKeyboardFocus(true)) {
-                    hideEditor();
+                if(reinterpret_cast<Component*>(cnv->suggestor)->hasKeyboardFocus(true) || Component::getCurrentlyFocusedComponent() == editor.get()) {
+                    editor->grabKeyboardFocus();
+                     return;
                 }
+               
+                hideEditor();
             };
 
             cnv->showSuggestions(object, editor.get());

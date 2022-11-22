@@ -136,7 +136,7 @@ struct Console : public Component {
                 if(isSelected) {
                     // Draw selected background
                     g.setColour(findColour(PlugDataColour::panelActiveBackgroundColourId));
-                    g.fillRoundedRectangle(getLocalBounds().reduced(4, 2).toFloat(), 4.0f);
+                    g.fillRoundedRectangle(getLocalBounds().reduced(6, 2).toFloat(), 4.0f);
                     
                     bool connectedOnTop = false;
                     bool connectedOnBottom = false;
@@ -146,7 +146,7 @@ struct Console : public Component {
                         // Draw connected on top
                         if(item->idx == idx - 1)  {
                             g.setColour(findColour(PlugDataColour::panelActiveBackgroundColourId));
-                            g.fillRect(getLocalBounds().reduced(4, 0).toFloat().withTrimmedBottom(5));
+                            g.fillRect(getLocalBounds().reduced(6, 0).toFloat().withTrimmedBottom(5));
                             
                             g.setColour(findColour(PlugDataColour::outlineColourId));
                             g.drawLine(10, 0, getWidth() - 10, 0);
@@ -155,7 +155,7 @@ struct Console : public Component {
                         // Draw connected on bottom
                         if(item->idx == idx + 1)  {
                             g.setColour(findColour(PlugDataColour::panelActiveBackgroundColourId));
-                            g.fillRect(getLocalBounds().reduced(4, 0).toFloat().withTrimmedTop(5));
+                            g.fillRect(getLocalBounds().reduced(6, 0).toFloat().withTrimmedTop(5));
                         }
                     }
                 }
@@ -181,7 +181,7 @@ struct Console : public Component {
                 
                 // Draw text
                 g.setColour(backgroundColour);
-                g.drawFittedText(message, getLocalBounds().reduced(4, 0).withTrimmedLeft(6), Justification::centredLeft, numLines, 1.0f);
+                g.drawFittedText(message, getLocalBounds().reduced(6, 0).withTrimmedLeft(6), Justification::centredLeft, numLines, 1.0f);
             }
         };
 

@@ -2087,7 +2087,7 @@ struct TextEditorDialog : public Component {
             });
         };
 
-        addToDesktop(ComponentPeer::windowIsTemporary | ComponentPeer::windowHasDropShadow);
+        addToDesktop(ComponentPeer::windowIsTemporary);
         setVisible(true);
 
         // Position in centre of screen
@@ -2101,9 +2101,11 @@ struct TextEditorDialog : public Component {
 
     void resized()
     {
-        resizer.setBounds(getLocalBounds());
-        closeButton->setBounds(getLocalBounds().removeFromTop(30).removeFromRight(30).translated(-5, 5));
-        editor.setBounds(getLocalBounds().withTrimmedTop(40).withTrimmedBottom(20));
+        auto b = getLocalBounds().reduced(15);
+        
+        resizer.setBounds(b);
+        closeButton->setBounds(b.removeFromTop(30).removeFromRight(30).translated(-5, 5));
+        editor.setBounds(b.withTrimmedTop(10).withTrimmedBottom(20));
     }
 
     void mouseDown(MouseEvent const& e)
@@ -2118,22 +2120,29 @@ struct TextEditorDialog : public Component {
 
     void paintOverChildren(Graphics& g)
     {
-        g.setColour(findColour(PlugDataColour::defaultObjectBackgroundColourId));
-        g.drawRoundedRectangle(getLocalBounds().toFloat(), 6.0f, 1.0f);
+        g.setColour(findColour(PlugDataColour::outlineColourId));
+        g.drawRoundedRectangle(getLocalBounds().reduced(15).toFloat(), 6.0f, 1.0f);
     }
 
     void paint(Graphics& g)
     {
-        g.setColour(findColour(PlugDataColour::defaultObjectBackgroundColourId));
-        g.fillRoundedRectangle(getLocalBounds().toFloat(), 6.0f);
-
-        g.setColour(findColour(PlugDataColour::defaultObjectBackgroundColourId));
-        g.drawHorizontalLine(39, 48, getWidth());
-        g.drawHorizontalLine(getHeight() - 20, 48, getWidth());
+        auto shadowPath = Path();
+        shadowPath.addRoundedRectangle(getLocalBounds().reduced(20), 6.0f);
+        
+        StackShadow::renderDropShadow(g, shadowPath, Colour(85, 85, 85), 12.0f);
+        
+        auto b = getLocalBounds().reduced(15);
+        
+        g.setColour(findColour(PlugDataColour::toolbarBackgroundColourId));
+        g.fillRoundedRectangle(b.toFloat(), 6.0f);
+        
+        g.setColour(findColour(PlugDataColour::outlineColourId));
+        g.drawHorizontalLine(b.getX() + 39, b.getY() +  48, b.getWidth());
+        g.drawHorizontalLine(b.getHeight() - 20, b.getY() + 48, b.getWidth());
 
         if (!title.isEmpty()) {
-            g.setColour(findColour(PlugDataColour::canvasTextColourId));
-            g.drawText(title, 0, 0, getWidth(), 40, Justification::centred);
+            g.setColour(findColour(PlugDataColour::toolbarTextColourId));
+            g.drawText(title, b.getX(), b.getY(), b.getWidth(), 40, Justification::centred);
         }
     }
 };

@@ -35,6 +35,8 @@ class SuggestionComponent : public Component
             objectDescription = description;
             setButtonText(name);
             type = name.contains("~") ? 1 : 0;
+            
+            // Argument suggestions don't have icons!
             drawIcon = icon;
 
             repaint();
@@ -48,17 +50,17 @@ class SuggestionComponent : public Component
 
         void paint(Graphics& g) override
         {
-            auto colour = PlugDataColour::panelBackgroundColourId;
+            auto colour = PlugDataColour::popupMenuBackgroundColourId;
 
-            getLookAndFeel().drawButtonBackground(g, *this, findColour(getToggleState() ? PlugDataColour::panelActiveBackgroundColourId : colour), isMouseOver(), isMouseButtonDown());
+            getLookAndFeel().drawButtonBackground(g, *this, findColour(getToggleState() ? PlugDataColour::popupMenuActiveBackgroundColourId : colour), isMouseOver(), isMouseButtonDown());
 
             auto font = getLookAndFeel().getTextButtonFont(*this, getHeight());
             g.setFont(font);
-            g.setColour(getToggleState() ? findColour(PlugDataColour::panelActiveTextColourId) : findColour(PlugDataColour::panelTextColourId));
+            g.setColour(getToggleState() ? findColour(PlugDataColour::popupMenuActiveTextColourId) : findColour(PlugDataColour::popupMenuTextColourId));
             auto yIndent = jmin(4, proportionOfHeight(0.3f));
             auto cornerSize = jmin(getHeight(), getWidth()) / 2;
             auto fontHeight = roundToInt(font.getHeight() * 0.6f);
-            auto leftIndent = drawIcon ? 28 : 5;
+            auto leftIndent = drawIcon ? 34 : 11;
             auto rightIndent = jmin(fontHeight, 2 + cornerSize / (isConnectedOnRight() ? 4 : 2));
             auto textWidth = getWidth() - leftIndent - rightIndent;
 
@@ -68,7 +70,7 @@ class SuggestionComponent : public Component
             if (objectDescription.isNotEmpty()) {
                 auto textLength = font.getStringWidth(getButtonText());
 
-                g.setColour(getToggleState() ? findColour(PlugDataColour::panelActiveTextColourId) : findColour(PlugDataColour::panelTextColourId));
+                g.setColour(getToggleState() ? findColour(PlugDataColour::popupMenuActiveTextColourId) : findColour(PlugDataColour::popupMenuTextColourId));
 
                 auto yIndent = jmin(4, proportionOfHeight(0.3f));
                 auto cornerSize = jmin(getHeight(), getWidth()) / 2;
@@ -91,8 +93,8 @@ class SuggestionComponent : public Component
                 g.setColour(type ? signalColour : dataColour);
                 Rectangle<int> iconbound = getLocalBounds().reduced(4);
                 iconbound.setWidth(getHeight() - 8);
-                iconbound.translate(3, 0);
-                g.fillRect(iconbound);
+                iconbound.translate(6, 0);
+                g.fillRoundedRectangle(iconbound.toFloat(), 4.0f);
 
                 g.setColour(Colours::white);
                 g.drawFittedText(letters[type], iconbound.reduced(1), Justification::centred, 1);
@@ -119,10 +121,11 @@ public:
             but->setClickingTogglesState(true);
             but->setRadioGroupId(110);
             but->setName("suggestions:button");
-
-            // Colour pattern
-            but->setColour(TextButton::buttonColourId, findColour(PlugDataColour::panelBackgroundColourId));
+            but->setColour(TextButton::buttonColourId, findColour(PlugDataColour::dialogBackgroundColourId));
         }
+        
+        // Hack for maintaining keyboard focus when resizing
+        resizer.addMouseListener(this, true);
 
         // Set up viewport
         port = std::make_unique<Viewport>();
@@ -133,7 +136,7 @@ public:
         addAndMakeVisible(port.get());
 
         constrainer.setSizeLimits(150, 120, 500, 400);
-        setSize(250, 115);
+        setSize(280, 140);
 
         addAndMakeVisible(resizer);
 
@@ -181,7 +184,7 @@ public:
         toFront(false);
 
         auto scale = std::sqrt(std::abs(getTransform().getDeterminant()));
-        setTopLeftPosition(object->getScreenX() / scale, object->getScreenBounds().getBottom() / scale);
+        setTopLeftPosition((object->getScreenX() / scale) - 15, (object->getScreenBounds().getBottom() / scale) - 15);
         repaint();
     }
 
@@ -244,31 +247,42 @@ public:
     void resized() override
     {
         int yScroll = port->getViewPositionY();
-        port->setBounds(getLocalBounds());
+        port->setBounds(getLocalBounds().reduced(15));
         buttonholder->setBounds(0, 0, getWidth(), std::min(numOptions, 20) * 22 + 2);
 
         for (int i = 0; i < buttons.size(); i++)
-            buttons[i]->setBounds(2, (i * 22) + 2, getWidth() - 2, 23);
+            buttons[i]->setBounds(2, (i * 22) + 2, getWidth() - 32, 23);
 
         int const resizerSize = 12;
 
-        resizer.setBounds(getWidth() - (resizerSize + 1), getHeight() - (resizerSize + 1), resizerSize, resizerSize);
+        resizer.setBounds(getWidth() - (resizerSize + 1) - 15, getHeight() - (resizerSize + 1) - 15, resizerSize, resizerSize);
 
         port->setViewPosition(0, yScroll);
         repaint();
     }
 
 private:
+        
+    void mouseDown(const MouseEvent& e) override
+    {
+        if(openedEditor) openedEditor->grabKeyboardFocus();
+        
+    }
+        
     void paint(Graphics& g) override
     {
-        g.setColour(findColour(PlugDataColour::toolbarBackgroundColourId));
-        g.fillRect(port->getBounds());
+        auto shadowPath = Path();
+        shadowPath.addRoundedRectangle(getLocalBounds().reduced(20), 6.0f);
+        StackShadow::renderDropShadow(g, shadowPath, Colour(85, 85, 85), 12.0f);
+        
+        g.setColour(findColour(PlugDataColour::popupMenuBackgroundColourId));
+        g.fillRoundedRectangle(port->getBounds().reduced(1).toFloat(), 6.0f);
     }
 
     void paintOverChildren(Graphics& g) override
     {
         g.setColour(bordercolor);
-        g.drawRoundedRectangle(port->getBounds().reduced(1).toFloat(), 3.0f, 2.5f);
+        g.drawRoundedRectangle(port->getBounds().reduced(1).toFloat(), 6.0f, 1.0f);
     }
 
     bool keyPressed(KeyPress const& key, Component* originatingComponent) override
