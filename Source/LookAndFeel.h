@@ -8,6 +8,7 @@
 
 #include <JuceHeader.h>
 #include <map>
+#include "Utility/StackShadow.h"
 
 struct Icons
 {
@@ -443,9 +444,6 @@ struct PlugDataLook : public LookAndFeel_V4
     
     void drawPopupMenuBackgroundWithOptions(Graphics& g, int width, int height, const PopupMenu::Options& options) override
     {
-        // Add a bit of alpha to disable the opaque flag
-        auto background = findColour(PlugDataColour::popupMenuBackgroundColourId);
-        g.setColour(background);
         
         // Fill background if there's no support for transparent popupmenus
 #ifdef PLUGDATA_STANDALONE
@@ -460,11 +458,19 @@ struct PlugDataLook : public LookAndFeel_V4
         g.fillAll(findColour(ResizableWindow::backgroundColourId));
 #endif
         
-        auto bounds = Rectangle<float>(2, 2, width - 4, height - 4);
-        g.fillRoundedRectangle(bounds, 3.0f);
+        Path shadowPath;
+        shadowPath.addRoundedRectangle(Rectangle<float>(0.0f, 0.0f, width, height).reduced(11.0f), 6.0f);
+        StackShadow::renderDropShadow(g, shadowPath, Colour(85, 85, 85), 10, {0, 2});
+        
+        // Add a bit of alpha to disable the opaque flag
+        auto background = findColour(PlugDataColour::popupMenuBackgroundColourId);
+        g.setColour(background);
+        
+        auto bounds = Rectangle<float>(0, 0, width, height).reduced(7);
+        g.fillRoundedRectangle(bounds, 6.0f);
         
         g.setColour(findColour(PlugDataColour::outlineColourId));
-        g.drawRoundedRectangle(bounds, 3.0f, 1.0f);
+        g.drawRoundedRectangle(bounds, 6.0f, 1.0f);
     }
     
     void drawPopupMenuItem (Graphics& g, const Rectangle<int>& area,
@@ -476,7 +482,7 @@ struct PlugDataLook : public LookAndFeel_V4
     {
         if (isSeparator)
         {
-            auto r  = area.reduced (5, 0);
+            auto r  = area.reduced (14, 0);
             r.removeFromTop (roundToInt (((float) r.getHeight() * 0.5f) - 0.5f));
 
             g.setColour (findColour (PlugDataColour::popupMenuTextColourId).withAlpha (0.3f));
@@ -484,7 +490,7 @@ struct PlugDataLook : public LookAndFeel_V4
         }
         else
         {
-            auto r  = area.reduced (1);
+            auto r  = area.reduced (9, 1);
 
             if (isHighlighted && isActive)
             {
@@ -554,7 +560,7 @@ struct PlugDataLook : public LookAndFeel_V4
     
     int getPopupMenuBorderSize() override
     {
-        return 5;
+        return 10;
     };
     
     void drawTextEditorOutline(Graphics& g, int width, int height, TextEditor& textEditor) override
