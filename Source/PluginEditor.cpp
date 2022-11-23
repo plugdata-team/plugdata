@@ -1265,8 +1265,8 @@ bool PlugDataPluginEditor::perform(const InvocationInfo& info)
                     cnv->objects.add(new Object(cnv, objectNames[idx], 
                         Point<int>(
                                     // place beneath object + Object::margin
-                                    obj->getPosition().x + Object::margin,
-                                    obj->getPosition().y + obj->getHeight())
+                                    obj->getX() + Object::margin,
+                                    obj->getY() + obj->getHeight())
                     ));
                 } else {
                     // if 0 or several objects are selected, create new object at mouse position
