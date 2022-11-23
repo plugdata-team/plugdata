@@ -190,9 +190,14 @@ void Iolet::mouseUp(const MouseEvent& e)
             } else if (selection.contains(nearestObject)) {
 
                 // If 'end object' is selected
-                // Connect 'start outlet' with all selected objects
+                // Connect 'start outlet' with all selected objects beneath
+                // Connect all selected objects at or above to 'end object'
                 for (auto* sel : selection) {
-                    cnv->connections.add(new Connection(cnv, cnv->connectingEdges.getFirst(), sel->iolets.getFirst(), false));
+                    if ((sel->getY() > (conObj->getY() + conObj->getHeight() - 15))) {
+                       cnv->connections.add(new Connection(cnv, cnv->connectingEdges.getFirst(), sel->iolets.getFirst(), false));
+                    } else {
+                        cnv->connections.add(new Connection(cnv, sel->iolets[sel->numInputs], nearestObject->iolets.getFirst(), false));
+                    }
                 }
             }
 
