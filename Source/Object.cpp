@@ -677,11 +677,6 @@ void Object::mouseUp(MouseEvent const& e)
         openHelpPatch();
     }
 
-    if (e.getDistanceFromDragStart() > 10 || e.getLengthOfMousePress() > 600)
-    {
-        cnv->connectingEdges.clear();
-    }
-
     if (!originalBounds.isEmpty() && originalBounds.withPosition(0, 0) != getLocalBounds())
     {
         originalBounds.setBounds(0, 0, 0, 0);

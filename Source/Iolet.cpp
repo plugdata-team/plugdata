@@ -77,34 +77,143 @@ void Iolet::resized()
 void Iolet::mouseDrag(const MouseEvent& e)
 {
     // Ignore when locked
-    if (bool(locked.getValue())) return;
+    if (bool(locked.getValue()))
+        return;
 
-    if (object->cnv->connectingEdges.isEmpty() && e.getLengthOfMousePress() > 300)
-    {
+    auto* cnv = findParentComponentOfClass<Canvas>();
+
+    if (cnv->connectingEdges.isEmpty() && e.getLengthOfMousePress() > 100) {
         createConnection();
-        auto* cnv = findParentComponentOfClass<Canvas>();
         cnv->connectingWithDrag = true;
+    }
+    if (cnv->connectingWithDrag && !cnv->connectingEdges.isEmpty()) {
+        auto& connectingEdge = cnv->connectingEdges.getReference(0);
+
+        if (connectingEdge) {
+            auto* nearest = findNearestEdge(cnv, e.getEventRelativeTo(cnv).getPosition(), !connectingEdge->isInlet, connectingEdge->object);
+
+            if (nearest && cnv->nearestEdge != nearest) {
+                nearest->isTargeted = true;
+
+                if (cnv->nearestEdge) {
+                    cnv->nearestEdge->isTargeted = false;
+                    cnv->nearestEdge->repaint();
+                }
+
+                cnv->nearestEdge = nearest;
+                cnv->nearestEdge->repaint();
+            }
+        }
+        cnv->repaint();
     }
 }
 
 void Iolet::mouseUp(const MouseEvent& e)
 {
-    if (bool(locked.getValue())) return;
+    if (bool(locked.getValue()))
+        return;
 
-    if (!e.mouseWasDraggedSinceMouseDown())
-    {
-        bool needsClearing = !object->cnv->connectingEdges.isEmpty() && !(object->cnv->connectingEdges.size() == 1 && e.mods.isShiftDown());
+    auto* cnv = findParentComponentOfClass<Canvas>();
+
+    if (!e.mouseWasDraggedSinceMouseDown() && cnv->connectingEdges.isEmpty()) {
         createConnection();
-        if(needsClearing) object->cnv->connectingEdges.clear();
-        object->cnv->repaint();
-    }
 
-    if (object->cnv->nearestEdge && !object->cnv->connectingEdges.isEmpty() && object->cnv->connectingEdges.getReference(0).getComponent() == this && getLocalBounds().contains(e.getPosition()))
-    {
-        object->cnv->nearestEdge->isTargeted = false;
-        object->cnv->nearestEdge->repaint();
-        object->cnv->nearestEdge = nullptr;
-        object->cnv->connectingEdges.clear();
+    } else if (!cnv->connectingEdges.isEmpty()) {
+
+        if (!e.mouseWasDraggedSinceMouseDown() && !e.mods.isShiftDown()) {
+            createConnection();
+            cnv->connectingEdges.clear();
+
+        } else if (cnv->connectingWithDrag && cnv->nearestEdge && !e.mods.isShiftDown()) {
+            // Releasing a connect-by-drag action
+
+            cnv->nearestEdge->isTargeted = false;
+            cnv->nearestEdge->repaint();
+
+            for (auto& iolet : cnv->connectingEdges) {
+                cnv->nearestEdge->createConnection();
+            }
+
+            cnv->connectingEdges.clear();
+            cnv->nearestEdge = nullptr;
+            cnv->connectingWithDrag = false;
+            cnv->repaint();
+
+        } else if ((cnv->getSelectionOfType<Object>().contains(object) || (cnv->nearestEdge && cnv->getSelectionOfType<Object>().contains(cnv->nearestEdge->object)))
+            && e.mods.isShiftDown() && cnv->getSelectionOfType<Object>().size() > 1 && (cnv->connectingEdges.size() == 1)) {
+
+            // Auto patching - connect to all selected objects
+            // if shift is pressed after mouse down
+
+            auto selection = cnv->getSelectionOfType<Object>();
+
+            Object* nearestObject = object;
+            if (cnv->nearestEdge) {
+                // If connected by drag
+                nearestObject = cnv->nearestEdge->object;
+            }
+
+            if (selection.contains(nearestObject)) {
+
+                // Sort selected objects by X position
+                std::sort(selection.begin(), selection.end(), cnv->sortObjectsByPos);
+
+                auto* conObj = cnv->connectingEdges.getFirst()->object;
+
+                if ((conObj->numOutputs > 1) && selection.contains(conObj)) {
+
+                    // If selected start object has multiple outlets, connect them in selected order
+                    int outletIdx = conObj->numInputs + cnv->connectingEdges.getFirst()->ioletIdx;
+                    for (auto* sel : selection) {
+                        if ((sel != conObj) && (conObj->iolets[outletIdx]) && (sel->numInputs)) {
+                            cnv->connections.add(new Connection(cnv, conObj->iolets[outletIdx], sel->iolets.getFirst(), false));
+                            outletIdx = outletIdx + 1;
+                        }
+                    }
+                } else {
+                    // Else connect all selected objects to the only outlet
+                    for (auto* sel : selection) {
+                        sel->iolets.getFirst()->createConnection();
+                    }
+                }
+            }
+            cnv->connectingEdges.clear();
+
+        } else if (!e.mouseWasDraggedSinceMouseDown() && e.mods.isShiftDown()) {
+            createConnection();
+
+        } else if (cnv->connectingWithDrag && cnv->nearestEdge && e.mods.isShiftDown()) {
+            // Releasing a connect-by-drag action
+
+            cnv->nearestEdge->isTargeted = false;
+            cnv->nearestEdge->repaint();
+
+            for (auto& iolet : cnv->connectingEdges) {
+                cnv->nearestEdge->createConnection();
+            }
+
+            cnv->nearestEdge = nullptr;
+            cnv->connectingWithDrag = false;
+            cnv->repaint();
+        }
+        if (!e.mods.isShiftDown() || cnv->connectingEdges.size() != 1) {
+            cnv->connectingEdges.clear();
+        }
+
+        // TODO: is this needed?
+        //
+        // Unless the call originates from a connection, clear any connections that are being created
+        /* if (cnv->connectingWithDrag && !dynamic_cast<Connection*>(e.originalComponent)) {
+             cnv->connectingEdges.clear();
+             cnv->connectingWithDrag = false;
+             cnv->repaint();
+         }  */
+
+        if (cnv->nearestEdge) {
+            cnv->nearestEdge->isTargeted = false;
+            cnv->nearestEdge->repaint();
+            cnv->nearestEdge = nullptr;
+        }
     }
 }
 
