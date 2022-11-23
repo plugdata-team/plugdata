@@ -349,18 +349,15 @@ void Canvas::mouseDown(MouseEvent const& e)
     }
     // Left-click
     else if (!e.mods.isRightButtonDown()) {
-        // Connecting objects by dragging
         if (source == this || source == graphArea) {
+            
             if (!connectingEdges.isEmpty()) {
+                // Cancel connection when clicked on canvas
                 connectingEdges.clear();
                 repaint();
             }
-
-            lasso.beginLasso(e.getEventRelativeTo(this), this);
-            isDraggingLasso = true;
-
-            // Lock if cmd + click on canvas
             if (e.mods.isCommandDown()) {
+                // Lock if cmd + click on canvas
                 deselectAll();
                 if (locked.getValue()) {
                     locked.setValue(false);
@@ -368,9 +365,12 @@ void Canvas::mouseDown(MouseEvent const& e)
                     locked.setValue(true);
                 }
             }
-            else if(!e.mods.isShiftDown()) {
+            if(!e.mods.isShiftDown()) {
                 deselectAll();
             }
+
+            lasso.beginLasso(e.getEventRelativeTo(this), this);
+            isDraggingLasso = true;
         }
 
         // Update selected object in sidebar when we click a object
@@ -550,7 +550,8 @@ void Canvas::mouseUp(MouseEvent const& e)
     setMouseCursor(MouseCursor::NormalCursor);
     main.updateCommandStatus();
 
-    if (!e.getNumberOfClicks() >= 2 && e.originalComponent == this && !isGraph) {
+    // Double-click canvas to create new object
+    if (e.mods.isLeftButtonDown() && (e.getNumberOfClicks() == 2) && (e.originalComponent == this) && !isGraph) {
         objects.add(new Object(this, "", lastMousePosition));
         deselectAll();
         setSelected(objects[objects.size() - 1], true); // Select newly created object
