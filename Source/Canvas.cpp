@@ -518,31 +518,6 @@ void Canvas::mouseDrag(MouseEvent const& e)
     // Drag lasso
     lasso.dragLasso(e);
 
-    if (connectingWithDrag && !connectingEdges.isEmpty())
-    {
-        auto& connectingEdge = connectingEdges.getReference(0);
-        
-        
-        if(connectingEdge) {
-            auto* nearest = Iolet::findNearestEdge(this, e.getEventRelativeTo(this).getPosition(), !connectingEdge->isInlet, connectingEdge->object);
-            
-            if (nearest && nearestEdge != nearest)
-            {
-                nearest->isTargeted = true;
-                
-                if (nearestEdge)
-                {
-                    nearestEdge->isTargeted = false;
-                    nearestEdge->repaint();
-                }
-                
-                nearestEdge = nearest;
-                nearestEdge->repaint();
-            }
-        }
-
-        repaint();
-    }
 }
 
 void Canvas::mouseUp(MouseEvent const& e)
@@ -557,55 +532,6 @@ void Canvas::mouseUp(MouseEvent const& e)
         setSelected(objects[objects.size() - 1], true); // Select newly created object
     }
 
-    // Releasing a connect-by-drag action
-    if (connectingWithDrag && !connectingEdges.isEmpty() && nearestEdge) {
-        nearestEdge->isTargeted = false;
-        nearestEdge->repaint();
-
-        for (auto& iolet : connectingEdges) {
-            nearestEdge->createConnection();
-        }
-
-        // Auto patching - connect to all selected objects
-        // if shift is pressed after mouse down
-        if (e.mods.isShiftDown() && getSelectionOfType<Object>().size() > 1 && connectingEdges.size() == 1) {
-            auto selection = getSelectionOfType<Object>();
-            if (selection.contains(nearestEdge->object)) {
-                // Sort selected objects by X position
-                std::sort(selection.begin(), selection.end(), sortObjectsByPos);
-                auto* conObj = connectingEdges.getFirst()->object;
-                if ((conObj->numOutputs > 1) && selection.contains(conObj)) {
-                    // If selected object has multiple outlets, connect them in selected order
-                    int outletIdx = conObj->numInputs + connectingEdges.getFirst()->ioletIdx;
-                    for (auto* sel : selection) {
-                        if ((sel != conObj) && (conObj->iolets[outletIdx]) && (sel->numInputs)) {
-                            connections.add(new Connection(this, conObj->iolets[outletIdx], sel->iolets.getFirst(), false));
-                            outletIdx = outletIdx + 1;
-                        }
-                    }
-                } else {
-                    for (auto* sel : selection) {
-                        sel->iolets.getFirst()->createConnection();
-                    }
-                }
-            }
-            connectingEdges.clear();
-        }
-
-        if (!e.mods.isShiftDown() || connectingEdges.size() != 1) {
-            connectingEdges.clear();
-        }
-
-        nearestEdge = nullptr;
-        connectingWithDrag = false;
-        repaint();
-    }
-    // Unless the call originates from a connection, clear any connections that are being created
-    else if (connectingWithDrag && !dynamic_cast<Connection*>(e.originalComponent)) {
-        connectingEdges.clear();
-        connectingWithDrag = false;
-        repaint();
-    }
 
     updateSidebarSelection();
 
