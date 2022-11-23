@@ -453,11 +453,6 @@ struct PlugDataLook : public LookAndFeel_V4
         }
 #endif
         
-        // On Linux, the canUseSemiTransparentWindows flag sometimes incorrectly returns true
-#ifdef JUCE_LINUX
-        g.fillAll(findColour(ResizableWindow::backgroundColourId));
-#endif
-        
         Path shadowPath;
         shadowPath.addRoundedRectangle(Rectangle<float>(0.0f, 0.0f, width, height).reduced(11.0f), 6.0f);
         StackShadow::renderDropShadow(g, shadowPath, Colour(85, 85, 85), 10, {0, 2});
