@@ -293,7 +293,7 @@ void Object::setType(String const& newType, void* existingObject)
     updateBounds();
 
    
-    // Intelligent auto patching
+    // Auto patching
     if (static_cast<bool>(cnv->main.autoconnect.getValue()) && numInputs && cnv->lastSelectedObject && cnv->lastSelectedObject->numOutputs) {
         auto outlet = cnv->lastSelectedObject->iolets[cnv->lastSelectedObject->numInputs];
         auto inlet = iolets[0];
@@ -675,11 +675,6 @@ void Object::mouseUp(MouseEvent const& e)
     if (!cnv->didStartDragging && !static_cast<bool>(locked.getValue()) && e.mods.isAltDown()) {
         // Show help file on alt+mouseup if object were not draged
         openHelpPatch();
-    }
-
-    if (e.getDistanceFromDragStart() > 10 || e.getLengthOfMousePress() > 600)
-    {
-        cnv->connectingEdges.clear();
     }
 
     if (!originalBounds.isEmpty() && originalBounds.withPosition(0, 0) != getLocalBounds())
