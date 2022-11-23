@@ -809,10 +809,10 @@ void Canvas::duplicateSelection()
             overlap = false;
             for (auto* object : objects) {
                 if (!(duplicated.contains(object))
-                    && (duplicated[0]->getPosition().y >= object->getPosition().y)
-                    && (duplicated[0]->getPosition().y <= (object->getPosition().y + object->getHeight()))
-                    && (duplicated[0]->getPosition().x >= object->getPosition().x)
-                    && (duplicated[0]->getPosition().x < (object->getPosition().x + object->getWidth()))) {
+                    && (duplicated[0]->getY() >= object->getY())
+                    && (duplicated[0]->getY() <= (object->getY() + object->getHeight()))
+                    && (duplicated[0]->getX() >= object->getX())
+                    && (duplicated[0]->getX() < (object->getX() + object->getWidth()))) {
                     overlap = true;
                     patch.moveObjects(moveObjects, object->getWidth() - 10, 0);
                     duplicated[0]->updateBounds();
