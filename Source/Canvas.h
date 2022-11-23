@@ -164,7 +164,11 @@ class Canvas : public Component, public Value::Listener, public LassoSource<Weak
     SafePointer<TabbedComponent> tabbar;
 
     LassoComponent<WeakReference<Component>> lasso;
-    
+
+    // Sort comparator
+    static bool sortObjectsByPos(const Object* lhs, const Object* rhs) {
+        return lhs->getX() < rhs->getX();
+    }
 
     
     // Static makes sure there can only be one
