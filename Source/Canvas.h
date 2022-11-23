@@ -107,6 +107,11 @@ class Canvas : public Component, public Value::Listener, public LassoSource<Weak
     bool connectingWithDrag = false;
     Array<SafePointer<Iolet>> connectingEdges;
     SafePointer<Iolet> nearestEdge;
+    
+    // Sort comparator
+    static bool sortObjectsByPos(const Object* lhs, const Object* rhs) {
+        return lhs->getX() < rhs->getX();
+    }
 
     pd::Patch& patch;
 
@@ -141,9 +146,9 @@ class Canvas : public Component, public Value::Listener, public LassoSource<Weak
     SuggestionComponent* suggestor = nullptr;
     
     bool attachNextObjectToMouse = false;
-    bool wasDuplicated = false;
+    bool wasDragDuplicated = false;
     bool wasSelectedOnMouseDown = false;
-    Object* lastSelectedObject = nullptr; // For intelligent auto patching
+    Object* lastSelectedObject = nullptr; // For auto patching
     
     // Multi-dragger variables
     bool didStartDragging = false;
@@ -164,8 +169,6 @@ class Canvas : public Component, public Value::Listener, public LassoSource<Weak
     SafePointer<TabbedComponent> tabbar;
 
     LassoComponent<WeakReference<Component>> lasso;
-    
-
     
     // Static makes sure there can only be one
     PopupMenu popupMenu;
