@@ -349,18 +349,15 @@ void Canvas::mouseDown(MouseEvent const& e)
     }
     // Left-click
     else if (!e.mods.isRightButtonDown()) {
-        // Connecting objects by dragging
         if (source == this || source == graphArea) {
+            
             if (!connectingEdges.isEmpty()) {
+                // Cancel connection when clicked on canvas
                 connectingEdges.clear();
                 repaint();
             }
-
-            lasso.beginLasso(e.getEventRelativeTo(this), this);
-            isDraggingLasso = true;
-
-            // Lock if cmd + click on canvas
             if (e.mods.isCommandDown()) {
+                // Lock if cmd + click on canvas
                 deselectAll();
                 if (locked.getValue()) {
                     locked.setValue(false);
@@ -368,9 +365,12 @@ void Canvas::mouseDown(MouseEvent const& e)
                     locked.setValue(true);
                 }
             }
-            else if(!e.mods.isShiftDown()) {
+            if(!e.mods.isShiftDown()) {
                 deselectAll();
             }
+
+            lasso.beginLasso(e.getEventRelativeTo(this), this);
+            isDraggingLasso = true;
         }
 
         // Update selected object in sidebar when we click a object
@@ -518,70 +518,20 @@ void Canvas::mouseDrag(MouseEvent const& e)
     // Drag lasso
     lasso.dragLasso(e);
 
-    if (connectingWithDrag && !connectingEdges.isEmpty())
-    {
-        auto& connectingEdge = connectingEdges.getReference(0);
-        
-        
-        if(connectingEdge) {
-            auto* nearest = Iolet::findNearestEdge(this, e.getEventRelativeTo(this).getPosition(), !connectingEdge->isInlet, connectingEdge->object);
-            
-            if (nearest && nearestEdge != nearest)
-            {
-                nearest->isTargeted = true;
-                
-                if (nearestEdge)
-                {
-                    nearestEdge->isTargeted = false;
-                    nearestEdge->repaint();
-                }
-                
-                nearestEdge = nearest;
-                nearestEdge->repaint();
-            }
-        }
-
-        repaint();
-    }
 }
 
 void Canvas::mouseUp(MouseEvent const& e)
 {
     setMouseCursor(MouseCursor::NormalCursor);
     main.updateCommandStatus();
-    
-    if(!e.getNumberOfClicks() >= 2 && e.originalComponent == this && !isGraph) {
+
+    // Double-click canvas to create new object
+    if (e.mods.isLeftButtonDown() && (e.getNumberOfClicks() == 2) && (e.originalComponent == this) && !isGraph) {
         objects.add(new Object(this, "", lastMousePosition));
         deselectAll();
-        setSelected(objects[objects.size()-1], true); // Select newly created object
+        setSelected(objects[objects.size() - 1], true); // Select newly created object
     }
-    
-    
-    // Releasing a connect-by-drag action
-    if (connectingWithDrag && !connectingEdges.isEmpty() && nearestEdge)
-    {
-        nearestEdge->isTargeted = false;
-        nearestEdge->repaint();
-        
-        for(auto& iolet : connectingEdges) {
-            nearestEdge->createConnection();
-        }
 
-        if(!e.mods.isShiftDown() || connectingEdges.size() != 1) {
-            connectingEdges.clear();
-        }
-        
-        nearestEdge = nullptr;
-        connectingWithDrag = false;
-        repaint();
-    }
-    // Unless the call originates from a connection, clear any connections that are being created
-    else if (connectingWithDrag && !dynamic_cast<Connection*>(e.originalComponent))
-    {
-        connectingEdges.clear();
-        connectingWithDrag = false;
-        repaint();
-    }
 
     updateSidebarSelection();
 
@@ -589,9 +539,10 @@ void Canvas::mouseUp(MouseEvent const& e)
 
     lasso.endLasso();
     isDraggingLasso = false;
-    for(auto* object : objects) object->mouseDownPos = {0, 0};
-    
-    wasDuplicated = false;
+    for (auto* object : objects)
+        object->mouseDownPos = { 0, 0 };
+
+    wasDragDuplicated = false;
     mouseDownObjectPositions.clear();
 }
 
@@ -789,10 +740,25 @@ void Canvas::pasteSelection()
 
 void Canvas::duplicateSelection()
 {
-    // Tell pd to select all objects that are currently selected
-    for (auto* object : getSelectionOfType<Object>())
-    {
+    Array<Connection*> conInlets, conOutlets;
+    auto selection = getSelectionOfType<Object>();
+    patch.startUndoSequence("Duplicate");
+
+    for (auto* object : selection) {
+        // Tell pd to select all objects that are currently selected
         patch.selectObject(object->getPointer());
+
+        if (!wasDragDuplicated && main.autoconnect.getValue()) {
+            // Store connections for auto patching
+            for (auto* connection : connections) {
+                if (connection->inlet == object->iolets[0]) {
+                    conInlets.add(connection);
+                }
+                if (connection->outlet == object->iolets[object->numInputs]) {
+                    conOutlets.add(connection);
+                }
+            }
+        }
     }
 
     // Tell pd to duplicate
@@ -801,15 +767,69 @@ void Canvas::duplicateSelection()
     // Load state from pd, don't update positions
     synchronise(false);
 
-    // Select the newly duplicated objects
-    for (auto* object : objects)
-    {
-        if (glist_isselected(patch.getPointer(), static_cast<t_gobj*>(object->getPointer())))
-        {
-            setSelected(object, true);
+    // Store the duplicated objects for later selection
+    Array<Object*> duplicated;
+    for (auto* object : objects) {
+        if (glist_isselected(patch.getPointer(), static_cast<t_gobj*>(object->getPointer()))) {
+            duplicated.add(object);
         }
     }
 
+    // Auto patching
+    if (!wasDragDuplicated && main.autoconnect.getValue()) {
+        std::vector<void*> moveObjects;
+        for (auto* object : objects) {
+            int iolet = 1;
+            for (auto* objIolet : object->iolets) {
+                if (duplicated.size() == 1) {
+                    for (auto* dup : duplicated) {
+                        for (auto* conIn : conInlets) {
+                            if ((conIn->outlet == objIolet) && object->iolets[iolet] && !dup->iolets.contains(conIn->outlet)) {
+                                connections.add(new Connection(this, dup->iolets[0], object->iolets[iolet], false));
+                            }
+                        }
+                        for (auto* conOut : conOutlets) {
+                            if ((conOut->inlet == objIolet) && (iolet < object->numInputs)) {
+                                connections.add(new Connection(this, dup->iolets[dup->numInputs], object->iolets[iolet], false));
+                            }
+                        }
+                    }
+                    iolet = iolet + 1;
+                }
+            }
+        }
+
+        // Move duplicated objects if they overlap exisisting objects
+        for (auto* dup : duplicated) {
+            moveObjects.emplace_back(dup->getPointer());
+        }
+        bool overlap;
+        int moveDistance;
+        do {
+            overlap = false;
+            for (auto* object : objects) {
+                if (!(duplicated.contains(object))
+                    && (duplicated[0]->getY() >= object->getY())
+                    && (duplicated[0]->getY() <= (object->getY() + object->getHeight()))
+                    && (duplicated[0]->getX() >= object->getX())
+                    && (duplicated[0]->getX() < (object->getX() + object->getWidth()))) {
+                    overlap = true;
+                    patch.moveObjects(moveObjects, object->getWidth() - 10, 0);
+                    duplicated[0]->updateBounds();
+                }
+            }
+
+        } while (overlap);
+        patch.moveObjects(moveObjects, -10, -10);
+        moveObjects.clear();
+    }
+    
+    // Select the newly duplicated objects
+    for (auto* obj : duplicated) {
+        setSelected(obj, true);
+    }
+
+    patch.endUndoSequence("Duplicate");
     patch.deselectAll();
 }
 
@@ -1154,20 +1174,22 @@ bool Canvas::isSelected(Component* component) const
 
 void Canvas::handleMouseDown(Component* component, MouseEvent const& e)
 {
-    if (e.mods.isShiftDown()) {
-        // select multiple objects
-        wasSelectedOnMouseDown = isSelected(component);
-    } else if (!isSelected(component)) {
-        // not interfeering with alt + drag
-        // unselect all & select clicked object
-        for (auto* object : objects) {
-            setSelected(object, false);
+    if (e.mods.isLeftButtonDown()) {
+        if (e.mods.isShiftDown()) {
+            // select multiple objects
+            wasSelectedOnMouseDown = isSelected(component);
+        } else if (!isSelected(component)) {
+            // not interfeering with alt + drag
+            // unselect all & select clicked object
+            for (auto* object : objects) {
+                setSelected(object, false);
+            }
+            for (auto* connection : connections) {
+                setSelected(connection, false);
+            }
         }
-        for (auto* connection : connections) {
-            setSelected(connection, false);
-        }
+        setSelected(component, true);
     }
-    setSelected(component, true);
 
     if (auto* object = dynamic_cast<Object*>(component))
     {
@@ -1254,8 +1276,7 @@ void Canvas::handleMouseUp(Component* component, MouseEvent const& e)
         synchronise();
     }
 
-    // TODO: potentially risky: what if there ever is no mouse-up for a mouse-down?
-    if (wasDuplicated) {
+    if (wasDragDuplicated) {
         patch.endUndoSequence("Duplicate");
     }
 
@@ -1294,16 +1315,16 @@ void Canvas::handleMouseDrag(MouseEvent const& e)
     }
 
     // alt+drag will duplicate selection
-    if (!wasDuplicated && e.mods.isAltDown()) {
+    if (!wasDragDuplicated && e.mods.isAltDown()) {
         // Single for undo for duplicate + move
         patch.startUndoSequence("Duplicate");
         // Duplicate once
-        wasDuplicated = true;
+        wasDragDuplicated = true;
         duplicateSelection();
     }
 
     // move all selected objects
-    if (wasDuplicated) {
+    if (wasDragDuplicated) {
         // Correct distancing
         dragDistance = Point<int>(e.getOffsetFromDragStart().x + 10, e.getOffsetFromDragStart().y + 10);
         // Move duplicated objects according to the origin position
