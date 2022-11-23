@@ -147,8 +147,10 @@ void Iolet::createConnection()
     }
     // Else set this iolet as start of a connection
     else
-    {
+    {   
         if(Desktop::getInstance().getMainMouseSource().getCurrentModifiers().isShiftDown() && object->cnv->isSelected(object)) {
+            // Auto patching - if shift is down at mouseDown 
+            // create connections from selected objects
             int position = object->iolets.indexOf(this);
             position = isInlet ? position : position - object->numInputs;
             for(auto* selectedBox : object->cnv->getSelectionOfType<Object>()) {
