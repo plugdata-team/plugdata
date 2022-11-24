@@ -273,7 +273,7 @@ private:
     {
         auto shadowPath = Path();
         shadowPath.addRoundedRectangle(getLocalBounds().reduced(20), 6.0f);
-        StackShadow::renderDropShadow(g, shadowPath, Colour(85, 85, 85), 12.0f);
+        StackShadow::renderDropShadow(g, shadowPath, Colour(0, 0, 0).withAlpha(0.5f), 12.0f);
         
         g.setColour(findColour(PlugDataColour::popupMenuBackgroundColourId));
         g.fillRoundedRectangle(port->getBounds().reduced(1).toFloat(), 6.0f);
