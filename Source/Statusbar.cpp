@@ -59,16 +59,16 @@ struct LevelMeter : public Component, public Timer
         auto x = 4.0f;
 
         auto outerBorderWidth = 2.0f;
-        auto spacingFraction = 0.03f;
+        auto spacingFraction = 0.08f;
         auto doubleOuterBorderWidth = 2.0f * outerBorderWidth;
 
         auto blockWidth = (width - doubleOuterBorderWidth) / static_cast<float>(totalBlocks);
         auto blockHeight = height - doubleOuterBorderWidth;
         auto blockRectWidth = (1.0f - 2.0f * spacingFraction) * blockWidth;
         auto blockRectSpacing = spacingFraction * blockWidth;
-        auto blockCornerSize = 0.1f * blockWidth;
-        auto c = findColour(PlugDataColour::dataColourId);
+        auto c = findColour(PlugDataColour::levelMeterActiveColourId);
 
+        
         for (int ch = 0; ch < numChannels; ch++)
         {
             auto y = ch * height;
@@ -76,14 +76,31 @@ struct LevelMeter : public Component, public Timer
             for (auto i = 0; i < totalBlocks; ++i)
             {
                 if (i >= blocks[ch])
-                    g.setColour(findColour(PlugDataColour::panelBackgroundColourId));
+                    g.setColour(findColour(PlugDataColour::levelMeterInactiveColourId));
                 else
                     g.setColour(i < totalBlocks - 1 ? c : Colours::red);
 
-                g.fillRoundedRectangle(x + outerBorderWidth + (i * blockWidth) + blockRectSpacing, y + outerBorderWidth, blockRectWidth, blockHeight, blockCornerSize);
+                if(i == 0 || i == totalBlocks - 1) {
+                    bool curveTop = ch == 0;
+                    bool curveLeft = i == 0;
+                    
+                    auto roundedBlockPath = Path();
+                    roundedBlockPath.addRoundedRectangle(x + outerBorderWidth + (i * blockWidth) + blockRectSpacing, y + outerBorderWidth, blockRectWidth, blockHeight, 4.0f, 4.0f, curveTop && curveLeft, curveTop && !curveLeft, !curveTop && curveLeft, !curveTop && !curveLeft);
+                    g.fillPath(roundedBlockPath);
+                }
+                else {
+                    g.fillRect(x + outerBorderWidth + (i * blockWidth) + blockRectSpacing, y + outerBorderWidth, blockRectWidth, blockHeight);
+                }
             }
         }
+        
+        g.setColour(findColour(PlugDataColour::outlineColourId));
+        g.drawRoundedRectangle(x + outerBorderWidth, outerBorderWidth, width - doubleOuterBorderWidth, getHeight() - doubleOuterBorderWidth, 4.0f, 1.0f);
+
     }
+    
+    
+    
 
     int totalBlocks = 15;
     int blocks[2] = {0};
@@ -336,8 +353,8 @@ void Statusbar::resized()
     powerButton->setBounds(position(getHeight(), true), 0, getHeight(), getHeight());
 
     int levelMeterPosition = position(100, true);
-    levelMeter->setBounds(levelMeterPosition, 0, 100, getHeight());
-    volumeSlider.setBounds(levelMeterPosition, 0, 100, getHeight());
+    levelMeter->setBounds(levelMeterPosition, 2, 100, getHeight() - 4);
+    volumeSlider.setBounds(levelMeterPosition, 2, 100, getHeight() - 4);
     
     // Offset to make text look centred
     oversampleSelector.setBounds(position(getHeight(), true) + 3, 0, getHeight(), getHeight());

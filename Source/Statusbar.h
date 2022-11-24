@@ -44,9 +44,7 @@ struct Statusbar : public Component, public Value::Listener, public Timer
     Value commandLocked; // Temporary lock mode
     Value presentationMode;
 
-
-
-    static constexpr int statusbarHeight = 28;
+    static constexpr int statusbarHeight = 30;
 
     std::unique_ptr<ButtonParameterAttachment> enableAttachment;
     std::unique_ptr<SliderParameterAttachment> volumeAttachment;

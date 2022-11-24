@@ -89,6 +89,8 @@ enum PlugDataColour
     
     dialogBackgroundColourId,
     sidebarBackgroundColourId,
+    levelMeterActiveColourId,
+    levelMeterInactiveColourId,
     
     panelBackgroundColourId,
     panelTextColourId,
@@ -99,6 +101,7 @@ enum PlugDataColour
     popupMenuActiveBackgroundColourId,
     popupMenuTextColourId,
     popupMenuActiveTextColourId,
+    
     
     scrollbarThumbColourId,
     
@@ -139,6 +142,8 @@ inline const std::map<PlugDataColour, std::tuple<String, String, String>> PlugDa
     
     {sidebarBackgroundColourId, {"Sidebar Background", "sidebar_background", "Other"}},
     {dialogBackgroundColourId, {"Dialog Background", "dialog_background", "Other"}},
+    {levelMeterActiveColourId, {"Level Meter Active", "levelmeter_active", "Other"}},
+    {levelMeterInactiveColourId, {"Level Meter inactive", "levelmeter_inactive", "Other"}},
     {scrollbarThumbColourId, {"Scrollbar Thumb", "scrollbar_thumb", "Other"}},
     
     {panelBackgroundColourId, {"Panel Background", "panel_colour", "Panel"}},
@@ -155,6 +160,8 @@ struct Resources
     
     Typeface::Ptr boldTypeface = Typeface::createSystemTypefaceFor(BinaryData::InterBold_ttf, BinaryData::InterBold_ttfSize);
     
+    Typeface::Ptr semiBoldTypeface = Typeface::createSystemTypefaceFor(BinaryData::InterSemiBold_ttf, BinaryData::InterSemiBold_ttfSize);
+    
     Typeface::Ptr iconTypeface = Typeface::createSystemTypefaceFor(BinaryData::PlugDataFont_ttf, BinaryData::PlugDataFont_ttfSize);
     
     Typeface::Ptr monoTypeface = Typeface::createSystemTypefaceFor(BinaryData::IBMPlexMono_ttf, BinaryData::IBMPlexMono_ttfSize);
@@ -166,6 +173,7 @@ struct PlugDataLook : public LookAndFeel_V4
     
     Font defaultFont;
     Font boldFont;
+    Font semiBoldFont;
     Font thinFont;
     Font iconFont;
     Font monoFont;
@@ -174,6 +182,7 @@ struct PlugDataLook : public LookAndFeel_V4
     PlugDataLook() :
     defaultFont(resources->defaultTypeface),
     boldFont(resources->boldTypeface),
+    semiBoldFont(resources->semiBoldTypeface),
     thinFont(resources->thinTypeface),
     iconFont(resources->iconTypeface),
     monoFont(resources->monoTypeface)
@@ -450,8 +459,8 @@ struct PlugDataLook : public LookAndFeel_V4
 #endif
         
         Path shadowPath;
-        shadowPath.addRoundedRectangle(Rectangle<float>(0.0f, 0.0f, width, height).reduced(11.0f), 6.0f);
-        StackShadow::renderDropShadow(g, shadowPath, Colour(0, 0, 0).withAlpha(0.5f), 10, {0, 2});
+        shadowPath.addRoundedRectangle(Rectangle<float>(0.0f, 0.0f, width, height).reduced(10.0f), 6.0f);
+        StackShadow::renderDropShadow(g, shadowPath, Colour(0, 0, 0).withAlpha(0.6f), 10, {0, 2});
         
         // Add a bit of alpha to disable the opaque flag
         auto background = findColour(PlugDataColour::popupMenuBackgroundColourId);
@@ -745,14 +754,19 @@ struct PlugDataLook : public LookAndFeel_V4
      }
     void drawVolumeSlider(Graphics& g, int x, int y, int width, int height, float sliderPos, float minSliderPos, float maxSliderPos, const Slider::SliderStyle style, Slider& slider)
     {
-        float trackWidth = 6.;
+        float trackWidth = 4.;
+        
+        x += 1;
+        width -= 2;
+        
         Point<float> startPoint(slider.isHorizontal() ? x : x + width * 0.5f, slider.isHorizontal() ? y + height * 0.5f : height + y);
         Point<float> endPoint(slider.isHorizontal() ? width + x : startPoint.x, slider.isHorizontal() ? startPoint.y : y);
         
         Path backgroundTrack;
         backgroundTrack.startNewSubPath(startPoint);
         backgroundTrack.lineTo(endPoint);
-        g.setColour(slider.findColour(Slider::backgroundColourId));
+        
+        g.setColour(slider.findColour(PlugDataColour::levelMeterInactiveColourId));
         g.strokePath(backgroundTrack, {trackWidth, PathStrokeType::mitered});
         Path valueTrack;
         Point<float> minPoint, maxPoint;
@@ -764,14 +778,14 @@ struct PlugDataLook : public LookAndFeel_V4
         valueTrack.startNewSubPath(minPoint);
         valueTrack.lineTo(maxPoint);
         
-        g.setColour(slider.findColour(TextButton::buttonColourId));
+        g.setColour(slider.findColour(PlugDataColour::levelMeterActiveColourId));
         g.strokePath(valueTrack, {trackWidth, PathStrokeType::mitered});
-        g.setColour(slider.findColour(Slider::thumbColourId));
+        g.setColour(slider.findColour(PlugDataColour::levelMeterActiveColourId));
         
-        g.fillRoundedRectangle(Rectangle<float>(static_cast<float>(thumbWidth), static_cast<float>(24)).withCentre(maxPoint), 2.0f);
+        g.fillRoundedRectangle(Rectangle<float>(static_cast<float>(thumbWidth), static_cast<float>(22)).withCentre(maxPoint), 2.0f);
         
-        g.setColour(findColour(ComboBox::backgroundColourId));
-        g.drawRoundedRectangle(Rectangle<float>(static_cast<float>(thumbWidth), static_cast<float>(24)).withCentre(maxPoint), 2.0f, 1.0f);
+        g.setColour(findColour(PlugDataColour::outlineColourId));
+        g.drawRoundedRectangle(Rectangle<float>(static_cast<float>(thumbWidth), static_cast<float>(22)).withCentre(maxPoint), 2.0f, 1.0f);
     }
     
     void drawPropertyPanelSectionHeader(Graphics& g, const String& name, bool isOpen, int width, int height) override
@@ -992,6 +1006,9 @@ struct PlugDataLook : public LookAndFeel_V4
         {PlugDataColour::scrollbarThumbColourId, Colour(66, 162, 200)},
         {PlugDataColour::sidebarBackgroundColourId, Colour(25, 25, 25)},
         
+        {PlugDataColour::levelMeterActiveColourId, Colour(66, 162, 200)},
+        {PlugDataColour::levelMeterInactiveColourId, Colour(25, 25, 25)},
+        
         {PlugDataColour::popupMenuBackgroundColourId, Colour(35, 35, 35)},
         {PlugDataColour::popupMenuActiveBackgroundColourId, Colour(65, 65, 65)},
         {PlugDataColour::popupMenuTextColourId, Colour(255, 255, 255)},
@@ -1031,6 +1048,9 @@ struct PlugDataLook : public LookAndFeel_V4
         {PlugDataColour::scrollbarThumbColourId, Colour(0, 122, 255)},
         
         {PlugDataColour::sidebarBackgroundColourId, Colour(238, 238, 238)},
+        
+        {PlugDataColour::levelMeterActiveColourId, Colour(0, 122, 255)},
+        {PlugDataColour::levelMeterInactiveColourId, Colour(238, 238, 238)},
         
         {PlugDataColour::popupMenuBackgroundColourId, Colour(228, 228, 228)},
         {PlugDataColour::popupMenuActiveBackgroundColourId, Colour(207, 207, 207)},

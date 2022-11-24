@@ -300,7 +300,7 @@ void PlugDataPluginEditor::resized()
 
         if (b == 3 || b == 5)
         {
-            auto separator = FlexItem(seperators[b]).withMinWidth(8.0f).withMaxWidth(10.0f);
+            auto separator = FlexItem(seperators[b]).withMinWidth(8.0f).withMaxWidth(12.0f);
             separator.flexGrow = 1.0f;
             separator.flexShrink = 1.0f;
             fb.items.add(separator);
@@ -648,6 +648,7 @@ void PlugDataPluginEditor::valueChanged(Value& v)
     else if (v.refersToSameSourceAs(theme))
     {
         pd.setTheme(static_cast<bool>(theme.getValue()));
+        getTopLevelComponent()->repaint();
     }
 }
 

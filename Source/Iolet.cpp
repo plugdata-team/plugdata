@@ -63,7 +63,7 @@ void Iolet::paint(Graphics& g)
     g.setColour(backgroundColour);
     g.fillEllipse(bounds);
 
-    g.setColour(findColour(PlugDataColour::outlineColourId));
+    g.setColour(findColour(PlugDataColour::objectOutlineColourId));
     g.drawEllipse(bounds, 1.0f);
 
     if (stateSaved)

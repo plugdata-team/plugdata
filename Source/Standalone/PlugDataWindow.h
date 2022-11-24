@@ -527,7 +527,7 @@ class PlugDataWindow : public DocumentWindow {
     std::unique_ptr<ResizableBorderComponent> resizer;
     ComponentBoundsConstrainer constrainer;
 #elif CUSTOM_SHADOW
-    StackDropShadower dropShadower = StackDropShadower(DropShadow(Colour(0, 0, 0).withAlpha(0.5f), 20, {0, 3}));
+    StackDropShadower dropShadower = StackDropShadower(DropShadow(Colour(0, 0, 0).withAlpha(0.6f), 20, {0, 3}));
 #endif
     
 public:
@@ -681,10 +681,10 @@ public:
     {
         auto b = getLocalBounds();
         Path localPath;
-        localPath.addRoundedRectangle(b.toFloat().reduced(27.0f), 6.0f);
+        localPath.addRoundedRectangle(b.toFloat().reduced(25.0f), 6.0f);
         
         int radius = isActiveWindow() ? 21 : 16;
-        StackShadow::renderDropShadow(g, localPath, Colour(0, 0, 0).withAlpha(0.5f), radius, {0, 3});
+        StackShadow::renderDropShadow(g, localPath, Colour(0, 0, 0).withAlpha(0.6f), radius, {0, 3});
     }
     void activeWindowStatusChanged() override {
         repaint();

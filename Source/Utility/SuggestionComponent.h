@@ -56,8 +56,9 @@ class SuggestionComponent : public Component
             
             lnf->drawButtonBackground(g, *this, findColour(getToggleState() ? PlugDataColour::popupMenuActiveBackgroundColourId : colour), isMouseOver(), isMouseButtonDown());
             
-            auto font = lnf->boldFont.withHeight(getHeight() / 1.9f);
+            auto font = lnf->semiBoldFont.withHeight(getHeight() / 1.9f);
             g.setFont(font);
+            
             g.setColour(getToggleState() ? findColour(PlugDataColour::popupMenuActiveTextColourId) : findColour(PlugDataColour::popupMenuTextColourId));
             auto yIndent = jmin(4, proportionOfHeight(0.3f));
             auto cornerSize = jmin(getHeight(), getWidth()) / 2;
@@ -275,7 +276,7 @@ private:
     {
         auto shadowPath = Path();
         shadowPath.addRoundedRectangle(getLocalBounds().reduced(20), 6.0f);
-        StackShadow::renderDropShadow(g, shadowPath, Colour(0, 0, 0).withAlpha(0.5f), 12.0f);
+        StackShadow::renderDropShadow(g, shadowPath, Colour(0, 0, 0).withAlpha(0.6f), 12.0f);
         
         g.setColour(findColour(PlugDataColour::popupMenuBackgroundColourId));
         g.fillRoundedRectangle(port->getBounds().reduced(1).toFloat(), 6.0f);
