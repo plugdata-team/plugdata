@@ -985,7 +985,7 @@ void PlugDataPluginEditor::getCommandInfo(const CommandID commandID, Application
         case CommandIDs::NewNumbox:
         {
             result.setInfo("New Number", "Create new number object", "Objects", 0);
-            result.addDefaultKeypress(51, ModifierKeys::commandModifier);
+            result.addDefaultKeypress(70, ModifierKeys::commandModifier | ModifierKeys::shiftModifier);
             result.setActive(hasCanvas && !isDragging && pd.locked == var(false));
             
             break;
@@ -1014,7 +1014,7 @@ void PlugDataPluginEditor::getCommandInfo(const CommandID commandID, Application
         case CommandIDs::NewFloatAtom:
         {
             result.setInfo("New Floatatom", "Create new floatatom", "Objects", 0);
-            result.addDefaultKeypress(70, ModifierKeys::commandModifier | ModifierKeys::shiftModifier);
+            result.addDefaultKeypress(51, ModifierKeys::commandModifier);
             result.setActive(hasCanvas && !isDragging && pd.locked == var(false));
             break;
         }
