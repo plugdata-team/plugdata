@@ -314,10 +314,16 @@ struct PlugDataLook : public LookAndFeel_V4
         {
             drawVolumeSlider(g, x, y, width, height, sliderPos, minSliderPos, maxSliderPos, style, slider);
         }
+        if (slider.getName() == "object:slider")
+        {
+            drawGUIObjectSlider(g, x, y, width, height, sliderPos, minSliderPos, maxSliderPos, slider);
+        }
         else
         {
             LookAndFeel_V4::drawLinearSlider(g, x, y, width, height, sliderPos, minSliderPos, maxSliderPos, style, slider);
         }
+        
+        
     }
     
     void drawDocumentWindowTitleBar(DocumentWindow& window, Graphics& g, int w, int h, int titleSpaceX, int titleSpaceW, const Image* icon, bool drawTitleTextOnLeft) override
@@ -713,7 +719,30 @@ struct PlugDataLook : public LookAndFeel_V4
             g.drawEllipse(ellpiseBounds, 1.0f);
         }
     }
-    
+    void drawGUIObjectSlider(Graphics& g, int x, int y, int width, int height, float sliderPos, float minSliderPos, float maxSliderPos, Slider& slider)
+     {
+         auto sliderBounds = slider.getLocalBounds().toFloat().reduced(1.0f);
+
+         g.setColour(findColour(Slider::backgroundColourId));
+         g.fillRect(sliderBounds);
+
+         Path toDraw;
+         if (slider.isHorizontal())
+         {
+             sliderPos = jmap<float>(sliderPos, x, width - (2 * x), 1.0f, width);
+             auto b = sliderBounds.withTrimmedRight(width - sliderPos);
+             toDraw.addRoundedRectangle(b.getX(), b.getY(), b.getWidth(), b.getHeight(), 1.0f, 1.0f, true, false, true, false);
+         }
+         else
+         {
+             sliderPos = jmap<float>(sliderPos, y, height, 0.0f, height - 2.0f);
+             auto b = sliderBounds.withTrimmedTop(sliderPos);
+             toDraw.addRoundedRectangle(b.getX(), b.getY(), b.getWidth(), b.getHeight(), 1.0f, 1.0f, false, false, true, true);
+         }
+
+         g.setColour(findColour(Slider::trackColourId));
+         g.fillPath(toDraw);
+     }
     void drawVolumeSlider(Graphics& g, int x, int y, int width, int height, float sliderPos, float minSliderPos, float maxSliderPos, const Slider::SliderStyle style, Slider& slider)
     {
         float trackWidth = 6.;
