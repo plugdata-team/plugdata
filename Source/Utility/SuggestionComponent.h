@@ -69,7 +69,7 @@ class SuggestionComponent : public Component
             if (textWidth > 0)
                 g.drawFittedText(getButtonText(), leftIndent, yIndent, textWidth, getHeight() - yIndent * 2, Justification::left, 2);
 
-            font = lnf->defaultFont.withHeight(getHeight() / 1.9f);
+            font = lnf->defaultFont.withHeight(12);
             g.setFont(font);
             
             if (objectDescription.isNotEmpty()) {
@@ -89,7 +89,6 @@ class SuggestionComponent : public Component
                 return;
 
             if (drawIcon) {
-
                 auto dataColour = findColour(PlugDataColour::dataColourId);
                 auto signalColour = findColour(PlugDataColour::signalColourId);
                 g.setColour(type ? signalColour : dataColour);
@@ -99,8 +98,8 @@ class SuggestionComponent : public Component
                 g.fillRoundedRectangle(iconbound.toFloat(), 4.0f);
 
                 g.setColour(Colours::white);
-                auto sizeForType = type ? 0 : 2;
-                g.drawFittedText(letters[type], iconbound.reduced(sizeForType), Justification::centred, 1);
+                g.setFont(font.withHeight(type ? 12 : 11));
+                g.drawFittedText(letters[type], iconbound.reduced(1), Justification::centred, 1);
             }
         }
 
