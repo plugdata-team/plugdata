@@ -789,7 +789,7 @@ struct DocumentBrowser : public DocumentBrowserBase
 
     void resized() override
     {
-        searchComponent.setBounds(getLocalBounds().withHeight(getHeight() - 28));
+        searchComponent.setBounds(getLocalBounds().withHeight(getHeight() - 30));
         
         fileList.setBounds(getLocalBounds().withHeight(getHeight() - 58).withY(30));
 
@@ -806,14 +806,14 @@ struct DocumentBrowser : public DocumentBrowserBase
 
         auto bounds = getLocalBounds().toFloat();
 
-        fb.performLayout(bounds.removeFromBottom(28));
+        fb.performLayout(bounds.removeFromBottom(30));
     }
 
     void paint(Graphics& g) override
     {
         // Background for statusbar part
         g.setColour(findColour(PlugDataColour::toolbarBackgroundColourId));
-        g.fillRoundedRectangle(0, getHeight() - 28, getWidth(), 28, 6.0f);
+        g.fillRoundedRectangle(0, getHeight() - 30, getWidth(), 30, 6.0f);
     }
 
     void paintOverChildren(Graphics& g) override
@@ -822,7 +822,7 @@ struct DocumentBrowser : public DocumentBrowserBase
         g.drawLine(0.5f, 0, 0.5f, getHeight() - 27.5f);
 
         g.setColour(findColour(PlugDataColour::outlineColourId));
-        g.drawLine(0, 28, getWidth(), 28);
+        g.drawLine(0, 30, getWidth(), 30);
     }
 
 private:

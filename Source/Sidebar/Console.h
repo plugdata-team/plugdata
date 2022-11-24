@@ -66,7 +66,7 @@ struct Console : public Component {
 
         auto bounds = getLocalBounds().toFloat();
 
-        fb.performLayout(bounds.removeFromBottom(28));
+        fb.performLayout(bounds.removeFromBottom(30));
         
         viewport.setBounds(bounds.toNearestInt());
         console->setSize(viewport.getWidth(), std::max<int>(console->getTotalHeight(), viewport.getHeight()));

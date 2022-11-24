@@ -9,36 +9,59 @@ struct ColourProperties : public Component, public Value::Listener
     ValueTree settingsTree;
     Value fontValue;
     std::map<String, std::map<String, Value>> swatches;
-    OwnedArray<PropertiesPanel::Property> panels;
+
+    PropertiesPanel panel;
+    Array<PropertyComponent*> allPanels;
     
     explicit ColourProperties(ValueTree globalSettings)
         : settingsTree(globalSettings)
     {
+        addAndMakeVisible(panel);
+                
+        std::map<String, Array<PropertyComponent*>> panels;
+
+        // Loop over colours
+        for (auto const& [colour, colourNames] : PlugDataColourNames) {
+            
+            auto& [colourName, colourId, colourCategory] = colourNames;
+            
+            Array<Value*> swatchesToAdd;
+            
+            // Loop over themes
+            int i = 0;
+            for (auto const& [themeName, themeColours] : PlugDataLook::colourSettings)
+            {
+                swatchesToAdd.add(&(swatches[themeName][colourId]));
+                auto* swatch = swatchesToAdd.getLast();
+                
+                auto value = settingsTree.getChildWithName("ColourThemes").getChildWithProperty("theme", themeName).getPropertyAsValue(colourId, nullptr);
+                
+                swatch->referTo(value);
+                swatch->addListener(this);
+            }
+            i++;
+            
+            // Add a multi colour component to the properties panel
+            panels[colourCategory].add(new PropertiesPanel::MultiPropertyComponent<PropertiesPanel::ColourComponent, 2>(colourName, swatchesToAdd));
+        }
+        
+        
         fontValue.setValue(LookAndFeel::getDefaultLookAndFeel().getTypefaceForFont(Font())->getName());
         fontValue.addListener(this);
         
-        auto* fontPanel = panels.add(new PropertiesPanel::FontComponent("Default font", fontValue));
-        fontPanel->setHideLabel(true);
+        auto* fontPanel = new PropertiesPanel::FontComponent("Default font", fontValue);
         
-        addAndMakeVisible(fontPanel);
-
+        allPanels.add(fontPanel);
+        addAndMakeVisible(*fontPanel);
         
-        for (auto const& [themeName, themeColours] : PlugDataLook::colourSettings) {
-            for (auto const& colour : themeColours) {
-                auto [colourId, colourName, colourCategory] = PlugDataColourNames.at(colour.first);
-                auto& swatch = swatches[themeName][colourName];
-                
-                auto value = settingsTree.getChildWithName("ColourThemes").getChildWithProperty("theme", themeName).getPropertyAsValue(colourName, nullptr);
-                
-                swatch.referTo(value);
-                swatch.addListener(this);
-                auto* panel = panels.add(new PropertiesPanel::ColourComponent(colourName, swatch));
-                panel->setHideLabel(true);
-                addAndMakeVisible(panel);
-            }
-            
+        panel.addSection("Fonts", {fontPanel});
+        
+        // Create the panels by category
+        for (auto const& [sectionName, sectionColours] : panels)
+        {
+            for(auto* colourPanel : sectionColours) allPanels.add(colourPanel);
+            panel.addSection(sectionName, sectionColours);
         }
-        
     }
 
     void valueChanged(Value& v) override
@@ -71,47 +94,37 @@ struct ColourProperties : public Component, public Value::Listener
         auto bounds = getLocalBounds().removeFromLeft(getWidth() / 2).withTrimmedLeft(6);
 
         g.setColour(findColour(PlugDataColour::panelTextColourId));
-        g.drawText("Font", bounds.removeFromTop(23), Justification::left);
-
         auto themeRow = bounds.removeFromTop(23);
         g.drawText("Theme", themeRow, Justification::left);
-        g.drawText("Light", themeRow.withX(getWidth() * 0.5f).withWidth(getWidth() / 4), Justification::centred);
-        g.drawText("Dark", themeRow.withX(getWidth() * 0.75f).withWidth(getWidth() / 4), Justification::centred);
-
-        for (auto const& [identifier, name] : PlugDataColourNames)
-        {
-            g.drawText(std::get<0>(name), bounds.removeFromTop(23), Justification::left);
-        }
-        bounds.removeFromTop(23);
+        g.drawText("Dark", themeRow.withX(getWidth() * 0.5f).withWidth(getWidth() / 4), Justification::centred);
+        g.drawText("Light", themeRow.withX(getWidth() * 0.75f).withWidth(getWidth() / 4), Justification::centred);
+        
+        auto fullThemeRow = getLocalBounds().removeFromTop(23);
+        g.setColour(findColour(PlugDataColour::outlineColourId));
+        g.drawLine(Line<int>(fullThemeRow.getBottomLeft(), fullThemeRow.getBottomRight()).toFloat(), -1.0f);
     }
 
     void resized() override
     {
-        auto bounds = getLocalBounds().removeFromRight(getWidth() / 2);
-        panels[0]->setBounds(bounds.removeFromTop(23));
+        auto bounds = getLocalBounds();
 
         // Space for dark/light labels
         bounds.removeFromTop(23);
-
-        for (int i = 1; i < numberOfColours + 1; i++) {
-            auto panelBounds = bounds.removeFromTop(23);
-            panels[i]->setBounds(panelBounds.removeFromRight(getWidth() / 4));
-            panels[numberOfColours + i]->setBounds(panelBounds);
-        }
+        
+        panel.setBounds(bounds);
     }
     
     void resetColours() {
         auto& lnf = dynamic_cast<PlugDataLook&>(getLookAndFeel());
         lnf.resetColours();
 
-        dynamic_cast<PropertiesPanel::FontComponent*>(panels[0])->setFont("Inter");
+        dynamic_cast<PropertiesPanel::FontComponent*>(allPanels[0])->setFont("Inter");
         fontValue = "Inter";
         
         lnf.setDefaultFont(fontValue.toString());
         settingsTree.setProperty("DefaultFont", fontValue.getValue(), nullptr);
 
         auto colourThemesTree = settingsTree.getChildWithName("ColourThemes");
-        
         
         for (auto const& [themeName, theme] : lnf.colourSettings) {
             auto themeTree = colourThemesTree.getChildWithName(themeName);
@@ -126,7 +139,8 @@ struct ColourProperties : public Component, public Value::Listener
         lnf.setTheme(lnf.isUsingLightTheme);
         getTopLevelComponent()->repaint();
 
-        for (auto* panel : panels) {
+        
+        for (auto* panel : allPanels) {
             if (auto* colourPanel = dynamic_cast<PropertiesPanel::ColourComponent*>(panel)) {
                 colourPanel->updateColour();
             }
@@ -139,7 +153,6 @@ struct ThemePanel : public Component
 {
 
     ColourProperties colourProperties;
-    Viewport viewport;
     
     TextButton resetButton = TextButton(Icons::Refresh);
     
@@ -161,11 +174,8 @@ struct ThemePanel : public Component
             });
         };
         
-        addAndMakeVisible(viewport);
-        viewport.setViewedComponent(&colourProperties, false);
-        viewport.setScrollBarsShown(true, false);
-
-        colourProperties.setVisible(true);
+        
+        addAndMakeVisible(colourProperties);
     }
 
     void resized() override
@@ -173,8 +183,7 @@ struct ThemePanel : public Component
         // Add a row for font and light/dark labels
         int numRows = PlugDataColour::numberOfColours + 2;
         
-        colourProperties.setBounds(0, 0, getWidth(), numRows * 23);
-        viewport.setBounds(getLocalBounds().withTrimmedBottom(32));
+        colourProperties.setBounds(getLocalBounds().withTrimmedBottom(32));
         resetButton.setBounds(getWidth() - 36, getHeight() - 26, 32, 32);
     }
 };

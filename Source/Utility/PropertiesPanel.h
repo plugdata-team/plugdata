@@ -118,6 +118,36 @@ struct PropertiesPanel : public PropertyPanel {
     private:
         ComboBox comboBox;
     };
+     
+    template<typename T, int numProperties>
+    struct MultiPropertyComponent : public Property {
+        
+        std::array<T*, numProperties> properties;
+        
+        MultiPropertyComponent(String const& propertyName, Array<Value*> values)
+            : Property(propertyName)
+        {
+            for(int i = 0; i < numProperties; i++)
+            {
+                properties[i] = new T(propertyName, *values[i]);
+                properties[i]->setHideLabel(true);
+                addAndMakeVisible(properties[i]);
+            }
+        }
+        
+        void resized() override {
+            
+            auto b = getLocalBounds().removeFromRight(getWidth() / (2 - hideLabel));
+
+            int itemWidth = b.getWidth() / numProperties;
+            for(int i = 0; i < numProperties; i++)
+            {
+                properties[i]->setBounds(b.removeFromLeft(itemWidth));
+            }
+        }
+        
+        
+    };
 
     struct BoolComponent : public Property {
         BoolComponent(String const& propertyName, Value& value, std::vector<String> options)
