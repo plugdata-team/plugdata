@@ -165,7 +165,7 @@ struct AutomationPanel : public Component
     void paint(Graphics& g) override
     {
         g.setColour(findColour(PlugDataColour::toolbarBackgroundColourId));
-        g.fillRect(getLocalBounds().withTrimmedLeft(Sidebar::dragbarWidth).withTrimmedBottom(28));
+        g.fillRect(getLocalBounds().withTrimmedLeft(Sidebar::dragbarWidth).withTrimmedBottom(30));
         g.fillRect(getLocalBounds().withHeight(viewport.getY()));
 
         g.setColour(findColour(PlugDataColour::panelTextColourId));
@@ -174,15 +174,15 @@ struct AutomationPanel : public Component
         
         // Background for statusbar part
         g.setColour(findColour(PlugDataColour::toolbarBackgroundColourId));
-        g.fillRoundedRectangle(0, getHeight() - 28, getWidth(), 28, 6.0f);
+        g.fillRoundedRectangle(0, getHeight() - 30, getWidth(), 30, 6.0f);
 
         g.setColour(findColour(PlugDataColour::outlineColourId));
-        g.drawLine(0, 27, getWidth(), 27);
+        g.drawLine(0, 29, getWidth(), 29);
     }
 
     void resized() override
     {
-        viewport.setBounds(getLocalBounds().withTrimmedTop(28).withTrimmedBottom(28));
+        viewport.setBounds(getLocalBounds().withTrimmedTop(28).withTrimmedBottom(30));
         sliders.setSize(getWidth(), PlugDataAudioProcessor::numParameters * 23);
     }
 

@@ -96,7 +96,7 @@ void Sidebar::paint(Graphics& g)
 
     // Sidebar
     g.setColour(findColour(PlugDataColour::sidebarBackgroundColourId));
-    g.fillRect(0, 0, getWidth(), getHeight() - 28);
+    g.fillRect(0, 0, getWidth(), getHeight() - 30);
     
     // Background for buttons
     g.setColour(findColour(PlugDataColour::toolbarBackgroundColourId));
@@ -108,8 +108,8 @@ void Sidebar::paintOverChildren(Graphics& g)
     g.setColour(findColour(PlugDataColour::outlineColourId));
     g.drawLine(0, 0, getWidth(), 0);
     g.drawLine(0, 28, getWidth(), 28);
-    g.drawLine(0.0f, getHeight() - 27.5f, static_cast<float>(getWidth()), getHeight() - 27.5f);
-    g.drawLine(0.5f, 0, 0.5f, getHeight() - 27.5f);
+    g.drawLine(0.0f, getHeight() - 29.5f, static_cast<float>(getWidth()), getHeight() - 29.5f);
+    g.drawLine(0.5f, 0, 0.5f, getHeight() - 29.5f);
 }
 
 void Sidebar::resized()

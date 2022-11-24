@@ -285,6 +285,7 @@ file(GLOB PlugDataBinaryDataSources
     ${CMAKE_CURRENT_SOURCE_DIR}/Resources/PlugDataFont.ttf
     ${CMAKE_CURRENT_SOURCE_DIR}/Resources/InterRegular.ttf
     ${CMAKE_CURRENT_SOURCE_DIR}/Resources/InterBold.ttf
+    ${CMAKE_CURRENT_SOURCE_DIR}/Resources/InterSemiBold.ttf
     ${CMAKE_CURRENT_SOURCE_DIR}/Resources/InterThin.ttf
     ${CMAKE_CURRENT_SOURCE_DIR}/Resources/IBMPlexMono.ttf
     ${CMAKE_CURRENT_SOURCE_DIR}/Resources/plugdata_logo.png

@@ -179,7 +179,7 @@ struct TabComponent : public TabbedComponent
         /*
         Path shadowPath;
         shadowPath.addRectangle(0, -2, getWidth(), 2);
-        StackShadow::renderDropShadow(g, shadowPath, Colour(0, 0, 0).withAlpha(0.5f)e, 3); */
+        StackShadow::renderDropShadow(g, shadowPath, Colour(0, 0, 0).withAlpha(0.6f)e, 3); */
     }
     
     WelcomePanel welcomePanel;
