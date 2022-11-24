@@ -234,16 +234,18 @@ void Iolet::mouseUp(const MouseEvent& e)
         }
         if (!e.mods.isShiftDown() || cnv->connectingEdges.size() != 1) {
             cnv->connectingEdges.clear();
+            cnv->repaint();
         }
 
         // TODO: is this needed? Else delete.. :
-        /*
+        
         // Unless the call originates from a connection, clear any connections that are being created
+        /*
          if (cnv->connectingWithDrag && !dynamic_cast<Connection*>(e.originalComponent)) {
              cnv->connectingEdges.clear();
              cnv->connectingWithDrag = false;
              cnv->repaint();
-         }  */
+         } */
 
         if (cnv->nearestEdge) {
             cnv->nearestEdge->isTargeted = false;
