@@ -314,7 +314,7 @@ struct PlugDataLook : public LookAndFeel_V4
         {
             drawVolumeSlider(g, x, y, width, height, sliderPos, minSliderPos, maxSliderPos, style, slider);
         }
-        if (slider.getName() == "object:slider")
+        else if (slider.getName() == "object:slider")
         {
             drawGUIObjectSlider(g, x, y, width, height, sliderPos, minSliderPos, maxSliderPos, slider);
         }
