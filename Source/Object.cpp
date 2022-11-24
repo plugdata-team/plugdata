@@ -44,6 +44,8 @@ Object::Object(Canvas* parent, String const& name, Point<int> position)
     {
         setType(name);
     }
+    
+    
 
     // Open the text editor of a new object if it has one
     // Don't do this if the object is attached to the mouse
@@ -291,7 +293,6 @@ void Object::setType(String const& newType, void* existingObject)
     // Update inlets/outlets
     updatePorts();
     updateBounds();
-
    
     // Auto patching
     if (static_cast<bool>(cnv->main.autoconnect.getValue()) && numInputs && cnv->lastSelectedObject && cnv->lastSelectedObject->numOutputs) {
@@ -561,7 +562,6 @@ void Object::updatePorts()
     while (numOutputs < oldNumOutputs) iolets.remove(numInputs + (--oldNumOutputs));
     while (numOutputs > oldNumOutputs) iolets.insert(numInputs + (++oldNumOutputs), new Iolet(this, false));
 
-
     int numIn = 0;
     int numOut = 0;
 
@@ -582,8 +582,7 @@ void Object::updatePorts()
 
         iolet->ioletIdx = input ? numIn : numOut;
         iolet->isSignal = isSignal;
-        iolet->setAlwaysOnTop(true);
-
+        
         if (gui)
         {
             String tooltip = cnv->pd->objectLibrary.getInletOutletTooltip(gui->getType(), iolet->ioletIdx, input ? numInputs : numOutputs, input);

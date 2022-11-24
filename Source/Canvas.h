@@ -107,11 +107,7 @@ class Canvas : public Component, public Value::Listener, public LassoSource<Weak
     bool connectingWithDrag = false;
     Array<SafePointer<Iolet>> connectingEdges;
     SafePointer<Iolet> nearestEdge;
-    
-    // Sort comparator
-    static bool sortObjectsByPos(const Object* lhs, const Object* rhs) {
-        return lhs->getX() < rhs->getX();
-    }
+
 
     pd::Patch& patch;
 

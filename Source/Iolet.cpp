@@ -14,6 +14,8 @@ Iolet::Iolet(Object* parent, bool inlet) : object(parent)
 {
     isInlet = inlet;
     setSize(8, 8);
+    
+    setAlwaysOnTop(true);
 
     parent->addAndMakeVisible(this);
 
@@ -156,7 +158,9 @@ void Iolet::mouseUp(const MouseEvent& e)
             }
 
             // Sort selected objects by X position
-            std::sort(selection.begin(), selection.end(), cnv->sortObjectsByPos);
+            std::sort(selection.begin(), selection.end(), [](const Object* lhs, const Object* rhs) {
+                return lhs->getX() < rhs->getX();
+            });
 
             auto* conObj = cnv->connectingEdges.getFirst()->object;
 
