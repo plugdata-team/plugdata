@@ -530,7 +530,6 @@ class PlugDataWindow : public DocumentWindow {
     StackDropShadower dropShadower = StackDropShadower(DropShadow(Colour(0, 0, 0).withAlpha(0.5f), 20, {0, 3}));
 #endif
     
-    
 public:
     typedef StandalonePluginHolder::PluginInOuts PluginInOuts;
     
@@ -577,7 +576,7 @@ public:
         
         setOpaque(false);
         
-        auto* mainComponent = new MainContentComponent(*this);
+        mainComponent = new MainContentComponent(*this);
         auto* editor = mainComponent->getEditor();
         
         auto* c = editor->getConstrainer();
@@ -659,16 +658,16 @@ public:
     void maximiseButtonPressed() override
     {
 #if JUCE_LINUX
-        maximiseLinuxWindow(getPeer()->getNativeHandle());
-        
         if (auto* b = getMaximiseButton()) {
             if(auto* peer = getPeer()) {
-                b->setToggleState(isMaximised(peer->getNativeHandle()), dontSendNotification);
+                b->setToggleState(!isMaximised(peer->getNativeHandle()), dontSendNotification);
             }
             else {
                 b->setToggleState(false, dontSendNotification);
             }
         }
+        
+        maximiseLinuxWindow(getPeer()->getNativeHandle());
         
 #else
         setFullScreen(!isFullScreen());
@@ -702,8 +701,9 @@ public:
         ResizableWindow::resized();
         
 #if JUCE_LINUX
-        auto titleBarArea = Rectangle<int>(0, 30, getWidth() - 26, 25);
-        if(resizer) resizer->setBounds(getLocalBounds().reduced(16));
+        auto margin = mainComponent ? mainComponent->getMargin() : 18;
+        auto titleBarArea = Rectangle<int>(0, 12 + margin, getWidth() - (8 + margin), 25);
+        if(resizer) resizer->setBounds(getLocalBounds().reduced(margin));
 #else
         auto titleBarArea = Rectangle<int>(0, 12, getWidth() - 8, 25);
         if (auto* b = getMaximiseButton())
@@ -726,12 +726,6 @@ private:
     class MainContentComponent : public Component
     , private ComponentListener
     , public MenuBarModel {
-        
-#if CUSTOM_SHADOW && JUCE_LINUX
-        int margin = 18;
-#else
-        int margin = 0;
-#endif
         
     public:
         
@@ -766,7 +760,7 @@ private:
         void paintOverChildren(Graphics& g) override
         {
             g.setColour(findColour(PlugDataColour::outlineColourId));
-            g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(margin + 0.5f), 6.0f, 1.0f);
+            g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(getMargin() + 0.5f), 6.0f, 1.0f);
         }
 #endif
         
@@ -775,6 +769,19 @@ private:
         StringArray getMenuBarNames() override
         {
             return { "File", "Edit" };
+        }
+        
+        int getMargin() const {
+#if JUCE_LINUX && CUSTOM_SHADOW
+            if(auto* maximiseButton = owner.getMaximiseButton()) {
+                bool maximised = maximiseButton->getToggleState();
+                return maximised ? 0 : 18;
+            }
+            
+            return 18;
+#else
+            return 0;
+#endif
         }
         
         PopupMenu getMenuForIndex(int topLevelMenuIndex, String const& menuName) override
@@ -821,7 +828,7 @@ private:
         
         void resized() override
         {
-            auto r = getLocalBounds().reduced(margin);
+            auto r = getLocalBounds().reduced(getMargin());
             
             if (editor != nullptr) {
                 auto const newPos = r.getTopLeft().toFloat().transformedBy(editor->getTransform().inverted());
@@ -853,7 +860,7 @@ private:
         Rectangle<int> getSizeToContainEditor() const
         {
             if (editor != nullptr)
-                return getLocalArea(editor.get(), editor->getLocalBounds()).expanded(margin);
+                return getLocalArea(editor.get(), editor->getLocalBounds()).expanded(getMargin());
             
             return {};
         }
@@ -865,6 +872,8 @@ private:
         
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(MainContentComponent)
     };
+    
+    MainContentComponent* mainComponent = nullptr;
     
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PlugDataWindow)
 };
