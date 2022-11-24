@@ -329,7 +329,7 @@ GUIObject::GUIObject(void* obj, Object* parent)
 
     setWantsKeyboardFocus(true);
 
-    setLookAndFeel(dynamic_cast<PlugDataLook*>(&LookAndFeel::getDefaultLookAndFeel())->getPdLook());
+    setLookAndFeel(new PlugDataLook);
 
     MessageManager::callAsync([_this = SafePointer<GUIObject>(this)] {
         if (_this) {

@@ -52,9 +52,11 @@ class SuggestionComponent : public Component
         {
             auto colour = PlugDataColour::popupMenuBackgroundColourId;
 
-            getLookAndFeel().drawButtonBackground(g, *this, findColour(getToggleState() ? PlugDataColour::popupMenuActiveBackgroundColourId : colour), isMouseOver(), isMouseButtonDown());
-
-            auto font = getLookAndFeel().getTextButtonFont(*this, getHeight());
+            auto* lnf = dynamic_cast<PlugDataLook*>(&getLookAndFeel());
+            
+            lnf->drawButtonBackground(g, *this, findColour(getToggleState() ? PlugDataColour::popupMenuActiveBackgroundColourId : colour), isMouseOver(), isMouseButtonDown());
+            
+            auto font = lnf->boldFont.withHeight(getHeight() / 1.9f);
             g.setFont(font);
             g.setColour(getToggleState() ? findColour(PlugDataColour::popupMenuActiveTextColourId) : findColour(PlugDataColour::popupMenuTextColourId));
             auto yIndent = jmin(4, proportionOfHeight(0.3f));
@@ -67,15 +69,18 @@ class SuggestionComponent : public Component
             if (textWidth > 0)
                 g.drawFittedText(getButtonText(), leftIndent, yIndent, textWidth, getHeight() - yIndent * 2, Justification::left, 2);
 
+            font = lnf->defaultFont.withHeight(getHeight() / 1.9f);
+            g.setFont(font);
+            
             if (objectDescription.isNotEmpty()) {
                 auto textLength = font.getStringWidth(getButtonText());
-
+                
                 g.setColour(getToggleState() ? findColour(PlugDataColour::popupMenuActiveTextColourId) : findColour(PlugDataColour::popupMenuTextColourId));
 
                 auto yIndent = jmin(4, proportionOfHeight(0.3f));
                 auto cornerSize = jmin(getHeight(), getWidth()) / 2;
                 auto fontHeight = roundToInt(font.getHeight() * 0.5f);
-                auto leftIndent = drawIcon ? textLength + 36 : textLength + 8;
+                auto leftIndent = drawIcon ? textLength + 38 : textLength + 8;
                 auto rightIndent = jmin(fontHeight, 2 + cornerSize / 2);
                 auto textWidth = getWidth() - leftIndent - rightIndent;
 
@@ -97,7 +102,8 @@ class SuggestionComponent : public Component
                 g.fillRoundedRectangle(iconbound.toFloat(), 4.0f);
 
                 g.setColour(Colours::white);
-                g.drawFittedText(letters[type], iconbound.reduced(1), Justification::centred, 1);
+                auto sizeForType = type ? 0 : 2;
+                g.drawFittedText(letters[type], iconbound.reduced(sizeForType), Justification::centred, 1);
             }
         }
 
