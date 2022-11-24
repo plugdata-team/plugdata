@@ -76,16 +76,13 @@ class SuggestionComponent : public Component
                 auto textLength = font.getStringWidth(getButtonText());
                 
                 g.setColour(getToggleState() ? findColour(PlugDataColour::popupMenuActiveTextColourId) : findColour(PlugDataColour::popupMenuTextColourId));
-
-                auto yIndent = jmin(4, proportionOfHeight(0.3f));
-                auto cornerSize = jmin(getHeight(), getWidth()) / 2;
-                auto fontHeight = roundToInt(font.getHeight() * 0.5f);
-                auto leftIndent = drawIcon ? textLength + 38 : textLength + 8;
-                auto rightIndent = jmin(fontHeight, 2 + cornerSize / 2);
+                
+                
+                leftIndent += textLength;
                 auto textWidth = getWidth() - leftIndent - rightIndent;
 
                 // Draw seperator (which is an en dash)
-                g.drawText(String::fromUTF8("\xe2\x80\x93 ") + objectDescription, Rectangle<int>(leftIndent, yIndent, textWidth, getHeight() - yIndent * 2), Justification::left);
+                g.drawText(String::fromUTF8("  \xe2\x80\x93  ") + objectDescription, Rectangle<int>(leftIndent, yIndent, textWidth, getHeight() - yIndent * 2), Justification::left);
             }
 
             if (type == -1)

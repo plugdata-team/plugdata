@@ -551,9 +551,7 @@ struct PlugDataLook : public LookAndFeel_V4
     void drawTextEditorOutline(Graphics& g, int width, int height, TextEditor& textEditor) override
     {
         if (textEditor.getName() == "sidebar::searcheditor") return;
-        if (textEditor.getName().startsWith("numbox")) return;
 
-        
         if (dynamic_cast<AlertWindow*>(textEditor.getParentComponent()) == nullptr)
         {
             if (textEditor.isEnabled())
