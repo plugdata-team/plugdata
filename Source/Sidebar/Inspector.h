@@ -21,7 +21,7 @@ struct Inspector : public Component {
         g.setColour(findColour(PlugDataColour::sidebarBackgroundColourId));
         g.fillRect(getLocalBounds().removeFromTop(23));
         
-        g.setColour(findColour(PlugDataColour::panelTextColourId));
+        g.setColour(findColour(PlugDataColour::sidebarTextColourId));
         g.drawText(title, getLocalBounds().removeFromTop(23), Justification::centred);
         
         g.setColour(findColour(PlugDataColour::outlineColourId));

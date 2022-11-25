@@ -109,8 +109,8 @@ void ObjectGrid::clear(bool horizontal)
 
 Point<int> ObjectGrid::handleMouseDrag(Object* toDrag, Point<int> dragOffset, Rectangle<int> viewBounds)
 {
-    gridLines[0].setStrokeFill(FillType(toDrag->findColour(PlugDataColour::objectSelectedOutlineColourId)));
-    gridLines[1].setStrokeFill(FillType(toDrag->findColour(PlugDataColour::objectSelectedOutlineColourId)));
+    gridLines[0].setStrokeFill(FillType(toDrag->findColour(PlugDataColour::gridLineColourId)));
+    gridLines[1].setStrokeFill(FillType(toDrag->findColour(PlugDataColour::gridLineColourId)));
 
     // Check for snap points on both axes
     dragOffset = performVerticalSnap(toDrag, dragOffset, viewBounds);

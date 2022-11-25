@@ -126,11 +126,10 @@ struct MidiBlinker : public Component, public Timer
         auto midiInRect = Rectangle<float>(38.0f, 8.0f, 15.0f, 3.0f);
         auto midiOutRect = Rectangle<float>(38.0f, 17.0f, 15.0f, 3.0f);
 
-        // TODO: what happened to meterColourId???
-        g.setColour(blinkMidiIn ? findColour(PlugDataColour::dataColourId) : findColour(PlugDataColour::canvasBackgroundColourId));
+        g.setColour(blinkMidiIn ? findColour(PlugDataColour::levelMeterActiveColourId) : findColour(PlugDataColour::levelMeterInactiveColourId));
         g.fillRoundedRectangle(midiInRect, 1.0f);
 
-        g.setColour(blinkMidiOut ? findColour(PlugDataColour::dataColourId) : findColour(PlugDataColour::canvasBackgroundColourId));
+        g.setColour(blinkMidiOut ? findColour(PlugDataColour::levelMeterActiveColourId) : findColour(PlugDataColour::levelMeterInactiveColourId));
         g.fillRoundedRectangle(midiOutRect, 1.0f);
     }
 

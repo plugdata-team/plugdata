@@ -88,9 +88,16 @@ enum PlugDataColour
     signalColourId,
     
     dialogBackgroundColourId,
+    
     sidebarBackgroundColourId,
+    sidebarTextColourId,
+    sidebarActiveBackgroundColourId,
+    sidebarActiveTextColourId,
+    
     levelMeterActiveColourId,
     levelMeterInactiveColourId,
+    levelMeterTrackColourId,
+    levelMeterThumbColourId,
     
     panelBackgroundColourId,
     panelTextColourId,
@@ -102,8 +109,10 @@ enum PlugDataColour
     popupMenuTextColourId,
     popupMenuActiveTextColourId,
     
-    
     scrollbarThumbColourId,
+    resizeableCornerColourId,
+    gridLineColourId,
+    caretColourId,
     
     /* iteration hack */
     numberOfColours
@@ -133,23 +142,34 @@ inline const std::map<PlugDataColour, std::tuple<String, String, String>> PlugDa
     {dataColourId, {"Data Colour", "data_colour", "Canvas"}},
     {connectionColourId, {"Connection Colour", "connection_colour", "Canvas"}},
     {signalColourId, {"Signal Colour", "signal_colour", "Canvas"}},
-
-        
+    {resizeableCornerColourId, {"Graph Resizer", "graph_resizer", "Canvas"}},
+    {gridLineColourId, {"Grid Line Colour", "grid_colour", "Canvas"}},
+    
     {popupMenuBackgroundColourId, {"Popup Menu Background", "popup_background", "Popup Menu"}},
     {popupMenuActiveBackgroundColourId, {"Popup Menu Background Active", "popup_background_active", "Popup Menu"}},
     {popupMenuTextColourId, {"Popup Menu Text", "popup_text", "Popup Menu"}},
     {popupMenuActiveTextColourId, {"Popup Menu Active Text", "popup_active_text", "Popup Menu"}},
     
-    {sidebarBackgroundColourId, {"Sidebar Background", "sidebar_background", "Other"}},
     {dialogBackgroundColourId, {"Dialog Background", "dialog_background", "Other"}},
-    {levelMeterActiveColourId, {"Level Meter Active", "levelmeter_active", "Other"}},
-    {levelMeterInactiveColourId, {"Level Meter inactive", "levelmeter_inactive", "Other"}},
+    {caretColourId, {"Text Editor Caret", "caret_colour", "Other"}},
+    
+    {levelMeterActiveColourId, {"Level Meter Active", "levelmeter_active", "Level Meter"}},
+    {levelMeterInactiveColourId, {"Level Meter inactive", "levelmeter_inactive", "Level Meter"}},
+    
+    {levelMeterTrackColourId, {"Level Meter Track", "levelmeter_track", "Level Meter"}},
+    {levelMeterThumbColourId, {"Level Meter Thumb", "levelmeter_thumb", "Level Meter"}},
+    
     {scrollbarThumbColourId, {"Scrollbar Thumb", "scrollbar_thumb", "Other"}},
     
     {panelBackgroundColourId, {"Panel Background", "panel_colour", "Panel"}},
     {panelTextColourId, {"Panel Text", "panel_text", "Panel"}},
     {panelActiveBackgroundColourId, {"Panel Background Active", "panel_background_active", "Panel"}},
     {panelActiveTextColourId, {"Panel Active Text", "panel_active_text", "Panel"}},
+    
+    {sidebarBackgroundColourId, {"Sidebar Background", "sidebar_colour", "Sidebar"}},
+    {sidebarTextColourId, {"Sidebar Text", "sidebar_text", "Sidebar"}},
+    {sidebarActiveBackgroundColourId, {"Sidebar Background Active", "sidebar_background_active", "Sidebar"}},
+    {sidebarActiveTextColourId, {"Sidebar Active Text", "sidebar_active_text", "Sidebar"}},
 };
 
 struct Resources
@@ -778,9 +798,9 @@ struct PlugDataLook : public LookAndFeel_V4
         valueTrack.startNewSubPath(minPoint);
         valueTrack.lineTo(maxPoint);
         
-        g.setColour(slider.findColour(PlugDataColour::levelMeterActiveColourId));
+        g.setColour(slider.findColour(PlugDataColour::levelMeterTrackColourId));
         g.strokePath(valueTrack, {trackWidth, PathStrokeType::mitered});
-        g.setColour(slider.findColour(PlugDataColour::levelMeterActiveColourId));
+        g.setColour(slider.findColour(PlugDataColour::levelMeterThumbColourId));
         
         g.fillRoundedRectangle(Rectangle<float>(static_cast<float>(thumbWidth), static_cast<float>(22)).withCentre(maxPoint), 2.0f);
         
@@ -813,7 +833,7 @@ struct PlugDataLook : public LookAndFeel_V4
         corner = corner.createPathWithRoundedCorners(6.0f);
         corner.lineTo(0, h);
                
-        g.setColour(findColour(Slider::thumbColourId).withAlpha(isMouseOver ? 1.0f : 0.6f));
+        g.setColour(findColour(PlugDataColour::resizeableCornerColourId).withAlpha(isMouseOver ? 1.0f : 0.6f));
         g.fillPath(corner);
     }
     
@@ -856,9 +876,8 @@ struct PlugDataLook : public LookAndFeel_V4
                   colours.at(PlugDataColour::scrollbarThumbColourId));
         setColour(DirectoryContentsDisplayComponent::highlightColourId,
                   colours.at(PlugDataColour::panelActiveBackgroundColourId));
-        // TODO: possibly add a colour for this
         setColour(CaretComponent::caretColourId,
-                  colours.at(PlugDataColour::toolbarActiveColourId));
+                  colours.at(PlugDataColour::caretColourId));
         
         setColour(TextButton::buttonColourId,
                   colours.at(PlugDataColour::toolbarBackgroundColourId));
@@ -1004,15 +1023,26 @@ struct PlugDataLook : public LookAndFeel_V4
         {PlugDataColour::panelActiveTextColourId, Colour(255, 255, 255)},
         
         {PlugDataColour::scrollbarThumbColourId, Colour(66, 162, 200)},
+        {PlugDataColour::gridLineColourId, Colour(66, 162, 200)},
+        {PlugDataColour::caretColourId, Colour(66, 162, 200)},
+        {PlugDataColour::resizeableCornerColourId, Colour(66, 162, 200)},
+        
         {PlugDataColour::sidebarBackgroundColourId, Colour(25, 25, 25)},
+        {PlugDataColour::sidebarTextColourId, Colour(255, 255, 255)},
+        {PlugDataColour::sidebarActiveBackgroundColourId, Colour(65, 65, 65)},
+        {PlugDataColour::sidebarActiveTextColourId, Colour(255, 255, 255)},
         
         {PlugDataColour::levelMeterActiveColourId, Colour(66, 162, 200)},
-        {PlugDataColour::levelMeterInactiveColourId, Colour(25, 25, 25)},
+        {PlugDataColour::levelMeterInactiveColourId, Colour(45, 45, 45)},
+        {PlugDataColour::levelMeterTrackColourId, Colour(66, 162, 200)},
+        {PlugDataColour::levelMeterThumbColourId, Colour(66, 162, 200)},
         
         {PlugDataColour::popupMenuBackgroundColourId, Colour(35, 35, 35)},
         {PlugDataColour::popupMenuActiveBackgroundColourId, Colour(65, 65, 65)},
         {PlugDataColour::popupMenuTextColourId, Colour(255, 255, 255)},
         {PlugDataColour::popupMenuActiveTextColourId, Colour(255, 255, 255)}
+        
+        
         
     };
     
@@ -1042,15 +1072,23 @@ struct PlugDataLook : public LookAndFeel_V4
         {PlugDataColour::dialogBackgroundColourId, Colour(228, 228, 228)},
         {PlugDataColour::panelBackgroundColourId, Colour(250, 250, 250)},
         {PlugDataColour::panelTextColourId, Colour(90, 90, 90)},
-        {PlugDataColour::panelActiveBackgroundColourId, Colour(217, 217, 217)},
+        {PlugDataColour::panelActiveBackgroundColourId, Colour(238, 238, 238)},
         {PlugDataColour::panelActiveTextColourId, Colour(90, 90, 90)},
         
         {PlugDataColour::scrollbarThumbColourId, Colour(0, 122, 255)},
+        {PlugDataColour::resizeableCornerColourId, Colour(0, 122, 255)},
+        {PlugDataColour::gridLineColourId, Colour(0, 122, 255)},
+        {PlugDataColour::caretColourId, Colour(0, 122, 255)},
         
         {PlugDataColour::sidebarBackgroundColourId, Colour(238, 238, 238)},
+        {PlugDataColour::sidebarTextColourId, Colour(90, 90, 90)},
+        {PlugDataColour::sidebarActiveBackgroundColourId, Colour(217, 217, 217)},
+        {PlugDataColour::sidebarActiveTextColourId, Colour(90, 90, 90)},
         
         {PlugDataColour::levelMeterActiveColourId, Colour(0, 122, 255)},
         {PlugDataColour::levelMeterInactiveColourId, Colour(238, 238, 238)},
+        {PlugDataColour::levelMeterTrackColourId, Colour(0, 122, 255)},
+        {PlugDataColour::levelMeterThumbColourId, Colour(0, 122, 255)},
         
         {PlugDataColour::popupMenuBackgroundColourId, Colour(228, 228, 228)},
         {PlugDataColour::popupMenuActiveBackgroundColourId, Colour(207, 207, 207)},
