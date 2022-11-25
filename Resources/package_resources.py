@@ -4,8 +4,8 @@ import glob
 
 
 # Utility filesystem functions
-def makeArchive(name, root_dir):
-    shutil.make_archive(name, "zip", root_dir)
+def makeArchive(name, root_dir, base_dir):
+    shutil.make_archive(name, "zip", root_dir, base_dir)
 
 def removeFile(path):
     os.remove(path)
@@ -42,14 +42,14 @@ def existsAsDir(path):
 def globFindAndReplaceText(path, to_find, replacement):
     for src in glob.glob(path):
         # Read in the file
-        with open(src, 'r') as file :
+        with open(src, 'r', encoding='utf-8') as file :
             filedata = file.read()
 
         # Replace the target string
         filedata = filedata.replace(to_find, replacement)
 
         # Write the file out again
-        with open(src, 'w') as file:
+        with open(src, 'w', encoding='utf-8') as file:
             file.write(filedata)
 
 
@@ -96,7 +96,7 @@ removeFile("./Documentation/Makefile.am")
 
 changeWorkingDir("./..")
 
-makeArchive("Filesystem", "./plugdata_version")
+makeArchive("Filesystem", "./", "./plugdata_version")
 removeDir("./plugdata_version")
 
 
