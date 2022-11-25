@@ -73,7 +73,7 @@ public:
     {
         Path p;
         p.addTriangle(0.0f, 0.0f, 1.0f, isOpen() ? 0.0f : 0.5f, isOpen() ? 0.5f : 0.0f, 1.0f);
-        g.setColour(isSelected() ? getOwnerView()->findColour(PlugDataColour::panelActiveTextColourId) : getOwnerView()->findColour(PlugDataColour::panelTextColourId).withAlpha(isMouseOver ? 0.7f : 1.0f));
+        g.setColour(isSelected() ? getOwnerView()->findColour(PlugDataColour::sidebarActiveTextColourId) : getOwnerView()->findColour(PlugDataColour::sidebarTextColourId).withAlpha(isMouseOver ? 0.7f : 1.0f));
         
         auto pathArea = area.translated(10, 0);
         g.fillPath(p, p.getTransformToScaleToFit(pathArea.reduced(2, pathArea.getHeight() / 4), true));
@@ -168,9 +168,9 @@ public:
         int const x = 40;
 
         if (isSelected())
-            g.setColour(owner.findColour(PlugDataColour::panelActiveTextColourId));
+            g.setColour(owner.findColour(PlugDataColour::sidebarActiveTextColourId));
         else
-            g.setColour(owner.findColour(PlugDataColour::panelTextColourId));
+            g.setColour(owner.findColour(PlugDataColour::sidebarTextColourId));
 
         g.setFont(dynamic_cast<PlugDataLook*>(&owner.getLookAndFeel())->iconFont);
 
@@ -346,7 +346,7 @@ public:
         
         // Paint selected row
         if (getNumSelectedFiles()) {
-            g.setColour(findColour(PlugDataColour::panelActiveBackgroundColourId));
+            g.setColour(findColour(PlugDataColour::sidebarActiveBackgroundColourId));
             
             auto selectedRect = getSelectedItem(0)->getItemPosition(true);
             selectedRect = selectedRect.withX(0).withWidth(getWidth()).withHeight(24);
@@ -357,7 +357,7 @@ public:
     void paintOverChildren(Graphics& g) override
     {
         if (isDraggingFile) {
-            g.setColour(findColour(PlugDataColour::panelActiveBackgroundColourId));
+            g.setColour(findColour(PlugDataColour::sidebarActiveBackgroundColourId));
             g.drawRect(getLocalBounds().reduced(1), 2.0f);
         }
     }
@@ -552,7 +552,7 @@ public:
     void paintOverChildren(Graphics& g) override
     {
         g.setFont(getLookAndFeel().getTextButtonFont(closeButton, 30));
-        g.setColour(findColour(PlugDataColour::panelTextColourId));
+        g.setColour(findColour(PlugDataColour::sidebarTextColourId));
 
         g.drawText(Icons::Search, 0, 0, 30, 30, Justification::centred);
     }
@@ -560,11 +560,11 @@ public:
     void paintListBoxItem(int rowNumber, Graphics& g, int w, int h, bool rowIsSelected) override
     {
         if (rowIsSelected) {
-            g.setColour(findColour(PlugDataColour::panelActiveBackgroundColourId));
+            g.setColour(findColour(PlugDataColour::sidebarActiveBackgroundColourId));
             g.fillRoundedRectangle(4, 2, w - 8, h - 4, 4.0f);
         }
 
-        g.setColour(rowIsSelected ? findColour(PlugDataColour::panelActiveTextColourId) : findColour(ComboBox::textColourId));
+        g.setColour(rowIsSelected ? findColour(PlugDataColour::sidebarActiveTextColourId) : findColour(ComboBox::textColourId));
         const String item = searchResult[rowNumber].getFileName();
 
         g.setFont(Font());

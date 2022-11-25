@@ -96,7 +96,7 @@ struct AutomationSlider : public Component, public Value::Listener {
     void paint(Graphics& g) override
     {
         slider.setColour(Slider::backgroundColourId, findColour(PlugDataColour::toolbarBackgroundColourId));
-        slider.setColour(Slider::trackColourId, findColour(PlugDataColour::panelTextColourId));
+        slider.setColour(Slider::trackColourId, findColour(PlugDataColour::sidebarTextColourId));
 
         g.setColour(findColour(PlugDataColour::sidebarBackgroundColourId));
         g.fillRect(getLocalBounds());
@@ -168,7 +168,7 @@ struct AutomationPanel : public Component
         g.fillRect(getLocalBounds().withTrimmedLeft(Sidebar::dragbarWidth).withTrimmedBottom(30));
         g.fillRect(getLocalBounds().withHeight(viewport.getY()));
 
-        g.setColour(findColour(PlugDataColour::panelTextColourId));
+        g.setColour(findColour(PlugDataColour::sidebarTextColourId));
         g.setFont(14);
         g.drawFittedText("Parameters", 0, 1, getWidth(), viewport.getY(), Justification::centred, 1);
         

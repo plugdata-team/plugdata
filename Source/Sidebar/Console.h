@@ -135,7 +135,7 @@ struct Console : public Component {
 
                 if(isSelected) {
                     // Draw selected background
-                    g.setColour(findColour(PlugDataColour::panelActiveBackgroundColourId));
+                    g.setColour(findColour(PlugDataColour::sidebarActiveBackgroundColourId));
                     g.fillRoundedRectangle(getLocalBounds().reduced(6, 2).toFloat(), 4.0f);
                     
                     bool connectedOnTop = false;
@@ -145,7 +145,7 @@ struct Console : public Component {
                         if(!item.getComponent()) return;
                         // Draw connected on top
                         if(item->idx == idx - 1)  {
-                            g.setColour(findColour(PlugDataColour::panelActiveBackgroundColourId));
+                            g.setColour(findColour(PlugDataColour::sidebarActiveBackgroundColourId));
                             g.fillRect(getLocalBounds().reduced(6, 0).toFloat().withTrimmedBottom(5));
                             
                             g.setColour(findColour(PlugDataColour::outlineColourId));
@@ -154,7 +154,7 @@ struct Console : public Component {
                         
                         // Draw connected on bottom
                         if(item->idx == idx + 1)  {
-                            g.setColour(findColour(PlugDataColour::panelActiveBackgroundColourId));
+                            g.setColour(findColour(PlugDataColour::sidebarActiveBackgroundColourId));
                             g.fillRect(getLocalBounds().reduced(6, 0).toFloat().withTrimmedTop(5));
                         }
                     }
@@ -172,7 +172,7 @@ struct Console : public Component {
                 int numLines = getNumLines(console.getWidth(), length);
 
             
-                auto backgroundColour = findColour(isSelected ? PlugDataColour::panelActiveTextColourId : PlugDataColour::panelTextColourId);
+                auto backgroundColour = findColour(isSelected ? PlugDataColour::sidebarActiveTextColourId : PlugDataColour::sidebarTextColourId);
                 
                 if (type == 1)
                     backgroundColour = Colours::orange;

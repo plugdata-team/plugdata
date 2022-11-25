@@ -1073,11 +1073,11 @@ public:
         if (isPositiveAndBelow (row, items.size()))
         {
             if (rowIsSelected) {
-                g.setColour(findColour (PlugDataColour::panelActiveBackgroundColourId));
+                g.setColour(findColour (PlugDataColour::sidebarActiveBackgroundColourId));
                 g.fillRoundedRectangle(5, 3, width - 10, height - 6, 5.0f);
             }
             
-            const auto textColour = findColour(rowIsSelected ? PlugDataColour::panelActiveTextColourId : PlugDataColour::panelTextColourId);
+            const auto textColour = findColour(rowIsSelected ? PlugDataColour::sidebarActiveTextColourId : PlugDataColour::sidebarTextColourId);
             g.setColour (textColour);
             g.setFont (15);
             g.drawText(items[row], Rectangle<int>(15, 0, width - 30, height), Justification::centredLeft);
