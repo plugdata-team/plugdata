@@ -93,13 +93,13 @@ class SuggestionComponent : public Component
                 auto dataColour = findColour(PlugDataColour::dataColourId);
                 auto signalColour = findColour(PlugDataColour::signalColourId);
                 g.setColour(type ? signalColour : dataColour);
-                Rectangle<int> iconbound = getLocalBounds().reduced(4);
+                auto iconbound = getLocalBounds().reduced(4);
                 iconbound.setWidth(getHeight() - 8);
                 iconbound.translate(8, 0);
                 g.fillRoundedRectangle(iconbound.toFloat(), 4.0f);
 
                 g.setColour(Colours::white);
-                g.setFont(font.withHeight(type ? 12 : 11));
+                g.setFont(font.withHeight(type ? 12 : 10));
                 g.drawFittedText(letters[type], iconbound.reduced(1), Justification::centred, 1);
             }
         }

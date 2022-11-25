@@ -468,11 +468,8 @@ ObjectBase* GUIObject::createGui(void* ptr, Object* parent)
     if (name == "button") {
         return new ButtonObject(ptr, parent);
     }
-    if (name == "hsl") {
-        return new SliderObject(false, ptr, parent);
-    }
-    if (name == "vsl") {
-        return new SliderObject(true, ptr, parent);
+    if (name == "hsl" || name == "vsl" || name == "slider") {
+        return new SliderObject(ptr, parent);
     }
     if (name == "tgl") {
         return new ToggleObject(ptr, parent);

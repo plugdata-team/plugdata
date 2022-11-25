@@ -42,13 +42,22 @@
 #    include <stdlib.h>
 #endif
 
+/* colorize output, but only on a TTY */
+#ifdef HAVE_UNISTD_H
+#include <unistd.h>
+#else /* if isatty exists outside unistd, please add another #ifdef */
+# define isatty(fd) 0
+#endif
+static int stderr_isatty;
+
 #define stringify(s) str(s)
 #define str(s) #s
 
 #define INTER (pd_this->pd_inter)
 
-#define DEBUG_MESSUP 1   /* messages up from pd to pd-gui */
-#define DEBUG_MESSDOWN 2 /* messages down from pd-gui to pd */
+#define DEBUG_MESSUP   1<<0    /* messages up from pd to pd-gui */
+#define DEBUG_MESSDOWN 1<<1    /* messages down from pd-gui to pd */
+#define DEBUG_COLORIZE 1<<2    /* colorize messages (if we are on a TTY) */
 
 #ifndef PDBINDIR
 #    define PDBINDIR "bin/"
@@ -554,42 +563,55 @@ void socketreceiver_free(t_socketreceiver* x)
 }
 
 /* this is in a separately called subroutine so that the buffer isn't
- sitting on the stack while the messages are getting passed. */
-static int socketreceiver_doread(t_socketreceiver* x)
+sitting on the stack while the messages are getting passed. */
+static int socketreceiver_doread(t_socketreceiver *x)
 {
-    char messbuf[INBUFSIZE], *bp = messbuf;
-    int indx, first = 1;
-    int inhead = x->sr_inhead;
-    int intail = x->sr_intail;
-    char* inbuf = x->sr_inbuf;
-    for (indx = intail; first || (indx != inhead);
-         first = 0, (indx = (indx + 1) & (INBUFSIZE - 1))) {
+char messbuf[INBUFSIZE], *bp = messbuf;
+int indx, first = 1;
+int inhead = x->sr_inhead;
+int intail = x->sr_intail;
+char *inbuf = x->sr_inbuf;
+for (indx = intail; first || (indx != inhead);
+    first = 0, (indx = (indx+1)&(INBUFSIZE-1)))
+{
         /* if we hit a semi that isn't preceded by a \, it's a message
-         boundary. LATER we should deal with the possibility that the
-         preceding \ might itself be escaped! */
-        char c = *bp++ = inbuf[indx];
-        if (c == ';' && (!indx || inbuf[indx - 1] != '\\')) {
-            intail = (indx + 1) & (INBUFSIZE - 1);
-            binbuf_text(INTER->i_inbinbuf, messbuf, bp - messbuf);
-            if (sys_debuglevel & DEBUG_MESSDOWN) {
-                size_t bufsize = (bp > messbuf) ? (bp - messbuf) : 0;
-#ifdef _WIN32
-#    ifdef _MSC_VER
-                fwprintf(stderr, L"<< %.*S\n", (int)bufsize, messbuf);
-#    else
-                fwprintf(stderr, L"<< %.*s\n", (int)bufsize, messbuf);
-#    endif
-                fflush(stderr);
-#else
-                fprintf(stderr, "<< %.*s\n", (int)bufsize, messbuf);
-#endif
+        boundary. LATER we should deal with the possibility that the
+        preceding \ might itself be escaped! */
+    char c = *bp++ = inbuf[indx];
+    if (c == ';' && (!indx || inbuf[indx-1] != '\\'))
+    {
+        intail = (indx+1)&(INBUFSIZE-1);
+        binbuf_text(INTER->i_inbinbuf, messbuf, bp - messbuf);
+        if (sys_debuglevel & DEBUG_MESSDOWN)
+        {
+            size_t bufsize = (bp>messbuf)?(bp-messbuf):0;
+            int colorize = stderr_isatty && (sys_debuglevel & DEBUG_COLORIZE);
+            const char*msg = messbuf;
+            if (('\r' == messbuf[0]) && ('\n' == messbuf[1]))
+            {
+                bufsize-=2;
+                msg+=2;
             }
-            x->sr_inhead = inhead;
-            x->sr_intail = intail;
-            return (1);
+    #ifdef _WIN32
+        #ifdef _MSC_VER
+            fwprintf(stderr, L"<< %.*S\n", (int)bufsize, msg);
+        #else
+            fwprintf(stderr, L"<< %.*s\n", (int)bufsize, msg);
+        #endif
+            fflush(stderr);
+    #else
+            if(colorize)
+                fprintf(stderr, "\e[0;1;36m<< %.*s\e[0m\n", (int)bufsize, msg);
+            else
+                fprintf(stderr, "<< %.*s\n", (int)bufsize, msg);
+    #endif
         }
+        x->sr_inhead = inhead;
+        x->sr_intail = intail;
+        return (1);
     }
-    return (0);
+}
+return (0);
 }
 
 static void socketreceiver_getudp(t_socketreceiver* x, int fd)
@@ -1551,6 +1573,7 @@ static void glist_maybevis(t_glist* gl)
 int sys_startgui(char const* libdir)
 {
     t_canvas* x;
+    stderr_isatty = isatty(2);
     for (x = pd_getcanvaslist(); x; x = x->gl_next)
         canvas_vis(x, 0);
     INTER->i_havegui = 1;

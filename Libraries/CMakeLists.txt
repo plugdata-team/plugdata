@@ -145,14 +145,14 @@ file(GLOB PD_SOURCES
     ${PD_PATH}/src/g_editor.c
     ${PD_PATH}/src/g_graph.c
     ${PD_PATH}/src/g_guiconnect.c
-    ${PD_PATH}/src/g_hdial.c
-    ${PD_PATH}/src/g_hslider.c
     ${PD_PATH}/src/g_io.c
     ${PD_PATH}/src/g_mycanvas.c
     ${PD_PATH}/src/g_numbox.c
     ${PD_PATH}/src/g_readwrite.c
     ${PD_PATH}/src/g_rtext.c
+    ${PD_PATH}/src/g_radio.c
     ${PD_PATH}/src/g_scalar.c
+    ${PD_PATH}/src/g_slider.c
     ${PD_PATH}/src/g_template.c
     ${PD_PATH}/src/g_text.c
     ${PD_PATH}/src/g_toggle.c
@@ -160,7 +160,6 @@ file(GLOB PD_SOURCES
     ${PD_PATH}/src/g_undo.c
     ${PD_PATH}/src/g_undo.h
     ${PD_PATH}/src/g_vdial.c
-    ${PD_PATH}/src/g_vslider.c
     ${PD_PATH}/src/g_vumeter.c
     ${PD_PATH}/src/m_atom.c
     ${PD_PATH}/src/m_binbuf.c
@@ -174,6 +173,7 @@ file(GLOB PD_SOURCES
     ${PD_PATH}/src/m_sched.c
     ${PD_PATH}/src/s_audio.c
     ${PD_PATH}/src/s_audio_dummy.c
+    ${PD_PATH}/src/s_inter_gui.c
     ${PD_PATH}/src/s_loader.c
     ${PD_PATH}/src/s_main.c
     ${PD_PATH}/src/s_net.c

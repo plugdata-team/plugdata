@@ -6,6 +6,11 @@
 
 #include "x_libpd_extra_utils.h"
 
+static int srl_is_valid(const t_symbol* s)
+{
+    return (!!s && s != &s_);
+}
+
 extern "C" {
 char* pdgui_strnescape(char* dst, size_t dstlen, char const* src, size_t srclen);
 }
@@ -20,9 +25,14 @@ struct IEMObject : public GUIObject {
         srlsym[0] = iemgui->x_snd;
         srlsym[1] = iemgui->x_rcv;
         srlsym[2] = iemgui->x_lab;
-
-        iemgui_all_dollar2raute(srlsym);
-        iemgui_all_sym2dollararg(iemgui, srlsym);
+        
+        char label_chars[MAXPDSTRING];
+        
+        for(int i = 0; i < 3; i++) {
+            if(srlsym[i])
+                srlsym[i] = gensym(pdgui_strnescape(label_chars, sizeof(label_chars), srlsym[i]->s_name, strlen(srlsym[i]->s_name)));
+        }
+        
         String label = String::fromUTF8(srlsym[2]->s_name).removeCharacters("\\");
         iemgui->x_lab_unexpanded = gensym(label.toRawUTF8());
 
@@ -219,11 +229,12 @@ struct IEMObject : public GUIObject {
         t_symbol* srlsym[3];
         auto* iemgui = static_cast<t_iemgui*>(ptr);
         iemgui_all_sym2dollararg(iemgui, srlsym);
-        String name = iemgui->x_snd_unexpanded->s_name;
-        if (name == "empty")
-            return "";
+        
+        if(srl_is_valid(srlsym[0])) {
+            return String(iemgui->x_snd_unexpanded->s_name);
+        }
 
-        return name;
+        return "";
     }
 
     String getReceiveSymbol()
@@ -231,13 +242,12 @@ struct IEMObject : public GUIObject {
         t_symbol* srlsym[3];
         auto* iemgui = static_cast<t_iemgui*>(ptr);
         iemgui_all_sym2dollararg(iemgui, srlsym);
+        
+        if(srl_is_valid(srlsym[1])) {
+            return String(iemgui->x_rcv_unexpanded->s_name);
+        }
 
-        String name = iemgui->x_rcv_unexpanded->s_name;
-
-        if (name == "empty")
-            return "";
-
-        return name;
+        return "";
     }
 
     void setSendSymbol(String const& symbol) const
@@ -249,6 +259,7 @@ struct IEMObject : public GUIObject {
 
         if (symbol == "empty") {
             iemgui->x_fsf.x_snd_able = false;
+            iemgui->x_snd_unexpanded = nullptr;
         } else {
             iemgui->x_snd_unexpanded = gensym(symbol.toRawUTF8());
             iemgui->x_snd = canvas_realizedollar(iemgui->x_glist, iemgui->x_snd_unexpanded);
@@ -269,6 +280,7 @@ struct IEMObject : public GUIObject {
 
         if (symbol == "empty") {
             rcvable = false;
+            iemgui->x_rcv_unexpanded = nullptr;
         }
 
         if (rcvable) {
