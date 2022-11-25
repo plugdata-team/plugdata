@@ -34,6 +34,10 @@ project(PlugData VERSION 0.6.2 LANGUAGES C CXX)
 
 add_subdirectory(Libraries/ EXCLUDE_FROM_ALL)
 
+message("-- Packaging resources")
+execute_process(COMMAND python3 package_resources.py WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/Resources)
+
+
 set(PLUGDATA_VERSION                    "0.6.2")
 set(PLUGDATA_COMPANY_NAME               "PlugData")
 set(PLUGDATA_COMPANY_COPYRIGHT          "PlugData by Timothy Schoen")
