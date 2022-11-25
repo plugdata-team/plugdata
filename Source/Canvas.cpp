@@ -351,11 +351,8 @@ void Canvas::mouseDown(MouseEvent const& e)
     else if (!e.mods.isRightButtonDown()) {
         if (source == this || source == graphArea) {
             
-            if (!connectingEdges.isEmpty()) {
-                // Cancel connection when clicked on canvas
-                connectingEdges.clear();
-                repaint();
-            }
+            cancelConnectionCreation();
+            
             if (e.mods.isCommandDown()) {
                 // Lock if cmd + click on canvas
                 deselectAll();
@@ -1015,6 +1012,14 @@ void Canvas::encapsulateSelection()
     patch.deselectAll();
 }
 
+
+void Canvas::cancelConnectionCreation() {
+    if (!connectingEdges.isEmpty()) {
+        connectingEdges.clear();
+        repaint();
+    }
+}
+
 void Canvas::undo()
 {
     // Performs undo on storage data if the next undo event if a dummy
@@ -1077,7 +1082,7 @@ void Canvas::valueChanged(Value& v)
     // When lock changes
     if (v.refersToSameSourceAs(locked))
     {
-        if (!connectingEdges.isEmpty()) connectingEdges.clear();
+        cancelConnectionCreation();
         deselectAll();
         repaint();
         

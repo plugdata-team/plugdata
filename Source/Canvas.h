@@ -61,6 +61,8 @@ class Canvas : public Component, public Value::Listener, public LassoSource<Weak
     void duplicateSelection();
     
     void encapsulateSelection();
+    
+    void cancelConnectionCreation();
 
     void undo();
     void redo();

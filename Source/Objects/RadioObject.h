@@ -38,15 +38,14 @@ struct RadioObject final : public IEMObject {
             object->setSize(size * numItems + Object::doubleMargin, std::max(object->getHeight(), minSize + Object::doubleMargin));
         }
 
+        auto* radio = static_cast<t_radio*>(ptr);
+        
         if (isVertical) {
-            auto* dial = static_cast<t_vdial*>(ptr);
-
-            dial->x_gui.x_w = getWidth();
-            dial->x_gui.x_h = getHeight() / dial->x_number;
+            radio->x_gui.x_w = getWidth();
+            radio->x_gui.x_h = getHeight() / radio->x_number;
         } else {
-            auto* dial = static_cast<t_hdial*>(ptr);
-            dial->x_gui.x_w = getWidth() / dial->x_number;
-            dial->x_gui.x_h = getHeight();
+            radio->x_gui.x_w = getWidth() / radio->x_number;
+            radio->x_gui.x_h = getHeight();
         }
     }
 
@@ -93,7 +92,7 @@ struct RadioObject final : public IEMObject {
 
     float getValue() override
     {
-        return isVertical ? (static_cast<t_vdial*>(ptr))->x_on : (static_cast<t_hdial*>(ptr))->x_on;
+        return static_cast<t_radio*>(ptr)->x_on;
     }
 
     void update() override
@@ -109,12 +108,12 @@ struct RadioObject final : public IEMObject {
         libpd_get_object_bounds(cnv->patch.getPointer(), ptr, &x, &y, &w, &h);
         auto bounds = Rectangle<int>(x, y, w, h);
 
+        auto* radio = static_cast<t_radio*>(ptr);
+        
         if (isVertical) {
-            auto* dial = static_cast<t_vdial*>(ptr);
-            bounds.setSize(dial->x_gui.x_w, dial->x_gui.x_h * dial->x_number);
+            bounds.setSize(radio->x_gui.x_w, radio->x_gui.x_h * radio->x_number);
         } else {
-            auto* dial = static_cast<t_hdial*>(ptr);
-            bounds.setSize(dial->x_gui.x_w * dial->x_number, dial->x_gui.x_h);
+            bounds.setSize(radio->x_gui.x_w * radio->x_number, radio->x_gui.x_h);
         }
 
         pd->getCallbackLock()->exit();
@@ -183,7 +182,7 @@ struct RadioObject final : public IEMObject {
 
     float getMaximum()
     {
-        return isVertical ? (static_cast<t_vdial*>(ptr))->x_number : (static_cast<t_hdial*>(ptr))->x_number;
+        return static_cast<t_radio*>(ptr)->x_number;
     }
 
     void setMaximum(float value)
@@ -191,11 +190,8 @@ struct RadioObject final : public IEMObject {
         if(getValueOriginal() >= value) {
             setValueOriginal(value - 1);
         }
-        if (isVertical) {
-            static_cast<t_vdial*>(ptr)->x_number = value;
-        } else {
-            static_cast<t_hdial*>(ptr)->x_number = value;
-        }
+        
+        static_cast<t_radio*>(ptr)->x_number = value;
         
         resized();
     }

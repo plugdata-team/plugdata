@@ -124,7 +124,7 @@ void Iolet::mouseUp(const MouseEvent& e)
 
         if (!e.mouseWasDraggedSinceMouseDown() && !e.mods.isShiftDown()) {
             createConnection();
-            cnv->connectingEdges.clear();
+            cnv->cancelConnectionCreation();
 
         } else if (cnv->connectingWithDrag && cnv->nearestEdge && !e.mods.isShiftDown()) {
             // Releasing a connect-by-drag action
@@ -136,10 +136,9 @@ void Iolet::mouseUp(const MouseEvent& e)
                 cnv->nearestEdge->createConnection();
             }
 
-            cnv->connectingEdges.clear();
+            cnv->cancelConnectionCreation();
             cnv->nearestEdge = nullptr;
             cnv->connectingWithDrag = false;
-            cnv->repaint();
 
         } else if (e.mods.isShiftDown() && cnv->getSelectionOfType<Object>().size() > 1 && (cnv->connectingEdges.size() == 1)) {
 
