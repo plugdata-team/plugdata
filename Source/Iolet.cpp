@@ -105,6 +105,11 @@ void Iolet::mouseDrag(const MouseEvent& e)
                 cnv->nearestEdge = nearest;
                 cnv->nearestEdge->repaint();
             }
+            else if (!nearest && cnv->nearestEdge) {
+                cnv->nearestEdge->isTargeted = false;
+                cnv->nearestEdge->repaint();
+                cnv->nearestEdge = nullptr;
+            }
         }
         cnv->repaint();
     }
@@ -338,7 +343,7 @@ Iolet* Iolet::findNearestEdge(Canvas* cnv, Point<int> position, bool inlet, Obje
 
     for (auto& iolet : allEdges)
     {
-        auto bounds = iolet->getCanvasBounds().expanded(150, 150);
+        auto bounds = iolet->getCanvasBounds().expanded(50, 50);
         if (bounds.contains(position))
         {
             if (!nearestEdge) nearestEdge = iolet;
