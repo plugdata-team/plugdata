@@ -831,7 +831,7 @@ struct PlugDataLook : public LookAndFeel_V4
         corner.startNewSubPath(0, h);
         corner.lineTo(w, h);
         corner.lineTo(w, 0);
-        corner = corner.createPathWithRoundedCorners(6.0f);
+        corner = corner.createPathWithRoundedCorners(9.0f);
         corner.lineTo(0, h);
                
         g.setColour(findColour(PlugDataColour::resizeableCornerColourId).withAlpha(isMouseOver ? 1.0f : 0.6f));

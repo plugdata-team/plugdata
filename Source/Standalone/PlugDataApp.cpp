@@ -138,9 +138,6 @@ public:
 
     void systemRequestedQuit() override
     {
-        if (mainWindow)
-            mainWindow->pluginHolder->savePluginState();
-
         if (ModalComponentManager::getInstance()->cancelAllModalComponents()) {
             Timer::callAfterDelay(100,
                 []() {
@@ -165,17 +162,17 @@ protected:
     std::unique_ptr<PlugDataWindow> mainWindow;
 };
 
-void PlugDataWindow::closeButtonPressed()
+void PlugDataWindow::closeAllPatches()
 {
-     // Show an ask to save dialog for each patch that is dirty
+    // Show an ask to save dialog for each patch that is dirty
     // Because save dialog uses an asynchronous callback, we can't loop over them (so have to chain them)
-    if (auto* editor = dynamic_cast<PlugDataPluginEditor*>(pluginHolder->processor->getActiveEditor())) 
+    if (auto* editor = dynamic_cast<PlugDataPluginEditor*>(pluginHolder->processor->getActiveEditor()))
     {
         int idx = editor->tabbar.getCurrentTabIndex();
         auto* cnv = editor->getCurrentCanvas();
     
         auto deleteFunc = [this, editor, cnv, idx]() mutable
-        { 
+        {
             if (cnv)
             {
                 cnv->patch.close();
@@ -186,7 +183,7 @@ void PlugDataWindow::closeButtonPressed()
             editor->tabbar.removeTab(idx);
             editor->tabbar.setCurrentTabIndex(editor->tabbar.getNumTabs() -1, true);
             editor->updateCommandStatus();
-            closeButtonPressed();
+            closeAllPatches();
         };
 
         if(!cnv) {
@@ -211,7 +208,7 @@ void PlugDataWindow::closeButtonPressed()
                             }
                         } else if (!result) {
                         
-                        } 
+                        }
                     });
             });
         }

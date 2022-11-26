@@ -17,23 +17,6 @@
 #include "Dialogs/Dialogs.h"
 
 
-bool wantsNativeWindow() {
-#if PLUGDATA_STANDALONE
-    return true;
-#endif
-    
-    File homeDir = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory).getChildFile("PlugData");
-    File settingsFile = homeDir.getChildFile("Settings.xml");
-    
-    auto settingsTree = ValueTree::fromXml(settingsFile.loadFileAsString());
-    
-    if(!settingsTree.hasProperty("NativeWindow")) {
-        return true;
-    }
-    
-    return static_cast<bool>(settingsTree.getProperty("NativeWindow"));
-}
-
 bool wantsNativeDialog() {
 #if PLUGDATA_STANDALONE
     return true;
@@ -51,15 +34,6 @@ bool wantsNativeDialog() {
     
     return static_cast<bool>(settingsTree.getProperty("NativeDialog"));
 }
-
-bool wantsRoundedCorners() {
-#if PLUGDATA_STANDALONE
-    return wantsNativeWindow();
-#else
-    return false;
-#endif
-}
-
 
 
 PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p) : AudioProcessorEditor(&p), pd(p), statusbar(p), sidebar(&p)
@@ -270,7 +244,7 @@ PlugDataPluginEditor::~PlugDataPluginEditor()
 void PlugDataPluginEditor::paint(Graphics& g)
 {
     g.setColour(findColour(PlugDataColour::canvasBackgroundColourId));
-    g.fillRoundedRectangle(getLocalBounds().toFloat(), 6.0f);
+    g.fillRoundedRectangle(getLocalBounds().toFloat(), 9.0f);
     
     auto baseColour = findColour(PlugDataColour::toolbarBackgroundColourId);
 
@@ -280,12 +254,12 @@ void PlugDataPluginEditor::paint(Graphics& g)
         // Toolbar background
         g.setColour(baseColour);
         g.fillRect(0, 10, getWidth(), toolbarHeight - 9);
-        g.fillRoundedRectangle(0.0f, 0.0f, getWidth(), toolbarHeight, 6.0f);
+        g.fillRoundedRectangle(0.0f, 0.0f, getWidth(), toolbarHeight, 9.0f);
         
         // Statusbar background
         g.setColour(baseColour);
         g.fillRect(0, getHeight() - statusbar.getHeight(), getWidth(), statusbar.getHeight() - 10);
-        g.fillRoundedRectangle(0.0f, getHeight() - statusbar.getHeight(), getWidth(), statusbar.getHeight(), 6.0f);
+        g.fillRoundedRectangle(0.0f, getHeight() - statusbar.getHeight(), getWidth(), statusbar.getHeight(), 9.0f);
     }
     else {
         // Toolbar background

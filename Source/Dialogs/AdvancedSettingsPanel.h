@@ -13,7 +13,7 @@ struct AdvancedSettingsPanel : public Component
     AdvancedSettingsPanel(ValueTree tree) : settingsTree(tree)
     {
         nativeTitlebar.referTo(settingsTree.getPropertyAsValue("NativeWindow", nullptr));
-        reloadPatch.referTo(settingsTree.getPropertyAsValue("ReloadLastPatch", nullptr));
+        reloadPatch.referTo(settingsTree.getPropertyAsValue("ReloadLastState", nullptr));
         
         useNativeTitlebar.reset(new PropertiesPanel::BoolComponent("Use native titlebar", nativeTitlebar, {"No", "Yes"}));
         
