@@ -350,7 +350,7 @@ public:
             
             auto selectedRect = getSelectedItem(0)->getItemPosition(true);
             selectedRect = selectedRect.withX(0).withWidth(getWidth()).withHeight(24);
-            g.fillRoundedRectangle(selectedRect.reduced(6, 2).toFloat(), 4.0f);
+            g.fillRoundedRectangle(selectedRect.reduced(6, 2).toFloat(), Constants::smallCornerRadius);
         }
     }
     // Paint file drop outline
@@ -561,7 +561,7 @@ public:
     {
         if (rowIsSelected) {
             g.setColour(findColour(PlugDataColour::sidebarActiveBackgroundColourId));
-            g.fillRoundedRectangle(4, 2, w - 8, h - 4, 4.0f);
+            g.fillRoundedRectangle(4, 2, w - 8, h - 4, Constants::smallCornerRadius);
         }
 
         g.setColour(rowIsSelected ? findColour(PlugDataColour::sidebarActiveTextColourId) : findColour(ComboBox::textColourId));
@@ -813,7 +813,7 @@ struct DocumentBrowser : public DocumentBrowserBase
     {
         // Background for statusbar part
         g.setColour(findColour(PlugDataColour::toolbarBackgroundColourId));
-        g.fillRoundedRectangle(0, getHeight() - 30, getWidth(), 30, 6.0f);
+        g.fillRoundedRectangle(0, getHeight() - 30, getWidth(), 30, Constants::defaultCornerRadius);
     }
 
     void paintOverChildren(Graphics& g) override

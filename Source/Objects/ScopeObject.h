@@ -137,7 +137,7 @@ struct ScopeObject final : public GUIObject, public Timer {
         auto outlineColour = object->findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : objectOutlineColourId);
         
         g.setColour(outlineColour);
-        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), 3.0f, 1.0f);
+        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Constants::objectCornerRadius, 1.0f);
                 
         auto dx = getWidth() * 0.125f;
         auto dy = getHeight() * 0.25f;

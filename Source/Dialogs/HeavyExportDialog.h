@@ -56,7 +56,7 @@ struct ToolchainInstaller : public Component, public Thread, public Timer
             g.drawText(bottomText, 60, 25, getWidth() - 60, 16, Justification::centredLeft);
 
             if(isMouseOver()) {
-                g.drawRoundedRectangle(1, 1, getWidth() - 2, getHeight() - 2, 4.0f, 0.5f);
+                g.drawRoundedRectangle(1, 1, getWidth() - 2, getHeight() - 2, Constants::smallCornerRadius, 0.5f);
             }
         }
 
@@ -426,7 +426,7 @@ public:
         if(!lnf) return;
 
         g.setColour(findColour(PlugDataColour::panelBackgroundColourId));
-        g.fillRoundedRectangle(getLocalBounds().toFloat(), 5.0f);
+        g.fillRoundedRectangle(getLocalBounds().toFloat(), Constants::windowCornerRadius);
 
         if(state == Busy)
         {
@@ -1092,7 +1092,7 @@ public:
         auto listboxBounds = getLocalBounds().removeFromLeft(200);
 
         g.setColour(findColour(PlugDataColour::sidebarBackgroundColourId));
-        g.fillRoundedRectangle(listboxBounds.toFloat(), 5.0f);
+        g.fillRoundedRectangle(listboxBounds.toFloat(), Constants::windowCornerRadius);
         g.fillRect(listboxBounds.removeFromRight(10));
     }
 
@@ -1147,9 +1147,9 @@ public:
         {
             if (rowIsSelected) {
                 g.setColour(findColour (PlugDataColour::sidebarActiveBackgroundColourId));
-                g.fillRoundedRectangle(5, 3, width - 10, height - 6, 5.0f);
+                g.fillRoundedRectangle(5, 3, width - 10, height - 6, Constants::smallCornerRadius);
             }
-
+            
             const auto textColour = findColour(rowIsSelected ? PlugDataColour::sidebarActiveTextColourId : PlugDataColour::sidebarTextColourId);
             g.setColour (textColour);
             g.setFont (15);
@@ -1216,7 +1216,7 @@ struct HeavyExportDialog : public Component
     void paint(Graphics& g)
     {
         g.setColour(findColour(PlugDataColour::panelBackgroundColourId));
-        g.fillRoundedRectangle(getLocalBounds().toFloat(), 5.0f);
+        g.fillRoundedRectangle(getLocalBounds().toFloat(), Constants::windowCornerRadius);
     }
 
     void resized() {

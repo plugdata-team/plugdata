@@ -276,13 +276,13 @@ void ObjectBase::paint(Graphics& g)
     getLookAndFeel().setColour(TextEditor::textColourId, object->findColour(PlugDataColour::canvasTextColourId));
 
     g.setColour(object->findColour(PlugDataColour::defaultObjectBackgroundColourId));
-    g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), 2.0f);
+    g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Constants::objectCornerRadius);
 
     bool selected = cnv->isSelected(object) && !cnv->isGraph;
     auto outlineColour = object->findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : objectOutlineColourId);
     
     g.setColour(outlineColour);
-    g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), 3.0f, 1.0f);
+    g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Constants::objectCornerRadius, 1.0f);
 }
 
 NonPatchable::NonPatchable(void* obj, Object* parent)

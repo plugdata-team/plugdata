@@ -32,14 +32,14 @@ struct MIDIKeyboard : public MidiKeyboardComponent {
         // Rounded first and last keys to fix objects
         if (midiNoteNumber == getRangeStart()) {
             Path keyPath;
-            keyPath.addRoundedRectangle(area.getX() + 0.5f, area.getY(), area.getWidth() - 0.5f, area.getHeight(), 2.0f, 2.0f, true, false, true, false);
+            keyPath.addRoundedRectangle(area.getX() + 0.5f, area.getY(), area.getWidth() - 0.5f, area.getHeight(), Constants::objectCornerRadius, Constants::objectCornerRadius, true, false, true, false);
 
             g.fillPath(keyPath);
             return; // skip drawing outline for first key
         }
         if (midiNoteNumber == getRangeEnd()) {
             Path keyPath;
-            keyPath.addRoundedRectangle(area.getX(), area.getY(), area.getWidth() - 3.5f, area.getHeight(), 2.0f, 2.0f, false, true, false, true);
+            keyPath.addRoundedRectangle(area.getX(), area.getY(), area.getWidth() - 3.5f, area.getHeight(), Constants::objectCornerRadius, Constants::objectCornerRadius, false, true, false, true);
 
             g.fillPath(keyPath);
         } else {
@@ -280,7 +280,7 @@ struct KeyboardObject final : public GUIObject
         auto outlineColour = object->findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : PlugDataColour::objectOutlineColourId);
         
         g.setColour(outlineColour);
-        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), 3.0f, 1.0f);
+        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Constants::objectCornerRadius, 1.0f);
     }
 
     Value lowC;

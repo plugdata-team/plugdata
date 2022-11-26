@@ -8,6 +8,15 @@
 
 #include <JuceHeader.h>
 #include <map>
+
+struct Constants
+{
+    inline static const float windowCornerRadius = 7.5f;
+    inline static const float defaultCornerRadius = 6.0f;
+    inline static const float smallCornerRadius = 4.0f;
+    inline static const float objectCornerRadius = 3.0f;
+};
+
 #include "Utility/StackShadow.h"
 
 struct Icons
@@ -62,6 +71,8 @@ struct Icons
     inline static const CharPointer_UTF8 GitHub = CharPointer_UTF8("\xef\x82\x9b");
     inline static const CharPointer_UTF8 Wrench = CharPointer_UTF8 ("\xef\x82\xad");
 };
+
+
 
 
 enum PlugDataColour
@@ -480,7 +491,7 @@ struct PlugDataLook : public LookAndFeel_V4
 #endif
         
         Path shadowPath;
-        shadowPath.addRoundedRectangle(Rectangle<float>(0.0f, 0.0f, width, height).reduced(10.0f), 6.0f);
+        shadowPath.addRoundedRectangle(Rectangle<float>(0.0f, 0.0f, width, height).reduced(10.0f), Constants::defaultCornerRadius);
         StackShadow::renderDropShadow(g, shadowPath, Colour(0, 0, 0).withAlpha(0.6f), 10, {0, 2});
         
         // Add a bit of alpha to disable the opaque flag
@@ -488,10 +499,10 @@ struct PlugDataLook : public LookAndFeel_V4
         g.setColour(background);
         
         auto bounds = Rectangle<float>(0, 0, width, height).reduced(7);
-        g.fillRoundedRectangle(bounds, 6.0f);
+        g.fillRoundedRectangle(bounds, Constants::defaultCornerRadius);
         
         g.setColour(findColour(PlugDataColour::outlineColourId));
-        g.drawRoundedRectangle(bounds, 6.0f, 1.0f);
+        g.drawRoundedRectangle(bounds, Constants::defaultCornerRadius, 1.0f);
     }
     
     void drawPopupMenuItem (Graphics& g, const Rectangle<int>& area,
@@ -657,7 +668,7 @@ struct PlugDataLook : public LookAndFeel_V4
         auto buttonArea = button.getLocalBounds().reduced(6, 2).toFloat();
 
         g.setColour(backgroundColour);
-        g.fillRoundedRectangle(buttonArea, 6.0f);
+        g.fillRoundedRectangle(buttonArea, Constants::defaultCornerRadius);
     }
     
     void drawInspectorButton(Graphics& g, Button& button, const Colour& backgroundColour, bool shouldDrawButtonAsHighlighted, bool shouldDrawButtonAsDown)
@@ -710,7 +721,7 @@ struct PlugDataLook : public LookAndFeel_V4
     
     void drawPdButton(Graphics& g, Button& button, const Colour& backgroundColour, bool shouldDrawButtonAsHighlighted, bool shouldDrawButtonAsDown)
     {
-        auto cornerSize = 6.0f;
+        auto cornerSize = Constants::defaultCornerRadius;
         auto bounds = button.getLocalBounds().toFloat();
         
         auto baseColour = findColour(TextButton::buttonColourId);
@@ -831,7 +842,7 @@ struct PlugDataLook : public LookAndFeel_V4
         corner.startNewSubPath(0, h);
         corner.lineTo(w, h);
         corner.lineTo(w, 0);
-        corner = corner.createPathWithRoundedCorners(9.0f);
+        corner = corner.createPathWithRoundedCorners(Constants::windowCornerRadius);
         corner.lineTo(0, h);
                
         g.setColour(findColour(PlugDataColour::resizeableCornerColourId).withAlpha(isMouseOver ? 1.0f : 0.6f));

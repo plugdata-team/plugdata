@@ -96,7 +96,7 @@ class SuggestionComponent : public Component
                 auto iconbound = getLocalBounds().reduced(4);
                 iconbound.setWidth(getHeight() - 8);
                 iconbound.translate(8, 0);
-                g.fillRoundedRectangle(iconbound.toFloat(), 4.0f);
+                g.fillRoundedRectangle(iconbound.toFloat(), Constants::smallCornerRadius);
 
                 g.setColour(Colours::white);
                 g.setFont(font.withHeight(type ? 12 : 10));
@@ -275,17 +275,17 @@ private:
     void paint(Graphics& g) override
     {
         auto shadowPath = Path();
-        shadowPath.addRoundedRectangle(getLocalBounds().reduced(20), 6.0f);
+        shadowPath.addRoundedRectangle(getLocalBounds().reduced(20), Constants::defaultCornerRadius);
         StackShadow::renderDropShadow(g, shadowPath, Colour(0, 0, 0).withAlpha(0.6f), 12.0f);
         
         g.setColour(findColour(PlugDataColour::popupMenuBackgroundColourId));
-        g.fillRoundedRectangle(port->getBounds().reduced(1).toFloat(), 6.0f);
+        g.fillRoundedRectangle(port->getBounds().reduced(1).toFloat(), Constants::defaultCornerRadius);
     }
 
     void paintOverChildren(Graphics& g) override
     {
         g.setColour(bordercolor);
-        g.drawRoundedRectangle(port->getBounds().reduced(1).toFloat(), 6.0f, 1.0f);
+        g.drawRoundedRectangle(port->getBounds().reduced(1).toFloat(), Constants::defaultCornerRadius, 1.0f);
     }
 
     bool keyPressed(KeyPress const& key, Component* originatingComponent) override

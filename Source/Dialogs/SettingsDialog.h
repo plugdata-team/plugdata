@@ -128,13 +128,13 @@ struct SettingsDialog : public Component {
     void paint(Graphics& g) override
     {
         g.setColour(findColour(PlugDataColour::panelBackgroundColourId));
-        g.fillRoundedRectangle(getLocalBounds().reduced(1).toFloat(), 5.0f);
+        g.fillRoundedRectangle(getLocalBounds().reduced(1).toFloat(), Constants::windowCornerRadius);
 
         g.setColour(findColour(PlugDataColour::toolbarBackgroundColourId));
 
         auto toolbarBounds = Rectangle<float>(1, 1, getWidth() - 2, toolbarHeight);
-        g.fillRoundedRectangle(toolbarBounds, 5.0f);
-        g.fillRect(toolbarBounds.withTop(10.0f));
+        g.fillRoundedRectangle(toolbarBounds, Constants::windowCornerRadius);
+        g.fillRect(toolbarBounds.withTrimmedTop(15.0f));
 
 #ifdef PLUGDATA_STANDALONE
         bool drawStatusbar = currentPanel > 0;
@@ -148,7 +148,7 @@ struct SettingsDialog : public Component {
             g.setColour(findColour(PlugDataColour::toolbarBackgroundColourId));
 
             g.fillRect(statusbarBounds.withHeight(20));
-            g.fillRoundedRectangle(statusbarBounds, 5.0f);
+            g.fillRoundedRectangle(statusbarBounds, Constants::windowCornerRadius);
         }
         
         g.setColour(findColour(PlugDataColour::outlineColourId));

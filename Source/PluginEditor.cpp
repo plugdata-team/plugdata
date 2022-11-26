@@ -244,7 +244,7 @@ PlugDataPluginEditor::~PlugDataPluginEditor()
 void PlugDataPluginEditor::paint(Graphics& g)
 {
     g.setColour(findColour(PlugDataColour::canvasBackgroundColourId));
-    g.fillRoundedRectangle(getLocalBounds().toFloat(), 9.0f);
+    g.fillRoundedRectangle(getLocalBounds().toFloat(), Constants::windowCornerRadius);
     
     auto baseColour = findColour(PlugDataColour::toolbarBackgroundColourId);
 
@@ -254,12 +254,12 @@ void PlugDataPluginEditor::paint(Graphics& g)
         // Toolbar background
         g.setColour(baseColour);
         g.fillRect(0, 10, getWidth(), toolbarHeight - 9);
-        g.fillRoundedRectangle(0.0f, 0.0f, getWidth(), toolbarHeight, 9.0f);
+        g.fillRoundedRectangle(0.0f, 0.0f, getWidth(), toolbarHeight, Constants::windowCornerRadius);
         
         // Statusbar background
         g.setColour(baseColour);
-        g.fillRect(0, getHeight() - statusbar.getHeight(), getWidth(), statusbar.getHeight() - 10);
-        g.fillRoundedRectangle(0.0f, getHeight() - statusbar.getHeight(), getWidth(), statusbar.getHeight(), 9.0f);
+        g.fillRect(0, getHeight() - statusbar.getHeight(), getWidth(), statusbar.getHeight() - 12);
+        g.fillRoundedRectangle(0.0f, getHeight() - statusbar.getHeight(), getWidth(), statusbar.getHeight(), Constants::windowCornerRadius);
     }
     else {
         // Toolbar background
