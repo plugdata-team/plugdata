@@ -45,15 +45,13 @@ struct SettingsToolbarButton : public TextButton
         
         g.drawFittedText(icon, iconBounds, Justification::centred, 1);
         
-        font = lnf->defaultFont.withHeight(textBounds.getHeight() / 1.2f);
+        font = lnf->defaultFont.withHeight(textBounds.getHeight() / 1.25f);
         g.setFont (font);
         
-        g.drawFittedText(text, textBounds, Justification::centred, 1);
-        
         // Draw bottom text
+        g.drawFittedText(text, textBounds, Justification::centred, 1);
     }
 };
-
 
 struct SettingsDialog : public Component {
     

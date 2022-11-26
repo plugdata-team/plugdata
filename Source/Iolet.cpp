@@ -19,7 +19,7 @@ Iolet::Iolet(Object* parent, bool inlet) : object(parent)
 
     parent->addAndMakeVisible(this);
 
-    locked.referTo(parent->cnv->pd->locked);
+    locked.referTo(parent->cnv->locked);
 }
 
 Rectangle<int> Iolet::getCanvasBounds()

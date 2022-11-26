@@ -54,7 +54,6 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p) : AudioPro
 
     addKeyListener(getKeyMappings());
 
-    pd.locked.addListener(this);
     pd.settingsTree.addListener(this);
 
     setWantsKeyboardFocus(true);
@@ -234,7 +233,6 @@ PlugDataPluginEditor::~PlugDataPluginEditor()
     setConstrainer(nullptr);
 
     pd.settingsTree.removeListener(this);
-    pd.locked.removeListener(this);
     zoomScale.removeListener(this);
     theme.removeListener(this);
     
@@ -612,13 +610,8 @@ void PlugDataPluginEditor::addTab(Canvas* cnv, bool deleteWhenClosed)
 
 void PlugDataPluginEditor::valueChanged(Value& v)
 {
-    // Update undo state when locking/unlocking
-    if (v.refersToSameSourceAs(pd.locked))
-    {
-        updateCommandStatus();
-    }
     // Update zoom
-    else if (v.refersToSameSourceAs(zoomScale))
+    if (v.refersToSameSourceAs(zoomScale))
     {
         float scale = static_cast<float>(v.getValue());
         
@@ -703,20 +696,23 @@ void PlugDataPluginEditor::updateCommandStatus()
         statusbar.lockButton->setEnabled(!isDragging);
         statusbar.zoomIn->setEnabled(!isDragging);
         statusbar.zoomOut->setEnabled(!isDragging);
+        statusbar.attachToCanvas(cnv);
 
         auto* patchPtr = cnv->patch.getPointer();
         if (!patchPtr) return;
         
         auto deletionCheck = SafePointer(this);
+        
+        bool locked = static_cast<bool>(cnv->locked.getValue());
 
         // First on pd's thread, get undo status
         pd.enqueueFunction(
-            [this, patchPtr, isDragging, deletionCheck]() mutable
+            [this, patchPtr, isDragging, deletionCheck, locked]() mutable
             {
                 if(!deletionCheck) return;
                 
-                canUndo = libpd_can_undo(patchPtr) && !isDragging && pd.locked == var(false);
-                canRedo = libpd_can_redo(patchPtr) && !isDragging && pd.locked == var(false);
+                canUndo = libpd_can_undo(patchPtr) && !isDragging && !locked;
+                canRedo = libpd_can_redo(patchPtr) && !isDragging && !locked;
 
                 // Set button enablement on message thread
                 MessageManager::callAsync(
@@ -738,7 +734,7 @@ void PlugDataPluginEditor::updateCommandStatus()
         
         toolbarButton(Save)->setEnabled(true);
         toolbarButton(SaveAs)->setEnabled(true);
-        toolbarButton(Add)->setEnabled(pd.locked == var(false));
+        toolbarButton(Add)->setEnabled(!locked);
     }
     else {
         statusbar.connectionStyleButton->setEnabled(false);
@@ -781,6 +777,7 @@ void PlugDataPluginEditor::getCommandInfo(const CommandID commandID, Application
     bool hasSelection = false;
     bool isDragging = false;
     bool hasCanvas = true;
+    bool locked = true;
     
     if (auto* cnv = getCurrentCanvas())
     {
@@ -790,6 +787,8 @@ void PlugDataPluginEditor::getCommandInfo(const CommandID commandID, Application
         hasBoxSelection = !selectedBoxes.isEmpty();
         hasSelection = hasBoxSelection || !selectedConnections.isEmpty();
         isDragging = cnv->didStartDragging && !cnv->isDraggingLasso && statusbar.locked == var(false);
+        
+        locked = static_cast<bool>(cnv->locked.getValue());
     }
     else {
         hasCanvas = false;
@@ -890,21 +889,21 @@ void PlugDataPluginEditor::getCommandInfo(const CommandID commandID, Application
         {
             result.setInfo("Copy", "Copy", "Edit", 0);
             result.addDefaultKeypress(67, ModifierKeys::commandModifier);
-            result.setActive(hasCanvas && pd.locked == var(false) && hasBoxSelection && !isDragging);
+            result.setActive(hasCanvas && !locked && hasBoxSelection && !isDragging);
             break;
         }
         case CommandIDs::Cut:
         {
             result.setInfo("Cut", "Cut selection", "Edit", 0);
             result.addDefaultKeypress(88, ModifierKeys::commandModifier);
-            result.setActive(hasCanvas && pd.locked == var(false) && hasSelection && !isDragging);
+            result.setActive(hasCanvas && !locked && hasSelection && !isDragging);
             break;
         }
         case CommandIDs::Paste:
         {
             result.setInfo("Paste", "Paste", "Edit", 0);
             result.addDefaultKeypress(86, ModifierKeys::commandModifier);
-            result.setActive(hasCanvas && pd.locked == var(false) && !isDragging);
+            result.setActive(hasCanvas && !locked && !isDragging);
             break;
         }
         case CommandIDs::Delete:
@@ -913,14 +912,14 @@ void PlugDataPluginEditor::getCommandInfo(const CommandID commandID, Application
             result.addDefaultKeypress(KeyPress::backspaceKey, ModifierKeys::noModifiers);
             result.addDefaultKeypress(KeyPress::deleteKey, ModifierKeys::noModifiers);
 
-            result.setActive(hasCanvas && !isDragging && pd.locked == var(false) && hasSelection);
+            result.setActive(hasCanvas && !isDragging && !locked && hasSelection);
             break;
         }
         case CommandIDs::Encapsulate:
         {
             result.setInfo("Encapsulate", "Encapsulate objects", "Edit", 0);
             result.addDefaultKeypress(69, ModifierKeys::commandModifier | ModifierKeys::shiftModifier);
-            result.setActive(hasCanvas && !isDragging && pd.locked == var(false) && hasSelection);
+            result.setActive(hasCanvas && !isDragging && !locked && hasSelection);
             break;
         }
         case CommandIDs::Duplicate:
@@ -928,14 +927,14 @@ void PlugDataPluginEditor::getCommandInfo(const CommandID commandID, Application
             
             result.setInfo("Duplicate", "Duplicate selection", "Edit", 0);
             result.addDefaultKeypress(68, ModifierKeys::commandModifier);
-            result.setActive(hasCanvas && !isDragging && pd.locked == var(false) && hasBoxSelection);
+            result.setActive(hasCanvas && !isDragging && !locked && hasBoxSelection);
             break;
         }
         case CommandIDs::SelectAll:
         {
             result.setInfo("Select all", "Select all objects and connections", "Edit", 0);
             result.addDefaultKeypress(65, ModifierKeys::commandModifier);
-            result.setActive(hasCanvas && !isDragging && pd.locked == var(false));
+            result.setActive(hasCanvas && !isDragging && !locked);
             break;
         }
         case CommandIDs::ShowBrowser:
@@ -985,63 +984,63 @@ void PlugDataPluginEditor::getCommandInfo(const CommandID commandID, Application
         {
             result.setInfo("New Object", "Create new object", "Objects", 0);
             result.addDefaultKeypress(49, ModifierKeys::commandModifier);
-            result.setActive(hasCanvas && !isDragging && pd.locked == var(false));
+            result.setActive(hasCanvas && !isDragging && !locked);
             break;
         }
         case CommandIDs::NewComment:
         {
             result.setInfo("New Comment", "Create new comment", "Objects", 0);
             result.addDefaultKeypress(53, ModifierKeys::commandModifier);
-            result.setActive(hasCanvas && !isDragging && pd.locked == var(false));
+            result.setActive(hasCanvas && !isDragging && !locked);
             break;
         }
         case CommandIDs::NewBang:
         {
             result.setInfo("New Bang", "Create new bang", "Objects", 0);
             result.addDefaultKeypress(66, ModifierKeys::commandModifier | ModifierKeys::shiftModifier);
-            result.setActive(hasCanvas && !isDragging && pd.locked == var(false));
+            result.setActive(hasCanvas && !isDragging && !locked);
             break;
         }
         case CommandIDs::NewMessage:
         {
             result.setInfo("New Message", "Create new message", "Objects", 0);
             result.addDefaultKeypress(50, ModifierKeys::commandModifier);
-            result.setActive(hasCanvas && !isDragging && pd.locked == var(false));
+            result.setActive(hasCanvas && !isDragging && !locked);
             break;
         }
         case CommandIDs::NewToggle:
         {
             result.setInfo("New Toggle", "Create new toggle", "Objects", 0);
             result.addDefaultKeypress(84, ModifierKeys::commandModifier | ModifierKeys::shiftModifier);
-            result.setActive(hasCanvas && !isDragging && pd.locked == var(false));
+            result.setActive(hasCanvas && !isDragging && !locked);
             break;
         }
         case CommandIDs::NewNumbox:
         {
             result.setInfo("New Number", "Create new number object", "Objects", 0);
             result.addDefaultKeypress(70, ModifierKeys::commandModifier | ModifierKeys::shiftModifier);
-            result.setActive(hasCanvas && !isDragging && pd.locked == var(false));
+            result.setActive(hasCanvas && !isDragging && !locked);
             
             break;
         }
         case CommandIDs::NewNumboxTilde:
         {
             result.setInfo("New Numbox~", "Create new numbox~ object", "Objects", 0);
-            result.setActive(hasCanvas && !isDragging && pd.locked == var(false));
+            result.setActive(hasCanvas && !isDragging && !locked);
             
             break;
         }
         case CommandIDs::NewOscilloscope:
         {
             result.setInfo("New Oscilloscope", "Create new oscilloscope object", "Objects", 0);
-            result.setActive(hasCanvas && !isDragging && pd.locked == var(false));
+            result.setActive(hasCanvas && !isDragging && !locked);
             
             break;
         }
         case CommandIDs::NewFunction:
         {
             result.setInfo("New Function", "Create new function object", "Objects", 0);
-            result.setActive(hasCanvas && !isDragging && pd.locked == var(false));
+            result.setActive(hasCanvas && !isDragging && !locked);
             
             break;
         }
@@ -1049,88 +1048,88 @@ void PlugDataPluginEditor::getCommandInfo(const CommandID commandID, Application
         {
             result.setInfo("New Floatatom", "Create new floatatom", "Objects", 0);
             result.addDefaultKeypress(51, ModifierKeys::commandModifier);
-            result.setActive(hasCanvas && !isDragging && pd.locked == var(false));
+            result.setActive(hasCanvas && !isDragging && !locked);
             break;
         }
         case CommandIDs::NewSymbolAtom:
         {
             result.setInfo("New Symbolatom", "Create new symbolatom", "Objects", 0);
-            result.setActive(hasCanvas && !isDragging && pd.locked == var(false));
+            result.setActive(hasCanvas && !isDragging && !locked);
             break;
         }
         case CommandIDs::NewListAtom:
         {
             result.setInfo("New Listatom", "Create new listatom", "Objects", 0);
             result.addDefaultKeypress(52, ModifierKeys::commandModifier);
-            result.setActive(hasCanvas && !isDragging && pd.locked == var(false));
+            result.setActive(hasCanvas && !isDragging && !locked);
             break;
         }
         case CommandIDs::NewVerticalSlider:
         {
             result.setInfo("New Vertical Slider", "Create new vertical slider", "Objects", 0);
             result.addDefaultKeypress(86, ModifierKeys::commandModifier | ModifierKeys::shiftModifier);
-            result.setActive(hasCanvas && !isDragging && pd.locked == var(false));
+            result.setActive(hasCanvas && !isDragging && !locked);
             break;
         }
         case CommandIDs::NewHorizontalSlider:
         {
             result.setInfo("New Horizontal Slider", "Create new horizontal slider", "Objects", 0);
             result.addDefaultKeypress(74, ModifierKeys::commandModifier | ModifierKeys::shiftModifier);
-            result.setActive(hasCanvas && !isDragging && pd.locked == var(false));
+            result.setActive(hasCanvas && !isDragging && !locked);
             break;
         }
         case CommandIDs::NewVerticalRadio:
         {
             result.setInfo("New Vertical Radio", "Create new vertical radio", "Objects", 0);
             result.addDefaultKeypress(68, ModifierKeys::commandModifier | ModifierKeys::shiftModifier);
-            result.setActive(hasCanvas && !isDragging && pd.locked == var(false));
+            result.setActive(hasCanvas && !isDragging && !locked);
             break;
         }
         case CommandIDs::NewHorizontalRadio:
         {
             result.setInfo("New Horizontal Radio", "Create new horizontal radio", "Objects", 0);
             result.addDefaultKeypress(73, ModifierKeys::commandModifier | ModifierKeys::shiftModifier);
-            result.setActive(hasCanvas && !isDragging && pd.locked == var(false));
+            result.setActive(hasCanvas && !isDragging && !locked);
             break;
         }
         case CommandIDs::NewArray:
         {
             result.setInfo("New Array", "Create new array", "Objects", 0);
             result.addDefaultKeypress(65, ModifierKeys::commandModifier | ModifierKeys::shiftModifier);
-            result.setActive(hasCanvas && !isDragging && pd.locked == var(false));
+            result.setActive(hasCanvas && !isDragging && !locked);
             break;
         }
         case CommandIDs::NewGraphOnParent:
         {
             result.setInfo("New GraphOnParent", "Create new graph on parent", "Objects", 0);
             result.addDefaultKeypress(71, ModifierKeys::commandModifier | ModifierKeys::shiftModifier);
-            result.setActive(hasCanvas && !isDragging && pd.locked == var(false));
+            result.setActive(hasCanvas && !isDragging && !locked);
             break;
         }
         case CommandIDs::NewCanvas:
         {
             result.setInfo("New Canvas", "Create new canvas object", "Objects", 0);
             result.addDefaultKeypress(67, ModifierKeys::commandModifier | ModifierKeys::shiftModifier);
-            result.setActive(hasCanvas && !isDragging && pd.locked == var(false));
+            result.setActive(hasCanvas && !isDragging && !locked);
             break;
         }
         case CommandIDs::NewKeyboard:
         {
             result.setInfo("New Keyboard", "Create new keyboard", "Objects", 0);
-            result.setActive(hasCanvas && !isDragging && pd.locked == var(false));
+            result.setActive(hasCanvas && !isDragging && !locked);
             break;
         }
         case CommandIDs::NewVUMeterObject:
         {
             result.setInfo("New VU Meter", "Create new VU meter", "Objects", 0);
             result.addDefaultKeypress(85, ModifierKeys::commandModifier | ModifierKeys::shiftModifier);
-            result.setActive(hasCanvas && !isDragging && pd.locked == var(false));
+            result.setActive(hasCanvas && !isDragging && !locked);
             break;
         }
         case CommandIDs::NewButton:
         {
             result.setInfo("New Button", "Create new button", "Objects", 0);
-            result.setActive(hasCanvas && !isDragging && pd.locked == var(false));
+            result.setActive(hasCanvas && !isDragging && !locked);
             break;
         }
         default:

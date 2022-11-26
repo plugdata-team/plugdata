@@ -99,7 +99,7 @@ void Object::initialise()
     cnv->addAndMakeVisible(this);
 
     // Updates lock/unlock mode
-    locked.referTo(cnv->pd->locked);
+    locked.referTo(cnv->locked);
     commandLocked.referTo(cnv->pd->commandLocked);
     presentationMode.referTo(cnv->presentationMode);
     hvccMode.referTo(cnv->main.hvccMode);

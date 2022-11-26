@@ -27,7 +27,8 @@ struct AutomationSlider : public Component, public Value::Listener {
             }
         };
         
-        pd->locked.addListener(this);
+        
+        //pd->locked.addListener(this);
 
         slider.setScrollWheelEnabled(false);
         slider.setTextBoxStyle(Slider::NoTextBox, false, 45, 13);
@@ -75,7 +76,7 @@ struct AutomationSlider : public Component, public Value::Listener {
     }
     
     ~AutomationSlider() {
-        pd->locked.removeListener(this);
+        //pd->locked.removeListener(this);
     }
     
     

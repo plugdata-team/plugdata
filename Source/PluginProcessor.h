@@ -139,7 +139,6 @@ class PlugDataAudioProcessor : public AudioProcessor, public pd::Instance, publi
     File settingsFile = homeDir.getChildFile("Settings.xml");
     File abstractions = appDir.getChildFile("Abstractions");
 
-    Value locked = Value(var(false));
     Value commandLocked = Value(var(false));
 
     AudioProcessorValueTreeState parameters;
