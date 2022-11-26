@@ -203,5 +203,12 @@ StringArray DekenInterface::getExternalPaths()
 
 
 bool Dialog::wantsRoundedCorners() {
-    return dynamic_cast<PlugDataPluginEditor*>(parentComponent)->wantsRoundedCorners();
+    // Check if the editor wants rounded corners
+    if(auto* editor = dynamic_cast<PlugDataPluginEditor*>(parentComponent)) {
+        return editor->wantsRoundedCorners();
+    }
+    // Otherwise assume rounded corners for the rest of the UI
+    else {
+        return true;
+    }
 }

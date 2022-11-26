@@ -338,8 +338,8 @@ void PlugDataAudioProcessor::initialiseFilesystem()
         settingsTree.setProperty("NativeWindow", false, nullptr);
     }
     
-    if(!settingsTree.hasProperty("ReloadLastPatch")) {
-        settingsTree.setProperty("ReloadLastPatch", false, nullptr);
+    if(!settingsTree.hasProperty("ReloadLastState")) {
+        settingsTree.setProperty("ReloadLastState", false, nullptr);
     }
     
     if(!settingsTree.hasProperty("Zoom")) {

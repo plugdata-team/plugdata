@@ -54,7 +54,7 @@ struct Dialog : public Component {
         g.setColour(Colours::black.withAlpha(0.5f));
         
         if(wantsRoundedCorners()) {
-            g.fillRoundedRectangle(getLocalBounds().toFloat(), 6.0f);
+            g.fillRoundedRectangle(getLocalBounds().toFloat(), 9.0f);
         }
         else {
             g.fillRect(getLocalBounds());

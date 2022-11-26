@@ -118,9 +118,7 @@ public:
     void init(bool enableAudioInput, String const& preferredDefaultDeviceName)
     {
         setupAudioDevices(enableAudioInput, preferredDefaultDeviceName, options.get());
-#if JUCE_DEBUG
-        // reloadPluginState();
-#endif
+        
         startPlaying();
         
         if (autoOpenMidiDevices)
@@ -185,68 +183,6 @@ public:
     void valueChanged(Value& value) override
     {
         muteInput = static_cast<bool>(value.getValue());
-    }
-    
-    File getLastFile() const
-    {
-        File f;
-        
-        if (settings != nullptr)
-            f = File(settings->getValue("lastStateFile"));
-        
-        if (f == File())
-            f = File::getSpecialLocation(File::userDocumentsDirectory);
-        
-        return f;
-    }
-    
-    void setLastFile(FileChooser const& fc)
-    {
-        if (settings != nullptr)
-            settings->setValue("lastStateFile", fc.getResult().getFullPathName());
-    }
-    
-    /** Pops up a dialog letting the user save the processor's state to a file. */
-    void askUserToSaveState(String const& fileSuffix = String())
-    {
-        stateFileChooser = std::make_unique<FileChooser>(TRANS("Save current state"), getLastFile(), getFilePatterns(fileSuffix));
-        auto flags = FileBrowserComponent::saveMode | FileBrowserComponent::canSelectFiles | FileBrowserComponent::warnAboutOverwriting;
-        
-        stateFileChooser->launchAsync(flags,
-                                      [this](FileChooser const& fc) {
-            if (fc.getResult() == File {})
-                return;
-            
-            setLastFile(fc);
-            
-            MemoryBlock data;
-            processor->getStateInformation(data);
-            
-            if (!fc.getResult().replaceWithData(data.getData(), data.getSize()))
-                AlertWindow::showMessageBoxAsync(AlertWindow::WarningIcon, TRANS("Error whilst saving"), TRANS("Couldn't write to the specified file!"));
-        });
-    }
-    
-    /** Pops up a dialog letting the user re-load the processor's state from a file. */
-    void askUserToLoadState(String const& fileSuffix = String())
-    {
-        stateFileChooser = std::make_unique<FileChooser>(TRANS("Load a saved state"), getLastFile(), getFilePatterns(fileSuffix));
-        auto flags = FileBrowserComponent::openMode | FileBrowserComponent::canSelectFiles;
-        
-        stateFileChooser->launchAsync(flags,
-                                      [this](FileChooser const& fc) {
-            if (fc.getResult() == File {})
-                return;
-            
-            setLastFile(fc);
-            
-            MemoryBlock data;
-            
-            if (fc.getResult().loadFileAsData(data))
-                processor->setStateInformation(data.getData(), static_cast<int>(data.getSize()));
-            else
-                AlertWindow::showMessageBoxAsync(AlertWindow::WarningIcon, TRANS("Error whilst loading"), TRANS("Couldn't read from the specified file!"));
-        });
     }
     
     void startPlaying()
@@ -351,6 +287,7 @@ public:
     Array<MidiDeviceInfo> lastMidiDevices;
     
     std::unique_ptr<FileChooser> stateFileChooser;
+
     
 private:
     /*  This class can be used to ensure that audio callbacks use buffers with a
@@ -564,13 +501,19 @@ public:
         mainComponent = new MainContentComponent(*this);
         auto* editor = mainComponent->getEditor();
         
+        auto settingsTree = getSettingsTree();
+        bool hasReloadStateProperty = settingsTree.hasProperty("ReloadLastState");
+        if(hasReloadStateProperty && static_cast<bool>(settingsTree.getProperty("ReloadLastState")))
+        {
+            pluginHolder->reloadPluginState();
+        }
+        
         auto* c = editor->getConstrainer();
         setResizeLimits(c->getMinimumWidth() + 7, c->getMinimumHeight() + 7, c->getMaximumWidth() + 7, c->getMaximumHeight() + 7);
         
         setContentOwned(mainComponent, true);
 
         // Attach useNativeWindow to the native window property
-        auto settingsTree = getSettingsTree();
         useNativeWindow.referTo(settingsTree.getPropertyAsValue("NativeWindow", nullptr));
         
         // Listen for window style changes
@@ -686,8 +629,17 @@ public:
         else return false;
     }
     
-    void closeButtonPressed() override; // implemented in PlugDataApp.cpp
-    ValueTree getSettingsTree();        // implemented in PlugDataApp.cpp
+    void closeButtonPressed() override
+    {
+        // Save plugin state to allow reloading
+        pluginHolder->savePluginState();
+        
+        // Close all patches, allowing them to save first
+        closeAllPatches();
+    }
+    
+    void closeAllPatches();         // implemented in PlugDataApp.cpp
+    ValueTree getSettingsTree();    // implemented in PlugDataApp.cpp
     
     void maximiseButtonPressed() override
     {
@@ -716,7 +668,7 @@ public:
         if(!isUsingNativeTitleBar()) {
             auto b = getLocalBounds();
             Path localPath;
-            localPath.addRoundedRectangle(b.toFloat().reduced(25.0f), 6.0f);
+            localPath.addRoundedRectangle(b.toFloat().reduced(25.0f), 9.0f);
             
             int radius = isActiveWindow() ? 21 : 16;
             StackShadow::renderDropShadow(g, localPath, Colour(0, 0, 0).withAlpha(0.6f), radius, {0, 3});
