@@ -454,10 +454,9 @@ protected:
         {
             std::function<void(String)> forwardMessage =
                 [this](String message) {
-                    if (message.startsWith("error:")) {
-
+                    if (message.startsWith("error")) {
                         logError(message.substring(7));
-                    } else if (message.startsWith("verbose(4):")) {
+                    } else if (message.startsWith("verbose(0):") || message.startsWith("verbose(1):")) {
                         logError(message.substring(12));
                     } else {
                         logMessage(message);
