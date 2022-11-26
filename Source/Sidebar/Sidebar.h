@@ -97,6 +97,7 @@ struct Sidebar : public Component {
     void pinSidebar(bool pin);
     bool isPinned();
 
+    void clearConsole();
     void updateConsole();
 
 #if PLUGDATA_STANDALONE

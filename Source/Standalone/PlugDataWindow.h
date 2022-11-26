@@ -54,7 +54,6 @@ void maximiseLinuxWindow(void* handle);
 #    define CUSTOM_SHADOW 1
 #endif
 
-
 namespace pd {
 class Patch;
 };
@@ -520,7 +519,7 @@ private:
  
  @tags{Audio}
  */
-class PlugDataWindow : public DocumentWindow {
+class PlugDataWindow : public DocumentWindow, public Value::Listener {
     // Replacement for native Windows shadow, to allow rounded corners
 #if CUSTOM_SHADOW && JUCE_LINUX
     Image shadowImage;
@@ -529,6 +528,8 @@ class PlugDataWindow : public DocumentWindow {
 #elif CUSTOM_SHADOW
     StackDropShadower dropShadower = StackDropShadower(DropShadow(Colour(0, 0, 0).withAlpha(0.6f), 20, {0, 3}));
 #endif
+    
+    Value useNativeWindow;
     
 public:
     typedef StandalonePluginHolder::PluginInOuts PluginInOuts;
@@ -548,22 +549,6 @@ public:
     )
     : DocumentWindow(title, backgroundColour, DocumentWindow::minimiseButton | DocumentWindow::maximiseButton | DocumentWindow::closeButton)
     {
-#if CUSTOM_SHADOW
-        setDropShadowEnabled(false);
-        
-#if JUCE_LINUX
-        resizer = std::make_unique<ResizableBorderComponent>(this, &constrainer);
-        resizer->setBorderThickness(BorderSize(4));
-        resizer->setAlwaysOnTop(true);
-        Component::addAndMakeVisible(resizer.get());
-        setResizable(false, false);
-#else
-        setResizable(true, false);
-        dropShadower.setOwner(this);
-#endif
-#else
-        setResizable(true, false);
-#endif
         
         setOpaque(false);
         
@@ -583,7 +568,17 @@ public:
         setResizeLimits(c->getMinimumWidth() + 7, c->getMinimumHeight() + 7, c->getMaximumWidth() + 7, c->getMaximumHeight() + 7);
         
         setContentOwned(mainComponent, true);
+
+        // Attach useNativeWindow to the native window property
+        auto settingsTree = getSettingsTree();
+        useNativeWindow.referTo(settingsTree.getPropertyAsValue("NativeWindow", nullptr));
         
+        // Listen for window style changes
+        useNativeWindow.addListener(this);
+        
+        // Make sure it gets updated on init
+        valueChanged(useNativeWindow);
+
         auto const getWindowScreenBounds = [this]() -> Rectangle<int> {
             const auto width = getWidth();
             const auto height = getHeight();
@@ -612,7 +607,6 @@ public:
     }
     
     
-    
     int parseSystemArguments(String const& arguments);
     
     ~PlugDataWindow() override
@@ -620,6 +614,45 @@ public:
         pluginHolder->stopPlaying();
         clearContentComponent();
         pluginHolder = nullptr;
+    }
+    
+    // Called when switching between native vs non-native titlebar
+    void valueChanged(Value& v) override
+    {
+        bool nativeWindow = static_cast<bool>(v.getValue());
+        setUsingNativeTitleBar(nativeWindow);
+        repaint();
+        
+        if(!nativeWindow) {
+            
+#if CUSTOM_SHADOW
+            setDropShadowEnabled(false);
+            
+#if JUCE_LINUX
+            resizer = std::make_unique<ResizableBorderComponent>(this, &constrainer);
+            resizer->setBorderThickness(BorderSize(4));
+            resizer->setAlwaysOnTop(true);
+            Component::addAndMakeVisible(resizer.get());
+            setResizable(false, false);
+#else
+            setResizable(true, false);
+            dropShadower.setOwner(this);
+#endif
+#else
+            setResizable(true, false);
+            
+#endif
+        }
+        else {
+#if CUSTOM_SHADOW && JUCE_LINUX
+            resizer.reset(nullptr);
+#elif CUSTOM_SHADOW
+            dropShadower.setOwner(nullptr);
+            dropShadower.setVisible(false);
+#endif
+            setDropShadowEnabled(true);
+            setResizable(true, false);
+        }
     }
     
     AudioProcessor* getAudioProcessor() const noexcept
@@ -654,6 +687,7 @@ public:
     }
     
     void closeButtonPressed() override; // implemented in PlugDataApp.cpp
+    ValueTree getSettingsTree();        // implemented in PlugDataApp.cpp
     
     void maximiseButtonPressed() override
     {
@@ -679,19 +713,21 @@ public:
 #if JUCE_LINUX
     void paint(Graphics& g) override
     {
-        auto b = getLocalBounds();
-        Path localPath;
-        localPath.addRoundedRectangle(b.toFloat().reduced(25.0f), 6.0f);
-        
-        int radius = isActiveWindow() ? 21 : 16;
-        StackShadow::renderDropShadow(g, localPath, Colour(0, 0, 0).withAlpha(0.6f), radius, {0, 3});
+        if(!isUsingNativeTitleBar()) {
+            auto b = getLocalBounds();
+            Path localPath;
+            localPath.addRoundedRectangle(b.toFloat().reduced(25.0f), 6.0f);
+            
+            int radius = isActiveWindow() ? 21 : 16;
+            StackShadow::renderDropShadow(g, localPath, Colour(0, 0, 0).withAlpha(0.6f), radius, {0, 3});
+        }
     }
     void activeWindowStatusChanged() override {
         repaint();
     }
 #else
     void activeWindowStatusChanged() override {
-        dropShadower.repaint();
+        if(!isUsingNativeTitleBar()) dropShadower.repaint();
     }
 #endif
 #endif
@@ -700,18 +736,20 @@ public:
     {
         ResizableWindow::resized();
         
+        if(!isUsingNativeTitleBar()) {
 #if JUCE_LINUX
-        auto margin = mainComponent ? mainComponent->getMargin() : 18;
-        auto titleBarArea = Rectangle<int>(0, 12 + margin, getWidth() - (8 + margin), 25);
-        if(resizer) resizer->setBounds(getLocalBounds().reduced(margin));
+            auto margin = mainComponent ? mainComponent->getMargin() : 18;
+            auto titleBarArea = Rectangle<int>(0, 12 + margin, getWidth() - (8 + margin), 25);
+            if(resizer) resizer->setBounds(getLocalBounds().reduced(margin));
 #else
-        auto titleBarArea = Rectangle<int>(0, 12, getWidth() - 8, 25);
-        if (auto* b = getMaximiseButton())
-            b->setToggleState(isFullScreen(), dontSendNotification);
+            auto titleBarArea = Rectangle<int>(0, 12, getWidth() - 8, 25);
+            if (auto* b = getMaximiseButton())
+                b->setToggleState(isFullScreen(), dontSendNotification);
 #endif
-        
-        getLookAndFeel().positionDocumentWindowButtons(*this, titleBarArea.getX(), titleBarArea.getY(), titleBarArea.getWidth(), titleBarArea.getHeight(), getMinimiseButton(), getMaximiseButton(), getCloseButton(), false);
-        
+            
+            getLookAndFeel().positionDocumentWindowButtons(*this, titleBarArea.getX(), titleBarArea.getY(), titleBarArea.getWidth(), titleBarArea.getHeight(), getMinimiseButton(), getMaximiseButton(), getCloseButton(), false);
+            
+        }
         if (auto* content = getContentComponent()) content->repaint();
     }
     
@@ -759,8 +797,10 @@ private:
 #if CUSTOM_SHADOW
         void paintOverChildren(Graphics& g) override
         {
-            g.setColour(findColour(PlugDataColour::outlineColourId));
-            g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(getMargin() + 0.5f), 6.0f, 1.0f);
+            if(!owner.isUsingNativeTitleBar()) {
+                g.setColour(findColour(PlugDataColour::outlineColourId));
+                g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(getMargin() + 0.5f), 6.0f, 1.0f);
+            }
         }
 #endif
         
@@ -772,6 +812,10 @@ private:
         }
         
         int getMargin() const {
+            if(owner.isUsingNativeTitleBar()) {
+                return 0;
+            }
+            
 #if JUCE_LINUX && CUSTOM_SHADOW
             if(auto* maximiseButton = owner.getMaximiseButton()) {
                 bool maximised = maximiseButton->getToggleState();

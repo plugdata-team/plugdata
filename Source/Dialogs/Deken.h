@@ -661,7 +661,7 @@ public:
     
     void resized() override
     {
-        auto tableBounds = getLocalBounds().withTrimmedBottom(30);
+        auto tableBounds = getLocalBounds().withTrimmedBottom(30).withTrimmedTop(1);
         auto inputBounds = tableBounds.removeFromTop(28);
         
         int const statusbarHeight = 32;

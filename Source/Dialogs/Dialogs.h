@@ -47,15 +47,19 @@ struct Dialog : public Component {
         return viewedComponent.get();
     }
 
+    bool wantsRoundedCorners();
+    
     void paint(Graphics& g) override
     {
         g.setColour(Colours::black.withAlpha(0.5f));
+        
+        if(wantsRoundedCorners()) {
+            g.fillRoundedRectangle(getLocalBounds().toFloat(), 6.0f);
+        }
+        else {
+            g.fillRect(getLocalBounds());
+        }
 
-#if PLUGDATA_STANDALONE
-        g.fillRoundedRectangle(getLocalBounds().toFloat(), 6.0f);
-#else
-        g.fillRect(getLocalBounds());
-#endif
         if (viewedComponent) {
             g.setColour(findColour(PlugDataColour::dialogBackgroundColourId));
             g.fillRoundedRectangle(viewedComponent->getBounds().toFloat(), 5.0f);

@@ -154,6 +154,7 @@ PlugDataAudioProcessor::PlugDataAudioProcessor()
 
         setTheme(static_cast<bool>(settingsTree.getProperty("Theme")));
     };
+    
 
     if (settingsTree.hasProperty("Theme"))
     {
@@ -332,7 +333,15 @@ void PlugDataAudioProcessor::initialiseFilesystem()
             if(wasMissingColours) saveSettings();
         }
     }
-
+    
+    if(!settingsTree.hasProperty("NativeWindow")) {
+        settingsTree.setProperty("NativeWindow", false, nullptr);
+    }
+    
+    if(!settingsTree.hasProperty("ReloadLastPatch")) {
+        settingsTree.setProperty("ReloadLastPatch", false, nullptr);
+    }
+    
     if(!settingsTree.hasProperty("Zoom")) {
         settingsTree.setProperty("Zoom", 1.0f, nullptr);
     }

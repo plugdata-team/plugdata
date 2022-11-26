@@ -587,8 +587,17 @@ void Canvas::paintOverChildren(Graphics& g)
         path.startNewSubPath(ioletPos.toFloat());
         path.lineTo(mousePos);
 
-        g.setColour(Colours::grey);
-        g.strokePath(path, PathStrokeType(3.0f));
+        
+        auto baseColour = findColour(PlugDataColour::connectionColourId);
+        
+        g.setColour(baseColour.darker(0.1));
+        g.strokePath(path, PathStrokeType(2.5f, PathStrokeType::mitered, PathStrokeType::square));
+        
+        g.setColour(baseColour.darker(0.2));
+        g.strokePath(path, PathStrokeType(1.5f, PathStrokeType::mitered, PathStrokeType::square));
+        
+        g.setColour(baseColour);
+        g.strokePath(path, PathStrokeType(0.5f, PathStrokeType::mitered, PathStrokeType::square));
     }
 }
 

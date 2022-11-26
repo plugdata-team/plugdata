@@ -60,6 +60,7 @@ struct Icons
     inline static const CharPointer_UTF8 AddCircled = CharPointer_UTF8("\xef\x81\x95");
     inline static const CharPointer_UTF8 Console = CharPointer_UTF8("\xef\x84\xa0");
     inline static const CharPointer_UTF8 GitHub = CharPointer_UTF8("\xef\x82\x9b");
+    inline static const CharPointer_UTF8 Wrench = CharPointer_UTF8 ("\xef\x82\xad");
 };
 
 
