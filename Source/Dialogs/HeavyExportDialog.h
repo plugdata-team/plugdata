@@ -727,7 +727,7 @@ public:
 
         if(copyright.isNotEmpty()) {
             args.add("--copyright");
-            args.add("\"" + name + "\"");
+            args.add("\"" + copyright + "\"");
         }
 
         args.add("-v");
@@ -776,7 +776,7 @@ public:
     {
         addAndMakeVisible(properties.add(new PropertiesPanel::ComboComponent("Target board", targetBoardValue, {"Seed", "Pod", "Petal", "Patch", "Path Init", "Field"})));
         addAndMakeVisible(properties.add(new PropertiesPanel::ComboComponent("Export type", exportTypeValue, {"Source code", "Binary", "Flash"})));
-        
+
         addAndMakeVisible(romOptimisation = properties.add(new PropertiesPanel::ComboComponent("ROM Optimisation", romOptimisationType, {"Optimise for size", "Optimise for speed"})));
         addAndMakeVisible(ramOptimisation = properties.add(new PropertiesPanel::ComboComponent("RAM Optimisation", ramOptimisationType, {"Optimise for size", "Optimise for speed"})));
 
@@ -989,8 +989,32 @@ public:
 class DPFSettingsPanel : public ExporterSettingsPanel
 {
 public:
+    Value midiinEnableValue = Value(var(1));
+    Value midioutEnableValue = Value(var(1));
+
+    Value lv2EnableValue = Value(var(1));
+    Value vst2EnableValue = Value(var(1));
+    Value vst3EnableValue = Value(var(1));
+    Value clapEnableValue = Value(var(1));
+    Value jackEnableValue = Value(var(1));
+
     DPFSettingsPanel(PlugDataPluginEditor* editor, ExportingView* exportingView) : ExporterSettingsPanel(editor, exportingView)
     {
+        addAndMakeVisible(properties.add(new PropertiesPanel::BoolComponent("Midi Input", midiinEnableValue, {"No","yes"})));
+        midiinEnableValue.addListener(this);
+        addAndMakeVisible(properties.add(new PropertiesPanel::BoolComponent("Midi Output", midioutEnableValue, {"No","yes"})));
+        midioutEnableValue.addListener(this);
+
+        addAndMakeVisible(properties.add(new PropertiesPanel::BoolComponent("LV2", lv2EnableValue, {"No","Yes"})));
+        lv2EnableValue.addListener(this);
+        addAndMakeVisible(properties.add(new PropertiesPanel::BoolComponent("VST2", vst2EnableValue, {"No","Yes"})));
+        vst2EnableValue.addListener(this);
+        addAndMakeVisible(properties.add(new PropertiesPanel::BoolComponent("VST3", vst3EnableValue, {"No","Yes"})));
+        vst3EnableValue.addListener(this);
+        addAndMakeVisible(properties.add(new PropertiesPanel::BoolComponent("CLAP", clapEnableValue, {"No","Yes"})));
+        clapEnableValue.addListener(this);
+        addAndMakeVisible(properties.add(new PropertiesPanel::BoolComponent("JACK", jackEnableValue, {"No","Yes"})));
+        jackEnableValue.addListener(this);
     }
 
     bool performExport(String pdPatch, String outdir, String name, String copyright, StringArray searchPaths) override
@@ -1006,23 +1030,32 @@ public:
             args.add("\"" + copyright + "\"");
         }
 
-        DynamicObject::Ptr metaJson (new DynamicObject());
+        int midiin = static_cast<int>(midiinEnableValue.getValue());
+        int midiout = static_cast<int>(midioutEnableValue.getValue());
 
-        StringArray formats = {
-            "lv2_dsp",
-            "vst2",
-            "vst3",
-            "clap",
-            "jack"
-        };
+        bool lv2 = static_cast<int>(lv2EnableValue.getValue());
+        bool vst2 = static_cast<int>(vst2EnableValue.getValue());
+        bool vst3 = static_cast<int>(vst3EnableValue.getValue());
+        bool clap = static_cast<int>(clapEnableValue.getValue());
+        bool jack = static_cast<int>(jackEnableValue.getValue());
+
+        StringArray formats;
+
+        if(lv2){formats.add("lv2_dsp");}
+        if(vst2){formats.add("vst2");}
+        if(vst3){formats.add("vst3");}
+        if(clap){formats.add("clap");}
+        if(jack){formats.add("jack");}
+
+        DynamicObject::Ptr metaJson (new DynamicObject());
 
         var metaDPF (new DynamicObject());
         metaDPF.getDynamicObject()->setProperty("project", "true");
         metaDPF.getDynamicObject()->setProperty("description", "Rename Me");
         metaDPF.getDynamicObject()->setProperty("maker", "Wasted Audio");
         metaDPF.getDynamicObject()->setProperty("license", "ISC");
-        metaDPF.getDynamicObject()->setProperty("midi_input", 0);
-        metaDPF.getDynamicObject()->setProperty("midi_output", 0);
+        metaDPF.getDynamicObject()->setProperty("midi_input", midiin);
+        metaDPF.getDynamicObject()->setProperty("midi_output", midiout);
         metaDPF.getDynamicObject()->setProperty("plugin_formats", formats);
 
         metaJson->setProperty("dpf", metaDPF);
@@ -1149,7 +1182,7 @@ public:
                 g.setColour(findColour (PlugDataColour::sidebarActiveBackgroundColourId));
                 g.fillRoundedRectangle(5, 3, width - 10, height - 6, Constants::smallCornerRadius);
             }
-            
+
             const auto textColour = findColour(rowIsSelected ? PlugDataColour::sidebarActiveTextColourId : PlugDataColour::sidebarTextColourId);
             g.setColour (textColour);
             g.setFont (15);
