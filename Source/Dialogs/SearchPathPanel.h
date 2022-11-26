@@ -126,7 +126,7 @@ public:
     {
         if (rowIsSelected) {
             g.setColour(findColour(PlugDataColour::panelActiveBackgroundColourId));
-            g.fillRoundedRectangle({4.0f, 1.0f, width - 8.0f, height - 2.0f}, 4.0f);
+            g.fillRoundedRectangle({4.0f, 1.0f, width - 8.0f, height - 2.0f}, Constants::defaultCornerRadius);
         }
         
         g.setColour(rowIsSelected ? findColour(PlugDataColour::panelActiveTextColourId) : findColour(PlugDataColour::panelTextColourId));

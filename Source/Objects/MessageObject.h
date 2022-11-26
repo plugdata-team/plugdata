@@ -82,7 +82,7 @@ struct MessageObject final : public TextBase
         BorderSize<int> border { 1, 6, 1, 4 };
         
         g.setColour(object->findColour(PlugDataColour::defaultObjectBackgroundColourId));
-        g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), 2.0f);
+        g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Constants::objectCornerRadius);
 
         g.setColour(object->findColour(PlugDataColour::canvasTextColourId));
         g.setFont(font);
@@ -98,7 +98,7 @@ struct MessageObject final : public TextBase
         }
 
         g.setColour(outlineColour);
-        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), 3.0f, 1.0f);
+        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Constants::objectCornerRadius, 1.0f);
     }
     
     void paintOverChildren(Graphics& g) override
@@ -114,7 +114,7 @@ struct MessageObject final : public TextBase
         g.fillPath(flagPath);
         
         if (isDown) {
-            g.drawRoundedRectangle(b.reduced(1).toFloat(), 3.0f, 3.0f);
+            g.drawRoundedRectangle(b.reduced(1).toFloat(), Constants::objectCornerRadius, 3.0f);
         }
     }
     

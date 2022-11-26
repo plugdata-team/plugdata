@@ -54,7 +54,7 @@ struct Dialog : public Component {
         g.setColour(Colours::black.withAlpha(0.5f));
         
         if(wantsRoundedCorners()) {
-            g.fillRoundedRectangle(getLocalBounds().toFloat(), 9.0f);
+            g.fillRoundedRectangle(getLocalBounds().toFloat(), Constants::windowCornerRadius);
         }
         else {
             g.fillRect(getLocalBounds());
@@ -62,10 +62,10 @@ struct Dialog : public Component {
 
         if (viewedComponent) {
             g.setColour(findColour(PlugDataColour::dialogBackgroundColourId));
-            g.fillRoundedRectangle(viewedComponent->getBounds().toFloat(), 5.0f);
+            g.fillRoundedRectangle(viewedComponent->getBounds().toFloat(), Constants::windowCornerRadius);
 
             g.setColour(findColour(PlugDataColour::outlineColourId));
-            g.drawRoundedRectangle(viewedComponent->getBounds().toFloat(), 5.0f, 1.0f);
+            g.drawRoundedRectangle(viewedComponent->getBounds().toFloat(), Constants::windowCornerRadius, 1.0f);
         }
     }
     

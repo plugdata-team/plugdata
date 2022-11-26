@@ -668,7 +668,7 @@ public:
         if(!isUsingNativeTitleBar()) {
             auto b = getLocalBounds();
             Path localPath;
-            localPath.addRoundedRectangle(b.toFloat().reduced(25.0f), 9.0f);
+            localPath.addRoundedRectangle(b.toFloat().reduced(25.0f), Constants::windowCornerRadius);
             
             int radius = isActiveWindow() ? 21 : 16;
             StackShadow::renderDropShadow(g, localPath, Colour(0, 0, 0).withAlpha(0.6f), radius, {0, 3});
@@ -751,7 +751,7 @@ private:
         {
             if(!owner.isUsingNativeTitleBar()) {
                 g.setColour(findColour(PlugDataColour::outlineColourId));
-                g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(getMargin() + 0.5f), 6.0f, 1.0f);
+                g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(getMargin() + 0.5f), Constants::windowCornerRadius, 1.0f);
             }
         }
 #endif

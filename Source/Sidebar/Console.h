@@ -140,7 +140,7 @@ struct Console : public Component {
                 if(isSelected) {
                     // Draw selected background
                     g.setColour(findColour(PlugDataColour::sidebarActiveBackgroundColourId));
-                    g.fillRoundedRectangle(getLocalBounds().reduced(6, 2).toFloat(), 4.0f);
+                    g.fillRoundedRectangle(getLocalBounds().reduced(6, 2).toFloat(), Constants::smallCornerRadius);
                     
                     bool connectedOnTop = false;
                     bool connectedOnBottom = false;
