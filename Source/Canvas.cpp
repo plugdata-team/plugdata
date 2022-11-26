@@ -53,9 +53,6 @@ Canvas::Canvas(PlugDataPluginEditor& parent, pd::Patch& p, Component* parentGrap
 
     gridEnabled.referTo(pd->settingsTree.getPropertyAsValue("GridEnabled", nullptr));
 
-    locked.referTo(pd->locked);
-    locked.addListener(this);
-
     tabbar = &parent.tabbar;
 
     // Add draggable border for setting graph position
@@ -88,6 +85,17 @@ Canvas::Canvas(PlugDataPluginEditor& parent, pd::Patch& p, Component* parentGrap
     }
 
     synchronise();
+    
+    // Start in unlocked mode if the patch is empty
+    if(objects.isEmpty()) {
+        locked = false;
+        patch.getPointer()->gl_edit = false;
+    }
+    else {
+        locked = !patch.getPointer()->gl_edit;
+    }
+    
+    locked.addListener(this);
 }
 
 Canvas::~Canvas()
@@ -1091,12 +1099,20 @@ void Canvas::valueChanged(Value& v)
     // When lock changes
     if (v.refersToSameSourceAs(locked))
     {
+        bool editMode = !static_cast<bool>(v.getValue());
+        
+        pd->enqueueFunction([this, editMode](){
+            patch.getPointer()->gl_edit = editMode;
+        });
+        
         cancelConnectionCreation();
         deselectAll();
         repaint();
         
         // Makes sure no objects keep keyboard focus after locking/unlocking
         if(isShowing() && isVisible()) grabKeyboardFocus();
+        
+        main.updateCommandStatus();
     }
     else if (v.refersToSameSourceAs(commandLocked))
     {

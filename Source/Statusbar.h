@@ -6,6 +6,7 @@
 #pragma once
 #include <JuceHeader.h>
 
+struct Canvas;
 struct LevelMeter;
 struct MidiBlinker;
 struct PlugDataAudioProcessor;
@@ -26,6 +27,8 @@ struct Statusbar : public Component, public Value::Listener, public Timer
     void valueChanged(Value& v) override;
     
     void timerCallback() override;
+    
+    void attachToCanvas(Canvas* cnv);
 
     bool wasLocked = false; // Make sure it doesn't re-lock after unlocking (because cmd is still down)
     

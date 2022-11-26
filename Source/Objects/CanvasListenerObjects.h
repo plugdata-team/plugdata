@@ -211,13 +211,13 @@ struct CanvasEditObject final : public TextBase, public Value::Listener
         : TextBase(ptr, object)
     {
         // Don't use lock method, because that also responds to temporary lock
-        lastEditMode = static_cast<float>(pd->locked.getValue());
-        pd->locked.addListener(this);
+        lastEditMode = static_cast<float>(cnv->locked.getValue());
+        cnv->locked.addListener(this);
     }
     
     void valueChanged(Value& v) override {
         
-        bool editMode = static_cast<bool>(pd->locked.getValue());
+        bool editMode = static_cast<bool>(cnv->locked.getValue());
         if(lastEditMode != editMode) {
             auto* edit = static_cast<t_fake_edit*>(ptr);
             outlet_float(edit->x_obj.ob_outlet, edit->x_edit = editMode);

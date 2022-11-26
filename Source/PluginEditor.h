@@ -203,7 +203,7 @@ class PlugDataPluginEditor : public AudioProcessorEditor, public Value::Listener
     TextButton seperators[8];
     
     ZoomLabel zoomLabel;
-
+    
 #if PLUGDATA_STANDALONE && JUCE_MAC
     Rectangle<int> unmaximisedSize;
 #endif

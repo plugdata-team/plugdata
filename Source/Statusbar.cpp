@@ -158,7 +158,6 @@ Statusbar::Statusbar(PlugDataAudioProcessor& processor) : pd(processor)
 
     setWantsKeyboardFocus(true);
 
-    locked.referTo(pd.locked);
     commandLocked.referTo(pd.commandLocked);
 
     locked.addListener(this);
@@ -305,6 +304,12 @@ Statusbar::~Statusbar()
 {
     delete midiBlinker;
     delete levelMeter;
+}
+
+void Statusbar::attachToCanvas(Canvas* cnv)
+{
+    locked.referTo(cnv->locked);
+    lockButton->getToggleStateValue().referTo(cnv->locked);
 }
 
 void Statusbar::valueChanged(Value& v)
