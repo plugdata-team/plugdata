@@ -13,12 +13,6 @@
 #include "Statusbar.h"
 #include "Tabbar.h"
 
-#ifndef PLUGDATA_STANDALONE
-#define PLUGDATA_ROUNDED 0
-#else
-#define PLUGDATA_ROUNDED 1
-#endif
-
 enum CommandIDs
 {
     NewProject = 1,
@@ -43,6 +37,10 @@ enum CommandIDs
     Encapsulate,
     SelectAll,
     ShowBrowser,
+    NextTab,
+    PreviousTab,
+    ToggleGrid,
+    ClearConsole,
     NewObject,
     NewComment,
     NewBang,
@@ -166,6 +164,7 @@ class PlugDataPluginEditor : public AudioProcessorEditor, public Value::Listener
         return toolbarButtons[static_cast<int>(type)];
     }
     
+    bool wantsRoundedCorners();
 
     PlugDataAudioProcessor& pd;
 

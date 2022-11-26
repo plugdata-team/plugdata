@@ -133,7 +133,7 @@ public:
         resetMaxButton.changeWidthToFitText(buttonHeight);
         resetMaxButton.setTopRightPosition(x - (resetPdButton.getWidth() + 10), h + 6);
 
-        tree.setBounds(0, 0, getWidth(), h);
+        tree.setBounds(0, 1, getWidth(), h - 1);
     }
 
     

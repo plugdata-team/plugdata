@@ -11,8 +11,48 @@
 #include "AudioSettingsPanel.h"
 #include "ThemePanel.h"
 #include "SearchPathPanel.h"
+#include "AdvancedSettingsPanel.h"
 #include "KeyMappingPanel.h"
 #include "Deken.h"
+
+// Toolbar button for settings panel, with both icon and text
+// We have too many specific items to have only icons at this point
+struct SettingsToolbarButton : public TextButton
+{
+    
+    String icon;
+    String text;
+    
+    SettingsToolbarButton(String iconToUse, String textToShow) : icon(iconToUse), text(textToShow) {
+        
+    }
+    
+    void paint(Graphics& g) override
+    {
+        
+        auto* lnf = dynamic_cast<PlugDataLook*>(&getLookAndFeel());
+        if(!lnf) return;
+        
+        auto b = getLocalBounds().reduced(2);
+
+        g.setColour(findColour(getToggleState() ? PlugDataColour::toolbarActiveColourId : PlugDataColour::toolbarTextColourId));
+        
+        auto iconBounds = b.removeFromTop(b.getHeight() * 0.65f).withTrimmedTop(5);
+        auto textBounds = b.withTrimmedBottom(3);
+        
+        auto font = lnf->iconFont.withHeight(iconBounds.getHeight() / 1.9f);
+        g.setFont (font);
+        
+        g.drawFittedText(icon, iconBounds, Justification::centred, 1);
+        
+        font = lnf->defaultFont.withHeight(textBounds.getHeight() / 1.2f);
+        g.setFont (font);
+        
+        g.drawFittedText(text, textBounds, Justification::centred, 1);
+        
+        // Draw bottom text
+    }
+};
 
 
 struct SettingsDialog : public Component {
@@ -22,7 +62,11 @@ struct SettingsDialog : public Component {
     {
         setVisible(false);
 
-        toolbarButtons = { new TextButton(Icons::Audio), new TextButton(Icons::Pencil), new TextButton(Icons::Search), new TextButton(Icons::Keyboard), new TextButton(Icons::Externals)};
+        toolbarButtons = { new SettingsToolbarButton(Icons::Audio, "Audio"), new SettingsToolbarButton(Icons::Pencil, "Themes"), new SettingsToolbarButton(Icons::Search, "Paths"), new SettingsToolbarButton(Icons::Keyboard, "Shortcuts"), new SettingsToolbarButton(Icons::Externals, "Externals")
+#if PLUGDATA_STANDALONE
+            , new SettingsToolbarButton(Icons::Wrench, "Advanced")
+#endif
+        };
 
         currentPanel = std::clamp(lastPanel.load(), 0, toolbarButtons.size() - 1);
 
@@ -38,7 +82,11 @@ struct SettingsDialog : public Component {
         panels.add(new SearchPathComponent(settingsTree.getChildWithName("Paths")));
         panels.add(new KeyMappingComponent(*editor->getKeyMappings(), settingsTree));
         panels.add(new Deken());
-
+        
+#if PLUGDATA_STANDALONE
+        panels.add(new AdvancedSettingsPanel(settingsTree));
+#endif
+        
         for (int i = 0; i < toolbarButtons.size(); i++) {
             toolbarButtons[i]->setClickingTogglesState(true);
             toolbarButtons[i]->setRadioGroupId(0110);
@@ -122,7 +170,7 @@ struct SettingsDialog : public Component {
     AudioProcessor& audioProcessor;
     ComponentBoundsConstrainer constrainer;
 
-    static constexpr int toolbarHeight = 45;
+    static constexpr int toolbarHeight = 55;
 
     static inline std::atomic<int> lastPanel = 0;
     int currentPanel;

@@ -187,7 +187,6 @@ class PlugDataAudioProcessor : public AudioProcessor, public pd::Instance, publi
 
     int minIn = 2;
     int minOut = 2;
-
     
     std::unique_ptr<dsp::Oversampling<float>> oversampler;
 

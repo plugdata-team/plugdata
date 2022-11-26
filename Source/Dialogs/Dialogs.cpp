@@ -200,3 +200,8 @@ StringArray DekenInterface::getExternalPaths()
     
     return searchPaths;
 }
+
+
+bool Dialog::wantsRoundedCorners() {
+    return dynamic_cast<PlugDataPluginEditor*>(parentComponent)->wantsRoundedCorners();
+}

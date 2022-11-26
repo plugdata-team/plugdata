@@ -71,6 +71,10 @@ struct Console : public Component {
         viewport.setBounds(bounds.toNearestInt());
         console->setSize(viewport.getWidth(), std::max<int>(console->getTotalHeight(), viewport.getHeight()));
     }
+    
+    void clear() {
+        console->clear();
+    }
 
     void update()
     {

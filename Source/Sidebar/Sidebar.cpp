@@ -284,6 +284,11 @@ bool Sidebar::isShowingConsole() const
     return console->isVisible();
 }
 
+void Sidebar::clearConsole()
+{
+    console->clear();
+}
+
 void Sidebar::updateConsole()
 {
     console->update();

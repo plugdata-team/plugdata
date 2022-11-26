@@ -17,6 +17,23 @@
 #include "Dialogs/Dialogs.h"
 
 
+bool wantsNativeWindow() {
+#if PLUGDATA_STANDALONE
+    return true;
+#endif
+    
+    File homeDir = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory).getChildFile("PlugData");
+    File settingsFile = homeDir.getChildFile("Settings.xml");
+    
+    auto settingsTree = ValueTree::fromXml(settingsFile.loadFileAsString());
+    
+    if(!settingsTree.hasProperty("NativeWindow")) {
+        return true;
+    }
+    
+    return static_cast<bool>(settingsTree.getProperty("NativeWindow"));
+}
+
 bool wantsNativeDialog() {
 #if PLUGDATA_STANDALONE
     return true;
@@ -35,7 +52,13 @@ bool wantsNativeDialog() {
     return static_cast<bool>(settingsTree.getProperty("NativeDialog"));
 }
 
-
+bool wantsRoundedCorners() {
+#if PLUGDATA_STANDALONE
+    return wantsNativeWindow();
+#else
+    return false;
+#endif
+}
 
 
 
@@ -45,7 +68,8 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p) : AudioPro
                       new TextButton(Icons::Redo), new TextButton(Icons::Add),  new TextButton(Icons::Settings), new TextButton(Icons::Hide),   new TextButton(Icons::Pin)};
     
     
-#if PLUGDATA_ROUNDED
+#if PLUGDATA_STANDALONE
+    // In the standalone, the resizer handling is done on the window class
     setResizable(true, false);
 #else
     setResizable(true, true);
@@ -250,36 +274,36 @@ void PlugDataPluginEditor::paint(Graphics& g)
     
     auto baseColour = findColour(PlugDataColour::toolbarBackgroundColourId);
 
-#if PLUGDATA_ROUNDED
-    // Toolbar background
-    g.setColour(baseColour);
-    g.fillRect(0, 10, getWidth(), toolbarHeight - 9);
-    g.fillRoundedRectangle(0.0f, 0.0f, getWidth(), toolbarHeight, 6.0f);
-
-    // Statusbar background
-    g.setColour(baseColour);
-    g.fillRect(0, getHeight() - statusbar.getHeight(), getWidth(), statusbar.getHeight() - 10);
-    g.fillRoundedRectangle(0.0f, getHeight() - statusbar.getHeight(), getWidth(), statusbar.getHeight(), 6.0f);
-
-#else
-    // Toolbar background
-    g.setColour(baseColour);
-    g.fillRect(0, 0, getWidth(), toolbarHeight);
-
-    // Statusbar background
-    g.setColour(baseColour);
-    g.fillRect(0, getHeight() - statusbar.getHeight(), getWidth(), statusbar.getHeight());
-#endif
+    bool rounded = wantsRoundedCorners();
     
-    int roundedOffset = PLUGDATA_ROUNDED;
+    if(rounded) {
+        // Toolbar background
+        g.setColour(baseColour);
+        g.fillRect(0, 10, getWidth(), toolbarHeight - 9);
+        g.fillRoundedRectangle(0.0f, 0.0f, getWidth(), toolbarHeight, 6.0f);
+        
+        // Statusbar background
+        g.setColour(baseColour);
+        g.fillRect(0, getHeight() - statusbar.getHeight(), getWidth(), statusbar.getHeight() - 10);
+        g.fillRoundedRectangle(0.0f, getHeight() - statusbar.getHeight(), getWidth(), statusbar.getHeight(), 6.0f);
+    }
+    else {
+        // Toolbar background
+        g.setColour(baseColour);
+        g.fillRect(0, 0, getWidth(), toolbarHeight);
+
+        // Statusbar background
+        g.setColour(baseColour);
+        g.fillRect(0, getHeight() - statusbar.getHeight(), getWidth(), statusbar.getHeight());
+    }
 
     g.setColour(findColour(PlugDataColour::outlineColourId));
-    g.drawLine(0.0f, toolbarHeight + roundedOffset, static_cast<float>(getWidth()), toolbarHeight + roundedOffset, 1.0f);
+    g.drawLine(0.0f, toolbarHeight + rounded, static_cast<float>(getWidth()), toolbarHeight + rounded, 1.0f);
 }
 
 void PlugDataPluginEditor::resized()
 {
-    int roundedOffset = PLUGDATA_ROUNDED;
+    int roundedOffset = wantsRoundedCorners();
     
     sidebar.setBounds(getWidth() - sidebar.getWidth(), toolbarHeight + roundedOffset, sidebar.getWidth(), getHeight() - toolbarHeight - roundedOffset);
     
@@ -947,7 +971,42 @@ void PlugDataPluginEditor::getCommandInfo(const CommandID commandID, Application
             result.setActive(true);
             break;
         }
-
+        case CommandIDs::NextTab:
+        {
+            result.setInfo("Next Tab", "Show the next tab", "View", 0);
+            int size = canvases.size();
+            int idx = canvases.indexOf(getCurrentCanvas());
+            
+            
+            result.addDefaultKeypress(KeyPress::leftKey, ModifierKeys::commandModifier);
+            result.setActive(idx < (size - 1));
+            
+            break;
+        }
+        case CommandIDs::PreviousTab:
+        {
+            int idx = canvases.indexOf(getCurrentCanvas());
+            
+            result.setInfo("Previous Tab", "Show the previous tab", "View", 0);
+            result.addDefaultKeypress(KeyPress::rightKey, ModifierKeys::commandModifier);
+            result.setActive(idx > 0);
+            break;
+        }
+        case CommandIDs::ToggleGrid:
+        {
+            result.setInfo("Toggle grid", "Toggle grid enablement", "Edit", 0);
+            result.addDefaultKeypress(103, ModifierKeys::commandModifier);
+            result.setActive(true);
+            break;
+        }
+        case CommandIDs::ClearConsole:
+        {
+            result.setInfo("Clear Console", "Clear the console", "Edit", 0);
+            result.addDefaultKeypress(76, ModifierKeys::commandModifier | ModifierKeys::shiftModifier);
+            result.setActive(true);
+            break;
+        }
+            
         case CommandIDs::NewObject:
         {
             result.setInfo("New Object", "Create new object", "Objects", 0);
@@ -1241,6 +1300,41 @@ bool PlugDataPluginEditor::perform(const InvocationInfo& info)
             cnv->redo();
             return true;
         }
+        case CommandIDs::NextTab:
+        {
+            int currentIdx = canvases.indexOf(cnv);
+            if(isPositiveAndBelow(currentIdx, canvases.size())) {
+                tabbar.setCurrentTabIndex(currentIdx + 1);
+                return true;
+            }
+            return false;
+        }
+        case CommandIDs::PreviousTab:
+        {
+            int currentIdx = canvases.indexOf(cnv);
+            if(isPositiveAndBelow(currentIdx, canvases.size())) {
+                tabbar.setCurrentTabIndex(currentIdx - 1);
+                return true;
+            }
+            return false;
+        }
+        case CommandIDs::ToggleGrid:
+        {
+            auto value = static_cast<bool>(pd.settingsTree.getProperty("GridEnabled"));
+            pd.settingsTree.setProperty("GridEnabled", !value, nullptr);
+            
+            return true;
+        }
+        case CommandIDs::ClearConsole:
+        {
+            auto value = static_cast<bool>(pd.settingsTree.getProperty("GridEnabled"));
+            pd.settingsTree.setProperty("GridEnabled", !value, nullptr);
+            
+            sidebar.clearConsole();
+            
+            return true;
+        }
+            
         case CommandIDs::NewArray:
         {
             
@@ -1287,4 +1381,19 @@ bool PlugDataPluginEditor::perform(const InvocationInfo& info)
             return false;
         }
     }
+}
+
+
+bool PlugDataPluginEditor::wantsRoundedCorners()
+{
+#if PLUGDATA_STANDALONE
+    if(auto* window = dynamic_cast<PlugDataWindow*>(getTopLevelComponent())) {
+        return !window->isUsingNativeTitleBar();
+    }
+    else {
+        return true;
+    }
+#else
+   return false;
+#endif
 }

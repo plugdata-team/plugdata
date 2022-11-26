@@ -782,7 +782,9 @@ public:
     DaisySettingsPanel(PlugDataPluginEditor* editor, ExportingView* exportingView) : ExporterSettingsPanel(editor, exportingView)
     {
         addAndMakeVisible(properties.add(new PropertiesPanel::ComboComponent("Target board", targetBoardValue, {"Seed", "Pod", "Petal", "Patch", "Field"})));
+        
         addAndMakeVisible(properties.add(new PropertiesPanel::ComboComponent("Export type", exportTypeValue, {"Source code", "Binary", "Flash"})));
+        
         addAndMakeVisible(romOptimisation = properties.add(new PropertiesPanel::ComboComponent("ROM Optimisation", romOptimisationType, {"Optimise for size", "Optimise for speed"})));
         addAndMakeVisible(ramOptimisation = properties.add(new PropertiesPanel::ComboComponent("RAM Optimisation", ramOptimisationType, {"Optimise for size", "Optimise for speed"})));
         

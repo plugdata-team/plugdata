@@ -265,4 +265,9 @@ int PlugDataWindow::parseSystemArguments(String const& arguments)
     return retval;
 }
 
+ValueTree PlugDataWindow::getSettingsTree() {
+    auto* editor = dynamic_cast<PlugDataPluginEditor*>(mainComponent->getEditor());
+    return editor->pd.settingsTree;
+}
+
 JUCE_CREATE_APPLICATION_DEFINE(PlugDataApp);
