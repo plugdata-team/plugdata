@@ -463,7 +463,7 @@ class PlugDataWindow : public DocumentWindow, public Value::Listener {
     std::unique_ptr<ResizableBorderComponent> resizer;
     ComponentBoundsConstrainer constrainer;
 #elif CUSTOM_SHADOW
-    StackDropShadower dropShadower = StackDropShadower(DropShadow(Colour(0, 0, 0).withAlpha(0.6f), 20, {0, 3}));
+    std::unique_ptr<StackDropShadower> dropShadower;
 #endif
     
     Value useNativeWindow;
@@ -579,7 +579,8 @@ public:
             setResizable(false, false);
 #else
             setResizable(true, false);
-            dropShadower.setOwner(this);
+            dropShadower = std::make_unique<StackDropShadower>(DropShadow(Colour(0, 0, 0).withAlpha(0.6f), 20, {0, 3}));
+            dropShadower->setOwner(this);
 #endif
 #else
             setResizable(true, false);
@@ -590,8 +591,8 @@ public:
 #if CUSTOM_SHADOW && JUCE_LINUX
             resizer.reset(nullptr);
 #elif CUSTOM_SHADOW
-            dropShadower.setOwner(nullptr);
-            dropShadower.setVisible(false);
+            dropShadower.reset(nullptr);
+
 #endif
             setDropShadowEnabled(true);
             setResizable(true, false);
@@ -679,7 +680,7 @@ public:
     }
 #else
     void activeWindowStatusChanged() override {
-        if(!isUsingNativeTitleBar()) dropShadower.repaint();
+        if(!isUsingNativeTitleBar() && dropShadower) dropShadower->repaint();
     }
 #endif
 #endif
