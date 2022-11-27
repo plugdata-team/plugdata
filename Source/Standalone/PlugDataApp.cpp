@@ -248,7 +248,7 @@ int PlugDataWindow::parseSystemArguments(String const& arguments)
     
     // AnotherInstanceStarted is broken on Linux, so we allow opening patches here
 #if JUCE_LINUX
-    for(auto arg : StringArray::fromTokens(systemArguments, true)) {
+    for(auto arg : args) {
         auto toOpen = File(arg.unquoted());
         if(toOpen.existsAsFile() && toOpen.hasFileExtension(".pd")) {
             if(auto* pd = dynamic_cast<PlugDataAudioProcessor*>(getAudioProcessor())) {
