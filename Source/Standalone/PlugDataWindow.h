@@ -496,15 +496,6 @@ public:
         
         parseSystemArguments(systemArguments);
         
-#if JUCE_LINUX
-        for(auto arg : StringArray::fromTokens(systemArguments, true)) {
-            auto file = File(arg.unquoted());
-            if(file.existsAsFile() && file.hasFileExtension(".pd")) {
-                JUCEApplicationBase::getInstance()->anotherInstanceStarted(arg);
-            }
-        }
-#endif
-        
         setOpaque(false);
         
         mainComponent = new MainContentComponent(*this);
