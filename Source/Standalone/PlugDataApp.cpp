@@ -105,6 +105,9 @@ public:
     // For opening files with PlugData standalone and parsing commandline arguments
     void anotherInstanceStarted(String const& commandLine) override
     {
+        std::cout << "INSTANCE STARTED:" << std::endl;
+        std::cout << commandLine << std::endl;
+        
         auto tokens = StringArray::fromTokens(commandLine, " ", "\"");
         auto file = File(tokens[0].unquoted());
         if (file.existsAsFile()) {
