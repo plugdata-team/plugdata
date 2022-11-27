@@ -1231,7 +1231,7 @@ void libpd_multi_init(void)
     }
 }
 
-int parse_startup_arguments(char const** argv, size_t argc, t_namelist* sys_openlist, t_namelist* sys_messagelist)
+int parse_startup_arguments(char const** argv, size_t argc, t_namelist** sys_openlist, t_namelist** sys_messagelist)
 {
     sys_lock();
 
@@ -1355,7 +1355,7 @@ int parse_startup_arguments(char const** argv, size_t argc, t_namelist* sys_open
             if (argc < 2)
                 goto usage;
 
-            sys_openlist = namelist_append_files(sys_openlist, argv[1]);
+            *sys_openlist = namelist_append_files(*sys_openlist, argv[1]);
             argc -= 2;
             argv += 2;
         } else if (!strcmp(*argv, "-lib")) {
@@ -1400,7 +1400,7 @@ int parse_startup_arguments(char const** argv, size_t argc, t_namelist* sys_open
             if (argc < 2)
                 goto usage;
 
-            sys_messagelist = namelist_append(sys_messagelist, argv[1], 1);
+            *sys_messagelist = namelist_append(*sys_messagelist, argv[1], 1);
             argc -= 2;
             argv += 2;
         } else if (!strcmp(*argv, "-batch")) {
