@@ -565,7 +565,13 @@ public:
     void valueChanged(Value& v) override
     {
         bool nativeWindow = static_cast<bool>(v.getValue());
+        
         setUsingNativeTitleBar(nativeWindow);
+        
+        if(!nativeWindow) {
+            setTitleBarHeight(0);
+        }
+        
         repaint();
         
         if(!nativeWindow) {
