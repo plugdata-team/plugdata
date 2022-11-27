@@ -253,7 +253,6 @@ Statusbar::Statusbar(PlugDataAudioProcessor& processor) : pd(processor)
         
     };
     
-    
     connectionStyleButton->setTooltip("Enable segmented connections");
     connectionStyleButton->setClickingTogglesState(true);
     connectionStyleButton->setConnectedEdges(12);
@@ -266,7 +265,6 @@ Statusbar::Statusbar(PlugDataAudioProcessor& processor) : pd(processor)
         {
             connection->setSegmented(segmented);
         }
-        connectionPathfind->setEnabled(segmented);
     };
 
     addAndMakeVisible(connectionStyleButton.get());
@@ -275,7 +273,6 @@ Statusbar::Statusbar(PlugDataAudioProcessor& processor) : pd(processor)
     connectionPathfind->setConnectedEdges(12);
     connectionPathfind->setName("statusbar:findpath");
     connectionPathfind->onClick = [this]() { dynamic_cast<ApplicationCommandManager*>(pd.getActiveEditor())->invokeDirectly(CommandIDs::ConnectionPathfind, true); };
-    connectionPathfind->setEnabled(connectionStyleButton->getToggleState());
     addAndMakeVisible(connectionPathfind.get());
 
     addAndMakeVisible(volumeSlider);

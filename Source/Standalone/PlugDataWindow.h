@@ -503,7 +503,10 @@ public:
         
         auto settingsTree = getSettingsTree();
         bool hasReloadStateProperty = settingsTree.hasProperty("ReloadLastState");
-        if(hasReloadStateProperty && static_cast<bool>(settingsTree.getProperty("ReloadLastState")))
+        
+        // When starting with any sysargs, assume we don't want the last patch to open
+        // Prevents a possible crash and generally kinda makes sense
+        if(systemArguments.isEmpty() && hasReloadStateProperty && static_cast<bool>(settingsTree.getProperty("ReloadLastState")))
         {
             pluginHolder->reloadPluginState();
         }
