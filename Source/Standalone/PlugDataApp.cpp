@@ -234,7 +234,7 @@ int PlugDataWindow::parseSystemArguments(String const& arguments)
     t_namelist* openlist = nullptr;
     t_namelist* messagelist = nullptr;
     
-    int retval = parse_startup_arguments(argv, argc, openlist, messagelist);
+    int retval = parse_startup_arguments(argv, argc, &openlist, &messagelist);
 
     /* open patches specifies with "-open" args */
     for (auto* nl = openlist; nl; nl = nl->nl_next) {
