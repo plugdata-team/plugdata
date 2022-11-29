@@ -9,7 +9,6 @@
 
 struct AdvancedSettingsPanel : public Component
 {
-    
     AdvancedSettingsPanel(ValueTree tree) : settingsTree(tree)
     {
         nativeTitlebar.referTo(settingsTree.getPropertyAsValue("NativeWindow", nullptr));
@@ -37,5 +36,4 @@ struct AdvancedSettingsPanel : public Component
 
     std::unique_ptr<PropertiesPanel::BoolComponent> useNativeTitlebar;
     std::unique_ptr<PropertiesPanel::BoolComponent> reloadLastOpenedPatch;
-
 };
