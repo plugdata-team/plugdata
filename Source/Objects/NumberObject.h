@@ -7,6 +7,7 @@
 #include "../Utility/DraggableNumber.h"
 
 struct NumberObject final : public IEMObject {
+    
     DraggableNumber input;
 
     NumberObject(void* obj, Object* parent)
@@ -44,6 +45,8 @@ struct NumberObject final : public IEMObject {
         input.valueChanged = [this](float value) { setValueOriginal(value); };
 
         input.dragEnd = [this]() { stopEdition(); };
+        
+
     }
 
     void updateBounds() override
@@ -129,7 +132,8 @@ struct NumberObject final : public IEMObject {
         } else if (value.refersToSameSourceAs(max)) {
             setMaximum(static_cast<float>(max.getValue()));
             updateValue();
-        } else {
+        }
+        else {
             IEMObject::valueChanged(value);
         }
     }

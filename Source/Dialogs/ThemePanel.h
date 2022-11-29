@@ -42,7 +42,7 @@ struct ColourProperties : public Component, public Value::Listener
             i++;
             
             // Add a multi colour component to the properties panel
-            panels[colourCategory].add(new PropertiesPanel::MultiPropertyComponent<PropertiesPanel::ColourComponent, 2>(colourName, swatchesToAdd));
+            panels[colourCategory].add(new PropertiesPanel::MultiPropertyComponent<PropertiesPanel::ColourComponent>(colourName, swatchesToAdd));
         }
         
         

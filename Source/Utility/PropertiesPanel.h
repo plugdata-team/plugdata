@@ -119,19 +119,20 @@ struct PropertiesPanel : public PropertyPanel {
         ComboBox comboBox;
     };
      
-    template<typename T, int numProperties>
+    template<typename T>
     struct MultiPropertyComponent : public Property {
         
-        std::array<T*, numProperties> properties;
+        OwnedArray<T> properties;
+        int numProperties;
         
         MultiPropertyComponent(String const& propertyName, Array<Value*> values)
-            : Property(propertyName)
+            : Property(propertyName), numProperties(values.size())
         {
             for(int i = 0; i < numProperties; i++)
             {
-                properties[i] = new T(propertyName, *values[i]);
-                properties[i]->setHideLabel(true);
-                addAndMakeVisible(properties[i]);
+                auto* property = properties.add(new T(propertyName, *values[i]));
+                property->setHideLabel(true);
+                addAndMakeVisible(property);
             }
         }
         
@@ -145,8 +146,6 @@ struct PropertiesPanel : public PropertyPanel {
                 properties[i]->setBounds(b.removeFromLeft(itemWidth));
             }
         }
-        
-        
     };
 
     struct BoolComponent : public Property {

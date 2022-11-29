@@ -16,6 +16,9 @@ char* pdgui_strnescape(char* dst, size_t dstlen, char const* src, size_t srclen)
 }
 
 struct IEMObject : public GUIObject {
+    
+    Value initialise;
+    
     IEMObject(void* ptr, Object* parent)
         : GUIObject(ptr, parent)
     {
@@ -43,6 +46,9 @@ struct IEMObject : public GUIObject {
         labelX = iemgui->x_ldx;
         labelY = iemgui->x_ldy;
         labelHeight = getFontHeight();
+        
+        initialise = iemgui->x_isa.x_loadinit;
+        initialise.addListener(this);
 
         sendSymbol = getSendSymbol();
         receiveSymbol = getReceiveSymbol();
@@ -112,7 +118,7 @@ struct IEMObject : public GUIObject {
         params.push_back({ "Label X", tInt, cLabel, &labelX, {} });
         params.push_back({ "Label Y", tInt, cLabel, &labelY, {} });
         params.push_back({ "Label Height", tInt, cLabel, &labelHeight, {} });
-
+        params.push_back({ "Initialise", tBool, cGeneral, &initialise, {"No", "Yes"} });
         return params;
     }
 
@@ -164,7 +170,10 @@ struct IEMObject : public GUIObject {
         } else if (v.refersToSameSourceAs(labelText)) {
             setLabelText(labelText.toString());
             updateLabel();
-        }
+        } else if (v.refersToSameSourceAs(initialise)) {
+           auto* nbx = static_cast<t_my_numbox*>(ptr);
+           nbx->x_gui.x_isa.x_loadinit = static_cast<bool>(initialise.getValue());
+       }
     }
 
     void updateBounds() override
