@@ -4,13 +4,14 @@ if [[ $1 == "x64" ]]; then
   X64BitMode="x64"
 fi
 
-VERSION=0.9
+VERSION=${GITHUB_REF#refs/*/}
+VERSION_GUID=$(python3 -c 'import uuid; print(str(uuid.uuid4()))')
 
 rm -f ./PlugData.wxs 
 cat > ./PlugData.wxs <<-EOL
 <?xml version="1.0"?>
 <?define ProductVersion = "$VERSION"?>
-<?define ProductUpgradeCode = "097876c6-da37-4cf4-932e-58cd65ce272f"?>
+<?define ProductUpgradeCode = "$VERSION_GUID"?>
 <?if "$X64BitMode" = "x64" ?>
   <?define Win64 = "yes" ?>
   <?define PlatformProgramFilesFolder = "ProgramFiles64Folder" ?>
