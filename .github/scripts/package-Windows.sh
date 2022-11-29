@@ -29,11 +29,9 @@ cat > ./PlugData.wxs <<-EOL
             Name="PlugData" Version="\$(var.ProductVersion)" Manufacturer="Timothy Schoen" Language="1033">
       <Package InstallerVersion="200" Compressed="yes" Comments="Windows Installer Package"/>
       <Media Id="1" Cabinet="product.cab" EmbedCab="yes"/>
-      <Icon Id="ProductIcon" SourceFile="Resources/icon.ico"/>
-      <WixVariable Id="WixUILicenseRtf" Value="Resources/LICENSE.rtf" />
-      <Property Id="LV2_SOURCE_DIR" Value="Plugins/LV2/PlugData.lv2" />
-      <Property Id="VST3_SOURCE_DIR" Value="Plugins/VST3/PlugData.vst3" />
+      <Icon Id="ProductIcon" SourceFile="Resources\icon.ico"/>
       <Property Id="ARPPRODUCTICON" Value="ProductIcon"/>
+      <WixVariable Id="WixUILicenseRtf" Value="Resources\LICENSE.rtf" />
       <Property Id="ARPHELPLINK" Value="http://www.github.com/timothyschoen/PlugData"/>
       <Property Id="ARPURLINFOABOUT" Value="http://www.github.com/timothyschoen/PlugData"/>
       <Property Id="ARPNOREPAIR" Value="1"/>
@@ -43,8 +41,9 @@ cat > ./PlugData.wxs <<-EOL
          <Directory Id="\$(var.PlatformProgramFilesFolder)">
             <Directory Id="INSTALLDIR" Name="PlugData">
                <Component Id="STANDALONE_FILES" Guid="0a2563f0-5f49-4ae8-acda-143a019f73a2" Win64="\$(var.Win64)">
-                  <File Id="MainExecutable" Source="Plugins\Standalone\PlugData.exe"/>
-                  <File Id="PdDLL" Source="Plugins\Standalone\Pd.dll"/>
+                  <File Id="STANDALONE_EXE" Source="Plugins\Standalone\PlugData.exe"/>
+                  <File Id="PD_DLL" Source="Plugins\Standalone\Pd.dll"/>
+                  <ReserveCost Id="STANDALONE_COST" RunFromSource="43200000" RunLocal="43200000"></ReserveCost>
                </Component>
             </Directory>
          </Directory>
@@ -77,6 +76,7 @@ cat > ./PlugData.wxs <<-EOL
                   <Component Id="VST3_EXTRA" Guid="7962383a-5b95-4f04-b644-f13f7896e4df" Win64="\$(var.Win64)">
                   <File Id="VST3_DESKTOP" Source="Plugins\VST3\PlugData.vst3\desktop.ini"/>
                   <File Id="VST3_ICON" Source="Plugins\VST3\PlugData.vst3\Plugin.ico"/>
+                  <ReserveCost Id="VST3_COST" RunFromSource="89900000" RunLocal="89900000"></ReserveCost>
                   </Component>
                 </Directory>
 
@@ -104,6 +104,8 @@ cat > ./PlugData.wxs <<-EOL
                       <File Id="LV2_MANIFEST" Source="Plugins\LV2\PlugData.lv2\manifest.ttl"/>
                       <File Id="LV2_DSP" Source="Plugins\LV2\PlugData.lv2\dsp.ttl"/>
                       <File Id="LV2_UI" Source="Plugins\LV2\PlugData.lv2\ui.ttl"/>
+                      <ReserveCost Id="LV2_COST" RunFromSource="82700000" RunLocal="82700000"></ReserveCost>
+                      
                 </Component>
               </Directory>
                 <Directory Id="LV2_FX_PLUGIN_DIR" Name="PlugDataFx.lv2">
@@ -122,24 +124,7 @@ cat > ./PlugData.wxs <<-EOL
       <Property Id="WIXUI_INSTALLDIR" Value="INSTALLDIR" />
 
       <UI>
-         <UIRef Id="WixUI_InstallDir" />
-         <Publish Dialog="WelcomeDlg"
-               Control="Next"
-               Event="NewDialog"
-               Value="FeaturesDlg"
-               Order="2">1</Publish>
-          
-          <Publish Dialog="FeaturesDlg"
-               Control="Next"
-               Event="NewDialog"
-               Value="InstallDirDlg"
-               Order="2">1</Publish>
-         <Publish Dialog="FeaturesDlg" Control="Back" Event="NewDialog" Value="WelcomeDlg">1</Publish>
-         <Publish Dialog="InstallDirDlg"
-               Control="Back"
-               Event="NewDialog"
-               Value="FeaturesDlg"
-               Order="2">1</Publish>
+         <UIRef Id="WixUI_FeatureTree" />
       </UI>
 
       <InstallExecuteSequence>
