@@ -174,8 +174,10 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p) : AudioPro
     toolbarButton(Settings)->onClick = [this]()
     {
 #ifdef PLUGDATA_STANDALONE
+        
             // Initialise settings dialog for DAW and standalone
-            auto* pluginHolder = StandalonePluginHolder::getInstance();
+            auto* pluginHolder = findParentComponentOfClass<PlugDataWindow>()->getPluginHolder();
+        
             Dialogs::createSettingsDialog(pd, &pluginHolder->deviceManager, toolbarButton(Settings), pd.settingsTree);
 #else
             Dialogs::createSettingsDialog(pd, nullptr, toolbarButton(Settings), pd.settingsTree);
@@ -401,7 +403,7 @@ void PlugDataPluginEditor::mouseDown(const MouseEvent& e)
         return;
         
 #else
-        dynamic_cast<PlugDataWindow*>(getTopLevelComponent())->maximiseButtonPressed();
+        findParentComponentOfClass<PlugDataWindow>()->maximiseButtonPressed();
 #endif
 
     }
@@ -1360,7 +1362,7 @@ bool PlugDataPluginEditor::perform(const InvocationInfo& info)
 bool PlugDataPluginEditor::wantsRoundedCorners()
 {
 #if PLUGDATA_STANDALONE
-    if(auto* window = dynamic_cast<PlugDataWindow*>(getTopLevelComponent())) {
+    if(auto* window = findParentComponentOfClass<PlugDataWindow>()) {
         return !window->isUsingNativeTitleBar();
     }
     else {
