@@ -6,81 +6,129 @@ fi
 
 VERSION=${GITHUB_REF#refs/*/}
 
-cat > ./PlugData.iss <<-EOL
-[Setup]
-AppName=PlugData
-AppContact=timschoen123@gmail.com
-AppCopyright=Distributed under GPLv3 license
-AppPublisher=PlugData
-AppPublisherURL=https://github.com/timothyschoen/PlugData
-AppSupportURL=https://github.com/timothyschoen/PlugData
-AppVerName=$VERSION
-VersionInfoVersion=1.0.0
-DefaultDirName={commonpf}\PlugData
-DefaultGroupName=PlugData
-Compression=lzma2
-SolidCompression=yes
-OutputDir=.
-ArchitecturesInstallIn64BitMode=$X64BitMode
-OutputBaseFilename=PlugData Installer
-LicenseFile=LICENSE
-SetupLogging=yes
-ShowComponentSizes=yes
+rm -f ./PlugData.wxs 
+cat > ./PlugData.wxs <<-EOL
+<?xml version="1.0"?>
+<?define ProductVersion = "$VERSION"?>
+<?define ProductUpgradeCode = "097876c6-da37-4cf4-932e-58cd65ce272f"?>
+<?if "$X64BitMode" = "x64" ?>
+  <?define Win64 = "yes" ?>
+  <?define PlatformProgramFilesFolder = "ProgramFiles64Folder" ?>
+  <?define PlatformCommonFilesFolder = "CommonFiles64Folder" ?>
+  <?define WixPlatform = "x64" ?>
+<?else ?>
+  <?define Win64 = "no" ?>
+  <?define PlatformProgramFilesFolder = "ProgramFilesFolder" ?>
+  <?define PlatformCommonFilesFolder = "CommonFilesFolder" ?>
+  <?define WixPlatform = "x64" ?>
+<?endif ?>
 
-[Types]
-Name: "full"; Description: "Full installation"
-Name: "custom"; Description: "Custom installation"; Flags: iscustom
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+   <Product Id="*" UpgradeCode="\$(var.ProductUpgradeCode)" 
+            Name="PlugData" Version="\$(var.ProductVersion)" Manufacturer="Timothy Schoen" Language="1033">
+      <Package InstallerVersion="200" Compressed="yes" Comments="Windows Installer Package"/>
+      <Media Id="1" Cabinet="product.cab" EmbedCab="yes"/>
 
-[Messages]
-WelcomeLabel1=Welcome to the PlugData installer
-SetupWindowTitle=PlugData Installer
-SelectDirLabel3=The standalone application and supporting files will be installed in the following folder.
-SelectDirBrowseLabel=To continue, click Next. If you would like to select a different folder (not recommended), click Browse.
+      <Property Id="ARPPRODUCTICON" Value="ProductIcon"/>
+      <Property Id="ARPHELPLINK" Value="http://www.github.com/timothyschoen/PlugData"/>
+      <Property Id="ARPURLINFOABOUT" Value="http://www.github.com/timothyschoen/PlugData"/>
+      <Property Id="ARPNOREPAIR" Value="1"/>
+      <Condition Message="A newer version of this software is already installed.">NOT NEWERVERSIONDETECTED</Condition>
+         <Directory Id="TARGETDIR" Name="SourceDir">
 
-[Components]
-Name: "app"; Description: "Standalone application (.exe)"; Types: full custom;
-Name: "lv2"; Description: "LV2 Plugin (.lv2)"; Types: full custom;
-Name: "vst3"; Description: "VST3 Plugin (.vst3)"; Types: full custom;
+         <!-- Copy Standalone to Program Files -->
+         <Directory Id="PlatformProgramFilesFolder">
+            <Directory Id="INSTALLDIR" Name="PlugData">
+               <Component Id="STANDALONE_FILES" Guid="0a2563f0-5f49-4ae8-acda-143a019f73a2">
+                  <File Id="MainExecutable" Source="Plugins\Standalone\PlugData.exe"/>
+               </Component>
+            </Directory>
+         </Directory>
 
-[Files]
-Source: ".\Plugins\VST3\**"; Excludes: "*.pdb,*.exp,*.lib,*.ilk,*.ico,*.ini"; DestDir: "{commoncf}\VST3\"; Components:vst3; Flags: ignoreversion recursesubdirs;
-Source: ".\Plugins\LV2\**"; Excludes: "*.exe,*.pdb,*.exp,*.lib,*.ilk,*.ico,*.ini"; DestDir: "{commoncf}\LV2\"; Components:lv2; Flags: ignoreversion recursesubdirs;
-Source: ".\Plugins\Standalone\**"; Excludes: "*.pdb,*.exp,*.ilk,*.ico,*.ini"; DestDir: "{app}"; Components:app; Flags: ignoreversion recursesubdirs;
+         <!-- Create start menu shortcut for standalone -->
+         <Directory Id="ProgramMenuFolder">
+            <Directory Id="ProgramMenuSubfolder" Name="PlugData">
+               <Component Id="STANDALONE_SHORTCUTS" Guid="8f2ac8c2-b3bc-4d3c-8097-b62b5eed28ae">
+                  <Shortcut Id="ApplicationShortcut1" Name="PlugData" Description="PlugData" 
+                            Target="[INSTALLDIR]PlugData.exe" WorkingDirectory="INSTALLDIR"/>
+                  <RegistryValue Root="HKCU" Key="Software\PlugData\PlugData" 
+                            Name="installed" Type="integer" Value="1" KeyPath="yes"/>
+                  <RemoveFolder Id="ProgramMenuSubfolder" On="uninstall"/>
+               </Component>
+            </Directory>
+         </Directory>
 
-[Icons]
-Name: "{group}\PlugData"; Filename: "{app}\PlugData.exe"
+         
+         <Directory Id="PlatformCommonFilesFolder">
 
-[Code]
-var
-  OkToCopyLog : Boolean;
+            <!-- Copy VST3 to Common Files\VST3 -->
+            <Directory Id="VST3_INSTALL_DIR" Name="VST3">
+               <Component Id="VST3_FILES" Guid="0a2563f0-5f49-4ae8-acda-143a019f73a2">
+                  <File Id="VST3_PLUGIN" Source="Plugins\VST3\PlugData.vst3"/>
+               </Component>
+            </Directory>
 
-procedure InitializeWizard;
-begin
-end;
+            <!-- Copy LV2 to Common Files\LV2 -->
+            <Directory Id="LV2_INSTALL_DIR" Name="LV2">
+               <Component Id="LV2_FILES" Guid="0a2563f0-5f49-4ae8-acda-143a019f73a2">
+                  <File Id="LV2_PLUGIN" Source="Plugins\LV2\PlugData.lv2"/>
+               </Component>
+            </Directory>
+         </Directory>
+            
+         </Directory>
 
-procedure CurStepChanged(CurStep: TSetupStep);
-begin
-  if CurStep = ssDone then
-    OkToCopyLog := True;
-end;
+      <Property Id="WIXUI_INSTALLDIR" Value="INSTALLDIR" />
 
-procedure DeinitializeSetup();
-begin
-  if OkToCopyLog then
-    FileCopy (ExpandConstant ('{log}'), ExpandConstant ('{app}\InstallationLogFile.log'), FALSE);
-  RestartReplace (ExpandConstant ('{log}'), '');
-end;
+      <UI>
+        
+         <UIRef Id="WixUI_InstallDir" />
+         <Publish Dialog="WelcomeDlg"
+               Control="Next"
+               Event="NewDialog"
+               Value="FeaturesDlg"
+               Order="2">1</Publish>
+          
+          <Publish Dialog="FeaturesDlg"
+               Control="Next"
+               Event="NewDialog"
+               Value="InstallDirDlg"
+               Order="2">1</Publish>
+         <Publish Dialog="FeaturesDlg" Control="Back" Event="NewDialog" Value="WelcomeDlg">1</Publish>
+         <Publish Dialog="InstallDirDlg"
+               Control="Back"
+               Event="NewDialog"
+               Value="FeaturesDlg"
+               Order="2">1</Publish>
+      </UI>
 
-[UninstallDelete]
-Type: files; Name: "{app}\InstallationLogFile.log"
+      <InstallExecuteSequence>
+         <RemoveExistingProducts After="InstallValidate"/>
+      </InstallExecuteSequence>
+
+      <Feature Id="DefaultFeature" Level="1" Title="Standalone App">
+         <ComponentRef Id="STANDALONE_FILES"/>
+         <ComponentRef Id="STANDALONE_SHORTCUTS"/>
+      </Feature>
+      <Feature Id="VST3" Level="1" Title="VST3 Plugin">
+         <ComponentRef Id="VST3_FILES"/>
+      </Feature>
+      <Feature Id="LV2" Level="1" Title="LV2 Plugin">
+         <ComponentRef Id="LV2_FILES"/>
+      </Feature>
+   </Product>
+
+   
+</Wix>
 EOL
 
-iscc.exe PlugData.iss
+"C:/Program Files (x86)/WiX Toolset v3.11/bin/candle" PlugData.wxs
+"C:/Program Files (x86)/WiX Toolset v3.11/bin/light" PlugData.wixobj -out PlugData-Installer.msi -ext WixUIExtension
 
 if [[ $1 == "x64" ]]; then
-cp ".\PlugData Installer.exe" ".\PlugData-Win64.exe"
+cp ".\PlugData-Installer.msi" ".\PlugData-Win64.msi"
 else
-cp ".\PlugData Installer.exe" ".\PlugData-Win32.exe"
+cp ".\PlugData-Installer.msi" ".\PlugData-Win32.msi"
 fi
 
 # - Codesign Installer for Windows 8+
