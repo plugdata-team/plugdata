@@ -19,8 +19,8 @@ struct IEMObject : public GUIObject {
     IEMObject(void* ptr, Object* parent)
         : GUIObject(ptr, parent)
     {
-        auto* iemgui = static_cast<t_iemgui*>(ptr);
-
+        /*
+        
         t_symbol* srlsym[3];
         srlsym[0] = iemgui->x_snd;
         srlsym[1] = iemgui->x_rcv;
@@ -34,9 +34,11 @@ struct IEMObject : public GUIObject {
         }
         
         String label = String::fromUTF8(srlsym[2]->s_name).removeCharacters("\\");
-        iemgui->x_lab_unexpanded = gensym(label.toRawUTF8());
+        iemgui->x_lab_unexpanded = gensym(label.toRawUTF8()); */
 
         labelText = getLabelText();
+
+        auto* iemgui = static_cast<t_iemgui*>(ptr);
 
         labelX = iemgui->x_ldx;
         labelY = iemgui->x_ldy;
@@ -252,53 +254,17 @@ struct IEMObject : public GUIObject {
 
     void setSendSymbol(String const& symbol) const
     {
-        if (symbol.isEmpty())
-            return;
-
+        auto* sym = symbol.isEmpty() ? nullptr : gensym(symbol.toRawUTF8());
         auto* iemgui = static_cast<t_iemgui*>(ptr);
-
-        if (symbol == "empty") {
-            iemgui->x_fsf.x_snd_able = false;
-            iemgui->x_snd_unexpanded = nullptr;
-        } else {
-            iemgui->x_snd_unexpanded = gensym(symbol.toRawUTF8());
-            iemgui->x_snd = canvas_realizedollar(iemgui->x_glist, iemgui->x_snd_unexpanded);
-
-            iemgui->x_fsf.x_snd_able = true;
-            iemgui_verify_snd_ne_rcv(iemgui);
-        }
+        iemgui_send(ptr, iemgui, sym);
     }
 
     void setReceiveSymbol(String const& symbol) const
     {
-        if (symbol.isEmpty())
-            return;
-
+   
+        auto* sym = symbol.isEmpty() ? nullptr : gensym(symbol.toRawUTF8());
         auto* iemgui = static_cast<t_iemgui*>(ptr);
-
-        bool rcvable = true;
-
-        if (symbol == "empty") {
-            rcvable = false;
-            iemgui->x_rcv_unexpanded = nullptr;
-        }
-
-        if (rcvable) {
-            if (strcmp(symbol.toRawUTF8(), iemgui->x_rcv_unexpanded->s_name)) {
-                if (iemgui->x_fsf.x_rcv_able)
-                    pd_unbind(&iemgui->x_obj.ob_pd, iemgui->x_rcv);
-                iemgui->x_rcv_unexpanded = gensym(symbol.toRawUTF8());
-                iemgui->x_rcv = canvas_realizedollar(iemgui->x_glist, iemgui->x_rcv_unexpanded);
-                pd_bind(&iemgui->x_obj.ob_pd, iemgui->x_rcv);
-            }
-        } else if (iemgui->x_fsf.x_rcv_able) {
-            pd_unbind(&iemgui->x_obj.ob_pd, iemgui->x_rcv);
-            iemgui->x_rcv_unexpanded = gensym(symbol.toRawUTF8());
-            iemgui->x_rcv = canvas_realizedollar(iemgui->x_glist, iemgui->x_rcv_unexpanded);
-        }
-
-        iemgui->x_fsf.x_rcv_able = rcvable;
-        iemgui_verify_snd_ne_rcv(iemgui);
+        iemgui_receive(ptr, iemgui, sym);
     }
 
     static unsigned int fromIemColours(int const color)
