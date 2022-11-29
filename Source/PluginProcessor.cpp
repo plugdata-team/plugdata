@@ -400,7 +400,12 @@ void PlugDataAudioProcessor::updateSearchPaths()
 
 const String PlugDataAudioProcessor::getName() const
 {
+#if PLUGDATA_STANDALONE
+    return "PlugData";
+#else
     return JucePlugin_Name;
+#endif
+    
 }
 
 bool PlugDataAudioProcessor::acceptsMidi() const
@@ -942,7 +947,7 @@ void PlugDataAudioProcessor::getStateInformation(MemoryBlock& destData)
     setThis();
     auto stateXml = parameters.copyState().createXml();
 
-    stateXml->setAttribute("Version", JucePlugin_VersionString);
+    stateXml->setAttribute("Version", PLUGDATA_VERSION);
 
     copyXmlToBinary(*stateXml, xmlBlock);
 

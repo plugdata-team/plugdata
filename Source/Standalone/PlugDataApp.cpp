@@ -95,7 +95,7 @@ public:
     }
     const String getApplicationVersion() override
     {
-        return JucePlugin_VersionString;
+        return PLUGDATA_VERSION;
     }
     bool moreThanOneInstanceAllowed() override
     {
@@ -282,4 +282,6 @@ ValueTree PlugDataWindow::getSettingsTree() {
     return editor->pd.settingsTree;
 }
 
-JUCE_CREATE_APPLICATION_DEFINE(PlugDataApp);
+
+// This macro generates the main() routine that launches the app.
+START_JUCE_APPLICATION(PlugDataApp)
