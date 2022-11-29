@@ -97,9 +97,9 @@ void Dialogs::showObjectMenu(PlugDataPluginEditor* parent, Component* target)
 
     menu.addSeparator();
 
-    menu.addItem(createCommandItem(CommandIDs::NewFloatAtom, "Float Atom"));
-    menu.addItem(createCommandItem(CommandIDs::NewSymbolAtom, "Symbol Atom"));
-    menu.addItem(createCommandItem(CommandIDs::NewListAtom, "List Atom"));
+    menu.addItem(createCommandItem(CommandIDs::NewFloatAtom, "Float box"));
+    menu.addItem(createCommandItem(CommandIDs::NewSymbolAtom, "Symbol box"));
+    menu.addItem(createCommandItem(CommandIDs::NewListAtom, "List box"));
     menu.addSeparator();
 
     menu.addItem(createCommandItem(CommandIDs::NewArray, "Array"));
