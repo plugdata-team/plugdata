@@ -30,7 +30,7 @@ cat > ./PlugData.wxs <<-EOL
       <Package InstallerVersion="200" Compressed="yes" Comments="Windows Installer Package"/>
       <Media Id="1" Cabinet="product.cab" EmbedCab="yes"/>
       <Icon Id="ProductIcon" SourceFile="Resources/icon.ico"/>
-      <WixVariable Id="WixUILicenseRtf" Value="Resources/license.rtf" />
+      <WixVariable Id="WixUILicenseRtf" Value="Resources/LICENSE.rtf" />
       <Property Id="LV2_SOURCE_DIR" Value="Plugins/LV2/PlugData.lv2" />
       <Property Id="VST3_SOURCE_DIR" Value="Plugins/VST3/PlugData.vst3" />
       <Property Id="ARPPRODUCTICON" Value="ProductIcon"/>
@@ -70,7 +70,7 @@ cat > ./PlugData.wxs <<-EOL
                 <Directory Id="VST3_CONTENTS" Name="Contents">
                       <Directory Id="VST3_ARCH" Name="\$(var.VstArch)">
                           <Component Id="VST3_BIN" Guid="d227e6fe-9fca-4908-a60c-f25d260f642e" Win64="\$(var.Win64)">
-                          <File Id="VST3_PLUGIN" Source="Plugins\VST3\PlugData.vst3\Contents\x86_64-win\PlugData.vst3"/>
+                          <File Id="VST3_PLUGIN" Source="Plugins\VST3\PlugData.vst3\Contents\\\$(var.VstArch)\PlugData.vst3"/>
                           </Component>
                       </Directory>
                   </Directory>
