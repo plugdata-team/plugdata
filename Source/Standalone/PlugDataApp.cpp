@@ -239,21 +239,22 @@ int PlugDataWindow::parseSystemArguments(String const& arguments)
     
     int retval = parse_startup_arguments(argv, argc, &openlist, &messagelist);
 
+    StringArray openedPatches;
     /* open patches specifies with "-open" args */
     for (auto* nl = openlist; nl; nl = nl->nl_next) {
         auto toOpen = File(String(nl->nl_string).unquoted());
         if(toOpen.existsAsFile() && toOpen.hasFileExtension(".pd")) {
             if(auto* pd = dynamic_cast<PlugDataAudioProcessor*>(getAudioProcessor())) {
                 pd->loadPatch(toOpen);
+                openedPatches.add(toOpen.getFullPathName());
             }
         }
     }
     
-    // AnotherInstanceStarted is broken on Linux, so we allow opening patches here
-#if JUCE_LINUX
+#if JUCE_LINUX || JUCE_WINDDOWS
     for(auto arg : args) {
         auto toOpen = File(arg.unquoted());
-        if(toOpen.existsAsFile() && toOpen.hasFileExtension(".pd")) {
+        if(toOpen.existsAsFile() && toOpen.hasFileExtension(".pd") && !openedPatches.contains(toOpen.getFullPathName())) {
             if(auto* pd = dynamic_cast<PlugDataAudioProcessor*>(getAudioProcessor())) {
                 pd->loadPatch(toOpen);
             }
