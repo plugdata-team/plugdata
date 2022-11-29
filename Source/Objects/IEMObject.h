@@ -47,7 +47,7 @@ struct IEMObject : public GUIObject {
         labelY = iemgui->x_ldy;
         labelHeight = getFontHeight();
         
-        initialise = iemgui->x_isa.x_loadinit;
+        initialise = static_cast<bool>(iemgui->x_isa.x_loadinit);
         initialise.addListener(this);
 
         sendSymbol = getSendSymbol();
