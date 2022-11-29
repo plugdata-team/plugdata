@@ -84,7 +84,7 @@ cat > ./PlugData.wxs <<-EOL
                 <Directory Id="VST3_FX_CONTENTS" Name="Contents">
                       <Directory Id="VST3_FX_ARCH" Name="\$(var.VstArch)">
                           <Component Id="VST3_FX_BIN" Guid="9ce8241b-af1f-48b1-b61e-db74c4564d64" Win64="\$(var.Win64)">
-                          <File Id="VST3_FX_PLUGIN" Source="Plugins\VST3\PlugDataFx.vst3\Contents\x86_64-win\PlugDataFx.vst3"/>
+                          <File Id="VST3_FX_PLUGIN" Source="Plugins\VST3\PlugDataFx.vst3\Contents\\\$(var.VstArch)\PlugDataFx.vst3"/>
                           </Component>
                       </Directory>
                   </Directory>
@@ -153,7 +153,7 @@ EOL
 
 
 
-if [[ $1 == "x64" ]]; then
+if [[ $X64BitMode == "x64" ]]; then
 "C:/Program Files (x86)/WiX Toolset v3.11/bin/candle" -arch x64 PlugData.wxs
 "C:/Program Files (x86)/WiX Toolset v3.11/bin/light" PlugData.wixobj -out PlugData-Installer.msi -ext WixUIExtension
 cp ".\PlugData-Installer.msi" ".\PlugData-Win64.msi"
