@@ -194,12 +194,12 @@ jobs:
     - name: Configure CMake (not cached)
       if: steps.fluidsynth-cache.outputs.cache-hit != 'true'
       working-directory: ${{github.workspace}}/build
-      run: cmake $GITHUB_WORKSPACE -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -G "Unix Makefiles" -DENABLE_TESTING=1 -DCACHED_SFONT=0
+      run: cmake $GITHUB_WORKSPACE -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -G "Unix Makefiles" -DENABLE_TESTING=0 -DCACHED_SFONT=0
 
     - name: Configure CMake (cached)
       if: steps.fluidsynth-cache.outputs.cache-hit == 'true'
       working-directory: ${{github.workspace}}/build
-      run: cmake $GITHUB_WORKSPACE -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -G "Unix Makefiles" -DENABLE_TESTING=1 -DCACHED_SFONT=1
+      run: cmake $GITHUB_WORKSPACE -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -G "Unix Makefiles" -DENABLE_TESTING=0 -DCACHED_SFONT=1
 
     - name: Build
       working-directory: ${{github.workspace}}/build
@@ -250,12 +250,12 @@ jobs:
     - name: Configure CMake (not cached)
       if: steps.fluidsynth-cache.outputs.cache-hit != 'true'
       working-directory: ${{github.workspace}}/build
-      run: cmake $GITHUB_WORKSPACE -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -G "Unix Makefiles" -DENABLE_TESTING=1 -DCACHED_SFONT=0
+      run: cmake $GITHUB_WORKSPACE -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -G "Unix Makefiles" -DENABLE_TESTING=0 -DCACHED_SFONT=0
 
     - name: Configure CMake (cached)
       if: steps.fluidsynth-cache.outputs.cache-hit == 'true'
       working-directory: ${{github.workspace}}/build
-      run: cmake $GITHUB_WORKSPACE -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -G "Unix Makefiles" -DENABLE_TESTING=1 -DCACHED_SFONT=1
+      run: cmake $GITHUB_WORKSPACE -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -G "Unix Makefiles" -DENABLE_TESTING=0 -DCACHED_SFONT=1
 
     - name: Build
       working-directory: ${{github.workspace}}/build
@@ -294,7 +294,7 @@ jobs:
       - name: Install Dependencies
         run: sudo dnf install -y cmake alsa-lib-devel libXinerama-devel freetype-devel libcurl-devel gcc-c++ libXcomposite-devel freeglut-devel libXrandr-devel libXcursor-devel xz
       - name: Build
-        run: mkdir build && cd build && cmake -DENABLE_TESTING=1 .. -G "Unix Makefiles" && cmake --build . --config $BUILD_TYPE
+        run: mkdir build && cd build && cmake -DENABLE_TESTING=0 .. -G "Unix Makefiles" && cmake --build . --config $BUILD_TYPE
 
       - name: Prepare Artefacts
         working-directory: ${{github.workspace}}
@@ -334,7 +334,7 @@ jobs:
       run: pacman -S --noconfirm alsa-lib freetype2 libx11 libxcursor libxext libxinerama libxrandr libxrender webkit2gtk cmake make gcc pkgconf python
 
     - name: Build
-      run: mkdir build && cd build && CC=/usr/bin/gcc CXX=/usr/bin/g++ cmake -DENABLE_TESTING=1 .. -G "Unix Makefiles" && cmake --build . --config $BUILD_TYPE
+      run: mkdir build && cd build && CC=/usr/bin/gcc CXX=/usr/bin/g++ cmake -DENABLE_TESTING=0 .. -G "Unix Makefiles" && cmake --build . --config $BUILD_TYPE
 
     - name: Prepare Artefacts
       working-directory: ${{github.workspace}}
@@ -373,7 +373,7 @@ jobs:
       run: zypper install -y xz tar gzip cmake alsa-lib-devel libXinerama-devel freetype-devel libcurl-devel libXcomposite-devel freeglut-devel libXrandr-devel libXcursor-devel freetype2-devel gcc gcc-c++
 
     - name: Build
-      run: mkdir build && cd build && cmake -DENABLE_TESTING=1 .. -G "Unix Makefiles" && cmake --build . --config $BUILD_TYPE
+      run: mkdir build && cd build && cmake -DENABLE_TESTING=0 .. -G "Unix Makefiles" && cmake --build . --config $BUILD_TYPE
 
     - name: Prepare Artefacts
       working-directory: ${{github.workspace}}
@@ -418,7 +418,7 @@ jobs:
       run: apt install -y libasound2-dev libjack-jackd2-dev libcurl4-openssl-dev libfreetype6-dev libx11-dev libxcomposite-dev libxcursor-dev libxcursor-dev libxext-dev libxinerama-dev libxrandr-dev libxrender-dev libwebkit2gtk-4.0-dev libglu1-mesa-dev mesa-common-dev cmake make gcc g++
 
     - name: Build
-      run: mkdir build && cd build && CXX=g++ cmake -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DENABLE_TESTING=1 .. -G "Unix Makefiles" && cmake --build . --config $BUILD_TYPE
+      run: mkdir build && cd build && CXX=g++ cmake -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DENABLE_TESTING=0 .. -G "Unix Makefiles" && cmake --build . --config $BUILD_TYPE
 
     - name: Prepare Artefacts
       working-directory: ${{github.workspace}}
