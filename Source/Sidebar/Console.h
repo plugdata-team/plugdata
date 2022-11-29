@@ -179,7 +179,7 @@ struct Console : public Component {
                 auto backgroundColour = findColour(isSelected ? PlugDataColour::sidebarActiveTextColourId : PlugDataColour::sidebarTextColourId);
                 
                 if (type == 1)
-                    backgroundColour = Colours::orange;
+                    backgroundColour = Colours::red;
                 else if (type == 2)
                     backgroundColour = Colours::red;
                 
