@@ -97,36 +97,19 @@ file(GLOB PlugDataStandaloneSources
     ${SOURCES_DIRECTORY}/Standalone/*.h)
 source_group("Source\\Standalone" FILES ${PlugDataStandaloneSources})
 
-
-#source_group("Source\\Pd" FILES ${PlugDataPdSources})
-
 file(READ "${CMAKE_CURRENT_SOURCE_DIR}/Resources/Info.plist" INFO_PLIST)
 
 
-juce_add_plugin(PlugDataStandalone
+juce_add_gui_app(PlugDataStandalone
+    PRODUCT_NAME                "PlugData"
     VERSION                     ${PLUGDATA_VERSION}
-    COMPANY_NAME                ${PLUGDATA_COMPANY_NAME}
-    COMPANY_COPYRIGHT           ${PLUGDATA_COMPANY_COPYRIGHT}
-    COMPANY_WEBSITE             ${PLUGDATA_COMPANY_WEBSITE}
-    PLUGIN_DESCRIPTION          "A plugin that loads Pure Data patches"
     ICON_BIG                    ${PLUGDATA_ICON_BIG}
     MICROPHONE_PERMISSION_ENABLED TRUE
     HARDENED_RUNTIME_ENABLED    ${HARDENED_RUNTIME_ENABLED}
     HARDENED_RUNTIME_OPTIONS    ${HARDENED_RUNTIME_OPTIONS}
-    IS_SYNTH                    TRUE
-    NEEDS_MIDI_INPUT            TRUE
-    NEEDS_MIDI_OUTPUT           TRUE
-    IS_MIDI_EFFECT              FALSE
-    EDITOR_WANTS_KEYBOARD_FOCUS TRUE
-    COPY_PLUGIN_AFTER_BUILD     FALSE
-    PLUGIN_MANUFACTURER_CODE    PlDt
-    PLUGIN_CODE                 PlDt
-    FORMATS                     Standalone
-    PRODUCT_NAME                "PlugData"
-    AU_MAIN_TYPE                kAudioUnitType_MusicDevice
-    VST3_CATEGORIES             Instrument
-    VST2_CATEGORY               kPlugCategSynth
-    PLIST_TO_MERGE              ${INFO_PLIST}
+    DOCUMENT_BROWSER_ENABLED     TRUE
+    DOCUMENT_EXTENSIONS          .pd
+    BUNDLE_ID                    com.PlugData.PlugData
     )
 
 juce_add_plugin(PlugData
@@ -246,6 +229,7 @@ set(PLUGDATA_COMPILE_DEFINITIONS
     JUCE_LOG_ASSERTIONS=1
     JUCE_STRICT_REFCOUNTEDPOINTER=1
     JUCE_WEB_BROWSER=0
+    PLUGDATA_VERSION="${PLUGDATA_VERSION}"
 )
 
 
@@ -298,7 +282,6 @@ file(GLOB PlugDataBinaryDataSources
 
 juce_add_binary_data(PlugDataBinaryData SOURCES ${PlugDataBinaryDataSources})
 set_target_properties(PlugDataBinaryData PROPERTIES POSITION_INDEPENDENT_CODE ON)
-
 
 set(libs
   PlugDataBinaryData
@@ -393,7 +376,6 @@ set_target_properties(Tests PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${PLUGDATA_PLUGI
 set_property(TARGET Tests PROPERTY CXX_VISIBILITY_PRESET hidden)
 set_property(TARGET Tests PROPERTY VISIBILITY_INLINES_HIDDEN ON)
 
-
 endif()
 
 if(MSVC)
@@ -408,26 +390,26 @@ set(CMAKE_INSTALL_DEFAULT_DIRECTORY_PERMISSIONS
 )
 
 if(APPLE)
-  install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/Plugins/VST3/PlugData.vst3 DESTINATION "/Library/Audio/Plug-ins/VST3/")
-  install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/Plugins/VST3/PlugDataFx.vst3 DESTINATION "/Library/Audio/Plug-ins/VST3/")
-  install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/Plugins/LV2/PlugData.lv2 DESTINATION "/Library/Audio/Plug-ins/LV2/")
-  install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/Plugins/LV2/PlugDataFx.lv2 DESTINATION "/Library/Audio/Plug-ins/LV2/")
-  install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/Plugins/AU/PlugData.component DESTINATION "/Library/Audio/Plug-ins/Components/")
-  install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/Plugins/AU/PlugDataFx.component DESTINATION "/Library/Audio/Plug-ins/Components/")
-  install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/Plugins/AU/PlugDataMidi.component DESTINATION "/Library/Audio/Plug-ins/Components/")
-  install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/Plugins/Standalone/PlugData.app DESTINATION "/Applications")
+  install(DIRECTORY ${PLUGDATA_PLUGINS_LOCATION}/VST3/PlugData.vst3 DESTINATION "/Library/Audio/Plug-ins/VST3/")
+  install(DIRECTORY ${PLUGDATA_PLUGINS_LOCATION}/VST3/PlugDataFx.vst3 DESTINATION "/Library/Audio/Plug-ins/VST3/")
+  install(DIRECTORY ${PLUGDATA_PLUGINS_LOCATION}/LV2/PlugData.lv2 DESTINATION "/Library/Audio/Plug-ins/LV2/")
+  install(DIRECTORY ${PLUGDATA_PLUGINS_LOCATION}/LV2/PlugDataFx.lv2 DESTINATION "/Library/Audio/Plug-ins/LV2/")
+  install(DIRECTORY ${PLUGDATA_PLUGINS_LOCATION}/AU/PlugData.component DESTINATION "/Library/Audio/Plug-ins/Components/")
+  install(DIRECTORY ${PLUGDATA_PLUGINS_LOCATION}/AU/PlugDataFx.component DESTINATION "/Library/Audio/Plug-ins/Components/")
+  install(DIRECTORY ${PLUGDATA_PLUGINS_LOCATION}/AU/PlugDataMidi.component DESTINATION "/Library/Audio/Plug-ins/Components/")
+  install(DIRECTORY ${PLUGDATA_PLUGINS_LOCATION}/Standalone/PlugData.app DESTINATION "/Applications")
 elseif(WIN32)
-  install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/Plugins/VST3/PlugData.vst3 DESTINATION "$ENV{PROGRAMFILES}/Common Files/VST3")
-  install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/Plugins/VST3/PlugDataFx.vst3 DESTINATION "$ENV{PROGRAMFILES}/Common Files/VST3")
-  install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/Plugins/LV2/PlugData.lv2 DESTINATION "$ENV{PROGRAMFILES}/Common Files/LV2")
-  install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/Plugins/LV2/PlugDataFx.lv2 DESTINATION "$ENV{PROGRAMFILES}/Common Files/LV2")
-  install(PROGRAMS ${CMAKE_CURRENT_SOURCE_DIR}/Plugins/Standalone/PlugData.exe DESTINATION "$ENV{PROGRAMFILES}/PlugData/")
-  install(PROGRAMS ${CMAKE_CURRENT_SOURCE_DIR}/Plugins/LV2/pd.dll DESTINATION "$ENV{PROGRAMFILES}/PlugData/")
+  install(DIRECTORY ${PLUGDATA_PLUGINS_LOCATION}/VST3/PlugData.vst3 DESTINATION "$ENV{PROGRAMFILES}/Common Files/VST3")
+  install(DIRECTORY ${PLUGDATA_PLUGINS_LOCATION}/VST3/PlugDataFx.vst3 DESTINATION "$ENV{PROGRAMFILES}/Common Files/VST3")
+  install(DIRECTORY ${PLUGDATA_PLUGINS_LOCATION}/LV2/PlugData.lv2 DESTINATION "$ENV{PROGRAMFILES}/Common Files/LV2")
+  install(DIRECTORY ${PLUGDATA_PLUGINS_LOCATION}/LV2/PlugDataFx.lv2 DESTINATION "$ENV{PROGRAMFILES}/Common Files/LV2")
+  install(PROGRAMS ${PLUGDATA_PLUGINS_LOCATION}/Standalone/PlugData.exe DESTINATION "$ENV{PROGRAMFILES}/PlugData/")
+  install(PROGRAMS ${PLUGDATA_PLUGINS_LOCATION}/LV2/pd.dll DESTINATION "$ENV{PROGRAMFILES}/PlugData/")
 elseif(UNIX AND NOT APPLE) # Linux or BSD
-  install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/Plugins/VST3/PlugData.vst3 DESTINATION "$ENV{HOME}/.vst3")
-  install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/Plugins/VST3/PlugDataFx.vst3 DESTINATION "$ENV{HOME}/.vst3")
-  install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/Plugins/LV2/PlugData.lv2 DESTINATION "$ENV{HOME}/.lv2")
-  install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/Plugins/LV2/PlugDataFx.lv2 DESTINATION "$ENV{HOME}/.lv2")
+  install(DIRECTORY ${PLUGDATA_PLUGINS_LOCATION}/VST3/PlugData.vst3 DESTINATION "$ENV{HOME}/.vst3")
+  install(DIRECTORY ${PLUGDATA_PLUGINS_LOCATION}/VST3/PlugDataFx.vst3 DESTINATION "$ENV{HOME}/.vst3")
+  install(DIRECTORY ${PLUGDATA_PLUGINS_LOCATION}/LV2/PlugData.lv2 DESTINATION "$ENV{HOME}/.lv2")
+  install(DIRECTORY ${PLUGDATA_PLUGINS_LOCATION}/LV2/PlugDataFx.lv2 DESTINATION "$ENV{HOME}/.lv2")
   #TODO: install standalone and Kott's .desktop file
 endif()
 
