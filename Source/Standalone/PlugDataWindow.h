@@ -571,6 +571,9 @@ public:
         if(!nativeWindow) {
             setTitleBarHeight(0);
         }
+        else {
+            setTitleBarHeight(32);
+        }
         
         repaint();
         

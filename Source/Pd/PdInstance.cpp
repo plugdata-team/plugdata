@@ -567,23 +567,17 @@ Patch Instance::openPatch(File const& toOpen)
     t_canvas* cnv = nullptr;
 
     bool done = false;
-    enqueueFunction(
-        [this, toOpen, &cnv, &done]() mutable {
-            String dirname = toOpen.getParentDirectory().getFullPathName();
-            const auto* dir = dirname.toRawUTF8();
 
-            String filename = toOpen.getFileName();
-            const auto* file = filename.toRawUTF8();
+    String dirname = toOpen.getParentDirectory().getFullPathName();
+    const auto* dir = dirname.toRawUTF8();
 
-            setThis();
+    String filename = toOpen.getFileName();
+    const auto* file = filename.toRawUTF8();
 
-            cnv = static_cast<t_canvas*>(libpd_create_canvas(file, dir));
-            done = true;
-        });
+    setThis();
 
-    while (!done) {
-        waitForStateUpdate();
-    }
+    cnv = static_cast<t_canvas*>(libpd_create_canvas(file, dir));
+    done = true;
 
     auto patch = Patch(cnv, this, toOpen);
 

@@ -134,7 +134,7 @@ rm -r $PKG_DIR
 # Sign installer
 productsign -s "Developer ID Installer: Timothy Schoen (7SV7JPRR2L)" ${PRODUCT_NAME}.pkg ${PRODUCT_NAME}-MacOS-Universal.pkg
 
-# Notarize installer (continue anyway if it fails)
+# Notarize installer
 xcrun notarytool store-credentials "notary_login" --apple-id ${AC_USERNAME} --password ${AC_PASSWORD} --team-id "7SV7JPRR2L"
 xcrun notarytool submit ./PlugData-MacOS-Universal.pkg --keychain-profile "notary_login" --wait
 xcrun stapler staple "PlugData-MacOS-Universal.pkg"

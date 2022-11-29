@@ -813,12 +813,13 @@ void PlugDataAudioProcessor::messageEnqueued()
     }
     else
     {
+        /*
         const CriticalSection* cs = getCallbackLock();
         if (cs->tryEnter())
         {
             sendMessagesFromQueue();
             cs->exit();
-        }
+        } */
     }
 }
 
@@ -1071,9 +1072,14 @@ pd::Patch* PlugDataAudioProcessor::loadPatch(const File& patchFile)
         }
         i++;
     }
+    
+    // Stop the audio callback when loading a new patch
+    suspendProcessing(true);
 
     auto newPatch = openPatch(patchFile);
 
+    suspendProcessing(false);
+    
     if (!newPatch.getPointer())
     {
         logError("Couldn't open patch");

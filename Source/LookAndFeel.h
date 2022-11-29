@@ -872,6 +872,11 @@ struct PlugDataLook : public LookAndFeel_V4
         tl.draw(g, {static_cast<float>(width), static_cast<float>(height)});
     }
     
+    int getTreeViewIndentSize (TreeView&) override
+    {
+        return 36;
+    }
+    
     void setColours(std::map<PlugDataColour, Colour> colours)
     {
         for (auto colourId = 0; colourId < PlugDataColour::numberOfColours; colourId++) {

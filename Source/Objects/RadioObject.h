@@ -9,10 +9,10 @@ struct RadioObject final : public IEMObject {
     bool alreadyToggled = false;
     bool isVertical;
 
-    RadioObject(bool vertical, void* obj, Object* parent)
+    RadioObject(void* obj, Object* parent)
         : IEMObject(obj, parent)
     {
-        isVertical = vertical;
+        isVertical = static_cast<t_radio*>(obj)->x_orientation;
 
         max = getMaximum();
         max.addListener(this);
@@ -37,7 +37,10 @@ struct RadioObject final : public IEMObject {
         } else {
             object->setSize(size * numItems + Object::doubleMargin, std::max(object->getHeight(), minSize + Object::doubleMargin));
         }
-
+    }
+    
+    void applyBounds() override
+    {
         auto* radio = static_cast<t_radio*>(ptr);
         
         if (isVertical) {
@@ -111,9 +114,9 @@ struct RadioObject final : public IEMObject {
         auto* radio = static_cast<t_radio*>(ptr);
         
         if (isVertical) {
-            bounds.setSize(radio->x_gui.x_w, radio->x_gui.x_h * radio->x_number);
+            bounds.setSize(radio->x_gui.x_w, radio->x_gui.x_h);
         } else {
-            bounds.setSize(radio->x_gui.x_w * radio->x_number, radio->x_gui.x_h);
+            bounds.setSize(radio->x_gui.x_w, radio->x_gui.x_h);
         }
 
         pd->getCallbackLock()->exit();
@@ -126,7 +129,6 @@ struct RadioObject final : public IEMObject {
     {
         g.setColour(getBackgroundColour());
         g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Constants::objectCornerRadius);
-        
         
         int size = (isVertical ? getWidth() : getHeight());
         int minSize = 12;
