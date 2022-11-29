@@ -179,8 +179,6 @@ public:
         } else {
             g.drawFittedText(Icons::File, Rectangle<int>(6, 2, x - 4, height - 4), Justification::centred, 1);
         }
-        
-
 
         g.setFont(Font());
         g.drawFittedText(file.getFileName(), x, 0, width - x, height, Justification::centredLeft, 1);

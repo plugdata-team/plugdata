@@ -480,11 +480,8 @@ ObjectBase* GUIObject::createGui(void* ptr, Object* parent)
     if (name == "numbox~") {
         return new NumboxTildeObject(ptr, parent);
     }
-    if (name == "vradio") {
-        return new RadioObject(true, ptr, parent);
-    }
-    if (name == "hradio") {
-        return new RadioObject(false, ptr, parent);
+    if (name == "vradio" || name == "hradio") {
+        return new RadioObject(ptr, parent);
     }
     if (name == "cnv") {
         return new CanvasObject(ptr, parent);

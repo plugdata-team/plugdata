@@ -829,8 +829,8 @@ void Canvas::duplicateSelection()
                     duplicated[0]->updateBounds();
                 }
             }
-
-        } ;
+        };
+        
         patch.moveObjects(moveObjects, moveDistance - 10, -10);
         moveObjects.clear();
     }
