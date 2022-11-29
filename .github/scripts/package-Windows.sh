@@ -29,13 +29,14 @@ cat > ./PlugData.wxs <<-EOL
             Name="PlugData" Version="\$(var.ProductVersion)" Manufacturer="Timothy Schoen" Language="1033">
       <Package InstallerVersion="200" Compressed="yes" Comments="Windows Installer Package"/>
       <Media Id="1" Cabinet="product.cab" EmbedCab="yes"/>
-
+      <Icon Id="ProductIcon" SourceFile="Resources/icon.ico"/>
+      <WixVariable Id="WixUILicenseRtf" Value="Resources/license.rtf" />
       <Property Id="LV2_SOURCE_DIR" Value="Plugins/LV2/PlugData.lv2" />
       <Property Id="VST3_SOURCE_DIR" Value="Plugins/VST3/PlugData.vst3" />
       <Property Id="ARPPRODUCTICON" Value="ProductIcon"/>
       <Property Id="ARPHELPLINK" Value="http://www.github.com/timothyschoen/PlugData"/>
       <Property Id="ARPURLINFOABOUT" Value="http://www.github.com/timothyschoen/PlugData"/>
-      <Property Id="ARPNOREPAIR" Value="0"/>
+      <Property Id="ARPNOREPAIR" Value="1"/>
          <Directory Id="TARGETDIR" Name="SourceDir">
 
          <!-- Copy Standalone to Program Files -->

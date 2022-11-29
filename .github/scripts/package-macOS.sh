@@ -104,7 +104,7 @@ cat > ${TARGET_DIR}/distribution.xml << XMLEND
 <?xml version="1.0" encoding="utf-8"?>
 <installer-gui-script minSpecVersion="1">
     <title>PlugData Installer</title>
-    <license file="LICENSE.rtf" mime-type="application/rtf"/>
+    <license file="Resources/LICENSE.rtf" mime-type="application/rtf"/>
     ${VST3_PKG_REF}
     ${AU_PKG_REF}
     ${LV2_PKG_REF}
@@ -122,8 +122,6 @@ cat > ${TARGET_DIR}/distribution.xml << XMLEND
     ${APP_CHOICE_DEF}
 </installer-gui-script>
 XMLEND
-
-textutil -convert rtf LICENSE -output LICENSE.rtf
 
 # Build installer
 productbuild --resources ./ --distribution ${TARGET_DIR}/distribution.xml --package-path ${PKG_DIR} "${TARGET_DIR}/$OUTPUT_BASE_FILENAME"
