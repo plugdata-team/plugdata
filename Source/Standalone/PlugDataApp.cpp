@@ -251,7 +251,7 @@ int PlugDataWindow::parseSystemArguments(String const& arguments)
         }
     }
     
-#if JUCE_LINUX || JUCE_WINDDOWS
+#if JUCE_LINUX || JUCE_WINDOWS
     for(auto arg : args) {
         auto toOpen = File(arg.unquoted());
         if(toOpen.existsAsFile() && toOpen.hasFileExtension(".pd") && !openedPatches.contains(toOpen.getFullPathName())) {
