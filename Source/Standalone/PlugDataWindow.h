@@ -487,15 +487,13 @@ public:
     : DocumentWindow(title, backgroundColour, DocumentWindow::minimiseButton | DocumentWindow::maximiseButton | DocumentWindow::closeButton)
     {
         
-        setOpaque(false);
-        
+        setTitleBarHeight(0);
+                
         setTitleBarButtonsRequired(DocumentWindow::minimiseButton | DocumentWindow::maximiseButton | DocumentWindow::closeButton, false);
         
         pluginHolder = std::make_unique<StandalonePluginHolder>(settingsToUse, takeOwnershipOfSettings, preferredDefaultDeviceName, preferredSetupOptions, constrainToConfiguration, autoOpenMidiDevices);
         
         parseSystemArguments(systemArguments);
-        
-        setOpaque(false);
         
         mainComponent = new MainContentComponent(*this);
         auto* editor = mainComponent->getEditor();
@@ -567,17 +565,12 @@ public:
         bool nativeWindow = static_cast<bool>(v.getValue());
         
         setUsingNativeTitleBar(nativeWindow);
-        
-        if(!nativeWindow) {
-            setTitleBarHeight(0);
-        }
-        else {
-            setTitleBarHeight(32);
-        }
-        
+                
         repaint();
         
         if(!nativeWindow) {
+            
+            setOpaque(false);
             
 #if CUSTOM_SHADOW
             setDropShadowEnabled(false);
@@ -599,6 +592,9 @@ public:
 #endif
         }
         else {
+            
+            setOpaque(true);
+            
 #if CUSTOM_SHADOW && JUCE_LINUX
             resizer.reset(nullptr);
 #elif CUSTOM_SHADOW
