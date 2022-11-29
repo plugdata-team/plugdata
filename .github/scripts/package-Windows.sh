@@ -42,6 +42,10 @@ cat > ./PlugData.wxs <<-EOL
          <Directory Id="\$(var.PlatformProgramFilesFolder)">
             <Directory Id="INSTALLDIR" Name="PlugData">
                <Component Id="STANDALONE_FILES" Guid="0a2563f0-5f49-4ae8-acda-143a019f73a2" Win64="\$(var.Win64)">
+               
+                  <RemoveFile Id="STANDALONE_EXE" Name="PlugData.exe"/>
+                  <RemoveFile Id="PD_DLL" Name="Pd.dll"/>
+                  
                   <File Id="STANDALONE_EXE" Source="Plugins\Standalone\PlugData.exe"/>
                   <File Id="PD_DLL" Source="Plugins\Standalone\Pd.dll"/>
                   <ReserveCost Id="STANDALONE_COST" RunFromSource="43200000" RunLocal="43200000"></ReserveCost>
