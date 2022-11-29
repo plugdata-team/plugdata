@@ -110,7 +110,7 @@ jobs:
       uses: actions/upload-artifact@v3
       with:
         name: PlugData-Win64
-        path: PlugData-Win64.exe
+        path: PlugData-Win64.msi
 
     - name: Release Artifacts
       uses: softprops/action-gh-release@v1
@@ -157,7 +157,7 @@ jobs:
       uses: actions/upload-artifact@v3
       with:
         name: PlugData-Win32
-        path: PlugData-Win32.exe
+        path: PlugData-Win32.msi
 
     - name: Release Artifacts
       uses: softprops/action-gh-release@v1
