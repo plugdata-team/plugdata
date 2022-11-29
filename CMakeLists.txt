@@ -305,16 +305,12 @@ elseif(UNIX AND NOT APPLE)
 endif()
 
 if(MSVC)
-#target_compile_definitions(PlugDataStandalone PRIVATE PD_INTERNAL=0)
 target_link_libraries(PlugDataStandalone PRIVATE pd ${CMAKE_CURRENT_SOURCE_DIR}/Plugins/Standalone/pd.lib ${libs})
 else()
 target_link_libraries(PlugDataStandalone PRIVATE pd ${libs})
 endif()
 target_link_libraries(PlugData PRIVATE pd-multi ${libs})
 target_link_libraries(PlugDataFx PRIVATE pd-multi ${libs})
-
-set_target_properties(PlugDataStandalone PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${PLUGDATA_PLUGINS_LOCATION})
-set_target_properties(PlugDataStandalone PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${PLUGDATA_PLUGINS_LOCATION})
 
 set_target_properties(PlugData PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${PLUGDATA_PLUGINS_LOCATION})
 set_target_properties(PlugData PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${PLUGDATA_PLUGINS_LOCATION})
@@ -357,7 +353,7 @@ set(Catch2_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/Libraries/Catch2)
 add_executable(Tests ${TestFiles})
 set_target_properties(Tests PROPERTIES CXX_STANDARD 20)
 
-target_link_libraries(Tests PRIVATE Catch2::Catch2WithMain PlugDataStandalone ${libs})
+target_link_libraries(Tests PRIVATE Catch2::Catch2WithMain PlugData ${libs})
 
 source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR}/Tests PREFIX "" FILES ${TestFiles})
 include(${Catch2_SOURCE_DIR}/extras/Catch.cmake)
@@ -388,6 +384,26 @@ set(CMAKE_INSTALL_DEFAULT_DIRECTORY_PERMISSIONS
   WORLD_WRITE
   WORLD_EXECUTE
 )
+
+if(APPLE)
+add_custom_command(TARGET PlugDataStandalone
+    POST_BUILD
+    WORKING_DIRECTORY ${your_dir}
+    COMMAND ${CMAKE_COMMAND}
+    ARGS -E copy $<TARGET_BUNDLE_DIR:PlugDataStandalone> ${PLUGDATA_PLUGINS_LOCATION}/Standalone/$<TARGET_BUNDLE_DIR_NAME:PlugDataStandalone>
+    DEPENDS PlugDataStandalone
+    VERBATIM
+    )
+else()
+  add_custom_command(TARGET PlugDataStandalone
+    POST_BUILD
+    WORKING_DIRECTORY ${your_dir}
+    COMMAND ${CMAKE_COMMAND}
+    ARGS -E copy $<TARGET_FILE:PlugDataStandalone> ${PLUGDATA_PLUGINS_LOCATION}/Standalone/$<TARGET_FILE_NAME:PlugDataStandalone>
+    DEPENDS PlugDataStandalone
+    VERBATIM
+    )
+endif()
 
 if(APPLE)
   install(DIRECTORY ${PLUGDATA_PLUGINS_LOCATION}/VST3/PlugData.vst3 DESTINATION "/Library/Audio/Plug-ins/VST3/")
