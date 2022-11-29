@@ -817,24 +817,21 @@ void Canvas::duplicateSelection()
         for (auto* dup : duplicated) {
             moveObjects.emplace_back(dup->getPointer());
         }
-        bool overlap;
-        int moveDistance;
-        do {
+        bool overlap = true;
+        int moveDistance = 0;
+        while(overlap) {
             overlap = false;
             for (auto* object : objects) {
-                if (!(duplicated.contains(object))
-                    && (duplicated[0]->getY() >= object->getY())
-                    && (duplicated[0]->getY() <= (object->getY() + object->getHeight()))
-                    && (duplicated[0]->getX() >= object->getX())
-                    && (duplicated[0]->getX() < (object->getX() + object->getWidth()))) {
+                if (!duplicated.contains(object) &&
+                    duplicated[0]->getBounds().translated(moveDistance, 0).intersects(object->getBounds())) {
                     overlap = true;
-                    patch.moveObjects(moveObjects, object->getWidth() - 10, 0);
+                    moveDistance += object->getWidth() - 10;
                     duplicated[0]->updateBounds();
                 }
             }
 
-        } while (overlap);
-        patch.moveObjects(moveObjects, -10, -10);
+        } ;
+        patch.moveObjects(moveObjects, moveDistance - 10, -10);
         moveObjects.clear();
     }
     
@@ -1071,8 +1068,10 @@ void Canvas::checkBounds()
     
     updatingBounds = true;
 
-    auto viewBounds = Rectangle<int>(canvasOrigin.x, canvasOrigin.y, viewport->getMaximumVisibleWidth(), viewport->getMaximumVisibleHeight());
-
+    float scale = std::max(1.0f,(1.0f / static_cast<float>(main.zoomScale.getValue())));
+    
+    auto viewBounds = Rectangle<int>(canvasOrigin.x, canvasOrigin.y, viewport->getMaximumVisibleWidth() * scale, viewport->getMaximumVisibleHeight() * scale);
+    
     for (auto* obj : objects)
     {
         viewBounds = obj->getBounds().getUnion(viewBounds);
