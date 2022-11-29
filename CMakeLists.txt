@@ -390,7 +390,7 @@ add_custom_command(TARGET PlugDataStandalone
     POST_BUILD
     WORKING_DIRECTORY ${your_dir}
     COMMAND ${CMAKE_COMMAND}
-    ARGS -E copy $<TARGET_BUNDLE_DIR:PlugDataStandalone> ${PLUGDATA_PLUGINS_LOCATION}/Standalone/$<TARGET_BUNDLE_DIR_NAME:PlugDataStandalone>
+    ARGS -E copy_directory $<TARGET_BUNDLE_DIR:PlugDataStandalone> ${PLUGDATA_PLUGINS_LOCATION}/Standalone/$<TARGET_BUNDLE_DIR_NAME:PlugDataStandalone>
     DEPENDS PlugDataStandalone
     VERBATIM
     )
