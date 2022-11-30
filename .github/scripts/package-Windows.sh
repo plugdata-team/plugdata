@@ -4,8 +4,7 @@ if [[ $1 == "x64" ]]; then
   X64BitMode="x64"
 fi
 
-VERSION=$(git tag | sort -V | tail -1)
-VERSION=${VERSION:1}
+VERSION=0.6.3
 
 VERSION_GUID=$(python3 -c 'import uuid; print(str(uuid.uuid4()))')
 
