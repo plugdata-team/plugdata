@@ -295,7 +295,7 @@ void Object::setType(String const& newType, void* existingObject)
     updateBounds();
    
     // Auto patching
-    if (static_cast<bool>(cnv->main.autoconnect.getValue()) && numInputs && cnv->lastSelectedObject && cnv->lastSelectedObject->numOutputs) {
+    if (static_cast<bool>(!attachedToMouse && cnv->main.autoconnect.getValue()) && numInputs && cnv->lastSelectedObject && cnv->lastSelectedObject->numOutputs) {
         auto outlet = cnv->lastSelectedObject->iolets[cnv->lastSelectedObject->numInputs];
         auto inlet = iolets[0];
         if (outlet->isSignal == inlet->isSignal) {
