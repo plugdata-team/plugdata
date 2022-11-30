@@ -653,6 +653,8 @@ public:
     {
         auto tableBounds = getLocalBounds();
         auto inputBounds = tableBounds.removeFromTop(28);
+        
+        tableBounds.removeFromTop(4);
 
         input.setBounds(inputBounds);
 

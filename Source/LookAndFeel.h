@@ -289,10 +289,6 @@ struct PlugDataLook : public LookAndFeel_V4
         {
             drawStatusbarButton(g, button, backgroundColour, shouldDrawButtonAsHighlighted, shouldDrawButtonAsDown);
         }
-        else if (button.getName().startsWith("suggestions"))
-        {
-            drawSuggestionButton(g, button, backgroundColour, shouldDrawButtonAsHighlighted, shouldDrawButtonAsDown);
-        }
         else if (button.getName().startsWith("pd"))
         {
             drawPdButton(g, button, backgroundColour, shouldDrawButtonAsHighlighted, shouldDrawButtonAsDown);
@@ -661,14 +657,6 @@ struct PlugDataLook : public LookAndFeel_V4
     
     void drawResizableFrame(Graphics& g, int w, int h, const BorderSize<int>& border) override
     {
-    }
-    
-    void drawSuggestionButton(Graphics& g, Button& button, const Colour& backgroundColour, bool shouldDrawButtonAsHighlighted, bool shouldDrawButtonAsDown)
-    {
-        auto buttonArea = button.getLocalBounds().reduced(6, 2).toFloat();
-
-        g.setColour(backgroundColour);
-        g.fillRoundedRectangle(buttonArea, Constants::defaultCornerRadius);
     }
     
     void drawInspectorButton(Graphics& g, Button& button, const Colour& backgroundColour, bool shouldDrawButtonAsHighlighted, bool shouldDrawButtonAsDown)

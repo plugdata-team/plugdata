@@ -19,8 +19,8 @@ class SuggestionComponent : public Component
         String objectDescription;
 
     public:
-        Suggestion(int i)
-            : idx(i)
+        Suggestion(SuggestionComponent* parentComponent, int i)
+            : idx(i), parent(parentComponent)
         {
             setText("", "", false);
             setWantsKeyboardFocus(false);
@@ -53,10 +53,18 @@ class SuggestionComponent : public Component
             auto colour = PlugDataColour::popupMenuBackgroundColourId;
 
             auto* lnf = dynamic_cast<PlugDataLook*>(&getLookAndFeel());
+        
+            auto scrollbarIndent = parent->port->canScrollVertically() ? 5 : 0;
             
-            lnf->drawButtonBackground(g, *this, findColour(getToggleState() ? PlugDataColour::popupMenuActiveBackgroundColourId : colour), isMouseOver(), isMouseButtonDown());
+            auto backgroundColour = findColour(getToggleState() ? PlugDataColour::popupMenuActiveBackgroundColourId : colour);
             
-            auto font = lnf->semiBoldFont.withHeight(getHeight() / 1.9f);
+            auto buttonArea = getLocalBounds().reduced(6, 2).withTrimmedRight(scrollbarIndent).toFloat();
+
+            g.setColour(backgroundColour);
+            g.fillRoundedRectangle(buttonArea, Constants::defaultCornerRadius);
+            
+            
+            auto font = lnf->semiBoldFont.withHeight(12.0f);
             g.setFont(font);
             
             g.setColour(getToggleState() ? findColour(PlugDataColour::popupMenuActiveTextColourId) : findColour(PlugDataColour::popupMenuTextColourId));
@@ -95,7 +103,7 @@ class SuggestionComponent : public Component
                 g.setColour(type ? signalColour : dataColour);
                 auto iconbound = getLocalBounds().reduced(4);
                 iconbound.setWidth(getHeight() - 8);
-                iconbound.translate(8, 0);
+                iconbound.translate(6, 0);
                 g.fillRoundedRectangle(iconbound.toFloat(), Constants::smallCornerRadius);
 
                 g.setColour(Colours::white);
@@ -103,7 +111,8 @@ class SuggestionComponent : public Component
                 g.drawFittedText(letters[type], iconbound.reduced(1), Justification::centred, 1);
             }
         }
-
+        
+        SuggestionComponent* parent;
         bool drawIcon = true;
     };
 
@@ -118,12 +127,11 @@ public:
         buttonholder = std::make_unique<Component>();
 
         for (int i = 0; i < 20; i++) {
-            Suggestion* but = buttons.add(new Suggestion(i));
+            Suggestion* but = buttons.add(new Suggestion(this, i));
             buttonholder->addAndMakeVisible(buttons[i]);
 
             but->setClickingTogglesState(true);
             but->setRadioGroupId(110);
-            but->setName("suggestions:button");
             but->setColour(TextButton::buttonColourId, findColour(PlugDataColour::dialogBackgroundColourId));
         }
         
@@ -139,7 +147,7 @@ public:
         addAndMakeVisible(port.get());
 
         constrainer.setSizeLimits(150, 120, 500, 400);
-        setSize(280, 140);
+        setSize(320, 155);
 
         addAndMakeVisible(resizer);
 
@@ -251,10 +259,10 @@ public:
     {
         int yScroll = port->getViewPositionY();
         port->setBounds(getLocalBounds().reduced(15));
-        buttonholder->setBounds(6, 0, getWidth(), std::min(numOptions, 20) * 22 + 8);
+        buttonholder->setBounds(6, 0, getWidth(), std::min(numOptions, 20) * 25 + 8);
 
         for (int i = 0; i < buttons.size(); i++)
-            buttons[i]->setBounds(2, (i * 22) + 2, getWidth() - 32, 23);
+            buttons[i]->setBounds(2, (i * 25) + 4, getWidth() - 32, 24);
 
         int const resizerSize = 12;
 
