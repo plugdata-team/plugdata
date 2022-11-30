@@ -691,8 +691,8 @@ void PlugDataPluginEditor::updateCommandStatus()
             hasSelection = true;
         }
 
-        statusbar.connectionStyleButton->setEnabled(!isDragging && hasSelection && (allSegmented || allNotSegmented));
-        statusbar.connectionPathfind->setEnabled(!isDragging && hasSelection && allSegmented);
+        statusbar.connectionStyleButton->setEnabled(!isDragging && hasSelection);
+        statusbar.connectionPathfind->setEnabled(!isDragging && hasSelection);
         statusbar.connectionStyleButton->setToggleState(!isDragging && hasSelection && allSegmented, dontSendNotification);
         
         statusbar.lockButton->setEnabled(!isDragging);
