@@ -759,6 +759,8 @@ void Canvas::duplicateSelection()
     patch.startUndoSequence("Duplicate");
 
     for (auto* object : selection) {
+        // Check if object exists in pd and is not attached to mouse
+        if (!object->gui || object->attachedToMouse) return;
         // Tell pd to select all objects that are currently selected
         patch.selectObject(object->getPointer());
 
