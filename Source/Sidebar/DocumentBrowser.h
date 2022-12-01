@@ -478,7 +478,7 @@ public:
         : searchPath(directory)
     {
         listBox.setModel(this);
-        listBox.setRowHeight(24);
+        listBox.setRowHeight(28);
         listBox.setOutlineThickness(0);
         listBox.deselectAllRows();
 
