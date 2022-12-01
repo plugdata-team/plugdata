@@ -176,15 +176,15 @@ struct Console : public Component {
                 int numLines = getNumLines(console.getWidth(), length);
 
             
-                auto backgroundColour = findColour(isSelected ? PlugDataColour::sidebarActiveTextColourId : PlugDataColour::sidebarTextColourId);
+                auto textColour = findColour(isSelected ? PlugDataColour::sidebarActiveTextColourId : PlugDataColour::sidebarTextColourId);
                 
                 if (type == 1)
-                    backgroundColour = Colours::red;
+                    textColour = Colours::orange;
                 else if (type == 2)
-                    backgroundColour = Colours::red;
+                    textColour = Colours::red;
                 
                 // Draw text
-                g.setColour(backgroundColour);
+                g.setColour(textColour);
                 g.drawFittedText(message, getLocalBounds().reduced(6, 0).withTrimmedLeft(6), Justification::centredLeft, numLines, 1.0f);
             }
         };

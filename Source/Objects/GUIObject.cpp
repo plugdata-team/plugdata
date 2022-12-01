@@ -67,11 +67,12 @@ String ObjectBase::getText()
     if (!cnv->patch.checkObject(ptr))
         return "";
 
+    cnv->pd->setThis();
+    
     char* text = nullptr;
     int size = 0;
-    cnv->pd->setThis();
-
     libpd_get_object_text(ptr, &text, &size);
+    
     if (text && size) {
 
         auto txt = String::fromUTF8(text, size);

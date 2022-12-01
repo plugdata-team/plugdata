@@ -132,7 +132,7 @@ void Object::valueChanged(Value& v)
             isHvccCompatible = !static_cast<bool>(hvccMode.getValue()) || isSubpatch || hvccObjects.contains(typeName);
 
             if(!isHvccCompatible) {
-                cnv->pd->logError(String("Warning: object \"" + typeName + "\" is not supported in Compiled Mode").toRawUTF8());
+                cnv->pd->logWarning(String("Warning: object \"" + typeName + "\" is not supported in Compiled Mode").toRawUTF8());
             }
             
             repaint();
@@ -287,7 +287,7 @@ void Object::setType(String const& newType, void* existingObject)
     isHvccCompatible = !static_cast<bool>(hvccMode.getValue()) || isSubpatch || hvccObjects.contains(typeName);
 
     if(!isHvccCompatible) {
-        cnv->pd->logError(String("Warning: object \"" + typeName + "\" is not supported in Compiled Mode").toRawUTF8());
+        cnv->pd->logWarning(String("Warning: object \"" + typeName + "\" is not supported in Compiled Mode").toRawUTF8());
     }
 
     // Update inlets/outlets
