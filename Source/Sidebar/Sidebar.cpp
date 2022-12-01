@@ -43,7 +43,7 @@ Sidebar::Sidebar(PlugDataAudioProcessor* instance, PlugDataPluginEditor* parent)
     inspector->addMouseListener(this, true);
     searchPanel->addMouseListener(this, true);
     
-    consoleButton.setTooltip("Open automation panel");
+    consoleButton.setTooltip("Open console panel");
     consoleButton.setConnectedEdges(12);
     consoleButton.setName("statusbar:console");
     consoleButton.setClickingTogglesState(true);
@@ -64,7 +64,7 @@ Sidebar::Sidebar(PlugDataAudioProcessor* instance, PlugDataPluginEditor* parent)
 
     automationButton.setTooltip("Open automation panel");
     automationButton.setConnectedEdges(12);
-    automationButton.setName("statusbar:browser");
+    automationButton.setName("statusbar:automation");
     automationButton.setClickingTogglesState(true);
     automationButton.onClick = [this]()
     {
@@ -72,9 +72,9 @@ Sidebar::Sidebar(PlugDataAudioProcessor* instance, PlugDataPluginEditor* parent)
     };
     addAndMakeVisible(automationButton);
     
-    searchButton.setTooltip("Open automation panel");
+    searchButton.setTooltip("Open search panel");
     searchButton.setConnectedEdges(12);
-    searchButton.setName("statusbar:browser");
+    searchButton.setName("statusbar:search");
     searchButton.setClickingTogglesState(true);
     searchButton.onClick = [this]()
     {
@@ -199,11 +199,8 @@ void Sidebar::showPanel(int panelToShow)
     browser->setVisible(showBrowser);
     browser->setInterceptsMouseClicks(showBrowser, showBrowser);
     
-    auto buttons = std::vector<TextButton*>{&consoleButton, &browserButton, &automationButton};
-    
-    for(int i = 0; i < buttons.size(); i++) {
-        buttons[i]->setToggleState(i == panelToShow, dontSendNotification);
-    }
+    auto buttons = std::vector<TextButton*>{&consoleButton, &browserButton, &automationButton, &searchButton};
+
     
     automationPanel->setVisible(showAutomation);
     automationPanel->setInterceptsMouseClicks(showAutomation, showAutomation);
@@ -213,7 +210,8 @@ void Sidebar::showPanel(int panelToShow)
     };
     
     searchPanel->setVisible(showSearch);
-    automationPanel->setInterceptsMouseClicks(showSearch, showSearch);
+    if(showSearch) searchPanel->grabFocus();
+    searchPanel->setInterceptsMouseClicks(showSearch, showSearch);
 }
 
 bool Sidebar::isShowingBrowser()
