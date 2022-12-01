@@ -306,5 +306,5 @@ int libpd_process_nodsp(void)
 
 int libpd_is_text_object(void* obj)
 {
-    return ((t_gobj*)object)->g_pd->c_wb == &text_widgetbehavior
+    return ((t_gobj*)obj)->g_pd->c_wb == &text_widgetbehavior;
 }
