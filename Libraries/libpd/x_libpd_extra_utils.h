@@ -23,6 +23,8 @@ t_garray* libpd_array_get_byname(char const* name);
 char const* libpd_array_get_name(void* array);
 char const* libpd_array_get_unexpanded_name(void* array);
 
+
+
 void libpd_array_get_scale(void* array, float* min, float* max);
 void libpd_array_set_scale(void* array, float min, float max);
 
@@ -61,6 +63,8 @@ int libpd_process_nodsp(void);
 
 unsigned int convert_from_iem_color(int const color);
 unsigned int convert_to_iem_color(char const* hex);
+
+int libpd_is_text_object(void* obj);
 
 #ifdef __cplusplus
 }
