@@ -84,7 +84,7 @@ public:
     void updateSelection() {
         int row = listBox.getSelectedRow();
         if(isPositiveAndBelow(row, searchResult.size())) {
-            auto [name, object, ptr] = searchResult[row];
+            auto [name, prefix, object, ptr] = searchResult[row];
             
             if(auto* cnv = editor->getCurrentCanvas()) {
                 highlightSearchTarget(object);
@@ -163,6 +163,21 @@ public:
         g.drawText(Icons::Search, 0, 0, 30, 30, Justification::centred);
     }
     
+    String reducePrefixLength(String name, String prefix)
+    {
+        int maxWidth = getWidth() - 15;
+        if(Font().getStringWidth(name + prefix) > maxWidth) {
+            prefix = prefix.upToFirstOccurrenceOf("->", true, true) + " ... " + prefix.fromLastOccurrenceOf("->", true, true);
+        }
+        
+        /*
+        if(Font().getStringWidth(name + prefix) > maxWidth) {
+            prefix = prefix.upToFirstOccurenceOf("->", true, true);
+        } */
+        
+        return prefix;
+    }
+    
     void paintListBoxItem(int rowNumber, Graphics& g, int w, int h, bool rowIsSelected) override
     {
         if(!isShowing()) return;
@@ -173,14 +188,17 @@ public:
         }
         
         g.setColour(rowIsSelected ? findColour(PlugDataColour::sidebarActiveTextColourId) : findColour(ComboBox::textColourId));
-        const auto& [item, object, ptr] = searchResult[rowNumber];
+        
+        const auto& [name, prefix, object, ptr] = searchResult[rowNumber];
+        
+        auto shortenedPrefix = reducePrefixLength(name, prefix);
         
         Point<int> position;
         auto [x, y] = object->getPosition();
-        auto text = item + " (" + String(x) + ", " + String(y) + ")";
+        auto text = shortenedPrefix + name + " (" + String(x) + ", " + String(y) + ")";
         
         g.setFont(Font());
-        g.drawText(text, 12, 0, w - 4, h, Justification::centredLeft, true);
+        g.drawText(text, 12, 0, w - 8, h, Justification::centredLeft, true);
     }
     
     int getNumRows() override
@@ -223,11 +241,11 @@ public:
     }
     
     
-    static Array<std::tuple<String, Object*, void*>> searchRecursively(Canvas* topLevelCanvas, pd::Patch& patch, const String& query, Object* topLevelObject = nullptr, String prefix = "") {
+    static Array<std::tuple<String, String, Object*, void*>> searchRecursively(Canvas* topLevelCanvas, pd::Patch& patch, const String& query, Object* topLevelObject = nullptr, String prefix = "") {
         
         auto* instance = patch.instance;
         
-        Array<std::tuple<String, Object*, void*>> result;
+        Array<std::tuple<String, String, Object*, void*>> result;
         
         for(auto* object : patch.getObjects()) {
             
@@ -235,12 +253,12 @@ public:
                 
                 // Insert in front if the query matches a whole word
                 if (text.containsWholeWordIgnoreCase(query)) {
-                    result.insert(0, {prefix + text, object, ptr});
+                    result.insert(0, {text, prefix, object, ptr});
                     return true;
                 }
                 // Insert in back if it contains the query
                 else if (text.containsIgnoreCase(query)) {
-                    result.add({prefix + text, object, ptr});
+                    result.add({text, prefix, object, ptr});
                     return true;
                 }
                 
@@ -277,7 +295,7 @@ public:
             }
             else {
                 
-                bool isGui = static_cast<t_gobj*>(object)->g_pd->c_wb != &text_widgetbehavior;
+                bool isGui = !libpd_is_text_object(object);
                 
                 // If it's a gui add the class name
                 if(isGui) {
@@ -312,7 +330,7 @@ public:
 private:
     ListBox listBox;
     
-    Array<std::tuple<String, Object*, void*>> searchResult;
+    Array<std::tuple<String, String, Object*, void*>> searchResult;
     TextEditor input;
     TextButton closeButton = TextButton(Icons::Clear);
     
