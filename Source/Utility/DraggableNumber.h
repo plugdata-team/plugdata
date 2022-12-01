@@ -72,11 +72,11 @@ struct DraggableNumber : public Label {
             return true;
         }
 
-        if (!isEditableOnSingleClick() && !getCurrentTextEditor() && key.getKeyCode() == KeyPress::upKey) {
+        if (!isEditableOnSingleClick() && !getCurrentTextEditor() && key.isKeyCode(KeyPress::upKey)) {
             setValue(getText().getFloatValue() + 1.0f);
             return true;
         }
-        if (!isEditableOnSingleClick() && !getCurrentTextEditor() && key.getKeyCode() == KeyPress::downKey) {
+        if (!isEditableOnSingleClick() && !getCurrentTextEditor() && key.isKeyCode(KeyPress::downKey)) {
             setValue(getText().getFloatValue() - 1.0f);
             return true;
         }
