@@ -36,7 +36,7 @@ bool wantsNativeDialog() {
 }
 
 
-PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p) : AudioProcessorEditor(&p), pd(p), statusbar(p), sidebar(&p)
+PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p) : AudioProcessorEditor(&p), pd(p), statusbar(p), sidebar(&p, this)
 {
     toolbarButtons = {new TextButton(Icons::Open), new TextButton(Icons::Save),     new TextButton(Icons::SaveAs), new TextButton(Icons::Undo),
                       new TextButton(Icons::Redo), new TextButton(Icons::Add),  new TextButton(Icons::Settings), new TextButton(Icons::Hide),   new TextButton(Icons::Pin)};
@@ -112,6 +112,8 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p) : AudioPro
     tabbar.onTabChange = [this](int idx)
     {
         if (idx == -1) return;
+        
+        sidebar.tabChanged();
 
         // update GraphOnParent when changing tabs
         for (auto* object : getCurrentCanvas()->objects)
@@ -946,6 +948,13 @@ void PlugDataPluginEditor::getCommandInfo(const CommandID commandID, Application
             result.setActive(true);
             break;
         }
+        case CommandIDs::Search:
+        {
+            result.setInfo("Search Current Patch", "Search for objects in current patch", "Edit", 0);
+            result.addDefaultKeypress(70, ModifierKeys::commandModifier);
+            result.setActive(true);
+            break;
+        }
         case CommandIDs::NextTab:
         {
             result.setInfo("Next Tab", "Show the next tab", "View", 0);
@@ -1151,6 +1160,10 @@ bool PlugDataPluginEditor::perform(const InvocationInfo& info)
     }
     else if(info.commandID == CommandIDs::ShowBrowser) {
         sidebar.showPanel(sidebar.isShowingBrowser() ? 0 : 1);
+        return true;
+    }
+    else if(info.commandID == CommandIDs::Search) {
+        sidebar.showPanel(3);
         return true;
     }
     

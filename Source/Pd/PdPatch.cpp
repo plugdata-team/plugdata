@@ -195,7 +195,7 @@ Connections Patch::getConnections() const
     return connections;
 }
 
-std::vector<void*> Patch::getObjects(bool onlyGui)
+std::vector<void*> Patch::getObjects()
 {
     if (ptr) {
         std::vector<void*> objects;
@@ -205,9 +205,7 @@ std::vector<void*> Patch::getObjects(bool onlyGui)
             if (Storage::isInfoParent(y))
                 continue;
 
-            if ((onlyGui && y->g_pd->c_gobj) || !onlyGui) {
-                objects.push_back(static_cast<void*>(y));
-            }
+            objects.push_back(static_cast<void*>(y));
         }
 
         return objects;

@@ -90,6 +90,7 @@ class Object : public Component, public Value::Listener, public Timer, private T
     Point<int> mouseDownPos;
     
     bool attachedToMouse = false;
+    bool isSearchTarget = false;
 
     Value hvccMode = Value(var(false));
     

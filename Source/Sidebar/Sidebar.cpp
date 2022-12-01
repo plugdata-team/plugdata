@@ -16,8 +16,9 @@
 #include "Inspector.h"
 #include "DocumentBrowser.h"
 #include "AutomationPanel.h"
+#include "SearchPanel.h"
 
-Sidebar::Sidebar(PlugDataAudioProcessor* instance)
+Sidebar::Sidebar(PlugDataAudioProcessor* instance, PlugDataPluginEditor* parent)
     : pd(instance)
 {
     // Can't use RAII because unique pointer won't compile with forward declarations
@@ -25,11 +26,14 @@ Sidebar::Sidebar(PlugDataAudioProcessor* instance)
     inspector = new Inspector;
     browser = new DocumentBrowser(pd);
     automationPanel = new AutomationPanel(pd);
+    searchPanel = new SearchPanel(parent);
+    
     
     addAndMakeVisible(console);
     addAndMakeVisible(inspector);
     addChildComponent(browser);
     addChildComponent(automationPanel);
+    addChildComponent(searchPanel);
     
     browser->setAlwaysOnTop(true);
     
@@ -37,6 +41,16 @@ Sidebar::Sidebar(PlugDataAudioProcessor* instance)
     console->addMouseListener(this, true);
     automationPanel->addMouseListener(this, true);
     inspector->addMouseListener(this, true);
+    searchPanel->addMouseListener(this, true);
+    
+    consoleButton.setTooltip("Open automation panel");
+    consoleButton.setConnectedEdges(12);
+    consoleButton.setName("statusbar:console");
+    consoleButton.setClickingTogglesState(true);
+    consoleButton.onClick = [this]()
+    {
+        showPanel(0);
+    };
     
     browserButton.setTooltip("Open documentation browser");
     browserButton.setConnectedEdges(12);
@@ -58,18 +72,20 @@ Sidebar::Sidebar(PlugDataAudioProcessor* instance)
     };
     addAndMakeVisible(automationButton);
     
-    consoleButton.setTooltip("Open automation panel");
-    consoleButton.setConnectedEdges(12);
-    consoleButton.setName("statusbar:console");
-    consoleButton.setClickingTogglesState(true);
-    consoleButton.onClick = [this]()
+    searchButton.setTooltip("Open automation panel");
+    searchButton.setConnectedEdges(12);
+    searchButton.setName("statusbar:browser");
+    searchButton.setClickingTogglesState(true);
+    searchButton.onClick = [this]()
     {
-        showPanel(0);
+        showPanel(3);
     };
+    addAndMakeVisible(searchButton);
     
     browserButton.setRadioGroupId(1100);
     automationButton.setRadioGroupId(1100);
     consoleButton.setRadioGroupId(1100);
+    searchButton.setRadioGroupId(1100);
     
     consoleButton.setToggleState(true, dontSendNotification);
     
@@ -86,6 +102,7 @@ Sidebar::~Sidebar()
     delete inspector;
     delete browser;
     delete automationPanel;
+    delete searchPanel;
 }
 
 void Sidebar::paint(Graphics& g)
@@ -118,17 +135,18 @@ void Sidebar::resized()
     
     auto tabbarBounds = bounds.removeFromTop(28);
     
-    int buttonWidth = getWidth() / 3;
+    int buttonWidth = getWidth() / 4;
     
     consoleButton.setBounds(tabbarBounds.removeFromLeft(buttonWidth));
     browserButton.setBounds(tabbarBounds.removeFromLeft(buttonWidth));
     automationButton.setBounds(tabbarBounds.removeFromLeft(buttonWidth));
+    searchButton.setBounds(tabbarBounds.removeFromLeft(buttonWidth));
 
     browser->setBounds(bounds);
     console->setBounds(bounds);
     inspector->setBounds(bounds);
-    
     automationPanel->setBounds(bounds);
+    searchPanel->setBounds(bounds);
 }
 
 void Sidebar::mouseDown(MouseEvent const& e)
@@ -176,6 +194,7 @@ void Sidebar::showPanel(int panelToShow)
 {
     bool showBrowser = panelToShow == 1;
     bool showAutomation = panelToShow == 2;
+    bool showSearch = panelToShow == 3;
     
     browser->setVisible(showBrowser);
     browser->setInterceptsMouseClicks(showBrowser, showBrowser);
@@ -192,7 +211,9 @@ void Sidebar::showPanel(int panelToShow)
     if(auto* editor =  dynamic_cast<PlugDataPluginEditor*>(pd->getActiveEditor())) {
         editor->toolbarButton(PlugDataPluginEditor::Pin)->setEnabled(panelToShow == 0);
     };
-
+    
+    searchPanel->setVisible(showSearch);
+    automationPanel->setInterceptsMouseClicks(showSearch, showSearch);
 }
 
 bool Sidebar::isShowingBrowser()
@@ -292,4 +313,9 @@ void Sidebar::clearConsole()
 void Sidebar::updateConsole()
 {
     console->update();
+}
+
+void Sidebar::tabChanged()
+{
+    searchPanel->clearSearchTargets();
 }

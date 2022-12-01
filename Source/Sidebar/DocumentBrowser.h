@@ -470,7 +470,9 @@ private:
 
 class FileSearchComponent : public Component
     , public ListBoxModel
-    , public ScrollBar::Listener {
+    , public ScrollBar::Listener
+    , public KeyListener
+{
 public:
     FileSearchComponent(DirectoryContentsList& directory)
         : searchPath(directory)
@@ -483,7 +485,7 @@ public:
         listBox.getViewport()->setScrollBarsShown(true, false, false, false);
 
         input.setName("sidebar::searcheditor");
-
+        input.addKeyListener(this);
         input.onTextChange = [this]() {
             bool notEmpty = input.getText().isNotEmpty();
             if (listBox.isVisible() != notEmpty) {
@@ -532,6 +534,15 @@ public:
             if (listBox.getRowPosition(row, true).contains(e.getEventRelativeTo(&listBox).getPosition())) {
                 openFile(searchResult.getReference(row));
             }
+        }
+    }
+        
+    // Divert up/down key events from text editor to the listbox
+    bool keyPressed (const KeyPress &key, Component *originatingComponent) override
+    {
+        if(key.isKeyCode(KeyPress::upKey) || key.isKeyCode(KeyPress::downKey)) {
+            listBox.keyPressed(key);
+            return true;
         }
     }
 
@@ -791,7 +802,7 @@ struct DocumentBrowser : public DocumentBrowserBase
     {
         searchComponent.setBounds(getLocalBounds().withHeight(getHeight() - 30));
         
-        fileList.setBounds(getLocalBounds().withHeight(getHeight() - 58).withY(30));
+        fileList.setBounds(getLocalBounds().withHeight(getHeight() - 60).withY(30));
 
         auto fb = FlexBox(FlexBox::Direction::row, FlexBox::Wrap::noWrap, FlexBox::AlignContent::flexStart, FlexBox::AlignItems::stretch, FlexBox::JustifyContent::flexStart);
 
@@ -822,7 +833,7 @@ struct DocumentBrowser : public DocumentBrowserBase
         g.drawLine(0.5f, 0, 0.5f, getHeight() - 27.5f);
 
         g.setColour(findColour(PlugDataColour::outlineColourId));
-        g.drawLine(0, 30, getWidth(), 30);
+        g.drawLine(0, 29, getWidth(), 29);
     }
 
 private:
