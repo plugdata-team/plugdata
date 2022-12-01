@@ -100,12 +100,10 @@ public:
 
         
         if(originatingComponent == &listBox && key == keyPress) {
-            return false;
+            return listBox.keyPressed(keyPress);
         }
         if(keyPress.isKeyCode(KeyPress::upKey) || keyPress.isKeyCode(KeyPress::downKey)) {
-            listBox.keyPressed(keyPress);
-            
-            return true;
+            return listBox.keyPressed(keyPress);;
         }
     }
     
