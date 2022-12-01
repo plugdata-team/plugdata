@@ -565,8 +565,6 @@ public:
         bool nativeWindow = static_cast<bool>(v.getValue());
         
         setUsingNativeTitleBar(nativeWindow);
-                
-        repaint();
         
         if(!nativeWindow) {
             
@@ -604,6 +602,9 @@ public:
             setDropShadowEnabled(true);
             setResizable(true, false);
         }
+        
+        repaint();
+        
     }
     
     AudioProcessor* getAudioProcessor() const noexcept
