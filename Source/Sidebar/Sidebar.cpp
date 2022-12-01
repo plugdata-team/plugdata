@@ -316,4 +316,5 @@ void Sidebar::updateConsole()
 void Sidebar::tabChanged()
 {
     searchPanel->clearSearchTargets();
+    searchPanel->updateResults();
 }
