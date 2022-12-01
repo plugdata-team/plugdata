@@ -54,8 +54,7 @@ public:
         
         listBox.getViewport()->getVerticalScrollBar().addListener(this);
         
-        setWantsKeyboardFocus(true);
-
+        setWantsKeyboardFocus(false);
     }
     
     void mouseDown(const MouseEvent& e) override{
@@ -64,6 +63,13 @@ public:
         });
     }
     
+    bool keyPressed (const KeyPress &key) override
+    {
+        if(key.isKeyCode(KeyPress::returnKey)){
+            listBox.keyPressed(KeyPress(KeyPress::downKey));
+            return true;
+        }
+    }
     // Divert up/down key events from text editor to the listbox
     bool keyPressed (const KeyPress &key, Component *originatingComponent) override
     {
@@ -71,11 +77,33 @@ public:
             updateSelection();
         });
         
-        if(originatingComponent == &listBox) {
+        auto keyPress = key.isKeyCode(KeyPress::returnKey) ? KeyPress(KeyPress::downKey) : key;
+        
+        
+        // Wrap around when we reach the end of the list
+        if(keyPress.isKeyCode(KeyPress::downKey) && listBox.getSelectedRow() == (searchResult.size() - 1)) {
+            SparseSet<int> set;
+            set.addRange({0, 1});
+            listBox.setSelectedRows(set);
+            listBox.scrollToEnsureRowIsOnscreen(0);
+            return true;
+        }
+        
+        if(keyPress.isKeyCode(KeyPress::upKey) && listBox.getSelectedRow() == 0) {
+            int newIdx = searchResult.size() - 1;
+            SparseSet<int> set;
+            set.addRange({newIdx, newIdx + 1});
+            listBox.setSelectedRows(set);
+            listBox.scrollToEnsureRowIsOnscreen(newIdx);
+            return true;
+        }
+
+        
+        if(originatingComponent == &listBox && key == keyPress) {
             return false;
         }
-        if(key.isKeyCode(KeyPress::upKey) || key.isKeyCode(KeyPress::downKey)) {
-            listBox.keyPressed(key);
+        if(keyPress.isKeyCode(KeyPress::upKey) || keyPress.isKeyCode(KeyPress::downKey)) {
+            listBox.keyPressed(keyPress);
             
             return true;
         }
@@ -149,7 +177,8 @@ public:
     
     void paint(Graphics& g) override
     {
-        g.fillAll(findColour(PlugDataColour::sidebarBackgroundColourId));
+        g.setColour(findColour(PlugDataColour::sidebarBackgroundColourId));
+        g.fillRect(getLocalBounds().withTrimmedBottom(30));
     }
     
     void paintOverChildren(Graphics& g) override
@@ -163,26 +192,27 @@ public:
         g.drawText(Icons::Search, 0, 0, 30, 30, Justification::centred);
     }
     
-    String formatSearchResultString(String name, String prefix, int x, int y)
+    std::pair<String, String> formatSearchResultString(String name, String prefix, int x, int y)
     {
         
         auto positionString = " (" + String(x) + ", " + String(y) + ")";
-        int maxWidth = getWidth() - 15;
         
+        int maxWidth = getWidth() - 20;
+                
         if(Font().getStringWidth(prefix + name + positionString) > maxWidth) {
             positionString = "";
         }
-        if(Font().getStringWidth(prefix + name + positionString) > maxWidth) {
+        
+        if(prefix.containsNonWhitespaceChars() && Font().getStringWidth(prefix + name + positionString) > maxWidth) {
             prefix = prefix.upToFirstOccurrenceOf("->", true, true) + " ... " + prefix.fromLastOccurrenceOf("->", true, true);
         }
+    
         
-        
-        if(prefix.isNotEmpty()&& Font().getStringWidth(prefix + name + positionString) > maxWidth) {
-            prefix = prefix.upToLastOccurrenceOf("->", false, true);
-            name = "";
+        if(prefix.containsNonWhitespaceChars() && Font().getStringWidth(prefix + name + positionString) > maxWidth) {
+            prefix = "... -> ";
         }
                 
-        return prefix + name + positionString;
+        return {prefix + name, positionString};
     }
     
     void paintListBoxItem(int rowNumber, Graphics& g, int w, int h, bool rowIsSelected) override
@@ -200,10 +230,14 @@ public:
         
         auto [x, y] = object->getPosition();
         
-        auto text = formatSearchResultString(name, prefix, x, y);
+        auto [text, size] = formatSearchResultString(name, prefix, x, y);
+        
+        auto positionTextWidth = Font().getStringWidth(size);
+        auto positionTextX = getWidth() - positionTextWidth - 16;
         
         g.setFont(Font());
-        g.drawText(text, 12, 0, w - 8, h, Justification::centredLeft, true);
+        g.drawText(text, 12, 0, positionTextX - 16, h, Justification::centredLeft, true);
+        g.drawText(size, positionTextX, 0, positionTextWidth, h, Justification::centredRight, true);
     }
     
     int getNumRows() override
@@ -252,23 +286,25 @@ public:
         
         Array<std::tuple<String, String, Object*, void*>> result;
         
-        for(auto* object : patch.getObjects()) {
+        Array<std::pair<void*, Object*>> subpatches;
+        
+        auto addObject = [&query, &result, &prefix](const String& text, Object* object, void* ptr) {
             
-            auto addObject = [&query, &result, &prefix](const String& text, Object* object, void* ptr) {
-                
-                // Insert in front if the query matches a whole word
-                if (text.containsWholeWordIgnoreCase(query)) {
-                    result.insert(0, {text, prefix, object, ptr});
-                    return true;
-                }
-                // Insert in back if it contains the query
-                else if (text.containsIgnoreCase(query)) {
-                    result.add({text, prefix, object, ptr});
-                    return true;
-                }
-                
-                return false;
-            };
+            // Insert in front if the query matches a whole word
+            if (text.containsWholeWordIgnoreCase(query)) {
+                result.insert(0, {text, prefix, object, ptr});
+                return true;
+            }
+            // Insert in back if it contains the query
+            else if (text.containsIgnoreCase(query)) {
+                result.add({text, prefix, object, ptr});
+                return true;
+            }
+            
+            return false;
+        };
+        
+        for(auto* object : patch.getObjects()) {
             
             Object* topLevel = topLevelObject;
             if(topLevelCanvas) {
@@ -280,23 +316,10 @@ public:
             }
             
             auto className = String::fromUTF8(libpd_get_object_class_name(object));
-            
+               
             if(className == "canvas" || className == "graph") {
-                auto patch = pd::Patch(object, instance);
-                
-                char* objectText;
-                int len;
-                libpd_get_object_text(object, &objectText, &len);
-                
-                addObject(String::fromUTF8(objectText, len), topLevel, object);
-                
-                // TODO: find a better way to handle this
-                auto objTextStr = String::fromUTF8(objectText, len);
-                if(len > 25)  {
-                    objTextStr = objTextStr.upToFirstOccurrenceOf(" ", true, false);
-                }
-                
-                result.addArray(searchRecursively(nullptr, patch, query, topLevel, prefix +  objTextStr + "-> "));
+                // Save them for later, so we can put them at the end of the result
+                subpatches.add({object, topLevel});
             }
             else {
                 
@@ -316,13 +339,38 @@ public:
             }
         }
         
+        // Search through subpatches
+        for(auto& [object, topLevel] : subpatches)
+        {
+            auto patch = pd::Patch(object, instance);
+            
+            char* objectText;
+            int len;
+            libpd_get_object_text(object, &objectText, &len);
+            
+            addObject(String::fromUTF8(objectText, len), topLevel, object);
+ 
+            auto objTextStr = String::fromUTF8(objectText, len);
+            
+            auto tokens = StringArray::fromTokens(objTextStr, false);
+            String newPrefix;
+            if(tokens[0] == "pd") {
+                newPrefix = tokens[0] + " " + tokens[1];
+            }
+            else {
+                newPrefix = tokens[0];
+            }
+            
+            result.addArray(searchRecursively(nullptr, patch, query, topLevel, prefix + newPrefix  + " -> "));
+        }
+        
         return result;
     }
 
 
     void resized() override
     {
-        auto tableBounds = getLocalBounds();
+        auto tableBounds = getLocalBounds().withTrimmedBottom(30);
         auto inputBounds = tableBounds.removeFromTop(28);
         
         tableBounds.removeFromTop(4);
