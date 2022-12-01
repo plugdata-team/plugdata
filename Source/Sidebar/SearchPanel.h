@@ -163,19 +163,26 @@ public:
         g.drawText(Icons::Search, 0, 0, 30, 30, Justification::centred);
     }
     
-    String reducePrefixLength(String name, String prefix)
+    String formatSearchResultString(String name, String prefix, int x, int y)
     {
+        
+        auto positionString = " (" + String(x) + ", " + String(y) + ")";
         int maxWidth = getWidth() - 15;
-        if(Font().getStringWidth(name + prefix) > maxWidth) {
+        
+        if(Font().getStringWidth(prefix + name + positionString) > maxWidth) {
+            positionString = "";
+        }
+        if(Font().getStringWidth(prefix + name + positionString) > maxWidth) {
             prefix = prefix.upToFirstOccurrenceOf("->", true, true) + " ... " + prefix.fromLastOccurrenceOf("->", true, true);
         }
         
-        /*
-        if(Font().getStringWidth(name + prefix) > maxWidth) {
-            prefix = prefix.upToFirstOccurenceOf("->", true, true);
-        } */
         
-        return prefix;
+        if(prefix.isNotEmpty()&& Font().getStringWidth(prefix + name + positionString) > maxWidth) {
+            prefix = prefix.upToLastOccurrenceOf("->", false, true);
+            name = "";
+        }
+                
+        return prefix + name + positionString;
     }
     
     void paintListBoxItem(int rowNumber, Graphics& g, int w, int h, bool rowIsSelected) override
@@ -191,11 +198,9 @@ public:
         
         const auto& [name, prefix, object, ptr] = searchResult[rowNumber];
         
-        auto shortenedPrefix = reducePrefixLength(name, prefix);
-        
-        Point<int> position;
         auto [x, y] = object->getPosition();
-        auto text = shortenedPrefix + name + " (" + String(x) + ", " + String(y) + ")";
+        
+        auto text = formatSearchResultString(name, prefix, x, y);
         
         g.setFont(Font());
         g.drawText(text, 12, 0, w - 8, h, Justification::centredLeft, true);
