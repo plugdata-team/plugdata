@@ -388,6 +388,9 @@ void Canvas::mouseDown(MouseEvent const& e)
     }
     // Right click
     else {
+        
+        cancelConnectionCreation();
+        
         // Info about selection status
         auto selectedBoxes = getSelectionOfType<Object>();
 
@@ -395,8 +398,16 @@ void Canvas::mouseDown(MouseEvent const& e)
         bool multiple = selectedBoxes.size() > 1;
 
         Object* object = nullptr;
-        if (hasSelection && !multiple) object = selectedBoxes.getFirst();
-        
+        if(auto* obj = dynamic_cast<Object*>(e.originalComponent)) {
+            object = obj;
+        }
+        else if(auto* obj = e.originalComponent->findParentComponentOfClass<Object>()) {
+            object = obj;
+        }
+        else if (hasSelection && !multiple)  {
+            object = selectedBoxes.getFirst();
+        }
+
         Array<Object*> parents;
         for (auto* p = source->getParentComponent(); p != nullptr; p = p->getParentComponent()) {
             if (auto* target = dynamic_cast<Object*> (p)) parents.add(target);
