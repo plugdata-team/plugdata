@@ -105,6 +105,8 @@ public:
         if(keyPress.isKeyCode(KeyPress::upKey) || keyPress.isKeyCode(KeyPress::downKey)) {
             return listBox.keyPressed(keyPress);;
         }
+        
+        return false;
     }
     
     void updateSelection() {
