@@ -400,9 +400,11 @@ void Canvas::mouseDown(MouseEvent const& e)
         Object* object = nullptr;
         if(auto* obj = dynamic_cast<Object*>(e.originalComponent)) {
             object = obj;
+            deselectAll();
         }
         else if(auto* obj = e.originalComponent->findParentComponentOfClass<Object>()) {
             object = obj;
+            deselectAll();
         }
         else if (hasSelection && !multiple)  {
             object = selectedBoxes.getFirst();
@@ -445,7 +447,11 @@ void Canvas::mouseDown(MouseEvent const& e)
         auto callback = [this, object](int result)
         {
             popupMenu.clear();
+            
+            if(object) object->repaint();
+            
             if (result < 1) return;
+            
             switch (result)
             {
                 case 1:  // Open subpatch
