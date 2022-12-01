@@ -101,7 +101,7 @@ public:
     }
 
     // Gets the objects of the patch.
-    std::vector<void*> getObjects(bool onlyGui = false);
+    std::vector<void*> getObjects();
 
     String getCanvasContent()
     {

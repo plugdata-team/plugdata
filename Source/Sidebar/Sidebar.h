@@ -11,6 +11,7 @@ struct Console;
 struct Inspector;
 struct DocumentBrowser;
 struct AutomationPanel;
+struct SearchPanel;
 struct PlugDataAudioProcessor;
 
 namespace pd {
@@ -69,7 +70,7 @@ static int getNumLines(String const& text, int width, Font font = Font(Font::get
 }
 
 struct Sidebar : public Component {
-    explicit Sidebar(PlugDataAudioProcessor* instance);
+    explicit Sidebar(PlugDataAudioProcessor* instance, PlugDataPluginEditor* parent);
 
     ~Sidebar() override;
 
@@ -99,6 +100,8 @@ struct Sidebar : public Component {
 
     void clearConsole();
     void updateConsole();
+    
+    void tabChanged();
 
 #if PLUGDATA_STANDALONE
     void updateAutomationParameters();
@@ -110,14 +113,16 @@ private:
     PlugDataAudioProcessor* pd;
     ObjectParameters lastParameters;
     
+    TextButton consoleButton = TextButton(Icons::Console);
     TextButton browserButton = TextButton(Icons::Documentation);
     TextButton automationButton = TextButton(Icons::Parameters);
-    TextButton consoleButton = TextButton(Icons::Console);
+    TextButton searchButton = TextButton(Icons::Search);
     
     Console* console;
     Inspector* inspector;
     DocumentBrowser* browser;
     AutomationPanel* automationPanel;
+    SearchPanel* searchPanel;
     
 
     int dragStartWidth = 0;

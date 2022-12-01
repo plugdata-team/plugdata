@@ -320,7 +320,22 @@ Array<Rectangle<float>> Object::getCorners() const
 
 void Object::paintOverChildren(Graphics& g)
 {
-    if(!isHvccCompatible) {
+    if (isSearchTarget)
+    {
+        g.saveState();
+
+        // Don't draw line over iolets!
+        for (auto& iolet : iolets)
+        {
+            g.excludeClipRegion(iolet->getBounds().reduced(2));
+        }
+
+        g.setColour(Colours::violet);
+        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(Object::margin + 1.0f), Constants::objectCornerRadius, 2.0f);
+
+        g.restoreState();
+    }
+    else if(!isHvccCompatible) {
         g.saveState();
 
         // Don't draw line over iolets!

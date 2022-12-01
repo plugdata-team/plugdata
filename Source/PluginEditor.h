@@ -37,6 +37,7 @@ enum CommandIDs
     Encapsulate,
     SelectAll,
     ShowBrowser,
+    Search,
     NextTab,
     PreviousTab,
     ToggleGrid,
