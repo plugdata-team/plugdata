@@ -19,7 +19,7 @@ struct SubpatchObject final : public TextBase
         object->hvccMode.addListener(this);
         
         if(static_cast<bool>(object->hvccMode.getValue())) {
-            checkHvccCompatibility(cnv->pd, subpatch);
+            checkHvccCompatibility(subpatch);
         }
     }
     
@@ -80,7 +80,7 @@ struct SubpatchObject final : public TextBase
         }
         else if (v.refersToSameSourceAs(object->hvccMode)) {
             if(static_cast<bool>(v.getValue())) {
-                checkHvccCompatibility(cnv->pd, subpatch);
+                checkHvccCompatibility(subpatch);
             }
         }
     }
@@ -95,16 +95,24 @@ struct SubpatchObject final : public TextBase
         openSubpatch();
     }
     
-    static void checkHvccCompatibility(pd::Instance* instance, pd::Patch& patch) {
+    static void checkHvccCompatibility(pd::Patch& patch, String prefix = "") {
+        
+        auto* instance = patch.instance;
+        
         for(auto* object : patch.getObjects()) {
             const String name = libpd_get_object_class_name(object);
             
             if(name == "canvas" || name == "graph") {
                 auto patch = pd::Patch(object, instance);
-                checkHvccCompatibility(instance, patch);
+                
+                char* text = nullptr;
+                int size = 0;
+                libpd_get_object_text(object, &text, &size);
+                
+                checkHvccCompatibility(patch, prefix + String(text) + " -> ");
             }
             else if(!Object::hvccObjects.contains(name)) {
-                instance->logError(String("Warning: object \"" + name + "\" is not supported in Compiled Mode").toRawUTF8());
+                instance->logWarning(String("Warning: object \"" + prefix + name + "\" is not supported in Compiled Mode").toRawUTF8());
             }
         }
     }

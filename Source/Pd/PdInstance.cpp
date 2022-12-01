@@ -599,6 +599,12 @@ void Instance::logError(String const& error)
     consoleHandler.logError(error);
 }
 
+void Instance::logWarning(String const& warning)
+{
+    consoleHandler.logWarning(warning);
+}
+
+
 std::deque<std::tuple<String, int, int>>& Instance::getConsoleMessages()
 {
     return consoleHandler.consoleMessages;

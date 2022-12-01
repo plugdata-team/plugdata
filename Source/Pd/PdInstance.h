@@ -352,6 +352,7 @@ public:
 
     void logMessage(String const& message);
     void logError(String const& message);
+    void logWarning(String const& message);
 
     std::deque<std::tuple<String, int, int>>& getConsoleMessages();
     std::deque<std::tuple<String, int, int>>& getConsoleHistory();
@@ -443,12 +444,20 @@ protected:
             pendingMessages.enqueue({ message, false });
             startTimer(10);
         }
+        
+        void logWarning(String const& warning)
+        {
+            pendingMessages.enqueue({ warning, 1 });
+            startTimer(10);
+        }
 
         void logError(String const& error)
         {
-            pendingMessages.enqueue({ error, 1 });
+            pendingMessages.enqueue({ error, 2 });
             startTimer(10);
         }
+        
+
 
         void processPrint(char const* message)
         {
