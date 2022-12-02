@@ -17,6 +17,7 @@ char* pdgui_strnescape(char* dst, size_t dstlen, char const* src, size_t srclen)
 
 struct IEMObject : public GUIObject {
     
+
     Value initialise;
     
     IEMObject(void* ptr, Object* parent)
@@ -132,18 +133,21 @@ struct IEMObject : public GUIObject {
             labelColour = Colour(getLabelColour()).toString();
             repaint();
         }
-        if(symbol == "label" && atoms.size() >= 1) {
+        else if(symbol == "label" && atoms.size() >= 1) {
             labelText = atoms[0].getSymbol();
             updateLabel();
         }
-        if(symbol == "label_pos" && atoms.size() >= 2) {
+        else if(symbol == "label_pos" && atoms.size() >= 2) {
             labelX = static_cast<int>(atoms[0].getFloat());
             labelY = static_cast<int>(atoms[1].getFloat());
             updateLabel();
         }
-        if(symbol == "label_font" && atoms.size() >= 2) {
+        else if(symbol == "label_font" && atoms.size() >= 2) {
             labelHeight = static_cast<int>(atoms[1].getFloat());
             updateLabel();
+        }
+        else if(symbol == "init") {
+            initialise = static_cast<bool>(atoms[0].getFloat());
         }
     }
 

@@ -87,6 +87,16 @@ struct ToggleObject final : public IEMObject {
             { "Non-zero value", tInt, cGeneral, &nonZero, {} },
         };
     }
+    
+    void receiveObjectMessage(String symbol, std::vector<pd::Atom>& atoms) override {
+        
+        if(symbol == "nonzero" && atoms.size() >= 1) {
+            nonZero = atoms[0].getFloat();
+        }
+        else {
+            IEMObject::receiveObjectMessage(symbol, atoms);
+        }
+    }
 
     void valueChanged(Value& value) override
     {

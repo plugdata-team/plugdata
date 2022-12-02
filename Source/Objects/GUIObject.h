@@ -218,7 +218,7 @@ protected:
         MessageManager::callAsync([_this = SafePointer(this), symbol, atoms]() mutable {
             if(!_this) return;
             
-            if(symbol == "size") {
+            if(symbol == "size" || symbol == "delta" || symbol == "pos") {
                 _this->updateBounds();
             }
             else if(symbol == "send") {

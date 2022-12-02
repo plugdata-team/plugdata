@@ -55,6 +55,23 @@ struct SliderObject : public IEMObject {
         slider.onDragEnd = [this]() { stopEdition(); };
     }
 
+    void receiveObjectMessage(String symbol, std::vector<pd::Atom>& atoms) override {
+        
+        if(symbol == "lin") {
+            isLogarithmic = false;
+        }
+        else if(symbol == "log") {
+            isLogarithmic = true;
+        }
+        else if(symbol == "range" && atoms.size() >= 2) {
+            min = atoms[0].getFloat();
+            max = atoms[1].getFloat();
+        }
+        else {
+            IEMObject::receiveObjectMessage(symbol, atoms);
+        }
+    }
+    
     void checkBounds() override
     {
         // Apply size limits
