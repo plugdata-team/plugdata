@@ -127,10 +127,10 @@ struct IEMObject : public GUIObject {
     void receiveObjectMessage(String symbol, std::vector<pd::Atom>& atoms) override {
         
         if(symbol == "color") {
-            // TODO: this is not good! Don't assume the colours have already been set, they may not be
-            primaryColour = Colour(getForegroundColour()).toString();
-            secondaryColour = Colour(getBackgroundColour()).toString();
-            labelColour = Colour(getLabelColour()).toString();
+            if(atoms.size() > 0) primaryColour = atoms[0].getSymbol();
+            if(atoms.size() > 1) secondaryColour = atoms[1].getSymbol();
+            if(atoms.size() > 2) labelColour = atoms[2].getSymbol();
+            
             repaint();
         }
         else if(symbol == "label" && atoms.size() >= 1) {
@@ -146,7 +146,7 @@ struct IEMObject : public GUIObject {
             labelHeight = static_cast<int>(atoms[1].getFloat());
             updateLabel();
         }
-        else if(symbol == "init") {
+        else if(symbol == "init" && atoms.size() >= 1) {
             initialise = static_cast<bool>(atoms[0].getFloat());
         }
     }
