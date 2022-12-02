@@ -338,13 +338,12 @@ GUIObject::GUIObject(void* obj, Object* parent)
         }
     });
     
-    // TODO: enable this for v0.6.3
-    //pd->registerMessageListener(ptr, this);
+    pd->registerMessageListener(ptr, this);
 }
 
 GUIObject::~GUIObject()
 {
-    //pd->unregisterMessageListener(ptr, this);
+    pd->unregisterMessageListener(ptr, this);
     object->removeComponentListener(this);
     auto* lnf = &getLookAndFeel();
     setLookAndFeel(nullptr);

@@ -179,6 +179,9 @@ struct GUIObject : public ObjectBase, public pd::MessageListener
         v = clampedValue;
         return clampedValue;
     }
+        
+        
+    virtual void receiveObjectMessage(String symbol, std::vector<pd::Atom>& atoms) {};
 
 protected:
         
@@ -205,4 +208,30 @@ protected:
     Value labelHeight = Value(18.0f);
 
     Value labelText;
+        
+    private:
+
+    void receiveMessage(String symbol, int argc, t_atom* argv) override
+    {
+        auto atoms = pd::Atom::fromAtoms(argc, argv);
+        
+        MessageManager::callAsync([_this = SafePointer(this), symbol, atoms]() mutable {
+            if(!_this) return;
+            
+            if(symbol == "size") {
+                _this->updateBounds();
+            }
+            else if(symbol == "send") {
+                _this->sendSymbol = atoms[0].getSymbol();
+            }
+            else if(symbol == "receive") {
+                _this->receiveSymbol = atoms[0].getSymbol();
+            }
+            else {
+                _this->receiveObjectMessage(symbol, atoms);
+            }
+        });
+
+        
+    }
 };

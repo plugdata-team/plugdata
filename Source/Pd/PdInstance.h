@@ -31,6 +31,24 @@ public:
         , symbol()
     {
     }
+    
+    static std::vector<pd::Atom> fromAtoms(int ac, t_atom* av)
+    {
+        auto array = std::vector<pd::Atom>();
+        array.reserve(ac);
+        
+        for (int i = 0; i < ac; ++i) {
+            if (av[i].a_type == A_FLOAT) {
+                array.emplace_back(atom_getfloat(av + i));
+            } else if (av[i].a_type == A_SYMBOL) {
+                array.emplace_back(atom_getsymbol(av + i)->s_name);
+            } else {
+                array.emplace_back();
+            }
+        }
+        
+        return array;
+    }
 
     // The float constructor.
     inline Atom(float const val)
@@ -227,6 +245,8 @@ struct ContinuityChecker : public Timer {
 struct MessageListener
 {
     virtual void receiveMessage(String name, int argc, t_atom* argv) {};
+    
+    JUCE_DECLARE_WEAK_REFERENCEABLE (MessageListener);
 };
 
 class Instance {
@@ -397,7 +417,7 @@ public:
 
 private:
     
-    std::unordered_map<void*, std::vector<MessageListener*>> messageListeners;
+    std::unordered_map<void*, std::vector<WeakReference<MessageListener>>> messageListeners;
     
     moodycamel::ConcurrentQueue<std::function<void(void)>> m_function_queue = moodycamel::ConcurrentQueue<std::function<void(void)>>(4096);
 

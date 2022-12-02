@@ -1339,10 +1339,6 @@ void PlugDataAudioProcessor::timerCallback()
             {
                 cnv->updateDrawables();
             }
-            if (callbackType & 8)
-            {
-                cnv->updateGuiParameters();
-            }
         }
 
         callbackType = 0;

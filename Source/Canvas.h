@@ -48,7 +48,6 @@ class Canvas : public Component, public Value::Listener, public LassoSource<Weak
     
     void updateDrawables();
     void updateGuiValues();
-    void updateGuiParameters();
     
     bool keyPressed(const KeyPress& key) override;
     void valueChanged(Value& v) override;

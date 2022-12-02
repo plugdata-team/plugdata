@@ -121,6 +121,31 @@ struct IEMObject : public GUIObject {
         params.push_back({ "Initialise", tBool, cGeneral, &initialise, {"No", "Yes"} });
         return params;
     }
+    
+    
+    void receiveObjectMessage(String symbol, std::vector<pd::Atom>& atoms) override {
+        
+        if(symbol == "color") {
+            // TODO: this is not good! Don't assume the colours have already been set, they may not be
+            primaryColour = Colour(getForegroundColour()).toString();
+            secondaryColour = Colour(getBackgroundColour()).toString();
+            labelColour = Colour(getLabelColour()).toString();
+            repaint();
+        }
+        if(symbol == "label" && atoms.size() >= 1) {
+            labelText = atoms[0].getSymbol();
+            updateLabel();
+        }
+        if(symbol == "label_pos" && atoms.size() >= 2) {
+            labelX = static_cast<int>(atoms[0].getFloat());
+            labelY = static_cast<int>(atoms[1].getFloat());
+            updateLabel();
+        }
+        if(symbol == "label_font" && atoms.size() >= 2) {
+            labelHeight = static_cast<int>(atoms[1].getFloat());
+            updateLabel();
+        }
+    }
 
     void valueChanged(Value& v) override
     {

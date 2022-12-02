@@ -332,18 +332,6 @@ void Canvas::updateGuiValues()
     }
 }
 
-void Canvas::updateGuiParameters()
-{
-    for (auto& object : objects)
-    {
-        if (object->gui)
-        {
-            object->gui->updateParameters();
-            object->gui->repaint();
-        }
-    }
-}
-
 void Canvas::mouseDown(MouseEvent const& e)
 {
     auto* source = e.originalComponent;
