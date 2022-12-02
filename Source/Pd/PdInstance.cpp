@@ -162,9 +162,27 @@ Instance::Instance(String const& symbol)
         auto& listeners = static_cast<Instance*>(instance)->messageListeners;
         if(!listeners.count(target)) return;
         
-        for(auto* listener : listeners[target]) {
+        bool cleanup = false;
+        
+        for(auto listener : listeners[target]) {
+            if(!listener)  {
+                cleanup = true;
+                continue;
+            }
+            
             listener->receiveMessage(String(symbol->s_name), argc, argv);
         }
+        
+        if(cleanup) {
+            for(int i = listeners[target].size() - 1; i >= 0; i--) {
+                if(!listeners[target][i])  {
+                    listeners[target].erase(listeners[target].begin() + i);
+                }
+            }
+        }
+        
+
+        
     };
 
     register_gui_triggers(static_cast<t_pdinstance*>(m_instance), this, gui_trigger, panel_trigger, synchronise_trigger, parameter_trigger, message_trigger);
@@ -478,7 +496,7 @@ void Instance::processSend(dmessage mess)
 
 void Instance::registerMessageListener(void* object, MessageListener* messageListener)
 {
-    messageListeners[object].push_back(messageListener);
+    messageListeners[object].push_back(WeakReference(messageListener));
 }
 
 void Instance::unregisterMessageListener(void* object, MessageListener* messageListener)

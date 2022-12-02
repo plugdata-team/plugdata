@@ -109,22 +109,12 @@ struct ListObject final : public AtomObject {
 
     std::vector<pd::Atom> getList() const
     {
-        std::vector<pd::Atom> array;
         cnv->pd->setThis();
 
         int ac = binbuf_getnatom(static_cast<t_fake_gatom*>(ptr)->a_text.te_binbuf);
         t_atom* av = binbuf_getvec(static_cast<t_fake_gatom*>(ptr)->a_text.te_binbuf);
-        array.reserve(ac);
-        for (int i = 0; i < ac; ++i) {
-            if (av[i].a_type == A_FLOAT) {
-                array.emplace_back(atom_getfloat(av + i));
-            } else if (av[i].a_type == A_SYMBOL) {
-                array.emplace_back(atom_getsymbol(av + i)->s_name);
-            } else {
-                array.emplace_back();
-            }
-        }
-        return array;
+        
+        return pd::Atom::fromAtoms(ac, av);
     }
 
     void setList(std::vector<pd::Atom> const& value)

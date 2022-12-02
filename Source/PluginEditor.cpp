@@ -131,7 +131,6 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p) : AudioPro
         cnv->synchronise();
         cnv->updateGuiValues();
         cnv->updateDrawables();
-        cnv->updateGuiParameters();
         
         updateCommandStatus();
     };
