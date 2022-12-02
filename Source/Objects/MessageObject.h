@@ -16,7 +16,7 @@ typedef struct _message {
     t_clock* m_clock;
 } t_message;
 
-struct MessageObject final : public TextBase
+struct MessageObject final : public TextBase, public KeyListener
 {
     bool isDown = false;
     bool isLocked = false;
@@ -157,6 +157,8 @@ struct MessageObject final : public TextBase
 
             editor->setText(objectText, false);
             editor->addListener(this);
+            editor->addKeyListener(this);
+            
             editor->onFocusLost = [this]() {
                 hideEditor();
             };
@@ -217,6 +219,19 @@ struct MessageObject final : public TextBase
         freebytes(text, size);
         
         return result;
+    }
+    
+    bool keyPressed(KeyPress const& key, Component* component) override
+    {
+        if (key == KeyPress::rightKey && editor && !editor->getHighlightedRegion().isEmpty()) {
+            editor->setCaretPosition(editor->getHighlightedRegion().getEnd());
+            return true;
+        }
+        if (key == KeyPress::leftKey && editor && !editor->getHighlightedRegion().isEmpty()) {
+            editor->setCaretPosition(editor->getHighlightedRegion().getStart());
+            return true;
+        }
+        return false;
     }
     
     void setSymbol(String const& value)

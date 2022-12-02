@@ -221,10 +221,10 @@ protected:
             if(symbol == "size" || symbol == "delta" || symbol == "pos") {
                 _this->updateBounds();
             }
-            else if(symbol == "send") {
+            else if(symbol == "send" && atoms.size() >= 1) {
                 _this->sendSymbol = atoms[0].getSymbol();
             }
-            else if(symbol == "receive") {
+            else if(symbol == "receive" && atoms.size() >= 1) {
                 _this->receiveSymbol = atoms[0].getSymbol();
             }
             else {
