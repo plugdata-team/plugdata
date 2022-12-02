@@ -72,6 +72,20 @@ struct RadioObject final : public IEMObject {
         }
     }
     
+    void receiveObjectMessage(String symbol, std::vector<pd::Atom>& atoms) override {
+        
+        if(symbol == "orientation" && atoms.size() >= 1) {
+            isVertical = atoms[0].getFloat();
+            updateBounds();
+        }
+        else if(symbol == "number" && atoms.size() >= 1) {
+            max = atoms[0].getFloat();
+        }
+        else {
+            IEMObject::receiveObjectMessage(symbol, atoms);
+        }
+    }
+    
     void untoggleObject() override
     {
         alreadyToggled = false;
