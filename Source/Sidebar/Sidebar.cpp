@@ -200,7 +200,10 @@ void Sidebar::showPanel(int panelToShow)
     browser->setInterceptsMouseClicks(showBrowser, showBrowser);
     
     auto buttons = std::vector<TextButton*>{&consoleButton, &browserButton, &automationButton, &searchButton};
-
+    
+    for(int i = 0; i < buttons.size(); i++) {
+        buttons[i]->setToggleState(i == panelToShow, dontSendNotification);
+    }
     
     automationPanel->setVisible(showAutomation);
     automationPanel->setInterceptsMouseClicks(showAutomation, showAutomation);
@@ -208,6 +211,8 @@ void Sidebar::showPanel(int panelToShow)
     if(auto* editor =  dynamic_cast<PlugDataPluginEditor*>(pd->getActiveEditor())) {
         editor->toolbarButton(PlugDataPluginEditor::Pin)->setEnabled(panelToShow == 0);
     };
+    
+    
     
     searchPanel->setVisible(showSearch);
     if(showSearch) searchPanel->grabFocus();
