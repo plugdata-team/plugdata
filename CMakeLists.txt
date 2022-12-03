@@ -312,6 +312,13 @@ endif()
 target_link_libraries(PlugData PRIVATE pd-multi ${libs})
 target_link_libraries(PlugDataFx PRIVATE pd-multi ${libs})
 
+set_target_properties(PlugDataStandalone PROPERTIES BUNDLE_OUTPUT_DIRECTORY_DEBUG ${PLUGDATA_PLUGINS_LOCATION}/Standalone)
+set_target_properties(PlugDataStandalone PROPERTIES RUNTIME_OUTPUT_DIRECTORY_DEBUG ${PLUGDATA_PLUGINS_LOCATION}/Standalone)
+set_target_properties(PlugDataStandalone PROPERTIES LIBRARY_OUTPUT_DIRECTORY_DEBUG ${PLUGDATA_PLUGINS_LOCATION}/Standalone)
+set_target_properties(PlugDataStandalone PROPERTIES BUNDLE_OUTPUT_DIRECTORY_RELEASE ${PLUGDATA_PLUGINS_LOCATION}/Standalone)
+set_target_properties(PlugDataStandalone PROPERTIES RUNTIME_OUTPUT_DIRECTORY_RELEASE ${PLUGDATA_PLUGINS_LOCATION}/Standalone)
+set_target_properties(PlugDataStandalone PROPERTIES LIBRARY_OUTPUT_DIRECTORY_RELEASE ${PLUGDATA_PLUGINS_LOCATION}/Standalone)
+
 set_target_properties(PlugData PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${PLUGDATA_PLUGINS_LOCATION})
 set_target_properties(PlugData PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${PLUGDATA_PLUGINS_LOCATION})
 
@@ -384,26 +391,6 @@ set(CMAKE_INSTALL_DEFAULT_DIRECTORY_PERMISSIONS
   WORLD_WRITE
   WORLD_EXECUTE
 )
-
-if(APPLE)
-add_custom_command(TARGET PlugDataStandalone
-    POST_BUILD
-    WORKING_DIRECTORY ${your_dir}
-    COMMAND ${CMAKE_COMMAND}
-    ARGS -E copy_directory $<TARGET_BUNDLE_DIR:PlugDataStandalone> ${PLUGDATA_PLUGINS_LOCATION}/Standalone/$<TARGET_BUNDLE_DIR_NAME:PlugDataStandalone>
-    DEPENDS PlugDataStandalone
-    VERBATIM
-    )
-else()
-  add_custom_command(TARGET PlugDataStandalone
-    POST_BUILD
-    WORKING_DIRECTORY ${your_dir}
-    COMMAND ${CMAKE_COMMAND}
-    ARGS -E copy $<TARGET_FILE:PlugDataStandalone> ${PLUGDATA_PLUGINS_LOCATION}/Standalone/$<TARGET_FILE_NAME:PlugDataStandalone>
-    DEPENDS PlugDataStandalone
-    VERBATIM
-    )
-endif()
 
 if(APPLE)
   install(DIRECTORY ${PLUGDATA_PLUGINS_LOCATION}/VST3/PlugData.vst3 DESTINATION "/Library/Audio/Plug-ins/VST3/")
