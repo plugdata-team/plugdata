@@ -52,7 +52,7 @@ private:
 
     UndoManager undoManager;
 
-    ValueTree extraInfo = ValueTree("PlugDataInfo");
+    ValueTree extraInfo = ValueTree("plugdatainfo");
 
     friend class Instance;
     friend class Patch;

@@ -22,7 +22,7 @@ bool wantsNativeDialog() {
     return true;
 #endif
     
-    File homeDir = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory).getChildFile("PlugData");
+    File homeDir = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory).getChildFile("plugdata");
     File settingsFile = homeDir.getChildFile("Settings.xml");
     
     

@@ -500,7 +500,7 @@ protected:
                 int d = 2048 - 1 - length;
                 strncat(printConcatBuffer, message, d);
 
-                // Send concatenated line to PlugData!
+                // Send concatenated line to plugdata!
                 forwardMessage(String::fromUTF8(printConcatBuffer));
 
                 message += d;
@@ -515,7 +515,7 @@ protected:
             if (length > 0 && printConcatBuffer[length - 1] == '\n') {
                 printConcatBuffer[length - 1] = '\0';
 
-                // Send concatenated line to PlugData!
+                // Send concatenated line to plugdata!
                 forwardMessage(String::fromUTF8(printConcatBuffer));
 
                 length = 0;

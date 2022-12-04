@@ -223,9 +223,9 @@ struct PackageManager : public Thread
     PackageList getAvailablePackages()
     {
         
-        // PlugData's deken servers, hosted on github
+        // plugdata's deken servers, hosted on github
         // This will pre-parse the deken repo information to a faster and smaller format
-        // This saves a lot of work that PlugData would have to do on startup!
+        // This saves a lot of work that plugdata would have to do on startup!
         
         auto triplet = os + "-" + machine + "-" + floatsize;
         auto repoForArchitecture = "https://raw.githubusercontent.com/timothyschoen/PlugDataDekenServer/main/bin/" + triplet + ".bin";
@@ -339,7 +339,7 @@ struct PackageManager : public Thread
     
     PackageList allPackages;
     
-    inline static File filesystem = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory).getChildFile("PlugData").getChildFile("Deken");
+    inline static File filesystem = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory).getChildFile("plugdata").getChildFile("Deken");
     
     // Package info file
     File pkgInfo = filesystem.getChildFile(".pkg_info");
@@ -360,7 +360,7 @@ struct PackageManager : public Thread
     "Darwin"
 #elif JUCE_WINDOWS
     "Windows"
-    // PlugData has no official BSD support and testing, but for completeness:
+    // plugdata has no official BSD support and testing, but for completeness:
 #elif defined __FreeBSD__
     "FreeBSD"
 #elif defined __NetBSD__

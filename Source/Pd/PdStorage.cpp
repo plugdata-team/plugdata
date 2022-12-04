@@ -70,7 +70,7 @@ Storage::Storage(t_glist* patch, Instance* inst)
 
     canvas_undo_get(glist_getcanvas(parentPatch))->u_doing = 0;
 
-    // Makes it nearly invisible in pd-vanilla, in PlugData it's hidden
+    // Makes it nearly invisible in pd-vanilla, in plugdata it's hidden
     infoParent->gl_pixwidth = 1;
     infoParent->gl_pixheight = 1;
 

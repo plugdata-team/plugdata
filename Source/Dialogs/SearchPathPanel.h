@@ -69,10 +69,10 @@ public:
                 
                 if(result == 0) return;
                 
-                auto libraryDir = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory).getChildFile("PlugData").getChildFile("Library");
+                auto libraryDir = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory).getChildFile("plugdata").getChildFile("Library");
                 
                 auto abstractionsDir = libraryDir.getChildFile("Abstractions");
-                auto dekenDir = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory).getChildFile("PlugData").getChildFile("Library").getChildFile("Deken");
+                auto dekenDir = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory).getChildFile("plugdata").getChildFile("Library").getChildFile("Deken");
                 
                 path = FileSearchPath();
                 path.add(abstractionsDir);

@@ -129,11 +129,11 @@ class PlugDataAudioProcessor : public AudioProcessor, public pd::Instance, publi
     std::vector<float*> channelPointers;
     std::atomic<float>* volume;
 
-    ValueTree settingsTree = ValueTree("PlugDataSettings");
+    ValueTree settingsTree = ValueTree("plugdatasettings");
 
     pd::Library objectLibrary;
 
-    File homeDir = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory).getChildFile("PlugData");
+    File homeDir = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory).getChildFile("plugdata");
     File appDir = homeDir.getChildFile(ProjectInfo::versionString);
 
     File settingsFile = homeDir.getChildFile("Settings.xml");

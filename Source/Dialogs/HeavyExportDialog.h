@@ -309,7 +309,7 @@ struct ToolchainInstaller : public Component, public Thread, public Timer
         });
     }
 
-    inline static File toolchain = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory).getChildFile("PlugData").getChildFile("Toolchain");
+    inline static File toolchain = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory).getChildFile("plugdata").getChildFile("Toolchain");
 
     float installProgress = 0.0f;
 
@@ -464,7 +464,7 @@ public:
 
 struct ExporterSettingsPanel : public Component, public Value::Listener, public Timer, public ChildProcess, public ThreadPool
 {
-    inline static File toolchain = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory).getChildFile("PlugData").getChildFile("Toolchain");
+    inline static File toolchain = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory).getChildFile("plugdata").getChildFile("Toolchain");
 
     TextButton exportButton = TextButton("Export");
 
@@ -478,7 +478,7 @@ struct ExporterSettingsPanel : public Component, public Value::Listener, public 
     const inline static String exeSuffix = "";
 #endif
 
-    inline static File heavyExecutable = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory).getChildFile("PlugData").getChildFile("Toolchain").getChildFile("bin").getChildFile("Heavy").getChildFile("Heavy" + exeSuffix);
+    inline static File heavyExecutable = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory).getChildFile("plugdata").getChildFile("Toolchain").getChildFile("bin").getChildFile("Heavy").getChildFile("Heavy" + exeSuffix);
 
     bool validPatchSelected = false;
 
@@ -1210,7 +1210,7 @@ struct HeavyExportDialog : public Component
     ToolchainInstaller installer;
     ExporterPanel exporterPanel;
 
-    inline static File toolchain = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory).getChildFile("PlugData").getChildFile("Toolchain");
+    inline static File toolchain = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory).getChildFile("plugdata").getChildFile("Toolchain");
 
     HeavyExportDialog(Dialog* dialog) : exporterPanel(dynamic_cast<PlugDataPluginEditor*>(dialog->parentComponent), &exportingView), installer(dynamic_cast<PlugDataPluginEditor*>(dialog->parentComponent)) {
 

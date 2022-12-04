@@ -17,7 +17,7 @@ struct AboutPanel : public Component {
     {
         g.setFont(30);
         g.setColour(findColour(PlugDataColour::panelTextColourId));
-        g.drawFittedText("PlugData " + String(ProjectInfo::versionString), 150, 20, 300, 30, Justification::left, 1);
+        g.drawFittedText("plugdata " + String(ProjectInfo::versionString), 150, 20, 300, 30, Justification::left, 1);
 
         g.setFont(16);
         g.drawFittedText("By Timothy Schoen", 150, 50, getWidth() - 150, 30, Justification::left, 1);

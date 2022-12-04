@@ -45,7 +45,7 @@ PlugDataAudioProcessor::PlugDataAudioProcessor()
 #ifndef JucePlugin_PreferredChannelConfigurations
     : AudioProcessor(buildBusesProperties()),
 #endif
-      pd::Instance("PlugData"),
+      pd::Instance("plugdata"),
       parameters(*this, nullptr)
 {
     // Make sure to use dots for decimal numbers, pd requires that
@@ -84,7 +84,7 @@ PlugDataAudioProcessor::PlugDataAudioProcessor()
     volume = parameters.getRawParameterValue("volume");
 
     // Make sure that the parameter valuetree has a name, to prevent assertion failures
-    parameters.replaceState(ValueTree("PlugData"));
+    parameters.replaceState(ValueTree("plugdata"));
 
     // scope for locking message manager
     {
@@ -169,7 +169,7 @@ PlugDataAudioProcessor::PlugDataAudioProcessor()
 
     setLatencySamples(pd::Instance::getBlockSize());
 
-    logMessage("PlugData v" + String(ProjectInfo::versionString));
+    logMessage("plugdata v" + String(ProjectInfo::versionString));
     logMessage("Based on " + String(pd_version).upToFirstOccurrenceOf("(", false, false));
     logMessage("Libraries:");
     logMessage(else_version);
@@ -204,7 +204,7 @@ void PlugDataAudioProcessor::initialiseFilesystem()
         }
 
 #if !JUCE_WINDOWS
-        // This may not work on Windows, Windows users REALLY need to thrash their PlugData folder
+        // This may not work on Windows, Windows users REALLY need to thrash their plugdata folder
         else if(library.getChildFile("Deken").isDirectory() && !library.getChildFile("Deken").isSymbolicLink()) {
             library.moveFileTo(library_backup);
             library.createDirectory();
@@ -401,7 +401,7 @@ void PlugDataAudioProcessor::updateSearchPaths()
 const String PlugDataAudioProcessor::getName() const
 {
 #if PLUGDATA_STANDALONE
-    return "PlugData";
+    return "plugdata";
 #else
     return JucePlugin_Name;
 #endif
