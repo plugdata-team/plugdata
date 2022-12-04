@@ -14,7 +14,7 @@ class PdArray {
 public:
     enum DrawType {
         Points,
-        Line,
+        Polygon,
         Curve
     };
 
@@ -64,6 +64,14 @@ public:
         return { min, max };
     }
 
+    bool getEditMode() {
+        return libpd_array_get_editmode(ptr);
+    }
+    
+    void setEditMode(bool editMode) {
+        libpd_array_set_editmode(ptr, editMode);
+    }
+
     // Gets the scale of the array.
     int size() const
     {
@@ -101,6 +109,7 @@ public:
         libpd_set_instance(static_cast<t_pdinstance*>(instance));
         libpd_array_write(ptr, static_cast<int>(pos), &input, 1);
     }
+
 
     void* ptr = nullptr;
     void* instance = nullptr;
@@ -189,18 +198,14 @@ public:
             switch (array.getDrawType()) {
             case PdArray::DrawType::Curve: {
                 
-                
-                points.insert(points.begin(), points.front());
-                points.push_back(points.back());
-                
                 Path p;
                 p.startNewSubPath(0, h - (std::clamp(points[0], scale[0], scale[1]) - scale[0]) * dh);
                 
-                for (size_t i = 1; i < points.size() - 1; i += 2) {
-                    float const y1 = h - (std::clamp(points[i - 1], scale[0], scale[1]) - scale[0]) * dh;
-                    float const y2 = h - (std::clamp(points[i], scale[0], scale[1]) - scale[0]) * dh;
-                    float const y3 = h - (std::clamp(points[i + 1], scale[0], scale[1]) - scale[0]) * dh;
-                    p.cubicTo(static_cast<float>(i - 1) * dw, y1, static_cast<float>(i) * dw, y2, static_cast<float>(i + 1) * dw, y3);
+                for (size_t i = 1; i < points.size() - 2; i += 3) {
+                    float const y1 = h - (std::clamp(points[i], scale[0], scale[1]) - scale[0]) * dh;
+                    float const y2 = h - (std::clamp(points[i + 1], scale[0], scale[1]) - scale[0]) * dh;
+                    float const y3 = h - (std::clamp(points[i + 2], scale[0], scale[1]) - scale[0]) * dh;
+                    p.cubicTo(static_cast<float>(i) * dw, y1, static_cast<float>(i + 1) * dw, y2, static_cast<float>(i + 2) * dw, y3);
                 }
                 
                 if(invert) p.applyTransform(AffineTransform::verticalFlip(getHeight()));
@@ -209,7 +214,7 @@ public:
                 g.strokePath(p, PathStrokeType(1));
                 break;
             }
-            case PdArray::DrawType::Line: {
+            case PdArray::DrawType::Polygon: {
                 int startY = h - (std::clamp(points[0], scale[0], scale[1]) - scale[0]) * dh;
                 Point<float> lastPoint = Point<float>(0, startY);
                 Point<float> newPoint;
@@ -231,10 +236,13 @@ public:
             }
             case PdArray::DrawType::Points: {
                 g.setColour(object->findColour(PlugDataColour::objectOutlineColourId));
+                
+                float const dw_points = w / static_cast<float>(points.size());
+                
                 for (size_t i = 0; i < points.size(); i++) {
                     float y = h - (std::clamp(points[i], scale[0], scale[1]) - scale[0]) * dh;
                     if(invert) y = getHeight() - y;
-                    g.drawHorizontalLine(y, static_cast<float>(i) * dw, static_cast<float>(i + 1) * dw);
+                    g.drawHorizontalLine(y, static_cast<float>(i) * dw_points, static_cast<float>(i + 1) * dw_points);
                 }
                 break;
             }
@@ -261,7 +269,7 @@ public:
 
     void mouseDown(MouseEvent const& e) override
     {
-        if (error)
+        if (error || !array.getEditMode())
             return;
         edited = true;
 
@@ -276,7 +284,7 @@ public:
 
     void mouseDrag(MouseEvent const& e) override
     {
-        if (error)
+        if (error || !array.getEditMode())
             return;
 
         auto const s = static_cast<float>(vec.size() - 1);
@@ -325,7 +333,7 @@ public:
 
     void mouseUp(MouseEvent const& e) override
     {
-        if (error)
+        if (error || !array.getEditMode())
             return;
         edited = false;
     }
@@ -357,6 +365,8 @@ public:
 
     PlugDataAudioProcessor* pd;
 };
+
+
 
 struct ArrayEditorDialog : public Component {
     ResizableBorderComponent resizer;
@@ -432,6 +442,8 @@ struct ArrayEditorDialog : public Component {
             g.drawText(title, 0, 0, getWidth(), 40, Justification::centred);
         }
     }
+    
+
 };
 
 struct ArrayObject final : public GUIObject {
@@ -453,7 +465,7 @@ public:
         saveContents = array.willSaveContent();
         name = String(array.getUnexpandedName());
         drawMode = static_cast<int>(array.getDrawType()) + 1;
-
+        
         labelColour = object->findColour(PlugDataColour::canvasTextColourId).toString();
 
         updateLabel();
@@ -525,6 +537,7 @@ public:
             { "Save Contents", tBool, cGeneral, &saveContents, { "No", "Yes" } },
         };
     }
+
 
     void applyBounds() override
     {
@@ -618,6 +631,7 @@ public:
             GUIObject::valueChanged(value);
         }
     }
+
 
     void paintOverChildren(Graphics& g) override
     {

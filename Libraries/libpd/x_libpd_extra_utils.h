@@ -23,7 +23,8 @@ t_garray* libpd_array_get_byname(char const* name);
 char const* libpd_array_get_name(void* array);
 char const* libpd_array_get_unexpanded_name(void* array);
 
-
+int libpd_array_get_editmode(void* array);
+void libpd_array_set_editmode(void* array, int is_editmode);
 
 void libpd_array_get_scale(void* array, float* min, float* max);
 void libpd_array_set_scale(void* array, float min, float max);

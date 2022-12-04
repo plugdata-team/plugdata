@@ -55,7 +55,7 @@ struct SliderObject : public IEMObject {
         slider.onDragEnd = [this]() { stopEdition(); };
     }
 
-    void receiveObjectMessage(String symbol, std::vector<pd::Atom>& atoms) override {
+    void receiveObjectMessage(const String& symbol, std::vector<pd::Atom>& atoms) override {
         
         if(symbol == "lin") {
             isLogarithmic = false;

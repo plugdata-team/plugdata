@@ -72,7 +72,7 @@ struct RadioObject final : public IEMObject {
         }
     }
     
-    void receiveObjectMessage(String symbol, std::vector<pd::Atom>& atoms) override {
+    void receiveObjectMessage(const String& symbol, std::vector<pd::Atom>& atoms) override {
         
         if(symbol == "orientation" && atoms.size() >= 1) {
             isVertical = atoms[0].getFloat();

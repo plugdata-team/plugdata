@@ -124,7 +124,7 @@ struct IEMObject : public GUIObject {
     }
     
     
-    void receiveObjectMessage(String symbol, std::vector<pd::Atom>& atoms) override {
+    void receiveObjectMessage(const String& symbol, std::vector<pd::Atom>& atoms) override {
         
         if(symbol == "color") {
             if(atoms.size() > 0) primaryColour = atoms[0].getSymbol();
