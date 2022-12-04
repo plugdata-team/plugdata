@@ -156,7 +156,7 @@ juce_add_plugin(plugdata_fx
     PLUGIN_CODE                 PdFx
     FORMATS                     AU VST3 LV2
     LV2URI                      https://github.com/timothyschoen/plugdata_fx
-    PRODUCT_NAME                "plugdata fx"
+    PRODUCT_NAME                "plugdata-fx"
     AU_MAIN_TYPE                kAudioUnitType_MusicEffect
     VST3_CATEGORIES             Fx
     VST2_CATEGORY               kPlugCategEffect)
@@ -180,7 +180,7 @@ juce_add_plugin(plugdata_midi
     PLUGIN_MANUFACTURER_CODE    PlDt
     PLUGIN_CODE                 PdMd
     FORMATS                     AU
-    PRODUCT_NAME                "plugdata midi"
+    PRODUCT_NAME                "plugdata-midi"
     AU_MAIN_TYPE                kAudioUnitType_MIDIProcessor)
 endif()
 

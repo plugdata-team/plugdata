@@ -82,20 +82,20 @@ cat > ./plugdata.wxs <<-EOL
 							<ReserveCost Id="VST3_COST" RunFromSource="89900000" RunLocal="89900000"></ReserveCost>
 						</Component>
 					</Directory>
-					<Directory Id="VST3_FX_PLUGIN_DIR" Name="plugdataFx.vst3">
+					<Directory Id="VST3_FX_PLUGIN_DIR" Name="plugdata-fx.vst3">
 						<Directory Id="VST3_FX_CONTENTS" Name="Contents">
 							<Directory Id="VST3_FX_ARCH" Name="\$(var.VstArch)">
 								<Component Id="VST3_FX_BIN" Guid="9ce8241b-af1f-48b1-b61e-db74c4564d64" Win64="\$(var.Win64)">
-									<RemoveFile Id="VST3_FX_PLUGIN" Name="plugdataFx.vst3" On="both"/>
-									<File Id="VST3_FX_PLUGIN" Source="Plugins\VST3\plugdataFx.vst3\Contents\\\$(var.VstArch)\plugdataFx.vst3"/>
+									<RemoveFile Id="VST3_FX_PLUGIN" Name="plugdata-fx.vst3" On="both"/>
+									<File Id="VST3_FX_PLUGIN" Source="Plugins\VST3\plugdata-fx.vst3\Contents\\\$(var.VstArch)\plugdata-fx.vst3"/>
 								</Component>
 							</Directory>
 						</Directory>
 						<Component Id="VST3_FX_EXTRA" Guid="e195aac1-1211-4b6d-a86e-9a57448955a2" Win64="\$(var.Win64)">
 							<RemoveFile Id="VST3_FX_DESKTOP" Name="desktop.ini" On="both"/>
 							<RemoveFile Id="VST3_FX_ICON" Name="Plugin.ico" On="both"/>
-							<File Id="VST3_FX_DESKTOP" Source="Plugins\VST3\plugdataFx.vst3\desktop.ini"/>
-							<File Id="VST3_FX_ICON" Source="Plugins\VST3\plugdataFx.vst3\Plugin.ico"/>
+							<File Id="VST3_FX_DESKTOP" Source="Plugins\VST3\plugdata-fx.vst3\desktop.ini"/>
+							<File Id="VST3_FX_ICON" Source="Plugins\VST3\plugdata-fx.vst3\Plugin.ico"/>
 						</Component>
 					</Directory>
 				</Directory>
@@ -114,16 +114,16 @@ cat > ./plugdata.wxs <<-EOL
 							<ReserveCost Id="LV2_COST" RunFromSource="82700000" RunLocal="82700000"></ReserveCost>
 						</Component>
 					</Directory>
-					<Directory Id="LV2_FX_PLUGIN_DIR" Name="plugdataFx.lv2">
+					<Directory Id="LV2_FX_PLUGIN_DIR" Name="plugdata-fx.lv2">
 						<Component Id="LV2_FX_FILES" Guid="b676dc16-52f8-46ef-82c2-fbc7268b12d0" Win64="\$(var.Win64)">
-							<RemoveFile Id="LV2_FX_PLUGIN" Name="plugdataFx.dll" On="both"/>
+							<RemoveFile Id="LV2_FX_PLUGIN" Name="plugdata-fx.dll" On="both"/>
 							<RemoveFile Id="LV2_FX_MANIFEST" Name="manifest.ttl" On="both"/>
 							<RemoveFile Id="LV2_FX_DSP" Name="dsp.ttl" On="both"/>
 							<RemoveFile Id="LV2_FX_UI" Name="ui.ttl" On="both"/>
-							<File Id="LV2_FX_PLUGIN" Source="Plugins\LV2\plugdataFx.lv2\plugdataFx.dll"/>
-							<File Id="LV2_FX_MANIFEST" Source="Plugins\LV2\plugdataFx.lv2\manifest.ttl"/>
-							<File Id="LV2_FX_DSP" Source="Plugins\LV2\plugdataFx.lv2\dsp.ttl"/>
-							<File Id="LV2_FX_UI" Source="Plugins\LV2\plugdataFx.lv2\ui.ttl"/>
+							<File Id="LV2_FX_PLUGIN" Source="Plugins\LV2\plugdata-fx.lv2\plugdata-fx.dll"/>
+							<File Id="LV2_FX_MANIFEST" Source="Plugins\LV2\plugdata-fx.lv2\manifest.ttl"/>
+							<File Id="LV2_FX_DSP" Source="Plugins\LV2\plugdata-fx.lv2\dsp.ttl"/>
+							<File Id="LV2_FX_UI" Source="Plugins\LV2\plugdata-fx.lv2\ui.ttl"/>
 						</Component>
 					</Directory>
 				</Directory>

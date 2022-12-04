@@ -228,7 +228,7 @@ struct PackageManager : public Thread
         // This saves a lot of work that plugdata would have to do on startup!
         
         auto triplet = os + "-" + machine + "-" + floatsize;
-        auto repoForArchitecture = "https://raw.githubusercontent.com/timothyschoen/PlugDataDekenServer/main/bin/" + triplet + ".bin";
+        auto repoForArchitecture = "https://raw.githubusercontent.com/plugdata-team/plugdata-deken/main/bin/" + triplet + ".bin";
         
         webstream = std::make_unique<WebInputStream>(URL(repoForArchitecture), false);
         webstream->connect(nullptr);
