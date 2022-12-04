@@ -253,7 +253,7 @@ struct Console : public Component {
             for (int row = 0; row < static_cast<int>(pd->getConsoleMessages().size()); row++) {
                 auto [message, type, length] = pd->getConsoleMessages()[row];
                 int numLines = getNumLines(getWidth(), length);
-                int height = numLines * 22 + 2;
+                int height = numLines * 22 + 4;
 
                 if (messages[row]->idx != row) {
                     messages[row]->idx = row;
@@ -299,7 +299,7 @@ struct Console : public Component {
 
             for (auto& [message, type, length] : pd->getConsoleMessages()) {
                 int numLines = getNumLines(getWidth(), length);
-                int height = numLines * 22 + 2;
+                int height = numLines * 22 + 4;
 
                 if ((type == 1 && !showMessages) || (length == 0 && !showErrors))
                     continue;
