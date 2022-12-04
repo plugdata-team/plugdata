@@ -115,6 +115,17 @@ char const* libpd_array_get_unexpanded_name(void* array)
     return nptr->x_name->s_name;
 }
 
+int libpd_array_get_editmode(void* array)
+{
+    return ((t_fake_garray*)array)->x_edit;
+}
+
+void libpd_array_set_editmode(void* array, int is_editmode)
+{
+    ((t_fake_garray*)array)->x_edit = is_editmode;
+}
+
+
 void libpd_array_get_scale(void* array, float* min, float* max)
 {
     t_canvas const* cnv;

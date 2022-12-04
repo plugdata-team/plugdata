@@ -181,7 +181,7 @@ struct GUIObject : public ObjectBase, public pd::MessageListener
     }
         
         
-    virtual void receiveObjectMessage(String symbol, std::vector<pd::Atom>& atoms) {};
+    virtual void receiveObjectMessage(const String& symbol, std::vector<pd::Atom>& atoms) {};
 
 protected:
         
@@ -231,7 +231,5 @@ protected:
                 _this->receiveObjectMessage(symbol, atoms);
             }
         });
-
-        
     }
 };
