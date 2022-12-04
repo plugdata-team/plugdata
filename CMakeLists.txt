@@ -30,7 +30,7 @@ set(HARDENED_RUNTIME_OPTIONS "com.apple.security.device.audio-input")
 set(JUCE_ENABLE_MODULE_SOURCE_GROUPS ON CACHE BOOL "" FORCE)
 set_property(GLOBAL PROPERTY USE_FOLDERS YES)
 
-project(PlugData VERSION 0.6.2 LANGUAGES C CXX)
+project(plugdata VERSION 0.6.2 LANGUAGES C CXX)
 
 add_subdirectory(Libraries/ EXCLUDE_FROM_ALL)
 
@@ -39,9 +39,9 @@ execute_process(COMMAND python3 package_resources.py WORKING_DIRECTORY ${CMAKE_C
 
 
 set(PLUGDATA_VERSION                    "0.6.2")
-set(PLUGDATA_COMPANY_NAME               "PlugData")
-set(PLUGDATA_COMPANY_COPYRIGHT          "PlugData by Timothy Schoen")
-set(PLUGDATA_COMPANY_WEBSITE            "github.com/timothyschoen/plugdata")
+set(PLUGDATA_COMPANY_NAME               "plugdata")
+set(PLUGDATA_COMPANY_COPYRIGHT          "plugdata by Timothy Schoen")
+set(PLUGDATA_COMPANY_WEBSITE            "github.com/plugdata-team/plugdata")
 
 if(APPLE)
 set(PLUGDATA_ICON_BIG                   "${CMAKE_CURRENT_SOURCE_DIR}/Resources/plugdata_logo_mac.png")
@@ -55,7 +55,7 @@ set(PLUGDATA_PLUGINS_LOCATION           "${CMAKE_CURRENT_SOURCE_DIR}/Plugins")
 set(SOURCES_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/Source)
 
 file(GLOB PlugDataGlobalSources
-    ${CMAKE_CACHEFILE_DIR}/PlugData_artefacts/JuceLibraryCode/JuceHeader.h)
+    ${CMAKE_CACHEFILE_DIR}/plugdata_artefacts/JuceLibraryCode/JuceHeader.h)
 source_group("Source" FILES ${PlugDataGlobalSources})
 
 file(GLOB PlugDataSources
@@ -92,16 +92,16 @@ foreach(core_SOURCE ${PlugDataSources})
 		source_group("Source\\${core_SOURCE_group}" FILES "${core_SOURCE}")
 endforeach()
 
-file(GLOB PlugDataStandaloneSources
+file(GLOB plugdata_standaloneSources
     ${SOURCES_DIRECTORY}/Standalone/*.cpp
     ${SOURCES_DIRECTORY}/Standalone/*.h)
-source_group("Source\\Standalone" FILES ${PlugDataStandaloneSources})
+source_group("Source\\Standalone" FILES ${plugdata_standaloneSources})
 
 file(READ "${CMAKE_CURRENT_SOURCE_DIR}/Resources/Info.plist" INFO_PLIST)
 
 
-juce_add_gui_app(PlugDataStandalone
-    PRODUCT_NAME                "PlugData"
+juce_add_gui_app(plugdata_standalone
+    PRODUCT_NAME                "plugdata"
     VERSION                     ${PLUGDATA_VERSION}
     ICON_BIG                    ${PLUGDATA_ICON_BIG}
     MICROPHONE_PERMISSION_ENABLED TRUE
@@ -109,10 +109,10 @@ juce_add_gui_app(PlugDataStandalone
     HARDENED_RUNTIME_OPTIONS    ${HARDENED_RUNTIME_OPTIONS}
     DOCUMENT_BROWSER_ENABLED     TRUE
     DOCUMENT_EXTENSIONS          .pd
-    BUNDLE_ID                    com.PlugData.PlugData
+    BUNDLE_ID                    com.plugdata.plugdata
     )
 
-juce_add_plugin(PlugData
+juce_add_plugin(plugdata
     VERSION                     ${PLUGDATA_VERSION}
     COMPANY_NAME                ${PLUGDATA_COMPANY_NAME}
     COMPANY_COPYRIGHT           ${PLUGDATA_COMPANY_COPYRIGHT}
@@ -131,13 +131,13 @@ juce_add_plugin(PlugData
     PLUGIN_MANUFACTURER_CODE    PlDt
     PLUGIN_CODE                 PdIn
     FORMATS                     AU VST3 LV2
-    LV2URI                      https://github.com/timothyschoen/PlugData
-    PRODUCT_NAME                "PlugData"
+    LV2URI                      https://github.com/timothyschoen/plugdata
+    PRODUCT_NAME                "plugdata"
     AU_MAIN_TYPE                kAudioUnitType_MusicDevice
     VST3_CATEGORIES             Instrument
     VST2_CATEGORY               kPlugCategSynth)
 
-juce_add_plugin(PlugDataFx
+juce_add_plugin(plugdata_fx
     VERSION                     ${PLUGDATA_VERSION}
     COMPANY_NAME                ${PLUGDATA_COMPANY_NAME}
     COMPANY_COPYRIGHT           ${PLUGDATA_COMPANY_COPYRIGHT}
@@ -155,14 +155,14 @@ juce_add_plugin(PlugDataFx
     PLUGIN_MANUFACTURER_CODE    PlDt
     PLUGIN_CODE                 PdFx
     FORMATS                     AU VST3 LV2
-    LV2URI                      https://github.com/timothyschoen/PlugDataFx
-    PRODUCT_NAME                "PlugDataFx"
+    LV2URI                      https://github.com/timothyschoen/plugdata_fx
+    PRODUCT_NAME                "plugdata fx"
     AU_MAIN_TYPE                kAudioUnitType_MusicEffect
     VST3_CATEGORIES             Fx
     VST2_CATEGORY               kPlugCategEffect)
 
 if(APPLE)
-juce_add_plugin(PlugDataMidi
+juce_add_plugin(plugdata_midi
     VERSION                     ${PLUGDATA_VERSION}
     COMPANY_NAME                ${PLUGDATA_COMPANY_NAME}
     COMPANY_COPYRIGHT           ${PLUGDATA_COMPANY_COPYRIGHT}
@@ -180,33 +180,33 @@ juce_add_plugin(PlugDataMidi
     PLUGIN_MANUFACTURER_CODE    PlDt
     PLUGIN_CODE                 PdMd
     FORMATS                     AU
-    PRODUCT_NAME                "PlugDataMidi"
+    PRODUCT_NAME                "plugdata midi"
     AU_MAIN_TYPE                kAudioUnitType_MIDIProcessor)
 endif()
 
 if(APPLE)
-set_target_properties(PlugData PROPERTIES CMAKE_XCODE_ATTRIBUTE_CLANG_CXX_LIBRARY "libc++")
-set_target_properties(PlugDataFx PROPERTIES CMAKE_XCODE_ATTRIBUTE_CLANG_CXX_LIBRARY "libc++")
+set_target_properties(plugdata PROPERTIES CMAKE_XCODE_ATTRIBUTE_CLANG_CXX_LIBRARY "libc++")
+set_target_properties(plugdata_fx PROPERTIES CMAKE_XCODE_ATTRIBUTE_CLANG_CXX_LIBRARY "libc++")
 endif()
 
-juce_generate_juce_header(PlugDataStandalone)
-set_target_properties(PlugDataStandalone PROPERTIES CXX_STANDARD 20)
-target_sources(PlugDataStandalone PRIVATE ${PlugDataSources} ${PlugDataStandaloneSources})
+juce_generate_juce_header(plugdata_standalone)
+set_target_properties(plugdata_standalone PROPERTIES CXX_STANDARD 20)
+target_sources(plugdata_standalone PRIVATE ${PlugDataSources} ${plugdata_standaloneSources})
 
-juce_generate_juce_header(PlugData)
-set_target_properties(PlugData PROPERTIES CXX_STANDARD 20)
-target_sources(PlugData PRIVATE ${PlugDataSources} ${PlugDataStandaloneSources})
+juce_generate_juce_header(plugdata)
+set_target_properties(plugdata PROPERTIES CXX_STANDARD 20)
+target_sources(plugdata PRIVATE ${PlugDataSources} ${plugdata_standaloneSources})
 
-juce_generate_juce_header(PlugDataFx)
-set_target_properties(PlugDataFx PROPERTIES CXX_STANDARD 20)
-target_sources(PlugDataFx PRIVATE ${PlugDataSources})
+juce_generate_juce_header(plugdata_fx)
+set_target_properties(plugdata_fx PROPERTIES CXX_STANDARD 20)
+target_sources(plugdata_fx PRIVATE ${PlugDataSources})
 
 if(APPLE)
-juce_generate_juce_header(PlugDataMidi)
+juce_generate_juce_header(plugdata_midi)
 
-set_target_properties(PlugDataMidi PROPERTIES CXX_STANDARD 20)
-set_target_properties(PlugDataMidi PROPERTIES CMAKE_XCODE_ATTRIBUTE_CLANG_CXX_LIBRARY "libc++")
-target_sources(PlugDataMidi PRIVATE ${PlugDataSources})
+set_target_properties(plugdata_midi PROPERTIES CXX_STANDARD 20)
+set_target_properties(plugdata_midi PROPERTIES CMAKE_XCODE_ATTRIBUTE_CLANG_CXX_LIBRARY "libc++")
+target_sources(plugdata_midi PRIVATE ${PlugDataSources})
 endif()
 
 
@@ -239,20 +239,20 @@ if(UNIX AND NOT APPLE)
     JUCE_MODAL_LOOPS_PERMITTED=1
     JUCE_USE_XRENDER=1
     )
-    target_link_libraries(PlugDataStandalone PUBLIC "-Wl,-export-dynamic")
+    target_link_libraries(plugdata_standalone PUBLIC "-Wl,-export-dynamic")
 endif()
 
-target_compile_definitions(PlugDataStandalone PUBLIC ${PLUGDATA_COMPILE_DEFINITIONS} ${STANDALONE_COMPILE_DEFINITIONS})
+target_compile_definitions(plugdata_standalone PUBLIC ${PLUGDATA_COMPILE_DEFINITIONS} ${STANDALONE_COMPILE_DEFINITIONS})
 
-target_compile_definitions(PlugData PUBLIC ${PLUGDATA_COMPILE_DEFINITIONS})
-target_compile_definitions(PlugData PUBLIC ${LIBPD_MULTI_COMPILE_DEFINITIONS})
+target_compile_definitions(plugdata PUBLIC ${PLUGDATA_COMPILE_DEFINITIONS})
+target_compile_definitions(plugdata PUBLIC ${LIBPD_MULTI_COMPILE_DEFINITIONS})
 
-target_compile_definitions(PlugDataFx PUBLIC ${PLUGDATA_COMPILE_DEFINITIONS})
-target_compile_definitions(PlugDataFx PUBLIC ${LIBPD_MULTI_COMPILE_DEFINITIONS})
+target_compile_definitions(plugdata_fx PUBLIC ${PLUGDATA_COMPILE_DEFINITIONS})
+target_compile_definitions(plugdata_fx PUBLIC ${LIBPD_MULTI_COMPILE_DEFINITIONS})
 
 if(APPLE)
-target_compile_definitions(PlugDataMidi PUBLIC ${PLUGDATA_COMPILE_DEFINITIONS})
-target_compile_definitions(PlugDataMidi PUBLIC ${LIBPD_MULTI_COMPILE_DEFINITIONS})
+target_compile_definitions(plugdata_midi PUBLIC ${PLUGDATA_COMPILE_DEFINITIONS})
+target_compile_definitions(plugdata_midi PUBLIC ${LIBPD_MULTI_COMPILE_DEFINITIONS})
 endif()
 
 list(APPEND PLUGDATA_INCLUDE_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/Libraries/pure-data/src")
@@ -261,12 +261,12 @@ list(APPEND PLUGDATA_INCLUDE_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/Libraries/co
 
 list(APPEND PLUGDATA_INCLUDE_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/Source/")
 
-target_include_directories(PlugDataStandalone PUBLIC "$<BUILD_INTERFACE:${PLUGDATA_INCLUDE_DIRECTORY}>")
-target_include_directories(PlugData PUBLIC "$<BUILD_INTERFACE:${PLUGDATA_INCLUDE_DIRECTORY}>")
-target_include_directories(PlugDataFx PUBLIC "$<BUILD_INTERFACE:${PLUGDATA_INCLUDE_DIRECTORY}>")
+target_include_directories(plugdata_standalone PUBLIC "$<BUILD_INTERFACE:${PLUGDATA_INCLUDE_DIRECTORY}>")
+target_include_directories(plugdata PUBLIC "$<BUILD_INTERFACE:${PLUGDATA_INCLUDE_DIRECTORY}>")
+target_include_directories(plugdata_fx PUBLIC "$<BUILD_INTERFACE:${PLUGDATA_INCLUDE_DIRECTORY}>")
 
 if(APPLE)
-target_include_directories(PlugDataMidi PUBLIC "$<BUILD_INTERFACE:${PLUGDATA_INCLUDE_DIRECTORY}>")
+target_include_directories(plugdata_midi PUBLIC "$<BUILD_INTERFACE:${PLUGDATA_INCLUDE_DIRECTORY}>")
 endif()
 
 file(GLOB PlugDataBinaryDataSources
@@ -292,42 +292,42 @@ set(libs
 
 # Add pd file icons for mac
 if(APPLE)
-set_target_properties(PlugDataStandalone PROPERTIES
+set_target_properties(plugdata_standalone PROPERTIES
   RESOURCE "${CMAKE_CURRENT_SOURCE_DIR}/Resources/pd-file.icns")
 endif()
 
 if(MSVC)
   list(APPEND libs libpthreadVC3)
 elseif(APPLE)
-  target_link_libraries(PlugDataMidi PRIVATE pd-multi ${libs})
+  target_link_libraries(plugdata_midi PRIVATE pd-multi ${libs})
 elseif(UNIX AND NOT APPLE)
   list(APPEND libs curl X11)
 endif()
 
 if(MSVC)
-target_link_libraries(PlugDataStandalone PRIVATE pd ${CMAKE_CURRENT_SOURCE_DIR}/Plugins/Standalone/pd.lib ${libs})
+target_link_libraries(plugdata_standalone PRIVATE pd ${CMAKE_CURRENT_SOURCE_DIR}/Plugins/Standalone/pd.lib ${libs})
 else()
-target_link_libraries(PlugDataStandalone PRIVATE pd ${libs})
+target_link_libraries(plugdata_standalone PRIVATE pd ${libs})
 endif()
-target_link_libraries(PlugData PRIVATE pd-multi ${libs})
-target_link_libraries(PlugDataFx PRIVATE pd-multi ${libs})
+target_link_libraries(plugdata PRIVATE pd-multi ${libs})
+target_link_libraries(plugdata_fx PRIVATE pd-multi ${libs})
 
-set_target_properties(PlugDataStandalone PROPERTIES BUNDLE_OUTPUT_DIRECTORY_DEBUG ${PLUGDATA_PLUGINS_LOCATION}/Standalone)
-set_target_properties(PlugDataStandalone PROPERTIES RUNTIME_OUTPUT_DIRECTORY_DEBUG ${PLUGDATA_PLUGINS_LOCATION}/Standalone)
-set_target_properties(PlugDataStandalone PROPERTIES LIBRARY_OUTPUT_DIRECTORY_DEBUG ${PLUGDATA_PLUGINS_LOCATION}/Standalone)
-set_target_properties(PlugDataStandalone PROPERTIES BUNDLE_OUTPUT_DIRECTORY_RELEASE ${PLUGDATA_PLUGINS_LOCATION}/Standalone)
-set_target_properties(PlugDataStandalone PROPERTIES RUNTIME_OUTPUT_DIRECTORY_RELEASE ${PLUGDATA_PLUGINS_LOCATION}/Standalone)
-set_target_properties(PlugDataStandalone PROPERTIES LIBRARY_OUTPUT_DIRECTORY_RELEASE ${PLUGDATA_PLUGINS_LOCATION}/Standalone)
+set_target_properties(plugdata_standalone PROPERTIES BUNDLE_OUTPUT_DIRECTORY_DEBUG ${PLUGDATA_PLUGINS_LOCATION}/Standalone)
+set_target_properties(plugdata_standalone PROPERTIES RUNTIME_OUTPUT_DIRECTORY_DEBUG ${PLUGDATA_PLUGINS_LOCATION}/Standalone)
+set_target_properties(plugdata_standalone PROPERTIES LIBRARY_OUTPUT_DIRECTORY_DEBUG ${PLUGDATA_PLUGINS_LOCATION}/Standalone)
+set_target_properties(plugdata_standalone PROPERTIES BUNDLE_OUTPUT_DIRECTORY_RELEASE ${PLUGDATA_PLUGINS_LOCATION}/Standalone)
+set_target_properties(plugdata_standalone PROPERTIES RUNTIME_OUTPUT_DIRECTORY_RELEASE ${PLUGDATA_PLUGINS_LOCATION}/Standalone)
+set_target_properties(plugdata_standalone PROPERTIES LIBRARY_OUTPUT_DIRECTORY_RELEASE ${PLUGDATA_PLUGINS_LOCATION}/Standalone)
 
-set_target_properties(PlugData PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${PLUGDATA_PLUGINS_LOCATION})
-set_target_properties(PlugData PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${PLUGDATA_PLUGINS_LOCATION})
+set_target_properties(plugdata PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${PLUGDATA_PLUGINS_LOCATION})
+set_target_properties(plugdata PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${PLUGDATA_PLUGINS_LOCATION})
 
-set_target_properties(PlugDataFx PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${PLUGDATA_PLUGINS_LOCATION})
-set_target_properties(PlugDataFx PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${PLUGDATA_PLUGINS_LOCATION})
+set_target_properties(plugdata_fx PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${PLUGDATA_PLUGINS_LOCATION})
+set_target_properties(plugdata_fx PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${PLUGDATA_PLUGINS_LOCATION})
 
 if(APPLE)
-set_target_properties(PlugDataMidi PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${PLUGDATA_PLUGINS_LOCATION})
-set_target_properties(PlugDataMidi PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${PLUGDATA_PLUGINS_LOCATION})
+set_target_properties(plugdata_midi PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${PLUGDATA_PLUGINS_LOCATION})
+set_target_properties(plugdata_midi PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${PLUGDATA_PLUGINS_LOCATION})
 endif()
 
 if(RUN_CLANG_TIDY)
@@ -338,7 +338,7 @@ if(RUN_CLANG_TIDY)
     message(STATUS "clang-tidy found: ${CLANG_TIDY_EXE}") 
     set(DO_CLANG_TIDY "${CLANG_TIDY_EXE}" "-checks=clang-diagnostic-*,clang-diagnostic-unused-value,clang-analyzer-*,bugprone-*,performance-*,readability-*,-readability-magic-numbers,-readability-braces-around-statements,-readability-inconsistent-declaration-parameter-name,-readability-named-parameter  --header-filter='.*'") 
   endif()
-  set_target_properties(PlugDataStandalone PROPERTIES CXX_CLANG_TIDY "${DO_CLANG_TIDY}")
+  set_target_properties(plugdata_standalone PROPERTIES CXX_CLANG_TIDY "${DO_CLANG_TIDY}")
 
 endif()
 
@@ -360,7 +360,7 @@ set(Catch2_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/Libraries/Catch2)
 add_executable(Tests ${TestFiles})
 set_target_properties(Tests PROPERTIES CXX_STANDARD 20)
 
-target_link_libraries(Tests PRIVATE Catch2::Catch2WithMain PlugData ${libs})
+target_link_libraries(Tests PRIVATE Catch2::Catch2WithMain plugdata ${libs})
 
 source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR}/Tests PREFIX "" FILES ${TestFiles})
 include(${Catch2_SOURCE_DIR}/extras/Catch.cmake)
@@ -393,26 +393,26 @@ set(CMAKE_INSTALL_DEFAULT_DIRECTORY_PERMISSIONS
 )
 
 if(APPLE)
-  install(DIRECTORY ${PLUGDATA_PLUGINS_LOCATION}/VST3/PlugData.vst3 DESTINATION "/Library/Audio/Plug-ins/VST3/")
-  install(DIRECTORY ${PLUGDATA_PLUGINS_LOCATION}/VST3/PlugDataFx.vst3 DESTINATION "/Library/Audio/Plug-ins/VST3/")
-  install(DIRECTORY ${PLUGDATA_PLUGINS_LOCATION}/LV2/PlugData.lv2 DESTINATION "/Library/Audio/Plug-ins/LV2/")
-  install(DIRECTORY ${PLUGDATA_PLUGINS_LOCATION}/LV2/PlugDataFx.lv2 DESTINATION "/Library/Audio/Plug-ins/LV2/")
-  install(DIRECTORY ${PLUGDATA_PLUGINS_LOCATION}/AU/PlugData.component DESTINATION "/Library/Audio/Plug-ins/Components/")
-  install(DIRECTORY ${PLUGDATA_PLUGINS_LOCATION}/AU/PlugDataFx.component DESTINATION "/Library/Audio/Plug-ins/Components/")
-  install(DIRECTORY ${PLUGDATA_PLUGINS_LOCATION}/AU/PlugDataMidi.component DESTINATION "/Library/Audio/Plug-ins/Components/")
-  install(DIRECTORY ${PLUGDATA_PLUGINS_LOCATION}/Standalone/PlugData.app DESTINATION "/Applications")
+  install(DIRECTORY ${PLUGDATA_PLUGINS_LOCATION}/VST3/plugdata.vst3 DESTINATION "/Library/Audio/Plug-ins/VST3/")
+  install(DIRECTORY ${PLUGDATA_PLUGINS_LOCATION}/VST3/plugdata_fx.vst3 DESTINATION "/Library/Audio/Plug-ins/VST3/")
+  install(DIRECTORY ${PLUGDATA_PLUGINS_LOCATION}/LV2/plugdata.lv2 DESTINATION "/Library/Audio/Plug-ins/LV2/")
+  install(DIRECTORY ${PLUGDATA_PLUGINS_LOCATION}/LV2/plugdata_fx.lv2 DESTINATION "/Library/Audio/Plug-ins/LV2/")
+  install(DIRECTORY ${PLUGDATA_PLUGINS_LOCATION}/AU/plugdata.component DESTINATION "/Library/Audio/Plug-ins/Components/")
+  install(DIRECTORY ${PLUGDATA_PLUGINS_LOCATION}/AU/plugdata_fx.component DESTINATION "/Library/Audio/Plug-ins/Components/")
+  install(DIRECTORY ${PLUGDATA_PLUGINS_LOCATION}/AU/plugdata_midi.component DESTINATION "/Library/Audio/Plug-ins/Components/")
+  install(DIRECTORY ${PLUGDATA_PLUGINS_LOCATION}/Standalone/plugdata.app DESTINATION "/Applications")
 elseif(WIN32)
-  install(DIRECTORY ${PLUGDATA_PLUGINS_LOCATION}/VST3/PlugData.vst3 DESTINATION "$ENV{PROGRAMFILES}/Common Files/VST3")
-  install(DIRECTORY ${PLUGDATA_PLUGINS_LOCATION}/VST3/PlugDataFx.vst3 DESTINATION "$ENV{PROGRAMFILES}/Common Files/VST3")
-  install(DIRECTORY ${PLUGDATA_PLUGINS_LOCATION}/LV2/PlugData.lv2 DESTINATION "$ENV{PROGRAMFILES}/Common Files/LV2")
-  install(DIRECTORY ${PLUGDATA_PLUGINS_LOCATION}/LV2/PlugDataFx.lv2 DESTINATION "$ENV{PROGRAMFILES}/Common Files/LV2")
-  install(PROGRAMS ${PLUGDATA_PLUGINS_LOCATION}/Standalone/PlugData.exe DESTINATION "$ENV{PROGRAMFILES}/PlugData/")
-  install(PROGRAMS ${PLUGDATA_PLUGINS_LOCATION}/LV2/pd.dll DESTINATION "$ENV{PROGRAMFILES}/PlugData/")
+  install(DIRECTORY ${PLUGDATA_PLUGINS_LOCATION}/VST3/plugdata.vst3 DESTINATION "$ENV{PROGRAMFILES}/Common Files/VST3")
+  install(DIRECTORY ${PLUGDATA_PLUGINS_LOCATION}/VST3/plugdata_fx.vst3 DESTINATION "$ENV{PROGRAMFILES}/Common Files/VST3")
+  install(DIRECTORY ${PLUGDATA_PLUGINS_LOCATION}/LV2/plugdata.lv2 DESTINATION "$ENV{PROGRAMFILES}/Common Files/LV2")
+  install(DIRECTORY ${PLUGDATA_PLUGINS_LOCATION}/LV2/plugdata_fx.lv2 DESTINATION "$ENV{PROGRAMFILES}/Common Files/LV2")
+  install(PROGRAMS ${PLUGDATA_PLUGINS_LOCATION}/Standalone/plugdata.exe DESTINATION "$ENV{PROGRAMFILES}/plugdata/")
+  install(PROGRAMS ${PLUGDATA_PLUGINS_LOCATION}/LV2/pd.dll DESTINATION "$ENV{PROGRAMFILES}/plugdata/")
 elseif(UNIX AND NOT APPLE) # Linux or BSD
-  install(DIRECTORY ${PLUGDATA_PLUGINS_LOCATION}/VST3/PlugData.vst3 DESTINATION "$ENV{HOME}/.vst3")
-  install(DIRECTORY ${PLUGDATA_PLUGINS_LOCATION}/VST3/PlugDataFx.vst3 DESTINATION "$ENV{HOME}/.vst3")
-  install(DIRECTORY ${PLUGDATA_PLUGINS_LOCATION}/LV2/PlugData.lv2 DESTINATION "$ENV{HOME}/.lv2")
-  install(DIRECTORY ${PLUGDATA_PLUGINS_LOCATION}/LV2/PlugDataFx.lv2 DESTINATION "$ENV{HOME}/.lv2")
+  install(DIRECTORY ${PLUGDATA_PLUGINS_LOCATION}/VST3/plugdata.vst3 DESTINATION "$ENV{HOME}/.vst3")
+  install(DIRECTORY ${PLUGDATA_PLUGINS_LOCATION}/VST3/plugdata_fx.vst3 DESTINATION "$ENV{HOME}/.vst3")
+  install(DIRECTORY ${PLUGDATA_PLUGINS_LOCATION}/LV2/plugdata.lv2 DESTINATION "$ENV{HOME}/.lv2")
+  install(DIRECTORY ${PLUGDATA_PLUGINS_LOCATION}/LV2/plugdata_fx.lv2 DESTINATION "$ENV{HOME}/.lv2")
   #TODO: install standalone and Kott's .desktop file
 endif()
 

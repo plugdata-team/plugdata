@@ -215,7 +215,7 @@ void Library::initialiseLibrary()
         pd_setinstance(pdinstance);
 #endif
 
-        appDataDir = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory).getChildFile("PlugData");
+        appDataDir = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory).getChildFile("plugdata");
 
         auto pddocPath = appDataDir.getChildFile("Library").getChildFile("Documentation").getChildFile("pddp").getFullPathName();
 
@@ -723,7 +723,7 @@ ArgumentMap Library::getArguments()
          nout--;
      }
 
-     auto file = File("/Users/timschoen/Projecten/PlugData/Resources/pddp/NEW/" + name + ".md");
+     auto file = File("/Users/timschoen/Projecten/plugdata/Resources/pddp/NEW/" + name + ".md");
 
      String newFile;
      newFile += "---\n";

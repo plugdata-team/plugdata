@@ -1,13 +1,13 @@
 #!/bin/bash
 
-# PlugData macOS installer build script, using pkgbuild and productbuild
+# plugdata macOS installer build script, using pkgbuild and productbuild
 # based on script for SURGE https://github.com/surge-synthesizer/surge and iPlug2 https://github.com/iPlug2/iPlug2
 
 # Documentation for pkgbuild and productbuild: https://developer.apple.com/library/archive/documentation/DeveloperTools/Reference/DistributionDefinitionRef/Chapters/Distribution_XML_Ref.html
 
 VERSION=${GITHUB_REF#refs/*/}
 
-PRODUCT_NAME=PlugData
+PRODUCT_NAME=plugdata
 
 LV2="./Plugins/LV2/."
 VST3="./Plugins/VST3/."
@@ -53,49 +53,49 @@ build_flavor()
 # Sign plugins
 /usr/bin/codesign --force -s "Developer ID Application: Timothy Schoen (7SV7JPRR2L)" ./Plugins/VST3/*.vst3
 /usr/bin/codesign --force -s "Developer ID Application: Timothy Schoen (7SV7JPRR2L)" ./Plugins/AU/*.component
-/usr/bin/codesign --force -s "Developer ID Application: Timothy Schoen (7SV7JPRR2L)" ./Plugins/LV2/PlugData.lv2/libPlugData.so
-/usr/bin/codesign --force -s "Developer ID Application: Timothy Schoen (7SV7JPRR2L)" ./Plugins/LV2/PlugDataFx.lv2/libPlugDataFx.so
+/usr/bin/codesign --force -s "Developer ID Application: Timothy Schoen (7SV7JPRR2L)" ./Plugins/LV2/plugdata.lv2/libplugdata.so
+/usr/bin/codesign --force -s "Developer ID Application: Timothy Schoen (7SV7JPRR2L)" ./Plugins/LV2/plugdataFx.lv2/libplugdataFx.so
 
 # # try to build VST3 package
 if [[ -d $VST3 ]]; then
-  build_flavor "VST3" $VST3 "com.PlugData.vst3.pkg.${PRODUCT_NAME}" "/Library/Audio/Plug-Ins/VST3"
+  build_flavor "VST3" $VST3 "com.plugdata.vst3.pkg.${PRODUCT_NAME}" "/Library/Audio/Plug-Ins/VST3"
 fi
 
 # try to build LV2 package
 if [[ -d $LV2 ]]; then
-  build_flavor "LV2" $LV2 "com.PlugData.lv2.pkg.${PRODUCT_NAME}" "/Library/Audio/Plug-Ins/LV2"
+  build_flavor "LV2" $LV2 "com.plugdata.lv2.pkg.${PRODUCT_NAME}" "/Library/Audio/Plug-Ins/LV2"
 fi
 
 # # try to build AU package
 if [[ -d $AU ]]; then
-  build_flavor "AU" $AU "com.PlugData.au.pkg.${PRODUCT_NAME}" "/Library/Audio/Plug-Ins/Components"
+  build_flavor "AU" $AU "com.plugdata.au.pkg.${PRODUCT_NAME}" "/Library/Audio/Plug-Ins/Components"
 fi
 
 # try to build App package
 if [[ -d $APP ]]; then
-  build_flavor "APP" $APP "com.PlugData.app.pkg.${PRODUCT_NAME}" "/Applications"
+  build_flavor "APP" $APP "com.plugdata.app.pkg.${PRODUCT_NAME}" "/Applications"
 fi
 
 
 if [[ -d $VST3 ]]; then
-	VST3_PKG_REF="<pkg-ref id=\"com.PlugData.vst3.pkg.${PRODUCT_NAME}\"/>"
-	VST3_CHOICE="<line choice=\"com.PlugData.vst3.pkg.${PRODUCT_NAME}\"/>"
-	VST3_CHOICE_DEF="<choice id=\"com.PlugData.vst3.pkg.${PRODUCT_NAME}\" visible=\"true\" start_selected=\"true\" title=\"VST3 Plug-in\"><pkg-ref id=\"com.PlugData.vst3.pkg.${PRODUCT_NAME}\"/></choice><pkg-ref id=\"com.PlugData.vst3.pkg.${PRODUCT_NAME}\" version=\"${VERSION}\" onConclusion=\"none\">${PRODUCT_NAME}_VST3.pkg</pkg-ref>"
+	VST3_PKG_REF="<pkg-ref id=\"com.plugdata.vst3.pkg.${PRODUCT_NAME}\"/>"
+	VST3_CHOICE="<line choice=\"com.plugdata.vst3.pkg.${PRODUCT_NAME}\"/>"
+	VST3_CHOICE_DEF="<choice id=\"com.plugdata.vst3.pkg.${PRODUCT_NAME}\" visible=\"true\" start_selected=\"true\" title=\"VST3 Plug-in\"><pkg-ref id=\"com.plugdata.vst3.pkg.${PRODUCT_NAME}\"/></choice><pkg-ref id=\"com.plugdata.vst3.pkg.${PRODUCT_NAME}\" version=\"${VERSION}\" onConclusion=\"none\">${PRODUCT_NAME}_VST3.pkg</pkg-ref>"
 fi
 if [[ -d $LV2 ]]; then
-	LV2_PKG_REF="<pkg-ref id=\"com.PlugData.lv2.pkg.${PRODUCT_NAME}\"/>"
-	LV2_CHOICE="<line choice=\"com.PlugData.lv2.pkg.${PRODUCT_NAME}\"/>"
-	LV2_CHOICE_DEF="<choice id=\"com.PlugData.lv2.pkg.${PRODUCT_NAME}\" visible=\"true\" start_selected=\"true\" title=\"LV2 Plug-in\"><pkg-ref id=\"com.PlugData.lv2.pkg.${PRODUCT_NAME}\"/></choice><pkg-ref id=\"com.PlugData.lv2.pkg.${PRODUCT_NAME}\" version=\"${VERSION}\" onConclusion=\"none\">${PRODUCT_NAME}_LV2.pkg</pkg-ref>"
+	LV2_PKG_REF="<pkg-ref id=\"com.plugdata.lv2.pkg.${PRODUCT_NAME}\"/>"
+	LV2_CHOICE="<line choice=\"com.plugdata.lv2.pkg.${PRODUCT_NAME}\"/>"
+	LV2_CHOICE_DEF="<choice id=\"com.plugdata.lv2.pkg.${PRODUCT_NAME}\" visible=\"true\" start_selected=\"true\" title=\"LV2 Plug-in\"><pkg-ref id=\"com.plugdata.lv2.pkg.${PRODUCT_NAME}\"/></choice><pkg-ref id=\"com.plugdata.lv2.pkg.${PRODUCT_NAME}\" version=\"${VERSION}\" onConclusion=\"none\">${PRODUCT_NAME}_LV2.pkg</pkg-ref>"
 fi
 if [[ -d $AU ]]; then
-	AU_PKG_REF="<pkg-ref id=\"com.PlugData.au.pkg.${PRODUCT_NAME}\"/>"
-	AU_CHOICE="<line choice=\"com.PlugData.au.pkg.${PRODUCT_NAME}\"/>"
-	AU_CHOICE_DEF="<choice id=\"com.PlugData.au.pkg.${PRODUCT_NAME}\" visible=\"true\" start_selected=\"true\" title=\"Audio Unit Plug-in\"><pkg-ref id=\"com.PlugData.au.pkg.${PRODUCT_NAME}\"/></choice><pkg-ref id=\"com.PlugData.au.pkg.${PRODUCT_NAME}\" version=\"${VERSION}\" onConclusion=\"none\">${PRODUCT_NAME}_AU.pkg</pkg-ref>"
+	AU_PKG_REF="<pkg-ref id=\"com.plugdata.au.pkg.${PRODUCT_NAME}\"/>"
+	AU_CHOICE="<line choice=\"com.plugdata.au.pkg.${PRODUCT_NAME}\"/>"
+	AU_CHOICE_DEF="<choice id=\"com.plugdata.au.pkg.${PRODUCT_NAME}\" visible=\"true\" start_selected=\"true\" title=\"Audio Unit Plug-in\"><pkg-ref id=\"com.plugdata.au.pkg.${PRODUCT_NAME}\"/></choice><pkg-ref id=\"com.plugdata.au.pkg.${PRODUCT_NAME}\" version=\"${VERSION}\" onConclusion=\"none\">${PRODUCT_NAME}_AU.pkg</pkg-ref>"
 fi
 if [[ -d $APP ]]; then
-	APP_PKG_REF="<pkg-ref id=\"com.PlugData.app.pkg.${PRODUCT_NAME}\"/>"
-	APP_CHOICE="<line choice=\"com.PlugData.app.pkg.${PRODUCT_NAME}\"/>"
-	APP_CHOICE_DEF="<choice id=\"com.PlugData.app.pkg.${PRODUCT_NAME}\" visible=\"true\" start_selected=\"true\" title=\"Standalone App\"><pkg-ref id=\"com.PlugData.app.pkg.${PRODUCT_NAME}\"/></choice><pkg-ref id=\"com.PlugData.app.pkg.${PRODUCT_NAME}\" version=\"${VERSION}\" onConclusion=\"none\">${PRODUCT_NAME}_APP.pkg</pkg-ref>"
+	APP_PKG_REF="<pkg-ref id=\"com.plugdata.app.pkg.${PRODUCT_NAME}\"/>"
+	APP_CHOICE="<line choice=\"com.plugdata.app.pkg.${PRODUCT_NAME}\"/>"
+	APP_CHOICE_DEF="<choice id=\"com.plugdata.app.pkg.${PRODUCT_NAME}\" visible=\"true\" start_selected=\"true\" title=\"Standalone App\"><pkg-ref id=\"com.plugdata.app.pkg.${PRODUCT_NAME}\"/></choice><pkg-ref id=\"com.plugdata.app.pkg.${PRODUCT_NAME}\" version=\"${VERSION}\" onConclusion=\"none\">${PRODUCT_NAME}_APP.pkg</pkg-ref>"
 fi
 
 
@@ -103,7 +103,7 @@ touch ${TARGET_DIR}/distribution.xml
 cat > ${TARGET_DIR}/distribution.xml << XMLEND
 <?xml version="1.0" encoding="utf-8"?>
 <installer-gui-script minSpecVersion="1">
-    <title>PlugData Installer</title>
+    <title>plugdata Installer</title>
     <license file="Resources/LICENSE.rtf" mime-type="application/rtf"/>
     ${VST3_PKG_REF}
     ${AU_PKG_REF}
@@ -134,5 +134,5 @@ productsign -s "Developer ID Installer: Timothy Schoen (7SV7JPRR2L)" ${PRODUCT_N
 
 # Notarize installer
 xcrun notarytool store-credentials "notary_login" --apple-id ${AC_USERNAME} --password ${AC_PASSWORD} --team-id "7SV7JPRR2L"
-xcrun notarytool submit ./PlugData-MacOS-Universal.pkg --keychain-profile "notary_login" --wait
-xcrun stapler staple "PlugData-MacOS-Universal.pkg"
+xcrun notarytool submit ./plugdata-MacOS-Universal.pkg --keychain-profile "notary_login" --wait
+xcrun stapler staple "plugdata-MacOS-Universal.pkg"

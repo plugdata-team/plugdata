@@ -77,7 +77,7 @@ public:
 
         PropertiesFile::Options options;
 
-        options.applicationName = "PlugData";
+        options.applicationName = "plugdata";
         options.filenameSuffix = ".settings";
         options.osxLibrarySubFolder = "Application Support";
 #if JUCE_LINUX || JUCE_BSD
@@ -91,7 +91,7 @@ public:
 
     const String getApplicationName() override
     {
-        return "PlugData";
+        return "plugdata";
     }
     const String getApplicationVersion() override
     {
@@ -102,7 +102,7 @@ public:
         return true;
     }
 
-    // For opening files with PlugData standalone and parsing commandline arguments
+    // For opening files with plugdata standalone and parsing commandline arguments
     void anotherInstanceStarted(String const& commandLine) override
     {
         std::cout << "INSTANCE STARTED:" << std::endl;

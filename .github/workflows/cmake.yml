@@ -61,8 +61,8 @@ jobs:
     - name: Archive Artifacts
       uses: actions/upload-artifact@v3
       with:
-        name: PlugData-MacOS-Universal
-        path: PlugData-MacOS-Universal.pkg
+        name: plugdata-macOS-Universal
+        path: plugdata-macOS-Universal.pkg
 
 
     - name: Release Artifacts
@@ -71,7 +71,7 @@ jobs:
       with:
         prerelease: true
         draft: true
-        files: PlugData-MacOS-Universal
+        files: plugdata-macOS-Universal
 
   windows-64-build:
     runs-on: windows-2022
@@ -109,8 +109,8 @@ jobs:
     - name: Archive Artifacts
       uses: actions/upload-artifact@v3
       with:
-        name: PlugData-Win64
-        path: PlugData-Win64.msi
+        name: plugdata-Win64
+        path: plugdata-Win64.msi
 
     - name: Release Artifacts
       uses: softprops/action-gh-release@v1
@@ -118,7 +118,7 @@ jobs:
       with:
         prerelease: true
         draft: true
-        files: PlugData-Win64
+        files: plugdata-Win64
 
   windows-32-build:
     runs-on: windows-2022
@@ -156,8 +156,8 @@ jobs:
     - name: Archive Artifacts
       uses: actions/upload-artifact@v3
       with:
-        name: PlugData-Win32
-        path: PlugData-Win32.msi
+        name: plugdata-Win32
+        path: plugdata-Win32.msi
 
     - name: Release Artifacts
       uses: softprops/action-gh-release@v1
@@ -165,7 +165,7 @@ jobs:
       with:
         prerelease: true
         draft: true
-        files: PlugData-Win32
+        files: plugdata-Win32
 
   ubuntu-22_04-build:
     runs-on: ubuntu-22.04
@@ -212,8 +212,8 @@ jobs:
     - name: Archive Artifacts
       uses: actions/upload-artifact@v3
       with:
-        name: PlugData-Ubuntu-22.04-x64
-        path: PlugData-Ubuntu-22.04-x64
+        name: plugdata-Ubuntu-22.04-x64
+        path: plugdata-Ubuntu-22.04-x64
 
     - name: Release Artifacts
       uses: softprops/action-gh-release@v1
@@ -221,7 +221,7 @@ jobs:
       with:
         prerelease: true
         draft: true
-        files: PlugData-Ubuntu-22.04-x64
+        files: plugdata-Ubuntu-22.04-x64
 
   ubuntu-20_04-build:
     runs-on: ubuntu-20.04
@@ -268,8 +268,8 @@ jobs:
     - name: Archive Artifacts
       uses: actions/upload-artifact@v3
       with:
-        name: PlugData-Ubuntu-20.04-x64
-        path: PlugData-Ubuntu-20.04-x64
+        name: plugdata-Ubuntu-20.04-x64
+        path: plugdata-Ubuntu-20.04-x64
 
     - name: Release Artifacts
       uses: softprops/action-gh-release@v1
@@ -277,7 +277,7 @@ jobs:
       with:
         prerelease: true
         draft: true
-        files: PlugData-Ubuntu-20.04-x64
+        files: plugdata-Ubuntu-20.04-x64
         
   fedora-build:
       runs-on: ubuntu-latest
@@ -303,8 +303,8 @@ jobs:
       - name: Archive Artifacts
         uses: actions/upload-artifact@v3
         with:
-          name: PlugData-Fedora-36-x64
-          path: PlugData-Fedora-36-x64
+          name: plugdata-Fedora-36-x64
+          path: plugdata-Fedora-36-x64
 
       - name: Release Artifacts
         uses: softprops/action-gh-release@v1
@@ -312,7 +312,7 @@ jobs:
         with:
           prerelease: true
           draft: true
-          files: PlugData-Fedora-36-x64
+          files: plugdata-Fedora-36-x64
 
   arch-build:
     runs-on: ubuntu-latest
@@ -343,8 +343,8 @@ jobs:
     - name: Archive Artifacts
       uses: actions/upload-artifact@v3
       with:
-        name: PlugData-Arch-x64
-        path: PlugData-Arch-x64
+        name: plugdata-Arch-x64
+        path: plugdata-Arch-x64
 
     - name: Release Artifacts
       uses: softprops/action-gh-release@v1
@@ -352,7 +352,7 @@ jobs:
       with:
         prerelease: true
         draft: true
-        files: PlugData-Arch-x64
+        files: plugdata-Arch-x64
   opensuse-build:
     runs-on: ubuntu-latest
     container:
@@ -382,8 +382,8 @@ jobs:
     - name: Archive Artifacts
       uses: actions/upload-artifact@v3
       with:
-        name: PlugData-OpenSUSE-x64
-        path: PlugData-OpenSUSE-x64
+        name: plugdata-OpenSUSE-x64
+        path: plugdata-OpenSUSE-x64
 
     - name: Release Artifacts
       uses: softprops/action-gh-release@v1
@@ -391,7 +391,7 @@ jobs:
       with:
         prerelease: true
         draft: true
-        files: PlugData-OpenSUSE-x64
+        files: plugdata-OpenSUSE-x64
   debian-build:
     runs-on: ubuntu-latest
     container:
@@ -427,8 +427,8 @@ jobs:
     - name: Archive Artifacts
       uses: actions/upload-artifact@v3
       with:
-        name: PlugData-Debian-x64
-        path: PlugData-Debian-x64
+        name: plugdata-Debian-x64
+        path: plugdata-Debian-x64
 
     - name: Release Artifacts
       uses: softprops/action-gh-release@v1
@@ -436,4 +436,4 @@ jobs:
       with:
         prerelease: true
         draft: true
-        files: PlugData-Debian-x64
+        files: plugdata-Debian-x64
