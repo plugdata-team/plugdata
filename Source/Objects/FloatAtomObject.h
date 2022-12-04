@@ -116,35 +116,25 @@ struct FloatAtomObject final : public AtomObject {
     float getMinimum()
     {
         auto const* gatom = static_cast<t_fake_gatom const*>(ptr);
-        if (std::abs(gatom->a_draglo) > std::numeric_limits<float>::epsilon() && std::abs(gatom->a_draghi) > std::numeric_limits<float>::epsilon()) {
-            return gatom->a_draglo;
-        }
-        return -std::numeric_limits<float>::max();
+        return gatom->a_draglo;
     }
 
     float getMaximum()
     {
         auto const* gatom = static_cast<t_fake_gatom const*>(ptr);
-        if (std::abs(gatom->a_draglo) > std::numeric_limits<float>::epsilon() && std::abs(gatom->a_draghi) > std::numeric_limits<float>::epsilon()) {
-            return gatom->a_draghi;
-        }
-        return std::numeric_limits<float>::max();
+        return gatom->a_draghi;
     }
 
     void setMinimum(float value)
     {
         auto* gatom = static_cast<t_fake_gatom*>(ptr);
         input.setMinimum(value);
-        if (std::abs(value) > std::numeric_limits<float>::epsilon() && std::abs(value) > std::numeric_limits<float>::epsilon()) {
-            gatom->a_draglo = value;
-        }
+        gatom->a_draglo = value;
     }
     void setMaximum(float value)
     {
         auto* gatom = static_cast<t_fake_gatom*>(ptr);
         input.setMaximum(value);
-        if (std::abs(value) > std::numeric_limits<float>::epsilon() && std::abs(value) > std::numeric_limits<float>::epsilon()) {
-            gatom->a_draghi = value;
-        }
+        gatom->a_draghi = value;
     }
 };
