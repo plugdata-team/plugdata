@@ -410,20 +410,12 @@ const String PlugDataAudioProcessor::getName() const
 
 bool PlugDataAudioProcessor::acceptsMidi() const
 {
-#if JucePlugin_WantsMidiInput
     return true;
-#else
-    return false;
-#endif
 }
 
 bool PlugDataAudioProcessor::producesMidi() const
 {
-#if JucePlugin_ProducesMidiOutput
     return true;
-#else
-    return false;
-#endif
 }
 
 bool PlugDataAudioProcessor::isMidiEffect() const
@@ -491,8 +483,8 @@ void PlugDataAudioProcessor::prepareToPlay(double sampleRate, int samplesPerBloc
 
     audioAdvancement = 0;
     const auto blksize = static_cast<size_t>(Instance::getBlockSize());
-    const auto numIn = std::max(static_cast<size_t>(getTotalNumInputChannels()), static_cast<size_t>(2));
-    const auto nouts = std::max(static_cast<size_t>(getTotalNumOutputChannels()), static_cast<size_t>(2));
+    const auto numIn = static_cast<size_t>(getTotalNumInputChannels());
+    const auto nouts = static_cast<size_t>(getTotalNumOutputChannels());
     audioBufferIn.resize(numIn * blksize);
     audioBufferOut.resize(nouts * blksize);
     std::fill(audioBufferOut.begin(), audioBufferOut.end(), 0.f);
@@ -558,11 +550,11 @@ void PlugDataAudioProcessor::processBlock(AudioBuffer<float>& buffer, MidiBuffer
     auto totalNumInputChannels = getTotalNumInputChannels();
     auto totalNumOutputChannels = getTotalNumOutputChannels();
 
-    continuityChecker.setNonRealtime(isNonRealtime());
-    continuityChecker.setTimer();
+    //continuityChecker.setNonRealtime(isNonRealtime());
+    //continuityChecker.setTimer();
 
     setThis();
-
+    
     for (int i = totalNumInputChannels; i < totalNumOutputChannels; ++i)
     {
         buffer.clear(i, 0, buffer.getNumSamples());
@@ -595,7 +587,7 @@ void PlugDataAudioProcessor::process(dsp::AudioBlock<float> buffer, MidiBuffer& 
     const int numOut = getTotalNumOutputChannels();
 
     channelPointers.clear();
-    for(int ch = 0; ch < std::max(numIn, numOut); ch++) {
+    for(int ch = 0; ch < std::min<int>(std::max(numIn, numOut), buffer.getNumChannels()); ch++) {
         channelPointers.push_back(buffer.getChannelPointer(ch));
     }
 
