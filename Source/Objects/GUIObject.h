@@ -153,6 +153,12 @@ struct GUIObject : public ObjectBase, public pd::MessageListener
     float getValueScaled() const;
 
     void setValueScaled(float v);
+        
+    void setParameterExcludingListener(Value& parameter, var value) {
+        parameter.removeListener(this);
+        parameter.setValue(value);
+        parameter.addListener(this);
+    }
 
     void startEdition();
     void stopEdition();
@@ -224,10 +230,10 @@ protected:
                 _this->updateBounds();
             }
             else if(symbol == "send" && atoms.size() >= 1) {
-                _this->sendSymbol = atoms[0].getSymbol();
+                _this->setParameterExcludingListener(_this->sendSymbol, atoms[0].getSymbol());
             }
             else if(symbol == "receive" && atoms.size() >= 1) {
-                _this->receiveSymbol = atoms[0].getSymbol();
+                _this->setParameterExcludingListener(_this->receiveSymbol, atoms[0].getSymbol());
             }
             else {
                 _this->receiveObjectMessage(symbol, atoms);

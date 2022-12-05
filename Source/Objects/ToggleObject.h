@@ -50,12 +50,15 @@ struct ToggleObject final : public IEMObject {
             toggleState = newValue;
             stopEdition();
             alreadyToggled = true;
+            
+            repaint();
         }
     }
 
     void untoggleObject() override
     {
         alreadyToggled = false;
+        repaint();
     }
 
     void mouseDown(MouseEvent const& e) override
@@ -91,7 +94,7 @@ struct ToggleObject final : public IEMObject {
     void receiveObjectMessage(const String& symbol, std::vector<pd::Atom>& atoms) override {
         
         if(symbol == "nonzero" && atoms.size() >= 1) {
-            nonZero = atoms[0].getFloat();
+            setParameterExcludingListener(nonZero, atoms[0].getFloat());
         }
         else {
             IEMObject::receiveObjectMessage(symbol, atoms);

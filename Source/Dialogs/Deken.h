@@ -95,7 +95,7 @@ struct PackageManager : public Thread
                                                        .withStatusCode(&statusCode));
             
             if (instream != nullptr && statusCode == 200) {
-                startThread(3);
+                startThread();
             } else {
                 finish(Result::fail("Failed to start download"));
                 return;
@@ -207,7 +207,7 @@ struct PackageManager : public Thread
     void update()
     {
         sendActionMessage("");
-        startThread(3);
+        startThread();
     }
     
     void run() override
@@ -452,7 +452,7 @@ public:
         addAndMakeVisible(refreshButton);
         refreshButton.setConnectedEdges(12);
         refreshButton.onClick = [this]() {
-            packageManager->startThread(3);
+            packageManager->startThread();
             packageManager->sendActionMessage("");
         };
         
@@ -465,7 +465,7 @@ public:
         updateSpinner.startSpinning();
         
         if (!packageManager->isThreadRunning()) {
-            packageManager->startThread(3);
+            packageManager->startThread();
         }
         
         filterResults();

@@ -171,7 +171,7 @@ struct ToolchainInstaller : public Component, public Thread, public Timer
             instream = URL(downloadLocation).createInputStream(URL::InputStreamOptions(URL::ParameterHandling::inAddress)
                                                                .withConnectionTimeoutMs(5000)
                                                                .withStatusCode(&statusCode));
-            startThread(3);
+            startThread();
         };
     }
 

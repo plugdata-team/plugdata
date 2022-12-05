@@ -64,14 +64,14 @@ struct SliderObject : public IEMObject {
     void receiveObjectMessage(const String& symbol, std::vector<pd::Atom>& atoms) override {
         
         if(symbol == "lin") {
-            isLogarithmic = false;
+            setParameterExcludingListener(isLogarithmic, false);
         }
         else if(symbol == "log") {
-            isLogarithmic = true;
+            setParameterExcludingListener(isLogarithmic, true);
         }
         else if(symbol == "range" && atoms.size() >= 2) {
-            min = atoms[0].getFloat();
-            max = atoms[1].getFloat();
+            setParameterExcludingListener(min, atoms[0].getFloat());
+            setParameterExcludingListener(max, atoms[1].getFloat());
         }
         else {
             IEMObject::receiveObjectMessage(symbol, atoms);

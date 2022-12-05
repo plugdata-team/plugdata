@@ -127,27 +127,28 @@ struct IEMObject : public GUIObject {
     void receiveObjectMessage(const String& symbol, std::vector<pd::Atom>& atoms) override {
         
         if(symbol == "color") {
-            if(atoms.size() > 0) primaryColour = atoms[0].getSymbol();
-            if(atoms.size() > 1) secondaryColour = atoms[1].getSymbol();
-            if(atoms.size() > 2) labelColour = atoms[2].getSymbol();
+            
+            if(atoms.size() > 0) setParameterExcludingListener(secondaryColour, atoms[0].getSymbol());
+            if(atoms.size() > 1) setParameterExcludingListener(primaryColour, atoms[1].getSymbol());
+            if(atoms.size() > 2) setParameterExcludingListener(labelColour, atoms[2].getSymbol());
             
             repaint();
         }
         else if(symbol == "label" && atoms.size() >= 1) {
-            labelText = atoms[0].getSymbol();
+            setParameterExcludingListener(labelText, atoms[0].getSymbol());
             updateLabel();
         }
         else if(symbol == "label_pos" && atoms.size() >= 2) {
-            labelX = static_cast<int>(atoms[0].getFloat());
-            labelY = static_cast<int>(atoms[1].getFloat());
+            setParameterExcludingListener(labelX, static_cast<int>(atoms[0].getFloat()));
+            setParameterExcludingListener(labelY, static_cast<int>(atoms[1].getFloat()));
             updateLabel();
         }
         else if(symbol == "label_font" && atoms.size() >= 2) {
-            labelHeight = static_cast<int>(atoms[1].getFloat());
+            setParameterExcludingListener(labelHeight, static_cast<int>(atoms[1].getFloat()));
             updateLabel();
         }
         else if(symbol == "init" && atoms.size() >= 1) {
-            initialise = static_cast<bool>(atoms[0].getFloat());
+            setParameterExcludingListener(initialise, static_cast<bool>(atoms[0].getFloat()));
         }
     }
 

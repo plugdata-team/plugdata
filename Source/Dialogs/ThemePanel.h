@@ -4,18 +4,35 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
-struct ColourProperties : public Component, public Value::Listener
+struct ThemePanel : public Component, public Value::Listener
 {
+
     ValueTree settingsTree;
     Value fontValue;
     std::map<String, std::map<String, Value>> swatches;
 
     PropertiesPanel panel;
     Array<PropertyComponent*> allPanels;
+        
+    TextButton resetButton = TextButton(Icons::Refresh);
     
-    explicit ColourProperties(ValueTree globalSettings)
-        : settingsTree(globalSettings)
+    std::unique_ptr<Dialog> confirmationDialog;
+
+    explicit ThemePanel(ValueTree tree) : settingsTree(tree)
     {
+        resetButton.setTooltip("Reset to default");
+        resetButton.setName("statusbar:down");
+        addAndMakeVisible(resetButton);
+        resetButton.setConnectedEdges(12);
+        resetButton.onClick = [this]() {
+            Dialogs::showOkayCancelDialog(&confirmationDialog, getParentComponent(), "Are you sure you want to reset to default theme settings?",
+                                          [this](bool result){
+                if(result) {
+                    resetColours();
+                }
+            });
+        };
+        
         addAndMakeVisible(panel);
                 
         std::map<String, Array<PropertyComponent*>> panels;
@@ -64,6 +81,7 @@ struct ColourProperties : public Component, public Value::Listener
         }
     }
 
+
     void valueChanged(Value& v) override
     {
         auto& lnf = dynamic_cast<PlugDataLook&>(getLookAndFeel());
@@ -109,9 +127,13 @@ struct ColourProperties : public Component, public Value::Listener
         auto bounds = getLocalBounds();
 
         // Space for dark/light labels
+        
         bounds.removeFromTop(23);
+        bounds.removeFromBottom(30);
         
         panel.setBounds(bounds);
+        
+        resetButton.setBounds(getWidth() - 36, getHeight() - 26, 32, 32);
     }
     
     void resetColours() {
@@ -141,49 +163,12 @@ struct ColourProperties : public Component, public Value::Listener
 
         
         for (auto* panel : allPanels) {
-            if (auto* colourPanel = dynamic_cast<PropertiesPanel::ColourComponent*>(panel)) {
-                colourPanel->updateColour();
+            if (auto* multiPanel = dynamic_cast<PropertiesPanel::MultiPropertyComponent<PropertiesPanel::ColourComponent>*>(panel)) {
+                for(auto* property : multiPanel->properties) {
+                    property->updateColour();
+                }
             }
         }
     }
     
-};
-
-struct ThemePanel : public Component
-{
-
-    ColourProperties colourProperties;
-    
-    TextButton resetButton = TextButton(Icons::Refresh);
-    
-    std::unique_ptr<Dialog> confirmationDialog;
-
-    explicit ThemePanel(ValueTree settingsTree)
-        : colourProperties(settingsTree)
-    {
-        resetButton.setTooltip("Reset to default");
-        resetButton.setName("statusbar:down");
-        addAndMakeVisible(resetButton);
-        resetButton.setConnectedEdges(12);
-        resetButton.onClick = [this]() {
-            Dialogs::showOkayCancelDialog(&confirmationDialog, getParentComponent(), "Are you sure you want to reset to default theme settings?",
-                                          [this](bool result){
-                if(result) {
-                    colourProperties.resetColours();
-                }
-            });
-        };
-        
-        
-        addAndMakeVisible(colourProperties);
-    }
-
-    void resized() override
-    {
-        // Add a row for font and light/dark labels
-        int numRows = PlugDataColour::numberOfColours + 2;
-        
-        colourProperties.setBounds(getLocalBounds().withTrimmedBottom(32));
-        resetButton.setBounds(getWidth() - 36, getHeight() - 26, 32, 32);
-    }
 };
