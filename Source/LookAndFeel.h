@@ -359,8 +359,6 @@ struct PlugDataLook : public LookAndFeel_V4
         {
             LookAndFeel_V4::drawLinearSlider(g, x, y, width, height, sliderPos, minSliderPos, maxSliderPos, style, slider);
         }
-        
-        
     }
     
     void drawDocumentWindowTitleBar(DocumentWindow& window, Graphics& g, int w, int h, int titleSpaceX, int titleSpaceW, const Image* icon, bool drawTitleTextOnLeft) override
@@ -804,8 +802,8 @@ struct PlugDataLook : public LookAndFeel_V4
         
         g.fillRoundedRectangle(Rectangle<float>(static_cast<float>(thumbWidth), static_cast<float>(22)).withCentre(maxPoint), 2.0f);
         
-        g.setColour(findColour(PlugDataColour::outlineColourId));
-        g.drawRoundedRectangle(Rectangle<float>(static_cast<float>(thumbWidth), static_cast<float>(22)).withCentre(maxPoint), 2.0f, 1.0f);
+        g.setColour(findColour(PlugDataColour::levelMeterTrackColourId));
+        g.drawRoundedRectangle(Rectangle<float>(static_cast<float>(thumbWidth), static_cast<float>(22)).withCentre(maxPoint), 2.0f, 0.5f);
     }
     
     void drawPropertyPanelSectionHeader(Graphics& g, const String& name, bool isOpen, int width, int height) override
@@ -1034,7 +1032,7 @@ struct PlugDataLook : public LookAndFeel_V4
         
         {PlugDataColour::sidebarBackgroundColourId, Colour(25, 25, 25)},
         {PlugDataColour::sidebarTextColourId, Colour(255, 255, 255)},
-        {PlugDataColour::sidebarActiveBackgroundColourId, Colour(65, 65, 65)},
+        {PlugDataColour::sidebarActiveBackgroundColourId, Colour(40, 40, 40)},
         {PlugDataColour::sidebarActiveTextColourId, Colour(255, 255, 255)},
         
         {PlugDataColour::levelMeterActiveColourId, Colour(66, 162, 200)},
@@ -1042,8 +1040,8 @@ struct PlugDataLook : public LookAndFeel_V4
         {PlugDataColour::levelMeterTrackColourId, Colour(66, 162, 200)},
         {PlugDataColour::levelMeterThumbColourId, Colour(66, 162, 200)},
         
-        {PlugDataColour::popupMenuBackgroundColourId, Colour(35, 35, 35)},
-        {PlugDataColour::popupMenuActiveBackgroundColourId, Colour(65, 65, 65)},
+        {PlugDataColour::popupMenuBackgroundColourId, Colour(25, 25, 25)},
+        {PlugDataColour::popupMenuActiveBackgroundColourId, Colour(40, 40, 40)},
         {PlugDataColour::popupMenuTextColourId, Colour(255, 255, 255)},
         {PlugDataColour::popupMenuActiveTextColourId, Colour(255, 255, 255)}
         
@@ -1092,8 +1090,8 @@ struct PlugDataLook : public LookAndFeel_V4
         
         {PlugDataColour::levelMeterActiveColourId, Colour(0, 122, 255)},
         {PlugDataColour::levelMeterInactiveColourId, Colour(238, 238, 238)},
-        {PlugDataColour::levelMeterTrackColourId, Colour(0, 122, 255)},
-        {PlugDataColour::levelMeterThumbColourId, Colour(0, 122, 255)},
+        {PlugDataColour::levelMeterTrackColourId, Colour(90, 90, 90)},
+        {PlugDataColour::levelMeterThumbColourId, Colour(122, 122, 122)},
         
         {PlugDataColour::popupMenuBackgroundColourId, Colour(228, 228, 228)},
         {PlugDataColour::popupMenuActiveBackgroundColourId, Colour(207, 207, 207)},
