@@ -16,7 +16,7 @@ typedef struct _message {
     t_clock* m_clock;
 } t_message;
 
-struct MessageObject final : public TextBase, public KeyListener
+struct MessageObject final : public TextBase, public KeyListener, public pd::MessageListener
 {
     bool isDown = false;
     bool isLocked = false;
@@ -24,6 +24,11 @@ struct MessageObject final : public TextBase, public KeyListener
     MessageObject(void* obj, Object* parent)
     : TextBase(obj, parent)
     {
+        object->cnv->pd->registerMessageListener(ptr, this);
+    }
+    
+    ~MessageObject() {
+        object->cnv->pd->unregisterMessageListener(ptr, this);
     }
     
     void updateBounds() override
@@ -126,10 +131,17 @@ struct MessageObject final : public TextBase, public KeyListener
         if (objectText != v && !v.startsWith("click")) {
             
             objectText = v;
+            
             repaint();
         }
     }
-     
+    
+    void receiveMessage(String symbol, int argc, t_atom* argv) override
+    {
+        MessageManager::callAsync([this](){
+            updateValue();
+        });
+    }
     
     void showEditor() override
     {

@@ -1323,7 +1323,7 @@ void PlugDataAudioProcessor::timerCallback()
         if (!callbackType) return;
 
         if(auto* cnv = editor->getCurrentCanvas()) {
-            if (callbackType & 2)
+            if (callbackType & 2 || callbackType & 8)
             {
                 cnv->updateGuiValues();
             }

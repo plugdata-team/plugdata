@@ -38,7 +38,10 @@ struct SliderObject : public IEMObject {
 
         slider.setValue(getValueScaled());
 
-        slider.onDragStart = [this]() { startEdition(); };
+        slider.onDragStart = [this]() {
+            draggingSlider = true;
+            startEdition();
+        };
 
         slider.onValueChange = [this]() {
             const float val = slider.getValue();
@@ -52,7 +55,10 @@ struct SliderObject : public IEMObject {
             }
         };
 
-        slider.onDragEnd = [this]() { stopEdition(); };
+        slider.onDragEnd = [this]() {
+            stopEdition();
+            draggingSlider = false;
+        };
     }
 
     void receiveObjectMessage(const String& symbol, std::vector<pd::Atom>& atoms) override {
