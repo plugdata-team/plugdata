@@ -75,11 +75,11 @@ struct RadioObject final : public IEMObject {
     void receiveObjectMessage(const String& symbol, std::vector<pd::Atom>& atoms) override {
         
         if(symbol == "orientation" && atoms.size() >= 1) {
-            isVertical = atoms[0].getFloat();
+            isVertical = static_cast<bool>(atoms[0].getFloat());
             updateBounds();
         }
         else if(symbol == "number" && atoms.size() >= 1) {
-            max = atoms[0].getFloat();
+            setParameterExcludingListener(max, static_cast<int>(atoms[0].getFloat()));
         }
         else {
             IEMObject::receiveObjectMessage(symbol, atoms);

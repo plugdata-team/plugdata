@@ -401,7 +401,7 @@ static bool hasRealEvents(MidiBuffer& buffer)
 
 void StatusbarSource::processBlock(const AudioBuffer<float>& buffer, MidiBuffer& midiIn, MidiBuffer& midiOut, int channels)
 {
-    auto** channelData = buffer.getArrayOfReadPointers();
+    const auto* const* channelData = buffer.getArrayOfReadPointers();
 
     if (channels == 1)
     {
