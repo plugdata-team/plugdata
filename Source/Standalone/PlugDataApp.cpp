@@ -30,6 +30,10 @@ extern "C" {
 #include <x_libpd_multi.h>
 }
 
+#if !JUCE_MAC
+#include <filesystem>
+#endif
+
 #ifdef _WIN32
 #    include <io.h>
 #    include <windows.h>
@@ -105,9 +109,6 @@ public:
     // For opening files with plugdata standalone and parsing commandline arguments
     void anotherInstanceStarted(String const& commandLine) override
     {
-        std::cout << "INSTANCE STARTED:" << std::endl;
-        std::cout << commandLine << std::endl;
-        
         auto tokens = StringArray::fromTokens(commandLine, " ", "\"");
         auto file = File(tokens[0].unquoted());
         if (file.existsAsFile()) {
@@ -253,7 +254,11 @@ int PlugDataWindow::parseSystemArguments(String const& arguments)
     
 #if JUCE_LINUX || JUCE_WINDOWS
     for(auto arg : args) {
-        auto toOpen = File(arg.unquoted());
+        arg = arg.trim().unquoted().trim();
+        
+        if(!std::filesystem::exists(arg)) continue;
+        
+        auto toOpen = File(arg);
         if(toOpen.existsAsFile() && toOpen.hasFileExtension(".pd") && !openedPatches.contains(toOpen.getFullPathName())) {
             if(auto* pd = dynamic_cast<PlugDataAudioProcessor*>(getAudioProcessor())) {
                 pd->loadPatch(toOpen);
