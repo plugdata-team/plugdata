@@ -1037,8 +1037,8 @@ struct PlugDataLook : public LookAndFeel_V4
         
         {PlugDataColour::levelMeterActiveColourId, Colour(66, 162, 200)},
         {PlugDataColour::levelMeterInactiveColourId, Colour(45, 45, 45)},
-        {PlugDataColour::levelMeterTrackColourId, Colour(66, 162, 200)},
-        {PlugDataColour::levelMeterThumbColourId, Colour(66, 162, 200)},
+        {PlugDataColour::levelMeterTrackColourId, Colour(245, 245, 245)},
+        {PlugDataColour::levelMeterThumbColourId, Colour(245, 245, 245)},
         
         {PlugDataColour::popupMenuBackgroundColourId, Colour(25, 25, 25)},
         {PlugDataColour::popupMenuActiveBackgroundColourId, Colour(40, 40, 40)},
