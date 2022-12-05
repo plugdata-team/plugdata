@@ -145,14 +145,14 @@ PlugDataAudioProcessor::PlugDataAudioProcessor()
                     for(auto* object : cnv->objects) object->updatePorts();
                 }
             }
+            
+            setTheme(static_cast<bool>(settingsTree.getProperty("Theme")));
         }
 
         settingsChangedInternally = false;
 
         updateSearchPaths();
         objectLibrary.updateLibrary();
-
-        setTheme(static_cast<bool>(settingsTree.getProperty("Theme")));
     };
     
 
