@@ -66,11 +66,13 @@ makeDir("Abstractions")
 makeDir("Abstractions/else")
 
 copyDir("../../Libraries/pure-data/doc", "./Documentation")
-globCopy("../../Libraries/pure-data/extra/*.pd", "./Documentation/5.reference")
+globCopy("../../Libraries/pure-data/extra/*.pd", "./Abstractions")
 
 globCopy("../../Libraries/ELSE/Abstractions/*.pd", "./Abstractions/else")
 copyFile("../playhead.pd", "./Abstractions")
 copyFile("../param.pd", "./Abstractions")
+
+globMove("./Abstractions/*-help.pd", "./Documentation/5.reference")
 
 
 copyDir("../pddp", "./Documentation/pddp")
