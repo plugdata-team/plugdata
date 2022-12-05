@@ -183,6 +183,8 @@ struct GUIObject : public ObjectBase, public pd::MessageListener
         
     virtual void receiveObjectMessage(const String& symbol, std::vector<pd::Atom>& atoms) {};
 
+    static inline bool draggingSlider = false;
+        
 protected:
         
     std::unique_ptr<Label> label;
