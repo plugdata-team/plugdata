@@ -66,6 +66,7 @@ Supported by [Deskew Technologies](https://gigperformer.com)
 - [cyclone](https://github.com/porres/pd-cyclone) by Krzysztof Czaja, Hans-Christoph Steiner, Fred Jan Kraan, Alexandre Torres Porres, Derek Kwan, Matt Barber and others (note: Cyclone is included to offer an easy entry point for Max users but ELSE contains several alternatives to objects in Cyclone and Pure Data Vanilla itself also has some alternatives. Not only that, but objects that weren't cloned into Cyclone also have alternatives in ELSE, see: [this](https://github.com/porres/pd-else/wiki/Cyclone-alternatives))
 - [Pure Data](https://puredata.info) by Miller Puckette and others
 - [libpd](https://github.com/libpd/libpd) by the Peter Brinkmann, Dan Wilcox and others
+- [Heavy/hvcc](https://github.com/Wasted-Audio/hvcc) originally by Enzien Audio, maintained and modernised by Wasted-Audio
 - [Juce](https://github.com/WeAreROLI/JUCE) by ROLI Ltd.
 - [MoodyCamel](https://github.com/cameron314/concurrentqueue) by Cameron Desrochers
 - [Inter](https://rsms.me/inter/) font by Rasmus Andersson
