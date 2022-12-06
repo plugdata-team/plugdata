@@ -30,7 +30,7 @@ extern "C" {
 #include <x_libpd_multi.h>
 }
 
-#if !JUCE_MAC
+#if JUCE_WINDOWS
 #include <filesystem>
 #endif
 
