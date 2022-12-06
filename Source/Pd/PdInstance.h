@@ -244,7 +244,7 @@ struct ContinuityChecker : public Timer {
 
 struct MessageListener
 {
-    virtual void receiveMessage(String name, int argc, t_atom* argv) {};
+    virtual void receiveMessage(const String& name, int argc, t_atom* argv) {};
     
     JUCE_DECLARE_WEAK_REFERENCEABLE (MessageListener);
 };
