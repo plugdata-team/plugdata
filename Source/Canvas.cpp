@@ -409,6 +409,9 @@ void Canvas::mouseDown(MouseEvent const& e)
             hasSelection = true;
         }
         
+        
+        auto* originalComponent = e.originalComponent;
+        auto params = object && object->gui ? object->gui->getParameters() : ObjectParameters();
         bool canBeOpened = object && object->gui && object->gui->canOpenFromMenu();
 
         // Create popup menu
@@ -430,9 +433,9 @@ void Canvas::mouseDown(MouseEvent const& e)
         popupMenu.addSeparator();
         popupMenu.addItem(10, "Help", object != nullptr);
         popupMenu.addSeparator();
-        popupMenu.addItem(11, "Properties", e.originalComponent == this);
+        popupMenu.addItem(11, "Properties", originalComponent == this || (object && !params.empty()));
 
-        auto callback = [this, object](int result)
+        auto callback = [this, object, originalComponent, params](int result) mutable
         {
             popupMenu.clear();
             
@@ -458,8 +461,15 @@ void Canvas::mouseDown(MouseEvent const& e)
                 case 10:  // Open help
                     object->openHelpPatch();
                     break;
-                case 11:  // Open help
-                    main.sidebar.showParameters("canvas", parameters);
+                case 11:
+                    if(originalComponent == this) {
+                        // Open help
+                        main.sidebar.showParameters("canvas", parameters);
+                    }
+                    else {
+                        main.sidebar.showParameters(object->gui->getText(), params);
+                    }
+
                     break;
                 default:
                     break;

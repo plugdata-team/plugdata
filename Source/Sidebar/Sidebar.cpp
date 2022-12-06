@@ -192,9 +192,12 @@ void Sidebar::mouseExit(MouseEvent const& e)
 
 void Sidebar::showPanel(int panelToShow)
 {
+    bool showConsole = panelToShow == 0;
     bool showBrowser = panelToShow == 1;
     bool showAutomation = panelToShow == 2;
     bool showSearch = panelToShow == 3;
+    
+    console->setVisible(showConsole);
     
     browser->setVisible(showBrowser);
     browser->setInterceptsMouseClicks(showBrowser, showBrowser);
@@ -207,16 +210,12 @@ void Sidebar::showPanel(int panelToShow)
     
     automationPanel->setVisible(showAutomation);
     automationPanel->setInterceptsMouseClicks(showAutomation, showAutomation);
-
-    if(auto* editor =  dynamic_cast<PlugDataPluginEditor*>(pd->getActiveEditor())) {
-        editor->toolbarButton(PlugDataPluginEditor::Pin)->setEnabled(panelToShow == 0);
-    };
-    
-    
     
     searchPanel->setVisible(showSearch);
     if(showSearch) searchPanel->grabFocus();
     searchPanel->setInterceptsMouseClicks(showSearch, showSearch);
+    
+    currentPanel = panelToShow;
 }
 
 bool Sidebar::isShowingBrowser()
@@ -272,9 +271,12 @@ void Sidebar::showParameters(String const& name, ObjectParameters& params)
     inspector->setTitle(name.upToFirstOccurrenceOf(" ", false, false));
 
     if (!pinned) {
-        browser->setVisible(false);
+        
         inspector->setVisible(true);
         console->setVisible(false);
+        browser->setVisible(false);
+        searchPanel->setVisible(false);
+        automationPanel->setVisible(false);
     }
 }
 
@@ -283,16 +285,18 @@ void Sidebar::showParameters()
     inspector->loadParameters(lastParameters);
 
     if (!pinned) {
-        browser->setVisible(false);
         inspector->setVisible(true);
         console->setVisible(false);
+        browser->setVisible(false);
+        searchPanel->setVisible(false);
+        automationPanel->setVisible(false);
     }
 }
 void Sidebar::hideParameters()
 {
     if (!pinned) {
         inspector->setVisible(false);
-        console->setVisible(true);
+        showPanel(currentPanel);
     }
 
     if (pinned) {

@@ -124,7 +124,8 @@ private:
     AutomationPanel* automationPanel;
     SearchPanel* searchPanel;
     
-
+    int currentPanel = 0;
+    
     int dragStartWidth = 0;
     bool draggingSidebar = false;
     bool sidebarHidden = false;
