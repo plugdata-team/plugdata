@@ -185,10 +185,12 @@ struct ButtonObject : public GUIObject {
         if(symbol == "bgcolor")
         {
             setParameterExcludingListener(secondaryColour, Colour(atoms[0].getFloat(), atoms[1].getFloat(), atoms[2].getFloat()).toString());
+            repaint();
         }
         else if(symbol == "fgcolor")
         {
             setParameterExcludingListener(primaryColour, Colour(atoms[0].getFloat(), atoms[1].getFloat(), atoms[2].getFloat()).toString());
+            repaint();
         }
     }
 };
