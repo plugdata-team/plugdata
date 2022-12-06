@@ -190,6 +190,13 @@ public:
         g.setColour(findColour(PlugDataColour::sidebarTextColourId));
         
         g.drawText(Icons::Search, 0, 0, 30, 30, Justification::centred);
+        
+        if(input.getText().isEmpty()) {
+            g.setFont(Font(14));
+            g.setColour(findColour(PlugDataColour::sidebarTextColourId).withAlpha(0.5f));
+            
+            g.drawText("Type to search in patch", 30, 0, 300, 30, Justification::centredLeft);
+        }
     }
     
     std::pair<String, String> formatSearchResultString(String name, String prefix, int x, int y)

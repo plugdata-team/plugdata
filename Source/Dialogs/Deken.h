@@ -539,7 +539,7 @@ public:
         if (input.getText().isEmpty()) {
             
             // Slightly faded colour for placeholder text
-            g.setColour(            panelColour.interpolatedWith(findColour(PlugDataColour::panelTextColourId), 0.5f));
+            g.setColour(findColour(PlugDataColour::panelTextColourId).withAlpha(0.5f));
             g.setFont(Font());
             g.drawText("Type to search for objects or libraries", 32, 0, 350, 30, Justification::centredLeft);
         }

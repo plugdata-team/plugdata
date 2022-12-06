@@ -180,4 +180,15 @@ struct ButtonObject : public GUIObject {
             repaint();
         }
     }
+    
+    void receiveObjectMessage(const String& symbol, std::vector<pd::Atom>& atoms) override {
+        if(symbol == "bgcolor")
+        {
+            secondaryColour = Colour(atoms[0].getFloat(), atoms[1].getFloat(), atoms[2].getFloat()).toString();
+        }
+        else if(symbol == "fgcolor")
+        {
+            primaryColour = Colour(atoms[0].getFloat(), atoms[1].getFloat(), atoms[2].getFloat()).toString();
+        }
+    }
 };

@@ -138,8 +138,8 @@ struct MessageObject final : public TextBase, public KeyListener, public pd::Mes
     
     void receiveMessage(String symbol, int argc, t_atom* argv) override
     {
-        MessageManager::callAsync([this](){
-            updateValue();
+        MessageManager::callAsync([_this = SafePointer(this)](){
+            _this->updateValue();
         });
     }
     

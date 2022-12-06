@@ -144,4 +144,11 @@ struct MousePadObject final : public GUIObject {
     {
         isLocked = locked;
     }
+    
+    void receiveObjectMessage(const String& symbol, std::vector<pd::Atom>& atoms) override {
+        if(symbol == "color")
+        {
+            repaint();
+        }
+    }
 };
