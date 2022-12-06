@@ -350,4 +350,15 @@ struct FunctionObject final : public GUIObject {
         hex[1] = colour.getGreen();
         hex[2] = colour.getBlue();
     }
+    
+    void receiveObjectMessage(const String& symbol, std::vector<pd::Atom>& atoms) override {
+        if(symbol == "min" || symbol == "max") {
+            auto* function = static_cast<t_fake_function*>(ptr);
+            Array<var> arr = { function->x_min, function->x_max };
+            range = var(arr);
+            
+            updateValue();
+        }
+    }
+    
 };

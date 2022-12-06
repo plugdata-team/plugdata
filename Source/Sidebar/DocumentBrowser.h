@@ -564,6 +564,13 @@ public:
         g.setColour(findColour(PlugDataColour::sidebarTextColourId));
 
         g.drawText(Icons::Search, 0, 0, 30, 30, Justification::centred);
+        
+        if(input.getText().isEmpty()) {
+            g.setFont(Font(14));
+            g.setColour(findColour(PlugDataColour::sidebarTextColourId).withAlpha(0.5f));
+            
+            g.drawText("Type to search documentation", 30, 0, 300, 30, Justification::centredLeft);
+        }
     }
 
     void paintListBoxItem(int rowNumber, Graphics& g, int w, int h, bool rowIsSelected) override

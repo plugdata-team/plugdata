@@ -58,7 +58,7 @@ struct ScopeObject final : public GUIObject, public Timer {
     std::vector<float> x_buffer;
     std::vector<float> y_buffer;
     
-    Value gridColour, triggerMode, triggerValue, samplesPerPoint, bufferSize, delay, receiveSymbol, signalRange;
+    Value gridColour, triggerMode, triggerValue, samplesPerPoint, bufferSize, delay, signalRange;
     
     ScopeObject(void* ptr, Object* object)
         : GUIObject(ptr, object)

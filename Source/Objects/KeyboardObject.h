@@ -264,6 +264,32 @@ struct KeyboardObject final : public GUIObject
             }
         }
     }
+        
+    void receiveObjectMessage(const String& symbol, std::vector<pd::Atom>& atoms) override {
+        if(symbol == "lowc")
+        {
+            auto* x = (t_keyboard*)ptr;
+            setParameterExcludingListener(lowC, static_cast<int>(atoms[0].getFloat()));
+            
+            int numOctaves = std::clamp<int>(static_cast<int>(octaves.getValue()), 0, 10);
+            int lowest = std::clamp<int>(lowC.getValue(), 0, 10);
+            int highest = std::clamp<int>(lowest + numOctaves, 0, 10);
+            keyboard.setAvailableRange(lowest * 12, highest * 12);
+            checkBounds();
+            
+        }
+        else if(symbol == "8ves")
+        {
+            auto* x = (t_keyboard*)ptr;
+            setParameterExcludingListener(octaves, static_cast<int>(atoms[0].getFloat()));
+
+            int numOctaves = std::clamp<int>(static_cast<int>(octaves.getValue()), 0, 10);
+            int lowest = std::clamp<int>(lowC.getValue(), 0, 10);
+            int highest = std::clamp<int>(lowest + numOctaves, 0, 10);
+            keyboard.setAvailableRange(lowest * 12, highest * 12);
+            checkBounds();
+        }
+    }
 
     void timerCallback() override
     {
