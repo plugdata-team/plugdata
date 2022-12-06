@@ -256,7 +256,7 @@ int PlugDataWindow::parseSystemArguments(String const& arguments)
     for(auto arg : args) {
         arg = arg.trim().unquoted().trim();
         
-        if(!std::filesystem::exists(arg)) continue;
+        if(!std::filesystem::exists(arg.toStdString())) continue;
         
         auto toOpen = File(arg);
         if(toOpen.existsAsFile() && toOpen.hasFileExtension(".pd") && !openedPatches.contains(toOpen.getFullPathName())) {
