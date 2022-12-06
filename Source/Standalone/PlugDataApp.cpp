@@ -256,8 +256,10 @@ int PlugDataWindow::parseSystemArguments(String const& arguments)
     for(auto arg : args) {
         arg = arg.trim().unquoted().trim();
         
+        // Would be best to enable this on Linux, but some distros use ancient gcc which doesn't have std::filesystem
+#if JUCE_WINDOWS
         if(!std::filesystem::exists(arg.toStdString())) continue;
-        
+#endif
         auto toOpen = File(arg);
         if(toOpen.existsAsFile() && toOpen.hasFileExtension(".pd") && !openedPatches.contains(toOpen.getFullPathName())) {
             if(auto* pd = dynamic_cast<PlugDataAudioProcessor*>(getAudioProcessor())) {
