@@ -219,7 +219,7 @@ protected:
         
     private:
 
-    void receiveMessage(String symbol, int argc, t_atom* argv) override
+    void receiveMessage(const String& symbol, int argc, t_atom* argv) override
     {
         auto atoms = pd::Atom::fromAtoms(argc, argv);
         

@@ -169,8 +169,8 @@ Instance::Instance(String const& symbol)
                 cleanup = true;
                 continue;
             }
-            
-            listener->receiveMessage(String(symbol->s_name), argc, argv);
+            auto sym = String(symbol->s_name);
+            listener->receiveMessage(sym, argc, argv);
         }
         
         if(cleanup) {
