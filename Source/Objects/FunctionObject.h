@@ -354,9 +354,8 @@ struct FunctionObject final : public GUIObject {
     void receiveObjectMessage(const String& symbol, std::vector<pd::Atom>& atoms) override {
         if(symbol == "min" || symbol == "max") {
             auto* function = static_cast<t_fake_function*>(ptr);
-            Array<var> arr = { function->x_min, function->x_max };
-            range = var(arr);
-            
+            Array<var> arr = { function->x_min, function->x_max };            
+            setParameterExcludingListener(range, var(arr));
             updateValue();
         }
     }

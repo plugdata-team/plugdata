@@ -184,11 +184,11 @@ struct ButtonObject : public GUIObject {
     void receiveObjectMessage(const String& symbol, std::vector<pd::Atom>& atoms) override {
         if(symbol == "bgcolor")
         {
-            secondaryColour = Colour(atoms[0].getFloat(), atoms[1].getFloat(), atoms[2].getFloat()).toString();
+            setParameterExcludingListener(secondaryColour, Colour(atoms[0].getFloat(), atoms[1].getFloat(), atoms[2].getFloat()).toString());
         }
         else if(symbol == "fgcolor")
         {
-            primaryColour = Colour(atoms[0].getFloat(), atoms[1].getFloat(), atoms[2].getFloat()).toString();
+            setParameterExcludingListener(primaryColour, Colour(atoms[0].getFloat(), atoms[1].getFloat(), atoms[2].getFloat()).toString());
         }
     }
 };
