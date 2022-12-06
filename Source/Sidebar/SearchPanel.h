@@ -36,6 +36,7 @@ public:
         closeButton.onClick = [this]() {
             clearSearchTargets();
             input.clear();
+            input.giveAwayKeyboardFocus();
             input.repaint();
         };
         
@@ -56,6 +57,7 @@ public:
         
         setWantsKeyboardFocus(false);
     }
+
     
     void mouseDown(const MouseEvent& e) override{
         MessageManager::callAsync([this](){
@@ -136,10 +138,11 @@ public:
         }
         
         if(auto* viewport = cnv->viewport) {
-            auto pos = target->getPosition();
+            float scale = static_cast<float>(cnv->main.zoomScale.getValue());
+            auto pos = target->getBounds().reduced(Object::margin).getCentre() * scale;
             
-            pos.x -= viewport->getWidth() / 2.0f;
-            pos.y -= viewport->getHeight() / 2.0f;
+            pos.x -= viewport->getViewWidth() * 0.5f;
+            pos.y -= viewport->getViewHeight() * 0.5f;
             
             viewport->setViewPosition(pos);
         }

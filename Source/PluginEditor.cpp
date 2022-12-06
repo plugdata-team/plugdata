@@ -377,10 +377,6 @@ void PlugDataPluginEditor::mouseMagnify(const MouseEvent& e, float scrollFactor)
     value = std::clamp(value * scrollFactor, 0.5f, 2.0f);
 
     zoomScale = value;
-
-    auto newMousePos = cnv->getLocalPoint(this, e.getPosition());
-
-    viewport->setViewPosition(viewport->getViewPositionX() + (oldMousePos.x - newMousePos.x), viewport->getViewPositionY() + (oldMousePos.y - newMousePos.y));
 }
 
 #if PLUGDATA_STANDALONE
@@ -624,6 +620,12 @@ void PlugDataPluginEditor::valueChanged(Value& v)
         }
         
         transform = AffineTransform().scaled(scale);
+        
+        auto lastMousePosition = Point<int>();
+        if(auto* cnv = getCurrentCanvas()) {
+            lastMousePosition = cnv->getMouseXYRelative();
+        }
+        
         for (auto& canvas : canvases)
         {
             if (!canvas->isGraph)
@@ -634,6 +636,33 @@ void PlugDataPluginEditor::valueChanged(Value& v)
         }
         if(auto* cnv = getCurrentCanvas()) {
             cnv->checkBounds();
+            
+            if(!cnv->viewport) return;
+            
+            auto totalBounds = Rectangle<int>();
+            
+            for(auto* object : cnv->getSelectionOfType<Object>())
+            {
+                totalBounds = totalBounds.getUnion(object->getBoundsInParent().reduced(Object::margin));
+            }
+            
+            // Check if we have any selection, if so, zoom towards that
+            if (!totalBounds.isEmpty())
+            {
+                auto pos = totalBounds.getCentre() * scale;
+                pos.x -= cnv->viewport->getViewWidth() * 0.5f;
+                pos.y -= cnv->viewport->getViewHeight() * 0.5f;
+                cnv->viewport->setViewPosition(pos);
+            }
+            // If we don't have a selection, zoom towards mouse cursor
+            else if(totalBounds.isEmpty() && cnv->getLocalBounds().contains(lastMousePosition))
+            {
+                auto pos = lastMousePosition - cnv->getMouseXYRelative();
+                pos = pos + cnv->viewport->getViewPosition();
+                cnv->viewport->setViewPosition(pos);
+            }
+
+            // Otherwise don't adjust viewport position
         }
         
         zoomLabel.setZoomLevel(scale);
@@ -1262,7 +1291,7 @@ bool PlugDataPluginEditor::perform(const InvocationInfo& info)
         {
             float newScale = static_cast<float>(zoomScale.getValue()) + 0.1f;
             zoomScale = static_cast<float>(static_cast<int>(round(std::clamp(newScale, 0.5f, 2.0f) * 10.))) / 10.;
-            
+        
             return true;
         }
         case CommandIDs::ZoomOut:
