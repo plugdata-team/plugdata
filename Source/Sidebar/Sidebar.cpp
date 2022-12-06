@@ -211,8 +211,9 @@ void Sidebar::showPanel(int panelToShow)
     automationPanel->setVisible(showAutomation);
     automationPanel->setInterceptsMouseClicks(showAutomation, showAutomation);
     
+    bool searchWasVisisble = searchPanel->isVisible();
     searchPanel->setVisible(showSearch);
-    if(showSearch) searchPanel->grabFocus();
+    if(showSearch && !searchWasVisisble) searchPanel->grabFocus();
     searchPanel->setInterceptsMouseClicks(showSearch, showSearch);
     
     currentPanel = panelToShow;

@@ -1086,17 +1086,18 @@ void Canvas::checkBounds()
     
     updatingBounds = true;
 
-    float scale = std::max(1.0f, static_cast<float>(main.zoomScale.getValue()));
+    float scale = std::max(1.0f, 1.0f / static_cast<float>(main.zoomScale.getValue()));
+        
+    auto viewBounds = Rectangle<int>(canvasOrigin.x, canvasOrigin.y, viewport->getMaximumVisibleWidth() * scale, viewport->getMaximumVisibleHeight() * scale);
     
-    auto viewBounds = Rectangle<int>(canvasOrigin.x, canvasOrigin.y, viewport->getMaximumVisibleWidth(), viewport->getMaximumVisibleHeight());
     
     for (auto* obj : objects)
     {
-        
-        viewBounds = viewBounds.getUnion(obj->getBounds() * scale);
+        viewBounds = viewBounds.getUnion(obj->getBoundsInParent());
     }
 
     canvasOrigin -= {viewBounds.getX(), viewBounds.getY()};
+    
     setSize(viewBounds.getWidth(), viewBounds.getHeight());
 
     for (auto& object : objects)

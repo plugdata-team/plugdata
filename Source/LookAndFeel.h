@@ -904,6 +904,8 @@ struct PlugDataLook : public LookAndFeel_V4
         
         setColour(ResizableWindow::backgroundColourId,
                   colours.at(PlugDataColour::canvasBackgroundColourId));
+        setColour(ScrollBar::backgroundColourId,
+                  colours.at(PlugDataColour::canvasBackgroundColourId));
         setColour(Slider::backgroundColourId,
                   colours.at(PlugDataColour::canvasBackgroundColourId));
         setColour(Slider::trackColourId,
