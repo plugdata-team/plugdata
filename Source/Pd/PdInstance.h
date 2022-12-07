@@ -427,7 +427,7 @@ private:
     WaitableEvent updateWait;
 
 protected:
-    ContinuityChecker continuityChecker;
+    //ContinuityChecker continuityChecker;
 
     struct internal;
 
