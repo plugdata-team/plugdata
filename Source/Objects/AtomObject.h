@@ -107,9 +107,9 @@ struct AtomObject : public GUIObject {
     {
         int idx = static_cast<int>(labelHeight.getValue()) - 1;
         if (idx == 0) {
-            return glist_fontheight(cnv->patch.getPointer()) + 8;
+            return cnv->patch.getPointer()->gl_font + 7;
         } else {
-            return atomSizes[idx] + 8;
+            return atomSizes[idx] + 7;
         }
     }
 
@@ -142,7 +142,7 @@ struct AtomObject : public GUIObject {
     {
         ObjectParameters params = defineParameters();
 
-        params.push_back({ "Height", tCombo, cGeneral, &labelHeight, { "auto", "8", "10", "12", "16", "24", "36" } });
+        params.push_back({ "Font size", tCombo, cGeneral, &labelHeight, { "auto", "8", "10", "12", "16", "24", "36" } });
 
         params.push_back({ "Send Symbol", tString, cGeneral, &sendSymbol, {} });
         params.push_back({ "Receive Symbol", tString, cGeneral, &receiveSymbol, {} });

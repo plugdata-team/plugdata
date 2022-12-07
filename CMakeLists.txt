@@ -420,4 +420,6 @@ elseif(UNIX AND NOT APPLE) # Linux or BSD
   #TODO: install standalone and Kott's .desktop file
 endif()
 
+#add_custom_target(plugdata_standalone ALL)
+
 # 

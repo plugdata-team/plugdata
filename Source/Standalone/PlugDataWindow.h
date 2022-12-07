@@ -420,8 +420,8 @@ private:
         
         
 #if !JUCE_WINDOWS
-        customInputs.add(MidiInput::createNewDevice("to plugdata 1", &player));
-        customInputs.add(MidiInput::createNewDevice("to plugdata 2", &player));
+        if(auto* newIn = MidiInput::createNewDevice("from plugdata", &player).release()) { customMidiInputs.add(newIn);
+        }
 #endif
         reloadAudioDeviceState(enableAudioInput, preferredDefaultDeviceName, preferredSetupOptions);
     }
@@ -451,7 +451,7 @@ private:
         }
     }
     
-    OwnedArray<MidiInput> customInputs;
+    OwnedArray<MidiInput> customMidiInputs;
     
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(StandalonePluginHolder)
 };
