@@ -5,7 +5,7 @@
 #include <stdarg.h>
 
 #define _USE_MATH_DEFINES
-#include <cmath>
+#include <math.h>
 
 // interpolation
 float interp_lin(double frac, double b, double c){
