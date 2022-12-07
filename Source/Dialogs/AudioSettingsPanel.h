@@ -398,7 +398,6 @@ public:
             midiOutputsList->setBounds(r.removeFromTop(midiOutputsList->getBestHeight (jmin (itemHeight * 8, getHeight() - r.getY() - space - itemHeight))));
         
         r.removeFromTop (itemHeight);
-        r.removeFromTop (500);
         setSize (getWidth(), r.getY());
     }
     
