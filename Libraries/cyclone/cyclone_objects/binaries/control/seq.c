@@ -31,6 +31,8 @@
 
 enum{SEQ_IDLEMODE, SEQ_RECMODE, SEQ_PLAYMODE, SEQ_SLAVEMODE};
 
+extern t_symbol* canvas_realizedollar(t_canvas *x, t_symbol *s);
+
 typedef struct _seqevent{
     double         e_delta;
     unsigned char  e_bytes[4];
@@ -581,8 +583,7 @@ static void seq_click(t_seq *x, t_floatarg xpos, t_floatarg ypos, t_floatarg shi
     sys_gui(" }\n");
 }
 
-// not available in Max and removed for not working or not being pertinent (hence, unsupported)
-/*
+
  static void seq_goto(t_seq *x, t_floatarg f1, t_floatarg f2){ // takes sec / ms
      if(x->x_nevents){
          t_seqevent *ev;
@@ -657,7 +658,7 @@ static void seq_pwd(t_seq *x, t_symbol *s){
     s = canvas_realizedollar(x->x_canvas, s);
     if(s && s->s_thing && (dir = panel_getopendir(x->x_filehandle)))
         pd_symbol(s->s_thing, dir);
-}*/
+}
 // end of extra
 
 static int seq_eventcomparehook(const void *e1, const void *e2){
@@ -1057,11 +1058,12 @@ CYCLONE_OBJ_API void seq_setup(void){
     class_addmethod(seq_class, (t_method)seq_pause, gensym("pause"), 0);
     class_addmethod(seq_class, (t_method)seq_continue, gensym("continue"), 0);
     class_addmethod(seq_class, (t_method)seq_click, gensym("click"), A_FLOAT, A_FLOAT, A_FLOAT, A_FLOAT, A_FLOAT, 0);
-// not available in Max and removed for being considered problematic (hence, unsupported)
-/*  class_addmethod(seq_class, (t_method)seq_goto, gensym("goto"), A_DEFFLOAT, A_DEFFLOAT, 0);
+// not available in Max and not documented for being considered problematic (hence, unsupported)
+// see https://github.com/porres/pd-cyclone/issues/566
+  class_addmethod(seq_class, (t_method)seq_goto, gensym("goto"), A_DEFFLOAT, A_DEFFLOAT, 0);
     class_addmethod(seq_class, (t_method)seq_scoretime, gensym("scoretime"), A_SYMBOL, 0);
     class_addmethod(seq_class, (t_method)seq_tempo, gensym("tempo"), A_FLOAT, 0);
     class_addmethod(seq_class, (t_method)seq_cd, gensym("cd"), A_DEFSYM, 0);
-    class_addmethod(seq_class, (t_method)seq_pwd, gensym("pwd"), A_SYMBOL, 0);*/
+    class_addmethod(seq_class, (t_method)seq_pwd, gensym("pwd"), A_SYMBOL, 0);
     file_setup(seq_class, 0);
 }

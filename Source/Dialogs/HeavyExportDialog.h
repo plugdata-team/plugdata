@@ -1002,10 +1002,16 @@ public:
     Value vst3EnableValue = Value(var(1));
     Value clapEnableValue = Value(var(1));
     Value jackEnableValue = Value(var(1));
+    
+    Value exportTypeValue = Value(var(2));
 
     DPFSettingsPanel(PlugDataPluginEditor* editor, ExportingView* exportingView) : ExporterSettingsPanel(editor, exportingView)
     {
+        
+        addAndMakeVisible(properties.add(new PropertiesPanel::ComboComponent("Export type", exportTypeValue, {"Source code", "Binary"})));
+        
         addAndMakeVisible(properties.add(new PropertiesPanel::BoolComponent("Midi Input", midiinEnableValue, {"No","yes"})));
+        
         midiinEnableValue.addListener(this);
         addAndMakeVisible(properties.add(new PropertiesPanel::BoolComponent("Midi Output", midioutEnableValue, {"No","yes"})));
         midioutEnableValue.addListener(this);
@@ -1019,6 +1025,7 @@ public:
         addAndMakeVisible(properties.add(new PropertiesPanel::BoolComponent("CLAP", clapEnableValue, {"No","Yes"})));
         clapEnableValue.addListener(this);
         addAndMakeVisible(properties.add(new PropertiesPanel::BoolComponent("JACK", jackEnableValue, {"No","Yes"})));
+        
         jackEnableValue.addListener(this);
     }
 
@@ -1089,8 +1096,41 @@ public:
         outputFile.getChildFile("hv").deleteRecursively();
         outputFile.getChildFile("c").deleteRecursively();
 
+        auto DPF = toolchain.getChildFile("lib").getChildFile("DPF");
+        DPF.copyDirectoryTo(outputFile.getChildFile("DPF"));
+        
+        
+        
         // Delay to get correct exit code
         Time::waitForMillisecondCounter(Time::getMillisecondCounter() + 300);
+        
+        // Check if we need to compile
+        if(static_cast<int>(exportTypeValue.getValue()) == 2)
+        {
+            auto workingDir = File::getCurrentWorkingDirectory();
+
+            outputFile.setAsCurrentWorkingDirectory();
+            
+            auto bin = toolchain.getChildFile("bin");
+            auto make = bin.getChildFile("make" + exeSuffix);
+            auto makefile = outputFile.getChildFile("Makefile");
+            
+#if JUCE_MAC
+            start(make.getFullPathName() + " -j4 -f " + makefile.getFullPathName());
+#elif JUCE_WINDOWS
+            start(make.getFullPathName() + " -j4 -f " + makefile.getFullPathName());
+#else // Linux or BSD
+            start(make.getFullPathName() + " -j4 -f " + makefile.getFullPathName());
+#endif
+            
+            waitForProcessToFinish(-1);
+            
+            // Delay to get correct exit code
+            Time::waitForMillisecondCounter(Time::getMillisecondCounter() + 300);
+            
+            
+            workingDir.setAsCurrentWorkingDirectory();
+        }
 
         return getExitCode();
     }
