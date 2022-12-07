@@ -4,11 +4,15 @@
 #include <time.h>
 
 #if (defined __WIN32__)
-# if (defined __i386__) && (defined __MINGW32__) && (!defined _MSC_VER)
+# if (defined __i386__) && (defined __MINGW32__)
 // unless compiling under mingw/32bit, we want USE_TIMEB in redmond-land
 # else
 #  define USE_TIMEB
 # endif
+#endif
+
+#ifdef _MSC_VER
+#  define USE_TIMEB
 #endif
 
 #ifdef __APPLE__

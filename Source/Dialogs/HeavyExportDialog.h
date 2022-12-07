@@ -285,12 +285,42 @@ struct ToolchainInstaller : public Component, public Thread, public Timer
         system(("chmod +x " + toolchain.getFullPathName() + "/arm-none-eabi/bin/*").toRawUTF8());
         system(("chmod +x " + toolchain.getFullPathName() + "/libexec/gcc/arm-none-eabi/*/*").toRawUTF8());
 #endif
+        
 
 #if JUCE_LINUX
+
+            auto [distroName, distroBackupName, distroVersion] = getDistroID();
+
+            String packageInstallCommand;
+            String packageUpdateCommand;
+            if(distroName == "ubuntu" || distroName == "debian" || distroBackupName == "ubuntu" || distroBackupName == "debian") {
+                packageInstallCommand = "apt install";
+                packageUpdateCommand = "apt update";
+            }
+            else if(distroName == "fedora" || distroName == "mageia") {
+                packageInstallCommand = "dnf install"
+                packageUpdateCommand = "";
+            }
+            else if(distroName == "arch" || distroBackupName == "arch") {
+                packageInstallCommand = "pacman -S";
+                packageUpdateCommand = "pacman -Sy";
+            }
+            else if(distroName == "opensuse-leap" || distroBackupName.contains("suse")) {
+                packageInstallCommand = "zypper install";
+                packageUpdateCommand = "zypper update";
+            }
+            // If we're not sure, just try apt and pray
+            else {
+                packageInstallCommand = "apt install";
+                packageUpdateCommand = "apt update";
+            }
+
         // Add udev rule for the daisy seed
         // This makes sure we can use dfu-util without admin privileges
         // Kinda sucks that we need to sudo this, but there's no other way AFAIK
         system("echo \'SUBSYSTEMS==\"usb\", ATTRS{idVendor}==\"0483\", ATTRS{idProduct}==\"df11\", MODE=\"0666\", GROUP=\"plugdev\"\' | pkexec tee /etc/udev/rules.d/50-daisy-stmicro-dfu.rules >/dev/null");
+        
+
 #elif JUCE_WINDOWS
         File usbDriverInstaller = toolchain.getChildFile("etc").getChildFile("usb_driver").getChildFile("install-filter.exe");
         File driverSpec = toolchain.getChildFile("etc").getChildFile("usb_driver").getChildFile("DFU_in_FS_Mode.inf");
