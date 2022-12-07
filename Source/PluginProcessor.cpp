@@ -180,8 +180,8 @@ PlugDataAudioProcessor::PlugDataAudioProcessor()
     logMessage(else_version);
     logMessage(cyclone_version);
     
-    midiOutputs.add(MidiOutput::createNewDevice("From plugdata 1"))->startBackgroundThread();
-    midiOutputs.add(MidiOutput::createNewDevice("From plugdata 2"))->startBackgroundThread();
+    midiOutputs.add(MidiOutput::createNewDevice("from plugdata 1"))->startBackgroundThread();
+    midiOutputs.add(MidiOutput::createNewDevice("from plugdata 2"))->startBackgroundThread();
 }
 
 PlugDataAudioProcessor::~PlugDataAudioProcessor()
