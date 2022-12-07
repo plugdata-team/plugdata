@@ -180,13 +180,12 @@ Instance::Instance(String const& symbol)
                 }
             }
         }
-        
-
-        
     };
 
     register_gui_triggers(static_cast<t_pdinstance*>(m_instance), this, gui_trigger, panel_trigger, synchronise_trigger, parameter_trigger, message_trigger);
 
+    
+    
     // HACK: create full path names for c-coded externals
     // Temporarily disabled because bugs
     /*

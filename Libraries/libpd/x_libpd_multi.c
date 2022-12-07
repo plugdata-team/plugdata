@@ -267,6 +267,8 @@ static void libpd_defaultfont_init(void)
         SETFLOAT(zz + i + 2, defaultfontshit[i]);
     }
     pd_typedmess(gensym("pd")->s_thing, gensym("init"), 2 + NDEFAULTFONT, zz);
+    
+    sys_defaultfont = 12;
 }
 
 // cyclone objects functions declaration

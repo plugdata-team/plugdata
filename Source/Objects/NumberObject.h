@@ -55,7 +55,7 @@ struct NumberObject final : public IEMObject {
 
         int x = 0, y = 0, w = 0, h = 0;
         libpd_get_object_bounds(cnv->patch.getPointer(), ptr, &x, &y, &w, &h);
-        auto bounds = Rectangle<int>(x, y, w, h);
+        auto bounds = Rectangle<int>(x, y, w, h + 1);
 
         pd->getCallbackLock()->exit();
 
@@ -82,7 +82,7 @@ struct NumberObject final : public IEMObject {
         auto* nbx = static_cast<t_my_numbox*>(ptr);
 
         nbx->x_gui.x_w = b.getWidth();
-        nbx->x_gui.x_h = b.getHeight();
+        nbx->x_gui.x_h = b.getHeight() - 1;
 
         nbx->x_numwidth = (b.getWidth() / 9) - 1;
     }
