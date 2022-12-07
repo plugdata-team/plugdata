@@ -238,10 +238,10 @@ struct ToolchainInstaller : public Component, public Thread, public Timer
         // Add udev rule for the daisy seed
         // This makes sure we can use dfu-util without admin privileges
         // Kinda sucks that we need to sudo this, but there's no other way AFAIK
-        system("echo \'SUBSYSTEMS==\"usb\", ATTRS{idVendor}==\"0483\", ATTRS{idProduct}==\"df11\", MODE=\"0666\", GROUP=\"plugdev\"\' | pkexec tee /etc/udev/rules.d/50-daisy-stmicro-dfu.rules >/dev/null");
+        std::system("echo \'SUBSYSTEMS==\"usb\", ATTRS{idVendor}==\"0483\", ATTRS{idProduct}==\"df11\", MODE=\"0666\", GROUP=\"plugdev\"\' | pkexec tee /etc/udev/rules.d/50-daisy-stmicro-dfu.rules >/dev/null");
     #elif JUCE_MAC
         
-        system("xcode-select --install");
+        std::system("xcode-select --install");
         
     #endif
         
@@ -290,12 +290,12 @@ struct ToolchainInstaller : public Component, public Thread, public Timer
 
         // Make sure downloaded files have executable permission on unix
 #if JUCE_MAC || JUCE_LINUX || JUCE_BSD
-        system(("chmod +x " + toolchain.getFullPathName() + "/bin/Heavy/Heavy").toRawUTF8());
-        system(("chmod +x " + toolchain.getFullPathName() + "/bin/make").toRawUTF8());
-        system(("chmod +x " + toolchain.getFullPathName() + "/bin/dfu-util").toRawUTF8());
-        system(("chmod +x " + toolchain.getFullPathName() + "/bin/arm-none-eabi-*").toRawUTF8());
-        system(("chmod +x " + toolchain.getFullPathName() + "/arm-none-eabi/bin/*").toRawUTF8());
-        system(("chmod +x " + toolchain.getFullPathName() + "/libexec/gcc/arm-none-eabi/*/*").toRawUTF8());
+        std::system(("chmod +x " + toolchain.getFullPathName() + "/bin/Heavy/Heavy").toRawUTF8());
+        std::system(("chmod +x " + toolchain.getFullPathName() + "/bin/make").toRawUTF8());
+        std::system(("chmod +x " + toolchain.getFullPathName() + "/bin/dfu-util").toRawUTF8());
+        std::system(("chmod +x " + toolchain.getFullPathName() + "/bin/arm-none-eabi-*").toRawUTF8());
+        std::system(("chmod +x " + toolchain.getFullPathName() + "/arm-none-eabi/bin/*").toRawUTF8());
+        std::system(("chmod +x " + toolchain.getFullPathName() + "/libexec/gcc/arm-none-eabi/*/*").toRawUTF8());
 #elif JUCE_WINDOWS
         File usbDriverInstaller = toolchain.getChildFile("etc").getChildFile("usb_driver").getChildFile("install-filter.exe");
         File driverSpec = toolchain.getChildFile("etc").getChildFile("usb_driver").getChildFile("DFU_in_FS_Mode.inf");
@@ -926,7 +926,7 @@ public:
 #else
             String command = make.getFullPathName().replaceCharacter('\\', '/') + " -j4 -f " + sourceDir.getChildFile("Makefile").getFullPathName().replaceCharacter('\\', '/') + " GCC_PATH=" + gccPath.replaceCharacter('\\', '/') + " PROJECT_NAME=" + name;
 #endif
-            // Use std::system because on Mac, juce ChildProcess is slow when using Rosetta
+
             start(command.toRawUTF8());
             waitForProcessToFinish(-1);
 
@@ -1099,6 +1099,20 @@ public:
         auto DPF = toolchain.getChildFile("lib").getChildFile("DPF");
         DPF.copyDirectoryTo(outputFile.getChildFile("DPF"));
         
+        //
+        if(lv2) outputFile.getChildFile("bin").getChildFile(name + ".lv2").copyDirectoryTo(outputFile);
+        if(vst2) outputFile.getChildFile("bin").getChildFile(name + ".vst").copyDirectoryTo(outputFile);
+        if(vst3) outputFile.getChildFile("bin").getChildFile(name + ".vst3").copyDirectoryTo(outputFile);
+        if(clap) outputFile.getChildFile("bin").getChildFile(name + ".clap").copyDirectoryTo(outputFile);
+        if(jack) outputFile.getChildFile("bin").getChildFile(name).moveFileTo(outputFile);
+        
+        // Clean up
+        outputFile.getChildFile("DPF").deleteRecursively();
+        outputFile.getChildFile("build").deleteRecursively();
+        outputFile.getChildFile("plugin").deleteRecursively();
+        outputFile.getChildFile("bin").deleteRecursively();
+        outputFile.getChildFile("README.md").deleteFile();
+        outputFile.getChildFile("Makefile").deleteFile();
         
         
         // Delay to get correct exit code
@@ -1116,11 +1130,19 @@ public:
             auto makefile = outputFile.getChildFile("Makefile");
             
 #if JUCE_MAC
-            start(make.getFullPathName() + " -j4 -f " + makefile.getFullPathName());
+            // TODO: this works but is extremely slow!
+            String command = "make -j4 -f " + makefile.getFullPathName();
+            std::system(command.toRawUTF8());
 #elif JUCE_WINDOWS
-            start(make.getFullPathName() + " -j4 -f " + makefile.getFullPathName());
+            auto cc = "CC=" + toolchain.getChildFile("bin").getChildChildFile("gcc.exe").getFullPathName() + " ";
+            auto cxx = "CXX=" + toolchain.getChildFile("bin").getChildChildFile("g++.exe").getFullPathName() + " ";
+            String command = cc + cxx + make.getFullPathName() + " -j4 -f " + makefile.getFullPathName();
+            std::system(command.toRawUTF8());
 #else // Linux or BSD
-            start(make.getFullPathName() + " -j4 -f " + makefile.getFullPathName());
+            auto cc = "CC=" + toolchain.getChildFile("bin").getChildChildFile("gcc").getFullPathName() + " ";
+            auto cxx = "CXX=" + toolchain.getChildFile("bin").getChildChildFile("g++").getFullPathName() + " ";
+            String command = cc + cxx + make.getFullPathName() + " -j4 -f " + makefile.getFullPathName();
+            std::system(command.toRawUTF8());
 #endif
             
             waitForProcessToFinish(-1);
