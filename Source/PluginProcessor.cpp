@@ -180,7 +180,7 @@ PlugDataAudioProcessor::PlugDataAudioProcessor()
     logMessage(else_version);
     logMessage(cyclone_version);
     
-#if PLUGDATA_STANDALONE
+#if PLUGDATA_STANDALONE && !JUCE_WINDOWS
     midiOutputs.add(MidiOutput::createNewDevice("from plugdata 1"))->startBackgroundThread();
     midiOutputs.add(MidiOutput::createNewDevice("from plugdata 2"))->startBackgroundThread();
 #endif

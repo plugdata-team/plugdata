@@ -419,10 +419,10 @@ private:
         deviceManager.addMidiInputDeviceCallback({}, &player);
         
         
-        
+#if !JUCE_WINDOWS
         customInputs.add(MidiInput::createNewDevice("to plugdata 1", &player));
         customInputs.add(MidiInput::createNewDevice("to plugdata 2", &player));
-        
+#endif
         reloadAudioDeviceState(enableAudioInput, preferredDefaultDeviceName, preferredSetupOptions);
     }
     
