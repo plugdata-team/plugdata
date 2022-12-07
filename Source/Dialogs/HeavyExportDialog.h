@@ -233,6 +233,18 @@ struct ToolchainInstaller : public Component, public Thread, public Timer
 
     void run() override
     {
+        
+    #if JUCE_LINUX
+        // Add udev rule for the daisy seed
+        // This makes sure we can use dfu-util without admin privileges
+        // Kinda sucks that we need to sudo this, but there's no other way AFAIK
+        system("echo \'SUBSYSTEMS==\"usb\", ATTRS{idVendor}==\"0483\", ATTRS{idProduct}==\"df11\", MODE=\"0666\", GROUP=\"plugdev\"\' | pkexec tee /etc/udev/rules.d/50-daisy-stmicro-dfu.rules >/dev/null");
+    #elif JUCE_MAC
+        
+        system("xcode-select --install");
+        
+    #endif
+        
         MemoryBlock toolchainData;
 
         if(!instream) return; // error!
@@ -277,23 +289,13 @@ struct ToolchainInstaller : public Component, public Thread, public Timer
         }
 
         // Make sure downloaded files have executable permission on unix
-#if JUCE_MAC || JUCE_LINUX
+#if JUCE_MAC || JUCE_LINUX || JUCE_BSD
         system(("chmod +x " + toolchain.getFullPathName() + "/bin/Heavy/Heavy").toRawUTF8());
         system(("chmod +x " + toolchain.getFullPathName() + "/bin/make").toRawUTF8());
         system(("chmod +x " + toolchain.getFullPathName() + "/bin/dfu-util").toRawUTF8());
         system(("chmod +x " + toolchain.getFullPathName() + "/bin/arm-none-eabi-*").toRawUTF8());
         system(("chmod +x " + toolchain.getFullPathName() + "/arm-none-eabi/bin/*").toRawUTF8());
         system(("chmod +x " + toolchain.getFullPathName() + "/libexec/gcc/arm-none-eabi/*/*").toRawUTF8());
-#endif
-        
-
-#if JUCE_LINUX
-        // Add udev rule for the daisy seed
-        // This makes sure we can use dfu-util without admin privileges
-        // Kinda sucks that we need to sudo this, but there's no other way AFAIK
-        system("echo \'SUBSYSTEMS==\"usb\", ATTRS{idVendor}==\"0483\", ATTRS{idProduct}==\"df11\", MODE=\"0666\", GROUP=\"plugdev\"\' | pkexec tee /etc/udev/rules.d/50-daisy-stmicro-dfu.rules >/dev/null");
-        
-
 #elif JUCE_WINDOWS
         File usbDriverInstaller = toolchain.getChildFile("etc").getChildFile("usb_driver").getChildFile("install-filter.exe");
         File driverSpec = toolchain.getChildFile("etc").getChildFile("usb_driver").getChildFile("DFU_in_FS_Mode.inf");
@@ -302,12 +304,8 @@ struct ToolchainInstaller : public Component, public Thread, public Timer
         MessageManager::callAsync([this, usbDriverInstaller, driverSpec]() mutable {
             runAsAdmin(usbDriverInstaller.getFullPathName().toStdString(), ("install --inf=" + driverSpec.getFullPathName()).toStdString(), editor->getPeer()->getNativeHandle());
         });
-        
-#elif JUCE_MAC
-        
-        system("xcode-select --install");
-        
 #endif
+
         installProgress = 0.0f;
         stopTimer();
 
