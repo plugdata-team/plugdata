@@ -828,6 +828,8 @@ void PlugDataAudioProcessor::messageEnqueued()
     {
         sendMessagesFromQueue();
     }
+
+#if PLUGDATA_STANDALONE
     else
     {
         const CriticalSection* cs = getCallbackLock();
@@ -837,6 +839,7 @@ void PlugDataAudioProcessor::messageEnqueued()
             cs->exit();
         }
     }
+#endif
 }
 
 void PlugDataAudioProcessor::sendMidiBuffer()
