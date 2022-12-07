@@ -169,7 +169,7 @@ static t_int *imp2_perform(t_int *w){
 
 
 static void imp2_dsp(t_imp2 *x, t_signal **sp){
-    x->x_hasfeeders = magic_inlet_connection((t_object *)x, x->x_glist, 2, &s_signal); // magic feeder flag
+    x->x_hasfeeders = else_magic_inlet_connection((t_object *)x, x->x_glist, 2, &s_signal); // magic feeder flag
     x->x_sr = sp[0]->s_sr;
     if (x->x_hasfeeders){
         dsp_add(imp2_perform, 7, x, sp[0]->s_n,

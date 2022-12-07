@@ -56,7 +56,7 @@ typedef struct _butter_state{
     t_float s_c2;
 }butter_state;
 
-static void butter_bang_smooth (butter_state states[3], t_float input, t_float* output, t_float smooth){
+void butter_bang_smooth (butter_state states[3], t_float input, t_float* output, t_float smooth){
     for(int i = 0; i < 3; i++){
         butter_state* s = states + i;
         t_float d1t = s->s_ar * s->d1A + s->s_ai * s->d2A + input;
@@ -72,7 +72,7 @@ static void butter_bang_smooth (butter_state states[3], t_float input, t_float* 
     }
 }
 
-static void butter_init(butter_state states[3]){
+void butter_init(butter_state states[3]){
     for(int i = 0; i < 3; i++){
         butter_state* s = states + i;
         s->d1A = s->d1B = s->d2A = s->d2B = 0.0;
@@ -81,51 +81,51 @@ static void butter_init(butter_state states[3]){
     }
 }
 
-static t_complex complex_div_f(t_float in1, t_complex in2) {
+t_complex complex_div_f(t_float in1, t_complex in2) {
     double real = (double)in1 / creal(in2);
     double imag = (double)in1 / cimag(in2);
     
     return (t_complex){real,imag};
 }
 
-static t_complex complex_mult(t_complex in1, t_complex in2) {
+t_complex complex_mult(t_complex in1, t_complex in2) {
     double real = creal(in1) * creal(in2) - cimag(in1) * cimag(in2);
     double imag = creal(in1) * cimag(in2) + creal(in2) * cimag(in1);
     return (t_complex){real,imag};
 }
 
-static t_complex complex_div(t_complex in1, t_complex in2)
+t_complex complex_div(t_complex in1, t_complex in2)
  {
     double real = (creal(in1) * creal(in2) + cimag(in1) * cimag(in2)) / (creal(in2) * creal(in2) + cimag(in2) * cimag(in2));
     double imag = (cimag(in1) * creal(in2) - creal(in1) * cimag(in2)) / (creal(in2) * creal(in2) + cimag(in2) * cimag(in2));
     return (t_complex){real,imag};
  }
 
-static t_complex complex_add(t_complex in1, t_complex in2) {
+t_complex complex_add(t_complex in1, t_complex in2) {
     double real = creal(in1) + creal(in2);
     double imag = cimag(in1) + cimag(in2);
     return (t_complex){real,imag};
 }
 
-static t_complex complex_subtract(t_complex in1, t_complex in2) {
+t_complex complex_subtract(t_complex in1, t_complex in2) {
     double real = creal(in1) - creal(in2);
     double imag = cimag(in1) - cimag(in2);
     return (t_complex){real,imag};
 }
 
 
-static t_complex complex_with_angle(const t_float angle){
+t_complex complex_with_angle(const t_float angle){
     return (t_complex){cosf(angle), sinf(angle)};
 }
 
-static t_float complex_norm2(const t_complex x){
+t_float complex_norm2(const t_complex x){
     return creal(x) * creal(x) + cimag(x) * cimag(x);
 }
-static t_float complex_norm(const t_complex x){
+t_float complex_norm(const t_complex x){
     return sqrt(complex_norm2(x));
 }
 
-static void set_butter_hp(butter_state states[3], t_float freq){
+void set_butter_hp(butter_state states[3], t_float freq){
     //  This computes the poles for a highpass butterworth filter, transformed to the
     // digital domain using a bilinear transform. Every biquad section is normalized at NY.
     t_float epsilon = .0001; // stability guard
@@ -384,7 +384,7 @@ static void build_tables(void){
     // store bli table
     _store(bli, real, (t_float)S, N);
     // _printm(bli, "h", N);
-    // integrate impulse and invert to produce a step function from 1->0
+    // integrate impulse and invert to produce a step function from 1->0 
     sum = 0.0;
     for(i = 0; i < N; i++){
         sum += real[i];

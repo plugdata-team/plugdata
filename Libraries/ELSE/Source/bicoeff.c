@@ -7,10 +7,10 @@
 
 typedef struct bicoeff{
     t_object    x_obj;
-//    t_canvas   *x_cv;         // canvas in which the widget is drawn in
     t_glist*    x_glist;      // glist that owns the widget
     int         x_width;
     int         x_height;
+    int         x_zoom;
     t_symbol*   x_type;
     t_symbol*   x_bind_name;  // name to bind to receive callbacks
     char        x_tkcanvas[MAXPDSTRING];
@@ -26,25 +26,23 @@ static void bicoeff_getrect(t_gobj *z, t_glist *glist, int *xp1, int *yp1, int *
     t_bicoeff* x = (t_bicoeff*)z;
     *xp1 = text_xpix(&x->x_obj, glist);
     *yp1 = text_ypix(&x->x_obj, glist);
-    *xp2 = text_xpix(&x->x_obj, glist) + x->x_width;
-    *yp2 = text_ypix(&x->x_obj, glist) + x->x_height;
+    *xp2 = text_xpix(&x->x_obj, glist) + x->x_width*x->x_zoom;
+    *yp2 = text_ypix(&x->x_obj, glist) + x->x_height*x->x_zoom;
 }
 
 static void bicoeff_displace(t_gobj *z, t_glist *glist, int dx, int dy){
     t_bicoeff *x = (t_bicoeff *)z;
-    x->x_obj.te_xpix += dx;
-    x->x_obj.te_ypix += dy;
+    x->x_obj.te_xpix += dx, x->x_obj.te_ypix += dy;
     if(glist_isvisible(glist)){
-        sys_vgui("%s move %s %d %d\n", x->x_tkcanvas, x->x_tag, dx, dy);
-        sys_vgui("%s move RSZ %d %d\n", x->x_tkcanvas, dx, dy);
+        sys_vgui("%s move %s %d %d\n", x->x_tkcanvas, x->x_tag, dx*x->x_zoom, dy*x->x_zoom);
+        sys_vgui("%s move RSZ %d %d\n", x->x_tkcanvas, dx*x->x_zoom, dy*x->x_zoom);
         canvas_fixlinesfor(glist_getcanvas(glist), (t_text*)x);
     }
 }
 
 static void bicoeff_select(t_gobj *z, t_glist *glist, int state){
     glist = NULL;
-    t_bicoeff *x = (t_bicoeff *)z;
-    sys_vgui("::bicoeff::select %s %d\n", x->x_my, state);
+    sys_vgui("::bicoeff::select %s %d\n", ((t_bicoeff *)z)->x_my, state);
 }
 
 void bicoeff_delete(t_gobj *z, t_glist *glist){
@@ -54,7 +52,6 @@ void bicoeff_delete(t_gobj *z, t_glist *glist){
 static void bicoeff_vis(t_gobj *z, t_glist *glist, int vis){
     t_bicoeff* x = (t_bicoeff*)z;
     if(vis){
-        // x->x_cv = glist_getcanvas(glist); // x_cv not used really
         snprintf(x->x_tkcanvas, MAXPDSTRING, ".x%lx.c", (long unsigned int)glist_getcanvas(glist));
         sys_vgui("bicoeff::drawme %s %s %s %s %d %d %d %d %s\n",
             x->x_my,
@@ -63,8 +60,8 @@ static void bicoeff_vis(t_gobj *z, t_glist *glist, int vis){
             x->x_tag,
             text_xpix(&x->x_obj, glist),
             text_ypix(&x->x_obj, glist),
-            text_xpix(&x->x_obj, glist)+x->x_width,
-            text_ypix(&x->x_obj, glist)+x->x_height,
+            text_xpix(&x->x_obj, glist)+x->x_width*x->x_zoom,
+            text_ypix(&x->x_obj, glist)+x->x_height*x->x_zoom,
             x->x_type->s_name);
     }
     else
@@ -84,9 +81,8 @@ static void bicoeff_biquad_callback(t_bicoeff *x, t_symbol *s, int ac, t_atom* a
 
 static void setfiltertype(t_bicoeff *x, char* type){
     x->x_type = gensym(type);
-    if(glist_isvisible(x->x_glist) && gobj_shouldvis((t_gobj *)x, x->x_glist)){
+    if(glist_isvisible(x->x_glist) && gobj_shouldvis((t_gobj *)x, x->x_glist))
         sys_vgui("::bicoeff::setfiltertype %s %s\n", x->x_my, type);
-    }
 }
 
 static void bicoeff_allpass(t_bicoeff *x, t_symbol *s, int ac, t_atom* av){
@@ -195,7 +191,6 @@ static void *bicoeff_new(t_symbol *s, int ac, t_atom* av){
             t_symbol *sym = atom_getsymbolarg(0, ac, av);
             if(sym == gensym("-dim")){
                 if(ac >= 3 && (av+1)->a_type == A_FLOAT){
-//                    x->x_flag = 1;
                     width = atom_getfloatarg(1, ac, av);
                     height = atom_getfloatarg(2, ac, av);
                     ac-=3, av+=3;
@@ -217,6 +212,7 @@ static void *bicoeff_new(t_symbol *s, int ac, t_atom* av){
     x->x_height = height;
     x->x_type = type;
     x->x_glist = (t_glist*)canvas_getcurrent();
+    x->x_zoom = x->x_glist->gl_zoom;
     snprintf(x->x_tag, MAXPDSTRING, "T%lx", (long unsigned int)x);
     snprintf(x->x_my, MAXPDSTRING, "::N%lx", (long unsigned int)x);
     char buf[MAXPDSTRING];
@@ -237,6 +233,10 @@ errstate:
     return(NULL);
 }
 
+static void bicoeff_zoom(t_bicoeff *x, t_floatarg zoom){
+    x->x_zoom = (int)zoom;
+}
+
 static void bicoeff_free(t_bicoeff *x){
     pd_unbind(&x->x_obj.ob_pd, x->x_bind_name);
 }
@@ -255,6 +255,7 @@ void bicoeff_setup(void){
     class_addmethod(bicoeff_class, (t_method)bicoeff_eq, gensym("eq"), A_GIMME, 0);
     class_addmethod(bicoeff_class, (t_method)bicoeff_resonant, gensym("resonant"), A_GIMME, 0);
     class_addmethod(bicoeff_class, (t_method)bicoeff_biquad_callback, gensym("biquad"), A_GIMME, 0);
+    class_addmethod(bicoeff_class, (t_method)bicoeff_zoom, gensym("zoom"), A_CANT, 0);
     // widget behavior
     bicoeff_widgetbehavior.w_getrectfn  = bicoeff_getrect;
     bicoeff_widgetbehavior.w_displacefn = bicoeff_displace;

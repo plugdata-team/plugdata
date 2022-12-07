@@ -4,18 +4,13 @@
 #include "magic.h"
 #include "buffer.h"
 #include <stdlib.h>
-#include <math.h>
-
-#define HALF_PI (3.14159265358979323846 * 0.5)
-
-#define ONE_SIXTH 0.16666666666666666666667f
-#define SHARED_FLT_MAX  1E+36
 
 typedef struct _tabplayer{
     t_object    x_obj;
     t_buffer   *x_buffer;
     t_glist    *x_glist;
     int         x_hasfeeders;       // if there's a signal coming in the main inlet
+    int         x_interp;
     int         x_trig_mode;
     float       x_lastin;
     float       x_sr_khz;           // pd's sample rate
@@ -147,7 +142,7 @@ static void tabplayer_play(t_play *x, t_symbol *s, int ac, t_atom *av){
     s = NULL;
     if(ac){ // args: start (ms) / end (ms), rate
         float stms = 0;
-        float endms = SHARED_FLT_MAX;
+        float endms =  1E+36; // stupidly high number
         int argnum = 0;
         while(ac){
             if(av->a_type == A_FLOAT){
@@ -174,6 +169,14 @@ static void tabplayer_play(t_play *x, t_symbol *s, int ac, t_atom *av){
         tabplayer_range_check(x);
     }
     tabplayer_bang(x);
+}
+
+static void tabplayer_spline(t_play *x){
+    x->x_interp = 0;
+}
+
+static void tabplayer_lagrange(t_play *x){
+    x->x_interp = 1;
 }
 
 static void tabplayer_stop(t_play *x){
@@ -246,7 +249,7 @@ static double tabplayer_interp(t_play *x, int ch, double phase){
     t_word **vectable = x->x_buffer->c_vectors; // ??
     t_word *vp = vectable[ch]; // ??
     if(vp){
-        float f,  a,  b,  c,  d, cmb;
+        float f;
         int maxindex = x->x_npts - 3;
         if(phase < 0 || phase > maxindex)
             phase = 0;  // CHECKED: a value 0, not ndx 0 (???)
@@ -262,12 +265,14 @@ static double tabplayer_interp(t_play *x, int ch, double phase){
         else
             f = phase - ndx;
         vp += ndx;
-        a = vp[-1].w_float;
-        b = vp[0].w_float;
-        c = vp[1].w_float;
-        d = vp[2].w_float;
-        cmb = c-b;
-        out = b + f*(cmb - ONE_SIXTH*(1.-f)*((d - a - 3.0f*cmb)*f + (d + 2.0f*a - 3.0f*b)));
+        double a = vp[-1].w_float;
+        double b = vp[0].w_float;
+        double c = vp[1].w_float;
+        double d = vp[2].w_float;
+        if(x->x_interp)
+            out = interp_lagrange(f, a, b, c, d);
+        else
+            out = interp_spline(f, a, b, c, d);
     }
     return(out);
 }
@@ -285,8 +290,7 @@ static t_int *tabplayer_perform(t_int *w){
                 float sig_input = *xin++;
                 for(ch = 0; ch < x->x_n_ch; ch++){
                     t_float *output = *(x->x_ovecs+ch);
-                    if(sig_input != 0 && last_sig_input == 0){
-                        // bang
+                    if(sig_input != 0 && last_sig_input == 0){ // bang
                         x->x_position = 0;
                         x->x_playing = x->x_playnew = 1; // start playing
                     }
@@ -443,7 +447,7 @@ static t_int *tabplayer_perform(t_int *w){
 static void tabplayer_dsp(t_play *x, t_signal **sp){
     buffer_checkdsp(x->x_buffer);
     unsigned long long npts = x->x_buffer->c_npts;
-    x->x_hasfeeders = magic_inlet_connection((t_object *)x, x->x_glist, 0, &s_signal);
+    x->x_hasfeeders = else_magic_inlet_connection((t_object *)x, x->x_glist, 0, &s_signal);
     t_float pdksr = sp[0]->s_sr * 0.001;
     if(x->x_sr_khz != pdksr)
         x->x_sr_ratio = (double)(x->x_array_sr_khz/(x->x_sr_khz = pdksr));
@@ -470,6 +474,7 @@ static void *tabplayer_new(t_symbol * s, int ac, t_atom *av){
     t_symbol *arrname = NULL;
     t_float channels = 1;
     t_float fade = 0;
+    x->x_interp = 0;
     t_float range_start = 0;
     t_float range_end = 1;
     x->x_xfade = 0;
@@ -514,6 +519,10 @@ static void *tabplayer_new(t_symbol * s, int ac, t_atom *av){
                 range_start = atom_getfloatarg(1, ac, av);
                 range_end = atom_getfloatarg(2, ac, av);
                 ac-=3, av+=3;
+            }
+            else if(s == gensym("-lagrange") && !argn){
+                x->x_interp = 1;
+                ac--, av++;
             }
             else if(!nameset){
                 arrname = s;
@@ -566,6 +575,8 @@ void tabplayer_tilde_setup(void){
     class_addmethod(tabplayer_class, (t_method)tabplayer_set, gensym("set"), A_SYMBOL, 0);
     class_addmethod(tabplayer_class, (t_method)tabplayer_pos, gensym("pos"), A_FLOAT, 0);
     class_addmethod(tabplayer_class, (t_method)tabplayer_play, gensym("play"), A_GIMME, 0);
+    class_addmethod(tabplayer_class, (t_method)tabplayer_lagrange, gensym("lagrange"), 0);
+    class_addmethod(tabplayer_class, (t_method)tabplayer_spline, gensym("spline"), 0);
     class_addmethod(tabplayer_class, (t_method)tabplayer_stop, gensym("stop"), 0);
     class_addmethod(tabplayer_class, (t_method)tabplayer_pause, gensym("pause"), 0);
     class_addmethod(tabplayer_class, (t_method)tabplayer_resume, gensym("resume"), 0);

@@ -82,6 +82,7 @@ copyFile("../../Libraries/ELSE/sfont~/sfont~-help.pd", "./Documentation/9.else")
 #copyFile("../param-help.pd", "./Documentation/5.reference")
 copyFile("../playhead-help.pd", "./Documentation/5.reference")
 
+globCopy("../../Libraries/cyclone/abstractions/*.pd", "./Abstractions")
 copyDir("../../Libraries/cyclone/documentation/help_files", "./Documentation/10.cyclone")
 copyDir("../../Libraries/ELSE/Live-Electronics-Tutorial/", "./Documentation/12.live-electronics-tutorial")
 

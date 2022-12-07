@@ -32,12 +32,12 @@ static t_int *sine_perform(t_int *w){
     t_float *out = (t_float *)(w[6]);
 // Magic Start
     t_float *scalar = x->x_signalscalar;
-    if(!magic_isnan(*x->x_signalscalar)){
+    if(!else_magic_isnan(*x->x_signalscalar)){
         t_float input_phase = fmod(*scalar, 1);
         if(input_phase < 0)
             input_phase += 1;
         x->x_phase = input_phase;
-        magic_setnan(x->x_signalscalar);
+        else_magic_setnan(x->x_signalscalar);
     }
 // Magic End
     double phase = x->x_phase;
@@ -103,7 +103,7 @@ static t_int *sine_perform_sig(t_int *w){
 }
 
 static void sine_dsp(t_sine *x, t_signal **sp){
-    x->x_hasfeeders = magic_inlet_connection((t_object *)x, x->x_glist, 1, &s_signal); // magic feeder flag
+    x->x_hasfeeders = else_magic_inlet_connection((t_object *)x, x->x_glist, 1, &s_signal); // magic feeder flag
     x->x_sr = sp[0]->s_sr;
     if(x->x_hasfeeders){
         dsp_add(sine_perform_sig, 6, x, sp[0]->s_n,

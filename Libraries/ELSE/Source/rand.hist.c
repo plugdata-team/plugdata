@@ -91,6 +91,8 @@ static void rand_hist_list(t_rand_hist *x, t_symbol*s, int ac, t_atom *av){
             *(x->x_probs + i) = v < 0 ? 0 : v;
         }
         memset(x->x_ovalues, 0x0, x->x_size*sizeof(int));
+        if(!x->x_u_mode)
+            update_candidates(x);
     }
 }
 
@@ -257,7 +259,7 @@ void setup_rand0x2ehist(void){
     class_addlist(rand_hist_class, rand_hist_list);
     class_addmethod(rand_hist_class, (t_method)rand_hist_unrepeat, gensym("unrepeat"), A_FLOAT, 0);
     class_addmethod(rand_hist_class, (t_method)rand_hist_eq, gensym("eq"), A_FLOAT, 0);
-    class_addmethod(rand_hist_class, (t_method)rand_hist_clear, gensym("clear"), A_FLOAT, 0);
+    class_addmethod(rand_hist_class, (t_method)rand_hist_clear, gensym("clear"), 0);
     class_addmethod(rand_hist_class, (t_method)rand_hist_inc, gensym("inc"), A_FLOAT, 0);
     class_addmethod(rand_hist_class, (t_method)rand_hist_dec, gensym("dec"), A_FLOAT, 0);
     class_addmethod(rand_hist_class, (t_method)rand_hist_size, gensym("size"), A_FLOAT, 0);

@@ -1,11 +1,76 @@
 
 #include "m_pd.h"
 #include "buffer.h"
-#include <stdio.h>
 #include <string.h>
 #include <stdarg.h>
 
-/* on failure *bufsize is not modified */
+// interpolation
+float interp_lin(double frac, double b, double c){
+    return(b + frac * (c-b));
+}
+
+float interp_cos(double frac, double b, double c){
+    frac = (cos(frac * -M_PI)) * 0.5 + 0.5;
+    return(c + frac * (b-c));
+}
+
+float interp_pow(double frac, double b, double c, double p){
+    double dif = c-b;
+    if(fabs(p) == 1) // linear
+        return(b + frac * dif);
+    else{
+        if(p >= 0){ // positive exponential
+            if(b < c) // ascending
+                return(b + pow(frac, p) * dif);
+            else // descending (invert)
+                return(b + (1-pow(1-frac, p)) * dif);
+        }
+        else{ // negative exponential
+            if(b < c) // ascending
+                return(b + (1-pow(1-frac, -p)) * dif);
+            else // descending (invert)
+                return(b + pow(frac, -p) * dif);
+        }
+    }
+}
+
+float interp_lagrange(double frac, double a, double b, double c, double d){
+    double cminusb = c-b;
+    return((t_float)(b + frac * (cminusb - (1. - frac)*ONE_SIXTH *
+        ((d - a - 3.0*cminusb) * frac + d + 2.0*a - 3.0*b))));
+}
+
+float interp_cubic(double frac, double a, double b, double c, double d){
+    double p0 = d - a + b - c;
+    double p1 = a - b - p0;
+    double p2 = c - a;
+    return((t_float)(b + frac*(p2 + frac*(p1 + frac*p0))));
+}
+
+float interp_spline(double frac, double a, double b, double c, double d){
+    double p0 = 0.5*(d - a) + 1.5*(b - c);
+    double p2 = 0.5*(c - a);
+    double p1 = a - b + p2 - p0;
+    return((t_float)(b + frac*(p2 + frac * (p1 + frac*p0))));
+}
+
+float interp_hermite(double frac, double a, double b, double c, double d,
+double bias, double tension){
+    double frac2 = frac*frac;
+    double frac3 = frac*frac2;
+    double cminusb = c - b;
+    double bias1 = 1. - bias;
+    bias++;
+    double m0 = tension * ((b-a) * bias + cminusb * bias1);
+    double m1 = tension * (cminusb*bias + (d-c) * bias1);
+    double p2 = frac3 - frac2;
+    double p0 = 2*p2 - frac2 + 1.;
+    double p1 = p2 - frac2 + frac;
+    double p3 = frac2 - 2*p2;
+    return((t_float)(p0*b + p1*m0 + p2*m1 + p3*c));
+}
+
+// on failure *bufsize is not modified
 t_word *buffer_get(t_buffer *c, t_symbol * name, int *bufsize, int indsp, int complain){
 //in dsp = used in dsp,
     if(name && name != &s_){

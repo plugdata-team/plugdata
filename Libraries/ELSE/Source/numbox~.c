@@ -325,8 +325,8 @@ static void numbox_properties(t_gobj *z, t_glist *owner){ // called in right cli
     t_numbox *x = (t_numbox *)z;
     char buf[800];
     sprintf(buf, "::dialog_numbox::pdtk_numbox_dialog %%s -------dimensions(digits)(pix):------- \
-        %d %d %d %d %d %d %s %s %.4f %.4f\n", x->x_numwidth, MINDIGITS, x->x_fontsize, MINSIZE,
-        x->x_ramp_ms, x->x_rate, x->x_bg->s_name, x->x_fg->s_name, x->x_min, x->x_max);
+        %d %d %d %d %d %d %f %s %s %.4f %.4f\n", x->x_numwidth, MINDIGITS, x->x_fontsize, MINSIZE,
+        x->x_ramp_ms, x->x_rate, x->x_set_val, x->x_bg->s_name, x->x_fg->s_name, x->x_min, x->x_max);
     gfxstub_new(&x->x_obj.ob_pd, x, buf); // no idea what this does...
 }
 
@@ -362,6 +362,7 @@ static void numbox_dialog(t_numbox *x, t_symbol *s, int ac, t_atom *av){
     numbox_width(x, width);
     numbox_size(x, size);
     canvas_fixlinesfor(x->x_glist, (t_text*)x);
+    canvas_dirty(x->x_glist, 1);
 }
 
 static void numbox_save(t_gobj *z, t_binbuf *b){
@@ -396,7 +397,7 @@ static t_int *numbox_perform(t_int *w){
 }
 
 static void numbox_dsp(t_numbox *x, t_signal **sp){
-    x->x_outmode = !magic_inlet_connection((t_object *)x, x->x_glist, 0, &s_signal);
+    x->x_outmode = !else_magic_inlet_connection((t_object *)x, x->x_glist, 0, &s_signal);
     x->x_sr_khz = sp[0]->s_sr * 0.001;
     dsp_add(numbox_perform, 4, x, sp[0]->s_vec, sp[1]->s_vec, (t_int)sp[0]->s_n);
 }

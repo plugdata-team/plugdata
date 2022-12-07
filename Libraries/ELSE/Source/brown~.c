@@ -63,7 +63,7 @@ static t_int *brown_perform(t_int *w){
 }
 
 static void brown_dsp(t_brown *x, t_signal **sp){
-    x->x_inmode = magic_inlet_connection((t_object *)x, x->x_glist, 0, &s_signal);
+    x->x_inmode = else_magic_inlet_connection((t_object *)x, x->x_glist, 0, &s_signal);
     dsp_add(brown_perform, 4, x, sp[0]->s_n, sp[0]->s_vec, sp[1]->s_vec);
 }
 

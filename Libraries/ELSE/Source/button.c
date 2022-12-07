@@ -34,36 +34,23 @@ static void button_draw_io_let(t_button *x){
     if(x->x_edit){
         t_canvas *cv = glist_getcanvas(x->x_glist);
         int xpos = text_xpix(&x->x_obj, x->x_glist), ypos = text_ypix(&x->x_obj, x->x_glist);
-        sys_vgui(".x%lx.c create rectangle %d %d %d %d -fill black -tags %lx_in\n",
-            cv, xpos, ypos, xpos+(IOWIDTH*x->x_zoom), ypos+(IHEIGHT*x->x_zoom), x);
-        sys_vgui(".x%lx.c create rectangle %d %d %d %d -fill black -tags %lx_out\n",
-            cv, xpos, ypos+x->x_h*x->x_zoom, xpos+IOWIDTH*x->x_zoom, ypos+x->x_h*x->x_zoom-IHEIGHT*x->x_zoom, x);
+        sys_vgui(".x%lx.c create rectangle %d %d %d %d -fill black -tags [list %lx_io %lxALL]\n",
+            cv, xpos, ypos, xpos+(IOWIDTH*x->x_zoom), ypos+(IHEIGHT*x->x_zoom), x, x);
+        sys_vgui(".x%lx.c create rectangle %d %d %d %d -fill black -tags [list %lx_io %lxALL]\n",
+            cv, xpos, ypos+x->x_h*x->x_zoom, xpos+IOWIDTH*x->x_zoom, ypos+x->x_h*x->x_zoom-IHEIGHT*x->x_zoom, x, x);
     }
 }
 
 static void button_draw(t_button *x, t_glist *glist){
     int xpos = text_xpix(&x->x_obj, glist), ypos = text_ypix(&x->x_obj, glist);
-    sys_vgui(".x%lx.c create rectangle %d %d %d %d -width %d -outline %s -fill #%2.2x%2.2x%2.2x -tags %lxBASE\n",
+    sys_vgui(".x%lx.c create rectangle %d %d %d %d -width %d -outline %s -fill #%2.2x%2.2x%2.2x -tags [list %lxBASE %lxALL]\n",
         glist_getcanvas(glist), xpos, ypos, xpos + x->x_w*x->x_zoom, ypos + x->x_h*x->x_zoom,
-        x->x_zoom, x->x_sel ? "blue" : "black", x->x_bgcolor[0], x->x_bgcolor[1], x->x_bgcolor[2], x);
+        x->x_zoom, x->x_sel ? "blue" : "black", x->x_bgcolor[0], x->x_bgcolor[1], x->x_bgcolor[2], x, x);
     button_draw_io_let(x);
 }
 
 static void button_erase(t_button* x, t_glist* glist){
-    t_canvas *cv = glist_getcanvas(glist);
-    sys_vgui(".x%lx.c delete %lxBASE\n", cv, x);
-    sys_vgui(".x%lx.c delete %lx_in\n", cv, x);
-    sys_vgui(".x%lx.c delete %lx_out\n", cv, x);
-}
-
-static void button_update(t_button *x){
-    if(glist_isvisible(x->x_glist) && gobj_shouldvis((t_gobj *)x, x->x_glist)){
-        int xpos = text_xpix(&x->x_obj, x->x_glist), ypos = text_ypix(&x->x_obj, x->x_glist);
-        t_canvas *cv = glist_getcanvas(x->x_glist);
-        sys_vgui(".x%lx.c coords %lxBASE %d %d %d %d\n", cv, x, xpos, ypos,
-            xpos + x->x_w*x->x_zoom, ypos + x->x_h*x->x_zoom);
-        canvas_fixlinesfor(x->x_glist, (t_text*)x);
-    }
+    sys_vgui(".x%lx.c delete %lxALL\n", glist_getcanvas(glist), x);
 }
 
 static void button_vis(t_gobj *z, t_glist *glist, int vis){
@@ -84,10 +71,7 @@ static void button_delete(t_gobj *z, t_glist *glist){
 static void button_displace(t_gobj *z, t_glist *glist, int dx, int dy){
     t_button *x = (t_button *)z;
     x->x_obj.te_xpix += dx, x->x_obj.te_ypix += dy;
-    t_canvas *cv = glist_getcanvas(glist);
-    sys_vgui(".x%lx.c move %lxBASE %d %d\n", cv, x, dx*x->x_zoom, dy*x->x_zoom);
-    sys_vgui(".x%lx.c move %lx_in %d %d\n", cv, x, dx*x->x_zoom, dy*x->x_zoom);
-    sys_vgui(".x%lx.c move %lx_out %d %d\n", cv, x, dx*x->x_zoom, dy*x->x_zoom);
+    sys_vgui(".x%lx.c move %lxALL %d %d\n", glist_getcanvas(glist), x, dx*x->x_zoom, dy*x->x_zoom);
     canvas_fixlinesfor(glist, (t_text*)x);
 }
 
@@ -212,8 +196,6 @@ static void button_bgcolor(t_button *x, t_floatarg red, t_floatarg green, t_floa
 
 static void button_zoom(t_button *x, t_floatarg zoom){
     x->x_zoom = (int)zoom;
-    sys_vgui(".x%lx.c itemconfigure %lxBASE -width %d\n", glist_getcanvas(x->x_glist), x, x->x_zoom);
-    button_update(x);
 }
 
 static void edit_proxy_any(t_edit_proxy *p, t_symbol *s, int ac, t_atom *av){
@@ -234,11 +216,8 @@ static void edit_proxy_any(t_edit_proxy *p, t_symbol *s, int ac, t_atom *av){
             p->p_cnv->x_edit = edit;
             if(edit)
                 button_draw_io_let(p->p_cnv);
-            else{
-                t_canvas *cv = glist_getcanvas(p->p_cnv->x_glist);
-                sys_vgui(".x%lx.c delete %lx_in\n", cv, p->p_cnv);
-                sys_vgui(".x%lx.c delete %lx_out\n", cv, p->p_cnv);
-            }
+            else
+                sys_vgui(".x%lx.c delete %lx_io\n", glist_getcanvas(p->p_cnv->x_glist), p->p_cnv);
         }
     }
 }
@@ -325,7 +304,6 @@ static void *button_new(t_symbol *s, int ac, t_atom *av){
                 else goto errstate;
             }
             else if(s == gensym("-size")){
-                post("hi");
                 if(ac >= 2 && (av+1)->a_type == A_FLOAT){
                     w = h = atom_getfloatarg(1, ac, av);
                     ac-=2, av+=2;
