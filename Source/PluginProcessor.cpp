@@ -1146,7 +1146,15 @@ void PlugDataAudioProcessor::setTheme(bool themeToUse)
             cnv->viewport->repaint();
 
             // Some objects with setBufferedToImage need manual repainting
-            for (auto* object : cnv->objects) object->repaint();
+            for (auto* object : cnv->objects) {
+                
+                object->gui->repaint();
+                
+                // Make sure label colour gets updated
+                if(auto* gui = dynamic_cast<GUIObject*>(object->gui.get())) {
+                    gui->updateLabel();
+                }
+            }
             for (auto* con : cnv->connections) reinterpret_cast<Component*>(con)->repaint();
             cnv->repaint();
         }

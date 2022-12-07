@@ -138,7 +138,6 @@ public:
 
         setInterceptsMouseClicks(true, false);
         setOpaque(false);
-        setBufferedToImage(true);
     }
 
     void setArray(PdArray& graph)
@@ -631,6 +630,7 @@ public:
             GUIObject::valueChanged(value);
         }
     }
+    
 
 
     void paintOverChildren(Graphics& g) override
