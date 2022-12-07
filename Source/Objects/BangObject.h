@@ -125,8 +125,8 @@ struct BangObject final : public IEMObject {
     ObjectParameters defineParameters() override
     {
         return {
-            { "Interrupt", tInt, cGeneral, &bangInterrupt, {} },
-            { "Hold", tInt, cGeneral, &bangHold, {} },
+            { "Minimum flash time", tInt, cGeneral, &bangInterrupt, {} },
+            { "Maximum flash time", tInt, cGeneral, &bangHold, {} },
         };
     }
 
@@ -139,6 +139,16 @@ struct BangObject final : public IEMObject {
             static_cast<t_bng*>(ptr)->x_flashtime_hold = bangHold.getValue();
         } else {
             IEMObject::valueChanged(value);
+        }
+    }
+    
+    void receiveObjectMessage(const String& symbol, std::vector<pd::Atom>& atoms) override {
+        if(symbol == "flashtime") {
+            if(atoms.size() > 0) setParameterExcludingListener(bangInterrupt, atoms[0].getFloat());
+            if(atoms.size() > 1) setParameterExcludingListener(bangHold, atoms[1].getFloat());
+        }
+        else {
+            IEMObject::receiveObjectMessage(symbol, atoms);
         }
     }
 };
