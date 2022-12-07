@@ -56,7 +56,7 @@ struct SymbolAtomObject final : public AtomObject
 
     void update() override
     {
-        input.setText(getSymbol(), sendNotification);
+        input.setText(getSymbol(), dontSendNotification);
     }
 
     void setSymbol(String const& value)
