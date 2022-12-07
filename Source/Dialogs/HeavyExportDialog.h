@@ -1099,22 +1099,6 @@ public:
         auto DPF = toolchain.getChildFile("lib").getChildFile("DPF");
         DPF.copyDirectoryTo(outputFile.getChildFile("DPF"));
         
-        //
-        if(lv2) outputFile.getChildFile("bin").getChildFile(name + ".lv2").copyDirectoryTo(outputFile);
-        if(vst2) outputFile.getChildFile("bin").getChildFile(name + ".vst").copyDirectoryTo(outputFile);
-        if(vst3) outputFile.getChildFile("bin").getChildFile(name + ".vst3").copyDirectoryTo(outputFile);
-        if(clap) outputFile.getChildFile("bin").getChildFile(name + ".clap").copyDirectoryTo(outputFile);
-        if(jack) outputFile.getChildFile("bin").getChildFile(name).moveFileTo(outputFile);
-        
-        // Clean up
-        outputFile.getChildFile("DPF").deleteRecursively();
-        outputFile.getChildFile("build").deleteRecursively();
-        outputFile.getChildFile("plugin").deleteRecursively();
-        outputFile.getChildFile("bin").deleteRecursively();
-        outputFile.getChildFile("README.md").deleteFile();
-        outputFile.getChildFile("Makefile").deleteFile();
-        
-        
         // Delay to get correct exit code
         Time::waitForMillisecondCounter(Time::getMillisecondCounter() + 300);
         
@@ -1150,8 +1134,24 @@ public:
             // Delay to get correct exit code
             Time::waitForMillisecondCounter(Time::getMillisecondCounter() + 300);
             
-            
             workingDir.setAsCurrentWorkingDirectory();
+            
+            // Copy output
+            if(lv2) outputFile.getChildFile("bin").getChildFile(name + ".lv2").copyDirectoryTo(outputFile);
+            if(vst2) outputFile.getChildFile("bin").getChildFile(name + ".vst").copyDirectoryTo(outputFile);
+            if(vst3) outputFile.getChildFile("bin").getChildFile(name + ".vst3").copyDirectoryTo(outputFile);
+            if(clap) outputFile.getChildFile("bin").getChildFile(name + ".clap").copyDirectoryTo(outputFile);
+            if(jack) outputFile.getChildFile("bin").getChildFile(name).moveFileTo(outputFile);
+            
+            // Clean up
+            outputFile.getChildFile("DPF").deleteRecursively();
+            outputFile.getChildFile("build").deleteRecursively();
+            outputFile.getChildFile("plugin").deleteRecursively();
+            outputFile.getChildFile("bin").deleteRecursively();
+            outputFile.getChildFile("README.md").deleteFile();
+            outputFile.getChildFile("Makefile").deleteFile();
+            
+
         }
 
         return getExitCode();
