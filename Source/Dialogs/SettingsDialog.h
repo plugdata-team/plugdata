@@ -70,11 +70,11 @@ struct SettingsDialog : public Component {
 
         auto* editor = dynamic_cast<ApplicationCommandManager*>(processor.getActiveEditor());
 
-        if (manager) {
+#if PLUGDATA_STANDALONE
             panels.add(new StandaloneAudioSettings(dynamic_cast<PlugDataAudioProcessor&>(processor), *manager));
-        } else {
+#else
             panels.add(new DAWAudioSettings(processor));
-        }
+#endif
 
         panels.add(new ThemePanel(settingsTree));
         panels.add(new SearchPathComponent(settingsTree.getChildWithName("Paths")));
