@@ -56,6 +56,7 @@ PlugDataAudioProcessor::PlugDataAudioProcessor()
     std::setlocale(LC_ALL, "C");
 
     // continuityChecker keeps track of whether audio is running and creates a backup scheduler in case it isn't
+    /*
     continuityChecker.setCallback([this](t_float* in, t_float* out){
 
         if(isNonRealtime()) return;
@@ -69,7 +70,7 @@ PlugDataAudioProcessor::PlugDataAudioProcessor()
             libpd_process_nodsp();
             getCallbackLock()->exit();
         }
-    });
+    }); */
 
     parameters.createAndAddParameter(std::make_unique<AudioParameterFloat>(ParameterID("volume", 1), "Volume", NormalisableRange<float>(0.0f, 1.0f, 0.001f, 0.75f, false), 1.0f));
 
