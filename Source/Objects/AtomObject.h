@@ -97,7 +97,7 @@ struct AtomObject : public GUIObject {
     {
         int fontWidth = glist_fontwidth(cnv->patch.getPointer());
         int width = jlimit(30, maxSize, (getWidth() / fontWidth) * fontWidth);
-        int height = jlimit(18, maxSize, getHeight());
+        int height = jlimit(12, maxSize, getHeight());
         if (getWidth() != width || getHeight() != height) {
             object->setSize(width + Object::doubleMargin, height + Object::doubleMargin);
         }

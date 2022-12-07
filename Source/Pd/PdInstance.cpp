@@ -504,7 +504,8 @@ void Instance::unregisterMessageListener(void* object, MessageListener* messageL
     
     auto it = std::find(messageListeners[object].begin(), messageListeners[object].end(), messageListener);
     
-    messageListeners[object].erase(it);
+    
+    if(it != messageListeners[object].end())  messageListeners[object].erase(it);
 }
 
 void Instance::enqueueFunction(std::function<void(void)> const& fn)
