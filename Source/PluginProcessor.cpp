@@ -29,7 +29,10 @@ extern "C"
 AudioProcessor::BusesProperties PlugDataAudioProcessor::buildBusesProperties()
 {
     AudioProcessor::BusesProperties busesProperties;
-
+#if PLUGDATA_STANDALONE
+    busesProperties.addBus(true, "Main Input", AudioChannelSet::canonicalChannelSet(16), true);
+    busesProperties.addBus(false, "Main Output", AudioChannelSet::canonicalChannelSet(16), true);
+#else
     busesProperties.addBus(true, "Main Input", AudioChannelSet::stereo(), true);
 
     for (int i = 1; i < numInputBuses; i++) busesProperties.addBus(true, "Aux Input " + String(i), AudioChannelSet::stereo(), false);
@@ -37,13 +40,14 @@ AudioProcessor::BusesProperties PlugDataAudioProcessor::buildBusesProperties()
     busesProperties.addBus(false, "Main Output", AudioChannelSet::stereo(), true);
 
     for (int i = 1; i < numOutputBuses; i++) busesProperties.addBus(false, "Aux " + String(i), AudioChannelSet::stereo(), false);
-
+    
+#endif
     return busesProperties;
 }
 
 PlugDataAudioProcessor::PlugDataAudioProcessor()
 #ifndef JucePlugin_PreferredChannelConfigurations
-    : AudioProcessor(buildBusesProperties()),
+: AudioProcessor(buildBusesProperties()),
 #endif
       pd::Instance("plugdata"),
       parameters(*this, nullptr)
@@ -523,8 +527,9 @@ bool PlugDataAudioProcessor::isBusesLayoutSupported(const BusesLayout& layouts) 
 
         if (layouts.outputBuses[bus].isDisabled()) continue;
 
-        if (nchb > 2) return false;
-        if (nchb == 0) return false;
+        if (nchb == 0)
+            return false;
+        
         noutch += nchb;
     }
 
@@ -534,8 +539,9 @@ bool PlugDataAudioProcessor::isBusesLayoutSupported(const BusesLayout& layouts) 
 
         if (layouts.inputBuses[bus].isDisabled()) continue;
 
-        if (nchb > 2) return false;
-        if (nchb == 0) return false;
+        if (nchb == 0)
+            return false;
+        
         ninch += nchb;
     }
 
@@ -810,13 +816,12 @@ void PlugDataAudioProcessor::messageEnqueued()
     }
     else
     {
-        /*
         const CriticalSection* cs = getCallbackLock();
         if (cs->tryEnter())
         {
             sendMessagesFromQueue();
             cs->exit();
-        } */
+        }
     }
 }
 
