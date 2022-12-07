@@ -152,10 +152,6 @@ class PlugDataAudioProcessor : public AudioProcessor, public pd::Instance, publi
     static inline constexpr int numParameters = 512;
     static inline constexpr int numInputBuses = 16;
     static inline constexpr int numOutputBuses = 16;
-
-#if PLUGDATA_STANDALONE
-    std::atomic<float> standaloneParams[numParameters] = {0};
-#endif
     
     // Zero means no oversampling
     int oversampling = 0;
@@ -163,9 +159,14 @@ class PlugDataAudioProcessor : public AudioProcessor, public pd::Instance, publi
     
     bool settingsChangedInternally = false;
     
+#if PLUGDATA_STANDALONE
+    std::atomic<float> standaloneParams[numParameters] = {0};
+    OwnedArray<MidiOutput> midiOutputs;
+#endif
+    
    private:
     void processInternal();
-
+    
     int audioAdvancement = 0;
     std::vector<float> audioBufferIn;
     std::vector<float> audioBufferOut;

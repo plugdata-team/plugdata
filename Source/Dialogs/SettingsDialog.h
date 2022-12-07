@@ -71,7 +71,7 @@ struct SettingsDialog : public Component {
         auto* editor = dynamic_cast<ApplicationCommandManager*>(processor.getActiveEditor());
 
         if (manager) {
-            panels.add(new StandaloneAudioSettings(*manager, 1, 32, 1, 32, true, true, false, false));
+            panels.add(new StandaloneAudioSettings(dynamic_cast<PlugDataAudioProcessor&>(processor), *manager));
         } else {
             panels.add(new DAWAudioSettings(processor));
         }
