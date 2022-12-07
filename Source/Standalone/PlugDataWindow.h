@@ -420,8 +420,8 @@ private:
         
         
         
-        customInputs.add(MidiInput::createNewDevice("To plugdata 1", &player));
-        customInputs.add(MidiInput::createNewDevice("To plugdata 2", &player));
+        customInputs.add(MidiInput::createNewDevice("to plugdata 1", &player));
+        customInputs.add(MidiInput::createNewDevice("to plugdata 2", &player));
         
         reloadAudioDeviceState(enableAudioInput, preferredDefaultDeviceName, preferredSetupOptions);
     }
