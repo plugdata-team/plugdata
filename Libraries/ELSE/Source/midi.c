@@ -127,7 +127,7 @@ static void midi_panic(t_midi *x){
    default value (failure).
    Upon return *nrequested contains the actual number of elements:
    requested (success) or a given default value of 'inisize' (failure). */
-void *grow_nodata(int *nrequested, int *sizep, void *bufp,
+static void *grow_nodata(int *nrequested, int *sizep, void *bufp,
 int inisize, void *bufini, size_t typesize){
     int newsize = *sizep * 2;
     while(newsize < *nrequested)
@@ -147,7 +147,7 @@ int inisize, void *bufini, size_t typesize){
 }
 
 /* Like grow_nodata(), but preserving first *nexisting elements. */
-void *grow_withdata(int *nrequested, int *nexisting, int *sizep, void *bufp,
+static void *grow_withdata(int *nrequested, int *nexisting, int *sizep, void *bufp,
 int inisize, void *bufini, size_t typesize){
     int newsize = *sizep * 2;
     while(newsize < *nrequested)
@@ -733,7 +733,7 @@ mfreadfailed:
 }
 
 static void midi_click(t_midi *x){
-    panel_click_open(x->x_elsefilehandle);
+    elsefile_panel_click_open(x->x_elsefilehandle);
 }
 
 static int midi_mfwrite(t_midi *x, char *path){
@@ -812,7 +812,7 @@ static void midi_textread(t_midi *x, char *path){
     t_binbuf *bb;
     bb = binbuf_new();
     if(binbuf_read(bb, path, "", 0)) // CHECKED no complaint, open dialog presented
-        panel_click_open(x->x_elsefilehandle);  // LATER rethink
+        elsefile_panel_click_open(x->x_elsefilehandle);  // LATER rethink
     else{
         int nlines = /* CHECKED absolute timestamps */
             midi_fromatoms(x, binbuf_getnatom(bb), binbuf_getvec(bb));
@@ -908,14 +908,14 @@ static void midi_read(t_midi *x, t_symbol *s){
     if(s && s != &s_)
         midi_doread(x, s);
     else
-        panel_click_open(x->x_elsefilehandle);
+        elsefile_panel_click_open(x->x_elsefilehandle);
 }
 
 static void midi_write(t_midi *x, t_symbol *s){
     if(s && s != &s_)
         midi_dowrite(x, s);
     else  // creation arg is a default elsefile name
-        panel_save(x->x_elsefilehandle, canvas_getdir(x->x_canvas), x->x_defname); // always start in canvas dir
+        elsefile_panel_save(x->x_elsefilehandle, canvas_getdir(x->x_canvas), x->x_defname); // always start in canvas dir
 }
 
 static void midi_free(t_midi *x){

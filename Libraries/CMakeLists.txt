@@ -269,11 +269,14 @@ include_directories(ELSE/shared)
 
 source_group(ELSE FILES ${ELSE_SOURCES})
 
+
 file(GLOB_RECURSE CYCLONE_SOURCES
-    ./cyclone/cyclone_lib.c
-    ./cyclone/audio/*.c
-    ./cyclone/control/*.c
-    ./cyclone/shared/*.c
+    ./cyclone/cyclone_objects/binaries/cyclone_lib.c
+    ./cyclone/cyclone_objects/binaries/audio/*.c
+    ./cyclone/cyclone_objects/binaries/control/*.c
+    ./cyclone/shared/common/*.c
+    ./cyclone/shared/control/*.c
+    ./cyclone/shared/signal/*.c
 )
 
 include_directories(cyclone/)

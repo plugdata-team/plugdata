@@ -40,7 +40,6 @@ typedef struct _scope{
     float           x_currx, x_curry;
     int             x_select;
     int             x_width, x_height;
-    int             x_drawstyle;
     int             x_delay;
     int             x_trigmode;
     int             x_bufsize, x_lastbufsize;
@@ -427,12 +426,6 @@ static void scope_delay(t_scope *x, t_floatarg f){
         x->x_delay = delay;
 }
 
-static void scope_drawstyle(t_scope *x, t_floatarg f){
-    int drawstyle = (int)f;
-    if(x->x_drawstyle != drawstyle)
-        x->x_drawstyle = drawstyle;
-}
-
 static void scope_trigger(t_scope *x, t_floatarg f){
     int trig = f < 0 ? 0 : f > 2 ? 2 : (int)f;
     if(x->x_trigmode != trig){
@@ -565,14 +558,15 @@ static void handle__click_callback(t_handle *sh, t_floatarg f){
         SETFLOAT(undo+0, x->x_width);
         SETFLOAT(undo+1, x->x_height);
         t_atom redo[2];
-        float width = (x->x_width+sh->h_dragx)/x->x_zoom;
-        float height = (x->x_height+sh->h_dragx)/x->x_zoom;
+        int width = (int)((x->x_width+sh->h_dragx)/x->x_zoom);
+        int height = (int)((x->x_height+sh->h_dragy)/x->x_zoom);
         SETFLOAT(redo+0, width);
         SETFLOAT(redo+1, height);
         pd_undo_set_objectstate(x->x_glist, (t_pd*)x, gensym("dim"), 2, undo, 2, redo);
         scope_dim(x, NULL, 2, redo);
         scope_draw_handle(x, 1);
         scope_select((t_gobj *)x, x->x_glist, x->x_select);
+        canvas_dirty(x->x_cv, 1);
     }
     else if(!sh->h_dragon && click){
         int x1, y1, x2, y2;
@@ -702,21 +696,16 @@ static t_int *scope_perform(t_int *w){
                     t_float f1 = *in1++;
                     t_float f2 = *in2++;
                     if(x->x_xymode == 1){ // CHECKED
-                        if(!x->x_drawstyle){
-                            if((currx<0 && (f1<currx || f1>-currx)) || (currx>0 && (f1>currx || f1<-currx)))
+                        
+                        if((currx<0 && (f1<currx || f1>-currx)) || (currx>0 && (f1>currx || f1<-currx)))
                                 currx = f1;
-                        }
-                        else if(f1 < currx)
-                            currx = f1;
+        
                         curry = 0.;
                     }
                     else if(x->x_xymode == 2){
-                        if(!x->x_drawstyle){
-                            if((curry<0 && (f2<curry || f2>-curry)) || (curry>0 && (f2>curry || f2<-curry)))
-                                curry = f2;
-                        }
-                        else if(f2 < curry)
+                        if((curry<0 && (f2<curry || f2>-curry)) || (curry>0 && (f2>curry || f2<-curry)))
                             curry = f2;
+
                         currx = 0.;
                     }
                     else{
@@ -766,8 +755,8 @@ static t_int *scope_perform(t_int *w){
 
 static void scope_dsp(t_scope *x, t_signal **sp){
     x->x_ksr = sp[0]->s_sr * 0.001;
-    int xfeeder = magic_inlet_connection((t_object *)x, x->x_glist, 0, &s_signal);
-    int yfeeder = magic_inlet_connection((t_object *)x, x->x_glist, 1, &s_signal);
+    int xfeeder = else_magic_inlet_connection((t_object *)x, x->x_glist, 0, &s_signal);
+    int yfeeder = else_magic_inlet_connection((t_object *)x, x->x_glist, 1, &s_signal);
     int xymode = xfeeder + 2 * yfeeder;
     if(xymode != x->x_xymode){
         x->x_xymode = xymode;
@@ -845,7 +834,7 @@ static void scope_properties(t_gobj *z, t_glist *owner){
         dim %d width: %d height: \
         buf %d cal: %d bfs: \
         rng %g min: %g max: \
-        del %d del: drs %d drs: \
+        del %d del: \
         {%s} rcv: trg %d tmd: %g tlv: \
         dim_mins %d %d \
         cal_min_max %d %d bfs_min_max %d %d \
@@ -854,7 +843,7 @@ static void scope_properties(t_gobj *z, t_glist *owner){
         x->x_width/x->x_zoom, x->x_height/x->x_zoom,
         x->x_period, x->x_bufsize,
         x->x_min, x->x_max,
-        x->x_delay, x->x_drawstyle,
+        x->x_delay,
         x->x_rcv_raw->s_name, 
         x->x_trigmode, x->x_triglevel,
         SCOPE_MINSIZE, SCOPE_MINSIZE,
@@ -884,13 +873,12 @@ static void scope_ok(t_scope *x, t_symbol *s, int ac, t_atom *av){
     SETFLOAT(undo+4, x->x_min);
     SETFLOAT(undo+5, x->x_max);
     SETFLOAT(undo+6, x->x_delay);
-    SETFLOAT(undo+7, x->x_drawstyle);
-    SETFLOAT(undo+8, x->x_trigmode);
-    SETFLOAT(undo+9, x->x_triglevel);
-    SETFLOAT(undo+10, ((int)x->x_bg[0] << 16) + ((int)x->x_bg[1] << 8) + (int)x->x_bg[2]);
-    SETFLOAT(undo+11, ((int)x->x_gg[0] << 16) + ((int)x->x_gg[1] << 8) + (int)x->x_gg[2]);
-    SETFLOAT(undo+12, ((int)x->x_fg[0] << 16) + ((int)x->x_fg[1] << 8) + (int)x->x_fg[2]);
-    SETSYMBOL(undo+13, x->x_receive);
+    SETFLOAT(undo+7, x->x_trigmode);
+    SETFLOAT(undo+8, x->x_triglevel);
+    SETFLOAT(undo+9, ((int)x->x_bg[0] << 16) + ((int)x->x_bg[1] << 8) + (int)x->x_bg[2]);
+    SETFLOAT(undo+10, ((int)x->x_gg[0] << 16) + ((int)x->x_gg[1] << 8) + (int)x->x_gg[2]);
+    SETFLOAT(undo+11, ((int)x->x_fg[0] << 16) + ((int)x->x_fg[1] << 8) + (int)x->x_fg[2]);
+    SETSYMBOL(undo+12, x->x_receive);
     pd_undo_set_objectstate(x->x_glist, (t_pd*)x, gensym("dialog"), 14, undo, ac, av);
     int width = atom_getintarg(0, ac, av);
     int height = atom_getintarg(1, ac, av);
@@ -899,18 +887,16 @@ static void scope_ok(t_scope *x, t_symbol *s, int ac, t_atom *av){
     float minval = (float)atom_getfloatarg(4, ac, av);
     float maxval = (float)atom_getfloatarg(5, ac, av);
     int delay = atom_getintarg(6, ac, av);
-    int drawstyle = atom_getintarg(7, ac, av);
-    int trigmode = atom_getintarg(8, ac, av);
-    int triglevel = atom_getintarg(9, ac, av);
-    int bgcol = (int)scope_getcolorarg(10, ac, av);
-    int grcol = (int)scope_getcolorarg(11, ac, av);
-    int fgcol = (int)scope_getcolorarg(12, ac, av);
-    t_symbol *rcv = atom_getsymbolarg(13, ac, av);
+    int trigmode = atom_getintarg(7, ac, av);
+    int triglevel = atom_getintarg(8, ac, av);
+    int bgcol = (int)scope_getcolorarg(9, ac, av);
+    int grcol = (int)scope_getcolorarg(10, ac, av);
+    int fgcol = (int)scope_getcolorarg(11, ac, av);
+    t_symbol *rcv = atom_getsymbolarg(12, ac, av);
     scope_period(x, period);
     scope_bufsize(x, bufsize);
     scope_range(x, minval, maxval);
     scope_delay(x, delay);
-    scope_drawstyle(x, drawstyle);
     scope_receive(x, rcv);
     scope_trigger(x, trigmode);
     scope_triglevel(x, triglevel);
@@ -986,7 +972,7 @@ static void *scope_new(t_symbol *s, int ac, t_atom *av){
     x->x_flag = x->x_r_flag = x->x_rcv_set = x->x_select = 0;
     x->x_phase = x->x_bufphase = x->x_precount = 0;
     float width = 200, height = 100, period = 256, bufsize = x->x_lastbufsize = 128; // def values
-    float minval = -1, maxval = 1, delay = 0, drawstyle = 0, trigger = 0, triglevel = 0; // def
+    float minval = -1, maxval = 1, delay = 0, trigger = 0, triglevel = 0; // def
     unsigned char bgred = 190, bggreen = 190, bgblue = 190;    // default bg color
     unsigned char fgred = 30, fggreen = 30, fgblue = 30; // default fg color
     unsigned char grred = 160, grgreen = 160, grblue = 160;   // default grid color
@@ -1147,11 +1133,6 @@ static void *scope_new(t_symbol *s, int ac, t_atom *av){
                 delay = atom_getfloatarg(1, ac, av);
                 ac-=2, av+=2;
             }
-/*            else if(sym == gensym("-drawstyle") && ac >= 2){
-                x->x_flag = 1;
-                drawstyle = atom_getfloatarg(1, ac, av);
-                ac-=2, av+=2;
-            }*/
             else if(sym == gensym("-trigger") && ac >= 2){
                 x->x_flag = 1;
                 trigger = atom_getfloatarg(1, ac, av);
@@ -1221,7 +1202,6 @@ static void *scope_new(t_symbol *s, int ac, t_atom *av){
     else
         x->x_min = minval, x->x_max = maxval;
     x->x_delay = delay < 0 ? 0 : delay;
-    x->x_drawstyle = drawstyle;
     x->x_triglevel = triglevel;
     x->x_trigmode = trigger < 0 ? 0 : trigger > 2 ? 2 : (int)trigger;
     if(x->x_trigmode == 0) // no trigger
@@ -1257,7 +1237,6 @@ void oscope_tilde_setup(void){
     class_addmethod(scope_class, (t_method)scope_dim, gensym("dim"), A_GIMME, 0);
     class_addmethod(scope_class, (t_method)scope_range, gensym("range"), A_FLOAT, A_FLOAT, 0);
     class_addmethod(scope_class, (t_method)scope_delay, gensym("delay"), A_FLOAT, 0);
-    class_addmethod(scope_class, (t_method)scope_drawstyle, gensym("drawstyle"), A_FLOAT, 0);
     class_addmethod(scope_class, (t_method)scope_trigger, gensym("trigger"), A_FLOAT, 0);
     class_addmethod(scope_class, (t_method)scope_triglevel, gensym("triglevel"), A_FLOAT, 0);
     class_addmethod(scope_class, (t_method)scope_fgcolor, gensym("fgcolor"),
@@ -1289,3 +1268,5 @@ void oscope_tilde_setup(void){
     scope_widgetbehavior.w_clickfn    = (t_clickfn)scope_click;
     #include "oscope~_dialog.c"
 }
+
+

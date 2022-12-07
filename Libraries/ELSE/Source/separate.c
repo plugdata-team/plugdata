@@ -4,10 +4,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#ifndef _WIN32
-#include "s_utf8.h"
-#endif
-
 typedef struct _separate{
     t_object    x_obj;
     t_symbol   *x_separator;
@@ -38,9 +34,8 @@ static void string2atom(t_separate *x, t_atom *ap, char* cp, int clen){
     strncpy(buf, cp, clen);
     buf[clen] = 0;
     t_float ftest = strtod(buf, endptr);
-    if(buf+clen != *endptr){ // strtof() failed, we have a symbol
+    if(buf+clen != *endptr) // strtof() failed, we have a symbol
         SETSYMBOL(ap, gensym(buf));
-    }
     else{ // probably a number
         if(ishex(buf)) // test for hexadecimal (inf/nan are still floats)
             SETSYMBOL(ap, gensym(buf));
@@ -99,29 +94,18 @@ static void separate_process(t_separate *x, t_symbol *s){
     }
     x->x_ac = i;
     // parse the items into the list-buffer
-    while(sym == (d = strstr(sym, deli))){
-//        post("while");
+    while(sym == (d = strstr(sym, deli)))
         sym += dell;
-    }
     i = 0;
     while((d = strstr(sym, deli))){
-/*        post("");
-        post("____ while _____");
-        post("d (%s) | sym (%s)", d, sym);*/
         if(d != sym){
-/*            post("(d != sym)");
-            post("d-sym (%d)", d-sym);*/
             string2atom(x, x->x_av+i, sym, d-sym);
             i++;
-//            post("i (%d)", i);
         }
         sym = d+dell;
-//        post("sym = d+dell (%s)", sym);
     }
-    if(sym){
-//        post("if(sym)");
+    if(sym)
         string2atom(x, x->x_av+i, sym, strlen(cp));
-    }
 }
 
 static void separate_symbol(t_separate *x, t_symbol *s){

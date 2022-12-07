@@ -567,6 +567,7 @@ void gate2imp_tilde_setup();
 void gaussian_tilde_setup();
 void gbman_tilde_setup();
 void gcd_setup();
+void gendyn_tilde_setup();
 void setup_giga0x2erev_tilde();
 void glide_tilde_setup();
 void glide2_tilde_setup();
@@ -650,7 +651,7 @@ void setup_rand0x2ehist();
 void setup_rand0x2ef_tilde();
 void setup_rand0x2ei();
 void setup_rand0x2ei_tilde();
-void setup_rand0x2eseq();
+//void setup_rand0x2eseq();
 void setup_rand0x2eu();
 #if ENABLE_SFONT
 void sfont_tilde_setup();
@@ -702,8 +703,10 @@ void susloop_tilde_setup();
 void suspedal_setup();
 void svfilter_tilde_setup();
 void symbol2any_setup();
-void table_tilde_setup();
+//void table_tilde_setup();
 void tabplayer_tilde_setup();
+void tabreader_setup();
+void tabreader_tilde_setup();
 void tabwriter_tilde_setup();
 void tempo_tilde_setup();
 void setup_timed0x2egate_tilde();
@@ -838,6 +841,7 @@ void libpd_init_else(void)
     gaussian_tilde_setup();
     gbman_tilde_setup();
     gcd_setup();
+    gendyn_tilde_setup();
     setup_giga0x2erev_tilde();
     glide_tilde_setup();
     glide2_tilde_setup();
@@ -926,7 +930,7 @@ void libpd_init_else(void)
 #endif
     setup_rand0x2ei();
     setup_rand0x2ei_tilde();
-    setup_rand0x2eseq();
+    //setup_rand0x2eseq();
     route2_setup();
     randpulse_tilde_setup();
     randpulse2_tilde_setup();
@@ -973,8 +977,10 @@ void libpd_init_else(void)
     suspedal_setup();
     svfilter_tilde_setup();
     symbol2any_setup();
-    table_tilde_setup();
+    //table_tilde_setup();
     tabplayer_tilde_setup();
+    tabreader_setup();
+    tabreader_tilde_setup();
     tabwriter_tilde_setup();
     tempo_tilde_setup();
     setup_timed0x2egate_tilde();

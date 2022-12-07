@@ -32,12 +32,12 @@ static t_int *gaussian_perform_magic(t_int *w){
     t_float *out = (t_float *)(w[7]);
 // Magic Start
     t_float *scalar = x->x_signalscalar;
-    if(!magic_isnan(*x->x_signalscalar)){
+    if(!else_magic_isnan(*x->x_signalscalar)){
         t_float input_phase = fmod(*scalar, 1);
         if(input_phase < 0)
             input_phase += 1;
         x->x_phase = input_phase;
-        magic_setnan(x->x_signalscalar);
+        else_magic_setnan(x->x_signalscalar);
     }
 // Magic End
     double phase = x->x_phase;
@@ -117,7 +117,7 @@ static t_int *gaussian_perform(t_int *w)
 }
 
 static void gaussian_dsp(t_gaussian *x, t_signal **sp){
-    x->x_hasfeeders = magic_inlet_connection((t_object *)x, x->x_glist, 2, &s_signal); // magic feeder flag
+    x->x_hasfeeders = else_magic_inlet_connection((t_object *)x, x->x_glist, 2, &s_signal); // magic feeder flag
     x->x_sr = sp[0]->s_sr;
     if (x->x_hasfeeders){
         dsp_add(gaussian_perform, 7, x, sp[0]->s_n,

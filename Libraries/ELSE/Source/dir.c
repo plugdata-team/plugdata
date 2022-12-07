@@ -148,7 +148,7 @@ static void dir_loadir(t_dir *x, t_symbol *dirname, int init){
         }
         return;
     }
-    else{
+    else{ 
         closedir(temp);
         dir_load(x);
         if(!init)
@@ -274,7 +274,7 @@ static void *dir_new(t_symbol *s, int ac, t_atom* av){
     x->x_getdir = canvas_getdir(canvas); // default
     
 // If you compile Pd with MSVC, this will return the location with "\" instead of "/", which is a problem
-#if _MSC_VER
+#if _MSC_VER 
     char* getdir_name = strdup(x->x_getdir->s_name);
 
     for (int i = 0; i < strlen(getdir_name); i++) {

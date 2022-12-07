@@ -37,14 +37,18 @@ static t_int *randi_perform(t_int *w){
         float trig = *in1++;
         float input2 = *in2++;
         float input3 = *in3++;
-        float out_low = (int)input2; // Output LOW
+        float out_low = (int)input2;      // Output LOW
         float out_high = (int)input3 + 1; // Output HIGH
         if(out_low > out_high){
             int temp = out_low;
             out_low = out_high;
             out_high = temp;
         }
-        int range = out_high - out_low; // range
+        if(out_low < 0)
+            out_low -= 1;
+        if(out_high < 0)
+            out_high -= 1;
+        int range = out_high - out_low;   // Range
         if(range == 0)
             randi = out_low;
         else{

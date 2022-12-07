@@ -5,20 +5,19 @@
 #else
 #include <unistd.h>
 #include <dirent.h>
+#include <stdlib.h>
 #endif
 
-#include <stdlib.h>
-//#include <stdio.h>
-#include <string.h>
 #include "m_pd.h"
 #include "g_canvas.h"
 #include "elsefile.h"
+#include <string.h>
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // OS
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static int ospath_doabsolute(char *path, char *cwd, char *result){
+static int elsefile_ospath_doabsolute(char *path, char *cwd, char *result){
     if(*path == 0){
         if(result)
             strcpy(result, cwd);
@@ -167,16 +166,16 @@ badpath:
  superfluous slashes and dots), but not longer.  Both args should be unbashed
  (system-independent), cwd should be absolute.  Returns 0 in case of any
  error (LATER revisit). */
-int ospath_length(char *path, char *cwd){ // one extra byte used internally (guarding slash)
-    return(ospath_doabsolute(path, cwd, 0) + 1);
+int elsefile_ospath_length(char *path, char *cwd){ // one extra byte used internally (guarding slash)
+    return(elsefile_ospath_doabsolute(path, cwd, 0) + 1);
 }
 
 /* Copies an absolute path to result.  Arguments: path and cwd, are the same
  as in ospath_length().  Caller should first consult ospath_length(), and
  allocate at least ospath_length() + 1 bytes to the result buffer.
  Should never fail (failure is a bug). */
-char *ospath_absolute(char *path, char *cwd, char *result){
-    ospath_doabsolute(path, cwd, result);
+char *elsefile_ospath_absolute(char *path, char *cwd, char *result){
+    elsefile_ospath_doabsolute(path, cwd, result);
     return(result);
 }
 
@@ -192,7 +191,7 @@ struct _osdir{
 
 /* returns 0 on error, a caller is then expected to call
  loud_syserror(owner, "cannot open \"%s\"", dirname) */
-t_osdir *osdir_open(char *dirname){
+t_osdir *elsefile_osdir_open(char *dirname){
 #ifndef _WIN32
     DIR *handle = opendir(dirname);
     if(handle){
@@ -211,12 +210,12 @@ t_osdir *osdir_open(char *dirname){
 #endif
 }
 
-void osdir_setmode(t_osdir *dp, int flags){
+void elsefile_osdir_setmode(t_osdir *dp, int flags){
     if(dp)
         dp->dir_flags = flags;
 }
 
-void osdir_close(t_osdir *dp){
+void elsefile_osdir_close(t_osdir *dp){
     if(dp){
 #ifndef _WIN32
         closedir(dp->dir_handle);
@@ -225,7 +224,7 @@ void osdir_close(t_osdir *dp){
     }
 }
 
-void osdir_rewind(t_osdir *dp){
+void elsefile_osdir_rewind(t_osdir *dp){
     if(dp){
 #ifndef _WIN32
         rewinddir(dp->dir_handle);
@@ -234,7 +233,7 @@ void osdir_rewind(t_osdir *dp){
     }
 }
 
-char *osdir_next(t_osdir *dp){
+char *elsefile_osdir_next(t_osdir *dp){
 #ifndef _WIN32
     if(dp){
         while((dp->dir_entry = readdir(dp->dir_handle))){
@@ -249,7 +248,7 @@ char *osdir_next(t_osdir *dp){
     return(0);
 }
 
-int osdir_isfile(t_osdir *dp){
+int elsefile_osdir_isfile(t_osdir *dp){
 #ifndef _WIN32
     return(dp && dp->dir_entry && dp->dir_entry->d_type == DT_REG);
 #else
@@ -257,7 +256,7 @@ int osdir_isfile(t_osdir *dp){
 #endif
 }
 
-int osdir_isdir(t_osdir *dp){
+int elsefile_osdir_isdir(t_osdir *dp){
 #ifndef _WIN32
     return(dp && dp->dir_entry && dp->dir_entry->d_type == DT_DIR);
 #else
@@ -333,47 +332,39 @@ static void panel_guidefs(void){
 
 /* This is obsolete, but has to stay, because older versions of miXed libraries
    might overwrite new panel_guidefs().  FIXME we need version control. */
-static void panel_symbol(t_elsefile *f, t_symbol *s){
+static void elsefile_panel_symbol(t_elsefile *f, t_symbol *s){
     if(s && s != &s_ && f->f_panelfn)
         (*f->f_panelfn)(f->f_master, s, 0, 0);
 }
 
-static void panel_path(t_elsefile *f, t_symbol *s1, t_symbol *s2){
+static void elsefile_panel_path(t_elsefile *f, t_symbol *s1, t_symbol *s2){
     if(s2 && s2 != &s_)
         f->f_currentdir = s2;
     if(s1 && s1 != &s_ && f->f_panelfn)
         (*f->f_panelfn)(f->f_master, s1, 0, 0);
 }
 
-static void panel_tick(t_elsefile *f){
+static void elsefile_panel_tick(t_elsefile *f){
     if(f->f_savepanel)
         sys_vgui("panel_open %s {%s}\n", f->f_bindname->s_name, f->f_inidir->s_name);
     else
         sys_vgui("panel_save %s {%s} {%s}\n", f->f_bindname->s_name, f->f_inidir->s_name, f->f_inifile->s_name);
 }
 
-void panel_open(t_elsefile *f, t_symbol *inidir){
-    if(inidir)
-        f->f_inidir = inidir;
-    else
-        f->f_inidir = (f->f_currentdir ? f->f_currentdir : &s_);
-    clock_delay(f->f_panelclock, 0);
-}
-
 /* these are hacks: deferring modal dialog creation in order to allow for
    a message box redraw to happen -- LATER investigate */
-void panel_click_open(t_elsefile *f){
+void elsefile_panel_click_open(t_elsefile *f){
     f->f_inidir = (f->f_currentdir ? f->f_currentdir : &s_);
     clock_delay(f->f_panelclock, 0);
 }
 
-void panel_setopendir(t_elsefile *f, t_symbol *dir){
+void elsefile_panel_setopendir(t_elsefile *f, t_symbol *dir){
     if(f->f_currentdir && f->f_currentdir != &s_){
         if(dir && dir != &s_){
-            int length = ospath_length((char *)(dir->s_name), (char *)(f->f_currentdir->s_name));
+            int length = elsefile_ospath_length((char *)(dir->s_name), (char *)(f->f_currentdir->s_name));
             if(length){
                 char *path = getbytes(length + 1);
-                if(ospath_absolute((char *)(dir->s_name), (char *)(f->f_currentdir->s_name), path))
+                if(elsefile_ospath_absolute((char *)(dir->s_name), (char *)(f->f_currentdir->s_name), path))
                 /* LATER stat (think how to report a failure) */
                     f->f_currentdir = gensym(path);
                 freebytes(path, length + 1);
@@ -386,11 +377,11 @@ void panel_setopendir(t_elsefile *f, t_symbol *dir){
         bug("panel_setopendir");
 }
 
-t_symbol *panel_getopendir(t_elsefile *f){
+t_symbol *elsefile_panel_getopendir(t_elsefile *f){
     return(f->f_currentdir);
 }
 
-void panel_save(t_elsefile *f, t_symbol *inidir, t_symbol *inifile){
+void elsefile_panel_save(t_elsefile *f, t_symbol *inidir, t_symbol *inifile){
     if((f = f->f_savepanel)){
         if(inidir)
             f->f_inidir = inidir;
@@ -402,12 +393,12 @@ void panel_save(t_elsefile *f, t_symbol *inidir, t_symbol *inifile){
     }
 }
 
-void panel_setsavedir(t_elsefile *f, t_symbol *dir){
+void elsefile_panel_setsavedir(t_elsefile *f, t_symbol *dir){
     if((f = f->f_savepanel))
-        panel_setopendir(f, dir);
+        elsefile_panel_setopendir(f, dir);
 }
 
-t_symbol *panel_getsavedir(t_elsefile *f){
+t_symbol *elsefile_panel_getsavedir(t_elsefile *f){
     return(f->f_savepanel ? f->f_savepanel->f_currentdir : 0);
 }
 
@@ -474,7 +465,7 @@ t_elsefile *elsefile_new(t_pd *master, t_elsefilefn readfn, t_elsefilefn writefn
         pd_bind((t_pd *)result, result->f_bindname);
         result->f_currentdir = result->f_inidir = canvas_getdir(result->f_canvas);
         result->f_panelfn = readfn;
-        result->f_panelclock = clock_new(result, (t_method)panel_tick);
+        result->f_panelclock = clock_new(result, (t_method)elsefile_panel_tick);
         f = (t_elsefile *)pd_new(elsefile_class);
         f->f_master = master;
         f->f_canvas = result->f_canvas;
@@ -483,7 +474,7 @@ t_elsefile *elsefile_new(t_pd *master, t_elsefilefn readfn, t_elsefilefn writefn
         pd_bind((t_pd *)f, f->f_bindname);
         f->f_currentdir = f->f_inidir = result->f_currentdir;
         f->f_panelfn = writefn;
-        f->f_panelclock = clock_new(f, (t_method)panel_tick);
+        f->f_panelclock = clock_new(f, (t_method)elsefile_panel_tick);
         result->f_savepanel = f;
     }
     else
@@ -495,8 +486,8 @@ void elsefile_setup(void){
     if(!elsefile_class){
         ps__C = gensym("#C");
         elsefile_class = class_new(gensym("_elsefile"), 0, 0,sizeof(t_elsefile), CLASS_PD | CLASS_NOINLET, 0);
-        class_addsymbol(elsefile_class, panel_symbol);
-        class_addmethod(elsefile_class, (t_method)panel_path,gensym("path"), A_SYMBOL, A_DEFSYM, 0);
+        class_addsymbol(elsefile_class, elsefile_panel_symbol);
+        class_addmethod(elsefile_class, (t_method)elsefile_panel_path,gensym("path"), A_SYMBOL, A_DEFSYM, 0);
         panel_guidefs();
     }
 }

@@ -527,14 +527,14 @@ static void sfont_readhook(t_pd *z, t_symbol *fn, int ac, t_atom *av){
 }
 
 static void sfont_click(t_sfont *x){
-    panel_click_open(x->x_elsefilehandle);
+    elsefile_panel_click_open(x->x_elsefilehandle);
 }
 
 static void sfont_open(t_sfont *x, t_symbol *s){
     if(s && s != &s_)
         fluid_do_load(x, s);
     else
-        panel_click_open(x->x_elsefilehandle);
+        elsefile_panel_click_open(x->x_elsefilehandle);
 }
 
 t_int *sfont_perform(t_int *w){

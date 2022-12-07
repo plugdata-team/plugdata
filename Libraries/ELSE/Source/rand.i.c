@@ -24,6 +24,10 @@ static void randi_bang(t_randi *x){
         min = max;
         max = temp;
     }
+    if(min < 0)
+        min -= 1;
+    if(max < 0)
+        max -= 1;
     int range = max - min;
     int random = min;
     if(range){

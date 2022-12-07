@@ -103,12 +103,6 @@ static t_complex complex_div(t_complex in1, t_complex in2)
     return (t_complex){real,imag};
  }
 
-static t_complex complex_add(t_complex in1, t_complex in2) {
-    double real = creal(in1) + creal(in2);
-    double imag = cimag(in1) + cimag(in2);
-    return (t_complex){real,imag};
-}
-
 static t_complex complex_subtract(t_complex in1, t_complex in2) {
     double real = creal(in1) - creal(in2);
     double imag = cimag(in1) - cimag(in2);

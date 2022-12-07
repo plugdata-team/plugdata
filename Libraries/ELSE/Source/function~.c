@@ -1,7 +1,7 @@
 // porres 2018
 
 #include <m_pd.h>
-#include "math.h"
+#include "buffer.h"
 
 #define MAX_SIZE  4096
 
@@ -19,32 +19,6 @@ typedef struct _function{
 }t_function;
 
 static t_class *function_class;
-
-static t_sample function_interpolate(t_function* x, t_sample f){
-    float point_m1 = x->x_points[x->x_point-1];
-    float point = x->x_points[x->x_point];
-    float dif = point - point_m1;
-    float dur = x->x_durations[x->x_point];
-    float dur_m1 = x->x_durations[x->x_point-1];
-    float frac = (f-dur_m1)/(dur-dur_m1);
-    float power = x->x_at_exp[x->x_point-1].a_w.w_float;
-    if(fabs(power) == 1) // linear
-        return(point_m1 + frac * dif);
-    else{
-        if(power >= 0){ // positive exponential
-            if(point_m1 < point) // ascending
-                return(point_m1 + pow(frac, power) * dif);
-            else // descending` (invert)
-                return(point_m1 + (1-pow(1-frac, power)) * dif);
-        }
-        else{
-            if(point_m1 < point) // ascending
-                return(point_m1 + (1-pow(1-frac, -power)) * dif);
-            else // descending` (invert)
-                return(point_m1 + pow(frac, -power) * dif);
-        }
-    }
-}
     
 static t_int *functionsig_perform(t_int *w){
 	t_function *x = (t_function *)(w[1]);
@@ -62,8 +36,13 @@ static t_int *functionsig_perform(t_int *w){
             x->x_point++;
         if(x->x_point == 0 || f >= x->x_durations[x->x_last_point])
             val = x->x_points[x->x_point];
-        else
-            val = function_interpolate(x, f);
+        else{
+            float b = x->x_points[x->x_point-1], c = x->x_points[x->x_point];
+            float dur_m1 = x->x_durations[x->x_point-1], dur = x->x_durations[x->x_point];
+            float frac = (f-dur_m1)/(dur-dur_m1);
+            float power = x->x_at_exp[x->x_point-1].a_w.w_float;
+            val = interp_pow(frac, b, c, power);
+        }
         *out++ = val;
     }
     return(w+5);
