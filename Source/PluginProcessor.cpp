@@ -178,6 +178,9 @@ PlugDataAudioProcessor::PlugDataAudioProcessor()
     logMessage("Libraries:");
     logMessage(else_version);
     logMessage(cyclone_version);
+    
+    midiOutputs.add(MidiOutput::createNewDevice("From plugdata 1"))->startBackgroundThread();
+    midiOutputs.add(MidiOutput::createNewDevice("From plugdata 2"))->startBackgroundThread();
 }
 
 PlugDataAudioProcessor::~PlugDataAudioProcessor()
@@ -580,6 +583,14 @@ void PlugDataAudioProcessor::processBlock(AudioBuffer<float>& buffer, MidiBuffer
 
     buffer.applyGain(getParameters()[0]->getValue());
     statusbarSource.processBlock(buffer, midiBufferCopy, midiMessages, totalNumOutputChannels);
+
+#if PLUGDATA_STANDALONE
+    for(auto* midiOutput : midiOutputs) {
+        midiOutput->sendBlockOfMessages (midiMessages,
+                                         Time::getMillisecondCounterHiRes(),
+                                         AudioProcessor::getSampleRate());
+    }
+#endif
 }
 
 void PlugDataAudioProcessor::process(dsp::AudioBlock<float> buffer, MidiBuffer& midiMessages)

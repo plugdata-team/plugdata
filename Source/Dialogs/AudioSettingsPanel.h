@@ -122,14 +122,16 @@ static void drawTextLayout (Graphics& g, Component& owner, StringRef text, const
 
 
 //==============================================================================
-class MidiInputSelectorComponentListBox  : public ListBox,
+class MidiSelectorComponentListBox  : public ListBox,
 private ListBoxModel
 {
 public:
-    MidiInputSelectorComponentListBox (AudioDeviceManager& dm, const String& noItems)
+    MidiSelectorComponentListBox (bool input, PlugDataAudioProcessor& processor, AudioDeviceManager& dm, const String& noItems)
     : ListBox ({}, nullptr),
     deviceManager (dm),
-    noItemsMessage (noItems)
+    noItemsMessage (noItems),
+    isInput(input),
+    audioProcessor(processor)
     {
         updateDevices();
         setModel (this);
@@ -138,7 +140,7 @@ public:
     
     void updateDevices()
     {
-        items = MidiInput::getAvailableDevices();
+        items = isInput ? MidiInput::getAvailableDevices() : MidiOutput::getAvailableDevices();
     }
     
     int getNumRows() override
@@ -155,7 +157,8 @@ public:
                            .withMultipliedAlpha (0.3f));
             
             auto item = items[row];
-            bool enabled = deviceManager.isMidiInputDeviceEnabled (item.identifier);
+            
+            bool enabled = isInput ? deviceManager.isMidiInputDeviceEnabled(item.identifier) : (getEnabledMidiOutputWithID(item.identifier) != nullptr);
             
             auto x = getTickX();
             auto tickW = (float) height * 0.75f;
@@ -211,15 +214,48 @@ public:
 private:
     //==============================================================================
     AudioDeviceManager& deviceManager;
+    PlugDataAudioProcessor& audioProcessor;
     const String noItemsMessage;
     Array<MidiDeviceInfo> items;
+    bool isInput;
+    
+    MidiOutput* getEnabledMidiOutputWithID(String identifier) {
+        for(auto* midiOut : audioProcessor.midiOutputs)
+        {
+            if(midiOut->getIdentifier() == identifier)
+            {
+                return midiOut;
+            }
+        }
+        
+        return nullptr;
+    }
     
     void flipEnablement (const int row)
     {
         if (isPositiveAndBelow (row, items.size()))
         {
             auto identifier = items[row].identifier;
-            deviceManager.setMidiInputDeviceEnabled (identifier, ! deviceManager.isMidiInputDeviceEnabled (identifier));
+            
+            if(isInput) {
+                deviceManager.setMidiInputDeviceEnabled (identifier, ! deviceManager.isMidiInputDeviceEnabled (identifier));
+                updateContent();
+            }
+            else {
+                if(auto* midiOut = getEnabledMidiOutputWithID(identifier))
+                {
+                    audioProcessor.midiOutputs.removeObject(midiOut);
+                    updateContent();
+                    return;
+                }
+                else {
+                    auto* device = audioProcessor.midiOutputs.add(MidiOutput::openDevice(identifier));
+                    
+                    device->startBackgroundThread();
+                    updateContent();
+                }
+            }
+
         }
     }
     
@@ -228,7 +264,7 @@ private:
         return getRowHeight();
     }
     
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MidiInputSelectorComponentListBox)
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MidiSelectorComponentListBox)
 };
 
 
@@ -244,49 +280,14 @@ struct AudioDeviceSetupDetails
 static String getNoDeviceString()   { return "<< " + TRANS("none") + " >>"; }
 
 
-class StandaloneAudioSettings : public Component, private ChangeListener
+class StandaloneAudioSettingsComponent : public Component, private ChangeListener
 {
 public:
-    //==============================================================================
-    /** Creates the component.
-     
-     If your app needs only output channels, you might ask for a maximum of 0 input
-     channels, and the component won't display any options for choosing the input
-     channels. And likewise if you're doing an input-only app.
-     
-     @param deviceManager            the device manager that this component should control
-     @param minAudioInputChannels    the minimum number of audio input channels that the application needs
-     @param maxAudioInputChannels    the maximum number of audio input channels that the application needs
-     @param minAudioOutputChannels   the minimum number of audio output channels that the application needs
-     @param maxAudioOutputChannels   the maximum number of audio output channels that the application needs
-     @param showMidiInputOptions     if true, the component will allow the user to select which midi inputs are enabled
-     @param showMidiOutputSelector   if true, the component will let the user choose a default midi output device
-     @param showChannelsAsStereoPairs    if true, channels will be treated as pairs; if false, channels will be
-     treated as a set of separate mono channels.
-     @param hideAdvancedOptionsWithButton    if true, only the minimum amount of UI components
-     are shown, with an "advanced" button that shows the rest of them
-     */
-    StandaloneAudioSettings (AudioDeviceManager& dm,
-                                  int minInputChannelsToUse,
-                                  int maxInputChannelsToUse,
-                                  int minOutputChannelsToUse,
-                                  int maxOutputChannelsToUse,
-                                  bool showMidiInputOptions,
-                                  bool showMidiOutputSelector,
-                                  bool showChannelsAsStereoPairsToUse,
-                                  bool hideAdvancedOptionsWithButtonToUse)
+
+    StandaloneAudioSettingsComponent (PlugDataAudioProcessor& audioProcessor, AudioDeviceManager& dm)
     : deviceManager (dm),
-    itemHeight (24),
-    minOutputChannels (minOutputChannelsToUse),
-    maxOutputChannels (maxOutputChannelsToUse),
-    minInputChannels (minInputChannelsToUse),
-    maxInputChannels (maxInputChannelsToUse),
-    showChannelsAsStereoPairs (showChannelsAsStereoPairsToUse),
-    hideAdvancedOptionsWithButton (hideAdvancedOptionsWithButtonToUse)
-    {
-        jassert (minOutputChannels >= 0 && minOutputChannels <= maxOutputChannels);
-        jassert (minInputChannels >= 0 && minInputChannels <= maxInputChannels);
-        
+    itemHeight (24)
+    {        
         const OwnedArray<AudioIODeviceType>& types = deviceManager.getAvailableDeviceTypes();
         
         if (types.size() > 1)
@@ -304,50 +305,36 @@ public:
             deviceTypeDropDownLabel->attachToComponent (deviceTypeDropDown.get(), true);
         }
         
-        if (showMidiInputOptions)
-        {
-            midiInputsList.reset (new MidiInputSelectorComponentListBox (deviceManager,
-                                                                         "(" + TRANS("No MIDI inputs available") + ")"));
-            addAndMakeVisible (midiInputsList.get());
-            
-            midiInputsLabel.reset (new Label ({}, TRANS ("Active MIDI inputs:")));
-            midiInputsLabel->setJustificationType (Justification::topRight);
-            midiInputsLabel->attachToComponent (midiInputsList.get(), true);
-            
-            if (BluetoothMidiDevicePairingDialogue::isAvailable())
-            {
-                bluetoothButton.reset (new TextButton (TRANS("Bluetooth MIDI"), TRANS("Scan for bluetooth MIDI devices")));
-                addAndMakeVisible (bluetoothButton.get());
-                bluetoothButton->onClick = [this] { handleBluetoothButton(); };
-            }
-        }
-        else
-        {
-            midiInputsList.reset();
-            midiInputsLabel.reset();
-            bluetoothButton.reset();
-        }
+
+        midiInputsList.reset (new MidiSelectorComponentListBox (true, audioProcessor, deviceManager,
+                                                                     "(" + TRANS("No MIDI inputs available") + ")"));
+        addAndMakeVisible (midiInputsList.get());
         
-        if (showMidiOutputSelector)
+        midiInputsLabel.reset (new Label ({}, TRANS ("MIDI inputs:")));
+        midiInputsLabel->setJustificationType (Justification::topRight);
+        midiInputsLabel->attachToComponent (midiInputsList.get(), true);
+        
+        // Temporarily disable this, it causes a crash at the moment
+        if (false && BluetoothMidiDevicePairingDialogue::isAvailable())
         {
-            midiOutputSelector.reset (new ComboBox());
-            addAndMakeVisible (midiOutputSelector.get());
-            midiOutputSelector->onChange = [this] { updateMidiOutput(); };
-            
-            midiOutputLabel.reset (new Label ("lm", TRANS("MIDI Output:")));
-            midiOutputLabel->attachToComponent (midiOutputSelector.get(), true);
+            bluetoothButton.reset (new TextButton (TRANS("Bluetooth MIDI"), TRANS("Scan for bluetooth MIDI devices")));
+            addAndMakeVisible (bluetoothButton.get());
+            bluetoothButton->onClick = [this] { handleBluetoothButton(); };
         }
-        else
-        {
-            midiOutputSelector.reset();
-            midiOutputLabel.reset();
-        }
+
+        midiOutputsList.reset (new MidiSelectorComponentListBox (false, audioProcessor, deviceManager,
+                                                                    "(" + TRANS("No MIDI outputs available") + ")"));
+        addAndMakeVisible (midiOutputsList.get());
+
+        midiOutputLabel.reset (new Label ("lm", TRANS("MIDI Outputs:")));
+        midiOutputLabel->attachToComponent (midiOutputsList.get(), true);
+
         
         deviceManager.addChangeListener (this);
         updateAllControls();
     }
     /** Destructor */
-    ~StandaloneAudioSettings() override
+    ~StandaloneAudioSettingsComponent() override
     {
         deviceManager.removeChangeListener (this);
     }
@@ -395,8 +382,7 @@ public:
         if (midiInputsList != nullptr)
         {
             midiInputsList->setRowHeight (jmin (22, itemHeight));
-            midiInputsList->setBounds (r.removeFromTop (midiInputsList->getBestHeight (jmin (itemHeight * 8,
-                                                                                             getHeight() - r.getY() - space - itemHeight))));
+            midiInputsList->setBounds (r.removeFromTop (midiInputsList->getBestHeight (jmin (itemHeight * 8, getHeight() - r.getY() - space - itemHeight))));
             r.removeFromTop (space);
         }
         
@@ -406,10 +392,13 @@ public:
             r.removeFromTop (space);
         }
         
-        if (midiOutputSelector != nullptr)
-            midiOutputSelector->setBounds (r.removeFromTop (itemHeight));
+
+        
+        if (midiOutputsList != nullptr)
+            midiOutputsList->setBounds(r.removeFromTop(midiOutputsList->getBestHeight (jmin (itemHeight * 8, getHeight() - r.getY() - space - itemHeight))));
         
         r.removeFromTop (itemHeight);
+        r.removeFromTop (500);
         setSize (getWidth(), r.getY());
     }
     
@@ -433,15 +422,7 @@ private:
             updateAllControls(); // needed in case the type hasn't actually changed
         }
     }
-    void updateMidiOutput()
-    {
-        auto selectedId = midiOutputSelector->getSelectedId();
-        
-        if (selectedId == -1)
-            deviceManager.setDefaultMidiOutputDevice ({});
-        else
-            deviceManager.setDefaultMidiOutputDevice (currentMidiOutputs[selectedId - 1].identifier);
-    }
+
     
     void changeListenerCallback (ChangeBroadcaster*) override
     {
@@ -464,48 +445,26 @@ private:
             {
                 AudioDeviceSetupDetails details;
                 details.manager = &deviceManager;
-                details.minNumInputChannels = minInputChannels;
-                details.maxNumInputChannels = maxInputChannels;
-                details.minNumOutputChannels = minOutputChannels;
-                details.maxNumOutputChannels = maxOutputChannels;
-                details.useStereoPairs = showChannelsAsStereoPairs;
+                details.minNumInputChannels = 0;
+                details.maxNumInputChannels = 16;
+                details.minNumOutputChannels = 0;
+                details.maxNumOutputChannels = 16;
+                details.useStereoPairs = false;
                 
-                auto* sp = new AudioDeviceSettingsPanel (*type, details, hideAdvancedOptionsWithButton);
+                auto* sp = new AudioDeviceSettingsPanel (*type, details);
                 audioDeviceSettingsComp.reset (sp);
                 addAndMakeVisible (sp);
                 sp->updateAllControls();
             }
         }
         
-        if (midiInputsList != nullptr)
-        {
-            midiInputsList->updateDevices();
-            midiInputsList->updateContent();
-            midiInputsList->repaint();
-        }
+        midiInputsList->updateDevices();
+        midiInputsList->updateContent();
+        midiInputsList->repaint();
         
-        if (midiOutputSelector != nullptr)
-        {
-            midiOutputSelector->clear();
-            
-            currentMidiOutputs = MidiOutput::getAvailableDevices();
-            
-            midiOutputSelector->addItem (getNoDeviceString(), -1);
-            midiOutputSelector->addSeparator();
-            
-            auto defaultOutputIdentifier = deviceManager.getDefaultMidiOutputIdentifier();
-            int i = 0;
-            
-            for (auto& out : currentMidiOutputs)
-            {
-                midiOutputSelector->addItem (out.name, i + 1);
-                
-                if (defaultOutputIdentifier.isNotEmpty() && out.identifier == defaultOutputIdentifier)
-                    midiOutputSelector->setSelectedId (i + 1);
-                
-                ++i;
-            }
-        }
+        midiOutputsList->updateDevices();
+        midiOutputsList->updateContent();
+        midiOutputsList->repaint();
         
         resized();
     }
@@ -515,34 +474,23 @@ private:
     std::unique_ptr<Component> audioDeviceSettingsComp;
     String audioDeviceSettingsCompType;
     int itemHeight = 0;
-    const int minOutputChannels, maxOutputChannels, minInputChannels, maxInputChannels;
-    const bool showChannelsAsStereoPairs;
-    const bool hideAdvancedOptionsWithButton;
     
     Array<MidiDeviceInfo> currentMidiOutputs;
-    std::unique_ptr<MidiInputSelectorComponentListBox> midiInputsList;
-    std::unique_ptr<ComboBox> midiOutputSelector;
+    std::unique_ptr<MidiSelectorComponentListBox> midiInputsList;
+    std::unique_ptr<MidiSelectorComponentListBox> midiOutputsList;
     std::unique_ptr<Label> midiInputsLabel, midiOutputLabel;
     std::unique_ptr<TextButton> bluetoothButton;
     
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (StandaloneAudioSettings)
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (StandaloneAudioSettingsComponent)
     
     //==============================================================================
     class AudioDeviceSettingsPanel : public Component,
     private ChangeListener
     {
     public:
-        AudioDeviceSettingsPanel (AudioIODeviceType& t, AudioDeviceSetupDetails& setupDetails,
-                                  const bool hideAdvancedOptionsWithButton)
+        AudioDeviceSettingsPanel (AudioIODeviceType& t, AudioDeviceSetupDetails& setupDetails)
         : type (t), setup (setupDetails)
         {
-            if (hideAdvancedOptionsWithButton)
-            {
-                showAdvancedSettingsButton.reset (new TextButton (TRANS("Show advanced settings...")));
-                addAndMakeVisible (showAdvancedSettingsButton.get());
-                showAdvancedSettingsButton->setClickingTogglesState (true);
-                showAdvancedSettingsButton->onClick = [this] { toggleAdvancedSettings(); };
-            }
             
             type.scanForDevices();
             
@@ -556,7 +504,7 @@ private:
         
         void resized() override
         {
-            if (auto* parent = findParentComponentOfClass<StandaloneAudioSettings>())
+            if (auto* parent = findParentComponentOfClass<StandaloneAudioSettingsComponent>())
             {
                 Rectangle<int> r (proportionOfWidth (0.35f), 0, proportionOfWidth (0.6f), 3000);
                 
@@ -1289,4 +1237,28 @@ private:
         
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (AudioDeviceSettingsPanel)
     };
+};
+
+class StandaloneAudioSettings : public Viewport
+{
+public:
+    
+    StandaloneAudioSettingsComponent* child;
+    
+    StandaloneAudioSettings (PlugDataAudioProcessor& processor, AudioDeviceManager& dm)
+    {
+        child = new StandaloneAudioSettingsComponent(processor, dm);
+        setViewedComponent(child, true);
+        child->setVisible(true);
+        
+        setScrollBarsShown(true, false);
+    }
+    
+    void resized() {
+        
+        Viewport::resized();
+        
+        child->setSize(getMaximumVisibleWidth(), child->getHeight());
+    }
+    
 };

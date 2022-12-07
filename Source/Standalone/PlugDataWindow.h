@@ -276,12 +276,15 @@ public:
     AudioProcessorPlayer player;
     Array<PluginInOuts> channelConfiguration;
     
+
+    
     // avoid feedback loop by default
     bool processorHasPotentialFeedbackLoop = true;
     std::atomic<bool> muteInput { true };
     Value shouldMuteInput;
     AudioBuffer<float> emptyBuffer;
     bool autoOpenMidiDevices;
+    
     
     std::unique_ptr<AudioDeviceManager::AudioDeviceSetup> options;
     Array<MidiDeviceInfo> lastMidiDevices;
@@ -402,12 +405,10 @@ private:
         emptyBuffer.clear();
         
         player.audioDeviceAboutToStart(device);
-        player.setMidiOutput(deviceManager.getDefaultMidiOutput());
     }
     
     void audioDeviceStopped() override
     {
-        player.setMidiOutput(nullptr);
         player.audioDeviceStopped();
         emptyBuffer.setSize(0, 0);
     }
@@ -416,6 +417,11 @@ private:
     {
         deviceManager.addAudioCallback(&maxSizeEnforcer);
         deviceManager.addMidiInputDeviceCallback({}, &player);
+        
+        
+        
+        customInputs.add(MidiInput::createNewDevice("To plugdata 1", &player));
+        customInputs.add(MidiInput::createNewDevice("To plugdata 2", &player));
         
         reloadAudioDeviceState(enableAudioInput, preferredDefaultDeviceName, preferredSetupOptions);
     }
@@ -444,6 +450,8 @@ private:
             lastMidiDevices = newMidiDevices;
         }
     }
+    
+    OwnedArray<MidiInput> customInputs;
     
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(StandalonePluginHolder)
 };
