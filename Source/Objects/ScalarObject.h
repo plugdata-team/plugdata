@@ -154,9 +154,6 @@ struct DrawableCurve final : public DrawableTemplate, public DrawablePath {
         };
     }
 
-    ~DrawableCurve() {
-    }
-
     void handleMouseDown(const MouseEvent& e)
     {
         if (!getLocalBounds().contains(e.getPosition()) || !isLocked || !canvas->isShowing())
