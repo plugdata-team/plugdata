@@ -9,6 +9,8 @@
 struct NumberObject final : public IEMObject {
     
     DraggableNumber input;
+    
+    float preFocusValue;
 
     NumberObject(void* obj, Object* parent)
         : IEMObject(obj, parent), input(false)
@@ -95,11 +97,17 @@ struct NumberObject final : public IEMObject {
 
     void focusGained(FocusChangeType cause) override
     {
+        preFocusValue = getValueOriginal();
         repaint();
     }
 
     void focusLost(FocusChangeType cause) override
     {
+        auto inputValue = input.getText().getFloatValue();
+        if(inputValue != preFocusValue)
+        {
+            setValueOriginal(inputValue);
+        }
         repaint();
     }
 
