@@ -288,33 +288,6 @@ struct ToolchainInstaller : public Component, public Thread, public Timer
         
 
 #if JUCE_LINUX
-
-            auto [distroName, distroBackupName, distroVersion] = getDistroID();
-
-            String packageInstallCommand;
-            String packageUpdateCommand;
-            if(distroName == "ubuntu" || distroName == "debian" || distroBackupName == "ubuntu" || distroBackupName == "debian") {
-                packageInstallCommand = "apt install";
-                packageUpdateCommand = "apt update";
-            }
-            else if(distroName == "fedora" || distroName == "mageia") {
-                packageInstallCommand = "dnf install"
-                packageUpdateCommand = "";
-            }
-            else if(distroName == "arch" || distroBackupName == "arch") {
-                packageInstallCommand = "pacman -S";
-                packageUpdateCommand = "pacman -Sy";
-            }
-            else if(distroName == "opensuse-leap" || distroBackupName.contains("suse")) {
-                packageInstallCommand = "zypper install";
-                packageUpdateCommand = "zypper update";
-            }
-            // If we're not sure, just try apt and pray
-            else {
-                packageInstallCommand = "apt install";
-                packageUpdateCommand = "apt update";
-            }
-
         // Add udev rule for the daisy seed
         // This makes sure we can use dfu-util without admin privileges
         // Kinda sucks that we need to sudo this, but there's no other way AFAIK
@@ -329,7 +302,11 @@ struct ToolchainInstaller : public Component, public Thread, public Timer
         MessageManager::callAsync([this, usbDriverInstaller, driverSpec]() mutable {
             runAsAdmin(usbDriverInstaller.getFullPathName().toStdString(), ("install --inf=" + driverSpec.getFullPathName()).toStdString(), editor->getPeer()->getNativeHandle());
         });
-
+        
+#elif JUCE_MAC
+        
+        system("xcode-select --install");
+        
 #endif
         installProgress = 0.0f;
         stopTimer();

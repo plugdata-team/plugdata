@@ -31,6 +31,11 @@ struct WelcomePanel : public Component
         {
             auto* lnf = dynamic_cast<PlugDataLook*>(&getLookAndFeel());
             
+            if(isMouseOver()) {
+                g.setColour(findColour(PlugDataColour::panelActiveBackgroundColourId));
+                g.fillRoundedRectangle(1, 1, getWidth() - 2, getHeight() - 2, 6.0f);
+            }
+            
             g.setColour(findColour(PlugDataColour::canvasTextColourId));
             
             g.setFont(lnf->iconFont.withHeight(24));
@@ -41,10 +46,6 @@ struct WelcomePanel : public Component
             
             g.setFont(lnf->thinFont.withHeight(14));
             g.drawText(bottomText, 60, 25, getWidth() - 60, 16, Justification::centredLeft);
-            
-            if(isMouseOver()) {
-                g.drawRoundedRectangle(1, 1, getWidth() - 2, getHeight() - 2, 4.0f, 0.5f);
-            }
         }
         
         void mouseUp(const MouseEvent& e)
