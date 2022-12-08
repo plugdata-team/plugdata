@@ -221,20 +221,20 @@ static void changePos(t_canvas* cnv, t_gobj* obj, int pos)
 
 void ObjectBase::moveToFront()
 {
-    auto glist_getindex = [](t_glist* x, t_gobj* y) {
-        t_gobj* y2;
-        int indx;
-        for (y2 = x->gl_list, indx = 0; y2 && y2 != y; y2 = y2->g_next)
-            indx++;
-        return (indx);
-    };
-    
     auto* canvas = static_cast<t_canvas*>(cnv->patch.getPointer());
     
+    t_gobj* y2 = canvas->gl_list;
+    int idx = -1;
+    while(y2 != nullptr)
+    {
+        y2 = y2->g_next;
+        idx++;
+    }
+    
+    if(idx < 0) return;
+    
     t_gobj* y = static_cast<t_gobj*>(ptr);
-    
-    int idx = glist_getindex(canvas, 0) - 1;
-    
+        
     changePos(canvas, y, idx);
 }
 
