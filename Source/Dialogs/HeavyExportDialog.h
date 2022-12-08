@@ -1118,13 +1118,13 @@ public:
             String command = "make -j4 -f " + makefile.getFullPathName();
             std::system(command.toRawUTF8());
 #elif JUCE_WINDOWS
-            auto cc = "CC=" + toolchain.getChildFile("bin").getChildChildFile("gcc.exe").getFullPathName() + " ";
-            auto cxx = "CXX=" + toolchain.getChildFile("bin").getChildChildFile("g++.exe").getFullPathName() + " ";
+            auto cc = "CC=" + toolchain.getChildFile("bin").getChildFile("gcc.exe").getFullPathName() + " ";
+            auto cxx = "CXX=" + toolchain.getChildFile("bin").getChildFile("g++.exe").getFullPathName() + " ";
             String command = cc + cxx + make.getFullPathName() + " -j4 -f " + makefile.getFullPathName();
             std::system(command.toRawUTF8());
 #else // Linux or BSD
-            auto cc = "CC=" + toolchain.getChildFile("bin").getChildChildFile("gcc").getFullPathName() + " ";
-            auto cxx = "CXX=" + toolchain.getChildFile("bin").getChildChildFile("g++").getFullPathName() + " ";
+            auto cc = "CC=" + toolchain.getChildFile("bin").getChildFile("gcc").getFullPathName() + " ";
+            auto cxx = "CXX=" + toolchain.getChildFile("bin").getChildFile("g++").getFullPathName() + " ";
             String command = cc + cxx + make.getFullPathName() + " -j4 -f " + makefile.getFullPathName();
             std::system(command.toRawUTF8());
 #endif
@@ -1137,11 +1137,11 @@ public:
             workingDir.setAsCurrentWorkingDirectory();
             
             // Copy output
-            if(lv2) outputFile.getChildFile("bin").getChildFile(name + ".lv2").copyDirectoryTo(outputFile);
-            if(vst2) outputFile.getChildFile("bin").getChildFile(name + ".vst").copyDirectoryTo(outputFile);
-            if(vst3) outputFile.getChildFile("bin").getChildFile(name + ".vst3").copyDirectoryTo(outputFile);
-            if(clap) outputFile.getChildFile("bin").getChildFile(name + ".clap").copyDirectoryTo(outputFile);
-            if(jack) outputFile.getChildFile("bin").getChildFile(name).moveFileTo(outputFile);
+            if(lv2) outputFile.getChildFile("bin").getChildFile(name + ".lv2").copyDirectoryTo(outputFile.getChildFile(name + ".lv2"));
+            if(vst2) outputFile.getChildFile("bin").getChildFile(name + ".vst").copyDirectoryTo(outputFile.getChildFile(name + ".vst"));
+            if(vst3) outputFile.getChildFile("bin").getChildFile(name + ".vst3").copyDirectoryTo(outputFile.getChildFile(name + ".vst3"));
+            if(clap) outputFile.getChildFile("bin").getChildFile(name + ".clap").copyDirectoryTo(outputFile.getChildFile(name + ".clap"));
+            if(jack) outputFile.getChildFile("bin").getChildFile(name).moveFileTo(outputFile.getChildFile(name));
             
             // Clean up
             outputFile.getChildFile("DPF").deleteRecursively();
