@@ -61,6 +61,9 @@ class Canvas : public Component, public Value::Listener, public LassoSource<Weak
     
     void encapsulateSelection();
     
+    bool canConnectSelectedObjects();
+    bool connectSelectedObjects();
+    
     void cancelConnectionCreation();
 
     void undo();

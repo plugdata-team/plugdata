@@ -35,6 +35,7 @@ enum CommandIDs
     Delete,
     Duplicate,
     Encapsulate,
+    CreateConnection,
     SelectAll,
     ShowBrowser,
     Search,
