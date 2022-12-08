@@ -74,7 +74,8 @@ class PlugDataAudioProcessor : public AudioProcessor, public pd::Instance, publi
     void updateConsole() override;
 
     void synchroniseCanvas(void* cnv) override;
-
+    void synchroniseAll() override;
+    
     void process(dsp::AudioBlock<float>, MidiBuffer&);
 
     void setCallbackLock(const CriticalSection* lock)

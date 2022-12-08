@@ -192,6 +192,8 @@ PlugDataAudioProcessor::~PlugDataAudioProcessor()
     saveSettings();
 }
 
+
+
 void PlugDataAudioProcessor::initialiseFilesystem()
 {
     // Check if the abstractions directory exists, if not, unzip it from binaryData
@@ -1370,6 +1372,17 @@ void PlugDataAudioProcessor::updateConsole()
     if (auto* editor = dynamic_cast<PlugDataPluginEditor*>(getActiveEditor()))
     {
         editor->sidebar.updateConsole();
+    }
+}
+
+void PlugDataAudioProcessor::synchroniseAll()
+{
+    if (auto* editor = dynamic_cast<PlugDataPluginEditor*>(getActiveEditor()))
+    {
+        for (auto* canvas : editor->canvases)
+        {
+            canvas->synchronise(true);
+        }
     }
 }
 

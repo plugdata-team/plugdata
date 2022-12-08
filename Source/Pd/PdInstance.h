@@ -391,6 +391,8 @@ public:
     virtual Colour getBackgroundColour() = 0;
     virtual Colour getTextColour() = 0;
     virtual Colour getOutlineColour() = 0;
+    
+    virtual void synchroniseAll() = 0;
 
     void setThis();
 

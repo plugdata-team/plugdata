@@ -403,14 +403,16 @@ void Canvas::mouseDown(MouseEvent const& e)
             if (auto* target = dynamic_cast<Object*> (p)) parents.add(target);
         }
         
+        auto* originalComponent = e.originalComponent;
+        
         // Get top-level parent object... A bit clumsy but otherwise it will open subpatchers deeper down the chain
-        if (parents.size() && !hasSelection)  {
+        if (parents.size() && originalComponent != this)  {
             object = parents.getLast();
             hasSelection = true;
         }
         
         
-        auto* originalComponent = e.originalComponent;
+
         auto params = object && object->gui ? object->gui->getParameters() : ObjectParameters();
         bool canBeOpened = object && object->gui && object->gui->canOpenFromMenu();
 

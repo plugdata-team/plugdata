@@ -45,6 +45,7 @@ extern void glist_deselectline(t_glist* x);
 extern void canvas_savedeclarationsto(t_canvas* x, t_binbuf* b);
 extern void canvas_doaddtemplate(t_symbol* templatesym,
     int* p_ntemplates, t_symbol*** p_templatevec);
+extern void canvas_reload(t_symbol *name, t_symbol *dir, t_glist *except);
 
 static void canvas_addtemplatesforscalar(t_symbol* templatesym,
     t_word* w, int* p_ntemplates, t_symbol*** p_templatevec)
@@ -555,9 +556,7 @@ void libpd_savetofile(t_canvas* cnv, t_symbol* filename, t_symbol* dir)
         post("saved to: %s/%s", dir->s_name, filename->s_name);
         canvas_dirty(cnv, 0);
 
-        // The reason we're copying this instead of calling it is this:
-        // canvas_reload causes redrawing in pd, but is can also disconnect a patch from a pointer which is not good!
-        // canvas_reload(filename, dir, x);
+        canvas_reload(filename, dir, cnv);
     }
     binbuf_free(b);
 }
