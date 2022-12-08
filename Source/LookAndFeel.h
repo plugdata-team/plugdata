@@ -14,7 +14,7 @@ struct Constants
     inline static const float windowCornerRadius = 7.5f;
     inline static const float defaultCornerRadius = 6.0f;
     inline static const float smallCornerRadius = 4.0f;
-    inline static const float objectCornerRadius = 3.0f;
+    inline static const float objectCornerRadius = 2.75f;
 };
 
 #include "Utility/StackShadow.h"
@@ -801,9 +801,6 @@ struct PlugDataLook : public LookAndFeel_V4
         g.setColour(slider.findColour(PlugDataColour::levelMeterThumbColourId));
         
         g.fillRoundedRectangle(Rectangle<float>(static_cast<float>(thumbWidth), static_cast<float>(22)).withCentre(maxPoint), 2.0f);
-        
-        g.setColour(findColour(PlugDataColour::levelMeterTrackColourId));
-        g.drawRoundedRectangle(Rectangle<float>(static_cast<float>(thumbWidth), static_cast<float>(22)).withCentre(maxPoint), 2.0f, 0.5f);
     }
     
     void drawPropertyPanelSectionHeader(Graphics& g, const String& name, bool isOpen, int width, int height) override
