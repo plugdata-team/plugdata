@@ -100,7 +100,8 @@ void Patch::savePatch(File const& location)
     auto* dir = gensym(fullPathname.toRawUTF8());
     auto* file = gensym(filename.toRawUTF8());
     libpd_savetofile(getPointer(), file, dir);
-
+    instance->synchroniseAll();
+    
     setTitle(filename);
 
     canvas_dirty(getPointer(), 0);
@@ -116,7 +117,8 @@ void Patch::savePatch()
     auto* file = gensym(filename.toRawUTF8());
 
     libpd_savetofile(getPointer(), file, dir);
-
+    instance->synchroniseAll();
+    
     setTitle(filename);
 
     canvas_dirty(getPointer(), 0);
