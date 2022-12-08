@@ -388,11 +388,11 @@ void Canvas::mouseDown(MouseEvent const& e)
         Object* object = nullptr;
         if(auto* obj = dynamic_cast<Object*>(e.originalComponent)) {
             object = obj;
-            deselectAll();
+            setSelected(object, true);
         }
         else if(auto* obj = e.originalComponent->findParentComponentOfClass<Object>()) {
             object = obj;
-            deselectAll();
+            setSelected(object, true);
         }
         else if (hasSelection && !multiple)  {
             object = selectedBoxes.getFirst();
@@ -453,8 +453,8 @@ void Canvas::mouseDown(MouseEvent const& e)
                     if (object->gui) object->gui->moveToFront();
                     synchronise();
                     break;
-                case 9:  // To Front
-                    object->toFront(false);
+                case 9:  // To Back
+                    object->toBack();
                     if (object->gui) object->gui->moveToBack();
                     synchronise();
                     break;

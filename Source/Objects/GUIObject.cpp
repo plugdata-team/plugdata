@@ -172,6 +172,53 @@ void ObjectBase::openSubpatch()
     newCanvas->checkBounds();
 }
 
+static void changePos(t_canvas* cnv, t_gobj* obj, int pos)
+{
+    assert(cnv != 0 && obj != 0 && pos >= 0);
+    
+    auto *root = cnv->gl_list;
+    auto* link = root;
+    t_gobj* prev = nullptr;
+    int count = 0;
+    
+    while (link != nullptr && link != obj)
+    {
+        prev = link;
+        link = link->g_next;
+        count++;
+    }
+    
+    if (link == 0)      // Name not found - no swap!
+        return;
+    if (count == pos)   // Already in target position - no swap
+        return;
+    if (count == 0)     // Moving first item; update root
+    {
+        assert(link == root);
+        obj = root->g_next;
+        root = obj;
+    }
+    else
+    {
+        assert(prev != 0);
+        prev->g_next = link->g_next;
+    }
+    // link is detached; now where does it go?
+    if (pos == 0)       // Move to start; update root
+    {
+        link->g_next = root;
+        obj = link;
+        return;
+    }
+    
+    auto *node = root;
+    for (int i = 0; i < pos - 1 && node->g_next != 0; i++)
+        node = node->g_next;
+    
+    link->g_next = node->g_next;
+    node->g_next = link;
+}
+
 void ObjectBase::moveToFront()
 {
     auto glist_getindex = [](t_glist* x, t_gobj* y) {
@@ -181,92 +228,26 @@ void ObjectBase::moveToFront()
             indx++;
         return (indx);
     };
-
-    auto glist_nth = [](t_glist* x, int n) -> t_gobj* {
-        t_gobj* y;
-        int indx;
-        for (y = x->gl_list, indx = 0; y; y = y->g_next, indx++)
-            if (indx == n)
-                return (y);
-
-        jassertfalse;
-        return nullptr;
-    };
-
+    
     auto* canvas = static_cast<t_canvas*>(cnv->patch.getPointer());
+    
     t_gobj* y = static_cast<t_gobj*>(ptr);
-
-    t_gobj *y_prev = nullptr, *y_next = nullptr;
-
-    /* if there is an object before ours (in other words our index is > 0) */
-    if (int idx = glist_getindex(canvas, y))
-        y_prev = glist_nth(canvas, idx - 1);
-
-    /* if there is an object after ours */
-    if (y->g_next)
-        y_next = y->g_next;
-
-    t_gobj* y_end = glist_nth(canvas, glist_getindex(canvas, 0) - 1);
-
-    y_end->g_next = y;
-    y->g_next = NULL;
-
-    /* now fix links in the hole made in the list due to moving of the oldy
-     * (we know there is oldy_next as y_end != oldy in canvas_done_popup)
-     */
-    if (y_prev) /* there is indeed more before the oldy position */
-        y_prev->g_next = y_next;
-    else
-        canvas->gl_list = y_next;
+    
+    int idx = glist_getindex(canvas, 0) - 1;
+    
+    changePos(canvas, y, idx);
 }
 
 void ObjectBase::moveToBack()
 {
-    auto glist_getindex = [](t_glist* x, t_gobj* y) {
-        t_gobj* y2;
-        int indx;
-        for (y2 = x->gl_list, indx = 0; y2 && y2 != y; y2 = y2->g_next)
-            indx++;
-        return (indx);
-    };
-
-    auto glist_nth = [](t_glist* x, int n) -> t_gobj* {
-        t_gobj* y;
-        int indx;
-        for (y = x->gl_list, indx = 0; y; y = y->g_next, indx++)
-            if (indx == n)
-                return (y);
-
-        jassertfalse;
-        return nullptr;
-    };
-
     auto* canvas = static_cast<t_canvas*>(cnv->patch.getPointer());
     t_gobj* y = static_cast<t_gobj*>(ptr);
-
-    t_gobj *y_prev = nullptr, *y_next = nullptr;
-
-    /* if there is an object before ours (in other words our index is > 0) */
-    if (int idx = glist_getindex(canvas, y))
-        y_prev = glist_nth(canvas, idx - 1);
-
-    /* if there is an object after ours */
-    if (y->g_next)
-        y_next = y->g_next;
-
-    t_gobj* y_start = canvas->gl_list;
-
-    canvas->gl_list = y;
-    y->g_next = y_start;
     
-    /* now fix links in the hole made in the list due to moving of the oldy
-     * (we know there is oldy_next as y_end != oldy in canvas_done_popup)
-     */
-    if (y_prev) /* there is indeed more before the oldy position */
-        y_prev->g_next = y_next;
-    else
-        canvas->gl_list = y_next;
+    auto idx = pd::Storage::isInfoParent(canvas->gl_list);
+    
+    changePos(canvas, y, idx);
 }
+
 
 void ObjectBase::paint(Graphics& g)
 {
