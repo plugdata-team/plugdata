@@ -1046,6 +1046,38 @@ void Canvas::encapsulateSelection()
     patch.deselectAll();
 }
 
+bool Canvas::canConnectSelectedObjects()
+{
+    auto selection = getSelectionOfType<Object>();
+    bool rightSize = selection.size() == 2;
+    
+    if(!rightSize) return false;
+    
+    Object* topObject = selection[0]->getY() > selection[1]->getY() ? selection[1] : selection[0];
+    Object* bottom = selection[0] == topObject ? selection[1] : selection[0];
+    bool hasInlet = topObject->numInputs > 0;
+    bool hasOutlet = topObject->numOutputs > 0;
+    
+    return hasInlet && hasOutlet;
+}
+
+bool Canvas::connectSelectedObjects()
+{
+    auto selection = getSelectionOfType<Object>();
+    bool rightSize = selection.size() == 2;
+    
+    if(!rightSize) return false;
+
+    Object* topObject = selection[0]->getY() > selection[1]->getY() ? selection[1] : selection[0];
+    Object* bottomObject = selection[0] == topObject ? selection[1] : selection[0];
+    
+    patch.createConnection(topObject->getPointer(), 0, bottomObject->getPointer(), 0);
+    
+    synchronise();
+    
+    return true;
+}
+
 
 void Canvas::cancelConnectionCreation() {
     if (!connectingEdges.isEmpty()) {

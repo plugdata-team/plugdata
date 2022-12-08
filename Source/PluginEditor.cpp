@@ -808,8 +808,9 @@ void PlugDataPluginEditor::getCommandInfo(const CommandID commandID, Application
     bool hasBoxSelection = false;
     bool hasSelection = false;
     bool isDragging = false;
-    bool hasCanvas = true;
+    bool hasCanvas = false;
     bool locked = true;
+    bool canConnect = false;
     
     if (auto* cnv = getCurrentCanvas())
     {
@@ -819,11 +820,10 @@ void PlugDataPluginEditor::getCommandInfo(const CommandID commandID, Application
         hasBoxSelection = !selectedBoxes.isEmpty();
         hasSelection = hasBoxSelection || !selectedConnections.isEmpty();
         isDragging = cnv->didStartDragging && !cnv->isDraggingLasso && statusbar.locked == var(false);
+        hasCanvas = true;
         
         locked = static_cast<bool>(cnv->locked.getValue());
-    }
-    else {
-        hasCanvas = false;
+        canConnect = cnv->canConnectSelectedObjects();
     }
 
     switch (commandID)
@@ -960,6 +960,13 @@ void PlugDataPluginEditor::getCommandInfo(const CommandID commandID, Application
             result.setInfo("Duplicate", "Duplicate selection", "Edit", 0);
             result.addDefaultKeypress(68, ModifierKeys::commandModifier);
             result.setActive(hasCanvas && !isDragging && !locked && hasBoxSelection);
+            break;
+        }
+        case CommandIDs::CreateConnection:
+        {
+            result.setInfo("Create connection", "Create a connection between selected objects", "General", 0);
+            result.addDefaultKeypress(75, ModifierKeys::commandModifier);
+            result.setActive(canConnect);
             break;
         }
         case CommandIDs::SelectAll:
@@ -1255,6 +1262,10 @@ bool PlugDataPluginEditor::perform(const InvocationInfo& info)
         {
             cnv->encapsulateSelection();
             return true;
+        }
+        case CommandIDs::CreateConnection:
+        {
+            return cnv->connectSelectedObjects();
         }
         case CommandIDs::SelectAll:
         {
