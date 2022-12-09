@@ -1118,11 +1118,12 @@ public:
             String command = "make -j4 -f " + makefile.getFullPathName();
             start(command.toRawUTF8());
 #elif JUCE_WINDOWS
+            auto path = "PATH=$PATH;" + toolchain.getChildFile("bin").getFullPathName().replaceCharacter('\\', '/') + " ";
             auto cc = "CC=" + toolchain.getChildFile("bin").getChildFile("gcc.exe").getFullPathName().replaceCharacter('\\', '/') + " ";
             auto cxx = "CXX=" + toolchain.getChildFile("bin").getChildFile("g++.exe").getFullPathName().replaceCharacter('\\', '/') + " ";
 
             auto buildScript = outputFile.getChildFile("build.sh");
-            buildScript.replaceWithText(cc + cxx + make.getFullPathName().replaceCharacter('\\', '/') + " -j4 -f " + makefile.getFullPathName().replaceCharacter('\\', '/'));
+            buildScript.replaceWithText(path + cc + cxx + make.getFullPathName().replaceCharacter('\\', '/') + " -j4 -f " + makefile.getFullPathName().replaceCharacter('\\', '/'));
 
             auto sh = toolchain.getChildFile("bin").getChildFile("sh.exe");
             String command = sh.getFullPathName() + " --login " + buildScript.getFullPathName().replaceCharacter('\\', '/');
