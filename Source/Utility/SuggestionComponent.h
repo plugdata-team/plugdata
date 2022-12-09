@@ -194,6 +194,20 @@ public:
         
         auto scale = std::sqrt(std::abs(getTransform().getDeterminant()));
         auto objectPos = object->getScreenPosition() / scale;
+        
+#if JUCE_MAC
+        auto hostType = PluginHostType();
+        if(hostType.isLogic() || hostType.isGarageBand() || hostType.isMainStage())
+        {
+            objectPos = objectPos.translated(0, 20);
+        }
+        else {
+            objectPos = objectPos.translated(0, 15);
+        }
+#else
+        objectPos = objectPos.translated(0, 15);
+#endif
+        
         setTopLeftPosition(objectPos.translated(0, 15));
         
         setVisible(false);
