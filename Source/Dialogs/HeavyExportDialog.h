@@ -1149,9 +1149,9 @@ public:
             if(lv2) outputFile.getChildFile("bin").getChildFile(name + ".lv2").copyDirectoryTo(outputFile.getChildFile(name + ".lv2"));
             if(vst3) outputFile.getChildFile("bin").getChildFile(name + ".vst3").copyDirectoryTo(outputFile.getChildFile(name + ".vst3"));
 #if JUCE_WINDOWS
-            if(vst2) outputFile.getChildFile("bin").getChildFile(name + ".vst").copyDirectoryTo(outputFile.getChildFile(name + "-vst.dll"));
+            if(vst2) outputFile.getChildFile("bin").getChildFile(name + "-vst.dll").moveFileTo(outputFile.getChildFile(name + "-vst.dll"));
 #else
-            if(vst2) outputFile.getChildFile("bin").getChildFile(name + ".vst").moveFileTo(outputFile.getChildFile(name + ".vst"));
+            if(vst2) outputFile.getChildFile("bin").getChildFile(name + ".vst").copyDirectoryTo(outputFile.getChildFile(name + ".vst"));
 #endif
             if(clap) outputFile.getChildFile("bin").getChildFile(name + ".clap").moveFileTo(outputFile.getChildFile(name + ".clap"));
             if(jack) outputFile.getChildFile("bin").getChildFile(name).moveFileTo(outputFile.getChildFile(name));
