@@ -143,7 +143,6 @@ class PlugDataPluginEditor : public AudioProcessorEditor, public Value::Listener
     Canvas* getCurrentCanvas();
     Canvas* getCanvas(int idx);
     
-
     void modifierKeysChanged(const ModifierKeys& modifiers) override;
 
     void valueChanged(Value& v) override;

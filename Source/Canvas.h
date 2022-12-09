@@ -112,7 +112,6 @@ class Canvas : public Component, public Value::Listener, public LassoSource<Weak
     Array<SafePointer<Iolet>> connectingEdges;
     SafePointer<Iolet> nearestEdge;
 
-
     pd::Patch& patch;
 
     // Needs to be allocated before object and connection so they can deselect themselves in the destructor
@@ -125,7 +124,6 @@ class Canvas : public Component, public Value::Listener, public LassoSource<Weak
     Value commandLocked;
     Value presentationMode;
     Value gridEnabled = Value(var(true));
-
     
     bool isGraph = false;
     bool hasParentCanvas = false;
