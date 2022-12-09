@@ -1118,7 +1118,7 @@ public:
             String command = "make -j4 -f " + makefile.getFullPathName();
             start(command.toRawUTF8());
 #elif JUCE_WINDOWS
-            auto path = "PATH=$PATH;" + toolchain.getChildFile("bin").getFullPathName().replaceCharacter('\\', '/') + " ";
+            auto path = "export PATH=$PATH;" + toolchain.getChildFile("bin").getFullPathName().replaceCharacter('\\', '/') + " ";
             auto cc = "CC=" + toolchain.getChildFile("bin").getChildFile("gcc.exe").getFullPathName().replaceCharacter('\\', '/') + " ";
             auto cxx = "CXX=" + toolchain.getChildFile("bin").getChildFile("g++.exe").getFullPathName().replaceCharacter('\\', '/') + " ";
 
