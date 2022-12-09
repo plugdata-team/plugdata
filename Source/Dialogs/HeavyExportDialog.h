@@ -469,8 +469,6 @@ public:
 
 struct ExporterSettingsPanel : public Component, public Value::Listener, public Timer, public ChildProcess, public ThreadPool
 {
-    inline static File toolchain = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory).getChildFile("plugdata").getChildFile("Toolchain");
-
     TextButton exportButton = TextButton("Export");
 
     Value inputPatchValue;
@@ -483,7 +481,13 @@ struct ExporterSettingsPanel : public Component, public Value::Listener, public 
     const inline static String exeSuffix = "";
 #endif
 
-    inline static File heavyExecutable = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory).getChildFile("plugdata").getChildFile("Toolchain").getChildFile("bin").getChildFile("Heavy").getChildFile("Heavy" + exeSuffix);
+    #if JUCE_WINDOWS
+    inline static File toolchain = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory).getChildFile("plugdata").getChildFile("Toolchain").getChildFile("usr");
+#else
+    inline static File toolchain = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory).getChildFile("plugdata").getChildFile("Toolchain");
+#endif
+    
+    inline static File heavyExecutable = toolchain.getChildFile("bin").getChildFile("Heavy").getChildFile("Heavy" + exeSuffix);
 
     bool validPatchSelected = false;
 
@@ -1143,14 +1147,13 @@ public:
             
             // Copy output
             if(lv2) outputFile.getChildFile("bin").getChildFile(name + ".lv2").copyDirectoryTo(outputFile.getChildFile(name + ".lv2"));
-            
+            if(vst3) outputFile.getChildFile("bin").getChildFile(name + ".vst3").copyDirectoryTo(outputFile.getChildFile(name + ".vst3"));
 #if JUCE_WINDOWS
             if(vst2) outputFile.getChildFile("bin").getChildFile(name + ".vst").copyDirectoryTo(outputFile.getChildFile(name + "-vst.dll"));
 #else
-            if(vst2) outputFile.getChildFile("bin").getChildFile(name + ".vst").copyDirectoryTo(outputFile.getChildFile(name + ".vst"));
+            if(vst2) outputFile.getChildFile("bin").getChildFile(name + ".vst").moveFileTo(outputFile.getChildFile(name + ".vst"));
 #endif
-            if(vst3) outputFile.getChildFile("bin").getChildFile(name + ".vst3").copyDirectoryTo(outputFile.getChildFile(name + ".vst3"));
-            if(clap) outputFile.getChildFile("bin").getChildFile(name + ".clap").copyDirectoryTo(outputFile.getChildFile(name + ".clap"));
+            if(clap) outputFile.getChildFile("bin").getChildFile(name + ".clap").moveFileTo(outputFile.getChildFile(name + ".clap"));
             if(jack) outputFile.getChildFile("bin").getChildFile(name).moveFileTo(outputFile.getChildFile(name));
             
             // Clean up
