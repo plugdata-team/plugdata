@@ -189,13 +189,16 @@ public:
                 editor->grabKeyboardFocus();
             };
         }
-
+        
         addToDesktop(ComponentPeer::windowIsTemporary | ComponentPeer::windowIgnoresKeyPresses);
+        
+        auto scale = std::sqrt(std::abs(getTransform().getDeterminant()));
+        auto objectPos = object->getScreenPosition() / scale;
+        setTopLeftPosition(objectPos.translated(0, 15));
+        
         setVisible(false);
         toFront(false);
 
-        auto scale = std::sqrt(std::abs(getTransform().getDeterminant()));
-        setTopLeftPosition((object->getScreenX() / scale) - 15, (object->getScreenBounds().getBottom() / scale) - 15);
         repaint();
     }
 
@@ -204,6 +207,7 @@ public:
         if (isOnDesktop()) {
             removeFromDesktop();
         }
+
 
         if (openedEditor) {
             openedEditor->setInputFilter(nullptr, false);
@@ -282,6 +286,14 @@ private:
         
     void paint(Graphics& g) override
     {
+        
+#if !PLUGDATA_STANDALONE
+        if(PluginHostType::isLogic() || PluginHostType::isGarageBand() || PluginHostType::isMainStage())
+        {
+            g.fillAll(findColour(PlugDataColours::canvasBackgroundColourId));
+        }
+#endif
+        
         auto shadowPath = Path();
         shadowPath.addRoundedRectangle(getLocalBounds().reduced(20), Constants::defaultCornerRadius);
         StackShadow::renderDropShadow(g, shadowPath, Colour(0, 0, 0).withAlpha(0.6f), 12.0f);

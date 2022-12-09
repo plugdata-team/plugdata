@@ -75,7 +75,6 @@ class Object : public Component, public Value::Listener, public Timer, private T
     Value commandLocked;
     Value presentationMode;
 
-
     Canvas* cnv;
 
     std::unique_ptr<ObjectBase> gui = nullptr;

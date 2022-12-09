@@ -1120,8 +1120,15 @@ public:
 #elif JUCE_WINDOWS
             auto cc = "CC=" + toolchain.getChildFile("bin").getChildFile("gcc.exe").getFullPathName() + " ";
             auto cxx = "CXX=" + toolchain.getChildFile("bin").getChildFile("g++.exe").getFullPathName() + " ";
-            String command = cc + cxx + make.getFullPathName() + " -j4 -f " + makefile.getFullPathName();
+
+            auto buildScript = outputFile.getChildFile("build.sh");
+            buildScript.replaceWithText(cc + cxx + make.getFullPathName() + " -j4 -f " + makefile.getFullPathName());
+
+            auto sh = toolchain.getChildFile("bin").getChildFile("sh.exe");
+            String command = sh.getFullPathName() + " --login " + buildScript.getFullPathName().replaceCharacter('\\', '/');
+            
             std::system(command.toRawUTF8());
+            
 #else // Linux or BSD
             auto cc = "CC=" + toolchain.getChildFile("bin").getChildFile("gcc").getFullPathName() + " ";
             auto cxx = "CXX=" + toolchain.getChildFile("bin").getChildFile("g++").getFullPathName() + " ";
