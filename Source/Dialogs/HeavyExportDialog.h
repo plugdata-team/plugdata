@@ -1118,12 +1118,14 @@ public:
             String command = "make -j4 -f " + makefile.getFullPathName();
             start(command.toRawUTF8());
 #elif JUCE_WINDOWS
-            auto path = "export PATH=$PATH;" + toolchain.getChildFile("bin").getFullPathName().replaceCharacter('\\', '/') + " ";
+            auto bash = String("#!/bin/bash\n");
+            auto changedir = String("cd \"$(dirname \"$0\")\"\n");
+            auto path = "export PATH=\"$PATH:" + toolchain.getChildFile("bin").getFullPathName().replaceCharacter('\\', '/') + "\"\n";
             auto cc = "CC=" + toolchain.getChildFile("bin").getChildFile("gcc.exe").getFullPathName().replaceCharacter('\\', '/') + " ";
             auto cxx = "CXX=" + toolchain.getChildFile("bin").getChildFile("g++.exe").getFullPathName().replaceCharacter('\\', '/') + " ";
 
             auto buildScript = outputFile.getChildFile("build.sh");
-            buildScript.replaceWithText(path + cc + cxx + make.getFullPathName().replaceCharacter('\\', '/') + " -j4 -f " + makefile.getFullPathName().replaceCharacter('\\', '/'));
+            buildScript.replaceWithText(bash + changedir + path + cc + cxx + make.getFullPathName().replaceCharacter('\\', '/') + " -j4 -f " + makefile.getFullPathName().replaceCharacter('\\', '/'));
 
             auto sh = toolchain.getChildFile("bin").getChildFile("sh.exe");
             String command = sh.getFullPathName() + " --login " + buildScript.getFullPathName().replaceCharacter('\\', '/');
@@ -1157,12 +1159,13 @@ public:
             if(jack) outputFile.getChildFile("bin").getChildFile(name).moveFileTo(outputFile.getChildFile(name));
             
             // Clean up
+            /*
             outputFile.getChildFile("DPF").deleteRecursively();
             outputFile.getChildFile("build").deleteRecursively();
             outputFile.getChildFile("plugin").deleteRecursively();
             outputFile.getChildFile("bin").deleteRecursively();
             outputFile.getChildFile("README.md").deleteFile();
-            outputFile.getChildFile("Makefile").deleteFile();
+            outputFile.getChildFile("Makefile").deleteFile(); */
             
 
         }
@@ -1290,11 +1293,16 @@ struct HeavyExportDialog : public Component
     ToolchainInstaller installer;
     ExporterPanel exporterPanel;
 
+#if JUCE_WINDOWS
+    inline static File toolchain = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory).getChildFile("plugdata").getChildFile("Toolchain").getChildFile("usr");
+#else
     inline static File toolchain = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory).getChildFile("plugdata").getChildFile("Toolchain");
-
+#endif
+    
     HeavyExportDialog(Dialog* dialog) : exporterPanel(dynamic_cast<PlugDataPluginEditor*>(dialog->parentComponent), &exportingView), installer(dynamic_cast<PlugDataPluginEditor*>(dialog->parentComponent)) {
 
         hasToolchain = toolchain.exists();
+        
 
         // Create integer versions by removing the dots
         // Compare latest version on github to the currently installed version
