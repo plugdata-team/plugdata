@@ -1304,8 +1304,11 @@ struct HeavyExportDialog : public Component
 
         // Create integer versions by removing the dots
         // Compare latest version on github to the currently installed version
-        auto latestVersion = URL("https://raw.githubusercontent.com/timothyschoen/HeavyDistributable/main/VERSION").readEntireTextStream().trim().removeCharacters(".").getIntValue();
-        auto installedVersion = toolchain.getChildFile("VERSION").loadFileAsString().trim().removeCharacters(".").getIntValue();
+        const auto latestVersion = URL("https://raw.githubusercontent.com/timothyschoen/HeavyDistributable/main/VERSION").readEntireTextStream().trim().removeCharacters(".").getIntValue();
+        
+        // Don't do this relative to toolchain variable, that won't work on Windows
+        const auto versionFle = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory).getChildFile("plugdata").getChildFile("Toolchain").getChildFile("VERSION");
+        const auto installedVersion = versionFle.loadFileAsString().trim().removeCharacters(".").getIntValue();
 
         if(hasToolchain && latestVersion > installedVersion) {
             installer.needsUpdate = true;
