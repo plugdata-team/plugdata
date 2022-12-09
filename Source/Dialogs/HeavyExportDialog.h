@@ -1118,11 +1118,11 @@ public:
             String command = "make -j4 -f " + makefile.getFullPathName();
             std::system(command.toRawUTF8());
 #elif JUCE_WINDOWS
-            auto cc = "CC=" + toolchain.getChildFile("bin").getChildFile("gcc.exe").getFullPathName() + " ";
-            auto cxx = "CXX=" + toolchain.getChildFile("bin").getChildFile("g++.exe").getFullPathName() + " ";
+            auto cc = "CC=" + toolchain.getChildFile("bin").getChildFile("gcc.exe").getFullPathName().replaceCharacter('\\', '/') + " ";
+            auto cxx = "CXX=" + toolchain.getChildFile("bin").getChildFile("g++.exe").getFullPathName().replaceCharacter('\\', '/') + " ";
 
             auto buildScript = outputFile.getChildFile("build.sh");
-            buildScript.replaceWithText(cc + cxx + make.getFullPathName() + " -j4 -f " + makefile.getFullPathName());
+            buildScript.replaceWithText(cc + cxx + make.getFullPathName().replaceCharacter('\\', '/') + " -j4 -f " + makefile.getFullPathName().replaceCharacter('\\', '/'));
 
             auto sh = toolchain.getChildFile("bin").getChildFile("sh.exe");
             String command = sh.getFullPathName() + " --login " + buildScript.getFullPathName().replaceCharacter('\\', '/');
