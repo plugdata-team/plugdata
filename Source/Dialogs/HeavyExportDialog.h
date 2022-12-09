@@ -1307,8 +1307,8 @@ struct HeavyExportDialog : public Component
         const auto latestVersion = URL("https://raw.githubusercontent.com/timothyschoen/HeavyDistributable/main/VERSION").readEntireTextStream().trim().removeCharacters(".").getIntValue();
         
         // Don't do this relative to toolchain variable, that won't work on Windows
-        const auto versionFle = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory).getChildFile("plugdata").getChildFile("Toolchain").getChildFile("VERSION");
-        const auto installedVersion = versionFle.loadFileAsString().trim().removeCharacters(".").getIntValue();
+        const auto versionFile = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory).getChildFile("plugdata").getChildFile("Toolchain").getChildFile("VERSION");
+        const auto installedVersion = versionFile.loadFileAsString().trim().removeCharacters(".").getIntValue();
 
         if(hasToolchain && latestVersion > installedVersion) {
             installer.needsUpdate = true;
