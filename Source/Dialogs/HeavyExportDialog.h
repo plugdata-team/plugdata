@@ -291,9 +291,8 @@ struct ToolchainInstaller : public Component, public Thread, public Timer
         // Make sure downloaded files have executable permission on unix
 #if JUCE_MAC || JUCE_LINUX || JUCE_BSD
         std::system(("chmod +x " + toolchain.getFullPathName() + "/bin/Heavy/Heavy").toRawUTF8());
-        std::system(("chmod +x " + toolchain.getFullPathName() + "/bin/make").toRawUTF8());
-        std::system(("chmod +x " + toolchain.getFullPathName() + "/bin/dfu-util").toRawUTF8());
-        std::system(("chmod +x " + toolchain.getFullPathName() + "/bin/arm-none-eabi-*").toRawUTF8());
+        std::system(("chmod +x " + toolchain.getFullPathName() + "/bin/*").toRawUTF8());
+        std::system(("chmod +x " + toolchain.getFullPathName() + "/lib/dpf/utils/generate-ttl.sh").toRawUTF8());
         std::system(("chmod +x " + toolchain.getFullPathName() + "/arm-none-eabi/bin/*").toRawUTF8());
         std::system(("chmod +x " + toolchain.getFullPathName() + "/libexec/gcc/arm-none-eabi/*/*").toRawUTF8());
 #elif JUCE_WINDOWS
@@ -1095,8 +1094,8 @@ public:
         outputFile.getChildFile("hv").deleteRecursively();
         outputFile.getChildFile("c").deleteRecursively();
 
-        auto DPF = toolchain.getChildFile("lib").getChildFile("DPF");
-        DPF.copyDirectoryTo(outputFile.getChildFile("DPF"));
+        auto DPF = toolchain.getChildFile("lib").getChildFile("dpf");
+        DPF.copyDirectoryTo(outputFile.getChildFile("dpf"));
         
         // Delay to get correct exit code
         Time::waitForMillisecondCounter(Time::getMillisecondCounter() + 300);
@@ -1158,7 +1157,7 @@ public:
             
             // Clean up
             /*
-            outputFile.getChildFile("DPF").deleteRecursively();
+            outputFile.getChildFile("dpf").deleteRecursively();
             outputFile.getChildFile("build").deleteRecursively();
             outputFile.getChildFile("plugin").deleteRecursively();
             outputFile.getChildFile("bin").deleteRecursively();
