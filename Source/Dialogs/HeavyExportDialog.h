@@ -737,14 +737,9 @@ public:
 
         args.add("-v");
 
-        String searchPathArg = "-p\"[";
         for(auto& path : searchPaths) {
-            searchPathArg += path + ", ";
+            args.add("-p" + path);
         }
-        searchPathArg.trimCharactersAtEnd(", ");
-        searchPathArg += "]";
-
-        args.add(searchPathArg);
 
         if(shouldQuit) return 1;
 
@@ -843,6 +838,10 @@ public:
 
         args.add("-v");
         args.add("-gdaisy");
+
+        for(auto& path : searchPaths) {
+            args.add("-p" + path);
+        }
 
         start(args);
         waitForProcessToFinish(-1);
@@ -1076,13 +1075,9 @@ public:
         args.add("-v");
         args.add("-gdpf");
 
-        String searchPathArg = "-p ";
         for(auto& path : searchPaths) {
-            searchPathArg += path + " ";
+            args.add("-p" + path);
         }
-        searchPathArg.trimCharactersAtEnd(" ");
-
-        args.add(searchPathArg);
 
         if(shouldQuit) return 1;
 
