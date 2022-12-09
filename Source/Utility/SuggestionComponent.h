@@ -288,9 +288,11 @@ private:
     {
         
 #if !PLUGDATA_STANDALONE
-        if(PluginHostType::isLogic() || PluginHostType::isGarageBand() || PluginHostType::isMainStage())
+        
+        auto hostType = PluginHostType();
+        if(hostType.isLogic() || hostType.isGarageBand() || hostType.isMainStage())
         {
-            g.fillAll(findColour(PlugDataColours::canvasBackgroundColourId));
+            g.fillAll(findColour(PlugDataColour::canvasBackgroundColourId));
         }
 #endif
         
