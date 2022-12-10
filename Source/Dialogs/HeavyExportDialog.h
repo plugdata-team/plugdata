@@ -1112,7 +1112,6 @@ public:
             auto makefile = outputFile.getChildFile("Makefile");
             
 #if JUCE_MAC
-            // TODO: this works but is extremely slow!
             String command = "make -j4 -f " + makefile.getFullPathName();
             start(command.toRawUTF8());
 #elif JUCE_WINDOWS
@@ -1131,10 +1130,13 @@ public:
             start(command.toRawUTF8());
             
 #else // Linux or BSD
-            auto cc = "CC=" + toolchain.getChildFile("bin").getChildFile("gcc").getFullPathName() + " ";
-            auto cxx = "CXX=" + toolchain.getChildFile("bin").getChildFile("g++").getFullPathName() + " ";
-            String command = cc + cxx + make.getFullPathName() + " -j4 -f " + makefile.getFullPathName();
-            start(command.toRawUTF8());
+            auto bash = String("#!/bin/bash\n");
+            auto prepareEnvironmentScript = toolchain.getChildFile("scripts").getChildFile("anywhere-setup.sh").getFullPathName(); + "\n";
+            
+            auto buildScript = outputFile.getChildFile("build.sh");
+            buildScript.replaceWithText(bash + changedir + prepareEnvironmentScript + make.getFullPathName() + " -j4 -f " + makefile.getFullPathName();
+                
+            start(buildScript.getFullPathName());
 #endif
             
             waitForProcessToFinish(-1);
