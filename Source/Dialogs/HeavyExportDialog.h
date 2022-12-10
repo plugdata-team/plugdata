@@ -669,7 +669,7 @@ public:
 
     String createMetaJson(DynamicObject::Ptr metaJson) {
         auto metadata = File::createTempFile(".json");
-        static String metaString = JSON::toString (var (metaJson.get()));
+        String metaString = JSON::toString (var (metaJson.get()));
         metadata.replaceWithText(metaString, false, false, "\n");
         return metadata.getFullPathName();
     }
@@ -795,7 +795,6 @@ public:
         metaJson->setProperty("daisy", metaDaisy);
 
         args.add("-m" + createMetaJson(metaJson));
-        metaJson->clear();
         
         args.add("-v");
         args.add("-gdaisy");
@@ -1033,7 +1032,6 @@ public:
         metaJson->setProperty("dpf", metaDPF);
 
         args.add("-m" + createMetaJson(metaJson));
-        metaJson->clear();
         
         args.add("-v");
         args.add("-gdpf");
