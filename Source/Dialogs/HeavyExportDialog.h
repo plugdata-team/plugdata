@@ -232,11 +232,21 @@ struct ToolchainInstaller : public Component, public Thread, public Timer
         
         auto permissionsScriptFile = File::createTempFile(".sh");
         
-        auto permissionsScript = "chmod +x " + toolchain.getFullPathName() + "/bin/Heavy/Heavy" +
-        "chmod +x " + toolchain.getFullPathName() + "/bin/*" +
-        "chmod +x " + toolchain.getFullPathName() + "/lib/dpf/utils/generate-ttl.sh" +
-        "chmod +x " + toolchain.getFullPathName() + "/arm-none-eabi/bin/*" +
-        "chmod +x " + toolchain.getFullPathName() + "/libexec/gcc/arm-none-eabi/*/*";
+        auto tcPath = toolchain.getFullPathName();
+        
+        
+        auto permissionsScript =  String("#!/bin/bash\n")
+        +"\nchmod +x " + tcPath + "/bin/Heavy/Heavy"
+        +"\nchmod +x " + tcPath + "/bin/*"
+        +"\nchmod +x " + tcPath + "/lib/dpf/utils/generate-ttl.sh"
+        +"\nchmod +x " + tcPath + "/arm-none-eabi/bin/*"
+        +"\nchmod +x " + tcPath + "/libexec/gcc/arm-none-eabi/*/*"
+#if JUCE_LINUX
+        +"\nchmod +x " + tcPath + "/x86_64-anywhere-linux-gnu/bin/*"
+        +"\nchmod +x " + tcPath + "/x86_64-anywhere-linux-gnu/sysroot/sbin/*"
+        +"\nchmod +x " + tcPath + "/x86_64-anywhere-linux-gnu/sysroot/usr/bin/*"
+#endif
+        ;
         
         permissionsScriptFile.replaceWithText(permissionsScript);
         
