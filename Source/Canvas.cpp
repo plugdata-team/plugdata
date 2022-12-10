@@ -410,8 +410,6 @@ void Canvas::mouseDown(MouseEvent const& e)
             object = parents.getLast();
             hasSelection = true;
         }
-        
-        
 
         auto params = object && object->gui ? object->gui->getParameters() : ObjectParameters();
         bool canBeOpened = object && object->gui && object->gui->canOpenFromMenu();

@@ -81,36 +81,6 @@ struct ToolchainInstaller : public Component, public Thread, public Timer
         repaint();
     }
 
-#if JUCE_LINUX
-    std::tuple<String, String, String> getDistroID()
-    {
-        ChildProcess catProcess;
-        catProcess.start({"cat", "/etc/os-release"});
-
-        auto ret = catProcess.readAllProcessOutput();
-
-        auto items = StringArray::fromLines(String(ret));
-
-        String name;
-        String idLike;
-        String version;
-
-        for(auto& item : items) {
-            if(item.startsWith("ID=")) {
-                name = item.fromFirstOccurrenceOf("=", false, false).trim();
-            }
-            else if(item.startsWith("ID_LIKE=")) {
-                idLike = item.fromFirstOccurrenceOf("=", false, false).trim();
-            }
-            else if(item.startsWith("VERSION_ID=")) {
-                version = item.fromFirstOccurrenceOf("=", false, false).trim();
-            }
-        }
-
-        return {name, idLike, version};
-    }
-#endif
-
     ToolchainInstaller(PlugDataPluginEditor* pluginEditor) : Thread("Toolchain Install Thread"), editor(pluginEditor) {
         addAndMakeVisible(&installButton);
 
@@ -133,41 +103,10 @@ struct ToolchainInstaller : public Component, public Thread, public Timer
             downloadLocation += "Heavy-MacOS-Universal.zip";
 #elif JUCE_WINDOWS
             downloadLocation += "Heavy-Win64.zip";
-#elif JUCE_LINUX && __aarch64__
-            downloadLocation += "Heavy-Linux-arm64.zip";
-#else
-
-            auto [distroName, distroBackupName, distroVersion] = getDistroID();
-
-            if(distroName == "fedora" && distroVersion == "36") {
-                downloadLocation += "Heavy-Fedora-36-x64.zip";
-            }
-            else if(distroName == "fedora" && distroVersion == "35") {
-                downloadLocation += "Heavy-Fedora-35-x64.zip";
-            }
-            else if(distroName == "ubuntu" && distroVersion == "22.04") {
-                downloadLocation += "Heavy-Ubuntu-22.04-x64.zip";
-            }
-            else if(distroBackupName == "ubuntu" || distroName == "ubuntu") {
-                downloadLocation += "Heavy-Ubuntu-20.04-x64.zip";
-            }
-            else if(distroName == "arch" || distroBackupName == "arch") {
-                downloadLocation += "Heavy-Arch-x64.zip";
-            }
-            else if(distroName == "debian" || distroBackupName == "debian") {
-                downloadLocation += "Heavy-Debian-x64.zip";
-            }
-            else if(distroName == "opensuse-leap" || distroBackupName.contains("suse")) {
-                downloadLocation += "Heavy-OpenSUSE-Leap-x64.zip";
-            }
-            else if(distroName == "mageia") {
-                downloadLocation += "Heavy-Mageia-x64.zip";
-            }
-            // If we're not sure, just try the debian one and pray
-            else {
-                downloadLocation += "Heavy-Debian-x64.zip";
-            }
+#elif JUCE_LINUX && !__aarch64__
+            downloadLocation += "Heavy-Linux-x64.zip";
 #endif
+
             instream = URL(downloadLocation).createInputStream(URL::InputStreamOptions(URL::ParameterHandling::inAddress)
                                                                .withConnectionTimeoutMs(5000)
                                                                .withStatusCode(&statusCode));
