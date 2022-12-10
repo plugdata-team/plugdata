@@ -7,8 +7,8 @@
 struct t_fake_function
 {
     t_object        x_obj;
-    t_glist*        x_glist;
-    void*           x_proxy;
+    t_glist        *x_glist;
+    t_edit_proxy   *x_proxy;
     int             x_state;
     int             x_n_states;
     int             x_flag;
@@ -18,19 +18,18 @@ struct t_fake_function
     int             x_width;
     int             x_height;
     int             x_init;
-    int             x_numdots;
-    int             x_grabbed;      // for moving points
+    int             x_grabbed; // number of grabbed point, for moving it/deleting it
     int             x_shift;
     int             x_snd_set;
     int             x_rcv_set;
     int             x_zoom;
     int             x_edit;
-    t_symbol*       x_send;
-    t_symbol*       x_receive;
-    t_symbol*       x_snd_raw;
-    t_symbol*       x_rcv_raw;
-    float*          x_points;
-    float*          x_dur;
+    t_symbol       *x_send;
+    t_symbol       *x_receive;
+    t_symbol       *x_snd_raw;
+    t_symbol       *x_rcv_raw;
+    float          *x_points;
+    float          *x_dur;
     float           x_total_duration;
     float           x_min;
     float           x_max;
@@ -40,7 +39,7 @@ struct t_fake_function
     float           x_pointer_y;
     unsigned char   x_fgcolor[3];
     unsigned char   x_bgcolor[3];
-};
+}t_function;
 
 struct FunctionObject final : public GUIObject {
     
@@ -162,7 +161,7 @@ struct FunctionObject final : public GUIObject {
         
         setRange({function->x_min, function->x_max});
         
-        for(int i = 0; i < function->x_numdots; i++) {
+        for(int i = 0; i < function->x_n_states + 1; i++) {
             auto x = function->x_dur[i] / function->x_dur[function->x_n_states];
             auto y = jmap(function->x_points[i], function->x_min, function->x_max, 0.0f, 1.0f);
             points.add({x, y});
@@ -263,7 +262,6 @@ struct FunctionObject final : public GUIObject {
         }
         
         function->x_n_states = points.size() - 1;
-        function->x_numdots = points.size();
         
         dragIdx = -1;
         

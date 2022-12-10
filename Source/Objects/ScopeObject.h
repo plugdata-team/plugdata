@@ -33,7 +33,6 @@ struct t_fake_scope {
     float           x_currx, x_curry;
     int             x_select;
     int             x_width, x_height;
-    int             x_drawstyle;
     int             x_delay;
     int             x_trigmode;
     int             x_bufsize, x_lastbufsize;
