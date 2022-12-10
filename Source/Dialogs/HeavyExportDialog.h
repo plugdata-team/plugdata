@@ -1089,7 +1089,7 @@ public:
 #else // Linux or BSD
             auto bash = String("#!/bin/bash\n");
             auto changedir = String("cd \"$(dirname \"$0\")\"\n");
-            auto prepareEnvironmentScript = toolchain.getChildFile("scripts").getChildFile("anywhere-setup.sh").getFullPathName(); + "\n";
+            auto prepareEnvironmentScript = toolchain.getChildFile("scripts").getChildFile("anywhere-setup.sh").getFullPathName() + "\n";
             
             auto buildScript = outputFile.getChildFile("build.sh");
             buildScript.replaceWithText(bash + changedir + prepareEnvironmentScript + make.getFullPathName() + " -j4 -f " + makefile.getFullPathName(), false, "\n");
