@@ -192,14 +192,12 @@ struct SettingsPopup : public PopupMenu {
         addCustomItem(2, zoomSelector, 70, 30, false);
         addSeparator();
         
-#if PLUGDATA_STANDALONE
         // Toggles hvcc compatibility mode
         bool hvccModeEnabled = settingsTree.hasProperty("HvccMode") ? static_cast<bool>(settingsTree.getProperty("HvccMode")) : false;
         addItem("Compiled mode", true, hvccModeEnabled, [this]() mutable {
             bool ticked = settingsTree.hasProperty("HvccMode") ? static_cast<bool>(settingsTree.getProperty("HvccMode")) : false;
             settingsTree.setProperty("HvccMode", !ticked, nullptr);
         });
-#endif
 
         addItem("Compile", [this, editor]() mutable {
             Dialogs::showHeavyExportDialog(&editor->openedDialog, editor);
