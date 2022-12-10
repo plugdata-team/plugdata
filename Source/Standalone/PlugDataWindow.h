@@ -420,7 +420,7 @@ private:
         
         
 #if !JUCE_WINDOWS
-        if(auto* newIn = MidiInput::createNewDevice("from plugdata", &player).release()) { customMidiInputs.add(newIn);
+        if(auto* newIn = MidiInput::createNewDevice("to plugdata", &player).release()) { customMidiInputs.add(newIn);
         }
 #endif
         reloadAudioDeviceState(enableAudioInput, preferredDefaultDeviceName, preferredSetupOptions);

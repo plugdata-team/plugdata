@@ -7,6 +7,27 @@
 
 #if PLUGDATA_STANDALONE
 
+struct RoundedListBox : public ListBox
+{
+    RoundedListBox(const String& componentName = String(), ListBoxModel* model = nullptr)
+    : ListBox (componentName, model)
+    {
+        setColour(ListBox::backgroundColourId, Colours::transparentBlack);
+    }
+    
+    void paint (Graphics& g) override
+    {
+        g.setColour(findColour(PlugDataColour::toolbarBackgroundColourId));
+        g.fillRoundedRectangle(getLocalBounds().toFloat(), Constants::defaultCornerRadius);
+    }
+    
+    void paintOverChildren (Graphics& g) override
+    {
+        g.setColour(findColour(PlugDataColour::outlineColourId));
+        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Constants::defaultCornerRadius, 1.0f);
+    }
+};
+
 struct SimpleDeviceManagerInputLevelMeter  : public Component,
 public Timer
 {
@@ -67,12 +88,12 @@ static void drawTextLayout (Graphics& g, Component& owner, StringRef text, const
 
 
 //==============================================================================
-class MidiSelectorComponentListBox  : public ListBox,
+class MidiSelectorComponentListBox  : public RoundedListBox,
 private ListBoxModel
 {
 public:
     MidiSelectorComponentListBox (bool input, PlugDataAudioProcessor& processor, AudioDeviceManager& dm, const String& noItems)
-    : ListBox ({}, nullptr),
+    : RoundedListBox ({}, nullptr),
     deviceManager (dm),
     noItemsMessage (noItems),
     isInput(input),
@@ -135,7 +156,7 @@ public:
     
     void paint (Graphics& g) override
     {
-        ListBox::paint (g);
+        RoundedListBox::paint(g);
         
         if (items.isEmpty())
         {
@@ -948,7 +969,7 @@ private:
         
     public:
         //==============================================================================
-        class ChannelSelectorListBox  : public ListBox,
+        class ChannelSelectorListBox  : public RoundedListBox,
         private ListBoxModel
         {
         public:
@@ -960,7 +981,7 @@ private:
             
             //==============================================================================
             ChannelSelectorListBox (const AudioDeviceSetupDetails& setupDetails, BoxType boxType, const String& noItemsText)
-            : ListBox ({}, nullptr), setup (setupDetails), type (boxType), noItemsMessage (noItemsText)
+            : RoundedListBox ({}, nullptr), setup (setupDetails), type (boxType), noItemsMessage (noItemsText)
             {
                 refresh();
                 setModel (this);
@@ -1009,8 +1030,6 @@ private:
             {
                 if (isPositiveAndBelow (row, items.size()))
                 {
-                    g.fillAll (findColour (ListBox::backgroundColourId));
-                    
                     auto item = items[row];
                     bool enabled = false;
                     auto config = setup.manager->getAudioDeviceSetup();
@@ -1060,7 +1079,7 @@ private:
             
             void paint (Graphics& g) override
             {
-                ListBox::paint (g);
+                RoundedListBox::paint (g);
                 
                 if (items.isEmpty())
                 {
