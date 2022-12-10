@@ -240,7 +240,7 @@ struct ToolchainInstaller : public Component, public Thread, public Timer
         
         permissionsScriptFile.replaceWithText(permissionsScript);
         
-        std::system("sh " + permissionsScriptFile.getFullPathName());
+        std::system(("sh " + permissionsScriptFile.getFullPathName()).toRawUTF8());
         permissionsScriptFile.deleteFile();
 #elif JUCE_WINDOWS
         File usbDriverInstaller = toolchain.getChildFile("etc").getChildFile("usb_driver").getChildFile("install-filter.exe");
