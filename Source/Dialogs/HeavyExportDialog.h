@@ -248,7 +248,7 @@ struct ToolchainInstaller : public Component, public Thread, public Timer
 #endif
         ;
         
-        permissionsScriptFile.replaceWithText(permissionsScript, false, "\n");
+        permissionsScriptFile.replaceWithText(permissionsScript, false, false, "\n");
         
         std::system(("sh " + permissionsScriptFile.getFullPathName()).toRawUTF8());
         permissionsScriptFile.deleteFile();
@@ -489,7 +489,7 @@ struct ExporterSettingsPanel : public Component, public Value::Listener, public 
         if(auto* cnv = editor->getCurrentCanvas())
         {
             openedPatchFile = File::createTempFile(".pd");
-            openedPatchFile.replaceWithText(cnv->patch.getCanvasContent(), false, "\n");
+            openedPatchFile.replaceWithText(cnv->patch.getCanvasContent(), false, false, "\n");
             patchChooser->comboBox.setItemEnabled(1, true);
             patchChooser->comboBox.setSelectedId(1);
             patchFile = openedPatchFile;
@@ -670,7 +670,7 @@ public:
     String createMetaJson(DynamicObject::Ptr metaJson) {
         auto metadata = File::createTempFile(".json");
         static String metaString = JSON::toString (var (metaJson.get()));
-        metadata.replaceWithText(metaString, false, "\n");
+        metadata.replaceWithText(metaString, false, false, "\n");
         return metadata.getFullPathName();
     }
 
@@ -874,7 +874,7 @@ public:
             auto makefileText = sourceDir.getChildFile("Makefile").loadFileAsString();
             if(linkerFile.existsAsFile()) makefileText = makefileText.replace("# LINKER", "LDSCRIPT = " + linkerFile.getFullPathName());
             if(bootloader) makefileText = makefileText.replace("# BOOTLOADER", "APP_TYPE = BOOT_SRAM");
-            sourceDir.getChildFile("Makefile").replaceWithText(makefileText, false, "\n");
+            sourceDir.getChildFile("Makefile").replaceWithText(makefileText, false, false, "\n");
 
 #if JUCE_WINDOWS
             auto buildScript = sourceDir.getChildFile("build.sh");
@@ -1092,7 +1092,7 @@ public:
             auto prepareEnvironmentScript = toolchain.getChildFile("scripts").getChildFile("anywhere-setup.sh").getFullPathName() + "\n";
             
             auto buildScript = outputFile.getChildFile("build.sh");
-            buildScript.replaceWithText(bash + changedir + prepareEnvironmentScript + make.getFullPathName() + " -j4 -f " + makefile.getFullPathName(), false, "\n");
+            buildScript.replaceWithText(bash + changedir + prepareEnvironmentScript + make.getFullPathName() + " -j4 -f " + makefile.getFullPathName(), false, false, "\n");
                 
             start(buildScript.getFullPathName());
 #endif
