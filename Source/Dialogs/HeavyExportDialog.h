@@ -795,7 +795,8 @@ public:
         metaJson->setProperty("daisy", metaDaisy);
 
         args.add("-m" + createMetaJson(metaJson));
-
+        metaJson->clear();
+        
         args.add("-v");
         args.add("-gdaisy");
 
@@ -1032,6 +1033,8 @@ public:
         metaJson->setProperty("dpf", metaDPF);
 
         args.add("-m" + createMetaJson(metaJson));
+        metaJson->clear();
+        
         args.add("-v");
         args.add("-gdpf");
 
