@@ -1135,7 +1135,7 @@ public:
             auto prepareEnvironmentScript = toolchain.getChildFile("scripts").getChildFile("anywhere-setup.sh").getFullPathName(); + "\n";
             
             auto buildScript = outputFile.getChildFile("build.sh");
-            buildScript.replaceWithText(bash + changedir + prepareEnvironmentScript + make.getFullPathName() + " -j4 -f " + makefile.getFullPathName();
+            buildScript.replaceWithText(bash + changedir + prepareEnvironmentScript + make.getFullPathName() + " -j4 -f " + makefile.getFullPathName());
                 
             start(buildScript.getFullPathName());
 #endif
