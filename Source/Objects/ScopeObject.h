@@ -16,7 +16,7 @@
 #define SCOPE_GUICHUNK      128 // performance-related hacks, LATER investigate
 
 
-struct t_fake_scope {
+struct t_fake_oscope {
     t_object        x_obj;
     t_inlet*        x_rightinlet;
     t_glist*        x_glist;
@@ -52,19 +52,57 @@ struct t_fake_scope {
     void*           x_handle;
 };
 
-struct ScopeObject final : public GUIObject, public Timer {
+struct t_fake_scope {
+    t_object        x_obj;
+    t_inlet        *x_rightinlet;
+    t_glist        *x_glist;
+    t_canvas       *x_cv;
+    t_edit_proxy   *x_proxy;
+    unsigned char   x_bg[3], x_fg[3], x_gg[3];
+    float           x_xbuffer[SCOPE_MAXBUFSIZE*4];
+    float           x_ybuffer[SCOPE_MAXBUFSIZE*4];
+    float           x_xbuflast[SCOPE_MAXBUFSIZE*4];
+    float           x_ybuflast[SCOPE_MAXBUFSIZE*4];
+    float           x_min, x_max;
+    float           x_trigx, x_triglevel;
+    float           x_ksr;
+    float           x_currx, x_curry;
+    int             x_select;
+    int             x_width, x_height;
+    int             x_drawstyle;
+    int             x_delay;
+    int             x_trigmode;
+    int             x_bufsize, x_lastbufsize;
+    int             x_period;
+    int             x_bufphase, x_precount, x_phase;
+    int             x_xymode, x_frozen, x_retrigger;
+    int             x_zoom;
+    int             x_edit;
+    t_float        *x_signalscalar;
+    int             x_rcv_set;
+    int             x_flag;
+    int             x_r_flag;
+    t_symbol       *x_receive;
+    t_symbol       *x_rcv_raw;
+    t_symbol       *x_bindsym;
+    t_clock        *x_clock;
+    t_pd           *x_handle;
+};
+
+template<typename S>
+struct ScopeBase : public GUIObject, public Timer {
     
     std::vector<float> x_buffer;
     std::vector<float> y_buffer;
     
     Value gridColour, triggerMode, triggerValue, samplesPerPoint, bufferSize, delay, signalRange;
-    
-    ScopeObject(void* ptr, Object* object)
+        
+    ScopeBase(void* ptr, Object* object)
         : GUIObject(ptr, object)
     {
         startTimerHz(25);
         
-        auto* scope = static_cast<t_fake_scope*>(ptr);
+        auto* scope = static_cast<S*>(ptr);
         triggerMode = scope->x_trigmode + 1;
         triggerValue = scope->x_triglevel;
         bufferSize = scope->x_bufsize;
@@ -175,8 +213,8 @@ struct ScopeObject final : public GUIObject, public Timer {
         auto b = object->getObjectBounds();
         libpd_moveobj(cnv->patch.getPointer(), static_cast<t_gobj*>(ptr), b.getX(), b.getY());
         
-        static_cast<t_fake_scope*>(ptr)->x_width = getWidth();
-        static_cast<t_fake_scope*>(ptr)->x_height = getHeight();
+        static_cast<S*>(ptr)->x_width = getWidth();
+        static_cast<S*>(ptr)->x_height = getHeight();
     }
     
     void timerCallback() override
@@ -188,7 +226,7 @@ struct ScopeObject final : public GUIObject, public Timer {
 
         if(pd->getCallbackLock()->tryEnter())
         {
-            auto* x = static_cast<t_fake_scope*>(ptr);
+            auto* x = static_cast<S*>(ptr);
             bufsize = x->x_bufsize;
             min = x->x_min;
             max = x->x_max;
@@ -241,7 +279,7 @@ struct ScopeObject final : public GUIObject, public Timer {
     
     void valueChanged(Value& v) override
     {
-        auto* scope = static_cast<t_fake_scope*>(ptr);
+        auto* scope = static_cast<S*>(ptr);
         if(v.refersToSameSourceAs(primaryColour)) {
             colourToHexArray(Colour::fromString(primaryColour.toString()), scope->x_fg);
         }
@@ -304,5 +342,20 @@ struct ScopeObject final : public GUIObject, public Timer {
         params.push_back({ "Receive symbol", tString, cGeneral, &receiveSymbol, {}});
 
         return params;
+    }
+};
+
+// Hilarious use of templates to support both cyclone/scope and else/oscope in the same code
+struct ScopeObject final : public ScopeBase<t_fake_scope>
+{
+    ScopeObject(void* ptr, Object* object) : ScopeBase<t_fake_scope>(ptr, object)
+    {
+    }
+};
+
+struct OscopeObject final : public ScopeBase<t_fake_oscope>
+{
+    OscopeObject(void* ptr, Object* object) : ScopeBase<t_fake_oscope>(ptr, object)
+    {
     }
 };

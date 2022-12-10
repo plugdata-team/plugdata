@@ -539,7 +539,10 @@ ObjectBase* GUIObject::createGui(void* ptr, Object* parent)
         return new KeyObject(ptr, parent, KeyObject::KeyUp);
     }
     // ELSE's [oscope~] and cyclone [scope~] are basically the same object
-    else if (name == "oscope~" || name == "scope~") {
+    else if (name == "oscope~") {
+        return new OscopeObject(ptr, parent);
+    }
+    else if (name == "scope~") {
         return new ScopeObject(ptr, parent);
     }
     else if (name == "function") {
