@@ -229,11 +229,19 @@ struct ToolchainInstaller : public Component, public Thread, public Timer
 
         // Make sure downloaded files have executable permission on unix
 #if JUCE_MAC || JUCE_LINUX || JUCE_BSD
-        std::system(("chmod +x " + toolchain.getFullPathName() + "/bin/Heavy/Heavy").toRawUTF8());
-        std::system(("chmod +x " + toolchain.getFullPathName() + "/bin/*").toRawUTF8());
-        std::system(("chmod +x " + toolchain.getFullPathName() + "/lib/dpf/utils/generate-ttl.sh").toRawUTF8());
-        std::system(("chmod +x " + toolchain.getFullPathName() + "/arm-none-eabi/bin/*").toRawUTF8());
-        std::system(("chmod +x " + toolchain.getFullPathName() + "/libexec/gcc/arm-none-eabi/*/*").toRawUTF8());
+        
+        auto permissionsScriptFile = File::createTempFile(".sh");
+        
+        auto permissionsScript = "chmod +x " + toolchain.getFullPathName() + "/bin/Heavy/Heavy" +
+        "chmod +x " + toolchain.getFullPathName() + "/bin/*" +
+        "chmod +x " + toolchain.getFullPathName() + "/lib/dpf/utils/generate-ttl.sh" +
+        "chmod +x " + toolchain.getFullPathName() + "/arm-none-eabi/bin/*" +
+        "chmod +x " + toolchain.getFullPathName() + "/libexec/gcc/arm-none-eabi/*/*";
+        
+        permissionsScriptFile.replaceWithText(permissionsScript);
+        
+        std::system("sh " + permissionsScriptFile.getFullPathName());
+        permissionsScriptFile.deleteFile();
 #elif JUCE_WINDOWS
         File usbDriverInstaller = toolchain.getChildFile("etc").getChildFile("usb_driver").getChildFile("install-filter.exe");
         File driverSpec = toolchain.getChildFile("etc").getChildFile("usb_driver").getChildFile("DFU_in_FS_Mode.inf");
