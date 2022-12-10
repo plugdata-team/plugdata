@@ -367,8 +367,11 @@ void GUIObject::setValueOriginal(float v)
     auto minimum = static_cast<float>(min.getValue());
     auto maximum = static_cast<float>(max.getValue());
 
-    value = (minimum < maximum) ? std::max(std::min(v, maximum), minimum) : std::max(std::min(v, minimum), maximum);
-
+    if(minimum != maximum || minimum != 0 || maximum != 0) {
+        v = (minimum < maximum) ? std::max(std::min(v, maximum), minimum) : std::max(std::min(v, minimum), maximum);
+    }
+    
+    value = v;
     setValue(value);
 }
 

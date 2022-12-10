@@ -44,6 +44,7 @@ struct FloatAtomObject final : public AtomObject {
 
         input.dragEnd = [this]() { stopEdition(); };
     }
+    
 
     void focusGained(FocusChangeType cause) override
     {

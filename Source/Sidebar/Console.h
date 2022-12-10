@@ -25,10 +25,9 @@ struct Console : public Component {
             [this]() { console->update(); },
             [this]() { console->update(); },
             [this]() { console->update(); },
-
         };
 
-        int i = 0;
+        auto i = 0;
         for (auto& button : buttons) {
             button.setName("statusbar:console");
             button.setConnectedEdges(12);
@@ -36,7 +35,6 @@ struct Console : public Component {
 
             button.onClick = callbacks[i];
             button.setTooltip(tooltips[i]);
-
             i++;
         }
 
@@ -69,7 +67,9 @@ struct Console : public Component {
         fb.performLayout(bounds.removeFromBottom(30));
         
         viewport.setBounds(bounds.toNearestInt());
-        console->setSize(viewport.getWidth(), std::max<int>(console->getTotalHeight(), viewport.getHeight()));
+        
+        auto width = viewport.canScrollVertically() ? viewport.getWidth() - 5.0f : viewport.getWidth();
+        console->setSize(width, std::max<int>(console->getTotalHeight(), viewport.getHeight()));
     }
     
     void clear() {
@@ -79,6 +79,7 @@ struct Console : public Component {
     void update()
     {
         console->update();
+        resized();
     }
 
     void deselect()
@@ -90,9 +91,9 @@ struct Console : public Component {
     void paint(Graphics& g) override
     {
         // Draw background if we don't have enough messages to fill the panel
-        int h = 24;
-        int y = console->getTotalHeight();
-        int idx = static_cast<int>(console->messages.size());
+        auto h = 24;
+        auto y = console->getTotalHeight();
+        auto idx = static_cast<int>(console->messages.size());
         while (y < console->getHeight()) {
 
             if (y + h > console->getHeight()) {
@@ -173,9 +174,8 @@ struct Console : public Component {
                 }
 
                 // Approximate number of lines from string length and current width
-                int numLines = getNumLines(console.getWidth(), length);
+                auto numLines = getNumLines(console.getWidth(), length);
 
-            
                 auto textColour = findColour(isSelected ? PlugDataColour::sidebarActiveTextColourId : PlugDataColour::sidebarTextColourId);
                 
                 if (type == 1)
@@ -185,7 +185,7 @@ struct Console : public Component {
                 
                 // Draw text
                 g.setColour(textColour);
-                g.drawFittedText(message, getLocalBounds().reduced(6, 0).withTrimmedLeft(6), Justification::centredLeft, numLines, 1.0f);
+                g.drawFittedText(message, getLocalBounds().reduced(6, 0).withTrimmedLeft(8), Justification::centredLeft, numLines, 1.0f);
             }
         };
 
@@ -246,14 +246,14 @@ struct Console : public Component {
                 messages.push_back(std::make_unique<ConsoleMessage>(messages.size(), *this));
             }
 
-            bool showMessages = buttons[2].getToggleState();
-            bool showErrors = buttons[3].getToggleState();
+            auto showMessages = buttons[2].getToggleState();
+            auto showErrors = buttons[3].getToggleState();
 
             int totalHeight = 0;
             for (int row = 0; row < static_cast<int>(pd->getConsoleMessages().size()); row++) {
                 auto [message, type, length] = pd->getConsoleMessages()[row];
-                int numLines = getNumLines(getWidth(), length);
-                int height = numLines * 22 + 4;
+                auto numLines = getNumLines(getWidth(), length);
+                auto height = numLines * 22 + 4;
 
                 if (messages[row]->idx != row) {
                     messages[row]->idx = row;
@@ -266,7 +266,7 @@ struct Console : public Component {
                 totalHeight += std::max(0, height);
             }
 
-            setSize(viewport.getWidth(), std::max<int>(getTotalHeight(), viewport.getHeight()));
+            setSize(getWidth(), std::max<int>(getTotalHeight(), viewport.getHeight()));
             resized();
 
             if (buttons[4].getToggleState()) {
@@ -291,15 +291,15 @@ struct Console : public Component {
         // Get total height of messages, also taking multi-line messages into account
         int getTotalHeight()
         {
-            bool showMessages = buttons[2].getToggleState();
-            bool showErrors = buttons[3].getToggleState();
+            auto showMessages = buttons[2].getToggleState();
+            auto showErrors = buttons[3].getToggleState();
 
             auto font = Font(Font::getDefaultSansSerifFontName(), 13, 0);
-            int totalHeight = 0;
+            auto totalHeight = 0;
 
             for (auto& [message, type, length] : pd->getConsoleMessages()) {
-                int numLines = getNumLines(getWidth(), length);
-                int height = numLines * 22 + 4;
+                auto numLines = getNumLines(getWidth(), length);
+                auto height = numLines * 22 + 4;
 
                 if ((type == 1 && !showMessages) || (length == 0 && !showErrors))
                     continue;
@@ -325,8 +325,8 @@ struct Console : public Component {
 
                 auto& [message, type, length] = pd->getConsoleMessages()[row];
 
-                int numLines = getNumLines(getWidth(), length);
-                int height = numLines * 22 + 4;
+                auto numLines = getNumLines(getWidth(), length);
+                auto height = numLines * 22 + 4;
 
                 messages[row]->setBounds(0, totalHeight, getWidth(), height);
 

@@ -117,6 +117,7 @@ public:
             }
         }
         
+        setSelected(true, true, sendNotificationSync);
         owner.repaint();
     }
 
@@ -345,10 +346,11 @@ public:
         // Paint selected row
         if (getNumSelectedFiles()) {
             g.setColour(findColour(PlugDataColour::sidebarActiveBackgroundColourId));
-            
-            auto selectedRect = getSelectedItem(0)->getItemPosition(true);
-            selectedRect = selectedRect.withX(0).withWidth(getWidth()).withHeight(24);
-            g.fillRoundedRectangle(selectedRect.reduced(6, 2).toFloat(), Constants::smallCornerRadius);
+                        
+            auto y = getSelectedItem(0)->getItemPosition(true).getY();
+            auto selectedRect = Rectangle<float>(3.0f, y + 2.0f, getWidth() - 6.0f, 20.0f);
+           
+            g.fillRoundedRectangle(selectedRect, Constants::smallCornerRadius);
         }
     }
     // Paint file drop outline
