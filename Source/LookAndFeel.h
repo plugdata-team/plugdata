@@ -584,6 +584,11 @@ struct PlugDataLook : public LookAndFeel_V4
         }
     }
     
+    int getMenuWindowFlags() override
+    {
+        return ComponentPeer::windowIsTemporary;
+    }
+    
     int getPopupMenuBorderSize() override
     {
         return 10;
@@ -671,6 +676,7 @@ struct PlugDataLook : public LookAndFeel_V4
         g.fillRect(bounds);
         g.setColour(button.findColour(ComboBox::outlineColourId));
     }
+
     
     void drawStatusbarButtonText(Graphics& g, TextButton& button, bool shouldDrawButtonAsHighlighted, bool shouldDrawButtonAsDown)
     {
