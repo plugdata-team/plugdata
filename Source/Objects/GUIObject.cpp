@@ -481,8 +481,8 @@ ObjectBase* GUIObject::createGui(void* ptr, Object* parent)
     if (name == "comment") {
         return new CycloneCommentObject(ptr, parent);
     }
-    // Check size to prevent confusing it with else/message
-    if (name == "message" && static_cast<t_gobj*>(ptr)->g_pd->c_size == sizeof(t_message)) {
+    // Check if text object to prevent confusing it with else/message
+    if (name == "message" && libpd_is_text_object(ptr)) {
         return new MessageObject(ptr, parent);
     } else if (name == "pad") {
         return new MousePadObject(ptr, parent);
