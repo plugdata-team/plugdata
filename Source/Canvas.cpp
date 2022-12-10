@@ -419,7 +419,7 @@ void Canvas::mouseDown(MouseEvent const& e)
         // Create popup menu
         popupMenu.clear();
 
-        popupMenu.addItem(1, "Open", hasSelection && !multiple && canBeOpened);  // for opening subpatches
+        popupMenu.addItem(1, "Open", object && !multiple && canBeOpened);  // for opening subpatches
         popupMenu.addSeparator();
 
         popupMenu.addCommandItem(&main, CommandIDs::Cut);
