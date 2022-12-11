@@ -1094,6 +1094,9 @@ public:
             
             auto buildScript = outputFile.getChildFile("build.sh");
             buildScript.replaceWithText(bash + changedir + prepareEnvironmentScript + make.getFullPathName() + " -j4 -f " + makefile.getFullPathName(), false, false, "\n");
+            
+            // For some reason we need to do this again
+            outputFile.getChildFile("dpf").getChildFile("utils").getChildFile("generate-ttl.sh").setExecutePermission(true);
                 
             start(buildScript.getFullPathName());
 #endif
