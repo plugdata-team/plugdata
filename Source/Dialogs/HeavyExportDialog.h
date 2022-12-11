@@ -877,8 +877,9 @@ public:
             sourceDir.getChildFile("Makefile").replaceWithText(makefileText, false, false, "\n");
 
 #if JUCE_WINDOWS
+            auto bash = String("#!/bin/bash\n");
             auto buildScript = sourceDir.getChildFile("build.sh");
-            buildScript.replaceWithText(make.getFullPathName().replaceCharacter('\\', '/') + " -j4 -f " + sourceDir.getChildFile("Makefile").getFullPathName().replaceCharacter('\\', '/') + " GCC_PATH=" + gccPath.replaceCharacter('\\', '/') + " PROJECT_NAME=" + name);
+            buildScript.replaceWithText(bash + make.getFullPathName() + " -j4 -f " + sourceDir.getChildFile("Makefile").getFullPathName() + " GCC_PATH=" + gccPath + " PROJECT_NAME=" + name);
 
             auto sh = toolchain.getChildFile("bin").getChildFile("sh.exe");
             String command = sh.getFullPathName() + " --login " + buildScript.getFullPathName().replaceCharacter('\\', '/');
