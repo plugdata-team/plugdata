@@ -397,8 +397,6 @@ public:
             MessageManager::callAsync([_this = SafePointer(this), text](){
                 if(!_this) return;
                 
-                std::cout << "logged to console:" << text << std::endl;
-
                 _this->console.setText(_this->console.getText() + text);
                 _this->console.moveCaretToEnd();
                 _this->console.setScrollToShowCursor(true);
