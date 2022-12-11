@@ -1058,8 +1058,9 @@ public:
         // Delay to get correct exit code
         Time::waitForMillisecondCounter(Time::getMillisecondCounter() + 300);
         
+        bool generationExitCode = getExitCode();
         // Check if we need to compile
-        if(static_cast<int>(exportTypeValue.getValue()) == 2)
+        if(!generationExitCode && static_cast<int>(exportTypeValue.getValue()) == 2)
         {
             auto workingDir = File::getCurrentWorkingDirectory();
 
@@ -1121,19 +1122,23 @@ public:
             if(clap) outputFile.getChildFile("bin").getChildFile(name + ".clap").moveFileTo(outputFile.getChildFile(name + ".clap"));
             if(jack) outputFile.getChildFile("bin").getChildFile(name).moveFileTo(outputFile.getChildFile(name));
             
-            // Clean up
-            /*
-            outputFile.getChildFile("dpf").deleteRecursively();
-            outputFile.getChildFile("build").deleteRecursively();
-            outputFile.getChildFile("plugin").deleteRecursively();
-            outputFile.getChildFile("bin").deleteRecursively();
-            outputFile.getChildFile("README.md").deleteFile();
-            outputFile.getChildFile("Makefile").deleteFile(); */
             
-
+            bool compilationExitCode = getExitCode();
+            
+            // Clean up if successful
+            if(compilationExitCode) {
+                outputFile.getChildFile("dpf").deleteRecursively();
+                outputFile.getChildFile("build").deleteRecursively();
+                outputFile.getChildFile("plugin").deleteRecursively();
+                outputFile.getChildFile("bin").deleteRecursively();
+                outputFile.getChildFile("README.md").deleteFile();
+                outputFile.getChildFile("Makefile").deleteFile();
+            }
+            
+            return compilationExitCode;
         }
 
-        return getExitCode();
+        return generationExitCode;
     }
 };
 
