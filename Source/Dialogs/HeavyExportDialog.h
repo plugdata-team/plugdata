@@ -21,11 +21,11 @@ struct ToolchainInstaller : public Component, public Thread, public Timer
     {
 
 #if JUCE_WINDOWS
-        String downloadSize = "390 MB";
+        String downloadSize = "720 MB";
 #elif JUCE_MAC
         String downloadSize = "650 MB";
 #else
-        String downloadSize = "800 MB";
+        String downloadSize = "1.45 GB ";
 #endif
         String iconText = Icons::SaveAs;
         String topText = "Download Toolchain";
