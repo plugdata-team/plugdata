@@ -600,7 +600,7 @@ void Canvas::paintOverChildren(Graphics& g)
     Point<float> mousePos = getMouseXYRelative().toFloat();
     
     // Draw connections in the making over everything else
-    for(auto& iolet : connectingEdges)
+    for(auto& iolet : connectingIolets)
     {
         // In case we delete the object while connecting
         if(!iolet) continue;
@@ -627,7 +627,7 @@ void Canvas::paintOverChildren(Graphics& g)
 
 void Canvas::mouseMove(MouseEvent const& e)
 {
-    if (!connectingEdges.isEmpty())
+    if (!connectingIolets.isEmpty())
     {
         repaint();
     }
@@ -1078,8 +1078,8 @@ bool Canvas::connectSelectedObjects()
 
 
 void Canvas::cancelConnectionCreation() {
-    if (!connectingEdges.isEmpty()) {
-        connectingEdges.clear();
+    if (!connectingIolets.isEmpty()) {
+        connectingIolets.clear();
         repaint();
     }
 }

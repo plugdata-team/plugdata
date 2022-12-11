@@ -153,7 +153,7 @@ Connection::~Connection()
 
 bool Connection::hitTest(int x, int y)
 {
-    if (locked == var(true) || !cnv->connectingEdges.isEmpty()) return false;
+    if (locked == var(true) || !cnv->connectingIolets.isEmpty()) return false;
     
     Point<float> position = Point<float>(static_cast<float>(x), static_cast<float>(y));
     
@@ -433,7 +433,7 @@ void Connection::reconnect(Iolet* target, bool dragged)
         }
         
         // Create new connection
-        cnv->connectingEdges.add(target->isInlet ? c->inlet : c->outlet);
+        cnv->connectingIolets.add(target->isInlet ? c->inlet : c->outlet);
         
         cnv->connectingWithDrag = true;
         c->setVisible(false);

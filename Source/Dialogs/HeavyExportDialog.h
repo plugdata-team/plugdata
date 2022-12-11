@@ -25,7 +25,7 @@ struct ToolchainInstaller : public Component, public Thread, public Timer
 #elif JUCE_MAC
         String downloadSize = "650 MB";
 #else
-        String downloadSize = "1.45 GB ";
+        String downloadSize = "1.45 GB";
 #endif
         String iconText = Icons::SaveAs;
         String topText = "Download Toolchain";
@@ -437,12 +437,10 @@ struct ExporterSettingsPanel : public Component, public Value::Listener, public 
     const inline static String exeSuffix = "";
 #endif
 
-    inline static File toolchainRoot = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory).getChildFile("plugdata").getChildFile("Toolchain");
-    
 #if JUCE_WINDOWS
-    inline static File toolchain = toolchainRoot.getChildFile("usr");
+    inline static File toolchain = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory).getChildFile("plugdata").getChildFile("Toolchain").getChildFile("usr");
 #else
-    inline static File toolchain = toolchainRoot;
+    inline static File toolchain = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory).getChildFile("plugdata").getChildFile("Toolchain");
 #endif
     inline static File heavyExecutable = toolchain.getChildFile("bin").getChildFile("Heavy").getChildFile("Heavy" + exeSuffix);
 
@@ -837,7 +835,7 @@ public:
 
             sourceDir.getChildFile("build").createDirectory();
             toolchain.getChildFile("lib").getChildFile("heavy-static.a").copyFileTo(sourceDir.getChildFile("build").getChildFile("heavy-static.a"));
-            toolchainRoot.getChildFile("etc").getChildFile("daisy_makefile").copyFileTo(sourceDir.getChildFile("Makefile"));
+            toolchain.getChildFile("etc").getChildFile("daisy_makefile").copyFileTo(sourceDir.getChildFile("Makefile"));
 
             auto gccPath = bin.getFullPathName();
 
