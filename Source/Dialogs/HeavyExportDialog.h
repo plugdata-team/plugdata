@@ -875,6 +875,7 @@ public:
             if(linkerFile.existsAsFile()) makefileText = makefileText.replace("# LINKER", "LDSCRIPT = " + linkerFile.getFullPathName());
             if(bootloader) makefileText = makefileText.replace("# BOOTLOADER", "APP_TYPE = BOOT_SRAM");
             sourceDir.getChildFile("Makefile").replaceWithText(makefileText, false, false, "\n");
+            
 
 #if JUCE_WINDOWS
             auto bash = String("#!/bin/bash\n");
@@ -882,12 +883,16 @@ public:
             buildScript.replaceWithText(bash + make.getFullPathName() + " -j4 -f " + sourceDir.getChildFile("Makefile").getFullPathName() + " GCC_PATH=" + gccPath + " PROJECT_NAME=" + name);
 
             auto sh = toolchain.getChildFile("bin").getChildFile("sh.exe");
-            String command = sh.getFullPathName() + " --login " + buildScript.getFullPathName().replaceCharacter('\\', '/');
+            String command = sh.getFullPathName() + " --login " + ;
+            
+            start(StringArray{sh.getFullPathName(), "--login", buildScript.getFullPathName().replaceCharacter('\\', '/')});
 #else
             String command = make.getFullPathName().replaceCharacter('\\', '/') + " -j4 -f " + sourceDir.getChildFile("Makefile").getFullPathName().replaceCharacter('\\', '/') + " GCC_PATH=" + gccPath.replaceCharacter('\\', '/') + " PROJECT_NAME=" + name;
+            
+            start(command.toRawUTF8());
 #endif
 
-            start(command.toRawUTF8());
+
             waitForProcessToFinish(-1);
 
             // Restore original working directory
