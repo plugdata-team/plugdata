@@ -165,7 +165,11 @@ bool Connection::hitTest(int x, int y)
     auto pend = getEndPoint().toFloat();
     
     if (cnv->isSelected(this) && (startReconnectHandle.contains(position) || endReconnectHandle.contains(position)))
+    {
+        outlet->repaint();
+        inlet->repaint();
         return true;
+    }
     
     // If we click too close to the inlet, don't register the click on the connection
     if (pstart.getDistanceFrom(position + getPosition().toFloat()) < 8.0f || pend.getDistanceFrom(position + getPosition().toFloat()) < 8.0f)
