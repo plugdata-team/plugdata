@@ -439,11 +439,11 @@ struct ExporterSettingsPanel : public Component, public Value::Listener, public 
 
     inline static File toolchainRoot = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory).getChildFile("plugdata").getChildFile("Toolchain");
     
-    #if JUCE_WINDOWS
+#if JUCE_WINDOWS
     inline static File toolchain = toolchainRoot.getChildFile("usr");
 #else
     inline static File toolchain = toolchainRoot;
-    
+#endif
     inline static File heavyExecutable = toolchain.getChildFile("bin").getChildFile("Heavy").getChildFile("Heavy" + exeSuffix);
 
     bool validPatchSelected = false;
