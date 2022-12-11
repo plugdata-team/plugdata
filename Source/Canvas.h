@@ -109,7 +109,7 @@ class Canvas : public Component, public Value::Listener, public LassoSource<Weak
     Viewport* viewport = nullptr;
 
     bool connectingWithDrag = false;
-    Array<SafePointer<Iolet>> connectingEdges;
+    Array<SafePointer<Iolet>> connectingIolets;
     SafePointer<Iolet> nearestEdge;
 
     pd::Patch& patch;
