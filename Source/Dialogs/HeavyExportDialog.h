@@ -214,6 +214,8 @@ struct ToolchainInstaller : public Component, public Thread, public Timer
 
         MemoryInputStream input(toolchainData, false);
         ZipFile zip(input);
+        
+        if(toolchain.exists()) toolchain.deleteRecursively();
 
         auto result = zip.uncompressTo(toolchain);
 
@@ -287,9 +289,11 @@ struct ToolchainInstaller : public Component, public Thread, public Timer
     PlugDataPluginEditor* editor;
 };
 
-class ExportingView : public Component
+class ExportingView : public Component, public Thread, public Timer
 {
     TextEditor console;
+    
+    ChildProcess* processToMonitor;
 
 public:
     enum ExportState
@@ -308,8 +312,12 @@ public:
     String userInteractionMessage;
     WaitableEvent userInteractionWait;
     TextButton confirmButton = TextButton("Done!");
+    
+    
+    static constexpr int maxLength = 512;
+    char processOutput[maxLength];
 
-    ExportingView()
+    ExportingView() : Thread("Console thread")
     {
         setVisible(false);
         addChildComponent(continueButton);
@@ -338,6 +346,33 @@ public:
             console.setFont(lnf->monoFont);
         });
     }
+    
+    // For the spinning animation
+    void timerCallback() override
+    {
+        repaint();
+    }
+    
+    void run() override
+    {
+        while(processToMonitor && !threadShouldExit()) {
+            int len = processToMonitor->readProcessOutput(processOutput, maxLength);
+            if(len) logToConsole(String::fromUTF8(processOutput, len));
+            
+            Time::waitForMillisecondCounter(Time::getMillisecondCounter() + 100);
+        }
+    }
+    
+    void monitorProcessOutput(ChildProcess* process) {
+        startTimer(20);
+        processToMonitor = process;
+        startThread();
+    }
+    
+    void stopMonitoring() {
+        stopThread(-1);
+        stopTimer();
+    }
 
     void showState(ExportState newState) {
         state = newState;
@@ -361,6 +396,8 @@ public:
         if(text.isNotEmpty()) {
             MessageManager::callAsync([_this = SafePointer(this), text](){
                 if(!_this) return;
+                
+                std::cout << "logged to console:" << text << std::endl;
 
                 _this->console.setText(_this->console.getText() + text);
                 _this->console.moveCaretToEnd();
@@ -423,7 +460,7 @@ public:
     }
 };
 
-struct ExporterSettingsPanel : public Component, public Value::Listener, public Timer, public ChildProcess, public ThreadPool
+struct ExporterSettingsPanel : public Component, public Value::Listener, public ChildProcess, public ThreadPool
 {
     TextButton exportButton = TextButton("Export");
 
@@ -462,8 +499,7 @@ struct ExporterSettingsPanel : public Component, public Value::Listener, public 
 
     PlugDataPluginEditor* editor;
 
-
-    ExporterSettingsPanel(PlugDataPluginEditor* pluginEditor, ExportingView* exportView) : ThreadPool(2), exportingView(exportView), editor(pluginEditor)
+    ExporterSettingsPanel(PlugDataPluginEditor* pluginEditor, ExportingView* exportView) : ThreadPool(1), exportingView(exportView), editor(pluginEditor)
     {
         addAndMakeVisible(exportButton);
 
@@ -563,7 +599,9 @@ struct ExporterSettingsPanel : public Component, public Value::Listener, public 
         searchPaths.removeDuplicates(false);
 
         addJob([this, patchPath, outPath, projectTitle, projectCopyright, searchPaths]() mutable {
-            startTimer(25);
+            
+            exportingView->monitorProcessOutput(this);
+            
             exportingView->showState(ExportingView::Busy);
 
             auto result = performExport(patchPath, outPath, projectTitle, projectCopyright, searchPaths);
@@ -572,8 +610,9 @@ struct ExporterSettingsPanel : public Component, public Value::Listener, public 
 
             exportingView->showState(result ? ExportingView::Failure : ExportingView::Success);
 
+            exportingView->stopMonitoring();
+            
             MessageManager::callAsync([this](){
-                stopTimer();
                 repaint();
             });
         });
@@ -640,26 +679,6 @@ struct ExporterSettingsPanel : public Component, public Value::Listener, public 
     }
 
 private:
-
-    static constexpr int maxLength = 32768;
-    char processOutput[maxLength];
-
-    void timerCallback() override {
-
-        if(getNumJobs() < 2) {
-            addJob([this](){
-                // This blocks, so we need to run it on another thread
-                int len = readProcessOutput(processOutput, maxLength);
-
-                MessageManager::callAsync([_this = SafePointer(this), len]() mutable {
-                    if(!_this) return;
-                    _this->exportingView->logToConsole(String(_this->processOutput, len));
-                });
-            });
-        }
-
-        exportingView->repaint();
-    }
 
     virtual bool performExport(String pdPatch, String outdir, String name, String copyright, StringArray searchPaths) = 0;
 
@@ -842,7 +861,6 @@ public:
             int ramType = static_cast<int>(ramOptimisationType.getValue());
             int romType = static_cast<int>(romOptimisationType.getValue());
 
-
             auto linkerDir = toolchain.getChildFile("etc").getChildFile("linkers");
             File linkerFile;
 
@@ -856,7 +874,6 @@ public:
             if(romType == 1) {
                 if(ramType == 1) {
                     linkerFile = linkerDir.getChildFile("sram_linker_sdram.lds");
-
                 }
                 else if(ramType == 2) {
                     linkerFile = linkerDir.getChildFile("sram_linker.lds");
@@ -916,11 +933,11 @@ public:
                     auto dfuBootloaderCommand = dfuUtil.getFullPathName() + " -a 0 -s " + internalAddress + ":leave -D " + bootBin.getFullPathName() + " -d ,0483:df11";
                     start(dfuBootloaderCommand.toRawUTF8());
                     waitForProcessToFinish(-1);
-                    Time::waitForMillisecondCounter(Time::getMillisecondCounter() + 300);
+                    Time::waitForMillisecondCounter(Time::getMillisecondCounter() + 600);
 
                     // We need to enable DFU mode again after flashing the bootloader
                     // This will show DFU mode dialog synchonously
-                    exportingView->waitForUserInput("Please put your Daisy in DFU mode again");
+                    //exportingView->waitForUserInput("Please put your Daisy in DFU mode again");
                 }
 
                 exportingView->logToConsole("Flashing...");
