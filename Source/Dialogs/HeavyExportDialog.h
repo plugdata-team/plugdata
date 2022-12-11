@@ -437,11 +437,12 @@ struct ExporterSettingsPanel : public Component, public Value::Listener, public 
     const inline static String exeSuffix = "";
 #endif
 
+    inline static File toolchainRoot = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory).getChildFile("plugdata").getChildFile("Toolchain");
+    
     #if JUCE_WINDOWS
-    inline static File toolchain = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory).getChildFile("plugdata").getChildFile("Toolchain").getChildFile("usr");
+    inline static File toolchain = toolchainRoot.getChildFile("usr");
 #else
-    inline static File toolchain = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory).getChildFile("plugdata").getChildFile("Toolchain");
-#endif
+    inline static File toolchain = toolchainRoot;
     
     inline static File heavyExecutable = toolchain.getChildFile("bin").getChildFile("Heavy").getChildFile("Heavy" + exeSuffix);
 
@@ -836,11 +837,11 @@ public:
 
             sourceDir.getChildFile("build").createDirectory();
             toolchain.getChildFile("lib").getChildFile("heavy-static.a").copyFileTo(sourceDir.getChildFile("build").getChildFile("heavy-static.a"));
-            toolchain.getChildFile("etc").getChildFile("daisy_makefile").copyFileTo(sourceDir.getChildFile("Makefile"));
+            toolchainRoot.getChildFile("etc").getChildFile("daisy_makefile").copyFileTo(sourceDir.getChildFile("Makefile"));
 
             auto gccPath = bin.getFullPathName();
 
-            int ramType = static_cast<int>(romOptimisationType.getValue());
+            int ramType = static_cast<int>(ramOptimisationType.getValue());
             int romType = static_cast<int>(romOptimisationType.getValue());
 
 
