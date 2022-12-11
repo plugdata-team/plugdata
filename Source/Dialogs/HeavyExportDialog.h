@@ -883,7 +883,6 @@ public:
             buildScript.replaceWithText(bash + make.getFullPathName().replaceCharacter('\\', '/') + " -j4 -f " + sourceDir.getChildFile("Makefile").getFullPathName().replaceCharacter('\\', '/') + " GCC_PATH=" + gccPath.replaceCharacter('\\', '/') + " PROJECT_NAME=" + name);
 
             auto sh = toolchain.getChildFile("bin").getChildFile("sh.exe");
-            String command = sh.getFullPathName() + " --login " + ;
             
             start(StringArray{sh.getFullPathName(), "--login", buildScript.getFullPathName()});
 #else
