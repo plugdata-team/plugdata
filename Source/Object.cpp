@@ -658,8 +658,9 @@ void Object::mouseDown(MouseEvent const& e)
     {
         if (rect.contains(e.position) && cnv->isSelected(this))
         {
-            cnv->cancelConnectionCreation();
             // Start resize
+            cnv->cancelConnectionCreation();
+            
             resizeZone = ResizableBorderComponent::Zone::fromPositionOnBorder(getLocalBounds().reduced(margin - 2), BorderSize<int>(5), e.getPosition());
 
             if(resizeZone != ResizableBorderComponent::Zone(0)) {
