@@ -88,9 +88,14 @@ struct ToolchainInstaller : public Component, public Thread, public Timer
         {
             auto* lnf = dynamic_cast<PlugDataLook*>(&getLookAndFeel());
             
-            auto textColour = findColour(PlugDataColour::canvasTextColourId);
+            g.setColour(findColour(PlugDataColour::panelActiveBackgroundColourId));
+
             
-            g.setColour(textColour);
+            if(isMouseOver()) {
+                g.fillRoundedRectangle(1, 1, getWidth() - 2, getHeight() - 2, Constants::smallCornerRadius);
+            }
+            
+            g.setColour(findColour(PlugDataColour::canvasTextColourId));
             
             g.setFont(lnf->iconFont.withHeight(24));
             g.drawText(iconText, 20, 5, 40, 40, Justification::centredLeft);
@@ -100,10 +105,6 @@ struct ToolchainInstaller : public Component, public Thread, public Timer
             
             g.setFont(lnf->thinFont.withHeight(14));
             g.drawText(bottomText, 60, 25, getWidth() - 60, 16, Justification::centredLeft);
-            
-            if(isMouseOver()) {
-                g.drawRoundedRectangle(1, 1, getWidth() - 2, getHeight() - 2, Constants::smallCornerRadius, 0.5f);
-            }
         }
         
         void mouseUp(const MouseEvent& e)
@@ -230,7 +231,7 @@ struct ToolchainInstaller : public Component, public Thread, public Timer
         askpassScript.setExecutePermission(true);
         udevInstallScript.setExecutePermission(true);
         
-        std::system(udevInstallScript.getFullPathName());
+        std::system(udevInstallScript.getFullPathName().toRawUTF8());
 
 #elif JUCE_MAC
         Toolchain::startShellScript("xcode-select --install");
