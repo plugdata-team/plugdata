@@ -13,9 +13,9 @@ struct PluginProcessor;
 
 struct Statusbar : public Component, public Value::Listener, public Timer
 {
-    PluginProcessor& pd;
+    PluginProcessor* pd;
 
-    explicit Statusbar(PluginProcessor& processor);
+    explicit Statusbar(PluginProcessor* processor);
     ~Statusbar();
     
     void paint(Graphics& g) override;

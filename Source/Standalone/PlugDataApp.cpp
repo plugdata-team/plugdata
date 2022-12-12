@@ -286,7 +286,7 @@ int PlugDataWindow::parseSystemArguments(String const& arguments)
 
 ValueTree PlugDataWindow::getSettingsTree() {
     auto* editor = dynamic_cast<PluginEditor*>(mainComponent->getEditor());
-    return editor->pd.settingsTree;
+    return editor->pd->settingsTree;
 }
 
 

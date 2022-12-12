@@ -129,7 +129,7 @@ void ObjectBase::closeOpenedSubpatchers()
             auto* deleted_patch = &cnv->patch;
             editor->canvases.removeObject(cnv);
             tabbar->removeTab(n);
-            editor->pd.patches.removeObject(deleted_patch, false);
+            editor->pd->patches.removeObject(deleted_patch, false);
 
             break;
         }
@@ -163,7 +163,7 @@ void ObjectBase::openSubpatch()
         }
     }
 
-    auto* newPatch = cnv->editor->pd.patches.add(new pd::Patch(*subpatch));
+    auto* newPatch = cnv->editor->pd->patches.add(new pd::Patch(*subpatch));
     auto* newCanvas = cnv->editor->canvases.add(new Canvas(cnv->editor, *newPatch, nullptr));
 
     newPatch->setCurrentFile(path);

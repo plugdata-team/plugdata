@@ -151,14 +151,14 @@ struct MidiBlinker : public Component, public Timer
     bool blinkMidiOut = false;
 };
 
-Statusbar::Statusbar(PluginProcessor& processor) : pd(processor)
+Statusbar::Statusbar(PluginProcessor* processor) : pd(processor)
 {
-    levelMeter = new LevelMeter(processor.statusbarSource);
-    midiBlinker = new MidiBlinker(processor.statusbarSource);
+    levelMeter = new LevelMeter(pd->statusbarSource);
+    midiBlinker = new MidiBlinker(pd->statusbarSource);
 
     setWantsKeyboardFocus(true);
 
-    commandLocked.referTo(pd.commandLocked);
+    commandLocked.referTo(pd->commandLocked);
 
     locked.addListener(this);
     commandLocked.addListener(this);
@@ -169,7 +169,7 @@ Statusbar::Statusbar(PluginProcessor& processor) : pd(processor)
     oversampleSelector.setColour(ComboBox::outlineColourId, Colours::transparentBlack);
     
     
-    oversampleSelector.setButtonText(String(1 << pd.oversampling) + "x");
+    oversampleSelector.setButtonText(String(1 << pd->oversampling) + "x");
     
     oversampleSelector.onClick = [this](){
         PopupMenu menu;
@@ -178,14 +178,14 @@ Statusbar::Statusbar(PluginProcessor& processor) : pd(processor)
         menu.addItem(3, "4x");
         menu.addItem(4, "8x");
         
-        auto* editor = pd.getActiveEditor();
+        auto* editor = pd->getActiveEditor();
         menu.showMenuAsync(PopupMenu::Options().withMinimumWidth(100).withMaximumNumColumns(1).withTargetComponent(&oversampleSelector).withParentComponent(editor),
                            [this](int result)
                            {
                                if (result != 0)
                                {
                                    oversampleSelector.setButtonText(String(1 << (result - 1)) + "x");
-                                   pd.setOversampling(result - 1);
+                                   pd->setOversampling(result - 1);
                                }
                            });
     };
@@ -232,10 +232,10 @@ Statusbar::Statusbar(PluginProcessor& processor) : pd(processor)
     gridButton->setClickingTogglesState(true);
     gridButton->setConnectedEdges(12);
     gridButton->setName("statusbar:grid");
-    gridButton->getToggleStateValue().referTo(pd.settingsTree.getPropertyAsValue("GridEnabled", nullptr));
+    gridButton->getToggleStateValue().referTo(pd->settingsTree.getPropertyAsValue("GridEnabled", nullptr));
     addAndMakeVisible(gridButton.get());
 
-    powerButton->onClick = [this]() { powerButton->getToggleState() ? pd.startDSP() : pd.releaseDSP(); };
+    powerButton->onClick = [this]() { powerButton->getToggleState() ? pd->startDSP() : pd->releaseDSP(); };
 
     powerButton->setToggleState(pd_getdspstate(), dontSendNotification);
 
@@ -260,7 +260,7 @@ Statusbar::Statusbar(PluginProcessor& processor) : pd(processor)
     connectionStyleButton->onClick = [this]()
     {
         bool segmented = connectionStyleButton->getToggleState();
-        auto* editor = dynamic_cast<PluginEditor*>(pd.getActiveEditor());
+        auto* editor = dynamic_cast<PluginEditor*>(pd->getActiveEditor());
         for (auto& connection : editor->getCurrentCanvas()->getSelectionOfType<Connection>())
         {
             connection->setSegmented(segmented);
@@ -272,7 +272,7 @@ Statusbar::Statusbar(PluginProcessor& processor) : pd(processor)
     connectionPathfind->setTooltip("Find best connection path");
     connectionPathfind->setConnectedEdges(12);
     connectionPathfind->setName("statusbar:findpath");
-    connectionPathfind->onClick = [this]() { dynamic_cast<ApplicationCommandManager*>(pd.getActiveEditor())->invokeDirectly(CommandIDs::ConnectionPathfind, true); };
+    connectionPathfind->onClick = [this]() { dynamic_cast<ApplicationCommandManager*>(pd->getActiveEditor())->invokeDirectly(CommandIDs::ConnectionPathfind, true); };
     addAndMakeVisible(connectionPathfind.get());
 
     addAndMakeVisible(volumeSlider);
@@ -282,7 +282,7 @@ Statusbar::Statusbar(PluginProcessor& processor) : pd(processor)
     volumeSlider.setRange(0.0f, 1.0f);
     volumeSlider.setName("statusbar:meter");
 
-    volumeAttachment = std::make_unique<SliderParameterAttachment>(*pd.parameters.getParameter("volume"), volumeSlider, nullptr);
+    volumeAttachment = std::make_unique<SliderParameterAttachment>(*pd->parameters.getParameter("volume"), volumeSlider, nullptr);
 
     addAndMakeVisible(levelMeter);
     addAndMakeVisible(midiBlinker);
@@ -369,7 +369,7 @@ void Statusbar::resized()
 
 void Statusbar::modifierKeysChanged(const ModifierKeys& modifiers)
 {
-    auto* editor = dynamic_cast<PluginEditor*>(pd.getActiveEditor());
+    auto* editor = dynamic_cast<PluginEditor*>(pd->getActiveEditor());
     
     if(auto* cnv = editor->getCurrentCanvas()) {
         if(cnv->didStartDragging || cnv->isDraggingLasso) {

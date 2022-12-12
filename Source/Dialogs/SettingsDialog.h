@@ -55,9 +55,10 @@ struct SettingsToolbarButton : public TextButton
 
 struct SettingsDialog : public Component {
     
-    SettingsDialog(AudioProcessor& processor, Dialog* dialog, AudioDeviceManager* manager, ValueTree const& settingsTree)
+    SettingsDialog(AudioProcessor* processor, Dialog* dialog, AudioDeviceManager* manager, ValueTree const& settingsTree)
         : audioProcessor(processor)
     {
+    
         setVisible(false);
 
         toolbarButtons = { new SettingsToolbarButton(Icons::Audio, "Audio"), new SettingsToolbarButton(Icons::Pencil, "Themes"), new SettingsToolbarButton(Icons::Search, "Paths"), new SettingsToolbarButton(Icons::Keyboard, "Shortcuts"), new SettingsToolbarButton(Icons::Externals, "Externals")
@@ -68,10 +69,10 @@ struct SettingsDialog : public Component {
 
         currentPanel = std::clamp(lastPanel.load(), 0, toolbarButtons.size() - 1);
 
-        auto* editor = dynamic_cast<ApplicationCommandManager*>(processor.getActiveEditor());
+        auto* editor = dynamic_cast<ApplicationCommandManager*>(processor->getActiveEditor());
 
 #if PLUGDATA_STANDALONE
-            panels.add(new StandaloneAudioSettings(dynamic_cast<PluginProcessor&>(processor), *manager));
+            panels.add(new StandaloneAudioSettings(dynamic_cast<PluginProcessor*>(processor), *manager));
 #else
             panels.add(new DAWAudioSettings(processor));
 #endif
@@ -104,7 +105,7 @@ struct SettingsDialog : public Component {
     ~SettingsDialog() override
     {
         lastPanel = currentPanel;
-        dynamic_cast<PluginProcessor*>(&audioProcessor)->saveSettings();
+        dynamic_cast<PluginProcessor*>(audioProcessor)->saveSettings();
     }
 
     void resized() override
@@ -165,7 +166,7 @@ struct SettingsDialog : public Component {
         repaint();
     }
 
-    AudioProcessor& audioProcessor;
+    AudioProcessor* audioProcessor;
     ComponentBoundsConstrainer constrainer;
 
     static constexpr int toolbarHeight = 55;
@@ -181,12 +182,12 @@ struct SettingsDialog : public Component {
 struct SettingsPopup : public PopupMenu {
     
 
-    SettingsPopup(AudioProcessor& processor, ValueTree tree) :
+    SettingsPopup(AudioProcessor* processor, ValueTree tree) :
     settingsTree(tree),
     themeSelector(tree),
     zoomSelector(tree)
     {
-        auto* editor = dynamic_cast<PluginEditor*>(processor.getActiveEditor());
+        auto* editor = dynamic_cast<PluginEditor*>(processor->getActiveEditor());
         
         addCustomItem(1, themeSelector, 70, 45, false);
         addCustomItem(2, zoomSelector, 70, 30, false);
@@ -218,12 +219,12 @@ struct SettingsPopup : public PopupMenu {
         addItem(6, "About");
     }
     
-    static void showSettingsPopup(AudioProcessor& processor, AudioDeviceManager* manager, Component* centre, ValueTree settingsTree) {
+    static void showSettingsPopup(AudioProcessor* processor, AudioDeviceManager* manager, Component* centre, ValueTree settingsTree) {
         auto* popup = new SettingsPopup(processor, settingsTree);
-        auto* editor = dynamic_cast<PluginEditor*>(processor.getActiveEditor());
+        auto* editor = dynamic_cast<PluginEditor*>(processor->getActiveEditor());
         
         popup->showMenuAsync(PopupMenu::Options().withMinimumWidth(170).withMaximumNumColumns(1).withTargetComponent(centre).withParentComponent(editor),
-            [editor, &processor, popup, manager, centre, settingsTree](int result) {
+            [editor, processor, popup, manager, centre, settingsTree](int result) {
             
                 if (result == 5) {
                     
