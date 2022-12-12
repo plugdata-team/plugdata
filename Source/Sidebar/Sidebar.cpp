@@ -216,6 +216,8 @@ void Sidebar::showPanel(int panelToShow)
     if(showSearch && !searchWasVisisble) searchPanel->grabFocus();
     searchPanel->setInterceptsMouseClicks(showSearch, showSearch);
     
+    hideParameters();
+    
     currentPanel = panelToShow;
 }
 
