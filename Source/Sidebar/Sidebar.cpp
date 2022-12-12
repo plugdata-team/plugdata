@@ -28,6 +28,7 @@ Sidebar::Sidebar(PluginProcessor* instance, PluginEditor* parent)
     automationPanel = new AutomationPanel(pd);
     searchPanel = new SearchPanel(parent);
     
+    inspector->setAlwaysOnTop(true);
     
     addAndMakeVisible(console);
     addAndMakeVisible(inspector);
@@ -274,12 +275,7 @@ void Sidebar::showParameters(String const& name, ObjectParameters& params)
     inspector->setTitle(name.upToFirstOccurrenceOf(" ", false, false));
 
     if (!pinned) {
-        
         inspector->setVisible(true);
-        console->setVisible(false);
-        browser->setVisible(false);
-        searchPanel->setVisible(false);
-        automationPanel->setVisible(false);
     }
 }
 
@@ -299,7 +295,6 @@ void Sidebar::hideParameters()
 {
     if (!pinned) {
         inspector->setVisible(false);
-        showPanel(currentPanel);
     }
 
     if (pinned) {
