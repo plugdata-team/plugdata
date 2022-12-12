@@ -18,7 +18,7 @@
 #include "AutomationPanel.h"
 #include "SearchPanel.h"
 
-Sidebar::Sidebar(PlugDataAudioProcessor* instance, PlugDataPluginEditor* parent)
+Sidebar::Sidebar(PluginProcessor* instance, PluginEditor* parent)
     : pd(instance)
 {
     // Can't use RAII because unique pointer won't compile with forward declarations

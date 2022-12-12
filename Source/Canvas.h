@@ -17,19 +17,19 @@
 class SuggestionComponent;
 struct GraphArea;
 class Iolet;
-class PlugDataPluginEditor;
+class PluginEditor;
 class Canvas : public Component, public Value::Listener, public LassoSource<WeakReference<Component>>
 {    
    public:
     
     bool isBeingDeleted = false;
     
-    Canvas(PlugDataPluginEditor& parent, pd::Patch& patch, Component* parentGraph = nullptr);
+    Canvas(PluginEditor& parent, pd::Patch& patch, Component* parentGraph = nullptr);
 
     ~Canvas() override;
 
-    PlugDataPluginEditor& main;
-    PlugDataAudioProcessor* pd;
+    PluginEditor& main;
+    PluginProcessor* pd;
 
     void paint(Graphics& g) override;
     void paintOverChildren(Graphics&) override;

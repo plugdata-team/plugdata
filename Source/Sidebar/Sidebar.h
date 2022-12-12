@@ -12,7 +12,7 @@ struct Inspector;
 struct DocumentBrowser;
 struct AutomationPanel;
 struct SearchPanel;
-struct PlugDataAudioProcessor;
+struct PluginProcessor;
 
 namespace pd {
 struct Instance;
@@ -70,7 +70,7 @@ static int getNumLines(String const& text, int width, Font font = Font(Font::get
 }
 
 struct Sidebar : public Component {
-    explicit Sidebar(PlugDataAudioProcessor* instance, PlugDataPluginEditor* parent);
+    explicit Sidebar(PluginProcessor* instance, PluginEditor* parent);
 
     ~Sidebar() override;
 
@@ -110,7 +110,7 @@ struct Sidebar : public Component {
     static constexpr int dragbarWidth = 5;
 
 private:
-    PlugDataAudioProcessor* pd;
+    PluginProcessor* pd;
     ObjectParameters lastParameters;
     
     TextButton consoleButton = TextButton(Icons::Console);

@@ -9,13 +9,13 @@
 struct Canvas;
 struct LevelMeter;
 struct MidiBlinker;
-struct PlugDataAudioProcessor;
+struct PluginProcessor;
 
 struct Statusbar : public Component, public Value::Listener, public Timer
 {
-    PlugDataAudioProcessor& pd;
+    PluginProcessor& pd;
 
-    explicit Statusbar(PlugDataAudioProcessor& processor);
+    explicit Statusbar(PluginProcessor& processor);
     ~Statusbar();
     
     void paint(Graphics& g) override;

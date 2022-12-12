@@ -71,7 +71,7 @@ struct SettingsDialog : public Component {
         auto* editor = dynamic_cast<ApplicationCommandManager*>(processor.getActiveEditor());
 
 #if PLUGDATA_STANDALONE
-            panels.add(new StandaloneAudioSettings(dynamic_cast<PlugDataAudioProcessor&>(processor), *manager));
+            panels.add(new StandaloneAudioSettings(dynamic_cast<PluginProcessor&>(processor), *manager));
 #else
             panels.add(new DAWAudioSettings(processor));
 #endif
@@ -104,7 +104,7 @@ struct SettingsDialog : public Component {
     ~SettingsDialog() override
     {
         lastPanel = currentPanel;
-        dynamic_cast<PlugDataAudioProcessor*>(&audioProcessor)->saveSettings();
+        dynamic_cast<PluginProcessor*>(&audioProcessor)->saveSettings();
     }
 
     void resized() override
@@ -186,7 +186,7 @@ struct SettingsPopup : public PopupMenu {
     themeSelector(tree),
     zoomSelector(tree)
     {
-        auto* editor = dynamic_cast<PlugDataPluginEditor*>(processor.getActiveEditor());
+        auto* editor = dynamic_cast<PluginEditor*>(processor.getActiveEditor());
         
         addCustomItem(1, themeSelector, 70, 45, false);
         addCustomItem(2, zoomSelector, 70, 30, false);
@@ -220,7 +220,7 @@ struct SettingsPopup : public PopupMenu {
     
     static void showSettingsPopup(AudioProcessor& processor, AudioDeviceManager* manager, Component* centre, ValueTree settingsTree) {
         auto* popup = new SettingsPopup(processor, settingsTree);
-        auto* editor = dynamic_cast<PlugDataPluginEditor*>(processor.getActiveEditor());
+        auto* editor = dynamic_cast<PluginEditor*>(processor.getActiveEditor());
         
         popup->showMenuAsync(PopupMenu::Options().withMinimumWidth(170).withMaximumNumColumns(1).withTargetComponent(centre).withParentComponent(editor),
             [editor, &processor, popup, manager, centre, settingsTree](int result) {

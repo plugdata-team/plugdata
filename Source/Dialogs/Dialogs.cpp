@@ -14,7 +14,7 @@
 #include "ArrayDialog.h"
 #include "SettingsDialog.h"
 #include "TextEditorDialog.h"
-#include "HeavyExportDialog.h"
+#include "../Heavy/HeavyExportDialog.h"
 #include "Canvas.h"
 
 Component* Dialogs::showTextEditorDialog(String text, String filename, std::function<void(String, bool)> callback)
@@ -52,7 +52,7 @@ void Dialogs::createSettingsDialog(AudioProcessor& processor, AudioDeviceManager
     SettingsPopup::showSettingsPopup(processor, manager, centre, settingsTree);
 }
 
-void Dialogs::showObjectMenu(PlugDataPluginEditor* parent, Component* target)
+void Dialogs::showObjectMenu(PluginEditor* parent, Component* target)
 {
     PopupMenu menu;
 
@@ -204,7 +204,7 @@ StringArray DekenInterface::getExternalPaths()
 
 bool Dialog::wantsRoundedCorners() {
     // Check if the editor wants rounded corners
-    if(auto* editor = dynamic_cast<PlugDataPluginEditor*>(parentComponent)) {
+    if(auto* editor = dynamic_cast<PluginEditor*>(parentComponent)) {
         return editor->wantsRoundedCorners();
     }
     // Otherwise assume rounded corners for the rest of the UI

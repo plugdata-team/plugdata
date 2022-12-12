@@ -94,8 +94,8 @@ struct ZoomLabel : public TextButton, public Timer
 
 struct WelcomeButton;
 class Canvas;
-class PlugDataAudioProcessor;
-class PlugDataPluginEditor : public AudioProcessorEditor, public Value::Listener, public ValueTree::Listener, public ApplicationCommandTarget, public ApplicationCommandManager, public Timer
+class PluginProcessor;
+class PluginEditor : public AudioProcessorEditor, public Value::Listener, public ValueTree::Listener, public ApplicationCommandTarget, public ApplicationCommandManager, public Timer
 {
    public:
     
@@ -114,9 +114,9 @@ class PlugDataPluginEditor : public AudioProcessorEditor, public Value::Listener
     };
     
     
-    explicit PlugDataPluginEditor(PlugDataAudioProcessor&);
+    explicit PluginEditor(PluginProcessor&);
 
-    ~PlugDataPluginEditor() override;
+    ~PluginEditor() override;
 
     void paint(Graphics& g) override;
 
@@ -167,7 +167,7 @@ class PlugDataPluginEditor : public AudioProcessorEditor, public Value::Listener
     
     bool wantsRoundedCorners();
 
-    PlugDataAudioProcessor& pd;
+    PluginProcessor& pd;
 
     AffineTransform transform;
 
@@ -211,5 +211,5 @@ class PlugDataPluginEditor : public AudioProcessorEditor, public Value::Listener
     
     bool isMaximised = false;
     
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PlugDataPluginEditor)
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PluginEditor)
 };

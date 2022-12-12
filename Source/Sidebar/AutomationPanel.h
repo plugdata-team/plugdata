@@ -8,9 +8,9 @@
 
 struct AutomationSlider : public Component, public Value::Listener {
 
-    PlugDataAudioProcessor* pd;
+    PluginProcessor* pd;
     
-    AutomationSlider(int idx, PlugDataAudioProcessor* processor)
+    AutomationSlider(int idx, PluginProcessor* processor)
         : index(idx), pd(processor)
     {
         createButton.setName("statusbar:createbutton");
@@ -18,7 +18,7 @@ struct AutomationSlider : public Component, public Value::Listener {
         nameLabel.setText(String(idx + 1), dontSendNotification);
 
         createButton.onClick = [this]() mutable {
-            if (auto* editor = dynamic_cast<PlugDataPluginEditor*>(pd->getActiveEditor())) {
+            if (auto* editor = dynamic_cast<PluginEditor*>(pd->getActiveEditor())) {
                 auto* cnv = editor->getCurrentCanvas();
                 if (cnv) {
                     cnv->attachNextObjectToMouse = true;
@@ -117,12 +117,12 @@ struct AutomationSlider : public Component, public Value::Listener {
 };
 
 struct AutomationComponent : public Component {
-    PlugDataAudioProcessor* pd;
+    PluginProcessor* pd;
 
-    explicit AutomationComponent(PlugDataAudioProcessor* processor)
+    explicit AutomationComponent(PluginProcessor* processor)
         : pd(processor)
     {
-        for (int p = 0; p < PlugDataAudioProcessor::numParameters; p++) {
+        for (int p = 0; p < PluginProcessor::numParameters; p++) {
             auto* slider = rows.add(new AutomationSlider(p, processor));
             addAndMakeVisible(slider);
         }
@@ -132,7 +132,7 @@ struct AutomationComponent : public Component {
     {
         int height = 23;
         int y = 0;
-        for (int p = 0; p < PlugDataAudioProcessor::numParameters; p++) {
+        for (int p = 0; p < PluginProcessor::numParameters; p++) {
             auto rect = Rectangle<int>(0, y, getWidth(), height);
             y += height;
             rows[p]->setBounds(rect);
@@ -144,7 +144,7 @@ struct AutomationComponent : public Component {
 
 struct AutomationPanel : public Component
     , public ScrollBar::Listener {
-    explicit AutomationPanel(PlugDataAudioProcessor* processor)
+    explicit AutomationPanel(PluginProcessor* processor)
         : sliders(processor)
     {
         viewport.setViewedComponent(&sliders, false);
@@ -184,13 +184,13 @@ struct AutomationPanel : public Component
     void resized() override
     {
         viewport.setBounds(getLocalBounds().withTrimmedTop(28).withTrimmedBottom(30));
-        sliders.setSize(getWidth(), PlugDataAudioProcessor::numParameters * 23);
+        sliders.setSize(getWidth(), PluginProcessor::numParameters * 23);
     }
 
 #if PLUGDATA_STANDALONE
     void updateParameters()
     {
-        for (int p = 0; p < PlugDataAudioProcessor::numParameters; p++) {
+        for (int p = 0; p < PluginProcessor::numParameters; p++) {
             sliders.rows[p]->slider.setValue(sliders.pd->standaloneParams[p]);
         }
     }

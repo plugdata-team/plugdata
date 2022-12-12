@@ -36,7 +36,7 @@ bool wantsNativeDialog() {
 }
 
 
-PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p) : AudioProcessorEditor(&p), pd(p), statusbar(p), sidebar(&p, this)
+PluginEditor::PluginEditor(PluginProcessor& p) : AudioProcessorEditor(&p), pd(p), statusbar(p), sidebar(&p, this)
 {
     toolbarButtons = {new TextButton(Icons::Open), new TextButton(Icons::Save),     new TextButton(Icons::SaveAs), new TextButton(Icons::Undo),
                       new TextButton(Icons::Redo), new TextButton(Icons::Add),  new TextButton(Icons::Settings), new TextButton(Icons::Hide),   new TextButton(Icons::Pin)};
@@ -231,7 +231,7 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p) : AudioPro
     // Initialise zoom factor
     valueChanged(zoomScale);
 }
-PlugDataPluginEditor::~PlugDataPluginEditor()
+PluginEditor::~PluginEditor()
 {
     setConstrainer(nullptr);
 
@@ -242,7 +242,7 @@ PlugDataPluginEditor::~PlugDataPluginEditor()
     pd.lastTab = tabbar.getCurrentTabIndex();
 }
 
-void PlugDataPluginEditor::paint(Graphics& g)
+void PluginEditor::paint(Graphics& g)
 {
     g.setColour(findColour(PlugDataColour::canvasBackgroundColourId));
     g.fillRoundedRectangle(getLocalBounds().toFloat(), Constants::windowCornerRadius);
@@ -276,7 +276,7 @@ void PlugDataPluginEditor::paint(Graphics& g)
     g.drawLine(0.0f, toolbarHeight + rounded, static_cast<float>(getWidth()), toolbarHeight + rounded, 1.0f);
 }
 
-void PlugDataPluginEditor::resized()
+void PluginEditor::resized()
 {
     int roundedOffset = wantsRoundedCorners();
     
@@ -351,7 +351,7 @@ void PlugDataPluginEditor::resized()
 
 }
 
-void PlugDataPluginEditor::mouseWheelMove(const MouseEvent& e, const MouseWheelDetails& wheel)
+void PluginEditor::mouseWheelMove(const MouseEvent& e, const MouseWheelDetails& wheel)
 {
     if (e.mods.isCommandDown())
     {
@@ -359,7 +359,7 @@ void PlugDataPluginEditor::mouseWheelMove(const MouseEvent& e, const MouseWheelD
     }
 }
 
-void PlugDataPluginEditor::mouseMagnify(const MouseEvent& e, float scrollFactor)
+void PluginEditor::mouseMagnify(const MouseEvent& e, float scrollFactor)
 {
     auto* cnv = getCurrentCanvas();
     
@@ -381,7 +381,7 @@ void PlugDataPluginEditor::mouseMagnify(const MouseEvent& e, float scrollFactor)
 
 #if PLUGDATA_STANDALONE
 
-void PlugDataPluginEditor::mouseDown(const MouseEvent& e)
+void PluginEditor::mouseDown(const MouseEvent& e)
 {
 
     if(e.getNumberOfClicks() >= 2) {
@@ -412,7 +412,7 @@ void PlugDataPluginEditor::mouseDown(const MouseEvent& e)
     }
 }
 
-void PlugDataPluginEditor::mouseDrag(const MouseEvent& e)
+void PluginEditor::mouseDrag(const MouseEvent& e)
 {
     if(!isMaximised) {
         auto* window = getTopLevelComponent();
@@ -421,12 +421,12 @@ void PlugDataPluginEditor::mouseDrag(const MouseEvent& e)
 }
 #endif
 
-void PlugDataPluginEditor::newProject() {
+void PluginEditor::newProject() {
     auto* patch = pd.loadPatch(pd::Instance::defaultPatch);
     patch->setTitle("Untitled Patcher");
 }
 
-void PlugDataPluginEditor::openProject()
+void PluginEditor::openProject()
 {
     auto openFunc = [this](const FileChooser& f)
     {
@@ -445,7 +445,7 @@ void PlugDataPluginEditor::openProject()
     openChooser->launchAsync(FileBrowserComponent::openMode | FileBrowserComponent::canSelectFiles, openFunc);
 }
 
-void PlugDataPluginEditor::saveProjectAs(const std::function<void()>& nestedCallback)
+void PluginEditor::saveProjectAs(const std::function<void()>& nestedCallback)
 {
     saveChooser = std::make_unique<FileChooser>("Select a save file", File(pd.settingsTree.getProperty("LastChooserPath")), "*.pd", wantsNativeDialog());
 
@@ -468,7 +468,7 @@ void PlugDataPluginEditor::saveProjectAs(const std::function<void()>& nestedCall
                              });
 }
 
-void PlugDataPluginEditor::saveProject(const std::function<void()>& nestedCallback)
+void PluginEditor::saveProject(const std::function<void()>& nestedCallback)
 {
     for (auto* patch : pd.patches)
     {
@@ -486,7 +486,7 @@ void PlugDataPluginEditor::saveProject(const std::function<void()>& nestedCallba
     }
 }
 
-Canvas* PlugDataPluginEditor::getCurrentCanvas()
+Canvas* PluginEditor::getCurrentCanvas()
 {
     if (auto* viewport = dynamic_cast<Viewport*>(tabbar.getCurrentContentComponent()))
     {
@@ -498,7 +498,7 @@ Canvas* PlugDataPluginEditor::getCurrentCanvas()
     return nullptr;
 }
 
-Canvas* PlugDataPluginEditor::getCanvas(int idx)
+Canvas* PluginEditor::getCanvas(int idx)
 {
     if (auto* viewport = dynamic_cast<Viewport*>(tabbar.getTabContentComponent(idx)))
     {
@@ -511,7 +511,7 @@ Canvas* PlugDataPluginEditor::getCanvas(int idx)
     return nullptr;
 }
 
-void PlugDataPluginEditor::addTab(Canvas* cnv, bool deleteWhenClosed)
+void PluginEditor::addTab(Canvas* cnv, bool deleteWhenClosed)
 {
     tabbar.addTab(cnv->patch.getTitle(), findColour(ResizableWindow::backgroundColourId), cnv->viewport, true);
     
@@ -607,7 +607,7 @@ void PlugDataPluginEditor::addTab(Canvas* cnv, bool deleteWhenClosed)
     updateCommandStatus();
 }
 
-void PlugDataPluginEditor::valueChanged(Value& v)
+void PluginEditor::valueChanged(Value& v)
 {
     // Update zoom
     if (v.refersToSameSourceAs(zoomScale))
@@ -675,23 +675,23 @@ void PlugDataPluginEditor::valueChanged(Value& v)
     }
 }
 
-void PlugDataPluginEditor::valueTreePropertyChanged(ValueTree& treeWhosePropertyHasChanged, const Identifier& property)
+void PluginEditor::valueTreePropertyChanged(ValueTree& treeWhosePropertyHasChanged, const Identifier& property)
 {
     pd.settingsChangedInternally = true;
     startTimer(300);
 }
-void PlugDataPluginEditor::valueTreeChildAdded(ValueTree& parentTree, ValueTree& childWhichHasBeenAdded)
+void PluginEditor::valueTreeChildAdded(ValueTree& parentTree, ValueTree& childWhichHasBeenAdded)
 {
     pd.settingsChangedInternally = true;
     startTimer(300);
 }
-void PlugDataPluginEditor::valueTreeChildRemoved(ValueTree& parentTree, ValueTree& childWhichHasBeenRemoved, int indexFromWhichChildWasRemoved)
+void PluginEditor::valueTreeChildRemoved(ValueTree& parentTree, ValueTree& childWhichHasBeenRemoved, int indexFromWhichChildWasRemoved)
 {
     pd.settingsChangedInternally = true;
     startTimer(300);
 }
 
-void PlugDataPluginEditor::timerCallback()
+void PluginEditor::timerCallback()
 {
     // Save settings to file whenever valuetree state changes
     // Use timer to group changes together
@@ -699,11 +699,11 @@ void PlugDataPluginEditor::timerCallback()
     stopTimer();
 }
 
-void PlugDataPluginEditor::modifierKeysChanged(const ModifierKeys& modifiers) {    
+void PluginEditor::modifierKeysChanged(const ModifierKeys& modifiers) {    
     statusbar.modifierKeysChanged(modifiers);
 }
 
-void PlugDataPluginEditor::updateCommandStatus()
+void PluginEditor::updateCommandStatus()
 {
     if (auto* cnv = getCurrentCanvas())
     {
@@ -789,12 +789,12 @@ void PlugDataPluginEditor::updateCommandStatus()
     }
 }
 
-ApplicationCommandTarget* PlugDataPluginEditor::getNextCommandTarget()
+ApplicationCommandTarget* PluginEditor::getNextCommandTarget()
 {
     return this;
 }
 
-void PlugDataPluginEditor::getAllCommands(Array<CommandID>& commands)
+void PluginEditor::getAllCommands(Array<CommandID>& commands)
 {
     // Add all command IDs
     for (int n = NewProject; n < NumItems; n++)
@@ -803,7 +803,7 @@ void PlugDataPluginEditor::getAllCommands(Array<CommandID>& commands)
     }
 }
 
-void PlugDataPluginEditor::getCommandInfo(const CommandID commandID, ApplicationCommandInfo& result)
+void PluginEditor::getCommandInfo(const CommandID commandID, ApplicationCommandInfo& result)
 {
     bool hasBoxSelection = false;
     bool hasSelection = false;
@@ -1183,7 +1183,7 @@ void PlugDataPluginEditor::getCommandInfo(const CommandID commandID, Application
     }
 }
 
-bool PlugDataPluginEditor::perform(const InvocationInfo& info)
+bool PluginEditor::perform(const InvocationInfo& info)
 {
     if(info.commandID == CommandIDs::NewProject) {
         newProject();
@@ -1411,7 +1411,7 @@ bool PlugDataPluginEditor::perform(const InvocationInfo& info)
 }
 
 
-bool PlugDataPluginEditor::wantsRoundedCorners()
+bool PluginEditor::wantsRoundedCorners()
 {
 #if PLUGDATA_STANDALONE
     if(auto* window = findParentComponentOfClass<PlugDataWindow>()) {

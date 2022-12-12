@@ -9,7 +9,7 @@
 #include <JuceHeader.h>
 #include "LookAndFeel.h"
 
-class PlugDataPluginEditor;
+class PluginEditor;
 
 struct Dialog : public Component {
 
@@ -112,7 +112,7 @@ struct Dialogs {
 
     static void createSettingsDialog(AudioProcessor& processor, AudioDeviceManager* manager, Component* centre, ValueTree const& settingsTree);
 
-    static void showObjectMenu(PlugDataPluginEditor* parent, Component* target);
+    static void showObjectMenu(PluginEditor* parent, Component* target);
     
     static void showOkayCancelDialog(std::unique_ptr<Dialog>* target, Component* parent, const String& title, std::function<void(bool)> callback);
     

@@ -1,0 +1,27 @@
+/*
+ // Copyright (c) 2021-2022 Timothy Schoen and Wasted-Audio
+ // For information on usage and redistribution, and for a DISCLAIMER OF ALL
+ // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
+ */
+
+class ExportingProgressView;
+class ToolchainInstaller;
+class ExporterSettingsPanel;
+class Dialog;
+
+struct HeavyExportDialog : public Component
+{
+    bool hasToolchain = false;
+    
+    std::unique_ptr<ExportingProgressView> exportingView;
+    std::unique_ptr<ToolchainInstaller> installer;
+    std::unique_ptr<ExporterSettingsPanel> exporterPanel;
+    
+    HeavyExportDialog(Dialog* dialog);
+    
+    ~HeavyExportDialog();
+    
+    void paint(Graphics& g) override;
+    
+    void resized() override;
+};

@@ -16,12 +16,12 @@
 
 class PlugDataLook;
 
-class PlugDataPluginEditor;
-class PlugDataAudioProcessor : public AudioProcessor, public pd::Instance, public Timer, public AudioProcessorParameter::Listener
+class PluginEditor;
+class PluginProcessor : public AudioProcessor, public pd::Instance, public Timer, public AudioProcessorParameter::Listener
 {
    public:
-    PlugDataAudioProcessor();
-    ~PlugDataAudioProcessor() override;
+    PluginProcessor();
+    ~PluginProcessor() override;
 
     static AudioProcessor::BusesProperties buildBusesProperties();
 
@@ -196,5 +196,5 @@ class PlugDataAudioProcessor : public AudioProcessor, public pd::Instance, publi
     static inline const String else_version = "ELSE v1.0-rc4";
     static inline const String cyclone_version = "cyclone v0.6-1";
     
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PlugDataAudioProcessor)
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PluginProcessor)
 };
