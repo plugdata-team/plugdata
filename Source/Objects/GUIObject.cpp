@@ -303,7 +303,7 @@ struct Lambda {
 
 GUIObject::GUIObject(void* obj, Object* parent)
     : ObjectBase(obj, parent)
-    , processor(*parent->cnv->pd)
+    , processor(parent->cnv->pd)
     , edited(false)
 {
     object->addComponentListener(this);
@@ -395,7 +395,7 @@ void GUIObject::setValueScaled(float v)
 void GUIObject::startEdition()
 {
     edited = true;
-    processor.enqueueMessages("gui", "mouse", { 1.f });
+    processor->enqueueMessages("gui", "mouse", { 1.f });
 
     value = getValue();
 }
@@ -403,7 +403,7 @@ void GUIObject::startEdition()
 void GUIObject::stopEdition()
 {
     edited = false;
-    processor.enqueueMessages("gui", "mouse", { 0.f });
+    processor->enqueueMessages("gui", "mouse", { 0.f });
 }
 
 void GUIObject::updateValue()
