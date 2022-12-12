@@ -1280,7 +1280,6 @@ void Canvas::handleMouseDown(Component* component, MouseEvent const& e)
     for (auto* object : getSelectionOfType<Object>())
     {
         object->mouseDownPos = object->getPosition();
-        mouseDownObjectPositions.emplace_back(object->getPosition()); //store object positions for alt+drag
         object->setBufferedToImage(true);
     }
 
@@ -1399,9 +1398,22 @@ void Canvas::handleMouseDrag(MouseEvent const& e)
     if (!wasDragDuplicated && e.mods.isAltDown()) {
         // Single for undo for duplicate + move
         patch.startUndoSequence("Duplicate");
+
+        // Sort selection indexes to match pd indexes
+        std::sort(selection.begin(), selection.end(),
+        [this](auto* a, auto* b) -> bool {
+            return objects.indexOf(a) < objects.indexOf(b);
+        });
+
+        // Store origin object positions
+        for (auto object : selection) {
+            mouseDownObjectPositions.emplace_back(object->getPosition());
+        }
+        
         // Duplicate once
         wasDragDuplicated = true;
         duplicateSelection();
+        cancelConnectionCreation();
     }
 
     // move all selected objects
