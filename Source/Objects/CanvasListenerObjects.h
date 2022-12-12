@@ -180,13 +180,13 @@ struct CanvasZoomObject final : public TextBase, public Value::Listener
     CanvasZoomObject(void* ptr, Object* object)
         : TextBase(ptr, object)
     {
-        lastScale = static_cast<float>(cnv->main.zoomScale.getValue());
-        cnv->main.zoomScale.addListener(this);
+        lastScale = static_cast<float>(cnv->editor->zoomScale.getValue());
+        cnv->editor->zoomScale.addListener(this);
     }
     
     void valueChanged(Value& v) override {
         
-        float newScale = static_cast<float>(cnv->main.zoomScale.getValue());
+        float newScale = static_cast<float>(cnv->editor->zoomScale.getValue());
         if(lastScale != newScale) {
             auto* zoom = static_cast<t_fake_zoom*>(ptr);
             outlet_float(zoom->x_obj.ob_outlet, newScale);

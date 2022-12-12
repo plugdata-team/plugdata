@@ -117,19 +117,19 @@ String ObjectBase::getType() const
 // Makes sure that any tabs refering to the now deleted patch will be closed
 void ObjectBase::closeOpenedSubpatchers()
 {
-    auto& main = object->cnv->main;
-    auto* tabbar = &main.tabbar;
+    auto* editor = object->cnv->editor;
+    auto* tabbar = &editor->tabbar;
 
     if (!tabbar)
         return;
 
     for (int n = 0; n < tabbar->getNumTabs(); n++) {
-        auto* cnv = main.getCanvas(n);
+        auto* cnv = editor->getCanvas(n);
         if (cnv && cnv->patch == *getPatch()) {
             auto* deleted_patch = &cnv->patch;
-            main.canvases.removeObject(cnv);
+            editor->canvases.removeObject(cnv);
             tabbar->removeTab(n);
-            main.pd.patches.removeObject(deleted_patch, false);
+            editor->pd.patches.removeObject(deleted_patch, false);
 
             break;
         }
@@ -155,20 +155,20 @@ void ObjectBase::openSubpatch()
         path = File(String::fromUTF8(canvas_getdir(subpatch->getPointer())->s_name) + "/" + String::fromUTF8(glist->gl_name->s_name)).withFileExtension("pd");
     }
 
-    for (int n = 0; n < cnv->main.tabbar.getNumTabs(); n++) {
-        auto* tabCanvas = cnv->main.getCanvas(n);
+    for (int n = 0; n < cnv->editor->tabbar.getNumTabs(); n++) {
+        auto* tabCanvas = cnv->editor->getCanvas(n);
         if (tabCanvas->patch == *subpatch) {
-            cnv->main.tabbar.setCurrentTabIndex(n);
+            cnv->editor->tabbar.setCurrentTabIndex(n);
             return;
         }
     }
 
-    auto* newPatch = cnv->main.pd.patches.add(new pd::Patch(*subpatch));
-    auto* newCanvas = cnv->main.canvases.add(new Canvas(cnv->main, *newPatch, nullptr));
+    auto* newPatch = cnv->editor->pd.patches.add(new pd::Patch(*subpatch));
+    auto* newCanvas = cnv->editor->canvases.add(new Canvas(cnv->editor, *newPatch, nullptr));
 
     newPatch->setCurrentFile(path);
 
-    cnv->main.addTab(newCanvas);
+    cnv->editor->addTab(newCanvas);
     newCanvas->checkBounds();
 }
 

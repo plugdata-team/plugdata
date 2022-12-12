@@ -24,11 +24,11 @@ class Canvas : public Component, public Value::Listener, public LassoSource<Weak
     
     bool isBeingDeleted = false;
     
-    Canvas(PluginEditor& parent, pd::Patch& patch, Component* parentGraph = nullptr);
+    Canvas(PluginEditor* parent, pd::Patch& patch, Component* parentGraph = nullptr);
 
     ~Canvas() override;
 
-    PluginEditor& main;
+    PluginEditor* editor;
     PluginProcessor* pd;
 
     void paint(Graphics& g) override;
@@ -87,7 +87,7 @@ class Canvas : public Component, public Value::Listener, public LassoSource<Weak
 
     void updateSidebarSelection();
 
-    void showSuggestions(Object* object, TextEditor* editor);
+    void showSuggestions(Object* object, TextEditor* textEditor);
     void hideSuggestions();
 
     template <typename T>

@@ -138,7 +138,7 @@ public:
         }
         
         if(auto* viewport = cnv->viewport) {
-            float scale = static_cast<float>(cnv->main.zoomScale.getValue());
+            float scale = static_cast<float>(cnv->editor->zoomScale.getValue());
             auto pos = target->getBounds().reduced(Object::margin).getCentre() * scale;
             
             pos.x -= viewport->getViewWidth() * 0.5f;
