@@ -92,7 +92,7 @@ class MidiSelectorComponentListBox  : public RoundedListBox,
 private ListBoxModel
 {
 public:
-    MidiSelectorComponentListBox (bool input, PluginProcessor& processor, AudioDeviceManager& dm, const String& noItems)
+    MidiSelectorComponentListBox (bool input, PluginProcessor* processor, AudioDeviceManager& dm, const String& noItems)
     : RoundedListBox ({}, nullptr),
     deviceManager (dm),
     noItemsMessage (noItems),
@@ -180,13 +180,13 @@ public:
 private:
     //==============================================================================
     AudioDeviceManager& deviceManager;
-    PluginProcessor& audioProcessor;
+    PluginProcessor* audioProcessor;
     const String noItemsMessage;
     Array<MidiDeviceInfo> items;
     bool isInput;
     
     MidiOutput* getEnabledMidiOutputWithID(String identifier) {
-        for(auto* midiOut : audioProcessor.midiOutputs)
+        for(auto* midiOut : audioProcessor->midiOutputs)
         {
             if(midiOut->getIdentifier() == identifier)
             {
@@ -210,12 +210,12 @@ private:
             else {
                 if(auto* midiOut = getEnabledMidiOutputWithID(identifier))
                 {
-                    audioProcessor.midiOutputs.removeObject(midiOut);
+                    audioProcessor->midiOutputs.removeObject(midiOut);
                     updateContent();
                     return;
                 }
                 else {
-                    auto* device = audioProcessor.midiOutputs.add(MidiOutput::openDevice(identifier));
+                    auto* device = audioProcessor->midiOutputs.add(MidiOutput::openDevice(identifier));
                     
                     device->startBackgroundThread();
                     updateContent();
@@ -250,7 +250,7 @@ class StandaloneAudioSettingsComponent : public Component, private ChangeListene
 {
 public:
 
-    StandaloneAudioSettingsComponent (PluginProcessor& audioProcessor, AudioDeviceManager& dm)
+    StandaloneAudioSettingsComponent (PluginProcessor* audioProcessor, AudioDeviceManager& dm)
     : deviceManager (dm),
     itemHeight (24)
     {        
@@ -270,7 +270,6 @@ public:
             deviceTypeDropDownLabel->setJustificationType (Justification::centredRight);
             deviceTypeDropDownLabel->attachToComponent (deviceTypeDropDown.get(), true);
         }
-        
 
         midiInputsList.reset (new MidiSelectorComponentListBox (true, audioProcessor, deviceManager,
                                                                      "(" + TRANS("No MIDI inputs available") + ")"));
@@ -1212,7 +1211,7 @@ public:
     
     StandaloneAudioSettingsComponent* child;
     
-    StandaloneAudioSettings (PluginProcessor& processor, AudioDeviceManager& dm)
+    StandaloneAudioSettings (PluginProcessor* processor, AudioDeviceManager& dm)
     {
         child = new StandaloneAudioSettingsComponent(processor, dm);
         setViewedComponent(child, true);
@@ -1233,7 +1232,7 @@ public:
 #else
 
 struct DAWAudioSettings : public Component, public Value::Listener {
-    explicit DAWAudioSettings(AudioProcessor& p)
+    explicit DAWAudioSettings(AudioProcessor* p)
     : processor(p)
     {
         addAndMakeVisible(latencyNumberBox);
@@ -1276,7 +1275,7 @@ struct DAWAudioSettings : public Component, public Value::Listener {
         }
     }
     
-    AudioProcessor& processor;
+    AudioProcessor* processor;
     
     Value latencyValue;
     Value tailLengthValue;

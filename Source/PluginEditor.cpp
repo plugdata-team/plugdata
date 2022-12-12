@@ -36,7 +36,7 @@ bool wantsNativeDialog() {
 }
 
 
-PluginEditor::PluginEditor(PluginProcessor& p) : AudioProcessorEditor(&p), pd(p), statusbar(p), sidebar(&p, this)
+PluginEditor::PluginEditor(PluginProcessor& p) : AudioProcessorEditor(&p), pd(&p), statusbar(&p), sidebar(&p, this)
 {
     toolbarButtons = {new TextButton(Icons::Open), new TextButton(Icons::Save),     new TextButton(Icons::SaveAs), new TextButton(Icons::Undo),
                       new TextButton(Icons::Redo), new TextButton(Icons::Add),  new TextButton(Icons::Settings), new TextButton(Icons::Hide),   new TextButton(Icons::Pin)};
@@ -50,11 +50,11 @@ PluginEditor::PluginEditor(PluginProcessor& p) : AudioProcessorEditor(&p), pd(p)
 #endif
 
     tooltipWindow->setOpaque(false);
-    tooltipWindow->setLookAndFeel(&pd.lnf.get());
+    tooltipWindow->setLookAndFeel(&pd->lnf.get());
 
     addKeyListener(getKeyMappings());
 
-    pd.settingsTree.addListener(this);
+    pd->settingsTree.addListener(this);
 
     setWantsKeyboardFocus(true);
     registerAllCommandsForTarget(this);
@@ -80,20 +80,20 @@ PluginEditor::PluginEditor(PluginProcessor& p) : AudioProcessorEditor(&p), pd(p)
         p.settingsTree.appendChild(ValueTree("Keymap"), nullptr);
     }
 
-    autoconnect.referTo(pd.settingsTree.getPropertyAsValue("AutoConnect", nullptr));
+    autoconnect.referTo(pd->settingsTree.getPropertyAsValue("AutoConnect", nullptr));
     
-    theme.referTo(pd.settingsTree.getPropertyAsValue("Theme", nullptr));
+    theme.referTo(pd->settingsTree.getPropertyAsValue("Theme", nullptr));
     theme.addListener(this);
     
 #if PLUGDATA_STANDALONE
-    if(!pd.settingsTree.hasProperty("HvccMode")) pd.settingsTree.setProperty("HvccMode", false, nullptr);
-    hvccMode.referTo(pd.settingsTree.getPropertyAsValue("HvccMode", nullptr));
+    if(!pd->settingsTree.hasProperty("HvccMode")) pd->settingsTree.setProperty("HvccMode", false, nullptr);
+    hvccMode.referTo(pd->settingsTree.getPropertyAsValue("HvccMode", nullptr));
 #else
     // Don't allow compiled mode in the plugin
     hvccMode = false;
 #endif
     
-    zoomScale.referTo(pd.settingsTree.getPropertyAsValue("Zoom", nullptr));
+    zoomScale.referTo(pd->settingsTree.getPropertyAsValue("Zoom", nullptr));
     zoomScale.addListener(this);
     
     addAndMakeVisible(statusbar);
@@ -179,9 +179,9 @@ PluginEditor::PluginEditor(PluginProcessor& p) : AudioProcessorEditor(&p), pd(p)
             // Initialise settings dialog for DAW and standalone
             auto* pluginHolder = findParentComponentOfClass<PlugDataWindow>()->getPluginHolder();
         
-            Dialogs::createSettingsDialog(pd, &pluginHolder->deviceManager, toolbarButton(Settings), pd.settingsTree);
+            Dialogs::createSettingsDialog(pd, &pluginHolder->deviceManager, toolbarButton(Settings), pd->settingsTree);
 #else
-            Dialogs::createSettingsDialog(pd, nullptr, toolbarButton(Settings), pd.settingsTree);
+            Dialogs::createSettingsDialog(pd, nullptr, toolbarButton(Settings), pd->settingsTree);
 #endif
     };
 
@@ -213,8 +213,8 @@ PluginEditor::PluginEditor(PluginProcessor& p) : AudioProcessorEditor(&p), pd(p)
 
     addAndMakeVisible(toolbarButton(Hide));
     
-    sidebar.setSize(250, pd.lastUIHeight - 40);
-    setSize(pd.lastUIWidth, pd.lastUIHeight);
+    sidebar.setSize(250, pd->lastUIHeight - 40);
+    setSize(pd->lastUIWidth, pd->lastUIHeight);
     
     // Set minimum bounds
     setResizeLimits(835, 305, 999999, 999999);
@@ -235,11 +235,11 @@ PluginEditor::~PluginEditor()
 {
     setConstrainer(nullptr);
 
-    pd.settingsTree.removeListener(this);
+    pd->settingsTree.removeListener(this);
     zoomScale.removeListener(this);
     theme.removeListener(this);
     
-    pd.lastTab = tabbar.getCurrentTabIndex();
+    pd->lastTab = tabbar.getCurrentTabIndex();
 }
 
 void PluginEditor::paint(Graphics& g)
@@ -336,8 +336,8 @@ void PluginEditor::resized()
     toolbarButton(Hide)->setBounds(hidePosition, 0, 70, toolbarHeight);
     toolbarButton(Pin)->setBounds(pinPosition, 0, 70, toolbarHeight);
 
-    pd.lastUIWidth = getWidth();
-    pd.lastUIHeight = getHeight();
+    pd->lastUIWidth = getWidth();
+    pd->lastUIHeight = getHeight();
     
     zoomLabel.setTopLeftPosition(5, statusbar.getY() - 28);
     zoomLabel.setSize(55, 23);
@@ -422,7 +422,7 @@ void PluginEditor::mouseDrag(const MouseEvent& e)
 #endif
 
 void PluginEditor::newProject() {
-    auto* patch = pd.loadPatch(pd::Instance::defaultPatch);
+    auto* patch = pd->loadPatch(pd::Instance::defaultPatch);
     patch->setTitle("Untitled Patcher");
 }
 
@@ -434,20 +434,20 @@ void PluginEditor::openProject()
 
         if (openedFile.exists() && openedFile.getFileExtension().equalsIgnoreCase(".pd"))
         {
-            pd.settingsTree.setProperty("LastChooserPath", openedFile.getParentDirectory().getFullPathName(), nullptr);
+            pd->settingsTree.setProperty("LastChooserPath", openedFile.getParentDirectory().getFullPathName(), nullptr);
 
-            pd.loadPatch(openedFile);
+            pd->loadPatch(openedFile);
         }
     };
 
-    openChooser = std::make_unique<FileChooser>("Choose file to open", File(pd.settingsTree.getProperty("LastChooserPath")), "*.pd", wantsNativeDialog());
+    openChooser = std::make_unique<FileChooser>("Choose file to open", File(pd->settingsTree.getProperty("LastChooserPath")), "*.pd", wantsNativeDialog());
 
     openChooser->launchAsync(FileBrowserComponent::openMode | FileBrowserComponent::canSelectFiles, openFunc);
 }
 
 void PluginEditor::saveProjectAs(const std::function<void()>& nestedCallback)
 {
-    saveChooser = std::make_unique<FileChooser>("Select a save file", File(pd.settingsTree.getProperty("LastChooserPath")), "*.pd", wantsNativeDialog());
+    saveChooser = std::make_unique<FileChooser>("Select a save file", File(pd->settingsTree.getProperty("LastChooserPath")), "*.pd", wantsNativeDialog());
 
     saveChooser->launchAsync(FileBrowserComponent::saveMode | FileBrowserComponent::warnAboutOverwriting,
                              [this, nestedCallback](const FileChooser& f) mutable
@@ -456,7 +456,7 @@ void PluginEditor::saveProjectAs(const std::function<void()>& nestedCallback)
 
                                  if (result.getFullPathName().isNotEmpty())
                                  {
-                                     pd.settingsTree.setProperty("LastChooserPath", result.getParentDirectory().getFullPathName(), nullptr);
+                                     pd->settingsTree.setProperty("LastChooserPath", result.getParentDirectory().getFullPathName(), nullptr);
 
                                      result.deleteFile();
                                      result = result.withFileExtension(".pd");
@@ -470,7 +470,7 @@ void PluginEditor::saveProjectAs(const std::function<void()>& nestedCallback)
 
 void PluginEditor::saveProject(const std::function<void()>& nestedCallback)
 {
-    for (auto* patch : pd.patches)
+    for (auto* patch : pd->patches)
     {
         patch->deselectAll();
     }
@@ -559,7 +559,7 @@ void PluginEditor::addTab(Canvas* cnv, bool deleteWhenClosed)
 
             canvases.removeObject(cnv);
             tabbar.removeTab(idx);
-            pd.patches.removeObject(patch);
+            pd->patches.removeObject(patch);
 
             tabbar.setCurrentTabIndex(tabbar.getNumTabs() - 1, true);
             updateCommandStatus();
@@ -670,24 +670,24 @@ void PluginEditor::valueChanged(Value& v)
     // Update theme
     else if (v.refersToSameSourceAs(theme))
     {
-        pd.setTheme(static_cast<bool>(theme.getValue()));
+        pd->setTheme(static_cast<bool>(theme.getValue()));
         getTopLevelComponent()->repaint();
     }
 }
 
 void PluginEditor::valueTreePropertyChanged(ValueTree& treeWhosePropertyHasChanged, const Identifier& property)
 {
-    pd.settingsChangedInternally = true;
+    pd->settingsChangedInternally = true;
     startTimer(300);
 }
 void PluginEditor::valueTreeChildAdded(ValueTree& parentTree, ValueTree& childWhichHasBeenAdded)
 {
-    pd.settingsChangedInternally = true;
+    pd->settingsChangedInternally = true;
     startTimer(300);
 }
 void PluginEditor::valueTreeChildRemoved(ValueTree& parentTree, ValueTree& childWhichHasBeenRemoved, int indexFromWhichChildWasRemoved)
 {
-    pd.settingsChangedInternally = true;
+    pd->settingsChangedInternally = true;
     startTimer(300);
 }
 
@@ -695,7 +695,7 @@ void PluginEditor::timerCallback()
 {
     // Save settings to file whenever valuetree state changes
     // Use timer to group changes together
-    pd.saveSettings();
+    pd->saveSettings();
     stopTimer();
 }
 
@@ -738,7 +738,7 @@ void PluginEditor::updateCommandStatus()
         bool locked = static_cast<bool>(cnv->locked.getValue());
 
         // First on pd's thread, get undo status
-        pd.enqueueFunction(
+        pd->enqueueFunction(
             [this, patchPtr, isDragging, deletionCheck, locked]() mutable
             {
                 if(!deletionCheck) return;
@@ -1347,15 +1347,15 @@ bool PluginEditor::perform(const InvocationInfo& info)
         }
         case CommandIDs::ToggleGrid:
         {
-            auto value = static_cast<bool>(pd.settingsTree.getProperty("GridEnabled"));
-            pd.settingsTree.setProperty("GridEnabled", !value, nullptr);
+            auto value = static_cast<bool>(pd->settingsTree.getProperty("GridEnabled"));
+            pd->settingsTree.setProperty("GridEnabled", !value, nullptr);
             
             return true;
         }
         case CommandIDs::ClearConsole:
         {
-            auto value = static_cast<bool>(pd.settingsTree.getProperty("GridEnabled"));
-            pd.settingsTree.setProperty("GridEnabled", !value, nullptr);
+            auto value = static_cast<bool>(pd->settingsTree.getProperty("GridEnabled"));
+            pd->settingsTree.setProperty("GridEnabled", !value, nullptr);
             
             sidebar.clearConsole();
             

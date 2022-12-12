@@ -47,7 +47,7 @@ void Dialogs::showArrayDialog(std::unique_ptr<Dialog>* target, Component* centre
     target->reset(dialog);
 }
 
-void Dialogs::createSettingsDialog(AudioProcessor& processor, AudioDeviceManager* manager, Component* centre, ValueTree const& settingsTree)
+void Dialogs::createSettingsDialog(AudioProcessor* processor, AudioDeviceManager* manager, Component* centre, ValueTree const& settingsTree)
 {
     SettingsPopup::showSettingsPopup(processor, manager, centre, settingsTree);
 }

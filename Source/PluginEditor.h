@@ -167,7 +167,7 @@ class PluginEditor : public AudioProcessorEditor, public Value::Listener, public
     
     bool wantsRoundedCorners();
 
-    PluginProcessor& pd;
+    PluginProcessor* pd;
 
     AffineTransform transform;
 
