@@ -32,7 +32,7 @@ public:
         
         if(shouldQuit) return 1;
         
-        start(args);
+        start(args.joinIntoString(" "));
         waitForProcessToFinish(-1);
         
         if(shouldQuit) return 1;

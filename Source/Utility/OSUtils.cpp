@@ -106,32 +106,3 @@ bool runAsAdmin(std::string command, std::string parameters, void* hWndPtr) {
 
     return (bool)retval;
 }
-
-#elif JUCE_LINUX
-
-
-#include <sys/wait.h>
-#include <pty.h>
-#include <utmp.h>
-#include <JuceHeader.h>
-
-// a couple of stream helpers... we can't use Upp ones here because we need non-blocking streams
-static void _PutLine(FILE *f, const char *line)
-{
-    fprintf(f, "%s\n", line);
-}
-
-static String _GetLine(FILE *f)
-{
-    static char buf[256];
-    
-    *buf = 0;
-    fgets(buf, 255, f);
-    return buf;
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////
-// executes a command via sudo; if wait is true, will wait for command end, otherwise executes it in background
-
-    
-#endif

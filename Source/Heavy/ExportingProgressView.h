@@ -40,7 +40,7 @@ public:
     WaitableEvent userInteractionWait;
     TextButton confirmButton = TextButton("Done!");
     
-    static constexpr int maxLength = 1024;
+    static constexpr int maxLength = 128;
     char processOutput[maxLength];
     
     ExportingProgressView() : Thread("Console thread")
