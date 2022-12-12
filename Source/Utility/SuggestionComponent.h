@@ -166,7 +166,7 @@ public:
         currentBox = object;
         openedEditor = editor;
 
-        setTransform(object->cnv->main.getTransform());
+        setTransform(object->cnv->editor->getTransform());
 
         editor->setInputFilter(this, false);
         editor->addKeyListener(this);
@@ -408,7 +408,7 @@ private:
         auto found = library.autocomplete(typedText.toStdString());
 
         // When hvcc mode is enabled, show only hvcc compatible objects
-        if(static_cast<bool>(currentBox->cnv->main.hvccMode.getValue())) {
+        if(static_cast<bool>(currentBox->cnv->editor->hvccMode.getValue())) {
             std::vector<std::pair<String, bool>> hvccObjectsFound;
             for(auto& object : found) {
                 if(Object::hvccObjects.contains(object.first)) {

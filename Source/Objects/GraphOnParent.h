@@ -102,11 +102,11 @@ public:
     void updateCanvas()
     {
         if (!canvas) {
-            canvas = std::make_unique<Canvas>(cnv->main, subpatch, this);
+            canvas = std::make_unique<Canvas>(cnv->editor, subpatch, this);
 
             // Make sure that the graph doesn't become the current canvas
             cnv->patch.setCurrent(true);
-            cnv->main.updateCommandStatus();
+            cnv->editor->updateCommandStatus();
         }
 
         auto b = getPatch()->getBounds();
@@ -120,7 +120,7 @@ public:
         // Change from subpatch to graph
         if (!static_cast<t_canvas*>(ptr)->gl_isgraph) {
             cnv->setSelected(object, false);
-            object->cnv->main.sidebar.hideParameters();
+            object->cnv->editor->sidebar.hideParameters();
             object->setType(getText(), ptr);
             return;
         }

@@ -34,7 +34,7 @@ struct SubpatchObject final : public TextBase
         // Change from subpatch to graph
         if (static_cast<t_canvas*>(ptr)->gl_isgraph) {
             cnv->setSelected(object, false);
-            object->cnv->main.sidebar.hideParameters();
+            object->cnv->editor->sidebar.hideParameters();
             object->setType(objectText, ptr);
         }
     };

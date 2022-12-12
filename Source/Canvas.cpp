@@ -20,7 +20,7 @@ extern "C"
 #include "Utility/GraphArea.h"
 #include "Utility/SuggestionComponent.h"
 
-Canvas::Canvas(PluginEditor& parent, pd::Patch& p, Component* parentGraph) : main(parent), pd(&parent.pd), patch(p), storage(patch.getPointer(), pd)
+Canvas::Canvas(PluginEditor* parent, pd::Patch& p, Component* parentGraph) : editor(parent), pd(&parent->pd), patch(p), storage(patch.getPointer(), pd)
 {
     isGraphChild = glist_isgraph(p.getPointer());
     hideNameAndArgs = static_cast<bool>(p.getPointer()->gl_hidetext);
@@ -36,7 +36,7 @@ Canvas::Canvas(PluginEditor& parent, pd::Patch& p, Component* parentGraph) : mai
     // Check if canvas belongs to a graph
     if (parentGraph)
     {
-        setLookAndFeel(&main.getLookAndFeel());
+        setLookAndFeel(&editor->getLookAndFeel());
         parentGraph->addAndMakeVisible(this);
         setInterceptsMouseClicks(false, true);
         isGraph = true;
@@ -53,7 +53,7 @@ Canvas::Canvas(PluginEditor& parent, pd::Patch& p, Component* parentGraph) : mai
 
     gridEnabled.referTo(pd->settingsTree.getPropertyAsValue("GridEnabled", nullptr));
 
-    tabbar = &parent.tabbar;
+    tabbar = &editor->tabbar;
 
     // Add draggable border for setting graph position
     if (static_cast<bool>(isGraphChild.getValue()) && !isGraph)
@@ -76,7 +76,7 @@ Canvas::Canvas(PluginEditor& parent, pd::Patch& p, Component* parentGraph) : mai
         viewport = new Viewport;  // Owned by the tabbar, but doesn't exist for graph!
         viewport->setViewedComponent(this, false);
 
-        presentationMode.referTo(parent.statusbar.presentationMode);
+        presentationMode.referTo(editor->statusbar.presentationMode);
         presentationMode.addListener(this);
     }
     else
@@ -293,7 +293,7 @@ void Canvas::synchronise(bool updatePosition)
 
         storage.confirmIds();
 
-        setTransform(main.transform);
+        setTransform(editor->transform);
     }
 
     // Resize canvas to fit objects
@@ -305,7 +305,7 @@ void Canvas::synchronise(bool updatePosition)
     });
     
 
-    main.updateCommandStatus();
+    editor->updateCommandStatus();
     repaint();
 }
 
@@ -372,7 +372,7 @@ void Canvas::mouseDown(MouseEvent const& e)
             updateSidebarSelection();
         }
         
-        main.updateCommandStatus();
+        editor->updateCommandStatus();
     }
     // Right click
     else {
@@ -420,12 +420,12 @@ void Canvas::mouseDown(MouseEvent const& e)
         popupMenu.addItem(1, "Open", object && !multiple && canBeOpened);  // for opening subpatches
         popupMenu.addSeparator();
 
-        popupMenu.addCommandItem(&main, CommandIDs::Cut);
-        popupMenu.addCommandItem(&main, CommandIDs::Copy);
-        popupMenu.addCommandItem(&main, CommandIDs::Paste);
-        popupMenu.addCommandItem(&main, CommandIDs::Duplicate);
-        popupMenu.addCommandItem(&main, CommandIDs::Encapsulate);
-        popupMenu.addCommandItem(&main, CommandIDs::Delete);
+        popupMenu.addCommandItem(editor, CommandIDs::Cut);
+        popupMenu.addCommandItem(editor, CommandIDs::Copy);
+        popupMenu.addCommandItem(editor, CommandIDs::Paste);
+        popupMenu.addCommandItem(editor, CommandIDs::Duplicate);
+        popupMenu.addCommandItem(editor, CommandIDs::Encapsulate);
+        popupMenu.addCommandItem(editor, CommandIDs::Delete);
         popupMenu.addSeparator();
 
         popupMenu.addItem(8, "To Front", object != nullptr);
@@ -464,10 +464,10 @@ void Canvas::mouseDown(MouseEvent const& e)
                 case 11:
                     if(originalComponent == this) {
                         // Open help
-                        main.sidebar.showParameters("canvas", parameters);
+                        editor->sidebar.showParameters("canvas", parameters);
                     }
                     else {
-                        main.sidebar.showParameters(object->gui->getText(), params);
+                        editor->sidebar.showParameters(object->gui->getText(), params);
                     }
 
                     break;
@@ -476,7 +476,7 @@ void Canvas::mouseDown(MouseEvent const& e)
             }
         };
 
-        popupMenu.showMenuAsync(PopupMenu::Options().withMinimumWidth(100).withMaximumNumColumns(1).withParentComponent(&main).withTargetScreenArea(Rectangle<int>(e.getScreenX(), e.getScreenY(), 2, 2)), ModalCallbackFunction::create(callback));
+        popupMenu.showMenuAsync(PopupMenu::Options().withMinimumWidth(100).withMaximumNumColumns(1).withParentComponent(editor).withTargetScreenArea(Rectangle<int>(e.getScreenX(), e.getScreenY(), 2, 2)), ModalCallbackFunction::create(callback));
     }
 }
 
@@ -527,7 +527,7 @@ void Canvas::mouseDrag(MouseEvent const& e)
         }
         
         // For fixing coords when zooming
-        float scale = (1.0f / static_cast<float>(main.zoomScale.getValue()));
+        float scale = (1.0f / static_cast<float>(editor->zoomScale.getValue()));
         
         // Auto scroll when dragging close to the iolet
         if (viewport->autoScroll(viewportEvent.x * scale, viewportEvent.y * scale, 50, scrollSpeed))
@@ -544,7 +544,7 @@ void Canvas::mouseDrag(MouseEvent const& e)
 void Canvas::mouseUp(MouseEvent const& e)
 {
     setMouseCursor(MouseCursor::NormalCursor);
-    main.updateCommandStatus();
+    editor->updateCommandStatus();
 
     // Double-click canvas to create new object
     if (e.mods.isLeftButtonDown() && (e.getNumberOfClicks() == 2) && (e.originalComponent == this) && !isGraph && !static_cast<bool>(locked.getValue())) {
@@ -556,7 +556,7 @@ void Canvas::mouseUp(MouseEvent const& e)
 
     updateSidebarSelection();
 
-    main.updateCommandStatus();
+    editor->updateCommandStatus();
 
     lasso.endLasso();
     isDraggingLasso = false;
@@ -578,20 +578,20 @@ void Canvas::updateSidebarSelection()
 
         if (commandLocked == var(true))
         {
-            main.sidebar.hideParameters();
+            editor->sidebar.hideParameters();
         }
-        else if (!params.empty() || main.sidebar.isPinned())
+        else if (!params.empty() || editor->sidebar.isPinned())
         {
-            main.sidebar.showParameters(object->gui->getText(), params);
+            editor->sidebar.showParameters(object->gui->getText(), params);
         }
         else
         {
-            main.sidebar.hideParameters();
+            editor->sidebar.hideParameters();
         }
     }
     else
     {
-        main.sidebar.hideParameters();
+        editor->sidebar.hideParameters();
     }
 }
 
@@ -637,7 +637,7 @@ void Canvas::mouseMove(MouseEvent const& e)
 
 bool Canvas::keyPressed(KeyPress const& key)
 {
-    if (main.getCurrentCanvas() != this || isGraph) return false;
+    if (editor->getCurrentCanvas() != this || isGraph) return false;
 
     int keycode = key.getKeyCode();
 
@@ -704,7 +704,7 @@ void Canvas::deselectAll()
         if (!c.wasObjectDeleted()) c->repaint();
 
     selectedComponents.deselectAll();
-    main.sidebar.hideParameters();
+    editor->sidebar.hideParameters();
 }
 
 void Canvas::hideAllActiveEditors()
@@ -780,7 +780,7 @@ void Canvas::duplicateSelection()
         // Tell pd to select all objects that are currently selected
         patch.selectObject(object->getPointer());
 
-        if (!wasDragDuplicated && main.autoconnect.getValue()) {
+        if (!wasDragDuplicated && editor->autoconnect.getValue()) {
             // Store connections for auto patching
             for (auto* connection : connections) {
                 if (connection->inlet == object->iolets[0]) {
@@ -808,7 +808,7 @@ void Canvas::duplicateSelection()
     }
 
     // Auto patching
-    if (!wasDragDuplicated && main.autoconnect.getValue()) {
+    if (!wasDragDuplicated && editor->autoconnect.getValue()) {
         std::vector<void*> moveObjects;
         for (auto* object : objects) {
             int iolet = 1;
@@ -865,7 +865,7 @@ void Canvas::duplicateSelection()
 void Canvas::removeSelection()
 {
     // Make sure object isn't selected and stop updating gui
-    main.sidebar.hideParameters();
+    editor->sidebar.hideParameters();
 
     // Make sure nothing is selected
     patch.deselectAll();
@@ -1118,7 +1118,7 @@ void Canvas::checkBounds()
     
     updatingBounds = true;
 
-    float scale = std::max(1.0f, 1.0f / static_cast<float>(main.zoomScale.getValue()));
+    float scale = std::max(1.0f, 1.0f / static_cast<float>(editor->zoomScale.getValue()));
         
     auto viewBounds = Rectangle<int>(canvasOrigin.x, canvasOrigin.y, viewport->getMaximumVisibleWidth() * scale, viewport->getMaximumVisibleHeight() * scale);
     
@@ -1163,7 +1163,7 @@ void Canvas::valueChanged(Value& v)
         // Makes sure no objects keep keyboard focus after locking/unlocking
         if(isShowing() && isVisible()) grabKeyboardFocus();
         
-        main.updateCommandStatus();
+        editor->updateCommandStatus();
     }
     else if (v.refersToSameSourceAs(commandLocked))
     {
@@ -1219,9 +1219,9 @@ void Canvas::valueChanged(Value& v)
     }
 }
 
-void Canvas::showSuggestions(Object* object, TextEditor* editor)
+void Canvas::showSuggestions(Object* object, TextEditor* textEditor)
 {
-    suggestor->createCalloutBox(object, editor);
+    suggestor->createCalloutBox(object, textEditor);
 }
 void Canvas::hideSuggestions()
 {
@@ -1245,7 +1245,7 @@ void Canvas::setSelected(Component* component, bool shouldNowBeSelected)
         component->repaint();
     }
 
-    main.updateCommandStatus();
+    editor->updateCommandStatus();
 }
 
 bool Canvas::isSelected(Component* component) const
@@ -1327,7 +1327,7 @@ void Canvas::handleMouseUp(Component* component, MouseEvent const& e)
         pd->waitForStateUpdate();
         
         // Update undo state
-        main.updateCommandStatus();
+        editor->updateCommandStatus();
         
         checkBounds();
         didStartDragging = false;
@@ -1379,7 +1379,7 @@ void Canvas::handleMouseDrag(MouseEvent const& e)
 
     if(!didStartDragging)  {
         didStartDragging = true;
-        main.updateCommandStatus();
+        editor->updateCommandStatus();
     }
 
     auto selection = getSelectionOfType<Object>();

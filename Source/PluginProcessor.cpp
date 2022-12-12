@@ -938,7 +938,7 @@ AudioProcessorEditor* PluginProcessor::createEditor()
 
     for (auto* patch : patches)
     {
-        auto* cnv = editor->canvases.add(new Canvas(*editor, *patch, nullptr));
+        auto* cnv = editor->canvases.add(new Canvas(editor, *patch, nullptr));
         editor->addTab(cnv, true);
     }
 
@@ -1110,7 +1110,7 @@ pd::Patch* PluginProcessor::loadPatch(const File& patchFile)
     {
         MessageManager::callAsync([i, patch, _editor = Component::SafePointer(editor)]() mutable {
             if(!_editor) return;
-            auto* cnv = _editor->canvases.add(new Canvas(*_editor, *patch, nullptr));
+            auto* cnv = _editor->canvases.add(new Canvas(_editor, *patch, nullptr));
             _editor->addTab(cnv, true);
         });
     }
