@@ -8,7 +8,7 @@
 #include <JuceHeader.h>
 
 #ifdef JUCE_WINDOWS
-#include "Utility/WindowsUtils.h"
+#include "Utility/OSUtils.h"
 #endif
 
 #include <clocale>
