@@ -148,6 +148,8 @@ public:
             
             // For some reason we need to do this again
             outputFile.getChildFile("dpf").getChildFile("utils").getChildFile("generate-ttl.sh").setExecutePermission(true);
+            Toolchain::dir.getChildFile("scripts").getChildFile("anywhere-setup.sh").getChildFile("generate-ttl.sh").setExecutePermission(true);
+            
             
             Toolchain::startShellScript(buildScript, this);
 #endif
