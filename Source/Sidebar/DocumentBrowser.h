@@ -546,6 +546,8 @@ public:
             listBox.keyPressed(key);
             return true;
         }
+        
+        return false;
     }
 
     void scrollBarMoved(ScrollBar* scrollBarThatHasMoved, double newRangeStart) override
