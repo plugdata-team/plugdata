@@ -7,4 +7,9 @@
 
 void createJunction(std::string from, std::string to);
 void createHardLink(std::string from, std::string to);
+
+#if JUCE_WINDOWS
 bool runAsAdmin(std::string file, std::string lpParameters, void* hWnd);
+#else
+
+#endif

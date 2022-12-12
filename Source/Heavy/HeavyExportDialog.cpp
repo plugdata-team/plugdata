@@ -12,7 +12,7 @@
 #include "../Canvas.h"
 #include "../PluginEditor.h"
 #include "../Utility/PropertiesPanel.h"
-#include "../Utility/WindowsUtils.h"
+#include "../Utility/OSUtils.h"
 
 #if JUCE_LINUX
 #include <unistd.h>

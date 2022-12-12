@@ -91,13 +91,20 @@ public:
         args.add("-v");
         args.add("-gdpf");
         
+        String paths = "-p";
         for(auto& path : searchPaths) {
-            args.add("-p" + path);
+            paths += " " + path;
         }
+        
+        args.add(paths);
+        
+        std::cout << paths << std::endl;
+
         
         if(shouldQuit) return 1;
         
-        start(args);
+        start(args.joinIntoString(" "));
+
         waitForProcessToFinish(-1);
         
         if(shouldQuit) return 1;
