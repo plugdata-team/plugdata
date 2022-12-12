@@ -97,10 +97,7 @@ public:
         }
         
         args.add(paths);
-        
-        std::cout << paths << std::endl;
-
-        
+                
         if(shouldQuit) return 1;
         
         start(args.joinIntoString(" "));

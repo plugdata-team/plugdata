@@ -223,7 +223,15 @@ struct ToolchainInstaller : public Component, public Thread, public Timer
         // Add udev rule for the daisy seed
         // This makes sure we can use dfu-util without admin privileges
         // Kinda sucks that we need to sudo this, but there's no other way AFAIK
-        Toolchain::startShellScript("echo \'SUBSYSTEMS==\"usb\", ATTRS{idVendor}==\"0483\", ATTRS{idProduct}==\"df11\", MODE=\"0666\", GROUP=\"plugdev\"\' | pkexec tee /etc/udev/rules.d/50-daisy-stmicro-dfu.rules >/dev/null");
+        
+        auto askpassScript = Toolchain::dir.getChildFile("scripts").getChildFile("askpass.sh");
+        auto udevInstallScript = Toolchain::dir.getChildFile("scripts").getChildFile("udev-install.sh");
+        
+        askpassScript.setExecutePermission(true);
+        udevInstallScript.setExecutePermission(true);
+        
+        std::system(udevInstallScript.getFullPathName());
+
 #elif JUCE_MAC
         Toolchain::startShellScript("xcode-select --install");
 #endif

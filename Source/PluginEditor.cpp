@@ -996,10 +996,12 @@ void PluginEditor::getCommandInfo(const CommandID commandID, ApplicationCommandI
             int size = canvases.size();
             int idx = canvases.indexOf(getCurrentCanvas());
             
-            
-            result.addDefaultKeypress(KeyPress::leftKey, ModifierKeys::commandModifier);
-            result.setActive(idx < (size - 1));
-            
+#if JUCE_MAC
+            result.addDefaultKeypress(KeyPress::rightKey, ModifierKeys::commandModifier);
+#else
+            result.addDefaultKeypress(KeyPress::pageDownKey, ModifierKeys::commandModifier);
+#endif
+                        
             break;
         }
         case CommandIDs::PreviousTab:
@@ -1007,8 +1009,13 @@ void PluginEditor::getCommandInfo(const CommandID commandID, ApplicationCommandI
             int idx = canvases.indexOf(getCurrentCanvas());
             
             result.setInfo("Previous Tab", "Show the previous tab", "View", 0);
-            result.addDefaultKeypress(KeyPress::rightKey, ModifierKeys::commandModifier);
-            result.setActive(idx > 0);
+            
+#if JUCE_MAC
+            result.addDefaultKeypress(KeyPress::leftKey, ModifierKeys::commandModifier);
+#else
+            result.addDefaultKeypress(KeyPress::pageDownKey, ModifierKeys::commandModifier);
+#endif
+            
             break;
         }
         case CommandIDs::ToggleGrid:
@@ -1329,21 +1336,25 @@ bool PluginEditor::perform(const InvocationInfo& info)
         }
         case CommandIDs::NextTab:
         {
-            int currentIdx = canvases.indexOf(cnv);
-            if(isPositiveAndBelow(currentIdx, canvases.size())) {
-                tabbar.setCurrentTabIndex(currentIdx + 1);
-                return true;
-            }
-            return false;
+            int currentIdx = canvases.indexOf(cnv) - 1;
+            
+            if(currentIdx >= canvases.size()) currentIdx -= canvases.size();
+            if(currentIdx < 0) currentIdx += canvases.size();
+    
+            tabbar.setCurrentTabIndex(currentIdx);
+            
+            return true;
         }
         case CommandIDs::PreviousTab:
         {
-            int currentIdx = canvases.indexOf(cnv);
-            if(isPositiveAndBelow(currentIdx, canvases.size())) {
-                tabbar.setCurrentTabIndex(currentIdx - 1);
-                return true;
-            }
-            return false;
+            int currentIdx = canvases.indexOf(cnv) - 1;
+            
+            if(currentIdx >= canvases.size()) currentIdx -= canvases.size();
+            if(currentIdx < 0) currentIdx += canvases.size();
+    
+            tabbar.setCurrentTabIndex(currentIdx);
+            
+            return true;
         }
         case CommandIDs::ToggleGrid:
         {
