@@ -1241,7 +1241,7 @@ struct DAWAudioSettings : public Component, public Value::Listener {
         
         dynamic_cast<DraggableNumber*>(latencyNumberBox.label.get())->setMinimum(64);
         
-        auto* proc = dynamic_cast<PluginProcessor*>(&processor);
+        auto* proc = dynamic_cast<PluginProcessor*>(processor);
         auto& settingsTree = dynamic_cast<PluginProcessor&>(p).settingsTree;
         
         if(!settingsTree.hasProperty("NativeDialog")) {
@@ -1271,7 +1271,7 @@ struct DAWAudioSettings : public Component, public Value::Listener {
     void valueChanged(Value& v) override
     {
         if(v.refersToSameSourceAs(latencyValue)) {
-            processor.setLatencySamples(static_cast<int>(latencyValue.getValue()));
+            processor->setLatencySamples(static_cast<int>(latencyValue.getValue()));
         }
     }
     

@@ -197,7 +197,7 @@ protected:
 
     static inline constexpr int maxSize = 1000000;
 
-    PluginProcessor& processor;
+    PluginProcessor* processor;
 
     std::atomic<bool> edited;
     float value = 0;
