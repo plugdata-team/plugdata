@@ -128,21 +128,18 @@ public:
 #if JUCE_MAC
             Toolchain::startShellScript("make -j4 -f " + makefile.getFullPathName(), this);
 #elif JUCE_WINDOWS
-            auto changedir = String("cd \"$(dirname \"$0\")\"\n");
             auto path = "export PATH=\"$PATH:" + Toolchain::dir.getChildFile("bin").getFullPathName().replaceCharacter('\\', '/') + "\"\n";
             auto cc = "CC=" + Toolchain::dir.getChildFile("bin").getChildFile("gcc.exe").getFullPathName().replaceCharacter('\\', '/') + " ";
             auto cxx = "CXX=" + Toolchain::dir.getChildFile("bin").getChildFile("g++.exe").getFullPathName().replaceCharacter('\\', '/') + " ";
             
-            Toolchain::startShellScript(changedir + path + cc + cxx + make.getFullPathName().replaceCharacter('\\', '/') + " -j4 -f " + makefile.getFullPathName().replaceCharacter('\\', '/'), this);
+            Toolchain::startShellScript(path + cc + cxx + make.getFullPathName().replaceCharacter('\\', '/') + " -j4 -f " + makefile.getFullPathName().replaceCharacter('\\', '/'), this);
             
             
 #else // Linux or BSD
             auto bash = String("#!/bin/bash\n");
-            auto changedir = String("cd \"$(dirname \"$0\")\"\n");
             auto prepareEnvironmentScript = Toolchain::dir.getChildFile("scripts").getChildFile("anywhere-setup.sh").getFullPathName() + "\n";
             
-            auto buildScript = changedir
-            + prepareEnvironmentScript
+            auto buildScript = prepareEnvironmentScript
             + make.getFullPathName()
             + " -j4 -f " + makefile.getFullPathName();
             
