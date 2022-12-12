@@ -89,7 +89,7 @@ public:
             args.add("-p" + path);
         }
         
-        start(args);
+        start(args.joinIntoString(" "));
         waitForProcessToFinish(-1);
         
         exportingView->logToConsole("Compiling...");
