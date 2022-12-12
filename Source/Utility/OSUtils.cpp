@@ -106,3 +106,5 @@ bool runAsAdmin(std::string command, std::string parameters, void* hWndPtr) {
 
     return (bool)retval;
 }
+
+#endif
