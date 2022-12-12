@@ -151,7 +151,7 @@ struct MidiBlinker : public Component, public Timer
     bool blinkMidiOut = false;
 };
 
-Statusbar::Statusbar(PlugDataAudioProcessor& processor) : pd(processor)
+Statusbar::Statusbar(PluginProcessor& processor) : pd(processor)
 {
     levelMeter = new LevelMeter(processor.statusbarSource);
     midiBlinker = new MidiBlinker(processor.statusbarSource);
@@ -260,7 +260,7 @@ Statusbar::Statusbar(PlugDataAudioProcessor& processor) : pd(processor)
     connectionStyleButton->onClick = [this]()
     {
         bool segmented = connectionStyleButton->getToggleState();
-        auto* editor = dynamic_cast<PlugDataPluginEditor*>(pd.getActiveEditor());
+        auto* editor = dynamic_cast<PluginEditor*>(pd.getActiveEditor());
         for (auto& connection : editor->getCurrentCanvas()->getSelectionOfType<Connection>())
         {
             connection->setSegmented(segmented);
@@ -369,7 +369,7 @@ void Statusbar::resized()
 
 void Statusbar::modifierKeysChanged(const ModifierKeys& modifiers)
 {
-    auto* editor = dynamic_cast<PlugDataPluginEditor*>(pd.getActiveEditor());
+    auto* editor = dynamic_cast<PluginEditor*>(pd.getActiveEditor());
     
     if(auto* cnv = editor->getCurrentCanvas()) {
         if(cnv->didStartDragging || cnv->isDraggingLasso) {

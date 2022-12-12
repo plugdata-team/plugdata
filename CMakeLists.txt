@@ -71,6 +71,8 @@ file(GLOB PlugDataSources
     ${SOURCES_DIRECTORY}/Dialogs/*.cpp
     ${SOURCES_DIRECTORY}/Pd/*.cpp
     ${SOURCES_DIRECTORY}/Pd/*.h
+    ${SOURCES_DIRECTORY}/Heavy/*.cpp
+    ${SOURCES_DIRECTORY}/Heavy/*.h
 )
 
 if(APPLE)

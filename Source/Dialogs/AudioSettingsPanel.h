@@ -92,7 +92,7 @@ class MidiSelectorComponentListBox  : public RoundedListBox,
 private ListBoxModel
 {
 public:
-    MidiSelectorComponentListBox (bool input, PlugDataAudioProcessor& processor, AudioDeviceManager& dm, const String& noItems)
+    MidiSelectorComponentListBox (bool input, PluginProcessor& processor, AudioDeviceManager& dm, const String& noItems)
     : RoundedListBox ({}, nullptr),
     deviceManager (dm),
     noItemsMessage (noItems),
@@ -180,7 +180,7 @@ public:
 private:
     //==============================================================================
     AudioDeviceManager& deviceManager;
-    PlugDataAudioProcessor& audioProcessor;
+    PluginProcessor& audioProcessor;
     const String noItemsMessage;
     Array<MidiDeviceInfo> items;
     bool isInput;
@@ -250,7 +250,7 @@ class StandaloneAudioSettingsComponent : public Component, private ChangeListene
 {
 public:
 
-    StandaloneAudioSettingsComponent (PlugDataAudioProcessor& audioProcessor, AudioDeviceManager& dm)
+    StandaloneAudioSettingsComponent (PluginProcessor& audioProcessor, AudioDeviceManager& dm)
     : deviceManager (dm),
     itemHeight (24)
     {        
@@ -1212,7 +1212,7 @@ public:
     
     StandaloneAudioSettingsComponent* child;
     
-    StandaloneAudioSettings (PlugDataAudioProcessor& processor, AudioDeviceManager& dm)
+    StandaloneAudioSettings (PluginProcessor& processor, AudioDeviceManager& dm)
     {
         child = new StandaloneAudioSettingsComponent(processor, dm);
         setViewedComponent(child, true);
@@ -1242,8 +1242,8 @@ struct DAWAudioSettings : public Component, public Value::Listener {
         
         dynamic_cast<DraggableNumber*>(latencyNumberBox.label.get())->setMinimum(64);
         
-        auto* proc = dynamic_cast<PlugDataAudioProcessor*>(&processor);
-        auto& settingsTree = dynamic_cast<PlugDataAudioProcessor&>(p).settingsTree;
+        auto* proc = dynamic_cast<PluginProcessor*>(&processor);
+        auto& settingsTree = dynamic_cast<PluginProcessor&>(p).settingsTree;
         
         if(!settingsTree.hasProperty("NativeDialog")) {
             settingsTree.setProperty("NativeDialog", true, nullptr);

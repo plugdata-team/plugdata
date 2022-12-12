@@ -26,7 +26,7 @@ extern "C"
     EXTERN char* pd_version;
 }
 
-AudioProcessor::BusesProperties PlugDataAudioProcessor::buildBusesProperties()
+AudioProcessor::BusesProperties PluginProcessor::buildBusesProperties()
 {
     AudioProcessor::BusesProperties busesProperties;
 #if PLUGDATA_STANDALONE
@@ -45,7 +45,7 @@ AudioProcessor::BusesProperties PlugDataAudioProcessor::buildBusesProperties()
     return busesProperties;
 }
 
-PlugDataAudioProcessor::PlugDataAudioProcessor()
+PluginProcessor::PluginProcessor()
 #ifndef JucePlugin_PreferredChannelConfigurations
 : AudioProcessor(buildBusesProperties()),
 #endif
@@ -127,7 +127,7 @@ PlugDataAudioProcessor::PlugDataAudioProcessor()
             auto newTree = ValueTree::fromXml(settingsFile.loadFileAsString());
 
             // Prevents causing an update loop
-            if (auto* editor = dynamic_cast<PlugDataPluginEditor*>(getActiveEditor()))
+            if (auto* editor = dynamic_cast<PluginEditor*>(getActiveEditor()))
             {
                 settingsTree.removeListener(editor);
             }
@@ -141,7 +141,7 @@ PlugDataAudioProcessor::PlugDataAudioProcessor()
             }
             settingsTree.copyPropertiesFrom(newTree, nullptr);
 
-            if (auto* editor = dynamic_cast<PlugDataPluginEditor*>(getActiveEditor()))
+            if (auto* editor = dynamic_cast<PluginEditor*>(getActiveEditor()))
             {
                 settingsTree.addListener(editor);
 
@@ -186,7 +186,7 @@ PlugDataAudioProcessor::PlugDataAudioProcessor()
 #endif
 }
 
-PlugDataAudioProcessor::~PlugDataAudioProcessor()
+PluginProcessor::~PluginProcessor()
 {
     // Save current settings before quitting
     saveSettings();
@@ -194,7 +194,7 @@ PlugDataAudioProcessor::~PlugDataAudioProcessor()
 
 
 
-void PlugDataAudioProcessor::initialiseFilesystem()
+void PluginProcessor::initialiseFilesystem()
 {
     // Check if the abstractions directory exists, if not, unzip it from binaryData
     if (!homeDir.exists() || !abstractions.exists())
@@ -363,14 +363,14 @@ void PlugDataAudioProcessor::initialiseFilesystem()
     }
 }
 
-void PlugDataAudioProcessor::saveSettings()
+void PluginProcessor::saveSettings()
 {
     // Save settings to file
     auto xml = settingsTree.toXmlString();
     settingsFile.replaceWithText(xml);
 }
 
-void PlugDataAudioProcessor::updateSearchPaths()
+void PluginProcessor::updateSearchPaths()
 {
     // Reload pd search paths from settings
     auto pathTree = settingsTree.getChildWithName("Paths");
@@ -410,7 +410,7 @@ void PlugDataAudioProcessor::updateSearchPaths()
     getCallbackLock()->exit();
 }
 
-const String PlugDataAudioProcessor::getName() const
+const String PluginProcessor::getName() const
 {
 #if PLUGDATA_STANDALONE
     return "plugdata";
@@ -420,17 +420,17 @@ const String PlugDataAudioProcessor::getName() const
     
 }
 
-bool PlugDataAudioProcessor::acceptsMidi() const
+bool PluginProcessor::acceptsMidi() const
 {
     return true;
 }
 
-bool PlugDataAudioProcessor::producesMidi() const
+bool PluginProcessor::producesMidi() const
 {
     return true;
 }
 
-bool PlugDataAudioProcessor::isMidiEffect() const
+bool PluginProcessor::isMidiEffect() const
 {
 #if JucePlugin_IsMidiEffect
     return true;
@@ -439,36 +439,36 @@ bool PlugDataAudioProcessor::isMidiEffect() const
 #endif
 }
 
-double PlugDataAudioProcessor::getTailLengthSeconds() const
+double PluginProcessor::getTailLengthSeconds() const
 {
     return static_cast<float>(tailLength.getValue());
 }
 
-int PlugDataAudioProcessor::getNumPrograms()
+int PluginProcessor::getNumPrograms()
 {
     return 1;  // NB: some hosts don't cope very well if you tell them there are 0 programs,
     // so this should be at least 1, even if you're not really implementing programs.
 }
 
-int PlugDataAudioProcessor::getCurrentProgram()
+int PluginProcessor::getCurrentProgram()
 {
     return 0;
 }
 
-void PlugDataAudioProcessor::setCurrentProgram(int index)
+void PluginProcessor::setCurrentProgram(int index)
 {
 }
 
-const String PlugDataAudioProcessor::getProgramName(int index)
+const String PluginProcessor::getProgramName(int index)
 {
     return "Init preset";
 }
 
-void PlugDataAudioProcessor::changeProgramName(int index, const String& newName)
+void PluginProcessor::changeProgramName(int index, const String& newName)
 {
 }
 
-void PlugDataAudioProcessor::setOversampling(int amount)
+void PluginProcessor::setOversampling(int amount)
 {
     settingsTree.setProperty("Oversampling", var(amount), nullptr);
     saveSettings();
@@ -482,7 +482,7 @@ void PlugDataAudioProcessor::setOversampling(int amount)
     suspendProcessing(false);
 }
 
-void PlugDataAudioProcessor::prepareToPlay(double sampleRate, int samplesPerBlock)
+void PluginProcessor::prepareToPlay(double sampleRate, int samplesPerBlock)
 {
     float oversampleFactor = 1 << oversampling;
     auto maxChannels = std::max(getTotalNumInputChannels(), getTotalNumOutputChannels());
@@ -515,12 +515,12 @@ void PlugDataAudioProcessor::prepareToPlay(double sampleRate, int samplesPerBloc
     statusbarSource.prepareToPlay(getTotalNumOutputChannels());
 }
 
-void PlugDataAudioProcessor::releaseResources()
+void PluginProcessor::releaseResources()
 {
     releaseDSP();
 }
 
-bool PlugDataAudioProcessor::isBusesLayoutSupported(const BusesLayout& layouts) const
+bool PluginProcessor::isBusesLayoutSupported(const BusesLayout& layouts) const
 {
 #if JucePlugin_IsMidiEffect
     ignoreUnused(layouts);
@@ -558,7 +558,7 @@ bool PlugDataAudioProcessor::isBusesLayoutSupported(const BusesLayout& layouts) 
 
 
 
-void PlugDataAudioProcessor::processBlock(AudioBuffer<float>& buffer, MidiBuffer& midiMessages)
+void PluginProcessor::processBlock(AudioBuffer<float>& buffer, MidiBuffer& midiMessages)
 {
     ScopedNoDenormals noDenormals;
     auto totalNumInputChannels = getTotalNumInputChannels();
@@ -598,7 +598,7 @@ void PlugDataAudioProcessor::processBlock(AudioBuffer<float>& buffer, MidiBuffer
 #endif
 }
 
-void PlugDataAudioProcessor::process(dsp::AudioBlock<float> buffer, MidiBuffer& midiMessages)
+void PluginProcessor::process(dsp::AudioBlock<float> buffer, MidiBuffer& midiMessages)
 {
     ScopedNoDenormals noDenormals;
     const int blockSize = Instance::getBlockSize();
@@ -740,7 +740,7 @@ void PlugDataAudioProcessor::process(dsp::AudioBlock<float> buffer, MidiBuffer& 
     }
 }
 
-void PlugDataAudioProcessor::sendPlayhead()
+void PluginProcessor::sendPlayhead()
 {
     AudioPlayHead* playhead = getPlayHead();
     if(!playhead) return;
@@ -824,7 +824,7 @@ void PlugDataAudioProcessor::sendPlayhead()
     }
 }
 
-void PlugDataAudioProcessor::messageEnqueued()
+void PluginProcessor::messageEnqueued()
 {
     if (isNonRealtime() || isSuspended())
     {
@@ -841,7 +841,7 @@ void PlugDataAudioProcessor::messageEnqueued()
     }
 }
 
-void PlugDataAudioProcessor::sendMidiBuffer()
+void PluginProcessor::sendMidiBuffer()
 {
     if (acceptsMidi())
     {
@@ -900,7 +900,7 @@ void PlugDataAudioProcessor::sendMidiBuffer()
     }
 }
 
-void PlugDataAudioProcessor::processInternal()
+void PluginProcessor::processInternal()
 {
     setThis();
 
@@ -925,14 +925,14 @@ void PlugDataAudioProcessor::processInternal()
     performDSP(audioBufferIn.data(), audioBufferOut.data());
 }
 
-bool PlugDataAudioProcessor::hasEditor() const
+bool PluginProcessor::hasEditor() const
 {
     return true;  // (change this to false if you choose to not supply an editor)
 }
 
-AudioProcessorEditor* PlugDataAudioProcessor::createEditor()
+AudioProcessorEditor* PluginProcessor::createEditor()
 {
-    auto* editor = new PlugDataPluginEditor(*this);
+    auto* editor = new PluginEditor(*this);
 
     setThis();
 
@@ -951,7 +951,7 @@ AudioProcessorEditor* PlugDataAudioProcessor::createEditor()
     return editor;
 }
 
-void PlugDataAudioProcessor::getStateInformation(MemoryBlock& destData)
+void PluginProcessor::getStateInformation(MemoryBlock& destData)
 {
     MemoryBlock xmlBlock;
 
@@ -984,7 +984,7 @@ void PlugDataAudioProcessor::getStateInformation(MemoryBlock& destData)
     suspendProcessing(false);
 }
 
-void PlugDataAudioProcessor::setStateInformation(const void* data, int sizeInBytes)
+void PluginProcessor::setStateInformation(const void* data, int sizeInBytes)
 {
     if (sizeInBytes == 0) return;
 
@@ -1003,7 +1003,7 @@ void PlugDataAudioProcessor::setStateInformation(const void* data, int sizeInByt
             suspendProcessing(true);
 
             // Close any opened patches
-            if (auto* editor = dynamic_cast<PlugDataPluginEditor*>(getActiveEditor()))
+            if (auto* editor = dynamic_cast<PluginEditor*>(getActiveEditor()))
             {
                 editor->tabbar.clearTabs();
                 editor->canvases.clear();
@@ -1069,14 +1069,14 @@ void PlugDataAudioProcessor::setStateInformation(const void* data, int sizeInByt
         });
 }
 
-pd::Patch* PlugDataAudioProcessor::loadPatch(const File& patchFile)
+pd::Patch* PluginProcessor::loadPatch(const File& patchFile)
 {
     // First, check if patch is already opened
     int i = 0;
     for(auto* patch : patches) {
         if(patch->getCurrentFile() == patchFile)
         {
-            if (auto* editor = dynamic_cast<PlugDataPluginEditor*>(getActiveEditor()))
+            if (auto* editor = dynamic_cast<PluginEditor*>(getActiveEditor()))
             {
                 MessageManager::callAsync([i, _editor = Component::SafePointer(editor)]() mutable {
                     if(!_editor) return;
@@ -1106,7 +1106,7 @@ pd::Patch* PlugDataAudioProcessor::loadPatch(const File& patchFile)
 
     auto* patch = patches.add(new pd::Patch(newPatch));
 
-    if (auto* editor = dynamic_cast<PlugDataPluginEditor*>(getActiveEditor()))
+    if (auto* editor = dynamic_cast<PluginEditor*>(getActiveEditor()))
     {
         MessageManager::callAsync([i, patch, _editor = Component::SafePointer(editor)]() mutable {
             if(!_editor) return;
@@ -1120,7 +1120,7 @@ pd::Patch* PlugDataAudioProcessor::loadPatch(const File& patchFile)
     return patch;
 }
 
-pd::Patch* PlugDataAudioProcessor::loadPatch(String patchText)
+pd::Patch* PluginProcessor::loadPatch(String patchText)
 {
     if (patchText.isEmpty()) patchText = pd::Instance::defaultPatch;
 
@@ -1135,10 +1135,10 @@ pd::Patch* PlugDataAudioProcessor::loadPatch(String patchText)
     return patch;
 }
 
-void PlugDataAudioProcessor::setTheme(bool themeToUse)
+void PluginProcessor::setTheme(bool themeToUse)
 {
     lnf->setTheme(themeToUse);
-    if (auto* editor = dynamic_cast<PlugDataPluginEditor*>(getActiveEditor()))
+    if (auto* editor = dynamic_cast<PluginEditor*>(getActiveEditor()))
     {
         editor->getTopLevelComponent()->repaint();
         editor->repaint();
@@ -1163,27 +1163,27 @@ void PlugDataAudioProcessor::setTheme(bool themeToUse)
     }
 }
 
-Colour PlugDataAudioProcessor::getOutlineColour()
+Colour PluginProcessor::getOutlineColour()
 {
     return lnf->findColour(PlugDataColour::outlineColourId);
 }
 
-Colour PlugDataAudioProcessor::getForegroundColour()
+Colour PluginProcessor::getForegroundColour()
 {
     return lnf->findColour(PlugDataColour::canvasTextColourId);
 }
 
-Colour PlugDataAudioProcessor::getBackgroundColour()
+Colour PluginProcessor::getBackgroundColour()
 {
     return lnf->findColour(PlugDataColour::defaultObjectBackgroundColourId);
 }
 
-Colour PlugDataAudioProcessor::getTextColour()
+Colour PluginProcessor::getTextColour()
 {
     return lnf->findColour(PlugDataColour::toolbarTextColourId);
 }
 
-void PlugDataAudioProcessor::receiveNoteOn(const int channel, const int pitch, const int velocity)
+void PluginProcessor::receiveNoteOn(const int channel, const int pitch, const int velocity)
 {
     if (velocity == 0)
     {
@@ -1195,32 +1195,32 @@ void PlugDataAudioProcessor::receiveNoteOn(const int channel, const int pitch, c
     }
 }
 
-void PlugDataAudioProcessor::receiveControlChange(const int channel, const int controller, const int value)
+void PluginProcessor::receiveControlChange(const int channel, const int controller, const int value)
 {
     midiBufferOut.addEvent(MidiMessage::controllerEvent(channel, controller, value), audioAdvancement);
 }
 
-void PlugDataAudioProcessor::receiveProgramChange(const int channel, const int value)
+void PluginProcessor::receiveProgramChange(const int channel, const int value)
 {
     midiBufferOut.addEvent(MidiMessage::programChange(channel, value), audioAdvancement);
 }
 
-void PlugDataAudioProcessor::receivePitchBend(const int channel, const int value)
+void PluginProcessor::receivePitchBend(const int channel, const int value)
 {
     midiBufferOut.addEvent(MidiMessage::pitchWheel(channel, value + 8192), audioAdvancement);
 }
 
-void PlugDataAudioProcessor::receiveAftertouch(const int channel, const int value)
+void PluginProcessor::receiveAftertouch(const int channel, const int value)
 {
     midiBufferOut.addEvent(MidiMessage::channelPressureChange(channel, value), audioAdvancement);
 }
 
-void PlugDataAudioProcessor::receivePolyAftertouch(const int channel, const int pitch, const int value)
+void PluginProcessor::receivePolyAftertouch(const int channel, const int pitch, const int value)
 {
     midiBufferOut.addEvent(MidiMessage::aftertouchChange(channel, pitch, value), audioAdvancement);
 }
 
-void PlugDataAudioProcessor::receiveMidiByte(const int port, const int byte)
+void PluginProcessor::receiveMidiByte(const int port, const int byte)
 {
     if (midiByteIsSysex)
     {
@@ -1255,7 +1255,7 @@ void PlugDataAudioProcessor::receiveMidiByte(const int port, const int byte)
 }
 
 // Only for standalone: check which parameters have changed and forward them to pd
-void PlugDataAudioProcessor::sendParameters()
+void PluginProcessor::sendParameters()
 {
 #if PLUGDATA_STANDALONE
     for (int idx = 0; idx < numParameters; idx++)
@@ -1271,7 +1271,7 @@ void PlugDataAudioProcessor::sendParameters()
 #endif
 }
 
-void PlugDataAudioProcessor::performParameterChange(int type, int idx, float value)
+void PluginProcessor::performParameterChange(int type, int idx, float value)
 {
     // Type == 1 means it sets the change gesture state
     if(type)
@@ -1294,7 +1294,7 @@ void PlugDataAudioProcessor::performParameterChange(int type, int idx, float val
 
         // Update values in automation panel
         if(lastParameters[idx] == value) return;
-        if(auto* editor = dynamic_cast<PlugDataPluginEditor*>(getActiveEditor())) {
+        if(auto* editor = dynamic_cast<PluginEditor*>(getActiveEditor())) {
             editor->sidebar.updateAutomationParameters();
         }
         lastParameters[idx] = value;
@@ -1309,7 +1309,7 @@ void PlugDataAudioProcessor::performParameterChange(int type, int idx, float val
 }
 
 // Callback when parameter values change
-void PlugDataAudioProcessor::parameterValueChanged (int idx, float value)
+void PluginProcessor::parameterValueChanged (int idx, float value)
 {
     enqueueFunction([this, idx, value]() mutable {
         auto paramID = "param" + String(idx);
@@ -1318,24 +1318,24 @@ void PlugDataAudioProcessor::parameterValueChanged (int idx, float value)
     });
 }
 
-void PlugDataAudioProcessor::parameterGestureChanged (int parameterIndex, bool gestureIsStarting)
+void PluginProcessor::parameterGestureChanged (int parameterIndex, bool gestureIsStarting)
 {
 
 }
 
-void PlugDataAudioProcessor::receiveDSPState(bool dsp)
+void PluginProcessor::receiveDSPState(bool dsp)
 {
     MessageManager::callAsync(
         [this, dsp]() mutable
         {
-            if (auto* editor = dynamic_cast<PlugDataPluginEditor*>(getActiveEditor()))
+            if (auto* editor = dynamic_cast<PluginEditor*>(getActiveEditor()))
             {
                 editor->statusbar.powerButton->setToggleState(dsp, dontSendNotification);
             }
         });
 }
 
-void PlugDataAudioProcessor::receiveGuiUpdate(int type)
+void PluginProcessor::receiveGuiUpdate(int type)
 {
     callbackType |= (1 << type);
 
@@ -1345,9 +1345,9 @@ void PlugDataAudioProcessor::receiveGuiUpdate(int type)
     }
 }
 
-void PlugDataAudioProcessor::timerCallback()
+void PluginProcessor::timerCallback()
 {
-    if (auto* editor = dynamic_cast<PlugDataPluginEditor*>(getActiveEditor()))
+    if (auto* editor = dynamic_cast<PluginEditor*>(getActiveEditor()))
     {
         if (!callbackType) return;
 
@@ -1367,17 +1367,17 @@ void PlugDataAudioProcessor::timerCallback()
     }
 }
 
-void PlugDataAudioProcessor::updateConsole()
+void PluginProcessor::updateConsole()
 {
-    if (auto* editor = dynamic_cast<PlugDataPluginEditor*>(getActiveEditor()))
+    if (auto* editor = dynamic_cast<PluginEditor*>(getActiveEditor()))
     {
         editor->sidebar.updateConsole();
     }
 }
 
-void PlugDataAudioProcessor::synchroniseAll()
+void PluginProcessor::synchroniseAll()
 {
-    if (auto* editor = dynamic_cast<PlugDataPluginEditor*>(getActiveEditor()))
+    if (auto* editor = dynamic_cast<PluginEditor*>(getActiveEditor()))
     {
         for (auto* canvas : editor->canvases)
         {
@@ -1386,12 +1386,12 @@ void PlugDataAudioProcessor::synchroniseAll()
     }
 }
 
-void PlugDataAudioProcessor::synchroniseCanvas(void* cnv)
+void PluginProcessor::synchroniseCanvas(void* cnv)
 {
     MessageManager::callAsync(
         [this, cnv]() mutable
         {
-            if (auto* editor = dynamic_cast<PlugDataPluginEditor*>(getActiveEditor()))
+            if (auto* editor = dynamic_cast<PluginEditor*>(getActiveEditor()))
             {
                 for (auto* canvas : editor->canvases)
                 {
@@ -1404,9 +1404,9 @@ void PlugDataAudioProcessor::synchroniseCanvas(void* cnv)
         });
 }
 
-void PlugDataAudioProcessor::titleChanged()
+void PluginProcessor::titleChanged()
 {
-    if (auto* editor = dynamic_cast<PlugDataPluginEditor*>(getActiveEditor()))
+    if (auto* editor = dynamic_cast<PluginEditor*>(getActiveEditor()))
     {
         for (int n = 0; n < editor->tabbar.getNumTabs(); n++)
         {
@@ -1418,5 +1418,5 @@ void PlugDataAudioProcessor::titleChanged()
 // This creates new instances of the plugin..
 AudioProcessor* JUCE_CALLTYPE createPluginFilter()
 {
-    return new PlugDataAudioProcessor();
+    return new PluginProcessor();
 }

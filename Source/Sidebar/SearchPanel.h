@@ -14,7 +14,7 @@ class SearchPanel : public Component
 , public ScrollBar::Listener
 , public KeyListener {
 public:
-    SearchPanel(PlugDataPluginEditor* pluginEditor) : editor(pluginEditor)
+    SearchPanel(PluginEditor* pluginEditor) : editor(pluginEditor)
     {
         listBox.setModel(this);
         listBox.setRowHeight(28);
@@ -397,5 +397,5 @@ private:
     TextEditor input;
     TextButton closeButton = TextButton(Icons::Clear);
     
-    PlugDataPluginEditor* editor;
+    PluginEditor* editor;
 };

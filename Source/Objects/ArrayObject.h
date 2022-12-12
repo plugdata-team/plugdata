@@ -119,7 +119,7 @@ struct GraphicalArray : public Component {
 public:
     Object* object;
 
-    GraphicalArray(PlugDataAudioProcessor* instance, PdArray& arr, Object* parent)
+    GraphicalArray(PluginProcessor* instance, PdArray& arr, Object* parent)
         : array(arr)
         , edited(false)
         , pd(instance)
@@ -362,7 +362,7 @@ public:
 
     int lastIndex = 0;
 
-    PlugDataAudioProcessor* pd;
+    PluginProcessor* pd;
 };
 
 
@@ -378,7 +378,7 @@ struct ArrayEditorDialog : public Component {
 
     String title;
 
-    ArrayEditorDialog(PlugDataAudioProcessor* instance, PdArray& arr, Object* parent)
+    ArrayEditorDialog(PluginProcessor* instance, PdArray& arr, Object* parent)
         : resizer(this, &constrainer)
         , title(arr.getExpandedName())
         , array(instance, arr, parent)

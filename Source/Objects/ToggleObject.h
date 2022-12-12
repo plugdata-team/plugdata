@@ -28,7 +28,7 @@ struct ToggleObject final : public IEMObject {
         auto untoggledColour = toggledColour.interpolatedWith(getBackgroundColour(), 0.8f);
         g.setColour(toggleState ? toggledColour : untoggledColour);
 
-        auto crossBounds = getLocalBounds().reduced(getWidth() * 0.08f).toFloat();
+        auto crossBounds = getLocalBounds().reduced((getWidth() * 0.08f) + 4.5f).toFloat();
 
         if (getWidth() < 20) {
             crossBounds = crossBounds.expanded(20 - getWidth());

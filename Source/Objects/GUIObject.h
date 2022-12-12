@@ -24,7 +24,7 @@ struct ObjectBase : public Component
     void* ptr;
     Object* object;
     Canvas* cnv;
-    PlugDataAudioProcessor* pd;
+    PluginProcessor* pd;
 
     ObjectBase(void* obj, Object* parent);
 
@@ -197,7 +197,7 @@ protected:
 
     static inline constexpr int maxSize = 1000000;
 
-    PlugDataAudioProcessor& processor;
+    PluginProcessor& processor;
 
     std::atomic<bool> edited;
     float value = 0;

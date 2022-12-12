@@ -25,7 +25,7 @@ struct DocumentBrowserViewBase : public TreeView
 };
 
 struct DocumentBrowserBase : public Component {
-    DocumentBrowserBase(PlugDataAudioProcessor* processor)
+    DocumentBrowserBase(PluginProcessor* processor)
         : pd(processor)
         , filter("*", "*", "All files")
         , updateThread("browserThread")
@@ -35,7 +35,7 @@ struct DocumentBrowserBase : public Component {
 
     virtual bool isSearching() = 0;
 
-    PlugDataAudioProcessor* pd;
+    PluginProcessor* pd;
     TimeSliceThread updateThread;
     DirectoryContentsList directory;
     WildcardFileFilter filter;
@@ -375,7 +375,7 @@ public:
         } else if (file.existsAsFile() && file.hasFileExtension("pd")) {
             browser->pd->loadPatch(file);
         } else if (file.existsAsFile()) {
-            auto* editor = dynamic_cast<PlugDataPluginEditor*>(browser->pd->getActiveEditor());
+            auto* editor = dynamic_cast<PluginEditor*>(browser->pd->getActiveEditor());
             if (auto* cnv = editor->getCurrentCanvas()) {
                 cnv->attachNextObjectToMouse = true;
 
@@ -696,7 +696,7 @@ private:
 
 struct DocumentBrowser : public DocumentBrowserBase
     , public FileSystemWatcher::Listener {
-    DocumentBrowser(PlugDataAudioProcessor* processor)
+    DocumentBrowser(PluginProcessor* processor)
         : DocumentBrowserBase(processor)
         , fileList(directory, this)
         , searchComponent(directory)

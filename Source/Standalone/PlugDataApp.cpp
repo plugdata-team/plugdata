@@ -112,7 +112,7 @@ public:
         auto tokens = StringArray::fromTokens(commandLine, " ", "\"");
         auto file = File(tokens[0].unquoted());
         if (file.existsAsFile()) {
-            auto* pd = dynamic_cast<PlugDataAudioProcessor*>(mainWindow->getAudioProcessor());
+            auto* pd = dynamic_cast<PluginProcessor*>(mainWindow->getAudioProcessor());
 
             if (pd && file.existsAsFile()) {
                 pd->loadPatch(file);
@@ -170,7 +170,7 @@ void PlugDataWindow::closeAllPatches()
 {
     // Show an ask to save dialog for each patch that is dirty
     // Because save dialog uses an asynchronous callback, we can't loop over them (so have to chain them)
-    if (auto* editor = dynamic_cast<PlugDataPluginEditor*>(pluginHolder->processor->getActiveEditor()))
+    if (auto* editor = dynamic_cast<PluginEditor*>(pluginHolder->processor->getActiveEditor()))
     {
         int idx = editor->tabbar.getCurrentTabIndex();
         auto* cnv = editor->getCurrentCanvas();
@@ -180,7 +180,7 @@ void PlugDataWindow::closeAllPatches()
             if (cnv)
             {
                 cnv->patch.close();
-                dynamic_cast<PlugDataAudioProcessor*>(getAudioProcessor())->patches.removeObject(&cnv->patch, true);
+                dynamic_cast<PluginProcessor*>(getAudioProcessor())->patches.removeObject(&cnv->patch, true);
             }
             
             editor->canvases.removeObject(cnv);
@@ -245,7 +245,7 @@ int PlugDataWindow::parseSystemArguments(String const& arguments)
     for (auto* nl = openlist; nl; nl = nl->nl_next) {
         auto toOpen = File(String(nl->nl_string).unquoted());
         if(toOpen.existsAsFile() && toOpen.hasFileExtension(".pd")) {
-            if(auto* pd = dynamic_cast<PlugDataAudioProcessor*>(getAudioProcessor())) {
+            if(auto* pd = dynamic_cast<PluginProcessor*>(getAudioProcessor())) {
                 pd->loadPatch(toOpen);
                 openedPatches.add(toOpen.getFullPathName());
             }
@@ -262,7 +262,7 @@ int PlugDataWindow::parseSystemArguments(String const& arguments)
 #endif
         auto toOpen = File(arg);
         if(toOpen.existsAsFile() && toOpen.hasFileExtension(".pd") && !openedPatches.contains(toOpen.getFullPathName())) {
-            if(auto* pd = dynamic_cast<PlugDataAudioProcessor*>(getAudioProcessor())) {
+            if(auto* pd = dynamic_cast<PluginProcessor*>(getAudioProcessor())) {
                 pd->loadPatch(toOpen);
             }
         }
@@ -285,7 +285,7 @@ int PlugDataWindow::parseSystemArguments(String const& arguments)
 }
 
 ValueTree PlugDataWindow::getSettingsTree() {
-    auto* editor = dynamic_cast<PlugDataPluginEditor*>(mainComponent->getEditor());
+    auto* editor = dynamic_cast<PluginEditor*>(mainComponent->getEditor());
     return editor->pd.settingsTree;
 }
 
