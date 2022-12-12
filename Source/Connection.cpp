@@ -166,8 +166,7 @@ bool Connection::hitTest(int x, int y)
     
     if (cnv->isSelected(this) && (startReconnectHandle.contains(position) || endReconnectHandle.contains(position)))
     {
-        outlet->repaint();
-        inlet->repaint();
+        repaint();
         return true;
     }
     
