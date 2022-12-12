@@ -146,7 +146,7 @@ struct ToolchainInstaller : public Component, public Thread, public Timer
             repaint();
             
             // Get latest version
-            auto latestVersion = "v" + URL("https://raw.githubusercontent.com/timothyschoen/HeavyDistributable/main/VERSION").readEntireTextStream().trim();
+            auto latestVersion = "v" + URL("https://raw.githubusercontent.com/plugdata-team/plugdata-heavy-toolchain/main/VERSION").readEntireTextStream().trim();
             
             if(latestVersion == "v") {
                 errorMessage = "Error: Could not download files (possibly no network connection)";
@@ -154,7 +154,7 @@ struct ToolchainInstaller : public Component, public Thread, public Timer
                 repaint();
             }
             
-            String downloadLocation = "https://github.com/timothyschoen/HeavyDistributable/releases/download/" + latestVersion + "/";
+            String downloadLocation = "https://github.com/plugdata-team/plugdata-heavy-toolchain/releases/download/" + latestVersion + "/";
             
 #if JUCE_MAC
             downloadLocation += "Heavy-MacOS-Universal.zip";
@@ -1337,7 +1337,7 @@ struct HeavyExportDialog : public Component
         
         // Create integer versions by removing the dots
         // Compare latest version on github to the currently installed version
-        const auto latestVersion = URL("https://raw.githubusercontent.com/timothyschoen/HeavyDistributable/main/VERSION").readEntireTextStream().trim().removeCharacters(".").getIntValue();
+        const auto latestVersion = URL("https://raw.githubusercontent.com/plugdata-team/plugdata-heavy-toolchain/main/VERSION").readEntireTextStream().trim().removeCharacters(".").getIntValue();
         
         // Don't do this relative to toolchain variable, that won't work on Windows
         const auto versionFile = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory).getChildFile("plugdata").getChildFile("Toolchain").getChildFile("VERSION");
