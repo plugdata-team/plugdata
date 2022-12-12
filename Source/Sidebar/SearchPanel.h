@@ -71,6 +71,8 @@ public:
             listBox.keyPressed(KeyPress(KeyPress::downKey));
             return true;
         }
+        
+        return false;
     }
     // Divert up/down key events from text editor to the listbox
     bool keyPressed (const KeyPress &key, Component *originatingComponent) override

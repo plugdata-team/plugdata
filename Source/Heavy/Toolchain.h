@@ -4,16 +4,6 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
-#include "Canvas.h"
-#include "../Utility/WindowsUtils.h"
-
-#if JUCE_LINUX
-#include <unistd.h>
-#include <sys/types.h>
-#include <sys/wait.h>
-#endif
-
-#include <z_libpd.h>
 
 struct Toolchain
 {

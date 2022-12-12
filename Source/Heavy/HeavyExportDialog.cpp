@@ -10,6 +10,7 @@
 #include "HeavyExportDialog.h"
 
 #include "../Canvas.h"
+#include "../PluginEditor.h"
 #include "../Utility/PropertiesPanel.h"
 #include "../Utility/WindowsUtils.h"
 
