@@ -508,7 +508,7 @@ void Library::fsChangeCallback()
     appDirChanged();
 }
 
-File Library::findHelpfile(t_object* obj)
+File Library::findHelpfile(t_canvas* cnv, t_object* obj)
 {
     String helpName;
 
@@ -528,13 +528,14 @@ File Library::findHelpfile(t_object* obj)
     else {
         helpName = class_gethelpname(pdclass);
     }
+    
 
     String firstName = helpName + "-help.pd";
     String secondName = "help-" + helpName + ".pd";
 
-    auto findHelpPatch = [&firstName, &secondName](const File& searchDir) -> File
+    auto findHelpPatch = [&firstName, &secondName](const File& searchDir, bool recursive) -> File
     {
-        for (const auto& fileIter : RangedDirectoryIterator(searchDir, true))
+        for (const auto& fileIter : RangedDirectoryIterator(searchDir, recursive))
         {
             auto file = fileIter.getFile();
             if (file.getFileName() == firstName || file.getFileName() == secondName)
@@ -544,14 +545,24 @@ File Library::findHelpfile(t_object* obj)
         }
         return File();
     };
+    
 
     for (auto& path : helpPaths)
     {
-        auto file = findHelpPatch(path);
+        auto file = findHelpPatch(path, true);
         if (file.existsAsFile())
         {
             return file;
         }
+    }
+    
+    auto* helpdir = class_gethelpdir(pd_class(&reinterpret_cast<t_gobj*>(obj)->g_pd));
+    
+    // Search for files int the patch directory
+    auto file = findHelpPatch(String::fromUTF8(helpdir), true);
+    if (file.existsAsFile())
+    {
+        return file;
     }
 
     return File();
