@@ -1114,7 +1114,29 @@ void Canvas::redo()
 
 void Canvas::checkBounds()
 {
-    if (isGraph || !viewport) return;
+    if(isGraph) {
+        
+        auto viewBounds = Rectangle<int>(canvasOrigin.x, canvasOrigin.y, getWidth(), getHeight());
+        
+        for (auto* obj : objects)
+        {
+            viewBounds = viewBounds.getUnion(obj->getBoundsInParent());
+        }
+        
+        canvasOrigin -= {viewBounds.getX(), viewBounds.getY()};
+        
+        setSize(viewBounds.getWidth(), viewBounds.getHeight());
+        
+        for (auto& object : objects)
+        {
+            object->updateBounds();
+        }
+        
+
+        return;
+    }
+    
+    if (!viewport) return;
     
     updatingBounds = true;
 
