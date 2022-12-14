@@ -185,7 +185,7 @@ struct Console : public Component {
                 
                 // Draw text
                 g.setColour(textColour);
-                g.drawFittedText(message, getLocalBounds().reduced(6, 0).withTrimmedLeft(8), Justification::centredLeft, numLines, 1.0f);
+                g.drawFittedText(message, getLocalBounds().reduced(14, 2), Justification::centredLeft, numLines, 0.9f);
             }
         };
 

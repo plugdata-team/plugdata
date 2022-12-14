@@ -32,7 +32,7 @@ struct FastStringWidth {
         }
 
         // In real text, letters are slightly closer together
-        return totalWidth * 0.8f;
+        return totalWidth * 0.80f;
     }
 
     /*
