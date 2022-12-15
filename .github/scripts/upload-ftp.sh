@@ -22,6 +22,9 @@ delete $FILE
 quit
 END_SCRIPT
 
+# Wait 2 minutes to ensure the file is gone
+sleep 120
+
 ftp -inv $HOST <<END_SCRIPT
 quote USER $USER
 quote PASS $PASSWD
