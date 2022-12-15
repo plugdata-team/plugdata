@@ -240,7 +240,7 @@ jobs:
       env:
         FTP_USERNAME: ${{ secrets.FTP_USERNAME }}
         FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
-      run: ./.github/scripts/upload-ftp.sh ./plugdata-Ubuntu-22.04-x64
+      run: ./.github/scripts/upload-ftp.sh ./plugdata-Ubuntu-22.04-x64.zip
 
     - name: Release Artifacts
       uses: softprops/action-gh-release@v1
@@ -302,7 +302,7 @@ jobs:
       env:
         FTP_USERNAME: ${{ secrets.FTP_USERNAME }}
         FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
-      run: ./.github/scripts/upload-ftp.sh ./plugdata-Ubuntu-20.04-x64
+      run: ./.github/scripts/upload-ftp.sh ./plugdata-Ubuntu-20.04-x64.zip
 
     - name: Release Artifacts
       uses: softprops/action-gh-release@v1
@@ -343,7 +343,7 @@ jobs:
         env:
           FTP_USERNAME: ${{ secrets.FTP_USERNAME }}
           FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
-        run: ./.github/scripts/upload-ftp.sh ./plugdata-Fedora-36-x64
+        run: ./.github/scripts/upload-ftp.sh ./plugdata-Fedora-36-x64.zip
 
       - name: Release Artifacts
         uses: softprops/action-gh-release@v1
@@ -389,7 +389,7 @@ jobs:
       env:
         FTP_USERNAME: ${{ secrets.FTP_USERNAME }}
         FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
-      run: ./.github/scripts/upload-ftp.sh ./plugdata-Arch-x64
+      run: ./.github/scripts/upload-ftp.sh ./plugdata-Arch-x64.zip
 
     - name: Release Artifacts
       uses: softprops/action-gh-release@v1
@@ -435,7 +435,7 @@ jobs:
       env:
         FTP_USERNAME: ${{ secrets.FTP_USERNAME }}
         FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
-      run: ./.github/scripts/upload-ftp.sh ./plugdata-OpenSUSE-x64
+      run: ./.github/scripts/upload-ftp.sh ./plugdata-OpenSUSE-x64.zip
 
     - name: Release Artifacts
       uses: softprops/action-gh-release@v1
@@ -486,7 +486,7 @@ jobs:
       env:
         FTP_USERNAME: ${{ secrets.FTP_USERNAME }}
         FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
-      run: ./.github/scripts/upload-ftp.sh ./plugdata-Debian-x64
+      run: ./.github/scripts/upload-ftp.sh ./plugdata-Debian-x64.zip
 
     - name: Release Artifacts
       uses: softprops/action-gh-release@v1
