@@ -22,7 +22,6 @@ jobs:
         key: macos
 
     - name: Install dependencies
-      working-directory: ${{github.workspace}}/build
       run: brew install inetutils
 
     - name: Create Build Environment
@@ -68,7 +67,6 @@ jobs:
         path: plugdata-macOS-Universal.pkg
 
     - name: Upload to server
-      shell: bash
       env:
         FTP_USERNAME: ${{ secrets.FTP_USERNAME }}
         FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
@@ -239,7 +237,6 @@ jobs:
         path: plugdata-Ubuntu-22.04-x64
 
     - name: Upload to server
-      shell: bash
       env:
         FTP_USERNAME: ${{ secrets.FTP_USERNAME }}
         FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
@@ -302,7 +299,6 @@ jobs:
         path: plugdata-Ubuntu-20.04-x64
 
     - name: Upload to server
-      shell: bash
       env:
         FTP_USERNAME: ${{ secrets.FTP_USERNAME }}
         FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
@@ -344,7 +340,6 @@ jobs:
           path: plugdata-Fedora-36-x64
 
       - name: Upload to server
-        shell: bash
         env:
           FTP_USERNAME: ${{ secrets.FTP_USERNAME }}
           FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
@@ -391,7 +386,6 @@ jobs:
         path: plugdata-Arch-x64
 
     - name: Upload to server
-      shell: bash
       env:
         FTP_USERNAME: ${{ secrets.FTP_USERNAME }}
         FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
@@ -438,7 +432,6 @@ jobs:
         path: plugdata-OpenSUSE-x64
 
     - name: Upload to server
-      shell: bash
       env:
         FTP_USERNAME: ${{ secrets.FTP_USERNAME }}
         FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
@@ -490,7 +483,6 @@ jobs:
         path: plugdata-Debian-x64
 
     - name: Upload to server
-      shell: bash
       env:
         FTP_USERNAME: ${{ secrets.FTP_USERNAME }}
         FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
