@@ -6,6 +6,13 @@ USER=${FTP_USERNAME}
 PASSWD=${FTP_PASSWORD}
 FILE=$1
 
+
+if [ -d ${FILE} ];
+then
+tar -czvf "${FILE}.tar.gz" ${FILE}
+FILE="${FILE}.tar.gz"
+fi
+
 ftp -inv $HOST <<END_SCRIPT
 quote USER $USER
 quote PASS $PASSWD
