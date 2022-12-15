@@ -19,7 +19,17 @@ quote PASS $PASSWD
 quote PASV
 binary
 delete $FILE
+quit
+END_SCRIPT
+
+ftp -inv $HOST <<END_SCRIPT
+quote USER $USER
+quote PASS $PASSWD
+quote PASV
+binary
+delete $FILE
 put $FILE
 quit
 END_SCRIPT
+
 exit 0
