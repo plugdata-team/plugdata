@@ -10,6 +10,7 @@ quote USER $USER
 quote PASS $PASSWD
 passive
 binary
+delete $FILE
 put $FILE
 quit
 END_SCRIPT
