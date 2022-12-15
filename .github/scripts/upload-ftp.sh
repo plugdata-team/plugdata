@@ -16,7 +16,7 @@ fi
 ftp -inv $HOST <<END_SCRIPT
 quote USER $USER
 quote PASS $PASSWD
-passive
+quote PASV
 binary
 delete $FILE
 put $FILE
