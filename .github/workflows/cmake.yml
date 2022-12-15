@@ -55,8 +55,7 @@ jobs:
       env:
         AC_USERNAME: ${{ secrets.AC_USERNAME }}
         AC_PASSWORD: ${{ secrets.AC_PASSWORD }}
-      run: |
-        ./.github/scripts/package-macOS.sh
+      run: ./.github/scripts/package-macOS.sh
 
     - name: Archive Artifacts
       uses: actions/upload-artifact@v3
@@ -64,6 +63,12 @@ jobs:
         name: plugdata-macOS-Universal
         path: plugdata-macOS-Universal.pkg
 
+    - name: Upload to server
+      shell: bash
+      env:
+        FTP_USERNAME: ${{ secrets.FTP_USERNAME }}
+        FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
+      run: ./.github/scripts/upload-ftp.sh ./plugdata-macOS-Universal.pkg
 
     - name: Release Artifacts
       uses: softprops/action-gh-release@v1
