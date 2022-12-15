@@ -21,6 +21,10 @@ jobs:
       with:
         key: macos
 
+    - name: Install dependencies
+      working-directory: ${{github.workspace}}/build
+      run: brew install inetutils
+
     - name: Create Build Environment
       run: cmake -E make_directory ${{github.workspace}}/build        
 
@@ -117,6 +121,13 @@ jobs:
         name: plugdata-Win64
         path: plugdata-Win64.msi
 
+    - name: Upload to server
+      shell: bash
+      env:
+        FTP_USERNAME: ${{ secrets.FTP_USERNAME }}
+        FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
+      run: ./.github/scripts/upload-ftp.sh ./plugdata-Win64.msi
+
     - name: Release Artifacts
       uses: softprops/action-gh-release@v1
       if: startsWith(github.ref, 'refs/tags/')
@@ -164,6 +175,13 @@ jobs:
         name: plugdata-Win32
         path: plugdata-Win32.msi
 
+    - name: Upload to server
+      shell: bash
+      env:
+        FTP_USERNAME: ${{ secrets.FTP_USERNAME }}
+        FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
+      run: ./.github/scripts/upload-ftp.sh ./plugdata-Win64.msi
+
     - name: Release Artifacts
       uses: softprops/action-gh-release@v1
       if: startsWith(github.ref, 'refs/tags/')
@@ -185,7 +203,7 @@ jobs:
         key: ubuntu-22
 
     - name: Install Dependencies
-      run: sudo apt -qq update && sudo apt install  -y libasound2-dev libjack-jackd2-dev libcurl4-openssl-dev libfreetype6-dev libx11-dev libxcomposite-dev libxcursor-dev libxcursor-dev libxext-dev libxinerama-dev libxrandr-dev libxrender-dev libwebkit2gtk-4.0-dev libglu1-mesa-dev mesa-common-dev
+      run: sudo apt -qq update && sudo apt install  -y libasound2-dev libjack-jackd2-dev libcurl4-openssl-dev libfreetype6-dev libx11-dev libxcomposite-dev libxcursor-dev libxcursor-dev libxext-dev libxinerama-dev libxrandr-dev libxrender-dev libwebkit2gtk-4.0-dev libglu1-mesa-dev mesa-common-dev ftp
 
     - name: Create Build Environment
       run: cmake -E make_directory ${{github.workspace}}/build
@@ -220,6 +238,13 @@ jobs:
         name: plugdata-Ubuntu-22.04-x64
         path: plugdata-Ubuntu-22.04-x64
 
+    - name: Upload to server
+      shell: bash
+      env:
+        FTP_USERNAME: ${{ secrets.FTP_USERNAME }}
+        FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
+      run: ./.github/scripts/upload-ftp.sh ./plugdata-Ubuntu-22.04-x64
+
     - name: Release Artifacts
       uses: softprops/action-gh-release@v1
       if: startsWith(github.ref, 'refs/tags/')
@@ -241,7 +266,7 @@ jobs:
         key: ubuntu-20
 
     - name: Install Dependencies
-      run: sudo apt -qq update && sudo apt install  -y libasound2-dev libjack-jackd2-dev libcurl4-openssl-dev libfreetype6-dev libx11-dev libxcomposite-dev libxcursor-dev libxcursor-dev libxext-dev libxinerama-dev libxrandr-dev libxrender-dev libwebkit2gtk-4.0-dev libglu1-mesa-dev mesa-common-dev
+      run: sudo apt -qq update && sudo apt install  -y libasound2-dev libjack-jackd2-dev libcurl4-openssl-dev libfreetype6-dev libx11-dev libxcomposite-dev libxcursor-dev libxcursor-dev libxext-dev libxinerama-dev libxrandr-dev libxrender-dev libwebkit2gtk-4.0-dev libglu1-mesa-dev mesa-common-dev ftp
 
     - name: Create Build Environment
       run: cmake -E make_directory ${{github.workspace}}/build
@@ -276,6 +301,13 @@ jobs:
         name: plugdata-Ubuntu-20.04-x64
         path: plugdata-Ubuntu-20.04-x64
 
+    - name: Upload to server
+      shell: bash
+      env:
+        FTP_USERNAME: ${{ secrets.FTP_USERNAME }}
+        FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
+      run: ./.github/scripts/upload-ftp.sh ./plugdata-Ubuntu-20.04-x64
+
     - name: Release Artifacts
       uses: softprops/action-gh-release@v1
       if: startsWith(github.ref, 'refs/tags/')
@@ -297,7 +329,7 @@ jobs:
           PATH: /usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 
       - name: Install Dependencies
-        run: sudo dnf install -y cmake alsa-lib-devel libXinerama-devel freetype-devel libcurl-devel gcc-c++ libXcomposite-devel freeglut-devel libXrandr-devel libXcursor-devel xz
+        run: sudo dnf install -y cmake alsa-lib-devel libXinerama-devel freetype-devel libcurl-devel gcc-c++ libXcomposite-devel freeglut-devel libXrandr-devel libXcursor-devel xz ftp
       - name: Build
         run: mkdir build && cd build && cmake -DENABLE_TESTING=0 .. -G "Unix Makefiles" && cmake --build . --config $BUILD_TYPE
 
@@ -310,6 +342,13 @@ jobs:
         with:
           name: plugdata-Fedora-36-x64
           path: plugdata-Fedora-36-x64
+
+      - name: Upload to server
+        shell: bash
+        env:
+          FTP_USERNAME: ${{ secrets.FTP_USERNAME }}
+          FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
+        run: ./.github/scripts/upload-ftp.sh ./plugdata-Fedora-36-x64
 
       - name: Release Artifacts
         uses: softprops/action-gh-release@v1
@@ -336,7 +375,7 @@ jobs:
         PATH: /usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
         
     - name: Install Dependencies
-      run: pacman -S --noconfirm alsa-lib freetype2 libx11 libxcursor libxext libxinerama libxrandr libxrender webkit2gtk cmake make gcc pkgconf python
+      run: pacman -S --noconfirm alsa-lib freetype2 libx11 libxcursor libxext libxinerama libxrandr libxrender webkit2gtk cmake make gcc pkgconf python ftp
 
     - name: Build
       run: mkdir build && cd build && CC=/usr/bin/gcc CXX=/usr/bin/g++ cmake -DENABLE_TESTING=0 .. -G "Unix Makefiles" && cmake --build . --config $BUILD_TYPE
@@ -350,6 +389,13 @@ jobs:
       with:
         name: plugdata-Arch-x64
         path: plugdata-Arch-x64
+
+    - name: Upload to server
+      shell: bash
+      env:
+        FTP_USERNAME: ${{ secrets.FTP_USERNAME }}
+        FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
+      run: ./.github/scripts/upload-ftp.sh ./plugdata-Arch-x64
 
     - name: Release Artifacts
       uses: softprops/action-gh-release@v1
@@ -376,7 +422,7 @@ jobs:
         PATH: /usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 
     - name: Install Dependencies
-      run: zypper install -y xz tar gzip cmake alsa-lib-devel libXinerama-devel freetype-devel libcurl-devel libXcomposite-devel freeglut-devel libXrandr-devel libXcursor-devel freetype2-devel gcc gcc-c++
+      run: zypper install -y xz tar gzip cmake alsa-lib-devel libXinerama-devel freetype-devel libcurl-devel libXcomposite-devel freeglut-devel libXrandr-devel libXcursor-devel freetype2-devel gcc gcc-c++ ftp
 
     - name: Build
       run: mkdir build && cd build && cmake -DENABLE_TESTING=0 .. -G "Unix Makefiles" && cmake --build . --config $BUILD_TYPE
@@ -390,6 +436,13 @@ jobs:
       with:
         name: plugdata-OpenSUSE-x64
         path: plugdata-OpenSUSE-x64
+
+    - name: Upload to server
+      shell: bash
+      env:
+        FTP_USERNAME: ${{ secrets.FTP_USERNAME }}
+        FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
+      run: ./.github/scripts/upload-ftp.sh ./plugdata-OpenSUSE-x64
 
     - name: Release Artifacts
       uses: softprops/action-gh-release@v1
@@ -421,7 +474,7 @@ jobs:
         key: debian
 
     - name: Install Dependencies
-      run: apt install -y libasound2-dev libjack-jackd2-dev libcurl4-openssl-dev libfreetype6-dev libx11-dev libxcomposite-dev libxcursor-dev libxcursor-dev libxext-dev libxinerama-dev libxrandr-dev libxrender-dev libwebkit2gtk-4.0-dev libglu1-mesa-dev mesa-common-dev cmake make gcc g++
+      run: apt install -y libasound2-dev libjack-jackd2-dev libcurl4-openssl-dev libfreetype6-dev libx11-dev libxcomposite-dev libxcursor-dev libxcursor-dev libxext-dev libxinerama-dev libxrandr-dev libxrender-dev libwebkit2gtk-4.0-dev libglu1-mesa-dev mesa-common-dev cmake make gcc g++ ftp
 
     - name: Build
       run: mkdir build && cd build && CXX=g++ cmake -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DENABLE_TESTING=0 .. -G "Unix Makefiles" && cmake --build . --config $BUILD_TYPE
@@ -435,6 +488,13 @@ jobs:
       with:
         name: plugdata-Debian-x64
         path: plugdata-Debian-x64
+
+    - name: Upload to server
+      shell: bash
+      env:
+        FTP_USERNAME: ${{ secrets.FTP_USERNAME }}
+        FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
+      run: ./.github/scripts/upload-ftp.sh ./plugdata-Debian-x64
 
     - name: Release Artifacts
       uses: softprops/action-gh-release@v1
