@@ -13,7 +13,7 @@ tar -czvf "${FILE}.tar.gz" ${FILE}
 FILE="${FILE}.tar.gz"
 fi
 
-ftp -inv $HOST <<END_SCRIPT
+ftp -p -inv $HOST <<END_SCRIPT
 quote USER $USER
 quote PASS $PASSWD
 quote PASV
@@ -25,7 +25,7 @@ END_SCRIPT
 # Wait 2 minutes to ensure the file is gone
 sleep 40
 
-ftp -inv $HOST <<END_SCRIPT
+ftp -p -inv $HOST <<END_SCRIPT
 quote USER $USER
 quote PASS $PASSWD
 quote PASV
