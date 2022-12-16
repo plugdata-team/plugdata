@@ -447,7 +447,7 @@ protected:
             auto item = std::pair<String, bool>();
             while (pendingMessages.try_dequeue(item)) {
                 auto& [message, type] = item;
-                consoleMessages.emplace_back(message, type, fastStringWidth.getStringWidth(message) + 12);
+                consoleMessages.emplace_back(message, type, fastStringWidth.getStringWidth(message) + 8);
 
                 if (consoleMessages.size() > 800)
                     consoleMessages.pop_front();

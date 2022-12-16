@@ -111,7 +111,7 @@ PluginEditor::PluginEditor(PluginProcessor& p) : AudioProcessorEditor(&p), pd(&p
     
     tabbar.onTabChange = [this](int idx)
     {
-        if (idx == -1) return;
+        if (idx == -1 || pd->isPerformingGlobalSync) return;
         
         sidebar.tabChanged();
 
@@ -121,7 +121,7 @@ PluginEditor::PluginEditor(PluginProcessor& p) : AudioProcessorEditor(&p), pd(&p
             if (!object->gui) continue;
             if (auto* cnv = object->gui->getCanvas()) cnv->synchronise();
         }
-
+        
         auto* cnv = getCurrentCanvas();
         if (cnv->patch.getPointer())
         {

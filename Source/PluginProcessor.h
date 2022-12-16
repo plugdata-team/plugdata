@@ -165,6 +165,8 @@ class PluginProcessor : public AudioProcessor, public pd::Instance, public Timer
     OwnedArray<MidiOutput> midiOutputs;
 #endif
     
+    bool isPerformingGlobalSync = false;
+    
    private:
     void processInternal();
     
