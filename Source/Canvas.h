@@ -21,9 +21,7 @@ class PluginEditor;
 class Canvas : public Component, public Value::Listener, public LassoSource<WeakReference<Component>>
 {    
    public:
-    
-    bool isBeingDeleted = false;
-    
+        
     Canvas(PluginEditor* parent, pd::Patch& patch, Component* parentGraph = nullptr);
 
     ~Canvas() override;
@@ -146,12 +144,12 @@ class Canvas : public Component, public Value::Listener, public LassoSource<Weak
     bool attachNextObjectToMouse = false;
     bool wasDragDuplicated = false;
     bool wasSelectedOnMouseDown = false;
-    Object* lastSelectedObject = nullptr; // For auto patching
+    SafePointer<Object> lastSelectedObject = nullptr; // For auto patching
     
     // Multi-dragger variables
     bool didStartDragging = false;
     const int minimumMovementToStartDrag = 5;
-    Object* componentBeingDragged = nullptr;
+    SafePointer<Object> componentBeingDragged = nullptr;
     
     pd::Storage storage;
     
