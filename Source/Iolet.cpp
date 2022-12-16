@@ -79,7 +79,7 @@ void Iolet::resized()
 void Iolet::mouseDrag(const MouseEvent& e)
 {
     // Ignore when locked
-    if (bool(locked.getValue()))
+    if (static_cast<bool>(locked.getValue()))
         return;
 
     auto* cnv = findParentComponentOfClass<Canvas>();
@@ -117,7 +117,7 @@ void Iolet::mouseDrag(const MouseEvent& e)
 
 void Iolet::mouseUp(const MouseEvent& e)
 {
-    if (bool(locked.getValue()))
+    if (static_cast<bool>(locked.getValue()))
         return;
 
     auto* cnv = findParentComponentOfClass<Canvas>();

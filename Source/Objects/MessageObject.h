@@ -139,7 +139,7 @@ struct MessageObject final : public TextBase, public KeyListener, public pd::Mes
     void receiveMessage(const String& symbol, int argc, t_atom* argv) override
     {
         MessageManager::callAsync([_this = SafePointer(this)](){
-            _this->updateValue();
+            if(_this) _this->updateValue();
         });
     }
     
