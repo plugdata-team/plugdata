@@ -125,11 +125,6 @@ String Connection::getId() const
 
 Connection::~Connection()
 {
-    if(!cnv->isBeingDeleted) {
-        // Ensure there's no pointer to this object in the selection
-        cnv->setSelected(this, false);
-    }
-    
     if (outlet)
     {
         outlet->repaint();

@@ -71,11 +71,6 @@ Object::Object(void* object, Canvas* parent)
 
 Object::~Object()
 {
-    if(!cnv->isBeingDeleted) {
-        // Ensure there's no pointer to this object in the selection
-        cnv->setSelected(this, false);
-    }
-    
     if (attachedToMouse)
     {
         stopTimer();

@@ -109,11 +109,13 @@ Canvas::~Canvas()
 
 void Canvas::updateBackgroundImage()
 {
+    canvasBackroundImage.clear(canvasBackroundImage.getBounds(), Colours::transparentBlack);
+    
     auto g = Graphics(canvasBackroundImage);
     g.setImageResamplingQuality(Graphics::highResamplingQuality);
     int const objectGridSize = 25;
     Rectangle<int> const clipBounds = g.getClipBounds();
-    
+        
     g.setColour(findColour(PlugDataColour::canvasDotsColourId));
     
     for (int x = 0; x < clipBounds.getRight(); x += objectGridSize)
@@ -494,6 +496,11 @@ void Canvas::mouseDown(MouseEvent const& e)
 
 void Canvas::mouseDrag(MouseEvent const& e)
 {
+    if (!connectingIolets.isEmpty())
+    {
+        repaint();
+    }
+    
     bool draggingLabel = dynamic_cast<Label*>(e.originalComponent) != nullptr;
     bool draggingSlider = GUIObject::draggingSlider;
     // Ignore on graphs or when locked
@@ -547,10 +554,17 @@ void Canvas::mouseDrag(MouseEvent const& e)
             beginDragAutoRepeat(40);
         }
     }
+    
+    if(connectingWithDrag) {
+        for(auto* obj : objects) {
+            for(auto* iolet : obj->iolets) {
+                iolet->mouseDrag(e.getEventRelativeTo(iolet));
+            }
+        }
+    }
 
     // Drag lasso
     lasso.dragLasso(e);
-
 }
 
 void Canvas::mouseUp(MouseEvent const& e)
@@ -565,7 +579,6 @@ void Canvas::mouseUp(MouseEvent const& e)
         setSelected(objects[objects.size() - 1], true); // Select newly created object
     }
 
-
     updateSidebarSelection();
 
     editor->updateCommandStatus();
@@ -577,6 +590,14 @@ void Canvas::mouseUp(MouseEvent const& e)
 
     wasDragDuplicated = false;
     mouseDownObjectPositions.clear();
+    
+    if(connectingWithDrag) {
+        for(auto* obj : objects) {
+            for(auto* iolet : obj->iolets) {
+                iolet->mouseUp(e.getEventRelativeTo(iolet));
+            }
+        }
+    }
 }
 
 void Canvas::updateSidebarSelection()
