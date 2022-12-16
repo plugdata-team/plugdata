@@ -1049,9 +1049,6 @@ struct PlugDataLook : public LookAndFeel_V4
         {PlugDataColour::popupMenuActiveBackgroundColourId, Colour(40, 40, 40)},
         {PlugDataColour::popupMenuTextColourId, Colour(255, 255, 255)},
         {PlugDataColour::popupMenuActiveTextColourId, Colour(255, 255, 255)}
-        
-        
-        
     };
     
     inline static const std::map<PlugDataColour, Colour> defaultLightTheme = {

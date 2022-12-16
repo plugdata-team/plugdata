@@ -162,6 +162,11 @@ class Canvas : public Component, public Value::Listener, public LassoSource<Weak
 
    private:
     
+    void updateBackgroundImage();
+    
+    Image canvasBackroundImage = Image(Image::ARGB, 600, 600, false);
+    Colour lastDotColour;
+    
     SafePointer<Object> objectSnappingInbetween;
     SafePointer<Connection> connectionToSnapInbetween;
     SafePointer<TabbedComponent> tabbar;

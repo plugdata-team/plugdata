@@ -386,7 +386,7 @@ void Statusbar::modifierKeysChanged(const ModifierKeys& modifiers)
 
 void Statusbar::timerCallback()
 {
-    modifierKeysChanged(ModifierKeys::getCurrentModifiers());
+    modifierKeysChanged(ModifierKeys::getCurrentModifiersRealtime());
 }
 
 StatusbarSource::StatusbarSource()
