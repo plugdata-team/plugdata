@@ -153,8 +153,20 @@ struct NumberObject final : public IEMObject {
         Rectangle<int> const iconBounds = getLocalBounds().withWidth(indent - 4).withHeight(getHeight() - 8).translated(4, 4);
 
         Path triangle;
+        //    a
+        //    |\
+        //    | \
+        //    |  b
+        //    | /
+        //    |/
+        //    c
 
-        triangle.addTriangle(iconBounds.getTopLeft().toFloat(), iconBounds.getTopRight().toFloat() + Point<float>(0, (iconBounds.getHeight() / 2.)), iconBounds.getBottomLeft().toFloat());
+        auto centre_y = iconBounds.getCentreY();
+        auto left_x = iconBounds.getTopLeft().getX();
+        Point<float> point_a (left_x, centre_y + 5.0);
+        Point<float> point_b (iconBounds.getRight(), centre_y);
+        Point<float> point_c (left_x, centre_y - 5.0);
+        triangle.addTriangle(point_a, point_b, point_c);
 
         auto normalColour = object->findColour(PlugDataColour::objectOutlineColourId);
         auto highlightColour = object->findColour(PlugDataColour::objectSelectedOutlineColourId);
