@@ -580,14 +580,14 @@ void Patch::removeSelection()
 void Patch::startUndoSequence(String name)
 {
     instance->enqueueFunction([this, name]() {
-        canvas_undo_add(getPointer(), UNDO_SEQUENCE_START, name.toRawUTF8(), 0);
+        canvas_undo_add(getPointer(), UNDO_SEQUENCE_START, gensym(name.toRawUTF8())->s_name, 0);
     });
 }
 
 void Patch::endUndoSequence(String name)
 {
     instance->enqueueFunction([this, name]() {
-        canvas_undo_add(getPointer(), UNDO_SEQUENCE_END, name.toRawUTF8(), 0);
+        canvas_undo_add(getPointer(), UNDO_SEQUENCE_END, gensym(name.toRawUTF8())->s_name, 0);
     });
 }
 
