@@ -1377,13 +1377,24 @@ void PluginProcessor::updateConsole()
 
 void PluginProcessor::synchroniseAll()
 {
+    isPerformingGlobalSync = true;
+    
+    // Synchronising can potentially delete some other canvases, so make sure we use a safepointer
+    Array<Component::SafePointer<Canvas>> canvases;
+    
     if (auto* editor = dynamic_cast<PluginEditor*>(getActiveEditor()))
     {
-        for (auto* canvas : editor->canvases)
-        {
-            canvas->synchronise(true);
+        for(auto* canvas : editor->canvases) {
+            canvases.add(canvas);
         }
     }
+    
+    for(auto& cnv : canvases) {
+        if(cnv.getComponent()) cnv->synchronise();
+    }
+    
+    
+    isPerformingGlobalSync = false;
 }
 
 void PluginProcessor::synchroniseCanvas(void* cnv)

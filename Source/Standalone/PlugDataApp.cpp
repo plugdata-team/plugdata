@@ -185,7 +185,7 @@ void PlugDataWindow::closeAllPatches()
             
             editor->canvases.removeObject(cnv);
             editor->tabbar.removeTab(idx);
-            editor->tabbar.setCurrentTabIndex(editor->tabbar.getNumTabs() -1, true);
+            editor->tabbar.setCurrentTabIndex(editor->tabbar.getNumTabs() - 1, true);
             editor->updateCommandStatus();
             closeAllPatches();
         };
