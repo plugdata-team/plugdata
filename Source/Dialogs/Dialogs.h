@@ -24,6 +24,9 @@ struct Dialog : public Component {
         setBounds(0, 0, parentComponent->getWidth(), parentComponent->getHeight());
 
         setAlwaysOnTop(true);
+        setWantsKeyboardFocus(true);
+        
+        grabKeyboardFocus();
 
         if (showCloseButton) {
             closeButton.reset(getLookAndFeel().createDocumentWindowButton(4));
@@ -83,6 +86,18 @@ struct Dialog : public Component {
         if (closeButton) {
             closeButton->setBounds(viewedComponent->getRight() - 35, viewedComponent->getY() + 8, 28, 28);
         }
+    }
+    
+    bool keyPressed(const KeyPress &key) override
+    {
+        if(key == KeyPress::escapeKey)
+        {
+            closeDialog();
+            
+            return true;
+        }
+        
+        return false;
     }
 
     void mouseDown(MouseEvent const& e) override
