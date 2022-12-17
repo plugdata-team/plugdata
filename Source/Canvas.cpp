@@ -500,6 +500,15 @@ void Canvas::mouseDrag(MouseEvent const& e)
         repaint();
     }
     
+    
+    if(connectingWithDrag) {
+        for(auto* obj : objects) {
+            for(auto* iolet : obj->iolets) {
+                iolet->mouseDrag(e.getEventRelativeTo(iolet));
+            }
+        }
+    }
+    
     bool draggingLabel = dynamic_cast<Label*>(e.originalComponent) != nullptr;
     bool draggingSlider = GUIObject::draggingSlider;
     // Ignore on graphs or when locked
@@ -551,14 +560,6 @@ void Canvas::mouseDrag(MouseEvent const& e)
         if (viewport->autoScroll(viewportEvent.x * scale, viewportEvent.y * scale, 50, scrollSpeed))
         {
             beginDragAutoRepeat(40);
-        }
-    }
-    
-    if(connectingWithDrag) {
-        for(auto* obj : objects) {
-            for(auto* iolet : obj->iolets) {
-                iolet->mouseDrag(e.getEventRelativeTo(iolet));
-            }
         }
     }
 

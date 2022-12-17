@@ -104,7 +104,7 @@ void Patch::savePatch(File const& location)
     canvas_dirty(getPointer(), 0);
     
     libpd_savetofile(getPointer(), file, dir);
-    instance->synchroniseAll();
+    instance->reloadAbstractions(location, getPointer());
 
     currentFile = location;
 }
@@ -121,7 +121,7 @@ void Patch::savePatch()
     canvas_dirty(getPointer(), 0);
     
     libpd_savetofile(getPointer(), file, dir);
-    instance->synchroniseAll();
+    instance->reloadAbstractions(currentFile, getPointer());
 }
 
 void Patch::setCurrent(bool lock)

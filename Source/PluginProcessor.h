@@ -74,7 +74,7 @@ class PluginProcessor : public AudioProcessor, public pd::Instance, public Timer
     void updateConsole() override;
 
     void synchroniseCanvas(void* cnv) override;
-    void synchroniseAll() override;
+    void reloadAbstractions(File changedPatch, t_glist* except) override;
     
     void process(dsp::AudioBlock<float>, MidiBuffer&);
 
