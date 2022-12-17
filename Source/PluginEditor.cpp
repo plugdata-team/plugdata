@@ -993,8 +993,6 @@ void PluginEditor::getCommandInfo(const CommandID commandID, ApplicationCommandI
         case CommandIDs::NextTab:
         {
             result.setInfo("Next Tab", "Show the next tab", "View", 0);
-            int size = canvases.size();
-            int idx = canvases.indexOf(getCurrentCanvas());
             
 #if JUCE_MAC
             result.addDefaultKeypress(KeyPress::rightKey, ModifierKeys::commandModifier);
@@ -1013,7 +1011,7 @@ void PluginEditor::getCommandInfo(const CommandID commandID, ApplicationCommandI
 #if JUCE_MAC
             result.addDefaultKeypress(KeyPress::leftKey, ModifierKeys::commandModifier);
 #else
-            result.addDefaultKeypress(KeyPress::pageDownKey, ModifierKeys::commandModifier);
+            result.addDefaultKeypress(KeyPress::pageUpKey, ModifierKeys::commandModifier);
 #endif
             
             break;
@@ -1336,7 +1334,7 @@ bool PluginEditor::perform(const InvocationInfo& info)
         }
         case CommandIDs::NextTab:
         {
-            int currentIdx = canvases.indexOf(cnv) - 1;
+            int currentIdx = canvases.indexOf(cnv) + 1;
             
             if(currentIdx >= canvases.size()) currentIdx -= canvases.size();
             if(currentIdx < 0) currentIdx += canvases.size();
