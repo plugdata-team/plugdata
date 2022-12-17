@@ -131,8 +131,9 @@ void ObjectBase::closeOpenedSubpatchers()
             
             editor->canvases.removeObject(cnv);
             tabbar->removeTab(n);
+            //deletedPatch->close();
             editor->pd->patches.removeObject(deletedPatch, false);
-                
+            
             break;
         }
     }

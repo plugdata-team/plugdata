@@ -77,6 +77,8 @@ int libpd_canconnect(t_canvas* cnv, t_object* src, int nout, t_object* sink, int
 void libpd_collecttemplatesfor(t_canvas* cnv, int* ntemplatesp,
     t_symbol*** templatevecp);
 
+extern void canvas_reload(t_symbol *name, t_symbol *dir, t_glist *except);
+
 #ifdef __cplusplus
 }
 #endif

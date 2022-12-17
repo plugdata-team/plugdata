@@ -392,7 +392,7 @@ public:
     virtual Colour getTextColour() = 0;
     virtual Colour getOutlineColour() = 0;
     
-    virtual void synchroniseAll() = 0;
+    virtual void reloadAbstractions(File changedPatch, t_glist* except) = 0;
 
     void setThis();
 

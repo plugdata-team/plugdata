@@ -1009,7 +1009,8 @@ void PluginProcessor::setStateInformation(const void* data, int sizeInBytes)
                 editor->canvases.clear();
             }
 
-            for (auto& patch : patches) patch->close();
+            for (auto& patch : patches)
+                patch->close();
             patches.clear();
 
             int numPatches = istream.readInt();
@@ -1375,9 +1376,47 @@ void PluginProcessor::updateConsole()
     }
 }
 
-void PluginProcessor::synchroniseAll()
+void PluginProcessor::reloadAbstractions(File changedPatch, t_glist* except)
 {
+    
+    suspendProcessing(true);
+    
+    setThis();
+    
     isPerformingGlobalSync = true;
+    
+    String fullPathname = changedPatch.getParentDirectory().getFullPathName();
+    String filename = changedPatch.getFileName();
+
+    auto* dir = gensym(fullPathname.toRawUTF8());
+    auto* file = gensym(filename.toRawUTF8());
+        
+    Array<t_glist*> oldPatches;
+    Array<t_glist*> newPatches;
+    
+    for (auto* x = pd_getcanvaslist(); x; x = x->gl_next) {
+        for(auto* patch : patches)
+        {
+            if(patch->getPointer() == x) {
+                oldPatches.add(x);
+            }
+        }
+    }
+    
+    canvas_reload(file, dir, except);
+    
+    for (auto* x = pd_getcanvaslist(); x; x = x->gl_next) {
+        newPatches.add(x);
+    }
+    
+    for(auto* oldPatch : oldPatches)
+    {
+        if(!newPatches.contains(oldPatch)) {
+            // Close patch
+        }
+    }
+    
+    
     
     // Synchronising can potentially delete some other canvases, so make sure we use a safepointer
     Array<Component::SafePointer<Canvas>> canvases;
@@ -1394,7 +1433,11 @@ void PluginProcessor::synchroniseAll()
     }
     
     
+    // TODO: what about this->patches that got deleted?
+    
     isPerformingGlobalSync = false;
+    
+    suspendProcessing(false);
 }
 
 void PluginProcessor::synchroniseCanvas(void* cnv)

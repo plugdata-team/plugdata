@@ -177,16 +177,18 @@ void PlugDataWindow::closeAllPatches()
     
         auto deleteFunc = [this, editor, cnv, idx]() mutable
         {
-            if (cnv)
-            {
-                cnv->patch.close();
-                dynamic_cast<PluginProcessor*>(getAudioProcessor())->patches.removeObject(&cnv->patch, true);
-            }
-            
+            auto* deletedPatch = &cnv->patch;
             editor->canvases.removeObject(cnv);
             editor->tabbar.removeTab(idx);
             editor->tabbar.setCurrentTabIndex(editor->tabbar.getNumTabs() - 1, true);
-            editor->updateCommandStatus();
+            
+            if (deletedPatch)
+            {
+                // TODO: the OS is our garbage collector
+                //deletedPatch->close();
+                dynamic_cast<PluginProcessor*>(getAudioProcessor())->patches.removeObject(deletedPatch, true);
+            }
+            
             closeAllPatches();
         };
 
