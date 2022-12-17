@@ -147,7 +147,7 @@ private:
         { "vu", "20 120 empty empty -1 -8 0 10 bgColour lblColour 1 0" },
         { "floatatom", "5 0 0 0 empty - - 12" },
         { "listbox", "9 0 0 0 empty - - 0" },
-        { "numbox~", "4 16 100 bgColour fgColour 10 0 0 0" },
+        { "numbox~", "4 15 100 bgColour fgColour 10 0 0 0" },
         { "button", "25 25 bgColour_rgb fgColour_rgb" },
         { "oscope~", "130 130 256 3 128 -1 1 0 0 0 0 fgColour_rgb bgColour_rgb lnColour_rgb 0 empty" },
         { "scope~", "130 130 256 3 128 -1 1 0 0 0 0 fgColour_rgb bgColour_rgb lnColour_rgb 0 empty" },
