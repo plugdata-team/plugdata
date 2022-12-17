@@ -114,7 +114,7 @@ void Canvas::updateBackgroundImage()
     g.setImageResamplingQuality(Graphics::highResamplingQuality);
     int const objectGridSize = 25;
     Rectangle<int> const clipBounds = g.getClipBounds();
-        
+    
     g.setColour(findColour(PlugDataColour::canvasDotsColourId));
     
     for (int x = 0; x < clipBounds.getRight(); x += objectGridSize)
