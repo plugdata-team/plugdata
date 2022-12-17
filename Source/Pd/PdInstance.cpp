@@ -510,6 +510,10 @@ void Instance::unregisterMessageListener(void* object, MessageListener* messageL
 
 void Instance::enqueueFunction(std::function<void(void)> const& fn)
 {
+    
+    // When we're performing global sync, we can't guarantee that pointers inside messages will still be valid by the time the get dequeued
+    if(isPerformingGlobalSync) return;
+    
     // This should be the way to do it, but it currently causes some issues
     // By calling fn directly we fix these issues at the cost of possible thread unsafety
     m_function_queue.enqueue(fn);

@@ -11,5 +11,5 @@
 namespace ProjectInfo
 {
 const char* const companyName = "plugdata";
-const char* const versionString = "0.6.2";
+const char* const versionString = "0.6.3";
 }  // namespace ProjectInfo

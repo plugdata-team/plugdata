@@ -164,9 +164,7 @@ class PluginProcessor : public AudioProcessor, public pd::Instance, public Timer
     std::atomic<float> standaloneParams[numParameters] = {0};
     OwnedArray<MidiOutput> midiOutputs;
 #endif
-    
-    bool isPerformingGlobalSync = false;
-    
+        
    private:
     void processInternal();
     
