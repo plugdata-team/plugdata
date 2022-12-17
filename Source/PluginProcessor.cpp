@@ -1380,22 +1380,24 @@ void PluginProcessor::reloadAbstractions(File changedPatch, t_glist* except)
 {
     suspendProcessing(true);
     
+    auto* editor = dynamic_cast<PluginEditor*>(getActiveEditor());
+    
     setThis();
+    
+    // Ensure that all messages are dequeued before we start deleting objects
+    sendMessagesFromQueue();
     
     isPerformingGlobalSync = true;
     
     auto* dir = gensym(changedPatch.getParentDirectory().getFullPathName().toRawUTF8());
     auto* file = gensym(changedPatch.getFileName().toRawUTF8());
-        
-    // Ensure that all messages are dequeued before we start deleting objects
-    sendMessagesFromQueue();
     
     canvas_reload(file, dir, except);
         
     // Synchronising can potentially delete some other canvases, so make sure we use a safepointer
     Array<Component::SafePointer<Canvas>> canvases;
     
-    if (auto* editor = dynamic_cast<PluginEditor*>(getActiveEditor()))
+    if (editor)
     {
         for(auto* canvas : editor->canvases) {
             canvases.add(canvas);
@@ -1409,6 +1411,10 @@ void PluginProcessor::reloadAbstractions(File changedPatch, t_glist* except)
     isPerformingGlobalSync = false;
     
     suspendProcessing(false);
+    
+    if(editor) {
+        editor->updateCommandStatus();
+    }
 }
 
 void PluginProcessor::synchroniseCanvas(void* cnv)

@@ -417,6 +417,8 @@ public:
 
     inline static const String defaultPatch = "#N canvas 827 239 527 327 12;";
 
+    bool isPerformingGlobalSync = false;
+    
 private:
     
     std::unordered_map<void*, std::vector<WeakReference<MessageListener>>> messageListeners;
