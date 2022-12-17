@@ -707,7 +707,7 @@ public:
         ResizableWindow::resized();
         
         if(!isUsingNativeTitleBar()) {
-#if JUCE_LINUX
+#if CUSTOM_SHADOW && JUCE_LINUX
             auto margin = mainComponent ? mainComponent->getMargin() : 18;
             auto titleBarArea = Rectangle<int>(0, 12 + margin, getWidth() - (8 + margin), 25);
             if(resizer) resizer->setBounds(getLocalBounds().reduced(margin));
