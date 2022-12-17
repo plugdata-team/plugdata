@@ -44,6 +44,10 @@ static void wt_lagrange(t_wt *x){
     x->x_interp = 3;
 }
 
+static void wt_spline(t_wt *x){
+    x->x_interp = 4;
+}
+
 static t_int *wt_perform(t_int *w){
     t_wt *x = (t_wt *)(w[1]);
     int n = (t_int)(w[2]);
@@ -90,9 +94,12 @@ static t_int *wt_perform(t_int *w){
                     int ndx = (int)(phase*(double)size);
                     *out++ = (double)vector[ndx].w_float;
                 }
-                else if(x->x_interp == 3){
+                else if(x->x_interp >= 3){
                     INDEX_4PT()
-                    *out++ = interp_lagrange(frac, a, b, c, d);
+                    if(x->x_interp == 3)
+                        *out++ = interp_lagrange(frac, a, b, c, d);
+                    else
+                        *out++ = interp_spline(frac, a, b, c, d);
                 }
                 else{
                     INDEX_2PT()
@@ -135,7 +142,7 @@ static void *wt_new(t_symbol *s, int ac, t_atom *av){
     int nameset = 0, floatarg = 0;
     x->x_freq = x->x_phase = x->x_last_phase_offset = 0.;
     t_float phaseoff = 0;
-    x->x_interp = 3;
+    x->x_interp = 4;
     while(ac){
         if(av->a_type == A_SYMBOL){
             t_symbol *curarg = atom_getsymbol(av);
@@ -153,6 +160,11 @@ static void *wt_new(t_symbol *s, int ac, t_atom *av){
                 if(nameset)
                     goto errstate;
                 wt_cos(x), ac--, av++;
+            }
+            else if(curarg == gensym("-lagrange")){
+                if(nameset)
+                    goto errstate;
+                wt_lagrange(x), ac--, av++;
             }
             else{
                 if(nameset || floatarg)
@@ -199,6 +211,7 @@ void wt_tilde_setup(void){
     class_addmethod(wt_class, (t_method)wt_lin, gensym("lin"), 0);
     class_addmethod(wt_class, (t_method)wt_cos, gensym("cos"), 0);
     class_addmethod(wt_class, (t_method)wt_lagrange, gensym("lagrange"), 0);
+    class_addmethod(wt_class, (t_method)wt_spline, gensym("spline"), 0);
     class_addmethod(wt_class, (t_method)wt_set, gensym("set"), A_SYMBOL, 0);
     class_sethelpsymbol(wt_class, gensym("wavetable~"));
 }

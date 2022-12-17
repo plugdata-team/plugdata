@@ -1,24 +1,19 @@
-#N canvas 494 123 573 450 12;
+#N canvas 558 23 574 503 12;
 #X declare -path else;
-#X obj 138 253 hsl 128 15 0 127 0 0 empty empty empty -2 -8 0 10 #dcdcdc
-#000000 #000000 0 1;
-#X obj 135 193 impulse 10;
-#X obj 353 28 declare -path else;
-#X obj 365 321 out~;
-#X obj 365 235 brown~ 0.2;
-#X obj 135 224 brown 0.2;
-#X obj 365 291 bl.saw~;
-#X obj 365 262 rescale~ 50 200;
-#X obj 135 339 out~;
-#X obj 135 309 bl.saw~;
-#X obj 135 280 rescale 50 200;
-#X obj 365 203 impulse~ 10;
-#X text 55 75 These objects are for "brownian motion" \, which is a
-type of random walk. The difference to "drunkard" is that we have the
-same probability to go up or down and when we reach the bounds the
-values are folded back. We've seen [brown~] before as a "brown noise"
-generator. If there's a signal conected to it \, it takes impulses
-to generate new random steps. Check the help files., f 67;
+#X obj 125 245 hsl 128 15 0 127 0 0 empty empty empty -2 -8 0 10 #dcdcdc #000000 #000000 0 1;
+#X obj 122 185 impulse 10;
+#X obj 340 20 declare -path else;
+#X obj 352 313 out~;
+#X obj 352 227 brown~ 0.2;
+#X obj 122 216 brown 0.2;
+#X obj 352 283 bl.saw~;
+#X obj 352 254 rescale~ 50 200;
+#X obj 122 331 out~;
+#X obj 122 301 bl.saw~;
+#X obj 122 272 rescale 50 200;
+#X obj 352 195 impulse~ 10;
+#X text 42 67 These objects are for "brownian motion" \, which is a type of random walk. The difference to "drunkard" is that we have the same probability to go up or down and when we reach the bounds the values are folded back. We've seen [brown~] before as a "brown noise" generator. If there's a signal conected to it \, it takes impulses to generate new random steps. Check the help files., f 67;
+#X text 96 416 Brownian motion is the basis of a stochastic synthesis technique by Iannis Xenakis called "dynamic stochastic synthesis". We'll see it in Part.11-Synthesis(Advanced)!;
 #X connect 0 0 10 0;
 #X connect 1 0 5 0;
 #X connect 4 0 7 0;

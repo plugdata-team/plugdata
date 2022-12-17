@@ -1,71 +1,59 @@
-#N canvas 564 79 863 671 12;
+#N canvas 340 46 863 671 12;
 #X declare -path else;
-#X obj 727 351 vsl 15 80 0 1 0 0 empty empty empty 0 -9 0 10 #dcdcdc
-#000000 #000000 0 1;
+#X obj 727 351 vsl 15 80 0 1 0 0 empty empty empty 0 -9 0 10 #dcdcdc #000000 #000000 0 1;
 #X obj 531 258 osc~ 440;
 #X obj 607 335 *~;
-#X obj 52 289 vsl 15 80 0 1 0 0 empty empty empty 0 -9 0 10 #dcdcdc
-#000000 #000000 0 1;
-#X obj 310 322 vsl 15 80 0 1 0 0 empty empty empty 0 -9 0 10 #dcdcdc
-#000000 #000000 0 1;
+#X obj 32 313 vsl 15 80 0 1 0 0 empty empty empty 0 -9 0 10 #dcdcdc #000000 #000000 0 1;
+#X obj 330 313 vsl 15 80 0 1 0 0 empty empty empty 0 -9 0 10 #dcdcdc #000000 #000000 0 1;
 #X obj 607 375 out~;
-#X obj 179 305 vsl 15 80 0 1 0 0 empty empty empty 0 -9 0 10 #dcdcdc
-#000000 #000000 0 1;
-#X obj 52 227 tabosc4~ \$0-hann;
-#X obj 179 243 table~ \$0-hann;
+#X obj 179 313 vsl 15 80 0 1 0 0 empty empty empty 0 -9 0 10 #dcdcdc #000000 #000000 0 1;
 #X obj 179 197 phasor~;
-#X obj 179 165 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
-#dcdcdc #000000 #000000 0 256;
-#X obj 310 237 envelope~ hann;
-#X obj 625 216 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
-#dcdcdc #000000 #000000 0 256;
+#X obj 179 165 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10 #dcdcdc #000000 #000000 0 256;
+#X obj 330 245 envelope~ hann;
+#X obj 625 216 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10 #dcdcdc #000000 #000000 0 256;
 #X obj 625 241 phasor~;
-#X obj 340 158 initmess \; \$0-hann cosinesum 1024 0.5 -0.5;
-#X obj 466 196 table \$0-hann;
+#X obj 438 187 table \$0-hann;
 #X obj 625 183 initmess 2;
 #X obj 179 132 initmess 2;
 #X obj 625 269 function~ 0 0.1 1 0.9 0;
-#X text 341 194 generate hann;
-#X text 28 25 One thing particularly interesting for envelope tables
-is that we can read them in a loop \, sort of like an LFO. For that
-\, instead of using something like [envgen~] to read the table \, we
-have a [phasor~] object., f 56;
-#X text 465 91 For now let's relate this to amplitude modulation and
-also see how we can generate rhythmic patterns., f 50;
-#X obj 310 295 s2f~;
-#X obj 179 278 s2f~;
-#X obj 52 262 s2f~;
+#X text 28 25 One thing particularly interesting for envelope tables is that we can read them in a loop \, sort of like an LFO. For that \, instead of using something like [envgen~] to read the table \, we have a [phasor~] object., f 56;
+#X text 465 91 For now let's relate this to amplitude modulation and also see how we can generate rhythmic patterns., f 50;
+#X obj 330 280 s2f~;
+#X obj 179 280 s2f~;
+#X obj 32 280 s2f~;
 #X obj 727 324 s2f~;
 #X obj 660 20 declare -path else;
-#X obj 243 520 function 200 100 empty empty 0 1 220 220 220 50 50 50
-0 0 0 0 0 1000 0;
+#X obj 243 520 function 200 100 empty empty 0 1 220 220 220 50 50 50 1 0 0 0 0 830 1 170 0;
 #X obj 243 464 phasor 2;
-#X obj 186 538 vsl 15 80 0 1 0 0 empty empty empty 0 -9 0 10 #dcdcdc
-#000000 #000000 0 1;
+#X obj 186 538 vsl 15 80 0 1 0 0 empty empty empty 0 -9 0 10 #dcdcdc #000000 #000000 0 1;
 #X obj 243 490 / 127;
-#X text 471 552 [phasor] and [function] can also be used as a control
-rate looping envelope., f 40;
-#X text 465 57 This is the basis of granular techniques we'll see later
-in this tutorial., f 50;
+#X text 471 552 [phasor] and [function] can also be used as a control rate looping envelope., f 40;
+#X text 465 57 This is the basis of granular techniques we'll see later in this tutorial., f 50;
+#X obj 179 245 tabreader~ \$0-hann;
+#X obj 324 158 initmess hanning;
+#X obj 324 186 tabgen \$0-hann;
+#X obj 32 245 wavetable~ \$0-hann;
+#X obj 56 111 setdsp~;
 #X connect 1 0 2 0;
 #X connect 2 0 5 0;
-#X connect 7 0 24 0;
-#X connect 8 0 23 0;
-#X connect 9 0 8 0;
-#X connect 9 0 11 0;
-#X connect 10 0 9 0;
-#X connect 10 0 7 0;
-#X connect 11 0 22 0;
-#X connect 12 0 13 0;
-#X connect 13 0 18 0;
-#X connect 16 0 12 0;
-#X connect 17 0 10 0;
-#X connect 18 0 2 1;
-#X connect 18 0 25 0;
-#X connect 22 0 4 0;
-#X connect 23 0 6 0;
-#X connect 24 0 3 0;
-#X connect 25 0 0 0;
-#X connect 27 0 29 0;
-#X connect 28 0 30 0;
-#X connect 30 0 27 0;
+#X connect 7 0 9 0;
+#X connect 7 0 29 0;
+#X connect 8 0 7 0;
+#X connect 8 0 32 0;
+#X connect 9 0 18 0;
+#X connect 10 0 11 0;
+#X connect 11 0 15 0;
+#X connect 13 0 10 0;
+#X connect 14 0 8 0;
+#X connect 15 0 2 1;
+#X connect 15 0 21 0;
+#X connect 18 0 4 0;
+#X connect 19 0 6 0;
+#X connect 20 0 3 0;
+#X connect 21 0 0 0;
+#X connect 23 0 25 0;
+#X connect 24 0 26 0;
+#X connect 26 0 23 0;
+#X connect 29 0 19 0;
+#X connect 30 0 31 0;
+#X connect 32 0 20 0;

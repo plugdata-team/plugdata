@@ -1,6 +1,7 @@
 // Porres 2018
 
 #include "m_pd.h"
+#include "buffer.h"
 #include <math.h>
 #include <stdlib.h>
 
@@ -104,8 +105,7 @@ static t_int *fbdelay_perform(t_int *w){
             double b = x->x_ybuf[ndx];
             double c = x->x_ybuf[ndx1];
             double d = x->x_ybuf[ndx2];
-            double cmb = c-b;
-            y_n = b + frac*(cmb - (1.-frac)/6. * ((d-a - 3.0*cmb) * frac+d+ 2.0*a - 3.0*b));
+            y_n = b + interp_spline(frac, a, b, c, d);
         }
         if(!x->x_gain)
             ain[i] = ain[i] == 0 ? 0 : copysign(exp(log(0.001) * ms/fabs(ain[i])), ain[i]);

@@ -1,22 +1,16 @@
-#N canvas 397 23 1017 658 12;
-#X floatatom 272 440 5 0 0 0 - - -;
-#X floatatom 272 521 5 0 0 0 - - -;
-#X floatatom 212 521 5 0 0 0 - - -;
+#N canvas 349 23 1017 658 12;
+#X floatatom 272 440 5 0 0 0 - - - 0;
+#X floatatom 272 521 5 0 0 0 - - - 0;
+#X floatatom 212 521 5 0 0 0 - - - 0;
 #X msg 212 440 12;
 #X text 70 23 In Pd we have two types of objects:;
 #X text 245 44 - Audio objects, f 17;
 #X text 245 62 - Control objects;
-#X text 67 95 Audio objects deal \, in some way \, with audio signals.
-In the vast majority of cases \, it will have at least one signal input
-or output. Audio objects end with a tilde sign (~) \, which resembles
-a cute and little sinusoidal wave., f 53;
+#X text 67 95 Audio objects deal \, in some way \, with audio signals. In the vast majority of cases \, it will have at least one signal input or output. Audio objects end with a tilde sign (~) \, which resembles a cute and little sinusoidal wave., f 53;
 #X text 105 439 message box =>;
 #X text 315 439 <= number box;
 #X text 76 473 control objects =>;
-#X text 528 29 A great difference between audio signals and control
-messages is that control data is processed any time in Pd as requested.
-But audio signals need to have the "DSP" engine on \, and they consume
-CPU power even if they aren't connected to anything!, f 62;
+#X text 528 29 A great difference between audio signals and control messages is that control data is processed any time in Pd as requested. But audio signals need to have the "DSP" engine on \, and they consume CPU power even if they aren't connected to anything!, f 62;
 #X text 68 180 Example of audio objects:;
 #X obj 157 266 line~;
 #X text 200 266 <= generate signal lines;
@@ -26,42 +20,27 @@ CPU power even if they aren't connected to anything!, f 62;
 #X text 200 213 <= audio multiplication;
 #X obj 157 238 osc~;
 #X text 200 239 <= oscillator;
-#X text 528 102 By default \, the DSP (from "digital signal processing")
-is off when we open Pd. Therefore \, no audio object is operational
-\, but control objects are. The DSP can be turned on and off in the
-terminal window \, via the Menu (Media => DSP On / Dsp Off) and its
-shortcuts. It's also possible to send a message to Pd as we'll see
-later., f 62;
-#X obj 608 324 osc~ 440;
+#X text 528 102 By default \, the DSP (from "digital signal processing") is off when we open Pd. Therefore \, no audio object is operational \, but control objects are. The DSP can be turned on and off in the terminal window \, via the Menu (Media => DSP On / Dsp Off) and its shortcuts. It's also possible to send a message to Pd as we'll see later., f 62;
+#X obj 610 314 osc~ 440;
 #X obj 212 472 * 5;
 #X obj 272 472 + 5;
-#X text 680 323 <= argument \, frequency of 440 Hz;
+#X text 682 313 <= argument \, frequency of 440 Hz;
 #X obj 610 525 *~;
 #X obj 611 582 dac~;
 #X obj 656 484 line~;
 #X msg 672 448 0 1000;
 #X text 735 447 generate a line to 0 in 1000 ms;
-#X text 529 199 With the DSP On \, let's take a look at this simple
-patch that controls the volume of an oscillator for a fade in/out.
-, f 62;
+#X text 529 199 With the DSP On \, let's take a look at this simple patch that controls the volume of an oscillator for a fade in/out., f 62;
 #X text 650 525 multiply by line values and adjust gain;
-#X text 57 570 Objects usually take arguments \, which are default
-values. Above we have the argument of '5' for both objects \, so the
-incoming value gets multiplied by '5' in the [*] object and summed
-by '5' in the [+] object.;
+#X text 57 570 Objects usually take arguments \, which are default values. Above we have the argument of '5' for both objects \, so the incoming value gets multiplied by '5' in the [*] object and summed by '5' in the [+] object.;
 #X text 653 583 audio output;
 #X text 634 368 click on the messages below:, f 15;
 #X msg 656 410 0.25 1000;
 #X text 734 410 generate a line to 0.25 in 1000 ms;
-#X text 40 333 In this way \, when the DSP is on \, all audio objects
-that output audio generate signal values for each sample in this given
-rate. For instance \, the oscillator below spits 44100 amplitude samples
-per second. There's also a difference between audio and control conncetions.
-Note that audio connections are thicker., f 63;
+#X text 40 333 In this way \, when the DSP is on \, all audio objects that output audio generate signal values for each sample in this given rate. For instance \, the oscillator below spits 44100 amplitude samples per second. There's also a difference between audio and control conncetions. Note that audio connections are thicker., f 63;
 #X text 473 492 audio connection => (thicker), f 20;
 #X text 281 497 <= control connection;
-#X text 529 247 There's also a difference between audio and control
-connections. Note that audio connections are thicker., f 62;
+#X text 529 247 There's also a difference between audio and control connections. Note that audio connections are thicker., f 62;
 #X connect 0 0 24 0;
 #X connect 3 0 23 0;
 #X connect 22 0 26 0;

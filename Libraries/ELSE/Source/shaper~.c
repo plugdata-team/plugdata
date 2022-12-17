@@ -26,16 +26,6 @@ typedef struct _shaper{
     t_buffer   *x_buffer;
 }t_shaper;
 
-static double lin_interp(t_word *buf, double i){ // linear interpolation
-    int i1 = (int)i;
-    int i2 = i1 + 1;
-    double frac = i - (double)i1;
-    double ya = buf[i1].w_float;
-    double yb = buf[i2].w_float;
-    double interp = ya + ((yb - ya) * frac);
-    return(interp);
-}
-
 static void shaper_set(t_shaper *x, t_symbol *s){
     buffer_setarray(x->x_buffer, s);
     x->x_arrayset = 1;
@@ -103,7 +93,6 @@ static t_int *shaper_perform(t_int *w){
     t_float *out = (t_float *)(w[3]);
     double xnm1 = x->x_xnm1;
     double ynm1 = x->x_ynm1;
-    double a = x->x_a;
     int n = (int)(w[4]);
     t_word *buf = (t_word *)x->x_buffer->c_vectors[0];
     double maxidx = (double)(x->x_buffer->c_npts - 1);
@@ -116,8 +105,21 @@ static t_int *shaper_perform(t_int *w){
         while(ph >= 1)
             ph--;
         if(x->x_arrayset && x->x_buffer->c_playable){
-            double i = ph * maxidx;
-            output = lin_interp(buf, i);
+            double pos = ph * maxidx;
+            int ndx = (int)pos;
+            double frac = pos - (double)ndx;
+            int ndxm1 = ndx - 1, ndx1 = ndx + 1, ndx2 = ndx + 2;
+            if(ndxm1 < 0)
+                ndxm1 = maxidx - ndxm1;
+            if(ndx1 > maxidx)
+                ndx1 -= maxidx;
+            if(ndx2 >= maxidx)
+                ndx2 -= maxidx;
+            double a = buf[ndxm1].w_float;
+            double b = buf[ndx].w_float;
+            double c = buf[ndx1].w_float;
+            double d = buf[ndx2].w_float;
+            output = interp_spline(frac, a, b, c, d);
         }
         else{
             int i = (int)(ph * (double)(FLEN - 1));
@@ -125,7 +127,7 @@ static t_int *shaper_perform(t_int *w){
         }
         xn = yn = (double)output;
         if(x->x_dc_filter){
-            yn = xn - xnm1 + (a * ynm1);
+            yn = xn - xnm1 + (x->x_a * ynm1);
             output = (float)yn;
         }
         *out++ = output;

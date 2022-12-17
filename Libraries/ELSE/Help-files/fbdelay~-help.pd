@@ -1,36 +1,24 @@
 #N canvas 587 35 560 642 10;
-#X obj 2 4 cnv 15 301 42 empty empty fbdelay~ 20 20 2 37 #e0e0e0 #000000
-0;
-#X obj 306 5 cnv 15 250 40 empty empty empty 12 13 0 18 #7c7c7c #e0e4dc
-0;
+#X obj 2 4 cnv 15 301 42 empty empty fbdelay~ 20 20 2 37 #e0e0e0 #000000 0;
+#X obj 306 5 cnv 15 250 40 empty empty empty 12 13 0 18 #7c7c7c #e0e4dc 0;
 #N canvas 0 22 450 278 (subpatch) 0;
 #X coords 0 1 100 -1 302 42 1;
 #X restore 2 4 graph;
-#X obj 345 12 cnv 10 10 10 empty empty ELSE 0 15 2 30 #7c7c7c #e0e4dc
-0;
-#X obj 23 41 cnv 4 4 4 empty empty Feedback 0 28 2 18 #e0e0e0 #000000
-0;
-#X obj 149 41 cnv 4 4 4 empty empty line 0 28 2 18 #e0e0e0 #000000
-0;
-#X obj 458 12 cnv 10 10 10 empty empty EL 0 6 2 13 #7c7c7c #e0e4dc
-0;
-#X obj 478 12 cnv 10 10 10 empty empty Locus 0 6 2 13 #7c7c7c #e0e4dc
-0;
-#X obj 515 12 cnv 10 10 10 empty empty Solus' 0 6 2 13 #7c7c7c #e0e4dc
-0;
-#X obj 464 27 cnv 10 10 10 empty empty ELSE 0 6 2 13 #7c7c7c #e0e4dc
-0;
-#X obj 502 27 cnv 10 10 10 empty empty library 0 6 2 13 #7c7c7c #e0e4dc
-0;
+#X obj 345 12 cnv 10 10 10 empty empty ELSE 0 15 2 30 #7c7c7c #e0e4dc 0;
+#X obj 23 41 cnv 4 4 4 empty empty Feedback 0 28 2 18 #e0e0e0 #000000 0;
+#X obj 149 41 cnv 4 4 4 empty empty line 0 28 2 18 #e0e0e0 #000000 0;
+#X obj 458 12 cnv 10 10 10 empty empty EL 0 6 2 13 #7c7c7c #e0e4dc 0;
+#X obj 478 12 cnv 10 10 10 empty empty Locus 0 6 2 13 #7c7c7c #e0e4dc 0;
+#X obj 515 12 cnv 10 10 10 empty empty Solus' 0 6 2 13 #7c7c7c #e0e4dc 0;
+#X obj 464 27 cnv 10 10 10 empty empty ELSE 0 6 2 13 #7c7c7c #e0e4dc 0;
+#X obj 502 27 cnv 10 10 10 empty empty library 0 6 2 13 #7c7c7c #e0e4dc 0;
 #N canvas 0 22 450 278 (subpatch) 0;
 #X coords 0 1 100 -1 252 42 1 0 0;
 #X restore 305 4 graph;
 #N canvas 460 248 747 360 Details 0;
 #X text 142 253 D = Delay time in ms;
-#X text 341 57 Negative values of t60 generate negative feedback of
-the same absolute value as its absolute input., f 60;
-#X obj 39 99 cnv 15 260 120 empty empty empty 20 12 0 14 #dcdcdc #404040
-0;
+#X text 341 57 Negative values of t60 generate negative feedback of the same absolute value as its absolute input., f 60;
+#X obj 39 99 cnv 15 260 120 empty empty empty 20 12 0 14 #dcdcdc #404040 0;
 #X text 186 116 |;
 #X text 186 128 |;
 #X text 186 140 |;
@@ -54,25 +42,18 @@ the same absolute value as its absolute input., f 60;
 #X text 142 237 a = feedback coefficient;
 #X floatatom 471 205 5 0 1000 0 - - - 0;
 #X floatatom 536 206 8 0 100 0 - - - 0;
-#X obj 539 182 hsl 128 15 -1000 1000 0 0 empty empty empty -2 -8 0
-10 #dcdcdc #000000 #000000 0 1;
+#X obj 539 182 hsl 128 15 -1000 1000 0 0 empty empty empty -2 -8 0 10 #dcdcdc #000000 #000000 0 1;
 #X obj 407 268 else/out~;
-#X obj 407 148 bng 15 250 50 0 empty empty empty 17 7 0 10 #dcdcdc
-#000000 #000000;
+#X obj 407 148 bng 15 250 50 0 empty empty empty 17 7 0 10 #dcdcdc #000000 #000000;
 #X text 559 181 decay time (ms);
 #X text 589 205 (t60);
 #X text 444 204 (D);
 #X obj 407 172 else/impseq~;
-#X text 45 47 [fbdelay~] is just simple feedback delay line \, whose
-diagram and equation is:, f 34;
+#X text 45 47 [fbdelay~] is just simple feedback delay line \, whose diagram and equation is:, f 34;
 #X text 37 306 For [fbdelay~] the minimum delay time is 1 sample!;
-#X text 341 13 By default \, the 'a' coefficient is calculated in [fbdelay~]
-from the decay time parameter (t60) and delay time (D) according to
-the expression: a = exp(log(0.001) * D/t60).;
+#X text 341 13 By default \, the 'a' coefficient is calculated in [fbdelay~] from the decay time parameter (t60) and delay time (D) according to the expression: a = exp(log(0.001) * D/t60).;
 #X obj 407 230 else/fbdelay~ 100 1000;
-#X text 341 88 The [fbdelay~] object performs a 4 point interpolation
-(just like delread4~) for delay time that falls in between sample values.
-;
+#X text 341 88 The [fbdelay~] object performs a 4 point interpolation (just like ffdelay~) for delay time that falls in between sample values.;
 #X connect 24 0 36 1;
 #X connect 25 0 36 2;
 #X connect 26 0 25 0;
@@ -80,77 +61,53 @@ the expression: a = exp(log(0.001) * D/t60).;
 #X connect 32 0 36 0;
 #X connect 36 0 27 0;
 #X restore 441 279 pd Details and \; Filter Equation;
-#X obj 102 41 cnv 4 4 4 empty empty delay 0 28 2 18 #e0e0e0 #000000
-0;
+#X obj 102 41 cnv 4 4 4 empty empty delay 0 28 2 18 #e0e0e0 #000000 0;
 #N canvas 611 210 498 284 gain 0;
 #X obj 234 122 else/impseq~;
-#X obj 234 95 bng 15 250 50 0 empty empty empty 17 7 0 10 #dcdcdc #000000
-#000000;
+#X obj 234 95 bng 15 250 50 0 empty empty empty 17 7 0 10 #dcdcdc #000000 #000000;
 #X obj 234 199 else/out~;
 #X obj 234 156 else/fbdelay~ 10 0.9 1;
 #X msg 170 124 gain \$1;
-#X obj 170 99 tgl 16 0 empty empty empty 17 7 0 10 #dcdcdc #000000
-#000000 0 1;
-#X text 37 17 By default \, the reverberation/decay time is in "t60"
-\, which is the time in ms that the impulse takes to fall 60dB in energy.
-You can change this parameter to a gain coefficient value with the
-third argument \, where a non zero value sets to "gain mode" or with
-the -gain flag. You can also change that with the "gain" message.,
-f 72;
+#X obj 170 99 tgl 16 0 empty empty empty 17 7 0 10 #dcdcdc #000000 #000000 0 1;
+#X text 37 17 By default \, the reverberation/decay time is in "t60" \, which is the time in ms that the impulse takes to fall 60dB in energy. You can change this parameter to a gain coefficient value with the third argument \, where a non zero value sets to "gain mode" or with the -gain flag. You can also change that with the "gain" message., f 72;
 #X connect 0 0 3 0;
 #X connect 1 0 0 0;
 #X connect 3 0 2 0;
 #X connect 4 0 3 0;
 #X connect 5 0 4 0;
 #X restore 460 257 pd gain mode;
-#X text 60 87 Use [fbdelay~] for delay effects \, reverberation and
-comb filtering. By default \, you can set a delay time and a reverberation/decay
-time in ms ("t60") \, which is the time the impulse takes to fall 60dB
-in energy (but you can change this parameter to a gain coefficient).
-, f 67;
-#X obj 2 614 cnv 15 552 21 empty empty empty 20 12 0 14 #e0e0e0 #202020
-0;
-#X obj 2 452 cnv 3 550 3 empty empty outlets 8 12 0 13 #dcdcdc #000000
-0;
-#X obj 2 554 cnv 3 550 3 empty empty arguments 8 12 0 13 #dcdcdc #000000
-0;
-#X obj 106 405 cnv 17 3 17 empty empty 1 5 9 0 16 #dcdcdc #9c9c9c 0
-;
-#X obj 106 428 cnv 17 3 17 empty empty 2 5 9 0 16 #dcdcdc #9c9c9c 0
-;
-#X obj 106 460 cnv 17 3 17 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
-;
+#X text 60 87 Use [fbdelay~] for delay effects \, reverberation and comb filtering. By default \, you can set a delay time and a reverberation/decay time in ms ("t60") \, which is the time the impulse takes to fall 60dB in energy (but you can change this parameter to a gain coefficient)., f 67;
+#X obj 2 614 cnv 15 552 21 empty empty empty 20 12 0 14 #e0e0e0 #202020 0;
+#X obj 2 452 cnv 3 550 3 empty empty outlets 8 12 0 13 #dcdcdc #000000 0;
+#X obj 2 554 cnv 3 550 3 empty empty arguments 8 12 0 13 #dcdcdc #000000 0;
+#X obj 106 405 cnv 17 3 17 empty empty 1 5 9 0 16 #dcdcdc #9c9c9c 0;
+#X obj 106 428 cnv 17 3 17 empty empty 2 5 9 0 16 #dcdcdc #9c9c9c 0;
+#X obj 106 460 cnv 17 3 17 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0;
 #X text 148 407 float/signal - delay time (im ms), f 54;
 #X text 148 430 float/signal - decay time (in ms), f 54;
 #X obj 131 154 noise~;
 #X obj 178 186 *~;
 #X obj 178 258 else/out~;
-#X obj 307 201 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
-#dcdcdc #000000 #000000 0 256;
-#X obj 242 179 nbx 3 14 0 100 0 0 empty empty empty 0 -8 0 10 #dcdcdc
-#000000 #000000 0 256;
+#X obj 307 201 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10 #dcdcdc #000000 #000000 0 256;
+#X obj 242 179 nbx 3 14 0 100 0 0 empty empty empty 0 -8 0 10 #dcdcdc #000000 #000000 0 256;
 #X text 285 178 Delay time (ms);
 #X obj 193 154 else/pulse~ 1;
-#X obj 2 319 cnv 3 550 3 empty empty inlets 8 12 0 13 #dcdcdc #000000
-0;
+#X obj 2 319 cnv 3 550 3 empty empty inlets 8 12 0 13 #dcdcdc #000000 0;
 #X text 226 341 - changes the maximum delay size (in ms), f 41;
 #X text 147 341 size <float>;
 #X text 190 371 clear - clears the delay buffer, f 47;
 #X text 184 326 signal - signal input to the delay line, f 48;
 #X text 226 386 - non-0 sets to gain mode, f 41;
 #X text 147 386 gain <float>;
-#X obj 108 327 cnv 17 3 72 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
-;
+#X obj 108 327 cnv 17 3 72 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0;
 #X text 96 575 2) float - feedback amount (default 0), f 58;
 #X text 95 592 3) float -;
 #X text 96 560 1) float - delay time (default 1 sample), f 58;
 #X text 174 461 signal - the filtered/delayed signal;
-#X obj 2 486 cnv 3 550 3 empty empty flags 8 12 0 13 #dcdcdc #000000
-0;
+#X obj 2 486 cnv 3 550 3 empty empty flags 8 12 0 13 #dcdcdc #000000 0;
 #X text 184 494 -;
 #X text 97 494 -size <float>;
-#X text 198 493 sets delay size (default 1000 ms or first argument's
-value if given), f 49;
+#X text 198 493 sets delay size (default 1000 ms or first argument's value if given), f 49;
 #X text 23 216 see also:;
 #X obj 26 238 else/ffdelay~;
 #X text 184 520 -;
@@ -160,36 +117,22 @@ value if given), f 49;
 #X text 144 535 -gain;
 #X text 198 535 sets feedback mode to gain;
 #N canvas 506 145 860 335 size 0;
-#X text 441 47 Alternatively \, with the -samps flag \, you can set
-it to operate in time units specified by the number of samples. In
-the same way \, this affects both delay time and delay size., f 64
-;
+#X text 441 47 Alternatively \, with the -samps flag \, you can set it to operate in time units specified by the number of samples. In the same way \, this affects both delay time and delay size., f 64;
 #X obj 550 142 else/impseq~;
-#X obj 550 114 bng 17 250 50 0 empty empty empty 17 7 0 10 #dcdcdc
-#000000 #000000;
+#X obj 550 114 bng 17 250 50 0 empty empty empty 17 7 0 10 #dcdcdc #000000 #000000;
 #X msg 656 121 size 22050;
 #X msg 666 142 size 44100;
-#X obj 687 187 nbx 5 14 0 44100 0 0 empty empty empty 0 -8 0 10 #dcdcdc
-#000000 #000000 0 256;
+#X obj 687 187 nbx 5 14 0 44100 0 0 empty empty empty 0 -8 0 10 #dcdcdc #000000 #000000 0 256;
 #X obj 79 130 else/impseq~;
-#X obj 79 102 bng 17 250 50 0 empty empty empty 17 7 0 10 #dcdcdc #000000
-#000000;
+#X obj 79 102 bng 17 250 50 0 empty empty empty 17 7 0 10 #dcdcdc #000000 #000000;
 #X obj 281 132 else/impseq~;
-#X obj 281 104 bng 17 250 50 0 empty empty empty 17 7 0 10 #dcdcdc
-#000000 #000000;
-#X text 441 18 By default \, all time units in [fbdelay~] is in ms.
-This affects not only the delay time \, but also the delay size.,
-f 64;
+#X obj 281 104 bng 17 250 50 0 empty empty empty 17 7 0 10 #dcdcdc #000000 #000000;
+#X text 441 18 By default \, all time units in [fbdelay~] is in ms. This affects not only the delay time \, but also the delay size., f 64;
 #X obj 122 187 else/fbdelay~ 500 5000;
-#X text 25 21 By default \, the delay size is 1 sample \, but if you
-give it an argument \, it sets both the delay time and also the delay
-size., f 64;
-#X text 25 50 If you need a larger delay size than specified by a first
-argument \, you can use the -size flag/message., f 64;
-#X obj 435 152 nbx 5 14 100 500 0 0 empty empty empty 0 -8 0 10 #dcdcdc
-#000000 #000000 0 256;
-#X obj 690 167 hsl 128 15 0 44100 0 0 empty empty empty -2 -8 0 10
-#dcdcdc #000000 #000000 0 1;
+#X text 25 21 By default \, the delay size is 1 sample \, but if you give it an argument \, it sets both the delay time and also the delay size., f 64;
+#X text 25 50 If you need a larger delay size than specified by a first argument \, you can use the -size flag/message., f 64;
+#X obj 435 152 nbx 5 14 100 500 0 0 empty empty empty 0 -8 0 10 #dcdcdc #000000 #000000 0 256;
+#X obj 690 167 hsl 128 15 0 44100 0 0 empty empty empty -2 -8 0 10 #dcdcdc #000000 #000000 0 1;
 #X obj 79 230 else/out~;
 #X obj 281 232 else/out~;
 #X obj 550 251 else/out~;
@@ -214,24 +157,18 @@ argument \, you can use the -size flag/message., f 64;
 #X connect 20 0 18 1;
 #X restore 490 213 pd size;
 #X obj 178 224 else/fbdelay~ 100 2000;
-#X text 162 592 feedback mode: <0> ("t60") or <non-0> (gain mode) \,
-default 0;
+#X text 162 592 feedback mode: <0> ("t60") or <non-0> (gain mode) \, default 0;
 #X obj 26 262 else/comb.filt~;
 #X text 135 356 freeze <float>;
 #X text 226 356 - non zero freezes \, zero unfreezes, f 41;
 #X text 364 199 <= Feedback (Decay time in ms), f 11;
 #N canvas 936 135 430 451 freeze 0;
-#X text 57 28 You can freeze the delay line with the 'freeze' message
-\, where zero freezes \, zero unfreezes. When frozen \, it stops writing
-into it. Note that unlike [ffdelay~] \, the input still goes through.
-, f 52;
+#X text 57 28 You can freeze the delay line with the 'freeze' message \, where zero freezes \, zero unfreezes. When frozen \, it stops writing into it. Note that unlike [ffdelay~] \, the input still goes through., f 52;
 #X obj 116 348 else/out~;
 #X obj 116 314 else/fbdelay~ 100 2000;
 #X msg 176 272 freeze \$1;
-#X obj 176 247 tgl 17 0 empty empty empty 17 7 0 10 #dcdcdc #000000
-#000000 0 1;
-#X obj 160 206 tgl 17 0 empty empty empty 17 7 0 10 #dcdcdc #000000
-#000000 0 1;
+#X obj 176 247 tgl 17 0 empty empty empty 17 7 0 10 #dcdcdc #000000 #000000 0 1;
+#X obj 160 206 tgl 17 0 empty empty empty 17 7 0 10 #dcdcdc #000000 #000000 0 1;
 #X obj 160 178 loadbang;
 #X obj 115 208 *~;
 #X obj 115 114 noise~;

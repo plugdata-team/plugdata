@@ -1,20 +1,15 @@
 #N canvas 282 23 989 723 12;
 #X declare -path else;
 #X obj 295 25 declare -path else;
-#X text 28 62 Autotuning is when you correct a pitch to the nearest
-pitch in a scale and is a form of tuning correction. For values in
-MIDI and our equal temperament \, the autotuning simply needs to round
-to the nearest integer value.;
+#X text 28 62 Autotuning is when you correct a pitch to the nearest pitch in a scale and is a form of tuning correction. For values in MIDI and our equal temperament \, the autotuning simply needs to round to the nearest integer value.;
 #X obj 197 218 rint;
 #X obj 197 169 rand.f 40 80;
 #X floatatom 197 193 5 0 0 0 - - - 0;
 #X floatatom 197 245 5 0 0 0 - - - 0;
-#X obj 197 145 bng 15 250 50 0 empty empty empty 17 7 0 10 #dcdcdc
-#000000 #000000;
+#X obj 197 145 bng 15 250 50 0 empty empty empty 17 7 0 10 #dcdcdc #000000 #000000;
 #X obj 130 439 rand.f 40 80;
 #X floatatom 130 463 5 0 0 0 - - - 0;
-#X obj 130 415 bng 15 250 50 0 empty empty empty 17 7 0 10 #dcdcdc
-#000000 #000000;
+#X obj 130 415 bng 15 250 50 0 empty empty empty 17 7 0 10 #dcdcdc #000000 #000000;
 #X floatatom 130 516 5 0 0 0 - - - 0;
 #N canvas 299 88 761 572 Bohlen-Pierce 0;
 #X obj 315 271 expr pow($f1 \, 1/$f2);
@@ -41,13 +36,7 @@ to the nearest integer value.;
 #X text 311 196 Get the scale step in MIDI cents;
 #X floatatom 233 223 0 0 0 0 - - - 0;
 #X floatatom 233 459 0 0 0 0 - - - 0;
-#X text 100 36 We need to round to a MIDI value according to the scale
-step in MIDI cents. We also need a reference value for the start of
-the scale \, which is "60" here (Middle C). So we get the difference
-of the input and the base value \, divide by the scale step in MIDI
-cents to see how many steps we have \, round the result to the nearest
-integer and multiply again by the MIDI cents value. Finally we just
-sum back the base value., f 75;
+#X text 100 36 We need to round to a MIDI value according to the scale step in MIDI cents. We also need a reference value for the start of the scale \, which is "60" here (Middle C). So we get the difference of the input and the base value \, divide by the scale step in MIDI cents to see how many steps we have \, round the result to the nearest integer and multiply again by the MIDI cents value. Finally we just sum back the base value., f 75;
 #X connect 0 0 9 0;
 #X connect 1 0 5 0;
 #X connect 2 0 23 0;
@@ -68,8 +57,7 @@ sum back the base value., f 75;
 #X restore 130 489 pd Bohlen-Pierce;
 #X obj 306 438 rand.f 40 80;
 #X floatatom 306 462 5 0 0 0 - - - 0;
-#X obj 306 414 bng 15 250 50 0 empty empty empty 17 7 0 10 #dcdcdc
-#000000 #000000;
+#X obj 306 414 bng 15 250 50 0 empty empty empty 17 7 0 10 #dcdcdc #000000 #000000;
 #X floatatom 306 515 5 0 0 0 - - - 0;
 #N canvas 584 86 761 558 quantizer 0;
 #X obj 335 257 expr pow($f1 \, 1/$f2);
@@ -94,8 +82,7 @@ sum back the base value., f 75;
 #X floatatom 233 209 0 0 0 0 - - - 0;
 #X floatatom 233 445 0 0 0 0 - - - 0;
 #X obj 233 345 quantizer;
-#X text 236 43 This is a minor simplification that uses the [quantizer]
-object., f 37;
+#X text 236 43 This is a minor simplification that uses the [quantizer] object., f 37;
 #X connect 0 0 7 0;
 #X connect 1 0 21 0;
 #X connect 2 0 20 0;
@@ -111,47 +98,31 @@ object., f 37;
 #X connect 20 0 5 0;
 #X connect 21 0 2 0;
 #X restore 306 488 pd quantizer;
-#X text 30 288 For other musical scales we need more sophisticated
-patches \, but things are still relatively simple if you have scales
-based on equal division of intervals. Check the subpatch below \, to
-the left \, where we correct the tuning according to a Bohlen-Pierce
-scale. To the right we have a minor simplification with the [quantizer]
-object from ELSE., f 64;
-#X text 514 24 For scales with irregular steps \, the algorithm gets
-indeed more complicated. We need to store the scale's step values in
-a table and go trhough it and find the closest one., f 62;
-#X obj 625 192 keyboard 17 80 2 3 0 0 empty empty;
-#X floatatom 625 308 4 0 0 0 - - - 0;
-#X obj 625 283 stripnote;
-#X obj 625 368 display 6;
-#X floatatom 542 259 5 0 0 0 - - - 0;
-#X msg 542 283 base \$1;
-#X obj 625 339 autotune;
-#X obj 625 400 mtof;
-#X obj 625 430 osc~;
-#X obj 625 460 out~;
-#X text 514 81 The [autotune] object from ELSE does that and it also
-takes a base value (which is 60 by default). The object takes a list
-of cents values for the scale. In this example we have [eqdiv] feeding
-the object \, but note that for equal divisions \, this algorithm is
-a bit less efficient the the solution provided to the left., f 62
-;
-#X obj 737 322 bng 15 250 50 0 empty empty empty 17 7 0 10 #dcdcdc
-#000000 #000000;
-#X obj 737 295 loadbang;
+#X text 30 288 For other musical scales we need more sophisticated patches \, but things are still relatively simple if you have scales based on equal division of intervals. Check the subpatch below \, to the left \, where we correct the tuning according to a Bohlen-Pierce scale. To the right we have a minor simplification with the [quantizer] object from ELSE., f 64;
+#X text 514 24 For scales with irregular steps \, the algorithm gets indeed more complicated. We need to store the scale's step values in a table and go trhough it and find the closest one., f 62;
+#X obj 660 226 keyboard 17 80 2 3 0 0 empty empty;
+#X floatatom 660 342 4 0 0 0 - - - 0;
+#X obj 660 317 stripnote;
+#X obj 660 402 display 6;
+#X floatatom 577 293 5 0 0 0 - - - 0;
+#X msg 577 317 base \$1;
+#X obj 660 373 autotune;
+#X obj 660 434 mtof;
+#X obj 660 464 osc~;
+#X obj 660 494 out~;
+#X text 514 81 The [autotune] object from ELSE does that and it also takes a base value (which is 60 by default). The object takes a list of cents values for the scale. In this example we have [eqdiv] feeding the object \, but note that for equal divisions \, this algorithm is a bit less efficient the the solution provided to the left., f 62;
+#X obj 772 356 bng 19 250 50 0 empty empty empty 17 7 0 10 #dcdcdc #000000 #000000;
+#X obj 772 329 loadbang;
 #X floatatom 55 618 10 0 0 0 - - - 0;
-#X obj 58 589 hsl 200 18 -2400 2400 0 0 empty empty empty -2 -8 0 10
-#dcdcdc #000000 #000000 0 1;
-#X obj 55 683 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 12
-#dcdcdc #000000 #000000 0 256;
-#X obj 55 649 autotune2 0 110 190 320 410 480 590 610 690 805 895 990
-1110 1200, f 70;
-#X text 275 583 The [autotune2] object is simpler and retunes cents
-values directly. Check its help file., f 46;
-#X obj 737 345 eqdiv 13 3;
+#X obj 58 589 hsl 200 18 -2400 2400 0 0 empty empty empty -2 -8 0 10 #dcdcdc #000000 #000000 0 1;
+#X obj 55 683 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 12 #dcdcdc #000000 #000000 0 256;
+#X obj 55 649 autotune2 0 110 190 320 410 480 590 610 690 805 895 990 1110 1200, f 65;
+#X text 275 583 The [autotune2] object is simpler and retunes cents values directly. Check its help file., f 46;
+#X obj 772 382 eqdiv 13 3;
 #X obj 798 641 scala;
-#X text 693 587 See also the [scala] object that imports tunings from
-the scala format., f 32;
+#X text 693 587 See also the [scala] object that imports tunings from the scala format., f 32;
+#X text 520 176 Check also below the [keyboard] object from ELSE. Check its help file.;
+#X text 552 246 [keyboard] -->;
 #X connect 2 0 5 0;
 #X connect 3 0 4 0;
 #X connect 4 0 2 0;

@@ -1,50 +1,32 @@
-#N canvas 294 54 1020 566 12;
+#N canvas 294 54 1019 633 12;
 #X declare -path else;
-#X obj 542 312 s harm;
-#X msg 542 287 0;
-#X obj 939 165 nbx 4 18 -1e+37 1e+37 0 0 empty harm empty 0 -8 0 10
-#b8c8dc #000000 #000000 0 256;
-#X obj 877 165 nbx 4 18 -1e+37 1e+37 0 0 empty harm empty 0 -8 0 10
-#b8c8dc #000000 #000000 0 256;
-#X obj 815 165 nbx 4 18 -1e+37 1e+37 0 0 empty harm empty 0 -8 0 10
-#b8c8dc #000000 #000000 0 256;
-#X obj 754 165 nbx 4 18 -1e+37 1e+37 0 0 empty harm empty 0 -8 0 10
-#b8c8dc #000000 #000000 0 256;
-#X obj 692 165 nbx 4 18 -1e+37 1e+37 0 0 empty harm empty 0 -8 0 10
-#b8c8dc #000000 #000000 0 256;
-#X obj 631 165 nbx 4 18 -1e+37 1e+37 0 0 empty harm empty 0 -8 0 10
-#b8c8dc #000000 #000000 0 256;
-#X obj 569 165 nbx 4 18 -1e+37 1e+37 0 0 empty harm empty 0 -8 0 10
-#b8c8dc #000000 #000000 0 256;
-#X obj 653 285 cnv 15 248 138 empty empty empty 20 12 0 14 #dcdcdc
-#404040 0;
+#X obj 552 369 s harm;
+#X msg 552 344 0;
+#X obj 939 185 nbx 4 18 -1e+37 1e+37 0 0 empty harm empty 0 -8 0 10 #b8c8dc #000000 #000000 0 256;
+#X obj 877 185 nbx 4 18 -1e+37 1e+37 0 0 empty harm empty 0 -8 0 10 #b8c8dc #000000 #000000 0 256;
+#X obj 815 185 nbx 4 18 -1e+37 1e+37 0 0 empty harm empty 0 -8 0 10 #b8c8dc #000000 #000000 0 256;
+#X obj 754 185 nbx 4 18 -1e+37 1e+37 0 0 empty harm empty 0 -8 0 10 #b8c8dc #000000 #000000 0 256;
+#X obj 692 185 nbx 4 18 -1e+37 1e+37 0 0 empty harm empty 0 -8 0 10 #b8c8dc #000000 #000000 0 256;
+#X obj 631 185 nbx 4 18 -1e+37 1e+37 0 0 empty harm empty 0 -8 0 10 #b8c8dc #000000 #000000 0 256;
+#X obj 569 185 nbx 4 18 -1e+37 1e+37 0 0 empty harm empty 0 -8 0 10 #b8c8dc #000000 #000000 0 256;
+#X obj 688 352 cnv 15 248 138 empty empty empty 20 12 0 14 #dcdcdc #404040 0;
 #N canvas 0 22 474 324 (subpatch) 0;
 #X array \$0-wavetable 515 float 0;
 #X coords 0 1 514 -1 250 140 1 0 0;
-#X restore 652 284 graph;
-#X obj 91 406 nbx 4 18 -1e+37 1e+37 0 1 empty empty empty 0 -8 0 10
-#dcdcdc #000000 #000000 293 256;
-#X text 634 278 1;
-#X text 630 413 -1;
+#X restore 687 351 graph;
+#X obj 78 472 nbx 4 18 -1e+37 1e+37 0 1 empty empty empty 0 -8 0 10 #dcdcdc #000000 #000000 339 256;
+#X text 669 345 1;
+#X text 665 480 -1;
 #N canvas 317 87 1099 432 normalizado 0;
-#X obj 479 204 nbx 4 18 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
-#dcdcdc #000000 #000000 0 256;
-#X obj 425 204 nbx 4 18 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
-#dcdcdc #000000 #000000 0 256;
-#X obj 371 204 nbx 4 18 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
-#dcdcdc #000000 #000000 0 256;
-#X obj 318 204 nbx 4 18 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
-#dcdcdc #000000 #000000 0 256;
-#X obj 264 204 nbx 4 18 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
-#dcdcdc #000000 #000000 0 256;
-#X obj 123 176 unpack float float float float float float float float
-;
-#X obj 211 204 nbx 4 18 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
-#dcdcdc #000000 #000000 0 256;
-#X obj 157 204 nbx 4 18 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
-#dcdcdc #000000 #000000 0 256;
-#X obj 104 205 nbx 4 18 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
-#dcdcdc #000000 #000000 0 256;
+#X obj 479 204 nbx 4 18 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10 #dcdcdc #000000 #000000 0 256;
+#X obj 425 204 nbx 4 18 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10 #dcdcdc #000000 #000000 0 256;
+#X obj 371 204 nbx 4 18 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10 #dcdcdc #000000 #000000 0 256;
+#X obj 318 204 nbx 4 18 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10 #dcdcdc #000000 #000000 0 256;
+#X obj 264 204 nbx 4 18 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10 #dcdcdc #000000 #000000 0 256;
+#X obj 123 176 unpack float float float float float float float float;
+#X obj 211 204 nbx 4 18 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10 #dcdcdc #000000 #000000 0 256;
+#X obj 157 204 nbx 4 18 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10 #dcdcdc #000000 #000000 0 256;
+#X obj 104 205 nbx 4 18 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10 #dcdcdc #000000 #000000 0 256;
 #X text 135 148 <== lista normalizada;
 #X obj 123 88 inlet;
 #N canvas 178 61 728 505 normalizar 0;
@@ -98,13 +80,12 @@
 #X connect 10 0 11 0;
 #X connect 11 0 5 0;
 #X coords 0 -1 1 1 430 27 2 100 200;
-#X restore 522 229 pd normalizado;
+#X restore 527 273 pd normalizado;
 #N canvas 345 184 415 268 sequencer 0;
 #X obj 33 95 mtof;
 #X obj 144 175 *~;
 #X obj 144 204 outlet~;
-#X obj 173 88 sequencer 42 40 40 45 40 49 52 52 45 43 43 47 50 54 55
-55, f 29;
+#X obj 173 88 sequencer 42 40 40 45 40 49 52 52 45 43 43 47 50 54 55 55, f 29;
 #X obj 33 125 tabosc4~ \$0-wavetable, f 12;
 #X obj 162 141 envgen~ 50 1 150 1 50 0;
 #X obj 162 40 tempo -on 240;
@@ -115,75 +96,48 @@
 #X connect 5 0 1 1;
 #X connect 6 0 3 0;
 #X connect 6 0 5 0;
-#X restore 292 442 pd sequencer;
-#X obj 526 151 cnv 1 1 1 empty empty 1st 0 0 0 14 #fcfcfc #404040 0
-;
-#X obj 577 151 cnv 1 1 1 empty empty 2nd 0 0 0 14 #fcfcfc #404040 0
-;
-#X obj 647 151 cnv 1 1 1 empty empty 3rd 0 0 0 14 #fcfcfc #404040 0
-;
-#X obj 700 151 cnv 1 1 1 empty empty 4th 0 0 0 14 #fcfcfc #404040 0
-;
-#X obj 763 151 cnv 1 1 1 empty empty 5th 0 0 0 14 #fcfcfc #404040 0
-;
-#X obj 824 151 cnv 1 1 1 empty empty 6th 0 0 0 14 #fcfcfc #404040 0
-;
-#X obj 888 151 cnv 1 1 1 empty empty 7th 0 0 0 14 #fcfcfc #404040 0
-;
-#X obj 949 151 cnv 1 1 1 empty empty 8th 0 0 0 14 #fcfcfc #404040 0
-;
-#X text 945 94 |;
-#X text 945 104 |;
-#X text 945 113 |;
-#X text 945 122 |;
-#X text 527 94 |;
-#X text 527 103 |;
-#X text 527 112 |;
-#X text 527 121 |;
-#X obj 508 192 pack2 float float float float float float float float
-, f 62;
-#X obj 292 482 out~;
-#X obj 508 165 nbx 4 18 -1e+37 1e+37 0 0 empty harm empty 0 -8 0 10
-#b8c8dc #000000 #000000 0 256;
-#X msg 508 458 normalize;
-#X obj 508 348 list prepend sinesum 512, f 12;
-#X obj 508 391 list trim;
-#X obj 589 457 display;
-#X obj 508 423 t b a, f 12;
-#X obj 91 482 out~;
-#X text 35 21 In this example we use [tabosc4~] \, a native object
-that uses an array as a waveform. We generate a waveform with the "sinesum"
-message sent to an array \, which needs an array size that's a power
-of two (512 in this case) and a list of partials (8 of them in this
-example).;
+#X restore 282 496 pd sequencer;
+#X obj 526 171 cnv 1 1 1 empty empty 1st 0 0 0 14 #fcfcfc #404040 0;
+#X obj 577 171 cnv 1 1 1 empty empty 2nd 0 0 0 14 #fcfcfc #404040 0;
+#X obj 647 171 cnv 1 1 1 empty empty 3rd 0 0 0 14 #fcfcfc #404040 0;
+#X obj 700 171 cnv 1 1 1 empty empty 4th 0 0 0 14 #fcfcfc #404040 0;
+#X obj 763 171 cnv 1 1 1 empty empty 5th 0 0 0 14 #fcfcfc #404040 0;
+#X obj 824 171 cnv 1 1 1 empty empty 6th 0 0 0 14 #fcfcfc #404040 0;
+#X obj 888 171 cnv 1 1 1 empty empty 7th 0 0 0 14 #fcfcfc #404040 0;
+#X obj 949 171 cnv 1 1 1 empty empty 8th 0 0 0 14 #fcfcfc #404040 0;
+#X text 945 114 |;
+#X text 945 124 |;
+#X text 945 133 |;
+#X text 945 142 |;
+#X text 527 114 |;
+#X text 527 123 |;
+#X text 527 132 |;
+#X text 527 141 |;
+#X obj 508 212 pack2 float float float float float float float float, f 62;
+#X obj 282 536 out~;
+#X obj 508 185 nbx 4 18 -1e+37 1e+37 0 0 empty harm empty 0 -8 0 10 #b8c8dc #000000 #000000 0 256;
+#X msg 508 538 normalize;
+#X obj 508 471 list trim;
+#X obj 589 537 display;
+#X obj 508 503 t b a, f 12;
+#X obj 78 545 out~;
+#X text 22 18 In this example we use [tabosc4~] \, a native object that uses an array as a waveform. We generate a waveform with the "sinesum" message sent to an array \, which needs an array size that's a power of two (512 in this case) and a list of partials (8 of them in this example)., f 63;
 #X obj 508 51 initmess 1;
-#X text 569 287 Reset;
-#X text 35 316 None of this information about extra points is needed
-for the patch \, this is just technical details in the background.
-;
-#X text 35 103 Play around with the number boxes to the right. Each
-box represents the amplitude of a partial from our partials list \,
-and draws a waveform composed of these 8 partials., f 60;
-#X text 35 346 Test the resulting sound below with a frequency input
-or from a sequencer driving [tabosc4~]., f 60;
-#X text 144 406 Hz;
-#X text 35 210 The sinesum message is specially designed to generate
-waveforms for [tabosc4~]. In this example \, the table is drawn with
-512 points plus 3 extra points \, which are needed for interpolation
-in [tabosc4~] when indexes values are not integers. The interpolation
-type will be presented in detail later in this tutorial \, but know
-for now it concerns a 4 point interpolation \, hence the "4" in [tabosc4~].
-;
-#X text 560 105 (Negative values invert the polarity of a partial!)
-;
-#X text 533 83 --------------- Partial Amplitude list --------------------
-;
-#X obj 589 504 send \$0-wavetable;
-#X obj 91 442 tabosc4~ \$0-wavetable;
-#X obj 818 28 declare -path else;
-#X text 35 159 Note that after sending the list of partials \, we do
-normalize the array. A subpatch also normalizes the partials for us
-to visualize the normalized values of each partial.;
+#X text 579 344 Reset;
+#X text 22 412 Test the resulting sound below with a frequency input or from a sequencer driving [tabosc4~]., f 63;
+#X text 131 472 Hz;
+#X text 560 125 (Negative values invert the polarity of a partial!);
+#X text 533 103 --------------- Partial Amplitude list --------------------;
+#X obj 589 584 send \$0-wavetable;
+#X obj 78 505 tabosc4~ \$0-wavetable;
+#X obj 824 30 declare -path else;
+#X text 22 173 Note that after sending the list of partials \, we do normalize the array. A subpatch also normalizes the partials for us to visualize the normalized values of each partial., f 63;
+#X text 22 286 The details about interpolation and guard points are presented later in this tutorial \, but know for now this interpolation type uses 4 points - hence the "4" in [tabosc4~]. Also note that none of this information about extra points is needed for the patch \, this is just technical details in the background., f 63;
+#X text 22 94 Play with the number boxes to the right. Each box represents the amplitude of a partial from our partials list. The drawn waveform is composed as a sum of this list of 8 partials. The sinesum message generates waveforms in arrays from a list of amplitudes for each partial. The first value is the table size., f 63;
+#X text 22 223 Sinesum generates arrays with "extra points" (in this example \, 512 points plus 3) \, which also called "guard points". These extra points are needed for interpolation in [tabosc4~] \, so the 'sinesum' command is specially designed for [tabosc4~]., f 63;
+#X text 552 246 normalized;
+#X text 22 363 Another detail is that 'sinesum' only generates tables whose size is a power of two (plus 3 points). So [tabosc4~] can only read tables with such possible sizes., f 63;
+#X obj 508 428 list prepend sinesum 512, f 12;
 #X connect 1 0 0 0;
 #X connect 2 0 32 7;
 #X connect 3 0 32 6;
@@ -192,16 +146,16 @@ to visualize the normalized values of each partial.;
 #X connect 6 0 32 3;
 #X connect 7 0 32 2;
 #X connect 8 0 32 1;
-#X connect 11 0 52 0;
+#X connect 11 0 48 0;
 #X connect 15 0 33 0;
 #X connect 32 0 14 0;
-#X connect 32 0 36 0;
+#X connect 32 0 56 0;
 #X connect 34 0 32 0;
-#X connect 35 0 51 0;
-#X connect 36 0 37 0;
-#X connect 37 0 39 0;
-#X connect 38 0 51 0;
-#X connect 39 0 35 0;
-#X connect 39 1 38 0;
-#X connect 42 0 34 0;
-#X connect 52 0 40 0;
+#X connect 35 0 47 0;
+#X connect 36 0 38 0;
+#X connect 37 0 47 0;
+#X connect 38 0 35 0;
+#X connect 38 1 37 0;
+#X connect 41 0 34 0;
+#X connect 48 0 39 0;
+#X connect 56 0 36 0;

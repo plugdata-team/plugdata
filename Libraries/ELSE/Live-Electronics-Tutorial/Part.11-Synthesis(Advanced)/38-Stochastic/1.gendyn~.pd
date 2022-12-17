@@ -1,0 +1,9 @@
+#N canvas 617 47 559 351 12;
+#X declare -path else;
+#X obj 351 24 declare -path else;
+#X text 42 66 [gendyn~] is based on Xenakis' 'GenDyn' algorhythm \, a technique for stochastic synthesis that is based on Brownian motion (a type of random walk). You can go back to Part.04-Control and revise the chapter 20-Stochastic for a basis on stochastic processes and what brownian motion is., f 65;
+#X text 41 145 The stochastic process affects the reading speed of the waveform and also how the points in the waveform change. These points can be interpolated with two types (linear and cosine) or not., f 65;
+#X obj 147 226 else/gendyn~;
+#X obj 147 255 else/out~;
+#X text 281 257 Open the help file for more details., f 19;
+#X connect 3 0 4 0;

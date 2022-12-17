@@ -15,24 +15,18 @@
 #X obj 191 119 v size_\$0;
 #X obj 87 277 tabread~ n_\$0;
 #X obj 255 324 *~;
-#X obj 87 218 expr~ $v1 % size_\$0 \; if(wrap_\$0 || in_\$0 == 0 \,
-1 \, if(in_\$0 >= 0 \, $v1 >= size_\$0 \, $v1 < size_\$0)), f 31;
+#X obj 87 218 expr~ $v1 % size_\$0 \; if(wrap_\$0 || in_\$0 == 0 \, 1 \, if(in_\$0 >= 0 \, $v1 >= size_\$0 \, $v1 < size_\$0)), f 31;
 #X obj 87 144 else/ramp~ 1 0;
-#X obj 262 91 bng 15 250 50 0 empty empty empty 17 7 0 10 #fcfcfc #000000
-#000000;
-#X floatatom 206 151 5 0 0 0 - - - 0;
 #X connect 2 0 8 0;
 #X connect 3 0 4 0;
 #X connect 3 0 5 0;
 #X connect 3 0 9 3;
 #X connect 4 0 9 0;
-#X connect 5 0 11 0;
 #X connect 6 0 7 0;
 #X connect 7 0 1 0;
 #X connect 8 0 6 0;
 #X connect 8 1 7 1;
 #X connect 9 0 2 0;
-#X connect 10 0 5 0;
 #X restore 67 152 pd read;
 #X obj 157 62 inlet;
 #X obj 67 212 outlet~;
@@ -56,7 +50,7 @@
 #X restore 157 153 pd table;
 #X text 245 127 Part of ELSE \; https://github.com/porres/pd-else;
 #X text 247 108 Alexandre Torres Porres (2018);
-#N canvas 694 392 382 395 set 0;
+#N canvas 694 351 382 395 set 0;
 #X obj 218 328 v shift_\$0;
 #X obj 158 17 inlet;
 #X obj 186 220 clip;

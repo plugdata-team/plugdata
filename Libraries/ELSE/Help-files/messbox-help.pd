@@ -1,63 +1,42 @@
 #N canvas 551 29 563 585 10;
-#X obj 306 5 cnv 15 250 40 empty empty empty 12 13 0 18 #7c7c7c #e0e4dc
-0;
+#X obj 306 5 cnv 15 250 40 empty empty empty 12 13 0 18 #7c7c7c #e0e4dc 0;
 #N canvas 382 141 749 319 (subpatch) 0;
 #X coords 0 -1 1 1 252 42 2 0 0;
 #X restore 305 4 pd;
-#X obj 345 12 cnv 10 10 10 empty empty ELSE 0 15 2 30 #7c7c7c #e0e4dc
-0;
-#X obj 78 41 cnv 4 4 4 empty empty message 0 28 2 18 #e0e0e0 #000000
-0;
-#X obj 458 12 cnv 10 10 10 empty empty EL 0 6 2 13 #7c7c7c #e0e4dc
-0;
-#X obj 478 12 cnv 10 10 10 empty empty Locus 0 6 2 13 #7c7c7c #e0e4dc
-0;
-#X obj 515 12 cnv 10 10 10 empty empty Solus' 0 6 2 13 #7c7c7c #e0e4dc
-0;
-#X obj 464 27 cnv 10 10 10 empty empty ELSE 0 6 2 13 #7c7c7c #e0e4dc
-0;
-#X obj 502 27 cnv 10 10 10 empty empty library 0 6 2 13 #7c7c7c #e0e4dc
-0;
-#X obj 3 4 cnv 15 301 42 empty empty messbox 20 20 2 37 #e0e0e0 #000000
-0;
+#X obj 345 12 cnv 10 10 10 empty empty ELSE 0 15 2 30 #7c7c7c #e0e4dc 0;
+#X obj 78 41 cnv 4 4 4 empty empty message 0 28 2 18 #e0e0e0 #000000 0;
+#X obj 458 12 cnv 10 10 10 empty empty EL 0 6 2 13 #7c7c7c #e0e4dc 0;
+#X obj 478 12 cnv 10 10 10 empty empty Locus 0 6 2 13 #7c7c7c #e0e4dc 0;
+#X obj 515 12 cnv 10 10 10 empty empty Solus' 0 6 2 13 #7c7c7c #e0e4dc 0;
+#X obj 464 27 cnv 10 10 10 empty empty ELSE 0 6 2 13 #7c7c7c #e0e4dc 0;
+#X obj 502 27 cnv 10 10 10 empty empty library 0 6 2 13 #7c7c7c #e0e4dc 0;
+#X obj 3 4 cnv 15 301 42 empty empty messbox 20 20 2 37 #e0e0e0 #000000 0;
 #N canvas 0 22 450 278 (subpatch) 0;
 #X coords 0 1 100 -1 302 42 1;
 #X restore 3 4 graph;
-#X obj 4 333 cnv 3 550 3 empty empty inlets 8 12 0 13 #dcdcdc #000000
-0;
-#X obj 4 473 cnv 3 550 3 empty empty outlets 8 12 0 13 #dcdcdc #000000
-0;
-#X obj 4 506 cnv 3 550 3 empty empty flags 8 12 0 13 #dcdcdc #000000
-0;
-#X obj 98 482 cnv 17 3 17 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
-;
-#X obj 100 340 cnv 17 3 130 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c
-0;
-#X obj 5 558 cnv 15 552 21 empty empty empty 20 12 0 14 #e0e0e0 #202020
-0;
-#X text 175 483 anything;
+#X obj 4 333 cnv 3 550 3 empty empty inlets 8 12 0 13 #dcdcdc #000000 0;
+#X obj 4 473 cnv 3 550 3 empty empty outlets 8 12 0 13 #dcdcdc #000000 0;
+#X obj 4 506 cnv 3 550 3 empty empty flags 8 12 0 13 #dcdcdc #000000 0;
+#X obj 93 482 cnv 17 3 17 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0;
+#X obj 95 340 cnv 17 3 130 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0;
+#X obj 5 558 cnv 15 552 21 empty empty empty 20 12 0 14 #e0e0e0 #202020 0;
+#X text 172 483 anything;
 #X obj 180 302 else/display;
 #N canvas 610 138 641 450 syntax 0;
-#X text 51 21 Like a regular message box \, a comma will split the
-message in different ones inside the same box., f 50;
+#X text 51 21 Like a regular message box \, a comma will split the message in different ones inside the same box., f 50;
 #X obj 119 188 print Message;
 #X obj 84 405 print Message;
 #X obj 311 357 else/display;
-#X obj 84 294 bng 18 250 50 0 empty empty empty 17 7 0 10 #dcdcdc #000000
-#000000;
+#X obj 84 294 bng 18 250 50 0 empty empty empty 17 7 0 10 #dcdcdc #000000 #000000;
 #X obj 119 111 else/messbox 200 60 235 235 235 0 0 0 0 12;
 #X obj 84 325 else/messbox 200 60 235 235 235 0 0 0 0 12;
-#X obj 91 74 bng 18 250 50 0 empty empty empty 17 7 0 10 #dcdcdc #000000
-#000000;
+#X obj 91 74 bng 18 250 50 0 empty empty empty 17 7 0 10 #dcdcdc #000000 #000000;
 #X msg 119 77 set 1\\\, 2\\\, 3 \, bang;
 #X obj 311 331 r \$0-f;
 #X msg 122 295 set \\\; \\\$0-f 8 \, bang;
 #X obj 406 276 else/messbox 197 66 235 235 235 0 0 0 0 12;
-#X text 55 229 It can also deal with semicolons \, which turn the message
-box into a send object. Note that unlike a message box \, "\$0" gets
-expanded!, f 48;
-#X text 395 54 When you have '\$1' \, '\$2' \, it takes the values
-of list messages \, floats or symbols., f 28;
+#X text 55 229 It can also deal with semicolons \, which turn the message box into a send object. Note that unlike a message box \, "\$0" gets expanded!, f 48;
+#X text 395 54 When you have '\$1' \, '\$2' \, it takes the values of list messages \, floats or symbols., f 28;
 #X msg 406 121 set \\\$1-x \, 10;
 #X obj 406 352 else/display;
 #X floatatom 455 237 5 0 0 0 - - - 0;
@@ -79,19 +58,16 @@ of list messages \, floats or symbols., f 28;
 #X connect 19 0 11 0;
 #X restore 475 305 pd syntax;
 #X text 199 338 bang;
-#X obj 35 41 cnv 4 4 4 empty empty GUI 0 28 2 18 #e0e0e0 #000000 0
-;
+#X obj 35 41 cnv 4 4 4 empty empty GUI 0 28 2 18 #e0e0e0 #000000 0;
 #X text 15 279 see also:;
 #X text 229 338 - outputs the message, f 42;
-#X obj 150 41 cnv 4 4 4 empty empty box 0 28 2 18 #e0e0e0 #000000 0
-;
+#X obj 150 41 cnv 4 4 4 empty empty box 0 28 2 18 #e0e0e0 #000000 0;
 #X obj 180 229 else/messbox 200 60 235 235 235 0 0 0 0 12;
 #X obj 17 301 else/message;
-#X obj 180 160 bng 15 250 50 0 empty empty empty 17 7 0 10 #dcdcdc
-#000000 #000000;
+#X obj 180 160 bng 18 250 50 0 empty empty empty 17 7 0 10 #dcdcdc #000000 #000000;
 #X msg 215 182 set this is a message;
 #X text 352 182 <= set message;
-#X text 68 160 output message =>;
+#X text 68 162 output message =>;
 #X text 69 240 click and type =>;
 #X text 229 366 - sets the message, f 42;
 #X text 139 366 set <anything>;
@@ -105,28 +81,20 @@ of list messages \, floats or symbols., f 28;
 #X text 121 437 bgcolor <f \, f \, f>;
 #X text 121 451 fgcolor <f \, f \, f>;
 #X text 229 451 - RGB foreground (text) color, f 42;
-#X text 109 395 size <float \, float>;
 #X text 229 396 - sets dimension size (width and height), f 42;
-#X text 63 515 -fontsize <float> (default: patch's) | -size <float
-\, float> (default: patch's fontsize * 15 \, patch's fontsize * 5)
-| fgcolor <f \, f \, f> (default 0 0 0) | -bgcolor <f \, f \, f> (default
-235 235 235) | -bold (default "normal") |, f 77;
-#X text 229 483 - messages;
+#X text 63 515 -fontsize <float> (default: patch's) | -size <float \, float> (default: patch's fontsize * 15 \, patch's fontsize * 5) | fgcolor <f \, f \, f> (default 0 0 0) | -bgcolor <f \, f \, f> (default 235 235 235) | -bold (default "normal") |, f 77;
+#X text 226 483 - messages;
 #X msg 211 159 set;
 #X text 237 159 clear;
 #X text 406 247 hit enter to output, f 11;
 #X text 388 246 <=;
-#X text 71 87 The [messbox] object is an object you can type in messages
-while in run mode. It's like atom boxes but does all that a message
-box does. Any message type is possible. It deals with dollar signs
-\, comma and semicolons in the same way as regular message boxes. See
-[pd syntax] for more details., f 68;
+#X text 71 87 The [messbox] object is an object you can type in messages while in run mode. It's like atom boxes but does all that a message box does. Any message type is possible. It deals with dollar signs \, comma and semicolons in the same way as regular message boxes. See [pd syntax] for more details., f 68;
 #X msg 225 205 append 1;
 #X text 121 352 list/symbol/float;
-#X text 229 352 - sets messages with "\$1" "\$2" \, etc and outputs
-them;
+#X text 229 352 - sets messages with "\$1" "\$2" \, etc and outputs them;
+#X text 115 395 dim <float \, float>;
 #X connect 25 0 18 0;
 #X connect 27 0 25 0;
 #X connect 28 0 25 0;
-#X connect 48 0 25 0;
-#X connect 53 0 25 0;
+#X connect 47 0 25 0;
+#X connect 52 0 25 0;
