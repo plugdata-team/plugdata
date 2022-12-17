@@ -371,8 +371,10 @@ void Statusbar::modifierKeysChanged(const ModifierKeys& modifiers)
 {
     auto* editor = dynamic_cast<PluginEditor*>(pd->getActiveEditor());
     
+    commandLocked = modifiers.isCommandDown() && locked.getValue() == var(false);
+    
     if(auto* cnv = editor->getCurrentCanvas()) {
-        if(cnv->didStartDragging || cnv->isDraggingLasso) {
+        if(cnv->didStartDragging || cnv->isDraggingLasso || static_cast<bool>(cnv->presentationMode.getValue())) {
             return;
         }
         
@@ -380,8 +382,6 @@ void Statusbar::modifierKeysChanged(const ModifierKeys& modifiers)
             object->showIndex(modifiers.isAltDown());
         }
     }
-    
-    commandLocked = modifiers.isCommandDown() && locked.getValue() == var(false);
 }
 
 void Statusbar::timerCallback()
