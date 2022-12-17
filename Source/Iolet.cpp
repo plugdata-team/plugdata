@@ -243,6 +243,7 @@ void Iolet::mouseUp(const MouseEvent& e)
         if (!e.mods.isShiftDown() || cnv->connectingIolets.size() != 1) {
             cnv->connectingIolets.clear();
             cnv->repaint();
+            cnv->connectingWithDrag = false;
         }
 
         // TODO: is this needed? Else delete.. :
