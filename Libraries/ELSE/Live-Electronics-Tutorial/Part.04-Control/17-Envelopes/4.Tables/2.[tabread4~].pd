@@ -1,28 +1,19 @@
-#N canvas 275 196 1091 359 12;
+#N canvas 198 153 1091 359 12;
 #X declare -path else;
-#X text 22 42 We now use [tabread4~] to read a table. This is more
-flexible as it allows any duration from the same table., f 57;
-#X text 21 132 This command takes a table size (which needs to be a
-power of 2) and a series of partials. The first one is a DC component
-(a constant value with 0 Hz frequency). A cosine with a negative amplitude
-gives us an inverted cosine \, which is just what the hann function
-is \, so "0.5 and -0.5" gives us a proper hann function from 0 to 1!
-, f 57;
-#X obj 718 124 cnv 15 298 198 empty empty empty 20 12 0 14 #dcdcdc
-#404040 0;
+#X text 22 42 We now use [tabread4~] to read a table. This is more flexible as it allows any duration from the same table., f 57;
+#X text 21 132 This command takes a table size (which needs to be a power of 2) and a series of partials. The first one is a DC component (a constant value with 0 Hz frequency). A cosine with a negative amplitude gives us an inverted cosine \, which is just what the hann function is \, so "0.5 and -0.5" gives us a proper hann function from 0 to 1!, f 57;
+#X obj 718 124 cnv 15 298 198 empty empty empty 20 12 0 14 #dcdcdc #404040 0;
 #N canvas 0 22 450 300 (subpatch) 0;
 #X array \$0-hann 1027 float 0;
 #X coords 0 1 1026 0 300 200 1 0 0;
 #X restore 717 123 graph;
 #X text 702 313 0;
 #X text 704 116 1;
-#X obj 792 61 initmess \; \$0-hann cosinesum 1024 0.5 -0.5;
+#X obj 796 54 initmess \; \$0-hann cosinesum 1024 0.5 -0.5;
 #X obj 523 198 *~;
 #X obj 465 145 osc~ 440;
-#X obj 601 65 nbx 5 17 0 2000 0 0 empty empty empty 0 -8 0 12 #dcdcdc
-#000000 #000000 0 256;
-#X obj 541 58 bng 25 250 50 0 empty empty empty 17 7 0 10 #dcdcdc #000000
-#000000;
+#X obj 601 65 nbx 5 17 0 2000 0 0 empty empty empty 0 -8 0 12 #dcdcdc #000000 #000000 0 256;
+#X obj 541 58 bng 25 250 50 0 empty empty empty 17 7 0 10 #dcdcdc #000000 #000000;
 #X obj 541 173 tabread4~ \$0-hann;
 #X obj 523 239 out~;
 #X text 604 43 ms;
@@ -30,14 +21,8 @@ is \, so "0.5 and -0.5" gives us a proper hann function from 0 to 1!
 #X msg 541 122 1 \$1 1025;
 #X obj 883 18 declare -path else;
 #X text 711 55 Generates hann table:, f 11;
-#X text 21 80 With the "cosinesum" command we can generate a table
-from a sum of cosine functions \, and we can use it to generate a hann
-function., f 57;
-#X text 21 226 We can be extra careful and only get the actual points
-of the table and not the extra guard points used for interpolation
-(more about this in chapter 27 on sampling) - these would be from 1
-to 1025 \, so we use [vline~] to read the table and we just need an
-input with the duration in ms., f 62;
+#X text 21 80 With the "cosinesum" command we can generate a table from a sum of cosine functions \, and we can use it to generate a hann function., f 57;
+#X text 21 226 We can be extra careful and only get the actual points of the table and not the extra guard points used for interpolation (more about this in chapter 27 on sampling) - these would be from 1 to 1025 \, so we use [vline~] to read the table and we just need an input with the duration in ms., f 62;
 #X obj 541 96 float 500;
 #X connect 7 0 12 0;
 #X connect 8 0 7 0;

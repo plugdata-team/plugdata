@@ -1,4 +1,5 @@
 #include "m_pd.h"
+#include "buffer.h"
 #include <string.h>
 
 #define FFDEL_DEFSIZE   192000                          // default buffer size
@@ -86,7 +87,7 @@ static t_int *ffdelay_perform(t_int *w){
     t_float sr_khz = x->x_sr_khz;
     unsigned int maxsize = x->x_maxsize;
     while(nblock--){
-    	t_sample f, del, frac, a, b, c, d, cminusb;
+    	t_sample f, del, frac, a, b, c, d;
    		int idel;
         int lin = 0;
     	f = *in1++;
@@ -113,15 +114,10 @@ static t_int *ffdelay_perform(t_int *w){
         c = rp[-2];
         b = rp[-1];
         a = rp[0];
-        cminusb = c-b;
         if(lin)
             *out++ = a + (b-a) * frac;
         else
-            *out++ = b + frac * (
-                cminusb - 0.1666667f * (1.-frac) * (
-                    (d - a - 3.0f * cminusb) * frac + (d + 2.0f*a - 3.0f*b)
-                )
-            );
+            *out++ = interp_spline(frac, a, b, c, d);
     	if(++wp == ep){
     		buf[0] = wp[-3];
     		buf[1] = wp[-2];

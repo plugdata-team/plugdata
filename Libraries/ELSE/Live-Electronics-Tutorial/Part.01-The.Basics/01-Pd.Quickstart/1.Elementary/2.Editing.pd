@@ -1,27 +1,10 @@
-#N canvas 609 103 517 613 12;
-#X text 47 116 Coming in and out from Edit Mode can be done on the
-"Edit" Menu \, or by its shortcut (shown in the Menu). We can go into
-Edit Mode automatically by inserting something from the "Put" Menu
-\, or even by using a shortcut for the "Put" Menu items.;
-#X text 47 27 We can only interact with the patch in the "Run" Mode
-\, that is "Not in Edit Mode". When in Edit Mode \, the mouse cursor
-becomes a hand and we can select \, delete \, change objects and messages
-\, connect \, disconnect boxes and more. You can also perform the usual
-cut \, copy \, paste and duplicate operations. Check the Edit menu
-for more.;
+#N canvas 550 32 517 613 12;
+#X text 47 116 Coming in and out from Edit Mode can be done on the "Edit" Menu \, or by its shortcut (shown in the Menu). We can go into Edit Mode automatically by inserting something from the "Put" Menu \, or even by using a shortcut for the "Put" Menu items.;
+#X text 47 27 We can only interact with the patch in the "Run" Mode \, that is "Not in Edit Mode". When in Edit Mode \, the mouse cursor becomes a hand and we can select \, delete \, change objects and messages \, connect \, disconnect boxes and more. You can also perform the usual cut \, copy \, paste and duplicate operations. Check the Edit menu for more.;
 #X floatatom 208 522 5 0 0 0 - - - 0;
 #X obj 208 460 metro 100;
 #X obj 208 491 random 100;
 #X msg 208 428 bang;
-#X text 47 194 In order to make a connection in the Edit mode \, first
-go to an outlet and see when the mouse cursor becomes a circle \, now
-you can click and drag to create a connection cord and take it to an
-inlet so you can see the cursor become a circle again so you can release
-the mouse button to create the connection. To disconnect \, go to a
-cord and click when the cursor becomes an "X" to select it \, then
-you can press backspace/delete to remove the connection., f 60;
+#X text 47 194 In order to make a connection in the Edit mode \, first go to an outlet and see when the mouse cursor becomes a circle \, now you can click and drag to create a connection cord and take it to an inlet so you can see the cursor become a circle again so you can release the mouse button to create the connection. To disconnect \, go to a cord and click when the cursor becomes an "X" to select it \, then you can press backspace/delete to remove the connection., f 60;
 #X text 250 427 <= connect boxes and click;
-#X text 47 314 When in edit mode \, you move the cursor to the right
-side of objects \, messages and comments and see when it indicates
-a resizing icon with two arrows to the sides. When this happens you
-can click and drag to resize the box., f 60;
+#X text 47 314 When in edit mode \, you move the cursor to the right side of objects \, messages and comments and see when it indicates a resizing icon with two arrows to the sides. When this happens you can click and drag to resize the box., f 60;

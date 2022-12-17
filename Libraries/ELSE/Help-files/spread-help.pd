@@ -1,112 +1,74 @@
 #N canvas 413 33 566 455 10;
-#X obj 306 5 cnv 15 250 40 empty empty empty 12 13 0 18 #7c7c7c #e0e4dc
-0;
-#X obj 345 12 cnv 10 10 10 empty empty ELSE 0 15 2 30 #7c7c7c #e0e4dc
-0;
-#X obj 23 41 cnv 4 4 4 empty empty Compare 0 28 2 18 #e0e0e0 #000000
-0;
-#X obj 188 41 cnv 4 4 4 empty empty spread 0 28 2 18 #e0e0e0 #000000
-0;
-#X obj 458 12 cnv 10 10 10 empty empty EL 0 6 2 13 #7c7c7c #e0e4dc
-0;
-#X obj 478 12 cnv 10 10 10 empty empty Locus 0 6 2 13 #7c7c7c #e0e4dc
-0;
-#X obj 515 12 cnv 10 10 10 empty empty Solus' 0 6 2 13 #7c7c7c #e0e4dc
-0;
-#X obj 464 27 cnv 10 10 10 empty empty ELSE 0 6 2 13 #7c7c7c #e0e4dc
-0;
-#X obj 502 27 cnv 10 10 10 empty empty library 0 6 2 13 #7c7c7c #e0e4dc
-0;
+#X obj 306 5 cnv 15 250 40 empty empty empty 12 13 0 18 #7c7c7c #e0e4dc 0;
+#X obj 345 12 cnv 10 10 10 empty empty ELSE 0 15 2 30 #7c7c7c #e0e4dc 0;
+#X obj 23 41 cnv 4 4 4 empty empty Spread\ lists\ according\ to\ 1st\ element 0 28 2 18 #e0e0e0 #000000 0;
+#X obj 458 12 cnv 10 10 10 empty empty EL 0 6 2 13 #7c7c7c #e0e4dc 0;
+#X obj 478 12 cnv 10 10 10 empty empty Locus 0 6 2 13 #7c7c7c #e0e4dc 0;
+#X obj 515 12 cnv 10 10 10 empty empty Solus' 0 6 2 13 #7c7c7c #e0e4dc 0;
+#X obj 464 27 cnv 10 10 10 empty empty ELSE 0 6 2 13 #7c7c7c #e0e4dc 0;
+#X obj 502 27 cnv 10 10 10 empty empty library 0 6 2 13 #7c7c7c #e0e4dc 0;
 #N canvas 0 22 450 278 (subpatch) 0;
 #X coords 0 1 100 -1 252 42 1 0 0;
 #X restore 305 4 graph;
-#X obj 3 4 cnv 15 301 42 empty empty spread 20 20 2 37 #e0e0e0 #000000
-0;
+#X obj 3 4 cnv 15 301 42 empty empty spread 20 20 2 37 #e0e0e0 #000000 0;
 #N canvas 0 22 450 278 (subpatch) 0;
 #X coords 0 1 100 -1 302 42 1;
 #X restore 3 4 graph;
-#X obj 7 424 cnv 15 552 21 empty empty empty 20 12 0 14 #e0e0e0 #202020
-0;
-#X obj 7 250 cnv 3 550 3 empty empty inlets 8 12 0 13 #dcdcdc #000000
-0;
-#X obj 7 316 cnv 3 550 3 empty empty outlets 8 12 0 13 #dcdcdc #000000
-0;
-#X obj 7 390 cnv 3 550 3 empty empty arguments 8 12 0 13 #dcdcdc #000000
-0;
-#X obj 108 326 cnv 17 3 17 empty empty n 5 9 0 16 #dcdcdc #9c9c9c 0
-;
-#X obj 108 258 cnv 17 3 48 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
-;
+#X obj 7 424 cnv 15 552 21 empty empty empty 20 12 0 14 #e0e0e0 #202020 0;
+#X obj 7 250 cnv 3 550 3 empty empty inlets 8 12 0 13 #dcdcdc #000000 0;
+#X obj 7 316 cnv 3 550 3 empty empty outlets 8 12 0 13 #dcdcdc #000000 0;
+#X obj 7 390 cnv 3 550 3 empty empty arguments 8 12 0 13 #dcdcdc #000000 0;
+#X obj 108 326 cnv 17 3 17 empty empty n 5 9 0 16 #dcdcdc #9c9c9c 0;
+#X obj 108 258 cnv 17 3 48 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0;
 #X obj 249 190 else/display;
-#X obj 149 41 cnv 4 4 4 empty empty and 0 28 2 18 #e0e0e0 #000000 0
-;
 #X obj 198 191 else/display;
 #X obj 300 189 else/display;
 #X obj 350 189 else/display;
-#X text 189 258 float -;
 #X text 152 327 float -;
 #X text 190 399 1) list -;
 #X text 187 220 < 10;
 #X text 240 215 >= 10 < 20, f 5;
 #X text 294 215 >= 20 < 40, f 5;
 #X text 343 215 >= 40;
-#X obj 99 41 cnv 4 4 4 empty empty floats 0 28 2 18 #e0e0e0 #000000
-0;
 #X text 29 178 see also:;
 #X obj 44 203 moses;
-#X text 200 327 output to an outlet as the result of the comparison
-;
-#X obj 246 41 cnv 4 4 4 empty empty them 0 28 2 18 #e0e0e0 #000000
-0;
-#X obj 198 138 nbx 3 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
-#dcdcdc #000000 #000000 0 256;
+#X text 200 327 output to an outlet as the result of the comparison;
+#X obj 198 138 nbx 3 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10 #dcdcdc #000000 #000000 0 256;
 #X obj 198 167 else/spread 10 20 40, f 26;
 #X text 251 399 floats to compare to (default 0);
-#X obj 7 351 cnv 3 550 3 empty empty -flags 8 12 0 13 #dcdcdc #000000
-0;
-#N canvas 474 82 452 318 mode 0;
-#X obj 172 212 else/display;
-#X obj 117 213 else/display;
-#X obj 227 211 else/display;
-#X obj 282 211 else/display;
-#X obj 117 140 nbx 3 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
-#dcdcdc #000000 #000000 0 256;
-#X obj 117 189 else/spread -mode 1 10 20 40;
-#X text 106 242 <= 10;
-#X text 163 237 > 10 <= 20, f 5;
-#X text 221 237 > 20 <= 40, f 5;
-#X text 275 237 > 40;
-#X msg 174 149 mode \$1;
-#X obj 174 122 tgl 19 0 empty empty empty 17 7 0 10 #dfdfdf #000000
-#000000 0 1;
-#X text 44 21 The default mode is like [moses] where it spreads to
-the left if the input is smaller than the argument \, so it spread
-to the right if it is equal or greater than the argument.;
-#X text 47 62 The extra mode makes it split to the left if it less
-or equal than the argument \, or to he right if greater than the argument
-;
-#X connect 4 0 5 0;
-#X connect 5 0 1 0;
-#X connect 5 1 0 0;
-#X connect 5 2 2 0;
-#X connect 5 3 3 0;
-#X connect 10 0 5 0;
-#X connect 11 0 10 0;
-#X restore 471 184 pd mode;
-#X text 57 90 Similar to [moses] \, [spread] compares an incoming float
-to the arguments and spreads to different outputs. One difference to
-[moses] is that it takes multiple arguments and has an extra mode.
-, f 74;
-#X text 119 363 -mode <float>: sets mode \, 0 (default) and 1 (in reverse
-to [moses]), f 67;
-#X text 237 258 input value to be spread;
+#X obj 7 351 cnv 3 550 3 empty empty -flags 8 12 0 13 #dcdcdc #000000 0;
+#N canvas 474 82 448 306 mode 0;
+#X obj 192 222 else/display;
+#X obj 135 222 else/display;
+#X obj 249 222 else/display;
+#X obj 306 222 else/display;
+#X obj 135 149 nbx 3 14 0 1000 0 0 empty empty empty 0 -8 0 10 #dcdcdc #000000 #000000 0 256;
+#X text 138 251 <= 10;
+#X msg 75 148 mode \$1;
+#X obj 75 121 tgl 19 0 empty empty empty 17 7 0 10 #dfdfdf #000000 #000000 0 1;
+#X text 63 63 The extra mode makes it split to the left if it less or equal than the argument \, or to he right if greater than the argument, f 57;
+#X obj 135 198 else/spread -mode 10 30 60 90;
+#X obj 135 171 pack2 f 5 x;
+#X text 196 246 > 10 <= 30, f 5;
+#X text 258 246 > 20 <= 60, f 5;
+#X text 314 246 > 90;
+#X text 63 12 The default mode is like [moses] where it spreads to the left if the first element in the list is smaller than the argument \, so it spread to the right if it is equal or greater than the argument.;
+#X connect 4 0 10 0;
+#X connect 6 0 9 0;
+#X connect 7 0 6 0;
+#X connect 9 0 1 0;
+#X connect 9 1 0 0;
+#X connect 9 2 2 0;
+#X connect 9 3 3 0;
+#X connect 10 0 9 0;
+#X restore 435 188 pd mode;
+#X text 119 363 -mode <float>: sets mode \, 0 (default) and 1 (in reverse to [moses]), f 67;
 #N canvas 474 82 376 252 args 0;
 #X obj 155 188 else/display;
 #X obj 104 189 else/display;
 #X obj 206 187 else/display;
-#X obj 256 187 else/display;
-#X obj 104 74 nbx 3 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
-#dcdcdc #000000 #000000 0 256;
+#X obj 257 187 else/display;
+#X obj 104 74 nbx 3 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10 #dcdcdc #000000 #000000 0 256;
 #X obj 104 165 else/spread 10 20 40, f 26;
 #X msg 155 134 args 0 5 10;
 #X msg 135 106 args 10 20 40;
@@ -118,12 +80,30 @@ to [moses]), f 67;
 #X connect 5 3 3 0;
 #X connect 6 0 5 0;
 #X connect 7 0 5 0;
-#X restore 472 209 pd args;
+#X restore 492 188 pd args;
 #X text 147 293 mode <float> - sets mode, f 39;
 #X text 153 275 args <list> -;
 #X text 237 275 replce arguments, f 24;
-#X connect 35 0 36 0;
-#X connect 36 0 20 0;
-#X connect 36 1 18 0;
-#X connect 36 2 21 0;
-#X connect 36 3 22 0;
+#X text 57 90 Similar to [moses] \, [spread] compares an incoming float as the 1st element of a list to the arguments and spreads to different outputs. One difference to [moses] is that it takes multiple arguments and has an extra mode., f 76;
+#X text 195 258 list -;
+#X text 241 138 <- one element list;
+#X text 237 258 input list to be spread;
+#N canvas 474 82 640 304 keyboard-split 0;
+#X obj 75 40 else/keyboard 17 80 4 2 0 0 empty empty;
+#X obj 75 156 else/spread 40 60 72;
+#X listbox 75 256 9 0 0 0 - - - 0;
+#X listbox 114 231 9 0 0 0 - - - 0;
+#X listbox 153 206 9 0 0 0 - - - 0;
+#X listbox 192 181 9 0 0 0 - - - 0;
+#X text 275 175 This example uses [spread] to split notes from [keyboard] so you can route them to different synths., f 46;
+#X connect 0 0 1 0;
+#X connect 1 0 2 0;
+#X connect 1 1 3 0;
+#X connect 1 2 4 0;
+#X connect 1 3 5 0;
+#X restore 432 211 pd keyboard-split;
+#X connect 30 0 31 0;
+#X connect 31 0 18 0;
+#X connect 31 1 17 0;
+#X connect 31 2 19 0;
+#X connect 31 3 20 0;

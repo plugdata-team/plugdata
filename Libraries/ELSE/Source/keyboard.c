@@ -343,7 +343,7 @@ void keyboard_float(t_keyboard *x, t_floatarg f){
     outlet_list(x->x_out, &s_list, 2, at);
     if(x->x_send != &s_ && x->x_send->s_thing)
         pd_list(x->x_send->s_thing, &s_list, 2, at);
-    if(x->x_glist->gl_havewindow){
+    if(glist_isvisible(x->x_glist) && gobj_shouldvis((t_gobj *)x, x->x_glist)){
         t_canvas *cv =  glist_getcanvas(x->x_glist);
         if(note >= x->x_first_c && note < x->x_first_c + (x->x_octaves * 12)){
             int i = note - x->x_first_c, key = i % 12;
@@ -368,7 +368,7 @@ static void keyboard_set(t_keyboard *x, t_floatarg f1, t_floatarg f2){
     int note = (int)f1;
     x->x_vel_in = f2 < 0 ? 0 : f2 > 127 ? 127 : (int)f2;
     int on = x->x_tgl_notes[note] = x->x_vel_in > 0;
-    if(x->x_glist->gl_havewindow){
+    if(glist_isvisible(x->x_glist) && gobj_shouldvis((t_gobj *)x, x->x_glist)){
         t_canvas *cv =  glist_getcanvas(x->x_glist);
         if(note >= x->x_first_c && note < x->x_first_c + (x->x_octaves * 12)){
             int i = note - x->x_first_c, key = i % 12;
@@ -496,7 +496,7 @@ static void keyboard_flush(t_keyboard* x){
     for(int note = 0; note < 256; note++){
         if(x->x_tgl_notes[note] > 0){
             int i = note - x->x_first_c;
-            if(i >= 0 && x->x_glist->gl_havewindow){
+            if(glist_isvisible(x->x_glist) && gobj_shouldvis((t_gobj *)x, x->x_glist)){
                 short key = i % 12, c4 = (note == 60), black = (key == 1 || key == 3 || key == 6 || key == 8 || key == 10);
                 sys_vgui(".x%lx.c itemconfigure %xrrk%d -fill %s\n", cv, x, i, black ? BLACK_OFF : c4 ? MIDDLE_C : WHITE_OFF);
             }

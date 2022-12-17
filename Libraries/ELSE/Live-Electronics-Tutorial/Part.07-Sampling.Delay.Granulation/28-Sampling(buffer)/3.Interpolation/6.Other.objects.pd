@@ -1,0 +1,16 @@
+#N canvas 644 55 538 403 12;
+#X declare -path else;
+#X obj 326 27 declare -path else;
+#X obj 82 266 wavetable~;
+#X obj 82 205 tabplayer~;
+#X obj 82 236 gendyn~;
+#X obj 82 175 shaper~;
+#X obj 142 175 del~;
+#X text 165 235 none \, linear and cosine;
+#X text 165 265 none \, linear \, cosine \, spline and lagrange;
+#X text 38 323 The [tabreader]/[tabreader~] objects are the only ones that offer more options \, which are: none \, linear \, cosine \, lagrange \, spline \, cubic and the general hermite interpolator., f 65;
+#X text 165 204 spline (default) \, lagrange;
+#X text 316 174 spline;
+#X obj 182 175 ffdelay~;
+#X obj 251 175 fbdelay~;
+#X text 40 79 Besides [tabreader]/[tabreader~] \, other objects in the ELSE library perform interpolation \, some were not presented in this tutorial yet \, others have been mentioned already. The objects and the interpolation types they offer are:, f 62;

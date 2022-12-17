@@ -1,10 +1,8 @@
 #N canvas 366 23 964 670 12;
 #X declare -path else;
 #X obj 190 305 + 1;
-#X obj 506 254 bng 15 250 50 0 empty empty empty 17 7 0 10 #dcdcdc
-#000000 #000000;
-#X obj 681 188 cnv 15 198 138 empty empty empty 20 12 0 14 #dcdcdc
-#404040 0;
+#X obj 506 254 bng 18 250 50 0 empty empty empty 17 7 0 10 #dcdcdc #000000 #000000;
+#X obj 681 188 cnv 15 198 138 empty empty empty 20 12 0 14 #dcdcdc #404040 0;
 #N canvas 91 30 450 300 (subpatch) 0;
 #X array sequencer 16 float 2;
 #X coords 0 12 16 -12 200 140 1;
@@ -13,80 +11,53 @@
 #X floatatom 144 352 5 0 0 0 - - - 0;
 #X text 883 315 -12;
 #X text 884 183 12;
-#X obj 144 375 tabread sequencer;
-#X obj 181 421 nbx 5 14 -1e+37 1e+37 0 0 empty \$0-base empty 0 -8
-0 10 #dcdcdc #000000 #000000 0 256;
-#X obj 144 419 +;
-#X floatatom 144 396 5 0 0 0 - - - 0;
-#X obj 144 463 mtof;
-#X obj 144 514 osc~;
-#X obj 173 542 *~;
-#X obj 144 488 t f b;
-#X floatatom 144 440 5 0 0 0 - - - 0;
+#X obj 144 376 tabread sequencer;
+#X obj 181 426 nbx 5 16 -1e+37 1e+37 0 0 \$0-dummy \$0-base empty 0 -8 0 11 #dcdcdc #000000 #000000 0 256;
+#X obj 144 424 +;
+#X floatatom 144 400 5 0 0 0 - - - 0;
+#X obj 144 473 mtof;
+#X obj 144 523 osc~;
+#X obj 173 551 *~;
+#X obj 144 498 t f b;
+#X floatatom 144 449 5 0 0 0 - - - 0;
 #X obj 787 576 osc~;
-#X obj 650 596 nbx 5 14 -1e+37 1e+37 0 0 empty \$0-base empty 0 -8
-0 10 #dcdcdc #000000 #000000 0 256;
-#X obj 854 521 nbx 5 14 0 200 0 0 empty empty empty 0 -8 0 10 #dcdcdc
-#000000 #000000 0 256;
+#X obj 650 596 nbx 5 14 -1e+37 1e+37 0 0 empty \$0-base empty 0 -8 0 10 #dcdcdc #000000 #000000 0 256;
+#X obj 854 521 nbx 5 14 0 200 0 0 empty empty empty 0 -8 0 10 #dcdcdc #000000 #000000 0 256;
 #X text 848 502 portamento;
-#X obj 173 573 out~;
+#X obj 173 582 out~;
 #X obj 787 606 out~;
 #X obj 506 294 array get sequencer;
 #X obj 144 305 float;
-#X obj 191 515 decay2~ 50 500;
+#X obj 191 524 decay2~ 50 500;
 #X obj 500 170 array set sequencer;
 #X obj 787 547 glide~ 100;
 #X obj 573 475 tempo 180 -on;
-#X text 29 95 The native [tabread] object is used to read values from
-the array \, then we sum it to the base value and convert to hz. Note
-we're using floats \, not integers \, hence our sequence is out of
-the 12 tone equally tempered scale., f 62;
+#X text 29 95 The native [tabread] object is used to read values from the array \, then we sum it to the base value and convert to hz. Note we're using floats \, not integers \, hence our sequence is out of the 12 tone equally tempered scale., f 62;
 #X obj 144 281 metro 350;
 #X text 74 251 Play/Stop;
 #X text 67 316 counter =>;
 #X text 68 352 0 to 15 =>;
-#X text 29 157 We need a metronome and a counter to generate indexes
-of our sequence stored in the array. The sequence has 16 elements (so
-the indexes need to be from 0 to 15). The native metro object is used
-and we also have a counter with the native [mod] object to keep values
-in the desired range (0 to 15)., f 62;
+#X text 29 157 We need a metronome and a counter to generate indexes of our sequence stored in the array. The sequence has 16 elements (so the indexes need to be from 0 to 15). The native metro object is used and we also have a counter with the native [mod] object to keep values in the desired range (0 to 15)., f 62;
 #X obj 302 318 tempo 160 -on;
 #X floatatom 302 367 5 0 0 0 - - - 0;
 #X obj 302 342 count 15;
-#X text 246 271 An alternative with ELSE objects could use [tempo]
-and [count], f 19;
-#X obj 144 248 tgl 25 0 empty \$0-metro empty 17 7 0 10 #dcdcdc #000000
-#000000 0 1;
-#X obj 500 131 initmess -5.14286 -7.88572 -7.2 -2.4 -7.2 1.2 4.8 4.11429
--2.4 -4.28572 -4.28572 -0.685715 2.22857 6.17143 7.3 7.1;
-#X text 527 252 get values;
+#X text 246 271 An alternative with ELSE objects could use [tempo] and [count], f 19;
+#X obj 144 248 tgl 25 0 \$0-dummy \$0-metro empty 17 7 0 10 #dcdcdc #000000 #000000 0 1;
+#X obj 500 131 initmess -5.14286 -7.88572 -7.2 -2.4 -7.2 1.2 4.8 4.11429 -2.4 -4.28572 -4.28572 -0.685715 2.22857 6.17143 7.3 7.1;
+#X text 530 255 get values;
 #X obj 648 564 value i;
 #X text 700 565 (index);
-#X text 240 416 transposition (base value), f 13;
-#X obj 67 565 initmess \; \$0-base 60 \; \$0-metro 1;
+#X text 246 419 transposition (base value), f 13;
+#X obj 67 574 initmess \; \$0-base 60 \; \$0-metro 1;
 #X obj 650 621 v base;
-#X msg 506 340 -5.14286 -7.88572 -7.2 -2.4 -7.2 1.2 4.8 4.11429 -2.4
--4.28572 -4.28572 -0.685715 2.22857 6.17143 7.3 7.1;
+#X msg 506 340 -5.14286 -7.88572 -7.2 -2.4 -7.2 1.2 4.8 4.11429 -2.4 -4.28572 -4.28572 -0.685715 2.22857 6.17143 7.3 7.1;
 #X obj 783 13 declare -path else;
-#X text 29 18 Let's implement a sequencer using an array to store values
-(check it to the right). The array can be used to control any parameter
-in a patch \, but here we just control the MIDI pitch of an oscillator.
-In this example \, we store values from -12 to 12 and add it to base
-value (initially 60 \, which is middle C)., f 62;
-#X text 497 45 Find below the array used as a sequencer. It is initiaized
-with the native [array set] object. You can also change the values
-with your mouse and retrieve the values with [array get]. Note that
-the array can be set to store values when saving the patch.;
+#X text 29 18 Let's implement a sequencer using an array to store values (check it to the right). The array can be used to control any parameter in a patch \, but here we just control the MIDI pitch of an oscillator. In this example \, we store values from -12 to 12 and add it to base value (initially 60 \, which is middle C)., f 62;
+#X text 497 45 Find below the array used as a sequencer. It is initiaized with the native [array set] object. You can also change the values with your mouse and retrieve the values with [array get]. Note that the array can be set to store values when saving the patch.;
 #X obj 376 594 array define;
-#X text 334 499 Alternatvely you can also use [array define] to define
-and store an array. But we're using a graphical array just so we can
-see it here., f 29;
-#X obj 573 502 expr i = (i + 1) % 16 \; mtof(rint(sequencer[i] + base))
-;
-#X text 475 385 Now here's an alternative with [expr] \, which can
-read values from a table and use variables from a [value] object. But
-we're rounding to integer values and using a [gilde~] object for portamento.
-;
+#X text 334 499 Alternatvely you can also use [array define] to define and store an array. But we're using a graphical array just so we can see it here., f 29;
+#X obj 573 502 expr i = (i + 1) % 16 \; mtof(rint(sequencer[i] + base));
+#X text 475 385 Now here's an alternative with [expr] \, which can read values from a table and use variables from a [value] object. But we're rounding to integer values and using a [gilde~] object for portamento.;
 #X obj 506 317 insert set;
 #X connect 0 0 24 1;
 #X connect 1 0 23 0;

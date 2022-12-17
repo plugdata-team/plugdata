@@ -1,45 +1,29 @@
 #N canvas 467 23 561 616 10;
-#X obj 4 276 cnv 3 550 3 empty empty inlets 8 12 0 13 #dcdcdc #000000
-0;
-#X obj 4 457 cnv 3 550 3 empty empty outlets 8 12 0 13 #dcdcdc #000000
-0;
-#X obj 3 508 cnv 3 550 3 empty empty arguments 8 12 0 13 #dcdcdc #000000
-0;
-#X obj 3 584 cnv 15 552 21 empty empty empty 20 12 0 14 #e0e0e0 #202020
-0;
-#X obj 88 464 cnv 17 3 17 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
-;
-#X obj 88 284 cnv 17 3 144 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
-;
-#X obj 2 3 cnv 15 301 42 empty empty susloop~ 20 20 2 37 #e0e0e0 #000000
-0;
-#X obj 306 4 cnv 15 250 40 empty empty empty 12 13 0 18 #7c7c7c #e0e4dc
-0;
+#X obj 4 276 cnv 3 550 3 empty empty inlets 8 12 0 13 #dcdcdc #000000 0;
+#X obj 4 457 cnv 3 550 3 empty empty outlets 8 12 0 13 #dcdcdc #000000 0;
+#X obj 3 508 cnv 3 550 3 empty empty arguments 8 12 0 13 #dcdcdc #000000 0;
+#X obj 3 584 cnv 15 552 21 empty empty empty 20 12 0 14 #e0e0e0 #202020 0;
+#X obj 88 464 cnv 17 3 17 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0;
+#X obj 88 284 cnv 17 3 144 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0;
+#X obj 2 3 cnv 15 301 42 empty empty susloop~ 20 20 2 37 #e0e0e0 #000000 0;
+#X obj 306 4 cnv 15 250 40 empty empty empty 12 13 0 18 #7c7c7c #e0e4dc 0;
 #N canvas 0 22 450 278 (subpatch) 0;
 #X coords 0 1 100 -1 302 42 1;
 #X restore 2 3 graph;
 #N canvas 382 141 749 319 (subpatch) 0;
 #X coords 0 -1 1 1 252 42 2 0 0;
 #X restore 305 3 pd;
-#X obj 345 11 cnv 10 10 10 empty empty ELSE 0 15 2 30 #7c7c7c #e0e4dc
-0;
-#X obj 23 40 cnv 4 4 4 empty empty Sustain 0 28 2 18 #e0e0e0 #000000
-0;
-#X obj 85 40 cnv 4 4 4 empty empty looper 0 28 2 18 #e0e0e0 #000000
-0;
-#X obj 458 11 cnv 10 10 10 empty empty EL 0 6 2 13 #7c7c7c #e0e4dc
-0;
-#X obj 478 11 cnv 10 10 10 empty empty Locus 0 6 2 13 #7c7c7c #e0e4dc
-0;
-#X obj 464 26 cnv 10 10 10 empty empty ELSE 0 6 2 13 #7c7c7c #e0e4dc
-0;
+#X obj 345 11 cnv 10 10 10 empty empty ELSE 0 15 2 30 #7c7c7c #e0e4dc 0;
+#X obj 23 40 cnv 4 4 4 empty empty Sustain 0 28 2 18 #e0e0e0 #000000 0;
+#X obj 85 40 cnv 4 4 4 empty empty looper 0 28 2 18 #e0e0e0 #000000 0;
+#X obj 458 11 cnv 10 10 10 empty empty EL 0 6 2 13 #7c7c7c #e0e4dc 0;
+#X obj 478 11 cnv 10 10 10 empty empty Locus 0 6 2 13 #7c7c7c #e0e4dc 0;
+#X obj 464 26 cnv 10 10 10 empty empty ELSE 0 6 2 13 #7c7c7c #e0e4dc 0;
 #X text 149 464 signal;
-#X obj 88 433 cnv 17 3 17 empty empty 1 5 9 0 16 #dcdcdc #9c9c9c 0
-;
+#X obj 88 433 cnv 17 3 17 empty empty 1 5 9 0 16 #dcdcdc #9c9c9c 0;
 #X text 110 434 float/signal;
 #N canvas 207 34 366 264 (subpatch) 0;
-#X obj 51 101 tgl 42 0 \$0-tgl-s \$0-tgl-r empty 1 8 1 9 #dcdcdc #7c7c7c
-#fcfcfc 0 1;
+#X obj 51 101 tgl 42 0 \$0-tgl-s \$0-tgl-r empty 1 8 1 9 #4a4f51 #cde5c3 #fcfcfc 0 1;
 #X obj 215 68 route dsp;
 #X obj 215 37 receive pd;
 #N canvas 977 77 379 291 set_color 0;
@@ -108,8 +92,7 @@
 #X restore 215 165 pd set_color;
 #X obj 135 122 r \$0-tgl-s;
 #N canvas 121 482 450 300 (subpatch) 0;
-#X obj 101 101 cnv 25 40 25 empty \$0-cnv DSP 3 13 0 20 #dcdcdc #7c7c7c
-0;
+#X obj 101 101 cnv 25 40 25 empty \$0-cnv DSP 3 13 0 20 #4a4f51 #cde5c3 0;
 #X coords 0 -1 1 1 42 27 1 100 100;
 #X restore 51 144 pd;
 #X obj 226 139 s \$0-tgl-r;
@@ -121,8 +104,7 @@
 #X obj 136 86 snapshot~;
 #X obj 91 52 del 5;
 #X obj 136 151 outlet;
-#X obj 74 103 tgl 15 0 empty empty empty 17 7 0 10 #fcfcfc #000000
-#000000 0 1;
+#X obj 74 103 tgl 15 0 empty empty empty 17 7 0 10 #fcfcfc #000000 #000000 0 1;
 #X obj 74 126 switch~;
 #X connect 0 0 2 0;
 #X connect 1 0 3 0;
@@ -142,8 +124,7 @@
 #X coords 0 -1 1 1 44 72 2 50 100;
 #X restore 505 61 pd;
 #N canvas 207 34 366 264 (subpatch) 0;
-#X obj 51 101 tgl 42 0 \$0-tgl-s \$0-tgl-r empty 1 8 1 9 #dcdcdc #7c7c7c
-#fcfcfc 0 1;
+#X obj 51 101 tgl 42 0 \$0-tgl-s \$0-tgl-r empty 1 8 1 9 #4a4f51 #cde5c3 #fcfcfc 0 1;
 #X obj 215 68 route dsp;
 #X obj 215 37 receive pd;
 #N canvas 977 77 379 291 set_color 0;
@@ -212,8 +193,7 @@
 #X restore 215 165 pd set_color;
 #X obj 135 122 r \$0-tgl-s;
 #N canvas 121 482 450 300 (subpatch) 0;
-#X obj 101 101 cnv 25 40 25 empty \$0-cnv DSP 3 13 0 20 #dcdcdc #7c7c7c
-0;
+#X obj 101 101 cnv 25 40 25 empty \$0-cnv DSP 3 13 0 20 #4a4f51 #cde5c3 0;
 #X coords 0 -1 1 1 42 27 1 100 100;
 #X restore 51 144 pd;
 #X obj 226 139 s \$0-tgl-r;
@@ -225,8 +205,7 @@
 #X obj 136 86 snapshot~;
 #X obj 91 52 del 5;
 #X obj 136 151 outlet;
-#X obj 74 103 tgl 15 0 empty empty empty 17 7 0 10 #fcfcfc #000000
-#000000 0 1;
+#X obj 74 103 tgl 15 0 empty empty empty 17 7 0 10 #fcfcfc #000000 #000000 0 1;
 #X obj 74 126 switch~;
 #X connect 0 0 2 0;
 #X connect 1 0 3 0;
@@ -250,73 +229,60 @@
 #X text 138 548 3) float;
 #X text 138 564 4) float;
 #X text 192 515 - increment value (default 1), f 57;
-#X obj 139 40 cnv 4 4 4 empty empty for 0 28 2 18 #e0e0e0 #000000 0
-;
-#X obj 169 40 cnv 4 4 4 empty empty samplers 0 28 2 18 #e0e0e0 #000000
-0;
+#X obj 139 40 cnv 4 4 4 empty empty for 0 28 2 18 #e0e0e0 #000000 0;
+#X obj 169 40 cnv 4 4 4 empty empty samplers 0 28 2 18 #e0e0e0 #000000 0;
 #N canvas 851 146 504 533 read 0;
 #X floatatom 241 258 0 0 0 0 - - - 0;
 #X text 286 257 sample size;
 #X obj 105 432 else/out~;
 #X obj 87 172 tabread4~ \$0-sample;
-#X obj 119 51 hsl 128 15 -2 2 0 0 empty empty empty -2 -8 0 10 #dcdcdc
-#000000 #000000 0 1;
-#X obj 116 77 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
-#dcdcdc #000000 #000000 0 256;
-#X obj 87 77 bng 15 250 50 0 empty empty empty 17 7 0 10 #dcdcdc #000000
-#000000;
+#X obj 119 51 hsl 128 15 -2 2 0 0 empty empty empty -2 -8 0 10 #dcdcdc #000000 #000000 0 1;
+#X obj 116 77 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10 #dcdcdc #000000 #000000 0 256;
+#X obj 87 77 bng 15 250 50 0 empty empty empty 17 7 0 10 #dcdcdc #000000 #000000;
 #X obj 105 358 else/susloop~ 1 10000 50000;
-#X obj 105 331 tgl 15 0 empty empty empty 17 7 0 10 #dcdcdc #000000
-#000000 0 1;
+#X obj 105 331 tgl 15 0 empty empty empty 17 7 0 10 #dcdcdc #000000 #000000 0 1;
 #X msg 135 331 stop;
 #X obj 87 142 else/susloop~, f 15;
 #X obj 87 224 else/out~;
 #X msg 46 104 stop;
-#X obj 105 391 else/table~ \$0-sample 0 1;
 #X text 25 77 (re)start;
 #X text 66 325 startstop:, f 5;
 #X obj 116 105 else/f2s~ 100 1;
 #X obj 241 230 else/sample~ \$0-sample vacuous.wav;
-#X text 244 88 You can use [susloop~] to read samples with or without
-given loop points., f 31;
+#X text 244 88 You can use [susloop~] to read samples with or without given loop points., f 31;
 #X text 191 142 <= without loop points;
 #X text 278 358 <= with loop points;
 #X text 258 207 load sample into array:;
+#X obj 105 391 tabread~ \$0-sample;
 #X connect 3 0 11 0;
 #X connect 4 0 5 0;
-#X connect 5 0 16 0;
+#X connect 5 0 15 0;
 #X connect 6 0 10 0;
-#X connect 7 0 13 0;
+#X connect 7 0 21 0;
 #X connect 8 0 7 0;
 #X connect 9 0 7 0;
 #X connect 10 0 3 0;
 #X connect 12 0 10 0;
-#X connect 13 0 2 0;
-#X connect 16 0 10 1;
-#X connect 17 0 0 0;
+#X connect 15 0 10 1;
+#X connect 16 0 0 0;
+#X connect 21 0 2 0;
 #X restore 450 248 pd read buffers;
 #X text 192 531 - loop start (default 0), f 57;
 #X text 192 547 - loop end (default 2ˆ32 - 1), f 57;
 #X text 192 563 - sample size (default 2ˆ32 - 1), f 57;
-#X obj 135 147 tgl 18 0 empty empty empty 17 7 0 10 #dcdcdc #000000
-#000000 0 1;
-#X obj 135 229 nbx 7 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
-#dcdcdc #000000 #000000 0 256;
+#X obj 135 147 tgl 18 0 empty empty empty 17 7 0 10 #dcdcdc #000000 #000000 0 1;
+#X obj 135 229 nbx 7 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10 #dcdcdc #000000 #000000 0 256;
 #X obj 135 203 else/sig2float~;
-#X obj 138 252 hsl 128 15 0 120000 0 0 empty empty empty -2 -8 0 10
-#dcdcdc #000000 #000000 0 1;
+#X obj 138 252 hsl 128 15 0 120000 0 0 empty empty empty -2 -8 0 10 #dcdcdc #000000 #000000 0 1;
 #X obj 135 176 else/susloop~ 1 40000 80000 120000;
 #N canvas 605 176 437 245 signal 0;
-#X obj 196 160 nbx 7 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
-#dcdcdc #000000 #000000 0 256;
+#X obj 196 160 nbx 7 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10 #dcdcdc #000000 #000000 0 256;
 #X obj 196 134 else/sig2float~;
-#X obj 199 183 hsl 128 15 0 120000 0 0 empty empty empty -2 -8 0 10
-#dcdcdc #000000 #000000 0 1;
+#X obj 199 183 hsl 128 15 0 120000 0 0 empty empty empty -2 -8 0 10 #dcdcdc #000000 #000000 0 1;
 #X obj 196 107 else/susloop~ 1 40000 80000 120000;
 #X obj 196 69 else/pulse~ 0.1;
 #X obj 74 109 else/sig2float~;
-#X obj 74 152 tgl 25 0 empty empty empty 17 7 0 10 #dcdcdc #000000
-#000000 0 1;
+#X obj 74 152 tgl 25 0 empty empty empty 17 7 0 10 #dcdcdc #000000 #000000 0 1;
 #X text 180 32 triggering with pulses;
 #X connect 0 0 2 0;
 #X connect 1 0 0 0;
@@ -325,9 +291,7 @@ given loop points., f 31;
 #X connect 4 0 5 0;
 #X connect 5 0 6 0;
 #X restore 439 226 pd signal trigger;
-#X text 61 85 [susloop~] generates a control signal designed to read
-buffers and loop at a given section. It responds to a gate input (float
-or signal).;
+#X text 61 85 [susloop~] generates a control signal designed to read buffers and loop at a given section. It responds to a gate input (float or signal).;
 #X text 190 284 -;
 #X text 190 329 - loop is off, f 57;
 #X text 190 362 - pauses/stops incrementing, f 57;
@@ -335,8 +299,7 @@ or signal).;
 #X text 190 434 - sets increment value (rate/speed), f 57;
 #X text 190 413 - sets sample size, f 57;
 #X text 191 464 - the control signal for the sampler, f 57;
-#X text 202 284 gate: 0 to non-0 transition: trigger (starts from 0
-and loops). Non-0 to 0 transition: release (loop is off);
+#X text 202 284 gate: 0 to non-0 transition: trigger (starts from 0 and loops). Non-0 to 0 transition: release (loop is off);
 #X text 190 313 - trigger: starts from 0 and loops, f 57;
 #X text 158 312 bang;
 #X text 158 345 stop;
@@ -344,24 +307,18 @@ and loops). Non-0 to 0 transition: release (loop is off);
 #X text 140 328 release;
 #X text 152 362 pause;
 #X text 134 379 continue;
-#X text 190 345 - stops and goes back to 0 \, expects a trigger to
-restart, f 57;
+#X text 190 345 - stops and goes back to 0 \, expects a trigger to restart, f 57;
 #X text 116 396 loop <f \, f>;
-#X text 190 396 - sets sustain loop range in samples <start \, end>
-, f 57;
+#X text 190 396 - sets sustain loop range in samples <start \, end>, f 57;
 #X text 110 413 size <float>;
-#X obj 336 150 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
-#dcdcdc #000000 #000000 0 256;
+#X obj 336 150 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10 #dcdcdc #000000 #000000 0 256;
 #X text 163 148 ("trigger"/"release");
 #X text 44 148 gate (on/off);
-#X obj 339 128 hsl 128 15 -2 2 0 0 empty empty empty -2 -8 0 10 #dcdcdc
-#000000 #000000 0 1;
+#X obj 339 128 hsl 128 15 -2 2 0 0 empty empty empty -2 -8 0 10 #dcdcdc #000000 #000000 0 1;
 #X text 374 128 increment;
-#X obj 336 204 tgl 20 0 empty empty empty 17 7 0 10 #dcdcdc #000000
-#000000 0 1;
+#X obj 336 204 tgl 20 0 empty empty empty 17 7 0 10 #dcdcdc #000000 #000000 0 1;
 #X text 325 229 status;
-#X obj 89 487 cnv 17 3 17 empty empty 1 5 9 0 16 #dcdcdc #9c9c9c 0
-;
+#X obj 89 487 cnv 17 3 17 empty empty 1 5 9 0 16 #dcdcdc #9c9c9c 0;
 #X text 155 487 float;
 #X text 191 487 - status (on: 1 / off: 0);
 #X connect 32 0 36 0;

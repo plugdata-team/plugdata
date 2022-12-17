@@ -1,16 +1,10 @@
 #N canvas 581 23 566 679 10;
-#X obj 4 299 cnv 3 550 3 empty empty inlets 8 12 0 13 #dcdcdc #000000
-0;
-#X obj 4 531 cnv 3 550 3 empty empty outlets 8 12 0 13 #dcdcdc #000000
-0;
-#X obj 4 560 cnv 3 550 3 empty empty arguments 8 12 0 13 #dcdcdc #000000
-0;
-#X obj 4 654 cnv 15 552 21 empty empty empty 20 12 0 14 #e0e0e0 #202020
-0;
-#X obj 99 307 cnv 17 3 220 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
-;
-#X obj 99 539 cnv 17 3 17 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
-;
+#X obj 4 299 cnv 3 550 3 empty empty inlets 8 12 0 13 #dcdcdc #000000 0;
+#X obj 4 531 cnv 3 550 3 empty empty outlets 8 12 0 13 #dcdcdc #000000 0;
+#X obj 4 560 cnv 3 550 3 empty empty arguments 8 12 0 13 #dcdcdc #000000 0;
+#X obj 4 654 cnv 15 552 21 empty empty empty 20 12 0 14 #e0e0e0 #202020 0;
+#X obj 99 307 cnv 17 3 220 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0;
+#X obj 99 539 cnv 17 3 17 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0;
 #X text 191 332 list;
 #X text 225 332 - sets and outputs breakpoints function, f 45;
 #X text 191 360 bang;
@@ -24,8 +18,7 @@
 #X text 137 444 width <float>;
 #X text 225 430 - sets height, f 45;
 #X text 225 444 - sets width, f 45;
-#X obj 4 587 cnv 3 550 3 empty empty flags 8 12 0 13 #dcdcdc #000000
-0;
+#X obj 4 587 cnv 3 550 3 empty empty flags 8 12 0 13 #dcdcdc #000000 0;
 #X text 137 486 send <symbol>;
 #X text 225 486 - sets send symbol, f 45;
 #X text 119 500 receive <symbol>;
@@ -35,55 +28,38 @@
 #X text 225 458 - sets RGB color of foreground, f 45;
 #X text 113 472 bgcolor <f \, f \, f>;
 #X text 225 472 - sets RGB color of background, f 45;
-#X obj 24 39 cnv 4 4 4 empty empty Function 0 28 2 18 #e0e0e0 #000000
-0;
-#X obj 102 39 cnv 4 4 4 empty empty GUI 0 28 2 18 #e0e0e0 #000000 0
-;
-#X obj 3 2 cnv 15 301 42 empty empty function 20 20 2 37 #e0e0e0 #000000
-0;
+#X obj 24 39 cnv 4 4 4 empty empty Function 0 28 2 18 #e0e0e0 #000000 0;
+#X obj 102 39 cnv 4 4 4 empty empty GUI 0 28 2 18 #e0e0e0 #000000 0;
+#X obj 3 2 cnv 15 301 42 empty empty function 20 20 2 37 #e0e0e0 #000000 0;
 #N canvas 0 22 450 278 (subpatch) 0;
 #X coords 0 1 100 -1 302 42 1;
 #X restore 3 2 graph;
-#X obj 306 3 cnv 15 250 40 empty empty empty 12 13 0 18 #7c7c7c #e0e4dc
-0;
-#X obj 345 10 cnv 10 10 10 empty empty ELSE 0 15 2 30 #7c7c7c #e0e4dc
-0;
-#X obj 458 10 cnv 10 10 10 empty empty EL 0 6 2 13 #7c7c7c #e0e4dc
-0;
-#X obj 478 10 cnv 10 10 10 empty empty Locus 0 6 2 13 #7c7c7c #e0e4dc
-0;
-#X obj 515 10 cnv 10 10 10 empty empty Solus' 0 6 2 13 #7c7c7c #e0e4dc
-0;
-#X obj 464 25 cnv 10 10 10 empty empty ELSE 0 6 2 13 #7c7c7c #e0e4dc
-0;
-#X obj 502 25 cnv 10 10 10 empty empty library 0 6 2 13 #7c7c7c #e0e4dc
-0;
+#X obj 306 3 cnv 15 250 40 empty empty empty 12 13 0 18 #7c7c7c #e0e4dc 0;
+#X obj 345 10 cnv 10 10 10 empty empty ELSE 0 15 2 30 #7c7c7c #e0e4dc 0;
+#X obj 458 10 cnv 10 10 10 empty empty EL 0 6 2 13 #7c7c7c #e0e4dc 0;
+#X obj 478 10 cnv 10 10 10 empty empty Locus 0 6 2 13 #7c7c7c #e0e4dc 0;
+#X obj 515 10 cnv 10 10 10 empty empty Solus' 0 6 2 13 #7c7c7c #e0e4dc 0;
+#X obj 464 25 cnv 10 10 10 empty empty ELSE 0 6 2 13 #7c7c7c #e0e4dc 0;
+#X obj 502 25 cnv 10 10 10 empty empty library 0 6 2 13 #7c7c7c #e0e4dc 0;
 #N canvas 0 22 450 278 (subpatch) 0;
 #X coords 0 1 100 -1 252 42 1 0 0;
 #X restore 305 2 graph;
-#X obj 212 125 else/initmess 0 500 1 500 0;
-#X obj 183 267 else/display;
-#X obj 184 124 bng 17 250 50 0 empty empty empty 17 7 0 10 #dcdcdc
-#000000 #000000;
+#X obj 232 125 else/initmess 0 500 1 500 0;
+#X obj 203 267 else/display;
+#X obj 204 124 bng 17 250 50 0 empty empty empty 17 7 0 10 #dcdcdc #000000 #000000;
 #N canvas 769 53 527 508 function~ 0;
 #X text 404 158 1;
 #X obj 152 360 else/out~;
 #X obj 195 287 else/function~;
 #X text 403 254 -1;
-#X obj 74 204 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
-#dcdcdc #000000 #000000 0 256;
+#X obj 74 204 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10 #dcdcdc #000000 #000000 0 256;
 #X obj 74 175 else/initmess 200;
 #X obj 74 237 phasor~;
-#X text 69 24 Here's an example on how to use [function] with [function~].
-In this case it's probably desired to have a constant output to update
-the function internally.;
-#X text 69 66 Note also that you can have any kind of breakpoints function
-and also draw something like a waveform in the range from -1 to 1 as
-below!;
+#X text 69 24 Here's an example on how to use [function] with [function~]. In this case it's probably desired to have a constant output to update the function internally.;
+#X text 69 66 Note also that you can have any kind of breakpoints function and also draw something like a waveform in the range from -1 to 1 as below!;
 #X obj 270 334 else/graph~ 441 6 -1 1;
 #X obj 195 131 else/initmess -1 0.5 1 0.5 -1;
-#X obj 195 166 else/function 200 100 empty empty -1 1 220 220 220 50
-50 50 1 0 0 0 -1 0.5 1 0.5 -1;
+#X obj 195 166 else/function 200 100 empty empty -1 1 220 220 220 50 50 50 1 0 0 0 -1 0.5 1 0.5 -1;
 #X connect 2 0 1 0;
 #X connect 2 0 9 0;
 #X connect 4 0 6 0;
@@ -93,24 +69,18 @@ below!;
 #X connect 11 0 2 0;
 #X restore 468 189 pd function~;
 #N canvas 600 144 519 378 envgen~ 0;
-#X obj 156 188 bng 18 250 50 0 empty empty empty 17 7 0 10 #dcdcdc
-#000000 #000000;
+#X obj 156 188 bng 18 250 50 0 empty empty empty 17 7 0 10 #dcdcdc #000000 #000000;
 #X text 434 120 1;
 #X obj 156 241 else/envgen~;
 #X obj 47 232 *~;
 #X obj 47 280 else/out~;
 #X text 433 216 0;
-#X obj 47 163 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
-#fcfcfc #000000 #000000 0 256;
+#X obj 47 163 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10 #fcfcfc #000000 #000000 0 256;
 #X obj 225 93 else/initmess 0 50 1 50 0.6 300 0.6 200 0;
 #X obj 47 196 else/bl.tri~;
 #X obj 47 134 else/initmess 200;
-#X obj 225 126 else/function 200 100 empty empty 0 1 220 220 220 50
-50 50 0 0 0 0 0 50 1 50 0.6 300 0.6 200 0;
-#X text 66 30 Here's an example on how to use [function] with [envgen~].
-Since [function] is always outputting a list \, you can use the second
-inlet. Check the help file of [envgen~] for more details on how it
-works., f 64;
+#X obj 225 126 else/function 200 100 empty empty 0 1 220 220 220 50 50 50 0 0 0 0 0 50 1 50 0.6 300 0.6 200 0;
+#X text 66 30 Here's an example on how to use [function] with [envgen~]. Since [function] is always outputting a list \, you can use the second inlet. Check the help file of [envgen~] for more details on how it works., f 64;
 #X connect 0 0 2 0;
 #X connect 2 0 3 1;
 #X connect 3 0 4 0;
@@ -123,47 +93,29 @@ works., f 64;
 #X text 179 567 (none);
 #X text 143 514 init <float>;
 #X text 225 514 - nonzero sets to init mode, f 45;
-#X obj 184 156 else/function 200 100 empty empty 0 1 220 220 220 50
-50 50 0 0 0 0 0 500 1 500 0;
+#X obj 204 156 else/function 200 100 empty empty 0 1 220 220 220 50 50 50 0 0 0 0 0 500 1 500 0;
 #X text 155 346 set <list>;
 #X text 225 346 - sets breakpoints function, f 45;
-#X text 99 592 -height <float> (default 100) | -width <float> (default
-200) | -send <symbol> (default none) | -receive <symbol> (default none)
-| -bgcolor <f \, f \, f> | -fgcolor <f \, f \, f> | -resize <float>
-| -min <float> (default 0) | -max <float> (default 1) | -init | -set
-<list> (default 0 1000 0)., f 65;
+#X text 99 592 -height <float> (default 100) | -width <float> (default 200) | -send <symbol> (default none) | -receive <symbol> (default none) | -bgcolor <f \, f \, f> | -fgcolor <f \, f \, f> | -resize <float> | -min <float> (default 0) | -max <float> (default 1) | -init | -set <list> (default 0 1000 0)., f 65;
 #N canvas 531 76 538 525 messages 0;
 #X text 43 439 -2;
 #X text 49 338 2;
 #X text 46 389 0;
-#X obj 63 347 else/function 200 100 empty empty -2 2 220 220 220 50
-50 50 1 0 0 0 -1 100 1 100 0;
+#X obj 63 347 else/function 200 100 empty empty -2 2 220 220 220 50 50 50 1 0 0 0 -1 100 1 100 0;
 #X obj 63 180 loadbang;
 #X msg 63 203 -1 100 1 100 0 \, min -2 \, max 2;
-#X text 51 83 You can also set different minimum/maximum points min/max
-messages or flags \, but the values are clipped to the given minimum
-and maximum points of the lines so the points are never outside the
-graph bound., f 78;
-#X text 51 19 The [function] serves as an all purpose line generator
-interface. This means you can have line segments in any range. By default
-\, the range is from 0 to 1 \, but if a list input is given with points
-outside that range \, the minimum and maximum points are updated accordingly
-so the line segments fit into the GUI display., f 78;
+#X text 51 83 You can also set different minimum/maximum points min/max messages or flags \, but the values are clipped to the given minimum and maximum points of the lines so the points are never outside the graph bound., f 78;
+#X text 51 19 The [function] serves as an all purpose line generator interface. This means you can have line segments in any range. By default \, the range is from 0 to 1 \, but if a list input is given with points outside that range \, the minimum and maximum points are updated accordingly so the line segments fit into the GUI display., f 78;
 #X obj 63 462 else/display;
 #X msg 77 229 min -1.5 \, max 1.5;
-#X msg 93 286 bgcolor 220 220 220 \, fgcolor 50 50 50 \, width 200
-\, height 100;
-#X msg 123 312 bgcolor 50 50 50 \, fgcolor 175 0 0 \, width 150 \,
-height 75;
+#X msg 93 286 bgcolor 220 220 220 \, fgcolor 50 50 50 \, width 200 \, height 100;
+#X msg 123 312 bgcolor 50 50 50 \, fgcolor 175 0 0 \, width 150 \, height 75;
 #X text 406 268 default;
 #X text 238 266 set dimension/colors;
 #X msg 83 255 duration 1000 \, bang;
-#X text 257 193 The duration message or flag resizes the duration of
-each line segment so the overall duration is the same as the given
-value in ms., f 36;
+#X text 257 193 The duration message or flag resizes the duration of each line segment so the overall duration is the same as the given value in ms., f 36;
 #X msg 43 149 resize;
-#X text 91 143 The resize message resizes the graph bounds to the min/max
-values., f 35;
+#X text 91 143 The resize message resizes the graph bounds to the min/max values., f 35;
 #X connect 3 0 8 0;
 #X connect 4 0 5 0;
 #X connect 5 0 3 0;
@@ -176,17 +128,14 @@ values., f 35;
 #X text 119 374 duration <float>;
 #X text 225 374 - resets overall duration, f 45;
 #X text 131 416 resize <float>;
-#X text 225 416 - sets new graph bounds according to min/max, f 45
-;
+#X text 225 416 - sets new graph bounds according to min/max, f 45;
 #X text 185 303 float;
 #X text 225 304 - values from 0-1 are treated as indexes, f 45;
 #N canvas 686 94 544 569 float/i 0;
-#X obj 217 312 else/function 200 100 empty empty 0 1 220 220 220 50
-50 50 0 0 0 0 0 100 1 100 0.6 350 0.6 250 0;
+#X obj 217 312 else/function 200 100 empty empty 0 1 220 220 220 50 50 50 0 0 0 0 0 100 1 100 0.6 350 0.6 250 0;
 #X obj 217 432 else/display;
 #X obj 172 194 else/initmess 0 100 1 100 0.6 350 0.6 250 0;
-#X obj 220 221 hsl 128 15 0 1 0 0 empty empty empty -2 -8 0 10 #dcdcdc
-#000000 #000000 0 1;
+#X obj 220 221 hsl 128 15 0 1 0 0 empty empty empty -2 -8 0 10 #dcdcdc #000000 #000000 0 1;
 #X floatatom 217 245 0 0 0 0 - - - 0;
 #X obj 294 276 line;
 #X obj 217 468 else/f2s~ 10;
@@ -194,27 +143,15 @@ values., f 35;
 #X obj 108 420 osc~ 440;
 #X obj 109 496 else/out~;
 #X msg 294 250 0 \, 1 1000;
-#X text 55 82 In this example we convert the function output to signals
-with a ramp and use it to control the amplitude. But you can just use
-it as a control message instead., f 70;
+#X text 55 82 In this example we convert the function output to signals with a ramp and use it to control the amplitude. But you can just use it as a control message instead., f 70;
 #X msg 118 268 i \$1;
-#X obj 118 247 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
-#dcdcdc #000000 #000000 0 256;
-#X text 55 121 Additionally \, you can also use the "i" message \, followed
-by a float. This float value is then tereated as the actual index in
-the table. The number of index is the same as the envelope dursation.
-A linear interpolation is performed with both a float input and using
-'i'., f 70;
+#X obj 118 247 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10 #dcdcdc #000000 #000000 0 256;
+#X text 55 121 Additionally \, you can also use the "i" message \, followed by a float. This float value is then tereated as the actual index in the table. The number of index is the same as the envelope dursation. A linear interpolation is performed with both a float input and using 'i'., f 70;
 #X obj 370 237 else/phasor 1;
 #X obj 370 283 / 127;
 #X obj 370 261 spigot;
-#X obj 421 262 tgl 15 0 empty empty empty 17 7 0 10 #dcdcdc #000000
-#000000 0 1;
-#X text 55 21 Alternatively \, you can have a float input from 0 to
-1 into [function] and they'll be treatet as indexes and the amplitude
-value will then be output. This is useful if you want to control a
-function with a slider input \, for instance. Another option is to
-use [line] to drive it or [phasor]., f 70;
+#X obj 421 262 tgl 15 0 empty empty empty 17 7 0 10 #dcdcdc #000000 #000000 0 1;
+#X text 55 21 Alternatively \, you can have a float input from 0 to 1 into [function] and they'll be treatet as indexes and the amplitude value will then be output. This is useful if you want to control a function with a slider input \, for instance. Another option is to use [line] to drive it or [phasor]., f 70;
 #X connect 0 0 1 0;
 #X connect 1 0 6 0;
 #X connect 2 0 0 0;
@@ -236,26 +173,16 @@ use [line] to drive it or [phasor]., f 70;
 #X text 225 318 - indexes of table (function value is output);
 #N canvas 920 126 573 449 send 0;
 #X obj 345 269 else/display;
-#X obj 99 196 else/function 200 100 \$0-function-out \$0-function-in
-0 1 220 220 220 50 50 50 1 0 0 0 0.53 400 1 255 0 345 0.58;
-#X obj 343 169 bng 15 250 50 0 empty empty empty 17 7 0 10 #dcdcdc
-#000000 #000000;
-#X obj 68 146 bng 15 250 50 0 empty empty empty 17 7 0 10 #dcdcdc #000000
-#000000;
+#X obj 99 196 else/function 200 100 \$0-function-out \$0-function-in 0 1 220 220 220 50 50 50 1 0 0 0 0.53 400 1 255 0 345 0.58;
+#X obj 343 169 bng 15 250 50 0 empty empty empty 17 7 0 10 #dcdcdc #000000 #000000;
+#X obj 68 146 bng 15 250 50 0 empty empty empty 17 7 0 10 #dcdcdc #000000 #000000;
 #X obj 99 322 else/display;
 #X msg 116 160 send empty \, receive empty;
-#X obj 99 126 else/initmess send \\\$0-function-out \, receive \\\$0-function-in
-;
+#X obj 99 126 else/initmess send \\\$0-function-out \, receive \\\$0-function-in;
 #X obj 343 191 s \$0-function-in;
 #X obj 345 235 r \$0-function-out;
-#X text 94 40 You can also set send/receive names with the 'send'/'receive'
-messages or '-send'/'-receive' flags. Make sure to escape "\$0" properly
-with backlashes (as in: "\\\$0") when using messages. Setting these
-to 'empty' removes the send/receive symbols., f 67;
-#X text 103 372 Note that when you set a receive or send symbol \,
-the corresponding inlet/outlet does not get drawn when you're in edit
-mode. This is an indicative that the object has a send or receive symbol.
-, f 66;
+#X text 94 40 You can also set send/receive names with the 'send'/'receive' messages or '-send'/'-receive' flags. Make sure to escape "\$0" properly with backlashes (as in: "\\\$0") when using messages. Setting these to 'empty' removes the send/receive symbols., f 67;
+#X text 103 372 Note that when you set a receive or send symbol \, the corresponding inlet/outlet does not get drawn when you're in edit mode. This is an indicative that the object has a send or receive symbol., f 66;
 #X connect 1 0 4 0;
 #X connect 2 0 7 0;
 #X connect 3 0 1 0;
@@ -263,48 +190,27 @@ mode. This is an indicative that the object has a send or receive symbol.
 #X connect 6 0 1 0;
 #X connect 8 0 0 0;
 #X restore 491 250 pd send \; receive;
-#X text 58 84 [function] is a breakpoints function GUI \, mainly used
-with [function~] or [envgen~]. You can click and drag on it or send
-it lists., f 59;
+#X text 58 84 [function] is a breakpoints function GUI \, mainly used with [function~] or [envgen~]. You can click and drag on it or send it lists., f 59;
 #N canvas 493 86 873 471 basic 0;
 #X text 88 100 ADSR (attack \, decay \, sustain \, release);
-#X obj 88 207 else/function 200 100 empty empty 0 1 220 220 220 50
-50 50 0 0 0 0 0 100 1 100 0.6 350 0.6 250 0;
+#X obj 88 207 else/function 200 100 empty empty 0 1 220 220 220 50 50 50 0 0 0 0 0 100 1 100 0.6 350 0.6 250 0;
 #X obj 88 327 else/display;
 #X obj 88 126 else/initmess 0 100 1 100 0.6 350 0.6 250 0;
-#X obj 62 127 bng 15 250 50 0 empty empty empty 17 7 0 10 #dcdcdc #000000
-#000000;
-#X text 43 27 An odd list of at least 3 floats sets the envelope function.
-The syntax is the same as the [function~] object (point1 \, period
-\, point2 \, period \, point3 \, etc.) - an output is then generated
-with the list values for [envgen~] or [function~]. A bang forces an
-output of the stored line function.;
+#X obj 62 127 bng 15 250 50 0 empty empty empty 17 7 0 10 #dcdcdc #000000 #000000;
+#X text 43 27 An odd list of at least 3 floats sets the envelope function. The syntax is the same as the [function~] object (point1 \, period \, point2 \, period \, point3 \, etc.) - an output is then generated with the list values for [envgen~] or [function~]. A bang forces an output of the stored line function.;
 #X msg 116 162 set 0 1000 1;
 #X text 202 157 set message only sets (doesn't output), f 22;
-#X obj 534 201 else/function 200 100 empty empty 0 1 220 220 220 50
-50 50 0 0 0 0 0 100 1 100 0.6 350 0.6 250 0;
+#X obj 534 201 else/function 200 100 empty empty 0 1 220 220 220 50 50 50 0 0 0 0 0 100 1 100 0.6 350 0.6 250 0;
 #X obj 534 317 else/display;
 #X obj 534 90 else/initmess 0 100 1 100 0.6 350 0.6 250 0, f 22;
-#X obj 508 94 bng 15 250 50 0 empty empty empty 17 7 0 10 #dcdcdc #000000
-#000000;
+#X obj 508 94 bng 15 250 50 0 empty empty empty 17 7 0 10 #dcdcdc #000000 #000000;
 #X text 636 133 set message only sets (doesn't output), f 21;
 #X msg 553 135 0 0.5;
-#X obj 609 137 tgl 15 0 empty empty empty 17 7 0 10 #dcdcdc #000000
-#000000 0 1;
+#X obj 609 137 tgl 15 0 empty empty empty 17 7 0 10 #dcdcdc #000000 #000000 0 1;
 #X msg 609 166 set 0 \$1;
-#X text 45 374 You can also generate an output via the interface. You
-can click on a point and drag it around. A point is removed if you
-click on it and hit delete. Click anywhere in the graph where there's
-not a point and you create a new one. If you press shift while dragging
-the clicked point \, you have fine tuning., f 62;
-#X text 467 361 Please get into and out of edit mode to see how [function]
-creates an inlet and an outlet when you're in edit mode. Note that
-when you set a receive or send symbol \, the corresponding inlet/outlet
-does not get drawn when you're in edit mode. This is an indicative
-that the object has a send or receive symbol., f 58;
-#X text 466 27 A list of 2 floats sets the point number specified by
-the first number (counting from 0) with the value specified by the
-second number of the list., f 55;
+#X text 467 361 Please get into and out of edit mode to see how [function] creates an inlet and an outlet when you're in edit mode. Note that when you set a receive or send symbol \, the corresponding inlet/outlet does not get drawn when you're in edit mode. This is an indicative that the object has a send or receive symbol., f 58;
+#X text 466 27 A list of 2 floats sets the point number specified by the first number (counting from 0) with the value specified by the second number of the list., f 55;
+#X text 45 374 You can also generate an output via the interface \, when you click on a point and drag it around (if shift is pressed \, the point is moved with fine tuning). A point is removed if you click on it and hit delete. Click anywhere in the graph where there's not a point and you create a new one., f 61;
 #X connect 1 0 2 0;
 #X connect 3 0 1 0;
 #X connect 4 0 1 0;
@@ -316,6 +222,7 @@ second number of the list., f 55;
 #X connect 14 0 15 0;
 #X connect 15 0 8 0;
 #X restore 492 149 pd basic;
+#X text 18 159 Click on a dot to move it. If shift is pressed \, it moves with fine tuning. If you click anywhere else than a dot \, a new dot/line is created. You can delete a dot if you click on a dot and press delete key., f 26;
 #X connect 41 0 49 0;
 #X connect 43 0 49 0;
 #X connect 49 0 42 0;

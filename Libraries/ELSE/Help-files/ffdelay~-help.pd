@@ -1,50 +1,31 @@
 #N canvas 454 29 560 524 10;
-#X obj 306 5 cnv 15 250 40 empty empty empty 12 13 0 18 #7c7c7c #e0e4dc
-0;
-#X obj 345 12 cnv 10 10 10 empty empty ELSE 0 15 2 30 #7c7c7c #e0e4dc
-0;
-#X obj 23 41 cnv 4 4 4 empty empty Feed-forward 0 28 2 18 #e0e0e0 #000000
-0;
-#X obj 130 41 cnv 4 4 4 empty empty delay 0 28 2 18 #e0e0e0 #000000
-0;
-#X obj 458 12 cnv 10 10 10 empty empty EL 0 6 2 13 #7c7c7c #e0e4dc
-0;
-#X obj 478 12 cnv 10 10 10 empty empty Locus 0 6 2 13 #7c7c7c #e0e4dc
-0;
-#X obj 515 12 cnv 10 10 10 empty empty Solus' 0 6 2 13 #7c7c7c #e0e4dc
-0;
-#X obj 464 27 cnv 10 10 10 empty empty ELSE 0 6 2 13 #7c7c7c #e0e4dc
-0;
-#X obj 502 27 cnv 10 10 10 empty empty library 0 6 2 13 #7c7c7c #e0e4dc
-0;
+#X obj 306 5 cnv 15 250 40 empty empty empty 12 13 0 18 #7c7c7c #e0e4dc 0;
+#X obj 345 12 cnv 10 10 10 empty empty ELSE 0 15 2 30 #7c7c7c #e0e4dc 0;
+#X obj 23 41 cnv 4 4 4 empty empty Feed-forward 0 28 2 18 #e0e0e0 #000000 0;
+#X obj 130 41 cnv 4 4 4 empty empty delay 0 28 2 18 #e0e0e0 #000000 0;
+#X obj 458 12 cnv 10 10 10 empty empty EL 0 6 2 13 #7c7c7c #e0e4dc 0;
+#X obj 478 12 cnv 10 10 10 empty empty Locus 0 6 2 13 #7c7c7c #e0e4dc 0;
+#X obj 515 12 cnv 10 10 10 empty empty Solus' 0 6 2 13 #7c7c7c #e0e4dc 0;
+#X obj 464 27 cnv 10 10 10 empty empty ELSE 0 6 2 13 #7c7c7c #e0e4dc 0;
+#X obj 502 27 cnv 10 10 10 empty empty library 0 6 2 13 #7c7c7c #e0e4dc 0;
 #N canvas 0 22 450 278 (subpatch) 0;
 #X coords 0 1 100 -1 252 42 1 0 0;
 #X restore 305 4 graph;
-#X obj 3 4 cnv 15 301 42 empty empty ffdelay~ 20 20 2 37 #e0e0e0 #000000
-0;
+#X obj 3 4 cnv 15 301 42 empty empty ffdelay~ 20 20 2 37 #e0e0e0 #000000 0;
 #N canvas 0 22 450 278 (subpatch) 0;
 #X coords 0 1 100 -1 302 42 1;
 #X restore 2 4 graph;
-#X obj 180 41 cnv 4 4 4 empty empty line 0 28 2 18 #e0e0e0 #000000
-0;
-#X obj 1 496 cnv 15 552 21 empty empty empty 20 12 0 14 #e0e0e0 #202020
-0;
-#X obj 1 376 cnv 3 550 3 empty empty outlets 8 12 0 13 #dcdcdc #000000
-0;
-#X obj 1 468 cnv 3 550 3 empty empty arguments 8 12 0 13 #dcdcdc #000000
-0;
-#X obj 126 351 cnv 17 3 17 empty empty 1 5 9 0 16 #dcdcdc #9c9c9c 0
-;
-#X obj 126 384 cnv 17 3 17 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
-;
-#X obj 1 277 cnv 3 550 3 empty empty inlets 8 12 0 13 #dcdcdc #000000
-0;
+#X obj 180 41 cnv 4 4 4 empty empty line 0 28 2 18 #e0e0e0 #000000 0;
+#X obj 1 496 cnv 15 552 21 empty empty empty 20 12 0 14 #e0e0e0 #202020 0;
+#X obj 1 376 cnv 3 550 3 empty empty outlets 8 12 0 13 #dcdcdc #000000 0;
+#X obj 1 468 cnv 3 550 3 empty empty arguments 8 12 0 13 #dcdcdc #000000 0;
+#X obj 126 351 cnv 17 3 17 empty empty 1 5 9 0 16 #dcdcdc #9c9c9c 0;
+#X obj 126 384 cnv 17 3 17 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0;
+#X obj 1 277 cnv 3 550 3 empty empty inlets 8 12 0 13 #dcdcdc #000000 0;
 #X text 168 301 size <float>;
 #X text 211 331 clear - clears the delay buffer, f 47;
-#X obj 128 286 cnv 17 3 58 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
-;
-#X text 60 89 [ffdelay~] is simple feed forward delay with interpolation.
-;
+#X obj 128 286 cnv 17 3 58 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0;
+#X text 60 89 [ffdelay~] is simple feed forward delay with interpolation.;
 #N canvas 610 195 670 302 examples 0;
 #X obj 497 94 osc~ 0.1;
 #X text 96 88 vibrato;
@@ -56,8 +37,7 @@
 #X obj 228 134 else/rescale~ 0 512;
 #X obj 228 107 osc~ 1;
 #X obj 389 208 else/out~;
-#X text 48 20 A couple of examples with some delay effects fun you
-can have :, f 63;
+#X text 48 20 A couple of examples with some delay effects fun you can have :, f 63;
 #X obj 87 122 else/bl.saw~ 80;
 #X obj 389 108 else/bl.saw~ 40;
 #X obj 87 159 else/ffdelay~ -samps 512;
@@ -72,80 +52,57 @@ can have :, f 63;
 #X connect 12 0 5 0;
 #X connect 13 0 2 0;
 #X restore 470 227 pd examples;
-#X obj 1 408 cnv 3 550 3 empty empty flags 8 12 0 13 #dcdcdc #000000
-0;
+#X obj 1 408 cnv 3 550 3 empty empty flags 8 12 0 13 #dcdcdc #000000 0;
 #X text 185 418 -;
 #X text 98 418 -size <float>;
 #X text 169 353 float/signal - delay time, f 54;
 #X obj 184 149 else/impseq~;
-#X obj 184 121 bng 17 250 50 0 empty empty empty 17 7 0 10 #dcdcdc
-#000000 #000000;
+#X obj 184 121 bng 17 250 50 0 empty empty empty 17 7 0 10 #dcdcdc #000000 #000000;
 #X text 205 385 signal - the feed forward delayed signal, f 48;
 #X text 185 445 -;
 #X text 140 445 -samps;
 #X text 199 444 sets delay time unit to "samples" (default is ms);
-#X obj 305 140 hsl 128 15 0 1000 0 0 empty empty empty -2 -8 0 10 #dcdcdc
-#000000 #000000 0 1;
-#X obj 302 162 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
-#dcdcdc #000000 #000000 0 256;
+#X obj 305 140 hsl 128 15 0 1000 0 0 empty empty empty -2 -8 0 10 #dcdcdc #000000 #000000 0 1;
+#X obj 302 162 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10 #dcdcdc #000000 #000000 0 256;
 #X text 314 140 delay time in ms;
 #X obj 227 184 else/ffdelay~;
 #N canvas 793 187 469 318 interpolation 0;
 #X obj 54 219 -~;
-#X obj 276 153 nbx 9 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
-#dcdcdc #000000 #000000 0 256;
-#X obj 279 132 hsl 128 15 0 32 0 0 empty empty empty -2 -8 0 10 #dcdcdc
-#000000 #000000 0 1;
+#X obj 276 153 nbx 9 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10 #dcdcdc #000000 #000000 0 256;
+#X obj 279 132 hsl 128 15 0 32 0 0 empty empty empty -2 -8 0 10 #dcdcdc #000000 #000000 0 1;
 #X obj 54 141 else/ramp~ 1 0 64;
-#X text 49 39 The [ffdelay~] object uses a cubic (4 point) interpolation
-\, but between 0 and 1 \, it uses a regular linear interpolation.,
-f 44;
 #X obj 366 16 else/setdsp~;
 #X obj 69 185 else/ffdelay~ -size 32 -samps 0.666;
 #X obj 54 250 else/numbox~ 6 12 100 #c0c0c4 #440008 10 0 0 0;
 #X text 125 251 <-- This number reflects the delay amount;
-#X connect 0 0 7 0;
-#X connect 1 0 6 1;
+#X text 49 39 The [ffdelay~] object uses a cubic (4 point) interpolation called 'spline' \, but between 0 and 1 \, it uses a regular linear interpolation., f 47;
+#X connect 0 0 6 0;
+#X connect 1 0 5 1;
 #X connect 2 0 1 0;
 #X connect 3 0 0 0;
-#X connect 3 0 6 0;
-#X connect 6 0 0 1;
+#X connect 3 0 5 0;
+#X connect 5 0 0 1;
 #X restore 440 248 pd interpolation;
 #X text 247 301 - changes the delay size, f 41;
 #X text 205 285 signal - signal input into the delay line, f 48;
-#X text 173 477 1) float - initial/maximum delay time (default 0),
-f 50;
-#X text 199 417 sets delay size \, which defines the delay's maximum
-time (default 1000 ms or argument's value if given);
+#X text 173 477 1) float - initial/maximum delay time (default 0), f 50;
+#X text 199 417 sets delay size \, which defines the delay's maximum time (default 1000 ms or argument's value if given);
 #N canvas 508 174 858 345 details 0;
-#X text 448 19 By default \, all time units in [ffdelay~] is in ms.
-This affects not only the delay time \, but also the delay size.,
-f 64;
-#X text 448 48 Alternatively \, with the -samps flag \, you can set
-it to operate in time units specified by the number of samples. In
-the same way \, this affects both delay time and delay size., f 64
-;
+#X text 448 19 By default \, all time units in [ffdelay~] is in ms. This affects not only the delay time \, but also the delay size., f 64;
+#X text 448 48 Alternatively \, with the -samps flag \, you can set it to operate in time units specified by the number of samples. In the same way \, this affects both delay time and delay size., f 64;
 #X obj 559 151 else/impseq~;
-#X obj 559 123 bng 17 250 50 0 empty empty empty 17 7 0 10 #dcdcdc
-#000000 #000000;
+#X obj 559 123 bng 17 250 50 0 empty empty empty 17 7 0 10 #dcdcdc #000000 #000000;
 #X msg 660 145 size 22050;
 #X msg 670 172 size 44100;
-#X obj 755 184 nbx 5 14 22050 44100 1 0 empty empty empty 0 -8 0 10
-#dcdcdc #000000 #000000 0 256;
+#X obj 755 184 nbx 5 14 22050 44100 1 0 empty empty empty 0 -8 0 10 #dcdcdc #000000 #000000 0 256;
 #X obj 67 137 else/impseq~;
-#X obj 67 109 bng 17 250 50 0 empty empty empty 17 7 0 10 #dcdcdc #000000
-#000000;
+#X obj 67 109 bng 17 250 50 0 empty empty empty 17 7 0 10 #dcdcdc #000000 #000000;
 #X obj 110 194 else/ffdelay~ 500;
-#X text 32 22 By default \, the delay size is 1000 ms \, but if you
-give it an argument \, it sets both the delay time and also the delay
-size., f 64;
+#X text 32 22 By default \, the delay size is 1000 ms \, but if you give it an argument \, it sets both the delay time and also the delay size., f 64;
 #X obj 261 136 else/impseq~;
-#X obj 261 108 bng 17 250 50 0 empty empty empty 17 7 0 10 #dcdcdc
-#000000 #000000;
-#X text 32 51 If you need a larger delay size than specified by a first
-argument \, you can use the -size flag/message, f 64;
-#X obj 463 165 nbx 5 14 100 500 0 0 empty empty empty 0 -8 0 10 #dcdcdc
-#000000 #000000 0 256;
+#X obj 261 108 bng 17 250 50 0 empty empty empty 17 7 0 10 #dcdcdc #000000 #000000;
+#X text 32 51 If you need a larger delay size than specified by a first argument \, you can use the -size flag/message, f 64;
+#X obj 463 165 nbx 5 14 100 500 0 0 empty empty empty 0 -8 0 10 #dcdcdc #000000 #000000 0 256;
 #X obj 261 236 else/out~;
 #X obj 67 237 else/out~;
 #X obj 559 251 else/out~;
@@ -179,12 +136,10 @@ argument \, you can use the -size flag/message, f 64;
 #X obj 129 167 osc~;
 #X obj 129 134 else/rescale~ 300 500;
 #X msg 185 192 freeze \$1;
-#X obj 185 165 tgl 17 0 empty empty empty 17 7 0 10 #dcdcdc #000000
-#000000 0 1;
+#X obj 185 165 tgl 17 0 empty empty empty 17 7 0 10 #dcdcdc #000000 #000000 0 1;
 #X obj 129 103 else/stepnoise~ 5;
 #X text 209 167 <= freeze/unfreeze;
-#X text 77 28 You can freeze the delay line \, in which case it stops
-writing into it. Non zero freezes \, zero unfreezes., f 47;
+#X text 77 28 You can freeze the delay line \, in which case it stops writing into it. Non zero freezes \, zero unfreezes., f 47;
 #X obj 185 224 else/ffdelay~ -size 1000 0;
 #X connect 1 0 8 0;
 #X connect 2 0 1 0;

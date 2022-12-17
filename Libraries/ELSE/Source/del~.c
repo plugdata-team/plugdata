@@ -1,8 +1,9 @@
 // based on delwrite~/delread4~
 
 #include "m_pd.h"
-#include <string.h>
 #include "g_canvas.h"
+#include "buffer.h"
+#include <string.h>
 extern int ugen_getsortno(void);
 
 // ----------------------------- del~ in -----------------------------
@@ -199,20 +200,8 @@ typedef struct _del_out{
     t_float         x_sr;       // samples per msec
     int             x_zerodel;  // 0 or vecsize depending on read/write order
     unsigned int    x_ms;       // ms flag
-    int             x_lin;      // linear interpolation
     t_float         x_f;
 }t_del_out;
-
-float interpolate(t_del_out *x, t_sample *bp, t_sample frac){
-    t_sample b = bp[-1], c = bp[-2]; // current (b) and next (c)
-    if(x->x_lin)
-        return(b + (c-b)*frac);
-    else{
-        t_sample a = bp[0], d = bp[-3], cmb = c-b;
-        return(b + frac * (cmb - 0.1666667f * (1.-frac) *
-            ((d - a - 3.0f*cmb) * frac + (d + 2.0f*a - 3.0f*b))));
-    }
-}
 
 static t_int *del_out_perform(t_int *w){
     t_sample *in = (t_sample *)(w[1]);
@@ -222,7 +211,7 @@ static t_int *del_out_perform(t_int *w){
     int n = (int)(w[5]);
     int nsamps = ctl->c_n;              // number of samples
     t_sample limit = nsamps - n;        // limit = number of samples - block size
-    t_sample nm1 = n-1;                  // nm1 = block size - 1
+    t_sample nm1 = n-1;                 // nm1 = block size - 1
     t_sample *vp = ctl->c_vec;          // vector (buffer memory of delay lne)
     t_sample *bp;
     t_sample *wp = vp + ctl->c_phase;   // wp (write point) = vp + phase
@@ -233,27 +222,23 @@ static t_int *del_out_perform(t_int *w){
         return(w+6);
     }
     while(n--){
-        t_sample delsamps = *in++;      // delay in samples = input
+        t_sample samps = *in++;      // delay in samples = input
         if(x->x_ms)                     // if input is in ms
-            delsamps *= x->x_sr;        // convert to samples
-        delsamps -= zerodel;            // compensate for order of execution
-        if(delsamps < 1.0f){            // too small or NAN
-            x->x_lin = 1;
-            if(delsamps < 0.0f)
-                delsamps = 0.0f;
-        }
-        else
-            x->x_lin = 0;
-        if(delsamps > limit)                            // if delay point is too big
-            delsamps = limit;
-        delsamps += nm1;                                // delay in samples + block size - 1
-        nm1 = nm1 - 1;                                  // ????
-        int idelsamps = (int)delsamps;                  // delay point integer part
-        t_sample frac = delsamps - (t_sample)idelsamps; // delay point fractional part
-        bp = wp - idelsamps;                            // buffer point = write point - integer delay point
-        if(bp < vp + XTRASAMPS)                         // if less than beegining, wrap to upper point
+            samps *= x->x_sr;        // convert to samples
+        samps -= zerodel;            // compensate for order of execution
+        if(samps < 0.0f)
+            samps = 0.0f;
+        else if(samps > limit)
+            samps = limit;
+        samps += nm1;                             // delay in samples + block size - 1
+        nm1--;                                    // ???
+        int isamps = (int)samps;                  // delay point integer part
+        t_sample frac = samps - (t_sample)isamps; // delay point fractional part
+        bp = wp - isamps;                         // buffer point = write point - integer delay point
+        if(bp < vp + XTRASAMPS)                   // if less than beegining, wrap to upper point
             bp += nsamps;
-        *out++ = interpolate(x, bp, frac);
+        t_sample a = bp[0], b = bp[-1], c = bp[-2], d = bp[-3];
+        *out++ = interp_spline(frac, a, b, c, d);
     }
     return(w+6);
 }
@@ -283,7 +268,6 @@ static void *del_out_new(t_symbol *s, int ac, t_atom *av){
     x->x_sym = canvas_realizedollar(canvas, gensym(buf));
     x->x_ms = 1;
     x->x_sr = 0;
-    x->x_lin = 0;
     x->x_zerodel = 0;
     int argn = 0;
     if(ac){

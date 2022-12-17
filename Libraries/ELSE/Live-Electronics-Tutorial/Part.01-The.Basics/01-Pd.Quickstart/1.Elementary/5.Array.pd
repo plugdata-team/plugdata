@@ -1,64 +1,21 @@
-#N canvas 421 108 941 459 12;
+#N canvas 230 23 949 645 12;
 #N canvas 0 22 450 278 (subpatch) 0;
 #X array array1 100 float 1;
-#A 0 -0.842848 -0.842848 -0.842848 -0.842848 -0.685707 -0.671421 -0.671421
--0.671421 -0.671421 -0.671421 -0.671421 0.0571448 -0.0571397 -0.114282
--0.328565 -0.471421 -0.628562 -0.885702 -0.814275 -0.657133 -0.457135
--0.242852 0.957135 0.899993 0.742852 0.633329 0.523807 0.414284 0.333332
-0.252381 0.171429 0.0761922 -0.0190449 -0.114282 -0.899988 -0.928559
--0.942845 -0.942845 -0.942845 -0.914274 -0.885702 -0.82856 -0.771418
--0.714276 -0.557134 -0.399993 -0.321423 -0.242852 -0.728561 -0.542849
--0.271423 -0.128567 0.0571449 0.164287 0.271428 0.314285 0.357142 0.442855
-0.457141 -0.399993 -0.428564 -0.428564 -0.31428 -0.228566 -0.142853
-0.0714289 0.499996 1.07288e-06 0.0285722 0.0428578 0.0142882 -0.0571396
--0.157139 -0.214281 -0.285709 -0.299994 -0.242852 -0.0857108 0.0428593
-0.114287 0.185715 0.299999 0.307142 -0.0285685 0.0142882 0.0571449
-0.0785732 0.100002 0.142858 0.185715 0.242857 0.299999 0.414284 0.457141
-0.485712 0.114287 0.114287 0.114287 -0.0142829 -0.95713;
+#A 0 -0.842848 -0.842848 -0.842848 -0.842848 -0.685707 -0.671421 -0.671421 -0.671421 -0.671421 -0.671421 -0.671421 0.0571448 -0.0571397 -0.114282 -0.328565 -0.471421 -0.628562 -0.885702 -0.814275 -0.657133 -0.457135 -0.242852 0.957135 0.899993 0.742852 0.633329 0.523807 0.414284 0.333332 0.252381 0.171429 0.0761922 -0.0190449 -0.114282 -0.899988 -0.928559 -0.942845 -0.942845 -0.942845 -0.914274 -0.885702 -0.82856 -0.771418 -0.714276 -0.557134 -0.399993 -0.321423 -0.242852 -0.728561 -0.542849 -0.271423 -0.128567 0.0571449 0.164287 0.271428 0.314285 0.357142 0.442855 0.457141 -0.399993 -0.428564 -0.428564 -0.31428 -0.228566 -0.142853 0.0714289 0.499996 1.07288e-06 0.0285722 0.0428578 0.0142882 -0.0571396 -0.157139 -0.214281 -0.285709 -0.299994 -0.242852 -0.0857108 0.0428593 0.114287 0.185715 0.299999 0.307142 -0.0285685 0.0142882 0.0571449 0.0785732 0.100002 0.142858 0.185715 0.242857 0.299999 0.414284 0.457141 0.485712 0.114287 0.114287 0.114287 -0.0142829 -0.95713;
 #X coords 0 1 99 -1 200 140 1 0 0;
 #X restore 141 185 graph;
-#X text 31 20 The last basic element of Pd \, found at the bottom of
-the Put menu is the array. When you include an array \, it needs to
-be inserted in a “graph” \, the penultimate element in the Put
-Menu. Note that when you’re about to create an array in your patch
-\, Pd asks you if you want to put the array into a “New Graph”
-or into the “Last Graph”. This means you can insert more than one
-array into a single graph window. The graph element is not much useful
-on its own \, and it is actually just a subpatch (we'll see what a
-subpatch is soon)., f 59;
-#X text 497 30 The [table] object creates automatically a subpatch \,
-and inside it we find the array as we now know it (a graph and the
-array itself). The first argument is the array name and the second
-its size. No arguments will generate 100 element arrays named as "table0"
-\, "table1" and so on.;
-#X text 502 204 The [table] can't store the values with the patch.
-The [array] object is newer than [table] and kind of replaces it and
-offers many new features. It can also store values with a patch.,
-f 57;
+#X text 31 20 The last basic element of Pd \, found at the bottom of the Put menu is the array. When you include an array \, it needs to be inserted in a “graph” \, the penultimate element in the Put Menu. Note that when you’re about to create an array in your patch \, Pd asks you if you want to put the array into a “New Graph” or into the “Last Graph”. This means you can insert more than one array into a single graph window. The graph element is not much useful on its own \, and it is actually just a subpatch (we'll see what a subpatch is soon)., f 59;
+#X text 497 30 The [table] object creates automatically a subpatch \, and inside it we find the array as we now know it (a graph and the array itself). The first argument is the array name and the second its size. No arguments will generate 100 element arrays named as "table0" \, "table1" and so on.;
+#X text 502 204 The [table] can't store the values with the patch. The [array] object is newer than [table] and kind of replaces it and offers many new features. It can also store values with a patch., f 57;
 #X obj 539 139 table array2 4096;
 #X obj 691 139 array define -k array3 100;
-#A 0 -0.45334 -0.446673 -0.446673 -0.446673 -0.446673 -0.446673 -0.446673
--0.446673 -0.446673 -0.446673 -0.446673 -0.446673 -0.446673 -0.446673
--0.446673 -0.451435 -0.456197 -0.460959 -0.465721 -0.470483 -0.475245
--0.480007 -0.482229 -0.484451 -0.486673 -0.488896 -0.491118 -0.49334
--0.498102 -0.502864 -0.507626 -0.512388 -0.51715 -0.521912 -0.526674
--0.531436 -0.536198 -0.54096 -0.545722 -0.550484 -0.555246 -0.560008
--0.563645 -0.567281 -0.570917 -0.574554 -0.57819 -0.581827 -0.585463
--0.589099 -0.592736 -0.596372 -0.600009 -0.606676 -0.613342 -0.614176
--0.615009 -0.615842 -0.616676 -0.617509 -0.618342 -0.619176 -0.620009
--0.620009 -0.620009 -0.613342 -0.606676 -0.593342 -0.586675 -0.573342
--0.540008 -0.506674 -0.440006 -0.353338 -0.313337 -0.273337 -0.220002
--0.160001 -0.130001 -0.1 -0.0399992 -0.0111099 0.0177795 0.0466689
-0.100003 0.130004 0.160004 0.191116 0.222227 0.253339 0.300007 0.346674
-0.380008 0.433342 0.486676 0.553344 0.540011 0.260006 0.306673 0.360008
-;
+#A 0 -0.45334 -0.446673 -0.446673 -0.446673 -0.446673 -0.446673 -0.446673 -0.446673 -0.446673 -0.446673 -0.446673 -0.446673 -0.446673 -0.446673 -0.446673 -0.451435 -0.456197 -0.460959 -0.465721 -0.470483 -0.475245 -0.480007 -0.482229 -0.484451 -0.486673 -0.488896 -0.491118 -0.49334 -0.498102 -0.502864 -0.507626 -0.512388 -0.51715 -0.521912 -0.526674 -0.531436 -0.536198 -0.54096 -0.545722 -0.550484 -0.555246 -0.560008 -0.563645 -0.567281 -0.570917 -0.574554 -0.57819 -0.581827 -0.585463 -0.589099 -0.592736 -0.596372 -0.600009 -0.606676 -0.613342 -0.614176 -0.615009 -0.615842 -0.616676 -0.617509 -0.618342 -0.619176 -0.620009 -0.620009 -0.620009 -0.613342 -0.606676 -0.593342 -0.586675 -0.573342 -0.540008 -0.506674 -0.440006 -0.353338 -0.313337 -0.273337 -0.220002 -0.160001 -0.130001 -0.1 -0.0399992 -0.0111099 0.0177795 0.0466689 0.100003 0.130004 0.160004 0.191116 0.222227 0.253339 0.300007 0.346674 0.380008 0.433342 0.486676 0.553344 0.540011 0.260006 0.306673 0.360008;
 #N canvas 0 22 450 278 (subpatch) 0;
 #X array array-dots 4 float 3;
 #A 0 -0.36 0.44 -0.96 0.939999;
 #X coords 0 1 4 -1 100 100 1 0 0;
 #X restore 532 320 graph;
-#X text 46 218 An array \, which comes inside a graph =====>, f 13
-;
+#X text 46 218 An array \, which comes inside a graph =====>, f 13;
 #N canvas 0 22 450 278 (subpatch) 0;
 #X array array-polygon 4 float 1;
 #A 0 -0.3 0.44 -0.959998 0.959999;
@@ -71,9 +28,14 @@ f 57;
 #X restore 774 320 graph;
 #X text 346 219 <==;
 #X text 371 219 click on the array elements and drag, f 9;
-#X text 33 346 You can change both the graph and array properties.
-Array's properties include name (all arrays must be named differently!)
-\, size \, if data is saved with the patch (save contents box) and
-how to display the data (polyogn/points/bezier curve - see the difference
-to the right with a 4 point table). Note that the data keeps the same
-no matter how you display it., f 64;
+#X text 33 346 You can change both the graph and array properties. Array's properties include name (all arrays must be named differently!) \, size \, if data is saved with the patch (save contents box) and how to display the data (polyogn/points/bezier curve - see the difference to the right with a 4 point table). Note that the data keeps the same no matter how you display it., f 64;
+#X text 581 508 you can read from and save values to arrays with the [expr] object \, check its help file., f 45;
+#X obj 702 550 expr;
+#X obj 828 467 tabwrite;
+#X text 93 536 Objects for reading values:;
+#X obj 95 568 tabread;
+#X obj 95 596 tabread4;
+#X text 157 567 without interpolation;
+#X text 32 452 Arrays can be used in many different occasions. You can use them to store and manipulate lists of values \, as a sequence data and even as a buffer to load audio files and record sound into. We'll see all about them throughout this tutorial., f 64;
+#X text 548 467 An object for writting into tables is:;
+#X text 164 595 with interpolation (we'll see more about interpolation later on in this tutorial)., f 83;

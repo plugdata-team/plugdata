@@ -1,55 +1,35 @@
 #N canvas 446 23 562 505 10;
-#X obj 4 258 cnv 3 550 3 empty empty inlets 8 12 0 13 #dcdcdc #000000
-0;
-#X obj 4 361 cnv 3 550 3 empty empty outlets 8 12 0 13 #dcdcdc #000000
-0;
-#X obj 4 449 cnv 3 550 3 empty empty arguments 8 12 0 13 #dcdcdc #000000
-0;
-#X obj 101 265 cnv 17 3 66 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
-;
-#X obj 100 370 cnv 17 3 17 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
-;
-#X obj 100 391 cnv 17 3 17 empty empty 1 5 9 0 16 #dcdcdc #9c9c9c 0
-;
-#X obj 4 478 cnv 1 550 1 empty empty empty 0 0 0 4 #fcfcfc #fcfcfc
-0;
-#X obj 4 477 cnv 15 552 21 empty empty empty 20 12 0 14 #e0e0e0 #202020
-0;
+#X obj 4 258 cnv 3 550 3 empty empty inlets 8 12 0 13 #dcdcdc #000000 0;
+#X obj 4 361 cnv 3 550 3 empty empty outlets 8 12 0 13 #dcdcdc #000000 0;
+#X obj 4 449 cnv 3 550 3 empty empty arguments 8 12 0 13 #dcdcdc #000000 0;
+#X obj 101 265 cnv 17 3 66 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0;
+#X obj 100 370 cnv 17 3 17 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0;
+#X obj 100 391 cnv 17 3 17 empty empty 1 5 9 0 16 #dcdcdc #9c9c9c 0;
+#X obj 4 478 cnv 1 550 1 empty empty empty 0 0 0 4 #fcfcfc #fcfcfc 0;
+#X obj 4 477 cnv 15 552 21 empty empty empty 20 12 0 14 #e0e0e0 #202020 0;
 #X text 164 265 bang;
 #X text 165 391 bang;
 #X text 158 371 float;
-#X obj 231 141 bng 20 250 50 0 empty empty empty 0 -6 0 8 #d0d0d0 #404040
-#000000;
+#X obj 231 141 bng 20 250 50 0 empty empty empty 0 -6 0 8 #d0d0d0 #404040 #000000;
 #X text 173 219 random numbers, f 7;
-#X obj 306 222 bng 19 250 50 0 empty empty empty 0 -6 0 8 #d0d0d0 #404040
-#000000;
-#X obj 306 4 cnv 15 250 40 empty empty empty 12 13 0 18 #7c7c7c #e0e4dc
-0;
+#X obj 306 222 bng 19 250 50 0 empty empty empty 0 -6 0 8 #d0d0d0 #404040 #000000;
+#X obj 306 4 cnv 15 250 40 empty empty empty 12 13 0 18 #7c7c7c #e0e4dc 0;
 #N canvas 382 141 749 319 (subpatch) 0;
 #X coords 0 -1 1 1 252 42 2 100 100;
 #X restore 305 3 pd;
-#X obj 345 11 cnv 10 10 10 empty empty ELSE 0 15 2 30 #7c7c7c #e0e4dc
-0;
-#X obj 458 11 cnv 10 10 10 empty empty EL 0 6 2 13 #7c7c7c #e0e4dc
-0;
-#X obj 478 11 cnv 10 10 10 empty empty Locus 0 6 2 13 #7c7c7c #e0e4dc
-0;
-#X obj 515 12 cnv 10 10 10 empty empty Solus' 0 6 2 13 #7c7c7c #e0e4dc
-0;
-#X obj 464 26 cnv 10 10 10 empty empty ELSE 0 6 2 13 #7c7c7c #e0e4dc
-0;
-#X obj 502 26 cnv 10 10 10 empty empty library 0 6 2 13 #7c7c7c #e0e4dc
-0;
+#X obj 345 11 cnv 10 10 10 empty empty ELSE 0 15 2 30 #7c7c7c #e0e4dc 0;
+#X obj 458 11 cnv 10 10 10 empty empty EL 0 6 2 13 #7c7c7c #e0e4dc 0;
+#X obj 478 11 cnv 10 10 10 empty empty Locus 0 6 2 13 #7c7c7c #e0e4dc 0;
+#X obj 515 12 cnv 10 10 10 empty empty Solus' 0 6 2 13 #7c7c7c #e0e4dc 0;
+#X obj 464 26 cnv 10 10 10 empty empty ELSE 0 6 2 13 #7c7c7c #e0e4dc 0;
+#X obj 502 26 cnv 10 10 10 empty empty library 0 6 2 13 #7c7c7c #e0e4dc 0;
 #X obj 231 221 else/display 3;
 #X text 199 391 - right after the sequence finishes;
 #N canvas 576 176 624 425 example 0;
-#X obj 341 169 bng 15 250 50 0 empty empty empty 17 7 0 10 #dcdcdc
-#000000 #000000;
 #X floatatom 461 216 5 1 12 0 - - - 0;
 #X obj 325 325 else/display;
 #X obj 80 256 mtof;
-#X obj 155 133 bng 19 250 50 0 empty empty empty 17 7 0 10 #dcdcdc
-#000000 #000000;
+#X obj 155 133 bng 19 250 50 0 empty empty empty 17 7 0 10 #dcdcdc #000000 #000000;
 #X obj 72 341 else/out~;
 #X obj 80 222 else/display;
 #X obj 80 282 t b f;
@@ -61,8 +41,7 @@
 #X floatatom 80 173 3 0 0 0 - - - 0;
 #X obj 341 198 else/loop -b 12;
 #X text 498 215 <- new size;
-#X text 333 56 The example below generates a dodecaphonic series.,
-f 28;
+#X text 333 56 The example below generates a dodecaphonic series., f 28;
 #X obj 80 77 else/tempo -on 120 50;
 #X msg 309 107 seed 1234;
 #X msg 325 132 seed;
@@ -70,66 +49,57 @@ f 28;
 #X text 360 133 unique seed based on system time;
 #X obj 80 107 else/rand.u 5;
 #X obj 325 239 else/rand.u 12;
-#X text 361 168 generate random series;
+#X text 363 170 generate random series;
 #X text 79 26 unrepeated random values from a sequence., f 24;
-#X connect 0 0 14 0;
-#X connect 1 0 14 1;
-#X connect 1 0 23 1;
-#X connect 3 0 7 0;
-#X connect 6 0 3 0;
-#X connect 7 0 8 0;
-#X connect 7 1 8 1;
-#X connect 8 0 5 0;
-#X connect 9 0 2 0;
-#X connect 10 0 6 0;
-#X connect 11 0 13 0;
-#X connect 12 0 11 0;
-#X connect 13 0 10 0;
-#X connect 14 0 23 0;
+#X obj 341 169 bng 19 250 50 0 empty empty empty 17 7 0 10 #dcdcdc #000000 #000000;
+#X connect 0 0 13 1;
+#X connect 0 0 22 1;
+#X connect 2 0 6 0;
+#X connect 5 0 2 0;
+#X connect 6 0 7 0;
+#X connect 6 1 7 1;
+#X connect 7 0 4 0;
+#X connect 8 0 1 0;
+#X connect 9 0 5 0;
+#X connect 10 0 12 0;
+#X connect 11 0 10 0;
+#X connect 12 0 9 0;
+#X connect 13 0 22 0;
+#X connect 16 0 21 0;
 #X connect 17 0 22 0;
-#X connect 18 0 23 0;
-#X connect 19 0 23 0;
-#X connect 22 0 12 0;
-#X connect 22 1 4 0;
-#X connect 23 0 9 0;
-#X connect 23 1 9 0;
+#X connect 18 0 22 0;
+#X connect 21 0 11 0;
+#X connect 21 1 3 0;
+#X connect 22 0 8 0;
+#X connect 22 1 8 0;
+#X connect 25 0 13 0;
 #X restore 468 223 pd example;
-#X obj 34 40 cnv 4 4 4 empty empty Unrepeated\\\ random\\\ values 0
-28 2 18 #e0e0e0 #000000 0;
+#X obj 34 40 cnv 4 4 4 empty empty Unrepeated\ random\ values 0 28 2 18 #e0e0e0 #000000 0;
 #X text 140 298 seed <f>;
-#X text 199 298 - sets seed value \, no float creates a new unique
-one, f 53;
-#X obj 4 414 cnv 3 550 3 empty empty flags 8 12 0 13 #dcdcdc #000000
-0;
+#X text 199 298 - sets seed value \, no float creates a new unique one, f 53;
+#X obj 4 414 cnv 3 550 3 empty empty flags 8 12 0 13 #dcdcdc #000000 0;
 #X text 116 314 size <float>;
 #X text 199 265 - generates a random output, f 53;
-#X text 120 425 -seed <float>: sets seed value (default \, unique one)
-;
-#X obj 3 3 cnv 15 301 42 empty empty rand.u 20 20 2 37 #e0e0e0 #000000
-0;
+#X text 120 425 -seed <float>: sets seed value (default \, unique one);
+#X obj 3 3 cnv 15 301 42 empty empty rand.u 20 20 2 37 #e0e0e0 #000000 0;
 #N canvas 0 22 450 278 (subpatch) 0;
 #X coords 0 1 100 -1 302 42 1 0 0;
 #X restore 3 3 graph;
 #X text 333 217 bang when finished, f 9;
-#X text 199 281 - clears memory so you can restart a new series, f
-53;
+#X text 199 281 - clears memory so you can restart a new series, f 53;
 #X text 158 281 clear;
 #X msg 247 168 size 3;
 #X msg 186 142 clear;
-#X text 199 314 - clears the memory and sets a new 'n' size, f 53
-;
+#X text 199 314 - clears the memory and sets a new 'n' size, f 53;
 #X text 199 371 - unrepeated random value, f 38;
 #X text 180 458 1) float - size (defaul 1);
-#X text 39 92 [rand.u] generates an unrepeated random values (from
-0 to size-1). After the whole sequence is output \, a bang is sent
-in the right outlet., f 72;
+#X text 39 92 [rand.u] generates an unrepeated random values (from 0 to size-1). After the whole sequence is output \, a bang is sent in the right outlet., f 72;
 #X obj 231 192 else/rand.u 4;
 #X text 16 195 see also:;
 #X obj 19 220 else/rand.hist;
 #X floatatom 306 165 5 0 0 0 - - - 0;
 #X text 344 165 <-- change size;
-#X obj 100 337 cnv 17 3 17 empty empty 1 5 9 0 16 #dcdcdc #9c9c9c 0
-;
+#X obj 100 337 cnv 17 3 17 empty empty 1 5 9 0 16 #dcdcdc #9c9c9c 0;
 #X text 158 337 float;
 #X text 199 337 - clears the memory and sets a new 'n' size;
 #X connect 11 0 43 0;

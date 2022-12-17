@@ -1,11 +1,8 @@
 #N canvas 312 47 736 640 12;
 #X declare -path else;
-#X obj 126 352 nbx 8 14 -1 1 0 0 empty empty empty 18 -6 0 10 #dcdcdc
-#000000 #000000 0 256;
-#X obj 126 495 nbx 8 14 -100 100 0 0 empty empty empty 18 -6 0 10 #dcdcdc
-#000000 #000000 0 256;
-#X obj 129 327 hsl 128 17 1e-05 1 0 0 \$0-linear empty empty -2 -8
-0 10 #dcdcdc #000000 #000000 0 1;
+#X obj 126 352 nbx 8 14 -1 1 0 0 empty empty empty 18 -6 0 10 #dcdcdc #000000 #000000 0 256;
+#X obj 126 495 nbx 8 14 -100 100 0 0 empty empty empty 18 -6 0 10 #dcdcdc #000000 #000000 0 256;
+#X obj 129 327 hsl 128 17 1e-05 1 0 0 \$0-linear empty empty -2 -8 0 10 #dcdcdc #000000 #000000 0 1;
 #X obj 126 376 / 1e-05;
 #X floatatom 126 544 7 0 0 0 - - - 0;
 #X obj 126 519 expr pow(10 \, $f1 / 20);
@@ -15,20 +12,14 @@
 #X text 75 444 log =>;
 #X obj 126 470 * 20;
 #X text 99 492 dB;
-#X obj 104 196 cnv 15 215 40 empty empty empty 20 12 0 14 #dcdcdc #404040
-0;
-#X text 177 214 10;
+#X obj 102 196 cnv 15 215 40 empty empty empty 20 12 0 14 #dcdcdc #404040 0;
+#X text 181 214 10;
 #X text 114 201 dB = 20 Log (amp / 0.00001);
 #X obj 439 474 rmstodb;
-#X obj 439 517 nbx 8 14 -200 200 0 0 empty empty empty 18 -6 0 10 #dcdcdc
-#000000 #000000 0 256;
-#X obj 439 438 nbx 8 14 1e-05 2 1 0 empty \$0-linear empty 18 -6 0
-10 #dcdcdc #000000 #000000 0 256;
+#X obj 439 517 nbx 8 14 -200 200 0 0 empty empty empty 18 -6 0 10 #dcdcdc #000000 #000000 0 256;
+#X obj 439 438 nbx 8 14 1e-05 2 1 0 empty \$0-linear empty 18 -6 0 10 #dcdcdc #000000 #000000 0 256;
 #X obj 439 551 dbtorms;
-#X text 28 18 Amplitude values are normally expressed in dB. Amplitude
-values between -1 and 1 \, as we have in digital audio \, are linear
-values \, as opposed to values in dB \, which are logarithmic., f
-47;
+#X text 28 18 Amplitude values are normally expressed in dB. Amplitude values between -1 and 1 \, as we have in digital audio \, are linear values \, as opposed to values in dB \, which are logarithmic., f 47;
 #X text 183 543 <= ratio;
 #X text 185 376 <= reference amplitude;
 #X text 213 351 <= linear amplitude;
@@ -37,11 +28,7 @@ values \, as opposed to values in dB \, which are logarithmic., f
 #X text 417 516 dB;
 #X text 385 593 linear;
 #X obj 126 422 log 10;
-#X text 28 81 A dB value indicates a proportion/ratio to a reference
-amplitude. Hence \, it is not different than a musical interval! There
-are different types of dB scale \, each with a different reference
-value. Considering the reference as 1e-05 (or 0.00001) \, the conversion
-to dB from a linear amplitude ("amp") is given as:, f 47;
+#X text 28 81 A dB value indicates a proportion/ratio to a reference amplitude. Hence \, it is not different than a musical interval! There are different types of dB scale \, each with a different reference value. Considering the reference as 1e-05 (or 0.00001) \, the conversion to dB from a linear amplitude ("amp") is given as:, f 47;
 #X obj 545 23 declare -path else;
 #X text 204 417 convert ratio to a log scale, f 15;
 #X floatatom 551 438 7 0 0 0 - \$0-linear - 0;
@@ -52,27 +39,17 @@ to dB from a linear amplitude ("amp") is given as:, f 47;
 #X floatatom 126 399 7 0 0 0 - - - 0;
 #X floatatom 126 445 7 0 0 0 - - - 0;
 #X text 407 395 converting with native objects;
-#X obj 126 601 nbx 8 14 0 100 0 0 empty empty empty 18 -6 0 10 #dcdcdc
-#000000 #000000 0 256;
-#X obj 439 594 nbx 8 14 0 100 0 0 empty empty empty 18 -6 0 10 #dcdcdc
-#000000 #000000 0 256;
-#X text 34 249 Input amplitudes from 1e-05 to 1 return values between
-0 and 100 dB. See this conversion and the opposite conversion being
-done in a patch and with native Pd objects., f 47;
-#X text 402 70 The [rmstodb] and [dbtorms] objects give the idea that
-"linear" is a synonym of "rms" \, which is not true. The "RMS" can
-actually be expressed either as a linear amplitude or in dB. Note that
-[expr] also has built in functions for 'dbtorms' and 'rmstodb' that
-use the same code from these objects., f 41;
+#X obj 126 601 nbx 8 14 0 100 0 0 empty empty empty 18 -6 0 10 #dcdcdc #000000 #000000 0 256;
+#X obj 439 594 nbx 8 14 0 100 0 0 empty empty empty 18 -6 0 10 #dcdcdc #000000 #000000 0 256;
+#X text 34 249 Input amplitudes from 1e-05 to 1 return values between 0 and 100 dB. See this conversion and the opposite conversion being done in a patch and with native Pd objects., f 47;
+#X text 402 70 The [rmstodb] and [dbtorms] objects give the idea that "linear" is a synonym of "rms" \, which is not true. The "RMS" can actually be expressed either as a linear amplitude or in dB. Note that [expr] also has built in functions for 'dbtorms' and 'rmstodb' that use the same code from these objects., f 41;
 #X msg 67 327 1e-09;
 #X text 175 424 <--;
-#X text 402 295 An input of 0 dB into [dbtorms] outputs 0 instead of
-1e-05 \, so it's rounded down. Values below 1e-05 are also rounded
-down to 0 \, check the help files., f 41;
-#X text 402 196 One difference is that the minimum input to [rmstodb]
-is "1e-05" \, values below are clipped to 0 dB. To the left you can
-still have something like 1e-09 as the linear amplitude input \, which
-generates a negative dB value that's converted back., f 41;
+#X text 402 295 An input of 0 dB into [dbtorms] outputs 0 instead of 1e-05 \, so it's rounded down. Values below 1e-05 are also rounded down to 0 \, check the help files., f 41;
+#X text 402 196 One difference is that the minimum input to [rmstodb] is "1e-05" \, values below are clipped to 0 dB. To the left you can still have something like 1e-09 as the linear amplitude input \, which generates a negative dB value that's converted back., f 41;
+#N canvas 0 22 450 278 (subpatch) 0;
+#X coords 0 1 100 -1 215 42 1;
+#X restore 102 195 graph;
 #X connect 0 0 3 0;
 #X connect 1 0 5 0;
 #X connect 2 0 0 0;

@@ -25,9 +25,7 @@ static void spread_args(t_spread *x, t_symbol *s, int ac, t_atom *av){
             t_float aval = atom_getfloatarg(0, ac, av);
             SETFLOAT(x->x_av+n, aval);
         }
-        n++;
-        av++;
-        ac--;
+        n++, av++, ac--;
     }
 }
     
@@ -35,22 +33,25 @@ static void spread_mode(t_spread *x, t_floatarg f){
     x->x_mode = (int)(f != 0);
 }
 
-static void spread_float(t_spread *x, t_floatarg f){
+static void spread_list(t_spread *x, t_symbol*s, int ac, t_atom *av){
+    s = NULL;
+    if(!ac || (av)->a_type != A_FLOAT)
+        return;
     for(int n = 0; n < x->x_ac; n++){
         if(x->x_mode){
-            if(f <= x->x_av[n].a_w.w_float){
-                outlet_float(x->x_outs[n], f);
+            if(av[0].a_w.w_float <= x->x_av[n].a_w.w_float){
+                outlet_list(x->x_outs[n], &s_list, ac, av);
                 return;
             }
         }
         else{
-            if(f < x->x_av[n].a_w.w_float){
-                outlet_float(x->x_outs[n], f);
+            if(av[0].a_w.w_float < x->x_av[n].a_w.w_float){
+                outlet_list(x->x_outs[n], &s_list, ac, av);
                 return;
             }
         }
     }
-    outlet_float(x->x_out_unmatch, f);
+    outlet_list(x->x_out_unmatch, &s_list, ac, av);
 }
 
 static void *spread_new(t_symbol *s, int ac, t_atom *av){
@@ -84,16 +85,14 @@ static void *spread_new(t_symbol *s, int ac, t_atom *av){
             }
             else if(av->a_type == A_SYMBOL)
                 goto errstate;
-            n++;
-            av++;
-            ac--;
+            n++, av++, ac--;
         }
     }
     t_outlet **outs;
     x->x_outs = (t_outlet **)getbytes(x->x_ac*sizeof(*outs));
     for(int i = 0; i < x->x_ac; i++)
-        x->x_outs[i] = outlet_new(&x->x_obj, &s_anything);
-    x->x_out_unmatch = outlet_new(&x->x_obj, &s_anything);
+        x->x_outs[i] = outlet_new(&x->x_obj, &s_list);
+    x->x_out_unmatch = outlet_new(&x->x_obj, &s_list);
     return(x);
 errstate:
     pd_error(x, "[spread]: improper arguments");
@@ -103,7 +102,7 @@ errstate:
 void spread_setup(void){
     spread_class = class_new(gensym("spread"), (t_newmethod)spread_new, 0,
         sizeof(t_spread), 0, A_GIMME, 0);
-    class_addfloat(spread_class, spread_float);
+    class_addlist(spread_class, spread_list);
     class_addmethod(spread_class, (t_method)spread_mode, gensym("mode"), A_FLOAT, 0);
     class_addmethod(spread_class, (t_method)spread_args, gensym("args"), A_GIMME, 0);
 }

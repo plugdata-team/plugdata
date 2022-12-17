@@ -2,10 +2,8 @@
 #X declare -path else;
 #X obj 376 278 *~;
 #X obj 318 225 osc~ 440;
-#X obj 426 142 nbx 5 17 0 2000 0 0 empty empty empty 0 -8 0 12 #dcdcdc
-#000000 #000000 0 256;
-#X obj 394 142 bng 20 250 50 0 empty empty empty 17 7 0 10 #dcdcdc
-#000000 #000000;
+#X obj 426 142 nbx 5 17 0 2000 0 0 empty empty empty 0 -8 0 12 #dcdcdc #000000 #000000 0 256;
+#X obj 394 142 bng 20 250 50 0 empty empty empty 17 7 0 10 #dcdcdc #000000 #000000;
 #X obj 376 305 out~;
 #X obj 394 170 f 500;
 #X text 494 141 ms;
@@ -14,8 +12,7 @@
 #X obj 758 17 declare -path else;
 #X text 240 376 1;
 #X text 240 437 0;
-#X obj 257 381 cnv 15 248 68 empty empty empty 20 12 0 14 #dcdcdc #404040
-0;
+#X obj 257 381 cnv 15 248 68 empty empty empty 20 12 0 14 #dcdcdc #404040 0;
 #N canvas 0 22 450 300 (subpatch) 0;
 #X array \$0-gauss 8192 float 0;
 #X coords 0 1 8191 0 250 70 1 0 0;
@@ -27,55 +24,37 @@
 #X obj 48 410 exp;
 #X floatatom 48 191 5 0 0 0 - - - 0;
 #X obj 48 218 t b f, f 7;
-#X obj 51 161 hsl 100 15 0.02 1 1 0 empty empty empty -2 -8 0 10 #dcdcdc
-#000000 #000000 0 1;
+#X obj 51 161 hsl 100 15 0.02 1 1 0 empty empty empty -2 -8 0 10 #dcdcdc #000000 #000000 0 1;
 #X obj 94 268 v sigma;
 #X obj 48 436 tabwrite \$0-gauss, f 22;
-#X obj 394 252 table~ \$0-gauss;
-#X text 24 14 Gaussian functions are often used in statistics and probabilities
-but can be also used in computer music for an envelope shape \, as
-in this example. The Gaussian function has a "bell curve" shape and
-is here simplified to take only the 'sigma' parameter that controls
-the width of the bell (aka 'standard deviation' or 'gaussian RMS width').
-, f 69;
-#X text 24 93 Below we generate the gaussian table. The input is fixed
-from -1 to 1 and we just set the 'sigma' value \, which needs to be
-below 0.25 so we can use this function as an envelope., f 69;
+#X text 24 14 Gaussian functions are often used in statistics and probabilities but can be also used in computer music for an envelope shape \, as in this example. The Gaussian function has a "bell curve" shape and is here simplified to take only the 'sigma' parameter that controls the width of the bell (aka 'standard deviation' or 'gaussian RMS width')., f 69;
+#X text 24 93 Below we generate the gaussian table. The input is fixed from -1 to 1 and we just set the 'sigma' value \, which needs to be below 0.25 so we can use this function as an envelope., f 69;
 #X obj 48 370 expr -pow($f1 \, 2) / (2 * pow(sigma \, 2)), f 20;
 #X obj 596 250 -~ 0.5;
 #X obj 596 222 phasor~ 2;
 #X obj 596 313 expr~ exp(-$v1*$v1);
 #X obj 679 233 pow 4;
-#X obj 682 212 hsl 128 15 0 1 0 0 empty empty empty -2 -8 0 10 #dcdcdc
-#000000 #000000 0 1;
+#X obj 682 212 hsl 128 15 0 1 0 0 empty empty empty -2 -8 0 10 #dcdcdc #000000 #000000 0 1;
 #X obj 679 281 + 4;
 #X obj 679 257 * 296;
 #X obj 596 280 *~ 4;
-#X text 545 51 Another approach is to have a fixed sigma value and
-we just change the input range to something other than -1 to 1 \, which
-also works to change the bell width. Let's take a sigma value of square
-root of 0.5 (0.707107...) \, this simplifies the equation and makes
-'(2 * pow(sigma \, 2)' = 1! So the formula is just "exp(-pow($f1 \,
-2))". This is how the [gaussian~] object from ELSE is implemented.
-See the patch implementation below., f 50;
+#X text 545 51 Another approach is to have a fixed sigma value and we just change the input range to something other than -1 to 1 \, which also works to change the bell width. Let's take a sigma value of square root of 0.5 (0.707107...) \, this simplifies the equation and makes '(2 * pow(sigma \, 2)' = 1! So the formula is just "exp(-pow($f1 \, 2))". This is how the [gaussian~] object from ELSE is implemented. See the patch implementation below., f 50;
 #X obj 791 268 gaussian~;
 #X text 763 250 similar to:, f 7;
-#X obj 596 353 oscope~ 265 87 256 3 128 0 1 0 0 0 0 30 30 30 190 190
-190 160 160 160 0 empty;
+#X obj 596 353 oscope~ 265 87 256 3 128 0 1 0 0 0 0 30 30 30 190 190 190 160 160 160 0 empty;
 #X obj 191 262 tabgen \$0-gauss;
 #X msg 191 235 gauss \$1;
-#X text 187 154 the [tabgen] object can also generate gaussian tables
-, f 19;
-#X obj 194 210 hsl 100 15 0.02 1 1 0 empty empty empty -2 -8 0 10 #dcdcdc
-#000000 #000000 0 1;
+#X text 187 154 the [tabgen] object can also generate gaussian tables, f 19;
+#X obj 194 210 hsl 100 15 0.02 1 1 1 empty empty empty -2 -8 0 10 #dcdcdc #000000 #000000 0 1;
+#X obj 394 252 tabreader~ \$0-gauss;
 #X connect 0 0 4 0;
 #X connect 1 0 0 0;
 #X connect 2 0 5 1;
 #X connect 3 0 5 0;
 #X connect 5 0 8 0;
-#X connect 7 0 24 0;
+#X connect 7 0 43 0;
 #X connect 8 0 7 0;
-#X connect 14 0 27 0;
+#X connect 14 0 26 0;
 #X connect 15 0 17 0;
 #X connect 16 0 15 0;
 #X connect 17 0 14 0;
@@ -85,15 +64,15 @@ See the patch implementation below., f 50;
 #X connect 20 0 16 0;
 #X connect 20 1 22 0;
 #X connect 21 0 19 0;
-#X connect 24 0 0 1;
-#X connect 27 0 18 0;
-#X connect 28 0 35 0;
-#X connect 29 0 28 0;
-#X connect 30 0 39 0;
-#X connect 31 0 34 0;
-#X connect 32 0 31 0;
-#X connect 33 0 35 1;
-#X connect 34 0 33 0;
-#X connect 35 0 30 0;
-#X connect 41 0 40 0;
-#X connect 43 0 41 0;
+#X connect 26 0 18 0;
+#X connect 27 0 34 0;
+#X connect 28 0 27 0;
+#X connect 29 0 38 0;
+#X connect 30 0 33 0;
+#X connect 31 0 30 0;
+#X connect 32 0 34 1;
+#X connect 33 0 32 0;
+#X connect 34 0 29 0;
+#X connect 40 0 39 0;
+#X connect 42 0 40 0;
+#X connect 43 0 0 1;
