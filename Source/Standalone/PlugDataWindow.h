@@ -594,6 +594,7 @@ public:
             dropShadower->setOwner(this);
 #endif
 #else
+            setDropShadowEnabled(true);
             setResizable(true, false);
             
 #endif
