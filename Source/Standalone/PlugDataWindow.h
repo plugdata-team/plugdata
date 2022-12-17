@@ -48,7 +48,7 @@ void maximiseLinuxWindow(void* handle);
 // - Native shadow is inconsistent across window managers and distros (sometimes there is no shadow, even though other windows have it...)
 // - Dropshadower is slow and glitchy
 // - We use a transparent margin around the window to draw the shadow in
-#if JUCE_MAC
+#if JUCE_MAC || JUCE_LINUX
 #    define CUSTOM_SHADOW 0
 #else
 #    define CUSTOM_SHADOW 1
