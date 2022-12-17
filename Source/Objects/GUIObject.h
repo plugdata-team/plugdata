@@ -27,6 +27,8 @@ struct ObjectBase : public Component
     PluginProcessor* pd;
 
     ObjectBase(void* obj, Object* parent);
+        
+    virtual ~ObjectBase() {};
 
     void paint(Graphics& g) override;
 

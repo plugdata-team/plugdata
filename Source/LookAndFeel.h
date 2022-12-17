@@ -138,7 +138,7 @@ inline const std::map<PlugDataColour, std::tuple<String, String, String>> PlugDa
     {toolbarTextColourId, {"Toolbar Text", "toolbar_text", "Toolbar"}},
     {toolbarActiveColourId, {"Toolbar Active", "toolbar_active", "Toolbar"}},
     
-    {tabBackgroundColourId, {"Tab Background", "tab_background", "Tab"}},
+    {tabBackgroundColourId, {"Tab Background", "tab_background", "Tabbar"}},
     
     {tabTextColourId, {"Tab Text", "tab_text", "Tabbar"}},
     {activeTabBackgroundColourId, {"Active Tab Background", "active_tab_background", "Tabbar"}},

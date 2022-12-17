@@ -1378,46 +1378,20 @@ void PluginProcessor::updateConsole()
 
 void PluginProcessor::reloadAbstractions(File changedPatch, t_glist* except)
 {
-    
     suspendProcessing(true);
     
     setThis();
     
     isPerformingGlobalSync = true;
     
-    String fullPathname = changedPatch.getParentDirectory().getFullPathName();
-    String filename = changedPatch.getFileName();
-
-    auto* dir = gensym(fullPathname.toRawUTF8());
-    auto* file = gensym(filename.toRawUTF8());
+    auto* dir = gensym(changedPatch.getParentDirectory().getFullPathName().toRawUTF8());
+    auto* file = gensym(changedPatch.getFileName().toRawUTF8());
         
-    Array<t_glist*> oldPatches;
-    Array<t_glist*> newPatches;
-    
-    for (auto* x = pd_getcanvaslist(); x; x = x->gl_next) {
-        for(auto* patch : patches)
-        {
-            if(patch->getPointer() == x) {
-                oldPatches.add(x);
-            }
-        }
-    }
+    // Ensure that all messages are dequeued before we start deleting objects
+    sendMessagesFromQueue();
     
     canvas_reload(file, dir, except);
-    
-    for (auto* x = pd_getcanvaslist(); x; x = x->gl_next) {
-        newPatches.add(x);
-    }
-    
-    for(auto* oldPatch : oldPatches)
-    {
-        if(!newPatches.contains(oldPatch)) {
-            // Close patch
-        }
-    }
-    
-    
-    
+        
     // Synchronising can potentially delete some other canvases, so make sure we use a safepointer
     Array<Component::SafePointer<Canvas>> canvases;
     
@@ -1431,9 +1405,6 @@ void PluginProcessor::reloadAbstractions(File changedPatch, t_glist* except)
     for(auto& cnv : canvases) {
         if(cnv.getComponent()) cnv->synchronise();
     }
-    
-    
-    // TODO: what about this->patches that got deleted?
     
     isPerformingGlobalSync = false;
     
