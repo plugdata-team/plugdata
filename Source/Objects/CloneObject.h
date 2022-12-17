@@ -44,7 +44,7 @@ typedef struct _clone {
 } t_fake_clone;
 }
 
-struct CloneObject final : public TextBase {
+struct CloneObject final : public TextBase, public pd::MessageListener {
     CloneObject(void* obj, Object* object)
         : TextBase(obj, object)
         , subpatch({ nullptr, nullptr })
@@ -78,6 +78,21 @@ struct CloneObject final : public TextBase {
     void openFromMenu() override
     {
         openSubpatch();
+    }
+    
+    void receiveMessage(const String& symbol, int argc, t_atom* argv) override
+    {
+        auto atoms = pd::Atom::fromAtoms(argc, argv);
+        
+        MessageManager::callAsync([_this = SafePointer(this), symbol, atoms]() mutable {
+            if(!_this) return;
+            
+            if(symbol == "vis" && atoms.size() > 2)
+            {
+                // TODO: implement this!
+            }
+        });
+        
     }
 
 protected:
