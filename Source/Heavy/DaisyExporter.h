@@ -13,13 +13,16 @@ public:
     Value romOptimisationType = Value(var(2));
     Value ramOptimisationType = Value(var(2));
     
+    File customBoardDefinition;
+    
     TextButton flashButton = TextButton("Flash");
     Component* ramOptimisation;
     Component* romOptimisation;
     
     DaisyExporter(PluginEditor* editor, ExportingProgressView* exportingView) : ExporterBase(editor, exportingView)
     {
-        addAndMakeVisible(properties.add(new PropertiesPanel::ComboComponent("Target board", targetBoardValue, {"Seed", "Pod", "Petal", "Patch", "Path Init", "Field"})));
+        addAndMakeVisible(properties.add(new PropertiesPanel::ComboComponent("Target board", targetBoardValue, {"Seed", "Pod", "Petal", "Patch", "Patch Init", "Field", "Custom JSON..."})));
+        
         addAndMakeVisible(properties.add(new PropertiesPanel::ComboComponent("Export type", exportTypeValue, {"Source code", "Binary", "Flash"})));
         
         addAndMakeVisible(romOptimisation = properties.add(new PropertiesPanel::ComboComponent("ROM Optimisation", romOptimisationType, {"Optimise for size", "Optimise for speed"})));
@@ -46,6 +49,7 @@ public:
     void valueChanged(Value& v) override
     {
         ExporterBase::valueChanged(v);
+        
         flashButton.setEnabled(validPatchSelected);
         
         bool flash = static_cast<int>(exportTypeValue.getValue()) == 3;
@@ -54,6 +58,31 @@ public:
         
         ramOptimisation->setVisible(flash);
         romOptimisation->setVisible(flash);
+        
+        if(v.refersToSameSourceAs(targetBoardValue))
+        {
+            int idx = static_cast<int>(targetBoardValue.getValue());
+            
+            // Custom board option
+            if(idx == 6) {
+                // Open file browser
+                openChooser = std::make_unique<FileChooser>("Choose file to open", File::getSpecialLocation(File::userHomeDirectory), "*.pd", true);
+                
+                openChooser->launchAsync(FileBrowserComponent::openMode | FileBrowserComponent::canSelectFiles, [this](FileChooser const& fileChooser){
+                    
+                    auto result = fileChooser.getResult();
+                    if(result.existsAsFile()) {
+                        customBoardDefinition = result;
+                    }
+                    else {
+                        customBoardDefinition = File();
+                    }
+                });
+            }
+            else {
+                customBoardDefinition = File();
+            }
+        }
     }
     
     
@@ -72,15 +101,22 @@ public:
             args.add("\"" + name + "\"");
         }
         
-        auto boards = StringArray{"seed", "pod", "petal", "patch", "patch_init", "field"};
+        auto boards = StringArray{"seed", "pod", "petal", "patch", "patch_init", "field", "custom"};
         auto board = boards[target];
         
-        DynamicObject::Ptr metaJson (new DynamicObject());
-        var metaDaisy (new DynamicObject());
-        metaDaisy.getDynamicObject()->setProperty("board", board);
-        metaJson->setProperty("daisy", metaDaisy);
-        
-        args.add("-m" + createMetaJson(metaJson));
+        if(board == "custom")
+        {
+            args.add("-m" + customBoardDefinition.getFullPathName());
+        }
+        else {
+            DynamicObject::Ptr metaJson (new DynamicObject());
+            var metaDaisy (new DynamicObject());
+            metaDaisy.getDynamicObject()->setProperty("board", board);
+            metaJson->setProperty("daisy", metaDaisy);
+            
+            args.add("-m" + createMetaJson(metaJson));
+        }
+
         
         args.add("-v");
         args.add("-gdaisy");
