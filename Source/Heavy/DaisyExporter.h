@@ -32,6 +32,7 @@ public:
         addAndMakeVisible(flashButton);
         
         exportTypeValue.addListener(this);
+        targetBoardValue.addListener(this);
         
         flashButton.onClick = [this](){
             
@@ -64,7 +65,7 @@ public:
             int idx = static_cast<int>(targetBoardValue.getValue());
             
             // Custom board option
-            if(idx == 6) {
+            if(idx == 7) {
                 // Open file browser
                 openChooser = std::make_unique<FileChooser>("Choose file to open", File::getSpecialLocation(File::userHomeDirectory), "*.pd", true);
                 
