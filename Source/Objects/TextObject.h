@@ -148,6 +148,7 @@ public:
 
         // To get enter/exit messages
         addMouseListener(object, false);
+        
     }
 
     virtual ~TextBase()

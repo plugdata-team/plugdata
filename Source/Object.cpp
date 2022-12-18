@@ -94,6 +94,7 @@ void Object::initialise()
     hvccMode.addListener(this);
 
     originalBounds.setBounds(0, 0, 0, 0);
+    setMinimumSize(25,25);
 }
 
 void Object::timerCallback()
@@ -137,6 +138,19 @@ void Object::valueChanged(Value& v)
 
 bool Object::hitTest(int x, int y)
 {
+    resizeZone = ResizableBorderComponent::Zone::fromPositionOnBorder(getLocalBounds().reduced(margin - 2), BorderSize<int>(5), Point<int>(x, y));
+    // check if the resizeZone is valid, we currently only use corners to resize, not sides
+    if (!(resizeZone.getZoneFlags() == ResizableBorderComponent::Zone::left   ||
+          resizeZone.getZoneFlags() == ResizableBorderComponent::Zone::right  ||
+          resizeZone.getZoneFlags() == ResizableBorderComponent::Zone::top    ||
+          resizeZone.getZoneFlags() == ResizableBorderComponent::Zone::bottom) 
+        ) {
+        validResizeZone = true;
+        return true;
+    } else {
+        validResizeZone = false;
+    }
+
     if (gui && !gui->canReceiveMouseEvent(x, y)) {
         return false;
     }
@@ -150,14 +164,6 @@ bool Object::hitTest(int x, int y)
     for (auto* iolet : iolets) {
         if (iolet->getBounds().contains(x, y))
             return true;
-    }
-
-    // Mouse over corners
-    if (cnv->isSelected(this)) {
-        for (auto& corner : getCorners()) {
-            if (corner.contains(x, y))
-                return true;
-        }
     }
 
     return false;
@@ -176,24 +182,12 @@ void Object::mouseExit(MouseEvent const& e)
 
 void Object::mouseMove(MouseEvent const& e)
 {
-    if (!cnv->isSelected(this) || locked == var(true)) {
+    if (!cnv->isSelected(this) || locked == var(true) || commandLocked == var(true)) {
         setMouseCursor(MouseCursor::NormalCursor);
         updateMouseCursor();
         return;
     }
-
-    auto corners = getCorners();
-    for (auto& rect : corners) {
-        if (rect.contains(e.position)) {
-            auto zone = ResizableBorderComponent::Zone::fromPositionOnBorder(getLocalBounds().reduced(margin - 2), BorderSize<int>(5), e.getPosition());
-
-            setMouseCursor(zone.getMouseCursor());
-            updateMouseCursor();
-            return;
-        }
-    }
-
-    setMouseCursor(MouseCursor::NormalCursor);
+    setMouseCursor(validResizeZone ? resizeZone.getMouseCursor() : MouseCursor::NormalCursor);
     updateMouseCursor();
 }
 
@@ -618,25 +612,15 @@ void Object::mouseDown(MouseEvent const& e)
 
     wasLockedOnMouseDown = false;
 
-    for (auto& rect : getCorners()) {
-        if (rect.contains(e.position) && cnv->isSelected(this)) {
-            // Start resize
-            cnv->cancelConnectionCreation();
-
-            resizeZone = ResizableBorderComponent::Zone::fromPositionOnBorder(getLocalBounds().reduced(margin - 2), BorderSize<int>(5), e.getPosition());
-
-            if (resizeZone != ResizableBorderComponent::Zone(0)) {
-                originalBounds = getBounds();
-                return;
-            }
-        }
+    if(resizeZone.getZoneFlags() != ResizableBorderComponent::Zone::centre) {
+        originalBounds = getBounds();
+        return;
     }
 
     bool wasSelected = cnv->isSelected(this);
 
     cnv->handleMouseDown(this, e);
 
-    //
     if (cnv->isSelected(this) != wasSelected) {
         selectionStateChanged = true;
     }
@@ -695,20 +679,19 @@ void Object::mouseUp(MouseEvent const& e)
 
 void Object::mouseDrag(MouseEvent const& e)
 {
-    if (wasLockedOnMouseDown)
-        return;
+    if (wasLockedOnMouseDown) return;
 
-    if (resizeZone.isDraggingTopEdge() || resizeZone.isDraggingLeftEdge() || resizeZone.isDraggingBottomEdge() || resizeZone.isDraggingRightEdge()) {
-        Point<int> dragDistance = e.getOffsetFromDragStart();
-
-        auto newBounds = resizeZone.resizeRectangleBy(originalBounds, dragDistance);
-        setBounds(newBounds);
-        if (gui)
-            gui->checkBounds();
-    }
+    cnv->cancelConnectionCreation();
+    
     // Let canvas handle moving
-    else {
+    if (resizeZone.getZoneFlags() == ResizableBorderComponent::Zone::centre) {
         cnv->handleMouseDrag(e);
+    } else if (validResizeZone) {
+        const Rectangle<int> newBounds (resizeZone.resizeRectangleBy (originalBounds, e.getOffsetFromDragStart()));
+        setBoundsForComponent (this, newBounds, resizeZone.isDraggingTopEdge(),
+                                                resizeZone.isDraggingLeftEdge(),
+                                                resizeZone.isDraggingBottomEdge(),
+                                                resizeZone.isDraggingRightEdge());
     }
 }
 

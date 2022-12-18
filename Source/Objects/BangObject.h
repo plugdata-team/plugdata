@@ -23,6 +23,8 @@ public:
         auto* bng = static_cast<t_bng*>(ptr);
         bangInterrupt = bng->x_flashtime_break;
         bangHold = bng->x_flashtime_hold;
+
+        parent->setFixedAspectRatio(1);
     }
 
     void initialiseParameters() override

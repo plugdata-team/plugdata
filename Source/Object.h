@@ -13,6 +13,7 @@ extern "C" {
 }
 
 #include "ObjectGrid.h"
+#include "Utility/ObjectComponentBoundsConstrainer.h"
 #include "Iolet.h"
 #include "Objects/ObjectBase.h"
 
@@ -20,6 +21,7 @@ class Canvas;
 class Object : public Component
     , public Value::Listener
     , public Timer
+    , public ObjectComponentBoundsConstrainer
     , private TextEditor::Listener {
 public:
     Object(Canvas* parent, String const& name = "", Point<int> position = { 100, 100 });
@@ -66,6 +68,8 @@ public:
     void textEditorTextChanged(TextEditor& ed) override;
 
     bool hitTest(int x, int y) override;
+
+    bool validResizeZone = false;
 
     Array<Rectangle<float>> getCorners() const;
 
