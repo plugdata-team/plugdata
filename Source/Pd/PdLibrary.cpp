@@ -225,7 +225,7 @@ void Library::initialiseLibrary()
         // Paths to search
         // First, only search vanilla, then search all documentation
         // Lastly, check the deken folder
-        helpPaths = {appDataDir.getChildFile("Documentation").getChildFile("Library").getChildFile("5.reference"), appDataDir.getChildFile("Library").getChildFile("Documentation"),
+        helpPaths = {appDataDir.getChildFile("Library").getChildFile("Documentation").getChildFile("Library").getChildFile("5.reference"), appDataDir.getChildFile("Library").getChildFile("Documentation"),
             appDataDir.getChildFile("Deken")
         };
 
