@@ -13,15 +13,16 @@ struct CommentObject final : public TextBase
 
     void paint(Graphics& g) override
     {
+        auto commentFont = font.withHeight(13.5f);
         g.setColour(findColour(PlugDataColour::canvasTextColourId));
-        g.setFont(font);
+        g.setFont(commentFont);
 
         if (!editor) {
             TextLayout textLayout;
             auto textArea = border.subtractedFrom(getLocalBounds());
             AttributedString attributedObjectText(objectText);
             attributedObjectText.setColour(findColour(PlugDataColour::canvasTextColourId));
-            attributedObjectText.setFont(font);
+            attributedObjectText.setFont(commentFont);
             attributedObjectText.setJustification(justification);
             textLayout.createLayout(attributedObjectText, textArea.getWidth());
             textLayout.draw(g, textArea.toFloat());
