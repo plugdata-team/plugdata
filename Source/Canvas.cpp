@@ -26,10 +26,7 @@ Canvas::Canvas(PluginEditor* parent, pd::Patch& p, Component* parentGraph) : edi
     hideNameAndArgs = static_cast<bool>(p.getPointer()->gl_hidetext);
     xRange = Array<var>{var(p.getPointer()->gl_x1), var(p.getPointer()->gl_x2)};
     yRange = Array<var>{var(p.getPointer()->gl_y2), var(p.getPointer()->gl_y1)};
-    
-    
-    updateBackgroundImage();
-    
+
     isGraphChild.addListener(this);
     hideNameAndArgs.addListener(this);
     xRange.addListener(this);
@@ -106,25 +103,6 @@ Canvas::~Canvas()
     delete suggestor;
 }
 
-void Canvas::updateBackgroundImage()
-{
-    canvasBackroundImage.clear(canvasBackroundImage.getBounds(), Colours::transparentBlack);
-    
-    auto g = Graphics(canvasBackroundImage);
-    g.setImageResamplingQuality(Graphics::highResamplingQuality);
-    int const objectGridSize = 25;
-    Rectangle<int> const clipBounds = g.getClipBounds();
-    
-    g.setColour(findColour(PlugDataColour::canvasDotsColourId));
-    
-    for (int x = 0; x < clipBounds.getRight(); x += objectGridSize)
-    {
-        for (int y = 0; y < clipBounds.getBottom(); y += objectGridSize)
-        {
-            g.fillRect(static_cast<float>(x), static_cast<float>(y), 1.0, 1.0);
-        }
-    }
-}
 
 void Canvas::paint(Graphics& g)
 {
@@ -145,12 +123,18 @@ void Canvas::paint(Graphics& g)
 
     if (locked == var(false) && !isGraph)
     {
-        if(lastDotColour != findColour(PlugDataColour::canvasDotsColourId)) {
-            updateBackgroundImage();
+        int const objectGridSize = 25;
+        Rectangle<int> const clipBounds = g.getClipBounds();
+        
+        g.setColour(findColour(PlugDataColour::canvasDotsColourId));
+        
+        for (int x = 0; x < clipBounds.getRight(); x += objectGridSize)
+        {
+            for (int y = 0; y < clipBounds.getBottom(); y += objectGridSize)
+            {
+                g.fillRect(static_cast<float>(x), static_cast<float>(y), 1.0, 1.0);
+            }
         }
-                
-        g.setTiledImageFill(canvasBackroundImage, canvasOrigin.x, canvasOrigin.y, 1.0f);
-        g.fillRect(getLocalBounds().withLeft(canvasOrigin.x + 5).withTop(canvasOrigin.y + 5));
     }
 }
 
