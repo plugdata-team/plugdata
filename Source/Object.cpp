@@ -722,7 +722,6 @@ void Object::mouseUp(MouseEvent const& e)
     if(gui && !selectionStateChanged && cnv->isSelected(this) && !e.mouseWasDraggedSinceMouseDown() && !e.mods.isRightButtonDown()) {
         gui->showEditor();
     }
-
     
     selectionStateChanged = false;
 }
