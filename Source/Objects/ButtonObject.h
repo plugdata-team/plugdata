@@ -40,6 +40,7 @@ public:
     ButtonObject(void* obj, Object* parent)
         : ObjectBase(obj, parent)
     {
+        parent->setFixedAspectRatio(1);
     }
 
     void checkBounds() override

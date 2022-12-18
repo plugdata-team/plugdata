@@ -64,6 +64,12 @@ public:
         slider.onDragEnd = [this]() {
             stopEdition();
         };
+        if (isVertical) {
+            object->setMinimumSize(15, 30);
+        } else {
+            object->setMinimumSize(30, 15);
+        }
+
     }
 
     void updateLabel() override
@@ -120,17 +126,6 @@ public:
             slider.setSliderSnapsToMousePosition(!steady);
         } else {
             iemHelper.receiveObjectMessage(symbol, atoms);
-        }
-    }
-
-    void checkBounds() override
-    {
-        // Apply size limits
-        int w = jlimit(isVertical ? 23 : 50, maxSize, object->getWidth());
-        int h = jlimit(isVertical ? 77 : 25, maxSize, object->getHeight());
-
-        if (w != object->getWidth() || h != object->getHeight()) {
-            object->setSize(w, h);
         }
     }
 

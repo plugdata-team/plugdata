@@ -8,6 +8,7 @@ class RadioObject final : public ObjectBase {
 
     bool alreadyToggled = false;
     bool isVertical;
+    int numItems = 0;
 
     int selected;
 
@@ -26,6 +27,8 @@ public:
         max.addListener(this);
 
         selected = getValue();
+
+        numItems = static_cast<int>(max.getValue());
 
         if (selected > static_cast<int>(max.getValue())) {
             selected = std::min<int>(static_cast<int>(max.getValue()) - 1, selected);
@@ -48,8 +51,6 @@ public:
         int minSize = 12;
         size = std::max(size, minSize);
 
-        int numItems = static_cast<int>(max.getValue());
-
         // Fix aspect ratio
         if (isVertical) {
             object->setSize(std::max(object->getWidth(), minSize + Object::doubleMargin), size * numItems + Object::doubleMargin);
@@ -59,15 +60,15 @@ public:
     }
 
     void applyBounds() override
-    {
+    {        
         auto* radio = static_cast<t_radio*>(ptr);
 
         if (isVertical) {
             radio->x_gui.x_w = getWidth();
-            radio->x_gui.x_h = getHeight() / radio->x_number;
-        } else {
-            radio->x_gui.x_w = getWidth() / radio->x_number;
             radio->x_gui.x_h = getHeight();
+        } else {
+            radio->x_gui.x_w = getHeight();
+            radio->x_gui.x_h = getWidth();
         }
     }
 
@@ -79,7 +80,6 @@ public:
 
         float pos = isVertical ? position.y : position.x;
         float div = isVertical ? getHeight() : getWidth();
-        int numItems = static_cast<int>(max.getValue());
 
         int idx = std::clamp<int>((pos / div) * numItems, 0, numItems - 1);
 
@@ -116,7 +116,6 @@ public:
     {
         float pos = isVertical ? e.y : e.x;
         float div = isVertical ? getHeight() : getWidth();
-        int numItems = static_cast<int>(max.getValue());
 
         int idx = (pos / div) * numItems;
 
@@ -146,7 +145,7 @@ public:
         if (isVertical) {
             bounds.setSize(radio->x_gui.x_w, radio->x_gui.x_h);
         } else {
-            bounds.setSize(radio->x_gui.x_w, radio->x_gui.x_h);
+            bounds.setSize(radio->x_gui.x_h, radio->x_gui.x_w);
         }
 
         pd->getCallbackLock()->exit();
@@ -160,12 +159,12 @@ public:
         g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), PlugDataLook::objectCornerRadius);
 
         int size = (isVertical ? getWidth() : getHeight());
-        int minSize = 12;
-        size = std::max(size, minSize);
+        //int minSize = 12;
+        //size = std::max(size, minSize);
 
         g.setColour(object->findColour(PlugDataColour::objectOutlineColourId));
 
-        for (int i = 1; i < static_cast<int>(max.getValue()); i++) {
+        for (int i = 1; i < numItems; i++) {
             if (isVertical) {
                 g.drawLine(0, i * size, size, i * size);
             } else {
@@ -185,7 +184,6 @@ public:
 
     void paintOverChildren(Graphics& g) override
     {
-
         bool selected = cnv->isSelected(object) && !cnv->isGraph;
         auto outlineColour = object->findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : objectOutlineColourId);
 
@@ -203,11 +201,25 @@ public:
         return allParameters;
     }
 
+    void updateAspectRatio() 
+    {
+        float verticalLength = ((object->getWidth() - Object::doubleMargin) * numItems) + Object::doubleMargin;
+        float horizontalLength = ((object->getHeight() - Object::doubleMargin) * numItems) + Object::doubleMargin;
+
+        if (isVertical){
+            object->setSize(object->getWidth(), verticalLength);
+        } else {
+            object->setSize(horizontalLength, object->getHeight());
+        }
+        object->setFixedAspectRatio(isVertical ? 1.0f /  numItems : numItems / 1.0f);
+    }
+
     void valueChanged(Value& value) override
     {
         if (value.refersToSameSourceAs(max)) {
+            numItems = static_cast<int>(max.getValue());
+            updateAspectRatio();
             setMaximum(limitValueMin(value, 1));
-            repaint();
         } else {
             iemHelper.valueChanged(value);
         }
