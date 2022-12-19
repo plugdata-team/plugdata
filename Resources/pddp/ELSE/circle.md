@@ -16,6 +16,14 @@ inlets:
     description: outputs last values
   - type: list
     description: sets x, y and outputs it
+
+
+outlets:
+  1st:
+  - type: list
+    description: x/y values
+
+methods:
   - type: set <float, float>
     description: sets x and y
   - type: size <float>
@@ -42,12 +50,7 @@ inlets:
     description: non zero sets to init mode
   - type: clip <float>
     description: non zero clips inside the circle
-
-outlets:
-  1st:
-  - type: list
-    description: x/y values
-
+    
 flags:
   - name:
   description: (see pd flags)
