@@ -97,7 +97,7 @@ void Patch::savePatch(File const& location)
     String fullPathname = location.getParentDirectory().getFullPathName();
     String filename = location.getFileName();
 
-    auto* dir = gensym(fullPathname.toRawUTF8());
+    auto* dir = gensym(fullPathname.replace("\\", "/").toRawUTF8());
     auto* file = gensym(filename.toRawUTF8());
     
     setTitle(filename);
@@ -114,7 +114,7 @@ void Patch::savePatch()
     String fullPathname = currentFile.getParentDirectory().getFullPathName();
     String filename = currentFile.getFileName();
 
-    auto* dir = gensym(fullPathname.toRawUTF8());
+    auto* dir = gensym(fullPathname.replace("\\", "/").toRawUTF8());
     auto* file = gensym(filename.toRawUTF8());
 
     setTitle(filename);
