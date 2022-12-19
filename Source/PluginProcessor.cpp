@@ -382,7 +382,7 @@ void PluginProcessor::updateSearchPaths()
     libpd_clear_search_path();
     for (auto child : pathTree)
     {
-        auto path = child.getProperty("Path").toString();
+        auto path = child.getProperty("Path").toString().replace("\\", "/");
         libpd_add_to_search_path(path.toRawUTF8());
     }
 
@@ -390,7 +390,7 @@ void PluginProcessor::updateSearchPaths()
     auto elsePath = appDir.getChildFile("Abstractions").getChildFile("else");
     if (elsePath.exists())
     {
-        auto location = elsePath.getFullPathName();
+        auto location = elsePath.getFullPathName().replace("\\", "/");;
         libpd_add_to_search_path(location.toRawUTF8());
     }
 
@@ -398,13 +398,13 @@ void PluginProcessor::updateSearchPaths()
     auto heavylibPath = appDir.getChildFile("Abstractions").getChildFile("heavylib");
     if (heavylibPath.exists())
     {
-        auto location = heavylibPath.getFullPathName();
+        auto location = heavylibPath.getFullPathName().replace("\\", "/");;
         libpd_add_to_search_path(location.toRawUTF8());
     }
 
     for (auto path : DekenInterface::getExternalPaths())
     {
-        libpd_add_to_search_path(path.toRawUTF8());
+        libpd_add_to_search_path(path.replace("\\", "/").toRawUTF8());
     }
 
     getCallbackLock()->exit();
