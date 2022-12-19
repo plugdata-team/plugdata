@@ -590,7 +590,7 @@ Patch Instance::openPatch(File const& toOpen)
 
     bool done = false;
 
-    String dirname = toOpen.getParentDirectory().getFullPathName();
+    String dirname = toOpen.getParentDirectory().getFullPathName().replace("\\", "/");
     const auto* dir = dirname.toRawUTF8();
 
     String filename = toOpen.getFileName();

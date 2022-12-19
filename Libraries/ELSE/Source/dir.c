@@ -273,19 +273,6 @@ static void *dir_new(t_symbol *s, int ac, t_atom* av){
         canvas = canvas_getrootfor(canvas->gl_owner);
     x->x_getdir = canvas_getdir(canvas); // default
     
-// If you compile Pd with MSVC, this will return the location with "\" instead of "/", which is a problem
-#if _MSC_VER 
-    char* getdir_name = strdup(x->x_getdir->s_name);
-
-    for (int i = 0; i < strlen(getdir_name); i++) {
-        if (getdir_name[i] == '\\')
-            getdir_name[i] = '/';
-    }
-
-    x->x_getdir = gensym(getdir_name);
-    free(getdir_name);
-#endif
-    
     strncpy(x->x_directory, x->x_getdir->s_name, MAXPDSTRING); // default
     dirname == &s_ ? dir_loadir(x, x->x_getdir, 1) : dir_loadir(x, dirname, 1);
     x->x_out1 = outlet_new(&x->x_obj, &s_anything);
