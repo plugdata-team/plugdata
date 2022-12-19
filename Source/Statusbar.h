@@ -35,7 +35,7 @@ struct Statusbar : public Component, public Value::Listener, public Timer
     LevelMeter* levelMeter;
     MidiBlinker* midiBlinker;
 
-    std::unique_ptr<TextButton> powerButton, lockButton, connectionStyleButton, connectionPathfind, presentationButton, zoomIn, zoomOut, gridButton, themeButton, browserButton, automationButton;
+    std::unique_ptr<TextButton> powerButton, lockButton, connectionStyleButton, connectionPathfind, presentationButton, gridButton;
 
     TextButton oversampleSelector;
     

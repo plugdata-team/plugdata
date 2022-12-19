@@ -314,8 +314,7 @@ void PluginEditor::resized()
         fb.items.add(item);
     }
 
-    Rectangle<float> toolbarBounds = {8.0f, 0.0f, getWidth() - sidebar.getWidth() + 5.0f, static_cast<float>(toolbarHeight)};
-    if (toolbarButton(Hide)->getToggleState()) toolbarBounds.setWidth(getWidth() - 50.0f);
+    Rectangle<float> toolbarBounds = {8.0f, 0.0f, getWidth() - 250.0f, static_cast<float>(toolbarHeight)};
 
     fb.performLayout(toolbarBounds);
 
@@ -330,9 +329,9 @@ void PluginEditor::resized()
     int offset = 80;
 #endif
 
-    int pinPosition = getWidth() - std::max(sidebar.getWidth() - 40, offset);
-    int hidePosition = toolbarButton(Hide)->getToggleState() ? pinPosition : pinPosition - 70;
-
+    int hidePosition = getWidth() - 170;
+    int pinPosition = hidePosition - 70;
+   
     toolbarButton(Hide)->setBounds(hidePosition, 0, 70, toolbarHeight);
     toolbarButton(Pin)->setBounds(pinPosition, 0, 70, toolbarHeight);
 
@@ -726,8 +725,6 @@ void PluginEditor::updateCommandStatus()
         statusbar.connectionStyleButton->setToggleState(!isDragging && hasSelection && allSegmented, dontSendNotification);
         
         statusbar.lockButton->setEnabled(!isDragging);
-        statusbar.zoomIn->setEnabled(!isDragging);
-        statusbar.zoomOut->setEnabled(!isDragging);
         statusbar.attachToCanvas(cnv);
 
         auto* patchPtr = cnv->patch.getPointer();
@@ -772,8 +769,6 @@ void PluginEditor::updateCommandStatus()
         statusbar.connectionStyleButton->setEnabled(false);
         statusbar.connectionPathfind->setEnabled(false);
         statusbar.lockButton->setEnabled(false);
-        statusbar.zoomIn->setEnabled(false);
-        statusbar.zoomOut->setEnabled(false);
         
         statusbar.lockButton->setEnabled(false);
         statusbar.presentationButton->setEnabled(false);

@@ -196,14 +196,9 @@ Statusbar::Statusbar(PluginProcessor* processor) : pd(processor)
     lockButton = std::make_unique<TextButton>(Icons::Lock);
     connectionStyleButton = std::make_unique<TextButton>(Icons::ConnectionStyle);
     connectionPathfind = std::make_unique<TextButton>(Icons::Wand);
-    zoomIn = std::make_unique<TextButton>(Icons::ZoomIn);
-    zoomOut = std::make_unique<TextButton>(Icons::ZoomOut);
     presentationButton = std::make_unique<TextButton>(Icons::Presentation);
     gridButton = std::make_unique<TextButton>(Icons::Grid);
-    themeButton = std::make_unique<TextButton>(Icons::Theme);
-    browserButton = std::make_unique<TextButton>(Icons::Documentation);
-    automationButton = std::make_unique<TextButton>(Icons::Parameters);
-
+    
     presentationButton->setTooltip("Presentation Mode");
     presentationButton->setClickingTogglesState(true);
     presentationButton->setConnectedEdges(12);

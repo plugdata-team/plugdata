@@ -21,55 +21,50 @@ struct Constants
 
 struct Icons
 {
-    inline static const CharPointer_UTF8 New = CharPointer_UTF8("\xef\x85\x9b");
-    inline static const CharPointer_UTF8 Open = CharPointer_UTF8("\xef\x81\xbb");
-    inline static const CharPointer_UTF8 Save = CharPointer_UTF8("\xef\x83\x87");
-    inline static const CharPointer_UTF8 SaveAs = CharPointer_UTF8("\xef\x80\x99");
-    inline static const CharPointer_UTF8 Undo = CharPointer_UTF8("\xef\x83\xa2");
-    inline static const CharPointer_UTF8 Redo = CharPointer_UTF8("\xef\x80\x9e");
-    inline static const CharPointer_UTF8 Add = CharPointer_UTF8("\xef\x81\xa7");
-    inline static const CharPointer_UTF8 Settings = CharPointer_UTF8("\xef\x80\x93");
-    inline static const CharPointer_UTF8 Hide = CharPointer_UTF8("\xef\x81\x94");
-    inline static const CharPointer_UTF8 Show = CharPointer_UTF8("\xef\x81\x93");
-    inline static const CharPointer_UTF8 Clear = CharPointer_UTF8("\xef\x80\x8d");
-    inline static const CharPointer_UTF8 ClearLarge = CharPointer_UTF8("\xef\x86\xa2");
-    inline static const CharPointer_UTF8 Lock = CharPointer_UTF8("\xef\x80\xa3");
-    inline static const CharPointer_UTF8 Unlock = CharPointer_UTF8("\xef\x82\x9c");
-    inline static const CharPointer_UTF8 ConnectionStyle = CharPointer_UTF8("\xee\xa1\xbc");
-    inline static const CharPointer_UTF8 Power = CharPointer_UTF8("\xef\x80\x91");
-    inline static const CharPointer_UTF8 Audio = CharPointer_UTF8("\xef\x80\xa8");
-    inline static const CharPointer_UTF8 Search = CharPointer_UTF8("\xef\x80\x82");
-    inline static const CharPointer_UTF8 Wand = CharPointer_UTF8("\xef\x83\x90");
-    inline static const CharPointer_UTF8 Pencil = CharPointer_UTF8("\xef\x87\xbc");
-    inline static const CharPointer_UTF8 Colour = CharPointer_UTF8("\xef\x87\xbb");
-    inline static const CharPointer_UTF8 Grid = CharPointer_UTF8("\xef\x84\xb6");
-    inline static const CharPointer_UTF8 Theme = CharPointer_UTF8("\xef\x81\x82");
-    inline static const CharPointer_UTF8 ZoomIn = CharPointer_UTF8("\xef\x80\x8e");
-    inline static const CharPointer_UTF8 ZoomOut = CharPointer_UTF8("\xef\x80\x90");
-    inline static const CharPointer_UTF8 Pin = CharPointer_UTF8("\xef\x82\x8d");
-    inline static const CharPointer_UTF8 Keyboard = CharPointer_UTF8("\xef\x84\x9c");
-    inline static const CharPointer_UTF8 Folder = CharPointer_UTF8("\xef\x81\xbb");
-    inline static const CharPointer_UTF8 OpenedFolder = CharPointer_UTF8("\xef\x81\xbc");
-    inline static const CharPointer_UTF8 File = CharPointer_UTF8("\xef\x85\x9c");
-    inline static const CharPointer_UTF8 AutoScroll = CharPointer_UTF8("\xef\x80\xb4");
-    inline static const CharPointer_UTF8 Restore = CharPointer_UTF8("\xef\x83\xa2");
-    inline static const CharPointer_UTF8 Error = CharPointer_UTF8("\xef\x81\xb1");
-    inline static const CharPointer_UTF8 Message = CharPointer_UTF8("\xef\x81\xb5");
-    inline static const CharPointer_UTF8 Parameters = CharPointer_UTF8("\xef\x87\x9e");
-    inline static const CharPointer_UTF8 Presentation = CharPointer_UTF8("\xef\x86\x94");
-    inline static const CharPointer_UTF8 Externals = CharPointer_UTF8("\xef\x84\xae");
-    inline static const CharPointer_UTF8 Info = CharPointer_UTF8("\xef\x81\x9a");
-    inline static const CharPointer_UTF8 Refresh = CharPointer_UTF8("\xef\x80\xa1");
-    inline static const CharPointer_UTF8 Up = CharPointer_UTF8("\xef\x81\xa2");
-    inline static const CharPointer_UTF8 Down = CharPointer_UTF8("\xef\x81\xa3");
-    inline static const CharPointer_UTF8 Edit = CharPointer_UTF8("\xef\x81\x80");
-    inline static const CharPointer_UTF8 ThinDown = CharPointer_UTF8("\xef\x84\x87");
-    inline static const CharPointer_UTF8 Sine = CharPointer_UTF8("\xee\xa1\x95");
-    inline static const CharPointer_UTF8 Documentation = CharPointer_UTF8("\xef\x80\xad");
-    inline static const CharPointer_UTF8 AddCircled = CharPointer_UTF8("\xef\x81\x95");
-    inline static const CharPointer_UTF8 Console = CharPointer_UTF8("\xef\x84\xa0");
-    inline static const CharPointer_UTF8 GitHub = CharPointer_UTF8("\xef\x82\x9b");
-    inline static const CharPointer_UTF8 Wrench = CharPointer_UTF8 ("\xef\x82\xad");
+    inline static const String New            = "a";
+    inline static const String Open           = "b";
+    inline static const String Save           = "c";
+    inline static const String SaveAs         = "d";
+    inline static const String Undo           = "e";
+    inline static const String Redo           = "f";
+    inline static const String Add            = "g";
+    inline static const String Settings       = "h";
+    inline static const String Hide           = "i";
+    inline static const String Show           = "i";
+    inline static const String Clear          = "k";
+    inline static const String ClearLarge     = "l";
+    inline static const String Lock           = "m";
+    inline static const String Unlock         = "n";
+    inline static const String ConnectionStyle= "o";
+    inline static const String Power          = "p";
+    inline static const String Audio          = "q";
+    inline static const String Search         = "r";
+    inline static const String Wand           = "s";
+    inline static const String Pencil         = "t";
+    inline static const String Grid           = "u";
+    inline static const String Pin            = "v";
+    inline static const String Keyboard       = "w";
+    inline static const String Folder         = "x";
+    inline static const String OpenedFolder   = "y";
+    inline static const String File           = "z";
+    inline static const String AutoScroll     = "A";
+    inline static const String Restore        = "B";
+    inline static const String Error          = "C";
+    inline static const String Message        = "D";
+    inline static const String Parameters     = "E";
+    inline static const String Presentation   = "F";
+    inline static const String Externals      = "G";
+    inline static const String Refresh        = "H";
+    inline static const String Up             = "I";
+    inline static const String Down           = "J";
+    inline static const String Edit           = "K";
+    inline static const String ThinDown       = "L";
+    inline static const String Sine           = "M";
+    inline static const String Documentation  = "N";
+    inline static const String AddCircled     = "O";
+    inline static const String Console        = "P";
+    inline static const String GitHub         = "Q";
+    inline static const String Wrench         = "R";
 };
 
 
@@ -327,19 +322,19 @@ struct PlugDataLook : public LookAndFeel_V4
     {
         if (but.getName().startsWith("toolbar"))
         {
-            return getToolbarFont(buttonHeight * 1.05f);
+            return getToolbarFont(buttonHeight * 1.16f);
         }
         if (but.getName().startsWith("statusbar:oversample"))
         {
-            return {buttonHeight / 2.2f};
+            return {buttonHeight / 2.0f};
         }
         if (but.getName().startsWith("tabbar"))
         {
-            return iconFont.withHeight(buttonHeight / 2.7f);
+            return iconFont.withHeight(buttonHeight / 2.4f);
         }
         if (but.getName().startsWith("statusbar") || but.getName().startsWith("tab"))
         {
-            return getStatusbarFont(buttonHeight);
+            return getStatusbarFont(buttonHeight * 1.08f);
         }
         
         return {buttonHeight / 1.7f};
