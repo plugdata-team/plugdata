@@ -234,7 +234,7 @@ Statusbar::Statusbar(PluginProcessor* processor) : pd(processor)
 
     powerButton->setToggleState(pd_getdspstate(), dontSendNotification);
 
-    lockButton->setTooltip("Lock");
+    lockButton->setTooltip("Edit Mode");
     lockButton->setClickingTogglesState(true);
     lockButton->setConnectedEdges(12);
     lockButton->setName("statusbar:lock");

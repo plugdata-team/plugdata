@@ -876,7 +876,7 @@ void PluginEditor::getCommandInfo(const CommandID commandID, ApplicationCommandI
         }
         case CommandIDs::Lock:
         {
-            result.setInfo("Lock", "Lock patch", "Edit", 0);
+            result.setInfo("Run mode", "Run Mode", "Edit", 0);
             result.addDefaultKeypress(69, ModifierKeys::commandModifier);
             result.setActive(hasCanvas && !isDragging && !static_cast<bool>(statusbar.presentationMode.getValue()));
             break;
