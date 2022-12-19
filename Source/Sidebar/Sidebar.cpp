@@ -35,9 +35,7 @@ Sidebar::Sidebar(PluginProcessor* instance, PluginEditor* parent)
     addChildComponent(browser);
     addChildComponent(automationPanel);
     addChildComponent(searchPanel);
-    
-    browser->setAlwaysOnTop(true);
-    
+        
     browser->addMouseListener(this, true);
     console->addMouseListener(this, true);
     automationPanel->addMouseListener(this, true);
