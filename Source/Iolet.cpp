@@ -117,11 +117,11 @@ void Iolet::mouseDrag(const MouseEvent& e)
 
 void Iolet::mouseUp(const MouseEvent& e)
 {
-    if (static_cast<bool>(locked.getValue()))
+    if (static_cast<bool>(locked.getValue()) || e.mods.isRightButtonDown())
         return;
 
     auto* cnv = findParentComponentOfClass<Canvas>();
-
+    
     if (!e.mouseWasDraggedSinceMouseDown() && cnv->connectingIolets.isEmpty()) {
         createConnection();
 

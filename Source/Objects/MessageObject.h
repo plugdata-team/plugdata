@@ -45,13 +45,15 @@ struct MessageObject final : public TextBase, public KeyListener, public pd::Mes
         w = std::max(35, textObj->te_width * glist_fontwidth(cnv->patch.getPointer()));
         
         if (textObj->te_width == 0 && !getText().isEmpty()) {
-            w = Font(15).getStringWidth(getText()) + 19;
+            w = getBestTextWidth(getText());
         }
         
         pd->getCallbackLock()->exit();
         
         object->setObjectBounds({ x, y, w, h });
     }
+    
+    
     
     void checkBounds() override
     {
@@ -108,8 +110,6 @@ struct MessageObject final : public TextBase, public KeyListener, public pd::Mes
     
     void paintOverChildren(Graphics& g) override
     {
-        // GUIObject::paintOverChildren(g);
-        
         auto b = getLocalBounds().reduced(1);
         
         Path flagPath;
@@ -123,6 +123,19 @@ struct MessageObject final : public TextBase, public KeyListener, public pd::Mes
         }
     }
     
+    
+    int getBestTextWidth(String const& text) override
+    {
+        auto lines = StringArray::fromLines(text);
+        auto maxWidth = 32;
+        
+        for(auto& line : lines)
+        {
+            maxWidth = std::max<int>(font.getStringWidthFloat(line) + 19, maxWidth);
+        }
+        
+        return maxWidth;
+    }
     
      void updateValue() override
     {
@@ -158,8 +171,9 @@ struct MessageObject final : public TextBase, public KeyListener, public pd::Mes
 
             editor->setAlwaysOnTop(true);
 
-            editor->setMultiLine(false);
+            editor->setMultiLine(true);
             editor->setReturnKeyStartsNewLine(false);
+            editor->setScrollbarsShown(false);
             editor->setBorder(border);
             editor->setIndents(0, 0);
             editor->setJustification(justification);
@@ -189,6 +203,51 @@ struct MessageObject final : public TextBase, public KeyListener, public pd::Mes
         }
     }
     
+    void hideEditor() override
+    {
+        if (editor != nullptr) {
+            WeakReference<Component> deletionChecker(this);
+            std::unique_ptr<TextEditor> outgoingEditor;
+            std::swap(outgoingEditor, editor);
+
+            outgoingEditor->setInputFilter(nullptr, false);
+            
+            auto newText = outgoingEditor->getText();
+
+            bool changed;
+            if (objectText != newText) {
+                objectText = newText;
+                repaint();
+                changed = true;
+            } else {
+                changed = false;
+            }
+
+            outgoingEditor.reset();
+
+            repaint();
+            
+            // Calculate size of new text
+            auto lines = StringArray::fromTokens(newText, ";\n", "");
+            auto maxWidth = 32;
+            
+            for(auto& line : lines)
+            {
+                maxWidth = std::max<int>(font.getStringWidthFloat(line) + 19, maxWidth);
+            }
+            
+            int newHeight = (lines.size() * 19) + Object::doubleMargin;
+            int newWidth = maxWidth + Object::doubleMargin + 4;
+            
+            auto newBounds = Rectangle<int>(object->getX(), object->getY(), newWidth, newHeight);
+            object->setObjectBounds(newBounds.reduced(Object::margin));
+            
+            applyBounds();
+            
+            object->setType(newText);
+        }
+    }
+    
     void mouseDown(MouseEvent const& e) override
     {
         if (isLocked) {
@@ -211,6 +270,8 @@ struct MessageObject final : public TextBase, public KeyListener, public pd::Mes
         isDown = false;
         repaint();
     }
+    
+
     
     /*
      void valueChanged(Value& v) override
