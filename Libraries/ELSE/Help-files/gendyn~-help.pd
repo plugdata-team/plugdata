@@ -304,5 +304,5 @@
 #X text 204 387 - dynamic stochastic synthesis output;
 #X text 42 89 [gendyn~] implements "Dynamic Strochastic Synthesis" based on Xenakis' 'GenDyn' algorhythm. The waveform has a given number of points (linearly interpolated by default). The period of each point and its value changes according to a random walk (a.k.a. brownian motion) with given distributions., f 79;
 #X text 203 326 - sets interpolation mode (default 1 \, linear);
-#X obj 41 223 else/rand.d;
+#X obj 41 223 else/rand.dist;
 #X connect 16 0 17 0;

@@ -103,6 +103,14 @@ String ObjectBase::getType() const
         {
             return String("invalid");
         }
+        if(String(libpd_get_object_class_name(ptr)) == "text" && static_cast<t_text*>(ptr)->te_type == T_TEXT)
+        {
+            return String("comment");
+        }
+        if(String(libpd_get_object_class_name(ptr)) == "text" && static_cast<t_text*>(ptr)->te_type == T_MESSAGE)
+        {
+            return String("message");
+        }
         if (auto* name = libpd_get_object_class_name(ptr)) {
             return String(name);
         }
