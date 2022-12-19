@@ -53,8 +53,6 @@ struct MessageObject final : public TextBase, public KeyListener, public pd::Mes
         object->setObjectBounds({ x, y, w, h });
     }
     
-    
-    
     void checkBounds() override
     {
         int numLines = getNumLines(getText(), object->getWidth() - Object::doubleMargin - 5);
