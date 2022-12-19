@@ -313,8 +313,8 @@ void PluginEditor::resized()
 
         fb.items.add(item);
     }
-
-    Rectangle<float> toolbarBounds = {8.0f, 0.0f, getWidth() - 250.0f, static_cast<float>(toolbarHeight)};
+    
+    Rectangle<float> toolbarBounds = {8.0f, 0.0f, getWidth() - 240.0f, static_cast<float>(toolbarHeight)};
 
     fb.performLayout(toolbarBounds);
 
@@ -329,8 +329,11 @@ void PluginEditor::resized()
     int offset = 80;
 #endif
 
-    int hidePosition = getWidth() - 170;
-    int pinPosition = hidePosition - 70;
+    auto useNativeTitlebar = static_cast<bool>(pd->settingsTree.getProperty("NativeWindow"));
+    auto windowControlsOffset = useNativeTitlebar ? 70.0f : 170.0f;
+    
+    int hidePosition = getWidth() - windowControlsOffset;
+    int pinPosition = hidePosition - 65;
    
     toolbarButton(Hide)->setBounds(hidePosition, 0, 70, toolbarHeight);
     toolbarButton(Pin)->setBounds(pinPosition, 0, 70, toolbarHeight);
