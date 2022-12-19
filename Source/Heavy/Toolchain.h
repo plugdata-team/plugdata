@@ -219,24 +219,6 @@ struct ToolchainInstaller : public Component, public Thread, public Timer
     
     void run() override
     {
-        
-#if JUCE_LINUX
-        // Add udev rule for the daisy seed
-        // This makes sure we can use dfu-util without admin privileges
-        // Kinda sucks that we need to sudo this, but there's no other way AFAIK
-        
-        auto askpassScript = Toolchain::dir.getChildFile("scripts").getChildFile("askpass.sh");
-        auto udevInstallScript = Toolchain::dir.getChildFile("scripts").getChildFile("udev-install.sh");
-        
-        askpassScript.setExecutePermission(true);
-        udevInstallScript.setExecutePermission(true);
-        
-        std::system(udevInstallScript.getFullPathName().toRawUTF8());
-
-#elif JUCE_MAC
-        Toolchain::startShellScript("xcode-select --install");
-#endif
-        
         MemoryBlock toolchainData;
         
         if(!instream) return; // error!
@@ -270,9 +252,11 @@ struct ToolchainInstaller : public Component, public Thread, public Timer
         MemoryInputStream input(toolchainData, false);
         ZipFile zip(input);
         
-        if(Toolchain::dir.exists()) Toolchain::dir.deleteRecursively();
+        auto toolchainDir = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory).getChildFile("plugdata").getChildFile("Toolchain");
         
-        auto result = zip.uncompressTo(Toolchain::dir);
+        if(toolchainDir.exists()) toolchainDir.deleteRecursively();
+        
+        auto result = zip.uncompressTo(toolchainDir);
         
         if (!result.wasOk() || (statusCode >= 400)) {
             MessageManager::callAsync([this](){
@@ -311,6 +295,23 @@ struct ToolchainInstaller : public Component, public Thread, public Timer
         MessageManager::callAsync([this, usbDriverInstaller, driverSpec]() mutable {
             runAsAdmin(usbDriverInstaller.getFullPathName().toStdString(), ("install --inf=" + driverSpec.getFullPathName()).toStdString(), editor->getPeer()->getNativeHandle());
         });
+#endif
+        
+#if JUCE_LINUX
+        // Add udev rule for the daisy seed
+        // This makes sure we can use dfu-util without admin privileges
+        // Kinda sucks that we need to sudo this, but there's no other way AFAIK
+        
+        auto askpassScript = Toolchain::dir.getChildFile("scripts").getChildFile("askpass.sh");
+        auto udevInstallScript = Toolchain::dir.getChildFile("scripts").getChildFile("udev-install.sh");
+        
+        askpassScript.setExecutePermission(true);
+        udevInstallScript.setExecutePermission(true);
+        
+        std::system(udevInstallScript.getFullPathName().toRawUTF8());
+
+#elif JUCE_MAC
+        Toolchain::startShellScript("xcode-select --install");
 #endif
         
         installProgress = 0.0f;
