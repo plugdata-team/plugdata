@@ -20,7 +20,7 @@ struct CommentObject final : public TextBase
 
         if (!editor) {
             TextLayout textLayout;
-            auto textArea = border.subtractedFrom(getLocalBounds());
+            auto textArea = getLocalBounds().reduced(4, 2);
             AttributedString attributedObjectText(objectText);
             attributedObjectText.setColour(findColour(PlugDataColour::canvasTextColourId));
             attributedObjectText.setFont(font);
@@ -140,7 +140,7 @@ struct CommentObject final : public TextBase
             editor->setMultiLine(true);
             editor->setReturnKeyStartsNewLine(false);
             editor->setScrollbarsShown(false);
-            editor->setBorder(border);
+            editor->setBorder(BorderSize<int>{0, 4, 0, 0});
             editor->setIndents(0, 0);
             editor->setJustification(justification);
 
