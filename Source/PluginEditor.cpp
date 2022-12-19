@@ -194,9 +194,10 @@ PluginEditor::PluginEditor(PluginProcessor& p) : AudioProcessorEditor(&p), pd(&p
     toolbarButton(Hide)->onClick = [this]()
     {
         bool show = !toolbarButton(Hide)->getToggleState();
+
         sidebar.showSidebar(show);
         toolbarButton(Hide)->setButtonText(show ? Icons::Hide : Icons::Show);
-
+        toolbarButton(Hide)->setTooltip(show ? "Hide Sidebar" : "Show Sidebar");
         toolbarButton(Pin)->setVisible(show);
 
         repaint();
