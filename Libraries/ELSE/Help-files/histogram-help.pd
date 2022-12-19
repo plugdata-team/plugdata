@@ -1,57 +1,36 @@
 #N canvas 432 23 561 646 10;
-#X obj 5 297 cnv 3 550 3 empty empty inlets 8 12 0 13 #dcdcdc #000000
-0;
-#X obj 5 451 cnv 3 550 3 empty empty outlets 8 12 0 13 #dcdcdc #000000
-0;
-#X obj 5 586 cnv 3 550 3 empty empty arguments 8 12 0 13 #dcdcdc #000000
-0;
-#X obj 5 620 cnv 15 552 21 empty empty empty 20 12 0 14 #e0e0e0 #202020
-0;
-#X obj 308 4 cnv 15 250 40 empty empty empty 12 13 0 18 #7c7c7c #e0e4dc
-0;
+#X obj 5 297 cnv 3 550 3 empty empty inlets 8 12 0 13 #dcdcdc #000000 0;
+#X obj 5 451 cnv 3 550 3 empty empty outlets 8 12 0 13 #dcdcdc #000000 0;
+#X obj 5 586 cnv 3 550 3 empty empty arguments 8 12 0 13 #dcdcdc #000000 0;
+#X obj 5 620 cnv 15 552 21 empty empty empty 20 12 0 14 #e0e0e0 #202020 0;
+#X obj 308 4 cnv 15 250 40 empty empty empty 12 13 0 18 #7c7c7c #e0e4dc 0;
 #N canvas 382 141 749 319 (subpatch) 0;
 #X coords 0 -1 1 1 252 42 2 100 100;
 #X restore 307 3 pd;
-#X obj 347 10 cnv 10 10 10 empty empty ELSE 0 15 2 30 #7c7c7c #e0e4dc
-0;
-#X obj 23 39 cnv 4 4 4 empty empty Probability\\\ distribution\\\ histogram
-0 28 2 18 #e0e0e0 #000000 0;
-#X obj 460 10 cnv 10 10 10 empty empty EL 0 6 2 13 #7c7c7c #e0e4dc
-0;
-#X obj 480 10 cnv 10 10 10 empty empty Locus 0 6 2 13 #7c7c7c #e0e4dc
-0;
-#X obj 517 10 cnv 10 10 10 empty empty Solus' 0 6 2 13 #7c7c7c #e0e4dc
-0;
-#X obj 466 25 cnv 10 10 10 empty empty ELSE 0 6 2 13 #7c7c7c #e0e4dc
-0;
-#X obj 504 25 cnv 10 10 10 empty empty library 0 6 2 13 #7c7c7c #e0e4dc
-0;
-#X obj 111 462 cnv 17 3 17 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
-;
-#X obj 112 305 cnv 17 3 138 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c
-0;
-#X obj 111 485 cnv 17 3 17 empty empty 1 5 9 0 16 #dcdcdc #9c9c9c 0
-;
-#X obj 5 3 cnv 15 301 42 empty empty histogram 20 20 2 37 #e0e0e0 #000000
-0;
+#X obj 347 10 cnv 10 10 10 empty empty ELSE 0 15 2 30 #7c7c7c #e0e4dc 0;
+#X obj 23 39 cnv 4 4 4 empty empty Probability\ distribution\ histogram 0 28 2 18 #e0e0e0 #000000 0;
+#X obj 460 10 cnv 10 10 10 empty empty EL 0 6 2 13 #7c7c7c #e0e4dc 0;
+#X obj 480 10 cnv 10 10 10 empty empty Locus 0 6 2 13 #7c7c7c #e0e4dc 0;
+#X obj 517 10 cnv 10 10 10 empty empty Solus' 0 6 2 13 #7c7c7c #e0e4dc 0;
+#X obj 466 25 cnv 10 10 10 empty empty ELSE 0 6 2 13 #7c7c7c #e0e4dc 0;
+#X obj 504 25 cnv 10 10 10 empty empty library 0 6 2 13 #7c7c7c #e0e4dc 0;
+#X obj 111 462 cnv 17 3 17 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0;
+#X obj 112 305 cnv 17 3 138 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0;
+#X obj 111 485 cnv 17 3 17 empty empty 1 5 9 0 16 #dcdcdc #9c9c9c 0;
+#X obj 5 3 cnv 15 301 42 empty empty histogram 20 20 2 37 #e0e0e0 #000000 0;
 #N canvas 0 22 450 278 (subpatch) 0;
 #X coords 0 1 100 -1 302 42 1 0 0;
 #X restore 4 3 graph;
-#X obj 207 158 hradio 18 1 0 8 empty empty empty 0 -8 0 10 #dfdfdf
-#000000 #000000 0;
+#X obj 207 158 hradio 18 1 0 8 empty empty empty 0 -8 0 10 #dfdfdf #000000 #000000 0;
 #X msg 255 199 clear;
 #X obj 207 186 else/display 3;
-#X text 180 305 float - positive integer to record into histogram,
-f 56;
-#X text 186 321 list - note on pitch to record into histogram, f 55
-;
-#X obj 5 534 cnv 3 550 3 empty empty flags 8 12 0 13 #dcdcdc #000000
-0;
+#X text 180 305 float - positive integer to record into histogram, f 56;
+#X text 186 321 list - note on pitch to record into histogram, f 55;
+#X obj 5 534 cnv 3 550 3 empty empty flags 8 12 0 13 #dcdcdc #000000 0;
 #X text 128 542 -size <float>: sets table size (default 128);
 #X text 180 336 clear - clears histogram table, f 56;
 #X text 174 367 export - export histogram table as a list, f 57;
-#X text 132 351 query <float> - query number of occurances of an index
-, f 64;
+#X text 132 351 query <float> - query number of occurances of an index, f 64;
 #X text 138 412 size <float> - clears and resizes table, f 63;
 #X obj 207 232 else/histogram -size 8;
 #A saved;
@@ -60,8 +39,7 @@ f 56;
 #N canvas 540 120 685 423 example 0;
 #X obj 66 59 keyboard 17 80 2 3 0 0 empty empty;
 #X msg 91 172 query 60;
-#X text 154 166 query for occurrances (output in right outlet), f
-24;
+#X text 154 166 query for occurrances (output in right outlet), f 24;
 #X text 63 32 list input works for note on messages;
 #X msg 102 204 clear;
 #X obj 66 242 else/histogram;
@@ -71,21 +49,16 @@ f 56;
 #X obj 204 253 array define \$0-table 128;
 #X f 13;
 #X obj 147 272 else/display;
-#X text 36 347 [histogram] creates an internal table that you can export
-\, but you can also use the left output to treat the data and write
-into an external table., f 50;
+#X text 36 347 [histogram] creates an internal table that you can export \, but you can also use the left output to treat the data and write into an external table., f 50;
 #X obj 377 69 keyboard 17 80 2 3 0 0 empty empty;
-#X obj 435 232 bng 18 250 50 0 empty empty empty 17 7 0 10 #dfdfdf
-#000000 #000000;
+#X obj 435 232 bng 18 250 50 0 empty empty empty 17 7 0 10 #dfdfdf #000000 #000000;
 #X obj 435 289 else/display 3;
-#X text 366 25 If you set a table name to [histogram] you can use it
-in [rand.d] \, for instance., f 41;
+#X text 366 25 If you set a table name to [histogram] you can use it in [rand.d] \, for instance., f 41;
 #X obj 377 194 else/histogram \$0-histo;
 #A saved;
 #X obj 435 262 else/rand.d \$0-histo;
 #X msg 402 165 clear;
-#X obj 502 319 bng 18 250 50 0 empty empty empty 17 7 0 10 #dfdfdf
-#000000 #000000;
+#X obj 502 319 bng 18 250 50 0 empty empty empty 17 7 0 10 #dfdfdf #000000 #000000;
 #X obj 502 376 else/display 3;
 #X obj 502 349 array random \$0-histo;
 #X text 379 350 or [array random];
@@ -104,31 +77,23 @@ in [rand.d] \, for instance., f 41;
 #X restore 464 250 pd example;
 #X text 22 187 see also:;
 #X obj 21 211 array random;
-#X obj 21 233 else/rand.d;
 #X text 132 427 name <symbol> - sets table name, f 64;
 #X text 164 595 1) symbol - set table name (default internal);
-#X text 132 382 import <list> - import histogram data as a list, f
-64;
-#X text 132 397 embed <float> - non zero embeds histogram data with
-the patch, f 64;
-#X text 128 560 -embed: embeds histogram data with the patch (default
-don't);
-#X text 64 95 [histogram] records into a table how many times it received
-a positive integer number (treated as indexes \, floats are truncated).
-A list input is treated as MIDI note messages and only note ons are
-recorded., f 68;
+#X text 132 382 import <list> - import histogram data as a list, f 64;
+#X text 132 397 embed <float> - non zero embeds histogram data with the patch, f 64;
+#X text 128 560 -embed: embeds histogram data with the patch (default don't);
+#X text 64 95 [histogram] records into a table how many times it received a positive integer number (treated as indexes \, floats are truncated). A list input is treated as MIDI note messages and only note ons are recorded., f 68;
 #X listbox 207 261 7 0 0 0 - - - 12;
-#X obj 111 509 cnv 17 3 17 empty empty 2 5 9 0 16 #dcdcdc #9c9c9c 0
-;
-#X text 180 510 float - number of occurances at 'query' message, f
-54;
+#X obj 111 509 cnv 17 3 17 empty empty 2 5 9 0 16 #dcdcdc #9c9c9c 0;
+#X text 180 510 float - number of occurances at 'query' message, f 54;
 #X text 186 486 list - table values at 'export' message, f 53;
 #X text 186 464 list - occurances and index after input, f 53;
 #X text 295 198 clears the memory;
 #X obj 21 256 else/rand.hist;
+#X obj 21 233 else/rand.dist;
 #X connect 18 0 20 0;
 #X connect 19 0 29 0;
 #X connect 20 0 29 0;
-#X connect 29 0 42 0;
+#X connect 29 0 41 0;
 #X connect 29 1 31 0;
 #X connect 30 0 29 0;
