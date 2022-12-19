@@ -21,7 +21,6 @@ struct Constants
 
 struct Icons
 {
-    inline static const String New            = "a";
     inline static const String Open           = "b";
     inline static const String Save           = "c";
     inline static const String SaveAs         = "d";
@@ -47,6 +46,7 @@ struct Icons
     inline static const String Folder         = "x";
     inline static const String OpenedFolder   = "y";
     inline static const String File           = "z";
+    inline static const String New            = "z";
     inline static const String AutoScroll     = "A";
     inline static const String Restore        = "B";
     inline static const String Error          = "C";
