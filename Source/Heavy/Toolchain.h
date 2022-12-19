@@ -303,7 +303,7 @@ struct ToolchainInstaller : public Component, public Thread, public Timer
         // Kinda sucks that we need to sudo this, but there's no other way AFAIK
         
         auto askpassScript = Toolchain::dir.getChildFile("scripts").getChildFile("askpass.sh");
-        auto udevInstallScript = Toolchain::dir.getChildFile("scripts").getChildFile("udev-install.sh");
+        auto udevInstallScript = Toolchain::dir.getChildFile("scripts").getChildFile("install_udev_rule.sh");
         
         askpassScript.setExecutePermission(true);
         udevInstallScript.setExecutePermission(true);
