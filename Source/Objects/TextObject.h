@@ -41,7 +41,7 @@ struct TextBase : public ObjectBase
         width = std::max(width, std::max({ 1, object->numInputs, object->numOutputs }) * 18);
 
         numLines = getNumLines(objectText, width);
-        int height = numLines * 20 + 1;
+        int height = numLines * 19 + 2;
 
         if (getWidth() != width || getHeight() != height) {
             object->setSize(width + Object::doubleMargin, height + Object::doubleMargin);
@@ -240,11 +240,11 @@ struct TextBase : public ObjectBase
 protected:
     Justification justification = Justification::centredLeft;
     std::unique_ptr<TextEditor> editor;
-    BorderSize<int> border { 1, 7, 1, 2 };
+    BorderSize<int> border = BorderSize<int>(1, 7, 1, 2);
     float minimumHorizontalScale = 0.8f;
 
     String objectText;
-    Font font { 15.0f };
+    Font font = Font(15.0f);
 
     int textObjectWidth = 0;
     int textWidthOffset = 0;
