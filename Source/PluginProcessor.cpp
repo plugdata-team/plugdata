@@ -1389,7 +1389,7 @@ void PluginProcessor::reloadAbstractions(File changedPatch, t_glist* except)
     
     isPerformingGlobalSync = true;
     
-    auto* dir = gensym(changedPatch.getParentDirectory().getFullPathName().toRawUTF8());
+    auto* dir = gensym(changedPatch.getParentDirectory().getFullPathName().replace("\\", "/").toRawUTF8());
     auto* file = gensym(changedPatch.getFileName().toRawUTF8());
     
     canvas_reload(file, dir, except);
