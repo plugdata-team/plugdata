@@ -525,7 +525,8 @@ void PluginEditor::addTab(Canvas* cnv, bool deleteWhenClosed)
     tabbar.setTabBackgroundColour(tabIdx, Colours::transparentBlack);
 
     auto* tabButton = tabbar.getTabbedButtonBar().getTabButton(tabIdx);
-
+    tabButton->setTriggeredOnMouseDown(true);
+    
     auto* closeTabButton = new TextButton(Icons::Clear);
 
     closeTabButton->onClick = [this, tabButton, deleteWhenClosed]() mutable
