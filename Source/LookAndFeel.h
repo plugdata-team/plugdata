@@ -887,8 +887,6 @@ struct PlugDataLook : public LookAndFeel_V4
          
          auto w = (int) (tl.getWidth() + 18.0f);
          auto h = (int) (tl.getHeight() + 10.0f);
-         
-         
 
          return Rectangle<int> (screenPos.x > parentArea.getCentreX() ? screenPos.x - (w + 12) : screenPos.x + 24,
                                 screenPos.y > parentArea.getCentreY() ? screenPos.y - (h + 6)  : screenPos.y + 6,
