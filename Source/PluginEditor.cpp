@@ -319,11 +319,6 @@ void PluginEditor::resized()
 
     fb.performLayout(toolbarBounds);
 
-    // hide when they fall off the screen
-    for (int b = 0; b < 8; b++)
-    {
-        toolbarButtons[b]->setVisible((toolbarButtons[b]->getBounds().getCentreX()) < getWidth() - sidebar.getWidth());
-    }
 #ifdef PLUGDATA_STANDALONE
     int offset = 150;
 #else
