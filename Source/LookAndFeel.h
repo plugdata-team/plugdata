@@ -836,25 +836,65 @@ struct PlugDataLook : public LookAndFeel_V4
     void drawTooltip(Graphics& g, const String& text, int width, int height) override
     {
         Rectangle<int> bounds(width, height);
-        auto cornerSize = 5.0f;
+        auto cornerSize = Constants::defaultCornerRadius;
         
-        g.setColour(findColour(TooltipWindow::backgroundColourId));
+        g.setColour(findColour(PlugDataColour::popupMenuBackgroundColourId));
         g.fillRoundedRectangle(bounds.toFloat(), cornerSize);
         
-        g.setColour(findColour(TooltipWindow::outlineColourId));
+        g.setColour(findColour(PlugDataColour::outlineColourId));
         g.drawRoundedRectangle(bounds.toFloat().reduced(0.5f, 0.5f), cornerSize, 0.5f);
         
-        const float tooltipFontSize = 13.0f;
+        const float tooltipFontSize = 14.0f;
         const int maxToolTipWidth = 400;
         
         AttributedString s;
         s.setJustification(Justification::centred);
-        s.append(text, Font(tooltipFontSize, Font::bold), findColour(TooltipWindow::textColourId));
+        
+        auto lines = StringArray::fromLines(text);
+        
+        for(const auto& line : lines)
+        {
+            if(line.contains("(") && line.contains(")"))
+            {
+                auto type = line.fromFirstOccurrenceOf("(", false, false).upToFirstOccurrenceOf(")", false, false);
+                auto description = line.fromFirstOccurrenceOf(")", false, false);
+                s.append(type + ":", semiBoldFont.withHeight(tooltipFontSize), findColour(PlugDataColour::popupMenuTextColourId));
+                
+                s.append(description + "\n", Font(tooltipFontSize), findColour(PlugDataColour::popupMenuTextColourId));
+            }
+            else {
+                s.append(line, Font(tooltipFontSize), findColour(PlugDataColour::popupMenuTextColourId));
+            }
+        }
         
         TextLayout tl;
         tl.createLayoutWithBalancedLineLengths(s, (float)maxToolTipWidth);
         tl.draw(g, {static_cast<float>(width), static_cast<float>(height)});
     }
+    
+
+     Rectangle<int> getTooltipBounds (const String& tipText, Point<int> screenPos, Rectangle<int> parentArea) override
+     {
+         const float tooltipFontSize = 14.0f;
+         const int maxToolTipWidth = 400;
+
+         AttributedString s;
+         s.setJustification (Justification::centred);
+         s.append (tipText, Font (tooltipFontSize, Font::bold), Colours::black);
+
+         TextLayout tl;
+         tl.createLayoutWithBalancedLineLengths (s, (float) maxToolTipWidth);
+         
+         auto w = (int) (tl.getWidth() + 18.0f);
+         auto h = (int) (tl.getHeight() + 10.0f);
+         
+         
+
+         return Rectangle<int> (screenPos.x > parentArea.getCentreX() ? screenPos.x - (w + 12) : screenPos.x + 24,
+                                screenPos.y > parentArea.getCentreY() ? screenPos.y - (h + 6)  : screenPos.y + 6,
+                                w, h)
+                  .constrainedWithin (parentArea);
+     }
     
     int getTreeViewIndentSize (TreeView&) override
     {
