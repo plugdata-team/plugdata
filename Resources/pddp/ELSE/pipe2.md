@@ -1,7 +1,7 @@
 ---
 title: pipe2
 
-description:
+description: Delay messages
 
 categories:
 - object
@@ -9,24 +9,31 @@ categories:
 pdcategory:
 
 arguments:
-- description:
-  type:
-  default:
+- description: delay time in ms
+  type: float
+  default: 0
 
 inlets:
   1st:
-  - type:
-    description:
+  - type: anything
+    description: message to be delayed
   2nd:
-  - type:
-    description:
+  - type: float
+    description: sets delay time in ms
 
 outlets:
   1st:
-  - type:
-    description:
+  - type: anything
+    description: the delayed message
+
+methods:
+  - type: clear
+    description: clears the delay time
+  - type: flush
+    description: outputs all stored elements
 
 draft: false
 ---
 
-LONG DESCRIPTION HERE
+[pipe2] is similar to vanilla's pipe. It takes all kinds of messages and delays them.
+

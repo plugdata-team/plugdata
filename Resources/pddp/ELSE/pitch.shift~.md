@@ -1,7 +1,7 @@
 ---
 title: pitch.shift~
 
-description:
+description: Pitch shifter
 
 categories:
 - object
@@ -9,24 +9,31 @@ categories:
 pdcategory:
 
 arguments:
-- description:
-  type:
-  default:
+- description: transposition in cents
+  type: float
+  default: 0
+- description: grain size in ms (minimum 5)
+  type: float
+  default: 75
 
 inlets:
   1st:
-  - type:
-    description:
+  - type: signal
+    description: input to pitch shifter
   2nd:
-  - type:
-    description:
+  - type: float
+    description: transposition in cents
+  3rd:
+  - type: float
+    description: grain size in ms
 
 outlets:
   1st:
-  - type:
-    description:
+  - type: signal
+    description: output of pitch shifter
 
 draft: false
 ---
 
-LONG DESCRIPTION HERE
+[pitch.shift~] is a pitch shifter abstraction based on granulation. You can set a transposition factor in cents and a grain size in ms.
+

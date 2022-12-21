@@ -1,24 +1,31 @@
 ---
 title: pgm.in
-description:
+description: MIDI program input
 categories:
  - object
 pdcategory: General
 arguments:
 - type: float
-  description:
-  default:
+  description: sets channel number
+  default: 0 - OMNI
+
 inlets:
   1st:
   - type: float
-    description:
+    description: raw MIDI data stream
   2nd:
   - type: float
-    description:
+    description: MIDI channel
+
 outlets:
   1st:
   - type: float
-    description:
+    description: MIDI Program
   2nd:
   - type: float
-    description:
+    description: MIDI channel
+
+---
+
+[pgm.in] extracts MIDI Program information from raw MIDI input (such as from [midiin]). Unlike vanilla's [pgmin] and [pgmout], the program change values are from 0 to 127!
+

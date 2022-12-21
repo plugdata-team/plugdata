@@ -1,27 +1,36 @@
 ---
 title: pulsediv~
-description:
+description: Pulse divider
+
 categories:
  - object
+
 pdcategory: General
+
 arguments:
 - type: float
-  description:
-  default:
+  description: divide value
+  default: 1
 - type: float
-  description:
-  default:
+  description: start count value
+  default: 0
+
 inlets:
   1st:
   - type: signal
-    description:
+    description: trigger signal to be divided
   2nd:
   - type: signal
-    description:
+    description: an impulse resets the counter to the start value
 outlets:
   1st:
   - type: signal
-    description:
+    description: divided triggers (impulse)
   2nd:
   - type: signal
-    description:
+    description: impulse for the other trigger inputs
+
+---
+
+[pulsediv~] outputs impulses when receiving triggers (signal changes from non-positive to positive). The left outlt outputs impulses according to the division value and the right outlet outputs impulses for the other trigger inputs.
+

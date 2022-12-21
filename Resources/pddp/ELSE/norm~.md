@@ -1,7 +1,7 @@
 ---
 title: norm~
 
-description:
+description: Normalizer
 
 categories:
 - object
@@ -9,24 +9,28 @@ categories:
 pdcategory:
 
 arguments:
-- description:
-  type:
-  default:
+- description: normalize level in dBFS
+  type: float
+  default: 0
 
 inlets:
   1st:
-  - type:
-    description:
+  - type: signal
+    description: signal to be normalized
   2nd:
-  - type:
-    description:
+  - type: float
+    description: normalize level in dBFS
 
 outlets:
   1st:
-  - type:
-    description:
+  - type: signal
+    description: normalized signal
+
+flags:
+  - name: -size <float>
+    description: sets analysis window size in samples (default 1024)
 
 draft: false
 ---
 
-LONG DESCRIPTION HERE
+[norm~] is a normalizer abstraction based on [mov.rms~]. It takes a normalization value in dBFS and a window analysis size.

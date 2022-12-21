@@ -1,21 +1,28 @@
 ---
 title: pgm.out
-description:
+description: MIDI program output
 categories:
  - object
 pdcategory: General
 arguments:
-- type: gimme
-  description:
-  default:
+- type: float
+  description: sets channel number
+  default: 1
+
 inlets:
   1st:
   - type: float
-    description:
+    description: pitch values
   2nd:
   - type: float
-    description:
+    description: MIDI channel
+
 outlets:
   1st:
   - type: float
-    description:
+    description: raw MIDI stream
+
+---
+
+[pgm.out] formats and sends raw MIDI program messages. An argument sets channel number (the default is 1). Unlike vanilla's [pgmin] and [pgmout], the program change values are from 0 to 127!
+
