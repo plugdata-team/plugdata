@@ -1,7 +1,7 @@
 ---
 title: ping.pong~
 
-description:
+description: Ping pong delay
 
 categories:
 - object
@@ -9,24 +9,31 @@ categories:
 pdcategory:
 
 arguments:
-- description:
-  type:
-  default:
+- description: delay time
+  type: float
+  default: 0
+- description: feedback gain
+  type: float
+  default: 0
 
 inlets:
   1st:
-  - type:
-    description:
+  - type: signal
+    description: input to ping pong delay
   2nd:
-  - type:
-    description:
+  - type: float
+    description: delay time in ms
+  3rd:
+  - type: float
+    description: feedback gain
 
 outlets:
   1st:
-  - type:
-    description:
+  - type: signal
+    description: ping pong delay output
 
 draft: false
 ---
 
-LONG DESCRIPTION HERE
+[ping.pong~] is a ping pong delay object
+

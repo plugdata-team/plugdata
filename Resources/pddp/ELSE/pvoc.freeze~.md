@@ -1,7 +1,7 @@
 ---
 title: pvoc.freeze~
 
-description:
+description: Phase-vocoder freeze
 
 categories:
 - object
@@ -15,18 +15,25 @@ arguments:
 
 inlets:
   1st:
-  - type:
-    description:
+  - type: signal
+    description: input to freeze
   2nd:
-  - type:
-    description:
+  - type: float
+    description: non-zero (re)freezes, 0 unfreezes
 
 outlets:
   1st:
-  - type:
-    description:
+  - type: signal
+    description: freeze output
+
+methods:
+  - type: freeze
+    description: freezes/refreezes
+  - type: unfreeze
+    description: unfreezes
 
 draft: false
 ---
 
-LONG DESCRIPTION HERE
+[pvoc.freeze~] is a freeze object based on a phase vocoder.
+
