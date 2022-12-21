@@ -149,7 +149,7 @@ public:
             auto compiler = bin.getChildFile("arm-none-eabi-gcc" + exeSuffix);
             
             
-            libDaisy.copyDirectoryTo(outputFile.getChildFile("libDaisy"));
+            libDaisy.copyDirectoryTo(outputFile.getChildFile("libdaisy"));
             
             outputFile.getChildFile("ir").deleteRecursively();
             outputFile.getChildFile("hv").deleteRecursively();
