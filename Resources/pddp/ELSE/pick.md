@@ -1,7 +1,7 @@
 ---
 title: pick
 
-description:
+description: Pick element from message
 
 categories:
 - object
@@ -9,24 +9,25 @@ categories:
 pdcategory:
 
 arguments:
-- description:
-  type:
-  default:
+- description: element number
+  type: float
+  default: 0, none
 
 inlets:
   1st:
-  - type:
-    description:
+  - type: anything
+    description: input message
   2nd:
-  - type:
-    description:
+  - type: float
+    description: element number
 
 outlets:
   1st:
-  - type:
-    description:
+  - type: anything
+    description: the element from the input message
 
 draft: false
 ---
 
-LONG DESCRIPTION HERE
+[pick] picks an element from an input message according to an element number. Negative values count from last to the first element. If you ask for an element number out of the range, nothing is output.
+

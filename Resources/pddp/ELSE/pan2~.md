@@ -1,24 +1,33 @@
 ---
 title: pan2~
-description:
+description: Stereo panning
+
 categories:
  - object
 pdcategory: General
+
 arguments:
 - type: float
-  description:
-  default:
+  description: initial pan value
+  default: 0
+
 inlets:
   1st:
   - type: signal
-    description:
+    description: signal input
   2nd:
-  - type: signal
-    description:
+  - type: float/signal
+    description: pan value: from -1 (L) to 1 (R)
+
 outlets:
   1st:
   - type: signal
-    description:
+    description: left channel
   2nd:
   - type: signal
-    description:
+    description: right channel
+
+---
+
+[pan2~] performs an equal power (sin/cos) panning.
+

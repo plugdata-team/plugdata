@@ -1,24 +1,33 @@
 ---
 title: pimpmul~
-description:
+description: [pimp~] multiplier
+
 categories:
  - object
+
 pdcategory: General
+
 arguments:
 - type: float
-  description:
-  default:
+  description: initial multiplier
+  default: 0
+
 inlets:
   1st:
   - type: signal
-    description:
+    description: phase signal to multiply
   2nd:
-  - type: signal
-    description:
+  - type: float/signal
+    description: frequency multiplier
 outlets:
   1st:
   - type: signal
-    description:
+    description: muliplied phase signal
   2nd:
   - type: signal
-    description:
+    description: impulse at period transitoins
+
+---
+
+[pimpmul~] is a "pimp~" multiplier. The [pimp~] object from ELSE is both a [phasor~] and an [imp~] oscillator. Use [pimpul~] to keep [phasor~] or [pimp~] objects in sync with different frequency ratios.
+

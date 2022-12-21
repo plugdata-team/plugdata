@@ -1,21 +1,35 @@
 ---
 title: pulsecount~
-description:
+description: Pulse counter
+
 categories:
  - object
+
 pdcategory: General
+
 arguments:
 - type: float
-  description:
-  default:
+  description: maximum count value
+  default: 0 - no maximum
+
 inlets:
   1st:
   - type: signal
-    description:
+    description: trigger signal to count
   2nd:
   - type: signal
-    description:
+    description: an impulse resets counter to zero
+
 outlets:
   1st:
   - type: signal
-    description:
+    description: the trigger count
+
+methods:
+  - type: max <float>
+    description: sets maximum count value
+
+---
+
+[pulsecount~] counts pulse triggers. A trigger happens at transitions from non positive to positive. A trigger in the right inlet resets the counter to zero. The argument sets a maximum count value (if greater than 0).
+
