@@ -1,7 +1,7 @@
 ---
 title: note2pitch
 
-description:
+description: Convert note name to MIDI pitch
 
 categories:
 - object
@@ -9,24 +9,25 @@ categories:
 pdcategory:
 
 arguments:
-- description:
+- description: none
   type:
   default:
 
 inlets:
   1st:
-  - type:
-    description:
-  2nd:
-  - type:
-    description:
+  - type: anything
+    description: note name to convert to MIDI pitch
 
 outlets:
   1st:
-  - type:
-    description:
+  - type: float
+    description: MIDI pitch value
+
+flags:
+- name: -list
+  description: sets to list mode
 
 draft: false
 ---
 
-LONG DESCRIPTION HERE
+[note2pitch] converts note names (such as 'C4') to MIDI pitch values. All enharmonic names are included (even unusual ones like Cb and double sharps/flats). It takes symbols, lists or anythings that end with an octave number, in a way that C4 represents middle C (MIDI pitch = 60). Range is from C0 to B8.

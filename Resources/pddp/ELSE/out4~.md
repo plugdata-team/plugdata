@@ -1,7 +1,7 @@
 ---
 title: out4~
 
-description:
+description: Quadraphonic output
 
 categories:
 - object
@@ -9,24 +9,46 @@ categories:
 pdcategory:
 
 arguments:
-- description:
-  type:
-  default:
+  1st:
+  - description: max gain (needs to be > 0)
+    type: float
+    default: 1
+  2nd:
+  - description: scaling mode: 0 (quartic), 1 (dB), or 2 (linear)
+    type: float
+    default: 0
 
 inlets:
   1st:
-  - type:
-    description:
+  - type: signal
+    description: incoming signal (routed to [dac~ 1])
   2nd:
-  - type:
-    description:
+  - type: signal
+    description: incoming signal (routed to [dac~ 2])
+  3rd:
+  - type: signal
+    description: incoming signal (routed to [dac~ 3])
+  4th:
+  - type: signal
+    description: incoming signal (routed to [dac~ 4])
 
 outlets:
-  1st:
-  - type:
-    description:
+
+methods:
+  - type: set <float>
+    description: sets slider (range is clipped to 0-1)
+  - type: <on/off>
+    description: turns DSP Engine (Compute Audio) On or Off
+  - type: mode <float>
+    description: scaling mode: 0 (quartic, default), 1 (dB) or 2 (linear)
+  - type: mute
+    description: mute/unmute button
+  - type: gain <float>
+    description: sets max gain (values <= 0 are ignored)
+  - type: ramp <float>
+    description: sets ramp time in ms for slider values (default 20)
 
 draft: false
 ---
 
-LONG DESCRIPTION HERE
+[out4~] is a convenient quadraphonic input/output abstraction. It has controls for mute, DSP on/off, ramp time, maximum gain and scaling mode. Note that you need to specify at least 4 output channels in preferences => audio.

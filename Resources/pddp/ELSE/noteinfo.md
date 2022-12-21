@@ -1,21 +1,29 @@
 ---
 title: noteinfo
-description:
+description: Detailed MIDI note information
 categories:
  - object
 pdcategory: General
+
 arguments:
+
 inlets:
   1st:
   - type: float
-    description:
+    description: midi pitch
+  - type: bang
+    description: resets by sending note-offs and erasing events' memory
   2nd:
   - type: float
-    description:
+    description: note velocity
 outlets:
   1st:
   - type: float
-    description:
+    description: voice number (from 0), event number, pitch, velocity, duration (delta time for note on and duration for note off)
   2nd:
   - type: float
-    description:
+    description: number of active voices
+
+---
+
+[noteinfo] sends number of active voices in the right outlet and a list of MIDI note information to the left.
