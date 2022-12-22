@@ -266,7 +266,7 @@ int Instance::getBlockSize() const
     return libpd_blocksize();
 }
 
-void Instance::prepareDSP(int const nins, int const nouts, double const samplerate, int const blockSize)
+void Instance::prepareDSP(const int nins, const int nouts, const double samplerate, const int blockSize)
 {
     libpd_set_instance(static_cast<t_pdinstance*>(m_instance));
     libpd_init_audio(nins, nouts, static_cast<int>(samplerate));
@@ -288,61 +288,61 @@ void Instance::releaseDSP()
     libpd_message("pd", "dsp", 1, &av);
 }
 
-void Instance::performDSP(float const* inputs, float* outputs)
+void Instance::performDSP(const float* inputs, float* outputs)
 {
     libpd_set_instance(static_cast<t_pdinstance*>(m_instance));
     libpd_process_raw(inputs, outputs);
 }
 
-void Instance::sendNoteOn(int const channel, int const pitch, int const velocity) const
+void Instance::sendNoteOn(const int channel, const int pitch, const int velocity) const
 {
     libpd_set_instance(static_cast<t_pdinstance*>(m_instance));
     libpd_noteon(channel - 1, pitch, velocity);
 }
 
-void Instance::sendControlChange(int const channel, int const controller, int const value) const
+void Instance::sendControlChange(const int channel, const int controller, const int value) const
 {
     libpd_set_instance(static_cast<t_pdinstance*>(m_instance));
     libpd_controlchange(channel - 1, controller, value);
 }
 
-void Instance::sendProgramChange(int const channel, int const value) const
+void Instance::sendProgramChange(const int channel, const int value) const
 {
     libpd_set_instance(static_cast<t_pdinstance*>(m_instance));
     libpd_programchange(channel - 1, value);
 }
 
-void Instance::sendPitchBend(int const channel, int const value) const
+void Instance::sendPitchBend(const int channel, const int value) const
 {
     libpd_set_instance(static_cast<t_pdinstance*>(m_instance));
     libpd_pitchbend(channel - 1, value);
 }
 
-void Instance::sendAfterTouch(int const channel, int const value) const
+void Instance::sendAfterTouch(const int channel, const int value) const
 {
     libpd_set_instance(static_cast<t_pdinstance*>(m_instance));
     libpd_aftertouch(channel - 1, value);
 }
 
-void Instance::sendPolyAfterTouch(int const channel, int const pitch, int const value) const
+void Instance::sendPolyAfterTouch(const int channel, const int pitch, const int value) const
 {
     libpd_set_instance(static_cast<t_pdinstance*>(m_instance));
     libpd_polyaftertouch(channel - 1, pitch, value);
 }
 
-void Instance::sendSysEx(int const port, int const byte) const
+void Instance::sendSysEx(const int port, const int byte) const
 {
     libpd_set_instance(static_cast<t_pdinstance*>(m_instance));
     libpd_sysex(port, byte);
 }
 
-void Instance::sendSysRealTime(int const port, int const byte) const
+void Instance::sendSysRealTime(const int port, const int byte) const
 {
     libpd_set_instance(static_cast<t_pdinstance*>(m_instance));
     libpd_sysrealtime(port, byte);
 }
 
-void Instance::sendMidiByte(int const port, int const byte) const
+void Instance::sendMidiByte(const int port, const int byte) const
 {
     libpd_set_instance(static_cast<t_pdinstance*>(m_instance));
     libpd_midibyte(port, byte);
@@ -361,7 +361,7 @@ void Instance::sendBang(char const* receiver) const
     libpd_bang(receiver);
 }
 
-void Instance::sendFloat(char const* receiver, float const value) const
+void Instance::sendFloat(char const* receiver, const float value) const
 {
 #if !PLUGDATA_STANDALONE
     if (!m_instance)
@@ -544,7 +544,7 @@ void Instance::enqueueDirectMessages(void* object, String const& msg)
     enqueueFunction([this, object, msg]() mutable { processSend(dmessage { object, String(), "symbol", std::vector<Atom>(1, msg) }); });
 }
 
-void Instance::enqueueDirectMessages(void* object, float const msg)
+void Instance::enqueueDirectMessages(void* object, const float msg)
 {
     enqueueFunction([this, object, msg]() mutable { processSend(dmessage { object, String(), "float", std::vector<Atom>(1, msg) }); });
 }

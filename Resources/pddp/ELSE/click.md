@@ -6,7 +6,7 @@ description: Responds to clicks on parent
 categories:
  - object
 
-pdcategory: Patch/Subpatch Management
+pdcategory: Patch Management
 
 arguments:
 - type: float

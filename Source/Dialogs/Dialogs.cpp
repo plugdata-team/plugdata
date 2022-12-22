@@ -14,6 +14,7 @@
 #include "ArrayDialog.h"
 #include "SettingsDialog.h"
 #include "TextEditorDialog.h"
+#include "ObjectBrowserDialog.h"
 #include "../Heavy/HeavyExportDialog.h"
 #include "Canvas.h"
 
@@ -83,6 +84,12 @@ void Dialogs::showObjectMenu(PluginEditor* parent, Component* target)
         return i;
     };
 
+    
+    menu.addItem("Open Object Browser", [parent]() mutable {
+         Dialogs::showObjectBrowserDialog(&parent->openedDialog, parent);
+     });
+    
+    menu.addSeparator();
     menu.addItem(createCommandItem(CommandIDs::NewObject, "Empty Object"));
     menu.addSeparator();
     menu.addItem(createCommandItem(CommandIDs::NewNumbox, "Number"));
@@ -115,7 +122,7 @@ void Dialogs::showObjectMenu(PluginEditor* parent, Component* target)
 
     menu.showMenuAsync(PopupMenu::Options().withMinimumWidth(100).withMaximumNumColumns(1).withTargetComponent(target).withParentComponent(parent),
         [parent](int result) {
-            if (result != 0) {
+            if (result > 0) {
                 if (auto* cnv = parent->getCurrentCanvas()) {
                     cnv->attachNextObjectToMouse = true;
                 }
@@ -185,6 +192,18 @@ void Dialogs::showHeavyExportDialog(std::unique_ptr<Dialog>* target, Component* 
     dialog->setViewedComponent(dialogContent);
     target->reset(dialog);
 }
+
+void Dialogs::showObjectBrowserDialog(std::unique_ptr<Dialog>* target, Component* parent)
+{
+     
+    auto* dialog = new Dialog(target, parent, 725, 450, parent->getBounds().getCentreY() + 200, true);
+    auto* dialogContent = new ObjectBrowserDialog(parent, dialog);
+
+    dialog->setViewedComponent(dialogContent);
+    target->reset(dialog);
+}
+
+
 
 StringArray DekenInterface::getExternalPaths()
 {

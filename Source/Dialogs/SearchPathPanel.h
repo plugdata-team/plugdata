@@ -172,8 +172,8 @@ public:
     
     void resized() override
     {
-        int const statusbarHeight = 32;
-        int const statusbarY = getHeight() - statusbarHeight;
+        const int statusbarHeight = 32;
+        const int statusbarY = getHeight() - statusbarHeight;
         
         listBox.setBounds(0, 4, getWidth(), statusbarY);
         

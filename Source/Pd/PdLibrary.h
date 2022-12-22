@@ -26,7 +26,7 @@ using ArgumentMap = std::unordered_map<String, Arguments>;
 
 using ObjectMap = std::unordered_map<String, String>;
 using KeywordMap = std::unordered_map<String, StringArray>;
-
+using CategoryMap = std::unordered_map<String, StringArray>;
 // Define the character size
 #define CHAR_SIZE 128
 #define CHAR_TO_INDEX(c) (static_cast<int>(c) - static_cast<int>('\0'))
@@ -91,8 +91,10 @@ struct Library : public FileSystemWatcher::Listener {
 
     ObjectMap getObjectDescriptions();
     KeywordMap getObjectKeywords();
+    CategoryMap getObjectCategories();
     IODescriptionMap getInletDescriptions();
     IODescriptionMap getOutletDescriptions();
+    StringArray getAllObjects();
     ArgumentMap getArguments();
 
     std::function<void()> appDirChanged;
@@ -100,9 +102,12 @@ struct Library : public FileSystemWatcher::Listener {
 private:
     ObjectMap objectDescriptions;
     KeywordMap objectKeywords;
+    CategoryMap objectCategories;
     IODescriptionMap inletDescriptions;
     IODescriptionMap outletDescriptions;
     ArgumentMap arguments;
+    
+    StringArray allObjects;
 
     std::mutex libraryLock;
 

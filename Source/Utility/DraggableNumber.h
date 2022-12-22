@@ -187,15 +187,15 @@ struct DraggableNumber : public Label {
         auto mouseSource = Desktop::getInstance().getMainMouseSource();
         mouseSource.enableUnboundedMouseMovement(true, true);
 
-        int const decimal = decimalDrag + e.mods.isShiftDown();
-        float const increment = (decimal == 0) ? 1. : (1. / std::pow(10., decimal));
-        float const deltaY = (e.y - e.mouseDownPosition.y) * 0.7f;
+        const int decimal = decimalDrag + e.mods.isShiftDown();
+        const float increment = (decimal == 0) ? 1. : (1. / std::pow(10., decimal));
+        const float deltaY = (e.y - e.mouseDownPosition.y) * 0.7f;
 
         // truncate value and set
         float newValue = dragValue + (increment * -deltaY);
 
         if (decimal > 0) {
-            int const sign = (newValue > 0) ? 1 : -1;
+            const int sign = (newValue > 0) ? 1 : -1;
             unsigned int ui_temp = (newValue * std::pow(10, decimal)) * sign;
             newValue = (((float)ui_temp) / std::pow(10, decimal) * sign);
         } else {
@@ -321,8 +321,8 @@ struct DraggableListNumber : public DraggableNumber {
         auto mouseSource = Desktop::getInstance().getMainMouseSource();
         mouseSource.enableUnboundedMouseMovement(true, true);
 
-        float const increment = 1.;
-        float const deltaY = (e.y - e.mouseDownPosition.y) * 0.7f;
+        const float increment = 1.;
+        const float deltaY = (e.y - e.mouseDownPosition.y) * 0.7f;
 
         // lastDragPos = e.position;
 

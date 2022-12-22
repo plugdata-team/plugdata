@@ -150,7 +150,7 @@ private:
     
     bool isEnabled = false;
     
-    float const default_value;
+    const float default_value;
     
     String name;
     

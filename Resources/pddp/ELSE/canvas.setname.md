@@ -6,7 +6,7 @@ description: Set canvas name
 categories:
  - object
 
-pdcategory: Subpatch Management
+pdcategory: Patch Management
 
 arguments:
 - type: symbol

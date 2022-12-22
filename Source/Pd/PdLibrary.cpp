@@ -265,10 +265,13 @@ void Library::updateLibrary()
 #else
         mlist = o->c_methods;
 #endif
+        
+        allObjects.clear();
 
         for (i = o->c_nmethod, m = mlist; i--; m++) {
             String name(m->me_name->s_name);
             searchTree->insert(m->me_name->s_name);
+            allObjects.add(m->me_name->s_name);
         }
 
         searchTree->insert("graph");
@@ -282,6 +285,7 @@ void Library::updateLibrary()
             // Get pd files but not help files
             if (file.getFileExtension() == ".pd" && !(file.getFileNameWithoutExtension().startsWith("help-") || file.getFileNameWithoutExtension().endsWith("-help"))) {
                 searchTree->insert(file.getFileNameWithoutExtension().toStdString());
+                allObjects.add(file.getFileNameWithoutExtension().toStdString());
             }
         }
 
@@ -293,6 +297,7 @@ void Library::updateLibrary()
             // Get pd files but not help files
             if (file.getFileExtension() == ".pd" && !(file.getFileNameWithoutExtension().startsWith("help-") || file.getFileNameWithoutExtension().endsWith("-help"))) {
                 searchTree->insert(file.getFileNameWithoutExtension().toStdString());
+                allObjects.add(file.getFileNameWithoutExtension().toStdString());
             }
         }
 
@@ -305,6 +310,7 @@ void Library::updateLibrary()
                 // Get pd files but not help files
                 if (file.getFileExtension() == ".pd" && !(file.getFileNameWithoutExtension().startsWith("help-") || file.getFileNameWithoutExtension().endsWith("-help"))) {
                     searchTree->insert(file.getFileNameWithoutExtension().toStdString());
+                    allObjects.add(file.getFileNameWithoutExtension().toStdString());
                 }
             }
         }
@@ -390,7 +396,7 @@ void Library::parseDocumentation(String const& path)
 
     auto parseFile = [this, getSections, formatText, sectionsFromHyphens](File& f) {
         String contents = f.loadFileAsString();
-        auto sections = getSections(contents, { "\ntitle", "\ndescription", "\npdcategory", "\ncategories", "\nflags", "\narguments", "\nlast_update", "\ninlets", "\noutlets", "\ndraft" });
+        auto sections = getSections(contents, { "\ntitle", "\ndescription", "\npdcategory", "\ncategories", "\nflags", "\narguments", "\nlast_update", "\ninlets", "\noutlets", "\ndraft", "\nsee_also", "\nmethods"});
 
         if (!sections.count("title"))
             return;
@@ -399,6 +405,15 @@ void Library::parseDocumentation(String const& path)
 
         if (sections.count("description")) {
             objectDescriptions[name] = sections["description"].first;
+        }
+        
+        if (sections.count("pdcategory")) {
+            auto categories = sections["pdcategory"].first;
+            if(categories.isEmpty()) categories = "Unknown";
+            for(auto category : StringArray::fromTokens(categories, ",", ""))
+            {
+                objectCategories[category.trim()].add(name);
+            }
         }
 
         if (sections.count("arguments") || sections.count("flags")) {
@@ -459,6 +474,10 @@ void Library::parseDocumentation(String const& path)
             parseFile(file);
         }
     }
+    
+    for(auto& [category, objects] : objectCategories) {
+        objects.removeDuplicates(true);
+    }
 }
 
 Suggestions Library::autocomplete(String query) const
@@ -501,6 +520,11 @@ String Library::getInletOutletTooltip(String objname, int idx, int total, bool i
     };
 
     return isInlet ? findInfo(getInletDescriptions()) : findInfo(getOutletDescriptions());
+}
+
+StringArray Library::getAllObjects()
+{
+    return allObjects;
 }
 
 void Library::fsChangeCallback()
@@ -583,6 +607,15 @@ KeywordMap Library::getObjectKeywords()
         auto keywords = objectKeywords;
         libraryLock.unlock();
         return keywords;
+    }
+    return {};
+}
+CategoryMap Library::getObjectCategories()
+{
+    if (libraryLock.try_lock()) {
+        auto categories = objectCategories;
+        libraryLock.unlock();
+        return categories;
     }
     return {};
 }

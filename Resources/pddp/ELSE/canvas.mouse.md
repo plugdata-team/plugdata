@@ -6,7 +6,7 @@ description:
 categories:
  - object
 
-pdcategory: Control (Mouse Interaction)
+pdcategory: Patch Management
 
 arguments:
 - type: float

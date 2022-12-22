@@ -256,8 +256,8 @@ struct IEMObject : public GUIObject {
             int labelLength = Font(fontHeight).getStringWidth(getExpandedLabelText());
 
             auto const* iemgui = static_cast<t_iemgui*>(ptr);
-            int const posx = objectBounds.getX() + iemgui->x_ldx;
-            int const posy = objectBounds.getY() + iemgui->x_ldy;
+            const int posx = objectBounds.getX() + iemgui->x_ldx;
+            const int posy = objectBounds.getY() + iemgui->x_ldy;
 
             return { posx, posy, labelLength, fontHeight };
         }
@@ -306,7 +306,7 @@ struct IEMObject : public GUIObject {
         iemgui_receive(ptr, iemgui, sym);
     }
 
-    static unsigned int fromIemColours(int const color)
+    static unsigned int fromIemColours(const int color)
     {
         auto const c = static_cast<unsigned int>(color << 8 | 0xFF);
         return ((0xFF << 24) | ((c >> 24) << 16) | ((c >> 16) << 8) | (c >> 8));

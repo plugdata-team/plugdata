@@ -6,7 +6,7 @@ categories:
 see_also:
 - rev1~
 - rev2~
-pdcategory: "'EXTRA' (patches and externs in pd/extra)"
+pdcategory: Extra
 last_update: '0.37.1'
 inlets:
   1st:

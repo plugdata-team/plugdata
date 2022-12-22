@@ -430,7 +430,7 @@ void GUIObject::updateValue()
                 if (!_this)
                     return;
 
-                float const v = _this->getValue();
+                const float v = _this->getValue();
                 if (_this->value != v) {
                     MessageManager::callAsync(
                         [_this, v]() mutable {

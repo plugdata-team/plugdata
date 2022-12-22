@@ -166,7 +166,7 @@ public:
 
     void paintItem(Graphics& g, int width, int height) override
     {
-        int const x = 40;
+        const int x = 40;
 
         if (isSelected())
             g.setColour(owner.findColour(PlugDataColour::sidebarActiveTextColourId));

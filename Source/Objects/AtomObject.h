@@ -342,5 +342,5 @@ struct AtomObject : public GUIObject {
             return (iemgui_raute2dollar(s));
     }
 
-    int const atomSizes[7] = { 0, 8, 10, 12, 16, 24, 36 };
+    const int atomSizes[7] = { 0, 8, 10, 12, 16, 24, 36 };
 };

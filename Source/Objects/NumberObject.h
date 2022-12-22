@@ -66,7 +66,7 @@ struct NumberObject final : public IEMObject {
 
     void checkBounds() override
     {
-        int const widthIncrement = 9;
+        const int widthIncrement = 9;
         int width = jlimit(27, maxSize, (getWidth() / widthIncrement) * widthIncrement);
         int height = jlimit(18, maxSize, getHeight());
         if (getWidth() != width || getHeight() != height) {
@@ -148,7 +148,7 @@ struct NumberObject final : public IEMObject {
 
     void paintOverChildren(Graphics& g) override
     {
-        int const indent = 9;
+        const int indent = 9;
 
         Rectangle<int> const iconBounds = getLocalBounds().withWidth(indent - 4).withHeight(getHeight() - 8).translated(4, 4);
 

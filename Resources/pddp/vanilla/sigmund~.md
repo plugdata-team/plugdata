@@ -4,7 +4,7 @@ description: sinusoidal analysis and pitch tracking
 categories:
 - object
 see_also: {}
-pdcategory: "'EXTRA' (patches and externs in pd/extra)"
+pdcategory: Extra
 last_update: '0.46'
 inlets:
   1st:

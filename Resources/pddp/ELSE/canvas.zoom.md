@@ -6,7 +6,7 @@ description: Report zoom status
 categories:
  - object
 
-pdcategory: Subpatch Management
+pdcategory: Patch Management
 
 arguments:
 - type: float

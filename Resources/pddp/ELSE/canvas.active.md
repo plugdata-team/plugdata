@@ -6,7 +6,7 @@ description: Report window activity
 categories:
  - object
 
-pdcategory: Subpatch Management
+pdcategory: Patch Management
 
 arguments:
 - type: float

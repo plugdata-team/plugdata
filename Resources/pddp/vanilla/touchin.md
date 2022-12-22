@@ -3,7 +3,7 @@ title: touchin
 description: MIDI input
 categories:
 - object
-pdcategory: I/O via MIDI, OSC, and FUDI
+pdcategory: I/O 
 last_update: 0.48-2
 see_also:
 - notein

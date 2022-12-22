@@ -7,7 +7,7 @@ description: Toggle flip flop
 categories:
 - object
 
-pdcategory: general
+pdcategory: General
 
 arguments:
   1st:

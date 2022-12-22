@@ -6,7 +6,7 @@ description: Chronometer/timer
 categories:
  - object
 
-pdcategory: Assorted
+pdcategory: Time
 
 arguments:
 - type: list
