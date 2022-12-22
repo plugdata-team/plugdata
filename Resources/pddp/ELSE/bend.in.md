@@ -6,7 +6,7 @@ description: MIDI pitch bend input
 categories:
  - object
 
-pdcategory: I/O MIDI, OSC, and FUDI
+pdcategory: I/O, MIDI
 
 arguments:
 - type: float
