@@ -5,7 +5,7 @@ categories:
 - object
 see_also:
 - pd~
-pdcategory: "'EXTRA' (patches and externs in pd/extra)"
+pdcategory: Extra
 last_update: '0.48'
 inlets:
   1st:

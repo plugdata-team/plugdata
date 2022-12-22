@@ -282,7 +282,7 @@ public:
         for (int i = 0; i < buttons.size(); i++)
             buttons[i]->setBounds(2, (i * 25) + 4, getWidth() - 32, 24);
 
-        int const resizerSize = 12;
+        const int resizerSize = 12;
 
         resizer.setBounds(getWidth() - (resizerSize + 1) - 15, getHeight() - (resizerSize + 1) - 15, resizerSize, resizerSize);
 

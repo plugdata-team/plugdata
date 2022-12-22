@@ -305,7 +305,7 @@ void Object::setType(String const& newType, void* existingObject)
 Array<Rectangle<float>> Object::getCorners() const
 {
     auto rect = getLocalBounds().reduced(margin);
-    float const offset = 2.0f;
+    const float offset = 2.0f;
 
     Array<Rectangle<float>> corners = {Rectangle<float>(9.0f, 9.0f).withCentre(rect.getTopLeft().toFloat()).translated(offset, offset), Rectangle<float>(9.0f, 9.0f).withCentre(rect.getBottomLeft().toFloat()).translated(offset, -offset),
                                        Rectangle<float>(9.0f, 9.0f).withCentre(rect.getBottomRight().toFloat()).translated(-offset, -offset), Rectangle<float>(9.0f, 9.0f).withCentre(rect.getTopRight().toFloat()).translated(-offset, offset)};
@@ -449,9 +449,9 @@ void Object::resized()
     for (auto& iolet : iolets)
     {
         bool const isInlet = iolet->isInlet;
-        int const position = index < numInputs ? index : index - numInputs;
-        int const total = isInlet ? numInputs : numOutputs;
-        float const yPosition = (isInlet ? (margin + 1) : getHeight() - margin) - ioletSize / 2.0f;
+        const int position = index < numInputs ? index : index - numInputs;
+        const int total = isInlet ? numInputs : numOutputs;
+        const float yPosition = (isInlet ? (margin + 1) : getHeight() - margin) - ioletSize / 2.0f;
 
         auto const bounds = isInlet ? inletBounds : outletBounds;
 
@@ -462,7 +462,7 @@ void Object::resized()
         }
         else if (total > 1)
         {
-            float const ratio = (bounds.getWidth() - ioletSize) / static_cast<float>(total - 1);
+            const float ratio = (bounds.getWidth() - ioletSize) / static_cast<float>(total - 1);
             iolet->setBounds(bounds.getX() + ratio * position, yPosition, ioletSize, ioletSize);
         }
 
@@ -549,7 +549,6 @@ void Object::updatePorts()
     if (!getPointer()) return;
 
     // update inlets and outlets
-
     int oldNumInputs = 0;
     int oldNumOutputs = 0;
 

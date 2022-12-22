@@ -12,7 +12,7 @@ see_also:
 - slop~
 - cpole~
 - fexpr~
-pdcategory: "'EXTRA' (patches and externs in pd/extra)"
+pdcategory: Extra
 last_update: '0.52'
 inlets:
   1st:

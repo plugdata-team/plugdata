@@ -123,7 +123,7 @@ void Canvas::paint(Graphics& g)
 
     if (locked == var(false) && !isGraph)
     {
-        int const objectGridSize = 25;
+        const int objectGridSize = 25;
         Rectangle<int> const clipBounds = g.getClipBounds();
         
         g.setColour(findColour(PlugDataColour::canvasDotsColourId));

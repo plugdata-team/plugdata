@@ -3,7 +3,7 @@ title: oscparse
 description: OSC messages to and from Pd lists
 categories:
 - object
-pdcategory: I/O via MIDI, OSC, and FUDI
+pdcategory: I/O 
 last_update: 0.51.
 see_also:
 - oscformat

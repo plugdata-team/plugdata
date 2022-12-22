@@ -148,7 +148,6 @@ public:
             auto make = bin.getChildFile("make" + exeSuffix);
             auto compiler = bin.getChildFile("arm-none-eabi-gcc" + exeSuffix);
             
-            
             libDaisy.copyDirectoryTo(outputFile.getChildFile("libdaisy"));
             
             outputFile.getChildFile("ir").deleteRecursively();

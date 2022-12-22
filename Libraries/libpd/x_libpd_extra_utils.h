@@ -48,7 +48,7 @@ EXTERN int libpd_array_read(float* dest, void* garray, int offset, int n);
 // returns 0 on success or a negative error code if the array is non-existent
 // or offset + n exceeds range of array
 EXTERN int libpd_array_write(void* garray, int offset,
-    float const* src, int n);
+    const float* src, int n);
 
 unsigned int libpd_iemgui_get_background_color(void* ptr);
 unsigned int libpd_iemgui_get_foreground_color(void* ptr);
@@ -62,7 +62,7 @@ float libpd_get_canvas_font_height(t_canvas* cnv);
 
 int libpd_process_nodsp(void);
 
-unsigned int convert_from_iem_color(int const color);
+unsigned int convert_from_iem_color(const int color);
 unsigned int convert_to_iem_color(char const* hex);
 
 int libpd_is_text_object(void* obj);

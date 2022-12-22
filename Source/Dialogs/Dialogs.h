@@ -132,6 +132,8 @@ struct Dialogs {
     static void showOkayCancelDialog(std::unique_ptr<Dialog>* target, Component* parent, const String& title, std::function<void(bool)> callback);
     
     static void showHeavyExportDialog(std::unique_ptr<Dialog>* target, Component* parent);
+    
+    static void showObjectBrowserDialog(std::unique_ptr<Dialog>* target, Component* parent);
 };
 
 

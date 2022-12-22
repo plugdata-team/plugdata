@@ -5,7 +5,7 @@ pdcategories:
 - General
 - Time
 - Math
-- I/O via MIDI, OSC, and FUDI
+- I/O 
 - Arrays & Tables
 - Misc
 - Audio Math

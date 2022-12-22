@@ -91,7 +91,7 @@ public:
     void read(std::vector<float>& output) const
     {
         libpd_set_instance(static_cast<t_pdinstance*>(instance));
-        int const size = libpd_array_get_size(ptr);
+        const int size = libpd_array_get_size(ptr);
         output.resize(static_cast<size_t>(size));
         libpd_array_read(output.data(), ptr, 0, size);
     }
@@ -104,7 +104,7 @@ public:
     }
 
     // Writes a value of the array.
-    void write(const size_t pos, float const input)
+    void write(const size_t pos, const float input)
     {
         libpd_set_instance(static_cast<t_pdinstance*>(instance));
         libpd_array_write(ptr, static_cast<int>(pos), &input, 1);
@@ -162,7 +162,7 @@ public:
             if (mod == 0)
                 result[i] = v[idx];
             else {
-                float const part = float(mod) / float(newSize);
+                const float part = float(mod) / float(newSize);
                 result[i] = v[idx] * (1.0 - part) + v[idx + 1] * part;
             }
         }
@@ -191,8 +191,8 @@ public:
                 points = rescale(points, w);
             }
 
-            float const dh = h / (scale[1] - scale[0]);
-            float const dw = w / static_cast<float>(points.size() - 1);
+            const float dh = h / (scale[1] - scale[0]);
+            const float dw = w / static_cast<float>(points.size() - 1);
 
             switch (array.getDrawType()) {
             case PdArray::DrawType::Curve: {
@@ -201,9 +201,9 @@ public:
                 p.startNewSubPath(0, h - (std::clamp(points[0], scale[0], scale[1]) - scale[0]) * dh);
                 
                 for (size_t i = 1; i < points.size() - 2; i += 3) {
-                    float const y1 = h - (std::clamp(points[i], scale[0], scale[1]) - scale[0]) * dh;
-                    float const y2 = h - (std::clamp(points[i + 1], scale[0], scale[1]) - scale[0]) * dh;
-                    float const y3 = h - (std::clamp(points[i + 2], scale[0], scale[1]) - scale[0]) * dh;
+                    const float y1 = h - (std::clamp(points[i], scale[0], scale[1]) - scale[0]) * dh;
+                    const float y2 = h - (std::clamp(points[i + 1], scale[0], scale[1]) - scale[0]) * dh;
+                    const float y3 = h - (std::clamp(points[i + 2], scale[0], scale[1]) - scale[0]) * dh;
                     p.cubicTo(static_cast<float>(i) * dw, y1, static_cast<float>(i + 1) * dw, y2, static_cast<float>(i + 2) * dw, y3);
                 }
                 
@@ -220,7 +220,7 @@ public:
 
                 Path p;
                 for (size_t i = 1; i < points.size(); i++) {
-                    float const y = h - (std::clamp(points[i], scale[0], scale[1]) - scale[0]) * dh;
+                    const float y = h - (std::clamp(points[i], scale[0], scale[1]) - scale[0]) * dh;
                     newPoint = Point<float>(static_cast<float>(i) * dw, y);
 
                     p.addLineSegment({ lastPoint, newPoint }, 1.0f);
@@ -236,7 +236,7 @@ public:
             case PdArray::DrawType::Points: {
                 g.setColour(object->findColour(PlugDataColour::objectOutlineColourId));
                 
-                float const dw_points = w / static_cast<float>(points.size());
+                const float dw_points = w / static_cast<float>(points.size());
                 
                 for (size_t i = 0; i < points.size(); i++) {
                     float y = h - (std::clamp(points[i], scale[0], scale[1]) - scale[0]) * dh;
@@ -294,7 +294,7 @@ public:
 
         std::array<float, 2> scale = array.getScale();
         
-        int const index = static_cast<int>(std::round(std::clamp(x / w, 0.f, 1.f) * s));
+        const int index = static_cast<int>(std::round(std::clamp(x / w, 0.f, 1.f) * s));
 
         float start = vec[lastIndex];
         float current = (1.f - std::clamp(y / h, 0.f, 1.f)) * (scale[1] - scale[0]) + scale[0];

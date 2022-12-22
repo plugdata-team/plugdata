@@ -3,7 +3,7 @@ title: makenote
 description: schedule delayed 'note off' message for a note-on
 categories:
 - object
-pdcategory: I/O via MIDI, OSC, and FUDI
+pdcategory: I/O 
 last_update: '0.33'
 see_also:
 - stripnote

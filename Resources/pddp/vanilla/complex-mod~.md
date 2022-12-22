@@ -5,7 +5,7 @@ categories:
 - object
 see_also:
 - hilbert~
-pdcategory: "'EXTRA' (patches and externs in pd/extra)"
+pdcategory: Extra
 last_update: '0.52'
 inlets:
   1st:

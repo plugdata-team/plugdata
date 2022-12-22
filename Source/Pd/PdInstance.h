@@ -50,8 +50,8 @@ public:
         return array;
     }
 
-    // The float constructor.
-    inline Atom(float const val)
+    // The const floatructor.
+    inline Atom(const float val)
         : type(FLOAT)
         , value(val)
         , symbol()
@@ -283,41 +283,41 @@ public:
     Instance(Instance const& other) = delete;
     virtual ~Instance();
 
-    void prepareDSP(int const nins, int const nouts, double const samplerate, int const blockSize);
+    void prepareDSP(const int nins, const int nouts, const double samplerate, const int blockSize);
     void startDSP();
     void releaseDSP();
-    void performDSP(float const* inputs, float* outputs);
+    void performDSP(const float* inputs, float* outputs);
     int getBlockSize() const;
 
-    void sendNoteOn(int const channel, int const pitch, int const velocity) const;
-    void sendControlChange(int const channel, int const controller, int const value) const;
-    void sendProgramChange(int const channel, int const value) const;
-    void sendPitchBend(int const channel, int const value) const;
-    void sendAfterTouch(int const channel, int const value) const;
-    void sendPolyAfterTouch(int const channel, int const pitch, int const value) const;
-    void sendSysEx(int const port, int const byte) const;
-    void sendSysRealTime(int const port, int const byte) const;
-    void sendMidiByte(int const port, int const byte) const;
+    void sendNoteOn(const int channel, const int pitch, const int velocity) const;
+    void sendControlChange(const int channel, const int controller, const int value) const;
+    void sendProgramChange(const int channel, const int value) const;
+    void sendPitchBend(const int channel, const int value) const;
+    void sendAfterTouch(const int channel, const int value) const;
+    void sendPolyAfterTouch(const int channel, const int pitch, const int value) const;
+    void sendSysEx(const int port, const int byte) const;
+    void sendSysRealTime(const int port, const int byte) const;
+    void sendMidiByte(const int port, const int byte) const;
 
-    virtual void receiveNoteOn(int const channel, int const pitch, int const velocity)
+    virtual void receiveNoteOn(const int channel, const int pitch, const int velocity)
     {
     }
-    virtual void receiveControlChange(int const channel, int const controller, int const value)
+    virtual void receiveControlChange(const int channel, const int controller, const int value)
     {
     }
-    virtual void receiveProgramChange(int const channel, int const value)
+    virtual void receiveProgramChange(const int channel, const int value)
     {
     }
-    virtual void receivePitchBend(int const channel, int const value)
+    virtual void receivePitchBend(const int channel, const int value)
     {
     }
-    virtual void receiveAftertouch(int const channel, int const value)
+    virtual void receiveAftertouch(const int channel, const int value)
     {
     }
-    virtual void receivePolyAftertouch(int const channel, int const pitch, int const value)
+    virtual void receivePolyAftertouch(const int channel, const int pitch, const int value)
     {
     }
-    virtual void receiveMidiByte(int const port, int const byte)
+    virtual void receiveMidiByte(const int port, const int byte)
     {
     }
 
@@ -327,7 +327,7 @@ public:
     virtual void createPanel(int type, char const* snd, char const* location);
 
     void sendBang(char const* receiver) const;
-    void sendFloat(char const* receiver, float const value) const;
+    void sendFloat(char const* receiver, const float value) const;
     void sendSymbol(char const* receiver, char const* symbol) const;
     void sendList(char const* receiver, std::vector<pd::Atom> const& list) const;
     void sendMessage(char const* receiver, char const* msg, std::vector<pd::Atom> const& list) const;
@@ -366,7 +366,7 @@ public:
 
     void enqueueDirectMessages(void* object, std::vector<pd::Atom> const& list);
     void enqueueDirectMessages(void* object, String const& msg);
-    void enqueueDirectMessages(void* object, float const msg);
+    void enqueueDirectMessages(void* object, const float msg);
 
     virtual void performParameterChange(int type, int idx, float value) {};
 

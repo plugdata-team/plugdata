@@ -664,8 +664,8 @@ public:
         auto tableBounds = getLocalBounds().withTrimmedBottom(30).withTrimmedTop(1);
         auto inputBounds = tableBounds.removeFromTop(28);
         
-        int const statusbarHeight = 32;
-        int const statusbarY = getHeight() - statusbarHeight;
+        const int statusbarHeight = 32;
+        const int statusbarY = getHeight() - statusbarHeight;
         auto statusbarBounds = Rectangle<int>(2, statusbarY + 6, getWidth() - 6, statusbarHeight);
         
         input.setBounds(inputBounds);

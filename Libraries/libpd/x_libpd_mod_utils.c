@@ -292,7 +292,7 @@ static int binbuf_getpos(t_binbuf* b, int* x0, int* y0, t_symbol** type)
      */
     t_atom* argv = binbuf_getvec(b);
     int argc = binbuf_getnatom(b);
-    int const argc0 = argc;
+    const int argc0 = argc;
     int count = 0;
     t_symbol* s;
     /* get the position of the first object in the argv binbuf */

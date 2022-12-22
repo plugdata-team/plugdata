@@ -167,9 +167,9 @@ int libpd_array_get_style(void* array)
     return 0;
 }
 
-unsigned int convert_from_iem_color(int const color)
+unsigned int convert_from_iem_color(const int color)
 {
-    unsigned int const c = (unsigned int)(color << 8 | 0xFF);
+    unsigned const int c = (unsigned int)(color << 8 | 0xFF);
     return ((0xFF << 24) | ((c >> 24) << 16) | ((c >> 16) << 8) | (c >> 8));
 }
 
@@ -213,8 +213,8 @@ void libpd_iemgui_set_label_color(void* ptr, char const* hex)
 
 float libpd_get_canvas_font_height(t_canvas* cnv)
 {
-    int const fontsize = glist_getfont(cnv);
-    float const zoom = (float)glist_getzoom(cnv);
+    const int fontsize = glist_getfont(cnv);
+    const float zoom = (float)glist_getzoom(cnv);
     //[8 :8.31571] [10 :9.9651] [12 :11.6403] [16 :16.6228] [24 :23.0142] [36 :36.0032]
     if (fontsize == 8) {
         return 8.31571 * zoom; // 9.68f * zoom;
@@ -256,7 +256,7 @@ int libpd_array_read(float* dest, void* garray, int offset, int n)
     return 0;
 }
 
-int libpd_array_write(void* garray, int offset, float const* src, int n)
+int libpd_array_write(void* garray, int offset, const float* src, int n)
 {
     sys_lock();
     MEMCPY((vec++)->w_float, *src++)

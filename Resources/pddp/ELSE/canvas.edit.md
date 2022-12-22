@@ -6,7 +6,7 @@ description: Report edit status
 categories:
  - object
 
-pdcategory: Subpatch Management
+pdcategory: Patch Management
 
 arguments:
 - type: float

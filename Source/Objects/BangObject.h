@@ -64,8 +64,8 @@ struct BangObject final : public IEMObject {
         auto const bounds = getLocalBounds().reduced(1).toFloat();
         auto const width = std::max(bounds.getWidth(), bounds.getHeight());
 
-        float const circleOuter = 80.f * (width * 0.01f);
-        float const circleThickness = std::max(width * 0.06f, 1.5f);
+        const float circleOuter = 80.f * (width * 0.01f);
+        const float circleThickness = std::max(width * 0.06f, 1.5f);
 
 
         g.setColour(object->findColour(PlugDataColour::objectOutlineColourId));
