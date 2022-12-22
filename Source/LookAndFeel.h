@@ -842,7 +842,7 @@ struct PlugDataLook : public LookAndFeel_V4
         g.fillRoundedRectangle(bounds.toFloat(), cornerSize);
         
         g.setColour(findColour(PlugDataColour::outlineColourId));
-        g.drawRoundedRectangle(bounds.toFloat().reduced(0.5f, 0.5f), cornerSize, 0.5f);
+        g.drawRoundedRectangle(bounds.toFloat().reduced(0.5f, 0.5f), cornerSize, 1.0f);
         
         const float tooltipFontSize = 14.0f;
         const int maxToolTipWidth = 400;

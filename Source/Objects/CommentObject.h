@@ -131,9 +131,9 @@ struct CommentObject final : public TextBase
 
             copyAllExplicitColoursTo(*editor);
             editor->setColour(Label::textWhenEditingColourId, findColour(TextEditor::textColourId));
-            editor->setColour(Label::backgroundWhenEditingColourId, Colours::transparentWhite);
+            editor->setColour(Label::backgroundWhenEditingColourId, Colours::transparentBlack);
             editor->setColour(Label::outlineWhenEditingColourId, findColour(TextEditor::focusedOutlineColourId));
-            editor->setColour(TextEditor::backgroundColourId, Colours::transparentWhite);
+            editor->setColour(TextEditor::backgroundColourId, Colours::transparentBlack);
 
             editor->setAlwaysOnTop(true);
 
