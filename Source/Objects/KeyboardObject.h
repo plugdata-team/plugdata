@@ -10,11 +10,11 @@ struct MIDIKeyboard : public MidiKeyboardComponent {
         : MidiKeyboardComponent(stateToUse, orientationToUse)
     {
         // Make sure nothing is drawn outside of our custom draw functions
-        setColour(MidiKeyboardComponent::whiteNoteColourId, Colours::transparentWhite);
-        setColour(MidiKeyboardComponent::keySeparatorLineColourId, Colours::transparentWhite);
-        setColour(MidiKeyboardComponent::keyDownOverlayColourId, Colours::transparentWhite);
-        setColour(MidiKeyboardComponent::textLabelColourId, Colours::transparentWhite);
-        setColour(MidiKeyboardComponent::shadowColourId, Colours::transparentWhite);
+        setColour(MidiKeyboardComponent::whiteNoteColourId, Colours::transparentBlack);
+        setColour(MidiKeyboardComponent::keySeparatorLineColourId, Colours::transparentBlack);
+        setColour(MidiKeyboardComponent::keyDownOverlayColourId, Colours::transparentBlack);
+        setColour(MidiKeyboardComponent::textLabelColourId, Colours::transparentBlack);
+        setColour(MidiKeyboardComponent::shadowColourId, Colours::transparentBlack);
     }
 
     void drawWhiteNote(int midiNoteNumber, Graphics& g, Rectangle<float> area, bool isDown, bool isOver, Colour lineColour, Colour textColour) override
@@ -64,7 +64,7 @@ struct MIDIKeyboard : public MidiKeyboardComponent {
             AffineTransform transform;
             for (auto glyph : glyphs)
             {
-                font.getTypeface()->getOutlineForGlyph(glyph, p);
+                font.getTypefacePtr()->getOutlineForGlyph(glyph, p);
                 if (glyphs.size() > 1)
                 {
                     prev_size = outline.getBounds().getWidth();

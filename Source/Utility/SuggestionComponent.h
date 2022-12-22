@@ -4,7 +4,6 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
-
 // Suggestions component that shows up when objects are edited
 class SuggestionComponent : public Component
     , public KeyListener
