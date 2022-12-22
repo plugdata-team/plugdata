@@ -6,7 +6,7 @@ description: Control slew limiter
 categories:
  - object
 
-pdcategory: Control (Ramp, Line Generators, Smoothening)
+pdcategory: Control
 
 arguments:
 - type: float
