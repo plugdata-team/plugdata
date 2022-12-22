@@ -6,7 +6,7 @@ description: Combine data received close together
 categories:
 - object
 
-pdcategory: Message/List Management
+pdcategory: Message Management
 
 arguments:
 - description: initial time in ms
