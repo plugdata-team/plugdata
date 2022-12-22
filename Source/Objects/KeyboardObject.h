@@ -53,16 +53,12 @@ struct MIDIKeyboard : public MidiKeyboardComponent {
         {
             Array<int> glyphs;
             Array<float> offsets;
-            auto font = Font(14.0f);
+            auto font = Font();
             Path p;
             Path outline;
             font.getGlyphPositions(String(floor(midiNoteNumber / 12) - 1), glyphs, offsets);
-            //Rectangle<float> rectangle(area.getX() + area.getWidth() / 8,
-            //                           area.getHeight() - area.getHeight() / 5,
-            //                           area.getWidth() / 8 * 6,
-            //                           area.getWidth() / 8 * 6);
-            
-            auto rectangle = area.withTrimmedTop(area.proportionOfHeight(0.7f)).reduced(area.getWidth() / 3.0f);
+
+            auto rectangle = area.withTrimmedTop(area.proportionOfHeight(0.8f)).reduced(area.getWidth() / 6.0f);
             
             int prev_size = 0;
             AffineTransform transform;
@@ -75,8 +71,9 @@ struct MIDIKeyboard : public MidiKeyboardComponent {
                 }
                 transform = AffineTransform::scale(20).followedBy(AffineTransform::translation(prev_size, 0.0));
                 outline.addPath(p, transform);
+                p.clear();
             }
-            g.setFont(font);
+
             g.fillPath(outline, outline.getTransformToScaleToFit(rectangle, true));
         }
     }
@@ -272,7 +269,7 @@ struct KeyboardObject final : public GUIObject
         if (value.refersToSameSourceAs(lowC))
         {
             int numOctaves = std::clamp<int>(static_cast<int>(octaves.getValue()), 1, 10);
-            lowC = std::clamp<int>(static_cast<int>(lowC.getValue()), 0, 8);
+            lowC = std::clamp<int>(static_cast<int>(lowC.getValue()), -1, 8);
             int lowest = static_cast<int>(lowC.getValue());
             int highest = std::clamp<int>(lowest + 1 + numOctaves, 0, 10);
             keyboard.setAvailableRange(((lowest + 1) * 12), highest * 12);
@@ -283,7 +280,7 @@ struct KeyboardObject final : public GUIObject
         {
             octaves = std::clamp<int>(static_cast<int>(octaves.getValue()), 1, 10);
             int numOctaves = static_cast<int>(octaves.getValue());
-            int lowest = std::clamp<int>(lowC.getValue(), 0, 8);
+            int lowest = std::clamp<int>(lowC.getValue(), -1, 8);
             int highest = std::clamp<int>(lowest + 1 + numOctaves, 0, 10);
             keyboard.setAvailableRange(((lowest + 1) * 12), highest * 12);
             keyboardObject->x_octaves = numOctaves;
