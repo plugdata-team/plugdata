@@ -515,7 +515,8 @@ struct ObjectBrowserDialog : public Component {
         , objectsList(editor->pd->objectLibrary)
         , objectViewer(editor->pd->objectLibrary)
     {
-        objectsByCategory = editor->pd->objectLibrary.getObjectCategories();
+        auto& library = editor->pd->objectLibrary;
+        objectsByCategory = library.getObjectCategories();
 
         addAndMakeVisible(categoriesList);
         addAndMakeVisible(objectsList);
@@ -526,13 +527,23 @@ struct ObjectBrowserDialog : public Component {
 
         StringArray categories;
         for (auto [category, objects] : objectsByCategory) {
+            // Sort alphabetically
             objects.sort(true);
+            
+            // Add objects from every category to "All"
             objectsByCategory["All"].addArray(objects);
             categories.add(category);
         }
-
+        
+        // Also include undocumented objects
+        objectsByCategory["All"].addArray(library.getAllObjects());
+        objectsByCategory["All"].removeDuplicates(true);
+        
+        // Sort alphabetically
         objectsByCategory["All"].sort(true);
         categories.sort(true);
+        
+        // Make sure "All" is the first category
         categories.move(categories.indexOf("All"), 0);
 
         categoriesList.changeCallback = [this](String const& category) {
