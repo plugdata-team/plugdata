@@ -744,7 +744,7 @@ bool Connection::intersectsObject(Object* object)
 bool Connection::straightLineIntersectsObject(Line<int> toCheck, Array<Object*>& objects)
 {
 
-    for (auto const& object : objects) {
+    for (const auto& object : objects) {
         auto bounds = object->getBounds().expanded(1);
 
         if (object == outobj || object == inobj || !bounds.intersects(getBounds()))

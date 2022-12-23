@@ -329,7 +329,7 @@ private:
             int position = 0;
 
             while (position < numSamples) {
-                auto const blockLength = jmin(maximumSize, numSamples - position);
+                const auto blockLength = jmin(maximumSize, numSamples - position);
 
                 initChannelPointers(inputChannelData, storedInputChannels, position);
                 initChannelPointers(outputChannelData, storedOutputChannels, position);
@@ -524,7 +524,7 @@ public:
         // Make sure it gets updated on init
         valueChanged(useNativeWindow);
 
-        auto const getWindowScreenBounds = [this]() -> Rectangle<int> {
+        const auto getWindowScreenBounds = [this]() -> Rectangle<int> {
             const auto width = getWidth();
             const auto height = getHeight();
 
@@ -842,7 +842,7 @@ private:
             auto r = getLocalBounds().reduced(getMargin());
 
             if (editor != nullptr) {
-                auto const newPos = r.getTopLeft().toFloat().transformedBy(editor->getTransform().inverted());
+                const auto newPos = r.getTopLeft().toFloat().transformedBy(editor->getTransform().inverted());
 
                 if (preventResizingEditor)
                     editor->setTopLeftPosition(newPos.roundToInt());

@@ -49,7 +49,7 @@ struct ListObject final : public AtomObject {
         array.addTokens(listLabel.getText(), true);
         std::vector<pd::Atom> list;
         list.reserve(array.size());
-        for (auto const& elem : array) {
+        for (const auto& elem : array) {
             if (elem.getCharPointer().isDigit()) {
                 list.push_back({ elem.getFloatValue() });
             } else {
@@ -91,9 +91,9 @@ struct ListObject final : public AtomObject {
     void updateValue() override
     {
         if (!edited && !listLabel.isBeingEdited()) {
-            auto const array = getList();
+            const auto array = getList();
             String message;
-            for (auto const& atom : array) {
+            for (const auto& atom : array) {
                 if (message.isNotEmpty()) {
                     message += " ";
                 }

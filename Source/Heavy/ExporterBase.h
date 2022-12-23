@@ -86,13 +86,13 @@ struct ExporterBase : public Component
         }
 
         exportButton.onClick = [this]() {
-            auto constexpr folderChooserFlags = FileBrowserComponent::saveMode | FileBrowserComponent::canSelectFiles | FileBrowserComponent::warnAboutOverwriting;
+            constexpr auto folderChooserFlags = FileBrowserComponent::saveMode | FileBrowserComponent::canSelectFiles | FileBrowserComponent::warnAboutOverwriting;
 
             saveChooser = std::make_unique<FileChooser>("Choose a location...", File::getSpecialLocation(File::userHomeDirectory), "", true);
 
             saveChooser->launchAsync(folderChooserFlags,
                 [this](FileChooser const& fileChooser) {
-                    auto const file = fileChooser.getResult();
+                    const auto file = fileChooser.getResult();
 
                     if (file.getParentDirectory().exists()) {
                         startExport(file);

@@ -268,13 +268,13 @@ void PluginProcessor::initialiseFilesystem()
         settingsTree.setProperty("DefaultFont", "Inter", nullptr);
         auto colourThemesTree = ValueTree("ColourThemes");
 
-        for (auto const& theme : lnf->colourSettings) {
+        for (const auto& theme : lnf->colourSettings) {
             auto themeName = theme.first;
             auto themeColours = theme.second;
             auto themeTree = ValueTree(themeName);
             colourThemesTree.appendChild(themeTree, nullptr);
             themeTree.setProperty("theme", themeName, nullptr);
-            for (auto const& defaultColours : lnf->defaultDarkTheme) {
+            for (const auto& defaultColours : lnf->defaultDarkTheme) {
                 auto [colourId, colourName, colourCategory] = PlugDataColourNames.at(defaultColours.first);
                 themeTree.setProperty(colourName, themeColours.at(defaultColours.first).toString(), nullptr);
             }
@@ -294,14 +294,14 @@ void PluginProcessor::initialiseFilesystem()
         if (!settingsTree.getChildWithName("ColourThemes").isValid()) {
             auto colourThemesTree = ValueTree("ColourThemes");
 
-            for (auto const& theme : lnf->colourSettings) {
+            for (const auto& theme : lnf->colourSettings) {
                 auto themeName = theme.first;
                 auto themeColours = theme.second;
                 auto themeTree = ValueTree(themeName);
 
                 colourThemesTree.appendChild(themeTree, nullptr);
                 themeTree.setProperty("theme", themeName, nullptr);
-                for (auto const& [colourId, colour] : PlugDataLook::defaultThemes.at(themeName)) {
+                for (const auto& [colourId, colour] : PlugDataLook::defaultThemes.at(themeName)) {
                     auto [id, colourName, category] = PlugDataColourNames.at(colourId);
                     themeTree.setProperty(colourName, colour.toString(), nullptr);
                 }
@@ -315,7 +315,7 @@ void PluginProcessor::initialiseFilesystem()
             for (auto themeTree : colourThemesTree) {
                 auto themeName = themeTree.getProperty("theme");
 
-                for (auto const& [colourId, colour] : PlugDataLook::defaultThemes.at(themeName)) {
+                for (const auto& [colourId, colour] : PlugDataLook::defaultThemes.at(themeName)) {
                     auto [id, colourName, category] = PlugDataColourNames.at(colourId);
 
                     // For when we add new colours in the future
@@ -478,9 +478,9 @@ void PluginProcessor::prepareToPlay(double sampleRate, int samplesPerBlock)
     oversampler->initProcessing(samplesPerBlock);
 
     audioAdvancement = 0;
-    auto const blksize = static_cast<size_t>(Instance::getBlockSize());
-    auto const numIn = static_cast<size_t>(getTotalNumInputChannels());
-    auto const nouts = static_cast<size_t>(getTotalNumOutputChannels());
+    const auto blksize = static_cast<size_t>(Instance::getBlockSize());
+    const auto numIn = static_cast<size_t>(getTotalNumInputChannels());
+    const auto nouts = static_cast<size_t>(getTotalNumOutputChannels());
     audioBufferIn.resize(numIn * blksize);
     audioBufferOut.resize(nouts * blksize);
     std::fill(audioBufferOut.begin(), audioBufferOut.end(), 0.f);
@@ -597,7 +597,7 @@ void PluginProcessor::process(dsp::AudioBlock<float> buffer, MidiBuffer& midiMes
     bool const midiConsume = acceptsMidi();
     bool const midiProduce = producesMidi();
 
-    auto const maxOuts = std::max(numOut, std::max(numIn, numOut));
+    const auto maxOuts = std::max(numOut, std::max(numIn, numOut));
     for (int ch = numIn; ch < maxOuts; ch++) {
         buffer.getSingleChannelBlock(ch).clear();
     }
@@ -794,8 +794,8 @@ void PluginProcessor::messageEnqueued()
 void PluginProcessor::sendMidiBuffer()
 {
     if (acceptsMidi()) {
-        for (auto const& event : midiBufferIn) {
-            auto const message = event.getMessage();
+        for (const auto& event : midiBufferIn) {
+            const auto message = event.getMessage();
             if (message.isNoteOn()) {
                 sendNoteOn(message.getChannel(), message.getNoteNumber(), message.getVelocity());
             } else if (message.isNoteOff()) {

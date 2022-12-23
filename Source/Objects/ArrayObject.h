@@ -158,8 +158,8 @@ public:
         std::vector<float> result(newSize);
         const std::size_t oldSize = v.size();
         for (unsigned i = 0; i < newSize; i++) {
-            auto const idx = i * (oldSize - 1) / newSize;
-            auto const mod = i * (oldSize - 1) % newSize;
+            const auto idx = i * (oldSize - 1) / newSize;
+            const auto mod = i * (oldSize - 1) % newSize;
 
             if (mod == 0)
                 result[i] = v[idx];
@@ -174,8 +174,8 @@ public:
     void paintGraph(Graphics& g)
     {
 
-        auto const h = static_cast<float>(getHeight());
-        auto const w = static_cast<float>(getWidth());
+        const auto h = static_cast<float>(getHeight());
+        const auto w = static_cast<float>(getWidth());
         std::vector<float> points = vec;
 
         if (!points.empty()) {
@@ -277,9 +277,9 @@ public:
             return;
         edited = true;
 
-        auto const s = static_cast<float>(vec.size() - 1);
-        auto const w = static_cast<float>(getWidth());
-        auto const x = static_cast<float>(e.x);
+        const auto s = static_cast<float>(vec.size() - 1);
+        const auto w = static_cast<float>(getWidth());
+        const auto x = static_cast<float>(e.x);
 
         lastIndex = std::round(std::clamp(x / w, 0.f, 1.f) * s);
 
@@ -291,11 +291,11 @@ public:
         if (error || !array.getEditMode())
             return;
 
-        auto const s = static_cast<float>(vec.size() - 1);
-        auto const w = static_cast<float>(getWidth());
-        auto const h = static_cast<float>(getHeight());
-        auto const x = static_cast<float>(e.x);
-        auto const y = static_cast<float>(e.y);
+        const auto s = static_cast<float>(vec.size() - 1);
+        const auto w = static_cast<float>(getWidth());
+        const auto h = static_cast<float>(getHeight());
+        const auto x = static_cast<float>(e.x);
+        const auto y = static_cast<float>(e.y);
 
         std::array<float, 2> scale = array.getScale();
 

@@ -490,7 +490,7 @@ void Canvas::mouseDrag(MouseEvent const& e)
 
     if (viewport) {
         auto viewportEvent = e.getEventRelativeTo(viewport);
-        auto const scrollSpeed = 8.5f;
+        const auto scrollSpeed = 8.5f;
 
         // Middle mouse pan
         if (e.mods.isMiddleButtonDown() && !draggingLabel) {

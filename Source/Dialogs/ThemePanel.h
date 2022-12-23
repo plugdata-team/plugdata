@@ -39,7 +39,7 @@ struct ThemePanel : public Component
         std::map<String, Array<PropertyComponent*>> panels;
 
         // Loop over colours
-        for (auto const& [colour, colourNames] : PlugDataColourNames) {
+        for (const auto& [colour, colourNames] : PlugDataColourNames) {
 
             auto& [colourName, colourId, colourCategory] = colourNames;
 
@@ -47,7 +47,7 @@ struct ThemePanel : public Component
 
             // Loop over themes
             int i = 0;
-            for (auto const& [themeName, themeColours] : PlugDataLook::colourSettings) {
+            for (const auto& [themeName, themeColours] : PlugDataLook::colourSettings) {
                 swatchesToAdd.add(&(swatches[themeName][colourId]));
                 auto* swatch = swatchesToAdd.getLast();
 
@@ -73,7 +73,7 @@ struct ThemePanel : public Component
         panel.addSection("Fonts", { fontPanel });
 
         // Create the panels by category
-        for (auto const& [sectionName, sectionColours] : panels) {
+        for (const auto& [sectionName, sectionColours] : panels) {
             for (auto* colourPanel : sectionColours)
                 allPanels.add(colourPanel);
             panel.addSection(sectionName, sectionColours);
@@ -91,8 +91,8 @@ struct ThemePanel : public Component
             return;
         }
 
-        for (auto const& [themeName, theme] : lnf.colourSettings) {
-            for (auto const& [colourId, value] : theme) {
+        for (const auto& [themeName, theme] : lnf.colourSettings) {
+            for (const auto& [colourId, value] : theme) {
                 auto [colId, colourName, colCat] = PlugDataColourNames.at(colourId);
                 if (v.refersToSameSourceAs(swatches[themeName][colourName])) {
 
@@ -147,9 +147,9 @@ struct ThemePanel : public Component
 
         auto colourThemesTree = settingsTree.getChildWithName("ColourThemes");
 
-        for (auto const& [themeName, theme] : lnf.colourSettings) {
+        for (const auto& [themeName, theme] : lnf.colourSettings) {
             auto themeTree = colourThemesTree.getChildWithName(themeName);
-            for (auto const& [colourId, colourValue] : theme) {
+            for (const auto& [colourId, colourValue] : theme) {
                 auto [colId, colourName, colCat] = PlugDataColourNames.at(colourId);
                 swatches[themeName][colourName] = colourValue.toString();
                 themeTree.setProperty(colourName, colourValue.toString(), nullptr);

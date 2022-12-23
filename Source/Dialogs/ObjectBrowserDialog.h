@@ -140,7 +140,7 @@ struct ObjectViewer : public Component {
 
     void paint(Graphics& g) override
     {
-        auto const font = Font(15.0f);
+        const auto font = Font(15.0f);
 
         g.setColour(findColour(PlugDataColour::outlineColourId));
         g.drawLine(5, 0, 5, getHeight());

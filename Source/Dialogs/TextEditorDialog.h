@@ -98,8 +98,8 @@ struct Selection {
 
     bool operator<(Selection const& other) const
     {
-        auto const A = this->oriented();
-        auto const B = other.oriented();
+        const auto A = this->oriented();
+        const auto B = other.oriented();
         if (A.head.x == B.head.x)
             return A.head.y < B.head.y;
         return A.head.x < B.head.x;
@@ -128,7 +128,7 @@ struct Selection {
      */
     Range<int> getColumnRangeOnRow(int row, int numColumns) const
     {
-        auto const A = oriented();
+        const auto A = oriented();
 
         if (row < A.head.x || row > A.tail.x)
             return { 0, 0 };
@@ -656,7 +656,7 @@ void Caret::paint(Graphics& g)
 {
     g.setColour(getParentComponent()->findColour(CaretComponent::caretColourId).withAlpha(squareWave(phase)));
 
-    for (auto const& r : getCaretRectangles())
+    for (const auto& r : getCaretRectangles())
         g.fillRect(r);
 }
 
@@ -671,7 +671,7 @@ void Caret::timerCallback()
 {
     phase += 3.2e-1;
 
-    for (auto const& r : getCaretRectangles())
+    for (const auto& r : getCaretRectangles())
         repaint(r.getSmallestIntegerContainer());
 }
 
@@ -679,7 +679,7 @@ Array<Rectangle<float>> Caret::getCaretRectangles() const
 {
     Array<Rectangle<float>> rectangles;
 
-    for (auto const& selection : document.getSelections()) {
+    for (const auto& selection : document.getSelections()) {
         rectangles.add(document
                            .getGlyphBounds(selection.head)
                            .removeFromLeft(CURSOR_WIDTH)
@@ -742,7 +742,7 @@ void GutterComponent::paint(Graphics& g)
 
     g.setColour(ln.contrasting(0.1f));
 
-    for (auto const& r : rowData) {
+    for (const auto& r : rowData) {
         if (r.isRowSelected) {
             auto A = r.bounds
                          .transformedBy(transform)
@@ -753,7 +753,7 @@ void GutterComponent::paint(Graphics& g)
         }
     }
 
-    for (auto const& r : rowData) {
+    for (const auto& r : rowData) {
         g.setColour(getParentComponent()->findColour(r.isRowSelected ? PlugDataColour::objectSelectedOutlineColourId : PlugDataColour::canvasTextColourId));
         memoizedGlyphArrangements(r.rowNumber).draw(g, verticalTransform);
     }
@@ -781,7 +781,7 @@ void HighlightComponent::setViewTransform(AffineTransform const& transformToUse)
     outlinePath.clear();
     auto clip = getLocalBounds().toFloat().transformedBy(transform.inverted());
 
-    for (auto const& s : document.getSelections()) {
+    for (const auto& s : document.getSelections()) {
         outlinePath.addPath(getOutlinePath(document.getSelectionRegion(s, clip)));
     }
     repaint(outlinePath.getBounds().getSmallestIntegerContainer());
@@ -792,7 +792,7 @@ void HighlightComponent::updateSelections()
     outlinePath.clear();
     auto clip = getLocalBounds().toFloat().transformedBy(transform.inverted());
 
-    for (auto const& s : document.getSelections()) {
+    for (const auto& s : document.getSelections()) {
         outlinePath.addPath(getOutlinePath(document.getSelectionRegion(s, clip)));
     }
     repaint(outlinePath.getBounds().getSmallestIntegerContainer());
@@ -930,7 +930,7 @@ void Selection::pushBy(Selection appearingSelection)
 
 void Selection::pull(Point<int>& index) const
 {
-    auto const S = oriented();
+    const auto S = oriented();
 
     /*
      If the selection tail is on index's row, then shift its column back,
@@ -957,7 +957,7 @@ void Selection::pull(Point<int>& index) const
 
 void Selection::push(Point<int>& index) const
 {
-    auto const S = oriented();
+    const auto S = oriented();
 
     /*
      If our head is on index's row, then shift its column forward, either
@@ -1084,7 +1084,7 @@ void TextDocument::replaceAll(String const& content)
 {
     lines.clear();
 
-    for (auto const& line : StringArray::fromLines(content)) {
+    for (const auto& line : StringArray::fromLines(content)) {
         lines.add(line);
     }
 }
@@ -1241,7 +1241,7 @@ Array<TextDocument::RowData> TextDocument::findRowsIntersecting(Rectangle<float>
             data.bounds.setBottom(getVerticalPosition(n, Metric::bottom));
         }
 
-        for (auto const& s : selections) {
+        for (const auto& s : selections) {
             if (s.intersectsRow(n)) {
                 data.isRowSelected = true;
                 break;
@@ -1467,12 +1467,12 @@ Transaction TextDocument::fulfill(Transaction const& transaction)
 {
     cachedBounds = {}; // invalidate the bounds
 
-    auto const t = transaction.accountingForSpecialCharacters(*this);
-    auto const s = t.selection.oriented();
-    auto const L = getSelectionContent(s.horizontallyMaximized(*this));
-    auto const i = s.head.y;
-    auto const j = L.lastIndexOf("\n") + s.tail.y + 1;
-    auto const M = L.substring(0, i) + t.content + L.substring(j);
+    const auto t = transaction.accountingForSpecialCharacters(*this);
+    const auto s = t.selection.oriented();
+    const auto L = getSelectionContent(s.horizontallyMaximized(*this));
+    const auto i = s.head.y;
+    const auto j = L.lastIndexOf("\n") + s.tail.y + 1;
+    const auto M = L.substring(0, i) + t.content + L.substring(j);
 
     for (auto& existingSelection : selections) {
         existingSelection.pullBy(s);
@@ -1485,7 +1485,7 @@ Transaction TextDocument::fulfill(Transaction const& transaction)
     if (M.isEmpty()) {
         lines.insert(row++, String());
     }
-    for (auto const& line : StringArray::fromLines(M)) {
+    for (const auto& line : StringArray::fromLines(M)) {
         lines.insert(row++, line);
     }
 
@@ -1511,7 +1511,7 @@ void TextDocument::clearTokens(Range<int> rows)
 void TextDocument::applyTokens(Range<int> rows, Array<Selection> const& zones)
 {
     for (int n = rows.getStart(); n < rows.getEnd(); ++n) {
-        for (auto const& zone : zones) {
+        for (const auto& zone : zones) {
             if (zone.intersectsRow(n)) {
                 lines.applyTokens(n, zone);
             }
@@ -1987,7 +1987,7 @@ void PlugDataTextEditor::renderTextUsingAttributedString(Graphics& g)
     auto font = document.getFont().withHeight(originalHeight * scaleFactor);
     auto rows = document.findRowsIntersecting(g.getClipBounds().toFloat().transformedBy(transform.inverted()));
 
-    for (auto const& r : rows) {
+    for (const auto& r : rows) {
         auto line = document.getLine(r.rowNumber);
         auto T = document.getVerticalPosition(r.rowNumber, TextDocument::Metric::ascent);
         auto B = document.getVerticalPosition(r.rowNumber, TextDocument::Metric::bottom);

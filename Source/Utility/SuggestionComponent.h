@@ -196,15 +196,15 @@ public:
 #if JUCE_MAC
         auto hostType = PluginHostType();
         if (hostType.isLogic() || hostType.isGarageBand() || hostType.isMainStage()) {
-            objectPos = objectPos.translated(0, 20);
+            objectPos = objectPos.translated(-10, 35);
         } else {
-            objectPos = objectPos.translated(0, 15);
+            objectPos = objectPos.translated(-10, 25);
         }
 #else
-        objectPos = objectPos.translated(0, 15);
+        objectPos = objectPos.translated(-10, 25);
 #endif
 
-        setTopLeftPosition(objectPos.translated(0, 15));
+        setTopLeftPosition(objectPos);
 
         setVisible(false);
         toFront(false);
@@ -453,7 +453,7 @@ private:
         currentidx = (currentidx + numButtons) % numButtons;
 
         // Retrieve best suggestion
-        auto const& fullName = found[currentidx].first;
+        const auto& fullName = found[currentidx].first;
 
         state = ShowingObjects;
         if (fullName.length() > textlen) {

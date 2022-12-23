@@ -141,7 +141,7 @@ struct FunctionObject final : public GUIObject {
             lastPoint = newPoint;
         }
 
-        for (auto const& point : realPoints) {
+        for (const auto& point : realPoints) {
             // Make sure line isn't visible through the hole
             g.setColour(Colour::fromString(secondaryColour.toString()));
             g.fillEllipse(Rectangle<float>().withCentre(point).withSizeKeepingCentre(5, 5));
