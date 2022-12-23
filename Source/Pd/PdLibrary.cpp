@@ -397,69 +397,77 @@ void Library::parseDocumentation(String const& path)
 
         if (!sections.count("title"))
             return;
-
-        String name = sections["title"].first;
-
-        if (sections.count("description")) {
-            objectDescriptions[name] = sections["description"].first;
+        
+        if(sections["title"].first.contains("vslider")) {
+            std::cout << "found" << std::endl;
         }
 
-        if (sections.count("pdcategory")) {
-            auto categories = sections["pdcategory"].first;
-            if (categories.isEmpty())
-                categories = "Unknown";
-            for (auto category : StringArray::fromTokens(categories, ",", "")) {
-                objectCategories[category.trim()].add(name);
+        // Allow multiple names separated by a comma
+        for(auto& name : StringArray::fromTokens(sections["title"].first, ",", "")) {
+            
+            name = name.trim();
+            
+            if (sections.count("description")) {
+                objectDescriptions[name] = sections["description"].first;
             }
-        }
-
-        if (sections.count("arguments") || sections.count("flags")) {
-            Arguments args;
-
-            for (auto& argument : sectionsFromHyphens(sections["arguments"].first)) {
-                auto sectionMap = getSections(argument, { "type", "description", "default" });
-                args.push_back({ sectionMap["type"].first, sectionMap["description"].first, sectionMap["default"].first });
-            }
-
-            for (auto& flag : sectionsFromHyphens(sections["flags"].first)) {
-                auto sectionMap = getSections(flag, { "name", "description" });
-                args.push_back({ sectionMap["name"].first, sectionMap["description"].first, "" });
-            }
-
-            arguments[name] = args;
-        }
-
-        auto numbers = { "1st", "2nd", "3rd", "4th", "5th", "6th", "7th", "8th", "nth" };
-        if (sections.count("inlets")) {
-            auto section = getSections(sections["inlets"].first, numbers);
-            inletDescriptions[name].resize(static_cast<int>(section.size()));
-            for (auto [number, content] : section) {
-                String tooltip;
-                for (auto& argument : sectionsFromHyphens(content.first)) {
-                    auto sectionMap = getSections(argument, { "type", "description" });
-                    if (sectionMap["type"].first.isEmpty())
-                        continue;
-
-                    tooltip += "(" + sectionMap["type"].first + ") " + sectionMap["description"].first + "\n";
+            
+            if (sections.count("pdcategory")) {
+                auto categories = sections["pdcategory"].first;
+                if (categories.isEmpty())
+                    categories = "Unknown";
+                for (auto category : StringArray::fromTokens(categories, ",", "")) {
+                    objectCategories[category.trim()].add(name);
                 }
-
-                inletDescriptions[name].getReference(content.second) = { tooltip, number == "nth" };
             }
-        }
-        if (sections.count("outlets")) {
-            auto section = getSections(sections["outlets"].first, numbers);
-            outletDescriptions[name].resize(static_cast<int>(section.size()));
-            for (auto [number, content] : section) {
-                String tooltip;
-
-                for (auto& argument : sectionsFromHyphens(content.first)) {
-                    auto sectionMap = getSections(argument, { "type", "description" });
-                    if (sectionMap["type"].first.isEmpty())
-                        continue;
-                    tooltip += "(" + sectionMap["type"].first + ") " + sectionMap["description"].first + "\n";
+            
+            if (sections.count("arguments") || sections.count("flags")) {
+                Arguments args;
+                
+                for (auto& argument : sectionsFromHyphens(sections["arguments"].first)) {
+                    auto sectionMap = getSections(argument, { "type", "description", "default" });
+                    args.push_back({ sectionMap["type"].first, sectionMap["description"].first, sectionMap["default"].first });
                 }
-
-                outletDescriptions[name].getReference(content.second) = { tooltip, number == "nth" };
+                
+                for (auto& flag : sectionsFromHyphens(sections["flags"].first)) {
+                    auto sectionMap = getSections(flag, { "name", "description" });
+                    args.push_back({ sectionMap["name"].first, sectionMap["description"].first, "" });
+                }
+                
+                arguments[name] = args;
+            }
+            
+            auto numbers = { "1st", "2nd", "3rd", "4th", "5th", "6th", "7th", "8th", "nth" };
+            if (sections.count("inlets")) {
+                auto section = getSections(sections["inlets"].first, numbers);
+                inletDescriptions[name].resize(static_cast<int>(section.size()));
+                for (auto [number, content] : section) {
+                    String tooltip;
+                    for (auto& argument : sectionsFromHyphens(content.first)) {
+                        auto sectionMap = getSections(argument, { "type", "description" });
+                        if (sectionMap["type"].first.isEmpty())
+                            continue;
+                        
+                        tooltip += "(" + sectionMap["type"].first + ") " + sectionMap["description"].first + "\n";
+                    }
+                    
+                    inletDescriptions[name].getReference(content.second) = { tooltip, number == "nth" };
+                }
+            }
+            if (sections.count("outlets")) {
+                auto section = getSections(sections["outlets"].first, numbers);
+                outletDescriptions[name].resize(static_cast<int>(section.size()));
+                for (auto [number, content] : section) {
+                    String tooltip;
+                    
+                    for (auto& argument : sectionsFromHyphens(content.first)) {
+                        auto sectionMap = getSections(argument, { "type", "description" });
+                        if (sectionMap["type"].first.isEmpty())
+                            continue;
+                        tooltip += "(" + sectionMap["type"].first + ") " + sectionMap["description"].first + "\n";
+                    }
+                    
+                    outletDescriptions[name].getReference(content.second) = { tooltip, number == "nth" };
+                }
             }
         }
     };
