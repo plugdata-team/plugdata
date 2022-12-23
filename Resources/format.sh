@@ -1,0 +1,1 @@
+clang-format -i -style=file ./Source/**/*.cpp ./Source/**/*.h ./Source/*.cpp ./Source/*.h
