@@ -1,7 +1,7 @@
 ---
 title: dec2hex
 
-description:
+description: Convert decimal to hexadecimal
 
 categories:
 - object
@@ -9,24 +9,27 @@ categories:
 pdcategory:
 
 arguments:
-- description:
-  type:
-  default:
+- description: decimal value(s) to convert
+  type: float/list
+  default: 0
 
 inlets:
   1st:
-  - type:
-    description:
+  - type: float/list
+    description: decimal value(s) to convert (outputs the result)
+  - type: bang
+    description: convert and output
   2nd:
-  - type:
-    description:
+  - type: float/list
+    description: decimal value(s) to convert (at bangs)
 
 outlets:
   1st:
-  - type:
-    description:
+  - type: symbol
+    description: the converted hexadecimal value
 
 draft: false
 ---
 
-LONG DESCRIPTION HERE
+[dec2hex] converts decimal values to hexadecimal ones. The output is preceded by "0x" and the letters in the hexadecimal values are upper case. You can also convert lists. Only floats are converted, symbols are ignored.
+
