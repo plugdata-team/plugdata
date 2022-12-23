@@ -1,15 +1,23 @@
 ---
 title: del~
-description:
+
+description: Delay line
+
 categories:
  - object
+
 pdcategory: General
+
 arguments:
-- type: gimme
-  description:
-  default:
+- type: symbol
+  description: "in" or "out" to define functionality
+  default: "in"
+
 inlets:
+
 outlets:
-  1st:
-  - type: signal
-    description:
+
+---
+
+[del~] sets and writes to a delay line if created as [del~ in] (default) and reads from it (with interpolation) if created as [del~ out]. It's quite similar to [delread~]/[delread4~], but with more features.
+

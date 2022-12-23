@@ -1,7 +1,7 @@
 ---
 title: db2lin
 
-description:
+description: Convert dBFS to linear amplitude
 
 categories:
 - object
@@ -9,24 +9,22 @@ categories:
 pdcategory:
 
 arguments:
-- description:
-  type:
-  default:
+- description: minimum value (can be as low as "-inf")
+  type: float
+  default: -100
 
 inlets:
   1st:
-  - type:
-    description:
-  2nd:
-  - type:
-    description:
+  - type: float
+    description: dBFS amplitude value
 
 outlets:
   1st:
-  - type:
-    description:
+  - type: float
+    description: converted linear amplitude value
 
 draft: false
 ---
 
-LONG DESCRIPTION HERE
+[db2lin] converts amplitude values from deciBel Full Scale (dBFS) to linear. By default, a minimum value of -100 becomes zero - in theory, sero is minus infinity and an argument sets another minimum dB value to correspond to minus ininity. Conversion expression is: amp = pow(10, dBFS / 20).
+
