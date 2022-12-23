@@ -480,7 +480,7 @@ void Object::updateTooltips()
         auto* iolet = iolets[i];
 
         // Check pd library for pddp tooltips, those have priority
-        String tooltip = cnv->pd->objectLibrary.getInletOutletTooltip(gui->getType(), iolet->ioletIdx, iolet->isInlet ? numInputs : numOutputs, iolet->isInlet);
+        String tooltip = cnv->pd->objectLibrary.getInletOutletTooltip(gui->getType(), gui->getText(), iolet->ioletIdx, iolet->isInlet ? numInputs : numOutputs, iolet->isInlet);
 
         // Don't overwrite custom documentation
         if (tooltip.isNotEmpty()) {
@@ -544,7 +544,7 @@ void Object::updatePorts()
         iolet->isSignal = isSignal;
 
         if (gui) {
-            String tooltip = cnv->pd->objectLibrary.getInletOutletTooltip(gui->getType(), iolet->ioletIdx, input ? numInputs : numOutputs, input);
+            String tooltip = cnv->pd->objectLibrary.getInletOutletTooltip(gui->getType(), gui->getText(), iolet->ioletIdx, input ? numInputs : numOutputs, input);
             iolet->setTooltip(tooltip);
         }
 
