@@ -179,7 +179,12 @@ struct KeyboardObject final : public GUIObject
 
     void checkBounds() override
     {
-        numKeys = std::clamp<int>(keyboard.getRangeEnd() - keyboard.getRangeStart(), 12, 127);
+        int range_end = keyboard.getRangeEnd();
+        if (range_end == 127)
+        {
+            range_end = 128;
+        }
+        numKeys = std::clamp<int>(range_end - keyboard.getRangeStart(), 8, 128);
         float ratio = numKeys / 9.55f;
 
         auto* keyboardObject = static_cast<t_keyboard*>(ptr);
@@ -268,21 +273,21 @@ struct KeyboardObject final : public GUIObject
 
         if (value.refersToSameSourceAs(lowC))
         {
-            int numOctaves = std::clamp<int>(static_cast<int>(octaves.getValue()), 1, 10);
-            lowC = std::clamp<int>(static_cast<int>(lowC.getValue()), -1, 8);
+            int numOctaves = std::clamp<int>(static_cast<int>(octaves.getValue()), 1, 11);
+            lowC = std::clamp<int>(static_cast<int>(lowC.getValue()), -1, 9);
             int lowest = static_cast<int>(lowC.getValue());
-            int highest = std::clamp<int>(lowest + 1 + numOctaves, 0, 10);
-            keyboard.setAvailableRange(((lowest + 1) * 12), highest * 12);
+            int highest = std::clamp<int>(lowest + 1 + numOctaves, 0, 11);
+            keyboard.setAvailableRange(((lowest + 1) * 12), std::min((highest * 12), 127));
             keyboardObject->x_low_c = lowest;
             checkBounds();
         } 
         else if (value.refersToSameSourceAs(octaves))
         {
-            octaves = std::clamp<int>(static_cast<int>(octaves.getValue()), 1, 10);
+            octaves = std::clamp<int>(static_cast<int>(octaves.getValue()), 1, 11);
             int numOctaves = static_cast<int>(octaves.getValue());
-            int lowest = std::clamp<int>(lowC.getValue(), -1, 8);
-            int highest = std::clamp<int>(lowest + 1 + numOctaves, 0, 10);
-            keyboard.setAvailableRange(((lowest + 1) * 12), highest * 12);
+            int lowest = std::clamp<int>(lowC.getValue(), -1, 9);
+            int highest = std::clamp<int>(lowest + 1 + numOctaves, 0, 11);
+            keyboard.setAvailableRange(((lowest + 1) * 12), std::min((highest * 12), 127));
             keyboardObject->x_octaves = numOctaves;
             checkBounds();
         }
@@ -308,20 +313,20 @@ struct KeyboardObject final : public GUIObject
         {
             auto* x = (t_keyboard*)ptr;
             setParameterExcludingListener(lowC, static_cast<int>(atoms[0].getFloat()));
-            int numOctaves = std::clamp<int>(static_cast<int>(octaves.getValue()), 1, 10);
-            int lowest = std::clamp<int>(lowC.getValue(), -1, 8);
-            int highest = std::clamp<int>(lowest + 1 + numOctaves, -1, 10);
-            keyboard.setAvailableRange(((lowest + 1) * 12), highest * 12);
+            int numOctaves = std::clamp<int>(static_cast<int>(octaves.getValue()), 1, 11);
+            int lowest = std::clamp<int>(lowC.getValue(), -1, 9);
+            int highest = std::clamp<int>(lowest + 1 + numOctaves, 0, 11);
+            keyboard.setAvailableRange(((lowest + 1) * 12), std::min((highest * 12), 127));
             checkBounds();
         }
         else if(symbol == "8ves")
         {
             auto* x = (t_keyboard*)ptr;
             setParameterExcludingListener(octaves, static_cast<int>(atoms[0].getFloat()));
-            int numOctaves = std::clamp<int>(static_cast<int>(octaves.getValue()), 1, 10);
-            int lowest = std::clamp<int>(lowC.getValue(), -1, 8);
-            int highest = std::clamp<int>(lowest + 1 + numOctaves, -1, 10);
-            keyboard.setAvailableRange(((lowest + 1) * 12), highest * 12);
+            int numOctaves = std::clamp<int>(static_cast<int>(octaves.getValue()), 1, 11);
+            int lowest = std::clamp<int>(lowC.getValue(), -1, 9);
+            int highest = std::clamp<int>(lowest + 1 + numOctaves, 0, 11);
+            keyboard.setAvailableRange(((lowest + 1) * 12),std::min((highest * 12), 127));
             checkBounds();
         }
     }
