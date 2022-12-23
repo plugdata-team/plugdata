@@ -15,7 +15,6 @@ struct TextBase : public ObjectBase
 
         // To get enter/exit messages
         addMouseListener(object, false);
-        
     }
 
     ~TextBase()
@@ -68,7 +67,7 @@ struct TextBase : public ObjectBase
 
         bool selected = cnv->isSelected(object) && !cnv->isGraph;
         auto outlineColour = object->findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : objectOutlineColourId);
-        
+
         if (!isValid) {
             outlineColour = selected ? Colours::red.brighter(1.5) : Colours::red;
         }
@@ -196,11 +195,11 @@ struct TextBase : public ObjectBase
             editor->setJustification(justification);
 
             editor->onFocusLost = [this]() {
-                if(reinterpret_cast<Component*>(cnv->suggestor)->hasKeyboardFocus(true) || Component::getCurrentlyFocusedComponent() == editor.get()) {
+                if (reinterpret_cast<Component*>(cnv->suggestor)->hasKeyboardFocus(true) || Component::getCurrentlyFocusedComponent() == editor.get()) {
                     editor->grabKeyboardFocus();
-                     return;
+                    return;
                 }
-               
+
                 hideEditor();
             };
 

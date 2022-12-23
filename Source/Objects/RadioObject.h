@@ -28,7 +28,7 @@ struct RadioObject final : public IEMObject {
         int size = (isVertical ? getWidth() : getHeight());
         int minSize = 12;
         size = std::max(size, minSize);
-        
+
         int numItems = static_cast<int>(max.getValue());
 
         // Fix aspect ratio
@@ -38,11 +38,11 @@ struct RadioObject final : public IEMObject {
             object->setSize(size * numItems + Object::doubleMargin, std::max(object->getHeight(), minSize + Object::doubleMargin));
         }
     }
-    
+
     void applyBounds() override
     {
         auto* radio = static_cast<t_radio*>(ptr);
-        
+
         if (isVertical) {
             radio->x_gui.x_w = getWidth();
             radio->x_gui.x_h = getHeight() / radio->x_number;
@@ -54,38 +54,37 @@ struct RadioObject final : public IEMObject {
 
     void toggleObject(Point<int> position) override
     {
-        if(alreadyToggled)  {
+        if (alreadyToggled) {
             alreadyToggled = false;
         }
-        
+
         float pos = isVertical ? position.y : position.x;
         float div = isVertical ? getHeight() : getWidth();
         int numItems = static_cast<int>(max.getValue());
-        
+
         int idx = std::clamp<int>((pos / div) * numItems, 0, numItems - 1);
-        
-        if(idx != static_cast<int>(getValueOriginal())) {
+
+        if (idx != static_cast<int>(getValueOriginal())) {
             startEdition();
             setValueOriginal(idx);
             stopEdition();
             repaint();
         }
     }
-    
-    void receiveObjectMessage(const String& symbol, std::vector<pd::Atom>& atoms) override {
-        
-        if(symbol == "orientation" && atoms.size() >= 1) {
+
+    void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
+    {
+
+        if (symbol == "orientation" && atoms.size() >= 1) {
             isVertical = static_cast<bool>(atoms[0].getFloat());
             updateBounds();
-        }
-        else if(symbol == "number" && atoms.size() >= 1) {
+        } else if (symbol == "number" && atoms.size() >= 1) {
             setParameterExcludingListener(max, static_cast<int>(atoms[0].getFloat()));
-        }
-        else {
+        } else {
             IEMObject::receiveObjectMessage(symbol, atoms);
         }
     }
-    
+
     void untoggleObject() override
     {
         alreadyToggled = false;
@@ -96,14 +95,14 @@ struct RadioObject final : public IEMObject {
         float pos = isVertical ? e.y : e.x;
         float div = isVertical ? getHeight() : getWidth();
         int numItems = static_cast<int>(max.getValue());
-        
+
         int idx = (pos / div) * numItems;
-        
+
         alreadyToggled = true;
         startEdition();
         setValueOriginal(idx);
         stopEdition();
-        
+
         repaint();
     }
 
@@ -126,7 +125,7 @@ struct RadioObject final : public IEMObject {
         auto bounds = Rectangle<int>(x, y, w, h);
 
         auto* radio = static_cast<t_radio*>(ptr);
-        
+
         if (isVertical) {
             bounds.setSize(radio->x_gui.x_w, radio->x_gui.x_h);
         } else {
@@ -138,31 +137,27 @@ struct RadioObject final : public IEMObject {
         object->setObjectBounds(bounds);
     }
 
-    
     void paint(Graphics& g) override
     {
         g.setColour(getBackgroundColour());
         g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Constants::objectCornerRadius);
-        
+
         int size = (isVertical ? getWidth() : getHeight());
         int minSize = 12;
         size = std::max(size, minSize);
-        
+
         g.setColour(object->findColour(PlugDataColour::objectOutlineColourId));
-        
+
         for (int i = 1; i < static_cast<int>(max.getValue()); i++) {
-            if (isVertical)
-            {
+            if (isVertical) {
                 g.drawLine(0, i * size, size, i * size);
-            }
-            else
-            {
+            } else {
                 g.drawLine(i * size, 0, i * size, size);
             }
         }
-        
+
         g.setColour(getForegroundColour());
-        
+
         int currentValue = getValueOriginal();
         int selectionX = isVertical ? 0 : currentValue * size;
         int selectionY = isVertical ? currentValue * size : 0;
@@ -176,7 +171,7 @@ struct RadioObject final : public IEMObject {
 
         bool selected = cnv->isSelected(object) && !cnv->isGraph;
         auto outlineColour = object->findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : objectOutlineColourId);
-        
+
         g.setColour(outlineColour);
         g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Constants::objectCornerRadius, 1.0f);
     }
@@ -203,12 +198,12 @@ struct RadioObject final : public IEMObject {
 
     void setMaximum(float value)
     {
-        if(getValueOriginal() >= value) {
+        if (getValueOriginal() >= value) {
             setValueOriginal(value - 1);
         }
-        
+
         static_cast<t_radio*>(ptr)->x_number = value;
-        
+
         resized();
     }
 };

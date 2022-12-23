@@ -9,19 +9,18 @@ class ToolchainInstaller;
 class ExporterSettingsPanel;
 class Dialog;
 
-struct HeavyExportDialog : public Component
-{
+struct HeavyExportDialog : public Component {
     bool hasToolchain = false;
-    
+
     std::unique_ptr<ExportingProgressView> exportingView;
     std::unique_ptr<ToolchainInstaller> installer;
     std::unique_ptr<ExporterSettingsPanel> exporterPanel;
-    
+
     HeavyExportDialog(Dialog* dialog);
-    
+
     ~HeavyExportDialog();
-    
+
     void paint(Graphics& g) override;
-    
+
     void resized() override;
 };

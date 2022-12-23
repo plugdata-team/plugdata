@@ -24,7 +24,8 @@ struct DraggableNumber : public Label {
     std::function<void()> dragStart = []() {};
     std::function<void()> dragEnd = []() {};
 
-    DraggableNumber(bool integerDrag) : onlyIntegers(integerDrag)
+    DraggableNumber(bool integerDrag)
+        : onlyIntegers(integerDrag)
     {
         setWantsKeyboardFocus(true);
     }
@@ -125,13 +126,12 @@ struct DraggableNumber : public Label {
         GlyphArrangement glyphs;
         glyphs.addFittedText(getFont(), formatNumber(dragValue), textArea.getX(), 0., textArea.getWidth(), getHeight(), Justification::centredLeft, 1, getMinimumHorizontalScale());
 
-        
-        if(onlyIntegers) {
+        if (onlyIntegers) {
             decimalDrag = 0;
             numDecimalsToShow = 0;
             return;
         }
-        
+
         float decimalX = getWidth();
         for (int i = 0; i < glyphs.getNumGlyphs(); ++i) {
             auto const& glyph = glyphs.getGlyph(i);
@@ -187,15 +187,15 @@ struct DraggableNumber : public Label {
         auto mouseSource = Desktop::getInstance().getMainMouseSource();
         mouseSource.enableUnboundedMouseMovement(true, true);
 
-        const int decimal = decimalDrag + e.mods.isShiftDown();
-        const float increment = (decimal == 0) ? 1. : (1. / std::pow(10., decimal));
-        const float deltaY = (e.y - e.mouseDownPosition.y) * 0.7f;
+        int const decimal = decimalDrag + e.mods.isShiftDown();
+        float const increment = (decimal == 0) ? 1. : (1. / std::pow(10., decimal));
+        float const deltaY = (e.y - e.mouseDownPosition.y) * 0.7f;
 
         // truncate value and set
         float newValue = dragValue + (increment * -deltaY);
 
         if (decimal > 0) {
-            const int sign = (newValue > 0) ? 1 : -1;
+            int const sign = (newValue > 0) ? 1 : -1;
             unsigned int ui_temp = (newValue * std::pow(10, decimal)) * sign;
             newValue = (((float)ui_temp) / std::pow(10, decimal) * sign);
         } else {
@@ -249,7 +249,8 @@ struct DraggableListNumber : public DraggableNumber {
 
     bool targetFound = false;
 
-    explicit DraggableListNumber() : DraggableNumber(true)
+    explicit DraggableListNumber()
+        : DraggableNumber(true)
     {
         setEditableOnClick(true);
     }
@@ -321,8 +322,8 @@ struct DraggableListNumber : public DraggableNumber {
         auto mouseSource = Desktop::getInstance().getMainMouseSource();
         mouseSource.enableUnboundedMouseMovement(true, true);
 
-        const float increment = 1.;
-        const float deltaY = (e.y - e.mouseDownPosition.y) * 0.7f;
+        float const increment = 1.;
+        float const deltaY = (e.y - e.mouseDownPosition.y) * 0.7f;
 
         // lastDragPos = e.position;
 

@@ -45,7 +45,7 @@ static int getNumLines(int width, int stringWidth)
     // On startup, width might be zero, this is a large optimisation in that case
     if (width == 0)
         return 0;
-    
+
     return round(static_cast<float>(stringWidth) / (width - 12.0f)) + 1;
 }
 
@@ -101,7 +101,7 @@ struct Sidebar : public Component {
 
     void clearConsole();
     void updateConsole();
-    
+
     void tabChanged();
 
 #if PLUGDATA_STANDALONE
@@ -113,20 +113,20 @@ struct Sidebar : public Component {
 private:
     PluginProcessor* pd;
     ObjectParameters lastParameters;
-    
+
     TextButton consoleButton = TextButton(Icons::Console);
     TextButton browserButton = TextButton(Icons::Documentation);
     TextButton automationButton = TextButton(Icons::Parameters);
     TextButton searchButton = TextButton(Icons::Search);
-    
+
     Console* console;
     Inspector* inspector;
     DocumentBrowser* browser;
     AutomationPanel* automationPanel;
     SearchPanel* searchPanel;
-    
+
     int currentPanel = 0;
-    
+
     int dragStartWidth = 0;
     bool draggingSidebar = false;
     bool sidebarHidden = false;

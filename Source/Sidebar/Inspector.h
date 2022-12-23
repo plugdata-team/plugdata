@@ -20,10 +20,10 @@ struct Inspector : public Component {
     {
         g.setColour(findColour(PlugDataColour::sidebarBackgroundColourId));
         g.fillRect(getLocalBounds());
-        
+
         g.setColour(findColour(PlugDataColour::sidebarTextColourId));
         g.drawText(title, getLocalBounds().removeFromTop(23), Justification::centred);
-        
+
         g.setColour(findColour(PlugDataColour::outlineColourId));
         g.drawLine(0, 23, getWidth(), 23);
     }

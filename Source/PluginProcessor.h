@@ -13,13 +13,14 @@
 #include "LookAndFeel.h"
 #include "Statusbar.h"
 
-
 class PlugDataLook;
 
 class PluginEditor;
-class PluginProcessor : public AudioProcessor, public pd::Instance, public Timer, public AudioProcessorParameter::Listener
-{
-   public:
+class PluginProcessor : public AudioProcessor
+    , public pd::Instance
+    , public Timer
+    , public AudioProcessorParameter::Listener {
+public:
     PluginProcessor();
     ~PluginProcessor() override;
 
@@ -30,9 +31,9 @@ class PluginProcessor : public AudioProcessor, public pd::Instance, public Timer
     void releaseResources() override;
 
 #ifndef JucePlugin_PreferredChannelConfigurations
-    bool isBusesLayoutSupported(const BusesLayout& layouts) const override;
+    bool isBusesLayoutSupported(BusesLayout const& layouts) const override;
 #endif
-   
+
     void processBlock(AudioBuffer<float>&, MidiBuffer&) override;
 
     AudioProcessorEditor* createEditor() override;
@@ -52,22 +53,22 @@ class PluginProcessor : public AudioProcessor, public pd::Instance, public Timer
     int getCurrentProgram() override;
     void setCurrentProgram(int index) override;
     const String getProgramName(int index) override;
-    void changeProgramName(int index, const String& newName) override;
+    void changeProgramName(int index, String const& newName) override;
 
     void getStateInformation(MemoryBlock& destData) override;
-    void setStateInformation(const void* data, int sizeInBytes) override;
+    void setStateInformation(void const* data, int sizeInBytes) override;
 
-    void receiveNoteOn(const int channel, const int pitch, const int velocity) override;
-    void receiveControlChange(const int channel, const int controller, const int value) override;
-    void receiveProgramChange(const int channel, const int value) override;
-    void receivePitchBend(const int channel, const int value) override;
-    void receiveAftertouch(const int channel, const int value) override;
-    void receivePolyAftertouch(const int channel, const int pitch, const int value) override;
-    void receiveMidiByte(const int port, const int byte) override;
-    
-    void parameterValueChanged (int parameterIndex, float newValue) override;
-    void parameterGestureChanged (int parameterIndex, bool gestureIsStarting) override;
-    
+    void receiveNoteOn(int const channel, int const pitch, int const velocity) override;
+    void receiveControlChange(int const channel, int const controller, int const value) override;
+    void receiveProgramChange(int const channel, int const value) override;
+    void receivePitchBend(int const channel, int const value) override;
+    void receiveAftertouch(int const channel, int const value) override;
+    void receivePolyAftertouch(int const channel, int const pitch, int const value) override;
+    void receiveMidiByte(int const port, int const byte) override;
+
+    void parameterValueChanged(int parameterIndex, float newValue) override;
+    void parameterGestureChanged(int parameterIndex, bool gestureIsStarting) override;
+
     void receiveDSPState(bool dsp) override;
     void receiveGuiUpdate(int type) override;
 
@@ -75,15 +76,15 @@ class PluginProcessor : public AudioProcessor, public pd::Instance, public Timer
 
     void synchroniseCanvas(void* cnv) override;
     void reloadAbstractions(File changedPatch, t_glist* except) override;
-    
+
     void process(dsp::AudioBlock<float>, MidiBuffer&);
 
-    void setCallbackLock(const CriticalSection* lock)
+    void setCallbackLock(CriticalSection const* lock)
     {
         audioLock = lock;
     };
 
-    const CriticalSection* getCallbackLock() override
+    CriticalSection const* getCallbackLock() override
     {
         return audioLock;
     };
@@ -111,7 +112,7 @@ class PluginProcessor : public AudioProcessor, public pd::Instance, public Timer
     void performParameterChange(int type, int idx, float value) override;
 
     pd::Patch* loadPatch(String patch);
-    pd::Patch* loadPatch(const File& patch);
+    pd::Patch* loadPatch(File const& patch);
 
     void titleChanged() override;
 
@@ -153,21 +154,21 @@ class PluginProcessor : public AudioProcessor, public pd::Instance, public Timer
     static inline constexpr int numParameters = 512;
     static inline constexpr int numInputBuses = 16;
     static inline constexpr int numOutputBuses = 16;
-    
+
     // Zero means no oversampling
     int oversampling = 0;
     int lastTab = -1;
-    
+
     bool settingsChangedInternally = false;
-    
+
 #if PLUGDATA_STANDALONE
-    std::atomic<float> standaloneParams[numParameters] = {0};
+    std::atomic<float> standaloneParams[numParameters] = { 0 };
     OwnedArray<MidiOutput> midiOutputs;
 #endif
-        
-   private:
+
+private:
     void processInternal();
-    
+
     int audioAdvancement = 0;
     std::vector<float> audioBufferIn;
     std::vector<float> audioBufferOut;
@@ -178,23 +179,23 @@ class PluginProcessor : public AudioProcessor, public pd::Instance, public Timer
     MidiBuffer midiBufferCopy;
 
     bool midiByteIsSysex = false;
-    uint8 midiByteBuffer[512] = {0};
+    uint8 midiByteBuffer[512] = { 0 };
     size_t midiByteIndex = 0;
 
-    std::array<float, numParameters> lastParameters = {0};
-    std::array<float, numParameters> changeGestureState = {0};
+    std::array<float, numParameters> lastParameters = { 0 };
+    std::array<float, numParameters> changeGestureState = { 0 };
 
     std::vector<pd::Atom> atoms_playhead;
 
     int minIn = 2;
     int minOut = 2;
-    
+
     std::unique_ptr<dsp::Oversampling<float>> oversampler;
 
-    const CriticalSection* audioLock;
-    
+    CriticalSection const* audioLock;
+
     static inline const String else_version = "ELSE v1.0-rc5";
     static inline const String cyclone_version = "cyclone v0.6-1";
-    
+
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PluginProcessor)
 };

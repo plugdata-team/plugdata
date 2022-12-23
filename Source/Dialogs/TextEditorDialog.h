@@ -662,8 +662,8 @@ void Caret::paint(Graphics& g)
 
 float Caret::squareWave(float wt) const
 {
-    const float delta = 0.222f;
-    const float A = 1.0;
+    float const delta = 0.222f;
+    float const A = 1.0;
     return 0.5f + A / 3.14159f * std::atan(std::cos(wt) / delta);
 }
 
@@ -1889,7 +1889,6 @@ bool PlugDataTextEditor::keyPressed(KeyPress const& key)
         return insert("\n");
     if (key.getTextCharacter() >= ' ' || isTab || isBackspace)
         return insert(String::charToString(key.getTextCharacter()));
-    
 
     return false;
 }
@@ -2102,7 +2101,7 @@ struct TextEditorDialog : public Component {
     void resized()
     {
         auto b = getLocalBounds().reduced(15);
-        
+
         resizer.setBounds(b);
         closeButton->setBounds(b.removeFromTop(30).removeFromRight(30).translated(-5, 5));
         editor.setBounds(b.withTrimmedTop(10).withTrimmedBottom(20));
@@ -2128,16 +2127,16 @@ struct TextEditorDialog : public Component {
     {
         auto shadowPath = Path();
         shadowPath.addRoundedRectangle(getLocalBounds().reduced(20), Constants::windowCornerRadius);
-        
+
         StackShadow::renderDropShadow(g, shadowPath, Colour(0, 0, 0).withAlpha(0.6f), 12.0f);
-        
+
         auto b = getLocalBounds().reduced(15);
-        
+
         g.setColour(findColour(PlugDataColour::toolbarBackgroundColourId));
         g.fillRoundedRectangle(b.toFloat(), Constants::windowCornerRadius);
-        
+
         g.setColour(findColour(PlugDataColour::outlineColourId));
-        g.drawHorizontalLine(b.getX() + 39, b.getY() +  48, b.getWidth());
+        g.drawHorizontalLine(b.getX() + 39, b.getY() + 48, b.getWidth());
         g.drawHorizontalLine(b.getHeight() - 20, b.getY() + 48, b.getWidth());
 
         if (!title.isEmpty()) {

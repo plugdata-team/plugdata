@@ -23,7 +23,7 @@ struct ToggleObject final : public IEMObject {
     void paint(Graphics& g) override
     {
         IEMObject::paint(g);
-        
+
         auto toggledColour = getForegroundColour();
         auto untoggledColour = toggledColour.interpolatedWith(getBackgroundColour(), 0.8f);
         g.setColour(toggleState ? toggledColour : untoggledColour);
@@ -50,7 +50,7 @@ struct ToggleObject final : public IEMObject {
             toggleState = newValue;
             stopEdition();
             alreadyToggled = true;
-            
+
             repaint();
         }
     }
@@ -90,13 +90,13 @@ struct ToggleObject final : public IEMObject {
             { "Non-zero value", tInt, cGeneral, &nonZero, {} },
         };
     }
-    
-    void receiveObjectMessage(const String& symbol, std::vector<pd::Atom>& atoms) override {
-        
-        if(symbol == "nonzero" && atoms.size() >= 1) {
+
+    void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
+    {
+
+        if (symbol == "nonzero" && atoms.size() >= 1) {
             setParameterExcludingListener(nonZero, atoms[0].getFloat());
-        }
-        else {
+        } else {
             IEMObject::receiveObjectMessage(symbol, atoms);
         }
     }

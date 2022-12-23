@@ -4,7 +4,6 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
-
 #include "ObjectGrid.h"
 #include "Object.h"
 #include "Connection.h"

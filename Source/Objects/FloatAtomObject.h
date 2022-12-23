@@ -11,7 +11,8 @@ struct FloatAtomObject final : public AtomObject {
     DraggableNumber input;
 
     FloatAtomObject(void* obj, Object* parent)
-        : AtomObject(obj, parent), input(false)
+        : AtomObject(obj, parent)
+        , input(false)
     {
         input.onEditorShow = [this]() {
             auto* editor = input.getCurrentTextEditor();
@@ -44,7 +45,6 @@ struct FloatAtomObject final : public AtomObject {
 
         input.dragEnd = [this]() { stopEdition(); };
     }
-    
 
     void focusGained(FocusChangeType cause) override
     {

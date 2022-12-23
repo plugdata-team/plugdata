@@ -25,7 +25,7 @@ struct Dialog : public Component {
 
         setAlwaysOnTop(true);
         setWantsKeyboardFocus(true);
-        
+
         grabKeyboardFocus();
 
         if (showCloseButton) {
@@ -51,15 +51,14 @@ struct Dialog : public Component {
     }
 
     bool wantsRoundedCorners();
-    
+
     void paint(Graphics& g) override
     {
         g.setColour(Colours::black.withAlpha(0.5f));
-        
-        if(wantsRoundedCorners()) {
+
+        if (wantsRoundedCorners()) {
             g.fillRoundedRectangle(getLocalBounds().toFloat(), Constants::windowCornerRadius);
-        }
-        else {
+        } else {
             g.fillRect(getLocalBounds());
         }
 
@@ -71,8 +70,9 @@ struct Dialog : public Component {
             g.drawRoundedRectangle(viewedComponent->getBounds().toFloat(), Constants::windowCornerRadius, 1.0f);
         }
     }
-    
-    void parentSizeChanged() override {
+
+    void parentSizeChanged() override
+    {
         setBounds(getParentComponent()->getLocalBounds());
     }
 
@@ -87,16 +87,15 @@ struct Dialog : public Component {
             closeButton->setBounds(viewedComponent->getRight() - 35, viewedComponent->getY() + 8, 28, 28);
         }
     }
-    
-    bool keyPressed(const KeyPress &key) override
+
+    bool keyPressed(KeyPress const& key) override
     {
-        if(key == KeyPress::escapeKey)
-        {
+        if (key == KeyPress::escapeKey) {
             closeDialog();
-            
+
             return true;
         }
-        
+
         return false;
     }
 
@@ -128,16 +127,14 @@ struct Dialogs {
     static void createSettingsDialog(AudioProcessor* processor, AudioDeviceManager* manager, Component* centre, ValueTree const& settingsTree);
 
     static void showObjectMenu(PluginEditor* parent, Component* target);
-    
-    static void showOkayCancelDialog(std::unique_ptr<Dialog>* target, Component* parent, const String& title, std::function<void(bool)> callback);
-    
+
+    static void showOkayCancelDialog(std::unique_ptr<Dialog>* target, Component* parent, String const& title, std::function<void(bool)> callback);
+
     static void showHeavyExportDialog(std::unique_ptr<Dialog>* target, Component* parent);
-    
+
     static void showObjectBrowserDialog(std::unique_ptr<Dialog>* target, Component* parent);
 };
 
-
-struct DekenInterface
-{
+struct DekenInterface {
     static StringArray getExternalPaths();
 };

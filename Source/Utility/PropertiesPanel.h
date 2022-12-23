@@ -118,31 +118,31 @@ struct PropertiesPanel : public PropertyPanel {
     private:
         ComboBox comboBox;
     };
-     
+
     template<typename T>
     struct MultiPropertyComponent : public Property {
-        
+
         OwnedArray<T> properties;
         int numProperties;
-        
+
         MultiPropertyComponent(String const& propertyName, Array<Value*> values)
-            : Property(propertyName), numProperties(values.size())
+            : Property(propertyName)
+            , numProperties(values.size())
         {
-            for(int i = 0; i < numProperties; i++)
-            {
+            for (int i = 0; i < numProperties; i++) {
                 auto* property = properties.add(new T(propertyName, *values[i]));
                 property->setHideLabel(true);
                 addAndMakeVisible(property);
             }
         }
-        
-        void resized() override {
-            
+
+        void resized() override
+        {
+
             auto b = getLocalBounds().removeFromRight(getWidth() / (2 - hideLabel));
 
             int itemWidth = b.getWidth() / numProperties;
-            for(int i = 0; i < numProperties; i++)
-            {
+            for (int i = 0; i < numProperties; i++) {
                 properties[i]->setBounds(b.removeFromLeft(itemWidth));
             }
         }
@@ -270,14 +270,14 @@ struct PropertiesPanel : public PropertyPanel {
             auto setMinimum = [this](float value) {
                 min = value;
                 Array<var> arr = { min, max };
-                //maxLabel.setMinimum(min + 1e-5f);
+                // maxLabel.setMinimum(min + 1e-5f);
                 property = var(arr);
             };
 
             auto setMaximum = [this](float value) {
                 max = value;
                 Array<var> arr = { min, max };
-                //minLabel.setMaximum(max - 1e-5f);
+                // minLabel.setMaximum(max - 1e-5f);
                 property = var(arr);
             };
 
@@ -328,7 +328,7 @@ struct PropertiesPanel : public PropertyPanel {
 
             label->onEditorShow = [this]() {
                 auto* editor = label->getCurrentTextEditor();
-                
+
                 if constexpr (std::is_floating_point<T>::value) {
                     editor->setInputRestrictions(0, "0123456789.-");
                 } else if constexpr (std::is_integral<T>::value) {
@@ -342,14 +342,14 @@ struct PropertiesPanel : public PropertyPanel {
             label->setBounds(getLocalBounds().removeFromRight(getWidth() / (2 - hideLabel)));
         }
     };
-    
+
     struct FilePathComponent : public Property {
         Label label;
         TextButton browseButton = TextButton(Icons::File);
         Value& property;
 
         std::unique_ptr<FileChooser> saveChooser;
-        
+
         FilePathComponent(String propertyName, Value& value)
             : Property(propertyName)
             , property(value)
@@ -359,32 +359,32 @@ struct PropertiesPanel : public PropertyPanel {
             label.getTextValue().referTo(property);
             label.addMouseListener(this, true);
             label.setFont(Font(14));
-            
+
             browseButton.setName("statusbar::browse");
-            
+
             addAndMakeVisible(label);
             addAndMakeVisible(browseButton);
-            
-            browseButton.onClick = [this]()
-            {
+
+            browseButton.onClick = [this]() {
                 auto constexpr folderChooserFlags = FileBrowserComponent::saveMode | FileBrowserComponent::canSelectFiles | FileBrowserComponent::warnAboutOverwriting;
-                
+
                 saveChooser = std::make_unique<FileChooser>("Choose a location...", File::getSpecialLocation(File::userHomeDirectory), "", false);
-                
+
                 saveChooser->launchAsync(folderChooserFlags,
-                                         [this](FileChooser const& fileChooser) {
-                    auto const file = fileChooser.getResult();
-                    if(file.getParentDirectory().exists()) {
-                        label.setText(file.getFullPathName(), sendNotification);
-                    }
-                });
+                    [this](FileChooser const& fileChooser) {
+                        auto const file = fileChooser.getResult();
+                        if (file.getParentDirectory().exists()) {
+                            label.setText(file.getFullPathName(), sendNotification);
+                        }
+                    });
             };
         }
-        
-        void paint(Graphics& g) override {
-            
+
+        void paint(Graphics& g) override
+        {
+
             Property::paint(g);
-            
+
             g.setColour(findColour(PlugDataColour::panelBackgroundColourId));
             g.fillRect(getLocalBounds().removeFromRight(getHeight()));
         }

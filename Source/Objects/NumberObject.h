@@ -7,13 +7,14 @@
 #include "../Utility/DraggableNumber.h"
 
 struct NumberObject final : public IEMObject {
-    
+
     DraggableNumber input;
-    
+
     float preFocusValue;
 
     NumberObject(void* obj, Object* parent)
-        : IEMObject(obj, parent), input(false)
+        : IEMObject(obj, parent)
+        , input(false)
     {
         input.onEditorShow = [this]() {
             auto* editor = input.getCurrentTextEditor();
@@ -47,8 +48,6 @@ struct NumberObject final : public IEMObject {
         input.valueChanged = [this](float value) { setValueOriginal(value); };
 
         input.dragEnd = [this]() { stopEdition(); };
-        
-
     }
 
     void updateBounds() override
@@ -66,7 +65,7 @@ struct NumberObject final : public IEMObject {
 
     void checkBounds() override
     {
-        const int widthIncrement = 9;
+        int const widthIncrement = 9;
         int width = jlimit(27, maxSize, (getWidth() / widthIncrement) * widthIncrement);
         int height = jlimit(18, maxSize, getHeight());
         if (getWidth() != width || getHeight() != height) {
@@ -104,8 +103,7 @@ struct NumberObject final : public IEMObject {
     void focusLost(FocusChangeType cause) override
     {
         auto inputValue = input.getText().getFloatValue();
-        if(inputValue != preFocusValue)
-        {
+        if (inputValue != preFocusValue) {
             setValueOriginal(inputValue);
         }
         repaint();
@@ -140,15 +138,14 @@ struct NumberObject final : public IEMObject {
         } else if (value.refersToSameSourceAs(max)) {
             setMaximum(static_cast<float>(max.getValue()));
             updateValue();
-        }
-        else {
+        } else {
             IEMObject::valueChanged(value);
         }
     }
 
     void paintOverChildren(Graphics& g) override
     {
-        const int indent = 9;
+        int const indent = 9;
 
         Rectangle<int> const iconBounds = getLocalBounds().withWidth(indent - 4).withHeight(getHeight() - 8).translated(4, 4);
 
@@ -163,9 +160,9 @@ struct NumberObject final : public IEMObject {
 
         auto centre_y = iconBounds.getCentreY();
         auto left_x = iconBounds.getTopLeft().getX();
-        Point<float> point_a (left_x, centre_y + 5.0);
-        Point<float> point_b (iconBounds.getRight(), centre_y);
-        Point<float> point_c (left_x, centre_y - 5.0);
+        Point<float> point_a(left_x, centre_y + 5.0);
+        Point<float> point_b(iconBounds.getRight(), centre_y);
+        Point<float> point_c(left_x, centre_y - 5.0);
         triangle.addTriangle(point_a, point_b, point_c);
 
         auto normalColour = object->findColour(PlugDataColour::objectOutlineColourId);

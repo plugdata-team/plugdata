@@ -141,10 +141,10 @@ struct ButtonObject : public GUIObject {
         g.fillRoundedRectangle(bounds.reduced(0.5f), Constants::objectCornerRadius);
 
         bool selected = cnv->isSelected(object) && !cnv->isGraph;
-        
+
         g.setColour(object->findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : objectOutlineColourId));
         g.drawRoundedRectangle(bounds.reduced(0.5f), Constants::objectCornerRadius, 1.0f);
-        
+
         g.setColour(object->findColour(PlugDataColour::objectOutlineColourId));
         g.drawRoundedRectangle(bounds.reduced(6), Constants::objectCornerRadius, 1.5f);
 
@@ -180,15 +180,13 @@ struct ButtonObject : public GUIObject {
             repaint();
         }
     }
-    
-    void receiveObjectMessage(const String& symbol, std::vector<pd::Atom>& atoms) override {
-        if(symbol == "bgcolor")
-        {
+
+    void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
+    {
+        if (symbol == "bgcolor") {
             setParameterExcludingListener(secondaryColour, Colour(atoms[0].getFloat(), atoms[1].getFloat(), atoms[2].getFloat()).toString());
             repaint();
-        }
-        else if(symbol == "fgcolor")
-        {
+        } else if (symbol == "fgcolor") {
             setParameterExcludingListener(primaryColour, Colour(atoms[0].getFloat(), atoms[1].getFloat(), atoms[2].getFloat()).toString());
             repaint();
         }

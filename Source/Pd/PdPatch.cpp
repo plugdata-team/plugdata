@@ -99,10 +99,10 @@ void Patch::savePatch(File const& location)
 
     auto* dir = gensym(fullPathname.replace("\\", "/").toRawUTF8());
     auto* file = gensym(filename.toRawUTF8());
-    
+
     setTitle(filename);
     canvas_dirty(getPointer(), 0);
-    
+
     libpd_savetofile(getPointer(), file, dir);
     instance->reloadAbstractions(location, getPointer());
 
@@ -119,7 +119,7 @@ void Patch::savePatch()
 
     setTitle(filename);
     canvas_dirty(getPointer(), 0);
-    
+
     libpd_savetofile(getPointer(), file, dir);
     instance->reloadAbstractions(currentFile, getPointer());
 }
@@ -139,11 +139,11 @@ void Patch::setCurrent(bool lock)
     if (cnv) {
         canvas_unsetcurrent(cnv);
     }
-    
+
     canvas_setcurrent(getPointer());
     canvas_vis(getPointer(), 1.);
     canvas_map(getPointer(), 1.);
-    
+
     canvas_create_editor(getPointer());
 
     t_atom argv[1];

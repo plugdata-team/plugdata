@@ -4,21 +4,20 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
-
 extern "C" {
 EXTERN char* pd_version;
 }
 
 struct AboutPanel : public Component {
-    
+
     Image logo = ImageFileFormat::loadFrom(BinaryData::plugdata_logo_png, BinaryData::plugdata_logo_pngSize);
 
     void paint(Graphics& g) override
     {
         auto* lnf = dynamic_cast<PlugDataLook*>(&getLookAndFeel());
-        if(!lnf) return;
-        
-        
+        if (!lnf)
+            return;
+
         g.setFont(lnf->boldFont.withHeight(30));
         g.setColour(findColour(PlugDataColour::panelTextColourId));
         g.drawFittedText("plugdata " + String(ProjectInfo::versionString), 150, 20, 300, 30, Justification::left, 1);

@@ -58,17 +58,20 @@ public:
         float min = -1, max = 1;
         libpd_set_instance(static_cast<t_pdinstance*>(instance));
         libpd_array_get_scale(ptr, &min, &max);
-        
-        if(min == max) max += 1e-6;
-        
+
+        if (min == max)
+            max += 1e-6;
+
         return { min, max };
     }
 
-    bool getEditMode() {
+    bool getEditMode()
+    {
         return libpd_array_get_editmode(ptr);
     }
-    
-    void setEditMode(bool editMode) {
+
+    void setEditMode(bool editMode)
+    {
         libpd_array_set_editmode(ptr, editMode);
     }
 
@@ -91,7 +94,7 @@ public:
     void read(std::vector<float>& output) const
     {
         libpd_set_instance(static_cast<t_pdinstance*>(instance));
-        const int size = libpd_array_get_size(ptr);
+        int const size = libpd_array_get_size(ptr);
         output.resize(static_cast<size_t>(size));
         libpd_array_read(output.data(), ptr, 0, size);
     }
@@ -104,12 +107,11 @@ public:
     }
 
     // Writes a value of the array.
-    void write(const size_t pos, const float input)
+    void write(const size_t pos, float const input)
     {
         libpd_set_instance(static_cast<t_pdinstance*>(instance));
         libpd_array_write(ptr, static_cast<int>(pos), &input, 1);
     }
-
 
     void* ptr = nullptr;
     void* instance = nullptr;
@@ -162,7 +164,7 @@ public:
             if (mod == 0)
                 result[i] = v[idx];
             else {
-                const float part = float(mod) / float(newSize);
+                float const part = float(mod) / float(newSize);
                 result[i] = v[idx] * (1.0 - part) + v[idx + 1] * part;
             }
         }
@@ -179,7 +181,7 @@ public:
         if (!points.empty()) {
             std::array<float, 2> scale = array.getScale();
             bool invert = false;
-            
+
             if (scale[0] >= scale[1]) {
                 invert = true;
                 std::swap(scale[0], scale[1]);
@@ -191,23 +193,24 @@ public:
                 points = rescale(points, w);
             }
 
-            const float dh = h / (scale[1] - scale[0]);
-            const float dw = w / static_cast<float>(points.size() - 1);
+            float const dh = h / (scale[1] - scale[0]);
+            float const dw = w / static_cast<float>(points.size() - 1);
 
             switch (array.getDrawType()) {
             case PdArray::DrawType::Curve: {
-                
+
                 Path p;
                 p.startNewSubPath(0, h - (std::clamp(points[0], scale[0], scale[1]) - scale[0]) * dh);
-                
+
                 for (size_t i = 1; i < points.size() - 2; i += 3) {
-                    const float y1 = h - (std::clamp(points[i], scale[0], scale[1]) - scale[0]) * dh;
-                    const float y2 = h - (std::clamp(points[i + 1], scale[0], scale[1]) - scale[0]) * dh;
-                    const float y3 = h - (std::clamp(points[i + 2], scale[0], scale[1]) - scale[0]) * dh;
+                    float const y1 = h - (std::clamp(points[i], scale[0], scale[1]) - scale[0]) * dh;
+                    float const y2 = h - (std::clamp(points[i + 1], scale[0], scale[1]) - scale[0]) * dh;
+                    float const y3 = h - (std::clamp(points[i + 2], scale[0], scale[1]) - scale[0]) * dh;
                     p.cubicTo(static_cast<float>(i) * dw, y1, static_cast<float>(i + 1) * dw, y2, static_cast<float>(i + 2) * dw, y3);
                 }
-                
-                if(invert) p.applyTransform(AffineTransform::verticalFlip(getHeight()));
+
+                if (invert)
+                    p.applyTransform(AffineTransform::verticalFlip(getHeight()));
 
                 g.setColour(object->findColour(PlugDataColour::objectOutlineColourId));
                 g.strokePath(p, PathStrokeType(1));
@@ -220,14 +223,15 @@ public:
 
                 Path p;
                 for (size_t i = 1; i < points.size(); i++) {
-                    const float y = h - (std::clamp(points[i], scale[0], scale[1]) - scale[0]) * dh;
+                    float const y = h - (std::clamp(points[i], scale[0], scale[1]) - scale[0]) * dh;
                     newPoint = Point<float>(static_cast<float>(i) * dw, y);
 
                     p.addLineSegment({ lastPoint, newPoint }, 1.0f);
                     lastPoint = newPoint;
                 }
-                
-                if(invert) p.applyTransform(AffineTransform::verticalFlip(getHeight()));
+
+                if (invert)
+                    p.applyTransform(AffineTransform::verticalFlip(getHeight()));
 
                 g.setColour(object->findColour(PlugDataColour::objectOutlineColourId));
                 g.fillPath(p);
@@ -235,12 +239,13 @@ public:
             }
             case PdArray::DrawType::Points: {
                 g.setColour(object->findColour(PlugDataColour::objectOutlineColourId));
-                
-                const float dw_points = w / static_cast<float>(points.size());
-                
+
+                float const dw_points = w / static_cast<float>(points.size());
+
                 for (size_t i = 0; i < points.size(); i++) {
                     float y = h - (std::clamp(points[i], scale[0], scale[1]) - scale[0]) * dh;
-                    if(invert) y = getHeight() - y;
+                    if (invert)
+                        y = getHeight() - y;
                     g.drawHorizontalLine(y, static_cast<float>(i) * dw_points, static_cast<float>(i + 1) * dw_points);
                 }
                 break;
@@ -293,8 +298,8 @@ public:
         auto const y = static_cast<float>(e.y);
 
         std::array<float, 2> scale = array.getScale();
-        
-        const int index = static_cast<int>(std::round(std::clamp(x / w, 0.f, 1.f) * s));
+
+        int const index = static_cast<int>(std::round(std::clamp(x / w, 0.f, 1.f) * s));
 
         float start = vec[lastIndex];
         float current = (1.f - std::clamp(y / h, 0.f, 1.f)) * (scale[1] - scale[0]) + scale[0];
@@ -364,8 +369,6 @@ public:
 
     PluginProcessor* pd;
 };
-
-
 
 struct ArrayEditorDialog : public Component {
     ResizableBorderComponent resizer;
@@ -441,8 +444,6 @@ struct ArrayEditorDialog : public Component {
             g.drawText(title, 0, 0, getWidth(), 40, Justification::centred);
         }
     }
-    
-
 };
 
 struct ArrayObject final : public GUIObject {
@@ -464,7 +465,7 @@ public:
         saveContents = array.willSaveContent();
         name = String(array.getUnexpandedName());
         drawMode = static_cast<int>(array.getDrawType()) + 1;
-        
+
         labelColour = object->findColour(PlugDataColour::canvasTextColourId).toString();
 
         updateLabel();
@@ -537,7 +538,6 @@ public:
         };
     }
 
-
     void applyBounds() override
     {
         auto b = object->getObjectBounds();
@@ -569,8 +569,8 @@ public:
         auto arrName = name.getValue().toString();
         auto arrSize = std::max(0, static_cast<int>(size.getValue()));
         auto arrDrawMode = static_cast<int>(drawMode.getValue()) - 1;
-        
-        if(arrSize != static_cast<int>(size.getValue())) {
+
+        if (arrSize != static_cast<int>(size.getValue())) {
             size = arrSize;
         }
 
@@ -630,14 +630,12 @@ public:
             GUIObject::valueChanged(value);
         }
     }
-    
-
 
     void paintOverChildren(Graphics& g) override
     {
         bool selected = cnv->isSelected(object) && !cnv->isGraph;
         auto outlineColour = object->findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : objectOutlineColourId);
-        
+
         g.setColour(outlineColour);
         g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Constants::objectCornerRadius, 1.0f);
     }

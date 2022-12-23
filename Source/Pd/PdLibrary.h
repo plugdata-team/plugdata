@@ -82,7 +82,7 @@ struct Library : public FileSystemWatcher::Listener {
     String getInletOutletTooltip(String objname, int idx, int total, bool isInlet);
 
     void fsChangeCallback() override;
-    
+
     File findHelpfile(t_canvas* cnv, t_object* obj);
 
     std::vector<File> helpPaths;
@@ -106,7 +106,7 @@ private:
     IODescriptionMap inletDescriptions;
     IODescriptionMap outletDescriptions;
     ArgumentMap arguments;
-    
+
     StringArray allObjects;
 
     std::mutex libraryLock;

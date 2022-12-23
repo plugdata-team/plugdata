@@ -4,7 +4,6 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
-
 // Graph bounds component
 struct GraphArea : public Component
     , public ComponentDragger {

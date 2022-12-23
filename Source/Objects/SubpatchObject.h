@@ -5,30 +5,30 @@
  */
 
 struct SubpatchObject final : public TextBase
-, public Value::Listener {
+    , public Value::Listener {
     SubpatchObject(void* obj, Object* object)
-    : TextBase(obj, object)
-    , subpatch({ ptr, cnv->pd })
+        : TextBase(obj, object)
+        , subpatch({ ptr, cnv->pd })
     {
         isGraphChild = false;
         hideNameAndArgs = static_cast<bool>(subpatch.getPointer()->gl_hidetext);
-        
+
         isGraphChild.addListener(this);
         hideNameAndArgs.addListener(this);
-        
+
         object->hvccMode.addListener(this);
-        
-        if(static_cast<bool>(object->hvccMode.getValue())) {
+
+        if (static_cast<bool>(object->hvccMode.getValue())) {
             checkHvccCompatibility(subpatch);
         }
     }
-    
+
     ~SubpatchObject()
     {
         object->hvccMode.removeListener(this);
         closeOpenedSubpatchers();
     }
-    
+
     void updateValue() override
     {
         // Change from subpatch to graph
@@ -38,37 +38,36 @@ struct SubpatchObject final : public TextBase
             object->setType(objectText, ptr);
         }
     };
-    
+
     void mouseDown(MouseEvent const& e) override
     {
         //  If locked and it's a left click
         if (locked && !e.mods.isRightButtonDown()) {
             openSubpatch();
-            
+
             return;
         } else {
             TextBase::mouseDown(e);
         }
     }
-    
+
     // Most objects ignore mouseclicks when locked
     // Objects can override this to do custom locking behaviour
     void lock(bool isLocked) override
     {
         locked = isLocked;
     }
-    
-    
+
     pd::Patch* getPatch() override
     {
         return &subpatch;
     }
-    
+
     ObjectParameters getParameters() override
     {
         return { { "Is graph", tBool, cGeneral, &isGraphChild, { "No", "Yes" } }, { "Hide name and arguments", tBool, cGeneral, &hideNameAndArgs, { "No", "Yes" } } };
     };
-    
+
     void valueChanged(Value& v) override
     {
         if (v.refersToSameSourceAs(isGraphChild)) {
@@ -77,50 +76,49 @@ struct SubpatchObject final : public TextBase
         } else if (v.refersToSameSourceAs(hideNameAndArgs)) {
             subpatch.getPointer()->gl_hidetext = static_cast<bool>(hideNameAndArgs.getValue());
             repaint();
-        }
-        else if (v.refersToSameSourceAs(object->hvccMode)) {
-            if(static_cast<bool>(v.getValue())) {
+        } else if (v.refersToSameSourceAs(object->hvccMode)) {
+            if (static_cast<bool>(v.getValue())) {
                 checkHvccCompatibility(subpatch);
             }
         }
     }
-    
+
     bool canOpenFromMenu() override
     {
         return true;
     }
-    
+
     void openFromMenu() override
     {
         openSubpatch();
     }
-    
-    static void checkHvccCompatibility(pd::Patch& patch, String prefix = "") {
-        
+
+    static void checkHvccCompatibility(pd::Patch& patch, String prefix = "")
+    {
+
         auto* instance = patch.instance;
-        
-        for(auto* object : patch.getObjects()) {
+
+        for (auto* object : patch.getObjects()) {
             const String name = libpd_get_object_class_name(object);
-            
-            if(name == "canvas" || name == "graph") {
+
+            if (name == "canvas" || name == "graph") {
                 auto patch = pd::Patch(object, instance);
-                
+
                 char* text = nullptr;
                 int size = 0;
                 libpd_get_object_text(object, &text, &size);
-                
+
                 checkHvccCompatibility(patch, prefix + String(text) + " -> ");
-            }
-            else if(!Object::hvccObjects.contains(name)) {
+            } else if (!Object::hvccObjects.contains(name)) {
                 instance->logWarning(String("Warning: object \"" + prefix + name + "\" is not supported in Compiled Mode").toRawUTF8());
             }
         }
     }
-    
+
 protected:
     pd::Patch subpatch;
     Value isGraphChild = Value(var(false));
     Value hideNameAndArgs = Value(var(false));
-    
+
     bool locked = false;
 };

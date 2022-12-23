@@ -4,7 +4,6 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
-
 struct SliderObject : public IEMObject {
     bool isVertical;
     Value isLogarithmic = Value(var(false));
@@ -61,23 +60,21 @@ struct SliderObject : public IEMObject {
         };
     }
 
-    void receiveObjectMessage(const String& symbol, std::vector<pd::Atom>& atoms) override {
-        
-        if(symbol == "lin") {
+    void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
+    {
+
+        if (symbol == "lin") {
             setParameterExcludingListener(isLogarithmic, false);
-        }
-        else if(symbol == "log") {
+        } else if (symbol == "log") {
             setParameterExcludingListener(isLogarithmic, true);
-        }
-        else if(symbol == "range" && atoms.size() >= 2) {
+        } else if (symbol == "range" && atoms.size() >= 2) {
             setParameterExcludingListener(min, atoms[0].getFloat());
             setParameterExcludingListener(max, atoms[1].getFloat());
-        }
-        else {
+        } else {
             IEMObject::receiveObjectMessage(symbol, atoms);
         }
     }
-    
+
     void checkBounds() override
     {
         // Apply size limits
@@ -93,7 +90,7 @@ struct SliderObject : public IEMObject {
     {
         bool selected = cnv->isSelected(object) && !cnv->isGraph;
         auto outlineColour = object->findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : objectOutlineColourId);
-        
+
         g.setColour(outlineColour);
         g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Constants::objectCornerRadius, 1.0f);
     }
@@ -105,14 +102,15 @@ struct SliderObject : public IEMObject {
 
     void update() override
     {
-    
+
         float maxValue = static_cast<float>(max.getValue());
         float minValue = static_cast<float>(min.getValue()) == 0.0f ? std::numeric_limits<float>::epsilon() : static_cast<float>(min.getValue());
 
         auto value = isLogScale() ? std::log(getValueOriginal() / minValue) / std::log(maxValue / minValue) : getValueScaled();
 
-        if(!std::isfinite(value)) value = 0.0f;
-        
+        if (!std::isfinite(value))
+            value = 0.0f;
+
         slider.setValue(value, dontSendNotification);
     }
 
@@ -165,8 +163,8 @@ struct SliderObject : public IEMObject {
             setLogScale(isLogarithmic == var(true));
             min = getMinimum();
             max = getMaximum();
-            
-            if(static_cast<float>(min.getValue()) == 0.0f && static_cast<bool>(isLogarithmic.getValue())) {
+
+            if (static_cast<float>(min.getValue()) == 0.0f && static_cast<bool>(isLogarithmic.getValue())) {
                 min = std::numeric_limits<float>::epsilon();
                 setMinimum(std::numeric_limits<float>::epsilon());
             }

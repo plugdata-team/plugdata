@@ -4,8 +4,8 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
-struct ThemePanel : public Component, public Value::Listener
-{
+struct ThemePanel : public Component
+    , public Value::Listener {
 
     ValueTree settingsTree;
     Value fontValue;
@@ -13,12 +13,13 @@ struct ThemePanel : public Component, public Value::Listener
 
     PropertiesPanel panel;
     Array<PropertyComponent*> allPanels;
-        
+
     TextButton resetButton = TextButton(Icons::Refresh);
-    
+
     std::unique_ptr<Dialog> confirmationDialog;
 
-    explicit ThemePanel(ValueTree tree) : settingsTree(tree)
+    explicit ThemePanel(ValueTree tree)
+        : settingsTree(tree)
     {
         resetButton.setTooltip("Reset to default");
         resetButton.setName("statusbar:down");
@@ -26,61 +27,58 @@ struct ThemePanel : public Component, public Value::Listener
         resetButton.setConnectedEdges(12);
         resetButton.onClick = [this]() {
             Dialogs::showOkayCancelDialog(&confirmationDialog, getParentComponent(), "Are you sure you want to reset to default theme settings?",
-                                          [this](bool result){
-                if(result) {
-                    resetColours();
-                }
-            });
+                [this](bool result) {
+                    if (result) {
+                        resetColours();
+                    }
+                });
         };
-        
+
         addAndMakeVisible(panel);
-                
+
         std::map<String, Array<PropertyComponent*>> panels;
 
         // Loop over colours
         for (auto const& [colour, colourNames] : PlugDataColourNames) {
-            
+
             auto& [colourName, colourId, colourCategory] = colourNames;
-            
+
             Array<Value*> swatchesToAdd;
-            
+
             // Loop over themes
             int i = 0;
-            for (auto const& [themeName, themeColours] : PlugDataLook::colourSettings)
-            {
+            for (auto const& [themeName, themeColours] : PlugDataLook::colourSettings) {
                 swatchesToAdd.add(&(swatches[themeName][colourId]));
                 auto* swatch = swatchesToAdd.getLast();
-                
+
                 auto value = settingsTree.getChildWithName("ColourThemes").getChildWithProperty("theme", themeName).getPropertyAsValue(colourId, nullptr);
-                
+
                 swatch->referTo(value);
                 swatch->addListener(this);
             }
             i++;
-            
+
             // Add a multi colour component to the properties panel
             panels[colourCategory].add(new PropertiesPanel::MultiPropertyComponent<PropertiesPanel::ColourComponent>(colourName, swatchesToAdd));
         }
-        
-        
+
         fontValue.setValue(LookAndFeel::getDefaultLookAndFeel().getTypefaceForFont(Font())->getName());
         fontValue.addListener(this);
-        
+
         auto* fontPanel = new PropertiesPanel::FontComponent("Default font", fontValue);
-        
+
         allPanels.add(fontPanel);
         addAndMakeVisible(*fontPanel);
-        
-        panel.addSection("Fonts", {fontPanel});
-        
+
+        panel.addSection("Fonts", { fontPanel });
+
         // Create the panels by category
-        for (auto const& [sectionName, sectionColours] : panels)
-        {
-            for(auto* colourPanel : sectionColours) allPanels.add(colourPanel);
+        for (auto const& [sectionName, sectionColours] : panels) {
+            for (auto* colourPanel : sectionColours)
+                allPanels.add(colourPanel);
             panel.addSection(sectionName, sectionColours);
         }
     }
-
 
     void valueChanged(Value& v) override
     {
@@ -97,7 +95,7 @@ struct ThemePanel : public Component, public Value::Listener
             for (auto const& [colourId, value] : theme) {
                 auto [colId, colourName, colCat] = PlugDataColourNames.at(colourId);
                 if (v.refersToSameSourceAs(swatches[themeName][colourName])) {
-                    
+
                     lnf.setThemeColour(themeName, colourId, Colour::fromString(v.toString()));
 
                     lnf.setTheme(lnf.isUsingLightTheme);
@@ -116,7 +114,7 @@ struct ThemePanel : public Component, public Value::Listener
         g.drawText("Theme", themeRow, Justification::left);
         g.drawText("Dark", themeRow.withX(getWidth() * 0.5f).withWidth(getWidth() / 4), Justification::centred);
         g.drawText("Light", themeRow.withX(getWidth() * 0.75f).withWidth(getWidth() / 4), Justification::centred);
-        
+
         auto fullThemeRow = getLocalBounds().removeFromTop(23);
         g.setColour(findColour(PlugDataColour::outlineColourId));
         g.drawLine(Line<int>(fullThemeRow.getBottomLeft(), fullThemeRow.getBottomRight()).toFloat(), -1.0f);
@@ -127,27 +125,28 @@ struct ThemePanel : public Component, public Value::Listener
         auto bounds = getLocalBounds();
 
         // Space for dark/light labels
-        
+
         bounds.removeFromTop(23);
         bounds.removeFromBottom(30);
-        
+
         panel.setBounds(bounds);
-        
+
         resetButton.setBounds(getWidth() - 36, getHeight() - 26, 32, 32);
     }
-    
-    void resetColours() {
+
+    void resetColours()
+    {
         auto& lnf = dynamic_cast<PlugDataLook&>(getLookAndFeel());
         lnf.resetColours();
 
         dynamic_cast<PropertiesPanel::FontComponent*>(allPanels[0])->setFont("Inter");
         fontValue = "Inter";
-        
+
         lnf.setDefaultFont(fontValue.toString());
         settingsTree.setProperty("DefaultFont", fontValue.getValue(), nullptr);
 
         auto colourThemesTree = settingsTree.getChildWithName("ColourThemes");
-        
+
         for (auto const& [themeName, theme] : lnf.colourSettings) {
             auto themeTree = colourThemesTree.getChildWithName(themeName);
             for (auto const& [colourId, colourValue] : theme) {
@@ -157,18 +156,15 @@ struct ThemePanel : public Component, public Value::Listener
             }
         }
 
-
         lnf.setTheme(lnf.isUsingLightTheme);
         getTopLevelComponent()->repaint();
 
-        
         for (auto* panel : allPanels) {
             if (auto* multiPanel = dynamic_cast<PropertiesPanel::MultiPropertyComponent<PropertiesPanel::ColourComponent>*>(panel)) {
-                for(auto* property : multiPanel->properties) {
+                for (auto* property : multiPanel->properties) {
                     property->updateColour();
                 }
             }
         }
     }
-    
 };

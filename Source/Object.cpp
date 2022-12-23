@@ -13,8 +13,7 @@
 #include "LookAndFeel.h"
 #include "PluginEditor.h"
 
-extern "C"
-{
+extern "C" {
 #include <m_pd.h>
 #include <m_imp.h>
 #include <x_libpd_extra_utils.h>
@@ -25,8 +24,7 @@ Object::Object(Canvas* parent, String const& name, Point<int> position)
 {
     setTopLeftPosition(position - Point<int>(margin, margin));
 
-    if (cnv->attachNextObjectToMouse)
-    {
+    if (cnv->attachNextObjectToMouse) {
         cnv->attachNextObjectToMouse = false;
         attachedToMouse = true;
         startTimer(16);
@@ -36,26 +34,18 @@ Object::Object(Canvas* parent, String const& name, Point<int> position)
 
     // Open editor for undefined objects
     // Delay the setting of the type to prevent creating an invalid object first
-    if (name.isEmpty())
-    {
+    if (name.isEmpty()) {
         setSize(100, height);
-    }
-    else
-    {
+    } else {
         setType(name);
     }
-    
-    
 
     // Open the text editor of a new object if it has one
     // Don't do this if the object is attached to the mouse
     // Param objects are an exception where we don't want to open on mouse-down
-    if (attachedToMouse && !name.startsWith("param"))
-    {
+    if (attachedToMouse && !name.startsWith("param")) {
         createEditorOnMouseDown = true;
-    }
-    else if(!attachedToMouse)
-    {
+    } else if (!attachedToMouse) {
         showEditor();
     }
 }
@@ -71,8 +61,7 @@ Object::Object(void* object, Canvas* parent)
 
 Object::~Object()
 {
-    if (attachedToMouse)
-    {
+    if (attachedToMouse) {
         stopTimer();
     }
 }
@@ -89,7 +78,7 @@ void Object::setObjectBounds(Rectangle<int> bounds)
 
 void Object::initialise()
 {
-    addMouseListener(cnv, true);  // Receive mouse messages on canvas
+    addMouseListener(cnv, true); // Receive mouse messages on canvas
     cnv->addAndMakeVisible(this);
 
     // Updates lock/unlock mode
@@ -97,7 +86,7 @@ void Object::initialise()
     commandLocked.referTo(cnv->pd->commandLocked);
     presentationMode.referTo(cnv->presentationMode);
     hvccMode.referTo(cnv->editor->hvccMode);
-    
+
     presentationMode.addListener(this);
     locked.addListener(this);
     commandLocked.addListener(this);
@@ -109,8 +98,7 @@ void Object::initialise()
 void Object::timerCallback()
 {
     auto pos = cnv->getMouseXYRelative();
-    if (pos != getBounds().getCentre())
-    {
+    if (pos != getBounds().getCentre()) {
         auto viewArea = cnv->viewport->getViewArea() / static_cast<float>(cnv->editor->zoomScale.getValue());
         setCentrePosition(viewArea.getConstrainedPoint(pos));
     }
@@ -118,30 +106,28 @@ void Object::timerCallback()
 
 void Object::valueChanged(Value& v)
 {
-    if(v.refersToSameSourceAs(hvccMode))
-    {
-        if(gui) {
+    if (v.refersToSameSourceAs(hvccMode)) {
+        if (gui) {
             auto typeName = String(libpd_get_object_class_name(gui->ptr));
             // Check hvcc compatibility
             bool isSubpatch = gui ? gui->getPatch() != nullptr : false;
             isHvccCompatible = !static_cast<bool>(hvccMode.getValue()) || isSubpatch || hvccObjects.contains(typeName);
 
-            if(!isHvccCompatible) {
+            if (!isHvccCompatible) {
                 cnv->pd->logWarning(String("Warning: object \"" + typeName + "\" is not supported in Compiled Mode").toRawUTF8());
             }
-            
+
             repaint();
         }
-        
+
         return;
     }
-    
+
     // else it was a lock/unlock action
     // Hide certain objects in GOP
     resized();
 
-    if (gui)
-    {
+    if (gui) {
         gui->lock(locked == var(true) || commandLocked == var(true));
     }
 
@@ -151,34 +137,31 @@ void Object::valueChanged(Value& v)
 
 bool Object::hitTest(int x, int y)
 {
-    if(gui && !gui->canReceiveMouseEvent(x, y)) {
+    if (gui && !gui->canReceiveMouseEvent(x, y)) {
         return false;
     }
-    
+
     // Mouse over object
-    if (getLocalBounds().reduced(margin).contains(x, y))
-    {
+    if (getLocalBounds().reduced(margin).contains(x, y)) {
         return true;
     }
 
     // Mouse over iolets
-    for (auto* iolet : iolets)
-    {
-        if (iolet->getBounds().contains(x, y)) return true;
+    for (auto* iolet : iolets) {
+        if (iolet->getBounds().contains(x, y))
+            return true;
     }
 
     // Mouse over corners
-    if (cnv->isSelected(this))
-    {
-        for (auto& corner : getCorners())
-        {
-            if (corner.contains(x, y)) return true;
+    if (cnv->isSelected(this)) {
+        for (auto& corner : getCorners()) {
+            if (corner.contains(x, y))
+                return true;
         }
     }
 
     return false;
 }
-
 
 // To make iolets show/hide
 void Object::mouseEnter(MouseEvent const& e)
@@ -193,18 +176,15 @@ void Object::mouseExit(MouseEvent const& e)
 
 void Object::mouseMove(MouseEvent const& e)
 {
-    if (!cnv->isSelected(this) || locked == var(true))
-    {
+    if (!cnv->isSelected(this) || locked == var(true)) {
         setMouseCursor(MouseCursor::NormalCursor);
         updateMouseCursor();
         return;
     }
 
     auto corners = getCorners();
-    for (auto& rect : corners)
-    {
-        if (rect.contains(e.position))
-        {
+    for (auto& rect : corners) {
+        if (rect.contains(e.position)) {
             auto zone = ResizableBorderComponent::Zone::fromPositionOnBorder(getLocalBounds().reduced(margin - 2), BorderSize<int>(5), e.getPosition());
 
             setMouseCursor(zone.getMouseCursor());
@@ -219,8 +199,7 @@ void Object::mouseMove(MouseEvent const& e)
 
 void Object::updateBounds()
 {
-    if (gui)
-    {
+    if (gui) {
         cnv->pd->setThis();
         gui->updateBounds();
     }
@@ -232,63 +211,56 @@ void Object::setType(String const& newType, void* existingObject)
     // Change object type
     String type = newType.upToFirstOccurrenceOf(" ", false, false);
 
-
     void* objectPtr;
     // "exists" indicates that this object already exists in pd
     // When setting exists to true, the gui needs to be assigned already
-    if (!existingObject)
-    {
+    if (!existingObject) {
         auto* pd = &cnv->patch;
-        if (gui)
-        {
+        if (gui) {
             // Clear connections to this object
             // They will be remade by the synchronise call later
-            for (auto* connection : getConnections()) cnv->connections.removeObject(connection);
+            for (auto* connection : getConnections())
+                cnv->connections.removeObject(connection);
 
             objectPtr = pd->renameObject(getPointer(), newType);
 
             // Synchronise to make sure connections are preserved correctly
             // Asynchronous because it could possibly delete this object
             MessageManager::callAsync([cnv = SafePointer(cnv)]() {
-                if(cnv) cnv->synchronise(false);
+                if (cnv)
+                    cnv->synchronise(false);
             });
-        }
-        else
-        {
+        } else {
             auto rect = getObjectBounds();
             objectPtr = pd->createObject(newType, rect.getX(), rect.getY());
         }
-    }
-    else
-    {
+    } else {
         objectPtr = existingObject;
     }
-        
+
     // Create gui for the object
     gui.reset(GUIObject::createGui(objectPtr, this));
 
-    if (gui)
-    {
+    if (gui) {
         gui->lock(locked == var(true));
         gui->updateValue();
         gui->addMouseListener(this, true);
         addAndMakeVisible(gui.get());
     }
-    
-    
+
     auto typeName = String(libpd_get_object_class_name(objectPtr));
     // Check hvcc compatibility
     bool isSubpatch = gui ? gui->getPatch() != nullptr : false;
     isHvccCompatible = !static_cast<bool>(hvccMode.getValue()) || isSubpatch || hvccObjects.contains(typeName);
 
-    if(!isHvccCompatible) {
+    if (!isHvccCompatible) {
         cnv->pd->logWarning(String("Warning: object \"" + typeName + "\" is not supported in Compiled Mode").toRawUTF8());
     }
 
     // Update inlets/outlets
     updatePorts();
     updateBounds();
-   
+
     // Auto patching
     if (static_cast<bool>(!attachedToMouse && cnv->editor->autoconnect.getValue()) && numInputs && cnv->lastSelectedObject && cnv->lastSelectedObject->numOutputs) {
         auto outlet = cnv->lastSelectedObject->iolets[cnv->lastSelectedObject->numInputs];
@@ -305,23 +277,21 @@ void Object::setType(String const& newType, void* existingObject)
 Array<Rectangle<float>> Object::getCorners() const
 {
     auto rect = getLocalBounds().reduced(margin);
-    const float offset = 2.0f;
+    float const offset = 2.0f;
 
-    Array<Rectangle<float>> corners = {Rectangle<float>(9.0f, 9.0f).withCentre(rect.getTopLeft().toFloat()).translated(offset, offset), Rectangle<float>(9.0f, 9.0f).withCentre(rect.getBottomLeft().toFloat()).translated(offset, -offset),
-                                       Rectangle<float>(9.0f, 9.0f).withCentre(rect.getBottomRight().toFloat()).translated(-offset, -offset), Rectangle<float>(9.0f, 9.0f).withCentre(rect.getTopRight().toFloat()).translated(-offset, offset)};
+    Array<Rectangle<float>> corners = { Rectangle<float>(9.0f, 9.0f).withCentre(rect.getTopLeft().toFloat()).translated(offset, offset), Rectangle<float>(9.0f, 9.0f).withCentre(rect.getBottomLeft().toFloat()).translated(offset, -offset),
+        Rectangle<float>(9.0f, 9.0f).withCentre(rect.getBottomRight().toFloat()).translated(-offset, -offset), Rectangle<float>(9.0f, 9.0f).withCentre(rect.getTopRight().toFloat()).translated(-offset, offset) };
 
     return corners;
 }
 
 void Object::paintOverChildren(Graphics& g)
 {
-    if (isSearchTarget)
-    {
+    if (isSearchTarget) {
         g.saveState();
 
         // Don't draw line over iolets!
-        for (auto& iolet : iolets)
-        {
+        for (auto& iolet : iolets) {
             g.excludeClipRegion(iolet->getBounds().reduced(2));
         }
 
@@ -329,13 +299,11 @@ void Object::paintOverChildren(Graphics& g)
         g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(Object::margin + 1.0f), Constants::objectCornerRadius, 2.0f);
 
         g.restoreState();
-    }
-    else if(!isHvccCompatible) {
+    } else if (!isHvccCompatible) {
         g.saveState();
 
         // Don't draw line over iolets!
-        for (auto& iolet : iolets)
-        {
+        for (auto& iolet : iolets) {
             g.excludeClipRegion(iolet->getBounds().reduced(2));
         }
 
@@ -343,14 +311,11 @@ void Object::paintOverChildren(Graphics& g)
         g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(Object::margin + 1.0f), Constants::objectCornerRadius, 2.0f);
 
         g.restoreState();
-    }
-    else if (attachedToMouse)
-    {
+    } else if (attachedToMouse) {
         g.saveState();
 
         // Don't draw line over iolets!
-        for (auto& iolet : iolets)
-        {
+        for (auto& iolet : iolets) {
             g.excludeClipRegion(iolet->getBounds().reduced(2));
         }
 
@@ -358,22 +323,19 @@ void Object::paintOverChildren(Graphics& g)
         g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(Object::margin + 1.0f), Constants::objectCornerRadius, 2.0f);
 
         g.restoreState();
-    }
-    else if(indexShown)
-    {
+    } else if (indexShown) {
         int halfHeight = 5;
-        
+
         auto text = String(cnv->objects.indexOf(this));
         auto font = dynamic_cast<PlugDataLook&>(getLookAndFeel()).monoFont.withHeight(10);
         int textWidth = font.getStringWidth(text) + 5;
         int left = std::min<int>(getWidth() - (1.5 * margin), getWidth() - textWidth);
-        
+
         auto indexBounds = Rectangle<int>(left, (getHeight() / 2) - halfHeight, getWidth() - left, halfHeight * 2);
-        
-        
+
         g.setColour(findColour(PlugDataColour::objectSelectedOutlineColourId));
         g.fillRoundedRectangle(indexBounds.toFloat(), 2.0f);
-        
+
         g.setColour(findColour(PlugDataColour::objectSelectedOutlineColourId).contrasting());
         g.setFont(font);
         g.drawText(text, indexBounds, Justification::centred);
@@ -382,7 +344,7 @@ void Object::paintOverChildren(Graphics& g)
 
 void Object::showIndex(bool shouldShowIndex)
 {
-    if(shouldShowIndex != indexShown) {
+    if (shouldShowIndex != indexShown) {
         indexShown = shouldShowIndex;
         repaint();
     }
@@ -390,17 +352,15 @@ void Object::showIndex(bool shouldShowIndex)
 
 void Object::paint(Graphics& g)
 {
-    
-    if (cnv->isSelected(this) && !cnv->isGraph)
-    {
+
+    if (cnv->isSelected(this) && !cnv->isGraph) {
         g.setColour(findColour(PlugDataColour::objectSelectedOutlineColourId));
 
         g.saveState();
         g.excludeClipRegion(getLocalBounds().reduced(margin + 1));
 
         // Draw resize iolets when selected
-        for (auto& rect : getCorners())
-        {
+        for (auto& rect : getCorners()) {
             g.fillRoundedRectangle(rect, Constants::objectCornerRadius);
         }
         g.restoreState();
@@ -411,13 +371,11 @@ void Object::resized()
 {
     setVisible(!((cnv->isGraph || cnv->presentationMode == var(true)) && gui && gui->hideInGraph()));
 
-    if (gui)
-    {
+    if (gui) {
         gui->setBounds(getLocalBounds().reduced(margin));
     }
 
-    if (newObjectEditor)
-    {
+    if (newObjectEditor) {
         newObjectEditor->setBounds(getLocalBounds().reduced(margin));
     }
 
@@ -425,44 +383,37 @@ void Object::resized()
     int ioletHitBox = 4;
     int borderWidth = 14;
 
-    if (getWidth() < 45 && (numInputs > 1 || numOutputs > 1))
-    {
+    if (getWidth() < 45 && (numInputs > 1 || numOutputs > 1)) {
         borderWidth = 9;
         ioletSize = 10;
     }
 
     auto inletBounds = getLocalBounds();
-    if (auto spaceToRemove = jlimit<int>(0, borderWidth, inletBounds.getWidth() - (ioletHitBox * numInputs) - borderWidth))
-    {
+    if (auto spaceToRemove = jlimit<int>(0, borderWidth, inletBounds.getWidth() - (ioletHitBox * numInputs) - borderWidth)) {
         inletBounds.removeFromLeft(spaceToRemove);
         inletBounds.removeFromRight(spaceToRemove);
     }
 
     auto outletBounds = getLocalBounds();
-    if (auto spaceToRemove = jlimit<int>(0, borderWidth, outletBounds.getWidth() - (ioletHitBox * numOutputs) - borderWidth))
-    {
+    if (auto spaceToRemove = jlimit<int>(0, borderWidth, outletBounds.getWidth() - (ioletHitBox * numOutputs) - borderWidth)) {
         outletBounds.removeFromLeft(spaceToRemove);
         outletBounds.removeFromRight(spaceToRemove);
     }
 
     int index = 0;
-    for (auto& iolet : iolets)
-    {
+    for (auto& iolet : iolets) {
         bool const isInlet = iolet->isInlet;
-        const int position = index < numInputs ? index : index - numInputs;
-        const int total = isInlet ? numInputs : numOutputs;
-        const float yPosition = (isInlet ? (margin + 1) : getHeight() - margin) - ioletSize / 2.0f;
+        int const position = index < numInputs ? index : index - numInputs;
+        int const total = isInlet ? numInputs : numOutputs;
+        float const yPosition = (isInlet ? (margin + 1) : getHeight() - margin) - ioletSize / 2.0f;
 
         auto const bounds = isInlet ? inletBounds : outletBounds;
 
-        if (total == 1 && position == 0)
-        {
+        if (total == 1 && position == 0) {
             int xPosition = getWidth() < 40 ? getLocalBounds().getCentreX() - ioletSize / 2.0f : bounds.getX();
             iolet->setBounds(xPosition, yPosition, ioletSize, ioletSize);
-        }
-        else if (total > 1)
-        {
-            const float ratio = (bounds.getWidth() - ioletSize) / static_cast<float>(total - 1);
+        } else if (total > 1) {
+            float const ratio = (bounds.getWidth() - ioletSize) / static_cast<float>(total - 1);
             iolet->setBounds(bounds.getX() + ratio * position, yPosition, ioletSize, ioletSize);
         }
 
@@ -470,130 +421,129 @@ void Object::resized()
     }
 }
 
-void Object::updateTooltips() {
-            
-    if(!gui) return;
-    
+void Object::updateTooltips()
+{
+
+    if (!gui)
+        return;
+
     std::vector<std::pair<int, String>> inletMessages;
     std::vector<std::pair<int, String>> outletMessages;
-    
+
     // Set object tooltip
     gui->setTooltip(cnv->pd->objectLibrary.getObjectDescriptions()[gui->getType()]);
-    
-    if(auto* subpatch =  gui->getPatch()) {
-        
+
+    if (auto* subpatch = gui->getPatch()) {
+
         // Check child objects of subpatch for inlet/outlet messages
-        for(auto* obj : subpatch->getObjects()) {
-            
+        for (auto* obj : subpatch->getObjects()) {
+
             const String name = libpd_get_object_class_name(obj);
-            if(name == "inlet" || name == "inlet~") {
-                
+            if (name == "inlet" || name == "inlet~") {
+
                 int size;
                 char* str_ptr;
                 libpd_get_object_text(obj, &str_ptr, &size);
-                
+
                 int x, y, w, h;
                 libpd_get_object_bounds(subpatch->getPointer(), obj, &x, &y, &w, &h);
-                
+
                 // Anything after the first space will be the comment
-                const auto text = String::fromUTF8(str_ptr, size);
+                auto const text = String::fromUTF8(str_ptr, size);
                 inletMessages.emplace_back(x, text.fromFirstOccurrenceOf(" ", false, false));
             }
-            if(name == "outlet" || name == "outlet~") {
+            if (name == "outlet" || name == "outlet~") {
                 int size;
                 char* str_ptr;
                 libpd_get_object_text(obj, &str_ptr, &size);
-                
+
                 int x, y, w, h;
                 libpd_get_object_bounds(subpatch->getPointer(), obj, &x, &y, &w, &h);
-                
-                const auto text = String::fromUTF8(str_ptr, size);
+
+                auto const text = String::fromUTF8(str_ptr, size);
                 outletMessages.emplace_back(x, text.fromFirstOccurrenceOf(" ", false, false));
             }
         }
     }
-    
-    auto sortFunc = [](std::pair<int, String>& a, std::pair<int, String>& b){
+
+    auto sortFunc = [](std::pair<int, String>& a, std::pair<int, String>& b) {
         return a.first < b.first;
     };
-    
+
     std::sort(inletMessages.begin(), inletMessages.end(), sortFunc);
     std::sort(outletMessages.begin(), outletMessages.end(), sortFunc);
-    
+
     int numIn = 0;
     int numOut = 0;
-    
-    for(int i = 0; i < iolets.size(); i++) {
+
+    for (int i = 0; i < iolets.size(); i++) {
         auto* iolet = iolets[i];
-        
+
         // Check pd library for pddp tooltips, those have priority
         String tooltip = cnv->pd->objectLibrary.getInletOutletTooltip(gui->getType(), iolet->ioletIdx, iolet->isInlet ? numInputs : numOutputs, iolet->isInlet);
-        
+
         // Don't overwrite custom documentation
-        if(tooltip.isNotEmpty())  {
+        if (tooltip.isNotEmpty()) {
             iolet->setTooltip(tooltip);
             return;
         }
-        
-        if((iolet->isInlet && numIn >= inletMessages.size()) ||(!iolet->isInlet && numIn >= inletMessages.size())) continue;
-           
-        
+
+        if ((iolet->isInlet && numIn >= inletMessages.size()) || (!iolet->isInlet && numIn >= inletMessages.size()))
+            continue;
+
         auto& [x, message] = iolet->isInlet ? inletMessages[numIn++] : outletMessages[numOut++];
         iolet->setTooltip(message);
     }
-    
 }
 
 void Object::updatePorts()
 {
-    if (!getPointer()) return;
+    if (!getPointer())
+        return;
 
     // update inlets and outlets
     int oldNumInputs = 0;
     int oldNumOutputs = 0;
 
-    for (auto& iolet : iolets)
-    {
+    for (auto& iolet : iolets) {
         iolet->isInlet ? oldNumInputs++ : oldNumOutputs++;
     }
 
     numInputs = 0;
     numOutputs = 0;
 
-    if (auto* ptr = pd::Patch::checkObject(getPointer()))
-    {
+    if (auto* ptr = pd::Patch::checkObject(getPointer())) {
         numInputs = libpd_ninlets(ptr);
         numOutputs = libpd_noutlets(ptr);
     }
 
-    while (numInputs < oldNumInputs) iolets.remove(--oldNumInputs);
-    while (numInputs > oldNumInputs) iolets.insert(oldNumInputs++, new Iolet(this, true));
-    while (numOutputs < oldNumOutputs) iolets.remove(numInputs + (--oldNumOutputs));
-    while (numOutputs > oldNumOutputs) iolets.insert(numInputs + (++oldNumOutputs), new Iolet(this, false));
+    while (numInputs < oldNumInputs)
+        iolets.remove(--oldNumInputs);
+    while (numInputs > oldNumInputs)
+        iolets.insert(oldNumInputs++, new Iolet(this, true));
+    while (numOutputs < oldNumOutputs)
+        iolets.remove(numInputs + (--oldNumOutputs));
+    while (numOutputs > oldNumOutputs)
+        iolets.insert(numInputs + (++oldNumOutputs), new Iolet(this, false));
 
     int numIn = 0;
     int numOut = 0;
 
-    for (int i = 0; i < numInputs + numOutputs; i++)
-    {
+    for (int i = 0; i < numInputs + numOutputs; i++) {
         auto* iolet = iolets[i];
         bool input = iolet->isInlet;
 
         bool isSignal;
-        if (i < numInputs)
-        {
+        if (i < numInputs) {
             isSignal = libpd_issignalinlet(pd::Patch::checkObject(getPointer()), i);
-        }
-        else
-        {
+        } else {
             isSignal = libpd_issignaloutlet(pd::Patch::checkObject(getPointer()), i - numInputs);
         }
 
         iolet->ioletIdx = input ? numIn : numOut;
         iolet->isSignal = isSignal;
-        
-        if (gui)
-        {
+
+        if (gui) {
             String tooltip = cnv->pd->objectLibrary.getInletOutletTooltip(gui->getType(), iolet->ioletIdx, input ? numInputs : numOutputs, input);
             iolet->setTooltip(tooltip);
         }
@@ -605,7 +555,7 @@ void Object::updatePorts()
         numIn += input;
         numOut += !input;
     }
-    
+
     updateTooltips();
 
     resized();
@@ -613,10 +563,10 @@ void Object::updatePorts()
 
 void Object::mouseDown(MouseEvent const& e)
 {
-    if(!getLocalBounds().contains(e.getPosition())) return;
+    if (!getLocalBounds().contains(e.getPosition()))
+        return;
 
-    if (attachedToMouse)
-    {
+    if (attachedToMouse) {
         attachedToMouse = false;
         stopTimer();
         repaint();
@@ -624,14 +574,13 @@ void Object::mouseDown(MouseEvent const& e)
         auto object = SafePointer<Object>(this);
         // Tell pd about new position
         cnv->pd->enqueueFunction(
-            [this, object]()
-            {
-                if (!object || !object->gui) return;
+            [this, object]() {
+                if (!object || !object->gui)
+                    return;
                 gui->applyBounds();
             });
 
-        if (createEditorOnMouseDown)
-        {
+        if (createEditorOnMouseDown) {
             createEditorOnMouseDown = false;
 
             // Prevent losing focus because of click event
@@ -645,19 +594,17 @@ void Object::mouseDown(MouseEvent const& e)
         wasLockedOnMouseDown = true;
         return;
     }
-        
+
     wasLockedOnMouseDown = false;
-    
-    for (auto& rect : getCorners())
-    {
-        if (rect.contains(e.position) && cnv->isSelected(this))
-        {
+
+    for (auto& rect : getCorners()) {
+        if (rect.contains(e.position) && cnv->isSelected(this)) {
             // Start resize
             cnv->cancelConnectionCreation();
-            
+
             resizeZone = ResizableBorderComponent::Zone::fromPositionOnBorder(getLocalBounds().reduced(margin - 2), BorderSize<int>(5), e.getPosition());
 
-            if(resizeZone != ResizableBorderComponent::Zone(0)) {
+            if (resizeZone != ResizableBorderComponent::Zone(0)) {
                 originalBounds = getBounds();
                 return;
             }
@@ -665,14 +612,13 @@ void Object::mouseDown(MouseEvent const& e)
     }
 
     bool wasSelected = cnv->isSelected(this);
-    
+
     cnv->handleMouseDown(this, e);
-    
+
     //
-    if(cnv->isSelected(this) != wasSelected) {
+    if (cnv->isSelected(this) != wasSelected) {
         selectionStateChanged = true;
     }
-    
 }
 
 void Object::mouseUp(MouseEvent const& e)
@@ -687,14 +633,13 @@ void Object::mouseUp(MouseEvent const& e)
         openHelpPatch();
     }
 
-    if (!originalBounds.isEmpty() && originalBounds.withPosition(0, 0) != getLocalBounds())
-    {
+    if (!originalBounds.isEmpty() && originalBounds.withPosition(0, 0) != getLocalBounds()) {
         originalBounds.setBounds(0, 0, 0, 0);
 
         cnv->pd->enqueueFunction(
-            [this, object = SafePointer<Object>(this), e]() mutable
-            {
-                if (!object || !gui) return;
+            [this, object = SafePointer<Object>(this), e]() mutable {
+                if (!object || !gui)
+                    return;
 
                 // Used for size changes, could also be used for properties
                 auto* obj = static_cast<t_gobj*>(getPointer());
@@ -704,67 +649,58 @@ void Object::mouseUp(MouseEvent const& e)
                 gui->applyBounds();
 
                 // To make sure it happens after setting object bounds
-                if (!cnv->viewport->getViewArea().contains(getBounds()))
-                {
+                if (!cnv->viewport->getViewArea().contains(getBounds())) {
                     MessageManager::callAsync(
-                        [object]()
-                        {
-                            if(object) object->cnv->checkBounds();
+                        [object]() {
+                            if (object)
+                                object->cnv->checkBounds();
                         });
                 }
             });
-    }
-    else
-    {
+    } else {
         cnv->handleMouseUp(this, e);
     }
-    
-    if(gui && !selectionStateChanged && cnv->isSelected(this) && !e.mouseWasDraggedSinceMouseDown() && !e.mods.isRightButtonDown()) {
+
+    if (gui && !selectionStateChanged && cnv->isSelected(this) && !e.mouseWasDraggedSinceMouseDown() && !e.mods.isRightButtonDown()) {
         gui->showEditor();
     }
-    
+
     selectionStateChanged = false;
 }
 
 void Object::mouseDrag(MouseEvent const& e)
 {
-    if (wasLockedOnMouseDown) return;
-    
-    if (resizeZone.isDraggingTopEdge() || resizeZone.isDraggingLeftEdge() || resizeZone.isDraggingBottomEdge() || resizeZone.isDraggingRightEdge())
-    {
+    if (wasLockedOnMouseDown)
+        return;
+
+    if (resizeZone.isDraggingTopEdge() || resizeZone.isDraggingLeftEdge() || resizeZone.isDraggingBottomEdge() || resizeZone.isDraggingRightEdge()) {
         Point<int> dragDistance = e.getOffsetFromDragStart();
 
         auto newBounds = resizeZone.resizeRectangleBy(originalBounds, dragDistance);
         setBounds(newBounds);
-        if(gui) gui->checkBounds();
+        if (gui)
+            gui->checkBounds();
     }
     // Let canvas handle moving
-    else
-    {
+    else {
         cnv->handleMouseDrag(e);
     }
 }
 
 void Object::showEditor()
 {
-    if (!gui)
-    {
+    if (!gui) {
         openNewObjectEditor();
-    }
-    else
-    {
+    } else {
         gui->showEditor();
     }
 }
 
 void Object::hideEditor()
 {
-    if (gui)
-    {
+    if (gui) {
         gui->hideEditor();
-    }
-    else if (newObjectEditor)
-    {
+    } else if (newObjectEditor) {
         WeakReference<Component> deletionChecker(this);
         std::unique_ptr<TextEditor> outgoingEditor;
         std::swap(outgoingEditor, newObjectEditor);
@@ -785,12 +721,9 @@ void Object::hideEditor()
 Array<Connection*> Object::getConnections() const
 {
     Array<Connection*> result;
-    for (auto* con : cnv->connections)
-    {
-        for (auto* iolet : iolets)
-        {
-            if (con->inlet == iolet || con->outlet == iolet)
-            {
+    for (auto* con : cnv->connections) {
+        for (auto* iolet : iolets) {
+            if (con->inlet == iolet || con->outlet == iolet) {
                 result.add(con);
             }
         }
@@ -805,8 +738,7 @@ void* Object::getPointer() const
 
 void Object::openNewObjectEditor()
 {
-    if (!newObjectEditor)
-    {
+    if (!newObjectEditor) {
         newObjectEditor = std::make_unique<TextEditor>();
 
         auto* editor = newObjectEditor.get();
@@ -818,9 +750,10 @@ void Object::openNewObjectEditor()
         editor->setColour(Label::outlineWhenEditingColourId, findColour(TextEditor::focusedOutlineColourId));
 
         // Allow cancelling object creation with escape
-        editor->onEscapeKey = [this](){
-            MessageManager::callAsync([_this = SafePointer(this)](){
-                if(!_this) return;
+        editor->onEscapeKey = [this]() {
+            MessageManager::callAsync([_this = SafePointer(this)]() {
+                if (!_this)
+                    return;
                 _this->cnv->hideSuggestions();
                 _this->cnv->objects.removeObject(_this.getComponent());
             });
@@ -829,17 +762,16 @@ void Object::openNewObjectEditor()
         editor->setAlwaysOnTop(true);
         editor->setMultiLine(false);
         editor->setReturnKeyStartsNewLine(false);
-        editor->setBorder(BorderSize<int>{1, 7, 1, 2});
+        editor->setBorder(BorderSize<int> { 1, 7, 1, 2 });
         editor->setIndents(0, 0);
         editor->setJustification(Justification::left);
 
-        editor->onFocusLost = [this, editor]()
-        {
-            if(reinterpret_cast<Component*>(cnv->suggestor)->hasKeyboardFocus(true) || Component::getCurrentlyFocusedComponent() == editor) {
+        editor->onFocusLost = [this, editor]() {
+            if (reinterpret_cast<Component*>(cnv->suggestor)->hasKeyboardFocus(true) || Component::getCurrentlyFocusedComponent() == editor) {
                 editor->grabKeyboardFocus();
-                 return;
+                return;
             }
-           
+
             hideEditor();
         };
 
@@ -858,10 +790,9 @@ void Object::openNewObjectEditor()
 
 void Object::textEditorReturnKeyPressed(TextEditor& ed)
 {
-    if (newObjectEditor)
-    {
+    if (newObjectEditor) {
         newObjectEditor->giveAwayKeyboardFocus();
-        cnv->grabKeyboardFocus(); 
+        cnv->grabKeyboardFocus();
     }
 }
 
@@ -870,8 +801,7 @@ void Object::textEditorTextChanged(TextEditor& ed)
     // For resize-while-typing behaviour
     auto width = Font(14.5).getStringWidth(ed.getText()) + 25;
 
-    if (width > getWidth())
-    {
+    if (width > getWidth()) {
         setSize(width, getHeight());
     }
 }
@@ -881,21 +811,20 @@ void Object::openHelpPatch() const
     cnv->pd->setThis();
 
     if (auto* ptr = static_cast<t_object*>(getPointer())) {
-        
+
         auto file = cnv->pd->objectLibrary.findHelpfile(cnv->patch.getPointer(), ptr);
-        
-        if(!file.existsAsFile()) {
+
+        if (!file.existsAsFile()) {
             cnv->pd->logMessage("Couldn't find help file");
             return;
         }
-        
+
         cnv->pd->enqueueFunction([this, file]() mutable {
             cnv->pd->loadPatch(file);
-            
         });
-        
+
         return;
     }
-    
+
     cnv->pd->logMessage("Couldn't find help file");
 }

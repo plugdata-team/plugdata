@@ -19,7 +19,8 @@ class SuggestionComponent : public Component
 
     public:
         Suggestion(SuggestionComponent* parentComponent, int i)
-            : idx(i), parent(parentComponent)
+            : idx(i)
+            , parent(parentComponent)
         {
             setText("", "", false);
             setWantsKeyboardFocus(false);
@@ -34,7 +35,7 @@ class SuggestionComponent : public Component
             objectDescription = description;
             setButtonText(name);
             type = name.contains("~") ? 1 : 0;
-            
+
             // Argument suggestions don't have icons!
             drawIcon = icon;
 
@@ -52,20 +53,19 @@ class SuggestionComponent : public Component
             auto colour = PlugDataColour::popupMenuBackgroundColourId;
 
             auto* lnf = dynamic_cast<PlugDataLook*>(&getLookAndFeel());
-        
+
             auto scrollbarIndent = parent->port->canScrollVertically() ? 5 : 0;
-            
+
             auto backgroundColour = findColour(getToggleState() ? PlugDataColour::popupMenuActiveBackgroundColourId : colour);
-            
+
             auto buttonArea = getLocalBounds().reduced(6, 2).withTrimmedRight(scrollbarIndent).toFloat();
 
             g.setColour(backgroundColour);
             g.fillRoundedRectangle(buttonArea, Constants::defaultCornerRadius);
-            
-            
+
             auto font = lnf->semiBoldFont.withHeight(12.0f);
             g.setFont(font);
-            
+
             g.setColour(getToggleState() ? findColour(PlugDataColour::popupMenuActiveTextColourId) : findColour(PlugDataColour::popupMenuTextColourId));
             auto yIndent = jmin(4, proportionOfHeight(0.3f));
             auto cornerSize = jmin(getHeight(), getWidth()) / 2;
@@ -79,13 +79,12 @@ class SuggestionComponent : public Component
 
             font = lnf->defaultFont.withHeight(12);
             g.setFont(font);
-            
+
             if (objectDescription.isNotEmpty()) {
                 auto textLength = font.getStringWidth(getButtonText());
-                
+
                 g.setColour(getToggleState() ? findColour(PlugDataColour::popupMenuActiveTextColourId) : findColour(PlugDataColour::popupMenuTextColourId));
-                
-                
+
                 leftIndent += textLength;
                 auto textWidth = getWidth() - leftIndent - rightIndent;
 
@@ -110,7 +109,7 @@ class SuggestionComponent : public Component
                 g.drawFittedText(letters[type], iconbound.reduced(1), Justification::centred, 1);
             }
         }
-        
+
         SuggestionComponent* parent;
         bool drawIcon = true;
     };
@@ -133,7 +132,7 @@ public:
             but->setRadioGroupId(110);
             but->setColour(TextButton::buttonColourId, findColour(PlugDataColour::dialogBackgroundColourId));
         }
-        
+
         // Hack for maintaining keyboard focus when resizing
         resizer.addMouseListener(this, true);
 
@@ -188,27 +187,25 @@ public:
                 editor->grabKeyboardFocus();
             };
         }
-        
+
         addToDesktop(ComponentPeer::windowIsTemporary | ComponentPeer::windowIgnoresKeyPresses);
-        
+
         auto scale = std::sqrt(std::abs(getTransform().getDeterminant()));
         auto objectPos = object->getScreenPosition() / scale;
-        
+
 #if JUCE_MAC
         auto hostType = PluginHostType();
-        if(hostType.isLogic() || hostType.isGarageBand() || hostType.isMainStage())
-        {
+        if (hostType.isLogic() || hostType.isGarageBand() || hostType.isMainStage()) {
             objectPos = objectPos.translated(0, 20);
-        }
-        else {
+        } else {
             objectPos = objectPos.translated(0, 15);
         }
 #else
         objectPos = objectPos.translated(0, 15);
 #endif
-        
+
         setTopLeftPosition(objectPos.translated(0, 15));
-        
+
         setVisible(false);
         toFront(false);
 
@@ -220,7 +217,6 @@ public:
         if (isOnDesktop()) {
             removeFromDesktop();
         }
-
 
         if (openedEditor) {
             openedEditor->setInputFilter(nullptr, false);
@@ -281,7 +277,7 @@ public:
         for (int i = 0; i < buttons.size(); i++)
             buttons[i]->setBounds(2, (i * 25) + 4, getWidth() - 32, 24);
 
-        const int resizerSize = 12;
+        int const resizerSize = 12;
 
         resizer.setBounds(getWidth() - (resizerSize + 1) - 15, getHeight() - (resizerSize + 1) - 15, resizerSize, resizerSize);
 
@@ -290,29 +286,27 @@ public:
     }
 
 private:
-        
-    void mouseDown(const MouseEvent& e) override
+    void mouseDown(MouseEvent const& e) override
     {
-        if(openedEditor) openedEditor->grabKeyboardFocus();
-        
+        if (openedEditor)
+            openedEditor->grabKeyboardFocus();
     }
-        
+
     void paint(Graphics& g) override
     {
-        
+
 #if !PLUGDATA_STANDALONE
-        
+
         auto hostType = PluginHostType();
-        if(hostType.isLogic() || hostType.isGarageBand() || hostType.isMainStage())
-        {
+        if (hostType.isLogic() || hostType.isGarageBand() || hostType.isMainStage()) {
             g.fillAll(findColour(PlugDataColour::canvasBackgroundColourId));
         }
 #endif
-        
+
         auto shadowPath = Path();
         shadowPath.addRoundedRectangle(getLocalBounds().reduced(20), Constants::defaultCornerRadius);
         StackShadow::renderDropShadow(g, shadowPath, Colour(0, 0, 0).withAlpha(0.6f), 12.0f);
-        
+
         g.setColour(findColour(PlugDataColour::popupMenuBackgroundColourId));
         g.fillRoundedRectangle(port->getBounds().reduced(1).toFloat(), Constants::defaultCornerRadius);
     }
@@ -339,7 +333,7 @@ private:
         }
         if (key == KeyPress::tabKey && !openedEditor->getHighlightedRegion().isEmpty()) {
             openedEditor->setCaretPosition(openedEditor->getHighlightedRegion().getEnd());
-            //openedEditor->insertTextAtCaret(" "); // Will show argument suggestions
+            // openedEditor->insertTextAtCaret(" "); // Will show argument suggestions
             return true;
         }
 
@@ -407,17 +401,17 @@ private:
         auto found = library.autocomplete(typedText.toStdString());
 
         // When hvcc mode is enabled, show only hvcc compatible objects
-        if(static_cast<bool>(currentBox->cnv->editor->hvccMode.getValue())) {
+        if (static_cast<bool>(currentBox->cnv->editor->hvccMode.getValue())) {
             std::vector<std::pair<String, bool>> hvccObjectsFound;
-            for(auto& object : found) {
-                if(Object::hvccObjects.contains(object.first)) {
+            for (auto& object : found) {
+                if (Object::hvccObjects.contains(object.first)) {
                     hvccObjectsFound.push_back(object);
                 }
             }
-            
+
             found = hvccObjectsFound;
         }
-        
+
         numOptions = static_cast<int>(found.size());
 
         for (int i = 0; i < std::min<int>(buttons.size(), numOptions); i++) {

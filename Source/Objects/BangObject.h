@@ -64,9 +64,8 @@ struct BangObject final : public IEMObject {
         auto const bounds = getLocalBounds().reduced(1).toFloat();
         auto const width = std::max(bounds.getWidth(), bounds.getHeight());
 
-        const float circleOuter = 80.f * (width * 0.01f);
-        const float circleThickness = std::max(width * 0.06f, 1.5f);
-
+        float const circleOuter = 80.f * (width * 0.01f);
+        float const circleThickness = std::max(width * 0.06f, 1.5f);
 
         g.setColour(object->findColour(PlugDataColour::objectOutlineColourId));
         g.drawEllipse(bounds.reduced(width - circleOuter), circleThickness);
@@ -141,13 +140,15 @@ struct BangObject final : public IEMObject {
             IEMObject::valueChanged(value);
         }
     }
-    
-    void receiveObjectMessage(const String& symbol, std::vector<pd::Atom>& atoms) override {
-        if(symbol == "flashtime") {
-            if(atoms.size() > 0) setParameterExcludingListener(bangInterrupt, atoms[0].getFloat());
-            if(atoms.size() > 1) setParameterExcludingListener(bangHold, atoms[1].getFloat());
-        }
-        else {
+
+    void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
+    {
+        if (symbol == "flashtime") {
+            if (atoms.size() > 0)
+                setParameterExcludingListener(bangInterrupt, atoms[0].getFloat());
+            if (atoms.size() > 1)
+                setParameterExcludingListener(bangHold, atoms[1].getFloat());
+        } else {
             IEMObject::receiveObjectMessage(symbol, atoms);
         }
     }

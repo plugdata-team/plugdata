@@ -11,6 +11,8 @@ struct CommentObject final : public TextBase
     {
         justification = Justification::left;
         font = font.withHeight(13.5f);
+
+        locked = static_cast<bool>(object->locked.getValue());
     }
 
     void paint(Graphics& g) override
@@ -30,23 +32,22 @@ struct CommentObject final : public TextBase
 
             auto selected = cnv->isSelected(object);
             if (object->locked == var(false) && (object->isMouseOverOrDragging(true) || selected) && !cnv->isGraph) {
-                g.setColour(object->findColour(selected ?  PlugDataColour::objectSelectedOutlineColourId : PlugDataColour::objectOutlineColourId));
+                g.setColour(object->findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : PlugDataColour::objectOutlineColourId));
 
                 g.drawRect(getLocalBounds().toFloat(), 0.5f);
             }
         }
     }
-        
+
     int getBestTextWidth(String const& text) override
     {
         auto lines = StringArray::fromLines(text);
         auto maxWidth = 32;
-        
-        for(auto& line : lines)
-        {
+
+        for (auto& line : lines) {
             maxWidth = std::max<int>(font.getStringWidthFloat(line) + 19, maxWidth);
         }
-        
+
         return maxWidth;
     }
 
@@ -98,25 +99,23 @@ struct CommentObject final : public TextBase
                             [_this]() {
                                 if (!_this)
                                     return;
-                                
+
                                 auto lines = StringArray::fromTokens(_this->objectText, ";\n", "");
                                 auto maxWidth = 32;
-                                
-                                for(auto& line : lines)
-                                {
+
+                                for (auto& line : lines) {
                                     maxWidth = std::max<int>(_this->font.getStringWidthFloat(line) + 19, maxWidth);
                                 }
-                                
+
                                 int newHeight = (lines.size() * 20) + Object::doubleMargin;
-                                int newWidth = maxWidth + + Object::doubleMargin + 4;
-                                
+                                int newWidth = maxWidth + +Object::doubleMargin + 4;
+
                                 auto newBounds = Rectangle<int>(_this->object->getX(), _this->object->getY(), newWidth, newHeight);
                                 _this->object->setObjectBounds(newBounds.reduced(Object::margin));
-                                
+
                                 _this->applyBounds();
-                                
+
                                 _this->object->updateBounds();
-                                
                             });
                     });
             }
@@ -140,7 +139,7 @@ struct CommentObject final : public TextBase
             editor->setMultiLine(true);
             editor->setReturnKeyStartsNewLine(false);
             editor->setScrollbarsShown(false);
-            editor->setBorder(BorderSize<int>{0, 4, 0, 0});
+            editor->setBorder(BorderSize<int> { 0, 4, 0, 0 });
             editor->setIndents(0, 0);
             editor->setJustification(justification);
 
@@ -152,7 +151,7 @@ struct CommentObject final : public TextBase
             addAndMakeVisible(editor.get());
 
             editor->setText(objectText, false);
-            
+
             editor->addListener(this);
             editor->addKeyListener(this);
 
@@ -160,18 +159,28 @@ struct CommentObject final : public TextBase
                 return;
 
             editor->selectAll();
-            
+
             resized();
             repaint();
 
             editor->grabKeyboardFocus();
         }
     }
-        
 
     bool hideInGraph() override
     {
         return false;
+    }
+
+    // Override to cancel default behaviour
+    void lock(bool isLocked) override
+    {
+        locked = isLocked;
+    }
+
+    bool canReceiveMouseEvent(int x, int y) override
+    {
+        return !locked;
     }
 
     bool keyPressed(KeyPress const& key, Component* component) override
@@ -186,14 +195,14 @@ struct CommentObject final : public TextBase
         }
         return false;
     }
-        
+
     void resized() override
     {
         int fontWidth = glist_fontwidth(cnv->patch.getPointer());
         textObjectWidth = (getWidth() - textWidthOffset) / fontWidth;
 
-        int width = textObjectWidth * fontWidth + textWidthOffset;        
-        
+        int width = textObjectWidth * fontWidth + textWidthOffset;
+
         numLines = getNumLines(objectText, width);
         int height = numLines * 20;
 
@@ -205,4 +214,6 @@ struct CommentObject final : public TextBase
             editor->setBounds(getLocalBounds());
         }
     }
+
+    bool locked;
 };

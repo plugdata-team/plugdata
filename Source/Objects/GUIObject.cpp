@@ -68,11 +68,11 @@ String ObjectBase::getText()
         return "";
 
     cnv->pd->setThis();
-    
+
     char* text = nullptr;
     int size = 0;
     libpd_get_object_text(ptr, &text, &size);
-    
+
     if (text && size) {
 
         auto txt = String::fromUTF8(text, size);
@@ -86,7 +86,7 @@ String ObjectBase::getText()
 String ObjectBase::getType() const
 {
     ScopedLock lock(*pd->getCallbackLock());
-    
+
     if (ptr) {
         if (pd_class(static_cast<t_pd*>(ptr)) == canvas_class && canvas_isabstraction((t_canvas*)ptr)) {
             char namebuf[MAXPDSTRING];
@@ -99,23 +99,20 @@ String ObjectBase::getType() const
 
             return String::fromUTF8(namebuf).fromLastOccurrenceOf("/", false, false);
         }
-        if(String(libpd_get_object_class_name(ptr)) == "text" && static_cast<t_text*>(ptr)->te_type == T_OBJECT)
-        {
+        if (String(libpd_get_object_class_name(ptr)) == "text" && static_cast<t_text*>(ptr)->te_type == T_OBJECT) {
             return String("invalid");
         }
-        if(String(libpd_get_object_class_name(ptr)) == "text" && static_cast<t_text*>(ptr)->te_type == T_TEXT)
-        {
+        if (String(libpd_get_object_class_name(ptr)) == "text" && static_cast<t_text*>(ptr)->te_type == T_TEXT) {
             return String("comment");
         }
-        if(String(libpd_get_object_class_name(ptr)) == "text" && static_cast<t_text*>(ptr)->te_type == T_MESSAGE)
-        {
+        if (String(libpd_get_object_class_name(ptr)) == "text" && static_cast<t_text*>(ptr)->te_type == T_MESSAGE) {
             return String("message");
         }
         if (auto* name = libpd_get_object_class_name(ptr)) {
             return String(name);
         }
     }
-    
+
     sys_unlock();
 
     return {};
@@ -136,20 +133,19 @@ void ObjectBase::closeOpenedSubpatchers()
         if (cnv && cnv->patch == *getPatch()) {
             int openedTab = tabbar->getCurrentTabIndex();
             auto* deletedPatch = &cnv->patch;
-            
+
             editor->canvases.removeObject(cnv);
             tabbar->removeTab(n);
-            //deletedPatch->close();
+            // deletedPatch->close();
             editor->pd->patches.removeObject(deletedPatch, false);
-            
+
             break;
         }
     }
-    
-    MessageManager::callAsync([this, tabbar](){
+
+    MessageManager::callAsync([this, tabbar]() {
         tabbar->setCurrentTabIndex(tabbar->getNumTabs() - 1, true);
     });
-    
 }
 
 void ObjectBase::openSubpatch()
@@ -191,46 +187,43 @@ void ObjectBase::openSubpatch()
 static void changePos(t_canvas* cnv, t_gobj* obj, int pos)
 {
     assert(cnv != 0 && obj != 0 && pos >= 0);
-    
-    auto *root = cnv->gl_list;
+
+    auto* root = cnv->gl_list;
     auto* link = root;
     t_gobj* prev = nullptr;
     int count = 0;
-    
-    while (link != nullptr && link != obj)
-    {
+
+    while (link != nullptr && link != obj) {
         prev = link;
         link = link->g_next;
         count++;
     }
-    
-    if (link == 0)      // Name not found - no swap!
+
+    if (link == 0) // Name not found - no swap!
         return;
-    if (count == pos)   // Already in target position - no swap
+    if (count == pos) // Already in target position - no swap
         return;
-    if (count == 0)     // Moving first item; update root
+    if (count == 0) // Moving first item; update root
     {
         assert(link == root);
         obj = root->g_next;
         root = obj;
-    }
-    else
-    {
+    } else {
         assert(prev != 0);
         prev->g_next = link->g_next;
     }
     // link is detached; now where does it go?
-    if (pos == 0)       // Move to start; update root
+    if (pos == 0) // Move to start; update root
     {
         link->g_next = root;
         obj = link;
         return;
     }
-    
-    auto *node = root;
+
+    auto* node = root;
     for (int i = 0; i < pos - 1 && node->g_next != 0; i++)
         node = node->g_next;
-    
+
     link->g_next = node->g_next;
     node->g_next = link;
 }
@@ -238,19 +231,19 @@ static void changePos(t_canvas* cnv, t_gobj* obj, int pos)
 void ObjectBase::moveToFront()
 {
     auto* canvas = static_cast<t_canvas*>(cnv->patch.getPointer());
-    
+
     t_gobj* y2 = canvas->gl_list;
     int idx = -1;
-    while(y2 != nullptr)
-    {
+    while (y2 != nullptr) {
         y2 = y2->g_next;
         idx++;
     }
-    
-    if(idx < 0) return;
-    
+
+    if (idx < 0)
+        return;
+
     t_gobj* y = static_cast<t_gobj*>(ptr);
-        
+
     changePos(canvas, y, idx);
 }
 
@@ -258,12 +251,11 @@ void ObjectBase::moveToBack()
 {
     auto* canvas = static_cast<t_canvas*>(cnv->patch.getPointer());
     t_gobj* y = static_cast<t_gobj*>(ptr);
-    
+
     auto idx = pd::Storage::isInfoParent(canvas->gl_list);
-    
+
     changePos(canvas, y, idx);
 }
-
 
 void ObjectBase::paint(Graphics& g)
 {
@@ -278,7 +270,7 @@ void ObjectBase::paint(Graphics& g)
 
     bool selected = cnv->isSelected(object) && !cnv->isGraph;
     auto outlineColour = object->findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : objectOutlineColourId);
-    
+
     g.setColour(outlineColour);
     g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Constants::objectCornerRadius, 1.0f);
 }
@@ -296,26 +288,27 @@ NonPatchable::~NonPatchable()
 
 struct Lambda {
     template<typename Tret, typename T>
-    static Tret lambda_ptr_exec(void* data) {
-        return (Tret) (*(T*)fn<T>())(data);
+    static Tret lambda_ptr_exec(void* data)
+    {
+        return (Tret)(*(T*)fn<T>())(data);
     }
 
-    template<typename Tret = void, typename Tfp = Tret(*)(void*), typename T>
-    static Tfp ptr(T& t) {
+    template<typename Tret = void, typename Tfp = Tret (*)(void*), typename T>
+    static Tfp ptr(T& t)
+    {
         fn<T>(&t);
-        return (Tfp) lambda_ptr_exec<Tret, T>;
+        return (Tfp)lambda_ptr_exec<Tret, T>;
     }
 
     template<typename T>
-    static void* fn(void* new_fn = nullptr) {
+    static void* fn(void* new_fn = nullptr)
+    {
         static void* fn;
         if (new_fn != nullptr)
             fn = new_fn;
         return fn;
     }
 };
-
-
 
 GUIObject::GUIObject(void* obj, Object* parent)
     : ObjectBase(obj, parent)
@@ -334,7 +327,7 @@ GUIObject::GUIObject(void* obj, Object* parent)
             _this->updateParameters();
         }
     });
-    
+
     pd->registerMessageListener(ptr, this);
 }
 
@@ -383,10 +376,10 @@ void GUIObject::setValueOriginal(float v)
     auto minimum = static_cast<float>(min.getValue());
     auto maximum = static_cast<float>(max.getValue());
 
-    if(minimum != maximum || minimum != 0 || maximum != 0) {
+    if (minimum != maximum || minimum != 0 || maximum != 0) {
         v = (minimum < maximum) ? std::max(std::min(v, maximum), minimum) : std::max(std::min(v, minimum), maximum);
     }
-    
+
     value = v;
     setValue(value);
 }
@@ -550,40 +543,30 @@ ObjectBase* GUIObject::createGui(void* ptr, Object* parent)
         return new KeyObject(ptr, parent, KeyObject::Key);
     } else if (name == "keyname") {
         return new KeyObject(ptr, parent, KeyObject::KeyName);
-    }
-    else if (name == "keyup") {
+    } else if (name == "keyup") {
         return new KeyObject(ptr, parent, KeyObject::KeyUp);
     }
     // ELSE's [oscope~] and cyclone [scope~] are basically the same object
     else if (name == "oscope~") {
         return new OscopeObject(ptr, parent);
-    }
-    else if (name == "scope~") {
+    } else if (name == "scope~") {
         return new ScopeObject(ptr, parent);
-    }
-    else if (name == "function") {
+    } else if (name == "function") {
         return new FunctionObject(ptr, parent);
-    }
-    else if (name == "canvas.active") {
+    } else if (name == "canvas.active") {
         return new CanvasActiveObject(ptr, parent);
-    }
-    else if (name == "canvas.mouse") {
+    } else if (name == "canvas.mouse") {
         return new CanvasMouseObject(ptr, parent);
-    }
-    else if (name == "canvas.vis") {
+    } else if (name == "canvas.vis") {
         return new CanvasVisibleObject(ptr, parent);
-    }
-    else if (name == "canvas.zoom") {
+    } else if (name == "canvas.zoom") {
         return new CanvasZoomObject(ptr, parent);
-    }
-    else if (name == "canvas.edit") {
+    } else if (name == "canvas.edit") {
         return new CanvasEditObject(ptr, parent);
-    }
-    else if (!pd_checkobject(static_cast<t_pd*>(ptr))) {
+    } else if (!pd_checkobject(static_cast<t_pd*>(ptr))) {
         // Object is not a patcher object but something else
         return new NonPatchable(ptr, parent);
     }
-    
 
     return new TextObject(ptr, parent);
 }
