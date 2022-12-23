@@ -17,10 +17,10 @@ inlets:
   - type: print
     description: prints information on Pd's terminal window.
 outlets:
-  'n':
+  nth:
   - type: signal
     description: channel output of a given file.
-  rightmost:
+  2nd:
   - type: bang
     description: when finishing playing file.
 arguments:

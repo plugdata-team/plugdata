@@ -20,7 +20,7 @@ inlets:
   - type: set <symbol, symbol>
     description: set template and field name (if none or just one argument is given).
 outlets:
-  "'n': outlets depends on number of arguments":
+  nth:
   - type: float/symbol
     description: field value. 
 arguments:

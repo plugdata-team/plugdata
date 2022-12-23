@@ -20,7 +20,7 @@ inlets:
   "'n' :number of arguments set 'n' fields and we create 'n' inlets for them.":
   - type: float/symbol
     description: value in a scalar.
-  rightmost:
+  2nd:
   - type: pointer
     description: a pointer to the scalar.
 flags:
