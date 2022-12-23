@@ -468,9 +468,6 @@ void Library::parseDocumentation(String const& path)
         auto file = iter.getFile();
 
         if (file.hasFileExtension("md")) {
-            if(file.getFileNameWithoutExtension() == "array-size") {
-                std::cout << "hey!" << std::endl;
-            }
             parseFile(file);
         }
     }
