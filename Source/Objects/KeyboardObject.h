@@ -49,8 +49,7 @@ struct MIDIKeyboard : public MidiKeyboardComponent {
         g.setColour(findColour(PlugDataColour::outlineColourId));
         g.fillRect(area.withWidth(1.0f));
 
-        if (!(midiNoteNumber % 12))
-        {
+        if (!(midiNoteNumber % 12)) {
             Array<int> glyphs;
             Array<float> offsets;
             auto font = Font();
@@ -59,14 +58,12 @@ struct MIDIKeyboard : public MidiKeyboardComponent {
             font.getGlyphPositions(String(floor(midiNoteNumber / 12) - 1), glyphs, offsets);
 
             auto rectangle = area.withTrimmedTop(area.proportionOfHeight(0.8f)).reduced(area.getWidth() / 6.0f);
-            
+
             int prev_size = 0;
             AffineTransform transform;
-            for (auto glyph : glyphs)
-            {
+            for (auto glyph : glyphs) {
                 font.getTypefacePtr()->getOutlineForGlyph(glyph, p);
-                if (glyphs.size() > 1)
-                {
+                if (glyphs.size() > 1) {
                     prev_size = outline.getBounds().getWidth();
                 }
                 transform = AffineTransform::scale(20).followedBy(AffineTransform::translation(prev_size, 0.0));
@@ -180,8 +177,7 @@ struct KeyboardObject final : public GUIObject
     void checkBounds() override
     {
         int range_end = keyboard.getRangeEnd();
-        if (range_end == 127)
-        {
+        if (range_end == 127) {
             range_end = 128;
         }
         numKeys = std::clamp<int>(range_end - keyboard.getRangeStart(), 8, 128);
@@ -189,12 +185,10 @@ struct KeyboardObject final : public GUIObject
 
         auto* keyboardObject = static_cast<t_keyboard*>(ptr);
 
-        if (object->getWidth() / ratio != object->getHeight())
-        {
+        if (object->getWidth() / ratio != object->getHeight()) {
             object->setSize(object->getHeight() * ratio, object->getHeight());
 
-            if (getWidth() > 0)
-            {
+            if (getWidth() > 0) {
                 keyboard.setKeyWidth(getWidth() / (numKeys * 0.584f));
                 keyboardObject->x_width = getWidth();
             }
@@ -215,8 +209,7 @@ struct KeyboardObject final : public GUIObject
     {
         auto* keyboardObject = static_cast<t_keyboard*>(ptr);
         keyboard.setSize(getWidth(), getHeight());
-        if (getWidth() > 0)
-        {
+        if (getWidth() > 0) {
             keyboard.setKeyWidth(getWidth() / (numKeys * 0.584f));
             keyboardObject->x_width = getWidth();
         }
@@ -271,8 +264,7 @@ struct KeyboardObject final : public GUIObject
     {
         auto* keyboardObject = static_cast<t_keyboard*>(ptr);
 
-        if (value.refersToSameSourceAs(lowC))
-        {
+        if (value.refersToSameSourceAs(lowC)) {
             int numOctaves = std::clamp<int>(static_cast<int>(octaves.getValue()), 1, 11);
             lowC = std::clamp<int>(static_cast<int>(lowC.getValue()), -1, 9);
             int lowest = static_cast<int>(lowC.getValue());
@@ -280,9 +272,7 @@ struct KeyboardObject final : public GUIObject
             keyboard.setAvailableRange(((lowest + 1) * 12), std::min((highest * 12), 127));
             keyboardObject->x_low_c = lowest;
             checkBounds();
-        }
-        else if (value.refersToSameSourceAs(octaves))
-        {
+        } else if (value.refersToSameSourceAs(octaves)) {
             octaves = std::clamp<int>(static_cast<int>(octaves.getValue()), 1, 11);
             int numOctaves = static_cast<int>(octaves.getValue());
             int lowest = std::clamp<int>(lowC.getValue(), -1, 9);
@@ -306,11 +296,10 @@ struct KeyboardObject final : public GUIObject
             }
         }
     }
-        
-    void receiveObjectMessage(const String& symbol, std::vector<pd::Atom>& atoms) override
+
+    void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
     {
-        if(symbol == "lowc")
-        {
+        if (symbol == "lowc") {
             auto* x = (t_keyboard*)ptr;
             setParameterExcludingListener(lowC, static_cast<int>(atoms[0].getFloat()));
             int numOctaves = std::clamp<int>(static_cast<int>(octaves.getValue()), 1, 11);
@@ -318,23 +307,20 @@ struct KeyboardObject final : public GUIObject
             int highest = std::clamp<int>(lowest + 1 + numOctaves, 0, 11);
             keyboard.setAvailableRange(((lowest + 1) * 12), std::min((highest * 12), 127));
             checkBounds();
-        }
-        else if(symbol == "8ves")
-        {
+        } else if (symbol == "8ves") {
             auto* x = (t_keyboard*)ptr;
             setParameterExcludingListener(octaves, static_cast<int>(atoms[0].getFloat()));
             int numOctaves = std::clamp<int>(static_cast<int>(octaves.getValue()), 1, 11);
             int lowest = std::clamp<int>(lowC.getValue(), -1, 9);
             int highest = std::clamp<int>(lowest + 1 + numOctaves, 0, 11);
-            keyboard.setAvailableRange(((lowest + 1) * 12),std::min((highest * 12), 127));
+            keyboard.setAvailableRange(((lowest + 1) * 12), std::min((highest * 12), 127));
             checkBounds();
         }
     }
 
     void timerCallback() override
     {
-        pd->enqueueFunction([_this = SafePointer(this)]
-        {
+        pd->enqueueFunction([_this = SafePointer(this)] {
             if (!_this)
                 return;
             _this->updateValue();
@@ -345,7 +331,7 @@ struct KeyboardObject final : public GUIObject
     {
         bool selected = cnv->isSelected(object) && !cnv->isGraph;
         auto outlineColour = object->findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : PlugDataColour::objectOutlineColourId);
-        
+
         g.setColour(outlineColour);
         g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Constants::objectCornerRadius, 1.0f);
     }
