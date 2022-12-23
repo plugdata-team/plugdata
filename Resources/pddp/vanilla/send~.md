@@ -1,5 +1,5 @@
 ---
-title: send~
+title: send~, s~
 description: send signal to one or more receive~ objects.
 categories:
 - object

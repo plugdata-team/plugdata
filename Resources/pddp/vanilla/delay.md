@@ -1,5 +1,5 @@
 ---
-title: delay
+title: delay, del
 description: send a message after a time delay
 categories:
 - object

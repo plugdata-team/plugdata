@@ -1,5 +1,5 @@
 ---
-title: int
+title: int, i
 description: store and recall an integer
 categories:
 - object

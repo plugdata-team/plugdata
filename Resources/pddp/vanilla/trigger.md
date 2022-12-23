@@ -1,5 +1,5 @@
 ---
-title: trigger
+title: trigger, t
 description: sequence messages in right-to-left order.
 categories:
 - object

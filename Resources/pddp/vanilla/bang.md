@@ -1,5 +1,5 @@
 ---
-title: bang
+title: bang, b
 description: output a bang message
 categories:
 - object

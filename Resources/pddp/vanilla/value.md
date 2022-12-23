@@ -1,5 +1,5 @@
 ---
-title: value
+title: value, v
 description: shared numeric value
 categories:
 - object

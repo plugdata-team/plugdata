@@ -1,5 +1,5 @@
 ---
-title: receive
+title: receive, r
 description: Receive messages without patch cords.
 categories:
 - object
