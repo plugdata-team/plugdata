@@ -16,7 +16,7 @@ pdcategories:
 - Subwindows
 - Data Templates
 - Accessing Data
-- "'EXTRA' (patches and externs in pd/extra)"
+- Extra
 - Obsolete
 
 draft: false

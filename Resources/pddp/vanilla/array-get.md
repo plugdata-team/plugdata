@@ -1,6 +1,6 @@
 ---
 title: array get
-description: get contents as a list.
+description: Get contents as a list.
 categories:
 - object
 pdcategory: Arrays & Tables

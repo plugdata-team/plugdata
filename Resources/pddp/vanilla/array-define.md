@@ -1,6 +1,6 @@
 ---
 title: array define
-description: create an array.
+description: Create an array.
 categories:
 - object
 pdcategory: Arrays & Tables

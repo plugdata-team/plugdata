@@ -1,6 +1,6 @@
 ---
 title: abs
-description: math functions
+description: Calculates absolute value
 categories:
 - object
 pdcategory: Math
@@ -12,11 +12,11 @@ see_also:
 inlets:
   1st:
   - type: float
-    description: input value to given function.
+    description: Input value.
 outlets:
   1st:
   - type: float
-    description: the result of the operation.
+    description: The result of the operation.
 draft: false
 ---
 
