@@ -135,7 +135,7 @@ struct ButtonObject : public GUIObject {
 
     void paint(Graphics& g) override
     {
-        auto const bounds = getLocalBounds().toFloat();
+        const auto bounds = getLocalBounds().toFloat();
 
         g.setColour(Colour::fromString(secondaryColour.toString()));
         g.fillRoundedRectangle(bounds.reduced(0.5f), Constants::objectCornerRadius);

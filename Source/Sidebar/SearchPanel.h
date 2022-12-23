@@ -237,7 +237,7 @@ public:
 
         g.setColour(rowIsSelected ? findColour(PlugDataColour::sidebarActiveTextColourId) : findColour(ComboBox::textColourId));
 
-        auto const& [name, prefix, object, ptr] = searchResult[rowNumber];
+        const auto& [name, prefix, object, ptr] = searchResult[rowNumber];
 
         auto [x, y] = object->getPosition();
 

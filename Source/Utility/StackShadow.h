@@ -905,7 +905,7 @@ private:
 
             if (comp->isOnDesktop()) {
 #if JUCE_WINDOWS
-                auto const scope = [&]() -> std::unique_ptr<ScopedThreadDPIAwarenessSetter> {
+                const auto scope = [&]() -> std::unique_ptr<ScopedThreadDPIAwarenessSetter> {
                     if (comp != nullptr)
                         if (auto* handle = comp->getWindowHandle())
                             return std::make_unique<ScopedThreadDPIAwarenessSetter>(handle);
@@ -999,7 +999,7 @@ private:
         //==============================================================================
         void update()
         {
-            auto const newHasReasonToHide = [this]() {
+            const auto newHasReasonToHide = [this]() {
                 if (!component.wasObjectDeleted() && isWindows && component->isOnDesktop()) {
                     startTimerHz(5);
                     return !isWindowOnCurrentVirtualDesktop(component->getWindowHandle());
@@ -1074,7 +1074,7 @@ private:
 
         void updateParentHierarchy()
         {
-            auto const lastSeenComponents = std::exchange(observedComponents, [&] {
+            const auto lastSeenComponents = std::exchange(observedComponents, [&] {
                 std::set<ComponentWithWeakReference> result;
 
                 for (auto node = root; node != nullptr; node = node->getParentComponent())
@@ -1083,7 +1083,7 @@ private:
                 return result;
             }());
 
-            auto const withDifference = [](auto const& rangeA, auto const& rangeB, auto&& callback) {
+            const auto withDifference = [](const auto& rangeA, const auto& rangeB, auto&& callback) {
                 std::vector<ComponentWithWeakReference> result;
                 std::set_difference(rangeA.begin(), rangeA.end(), rangeB.begin(), rangeB.end(), std::back_inserter(result));
 

@@ -751,7 +751,7 @@ struct DocumentBrowser : public DocumentBrowserBase
 
             openChooser->launchAsync(FileBrowserComponent::openMode | FileBrowserComponent::canSelectDirectories,
                 [this](FileChooser const& fileChooser) {
-                    auto const file = fileChooser.getResult();
+                    const auto file = fileChooser.getResult();
                     if (file.exists()) {
                         auto path = file.getFullPathName();
                         pd->settingsTree.setProperty("BrowserPath", path, nullptr);

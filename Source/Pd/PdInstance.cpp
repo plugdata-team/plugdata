@@ -670,12 +670,12 @@ void Instance::createPanel(int type, char const* snd, char const* location)
     } else {
         MessageManager::callAsync(
             [this, obj, defaultFile]() mutable {
-                auto constexpr folderChooserFlags = FileBrowserComponent::saveMode | FileBrowserComponent::canSelectDirectories | FileBrowserComponent::canSelectFiles | FileBrowserComponent::warnAboutOverwriting;
+                constexpr auto folderChooserFlags = FileBrowserComponent::saveMode | FileBrowserComponent::canSelectDirectories | FileBrowserComponent::canSelectFiles | FileBrowserComponent::warnAboutOverwriting;
                 saveChooser = std::make_unique<FileChooser>("Save...", defaultFile, "", true);
 
                 saveChooser->launchAsync(folderChooserFlags,
                     [this, obj](FileChooser const& fileChooser) {
-                        auto const file = fileChooser.getResult();
+                        const auto file = fileChooser.getResult();
                         enqueueFunction(
                             [obj, file]() mutable {
                                 const auto* path = file.getFullPathName().toRawUTF8();

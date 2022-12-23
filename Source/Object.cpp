@@ -407,7 +407,7 @@ void Object::resized()
         int const total = isInlet ? numInputs : numOutputs;
         float const yPosition = (isInlet ? (margin + 1) : getHeight() - margin) - ioletSize / 2.0f;
 
-        auto const bounds = isInlet ? inletBounds : outletBounds;
+        const auto bounds = isInlet ? inletBounds : outletBounds;
 
         if (total == 1 && position == 0) {
             int xPosition = getWidth() < 40 ? getLocalBounds().getCentreX() - ioletSize / 2.0f : bounds.getX();
@@ -449,7 +449,7 @@ void Object::updateTooltips()
                 libpd_get_object_bounds(subpatch->getPointer(), obj, &x, &y, &w, &h);
 
                 // Anything after the first space will be the comment
-                auto const text = String::fromUTF8(str_ptr, size);
+                const auto text = String::fromUTF8(str_ptr, size);
                 inletMessages.emplace_back(x, text.fromFirstOccurrenceOf(" ", false, false));
             }
             if (name == "outlet" || name == "outlet~") {
@@ -460,7 +460,7 @@ void Object::updateTooltips()
                 int x, y, w, h;
                 libpd_get_object_bounds(subpatch->getPointer(), obj, &x, &y, &w, &h);
 
-                auto const text = String::fromUTF8(str_ptr, size);
+                const auto text = String::fromUTF8(str_ptr, size);
                 outletMessages.emplace_back(x, text.fromFirstOccurrenceOf(" ", false, false));
             }
         }
