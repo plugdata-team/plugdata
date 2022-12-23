@@ -1,6 +1,6 @@
 ---
 title: '%'
-description: higher math
+description: Divide two numbers, output remainder
 categories:
 - object
 pdcategory: Math

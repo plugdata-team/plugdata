@@ -1,6 +1,6 @@
 ---
 title: atan
-description: trigonometric functions
+description: Arctangens functions
 categories:
 - object
 pdcategory: Math

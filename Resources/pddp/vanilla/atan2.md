@@ -1,6 +1,6 @@
 ---
 title: atan2
-description: trigonometric functions
+description: 2-argument arctangens functions
 categories:
 - object
 pdcategory: Math

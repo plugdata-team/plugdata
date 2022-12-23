@@ -1,6 +1,6 @@
 ---
 title: sin
-description: trigonometric functions
+description: Sine function
 categories:
 - object
 pdcategory: Math

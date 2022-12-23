@@ -1,6 +1,6 @@
 ---
 title: cos
-description: trigonometric functions
+description: Cosine function
 categories:
 - object
 pdcategory: Math

@@ -1,6 +1,6 @@
 ---
 title: div
-description: higher math
+description: Divide numbers
 categories:
 - object
 pdcategory: Math

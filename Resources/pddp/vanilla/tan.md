@@ -1,6 +1,6 @@
 ---
 title: tan
-description: trigonometric functions
+description: Tangens function
 categories:
 - object
 pdcategory: Math
