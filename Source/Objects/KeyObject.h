@@ -5,10 +5,10 @@
  */
 
 // Wrapper for Pd's key, keyup and keyname objects
-struct KeyObject final : public TextBase, public KeyListener {
+struct KeyObject final : public TextBase
+    , public KeyListener {
 
-    enum KeyObjectType
-    {
+    enum KeyObjectType {
         Key,
         KeyUp,
         KeyName
@@ -16,9 +16,10 @@ struct KeyObject final : public TextBase, public KeyListener {
 
     KeyObjectType type;
     std::vector<KeyPress> heldKeys;
-    
+
     KeyObject(void* ptr, Object* object, KeyObjectType keyObjectType)
-        : TextBase(ptr, object), type(keyObjectType)
+        : TextBase(ptr, object)
+        , type(keyObjectType)
     {
         cnv->addKeyListener(this);
     }
@@ -27,78 +28,81 @@ struct KeyObject final : public TextBase, public KeyListener {
     {
         cnv->removeKeyListener(this);
     }
-    
-    bool keyPressed (const KeyPress& key, Component* originatingComponent) override {
-        
+
+    bool keyPressed(KeyPress const& key, Component* originatingComponent) override
+    {
+
         heldKeys.push_back(key);
-        
+
         String keyString = key.getTextDescription();
-        if(!key.getModifiers().isShiftDown()) keyString.toLowerCase();
+        if (!key.getModifiers().isShiftDown())
+            keyString.toLowerCase();
 
         t_symbol* keysym = gensym(keyString.toRawUTF8());
         int keyCode = key.getKeyCode();
         parseKey(keyCode, keysym);
-        
-        
-        if(type == Key) {
+
+        if (type == Key) {
             pd_float((t_pd*)ptr, keyCode);
-        }
-        else if(type == KeyName) {
+        } else if (type == KeyName) {
             t_atom argv[2];
             SETFLOAT(argv, 1.0f);
             SETSYMBOL(argv + 1, keysym);
-            
+
             pd_list((t_pd*)ptr, gensym("list"), 2, argv);
         }
-        
+
         // Never claim the keypress
         return false;
     }
-    
-    bool keyStateChanged (bool isKeyDown, Component *originatingComponent) override
+
+    bool keyStateChanged(bool isKeyDown, Component* originatingComponent) override
     {
 
-        if(!isKeyDown) {
-            
-            for(int n = heldKeys.size() - 1; n >= 0; n--) {
+        if (!isKeyDown) {
+
+            for (int n = heldKeys.size() - 1; n >= 0; n--) {
                 auto& key = heldKeys[n];
 
-                if(!key.isCurrentlyDown()) {
+                if (!key.isCurrentlyDown()) {
                     t_symbol* keysym = gensym(key.getTextDescription().toRawUTF8());
                     int keyCode = key.getKeyCode();
                     parseKey(keyCode, keysym);
-                    
-                    if(type == KeyUp) {
+
+                    if (type == KeyUp) {
                         pd_float((t_pd*)ptr, keyCode);
-                    }
-                    else if(type == KeyName) {
+                    } else if (type == KeyName) {
                         t_atom argv[2];
                         SETFLOAT(argv, 0.0f);
                         SETSYMBOL(argv + 1, keysym);
-                        
+
                         pd_list((t_pd*)ptr, gensym("list"), 2, argv);
                     }
-                    
+
                     heldKeys.erase(heldKeys.begin() + n);
                 }
             }
-            
-
         }
-        
+
         // Never claim the keychange
         return false;
     }
-    
-    
-    void parseKey(int& keynum, t_symbol*& keysym) {
-        if (keynum == 8)   keysym = gensym("BackSpace");
-        if (keynum == 9)   keysym = gensym("Tab");
-        if (keynum == 10)  keysym = gensym("Return");
-        if (keynum == 27)  keysym = gensym("Escape");
-        if (keynum == 32)  keysym = gensym("Space");
-        if (keynum == 127) keysym = gensym("Delete");
-        
+
+    void parseKey(int& keynum, t_symbol*& keysym)
+    {
+        if (keynum == 8)
+            keysym = gensym("BackSpace");
+        if (keynum == 9)
+            keysym = gensym("Tab");
+        if (keynum == 10)
+            keysym = gensym("Return");
+        if (keynum == 27)
+            keysym = gensym("Escape");
+        if (keynum == 32)
+            keysym = gensym("Space");
+        if (keynum == 127)
+            keysym = gensym("Delete");
+
         if (keynum == 30 || keynum == 63232)
             keynum = 0, keysym = gensym("Up");
         else if (keynum == 31 || keynum == 63233)

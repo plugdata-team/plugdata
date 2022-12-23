@@ -31,12 +31,12 @@ public:
         , symbol()
     {
     }
-    
+
     static std::vector<pd::Atom> fromAtoms(int ac, t_atom* av)
     {
         auto array = std::vector<pd::Atom>();
         array.reserve(ac);
-        
+
         for (int i = 0; i < ac; ++i) {
             if (av[i].a_type == A_FLOAT) {
                 array.emplace_back(atom_getfloat(av + i));
@@ -46,12 +46,12 @@ public:
                 array.emplace_back();
             }
         }
-        
+
         return array;
     }
 
     // The const floatructor.
-    inline Atom(const float val)
+    inline Atom(float const val)
         : type(FLOAT)
         , value(val)
         , symbol()
@@ -242,11 +242,10 @@ struct ContinuityChecker : public Timer {
     BackupTimer backupTimer;
 };
 
-struct MessageListener
-{
-    virtual void receiveMessage(const String& name, int argc, t_atom* argv) {};
-    
-    JUCE_DECLARE_WEAK_REFERENCEABLE (MessageListener);
+struct MessageListener {
+    virtual void receiveMessage(String const& name, int argc, t_atom* argv) {};
+
+    JUCE_DECLARE_WEAK_REFERENCEABLE(MessageListener);
 };
 
 class Instance {
@@ -283,41 +282,41 @@ public:
     Instance(Instance const& other) = delete;
     virtual ~Instance();
 
-    void prepareDSP(const int nins, const int nouts, const double samplerate, const int blockSize);
+    void prepareDSP(int const nins, int const nouts, double const samplerate, int const blockSize);
     void startDSP();
     void releaseDSP();
-    void performDSP(const float* inputs, float* outputs);
+    void performDSP(float const* inputs, float* outputs);
     int getBlockSize() const;
 
-    void sendNoteOn(const int channel, const int pitch, const int velocity) const;
-    void sendControlChange(const int channel, const int controller, const int value) const;
-    void sendProgramChange(const int channel, const int value) const;
-    void sendPitchBend(const int channel, const int value) const;
-    void sendAfterTouch(const int channel, const int value) const;
-    void sendPolyAfterTouch(const int channel, const int pitch, const int value) const;
-    void sendSysEx(const int port, const int byte) const;
-    void sendSysRealTime(const int port, const int byte) const;
-    void sendMidiByte(const int port, const int byte) const;
+    void sendNoteOn(int const channel, int const pitch, int const velocity) const;
+    void sendControlChange(int const channel, int const controller, int const value) const;
+    void sendProgramChange(int const channel, int const value) const;
+    void sendPitchBend(int const channel, int const value) const;
+    void sendAfterTouch(int const channel, int const value) const;
+    void sendPolyAfterTouch(int const channel, int const pitch, int const value) const;
+    void sendSysEx(int const port, int const byte) const;
+    void sendSysRealTime(int const port, int const byte) const;
+    void sendMidiByte(int const port, int const byte) const;
 
-    virtual void receiveNoteOn(const int channel, const int pitch, const int velocity)
+    virtual void receiveNoteOn(int const channel, int const pitch, int const velocity)
     {
     }
-    virtual void receiveControlChange(const int channel, const int controller, const int value)
+    virtual void receiveControlChange(int const channel, int const controller, int const value)
     {
     }
-    virtual void receiveProgramChange(const int channel, const int value)
+    virtual void receiveProgramChange(int const channel, int const value)
     {
     }
-    virtual void receivePitchBend(const int channel, const int value)
+    virtual void receivePitchBend(int const channel, int const value)
     {
     }
-    virtual void receiveAftertouch(const int channel, const int value)
+    virtual void receiveAftertouch(int const channel, int const value)
     {
     }
-    virtual void receivePolyAftertouch(const int channel, const int pitch, const int value)
+    virtual void receivePolyAftertouch(int const channel, int const pitch, int const value)
     {
     }
-    virtual void receiveMidiByte(const int port, const int byte)
+    virtual void receiveMidiByte(int const port, int const byte)
     {
     }
 
@@ -327,7 +326,7 @@ public:
     virtual void createPanel(int type, char const* snd, char const* location);
 
     void sendBang(char const* receiver) const;
-    void sendFloat(char const* receiver, const float value) const;
+    void sendFloat(char const* receiver, float const value) const;
     void sendSymbol(char const* receiver, char const* symbol) const;
     void sendList(char const* receiver, std::vector<pd::Atom> const& list) const;
     void sendMessage(char const* receiver, char const* msg, std::vector<pd::Atom> const& list) const;
@@ -349,10 +348,10 @@ public:
     virtual void receiveMessage(String const& dest, String const& msg, std::vector<pd::Atom> const& list)
     {
     }
-    
+
     void registerMessageListener(void* object, MessageListener* messageListener);
     void unregisterMessageListener(void* object, MessageListener* messageListener);
-    
+
     virtual void receiveDSPState(bool dsp) {};
 
     virtual void updateConsole() {};
@@ -366,7 +365,7 @@ public:
 
     void enqueueDirectMessages(void* object, std::vector<pd::Atom> const& list);
     void enqueueDirectMessages(void* object, String const& msg);
-    void enqueueDirectMessages(void* object, const float msg);
+    void enqueueDirectMessages(void* object, float const msg);
 
     virtual void performParameterChange(int type, int idx, float value) {};
 
@@ -391,7 +390,7 @@ public:
     virtual Colour getBackgroundColour() = 0;
     virtual Colour getTextColour() = 0;
     virtual Colour getOutlineColour() = 0;
-    
+
     virtual void reloadAbstractions(File changedPatch, t_glist* except) = 0;
 
     void setThis();
@@ -418,11 +417,10 @@ public:
     inline static const String defaultPatch = "#N canvas 827 239 527 327 12;";
 
     bool isPerformingGlobalSync = false;
-    
+
 private:
-    
     std::unordered_map<void*, std::vector<WeakReference<MessageListener>>> messageListeners;
-    
+
     moodycamel::ConcurrentQueue<std::function<void(void)>> m_function_queue = moodycamel::ConcurrentQueue<std::function<void(void)>>(4096);
 
     std::unique_ptr<FileChooser> saveChooser;
@@ -431,7 +429,7 @@ private:
     WaitableEvent updateWait;
 
 protected:
-    //ContinuityChecker continuityChecker;
+    // ContinuityChecker continuityChecker;
 
     struct internal;
 
@@ -468,7 +466,7 @@ protected:
             pendingMessages.enqueue({ message, false });
             startTimer(10);
         }
-        
+
         void logWarning(String const& warning)
         {
             pendingMessages.enqueue({ warning, 1 });
@@ -480,8 +478,6 @@ protected:
             pendingMessages.enqueue({ error, 2 });
             startTimer(10);
         }
-        
-
 
         void processPrint(char const* message)
         {
@@ -537,7 +533,5 @@ protected:
     };
 
     ConsoleHandler consoleHandler;
-
-    
 };
 } // namespace pd

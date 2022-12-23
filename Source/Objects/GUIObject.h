@@ -27,7 +27,7 @@ struct ObjectBase : public Component
     PluginProcessor* pd;
 
     ObjectBase(void* obj, Object* parent);
-        
+
     virtual ~ObjectBase() {};
 
     void paint(Graphics& g) override;
@@ -71,7 +71,7 @@ struct ObjectBase : public Component
     {
         setInterceptsMouseClicks(isLocked, isLocked);
     }
-        
+
     String getType() const;
 
     void moveToFront();
@@ -116,7 +116,8 @@ struct NonPatchable : public ObjectBase {
     virtual void applyBounds() {};
 };
 
-struct GUIObject : public ObjectBase, public pd::MessageListener
+struct GUIObject : public ObjectBase
+    , public pd::MessageListener
     , public ComponentListener
     , public Value::Listener {
     GUIObject(void* obj, Object* parent);
@@ -155,8 +156,9 @@ struct GUIObject : public ObjectBase, public pd::MessageListener
     float getValueScaled() const;
 
     void setValueScaled(float v);
-        
-    void setParameterExcludingListener(Value& parameter, var value) {
+
+    void setParameterExcludingListener(Value& parameter, var value)
+    {
         parameter.removeListener(this);
         parameter.setValue(value);
         parameter.addListener(this);
@@ -173,28 +175,28 @@ struct GUIObject : public ObjectBase, public pd::MessageListener
     }
 
     void setValue(float value);
-        
+
     template<typename T>
-    T limitValueMax(Value& v, T max) {
+    T limitValueMax(Value& v, T max)
+    {
         auto clampedValue = std::min<T>(max, static_cast<T>(v.getValue()));
         v = clampedValue;
         return clampedValue;
     }
-        
+
     template<typename T>
-    T limitValueMin(Value& v, T min) {
+    T limitValueMin(Value& v, T min)
+    {
         auto clampedValue = std::max<T>(min, static_cast<T>(v.getValue()));
         v = clampedValue;
         return clampedValue;
     }
-        
-        
-    virtual void receiveObjectMessage(const String& symbol, std::vector<pd::Atom>& atoms) {};
+
+    virtual void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) {};
 
     static inline bool draggingSlider = false;
-        
+
 protected:
-        
     std::unique_ptr<Label> label;
 
     static inline constexpr int maxSize = 1000000;
@@ -218,27 +220,24 @@ protected:
     Value labelHeight = Value(18.0f);
 
     Value labelText;
-        
-    private:
 
-    void receiveMessage(const String& symbol, int argc, t_atom* argv) override
+private:
+    void receiveMessage(String const& symbol, int argc, t_atom* argv) override
     {
         auto atoms = pd::Atom::fromAtoms(argc, argv);
-        
+
         MessageManager::callAsync([_this = SafePointer(this), symbol, atoms]() mutable {
-            if(!_this) return;
-            
-            if(symbol == "size" || symbol == "delta" || symbol == "pos" || symbol == "dim" || symbol == "width" || symbol == "height") {
+            if (!_this)
+                return;
+
+            if (symbol == "size" || symbol == "delta" || symbol == "pos" || symbol == "dim" || symbol == "width" || symbol == "height") {
                 // TODO: we can't really ensure the object has updated its bounds yet!
                 _this->updateBounds();
-            }
-            else if(symbol == "send" && atoms.size() >= 1) {
+            } else if (symbol == "send" && atoms.size() >= 1) {
                 _this->setParameterExcludingListener(_this->sendSymbol, atoms[0].getSymbol());
-            }
-            else if(symbol == "receive" && atoms.size() >= 1) {
+            } else if (symbol == "receive" && atoms.size() >= 1) {
                 _this->setParameterExcludingListener(_this->receiveSymbol, atoms[0].getSymbol());
-            }
-            else {
+            } else {
                 _this->receiveObjectMessage(symbol, atoms);
             }
         });

@@ -18,10 +18,10 @@ class SuggestionComponent;
 struct GraphArea;
 class Iolet;
 class PluginEditor;
-class Canvas : public Component, public Value::Listener, public LassoSource<WeakReference<Component>>
-{    
-   public:
-        
+class Canvas : public Component
+    , public Value::Listener
+    , public LassoSource<WeakReference<Component>> {
+public:
     Canvas(PluginEditor* parent, pd::Patch& patch, Component* parentGraph = nullptr);
 
     ~Canvas() override;
@@ -37,31 +37,31 @@ class Canvas : public Component, public Value::Listener, public LassoSource<Weak
         repaint();
     }
 
-    void mouseDown(const MouseEvent& e) override;
-    void mouseDrag(const MouseEvent& e) override;
-    void mouseUp(const MouseEvent& e) override;
-    void mouseMove(const MouseEvent& e) override;
+    void mouseDown(MouseEvent const& e) override;
+    void mouseDrag(MouseEvent const& e) override;
+    void mouseUp(MouseEvent const& e) override;
+    void mouseMove(MouseEvent const& e) override;
 
     void synchronise(bool updatePosition = true);
-    
+
     void updateDrawables();
     void updateGuiValues();
-    
-    bool keyPressed(const KeyPress& key) override;
+
+    bool keyPressed(KeyPress const& key) override;
     void valueChanged(Value& v) override;
-    
+
     void hideAllActiveEditors();
-    
+
     void copySelection();
     void removeSelection();
     void pasteSelection();
     void duplicateSelection();
-    
+
     void encapsulateSelection();
-    
+
     bool canConnectSelectedObjects();
     bool connectSelectedObjects();
-    
+
     void cancelConnectionCreation();
 
     void undo();
@@ -70,33 +70,31 @@ class Canvas : public Component, public Value::Listener, public LassoSource<Weak
     void checkBounds();
 
     // Multi-dragger functions
-    void deselectAll();    
+    void deselectAll();
     void setSelected(Component* component, bool shouldNowBeSelected);
     bool isSelected(Component* component) const;
 
-    void handleMouseDown(Component* component, const MouseEvent& e);
-    void handleMouseUp(Component* component, const MouseEvent& e);
-    void handleMouseDrag(const MouseEvent& e);
+    void handleMouseDown(Component* component, MouseEvent const& e);
+    void handleMouseUp(Component* component, MouseEvent const& e);
+    void handleMouseDrag(MouseEvent const& e);
 
     SelectedItemSet<WeakReference<Component>>& getLassoSelection() override;
 
     void removeSelectedComponent(Component* component);
-    void findLassoItemsInArea(Array<WeakReference<Component>>& itemsFound, const Rectangle<int>& area) override;
+    void findLassoItemsInArea(Array<WeakReference<Component>>& itemsFound, Rectangle<int> const& area) override;
 
     void updateSidebarSelection();
 
     void showSuggestions(Object* object, TextEditor* textEditor);
     void hideSuggestions();
 
-    template <typename T>
+    template<typename T>
     Array<T*> getSelectionOfType()
     {
         Array<T*> result;
 
-        for (auto obj : selectedComponents)
-        {
-            if (auto* objOfType = dynamic_cast<T*>(obj.get()))
-            {
+        for (auto obj : selectedComponents) {
+            if (auto* objOfType = dynamic_cast<T*>(obj.get())) {
                 result.add(objOfType);
             }
         }
@@ -114,7 +112,7 @@ class Canvas : public Component, public Value::Listener, public LassoSource<Weak
 
     // Needs to be allocated before object and connection so they can deselect themselves in the destructor
     SelectedItemSet<WeakReference<Component>> selectedComponents;
-    
+
     OwnedArray<Object> objects;
     OwnedArray<Connection> connections;
 
@@ -122,60 +120,57 @@ class Canvas : public Component, public Value::Listener, public LassoSource<Weak
     Value commandLocked;
     Value presentationMode;
     Value gridEnabled = Value(var(true));
-    
+
     bool isGraph = false;
     bool hasParentCanvas = false;
-    bool updatingBounds = false;  // used by connection
+    bool updatingBounds = false; // used by connection
     bool isDraggingLasso = false;
-    
+
     Value isGraphChild = Value(var(false));
     Value hideNameAndArgs = Value(var(false));
     Value xRange, yRange;
-    
+
     ObjectGrid grid = ObjectGrid(this);
 
-    Point<int> canvasOrigin = {0, 0};
-    Point<int> canvasDragStartPosition = {0, 0};
-    Point<int> viewportPositionBeforeMiddleDrag = {0, 0};
+    Point<int> canvasOrigin = { 0, 0 };
+    Point<int> canvasDragStartPosition = { 0, 0 };
+    Point<int> viewportPositionBeforeMiddleDrag = { 0, 0 };
 
     GraphArea* graphArea = nullptr;
     SuggestionComponent* suggestor = nullptr;
-    
+
     bool attachNextObjectToMouse = false;
     bool wasDragDuplicated = false;
     bool wasSelectedOnMouseDown = false;
     SafePointer<Object> lastSelectedObject = nullptr; // For auto patching
-    
+
     // Multi-dragger variables
     bool didStartDragging = false;
-    const int minimumMovementToStartDrag = 5;
+    int const minimumMovementToStartDrag = 5;
     SafePointer<Object> componentBeingDragged = nullptr;
-    
+
     pd::Storage storage;
-    
+
     Point<int> lastMousePosition;
     Point<int> pastedPosition;
     Point<int> pastedPadding;
     std::vector<Point<int>> mouseDownObjectPositions; // Stores object positions for alt + drag
 
-   private:
-    
+private:
     SafePointer<Object> objectSnappingInbetween;
     SafePointer<Connection> connectionToSnapInbetween;
     SafePointer<TabbedComponent> tabbar;
 
     LassoComponent<WeakReference<Component>> lasso;
-    
+
     // Static makes sure there can only be one
     PopupMenu popupMenu;
 
     // Properties that can be shown in the inspector by right-clicking on canvas
-    ObjectParameters parameters =
-    {{"Is graph", tBool, cGeneral, &isGraphChild, {"No", "Yes"}},
-     {"Hide name and arguments", tBool, cGeneral, &hideNameAndArgs, {"No", "Yes"}},
-     {"X range", tRange, cGeneral, &xRange, {}},
-     {"Y range", tRange, cGeneral, &yRange, {}}
-    };
+    ObjectParameters parameters = { { "Is graph", tBool, cGeneral, &isGraphChild, { "No", "Yes" } },
+        { "Hide name and arguments", tBool, cGeneral, &hideNameAndArgs, { "No", "Yes" } },
+        { "X range", tRange, cGeneral, &xRange, {} },
+        { "Y range", tRange, cGeneral, &yRange, {} } };
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(Canvas)
 };

@@ -13,8 +13,7 @@
 #include "Statusbar.h"
 #include "Tabbar.h"
 
-enum CommandIDs
-{
+enum CommandIDs {
     NewProject = 1,
     OpenProject,
     SaveProject,
@@ -68,9 +67,10 @@ enum CommandIDs
     NumItems
 };
 
-struct ZoomLabel : public TextButton, public Timer
-{
-    ZoomLabel() {
+struct ZoomLabel : public TextButton
+    , public Timer {
+    ZoomLabel()
+    {
         setInterceptsMouseClicks(false, false);
     }
 
@@ -78,30 +78,31 @@ struct ZoomLabel : public TextButton, public Timer
     {
         setButtonText(String(value * 100, 1) + "%");
         startTimer(2000);
-        
-        if(!labelAnimator.isAnimating(this)) {
+
+        if (!labelAnimator.isAnimating(this)) {
             labelAnimator.fadeIn(this, 200);
         }
     }
-    
+
     void timerCallback() override
     {
         labelAnimator.fadeOut(this, 200);
     }
-    
+
     ComponentAnimator labelAnimator;
 };
 
 struct WelcomeButton;
 class Canvas;
 class PluginProcessor;
-class PluginEditor : public AudioProcessorEditor, public Value::Listener, public ValueTree::Listener, public ApplicationCommandTarget, public ApplicationCommandManager, public Timer
-{
-   public:
-    
-    
-    enum ToolbarButtonType
-    {
+class PluginEditor : public AudioProcessorEditor
+    , public Value::Listener
+    , public ValueTree::Listener
+    , public ApplicationCommandTarget
+    , public ApplicationCommandManager
+    , public Timer {
+public:
+    enum ToolbarButtonType {
         Open = 0,
         Save,
         SaveAs,
@@ -112,8 +113,7 @@ class PluginEditor : public AudioProcessorEditor, public Value::Listener, public
         Hide,
         Pin
     };
-    
-    
+
     explicit PluginEditor(PluginProcessor&);
 
     ~PluginEditor() override;
@@ -122,28 +122,28 @@ class PluginEditor : public AudioProcessorEditor, public Value::Listener, public
 
     void resized() override;
 
-    void mouseWheelMove(const MouseEvent& e, const MouseWheelDetails& wheel) override;
-    void mouseMagnify(const MouseEvent& e, float scaleFactor) override;
+    void mouseWheelMove(MouseEvent const& e, MouseWheelDetails const& wheel) override;
+    void mouseMagnify(MouseEvent const& e, float scaleFactor) override;
 
 #ifdef PLUGDATA_STANDALONE
     // For dragging parent window
-    void mouseDrag(const MouseEvent& e) override;
-    void mouseDown(const MouseEvent& e) override;
+    void mouseDrag(MouseEvent const& e) override;
+    void mouseDown(MouseEvent const& e) override;
 
     ComponentDragger windowDragger;
 #endif
 
     void newProject();
     void openProject();
-    void saveProject(const std::function<void()>& nestedCallback = []() {});
-    void saveProjectAs(const std::function<void()>& nestedCallback = []() {});
+    void saveProject(std::function<void()> const& nestedCallback = []() {});
+    void saveProjectAs(std::function<void()> const& nestedCallback = []() {});
 
     void addTab(Canvas* cnv, bool deleteWhenClosed = false);
 
     Canvas* getCurrentCanvas();
     Canvas* getCanvas(int idx);
-    
-    void modifierKeysChanged(const ModifierKeys& modifiers) override;
+
+    void modifierKeysChanged(ModifierKeys const& modifiers) override;
 
     void valueChanged(Value& v) override;
 
@@ -152,19 +152,19 @@ class PluginEditor : public AudioProcessorEditor, public Value::Listener, public
     ApplicationCommandTarget* getNextCommandTarget() override;
     void getAllCommands(Array<CommandID>& commands) override;
     void getCommandInfo(const CommandID commandID, ApplicationCommandInfo& result) override;
-    bool perform(const InvocationInfo& info) override;
+    bool perform(InvocationInfo const& info) override;
 
-    void valueTreePropertyChanged(ValueTree& treeWhosePropertyHasChanged, const Identifier& property) override;
+    void valueTreePropertyChanged(ValueTree& treeWhosePropertyHasChanged, Identifier const& property) override;
     void valueTreeChildAdded(ValueTree& parentTree, ValueTree& childWhichHasBeenAdded) override;
     void valueTreeChildRemoved(ValueTree& parentTree, ValueTree& childWhichHasBeenRemoved, int indexFromWhichChildWasRemoved) override;
 
     void timerCallback() override;
-    
+
     TextButton* toolbarButton(ToolbarButtonType type)
     {
         return toolbarButtons[static_cast<int>(type)];
     }
-    
+
     bool wantsRoundedCorners();
 
     PluginProcessor* pd;
@@ -179,15 +179,14 @@ class PluginEditor : public AudioProcessorEditor, public Value::Listener, public
     std::atomic<bool> canUndo = false, canRedo = false;
 
     std::unique_ptr<Dialog> openedDialog = nullptr;
-    
+
     Value theme;
     Value zoomScale;
 
     Value hvccMode;
     Value autoconnect;
-    
-   private:
-    
+
+private:
     std::unique_ptr<FileChooser> saveChooser;
     std::unique_ptr<FileChooser> openChooser;
 
@@ -202,14 +201,14 @@ class PluginEditor : public AudioProcessorEditor, public Value::Listener, public
     SharedResourcePointer<TooltipWindow> tooltipWindow;
 
     TextButton seperators[8];
-    
+
     ZoomLabel zoomLabel;
-    
+
 #if PLUGDATA_STANDALONE && JUCE_MAC
     Rectangle<int> unmaximisedSize;
 #endif
-    
+
     bool isMaximised = false;
-    
+
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PluginEditor)
 };

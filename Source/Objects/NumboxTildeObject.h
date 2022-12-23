@@ -43,7 +43,8 @@ struct NumboxTildeObject final : public GUIObject
     Value interval, ramp, init;
 
     NumboxTildeObject(void* obj, Object* parent)
-        : GUIObject(obj, parent), input(false)
+        : GUIObject(obj, parent)
+        , input(false)
     {
         input.onEditorShow = [this]() {
             auto* editor = input.getCurrentTextEditor();
@@ -213,7 +214,7 @@ struct NumboxTildeObject final : public GUIObject
 
         bool selected = cnv->isSelected(object) && !cnv->isGraph;
         auto outlineColour = object->findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : objectOutlineColourId);
-        
+
         g.setColour(outlineColour);
         g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Constants::objectCornerRadius, 1.0f);
     }

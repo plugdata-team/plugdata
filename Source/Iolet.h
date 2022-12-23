@@ -12,9 +12,9 @@ class Connection;
 class Object;
 class Canvas;
 
-class Iolet : public Component, public SettableTooltipClient
-{
-   public:
+class Iolet : public Component
+    , public SettableTooltipClient {
+public:
     Object* object;
 
     Iolet(Object* parent, bool isInlet);
@@ -22,11 +22,11 @@ class Iolet : public Component, public SettableTooltipClient
     void paint(Graphics&) override;
     void resized() override;
 
-    void mouseDrag(const MouseEvent& e) override;
-    void mouseUp(const MouseEvent& e) override;
+    void mouseDrag(MouseEvent const& e) override;
+    void mouseUp(MouseEvent const& e) override;
 
-    void mouseEnter(const MouseEvent& e) override;
-    void mouseExit(const MouseEvent& e) override;
+    void mouseEnter(MouseEvent const& e) override;
+    void mouseExit(MouseEvent const& e) override;
 
     static Iolet* findNearestEdge(Canvas* cnv, Point<int> position, bool inlet, Object* boxToExclude = nullptr);
 
@@ -42,6 +42,6 @@ class Iolet : public Component, public SettableTooltipClient
 
     bool isTargeted = false;
 
-   private:
+private:
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(Iolet)
 };

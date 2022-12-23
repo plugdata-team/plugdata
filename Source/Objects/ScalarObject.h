@@ -62,37 +62,42 @@ int scalar_doclick(t_word* data, t_template* t, t_scalar* sc,
 // accidentally passing on mouse scroll events to the viewport.
 // This prevents that with a separation layer.
 
-struct GlobalMouseListener : public MouseListener
-{
+struct GlobalMouseListener : public MouseListener {
     Component* target;
-    
-    GlobalMouseListener(Component* targetComponent) : target(targetComponent) {
+
+    GlobalMouseListener(Component* targetComponent)
+        : target(targetComponent)
+    {
         Desktop::getInstance().addGlobalMouseListener(this);
     }
-    
-    ~GlobalMouseListener() {
+
+    ~GlobalMouseListener()
+    {
         Desktop::getInstance().removeGlobalMouseListener(this);
     }
-    
-    std::function<void(const MouseEvent& e)> globalMouseDown = [](const MouseEvent&){};
-    std::function<void(const MouseEvent& e)> globalMouseUp   = [](const MouseEvent&){};
-    std::function<void(const MouseEvent& e)> globalMouseDrag = [](const MouseEvent&){};
-    
-    void mouseDown(const MouseEvent& e) override {
+
+    std::function<void(MouseEvent const& e)> globalMouseDown = [](MouseEvent const&) {};
+    std::function<void(MouseEvent const& e)> globalMouseUp = [](MouseEvent const&) {};
+    std::function<void(MouseEvent const& e)> globalMouseDrag = [](MouseEvent const&) {};
+
+    void mouseDown(MouseEvent const& e) override
+    {
         globalMouseDown(e.getEventRelativeTo(target));
     }
-    
-    void mouseUp(const MouseEvent& e) override {
+
+    void mouseUp(MouseEvent const& e) override
+    {
         globalMouseUp(e.getEventRelativeTo(target));
     }
-    
-    void mouseDrag(const MouseEvent& e) override {
+
+    void mouseDrag(MouseEvent const& e) override
+    {
         globalMouseDrag(e.getEventRelativeTo(target));
     }
 };
 
 struct DrawableTemplate {
-    
+
     virtual void update() = 0;
 
     /* getting and setting values via fielddescs -- note confusing names;
@@ -108,7 +113,6 @@ struct DrawableTemplate {
             return (0);
         }
     }
-
 
     static int rangecolor(int n) /* 0 to 9 in 5 steps */
     {
@@ -133,12 +137,13 @@ struct DrawableTemplate {
     bool isLocked;
 };
 
-struct DrawableCurve final : public DrawableTemplate, public DrawablePath {
+struct DrawableCurve final : public DrawableTemplate
+    , public DrawablePath {
     t_scalar* scalar;
     t_fake_curve* object;
     int baseX, baseY;
     Canvas* canvas;
-    
+
     GlobalMouseListener mouseListener;
 
     DrawableCurve(t_scalar* s, t_gobj* obj, Canvas* cnv, int x, int y)
@@ -149,12 +154,12 @@ struct DrawableCurve final : public DrawableTemplate, public DrawablePath {
         , baseY(y)
         , mouseListener(this)
     {
-        mouseListener.globalMouseDown = [this](const MouseEvent& e){
+        mouseListener.globalMouseDown = [this](MouseEvent const& e) {
             handleMouseDown(e);
         };
     }
 
-    void handleMouseDown(const MouseEvent& e)
+    void handleMouseDown(MouseEvent const& e)
     {
         if (!getLocalBounds().contains(e.getPosition()) || !isLocked || !canvas->isShowing())
             return;
@@ -268,7 +273,8 @@ struct DrawableCurve final : public DrawableTemplate, public DrawablePath {
     }
 };
 
-struct DrawableSymbol final : public DrawableTemplate, public DrawableText {
+struct DrawableSymbol final : public DrawableTemplate
+    , public DrawableText {
     t_scalar* scalar;
     t_fake_drawnumber* object;
     int baseX, baseY;
@@ -282,7 +288,7 @@ struct DrawableSymbol final : public DrawableTemplate, public DrawableText {
         , baseY(y)
     {
     }
-    
+
     // TODO: implement number dragging
     void mouseDown(MouseEvent const& e) override
     {
@@ -346,7 +352,7 @@ struct DrawableSymbol final : public DrawableTemplate, public DrawableText {
         setBoundingBox(Parallelogram<float>(Rectangle<float>(xloc, yloc, 200, 100)));
         setFontHeight(sys_hostfontsize(glist_getfont(glist), glist_getzoom(glist)));
         setText(String::fromUTF8(buf));
-        
+
         /*
         sys_vgui(".x%lx.c create text %d %d -anchor nw -fill %s -text {%s}",
             glist_getcanvas(glist), xloc, yloc, colorstring, buf);
@@ -386,15 +392,14 @@ struct ScalarObject final : public NonPatchable {
             }
 
             cnv->addAndMakeVisible(drawable);
-
         }
 
         updateDrawables();
     }
-    
-    ~ScalarObject() {
-        for(auto* drawable : templates)
-        {
+
+    ~ScalarObject()
+    {
+        for (auto* drawable : templates) {
             cnv->removeChildComponent(drawable);
         }
     }

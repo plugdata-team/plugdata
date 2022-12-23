@@ -8,8 +8,7 @@
 
 #include <JuceHeader.h>
 
-extern "C"
-{
+extern "C" {
 #include <m_pd.h>
 }
 
@@ -18,9 +17,9 @@ extern "C"
 using PathPlan = std::vector<Point<int>>;
 
 class Canvas;
-class Connection : public Component, public ComponentListener
-{
-   public:
+class Connection : public Component
+    , public ComponentListener {
+public:
     int inIdx;
     int outIdx;
 
@@ -42,24 +41,24 @@ class Connection : public Component, public ComponentListener
 
     bool hitTest(int x, int y) override;
 
-    void mouseDown(const MouseEvent& e) override;
-    void mouseMove(const MouseEvent& e) override;
-    void mouseDrag(const MouseEvent& e) override;
-    void mouseUp(const MouseEvent& e) override;
-    void mouseExit(const MouseEvent& e) override;
-    
+    void mouseDown(MouseEvent const& e) override;
+    void mouseMove(MouseEvent const& e) override;
+    void mouseDrag(MouseEvent const& e) override;
+    void mouseUp(MouseEvent const& e) override;
+    void mouseExit(MouseEvent const& e) override;
+
     Point<int> getStartPoint();
     Point<int> getEndPoint();
 
     void reconnect(Iolet* target, bool dragged);
 
     bool intersects(Rectangle<float> toCheck, int accuracy = 4) const;
-    int getClosestLineIdx(const Point<int>& position, const PathPlan& plan);
+    int getClosestLineIdx(Point<int> const& position, PathPlan const& plan);
 
     String getId() const;
 
     String getState();
-    void setState(const String& block);
+    void setState(String const& block);
 
     void componentMovedOrResized(Component& component, bool wasMoved, bool wasResized) override;
 
@@ -71,10 +70,10 @@ class Connection : public Component, public ComponentListener
     bool intersectsObject(Object* object);
     bool straightLineIntersectsObject(Line<int> toCheck, Array<Object*>& objects);
 
-   private:
+private:
     bool wasSelected = false;
     bool segmented = false;
-    
+
     Array<SafePointer<Connection>> reconnecting;
 
     Rectangle<float> startReconnectHandle, endReconnectHandle;

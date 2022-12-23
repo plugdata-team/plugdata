@@ -133,7 +133,7 @@ struct AtomObject : public GUIObject {
 
         bool selected = cnv->isSelected(object) && !cnv->isGraph;
         auto outlineColour = object->findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : objectOutlineColourId);
-        
+
         g.setColour(outlineColour);
         g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Constants::objectCornerRadius, 1.0f);
     }
@@ -342,5 +342,5 @@ struct AtomObject : public GUIObject {
             return (iemgui_raute2dollar(s));
     }
 
-    const int atomSizes[7] = { 0, 8, 10, 12, 16, 24, 36 };
+    int const atomSizes[7] = { 0, 8, 10, 12, 16, 24, 36 };
 };

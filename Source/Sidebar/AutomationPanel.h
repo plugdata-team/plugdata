@@ -6,12 +6,14 @@
 
 #include "Canvas.h"
 
-struct AutomationSlider : public Component, public Value::Listener {
+struct AutomationSlider : public Component
+    , public Value::Listener {
 
     PluginProcessor* pd;
-    
+
     AutomationSlider(int idx, PluginProcessor* processor)
-        : index(idx), pd(processor)
+        : index(idx)
+        , pd(processor)
     {
         createButton.setName("statusbar:createbutton");
 
@@ -26,9 +28,8 @@ struct AutomationSlider : public Component, public Value::Listener {
                 }
             }
         };
-        
-        
-        //pd->locked.addListener(this);
+
+        // pd->locked.addListener(this);
 
         slider.setScrollWheelEnabled(false);
         slider.setTextBoxStyle(Slider::NoTextBox, false, 45, 13);
@@ -74,12 +75,12 @@ struct AutomationSlider : public Component, public Value::Listener {
         addAndMakeVisible(valueLabel);
         addAndMakeVisible(createButton);
     }
-    
-    ~AutomationSlider() {
-        //pd->locked.removeListener(this);
+
+    ~AutomationSlider()
+    {
+        // pd->locked.removeListener(this);
     }
-    
-    
+
     void valueChanged(Value& v) override
     {
         createButton.setEnabled(!static_cast<bool>(v.getValue()));
@@ -172,7 +173,7 @@ struct AutomationPanel : public Component
         g.setColour(findColour(PlugDataColour::sidebarTextColourId));
         g.setFont(14);
         g.drawFittedText("Parameters", 0, 1, getWidth(), viewport.getY(), Justification::centred, 1);
-        
+
         // Background for statusbar part
         g.setColour(findColour(PlugDataColour::toolbarBackgroundColourId));
         g.fillRoundedRectangle(0, getHeight() - 30, getWidth(), 30, Constants::defaultCornerRadius);

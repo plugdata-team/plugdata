@@ -225,9 +225,8 @@ void Library::initialiseLibrary()
         // Paths to search
         // First, only search vanilla, then search all documentation
         // Lastly, check the deken folder
-        helpPaths = {appDataDir.getChildFile("Library").getChildFile("Documentation").getChildFile("5.reference"), appDataDir.getChildFile("Library").getChildFile("Documentation"),
-            appDataDir.getChildFile("Deken")
-        };
+        helpPaths = { appDataDir.getChildFile("Library").getChildFile("Documentation").getChildFile("5.reference"), appDataDir.getChildFile("Library").getChildFile("Documentation"),
+            appDataDir.getChildFile("Deken") };
 
         // Update docs in GUI
         MessageManager::callAsync([this]() {
@@ -265,7 +264,7 @@ void Library::updateLibrary()
 #else
         mlist = o->c_methods;
 #endif
-        
+
         allObjects.clear();
 
         for (i = o->c_nmethod, m = mlist; i--; m++) {
@@ -275,7 +274,6 @@ void Library::updateLibrary()
         }
 
         searchTree->insert("graph");
-
 
         // TODO: fix this hack
         auto elsePath = appDataDir.getChildFile("Library").getChildFile("Abstractions").getChildFile("else");
@@ -385,7 +383,6 @@ void Library::parseDocumentation(String const& path)
             } else {
                 lastLine += line;
                 line.clear();
-
             }
         }
 
@@ -396,7 +393,7 @@ void Library::parseDocumentation(String const& path)
 
     auto parseFile = [this, getSections, formatText, sectionsFromHyphens](File& f) {
         String contents = f.loadFileAsString();
-        auto sections = getSections(contents, { "\ntitle", "\ndescription", "\npdcategory", "\ncategories", "\nflags", "\narguments", "\nlast_update", "\ninlets", "\noutlets", "\ndraft", "\nsee_also", "\nmethods"});
+        auto sections = getSections(contents, { "\ntitle", "\ndescription", "\npdcategory", "\ncategories", "\nflags", "\narguments", "\nlast_update", "\ninlets", "\noutlets", "\ndraft", "\nsee_also", "\nmethods" });
 
         if (!sections.count("title"))
             return;
@@ -406,12 +403,12 @@ void Library::parseDocumentation(String const& path)
         if (sections.count("description")) {
             objectDescriptions[name] = sections["description"].first;
         }
-        
+
         if (sections.count("pdcategory")) {
             auto categories = sections["pdcategory"].first;
-            if(categories.isEmpty()) categories = "Unknown";
-            for(auto category : StringArray::fromTokens(categories, ",", ""))
-            {
+            if (categories.isEmpty())
+                categories = "Unknown";
+            for (auto category : StringArray::fromTokens(categories, ",", "")) {
                 objectCategories[category.trim()].add(name);
             }
         }
@@ -474,8 +471,8 @@ void Library::parseDocumentation(String const& path)
             parseFile(file);
         }
     }
-    
-    for(auto& [category, objects] : objectCategories) {
+
+    for (auto& [category, objects] : objectCategories) {
         objects.removeDuplicates(true);
     }
 }
@@ -538,54 +535,45 @@ File Library::findHelpfile(t_canvas* cnv, t_object* obj)
 
     auto* pdclass = pd_class(reinterpret_cast<t_pd*>(obj));
 
-    if(pdclass == canvas_class && canvas_isabstraction(reinterpret_cast<t_canvas*>(obj))) {
+    if (pdclass == canvas_class && canvas_isabstraction(reinterpret_cast<t_canvas*>(obj))) {
         char namebuf[MAXPDSTRING];
-        t_object *ob = obj;
+        t_object* ob = obj;
         int ac = binbuf_getnatom(ob->te_binbuf);
-        t_atom *av = binbuf_getvec(ob->te_binbuf);
+        t_atom* av = binbuf_getvec(ob->te_binbuf);
         if (ac < 1)
             return File();
 
         atom_string(av, namebuf, MAXPDSTRING);
         helpName = String::fromUTF8(namebuf).fromLastOccurrenceOf("/", false, false);
-    }
-    else {
+    } else {
         helpName = class_gethelpname(pdclass);
     }
-    
 
     String firstName = helpName + "-help.pd";
     String secondName = "help-" + helpName + ".pd";
 
-    auto findHelpPatch = [&firstName, &secondName](const File& searchDir, bool recursive) -> File
-    {
-        for (const auto& fileIter : RangedDirectoryIterator(searchDir, recursive))
-        {
+    auto findHelpPatch = [&firstName, &secondName](File const& searchDir, bool recursive) -> File {
+        for (const auto& fileIter : RangedDirectoryIterator(searchDir, recursive)) {
             auto file = fileIter.getFile();
-            if (file.getFileName() == firstName || file.getFileName() == secondName)
-            {
+            if (file.getFileName() == firstName || file.getFileName() == secondName) {
                 return file;
             }
         }
         return File();
     };
-    
 
-    for (auto& path : helpPaths)
-    {
+    for (auto& path : helpPaths) {
         auto file = findHelpPatch(path, true);
-        if (file.existsAsFile())
-        {
+        if (file.existsAsFile()) {
             return file;
         }
     }
-    
+
     auto* helpdir = class_gethelpdir(pd_class(&reinterpret_cast<t_gobj*>(obj)->g_pd));
-    
+
     // Search for files int the patch directory
     auto file = findHelpPatch(String::fromUTF8(helpdir), true);
-    if (file.existsAsFile())
-    {
+    if (file.existsAsFile()) {
         return file;
     }
 

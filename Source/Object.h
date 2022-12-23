@@ -8,8 +8,7 @@
 
 #include <JuceHeader.h>
 
-extern "C"
-{
+extern "C" {
 #include <m_pd.h>
 }
 
@@ -18,10 +17,12 @@ extern "C"
 #include "Objects/GUIObject.h"
 
 class Canvas;
-class Object : public Component, public Value::Listener, public Timer, private TextEditor::Listener
-{
-   public:
-    Object(Canvas* parent, const String& name = "", Point<int> position = {100, 100});
+class Object : public Component
+    , public Value::Listener
+    , public Timer
+    , private TextEditor::Listener {
+public:
+    Object(Canvas* parent, String const& name = "", Point<int> position = { 100, 100 });
 
     Object(void* object, Canvas* parent);
 
@@ -37,12 +38,12 @@ class Object : public Component, public Value::Listener, public Timer, private T
 
     void updatePorts();
 
-    void setType(const String& newType, void* existingObject = nullptr);
+    void setType(String const& newType, void* existingObject = nullptr);
     void updateBounds();
 
     void showEditor();
     void hideEditor();
-    
+
     void showIndex(bool showIndex);
 
     Rectangle<int> getObjectBounds();
@@ -53,17 +54,17 @@ class Object : public Component, public Value::Listener, public Timer, private T
 
     Array<Connection*> getConnections() const;
 
-    void mouseEnter(const MouseEvent& e) override;
-    void mouseExit(const MouseEvent& e) override;
+    void mouseEnter(MouseEvent const& e) override;
+    void mouseExit(MouseEvent const& e) override;
 
-    void mouseMove(const MouseEvent& e) override;
-    void mouseDown(const MouseEvent& e) override;
-    void mouseUp(const MouseEvent& e) override;
-    void mouseDrag(const MouseEvent& e) override;
+    void mouseMove(MouseEvent const& e) override;
+    void mouseDown(MouseEvent const& e) override;
+    void mouseUp(MouseEvent const& e) override;
+    void mouseDrag(MouseEvent const& e) override;
 
     void textEditorReturnKeyPressed(TextEditor& ed) override;
     void textEditorTextChanged(TextEditor& ed) override;
-    
+
     bool hitTest(int x, int y) override;
 
     Array<Rectangle<float>> getCorners() const;
@@ -87,19 +88,19 @@ class Object : public Component, public Value::Listener, public Timer, private T
     static inline constexpr int height = 37;
 
     Point<int> mouseDownPos;
-    
+
     bool attachedToMouse = false;
     bool isSearchTarget = false;
 
     Value hvccMode = Value(var(false));
-    
-    static inline const StringArray hvccObjects = {"!=", "%", "&", "&&", "|", "||", "*", "+", "-", "/", "<", "<<", "<=", "==", ">", ">=", ">>", "abs", "atan", "atan2", "b", "bang", "bendin", "bendout", "bng", "change", "clip", "cnv", "cos", "ctlin", "ctlout", "dbtopow", "dbtorms", "declare", "del", "delay", "div", "exp", "f", "float", "floatatom", "ftom", "gatom", "hradio", "hsl", "i", "inlet", "int", "line", "loadbang", "log", "msg", "message", "makenote", "max", "metro", "min", "midiin", "midiout", "midirealtimein", "mod", "moses", "mtof", "nbx", "notein", "noteout", "outlet", "pack", "pgmin", "pgmout", "pipe", "poly", "pow", "powtodb", "print", "r", "random", "receive", "rmstodb", "route", "s", "sel", "select", "send", "sin", "spigot", "sqrt", "stripnote", "swap", "symbol", "symbolatom", "t", "table", "tabread", "tabwrite", "tan", "text", "tgl", "timer", "touchin", "touchout", "trigger", "unpack", "until", "vradio", "vsl", "wrap", "*~", "+~", "-~", "/~", "abs~", "adc~", "biquad~", "bp~", "catch~", "clip~", "cos~", "cpole~", "czero_rev~", "czero~", "dac~", "dbtopow~", "dbtorms~", "delread~", "delwrite~", "delread4~", "env~", "exp~", "ftom~", "hip~", "inlet~", "line~", "lop~", "max~", "min~", "mtof~", "noise~", "osc~", "outlet~", "phasor~", "powtodb~", "pow~", "q8_rsqrt~", "q8_sqrt~", "receive~", "rmstodb~", "rpole~", "rsqrt~", "rzero_rev~", "rzero~", "r~", "samphold~", "samplerate~", "send~", "sig~", "snapshot~", "sqrt~", "s~", "tabosc4~", "tabplay~", "tabread4~", "tabread~", "tabwrite~", "throw~", "vcf~", "vd~", "wrap~"};
-    
-   private:
+
+    static inline const StringArray hvccObjects = { "!=", "%", "&", "&&", "|", "||", "*", "+", "-", "/", "<", "<<", "<=", "==", ">", ">=", ">>", "abs", "atan", "atan2", "b", "bang", "bendin", "bendout", "bng", "change", "clip", "cnv", "cos", "ctlin", "ctlout", "dbtopow", "dbtorms", "declare", "del", "delay", "div", "exp", "f", "float", "floatatom", "ftom", "gatom", "hradio", "hsl", "i", "inlet", "int", "line", "loadbang", "log", "msg", "message", "makenote", "max", "metro", "min", "midiin", "midiout", "midirealtimein", "mod", "moses", "mtof", "nbx", "notein", "noteout", "outlet", "pack", "pgmin", "pgmout", "pipe", "poly", "pow", "powtodb", "print", "r", "random", "receive", "rmstodb", "route", "s", "sel", "select", "send", "sin", "spigot", "sqrt", "stripnote", "swap", "symbol", "symbolatom", "t", "table", "tabread", "tabwrite", "tan", "text", "tgl", "timer", "touchin", "touchout", "trigger", "unpack", "until", "vradio", "vsl", "wrap", "*~", "+~", "-~", "/~", "abs~", "adc~", "biquad~", "bp~", "catch~", "clip~", "cos~", "cpole~", "czero_rev~", "czero~", "dac~", "dbtopow~", "dbtorms~", "delread~", "delwrite~", "delread4~", "env~", "exp~", "ftom~", "hip~", "inlet~", "line~", "lop~", "max~", "min~", "mtof~", "noise~", "osc~", "outlet~", "phasor~", "powtodb~", "pow~", "q8_rsqrt~", "q8_sqrt~", "receive~", "rmstodb~", "rpole~", "rsqrt~", "rzero_rev~", "rzero~", "r~", "samphold~", "samplerate~", "send~", "sig~", "snapshot~", "sqrt~", "s~", "tabosc4~", "tabplay~", "tabread4~", "tabread~", "tabwrite~", "throw~", "vcf~", "vd~", "wrap~" };
+
+private:
     void initialise();
 
     void updateTooltips();
-    
+
     void openNewObjectEditor();
 
     Rectangle<int> originalBounds;
@@ -108,10 +109,8 @@ class Object : public Component, public Value::Listener, public Timer, private T
     bool wasLockedOnMouseDown = false;
     bool indexShown = false;
     bool isHvccCompatible = true;
-    
+
     std::unique_ptr<TextEditor> newObjectEditor;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(Object)
 };
-
-

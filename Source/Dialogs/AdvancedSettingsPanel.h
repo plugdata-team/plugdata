@@ -6,29 +6,28 @@
 
 #pragma once
 
-
-struct AdvancedSettingsPanel : public Component
-{
-    AdvancedSettingsPanel(ValueTree tree) : settingsTree(tree)
+struct AdvancedSettingsPanel : public Component {
+    AdvancedSettingsPanel(ValueTree tree)
+        : settingsTree(tree)
     {
         nativeTitlebar.referTo(settingsTree.getPropertyAsValue("NativeWindow", nullptr));
         reloadPatch.referTo(settingsTree.getPropertyAsValue("ReloadLastState", nullptr));
-        
-        useNativeTitlebar.reset(new PropertiesPanel::BoolComponent("Use native titlebar", nativeTitlebar, {"No", "Yes"}));
-        
-        reloadLastOpenedPatch.reset(new PropertiesPanel::BoolComponent("Reload last opened patch startup", reloadPatch, {"No", "Yes"}));
-        
+
+        useNativeTitlebar.reset(new PropertiesPanel::BoolComponent("Use native titlebar", nativeTitlebar, { "No", "Yes" }));
+
+        reloadLastOpenedPatch.reset(new PropertiesPanel::BoolComponent("Reload last opened patch startup", reloadPatch, { "No", "Yes" }));
+
         addAndMakeVisible(*useNativeTitlebar);
         addAndMakeVisible(*reloadLastOpenedPatch);
     }
-    
+
     void resized() override
     {
         auto bounds = getLocalBounds();
         useNativeTitlebar->setBounds(bounds.removeFromTop(23));
         reloadLastOpenedPatch->setBounds(bounds.removeFromTop(23));
     }
-    
+
     ValueTree settingsTree;
 
     Value nativeTitlebar;

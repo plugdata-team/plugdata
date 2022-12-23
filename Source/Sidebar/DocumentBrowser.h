@@ -10,9 +10,8 @@
 
 #include "../Utility/FileSystemWatcher.h"
 
-
 #if JUCE_WINDOWS
-#include "../Utility/OSUtils.h"
+#    include "../Utility/OSUtils.h"
 #endif
 
 bool wantsNativeDialog();
@@ -74,7 +73,7 @@ public:
         Path p;
         p.addTriangle(0.0f, 0.0f, 1.0f, isOpen() ? 0.0f : 0.5f, isOpen() ? 0.5f : 0.0f, 1.0f);
         g.setColour(isSelected() ? getOwnerView()->findColour(PlugDataColour::sidebarActiveTextColourId) : getOwnerView()->findColour(PlugDataColour::sidebarTextColourId).withAlpha(isMouseOver ? 0.7f : 1.0f));
-        
+
         auto pathArea = area.translated(10, 0);
         g.fillPath(p, p.getTransformToScaleToFit(pathArea.reduced(2, pathArea.getHeight() / 4), true));
     }
@@ -116,7 +115,7 @@ public:
                 changeListenerCallback(nullptr);
             }
         }
-        
+
         setSelected(true, true, sendNotificationSync);
         owner.repaint();
     }
@@ -166,7 +165,7 @@ public:
 
     void paintItem(Graphics& g, int width, int height) override
     {
-        const int x = 40;
+        int const x = 40;
 
         if (isSelected())
             g.setColour(owner.findColour(PlugDataColour::sidebarActiveTextColourId));
@@ -342,14 +341,14 @@ public:
     void paint(Graphics& g) override
     {
         g.fillAll(findColour(PlugDataColour::sidebarBackgroundColourId));
-        
+
         // Paint selected row
         if (getNumSelectedFiles()) {
             g.setColour(findColour(PlugDataColour::sidebarActiveBackgroundColourId));
-                        
+
             auto y = getSelectedItem(0)->getItemPosition(true).getY();
             auto selectedRect = Rectangle<float>(3.0f, y + 2.0f, getWidth() - 6.0f, 20.0f);
-           
+
             g.fillRoundedRectangle(selectedRect, Constants::smallCornerRadius);
         }
     }
@@ -390,7 +389,7 @@ public:
     {
         browser->repaint();
     };
-        
+
     void fileClicked(File const&, MouseEvent const&) override {};
     void browserRootChanged(File const&) override {};
 
@@ -427,7 +426,7 @@ public:
 
                 // Symlinks on Windows are weird!
                 if (file.isDirectory()) {
-                    
+
                     // Create NTFS directory junction
                     createJunction(alias.getFullPathName().replaceCharacters("/", "\\").toStdString(), file.getFullPathName().toStdString());
                 } else {
@@ -473,8 +472,7 @@ private:
 class FileSearchComponent : public Component
     , public ListBoxModel
     , public ScrollBar::Listener
-    , public KeyListener
-{
+    , public KeyListener {
 public:
     FileSearchComponent(DirectoryContentsList& directory)
         : searchPath(directory)
@@ -538,15 +536,15 @@ public:
             }
         }
     }
-        
+
     // Divert up/down key events from text editor to the listbox
-    bool keyPressed (const KeyPress &key, Component *originatingComponent) override
+    bool keyPressed(KeyPress const& key, Component* originatingComponent) override
     {
-        if(key.isKeyCode(KeyPress::upKey) || key.isKeyCode(KeyPress::downKey)) {
+        if (key.isKeyCode(KeyPress::upKey) || key.isKeyCode(KeyPress::downKey)) {
             listBox.keyPressed(key);
             return true;
         }
-        
+
         return false;
     }
 
@@ -568,11 +566,11 @@ public:
         g.setColour(findColour(PlugDataColour::sidebarTextColourId));
 
         g.drawText(Icons::Search, 0, 0, 30, 30, Justification::centred);
-        
-        if(input.getText().isEmpty()) {
+
+        if (input.getText().isEmpty()) {
             g.setFont(Font(14));
             g.setColour(findColour(PlugDataColour::sidebarTextColourId).withAlpha(0.5f));
-            
+
             g.drawText("Type to search documentation", 30, 0, 300, 30, Justification::centredLeft);
         }
     }
@@ -675,7 +673,7 @@ public:
     {
         auto tableBounds = getLocalBounds();
         auto inputBounds = tableBounds.removeFromTop(28);
-        
+
         tableBounds.removeFromTop(4);
 
         input.setBounds(inputBounds);
@@ -812,7 +810,7 @@ struct DocumentBrowser : public DocumentBrowserBase
     void resized() override
     {
         searchComponent.setBounds(getLocalBounds().withHeight(getHeight() - 30));
-        
+
         fileList.setBounds(getLocalBounds().withHeight(getHeight() - 60).withY(30));
 
         auto fb = FlexBox(FlexBox::Direction::row, FlexBox::Wrap::noWrap, FlexBox::AlignContent::flexStart, FlexBox::AlignItems::stretch, FlexBox::JustifyContent::flexStart);

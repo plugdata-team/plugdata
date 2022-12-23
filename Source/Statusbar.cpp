@@ -12,27 +12,25 @@
 #include "Canvas.h"
 #include "Connection.h"
 
-struct LevelMeter : public Component, public Timer
-{
+struct LevelMeter : public Component
+    , public Timer {
     int numChannels = 2;
     StatusbarSource& source;
 
-    explicit LevelMeter(StatusbarSource& statusbarSource) : source(statusbarSource)
+    explicit LevelMeter(StatusbarSource& statusbarSource)
+        : source(statusbarSource)
     {
         startTimerHz(20);
     }
 
     void timerCallback() override
     {
-        if (isShowing())
-        {
+        if (isShowing()) {
             bool needsRepaint = false;
-            for (int ch = 0; ch < numChannels; ch++)
-            {
+            for (int ch = 0; ch < numChannels; ch++) {
                 auto newLevel = source.level[ch].load();
 
-                if (!std::isfinite(newLevel))
-                {
+                if (!std::isfinite(newLevel)) {
                     source.level[ch] = 0;
                     blocks[ch] = 0;
                     return;
@@ -41,14 +39,14 @@ struct LevelMeter : public Component, public Timer
                 float lvl = (float)std::exp(std::log(newLevel) / 3.0) * (newLevel > 0.002);
                 auto numBlocks = roundToInt(totalBlocks * lvl);
 
-                if (blocks[ch] != numBlocks)
-                {
+                if (blocks[ch] != numBlocks) {
                     blocks[ch] = numBlocks;
                     needsRepaint = true;
                 }
             }
 
-            if (needsRepaint) repaint();
+            if (needsRepaint)
+                repaint();
         }
     }
 
@@ -68,51 +66,44 @@ struct LevelMeter : public Component, public Timer
         auto blockRectSpacing = spacingFraction * blockWidth;
         auto c = findColour(PlugDataColour::levelMeterActiveColourId);
 
-        
-        for (int ch = 0; ch < numChannels; ch++)
-        {
+        for (int ch = 0; ch < numChannels; ch++) {
             auto y = ch * height;
 
-            for (auto i = 0; i < totalBlocks; ++i)
-            {
+            for (auto i = 0; i < totalBlocks; ++i) {
                 if (i >= blocks[ch])
                     g.setColour(findColour(PlugDataColour::levelMeterInactiveColourId));
                 else
                     g.setColour(i < totalBlocks - 1 ? c : Colours::red);
 
-                if(i == 0 || i == totalBlocks - 1) {
+                if (i == 0 || i == totalBlocks - 1) {
                     bool curveTop = ch == 0;
                     bool curveLeft = i == 0;
-                    
+
                     auto roundedBlockPath = Path();
                     roundedBlockPath.addRoundedRectangle(x + outerBorderWidth + (i * blockWidth) + blockRectSpacing, y + outerBorderWidth, blockRectWidth, blockHeight, 4.0f, 4.0f, curveTop && curveLeft, curveTop && !curveLeft, !curveTop && curveLeft, !curveTop && !curveLeft);
                     g.fillPath(roundedBlockPath);
-                }
-                else {
+                } else {
                     g.fillRect(x + outerBorderWidth + (i * blockWidth) + blockRectSpacing, y + outerBorderWidth, blockRectWidth, blockHeight);
                 }
             }
         }
-        
+
         g.setColour(findColour(PlugDataColour::outlineColourId));
         g.drawRoundedRectangle(x + outerBorderWidth, outerBorderWidth, width - doubleOuterBorderWidth, getHeight() - doubleOuterBorderWidth, 4.0f, 1.0f);
-
     }
-    
-    
-    
 
     int totalBlocks = 15;
-    int blocks[2] = {0};
+    int blocks[2] = { 0 };
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(LevelMeter)
 };
 
-struct MidiBlinker : public Component, public Timer
-{
+struct MidiBlinker : public Component
+    , public Timer {
     StatusbarSource& source;
 
-    explicit MidiBlinker(StatusbarSource& statusbarSource) : source(statusbarSource)
+    explicit MidiBlinker(StatusbarSource& statusbarSource)
+        : source(statusbarSource)
     {
         startTimer(200);
     }
@@ -135,13 +126,11 @@ struct MidiBlinker : public Component, public Timer
 
     void timerCallback() override
     {
-        if (source.midiReceived != blinkMidiIn)
-        {
+        if (source.midiReceived != blinkMidiIn) {
             blinkMidiIn = source.midiReceived;
             repaint();
         }
-        if (source.midiSent != blinkMidiOut)
-        {
+        if (source.midiSent != blinkMidiOut) {
             blinkMidiOut = source.midiSent;
             repaint();
         }
@@ -151,7 +140,8 @@ struct MidiBlinker : public Component, public Timer
     bool blinkMidiOut = false;
 };
 
-Statusbar::Statusbar(PluginProcessor* processor) : pd(processor)
+Statusbar::Statusbar(PluginProcessor* processor)
+    : pd(processor)
 {
     levelMeter = new LevelMeter(pd->statusbarSource);
     midiBlinker = new MidiBlinker(pd->statusbarSource);
@@ -162,55 +152,48 @@ Statusbar::Statusbar(PluginProcessor* processor) : pd(processor)
 
     locked.addListener(this);
     commandLocked.addListener(this);
-    
-    
+
     oversampleSelector.setTooltip("Set oversampling");
     oversampleSelector.setName("statusbar:oversample");
     oversampleSelector.setColour(ComboBox::outlineColourId, Colours::transparentBlack);
-    
-    
+
     oversampleSelector.setButtonText(String(1 << pd->oversampling) + "x");
-    
-    oversampleSelector.onClick = [this](){
+
+    oversampleSelector.onClick = [this]() {
         PopupMenu menu;
         menu.addItem(1, "1x");
         menu.addItem(2, "2x");
         menu.addItem(3, "4x");
         menu.addItem(4, "8x");
-        
+
         auto* editor = pd->getActiveEditor();
         menu.showMenuAsync(PopupMenu::Options().withMinimumWidth(100).withMaximumNumColumns(1).withTargetComponent(&oversampleSelector).withParentComponent(editor),
-                           [this](int result)
-                           {
-                               if (result != 0)
-                               {
-                                   oversampleSelector.setButtonText(String(1 << (result - 1)) + "x");
-                                   pd->setOversampling(result - 1);
-                               }
-                           });
+            [this](int result) {
+                if (result != 0) {
+                    oversampleSelector.setButtonText(String(1 << (result - 1)) + "x");
+                    pd->setOversampling(result - 1);
+                }
+            });
     };
     addAndMakeVisible(oversampleSelector);
-    
-    
+
     powerButton = std::make_unique<TextButton>(Icons::Power);
     lockButton = std::make_unique<TextButton>(Icons::Lock);
     connectionStyleButton = std::make_unique<TextButton>(Icons::ConnectionStyle);
     connectionPathfind = std::make_unique<TextButton>(Icons::Wand);
     presentationButton = std::make_unique<TextButton>(Icons::Presentation);
     gridButton = std::make_unique<TextButton>(Icons::Grid);
-    
+
     presentationButton->setTooltip("Presentation Mode");
     presentationButton->setClickingTogglesState(true);
     presentationButton->setConnectedEdges(12);
     presentationButton->setName("statusbar:presentation");
     presentationButton->getToggleStateValue().referTo(presentationMode);
 
-    presentationButton->onClick = [this]()
-    {
+    presentationButton->onClick = [this]() {
         // When presenting we are always locked
         // A bit different from Max's presentation mode
-        if (presentationButton->getToggleState())
-        {
+        if (presentationButton->getToggleState()) {
             locked = var(true);
         }
     };
@@ -222,7 +205,7 @@ Statusbar::Statusbar(PluginProcessor* processor) : pd(processor)
     powerButton->setConnectedEdges(12);
     powerButton->setName("statusbar:mute");
     addAndMakeVisible(powerButton.get());
-    
+
     gridButton->setTooltip("Enable grid");
     gridButton->setClickingTogglesState(true);
     gridButton->setConnectedEdges(12);
@@ -242,22 +225,19 @@ Statusbar::Statusbar(PluginProcessor* processor) : pd(processor)
     addAndMakeVisible(lockButton.get());
     lockButton->setButtonText(locked == var(true) ? Icons::Lock : Icons::Unlock);
     lockButton->onClick = [this]() {
-        if(static_cast<bool>(presentationMode.getValue()))  {
+        if (static_cast<bool>(presentationMode.getValue())) {
             presentationMode = false;
         }
-        
     };
-    
+
     connectionStyleButton->setTooltip("Enable segmented connections");
     connectionStyleButton->setClickingTogglesState(true);
     connectionStyleButton->setConnectedEdges(12);
     connectionStyleButton->setName("statusbar:connectionstyle");
-    connectionStyleButton->onClick = [this]()
-    {
+    connectionStyleButton->onClick = [this]() {
         bool segmented = connectionStyleButton->getToggleState();
         auto* editor = dynamic_cast<PluginEditor*>(pd->getActiveEditor());
-        for (auto& connection : editor->getCurrentCanvas()->getSelectionOfType<Connection>())
-        {
+        for (auto& connection : editor->getCurrentCanvas()->getSelectionOfType<Connection>()) {
             connection->setSegmented(segmented);
         }
     };
@@ -285,11 +265,10 @@ Statusbar::Statusbar(PluginProcessor* processor) : pd(processor)
     levelMeter->toBehind(&volumeSlider);
 
     setSize(getWidth(), statusbarHeight);
-    
+
     // Timer to make sure modifier keys are up-to-date...
     // Hoping to find a better solution for this
     startTimer(150);
-
 }
 
 Statusbar::~Statusbar()
@@ -308,19 +287,18 @@ void Statusbar::valueChanged(Value& v)
 {
     bool lockIcon = locked == var(true) || commandLocked == var(true);
     lockButton->setButtonText(lockIcon ? Icons::Lock : Icons::Unlock);
-    
-    if (v.refersToSameSourceAs(commandLocked))
-    {
+
+    if (v.refersToSameSourceAs(commandLocked)) {
         auto c = static_cast<bool>(commandLocked.getValue()) ? findColour(PlugDataColour::toolbarActiveColourId) : findColour(PlugDataColour::toolbarTextColourId);
         lockButton->setColour(PlugDataColour::toolbarTextColourId, c);
     }
 }
 
-void Statusbar::paint(Graphics &g)
+void Statusbar::paint(Graphics& g)
 {
     g.setColour(findColour(PlugDataColour::outlineColourId));
     g.drawLine(0.0f, 0.5f, static_cast<float>(getWidth()), 0.5f);
-    
+
     // Makes sure it gets updated on theme change
     auto c = static_cast<bool>(commandLocked.getValue()) ? findColour(PlugDataColour::toolbarActiveColourId) : findColour(PlugDataColour::toolbarTextColourId);
     lockButton->setColour(PlugDataColour::toolbarTextColourId, c);
@@ -329,8 +307,7 @@ void Statusbar::paint(Graphics &g)
 void Statusbar::resized()
 {
     int pos = 0;
-    auto position = [this, &pos](int width, bool inverse = false) -> int
-    {
+    auto position = [this, &pos](int width, bool inverse = false) -> int {
         int result = 8 + pos;
         pos += width + 3;
         return inverse ? getWidth() - pos : result;
@@ -338,42 +315,42 @@ void Statusbar::resized()
 
     lockButton->setBounds(position(getHeight()), 0, getHeight(), getHeight());
     presentationButton->setBounds(position(getHeight()), 0, getHeight(), getHeight());
-    
-    position(3);  // Seperator
+
+    position(3); // Seperator
 
     connectionStyleButton->setBounds(position(getHeight()), 0, getHeight(), getHeight());
     connectionPathfind->setBounds(position(getHeight()), 0, getHeight(), getHeight());
 
-    position(3);  // Seperator
+    position(3); // Seperator
 
     gridButton->setBounds(position(getHeight()), 0, getHeight(), getHeight());
-    
-    pos = 0;  // reset position for elements on the left
+
+    pos = 0; // reset position for elements on the left
 
     powerButton->setBounds(position(getHeight(), true), 0, getHeight(), getHeight());
 
     int levelMeterPosition = position(100, true);
     levelMeter->setBounds(levelMeterPosition, 2, 100, getHeight() - 4);
     volumeSlider.setBounds(levelMeterPosition, 2, 100, getHeight() - 4);
-    
+
     // Offset to make text look centred
     oversampleSelector.setBounds(position(getHeight(), true) + 3, 0, getHeight(), getHeight());
 
     midiBlinker->setBounds(position(55, true), 0, 55, getHeight());
 }
 
-void Statusbar::modifierKeysChanged(const ModifierKeys& modifiers)
+void Statusbar::modifierKeysChanged(ModifierKeys const& modifiers)
 {
     auto* editor = dynamic_cast<PluginEditor*>(pd->getActiveEditor());
-    
+
     commandLocked = modifiers.isCommandDown() && locked.getValue() == var(false);
-    
-    if(auto* cnv = editor->getCurrentCanvas()) {
-        if(cnv->didStartDragging || cnv->isDraggingLasso || static_cast<bool>(cnv->presentationMode.getValue())) {
+
+    if (auto* cnv = editor->getCurrentCanvas()) {
+        if (cnv->didStartDragging || cnv->isDraggingLasso || static_cast<bool>(cnv->presentationMode.getValue())) {
             return;
         }
-        
-        for(auto* object : cnv->objects) {
+
+        for (auto* object : cnv->objects) {
             object->showIndex(modifiers.isAltDown());
         }
     }
@@ -393,35 +370,30 @@ StatusbarSource::StatusbarSource()
 static bool hasRealEvents(MidiBuffer& buffer)
 {
     return std::any_of(buffer.begin(), buffer.end(),
-    [](const auto& event){
-        return !event.getMessage().isSysEx();
-    });
+        [](auto const& event) {
+            return !event.getMessage().isSysEx();
+        });
 }
 
-void StatusbarSource::processBlock(const AudioBuffer<float>& buffer, MidiBuffer& midiIn, MidiBuffer& midiOut, int channels)
+void StatusbarSource::processBlock(AudioBuffer<float> const& buffer, MidiBuffer& midiIn, MidiBuffer& midiOut, int channels)
 {
-    const auto* const* channelData = buffer.getArrayOfReadPointers();
+    auto const* const* channelData = buffer.getArrayOfReadPointers();
 
-    if (channels == 1)
-    {
+    if (channels == 1) {
         level[1] = 0;
-    }
-    else if (channels == 0)
-    {
+    } else if (channels == 0) {
         level[0] = 0;
         level[1] = 0;
     }
 
-    for (int ch = 0; ch < channels; ch++)
-    {
+    for (int ch = 0; ch < channels; ch++) {
         // TODO: this logic for > 2 channels makes no sense!!
         auto localLevel = level[ch & 1].load();
 
-        for (int n = 0; n < buffer.getNumSamples(); n++)
-        {
+        for (int n = 0; n < buffer.getNumSamples(); n++) {
             float s = std::abs(channelData[ch][n]);
 
-            const float decayFactor = 0.99992f;
+            float const decayFactor = 0.99992f;
 
             if (s > localLevel)
                 localLevel = s;
@@ -439,22 +411,16 @@ void StatusbarSource::processBlock(const AudioBuffer<float>& buffer, MidiBuffer&
     auto hasInEvents = hasRealEvents(midiIn);
     auto hasOutEvents = hasRealEvents(midiOut);
 
-    if (!hasInEvents && (now - lastMidiIn).inMilliseconds() > 700)
-    {
+    if (!hasInEvents && (now - lastMidiIn).inMilliseconds() > 700) {
         midiReceived = false;
-    }
-    else if (hasInEvents)
-    {
+    } else if (hasInEvents) {
         midiReceived = true;
         lastMidiIn = now;
     }
 
-    if (!hasOutEvents && (now - lastMidiOut).inMilliseconds() > 700)
-    {
+    if (!hasOutEvents && (now - lastMidiOut).inMilliseconds() > 700) {
         midiSent = false;
-    }
-    else if (hasOutEvents)
-    {
+    } else if (hasOutEvents) {
         midiSent = true;
         lastMidiOut = now;
     }

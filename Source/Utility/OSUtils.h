@@ -4,7 +4,6 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
-
 void createJunction(std::string from, std::string to);
 void createHardLink(std::string from, std::string to);
 

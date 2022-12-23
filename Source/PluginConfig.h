@@ -8,8 +8,7 @@
 
 #define JUCE_DISPLAY_SPLASH_SCREEN 0
 
-namespace ProjectInfo
-{
-const char* const companyName = "plugdata";
-const char* const versionString = "0.6.3";
-}  // namespace ProjectInfo
+namespace ProjectInfo {
+char const* const companyName = "plugdata";
+char const* const versionString = "0.6.3";
+} // namespace ProjectInfo

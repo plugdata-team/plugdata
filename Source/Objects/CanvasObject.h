@@ -5,21 +5,21 @@
  */
 
 struct CanvasObject final : public IEMObject {
-    
+
     bool locked;
-    
+
     CanvasObject(void* ptr, Object* object)
         : IEMObject(ptr, object)
     {
         object->setColour(PlugDataColour::outlineColourId, Colours::transparentBlack);
         locked = static_cast<bool>(object->locked.getValue());
     }
-    
+
     bool canReceiveMouseEvent(int x, int y) override
     {
         return !locked;
     }
-    
+
     void lock(bool isLocked) override
     {
         locked = isLocked;

@@ -50,7 +50,6 @@ struct Console : public Component {
     {
     }
 
-    
     void resized() override
     {
         auto fb = FlexBox(FlexBox::Direction::row, FlexBox::Wrap::noWrap, FlexBox::AlignContent::flexStart, FlexBox::AlignItems::stretch, FlexBox::JustifyContent::flexStart);
@@ -65,14 +64,15 @@ struct Console : public Component {
         auto bounds = getLocalBounds().toFloat();
 
         fb.performLayout(bounds.removeFromBottom(30));
-        
+
         viewport.setBounds(bounds.toNearestInt());
-        
+
         auto width = viewport.canScrollVertically() ? viewport.getWidth() - 5.0f : viewport.getWidth();
         console->setSize(width, std::max<int>(console->getTotalHeight(), viewport.getHeight()));
     }
-    
-    void clear() {
+
+    void clear()
+    {
         console->clear();
     }
 
@@ -120,10 +120,10 @@ struct Console : public Component {
 
             void mouseDown(MouseEvent const& e)
             {
-                if(!e.mods.isShiftDown() && !e.mods.isCommandDown()) {
+                if (!e.mods.isShiftDown() && !e.mods.isCommandDown()) {
                     console.selectedItems.clear();
                 }
-                
+
                 console.selectedItems.addIfNotAlreadyThere(SafePointer(this));
                 console.repaint();
             }
@@ -134,31 +134,32 @@ struct Console : public Component {
                 g.setFont(font);
 
                 bool isSelected = console.selectedItems.contains(this);
-                
+
                 bool showMessages = console.buttons[2].getToggleState();
                 bool showErrors = console.buttons[3].getToggleState();
 
-                if(isSelected) {
+                if (isSelected) {
                     // Draw selected background
                     g.setColour(findColour(PlugDataColour::sidebarActiveBackgroundColourId));
                     g.fillRoundedRectangle(getLocalBounds().reduced(6, 2).toFloat(), Constants::smallCornerRadius);
-                    
+
                     bool connectedOnTop = false;
                     bool connectedOnBottom = false;
-                    for(auto& item : console.selectedItems) {
-                        
-                        if(!item.getComponent()) return;
+                    for (auto& item : console.selectedItems) {
+
+                        if (!item.getComponent())
+                            return;
                         // Draw connected on top
-                        if(item->idx == idx - 1)  {
+                        if (item->idx == idx - 1) {
                             g.setColour(findColour(PlugDataColour::sidebarActiveBackgroundColourId));
                             g.fillRect(getLocalBounds().reduced(6, 0).toFloat().withTrimmedBottom(5));
-                            
+
                             g.setColour(findColour(PlugDataColour::outlineColourId));
                             g.drawLine(10, 0, getWidth() - 10, 0);
                         }
-                        
+
                         // Draw connected on bottom
-                        if(item->idx == idx + 1)  {
+                        if (item->idx == idx + 1) {
                             g.setColour(findColour(PlugDataColour::sidebarActiveBackgroundColourId));
                             g.fillRect(getLocalBounds().reduced(6, 0).toFloat().withTrimmedTop(5));
                         }
@@ -177,12 +178,12 @@ struct Console : public Component {
                 auto numLines = getNumLines(console.getWidth(), length);
 
                 auto textColour = findColour(isSelected ? PlugDataColour::sidebarActiveTextColourId : PlugDataColour::sidebarTextColourId);
-                
+
                 if (type == 1)
                     textColour = Colours::orange;
                 else if (type == 2)
                     textColour = Colours::red;
-                
+
                 // Draw text
                 g.setColour(textColour);
                 g.drawFittedText(message, getLocalBounds().reduced(14, 2), Justification::centredLeft, numLines, 0.9f);
@@ -197,7 +198,7 @@ struct Console : public Component {
         pd::Instance* pd; // instance to get console messages from
 
         Array<SafePointer<ConsoleMessage>> selectedItems;
-        
+
         ConsoleComponent(pd::Instance* instance, std::array<TextButton, 5>& b, Viewport& v)
             : buttons(b)
             , viewport(v)
@@ -218,16 +219,17 @@ struct Console : public Component {
             // Copy from console
             if (key == KeyPress('c', ModifierKeys::commandModifier, 0)) {
                 String textToCopy;
-                for(auto& item : selectedItems) {
-                    if(!item.getComponent()) continue;
+                for (auto& item : selectedItems) {
+                    if (!item.getComponent())
+                        continue;
                     textToCopy += std::get<0>(pd->getConsoleMessages()[item->idx]) + "\n";
                 }
-                
+
                 textToCopy.trimEnd();
                 SystemClipboard::copyTextToClipboard(textToCopy);
                 return true;
             }
-           
+
             return false;
         }
 
@@ -309,8 +311,8 @@ struct Console : public Component {
 
             return totalHeight;
         }
-        
-        void mouseDown(const MouseEvent& e) override
+
+        void mouseDown(MouseEvent const& e) override
         {
             selectedItems.clear();
             repaint();
@@ -333,10 +335,9 @@ struct Console : public Component {
                 totalHeight += height;
             }
         }
-        
+
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(ConsoleComponent)
     };
-
 
 private:
     ConsoleComponent* console;

@@ -113,7 +113,7 @@ struct ListObject final : public AtomObject {
 
         int ac = binbuf_getnatom(static_cast<t_fake_gatom*>(ptr)->a_text.te_binbuf);
         t_atom* av = binbuf_getvec(static_cast<t_fake_gatom*>(ptr)->a_text.te_binbuf);
-        
+
         return pd::Atom::fromAtoms(ac, av);
     }
 

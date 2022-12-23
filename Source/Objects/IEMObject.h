@@ -6,7 +6,7 @@
 
 #include "x_libpd_extra_utils.h"
 
-static int srl_is_valid(const t_symbol* s)
+static int srl_is_valid(t_symbol const* s)
 {
     return (!!s && s != &s_);
 }
@@ -16,27 +16,26 @@ char* pdgui_strnescape(char* dst, size_t dstlen, char const* src, size_t srclen)
 }
 
 struct IEMObject : public GUIObject {
-    
 
     Value initialise;
-    
+
     IEMObject(void* ptr, Object* parent)
         : GUIObject(ptr, parent)
     {
         /*
-        
+
         t_symbol* srlsym[3];
         srlsym[0] = iemgui->x_snd;
         srlsym[1] = iemgui->x_rcv;
         srlsym[2] = iemgui->x_lab;
-        
+
         char label_chars[MAXPDSTRING];
-        
+
         for(int i = 0; i < 3; i++) {
             if(srlsym[i])
                 srlsym[i] = gensym(pdgui_strnescape(label_chars, sizeof(label_chars), srlsym[i]->s_name, strlen(srlsym[i]->s_name)));
         }
-        
+
         String label = String::fromUTF8(srlsym[2]->s_name).removeCharacters("\\");
         iemgui->x_lab_unexpanded = gensym(label.toRawUTF8()); */
 
@@ -47,7 +46,7 @@ struct IEMObject : public GUIObject {
         labelX = iemgui->x_ldx;
         labelY = iemgui->x_ldy;
         labelHeight = getFontHeight();
-        
+
         initialise = static_cast<bool>(iemgui->x_isa.x_loadinit);
         initialise.addListener(this);
 
@@ -62,7 +61,7 @@ struct IEMObject : public GUIObject {
 
         bool selected = cnv->isSelected(object) && !cnv->isGraph;
         auto outlineColour = object->findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : objectOutlineColourId);
-        
+
         g.setColour(outlineColour);
         g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Constants::objectCornerRadius, 1.0f);
     }
@@ -119,35 +118,34 @@ struct IEMObject : public GUIObject {
         params.push_back({ "Label X", tInt, cLabel, &labelX, {} });
         params.push_back({ "Label Y", tInt, cLabel, &labelY, {} });
         params.push_back({ "Label Height", tInt, cLabel, &labelHeight, {} });
-        params.push_back({ "Initialise", tBool, cGeneral, &initialise, {"No", "Yes"} });
+        params.push_back({ "Initialise", tBool, cGeneral, &initialise, { "No", "Yes" } });
         return params;
     }
-    
-    
-    void receiveObjectMessage(const String& symbol, std::vector<pd::Atom>& atoms) override {
-        
-        if(symbol == "color") {
-            
-            if(atoms.size() > 0) setParameterExcludingListener(secondaryColour, atoms[0].getSymbol());
-            if(atoms.size() > 1) setParameterExcludingListener(primaryColour, atoms[1].getSymbol());
-            if(atoms.size() > 2) setParameterExcludingListener(labelColour, atoms[2].getSymbol());
-            
+
+    void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
+    {
+
+        if (symbol == "color") {
+
+            if (atoms.size() > 0)
+                setParameterExcludingListener(secondaryColour, atoms[0].getSymbol());
+            if (atoms.size() > 1)
+                setParameterExcludingListener(primaryColour, atoms[1].getSymbol());
+            if (atoms.size() > 2)
+                setParameterExcludingListener(labelColour, atoms[2].getSymbol());
+
             repaint();
-        }
-        else if(symbol == "label" && atoms.size() >= 1) {
+        } else if (symbol == "label" && atoms.size() >= 1) {
             setParameterExcludingListener(labelText, atoms[0].getSymbol());
             updateLabel();
-        }
-        else if(symbol == "label_pos" && atoms.size() >= 2) {
+        } else if (symbol == "label_pos" && atoms.size() >= 2) {
             setParameterExcludingListener(labelX, static_cast<int>(atoms[0].getFloat()));
             setParameterExcludingListener(labelY, static_cast<int>(atoms[1].getFloat()));
             updateLabel();
-        }
-        else if(symbol == "label_font" && atoms.size() >= 2) {
+        } else if (symbol == "label_font" && atoms.size() >= 2) {
             setParameterExcludingListener(labelHeight, static_cast<int>(atoms[1].getFloat()));
             updateLabel();
-        }
-        else if(symbol == "init" && atoms.size() >= 1) {
+        } else if (symbol == "init" && atoms.size() >= 1) {
             setParameterExcludingListener(initialise, static_cast<bool>(atoms[0].getFloat()));
         }
     }
@@ -201,9 +199,9 @@ struct IEMObject : public GUIObject {
             setLabelText(labelText.toString());
             updateLabel();
         } else if (v.refersToSameSourceAs(initialise)) {
-           auto* nbx = static_cast<t_my_numbox*>(ptr);
-           nbx->x_gui.x_isa.x_loadinit = static_cast<bool>(initialise.getValue());
-       }
+            auto* nbx = static_cast<t_my_numbox*>(ptr);
+            nbx->x_gui.x_isa.x_loadinit = static_cast<bool>(initialise.getValue());
+        }
     }
 
     void updateBounds() override
@@ -256,8 +254,8 @@ struct IEMObject : public GUIObject {
             int labelLength = Font(fontHeight).getStringWidth(getExpandedLabelText());
 
             auto const* iemgui = static_cast<t_iemgui*>(ptr);
-            const int posx = objectBounds.getX() + iemgui->x_ldx;
-            const int posy = objectBounds.getY() + iemgui->x_ldy;
+            int const posx = objectBounds.getX() + iemgui->x_ldx;
+            int const posy = objectBounds.getY() + iemgui->x_ldy;
 
             return { posx, posy, labelLength, fontHeight };
         }
@@ -270,8 +268,8 @@ struct IEMObject : public GUIObject {
         t_symbol* srlsym[3];
         auto* iemgui = static_cast<t_iemgui*>(ptr);
         iemgui_all_sym2dollararg(iemgui, srlsym);
-        
-        if(srl_is_valid(srlsym[0])) {
+
+        if (srl_is_valid(srlsym[0])) {
             return String(iemgui->x_snd_unexpanded->s_name);
         }
 
@@ -283,8 +281,8 @@ struct IEMObject : public GUIObject {
         t_symbol* srlsym[3];
         auto* iemgui = static_cast<t_iemgui*>(ptr);
         iemgui_all_sym2dollararg(iemgui, srlsym);
-        
-        if(srl_is_valid(srlsym[1])) {
+
+        if (srl_is_valid(srlsym[1])) {
             return String(iemgui->x_rcv_unexpanded->s_name);
         }
 
@@ -300,13 +298,13 @@ struct IEMObject : public GUIObject {
 
     void setReceiveSymbol(String const& symbol) const
     {
-   
+
         auto* sym = symbol.isEmpty() ? nullptr : gensym(symbol.toRawUTF8());
         auto* iemgui = static_cast<t_iemgui*>(ptr);
         iemgui_receive(ptr, iemgui, sym);
     }
 
-    static unsigned int fromIemColours(const int color)
+    static unsigned int fromIemColours(int const color)
     {
         auto const c = static_cast<unsigned int>(color << 8 | 0xFF);
         return ((0xFF << 24) | ((c >> 24) << 16) | ((c >> 16) << 8) | (c >> 8));

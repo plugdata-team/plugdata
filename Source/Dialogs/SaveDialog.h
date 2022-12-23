@@ -20,7 +20,6 @@ struct SaveDialog : public Component {
                 [this, parent]() {
                     cb(0);
                     parent->closeDialog();
-                    
                 });
         };
         save.onClick = [this, parent] {
@@ -28,7 +27,6 @@ struct SaveDialog : public Component {
                 [this, parent]() {
                     cb(2);
                     parent->closeDialog();
-                    
                 });
         };
         dontsave.onClick = [this, parent] {
@@ -36,18 +34,17 @@ struct SaveDialog : public Component {
                 [this, parent]() {
                     cb(1);
                     parent->closeDialog();
-                    
                 });
         };
 
         cancel.changeWidthToFitText();
         dontsave.changeWidthToFitText();
         save.changeWidthToFitText();
-        
+
         cancel.setColour(TextButton::buttonColourId, Colours::transparentBlack);
         dontsave.setColour(TextButton::buttonColourId, Colours::transparentBlack);
         save.setColour(TextButton::buttonColourId, Colours::transparentBlack);
-        
+
         setOpaque(false);
     }
 
@@ -59,7 +56,7 @@ struct SaveDialog : public Component {
         save.setBounds(300, 80, 80, 25);
     }
 
-    static inline std::function<void(int)> cb = [](int){};
+    static inline std::function<void(int)> cb = [](int) {};
 
 private:
     Label savelabel;

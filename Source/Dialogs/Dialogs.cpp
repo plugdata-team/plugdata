@@ -84,11 +84,10 @@ void Dialogs::showObjectMenu(PluginEditor* parent, Component* target)
         return i;
     };
 
-    
     menu.addItem("Open Object Browser", [parent]() mutable {
-         Dialogs::showObjectBrowserDialog(&parent->openedDialog, parent);
-     });
-    
+        Dialogs::showObjectBrowserDialog(&parent->openedDialog, parent);
+    });
+
     menu.addSeparator();
     menu.addItem(createCommandItem(CommandIDs::NewObject, "Empty Object"));
     menu.addSeparator();
@@ -130,9 +129,8 @@ void Dialogs::showObjectMenu(PluginEditor* parent, Component* target)
         });
 }
 
-
 struct OkayCancelDialog : public Component {
-    
+
     OkayCancelDialog(Dialog* dialog, String const& title, std::function<void(bool)> callback)
         : label("", title)
     {
@@ -140,7 +138,7 @@ struct OkayCancelDialog : public Component {
         addAndMakeVisible(label);
         addAndMakeVisible(cancel);
         addAndMakeVisible(okay);
-        
+
         cancel.setColour(TextButton::buttonColourId, Colours::transparentBlack);
         okay.setColour(TextButton::buttonColourId, Colours::transparentBlack);
 
@@ -148,7 +146,7 @@ struct OkayCancelDialog : public Component {
             callback(false);
             dialog->closeDialog();
         };
-        
+
         okay.onClick = [this, dialog, callback] {
             callback(true);
             dialog->closeDialog();
@@ -158,7 +156,6 @@ struct OkayCancelDialog : public Component {
         okay.changeWidthToFitText();
         setOpaque(false);
     }
-    
 
     void resized() override
     {
@@ -174,8 +171,7 @@ private:
     TextButton okay = TextButton("OK");
 };
 
-
-void Dialogs::showOkayCancelDialog(std::unique_ptr<Dialog>* target, Component* parent, const String& title, std::function<void(bool)> callback)
+void Dialogs::showOkayCancelDialog(std::unique_ptr<Dialog>* target, Component* parent, String const& title, std::function<void(bool)> callback)
 {
     auto* dialog = new Dialog(target, parent, 400, 130, 160, false);
     auto* dialogContent = new OkayCancelDialog(dialog, title, callback);
@@ -195,7 +191,7 @@ void Dialogs::showHeavyExportDialog(std::unique_ptr<Dialog>* target, Component* 
 
 void Dialogs::showObjectBrowserDialog(std::unique_ptr<Dialog>* target, Component* parent)
 {
-     
+
     auto* dialog = new Dialog(target, parent, 725, 450, parent->getBounds().getCentreY() + 200, true);
     auto* dialogContent = new ObjectBrowserDialog(parent, dialog);
 
@@ -203,27 +199,25 @@ void Dialogs::showObjectBrowserDialog(std::unique_ptr<Dialog>* target, Component
     target->reset(dialog);
 }
 
-
-
 StringArray DekenInterface::getExternalPaths()
 {
     StringArray searchPaths;
-    
-    for(auto package : PackageManager::getInstance()->packageState) {
-        if(!package.hasProperty("AddToPath") || !static_cast<bool>(package.getProperty("AddToPath"))) {
+
+    for (auto package : PackageManager::getInstance()->packageState) {
+        if (!package.hasProperty("AddToPath") || !static_cast<bool>(package.getProperty("AddToPath"))) {
             continue;
         }
-        
+
         searchPaths.add(package.getProperty("Path"));
     }
-    
+
     return searchPaths;
 }
 
-
-bool Dialog::wantsRoundedCorners() {
+bool Dialog::wantsRoundedCorners()
+{
     // Check if the editor wants rounded corners
-    if(auto* editor = dynamic_cast<PluginEditor*>(parentComponent)) {
+    if (auto* editor = dynamic_cast<PluginEditor*>(parentComponent)) {
         return editor->wantsRoundedCorners();
     }
     // Otherwise assume rounded corners for the rest of the UI

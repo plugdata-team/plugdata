@@ -27,35 +27,33 @@ Sidebar::Sidebar(PluginProcessor* instance, PluginEditor* parent)
     browser = new DocumentBrowser(pd);
     automationPanel = new AutomationPanel(pd);
     searchPanel = new SearchPanel(parent);
-    
+
     inspector->setAlwaysOnTop(true);
-    
+
     addAndMakeVisible(console);
     addAndMakeVisible(inspector);
     addChildComponent(browser);
     addChildComponent(automationPanel);
     addChildComponent(searchPanel);
-        
+
     browser->addMouseListener(this, true);
     console->addMouseListener(this, true);
     automationPanel->addMouseListener(this, true);
     inspector->addMouseListener(this, true);
     searchPanel->addMouseListener(this, true);
-    
+
     consoleButton.setTooltip("Open console panel");
     consoleButton.setConnectedEdges(12);
     consoleButton.setName("statusbar:console");
     consoleButton.setClickingTogglesState(true);
-    consoleButton.onClick = [this]()
-    {
+    consoleButton.onClick = [this]() {
         showPanel(0);
     };
-    
+
     browserButton.setTooltip("Open documentation browser");
     browserButton.setConnectedEdges(12);
     browserButton.setName("statusbar:browser");
-    browserButton.onClick = [this]()
-    {
+    browserButton.onClick = [this]() {
         showPanel(1);
     };
     browserButton.setClickingTogglesState(true);
@@ -65,31 +63,29 @@ Sidebar::Sidebar(PluginProcessor* instance, PluginEditor* parent)
     automationButton.setConnectedEdges(12);
     automationButton.setName("statusbar:automation");
     automationButton.setClickingTogglesState(true);
-    automationButton.onClick = [this]()
-    {
+    automationButton.onClick = [this]() {
         showPanel(2);
     };
     addAndMakeVisible(automationButton);
-    
+
     searchButton.setTooltip("Open search panel");
     searchButton.setConnectedEdges(12);
     searchButton.setName("statusbar:search");
     searchButton.setClickingTogglesState(true);
-    searchButton.onClick = [this]()
-    {
+    searchButton.onClick = [this]() {
         showPanel(3);
     };
     addAndMakeVisible(searchButton);
-    
+
     browserButton.setRadioGroupId(1100);
     automationButton.setRadioGroupId(1100);
     consoleButton.setRadioGroupId(1100);
     searchButton.setRadioGroupId(1100);
-    
+
     consoleButton.setToggleState(true, dontSendNotification);
-    
+
     addAndMakeVisible(consoleButton);
-    
+
     inspector->setVisible(false);
     showPanel(0);
 }
@@ -113,7 +109,7 @@ void Sidebar::paint(Graphics& g)
     // Sidebar
     g.setColour(findColour(PlugDataColour::sidebarBackgroundColourId));
     g.fillRect(0, 0, getWidth(), getHeight() - 30);
-    
+
     // Background for buttons
     g.setColour(findColour(PlugDataColour::toolbarBackgroundColourId));
     g.fillRect(0, 0, getWidth(), 28);
@@ -131,11 +127,11 @@ void Sidebar::paintOverChildren(Graphics& g)
 void Sidebar::resized()
 {
     auto bounds = getLocalBounds();
-    
+
     auto tabbarBounds = bounds.removeFromTop(28);
-    
+
     int buttonWidth = getWidth() / 4;
-    
+
     consoleButton.setBounds(tabbarBounds.removeFromLeft(buttonWidth));
     browserButton.setBounds(tabbarBounds.removeFromLeft(buttonWidth));
     automationButton.setBounds(tabbarBounds.removeFromLeft(buttonWidth));
@@ -179,7 +175,7 @@ void Sidebar::mouseUp(MouseEvent const& e)
 
 void Sidebar::mouseMove(MouseEvent const& e)
 {
-    
+
     bool resizeCursor = e.getEventRelativeTo(this).getPosition().getX() < dragbarWidth;
     e.originalComponent->setMouseCursor(resizeCursor ? MouseCursor::LeftRightResizeCursor : MouseCursor::NormalCursor);
 }
@@ -195,28 +191,29 @@ void Sidebar::showPanel(int panelToShow)
     bool showBrowser = panelToShow == 1;
     bool showAutomation = panelToShow == 2;
     bool showSearch = panelToShow == 3;
-    
+
     console->setVisible(showConsole);
-    
+
     browser->setVisible(showBrowser);
     browser->setInterceptsMouseClicks(showBrowser, showBrowser);
-    
-    auto buttons = std::vector<TextButton*>{&consoleButton, &browserButton, &automationButton, &searchButton};
-    
-    for(int i = 0; i < buttons.size(); i++) {
+
+    auto buttons = std::vector<TextButton*> { &consoleButton, &browserButton, &automationButton, &searchButton };
+
+    for (int i = 0; i < buttons.size(); i++) {
         buttons[i]->setToggleState(i == panelToShow, dontSendNotification);
     }
-    
+
     automationPanel->setVisible(showAutomation);
     automationPanel->setInterceptsMouseClicks(showAutomation, showAutomation);
-    
+
     bool searchWasVisisble = searchPanel->isVisible();
     searchPanel->setVisible(showSearch);
-    if(showSearch && !searchWasVisisble) searchPanel->grabFocus();
+    if (showSearch && !searchWasVisisble)
+        searchPanel->grabFocus();
     searchPanel->setInterceptsMouseClicks(showSearch, showSearch);
-    
+
     hideParameters();
-    
+
     currentPanel = panelToShow;
 }
 
@@ -225,14 +222,13 @@ bool Sidebar::isShowingBrowser()
     return browser->isVisible();
 }
 
-
 #if PLUGDATA_STANDALONE
 void Sidebar::updateAutomationParameters()
 {
     if (automationPanel) {
         // Might be called from audio thread
-        MessageManager::callAsync([this]() { //automationPanel->updateParameters();
-            
+        MessageManager::callAsync([this]() { // automationPanel->updateParameters();
+
         });
     };
 };

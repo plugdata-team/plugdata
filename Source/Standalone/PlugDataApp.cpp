@@ -19,19 +19,17 @@
    DISCLAIMED.
 */
 
-
 #include <JuceHeader.h>
 #include "PlugDataWindow.h"
 #include "../Canvas.h"
 #include "../PluginProcessor.h"
-
 
 extern "C" {
 #include <x_libpd_multi.h>
 }
 
 #if JUCE_WINDOWS
-#include <filesystem>
+#    include <filesystem>
 #endif
 
 #ifdef _WIN32
@@ -73,7 +71,7 @@ static char const* strtokcpy(char* to, size_t to_len, char const* from, char del
 }
 
 class PlugDataApp : public JUCEApplication {
-    
+
 public:
     PlugDataApp()
     {
@@ -120,7 +118,7 @@ public:
         }
     }
 
-    PlugDataWindow* createWindow(const String& systemArgs)
+    PlugDataWindow* createWindow(String const& systemArgs)
     {
         return new PlugDataWindow(systemArgs, getApplicationName(), LookAndFeel::getDefaultLookAndFeel().findColour(ResizableWindow::backgroundColourId), appProperties.getUserSettings(), false, {}, nullptr, {});
     }
@@ -148,10 +146,9 @@ public:
                     if (auto app = JUCEApplicationBase::getInstance())
                         app->systemRequestedQuit();
                 });
-        } else if(mainWindow){
+        } else if (mainWindow) {
             mainWindow->closeButtonPressed();
-        }
-        else {
+        } else {
             quit();
         }
     }
@@ -170,33 +167,30 @@ void PlugDataWindow::closeAllPatches()
 {
     // Show an ask to save dialog for each patch that is dirty
     // Because save dialog uses an asynchronous callback, we can't loop over them (so have to chain them)
-    if (auto* editor = dynamic_cast<PluginEditor*>(pluginHolder->processor->getActiveEditor()))
-    {
+    if (auto* editor = dynamic_cast<PluginEditor*>(pluginHolder->processor->getActiveEditor())) {
         int idx = editor->tabbar.getCurrentTabIndex();
         auto* cnv = editor->getCurrentCanvas();
-    
-        auto deleteFunc = [this, editor, cnv, idx]() mutable
-        {
+
+        auto deleteFunc = [this, editor, cnv, idx]() mutable {
             auto* deletedPatch = &cnv->patch;
             editor->canvases.removeObject(cnv);
             editor->tabbar.removeTab(idx);
             editor->tabbar.setCurrentTabIndex(editor->tabbar.getNumTabs() - 1, true);
-            
-            if (deletedPatch)
-            {
+
+            if (deletedPatch) {
                 // TODO: the OS is our garbage collector
-                //deletedPatch->close();
+                // deletedPatch->close();
                 dynamic_cast<PluginProcessor*>(getAudioProcessor())->patches.removeObject(deletedPatch, true);
             }
-            
+
             closeAllPatches();
         };
 
-        if(!cnv) {
+        if (!cnv) {
             JUCEApplication::quit();
             return;
-            }
-            
+        }
+
         else if (cnv->patch.isDirty()) {
             MessageManager::callAsync([this, editor, cnv, deleteFunc]() mutable {
                 Dialogs::showSaveDialog(&editor->openedDialog, editor, cnv->patch.getTitle(),
@@ -213,19 +207,16 @@ void PlugDataWindow::closeAllPatches()
                                 deleteFunc();
                             }
                         } else if (!result) {
-                        
                         }
                     });
             });
         }
 
-        else if (cnv)
-        {
+        else if (cnv) {
             deleteFunc();
         }
-     }
+    }
 }
-
 
 int PlugDataWindow::parseSystemArguments(String const& arguments)
 {
@@ -239,32 +230,33 @@ int PlugDataWindow::parseSystemArguments(String const& arguments)
 
     t_namelist* openlist = nullptr;
     t_namelist* messagelist = nullptr;
-    
+
     int retval = parse_startup_arguments(argv, argc, &openlist, &messagelist);
 
     StringArray openedPatches;
     /* open patches specifies with "-open" args */
     for (auto* nl = openlist; nl; nl = nl->nl_next) {
         auto toOpen = File(String(nl->nl_string).unquoted());
-        if(toOpen.existsAsFile() && toOpen.hasFileExtension(".pd")) {
-            if(auto* pd = dynamic_cast<PluginProcessor*>(getAudioProcessor())) {
+        if (toOpen.existsAsFile() && toOpen.hasFileExtension(".pd")) {
+            if (auto* pd = dynamic_cast<PluginProcessor*>(getAudioProcessor())) {
                 pd->loadPatch(toOpen);
                 openedPatches.add(toOpen.getFullPathName());
             }
         }
     }
-    
+
 #if JUCE_LINUX || JUCE_WINDOWS
-    for(auto arg : args) {
+    for (auto arg : args) {
         arg = arg.trim().unquoted().trim();
-        
+
         // Would be best to enable this on Linux, but some distros use ancient gcc which doesn't have std::filesystem
-#if JUCE_WINDOWS
-        if(!std::filesystem::exists(arg.toStdString())) continue;
-#endif
+#    if JUCE_WINDOWS
+        if (!std::filesystem::exists(arg.toStdString()))
+            continue;
+#    endif
         auto toOpen = File(arg);
-        if(toOpen.existsAsFile() && toOpen.hasFileExtension(".pd") && !openedPatches.contains(toOpen.getFullPathName())) {
-            if(auto* pd = dynamic_cast<PluginProcessor*>(getAudioProcessor())) {
+        if (toOpen.existsAsFile() && toOpen.hasFileExtension(".pd") && !openedPatches.contains(toOpen.getFullPathName())) {
+            if (auto* pd = dynamic_cast<PluginProcessor*>(getAudioProcessor())) {
                 pd->loadPatch(toOpen);
             }
         }
@@ -286,11 +278,11 @@ int PlugDataWindow::parseSystemArguments(String const& arguments)
     return retval;
 }
 
-ValueTree PlugDataWindow::getSettingsTree() {
+ValueTree PlugDataWindow::getSettingsTree()
+{
     auto* editor = dynamic_cast<PluginEditor*>(mainComponent->getEditor());
     return editor->pd->settingsTree;
 }
-
 
 // This macro generates the main() routine that launches the app.
 START_JUCE_APPLICATION(PlugDataApp)
