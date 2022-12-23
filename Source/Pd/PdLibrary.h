@@ -79,7 +79,7 @@ struct Library : public FileSystemWatcher::Listener {
 
     Suggestions autocomplete(String query) const;
 
-    String getInletOutletTooltip(String objname, int idx, int total, bool isInlet);
+    String getInletOutletTooltip(String type, String name, int idx, int total, bool isInlet);
 
     void fsChangeCallback() override;
 

@@ -468,6 +468,9 @@ void Library::parseDocumentation(String const& path)
         auto file = iter.getFile();
 
         if (file.hasFileExtension("md")) {
+            if(file.getFileNameWithoutExtension() == "array-size") {
+                std::cout << "hey!" << std::endl;
+            }
             parseFile(file);
         }
     }
@@ -485,14 +488,13 @@ Suggestions Library::autocomplete(String query) const
     return result;
 }
 
-String Library::getInletOutletTooltip(String objname, int idx, int total, bool isInlet)
+String Library::getInletOutletTooltip(String type, String name, int idx, int total, bool isInlet)
 {
-    auto name = objname.upToFirstOccurrenceOf(" ", false, false);
-    auto args = StringArray::fromTokens(objname.fromFirstOccurrenceOf(" ", false, false), true);
+    auto args = StringArray::fromTokens(name.fromFirstOccurrenceOf(" ", false, false), true);
 
-    auto findInfo = [&name, &args, &total, &idx](IODescriptionMap map) {
-        if (map.count(name)) {
-            auto descriptions = map.at(name);
+    auto findInfo = [&type, &args, &total, &idx](IODescriptionMap map) {
+        if (map.count(type)) {
+            auto descriptions = map.at(type);
 
             // if the amount of inlets is not equal to the amount in the spec, look for repeating inlets
             if (descriptions.size() < total) {
