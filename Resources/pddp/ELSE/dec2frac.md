@@ -1,7 +1,7 @@
 ---
 title: dec2frac
 
-description:
+description: Decimal/Fraction conversion
 
 categories:
 - object
@@ -9,24 +9,30 @@ categories:
 pdcategory:
 
 arguments:
-- description:
-  type:
-  default:
+- description: conversion resolution (min 10)
+  type: float
+  default: 1000
 
 inlets:
   1st:
-  - type:
-    description:
-  2nd:
-  - type:
-    description:
+  - type: list
+    description: decimal value(s)
 
 outlets:
   1st:
-  - type:
-    description:
+  - type: list
+    description: converted fractional value(s)
+
+flags:
+  - name: -list
+    description: sets to list mode (output fraction as a list)
+
+methods:
+  - type: res <float>
+    description: set conversion resolution
 
 draft: false
 ---
 
-LONG DESCRIPTION HERE
+Use [dec2frac] to convert a list of decimals to intervals defined as fraction symbols or lists.
+

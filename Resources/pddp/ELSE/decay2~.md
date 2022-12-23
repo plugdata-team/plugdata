@@ -1,24 +1,45 @@
 ---
 title: decay2~
-description:
+description: Exponential decay
+
 categories:
  - object
+
 pdcategory: General
+
 arguments:
-- type: gimme
-  description:
-  default:
+- type: float
+  description: attack in ms
+  default: 100
+- type: float
+  description: decay in ms
+  default: 1000
+
 inlets:
   1st:
+  - type: float
+    description: control trigger
+  - type: bang
+    description: control trigger
   - type: signal
-    description:
+    description: impulse trigger
   2nd:
-  - type: signal
-    description:
+  - type: float/signal
+    description: attack time in ms
   3rd:
-  - type: signal
-    description:
+  - type: float/signal
+    description: decay time in ms
+
 outlets:
   1st:
   - type: signal
-    description:
+    description: decayed signal
+
+methods:
+  - type: clear
+    description: clears filter's memory
+
+---
+
+[decay2~] is like [decay~], but it has an attack time parameter. It is based on SuperCollider's "Decay2" UGEN.
+
