@@ -9,7 +9,7 @@ inlets:
   1st:
   - type: set <list>
     description: resets the channel(s).
-  'n':
+  nth:
   - type: signal
     description: signal output to sound card.
 arguments:

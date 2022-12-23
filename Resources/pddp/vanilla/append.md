@@ -18,7 +18,7 @@ inlets:
     description: if none or just one field is given, you can use 'set' to set struct name and field.
   - type: float
     description: set field value and append new Data Structure.
-  rightmost:
+  2nd:
   - type: pointer
     description: a pointer to the Data Structure to add.
 outlets:

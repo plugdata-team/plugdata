@@ -29,7 +29,7 @@ inlets:
   'n: number of inlets depends on creation arguments':
   - type: float/symbol/pointer
     description: the type depends on the creation argument.
-  rightmost:
+  2nd:
   - type: float
     description: set the delay time in ms.
 outlets:

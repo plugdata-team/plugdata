@@ -20,7 +20,7 @@ inlets:
     description: stop streaming audio
   - type: print
     description: prints information on Pd's terminal window.
-  'n':
+  nth:
   - type: signal
     description: signal to write to a channel.
 arguments:
