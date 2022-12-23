@@ -1,6 +1,6 @@
 ---
 title: adc~
-description: audio input from sound card
+description: Audio input from sound card
 categories:
 - object
 pdcategory: General Audio Manipulation
@@ -12,10 +12,10 @@ inlets:
 outlets:
   'n':
   - type: signal
-    description: signal input from sound card.
+    description: Signal input from sound card.
 arguments:
   - type: list
-    description: set input channels
+    description: Set input channels
     default: 1 2
 draft: false
 ---

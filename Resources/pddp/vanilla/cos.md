@@ -12,13 +12,11 @@ see_also:
 inlets:
   1st:
   - type: float
-    description: input value to given function.
+    description: Input value.
 outlets:
   1st:
   - type: float
-    description: the result of the operation.
+    description: The result of the operation.
 draft: false
 ---
 Unlike the signal version cos~, control-rate trigonometric functions take inputs in radians.
-
-{{< md_include "objects/trigonometric-functions.md" >}}

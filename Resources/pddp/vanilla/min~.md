@@ -22,14 +22,14 @@ arguments:
 inlets:
   1st:
   - type: signal
-    description: value to the left side of operation and output.
+    description: Set value on left-hand side and trigger output
   2nd:
   - type: float/signal
-    description: value to the right side of operation.
+    description: Set value on right-hand side
 outlets:
   1st:
   - type: signal
-    description: the result of the operation.
+    description: The result of the operation.
 draft: false
 ---
 This object combine two signals as above, or, if you give a numeric argument, the right inlet only takes floats (no signals
