@@ -1,5 +1,5 @@
 ---
-title: receive~
+title: receive~, r~
 description: receive signal from a send~ object.
 categories:
 - object

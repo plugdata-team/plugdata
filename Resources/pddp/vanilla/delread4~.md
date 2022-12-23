@@ -1,5 +1,5 @@
 ---
-title: delread4~
+title: delread4~, vd~
 description: read from a delay line with 4-point interpolation (for variable delay times)
 categories:
 - object

@@ -108,6 +108,14 @@ String ObjectBase::getType() const
         if (String(libpd_get_object_class_name(ptr)) == "text" && static_cast<t_text*>(ptr)->te_type == T_MESSAGE) {
             return String("message");
         }
+        if (String(libpd_get_object_class_name(ptr)) == "gatom") {
+            if (static_cast<t_fake_gatom*>(ptr)->a_flavor == A_FLOAT)
+                return "floatbox";
+            else if (static_cast<t_fake_gatom*>(ptr)->a_flavor == A_SYMBOL)
+                return "symbolbox";
+            else if (static_cast<t_fake_gatom*>(ptr)->a_flavor == A_NULL)
+                return "listbox";
+        }
         if (auto* name = libpd_get_object_class_name(ptr)) {
             return String(name);
         }

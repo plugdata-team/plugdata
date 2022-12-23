@@ -1,5 +1,5 @@
 ---
-title: swap
+title: swap, fswap
 description: swap two numbers
 categories:
 - object

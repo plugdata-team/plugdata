@@ -1,5 +1,5 @@
 ---
-title: send
+title: send, s
 description: Send messages without patch cords.
 categories:
 - object

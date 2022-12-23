@@ -1,5 +1,5 @@
 ---
-title: float
+title: float, f
 description: store and recall a number
 categories:
 - object
