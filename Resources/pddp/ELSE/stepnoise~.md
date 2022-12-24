@@ -14,20 +14,22 @@ arguments:
   default: 0
 
 flags:
-- name: -seed <f>
+- name: -seed <float>
   description: sets seed (default: unique internal)
 
 inlets:
   1st:
   - type: float/signal
     description: frequency input in hertz
-  - type: seed <f>
-    description: a float sets seed, no float sets a unique internal
 
 outlets:
   1st:
   - type: signal
     description: bandlimited step noise
+
+methods:
+  - type: seed <float>
+    description: a float sets seed, no float sets a unique internal
 
 draft: false
 ---

@@ -1,7 +1,7 @@
 ---
 title: rec2
 
-description:
+description: Record note messages into text
 
 categories:
 - object
@@ -9,17 +9,19 @@ categories:
 pdcategory:
 
 arguments:
-- description:
-  type:
+- type: symbol
+  description: text name (necessary)
   default:
 
 inlets:
   1st:
-  - type:
-    description:
+  - type: float
+    description: MIDI pitch
+  - type: bang
+    description: reset the recording
   2nd:
-  - type:
-    description:
+  - type: float
+    description: MIDI velocity
 
 outlets:
   1st:
@@ -29,4 +31,4 @@ outlets:
 draft: false
 ---
 
-LONG DESCRIPTION HERE
+[record] records to a [text] object that is suitable for [text sequence].

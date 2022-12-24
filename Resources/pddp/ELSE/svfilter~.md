@@ -20,8 +20,6 @@ inlets:
   1st:
   - type: signal
     description: signal to be filtered
-  - type: clear
-    description: clears the filter in case of a blow-up
   2nd:
   - type: float/signal
     description: sets cutoff/center frequency
@@ -42,6 +40,10 @@ outlets:
   4th:
   - type: signal
     description: notch filter signal
+
+methods: 
+  - type: clear
+    description: clears the filter in case of a blow-up
 
 draft: false
 ---

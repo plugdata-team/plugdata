@@ -1,24 +1,48 @@
 ---
 title: rand.f~
-description:
+
+description: Random float number generator
+
 categories:
  - object
-pdcategory: General
+
+pdcategory: Control
+
 arguments:
-- type: gimme
-  description:
-  default:
+- type: float
+  description: minimum
+  default: 0
+- type: float
+  description: maximum
+  default: 1
+
 inlets:
   1st:
   - type: signal
-    description:
+    description: trigger signal
+  - type: bang
+    description: control rate trigger
   2nd:
   - type: signal
-    description:
+    description: lowest random value
   3rd:
   - type: signal
-    description:
+    description: highest random value
+
 outlets:
   1st:
   - type: signal
-    description:
+    description: random values
+
+flags:
+  - type: seed <float> 
+    description: seed value
+
+methods:
+  - type: seed <float>
+    description: a float sets seed, no float sets a unique internal
+
+draft: false
+---
+
+[rand.f~] generates random float values for a given range when triggered. A trigger happens at positive to negative or negative to positive transitions. Use the seed message if you want a reproducible output.

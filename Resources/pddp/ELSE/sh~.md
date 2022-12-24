@@ -29,12 +29,6 @@ inlets:
     description: input to sample and hold
   - type: bang
     description: sample the signal
-  - type: set <f>
-    description: set the held value
-  - type: gate
-    description: set the gate mode
-  - type: trigger
-    description: set the trigger mode
   2nd:
   - type: signal
     description: gate signal
@@ -43,6 +37,14 @@ outlets:
   1st:
   - type: signal
     description: sampled and held signal
+
+methods:
+  - type: set <f>
+    description: set the held value
+  - type: gate
+    description: set the gate mode
+  - type: trigger
+    description: set the trigger mode
 
 draft: false
 ---

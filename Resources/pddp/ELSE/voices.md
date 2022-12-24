@@ -29,20 +29,8 @@ inlets:
   1st:
   - type: list
     description: MIDI note messages (note and velocity pair)
- - type: float
+  - type: float
     description: note pitch values
- - type: rel <f>
-    description: sets a release time in ms
- - type: offset <f>
-    description: sets index offset (in the context of "list" mode)
- - type: retrig <f>
-    description: non zero sets to retrigger mode
- - type: clear
-    description: clears memory without output
- - type: flush
-    description: clears memory and output hanging notes
- - type: voices <f>
-    description: sets number of voices (in list mode only)
   2nd:
   - type: float
     description: note velocity values
@@ -54,6 +42,20 @@ outlets:
   nth:
   - type: list
     description: note messages
+
+methods:
+  - type: rel <float>
+    description: sets release time in ms
+  - type: offset <float>
+    description: sets index offset (in the context of "list" mode)
+  - type: retrig <float>
+    description: non zero sets to retrigger mode
+  - type: clear
+    description: clears memory without output
+  - type: flush
+    description: clears memory and output hanging notes
+  - type: voices <float>
+    description: sets number of voices (in list mode only)
 
 draft: false
 ---

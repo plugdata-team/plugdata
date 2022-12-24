@@ -28,8 +28,6 @@ inlets:
     description: audio signal input
   - type: bang
     description: resets to the beginning of the delay line
-  - type: size <f>
-    description: sets buffer size in ms
   2nd:
   - type: float
     description: sets grain size
@@ -44,6 +42,10 @@ outlets:
   1st:
   - type: signal
     description: the buffer signal of the corresponding channel
+
+methods:
+ - type: size <float>
+   description: sets buffer size in ms
 
 draft: false
 ---

@@ -23,8 +23,6 @@ inlets:
   1st:
   - type: float
     description: selected input (0 is none)
-  - type: time <f>
-    description: crossfade time in ms
   2nd:
   - type: signal
     description: inputs to select from 
@@ -36,6 +34,10 @@ outlets:
   2nd:
   - type: list
     description: reports input number and off status
+
+methods:
+  - name: -time <float>
+    description: crossfade time in ms
 
 draft: false
 ---
