@@ -1,21 +1,41 @@
 ---
 title: glide~
-description:
+description: Signal glide/portamento
+
 categories:
  - object
+
 pdcategory: General
+
 arguments:
-- type: gimme
-  description:
-  default:
+- type: float
+  description: glide time in ms
+  default: 0
+
 inlets:
   1st:
-  - type: signal
-    description:
+  - type: float/signal
+    description: input signal
   2nd:
-  - type: signal
-    description:
+  - type: float/signal
+    description: glide time in ms
+
 outlets:
   1st:
   - type: signal
-    description:
+    description: glided signal
+
+flags:
+  - name: -exp <float>
+    description: sets exponential factor (default '1', linear)
+
+methods:
+  - type: reset
+    description: resets glide to input value
+  - type: exp <float>
+    description: sets exponential factor
+
+---
+
+[glide~] generates a glide/portamento from its signal input changes. The glide time in ms.
+

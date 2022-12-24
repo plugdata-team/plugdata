@@ -1,5 +1,5 @@
 ---
-title: float2sig~
+title: f2s~
 description: Convert float to signal
 
 categories:
