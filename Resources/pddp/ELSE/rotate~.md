@@ -1,30 +1,35 @@
 ---
 title: rotate~
-description:
+
+description: Channel rotation
+
 categories:
  - object
-pdcategory: General
+
+pdcategory: Control
+
 arguments:
 - type: float
-  description:
-  default:
+  description: number of channels (minimum 2)
+  default: 2
 - type: float
-  description:
-  default:
+  description: rotation position 
+  default: 0
+
 inlets:
-  1st:
+  nth:
   - type: signal
-    description:
+    description: channel inputs
   2nd:
   - type: signal
-    description:
-  3rd:
-  - type: signal
-    description:
+    description: position (from -1 to 1)
+
 outlets:
-  1st:
+  nth:
   - type: signal
-    description:
-  2nd:
-  - type: signal
-    description:
+    description: channel outputs
+
+draft: false
+---
+
+[rotate~] performs equal power rotation for 'n' channels (default 2). It takes a position control in which a full cycle is from 0 to 1, negative values from 0 to -1 are wrapped.

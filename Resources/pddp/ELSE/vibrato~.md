@@ -10,9 +10,11 @@ pdcategory: General Audio Manipulation
 
 arguments:
   - type: float
-    description: rate in hertz (default: 0)
+    description: rate in hertz 
+    default: 0
   - type: float
-    description: transposition depth in cents (default: 0)
+    description: transposition depth in cents 
+    default: 0
 
 inlets:
   1st:
@@ -20,9 +22,9 @@ inlets:
     description: input to vibrato
   2nd:
   - type: float
-    description: rate in hertz
+    description: rate in Hz
   3rd:
-   - type: float
+  - type: float
     description: transposition depth in cents
 
 outlets:

@@ -19,8 +19,6 @@ inlets:
     description: number to check for transitions
   - type: bang
     description: resends bang according to current status
-  - type: change
-    description: changes internal status
 
 outlets:
   1st:
@@ -29,6 +27,10 @@ outlets:
   2nd:
   - type: bang
     description: if a non-zero to zero transition is detected
+
+methods:
+  - type: change
+    description: changes internal status
 
 draft: false
 ---

@@ -25,6 +25,13 @@ inlets:
   1st:
   - type: signal
     description: signal to be used as index
+
+outlets:
+  1st:
+  - type: signal
+    description: output of transfer function (waveshaping)
+
+methods:
   - type: set <symbol>
     description: array/table name to be used for lookup
   - type: list
@@ -35,11 +42,6 @@ inlets:
     description: normalization for internal function on <1> or off <0>
   - type: filter <f>
     description: - normalization for internal function on <1> or off <0>
-
-outlets:
-  1st:
-  - type: signal
-    description: output of transfer function (waveshaping)
 
 draft: false
 ---

@@ -26,16 +26,6 @@ inlets:
   1st:
   - type: signal
     description: left input signal
-  - type: decay <f>
-    description: decay time in seconds
-  - type: damp <f>
-    description: high frequency damping in hertz
-  - type: size <f>
-    description: room size (0-1)
-  - type: wet <f>
-    description: room size (0-1)
-  - type: clear
-    description: clears delay buffers
   2nd:
   - type: signal
     description: right input signal
@@ -47,6 +37,19 @@ outlets:
   2nd:
   - type: signal
     description: right channel output
+
+
+methods:
+  - type: decay <float>
+    description: decay time in seconds
+  - type: damp <float>
+    description: high frequency damping in hertz
+  - type: size <float>
+    description: room size (0-1)
+  - type: wet <float>
+    description: room size (0-1)
+  - type: clear
+    description: clears delay buffers
 
 draft: false
 ---

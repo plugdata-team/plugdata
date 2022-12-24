@@ -15,7 +15,7 @@ inlets:
   - type: coef <list>
     description: list of coefficients as taken by [biquad~]
   - type: list
-  - description: list of poles coordinates
+    description: list of poles coordinates
   2nd:
   - type: list
     description: list of zeros coordinates
