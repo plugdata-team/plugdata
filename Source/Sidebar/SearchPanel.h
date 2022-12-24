@@ -337,6 +337,8 @@ public:
                 // If it's a gui add the class name
                 if (isGui) {
                     addObject(className, topLevel, object);
+                    
+                    
                 }
                 // If it's a text object, message or comment, add the text
                 else {
