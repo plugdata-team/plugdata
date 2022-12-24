@@ -1,21 +1,35 @@
 ---
 title: range~
-description:
+
+description: Anylize range
+
 categories:
  - object
-pdcategory: General
-arguments:
+
+pdcategory: Analysis
+
+arguments: (none)
+
 inlets:
   1st:
-  - type: signal
-    description:
+  - type: float/signal
+    description: input signal to analyze
+  - type: bang
+    description: resets minimum and maximum values
   2nd:
-  - type: signal
-    description:
+  - type: float/signal
+    description: impulse resets at signal rate
+
 outlets:
   1st:
   - type: signal
-    description:
+    description: minimum range 
   2nd:
   - type: signal
-    description:
+    description: maximum range
+
+
+draft: false
+---
+
+[range~] analyzes and outputs the signal's range (minimum and maximum) values.

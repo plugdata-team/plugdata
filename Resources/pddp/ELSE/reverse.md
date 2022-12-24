@@ -1,32 +1,26 @@
 ---
 title: reverse
 
-description:
+description: Reverse messages
 
 categories:
 - object
 
-pdcategory:
+pdcategory: List management
 
-arguments:
-- description:
-  type:
-  default:
+arguments: (none)
 
 inlets:
   1st:
-  - type:
-    description:
-  2nd:
-  - type:
-    description:
+  - type: anything
+    description: the input message/list
 
 outlets:
   1st:
-  - type:
-    description:
+  - type: anything
+    description: the reversed message/list
 
 draft: false
 ---
 
-LONG DESCRIPTION HERE
+[reverse] reverses messages/lists.

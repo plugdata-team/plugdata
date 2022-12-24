@@ -21,15 +21,17 @@ inlets:
   1st:
   - type: float
     description: input value to spread
-  - type: args <list>
-    description: replace arguments
-  - type: mode <f>
-    description: sets mode
 
 outlets:
   nth:
   - type: float
     description: output to an outlet as the result of the comparison
+
+methods:
+  - type: args <list>
+    description: replace arguments
+  - type: mode <f>
+    description: sets mode
 
 draft: false
 ---

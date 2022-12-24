@@ -1,24 +1,47 @@
 ---
 title: resonant~
-description:
+description: Bandpass resonant filter (constant skirt)
+
 categories:
  - object
-pdcategory: General
+
+pdcategory: DSP
+
 arguments:
-- type: gimme
-  description:
-  default:
+- type: float
+  description: center frequency in hertz
+  default: 0
+- type: float
+  description: resonance
+  default: 0
+
 inlets:
   1st:
   - type: signal
-    description:
+    description: signal to be filtered or excite the resonator
   2nd:
-  - type: signal
-    description:
+  - type: float/signal
+    description: central frequency in hertz
   3rd:
   - type: signal
-    description:
+    description: resonance (t60 decay time in ms or Q)
+
 outlets:
   1st:
   - type: signal
     description:
+
+  methods:
+  - type: clear
+    description: clears filter's memory
+  - type: bypass <float>
+    description: 1 (bypass on), 0 (bypass off)
+  - type: t60 
+    description: sets resonance parameter in decay time in ms (default)
+  - type: q
+    description: sets resonance parameter to Q
+
+draft: false
+---
+
+[resonant~] is a resonator that you can specify a decay time in ms, or a Q factor. Like [bandpass~], it is a 2nd order bandpass resonant filter, but changing the Q increases the gain of the filter.

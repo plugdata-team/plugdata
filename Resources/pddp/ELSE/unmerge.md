@@ -24,7 +24,7 @@ inlets:
     description: a message whose elements get unmerged
     
   2nd:
-  - type: size <f>
+  - type: size <float>
     description: number of elements in a group
     
 outlets:
@@ -34,6 +34,8 @@ outlets:
   nth:
   - type: anything
     description: the bits of the unmerged message
+
+
 
 draft: false
 ---

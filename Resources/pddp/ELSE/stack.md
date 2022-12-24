@@ -17,6 +17,19 @@ inlets:
   1st:
   - type: bang
     description: outputs and removes a message
+  2nd:
+  - type: anything
+    description: input messages to be stacked
+
+outlets:
+  1st:
+  - type: anything
+    description: the stored message
+  2nd:
+  - type: float
+    description: number of stacked messages
+
+methods:
   - type: dump
     description: outputs all messages and clears them
   - type: clear
@@ -31,17 +44,6 @@ inlets:
     description: opens [text] window
   - type: hide
     description: closes [text] window
-  2nd:
-  - type: anything
-    description: input messages to be stacked
-
-outlets:
-  1st:
-  - type: anything
-    description: the stored message
-  2nd:
-  - type: float
-    description: number of stacked messages
 
 draft: false
 ---

@@ -19,8 +19,6 @@ inlets:
     description: value to be wrapped
   - type: bang
     description: fold or output the last wrapped value (only float)
-  - type: set
-    description: sets next value to be wrapped via bang (only float)
   2nd:
   - type: float
     description: lowest wrap value
@@ -32,6 +30,10 @@ outlets:
   1st:
   - type: float/list
     description:
+
+methods:
+  - name: -set <float>
+    description: sets the next value to be wrapped via bang
 
 draft: false
 ---

@@ -28,6 +28,8 @@ inlets:
     description: incoming signal to graph
   - type: bang
     description: graphs when rate is 0
+
+methods:
   - type: size <f>
     description: sets FFT size
   - type: db <f>

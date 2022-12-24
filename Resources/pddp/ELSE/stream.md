@@ -19,8 +19,6 @@ inlets:
     description: input stream of numbers
   - type: bang
     description: resends the last output list
-  - type: clear
-    description: clears the list
   2nd:
   - type:
     description: N group size
@@ -29,6 +27,10 @@ outlets:
   1st:
   - type: anything
     description: the regrouped message
+
+methods:
+  - type: clear
+    description: clears the list
 
 draft: false
 ---
