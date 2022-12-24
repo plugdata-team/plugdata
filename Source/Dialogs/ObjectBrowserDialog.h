@@ -170,7 +170,7 @@ struct ObjectViewer : public Component {
 
         int const ioletSize = 8;
 
-        int const ioletWidth = (ioletSize + 5) * std::max(inlets.size(), outlets.size());
+        int const ioletWidth = (ioletSize + 4) * std::max(inlets.size(), outlets.size());
         int const textWidth = font.getStringWidth(objectName);
         int const width = std::max(ioletWidth, textWidth) + 14;
 
@@ -183,7 +183,7 @@ struct ObjectViewer : public Component {
         g.setFont(font);
         g.drawText(objectName, textBounds, Justification::centred);
 
-        auto ioletBounds = outlineBounds.reduced(10, 0);
+        auto ioletBounds = outlineBounds.reduced(8, 0);
 
         for (int i = 0; i < inlets.size(); i++) {
             auto inletBounds = Rectangle<int>();
@@ -517,6 +517,8 @@ struct ObjectBrowserDialog : public Component {
     {
         auto& library = editor->pd->objectLibrary;
         objectsByCategory = library.getObjectCategories();
+        
+        objectDescriptions = library.getObjectDescriptions();
 
         addAndMakeVisible(categoriesList);
         addAndMakeVisible(objectsList);
@@ -545,6 +547,18 @@ struct ObjectBrowserDialog : public Component {
         
         // Make sure "All" is the first category
         categories.move(categories.indexOf("All"), 0);
+        
+        int numEmpty = 0;
+        for(auto& object : objectsByCategory["All"]) {
+            if(objectDescriptions[object].isEmpty()) {
+                std::cout << object << std::endl;
+                numEmpty++;
+            }
+        }
+        
+        std::cout << "Num Left:" << numEmpty << std::endl;
+        float percentage = 1.0f - (numEmpty / static_cast<float>(objectsByCategory["All"].size()));
+        std::cout << "Percentage done:" << percentage << std::endl;
 
         categoriesList.changeCallback = [this](String const& category) {
             objectsList.showObjects(objectsByCategory[category]);

@@ -722,10 +722,12 @@ bool isWindowOnCurrentVirtualDesktop(void* x);
 
 class StackDropShadower : private ComponentListener {
 public:
+    
+    
     //==============================================================================
     /** Creates a DropShadower. */
-    StackDropShadower(DropShadow const& shadowType)
-        : shadow(shadowType)
+    StackDropShadower(DropShadow const& shadowType, int cornerRadius = 0)
+        : shadow(shadowType), shadowCornerRadius(cornerRadius)
     {
     }
 
@@ -832,7 +834,7 @@ private:
             && (Desktop::canUseSemiTransparentWindows() || owner->getParentComponent() != nullptr)
             && (virtualDesktopWatcher == nullptr || !virtualDesktopWatcher->shouldHideDropShadow())) {
             while (shadowWindows.size() < 4)
-                shadowWindows.add(new ShadowWindow(owner, shadow));
+                shadowWindows.add(new ShadowWindow(owner, shadow, shadowCornerRadius));
 
             int const shadowEdge = jmax(shadow.offset.x, shadow.offset.y) + shadow.radius * 2.0f;
 
@@ -895,9 +897,10 @@ private:
 
     class ShadowWindow : public Component {
     public:
-        ShadowWindow(Component* comp, DropShadow const& ds)
+        ShadowWindow(Component* comp, DropShadow const& ds, int cornerRadius)
             : target(comp)
             , shadow(ds)
+            , shadowCornerRadius(cornerRadius)
         {
             setVisible(true);
             setAccessible(false);
@@ -932,6 +935,12 @@ private:
                 auto radius = c->isActiveWindow() ? shadow.radius * 2.0f : shadow.radius * 1.5f;
                 StackShadow::renderDropShadow(g, shadowPath, shadow.colour, radius, shadow.offset);
             }
+            else {
+                auto shadowPath = Path();
+                shadowPath.addRoundedRectangle(getLocalArea(target, target->getLocalBounds()).toFloat(), shadowCornerRadius);
+                StackShadow::renderDropShadow(g, shadowPath, shadow.colour, shadow.radius, shadow.offset);
+                
+            }
         }
 
         void resized() override
@@ -950,6 +959,8 @@ private:
     private:
         WeakReference<Component> target;
         DropShadow shadow;
+        
+        int shadowCornerRadius;
 
         JUCE_DECLARE_NON_COPYABLE(ShadowWindow)
     };
@@ -1109,6 +1120,8 @@ private:
     DropShadow shadow;
     bool reentrant = false;
     WeakReference<Component> lastParentComp;
+    
+    int shadowCornerRadius;
 
     std::unique_ptr<ParentVisibilityChangedListener> visibilityChangedListener;
     std::unique_ptr<VirtualDesktopWatcher> virtualDesktopWatcher;

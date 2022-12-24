@@ -1,6 +1,6 @@
 ---
 title: vu
-description: Vertical radio
+description: VU meter
 pdcategory: GUI
 inlets:
   1st:
