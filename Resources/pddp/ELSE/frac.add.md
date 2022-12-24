@@ -1,7 +1,7 @@
 ---
 title: frac.add
 
-description:
+description: Add fractions
 
 categories:
 - object
@@ -9,24 +9,22 @@ categories:
 pdcategory:
 
 arguments:
-- description:
-  type:
-  default:
 
 inlets:
   1st:
-  - type:
-    description:
+  - type: anything
+    description: fractional value to add to right input
   2nd:
-  - type:
-    description:
+  - type: anything
+    description: fractional value to add to leftt input
 
 outlets:
   1st:
-  - type:
-    description:
+  - type: symbol
+    description: added fraction
 
 draft: false
 ---
 
-LONG DESCRIPTION HERE
+Use [frac.add] to add two fractions. The output is also a fraction.
+

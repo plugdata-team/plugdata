@@ -1,7 +1,7 @@
 ---
 title: frac.mul
 
-description:
+description: Multiply fractions
 
 categories:
 - object
@@ -9,24 +9,22 @@ categories:
 pdcategory:
 
 arguments:
-- description:
-  type:
-  default:
 
 inlets:
   1st:
-  - type:
-    description:
+  - type: anything
+    description: fractional value to multiply to right input
   2nd:
-  - type:
-    description:
+  - type: anything
+    description: fractional value to multiply to leftt input
 
 outlets:
   1st:
-  - type:
-    description:
+  - type: symbol
+    description: multiplied fraction
 
 draft: false
 ---
 
-LONG DESCRIPTION HERE
+Use [frac.mul] to multiply two fractions. The output is also a fraction.
+

@@ -1,7 +1,7 @@
 ---
 title: frac2cents
 
-description:
+description: Fraction/cents conversion
 
 categories:
 - object
@@ -9,24 +9,19 @@ categories:
 pdcategory:
 
 arguments:
-- description:
-  type:
-  default:
 
 inlets:
   1st:
-  - type:
-    description:
-  2nd:
-  - type:
-    description:
+  - type: list
+    description: fractional value(s)
 
 outlets:
   1st:
-  - type:
-    description:
+  - type: list
+    description: converted cents value(s)
 
 draft: false
 ---
 
-LONG DESCRIPTION HERE
+Use [frac2cents] to convert a list of intervals defined as fraction symbols to cents.
+
