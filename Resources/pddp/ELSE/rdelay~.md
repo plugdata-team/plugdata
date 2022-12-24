@@ -1,32 +1,35 @@
 ---
 title: rdelay~
 
-description:
+description: Reverse delay 
 
 categories:
 - object
 
-pdcategory:
+pdcategory: General
 
 arguments:
-- description:
-  type:
-  default:
+- type: float
+  description: initial length
+  default: 1000 ms
 
 inlets:
   1st:
-  - type:
-    description:
-  2nd:
-  - type:
-    description:
+  - type: signal
+    description: signal input into the delay line
 
 outlets:
   1st:
-  - type:
-    description:
+  - type: signal
+    description: the feed forward delayed signal
+
+methods:
+  - type: resize <float>
+    description: changes the delay size
+  - type: clear
+    description: clears the delay buffer
 
 draft: false
 ---
 
-LONG DESCRIPTION HERE
+[rdelay~] is a reverse delay effect. It takes a size amount in ms to play backwards from a delay line (default 1000 ms).

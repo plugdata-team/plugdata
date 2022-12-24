@@ -23,18 +23,6 @@ inlets:
     description: stops the sequence
   - type: float
     description: non-0 starts, 0 stops sequence
-  - type: pause
-    description: pauses playing
-  - type: continue
-    description: continues playing
-  - type: show
-    description: opens edit window
-  - type: hind
-    description: closes edit window
-  - type: open <symbol>
-    description: import score from a file, no symbol opens dialog window
-  - type: save <symbol>
-    description: write score to file, no symbol opens dialog window
 
 outlets:
   1st:
@@ -49,6 +37,20 @@ outlets:
   4th:
   - type: bang
     description: when sequence is over
+
+methods:
+  - type: pause
+    description: pauses playing
+  - type: continue
+    description: continues playing
+  - type: show
+    description: opens edit window
+  - type: hind
+    description: closes edit window
+  - type: open <symbol>
+    description: import score from a file, no symbol opens dialog window
+  - type: save <symbol>
+    description: write score to file, no symbol opens dialog window
 
 draft: false
 ---

@@ -20,10 +20,6 @@ inlets:
     description: set bpm immediately
   - type: list
     description: two floats set target and amount of beats and three floats set start, target and number of beats
-  - type: set <list>
-    description: floats/lists precede by 'set' waits for a bang to trigger
-  - type: bang
-    description: triggers the object after a 'set' message
 
 outlets:
   1st:
@@ -32,6 +28,13 @@ outlets:
     2nd:
   - type: float
     description: total time in ms
+
+
+methods:
+  - type: set <list>
+    description: floats/lists precede by 'set' waits for a bang to trigger
+  - type: bang
+    description: triggers the object after a 'set' message
 
 draft: false
 ---

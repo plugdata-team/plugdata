@@ -20,8 +20,6 @@ inlets:
  1st:
   - type: float
     description: signal to analyze
-  - type: set <f,f>
-    description: sets window and hop size in samples
     
 outlets:
   1st:
@@ -30,6 +28,10 @@ outlets:
   2nd:
   - type: float
     description: peak amplitude value in dBFS
+
+methods: 
+  - type: set <f,f>
+    description: sets window and hop size in samples
 
 draft: false
 ---

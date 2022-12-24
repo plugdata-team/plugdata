@@ -19,12 +19,6 @@ inlets:
     description: gets element(s) from sequence
   - type: float
     description: sets index (from 1) and outputs it
-  - type: goto <f>
-    description: goes to a position index in the sequence (from 1) 
-  - type: set <list>
-    description: set a new sequence
-  - type: clear
-    description: clears sequence
   2nd:
   - type: list
     description: sets a new sequence
@@ -44,6 +38,14 @@ outlets:
   4th:
   - type: bang
     description: when reaching end of sequence
+
+methods:
+  - type: goto <f>
+    description: goes to a position index in the sequence (from 1) 
+  - type: set <list>
+    description: set a new sequence
+  - type: clear
+    description: clears sequence
 
 draft: false
 ---

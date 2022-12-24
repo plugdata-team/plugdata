@@ -26,16 +26,18 @@ inlets:
     description: input signal to route
   - type: float
     description: selected outlet (0 is none)
-  - type: time <float>
-    description: crossfade time in ms
     
 outlets:
   nth:
   - type: signal
     description: routed output
-  nth + 1:
+  2nd:
   - type: list
     description: reports output number and off status
+
+methods:
+  - name: -time <float>
+    description: crossfade time in ms
 
 draft: false
 ---

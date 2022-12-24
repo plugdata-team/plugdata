@@ -1,32 +1,37 @@
 ---
 title: rampnoise
 
-description:
+description: Control ramp noise
 
 categories:
 - object
 
-pdcategory:
+pdcategory: Noise
 
 arguments:
-- description:
-  type:
-  default:
+- type: float
+  description: frequency in Hz
+  default: 0
 
 inlets:
   1st:
-  - type:
-    description:
-  2nd:
-  - type:
-    description:
+  - type: float
+    description: frequency in Hz (max 100)
 
 outlets:
   1st:
-  - type:
-    description:
+  - type: float
+    description: ramp noise's waveform in the range from 0 - 127
+
+flags:
+  - name: -seed <float>
+    description: sets seed
+
+methods:
+  - type: seed <float>
+    description: a float sets seed, no float sets a unique internal
 
 draft: false
 ---
 
-LONG DESCRIPTION HERE
+[rampnoise] is a control rate ramp noise. It doesn't need the DSP on to function. Give it a seed value if you want a reproducible output.

@@ -22,6 +22,13 @@ inlets:
   1st:
   - type: bang
     description: get sample rate frequency or period
+
+outlets:
+  1st:
+  - type: float
+    description: sample rate frequency or period
+
+methods:
   - type: hz
     description: set and get the sample rate frequency in Hz
   - type: khz
@@ -30,11 +37,6 @@ inlets:
     description: set and get the sample rate period in ms
   - type: sec
     description: set and get the sample rate period in seconds
-
-outlets:
-  1st:
-  - type: float
-    description: sample rate frequency or period
 
 draft: false
 ---

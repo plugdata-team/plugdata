@@ -1,32 +1,32 @@
 ---
 title: rotate
 
-description:
+description: Rotate messages
 
 categories:
 - object
 
-pdcategory:
+pdcategory: List management
 
 arguments:
-- description:
-  type:
+- type: float
+  description: the rotation number
   default:
 
 inlets:
   1st:
-  - type:
-    description:
+  - type: anything
+    description: the incoming message/list
   2nd:
-  - type:
-    description:
+  - type: float
+    description: the rotation number
 
 outlets:
   1st:
-  - type:
-    description:
+  - type: anything
+    description: the rotated message/list
 
 draft: false
 ---
 
-LONG DESCRIPTION HERE
+[rotate] rotates messages/lists. A rotation number sets the offset. If it's positive, the list is shifted to the right. If negative, to the left.

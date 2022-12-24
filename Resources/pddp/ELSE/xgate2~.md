@@ -20,8 +20,6 @@ inlets:
   1st:
   - type: signal
     description: channel selection
-  - type: index <f>
-    description: <1> — indexed mode, <0> — non-indexed (default)
   2nd:
   - type: signal
     description: input channel to be routed
@@ -30,6 +28,10 @@ outlets:
   1st:
   - type: signal
     description: routed outputs with crossfade
+
+methods:
+  - name: -index <float>
+    description: <1> — indexed mode, <0> — non-indexed (default)
 
 draft: false
 ---

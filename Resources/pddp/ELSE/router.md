@@ -1,27 +1,35 @@
 ---
 title: router
-description:
+
+description: Route messages
+
 categories:
  - object
-pdcategory: General
+
+pdcategory: Message management
+
 arguments:
 - type: float
-  description:
-  default:
+  description: number of outlets (2 to 512)
+  default: 2
 - type: float
-  description:
-  default:
+  description: sets initially open outlet
+  default: 0
+
 inlets:
   1st:
-  - type: float
-    description:
+  - type: anything
+    description: message to send through a specified outlet
   2nd:
   - type: float
-    description:
+    description: - sets outlet number (0 is none)
+
 outlets:
-  1st:
+ nth:
   - type: anything
-    description:
-  2nd:
-  - type: anything
-    description:
+    description:  outlets for routing any received message
+
+draft: false
+---
+
+[router] routes a message from the left inlet to an outlet number specified by the float into the right inlet (if the number is out of range, the message is not output).

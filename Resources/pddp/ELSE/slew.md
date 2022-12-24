@@ -24,10 +24,7 @@ inlets:
   1st:
   - type: float
     description: values to be slew limited
-  - type: set <f>
-    description: sets new start point and goes back to target
-  - type: rate <f>
-    description: refresh rate in ms
+
   2nd:
   - type: float
     description: speed limit
@@ -36,6 +33,12 @@ outlets:
   1st:
   - type: float
     description: slew limited values
+
+methods:
+  - type: set <float>
+    description: sets new start point and goes back to target
+  - type: rate <float>
+    description: refresh rate in ms
 
 draft: false
 ---

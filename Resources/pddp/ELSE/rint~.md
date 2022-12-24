@@ -1,12 +1,26 @@
 ---
 title: rint~
-description:
+
+description: Round to nearest integer
+
 categories:
  - object
-pdcategory: General
-arguments:
-inlets:
+
+pdcategory: Math
+
+arguments: (none)
+
+inlets: 
+  1st:
+  - type: signal
+    description: input signal
+
 outlets:
   1st:
   - type: signal
-    description:
+    description: rounded integer signal
+
+draft: false
+---
+
+[rint~] takes a float input and rounds it to the nearest integer value.

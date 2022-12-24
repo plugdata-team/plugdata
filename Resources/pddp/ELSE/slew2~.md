@@ -20,8 +20,6 @@ inlets:
   1st:
   - type: float/signal
     description: values to be slew limited
-  - type: set <f>
-    description: sets new start point and goes back to target
   2nd:
   - type: float/signal
     description: speed limit upwards
@@ -33,6 +31,10 @@ outlets:
   1st:
   - type: float
     description: slew limited values
+
+methods:
+  - type: set <f>
+    description: sets new start point and goes back to target
 
 draft: false
 ---

@@ -18,12 +18,6 @@ arguments:
 
 inlets:
   1st:
-  - type: anything <symbol, f>
-    description: note name and its degree (optional, default 1)
-  - type: list <f, symbol>
-    description: degree start point and tonic
-  - type: scale <list>
-    description: sets scale
   - type: bang
     description: generates scale
   2nd:
@@ -40,6 +34,14 @@ outlets:
   3rd:
   - type: list
     description: scale as cents
+
+methods:
+  - type: anything <symbol, f>
+    description: note name and its degree (optional, default 1)
+  - type: list <f, symbol>
+    description: degree start point and tonic
+  - type: scale <list>
+    description: sets scale
 
 draft: false
 ---

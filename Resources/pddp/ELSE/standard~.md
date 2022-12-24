@@ -26,8 +26,6 @@ inlets:
   1st:
   - type: float/signal
     description: frequency in hertz (negative values accepted)
-  - type: k <f>
-    description: sets the value of k
   - type: list
     description: 2 floats set x[n-1] and y[n-1], respectively
 
@@ -35,6 +33,10 @@ outlets:
   1st:
   - type: signal
     description: standard map chaotic signal
+
+methods:
+  - type: k <float>
+    description: sets the value of k
 
 info: This object was based on SuperCollider's "StandardN" UGEN;
 The standard map is an area preserving map of a cylinder discovered by the plasma physicist Boris Chirikov.

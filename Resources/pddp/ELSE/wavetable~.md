@@ -23,8 +23,7 @@ inlets:
   1st:
   - type: float/signal
     description: sets frequency in hertz
-  - type: set <symbol>
-    description: sets an entire array to be used as a waveform
+
   2nd:
   - type: float/signal
     description: phase sync (resets internal phase)
@@ -36,6 +35,11 @@ outlets:
   1st:
   - type: signal
     description: a periodically repeating waveform
+
+methods: 
+  - type: set <symbol>
+    description: sets an entire array to be used as a waveform
+
 
 draft: false
 ---

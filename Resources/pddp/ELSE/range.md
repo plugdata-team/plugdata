@@ -1,32 +1,33 @@
 ---
 title: range
 
-description:
+description: Anylize range
 
 categories:
 - object
 
-pdcategory:
+pdcategory: General
 
-arguments:
-- description:
-  type:
-  default:
+arguments:(none)
 
 inlets:
   1st:
-  - type:
-    description:
-  2nd:
-  - type:
-    description:
+  - type: float/signal
+    description: input signal to analize
 
 outlets:
   1st:
-  - type:
-    description:
+  - type: signal
+    description: minimum range
+  2nd:
+  - type: signal
+    description: maximum range
+
+methods:
+  - type: reset
+    description: resets object
 
 draft: false
 ---
 
-LONG DESCRIPTION HERE
+[range~] analyxes a float input's range values.
