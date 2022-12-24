@@ -1,7 +1,7 @@
 ---
 title: freeze~
 
-description:
+description: Freeze
 
 categories:
 - object
@@ -9,24 +9,28 @@ categories:
 pdcategory:
 
 arguments:
-- description:
-  type:
-  default:
 
 inlets:
   1st:
-  - type:
-    description:
+  - type: signal
+    description: input to freeze
   2nd:
-  - type:
-    description:
+  - type: float
+    description: non-zero freezes (or refreezes), 0 unfreezes
 
 outlets:
   1st:
-  - type:
-    description:
+  - type: signal
+    description: freeze output
+
+methods:
+  - type: freeze
+    description: (re)freezes
+  - type: unfreeze
+    description: unfreezes
 
 draft: false
 ---
 
-LONG DESCRIPTION HERE
+[freeze~] is an abstraction based on [sigmund~] (analysis & ressynthesis). It contains a bank with oscillators.
+
