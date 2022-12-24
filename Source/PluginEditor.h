@@ -198,7 +198,8 @@ private:
 
     OwnedArray<TextButton> toolbarButtons;
 
-    SharedResourcePointer<TooltipWindow> tooltipWindow;
+    TooltipWindow tooltipWindow;
+    StackDropShadower tooltipShadow;
 
     TextButton seperators[8];
 

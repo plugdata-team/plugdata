@@ -39,6 +39,8 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     , pd(&p)
     , statusbar(&p)
     , sidebar(&p, this)
+    , tooltipWindow(this, 500)
+    , tooltipShadow(DropShadow(Colour(0, 0, 0).withAlpha(0.2f), 4, {0, 0}), Constants::defaultCornerRadius)
 {
     toolbarButtons = { new TextButton(Icons::Open), new TextButton(Icons::Save), new TextButton(Icons::SaveAs), new TextButton(Icons::Undo),
         new TextButton(Icons::Redo), new TextButton(Icons::Add), new TextButton(Icons::Settings), new TextButton(Icons::Hide), new TextButton(Icons::Pin) };
@@ -50,8 +52,10 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     setResizable(true, true);
 #endif
 
-    tooltipWindow->setOpaque(false);
-    tooltipWindow->setLookAndFeel(&pd->lnf.get());
+    tooltipWindow.setOpaque(false);
+    tooltipWindow.setLookAndFeel(&pd->lnf.get());
+    
+    tooltipShadow.setOwner(&tooltipWindow);
 
     addKeyListener(getKeyMappings());
 
