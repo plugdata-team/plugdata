@@ -1,12 +1,25 @@
 ---
 title: floor~
-description:
+description: Floor function
+
 categories:
  - object
+
 pdcategory: General
+
 arguments:
+
 inlets:
+  1st:
+  - type: signal
+    description: input to floor function
+
 outlets:
   1st:
   - type: signal
-    description:
+    description: output of floor function
+
+---
+
+[floor~] is a floor math function for signals.
+

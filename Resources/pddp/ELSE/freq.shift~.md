@@ -1,24 +1,35 @@
 ---
 title: freq.shift~
-description:
+description: Frequency shifter
+
 categories:
  - object
+
 pdcategory: General
+
 arguments:
 - type: float
-  description:
-  default:
+  description: the frequency shift value in hertz
+  default: 0
+
 inlets:
   1st:
   - type: signal
-    description:
+    description: signal to be shifted in frequency
   2nd:
-  - type: signal
-    description:
+  - type: float/signal
+    description: the requency shift value
+
 outlets:
   1st:
   - type: signal
-    description:
-  2nd:
-  - type: signal
-    description:
+    description: frequency shifted signal
+
+methods:
+  - type: clear
+    description: clears filter's memory
+
+---
+
+[freq.shift~] has two outputs, the left outlet is the frequency shifted signal and the right outlet is the signal shifted in the opposite direction.
+

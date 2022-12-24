@@ -1,7 +1,7 @@
 ---
 title: default
 
-description:
+description: Default message
 
 categories:
  - object

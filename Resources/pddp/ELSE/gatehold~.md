@@ -1,7 +1,7 @@
 ---
 title: gatehold~
 
-description:
+description: Hold gate values
 
 categories:
 - object
@@ -9,24 +9,25 @@ categories:
 pdcategory:
 
 arguments:
-- description:
-  type:
-  default:
+- description: hold time in ms
+  type: float
+  default: 0, no hold
 
 inlets:
   1st:
-  - type:
-    description:
+  - type: signal
+    description: impulse trigger with the gate value
   2nd:
-  - type:
-    description:
+  - type: float
+    description: hold time in ms
 
 outlets:
   1st:
-  - type:
-    description:
+  - type: signal
+    description: held gate
 
 draft: false
 ---
 
-LONG DESCRIPTION HERE
+[gatehold~] holds a gate value for a certain amount of time (specified in ms) after the gate has closed. If a new gate starts before the hold time is finished, the object is retriggered.
+
