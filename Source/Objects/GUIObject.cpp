@@ -151,8 +151,11 @@ void ObjectBase::closeOpenedSubpatchers()
         }
     }
 
-    MessageManager::callAsync([this, tabbar]() {
-        tabbar->setCurrentTabIndex(tabbar->getNumTabs() - 1, true);
+    MessageManager::callAsync([this, safeTabbar = SafePointer(tabbar)]() {
+        
+        if(!safeTabbar) return;
+        
+        safeTabbar->setCurrentTabIndex(safeTabbar->getNumTabs() - 1, true);
     });
 }
 

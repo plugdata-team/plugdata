@@ -5,7 +5,7 @@ categories:
 - object
 see_also:
 - hilbert~
-pdcategory: xtra
+pdcategory: Extra
 last_update: '0.52'
 inlets:
   1st:
