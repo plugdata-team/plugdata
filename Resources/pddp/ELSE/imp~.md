@@ -1,5 +1,5 @@
 ---
-title: impulse~
+title: imp~
 description: Impulse oscillator
 
 categories:

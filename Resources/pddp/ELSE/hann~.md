@@ -1,7 +1,7 @@
 ---
 title: hann~
 
-description:
+description: Hann window
 
 categories:
 - object
@@ -9,24 +9,19 @@ categories:
 pdcategory:
 
 arguments:
-- description:
-  type:
-  default:
 
 inlets:
   1st:
-  - type:
-    description:
-  2nd:
-  - type:
-    description:
+  - type: signal
+    description: input to hann window
 
 outlets:
   1st:
-  - type:
-    description:
+  - type: signal
+    description: output of hann window
 
 draft: false
 ---
 
-LONG DESCRIPTION HERE
+[hann~] is an abstraction that applies a hann window into a signal input. the window size is the same as the block size. This is meant for FFT analysis.
+
