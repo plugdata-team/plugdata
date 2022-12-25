@@ -1,7 +1,7 @@
 ---
 title: lfnoise
 
-description:
+description: Control low frequency noise
 
 categories:
 - object
@@ -9,24 +9,38 @@ categories:
 pdcategory:
 
 arguments:
-- description:
-  type:
-  default:
+- description: frequency in hertz
+  type: float
+  default: 0
+- description: interrpolation off (0) or on (1)
+  type: float
+  default: 0
 
 inlets:
   1st:
-  - type:
-    description:
+  - type: float
+    description: frequency in hertz up to 100 (negative values accepted)
   2nd:
-  - type:
-    description:
+  - type: bang
+    description: reset to a new random value
 
 outlets:
   1st:
-  - type:
-    description:
+  - type: float
+    description: low frequency noise output in the range from 0 - 127
+
+flags:
+  - name: -seed <float>
+    description: sets seed (default: unique internal)
+
+methods:
+  - type: interp <float>
+    description: non zero sets to linear interpolation
+  - type: seed <float>
+    description: a float sets seed, no float sets a unique internal
 
 draft: false
 ---
 
-LONG DESCRIPTION HERE
+[lfnoise] is a control rate Low Frequency Noise that outputs random values. It doesn't need the DSP on to function. Give it a seed value if you want a reproducible output.
+

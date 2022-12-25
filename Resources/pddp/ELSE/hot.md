@@ -1,24 +1,34 @@
 ---
 title: hot
-description:
+description: Make all inputs hot
+
 categories:
  - object
+
 pdcategory: General
+
 arguments:
 - type: float
-  description:
-  default:
+  description: sets 'n' number of inlets/outlets (max 128)
+  default: 2
+
 inlets:
-  1st:
-  - type: ?
-    description:
-  2nd:
-  - type: ?
-    description:
+  nth:
+  - type: bang
+    description: outputs last stored values
+  - type: anything
+    description: any messages go to the corresponding outlet
+
 outlets:
-  1st:
+  nth:
   - type: anything
-    description:
-  2nd:
-  - type: anything
-    description:
+    description: messages from corresponding input
+
+methods:
+  - type: set <anything>
+    description: set any input message without output
+
+---
+
+[hot] outputs messages when any inlet gets a message, making them all hot. Output is from right to left.
+

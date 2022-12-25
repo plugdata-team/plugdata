@@ -1,7 +1,7 @@
 ---
 title: lin2db~
 
-description:
+description: Convert linear amplitude to dBFS
 
 categories:
 - object
@@ -9,24 +9,19 @@ categories:
 pdcategory:
 
 arguments:
-- description:
-  type:
-  default:
 
 inlets:
   1st:
-  - type:
-    description:
-  2nd:
-  - type:
-    description:
+  - type: signal
+    description: linear amplitude value
 
 outlets:
   1st:
-  - type:
-    description:
+  - type: signal
+    description: converted dBFS amplitude value
 
 draft: false
 ---
 
-LONG DESCRIPTION HERE
+[lin2db~] is a simple abstraction that converts amplitude values from linear to a deciBel Full Scale (dBFS). Conversion expression: dbFS = log10(amp) * 20, see the implementation inside the abstraction.
+

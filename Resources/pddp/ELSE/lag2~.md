@@ -1,27 +1,41 @@
 ---
 title: lag2~
-description:
+description: non-linear lag
+
 categories:
  - object
+
 pdcategory: General
+
 arguments:
 - type: float
-  description:
-  default:
+  description: lag uptime in ms
+  default: 0
 - type: float
-  description:
-  default:
+  description: lag downtime in ms
+  default: 0
+
 inlets:
   1st:
-  - type: signal
-    description:
+  - type: float/signal
+    description: input signal
   2nd:
-  - type: signal
-    description:
+  - type: float/signal
+    description: lag uptime in ms
   3rd:
-  - type: signal
-    description:
+  - type: float/signal
+    description: lag downtime in ms
+
 outlets:
   1st:
   - type: signal
-    description:
+    description: lagged signal
+
+methods:
+  - type: reset
+    description: resets the filter
+
+---
+
+[lag2~] is like [lag~] but has a different time for ramp up and ramp down. The lag time in ms is how long it takes for the signal to converge to within 0.01% of the target value. Note that the rising ramp is different than the descending ramp, unlike [glide2~].
+

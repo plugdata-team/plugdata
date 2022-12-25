@@ -1,27 +1,49 @@
 ---
 title: highshelf~
-description:
+description: Highshelf filter
+
 categories:
  - object
+
 pdcategory: General
+
 arguments:
-- type: gimme
-  description:
-  default:
+- type: float
+  description: shelving frequency in Hertz
+  default: 0
+- type: float
+  description: slope from 0 to 1
+  default: 0
+- type: float
+  description: gain in dB
+  default: 0
+
 inlets:
   1st:
   - type: signal
-    description:
+    description: signal to be filtered
   2nd:
-  - type: signal
-    description:
+  - type: float/signal
+    description: shelving frequency in Hertz
   3rd:
-  - type: signal
-    description:
+  - type: float/signal
+    description: slope (from 0 to 1)
   4th:
-  - type: signal
-    description:
+  - type: float/signal
+    description: gain in dB
+
 outlets:
   1st:
   - type: signal
-    description:
+    description: filtered signal
+
+methods:
+  - type: clear
+    description: clears filter's memory if you blow it up
+  - type: bypass <float>
+    description: 1 (bypasses input signal) or 0 (doesn't bypass)
+
+---
+
+[highshelf~] is a 2nd order highshelf filter.
+
