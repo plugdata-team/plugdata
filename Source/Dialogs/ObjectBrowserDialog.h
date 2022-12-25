@@ -51,7 +51,7 @@ struct CategoriesListBox : public ListBox
     {
         categories = newCategories;
         updateContent();
-        
+
         selectRow(0, true, true);
     }
 
@@ -115,7 +115,7 @@ struct ObjectsListBox : public ListBox
     {
         objects = objectsToShow;
         updateContent();
-        
+
         selectRow(0, true, true);
     }
 
@@ -134,14 +134,15 @@ struct ObjectViewer : public Component {
         addChildComponent(createObject);
 
         createObject.onClick = [this, editor]() {
-            MessageManager::callAsync([_this = SafePointer(this), editor, cnv = SafePointer(editor->getCurrentCanvas())](){
-                if(!cnv || !_this) return;
-                
+            MessageManager::callAsync([_this = SafePointer(this), editor, cnv = SafePointer(editor->getCurrentCanvas())]() {
+                if (!cnv || !_this)
+                    return;
+
                 auto lastPosition = cnv->viewport->getViewArea().getConstrainedPoint(cnv->lastMousePosition - Point<int>(Object::margin, Object::margin));
-                
+
                 cnv->attachNextObjectToMouse = true;
                 cnv->objects.add(new Object(cnv, _this->objectName, lastPosition));
-                
+
                 // Closes this dialog
                 editor->openedDialog.reset(nullptr);
             });
@@ -150,12 +151,11 @@ struct ObjectViewer : public Component {
         openReference.onClick = [this]() {
             reference.showObject(objectName);
         };
-        
-        
+
         openHelp.onClick = [this, editor]() {
-        
+
         };
-        
+
         openHelp.setVisible(false);
 
         Array<TextButton*> buttons = { &openHelp, &openReference, &createObject };
@@ -300,7 +300,7 @@ struct ObjectViewer : public Component {
     {
         bool valid = name.isNotEmpty();
         createObject.setVisible(valid);
-        //openHelp.setVisible(valid);
+        // openHelp.setVisible(valid);
         openReference.setVisible(valid);
 
         if (!valid) {
@@ -577,7 +577,7 @@ public:
 
         if (listBox.getSelectedRow() == -1)
             listBox.selectRow(0, true, true);
-        
+
         selectedRowsChanged(listBox.getSelectedRow());
     }
 

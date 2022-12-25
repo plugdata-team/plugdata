@@ -206,7 +206,7 @@ void Dialogs::showObjectReferenceDialog(std::unique_ptr<Dialog>* target, Compone
     auto* dialogContent = new ObjectReferenceDialog(dynamic_cast<PluginEditor*>(parent), false);
 
     dialogContent->showObject(objectName);
-    
+
     dialog->setViewedComponent(dialogContent);
     target->reset(dialog);
 }

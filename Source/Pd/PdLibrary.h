@@ -83,7 +83,6 @@ struct Library : public FileSystemWatcher::Listener {
 
     void fsChangeCallback() override;
 
-    File findHelpfile(String objectName);
     File findHelpfile(t_object* obj);
 
     std::vector<File> helpPaths;
