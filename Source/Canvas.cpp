@@ -399,7 +399,7 @@ void Canvas::mouseDown(MouseEvent const& e)
         popupMenu.addItem(11, "Reference", object != nullptr);
         popupMenu.addSeparator();
         popupMenu.addItem(12, "Properties", originalComponent == this || (object && !params.empty()));
-//showObjectReferenceDialog
+        // showObjectReferenceDialog
         auto callback = [this, object, originalComponent, params](int result) mutable {
             popupMenu.clear();
 

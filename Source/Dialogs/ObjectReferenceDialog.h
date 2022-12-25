@@ -12,18 +12,18 @@ struct ObjectReferenceDialog : public Component {
     {
         // We only need to respond to explicit repaints anyway!
         setBufferedToImage(true);
-        
-        if(showBackButton) {
+
+        if (showBackButton) {
             addAndMakeVisible(backButton);
         }
-        
-        backButton.onClick = [this](){
+
+        backButton.onClick = [this]() {
             setVisible(false);
         };
-        
+
         backButton.setColour(TextButton::buttonColourId, Colours::transparentBlack);
         backButton.setColour(TextButton::buttonOnColourId, Colours::transparentBlack);
-        
+
         addAndMakeVisible(rightSideInfo);
         rightSideInfo.setReadOnly(true);
         rightSideInfo.setMultiLine(true);
@@ -34,13 +34,13 @@ struct ObjectReferenceDialog : public Component {
     void resized() override
     {
         backButton.setBounds(10, 10, 60, 23);
-        
+
         auto buttonBounds = getLocalBounds().removeFromBottom(80).reduced(30, 0).translated(0, -30);
         buttonBounds.removeFromTop(10);
-        
+
         auto rightPanelBounds = getLocalBounds().withTrimmedLeft(getLocalBounds().proportionOfWidth(0.4f));
         rightPanelBounds = rightPanelBounds.withTrimmedTop(20).withTrimmedBottom(20).reduced(20);
-        
+
         rightSideInfo.setBounds(rightPanelBounds);
     }
 
@@ -50,7 +50,7 @@ struct ObjectReferenceDialog : public Component {
         g.fillRoundedRectangle(getLocalBounds().reduced(1).toFloat(), Constants::windowCornerRadius);
 
         auto const font = Font(15.0f);
-        
+
         if (objectName.isEmpty())
             return;
 
@@ -160,7 +160,6 @@ struct ObjectReferenceDialog : public Component {
 
             g.setColour(findColour(PlugDataColour::objectOutlineColourId));
             g.drawEllipse(outletBounds.toFloat(), 1.0f);
-            
         }
     }
 
@@ -222,48 +221,47 @@ struct ObjectReferenceDialog : public Component {
         }
 
         setVisible(true);
-        
-        
-        
+
         String rightSideInfoText;
-        
+
         auto arguments = library.getArguments()[name];
-        
-        if(arguments.size()) rightSideInfoText += "Arguments:";
-        
+
+        if (arguments.size())
+            rightSideInfoText += "Arguments:";
+
         int numArgs = 1;
-        
-        for(auto [type, description, defaultValue] : arguments)
-        {
+
+        for (auto [type, description, defaultValue] : arguments) {
             rightSideInfoText += "\n" + String(numArgs) + ": ";
             rightSideInfoText += type.isNotEmpty() ? "(" + type + ") " : "";
             rightSideInfoText += description;
             rightSideInfoText += defaultValue.isNotEmpty() && !description.contains("(default") ? " (default: " + defaultValue + ")" : "";
-            
+
             numArgs++;
         }
-        
-        if(inletDescriptions.size()) rightSideInfoText += "\n\nInlets:";
-        
+
+        if (inletDescriptions.size())
+            rightSideInfoText += "\n\nInlets:";
+
         int numIn = 1;
-        for(auto [description, type] : inletDescriptions) {
+        for (auto [description, type] : inletDescriptions) {
             description = description.replace("\n", "\n      ");
             rightSideInfoText += "\n" + String(numIn) + ":\n    " + description;
-            
+
             numIn++;
         }
-        
-        
-        if(outletDescriptions.size()) rightSideInfoText += "\n\nOutlets:";
-        
+
+        if (outletDescriptions.size())
+            rightSideInfoText += "\n\nOutlets:";
+
         int numOut = 1;
-        for(auto [description, type] : outletDescriptions) {
+        for (auto [description, type] : outletDescriptions) {
             description = description.replace("\n", "\n    ");
             rightSideInfoText += "\n" + String(numOut) + ":\n    " + description;
-            
+
             numOut++;
         }
-        
+
         rightSideInfo.setText(rightSideInfoText);
     }
 
@@ -273,15 +271,14 @@ struct ObjectReferenceDialog : public Component {
     String objectName;
     std::vector<bool> inlets;
     std::vector<bool> outlets;
-    
+
     Array<std::pair<String, bool>> inletDescriptions;
     Array<std::pair<String, bool>> outletDescriptions;
 
-    
     TextEditor rightSideInfo;
-    
+
     TextButton backButton = TextButton("Back");
-    
+
     String category;
     String description;
 
