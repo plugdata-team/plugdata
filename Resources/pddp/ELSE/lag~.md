@@ -1,21 +1,35 @@
 ---
 title: lag~
-description:
+description: non-linear lag
+
 categories:
  - object
+
 pdcategory: General
+
 arguments:
 - type: float
-  description:
-  default:
+  description: lag time in ms
+  default: 0
+
 inlets:
   1st:
-  - type: signal
-    description:
+  - type: float/signal
+    description: input signal
   2nd:
-  - type: signal
-    description:
+  - type: float/signal
+    description: lag time in ms
+
 outlets:
   1st:
   - type: signal
-    description:
+    description: lagged signal
+
+methods:
+  - type: reset
+    description: resets the filter
+
+---
+
+[lag~] is a one pole filter that creates an exponential glide/portamento for its signal input changes. The lag time in ms is how long it takes for the signal to converge to within 0.01% of the target value. Note that the rising ramp is different than the descending ramp, unlike [glide~]. the same kind of filter is used in other objects from the ELSE library (decay~/asr~/adsr~).
+

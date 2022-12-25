@@ -1,7 +1,7 @@
 ---
 title: interpolate
 
-description:
+description: Interpolate between values
 
 categories:
 - object
@@ -9,24 +9,37 @@ categories:
 pdcategory:
 
 arguments:
-- description:
-  type:
-  default:
+- description: sets start value(s)
+  type: list
+  default: 0
 
 inlets:
   1st:
-  - type:
-    description:
+  - type: float
+    description: interpolation value between 0 and 1
   2nd:
-  - type:
-    description:
+  - type: list
+    description: sets target values
 
 outlets:
   1st:
-  - type:
-    description:
+  - type: list
+    description: interpolated values
+
+flags:
+  - name: -exp <float>
+    description: sets exponential factor (default 1)
+
+methods:
+  - type: start <list>
+    description: set start value(s)
+  - type: target <list>
+    description: set target value(s)
+  - type: exp <float>
+    description: sets exponential factor
 
 draft: false
 ---
 
-LONG DESCRIPTION HERE
+[interpolate] allows you to use a GUI like a slider (or a MIDI controller) to interpolate between values. Whenever you change the target, you can interpolate to it by moving the slider to the opposite end.
+
