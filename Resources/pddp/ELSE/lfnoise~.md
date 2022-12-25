@@ -1,21 +1,44 @@
 ---
 title: lfnoise~
-description:
+description: Low frequency noise
+
 categories:
  - object
+
 pdcategory: General
+
 arguments:
-- type: gimme
-  description:
-  default:
+- type: float
+  description: frequency in hertz
+  default: 0
+- type: float
+  description: interpolation 0 (off) or 1 (on)
+  default: 0
+
 inlets:
   1st:
-  - type: signal
-    description:
+  - type: float/signal
+    description: frequency input in hertz
   2nd:
   - type: signal
-    description:
+    description: impulse forces a new random value
+
 outlets:
   1st:
   - type: signal
-    description:
+    description: impulse forces a new random value
+
+flags:
+  - name: -seed <float>
+    description: sets seed (default: unique internal)
+
+methods:
+  - type: interp <float>
+    description: interpolation 0 (off, default) or 1 (on)
+  - type: seed <float>
+    description: a float sets seed, no float sets a unique internal
+
+---
+
+[lfnoise~] is a low frequency (band limited) noise with or without interpolation. It generates random values (between -1 and 1) at a rate in hertz (negative frequencies accepted). It also has a 'sync' inlet that forces the object to generate a new random value when receiving an impulse. Use the seed message if you want a reproducible output.
+
