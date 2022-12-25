@@ -29,11 +29,13 @@ struct ObjectReferenceDialog : public Component {
         rightSideInfo.setMultiLine(true);
         rightSideInfo.setColour(TextEditor::outlineColourId, Colours::transparentBlack);
         rightSideInfo.setFont(Font(15.0f));
+        
+        backButton.setName("toolbar:backbutton");
     }
 
     void resized() override
     {
-        backButton.setBounds(10, 10, 60, 23);
+        backButton.setBounds(2, 0, 55, 55);
 
         auto buttonBounds = getLocalBounds().removeFromBottom(80).reduced(30, 0).translated(0, -30);
         buttonBounds.removeFromTop(10);
@@ -277,7 +279,7 @@ struct ObjectReferenceDialog : public Component {
 
     TextEditor rightSideInfo;
 
-    TextButton backButton = TextButton("Back");
+    TextButton backButton = TextButton(Icons::Back);
 
     String category;
     String description;
