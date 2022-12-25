@@ -55,8 +55,6 @@ public:
     void selectObject(void*);
     void deselectAll();
 
-    void setZoom(int zoom);
-
     void copy();
     void paste();
     void duplicate();
@@ -118,8 +116,6 @@ public:
     int getIndex(void* obj);
 
     static t_object* checkObject(void* obj);
-
-    void keyPress(int keycode, int shift);
 
     String getTitle() const;
     void setTitle(String const& title);

@@ -722,12 +722,11 @@ bool isWindowOnCurrentVirtualDesktop(void* x);
 
 class StackDropShadower : private ComponentListener {
 public:
-    
-    
     //==============================================================================
     /** Creates a DropShadower. */
     StackDropShadower(DropShadow const& shadowType, int cornerRadius = 0)
-        : shadow(shadowType), shadowCornerRadius(cornerRadius)
+        : shadow(shadowType)
+        , shadowCornerRadius(cornerRadius)
     {
     }
 
@@ -908,7 +907,7 @@ private:
 
             if (comp->isOnDesktop()) {
 #if JUCE_WINDOWS
-                const auto scope = [&]() -> std::unique_ptr<ScopedThreadDPIAwarenessSetter> {
+                auto const scope = [&]() -> std::unique_ptr<ScopedThreadDPIAwarenessSetter> {
                     if (comp != nullptr)
                         if (auto* handle = comp->getWindowHandle())
                             return std::make_unique<ScopedThreadDPIAwarenessSetter>(handle);
@@ -934,12 +933,10 @@ private:
 
                 auto radius = c->isActiveWindow() ? shadow.radius * 2.0f : shadow.radius * 1.5f;
                 StackShadow::renderDropShadow(g, shadowPath, shadow.colour, radius, shadow.offset);
-            }
-            else {
+            } else {
                 auto shadowPath = Path();
                 shadowPath.addRoundedRectangle(getLocalArea(target, target->getLocalBounds()).toFloat(), shadowCornerRadius);
                 StackShadow::renderDropShadow(g, shadowPath, shadow.colour, shadow.radius, shadow.offset);
-                
             }
         }
 
@@ -959,7 +956,7 @@ private:
     private:
         WeakReference<Component> target;
         DropShadow shadow;
-        
+
         int shadowCornerRadius;
 
         JUCE_DECLARE_NON_COPYABLE(ShadowWindow)
@@ -1010,7 +1007,7 @@ private:
         //==============================================================================
         void update()
         {
-            const auto newHasReasonToHide = [this]() {
+            auto const newHasReasonToHide = [this]() {
                 if (!component.wasObjectDeleted() && isWindows && component->isOnDesktop()) {
                     startTimerHz(5);
                     return !isWindowOnCurrentVirtualDesktop(component->getWindowHandle());
@@ -1085,7 +1082,7 @@ private:
 
         void updateParentHierarchy()
         {
-            const auto lastSeenComponents = std::exchange(observedComponents, [&] {
+            auto const lastSeenComponents = std::exchange(observedComponents, [&] {
                 std::set<ComponentWithWeakReference> result;
 
                 for (auto node = root; node != nullptr; node = node->getParentComponent())
@@ -1094,7 +1091,7 @@ private:
                 return result;
             }());
 
-            const auto withDifference = [](const auto& rangeA, const auto& rangeB, auto&& callback) {
+            auto const withDifference = [](auto const& rangeA, auto const& rangeB, auto&& callback) {
                 std::vector<ComponentWithWeakReference> result;
                 std::set_difference(rangeA.begin(), rangeA.end(), rangeB.begin(), rangeB.end(), std::back_inserter(result));
 
@@ -1120,7 +1117,7 @@ private:
     DropShadow shadow;
     bool reentrant = false;
     WeakReference<Component> lastParentComp;
-    
+
     int shadowCornerRadius;
 
     std::unique_ptr<ParentVisibilityChangedListener> visibilityChangedListener;

@@ -65,7 +65,7 @@ struct SimpleDeviceManagerInputLevelMeter : public Component
 
 static void drawTextLayout(Graphics& g, Component& owner, StringRef text, Rectangle<int> const& textBounds, bool enabled)
 {
-    const auto textColour = owner.findColour(ListBox::textColourId, true).withMultipliedAlpha(enabled ? 1.0f : 0.6f);
+    auto const textColour = owner.findColour(ListBox::textColourId, true).withMultipliedAlpha(enabled ? 1.0f : 0.6f);
 
     AttributedString attributedString { text };
     attributedString.setColour(textColour);
@@ -842,14 +842,14 @@ private:
                 sampleRateDropDown->onChange = nullptr;
             }
 
-            const auto getFrequencyString = [](int rate) { return String(rate) + " Hz"; };
+            auto const getFrequencyString = [](int rate) { return String(rate) + " Hz"; };
 
             for (auto rate : currentDevice->getAvailableSampleRates()) {
-                const auto intRate = roundToInt(rate);
+                auto const intRate = roundToInt(rate);
                 sampleRateDropDown->addItem(getFrequencyString(intRate), intRate);
             }
 
-            const auto intRate = roundToInt(currentDevice->getCurrentSampleRate());
+            auto const intRate = roundToInt(currentDevice->getCurrentSampleRate());
             sampleRateDropDown->setText(getFrequencyString(intRate), dontSendNotification);
 
             sampleRateDropDown->onChange = [this] { updateConfig(false, false, true, false); };

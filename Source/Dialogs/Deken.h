@@ -609,36 +609,36 @@ public:
         auto& allPackages = packageManager->allPackages;
 
         // First check for name match
-        for (const auto& result : allPackages) {
+        for (auto const& result : allPackages) {
             if (result.name.contains(query)) {
                 newResult.addIfNotAlreadyThere(result);
             }
         }
 
         // Then check for description match
-        for (const auto& result : allPackages) {
+        for (auto const& result : allPackages) {
             if (result.description.contains(query)) {
                 newResult.addIfNotAlreadyThere(result);
             }
         }
 
         // Then check for object match
-        for (const auto& result : allPackages) {
+        for (auto const& result : allPackages) {
             if (result.objects.contains(query)) {
                 newResult.addIfNotAlreadyThere(result);
             }
         }
 
         // Then check for author match
-        for (const auto& result : allPackages) {
+        for (auto const& result : allPackages) {
             if (result.author.contains(query)) {
                 newResult.addIfNotAlreadyThere(result);
             }
         }
 
         // Then check for object close match
-        for (const auto& result : allPackages) {
-            for (const auto& obj : result.objects) {
+        for (auto const& result : allPackages) {
+            for (auto const& obj : result.objects) {
                 if (obj.contains(query)) {
                     newResult.addIfNotAlreadyThere(result);
                 }

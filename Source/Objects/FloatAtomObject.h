@@ -116,13 +116,13 @@ struct FloatAtomObject final : public AtomObject {
 
     float getMinimum()
     {
-        const auto* gatom = static_cast<t_fake_gatom const*>(ptr);
+        auto const* gatom = static_cast<t_fake_gatom const*>(ptr);
         return gatom->a_draglo;
     }
 
     float getMaximum()
     {
-        const auto* gatom = static_cast<t_fake_gatom const*>(ptr);
+        auto const* gatom = static_cast<t_fake_gatom const*>(ptr);
         return gatom->a_draghi;
     }
 

@@ -396,9 +396,10 @@ void Canvas::mouseDown(MouseEvent const& e)
         popupMenu.addItem(9, "To Back", object != nullptr);
         popupMenu.addSeparator();
         popupMenu.addItem(10, "Help", object != nullptr);
+        popupMenu.addItem(11, "Reference", object != nullptr);
         popupMenu.addSeparator();
-        popupMenu.addItem(11, "Properties", originalComponent == this || (object && !params.empty()));
-
+        popupMenu.addItem(12, "Properties", originalComponent == this || (object && !params.empty()));
+//showObjectReferenceDialog
         auto callback = [this, object, originalComponent, params](int result) mutable {
             popupMenu.clear();
 
@@ -427,7 +428,10 @@ void Canvas::mouseDown(MouseEvent const& e)
             case 10: // Open help
                 object->openHelpPatch();
                 break;
-            case 11:
+            case 11: // Open reference
+                Dialogs::showObjectReferenceDialog(&editor->openedDialog, editor, object->gui->getType());
+                break;
+            case 12:
                 if (originalComponent == this) {
                     // Open help
                     editor->sidebar.showParameters("canvas", parameters);
@@ -490,7 +494,7 @@ void Canvas::mouseDrag(MouseEvent const& e)
 
     if (viewport) {
         auto viewportEvent = e.getEventRelativeTo(viewport);
-        const auto scrollSpeed = 8.5f;
+        auto const scrollSpeed = 8.5f;
 
         // Middle mouse pan
         if (e.mods.isMiddleButtonDown() && !draggingLabel) {
@@ -654,9 +658,6 @@ bool Canvas::keyPressed(KeyPress const& key)
     if (keycode == KeyPress::backspaceKey || keycode == KeyPress::pageUpKey || keycode == KeyPress::pageDownKey || keycode == KeyPress::homeKey || keycode == KeyPress::escapeKey || keycode == KeyPress::deleteKey || keycode == KeyPress::returnKey || keycode == KeyPress::tabKey) {
         return false;
     }
-
-    // patch.keyPress(keycode, key.getModifiers().isShiftDown());
-
     return false;
 }
 

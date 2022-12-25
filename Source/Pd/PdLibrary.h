@@ -15,7 +15,7 @@
 
 namespace pd {
 
-using IODescription = juce::Array<std::pair<String, bool>>;
+using IODescription = Array<std::pair<String, bool>>;
 using IODescriptionMap = std::unordered_map<String, IODescription>;
 
 using Suggestion = std::pair<String, bool>;
@@ -83,7 +83,8 @@ struct Library : public FileSystemWatcher::Listener {
 
     void fsChangeCallback() override;
 
-    File findHelpfile(t_canvas* cnv, t_object* obj);
+    File findHelpfile(String objectName);
+    File findHelpfile(t_object* obj);
 
     std::vector<File> helpPaths;
 

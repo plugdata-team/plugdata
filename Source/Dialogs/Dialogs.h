@@ -133,6 +133,7 @@ struct Dialogs {
     static void showHeavyExportDialog(std::unique_ptr<Dialog>* target, Component* parent);
 
     static void showObjectBrowserDialog(std::unique_ptr<Dialog>* target, Component* parent);
+    static void showObjectReferenceDialog(std::unique_ptr<Dialog>* target, Component* parent, String objectName);
 };
 
 struct DekenInterface {

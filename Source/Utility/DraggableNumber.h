@@ -121,7 +121,7 @@ struct DraggableNumber : public Label {
         shift = e.mods.isShiftDown();
         dragValue = getText().getFloatValue();
 
-        const auto textArea = getBorderSize().subtractedFrom(getLocalBounds());
+        auto const textArea = getBorderSize().subtractedFrom(getLocalBounds());
 
         GlyphArrangement glyphs;
         glyphs.addFittedText(getFont(), formatNumber(dragValue), textArea.getX(), 0., textArea.getWidth(), getHeight(), Justification::centredLeft, 1, getMinimumHorizontalScale());
@@ -134,7 +134,7 @@ struct DraggableNumber : public Label {
 
         float decimalX = getWidth();
         for (int i = 0; i < glyphs.getNumGlyphs(); ++i) {
-            const auto& glyph = glyphs.getGlyph(i);
+            auto const& glyph = glyphs.getGlyph(i);
             if (glyph.getCharacter() == '.') {
                 decimalX = glyph.getRight();
             }
@@ -151,7 +151,7 @@ struct DraggableNumber : public Label {
             decimalsGlyph.addFittedText(getFont(), decimalStr, decimalX, 0, getWidth(), getHeight(), Justification::centredLeft, 1, getMinimumHorizontalScale());
 
             for (int i = 0; i < decimalsGlyph.getNumGlyphs(); ++i) {
-                const auto& glyph = decimalsGlyph.getGlyph(i);
+                auto const& glyph = decimalsGlyph.getGlyph(i);
                 if (e.x <= glyph.getRight()) {
                     decimalDrag = i + 1;
                     break;
@@ -262,7 +262,7 @@ struct DraggableListNumber : public DraggableNumber {
 
         shift = e.mods.isShiftDown();
 
-        const auto textArea = getBorderSize().subtractedFrom(getBounds());
+        auto const textArea = getBorderSize().subtractedFrom(getBounds());
 
         GlyphArrangement glyphs;
         glyphs.addFittedText(getFont(), getText(), textArea.getX(), 0., textArea.getWidth(), textArea.getHeight(), Justification::centredLeft, 1, getMinimumHorizontalScale());
@@ -271,7 +271,7 @@ struct DraggableListNumber : public DraggableNumber {
         targetFound = false;
         // Loop to find start of item
         for (int i = 0; i < glyphs.getNumGlyphs(); i++) {
-            const auto& startGlyph = glyphs.getGlyph(i);
+            auto const& startGlyph = glyphs.getGlyph(i);
 
             // Don't start at whitespace
             if (startGlyph.isWhitespace())
@@ -279,7 +279,7 @@ struct DraggableListNumber : public DraggableNumber {
 
             // Loop from start to find end of item
             for (int j = i; j < glyphs.getNumGlyphs(); j++) {
-                const auto& endGlyph = glyphs.getGlyph(j);
+                auto const& endGlyph = glyphs.getGlyph(j);
 
                 // End of item when we find whitespace or end of message
                 if (endGlyph.isWhitespace() || j == glyphs.getNumGlyphs() - 1) {

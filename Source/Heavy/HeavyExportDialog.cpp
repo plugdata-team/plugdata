@@ -118,7 +118,7 @@ public:
                 g.fillRoundedRectangle(5, 3, width - 10, height - 6, Constants::smallCornerRadius);
             }
 
-            const auto textColour = findColour(rowIsSelected ? PlugDataColour::sidebarActiveTextColourId : PlugDataColour::sidebarTextColourId);
+            auto const textColour = findColour(rowIsSelected ? PlugDataColour::sidebarActiveTextColourId : PlugDataColour::sidebarTextColourId);
             g.setColour(textColour);
             g.setFont(15);
             g.drawText(items[row], Rectangle<int>(15, 0, width - 30, height), Justification::centredLeft);
@@ -146,11 +146,11 @@ HeavyExportDialog::HeavyExportDialog(Dialog* dialog)
 
     // Create integer versions by removing the dots
     // Compare latest version on github to the currently installed version
-    const auto latestVersion = URL("https://raw.githubusercontent.com/plugdata-team/plugdata-heavy-toolchain/main/VERSION").readEntireTextStream().trim().removeCharacters(".").getIntValue();
+    auto const latestVersion = URL("https://raw.githubusercontent.com/plugdata-team/plugdata-heavy-toolchain/main/VERSION").readEntireTextStream().trim().removeCharacters(".").getIntValue();
 
     // Don't do this relative to toolchain variable, that won't work on Windows
-    const auto versionFile = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory).getChildFile("plugdata").getChildFile("Toolchain").getChildFile("VERSION");
-    const auto installedVersion = versionFile.loadFileAsString().trim().removeCharacters(".").getIntValue();
+    auto const versionFile = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory).getChildFile("plugdata").getChildFile("Toolchain").getChildFile("VERSION");
+    auto const installedVersion = versionFile.loadFileAsString().trim().removeCharacters(".").getIntValue();
 
     if (hasToolchain && latestVersion > installedVersion) {
         installer->needsUpdate = true;

@@ -253,7 +253,7 @@ struct IEMObject : public GUIObject {
             int fontHeight = getFontHeight();
             int labelLength = Font(fontHeight).getStringWidth(getExpandedLabelText());
 
-            const auto* iemgui = static_cast<t_iemgui*>(ptr);
+            auto const* iemgui = static_cast<t_iemgui*>(ptr);
             int const posx = objectBounds.getX() + iemgui->x_ldx;
             int const posy = objectBounds.getY() + iemgui->x_ldy;
 
@@ -306,7 +306,7 @@ struct IEMObject : public GUIObject {
 
     static unsigned int fromIemColours(int const color)
     {
-        const auto c = static_cast<unsigned int>(color << 8 | 0xFF);
+        auto const c = static_cast<unsigned int>(color << 8 | 0xFF);
         return ((0xFF << 24) | ((c >> 24) << 16) | ((c >> 16) << 8) | (c >> 8));
     }
 
@@ -357,7 +357,7 @@ struct IEMObject : public GUIObject {
     {
         t_symbol const* sym = static_cast<t_iemgui*>(ptr)->x_lab;
         if (sym) {
-            const auto text = String::fromUTF8(sym->s_name);
+            auto const text = String::fromUTF8(sym->s_name);
             if (text.isNotEmpty() && text != "empty") {
                 return text;
             }
@@ -370,7 +370,7 @@ struct IEMObject : public GUIObject {
     {
         t_symbol const* sym = static_cast<t_iemgui*>(ptr)->x_lab_unexpanded;
         if (sym) {
-            const auto text = String::fromUTF8(sym->s_name);
+            auto const text = String::fromUTF8(sym->s_name);
             if (text.isNotEmpty() && text != "empty") {
                 return text;
             }

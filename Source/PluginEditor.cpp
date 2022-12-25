@@ -40,7 +40,7 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     , statusbar(&p)
     , sidebar(&p, this)
     , tooltipWindow(this, 500)
-    , tooltipShadow(DropShadow(Colour(0, 0, 0).withAlpha(0.2f), 4, {0, 0}), Constants::defaultCornerRadius)
+    , tooltipShadow(DropShadow(Colour(0, 0, 0).withAlpha(0.2f), 4, { 0, 0 }), Constants::defaultCornerRadius)
 {
     toolbarButtons = { new TextButton(Icons::Open), new TextButton(Icons::Save), new TextButton(Icons::SaveAs), new TextButton(Icons::Undo),
         new TextButton(Icons::Redo), new TextButton(Icons::Add), new TextButton(Icons::Settings), new TextButton(Icons::Hide), new TextButton(Icons::Pin) };
@@ -54,7 +54,7 @@ PluginEditor::PluginEditor(PluginProcessor& p)
 
     tooltipWindow.setOpaque(false);
     tooltipWindow.setLookAndFeel(&pd->lnf.get());
-    
+
     tooltipShadow.setOwner(&tooltipWindow);
 
     addKeyListener(getKeyMappings());

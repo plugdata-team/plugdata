@@ -68,7 +68,7 @@ public:
     void redo();
 
     void checkBounds();
-        
+
     // Multi-dragger functions
     void deselectAll();
     void setSelected(Component* component, bool shouldNowBeSelected);

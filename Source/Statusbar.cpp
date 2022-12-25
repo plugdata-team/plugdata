@@ -370,14 +370,14 @@ StatusbarSource::StatusbarSource()
 static bool hasRealEvents(MidiBuffer& buffer)
 {
     return std::any_of(buffer.begin(), buffer.end(),
-        [](const auto& event) {
+        [](auto const& event) {
             return !event.getMessage().isSysEx();
         });
 }
 
 void StatusbarSource::processBlock(AudioBuffer<float> const& buffer, MidiBuffer& midiIn, MidiBuffer& midiOut, int channels)
 {
-    const auto* const* channelData = buffer.getArrayOfReadPointers();
+    auto const* const* channelData = buffer.getArrayOfReadPointers();
 
     if (channels == 1) {
         level[1] = 0;

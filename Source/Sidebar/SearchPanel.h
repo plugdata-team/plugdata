@@ -237,7 +237,7 @@ public:
 
         g.setColour(rowIsSelected ? findColour(PlugDataColour::sidebarActiveTextColourId) : findColour(ComboBox::textColourId));
 
-        const auto& [name, prefix, object, ptr] = searchResult[rowNumber];
+        auto const& [name, prefix, object, ptr] = searchResult[rowNumber];
 
         auto [x, y] = object->getPosition();
 
@@ -337,8 +337,7 @@ public:
                 // If it's a gui add the class name
                 if (isGui) {
                     addObject(className, topLevel, object);
-                    
-                    
+
                 }
                 // If it's a text object, message or comment, add the text
                 else {
