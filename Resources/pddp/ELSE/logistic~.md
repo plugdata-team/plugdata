@@ -1,21 +1,34 @@
 ---
 title: logistic~
-description:
+description: Logistic chaotic generator
+
 categories:
  - object
+
 pdcategory: General
+
 arguments:
-- type: gimme
-  description:
-  default:
+- type: float
+  description: sets frequency in hertz
+  default: 0
+- type: float
+  description: sets p
+  default: 0.5
+
 inlets:
   1st:
-  - type: signal
-    description:
+  - type: float/signal
+    description: frequency in hertz (negative values accepted)
   2nd:
-  - type: signal
-    description:
+  - type: float/signal
+    description: 'p' parameter (from 0 to 1)
+
 outlets:
   1st:
   - type: signal
-    description:
+    description: logistic chaotic signal
+
+---
+
+[logistic~] is a chaotic generator based on the difference equation: y[n] = (3 + p) * y[n-1] * (1- y[n-1]).
+

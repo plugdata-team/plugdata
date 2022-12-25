@@ -1,7 +1,7 @@
 ---
 title: lastvalue
 
-description:
+description: Report last value
 
 categories:
 - object
@@ -9,24 +9,33 @@ categories:
 pdcategory:
 
 arguments:
-- description:
-  type:
-  default:
+- description: initial last value
+  type: float
+  default: none
 
 inlets:
   1st:
-  - type:
-    description:
+  - type: float
+    description: stotes value and outputs last value
+  - type: bang
+    description: outputs last stored value
   2nd:
-  - type:
-    description:
+  - type: float
+    description: sets last value
+  - type: bang
+    description: sets last value to none
 
 outlets:
   1st:
-  - type:
-    description:
+  - type: float
+    description: last input value
+
+methods:
+  - type: reset <float>
+    description: resets object and sets last value, no float sets to none
 
 draft: false
 ---
 
-LONG DESCRIPTION HERE
+[lastvalue] reports the last input value
+
