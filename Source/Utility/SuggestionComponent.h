@@ -13,8 +13,6 @@ class SuggestionComponent : public Component
         int idx = 0;
         int type = -1;
 
-        Array<String> letters = { "pd", "~" };
-
         String objectDescription;
 
     public:
@@ -67,11 +65,11 @@ class SuggestionComponent : public Component
             g.setFont(font);
 
             g.setColour(getToggleState() ? findColour(PlugDataColour::popupMenuActiveTextColourId) : findColour(PlugDataColour::popupMenuTextColourId));
+
             auto yIndent = jmin(4, proportionOfHeight(0.3f));
-            auto cornerSize = jmin(getHeight(), getWidth()) / 2;
             auto fontHeight = roundToInt(font.getHeight() * 0.6f);
             auto leftIndent = drawIcon ? 34 : 11;
-            auto rightIndent = jmin(fontHeight, 2 + cornerSize / (isConnectedOnRight() ? 4 : 2));
+            auto rightIndent = 11;
             auto textWidth = getWidth() - leftIndent - rightIndent;
 
             if (textWidth > 0)
@@ -106,7 +104,7 @@ class SuggestionComponent : public Component
 
                 g.setColour(Colours::white);
                 g.setFont(font.withHeight(type ? 12 : 10));
-                g.drawFittedText(letters[type], iconbound.reduced(1), Justification::centred, 1);
+                g.drawFittedText(type ? "~" : "pd", iconbound.reduced(1), Justification::centred, 1);
             }
         }
 
@@ -453,7 +451,7 @@ private:
         currentidx = (currentidx + numButtons) % numButtons;
 
         // Retrieve best suggestion
-        const auto& fullName = found[currentidx].first;
+        auto const& fullName = found[currentidx].first;
 
         state = ShowingObjects;
         if (fullName.length() > textlen) {

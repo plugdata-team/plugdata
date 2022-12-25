@@ -606,28 +606,9 @@ void Patch::redo()
         });
 }
 
-void Patch::setZoom(int newZoom)
-{
-    t_atom arg;
-    SETFLOAT(&arg, newZoom);
-
-    pd_typedmess(static_cast<t_pd*>(ptr), gensym("zoom"), 2, &arg);
-}
-
 t_object* Patch::checkObject(void* obj)
 {
     return pd_checkobject(static_cast<t_pd*>(obj));
-}
-
-void Patch::keyPress(int keycode, int shift)
-{
-    t_atom args[3];
-
-    SETFLOAT(args, 1);
-    SETFLOAT(args + 1, keycode);
-    SETFLOAT(args + 2, shift);
-
-    pd_typedmess(static_cast<t_pd*>(ptr), gensym("key"), 3, args);
 }
 
 String Patch::getTitle() const

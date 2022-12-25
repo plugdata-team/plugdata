@@ -58,7 +58,7 @@ public:
     void notifyDAW()
     {
 #if !PLUGDATA_STANDALONE
-        const auto details = AudioProcessorListener::ChangeDetails {}.withParameterInfoChanged(true);
+        auto const details = AudioProcessorListener::ChangeDetails {}.withParameterInfoChanged(true);
         processor.updateHostDisplay(details);
 #endif
     }
@@ -80,9 +80,9 @@ public:
 
     String getText(float value, int maximumStringLength) const override
     {
-        const auto mappedValue = convertFrom0to1(value);
+        auto const mappedValue = convertFrom0to1(value);
 
-        const auto isInterger = norm_range.interval > 0.0 && (std::abs(norm_range.interval - std::floor(norm_range.interval)) < std::numeric_limits<float>::epsilon() && std::abs(norm_range.start - std::floor(norm_range.start)) < std::numeric_limits<float>::epsilon());
+        auto const isInterger = norm_range.interval > 0.0 && (std::abs(norm_range.interval - std::floor(norm_range.interval)) < std::numeric_limits<float>::epsilon() && std::abs(norm_range.start - std::floor(norm_range.start)) < std::numeric_limits<float>::epsilon());
 
         if (isInterger) {
             return maximumStringLength > 0 ? String(static_cast<int>(mappedValue)).substring(0, maximumStringLength) : String(static_cast<int>(mappedValue));

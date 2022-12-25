@@ -61,8 +61,8 @@ struct BangObject final : public IEMObject {
     {
         IEMObject::paint(g);
 
-        const auto bounds = getLocalBounds().reduced(1).toFloat();
-        const auto width = std::max(bounds.getWidth(), bounds.getHeight());
+        auto const bounds = getLocalBounds().reduced(1).toFloat();
+        auto const width = std::max(bounds.getWidth(), bounds.getHeight());
 
         float const circleOuter = 80.f * (width * 0.01f);
         float const circleThickness = std::max(width * 0.06f, 1.5f);

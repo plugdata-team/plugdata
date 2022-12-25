@@ -360,7 +360,10 @@ static int binbuf_getpos(t_binbuf* b, int* x0, int* y0, t_symbol** type)
 
 char const* libpd_copy(t_canvas* cnv, int* size)
 {
+    canvas_setcurrent(cnv);
     pd_typedmess((t_pd*)cnv, gensym("copy"), 0, NULL);
+    canvas_unsetcurrent(cnv);
+    
     char const* text;
     int len;
     binbuf_gettext(pd_this->pd_gui->i_editor->copy_binbuf, &text, &len);
@@ -374,14 +377,18 @@ void libpd_paste(t_canvas* cnv, char const* buf)
     binbuf_text(pd_this->pd_gui->i_editor->copy_binbuf, buf, len);
     
     sys_lock();
+    canvas_setcurrent(cnv);
     pd_typedmess((t_pd*)cnv, gensym("paste"), 0, NULL);
+    canvas_unsetcurrent(cnv);
     sys_unlock();
 }
 
 void libpd_undo(t_canvas* cnv)
 {
     sys_lock();
+    canvas_setcurrent(cnv);
     pd_typedmess((t_pd*)cnv, gensym("undo"), 0, NULL);
+    canvas_unsetcurrent(cnv);
     sys_unlock();
 }
 
@@ -391,16 +398,20 @@ void libpd_redo(t_canvas* cnv)
     pd_this->pd_newest = 0;
     if (!cnv->gl_editor)
         return;
-
+    
     sys_lock();
+    canvas_setcurrent(cnv);
     pd_typedmess((t_pd*)cnv, gensym("redo"), 0, NULL);
+    canvas_unsetcurrent(cnv);
     sys_unlock();
 }
 
 void libpd_duplicate(t_canvas* cnv)
 {
     sys_lock();
+    canvas_setcurrent(cnv);
     pd_typedmess((t_pd*)cnv, gensym("duplicate"), 0, NULL);
+    canvas_unsetcurrent(cnv);
     sys_unlock();
 }
 
@@ -610,9 +621,11 @@ t_pd* libpd_creategraph(t_canvas* cnv, char const* name, int size, int x, int y)
     SETFLOAT(argv + 1, size);
     SETFLOAT(argv + 2, 0);
     SETFLOAT(argv + 3, 0);
-
+    
     sys_lock();
+    canvas_setcurrent(cnv);
     pd_typedmess((t_pd*)cnv, gensym("arraydialog"), argc, argv);
+    canvas_unsetcurrent(cnv);
     sys_unlock();
 
     glist_noselect(cnv);
@@ -630,11 +643,14 @@ t_pd* libpd_createobj(t_canvas* cnv, t_symbol* s, int argc, t_atom* argv)
 {
 
     sys_lock();
+    canvas_setcurrent(cnv);
     pd_typedmess((t_pd*)cnv, s, argc, argv);
     
     canvas_undo_add(cnv, UNDO_CREATE, "create",
         (void*)canvas_undo_set_create(cnv));
 
+    canvas_unsetcurrent(cnv);
+    
     t_pd* new_object = libpd_newest(cnv);
 
     if (new_object) {

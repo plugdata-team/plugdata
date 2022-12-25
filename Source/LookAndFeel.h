@@ -785,7 +785,7 @@ struct PlugDataLook : public LookAndFeel_V4 {
 
         auto lines = StringArray::fromLines(text);
 
-        for (const auto& line : lines) {
+        for (auto const& line : lines) {
             if (line.contains("(") && line.contains(")")) {
                 auto type = line.fromFirstOccurrenceOf("(", false, false).upToFirstOccurrenceOf(")", false, false);
                 auto description = line.fromFirstOccurrenceOf(")", false, false);

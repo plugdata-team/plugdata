@@ -34,8 +34,8 @@ struct ToggleObject final : public IEMObject {
             crossBounds = crossBounds.expanded(20 - getWidth());
         }
 
-        const auto max = std::max(crossBounds.getWidth(), crossBounds.getHeight());
-        const auto strokeWidth = std::max(max * 0.15f, 2.0f);
+        auto const max = std::max(crossBounds.getWidth(), crossBounds.getHeight());
+        auto const strokeWidth = std::max(max * 0.15f, 2.0f);
 
         g.drawLine({ crossBounds.getTopLeft(), crossBounds.getBottomRight() }, strokeWidth);
         g.drawLine({ crossBounds.getBottomLeft(), crossBounds.getTopRight() }, strokeWidth);

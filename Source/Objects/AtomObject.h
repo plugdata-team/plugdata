@@ -241,7 +241,7 @@ struct AtomObject : public GUIObject {
         auto* gatom = static_cast<t_fake_gatom*>(ptr);
         t_symbol const* sym = canvas_realizedollar(gatom->a_glist, gatom->a_label);
         if (sym) {
-            const auto text = String::fromUTF8(sym->s_name);
+            auto const text = String::fromUTF8(sym->s_name);
             if (text.isNotEmpty() && text != "empty") {
                 return text;
             }
@@ -255,7 +255,7 @@ struct AtomObject : public GUIObject {
         auto* gatom = static_cast<t_fake_gatom*>(ptr);
         t_symbol const* sym = gatom->a_label;
         if (sym) {
-            const auto text = String::fromUTF8(sym->s_name);
+            auto const text = String::fromUTF8(sym->s_name);
             if (text.isNotEmpty() && text != "empty") {
                 return text;
             }

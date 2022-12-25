@@ -15,6 +15,7 @@
 #include "SettingsDialog.h"
 #include "TextEditorDialog.h"
 #include "ObjectBrowserDialog.h"
+#include "ObjectReferenceDialog.h"
 #include "../Heavy/HeavyExportDialog.h"
 #include "Canvas.h"
 
@@ -192,9 +193,20 @@ void Dialogs::showHeavyExportDialog(std::unique_ptr<Dialog>* target, Component* 
 void Dialogs::showObjectBrowserDialog(std::unique_ptr<Dialog>* target, Component* parent)
 {
 
-    auto* dialog = new Dialog(target, parent, 725, 450, parent->getBounds().getCentreY() + 200, true);
+    auto* dialog = new Dialog(target, parent, 750, 450, parent->getBounds().getCentreY() + 200, true);
     auto* dialogContent = new ObjectBrowserDialog(parent, dialog);
 
+    dialog->setViewedComponent(dialogContent);
+    target->reset(dialog);
+}
+
+void Dialogs::showObjectReferenceDialog(std::unique_ptr<Dialog>* target, Component* parent, String objectName)
+{
+    auto* dialog = new Dialog(target, parent, 750, 450, parent->getBounds().getCentreY() + 200, true);
+    auto* dialogContent = new ObjectReferenceDialog(dynamic_cast<PluginEditor*>(parent), false);
+
+    dialogContent->showObject(objectName);
+    
     dialog->setViewedComponent(dialogContent);
     target->reset(dialog);
 }
