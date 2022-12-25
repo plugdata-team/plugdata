@@ -435,6 +435,10 @@ public:
         setInterceptsMouseClicks(false, true);
 
         objectDescriptions = library.getObjectDescriptions();
+        
+        for(auto& object : library.getAllObjects()) {
+            objectDescriptions[object] = "";
+        }
     }
 
     // Divert up/down key events from text editor to the listbox
