@@ -63,6 +63,8 @@ struct Icons {
     inline static const String Console = "P";
     inline static const String GitHub = "Q";
     inline static const String Wrench = "R";
+    inline static const String Back = "S";
+    inline static const String Forward = "T";
 };
 
 enum PlugDataColour {
@@ -293,7 +295,7 @@ struct PlugDataLook : public LookAndFeel_V4 {
     Font getTextButtonFont(TextButton& but, int buttonHeight) override
     {
         if (but.getName().startsWith("toolbar")) {
-            return getToolbarFont(buttonHeight * 1.16f);
+            return getToolbarFont(buttonHeight * 1.2f);
         }
         if (but.getName().startsWith("statusbar:oversample")) {
             return { buttonHeight / 2.0f };
@@ -302,7 +304,7 @@ struct PlugDataLook : public LookAndFeel_V4 {
             return iconFont.withHeight(buttonHeight / 2.4f);
         }
         if (but.getName().startsWith("statusbar") || but.getName().startsWith("tab")) {
-            return getStatusbarFont(buttonHeight * 1.08f);
+            return getStatusbarFont(buttonHeight * 1.1f);
         }
 
         return { buttonHeight / 1.7f };
