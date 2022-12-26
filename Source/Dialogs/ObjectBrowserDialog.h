@@ -437,7 +437,9 @@ public:
         objectDescriptions = library.getObjectDescriptions();
         
         for(auto& object : library.getAllObjects()) {
-            objectDescriptions[object] = "";
+            if(!objectDescriptions.count(object)) {
+                objectDescriptions[object] = "";
+            }
         }
     }
 
