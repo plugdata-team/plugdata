@@ -1,32 +1,32 @@
 ---
 title: midi2freq
 
-description:
+description: Convert MIDI to frequency
 
 categories:
 - object
 
-pdcategory:
+pdcategory: Scale tools
 
 arguments:
-- description:
-  type:
-  default:
+- type: float
+  description: sets A4 value
+  default: 440
 
 inlets:
   1st:
-  - type:
-    description:
+  - type: list
+    description: MIDI value(s) to convert
   2nd:
-  - type:
-    description:
+  - type: float
+    description: sets a new A4 value
 
 outlets:
   1st:
-  - type:
-    description:
+  - type: list
+    description: value(s) in hertz
 
 draft: false
 ---
 
-LONG DESCRIPTION HERE
+[midi2freq] converts MIDI to frequency like [mtof], but it also converts lists and allows you so set a different frequency reference value for A4 so you can explore different tunnings. Note that 'MIDI cents' are possible, where 69.5 is 50 cents (or a quarter tone) higher than 69 (hence 1 cent = 0.01).

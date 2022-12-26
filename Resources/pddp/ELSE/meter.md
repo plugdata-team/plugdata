@@ -1,7 +1,7 @@
 ---
 title: meter
 
-description:
+description: CPU meter
 
 categories:
 - object
@@ -9,24 +9,21 @@ categories:
 pdcategory:
 
 arguments:
-- description:
-  type:
-  default:
+- type: float
+  description: 0 - off, 1 - on
+  default: 1
 
 inlets:
   1st:
-  - type:
-    description:
-  2nd:
-  - type:
-    description:
+  - type: float
+    description: 0 - off, 1 - on
 
 outlets:
   1st:
-  - type:
-    description:
+  - type: float
+    description: CPU load value
 
 draft: false
 ---
 
-LONG DESCRIPTION HERE
+[meter] is a CPU meter based on the "Load Meter" patch found in Pd's Media menu.
