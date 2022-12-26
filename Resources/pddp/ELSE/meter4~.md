@@ -1,32 +1,35 @@
 ---
 title: meter4~
 
-description:
+description: Quatrophonic VU-meter
 
 categories:
 - object
 
-pdcategory:
+pdcategory: GUI
 
 arguments:
-- description:
-  type:
+- type: float
+  description: window size for the [vu~] objects
+  default:
+- type: float
+  description: hop size for the [vu~] objects
   default:
 
 inlets:
-  1st:
-  - type:
-    description:
-  2nd:
-  - type:
-    description:
+  nth:
+  - type: signal
+    description: incoming signal channels to be vu-metered
 
 outlets:
-  1st:
-  - type:
-    description:
+  nth:
+  - type: signal
+    description: incoming signals are passed through
+  2nd:
+  - type: list
+    description: vu values (RMS/peak amplitude in dBFS) of inputs
 
 draft: false
 ---
 
-LONG DESCRIPTION HERE
+[meter4~] is a convenient qudraphonic VU-meter abstraction based on [vu~] and vanilla's [vu] GUI - see also: [meter~], [meter2~] and [meter8~].

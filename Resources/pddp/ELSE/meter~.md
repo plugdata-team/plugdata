@@ -1,32 +1,35 @@
 ---
 title: meter~
 
-description:
+description: Mono VU-meter
 
 categories:
 - object
 
-pdcategory:
+pdcategory: GUI
 
 arguments:
-- description:
-  type:
+- type: float
+  description: window size for the [vu~] object
+  default:
+- type: float
+  description: hop size for the [vu~] object
   default:
 
 inlets:
   1st:
-  - type:
-    description:
-  2nd:
-  - type:
-    description:
+  - type: signal
+    description: incoming mono signal to be vu-metered
 
 outlets:
   1st:
-  - type:
-    description:
+  - type: signal
+    description: incoming signal is passed through
+  2nd:
+  - type: list
+    description: vu values (RMS/peak amplitude in dBFS)
 
 draft: false
 ---
 
-LONG DESCRIPTION HERE
+[meter~] is a convenient mono VU-meter abstraction based on [vu~] and vanilla's [vu] GUI object. See also [meter2~], [meter4~] and [meter8~].

@@ -8,25 +8,93 @@ categories:
 
 pdcategory:
 
-arguments:
-- description:
-  type:
-  default:
+arguments: (none)
 
 inlets:
   1st:
-  - type:
-    description:
-  2nd:
-  - type:
-    description:
+  - type: bang
+    description: outputs all slider's values (depends on mode)
+  - type: list
+    description: sets and dumps sliders values from the first (0)
 
 outlets:
   1st:
-  - type:
-    description:
+  - type: list
+    description: slider number / slider value in the default mode or all values as a list in the "list mode"
+  2nd:
+  - type: list
+    description: list of values when receiving export message
+
+flags: 
+ - name: -n <float>
+   description: sets number of sliders size (default: 8), f 72;
+ - name: -range <float \, float>
+   description: sets slidrs' range (default: 0 \, 127), f 72;
+ - name:  -name <symbol>
+   description: sets arrays name (default: internal), f 72;
+ - name: -jump <float>
+   description: non zero sets jump on click mode (default: 0), f 72;
+ - name: -dim <float \, float>
+   description: sets x/y dimensions (default: 200 127), f 72;
+ - name: -init <float>
+    description: non zero sets to init mode (default: 0), f 72;
+ - name: -send <symbol>
+    description: sets send symbol (default: empty), f 72;
+ - name: -receive <symbol>
+    description: sets receive symbol (default: empty), f 72;
+ - name: -bgcolor <f \, f \, f>
+    description: sets background color in RGB (default: 255 255 255), f 72;
+ - name: -fgcolor <f \, f \, f>
+    description: sets frontground color in RGB (default: 220 220 220), f 72;
+ - name: -linecolor <f \, f \, f>
+    dscription: sets line color in RGB (default: 0 0 0), f 72;
+ - name: -set <list>
+    description: sets slider's values (default: 0 0 0 0 0 0 0 0), f 72;
+ - name -mode <float>
+    description: non zro sets to 'list mode' (default 0), f 72;
+
+
+methods:
+  - type: mode <float>
+    description: non-zero sets to 'list mode'
+  - type: dump
+    description: outputs values sequentially as slider number / value
+  - type: set <list>
+    description: sets values from the index deefined in the first float
+  - type: setall <float>
+    description: sets all sliders' values
+  - type: get <list>
+    description: gets sliders values from the first float
+  - type: dim <f, f>
+    description: sets horizontal/vertical dimensions
+  - type: width <float>
+    description: sets horizontal size
+  - type: height <float>
+    description: sets vertical size
+  - type: range <f, f>
+    description: sets sliders' output range
+  - type: n <float>
+    description: sets number of sliders
+  - type: jump <float>
+    description: non-zero sets jump on click mode
+  - type: import <list>
+    description: sets number of sliders and values (and dumps them)
+  - type: export
+    description: outputs sliders values as a list
+  - type: init <float>
+    description: non zerto sets to jump on click mode
+  - type: send <symbol>
+    description: sets send name
+  - type: receive <symbol>
+    description: sets receive name
+  - type: bgcolor <f, f, f>
+    description: sets background color in RGB
+  - type: fgcolor <f, f, f>
+    description: sets frontground color in RGB
+  - type: linecolor <f, f, f>
+    description: sets line color in RGB
 
 draft: false
 ---
 
-LONG DESCRIPTION HERE
+[multi.vsler] is a multi slider GUI abstraction.
