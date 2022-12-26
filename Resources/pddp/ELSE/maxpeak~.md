@@ -1,32 +1,32 @@
 ---
 title: maxpeak~
 
-description:
+description: Maximum peak amplitude
 
 categories:
 - object
 
 pdcategory:
 
-arguments:
-- description:
-  type:
-  default:
+arguments: (none)
 
 inlets:
   1st:
-  - type:
-    description:
+  - type: singal
+    description: incoming signal
   2nd:
-  - type:
-    description:
+  - type: bang
+    description: restarts the object
 
 outlets:
   1st:
-  - type:
-    description:
+  - type: signal
+    description: maximum peak value so far in dB
+  2nd:
+  - type: bang
+    description: bangs when input gets clipped
 
 draft: false
 ---
 
-LONG DESCRIPTION HERE
+[maxpeak~] returns the maximum peak amplitude so far in dB. A bang in the right inlet resets the maximum value. The right outlet sends bangs when the input is clipped (exceeds 0 dB).

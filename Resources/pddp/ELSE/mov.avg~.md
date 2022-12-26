@@ -1,21 +1,44 @@
 ---
 title: mov.avg~
-description:
+
+description: Moving average filter
+
 categories:
  - object
+
 pdcategory: General
+
 arguments:
-- type: gimme
-  description:
-  default:
+- type: float
+  description: sets initial number of samples 
+  default: 1
+
 inlets:
   1st:
   - type: signal
-    description:
+    description: the signal to be averaged
   2nd:
-  - type: signal
-    description:
+  - type: float/signal
+    description: number of last samples to apply the average to
+ 
 outlets:
   1st:
   - type: signal
-    description:
+    description: the moving average over the last 'n' samples
+
+flags:
+  - name: -size <float>
+    description: sets buffer size
+  - name: -abs
+    description: sets to absoliute average mode
+
+methods:
+  - type: clear
+    description: clears filter's memory
+  - type: size <float>
+    description: sets new maximum size and clears filter's memory
+
+draft: false
+---
+
+[mov.avg~] gives you a signal running/moving average over the last 'n' given samples. This is also a type of lowpass filter.

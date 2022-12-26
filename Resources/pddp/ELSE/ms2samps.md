@@ -1,32 +1,27 @@
 ---
 title: ms2samps
 
-description:
+description: Convert ms to samples
 
 categories:
 - object
 
-pdcategory:
+pdcategory: Math
 
-arguments:
-- description:
-  type:
-  default:
+arguments: (none)
 
 inlets:
   1st:
-  - type:
-    description:
-  2nd:
-  - type:
-    description:
+  - type: float
+    description: time value in ms
 
 outlets:
   1st:
-  - type:
-    description:
+  - type: float
+    description: converted value in number of samples
 
 draft: false
 ---
 
-LONG DESCRIPTION HERE
+[ms2samps] is a simple abstraction that converts time values from ms to number of samples.
+Conversion expression: samps = ms * samplerate/1000.
