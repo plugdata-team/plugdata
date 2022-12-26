@@ -1,32 +1,27 @@
 ---
 title: median
 
-description:
+description: List median
 
 categories:
 - object
 
 pdcategory:
 
-arguments:
-- description:
-  type:
-  default:
+arguments: (none)
 
 inlets:
   1st:
-  - type:
-    description:
-  2nd:
-  - type:
-    description:
+  - type: list
+    description: the float list to calculate the median on
+
 
 outlets:
   1st:
-  - type:
-    description:
+  - type: float
+    description: the median of the input list
 
 draft: false
 ---
 
-LONG DESCRIPTION HERE
+The [median] objects returns the median of a number list. Non float elements are ignored.

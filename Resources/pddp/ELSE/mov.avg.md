@@ -1,32 +1,36 @@
 ---
 title: mov.avg
 
-description:
+description: Moving average
 
 categories:
 - object
 
-pdcategory:
+pdcategory: General
 
 arguments:
-- description:
-  type:
-  default:
+- type: float
+  description: sets initial values
+  default: 1
 
 inlets:
   1st:
-  - type:
-    description:
+  - type: float
+    description: value into the moving average
   2nd:
-  - type:
-    description:
+  - type: float
+    description: sets new number of values and clears
 
 outlets:
   1st:
-  - type:
-    description:
+  - type: float
+    description: the moving average
+
+methods:
+  - type: clear
+    description: clears all received values
 
 draft: false
 ---
 
-LONG DESCRIPTION HERE
+[mov.avg] gives you a running/moving average over the last 'n' values.

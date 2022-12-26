@@ -1,18 +1,49 @@
 ---
 title: mtx~
-description:
+
+description: Signal routing matrix
+
 categories:
  - object
-pdcategory: General
+
+pdcategory: Control
+
 arguments:
-- type: gimme
-  description:
-  default:
+- type: float
+  description: number of inputs
+  default: 1
+- type: float
+  description: number of outputs
+  default: 1
+- type: float
+  description: fade time in ms
+  default: 10
+
 inlets:
-outlets:
-  1st:
+ 1st:
+  - type: list
+    description: inlet, outlet, non-0 - on, 0 - off
+  nth: 
   - type: signal
-    description:
+    description: signals to route/mix
+
+outlets:
+  nth:
+  - type: signal
+    description: routed signals
   2nd:
   - type: list
-    description:
+    description: all connections list dump message
+
+methods:
+  - type: fade <float>
+    description: sets fade time in ms
+  - type: dump
+    description: ouputs state of all cells
+  - type: clear
+    description: clears all connections
+
+draft: false
+---
+
+[mtx~] routes signals from any inlets to one or more outlets. If more than one inlet connects to an outlet, the output is the sum of the inlets' signals. Use [mtx.ctl] to control it.

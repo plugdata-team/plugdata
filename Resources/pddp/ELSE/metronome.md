@@ -1,30 +1,69 @@
 ---
 title: metronome
-description:
+
+description: High level metronome
+
 categories:
  - object
-pdcategory: General
+
+pdcategory: Control
+
 arguments:
-- type: gimme
-  description:
-  default:
+- type: float
+  description: tempo in BPM 
+  default: 120
+
 inlets:
   1st:
+  - type: bang
+    description: start or restart metronome
   - type: float
-    description:
+    description: non-zero (re)starts, zero stops
   2nd:
   - type: float
-    description:
+    description: set tempo value in BPM
+
 outlets:
   1st:
   - type: bang
-    description:
+    description: bang at every beat
   2nd:
   - type: list
-    description:
+    description: bar, sub-bar, beat, sub-beat count
   3rd:
   - type: float
-    description:
+    description: beat phase (0-1)
   4th:
   - type: list
-    description:
+    description: actual beat length, actual tempo and bar duration in ms
+
+flags:
+  - name: -name <symbol>
+    description: set a clock name
+  - name: -beat <symbol>
+    description: set a beat length
+  - name: -sub
+    description: sets to subdivision (subtempo) mode
+
+methods:
+  - type: start
+    description: start or restart metronome
+  - type: stop
+    description: stop metronome
+  - type: pause
+    description: pause metronome
+  - type: continue
+    description: continue if paused
+  - type: beat <symbol>
+    description: set a beat length
+  - type: timesig <sym, f>
+    description: set time signature symbol and group value
+  - type: sub <float>
+    description: sets to subdivision (subtempo) mode
+  - type: tempo <float>
+    description: set tempo value in BPM
+
+draft: false
+---
+
+[metronome] understands complex time signatures and outputs timeline data (bar, sub-bar, beat and sub-beat count) and phase output. It also syncs to [clock] objects.

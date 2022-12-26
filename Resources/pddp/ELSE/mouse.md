@@ -1,18 +1,34 @@
 ---
 title: mouse
-description:
+
+description: Grab mouse
+
 categories:
  - object
-pdcategory: General
-arguments:
+
+pdcategory: Control
+
+arguments: (none)
+
 inlets:
+  1st:
+  - type: zero
+    description: sets coordinates to zero
+  - type: reset
+    description: resets mouse coordinates
+
 outlets:
   1st:
   - type: float
-    description:
+    description: mouse click status (1: on/ 0: off)
   2nd:
   - type: float
-    description:
+    description: horizontal coordinate
   3rd:
   - type: float
-    description:
+    description: vertical coordinate
+
+draft: false
+---
+
+[mouse] grabs mouse interaction (click and coordinates). Click and see. This works for any click Pd receives in any window, not only this patch's.
