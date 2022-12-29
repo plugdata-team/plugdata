@@ -68,8 +68,25 @@ Connection::Connection(Canvas* parent, Iolet* s, Iolet* e, bool exists)
     componentMovedOrResized(*outlet, true, true);
     componentMovedOrResized(*inlet, true, true);
 
+    // Attach useDashedSignalConnection to the DashedSignalConnection property
+    useDashedSignalConnection.referTo(cnv->pd->settingsTree.getPropertyAsValue("DashedSignalConnection", nullptr));
+
+    // Listen for signal connection proptery changes
+    useDashedSignalConnection.addListener(this);
+
+    // Make sure it gets updated on init
+    valueChanged(useDashedSignalConnection);
+
     updatePath();
     repaint();
+}
+
+void Connection::valueChanged(Value& v)
+{
+    if (v.refersToSameSourceAs(useDashedSignalConnection))
+    {
+        useDashed = static_cast<bool>(useDashedSignalConnection.getValue());
+    }
 }
 
 String Connection::getState()
@@ -209,11 +226,23 @@ void Connection::paint(Graphics& g)
 
     g.setColour(baseColour.darker(0.2));
     g.strokePath(toDraw, PathStrokeType(1.5f, PathStrokeType::mitered, PathStrokeType::square));
+    
+    g.setColour(useDashed && outlet->isSignal ? baseColour.darker(1.5f) : baseColour);
+    if (useDashed && outlet->isSignal)
+    {
+        PathStrokeType dashedStroke(0.8f);
+        float dash[1] = {5.0f};
+        Path dashedPath;
+        dashedStroke.createDashedStroke(dashedPath, toDraw, dash, 1);
+        g.strokePath(dashedPath, dashedStroke);
+    }
+    else
+    {
+        g.strokePath(toDraw, PathStrokeType(0.5f, PathStrokeType::mitered, PathStrokeType::square));
+    }
 
-    g.setColour(baseColour);
-    g.strokePath(toDraw, PathStrokeType(0.5f, PathStrokeType::mitered, PathStrokeType::square));
-
-    if (cnv->isSelected(this)) {
+    if (cnv->isSelected(this))
+    {
         auto mousePos = getMouseXYRelative();
 
         bool overStart = startReconnectHandle.contains(mousePos.toFloat());
@@ -779,6 +808,5 @@ bool Connection::straightLineIntersectsObject(Line<int> toCheck, Array<Object*>&
          } TODO: benchmark these two options */
         // TODO: possible mark areas that have already been visited?
     }
-
     return false;
 }

@@ -341,6 +341,10 @@ void PluginProcessor::initialiseFilesystem()
         settingsTree.setProperty("ReloadLastState", false, nullptr);
     }
 
+    if (!settingsTree.hasProperty("DashedSignalConnection")) {
+        settingsTree.setProperty("DashedSignalConnection", false, nullptr);
+    }
+
     if (!settingsTree.hasProperty("Zoom")) {
         settingsTree.setProperty("Zoom", 1.0f, nullptr);
     }
