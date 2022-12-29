@@ -18,7 +18,7 @@ using PathPlan = std::vector<Point<int>>;
 
 class Canvas;
 class Connection : public Component
-    , public ComponentListener {
+    , public ComponentListener, public Value::Listener {
 public:
     int inIdx;
     int outIdx;
@@ -89,6 +89,11 @@ private:
     int dragIdx = -1;
 
     float mouseDownPosition = 0;
+
+    Value useDashedSignalConnection;
+    bool useDashed;
+
+    void valueChanged(Value& v) override;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(Connection)
 };
