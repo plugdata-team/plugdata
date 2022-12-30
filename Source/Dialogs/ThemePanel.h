@@ -9,6 +9,8 @@ struct ThemePanel : public Component
 
     ValueTree settingsTree;
     Value fontValue;
+    Value dashedSignalConnection;
+
     std::map<String, std::map<String, Value>> swatches;
 
     PropertiesPanel panel;
@@ -61,7 +63,8 @@ struct ThemePanel : public Component
             // Add a multi colour component to the properties panel
             panels[colourCategory].add(new PropertiesPanel::MultiPropertyComponent<PropertiesPanel::ColourComponent>(colourName, swatchesToAdd));
         }
-
+        
+        // font setting
         fontValue.setValue(LookAndFeel::getDefaultLookAndFeel().getTypefaceForFont(Font())->getName());
         fontValue.addListener(this);
 
@@ -71,6 +74,17 @@ struct ThemePanel : public Component
         addAndMakeVisible(*fontPanel);
 
         panel.addSection("Fonts", { fontPanel });
+
+        // dashed signal setting
+        dashedSignalConnection.referTo(settingsTree.getPropertyAsValue("DashedSignalConnection", nullptr));
+        dashedSignalConnection.addListener(this);
+
+        auto* useDashedSignalConnection = new PropertiesPanel::BoolComponent("Display signal connections dashed", dashedSignalConnection, { "No", "Yes" });
+
+        allPanels.add(useDashedSignalConnection);
+        addAndMakeVisible(*useDashedSignalConnection);
+
+        panel.addSection("Connection Look", { useDashedSignalConnection });
 
         // Create the panels by category
         for (auto const& [sectionName, sectionColours] : panels) {
@@ -87,6 +101,12 @@ struct ThemePanel : public Component
         if (v.refersToSameSourceAs(fontValue)) {
             lnf.setDefaultFont(fontValue.toString());
             settingsTree.setProperty("DefaultFont", fontValue.getValue(), nullptr);
+            getTopLevelComponent()->repaint();
+            return;
+        }
+
+        if (v.refersToSameSourceAs(dashedSignalConnection)) {
+            settingsTree.setProperty("DashedSignalConnection", dashedSignalConnection.getValue(), nullptr);
             getTopLevelComponent()->repaint();
             return;
         }
@@ -144,6 +164,9 @@ struct ThemePanel : public Component
 
         lnf.setDefaultFont(fontValue.toString());
         settingsTree.setProperty("DefaultFont", fontValue.getValue(), nullptr);
+
+        dashedSignalConnection = false;
+        settingsTree.setProperty("DashedSignalConnection", dashedSignalConnection.getValue(), nullptr);
 
         auto colourThemesTree = settingsTree.getChildWithName("ColourThemes");
 
