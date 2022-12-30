@@ -94,12 +94,12 @@ struct TextDefineObject final : public TextBase {
                 if (words[j].containsOnly("0123456789e.-+") && words[j] != "-") {
                     SETFLOAT(&atoms.back(), words[j].getFloatValue());
                 } else {
-                    SETSYMBOL(&atoms.back(), gensym((words[j].toRawUTF8())));
+                    SETSYMBOL(&atoms.back(), pd->generateSymbol(words[j]));
                 }
             }
 
             atoms.emplace_back();
-            SETSYMBOL(&atoms.back(), gensym(";"));
+            SETSYMBOL(&atoms.back(), pd->generateSymbol(";"));
         }
 
         pd->enqueueFunction([this, atoms, &textbuf]() mutable {

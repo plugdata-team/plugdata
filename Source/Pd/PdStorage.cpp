@@ -28,6 +28,7 @@ Storage::Storage(t_glist* patch, Instance* inst)
 {
     instance->getCallbackLock()->enter();
 
+    instance->setThis();
     for (t_gobj* y = patch->gl_list; y; y = y->g_next) {
         const String name = libpd_get_object_class_name(y);
 
@@ -79,9 +80,9 @@ Storage::Storage(t_glist* patch, Instance* inst)
     auto argv = std::vector<t_atom>(argc);
     SETFLOAT(argv.data(), 0);
     SETSYMBOL(argv.data() + 1, 0);
-    SETSYMBOL(argv.data() + 2, gensym("plugdatainfo"));
+    SETSYMBOL(argv.data() + 2, instance->generateSymbol("plugdatainfo"));
 
-    infoObject = &pd_checkobject(libpd_createobj(infoParent, gensym("text"), argc, argv.data()))->te_g;
+    infoObject = &pd_checkobject(libpd_createobj(infoParent, instance->generateSymbol("text"), argc, argv.data()))->te_g;
 
     instance->getCallbackLock()->exit();
 }
@@ -92,6 +93,7 @@ void Storage::loadInfoFromPatch()
     if (!infoObject)
         return;
 
+    canvas_setcurrent(infoParent);
     canvas_vis(infoParent, 1);
     canvas_map(infoParent, 1);
 
@@ -102,10 +104,9 @@ void Storage::loadInfoFromPatch()
     // copy state tree from patch
     String content = String::fromUTF8(text, size).fromFirstOccurrenceOf("plugdatainfo ", false, false);
 
-    canvas_unsetcurrent(infoParent);
-
     canvas_map(infoParent, 0);
     canvas_vis(infoParent, 0);
+    canvas_unsetcurrent(infoParent);
 
     try {
         auto tree = ValueTree::fromXml(content);
@@ -124,6 +125,8 @@ void Storage::storeInfo()
 {
     if (!infoObject)
         return;
+    
+    instance->setThis();
 
     String newname = "plugdatainfo " + extraInfo.toXmlString(XmlElement::TextFormat().singleLine());
 
@@ -200,6 +203,8 @@ void Storage::undoIfNeeded()
 {
     instance->getCallbackLock()->enter();
 
+    instance->setThis();
+    
     t_undo* udo = canvas_undo_get(parentPatch);
 
     if (udo && udo->u_last && !strcmp(udo->u_last->name, "plugdata_undo")) {
@@ -216,6 +221,8 @@ void Storage::redoIfNeeded()
 {
     instance->getCallbackLock()->enter();
 
+    instance->setThis();
+    
     t_undo* udo = canvas_undo_get(parentPatch);
 
     if (udo && udo->u_last && !strcmp(udo->u_last->next->name, "plugdata_undo")) {
@@ -236,6 +243,8 @@ void Storage::createUndoAction()
 
     undoManager.beginNewTransaction();
 
+    instance->setThis();
+    
     instance->getCallbackLock()->enter();
     // Create dummy undoable action that we can detect by name when calling undo
     canvas_undo_add(parentPatch, UNDO_MOTION, "plugdata_undo", canvas_undo_set_move(parentPatch, 1));

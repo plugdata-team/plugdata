@@ -238,7 +238,7 @@ Instance::Instance(String const& symbol)
     // Then create aliases for all these objects
     // We seperate this process in two parts because adding new objects while looping through objects causes problems
     for (auto [name, method, args] : newMethods) {
-        class_addcreator(method, gensym(name.toRawUTF8()), args[0], args[1], args[2], args[3], args[4], args[5]);
+        class_addcreator(method, pd->generateSymbol(name)), args[0], args[1], args[2], args[3], args[4], args[5]);
     }
 
      */
@@ -409,12 +409,12 @@ void Instance::sendMessage(char const* receiver, char const* msg, std::vector<At
         else
             libpd_set_symbol(argv + i, list[i].getSymbol().toRawUTF8());
     }
-    auto* obj = gensym(receiver)->s_thing;
+    auto* obj = generateSymbol(receiver)->s_thing;
 
     if (!obj)
         return;
 
-    pd_typedmess(gensym(receiver)->s_thing, gensym(msg), static_cast<int>(list.size()), argv);
+    pd_typedmess(generateSymbol(receiver)->s_thing, generateSymbol(msg), static_cast<int>(list.size()), argv);
 }
 
 void Instance::processMessage(Message mess)
@@ -470,13 +470,13 @@ void Instance::processSend(dmessage mess)
                     SETFLOAT(argv + i, mess.list[i].getFloat());
                 else if (mess.list[i].isSymbol()) {
                     sys_lock();
-                    SETSYMBOL(argv + i, gensym(mess.list[i].getSymbol().toRawUTF8()));
+                    SETSYMBOL(argv + i, generateSymbol(mess.list[i].getSymbol()));
                     sys_unlock();
                 } else
                     SETFLOAT(argv + i, 0.0);
             }
             sys_lock();
-            pd_list(static_cast<t_pd*>(mess.object), gensym("list"), static_cast<int>(mess.list.size()), argv);
+            pd_list(static_cast<t_pd*>(mess.object), generateSymbol("list"), static_cast<int>(mess.list.size()), argv);
             sys_unlock();
         } else if (mess.selector == "float" && mess.list[0].isFloat()) {
             sys_lock();
@@ -484,7 +484,7 @@ void Instance::processSend(dmessage mess)
             sys_unlock();
         } else if (mess.selector == "symbol") {
             sys_lock();
-            pd_symbol(static_cast<t_pd*>(mess.object), gensym(mess.list[0].getSymbol().toRawUTF8()));
+            pd_symbol(static_cast<t_pd*>(mess.object), generateSymbol(mess.list[0].getSymbol()));
             sys_unlock();
         }
     } else {
@@ -607,9 +607,15 @@ Patch Instance::openPatch(File const& toOpen)
     return patch;
 }
 
-void Instance::setThis()
+void Instance::setThis() const
 {
     libpd_set_instance(static_cast<t_pdinstance*>(m_instance));
+}
+
+t_symbol* Instance::generateSymbol(String symbol) const
+{
+    setThis();
+    return gensym(symbol.toRawUTF8());
 }
 
 void Instance::logMessage(String const& message)
@@ -640,7 +646,7 @@ std::deque<std::tuple<String, int, int>>& Instance::getConsoleHistory()
 void Instance::createPanel(int type, char const* snd, char const* location)
 {
 
-    auto* obj = gensym(snd)->s_thing;
+    auto* obj = generateSymbol(snd)->s_thing;
 
     auto defaultFile = File(location);
 
@@ -653,7 +659,7 @@ void Instance::createPanel(int type, char const* snd, char const* location)
                     [this, obj](FileChooser const& fileChooser) {
                         auto const file = fileChooser.getResult();
                         enqueueFunction(
-                            [obj, file]() mutable {
+                            [this, obj, file]() mutable {
                                 String pathname = file.getFullPathName().toRawUTF8();
 
                     // Convert slashes to backslashes
@@ -663,7 +669,7 @@ void Instance::createPanel(int type, char const* snd, char const* location)
 
                                 t_atom argv[1];
                                 libpd_set_symbol(argv, pathname.toRawUTF8());
-                                pd_typedmess(obj, gensym("callback"), 1, argv);
+                                pd_typedmess(obj, generateSymbol("callback"), 1, argv);
                             });
                     });
             });
@@ -677,12 +683,12 @@ void Instance::createPanel(int type, char const* snd, char const* location)
                     [this, obj](FileChooser const& fileChooser) {
                         const auto file = fileChooser.getResult();
                         enqueueFunction(
-                            [obj, file]() mutable {
+                            [this, obj, file]() mutable {
                                 const auto* path = file.getFullPathName().toRawUTF8();
 
                                 t_atom argv[1];
                                 libpd_set_symbol(argv, path);
-                                pd_typedmess(obj, gensym("callback"), 1, argv);
+                                pd_typedmess(obj, generateSymbol("callback"), 1, argv);
                             });
                     });
             });

@@ -681,7 +681,7 @@ ArgumentMap Library::getArguments()
          }
          else if(atomtype == A_SYMBOL) {
              type = "symbol";
-             SETSYMBOL(target, gensym("0"));
+             SETSYMBOL(target, generateSymbol("0"));
          }
          else if(atomtype == A_GIMME) {
              type = "gimme";
@@ -707,11 +707,11 @@ ArgumentMap Library::getArguments()
          }
          else if(atomtype == A_DEFSYM) {
              type = "symbol";
-             SETSYMBOL(target, gensym("0"));
+             SETSYMBOL(target, generateSymbol("0"));
          }
          else if(atomtype == A_DOLLSYM) {
              type = "dollsym";
-             SETDOLLSYM(target, gensym("$1"));
+             SETDOLLSYM(target, generateSymbol("$1"));
          }
 
          arguments.add(type);
@@ -719,9 +719,9 @@ ArgumentMap Library::getArguments()
 
      SETFLOAT(args, 20.0f);
      SETFLOAT(args + 1, 20.0f);
-     SETSYMBOL(args + 2, gensym(name.toRawUTF8()));
+     SETSYMBOL(args + 2, generateSymbol(name)));
 
-     auto* obj = pd_checkobject(libpd_createobj(patches[0]->getPointer(), gensym("obj"), nargs, args));
+     auto* obj = pd_checkobject(libpd_createobj(patches[0]->getPointer(), generateSymbol("obj"), nargs, args));
 
      if(!obj) continue;
      int nin = libpd_ninlets(obj);

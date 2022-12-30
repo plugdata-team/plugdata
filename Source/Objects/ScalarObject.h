@@ -406,6 +406,8 @@ struct ScalarObject final : public NonPatchable {
 
     void updateDrawables() override
     {
+        pd->setThis();
+        
         for (auto* drawable : templates) {
             dynamic_cast<DrawableTemplate*>(drawable)->update();
         }

@@ -9,7 +9,7 @@ struct CommentObject final : public TextBase
     CommentObject(void* obj, Object* object)
         : TextBase(obj, object)
     {
-        justification = Justification::left;
+        justification = Justification::topLeft;
         font = font.withHeight(13.5f);
 
         locked = static_cast<bool>(object->locked.getValue());
@@ -139,7 +139,7 @@ struct CommentObject final : public TextBase
             editor->setMultiLine(true);
             editor->setReturnKeyStartsNewLine(false);
             editor->setScrollbarsShown(false);
-            editor->setBorder(BorderSize<int> { 0, 4, 0, 0 });
+            editor->setBorder(BorderSize<int> { 1, 4, 0, 0 });
             editor->setIndents(0, 0);
             editor->setJustification(justification);
 

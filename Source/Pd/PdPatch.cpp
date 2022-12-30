@@ -95,8 +95,9 @@ void Patch::savePatch(File const& location)
     String fullPathname = location.getParentDirectory().getFullPathName();
     String filename = location.getFileName();
 
-    auto* dir = gensym(fullPathname.replace("\\", "/").toRawUTF8());
-    auto* file = gensym(filename.toRawUTF8());
+    
+    auto* dir = instance->generateSymbol(fullPathname.replace("\\", "/"));
+    auto* file = instance->generateSymbol(filename);
 
     setTitle(filename);
     canvas_dirty(getPointer(), 0);
@@ -112,8 +113,8 @@ void Patch::savePatch()
     String fullPathname = currentFile.getParentDirectory().getFullPathName();
     String filename = currentFile.getFileName();
 
-    auto* dir = gensym(fullPathname.replace("\\", "/").toRawUTF8());
-    auto* file = gensym(filename.toRawUTF8());
+    auto* dir = instance->generateSymbol(fullPathname.replace("\\", "/"));
+    auto* file = instance->generateSymbol(filename);
 
     setTitle(filename);
     canvas_dirty(getPointer(), 0);
@@ -124,18 +125,20 @@ void Patch::savePatch()
 
 void Patch::setCurrent(bool lock)
 {
-    instance->setThis(); // important for canvas_getcurrent
+    instance->setThis();
 
-    if (!ptr)
+    if (!getPointer())
         return;
 
     if (lock)
         instance->getCallbackLock()->enter();
 
+    canvas_setcurrent(getPointer());
     canvas_vis(getPointer(), 1.);
     canvas_map(getPointer(), 1.);
 
     canvas_create_editor(getPointer());
+    canvas_unsetcurrent(getPointer());
 
     if (lock)
         instance->getCallbackLock()->exit();
@@ -143,6 +146,8 @@ void Patch::setCurrent(bool lock)
 
 int Patch::getIndex(void* obj)
 {
+    setCurrent();
+    
     int i = 0;
     auto* cnv = getPointer();
 
@@ -187,6 +192,8 @@ Connections Patch::getConnections() const
 std::vector<void*> Patch::getObjects()
 {
     if (ptr) {
+        setCurrent();
+        
         std::vector<void*> objects;
         t_canvas const* cnv = getPointer();
 
@@ -196,7 +203,7 @@ std::vector<void*> Patch::getObjects()
 
             objects.push_back(static_cast<void*>(y));
         }
-
+        
         return objects;
     }
     return {};
@@ -248,6 +255,8 @@ void* Patch::createObject(String const& name, int x, int y)
 {
     if (!ptr)
         return nullptr;
+    
+    instance->setThis();
 
     StringArray tokens;
     tokens.addTokens(name, false);
@@ -287,26 +296,26 @@ void* Patch::createObject(String const& name, int x, int y)
         return createGraphOnParent(x, y);
     }
 
-    t_symbol* typesymbol = gensym("obj");
+    t_symbol* typesymbol = instance->generateSymbol("obj");
 
     if (tokens[0] == "msg") {
-        typesymbol = gensym("msg");
+        typesymbol = instance->generateSymbol("msg");
         tokens.remove(0);
     }
     if (tokens[0] == "comment") {
-        typesymbol = gensym("text");
+        typesymbol = instance->generateSymbol("text");
         tokens.remove(0);
     }
     if (tokens[0] == "floatatom") {
-        typesymbol = gensym("floatatom");
+        typesymbol = instance->generateSymbol("floatatom");
         tokens.remove(0);
     }
     if (tokens[0] == "listbox") {
-        typesymbol = gensym("listbox");
+        typesymbol = instance->generateSymbol("listbox");
         tokens.remove(0);
     }
     if (tokens[0] == "symbolatom") {
-        typesymbol = gensym("symbolatom");
+        typesymbol = instance->generateSymbol("symbolatom");
         tokens.remove(0);
     }
     if (tokens[0] == "+") {
@@ -326,7 +335,7 @@ void* Patch::createObject(String const& name, int x, int y)
         if (tokens[i].containsOnly("0123456789e.-+") && tokens[i] != "-") {
             SETFLOAT(argv.data() + i + 2, tokens[i].getFloatValue());
         } else {
-            SETSYMBOL(argv.data() + i + 2, gensym(tokens[i].toRawUTF8()));
+            SETSYMBOL(argv.data() + i + 2, instance->generateSymbol(tokens[i]));
         }
     }
 
@@ -336,6 +345,7 @@ void* Patch::createObject(String const& name, int x, int y)
     instance->enqueueFunction(
         [this, argc, argv, typesymbol, &pdobject, &done]() mutable {
             setCurrent();
+
             pdobject = libpd_createobj(getPointer(), typesymbol, argc, argv.data());
             done = true;
         });
@@ -382,17 +392,21 @@ void* Patch::renameObject(void* obj, String const& name)
         newName += " " + preset;
     }
 
-    instance->enqueueFunction([this, obj, newName]() mutable {
+    std::atomic<bool> done = false;
+    t_pd* pdobject = nullptr;
+    instance->enqueueFunction([this, &pdobject, &done, obj, newName]() mutable {
         setCurrent();
         libpd_renameobj(getPointer(), &checkObject(obj)->te_g, newName.toRawUTF8(), newName.getNumBytesAsUTF8());
 
         // make sure that creating a graph doesn't leave it as the current patch
         setCurrent();
+        pdobject = libpd_newest(getPointer());
+        done = true;
     });
 
-    instance->waitForStateUpdate();
+    while(!done) instance->waitForStateUpdate();
 
-    return libpd_newest(getPointer());
+    return pdobject;
 }
 
 void Patch::copy()
@@ -567,14 +581,14 @@ void Patch::removeSelection()
 void Patch::startUndoSequence(String name)
 {
     instance->enqueueFunction([this, name]() {
-        canvas_undo_add(getPointer(), UNDO_SEQUENCE_START, gensym(name.toRawUTF8())->s_name, 0);
+        canvas_undo_add(getPointer(), UNDO_SEQUENCE_START, instance->generateSymbol(name)->s_name, 0);
     });
 }
 
 void Patch::endUndoSequence(String name)
 {
     instance->enqueueFunction([this, name]() {
-        canvas_undo_add(getPointer(), UNDO_SEQUENCE_END, gensym(name.toRawUTF8())->s_name, 0);
+        canvas_undo_add(getPointer(), UNDO_SEQUENCE_END, instance->generateSymbol(name)->s_name, 0);
     });
 }
 
@@ -623,7 +637,7 @@ void Patch::setTitle(String const& title)
         return;
 
     canvas_unbind(getPointer());
-    getPointer()->gl_name = gensym(title.toRawUTF8());
+    getPointer()->gl_name = instance->generateSymbol(title);
     canvas_bind(getPointer());
     instance->titleChanged();
 }

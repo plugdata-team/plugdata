@@ -243,6 +243,8 @@ void ObjectBase::moveToFront()
 {
     auto* canvas = static_cast<t_canvas*>(cnv->patch.getPointer());
 
+    pd->setThis();
+    
     t_gobj* y2 = canvas->gl_list;
     int idx = -1;
     while (y2 != nullptr) {
@@ -260,6 +262,8 @@ void ObjectBase::moveToFront()
 
 void ObjectBase::moveToBack()
 {
+    pd->setThis();
+    
     auto* canvas = static_cast<t_canvas*>(cnv->patch.getPointer());
     t_gobj* y = static_cast<t_gobj*>(ptr);
 

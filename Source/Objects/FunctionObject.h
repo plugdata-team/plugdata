@@ -317,11 +317,11 @@ struct FunctionObject final : public GUIObject {
             repaint();
         } else if (v.refersToSameSourceAs(sendSymbol)) {
             auto symbol = sendSymbol.toString();
-            function->x_snd_raw = gensym(symbol.toRawUTF8());
+            function->x_snd_raw = pd->generateSymbol(symbol);
             function->x_send = canvas_realizedollar(function->x_glist, function->x_snd_raw);
         } else if (v.refersToSameSourceAs(receiveSymbol)) {
             auto symbol = receiveSymbol.toString();
-            function->x_rcv_raw = gensym(symbol.toRawUTF8());
+            function->x_rcv_raw = pd->generateSymbol(symbol);
             function->x_receive = canvas_realizedollar(function->x_glist, function->x_rcv_raw);
         } else if (v.refersToSameSourceAs(range)) {
             setRange(getRange());

@@ -267,7 +267,7 @@ struct AtomObject : public GUIObject {
     void setLabelText(String newText)
     {
         auto* atom = static_cast<t_fake_gatom*>(ptr);
-        atom->a_label = gensym(newText.toRawUTF8());
+        atom->a_label = pd->generateSymbol(newText);
     }
 
     void setLabelPosition(int wherelabel)
@@ -294,7 +294,7 @@ struct AtomObject : public GUIObject {
             return;
 
         auto* atom = static_cast<t_fake_gatom*>(ptr);
-        atom->a_symto = gensym(symbol.toRawUTF8());
+        atom->a_symto = pd->generateSymbol(symbol);
         atom->a_expanded_to = canvas_realizedollar(atom->a_glist, atom->a_symto);
     }
 
@@ -306,23 +306,23 @@ struct AtomObject : public GUIObject {
         auto* atom = static_cast<t_fake_gatom*>(ptr);
         if (*atom->a_symfrom->s_name)
             pd_unbind(&atom->a_text.te_pd, canvas_realizedollar(atom->a_glist, atom->a_symfrom));
-        atom->a_symfrom = gensym(symbol.toRawUTF8());
+        atom->a_symfrom = pd->generateSymbol(symbol);
         if (*atom->a_symfrom->s_name)
             pd_bind(&atom->a_text.te_pd, canvas_realizedollar(atom->a_glist, atom->a_symfrom));
     }
 
     /* prepend "-" as necessary to avoid empty strings, so we can
     use them in Pd messages. */
-    static t_symbol* gatom_escapit(t_symbol* s)
+    t_symbol* gatom_escapit(t_symbol* s)
     {
         if (!*s->s_name)
-            return (gensym("-"));
+            return (pd->generateSymbol("-"));
         else if (*s->s_name == '-') {
             char shmo[100];
             shmo[0] = '-';
             strncpy(shmo + 1, s->s_name, 99);
             shmo[99] = 0;
-            return (gensym(shmo));
+            return (pd->generateSymbol(shmo));
         } else
             return (s);
     }
@@ -334,10 +334,10 @@ struct AtomObject : public GUIObject {
     to "$".  This is unnecessary when reading files saved from 0.52 or later,
     and really we should test for that and only bash when necessary, just
     in case someone wants to have a "#" in a name. */
-    static t_symbol* gatom_unescapit(t_symbol* s)
+    t_symbol* gatom_unescapit(t_symbol* s)
     {
         if (*s->s_name == '-')
-            return (gensym(s->s_name + 1));
+            return (pd->generateSymbol(String(s->s_name + 1)));
         else
             return (iemgui_raute2dollar(s));
     }
