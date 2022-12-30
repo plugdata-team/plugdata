@@ -118,9 +118,12 @@ public:
     SuggestionComponent()
         : resizer(this, &constrainer)
         , currentBox(nullptr)
+        , dropShadower(DropShadow(Colour(0, 0, 0).withAlpha(0.25f), 8, { 0, 3 }))
     {
         // Set up the button list that contains our suggestions
         buttonholder = std::make_unique<Component>();
+        
+        dropShadower.setOwner(this);
 
         for (int i = 0; i < 20; i++) {
             Suggestion* but = buttons.add(new Suggestion(this, i));
@@ -143,7 +146,7 @@ public:
         addAndMakeVisible(port.get());
 
         constrainer.setSizeLimits(150, 120, 500, 400);
-        setSize(320, 155);
+        setSize(300, 140);
 
         addAndMakeVisible(resizer);
 
@@ -189,22 +192,11 @@ public:
         addToDesktop(ComponentPeer::windowIsTemporary | ComponentPeer::windowIgnoresKeyPresses);
 
         auto scale = std::sqrt(std::abs(getTransform().getDeterminant()));
-        auto objectPos = object->getScreenPosition() / scale;
-
-#if JUCE_MAC
-        auto hostType = PluginHostType();
-        if (hostType.isLogic() || hostType.isGarageBand() || hostType.isMainStage()) {
-            objectPos = objectPos.translated(-10, 35);
-        } else {
-            objectPos = objectPos.translated(-10, 25);
-        }
-#else
-        objectPos = objectPos.translated(-10, 25);
-#endif
+        auto objectPos = (object->getScreenPosition() / scale).translated(5, 35);
 
         setTopLeftPosition(objectPos);
 
-        setVisible(false);
+        setVisible(true);
         toFront(false);
 
         repaint();
@@ -212,6 +204,7 @@ public:
 
     void removeCalloutBox()
     {
+        setVisible(false);
         if (isOnDesktop()) {
             removeFromDesktop();
         }
@@ -269,15 +262,15 @@ public:
     void resized() override
     {
         int yScroll = port->getViewPositionY();
-        port->setBounds(getLocalBounds().reduced(15));
+        port->setBounds(getLocalBounds());
         buttonholder->setBounds(6, 0, getWidth(), std::min(numOptions, 20) * 25 + 8);
 
         for (int i = 0; i < buttons.size(); i++)
-            buttons[i]->setBounds(2, (i * 25) + 4, getWidth() - 32, 24);
+            buttons[i]->setBounds(2, (i * 25) + 4, getWidth() - 4, 24);
 
         int const resizerSize = 12;
 
-        resizer.setBounds(getWidth() - (resizerSize + 1) - 15, getHeight() - (resizerSize + 1) - 15, resizerSize, resizerSize);
+        resizer.setBounds(getWidth() - (resizerSize + 1), getHeight() - (resizerSize + 1), resizerSize, resizerSize);
 
         port->setViewPosition(0, yScroll);
         repaint();
@@ -292,19 +285,6 @@ private:
 
     void paint(Graphics& g) override
     {
-
-#if !PLUGDATA_STANDALONE
-
-        auto hostType = PluginHostType();
-        if (hostType.isLogic() || hostType.isGarageBand() || hostType.isMainStage()) {
-            g.fillAll(findColour(PlugDataColour::canvasBackgroundColourId));
-        }
-#endif
-
-        auto shadowPath = Path();
-        shadowPath.addRoundedRectangle(getLocalBounds().reduced(20), Constants::defaultCornerRadius);
-        StackShadow::renderDropShadow(g, shadowPath, Colour(0, 0, 0).withAlpha(0.6f), 12.0f);
-
         g.setColour(findColour(PlugDataColour::popupMenuBackgroundColourId));
         g.fillRoundedRectangle(port->getBounds().reduced(1).toFloat(), Constants::defaultCornerRadius);
     }
@@ -479,6 +459,8 @@ private:
 
     ResizableCornerComponent resizer;
     ComponentBoundsConstrainer constrainer;
+        
+    StackDropShadower dropShadower;
 
     Colour bordercolor = Colour(142, 152, 155);
 

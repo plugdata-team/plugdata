@@ -46,11 +46,8 @@ void maximiseLinuxWindow(void* handle);
 // - Native shadow is inconsistent across window managers and distros (sometimes there is no shadow, even though other windows have it...)
 // - Dropshadower is slow and glitchy
 // - We use a transparent margin around the window to draw the shadow in
-#if JUCE_MAC || JUCE_LINUX
-#    define CUSTOM_SHADOW 0
-#else
-#    define CUSTOM_SHADOW 1
-#endif
+
+static bool drawWindowShadow = true;
 
 namespace pd {
 class Patch;
@@ -424,15 +421,11 @@ private:
  */
 class PlugDataWindow : public DocumentWindow
     , public Value::Listener {
-    // Replacement for native Windows shadow, to allow rounded corners
-#if CUSTOM_SHADOW && JUCE_LINUX
+
     Image shadowImage;
     std::unique_ptr<ResizableBorderComponent> resizer;
     ComponentBoundsConstrainer constrainer;
-#elif CUSTOM_SHADOW
     std::unique_ptr<StackDropShadower> dropShadower;
-#endif
-
     Value useNativeWindow;
 
 public:
@@ -449,6 +442,8 @@ public:
     {
 
         setTitleBarHeight(0);
+        
+        drawWindowShadow = Desktop::canUseSemiTransparentWindows();
 
         setTitleBarButtonsRequired(DocumentWindow::minimiseButton | DocumentWindow::maximiseButton | DocumentWindow::closeButton, false);
 
@@ -529,35 +524,33 @@ public:
 
             setOpaque(false);
 
-#if CUSTOM_SHADOW
-            setDropShadowEnabled(false);
-
-#    if JUCE_LINUX
-            resizer = std::make_unique<ResizableBorderComponent>(this, &constrainer);
-            resizer->setBorderThickness(BorderSize(4));
-            resizer->setAlwaysOnTop(true);
-            Component::addAndMakeVisible(resizer.get());
-            setResizable(false, false);
-#    else
-            setResizable(true, false);
-            dropShadower = std::make_unique<StackDropShadower>(DropShadow(Colour(0, 0, 0).withAlpha(0.6f), 20, { 0, 3 }));
-            dropShadower->setOwner(this);
-#    endif
+            if(drawWindowShadow) {
+#if JUCE_LINUX || JUCE_BSD
+                resizer = std::make_unique<ResizableBorderComponent>(this, &constrainer);
+                resizer->setBorderThickness(BorderSize(4));
+                resizer->setAlwaysOnTop(true);
+                Component::addAndMakeVisible(resizer.get());
+                setResizable(false, false);
+                setDropShadowEnabled(false);
+#elif JUCE_WINDOWS
+                
+                dropShadower = std::make_unique<StackDropShadower>(DropShadow(Colour(0, 0, 0).withAlpha(0.6f), 20, { 0, 3 }));
+                dropShadower->setOwner(this);
+                setResizable(true, false);
+                setDropShadowEnabled(false);
 #else
-            setDropShadowEnabled(true);
-            setResizable(true, false);
-
+                setResizable(true, false);
+                setDropShadowEnabled(true);
 #endif
-        } else {
-
+            }
+            else {
+                setDropShadowEnabled(false);
+            }
+        }
+        else {
             setOpaque(true);
-
-#if CUSTOM_SHADOW && JUCE_LINUX
             resizer.reset(nullptr);
-#elif CUSTOM_SHADOW
             dropShadower.reset(nullptr);
-
-#endif
             setDropShadowEnabled(true);
             setResizable(true, false);
         }
@@ -628,12 +621,11 @@ public:
 #endif
     }
 
-#if CUSTOM_SHADOW
 
 #    if JUCE_LINUX
     void paint(Graphics& g) override
     {
-        if (!isUsingNativeTitleBar()) {
+        if (drawWindowShadow && !isUsingNativeTitleBar()) {
             auto b = getLocalBounds();
             Path localPath;
             localPath.addRoundedRectangle(b.toFloat().reduced(25.0f), Constants::windowCornerRadius);
@@ -646,13 +638,12 @@ public:
     {
         repaint();
     }
-#    else
+#elif JUCE_WINDOWS
     void activeWindowStatusChanged() override
     {
-        if (!isUsingNativeTitleBar() && dropShadower)
+        if (drawWindowShadow && !isUsingNativeTitleBar() && dropShadower)
             dropShadower->repaint();
     }
-#    endif
 #endif
 
     void resized() override
@@ -660,16 +651,19 @@ public:
         ResizableWindow::resized();
 
         if (!isUsingNativeTitleBar()) {
-#if CUSTOM_SHADOW && JUCE_LINUX
-            auto margin = mainComponent ? mainComponent->getMargin() : 18;
-            auto titleBarArea = Rectangle<int>(0, 12 + margin, getWidth() - (8 + margin), 25);
-            if (resizer)
-                resizer->setBounds(getLocalBounds().reduced(margin));
-#else
-            auto titleBarArea = Rectangle<int>(0, 12, getWidth() - 8, 25);
-            if (auto* b = getMaximiseButton())
-                b->setToggleState(isFullScreen(), dontSendNotification);
-#endif
+            
+            Rectangle<int> titleBarArea;
+            if(drawWindowShadow && SystemStats::getOperatingSystemType() == SystemStats::Linux) {
+                auto margin = mainComponent ? mainComponent->getMargin() : 18;
+                titleBarArea = Rectangle<int>(0, 12 + margin, getWidth() - (8 + margin), 25);
+                if (resizer)
+                    resizer->setBounds(getLocalBounds().reduced(margin));
+            }
+            else {
+                titleBarArea = Rectangle<int>(0, 12, getWidth() - 8, 25);
+                if (auto* b = getMaximiseButton())
+                    b->setToggleState(isFullScreen(), dontSendNotification);
+            }
 
             getLookAndFeel().positionDocumentWindowButtons(*this, titleBarArea.getX(), titleBarArea.getY(), titleBarArea.getWidth(), titleBarArea.getHeight(), getMinimiseButton(), getMaximiseButton(), getCloseButton(), false);
         }
@@ -715,15 +709,13 @@ private:
             }
         }
 
-#if CUSTOM_SHADOW
         void paintOverChildren(Graphics& g) override
         {
-            if (!owner.isUsingNativeTitleBar()) {
+            if (drawWindowShadow && !owner.isUsingNativeTitleBar()) {
                 g.setColour(findColour(PlugDataColour::outlineColourId));
                 g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(getMargin() + 0.5f), Constants::windowCornerRadius, 1.0f);
             }
         }
-#endif
 
         AudioProcessorEditor* getEditor()
         {
@@ -741,13 +733,18 @@ private:
                 return 0;
             }
 
-#if JUCE_LINUX && CUSTOM_SHADOW
-            if (auto* maximiseButton = owner.getMaximiseButton()) {
-                bool maximised = maximiseButton->getToggleState();
-                return maximised ? 0 : 18;
-            }
+#if JUCE_LINUX
+            if(drawWindowShadow) {
+                if (auto* maximiseButton = owner.getMaximiseButton()) {
+                    bool maximised = maximiseButton->getToggleState();
+                    return maximised ? 0 : 18;
+                }
 
-            return 18;
+                return 18;
+            }
+            else {
+                return 0;
+            }
 #else
             return 0;
 #endif
