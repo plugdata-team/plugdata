@@ -21,7 +21,7 @@ struct CanvasActiveObject final : public TextBase
         char buf[MAXPDSTRING];
         snprintf(buf, MAXPDSTRING - 1, ".x%lx.c", (unsigned long)y);
         buf[MAXPDSTRING - 1] = 0;
-        canvasName = gensym(buf);
+        canvasName = pd->generateSymbol(buf);
     }
 
     ~CanvasActiveObject()
@@ -35,7 +35,7 @@ struct CanvasActiveObject final : public TextBase
             t_atom args[2];
             SETSYMBOL(args, canvasName);
             SETFLOAT(args + 1, 0);
-            pd_typedmess((t_pd*)ptr, gensym("_focus"), 2, args);
+            pd_typedmess((t_pd*)ptr, pd->generateSymbol("_focus"), 2, args);
             lastFocus = 0;
             return;
         }
@@ -46,7 +46,7 @@ struct CanvasActiveObject final : public TextBase
             t_atom args[2];
             SETSYMBOL(args, canvasName);
             SETFLOAT(args + 1, static_cast<float>(shouldHaveFocus));
-            pd_typedmess((t_pd*)ptr, gensym("_focus"), 2, args);
+            pd_typedmess((t_pd*)ptr, pd->generateSymbol("_focus"), 2, args);
             lastFocus = shouldHaveFocus;
         }
     }

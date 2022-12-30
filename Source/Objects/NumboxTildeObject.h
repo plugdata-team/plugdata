@@ -178,7 +178,7 @@ struct NumboxTildeObject final : public GUIObject
     {
         // Remove alpha channel and add #
 
-        ((t_numbox*)ptr)->x_fg = gensym(("#" + colour.substring(2)).toRawUTF8());
+        ((t_numbox*)ptr)->x_fg = pd->generateSymbol("#" + colour.substring(2));
 
         auto col = Colour::fromString(colour);
         getLookAndFeel().setColour(Label::textColourId, col);
@@ -190,7 +190,7 @@ struct NumboxTildeObject final : public GUIObject
 
     void setBackgroundColour(String colour)
     {
-        ((t_numbox*)ptr)->x_bg = gensym(("#" + colour.substring(2)).toRawUTF8());
+        ((t_numbox*)ptr)->x_bg = pd->generateSymbol("#" + colour.substring(2));
         repaint();
     }
 

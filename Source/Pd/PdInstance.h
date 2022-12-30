@@ -393,7 +393,8 @@ public:
 
     virtual void reloadAbstractions(File changedPatch, t_glist* except) = 0;
 
-    void setThis();
+    void setThis() const;
+    t_symbol* generateSymbol(String symbol) const;
 
     void waitForStateUpdate();
 

@@ -56,8 +56,8 @@ namespace pd {
 class Patch;
 };
 
+
 class StandalonePluginHolder : private AudioIODeviceCallback
-    , private Timer
     , private Value::Listener {
 public:
     /** Structure used for the number of inputs and outputs. */
@@ -79,17 +79,10 @@ public:
 
      In all instances, the settingsToUse will take precedence over the "preferred" options if not null.
      */
-    StandalonePluginHolder(PropertySet* settingsToUse, bool takeOwnershipOfSettings = true, String const& preferredDefaultDeviceName = String(), AudioDeviceManager::AudioDeviceSetup const* preferredSetupOptions = nullptr, Array<PluginInOuts> const& channels = Array<PluginInOuts>(),
-#if JUCE_ANDROID || JUCE_IOS
-        bool shouldAutoOpenMidiDevices = true
-#else
-        bool shouldAutoOpenMidiDevices = false
-#endif
-        )
+    StandalonePluginHolder(PropertySet* settingsToUse, bool takeOwnershipOfSettings = true, String const& preferredDefaultDeviceName = String(), AudioDeviceManager::AudioDeviceSetup const* preferredSetupOptions = nullptr, Array<PluginInOuts> const& channels = Array<PluginInOuts>())
 
         : settings(settingsToUse, takeOwnershipOfSettings)
         , channelConfiguration(channels)
-        , autoOpenMidiDevices(shouldAutoOpenMidiDevices)
     {
         shouldMuteInput.addListener(this);
         shouldMuteInput = !isInterAppAudioConnected();
@@ -118,14 +111,10 @@ public:
         setupAudioDevices(enableAudioInput, preferredDefaultDeviceName, options.get());
 
         startPlaying();
-
-        if (autoOpenMidiDevices)
-            startTimer(500);
     }
 
     ~StandalonePluginHolder() override
     {
-        stopTimer();
 
         deletePlugin();
         shutDownAudioDevices();
@@ -186,13 +175,6 @@ public:
     void startPlaying()
     {
         player.setProcessor(processor.get());
-
-#if JucePlugin_Enable_IAA && JUCE_IOS
-        if (auto device = dynamic_cast<iOSAudioIODevice*>(deviceManager.getCurrentAudioDevice())) {
-            processor->setPlayHead(device->getAudioPlayHead());
-            device->setMidiMessageCollector(&player.getMidiMessageCollector());
-        }
-#endif
     }
 
     void stopPlaying()
@@ -279,7 +261,6 @@ public:
     std::atomic<bool> muteInput { true };
     Value shouldMuteInput;
     AudioBuffer<float> emptyBuffer;
-    bool autoOpenMidiDevices;
 
     std::unique_ptr<AudioDeviceManager::AudioDeviceSetup> options;
     Array<MidiDeviceInfo> lastMidiDevices;
@@ -427,23 +408,6 @@ private:
         deviceManager.removeAudioCallback(&maxSizeEnforcer);
     }
 
-    void timerCallback() override
-    {
-        auto newMidiDevices = MidiInput::getAvailableDevices();
-
-        if (newMidiDevices != lastMidiDevices) {
-            for (auto& oldDevice : lastMidiDevices)
-                if (!newMidiDevices.contains(oldDevice))
-                    deviceManager.setMidiInputDeviceEnabled(oldDevice.identifier, false);
-
-            for (auto& newDevice : newMidiDevices)
-                if (!lastMidiDevices.contains(newDevice))
-                    deviceManager.setMidiInputDeviceEnabled(newDevice.identifier, true);
-
-            lastMidiDevices = newMidiDevices;
-        }
-    }
-
     OwnedArray<MidiInput> customMidiInputs;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(StandalonePluginHolder)
@@ -480,13 +444,7 @@ public:
      true, then the settings object will be owned and deleted by this object.
      */
     PlugDataWindow(String const& systemArguments, String const& title, Colour backgroundColour, PropertySet* settingsToUse, bool takeOwnershipOfSettings, String const& preferredDefaultDeviceName = String(), AudioDeviceManager::AudioDeviceSetup const* preferredSetupOptions = nullptr,
-        Array<PluginInOuts> const& constrainToConfiguration = {},
-#if JUCE_ANDROID || JUCE_IOS
-        bool autoOpenMidiDevices = true
-#else
-        bool autoOpenMidiDevices = false
-#endif
-        )
+        Array<PluginInOuts> const& constrainToConfiguration = {})
         : DocumentWindow(title, backgroundColour, DocumentWindow::minimiseButton | DocumentWindow::maximiseButton | DocumentWindow::closeButton)
     {
 
@@ -494,7 +452,7 @@ public:
 
         setTitleBarButtonsRequired(DocumentWindow::minimiseButton | DocumentWindow::maximiseButton | DocumentWindow::closeButton, false);
 
-        pluginHolder = std::make_unique<StandalonePluginHolder>(settingsToUse, takeOwnershipOfSettings, preferredDefaultDeviceName, preferredSetupOptions, constrainToConfiguration, autoOpenMidiDevices);
+        pluginHolder = std::make_unique<StandalonePluginHolder>(settingsToUse, takeOwnershipOfSettings, preferredDefaultDeviceName, preferredSetupOptions, constrainToConfiguration);
 
         parseSystemArguments(systemArguments);
 

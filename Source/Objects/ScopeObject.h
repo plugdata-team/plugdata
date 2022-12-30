@@ -303,12 +303,12 @@ struct ScopeBase : public GUIObject
         } else if (v.refersToSameSourceAs(triggerValue)) {
             scope->x_triglevel = static_cast<int>(triggerValue.getValue());
         } else if (v.refersToSameSourceAs(receiveSymbol)) {
-            auto* rcv = gensym(receiveSymbol.toString().toRawUTF8());
+            auto* rcv = pd->generateSymbol(receiveSymbol.toString());
             scope->x_receive = canvas_realizedollar(scope->x_glist, scope->x_rcv_raw = rcv);
             if (scope->x_receive != &s_) {
                 pd_bind(&scope->x_obj.ob_pd, scope->x_receive);
             } else {
-                scope->x_rcv_raw = gensym("empty");
+                scope->x_rcv_raw = pd->generateSymbol("empty");
             }
         }
     }

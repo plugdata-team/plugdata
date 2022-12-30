@@ -135,8 +135,8 @@ struct PictureObject final : public GUIObject {
         pathString = imageFile.getFullPathName();
         auto* charptr = pathString.toRawUTF8();
 
-        pic->x_filename = gensym(charptr);
-        pic->x_fullname = gensym(charptr);
+        pic->x_filename = pd->generateSymbol(charptr);
+        pic->x_fullname = pd->generateSymbol(charptr);
 
         img = ImageFileFormat::loadFrom(imageFile);
 

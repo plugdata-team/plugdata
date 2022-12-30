@@ -296,6 +296,7 @@ void mess_init(void)
 
 static void pd_defaultanything(t_pd *x, t_symbol *s, int argc, t_atom *argv)
 {
+    t_canvas* cnv = canvas_getcurrent();
     pd_error(x, "%s: no method for '%s'", (*x)->c_name->s_name, s->s_name);
 }
 

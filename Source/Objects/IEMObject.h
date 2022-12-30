@@ -33,11 +33,11 @@ struct IEMObject : public GUIObject {
 
         for(int i = 0; i < 3; i++) {
             if(srlsym[i])
-                srlsym[i] = gensym(pdgui_strnescape(label_chars, sizeof(label_chars), srlsym[i]->s_name, strlen(srlsym[i]->s_name)));
+                srlsym[i] = pd->generateSymbol(pdgui_strnescape(label_chars, sizeof(label_chars), srlsym[i]->s_name, strlen(srlsym[i]->s_name)));
         }
 
-        String label = String::fromUTF8(srlsym[2]->s_name).removeCharacters("\\");
-        iemgui->x_lab_unexpanded = gensym(label.toRawUTF8()); */
+        String label = String::fromUTF8(pd->generateSymbol[2]->s_name).removeCharacters("\\");
+        iemgui->x_lab_unexpanded = gensym(label)); */
 
         labelText = getLabelText();
 
@@ -291,7 +291,7 @@ struct IEMObject : public GUIObject {
 
     void setSendSymbol(String const& symbol) const
     {
-        auto* sym = symbol.isEmpty() ? nullptr : gensym(symbol.toRawUTF8());
+        auto* sym = symbol.isEmpty() ? nullptr : pd->generateSymbol(symbol);
         auto* iemgui = static_cast<t_iemgui*>(ptr);
         iemgui_send(ptr, iemgui, sym);
     }
@@ -299,7 +299,7 @@ struct IEMObject : public GUIObject {
     void setReceiveSymbol(String const& symbol) const
     {
 
-        auto* sym = symbol.isEmpty() ? nullptr : gensym(symbol.toRawUTF8());
+        auto* sym = symbol.isEmpty() ? nullptr : pd->generateSymbol(symbol);
         auto* iemgui = static_cast<t_iemgui*>(ptr);
         iemgui_receive(ptr, iemgui, sym);
     }
@@ -386,7 +386,7 @@ struct IEMObject : public GUIObject {
 
         auto* iemgui = static_cast<t_iemgui*>(ptr);
         if (newText != "empty") {
-            iemgui->x_lab_unexpanded = gensym(newText.toRawUTF8());
+            iemgui->x_lab_unexpanded = pd->generateSymbol(newText);
             iemgui->x_lab = canvas_realizedollar(iemgui->x_glist, iemgui->x_lab_unexpanded);
         }
     }

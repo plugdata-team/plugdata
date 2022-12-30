@@ -641,15 +641,12 @@ void canvas_obj(t_glist* gl, t_symbol* s, int argc, t_atom* argv);
 
 t_pd* libpd_createobj(t_canvas* cnv, t_symbol* s, int argc, t_atom* argv)
 {
-
     sys_lock();
     canvas_setcurrent(cnv);
     pd_typedmess((t_pd*)cnv, s, argc, argv);
     
     canvas_undo_add(cnv, UNDO_CREATE, "create",
         (void*)canvas_undo_set_create(cnv));
-
-    canvas_unsetcurrent(cnv);
     
     t_pd* new_object = libpd_newest(cnv);
 
@@ -660,6 +657,8 @@ t_pd* libpd_createobj(t_canvas* cnv, t_symbol* s, int argc, t_atom* argv)
             vmess(new_object, gensym("loadbang"), "f", LB_LOAD);
     }
     sys_unlock();
+    
+    canvas_unsetcurrent(cnv);
     
     glist_noselect(cnv);
 

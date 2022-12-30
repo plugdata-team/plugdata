@@ -38,7 +38,7 @@ struct KeyObject final : public TextBase
         if (!key.getModifiers().isShiftDown())
             keyString.toLowerCase();
 
-        t_symbol* keysym = gensym(keyString.toRawUTF8());
+        t_symbol* keysym = pd->generateSymbol(keyString);
         int keyCode = key.getKeyCode();
         parseKey(keyCode, keysym);
 
@@ -49,7 +49,7 @@ struct KeyObject final : public TextBase
             SETFLOAT(argv, 1.0f);
             SETSYMBOL(argv + 1, keysym);
 
-            pd_list((t_pd*)ptr, gensym("list"), 2, argv);
+            pd_list((t_pd*)ptr, pd->generateSymbol("list"), 2, argv);
         }
 
         // Never claim the keypress
@@ -65,7 +65,7 @@ struct KeyObject final : public TextBase
                 auto& key = heldKeys[n];
 
                 if (!key.isCurrentlyDown()) {
-                    t_symbol* keysym = gensym(key.getTextDescription().toRawUTF8());
+                    t_symbol* keysym = pd->generateSymbol(key.getTextDescription());
                     int keyCode = key.getKeyCode();
                     parseKey(keyCode, keysym);
 
@@ -76,7 +76,7 @@ struct KeyObject final : public TextBase
                         SETFLOAT(argv, 0.0f);
                         SETSYMBOL(argv + 1, keysym);
 
-                        pd_list((t_pd*)ptr, gensym("list"), 2, argv);
+                        pd_list((t_pd*)ptr, pd->generateSymbol("list"), 2, argv);
                     }
 
                     heldKeys.erase(heldKeys.begin() + n);
@@ -91,57 +91,57 @@ struct KeyObject final : public TextBase
     void parseKey(int& keynum, t_symbol*& keysym)
     {
         if (keynum == 8)
-            keysym = gensym("BackSpace");
+            keysym = pd->generateSymbol("BackSpace");
         if (keynum == 9)
-            keysym = gensym("Tab");
+            keysym = pd->generateSymbol("Tab");
         if (keynum == 10)
-            keysym = gensym("Return");
+            keysym = pd->generateSymbol("Return");
         if (keynum == 27)
-            keysym = gensym("Escape");
+            keysym = pd->generateSymbol("Escape");
         if (keynum == 32)
-            keysym = gensym("Space");
+            keysym = pd->generateSymbol("Space");
         if (keynum == 127)
-            keysym = gensym("Delete");
+            keysym = pd->generateSymbol("Delete");
 
         if (keynum == 30 || keynum == 63232)
-            keynum = 0, keysym = gensym("Up");
+            keynum = 0, keysym = pd->generateSymbol("Up");
         else if (keynum == 31 || keynum == 63233)
-            keynum = 0, keysym = gensym("Down");
+            keynum = 0, keysym = pd->generateSymbol("Down");
         else if (keynum == 28 || keynum == 63234)
-            keynum = 0, keysym = gensym("Left");
+            keynum = 0, keysym = pd->generateSymbol("Left");
         else if (keynum == 29 || keynum == 63235)
-            keynum = 0, keysym = gensym("Right");
+            keynum = 0, keysym = pd->generateSymbol("Right");
         else if (keynum == 63273)
-            keynum = 0, keysym = gensym("Home");
+            keynum = 0, keysym = pd->generateSymbol("Home");
         else if (keynum == 63275)
-            keynum = 0, keysym = gensym("End");
+            keynum = 0, keysym = pd->generateSymbol("End");
         else if (keynum == 63276)
-            keynum = 0, keysym = gensym("Prior");
+            keynum = 0, keysym = pd->generateSymbol("Prior");
         else if (keynum == 63277)
-            keynum = 0, keysym = gensym("Next");
+            keynum = 0, keysym = pd->generateSymbol("Next");
         else if (keynum == 63236)
-            keynum = 0, keysym = gensym("F1");
+            keynum = 0, keysym = pd->generateSymbol("F1");
         else if (keynum == 63237)
-            keynum = 0, keysym = gensym("F2");
+            keynum = 0, keysym = pd->generateSymbol("F2");
         else if (keynum == 63238)
-            keynum = 0, keysym = gensym("F3");
+            keynum = 0, keysym = pd->generateSymbol("F3");
         else if (keynum == 63239)
-            keynum = 0, keysym = gensym("F4");
+            keynum = 0, keysym = pd->generateSymbol("F4");
         else if (keynum == 63240)
-            keynum = 0, keysym = gensym("F5");
+            keynum = 0, keysym = pd->generateSymbol("F5");
         else if (keynum == 63241)
-            keynum = 0, keysym = gensym("F6");
+            keynum = 0, keysym = pd->generateSymbol("F6");
         else if (keynum == 63242)
-            keynum = 0, keysym = gensym("F7");
+            keynum = 0, keysym = pd->generateSymbol("F7");
         else if (keynum == 63243)
-            keynum = 0, keysym = gensym("F8");
+            keynum = 0, keysym = pd->generateSymbol("F8");
         else if (keynum == 63244)
-            keynum = 0, keysym = gensym("F9");
+            keynum = 0, keysym = pd->generateSymbol("F9");
         else if (keynum == 63245)
-            keynum = 0, keysym = gensym("F10");
+            keynum = 0, keysym = pd->generateSymbol("F10");
         else if (keynum == 63246)
-            keynum = 0, keysym = gensym("F11");
+            keynum = 0, keysym = pd->generateSymbol("F11");
         else if (keynum == 63247)
-            keynum = 0, keysym = gensym("F12");
+            keynum = 0, keysym = pd->generateSymbol("F12");
     }
 };

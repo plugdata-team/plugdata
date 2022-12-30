@@ -34,7 +34,7 @@ struct MouseObject final : public TextBase {
         t_atom args[1];
         SETFLOAT(args, 0);
 
-        pd_typedmess((t_pd*)ptr, gensym("_up"), 1, args);
+        pd_typedmess((t_pd*)ptr, pd->generateSymbol("_up"), 1, args);
     }
 
     void mouseUp(MouseEvent const& e) override
@@ -42,7 +42,7 @@ struct MouseObject final : public TextBase {
         t_atom args[1];
         SETFLOAT(args, 1);
 
-        pd_typedmess((t_pd*)ptr, gensym("_up"), 1, args);
+        pd_typedmess((t_pd*)ptr, pd->generateSymbol("_up"), 1, args);
     }
 
     void mouseMove(MouseEvent const& e) override
@@ -53,7 +53,7 @@ struct MouseObject final : public TextBase {
         SETFLOAT(args, pos.x);
         SETFLOAT(args + 1, pos.y);
 
-        pd_typedmess((t_pd*)ptr, gensym("_getscreen"), 2, args);
+        pd_typedmess((t_pd*)ptr, pd->generateSymbol("_getscreen"), 2, args);
     }
 
     void mouseDrag(MouseEvent const& e) override

@@ -68,7 +68,7 @@ struct MousePadObject final : public GUIObject {
 
         SETFLOAT(at, 1.0f);
         sys_lock();
-        outlet_anything(x->x_obj.ob_outlet, gensym("click"), 1, at);
+        outlet_anything(x->x_obj.ob_outlet, pd->generateSymbol("click"), 1, at);
         sys_unlock();
 
         isPressed = true;
@@ -114,7 +114,7 @@ struct MousePadObject final : public GUIObject {
         auto* x = static_cast<t_pad*>(ptr);
         t_atom at[1];
         SETFLOAT(at, 0);
-        outlet_anything(x->x_obj.ob_outlet, gensym("click"), 1, at);
+        outlet_anything(x->x_obj.ob_outlet, pd->generateSymbol("click"), 1, at);
         isPressed = false;
     }
 
