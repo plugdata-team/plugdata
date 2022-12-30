@@ -435,9 +435,9 @@ public:
         setInterceptsMouseClicks(false, true);
 
         objectDescriptions = library.getObjectDescriptions();
-        
-        for(auto& object : library.getAllObjects()) {
-            if(!objectDescriptions.count(object)) {
+
+        for (auto& object : library.getAllObjects()) {
+            if (!objectDescriptions.count(object)) {
                 objectDescriptions[object] = "";
             }
         }

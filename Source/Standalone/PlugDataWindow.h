@@ -56,7 +56,6 @@ namespace pd {
 class Patch;
 };
 
-
 class StandalonePluginHolder : private AudioIODeviceCallback
     , private Value::Listener {
 public:

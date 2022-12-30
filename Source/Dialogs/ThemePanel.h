@@ -63,7 +63,7 @@ struct ThemePanel : public Component
             // Add a multi colour component to the properties panel
             panels[colourCategory].add(new PropertiesPanel::MultiPropertyComponent<PropertiesPanel::ColourComponent>(colourName, swatchesToAdd));
         }
-        
+
         // font setting
         fontValue.setValue(LookAndFeel::getDefaultLookAndFeel().getTypefaceForFont(Font())->getName());
         fontValue.addListener(this);

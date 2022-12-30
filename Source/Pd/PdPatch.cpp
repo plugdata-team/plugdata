@@ -95,7 +95,6 @@ void Patch::savePatch(File const& location)
     String fullPathname = location.getParentDirectory().getFullPathName();
     String filename = location.getFileName();
 
-    
     auto* dir = instance->generateSymbol(fullPathname.replace("\\", "/"));
     auto* file = instance->generateSymbol(filename);
 
@@ -147,7 +146,7 @@ void Patch::setCurrent(bool lock)
 int Patch::getIndex(void* obj)
 {
     setCurrent();
-    
+
     int i = 0;
     auto* cnv = getPointer();
 
@@ -193,7 +192,7 @@ std::vector<void*> Patch::getObjects()
 {
     if (ptr) {
         setCurrent();
-        
+
         std::vector<void*> objects;
         t_canvas const* cnv = getPointer();
 
@@ -203,7 +202,7 @@ std::vector<void*> Patch::getObjects()
 
             objects.push_back(static_cast<void*>(y));
         }
-        
+
         return objects;
     }
     return {};
@@ -255,7 +254,7 @@ void* Patch::createObject(String const& name, int x, int y)
 {
     if (!ptr)
         return nullptr;
-    
+
     instance->setThis();
 
     StringArray tokens;
@@ -404,7 +403,8 @@ void* Patch::renameObject(void* obj, String const& name)
         done = true;
     });
 
-    while(!done) instance->waitForStateUpdate();
+    while (!done)
+        instance->waitForStateUpdate();
 
     return pdobject;
 }

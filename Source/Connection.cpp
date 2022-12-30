@@ -83,8 +83,7 @@ Connection::Connection(Canvas* parent, Iolet* s, Iolet* e, bool exists)
 
 void Connection::valueChanged(Value& v)
 {
-    if (v.refersToSameSourceAs(useDashedSignalConnection))
-    {
+    if (v.refersToSameSourceAs(useDashedSignalConnection)) {
         useDashed = static_cast<bool>(useDashedSignalConnection.getValue());
     }
 }
@@ -226,23 +225,19 @@ void Connection::paint(Graphics& g)
 
     g.setColour(baseColour.darker(0.2));
     g.strokePath(toDraw, PathStrokeType(1.5f, PathStrokeType::mitered, PathStrokeType::square));
-    
+
     g.setColour(useDashed && outlet->isSignal ? baseColour.darker(1.5f) : baseColour);
-    if (useDashed && outlet->isSignal)
-    {
+    if (useDashed && outlet->isSignal) {
         PathStrokeType dashedStroke(0.8f);
-        float dash[1] = {5.0f};
+        float dash[1] = { 5.0f };
         Path dashedPath;
         dashedStroke.createDashedStroke(dashedPath, toDraw, dash, 1);
         g.strokePath(dashedPath, dashedStroke);
-    }
-    else
-    {
+    } else {
         g.strokePath(toDraw, PathStrokeType(0.5f, PathStrokeType::mitered, PathStrokeType::square));
     }
 
-    if (cnv->isSelected(this))
-    {
+    if (cnv->isSelected(this)) {
         auto mousePos = getMouseXYRelative();
 
         bool overStart = startReconnectHandle.contains(mousePos.toFloat());

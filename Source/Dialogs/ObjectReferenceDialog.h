@@ -29,7 +29,7 @@ struct ObjectReferenceDialog : public Component {
         rightSideInfo.setMultiLine(true);
         rightSideInfo.setColour(TextEditor::outlineColourId, Colours::transparentBlack);
         rightSideInfo.setFont(Font(15.0f));
-        
+
         backButton.setName("toolbar:backbutton");
     }
 

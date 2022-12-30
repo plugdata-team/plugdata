@@ -589,8 +589,6 @@ public:
             [this, _this = SafePointer(this), arrName, arrSize, flags]() mutable {
                 if (!_this)
                     return;
-                
-                
 
                 auto* garray = reinterpret_cast<t_garray*>(static_cast<t_canvas*>(ptr)->gl_list);
                 garray_arraydialog(garray, _this->pd->generateSymbol(arrName), arrSize, static_cast<float>(flags), 0.0f);
