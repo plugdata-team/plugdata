@@ -167,6 +167,8 @@ struct DrawableCurve final : public DrawableTemplate
         auto shift = e.mods.isShiftDown();
         auto alt = e.mods.isAltDown();
         auto dbl = 0;
+        
+        canvas->pd->setThis();
 
         t_template* t = template_findbyname(scalar->sc_template);
         scalar_doclick(scalar->sc_vec, t, scalar, 0, canvas->patch.getPointer(), 0, 0, e.x, e.y, shift, alt, dbl, 1);
@@ -185,6 +187,8 @@ struct DrawableCurve final : public DrawableTemplate
         if (!scalar || !scalar->sc_template)
             return;
 
+        canvas->pd->setThis();
+        
         auto* glist = canvas->patch.getPointer();
         auto* templ = template_findbyname(scalar->sc_template);
 
@@ -300,6 +304,8 @@ struct DrawableSymbol final : public DrawableTemplate
         // TODO: hacky workaround for potential crash. Doens't always work. Fix this.
         if (!scalar || !scalar->sc_template)
             return;
+        
+        canvas->pd->setThis();
 
         auto* glist = canvas->patch.getPointer();
         auto* templ = template_findbyname(scalar->sc_template);
@@ -369,6 +375,8 @@ struct ScalarObject final : public NonPatchable {
     ScalarObject(void* obj, Object* object)
         : NonPatchable(obj, object)
     {
+        cnv->pd->setThis();
+        
         auto* x = reinterpret_cast<t_scalar*>(obj);
         auto* templ = template_findbyname(x->sc_template);
         auto* templatecanvas = template_findcanvas(templ);

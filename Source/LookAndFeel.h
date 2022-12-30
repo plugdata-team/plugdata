@@ -432,14 +432,6 @@ struct PlugDataLook : public LookAndFeel_V4 {
 
     void drawPopupMenuBackgroundWithOptions(Graphics& g, int width, int height, PopupMenu::Options const& options) override
     {
-
-        // Fill background if there's no support for transparent popupmenus
-#ifdef PLUGDATA_STANDALONE
-        if (!Desktop::canUseSemiTransparentWindows()) {
-            g.fillAll(findColour(ResizableWindow::backgroundColourId));
-        }
-#endif
-
         Path shadowPath;
         shadowPath.addRoundedRectangle(Rectangle<float>(0.0f, 0.0f, width, height).reduced(10.0f), Constants::defaultCornerRadius);
         StackShadow::renderDropShadow(g, shadowPath, Colour(0, 0, 0).withAlpha(0.6f), 10, { 0, 2 });
