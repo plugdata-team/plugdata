@@ -163,7 +163,7 @@ struct PropertiesPanel : public PropertyPanel {
 
             addAndMakeVisible(toggleButton);
 
-            toggleButton.onClick = [this, value, options]() mutable { toggleButton.setButtonText(toggleButton.getToggleState() ? options[1] : options[0]); };
+            toggleButton.onStateChange = [this, value, options]() mutable { toggleButton.setButtonText(toggleButton.getToggleState() ? options[1] : options[0]); };
         }
 
         void resized() override
