@@ -18,7 +18,8 @@ using PathPlan = std::vector<Point<int>>;
 
 class Canvas;
 class Connection : public Component
-    , public ComponentListener, public Value::Listener {
+    , public ComponentListener
+    , public Value::Listener {
 public:
     int inIdx;
     int outIdx;

@@ -125,7 +125,7 @@ void Storage::storeInfo()
 {
     if (!infoObject)
         return;
-    
+
     instance->setThis();
 
     String newname = "plugdatainfo " + extraInfo.toXmlString(XmlElement::TextFormat().singleLine());
@@ -204,7 +204,7 @@ void Storage::undoIfNeeded()
     instance->getCallbackLock()->enter();
 
     instance->setThis();
-    
+
     t_undo* udo = canvas_undo_get(parentPatch);
 
     if (udo && udo->u_last && !strcmp(udo->u_last->name, "plugdata_undo")) {
@@ -222,7 +222,7 @@ void Storage::redoIfNeeded()
     instance->getCallbackLock()->enter();
 
     instance->setThis();
-    
+
     t_undo* udo = canvas_undo_get(parentPatch);
 
     if (udo && udo->u_last && !strcmp(udo->u_last->next->name, "plugdata_undo")) {
@@ -244,7 +244,7 @@ void Storage::createUndoAction()
     undoManager.beginNewTransaction();
 
     instance->setThis();
-    
+
     instance->getCallbackLock()->enter();
     // Create dummy undoable action that we can detect by name when calling undo
     canvas_undo_add(parentPatch, UNDO_MOTION, "plugdata_undo", canvas_undo_set_move(parentPatch, 1));

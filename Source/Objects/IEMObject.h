@@ -37,7 +37,7 @@ struct IEMObject : public GUIObject {
         }
 
         String label = String::fromUTF8(pd->generateSymbol[2]->s_name).removeCharacters("\\");
-        iemgui->x_lab_unexpanded = gensym(label)); */
+        iemgui->x_lab_unexpanded = pd->generateSymbol(label)); */
 
         labelText = getLabelText();
 
