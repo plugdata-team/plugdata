@@ -721,10 +721,10 @@ private:
                 g.setColour(findColour(PlugDataColour::outlineColourId));
                 
                 if(!Desktop::canUseSemiTransparentWindows()) {
-                    g.drawRect(getLocalBounds().toFloat().reduced(getMargin() + 0.5f), 1.0f);
+                    g.drawRect(getLocalBounds().toFloat().reduced(getMargin()), 1.0f);
                 }
                 else {
-                    g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(getMargin() + 0.5f), Constants::windowCornerRadius, 1.0f);
+                    g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(getMargin()), Constants::windowCornerRadius, 1.0f);
                 }
             }
 #endif
