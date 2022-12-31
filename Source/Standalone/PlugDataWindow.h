@@ -716,12 +716,18 @@ private:
 
         void paintOverChildren(Graphics& g) override
         {
+#if JUCE_LINUX
             if (!owner.isUsingNativeTitleBar()) {
-#if !JUCE_MAC
                 g.setColour(findColour(PlugDataColour::outlineColourId));
-                g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(getMargin() + 0.5f), Constants::windowCornerRadius, 1.0f);
-#endif
+                
+                if(Desktop::canUseSemiTransparentWindows()) {
+                    g.drawRect(getLocalBounds().toFloat().reduced(getMargin() + 0.5f), 1.0f);
+                }
+                else {
+                    g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(getMargin() + 0.5f), Constants::windowCornerRadius, 1.0f);
+                }
             }
+#endif
         }
 
         AudioProcessorEditor* getEditor()
