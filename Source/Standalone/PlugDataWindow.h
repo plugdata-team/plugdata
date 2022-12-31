@@ -528,24 +528,25 @@ public:
         if (!nativeWindow) {
 
             setOpaque(false);
+            
+            setResizable(false, false);
+            
+            resizer = std::make_unique<ResizableBorderComponent>(this, &constrainer);
+            resizer->setBorderThickness(BorderSize(4));
+            resizer->setAlwaysOnTop(true);
+            Component::addAndMakeVisible(resizer.get());
 
             if(drawWindowShadow) {
-#if JUCE_LINUX || JUCE_BSD
-                resizer = std::make_unique<ResizableBorderComponent>(this, &constrainer);
-                resizer->setBorderThickness(BorderSize(4));
-                resizer->setAlwaysOnTop(true);
-                Component::addAndMakeVisible(resizer.get());
-                setResizable(false, false);
-                setDropShadowEnabled(false);
-#elif JUCE_WINDOWS
                 
-                dropShadower = std::make_unique<StackDropShadower>(DropShadow(Colour(0, 0, 0).withAlpha(0.6f), 20, { 0, 3 }));
-                dropShadower->setOwner(this);
-                setResizable(true, false);
-                setDropShadowEnabled(false);
-#else
-                setResizable(true, false);
+#if JUCE_MAC
                 setDropShadowEnabled(true);
+#else
+                setDropShadowEnabled(false);
+#endif
+                
+#if JUCE_WINDOWS
+                dropShadower = std::make_unique<StackDropShadower>(DropShadow(Colour(0, 0, 0).withAlpha(0.6f), 20, {0, 3}));
+                dropShadower->setOwner(this);
 #endif
             }
             else {
@@ -669,6 +670,9 @@ public:
                 titleBarArea = Rectangle<int>(0, 10, getWidth() - 6, 25);
                 if (auto* b = getMaximiseButton())
                     b->setToggleState(isFullScreen(), dontSendNotification);
+                
+                if (resizer)
+                    resizer->setBounds(getLocalBounds());
             }
 
             getLookAndFeel().positionDocumentWindowButtons(*this, titleBarArea.getX(), titleBarArea.getY(), titleBarArea.getWidth(), titleBarArea.getHeight(), getMinimiseButton(), getMaximiseButton(), getCloseButton(), false);
