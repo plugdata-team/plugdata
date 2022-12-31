@@ -196,7 +196,7 @@ public:
 
         setTopLeftPosition(objectPos);
 
-        setVisible(true);
+        setVisible(false);
         toFront(false);
 
         repaint();
@@ -205,6 +205,7 @@ public:
     void removeCalloutBox()
     {
         setVisible(false);
+        
         if (isOnDesktop()) {
             removeFromDesktop();
         }
