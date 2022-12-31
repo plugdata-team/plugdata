@@ -1286,7 +1286,7 @@ bool PluginEditor::wantsRoundedCorners()
 {
 #if PLUGDATA_STANDALONE
     if (auto* window = findParentComponentOfClass<PlugDataWindow>()) {
-        return !window->isUsingNativeTitleBar();
+        return !window->isUsingNativeTitleBar() && Desktop::canUseSemiTransparentWindows();
     } else {
         return true;
     }
