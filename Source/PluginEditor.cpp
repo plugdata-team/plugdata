@@ -262,16 +262,15 @@ void PluginEditor::paint(Graphics& g)
     }
 
     g.setColour(findColour(PlugDataColour::outlineColourId));
-    g.drawLine(0.0f, toolbarHeight + rounded, static_cast<float>(getWidth()), toolbarHeight + rounded, 1.0f);
+    g.drawLine(0.0f, toolbarHeight, static_cast<float>(getWidth()), toolbarHeight, 1.0f);
 }
 
 void PluginEditor::resized()
 {
-    int roundedOffset = wantsRoundedCorners();
 
-    sidebar.setBounds(getWidth() - sidebar.getWidth(), toolbarHeight + roundedOffset, sidebar.getWidth(), getHeight() - toolbarHeight - roundedOffset);
+    sidebar.setBounds(getWidth() - sidebar.getWidth(), toolbarHeight, sidebar.getWidth(), getHeight() - toolbarHeight);
 
-    tabbar.setBounds(0, toolbarHeight + roundedOffset, (getWidth() - sidebar.getWidth()) + 1, getHeight() - toolbarHeight - (statusbar.getHeight() + roundedOffset));
+    tabbar.setBounds(0, toolbarHeight, (getWidth() - sidebar.getWidth()) + 1, getHeight() - toolbarHeight - (statusbar.getHeight()));
 
     statusbar.setBounds(0, getHeight() - statusbar.getHeight(), getWidth() - sidebar.getWidth(), statusbar.getHeight());
 
