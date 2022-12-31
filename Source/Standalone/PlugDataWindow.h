@@ -711,7 +711,7 @@ private:
 
         void paintOverChildren(Graphics& g) override
         {
-            if (drawWindowShadow && !owner.isUsingNativeTitleBar()) {
+            if (!owner.isUsingNativeTitleBar()) {
                 g.setColour(findColour(PlugDataColour::outlineColourId));
                 g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(getMargin() + 0.5f), Constants::windowCornerRadius, 1.0f);
             }
