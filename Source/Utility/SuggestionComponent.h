@@ -118,7 +118,7 @@ public:
     SuggestionComponent()
         : resizer(this, &constrainer)
         , currentBox(nullptr)
-        , dropShadower(DropShadow(Colour(0, 0, 0).withAlpha(0.25f), 8, { 0, 3 }))
+        , dropShadower(DropShadow(Colour(0, 0, 0).withAlpha(0.25f), 7, { 0, 2 }))
     {
         // Set up the button list that contains our suggestions
         buttonholder = std::make_unique<Component>();
@@ -305,8 +305,8 @@ private:
 
     void paintOverChildren(Graphics& g) override
     {
-        g.setColour(bordercolor);
-        g.drawRoundedRectangle(port->getBounds().reduced(1).toFloat(), Constants::defaultCornerRadius, 1.0f);
+        g.setColour(findColour(PlugDataColour::outlineColourId).darker(0.1f));
+        g.drawRoundedRectangle(port->getBounds().toFloat().reduced(0.5f), Constants::defaultCornerRadius, 1.0f);
     }
 
     bool keyPressed(KeyPress const& key, Component* originatingComponent) override
@@ -475,8 +475,6 @@ private:
     ComponentBoundsConstrainer constrainer;
         
     StackDropShadower dropShadower;
-
-    Colour bordercolor = Colour(142, 152, 155);
 
     int highlightStart = 0;
     int highlightEnd = 0;

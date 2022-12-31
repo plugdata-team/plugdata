@@ -941,7 +941,7 @@ private:
         {
             if (auto* c = dynamic_cast<TopLevelWindow*>(target.get())) {
                 auto shadowPath = Path();
-                shadowPath.addRoundedRectangle(getLocalArea(c, c->getLocalBounds().reduced(shadow.radius)).toFloat(), Constants::windowCornerRadius);
+                shadowPath.addRoundedRectangle(getLocalArea(c, c->getLocalBounds().reduced(shadow.radius * 0.9f)).toFloat(), Constants::windowCornerRadius);
 
                 auto radius = c->isActiveWindow() ? shadow.radius * 2.0f : shadow.radius * 1.5f;
                 StackShadow::renderDropShadow(g, shadowPath, shadow.colour, radius, shadow.offset);

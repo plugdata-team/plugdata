@@ -639,10 +639,10 @@ public:
         if (drawWindowShadow && !isUsingNativeTitleBar()) {
             auto b = getLocalBounds();
             Path localPath;
-            localPath.addRoundedRectangle(b.toFloat().reduced(25.0f), Constants::windowCornerRadius);
+            localPath.addRoundedRectangle(b.toFloat().reduced(22.0f), Constants::windowCornerRadius);
 
             int radius = isActiveWindow() ? 21 : 16;
-            StackShadow::renderDropShadow(g, localPath, Colour(0, 0, 0).withAlpha(0.8f), radius, { 0, 3 });
+            StackShadow::renderDropShadow(g, localPath, Colour(0, 0, 0).withAlpha(0.6f), radius, { 0, 3 });
         }
     }
     void activeWindowStatusChanged() override
