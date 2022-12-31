@@ -103,6 +103,9 @@ struct TextDefineObject final : public TextBase {
         }
 
         pd->enqueueFunction([this, atoms, &textbuf]() mutable {
+            
+            pd->setThis();
+            
             binbuf_clear(textbuf.b_binbuf);
 
             t_binbuf* z = binbuf_new();
