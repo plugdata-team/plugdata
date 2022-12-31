@@ -660,12 +660,12 @@ public:
             Rectangle<int> titleBarArea;
             if(drawWindowShadow && SystemStats::getOperatingSystemType() == SystemStats::Linux) {
                 auto margin = mainComponent ? mainComponent->getMargin() : 18;
-                titleBarArea = Rectangle<int>(0, 12 + margin, getWidth() - (8 + margin), 25);
+                titleBarArea = Rectangle<int>(0, 10 + margin, getWidth() - (6 + margin), 25);
                 if (resizer)
                     resizer->setBounds(getLocalBounds().reduced(margin));
             }
             else {
-                titleBarArea = Rectangle<int>(0, 12, getWidth() - 8, 25);
+                titleBarArea = Rectangle<int>(0, 10, getWidth() - 6, 25);
                 if (auto* b = getMaximiseButton())
                     b->setToggleState(isFullScreen(), dontSendNotification);
             }
