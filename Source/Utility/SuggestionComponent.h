@@ -285,6 +285,19 @@ private:
 
     void paint(Graphics& g) override
     {
+        
+#if PLUGDATA_STANDALONE
+        if(!Desktop::canUseSemiTransparentWindows()) {
+            g.fillAll(findColour(PlugDataColour::canvasBackgroundColourId));
+        }
+#else
+        auto hostType = PluginHostType();
+        if (hostType.isLogic() || hostType.isGarageBand() || hostType.isMainStage()) {
+            g.fillAll(findColour(PlugDataColour::canvasBackgroundColourId));
+        }
+        
+#endif
+        
         g.setColour(findColour(PlugDataColour::popupMenuBackgroundColourId));
         g.fillRoundedRectangle(port->getBounds().reduced(1).toFloat(), Constants::defaultCornerRadius);
     }
