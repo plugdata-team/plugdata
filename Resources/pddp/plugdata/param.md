@@ -20,7 +20,7 @@ inlets:
 
 outlets:
   1st:
-  - type: foat
+  - type: float
     description: the received value from daw
 
 ---
