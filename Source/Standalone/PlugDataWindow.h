@@ -720,7 +720,7 @@ private:
             if (!owner.isUsingNativeTitleBar()) {
                 g.setColour(findColour(PlugDataColour::outlineColourId));
                 
-                if(Desktop::canUseSemiTransparentWindows()) {
+                if(!Desktop::canUseSemiTransparentWindows()) {
                     g.drawRect(getLocalBounds().toFloat().reduced(getMargin() + 0.5f), 1.0f);
                 }
                 else {
