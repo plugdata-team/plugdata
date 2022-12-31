@@ -560,6 +560,10 @@ public:
             setDropShadowEnabled(true);
             setResizable(true, false);
         }
+        
+        if(auto* editor = getAudioProcessor()->getActiveEditor()) {
+            editor->resized();
+        }
 
         resized();
         repaint();
