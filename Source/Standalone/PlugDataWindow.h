@@ -560,6 +560,7 @@ public:
             setResizable(true, false);
         }
 
+        resized();
         repaint();
     }
 
