@@ -33,7 +33,7 @@ outlets:
     description: lowpass filter signal
   2nd:
   - type: signal
-    description: lowpass filter signal
+    description: highpass filter signal
   3rd:
   - type: signal
     description: bandpass filter signal
