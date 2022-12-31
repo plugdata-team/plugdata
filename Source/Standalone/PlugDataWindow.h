@@ -512,7 +512,12 @@ public:
         clearContentComponent();
         pluginHolder = nullptr;
     }
-
+        
+    BorderSize<int> getBorderThickness() override
+    {
+        return BorderSize<int>(0);
+    }
+    
     // Called when switching between native vs non-native titlebar
     void valueChanged(Value& v) override
     {
@@ -712,8 +717,10 @@ private:
         void paintOverChildren(Graphics& g) override
         {
             if (!owner.isUsingNativeTitleBar()) {
+#if !JUCE_MAC
                 g.setColour(findColour(PlugDataColour::outlineColourId));
                 g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(getMargin() + 0.5f), Constants::windowCornerRadius, 1.0f);
+#endif
             }
         }
 
@@ -811,6 +818,7 @@ private:
         }
 
     private:
+            
         void componentMovedOrResized(Component&, bool, bool) override
         {
             ScopedValueSetter<bool> const scope(preventResizingEditor, true);
