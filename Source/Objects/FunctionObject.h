@@ -42,6 +42,7 @@ struct t_fake_function {
 
 struct FunctionObject final : public GUIObject {
 
+    int hoverIdx = -1;
     int dragIdx = -1;
     bool newPointAdded = false;
 
@@ -126,6 +127,7 @@ struct FunctionObject final : public GUIObject {
         g.fillAll(Colour::fromString(secondaryColour.toString()));
 
         bool selected = cnv->isSelected(object) && !cnv->isGraph;
+        bool editing = cnv->locked == var(true) || cnv->presentationMode == var(true) || ModifierKeys::getCurrentModifiers().isCtrlDown();
         auto outlineColour = object->findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : objectOutlineColourId);
 
         g.setColour(outlineColour);
@@ -141,19 +143,19 @@ struct FunctionObject final : public GUIObject {
             lastPoint = newPoint;
         }
 
-        for (auto const& point : realPoints) {
+        for (int i = 0; i < realPoints.size(); i++) {
+            auto point = realPoints[i];
             // Make sure line isn't visible through the hole
             g.setColour(Colour::fromString(secondaryColour.toString()));
             g.fillEllipse(Rectangle<float>().withCentre(point).withSizeKeepingCentre(5, 5));
 
-            g.setColour(Colour::fromString(primaryColour.toString()));
+            g.setColour(Colour::fromString(hoverIdx == i && editing ? outlineColour.toString() : primaryColour.toString()));
             g.drawEllipse(Rectangle<float>().withCentre(point).withSizeKeepingCentre(5, 5), 1.5f);
         }
     }
 
     void updateValue() override
     {
-
         // Don't update while dragging
         if (dragIdx != -1)
             return;
@@ -182,12 +184,54 @@ struct FunctionObject final : public GUIObject {
             return 0;
     }
 
+    void setHoverIdx(int i)
+    {
+        hoverIdx = i;
+        repaint();
+    }
+
+    void resetHoverIdx()
+    {
+        setHoverIdx(-1);
+    }
+
+    bool hitTest(int x, int y) override
+    {
+        resetHoverIdx();
+        auto realPoints = getRealPoints();
+        for (int i = 0; i < realPoints.size(); i++) {
+            auto hoverBounds = Rectangle<float>().withCentre(realPoints[i]).withSizeKeepingCentre(7, 7);
+            if (hoverBounds.contains(x, y)) {
+                setHoverIdx(i);
+            }
+        }
+        return GUIObject::hitTest(x,y);
+    }
+
+    void mouseExit(MouseEvent const& e) override
+    {
+        resetHoverIdx();
+    }
+
     void mouseDown(MouseEvent const& e) override
     {
+        if (ModifierKeys::getCurrentModifiers().isRightButtonDown())
+            return;
+
         auto realPoints = getRealPoints();
         for (int i = 0; i < realPoints.size(); i++) {
             auto clickBounds = Rectangle<float>().withCentre(realPoints[i]).withSizeKeepingCentre(7, 7);
             if (clickBounds.contains(e.x, e.y)) {
+                if (e.getNumberOfClicks() == 2) {
+                    if (i == 0 || i == realPoints.size() - 1) {
+                        points.getReference(i).y = 0.0f;
+                        resetHoverIdx();
+                        return;
+                    }
+                    points.remove(i);
+                    resetHoverIdx();
+                    return;
+                }
                 dragIdx = i;
                 return;
             }
