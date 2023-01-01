@@ -1,7 +1,7 @@
 ---
 title: playhead
 
-description: playhead
+description: Receive DAW playhead
 
 categories:
 - object
@@ -18,8 +18,8 @@ outlets:
   - type: float
     description: recording (1 if recording, 0 otherwise)
   3rd:
-  - type: float
-    description: looping (1 if looping, 0 otherwise)
+  - type: list <f,f,f>
+    description: 1 and start and end of loop if looping, zeros otherwise
   4th:
   - type: float
     description: edittime
@@ -33,10 +33,13 @@ outlets:
   - type: float
     description: lastbar
   8th:
-  - type: float
+  - type: list
     description: timesig
   nth:  #9th doesn't work
-  - type: float
-    description: position (in beats)
+  - type: list <f,f,f>
+    description: position <ppq position, time in samples, time in seconds>
 
 ---
+
+[playhead] receives the playhead from the DAW, including tempo, current time in ms or samples, and more. Only works in plugin version!
+

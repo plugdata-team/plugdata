@@ -738,21 +738,25 @@ void PluginProcessor::sendPlayhead()
         }
 
         if (infos->getFrameRate().hasValue()) {
+            atoms_playhead.resize(1);
             atoms_playhead[0] = static_cast<float>(infos->getFrameRate()->getEffectiveRate());
             sendMessage("playhead", "framerate", atoms_playhead);
         }
 
         if (infos->getBpm().hasValue()) {
+            atoms_playhead.resize(1);
             atoms_playhead[0] = static_cast<float>(*infos->getBpm());
             sendMessage("playhead", "bpm", atoms_playhead);
         }
 
         if (infos->getPpqPositionOfLastBarStart().hasValue()) {
+            atoms_playhead.resize(1);
             atoms_playhead[0] = static_cast<float>(*infos->getPpqPositionOfLastBarStart());
             sendMessage("playhead", "lastbar", atoms_playhead);
         }
 
         if (infos->getTimeSignature().hasValue()) {
+            atoms_playhead.resize(1);
             atoms_playhead[0] = static_cast<float>(infos->getTimeSignature()->numerator);
             atoms_playhead.push_back(static_cast<float>(infos->getTimeSignature()->denominator));
             sendMessage("playhead", "timesig", atoms_playhead);
