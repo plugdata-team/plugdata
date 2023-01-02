@@ -484,7 +484,7 @@ public:
             g.setFont(Font(14));
             g.setColour(findColour(PlugDataColour::sidebarTextColourId).withAlpha(0.5f));
 
-            g.drawText("Type to search documentation", 30, 0, 300, 30, Justification::centredLeft);
+            g.drawText("Type to search for objects", 30, 0, 300, 30, Justification::centredLeft);
         }
     }
 

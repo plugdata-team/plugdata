@@ -357,11 +357,13 @@ endif()
 
 set_target_properties(pd PROPERTIES POSITION_INDEPENDENT_CODE ON)
 set_target_properties(pd-multi PROPERTIES POSITION_INDEPENDENT_CODE ON)
+
 set_target_properties(externals PROPERTIES POSITION_INDEPENDENT_CODE ON)
 set_target_properties(externals-multi PROPERTIES POSITION_INDEPENDENT_CODE ON)
 
 target_link_libraries(externals ${SFONT_LIBS})
 target_link_libraries(externals-multi ${SFONT_LIBS})
+
 target_include_directories(externals PRIVATE ${SFONT_INCLUDE_DIR})
 target_include_directories(externals-multi PRIVATE ${SFONT_INCLUDE_DIR})
 # ------------------------------------------------------------------------------#

@@ -203,6 +203,7 @@ void PluginProcessor::initialiseFilesystem()
         auto deken = homeDir.getChildFile("Deken");
 
         // For transitioning between v0.5.3 -> v0.6.0
+        // TODO: remove this soon
         auto library_backup = homeDir.getChildFile("Library_backup");
         if (!library.exists()) {
             library.createDirectory();
@@ -348,6 +349,10 @@ void PluginProcessor::initialiseFilesystem()
     if (!settingsTree.hasProperty("Zoom")) {
         settingsTree.setProperty("Zoom", 1.0f, nullptr);
     }
+    
+    if (!settingsTree.getChildWithName("Libraries").isValid()) {
+        settingsTree.appendChild(ValueTree("Libraries"), nullptr);
+    }
 
     if (!settingsTree.hasProperty("AutoConnect")) {
         settingsTree.setProperty("AutoConnect", true, nullptr);
@@ -394,6 +399,13 @@ void PluginProcessor::updateSearchPaths()
 
     for (auto path : DekenInterface::getExternalPaths()) {
         libpd_add_to_search_path(path.replace("\\", "/").toRawUTF8());
+    }
+    
+    auto librariesTree = settingsTree.getChildWithName("Libraries");
+    
+    libpd_clear_startup_libraries();
+    for (auto child : pathTree) {
+        libpd_add_startup_library(child.getProperty("Name").toString().toRawUTF8());
     }
 
     getCallbackLock()->exit();

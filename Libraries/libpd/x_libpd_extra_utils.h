@@ -67,6 +67,9 @@ unsigned int convert_to_iem_color(char const* hex);
 
 int libpd_is_text_object(void* obj);
 
+void libpd_clear_startup_libraries(void);
+void libpd_add_startup_library(const char *path);
+
 #ifdef __cplusplus
 }
 #endif

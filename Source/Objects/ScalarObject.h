@@ -302,6 +302,7 @@ struct DrawableSymbol final : public DrawableTemplate
     void update() override
     {
         // TODO: hacky workaround for potential crash. Doens't always work. Fix this.
+        // may have been fixed already by correctly setting pd_this??
         if (!scalar || !scalar->sc_template)
             return;
         

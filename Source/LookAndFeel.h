@@ -65,6 +65,7 @@ struct Icons {
     inline static const String Wrench = "R";
     inline static const String Back = "S";
     inline static const String Forward = "T";
+    inline static const String Library = "U";
 };
 
 enum PlugDataColour {
