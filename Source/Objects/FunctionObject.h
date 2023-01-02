@@ -222,6 +222,7 @@ struct FunctionObject final : public GUIObject {
         for (int i = 0; i < realPoints.size(); i++) {
             auto clickBounds = Rectangle<float>().withCentre(realPoints[i]).withSizeKeepingCentre(7, 7);
             if (clickBounds.contains(e.x, e.y)) {
+                dragIdx = i;
                 if (e.getNumberOfClicks() == 2) {
                     if (i == 0 || i == realPoints.size() - 1) {
                         points.getReference(i).y = 0.0f;
@@ -232,7 +233,6 @@ struct FunctionObject final : public GUIObject {
                     resetHoverIdx();
                     return;
                 }
-                dragIdx = i;
                 return;
             }
         }
