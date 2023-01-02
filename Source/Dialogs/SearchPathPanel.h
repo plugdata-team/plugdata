@@ -9,7 +9,6 @@
 bool wantsNativeDialog();
 
 class SearchPathComponent : public Component
-    , public SettableTooltipClient
     , public FileDragAndDropTarget
     , private ListBoxModel {
 public:
@@ -216,7 +215,6 @@ private:
     TextButton changeButton = TextButton(Icons::Edit);
 
     ValueTree tree;
-    StringArray items;
 
     void externalChange()
     {

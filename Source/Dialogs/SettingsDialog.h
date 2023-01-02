@@ -13,6 +13,7 @@
 #include "SearchPathPanel.h"
 #include "AdvancedSettingsPanel.h"
 #include "KeyMappingPanel.h"
+#include "LibraryLoadPanel.h"
 #include "Deken.h"
 
 // Toolbar button for settings panel, with both icon and text
@@ -66,6 +67,7 @@ struct SettingsDialog : public Component {
         toolbarButtons = { new SettingsToolbarButton(Icons::Audio, "Audio"),
             new SettingsToolbarButton(Icons::Pencil, "Themes"),
             new SettingsToolbarButton(Icons::Search, "Paths"),
+            new SettingsToolbarButton(Icons::Library, "Libraries"),
             new SettingsToolbarButton(Icons::Keyboard, "Shortcuts"),
             new SettingsToolbarButton(Icons::Externals, "Externals")
 #if PLUGDATA_STANDALONE
@@ -86,6 +88,7 @@ struct SettingsDialog : public Component {
 
         panels.add(new ThemePanel(settingsTree));
         panels.add(new SearchPathComponent(settingsTree.getChildWithName("Paths")));
+        panels.add(new LibraryLoadPanel(settingsTree.getChildWithName("Libraries")));
         panels.add(new KeyMappingComponent(*editor->getKeyMappings(), settingsTree));
         panels.add(new Deken());
 
