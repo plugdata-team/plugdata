@@ -96,6 +96,7 @@ PluginProcessor::PluginProcessor()
     logMessage("Libraries:");
     logMessage(else_version);
     logMessage(cyclone_version);
+    logMessage(pdlua_version);
     
     // scope for locking message manager
     {
@@ -174,7 +175,6 @@ PluginProcessor::PluginProcessor()
     updateSearchPaths();
 
     setLatencySamples(pd::Instance::getBlockSize());
-
 
 #if PLUGDATA_STANDALONE && !JUCE_WINDOWS
     if (auto* newOut = MidiOutput::createNewDevice("from plugdata").release()) {
