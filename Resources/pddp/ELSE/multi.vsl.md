@@ -1,7 +1,7 @@
 ---
 title: multi.vsl
 
-description:
+description: Multi vertical slider
 
 categories:
 - object
