@@ -288,7 +288,8 @@ struct ScopeBase : public GUIObject
         } else if (v.refersToSameSourceAs(gridColour)) {
             colourToHexArray(Colour::fromString(gridColour.toString()), scope->x_gg);
         } else if (v.refersToSameSourceAs(bufferSize)) {
-            scope->x_bufsize = limitValueMin(v, 0);
+            bufferSize = std::clamp<int>(static_cast<int>(bufferSize.getValue()), 0, SCOPE_MAXBUFSIZE * 4);
+            scope->x_bufsize = bufferSize.getValue();
         } else if (v.refersToSameSourceAs(samplesPerPoint)) {
             scope->x_period = limitValueMin(v, 0);
         } else if (v.refersToSameSourceAs(signalRange)) {
