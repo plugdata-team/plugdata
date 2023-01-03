@@ -100,7 +100,7 @@ removeFile("./Documentation/Makefile.am")
 # pd-lua
 makeDir("Extra")
 makeDir("Extra/pdlua")
-pdlua_srcdir = "../../../pd-lua/"
+pdlua_srcdir = "../../Libraries/pd-lua/"
 for src in ["pd.lua", "COPYING", "README"]:
     copyFile(pdlua_srcdir+src, "./Extra/pdlua")
 copyDir(pdlua_srcdir+"doc", "./Extra/pdlua/doc")

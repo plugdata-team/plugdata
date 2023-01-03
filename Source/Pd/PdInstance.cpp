@@ -120,7 +120,9 @@ Instance::Instance(String const& symbol)
     libpd_init_else();
     libpd_init_cyclone();
     File homeDir = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory).getChildFile("plugdata");
-    libpd_init_pdlua(homeDir.getFullPathName().getCharPointer());
+    auto library = homeDir.getChildFile("Library");
+    auto extra = library.getChildFile("Extra");
+    libpd_init_pdlua(extra.getFullPathName().getCharPointer());
 
     m_midi_receiver = libpd_multi_midi_new(this, reinterpret_cast<t_libpd_multi_noteonhook>(internal::instance_multi_noteon), reinterpret_cast<t_libpd_multi_controlchangehook>(internal::instance_multi_controlchange), reinterpret_cast<t_libpd_multi_programchangehook>(internal::instance_multi_programchange),
         reinterpret_cast<t_libpd_multi_pitchbendhook>(internal::instance_multi_pitchbend), reinterpret_cast<t_libpd_multi_aftertouchhook>(internal::instance_multi_aftertouch), reinterpret_cast<t_libpd_multi_polyaftertouchhook>(internal::instance_multi_polyaftertouch),

@@ -283,7 +283,7 @@ include_directories(cyclone/shared/)
 source_group(cyclone FILES ${CYCLONE_SOURCES})
 
 # pdlua sources
-set(PDLUA_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../../pd-lua")
+set(PDLUA_PATH "${CMAKE_CURRENT_SOURCE_DIR}/pd-lua")
 set(PDLUA_SOURCES ${PDLUA_PATH}/pdlua.c)
 source_group(pdlua FILES ${PDLUA_SOURCES})
 
