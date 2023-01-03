@@ -91,6 +91,12 @@ PluginProcessor::PluginProcessor()
     // Make sure that the parameter valuetree has a name, to prevent assertion failures
     parameters.replaceState(ValueTree("plugdata"));
 
+    logMessage("plugdata v" + String(ProjectInfo::versionString));
+    logMessage("Based on " + String(pd_version).upToFirstOccurrenceOf("(", false, false));
+    logMessage("Libraries:");
+    logMessage(else_version);
+    logMessage(cyclone_version);
+    
     // scope for locking message manager
     {
         const MessageManagerLock mmLock;
@@ -169,11 +175,6 @@ PluginProcessor::PluginProcessor()
 
     setLatencySamples(pd::Instance::getBlockSize());
 
-    logMessage("plugdata v" + String(ProjectInfo::versionString));
-    logMessage("Based on " + String(pd_version).upToFirstOccurrenceOf("(", false, false));
-    logMessage("Libraries:");
-    logMessage(else_version);
-    logMessage(cyclone_version);
 
 #if PLUGDATA_STANDALONE && !JUCE_WINDOWS
     if (auto* newOut = MidiOutput::createNewDevice("from plugdata").release()) {
@@ -403,9 +404,17 @@ void PluginProcessor::updateSearchPaths()
     
     auto librariesTree = settingsTree.getChildWithName("Libraries");
     
-    libpd_clear_startup_libraries();
-    for (auto child : pathTree) {
-        libpd_add_startup_library(child.getProperty("Name").toString().toRawUTF8());
+    // Load startup libraries that the user defined in settings
+    for(auto library : librariesTree) {
+        
+        const auto libName = library.getProperty("Name").toString();
+        
+        // Load the library: this must be done after updating paths
+        // If the library is already loaded, it will return true
+        // This will load the libraries directly instead of on restart, not sure if Pd does that but it's actually nice
+        if(!loadLibrary(libName)) {
+            logError("Failed to load library: " + libName);
+        }
     }
 
     getCallbackLock()->exit();

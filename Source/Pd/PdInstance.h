@@ -402,6 +402,8 @@ public:
     {
         return nullptr;
     };
+    
+    bool loadLibrary(String library);
 
     void* m_instance = nullptr;
     void* m_patch = nullptr;
