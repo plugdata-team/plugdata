@@ -341,7 +341,8 @@ endif()
 add_library(externals STATIC ${ELSE_SOURCES} ${CYCLONE_SOURCES} ${PDLUA_SOURCES})
 add_library(externals-multi STATIC ${ELSE_SOURCES} ${CYCLONE_SOURCES} ${PDLUA_SOURCES})
 
-target_compile_definitions(externals PRIVATE ${LIBPD_COMPILE_DEFINITIONS})
+# ag: pdlua needs PLUGDATA symbol at compile time for PlugData integration.
+target_compile_definitions(externals PRIVATE ${LIBPD_COMPILE_DEFINITIONS} PLUGDATA=1)
 target_compile_definitions(externals-multi PRIVATE ${LIBPD_COMPILE_DEFINITIONS} PDINSTANCE=1 PDTHREADS=1 PLUGDATA=1)
 
 if(MSVC)
