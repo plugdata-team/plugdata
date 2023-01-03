@@ -225,6 +225,7 @@ void PluginProcessor::initialiseFilesystem()
         // Get paths that need symlinks
         auto abstractionsPath = appDir.getChildFile("Abstractions").getFullPathName().replaceCharacters("/", "\\");
         auto documentationPath = appDir.getChildFile("Documentation").getFullPathName().replaceCharacters("/", "\\");
+        auto extraPath = appDir.getChildFile("Extra").getFullPathName().replaceCharacters("/", "\\");
         auto dekenPath = deken.getFullPathName();
 
         // Create NTFS directory junctions
@@ -232,11 +233,14 @@ void PluginProcessor::initialiseFilesystem()
 
         createJunction(library.getChildFile("Documentation").getFullPathName().replaceCharacters("/", "\\").toStdString(), documentationPath.toStdString());
 
+        createJunction(library.getChildFile("Extra").getFullPathName().replaceCharacters("/", "\\").toStdString(), extraPath.toStdString());
+
         createJunction(library.getChildFile("Deken").getFullPathName().replaceCharacters("/", "\\").toStdString(), dekenPath.toStdString());
 
 #else
         appDir.getChildFile("Abstractions").createSymbolicLink(library.getChildFile("Abstractions"), true);
         appDir.getChildFile("Documentation").createSymbolicLink(library.getChildFile("Documentation"), true);
+        appDir.getChildFile("Extra").createSymbolicLink(library.getChildFile("Extra"), true);
         deken.createSymbolicLink(library.getChildFile("Deken"), true);
 #endif
     }
