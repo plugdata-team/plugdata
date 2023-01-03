@@ -5,8 +5,11 @@
  */
 
 #include <algorithm>
+#include "PdInstance.h"
+#include "PdPatch.h"
 
 extern "C" {
+
 #include <g_undo.h>
 #include <m_imp.h>
 
@@ -14,12 +17,9 @@ extern "C" {
 #include "x_libpd_mod_utils.h"
 #include "x_libpd_multi.h"
 #include "z_print_util.h"
-}
 
-#include "PdInstance.h"
-#include "PdPatch.h"
+int sys_load_lib(t_canvas *canvas, const char *classname);
 
-extern "C" {
 struct pd::Instance::internal {
 
     static void instance_multi_bang(pd::Instance* ptr, char const* recv)
@@ -162,18 +162,20 @@ Instance::Instance(String const& symbol)
         if (!listeners.count(target))
             return;
 
-        bool cleanup = false;
+        bool cleanUp = false;
 
         for (auto listener : listeners[target]) {
+            // Check if the safepointer is still valid
             if (!listener) {
-                cleanup = true;
+                cleanUp = true;
                 continue;
             }
             auto sym = String(symbol->s_name);
             listener->receiveMessage(sym, argc, argv);
         }
 
-        if (cleanup) {
+        // If any pointers were invalid, clean them up
+        if (cleanUp) {
             for (int i = listeners[target].size() - 1; i >= 0; i--) {
                 if (!listeners[target][i]) {
                     listeners[target].erase(listeners[target].begin() + i);
@@ -181,7 +183,7 @@ Instance::Instance(String const& symbol)
             }
         }
     };
-
+    
     register_gui_triggers(static_cast<t_pdinstance*>(m_instance), this, gui_trigger, panel_trigger, synchronise_trigger, parameter_trigger, message_trigger);
 
     // HACK: create full path names for c-coded externals
@@ -693,6 +695,10 @@ void Instance::createPanel(int type, char const* snd, char const* location)
                     });
             });
     }
+}
+
+bool Instance::loadLibrary(String libraryToLoad) {
+    return sys_load_lib(NULL, libraryToLoad.toRawUTF8());
 }
 
 } // namespace pd

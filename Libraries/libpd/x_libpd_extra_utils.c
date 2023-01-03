@@ -319,17 +319,3 @@ int libpd_is_text_object(void* obj)
 {
     return ((t_gobj*)obj)->g_pd->c_wb == &text_widgetbehavior;
 }
-
-
-void libpd_clear_startup_libraries(void) {
-  sys_lock();
-  namelist_free(STUFF->st_externlist);
-  STUFF->st_externlist = NULL;
-  sys_unlock();
-}
-
-void libpd_add_startup_library(const char *path) {
-  sys_lock();
-  STUFF->st_externlist = namelist_append(STUFF->st_externlist, path, 0);
-  sys_unlock();
-}
