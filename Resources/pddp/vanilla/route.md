@@ -19,4 +19,10 @@ inlets:
   - type: float/symbol
     description: if there's one argument,  an inlet is created to update it.
 outlets:
-  'n: (depends on the number of arguments
+  nth:
+  - type: anything
+    description: routed message with the first element trimmed
+  2nd: #this does work to choose the rightmost iolet, but should we use it?
+  - type: anything
+    description: when input doesn't match the arguments it's passed here
+
