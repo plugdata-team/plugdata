@@ -97,6 +97,19 @@ globFindAndReplaceText("./Documentation/10.cyclone/*.pd", "cyclone/", "")
 
 removeFile("./Documentation/Makefile.am")
 
+# pd-lua
+makeDir("Extra")
+makeDir("Extra/pdlua")
+pdlua_srcdir = "../../../pd-lua/"
+for src in ["pd.lua", "COPYING", "README"]:
+    copyFile(pdlua_srcdir+src, "./Extra/pdlua")
+copyDir(pdlua_srcdir+"doc", "./Extra/pdlua/doc")
+makeDir("Documentation/13.pdlua")
+for src in ["hello*", "pdlua*-help.pd"]:
+    globCopy(pdlua_srcdir+src, "./Documentation/13.pdlua")
+for src in ["examples", "tutorial"]:
+    copyDir(pdlua_srcdir+src, "./Documentation/13.pdlua/"+src)
+
 changeWorkingDir("./..")
 
 makeArchive("Filesystem", "./", "./plugdata_version")
