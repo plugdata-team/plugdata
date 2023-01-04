@@ -404,6 +404,12 @@ void PluginProcessor::updateSearchPaths()
     
     auto librariesTree = settingsTree.getChildWithName("Libraries");
     
+    for(auto library : librariesTree) {
+        if(!library.hasProperty("Name") || library.getProperty("Name").toString().isEmpty()) {
+            librariesTree.removeChild(library, nullptr);
+        }
+    }
+    
     // Load startup libraries that the user defined in settings
     for(auto library : librariesTree) {
         

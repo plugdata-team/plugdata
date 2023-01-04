@@ -744,7 +744,7 @@ struct PlugDataLook : public LookAndFeel_V4 {
         g.setColour(findColour(PropertyComponent::labelTextColourId));
 
         g.setFont({ (float)height * 0.6f, Font::bold });
-        g.drawText(name, textX, 0, width - textX - 4, height, Justification::centredLeft, true);
+        g.drawText(name, textX, 0, std::max(width - textX - 4, 0), height, Justification::centredLeft, true);
     }
 
     void drawCornerResizer(Graphics& g, int w, int h, bool isMouseOver, bool isMouseDragging) override
