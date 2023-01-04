@@ -65,7 +65,7 @@ public:
             // Custom board option
             if (idx == 7) {
                 // Open file browser
-                openChooser = std::make_unique<FileChooser>("Choose file to open", File::getSpecialLocation(File::userHomeDirectory), "*.pd", true);
+                openChooser = std::make_unique<FileChooser>("Choose file to open", File::getSpecialLocation(File::userHomeDirectory), "*.json", true);
 
                 openChooser->launchAsync(FileBrowserComponent::openMode | FileBrowserComponent::canSelectFiles, [this](FileChooser const& fileChooser) {
                     auto result = fileChooser.getResult();
@@ -100,7 +100,12 @@ public:
         auto board = boards[target];
 
         if (board == "custom") {
-            args.add("-m" + customBoardDefinition.getFullPathName());
+            DynamicObject::Ptr metaJson(new DynamicObject());
+            var metaDaisy(new DynamicObject());
+            metaDaisy.getDynamicObject()->setProperty("board_file", customBoardDefinition.getFullPathName());
+            metaJson->setProperty("daisy", metaDaisy);
+
+            args.add("-m" + createMetaJson(metaJson));
         } else {
             DynamicObject::Ptr metaJson(new DynamicObject());
             var metaDaisy(new DynamicObject());
