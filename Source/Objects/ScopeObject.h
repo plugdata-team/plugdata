@@ -295,6 +295,7 @@ struct ScopeBase : public GUIObject
         } else if (v.refersToSameSourceAs(bufferSize)) {
             bufferSize = std::clamp<int>(static_cast<int>(bufferSize.getValue()), 0, SCOPE_MAXBUFSIZE * 4);
             scope->x_bufsize = bufferSize.getValue();
+            scope->x_bufphase = 0;
         } else if (v.refersToSameSourceAs(samplesPerPoint)) {
             scope->x_period = limitValueMin(v, 0);
         } else if (v.refersToSameSourceAs(signalRange)) {
