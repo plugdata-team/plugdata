@@ -16,3 +16,9 @@
 [submodule "Libraries/heavylib"]
 	path = Libraries/heavylib
 	url = https://github.com/Wasted-Audio/heavylib.git
+[submodule "Libraries/pd-lua"]
+	path = Libraries/pd-lua
+	url = https://github.com/agraef/pd-lua.git
+[submodule "Libraries/lua"]
+	path = Libraries/lua
+	url = https://github.com/lua/lua.git
