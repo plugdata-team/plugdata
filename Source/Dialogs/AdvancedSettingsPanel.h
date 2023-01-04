@@ -15,7 +15,7 @@ struct AdvancedSettingsPanel : public Component {
 
         useNativeTitlebar.reset(new PropertiesPanel::BoolComponent("Use native titlebar", nativeTitlebar, { "No", "Yes" }));
 
-        reloadLastOpenedPatch.reset(new PropertiesPanel::BoolComponent("Reload last opened patch startup", reloadPatch, { "No", "Yes" }));
+        reloadLastOpenedPatch.reset(new PropertiesPanel::BoolComponent("Reload last opened patch on startup", reloadPatch, { "No", "Yes" }));
 
         addAndMakeVisible(*useNativeTitlebar);
         addAndMakeVisible(*reloadLastOpenedPatch);
