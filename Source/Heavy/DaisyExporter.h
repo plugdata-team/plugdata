@@ -113,9 +113,12 @@ public:
         args.add("-v");
         args.add("-gdaisy");
 
+        String paths = "-p";
         for (auto& path : searchPaths) {
-            args.add("-p" + path);
+            paths += " " + path;
         }
+
+        args.add(paths);
 
         start(args.joinIntoString(" "));
         waitForProcessToFinish(-1);
@@ -131,7 +134,7 @@ public:
         auto outputFile = File(outdir);
         auto sourceDir = outputFile.getChildFile("daisy").getChildFile("source");
 
-        int heavyExitCode = getExitCode();
+        bool heavyExitCode = getExitCode();
 
         if (compile) {
 
@@ -140,7 +143,7 @@ public:
             auto make = bin.getChildFile("make" + exeSuffix);
             auto compiler = bin.getChildFile("arm-none-eabi-gcc" + exeSuffix);
 
-            libDaisy.copyDirectoryTo(outputFile.getChildFile("libdaisy"));
+            libDaisy.copyDirectoryTo(outputFile.getChildFile("libDaisy"));
 
             outputFile.getChildFile("ir").deleteRecursively();
             outputFile.getChildFile("hv").deleteRecursively();
