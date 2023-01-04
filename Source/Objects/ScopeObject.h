@@ -205,9 +205,11 @@ struct ScopeBase : public GUIObject
         Path p;
         for (size_t i = 1; i < y_buffer.size(); i++) {
             newPoint = Point<float>(x_buffer[i], y_buffer[i]);
-            g.drawLine({ lastPoint, newPoint });
+            Line segment(lastPoint, newPoint);
+            p.addLineSegment(segment, 1.0f);
             lastPoint = newPoint;
         }
+        g.fillPath(p);
     }
 
     // Push current object bounds into pd
@@ -259,20 +261,23 @@ struct ScopeBase : public GUIObject
         float dy = getHeight() / (float)bufsize;
 
         for (int n = 0; n < bufsize; n++) {
-            if (mode == 1) {
-                y_buffer[n] = jmap<float>(x_buffer[n], min, max, getHeight(), 0);
-                x_buffer[n] = oldx;
-                oldx += dx;
-            } else if (mode == 2) {
-                x_buffer[n] = jmap<float>(y_buffer[n], min, max, 0, getWidth());
-                y_buffer[n] = oldy;
-                oldy += dy;
-            } else if (mode == 3) {
-                x_buffer[n] = jmap<float>(x_buffer[n], min, max, 0, getWidth());
-                y_buffer[n] = jmap<float>(y_buffer[n], min, max, getHeight(), 0);
+            switch (mode) {
+                case 1:
+                    y_buffer[n] = jmap<float>(x_buffer[n], min, max, getHeight(), 0);
+                    x_buffer[n] = oldx;
+                    oldx += dx;
+                    break;
+                case 2:
+                    x_buffer[n] = jmap<float>(y_buffer[n], min, max, 0, getWidth());
+                    y_buffer[n] = oldy;
+                    oldy += dy;
+                    break;
+                case 3:
+                    x_buffer[n] = jmap<float>(x_buffer[n], min, max, 0, getWidth());
+                    y_buffer[n] = jmap<float>(y_buffer[n], min, max, getHeight(), 0);
+                    break;
             }
         }
-
         repaint();
     }
 
