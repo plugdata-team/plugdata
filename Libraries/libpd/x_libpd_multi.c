@@ -740,6 +740,13 @@ void xselect_tilde_setup();
 void xselect2_tilde_setup();
 void zerocross_tilde_setup();
 
+void pdlua_setup(const char *datadir);
+
+void libpd_init_pdlua(const char *datadir)
+{
+    pdlua_setup(datadir);
+}
+
 void libpd_init_else(void)
 {
     above_tilde_setup();

@@ -196,6 +196,9 @@ private:
 
     static inline const String else_version = "ELSE v1.0-rc5";
     static inline const String cyclone_version = "cyclone v0.6-1";
+    // XXXFIXME: These version numbers should really be determined by cmake,
+    // as they depend on the build system and bundled pd-lua version. -ag
+    static inline const String pdlua_version = "pdlua 0.10.2 (Lua 5.4)";
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PluginProcessor)
 };
