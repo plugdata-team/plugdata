@@ -849,6 +849,11 @@ void sys_vgui(char const* fmt, ...)
 
         create_panel(1, path, symbol);
     }
+    if (strncmp(fmt, "::pd_menucommands::menu_openfile", strlen("::pd_menucommands::menu_openfile")) == 0) {
+        
+    }
+    
+    
 
     if (strlen(fmt) > 20 && strncmp(fmt + 8, "itemconfigure", strlen("itemconfigure")) == 0) {
         update_gui_parameters();
