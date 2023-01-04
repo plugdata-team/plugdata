@@ -39,7 +39,7 @@ public:
     WaitableEvent userInteractionWait;
     TextButton confirmButton = TextButton("Done!");
 
-    static constexpr int maxLength = 128;
+    static constexpr int maxLength = 512;
     char processOutput[maxLength];
 
     ExportingProgressView()
@@ -100,6 +100,14 @@ public:
 
     void stopMonitoring()
     {
+        while(processToMonitor)
+        {
+            int len = processToMonitor->readProcessOutput(processOutput, maxLength);
+            if(!len) break;
+            
+            logToConsole(String::fromUTF8(processOutput, len));
+        }
+        
         stopThread(-1);
         stopTimer();
     }
