@@ -1,11 +1,10 @@
-// stolen from mrpeach
+// stolen from mrpeach's routeOSC
+
+// Copyright (C) 2006-2011 Martin Peach
+// slightly modified, renamed and greatly and vastly simplified by Porres 2023
 
 /* oscformat is like sendOSC but outputs a list of floats which are the bytes making up the OSC packet. */
 /* This allows for the separation of the protocol and its transport. */
-/* Started by Martin Peach 20060403 */
-/* 20060425 version independent of libOSC */
-/* 20070620 added oscformat_path and oscformat_anything methods by zmoelnig */
-/* 20160713 added 'm'  typetag for MIDI messages */
 /* oscformat.c makes extensive use of code from OSC-client.c and sendOSC.c */
 /* as well as some from OSC-timetag.c. These files have the following header: */
 /*
@@ -30,76 +29,14 @@ PURPOSE. THE SOFTWARE AND ACCOMPANYING DOCUMENTATION, IF ANY, PROVIDED
 HEREUNDER IS PROVIDED "AS IS". REGENTS HAS NO OBLIGATION TO PROVIDE
 MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 
-
 The OSC webpage is http://cnmat.cnmat.berkeley.edu/OpenSoundControl
 */
 
-//define DEBUG
 #include "../shared/OSC.h"
 
 #define SC_BUFFER_SIZE 64000
 
-
-
-/* This is from OSC-client.h :*/
-/*
-
-   OSC-client.h: library for constructing OpenSoundControl messages.
-   Derived from SynthControl.h
-   Author: Matt Wright
-   Version 0.1: 6/13/97
-   Version 0.2: 7/21/2000: Support for type-tagged messages
-
-
-   General notes:
-
-   This library abstracts away the data format for the OpenSoundControl
-   protocol.  Users of this library can construct OpenSoundControl packets
-   with a function call interface instead of knowing how to lay out the bits.
-
-   All issues of memory allocation are deferred to the user of this library.
-   There are two data structures that the user must allocate.  The first
-   is the actual buffer that the message will be written into.  This buffer
-   can be any size, but if it's too small there's a possibility that it
-   will become overfull.  The other data structure is called an OSCbuf,
-   and it holds all the state used by the library as it's constructing
-   a buffer.
-
-   All procedures that have the possibility of an error condition return int,
-   with 0 indicating no error and nonzero indicating an error.  The variable
-   OSC_errorMessage will be set to point to a string containing an error
-   message explaining what the problem is.
-
-*/
-/*
- OSC_timeTag.h: library for manipulating OSC time tags
- Matt Wright, 5/29/97
-
- Time tags in OSC have the same format as in NTP: 64 bit fixed point, with the
- top 32 bits giving number of seconds sinve midnight 1/1/1900 and the bottom
- 32 bits giving fractional parts of a second.  We represent this by an 8-byte
- unsigned long if possible, or else a struct.
-
- NB: On many architectures with 8-byte ints, it's illegal (like maybe a bus error)
- to dereference a pointer to an 8 byte int that's not 8-byte aligned.
-*/
-
-
-/* Return the time tag 0x0000000000000001, indicating to the receiving device
-   that it should process the message immediately. */
-//static OSCTimeTag OSCTT_Immediately(void);
-//static OSCTimeTag OSCTT_Infinite(void);
-
-//static OSCTimeTag OSCTT_CurrentTimePlusOffset(uint32_t offset);
-
-
-/* Don't ever manipulate the data in the OSCbuf struct directly.  (It's
-   declared here in the header file only so your program will be able to
-   declare variables of type OSCbuf and have the right amount of memory
-   be allocated.) */
-
-typedef struct OSCbuf_struct
-{
+typedef struct OSCbuf_struct{
     char        *buffer; /* The buffer to hold the OSC packet */
     size_t      size; /* Size of the buffer */
     char        *bufptr; /* Current position as we fill the buffer */
@@ -115,11 +52,9 @@ typedef struct OSCbuf_struct
                 /*  a type tag and we're waiting for the 1st arg */
 } OSCbuf;
 
-typedef struct
-{
+typedef struct{
     enum {INT_osc, FLOAT_osc, STRING_osc, BLOB_osc, NOTYPE_osc} type;
-    union
-    {
+    union{
         int   i;
         float f;
         char  *s;
@@ -137,7 +72,6 @@ typedef struct
                      /*	will end. */
 #define DONE 4 /* All open bundles have been closed, so can't write */
                      /*	anything else */
-
 
 static int OSC_strlen(char *s);
 static int OSC_padString(char *dest, char *str);
@@ -215,8 +149,7 @@ static int OSC_effectiveStringLength(char *string);
 
 static t_class *oscformat_class;
 
-typedef struct _oscformat
-{
+typedef struct _oscformat{
     t_object    x_obj;
     int         x_typetags; /* typetag flag */
     int         x_timeTagOffset;
@@ -229,14 +162,12 @@ typedef struct _oscformat
     t_atom      *x_bufferForOSClist; /*[SC_BUFFER_SIZE];*/
     char        *x_prefix;
     int         x_reentry_count;
-} t_oscformat;
+}t_oscformat;
 
 static void *oscformat_new(void);
-//static void oscformat_path(t_oscformat *x, t_symbol*s);
 //static void oscformat_openbundle(t_oscformat *x);
 //static void oscformat_closebundle(t_oscformat *x);
 //static void oscformat_settypetags(t_oscformat *x, t_floatarg f);
-//static void oscformat_setbufsize(t_oscformat *x, t_floatarg f);
 //static void oscformat_setTimeTagOffset(t_oscformat *x, t_floatarg f);
 static void oscformat_sendtyped(t_oscformat *x, t_symbol *s, int argc, t_atom *argv);
 //static void oscformat_send_type_forced(t_oscformat *x, t_symbol *s, int argc, t_atom *argv);
@@ -251,53 +182,6 @@ static typedArg oscformat_blob(t_atom *a);
 static int oscformat_writetypedmessage(OSCbuf *buf, char *messageName, int numArgs, typedArg *args, char *typeStr);
 static int oscformat_writemessage(t_oscformat *x, OSCbuf *buf, char *messageName, int numArgs, typedArg *args);
 static void oscformat_sendbuffer(t_oscformat *x);
-
-static void *oscformat_new(void)
-{
-    t_oscformat *x = (t_oscformat *)pd_new(oscformat_class);
-    x->x_typetags = 1; /* set typetags to 1 by default */
-    x->x_bundle = 0; /* bundle is closed */
-    x->x_buflength = SC_BUFFER_SIZE;
-    x->x_bufferForOSCbuf = (char *)getbytes(sizeof(char)*x->x_buflength);
-    if(x->x_bufferForOSCbuf == NULL)
-    {
-        pd_error(x, "oscformat: unable to allocate %lu bytes for x_bufferForOSCbuf", (long)(sizeof(char)*x->x_buflength));
-        goto fail;
-    }
-    x->x_bufferForOSClist = (t_atom *)getbytes(sizeof(t_atom)*x->x_buflength);
-    if(x->x_bufferForOSClist == NULL)
-    {
-        pd_error(x, "oscformat: unable to allocate %lu bytes for x_bufferForOSClist", (long)(sizeof(t_atom)*x->x_buflength));
-        goto fail;
-    }
-//    if (x->x_oscbuf != NULL)
-        OSC_initBuffer(x->x_oscbuf, x->x_buflength, x->x_bufferForOSCbuf);
-    x->x_listout = outlet_new(&x->x_obj, &s_list);
-//    x->x_bdpthout = outlet_new(&x->x_obj, &s_float);
-    x->x_timeTagOffset = -1; /* immediately */
-    x->x_reentry_count = 0;
-    return (x);
-fail:
-    if(x->x_bufferForOSCbuf != NULL) freebytes(x->x_bufferForOSCbuf, (long)(sizeof(char)*x->x_buflength));
-    if(x->x_bufferForOSClist != NULL) freebytes(x->x_bufferForOSClist, (long)(sizeof(char)*x->x_buflength));
-    return NULL;
-}
-
-/*static void oscformat_path(t_oscformat *x, t_symbol*s)
-{
-// Set a default prefix to the OSC path
-    if(s == gensym(""))
-    {
-        x->x_prefix = 0;
-        return;
-    }
-    if ((*s->s_name) != '/')
-    {
-        pd_error(x, "oscformat: bad path: '%s'", s->s_name);
-        return;
-    }
-    x->x_prefix = s->s_name;
-}*/
 
 /*static void oscformat_openbundle(t_oscformat *x)
 {
@@ -334,10 +218,8 @@ fail:
     }
 }*/
 
-/*static void oscformat_settypetags(t_oscformat *x, t_floatarg f)
-{
-    x->x_typetags = (f != 0)?1:0;
-    post("oscformat: setting typetags %d", x->x_typetags);
+/*static void oscformat_settypetags(t_oscformat *x, t_floatarg f){
+    x->x_typetags = (f != 0);
 }*/
 
 /*static void oscformat_setbufsize(t_oscformat *x, t_floatarg f)
@@ -363,8 +245,7 @@ fail:
 /* this is the real and only sending routine now, for both typed and */
 /* undtyped mode. */
 
-static void oscformat_sendtyped(t_oscformat *x, t_symbol *s, int argc, t_atom *argv)
-{
+static void oscformat_sendtyped(t_oscformat *x, t_symbol *s, int argc, t_atom *argv){
     s = NULL;
     char            messageName[MAXPDSTRING];
     unsigned int	nTypeTags = 0, typeStrTotalSize = 0;
@@ -374,31 +255,25 @@ static void oscformat_sendtyped(t_oscformat *x, t_symbol *s, int argc, t_atom *a
     unsigned int    i, nTagsWithData, nArgs, blobCount;
     unsigned int    m, tagIndex, typedArgIndex, argvIndex;
     char            c;
-
 #ifdef DEBUG
     printf("*** oscformat_sendtyped bundle %d reentry %d\n", x->x_bundle, x->x_reentry_count);
 #endif
     x->x_reentry_count++;
-    if (args == NULL)
-    {
+    if (args == NULL){
         pd_error(x, "oscformat: unable to allocate %lu bytes for args", (long)argsSize);
         return;
     }
     messageName[0] = '\0'; /* empty */
-    if(x->x_prefix) /* if there is a prefix, prefix it to the path */
-    {
+    if(x->x_prefix){ /* if there is a prefix, prefix it to the path */
         size_t len = strlen(x->x_prefix);
         if(len >= MAXPDSTRING)
         len = MAXPDSTRING-1;
-
         strncpy(messageName, x->x_prefix, MAXPDSTRING);
         atom_string(&argv[0], messageName+len, (unsigned)(MAXPDSTRING-len));
     }
     else
         atom_string(&argv[0], messageName, MAXPDSTRING); /* the OSC address string */
-
-    if (x->x_typetags & 2)
-    { /* second arg is typestring */
+    if(x->x_typetags & 2){ /* second arg is typestring */
         /* we need to find out how long the type string is before we copy it*/
         nTypeTags = (unsigned int)strlen(atom_getsymbol(&argv[1])->s_name);
         typeStrTotalSize = nTypeTags + 2;
@@ -533,68 +408,55 @@ cleanup:
     x->x_typetags &= ~2; // ...this time only
 }*/
 
-static void oscformat_send(t_oscformat *x, t_symbol *s, int argc, t_atom *argv)
-{
-    if(!argc)
-    {
+static void oscformat_send(t_oscformat *x, t_symbol *s, int argc, t_atom *argv){
+    if(!argc){
         pd_error(x, "oscformat: not sending empty message.");
         return;
     }
     oscformat_sendtyped(x, s, argc, argv);
 }
 
-static void oscformat_anything(t_oscformat *x, t_symbol *s, int argc, t_atom *argv)
-{
-/* If the message starts with '/', assume it's an OSC path and send it */
+static void oscformat_anything(t_oscformat *x, t_symbol *s, int argc, t_atom *argv){
+    // If the message starts with '/', assume it's an OSC path and send it
     t_atom*ap = 0;
-
-    if ((*s->s_name)!='/')
-    {
+    if((*s->s_name) != '/'){
         pd_error(x, "oscformat: bad path: '%s'", s->s_name);
         return;
     }
-
     ap = (t_atom*)getbytes((argc+1)*sizeof(t_atom));
     SETSYMBOL(ap, s);
     memcpy(ap+1, argv, argc * sizeof(t_atom));
-
     oscformat_send(x, gensym("send"), argc+1, ap);
-
     freebytes(ap, (argc+1)*sizeof(t_atom));
-
 }
 
-static void oscformat_free(t_oscformat *x)
-{
-    if (x->x_bufferForOSCbuf != NULL) freebytes((void *)x->x_bufferForOSCbuf, sizeof(char)*x->x_buflength);
-    if (x->x_bufferForOSClist != NULL) freebytes((void *)x->x_bufferForOSClist, sizeof(t_atom)*x->x_buflength);
+static void oscformat_free(t_oscformat *x){
+    if(x->x_bufferForOSCbuf != NULL)
+        freebytes((void *)x->x_bufferForOSCbuf, sizeof(char)*x->x_buflength);
+    if(x->x_bufferForOSClist != NULL)
+        freebytes((void *)x->x_bufferForOSClist, sizeof(t_atom)*x->x_buflength);
 }
 
-static typedArg oscformat_parseatom(t_atom *a)
-{
+static typedArg oscformat_parseatom(t_atom *a){
     typedArg returnVal;
     t_float  f;
     int      i;
     t_symbol s;
     char     buf[MAXPDSTRING];
-  
     atom_string(a, buf, MAXPDSTRING);
 #ifdef DEBUG
     printf("oscformat: atom type %d (%s)\n", a->a_type, buf);
 #endif
     /* It might be an int, a float, or a string */
-    switch (a->a_type)
-    {
+    switch (a->a_type){
         case A_FLOAT:
             f = atom_getfloat(a);
             i = atom_getint(a);
-            if (f == (t_float)i)
-            { /* assume that if the int and float are the same, it's an int */
+            if(f == (t_float)i){ /* assume that if the int and float are the same, it's an int */
                 returnVal.type = INT_osc;
                 returnVal.datum.i = i;
             }
-            else
-            {
+            else{
                 returnVal.type = FLOAT_osc;
                 returnVal.datum.f = f;
             }
@@ -613,29 +475,24 @@ static typedArg oscformat_parseatom(t_atom *a)
     }
 }
 
-static typedArg oscformat_blob(t_atom *a)
-{ /* ctype is one of i,f,s,T,F,N,I*/
+static typedArg oscformat_blob(t_atom *a){ /* ctype is one of i,f,s,T,F,N,I*/
     typedArg    returnVal;
     t_float     f;
     int         i;
-  
     returnVal.type = NOTYPE_osc;
     returnVal.datum.s = NULL;
     /* the atoms must all be bytesl */
-    if(a->a_type != A_FLOAT)
-    {
+    if(a->a_type != A_FLOAT){
         post("oscformat_blob: all values must be floats");
         return returnVal;
     }
     f = atom_getfloat(a);
     i = (int)f;
-    if (i != f)
-    {
+    if(i != f){
         post("oscformat_blob: all values must be whole numbers");
         return returnVal;
     }
-    if ((i < -128) || (i > 255))
-    {
+    if ((i < -128) || (i > 255)){
         post("oscformat_blob: all values must be bytes");
         return returnVal;
     }
@@ -644,64 +501,55 @@ static typedArg oscformat_blob(t_atom *a)
     return returnVal;
 }
 
-static typedArg oscformat_packMIDI(t_atom *a)
-{ /* pack four bytes at a into one int32 */
-  int         i;
-  typedArg    returnVal;
-  int         m[4];
-
-  for (i = 0; i < 4; ++i, ++a)
-  {
+static typedArg oscformat_packMIDI(t_atom *a){ /* pack four bytes at a into one int32 */
+    int         i;
+    typedArg    returnVal;
+    int         m[4];
+    for (i = 0; i < 4; ++i, ++a){
 #ifdef DEBUG
-    atom_string(a, buf, MAXPDSTRING);
-    printf("oscformat: atom type %d (%s)\n", a->a_type, buf);
+        atom_string(a, buf, MAXPDSTRING);
+        printf("oscformat: atom type %d (%s)\n", a->a_type, buf);
 #endif
-    if ((a->a_type != A_FLOAT))
-    {
-      post("oscformat: MIDI parameters must be floats");
-      returnVal.type = NOTYPE_osc;
-      returnVal.datum.s = NULL;
-      return returnVal;
-    }
-    m[i] = atom_getint(a);
+        if ((a->a_type != A_FLOAT)){
+            post("oscformat: MIDI parameters must be floats");
+            returnVal.type = NOTYPE_osc;
+            returnVal.datum.s = NULL;
+            return returnVal;
+        }
+        m[i] = atom_getint(a);
 #ifdef DEBUG
-    printf("oscformat_packMIDI: float to integer %d\n", m[i]);
+        printf("oscformat_packMIDI: float to integer %d\n", m[i]);
 #endif
-    if ((i < 2) && (m[i] != (m[i] & 0x0FF)))
-    {
-      post("oscformat: MIDI parameters must be less than 256");
-      returnVal.type = NOTYPE_osc;
-      returnVal.datum.s = NULL;
-      return returnVal;
+        if ((i < 2) && (m[i] != (m[i] & 0x0FF))){
+            post("oscformat: MIDI parameters must be less than 256");
+            returnVal.type = NOTYPE_osc;
+            returnVal.datum.s = NULL;
+            return returnVal;
+        }
+        else if ((i > 1) && (m[i] != (m[i] & 0x07F))){
+            post("oscformat: MIDI parameters must be less than 128");
+            returnVal.type = NOTYPE_osc;
+            returnVal.datum.s = NULL;
+            return returnVal;
+        }
     }
-    else if ((i > 1) && (m[i] != (m[i] & 0x07F)))
-    {
-      post("oscformat: MIDI parameters must be less than 128");
-      returnVal.type = NOTYPE_osc;
-      returnVal.datum.s = NULL;
-      return returnVal;
-    }
-  }
-  returnVal.type = INT_osc;
-  returnVal.datum.i = (m[0]<<24) + (m[1]<<16) + (m[2]<<8) + m[3];
-  return returnVal;
+    returnVal.type = INT_osc;
+    returnVal.datum.i = (m[0]<<24) + (m[1]<<16) + (m[2]<<8) + m[3];
+    return returnVal;
 }
 
-static typedArg oscformat_forceatom(t_atom *a, char ctype)
-{ /* ctype is one of i,f,s,T,F,N,I*/
+static typedArg oscformat_forceatom(t_atom *a, char ctype){ /* ctype is one of i,f,s,T,F,N,I*/
     typedArg    returnVal;
     t_float     f;
     int         i;
     t_symbol    s;
     static char buf[MAXPDSTRING];
-
 #ifdef DEBUG
     atom_string(a, buf, MAXPDSTRING);
     printf("oscformat: atom type %d (%s)\n", a->a_type, buf);
 #endif
     /* the atom might be a float, or a symbol */
-    switch (a->a_type)
-    {
+    switch (a->a_type){
         case A_FLOAT:
             switch (ctype)
             {
@@ -782,32 +630,25 @@ static typedArg oscformat_forceatom(t_atom *a, char ctype)
 static int oscformat_writetypedmessage(OSCbuf *buf, char *messageName,
 int numArgs, typedArg *args, char *typeStr){
     int i, j, returnVal;
-
 #ifdef DEBUG
     printf("oscformat_writetypedmessage: messageName %p (%s) typeStr %p (%s)\n",
         messageName, messageName, typeStr, typeStr);
 #endif
     returnVal = OSC_writeAddressAndTypes(buf, messageName, typeStr);
-
-    if (returnVal)
-    {
+    if (returnVal){
         post("oscformat: Problem writing address. (%d)", returnVal);
         return returnVal;
     }
-    for (j = i = 0; (typeStr[i+1]!= 0) || (j < numArgs); j++, i++)
-    {
-        while (typeStr[i+1] == 'T' || typeStr[i+1] == 'F' || typeStr[i+1] == 'I' || typeStr[i+1] == 'N')
-        {
+    for (j = i = 0; (typeStr[i+1]!= 0) || (j < numArgs); j++, i++){
+        while (typeStr[i+1] == 'T' || typeStr[i+1] == 'F' || typeStr[i+1] == 'I' || typeStr[i+1] == 'N'){
 #ifdef DEBUG
             printf("oscformat_writetypedmessage: NULL [%c]\n", typeStr[i+1]);
 #endif
             returnVal = OSC_writeNullArg(buf, typeStr[i+1]);
             ++i;
         }
-        if (j < numArgs)
-        {
-            switch (args[j].type)
-            {
+        if (j < numArgs){
+            switch (args[j].type){
                 case INT_osc:
 #ifdef DEBUG
                     printf("oscformat_writetypedmessage: int [%d]\n", args[j].datum.i);
@@ -841,40 +682,30 @@ int numArgs, typedArg *args, char *typeStr){
     return returnVal;
 }
 
-static int oscformat_writemessage(t_oscformat *x, OSCbuf *buf, char *messageName, int numArgs, typedArg *args)
-{
+static int oscformat_writemessage(t_oscformat *x, OSCbuf *buf, char *messageName, int numArgs, typedArg *args){
     int j, returnVal = 0, numTags;
 #ifdef DEBUG
     printf("oscformat_writemessage buf %p bufptr %p messageName %s %d args typetags %d\n", buf, buf->bufptr, messageName, numArgs, x->x_typetags);
 #endif
-
-    if (!x->x_typetags)
-    {
+    if(!x->x_typetags){
 #ifdef DEBUG
         printf("oscformat_writemessage calling OSC_writeAddress with x->x_typetags %d\n", x->x_typetags);
 #endif
         returnVal = OSC_writeAddress(buf, messageName);
         if (returnVal)
-        {
             post("oscformat: Problem writing address.");
-        }
     }
-    else
-    {
+    else{
         char *typeTags;
-
         /* First figure out the type tags */
-        for (numTags = 0; numTags < numArgs; numTags++)
-        {
-            if (args[numTags].type == BLOB_osc) break; /* blob has one type tag and is the last element */
+        for (numTags = 0; numTags < numArgs; numTags++){
+            if (args[numTags].type == BLOB_osc)
+                break; /* blob has one type tag and is the last element */
         }
         typeTags=(char*)getbytes(sizeof(char)*(numTags+2)); /* number of args + ',' + '\0' */
-
         typeTags[0] = ',';
-        for (j = 0; j < numTags; ++j)
-        {
-            switch (args[j].type)
-            {
+        for (j = 0; j < numTags; ++j){
+            switch (args[j].type){
                 case INT_osc:
                     typeTags[j+1] = 'i';
                     break;
@@ -898,16 +729,11 @@ static int oscformat_writemessage(t_oscformat *x, OSCbuf *buf, char *messageName
 #endif
         returnVal = OSC_writeAddressAndTypes(buf, messageName, typeTags);
         if (returnVal)
-        {
             pd_error(x, "oscformat: Problem writing address.");
-        }
-    
         freebytes(typeTags, sizeof(char)*(numTags+2));
     }
-    for (j = 0; j < numArgs; j++)
-    {
-        switch (args[j].type)
-        {
+    for (j = 0; j < numArgs; j++){
+        switch (args[j].type){
             case INT_osc:
                 returnVal = OSC_writeIntArg(buf, args[j].datum.i);
                 break;
@@ -929,33 +755,27 @@ static int oscformat_writemessage(t_oscformat *x, OSCbuf *buf, char *messageName
     return returnVal;
 }
 
-static void oscformat_sendbuffer(t_oscformat *x)
-{
+static void oscformat_sendbuffer(t_oscformat *x){
     int             i;
     int             length;
     unsigned char   *buf;
     int             reentry_count=x->x_reentry_count;      /* must be on stack for recursion */
     size_t          bufsize=sizeof(t_atom)*x->x_buflength; /* must be on stack for recursion */
     t_atom          *atombuffer=x->x_bufferForOSClist;     /* must be on stack in the case of recursion */
-
     if(reentry_count>0) /* if we are recurse, let's move atombuffer to the stack */
         atombuffer=(t_atom *)getbytes(bufsize);
-
-    if(!atombuffer) {
+    if(!atombuffer){
         pd_error(x, "oscformat: unable to allocate %lu bytes for atombuffer", (long)bufsize);
         return;
     }
-
 #ifdef DEBUG
     printf("oscformat_sendbuffer: Sending buffer...\n");
 #endif
-    if (OSC_isBufferEmpty(x->x_oscbuf))
-    {
+    if (OSC_isBufferEmpty(x->x_oscbuf)){
         post("oscformat_sendbuffer() called but buffer empty");
         return;
     }
-    if (!OSC_isBufferDone(x->x_oscbuf))
-    {
+    if (!OSC_isBufferDone(x->x_oscbuf)){
         post("oscformat_sendbuffer() called but buffer not ready!, not exiting");
         return;
     }
@@ -964,50 +784,25 @@ static void oscformat_sendbuffer(t_oscformat *x)
 #ifdef DEBUG
     printf("oscformat_sendbuffer: length: %u\n", length);
 #endif
-
     /* convert the bytes in the buffer to floats in a list */
-    for (i = 0; i < length; ++i) SETFLOAT(&atombuffer[i], buf[i]);
-
+    for (i = 0; i < length; ++i)
+        SETFLOAT(&atombuffer[i], buf[i]);
     /* cleanup the OSCbuffer structure (so we are ready for recursion) */
     OSC_initBuffer(x->x_oscbuf, x->x_buflength, x->x_bufferForOSCbuf);
-
     /* send the list out the outlet */
     outlet_list(x->x_listout, &s_list, length, atombuffer);
-
     /* cleanup our 'stack'-allocated atombuffer in the case of reentrancy */
     if(reentry_count>0)
         freebytes(atombuffer, bufsize);
 }
 
-/* The next part is copied and morphed from OSC-client.c. */
-/* 
-  Author: Matt Wright
-  Version 2.2: Calls htonl in the right places 20000620
-  Version 2.3: Gets typed messages right.
- */
-
-/*
-    pd
-    -------------
-
-    raf@interaccess.com:
-    rev. for Win32 build  (verified under Win-2ooo)		11-April-2002
-
-    -- changed licence part (20040820) jdl
-    -- Version 2.4 changes not in here (20040820) jdl
-
-*/
-
-
-static void OSC_initBuffer(OSCbuf *buf, size_t size, char *byteArray)
-{
+static void OSC_initBuffer(OSCbuf *buf, size_t size, char *byteArray){
     buf->buffer = byteArray;
     buf->size = size;
     OSC_resetBuffer(buf);
 }
 
-static void OSC_resetBuffer(OSCbuf *buf)
-{
+static void OSC_resetBuffer(OSCbuf *buf){
     buf->bufptr = buf->buffer;
     buf->state = EMPTY;
     buf->bundleDepth = 0;
@@ -1016,43 +811,35 @@ static void OSC_resetBuffer(OSCbuf *buf)
     buf->typeStringPtr = 0;
 }
 
-static int OSC_isBufferEmpty(OSCbuf *buf)
-{
+static int OSC_isBufferEmpty(OSCbuf *buf){
     return buf->bufptr == buf->buffer;
 }
 
-static size_t OSC_freeSpaceInBuffer(OSCbuf *buf)
-{
+static size_t OSC_freeSpaceInBuffer(OSCbuf *buf){
     return buf->size - (buf->bufptr - buf->buffer);
 }
 
-static int OSC_isBufferDone(OSCbuf *buf)
-{
+static int OSC_isBufferDone(OSCbuf *buf){
     return (buf->state == DONE || buf->state == ONE_MSG_ARGS);
 }
 
-static char *OSC_getPacket(OSCbuf *buf)
-{
+static char *OSC_getPacket(OSCbuf *buf){
     return buf->buffer;
 }
 
-static int OSC_packetSize(OSCbuf *buf)
-{
+static int OSC_packetSize(OSCbuf *buf){
     return (buf->bufptr - buf->buffer);
 }
 
-static int OSC_CheckOverflow(OSCbuf *buf, size_t bytesNeeded)
-{
-    if ((bytesNeeded) > OSC_freeSpaceInBuffer(buf))
-    {
+static int OSC_CheckOverflow(OSCbuf *buf, size_t bytesNeeded){
+    if ((bytesNeeded) > OSC_freeSpaceInBuffer(buf)){
         post("[osc.format]: buffer overflow");
         return 1;
     }
     return 0;
 }
 
-static void PatchMessageSize(OSCbuf *buf)
-{
+static void PatchMessageSize(OSCbuf *buf){
     uint32_t size = buf->bufptr - ((char *) buf->thisMsgSize) - 4;
     *(buf->thisMsgSize) = htonl(size);
 }
@@ -1064,141 +851,101 @@ static void PatchMessageSize(OSCbuf *buf)
         post("oscformat: Can't open a bundle in a one-message packet");
         return 3;
     }
-
-    if (buf->state == DONE)
-    {
+    if (buf->state == DONE){
         post("oscformat: This packet is finished; can't open a new bundle");
         return 4;
     }
-
-    if (++(buf->bundleDepth) >= MAX_BUNDLE_NESTING)
-    {
+    if (++(buf->bundleDepth) >= MAX_BUNDLE_NESTING){
         post("oscformat: Bundles nested too deeply: maybe change MAX_BUNDLE_NESTING from %d and recompile", MAX_BUNDLE_NESTING);
         return 2;
     }
-
     if (CheckTypeTag(buf, '\0')) return 9;
-
-    if (buf->state == GET_ARGS)
-    {
+    if (buf->state == GET_ARGS){
         PatchMessageSize(buf);
     }
-
-    if (buf->state == EMPTY)
-    {
+    if (buf->state == EMPTY){
         // Need 16 bytes for "#bundle" and time tag
         if(OSC_CheckOverflow(buf, 16)) return 1;
     }
-    else
-    {
+    else{
         // This bundle is inside another bundle, so we need to leave
         //  a blank size count for the size of this current bundle.
         if(OSC_CheckOverflow(buf, 20))return 1;
         *((uint32_t *)buf->bufptr) = 0xaaaaaaaa;
         buf->prevCounts[buf->bundleDepth] = (uint32_t *)buf->bufptr;
-
         buf->bufptr += 4;
     }
-
     buf->bufptr += OSC_padString(buf->bufptr, "#bundle");
-
-
     *((OSCTimeTag *) buf->bufptr) = tt;
-
-    if (htonl(1) != 1)
-    {
+    if (htonl(1) != 1){
         // Byte swap the 8-byte integer time tag
         uint32_t *intp = (uint32_t *)buf->bufptr;
         intp[0] = htonl(intp[0]);
         intp[1] = htonl(intp[1]);
-
         // tt  is a struct of two 32-bit words, and even though
         //  each word was wrong-endian, they were in the right order
         //  in the struct.)
     }
-
     buf->bufptr += sizeof(OSCTimeTag);
-
     buf->state = NEED_COUNT;
-
     buf->gettingFirstUntypedArg = 0;
     buf->typeStringPtr = 0;
     return 0;
 }*/
 
-
-/*static int OSC_closeBundle(OSCbuf *buf)
-{
-    if (buf->bundleDepth == 0)
-    {
+/*static int OSC_closeBundle(OSCbuf *buf){
+    if (buf->bundleDepth == 0){
         // This handles EMPTY, ONE_MSG, ARGS, and DONE
         post("oscformat: Can't close bundle: no bundle is open!");
         return 5;
     }
-
     if (CheckTypeTag(buf, '\0')) return 9;
-
-    if (buf->state == GET_ARGS)
-    {
+    if (buf->state == GET_ARGS){
         PatchMessageSize(buf);
     }
-
-    if (buf->bundleDepth == 1)
-    {
+    if (buf->bundleDepth == 1){
         // Closing the last bundle: No bundle size to patch
         buf->state = DONE;
     }
-    else
-    {
+    else{
         // Closing a sub-bundle: patch bundle size
         int size = buf->bufptr - ((char *) buf->prevCounts[buf->bundleDepth]) - 4;
         *(buf->prevCounts[buf->bundleDepth]) = htonl(size);
         buf->state = NEED_COUNT;
     }
-
     --buf->bundleDepth;
     buf->gettingFirstUntypedArg = 0;
     buf->typeStringPtr = 0;
     return 0;
 }*/
 
-static int OSC_writeAddress(OSCbuf *buf, char *name)
-{
+static int OSC_writeAddress(OSCbuf *buf, char *name){
     uint32_t paddedLength;
 #ifdef DEBUG
     printf("-->OSC_writeAddress buf %p bufptr %p name %s\n", buf, buf->bufptr, name);
 #endif
-    if (buf->state == ONE_MSG_ARGS)
-    {
+    if (buf->state == ONE_MSG_ARGS){
         post("oscformat: This packet is not a bundle, so you can't write another address");
         return 7;
     }
-
-    if (buf->state == DONE)
-    {
+    if (buf->state == DONE){
         post("oscformat: This packet is finished; can't write another address");
         return 8;
     }
-
     if (CheckTypeTag(buf, '\0')) return 9;
-
     paddedLength = OSC_effectiveStringLength(name);
 #ifdef DEBUG
     printf("OSC_writeAddress paddedLength %d\n", paddedLength);
 #endif
-
-    if (buf->state == EMPTY)
-    {
+    if (buf->state == EMPTY){
         /* This will be a one-message packet, so no sizes to worry about */
         if(OSC_CheckOverflow(buf, paddedLength))return 1;
         buf->state = ONE_MSG_ARGS;
     }
-    else
-    {
+    else{
         /* GET_ARGS or NEED_COUNT */
         if(OSC_CheckOverflow(buf, 4+paddedLength))return 1;
-        if (buf->state == GET_ARGS)
-        {
+        if (buf->state == GET_ARGS){
             /* Close the old message */
             PatchMessageSize(buf);
         }
@@ -1207,52 +954,43 @@ static int OSC_writeAddress(OSCbuf *buf, char *name)
         buf->bufptr += 4;
         buf->state = GET_ARGS;
     }
-
     /* Now write the name */
     buf->bufptr += OSC_padString(buf->bufptr, name);
     buf->typeStringPtr = 0;
     buf->gettingFirstUntypedArg = 1;
-
     return 0;
 }
 
-static int OSC_writeAddressAndTypes(OSCbuf *buf, char *name, char *types)
-{
+static int OSC_writeAddressAndTypes(OSCbuf *buf, char *name, char *types){
     int      result;
     uint32_t paddedLength;
-
 #ifdef DEBUG
     printf("OSC_writeAddressAndTypes buf %p name %s types %s\n", buf, name, types);
 #endif
-    if (buf == NULL) return 10;
-    if (CheckTypeTag(buf, '\0')) return 9;
-
+    if (buf == NULL)
+        return 10;
+    if (CheckTypeTag(buf, '\0'))
+        return 9;
     result = OSC_writeAddress(buf, name);
-
-    if (result) return result;
-
+    if (result)
+        return result;
     paddedLength = OSC_effectiveStringLength(types);
-
-    if(OSC_CheckOverflow(buf, paddedLength))return 1;
-
+    if(OSC_CheckOverflow(buf, paddedLength))
+        return 1;
     buf->typeStringPtr = buf->bufptr + 1; /* skip comma */
     buf->bufptr += OSC_padString(buf->bufptr, types);
 #ifdef DEBUG
     printf("OSC_writeAddressAndTypes buf->typeStringPtr now %p (%s) buf->bufptr now %p (%s)\n",
         buf->typeStringPtr, buf->typeStringPtr, buf->bufptr, buf->bufptr);
 #endif
-
     buf->gettingFirstUntypedArg = 0;
     buf->typeStringPtr = 0;// ready for a new type string
     return 0;
 }
 
-static int CheckTypeTag(OSCbuf *buf, char expectedType)
-{
+static int CheckTypeTag(OSCbuf *buf, char expectedType){
     char c;
-
-    if (buf->typeStringPtr)
-    {
+    if (buf->typeStringPtr){
 #ifdef DEBUG
         printf("CheckTypeTag buf->typeStringPtr %p (%s)\n", buf->typeStringPtr, buf->typeStringPtr);
 #endif
@@ -1260,18 +998,14 @@ static int CheckTypeTag(OSCbuf *buf, char expectedType)
 #ifdef DEBUG
         printf("CheckTypeTag buf %p expectedType %c c is %c\n", buf, expectedType, c);
 #endif
-        if (c != expectedType)
-        {
-            if (expectedType == '\0')
-            {
+        if (c != expectedType){
+            if (expectedType == '\0'){
                 post("oscformat: According to the type tag (%c) I expected more arguments.", c);
             }
-            else if (*(buf->typeStringPtr) == '\0')
-            {
+            else if (*(buf->typeStringPtr) == '\0'){
                 post("oscformat: According to the type tag I didn't expect any more arguments.");
             }
-            else
-            {
+            else{
                 post("oscformat: According to the type tag I expected an argument of a different type.");
                 post("* Expected %c, string now %s\n", expectedType, buf->typeStringPtr);
             }
@@ -1282,61 +1016,44 @@ static int CheckTypeTag(OSCbuf *buf, char expectedType)
     return 0;
 }
 
-static int OSC_writeFloatArg(OSCbuf *buf, float arg)
-{
-    union intfloat32
-    {
+static int OSC_writeFloatArg(OSCbuf *buf, float arg){
+    union intfloat32{
         int     i;
         float   f;
     };
     union intfloat32 if32;
-
     if(OSC_CheckOverflow(buf, 4))return 1;
-
     if (CheckTypeTag(buf, 'f')) return 9;
-
     /* Pretend arg is a long int so we can use htonl() */
     if32.f = arg;
-
     *((uint32_t *) buf->bufptr) = htonl(if32.i);
-
     buf->bufptr += 4;
-
     buf->gettingFirstUntypedArg = 0;
     return 0;
 }
 
-static int OSC_writeIntArg(OSCbuf *buf, uint32_t arg)
-{
+static int OSC_writeIntArg(OSCbuf *buf, uint32_t arg){
     if(OSC_CheckOverflow(buf, 4))return 1;
     if (CheckTypeTag(buf, 'i')) return 9;
-
     *((uint32_t *) buf->bufptr) = htonl(arg);
     buf->bufptr += 4;
-
     buf->gettingFirstUntypedArg = 0;
     return 0;
 }
 
-static int OSC_writeBlobArg(OSCbuf *buf, typedArg *arg, size_t nArgs)
-{
+static int OSC_writeBlobArg(OSCbuf *buf, typedArg *arg, size_t nArgs){
     size_t	i;
     unsigned char b;
-
 /* pack all the args as single bytes following a 4-byte length */
     if(OSC_CheckOverflow(buf, nArgs+4))return 1;
     if (CheckTypeTag(buf, 'b')) return 9;
-
     *((uint32_t *) buf->bufptr) = htonl(nArgs);
 #ifdef DEBUG
     printf("OSC_writeBlobArg length : %lu\n", nArgs);
 #endif
     buf->bufptr += 4;
-
-    for (i = 0; i < nArgs; i++)
-    {
-        if (arg[i].type != BLOB_osc)
-        {
+    for (i = 0; i < nArgs; i++){
+        if (arg[i].type != BLOB_osc){
             post("[osc.format]: blob element %lu not blob type", i);
             return 9;
         }
@@ -1352,129 +1069,78 @@ static int OSC_writeBlobArg(OSCbuf *buf, typedArg *arg, size_t nArgs)
     return 0;
 }
 
-static int OSC_writeStringArg(OSCbuf *buf, char *arg)
-{
+static int OSC_writeStringArg(OSCbuf *buf, char *arg){
     int len;
-
     if (CheckTypeTag(buf, 's')) return 9;
-
     len = OSC_effectiveStringLength(arg);
-
-    if (buf->gettingFirstUntypedArg && arg[0] == ',')
-    {
+    if (buf->gettingFirstUntypedArg && arg[0] == ','){
         /* This un-type-tagged message starts with a string
           that starts with a comma, so we have to escape it
           (with a double comma) so it won't look like a type
           tag string. */
-
         if(OSC_CheckOverflow(buf, len+4))return 1; /* Too conservative */
         buf->bufptr += 
         OSC_padStringWithAnExtraStupidComma(buf->bufptr, arg);
-
     }
-    else
-    {
+    else{
         if(OSC_CheckOverflow(buf, len))return 1;
         buf->bufptr += OSC_padString(buf->bufptr, arg);
     }
-
     buf->gettingFirstUntypedArg = 0;
     return 0;
-
 }
 
-static int OSC_writeNullArg(OSCbuf *buf, char type)
-{ /* Don't write any data, just check the type tag */
+static int OSC_writeNullArg(OSCbuf *buf, char type){ /* Don't write any data, just check the type tag */
     if(OSC_CheckOverflow(buf, 4))return 1;
     if (CheckTypeTag(buf, type)) return 9;
     buf->gettingFirstUntypedArg = 0;
     return 0;
 }
 
-/* String utilities */
-
-static int OSC_strlen(char *s)
-{
+static int OSC_strlen(char *s){
     int i;
     for (i = 0; s[i] != '\0'; i++) /* Do nothing */ ;
     return i;
 }
 
 #define STRING_ALIGN_PAD 4
-static int OSC_effectiveStringLength(char *string)
-{
+static int OSC_effectiveStringLength(char *string){
     int len = OSC_strlen(string) + 1;  /* We need space for the null char. */
-
     /* Round up len to next multiple of STRING_ALIGN_PAD to account for alignment padding */
     if ((len % STRING_ALIGN_PAD) != 0)
-    {
         len += STRING_ALIGN_PAD - (len % STRING_ALIGN_PAD);
-    }
     return len;
 }
 
-static int OSC_padString(char *dest, char *str)
-{
+static int OSC_padString(char *dest, char *str){
     int i;
-
-    for (i = 0; str[i] != '\0'; i++) dest[i] = str[i];
-
+    for(i = 0; str[i] != '\0'; i++)
+        dest[i] = str[i];
     return OSC_WriteStringPadding(dest, i);
 }
 
-static int OSC_padStringWithAnExtraStupidComma(char *dest, char *str)
-{
+static int OSC_padStringWithAnExtraStupidComma(char *dest, char *str){
     int i;
-
     dest[0] = ',';
     for (i = 0; str[i] != '\0'; i++) dest[i+1] = str[i];
-
     return OSC_WriteStringPadding(dest, i+1);
 }
 
-static int OSC_WriteStringPadding(char *dest, int i)
-{
+static int OSC_WriteStringPadding(char *dest, int i){
     /* pad with at least one zero to fit 4-byte */
     dest[i] = '\0';
     i++;
-
     for (; (i % STRING_ALIGN_PAD) != 0; i++) dest[i] = '\0';
-
     return i;
 }
 
-static int OSC_WriteBlobPadding(char *dest, int i)
-{
+static int OSC_WriteBlobPadding(char *dest, int i){
     /* pad if necessary to fit 4-byte */
     for (; (i % STRING_ALIGN_PAD) != 0; i++) dest[i] = '\0';
     return i;
 }
 
-/* The next bit is modified from OSC-timetag.c. */
-/*
-
- OSC_timeTag.c: library for manipulating OSC time tags
- Matt Wright, 5/29/97
-
- Version 0.2 (9/11/98): cleaned up so no explicit type names in the .c file.
-
-*/
-
-/*static OSCTimeTag OSCTT_Immediately(void)
-{
-    OSCTimeTag tt;
-    tt.fraction = 1;
-    tt.seconds = 0;
-    return tt;
-}*/
-
-/*static OSCTimeTag OSCTT_Infinite(void)
-{
-    OSCTimeTag tt;
-    tt.fraction = 0xffffffffL;
-    tt.seconds = 0xffffffffL;
-    return tt;
-}*/
+// modified from OSC-timetag.c.
 
 #define SECONDS_FROM_1900_to_1970 2208988800LL /* 17 leap years */
 #define TWO_TO_THE_32_OVER_ONE_MILLION 4295LL
@@ -1517,22 +1183,43 @@ static int OSC_WriteBlobPadding(char *dest, int i)
     return tt;
 }*/
 
+static void *oscformat_new(void){
+    t_oscformat *x = (t_oscformat *)pd_new(oscformat_class);
+    x->x_typetags = 1; /* set typetags to 1 by default */
+    x->x_bundle = 0; /* bundle is closed */
+    x->x_buflength = SC_BUFFER_SIZE;
+    x->x_bufferForOSCbuf = (char *)getbytes(sizeof(char)*x->x_buflength);
+    if(x->x_bufferForOSCbuf == NULL){
+        pd_error(x, "oscformat: unable to allocate %lu bytes for x_bufferForOSCbuf", (long)(sizeof(char)*x->x_buflength));
+        goto fail;
+    }
+    x->x_bufferForOSClist = (t_atom *)getbytes(sizeof(t_atom)*x->x_buflength);
+    if(x->x_bufferForOSClist == NULL){
+        pd_error(x, "oscformat: unable to allocate %lu bytes for x_bufferForOSClist", (long)(sizeof(t_atom)*x->x_buflength));
+        goto fail;
+    }
+//    if (x->x_oscbuf != NULL)
+        OSC_initBuffer(x->x_oscbuf, x->x_buflength, x->x_bufferForOSCbuf);
+    x->x_listout = outlet_new(&x->x_obj, &s_list);
+//    x->x_bdpthout = outlet_new(&x->x_obj, &s_float);
+    x->x_timeTagOffset = -1; /* immediately */
+    x->x_reentry_count = 0;
+    return (x);
+fail:
+    if(x->x_bufferForOSCbuf != NULL) freebytes(x->x_bufferForOSCbuf, (long)(sizeof(char)*x->x_buflength));
+    if(x->x_bufferForOSClist != NULL) freebytes(x->x_bufferForOSClist, (long)(sizeof(char)*x->x_buflength));
+    return(NULL);
+}
+
 void setup_osc0x2eformat(void){
     oscformat_class = class_new(gensym("osc.format"), (t_newmethod)oscformat_new,
         (t_method)oscformat_free, sizeof(t_oscformat), 0, A_DEFFLOAT, 0);
     class_addanything(oscformat_class, (t_method)oscformat_anything);
-/*    class_addmethod(oscformat_class, (t_method)oscformat_path,
-        gensym("prefix"), A_DEFSYM, 0);
-    class_addmethod(oscformat_class, (t_method)oscformat_settypetags,
+    class_addlist(oscformat_class, (t_method)oscformat_send);
+/*  class_addmethod(oscformat_class, (t_method)oscformat_settypetags,
         gensym("typetags"), A_DEFFLOAT, 0);
-    class_addmethod(oscformat_class, (t_method)oscformat_setbufsize,
-        gensym("bufsize"), A_DEFFLOAT, 0);
     class_addmethod(oscformat_class, (t_method)oscformat_setTimeTagOffset,
         gensym("timetagoffset"), A_DEFFLOAT, 0);
-    class_addmethod(oscformat_class, (t_method)oscformat_send,
-        gensym("send"), A_GIMME, 0);
-    class_addmethod(oscformat_class, (t_method)oscformat_send,
-        gensym("senduntyped"), A_GIMME, 0);
     class_addmethod(oscformat_class, (t_method)oscformat_send_type_forced,
         gensym("sendtyped"), A_GIMME, 0);
     class_addmethod(oscformat_class, (t_method)oscformat_openbundle,
