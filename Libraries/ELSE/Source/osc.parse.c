@@ -164,29 +164,27 @@ static int oscparse_path(t_atom *data_at, char *path){
 }
 
 /* oscparse_list expects an OSC packet in the form of a list of floats on [0..255] */
-static void oscparse_list(t_oscparse *x, t_symbol *s, int argc, t_atom *argv){
-    int             size, messageLen, i, j;
-    char            *messageName, *args, *buf;
-    OSCTimeTag      tt;
-    t_atom          data_at[MAX_MESG] ={{0}};/* symbols making up the path + payload */
-    int             data_atc = 0;/* number of symbols to be output */
-    char            raw[MAX_MESG];/* bytes making up the entire OSC message */
-    int             raw_c;/* number of bytes in OSC message */
-#ifdef DEBUG
-    printf(">>> oscparse_list: %d bytes, abort=%d, reentry_count %d recursion_level %d\n",
-        argc, x->x_abort_bundle, x->x_reentry_count, x->x_recursion_level);
-#endif
-    if(x->x_abort_bundle) return; /* if backing quietly out of the recursive stack */
-    x->x_reentry_count++;
+static void oscparse_worker(t_oscparse *x, t_symbol *s, int argc, t_atom *argv, char *buf);
+static void oscparse_list(t_oscparse *x, t_symbol *s, int argc, t_atom *argv) 
+{
+    // ag: This is a small wrapper around oscparse_worker below which does all the real
+    // work. It does some preliminary checks and then sets up a buffer populated with the
+    // binary data of the message which then gets passed to the worker. That way we don't have
+    // to reparse the data over and over again in each recursive call to the worker, as was
+    // done in the original implementation, wasting a lot of time and stack space.
+    int             i, j;
+    // This can be static as it's only read by the worker, never modified.
+    static char     raw[MAX_MESG];/* bytes making up the entire OSC message */
+    // preliminary checks
     if ((argc%4) != 0)
     {
         post("oscparse: Packet size (%d) not a multiple of 4 bytes: dropping packet", argc);
-        goto oscparse_list_out;
+        return;
     }
     if(argc > MAX_MESG)
     {
         post("oscparse: Packet size (%d) greater than max (%d). Change MAX_MESG and recompile if you want more.", argc, MAX_MESG);
-        goto oscparse_list_out;
+        return;
     }
     /* copy the list to a byte buffer, checking for bytes only */
     for (i = 0; i < argc; ++i)
@@ -204,17 +202,47 @@ static void oscparse_list(t_oscparse *x, t_symbol *s, int argc, t_atom *argv){
             else
             {
                 post("oscparse: Data out of range (%d), dropping packet", argv[i].a_w.w_float);
-                goto oscparse_list_out;
+                return;
             }
         }
         else
         {
             post("oscparse: Data not float, dropping packet");
-            goto oscparse_list_out;
+            return;
         }
     }
-    raw_c = argc;
-    buf = raw;
+    oscparse_worker(x, s, argc, argv, raw);
+}
+
+static void oscparse_worker(t_oscparse *x, t_symbol *s, int argc, t_atom *argv, char *buf) 
+{
+    int             size, messageLen, i;
+    char            *messageName, *args;
+    OSCTimeTag      tt;
+    // ag: The original implementation reserved an excessive amount of storage on the stack
+    // here which caused the object to crash with a C stack overflow on Windows. We use a more
+    // reasonable limit here (as each element of an OSC message must consist of at least 4 bytes,
+    // MAX_MESG/4 should always be big enough), and we can also allocate the memory in static
+    // storage, since it is only used in the non-recursive part of the function.
+    static t_atom   data_at[MAX_MESG/4] ={{0}};/* symbols making up the path + payload */
+    int             data_atc = 0;/* number of symbols to be output */
+
+#ifdef DEBUG
+    printf(">>> oscparse_worker: %d bytes, abort=%d, reentry_count %d recursion_level %d\n",
+        argc, x->x_abort_bundle, x->x_reentry_count, x->x_recursion_level);
+#endif
+    if(x->x_abort_bundle) return; /* if backing quietly out of the recursive stack */
+    x->x_reentry_count++;
+    if ((argc%4) != 0)
+    {
+        post("oscparse: Packet size (%d) not a multiple of 4 bytes: dropping packet", argc);
+        goto oscparse_worker_out;
+    }
+    if(argc > MAX_MESG)
+    {
+        post("oscparse: Packet size (%d) greater than max (%d). Change MAX_MESG and recompile if you want more.", argc, MAX_MESG);
+        goto oscparse_worker_out;
+    }
 
     if ((argc >= 8) && (strncmp(buf, "#bundle", 8) == 0))
     { /* This is a bundle message. */
@@ -225,7 +253,7 @@ static void oscparse_list(t_oscparse *x, t_symbol *s, int argc, t_atom *argv){
         if (argc < 16)
         {
             post("oscparse: Bundle message too small (%d bytes) for time tag", argc);
-            goto oscparse_list_out;
+            goto oscparse_worker_out;
         }
 
         x->x_bundle_flag = 1;
@@ -251,13 +279,13 @@ static void oscparse_list(t_oscparse *x, t_symbol *s, int argc, t_atom *argv){
             if ((size % 4) != 0)
             {
                 post("oscparse: Bad size count %d in bundle (not a multiple of 4)", size);
-                goto oscparse_list_out;
+                goto oscparse_worker_out;
             }
             if ((size + i + 4) > argc)
             {
                 post("oscparse: Bad size count %d in bundle (only %d bytes left in entire bundle)",
                     size, argc-i-4);
-                goto oscparse_list_out;
+                goto oscparse_worker_out;
             }
 
             /* Recursively handle element of bundle */
@@ -269,13 +297,13 @@ static void oscparse_list(t_oscparse *x, t_symbol *s, int argc, t_atom *argv){
             {
                 post("oscparse: bundle depth %d exceeded", MAX_BUNDLE_NESTING);
                 x->x_abort_bundle = 1;/* we need to back out of the recursive stack*/
-                goto oscparse_list_out;
+                goto oscparse_worker_out;
             }
 #ifdef DEBUG
-            printf("oscparse: bundle calling oscparse_list(x=%p, s=%s, size=%d, argv[%d]=%p)\n",
+            printf("oscparse: bundle calling oscparse_worker(x=%p, s=%s, size=%d, argv[%d]=%p)\n",
               x, s->s_name, size, i+4, &argv[i+4]);
 #endif
-            oscparse_list(x, s, size, &argv[i+4]);
+            oscparse_worker(x, s, size, &argv[i+4], buf+i+4);
             i += 4 + size;
         }
 
@@ -293,19 +321,20 @@ static void oscparse_list(t_oscparse *x, t_symbol *s, int argc, t_atom *argv){
     else if ((argc == 24) && (strcmp(buf, "#time") == 0))
     {
         post("oscparse: Time message: %s\n :).\n", buf);
-        goto oscparse_list_out;
+        goto oscparse_worker_out;
     }
     else
     { /* This is not a bundle message or a time message */
+
         messageName = buf;
 #ifdef DEBUG
-        printf("oscparse: message name string: %s length %d\n", messageName, raw_c);
+        printf("oscparse: message name string: %s length %d\n", messageName, argc);
 #endif
-        args = oscparse_DataAfterAlignedString(messageName, buf+raw_c);
+        args = oscparse_DataAfterAlignedString(messageName, buf+argc);
         if (args == 0)
         {
             post("oscparse: Bad message name string: Dropping entire message.");
-            goto oscparse_list_out;
+            goto oscparse_worker_out;
         }
         messageLen = args-messageName;
         /* put the OSC path into a single symbol */
@@ -313,18 +342,18 @@ static void oscparse_list(t_oscparse *x, t_symbol *s, int argc, t_atom *argv){
         if (data_atc == 1)
         {
 #ifdef DEBUG
-            printf("oscparse_list calling oscparse_Smessage: message length %d\n", raw_c-messageLen);
+            printf("oscparse_worker calling oscparse_Smessage: message length %d\n", argc-messageLen);
 #endif
-            oscparse_Smessage(data_at, &data_atc, (void *)args, raw_c-messageLen);
-            if(!x->x_bundle_flag)
-                outlet_float(x->x_delay_out, 0); // not in a bundle, no delay
+            oscparse_Smessage(data_at, &data_atc, (void *)args, argc-messageLen);
+            if (0 == x->x_bundle_flag)
+                outlet_float(x->x_delay_out, 0); /* no delay for message not in a bundle */
         }
     }
-    if(data_atc >= 1)
+    if (data_atc >= 1)
         outlet_anything(x->x_data_out, atom_getsymbol(data_at), data_atc-1, data_at+1);
     data_atc = 0;
     x->x_abort_bundle = 0;
-oscparse_list_out:
+oscparse_worker_out:
     x->x_recursion_level = 0;
     x->x_reentry_count--;
 }
