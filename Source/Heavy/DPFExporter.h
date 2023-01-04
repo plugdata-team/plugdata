@@ -190,7 +190,7 @@ public:
             bool compilationExitCode = getExitCode();
 
             // Clean up if successful
-            if (compilationExitCode) {
+            if (!compilationExitCode) {
                 outputFile.getChildFile("dpf").deleteRecursively();
                 outputFile.getChildFile("build").deleteRecursively();
                 outputFile.getChildFile("plugin").deleteRecursively();
