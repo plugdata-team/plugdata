@@ -20,7 +20,7 @@ public:
     DaisyExporter(PluginEditor* editor, ExportingProgressView* exportingView)
         : ExporterBase(editor, exportingView)
     {
-        addAndMakeVisible(properties.add(new PropertiesPanel::ComboComponent("Target board", targetBoardValue, { "Seed", "Pod", "Petal", "Patch", "Patch Init", "Field", "Custom JSON..." })));
+        addAndMakeVisible(properties.add(new PropertiesPanel::ComboComponent("Target board", targetBoardValue, { "Seed", "Pod", "Petal", "Patch", "Patch Init", "Field", "Simple", "Custom JSON..." })));
 
         addAndMakeVisible(properties.add(new PropertiesPanel::ComboComponent("Export type", exportTypeValue, { "Source code", "Binary", "Flash" })));
 
@@ -63,7 +63,7 @@ public:
             int idx = static_cast<int>(targetBoardValue.getValue());
 
             // Custom board option
-            if (idx == 7) {
+            if (idx == 8) {
                 // Open file browser
                 openChooser = std::make_unique<FileChooser>("Choose file to open", File::getSpecialLocation(File::userHomeDirectory), "*.json", true);
 
@@ -96,24 +96,22 @@ public:
             args.add("\"" + name + "\"");
         }
 
-        auto boards = StringArray { "seed", "pod", "petal", "patch", "patch_init", "field", "custom" };
+        auto boards = StringArray { "seed", "pod", "petal", "patch", "patch_init", "field", "simple", "custom" };
         auto board = boards[target];
 
+        DynamicObject::Ptr metaJson(new DynamicObject());
+        var metaDaisy(new DynamicObject());
+
         if (board == "custom") {
-            DynamicObject::Ptr metaJson(new DynamicObject());
-            var metaDaisy(new DynamicObject());
             metaDaisy.getDynamicObject()->setProperty("board_file", customBoardDefinition.getFullPathName());
-            metaJson->setProperty("daisy", metaDaisy);
-
-            args.add("-m" + createMetaJson(metaJson));
+        } else if (board == "simple") {
+            metaDaisy.getDynamicObject()->setProperty("board_file", Toolchain::dir.getChildFile("scripts").getChildFile("simple.json").getFullPathName());
         } else {
-            DynamicObject::Ptr metaJson(new DynamicObject());
-            var metaDaisy(new DynamicObject());
             metaDaisy.getDynamicObject()->setProperty("board", board);
-            metaJson->setProperty("daisy", metaDaisy);
 
-            args.add("-m" + createMetaJson(metaJson));
         }
+        metaJson->setProperty("daisy", metaDaisy);
+        args.add("-m" + createMetaJson(metaJson));
 
         args.add("-v");
         args.add("-gdaisy");
