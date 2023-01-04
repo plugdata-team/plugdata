@@ -173,7 +173,6 @@ file(GLOB PD_SOURCES
     ${PD_PATH}/src/m_sched.c
     ${PD_PATH}/src/s_audio.c
     ${PD_PATH}/src/s_audio_dummy.c
-    ${PD_PATH}/src/s_inter_gui.c
     ${PD_PATH}/src/s_loader.c
     ${PD_PATH}/src/s_main.c
     ${PD_PATH}/src/s_net.c
@@ -241,6 +240,7 @@ set(LIBPD_SOURCES
     ${LIBPD_PATH}/x_libpd_mod_utils.h
     ${LIBPD_PATH}/x_libpd_multi.c
     ${LIBPD_PATH}/x_libpd_multi.h
+    ${LIBPD_PATH}/s_libpd_inter_gui.c
     ${LIBPD_PATH}/s_libpd_inter.c
     ${LIBPD_PATH}/s_libpd_inter.h
     ${LIBPD_PATH}/m_libpd_class.c

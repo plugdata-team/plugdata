@@ -1,10 +1,5 @@
 // stolen from mrpeach
 
-// Copyright (C) 2006-2011 Martin Peach
-// slightly modified, renamed and greatly and vastly simplified by Porres 2023
-
-// GNU license
-
 /* oscformat is like sendOSC but outputs a list of floats which are the bytes making up the OSC packet. */
 /* This allows for the separation of the protocol and its transport. */
 /* Started by Martin Peach 20060403 */

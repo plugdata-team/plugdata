@@ -155,7 +155,10 @@ Instance::Instance(String const& symbol)
         static_cast<Instance*>(instance)->receiveGuiUpdate(3);
     };
 
-    auto synchronise_trigger = [](void* instance, void* cnv) { static_cast<Instance*>(instance)->synchroniseCanvas(cnv); };
+    auto openfile_trigger = [](void* instance, const char* fileToOpen) {
+        std::cout << fileToOpen << std::endl;
+        File(fileToOpen).startAsProcess();
+    };
 
     auto message_trigger = [](void* instance, void* target, t_symbol* symbol, int argc, t_atom* argv) {
         auto& listeners = static_cast<Instance*>(instance)->messageListeners;
@@ -184,7 +187,7 @@ Instance::Instance(String const& symbol)
         }
     };
     
-    register_gui_triggers(static_cast<t_pdinstance*>(m_instance), this, gui_trigger, panel_trigger, synchronise_trigger, parameter_trigger, message_trigger);
+    register_gui_triggers(static_cast<t_pdinstance*>(m_instance), this, gui_trigger, panel_trigger, openfile_trigger, parameter_trigger, message_trigger);
 
     // HACK: create full path names for c-coded externals
     // Temporarily disabled because bugs
