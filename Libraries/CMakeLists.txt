@@ -283,8 +283,15 @@ include_directories(cyclone/shared/)
 source_group(cyclone FILES ${CYCLONE_SOURCES})
 
 # pdlua sources
+set(LUA_PATH "${CMAKE_CURRENT_SOURCE_DIR}/lua")
+set(LUA_INCLUDE_DIR ${LUA_PATH})
+
+add_library(lua STATIC ${LUA_PATH}/onelua.c)
+target_compile_definitions(lua PRIVATE MAKE_LIB=1)
+
 set(PDLUA_PATH "${CMAKE_CURRENT_SOURCE_DIR}/pd-lua")
 set(PDLUA_SOURCES ${PDLUA_PATH}/pdlua.c)
+
 source_group(pdlua FILES ${PDLUA_SOURCES})
 
 # ------------------------------------------------------------------------------#
@@ -366,23 +373,12 @@ set_target_properties(pd-multi PROPERTIES POSITION_INDEPENDENT_CODE ON)
 set_target_properties(externals PROPERTIES POSITION_INDEPENDENT_CODE ON)
 set_target_properties(externals-multi PROPERTIES POSITION_INDEPENDENT_CODE ON)
 
-# XXXFIXME: This needs work. The location of Lua can vary and should thus be
-# detected automatically, maybe using something like find_package(lua). Also,
-# some platforms may not have the static library installed. We might have to
-# include the Lua source and build it during cmake. -ag
-if(APPLE)
-set(LUA_PREFIX "/opt/homebrew")
-else()
-# MSVC???
-set(LUA_PREFIX "/usr")
-endif()
-set(LUA_INCLUDE ${LUA_PREFIX}/include/lua)
-set(PDLUA_LIBS ${LUA_PREFIX}/lib/liblua.a)
 
-target_link_libraries(externals ${SFONT_LIBS} ${PDLUA_LIBS})
-target_link_libraries(externals-multi ${SFONT_LIBS} ${PDLUA_LIBS})
-target_include_directories(externals PRIVATE ${SFONT_INCLUDE_DIR} ${LUA_INCLUDE})
-target_include_directories(externals-multi PRIVATE ${SFONT_INCLUDE_DIR} ${LUA_INCLUDE})
+
+target_link_libraries(externals ${SFONT_LIBS} lua)
+target_link_libraries(externals-multi ${SFONT_LIBS} lua)
+target_include_directories(externals PRIVATE ${SFONT_INCLUDE_DIR} ${LUA_INCLUDE_DIR})
+target_include_directories(externals-multi PRIVATE ${SFONT_INCLUDE_DIR} ${LUA_INCLUDE_DIR})
 # ------------------------------------------------------------------------------#
 # GENERATOR OPTIONS
 # ------------------------------------------------------------------------------#
