@@ -1,10 +1,5 @@
 // stolen from mrpeach
 
-// Copyright (C) 2006-2011 Martin Peach
-// slightly modified, renamed and greatly and vastly simplified by Porres 2023
-
-// GNU license
-
 /* oscparse is like dumpOSC but outputs a list consisting of a single symbol for the path  */
 /* and a list of floats and/or symbols for the data, and adds an outlet for a time delay. */
 /* This allows for the separation of the protocol and its transport. */
@@ -37,47 +32,16 @@ MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 The OSC webpage is http://cnmat.cnmat.berkeley.edu/OpenSoundControl
 */
 
-/*
-
-    dumpOSC.c
-    server that displays OpenSoundControl messages sent to it
-    for debugging client udp and UNIX protocol
-
-    by Matt Wright, 6/3/97
-    modified from dumpSC.c, by Matt Wright and Adrian Freed
-
-    version 0.2: Added "-silent" option a.k.a. "-quiet"
-
-    version 0.3: Incorporated patches from Nicola Bernardini to make
-    things Linux-friendly.  Also added ntohl() in the right places
-    to support little-endian architectures.
-
-    to-do:
-
-    More robustness in saying exactly what's wrong with ill-formed
-    messages.  (If they don't make sense, show exactly what was
-    received.)
-
-    Time-based features: print time-received for each packet
-
-    Clean up to separate OSC parsing code from socket/select stuff
-
-    pd: branched from http://www.cnmat.berkeley.edu/OpenSoundControl/src/dumpOSC/dumpOSC.c
-    -------------
-    -- added pd functions
-    -- socket is made differently than original via pd mechanisms
-    -- tweaks for Win32    www.zeggz.com/raf	13-April-2002
-    -- the OSX changes from cnmat didnt make it here yet but this compiles
-        on OSX anyway.
-
-*/
-//define DEBUG
 #include "../shared/OSC.h"
+
+#define SECONDS_FROM_1900_to_1970 2208988800LL /* 17 leap years */
+#define TWO_TO_THE_32_OVER_ONE_MILLION 4295LL
+#define ONE_MILLION_OVER_TWO_TO_THE_32 0.00023283064365386963
+#define SMALLEST_POSITIVE_FLOAT 0.000001f
 
 static t_class *oscparse_class;
 
-typedef struct _oscparse
-{
+typedef struct _oscparse{
     t_object    x_obj;
     t_outlet    *x_data_out;
     t_outlet    *x_delay_out;
@@ -85,34 +49,122 @@ typedef struct _oscparse
     int         x_recursion_level;/* number of times we reenter oscparse_list */
     int         x_abort_bundle;/* non-zero if oscparse_list is not well formed */
     int         x_reentry_count;
-} t_oscparse;
+}t_oscparse;
 
-void oscparse_setup(void);
-static void *oscparse_new(void);
-static void oscparse_list(t_oscparse *x, t_symbol *s, int argc, t_atom *argv);
-static int oscparse_path(t_atom *data_at, char *path);
-static void oscparse_Smessage(t_atom *data_at, int *data_atc, void *v, int n);
 static void oscparse_PrintTypeTaggedArgs(t_atom *data_at, int *data_atc, void *v, int n);
-static void oscparse_PrintHeuristicallyTypeGuessedArgs(t_atom *data_at, int *data_atc, void *v, int n, int skipComma);
-static char *oscparse_DataAfterAlignedString(char *string, char *boundary);
 static int oscparse_IsNiceString(char *string, char *boundary);
-//static t_float oscparse_DeltaTime(OSCTimeTag tt);
+static void oscparse_Smessage(t_atom *data_at, int *data_atc, void *v, int n);
 
-static void *oscparse_new(void)
+// return the time difference in milliseconds between an OSC timetag and now
+static t_float oscparse_DeltaTime(OSCTimeTag tt)
 {
-    t_oscparse *x;
-    x = (t_oscparse *)pd_new(oscparse_class);
-    x->x_data_out = outlet_new(&x->x_obj, &s_list);
-//    x->x_delay_out = outlet_new(&x->x_obj, &s_float);
-    x->x_bundle_flag = 0;
-    x->x_recursion_level = 0;
-    x->x_abort_bundle = 0;
-    return (x);
+    static double onemillion = 1000000.0f;
+#ifdef _WIN32
+    static double onethousand = 1000.0f;
+#endif // ifdef _WIN32
+
+    if (tt.fraction == 1 && tt.seconds == 0) return 0.0; // immediate
+    else
+    {
+        OSCTimeTag ttnow;
+        double  ttusec, nowusec, delta;
+#ifdef _WIN32
+        struct _timeb tb;
+
+        _ftime(&tb); // find now
+        // First get the seconds right
+        ttnow.seconds = (unsigned) SECONDS_FROM_1900_to_1970 + (unsigned) tb.time;
+        // find usec in tt
+        ttusec = tt.seconds*onemillion + ONE_MILLION_OVER_TWO_TO_THE_32*tt.fraction;
+        nowusec = ttnow.seconds*onemillion + tb.millitm*onethousand;
+#else
+        struct timeval tv;
+        struct timezone tz;
+
+        gettimeofday(&tv, &tz); // find now
+        // First get the seconds right
+        ttnow.seconds = (unsigned) SECONDS_FROM_1900_to_1970 + (unsigned) tv.tv_sec;
+        // find usec in tt
+        ttusec = tt.seconds*onemillion + ONE_MILLION_OVER_TWO_TO_THE_32*tt.fraction;
+        nowusec = ttnow.seconds*onemillion + tv.tv_usec;
+#endif // ifdef _WIN32
+       // subtract now from tt to get delta time
+       // if (ttusec < nowusec) return 0.0;
+       // negative delays are all right
+        delta = ttusec - nowusec;
+        return (float)(delta*0.001f);
+    }
+}
+
+#define STRING_ALIGN_PAD 4
+
+static char *oscparse_DataAfterAlignedString(char *string, char *boundary){
+    /* The argument is a block of data beginning with a string.  The
+        string has (presumably) been padded with extra null characters
+        so that the overall length is a multiple of STRING_ALIGN_PAD
+        bytes.  Return a pointer to the next byte after the null
+        byte(s).  The boundary argument points to the character after
+        the last valid character in the buffer---if the string hasn't
+        ended by there, something's wrong.
+        If the data looks wrong, return 0 */
+    int i;
+#ifdef DEBUG
+    printf("oscparse_DataAfterAlignedString boundary - string = %ld\n",  boundary-string);
+#endif
+    if ((boundary - string) %4 != 0){
+        post("oscparse: DataAfterAlignedString: bad boundary");
+        return 0;
+    }
+    for (i = 0; string[i] != '\0'; i++){
+#ifdef DEBUG
+        printf("%0X(%c) ",  string[i], string[i]);
+#endif
+        if (string + i >= boundary){
+            post("oscparse: DataAfterAlignedString: Unreasonably long string");
+            return 0;
+        }
+    }
+    /* Now string[i] is the first null character */
+#ifdef DEBUG
+    printf("\noscparse_DataAfterAlignedString first null character at %p\n",  &string[i]);
+#endif
+     i++;
+    for (; (i % STRING_ALIGN_PAD) != 0; i++){
+        if (string + i >= boundary){
+            post("oscparse: DataAfterAlignedString: Unreasonably long string");
+            return 0;
+        }
+        if (string[i] != '\0'){
+            post("oscparse: DataAfterAlignedString: Incorrectly padded string");
+            return 0;
+        }
+    }
+#ifdef DEBUG
+    printf("oscparse_DataAfterAlignedString first non-null character at %p\n",  &string[i]);
+#endif
+    return string+i;
+}
+
+static int oscparse_path(t_atom *data_at, char *path){
+    int i;
+    if (path[0] != '/'){
+        for (i = 0; i < 16; ++i) if ('\0' == path[i]) break;
+        path[i] = '\0';
+        post("oscparse: Path doesn't begin with \"/\", dropping message");
+        return 0;
+    }
+    for (i = 1; i < MAX_MESG; ++i){
+        if (path[i] == '\0'){ /* the end of the path: turn path into a symbol */
+            SETSYMBOL(data_at, gensym(path));
+            return 1;
+        }
+    }
+    post("oscparse: Path too long, dropping message");
+    return 0;
 }
 
 /* oscparse_list expects an OSC packet in the form of a list of floats on [0..255] */
-static void oscparse_list(t_oscparse *x, t_symbol *s, int argc, t_atom *argv)
-{
+static void oscparse_list(t_oscparse *x, t_symbol *s, int argc, t_atom *argv){
     int             size, messageLen, i, j;
     char            *messageName, *args, *buf;
     OSCTimeTag      tt;
@@ -120,7 +172,6 @@ static void oscparse_list(t_oscparse *x, t_symbol *s, int argc, t_atom *argv)
     int             data_atc = 0;/* number of symbols to be output */
     char            raw[MAX_MESG];/* bytes making up the entire OSC message */
     int             raw_c;/* number of bytes in OSC message */
-
 #ifdef DEBUG
     printf(">>> oscparse_list: %d bytes, abort=%d, reentry_count %d recursion_level %d\n",
         argc, x->x_abort_bundle, x->x_reentry_count, x->x_recursion_level);
@@ -188,7 +239,7 @@ static void oscparse_list(t_oscparse *x, t_symbol *s, int argc, t_atom *argv)
         tt.seconds = ntohl(*((uint32_t *)(buf+8)));
         tt.fraction = ntohl(*((uint32_t *)(buf+12)));
         /* pd can use a delay in milliseconds */
-//        outlet_float(x->x_delay_out, oscparse_DeltaTime(tt));
+        outlet_float(x->x_delay_out, oscparse_DeltaTime(tt));
         /* Note: if we wanted to actually use the time tag as a little-endian
           64-bit int, we'd have to word-swap the two 32-bit halves of it */
 
@@ -246,7 +297,6 @@ static void oscparse_list(t_oscparse *x, t_symbol *s, int argc, t_atom *argv)
     }
     else
     { /* This is not a bundle message or a time message */
-
         messageName = buf;
 #ifdef DEBUG
         printf("oscparse: message name string: %s length %d\n", messageName, raw_c);
@@ -266,11 +316,11 @@ static void oscparse_list(t_oscparse *x, t_symbol *s, int argc, t_atom *argv)
             printf("oscparse_list calling oscparse_Smessage: message length %d\n", raw_c-messageLen);
 #endif
             oscparse_Smessage(data_at, &data_atc, (void *)args, raw_c-messageLen);
-//            if (0 == x->x_bundle_flag)
-//                outlet_float(x->x_delay_out, 0); /* no delay for message not in a bundle */
+            if(!x->x_bundle_flag)
+                outlet_float(x->x_delay_out, 0); // not in a bundle, no delay
         }
     }
-    if (data_atc >= 1)
+    if(data_atc >= 1)
         outlet_anything(x->x_data_out, atom_getsymbol(data_at), data_atc-1, data_at+1);
     data_atc = 0;
     x->x_abort_bundle = 0;
@@ -279,48 +329,76 @@ oscparse_list_out:
     x->x_reentry_count--;
 }
 
-static int oscparse_path(t_atom *data_at, char *path)
-{
-    int i;
+static void oscparse_PrintHeuristicallyTypeGuessedArgs(t_atom *data_at, int *data_atc, void *v, int n, int skipComma){
+    skipComma = 0;
+    int         i;
+    int         *ints;
+    intfloat32  thisif;
+    char        *chars, *string, *nextString;
+    int         myargc = *data_atc;
+    t_atom*     mya = data_at;
 
-    if (path[0] != '/')
-    {
-        for (i = 0; i < 16; ++i) if ('\0' == path[i]) break;
-        path[i] = '\0';
-        post("oscparse: Path doesn't begin with \"/\", dropping message");
-        return 0;
-    }
-    for (i = 1; i < MAX_MESG; ++i)
-    {
-        if (path[i] == '\0')
-        { /* the end of the path: turn path into a symbol */
-            SETSYMBOL(data_at, gensym(path));
-            return 1;
-        }
-    }
-    post("oscparse: Path too long, dropping message");
-    return 0;
-}
-#define SMALLEST_POSITIVE_FLOAT 0.000001f
+    /* Go through the arguments 32 bits at a time */
+    ints = v;
+    chars = v;
 
-static void oscparse_Smessage(t_atom *data_at, int *data_atc, void *v, int n)
-{
-    char   *chars = v;
-
-    if (n != 0)
+    for (i = 0; i < n/4; )
     {
-        if (chars[0] == ',')
+        string = &chars[i*4];
+        thisif.i = ntohl(ints[i]);
+        /* Reinterpret the (potentially byte-reversed) thisif as a float */
+
+        if (thisif.i >= -1000 && thisif.i <= 1000000)
         {
-            if (chars[1] != ',')
-            {
+#ifdef DEBUG
+            printf("%d ", thisif.i);
+#endif
+            SETFLOAT(mya+myargc,(t_float) (thisif.i));
+            myargc++;
+            i++;
+        }
+        else if (thisif.f >= -1000.f && thisif.f <= 1000000.f &&
+            (thisif.f <=0.0f || thisif.f >= SMALLEST_POSITIVE_FLOAT))
+        {
+#ifdef DEBUG
+            printf("%f ",  thisif.f);
+#endif
+            SETFLOAT(mya+myargc,thisif.f);
+            myargc++;
+            i++;
+        }
+        else if (oscparse_IsNiceString(string, chars+n))
+        {
+            nextString = oscparse_DataAfterAlignedString(string, chars+n);
+#ifdef DEBUG
+            printf("\"%s\" ", (i == 0 && skipComma) ? string +1 : string);
+#endif
+            SETSYMBOL(mya+myargc,gensym(string));
+            myargc++;
+            i += (nextString-string) / 4;
+        }
+        else
+        {
+            /* unhandled .. ;) */
+            post("oscparse: PrintHeuristicallyTypeGuessedArgs: indeterminate type: 0x%x xx", ints[i]);
+            i++;
+        }
+        *data_atc = myargc;
+    }
+}
+
+static void oscparse_Smessage(t_atom *data_at, int *data_atc, void *v, int n){
+    char   *chars = v;
+    if (n != 0){
+        if (chars[0] == ','){
+            if (chars[1] != ','){
 #ifdef DEBUG
                 printf("oscparse_Smessage calling oscparse_PrintTypeTaggedArgs: message length %d\n", n);
 #endif
                 /* This message begins with a type-tag string */
                 oscparse_PrintTypeTaggedArgs(data_at, data_atc, v, n);
             }
-            else
-            {
+            else{
 #ifdef DEBUG
                 printf("oscparse_Smessage calling oscparse_PrintHeuristicallyTypeGuessedArgs: message length %d, skipComma 1\n", n);
 #endif
@@ -328,8 +406,7 @@ static void oscparse_Smessage(t_atom *data_at, int *data_atc, void *v, int n)
                 oscparse_PrintHeuristicallyTypeGuessedArgs(data_at, data_atc, v, n, 1);
             }
         }
-        else
-        {
+        else{
 #ifdef DEBUG
             printf("oscparse_Smessage calling oscparse_PrintHeuristicallyTypeGuessedArgs: message length %d, skipComma 0\n", n);
 #endif
@@ -338,16 +415,39 @@ static void oscparse_Smessage(t_atom *data_at, int *data_atc, void *v, int n)
     }
 }
 
-static void oscparse_PrintTypeTaggedArgs(t_atom *data_at, int *data_atc, void *v, int n)
-{ 
+static int oscparse_IsNiceString(char *string, char *boundary){
+    /* Arguments same as DataAfterAlignedString().  Is the given "string"
+       really an OSC-string?  I.e., is it
+        "A sequence of non-null ASCII characters followed by a null, followed
+        by 0-3 additional null characters to make the total number of bits a
+        multiple of 32"? (OSC 1.0)
+        Returns 1 if true, else 0. */
+    int i;
+    if ((boundary - string) %4 != 0){
+        post("oscparse: IsNiceString: bad boundary\n");
+        return 0;
+    }
+    /* any non-zero byte will be accepted, so UTF-8 sequences will also be accepted -- not strictly OSC v1.0 */
+    for (i = 0; string[i] != '\0'; i++)
+        /* if ((!isprint(string[i])) || (string + i >= boundary)) return 0; */ /* only ASCII printable chars */
+        /*if ((0==(string[i]&0xE0)) || (string + i >= boundary)) return 0;*/ /* onl;y ASCII space (0x20) and above */
+        if (string + i >= boundary) return 0; /* anything non-zero */
+    /* If we made it this far, it's a null-terminated sequence of characters
+       within the given boundary.  Now we just make sure it's null padded... */
+
+    /* Now string[i] is the first null character */
+    i++;
+    for (; (i % STRING_ALIGN_PAD) != 0; i++)
+        if (string[i] != '\0') return 0;
+    return 1;
+}
+
+static void oscparse_PrintTypeTaggedArgs(t_atom *data_at, int *data_atc, void *v, int n){
     char    *typeTags, *thisType, *p;
     int     myargc = *data_atc;
     t_atom  *mya = data_at;
-
     typeTags = v;
-
-    if (!oscparse_IsNiceString(typeTags, typeTags+n))
-    {
+    if (!oscparse_IsNiceString(typeTags, typeTags+n)){
 #ifdef DEBUG
             printf("oscparse_PrintTypeTaggedArgs not nice string\n");
 #endif
@@ -356,7 +456,6 @@ static void oscparse_PrintTypeTaggedArgs(t_atom *data_at, int *data_atc, void *v
         oscparse_PrintHeuristicallyTypeGuessedArgs(data_at, data_atc, v, n, 0);
         return;
     }
-
 #ifdef DEBUG
     printf("oscparse_PrintTypeTaggedArgs calling oscparse_DataAfterAlignedString %p to  %p\n", typeTags, typeTags+n);
 #endif
@@ -365,10 +464,8 @@ static void oscparse_PrintTypeTaggedArgs(t_atom *data_at, int *data_atc, void *v
     printf("oscparse_PrintTypeTaggedArgs p is %p: ", p);
 #endif
     if (p == NULL) return; /* malformed message */
-    for (thisType = typeTags + 1; *thisType != 0; ++thisType)
-    {
-        switch (*thisType)
-        {
+    for (thisType = typeTags + 1; *thisType != 0; ++thisType){
+        switch (*thisType){
             case 'b': /* blob: an int32 size count followed by that many 8-bit bytes */
             {
                 int i, blob_bytes = ntohl(*((int *) p));
@@ -435,8 +532,7 @@ static void oscparse_PrintTypeTaggedArgs(t_atom *data_at, int *data_atc, void *v
                     post("oscparse: PrintTypeTaggedArgs: Type tag said this arg is a string but it's not!\n");
                     return;
                 }
-                else
-                {
+                else{
 #ifdef DEBUG
                     printf("string: \"%s\"\n", p);
 #endif
@@ -485,205 +581,16 @@ static void oscparse_PrintTypeTaggedArgs(t_atom *data_at, int *data_atc, void *v
     *data_atc = myargc;
 }
 
-static void oscparse_PrintHeuristicallyTypeGuessedArgs(t_atom *data_at, int *data_atc, void *v, int n, int skipComma)
-{
-    skipComma = 0;
-    int         i;
-    int         *ints;
-    intfloat32  thisif;
-    char        *chars, *string, *nextString;
-    int         myargc = *data_atc;
-    t_atom*     mya = data_at;
-
-    /* Go through the arguments 32 bits at a time */
-    ints = v;
-    chars = v;
-
-    for (i = 0; i < n/4; )
-    {
-        string = &chars[i*4];
-        thisif.i = ntohl(ints[i]);
-        /* Reinterpret the (potentially byte-reversed) thisif as a float */
-
-        if (thisif.i >= -1000 && thisif.i <= 1000000)
-        {
-#ifdef DEBUG
-            printf("%d ", thisif.i);
-#endif
-            SETFLOAT(mya+myargc,(t_float) (thisif.i));
-            myargc++;
-            i++;
-        }
-        else if (thisif.f >= -1000.f && thisif.f <= 1000000.f &&
-            (thisif.f <=0.0f || thisif.f >= SMALLEST_POSITIVE_FLOAT))
-        {
-#ifdef DEBUG
-            printf("%f ",  thisif.f);
-#endif
-            SETFLOAT(mya+myargc,thisif.f);
-            myargc++;
-            i++;
-        }
-        else if (oscparse_IsNiceString(string, chars+n))
-        {
-            nextString = oscparse_DataAfterAlignedString(string, chars+n);
-#ifdef DEBUG
-            printf("\"%s\" ", (i == 0 && skipComma) ? string +1 : string);
-#endif
-            SETSYMBOL(mya+myargc,gensym(string));
-            myargc++;
-            i += (nextString-string) / 4;
-        }
-        else
-        {
-            /* unhandled .. ;) */
-            post("oscparse: PrintHeuristicallyTypeGuessedArgs: indeterminate type: 0x%x xx", ints[i]);
-            i++;
-        }
-        *data_atc = myargc;
-    }
+static void *oscparse_new(void){
+    t_oscparse *x;
+    x = (t_oscparse *)pd_new(oscparse_class);
+    x->x_data_out = outlet_new(&x->x_obj, &s_list);
+    x->x_delay_out = outlet_new(&x->x_obj, &s_float);
+    x->x_bundle_flag = 0;
+    x->x_recursion_level = 0;
+    x->x_abort_bundle = 0;
+    return(x);
 }
-
-#define STRING_ALIGN_PAD 4
-
-static char *oscparse_DataAfterAlignedString(char *string, char *boundary)
-{
-    /* The argument is a block of data beginning with a string.  The
-        string has (presumably) been padded with extra null characters
-        so that the overall length is a multiple of STRING_ALIGN_PAD
-        bytes.  Return a pointer to the next byte after the null
-        byte(s).  The boundary argument points to the character after
-        the last valid character in the buffer---if the string hasn't
-        ended by there, something's wrong.
-
-        If the data looks wrong, return 0 */
-
-    int i;
-
-#ifdef DEBUG
-    printf("oscparse_DataAfterAlignedString boundary - string = %ld\n",  boundary-string);
-#endif
-    if ((boundary - string) %4 != 0)
-    {
-        post("oscparse: DataAfterAlignedString: bad boundary");
-        return 0;
-    }
-
-    for (i = 0; string[i] != '\0'; i++)
-    {
-#ifdef DEBUG
-        printf("%0X(%c) ",  string[i], string[i]);
-#endif
-        if (string + i >= boundary)
-        {
-            post("oscparse: DataAfterAlignedString: Unreasonably long string");
-            return 0;
-        }
-    }
-
-    /* Now string[i] is the first null character */
-#ifdef DEBUG
-    printf("\noscparse_DataAfterAlignedString first null character at %p\n",  &string[i]);
-#endif
-     i++;
-
-    for (; (i % STRING_ALIGN_PAD) != 0; i++)
-    {
-        if (string + i >= boundary)
-        {
-            post("oscparse: DataAfterAlignedString: Unreasonably long string");
-            return 0;
-        }
-        if (string[i] != '\0')
-        {
-            post("oscparse: DataAfterAlignedString: Incorrectly padded string");
-            return 0;
-        }
-    }
-#ifdef DEBUG
-    printf("oscparse_DataAfterAlignedString first non-null character at %p\n",  &string[i]);
-#endif
- 
-    return string+i;
-}
-
-static int oscparse_IsNiceString(char *string, char *boundary)
-{
-    /* Arguments same as DataAfterAlignedString().  Is the given "string"
-       really an OSC-string?  I.e., is it 
-        "A sequence of non-null ASCII characters followed by a null, followed 
-        by 0-3 additional null characters to make the total number of bits a 
-        multiple of 32"? (OSC 1.0)
-        Returns 1 if true, else 0. */
-
-    int i;
-
-    if ((boundary - string) %4 != 0)
-    {
-        post("oscparse: IsNiceString: bad boundary\n");
-        return 0;
-    }
-
-    /* any non-zero byte will be accepted, so UTF-8 sequences will also be accepted -- not strictly OSC v1.0 */
-    for (i = 0; string[i] != '\0'; i++)
-        /* if ((!isprint(string[i])) || (string + i >= boundary)) return 0; */ /* only ASCII printable chars */
-        /*if ((0==(string[i]&0xE0)) || (string + i >= boundary)) return 0;*/ /* onl;y ASCII space (0x20) and above */
-        if (string + i >= boundary) return 0; /* anything non-zero */
-    /* If we made it this far, it's a null-terminated sequence of characters
-       within the given boundary.  Now we just make sure it's null padded... */
-
-    /* Now string[i] is the first null character */
-    i++;
-    for (; (i % STRING_ALIGN_PAD) != 0; i++)
-        if (string[i] != '\0') return 0;
-
-    return 1;
-}
-
-#define SECONDS_FROM_1900_to_1970 2208988800LL /* 17 leap years */
-#define TWO_TO_THE_32_OVER_ONE_MILLION 4295LL
-#define ONE_MILLION_OVER_TWO_TO_THE_32 0.00023283064365386963
-
-// return the time difference in milliseconds between an OSC timetag and now
-/*static t_float oscparse_DeltaTime(OSCTimeTag tt)
-{
-    static double onemillion = 1000000.0f;
-#ifdef _WIN32
-    static double onethousand = 1000.0f;
-#endif // ifdef _WIN32
-
-    if (tt.fraction == 1 && tt.seconds == 0) return 0.0; // immediate
-    else
-    {
-        OSCTimeTag ttnow;
-        double  ttusec, nowusec, delta;
-#ifdef _WIN32
-        struct _timeb tb;
-
-        _ftime(&tb); // find now
-        // First get the seconds right
-        ttnow.seconds = (unsigned) SECONDS_FROM_1900_to_1970 + (unsigned) tb.time;
-        // find usec in tt
-        ttusec = tt.seconds*onemillion + ONE_MILLION_OVER_TWO_TO_THE_32*tt.fraction;
-        nowusec = ttnow.seconds*onemillion + tb.millitm*onethousand;
-#else
-        struct timeval tv;
-        struct timezone tz;
-
-        gettimeofday(&tv, &tz); // find now
-        // First get the seconds right
-        ttnow.seconds = (unsigned) SECONDS_FROM_1900_to_1970 + (unsigned) tv.tv_sec;
-        // find usec in tt
-        ttusec = tt.seconds*onemillion + ONE_MILLION_OVER_TWO_TO_THE_32*tt.fraction;
-        nowusec = ttnow.seconds*onemillion + tv.tv_usec;
-#endif // ifdef _WIN32
-       // subtract now from tt to get delta time
-       // if (ttusec < nowusec) return 0.0;
-       // negative delays are all right
-        delta = ttusec - nowusec;
-        return (float)(delta*0.001f);
-    }
-}*/
 
 void setup_osc0x2eparse(void){
     oscparse_class = class_new(gensym("osc.parse"), (t_newmethod)oscparse_new,
