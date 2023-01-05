@@ -117,17 +117,11 @@ Instance::Instance(String const& symbol)
 
     libpd_set_instance(static_cast<t_pdinstance*>(m_instance));
 
-    libpd_init_else();
-    libpd_init_cyclone();
-    File homeDir = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory).getChildFile("plugdata");
-    auto library = homeDir.getChildFile("Library");
-    auto extra = library.getChildFile("Extra");
-    libpd_init_pdlua(extra.getFullPathName().getCharPointer());
-
     m_midi_receiver = libpd_multi_midi_new(this, reinterpret_cast<t_libpd_multi_noteonhook>(internal::instance_multi_noteon), reinterpret_cast<t_libpd_multi_controlchangehook>(internal::instance_multi_controlchange), reinterpret_cast<t_libpd_multi_programchangehook>(internal::instance_multi_programchange),
         reinterpret_cast<t_libpd_multi_pitchbendhook>(internal::instance_multi_pitchbend), reinterpret_cast<t_libpd_multi_aftertouchhook>(internal::instance_multi_aftertouch), reinterpret_cast<t_libpd_multi_polyaftertouchhook>(internal::instance_multi_polyaftertouch),
         reinterpret_cast<t_libpd_multi_midibytehook>(internal::instance_multi_midibyte));
-    m_print_receiver = libpd_multi_print_new(this, reinterpret_cast<t_libpd_multi_printhook>(internal::instance_multi_print));
+    // ag: need to defer this to suppress noise from chatty externals
+    //m_print_receiver = libpd_multi_print_new(this, reinterpret_cast<t_libpd_multi_printhook>(internal::instance_multi_print));
 
     m_message_receiver = libpd_multi_receiver_new(this, "pd", reinterpret_cast<t_libpd_multi_banghook>(internal::instance_multi_bang), reinterpret_cast<t_libpd_multi_floathook>(internal::instance_multi_float), reinterpret_cast<t_libpd_multi_symbolhook>(internal::instance_multi_symbol),
         reinterpret_cast<t_libpd_multi_listhook>(internal::instance_multi_list), reinterpret_cast<t_libpd_multi_messagehook>(internal::instance_multi_message));
@@ -252,10 +246,9 @@ Instance::Instance(String const& symbol)
 
      */
 
-    libpd_set_verbose(0);
     setThis();
 }
-
+ 
 Instance::~Instance()
 {
     pd_free(static_cast<t_pd*>(m_message_receiver));
@@ -266,6 +259,20 @@ Instance::~Instance()
 
     libpd_set_instance(static_cast<t_pdinstance*>(m_instance));
     libpd_free_instance(static_cast<t_pdinstance*>(m_instance));
+}
+
+// ag: Stuff to be done after unpacking the library data on first launch.
+void Instance::loadLibs()
+{
+    libpd_init_else();
+    libpd_init_cyclone();
+    File homeDir = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory).getChildFile("plugdata");
+    auto library = homeDir.getChildFile("Library");
+    auto extra = library.getChildFile("Extra");
+    libpd_init_pdlua(extra.getFullPathName().getCharPointer());
+    // ag: need to do this here to suppress noise from chatty externals
+    m_print_receiver = libpd_multi_print_new(this, reinterpret_cast<t_libpd_multi_printhook>(internal::instance_multi_print));
+    libpd_set_verbose(0);
 }
 
 int Instance::getBlockSize() const
