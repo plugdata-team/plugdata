@@ -10,6 +10,7 @@ pdcategory: General
 arguments:
 
 inlets:
+  1st:
   - type: load <symbol>
     description: load and run a Lua file
 
