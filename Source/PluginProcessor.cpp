@@ -174,6 +174,10 @@ PluginProcessor::PluginProcessor()
 
     updateSearchPaths();
 
+    // ag: This needs to be done *after* the library data has been unpacked on
+    // first launch.
+    loadLibs();
+
     setLatencySamples(pd::Instance::getBlockSize());
 
 #if PLUGDATA_STANDALONE && !JUCE_WINDOWS
