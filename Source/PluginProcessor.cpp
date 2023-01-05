@@ -934,6 +934,7 @@ void PluginProcessor::getStateInformation(MemoryBlock& destData)
 
     ostream.writeInt(patches.size());
 
+    // Save path and content for patch
     for (auto& patch : patches) {
         ostream.writeString(patch->getCanvasContent());
         ostream.writeString(patch->getCurrentFile().getFullPathName());
@@ -982,6 +983,11 @@ void PluginProcessor::setStateInformation(void const* data, int sizeInBytes)
                 auto state = istream.readString();
                 auto location = File(istream.readString());
 
+                auto parentPath = location.getParentDirectory().getFullPathName();
+                
+                // Add patch path to search path to make sure it finds the abstractions!
+                libpd_add_to_search_path(parentPath.toRawUTF8());
+                
                 auto* patch = loadPatch(state);
 
                 if ((location.exists() && location.getParentDirectory() == File::getSpecialLocation(File::tempDirectory)) || !location.exists()) {
@@ -989,10 +995,6 @@ void PluginProcessor::setStateInformation(void const* data, int sizeInBytes)
                 } else if (location.existsAsFile()) {
                     patch->setCurrentFile(location);
                     patch->setTitle(location.getFileName());
-
-                    auto parentPath = location.getParentDirectory().getFullPathName();
-                    // Add patch path to search path to make sure it finds the externals!
-                    libpd_add_to_search_path(parentPath.toRawUTF8());
                 }
             }
 
