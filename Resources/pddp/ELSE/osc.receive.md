@@ -1,0 +1,29 @@
+---
+title: osc.receive
+description: Receive OSC messages
+
+categories:
+ - object
+
+pdcategory: General
+
+arguments:
+  - type: float
+    description: port to connect to at load time
+
+inlets:
+  1st:
+  - type: close
+    description: close connection
+  - type: connect <float>
+    description: connect to a port
+
+outlets:
+  1st:
+  - type: anything
+    description: received OSC message
+
+---
+
+[osc.receive] receives OSC messages from network connections and is an abstraction based on [osc.parse] and [netreceive].
+

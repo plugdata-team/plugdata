@@ -1,0 +1,41 @@
+---
+title: scale2freq
+description: Convert scale into a frequency list
+
+categories:
+ - object
+
+pdcategory: General
+
+arguments:
+  - type: list
+    description: scale in cents
+
+inlets:
+  1st:
+  - type: list
+    description: scale in cents to convert to a frequency list
+  - type: bang
+    description: update output #not sure
+
+outlets:
+  1st:
+  - type: list
+    description: frequency list
+
+flags:
+  - name: -base <float>
+    description: sets base pitch value in MIDI (default 60)
+  - name: -range <float float>
+    description: sets min/max frequency range in Hz (default 20 20000)
+
+methods:
+  - type: base <float>
+    description: sets base pitch value in MIDI
+  - type: range <f, f>
+    description: sets min/max frequency range in Hz
+
+---
+
+[scale2freq] gets a scale as a list of cents values, a base/fundamental pitch and outputs a list of frequency in hertz between a minimum and maximum value. Below we use [eqdiv] to generate a scale. Use it to feed values to things like [resonbank~], [oscbank2~] or [pvretune~].
+
