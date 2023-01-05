@@ -1,7 +1,7 @@
 ---
 title: out1~
 
-description: Stereo output
+description: Mono output
 
 categories:
 - object
