@@ -382,7 +382,7 @@ void Object::resized()
     int ioletSize = 13;
     int ioletHitBox = 4;
         
-    int maxIoletWidth = std::min(((getWidth() - doubleMargin) / numInputs) - 4, ((getWidth() - doubleMargin) / numOutputs) - 4);
+    int maxIoletWidth = std::min(((getWidth() - doubleMargin) / std::max(numInputs, 1)) - 4, ((getWidth() - doubleMargin) / std::max(numOutputs, 1)) - 4);
     int maxIoletHeight = (getHeight() / 2.0f) - 3;
     
     ioletSize = std::max(std::min({ioletSize, maxIoletWidth, maxIoletHeight}), 10);

@@ -543,6 +543,7 @@ void Canvas::mouseUp(MouseEvent const& e)
     wasDragDuplicated = false;
     mouseDownObjectPositions.clear();
 
+    // TODO: this is a hack, find a better solution
     if (connectingWithDrag) {
         for (auto* obj : objects) {
             for (auto* iolet : obj->iolets) {
