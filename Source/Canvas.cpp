@@ -1133,13 +1133,7 @@ void Canvas::valueChanged(Value& v)
     // Should only get called when the canvas isn't a real graph
     else if (v.refersToSameSourceAs(presentationMode)) {
         deselectAll();
-
-        if (presentationMode == var(true))
-            connections.clear();
-
         commandLocked.setValue(presentationMode.getValue());
-
-        synchronise();
     } else if (v.refersToSameSourceAs(isGraphChild)) {
         patch.getPointer()->gl_isgraph = static_cast<bool>(isGraphChild.getValue());
 

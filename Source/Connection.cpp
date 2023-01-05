@@ -16,8 +16,9 @@ Connection::Connection(Canvas* parent, Iolet* s, Iolet* e, bool exists)
     , outobj(outlet->object)
     , inobj(inlet->object)
 {
-
     locked.referTo(parent->locked);
+    presentationMode.referTo(parent->presentationMode);
+    presentationMode.addListener(this);
 
     // Make sure it's not 2x the same iolet
     if (!outlet || !inlet || outlet->isInlet == inlet->isInlet) {
@@ -85,6 +86,9 @@ void Connection::valueChanged(Value& v)
 {
     if (v.refersToSameSourceAs(useDashedSignalConnection)) {
         useDashed = static_cast<bool>(useDashedSignalConnection.getValue());
+    }
+    else if (v.refersToSameSourceAs(presentationMode)) {
+        setVisible(presentationMode == var(true) ? false : true);
     }
 }
 
