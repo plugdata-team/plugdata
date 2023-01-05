@@ -381,8 +381,17 @@ void Object::resized()
 
     int ioletSize = 13;
     int ioletHitBox = 4;
-    int borderWidth = 14;
-
+        
+    int maxIoletWidth = std::min(((getWidth() - doubleMargin) / numInputs), ((getWidth() - doubleMargin) / numOutputs));
+    int maxIoletHeight = (getHeight() - doubleMargin) / 1.5f;
+    
+    
+    std::cout << maxIoletWidth << std::endl;
+    std::cout << maxIoletHeight << std::endl;
+    
+    ioletSize = std::max(std::min({ioletSize, maxIoletWidth, maxIoletHeight}), 10);
+    int borderWidth = round(jmap<float>(ioletSize, 10, 13, 10, 14));
+    
     if (getWidth() < 45 && (numInputs > 1 || numOutputs > 1)) {
         borderWidth = 9;
         ioletSize = 10;
