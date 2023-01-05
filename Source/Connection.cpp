@@ -223,7 +223,23 @@ void Connection::paint(Graphics& g)
         baseColour = outlet->isSignal ? signalColour : dataColour;
         baseColour = baseColour.brighter(0.6f);
     }
-
+    
+    g.saveState();
+    
+    // Make sure the connection doesn't draw into the object bounds
+    // This is kind of a hack, we should fix this in a better way
+    auto outletArea = getLocalArea(outlet, outlet->getLocalBounds()).reduced(3);
+    auto inletArea = getLocalArea(inlet, inlet->getLocalBounds()).reduced(3);
+    
+    auto outletClipArea = outletArea.removeFromTop(outletArea.proportionOfHeight(0.5f)).expanded(1);
+    auto inletClipArea = inletArea.removeFromBottom(inletArea.proportionOfHeight(0.5f)).expanded(1);
+    
+    outletClipArea.removeFromTop(2);
+    inletClipArea.removeFromBottom(2);
+    
+    g.excludeClipRegion(outletClipArea);
+    g.excludeClipRegion(inletClipArea);
+    
     g.setColour(baseColour.darker(0.1));
     g.strokePath(toDraw, PathStrokeType(2.5f, PathStrokeType::mitered, PathStrokeType::square));
 
@@ -231,6 +247,7 @@ void Connection::paint(Graphics& g)
     g.strokePath(toDraw, PathStrokeType(1.5f, PathStrokeType::mitered, PathStrokeType::square));
 
     g.setColour(useDashed && outlet->isSignal ? baseColour.darker(1.5f) : baseColour);
+    
     if (useDashed && outlet->isSignal) {
         PathStrokeType dashedStroke(0.8f);
         float dash[1] = { 5.0f };
@@ -256,6 +273,8 @@ void Connection::paint(Graphics& g)
         g.drawEllipse(startReconnectHandle.expanded(overStart ? 3.0f : 0.0f), 0.5f);
         g.drawEllipse(endReconnectHandle.expanded(overEnd ? 3.0f : 0.0f), 0.5f);
     }
+    
+    g.restoreState();
 }
 
 bool Connection::isSegmented()
