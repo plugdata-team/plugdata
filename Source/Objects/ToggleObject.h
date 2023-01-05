@@ -31,7 +31,7 @@ struct ToggleObject final : public IEMObject {
         auto crossBounds = getLocalBounds().reduced((getWidth() * 0.08f) + 4.5f).toFloat();
 
         if (getWidth() < 18) {
-            crossBounds = getLocalBounds().reduced(3).toFloat();
+            crossBounds = getLocalBounds().toFloat().reduced(3.5f);
         }
 
         auto const max = std::max(crossBounds.getWidth(), crossBounds.getHeight());
