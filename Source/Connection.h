@@ -82,6 +82,7 @@ private:
     PathPlan currentPlan;
 
     Value locked;
+    Value presentationMode;
 
     Canvas* cnv;
 
