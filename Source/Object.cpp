@@ -488,7 +488,7 @@ void Object::updateTooltips()
             return;
         }
 
-        if ((iolet->isInlet && numIn >= inletMessages.size()) || (!iolet->isInlet && numIn >= inletMessages.size()))
+        if ((iolet->isInlet && numIn >= inletMessages.size()) || (!iolet->isInlet && numOut >= outletMessages.size()))
             continue;
 
         auto& [x, message] = iolet->isInlet ? inletMessages[numIn++] : outletMessages[numOut++];
