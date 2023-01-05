@@ -1120,6 +1120,22 @@ void Canvas::valueChanged(Value& v)
 
         cancelConnectionCreation();
         deselectAll();
+
+        // move all connections to back when canvas is locked
+        if (locked == var(true)) {
+            // use reverse order to preserve correct connection layering
+            for (int i = connections.size() - 1; i >= 0; i--) {
+                connections[i]->setAlwaysOnTop(false);
+                connections[i]->toBack();
+            }
+        } else {
+            // otherwise move all connections to front
+            for (auto connection : connections) {
+                connection->setAlwaysOnTop(true);
+                connection->toFront(false);
+            }
+        }
+
         repaint();
 
         // Makes sure no objects keep keyboard focus after locking/unlocking
