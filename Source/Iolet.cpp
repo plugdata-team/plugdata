@@ -20,7 +20,12 @@ Iolet::Iolet(Object* parent, bool inlet)
 
     parent->addAndMakeVisible(this);
 
+    
     locked.referTo(parent->cnv->locked);
+    locked.addListener(this);
+    
+    bool isLocked = static_cast<bool>(locked.getValue());
+    setInterceptsMouseClicks(!isLocked, false);
 }
 
 Rectangle<int> Iolet::getCanvasBounds()
@@ -343,4 +348,11 @@ Iolet* Iolet::findNearestEdge(Canvas* cnv, Point<int> position, bool inlet, Obje
     }
 
     return nearestEdge;
+}
+
+void Iolet::valueChanged(Value& v)
+{
+    if(v.refersToSameSourceAs(locked)) {
+        setInterceptsMouseClicks(!static_cast<bool>(locked.getValue()), false);
+    }
 }

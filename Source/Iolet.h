@@ -13,7 +13,7 @@ class Object;
 class Canvas;
 
 class Iolet : public Component
-    , public SettableTooltipClient {
+    , public SettableTooltipClient, public Value::Listener {
 public:
     Object* object;
 
@@ -27,6 +27,8 @@ public:
 
     void mouseEnter(MouseEvent const& e) override;
     void mouseExit(MouseEvent const& e) override;
+        
+    void valueChanged(Value& v) override;
 
     static Iolet* findNearestEdge(Canvas* cnv, Point<int> position, bool inlet, Object* boxToExclude = nullptr);
 
