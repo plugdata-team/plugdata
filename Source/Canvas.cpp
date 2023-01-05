@@ -546,7 +546,10 @@ void Canvas::mouseUp(MouseEvent const& e)
     if (connectingWithDrag) {
         for (auto* obj : objects) {
             for (auto* iolet : obj->iolets) {
-                iolet->mouseUp(e.getEventRelativeTo(iolet));
+                auto relativeEvent = e.getEventRelativeTo(iolet);
+                if(iolet->getCanvasBounds().contains(relativeEvent.getPosition())) {
+                    iolet->mouseUp(relativeEvent);
+                }
             }
         }
     }
