@@ -85,7 +85,7 @@ void Dialogs::showObjectMenu(PluginEditor* parent, Component* target)
         return i;
     };
 
-    menu.addItem("Open Object Browser", [parent]() mutable {
+    menu.addItem("Open Object Browser...", [parent]() mutable {
         Dialogs::showObjectBrowserDialog(&parent->openedDialog, parent);
     });
 
