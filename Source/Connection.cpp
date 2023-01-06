@@ -592,7 +592,7 @@ void Connection::updatePath()
     setBounds(bounds + origin);
 
     if (bounds.getX() < 0 || bounds.getY() < 0) {
-        toDraw.applyTransform(AffineTransform::translation(-bounds.getX(), -bounds.getY()));
+        toDraw.applyTransform(AffineTransform::translation(-bounds.getX() + 0.5f, -bounds.getY()));
     }
 
     offset = { -bounds.getX(), -bounds.getY() };
