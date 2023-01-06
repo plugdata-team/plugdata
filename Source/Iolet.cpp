@@ -19,13 +19,18 @@ Iolet::Iolet(Object* parent, bool inlet)
     setAlwaysOnTop(true);
 
     parent->addAndMakeVisible(this);
-
     
-    locked.referTo(parent->cnv->locked);
+    locked.referTo(object->cnv->locked);
     locked.addListener(this);
+    
+    presentationMode.referTo(object->cnv->presentationMode);
+    presentationMode.addListener(this);
     
     bool isLocked = static_cast<bool>(locked.getValue());
     setInterceptsMouseClicks(!isLocked, false);
+    
+    bool isPresenting = static_cast<bool>(presentationMode.getValue());
+    setVisible(!isPresenting && !object->cnv->isGraph);
 }
 
 Rectangle<int> Iolet::getCanvasBounds()
@@ -65,6 +70,7 @@ void Iolet::paint(Graphics& g)
         stateSaved = true;
     }
     
+    // TODO: this is kind of a hack to force inlets to align correctly. Find a better way to fix this!
     if((getHeight() % 2) == 0) {
         bounds.translate(0.0f, isInlet ? -1.0f : 0.0f);
     }
@@ -359,5 +365,8 @@ void Iolet::valueChanged(Value& v)
 {
     if(v.refersToSameSourceAs(locked)) {
         setInterceptsMouseClicks(!static_cast<bool>(locked.getValue()), false);
+    }
+    if(v.refersToSameSourceAs(presentationMode)) {
+        setVisible(!static_cast<bool>(presentationMode.getValue()) && !object->cnv->isGraph);
     }
 }

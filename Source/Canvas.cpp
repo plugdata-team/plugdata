@@ -144,20 +144,18 @@ void Canvas::synchronise(bool updatePosition)
         });
     };
 
-    if (!(isGraph || presentationMode == var(true))) {
-        // Remove deprecated connections
-        for (int n = connections.size() - 1; n >= 0; n--) {
-            auto* connection = connections[n];
+    // Remove deprecated connections
+    for (int n = connections.size() - 1; n >= 0; n--) {
+        auto* connection = connections[n];
 
-            if (!connection->inlet || !connection->outlet || isObjectDeprecated(connection->inobj->getPointer()) || isObjectDeprecated(connection->outobj->getPointer())) {
+        if (!connection->inlet || !connection->outlet || isObjectDeprecated(connection->inobj->getPointer()) || isObjectDeprecated(connection->outobj->getPointer())) {
+            connections.remove(n);
+        } else {
+            auto* inlet = static_cast<t_text*>(connection->inobj->getPointer());
+            auto* outlet = static_cast<t_text*>(connection->outobj->getPointer());
+
+            if (!canvas_isconnected(patch.getPointer(), outlet, connection->outIdx, inlet, connection->inIdx)) {
                 connections.remove(n);
-            } else {
-                auto* inlet = static_cast<t_text*>(connection->inobj->getPointer());
-                auto* outlet = static_cast<t_text*>(connection->outobj->getPointer());
-
-                if (!canvas_isconnected(patch.getPointer(), outlet, connection->outIdx, inlet, connection->inIdx)) {
-                    connections.remove(n);
-                }
             }
         }
     }
@@ -208,63 +206,61 @@ void Canvas::synchronise(bool updatePosition)
 
     auto pdConnections = patch.getConnections();
 
-    if (!(isGraph || presentationMode == var(true))) {
-        for (auto& connection : pdConnections) {
-            auto& [inno, inobj, outno, outobj] = connection;
+    for (auto& connection : pdConnections) {
+        auto& [inno, inobj, outno, outobj] = connection;
 
-            int srcno = patch.getIndex(&inobj->te_g);
-            int sinkno = patch.getIndex(&outobj->te_g);
+        int srcno = patch.getIndex(&inobj->te_g);
+        int sinkno = patch.getIndex(&outobj->te_g);
 
-            auto& srcEdges = objects[srcno]->iolets;
-            auto& sinkEdges = objects[sinkno]->iolets;
+        auto& srcEdges = objects[srcno]->iolets;
+        auto& sinkEdges = objects[sinkno]->iolets;
 
-            // TEMP: remove when we're sure this works
-            if (srcno >= objects.size() || sinkno >= objects.size() || outno >= srcEdges.size() || inno >= sinkEdges.size()) {
-                pd->logError("Error: impossible connection");
-                continue;
-            }
-
-            auto* it = std::find_if(connections.begin(), connections.end(),
-                [this, &connection, &srcno, &sinkno](Connection* c) {
-                    auto& [inno, inobj, outno, outobj] = connection;
-
-                    if (!c->inlet || !c->outlet)
-                        return false;
-
-                    bool sameStart = c->outobj == objects[srcno];
-                    bool sameEnd = c->inobj == objects[sinkno];
-
-                    return c->inIdx == inno && c->outIdx == outno && sameStart && sameEnd;
-                });
-
-            if (it == connections.end()) {
-                connections.add(new Connection(this, srcEdges[objects[srcno]->numInputs + outno], sinkEdges[inno], true));
-            } else {
-                // Update storage ids for connections
-                auto& c = *(*it);
-
-                c.inIdx = c.inlet->ioletIdx;
-                c.outIdx = c.outlet->ioletIdx;
-
-                auto currentId = c.getId();
-                if (c.lastId.isNotEmpty() && c.lastId != currentId) {
-                    storage.setInfoId(c.lastId, currentId);
-                }
-
-                c.lastId = currentId;
-
-                auto info = storage.getInfo(currentId, "Path");
-                if (info.length())
-                    c.setState(info);
-
-                c.repaint();
-            }
+        // TEMP: remove when we're sure this works
+        if (srcno >= objects.size() || sinkno >= objects.size() || outno >= srcEdges.size() || inno >= sinkEdges.size()) {
+            pd->logError("Error: impossible connection");
+            continue;
         }
 
-        storage.confirmIds();
+        auto* it = std::find_if(connections.begin(), connections.end(),
+            [this, &connection, &srcno, &sinkno](Connection* c) {
+                auto& [inno, inobj, outno, outobj] = connection;
 
-        setTransform(editor->transform);
+                if (!c->inlet || !c->outlet)
+                    return false;
+
+                bool sameStart = c->outobj == objects[srcno];
+                bool sameEnd = c->inobj == objects[sinkno];
+
+                return c->inIdx == inno && c->outIdx == outno && sameStart && sameEnd;
+            });
+
+        if (it == connections.end()) {
+            connections.add(new Connection(this, srcEdges[objects[srcno]->numInputs + outno], sinkEdges[inno], true));
+        } else {
+            // Update storage ids for connections
+            auto& c = *(*it);
+
+            c.inIdx = c.inlet->ioletIdx;
+            c.outIdx = c.outlet->ioletIdx;
+
+            auto currentId = c.getId();
+            if (c.lastId.isNotEmpty() && c.lastId != currentId) {
+                storage.setInfoId(c.lastId, currentId);
+            }
+
+            c.lastId = currentId;
+
+            auto info = storage.getInfo(currentId, "Path");
+            if (info.length())
+                c.setState(info);
+
+            c.repaint();
+        }
     }
+
+    storage.confirmIds();
+
+    setTransform(editor->transform);
 
     // Resize canvas to fit objects
     // By checking asynchronously, we make sure the objects bounds have been updated
