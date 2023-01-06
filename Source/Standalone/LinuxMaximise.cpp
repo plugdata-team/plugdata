@@ -59,7 +59,7 @@ bool isMaximised(void* handle)
 {
     window_t win;
     auto window = (Window)handle;
-    auto* display = XOpenDisplay(NULL);
+    auto* display = XOpenDisplay(nullptr);
 
     win.id = window;
     win.dpy = display;
@@ -74,7 +74,7 @@ bool isMaximised(void* handle)
     Atom actual_type;
     int actual_format;
     unsigned long bytes_after, i, num_states = 0;
-    Atom* states = NULL;
+    Atom* states = nullptr;
     window_state_t state = WINDOW_STATE_NONE;
 
     if (XGetWindowProperty(win.dpy,
@@ -114,7 +114,7 @@ bool isMaximised(void* handle)
 void maximiseLinuxWindow(void* handle)
 {
     auto win = (Window)handle;
-    auto* display = XOpenDisplay(NULL);
+    auto* display = XOpenDisplay(nullptr);
 
     XEvent ev;
     ev.xclient.window = win;

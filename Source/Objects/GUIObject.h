@@ -53,9 +53,13 @@ struct ObjectBase : public Component
 
     virtual void updateParameters() {};
 
-    virtual bool canOpenFromMenu() { return false; }
+    virtual bool canOpenFromMenu() {
+        return zgetfn(static_cast<t_pd*>(ptr), pd->generateSymbol("menu-open")) != nullptr;
+    }
 
-    virtual void openFromMenu() {};
+    virtual void openFromMenu() {
+        pd_typedmess(static_cast<t_pd*>(ptr), pd->generateSymbol("menu-open"), 0, nullptr);
+    };
 
     // Flag to make object visible or hidden inside a GraphOnParent
     virtual bool hideInGraph()

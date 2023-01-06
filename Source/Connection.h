@@ -14,7 +14,7 @@ extern "C" {
 
 #include "Iolet.h"
 
-using PathPlan = std::vector<Point<int>>;
+using PathPlan = std::vector<Point<float>>;
 
 class Canvas;
 class Connection : public Component
@@ -48,13 +48,13 @@ public:
     void mouseUp(MouseEvent const& e) override;
     void mouseExit(MouseEvent const& e) override;
 
-    Point<int> getStartPoint();
-    Point<int> getEndPoint();
+    Point<float> getStartPoint();
+    Point<float> getEndPoint();
 
     void reconnect(Iolet* target, bool dragged);
 
     bool intersects(Rectangle<float> toCheck, int accuracy = 4) const;
-    int getClosestLineIdx(Point<int> const& position, PathPlan const& plan);
+    int getClosestLineIdx(Point<float> const& position, PathPlan const& plan);
 
     String getId() const;
 
@@ -64,12 +64,12 @@ public:
     void componentMovedOrResized(Component& component, bool wasMoved, bool wasResized) override;
 
     // Pathfinding
-    int findLatticePaths(PathPlan& bestPath, PathPlan& pathStack, Point<int> start, Point<int> end, Point<int> increment);
+    int findLatticePaths(PathPlan& bestPath, PathPlan& pathStack, Point<float> start, Point<float> end, Point<float> increment);
 
     void findPath();
 
     bool intersectsObject(Object* object);
-    bool straightLineIntersectsObject(Line<int> toCheck, Array<Object*>& objects);
+    bool straightLineIntersectsObject(Line<float> toCheck, Array<Object*>& objects);
 
 private:
     bool wasSelected = false;
@@ -86,7 +86,7 @@ private:
 
     Canvas* cnv;
 
-    Point<int> origin, offset;
+    Point<float> origin, offset;
 
     int dragIdx = -1;
 

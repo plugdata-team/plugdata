@@ -223,23 +223,7 @@ void Connection::paint(Graphics& g)
         baseColour = outlet->isSignal ? signalColour : dataColour;
         baseColour = baseColour.brighter(0.6f);
     }
-    
-    g.saveState();
-    
-    // Make sure the connection doesn't draw into the object bounds
-    // This is kind of a hack, we should fix this in a better way
-    auto outletArea = getLocalArea(outlet, outlet->getLocalBounds()).reduced(3);
-    auto inletArea = getLocalArea(inlet, inlet->getLocalBounds()).reduced(3);
-    
-    auto outletClipArea = outletArea.removeFromTop(outletArea.proportionOfHeight(0.5f)).expanded(1);
-    auto inletClipArea = inletArea.removeFromBottom(inletArea.proportionOfHeight(0.5f)).expanded(1);
-    
-    outletClipArea.removeFromTop(2);
-    inletClipArea.removeFromBottom(2);
-    
-    g.excludeClipRegion(outletClipArea);
-    g.excludeClipRegion(inletClipArea);
-    
+        
     g.setColour(baseColour.darker(0.1));
     g.strokePath(toDraw, PathStrokeType(2.5f, PathStrokeType::mitered, PathStrokeType::square));
 
@@ -273,8 +257,6 @@ void Connection::paint(Graphics& g)
         g.drawEllipse(startReconnectHandle.expanded(overStart ? 3.0f : 0.0f), 0.5f);
         g.drawEllipse(endReconnectHandle.expanded(overEnd ? 3.0f : 0.0f), 0.5f);
     }
-    
-    g.restoreState();
 }
 
 bool Connection::isSegmented()
@@ -291,10 +273,10 @@ void Connection::setSegmented(bool isSegmented)
 
 void Connection::mouseMove(MouseEvent const& e)
 {
-    int n = getClosestLineIdx(e.getPosition() + origin, currentPlan);
+    int n = getClosestLineIdx(e.getPosition().toFloat() + origin, currentPlan);
 
     if (isSegmented() && currentPlan.size() > 2 && n > 0) {
-        auto line = Line<int>(currentPlan[n - 1], currentPlan[n]);
+        auto line = Line<float>(currentPlan[n - 1], currentPlan[n]);
 
         if (line.isVertical()) {
             setMouseCursor(MouseCursor::LeftRightResizeCursor);
@@ -330,11 +312,11 @@ void Connection::mouseDown(MouseEvent const& e)
     if (currentPlan.size() <= 2)
         return;
 
-    int n = getClosestLineIdx(e.getPosition() + origin, currentPlan);
+    int n = getClosestLineIdx(e.position + origin, currentPlan);
     if (n < 0)
         return;
 
-    if (Line<int>(currentPlan[n - 1], currentPlan[n]).isVertical()) {
+    if (Line<float>(currentPlan[n - 1], currentPlan[n]).isVertical()) {
         mouseDownPosition = currentPlan[n].x;
     } else {
         mouseDownPosition = currentPlan[n].y;
@@ -358,7 +340,7 @@ void Connection::mouseDrag(MouseEvent const& e)
     if (isSegmented() && dragIdx != -1) {
         auto n = dragIdx;
         auto delta = e.getPosition() - e.getMouseDownPosition();
-        auto line = Line<int>(currentPlan[n - 1], currentPlan[n]);
+        auto line = Line<float>(currentPlan[n - 1], currentPlan[n]);
 
         if (line.isVertical()) {
             currentPlan[n - 1].x = mouseDownPosition + delta.x;
@@ -383,10 +365,10 @@ void Connection::mouseUp(MouseEvent const& e)
         dragIdx = -1;
     }
 
-    if (wasSelected && startReconnectHandle.contains(e.getMouseDownPosition().toFloat()) && startReconnectHandle.contains(e.getPosition().toFloat())) {
+    if (wasSelected && startReconnectHandle.contains(e.getMouseDownPosition().toFloat()) && startReconnectHandle.contains(e.position)) {
         reconnect(inlet, false);
     }
-    if (wasSelected && endReconnectHandle.contains(e.getMouseDownPosition().toFloat()) && endReconnectHandle.contains(e.getPosition().toFloat())) {
+    if (wasSelected && endReconnectHandle.contains(e.getMouseDownPosition().toFloat()) && endReconnectHandle.contains(e.position)) {
         reconnect(outlet, false);
     }
     if (reconnecting.size()) {
@@ -403,14 +385,14 @@ void Connection::mouseUp(MouseEvent const& e)
     }
 }
 
-int Connection::getClosestLineIdx(Point<int> const& position, PathPlan const& plan)
+int Connection::getClosestLineIdx(Point<float> const& position, PathPlan const& plan)
 {
     if (plan.size() < 2)
         return -1;
 
     for (int n = 2; n < plan.size() - 1; n++) {
-        auto line = Line<int>(plan[n - 1], plan[n]);
-        Point<int> nearest;
+        auto line = Line<float>(plan[n - 1], plan[n]);
+        Point<float> nearest;
         if (line.getDistanceFromPoint(position - offset, nearest) < 3) {
             return n;
         }
@@ -489,7 +471,7 @@ void Connection::componentMovedOrResized(Component& component, bool wasMoved, bo
         position = pend;
     }
 
-    if (Line<int>(currentPlan[idx1], currentPlan[idx2]).isVertical()) {
+    if (Line<float>(currentPlan[idx1], currentPlan[idx2]).isVertical()) {
         currentPlan[idx2].x = position.x;
     } else {
         currentPlan[idx2].y = position.y;
@@ -499,15 +481,14 @@ void Connection::componentMovedOrResized(Component& component, bool wasMoved, bo
     updatePath();
 }
 
-Point<int> Connection::getStartPoint()
+Point<float> Connection::getStartPoint()
 {
-    return { outlet->getCanvasBounds().getCentreX(), outlet->getCanvasBounds().getCentreY() };
+    return Point<float>(outlet->getCanvasBounds().toFloat().getCentreX(), outlet->getCanvasBounds().toFloat().getCentreY() + 0.5f);
 }
 
-Point<int> Connection::getEndPoint()
+Point<float> Connection::getEndPoint()
 {
-
-    return { inlet->getCanvasBounds().getCentreX(), inlet->getCanvasBounds().getCentreY() };
+    return Point<float>(inlet->getCanvasBounds().toFloat().getCentreX(), inlet->getCanvasBounds().toFloat().getCentreY() - 1.0f);
 }
 
 void Connection::updatePath()
@@ -515,12 +496,12 @@ void Connection::updatePath()
     if (!outlet || !inlet)
         return;
 
-    int left = std::min(outlet->getCanvasBounds().getCentreX(), inlet->getCanvasBounds().getCentreX()) - 4;
-    int top = std::min(outlet->getCanvasBounds().getCentreY(), inlet->getCanvasBounds().getCentreY()) - 4;
-    int right = std::max(outlet->getCanvasBounds().getCentreX(), inlet->getCanvasBounds().getCentreX()) + 4;
-    int bottom = std::max(outlet->getCanvasBounds().getCentreY(), inlet->getCanvasBounds().getCentreY()) + 4;
+    float left = std::min(outlet->getCanvasBounds().getCentreX(), inlet->getCanvasBounds().getCentreX()) - 4;
+    float top = std::min(outlet->getCanvasBounds().getCentreY(), inlet->getCanvasBounds().getCentreY()) - 4;
+    float right = std::max(outlet->getCanvasBounds().getCentreX(), inlet->getCanvasBounds().getCentreX()) + 4;
+    float bottom = std::max(outlet->getCanvasBounds().getCentreY(), inlet->getCanvasBounds().getCentreY()) + 4;
 
-    origin = Rectangle<int>(left, top, right - left, bottom - top).getPosition();
+    origin = Rectangle<float>(left, top, right - left, bottom - top).getPosition();
 
     auto pstart = getStartPoint() - origin;
     auto pend = getEndPoint() - origin;
@@ -549,8 +530,8 @@ void Connection::updatePath()
         Point<float> const ctrlPoint1 { pstart.x - shiftX, pstart.y + shiftY };
         Point<float> const ctrlPoint2 { pend.x + shiftX, pend.y - shiftY };
 
-        toDraw.startNewSubPath(pstart.toFloat());
-        toDraw.cubicTo(ctrlPoint1, ctrlPoint2, pend.toFloat());
+        toDraw.startNewSubPath(pstart);
+        toDraw.cubicTo(ctrlPoint1, ctrlPoint2, pend);
 
         currentPlan.clear();
     } else {
@@ -558,8 +539,8 @@ void Connection::updatePath()
             findPath();
         }
 
-        auto snap = [this](Point<int> point, int idx1, int idx2) {
-            if (Line<int>(currentPlan[idx1], currentPlan[idx2]).isVertical()) {
+        auto snap = [this](Point<float> point, int idx1, int idx2) {
+            if (Line<float>(currentPlan[idx1], currentPlan[idx2]).isVertical()) {
                 currentPlan[idx2].x = point.x + origin.x;
             } else {
                 currentPlan[idx2].y = point.y + origin.y;
@@ -588,8 +569,8 @@ void Connection::updatePath()
 
     repaint();
 
-    auto bounds = toDraw.getBounds().toNearestInt().expanded(8);
-    setBounds(bounds + origin);
+    auto bounds = toDraw.getBounds().expanded(8);
+    setBounds((bounds + origin).getSmallestIntegerContainer());
 
     if (bounds.getX() < 0 || bounds.getY() < 0) {
         toDraw.applyTransform(AffineTransform::translation(-bounds.getX() + 0.5f, -bounds.getY()));
@@ -616,24 +597,24 @@ void Connection::findPath()
 
     auto numFound = 0;
 
-    int incrementX, incrementY;
+    float incrementX, incrementY;
 
     auto distance = pstart.getDistanceFrom(pend);
     auto distanceX = std::abs(pstart.x - pend.x);
     auto distanceY = std::abs(pstart.y - pend.y);
 
-    int maxXResolution = std::clamp(distanceX / 10, 6, 14);
-    int maxYResolution = std::clamp(distanceY / 10, 6, 14);
+    int maxXResolution = std::clamp<int>(distanceX / 10, 6, 14);
+    int maxYResolution = std::clamp<int>(distanceY / 10, 6, 14);
 
     int resolutionX = 6;
     int resolutionY = 6;
 
-    auto obstacles = Array<Rectangle<int>>();
-    auto searchBounds = Rectangle<int>(pstart, pend);
+    auto obstacles = Array<Rectangle<float>>();
+    auto searchBounds = Rectangle<float>(pstart, pend);
 
     for (auto* object : cnv->objects) {
-        if (object->getBounds().intersects(searchBounds)) {
-            obstacles.add(object->getBounds());
+        if (object->getBounds().toFloat().intersects(searchBounds)) {
+            obstacles.add(object->getBounds().toFloat());
         }
     }
 
@@ -641,8 +622,8 @@ void Connection::findPath()
     while (!numFound && resolutionX < maxXResolution && distance > 40) {
 
         // Find paths on a resolution*resolution lattice ObjectGrid
-        incrementX = std::max(1, distanceX / resolutionX);
-        incrementY = std::max(1, distanceY / resolutionY);
+        incrementX = std::max<float>(1, distanceX / resolutionX);
+        incrementY = std::max<float>(1, distanceY / resolutionY);
 
         numFound = findLatticePaths(bestPath, pathStack, pend, pstart, { incrementX, incrementY });
 
@@ -706,14 +687,14 @@ void Connection::findPath()
     cnv->storage.setInfo(lastId, "Path", state);
 }
 
-int Connection::findLatticePaths(PathPlan& bestPath, PathPlan& pathStack, Point<int> pstart, Point<int> pend, Point<int> increment)
+int Connection::findLatticePaths(PathPlan& bestPath, PathPlan& pathStack, Point<float> pstart, Point<float> pend, Point<float> increment)
 {
 
     auto obstacles = Array<Object*>();
-    auto searchBounds = Rectangle<int>(pstart, pend);
+    auto searchBounds = Rectangle<float>(pstart, pend);
 
     for (auto* object : cnv->objects) {
-        if (object->getBounds().intersects(searchBounds)) {
+        if (object->getBounds().toFloat().intersects(searchBounds)) {
             obstacles.add(object);
         }
     }
@@ -726,7 +707,7 @@ int Connection::findLatticePaths(PathPlan& bestPath, PathPlan& pathStack, Point<
     pathStack.push_back(pstart);
 
     // Check if it intersects any object
-    if (pathStack.size() > 1 && straightLineIntersectsObject(Line<int>(pathStack.back(), *(pathStack.end() - 2)), obstacles)) {
+    if (pathStack.size() > 1 && straightLineIntersectsObject(Line<float>(pathStack.back(), *(pathStack.end() - 2)), obstacles)) {
         return 0;
     }
 
@@ -744,7 +725,7 @@ int Connection::findLatticePaths(PathPlan& bestPath, PathPlan& pathStack, Point<
     // Get current stack to revert to after each trial
     auto pathCopy = pathStack;
 
-    auto followLine = [this, &count, &pathCopy, &bestPath, &pathStack, &increment](Point<int> currentOutlet, Point<int> currentInlet, bool isX) {
+    auto followLine = [this, &count, &pathCopy, &bestPath, &pathStack, &increment](Point<float> currentOutlet, Point<float> currentInlet, bool isX) {
         auto& coord1 = isX ? currentOutlet.x : currentOutlet.y;
         auto& coord2 = isX ? currentInlet.x : currentInlet.y;
         auto& incr = isX ? increment.x : increment.y;
@@ -788,7 +769,7 @@ bool Connection::intersectsObject(Object* object)
         || toDraw.intersectsLine({ b.getBottomRight(), b.getTopRight() });
 }
 
-bool Connection::straightLineIntersectsObject(Line<int> toCheck, Array<Object*>& objects)
+bool Connection::straightLineIntersectsObject(Line<float> toCheck, Array<Object*>& objects)
 {
 
     for (auto const& object : objects) {
@@ -797,7 +778,7 @@ bool Connection::straightLineIntersectsObject(Line<int> toCheck, Array<Object*>&
         if (object == outobj || object == inobj || !bounds.intersects(getBounds()))
             continue;
 
-        auto intersectV = [](Line<int> first, Line<int> second) {
+        auto intersectV = [](Line<float> first, Line<float> second) {
             if (first.getStartY() > first.getEndY()) {
                 first = { first.getEnd(), first.getStart() };
             }
@@ -805,7 +786,7 @@ bool Connection::straightLineIntersectsObject(Line<int> toCheck, Array<Object*>&
             return first.getStartX() > second.getStartX() && first.getStartX() < second.getEndX() && second.getStartY() > first.getStartY() && second.getStartY() < first.getEndY();
         };
 
-        auto intersectH = [](Line<int> first, Line<int> second) {
+        auto intersectH = [](Line<float> first, Line<float> second) {
             if (first.getStartX() > first.getEndX()) {
                 first = { first.getEnd(), first.getStart() };
             }
@@ -813,9 +794,9 @@ bool Connection::straightLineIntersectsObject(Line<int> toCheck, Array<Object*>&
             return first.getStartY() > second.getStartY() && first.getStartY() < second.getEndY() && second.getStartX() > first.getStartX() && second.getStartX() < first.getEndX();
         };
 
-        bool intersectsV = toCheck.isVertical() && (intersectV(toCheck, Line<int>(bounds.getTopLeft(), bounds.getTopRight())) || intersectV(toCheck, Line<int>(bounds.getBottomRight(), bounds.getBottomLeft())));
+        bool intersectsV = toCheck.isVertical() && (intersectV(toCheck, Line<float>(bounds.getTopLeft().toFloat(), bounds.getTopRight().toFloat())) || intersectV(toCheck, Line<float>(bounds.getBottomRight().toFloat(), bounds.getBottomLeft().toFloat())));
 
-        bool intersectsH = toCheck.isHorizontal() && (intersectH(toCheck, Line<int>(bounds.getTopRight(), bounds.getBottomRight())) || intersectH(toCheck, Line<int>(bounds.getTopLeft(), bounds.getBottomLeft())));
+        bool intersectsH = toCheck.isHorizontal() && (intersectH(toCheck, Line<float>(bounds.getTopRight().toFloat(), bounds.getBottomRight().toFloat())) || intersectH(toCheck, Line<float>(bounds.getTopLeft().toFloat(), bounds.getBottomLeft().toFloat())));
         if (intersectsV || intersectsH) {
             return true;
         }

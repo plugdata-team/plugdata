@@ -138,7 +138,7 @@ void Trie::suggestionsRec(String currPrefix, Suggestions& result)
         result.push_back({ currPrefix, true });
     }
 
-    // All children struct node pointers are NULL
+    // All children struct node pointers are nullptr
     if (!hasChildren())
         return;
 

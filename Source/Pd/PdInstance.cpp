@@ -708,7 +708,7 @@ void Instance::createPanel(int type, char const* snd, char const* location)
 }
 
 bool Instance::loadLibrary(String libraryToLoad) {
-    return sys_load_lib(NULL, libraryToLoad.toRawUTF8());
+    return sys_load_lib(nullptr, libraryToLoad.toRawUTF8());
 }
 
 } // namespace pd

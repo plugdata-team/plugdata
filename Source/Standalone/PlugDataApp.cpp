@@ -67,7 +67,7 @@ static char const* strtokcpy(char* to, size_t to_len, char const* from, char del
     if (i && from[i] != '\0')
         return from + i + 1;
 
-    return NULL;
+    return nullptr;
 }
 
 class PlugDataApp : public JUCEApplication {
