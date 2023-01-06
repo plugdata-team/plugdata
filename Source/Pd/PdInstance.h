@@ -18,7 +18,7 @@ extern "C" {
 
 #include "PdPatch.h"
 #include "concurrentqueue.h"
-#include "../Utility/FastStringWidth.h"
+#include "../Utility/StringUtils.h"
 
 namespace pd {
 
@@ -536,7 +536,7 @@ protected:
 
         moodycamel::ConcurrentQueue<std::pair<String, bool>> pendingMessages;
 
-        FastStringWidth fastStringWidth; // For formatting console messages more quickly
+        StringUtils fastStringWidth; // For formatting console messages more quickly
     };
 
     ConsoleHandler consoleHandler;

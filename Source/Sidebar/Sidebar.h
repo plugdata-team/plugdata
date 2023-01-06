@@ -39,36 +39,6 @@ using ObjectParameter = std::tuple<String, ParameterType, ParameterCategory, Val
 
 using ObjectParameters = std::vector<ObjectParameter>; // List of elements and update function
 
-// used by console for a more optimised calculation
-static int getNumLines(int width, int stringWidth)
-{
-    // On startup, width might be zero, this is a large optimisation in that case
-    if (width == 0)
-        return 0;
-
-    return round(static_cast<float>(stringWidth) / (width - 12.0f)) + 1;
-}
-
-// Used by text objects for estimating best text height for a set width
-static int getNumLines(String const& text, int width, Font font = Font(Font::getDefaultSansSerifFontName(), 13, 0))
-{
-    int numLines = 1;
-
-    Array<int> glyphs;
-    Array<float> xOffsets;
-    font.getGlyphPositions(text, glyphs, xOffsets);
-
-    for (int i = 0; i < xOffsets.size(); i++) {
-        if ((xOffsets[i] + 12) >= static_cast<float>(width) || text.getCharPointer()[i] == '\n') {
-            for (int j = i + 1; j < xOffsets.size(); j++) {
-                xOffsets.getReference(j) -= xOffsets[i];
-            }
-            numLines++;
-        }
-    }
-
-    return numLines;
-}
 
 struct Sidebar : public Component {
     explicit Sidebar(PluginProcessor* instance, PluginEditor* parent);

@@ -39,7 +39,7 @@ struct TextBase : public ObjectBase
         int width = textObjectWidth * fontWidth + textWidthOffset;
         width = std::max(width, std::max({ 1, object->numInputs, object->numOutputs }) * 18);
 
-        numLines = getNumLines(objectText, width);
+        numLines = StringUtils::getNumLines(objectText, width);
         int height = numLines * 19 + 2;
 
         if (getWidth() != width || getHeight() != height) {
@@ -133,7 +133,7 @@ struct TextBase : public ObjectBase
         int width = textObjectWidth * fontWidth + textWidthOffset;
         width = std::max(width, std::max({ 1, object->numInputs, object->numOutputs }) * 18);
 
-        numLines = getNumLines(objectText, width);
+        numLines = StringUtils::getNumLines(objectText, width);
         int height = numLines * 20 + 1;
 
         bounds.setWidth(width);
