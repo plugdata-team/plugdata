@@ -149,10 +149,6 @@ Instance::Instance(String const& symbol)
 
     auto panel_trigger = [](void* instance, int open, char const* snd, char const* location) { static_cast<Instance*>(instance)->createPanel(open, snd, location); };
 
-    auto parameter_trigger = [](void* instance) {
-        static_cast<Instance*>(instance)->receiveGuiUpdate(3);
-    };
-
     auto openfile_trigger = [](void* instance, const char* fileToOpen) {
         std::cout << fileToOpen << std::endl;
         File(fileToOpen).startAsProcess();
@@ -185,7 +181,7 @@ Instance::Instance(String const& symbol)
         }
     };
     
-    register_gui_triggers(static_cast<t_pdinstance*>(m_instance), this, gui_trigger, panel_trigger, openfile_trigger, parameter_trigger, message_trigger);
+    register_gui_triggers(static_cast<t_pdinstance*>(m_instance), this, gui_trigger, panel_trigger, openfile_trigger, message_trigger);
 
     // HACK: create full path names for c-coded externals
     // Temporarily disabled because bugs

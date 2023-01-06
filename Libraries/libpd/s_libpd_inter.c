@@ -138,7 +138,6 @@ struct _instanceinter {
 
     unsigned char i_recvbuf[NET_MAXPACKETSIZE];
 
-    pd_parameter_callback parameter_callback;
     pd_gui_callback gui_callback;
     pd_panel_callback panel_callback;
     pd_openfile_callback openfile_callback;
@@ -146,14 +145,13 @@ struct _instanceinter {
     void* callback_target;
 };
 
-void register_gui_triggers(t_pdinstance* instance, void* target, pd_gui_callback gui_callback, pd_panel_callback panel_callback, pd_openfile_callback openfile_callback, pd_parameter_callback parameter_callback, pd_message_callback message_callback)
+void register_gui_triggers(t_pdinstance* instance, void* target, pd_gui_callback gui_callback, pd_panel_callback panel_callback, pd_openfile_callback openfile_callback, pd_message_callback message_callback)
 {
 
 #if !PDINSTANCE
     instance = &pd_maininstance;
 #endif
 
-    instance->pd_inter->parameter_callback = parameter_callback;
     instance->pd_inter->gui_callback = gui_callback;
     instance->pd_inter->panel_callback = panel_callback;
     instance->pd_inter->openfile_callback = openfile_callback;
@@ -161,12 +159,6 @@ void register_gui_triggers(t_pdinstance* instance, void* target, pd_gui_callback
     instance->pd_inter->callback_target = target;
 }
 
-void update_gui_parameters()
-{
-    if (pd_this->pd_inter->parameter_callback) {
-        pd_this->pd_inter->parameter_callback(pd_this->pd_inter->callback_target);
-    }
-}
 
 void update_gui(void* obj_target)
 {
@@ -843,11 +835,15 @@ void sys_vgui(char const* fmt, ...)
 
         create_panel(1, path, symbol);
     }
-
     
-    if (strlen(fmt) > 20 && strncmp(fmt + 8, "itemconfigure", strlen("itemconfigure")) == 0) {
-        update_gui_parameters();
+    if (strncmp(fmt, "::pd_menucommands::menu_openfile", strlen("::pd_menucommands::menu_openfile")) == 0) {
+        va_list args;
+        va_start(args, fmt);
+        const char* str = va_arg(args, const char*);
+        trigger_open_file(str);
+        va_end(args);
     }
+
 
     /* disabled for now, could be used for dynamic patching
      if(strncmp(fmt, "pdtk_canvas_reflecttitle", strlen("pdtk_canvas_reflecttitle")) == 0) {
