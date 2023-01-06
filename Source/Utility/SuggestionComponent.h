@@ -192,7 +192,7 @@ public:
         addToDesktop(ComponentPeer::windowIsTemporary | ComponentPeer::windowIgnoresKeyPresses);
 
         auto scale = std::sqrt(std::abs(getTransform().getDeterminant()));
-        auto objectPos = (object->getScreenPosition() / scale).translated(5, 35);
+        auto objectPos = object->getScreenBounds().reduced(Object::margin).getBottomLeft().translated(0, 5);
 
         setTopLeftPosition(objectPos);
 
