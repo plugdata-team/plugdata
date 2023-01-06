@@ -175,7 +175,7 @@ struct Console : public Component {
                 }
 
                 // Approximate number of lines from string length and current width
-                auto numLines = getNumLines(console.getWidth(), length);
+                auto numLines = StringUtils::getNumLines(console.getWidth(), length);
 
                 auto textColour = findColour(isSelected ? PlugDataColour::sidebarActiveTextColourId : PlugDataColour::sidebarTextColourId);
 
@@ -254,8 +254,8 @@ struct Console : public Component {
             int totalHeight = 0;
             for (int row = 0; row < static_cast<int>(pd->getConsoleMessages().size()); row++) {
                 auto [message, type, length] = pd->getConsoleMessages()[row];
-                auto numLines = getNumLines(getWidth(), length);
-                auto height = numLines * 22 + 4;
+                auto numLines = StringUtils::getNumLines(getWidth(), length);
+                auto height = numLines * 22 + 3;
 
                 if (messages[row]->idx != row) {
                     messages[row]->idx = row;
@@ -300,8 +300,8 @@ struct Console : public Component {
             auto totalHeight = 0;
 
             for (auto& [message, type, length] : pd->getConsoleMessages()) {
-                auto numLines = getNumLines(getWidth(), length);
-                auto height = numLines * 22 + 4;
+                auto numLines = StringUtils::getNumLines(getWidth(), length);
+                auto height = numLines * 22 + 3;
 
                 if ((type == 1 && !showMessages) || (length == 0 && !showErrors))
                     continue;
@@ -327,8 +327,8 @@ struct Console : public Component {
 
                 auto& [message, type, length] = pd->getConsoleMessages()[row];
 
-                auto numLines = getNumLines(getWidth(), length);
-                auto height = numLines * 22 + 4;
+                auto numLines = StringUtils::getNumLines(getWidth(), length);
+                auto height = numLines * 22 + 3;
 
                 messages[row]->setBounds(0, totalHeight, getWidth(), height);
 

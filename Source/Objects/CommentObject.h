@@ -203,7 +203,7 @@ struct CommentObject final : public TextBase
 
         int width = textObjectWidth * fontWidth + textWidthOffset;
 
-        numLines = getNumLines(objectText, width);
+        numLines = StringUtils::getNumLines(objectText, width);
         int height = numLines * 20;
 
         if (getWidth() != width || getHeight() != height) {

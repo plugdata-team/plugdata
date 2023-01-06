@@ -57,7 +57,7 @@ struct MessageObject final : public TextBase
 
     void checkBounds() override
     {
-        int numLines = getNumLines(getText(), object->getWidth() - Object::doubleMargin - 5);
+        int numLines = StringUtils::getNumLines(getText(), object->getWidth() - Object::doubleMargin - 5);
         int fontWidth = glist_fontwidth(cnv->patch.getPointer());
         int newHeight = (numLines * 19) + Object::doubleMargin + 2;
         int newWidth = getWidth() / fontWidth;
