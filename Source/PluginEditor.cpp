@@ -1303,11 +1303,13 @@ bool PluginEditor::perform(InvocationInfo const& info)
             if (cnv->selectedComponents.getNumSelected() == 1) {
                 // if 1 object is selected, create new object beneath selected
                 auto obj = cnv->lastSelectedObject = cnv->getSelectionOfType<Object>()[0];
-                cnv->objects.add(new Object(cnv, objectNames[idx],
-                    Point<int>(
-                        // place beneath object + Object::margin
-                        obj->getX() + Object::margin,
-                        obj->getY() + obj->getHeight())));
+                if(obj) {
+                    cnv->objects.add(new Object(cnv, objectNames[idx],
+                                                Point<int>(
+                                                           // place beneath object + Object::margin
+                                                           obj->getX() + Object::margin,
+                                                           obj->getY() + obj->getHeight())));
+                }
             } else {
                 // if 0 or several objects are selected, create new object at mouse position
                 cnv->objects.add(new Object(cnv, objectNames[idx], lastPosition));
