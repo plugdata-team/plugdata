@@ -198,11 +198,19 @@ public:
                 if (bootloader) {
                     exportingView->logToConsole("Flashing bootloader...");
 
+#if JUCE_WINDOWS
+                    String bootloaderScript = "export PATH=\"" + bin.getFullPathName().replaceCharacter('\\', '/') + ":$PATH\"\n"
+                        + "cd " + sourceDir.getFullPathName().replaceCharacter('\\', '/') + "\n"
+                        + make.getFullPathName().replaceCharacter('\\', '/') + " program-boot"
+                        + " GCC_PATH=" + gccPath.replaceCharacter('\\', '/')
+                        + " PROJECT_NAME=" + name;
+#else
                     String bootloaderScript = "export PATH=\"" + bin.getFullPathName() + ":$PATH\"\n"
                         + "cd " + sourceDir.getFullPathName() + "\n"
                         + make.getFullPathName() + " program-boot"
                         + " GCC_PATH=" + gccPath
                         + " PROJECT_NAME=" + name;
+#endif
 
                     Toolchain::startShellScript(bootloaderScript, this);
 
@@ -216,11 +224,19 @@ public:
 
                 exportingView->logToConsole("Flashing...");
 
+#if JUCE_WINDOWS
+                String flashScript = "export PATH=\"" + bin.getFullPathName().replaceCharacter('\\', '/') + ":$PATH\"\n"
+                    + "cd " + sourceDir.getFullPathName().replaceCharacter('\\', '/') + "\n"
+                    + make.getFullPathName().replaceCharacter('\\', '/') + " program-dfu"
+                    + " GCC_PATH=" + gccPath.replaceCharacter('\\', '/')
+                    + " PROJECT_NAME=" + name;
+#else
                 String flashScript = "export PATH=\"" + bin.getFullPathName() + ":$PATH\"\n"
                     + "cd " + sourceDir.getFullPathName() + "\n"
                     + make.getFullPathName() + " program-dfu"
                     + " GCC_PATH=" + gccPath
                     + " PROJECT_NAME=" + name;
+#endif
 
                 Toolchain::startShellScript(flashScript, this);
 
