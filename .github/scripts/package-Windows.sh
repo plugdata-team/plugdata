@@ -31,9 +31,9 @@ cat > ./plugdata.wxs <<-EOL
             Name="plugdata" Version="\$(var.ProductVersion)" Manufacturer="Timothy Schoen" Language="1033">
 		<Package InstallerVersion="200" Compressed="yes" Comments="Windows Installer Package"/>
 		<Media Id="1" Cabinet="product.cab" EmbedCab="yes"/>
-		<Icon Id="ProductIcon" SourceFile="Resources\icon.ico"/>
+		<Icon Id="ProductIcon" SourceFile="Resources\Icons\icon.ico"/>
 		<Property Id="ARPPRODUCTICON" Value="ProductIcon"/>
-		<WixVariable Id="WixUILicenseRtf" Value="Resources\LICENSE.rtf" />
+		<WixVariable Id="WixUILicenseRtf" Value="Resources\Installer\LICENSE.rtf" />
 		<Property Id="ARPHELPLINK" Value="http://www.github.com/timothyschoen/plugdata"/>
 		<Property Id="ARPURLINFOABOUT" Value="http://www.github.com/timothyschoen/plugdata"/>
 		<Property Id="ARPNOREPAIR" Value="1"/>
