@@ -377,7 +377,7 @@ void Canvas::mouseDown(MouseEvent const& e)
 
         auto params = object && object->gui ? object->gui->getParameters() : ObjectParameters();
         bool canBeOpened = object && object->gui && object->gui->canOpenFromMenu();
-
+        
         // Create popup menu
         popupMenu.clear();
 

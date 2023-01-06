@@ -44,27 +44,27 @@ void createJunction(std::string from, std::string to)
     strcat(szTarget, szPath);
     strcat(szTarget, "\\");
 
-    if (!::CreateDirectory(szJunction, NULL))
+    if (!::CreateDirectory(szJunction, nullptr))
         throw ::GetLastError();
 
     // Obtain SE_RESTORE_NAME privilege (required for opening a directory)
-    HANDLE hToken = NULL;
+    HANDLE hToken = nullptr;
     TOKEN_PRIVILEGES tp;
     try {
         if (!::OpenProcessToken(::GetCurrentProcess(), TOKEN_ADJUST_PRIVILEGES, &hToken))
             throw ::GetLastError();
-        if (!::LookupPrivilegeValue(NULL, SE_RESTORE_NAME, &tp.Privileges[0].Luid))
+        if (!::LookupPrivilegeValue(nullptr, SE_RESTORE_NAME, &tp.Privileges[0].Luid))
             throw ::GetLastError();
         tp.PrivilegeCount = 1;
         tp.Privileges[0].Attributes = SE_PRIVILEGE_ENABLED;
-        if (!::AdjustTokenPrivileges(hToken, FALSE, &tp, sizeof(TOKEN_PRIVILEGES), NULL, NULL))
+        if (!::AdjustTokenPrivileges(hToken, FALSE, &tp, sizeof(TOKEN_PRIVILEGES), nullptr, nullptr))
             throw ::GetLastError();
     } catch (DWORD) {
     } // Ignore errors
     if (hToken)
         ::CloseHandle(hToken);
 
-    HANDLE hDir = ::CreateFile(szJunction, GENERIC_WRITE, 0, NULL, OPEN_EXISTING, FILE_FLAG_OPEN_REPARSE_POINT | FILE_FLAG_BACKUP_SEMANTICS, NULL);
+    HANDLE hDir = ::CreateFile(szJunction, GENERIC_WRITE, 0, nullptr, OPEN_EXISTING, FILE_FLAG_OPEN_REPARSE_POINT | FILE_FLAG_BACKUP_SEMANTICS, nullptr);
     if (hDir == INVALID_HANDLE_VALUE)
         throw ::GetLastError();
 
@@ -76,7 +76,7 @@ void createJunction(std::string from, std::string to)
     ReparseBuffer.ReparseDataLength = ReparseBuffer.ReparseTargetLength + 12;
 
     DWORD dwRet;
-    if (!::DeviceIoControl(hDir, FSCTL_SET_REPARSE_POINT, &ReparseBuffer, ReparseBuffer.ReparseDataLength + REPARSE_MOUNTPOINT_HEADER_SIZE, NULL, 0, &dwRet, NULL)) {
+    if (!::DeviceIoControl(hDir, FSCTL_SET_REPARSE_POINT, &ReparseBuffer, ReparseBuffer.ReparseDataLength + REPARSE_MOUNTPOINT_HEADER_SIZE, nullptr, 0, &dwRet, nullptr)) {
         DWORD dr = ::GetLastError();
         ::CloseHandle(hDir);
         ::RemoveDirectory(szJunction);

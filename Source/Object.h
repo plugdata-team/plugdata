@@ -48,7 +48,7 @@ public:
 
     Rectangle<int> getObjectBounds();
     void setObjectBounds(Rectangle<int> bounds);
-
+        
     void openHelpPatch() const;
     void* getPointer() const;
 
