@@ -770,7 +770,7 @@ void PluginEditor::getCommandInfo(const CommandID commandID, ApplicationCommandI
         break;
     }
     case CommandIDs::OpenProject: {
-        result.setInfo("Open Patch", "Open a patch", "General", 0);
+        result.setInfo("Open Patch...", "Open a patch", "General", 0);
         result.addDefaultKeypress(79, ModifierKeys::commandModifier);
         break;
     }
@@ -781,7 +781,7 @@ void PluginEditor::getCommandInfo(const CommandID commandID, ApplicationCommandI
         break;
     }
     case CommandIDs::SaveProjectAs: {
-        result.setInfo("Save Patch As", "Save patch in chosen location", "General", 0);
+        result.setInfo("Save Patch As...", "Save patch in chosen location", "General", 0);
         result.addDefaultKeypress(83, ModifierKeys::commandModifier | ModifierKeys::shiftModifier);
         result.setActive(hasCanvas);
         break;
