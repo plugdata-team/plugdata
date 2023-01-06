@@ -48,7 +48,7 @@ build_flavor()
 }
 
 # Sign app with hardened runtime and audio entitlement
-/usr/bin/codesign --force -s "Developer ID Application: Timothy Schoen (7SV7JPRR2L)" --options runtime --entitlements ./Resources/Entitlements.plist ./Plugins/Standalone/*.app
+/usr/bin/codesign --force -s "Developer ID Application: Timothy Schoen (7SV7JPRR2L)" --options runtime --entitlements ./Resources/Installer/Entitlements.plist ./Plugins/Standalone/*.app
 
 # Sign plugins
 /usr/bin/codesign --force -s "Developer ID Application: Timothy Schoen (7SV7JPRR2L)" ./Plugins/VST3/*.vst3
@@ -104,7 +104,7 @@ cat > ${TARGET_DIR}/distribution.xml << XMLEND
 <?xml version="1.0" encoding="utf-8"?>
 <installer-gui-script minSpecVersion="1">
     <title>plugdata Installer</title>
-    <license file="Resources/LICENSE.rtf" mime-type="application/rtf"/>
+    <license file="Resources/Installer/LICENSE.rtf" mime-type="application/rtf"/>
     ${VST3_PKG_REF}
     ${AU_PKG_REF}
     ${LV2_PKG_REF}
