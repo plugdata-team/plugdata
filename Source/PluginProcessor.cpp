@@ -989,7 +989,8 @@ void PluginProcessor::setStateInformation(void const* data, int sizeInBytes)
 
                 auto parentPath = location.getParentDirectory().getFullPathName();
                 
-                // Add patch path to search path to make sure it finds the abstractions!
+                // Add patch path to search path to make sure it finds abstractions in the saved patch!
+                setThis();
                 libpd_add_to_search_path(parentPath.toRawUTF8());
                 
                 auto* patch = loadPatch(state);
