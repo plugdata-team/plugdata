@@ -424,7 +424,6 @@ class PlugDataWindow : public DocumentWindow
 
     Image shadowImage;
     std::unique_ptr<ResizableBorderComponent> resizer;
-    ComponentBoundsConstrainer constrainer;
     std::unique_ptr<StackDropShadower> dropShadower;
     Value useNativeWindow;
 
@@ -531,7 +530,7 @@ public:
             
             setResizable(false, false);
             
-            resizer = std::make_unique<ResizableBorderComponent>(this, &constrainer);
+            resizer = std::make_unique<ResizableBorderComponent>(this, getConstrainer());
             resizer->setBorderThickness(BorderSize(4));
             resizer->setAlwaysOnTop(true);
             Component::addAndMakeVisible(resizer.get());
