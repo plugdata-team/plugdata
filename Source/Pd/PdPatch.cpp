@@ -82,6 +82,7 @@ Rectangle<int> Patch::getBounds() const
 
 void Patch::close()
 {
+    instance->setThis();
     libpd_closefile(ptr);
 }
 
