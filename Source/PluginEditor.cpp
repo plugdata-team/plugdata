@@ -143,11 +143,11 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     toolbarButton(Open)->onClick = [this]() { openProject(); };
 
     // Save button
-    toolbarButton(Save)->setTooltip("Save Project");
+    toolbarButton(Save)->setTooltip("Save Patch");
     toolbarButton(Save)->onClick = [this]() { saveProject(); };
 
     // Save Ad button
-    toolbarButton(SaveAs)->setTooltip("Save Project as");
+    toolbarButton(SaveAs)->setTooltip("Save Patch as");
     toolbarButton(SaveAs)->onClick = [this]() { saveProjectAs(); };
 
     //  Undo button
@@ -765,22 +765,22 @@ void PluginEditor::getCommandInfo(const CommandID commandID, ApplicationCommandI
 
     switch (commandID) {
     case CommandIDs::NewProject: {
-        result.setInfo("New Project", "Create a new project", "General", 0);
+        result.setInfo("New Patch", "Create a new patch", "General", 0);
         result.addDefaultKeypress(84, ModifierKeys::commandModifier);
         break;
     }
     case CommandIDs::OpenProject: {
-        result.setInfo("Open Project", "Open a new project", "General", 0);
+        result.setInfo("Open Patch", "Open a patch", "General", 0);
         break;
     }
     case CommandIDs::SaveProject: {
-        result.setInfo("Save Project", "Save project at current location", "General", 0);
+        result.setInfo("Save Patch", "Save patch at current location", "General", 0);
         result.addDefaultKeypress(83, ModifierKeys::commandModifier);
         result.setActive(hasCanvas);
         break;
     }
     case CommandIDs::SaveProjectAs: {
-        result.setInfo("Save Project As", "Save project in chosen location", "General", 0);
+        result.setInfo("Save Patch As", "Save patch in chosen location", "General", 0);
         result.addDefaultKeypress(83, ModifierKeys::commandModifier | ModifierKeys::shiftModifier);
         result.setActive(hasCanvas);
         break;
