@@ -207,7 +207,7 @@ struct SettingsPopup : public PopupMenu {
             settingsTree.setProperty("HvccMode", !ticked, nullptr);
         });
 
-        addItem("Compile", [this, editor]() mutable {
+        addItem("Compile...", [this, editor]() mutable {
             Dialogs::showHeavyExportDialog(&editor->openedDialog, editor);
         });
 
@@ -221,8 +221,8 @@ struct SettingsPopup : public PopupMenu {
         });
 
         addSeparator();
-        addItem(5, "Settings");
-        addItem(6, "About");
+        addItem(5, "Settings...");
+        addItem(6, "About...");
     }
 
     static void showSettingsPopup(AudioProcessor* processor, AudioDeviceManager* manager, Component* centre, ValueTree settingsTree)
