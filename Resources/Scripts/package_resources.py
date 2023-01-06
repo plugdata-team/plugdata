@@ -37,7 +37,7 @@ def existsAsFile(path):
     return os.path.isfile(path)
 
 def existsAsDir(path):
-    return os.path.isdir(path)  
+    return os.path.isdir(path)
 
 def globFindAndReplaceText(path, to_find, replacement):
     for src in glob.glob(path):
@@ -53,34 +53,35 @@ def globFindAndReplaceText(path, to_find, replacement):
             file.write(filedata)
 
 
-if existsAsFile("./Filesystem.zip"):
-    removeFile("./Filesystem.zip")
+if existsAsFile("../Filesystem.zip"):
+    removeFile("../Filesystem.zip")
 
-if existsAsDir("./plugdata_version"):
-    removeDir("./plugdata_version")
+if existsAsDir("../plugdata_version"):
+    removeDir("../plugdata_version")
 
-makeDir("plugdata_version")
-changeWorkingDir("plugdata_version")
+makeDir("../plugdata_version")
+changeWorkingDir("../plugdata_version")
 
 makeDir("Abstractions")
 makeDir("Abstractions/else")
 
 copyDir("../../Libraries/pure-data/doc", "./Documentation")
 globCopy("../../Libraries/pure-data/extra/*.pd", "./Abstractions")
+globCopy("../../Libraries/pure-data/extra/**/*-help.pd", "./Abstractions")
 
 globCopy("../../Libraries/ELSE/Abstractions/*.pd", "./Abstractions/else")
-copyFile("../playhead.pd", "./Abstractions")
-copyFile("../param.pd", "./Abstractions")
+copyFile("../Patches/playhead.pd", "./Abstractions")
+copyFile("../Patches/param.pd", "./Abstractions")
 
 globMove("./Abstractions/*-help.pd", "./Documentation/5.reference")
 
 
-copyDir("../pddp", "./Documentation/pddp")
+copyDir("../Documentation", "./Documentation/pddp")
 copyDir("../../Libraries/ELSE/Help-files/", "./Documentation/9.else")
 
 copyFile("../../Libraries/ELSE/sfont~/sfont~-help.pd", "./Documentation/9.else")
-#copyFile("../param-help.pd", "./Documentation/5.reference")
-copyFile("../playhead-help.pd", "./Documentation/5.reference")
+#copyFile("../Patches/param-help.pd", "./Documentation/5.reference")
+copyFile("../Patches/playhead-help.pd", "./Documentation/5.reference")
 
 globCopy("../../Libraries/cyclone/abstractions/*.pd", "./Abstractions")
 copyDir("../../Libraries/cyclone/documentation/help_files", "./Documentation/10.cyclone")

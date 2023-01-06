@@ -35,7 +35,7 @@ project(plugdata VERSION 0.6.3 LANGUAGES C CXX)
 add_subdirectory(Libraries/ EXCLUDE_FROM_ALL)
 
 message("-- Packaging resources")
-execute_process(COMMAND python3 package_resources.py WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/Resources)
+execute_process(COMMAND python3 package_resources.py WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Scripts)
 
 
 set(PLUGDATA_VERSION                    "0.6.3")
@@ -44,9 +44,9 @@ set(PLUGDATA_COMPANY_COPYRIGHT          "plugdata by Timothy Schoen")
 set(PLUGDATA_COMPANY_WEBSITE            "github.com/plugdata-team/plugdata")
 
 if(APPLE)
-set(PLUGDATA_ICON_BIG                   "${CMAKE_CURRENT_SOURCE_DIR}/Resources/plugdata_logo_mac.png")
+set(PLUGDATA_ICON_BIG                   "${CMAKE_CURRENT_SOURCE_DIR}/Resources/Icons/plugdata_logo_mac.png")
 else()
-set(PLUGDATA_ICON_BIG                   "${CMAKE_CURRENT_SOURCE_DIR}/Resources/plugdata_logo.png")
+set(PLUGDATA_ICON_BIG                   "${CMAKE_CURRENT_SOURCE_DIR}/Resources/Icons/plugdata_logo.png")
 endif()
 
 set(PLUGDATA_PLUGINS_LOCATION           "${CMAKE_CURRENT_SOURCE_DIR}/Plugins")
@@ -98,9 +98,6 @@ file(GLOB plugdata_standaloneSources
     ${SOURCES_DIRECTORY}/Standalone/*.cpp
     ${SOURCES_DIRECTORY}/Standalone/*.h)
 source_group("Source\\Standalone" FILES ${plugdata_standaloneSources})
-
-file(READ "${CMAKE_CURRENT_SOURCE_DIR}/Resources/Info.plist" INFO_PLIST)
-
 
 juce_add_gui_app(plugdata_standalone
     PRODUCT_NAME                "plugdata"
@@ -272,13 +269,13 @@ target_include_directories(plugdata_midi PUBLIC "$<BUILD_INTERFACE:${PLUGDATA_IN
 endif()
 
 file(GLOB PlugDataBinaryDataSources
-    ${CMAKE_CURRENT_SOURCE_DIR}/Resources/PlugDataFont.ttf
-    ${CMAKE_CURRENT_SOURCE_DIR}/Resources/InterRegular.ttf
-    ${CMAKE_CURRENT_SOURCE_DIR}/Resources/InterBold.ttf
-    ${CMAKE_CURRENT_SOURCE_DIR}/Resources/InterSemiBold.ttf
-    ${CMAKE_CURRENT_SOURCE_DIR}/Resources/InterThin.ttf
-    ${CMAKE_CURRENT_SOURCE_DIR}/Resources/IBMPlexMono.ttf
-    ${CMAKE_CURRENT_SOURCE_DIR}/Resources/plugdata_logo.png
+    ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Fonts/IconFont.ttf
+    ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Fonts/InterRegular.ttf
+    ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Fonts/InterBold.ttf
+    ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Fonts/InterSemiBold.ttf
+    ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Fonts/InterThin.ttf
+    ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Fonts/IBMPlexMono.ttf
+    ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Icons/plugdata_logo.png
     ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Filesystem.zip
     )
 
@@ -295,7 +292,7 @@ set(libs
 # Add pd file icons for mac
 if(APPLE)
 set_target_properties(plugdata_standalone PROPERTIES
-  RESOURCE "${CMAKE_CURRENT_SOURCE_DIR}/Resources/pd-file.icns")
+  RESOURCE "${CMAKE_CURRENT_SOURCE_DIR}/Resources/Icons/pd-file.icns")
 endif()
 
 if(MSVC)
