@@ -45,6 +45,7 @@ void Iolet::paint(Graphics& g)
     if ((!isTargeted && !over) || isLocked) {
         bounds = bounds.reduced(2);
     }
+    
 
     auto backgroundColour = isSignal ? findColour(PlugDataColour::signalColourId) : findColour(PlugDataColour::dataColourId);
 
@@ -62,6 +63,10 @@ void Iolet::paint(Graphics& g)
         g.saveState();
         g.reduceClipRegion(getLocalArea(object, object->getLocalBounds().reduced(Object::margin)));
         stateSaved = true;
+    }
+    
+    if((getHeight() % 2) == 0) {
+        bounds.translate(0.0f, isInlet ? -1.0f : 0.0f);
     }
 
     g.setColour(backgroundColour);
