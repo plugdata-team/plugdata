@@ -100,7 +100,9 @@ class PluginEditor : public AudioProcessorEditor
     , public ValueTree::Listener
     , public ApplicationCommandTarget
     , public ApplicationCommandManager
-    , public Timer {
+    , public Timer
+    , public FileDragAndDropTarget
+{
 public:
     enum ToolbarButtonType {
         Open = 0,
@@ -119,7 +121,8 @@ public:
     ~PluginEditor() override;
 
     void paint(Graphics& g) override;
-
+    void paintOverChildren(Graphics& g) override;
+        
     void resized() override;
 
     void mouseWheelMove(MouseEvent const& e, MouseWheelDetails const& wheel) override;
@@ -148,6 +151,11 @@ public:
     void valueChanged(Value& v) override;
 
     void updateCommandStatus();
+        
+    bool isInterestedInFileDrag(StringArray const& files) override;
+    void filesDropped(StringArray const& files, int x, int y) override;
+    void fileDragEnter(StringArray const&, int, int) override;
+    void fileDragExit(StringArray const&) override;
 
     ApplicationCommandTarget* getNextCommandTarget() override;
     void getAllCommands(Array<CommandID>& commands) override;
@@ -210,6 +218,7 @@ private:
 #endif
 
     bool isMaximised = false;
+    bool isDraggingFile = false;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PluginEditor)
 };

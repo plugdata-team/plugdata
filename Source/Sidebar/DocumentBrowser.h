@@ -356,7 +356,7 @@ public:
     void paintOverChildren(Graphics& g) override
     {
         if (isDraggingFile) {
-            g.setColour(findColour(PlugDataColour::sidebarActiveBackgroundColourId));
+            g.setColour(findColour(PlugDataColour::scrollbarThumbColourId));
             g.drawRect(getLocalBounds().reduced(1), 2.0f);
         }
     }
