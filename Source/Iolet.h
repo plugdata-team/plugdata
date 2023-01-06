@@ -40,10 +40,12 @@ public:
     bool isInlet;
     bool isSignal;
 
-    Value locked;
-
     bool isTargeted = false;
 
 private:
+        
+    Value locked;
+    Value presentationMode;
+        
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(Iolet)
 };

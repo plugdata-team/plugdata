@@ -547,8 +547,6 @@ void Object::updatePorts()
             iolet->setTooltip(tooltip);
         }
 
-        // Don't show for graphs or presentation mode
-        iolet->setVisible(!(cnv->isGraph || cnv->presentationMode == var(true)));
         iolet->repaint();
 
         numIn += input;
