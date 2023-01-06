@@ -771,6 +771,7 @@ void PluginEditor::getCommandInfo(const CommandID commandID, ApplicationCommandI
     }
     case CommandIDs::OpenProject: {
         result.setInfo("Open Patch", "Open a patch", "General", 0);
+        result.addDefaultKeypress(79, ModifierKeys::commandModifier);
         break;
     }
     case CommandIDs::SaveProject: {
