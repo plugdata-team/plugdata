@@ -265,9 +265,17 @@ void PluginEditor::paint(Graphics& g)
     g.drawLine(0.0f, toolbarHeight, static_cast<float>(getWidth()), toolbarHeight, 1.0f);
 }
 
+// Paint file drop outline
+void PluginEditor::paintOverChildren(Graphics& g)
+{
+    if (isDraggingFile) {
+        g.setColour(findColour(PlugDataColour::scrollbarThumbColourId));
+        g.drawRect(getLocalBounds().reduced(1), 2.0f);
+    }
+}
+
 void PluginEditor::resized()
 {
-
     sidebar.setBounds(getWidth() - sidebar.getWidth(), toolbarHeight, sidebar.getWidth(), getHeight() - toolbarHeight);
 
     tabbar.setBounds(0, toolbarHeight, (getWidth() - sidebar.getWidth()) + 1, getHeight() - toolbarHeight - (statusbar.getHeight()));
@@ -396,6 +404,43 @@ void PluginEditor::mouseDrag(MouseEvent const& e)
     }
 }
 #endif
+
+bool PluginEditor::isInterestedInFileDrag(StringArray const& files)
+{
+    for (auto& path : files) {
+        auto file = File(path);
+        if (file.exists() && (file.isDirectory() || file.hasFileExtension("pd"))) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+void PluginEditor::filesDropped(StringArray const& files, int x, int y)
+{
+    for (auto& path : files) {
+        auto file = File(path);
+        if (file.exists() && (file.isDirectory() || file.hasFileExtension("pd"))) {
+            pd->loadPatch(file);
+        }
+    }
+
+    isDraggingFile = false;
+    repaint();
+}
+void PluginEditor::fileDragEnter(StringArray const&, int, int)
+{
+    isDraggingFile = true;
+    repaint();
+}
+
+void PluginEditor::fileDragExit(StringArray const&)
+{
+    isDraggingFile = false;
+    repaint();
+}
+
 
 void PluginEditor::newProject()
 {
