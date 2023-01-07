@@ -92,6 +92,9 @@ private:
 
     float mouseDownPosition = 0;
 
+    Value useStraightConnections;
+    bool useStraight;
+
     Value useDashedSignalConnection;
     bool useDashed;
 
