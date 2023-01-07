@@ -260,8 +260,10 @@ void Canvas::synchronise(bool updatePosition)
 
     storage.confirmIds();
 
-    setTransform(editor->transform);
-
+    if(!isGraph) {
+        setTransform(editor->transform);
+    }
+    
     // Resize canvas to fit objects
     // By checking asynchronously, we make sure the objects bounds have been updated
     MessageManager::callAsync([_this = SafePointer(this)]() {
