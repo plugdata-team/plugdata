@@ -6,6 +6,7 @@ cp -r Plugins plugdata
 cp README.md plugdata/README.md
 cp LICENSE plugdata/LICENSE.txt
 
-# Create unique names for each distro
-mv plugdata plugdata-$1
+# Create tar.gz with unique name for each distro
+tar -czvf plugdata-$1.tar.gz plugdata
+
 

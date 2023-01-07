@@ -234,7 +234,7 @@ jobs:
       uses: actions/upload-artifact@v3
       with:
         name: plugdata-Ubuntu-22.04-x64
-        path: plugdata-Ubuntu-22.04-x64
+        path: plugdata-Ubuntu-22.04-x64.tar.gz
 
     - name: Upload to server
       env:
@@ -296,7 +296,7 @@ jobs:
       uses: actions/upload-artifact@v3
       with:
         name: plugdata-Ubuntu-20.04-x64
-        path: plugdata-Ubuntu-20.04-x64
+        path: plugdata-Ubuntu-20.04-x64.tar.gz
 
     - name: Upload to server
       env:
@@ -337,7 +337,7 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: plugdata-Fedora-36-x64
-          path: plugdata-Fedora-36-x64
+          path: plugdata-Fedora-36-x64.tar.gz
 
       - name: Upload to server
         env:
@@ -383,7 +383,7 @@ jobs:
       uses: actions/upload-artifact@v3
       with:
         name: plugdata-Arch-x64
-        path: plugdata-Arch-x64
+        path: plugdata-Arch-x64.tar.gz
 
     - name: Upload to server
       env:
@@ -429,7 +429,7 @@ jobs:
       uses: actions/upload-artifact@v3
       with:
         name: plugdata-OpenSUSE-x64
-        path: plugdata-OpenSUSE-x64
+        path: plugdata-OpenSUSE-x64.tar.gz
 
     - name: Upload to server
       env:
@@ -480,7 +480,7 @@ jobs:
       uses: actions/upload-artifact@v3
       with:
         name: plugdata-Debian-x64
-        path: plugdata-Debian-x64
+        path: plugdata-Debian-x64.tar.gz
 
     - name: Upload to server
       env:
