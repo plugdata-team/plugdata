@@ -10,6 +10,7 @@ struct ThemePanel : public Component
     ValueTree settingsTree;
     Value fontValue;
     Value dashedSignalConnection;
+    Value straightConnections;
 
     std::map<String, std::map<String, Value>> swatches;
 
@@ -31,7 +32,7 @@ struct ThemePanel : public Component
             Dialogs::showOkayCancelDialog(&confirmationDialog, getParentComponent(), "Are you sure you want to reset to default theme settings?",
                 [this](bool result) {
                     if (result) {
-                        resetColours();
+                        resetDefaults();
                     }
                 });
         };
@@ -75,6 +76,14 @@ struct ThemePanel : public Component
 
         panel.addSection("Fonts", { fontPanel });
 
+        // straight connections
+        straightConnections.referTo(settingsTree.getPropertyAsValue("StraightConnections", nullptr));
+        straightConnections.addListener(this);
+
+        auto* useStraightConnections = new PropertiesPanel::BoolComponent("Use straight line for connections", straightConnections, { "No", "Yes" });
+        allPanels.add(useStraightConnections);
+        addAndMakeVisible(*useStraightConnections);
+
         // dashed signal setting
         dashedSignalConnection.referTo(settingsTree.getPropertyAsValue("DashedSignalConnection", nullptr));
         dashedSignalConnection.addListener(this);
@@ -84,7 +93,7 @@ struct ThemePanel : public Component
         allPanels.add(useDashedSignalConnection);
         addAndMakeVisible(*useDashedSignalConnection);
 
-        panel.addSection("Connection Look", { useDashedSignalConnection });
+        panel.addSection("Connection Look", { useStraightConnections, useDashedSignalConnection });
 
         // Create the panels by category
         for (auto const& [sectionName, sectionColours] : panels) {
@@ -107,6 +116,12 @@ struct ThemePanel : public Component
 
         if (v.refersToSameSourceAs(dashedSignalConnection)) {
             settingsTree.setProperty("DashedSignalConnection", dashedSignalConnection.getValue(), nullptr);
+            getTopLevelComponent()->repaint();
+            return;
+        }
+
+        if (v.refersToSameSourceAs(straightConnections)) {
+            settingsTree.setProperty("StraightConnections", straightConnections.getValue(), nullptr);
             getTopLevelComponent()->repaint();
             return;
         }
@@ -154,7 +169,7 @@ struct ThemePanel : public Component
         resetButton.setBounds(getWidth() - 36, getHeight() - 26, 32, 32);
     }
 
-    void resetColours()
+    void resetDefaults()
     {
         auto& lnf = dynamic_cast<PlugDataLook&>(getLookAndFeel());
         lnf.resetColours();
@@ -164,6 +179,9 @@ struct ThemePanel : public Component
 
         lnf.setDefaultFont(fontValue.toString());
         settingsTree.setProperty("DefaultFont", fontValue.getValue(), nullptr);
+
+        straightConnections = false;
+        settingsTree.setProperty("StraightConnections", straightConnections.getValue(), nullptr);
 
         dashedSignalConnection = false;
         settingsTree.setProperty("DashedSignalConnection", dashedSignalConnection.getValue(), nullptr);
