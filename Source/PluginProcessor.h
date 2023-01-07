@@ -136,10 +136,10 @@ public:
     pd::Library objectLibrary;
 
     File homeDir = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory).getChildFile("plugdata");
-    File appDir = homeDir.getChildFile(ProjectInfo::versionString);
+    File versionDataDir = homeDir.getChildFile(ProjectInfo::versionString + String("-0"));
 
     File settingsFile = homeDir.getChildFile("Settings.xml");
-    File abstractions = appDir.getChildFile("Abstractions");
+    File abstractions = versionDataDir.getChildFile("Abstractions");
 
     Value commandLocked = Value(var(false));
 

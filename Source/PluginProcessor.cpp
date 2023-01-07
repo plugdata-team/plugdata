@@ -202,7 +202,7 @@ void PluginProcessor::initialiseFilesystem()
         file.uncompressTo(homeDir);
 
         // Create filesystem for this specific version
-        homeDir.getChildFile("plugdata_version").moveFileTo(appDir);
+        homeDir.getChildFile("plugdata_version").moveFileTo(versionDataDir);
 
         auto library = homeDir.getChildFile("Library");
         auto deken = homeDir.getChildFile("Deken");
@@ -227,9 +227,9 @@ void PluginProcessor::initialiseFilesystem()
 #if JUCE_WINDOWS
 
         // Get paths that need symlinks
-        auto abstractionsPath = appDir.getChildFile("Abstractions").getFullPathName().replaceCharacters("/", "\\");
-        auto documentationPath = appDir.getChildFile("Documentation").getFullPathName().replaceCharacters("/", "\\");
-        auto extraPath = appDir.getChildFile("Extra").getFullPathName().replaceCharacters("/", "\\");
+        auto abstractionsPath = versionDataDir.getChildFile("Abstractions").getFullPathName().replaceCharacters("/", "\\");
+        auto documentationPath = versionDataDir.getChildFile("Documentation").getFullPathName().replaceCharacters("/", "\\");
+        auto extraPath = versionDataDir.getChildFile("Extra").getFullPathName().replaceCharacters("/", "\\");
         auto dekenPath = deken.getFullPathName();
 
         // Create NTFS directory junctions
@@ -242,10 +242,10 @@ void PluginProcessor::initialiseFilesystem()
         createJunction(library.getChildFile("Deken").getFullPathName().replaceCharacters("/", "\\").toStdString(), dekenPath.toStdString());
 
 #else
-        appDir.getChildFile("Abstractions").createSymbolicLink(library.getChildFile("Abstractions"), true);
-        appDir.getChildFile("Documentation").createSymbolicLink(library.getChildFile("Documentation"), true);
-        appDir.getChildFile("Extra").createSymbolicLink(library.getChildFile("Extra"), true);
-        deken.createSymbolicLink(library.getChildFile("Deken"), true);
+        versionDataDir.getChildFile("Abstractions").createSymbolicLink(library.getChildFile("Abstractions"), true);
+        versionDataDir.getChildFile("Documentation").createSymbolicLink(library.getChildFile("Documentation"), true);
+        versionDataDir.getChildFile("Extra").createSymbolicLink(library.getChildFile("Extra"), true);
+        versionDataDir.createSymbolicLink(library.getChildFile("Deken"), true);
 #endif
     }
 
@@ -391,7 +391,7 @@ void PluginProcessor::updateSearchPaths()
     }
 
     // Add ELSE path
-    auto elsePath = appDir.getChildFile("Abstractions").getChildFile("else");
+    auto elsePath = versionDataDir.getChildFile("Abstractions").getChildFile("else");
     if (elsePath.exists()) {
         auto location = elsePath.getFullPathName().replace("\\", "/");
         ;
@@ -399,7 +399,7 @@ void PluginProcessor::updateSearchPaths()
     }
 
     // Add heavylib path
-    auto heavylibPath = appDir.getChildFile("Abstractions").getChildFile("heavylib");
+    auto heavylibPath = versionDataDir.getChildFile("Abstractions").getChildFile("heavylib");
     if (heavylibPath.exists()) {
         auto location = heavylibPath.getFullPathName().replace("\\", "/");
         ;
