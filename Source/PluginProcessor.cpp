@@ -97,7 +97,7 @@ PluginProcessor::PluginProcessor()
     logMessage(else_version);
     logMessage(cyclone_version);
     logMessage(pdlua_version);
-    
+
     // scope for locking message manager
     {
         const MessageManagerLock mmLock;
@@ -362,7 +362,7 @@ void PluginProcessor::initialiseFilesystem()
     if (!settingsTree.hasProperty("Zoom")) {
         settingsTree.setProperty("Zoom", 1.0f, nullptr);
     }
-    
+
     if (!settingsTree.getChildWithName("Libraries").isValid()) {
         settingsTree.appendChild(ValueTree("Libraries"), nullptr);
     }
@@ -413,24 +413,24 @@ void PluginProcessor::updateSearchPaths()
     for (auto path : DekenInterface::getExternalPaths()) {
         libpd_add_to_search_path(path.replace("\\", "/").toRawUTF8());
     }
-    
+
     auto librariesTree = settingsTree.getChildWithName("Libraries");
-    
-    for(auto library : librariesTree) {
-        if(!library.hasProperty("Name") || library.getProperty("Name").toString().isEmpty()) {
+
+    for (auto library : librariesTree) {
+        if (!library.hasProperty("Name") || library.getProperty("Name").toString().isEmpty()) {
             librariesTree.removeChild(library, nullptr);
         }
     }
-    
+
     // Load startup libraries that the user defined in settings
-    for(auto library : librariesTree) {
-        
-        const auto libName = library.getProperty("Name").toString();
-        
+    for (auto library : librariesTree) {
+
+        auto const libName = library.getProperty("Name").toString();
+
         // Load the library: this must be done after updating paths
         // If the library is already loaded, it will return true
         // This will load the libraries directly instead of on restart, not sure if Pd does that but it's actually nice
-        if(!loadLibrary(libName)) {
+        if (!loadLibrary(libName)) {
             logError("Failed to load library: " + libName);
         }
     }
@@ -992,11 +992,11 @@ void PluginProcessor::setStateInformation(void const* data, int sizeInBytes)
                 auto location = File(istream.readString());
 
                 auto parentPath = location.getParentDirectory().getFullPathName();
-                
+
                 // Add patch path to search path to make sure it finds abstractions in the saved patch!
                 setThis();
                 libpd_add_to_search_path(parentPath.toRawUTF8());
-                
+
                 auto* patch = loadPatch(state);
 
                 if ((location.exists() && location.getParentDirectory() == File::getSpecialLocation(File::tempDirectory)) || !location.exists()) {

@@ -53,11 +53,13 @@ struct ObjectBase : public Component
 
     virtual void updateParameters() {};
 
-    virtual bool canOpenFromMenu() {
+    virtual bool canOpenFromMenu()
+    {
         return zgetfn(static_cast<t_pd*>(ptr), pd->generateSymbol("menu-open")) != nullptr;
     }
 
-    virtual void openFromMenu() {
+    virtual void openFromMenu()
+    {
         pd_typedmess(static_cast<t_pd*>(ptr), pd->generateSymbol("menu-open"), 0, nullptr);
     };
 

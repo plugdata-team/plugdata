@@ -262,20 +262,20 @@ struct ScopeBase : public GUIObject
 
         for (int n = 0; n < bufsize; n++) {
             switch (mode) {
-                case 1:
-                    y_buffer[n] = jmap<float>(x_buffer[n], min, max, getHeight(), 0);
-                    x_buffer[n] = oldx;
-                    oldx += dx;
-                    break;
-                case 2:
-                    x_buffer[n] = jmap<float>(y_buffer[n], min, max, 0, getWidth());
-                    y_buffer[n] = oldy;
-                    oldy += dy;
-                    break;
-                case 3:
-                    x_buffer[n] = jmap<float>(x_buffer[n], min, max, 0, getWidth());
-                    y_buffer[n] = jmap<float>(y_buffer[n], min, max, getHeight(), 0);
-                    break;
+            case 1:
+                y_buffer[n] = jmap<float>(x_buffer[n], min, max, getHeight(), 0);
+                x_buffer[n] = oldx;
+                oldx += dx;
+                break;
+            case 2:
+                x_buffer[n] = jmap<float>(y_buffer[n], min, max, 0, getWidth());
+                y_buffer[n] = oldy;
+                oldy += dy;
+                break;
+            case 3:
+                x_buffer[n] = jmap<float>(x_buffer[n], min, max, 0, getWidth());
+                y_buffer[n] = jmap<float>(y_buffer[n], min, max, getHeight(), 0);
+                break;
             }
         }
         repaint();

@@ -100,14 +100,14 @@ public:
 
     void stopMonitoring()
     {
-        while(processToMonitor)
-        {
+        while (processToMonitor) {
             int len = processToMonitor->readProcessOutput(processOutput, maxLength);
-            if(!len) break;
-            
+            if (!len)
+                break;
+
             logToConsole(String::fromUTF8(processOutput, len));
         }
-        
+
         stopThread(-1);
         stopTimer();
     }

@@ -381,13 +381,13 @@ void Object::resized()
 
     int ioletSize = 13;
     int ioletHitBox = 4;
-        
+
     int maxIoletWidth = std::min(((getWidth() - doubleMargin) / std::max(numInputs, 1)) - 4, ((getWidth() - doubleMargin) / std::max(numOutputs, 1)) - 4);
     int maxIoletHeight = (getHeight() / 2.0f) - 3;
-    
-    ioletSize = std::max(std::min({ioletSize, maxIoletWidth, maxIoletHeight}), 10);
+
+    ioletSize = std::max(std::min({ ioletSize, maxIoletWidth, maxIoletHeight }), 10);
     int borderWidth = jmap<float>(ioletSize, 10, 13, 9, 14);
-    
+
     auto inletBounds = getLocalBounds();
     if (auto spaceToRemove = jlimit<int>(0, borderWidth, inletBounds.getWidth() - (ioletHitBox * numInputs) - borderWidth)) {
         inletBounds.removeFromLeft(spaceToRemove);

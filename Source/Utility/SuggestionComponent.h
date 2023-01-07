@@ -122,7 +122,7 @@ public:
     {
         // Set up the button list that contains our suggestions
         buttonholder = std::make_unique<Component>();
-        
+
         dropShadower.setOwner(this);
 
         for (int i = 0; i < 20; i++) {
@@ -205,7 +205,7 @@ public:
     void removeCalloutBox()
     {
         setVisible(false);
-        
+
         if (isOnDesktop()) {
             removeFromDesktop();
         }
@@ -286,9 +286,9 @@ private:
 
     void paint(Graphics& g) override
     {
-        
+
 #if PLUGDATA_STANDALONE
-        if(!Desktop::canUseSemiTransparentWindows()) {
+        if (!Desktop::canUseSemiTransparentWindows()) {
             g.fillAll(findColour(PlugDataColour::canvasBackgroundColourId));
         }
 #else
@@ -296,9 +296,9 @@ private:
         if (hostType.isLogic() || hostType.isGarageBand() || hostType.isMainStage()) {
             g.fillAll(findColour(PlugDataColour::canvasBackgroundColourId));
         }
-        
+
 #endif
-        
+
         g.setColour(findColour(PlugDataColour::popupMenuBackgroundColourId));
         g.fillRoundedRectangle(port->getBounds().reduced(1).toFloat(), Constants::defaultCornerRadius);
     }
@@ -473,7 +473,7 @@ private:
 
     ResizableCornerComponent resizer;
     ComponentBoundsConstrainer constrainer;
-        
+
     StackDropShadower dropShadower;
 
     int highlightStart = 0;
