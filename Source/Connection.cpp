@@ -90,11 +90,9 @@ void Connection::valueChanged(Value& v)
 {
     if (v.refersToSameSourceAs(useDashedSignalConnection)) {
         useDashed = static_cast<bool>(useDashedSignalConnection.getValue());
-    }
-    else if (v.refersToSameSourceAs(presentationMode)) {
+    } else if (v.refersToSameSourceAs(presentationMode)) {
         setVisible(presentationMode == var(true) ? false : true);
-    }
-    else if (v.refersToSameSourceAs(useStraightConnections)) {
+    } else if (v.refersToSameSourceAs(useStraightConnections)) {
         useStraight = static_cast<bool>(useStraightConnections.getValue());
         updatePath();
     }
@@ -338,9 +336,11 @@ void Connection::mouseDown(MouseEvent const& e)
 void Connection::mouseDrag(MouseEvent const& e)
 {
     if (wasSelected && startReconnectHandle.contains(e.getMouseDownPosition().toFloat()) && e.getDistanceFromDragStart() > 6) {
+        cnv->connectingWithDrag = true;
         reconnect(inlet, true);
     }
     if (wasSelected && endReconnectHandle.contains(e.getMouseDownPosition().toFloat()) && e.getDistanceFromDragStart() > 6) {
+        cnv->connectingWithDrag = true;
         reconnect(outlet, true);
     }
 
@@ -439,7 +439,6 @@ void Connection::reconnect(Iolet* target, bool dragged)
         // Create new connection
         cnv->connectingIolets.add(target->isInlet ? c->inlet : c->outlet);
 
-        cnv->connectingWithDrag = true;
         c->setVisible(false);
 
         reconnecting.add(SafePointer(c));
