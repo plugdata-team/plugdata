@@ -19,16 +19,16 @@ Iolet::Iolet(Object* parent, bool inlet)
     setAlwaysOnTop(true);
 
     parent->addAndMakeVisible(this);
-    
+
     locked.referTo(object->cnv->locked);
     locked.addListener(this);
-    
+
     presentationMode.referTo(object->cnv->presentationMode);
     presentationMode.addListener(this);
-    
+
     bool isLocked = static_cast<bool>(locked.getValue());
     setInterceptsMouseClicks(!isLocked, false);
-    
+
     bool isPresenting = static_cast<bool>(presentationMode.getValue());
     setVisible(!isPresenting && !object->cnv->isGraph);
 }
@@ -50,7 +50,6 @@ void Iolet::paint(Graphics& g)
     if ((!isTargeted && !over) || isLocked) {
         bounds = bounds.reduced(2);
     }
-    
 
     auto backgroundColour = isSignal ? findColour(PlugDataColour::signalColourId) : findColour(PlugDataColour::dataColourId);
 
@@ -69,9 +68,9 @@ void Iolet::paint(Graphics& g)
         g.reduceClipRegion(getLocalArea(object, object->getLocalBounds().reduced(Object::margin)));
         stateSaved = true;
     }
-    
+
     // TODO: this is kind of a hack to force inlets to align correctly. Find a better way to fix this!
-    if((getHeight() % 2) == 0) {
+    if ((getHeight() % 2) == 0) {
         bounds.translate(0.0f, isInlet ? -1.0f : 0.0f);
     }
 
@@ -363,10 +362,10 @@ Iolet* Iolet::findNearestEdge(Canvas* cnv, Point<int> position, bool inlet, Obje
 
 void Iolet::valueChanged(Value& v)
 {
-    if(v.refersToSameSourceAs(locked)) {
+    if (v.refersToSameSourceAs(locked)) {
         setInterceptsMouseClicks(!static_cast<bool>(locked.getValue()), false);
     }
-    if(v.refersToSameSourceAs(presentationMode)) {
+    if (v.refersToSameSourceAs(presentationMode)) {
         setVisible(!static_cast<bool>(presentationMode.getValue()) && !object->cnv->isGraph);
     }
 }
