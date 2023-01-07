@@ -124,15 +124,23 @@ struct IEMObject : public GUIObject {
 
     void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
     {
+        auto setColour = [this](Value& targetValue, pd::Atom& atom){
+            if(atom.isSymbol()) {
+                setParameterExcludingListener(targetValue, atom.getSymbol());
+            }
+            else {
+                setParameterExcludingListener(secondaryColour, Colour(static_cast<uint32>(atom.getFloat())).toString());
+            }
+        };
 
         if (symbol == "color") {
 
             if (atoms.size() > 0)
-                setParameterExcludingListener(secondaryColour, atoms[0].getSymbol());
+                setColour(secondaryColour, atoms[0]);
             if (atoms.size() > 1)
-                setParameterExcludingListener(primaryColour, atoms[1].getSymbol());
+                setColour(primaryColour, atoms[1]);
             if (atoms.size() > 2)
-                setParameterExcludingListener(labelColour, atoms[2].getSymbol());
+                setColour(labelColour, atoms[2]);
 
             repaint();
         } else if (symbol == "label" && atoms.size() >= 1) {
