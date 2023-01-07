@@ -167,7 +167,7 @@ struct DrawableCurve final : public DrawableTemplate
         auto shift = e.mods.isShiftDown();
         auto alt = e.mods.isAltDown();
         auto dbl = 0;
-        
+
         canvas->pd->setThis();
 
         t_template* t = template_findbyname(scalar->sc_template);
@@ -188,7 +188,7 @@ struct DrawableCurve final : public DrawableTemplate
             return;
 
         canvas->pd->setThis();
-        
+
         auto* glist = canvas->patch.getPointer();
         auto* templ = template_findbyname(scalar->sc_template);
 
@@ -305,7 +305,7 @@ struct DrawableSymbol final : public DrawableTemplate
         // may have been fixed already by correctly setting pd_this??
         if (!scalar || !scalar->sc_template)
             return;
-        
+
         canvas->pd->setThis();
 
         auto* glist = canvas->patch.getPointer();
@@ -377,7 +377,7 @@ struct ScalarObject final : public NonPatchable {
         : NonPatchable(obj, object)
     {
         cnv->pd->setThis();
-        
+
         auto* x = reinterpret_cast<t_scalar*>(obj);
         auto* templ = template_findbyname(x->sc_template);
         auto* templatecanvas = template_findcanvas(templ);

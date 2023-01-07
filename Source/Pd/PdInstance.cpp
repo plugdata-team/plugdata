@@ -18,7 +18,7 @@ extern "C" {
 #include "x_libpd_multi.h"
 #include "z_print_util.h"
 
-int sys_load_lib(t_canvas *canvas, const char *classname);
+int sys_load_lib(t_canvas* canvas, char const* classname);
 
 struct pd::Instance::internal {
 
@@ -121,7 +121,7 @@ Instance::Instance(String const& symbol)
         reinterpret_cast<t_libpd_multi_pitchbendhook>(internal::instance_multi_pitchbend), reinterpret_cast<t_libpd_multi_aftertouchhook>(internal::instance_multi_aftertouch), reinterpret_cast<t_libpd_multi_polyaftertouchhook>(internal::instance_multi_polyaftertouch),
         reinterpret_cast<t_libpd_multi_midibytehook>(internal::instance_multi_midibyte));
     // ag: need to defer this to suppress noise from chatty externals
-    //m_print_receiver = libpd_multi_print_new(this, reinterpret_cast<t_libpd_multi_printhook>(internal::instance_multi_print));
+    // m_print_receiver = libpd_multi_print_new(this, reinterpret_cast<t_libpd_multi_printhook>(internal::instance_multi_print));
 
     m_message_receiver = libpd_multi_receiver_new(this, "pd", reinterpret_cast<t_libpd_multi_banghook>(internal::instance_multi_bang), reinterpret_cast<t_libpd_multi_floathook>(internal::instance_multi_float), reinterpret_cast<t_libpd_multi_symbolhook>(internal::instance_multi_symbol),
         reinterpret_cast<t_libpd_multi_listhook>(internal::instance_multi_list), reinterpret_cast<t_libpd_multi_messagehook>(internal::instance_multi_message));
@@ -149,7 +149,7 @@ Instance::Instance(String const& symbol)
 
     auto panel_trigger = [](void* instance, int open, char const* snd, char const* location) { static_cast<Instance*>(instance)->createPanel(open, snd, location); };
 
-    auto openfile_trigger = [](void* instance, const char* fileToOpen) {
+    auto openfile_trigger = [](void* instance, char const* fileToOpen) {
         std::cout << fileToOpen << std::endl;
         File(fileToOpen).startAsProcess();
     };
@@ -180,7 +180,7 @@ Instance::Instance(String const& symbol)
             }
         }
     };
-    
+
     register_gui_triggers(static_cast<t_pdinstance*>(m_instance), this, gui_trigger, panel_trigger, openfile_trigger, message_trigger);
 
     // HACK: create full path names for c-coded externals
@@ -244,7 +244,7 @@ Instance::Instance(String const& symbol)
 
     setThis();
 }
- 
+
 Instance::~Instance()
 {
     pd_free(static_cast<t_pd*>(m_message_receiver));
@@ -707,7 +707,8 @@ void Instance::createPanel(int type, char const* snd, char const* location)
     }
 }
 
-bool Instance::loadLibrary(String libraryToLoad) {
+bool Instance::loadLibrary(String libraryToLoad)
+{
     return sys_load_lib(nullptr, libraryToLoad.toRawUTF8());
 }
 

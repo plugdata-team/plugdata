@@ -403,7 +403,7 @@ public:
     {
         return nullptr;
     };
-    
+
     bool loadLibrary(String library);
 
     void* m_instance = nullptr;
@@ -492,7 +492,7 @@ protected:
                     } else if (message.startsWith("verbose(0):") || message.startsWith("verbose(1):")) {
                         logError(message.substring(12));
                     } else {
-                        if(message.startsWith("verbose(")) {
+                        if (message.startsWith("verbose(")) {
                             message = message.substring(12);
                         }
                         logMessage(message);

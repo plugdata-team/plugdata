@@ -101,8 +101,7 @@ class PluginEditor : public AudioProcessorEditor
     , public ApplicationCommandTarget
     , public ApplicationCommandManager
     , public Timer
-    , public FileDragAndDropTarget
-{
+    , public FileDragAndDropTarget {
 public:
     enum ToolbarButtonType {
         Open = 0,
@@ -122,7 +121,7 @@ public:
 
     void paint(Graphics& g) override;
     void paintOverChildren(Graphics& g) override;
-        
+
     void resized() override;
 
     void mouseWheelMove(MouseEvent const& e, MouseWheelDetails const& wheel) override;
@@ -151,7 +150,7 @@ public:
     void valueChanged(Value& v) override;
 
     void updateCommandStatus();
-        
+
     bool isInterestedInFileDrag(StringArray const& files) override;
     void filesDropped(StringArray const& files, int x, int y) override;
     void fileDragEnter(StringArray const&, int, int) override;

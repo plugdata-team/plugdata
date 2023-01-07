@@ -124,11 +124,10 @@ struct IEMObject : public GUIObject {
 
     void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
     {
-        auto setColour = [this](Value& targetValue, pd::Atom& atom){
-            if(atom.isSymbol()) {
+        auto setColour = [this](Value& targetValue, pd::Atom& atom) {
+            if (atom.isSymbol()) {
                 setParameterExcludingListener(targetValue, atom.getSymbol());
-            }
-            else {
+            } else {
                 setParameterExcludingListener(secondaryColour, Colour(static_cast<uint32>(atom.getFloat())).toString());
             }
         };

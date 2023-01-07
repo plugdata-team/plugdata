@@ -205,7 +205,7 @@ struct FunctionObject final : public GUIObject {
                 setHoverIdx(i);
             }
         }
-        return GUIObject::hitTest(x,y);
+        return GUIObject::hitTest(x, y);
     }
 
     void mouseExit(MouseEvent const& e) override

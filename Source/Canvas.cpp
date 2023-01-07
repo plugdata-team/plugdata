@@ -260,10 +260,10 @@ void Canvas::synchronise(bool updatePosition)
 
     storage.confirmIds();
 
-    if(!isGraph) {
+    if (!isGraph) {
         setTransform(editor->transform);
     }
-    
+
     // Resize canvas to fit objects
     // By checking asynchronously, we make sure the objects bounds have been updated
     MessageManager::callAsync([_this = SafePointer(this)]() {
@@ -375,7 +375,7 @@ void Canvas::mouseDown(MouseEvent const& e)
 
         auto params = object && object->gui ? object->gui->getParameters() : ObjectParameters();
         bool canBeOpened = object && object->gui && object->gui->canOpenFromMenu();
-        
+
         // Create popup menu
         popupMenu.clear();
 
@@ -546,7 +546,7 @@ void Canvas::mouseUp(MouseEvent const& e)
         for (auto* obj : objects) {
             for (auto* iolet : obj->iolets) {
                 auto relativeEvent = e.getEventRelativeTo(this);
-                if(iolet->getCanvasBounds().expanded(50).contains(relativeEvent.getPosition())) {
+                if (iolet->getCanvasBounds().expanded(50).contains(relativeEvent.getPosition())) {
                     iolet->mouseUp(relativeEvent);
                 }
             }

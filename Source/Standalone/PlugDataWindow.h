@@ -118,10 +118,10 @@ public:
 
     virtual void createPlugin()
     {
-        processor = createPluginFilterOfType (AudioProcessor::wrapperType_Standalone);
-        
+        processor = createPluginFilterOfType(AudioProcessor::wrapperType_Standalone);
+
         processor->disableNonMainBuses();
-        processor->setRateAndBufferSizeDetails (44100, 512);
+        processor->setRateAndBufferSizeDetails(44100, 512);
 
         processorHasPotentialFeedbackLoop = (getNumInputChannels() > 0 && getNumOutputChannels() > 0);
     }
@@ -441,7 +441,7 @@ public:
     {
 
         setTitleBarHeight(0);
-        
+
         drawWindowShadow = Desktop::canUseSemiTransparentWindows();
 
         setTitleBarButtonsRequired(DocumentWindow::minimiseButton | DocumentWindow::maximiseButton | DocumentWindow::closeButton, false);
@@ -511,12 +511,12 @@ public:
         clearContentComponent();
         pluginHolder = nullptr;
     }
-        
+
     BorderSize<int> getBorderThickness() override
     {
         return BorderSize<int>(0);
     }
-    
+
     // Called when switching between native vs non-native titlebar
     void valueChanged(Value& v) override
     {
@@ -527,40 +527,38 @@ public:
         if (!nativeWindow) {
 
             setOpaque(false);
-            
+
             setResizable(false, false);
-            
+
             resizer = std::make_unique<ResizableBorderComponent>(this, getConstrainer());
             resizer->setBorderThickness(BorderSize(4));
             resizer->setAlwaysOnTop(true);
             Component::addAndMakeVisible(resizer.get());
 
-            if(drawWindowShadow) {
-                
+            if (drawWindowShadow) {
+
 #if JUCE_MAC
                 setDropShadowEnabled(true);
 #else
                 setDropShadowEnabled(false);
 #endif
-                
+
 #if JUCE_WINDOWS
-                dropShadower = std::make_unique<StackDropShadower>(DropShadow(Colour(0, 0, 0).withAlpha(0.8f), 22, {0, 3}));
+                dropShadower = std::make_unique<StackDropShadower>(DropShadow(Colour(0, 0, 0).withAlpha(0.8f), 22, { 0, 3 }));
                 dropShadower->setOwner(this);
 #endif
-            }
-            else {
+            } else {
                 setDropShadowEnabled(false);
             }
-        }
-        else {
+        } else {
             setOpaque(true);
             resizer.reset(nullptr);
             dropShadower.reset(nullptr);
             setDropShadowEnabled(true);
             setResizable(true, false);
         }
-        
-        if(auto* editor = getAudioProcessor()->getActiveEditor()) {
+
+        if (auto* editor = getAudioProcessor()->getActiveEditor()) {
             editor->resized();
         }
 
@@ -631,8 +629,7 @@ public:
 #endif
     }
 
-
-#    if JUCE_LINUX
+#if JUCE_LINUX
     void paint(Graphics& g) override
     {
         if (drawWindowShadow && !isUsingNativeTitleBar()) {
@@ -661,19 +658,18 @@ public:
         ResizableWindow::resized();
 
         if (!isUsingNativeTitleBar()) {
-            
+
             Rectangle<int> titleBarArea;
-            if(drawWindowShadow && SystemStats::getOperatingSystemType() == SystemStats::Linux) {
+            if (drawWindowShadow && SystemStats::getOperatingSystemType() == SystemStats::Linux) {
                 auto margin = mainComponent ? mainComponent->getMargin() : 18;
                 titleBarArea = Rectangle<int>(0, 10 + margin, getWidth() - (6 + margin), 25);
                 if (resizer)
                     resizer->setBounds(getLocalBounds().reduced(margin));
-            }
-            else {
+            } else {
                 titleBarArea = Rectangle<int>(0, 10, getWidth() - 6, 25);
                 if (auto* b = getMaximiseButton())
                     b->setToggleState(isFullScreen(), dontSendNotification);
-                
+
                 if (resizer)
                     resizer->setBounds(getLocalBounds());
             }
@@ -684,7 +680,6 @@ public:
             content->resized();
             content->repaint();
         }
-            
     }
 
     virtual StandalonePluginHolder* getPluginHolder()
@@ -730,11 +725,10 @@ private:
 #if JUCE_LINUX
             if (!owner.isUsingNativeTitleBar()) {
                 g.setColour(findColour(PlugDataColour::outlineColourId));
-                
-                if(!Desktop::canUseSemiTransparentWindows()) {
+
+                if (!Desktop::canUseSemiTransparentWindows()) {
                     g.drawRect(getLocalBounds().toFloat().reduced(getMargin()), 1.0f);
-                }
-                else {
+                } else {
                     g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(getMargin()), Constants::windowCornerRadius, 1.0f);
                 }
             }
@@ -758,15 +752,14 @@ private:
             }
 
 #if JUCE_LINUX
-            if(drawWindowShadow) {
+            if (drawWindowShadow) {
                 if (auto* maximiseButton = owner.getMaximiseButton()) {
                     bool maximised = maximiseButton->getToggleState();
                     return maximised ? 0 : 18;
                 }
 
                 return 18;
-            }
-            else {
+            } else {
                 return 0;
             }
 #else
@@ -835,7 +828,6 @@ private:
         }
 
     private:
-            
         void componentMovedOrResized(Component&, bool, bool) override
         {
             ScopedValueSetter<bool> const scope(preventResizingEditor, true);

@@ -108,7 +108,6 @@ public:
             metaDaisy.getDynamicObject()->setProperty("board_file", Toolchain::dir.getChildFile("scripts").getChildFile("simple.json").getFullPathName());
         } else {
             metaDaisy.getDynamicObject()->setProperty("board", board);
-
         }
         metaJson->setProperty("daisy", metaDaisy);
         args.add("-m" + createMetaJson(metaJson));

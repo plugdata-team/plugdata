@@ -828,7 +828,7 @@ private:
         ScopedValueSetter<bool> const setter(reentrant, true);
 
         bool dawSupportsTransparency = true;
-        
+
         // Transparency is broken in Apple's DAWs on Apple Silicon
         // Just to be sure, we don't draw window shadows on dialogs in those DAWs
 #if !PLUGDATA_STANDALONE
@@ -837,7 +837,7 @@ private:
             dawSupportsTransparency = false;
         }
 #endif
-        
+
         if (owner != nullptr
             && owner->isShowing()
             && owner->getWidth() > 0 && owner->getHeight() > 0

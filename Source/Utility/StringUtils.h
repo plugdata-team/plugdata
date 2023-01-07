@@ -12,7 +12,7 @@ struct StringUtils {
     inline static constexpr uint64_t num_items = 1ul << (sizeof(char) * 8ul);
 
     std::array<float, num_items> widths;
-    
+
     StringUtils(Font font)
     {
         for (int i = 0; i < num_items; i++) {
@@ -30,11 +30,11 @@ struct StringUtils {
         for (int i = 0; i < numBytes; i++) {
             totalWidth += widths[(int)utf8[i]];
         }
-        
+
         // In real text, letters are slightly closer together
         return totalWidth;
     }
-    
+
     // used by console for a more optimised calculation
     static int getNumLines(int width, int stringWidth)
     {

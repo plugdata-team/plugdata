@@ -13,7 +13,8 @@ class Object;
 class Canvas;
 
 class Iolet : public Component
-    , public SettableTooltipClient, public Value::Listener {
+    , public SettableTooltipClient
+    , public Value::Listener {
 public:
     Object* object;
 
@@ -27,7 +28,7 @@ public:
 
     void mouseEnter(MouseEvent const& e) override;
     void mouseExit(MouseEvent const& e) override;
-        
+
     void valueChanged(Value& v) override;
 
     static Iolet* findNearestEdge(Canvas* cnv, Point<int> position, bool inlet, Object* boxToExclude = nullptr);
@@ -43,9 +44,8 @@ public:
     bool isTargeted = false;
 
 private:
-        
     Value locked;
     Value presentationMode;
-        
+
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(Iolet)
 };

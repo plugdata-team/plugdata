@@ -8,7 +8,8 @@
 
 bool wantsNativeDialog();
 
-class LibraryLoadPanel : public Component, public TextEditor::Listener
+class LibraryLoadPanel : public Component
+    , public TextEditor::Listener
     , private ListBoxModel {
 public:
     std::unique_ptr<Dialog> confirmationDialog;
@@ -45,17 +46,16 @@ public:
 
         addChildComponent(editor);
         editor.addListener(this);
-        
+
         editor.setColour(TextEditor::backgroundColourId, Colours::transparentBlack);
         editor.setColour(TextEditor::focusedOutlineColourId, Colours::transparentBlack);
         editor.setColour(TextEditor::outlineColourId, Colours::transparentBlack);
-        
+
         editor.setFont(Font(15));
-        
+
         // Load state from valuetree
         externalChange();
     }
-
 
     /** Changes the current path. */
     void updateLibraries(ValueTree& tree)
@@ -87,7 +87,7 @@ public:
 
         g.setFont(Font(15));
 
-        if(!editor.isVisible() || rowBeingEdited != rowNumber) {
+        if (!editor.isVisible() || rowBeingEdited != rowNumber) {
             g.drawText(librariesToLoad[rowNumber], 12, 0, width - 9, height, Justification::centredLeft, true);
         }
     }
@@ -106,9 +106,9 @@ public:
         editor.grabKeyboardFocus();
         editor.setText(librariesToLoad[listBox.getSelectedRow()]);
         editor.selectAll();
-        
+
         rowBeingEdited = row;
-        
+
         resized();
         repaint();
     }
@@ -132,12 +132,12 @@ public:
 
         auto statusbarBounds = Rectangle<int>(2, statusbarY + 6, getWidth() - 6, statusbarHeight);
         addButton.setBounds(statusbarBounds.removeFromLeft(statusbarHeight));
-        
-        if(editor.isVisible()) {
+
+        if (editor.isVisible()) {
             auto selectionBounds = listBox.getRowPosition(listBox.getSelectedRow(), false).translated(0, 3);
             editor.setBounds(selectionBounds.withTrimmedRight(80).withTrimmedLeft(6).reduced(1));
         }
-}
+    }
 
 private:
     //==============================================================================
@@ -150,7 +150,7 @@ private:
     TextButton changeButton = TextButton(Icons::Edit);
 
     ValueTree tree;
-    
+
     TextEditor editor;
     int rowBeingEdited = -1;
 
@@ -220,20 +220,20 @@ private:
         returnKeyPressed(listBox.getSelectedRow());
         internalChange();
     }
-        
+
     void textEditorReturnKeyPressed(TextEditor& ed) override
     {
-        if(isPositiveAndBelow(rowBeingEdited, librariesToLoad.size())) {
+        if (isPositiveAndBelow(rowBeingEdited, librariesToLoad.size())) {
             librariesToLoad.set(rowBeingEdited, editor.getText());
             editor.setVisible(false);
             internalChange();
             rowBeingEdited = -1;
         }
     }
-        
+
     void textEditorFocusLost(TextEditor& ed) override
     {
-        if(isPositiveAndBelow(rowBeingEdited, librariesToLoad.size())) {
+        if (isPositiveAndBelow(rowBeingEdited, librariesToLoad.size())) {
             librariesToLoad.set(rowBeingEdited, editor.getText());
             editor.setVisible(false);
             internalChange();
