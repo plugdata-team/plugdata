@@ -69,6 +69,10 @@ Connection::Connection(Canvas* parent, Iolet* s, Iolet* e, bool exists)
     componentMovedOrResized(*outlet, true, true);
     componentMovedOrResized(*inlet, true, true);
 
+    useStraightConnections.referTo(cnv->pd->settingsTree.getPropertyAsValue("StraightConnections", nullptr));
+    useStraightConnections.addListener(this);
+    valueChanged(useStraightConnections);
+
     // Attach useDashedSignalConnection to the DashedSignalConnection property
     useDashedSignalConnection.referTo(cnv->pd->settingsTree.getPropertyAsValue("DashedSignalConnection", nullptr));
 
@@ -89,6 +93,10 @@ void Connection::valueChanged(Value& v)
     }
     else if (v.refersToSameSourceAs(presentationMode)) {
         setVisible(presentationMode == var(true) ? false : true);
+    }
+    else if (v.refersToSameSourceAs(useStraightConnections)) {
+        useStraight = static_cast<bool>(useStraightConnections.getValue());
+        updatePath();
     }
 }
 
@@ -515,26 +523,28 @@ void Connection::updatePath()
 
     if (!segmented) {
         toDraw.clear();
-
-        float const width = std::max(pstart.x, pend.x) - std::min(pstart.x, pend.x);
-        float const height = std::max(pstart.y, pend.y) - std::min(pstart.y, pend.y);
-
-        float const min = std::min<float>(width, height);
-        float const max = std::max<float>(width, height);
-
-        float const maxShiftY = 20.f;
-        float const maxShiftX = 20.f;
-
-        float const shiftY = std::min<float>(maxShiftY, max * 0.5);
-
-        float const shiftX = ((pstart.y >= pend.y) ? std::min<float>(maxShiftX, min * 0.5) : 0.f) * ((pstart.x < pend.x) ? -1. : 1.);
-
-        Point<float> const ctrlPoint1 { pstart.x - shiftX, pstart.y + shiftY };
-        Point<float> const ctrlPoint2 { pend.x + shiftX, pend.y - shiftY };
-
         toDraw.startNewSubPath(pstart);
-        toDraw.cubicTo(ctrlPoint1, ctrlPoint2, pend);
+        if (!useStraight) {
+            float const width = std::max(pstart.x, pend.x) - std::min(pstart.x, pend.x);
+            float const height = std::max(pstart.y, pend.y) - std::min(pstart.y, pend.y);
 
+            float const min = std::min<float>(width, height);
+            float const max = std::max<float>(width, height);
+
+            float const maxShiftY = 20.f;
+            float const maxShiftX = 20.f;
+
+            float const shiftY = std::min<float>(maxShiftY, max * 0.5);
+
+            float const shiftX = ((pstart.y >= pend.y) ? std::min<float>(maxShiftX, min * 0.5) : 0.f) * ((pstart.x < pend.x) ? -1. : 1.);
+
+            Point<float> const ctrlPoint1 { pstart.x - shiftX, pstart.y + shiftY };
+            Point<float> const ctrlPoint2 { pend.x + shiftX, pend.y - shiftY };
+
+            toDraw.cubicTo(ctrlPoint1, ctrlPoint2, pend);
+        } else {
+            toDraw.lineTo(pend);
+        }
         currentPlan.clear();
     } else {
         if (currentPlan.empty()) {
