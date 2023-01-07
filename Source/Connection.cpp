@@ -223,24 +223,26 @@ void Connection::paint(Graphics& g)
         baseColour = outlet->isSignal ? signalColour : dataColour;
         baseColour = baseColour.brighter(0.6f);
     }
-        
-    g.setColour(baseColour.darker(0.1));
-    g.strokePath(toDraw, PathStrokeType(2.5f, PathStrokeType::mitered, PathStrokeType::square));
 
-    g.setColour(baseColour.darker(0.2));
-    g.strokePath(toDraw, PathStrokeType(1.5f, PathStrokeType::mitered, PathStrokeType::square));
+    // outer stroke
+    g.setColour(baseColour.darker(1.0f));
+    g.strokePath(toDraw, PathStrokeType(2.5f, PathStrokeType::mitered, PathStrokeType::rounded));
 
-    g.setColour(useDashed && outlet->isSignal ? baseColour.darker(1.5f) : baseColour);
-    
+    // inner stroke
+    g.setColour(baseColour);
+    Path innerPath = toDraw;
+    PathStrokeType innerStroke(1.5f);
+
     if (useDashed && outlet->isSignal) {
         PathStrokeType dashedStroke(0.8f);
         float dash[1] = { 5.0f };
         Path dashedPath;
         dashedStroke.createDashedStroke(dashedPath, toDraw, dash, 1);
-        g.strokePath(dashedPath, dashedStroke);
-    } else {
-        g.strokePath(toDraw, PathStrokeType(0.5f, PathStrokeType::mitered, PathStrokeType::square));
+        innerPath = dashedPath;
+        innerStroke = dashedStroke;
     }
+    innerStroke.setEndStyle(PathStrokeType::EndCapStyle::rounded);
+    g.strokePath(innerPath, innerStroke);
 
     if (cnv->isSelected(this)) {
         auto mousePos = getMouseXYRelative();
