@@ -4,7 +4,7 @@ HOST=glyphpress.com
 USER=${FTP_USERNAME}
 PASSWD=${FTP_PASSWORD}
 FILE=$1
-INFO_FILE=./${FILE}.txt
+INFO_FILE=${FILE}.txt
 DATE=$(date)
 
 UNAME=$(uname)
