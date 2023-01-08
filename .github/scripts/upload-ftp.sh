@@ -9,7 +9,7 @@ $DATE
 $GIT_HASH
 END_FILE
 
-curl -T ${FILE} ftp://glyphpress.com/${FILE} --user ${FTP_USERNAME}:${FTP_PASSWORD}
-curl -T ${INFO_FILE} ftp://glyphpress.com/${INFO_FILE} --user ${FTP_USERNAME}:${FTP_PASSWORD}
+curl -T ./${FILE} ftp://glyphpress.com/${FILE} --user ${FTP_USERNAME}:${FTP_PASSWORD}
+curl -T ./${INFO_FILE} ftp://glyphpress.com/${INFO_FILE} --user ${FTP_USERNAME}:${FTP_PASSWORD}
 
 exit 0
