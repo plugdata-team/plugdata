@@ -17,8 +17,8 @@ END_FILE
 
 cat > ./plugdata.ftp <<END_SCRIPT
 open $HOST
-$USER
-$PASSWD
+user $USER
+password $PASSWD
 binary
 delete $FILE
 delete $INFO_FILE
@@ -34,8 +34,8 @@ rm plugdata.ftp
 
 cat > ./plugdata.ftp <<END_SCRIPT
 open $HOST
-$USER
-$PASSWD
+user $USER
+password $PASSWD
 binary
 put $FILE
 put $INFO_FILE
