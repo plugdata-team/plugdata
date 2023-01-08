@@ -2,7 +2,7 @@
 
 FILE=$1
 INFO_FILE=${FILE}.txt
-DATE=$(date -u +"%d-%m-%y %H:%M:00 UTC")
+DATE=$(date -u +"%d-%m-%y %H:%M UTC")
 
 cat > $INFO_FILE <<END_FILE
 $DATE
