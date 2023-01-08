@@ -348,7 +348,7 @@ jobs:
         env:
           FTP_USERNAME: ${{ secrets.FTP_USERNAME }}
           FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
-        GIT_HASH: ${{ github.sha }}
+          GIT_HASH: ${{ github.sha }}
         run: ./.github/scripts/upload-ftp.sh ./plugdata-Fedora-36-x64.tar.gz
 
       - name: Release Artifacts
