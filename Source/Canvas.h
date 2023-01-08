@@ -143,6 +143,7 @@ public:
     bool wasDragDuplicated = false;
     bool wasSelectedOnMouseDown = false;
     SafePointer<Object> lastSelectedObject = nullptr; // For auto patching
+    SafePointer<Connection> lastSelectedConnection; // For auto patching
 
     // Multi-dragger variables
     bool didStartDragging = false;
