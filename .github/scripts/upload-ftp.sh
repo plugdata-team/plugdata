@@ -1,6 +1,6 @@
 #!/bin/sh
 
-HOST='glyphpress.com'
+HOST=glyphpress.com
 USER=${FTP_USERNAME}
 PASSWD=${FTP_PASSWORD}
 FILE=$1
