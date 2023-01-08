@@ -1299,7 +1299,7 @@ bool PluginEditor::perform(InvocationInfo const& info)
 
         int idx = static_cast<int>(info.commandID) - CommandIDs::NewObject;
         if (isPositiveAndBelow(idx, objectNames.size())) {
-            if (cnv->selectedComponents.getNumSelected() == 1) {
+            if (cnv->getSelectionOfType<Object>().size() == 1) {
                 // if 1 object is selected, create new object beneath selected
                 auto obj = cnv->lastSelectedObject = cnv->getSelectionOfType<Object>()[0];
                 if (obj) {
@@ -1309,6 +1309,18 @@ bool PluginEditor::perform(InvocationInfo const& info)
                             obj->getX() + Object::margin,
                             obj->getY() + obj->getHeight())));
                 }
+            } else if ((cnv->getSelectionOfType<Object>().size() == 0) && (cnv->getSelectionOfType<Connection>().size() == 1)) {
+                // if 1 connection is selected, create new object in the middle of connection
+                cnv->patch.startUndoSequence("Object in connection");
+                cnv->lastSelectedConnection = cnv->getSelectionOfType<Connection>().getFirst();
+                auto outobj = cnv->getSelectionOfType<Connection>().getFirst()->outobj;
+                cnv->objects.add(new Object(cnv, objectNames[idx],
+                    Point<int>(
+                        // place beneath outlet object + Object::margin
+                        cnv->lastSelectedConnection->getX() + (cnv->lastSelectedConnection->getWidth()/2) - 12, 
+                        cnv->lastSelectedConnection->getY() + (cnv->lastSelectedConnection->getHeight()/2) - 12
+                        )));
+                cnv->patch.endUndoSequence("Object in connection");
             } else {
                 // if 0 or several objects are selected, create new object at mouse position
                 cnv->objects.add(new Object(cnv, objectNames[idx], lastPosition));
