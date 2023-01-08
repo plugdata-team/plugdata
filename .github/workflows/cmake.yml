@@ -240,7 +240,7 @@ jobs:
       uses: neitzke/action-dropbox@HEAD
       with:
         accessToken: ${{ secrets.DROPBOX_TOKEN }}
-        destination: /
+        destination: /plugdata-nightly
         file: ./plugdata-Ubuntu-22.04-x64.tar.gz
 
     - name: Release Artifacts
