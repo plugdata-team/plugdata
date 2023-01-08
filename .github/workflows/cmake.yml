@@ -236,11 +236,12 @@ jobs:
         name: plugdata-Ubuntu-22.04-x64
         path: plugdata-Ubuntu-22.04-x64.tar.gz
 
-    - name: Upload to server
-      env:
-        FTP_USERNAME: ${{ secrets.FTP_USERNAME }}
-        FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
-      run: ./.github/scripts/upload-ftp.sh ./plugdata-Ubuntu-22.04-x64
+    - name: Deploy to Dropbox
+      uses: neitzke/action-dropbox@HEAD
+      with:
+        accessToken: ${{ secrets.DROPBOX_TOKEN }}
+        destination: /
+        file: ./plugdata-Ubuntu-22.04-x64.tar.gz
 
     - name: Release Artifacts
       uses: softprops/action-gh-release@v1
