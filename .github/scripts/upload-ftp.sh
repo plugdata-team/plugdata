@@ -5,13 +5,6 @@ USER=${FTP_USERNAME}
 PASSWD=${FTP_PASSWORD}
 FILE=$1
 
-
-if [ -d ${FILE} ];
-then
-tar -czvf "${FILE}.tar.gz" ${FILE}
-FILE="${FILE}.tar.gz"
-fi
-
 UNAME=$(uname)
 if [[ "$UNAME" == CYGWIN* || "$UNAME" == MINGW*  || "$UNAME" == MSYS* ]] ; then
 
@@ -43,6 +36,7 @@ quit
 END_SCRIPT
 
 ftp -s:plugdata.ftp
+rm plugdata.ftp
 
 else
 
@@ -68,4 +62,5 @@ quit
 END_SCRIPT
 
 fi
+
 exit 0
