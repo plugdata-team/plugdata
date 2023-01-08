@@ -178,7 +178,7 @@ jobs:
         FTP_USERNAME: ${{ secrets.FTP_USERNAME }}
         FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
         GIT_HASH: ${{ github.sha }}
-      run: ./.github/scripts/upload-ftp.sh plugdata-Win64.msi
+      run: ./.github/scripts/upload-ftp.sh plugdata-Win32.msi
 
     - name: Release Artifacts
       uses: softprops/action-gh-release@v1
