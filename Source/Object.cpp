@@ -269,7 +269,22 @@ void Object::setType(String const& newType, void* existingObject)
             cnv->connections.add(new Connection(cnv, outlet, inlet, false));
         }
     }
+    if (cnv->lastSelectedConnection) {
+        // if 1 connection is selected, connect the new object in middle of connection
+        auto outobj = cnv->lastSelectedConnection->outobj;
+        auto inobj = cnv->lastSelectedConnection->inobj;
+        auto outlet = outobj->iolets[outobj->numInputs + cnv->lastSelectedConnection->outIdx];
+        auto inlet = inobj->iolets[cnv->lastSelectedConnection->inIdx];
+        if ((outlet->isSignal == iolets[0]->isSignal) && (inlet->isSignal == iolets[this->numInputs]->isSignal)) {
+            cnv->connections.add(new Connection(cnv, outlet, iolets[0], false));
+            cnv->connections.add(new Connection(cnv, iolets[this->numInputs], inlet, false));
+            // remove the previous connection
+            cnv->patch.removeConnection(outobj->getPointer(), cnv->lastSelectedConnection->outIdx, inobj->getPointer(), cnv->lastSelectedConnection->inIdx);
+            cnv->connections.removeObject(cnv->lastSelectedConnection);
+        }
+    }
     cnv->lastSelectedObject = nullptr;
+    cnv->lastSelectedConnection = nullptr;
 
     cnv->editor->updateCommandStatus();
 }
@@ -755,6 +770,7 @@ void Object::openNewObjectEditor()
                 _this->cnv->objects.removeObject(_this.getComponent());
             });
             cnv->lastSelectedObject = nullptr;
+            cnv->lastSelectedConnection = nullptr;
         };
         editor->setAlwaysOnTop(true);
         editor->setMultiLine(false);
