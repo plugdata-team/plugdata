@@ -224,6 +224,7 @@ struct FunctionObject final : public GUIObject {
             if (clickBounds.contains(e.x, e.y)) {
                 dragIdx = i;
                 if (e.getNumberOfClicks() == 2) {
+                    dragIdx = -1;
                     if (i == 0 || i == realPoints.size() - 1) {
                         points.getReference(i).y = 0.0f;
                         resetHoverIdx();
