@@ -25,7 +25,7 @@ delete $INFO_FILE
 quit
 END_SCRIPT
 
-ftp -s:plugdata.ftp
+ftp -s:plugdata.ftp -n
 
 # Wait 2 minutes to ensure the file is gone
 sleep 40
@@ -42,7 +42,7 @@ put $INFO_FILE
 quit
 END_SCRIPT
 
-ftp -s:plugdata.ftp
+ftp -s:plugdata.ftp -n
 rm plugdata.ftp
 
 else
