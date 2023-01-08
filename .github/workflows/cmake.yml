@@ -70,6 +70,7 @@ jobs:
       env:
         FTP_USERNAME: ${{ secrets.FTP_USERNAME }}
         FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
+        GIT_HASH: ${{ github.sha }}
       run: ./.github/scripts/upload-ftp.sh ./plugdata-macOS-Universal.pkg
 
     - name: Release Artifacts
@@ -124,6 +125,7 @@ jobs:
       env:
         FTP_USERNAME: ${{ secrets.FTP_USERNAME }}
         FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
+        GIT_HASH: ${{ github.sha }}
       run: ./.github/scripts/upload-ftp.sh ./plugdata-Win64.msi
 
     - name: Release Artifacts
@@ -178,6 +180,7 @@ jobs:
       env:
         FTP_USERNAME: ${{ secrets.FTP_USERNAME }}
         FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
+        GIT_HASH: ${{ github.sha }}
       run: ./.github/scripts/upload-ftp.sh ./plugdata-Win64.msi
 
     - name: Release Artifacts
@@ -240,6 +243,7 @@ jobs:
       env:
         FTP_USERNAME: ${{ secrets.FTP_USERNAME }}
         FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
+        GIT_HASH: ${{ github.sha }}
       run: ./.github/scripts/upload-ftp.sh ./plugdata-Ubuntu-22.04-x64.tar.gz
 
     - name: Release Artifacts
@@ -302,6 +306,7 @@ jobs:
       env:
         FTP_USERNAME: ${{ secrets.FTP_USERNAME }}
         FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
+        GIT_HASH: ${{ github.sha }}
       run: ./.github/scripts/upload-ftp.sh ./plugdata-Ubuntu-20.04-x64.tar.gz
 
     - name: Release Artifacts
@@ -343,6 +348,7 @@ jobs:
         env:
           FTP_USERNAME: ${{ secrets.FTP_USERNAME }}
           FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
+        GIT_HASH: ${{ github.sha }}
         run: ./.github/scripts/upload-ftp.sh ./plugdata-Fedora-36-x64.tar.gz
 
       - name: Release Artifacts
@@ -389,6 +395,7 @@ jobs:
       env:
         FTP_USERNAME: ${{ secrets.FTP_USERNAME }}
         FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
+        GIT_HASH: ${{ github.sha }}
       run: ./.github/scripts/upload-ftp.sh ./plugdata-Arch-x64.tar.gz
 
     - name: Release Artifacts
@@ -435,6 +442,7 @@ jobs:
       env:
         FTP_USERNAME: ${{ secrets.FTP_USERNAME }}
         FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
+        GIT_HASH: ${{ github.sha }}
       run: ./.github/scripts/upload-ftp.sh ./plugdata-OpenSUSE-x64.tar.gz
 
     - name: Release Artifacts
@@ -486,6 +494,7 @@ jobs:
       env:
         FTP_USERNAME: ${{ secrets.FTP_USERNAME }}
         FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
+        GIT_HASH: ${{ github.sha }}
       run: ./.github/scripts/upload-ftp.sh ./plugdata-Debian-x64.tar.gz
 
     - name: Release Artifacts
