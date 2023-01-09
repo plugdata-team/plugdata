@@ -74,8 +74,14 @@ void Dialogs::showObjectMenu(PluginEditor* parent, Component* target)
         for (auto& keypress : parent->getKeyMappings()->getKeyPressesAssignedToCommand(commandID)) {
             auto key = keypress.getTextDescriptionWithIcons();
 
+            auto shiftIcon = String(CharPointer_UTF8 ("\xe2\x87\xa7"));
+            if(key.contains(shiftIcon)) {
+                key = key.replace(shiftIcon, "shift-");
+            }
             if (shortcutKey.isNotEmpty())
                 shortcutKey << ", ";
+            
+            
 
             shortcutKey << key;
         }
