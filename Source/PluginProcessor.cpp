@@ -73,7 +73,14 @@ PluginProcessor::PluginProcessor()
         }
     }); */
 
-    LookAndFeel::setDefaultLookAndFeel(&lnf.get());
+    {
+        const MessageManagerLock mmLock;
+        
+        LookAndFeel::setDefaultLookAndFeel(&lnf.get());
+        
+        // On first startup, initialise abstractions and settings
+        initialiseFilesystem();
+    }
     
     parameters.createAndAddParameter(std::make_unique<AudioParameterFloat>(ParameterID("volume", 1), "Volume", NormalisableRange<float>(0.0f, 1.0f, 0.001f, 0.75f, false), 1.0f));
 
@@ -171,10 +178,8 @@ PluginProcessor::PluginProcessor()
     {
         const MessageManagerLock mmLock;
 
-        // On first startup, initialise abstractions and settings
-        initialiseFilesystem();
-
         // Initialise library for text autocompletion
+        // Needs to be done after loadLibs
         objectLibrary.initialiseLibrary();
     }
 
