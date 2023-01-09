@@ -3,7 +3,7 @@ title: messbox
 
 description: GUI message box
 
- categories:
+categories:
  - object
 
 pdcategory: GUI
