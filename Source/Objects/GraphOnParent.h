@@ -38,6 +38,10 @@ public:
     {
         if (!canvas)
             return true;
+        
+        if(ModifierKeys::getCurrentModifiers().isRightButtonDown())
+            return true;
+        
         if (!isLocked)
             return true;
 
