@@ -1,6 +1,6 @@
 #!/bin/sh
 
-git config --global --add safe.directory ./
+git config --global --add safe.directory /__w/plugdata/plugdata
 
 FILE=$1
 INFO_FILE=${FILE}.txt
