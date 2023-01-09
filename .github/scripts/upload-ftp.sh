@@ -23,7 +23,7 @@ $LATEST_HASH
 END_FILE
 
 # Get the last timestamp
-TIMESTAMP_URL=https://glyphpress.com/plugdata/${TIMESTAMP_FILE}
+TIMESTAMP_URL=https://glyphpress.com/plugdata/$TIMESTAMP_FILE
 STATUS_CODE=$(curl --write-out %{http_code} --silent --output /dev/null ${TIMESTAMP_URL})
 
 if [ $STATUS_CODE -lt "400" ]; then
@@ -46,6 +46,8 @@ curl -T ./${FILE} ftp://glyphpress.com/${FILE} --user ${FTP_USERNAME}:${FTP_PASS
 curl -T ./${INFO_FILE} ftp://glyphpress.com/${INFO_FILE} --user ${FTP_USERNAME}:${FTP_PASSWORD}
 curl -T ./${TIMESTAMP_FILE} ftp://glyphpress.com/${TIMESTAMP_FILE} --user ${FTP_USERNAME}:${FTP_PASSWORD}
 fi
+
+curl -T ./${TIMESTAMP_FILE} ftp://glyphpress.com/${TIMESTAMP_FILE} --user ${FTP_USERNAME}:${FTP_PASSWORD}
 
 # Update the latest version
 curl -T ./latest.txt ftp://glyphpress.com/latest.txt --user ${FTP_USERNAME}:${FTP_PASSWORD}
