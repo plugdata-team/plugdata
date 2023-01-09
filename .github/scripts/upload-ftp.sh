@@ -32,7 +32,7 @@ else
 fi
 
 # Make sure that a later commit didn't finish earlier than this one
-if [ COMMIT_TIMESTAMP -gt LAST_TIMESTAMP ]; then
+if [ "$COMMIT_TIMESTAMP" -gt "$LAST_TIMESTAMP" ]; then
 
 # Upload files and additional information
 curl -T ./${FILE} ftp://glyphpress.com/${FILE} --user ${FTP_USERNAME}:${FTP_PASSWORD}
