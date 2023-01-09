@@ -150,7 +150,6 @@ Instance::Instance(String const& symbol)
     auto panel_trigger = [](void* instance, int open, char const* snd, char const* location) { static_cast<Instance*>(instance)->createPanel(open, snd, location); };
 
     auto openfile_trigger = [](void* instance, char const* fileToOpen) {
-        std::cout << fileToOpen << std::endl;
         File(fileToOpen).startAsProcess();
     };
 
