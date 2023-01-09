@@ -316,7 +316,7 @@ jobs:
         
   fedora-build:
       runs-on: ubuntu-latest
-      container: fedora:36
+      container: fedora:37
       steps:
       - name: Update git
         run: sudo dnf install -y git
@@ -333,20 +333,20 @@ jobs:
 
       - name: Prepare Artefacts
         working-directory: ${{github.workspace}}
-        run: ./.github/scripts/package-Linux.sh Fedora-36-x64
+        run: ./.github/scripts/package-Linux.sh Fedora-37-x64
 
       - name: Archive Artifacts
         uses: actions/upload-artifact@v3
         with:
-          name: plugdata-Fedora-36-x64
-          path: plugdata-Fedora-36-x64.tar.gz
+          name: plugdata-Fedora-37-x64
+          path: plugdata-Fedora-37-x64.tar.gz
 
       - name: Upload to server
         env:
           FTP_USERNAME: ${{ secrets.FTP_USERNAME }}
           FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
           GIT_HASH: ${{ github.sha }}
-        run: ./.github/scripts/upload-ftp.sh plugdata-Fedora-36-x64.tar.gz
+        run: ./.github/scripts/upload-ftp.sh plugdata-Fedora-37-x64.tar.gz
 
       - name: Release Artifacts
         uses: softprops/action-gh-release@v1
@@ -354,7 +354,7 @@ jobs:
         with:
           prerelease: true
           draft: true
-          files: plugdata-Fedora-36-x64
+          files: plugdata-Fedora-37-x64
 
   arch-build:
     runs-on: ubuntu-latest
