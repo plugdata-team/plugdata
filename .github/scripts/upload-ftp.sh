@@ -26,11 +26,12 @@ END_FILE
 TIMESTAMP_URL=https://glyphpress.com/plugdata/${TIMESTAMP_FILE}
 STATUS_CODE=$(curl --write-out %{http_code} --silent --output /dev/null ${TIMESTAMP_URL})
 
-
 if [ $STATUS_CODE -lt "400" ]; then
+    echo "Timestamp found"
     curl ${TIMESTAMP_URL} --output ./last_timestamp.txt
     LAST_TIMESTAMP=$(<last_timestamp.txt)
 else
+    echo "No timestamp found"
     LAST_TIMESTAMP="0"
 fi
 
@@ -45,6 +46,5 @@ fi
 
 # Update the latest version
 curl -T ./latest.txt ftp://glyphpress.com/latest.txt --user ${FTP_USERNAME}:${FTP_PASSWORD}
-
 
 exit 0
