@@ -1289,7 +1289,6 @@ void PluginProcessor::receiveGuiUpdate(int type)
     callbackType |= (1 << type);
 
     if (!isTimerRunning()) {
-
         startTimer(16);
     }
 }

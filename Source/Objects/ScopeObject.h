@@ -294,10 +294,14 @@ struct ScopeBase : public GUIObject
             colourToHexArray(Colour::fromString(gridColour.toString()), scope->x_gg);
         } else if (v.refersToSameSourceAs(bufferSize)) {
             bufferSize = std::clamp<int>(static_cast<int>(bufferSize.getValue()), 0, SCOPE_MAXBUFSIZE * 4);
+            sys_lock();
             scope->x_bufsize = bufferSize.getValue();
             scope->x_bufphase = 0;
+            sys_unlock();
         } else if (v.refersToSameSourceAs(samplesPerPoint)) {
+            sys_lock();
             scope->x_period = limitValueMin(v, 0);
+            sys_unlock();
         } else if (v.refersToSameSourceAs(signalRange)) {
             auto min = static_cast<float>(signalRange.getValue().getArray()->getReference(0));
             auto max = static_cast<float>(signalRange.getValue().getArray()->getReference(1));
@@ -312,6 +316,8 @@ struct ScopeBase : public GUIObject
         } else if (v.refersToSameSourceAs(receiveSymbol)) {
             auto* rcv = pd->generateSymbol(receiveSymbol.toString());
             scope->x_receive = canvas_realizedollar(scope->x_glist, scope->x_rcv_raw = rcv);
+            
+            pd->setThis();
             if (scope->x_receive != &s_) {
                 pd_bind(&scope->x_obj.ob_pd, scope->x_receive);
             } else {
