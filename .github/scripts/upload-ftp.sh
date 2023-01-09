@@ -35,6 +35,9 @@ else
     LAST_TIMESTAMP="0"
 fi
 
+echo "Commit Timestamp: $COMMIT_TIMESTAMP"
+echo "Last Timestamp: $LAST_TIMESTAMP"
+
 # Make sure that a later commit didn't finish earlier than this one
 if [ "$COMMIT_TIMESTAMP" -gt "$LAST_TIMESTAMP" ]; then
 
