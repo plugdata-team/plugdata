@@ -40,14 +40,11 @@ echo "Last Timestamp: $LAST_TIMESTAMP"
 
 # Make sure that a later commit didn't finish earlier than this one
 if [ "$COMMIT_TIMESTAMP" -gt "$LAST_TIMESTAMP" ]; then
-
 # Upload files and additional information
 curl -T ./${FILE} ftp://glyphpress.com/${FILE} --user ${FTP_USERNAME}:${FTP_PASSWORD}
 curl -T ./${INFO_FILE} ftp://glyphpress.com/${INFO_FILE} --user ${FTP_USERNAME}:${FTP_PASSWORD}
 curl -T ./${TIMESTAMP_FILE} ftp://glyphpress.com/${TIMESTAMP_FILE} --user ${FTP_USERNAME}:${FTP_PASSWORD}
 fi
-
-curl -T ./${TIMESTAMP_FILE} ftp://glyphpress.com/${TIMESTAMP_FILE} --user ${FTP_USERNAME}:${FTP_PASSWORD}
 
 # Update the latest version
 curl -T ./latest.txt ftp://glyphpress.com/latest.txt --user ${FTP_USERNAME}:${FTP_PASSWORD}
