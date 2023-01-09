@@ -24,7 +24,7 @@ END_FILE
 
 # Get the last timestamp
 TIMESTAMP_URL=https://glyphpress.com/plugdata/${TIMESTAMP_FILE}
-STATUS_CODE=$(curl --write-out %{http_code} --silent --output ${TIMESTAMP_URL})
+STATUS_CODE=$(curl --write-out %{http_code} --silent --output /dev/null ${TIMESTAMP_URL})
 
 
 if [ $STATUS_CODE -lt "400" ]; then
