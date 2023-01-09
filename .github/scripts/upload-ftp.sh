@@ -1,5 +1,7 @@
 #!/bin/sh
 
+git config --global --add safe.directory ./
+
 FILE=$1
 INFO_FILE=${FILE}.txt
 TIMESTAMP_FILE=${FILE}_timestamp.txt
