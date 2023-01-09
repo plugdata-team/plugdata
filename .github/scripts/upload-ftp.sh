@@ -23,9 +23,12 @@ $LATEST_HASH
 END_FILE
 
 # Get the last timestamp
-curl https://glyphpress.com/plugdata/${TIMESTAMP_FILE} --output ./last_timestamp.txt
+TIMESTAMP_URL=https://glyphpress.com/plugdata/${TIMESTAMP_FILE}
+STATUS_CODE=$(curl --write-out %{http_code} --silent --output ${TIMESTAMP_URL})
 
-if [ -s last_timestamp.txt ]; then
+
+if [ $STATUS_CODE -lt "400" ]; then
+    curl ${TIMESTAMP_URL} --output ./last_timestamp.txt
     LAST_TIMESTAMP=$(<last_timestamp.txt)
 else
     LAST_TIMESTAMP="0"
