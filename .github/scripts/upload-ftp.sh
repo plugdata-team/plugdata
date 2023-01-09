@@ -38,6 +38,10 @@ fi
 echo "Commit Timestamp: $COMMIT_TIMESTAMP"
 echo "Last Timestamp: $LAST_TIMESTAMP"
 
+if [ -z "$LAST_TIMESTAMP" ]; then
+   LAST_TIMESTAMP="0"
+fi
+
 # Make sure that a later commit didn't finish earlier than this one
 if [ "$COMMIT_TIMESTAMP" -gt "$LAST_TIMESTAMP" ]; then
 # Upload files and additional information
