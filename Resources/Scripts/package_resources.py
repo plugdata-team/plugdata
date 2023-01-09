@@ -106,9 +106,9 @@ for src in ["pd.lua", "COPYING", "README"]:
     copyFile(pdlua_srcdir+src, "./Extra/pdlua")
 copyDir(pdlua_srcdir+"doc", "./Extra/pdlua/doc")
 makeDir("Documentation/13.pdlua")
-for src in ["hello*", "pdlua*-help.pd"]:
+for src in ["pdlua*-help.pd"]:
     globCopy(pdlua_srcdir+src, "./Documentation/13.pdlua")
-for src in ["examples", "tutorial"]:
+for src in ["pdlua"]:
     copyDir(pdlua_srcdir+src, "./Documentation/13.pdlua/"+src)
 
 changeWorkingDir("./..")
