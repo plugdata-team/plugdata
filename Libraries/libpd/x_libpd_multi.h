@@ -15,7 +15,7 @@ extern "C" {
 void libpd_multi_init(void);
 void libpd_init_else(void);
 void libpd_init_cyclone(void);
-void libpd_init_pdlua(const char *datadir);
+void libpd_init_pdlua(const char *datadir, char *vers, int vers_len);
 
 typedef void (*t_libpd_multi_banghook)(void* ptr, char const* recv);
 typedef void (*t_libpd_multi_floathook)(void* ptr, char const* recv, float f);
