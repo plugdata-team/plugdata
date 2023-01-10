@@ -178,9 +178,12 @@ public:
 #if JUCE_WINDOWS
             if (vst2)
                 outputFile.getChildFile("bin").getChildFile(name + "-vst.dll").moveFileTo(outputFile.getChildFile(name + "-vst.dll"));
+#elif JUCE_LINUX
+            if (vst2)
+                outputFile.getChildFile("bin").getChildFile(name + "-vst.so").copyDirectoryTo(outputFile.getChildFile(name + "-vst.so"));
 #else
             if (vst2)
-                outputFile.getChildFile("bin").getChildFile(name + ".vst").copyDirectoryTo(outputFile.getChildFile(name + ".vst"));
+                outputFile.getChildFile("bin").getChildFile(name + "-vst.dylib").copyDirectoryTo(outputFile.getChildFile(name + "-vst.dylib"));
 #endif
             if (clap)
                 outputFile.getChildFile("bin").getChildFile(name + ".clap").moveFileTo(outputFile.getChildFile(name + ".clap"));
