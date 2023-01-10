@@ -180,10 +180,10 @@ public:
                 outputFile.getChildFile("bin").getChildFile(name + "-vst.dll").moveFileTo(outputFile.getChildFile(name + "-vst.dll"));
 #elif JUCE_LINUX
             if (vst2)
-                outputFile.getChildFile("bin").getChildFile(name + "-vst.so").copyDirectoryTo(outputFile.getChildFile(name + "-vst.so"));
-#else
+                outputFile.getChildFile("bin").getChildFile(name + "-vst.so").moveFileTo(outputFile.getChildFile(name + "-vst.so"));
+#elif JUCE_MAC
             if (vst2)
-                outputFile.getChildFile("bin").getChildFile(name + "-vst.dylib").copyDirectoryTo(outputFile.getChildFile(name + "-vst.dylib"));
+                outputFile.getChildFile("bin").getChildFile(name + ".vst").copyDirectoryTo(outputFile.getChildFile(name + ".vst"));
 #endif
             if (clap)
                 outputFile.getChildFile("bin").getChildFile(name + ".clap").moveFileTo(outputFile.getChildFile(name + ".clap"));
