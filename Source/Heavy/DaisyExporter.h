@@ -105,7 +105,7 @@ public:
         if (board == "custom") {
             metaDaisy.getDynamicObject()->setProperty("board_file", customBoardDefinition.getFullPathName());
         } else if (board == "simple") {
-            metaDaisy.getDynamicObject()->setProperty("board_file", Toolchain::dir.getChildFile("scripts").getChildFile("simple.json").getFullPathName());
+            metaDaisy.getDynamicObject()->setProperty("board_file", Toolchain::dir.getChildFile("etc").getChildFile("simple.json").getFullPathName());
         } else {
             metaDaisy.getDynamicObject()->setProperty("board", board);
         }
