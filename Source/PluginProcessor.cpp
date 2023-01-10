@@ -45,6 +45,10 @@ AudioProcessor::BusesProperties PluginProcessor::buildBusesProperties()
     return busesProperties;
 }
 
+// ag: Note that this is just a fallback, we update this with live version
+// data from the external if we have it.
+String PluginProcessor::pdlua_version = "pdlua 0.11.0 (lua 5.4)";
+
 PluginProcessor::PluginProcessor()
 #ifndef JucePlugin_PreferredChannelConfigurations
     : AudioProcessor(buildBusesProperties())
@@ -105,7 +109,6 @@ PluginProcessor::PluginProcessor()
     logMessage("Libraries:");
     logMessage(else_version);
     logMessage(cyclone_version);
-    logMessage(pdlua_version);
 
     channelPointers.reserve(32);
 
@@ -172,7 +175,8 @@ PluginProcessor::PluginProcessor()
 
     // ag: This needs to be done *after* the library data has been unpacked on
     // first launch.
-    loadLibs();
+    loadLibs(pdlua_version);
+    logMessage(pdlua_version);
     
     // scope for locking message manager
     {

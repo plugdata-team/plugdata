@@ -16,7 +16,7 @@ inlets:
   - type: list
     description: scale in cents to convert to a frequency list
   - type: bang
-    description: update output #not sure
+    description: generate frequency list
 
 outlets:
   1st:
