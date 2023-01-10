@@ -40,7 +40,7 @@ outlets:
   1st:
   - type: float
     description: count value
-  1st:
+  2nd:
   - type: bang
     description: bang when reaching count limits
 
