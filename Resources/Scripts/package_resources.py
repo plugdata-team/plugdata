@@ -104,12 +104,15 @@ makeDir("Extra/pdlua")
 pdlua_srcdir = "../../Libraries/pd-lua/"
 for src in ["pd.lua", "COPYING", "README"]:
     copyFile(pdlua_srcdir+src, "./Extra/pdlua")
-copyDir(pdlua_srcdir+"doc", "./Extra/pdlua/doc")
-makeDir("Documentation/13.pdlua")
-for src in ["pdlua*-help.pd"]:
-    globCopy(pdlua_srcdir+src, "./Documentation/13.pdlua")
+
+# These are developer docs, we don't need them.
+#copyDir(pdlua_srcdir+"doc", "./Extra/pdlua/doc")
+
+# The remaining example patches go into 9.else which already has the
+# ELSE branded toplevel pdlua and pdluax help patches. NOTE: Once these
+# are also included in the ELSE source, they can be taken from there.
 for src in ["pdlua"]:
-    copyDir(pdlua_srcdir+src, "./Documentation/13.pdlua/"+src)
+    copyDir(pdlua_srcdir+src, "./Documentation/9.else/"+src)
 
 changeWorkingDir("./..")
 
