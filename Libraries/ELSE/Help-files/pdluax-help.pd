@@ -48,9 +48,9 @@
 #X text 50 226 How to write code:;
 #X text 468 309 NOTE: [pdlua]/[pdluax] was originally written by Claude Heiland-Allen and has gone through the hands of a few people over the years \, including mrpeach \, zmoelnig and albert graef. Recently it's been included into PlugData and distributed as part of the ELSE library for compatibility to Vanilla. Alexandre Porres \, author of ELSE \, up to now \, has really nothing to do with it besides shipping it and working on the documentation revision. Tje object is distributed with the GPL 2 license \, see 'pdlua' subfolder for more., f 73;
 #X restore 386 262 pd details;
-#X text 60 207 (right click to open file);
-#X obj 228 206 pdluax pdlua/hello;
+#X text 40 207 (right click to open file);
+#X obj 208 206 pdluax pdlua/hello;
 #X obj 387 163 declare -lib pdlua;
-#X text 344 205 <- loading hello.pd_luax in 'pdlua' subfolder, f 24;
+#X text 324 205 <- loading hello.pd_luax in 'pdlua' subfolder, f 24;
 #X text 49 89 The [pdluax] object is similar to [pdlua] but you can load "*.pd_luax" files as arguments. It is less efficient but more flexible when developing or live-coding. You also need to load [pdlua] as a library first as with the [declare] object below. You can right click the object and ask to open the source file if your system has an application set to handle this extension., f 74;
 #X text 163 375 1) symbol - source file name (without extension);

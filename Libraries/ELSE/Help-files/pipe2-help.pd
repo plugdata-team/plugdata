@@ -1,79 +1,51 @@
-#N canvas 541 23 560 466 10;
-#X obj 306 4 cnv 15 250 40 empty empty empty 12 13 0 18 #7c7c7c #e0e4dc
-0;
+#N canvas 541 23 560 446 10;
+#X obj 306 4 cnv 15 250 40 empty empty empty 12 13 0 18 #7c7c7c #e0e4dc 0;
 #N canvas 382 141 749 319 (subpatch) 0;
 #X coords 0 -1 1 1 252 42 2 100 100;
 #X restore 305 3 pd;
-#X obj 345 11 cnv 10 10 10 empty empty ELSE 0 15 2 30 #7c7c7c #e0e4dc
-0;
-#X obj 23 40 cnv 4 4 4 empty empty Delay 0 28 2 18 #e0e0e0 #000000
-0;
-#X obj 458 11 cnv 10 10 10 empty empty EL 0 6 2 13 #7c7c7c #e0e4dc
-0;
-#X obj 478 11 cnv 10 10 10 empty empty Locus 0 6 2 13 #7c7c7c #e0e4dc
-0;
-#X obj 515 11 cnv 10 10 10 empty empty Solus' 0 6 2 13 #7c7c7c #e0e4dc
-0;
-#X obj 464 26 cnv 10 10 10 empty empty ELSE 0 6 2 13 #7c7c7c #e0e4dc
-0;
-#X obj 502 26 cnv 10 10 10 empty empty library 0 6 2 13 #7c7c7c #e0e4dc
-0;
-#X obj 74 40 cnv 4 4 4 empty empty messages 0 28 2 18 #e0e0e0 #000000
-0;
-#X obj 3 3 cnv 15 301 42 empty empty pipe2 20 20 2 37 #e0e0e0 #000000
-0;
+#X obj 345 11 cnv 10 10 10 empty empty ELSE 0 15 2 30 #7c7c7c #e0e4dc 0;
+#X obj 23 40 cnv 4 4 4 empty empty Delay 0 28 2 18 #e0e0e0 #000000 0;
+#X obj 458 11 cnv 10 10 10 empty empty EL 0 6 2 13 #7c7c7c #e0e4dc 0;
+#X obj 478 11 cnv 10 10 10 empty empty Locus 0 6 2 13 #7c7c7c #e0e4dc 0;
+#X obj 515 11 cnv 10 10 10 empty empty Solus' 0 6 2 13 #7c7c7c #e0e4dc 0;
+#X obj 464 26 cnv 10 10 10 empty empty ELSE 0 6 2 13 #7c7c7c #e0e4dc 0;
+#X obj 502 26 cnv 10 10 10 empty empty library 0 6 2 13 #7c7c7c #e0e4dc 0;
+#X obj 74 40 cnv 4 4 4 empty empty messages 0 28 2 18 #e0e0e0 #000000 0;
+#X obj 3 3 cnv 15 301 42 empty empty pipe2 20 20 2 37 #e0e0e0 #000000 0;
 #N canvas 0 22 450 278 (subpatch) 0;
 #X coords 0 1 100 -1 302 42 1 0 0;
 #X restore 3 3 graph;
-#X obj 2 290 cnv 3 550 3 empty empty inlets 8 12 0 13 #dcdcdc #000000
-0;
-#X obj 2 371 cnv 3 550 3 empty empty outlets 8 12 0 13 #dcdcdc #000000
-0;
-#X obj 2 412 cnv 3 550 3 empty empty arguments 8 12 0 13 #dcdcdc #000000
-0;
-#X obj 89 299 cnv 17 3 17 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
-;
-#X obj 89 321 cnv 17 3 43 empty empty 1 5 9 0 16 #dcdcdc #9c9c9c 0
-;
-#X obj 89 383 cnv 17 3 17 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
-;
-#X obj 2 438 cnv 15 552 21 empty empty empty 20 12 0 14 #e0e0e0 #202020
-0;
+#X obj 2 290 cnv 3 550 3 empty empty inlets 8 12 0 13 #dcdcdc #000000 0;
+#X obj 2 344 cnv 3 550 3 empty empty outlets 8 12 0 13 #dcdcdc #000000 0;
+#X obj 2 385 cnv 3 550 3 empty empty arguments 8 12 0 13 #dcdcdc #000000 0;
+#X obj 89 299 cnv 17 3 17 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0;
+#X obj 89 321 cnv 17 3 17 empty empty 1 5 9 0 16 #dcdcdc #9c9c9c 0;
+#X obj 89 356 cnv 17 3 17 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0;
+#X obj 2 411 cnv 15 552 21 empty empty empty 20 12 0 14 #e0e0e0 #202020 0;
 #X text 179 322 float;
 #X text 161 299 anything;
-#X text 161 384 anything;
-#X text 162 419 1) float;
-#X obj 318 175 nbx 4 15 -1e+37 1e+37 0 0 xfkvds asfmnv empty 0 -8 0
-11 #dcdcdc #000000 #000000 0 256;
+#X text 161 357 anything;
+#X text 162 392 1) float;
+#X obj 291 175 nbx 4 15 -1e+37 1e+37 0 0 xfkvds asfmnv empty 0 -8 0 11 #dcdcdc #000000 #000000 0 256;
 #X obj 204 230 else/display;
 #X floatatom 204 132 5 0 0 0 - - - 0;
-#X obj 174 133 bng 15 250 50 0 empty empty empty 17 7 0 10 #dcdcdc
-#000000 #000000;
+#X obj 174 133 bng 15 250 50 0 empty empty empty 17 7 0 10 #dcdcdc #000000 #000000;
 #X msg 230 178 hi;
 #X msg 220 152 1 2;
-#X text 375 174 delay time;
+#X text 348 174 delay time;
 #X msg 83 133 cis boom bah;
 #X obj 204 260 print pipe2;
-#X text 44 85 [pipe2] is similar to vanilla's pipe. It takes all kinds
-of messages and delays them., f 68;
+#X text 44 85 [pipe2] is similar to vanilla's pipe. It takes all kinds of messages and delays them., f 68;
 #X text 227 299 - message to be delayed;
-#X text 227 385 - the delayed message;
-#X text 228 419 - delay time in ms (default 0);
-#X msg 309 149 flush;
-#X msg 293 126 clear;
+#X text 227 358 - the delayed message;
+#X text 228 392 - delay time in ms (default 0);
 #X text 227 322 - sets delay time in ms, f 33;
-#X text 179 337 clear;
-#X text 179 351 flush;
-#X text 227 337 - clears the delay time, f 33;
-#X text 227 351 - outputs all stored elements, f 33;
-#X obj 204 205 else/pipe2 2000, f 18;
-#X connect 23 0 43 1;
+#X obj 204 205 else/pipe2 2000;
+#X connect 23 0 37 1;
 #X connect 24 0 31 0;
-#X connect 25 0 43 0;
-#X connect 26 0 43 0;
-#X connect 27 0 43 0;
-#X connect 28 0 43 0;
-#X connect 30 0 43 0;
-#X connect 36 0 43 1;
-#X connect 37 0 43 1;
-#X connect 43 0 24 0;
+#X connect 25 0 37 0;
+#X connect 26 0 37 0;
+#X connect 27 0 37 0;
+#X connect 28 0 37 0;
+#X connect 30 0 37 0;
+#X connect 37 0 24 0;
