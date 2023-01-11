@@ -1,53 +1,39 @@
-#N canvas 549 115 560 361 10;
-#X msg 179 138 0 200 400 500 700 900 1100 1200;
-#X obj 179 197 display;
-#X obj 4 234 cnv 3 550 3 empty empty inlets 8 12 0 13 #dcdcdc #000000
-0;
-#X obj 4 266 cnv 3 550 3 empty empty outlets 8 12 0 13 #dcdcdc #000000
-0;
-#X obj 4 303 cnv 3 550 3 empty empty arguments 8 12 0 13 #dcdcdc #000000
-0;
-#X obj 119 275 cnv 17 3 17 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
-;
-#X obj 4 336 cnv 15 552 21 empty empty empty 20 12 0 14 #e0e0e0 #202020
-0;
-#X obj 3 3 cnv 15 301 42 empty empty cents2scale 20 20 2 37 #e0e0e0
-#000000 0;
-#X obj 306 4 cnv 15 250 40 empty empty empty 12 13 0 18 #7c7c7c #e0e4dc
-0;
+#N canvas 547 30 562 363 10;
+#X msg 190 138 0 200 400 500 700 900 1100 1200;
+#X obj 190 196 display;
+#X obj 4 234 cnv 3 550 3 empty empty inlets 8 12 0 13 #dcdcdc #000000 0;
+#X obj 4 266 cnv 3 550 3 empty empty outlets 8 12 0 13 #dcdcdc #000000 0;
+#X obj 4 303 cnv 3 550 3 empty empty arguments 8 12 0 13 #dcdcdc #000000 0;
+#X obj 130 275 cnv 17 3 17 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0;
+#X obj 4 336 cnv 15 552 21 empty empty empty 20 12 0 14 #e0e0e0 #202020 0;
+#X obj 3 3 cnv 15 301 42 empty empty cents2scale 20 20 2 37 #e0e0e0 #000000 0;
+#X obj 306 4 cnv 15 250 40 empty empty empty 12 13 0 18 #7c7c7c #e0e4dc 0;
 #N canvas 0 22 450 278 (subpatch) 0;
 #X coords 0 1 100 -1 302 42 1 0 0;
 #X restore 2 3 graph;
 #N canvas 382 141 749 319 (subpatch) 0;
 #X coords 0 -1 1 1 252 42 2 100 100;
 #X restore 305 3 pd;
-#X obj 345 11 cnv 10 10 10 empty empty ELSE 0 15 2 30 #7c7c7c #e0e4dc
-0;
-#X obj 23 40 cnv 4 4 4 empty empty Cents/Scale 0 28 2 18 #e0e0e0 #000000
-0;
-#X obj 118 40 cnv 4 4 4 empty empty conversion 0 28 2 18 #e0e0e0 #000000
-0;
-#X obj 458 11 cnv 10 10 10 empty empty EL 0 6 2 13 #7c7c7c #e0e4dc
-0;
-#X obj 478 11 cnv 10 10 10 empty empty Locus 0 6 2 13 #7c7c7c #e0e4dc
-0;
-#X obj 515 11 cnv 10 10 10 empty empty Solus' 0 6 2 13 #7c7c7c #e0e4dc
-0;
-#X obj 464 26 cnv 10 10 10 empty empty ELSE 0 6 2 13 #7c7c7c #e0e4dc
-0;
-#X obj 502 26 cnv 10 10 10 empty empty library 0 6 2 13 #7c7c7c #e0e4dc
-0;
-#X obj 117 243 cnv 17 3 17 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
-;
+#X obj 345 11 cnv 10 10 10 empty empty ELSE 0 15 2 30 #7c7c7c #e0e4dc 0;
+#X obj 23 40 cnv 4 4 4 empty empty Cents/Scale 0 28 2 18 #e0e0e0 #000000 0;
+#X obj 118 40 cnv 4 4 4 empty empty conversion 0 28 2 18 #e0e0e0 #000000 0;
+#X obj 458 11 cnv 10 10 10 empty empty EL 0 6 2 13 #7c7c7c #e0e4dc 0;
+#X obj 478 11 cnv 10 10 10 empty empty Locus 0 6 2 13 #7c7c7c #e0e4dc 0;
+#X obj 515 11 cnv 10 10 10 empty empty Solus' 0 6 2 13 #7c7c7c #e0e4dc 0;
+#X obj 464 26 cnv 10 10 10 empty empty ELSE 0 6 2 13 #7c7c7c #e0e4dc 0;
+#X obj 502 26 cnv 10 10 10 empty empty library 0 6 2 13 #7c7c7c #e0e4dc 0;
+#X obj 128 243 cnv 17 3 17 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0;
 #X text 235 312 none;
-#X text 156 275 list;
-#X text 156 244 list;
-#X text 20 163 see also:;
-#X text 61 86 Use [cents2scale] to convert a list of intervals defined
-as cents to a scale defined as scale steps in semitones.;
-#X obj 179 165 else/cents2scale;
-#X obj 24 185 else/scale2cents;
-#X text 189 244 - cents values;
-#X text 189 275 - converted scale values;
+#X text 167 275 list;
+#X text 167 244 list;
+#X text 24 125 see also:;
+#X text 74 84 Use [cents2scale] to convert a list of intervals defined as cents to a scale defined as scale steps in semitones.;
+#X obj 190 167 else/cents2scale;
+#X obj 24 146 else/scale2cents;
+#X text 200 244 - cents values;
+#X text 200 275 - converted scale values;
+#X obj 24 186 else/cents2ratio;
+#X obj 24 206 else/cents2frac;
+#X obj 24 166 else/scales;
 #X connect 0 0 25 0;
 #X connect 25 0 1 0;
