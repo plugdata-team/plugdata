@@ -575,7 +575,7 @@ void Connection::updatePath()
         }
 
         connectionPath.lineTo(pend.toFloat());
-        toDraw = connectionPath.createPathWithRoundedCorners(8.0f);
+        toDraw = connectionPath.createPathWithRoundedCorners(useStraight ? 0.0f : 8.0f);
     }
 
     repaint();
