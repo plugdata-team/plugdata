@@ -1460,7 +1460,7 @@ void Canvas::handleMouseDrag(MouseEvent const& e)
 
     if (e.mods.isShiftDown() && selection.size() == 1) {
         auto* object = selection.getFirst();
-        if (object->numInputs >= 1 && object->numOutputs >= 0) {
+        if (object->numInputs && object->numOutputs) {
             bool intersected = false;
             for (auto* connection : connections) {
                 if (connection->intersectsObject(object)) {
