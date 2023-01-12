@@ -63,8 +63,8 @@ struct WelcomePanel : public Component {
 
     WelcomePanel()
     {
-        newButton = std::make_unique<WelcomeButton>(Icons::New, "New Patch", "Create a new empty patch");
-        openButton = std::make_unique<WelcomeButton>(Icons::Open, "Open Patch...", "Open a saved patch");
+        newButton = std::make_unique<WelcomeButton>(Icons::New, "New patch", "Create a new empty patch");
+        openButton = std::make_unique<WelcomeButton>(Icons::Open, "Open patch...", "Open a saved patch");
 
         addAndMakeVisible(newButton.get());
         addAndMakeVisible(openButton.get());

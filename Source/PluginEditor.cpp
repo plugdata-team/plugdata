@@ -42,8 +42,12 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     , tooltipWindow(this, 500)
     , tooltipShadow(DropShadow(Colour(0, 0, 0).withAlpha(0.2f), 4, { 0, 0 }), Constants::defaultCornerRadius)
 {
-    toolbarButtons = { new TextButton(Icons::Open), new TextButton(Icons::Save), new TextButton(Icons::SaveAs), new TextButton(Icons::Undo),
-        new TextButton(Icons::Redo), new TextButton(Icons::Add), new TextButton(Icons::Settings), new TextButton(Icons::Hide), new TextButton(Icons::Pin) };
+    toolbarButtons = { new TextButton(Icons::Settings),
+                       new TextButton(Icons::Undo),
+                       new TextButton(Icons::Redo),
+                       new TextButton(Icons::Add),
+                       new TextButton(Icons::Hide),
+                       new TextButton(Icons::Pin) };
 
 #if PLUGDATA_STANDALONE
     // In the standalone, the resizer handling is done on the window class
@@ -138,30 +142,6 @@ PluginEditor::PluginEditor(PluginProcessor& p)
         addAndMakeVisible(button);
     }
 
-    // Open button
-    toolbarButton(Open)->setTooltip("Open Project");
-    toolbarButton(Open)->onClick = [this]() { openProject(); };
-
-    // Save button
-    toolbarButton(Save)->setTooltip("Save Patch");
-    toolbarButton(Save)->onClick = [this]() { saveProject(); };
-
-    // Save Ad button
-    toolbarButton(SaveAs)->setTooltip("Save Patch as");
-    toolbarButton(SaveAs)->onClick = [this]() { saveProjectAs(); };
-
-    //  Undo button
-    toolbarButton(Undo)->setTooltip("Undo");
-    toolbarButton(Undo)->onClick = [this]() { getCurrentCanvas()->undo(); };
-
-    // Redo button
-    toolbarButton(Redo)->setTooltip("Redo");
-    toolbarButton(Redo)->onClick = [this]() { getCurrentCanvas()->redo(); };
-
-    // New object button
-    toolbarButton(Add)->setTooltip("Create Object");
-    toolbarButton(Add)->onClick = [this]() { Dialogs::showObjectMenu(this, toolbarButton(Add)); };
-
     // Show settings
     toolbarButton(Settings)->setTooltip("Settings");
     toolbarButton(Settings)->onClick = [this]() {
@@ -174,6 +154,23 @@ PluginEditor::PluginEditor(PluginProcessor& p)
         Dialogs::createSettingsDialog(pd, nullptr, toolbarButton(Settings), pd->settingsTree);
 #endif
     };
+
+    addAndMakeVisible(toolbarButton(Settings));
+
+    //  Undo button
+    toolbarButton(Undo)->setTooltip("Undo");
+    toolbarButton(Undo)->onClick = [this]() { getCurrentCanvas()->undo(); };
+    addAndMakeVisible(toolbarButton(Undo));
+
+    // Redo button
+    toolbarButton(Redo)->setTooltip("Redo");
+    toolbarButton(Redo)->onClick = [this]() { getCurrentCanvas()->redo(); };
+    addAndMakeVisible(toolbarButton(Redo));
+
+    // New object button
+    toolbarButton(Add)->setTooltip("Create object");
+    toolbarButton(Add)->onClick = [this]() { Dialogs::showObjectMenu(this, toolbarButton(Add)); };
+    addAndMakeVisible(toolbarButton(Add));
 
     // Hide sidebar
     toolbarButton(Hide)->setTooltip("Hide Sidebar");
@@ -282,33 +279,10 @@ void PluginEditor::resized()
 
     statusbar.setBounds(0, getHeight() - statusbar.getHeight(), getWidth() - sidebar.getWidth(), statusbar.getHeight());
 
-    auto fb = FlexBox(FlexBox::Direction::row, FlexBox::Wrap::noWrap, FlexBox::AlignContent::flexStart, FlexBox::AlignItems::stretch, FlexBox::JustifyContent::spaceBetween);
-
-    for (int b = 0; b < 9; b++) {
-        auto* button = toolbarButtons[b];
-
-        auto item = FlexItem(*button).withMinWidth(45.0f).withMinHeight(8.0f).withMaxWidth(55.0f);
-        item.flexGrow = 1.5f;
-        item.flexShrink = 1.0f;
-
-        if (b == 3 || b == 5) {
-            auto separator = FlexItem(seperators[b]).withMinWidth(8.0f).withMaxWidth(12.0f);
-            separator.flexGrow = 1.0f;
-            separator.flexShrink = 1.0f;
-            fb.items.add(separator);
-        } else {
-            auto separator = FlexItem(seperators[b]).withMinWidth(3.0f).withMaxWidth(4.0f);
-            separator.flexGrow = 0.0f;
-            separator.flexShrink = 1.0f;
-            fb.items.add(separator);
-        }
-
-        fb.items.add(item);
-    }
-
-    Rectangle<float> toolbarBounds = { 8.0f, 0.0f, getWidth() - 240.0f, static_cast<float>(toolbarHeight) };
-
-    fb.performLayout(toolbarBounds);
+    toolbarButton(Settings)->setBounds(0, 0, toolbarHeight, toolbarHeight);
+    toolbarButton(Undo)->setBounds(100, 0, toolbarHeight, toolbarHeight);
+    toolbarButton(Redo)->setBounds(150, 0, toolbarHeight, toolbarHeight);
+    toolbarButton(Add)->setBounds(250, 0, toolbarHeight, toolbarHeight);
 
 #ifdef PLUGDATA_STANDALONE
     int offset = 150;
@@ -752,8 +726,6 @@ void PluginEditor::updateCommandStatus()
         statusbar.presentationButton->setEnabled(true);
         statusbar.gridButton->setEnabled(true);
 
-        toolbarButton(Save)->setEnabled(true);
-        toolbarButton(SaveAs)->setEnabled(true);
         toolbarButton(Add)->setEnabled(!locked);
     } else {
         statusbar.connectionStyleButton->setEnabled(false);
@@ -764,8 +736,6 @@ void PluginEditor::updateCommandStatus()
         statusbar.presentationButton->setEnabled(false);
         statusbar.gridButton->setEnabled(false);
 
-        toolbarButton(Save)->setEnabled(false);
-        toolbarButton(SaveAs)->setEnabled(false);
         toolbarButton(Undo)->setEnabled(false);
         toolbarButton(Redo)->setEnabled(false);
         toolbarButton(Add)->setEnabled(false);
@@ -809,23 +779,23 @@ void PluginEditor::getCommandInfo(const CommandID commandID, ApplicationCommandI
 
     switch (commandID) {
     case CommandIDs::NewProject: {
-        result.setInfo("New Patch", "Create a new patch", "General", 0);
+        result.setInfo("New patch", "Create a new patch", "General", 0);
         result.addDefaultKeypress(84, ModifierKeys::commandModifier);
         break;
     }
     case CommandIDs::OpenProject: {
-        result.setInfo("Open Patch...", "Open a patch", "General", 0);
+        result.setInfo("Open patch...", "Open a patch", "General", 0);
         result.addDefaultKeypress(79, ModifierKeys::commandModifier);
         break;
     }
     case CommandIDs::SaveProject: {
-        result.setInfo("Save Patch", "Save patch at current location", "General", 0);
+        result.setInfo("Save patch", "Save patch at current location", "General", 0);
         result.addDefaultKeypress(83, ModifierKeys::commandModifier);
         result.setActive(hasCanvas);
         break;
     }
     case CommandIDs::SaveProjectAs: {
-        result.setInfo("Save Patch As...", "Save patch in chosen location", "General", 0);
+        result.setInfo("Save patch as...", "Save patch in chosen location", "General", 0);
         result.addDefaultKeypress(83, ModifierKeys::commandModifier | ModifierKeys::shiftModifier);
         result.setActive(hasCanvas);
         break;
