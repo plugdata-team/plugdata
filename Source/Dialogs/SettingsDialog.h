@@ -200,6 +200,32 @@ struct SettingsPopup : public PopupMenu {
         addCustomItem(2, zoomSelector, 70, 30, false);
         addSeparator();
 
+        addItem("New patch", [this, editor]() mutable {
+            editor->newProject();
+        });
+
+        addSeparator();
+
+        addItem("Open patch...", [this, editor]() mutable {
+            editor->openProject();
+        });
+
+        addSeparator();
+
+        if (editor->getCurrentCanvas()) {
+            addItem("Save patch", [this, editor]() mutable {
+                editor->saveProject();
+            });
+            addItem("Save patch as...", [this, editor]() mutable {
+                editor->saveProjectAs();
+            });
+        } else {
+            addItem("Save patch", false, false, nullptr);
+            addItem("Save patch as...", false, false, nullptr);
+        }
+
+        addSeparator();
+
         // Toggles hvcc compatibility mode
         bool hvccModeEnabled = settingsTree.hasProperty("HvccMode") ? static_cast<bool>(settingsTree.getProperty("HvccMode")) : false;
         addItem("Compiled mode", true, hvccModeEnabled, [this]() mutable {
