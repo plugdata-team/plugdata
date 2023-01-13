@@ -52,6 +52,9 @@ struct AtomObject : public GUIObject {
 
         int idx = static_cast<int>(std::find(atomSizes, atomSizes + 7, h) - atomSizes);
         labelHeight = idx + 1;
+        
+        sendSymbol = getSendSymbol();
+        receiveSymbol = getReceiveSymbol();
     }
 
     void updateBounds() override
