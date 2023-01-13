@@ -2,7 +2,6 @@ import shutil
 import os
 import glob
 
-
 # Utility filesystem functions
 def makeArchive(name, root_dir, base_dir):
     shutil.make_archive(name, "zip", root_dir, base_dir)
@@ -75,7 +74,6 @@ copyFile("../Patches/param.pd", "./Abstractions")
 
 globMove("./Abstractions/*-help.pd", "./Documentation/5.reference")
 
-
 copyDir("../Documentation", "./Documentation/pddp")
 copyDir("../../Libraries/ELSE/Help-files/", "./Documentation/9.else")
 
@@ -83,7 +81,7 @@ copyFile("../../Libraries/ELSE/sfont~/sfont~-help.pd", "./Documentation/9.else")
 #copyFile("../Patches/param-help.pd", "./Documentation/5.reference")
 copyFile("../Patches/playhead-help.pd", "./Documentation/5.reference")
 
-globCopy("../../Libraries/cyclone/abstractions/*.pd", "./Abstractions")
+globCopy("../../Libraries/cyclone/cyclone_objects/abstractions/*.pd", "./Abstractions")
 copyDir("../../Libraries/cyclone/documentation/help_files", "./Documentation/10.cyclone")
 copyDir("../../Libraries/ELSE/Live-Electronics-Tutorial/", "./Documentation/12.live-electronics-tutorial")
 
@@ -93,6 +91,7 @@ globMove("./Abstractions/heavylib/*-help.pd", "./Documentation/11.heavylib")
 
 # Remove else and cyclone prefixes in helpfiles
 globFindAndReplaceText("./Abstractions/else/*.pd", "else/", "")
+globFindAndReplaceText("./Abstractions/*.pd", "cyclone/", "")
 globFindAndReplaceText("./Documentation/9.else/*.pd", "else/", "")
 globFindAndReplaceText("./Documentation/10.cyclone/*.pd", "cyclone/", "")
 

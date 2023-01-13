@@ -136,7 +136,7 @@ public:
     pd::Library objectLibrary;
 
     File homeDir = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory).getChildFile("plugdata");
-    File versionDataDir = homeDir.getChildFile(ProjectInfo::versionString + String("-0"));
+    File versionDataDir = homeDir.getChildFile(ProjectInfo::versionString + String("-1"));
 
     File settingsFile = homeDir.getChildFile("Settings.xml");
     File abstractions = versionDataDir.getChildFile("Abstractions");
@@ -194,7 +194,7 @@ private:
 
     CriticalSection const* audioLock;
 
-    static inline const String else_version = "ELSE v1.0-rc5";
+    static inline const String else_version = "ELSE v1.0-rc6";
     static inline const String cyclone_version = "cyclone v0.6-1";
     // this gets updated with live version data later
     static String pdlua_version;
