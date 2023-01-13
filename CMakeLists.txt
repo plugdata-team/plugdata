@@ -38,7 +38,7 @@ message("-- Packaging resources")
 execute_process(COMMAND python3 package_resources.py WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Scripts)
 
 
-set(PLUGDATA_VERSION                    "0.6.3-0")
+set(PLUGDATA_VERSION                    "0.6.3")
 set(PLUGDATA_COMPANY_NAME               "plugdata")
 set(PLUGDATA_COMPANY_COPYRIGHT          "plugdata by Timothy Schoen")
 set(PLUGDATA_COMPANY_WEBSITE            "github.com/plugdata-team/plugdata")
