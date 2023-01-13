@@ -282,13 +282,13 @@ struct AtomObject : public GUIObject {
     String getSendSymbol()
     {
         auto* atom = static_cast<t_fake_gatom*>(ptr);
-        return String::fromUTF8(atom->a_symfrom->s_name);
+        return String::fromUTF8(atom->a_symto->s_name);
     }
 
     String getReceiveSymbol()
     {
         auto* atom = static_cast<t_fake_gatom*>(ptr);
-        return String::fromUTF8(atom->a_symto->s_name);
+        return String::fromUTF8(atom->a_symfrom->s_name);
     }
 
     void setSendSymbol(String const& symbol) const
