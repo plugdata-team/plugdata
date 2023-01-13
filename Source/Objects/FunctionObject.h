@@ -57,6 +57,9 @@ struct FunctionObject final : public GUIObject {
 
         Array<var> arr = { function->x_min, function->x_max };
         range = var(arr);
+        
+        sendSymbol = String(function->x_snd_raw->s_name);
+        receiveSymbol = String(function->x_rcv_raw->s_name);
     }
 
     // std::pair<float, float> range;
