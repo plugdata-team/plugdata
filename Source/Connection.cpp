@@ -81,8 +81,7 @@ Connection::Connection(Canvas* parent, Iolet* s, Iolet* e, bool exists)
 
     // Make sure it gets updated on init
     valueChanged(useDashedSignalConnection);
-
-    setVisible(presentationMode == var(false) && !cnv->isGraph);
+    valueChanged(presentationMode);
     
     updatePath();
     repaint();
@@ -93,7 +92,7 @@ void Connection::valueChanged(Value& v)
     if (v.refersToSameSourceAs(useDashedSignalConnection)) {
         useDashed = static_cast<bool>(useDashedSignalConnection.getValue());
     } else if (v.refersToSameSourceAs(presentationMode)) {
-        setVisible(presentationMode == var(false) && !cnv->isGraph);
+        setVisible(presentationMode != var(true) && !cnv->isGraph);
     } else if (v.refersToSameSourceAs(useStraightConnections)) {
         useStraight = static_cast<bool>(useStraightConnections.getValue());
         updatePath();
