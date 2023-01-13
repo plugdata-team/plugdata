@@ -58,8 +58,11 @@ struct FunctionObject final : public GUIObject {
         Array<var> arr = { function->x_min, function->x_max };
         range = var(arr);
         
-        sendSymbol = String(function->x_snd_raw->s_name);
-        receiveSymbol = String(function->x_rcv_raw->s_name);
+        auto sndSym = String(function->x_send->s_name);
+        auto rcvSym = String(function->x_receive->s_name);
+        
+        sendSymbol = sndSym != "empty" ? sndSym : "";
+        receiveSymbol = rcvSym != "empty" ? rcvSym : "";
     }
 
     // std::pair<float, float> range;
@@ -365,12 +368,16 @@ struct FunctionObject final : public GUIObject {
             repaint();
         } else if (v.refersToSameSourceAs(sendSymbol)) {
             auto symbol = sendSymbol.toString();
-            function->x_snd_raw = pd->generateSymbol(symbol);
-            function->x_send = canvas_realizedollar(function->x_glist, function->x_snd_raw);
+            t_atom atom;
+            SETSYMBOL(&atom, pd->generateSymbol(symbol));
+            pd_typedmess((t_pd*)function, pd->generateSymbol("send"), 1, &atom);
         } else if (v.refersToSameSourceAs(receiveSymbol)) {
+            
             auto symbol = receiveSymbol.toString();
-            function->x_rcv_raw = pd->generateSymbol(symbol);
-            function->x_receive = canvas_realizedollar(function->x_glist, function->x_rcv_raw);
+            t_atom atom;
+            SETSYMBOL(&atom, pd->generateSymbol(symbol));
+            pd_typedmess((t_pd*)function, pd->generateSymbol("receive"), 1, &atom);
+        
         } else if (v.refersToSameSourceAs(range)) {
             setRange(getRange());
             updateValue();
