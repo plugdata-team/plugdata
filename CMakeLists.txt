@@ -1,4 +1,9 @@
-cmake_minimum_required(VERSION 3.12)
+cmake_minimum_required(VERSION 3.15)
+
+if(MSVC)
+cmake_policy(SET CMP0091 NEW)
+set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+endif()
 
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
@@ -17,10 +22,6 @@ if(APPLE)
   else()
   set(CMAKE_OSX_ARCHITECTURES "arm64;x86_64" CACHE STRING "" FORCE)
   endif()
-endif()
-
-if(MSVC)
-set(CMAKE_MSVC_RUNTIME_LIBRARY MultiThreaded)
 endif()
 
 if(RUN_CLANG_TIDY)
@@ -312,6 +313,7 @@ target_link_libraries(plugdata_standalone PRIVATE pd ${CMAKE_CURRENT_SOURCE_DIR}
 else()
 target_link_libraries(plugdata_standalone PRIVATE pd ${libs})
 endif()
+
 target_link_libraries(plugdata PRIVATE pd-multi ${libs})
 target_link_libraries(plugdata_fx PRIVATE pd-multi ${libs})
 
@@ -391,7 +393,6 @@ endif()
 if(MSVC)
 set_target_properties(pthreadVC3 pthreadVSE3 pthreadVCE3 PROPERTIES EXCLUDE_FROM_ALL 1 EXCLUDE_FROM_DEFAULT_BUILD 1)
 endif()
-
 
 set(CMAKE_INSTALL_DEFAULT_DIRECTORY_PERMISSIONS
   WORLD_READ
