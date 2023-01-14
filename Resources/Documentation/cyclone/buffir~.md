@@ -1,30 +1,40 @@
 ---
 title: buffir~
-description:
+description: Convolve with a buffer
 categories:
  - object
 pdcategory: General
 arguments:
 - type: symbol
-  description:
-  default:
+  description: table name
 - type: float
-  description:
-  default:
+  description: table offset
+  default: 0
 - type: float
-  description:
-  default:
+  description: table size/length (maximum is 4096)
+  default: 0
 inlets:
   1st:
   - type: signal
-    description:
+    description: the signal to be convolved with samples from the buffer
   2nd:
-  - type: signal
-    description:
+  - type: float/signal
+    description: offset (samples)
   3rd:
-  - type: signal
-    description:
+  - type: float/signal
+    description: size/length (samples) - maximum is 4096
 outlets:
   1st:
   - type: signal
-    description:
+    description: the filtered signal
+
+methods:
+  - type: clear
+    description: clears current input history
+  - type: set <list>
+    description: set <buffer/table name, offset, size> (resets arguments)
+
+---
+
+[buffir~] is a table/buffer based FIR (finite impulse response) filter. An input signal is convolved with 'n' samples of a buffer.
+
