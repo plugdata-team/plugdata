@@ -1,8 +1,5 @@
 cmake_minimum_required(VERSION 3.15)
 
-cmake_policy(SET CMP0091 NEW)
-set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
-
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
 
@@ -36,6 +33,9 @@ set_property(GLOBAL PROPERTY USE_FOLDERS YES)
 project(plugdata VERSION 0.6.3 LANGUAGES C CXX)
 
 add_subdirectory(Libraries/ EXCLUDE_FROM_ALL)
+
+cmake_policy(SET CMP0091 NEW)
+set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 
 message("-- Packaging resources")
 execute_process(COMMAND python3 package_resources.py WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Scripts)
