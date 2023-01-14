@@ -1,12 +1,20 @@
 ---
 title: atan~
-description:
+description: Signal arc-tangent function
 categories:
  - object
 pdcategory: General
 arguments:
 inlets:
+  1st:
+  - type: signal
+    description: input to arc-tangent function
 outlets:
   1st:
   - type: signal
-    description:
+    description: the arc-tangent of the input
+
+---
+
+Use [atan~] to output the arc-tangent of each input sample (probably only useful for mathematical calculations).
+
