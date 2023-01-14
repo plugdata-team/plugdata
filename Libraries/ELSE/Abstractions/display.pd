@@ -1,8 +1,8 @@
-#N canvas 649 294 684 399 12;
+#N canvas 682 211 684 399 12;
 #X declare -path else;
 #X obj 463 165 namecanvas \$0-canvas, f 21;
 #X obj 42 27 inlet;
-#N canvas 926 257 514 438 not-fixed 0;
+#N canvas 926 257 514 438 not-fixed 1;
 #X obj 83 43 inlet;
 #X obj 262 217 + 2;
 #X obj 83 246 pack symbol \$0 float float;
@@ -66,7 +66,7 @@
 #X obj 83 157 trigger symbol symbol;
 #X obj 107 101 s \$0-message;
 #X obj 108 129 r \$0-resize-unfixed;
-#X msg 83 333 \; \$2-display label \$1 \, vis_size \$3 20 \; \$2-canvas coords 0 1 1 -1 \$4 22 2 100 100 1 \; \$2-drawcanvas coords 0 1 1 -1 \$4 22 2 100 100 1;
+#X msg 83 333 \; \$2-display label \$1 \, vis_size \$3 20 \; pd-\$2-cnv coords 0 1 1 -1 \$4 22 2 100 100 1 \; \$2-canvas coords 0 1 1 -1 \$4 22 2 100 100 1;
 #X connect 0 0 4 0;
 #X connect 0 0 5 0;
 #X connect 1 0 2 3;
@@ -167,9 +167,8 @@
 #X obj 42 305 outlet;
 #X text 382 249 Part of ELSE \; https://github.com/porres/pd-else;
 #X text 380 228 Alexandre Torres Porres (2017-2018);
-#N canvas 483 256 450 441 \$0-cnv 0;
-#X obj 101 101 cnv 10 12 20 empty 1021-display 2 2 10 0 12 #e0e0e0 #404040 0;
-#X obj 246 102 namecanvas \$0-drawcanvas;
+#N canvas 185 381 450 300 \$0-cnv 0;
+#X obj 101 101 cnv 10 12 20 empty 1028-display empty 2 10 0 12 #e0e0e0 #404040 0;
 #X coords 0 1 1 -1 14 22 2 100 100;
 #X restore 100 100 pd \$0-cnv;
 #X obj 100 101 cnv 1 6 1 empty empty empty 20 12 0 14 #000000 #404040 0;
@@ -313,7 +312,7 @@
 #X connect 17 0 13 0;
 #X connect 17 1 6 0;
 #X restore 58 161 pd get-symbol;
-#N canvas 352 207 853 505 blink 0;
+#N canvas 515 44 535 505 blink 0;
 #N canvas 568 74 712 637 off 0;
 #X obj 490 220 * -1;
 #X obj 424 300 +;
@@ -374,15 +373,11 @@
 #X obj 102 147 spigot;
 #X obj 70 80 t b b;
 #X msg 141 118 1;
-#X obj 373 350 print;
-#X text 436 353 <- first outputs 1 \, then outputs 0;
-#X text 523 406 yet it keeps this color!, f 26;
 #X connect 0 0 4 0;
 #X connect 1 0 0 0;
 #X connect 1 1 3 0;
 #X connect 2 0 1 0;
 #X connect 2 0 6 1;
-#X connect 2 0 13 0;
 #X connect 3 0 4 0;
 #X connect 5 0 2 0;
 #X connect 6 0 8 0;
