@@ -126,9 +126,28 @@ struct IEMObject : public GUIObject {
     {
         auto setColour = [this](Value& targetValue, pd::Atom& atom) {
             if (atom.isSymbol()) {
-                setParameterExcludingListener(targetValue, atom.getSymbol());
+                auto colour = "#FF" + atom.getSymbol().fromFirstOccurrenceOf("#", false, false);
+                setParameterExcludingListener(targetValue, colour);
             } else {
-                setParameterExcludingListener(secondaryColour, Colour(static_cast<uint32>(atom.getFloat())).toString());
+        
+                int iemcolor = atom.getFloat();
+                
+                if(iemcolor >= 0)
+                {
+                    while(iemcolor >= IEM_GUI_MAX_COLOR)
+                        iemcolor -= IEM_GUI_MAX_COLOR;
+                    while(iemcolor < 0)
+                        iemcolor += IEM_GUI_MAX_COLOR;
+                    
+                    iemcolor = iemgui_color_hex[iemcolor];
+                }
+                else
+                    iemcolor = ((-1 -iemcolor)&0xffffff);
+                
+                auto colour = Colour(static_cast<uint32>(convert_from_iem_color(iemcolor)));
+                
+                std::cout << colour.toString() << std::endl;
+                setParameterExcludingListener(targetValue, colour.toString());
             }
         };
 
@@ -141,7 +160,10 @@ struct IEMObject : public GUIObject {
             if (atoms.size() > 2)
                 setColour(labelColour, atoms[2]);
 
+            std::cout << "------" << std::endl;
+            
             repaint();
+            updateLabel();
         } else if (symbol == "label" && atoms.size() >= 1) {
             setParameterExcludingListener(labelText, atoms[0].getSymbol());
             updateLabel();
@@ -317,12 +339,6 @@ struct IEMObject : public GUIObject {
         auto* sym = symbol.isEmpty() ? nullptr : pd->generateSymbol(symbol);
         auto* iemgui = static_cast<t_iemgui*>(ptr);
         iemgui_receive(ptr, iemgui, sym);
-    }
-
-    static unsigned int fromIemColours(int const color)
-    {
-        auto const c = static_cast<unsigned int>(color << 8 | 0xFF);
-        return ((0xFF << 24) | ((c >> 24) << 16) | ((c >> 16) << 8) | (c >> 8));
     }
 
     Colour getBackgroundColour() const

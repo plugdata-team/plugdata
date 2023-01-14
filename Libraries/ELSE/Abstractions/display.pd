@@ -1,8 +1,8 @@
-#N canvas 682 211 684 399 12;
+#N canvas 649 294 684 399 12;
 #X declare -path else;
 #X obj 463 165 namecanvas \$0-canvas, f 21;
 #X obj 42 27 inlet;
-#N canvas 986 257 514 438 not-fixed 0;
+#N canvas 926 257 514 438 not-fixed 0;
 #X obj 83 43 inlet;
 #X obj 262 217 + 2;
 #X obj 83 246 pack symbol \$0 float float;
@@ -66,8 +66,7 @@
 #X obj 83 157 trigger symbol symbol;
 #X obj 107 101 s \$0-message;
 #X obj 108 129 r \$0-resize-unfixed;
-#X msg 83 333 \; \$2-display label \$1 \, vis_size \$3 20 \; \$2-canvas
-coords 0 1 1 -1 \$4 22 2 100 100 1;
+#X msg 83 333 \; \$2-display label \$1 \, vis_size \$3 20 \; \$2-canvas coords 0 1 1 -1 \$4 22 2 100 100 1 \; \$2-drawcanvas coords 0 1 1 -1 \$4 22 2 100 100 1;
 #X connect 0 0 4 0;
 #X connect 0 0 5 0;
 #X connect 1 0 2 3;
@@ -125,8 +124,7 @@ coords 0 1 1 -1 \$4 22 2 100 100 1;
 #X obj 459 429 - 1;
 #X obj 392 593 outlet;
 #X obj 597 76 inlet;
-#X obj 187 272 expr (c_\$0 = (c_\$0 + ($f1 < 128 || $f1 > 191))) ==
-$f2 + 1 \; i_\$0 = i_\$0 + 1;
+#X obj 187 272 expr (c_\$0 = (c_\$0 + ($f1 < 128 || $f1 > 191))) == $f2 + 1 \; i_\$0 = i_\$0 + 1;
 #X obj 113 76 inlet;
 #X obj 187 434 != 0;
 #X obj 112 463 else/router;
@@ -169,15 +167,13 @@ $f2 + 1 \; i_\$0 = i_\$0 + 1;
 #X obj 42 305 outlet;
 #X text 382 249 Part of ELSE \; https://github.com/porres/pd-else;
 #X text 380 228 Alexandre Torres Porres (2017-2018);
-#N canvas 185 381 450 300 \$0-cnv 0;
-#X obj 101 101 cnv 10 12 20 empty 1067-display empty 2 10 0 12 #e0e0e0
-#404040 0;
+#N canvas 483 256 450 441 \$0-cnv 0;
+#X obj 101 101 cnv 10 12 20 empty 1021-display 2 2 10 0 12 #e0e0e0 #404040 0;
+#X obj 246 102 namecanvas \$0-drawcanvas;
 #X coords 0 1 1 -1 14 22 2 100 100;
 #X restore 100 100 pd \$0-cnv;
-#X obj 100 101 cnv 1 6 1 empty empty empty 20 12 0 14 #000000 #404040
-0;
-#X obj 100 120 cnv 1 6 2 empty empty empty 20 12 0 14 #000000 #404040
-0;
+#X obj 100 101 cnv 1 6 1 empty empty empty 20 12 0 14 #000000 #404040 0;
+#X obj 100 120 cnv 1 6 2 empty empty empty 20 12 0 14 #000000 #404040 0;
 #N canvas 673 182 374 528 get-symbol 0;
 #X obj 21 89 r \$0-bang;
 #X obj 59 184 symbol;
@@ -317,7 +313,7 @@ $f2 + 1 \; i_\$0 = i_\$0 + 1;
 #X connect 17 0 13 0;
 #X connect 17 1 6 0;
 #X restore 58 161 pd get-symbol;
-#N canvas 515 44 535 505 blink 0;
+#N canvas 352 207 853 505 blink 0;
 #N canvas 568 74 712 637 off 0;
 #X obj 490 220 * -1;
 #X obj 424 300 +;
@@ -367,8 +363,7 @@ $f2 + 1 \; i_\$0 = i_\$0 + 1;
 #X connect 20 0 17 0;
 #X restore 211 405 pd off;
 #X obj 211 372 select 0 1;
-#X obj 211 340 tgl 15 0 empty empty empty 17 7 0 10 #fcfcfc #000000
-#000000 0 1;
+#X obj 211 340 tgl 15 0 empty empty empty 17 7 0 10 #fcfcfc #000000 #000000 0 1;
 #X msg 270 405 color -4.86997e+06 -1.34937e+07 0;
 #X obj 270 450 s \$0-display;
 #X obj 211 308 delay 50;
@@ -379,11 +374,15 @@ $f2 + 1 \; i_\$0 = i_\$0 + 1;
 #X obj 102 147 spigot;
 #X obj 70 80 t b b;
 #X msg 141 118 1;
+#X obj 373 350 print;
+#X text 436 353 <- first outputs 1 \, then outputs 0;
+#X text 523 406 yet it keeps this color!, f 26;
 #X connect 0 0 4 0;
 #X connect 1 0 0 0;
 #X connect 1 1 3 0;
 #X connect 2 0 1 0;
 #X connect 2 0 6 1;
+#X connect 2 0 13 0;
 #X connect 3 0 4 0;
 #X connect 5 0 2 0;
 #X connect 6 0 8 0;
@@ -435,13 +434,10 @@ $f2 + 1 \; i_\$0 = i_\$0 + 1;
 #X obj 119 546 s \$0-arg-rate;
 #X obj 123 572 r \$0-set-rate;
 #X obj 387 185 symbol;
-#X obj 387 148 bng 15 250 50 0 empty empty empty 17 7 0 10 #fcfcfc
-#000000 #000000;
+#X obj 387 148 bng 15 250 50 0 empty empty empty 17 7 0 10 #fcfcfc #000000 #000000;
 #X obj 507 224 s pd-\$0-cnv;
 #X msg 507 199 clear;
-#X msg 387 261 \; pd-\$2-cnv clear \, obj 101 101 cnv 10 12 20 empty
-\$2-display \$1 2 10 0 12 -233017 -66577 0 \, coords 0 1 1 -1 14 22
-2 100 100 1 \; \$2-canvas coords 0 1 1 -1 14 22 2 100 100 1;
+#X msg 387 261 \; pd-\$2-cnv clear \, obj 101 101 cnv 10 12 20 empty \$2-display \$1 2 10 0 12 -233017 -66577 0 \, coords 0 1 1 -1 14 22 2 100 100 1 \; \$2-canvas coords 0 1 1 -1 14 22 2 100 100 1;
 #X obj 387 219 pack symbol \$0;
 #X obj 268 388 t f b;
 #X obj 95 272 t b f;
