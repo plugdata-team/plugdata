@@ -1,6 +1,6 @@
 ---
 title: active
-description:
+description: Report window activity
 categories:
  - object
 pdcategory: General
@@ -9,4 +9,9 @@ inlets:
 outlets:
   1st:
   - type: float
-    description:
+    description: window status (0 inactive / 1 active)
+
+---
+
+[active] outputs 1 when a patch canvas becomes active (its title bar is highlighted and it's the front-most window), and outputs 0 when inactive. See examples below.
+

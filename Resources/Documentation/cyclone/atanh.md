@@ -1,15 +1,25 @@
 ---
 title: atanh
-description:
+description: Hyperbolic arc-tangent function
 categories:
  - object
 pdcategory: General
 arguments:
 - type: float
-  description:
-  default:
+  description: initially stored input value
+  default: 0
 inlets:
+  1st:
+  - type: float
+    description: input to hyperbolic arc-tangent function, this value is stored and updates the argument
+  - type: bang
+    description: calculates output according to the stored input
 outlets:
   1st:
   - type: float
-    description:
+    description: the hyperbolic arc-tangent of the input
+
+---
+
+use the [atanh] object to calculate the hyperbolic arc-tangent of any given number.
+

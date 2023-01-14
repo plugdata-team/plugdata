@@ -1,12 +1,20 @@
 ---
 title: atodb~
-description:
+description: Linear amplitude to dBFS conversion for signals
 categories:
  - object
 pdcategory: General
 arguments:
 inlets:
+  1st:
+  - type: signal
+    description: linear amplitude value
 outlets:
   1st:
   - type: signal
-    description:
+    description: converted dBFS amplitude value
+
+---
+
+Use the [atodb~] to convert a signal representing a linear amplitude value to a deciBel Full Scale (dBFS) equivalent.
+

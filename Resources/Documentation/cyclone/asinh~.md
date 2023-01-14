@@ -1,12 +1,20 @@
 ---
 title: asinh~
-description:
+description: Signal hyperbolic arc-sine function
 categories:
  - object
 pdcategory: General
 arguments:
 inlets:
+  1st:
+  - type: signal
+    description: input to hyperbolic arc-sine function
 outlets:
   1st:
   - type: signal
-    description:
+    description: the hyperbolic arc-sine of the input
+
+---
+
+Use [asinh~] to output the hyperbolic arc-sine of each input sample (probably only useful for mathematical calculations).
+
