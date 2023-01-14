@@ -1,7 +1,7 @@
 ---
 title: append
 
-description:
+description: Append a message to the incoming message
 
 categories:
 - object
@@ -9,24 +9,26 @@ categories:
 pdcategory:
 
 arguments:
-- description:
-  type:
-  default:
+- description: sets message to append to the input
+  type: anything
+  default: "nothing"
 
 inlets:
   1st:
-  - type:
-    description:
-  2nd:
-  - type:
-    description:
+  - type: anything
+    description: a message that will be combined to the stored message
 
 outlets:
   1st:
-  - type:
-    description:
+  - type: anything
+    description: the combined message
+
+methods:
+  - type: set <anything>
+    description: updates argument (message to append to the input message)
 
 draft: false
 ---
 
-LONG DESCRIPTION HERE
+[append] will add messages set as argument to the end of any message sent to the input.
+

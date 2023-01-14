@@ -1,12 +1,20 @@
 ---
 title: acosh~
-description:
+description: Signal hyperbolic arc-cosine function
 categories:
  - object
 pdcategory: General
 arguments:
 inlets:
+  1st:
+  - type: signal
+    description: input to hyperbolic arc-cosine function
 outlets:
   1st:
   - type: signal
-    description:
+    description: the hyperbolic arc-cosine of the input
+
+---
+
+Use [acosh~] to output the hyperbolic arc-cosine of each input sample (probably only useful for mathematical calculations).
+

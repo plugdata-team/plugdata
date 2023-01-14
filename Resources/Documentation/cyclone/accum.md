@@ -1,24 +1,35 @@
 ---
 title: accum
-description:
+description: Accumulate to a value
 categories:
  - object
 pdcategory: General
 arguments:
 - type: float
-  description:
-  default:
+  description: sets initial value
+  default: 0
 inlets:
   1st:
+  - type: bang
+    description: output accumulated value
   - type: float
-    description:
+    description: sets a new value to be accumulated and outputs it
   2nd:
   - type: float
-    description:
+    description: add to current value
   3rd:
   - type: float
-    description:
+    description: multiply with current value
 outlets:
   1st:
   - type: float
-    description:
+    description: accumulated value
+
+methods:
+  - type: set <float>
+    description: sets a new value to be accumulated
+
+---
+
+[accum] accumulates to a value by either adding an increment value to it or mulplying it by a given factor.
+
