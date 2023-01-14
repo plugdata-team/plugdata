@@ -169,9 +169,9 @@ struct DrawableCurve final : public DrawableTemplate
         auto dbl = 0;
 
         canvas->pd->setThis();
-
+        
         t_template* t = template_findbyname(scalar->sc_template);
-        scalar_doclick(scalar->sc_vec, t, scalar, 0, canvas->patch.getPointer(), 0, 0, e.x, e.y, shift, alt, dbl, 1);
+        scalar_doclick(scalar->sc_vec, t, scalar, 0, canvas->patch.getPointer(), 0, 0, e.x, getHeight() - e.y, shift, alt, dbl, 1);
 
         // Update all drawables
         for (auto* object : canvas->objects) {
@@ -220,6 +220,7 @@ struct DrawableCurve final : public DrawableTemplate
                 float xCoord = (baseX + fielddesc_getcoord((t_fielddesc*)f, templ, data, 1)) / (glist->gl_x2 - glist->gl_x1);
                 float yCoord = (baseY + fielddesc_getcoord((t_fielddesc*)(f + 1), templ, data, 1)) / (glist->gl_y1 - glist->gl_y2);
 
+                yCoord = 1.0f - yCoord;
                 // In a graph, offset the position by canvas margin
                 // This will make sure the drawing is shown at origin in the original subpatch,
                 // but at the graph's origin when shown inside a graph

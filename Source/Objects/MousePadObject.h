@@ -64,7 +64,7 @@ struct MousePadObject final : public GUIObject {
         t_atom at[3];
 
         x->x_x = relativeEvent.getPosition().x;
-        x->x_y = relativeEvent.getPosition().y;
+        x->x_y = getHeight() - relativeEvent.getPosition().y;
 
         SETFLOAT(at, 1.0f);
         sys_lock();
@@ -94,7 +94,7 @@ struct MousePadObject final : public GUIObject {
             return;
 
         x->x_x = relativeEvent.getPosition().x;
-        x->x_y = relativeEvent.getPosition().y;
+        x->x_y = getHeight() - relativeEvent.getPosition().y;
 
         SETFLOAT(at, x->x_x);
         SETFLOAT(at + 1, x->x_y);
