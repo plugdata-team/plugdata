@@ -19,6 +19,13 @@ if(APPLE)
   endif()
 endif()
 
+if(MSVC)
+  add_compile_options($<$<CONFIG:Release>:/MT> # Runtime library: Multi-threaded
+                      $<$<CONFIG:RelWithDebInfo>:/MT> # Runtime library: Multi-threaded
+                      $<$<CONFIG:Debug>:/MTd> # Runtime library: Multi-threaded Debug
+                      )
+endif()
+
 if(RUN_CLANG_TIDY)
   set(CMAKE_CXX_STANDARD_INCLUDE_DIRECTORIES ${CMAKE_CXX_IMPLICIT_INCLUDE_DIRECTORIES}) 
   set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
