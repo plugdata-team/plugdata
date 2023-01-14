@@ -127,7 +127,7 @@ struct TextBase : public ObjectBase
         textObjectWidth = bounds.getWidth();
 
         if (textObjectWidth == 0) {
-            textObjectWidth = (textWidth - textWidthOffset) / fontWidth;
+            textObjectWidth = std::min((textWidth - textWidthOffset) / fontWidth, 60);
         }
 
         int width = textObjectWidth * fontWidth + textWidthOffset;
@@ -141,6 +141,7 @@ struct TextBase : public ObjectBase
 
         object->setObjectBounds(bounds);
     }
+
 
     void hideEditor() override
     {

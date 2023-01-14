@@ -215,42 +215,5 @@ struct CommentObject final : public TextBase
         }
     }
         
-    void updateBounds() override
-    {
-        pd->getCallbackLock()->enter();
-
-        int x, y, w, h;
-
-        auto* textObj = static_cast<t_text*>(ptr);
-
-        libpd_get_object_bounds(cnv->patch.getPointer(), ptr, &x, &y, &w, &h);
-
-        Rectangle<int> bounds = { x, y, textObj->te_width, h };
-
-        int fontWidth = glist_fontwidth(cnv->patch.getPointer());
-        int textWidth = getBestTextWidth(objectText);
-
-        pd->getCallbackLock()->exit();
-
-        // We need to handle the resizable width, which pd saves in amount of text characters
-        textWidthOffset = textWidth % fontWidth;
-        textObjectWidth = bounds.getWidth();
-
-        if (textObjectWidth == 0) {
-            textObjectWidth = std::min((textWidth - textWidthOffset) / fontWidth, 60);
-        }
-
-        int width = textObjectWidth * fontWidth + textWidthOffset;
-        width = std::max(width, std::max({ 1, object->numInputs, object->numOutputs }) * 18);
-
-        numLines = StringUtils::getNumLines(objectText, width);
-        int height = numLines * 20 + 1;
-
-        bounds.setWidth(width);
-        bounds.setHeight(height);
-
-        object->setObjectBounds(bounds);
-    }
-
     bool locked;
 };
