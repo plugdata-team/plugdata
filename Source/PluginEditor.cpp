@@ -1317,9 +1317,8 @@ bool PluginEditor::perform(InvocationInfo const& info)
                 cnv->objects.add(new Object(cnv, objectNames[idx],
                     Point<int>(
                         // place beneath outlet object + Object::margin
-                        cnv->lastSelectedConnection->getX() + (cnv->lastSelectedConnection->getWidth()/2) - 12, 
-                        cnv->lastSelectedConnection->getY() + (cnv->lastSelectedConnection->getHeight()/2) - 12
-                        )));
+                        cnv->lastSelectedConnection->getX() + (cnv->lastSelectedConnection->getWidth() / 2) - 12,
+                        cnv->lastSelectedConnection->getY() + (cnv->lastSelectedConnection->getHeight() / 2) - 12)));
                 cnv->patch.endUndoSequence("Object in connection");
             } else {
                 // if 0 or several objects are selected, create new object at mouse position

@@ -316,7 +316,7 @@ struct ScopeBase : public GUIObject
         } else if (v.refersToSameSourceAs(receiveSymbol)) {
             auto* rcv = pd->generateSymbol(receiveSymbol.toString());
             scope->x_receive = canvas_realizedollar(scope->x_glist, scope->x_rcv_raw = rcv);
-            
+
             pd->setThis();
             if (scope->x_receive != &s_) {
                 pd_bind(&scope->x_obj.ob_pd, scope->x_receive);

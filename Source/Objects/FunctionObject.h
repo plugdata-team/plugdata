@@ -57,10 +57,10 @@ struct FunctionObject final : public GUIObject {
 
         Array<var> arr = { function->x_min, function->x_max };
         range = var(arr);
-        
+
         auto sndSym = String(function->x_send->s_name);
         auto rcvSym = String(function->x_receive->s_name);
-        
+
         sendSymbol = sndSym != "empty" ? sndSym : "";
         receiveSymbol = rcvSym != "empty" ? rcvSym : "";
     }
@@ -372,12 +372,12 @@ struct FunctionObject final : public GUIObject {
             SETSYMBOL(&atom, pd->generateSymbol(symbol));
             pd_typedmess((t_pd*)function, pd->generateSymbol("send"), 1, &atom);
         } else if (v.refersToSameSourceAs(receiveSymbol)) {
-            
+
             auto symbol = receiveSymbol.toString();
             t_atom atom;
             SETSYMBOL(&atom, pd->generateSymbol(symbol));
             pd_typedmess((t_pd*)function, pd->generateSymbol("receive"), 1, &atom);
-        
+
         } else if (v.refersToSameSourceAs(range)) {
             setRange(getRange());
             updateValue();

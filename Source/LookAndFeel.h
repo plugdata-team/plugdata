@@ -437,10 +437,10 @@ struct PlugDataLook : public LookAndFeel_V4 {
         shadowPath.addRoundedRectangle(Rectangle<float>(0.0f, 0.0f, width, height).reduced(10.0f), Constants::defaultCornerRadius);
         StackShadow::renderDropShadow(g, shadowPath, Colour(0, 0, 0).withAlpha(0.6f), 10, { 0, 2 });
 
-        if(!Desktop::canUseSemiTransparentWindows()) {
+        if (!Desktop::canUseSemiTransparentWindows()) {
             g.fillAll(findColour(PlugDataColour::canvasBackgroundColourId));
         }
-        
+
         // Add a bit of alpha to disable the opaque flag
         auto background = findColour(PlugDataColour::popupMenuBackgroundColourId);
         g.setColour(background);

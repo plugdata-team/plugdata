@@ -27,7 +27,7 @@ public:
         updateCanvas();
         resized();
     }
-    
+
     void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
     {
         // TODO: actually read atoms
@@ -39,7 +39,7 @@ public:
             // hidetext: 2
             // margin: 100 100
             // isgraph: 1
-         
+
             pd->getCallbackLock()->enter();
 
             int x = 0, y = 0, w = 0, h = 0;
@@ -62,10 +62,10 @@ public:
     {
         if (!canvas)
             return true;
-        
-        if(ModifierKeys::getCurrentModifiers().isRightButtonDown())
+
+        if (ModifierKeys::getCurrentModifiers().isRightButtonDown())
             return true;
-        
+
         if (!isLocked)
             return true;
 
