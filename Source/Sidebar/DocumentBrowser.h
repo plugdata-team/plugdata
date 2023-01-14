@@ -644,7 +644,8 @@ public:
         }
 
         listBox.updateContent();
-
+        listBox.repaint();
+        
         if (listBox.getSelectedRow() == -1)
             listBox.selectRow(0, true, true);
     }
