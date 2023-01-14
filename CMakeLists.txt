@@ -20,10 +20,7 @@ if(APPLE)
 endif()
 
 if(MSVC)
-  add_compile_options($<$<CONFIG:Release>:/MT> # Runtime library: Multi-threaded
-                      $<$<CONFIG:RelWithDebInfo>:/MT> # Runtime library: Multi-threaded
-                      $<$<CONFIG:Debug>:/MTd> # Runtime library: Multi-threaded Debug
-                      )
+set(MSVC_RUNTIME_LIBRARY MultiThreaded)
 endif()
 
 if(RUN_CLANG_TIDY)
