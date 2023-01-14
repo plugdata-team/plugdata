@@ -1,24 +1,29 @@
 ---
 title: buddy
-description:
+description: Sync input messages
 categories:
  - object
 pdcategory: General
 arguments:
 - type: float
-  description:
-  default:
+  description: sets the 'n' number of inlets/outlets
+  default: 2
 inlets:
-  1st:
-  - type: ?
-    description:
-  2nd:
-  - type: ?
-    description:
+  nth:
+  - type: anything
+    description: any message type to be synced
+  - type: bang
+    description: same as sending a 0 to the inlet
 outlets:
-  1st:
+  nth:
   - type: anything
-    description:
-  2nd:
+    description: the synced message
+
+methods:
   - type: anything
-    description:
+    description: clears all received messages
+
+---
+
+[buddy] synchronizes arriving data and outputs them only if messages have been sent to all inlets. The output is in the usual right to left order, and all input is cleared after that.
+
