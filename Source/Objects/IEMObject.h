@@ -145,8 +145,7 @@ struct IEMObject : public GUIObject {
                     iemcolor = ((-1 -iemcolor)&0xffffff);
                 
                 auto colour = Colour(static_cast<uint32>(convert_from_iem_color(iemcolor)));
-                
-                std::cout << colour.toString() << std::endl;
+            
                 setParameterExcludingListener(targetValue, colour.toString());
             }
         };
@@ -159,8 +158,6 @@ struct IEMObject : public GUIObject {
                 setColour(primaryColour, atoms[1]);
             if (atoms.size() > 2)
                 setColour(labelColour, atoms[2]);
-
-            std::cout << "------" << std::endl;
             
             repaint();
             updateLabel();
@@ -428,4 +425,14 @@ struct IEMObject : public GUIObject {
         iem->x_ldx = position.x;
         iem->x_ldy = position.y;
     }
+    
+    int iemgui_color_hex[30] =
+    {
+        16579836, 10526880, 4210752, 16572640, 16572608,
+        16579784, 14220504, 14220540, 14476540, 16308476,
+        14737632, 8158332, 2105376, 16525352, 16559172,
+        15263784, 1370132, 2684148, 3952892, 16003312,
+        12369084, 6316128, 0, 9177096, 5779456,
+        7874580, 2641940, 17488, 5256, 5767248
+    };
 };
