@@ -1,12 +1,19 @@
 ---
 title: asin~
-description:
+description: Signal arc-sine function
 categories:
  - object
 pdcategory: General
 arguments:
 inlets:
+  1st:
+  - type: signal
+    description: input to arc-sine function
 outlets:
   1st:
   - type: signal
-    description:
+    description: the arc-sine of the input
+
+---
+
+Use [asin~] to output the arc-sine of each input sample.

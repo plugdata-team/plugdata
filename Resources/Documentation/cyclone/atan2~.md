@@ -1,21 +1,25 @@
 ---
 title: atan2~
-description:
+description: Signal arctan(a/b) function
 categories:
  - object
 pdcategory: General
 arguments:
 - type: float
-  description:
-  default:
+  description: value of "b" (not documented in Max)
 inlets:
   1st:
   - type: signal
-    description:
+    description: "a" value input to an arc-tangent function
   2nd:
   - type: signal
-    description:
+    description: "b" value input to an arc-tangent function
 outlets:
   1st:
   - type: signal
-    description:
+    description: result of arctan(a/b) in radians
+
+---
+
+Use the [atan2~] object to output the arc-tangent of two given values ("a" and "b") calculated as: Arc-tangent (a/b).
+
