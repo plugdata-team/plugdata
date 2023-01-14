@@ -257,7 +257,7 @@ Instance::~Instance()
 }
 
 // ag: Stuff to be done after unpacking the library data on first launch.
-void Instance::loadLibs(String &pdlua_version)
+void Instance::loadLibs(String& pdlua_version)
 {
     libpd_init_else();
     libpd_init_cyclone();
@@ -267,7 +267,8 @@ void Instance::loadLibs(String &pdlua_version)
     char vers[1000];
     *vers = 0;
     libpd_init_pdlua(extra.getFullPathName().getCharPointer(), vers, 1000);
-    if (*vers) pdlua_version = vers;
+    if (*vers)
+        pdlua_version = vers;
     // ag: need to do this here to suppress noise from chatty externals
     m_print_receiver = libpd_multi_print_new(this, reinterpret_cast<t_libpd_multi_printhook>(internal::instance_multi_print));
     libpd_set_verbose(0);

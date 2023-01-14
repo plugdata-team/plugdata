@@ -354,7 +354,7 @@ void Canvas::mouseDown(MouseEvent const& e)
             setSelected(object, true);
         } else if (auto* obj = e.originalComponent->findParentComponentOfClass<Object>()) {
             object = obj;
-            if(!locked.getValue()) {
+            if (!locked.getValue()) {
                 setSelected(object, true);
             }
         } else if (hasSelection && !multiple) {

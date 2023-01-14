@@ -79,13 +79,13 @@ PluginProcessor::PluginProcessor()
 
     {
         const MessageManagerLock mmLock;
-        
+
         LookAndFeel::setDefaultLookAndFeel(&lnf.get());
-        
+
         // On first startup, initialise abstractions and settings
         initialiseFilesystem();
     }
-    
+
     parameters.createAndAddParameter(std::make_unique<AudioParameterFloat>(ParameterID("volume", 1), "Volume", NormalisableRange<float>(0.0f, 1.0f, 0.001f, 0.75f, false), 1.0f));
 
     // General purpose automation parameters you can get by using "receive param1" etc.
@@ -177,7 +177,7 @@ PluginProcessor::PluginProcessor()
     // first launch.
     loadLibs(pdlua_version);
     logMessage(pdlua_version);
-    
+
     // scope for locking message manager
     {
         const MessageManagerLock mmLock;

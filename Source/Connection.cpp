@@ -82,7 +82,7 @@ Connection::Connection(Canvas* parent, Iolet* s, Iolet* e, bool exists)
     // Make sure it gets updated on init
     valueChanged(useDashedSignalConnection);
     valueChanged(presentationMode);
-    
+
     updatePath();
     repaint();
 }

@@ -142,7 +142,6 @@ struct TextBase : public ObjectBase
         object->setObjectBounds(bounds);
     }
 
-
     void hideEditor() override
     {
         if (editor != nullptr) {

@@ -311,10 +311,10 @@ struct ToolchainInstaller : public Component
         askpassScript.setExecutePermission(true);
         udevInstallScript.setExecutePermission(true);
 
-        if(!File("/etc/udev/rules.d/50-daisy-stmicro-dfu.rules").exists()) {
+        if (!File("/etc/udev/rules.d/50-daisy-stmicro-dfu.rules").exists()) {
             std::system(udevInstallScript.getFullPathName().toRawUTF8());
         }
-        
+
 #elif JUCE_MAC
         Toolchain::startShellScript("xcode-select --install");
 #endif

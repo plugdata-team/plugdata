@@ -214,6 +214,6 @@ struct CommentObject final : public TextBase
             editor->setBounds(getLocalBounds());
         }
     }
-        
+
     bool locked;
 };

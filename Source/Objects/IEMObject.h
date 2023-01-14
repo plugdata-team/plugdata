@@ -129,23 +129,21 @@ struct IEMObject : public GUIObject {
                 auto colour = "#FF" + atom.getSymbol().fromFirstOccurrenceOf("#", false, false);
                 setParameterExcludingListener(targetValue, colour);
             } else {
-        
+
                 int iemcolor = atom.getFloat();
-                
-                if(iemcolor >= 0)
-                {
-                    while(iemcolor >= IEM_GUI_MAX_COLOR)
+
+                if (iemcolor >= 0) {
+                    while (iemcolor >= IEM_GUI_MAX_COLOR)
                         iemcolor -= IEM_GUI_MAX_COLOR;
-                    while(iemcolor < 0)
+                    while (iemcolor < 0)
                         iemcolor += IEM_GUI_MAX_COLOR;
-                    
+
                     iemcolor = iemgui_color_hex[iemcolor];
-                }
-                else
-                    iemcolor = ((-1 -iemcolor)&0xffffff);
-                
+                } else
+                    iemcolor = ((-1 - iemcolor) & 0xffffff);
+
                 auto colour = Colour(static_cast<uint32>(convert_from_iem_color(iemcolor)));
-            
+
                 setParameterExcludingListener(targetValue, colour.toString());
             }
         };
@@ -158,7 +156,7 @@ struct IEMObject : public GUIObject {
                 setColour(primaryColour, atoms[1]);
             if (atoms.size() > 2)
                 setColour(labelColour, atoms[2]);
-            
+
             repaint();
             updateLabel();
         } else if (symbol == "label" && atoms.size() >= 1) {
@@ -173,8 +171,7 @@ struct IEMObject : public GUIObject {
             updateLabel();
         } else if (symbol == "init" && atoms.size() >= 1) {
             setParameterExcludingListener(initialise, static_cast<bool>(atoms[0].getFloat()));
-        }
-        else if (symbol == "vis_size" && atoms.size() >= 1) {
+        } else if (symbol == "vis_size" && atoms.size() >= 1) {
             pd->getCallbackLock()->enter();
             auto* iemgui = static_cast<t_iemgui*>(ptr);
             auto bounds = Rectangle<int>(iemgui->x_obj.te_xpix, iemgui->x_obj.te_ypix, atoms[0].getFloat(), atoms[1].getFloat());
@@ -425,9 +422,8 @@ struct IEMObject : public GUIObject {
         iem->x_ldx = position.x;
         iem->x_ldy = position.y;
     }
-    
-    int iemgui_color_hex[30] =
-    {
+
+    int iemgui_color_hex[30] = {
         16579836, 10526880, 4210752, 16572640, 16572608,
         16579784, 14220504, 14220540, 14476540, 16308476,
         14737632, 8158332, 2105376, 16525352, 16559172,
