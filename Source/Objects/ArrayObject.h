@@ -35,7 +35,7 @@ public:
     // Gets the name of the array.
     String getExpandedName() const
     {
-        return libpd_array_get_name(ptr);
+        return String::fromUTF8(libpd_array_get_name(ptr));
     }
 
     // Gets the text label of the array.

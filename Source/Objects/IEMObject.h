@@ -155,6 +155,14 @@ struct IEMObject : public GUIObject {
         } else if (symbol == "init" && atoms.size() >= 1) {
             setParameterExcludingListener(initialise, static_cast<bool>(atoms[0].getFloat()));
         }
+        else if (symbol == "vis_size" && atoms.size() >= 1) {
+            pd->getCallbackLock()->enter();
+            auto* iemgui = static_cast<t_iemgui*>(ptr);
+            auto bounds = Rectangle<int>(iemgui->x_obj.te_xpix, iemgui->x_obj.te_ypix, atoms[0].getFloat(), atoms[1].getFloat());
+            pd->getCallbackLock()->exit();
+
+            object->setObjectBounds(bounds);
+        }
     }
 
     void valueChanged(Value& v) override
