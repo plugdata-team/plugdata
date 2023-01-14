@@ -20,7 +20,7 @@ if(APPLE)
 endif()
 
 if(MSVC)
-set(MSVC_RUNTIME_LIBRARY MultiThreaded)
+set(CMAKE_MSVC_RUNTIME_LIBRARY MultiThreaded)
 endif()
 
 if(RUN_CLANG_TIDY)
