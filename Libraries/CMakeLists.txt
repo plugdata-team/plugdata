@@ -409,8 +409,8 @@ if("${CMAKE_SYSTEM}" MATCHES "Linux")
     target_link_libraries(pd-multi ${MATH_LIB} ${CMAKE_DL_LIBS} externals-multi)
 
 elseif(MSVC)
-    target_link_libraries(pd PUBLIC pthreadVC3 externals)
-    target_link_libraries(pd-multi PUBLIC pthreadVC3 externals-multi)
+    target_link_libraries(pd PUBLIC pthreadVC3 ws2_32 externals)
+    target_link_libraries(pd-multi PUBLIC pthreadVC3 ws2_32 externals-multi)
 
     add_custom_command(TARGET pd POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy
