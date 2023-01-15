@@ -33,6 +33,8 @@ struct MousePadObject final : public GUIObject {
 
         // Only intercept global mouse events
         setInterceptsMouseClicks(false, false);
+        
+        isLocked = static_cast<bool>(cnv->locked.getValue());
     }
 
     ~MousePadObject()
@@ -81,7 +83,7 @@ struct MousePadObject final : public GUIObject {
 
     void mouseMove(MouseEvent const& e) override
     {
-        if ((!getScreenBounds().contains(e.getScreenPosition()) && !isPressed) || !isLocked)
+        if ((!getScreenBounds().contains(e.getMouseDownPosition()) && !isPressed) || !isLocked)
             return;
 
         auto* x = static_cast<t_pad*>(ptr);
@@ -104,11 +106,12 @@ struct MousePadObject final : public GUIObject {
         sys_lock();
         outlet_anything(x->x_obj.ob_outlet, &s_list, 2, at);
         sys_unlock();
+        
     }
 
     void mouseUp(MouseEvent const& e) override
     {
-        if ((!getScreenBounds().contains(e.getScreenPosition()) && !isPressed))
+        if ((!getScreenBounds().contains(e.getMouseDownPosition()) && !isPressed))
             return;
 
         auto* x = static_cast<t_pad*>(ptr);
