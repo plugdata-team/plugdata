@@ -133,8 +133,6 @@ struct DrawableTemplate {
         green = n % 10;
         sprintf(s, "#%2.2x%2.2x%2.2x", rangecolor(red), rangecolor(blue), rangecolor(green));
     }
-
-    bool isLocked;
 };
 
 struct DrawableCurve final : public DrawableTemplate
@@ -157,11 +155,12 @@ struct DrawableCurve final : public DrawableTemplate
         mouseListener.globalMouseDown = [this](MouseEvent const& e) {
             handleMouseDown(e);
         };
+        
     }
 
     void handleMouseDown(MouseEvent const& e)
     {
-        if (!getLocalBounds().contains(e.getPosition()) || !isLocked || !canvas->isShowing() || !scalar->sc_template)
+        if (!getLocalBounds().contains(e.getPosition()) || !static_cast<bool>(canvas->locked.getValue()) || !canvas->isShowing() || !scalar->sc_template)
             return;
 
         auto shift = e.mods.isShiftDown();
@@ -420,13 +419,6 @@ struct ScalarObject final : public NonPatchable {
 
         for (auto* drawable : templates) {
             dynamic_cast<DrawableTemplate*>(drawable)->update();
-        }
-    }
-
-    void lock(bool locked) override
-    {
-        for (auto& drawable : templates) {
-            dynamic_cast<DrawableTemplate*>(drawable)->isLocked = locked;
         }
     }
 };
