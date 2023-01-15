@@ -251,8 +251,8 @@ jobs:
         - name: Archive Artifacts
           uses: actions/upload-artifact@v3
           with:
-              name: plugdata-Debian-x64
-              path: plugdata-Debian-x64.tar.gz
+              name: plugdata-${{ matrix.name }}
+              path: plugdata-${{ matrix.name }}.tar.gz
 
         - name: Upload to server
           env:
