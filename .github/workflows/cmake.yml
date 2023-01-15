@@ -27,7 +27,7 @@ jobs:
 
     - name: Configure CMake
       working-directory: ${{github.workspace}}/build
-      run: cmake $GITHUB_WORKSPACE -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCACHED_SFONT=0
+      run: cmake $GITHUB_WORKSPACE -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
 
     - name: Import Code-Signing Certificates
       uses: figleafteam/import-codesign-certs@v2
@@ -179,298 +179,85 @@ jobs:
         draft: true
         files: plugdata-Win32
 
-  ubuntu-22_04-build:
-    runs-on: ubuntu-22.04
-    steps:
-    - uses: actions/checkout@v3
-      with:
-        submodules: recursive
-        fetch-depth: 0
-
-    - name: ccache
-      uses: hendrikmuhs/ccache-action@v1.2
-      with:
-        key: ubuntu-22
-
-    - name: Install Dependencies
-      run: sudo apt -qq update && sudo apt install  -y libasound2-dev libjack-jackd2-dev curl libcurl4-openssl-dev libfreetype6-dev libx11-dev libxcomposite-dev libxcursor-dev libxcursor-dev libxext-dev libxinerama-dev libxrandr-dev libxrender-dev libwebkit2gtk-4.0-dev libglu1-mesa-dev mesa-common-dev
-
-    - name: Create Build Environment
-      run: cmake -E make_directory ${{github.workspace}}/build
-
-    - name: Configure CMake
-      working-directory: ${{github.workspace}}/build
-      run: cmake $GITHUB_WORKSPACE -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -G "Unix Makefiles" -DENABLE_TESTING=0 -DCACHED_SFONT=0
-
-    - name: Build
-      working-directory: ${{github.workspace}}/build
-      run: cmake --build . --config $BUILD_TYPE
-
-    - name: Prepare Artefacts
-      working-directory: ${{github.workspace}}
-      run: ./.github/scripts/package-Linux.sh Ubuntu-22.04-x64
-
-    - name: Archive Artifacts
-      uses: actions/upload-artifact@v3
-      with:
-        name: plugdata-Ubuntu-22.04-x64
-        path: plugdata-Ubuntu-22.04-x64.tar.gz
-
-    - name: Upload to server
-      env:
-        FTP_USERNAME: ${{ secrets.FTP_USERNAME }}
-        FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
-        GIT_HASH: ${{ github.sha }}
-      run: ./.github/scripts/upload-ftp.sh plugdata-Ubuntu-22.04-x64.tar.gz
-
-    - name: Release Artifacts
-      uses: softprops/action-gh-release@v1
-      if: startsWith(github.ref, 'refs/tags/')
-      with:
-        prerelease: true
-        draft: true
-        files: plugdata-Ubuntu-22.04-x64
-
-  ubuntu-20_04-build:
-    runs-on: ubuntu-20.04
-    steps:
-    - uses: actions/checkout@v3
-      with:
-        submodules: recursive
-        fetch-depth: 0
-
-    - name: ccache
-      uses: hendrikmuhs/ccache-action@v1.2
-      with:
-        key: ubuntu-20
-
-    - name: Install Dependencies
-      run: sudo apt -qq update && sudo apt install  -y libasound2-dev libjack-jackd2-dev curl libcurl4-openssl-dev libfreetype6-dev libx11-dev libxcomposite-dev libxcursor-dev libxcursor-dev libxext-dev libxinerama-dev libxrandr-dev libxrender-dev libwebkit2gtk-4.0-dev libglu1-mesa-dev mesa-common-dev
-
-    - name: Create Build Environment
-      run: cmake -E make_directory ${{github.workspace}}/build
-
-    - name: Configure CMake (not cached)
-      working-directory: ${{github.workspace}}/build
-      run: cmake $GITHUB_WORKSPACE -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -G "Unix Makefiles" -DENABLE_TESTING=0 -DCACHED_SFONT=0
-
-    - name: Build
-      working-directory: ${{github.workspace}}/build
-      run: cmake --build . --config $BUILD_TYPE
-
-    - name: Prepare Artefacts
-      working-directory: ${{github.workspace}}
-      run: ./.github/scripts/package-Linux.sh Ubuntu-20.04-x64
-
-    - name: Archive Artifacts
-      uses: actions/upload-artifact@v3
-      with:
-        name: plugdata-Ubuntu-20.04-x64
-        path: plugdata-Ubuntu-20.04-x64.tar.gz
-
-    - name: Upload to server
-      env:
-        FTP_USERNAME: ${{ secrets.FTP_USERNAME }}
-        FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
-        GIT_HASH: ${{ github.sha }}
-      run: ./.github/scripts/upload-ftp.sh plugdata-Ubuntu-20.04-x64.tar.gz
-
-    - name: Release Artifacts
-      uses: softprops/action-gh-release@v1
-      if: startsWith(github.ref, 'refs/tags/')
-      with:
-        prerelease: true
-        draft: true
-        files: plugdata-Ubuntu-20.04-x64
-        
-  fedora-build:
+  build-linux:
+      name: ${{ matrix.name }}
       runs-on: ubuntu-latest
-      container: fedora:37
+      container:
+        image: ${{ matrix.os }}
+        options: --privileged
+        volumes:
+          - /sys/fs/cgroup:/sys/fs/cgroup
+
+      strategy:
+        fail-fast: false
+        matrix:
+          include:
+            - name: Ubuntu-22.04-x64
+              os: ubuntu:22.04
+              pacman: apt
+            - name: Ubuntu-20.04-x64
+              os: ubuntu:20.04
+              pacman: apt
+            - name: Debian-x64
+              os: debian
+              pacman: apt
+            - name: Fedora-36-x64
+              os: fedora:36
+              pacman: dnf
+            - name: Fedora-35-x64
+              os: fedora:35
+              pacman: dnf
+            - name: Mageia-x64
+              os: mageia
+              pacman: dnf
+            - name: OpenSUSE-Leap-x64
+              os: opensuse/leap
+              pacman: zypper
+            - name: Arch-x64
+              os: archlinux
+              pacman: pacman
+
       steps:
-      - name: Update git
-        run: sudo dnf install -y git
-      - uses: actions/checkout@v3
-        with:
-          submodules: recursive
-          fetch-depth: 0
-        env:
-          PATH: /usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+        - name: Install Dependencies (dnf)
+          if: ${{ matrix.pacman == 'dnf' }}
+          run: dnf install -y cmake alsa-lib-devel libXinerama-devel freetype-devel curl libcurl-devel gcc-c++ libXcomposite-devel freeglut-devel libXrandr-devel libXcursor-devel xz
 
-      - name: Install Dependencies
-        run: sudo dnf install -y cmake alsa-lib-devel libXinerama-devel freetype-devel curl libcurl-devel gcc-c++ libXcomposite-devel freeglut-devel libXrandr-devel libXcursor-devel xz
-      - name: Build
-        run: mkdir build && cd build && cmake -DENABLE_TESTING=0 .. -G "Unix Makefiles" && cmake --build . --config $BUILD_TYPE
+        - name: Install Dependencies (apt)
+          if: ${{ matrix.pacman == 'apt' }}
+          run: apt update && apt install -y libasound2-dev libjack-jackd2-dev curl libcurl4-openssl-dev libfreetype6-dev libx11-dev libxcomposite-dev libxcursor-dev libxcursor-dev libxext-dev libxinerama-dev
 
-      - name: Prepare Artefacts
-        working-directory: ${{github.workspace}}
-        run: ./.github/scripts/package-Linux.sh Fedora-37-x64
+        - name: Install Dependencies (zypper)
+          if: ${{ matrix.pacman == 'zypper' }}
+          run: zypper refresh && zypper install -y xz tar gzip cmake alsa-lib-devel libXinerama-devel freetype-devel libcurl-devel libXcomposite-devel freeglut-devel libXrandr-devel libXcursor-devel freetype2-devel gcc gcc-c++ curl
 
-      - name: Archive Artifacts
-        uses: actions/upload-artifact@v3
-        with:
-          name: plugdata-Fedora-37-x64
-          path: plugdata-Fedora-37-x64.tar.gz
+        - name: Install Dependencies (pacman)
+          if: ${{ matrix.pacman == 'pacman' }}
+          run: pacman -Sy && pacman -S --noconfirm git binutils python3 curl tar gzip xz make dfu-util patchelf libusb base-devel rsync && pacman --noconfirm -Syu
 
-      - name: Upload to server
-        env:
-          FTP_USERNAME: ${{ secrets.FTP_USERNAME }}
-          FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
-          GIT_HASH: ${{ github.sha }}
-        run: ./.github/scripts/upload-ftp.sh plugdata-Fedora-37-x64.tar.gz
+        - name: Build
+          run: mkdir build && cd build && CXX=g++ cmake -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DENABLE_TESTING=0 .. -G "Unix Makefiles" && cmake --build . --config $BUILD_TYPE
 
-      - name: Release Artifacts
-        uses: softprops/action-gh-release@v1
-        if: startsWith(github.ref, 'refs/tags/')
-        with:
-          prerelease: true
-          draft: true
-          files: plugdata-Fedora-37-x64
+        - name: Prepare Artefacts
+          working-directory: ${{github.workspace}}
+          run: ./.github/scripts/package-Linux.sh ${{ matrix.name }}
 
-  arch-build:
-    runs-on: ubuntu-latest
-    container:
-      image: archlinux
-      options: --privileged
-      volumes:
-        - /sys/fs/cgroup:/sys/fs/cgroup
-    steps:
-    - name: Update git
-      run: pacman -Sy && pacman -S --noconfirm git && pacman --noconfirm -Syu
-    - uses: actions/checkout@v3
-      with:
-        submodules: recursive
-        fetch-depth: 0
-      env:
-        PATH: /usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
-        
-    - name: Install Dependencies
-      run: pacman -S --noconfirm alsa-lib freetype2 libx11 libxcursor libxext libxinerama libxrandr libxrender webkit2gtk cmake make gcc pkgconf python curl
+        - name: Archive Artifacts
+          uses: actions/upload-artifact@v3
+          with:
+              name: plugdata-Debian-x64
+              path: plugdata-Debian-x64.tar.gz
 
-    - name: Build
-      run: mkdir build && cd build && CC=/usr/bin/gcc CXX=/usr/bin/g++ cmake -DENABLE_TESTING=0 .. -G "Unix Makefiles" && cmake --build . --config $BUILD_TYPE
+        - name: Upload to server
+          env:
+              FTP_USERNAME: ${{ secrets.FTP_USERNAME }}
+              FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
+              GIT_HASH: ${{ github.sha }}
+          run: ./.github/scripts/upload-ftp.sh plugdata-${{ matrix.name }}.tar.gz
 
-    - name: Prepare Artefacts
-      working-directory: ${{github.workspace}}
-      run: ./.github/scripts/package-Linux.sh Arch-x64
-
-    - name: Archive Artifacts
-      uses: actions/upload-artifact@v3
-      with:
-        name: plugdata-Arch-x64
-        path: plugdata-Arch-x64.tar.gz
-
-    - name: Upload to server
-      env:
-        FTP_USERNAME: ${{ secrets.FTP_USERNAME }}
-        FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
-        GIT_HASH: ${{ github.sha }}
-      run: ./.github/scripts/upload-ftp.sh plugdata-Arch-x64.tar.gz
-
-    - name: Release Artifacts
-      uses: softprops/action-gh-release@v1
-      if: startsWith(github.ref, 'refs/tags/')
-      with:
-        prerelease: true
-        draft: true
-        files: plugdata-Arch-x64
-  
-  opensuse-build:
-    runs-on: ubuntu-latest
-    container:
-      image: opensuse/leap
-      options: --privileged
-      volumes:
-        - /sys/fs/cgroup:/sys/fs/cgroup
-    steps:
-    - name: Update git
-      run: zypper refresh && zypper install -y git
-    - uses: actions/checkout@v3
-      with:
-        submodules: recursive
-        fetch-depth: 0
-      env:
-        PATH: /usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
-
-    - name: Install Dependencies
-      run: zypper install -y xz tar gzip cmake alsa-lib-devel libXinerama-devel freetype-devel libcurl-devel libXcomposite-devel freeglut-devel libXrandr-devel libXcursor-devel freetype2-devel gcc gcc-c++ curl
-
-    - name: Build
-      run: mkdir build && cd build && cmake -DENABLE_TESTING=0 .. -G "Unix Makefiles" && cmake --build . --config $BUILD_TYPE
-
-    - name: Prepare Artefacts
-      working-directory: ${{github.workspace}}
-      run: ./.github/scripts/package-Linux.sh OpenSUSE-x64
-
-    - name: Archive Artifacts
-      uses: actions/upload-artifact@v3
-      with:
-        name: plugdata-OpenSUSE-x64
-        path: plugdata-OpenSUSE-x64.tar.gz
-
-    - name: Upload to server
-      env:
-        FTP_USERNAME: ${{ secrets.FTP_USERNAME }}
-        FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
-        GIT_HASH: ${{ github.sha }}
-      run: ./.github/scripts/upload-ftp.sh plugdata-OpenSUSE-x64.tar.gz
-
-    - name: Release Artifacts
-      uses: softprops/action-gh-release@v1
-      if: startsWith(github.ref, 'refs/tags/')
-      with:
-        prerelease: true
-        draft: true
-        files: plugdata-OpenSUSE-x64
-  debian-build:
-    runs-on: ubuntu-latest
-    container:
-      image: debian
-      options: --privileged
-      volumes:
-        - /sys/fs/cgroup:/sys/fs/cgroup
-    steps:
-    - name: Update git
-      run: apt -qq update && apt install -y git
-
-    - uses: actions/checkout@v3
-      with:
-        submodules: recursive
-        fetch-depth: 0
-      env:
-        PATH: /usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
-
-    - name: ccache
-      uses: hendrikmuhs/ccache-action@v1.2
-      with:
-        key: debian
-
-    - name: Install Dependencies
-      run: apt install -y libasound2-dev libjack-jackd2-dev curl libcurl4-openssl-dev libfreetype6-dev libx11-dev libxcomposite-dev libxcursor-dev libxcursor-dev libxext-dev libxinerama-dev libxrandr-dev libxrender-dev libwebkit2gtk-4.0-dev libglu1-mesa-dev mesa-common-dev cmake make gcc g++
-
-    - name: Build
-      run: mkdir build && cd build && CXX=g++ cmake -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DENABLE_TESTING=0 .. -G "Unix Makefiles" && cmake --build . --config $BUILD_TYPE
-
-    - name: Prepare Artefacts
-      working-directory: ${{github.workspace}}
-      run: ./.github/scripts/package-Linux.sh Debian-x64
-
-    - name: Archive Artifacts
-      uses: actions/upload-artifact@v3
-      with:
-        name: plugdata-Debian-x64
-        path: plugdata-Debian-x64.tar.gz
-
-    - name: Upload to server
-      env:
-        FTP_USERNAME: ${{ secrets.FTP_USERNAME }}
-        FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
-        GIT_HASH: ${{ github.sha }}
-      run: ./.github/scripts/upload-ftp.sh plugdata-Debian-x64.tar.gz
-
-    - name: Release Artifacts
-      uses: softprops/action-gh-release@v1
-      if: startsWith(github.ref, 'refs/tags/')
-      with:
-        prerelease: true
-        draft: true
-        files: plugdata-Debian-x64
+        - name: Release Artifacts
+          uses: softprops/action-gh-release@v1
+          if: startsWith(github.ref, 'refs/tags/')
+          with:
+              prerelease: true
+              draft: true
+              files: plugdata-${{ matrix.name }}
