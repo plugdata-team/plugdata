@@ -97,8 +97,8 @@ public:
         processToMonitor = process;
         startThread();
     }
-
-    void stopMonitoring()
+        
+    void flushConsole()
     {
         while (processToMonitor) {
             int len = processToMonitor->readProcessOutput(processOutput, maxLength);
@@ -107,7 +107,11 @@ public:
 
             logToConsole(String::fromUTF8(processOutput, len));
         }
+    }
 
+    void stopMonitoring()
+    {
+        flushConsole();
         stopThread(-1);
         stopTimer();
     }
