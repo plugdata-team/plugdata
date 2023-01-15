@@ -1,12 +1,20 @@
 ---
 title: cosx~
-description:
+description: Signal cosine function with radian input
 categories:
  - object
 pdcategory: General
 arguments:
 inlets:
+  1st:
+  - type: signal
+    description: input to cosine function (in radians)
 outlets:
   1st:
   - type: signal
-    description:
+    description: output of cosine function
+
+---
+
+Properly designed for mathematical operations, [cosx~] it expects an input in radians to calculate the cosine of each input sample.
+
