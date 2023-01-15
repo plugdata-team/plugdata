@@ -231,6 +231,11 @@ jobs:
           if: ${{ matrix.pacman == 'pacman' }}
           run: pacman -Sy && pacman -S --noconfirm git binutils python3 curl tar gzip xz make dfu-util patchelf libusb base-devel rsync && pacman --noconfirm -Syu
 
+        - uses: actions/checkout@v3
+          with:
+            submodules: recursive
+            fetch-depth: 0
+
         - name: Build
           run: mkdir build && cd build && CXX=g++ cmake -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DENABLE_TESTING=0 .. -G "Unix Makefiles" && cmake --build . --config $BUILD_TYPE
 
