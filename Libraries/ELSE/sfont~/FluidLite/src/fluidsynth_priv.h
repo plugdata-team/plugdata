@@ -52,7 +52,7 @@
 #include <limits.h>
 #endif
 
-
+#include <stdlib.h>
 #include "fluidlite.h"
 
 
