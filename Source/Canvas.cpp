@@ -73,6 +73,8 @@ Canvas::Canvas(PluginEditor* parent, pd::Patch& p, Component* parentGraph)
         viewport = new Viewport; // Owned by the tabbar, but doesn't exist for graph!
         viewport->setViewedComponent(this, false);
 
+        viewport->setScrollBarsShown(true, true, true, true);
+        
         presentationMode.referTo(editor->statusbar.presentationMode);
         presentationMode.addListener(this);
     } else {
