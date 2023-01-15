@@ -23,9 +23,9 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 #include "../shared/elsefile.h"
 
 #include <stdlib.h>
-#include <fluidsynth.h>
+#include <fluidlite.h>
+#include "FluidLite/src/fluid_sfont.h"
 #include <string.h>
-
 
 #ifdef _MSC_VER
 #include <Windows.h>
@@ -71,7 +71,7 @@ typedef struct _sfont{
 }t_sfont;
 
 static void sfont_getversion(void){
-    post("[sfont~] version 1.0-rc2 (using fluidsynth %s)", FLUIDSYNTH_VERSION);
+    //post("[sfont~] version 1.0-rc2 (using fluidsynth %s)", FLUIDSYNTH_VERSION);
 }
 
 static void sfont_verbose(t_sfont *x, t_floatarg f){
@@ -224,10 +224,11 @@ static void sfont_unsel_tuning(t_sfont *x,  t_symbol *s, int ac, t_atom *av){
     s = NULL;
     if(ac){
         int ch = atom_getfloatarg(0, ac, av);
-        fluid_synth_deactivate_tuning(x->x_synth, ch-1, 1);
+        fluid_synth_reset_tuning(x->x_synth, ch-1);
     }
-    else for(int i = 0; i < x->x_ch; i++)
-        fluid_synth_deactivate_tuning(x->x_synth, i, 1);
+    else for(int i = 0; i < x->x_ch; i++) {
+        fluid_synth_reset_tuning(x->x_synth, i);
+    }
 }
 
 static void sfont_sel_tuning(t_sfont *x, t_float bank, t_float pgm, t_float ch){
@@ -242,7 +243,12 @@ static void sfont_sel_tuning(t_sfont *x, t_float bank, t_float pgm, t_float ch){
 static void set_key_tuning(t_sfont *x, double *pitches){
     int ch = x->x_tune_ch, bank = x->x_tune_bank, pgm = x->x_tune_prog;
     const char* name = x->x_tune_name->s_name;
-    fluid_synth_activate_key_tuning(x->x_synth, bank, pgm, name, pitches, 1);
+    
+    int key[128];
+    for(int i = 0; i < 128; i++) key[i] = i;
+    
+    fluid_synth_tune_notes(x->x_synth, bank, pgm, 128, key, pitches, 1);
+    
     if(ch > 0)
         fluid_synth_activate_tuning(x->x_synth, ch-1, bank, pgm, 1);
     else if(!ch) for(int i = 0; i < x->x_ch; i++)
@@ -466,11 +472,12 @@ static void sfont_info(t_sfont *x){
     int i = 1;
     fluid_preset_t* preset;
     fluid_sfont_iteration_start(x->x_sfont);
+    /*
     while((preset = fluid_sfont_iteration_next(x->x_sfont))){
         int bank = fluid_preset_get_banknum(preset), pgm = fluid_preset_get_num(preset);
         const char* name = fluid_preset_get_name(preset);
         post("%03d - bank (%d) pgm (%d) name (%s)", i++, bank, pgm, name);
-    }
+    } */
     post("\n");
 }
 
