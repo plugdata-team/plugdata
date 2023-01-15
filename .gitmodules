@@ -22,6 +22,3 @@
 [submodule "Libraries/lua"]
 	path = Libraries/lua
 	url = https://github.com/lua/lua.git
-[submodule "Libraries/ELSE/sfont~/FluidLite"]
-	path = Libraries/ELSE/sfont~/FluidLite
-	url = https://github.com/divideconcept/FluidLite.git

@@ -1,0 +1,53 @@
+# Makefile for OS/2 using Open Watcom
+
+INCLUDES = -I"../include" -I. -I"../stb"
+CPPFLAGS = -DHAVE_CONFIG_H=1 -DHAVE_ALLOCA_H=1 -DNDEBUG
+CPPFLAGS+= -DSF3_SUPPORT=SF3_STB_VORBIS
+
+CFLAGS = -zq -bt=os2 -bm -fp5 -fpi87 -mf -oeatxh -wx -wcd=303 -ei -j -zp8
+# -5s : Pentium stack calling conventions
+CFLAGS+= -5s
+DLLFLAGS=-bd
+
+DLLNAME=fluidlit.dll
+EXPNAME=fluidlit.exp
+LIBNAME=fluidlit.lib
+LIBSTATIC=fluidlite_static.lib
+
+!ifeq target static
+BLD_TARGET=$(LIBSTATIC)
+!else
+CPPFLAGS+= -DFLUIDSYNTH_DLL_EXPORTS
+CFLAGS+= $(DLLFLAGS)
+BLD_TARGET=$(DLLNAME)
+!endif
+
+COMPILE=wcc386 $(CFLAGS) $(CPPFLAGS) $(INCLUDES)
+
+OBJ=fluid_sys.obj fluid_conv.obj fluid_hash.obj fluid_list.obj fluid_settings.obj &
+    stb_vorbis.obj &
+    fluid_defsfont.obj fluid_ramsfont.obj &
+    fluid_chorus.obj fluid_dsp_float.obj fluid_rev.obj &
+    fluid_chan.obj fluid_gen.obj fluid_mod.obj fluid_synth.obj fluid_tuning.obj fluid_voice.obj
+
+all: $(BLD_TARGET)
+
+.SUFFIXES:
+.SUFFIXES: .obj .c .asm
+
+.c: ../stb
+
+$(DLLNAME): $(OBJ)
+	wlink NAM $@ OP q SYSTEM os2v2_dll INITINSTANCE TERMINSTANCE FIL {$(OBJ)} OPTION IMPF=$(EXPNAME)
+	wlib -q -b -n -c -pa -s -t -zld -ii -io -inn $(LIBNAME) +$(DLLNAME)
+
+$(LIBSTATIC): $(OBJ)
+	wlib -q -b -n -c -pa -s -t -zld -ii -io $@ $(OBJ)
+
+.c.obj:
+	$(COMPILE) -fo=$^@ $<
+
+distclean: clean .symbolic
+	rm -f *.err $(LIBSTATIC) $(DLLNAME) $(LIBNAME) $(EXPNAME)
+clean: .symbolic
+	rm -f *.obj
