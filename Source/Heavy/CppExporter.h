@@ -37,8 +37,10 @@ public:
             return 1;
 
         start(args.joinIntoString(" "));
+        
         waitForProcessToFinish(-1);
-
+        exportingView->flushConsole();
+        
         if (shouldQuit)
             return 1;
 

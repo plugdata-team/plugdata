@@ -124,7 +124,8 @@ public:
 
         start(args.joinIntoString(" "));
         waitForProcessToFinish(-1);
-
+        exportingView->flushConsole();
+        
         exportingView->logToConsole("Compiling...");
 
         if (shouldQuit)
@@ -182,7 +183,8 @@ public:
 #endif
 
             waitForProcessToFinish(-1);
-
+            exportingView->flushConsole();
+            
             // Restore original working directory
             workingDir.setAsCurrentWorkingDirectory();
 
@@ -214,6 +216,8 @@ public:
                     Toolchain::startShellScript(bootloaderScript, this);
 
                     waitForProcessToFinish(-1);
+                    exportingView->flushConsole();
+                    
                     Time::waitForMillisecondCounter(Time::getMillisecondCounter() + 600);
 
                     // We need to enable DFU mode again after flashing the bootloader
@@ -240,7 +244,8 @@ public:
                 Toolchain::startShellScript(flashScript, this);
 
                 waitForProcessToFinish(-1);
-
+                exportingView->flushConsole();
+                
                 // Delay to get correct exit code
                 Time::waitForMillisecondCounter(Time::getMillisecondCounter() + 300);
 

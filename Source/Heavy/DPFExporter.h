@@ -113,7 +113,8 @@ public:
         start(args.joinIntoString(" "));
 
         waitForProcessToFinish(-1);
-
+        exportingView->flushConsole();
+        
         if (shouldQuit)
             return 1;
 
@@ -164,7 +165,8 @@ public:
 #endif
 
             waitForProcessToFinish(-1);
-
+            exportingView->flushConsole();
+            
             // Delay to get correct exit code
             Time::waitForMillisecondCounter(Time::getMillisecondCounter() + 300);
 
