@@ -201,14 +201,11 @@ jobs:
             - name: Debian-x64
               os: debian
               pacman: apt
+            - name: Fedora-37-x64
+              os: fedora:37
+              pacman: dnf
             - name: Fedora-36-x64
               os: fedora:36
-              pacman: dnf
-            - name: Fedora-35-x64
-              os: fedora:35
-              pacman: dnf
-            - name: Mageia-x64
-              os: mageia
               pacman: dnf
             - name: OpenSUSE-Leap-x64
               os: opensuse/leap
