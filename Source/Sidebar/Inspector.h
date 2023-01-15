@@ -19,8 +19,11 @@ struct Inspector : public Component {
     void paint(Graphics& g) override
     {
         g.setColour(findColour(PlugDataColour::sidebarBackgroundColourId));
-        g.fillRect(getLocalBounds());
-
+        g.fillRect(getLocalBounds().withTrimmedBottom(30));
+        
+        g.setColour(findColour(PlugDataColour::toolbarBackgroundColourId));
+        g.fillRoundedRectangle(getLocalBounds().removeFromBottom(30).toFloat(), Constants::windowCornerRadius);
+        
         g.setColour(findColour(PlugDataColour::sidebarTextColourId));
         g.drawText(title, getLocalBounds().removeFromTop(23), Justification::centred);
 
