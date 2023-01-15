@@ -247,7 +247,7 @@ static void set_key_tuning(t_sfont *x, double *pitches){
     int key[128];
     for(int i = 0; i < 128; i++) key[i] = i;
     
-    fluid_synth_tune_notes(x->x_synth, bank, pgm, 128, key, pitches, 1);
+    fluid_synth_tune_notes(x->x_synth, bank, pgm, 128, key, pitches, 1, name);
     
     if(ch > 0)
         fluid_synth_activate_tuning(x->x_synth, ch-1, bank, pgm, 1);
