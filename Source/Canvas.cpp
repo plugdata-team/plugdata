@@ -1093,7 +1093,7 @@ void Canvas::checkBounds()
 
     float scale = std::max(1.0f, 1.0f / static_cast<float>(editor->zoomScale.getValue()));
 
-    auto viewBounds = Rectangle<int>(canvasOrigin.x, canvasOrigin.y, viewport->getMaximumVisibleWidth() * scale, viewport->getMaximumVisibleHeight() * scale);
+    auto viewBounds = Rectangle<int>(canvasOrigin.x, canvasOrigin.y, (viewport->getWidth() - 8) * scale, (viewport->getHeight() - 8) * scale);
 
     for (auto* obj : objects) {
         viewBounds = viewBounds.getUnion(obj->getBoundsInParent());
