@@ -1,0 +1,6 @@
+The debug project is used to debug individual test case programs.
+
+To build and debug a test case:
+- add the .c file to the debug project;
+- remove any .c files from other test cases from this project.
+- build and debug as usual.

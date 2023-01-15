@@ -1,0 +1,65 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 11.00
+# Visual Studio 2010
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{268FEBF5-90D9-4D50-8EA8-D712848A7A22}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "pthread_dll", "pthread.2010.vcxproj", "{5D459BA0-5EEB-47D3-A1C4-6B55C8D37EC0}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "pthread_lib", "pthread_lib.2010.vcxproj", "{A063DFAD-6995-4E1A-AFFF-E43DC11E95B1}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "pthread_test", "tests\Debug.2010.vcxproj", "{510AAB56-492A-4EF6-85AC-AD0F02BF5639}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Itanium = Debug|Itanium
+		Debug|Win32 = Debug|Win32
+		Debug|x64 = Debug|x64
+		Release|Itanium = Release|Itanium
+		Release|Win32 = Release|Win32
+		Release|x64 = Release|x64
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{5D459BA0-5EEB-47D3-A1C4-6B55C8D37EC0}.Debug|Itanium.ActiveCfg = Debug|Itanium
+		{5D459BA0-5EEB-47D3-A1C4-6B55C8D37EC0}.Debug|Itanium.Build.0 = Debug|Itanium
+		{5D459BA0-5EEB-47D3-A1C4-6B55C8D37EC0}.Debug|Win32.ActiveCfg = Debug|Win32
+		{5D459BA0-5EEB-47D3-A1C4-6B55C8D37EC0}.Debug|Win32.Build.0 = Debug|Win32
+		{5D459BA0-5EEB-47D3-A1C4-6B55C8D37EC0}.Debug|x64.ActiveCfg = Debug|x64
+		{5D459BA0-5EEB-47D3-A1C4-6B55C8D37EC0}.Debug|x64.Build.0 = Debug|x64
+		{5D459BA0-5EEB-47D3-A1C4-6B55C8D37EC0}.Release|Itanium.ActiveCfg = Release|Itanium
+		{5D459BA0-5EEB-47D3-A1C4-6B55C8D37EC0}.Release|Itanium.Build.0 = Release|Itanium
+		{5D459BA0-5EEB-47D3-A1C4-6B55C8D37EC0}.Release|Win32.ActiveCfg = Release|Win32
+		{5D459BA0-5EEB-47D3-A1C4-6B55C8D37EC0}.Release|Win32.Build.0 = Release|Win32
+		{5D459BA0-5EEB-47D3-A1C4-6B55C8D37EC0}.Release|x64.ActiveCfg = Release|x64
+		{5D459BA0-5EEB-47D3-A1C4-6B55C8D37EC0}.Release|x64.Build.0 = Release|x64
+		{A063DFAD-6995-4E1A-AFFF-E43DC11E95B1}.Debug|Itanium.ActiveCfg = Debug|Itanium
+		{A063DFAD-6995-4E1A-AFFF-E43DC11E95B1}.Debug|Itanium.Build.0 = Debug|Itanium
+		{A063DFAD-6995-4E1A-AFFF-E43DC11E95B1}.Debug|Win32.ActiveCfg = Debug|Win32
+		{A063DFAD-6995-4E1A-AFFF-E43DC11E95B1}.Debug|Win32.Build.0 = Debug|Win32
+		{A063DFAD-6995-4E1A-AFFF-E43DC11E95B1}.Debug|x64.ActiveCfg = Debug|x64
+		{A063DFAD-6995-4E1A-AFFF-E43DC11E95B1}.Debug|x64.Build.0 = Debug|x64
+		{A063DFAD-6995-4E1A-AFFF-E43DC11E95B1}.Release|Itanium.ActiveCfg = Release|Itanium
+		{A063DFAD-6995-4E1A-AFFF-E43DC11E95B1}.Release|Itanium.Build.0 = Release|Itanium
+		{A063DFAD-6995-4E1A-AFFF-E43DC11E95B1}.Release|Win32.ActiveCfg = Release|Win32
+		{A063DFAD-6995-4E1A-AFFF-E43DC11E95B1}.Release|Win32.Build.0 = Release|Win32
+		{A063DFAD-6995-4E1A-AFFF-E43DC11E95B1}.Release|x64.ActiveCfg = Release|x64
+		{A063DFAD-6995-4E1A-AFFF-E43DC11E95B1}.Release|x64.Build.0 = Release|x64
+		{510AAB56-492A-4EF6-85AC-AD0F02BF5639}.Debug|Itanium.ActiveCfg = Debug|Itanium
+		{510AAB56-492A-4EF6-85AC-AD0F02BF5639}.Debug|Itanium.Build.0 = Debug|Itanium
+		{510AAB56-492A-4EF6-85AC-AD0F02BF5639}.Debug|Win32.ActiveCfg = Debug|Win32
+		{510AAB56-492A-4EF6-85AC-AD0F02BF5639}.Debug|Win32.Build.0 = Debug|Win32
+		{510AAB56-492A-4EF6-85AC-AD0F02BF5639}.Debug|x64.ActiveCfg = Debug|x64
+		{510AAB56-492A-4EF6-85AC-AD0F02BF5639}.Debug|x64.Build.0 = Debug|x64
+		{510AAB56-492A-4EF6-85AC-AD0F02BF5639}.Release|Itanium.ActiveCfg = Release|Itanium
+		{510AAB56-492A-4EF6-85AC-AD0F02BF5639}.Release|Itanium.Build.0 = Release|Itanium
+		{510AAB56-492A-4EF6-85AC-AD0F02BF5639}.Release|Win32.ActiveCfg = Release|Win32
+		{510AAB56-492A-4EF6-85AC-AD0F02BF5639}.Release|Win32.Build.0 = Release|Win32
+		{510AAB56-492A-4EF6-85AC-AD0F02BF5639}.Release|x64.ActiveCfg = Release|x64
+		{510AAB56-492A-4EF6-85AC-AD0F02BF5639}.Release|x64.Build.0 = Release|x64
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{510AAB56-492A-4EF6-85AC-AD0F02BF5639} = {268FEBF5-90D9-4D50-8EA8-D712848A7A22}
+	EndGlobalSection
+EndGlobal
