@@ -23,7 +23,7 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 #include "../shared/elsefile.h"
 
 #include <stdlib.h>
-#include <fluidlite.h>
+#include "FluidLite/include/fluidlite.h"
 #include "FluidLite/src/fluid_sfont.h"
 #include <string.h>
 
