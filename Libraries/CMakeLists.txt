@@ -250,20 +250,9 @@ if(ENABLE_SFONT)
     add_library(fluidlite STATIC ${SFONT_SOURCES})
     target_include_directories(fluidlite PRIVATE ${SFONT_INCLUDES})
 
-    set(SF3_SUPPORT 1)
-    set(ENABLE_SF3 ON)
-
-    set(fluidlite_VERSION 1.2.2)
-    set(fluidlite_VERSION_MAJOR 1)
-    set(fluidlite_VERSION_MINOR 2)
-    set(fluidlite_VERSION_PATCH 2)
-
     list(APPEND ELSE_SOURCES
         ${SFONT_DIR}/sfont~.c
     )
-
-    configure_file(${FLUIDLIGHT_DIR}/src/version.cmake ${CMAKE_CURRENT_SOURCE_DIR}/${FLUIDLIGHT_DIR}/include/fluidlite/version.h @ONLY)
-    configure_file(${FLUIDLIGHT_DIR}/src/fluid_config.cmake ${CMAKE_CURRENT_SOURCE_DIR}/${FLUIDLIGHT_DIR}/include/fluid_config.h @ONLY)
 
 endif()
 
