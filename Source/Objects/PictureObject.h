@@ -127,19 +127,36 @@ struct PictureObject final : public GUIObject {
 
     void openFile(String location)
     {
+        
+        auto findFile = [this](const String& name){
+            if(File(name).existsAsFile()) {
+                return File(name);
+            }
+            if(File(String::fromUTF8(canvas_getdir(cnv->patch.getPointer())->s_name)).getChildFile(name).existsAsFile()) {
+                return File(String::fromUTF8(canvas_getdir(cnv->patch.getPointer())->s_name)).getChildFile(name);
+            }
+            
+            // Get pd's search paths
+            char* paths[1024];
+            int numItems;
+            libpd_get_search_paths(paths, &numItems);
+            
+            for(int i = 0; i < numItems; i++) {
+                auto file = File(String::fromUTF8(paths[i])).getChildFile(name);
+                
+                if(file.existsAsFile()) {
+                    return file;
+                }
+            }
+            
+            return File(name);
+        };
+ 
         auto* pic = static_cast<t_pic*>(ptr);
 
-        String pathString = location;
+        imageFile = findFile(location);
 
-        auto searchPath = File(String::fromUTF8(canvas_getdir(cnv->patch.getPointer())->s_name));
-
-        if (searchPath.getChildFile(pathString).existsAsFile()) {
-            imageFile = searchPath.getChildFile(pathString);
-        } else {
-            imageFile = File(pathString);
-        }
-
-        pathString = imageFile.getFullPathName();
+        auto pathString = imageFile.getFullPathName();
         auto* charptr = pathString.toRawUTF8();
 
         pic->x_filename = pd->generateSymbol(charptr);
