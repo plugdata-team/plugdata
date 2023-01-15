@@ -179,7 +179,7 @@ jobs:
         draft: true
         files: plugdata-Win32
 
-  build-linux:
+  linux-build:
       name: ${{ matrix.name }}
       runs-on: ubuntu-latest
       container:
@@ -221,7 +221,7 @@ jobs:
 
         - name: Install Dependencies (apt)
           if: ${{ matrix.pacman == 'apt' }}
-          run: DEBIAN_FRONTEND=noninteractive TZ="Europe/Amsterdam" apt update && apt install -y cmake git build-essential libasound2-dev libjack-jackd2-dev curl libcurl4-openssl-dev libfreetype6-dev libx11-dev libxcomposite-dev libxcursor-dev libxcursor-dev libxext-dev libxrandr-dev libxinerama-dev ccache python
+          run: DEBIAN_FRONTEND=noninteractive TZ="Europe/Amsterdam" apt update && apt install -y cmake git build-essential libasound2-dev libjack-jackd2-dev curl libcurl4-openssl-dev libfreetype6-dev libx11-dev libxcomposite-dev libxcursor-dev libxcursor-dev libxext-dev libxrandr-dev libxinerama-dev ccache python3
 
         - name: Install Dependencies (zypper)
           if: ${{ matrix.pacman == 'zypper' }}
@@ -242,6 +242,7 @@ jobs:
               key: ${{ matrix.name }}
 
         - name: Build
+          working-directory: ${{github.workspace}}
           run: mkdir build && cd build && CXX=g++ cmake -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DENABLE_TESTING=0 .. -G "Unix Makefiles" && cmake --build . --config $BUILD_TYPE
 
         - name: Prepare Artefacts
