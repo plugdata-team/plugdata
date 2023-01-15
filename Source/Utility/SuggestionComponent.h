@@ -123,7 +123,9 @@ public:
         // Set up the button list that contains our suggestions
         buttonholder = std::make_unique<Component>();
 
-        dropShadower.setOwner(this);
+        if(Desktop::canUseSemiTransparentWindows()) {
+            dropShadower.setOwner(this);
+        }
 
         for (int i = 0; i < 20; i++) {
             Suggestion* but = buttons.add(new Suggestion(this, i));
