@@ -25,6 +25,10 @@ outlets:
   - type: signal
     description: signal as result of the "Bitwise-XOR" operation
 
+flags:
+  - name: @mode <float>
+    description: sets conversion mode (default 0)
+
 methods:
   - type: bits <list>
     description: bits plus 32 bit (0/1) values sets a raw 32-bits bitmask
