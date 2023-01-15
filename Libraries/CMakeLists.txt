@@ -244,7 +244,6 @@ if(ENABLE_SFONT)
         ${FLUIDLIGHT_DIR}/libvorbis-1.3.5/lib
         ${FLUIDLIGHT_DIR}/libogg-1.3.2/include
         ${FLUIDLIGHT_DIR}/include
-        ${CMAKE_CURRENT_BINARY_DIR}/${FLUIDLIGHT_DIR}/include
     )
 
     add_library(fluidlite STATIC ${SFONT_SOURCES})
@@ -262,8 +261,9 @@ if(ENABLE_SFONT)
         ${SFONT_DIR}/sfont~.c
     )
 
-    configure_file(${FLUIDLIGHT_DIR}/src/version.cmake ${FLUIDLIGHT_DIR}/include/fluidlite/version.h @ONLY)
-    configure_file(${FLUIDLIGHT_DIR}/src/fluid_config.cmake ${FLUIDLIGHT_DIR}/include/fluid_config.h @ONLY)
+    configure_file(${FLUIDLIGHT_DIR}/src/version.cmake ${CMAKE_CURRENT_SOURCE_DIR}/${FLUIDLIGHT_DIR}/include/fluidlite/version.h @ONLY)
+    configure_file(${FLUIDLIGHT_DIR}/src/fluid_config.cmake ${CMAKE_CURRENT_SOURCE_DIR}/${FLUIDLIGHT_DIR}/include/fluid_config.h @ONLY)
+
 endif()
 
 source_group(ELSE FILES ${ELSE_SOURCES})
