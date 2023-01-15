@@ -248,7 +248,7 @@ if(ENABLE_SFONT)
     )
 
     add_library(fluidlite STATIC ${SFONT_SOURCES})
-    target_include_directories(sfont PRIVATE ${SFONT_INCLUDES})
+    target_include_directories(fluidlite PRIVATE ${SFONT_INCLUDES})
 
     set(SF3_SUPPORT 1)
     set(ENABLE_SF3 ON)
