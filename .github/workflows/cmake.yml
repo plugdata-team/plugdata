@@ -217,15 +217,15 @@ jobs:
       steps:
         - name: Install Dependencies (dnf)
           if: ${{ matrix.pacman == 'dnf' }}
-          run: dnf install -y git cmake alsa-lib-devel libXinerama-devel freetype-devel curl libcurl-devel gcc-c++ libXcomposite-devel freeglut-devel libXrandr-devel libXcursor-devel xz ccache
+          run: dnf install -y git cmake alsa-lib-devel libXinerama-devel freetype-devel curl libcurl-devel gcc-c++ libXcomposite-devel freeglut-devel libXrandr-devel libXcursor-devel xz ccache python
 
         - name: Install Dependencies (apt)
           if: ${{ matrix.pacman == 'apt' }}
-          run: DEBIAN_FRONTEND=noninteractive apt update && apt install -y cmake git build-essential libasound2-dev libjack-jackd2-dev curl libcurl4-openssl-dev libfreetype6-dev libx11-dev libxcomposite-dev libxcursor-dev libxcursor-dev libxext-dev libxrandr-dev libxinerama-dev ccache
+          run: DEBIAN_FRONTEND=noninteractive apt update && apt install -y cmake git build-essential libasound2-dev libjack-jackd2-dev curl libcurl4-openssl-dev libfreetype6-dev libx11-dev libxcomposite-dev libxcursor-dev libxcursor-dev libxext-dev libxrandr-dev libxinerama-dev ccache python
 
         - name: Install Dependencies (zypper)
           if: ${{ matrix.pacman == 'zypper' }}
-          run: zypper refresh && zypper install -y git xz tar gzip cmake alsa-lib-devel libXinerama-devel freetype-devel libcurl-devel libXcomposite-devel freeglut-devel libXrandr-devel libXcursor-devel freetype2-devel gcc gcc-c++ curl ccache
+          run: zypper refresh && zypper install -y git xz tar gzip cmake alsa-lib-devel libXinerama-devel freetype-devel libcurl-devel libXcomposite-devel freeglut-devel libXrandr-devel libXcursor-devel freetype2-devel gcc gcc-c++ curl ccache python
 
         - name: Install Dependencies (pacman)
           if: ${{ matrix.pacman == 'pacman' }}
