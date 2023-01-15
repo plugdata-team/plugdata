@@ -136,7 +136,7 @@ public:
     pd::Library objectLibrary;
 
     File homeDir = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory).getChildFile("plugdata");
-    File versionDataDir = homeDir.getChildFile(ProjectInfo::versionString + String("-1"));
+    File versionDataDir = homeDir.getChildFile(ProjectInfo::versionString);
 
     File settingsFile = homeDir.getChildFile("Settings.xml");
     File abstractions = versionDataDir.getChildFile("Abstractions");
