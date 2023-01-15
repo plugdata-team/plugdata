@@ -12,7 +12,8 @@ if(MSVC)
     include_directories(pthread-win32)
 endif()
 
-
+cmake_policy(SET CMP0091 NEW)
+set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 
 add_subdirectory(JUCE)
 
