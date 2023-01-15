@@ -517,7 +517,7 @@ int fluid_synth_activate_octave_tuning(fluid_synth_t* synth, int bank, int prog,
   */
 FLUIDSYNTH_API 
 int fluid_synth_tune_notes(fluid_synth_t* synth, int tuning_bank, int tuning_prog,
-			  int len, int *keys, double* pitch, int apply);
+			  int len, int *keys, double* pitch, int apply, const char* name);
 
   /** Select a tuning for a channel. 
 

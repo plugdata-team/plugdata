@@ -1103,7 +1103,7 @@ fluid_synth_sysex_midi_tuning (fluid_synth_t *synth, const char *data, int len,
       if (index > 0)
       {
         if (fluid_synth_tune_notes (synth, bank, prog, index, keys, tunedata,
-                                    realtime) == FLUID_FAILED)
+                                    realtime, "Unnamed") == FLUID_FAILED)
           return FLUID_FAILED;
       }
 
@@ -3111,7 +3111,7 @@ fluid_synth_activate_octave_tuning(fluid_synth_t* synth, int bank, int prog,
 
 
 int fluid_synth_tune_notes(fluid_synth_t* synth, int bank, int prog,
-			  int len, int *key, double* pitch, int apply)
+			  int len, int *key, double* pitch, int apply, const char* name)
 {
     fluid_tuning_t* tuning;
     int i;
@@ -3126,7 +3126,7 @@ int fluid_synth_tune_notes(fluid_synth_t* synth, int bank, int prog,
     tuning = fluid_synth_get_tuning (synth, bank, prog);
 
     if(!tuning)
-        tuning = new_fluid_tuning ("Unnamed", bank, prog);
+        tuning = fluid_synth_create_tuning (synth, bank, prog, name);
 
     if (tuning == NULL) {
         return FLUID_FAILED;
