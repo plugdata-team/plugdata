@@ -1,32 +1,37 @@
 ---
 title: clip
-
-description:
-
+description: Constrain values to a given range
 categories:
 - object
-
 pdcategory:
-
 arguments:
-- description:
-  type:
-  default:
-
+- description: sets minimum
+  type: float
+  default: 0
+- description: sets maximum
+  type: float
+  default: 0
 inlets:
   1st:
-  - type:
-    description:
+  - type: float/list
+    description: value(s) to clip
   2nd:
-  - type:
-    description:
-
+  - type: float
+    description: sets minimum number of range
+  3rd:
+  - type: float
+    description: sets maximum number of range
 outlets:
   1st:
-  - type:
-    description:
+  - type: float/list
+    description: cliped value(s)
+
+methods:
+  - type: set <f f>
+    description: sets minimum and maximum
 
 draft: false
 ---
 
-LONG DESCRIPTION HERE
+Use [clip~] to constrain values from floats or lists between a range specified by a minimum and a maximum value.
+

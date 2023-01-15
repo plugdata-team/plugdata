@@ -1,18 +1,46 @@
 ---
 title: capture
-description:
+description: Store data
 categories:
  - object
 pdcategory: General
 arguments:
-- type: gimme
-  description:
-  default:
+- type: float
+  description: number of stored values
+  default: 512
+- type: symbol
+  description: no argument: ints are displayed as decimal, "x": ints displayed as hex, "m": ints < 128 are decimal / larger are hex, "a": only symbols are displayed
 inlets:
-outlets:
   1st:
   - type: anything
-    description:
+    description: stores items (float/symbol) sequentially
+outlets:
+  1st:
+  - type: float/symbol
+    description: stored items in sequential order (on dump message)
   2nd:
   - type: float
-    description:
+    description: number of items received since last 'count' message
+
+flags:
+  - name: @precision <float>
+    description: decimal precision for floats (default 4)
+
+methods:
+  - type: clear
+    description: clears stored contents
+  - type: count
+    description: outputs number of received items since last 'count' message
+  - type: dump
+    description: outputs stored elements sequentially (first in first out)
+  - type: open
+    description: opens editing window, same as clicking on it
+  - type: wclose
+    description: closes editing window
+  - type: write <symbol>
+    description: saves to a file (no symbol opens dialog box)
+
+---
+
+[capture] stores items in the received order for viewing, editing, and saving to a file. If the maximum number of items is exceeded, the earliest stored item is dropped.
+

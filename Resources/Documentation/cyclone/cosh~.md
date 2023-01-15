@@ -1,12 +1,20 @@
 ---
 title: cosh~
-description:
+description: Signal hyperbolic cosine function
 categories:
  - object
 pdcategory: General
 arguments:
 inlets:
+  1st:
+  - type: signal
+    description: input to hyperbolic cosine function
 outlets:
   1st:
   - type: signal
-    description:
+    description: output of hyperbolic cosine function
+
+---
+
+Use [cosh~] to output the hyperbolic cosine function of each input sample (probably only useful for mathematical calculations).
+
