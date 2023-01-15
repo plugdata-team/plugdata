@@ -72,13 +72,18 @@ list(APPEND SFONT_INCLUDES
     ${FLUIDLIGHT_DIR}/libvorbis-1.3.5/lib
     ${FLUIDLIGHT_DIR}/libogg-1.3.2/include
     ${FLUIDLIGHT_DIR}/include
-    ${CMAKE_CURRENT_BINARY_DIR}/${FLUIDLIGHT_DIR}
+    ${CMAKE_CURRENT_BINARY_DIR}/${FLUIDLIGHT_DIR}/include
 )
 
 if(ENABLE_SFONT)
     add_library(sfont STATIC ${SFONT_SOURCES})
     target_include_directories(sfont PRIVATE ${SFONT_INCLUDES})
-    target_compile_definitions(sfont PRIVATE SF3_SUPPORT=1)
+    set(SF3_SUPPORT 1)
+    set(fluidlite_VERSION 1.2.2)
+    set(fluidlite_VERSION_MAJOR 1)
+    set(fluidlite_VERSION_MINOR 2)
+    set(fluidlite_VERSION_PATCH 2)
+
     configure_file(${FLUIDLIGHT_DIR}/src/version.cmake ${FLUIDLIGHT_DIR}/include/fluidlite/version.h @ONLY)
     configure_file(${FLUIDLIGHT_DIR}/src/fluid_config.cmake ${FLUIDLIGHT_DIR}/include/fluid_config.h @ONLY)
 endif()
