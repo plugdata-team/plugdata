@@ -1,32 +1,33 @@
 ---
 title: clip~
-
-description:
-
+description: Constrain a signal to a given range
 categories:
 - object
-
 pdcategory:
-
 arguments:
-- description:
-  type:
-  default:
-
+- description: sets minimum value
+  type: float
+  default: 0
+- description: sets maximum value
+  type: float
+  default: 0
 inlets:
   1st:
-  - type:
-    description:
+  - type: signal
+    description: signal to be clipped/constrained
   2nd:
-  - type:
-    description:
-
+  - type: float/signal
+    description: minimum constrain value
+  3rd:
+  - type: float/signal
+    description: maximum constrain value
 outlets:
   1st:
-  - type:
-    description:
+  - type: signal
+    description: clipped signal
 
 draft: false
 ---
 
-LONG DESCRIPTION HERE
+Use the [clip~]* object to constrain input signals between two specified values (minimum and maximum). If the maximum value is less than the minimum, it becomes the minimum value and vice-versa.
+

@@ -1,6 +1,6 @@
 ---
 title: cartopol~
-description:
+description: Signal cartesian to polar conversion
 categories:
  - object
 pdcategory: General
@@ -8,14 +8,19 @@ arguments:
 inlets:
   1st:
   - type: signal
-    description:
+    description: real part of the complex signal in cartesian form
   2nd:
   - type: signal
-    description:
+    description: imaginary part of the complex signal in cartesian form
 outlets:
   1st:
   - type: signal
-    description:
+    description: amplitude output of the polar form
   2nd:
   - type: signal
-    description:
+    description: phase in radians (-pi to pi) output of the polar form
+
+---
+
+Use the [cartopol~] object to convert signal values representing cartesian coordinates to a signal composed of polar coordinates - useful for spectral processing.
+
