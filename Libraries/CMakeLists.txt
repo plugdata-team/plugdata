@@ -12,81 +12,9 @@ if(MSVC)
     include_directories(pthread-win32)
 endif()
 
-set(ENABLE_SF3 ON)
+
 
 add_subdirectory(JUCE)
-
-set(SFONT_DIR ELSE/sfont~)
-set(FLUIDLIGHT_DIR ${SFONT_DIR}/FluidLite)
-
-list(APPEND SFONT_SOURCES
-    ${SFONT_DIR}/sfont~.c
-
-    ${FLUIDLIGHT_DIR}/src/fluid_init.c
-    ${FLUIDLIGHT_DIR}/src/fluid_chan.c
-    ${FLUIDLIGHT_DIR}/src/fluid_chorus.c
-    ${FLUIDLIGHT_DIR}/src/fluid_conv.c
-    ${FLUIDLIGHT_DIR}/src/fluid_defsfont.c
-    ${FLUIDLIGHT_DIR}/src/fluid_dsp_float.c
-    ${FLUIDLIGHT_DIR}/src/fluid_gen.c
-    ${FLUIDLIGHT_DIR}/src/fluid_hash.c
-    ${FLUIDLIGHT_DIR}/src/fluid_list.c
-    ${FLUIDLIGHT_DIR}/src/fluid_mod.c
-    ${FLUIDLIGHT_DIR}/src/fluid_ramsfont.c
-    ${FLUIDLIGHT_DIR}/src/fluid_rev.c
-    ${FLUIDLIGHT_DIR}/src/fluid_settings.c
-    ${FLUIDLIGHT_DIR}/src/fluid_synth.c
-    ${FLUIDLIGHT_DIR}/src/fluid_sys.c
-    ${FLUIDLIGHT_DIR}/src/fluid_tuning.c
-    ${FLUIDLIGHT_DIR}/src/fluid_voice.c
-
-    ${FLUIDLIGHT_DIR}/libvorbis-1.3.5/lib/vorbisenc.c
-    ${FLUIDLIGHT_DIR}/libvorbis-1.3.5/lib/info.c
-    ${FLUIDLIGHT_DIR}/libvorbis-1.3.5/lib/analysis.c
-    ${FLUIDLIGHT_DIR}/libvorbis-1.3.5/lib/bitrate.c
-    ${FLUIDLIGHT_DIR}/libvorbis-1.3.5/lib/block.c
-    ${FLUIDLIGHT_DIR}/libvorbis-1.3.5/lib/codebook.c
-    ${FLUIDLIGHT_DIR}/libvorbis-1.3.5/lib/envelope.c
-    ${FLUIDLIGHT_DIR}/libvorbis-1.3.5/lib/floor0.c
-    ${FLUIDLIGHT_DIR}/libvorbis-1.3.5/lib/floor1.c
-    ${FLUIDLIGHT_DIR}/libvorbis-1.3.5/lib/lookup.c
-    ${FLUIDLIGHT_DIR}/libvorbis-1.3.5/lib/lpc.c
-    ${FLUIDLIGHT_DIR}/libvorbis-1.3.5/lib/lsp.c
-    ${FLUIDLIGHT_DIR}/libvorbis-1.3.5/lib/mapping0.c
-    ${FLUIDLIGHT_DIR}/libvorbis-1.3.5/lib/mdct.c
-    ${FLUIDLIGHT_DIR}/libvorbis-1.3.5/lib/psy.c
-    ${FLUIDLIGHT_DIR}/libvorbis-1.3.5/lib/registry.c
-    ${FLUIDLIGHT_DIR}/libvorbis-1.3.5/lib/res0.c
-    ${FLUIDLIGHT_DIR}/libvorbis-1.3.5/lib/sharedbook.c
-    ${FLUIDLIGHT_DIR}/libvorbis-1.3.5/lib/smallft.c
-    ${FLUIDLIGHT_DIR}/libvorbis-1.3.5/lib/vorbisfile.c
-    ${FLUIDLIGHT_DIR}/libvorbis-1.3.5/lib/window.c
-    ${FLUIDLIGHT_DIR}/libvorbis-1.3.5/lib/synthesis.c
-
-    ${FLUIDLIGHT_DIR}/libogg-1.3.2/src/bitwise.c
-    ${FLUIDLIGHT_DIR}/libogg-1.3.2/src/framing.c
-)
-
-list(APPEND SFONT_INCLUDES
-    ${FLUIDLIGHT_DIR}/libvorbis-1.3.5/include
-    ${FLUIDLIGHT_DIR}/libvorbis-1.3.5/lib
-    ${FLUIDLIGHT_DIR}/libogg-1.3.2/include
-    ${FLUIDLIGHT_DIR}/include
-    ${CMAKE_CURRENT_BINARY_DIR}/${FLUIDLIGHT_DIR}/include
-)
-
-if(ENABLE_SFONT)
-    add_library(sfont STATIC ${SFONT_SOURCES})
-    target_include_directories(sfont PRIVATE ${SFONT_INCLUDES})
-    set(SF3_SUPPORT 1)
-    set(fluidlite_VERSION 1.2.2)
-    set(fluidlite_VERSION_MAJOR 1)
-    set(fluidlite_VERSION_MINOR 2)
-    set(fluidlite_VERSION_PATCH 2)
-
-    configure_file(${FLUIDLIGHT_DIR}/src/version.cmake ${FLUIDLIGHT_DIR}/include/fluidlite/version.h @ONLY)
-    configure_file(${FLUIDLIGHT_DIR}/src/fluid_config.cmake ${FLUIDLIGHT_DIR}/include/fluid_config.h @ONLY)
-endif()
 
 # ------------------------------------------------------------------------------#
 set(CMAKE_MACOSX_RPATH ON)
@@ -258,6 +186,86 @@ include_directories(ELSE/Source/)
 include_directories(ELSE/Aliases/)
 include_directories(ELSE/shared)
 
+if(ENABLE_SFONT)
+
+    list(APPEND LIBPD_COMPILE_DEFINITIONS ENABLE_SFONT=1)
+
+    set(SFONT_DIR ELSE/sfont~)
+    set(FLUIDLIGHT_DIR ${SFONT_DIR}/FluidLite)
+
+    list(APPEND SFONT_SOURCES
+        ${FLUIDLIGHT_DIR}/src/fluid_init.c
+        ${FLUIDLIGHT_DIR}/src/fluid_chan.c
+        ${FLUIDLIGHT_DIR}/src/fluid_chorus.c
+        ${FLUIDLIGHT_DIR}/src/fluid_conv.c
+        ${FLUIDLIGHT_DIR}/src/fluid_defsfont.c
+        ${FLUIDLIGHT_DIR}/src/fluid_dsp_float.c
+        ${FLUIDLIGHT_DIR}/src/fluid_gen.c
+        ${FLUIDLIGHT_DIR}/src/fluid_hash.c
+        ${FLUIDLIGHT_DIR}/src/fluid_list.c
+        ${FLUIDLIGHT_DIR}/src/fluid_mod.c
+        ${FLUIDLIGHT_DIR}/src/fluid_ramsfont.c
+        ${FLUIDLIGHT_DIR}/src/fluid_rev.c
+        ${FLUIDLIGHT_DIR}/src/fluid_settings.c
+        ${FLUIDLIGHT_DIR}/src/fluid_synth.c
+        ${FLUIDLIGHT_DIR}/src/fluid_sys.c
+        ${FLUIDLIGHT_DIR}/src/fluid_tuning.c
+        ${FLUIDLIGHT_DIR}/src/fluid_voice.c
+
+        ${FLUIDLIGHT_DIR}/libvorbis-1.3.5/lib/vorbisenc.c
+        ${FLUIDLIGHT_DIR}/libvorbis-1.3.5/lib/info.c
+        ${FLUIDLIGHT_DIR}/libvorbis-1.3.5/lib/analysis.c
+        ${FLUIDLIGHT_DIR}/libvorbis-1.3.5/lib/bitrate.c
+        ${FLUIDLIGHT_DIR}/libvorbis-1.3.5/lib/block.c
+        ${FLUIDLIGHT_DIR}/libvorbis-1.3.5/lib/codebook.c
+        ${FLUIDLIGHT_DIR}/libvorbis-1.3.5/lib/envelope.c
+        ${FLUIDLIGHT_DIR}/libvorbis-1.3.5/lib/floor0.c
+        ${FLUIDLIGHT_DIR}/libvorbis-1.3.5/lib/floor1.c
+        ${FLUIDLIGHT_DIR}/libvorbis-1.3.5/lib/lookup.c
+        ${FLUIDLIGHT_DIR}/libvorbis-1.3.5/lib/lpc.c
+        ${FLUIDLIGHT_DIR}/libvorbis-1.3.5/lib/lsp.c
+        ${FLUIDLIGHT_DIR}/libvorbis-1.3.5/lib/mapping0.c
+        ${FLUIDLIGHT_DIR}/libvorbis-1.3.5/lib/mdct.c
+        ${FLUIDLIGHT_DIR}/libvorbis-1.3.5/lib/psy.c
+        ${FLUIDLIGHT_DIR}/libvorbis-1.3.5/lib/registry.c
+        ${FLUIDLIGHT_DIR}/libvorbis-1.3.5/lib/res0.c
+        ${FLUIDLIGHT_DIR}/libvorbis-1.3.5/lib/sharedbook.c
+        ${FLUIDLIGHT_DIR}/libvorbis-1.3.5/lib/smallft.c
+        ${FLUIDLIGHT_DIR}/libvorbis-1.3.5/lib/vorbisfile.c
+        ${FLUIDLIGHT_DIR}/libvorbis-1.3.5/lib/window.c
+        ${FLUIDLIGHT_DIR}/libvorbis-1.3.5/lib/synthesis.c
+
+        ${FLUIDLIGHT_DIR}/libogg-1.3.2/src/bitwise.c
+        ${FLUIDLIGHT_DIR}/libogg-1.3.2/src/framing.c
+    )
+
+    list(APPEND SFONT_INCLUDES
+        ${FLUIDLIGHT_DIR}/libvorbis-1.3.5/include
+        ${FLUIDLIGHT_DIR}/libvorbis-1.3.5/lib
+        ${FLUIDLIGHT_DIR}/libogg-1.3.2/include
+        ${FLUIDLIGHT_DIR}/include
+        ${CMAKE_CURRENT_BINARY_DIR}/${FLUIDLIGHT_DIR}/include
+    )
+
+    add_library(fluidlite STATIC ${SFONT_SOURCES})
+    target_include_directories(sfont PRIVATE ${SFONT_INCLUDES})
+
+    set(SF3_SUPPORT 1)
+    set(ENABLE_SF3 ON)
+
+    set(fluidlite_VERSION 1.2.2)
+    set(fluidlite_VERSION_MAJOR 1)
+    set(fluidlite_VERSION_MINOR 2)
+    set(fluidlite_VERSION_PATCH 2)
+
+    list(APPEND ELSE_SOURCES
+        ${SFONT_DIR}/sfont~.c
+    )
+
+    configure_file(${FLUIDLIGHT_DIR}/src/version.cmake ${FLUIDLIGHT_DIR}/include/fluidlite/version.h @ONLY)
+    configure_file(${FLUIDLIGHT_DIR}/src/fluid_config.cmake ${FLUIDLIGHT_DIR}/include/fluid_config.h @ONLY)
+endif()
+
 source_group(ELSE FILES ${ELSE_SOURCES})
 
 file(GLOB_RECURSE CYCLONE_SOURCES
@@ -302,10 +310,6 @@ set_source_files_properties(${PDLUA_PATH}/pdlua.c PROPERTIES COMPILE_DEFINITIONS
 # COMPILE DEFINITIONS
 # ------------------------------------------------------------------------------#
 set(LIBPD_COMPILE_DEFINITIONS PD=1 USEAPI_DUMMY=1 PD_INTERNAL=1)
-
-if(ENABLE_SFONT)
-    list(APPEND LIBPD_COMPILE_DEFINITIONS ENABLE_SFONT=1)
-endif()
 
 # COMPILE DEFINITIONS OPTIONS
 # ------------------------------------------------------------------------------#
@@ -377,11 +381,11 @@ set_target_properties(pd-multi PROPERTIES POSITION_INDEPENDENT_CODE ON)
 set_target_properties(externals PROPERTIES POSITION_INDEPENDENT_CODE ON)
 set_target_properties(externals-multi PROPERTIES POSITION_INDEPENDENT_CODE ON)
 
-target_link_libraries(externals sfont lua)
-target_link_libraries(externals-multi sfont lua)
+target_link_libraries(externals fluidlite lua)
+target_link_libraries(externals-multi fluidlite lua)
 
-target_include_directories(externals PRIVATE ${SFONT_INCLUDE_DIR} ${LUA_INCLUDE_DIR})
-target_include_directories(externals-multi PRIVATE ${SFONT_INCLUDE_DIR} ${LUA_INCLUDE_DIR})
+target_include_directories(externals PRIVATE ${LUA_INCLUDE_DIR})
+target_include_directories(externals-multi PRIVATE ${LUA_INCLUDE_DIR})
 # ------------------------------------------------------------------------------#
 # GENERATOR OPTIONS
 # ------------------------------------------------------------------------------#
