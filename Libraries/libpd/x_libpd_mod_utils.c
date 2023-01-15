@@ -97,7 +97,9 @@ void libpd_get_search_paths(char** paths, int* numItems) {
     *paths = malloc(i * sizeof(char*));
     
     pathList = STUFF->st_searchpath;
-    i = 0;
+    paths[0] = pathList->nl_string;
+    
+    i = 1;
     while(pathList = pathList->nl_next) {
         paths[i] = pathList->nl_string;
         i++;
