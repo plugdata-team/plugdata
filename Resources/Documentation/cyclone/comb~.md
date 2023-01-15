@@ -1,30 +1,53 @@
 ---
 title: comb~
-description:
+description: Comb filter
 categories:
  - object
 pdcategory: General
 arguments:
-- type: gimme
-  description:
-  default:
+- type: float
+  description: maximum delay time in ms
+  default: 10
+- type: float
+  description: D: delay time in ms
+  default: 0
+- type: float
+  description: a: input gain coefficient
+  default: 0
+- type: float
+  description: b: feedforward gain coefficient
+  default: 0
+- type: float
+  description: c: feedback gain coefficient
+  default: 0
 inlets:
   1st:
   - type: signal
-    description:
+    description: signal to pass through comb filter
+  - type: list
+    description: updates all 5 arguments
   2nd:
-  - type: signal
-    description:
+  - type: float/signal
+    description: D: delay time in ms
   3rd:
-  - type: signal
-    description:
+  - type: float/signal
+    description: a: input gain coefficient
   4th:
-  - type: signal
-    description:
+  - type: float/signal
+    description: b: feedforward gain coefficient
   5th:
-  - type: signal
-    description:
+  - type: float/signal
+    description: c: feedback gain coefficient
 outlets:
   1st:
   - type: signal
-    description:
+    description: output from comb filter
+
+methods:
+  - type: clear
+    description: clears buffer
+
+---
+
+[comb~] is a comb filter, use it for filtering and delay effects.
+

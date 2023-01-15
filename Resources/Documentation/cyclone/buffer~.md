@@ -21,6 +21,12 @@ inlets:
     description: opens buffer supbatch window
 outlets:
 
+flags:
+  - name: @size <float>
+    description: sets buffer size in ms
+  - name: @samps <float>
+    description: sets buffer size in samples
+
 methods:
   - type: clear
     description: fills all arrays with zeros
