@@ -13,8 +13,6 @@ outlets:
   1st:
   - type: bang
     description: a bang message
-aliases:
-- b
 draft: false
 ---
 The [bang] object outputs a "bang" message for whatever message it receives.
