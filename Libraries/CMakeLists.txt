@@ -282,6 +282,9 @@ include_directories(cyclone/shared/)
 source_group(cyclone FILES ${CYCLONE_SOURCES})
 
 # pdlua sources
+set(PDLUA_PATH "${CMAKE_CURRENT_SOURCE_DIR}/pd-lua")
+set(PDLUA_SOURCES ${PDLUA_PATH}/pdlua.c)
+
 set(LUA_PATH "${PDLUA_PATH}/lua")
 set(LUA_INCLUDE_DIR ${LUA_PATH})
 
@@ -295,9 +298,6 @@ target_compile_definitions(lua PRIVATE MAKE_LIB=1 LUA_USE_MACOSX=1)
 else()
 target_compile_definitions(lua PRIVATE MAKE_LIB=1)
 endif()
-
-set(PDLUA_PATH "${CMAKE_CURRENT_SOURCE_DIR}/pd-lua")
-set(PDLUA_SOURCES ${PDLUA_PATH}/pdlua.c)
 
 source_group(pdlua FILES ${PDLUA_SOURCES})
 
