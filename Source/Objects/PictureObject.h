@@ -117,6 +117,13 @@ struct PictureObject final : public GUIObject {
             object->setSize(img.getWidth(), img.getHeight());
         }
     }
+    
+    void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
+    {
+        if(symbol == "open" && atoms.size() >= 1) {
+            openFile(atoms[0].getSymbol());
+        }
+    }
 
     void openFile(String location)
     {
