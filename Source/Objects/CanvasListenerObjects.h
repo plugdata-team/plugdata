@@ -89,7 +89,7 @@ struct CanvasMouseObject final : public TextBase {
         auto* mouse = static_cast<t_fake_canvas_mouse*>(ptr);
 
         outlet_float(mouse->x_outlet_y, (float)pos.x);
-        outlet_float(mouse->x_outlet_x, (float)pos.y);
+        outlet_float(mouse->x_outlet_x, getHeight() - (float)pos.y);
         outlet_float(mouse->x_obj.ob_outlet, 1.0);
     }
 
@@ -105,7 +105,7 @@ struct CanvasMouseObject final : public TextBase {
         auto* mouse = static_cast<t_fake_canvas_mouse*>(ptr);
 
         outlet_float(mouse->x_outlet_y, (float)pos.x);
-        outlet_float(mouse->x_outlet_x, (float)pos.y);
+        outlet_float(mouse->x_outlet_x, getHeight() - (float)pos.y);
     }
 
     void mouseDrag(MouseEvent const& e) override
