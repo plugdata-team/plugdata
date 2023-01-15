@@ -1,0 +1,578 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Documentation">
+      <UniqueIdentifier>{5f59194b-ab7f-4922-8952-df1f886e5637}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="TestSources">
+      <UniqueIdentifier>{d512c89a-ce76-42dd-abde-5f33e20557ec}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Headerfiles">
+      <UniqueIdentifier>{1eaa8308-ee3f-4aaf-9f0b-b3513bfa2ec5}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\tests\ChangeLog">
+      <Filter>Documentation</Filter>
+    </None>
+    <None Include="..\..\tests\common.mk">
+      <Filter>Documentation</Filter>
+    </None>
+    <None Include="..\..\tests\GNUmakefile">
+      <Filter>Documentation</Filter>
+    </None>
+    <None Include="..\..\tests\Makefile">
+      <Filter>Documentation</Filter>
+    </None>
+    <None Include="..\..\tests\README">
+      <Filter>Documentation</Filter>
+    </None>
+    <None Include="..\..\tests\README.BENCHTESTS">
+      <Filter>Documentation</Filter>
+    </None>
+    <None Include="..\..\tests\runorder.mk">
+      <Filter>Documentation</Filter>
+    </None>
+    <None Include="..\..\tests\SIZES.GC">
+      <Filter>Documentation</Filter>
+    </None>
+    <None Include="..\..\tests\SIZES.GCE">
+      <Filter>Documentation</Filter>
+    </None>
+    <None Include="..\..\tests\SIZES.MSVC2005.x86">
+      <Filter>Documentation</Filter>
+    </None>
+    <None Include="..\..\tests\SIZES.VC">
+      <Filter>Documentation</Filter>
+    </None>
+    <None Include="..\..\tests\SIZES.VCE">
+      <Filter>Documentation</Filter>
+    </None>
+    <None Include="..\..\tests\SIZES.VSE">
+      <Filter>Documentation</Filter>
+    </None>
+    <None Include="..\..\tests\Wmakefile">
+      <Filter>Documentation</Filter>
+    </None>
+    <None Include="..\..\tests\Bmakefile">
+      <Filter>Documentation</Filter>
+    </None>
+    <None Include="..\..\tests\Debug.plg">
+      <Filter>Documentation</Filter>
+    </None>
+    <None Include="..\Debug.txt">
+      <Filter>Documentation</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\tests\wrapper4tests_1.c" />
+    <ClCompile Include="..\..\tests\affinity1.c">
+      <Filter>TestSources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\tests\affinity2.c">
+      <Filter>TestSources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\tests\affinity3.c">
+      <Filter>TestSources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\tests\affinity4.c">
+      <Filter>TestSources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\tests\affinity5.c">
+      <Filter>TestSources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\tests\barrier1.c">
+      <Filter>TestSources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\tests\barrier2.c">
+      <Filter>TestSources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\tests\barrier3.c">
+      <Filter>TestSources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\tests\barrier4.c">
+      <Filter>TestSources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\tests\barrier5.c">
+      <Filter>TestSources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\tests\barrier6.c">
+      <Filter>TestSources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\tests\benchlib.c">
+      <Filter>TestSources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\tests\benchtest1.c">
+      <Filter>TestSources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\tests\benchtest2.c">
+      <Filter>TestSources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\tests\benchtest3.c">
+      <Filter>TestSources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\tests\benchtest4.c">
+      <Filter>TestSources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\tests\benchtest5.c">
+      <Filter>TestSources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\tests\cancel1.c">
+      <Filter>TestSources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\tests\cancel2.c">
+      <Filter>TestSources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\tests\cancel3.c">
+      <Filter>TestSources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\tests\cancel4.c">
+      <Filter>TestSources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\tests\cancel5.c">
+      <Filter>TestSources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\tests\cancel6a.c">
+      <Filter>TestSources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\tests\cancel6d.c">
+      <Filter>TestSources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\tests\cancel7.c">
+      <Filter>TestSources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\tests\cancel8.c">
+      <Filter>TestSources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\tests\cancel9.c">
+      <Filter>TestSources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\tests\cleanup0.c">
+      <Filter>TestSources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\tests\cleanup1.c">
+      <Filter>TestSources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\tests\cleanup2.c">
+      <Filter>TestSources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\tests\cleanup3.c">
+      <Filter>TestSources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\tests\condvar1.c">
+      <Filter>TestSources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\tests\condvar1_1.c">
+      <Filter>TestSources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\tests\condvar1_2.c">
+      <Filter>TestSources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\tests\condvar2.c">
+      <Filter>TestSources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\tests\condvar2_1.c">
+      <Filter>TestSources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\tests\condvar3.c">
+      <Filter>TestSources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\tests\condvar3_1.c">
+      <Filter>TestSources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\tests\condvar3_2.c">
+      <Filter>TestSources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\tests\condvar3_3.c">
+      <Filter>TestSources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\tests\condvar4.c">
+      <Filter>TestSources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\tests\condvar5.c">
+      <Filter>TestSources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\tests\condvar6.c">
+      <Filter>TestSources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\tests\condvar7.c">
+      <Filter>TestSources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\tests\condvar8.c">
+      <Filter>TestSources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\tests\condvar9.c">
+      <Filter>TestSources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\tests\context1.c">
+      <Filter>TestSources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\tests\context2.c">
+      <Filter>TestSources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\tests\count1.c">
+      <Filter>TestSources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\tests\create1.c">
+      <Filter>TestSources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\tests\create2.c">
+      <Filter>TestSources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\tests\create3.c">
+      <Filter>TestSources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\tests\create3a.c">
+      <Filter>TestSources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\tests\delay1.c">
+      <Filter>TestSources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\tests\delay2.c">
+      <Filter>TestSources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\tests\detach1.c">
+      <Filter>TestSources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\tests\equal1.c">
+      <Filter>TestSources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\tests\errno1.c">
+      <Filter>TestSources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\tests\exception1.c">
+      <Filter>TestSources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\tests\exception2.c">
+      <Filter>TestSources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\tests\exception3.c">
+      <Filter>TestSources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\tests\exception3_0.c">
+      <Filter>TestSources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\tests\exit1.c">
+      <Filter>TestSources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\tests\exit2.c">
+      <Filter>TestSources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\tests\exit3.c">
+      <Filter>TestSources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\tests\exit4.c">
+      <Filter>TestSources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\tests\exit5.c">
+      <Filter>TestSources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\tests\eyal1.c">
+      <Filter>TestSources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\tests\inherit1.c">
+      <Filter>TestSources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\tests\join0.c">
+      <Filter>TestSources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\tests\join1.c">
+      <Filter>TestSources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\tests\join2.c">
+      <Filter>TestSources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\tests\join3.c">
+      <Filter>TestSources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\tests\join4.c">
+      <Filter>TestSources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\tests\kill1.c">
+      <Filter>TestSources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\tests\loadfree.c">
+      <Filter>TestSources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\tests\mutex1.c">
+      <Filter>TestSources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\tests\mutex1e.c">
+      <Filter>TestSources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\tests\mutex1n.c">
+      <Filter>TestSources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\tests\mutex1r.c">
+      <Filter>TestSources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\tests\mutex2.c">
+      <Filter>TestSources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\tests\mutex2e.c">
+      <Filter>TestSources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\tests\mutex2r.c">
+      <Filter>TestSources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\tests\mutex3.c">
+      <Filter>TestSources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\tests\mutex3e.c">
+      <Filter>TestSources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\tests\mutex3r.c">
+      <Filter>TestSources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\tests\mutex4.c">
+      <Filter>TestSources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\tests\mutex5.c">
+      <Filter>TestSources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\tests\mutex6.c">
+      <Filter>TestSources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\tests\mutex6e.c">
+      <Filter>TestSources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\tests\mutex6es.c">
+      <Filter>TestSources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\tests\mutex6n.c">
+      <Filter>TestSources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\tests\mutex6r.c">
+      <Filter>TestSources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\tests\mutex6rs.c">
+      <Filter>TestSources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\tests\mutex6s.c">
+      <Filter>TestSources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\tests\mutex7.c">
+      <Filter>TestSources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\tests\mutex7e.c">
+      <Filter>TestSources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\tests\mutex7n.c">
+      <Filter>TestSources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\tests\mutex7r.c">
+      <Filter>TestSources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\tests\mutex8.c">
+      <Filter>TestSources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\tests\mutex8e.c">
+      <Filter>TestSources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\tests\mutex8n.c">
+      <Filter>TestSources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\tests\mutex8r.c">
+      <Filter>TestSources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\tests\once1.c">
+      <Filter>TestSources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\tests\once2.c">
+      <Filter>TestSources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\tests\once3.c">
+      <Filter>TestSources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\tests\once4.c">
+      <Filter>TestSources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\tests\openmp1.c">
+      <Filter>TestSources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\tests\priority1.c">
+      <Filter>TestSources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\tests\priority2.c">
+      <Filter>TestSources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\tests\reuse1.c">
+      <Filter>TestSources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\tests\reuse2.c">
+      <Filter>TestSources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\tests\robust1.c">
+      <Filter>TestSources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\tests\robust2.c">
+      <Filter>TestSources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\tests\robust3.c">
+      <Filter>TestSources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\tests\robust4.c">
+      <Filter>TestSources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\tests\robust5.c">
+      <Filter>TestSources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\tests\rwlock1.c">
+      <Filter>TestSources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\tests\rwlock2.c">
+      <Filter>TestSources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\tests\rwlock2_t.c">
+      <Filter>TestSources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\tests\rwlock3.c">
+      <Filter>TestSources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\tests\rwlock3_t.c">
+      <Filter>TestSources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\tests\rwlock4.c">
+      <Filter>TestSources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\tests\rwlock4_t.c">
+      <Filter>TestSources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\tests\rwlock5.c">
+      <Filter>TestSources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\tests\rwlock5_t.c">
+      <Filter>TestSources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\tests\rwlock6.c">
+      <Filter>TestSources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\tests\rwlock6_t.c">
+      <Filter>TestSources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\tests\rwlock6_t2.c">
+      <Filter>TestSources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\tests\rwlock7.c">
+      <Filter>TestSources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\tests\rwlock8.c">
+      <Filter>TestSources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\tests\self1.c">
+      <Filter>TestSources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\tests\self2.c">
+      <Filter>TestSources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\tests\semaphore1.c">
+      <Filter>TestSources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\tests\semaphore2.c">
+      <Filter>TestSources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\tests\semaphore3.c">
+      <Filter>TestSources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\tests\semaphore4.c">
+      <Filter>TestSources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\tests\semaphore4t.c">
+      <Filter>TestSources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\tests\semaphore5.c">
+      <Filter>TestSources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\tests\sequence1.c">
+      <Filter>TestSources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\tests\sequence2.c">
+      <Filter>TestSources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\tests\sizes.c">
+      <Filter>TestSources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\tests\spin1.c">
+      <Filter>TestSources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\tests\spin2.c">
+      <Filter>TestSources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\tests\spin3.c">
+      <Filter>TestSources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\tests\spin4.c">
+      <Filter>TestSources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\tests\stress1.c">
+      <Filter>TestSources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\tests\tryentercs.c">
+      <Filter>TestSources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\tests\tryentercs2.c">
+      <Filter>TestSources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\tests\tsd1.c">
+      <Filter>TestSources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\tests\tsd2.c">
+      <Filter>TestSources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\tests\valid1.c">
+      <Filter>TestSources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\tests\valid2.c">
+      <Filter>TestSources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\tests\affinity6.c">
+      <Filter>TestSources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\tests\cancel10.c">
+      <Filter>TestSources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\tests\exit6.c">
+      <Filter>TestSources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\tests\kill2.c">
+      <Filter>TestSources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\tests\name_np1.c">
+      <Filter>TestSources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\tests\name_np2.c">
+      <Filter>TestSources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\tests\reinit1.c">
+      <Filter>TestSources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\tests\threestage.c">
+      <Filter>TestSources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\tests\timeouts.c">
+      <Filter>TestSources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\tests\tsd3.c">
+      <Filter>TestSources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\tests\equal0.c">
+      <Filter>TestSources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\tests\errno0.c">
+      <Filter>TestSources</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\tests\benchtest.h">
+      <Filter>Headerfiles</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\tests\test.h">
+      <Filter>Headerfiles</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="..\..\tests\Debug.txt">
+      <Filter>Documentation</Filter>
+    </Text>
+  </ItemGroup>
+</Project>

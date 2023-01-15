@@ -1,0 +1,25 @@
+name: All Platforms
+
+on: [push]
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [windows-2022]
+        build_type: ['Release', 'Debug']
+        link_type: ['static', 'shared']
+        include:
+          - link_type: static
+            BUILD_SHARED_LIBS: OFF
+          - link_type: shared
+            BUILD_SHARED_LIBS: ON
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Build
+      run: |
+        cmake -B ${{github.workspace}}/build-${{matrix.link_type}}-${{matrix.build_type}} -DBUILD_SHARED_LIBS=${{matrix.BUILD_SHARED_LIBS}} -DCMAKE_INSTALL_PREFIX="${{github.workspace}}/install-${{matrix.link_type}}-${{matrix.build_type}}"
+        cmake --build ${{github.workspace}}/build-${{matrix.link_type}}-${{matrix.build_type}} --config ${{matrix.build_type}} --target install

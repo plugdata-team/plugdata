@@ -1,0 +1,643 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{561aef6d-d1e9-4fe0-b67a-281254de51e1}</UniqueIdentifier>
+      <Extensions>cpp;c;cxx;rc;def;r;odl;idl;hpj;bat</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{e9264cbd-1168-4d79-94d8-3dde79f5e59a}</UniqueIdentifier>
+      <Extensions>h;hpp;hxx;hm;inl</Extensions>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{2447694f-01c5-49e0-9973-cfe57e8338d3}</UniqueIdentifier>
+      <Extensions>ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe</Extensions>
+    </Filter>
+    <Filter Include="Documentation">
+      <UniqueIdentifier>{50437b4d-d148-4c5f-b734-9275741881d3}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\cleanup.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\create.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\dll.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\errno.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\global.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\pthread.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\pthread_attr_destroy.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\pthread_attr_getdetachstate.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\pthread_attr_getinheritsched.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\pthread_attr_getschedparam.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\pthread_attr_getschedpolicy.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\pthread_attr_getscope.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\pthread_attr_getstackaddr.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\pthread_attr_getstacksize.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\pthread_attr_init.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\pthread_attr_setdetachstate.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\pthread_attr_setinheritsched.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\pthread_attr_setschedparam.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\pthread_attr_setschedpolicy.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\pthread_attr_setscope.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\pthread_attr_setstackaddr.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\pthread_attr_setstacksize.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\pthread_barrier_destroy.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\pthread_barrier_init.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\pthread_barrier_wait.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\pthread_barrierattr_destroy.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\pthread_barrierattr_getpshared.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\pthread_barrierattr_init.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\pthread_barrierattr_setpshared.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\pthread_cancel.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\pthread_cond_destroy.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\pthread_cond_init.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\pthread_cond_signal.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\pthread_cond_wait.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\pthread_condattr_destroy.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\pthread_condattr_getpshared.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\pthread_condattr_init.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\pthread_condattr_setpshared.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\pthread_delay_np.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\pthread_detach.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\pthread_equal.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\pthread_exit.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\pthread_getconcurrency.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\pthread_getschedparam.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\pthread_getspecific.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\pthread_getunique_np.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\pthread_getw32threadhandle_np.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\pthread_join.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\pthread_key_create.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\pthread_key_delete.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\pthread_kill.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\pthread_mutex_consistent.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\pthread_mutex_destroy.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\pthread_mutex_init.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\pthread_mutex_lock.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\pthread_mutex_timedlock.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\pthread_mutex_trylock.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\pthread_mutex_unlock.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\pthread_mutexattr_destroy.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\pthread_mutexattr_getkind_np.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\pthread_mutexattr_getpshared.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\pthread_mutexattr_getrobust.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\pthread_mutexattr_gettype.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\pthread_mutexattr_init.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\pthread_mutexattr_setkind_np.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\pthread_mutexattr_setpshared.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\pthread_mutexattr_setrobust.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\pthread_mutexattr_settype.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\pthread_num_processors_np.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\pthread_once.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\pthread_rwlock_destroy.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\pthread_rwlock_init.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\pthread_rwlock_rdlock.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\pthread_rwlock_timedrdlock.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\pthread_rwlock_timedwrlock.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\pthread_rwlock_tryrdlock.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\pthread_rwlock_trywrlock.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\pthread_rwlock_unlock.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\pthread_rwlock_wrlock.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\pthread_rwlockattr_destroy.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\pthread_rwlockattr_getpshared.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\pthread_rwlockattr_init.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\pthread_rwlockattr_setpshared.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\pthread_self.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\pthread_setcancelstate.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\pthread_setcanceltype.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\pthread_setconcurrency.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\pthread_setschedparam.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\pthread_setspecific.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\pthread_spin_destroy.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\pthread_spin_init.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\pthread_spin_lock.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\pthread_spin_trylock.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\pthread_spin_unlock.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\pthread_testcancel.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\pthread_timechange_handler_np.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\pthread_win32_attach_detach_np.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\ptw32_calloc.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\ptw32_callUserDestroyRoutines.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\ptw32_cond_check_need_init.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\ptw32_getprocessors.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\ptw32_is_attr.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\ptw32_MCS_lock.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\ptw32_mutex_check_need_init.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\ptw32_new.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\ptw32_processInitialize.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\ptw32_processTerminate.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\ptw32_relmillisecs.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\ptw32_reuse.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\ptw32_rwlock_cancelwrwait.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\ptw32_rwlock_check_need_init.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\ptw32_semwait.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\ptw32_spinlock_check_need_init.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\ptw32_threadDestroy.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\ptw32_threadStart.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\ptw32_throw.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\ptw32_timespec.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\ptw32_tkAssocCreate.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\ptw32_tkAssocDestroy.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\sched_get_priority_max.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\sched_get_priority_min.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\sched_getscheduler.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\sched_setscheduler.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\sched_yield.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\sem_close.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\sem_destroy.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\sem_getvalue.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\sem_init.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\sem_open.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\sem_post.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\sem_post_multiple.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\sem_timedwait.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\sem_trywait.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\sem_unlink.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\sem_wait.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\signal.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\w32_CancelableWait.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\pthread_setaffinity.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\pthread_timedjoin_np.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\pthread_tryjoin_np.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\sched_setaffinity.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\config.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\context.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\implement.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\need_errno.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\pthread.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\sched.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\semaphore.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="..\..\version.rc">
+      <Filter>Resource Files</Filter>
+    </ResourceCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\manual\index.html">
+      <Filter>Documentation</Filter>
+    </None>
+    <None Include="..\..\manual\PortabilityIssues.html">
+      <Filter>Documentation</Filter>
+    </None>
+    <None Include="..\..\manual\pthread_attr_init.html">
+      <Filter>Documentation</Filter>
+    </None>
+    <None Include="..\..\manual\pthread_attr_setstackaddr.html">
+      <Filter>Documentation</Filter>
+    </None>
+    <None Include="..\..\manual\pthread_attr_setstacksize.html">
+      <Filter>Documentation</Filter>
+    </None>
+    <None Include="..\..\manual\pthread_barrier_init.html">
+      <Filter>Documentation</Filter>
+    </None>
+    <None Include="..\..\manual\pthread_barrier_wait.html">
+      <Filter>Documentation</Filter>
+    </None>
+    <None Include="..\..\manual\pthread_barrierattr_init.html">
+      <Filter>Documentation</Filter>
+    </None>
+    <None Include="..\..\manual\pthread_barrierattr_setpshared.html">
+      <Filter>Documentation</Filter>
+    </None>
+    <None Include="..\..\manual\pthread_cancel.html">
+      <Filter>Documentation</Filter>
+    </None>
+    <None Include="..\..\manual\pthread_cleanup_push.html">
+      <Filter>Documentation</Filter>
+    </None>
+    <None Include="..\..\manual\pthread_cond_init.html">
+      <Filter>Documentation</Filter>
+    </None>
+    <None Include="..\..\manual\pthread_condattr_init.html">
+      <Filter>Documentation</Filter>
+    </None>
+    <None Include="..\..\manual\pthread_condattr_setpshared.html">
+      <Filter>Documentation</Filter>
+    </None>
+    <None Include="..\..\manual\pthread_create.html">
+      <Filter>Documentation</Filter>
+    </None>
+    <None Include="..\..\manual\pthread_delay_np.html">
+      <Filter>Documentation</Filter>
+    </None>
+    <None Include="..\..\manual\pthread_detach.html">
+      <Filter>Documentation</Filter>
+    </None>
+    <None Include="..\..\manual\pthread_equal.html">
+      <Filter>Documentation</Filter>
+    </None>
+    <None Include="..\..\manual\pthread_exit.html">
+      <Filter>Documentation</Filter>
+    </None>
+    <None Include="..\..\manual\pthread_getw32threadhandle_np.html">
+      <Filter>Documentation</Filter>
+    </None>
+    <None Include="..\..\manual\pthread_join.html">
+      <Filter>Documentation</Filter>
+    </None>
+    <None Include="..\..\manual\pthread_key_create.html">
+      <Filter>Documentation</Filter>
+    </None>
+    <None Include="..\..\manual\pthread_kill.html">
+      <Filter>Documentation</Filter>
+    </None>
+    <None Include="..\..\manual\pthread_mutex_init.html">
+      <Filter>Documentation</Filter>
+    </None>
+    <None Include="..\..\manual\pthread_mutexattr_init.html">
+      <Filter>Documentation</Filter>
+    </None>
+    <None Include="..\..\manual\pthread_mutexattr_setpshared.html">
+      <Filter>Documentation</Filter>
+    </None>
+    <None Include="..\..\manual\pthread_num_processors_np.html">
+      <Filter>Documentation</Filter>
+    </None>
+    <None Include="..\..\manual\pthread_once.html">
+      <Filter>Documentation</Filter>
+    </None>
+    <None Include="..\..\manual\pthread_rwlock_init.html">
+      <Filter>Documentation</Filter>
+    </None>
+    <None Include="..\..\manual\pthread_rwlock_rdlock.html">
+      <Filter>Documentation</Filter>
+    </None>
+    <None Include="..\..\manual\pthread_rwlock_timedrdlock.html">
+      <Filter>Documentation</Filter>
+    </None>
+    <None Include="..\..\manual\pthread_rwlock_timedwrlock.html">
+      <Filter>Documentation</Filter>
+    </None>
+    <None Include="..\..\manual\pthread_rwlock_unlock.html">
+      <Filter>Documentation</Filter>
+    </None>
+    <None Include="..\..\manual\pthread_rwlock_wrlock.html">
+      <Filter>Documentation</Filter>
+    </None>
+    <None Include="..\..\manual\pthread_rwlockattr_init.html">
+      <Filter>Documentation</Filter>
+    </None>
+    <None Include="..\..\manual\pthread_rwlockattr_setpshared.html">
+      <Filter>Documentation</Filter>
+    </None>
+    <None Include="..\..\manual\pthread_self.html">
+      <Filter>Documentation</Filter>
+    </None>
+    <None Include="..\..\manual\pthread_setcancelstate.html">
+      <Filter>Documentation</Filter>
+    </None>
+    <None Include="..\..\manual\pthread_setcanceltype.html">
+      <Filter>Documentation</Filter>
+    </None>
+    <None Include="..\..\manual\pthread_setconcurrency.html">
+      <Filter>Documentation</Filter>
+    </None>
+    <None Include="..\..\manual\pthread_setschedparam.html">
+      <Filter>Documentation</Filter>
+    </None>
+    <None Include="..\..\manual\pthread_spin_init.html">
+      <Filter>Documentation</Filter>
+    </None>
+    <None Include="..\..\manual\pthread_spin_lock.html">
+      <Filter>Documentation</Filter>
+    </None>
+    <None Include="..\..\manual\pthread_spin_unlock.html">
+      <Filter>Documentation</Filter>
+    </None>
+    <None Include="..\..\manual\pthread_timechange_handler_np.html">
+      <Filter>Documentation</Filter>
+    </None>
+    <None Include="..\..\manual\pthread_win32_attach_detach_np.html">
+      <Filter>Documentation</Filter>
+    </None>
+    <None Include="..\..\manual\pthread_win32_test_features_np.html">
+      <Filter>Documentation</Filter>
+    </None>
+    <None Include="..\..\manual\pthreadCancelableWait.html">
+      <Filter>Documentation</Filter>
+    </None>
+    <None Include="..\..\manual\sched_get_priority_max.html">
+      <Filter>Documentation</Filter>
+    </None>
+    <None Include="..\..\manual\sched_getscheduler.html">
+      <Filter>Documentation</Filter>
+    </None>
+    <None Include="..\..\manual\sched_setscheduler.html">
+      <Filter>Documentation</Filter>
+    </None>
+    <None Include="..\..\manual\sched_yield.html">
+      <Filter>Documentation</Filter>
+    </None>
+    <None Include="..\..\manual\sem_init.html">
+      <Filter>Documentation</Filter>
+    </None>
+    <None Include="..\..\manual\cpu_set.html">
+      <Filter>Documentation</Filter>
+    </None>
+    <None Include="..\..\manual\pthread_getunique_np.html">
+      <Filter>Documentation</Filter>
+    </None>
+    <None Include="..\..\manual\sched_setaffinity.html">
+      <Filter>Documentation</Filter>
+    </None>
+  </ItemGroup>
+</Project>
