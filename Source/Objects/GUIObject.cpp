@@ -88,6 +88,7 @@ String ObjectBase::getType() const
     ScopedLock lock(*pd->getCallbackLock());
 
     if (ptr) {
+        // Check if it's an abstraction or subpatch
         if (pd_class(static_cast<t_pd*>(ptr)) == canvas_class && canvas_isabstraction((t_canvas*)ptr)) {
             char namebuf[MAXPDSTRING];
             t_object* ob = (t_object*)ptr;
@@ -99,6 +100,7 @@ String ObjectBase::getType() const
 
             return String::fromUTF8(namebuf).fromLastOccurrenceOf("/", false, false);
         }
+        // Deal with different text objects
         if (String(libpd_get_object_class_name(ptr)) == "text" && static_cast<t_text*>(ptr)->te_type == T_OBJECT) {
             return String("invalid");
         }
@@ -108,6 +110,7 @@ String ObjectBase::getType() const
         if (String(libpd_get_object_class_name(ptr)) == "text" && static_cast<t_text*>(ptr)->te_type == T_MESSAGE) {
             return String("message");
         }
+        // Deal with atoms
         if (String(libpd_get_object_class_name(ptr)) == "gatom") {
             if (static_cast<t_fake_gatom*>(ptr)->a_flavor == A_FLOAT)
                 return "floatbox";
@@ -116,6 +119,7 @@ String ObjectBase::getType() const
             else if (static_cast<t_fake_gatom*>(ptr)->a_flavor == A_NULL)
                 return "listbox";
         }
+        // Get class name for all other objects
         if (auto* name = libpd_get_object_class_name(ptr)) {
             return String(name);
         }

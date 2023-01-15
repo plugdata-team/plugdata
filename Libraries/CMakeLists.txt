@@ -79,7 +79,7 @@ if(ENABLE_SFONT)
     add_library(sfont STATIC ${SFONT_SOURCES})
     target_include_directories(sfont PRIVATE ${SFONT_INCLUDES})
     target_compile_definitions(sfont PRIVATE SF3_SUPPORT=1)
-    configure_file(${FLUIDLIGHT_DIR}/src/version.cmake ${FLUIDLIGHT_DIR}/include/version.h @ONLY)
+    configure_file(${FLUIDLIGHT_DIR}/src/version.cmake ${FLUIDLIGHT_DIR}/include/fluidlite/version.h @ONLY)
     configure_file(${FLUIDLIGHT_DIR}/src/fluid_config.cmake ${FLUIDLIGHT_DIR}/include/fluid_config.h @ONLY)
 endif()
 
