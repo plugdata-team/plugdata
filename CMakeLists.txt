@@ -299,7 +299,7 @@ set_target_properties(plugdata_standalone PROPERTIES
 endif()
 
 if(MSVC)
-  list(APPEND libs libpthreadVC3)
+  list(APPEND libs pthreadVC3)
 elseif(APPLE)
   target_link_libraries(plugdata_midi PRIVATE pd-multi ${libs})
 elseif(UNIX AND NOT APPLE)
