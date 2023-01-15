@@ -161,7 +161,7 @@ struct DrawableCurve final : public DrawableTemplate
 
     void handleMouseDown(MouseEvent const& e)
     {
-        if (!getLocalBounds().contains(e.getPosition()) || !isLocked || !canvas->isShowing())
+        if (!getLocalBounds().contains(e.getPosition()) || !isLocked || !canvas->isShowing() || !scalar->sc_template)
             return;
 
         auto shift = e.mods.isShiftDown();
