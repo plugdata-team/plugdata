@@ -111,6 +111,7 @@ cat > ${TARGET_DIR}/distribution.xml << XMLEND
     ${LV2_PKG_REF}
     ${APP_PKG_REF}
     <options require-scripts="false" customize="always" />
+    <options hostArchitectures="arm64,x86_64" />
     <choices-outline>
         ${VST3_CHOICE}
         ${AU_CHOICE}
