@@ -24,35 +24,14 @@
 
 #include "fluid_config.h"
 
-#if HAVE_STRING_H
 #include <string.h>
-#endif
-
-#if HAVE_STDLIB_H
 #include <stdlib.h>
-#endif
-
-#if HAVE_STDIO_H
 #include <stdio.h>
-#endif
-
-#if HAVE_MATH_H
 #include <math.h>
-#endif
-
-#if HAVE_STDARG_H
 #include <stdarg.h>
-#endif
-
-#if HAVE_FCNTL_H
 #include <fcntl.h>
-#endif
-
-#if HAVE_LIMITS_H
 #include <limits.h>
-#endif
 
-#include <stdlib.h>
 #include "fluidlite.h"
 
 
