@@ -78,12 +78,34 @@ struct MousePadObject final : public GUIObject {
 
     void mouseDrag(MouseEvent const& e) override
     {
-        mouseMove(e);
+        if ((!getScreenBounds().contains(e.getMouseDownPosition()) && !isPressed) || !isLocked)
+            return;
+
+        auto* x = static_cast<t_pad*>(ptr);
+        t_atom at[3];
+
+        auto relativeEvent = e.getEventRelativeTo(this);
+
+        // Don't repeat values
+        if (relativeEvent.getPosition() == lastPosition)
+            return;
+
+        x->x_x = relativeEvent.getPosition().x;
+        x->x_y = getHeight() - relativeEvent.getPosition().y;
+
+        SETFLOAT(at, x->x_x);
+        SETFLOAT(at + 1, x->x_y);
+
+        lastPosition = { x->x_x, x->x_y };
+
+        sys_lock();
+        outlet_anything(x->x_obj.ob_outlet, &s_list, 2, at);
+        sys_unlock();
     }
 
     void mouseMove(MouseEvent const& e) override
     {
-        if ((!getScreenBounds().contains(e.getMouseDownPosition()) && !isPressed) || !isLocked)
+        if ((!getScreenBounds().contains(e.getPosition()) && !isPressed) || !isLocked)
             return;
 
         auto* x = static_cast<t_pad*>(ptr);
