@@ -78,7 +78,7 @@ struct MousePadObject final : public GUIObject {
 
     void mouseDrag(MouseEvent const& e) override
     {
-        if ((!getScreenBounds().contains(e.getMouseDownPosition()) && !isPressed) || !isLocked)
+        if ((!getScreenBounds().contains(e.getMouseDownScreenPosition()) && !isPressed) || !isLocked)
             return;
 
         auto* x = static_cast<t_pad*>(ptr);
@@ -105,7 +105,7 @@ struct MousePadObject final : public GUIObject {
 
     void mouseMove(MouseEvent const& e) override
     {
-        if ((!getScreenBounds().contains(e.getPosition()) && !isPressed) || !isLocked)
+        if (!getScreenBounds().contains(e.getScreenPosition()) || isPressed || !isLocked)
             return;
 
         auto* x = static_cast<t_pad*>(ptr);
@@ -133,7 +133,7 @@ struct MousePadObject final : public GUIObject {
 
     void mouseUp(MouseEvent const& e) override
     {
-        if ((!getScreenBounds().contains(e.getMouseDownPosition()) && !isPressed))
+        if ((!getScreenBounds().contains(e.getMouseDownScreenPosition()) && !isPressed))
             return;
 
         auto* x = static_cast<t_pad*>(ptr);
