@@ -433,23 +433,34 @@ struct PlugDataLook : public LookAndFeel_V4 {
 
     void drawPopupMenuBackgroundWithOptions(Graphics& g, int width, int height, PopupMenu::Options const& options) override
     {
-        Path shadowPath;
-        shadowPath.addRoundedRectangle(Rectangle<float>(0.0f, 0.0f, width, height).reduced(10.0f), Constants::defaultCornerRadius);
-        StackShadow::renderDropShadow(g, shadowPath, Colour(0, 0, 0).withAlpha(0.6f), 10, { 0, 2 });
-
-        if (!Desktop::canUseSemiTransparentWindows()) {
-            g.fillAll(findColour(PlugDataColour::canvasBackgroundColourId));
-        }
-
-        // Add a bit of alpha to disable the opaque flag
+        
         auto background = findColour(PlugDataColour::popupMenuBackgroundColourId);
-        g.setColour(background);
+        
 
-        auto bounds = Rectangle<float>(0, 0, width, height).reduced(7);
-        g.fillRoundedRectangle(bounds, Constants::defaultCornerRadius);
+        if (Desktop::canUseSemiTransparentWindows()) {
+            Path shadowPath;
+            shadowPath.addRoundedRectangle(Rectangle<float>(0.0f, 0.0f, width, height).reduced(10.0f), Constants::defaultCornerRadius);
+            StackShadow::renderDropShadow(g, shadowPath, Colour(0, 0, 0).withAlpha(0.6f), 10, { 0, 2 });
+            
+            // Add a bit of alpha to disable the opaque flag
 
-        g.setColour(findColour(PlugDataColour::outlineColourId));
-        g.drawRoundedRectangle(bounds, Constants::defaultCornerRadius, 1.0f);
+            g.setColour(background);
+
+            auto bounds = Rectangle<float>(0, 0, width, height).reduced(7);
+            g.fillRoundedRectangle(bounds, Constants::defaultCornerRadius);
+
+            g.setColour(findColour(PlugDataColour::outlineColourId));
+            g.drawRoundedRectangle(bounds, Constants::defaultCornerRadius, 1.0f);
+        }
+        else {
+            auto bounds = Rectangle<float>(0, 0, width, height);
+            
+            g.setColour(background);
+            g.fillRect(bounds);
+            
+            g.setColour(findColour(PlugDataColour::outlineColourId));
+            g.drawRect(bounds, 1.0f);
+        }
     }
 
     void drawPopupMenuItem(Graphics& g, Rectangle<int> const& area,
@@ -459,14 +470,16 @@ struct PlugDataLook : public LookAndFeel_V4 {
         String const& shortcutKeyText,
         Drawable const* icon, Colour const* const textColourToUse) override
     {
+        int margin = Desktop::canUseSemiTransparentWindows() ? 9 : 2;
+                
         if (isSeparator) {
-            auto r = area.reduced(14, 0);
+            auto r = area.reduced(margin + 5, 0);
             r.removeFromTop(roundToInt(((float)r.getHeight() * 0.5f) - 0.5f));
 
             g.setColour(findColour(PlugDataColour::popupMenuTextColourId).withAlpha(0.3f));
             g.fillRect(r.removeFromTop(1));
         } else {
-            auto r = area.reduced(9, 1);
+            auto r = area.reduced(margin, 1);
 
             if (isHighlighted && isActive) {
                 g.setColour(findColour(PlugDataColour::popupMenuActiveBackgroundColourId));
@@ -533,7 +546,12 @@ struct PlugDataLook : public LookAndFeel_V4 {
 
     int getPopupMenuBorderSize() override
     {
-        return 10;
+        if(Desktop::canUseSemiTransparentWindows()) {
+            return 10;
+        }
+        else {
+            return 2;
+        }
     };
 
     void drawTextEditorOutline(Graphics& g, int width, int height, TextEditor& textEditor) override
