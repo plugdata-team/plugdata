@@ -1,33 +1,60 @@
 ---
 title: svf~
-description:
+
+description: State variable filter
+
 categories:
  - object
+
 pdcategory: General
+
 arguments:
-- type: gimme
-  description:
+- type: float
+  description: cutoff/center frequency in Hz
   default:
+- type: float
+  description: Q/resonance (0-1)
+  default: 0.01
+- type: symbol
+  description: frequency mode (hz, linear, radians)
+  default: hz
+
 inlets:
   1st:
   - type: signal
-    description:
+    description: signal to be filtered
   2nd:
   - type: signal
-    description:
+    description: cutoff/center frequency in Hz
   3rd:
   - type: signal
-    description:
+    description: Q/resonance (0-1)
+
 outlets:
   1st:
   - type: signal
-    description:
+    description: lowpass filter signal
   2nd:
   - type: signal
-    description:
+    description: highpass filter signal
   3rd:
   - type: signal
-    description:
+    description: bandpass filter signal
   4th:
   - type: signal
-    description:
+    description: notch filter signal
+
+methods:
+ - type: clear
+   description: clears the filter in case of a blow-up
+ - type: hz
+   description: sets frequency mode to hz 
+ - type: linear
+    description: sets frequency mode to linear
+  - type: radians
+    description: sets frequency mode to radians
+
+draft: true
+---
+
+[svf~] implements Chamberlin's state-variable filter algorithm, which outputs lowpass, highpass, bandpass, and band reject (notch) simultaneously in parallel (in this order from left to right).

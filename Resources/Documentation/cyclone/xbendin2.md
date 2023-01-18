@@ -1,21 +1,35 @@
 ---
 title: xbendin2
-description:
+
+description: Retrieve 14-bit MIDI pitch bend messages
+
 categories:
  - object
+
 pdcategory: General
+
 arguments:
 - type: float
-  description:
-  default:
+  description: sets channel number
+  default: no channel
+
 inlets:
+  1st:
+  - type: float
+    description: raw MIDI data stream
+
 outlets:
   1st:
   - type: float
-    description:
+    description: the MSB (Most Significant Byte) 7-bit value (0-127)
   2nd:
   - type: float
-    description:
+    description: the LSB (Least Significant Byte) 7-bit value (0-127)
   3rd:
   - type: float
-    description:
+    description: MIDI channel
+
+draft: true
+---
+
+[xbendin2] retrieves the Most and Least Significant Byte (7-bits values) from pitch bend messages of incoming raw MIDI data. Both can be combined to generate a 14-bit value.
