@@ -92,37 +92,67 @@ void Dialogs::showObjectMenu(PluginEditor* parent, Component* target)
     menu.addItem("Open Object Browser...", [parent]() mutable {
         Dialogs::showObjectBrowserDialog(&parent->openedDialog, parent);
     });
+    
+    
+    PopupMenu guiMenu;
+    {
+        guiMenu.addItem(createCommandItem(CommandIDs::NewNumbox, "Number"));
+        guiMenu.addItem(createCommandItem(CommandIDs::NewBang, "Bang"));
+        guiMenu.addItem(createCommandItem(CommandIDs::NewToggle, "Toggle"));
+        guiMenu.addItem(createCommandItem(CommandIDs::NewButton, "Button"));
+        guiMenu.addItem(createCommandItem(CommandIDs::NewVerticalSlider, "Vertical Slider"));
+        guiMenu.addItem(createCommandItem(CommandIDs::NewHorizontalSlider, "Horizontal Slider"));
+        guiMenu.addItem(createCommandItem(CommandIDs::NewVerticalRadio, "Vertical Radio"));
+        guiMenu.addItem(createCommandItem(CommandIDs::NewHorizontalRadio, "Horizontal Radio"));
+        
+        guiMenu.addSeparator();
+        guiMenu.addItem(createCommandItem(CommandIDs::NewCanvas, "Canvas"));
+
+        
+        guiMenu.addItem(createCommandItem(CommandIDs::NewKeyboard, "Keyboard"));
+        guiMenu.addItem(createCommandItem(CommandIDs::NewVUMeterObject, "VU Meter"));
+        guiMenu.addItem(createCommandItem(CommandIDs::NewNumboxTilde, "Signal Numbox"));
+        guiMenu.addItem(createCommandItem(CommandIDs::NewOscilloscope, "Oscilloscope"));
+        guiMenu.addItem(createCommandItem(CommandIDs::NewFunction, "Function"));
+    }
+    
+    PopupMenu filtersMenu;
+    {
+        
+    }
+    
+    PopupMenu oscillatorsMenu;
+    {
+        oscillatorsMenu.addItem(createCommandItem(CommandIDs::NewObject, "osc~"));
+        oscillatorsMenu.addItem(createCommandItem(CommandIDs::NewObject, "bl.osc~"));
+    }
+    
+
+    
+    PopupMenu IOMenu;
+    {
+        
+    }
 
     menu.addSeparator();
+    
+    menu.addSubMenu("GUI", guiMenu);
+    menu.addSubMenu("Filters", filtersMenu);
+    menu.addSubMenu("Oscillators", oscillatorsMenu);
+    
+    menu.addSubMenu("IO", IOMenu);
+    menu.addSeparator();
+    
     menu.addItem(createCommandItem(CommandIDs::NewObject, "Empty Object"));
-    menu.addSeparator();
-    menu.addItem(createCommandItem(CommandIDs::NewNumbox, "Number"));
-    menu.addItem(createCommandItem(CommandIDs::NewMessage, "Message"));
-    menu.addItem(createCommandItem(CommandIDs::NewBang, "Bang"));
-    menu.addItem(createCommandItem(CommandIDs::NewToggle, "Toggle"));
-    menu.addItem(createCommandItem(CommandIDs::NewButton, "Button"));
-    menu.addItem(createCommandItem(CommandIDs::NewVerticalSlider, "Vertical Slider"));
-    menu.addItem(createCommandItem(CommandIDs::NewHorizontalSlider, "Horizontal Slider"));
-    menu.addItem(createCommandItem(CommandIDs::NewVerticalRadio, "Vertical Radio"));
-    menu.addItem(createCommandItem(CommandIDs::NewHorizontalRadio, "Horizontal Radio"));
-
-    menu.addSeparator();
-
+    menu.addItem(createCommandItem(CommandIDs::NewMessage, "New Message"));
     menu.addItem(createCommandItem(CommandIDs::NewFloatAtom, "Float box"));
     menu.addItem(createCommandItem(CommandIDs::NewSymbolAtom, "Symbol box"));
     menu.addItem(createCommandItem(CommandIDs::NewListAtom, "List box"));
-    menu.addSeparator();
-
-    menu.addItem(createCommandItem(CommandIDs::NewArray, "Array"));
-    menu.addItem(createCommandItem(CommandIDs::NewGraphOnParent, "GraphOnParent"));
     menu.addItem(createCommandItem(CommandIDs::NewComment, "Comment"));
-    menu.addItem(createCommandItem(CommandIDs::NewCanvas, "Canvas"));
     menu.addSeparator();
-    menu.addItem(createCommandItem(CommandIDs::NewKeyboard, "Keyboard"));
-    menu.addItem(createCommandItem(CommandIDs::NewVUMeterObject, "VU Meter"));
-    menu.addItem(createCommandItem(CommandIDs::NewNumboxTilde, "Signal Numbox"));
-    menu.addItem(createCommandItem(CommandIDs::NewOscilloscope, "Oscilloscope"));
-    menu.addItem(createCommandItem(CommandIDs::NewFunction, "Function"));
+    
+    menu.addItem(createCommandItem(CommandIDs::NewArray, "Array..."));
+    menu.addItem(createCommandItem(CommandIDs::NewGraphOnParent, "GraphOnParent"));
 
     menu.showMenuAsync(PopupMenu::Options().withMinimumWidth(100).withMaximumNumColumns(1).withTargetComponent(target).withParentComponent(parent),
         [parent](int result) {

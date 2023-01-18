@@ -42,7 +42,7 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     , tooltipWindow(this, 500)
     , tooltipShadow(DropShadow(Colour(0, 0, 0).withAlpha(0.2f), 4, { 0, 0 }), Constants::defaultCornerRadius)
 {
-    toolbarButtons = { new TextButton(Icons::Settings),
+    toolbarButtons = { new TextButton(Icons::Menu),
                        new TextButton(Icons::Undo),
                        new TextButton(Icons::Redo),
                        new TextButton(Icons::Add),
@@ -279,10 +279,10 @@ void PluginEditor::resized()
 
     statusbar.setBounds(0, getHeight() - statusbar.getHeight(), getWidth() - sidebar.getWidth(), statusbar.getHeight());
 
-    toolbarButton(Settings)->setBounds(0, 0, toolbarHeight, toolbarHeight);
+    toolbarButton(Settings)->setBounds(20, 0, toolbarHeight, toolbarHeight);
     toolbarButton(Undo)->setBounds(100, 0, toolbarHeight, toolbarHeight);
-    toolbarButton(Redo)->setBounds(150, 0, toolbarHeight, toolbarHeight);
-    toolbarButton(Add)->setBounds(250, 0, toolbarHeight, toolbarHeight);
+    toolbarButton(Redo)->setBounds(180, 0, toolbarHeight, toolbarHeight);
+    toolbarButton(Add)->setBounds(260, 0, toolbarHeight, toolbarHeight);
 
 #ifdef PLUGDATA_STANDALONE
     int offset = 150;
