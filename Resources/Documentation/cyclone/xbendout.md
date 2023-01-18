@@ -1,21 +1,32 @@
 ---
 title: xbendout
-description:
+
+description: Send 14-bit MIDI pitch bend messages
+
 categories:
  - object
+
 pdcategory: General
+
 arguments:
 - type: float
-  description:
+  description: initial MIDI channel
   default:
+
 inlets:
   1st:
   - type: float
-    description:
+    description: 14-bit pitch bend values (0-16383)
   2nd:
   - type: float
-    description:
+    description: MIDI channel
+
 outlets:
   1st:
   - type: float
-    description:
+    description: raw MIDI data stream
+
+draft: true
+---
+
+[xbendout] formats and sends messages that occupy both bytes of the MIDI pitch bend message (14 bit from 0 - 16383).

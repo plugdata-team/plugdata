@@ -1,15 +1,33 @@
 ---
 title: prepend
-description:
+
+description: Prepend a message to the incoming message
+
 categories:
  - object
+
 pdcategory: General
+
 arguments:
-- type: gimme
-  description:
-  default:
+- type: anything
+  description: sets message to append to input
+  default: "nothing"
+
 inlets:
+  1st:
+  - type: anything
+    description: a message that will be combined to the stored message
+
 outlets:
   1st:
   - type: anything
-    description:
+    description:  the combined message
+
+methods:
+- type: set <anything>
+  description: updates argument (message to prepend to the input message)
+
+draft: true
+---
+
+[prepend] will add messages set as argument to the beginning of any message sent to the input.

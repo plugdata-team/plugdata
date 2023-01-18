@@ -1,24 +1,41 @@
 ---
 title: poke~
-description:
+
+description: Write to an attay
+
 categories:
  - object
+
 pdcategory: General
+
 arguments:
 - type: symbol
-  description:
+  description: array name to write to
   default:
 - type: float
-  description:
-  default:
+  description: channel (1-64)
+  default: 1
+
 inlets:
   1st:
-  - type: signal
-    description:
+  - type: float/signal
+    description: values to write into an array
+  - type: list <f, f, f>
+    description: <value>, <index> and <channel>
   2nd:
-  - type: float
-    description:
+  - type: float/signal
+    description: index to record to
   3rd:
   - type: float
-    description:
+    description: sets the channel for the value being recorded
+
 outlets:
+
+methods:
+  - type: set <symbol>
+    description: set array name
+
+draft: true
+---
+
+[poke~] writes signals to an array at indexes specified by a signal.

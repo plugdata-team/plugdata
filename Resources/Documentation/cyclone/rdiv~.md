@@ -1,21 +1,32 @@
 ---
 title: rdiv~
-description:
+
+description: Reversed inlets division for signals
+
 categories:
  - object
+
 pdcategory: General
+
 arguments:
 - type: float
-  description:
-  default:
+  description: sets an initial value for the dividend
+  default: 0
+
 inlets:
   1st:
   - type: signal
-    description:
+    description: the divisor
   2nd:
   - type: signal
-    description:
+    description: the dividend
+
 outlets:
   1st:
   - type: signal
-    description:
+    description: the division of the two numbers
+
+draft: true
+---
+
+[rdiv~] or [!/~] divides a number by the incoming value on the left inlet. Functions like the [/~] object, but the inlets' functions are reversed.
