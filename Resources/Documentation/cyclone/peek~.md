@@ -1,30 +1,50 @@
 ---
 title: peek~
-description:
+
+description: Read/write to array
+
 categories:
  - object
+
 pdcategory: General
+
 arguments:
 - type: symbol
-  description:
+  description: array name 
   default:
 - type: float
-  description:
+  description: channel (1-64)
   default:
 - type: float
-  description:
+  description: <0/1> - enable/disable clipping (to -1/1 range)
   default:
+
 inlets:
   1st:
   - type: float
-    description:
+    description: index to read from or write to table
+  - type: list <f, f, f>
+    description: writes <value>, <index> and <channel> to table
   2nd:
   - type: float
-    description:
+    description: value to write to table (needs index at left inlet)
   3rd:
   - type: float
-    description:
+    description: channel number
+
 outlets:
   1st:
   - type: float
-    description:
+    description: value corresponding to given array index
+
+
+methods:
+  - type: set <symbol>
+    description: set array name
+  - type: clip <float>
+    description: - enable <1> or disable <0> clipping into -1 to 1 range
+
+draft: true
+---
+
+[peek~] reads (without interpolation) and write values to an array via messages. Thus, not a proper signal object as it can't handle signals and works even when the DSP is off!

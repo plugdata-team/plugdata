@@ -1,21 +1,35 @@
 ---
 title: selector~
-description:
+
+description: Select messages from an inlet
+
 categories:
  - object
+
 pdcategory: General
+
 arguments:
-- type: gimme
-  description:
-  default:
+- type: float
+  description: set the 'n' number of channels (2-512)
+  default: 2
+- type: float
+  description: inlet initially selected
+  default: 0
+
 inlets:
-  1st:
-  - type: signal
-    description:
+  nth:
+  - type: anything
+    description: any message to be selected 
   2nd:
-  - type: signal
-    description:
+  - type: float
+    description: sets which inlet is selected
+
 outlets:
   1st:
-  - type: signal
-    description:
+  - type: anything
+    description: message from the selected inlet
+
+draft: true
+---
+
+[selector] outputs data from the selected inlet according to the float into the rightmost inlet.

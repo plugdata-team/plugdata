@@ -1,21 +1,34 @@
 ---
 title: rdiv
-description:
+
+description: Reversed inlets division
+
 categories:
  - object
+
 pdcategory: General
+
 arguments:
 - type: float
-  description:
-  default:
+  description: sets an initial value for the dividend
+  default: 0
+
 inlets:
   1st:
   - type: float
-    description:
+    description: the divisor (hot inlet)
+  - type: bang
+    description: performs the division with the numbers currently stored
   2nd:
   - type: float
-    description:
+    description: the dividend
+
 outlets:
   1st:
   - type: float
-    description:
+    description: the division of the two numbers
+
+draft: true
+---
+
+[rdiv] or [!/] divides a number by the incoming value on the left inlet. Functions like the [/] object, but the inlets' functions are reversed.
