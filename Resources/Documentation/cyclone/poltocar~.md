@@ -1,21 +1,32 @@
 ---
 title: poltocar~
-description:
+
+description: Signal polar to cartesian conversion
+
 categories:
  - object
+
 pdcategory: General
-arguments:
+
+arguments: (none)
+
 inlets:
   1st:
   - type: signal
-    description:
+    description: amplitude of the signal in the polar form
   2nd:
   - type: signal
-    description:
+    description: phase (in radians) of the signal in the polar form
+
 outlets:
   1st:
   - type: signal
-    description:
+    description: real part of the signal in the cartesian form
   2nd:
   - type: signal
-    description:
+    description: imaginary part of the signal in the cartesian form
+
+draft: true
+---
+
+Use the [cartopol~] object to convert signal values representing cartesian coordinates to a signal composed of polar coordinates - useful for spectral processing.

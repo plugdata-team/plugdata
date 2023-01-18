@@ -1,21 +1,35 @@
 ---
 title: sah~
-description:
+
+description: Sample and hold
+
 categories:
  - object
+
 pdcategory: General
+
 arguments:
 - type: float
-  description:
-  default:
+  description: threshold value
+  default: 0
+
 inlets:
   1st:
   - type: signal
-    description:
+    description: input to sample and hold
+  - type: float
+    description: set threshold value
   2nd:
   - type: signal
-    description:
+    description: trigger signal
+
 outlets:
   1st:
   - type: signal
-    description:
+    description: sampled and held signal
+
+draft: true
+---
+
+When a trigger signal raises above a given threshold, [sah~] captures a value ("samples") from the input and continually outputs it ("hold") until the trigger signal rises again above the threshold after having dropped below it. This usually synchronizes one signal to the behavior of another.
+Sample and hold random values from a noise input, rescaled to 500 - 1100 Hz range:

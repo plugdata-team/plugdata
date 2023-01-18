@@ -1,30 +1,43 @@
 ---
 title: split
-description:
+
+description: Split numbers according to a range
+
 categories:
  - object
+
 pdcategory: General
+
 arguments:
 - type: float
-  description:
-  default:
+  description: initial minimum range 
+  default: 0
 - type: float
-  description:
-  default:
+  description: initial maximum range
+  default: 0
+
 inlets:
   1st:
   - type: float
-    description:
+    description: numbers to be split
+  - type: list
+    description: <in, min, max>
   2nd:
   - type: float
-    description:
+    description: set minimum range value
   3rd:
   - type: float
-    description:
+    description: set maximum range value
+
 outlets:
   1st:
   - type: float
-    description:
+    description: input number that is in a given range
   2nd:
   - type: float
-    description:
+    description: input number that is outside a given range
+
+draft: true
+---
+
+[split] splist numbers in a given range from numbers outside it. If an input is in between a min/max value or equal to them, the value is sent to the left outlet, or to the right outlet otherwise. Unlike MAX, it only deals with floats.

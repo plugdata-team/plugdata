@@ -1,21 +1,34 @@
 ---
 title: poltocar
-description:
+
+description: Polar to cartesian conversion
+
 categories:
  - object
+
 pdcategory: General
-arguments:
+
+arguments: (none)
+
 inlets:
   1st:
+  - type: bang
+    description: converts the last received coordinates pair
   - type: float
-    description:
+    description: amplitude from the polar coordinates
   2nd:
   - type: float
-    description:
+    description: phase (in radians) of the signal in the polar form
+
 outlets:
   1st:
   - type: float
-    description:
+    description: real part of the cartesian form
   2nd:
   - type: float
-    description:
+    description: imaginary part of the cartesian form
+
+draft: true
+---
+
+[poltocar] converts polar coordinates (amplitude / phase) to cartesian coordinates (real / imaginary).
