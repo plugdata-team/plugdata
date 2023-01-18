@@ -1,21 +1,39 @@
 ---
 title: unjoin
-description:
+
+description: Break a list into seperate messages
+
 categories:
  - object
+
 pdcategory: General
+
 arguments:
-- type: gimme
-  description:
-  default:
+- type: float
+  description: number of group outputs
+  default: 2
+
 inlets:
-outlets:
   1st:
   - type: anything
-    description:
-  2nd:
+    description: any message whose elements will be separated into groups of elements
+
+outlets:
+  nth:
   - type: anything
-    description:
-  3rd:
-  - type: anything
-    description:
+    description: the list composed of the joined messages
+
+- flags:
+  - name: @outsize <float>
+    description: number of elements per group
+    default: 1
+
+methods: 
+  - type: outsize <float>
+    description: number of elements per group
+    default: 1
+
+draft: true
+---
+
+[unjoin] separates a list's elements by groups of any size (default 1). Each group is sent out a separate outlet, extra elements are sent to an extra outlet.

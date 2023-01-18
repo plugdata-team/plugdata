@@ -1,24 +1,39 @@
 ---
 title: spray
-description:
+
+description: Distribute values to outlets
+
 categories:
  - object
+
 pdcategory: General
+
 arguments:
 - type: float
-  description:
-  default:
+  description: sets the number of outlets
+  default: 2
 - type: float
-  description:
-  default:
+  description: outlet offset number
+  default: 0
 - type: float
-  description:
-  default:
+  description: non-0 — output list mode
+  default: 0
+
 inlets:
-outlets:
   1st:
-  - type: anything
-    description:
-  2nd:
-  - type: anything
-    description:
+  - type: list
+    description: outlet index and elements to be distributed
+
+outlets:
+  nth:
+  - type: float/symbol
+    description: element sent from an inlet to a specified outlet
+  - type: list
+    description: when in "list output" mode
+
+
+draft: true
+---
+
+[spray] accepts lists where the 1st value indicates the outlet number (starting at 0) and the 2nd element (float or symbol) is sent to that outlet - when not in list mode, subsequent elements are sent to subsequent outlets to the right, other wise (in list mode) the whole list is output at that outlet.
+
