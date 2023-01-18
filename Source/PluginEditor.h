@@ -104,13 +104,10 @@ class PluginEditor : public AudioProcessorEditor
     , public FileDragAndDropTarget {
 public:
     enum ToolbarButtonType {
-        Open = 0,
-        Save,
-        SaveAs,
+        Settings = 0,
         Undo,
         Redo,
         Add,
-        Settings,
         Hide,
         Pin
     };
