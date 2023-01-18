@@ -199,30 +199,30 @@ struct SettingsPopup : public PopupMenu {
         addCustomItem(1, themeSelector, 70, 45, false);
         addCustomItem(2, zoomSelector, 70, 30, false);
         addSeparator();
-
-        addItem("New patch", [this, editor]() mutable {
-            editor->newProject();
-        });
-
-        addSeparator();
-
-        addItem("Open patch...", [this, editor]() mutable {
-            editor->openProject();
-        });
-
-        addSeparator();
-
-        if (editor->getCurrentCanvas()) {
-            addItem("Save patch", [this, editor]() mutable {
-                editor->saveProject();
-            });
-            addItem("Save patch as...", [this, editor]() mutable {
-                editor->saveProjectAs();
-            });
-        } else {
-            addItem("Save patch", false, false, nullptr);
-            addItem("Save patch as...", false, false, nullptr);
+        
+        StringArray iconText = {Icons::New, Icons::Open, Icons::Save, Icons::SaveAs, Icons::Settings, Icons::Info};
+        
+        Array<Image> icons;
+            
+        for(int i = 0; i < iconText.size(); i++) {
+            icons.add(Image(Image::ARGB, 32, 32, true));
+            auto& icon = icons.getReference(i);
+            Graphics g(icon);
+            g.setColour(editor->findColour(PlugDataColour::popupMenuTextColourId));
+            g.setFont(editor->pd->lnf->iconFont.withHeight(28));
+            g.drawText(iconText[i], 0, 0, 32, 32, Justification::centred);
         }
+        
+        addItem(1, "New patch", true, false, icons[0]);
+
+        addSeparator();
+
+        addItem(2, "Open patch...", true, false, icons[1]);
+
+        addSeparator();
+
+        addItem(3, "Save patch", editor->getCurrentCanvas() != nullptr, false, icons[2]);
+        addItem(4, "Save patch as...", editor->getCurrentCanvas() != nullptr, false, icons[3]);
 
         addSeparator();
 
@@ -247,8 +247,8 @@ struct SettingsPopup : public PopupMenu {
         });
 
         addSeparator();
-        addItem(5, "Settings...");
-        addItem(6, "About...");
+        addItem(5, "Settings...", true, false, icons[4]);
+        addItem(6, "About...", true, false, icons[5]);
     }
 
     static void showSettingsPopup(AudioProcessor* processor, AudioDeviceManager* manager, Component* centre, ValueTree settingsTree)
@@ -258,6 +258,19 @@ struct SettingsPopup : public PopupMenu {
 
         popup->showMenuAsync(PopupMenu::Options().withMinimumWidth(170).withMaximumNumColumns(1).withTargetComponent(centre).withParentComponent(editor),
             [editor, processor, popup, manager, centre, settingsTree](int result) {
+                
+                if (result == 1) {
+                    editor->newProject();
+                }
+                if (result == 2) {
+                    editor->openProject();
+                }
+                if (result == 3 && editor->getCurrentCanvas()) {
+                    editor->saveProject();
+                }
+                if (result == 4 && editor->getCurrentCanvas()) {
+                    editor->saveProjectAs();
+                }
                 if (result == 5) {
 
                     auto* dialog = new Dialog(&editor->openedDialog, editor, 675, 500, editor->getBounds().getCentreY() + 250, true);
@@ -402,6 +415,7 @@ struct SettingsPopup : public PopupMenu {
         Value theme;
     };
 
+    
     ThemeSelector themeSelector;
     ZoomSelector zoomSelector;
 
