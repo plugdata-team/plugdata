@@ -1,5 +1,5 @@
 ---
-title: rminus~
+title: rminus~, !-~, cyclone/!-~
 
 description: Reversed inlets subtraction for signals
 
