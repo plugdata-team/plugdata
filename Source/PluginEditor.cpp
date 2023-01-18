@@ -780,7 +780,7 @@ void PluginEditor::getCommandInfo(const CommandID commandID, ApplicationCommandI
     switch (commandID) {
     case CommandIDs::NewProject: {
         result.setInfo("New patch", "Create a new patch", "General", 0);
-        result.addDefaultKeypress(84, ModifierKeys::commandModifier);
+        result.addDefaultKeypress(78, ModifierKeys::commandModifier);
         break;
     }
     case CommandIDs::OpenProject: {
