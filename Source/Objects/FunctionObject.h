@@ -303,9 +303,6 @@ struct FunctionObject final : public GUIObject {
 
     void mouseUp(MouseEvent const& e) override
     {
-        if (dragIdx < 0)
-            return;
-
         auto* function = static_cast<t_fake_function*>(ptr);
         points.sort(*this);
 
