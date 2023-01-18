@@ -1,5 +1,5 @@
 ---
-title: equals~, ==~
+title: equals~, ==~, cyclone/==~
 description: `is equal to` comparison for signals
 categories:
  - object
