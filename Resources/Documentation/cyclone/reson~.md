@@ -1,33 +1,50 @@
 ---
 title: reson~
-description:
+
+description: Bandpass resonant filter
+
 categories:
  - object
+
 pdcategory: General
+
 arguments:
 - type: float
-  description:
-  default:
+  description: initial gain
+  default: 0
 - type: float
-  description:
-  default:
+  description: initial center frequency
+  default: 0
 - type: float
-  description:
-  default:
+  description: initial Q range
+  default: 0.01
+
 inlets:
   1st:
   - type: signal
-    description:
+    description: signal to be filtered
+  - type: list
+    description: <gain, center frequency,center, Q>
   2nd:
   - type: signal
-    description:
+    description: sets gain
   3rd:
   - type: signal
-    description:
+    description: sets center frequency
   4th:
   - type: signal
-    description:
+    description: sets Q
+
 outlets:
   1st:
   - type: signal
-    description:
+    description: filtered signal
+
+methods:
+  - type: clear
+    description: clears the internal buffer's memory
+
+draft: true
+---
+
+[reson~] is a bandpass resonant filter. All parameters can be set as float or signals.

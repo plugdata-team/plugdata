@@ -1,27 +1,38 @@
 ---
 title: xnoteout
-description:
+
+description: Send release velocity messages
+
 categories:
  - object
+
 pdcategory: General
+
 arguments:
 - type: float
-  description:
+  description: initial MIDI channel
   default:
+
 inlets:
   1st:
   - type: float
-    description:
+    description: MIDI note number (pitch)
   2nd:
   - type: float
-    description:
+    description: velocity of note on and note off messages
   3rd:
   - type: float
-    description:
+    description: state (0 = note off, 1 = note on)
   4th:
   - type: float
-    description:
+    description: MIDI channel
+
 outlets:
   1st:
   - type: float
-    description:
+    description: raw MIDI data stream
+
+draft: true
+---
+
+[xnoteout] is more powerful than [noteout] as it send not only Note On Velocity but also Note Off (Release) velocity.

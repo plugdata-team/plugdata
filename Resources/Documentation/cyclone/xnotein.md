@@ -1,24 +1,39 @@
 ---
 title: xnotein
-description:
+
+description: Retrieve velocity messages
+
 categories:
  - object
+
 pdcategory: General
+
 arguments:
 - type: float
-  description:
-  default:
+  description: sets channel number
+  default: no channel
+
 inlets:
+  1st:
+  - type: float
+    description: raw MIDI data stream
+
 outlets:
   1st:
   - type: float
-    description:
+    description: MIDI note number (pitch)
   2nd:
   - type: float
-    description:
+    description: velocity of note on and note off messages
   3rd:
   - type: float
-    description:
+    description: state (0 = note off, 1 = note on)
   4th:
   - type: float
-    description:
+    description: MIDI channel
+
+draft: true
+---
+
+[xnotein] is more powerful than [notein] as it retrieves (from raw MIDI data streams) not only Note On Velocity but also Note Off (Release) velocity.
+
