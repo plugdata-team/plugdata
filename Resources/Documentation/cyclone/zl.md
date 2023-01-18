@@ -13,7 +13,7 @@ arguments:
   description: maximum list size (optional, 1 - 32767)
   default: 256
 - type: symbol
-  description: mode (change, compare, delace, ecils, group, indexmap, iter, join, lace, len, lookup, median, mth, nth, queue, reg, rev, rot, sect, scramble, slice, sort, stack, stream, sub, sum, swap, thin, union or unique)
+  description: mode
   default:
 
 inlets:
@@ -36,7 +36,7 @@ outlets:
 
 flags:
   - name: @zlmaxsize <float>
-    description: <float> - max list size (1 - 32767, default 256)
+    description: max list size (1 - 32767, default 256)
 
 methods:
   - type: mode <symbol>
