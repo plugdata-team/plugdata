@@ -1,5 +1,5 @@
 ---
-title: clip~
+title: clip~, cyclone/clip~
 description: Constrain a signal to a given range
 categories:
 - object
