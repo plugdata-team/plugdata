@@ -1,21 +1,26 @@
 ---
-title: modulo~
-description:
+title: modulo~, %~, cyclone/%~
+description: Modulo for signals
 categories:
  - object
 pdcategory: General
 arguments:
 - type: float
-  description:
-  default:
+  description: a value by which to divide the incoming signal
+  default: 0
 inlets:
   1st:
   - type: signal
-    description:
+    description: input to modulo operation
   2nd:
-  - type: signal
-    description:
+  - type: float/signal
+    description: a value by which to divide the incoming signal
 outlets:
   1st:
   - type: signal
-    description:
+    description: the modulo of the operation (remainder of the division)
+
+---
+
+[modulo~] or [%~] is a signal remainder operator. The left signal is divided by the right inlet input (or argument), and the remainder is output.
+
