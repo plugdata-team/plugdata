@@ -1003,10 +1003,9 @@ void PluginEditor::getCommandInfo(const CommandID commandID, ApplicationCommandI
         }
     }
 
-    auto cmdMod = ModifierKeys::commandModifier;
-    auto shiftMod = ModifierKeys::shiftModifier;
-    
-    std::map<ObjectIDs, std::pair<int, int>> defaultShortcuts =
+    static const auto cmdMod = ModifierKeys::commandModifier;
+    static const auto shiftMod = ModifierKeys::shiftModifier;
+    static const std::map<ObjectIDs, std::pair<int, int>> defaultShortcuts =
     {
         {NewObject,             {49, cmdMod}},
         {NewComment,            {53, cmdMod}},
@@ -1037,7 +1036,7 @@ void PluginEditor::getCommandInfo(const CommandID commandID, ApplicationCommandI
         result.setActive(hasCanvas && !isDragging && !locked);
         
         if(defaultShortcuts.count(static_cast<ObjectIDs>(commandID))) {
-            auto [key, mods] = defaultShortcuts[static_cast<ObjectIDs>(commandID)];
+            auto [key, mods] = defaultShortcuts.at(static_cast<ObjectIDs>(commandID));
             result.addDefaultKeypress(key, mods);
         }
     }
