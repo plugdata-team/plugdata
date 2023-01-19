@@ -812,20 +812,20 @@ void PluginEditor::getCommandInfo(const CommandID commandID, ApplicationCommandI
     bool hasCanvas = false;
     bool locked = true;
     bool canConnect = false;
-
+    
     if (auto* cnv = getCurrentCanvas()) {
         auto selectedBoxes = cnv->getSelectionOfType<Object>();
         auto selectedConnections = cnv->getSelectionOfType<Connection>();
-
+        
         hasBoxSelection = !selectedBoxes.isEmpty();
         hasSelection = hasBoxSelection || !selectedConnections.isEmpty();
         isDragging = cnv->didStartDragging && !cnv->isDraggingLasso && statusbar.locked == var(false);
         hasCanvas = true;
-
+        
         locked = static_cast<bool>(cnv->locked.getValue());
         canConnect = cnv->canConnectSelectedObjects();
     }
-
+    
     switch (commandID) {
         case CommandIDs::NewProject: {
             result.setInfo("New patch", "Create a new patch", "General", 0);
@@ -1002,13 +1002,29 @@ void PluginEditor::getCommandInfo(const CommandID commandID, ApplicationCommandI
             break;
         }
     }
-    
-    Array<int> defaultShortcuts = {49, 53, 66, 50, 84, 70, -1, -1, -1, 51, -1, 52, 86, 74, 68, 73, 65, 71, 67, -1, 85};
-    
+
     auto cmdMod = ModifierKeys::commandModifier;
     auto shiftMod = ModifierKeys::shiftModifier;
-    auto noMod = ModifierKeys::noModifiers;
-    Array<int> defaultModifiers = {cmdMod, cmdMod, cmdMod | shiftMod, cmdMod, cmdMod | shiftMod, cmdMod | shiftMod, noMod, noMod, noMod, cmdMod, noMod, cmdMod, cmdMod | shiftMod, cmdMod | shiftMod, cmdMod | shiftMod, cmdMod | shiftMod, cmdMod | shiftMod, cmdMod | shiftMod, cmdMod | shiftMod, noMod, cmdMod};
+    
+    std::map<ObjectIDs, std::pair<int, int>> defaultShortcuts =
+    {
+        {NewObject,             {49, cmdMod}},
+        {NewComment,            {53, cmdMod}},
+        {NewBang,               {66, cmdMod | shiftMod}},
+        {NewMessage,            {50, cmdMod}},
+        {NewToggle,             {84, cmdMod | shiftMod}},
+        {NewNumbox,             {70, cmdMod | shiftMod}},
+        {NewVerticalSlider,     {86, cmdMod | shiftMod}},
+        {NewHorizontalSlider,   {74, cmdMod | shiftMod}},
+        {NewVerticalRadio,      {68, cmdMod | shiftMod}},
+        {NewHorizontalRadio,    {73, cmdMod | shiftMod}},
+        {NewFloatAtom,          {51, cmdMod}},
+        {NewListAtom,           {52, cmdMod}},
+        {NewArray,              {65, cmdMod | shiftMod}},
+        {NewGraphOnParent,      {71, cmdMod | shiftMod}},
+        {NewCanvas,             {67, cmdMod | shiftMod}},
+        {NewVUMeterObject,      {85, cmdMod | shiftMod}}
+    };
     
     if(commandID >= ObjectIDs::NewObject)
     {
@@ -1020,8 +1036,9 @@ void PluginEditor::getCommandInfo(const CommandID commandID, ApplicationCommandI
         result.setInfo("New " + name, "Create new " + name, "Objects", 0);
         result.setActive(hasCanvas && !isDragging && !locked);
         
-        if(isPositiveAndBelow(idx, defaultShortcuts.size()) && defaultShortcuts[idx] > 0) {
-            result.addDefaultKeypress(defaultShortcuts[idx], defaultModifiers[idx]);
+        if(defaultShortcuts.count(static_cast<ObjectIDs>(commandID))) {
+            auto [key, mods] = defaultShortcuts[static_cast<ObjectIDs>(commandID)];
+            result.addDefaultKeypress(key, mods);
         }
     }
 }
