@@ -1160,6 +1160,15 @@ struct PlugDataLook : public LookAndFeel_V4 {
         currentTheme = themeName;
     }
     
+    static StringArray getAllThemes() {
+        StringArray allThemes;
+        for(auto& [themeName, theme] : PlugDataLook::colourSettings) {
+            allThemes.add(themeName);
+        }
+        
+        return allThemes;
+    }
+    
     // TODO: swap this out for a string theme name perhaps?
     static inline String currentTheme = "light";
     static inline StringArray selectedThemes = {"light", "dark"};

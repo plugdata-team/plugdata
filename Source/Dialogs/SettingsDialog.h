@@ -218,14 +218,30 @@ struct SettingsPopup : public PopupMenu {
         addSeparator();
 
         addItem(2, "Open patch...", true, false, icons[1]);
-
+        
+        PopupMenu recentlyOpened;
+        
+        auto recentlyOpenedTree = tree.getChildWithName("RecentlyOpened");
+        if(recentlyOpenedTree.isValid()) {
+            for(int i = 0; i < recentlyOpenedTree.getNumChildren(); i++) {
+                auto path = File(recentlyOpenedTree.getChild(i).getProperty("Path").toString());
+                recentlyOpened.addItem(path.getFileName(), [this, path, editor]() mutable {
+                    editor->pd->loadPatch(path);
+                    editor->addToRecentlyOpened(path);
+                });
+            }
+        }
+        
+        addSubMenu("Recently Opened", recentlyOpened);
+        
         addSeparator();
 
         addItem(3, "Save patch", editor->getCurrentCanvas() != nullptr, false, icons[2]);
         addItem(4, "Save patch as...", editor->getCurrentCanvas() != nullptr, false, icons[3]);
 
         addSeparator();
-
+        
+        
         // Toggles hvcc compatibility mode
         bool hvccModeEnabled = settingsTree.hasProperty("HvccMode") ? static_cast<bool>(settingsTree.getProperty("HvccMode")) : false;
         addItem("Compiled mode", true, hvccModeEnabled, [this]() mutable {
