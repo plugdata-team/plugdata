@@ -35,7 +35,7 @@ outlets:
     description: random values
 
 flags:
-  - type: seed <float> 
+  - name: -seed <float> 
     description: seed value
 
 methods:

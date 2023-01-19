@@ -11,7 +11,7 @@ pdcategory: DSP
 arguments:
 - type: float
   description: modulation frequency
-  default: o
+  default: 0
 
 inlets:
   1st:

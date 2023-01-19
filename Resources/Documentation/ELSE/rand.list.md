@@ -26,7 +26,6 @@ outlets:
   - type: float
     description: random element from list
 
-
 flags:
   - name: -seed <float>
     description: sets seed

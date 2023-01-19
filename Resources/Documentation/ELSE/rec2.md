@@ -10,7 +10,7 @@ pdcategory:
 
 arguments:
 - type: symbol
-  description: text name (necessary)
+  description: text name (required)
   default:
 
 inlets:

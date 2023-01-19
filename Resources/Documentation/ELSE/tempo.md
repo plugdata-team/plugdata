@@ -40,6 +40,19 @@ inlets:
     description: toggle (on/off)
   - type: bang
     description: sync the metronome
+  2nd:
+  - type: float
+    description: tempo in ms, hz or bpm
+  3rd:
+  - type: float
+    description: swing deviation parameter (in %)
+
+outlets:
+  1st:
+  - type: bang
+    description: swing deviation parameter (in %)
+
+methods:
   - type: start
     description: turn the metronome on
   - type: mul <float>
@@ -54,17 +67,6 @@ inlets:
     description: sets time to bpm, optional floats set tempo and swing
   - type: seed <float>
     description: a float sets seed, no float sets a unique internal
-  2nd:
-  - type: float
-    description: tempo in ms, hz or bpm
-  3rd:
-  - type: float
-    description: swing deviation parameter (in %)
-
-outlets:
-  1st:
-  - type: bang
-    description: swing deviation parameter (in %)
 
 draft: false
 ---
