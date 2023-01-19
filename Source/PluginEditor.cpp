@@ -1005,6 +1005,11 @@ void PluginEditor::getCommandInfo(const CommandID commandID, ApplicationCommandI
     
     Array<int> defaultShortcuts = {49, 53, 66, 50, 84, 70, -1, -1, -1, 51, -1, 52, 86, 74, 68, 73, 65, 71, 67, -1, 85};
     
+    auto cmdMod = ModifierKeys::commandModifier;
+    auto shiftMod = ModifierKeys::shiftModifier;
+    auto noMod = ModifierKeys::noModifiers;
+    Array<int> defaultModifiers = {cmdMod, cmdMod, cmdMod | shiftMod, cmdMod, cmdMod | shiftMod, cmdMod | shiftMod, noMod, noMod, noMod, cmdMod, noMod, cmdMod, cmdMod | shiftMod, cmdMod | shiftMod, cmdMod | shiftMod, cmdMod | shiftMod, cmdMod | shiftMod, cmdMod | shiftMod, cmdMod | shiftMod, noMod, cmdMod};
+    
     if(commandID >= ObjectIDs::NewObject)
     {
         int idx = commandID - ObjectIDs::NewObject;
@@ -1016,7 +1021,7 @@ void PluginEditor::getCommandInfo(const CommandID commandID, ApplicationCommandI
         result.setActive(hasCanvas && !isDragging && !locked);
         
         if(isPositiveAndBelow(idx, defaultShortcuts.size()) && defaultShortcuts[idx] > 0) {
-            result.addDefaultKeypress(defaultShortcuts[idx], ModifierKeys::commandModifier);
+            result.addDefaultKeypress(defaultShortcuts[idx], defaultModifiers[idx]);
         }
     }
 }
