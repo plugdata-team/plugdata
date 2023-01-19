@@ -23,6 +23,18 @@ struct NewThemeDialog : public Component {
         };
 
         ok.onClick = [this, parent] {
+            
+            StringArray allThemes = PlugDataLook::getAllThemes();
+            
+            if(nameEditor.getText().isEmpty()) {
+                errorMessage = "Theme name cannot be empty";
+                return;
+            }
+            if(allThemes.contains(nameEditor.getText())) {
+                errorMessage = "Theme name already taken";
+                return;
+            }
+            
             MessageManager::callAsync(
                 [this, parent]() {
                     cb(1, nameEditor.getText(), baseThemeSelector.getText());
@@ -54,14 +66,24 @@ struct NewThemeDialog : public Component {
 
     void resized() override
     {
-        label.setBounds(20, 7, 200, 30);
+        label.setBounds(10, 7, 200, 30);
         cancel.setBounds(30, getHeight() - 40, 80, 25);
         ok.setBounds(getWidth() - 110, getHeight() - 40, 80, 25);
 
-        nameEditor.setBounds(90, 45, getWidth() - 85, 25);
-        baseThemeSelector.setBounds(90, 85, getWidth() - 85, 25);
+        nameEditor.setBounds(90, 45, getWidth() - 100, 25);
+        baseThemeSelector.setBounds(90, 85, getWidth() - 100, 25);
+        
         nameLabel.setBounds(8, 45, 80, 25);
         baseThemeLabel.setBounds(8, 85, 80, 25);
+    }
+    
+    void paint(Graphics& g) override
+    {
+        if(errorMessage.isNotEmpty()) {
+            g.setColour(Colours::red);
+            g.drawText(errorMessage, 0, getHeight() - 70, getWidth(), 23, Justification::centred);
+        }
+
     }
 
     std::function<void(int, String, String)> cb;
@@ -77,6 +99,8 @@ private:
 
     TextButton cancel = TextButton("Cancel");
     TextButton ok = TextButton("OK");
+    
+    String errorMessage;
 };
 
 
@@ -123,13 +147,7 @@ struct ThemePanel : public Component
                 });
         };
         
-        StringArray allThemes;
-        for(int i = 0; i < PlugDataLook::colourSettings.size(); i++) {
-            auto it = PlugDataLook::colourSettings.begin();
-            std::advance(it, i);
-            auto [themeName, themeColours] = *it;
-            allThemes.add(themeName);
-        }
+        StringArray allThemes = PlugDataLook::getAllThemes();
         
         newButton.setTooltip("New theme");
         newButton.setName("statusbar:new");
@@ -150,7 +168,7 @@ struct ThemePanel : public Component
                 updateSwatches();
             };
             
-            auto* d = new Dialog(&dialog, getParentComponent(), 400, 170, 200, false);
+            auto* d = new Dialog(&dialog, getParentComponent(), 400, 190, 220, false);
             auto* dialogContent = new NewThemeDialog(d, callback);
 
             d->setViewedComponent(dialogContent);
@@ -173,6 +191,18 @@ struct ThemePanel : public Component
                 auto themeXml = result.loadFileAsString();
                 auto themeTree = ValueTree::fromXml(themeXml);
                 auto themeName = themeTree.getProperty("theme").toString();
+                
+                if(PlugDataLook::getAllThemes().contains(themeName)) {
+                    int i = 1;
+                    auto finalThemeName = themeName + "_" + String(i);
+                    
+                    while(PlugDataLook::getAllThemes().contains(finalThemeName)) {
+                        i++;
+                        finalThemeName = themeName + "_" + String(i);
+                    }
+                    
+                    themeName = finalThemeName;
+                }
                 
                 settingsTree.getChildWithName("ColourThemes").appendChild(themeTree, nullptr);
                 
@@ -376,14 +406,9 @@ struct ThemePanel : public Component
             auto selectedText = themeSelectors[i].getText();
             themeSelectors[i].clear();
             
-            StringArray allThemes;
-            for(int j = 0; j < PlugDataLook::colourSettings.size(); j++) {
-                auto it = PlugDataLook::colourSettings.begin();
-                std::advance(it, j);
-                auto [themeName, themeColours] = *it;
-   
-                themeSelectors[i].addItem(themeName, j + 1);
-                allThemes.add(themeName);
+            StringArray allThemes = PlugDataLook::getAllThemes();
+            for(int j = 0; j < allThemes.size(); j++) {
+                themeSelectors[i].addItem(allThemes[j], j + 1);
             }
             
             int newIdx = allThemes.indexOf(selectedText);
