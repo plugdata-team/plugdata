@@ -1,7 +1,7 @@
 ---
 title: compress~
 
-description:
+description: Compressor
 
 categories:
 - object
@@ -62,4 +62,4 @@ outlets:
 draft: false
 ---
 
-LONG DESCRIPTION HERE
+[compress~] is an abstraction that performs compression. It attenuates an input signal above a given threshold.
