@@ -227,7 +227,9 @@ struct ThemePanel : public Component
         saveButton.setName("statusbar:save");
         addAndMakeVisible(saveButton);
         saveButton.setConnectedEdges(12);
-        saveButton.onClick = [this, allThemes]() mutable {
+        saveButton.onClick = [this]() mutable {
+            
+            auto allThemes = PlugDataLook::getAllThemes();
             
             PopupMenu menu;
             
@@ -263,7 +265,10 @@ struct ThemePanel : public Component
         deleteButton.setName("statusbar:save");
         addAndMakeVisible(deleteButton);
         deleteButton.setConnectedEdges(12);
-        deleteButton.onClick = [this, allThemes]() mutable {
+        deleteButton.onClick = [this]() mutable {
+            
+            auto allThemes = PlugDataLook::getAllThemes();
+            
             PopupMenu menu;
             
             for(int i = 0; i < allThemes.size(); i++) {
