@@ -123,6 +123,52 @@ enum ObjectIDs
     NewMtof,
     NewFtom,
     
+    NewArraySet,
+    NewArrayGet,
+    NewArrayDefine,
+    NewArraySize,
+    NewArrayMin,
+    NewArrayMax,
+    NewArrayRandom,
+    NewArrayQuantile,
+    
+    NewListAppend,
+    NewListPrepend,
+    NewListStore,
+    NewListSplit,
+    NewListTrim,
+    NewListLength,
+    NewListFromSymbol,
+    NewListToSymbol,
+    
+    NewAdd,
+    NewSubtract,
+    NewMultiply,
+    NewDivide,
+    NewModulo,
+    NewInverseSubtract,
+    NewInverseDivide,
+    NewBiggerThan,
+    NewSmallerThan,
+    NewBiggerThanOrEqual,
+    NewSmallerThanOrEqual,
+    NewEquals,
+    NewNotEquals,
+    
+    NewSignalAdd,
+    NewSignalSubtract,
+    NewSignalMultiply,
+    NewSignalDivide,
+    NewSignalModulo,
+    NewSignalInverseSubtract,
+    NewSignalInverseDivide,
+    NewSignalBiggerThan,
+    NewSignalSmallerThan,
+    NewSignalBiggerThanOrEqual,
+    NewSignalSmallerThanOrEqual,
+    NewSignalEquals,
+    NewSignalNotEquals,
+    
     NumObjects
 };
 
@@ -149,14 +195,14 @@ const std::map<ObjectIDs, String> objectNames {
     {NewNumboxTilde, "numbox~"},
     {NewOscilloscope, "oscope~"},
     {NewFunction, "function"},
-
+    
     {NewMetro, "metro"},
     {NewTimer, "timer"},
     {NewDelay, "delay"},
     {NewTimedGate, "timed.gate"},
     {NewDateTime, "datetime"},
     {NewSignalDelay, "delay~"},
-
+    
     {NewOsc, "osc~"},
     {NewPhasor, "phasor~"},
     {NewSaw, "saw~"},
@@ -174,7 +220,7 @@ const std::map<ObjectIDs, String> objectNames {
     {NewBlImp, "bl.imp~"},
     {NewBlImp2, "bl.imp2~"},
     {NewBlWavetable, "bl.wavetable~"},
-
+    
     {NewLop, "lop~"},
     {NewVcf, "vcf~"},
     {NewLores, "lores~"},
@@ -185,11 +231,11 @@ const std::map<ObjectIDs, String> objectNames {
     {NewAllpass, "allpass~"},
     {NewComb, "comb~"},
     {NewHip, "hip~"},
-
+    
     {NewDac, "dac~"},
     {NewAdc, "adc~"},
     {NewOut, "out~"},
-
+    
     {NewMidiIn, "midiin"},
     {NewMidiOut, "midiout"},
     {NewNoteIn, "notein"},
@@ -201,7 +247,54 @@ const std::map<ObjectIDs, String> objectNames {
     {NewSysexIn, "sysexin"},
     {NewSysexOut, "sysexout"},
     {NewMtof, "mtof"},
-    {NewFtom, "ftom"}
+    {NewFtom, "ftom"},
+    
+    {NewArraySet, "array set"},
+    {NewArrayGet, "array get"},
+    {NewArrayDefine, "array define"},
+    {NewArraySize, "array size"},
+    {NewArrayMin, "array min"},
+    {NewArrayMax, "array max"},
+    {NewArrayRandom, "array random"},
+    {NewArrayQuantile, "array quantile"},
+    
+    {NewListAppend, "list append"},
+    {NewListPrepend, "list prepend"},
+    {NewListStore, "list store"},
+    {NewListSplit, "list split"},
+    {NewListTrim, "list trim"},
+    {NewListLength, "list length"},
+    {NewListFromSymbol, "list fromsymbol"},
+    {NewListToSymbol,  "list tosymbol"},
+    
+    {NewAdd, "+"},
+    {NewSubtract, "-"},
+    {NewMultiply, "*"},
+    {NewDivide, "/"},
+    {NewModulo, "%"},
+    {NewInverseSubtract, "!-"},
+    {NewInverseDivide, "!/"},
+
+    {NewBiggerThan, ">"},
+    {NewSmallerThan, "<"},
+    {NewBiggerThanOrEqual, ">="},
+    {NewSmallerThanOrEqual, "<="},
+    {NewEquals, "=="},
+    {NewNotEquals, "!="},
+    
+    {NewSignalAdd, "+~"},
+    {NewSignalSubtract, "-~"},
+    {NewSignalMultiply, "*~"},
+    {NewSignalDivide, "/~"},
+    {NewSignalModulo, "%~"},
+    {NewSignalInverseSubtract, "!-~"},
+    {NewSignalInverseDivide, "!/~"},
+    {NewSignalBiggerThan, ">~"},
+    {NewSignalSmallerThan, "<~"},
+    {NewSignalBiggerThanOrEqual, ">=~"},
+    {NewSignalSmallerThanOrEqual, "<=~"},
+    {NewSignalEquals, "==~"},
+    {NewSignalNotEquals, "!=~"},
 };
 
 struct ZoomLabel : public TextButton
