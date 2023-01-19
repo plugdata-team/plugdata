@@ -1,7 +1,7 @@
 ---
 title: stereo.rev~
 
-description:
+description: Stereo reverb
 
 categories:
 - object

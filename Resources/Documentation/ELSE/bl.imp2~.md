@@ -10,8 +10,8 @@ pdcategory: Audio Oscillators and Tables
 
 arguments:
   1st:
-  - description: frequency in Hz
-    type: float
+  - type: float
+    description: frequency in Hz
     default: 0
   2nd:
   - description:

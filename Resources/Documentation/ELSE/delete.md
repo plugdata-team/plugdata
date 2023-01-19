@@ -1,5 +1,5 @@
 ---
-title: delete~
+title: delete
 
 description: delete element(s) from message
 

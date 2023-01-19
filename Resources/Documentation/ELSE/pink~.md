@@ -1,5 +1,6 @@
 ---
 title: pink~
+
 description: Pink noise
 
 categories:
