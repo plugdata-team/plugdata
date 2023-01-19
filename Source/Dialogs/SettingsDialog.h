@@ -210,7 +210,7 @@ struct SettingsPopup : public PopupMenu {
             Graphics g(icon);
             g.setColour(editor->findColour(PlugDataColour::popupMenuTextColourId));
             g.setFont(editor->pd->lnf->iconFont.withHeight(28));
-            g.drawText(iconText[i], 0, 0, 32, 32, Justification::centred);
+            g.drawText(iconText[i], 0, 0, 32, 32, Justification::right);
         }
         
         addItem(1, "New patch", true, false, icons[0]);
