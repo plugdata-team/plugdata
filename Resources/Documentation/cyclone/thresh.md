@@ -1,5 +1,5 @@
 ---
-title: thresh~
+title: thresh
 
 description: Combine data recieved close together
 

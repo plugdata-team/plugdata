@@ -1,7 +1,7 @@
 ---
 title: cosine~
 
-description:
+description: Cosine oscillator
 
 categories:
  - object
