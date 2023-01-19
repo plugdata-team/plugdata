@@ -97,7 +97,7 @@ public:
         processToMonitor = process;
         startThread();
     }
-        
+
     void flushConsole()
     {
         while (processToMonitor) {

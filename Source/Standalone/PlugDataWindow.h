@@ -733,9 +733,9 @@ private:
                 }
             }
 #elif JUCE_WINDOWS
-            
+
             g.setColour(findColour(PlugDataColour::outlineColourId));
-            
+
             g.drawRoundedRectangle(getLocalBounds().toFloat(), Constants::windowCornerRadius, 1.0f);
 #endif
         }

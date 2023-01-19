@@ -165,14 +165,14 @@ PluginProcessor::PluginProcessor()
 
     if (settingsTree.hasProperty("Theme")) {
         auto themeName = settingsTree.getProperty("Theme").toString();
-        
+
         // Make sure theme exists
-        if(!settingsTree.getChildWithName("ColourThemes").getChildWithProperty("theme", themeName).isValid()) {
-            
+        if (!settingsTree.getChildWithName("ColourThemes").getChildWithProperty("theme", themeName).isValid()) {
+
             settingsTree.setProperty("Theme", PlugDataLook::selectedThemes[0], nullptr);
             themeName = PlugDataLook::selectedThemes[0];
         }
-        
+
         setTheme(themeName);
         saveSettings();
     }
@@ -293,7 +293,7 @@ void PluginProcessor::initialiseFilesystem()
         settingsTree.appendChild(pathTree, nullptr);
 
         settingsTree.appendChild(ValueTree("Keymap"), nullptr);
-        
+
         auto selectedThemes = ValueTree("SelectedThemes");
         selectedThemes.setProperty("first", "light", nullptr);
         selectedThemes.setProperty("second", "dark", nullptr);
@@ -324,16 +324,15 @@ void PluginProcessor::initialiseFilesystem()
             auto fontname = settingsTree.getProperty("DefaultFont").toString();
             PlugDataLook::setDefaultFont(fontname);
         }
-        
+
         if (!settingsTree.getChildWithName("SelectedThemes").isValid()) {
             auto selectedThemes = ValueTree("SelectedThemes");
             selectedThemes.setProperty("first", "light", nullptr);
             selectedThemes.setProperty("second", "dark", nullptr);
             settingsTree.appendChild(selectedThemes, nullptr);
-        }
-        else {
+        } else {
             auto selectedThemes = settingsTree.getChildWithName("SelectedThemes");
-            PlugDataLook::selectedThemes.set(0,  selectedThemes.getProperty("first").toString());
+            PlugDataLook::selectedThemes.set(0, selectedThemes.getProperty("first").toString());
             PlugDataLook::selectedThemes.set(1, selectedThemes.getProperty("second").toString());
         }
 
@@ -347,7 +346,7 @@ void PluginProcessor::initialiseFilesystem()
 
                 colourThemesTree.appendChild(themeTree, nullptr);
                 themeTree.setProperty("theme", themeName, nullptr);
-                
+
                 for (auto const& [colourId, colour] : PlugDataLook::defaultThemes.at(themeName)) {
                     auto [id, colourName, category] = PlugDataColourNames.at(colourId);
                     themeTree.setProperty(colourName, colour.toString(), nullptr);
@@ -361,18 +360,17 @@ void PluginProcessor::initialiseFilesystem()
             auto colourThemesTree = settingsTree.getChildWithName("ColourThemes");
             for (auto themeTree : colourThemesTree) {
                 auto themeName = themeTree.getProperty("theme");
-                
-                if(!PlugDataLook::defaultThemes.count(themeName))  {
-                    
+
+                if (!PlugDataLook::defaultThemes.count(themeName)) {
+
                     for (auto const& [colourId, colourNames] : PlugDataColourNames) {
                         auto [id, colourName, category] = colourNames;
                         lnf->colourSettings[themeName][colourId] = Colour::fromString(themeTree.getProperty(colourName).toString());
-                        
                     }
 
                     continue;
                 }
-                
+
                 for (auto const& [colourId, colour] : PlugDataLook::defaultThemes.at(themeName)) {
                     auto [id, colourName, category] = PlugDataColourNames.at(colourId);
 
@@ -567,11 +565,11 @@ void PluginProcessor::prepareToPlay(double sampleRate, int samplesPerBlock)
     oversampler.reset(new dsp::Oversampling<float>(maxChannels, oversampling, dsp::Oversampling<float>::filterHalfBandPolyphaseIIR, false));
 
     oversampler->initProcessing(samplesPerBlock);
-    
+
 #if PLUGDATA_STANDALONE
     internalSynth.prepare(sampleRate, samplesPerBlock, 2);
 #endif
-    
+
     audioAdvancement = 0;
     auto const blksize = static_cast<size_t>(Instance::getBlockSize());
     auto const numIn = static_cast<size_t>(getTotalNumInputChannels());
@@ -671,12 +669,11 @@ void PluginProcessor::processBlock(AudioBuffer<float>& buffer, MidiBuffer& midiM
             Time::getMillisecondCounterHiRes(),
             AudioProcessor::getSampleRate());
     }
-    
+
     // If the internalSynth is enabled and loaded, let it process the midi
-    if(enableInternalSynth) {
+    if (enableInternalSynth) {
         internalSynth.process(buffer, midiMessages);
     }
-    
 
 #endif
 }
@@ -1166,10 +1163,10 @@ pd::Patch* PluginProcessor::loadPatch(String patchText)
 void PluginProcessor::setTheme(String themeToUse)
 {
     // Check if theme name is valid
-    if(!settingsTree.getChildWithName("ColourThemes").getChildWithProperty("theme", themeToUse).isValid()) {
+    if (!settingsTree.getChildWithName("ColourThemes").getChildWithProperty("theme", themeToUse).isValid()) {
         themeToUse = PlugDataLook::selectedThemes[0];
     }
-    
+
     lnf->setTheme(themeToUse);
     if (auto* editor = dynamic_cast<PluginEditor*>(getActiveEditor())) {
         editor->getTopLevelComponent()->repaint();

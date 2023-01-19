@@ -117,41 +117,41 @@ struct PictureObject final : public GUIObject {
             object->setSize(img.getWidth(), img.getHeight());
         }
     }
-    
+
     void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
     {
-        if(symbol == "open" && atoms.size() >= 1) {
+        if (symbol == "open" && atoms.size() >= 1) {
             openFile(atoms[0].getSymbol());
         }
     }
 
     void openFile(String location)
     {
-        
-        auto findFile = [this](const String& name){
-            if(File(name).existsAsFile()) {
+
+        auto findFile = [this](String const& name) {
+            if (File(name).existsAsFile()) {
                 return File(name);
             }
-            if(File(String::fromUTF8(canvas_getdir(cnv->patch.getPointer())->s_name)).getChildFile(name).existsAsFile()) {
+            if (File(String::fromUTF8(canvas_getdir(cnv->patch.getPointer())->s_name)).getChildFile(name).existsAsFile()) {
                 return File(String::fromUTF8(canvas_getdir(cnv->patch.getPointer())->s_name)).getChildFile(name);
             }
-            
+
             // Get pd's search paths
             char* paths[1024];
             int numItems;
             libpd_get_search_paths(paths, &numItems);
-            
-            for(int i = 0; i < numItems; i++) {
+
+            for (int i = 0; i < numItems; i++) {
                 auto file = File(String::fromUTF8(paths[i])).getChildFile(name);
-                
-                if(file.existsAsFile()) {
+
+                if (file.existsAsFile()) {
                     return file;
                 }
             }
-            
+
             return File(name);
         };
- 
+
         auto* pic = static_cast<t_pic*>(ptr);
 
         imageFile = findFile(location);

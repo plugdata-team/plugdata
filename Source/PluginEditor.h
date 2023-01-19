@@ -45,8 +45,7 @@ enum CommandIDs {
     NumItems
 };
 
-enum ObjectIDs
-{
+enum ObjectIDs {
     NewObject = 100,
     NewComment,
     NewBang,
@@ -69,14 +68,14 @@ enum ObjectIDs
     NewNumboxTilde,
     NewOscilloscope,
     NewFunction,
-    
+
     NewMetro,
     NewTimer,
     NewDelay,
     NewTimedGate,
     NewDateTime,
     NewSignalDelay,
-    
+
     NewOsc,
     NewPhasor,
     NewSaw,
@@ -94,7 +93,7 @@ enum ObjectIDs
     NewBlImp,
     NewBlImp2,
     NewBlWavetable,
-    
+
     NewLop,
     NewVcf,
     NewLores,
@@ -105,11 +104,11 @@ enum ObjectIDs
     NewAllpass,
     NewComb,
     NewHip,
-    
+
     NewDac,
     NewAdc,
     NewOut,
-    
+
     NewMidiIn,
     NewMidiOut,
     NewNoteIn,
@@ -122,7 +121,7 @@ enum ObjectIDs
     NewSysexOut,
     NewMtof,
     NewFtom,
-    
+
     NewArraySet,
     NewArrayGet,
     NewArrayDefine,
@@ -131,7 +130,7 @@ enum ObjectIDs
     NewArrayMax,
     NewArrayRandom,
     NewArrayQuantile,
-    
+
     NewListAppend,
     NewListPrepend,
     NewListStore,
@@ -140,7 +139,7 @@ enum ObjectIDs
     NewListLength,
     NewListFromSymbol,
     NewListToSymbol,
-    
+
     NewAdd,
     NewSubtract,
     NewMultiply,
@@ -154,7 +153,7 @@ enum ObjectIDs
     NewSmallerThanOrEqual,
     NewEquals,
     NewNotEquals,
-    
+
     NewSignalAdd,
     NewSignalSubtract,
     NewSignalMultiply,
@@ -168,133 +167,133 @@ enum ObjectIDs
     NewSignalSmallerThanOrEqual,
     NewSignalEquals,
     NewSignalNotEquals,
-    
+
     NumObjects
 };
 
 const std::map<ObjectIDs, String> objectNames {
-    {NewObject, ""},
-    {NewComment, "comment"},
-    {NewBang, "bng"},
-    {NewMessage, "msg"},
-    {NewToggle, "tgl"},
-    {NewNumbox, "nbx"},
-    {NewVerticalSlider, "vsl"},
-    {NewHorizontalSlider, "hsl"},
-    {NewVerticalRadio, "vradio"},
-    {NewHorizontalRadio, "hradio"},
-    {NewFloatAtom, "floatatom"},
-    {NewSymbolAtom, "symbolatom"},
-    {NewListAtom, "listatom"},
-    {NewArray, "array"},
-    {NewGraphOnParent, "graph"},
-    {NewCanvas, "cnv"},
-    {NewKeyboard, "keyboard"},
-    {NewVUMeterObject, "vu"},
-    {NewButton, "button"},
-    {NewNumboxTilde, "numbox~"},
-    {NewOscilloscope, "oscope~"},
-    {NewFunction, "function"},
-    
-    {NewMetro, "metro"},
-    {NewTimer, "timer"},
-    {NewDelay, "delay"},
-    {NewTimedGate, "timed.gate"},
-    {NewDateTime, "datetime"},
-    {NewSignalDelay, "delay~"},
-    
-    {NewOsc, "osc~"},
-    {NewPhasor, "phasor~"},
-    {NewSaw, "saw~"},
-    {NewSaw2, "saw2~"},
-    {NewSquare, "square~"},
-    {NewTriangle, "triangle~"},
-    {NewImp, "imp~"},
-    {NewImp2, "imp2~"},
-    {NewWavetable, "wavetable~"},
-    {NewBlOsc, "bl.osc~"},
-    {NewBlSaw, "bl.saw~"},
-    {NewBlSaw2, "bl.saw2~"},
-    {NewBlSquare, "bl.square~"},
-    {NewBlTriangle, "bl.triangle~"},
-    {NewBlImp, "bl.imp~"},
-    {NewBlImp2, "bl.imp2~"},
-    {NewBlWavetable, "bl.wavetable~"},
-    
-    {NewLop, "lop~"},
-    {NewVcf, "vcf~"},
-    {NewLores, "lores~"},
-    {NewSvf, "svf~"},
-    {NewBob, "bob~"},
-    {NewOnepole, "onepole~"},
-    {NewReson, "reson~"},
-    {NewAllpass, "allpass~"},
-    {NewComb, "comb~"},
-    {NewHip, "hip~"},
-    
-    {NewDac, "dac~"},
-    {NewAdc, "adc~"},
-    {NewOut, "out~"},
-    
-    {NewMidiIn, "midiin"},
-    {NewMidiOut, "midiout"},
-    {NewNoteIn, "notein"},
-    {NewNoteOut, "noteout"},
-    {NewCtlIn, "ctlin"},
-    {NewCtlOut, "ctlout"},
-    {NewPgmIn, "pgmin"},
-    {NewPgmOut, "pgmout"},
-    {NewSysexIn, "sysexin"},
-    {NewSysexOut, "sysexout"},
-    {NewMtof, "mtof"},
-    {NewFtom, "ftom"},
-    
-    {NewArraySet, "array set"},
-    {NewArrayGet, "array get"},
-    {NewArrayDefine, "array define"},
-    {NewArraySize, "array size"},
-    {NewArrayMin, "array min"},
-    {NewArrayMax, "array max"},
-    {NewArrayRandom, "array random"},
-    {NewArrayQuantile, "array quantile"},
-    
-    {NewListAppend, "list append"},
-    {NewListPrepend, "list prepend"},
-    {NewListStore, "list store"},
-    {NewListSplit, "list split"},
-    {NewListTrim, "list trim"},
-    {NewListLength, "list length"},
-    {NewListFromSymbol, "list fromsymbol"},
-    {NewListToSymbol,  "list tosymbol"},
-    
-    {NewAdd, "+"},
-    {NewSubtract, "-"},
-    {NewMultiply, "*"},
-    {NewDivide, "/"},
-    {NewModulo, "%"},
-    {NewInverseSubtract, "!-"},
-    {NewInverseDivide, "!/"},
+    { NewObject, "" },
+    { NewComment, "comment" },
+    { NewBang, "bng" },
+    { NewMessage, "msg" },
+    { NewToggle, "tgl" },
+    { NewNumbox, "nbx" },
+    { NewVerticalSlider, "vsl" },
+    { NewHorizontalSlider, "hsl" },
+    { NewVerticalRadio, "vradio" },
+    { NewHorizontalRadio, "hradio" },
+    { NewFloatAtom, "floatatom" },
+    { NewSymbolAtom, "symbolatom" },
+    { NewListAtom, "listatom" },
+    { NewArray, "array" },
+    { NewGraphOnParent, "graph" },
+    { NewCanvas, "cnv" },
+    { NewKeyboard, "keyboard" },
+    { NewVUMeterObject, "vu" },
+    { NewButton, "button" },
+    { NewNumboxTilde, "numbox~" },
+    { NewOscilloscope, "oscope~" },
+    { NewFunction, "function" },
 
-    {NewBiggerThan, ">"},
-    {NewSmallerThan, "<"},
-    {NewBiggerThanOrEqual, ">="},
-    {NewSmallerThanOrEqual, "<="},
-    {NewEquals, "=="},
-    {NewNotEquals, "!="},
-    
-    {NewSignalAdd, "+~"},
-    {NewSignalSubtract, "-~"},
-    {NewSignalMultiply, "*~"},
-    {NewSignalDivide, "/~"},
-    {NewSignalModulo, "%~"},
-    {NewSignalInverseSubtract, "!-~"},
-    {NewSignalInverseDivide, "!/~"},
-    {NewSignalBiggerThan, ">~"},
-    {NewSignalSmallerThan, "<~"},
-    {NewSignalBiggerThanOrEqual, ">=~"},
-    {NewSignalSmallerThanOrEqual, "<=~"},
-    {NewSignalEquals, "==~"},
-    {NewSignalNotEquals, "!=~"},
+    { NewMetro, "metro" },
+    { NewTimer, "timer" },
+    { NewDelay, "delay" },
+    { NewTimedGate, "timed.gate" },
+    { NewDateTime, "datetime" },
+    { NewSignalDelay, "delay~" },
+
+    { NewOsc, "osc~" },
+    { NewPhasor, "phasor~" },
+    { NewSaw, "saw~" },
+    { NewSaw2, "saw2~" },
+    { NewSquare, "square~" },
+    { NewTriangle, "triangle~" },
+    { NewImp, "imp~" },
+    { NewImp2, "imp2~" },
+    { NewWavetable, "wavetable~" },
+    { NewBlOsc, "bl.osc~" },
+    { NewBlSaw, "bl.saw~" },
+    { NewBlSaw2, "bl.saw2~" },
+    { NewBlSquare, "bl.square~" },
+    { NewBlTriangle, "bl.triangle~" },
+    { NewBlImp, "bl.imp~" },
+    { NewBlImp2, "bl.imp2~" },
+    { NewBlWavetable, "bl.wavetable~" },
+
+    { NewLop, "lop~" },
+    { NewVcf, "vcf~" },
+    { NewLores, "lores~" },
+    { NewSvf, "svf~" },
+    { NewBob, "bob~" },
+    { NewOnepole, "onepole~" },
+    { NewReson, "reson~" },
+    { NewAllpass, "allpass~" },
+    { NewComb, "comb~" },
+    { NewHip, "hip~" },
+
+    { NewDac, "dac~" },
+    { NewAdc, "adc~" },
+    { NewOut, "out~" },
+
+    { NewMidiIn, "midiin" },
+    { NewMidiOut, "midiout" },
+    { NewNoteIn, "notein" },
+    { NewNoteOut, "noteout" },
+    { NewCtlIn, "ctlin" },
+    { NewCtlOut, "ctlout" },
+    { NewPgmIn, "pgmin" },
+    { NewPgmOut, "pgmout" },
+    { NewSysexIn, "sysexin" },
+    { NewSysexOut, "sysexout" },
+    { NewMtof, "mtof" },
+    { NewFtom, "ftom" },
+
+    { NewArraySet, "array set" },
+    { NewArrayGet, "array get" },
+    { NewArrayDefine, "array define" },
+    { NewArraySize, "array size" },
+    { NewArrayMin, "array min" },
+    { NewArrayMax, "array max" },
+    { NewArrayRandom, "array random" },
+    { NewArrayQuantile, "array quantile" },
+
+    { NewListAppend, "list append" },
+    { NewListPrepend, "list prepend" },
+    { NewListStore, "list store" },
+    { NewListSplit, "list split" },
+    { NewListTrim, "list trim" },
+    { NewListLength, "list length" },
+    { NewListFromSymbol, "list fromsymbol" },
+    { NewListToSymbol, "list tosymbol" },
+
+    { NewAdd, "+" },
+    { NewSubtract, "-" },
+    { NewMultiply, "*" },
+    { NewDivide, "/" },
+    { NewModulo, "%" },
+    { NewInverseSubtract, "!-" },
+    { NewInverseDivide, "!/" },
+
+    { NewBiggerThan, ">" },
+    { NewSmallerThan, "<" },
+    { NewBiggerThanOrEqual, ">=" },
+    { NewSmallerThanOrEqual, "<=" },
+    { NewEquals, "==" },
+    { NewNotEquals, "!=" },
+
+    { NewSignalAdd, "+~" },
+    { NewSignalSubtract, "-~" },
+    { NewSignalMultiply, "*~" },
+    { NewSignalDivide, "/~" },
+    { NewSignalModulo, "%~" },
+    { NewSignalInverseSubtract, "!-~" },
+    { NewSignalInverseDivide, "!/~" },
+    { NewSignalBiggerThan, ">~" },
+    { NewSignalSmallerThan, "<~" },
+    { NewSignalBiggerThanOrEqual, ">=~" },
+    { NewSignalSmallerThanOrEqual, "<=~" },
+    { NewSignalEquals, "==~" },
+    { NewSignalNotEquals, "!=~" },
 };
 
 struct ZoomLabel : public TextButton
@@ -393,7 +392,7 @@ public:
     void valueTreeChildRemoved(ValueTree& parentTree, ValueTree& childWhichHasBeenRemoved, int indexFromWhichChildWasRemoved) override;
 
     void addToRecentlyOpened(File path);
-        
+
     void timerCallback() override;
 
     TextButton* toolbarButton(ToolbarButtonType type)

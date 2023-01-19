@@ -23,20 +23,19 @@ struct NewThemeDialog : public Component {
         };
 
         ok.onClick = [this, parent] {
-            
             StringArray allThemes = PlugDataLook::getAllThemes();
-            
-            if(nameEditor.getText().isEmpty()) {
+
+            if (nameEditor.getText().isEmpty()) {
                 errorMessage = "Theme name cannot be empty";
                 repaint();
                 return;
             }
-            if(allThemes.contains(nameEditor.getText())) {
+            if (allThemes.contains(nameEditor.getText())) {
                 errorMessage = "Theme name already taken";
                 repaint();
                 return;
             }
-            
+
             MessageManager::callAsync(
                 [this, parent]() {
                     cb(1, nameEditor.getText(), baseThemeSelector.getText());
@@ -44,16 +43,16 @@ struct NewThemeDialog : public Component {
                 });
         };
 
-        for(int i = 0; i < PlugDataLook::colourSettings.size(); i++) {
+        for (int i = 0; i < PlugDataLook::colourSettings.size(); i++) {
             auto it = PlugDataLook::colourSettings.begin();
             std::advance(it, i);
             auto [themeName, themeColours] = *it;
-            
+
             baseThemeSelector.addItem(themeName, i + 1);
         }
-        
+
         baseThemeSelector.setSelectedItemIndex(0);
-        
+
         cancel.changeWidthToFitText();
         ok.changeWidthToFitText();
 
@@ -62,7 +61,7 @@ struct NewThemeDialog : public Component {
 
         addAndMakeVisible(nameEditor);
         addAndMakeVisible(baseThemeSelector);
-        
+
         setOpaque(false);
     }
 
@@ -74,18 +73,17 @@ struct NewThemeDialog : public Component {
 
         nameEditor.setBounds(90, 45, getWidth() - 100, 25);
         baseThemeSelector.setBounds(90, 85, getWidth() - 100, 25);
-        
+
         nameLabel.setBounds(8, 45, 80, 25);
         baseThemeLabel.setBounds(8, 85, 80, 25);
     }
-    
+
     void paint(Graphics& g) override
     {
-        if(errorMessage.isNotEmpty()) {
+        if (errorMessage.isNotEmpty()) {
             g.setColour(Colours::red);
             g.drawText(errorMessage, 0, getHeight() - 70, getWidth(), 23, Justification::centred);
         }
-
     }
 
     std::function<void(int, String, String)> cb;
@@ -101,10 +99,9 @@ private:
 
     TextButton cancel = TextButton("Cancel");
     TextButton ok = TextButton("OK");
-    
+
     String errorMessage;
 };
-
 
 struct ThemePanel : public Component
     , public Value::Listener {
@@ -113,7 +110,7 @@ struct ThemePanel : public Component
     Value fontValue;
     Value dashedSignalConnection;
     Value straightConnections;
-        
+
     ComboBox themeSelectors[2];
 
     std::map<String, std::map<String, Value>> swatches;
@@ -122,14 +119,14 @@ struct ThemePanel : public Component
     Array<PropertyComponent*> allPanels;
 
     TextButton resetButton = TextButton(Icons::Refresh);
-        
+
     TextButton newButton = TextButton(Icons::New);
     TextButton loadButton = TextButton(Icons::Open);
     TextButton saveButton = TextButton(Icons::Save);
     TextButton deleteButton = TextButton(Icons::Clear);
-    
+
     std::unique_ptr<Dialog> dialog;
-        
+
     std::unique_ptr<FileChooser> saveChooser;
     std::unique_ptr<FileChooser> openChooser;
 
@@ -148,198 +145,190 @@ struct ThemePanel : public Component
                     }
                 });
         };
-        
+
         StringArray allThemes = PlugDataLook::getAllThemes();
-        
+
         newButton.setTooltip("New theme");
         newButton.setName("statusbar:new");
         addAndMakeVisible(newButton);
         newButton.setConnectedEdges(12);
-        newButton.onClick = [this](){
-            
-            auto callback = [this](int result, String name, String baseTheme){
-                
-                if(!result) return;
-                
+        newButton.onClick = [this]() {
+            auto callback = [this](int result, String name, String baseTheme) {
+                if (!result)
+                    return;
+
                 auto colourThemes = settingsTree.getChildWithName("ColourThemes");
                 auto newTheme = colourThemes.getChildWithProperty("theme", baseTheme).createCopy();
                 newTheme.setProperty("theme", name, nullptr);
                 colourThemes.appendChild(newTheme, nullptr);
-                
+
                 for (auto const& [colourId, colourNames] : PlugDataColourNames) {
                     auto [id, colourName, category] = colourNames;
                     PlugDataLook::colourSettings[name][colourId] = Colour::fromString(newTheme.getProperty(colourName).toString());
                 }
-                
+
                 updateThemes();
                 updateSwatches();
             };
-            
+
             auto* d = new Dialog(&dialog, getParentComponent(), 400, 190, 220, false);
             auto* dialogContent = new NewThemeDialog(d, callback);
 
             d->setViewedComponent(dialogContent);
             dialog.reset(d);
         };
-        
+
         loadButton.setTooltip("Load theme");
         loadButton.setName("statusbar:load");
         addAndMakeVisible(loadButton);
         loadButton.setConnectedEdges(12);
-        loadButton.onClick = [this](){
-            
+        loadButton.onClick = [this]() {
             auto constexpr folderChooserFlags = FileBrowserComponent::openMode | FileBrowserComponent::canSelectFiles;
-            
+
             openChooser = std::make_unique<FileChooser>("Choose theme to open", File::getSpecialLocation(File::userHomeDirectory), "*.plugdatatheme", true);
 
             openChooser->launchAsync(FileBrowserComponent::openMode | FileBrowserComponent::canSelectFiles, [this](FileChooser const& fileChooser) {
-                
                 auto result = fileChooser.getResult();
                 auto themeXml = result.loadFileAsString();
                 auto themeTree = ValueTree::fromXml(themeXml);
                 auto themeName = themeTree.getProperty("theme").toString();
-                
-                if(PlugDataLook::getAllThemes().contains(themeName)) {
+
+                if (PlugDataLook::getAllThemes().contains(themeName)) {
                     int i = 1;
                     auto finalThemeName = themeName + "_" + String(i);
-                    
-                    while(PlugDataLook::getAllThemes().contains(finalThemeName)) {
+
+                    while (PlugDataLook::getAllThemes().contains(finalThemeName)) {
                         i++;
                         finalThemeName = themeName + "_" + String(i);
                     }
-                    
+
                     themeName = finalThemeName;
                 }
-                
+
                 settingsTree.getChildWithName("ColourThemes").appendChild(themeTree, nullptr);
-                
+
                 for (auto const& [colourId, colourNames] : PlugDataColourNames) {
                     auto [id, colourName, category] = colourNames;
                     PlugDataLook::colourSettings[themeName][colourId] = Colour::fromString(themeTree.getProperty(colourName).toString());
                 }
-                
+
                 updateThemes();
                 updateSwatches();
             });
         };
-        
+
         saveButton.setTooltip("Save theme");
         saveButton.setName("statusbar:save");
         addAndMakeVisible(saveButton);
         saveButton.setConnectedEdges(12);
         saveButton.onClick = [this]() mutable {
-            
             auto allThemes = PlugDataLook::getAllThemes();
-            
+
             PopupMenu menu;
-            
-            for(int i = 0; i < allThemes.size(); i++) {
+
+            for (int i = 0; i < allThemes.size(); i++) {
                 menu.addItem(i + 1, allThemes[i]);
             }
-            
+
             menu.showMenuAsync(PopupMenu::Options().withMinimumWidth(100).withMaximumNumColumns(1).withTargetComponent(&saveButton).withParentComponent(this), [this, allThemes](int result) {
-                
-                if(result < 1) return;
-                
+                if (result < 1)
+                    return;
+
                 auto themeName = allThemes[result - 1];
-                
+
                 auto themeTree = settingsTree.getChildWithName("ColourThemes").getChildWithProperty("theme", themeName);
-                
+
                 auto themeXml = themeTree.toXmlString();
-                
+
                 saveChooser = std::make_unique<FileChooser>("Choose a location...", File::getSpecialLocation(File::userHomeDirectory), "*.plugdatatheme", true);
 
                 constexpr auto folderChooserFlags = FileBrowserComponent::saveMode | FileBrowserComponent::canSelectFiles | FileBrowserComponent::warnAboutOverwriting;
-                
+
                 saveChooser->launchAsync(folderChooserFlags,
                     [this, themeXml](FileChooser const& fileChooser) mutable {
                         const auto file = fileChooser.getResult();
                         file.replaceWithText(themeXml);
                     });
-                
             });
         };
-        
-        
+
         deleteButton.setTooltip("Delete theme");
         deleteButton.setName("statusbar:save");
         addAndMakeVisible(deleteButton);
         deleteButton.setConnectedEdges(12);
         deleteButton.onClick = [this]() mutable {
-            
             auto allThemes = PlugDataLook::getAllThemes();
-            
+
             PopupMenu menu;
-            
-            for(int i = 0; i < allThemes.size(); i++) {
+
+            for (int i = 0; i < allThemes.size(); i++) {
                 menu.addItem(i + 1, allThemes[i]);
             }
-            
+
             menu.showMenuAsync(PopupMenu::Options().withMinimumWidth(100).withMaximumNumColumns(1).withTargetComponent(&deleteButton).withParentComponent(this), [this, allThemes](int result) {
-                
-                if(result < 1) return;
-                
+                if (result < 1)
+                    return;
+
                 auto themeName = allThemes[result - 1];
-                
+
                 auto themeTree = settingsTree.getChildWithName("ColourThemes").getChildWithProperty("theme", themeName);
-                
+
                 settingsTree.getChildWithName("ColourThemes").removeChild(themeTree, nullptr);
-                
+
                 PlugDataLook::colourSettings.erase(themeName);
-                
+
                 auto selectedThemes = settingsTree.getChildWithName("SelectedThemes");
-                if(selectedThemes.getProperty("first").toString() == themeName) {
+                if (selectedThemes.getProperty("first").toString() == themeName) {
                     selectedThemes.setProperty("first", "light", nullptr);
                     PlugDataLook::selectedThemes.set(0, "light");
                 }
-                if(selectedThemes.getProperty("second").toString() == themeName) {
+                if (selectedThemes.getProperty("second").toString() == themeName) {
                     selectedThemes.setProperty("second", "dark", nullptr);
                     PlugDataLook::selectedThemes.set(0, "dark");
                 }
-                
+
                 updateThemes();
                 updateSwatches();
             });
         };
-        
-        for(int i = 0; i < 2; i++) {
-            for(int j = 0; j < allThemes.size(); j++) {
+
+        for (int i = 0; i < 2; i++) {
+            for (int j = 0; j < allThemes.size(); j++) {
                 themeSelectors[i].addItem(allThemes[j], j + 1);
             }
-            
+
             themeSelectors[i].setSelectedItemIndex(allThemes.indexOf(PlugDataLook::selectedThemes[i]));
             addAndMakeVisible(themeSelectors[i]);
-            
+
             themeSelectors[i].setColour(ComboBox::backgroundColourId, Colours::transparentBlack);
             themeSelectors[i].setColour(ComboBox::outlineColourId, Colours::transparentBlack);
-            
+
             themeSelectors[i].onChange = [this, i]() mutable {
-                
                 int themeIdx = PlugDataLook::selectedThemes.indexOf(PlugDataLook::currentTheme);
-                
+
                 String themeId = i == 0 ? "first" : "second";
-                
+
                 settingsTree.getChildWithName("SelectedThemes").setProperty(themeId, themeSelectors[i].getText(), nullptr);
-                
+
                 auto selectedThemeName = themeSelectors[i].getText();
-                
-                if(selectedThemeName.isEmpty()) return;
-                
+
+                if (selectedThemeName.isEmpty())
+                    return;
+
                 PlugDataLook::selectedThemes.set(i, selectedThemeName);
                 updateSwatches();
-                
+
                 auto& lnf = dynamic_cast<PlugDataLook&>(getLookAndFeel());
-                
+
                 lnf.setTheme(PlugDataLook::selectedThemes[themeIdx]);
                 settingsTree.setProperty("Theme", PlugDataLook::selectedThemes[themeIdx], nullptr);
-                
+
                 getTopLevelComponent()->repaint();
             };
         }
-        
+
         addAndMakeVisible(panel);
-    
-        
+
         // straight connections
         straightConnections.referTo(settingsTree.getPropertyAsValue("StraightConnections", nullptr));
         straightConnections.addListener(this);
@@ -347,19 +336,20 @@ struct ThemePanel : public Component
         // dashed signal setting
         dashedSignalConnection.referTo(settingsTree.getPropertyAsValue("DashedSignalConnection", nullptr));
         dashedSignalConnection.addListener(this);
-        
+
         // font setting
         fontValue.setValue(LookAndFeel::getDefaultLookAndFeel().getTypefaceForFont(Font())->getName());
         fontValue.addListener(this);
-        
+
         updateSwatches();
     }
-        
-    void updateSwatches() {
-        
+
+    void updateSwatches()
+    {
+
         panel.clear();
         allPanels.clear();
-        
+
         std::map<String, Array<PropertyComponent*>> panels;
 
         // Loop over colours
@@ -370,7 +360,7 @@ struct ThemePanel : public Component
             Array<Value*> swatchesToAdd;
 
             // Loop over themes
-            for(int i = 0; i < 2; i++) {
+            for (int i = 0; i < 2; i++) {
                 auto themeName = PlugDataLook::selectedThemes[i];
                 auto const& themeColours = PlugDataLook::colourSettings[themeName];
                 swatchesToAdd.add(&(swatches[themeName][colourId]));
@@ -385,7 +375,7 @@ struct ThemePanel : public Component
             // Add a multi colour component to the properties panel
             panels[colourCategory].add(new PropertiesPanel::MultiPropertyComponent<PropertiesPanel::ColourComponent>(colourName, swatchesToAdd));
         }
-        
+
         auto* fontPanel = new PropertiesPanel::FontComponent("Default font", fontValue);
 
         allPanels.add(fontPanel);
@@ -411,29 +401,29 @@ struct ThemePanel : public Component
             panel.addSection(sectionName, sectionColours);
         }
     }
-    
-    void updateThemes() {
-        for(int i = 0; i < 2; i++) {
-            
+
+    void updateThemes()
+    {
+        for (int i = 0; i < 2; i++) {
+
             auto selectedText = themeSelectors[i].getText();
             themeSelectors[i].clear();
-            
+
             StringArray allThemes = PlugDataLook::getAllThemes();
-            for(int j = 0; j < allThemes.size(); j++) {
+            for (int j = 0; j < allThemes.size(); j++) {
                 themeSelectors[i].addItem(allThemes[j], j + 1);
             }
-            
+
             int newIdx = allThemes.indexOf(selectedText);
-            
-            if(isPositiveAndBelow(newIdx, themeSelectors[i].getNumItems())) {
+
+            if (isPositiveAndBelow(newIdx, themeSelectors[i].getNumItems())) {
                 themeSelectors[i].setSelectedItemIndex(newIdx, dontSendNotification);
-            }
-            else {
+            } else {
                 themeSelectors[i].setSelectedItemIndex(i, dontSendNotification);
             }
         }
-        
-        if(!PlugDataLook::selectedThemes.contains(PlugDataLook::currentTheme)) {
+
+        if (!PlugDataLook::selectedThemes.contains(PlugDataLook::currentTheme)) {
             PlugDataLook::currentTheme = PlugDataLook::selectedThemes[0];
             settingsTree.setProperty("Theme", PlugDataLook::currentTheme, nullptr);
         }
@@ -484,7 +474,6 @@ struct ThemePanel : public Component
         auto themeRow = bounds.removeFromTop(23);
         g.drawText("Theme", themeRow, Justification::left);
 
-
         auto fullThemeRow = getLocalBounds().removeFromTop(23);
         g.setColour(findColour(PlugDataColour::outlineColourId));
         g.drawLine(Line<int>(fullThemeRow.getBottomLeft(), fullThemeRow.getBottomRight()).toFloat(), -1.0f);
@@ -503,7 +492,7 @@ struct ThemePanel : public Component
         panel.setBounds(bounds);
 
         resetButton.setBounds(getWidth() - 36, getHeight() - 26, 32, 32);
-        
+
         newButton.setBounds(4, getHeight() - 26, 32, 32);
         loadButton.setBounds(40, getHeight() - 26, 32, 32);
         saveButton.setBounds(76, getHeight() - 26, 32, 32);
