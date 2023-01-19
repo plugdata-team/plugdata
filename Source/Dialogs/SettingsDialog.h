@@ -200,7 +200,7 @@ struct SettingsPopup : public PopupMenu {
         addCustomItem(2, zoomSelector, 70, 30, false);
         addSeparator();
         
-        StringArray iconText = {Icons::New, Icons::Open, Icons::Save, Icons::SaveAs, Icons::Settings, Icons::Info};
+        StringArray iconText = {Icons::New, Icons::Open, Icons::Save, Icons::SaveAs, Icons::Settings, Icons::Info, Icons::History};
         
         Array<Image> icons;
             
@@ -232,7 +232,7 @@ struct SettingsPopup : public PopupMenu {
             }
         }
         
-        addSubMenu("Recently opened", recentlyOpened);
+        addSubMenu("Recently opened", recentlyOpened, true, icons[6]);
         
         addSeparator();
 
