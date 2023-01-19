@@ -10,10 +10,10 @@ pdcategory: General
 
 arguments:
 - type: float
-  description: - 'n' number of inputs (2 to 512)
+  description: 'n' number of inputs (2 to 512)
   default: 2
 - type: float
-  description: - 'n' number of outputs (2 to 512)
+  description: 'n' number of outputs (2 to 512)
   default: 2
 
 inlets:

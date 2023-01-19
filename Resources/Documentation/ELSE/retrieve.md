@@ -16,13 +16,15 @@ inlets:
   1st:
   - type: bang
     description: take the data
-  - type: set <symbol>
-    description: sets a recieve name
 
 outlets:
   1st:
   - type: anything
     description: the retrieved data
+
+methods:
+  - type: set <symbol>
+    description: sets a recieve name
 
 draft: false
 ---

@@ -28,10 +28,7 @@ inlets:
     description: control trigger with the gate value
   - type: bang
     description: control trigger with the last/initial gate value
-  - type: ms <float>
-    description: gate time in ms
-  - type: retrigger <float>
-    description: non-zero sets to retrigger mode
+
   2nd:
   - type: float
     description: gate time in ms
@@ -40,6 +37,12 @@ outlets:
   1st:
   - type: float
     description: timed gate
+
+methods:
+  - type: ms <float>
+    description: gate time in ms
+  - type: retrigger <float>
+    description: non-zero sets to retrigger mode
 
 draft: false
 ---

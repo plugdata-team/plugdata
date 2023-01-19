@@ -36,7 +36,7 @@ outlets:
     description: reports output number and off status
 
 methods:
-  - name: -time <float>
+  - type: time <float>
     description: crossfade time in ms
 
 draft: false

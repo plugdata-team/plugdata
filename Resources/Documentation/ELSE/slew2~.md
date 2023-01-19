@@ -33,7 +33,7 @@ outlets:
     description: slew limited values
 
 methods:
-  - type: set <f>
+  - type: set <float>
     description: sets new start point and goes back to target
 
 draft: false
