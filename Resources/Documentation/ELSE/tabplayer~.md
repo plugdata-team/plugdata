@@ -46,6 +46,16 @@ inlets:
     description: play (same as non-zero)
   - type: signal
     description: gate on or impulse starts playing, gate off stops if not in trigger mode, which is the default mode
+
+outlets:
+  1st:
+  - type: signal
+    description: the playback of a channel
+  2nd:
+  - type: bang
+    description: when it stops/finishes playing or when looping
+
+methods:
   - type: tr <float>
     description: non zero sets to trigger mode, zero sets to gate mode
   - type: set <symbol>
@@ -78,14 +88,6 @@ inlets:
     description: sets to crossfade mode when looping (default no crossfade)
   - type: sr <float>
     description: sets sample rate of sample (default, Pd's sample rate)
-
-outlets:
-  1st:
-  - type: signal
-    description: the playback of a channel
-  2nd:
-  - type: bang
-    description: when it stops/finishes playing or when looping
 
 draft: false
 ---

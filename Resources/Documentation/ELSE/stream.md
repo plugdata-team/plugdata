@@ -20,7 +20,7 @@ inlets:
   - type: bang
     description: resends the last output list
   2nd:
-  - type:
+  - type: float
     description: N group size
 
 outlets:

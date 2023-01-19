@@ -32,7 +32,7 @@ outlets:
     description:
 
 methods:
-  - name: -set <float>
+  - type: set <float>
     description: sets the next value to be wrapped via bang
 
 draft: false

@@ -10,7 +10,7 @@ pdcategory: Message management
 
 arguments:
 - type: anything
-  description: list of message types to route (bang/b, float/f, symbol/s, list/l, anything/a, pointer/p). If no argument is given, all message types are sent to the outlet
+  description: list types to route; no argument — everything is sent to the outlet
   default:
 
 inlets:
@@ -21,10 +21,10 @@ inlets:
 outlets:
   nth:
   - type: anything
-    description: any message that corresponds to a type defined by the argument
+    description: any message that corresponds to a type
   2nd:
   - type: anything
-    description: if less than the 6 types are given as arguments, an extra outlet sends the uncorresponding messages
+    description: uncorresponding messages if less than the 6 types are given
 
 draft: false
 ---

@@ -39,6 +39,19 @@ inlets:
     description: (re)starts recording
   - type: stop
     description: stops recording
+  2nd:
+  - type: signal
+    description: signal to record into an array channel 'n'
+
+outlets:
+  1st:
+  - type: signal
+    description: output index we're recording into
+  2nd:
+  - type: bang
+    description: when recording reaches the end of the array
+
+methods:
   - type: set <symbol>
     description: sets array for recording signals
   - type: start <float>
@@ -53,17 +66,6 @@ inlets:
     description: non-zero continue recording from where it last stopped
  - type: loop <float>
     description: non-zero enables loop recording, 0 disables it
-  2nd:
-  - type: signal
-    description: signal to record into an array channel 'n'
-
-outlets:
-  1st:
-  - type: signal
-    description: output index we're recording into
-  2nd:
-  - type: bang
-    description: when recording reaches the end of the array
 
 draft: false
 ---

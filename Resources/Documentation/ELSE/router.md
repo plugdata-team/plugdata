@@ -22,7 +22,7 @@ inlets:
     description: message to send through a specified outlet
   2nd:
   - type: float
-    description: - sets outlet number (0 is none)
+    description: sets outlet number (0 is none)
 
 outlets:
  nth:

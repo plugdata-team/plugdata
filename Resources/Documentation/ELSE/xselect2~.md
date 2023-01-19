@@ -30,7 +30,7 @@ outlets:
     description: crossfaded channels
 
 methods:
-  - name: -index <float>
+  - type: index <float>
     description: <1> - indexed mode, <0> - non-indexed (default)
 
 draft: false
