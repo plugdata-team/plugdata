@@ -162,6 +162,8 @@ public:
     void valueTreeChildAdded(ValueTree& parentTree, ValueTree& childWhichHasBeenAdded) override;
     void valueTreeChildRemoved(ValueTree& parentTree, ValueTree& childWhichHasBeenRemoved, int indexFromWhichChildWasRemoved) override;
 
+    void addToRecentlyOpened(File path);
+        
     void timerCallback() override;
 
     TextButton* toolbarButton(ToolbarButtonType type)

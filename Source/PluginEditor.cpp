@@ -397,6 +397,7 @@ void PluginEditor::filesDropped(StringArray const& files, int x, int y)
         auto file = File(path);
         if (file.exists() && (file.isDirectory() || file.hasFileExtension("pd"))) {
             pd->loadPatch(file);
+            addToRecentlyOpened(file);
         }
     }
 
@@ -421,6 +422,48 @@ void PluginEditor::newProject()
     patch->setTitle("Untitled Patcher");
 }
 
+void PluginEditor::addToRecentlyOpened(File path)
+{
+    auto recentlyOpened = pd->settingsTree.getChildWithName("RecentlyOpened");
+    
+    if(!recentlyOpened.isValid()) {
+        recentlyOpened = ValueTree("RecentlyOpened");
+        pd->settingsTree.appendChild(recentlyOpened, nullptr);
+    }
+    
+    if(recentlyOpened.getChildWithProperty("Path", path.getFullPathName()).isValid()) {
+        
+        recentlyOpened.getChildWithProperty("Path", path.getFullPathName()).setProperty("Time", Time::getCurrentTime().toMilliseconds(), nullptr);
+        
+        int oldIdx = recentlyOpened.indexOf(recentlyOpened.getChildWithProperty("Path", path.getFullPathName()));
+        recentlyOpened.moveChild(oldIdx, 0, nullptr);
+    }
+    else {
+        ValueTree subTree("Path");
+        subTree.setProperty("Path", path.getFullPathName(), nullptr);
+        subTree.setProperty("Time", Time::getCurrentTime().toMilliseconds(), nullptr);
+        recentlyOpened.appendChild(subTree, nullptr);
+    }
+
+    
+    while(recentlyOpened.getNumChildren() > 10)
+    {
+        auto minTime = Time::getCurrentTime().toMilliseconds();
+        int minIdx = -1;
+        
+        // Find oldest entry
+        for(int i = 0; i < recentlyOpened.getNumChildren(); i++) {
+            auto time = static_cast<int>(recentlyOpened.getChild(i).getProperty("Time"));
+            if(time < minTime) {
+                minIdx = i;
+                minTime = time;
+            }
+        }
+        
+        recentlyOpened.removeChild(minIdx, nullptr);
+    }
+}
+
 void PluginEditor::openProject()
 {
     auto openFunc = [this](FileChooser const& f) {
@@ -430,6 +473,7 @@ void PluginEditor::openProject()
             pd->settingsTree.setProperty("LastChooserPath", openedFile.getParentDirectory().getFullPathName(), nullptr);
 
             pd->loadPatch(openedFile);
+            addToRecentlyOpened(openedFile);
         }
     };
 
@@ -453,6 +497,7 @@ void PluginEditor::saveProjectAs(std::function<void()> const& nestedCallback)
                 result = result.withFileExtension(".pd");
 
                 getCurrentCanvas()->patch.savePatch(result);
+                addToRecentlyOpened(result);
             }
 
             nestedCallback();
@@ -467,6 +512,7 @@ void PluginEditor::saveProject(std::function<void()> const& nestedCallback)
 
     if (getCurrentCanvas()->patch.getCurrentFile().existsAsFile()) {
         getCurrentCanvas()->patch.savePatch();
+        addToRecentlyOpened(getCurrentCanvas()->patch.getCurrentFile());
         nestedCallback();
     } else {
         saveProjectAs(nestedCallback);
