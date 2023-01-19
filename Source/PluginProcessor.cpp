@@ -281,15 +281,12 @@ void PluginProcessor::initialiseFilesystem()
         auto pathTree = ValueTree("Paths");
         auto library = homeDir.getChildFile("Library");
 
-        auto firstPath = ValueTree("Path");
-        firstPath.setProperty("Path", library.getChildFile("Abstractions").getFullPathName(), nullptr);
-
-        auto secondPath = ValueTree("Path");
-        secondPath.setProperty("Path", library.getChildFile("Deken").getFullPathName(), nullptr);
-
-        pathTree.appendChild(firstPath, nullptr);
-        pathTree.appendChild(secondPath, nullptr);
-
+        for(auto path : pd::Library::defaultPaths) {
+            auto pathSubTree = ValueTree("Path");
+            pathSubTree.setProperty("Path", path.getFullPathName(), nullptr);
+            pathTree.appendChild(pathSubTree, nullptr);
+        }
+        
         settingsTree.appendChild(pathTree, nullptr);
 
         settingsTree.appendChild(ValueTree("Keymap"), nullptr);
@@ -320,6 +317,22 @@ void PluginProcessor::initialiseFilesystem()
         // Or load the settings when they exist already
         settingsTree = ValueTree::fromXml(settingsFile.loadFileAsString());
 
+        // Make sure all the default paths are in place
+        StringArray currentPaths;
+        
+        auto pathTree = settingsTree.getChildWithName("Paths");
+        for(auto child : pathTree) {
+            currentPaths.add(child.getProperty("Path").toString());
+        }
+        
+        for(auto path : pd::Library::defaultPaths) {
+            if(!currentPaths.contains(path.getFullPathName())) {
+                auto pathSubTree = ValueTree("Path");
+                pathSubTree.setProperty("Path", path.getFullPathName(), nullptr);
+                pathTree.appendChild(pathSubTree, nullptr);
+            }
+        }
+        
         if (settingsTree.hasProperty("DefaultFont")) {
             auto fontname = settingsTree.getProperty("DefaultFont").toString();
             PlugDataLook::setDefaultFont(fontname);
@@ -435,25 +448,16 @@ void PluginProcessor::updateSearchPaths()
     getCallbackLock()->enter();
 
     libpd_clear_search_path();
+    
+    auto paths = pd::Library::defaultPaths;
+    
     for (auto child : pathTree) {
         auto path = child.getProperty("Path").toString().replace("\\", "/");
-        libpd_add_to_search_path(path.toRawUTF8());
+        paths.addIfNotAlreadyThere(path);
     }
-
-    // Add ELSE path
-    auto elsePath = versionDataDir.getChildFile("Abstractions").getChildFile("else");
-    if (elsePath.exists()) {
-        auto location = elsePath.getFullPathName().replace("\\", "/");
-        ;
-        libpd_add_to_search_path(location.toRawUTF8());
-    }
-
-    // Add heavylib path
-    auto heavylibPath = versionDataDir.getChildFile("Abstractions").getChildFile("heavylib");
-    if (heavylibPath.exists()) {
-        auto location = heavylibPath.getFullPathName().replace("\\", "/");
-        ;
-        libpd_add_to_search_path(location.toRawUTF8());
+    
+    for (auto path : paths) {
+        libpd_add_to_search_path(path.getFullPathName().toRawUTF8());
     }
 
     for (auto path : DekenInterface::getExternalPaths()) {

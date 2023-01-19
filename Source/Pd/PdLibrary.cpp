@@ -215,8 +215,6 @@ void Library::initialiseLibrary()
         pd_setinstance(pdinstance);
 #endif
 
-        appDataDir = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory).getChildFile("plugdata");
-
         auto pddocPath = appDataDir.getChildFile("Library").getChildFile("Documentation").getChildFile("pddp").getFullPathName();
 
         updateLibrary();
@@ -274,28 +272,15 @@ void Library::updateLibrary()
         }
 
         searchTree->insert("graph");
-
-        // TODO: fix this hack
-        auto elsePath = appDataDir.getChildFile("Library").getChildFile("Abstractions").getChildFile("else");
-
-        for (const auto& iter : RangedDirectoryIterator(elsePath, false)) {
-            auto file = iter.getFile();
-            // Get pd files but not help files
-            if (file.getFileExtension() == ".pd" && !(file.getFileNameWithoutExtension().startsWith("help-") || file.getFileNameWithoutExtension().endsWith("-help"))) {
-                searchTree->insert(file.getFileNameWithoutExtension().toStdString());
-                allObjects.add(file.getFileNameWithoutExtension().toStdString());
-            }
-        }
-
-        // TODO: fix this hack as well
-        auto heavylibPath = appDataDir.getChildFile("Library").getChildFile("Abstractions").getChildFile("heavylib");
-
-        for (const auto& iter : RangedDirectoryIterator(heavylibPath, false)) {
-            auto file = iter.getFile();
-            // Get pd files but not help files
-            if (file.getFileExtension() == ".pd" && !(file.getFileNameWithoutExtension().startsWith("help-") || file.getFileNameWithoutExtension().endsWith("-help"))) {
-                searchTree->insert(file.getFileNameWithoutExtension().toStdString());
-                allObjects.add(file.getFileNameWithoutExtension().toStdString());
+        
+        for(auto& path : defaultPaths) {
+            for (const auto& iter : RangedDirectoryIterator(path, false)) {
+                auto file = iter.getFile();
+                // Get pd files but not help files
+                if (file.getFileExtension() == ".pd" && !(file.getFileNameWithoutExtension().startsWith("help-") || file.getFileNameWithoutExtension().endsWith("-help"))) {
+                    searchTree->insert(file.getFileNameWithoutExtension().toStdString());
+                    allObjects.add(file.getFileNameWithoutExtension().toStdString());
+                }
             }
         }
 

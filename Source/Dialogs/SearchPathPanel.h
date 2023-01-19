@@ -251,11 +251,17 @@ private:
     void updateButtons()
     {
         bool const anythingSelected = listBox.getNumSelectedRows() > 0;
+        bool const readOnlyPath = pd::Library::defaultPaths.contains(path[listBox.getSelectedRow()]);
 
         removeButton.setVisible(anythingSelected);
         changeButton.setVisible(anythingSelected);
         upButton.setVisible(anythingSelected);
         downButton.setVisible(anythingSelected);
+        
+        removeButton.setEnabled(!readOnlyPath);
+        changeButton.setEnabled(!readOnlyPath);
+        upButton.setEnabled(!readOnlyPath);
+        downButton.setEnabled(!readOnlyPath);
 
         if (anythingSelected) {
             auto selectionBounds = listBox.getRowPosition(listBox.getSelectedRow(), false).translated(0, 3);
