@@ -175,7 +175,7 @@ enum ObjectIDs
 const std::map<ObjectIDs, String> objectNames {
     {NewObject, ""},
     {NewComment, "comment"},
-    {NewBang, "bang"},
+    {NewBang, "bng"},
     {NewMessage, "msg"},
     {NewToggle, "tgl"},
     {NewNumbox, "nbx"},
