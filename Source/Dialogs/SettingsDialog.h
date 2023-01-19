@@ -232,7 +232,7 @@ struct SettingsPopup : public PopupMenu {
             }
         }
         
-        addSubMenu("Recently Opened", recentlyOpened);
+        addSubMenu("Recently opened", recentlyOpened);
         
         addSeparator();
 
