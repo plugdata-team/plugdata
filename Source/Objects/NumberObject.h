@@ -78,8 +78,6 @@ struct NumberObject final : public IEMObject {
         auto b = object->getObjectBounds();
         libpd_moveobj(cnv->patch.getPointer(), static_cast<t_gobj*>(ptr), b.getX(), b.getY());
 
-        int fontWidth = glist_fontwidth(cnv->patch.getPointer());
-
         auto* nbx = static_cast<t_my_numbox*>(ptr);
 
         nbx->x_gui.x_w = b.getWidth();

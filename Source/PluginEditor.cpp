@@ -330,8 +330,6 @@ void PluginEditor::mouseMagnify(MouseEvent const& e, float scrollFactor)
 
     auto event = e.getEventRelativeTo(viewport);
 
-    auto oldMousePos = cnv->getLocalPoint(this, e.getPosition());
-
     float value = static_cast<float>(zoomScale.getValue());
 
     // Apply and limit zoom
@@ -976,8 +974,6 @@ void PluginEditor::getCommandInfo(const CommandID commandID, ApplicationCommandI
         break;
     }
     case CommandIDs::PreviousTab: {
-        int idx = canvases.indexOf(getCurrentCanvas());
-
         result.setInfo("Previous Tab", "Show the previous tab", "View", 0);
 
 #if JUCE_MAC

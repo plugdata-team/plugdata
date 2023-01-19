@@ -143,12 +143,11 @@ void ObjectBase::closeOpenedSubpatchers()
     for (int n = tabbar->getNumTabs() - 1; n >= 0; n--) {
         auto* cnv = editor->getCanvas(n);
         if (cnv && cnv->patch == *getPatch()) {
-            int openedTab = tabbar->getCurrentTabIndex();
             auto* deletedPatch = &cnv->patch;
 
             editor->canvases.removeObject(cnv);
             tabbar->removeTab(n);
-            // deletedPatch->close();
+
             editor->pd->patches.removeObject(deletedPatch, false);
 
             break;

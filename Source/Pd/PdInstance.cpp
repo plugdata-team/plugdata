@@ -604,8 +604,6 @@ Patch Instance::openPatch(File const& toOpen)
 {
     t_canvas* cnv = nullptr;
 
-    bool done = false;
-
     String dirname = toOpen.getParentDirectory().getFullPathName().replace("\\", "/");
     auto const* dir = dirname.toRawUTF8();
 
@@ -615,7 +613,6 @@ Patch Instance::openPatch(File const& toOpen)
     setThis();
 
     cnv = static_cast<t_canvas*>(libpd_create_canvas(file, dir));
-    done = true;
 
     auto patch = Patch(cnv, this, toOpen);
 
