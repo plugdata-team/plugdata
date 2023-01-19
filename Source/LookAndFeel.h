@@ -68,6 +68,7 @@ struct Icons {
     inline static const String Library = "U";
     inline static const String Menu = "V";
     inline static const String Info = "W";
+    inline static const String History = "X";
 };
 
 enum PlugDataColour {
