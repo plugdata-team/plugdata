@@ -300,7 +300,6 @@ struct KeyboardObject final : public GUIObject
     void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
     {
         if (symbol == "lowc") {
-            auto* x = (t_keyboard*)ptr;
             setParameterExcludingListener(lowC, static_cast<int>(atoms[0].getFloat()));
             int numOctaves = std::clamp<int>(static_cast<int>(octaves.getValue()), 1, 11);
             int lowest = std::clamp<int>(lowC.getValue(), -1, 9);
@@ -308,7 +307,6 @@ struct KeyboardObject final : public GUIObject
             keyboard.setAvailableRange(((lowest + 1) * 12), std::min((highest * 12), 127));
             checkBounds();
         } else if (symbol == "8ves") {
-            auto* x = (t_keyboard*)ptr;
             setParameterExcludingListener(octaves, static_cast<int>(atoms[0].getFloat()));
             int numOctaves = std::clamp<int>(static_cast<int>(octaves.getValue()), 1, 11);
             int lowest = std::clamp<int>(lowC.getValue(), -1, 9);

@@ -507,7 +507,6 @@ public:
         g.setColour(rowIsSelected ? findColour(PlugDataColour::popupMenuActiveTextColourId) : findColour(PlugDataColour::popupMenuTextColourId));
 
         auto yIndent = jmin<float>(4, h * 0.3f);
-        auto fontHeight = roundToInt(font.getHeight() * 0.6f);
         auto leftIndent = 34;
         auto rightIndent = 11;
         auto textWidth = w - leftIndent - rightIndent;

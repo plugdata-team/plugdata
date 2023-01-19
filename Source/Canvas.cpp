@@ -374,7 +374,6 @@ void Canvas::mouseDown(MouseEvent const& e)
         // Get top-level parent object... A bit clumsy but otherwise it will open subpatchers deeper down the chain
         if (parents.size() && originalComponent != this) {
             object = parents.getLast();
-            hasSelection = true;
         }
 
         auto params = object && object->gui ? object->gui->getParameters() : ObjectParameters();

@@ -67,7 +67,6 @@ class SuggestionComponent : public Component
             g.setColour(getToggleState() ? findColour(PlugDataColour::popupMenuActiveTextColourId) : findColour(PlugDataColour::popupMenuTextColourId));
 
             auto yIndent = jmin(4, proportionOfHeight(0.3f));
-            auto fontHeight = roundToInt(font.getHeight() * 0.6f);
             auto leftIndent = drawIcon ? 34 : 11;
             auto rightIndent = 11;
             auto textWidth = getWidth() - leftIndent - rightIndent;
@@ -193,7 +192,6 @@ public:
 
         addToDesktop(ComponentPeer::windowIsTemporary | ComponentPeer::windowIgnoresKeyPresses);
 
-        auto scale = std::sqrt(std::abs(getTransform().getDeterminant()));
         auto objectPos = object->getScreenBounds().reduced(Object::margin).getBottomLeft().translated(0, 5);
 
         setTopLeftPosition(objectPos);

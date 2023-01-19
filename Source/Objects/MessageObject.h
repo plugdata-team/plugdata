@@ -213,13 +213,10 @@ struct MessageObject final : public TextBase
 
             auto newText = outgoingEditor->getText();
 
-            bool changed;
             if (objectText != newText) {
                 objectText = newText;
                 repaint();
-                changed = true;
             } else {
-                changed = false;
             }
 
             outgoingEditor.reset();
