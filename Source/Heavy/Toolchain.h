@@ -157,7 +157,7 @@ struct ToolchainInstaller : public Component
             downloadLocation += "Heavy-Linux-x64.zip";
 #endif
 
-            instream = URL(downloadLocation).createInputStream(URL::InputStreamOptions(URL::ParameterHandling::inAddress).withConnectionTimeoutMs(5000).withStatusCode(&statusCode));
+            instream = URL(downloadLocation).createInputStream(URL::InputStreamOptions(URL::ParameterHandling::inAddress).withConnectionTimeoutMs(10000).withStatusCode(&statusCode));
             startThread();
         };
     }

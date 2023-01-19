@@ -56,6 +56,7 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     setResizable(true, true);
 #endif
 
+
     tooltipWindow.setOpaque(false);
     tooltipWindow.setLookAndFeel(&pd->lnf.get());
 
