@@ -28,10 +28,12 @@ struct NewThemeDialog : public Component {
             
             if(nameEditor.getText().isEmpty()) {
                 errorMessage = "Theme name cannot be empty";
+                repaint();
                 return;
             }
             if(allThemes.contains(nameEditor.getText())) {
                 errorMessage = "Theme name already taken";
+                repaint();
                 return;
             }
             
