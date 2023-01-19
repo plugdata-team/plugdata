@@ -126,18 +126,82 @@ enum ObjectIDs
     NumObjects
 };
 
+const std::map<ObjectIDs, String> objectNames {
+    {NewObject, ""},
+    {NewComment, "comment"},
+    {NewBang, "bang"},
+    {NewMessage, "msg"},
+    {NewToggle, "tgl"},
+    {NewNumbox, "nbx"},
+    {NewVerticalSlider, "vsl"},
+    {NewHorizontalSlider, "hsl"},
+    {NewVerticalRadio, "vradio"},
+    {NewHorizontalRadio, "hradio"},
+    {NewFloatAtom, "floatatom"},
+    {NewSymbolAtom, "symbolatom"},
+    {NewListAtom, "listatom"},
+    {NewArray, "array"},
+    {NewGraphOnParent, "graph"},
+    {NewCanvas, "cnv"},
+    {NewKeyboard, "keyboard"},
+    {NewVUMeterObject, "vu"},
+    {NewButton, "button"},
+    {NewNumboxTilde, "numbox~"},
+    {NewOscilloscope, "oscope~"},
+    {NewFunction, "function"},
 
-const StringArray objectNames = { "", "comment", "bng", "msg", "tgl", "nbx", "vsl", "hsl", "vradio", "hradio", "floatatom", "symbolatom", "listbox", "array", "graph", "cnv", "keyboard", "vu", "button", "numbox~", "oscope~", "function",
-    
-    "metro", "timer", "delay", "timed.gate", "datetime", "delay~",
-     
-    "osc~", "phasor~", "saw~", "saw2~", "square~", "triangle~", "imp~", "imp2~", "wavetable~", "bl.osc~", "bl.saw~", "bl.saw2~", "bl.square~", "bl.triangle~", "bl.imp~", "bl.imp2~", "bl.wavetable~",
-    
-    "lop~", "vcf~", "lores~", "svf~", "bob~", "onepole~", "reson~", "allpass~", "comb~", "hip~",
-    
-    "dac~", "adc~", "out~",
-    
-    "midiin", "midiout", "notein", "noteout", "ctlin", "ctlout", "pgmin", "pgmout", "sysexin", "sysexout", "mtof", "ftom"
+    {NewMetro, "metro"},
+    {NewTimer, "timer"},
+    {NewDelay, "delay"},
+    {NewTimedGate, "timed.gate"},
+    {NewDateTime, "datetime"},
+    {NewSignalDelay, "delay~"},
+
+    {NewOsc, "osc~"},
+    {NewPhasor, "phasor~"},
+    {NewSaw, "saw~"},
+    {NewSaw2, "saw2~"},
+    {NewSquare, "square~"},
+    {NewTriangle, "triangle~"},
+    {NewImp, "imp~"},
+    {NewImp2, "imp2~"},
+    {NewWavetable, "wavetable~"},
+    {NewBlOsc, "bl.osc~"},
+    {NewBlSaw, "bl.saw~"},
+    {NewBlSaw2, "bl.saw2~"},
+    {NewBlSquare, "bl.square~"},
+    {NewBlTriangle, "bl.triangle~"},
+    {NewBlImp, "bl.imp~"},
+    {NewBlImp2, "bl.imp2~"},
+    {NewBlWavetable, "bl.wavetable~"},
+
+    {NewLop, "lop~"},
+    {NewVcf, "vcf~"},
+    {NewLores, "lores~"},
+    {NewSvf, "svf~"},
+    {NewBob, "bob~"},
+    {NewOnepole, "onepole~"},
+    {NewReson, "reson~"},
+    {NewAllpass, "allpass~"},
+    {NewComb, "comb~"},
+    {NewHip, "hip~"},
+
+    {NewDac, "dac~"},
+    {NewAdc, "adc~"},
+    {NewOut, "out~"},
+
+    {NewMidiIn, "midiin"},
+    {NewMidiOut, "midiout"},
+    {NewNoteIn, "notein"},
+    {NewNoteOut, "noteout"},
+    {NewCtlIn, "ctlin"},
+    {NewCtlOut, "ctlout"},
+    {NewPgmIn, "pgmin"},
+    {NewPgmOut, "pgmout"},
+    {NewSysexIn, "sysexin"},
+    {NewSysexOut, "sysexout"},
+    {NewMtof, "mtof"},
+    {NewFtom, "ftom"}
 };
 
 struct ZoomLabel : public TextButton

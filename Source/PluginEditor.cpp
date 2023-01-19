@@ -1027,8 +1027,7 @@ void PluginEditor::getCommandInfo(const CommandID commandID, ApplicationCommandI
     
     if(commandID >= ObjectIDs::NewObject)
     {
-        int idx = commandID - ObjectIDs::NewObject;
-        auto name = objectNames[idx];
+        auto name = objectNames.at(static_cast<ObjectIDs>(commandID));
         
         if(name.isEmpty()) name = "object";
       
@@ -1216,18 +1215,14 @@ bool PluginEditor::perform(InvocationInfo const& info)
 
     default: {
         
-        int objNamesSize = objectNames.size();
-        int numObjects = ObjectIDs::NumObjects - ObjectIDs::NewObject;
-
-        jassert(objectNames.size() == (ObjectIDs::NumObjects - ObjectIDs::NewObject));
-
-        int idx = static_cast<int>(info.commandID) - ObjectIDs::NewObject;
-        if (isPositiveAndBelow(idx, objectNames.size())) {
+        auto ID = static_cast<ObjectIDs>(info.commandID);
+        
+        if (objectNames.count(ID)) {
             if (cnv->getSelectionOfType<Object>().size() == 1) {
                 // if 1 object is selected, create new object beneath selected
                 auto obj = cnv->lastSelectedObject = cnv->getSelectionOfType<Object>()[0];
                 if (obj) {
-                    cnv->objects.add(new Object(cnv, objectNames[idx],
+                    cnv->objects.add(new Object(cnv, objectNames.at(ID),
                         Point<int>(
                             // place beneath object + Object::margin
                             obj->getX() + Object::margin,
@@ -1238,7 +1233,7 @@ bool PluginEditor::perform(InvocationInfo const& info)
                 cnv->patch.startUndoSequence("Object in connection");
                 cnv->lastSelectedConnection = cnv->getSelectionOfType<Connection>().getFirst();
                 auto outobj = cnv->getSelectionOfType<Connection>().getFirst()->outobj;
-                cnv->objects.add(new Object(cnv, objectNames[idx],
+                cnv->objects.add(new Object(cnv, objectNames.at(ID),
                     Point<int>(
                         // place beneath outlet object + Object::margin
                         cnv->lastSelectedConnection->getX() + (cnv->lastSelectedConnection->getWidth() / 2) - 12,
@@ -1246,7 +1241,7 @@ bool PluginEditor::perform(InvocationInfo const& info)
                 cnv->patch.endUndoSequence("Object in connection");
             } else {
                 // if 0 or several objects are selected, create new object at mouse position
-                cnv->objects.add(new Object(cnv, objectNames[idx], lastPosition));
+                cnv->objects.add(new Object(cnv, objectNames.at(ID), lastPosition));
             }
             cnv->deselectAll();
             cnv->setSelected(cnv->objects[cnv->objects.size() - 1], true); // Select newly created object

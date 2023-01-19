@@ -186,17 +186,44 @@ void Dialogs::showObjectMenu(PluginEditor* parent, Component* target)
         midiMenu.addItem(createCommandItem(ObjectIDs::NewMtof, "mtof"));
         midiMenu.addItem(createCommandItem(ObjectIDs::NewFtom, "ftom"));
 
+    }    
+    
+    PopupMenu arrayMenu;
+    {
     }
-
+    
+    PopupMenu mathMenu;
+    {
+    }
+    
+    PopupMenu logicMenu;
+    {
+    }
+    
+    PopupMenu signalMenu;
+    {
+    }
+    
+    PopupMenu signalMathMenu;
+    {
+    }
+    
     menu.addSeparator();
     
     menu.addSubMenu("GUI", guiMenu);
     menu.addSubMenu("Time", timeMenu);
-    menu.addSubMenu("Filters", filtersMenu);
-    menu.addSubMenu("Oscillators", oscillatorsMenu);
-    menu.addSubMenu("IO", IOMenu);
     menu.addSubMenu("MIDI", midiMenu);
+    menu.addSubMenu("Array", arrayMenu);
+    menu.addSubMenu("Math", mathMenu);
+    menu.addSubMenu("Logic", logicMenu);
     
+    menu.addSeparator();
+    
+    menu.addSubMenu("Signal~", signalMenu);
+    menu.addSubMenu("Oscillators~", oscillatorsMenu);
+    menu.addSubMenu("Filters~", filtersMenu);
+    menu.addSubMenu("Math~", signalMathMenu);
+
     menu.addSeparator();
     
     menu.addItem(createCommandItem(ObjectIDs::NewObject, "Empty Object"));
