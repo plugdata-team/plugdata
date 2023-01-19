@@ -51,6 +51,7 @@ struct CategoriesListBox : public ListBox
     {
         categories = newCategories;
         updateContent();
+        repaint();
 
         selectRow(0, true, true);
     }
@@ -115,7 +116,8 @@ struct ObjectsListBox : public ListBox
     {
         objects = objectsToShow;
         updateContent();
-
+        repaint();
+        
         selectRow(0, true, true);
     }
 
@@ -580,7 +582,8 @@ public:
         }
 
         listBox.updateContent();
-
+        listBox.repaint();
+        
         if (listBox.getSelectedRow() == -1)
             listBox.selectRow(0, true, true);
 
