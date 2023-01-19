@@ -269,6 +269,8 @@ void Instance::loadLibs(String& pdlua_version)
     libpd_init_pdlua(extra.getFullPathName().getCharPointer(), vers, 1000);
     if (*vers)
         pdlua_version = vers;
+    
+    pdlua_version = pdlua_version.upToLastOccurrenceOf("-", false, false) + " " + pdlua_version.fromFirstOccurrenceOf("(", true, false);
     // ag: need to do this here to suppress noise from chatty externals
     m_print_receiver = libpd_multi_print_new(this, reinterpret_cast<t_libpd_multi_printhook>(internal::instance_multi_print));
     libpd_set_verbose(0);
