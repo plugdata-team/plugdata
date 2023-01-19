@@ -622,13 +622,17 @@ public:
                 return;
 
             // Insert in front if the query matches a whole word
-            if (fileName.containsWholeWordIgnoreCase(query) && ! searchResult.contains(file)) {
+            if (fileName.containsWholeWordIgnoreCase(query) && !searchResult.contains(file)) {
                 searchResult.insert(0, file);
+                std::cout << file.getFullPathName() << std::endl;
             }
             // Insert in back if it contains the query
             else if (fileName.containsIgnoreCase(query)) {
                 searchResult.addIfNotAlreadyThere(file);
+                std::cout << file.getFullPathName() << std::endl;
             }
+            
+           
         };
 
         for (int i = 0; i < searchPath.getNumFiles(); i++) {
