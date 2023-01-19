@@ -100,9 +100,13 @@ removeFile("./Documentation/Makefile.am")
 # pd-lua
 makeDir("Extra")
 makeDir("Extra/pdlua")
+makeDir("Extra/GS")
+
 pdlua_srcdir = "../../Libraries/pd-lua/"
 for src in ["pd.lua", "COPYING", "README"]:
     copyFile(pdlua_srcdir+src, "./Extra/pdlua")
+
+copyFile("../Extra/FluidR3Mono_GM.sf3", "./Extra/GS")
 
 # These are developer docs, we don't need them.
 #copyDir(pdlua_srcdir+"doc", "./Extra/pdlua/doc")

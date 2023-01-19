@@ -13,6 +13,8 @@
 #include "LookAndFeel.h"
 #include "Statusbar.h"
 
+#include "Utility/InternalSynth.h"
+
 class PlugDataLook;
 
 class PluginEditor;
@@ -164,6 +166,9 @@ public:
 #if PLUGDATA_STANDALONE
     std::atomic<float> standaloneParams[numParameters] = { 0 };
     OwnedArray<MidiOutput> midiOutputs;
+        
+    InternalSynth internalSynth;
+    std::atomic<bool> enableInternalSynth = true;
 #endif
 
 private:
@@ -198,6 +203,6 @@ private:
     static inline const String cyclone_version = "cyclone v0.6-1";
     // this gets updated with live version data later
     static String pdlua_version;
-
+    
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PluginProcessor)
 };

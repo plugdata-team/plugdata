@@ -567,7 +567,11 @@ void PluginProcessor::prepareToPlay(double sampleRate, int samplesPerBlock)
     oversampler.reset(new dsp::Oversampling<float>(maxChannels, oversampling, dsp::Oversampling<float>::filterHalfBandPolyphaseIIR, false));
 
     oversampler->initProcessing(samplesPerBlock);
-
+    
+#if PLUGDATA_STANDALONE
+    internalSynth.prepare(sampleRate, samplesPerBlock, 2);
+#endif
+    
     audioAdvancement = 0;
     auto const blksize = static_cast<size_t>(Instance::getBlockSize());
     auto const numIn = static_cast<size_t>(getTotalNumInputChannels());
@@ -667,6 +671,13 @@ void PluginProcessor::processBlock(AudioBuffer<float>& buffer, MidiBuffer& midiM
             Time::getMillisecondCounterHiRes(),
             AudioProcessor::getSampleRate());
     }
+    
+    // If the internalSynth is enabled and loaded, let it process the midi
+    if(enableInternalSynth) {
+        internalSynth.process(buffer, midiMessages);
+    }
+    
+
 #endif
 }
 

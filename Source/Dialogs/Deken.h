@@ -91,7 +91,7 @@ struct PackageManager : public Thread
         {
             int statusCode = 0;
             instream = URL(info.url).createInputStream(URL::InputStreamOptions(URL::ParameterHandling::inAddress)
-                                                           .withConnectionTimeoutMs(5000)
+                                                           .withConnectionTimeoutMs(10000)
                                                            .withStatusCode(&statusCode));
 
             if (instream != nullptr && statusCode == 200) {
