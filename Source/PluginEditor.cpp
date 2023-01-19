@@ -635,7 +635,7 @@ void PluginEditor::valueChanged(Value& v)
     }
     // Update theme
     else if (v.refersToSameSourceAs(theme)) {
-        pd->setTheme(static_cast<bool>(theme.getValue()));
+        pd->setTheme(theme.toString());
         getTopLevelComponent()->repaint();
     }
 }

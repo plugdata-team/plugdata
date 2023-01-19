@@ -365,30 +365,33 @@ struct SettingsPopup : public PopupMenu {
 
         void paint(Graphics& g)
         {
-            auto firstBounds = getLocalBounds();
-            auto secondBounds = firstBounds.removeFromLeft(getWidth() / 2.0f);
+            auto secondBounds = getLocalBounds();
+            auto firstBounds = secondBounds.removeFromLeft(getWidth() / 2.0f);
 
             firstBounds = firstBounds.withSizeKeepingCentre(30, 30);
             secondBounds = secondBounds.withSizeKeepingCentre(30, 30);
-
-            g.setColour(Colour(25, 25, 25));
+            
+            g.setColour(PlugDataLook::getThemeColour(PlugDataLook::selectedThemes[0], PlugDataColour::canvasBackgroundColourId));
             g.fillEllipse(firstBounds.toFloat());
 
-            g.setColour(Colour(240, 240, 240));
+            g.setColour(PlugDataLook::getThemeColour(PlugDataLook::selectedThemes[1], PlugDataColour::canvasBackgroundColourId));
             g.fillEllipse(secondBounds.toFloat());
 
-            g.setColour(findColour(PlugDataColour::outlineColourId));
+            g.setColour(PlugDataLook::getThemeColour(PlugDataLook::selectedThemes[0], PlugDataColour::objectOutlineColourId));
             g.drawEllipse(firstBounds.toFloat(), 1.0f);
+            
+            g.setColour(PlugDataLook::getThemeColour(PlugDataLook::selectedThemes[1], PlugDataColour::objectOutlineColourId));
             g.drawEllipse(secondBounds.toFloat(), 1.0f);
 
             auto tick = getLookAndFeel().getTickShape(0.6f);
             auto tickBounds = Rectangle<int>();
-
-            if (!static_cast<bool>(theme.getValue())) {
-                g.setColour(Colour(240, 240, 240));
+            
+            if(theme.toString() == PlugDataLook::selectedThemes[0]) {
+                g.setColour(PlugDataLook::getThemeColour(PlugDataLook::selectedThemes[0], PlugDataColour::canvasTextColourId));
                 tickBounds = firstBounds;
-            } else {
-                g.setColour(Colour(25, 25, 25));
+            }
+            else {
+                g.setColour(PlugDataLook::getThemeColour(PlugDataLook::selectedThemes[1], PlugDataColour::canvasTextColourId));
                 tickBounds = secondBounds;
             }
 
@@ -397,17 +400,17 @@ struct SettingsPopup : public PopupMenu {
 
         void mouseUp(MouseEvent const& e)
         {
-            auto firstBounds = getLocalBounds();
-            auto secondBounds = firstBounds.removeFromLeft(getWidth() / 2.0f);
+            auto secondBounds = getLocalBounds();
+            auto firstBounds = secondBounds.removeFromLeft(getWidth() / 2.0f);
 
             firstBounds = firstBounds.withSizeKeepingCentre(30, 30);
             secondBounds = secondBounds.withSizeKeepingCentre(30, 30);
 
             if (firstBounds.contains(e.x, e.y)) {
-                theme = false;
+                theme = PlugDataLook::selectedThemes[0];
                 repaint();
             } else if (secondBounds.contains(e.x, e.y)) {
-                theme = true;
+                theme = PlugDataLook::selectedThemes[1];
                 repaint();
             }
         }
