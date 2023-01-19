@@ -264,7 +264,7 @@ void PluginProcessor::initialiseFilesystem()
         versionDataDir.getChildFile("Abstractions").createSymbolicLink(library.getChildFile("Abstractions"), true);
         versionDataDir.getChildFile("Documentation").createSymbolicLink(library.getChildFile("Documentation"), true);
         versionDataDir.getChildFile("Extra").createSymbolicLink(library.getChildFile("Extra"), true);
-        versionDataDir.createSymbolicLink(library.getChildFile("Deken"), true);
+        deken.createSymbolicLink(library.getChildFile("Deken"), true);
 #endif
     }
 
