@@ -77,18 +77,18 @@ public:
 
         mappings.resetToDefaultMappings();
 
-        for (int i = CommandIDs::NewObject; i < mappings.getCommandManager().getNumCommands(); i++) {
+        for (int i = ObjectIDs::NewObject; i < ObjectIDs::NumObjects; i++) {
             mappings.clearAllKeyPresses(static_cast<CommandIDs>(i));
         }
 
-        mappings.addKeyPress(CommandIDs::NewObject, KeyPress(78, ModifierKeys::noModifiers, 'n'));
-        mappings.addKeyPress(CommandIDs::NewComment, KeyPress(67, ModifierKeys::noModifiers, 'c'));
-        mappings.addKeyPress(CommandIDs::NewBang, KeyPress(66, ModifierKeys::noModifiers, 'b'));
-        mappings.addKeyPress(CommandIDs::NewMessage, KeyPress(77, ModifierKeys::noModifiers, 'm'));
-        mappings.addKeyPress(CommandIDs::NewToggle, KeyPress(84, ModifierKeys::noModifiers, 't'));
-        mappings.addKeyPress(CommandIDs::NewNumbox, KeyPress(73, ModifierKeys::noModifiers, 'i'));
-        mappings.addKeyPress(CommandIDs::NewFloatAtom, KeyPress(70, ModifierKeys::noModifiers, 'f'));
-        mappings.addKeyPress(CommandIDs::NewVerticalSlider, KeyPress(83, ModifierKeys::noModifiers, 's'));
+        mappings.addKeyPress(ObjectIDs::NewObject, KeyPress(78, ModifierKeys::noModifiers, 'n'));
+        mappings.addKeyPress(ObjectIDs::NewComment, KeyPress(67, ModifierKeys::noModifiers, 'c'));
+        mappings.addKeyPress(ObjectIDs::NewBang, KeyPress(66, ModifierKeys::noModifiers, 'b'));
+        mappings.addKeyPress(ObjectIDs::NewMessage, KeyPress(77, ModifierKeys::noModifiers, 'm'));
+        mappings.addKeyPress(ObjectIDs::NewToggle, KeyPress(84, ModifierKeys::noModifiers, 't'));
+        mappings.addKeyPress(ObjectIDs::NewNumbox, KeyPress(73, ModifierKeys::noModifiers, 'i'));
+        mappings.addKeyPress(ObjectIDs::NewFloatAtom, KeyPress(70, ModifierKeys::noModifiers, 'f'));
+        mappings.addKeyPress(ObjectIDs::NewVerticalSlider, KeyPress(83, ModifierKeys::noModifiers, 's'));
 
         mappings.sendChangeMessage();
     }
