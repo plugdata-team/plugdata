@@ -17,7 +17,7 @@ see_also:
 - array min
 arguments:
 - description: array name if no flags are given 
-  default: = none
+  default: none
   type: symbol
 flags:
 - description: struct name and field name of main structure.
