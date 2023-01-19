@@ -234,10 +234,12 @@ struct FunctionObject final : public GUIObject {
                     if (i == 0 || i == realPoints.size() - 1) {
                         points.getReference(i).y = 0.0f;
                         resetHoverIdx();
+                        triggerOutput();
                         return;
                     }
                     points.remove(i);
                     resetHoverIdx();
+                    triggerOutput();
                     return;
                 }
                 return;
@@ -248,6 +250,8 @@ struct FunctionObject final : public GUIObject {
         float newY = jmap(static_cast<float>(e.y), 3.0f, getHeight() - 3.0f, 1.0f, 0.0f);
 
         dragIdx = points.addSorted(*this, { newX, newY });
+
+        triggerOutput();
     }
 
     std::pair<float, float> getRange()
