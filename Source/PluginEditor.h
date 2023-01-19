@@ -42,7 +42,12 @@ enum CommandIDs {
     PreviousTab,
     ToggleGrid,
     ClearConsole,
-    NewObject,
+    NumItems
+};
+
+enum ObjectIDs
+{
+    NewObject = 100,
     NewComment,
     NewBang,
     NewMessage,
@@ -64,7 +69,75 @@ enum CommandIDs {
     NewNumboxTilde,
     NewOscilloscope,
     NewFunction,
-    NumItems
+    
+    NewMetro,
+    NewTimer,
+    NewDelay,
+    NewTimedGate,
+    NewDateTime,
+    NewSignalDelay,
+    
+    NewOsc,
+    NewPhasor,
+    NewSaw,
+    NewSaw2,
+    NewSquare,
+    NewTriangle,
+    NewImp,
+    NewImp2,
+    NewWavetable,
+    NewBlOsc,
+    NewBlSaw,
+    NewBlSaw2,
+    NewBlSquare,
+    NewBlTriangle,
+    NewBlImp,
+    NewBlImp2,
+    NewBlWavetable,
+    
+    NewLop,
+    NewVcf,
+    NewLores,
+    NewSvf,
+    NewBob,
+    NewOnepole,
+    NewReson,
+    NewAllpass,
+    NewComb,
+    NewHip,
+    
+    NewDac,
+    NewAdc,
+    NewOut,
+    
+    NewMidiIn,
+    NewMidiOut,
+    NewNoteIn,
+    NewNoteOut,
+    NewCtlIn,
+    NewCtlOut,
+    NewPgmIn,
+    NewPgmOut,
+    NewSysexIn,
+    NewSysexOut,
+    NewMtof,
+    NewFtom,
+    
+    NumObjects
+};
+
+
+const StringArray objectNames = { "", "comment", "bng", "msg", "tgl", "nbx", "vsl", "hsl", "vradio", "hradio", "floatatom", "symbolatom", "listbox", "array", "graph", "cnv", "keyboard", "vu", "button", "numbox~", "oscope~", "function",
+    
+    "metro", "timer", "delay", "timed.gate", "datetime", "delay~",
+     
+    "osc~", "phasor~", "saw~", "saw2~", "square~", "triangle~", "imp~", "imp2~", "wavetable~", "bl.osc~", "bl.saw~", "bl.saw2~", "bl.square~", "bl.triangle~", "bl.imp~", "bl.imp2~", "bl.wavetable~",
+    
+    "lop~", "vcf~", "lores~", "svf~", "bob~", "onepole~", "reson~", "allpass~", "comb~", "hip~",
+    
+    "dac~", "adc~", "out~",
+    
+    "midiin", "midiout", "notein", "noteout", "ctlin", "ctlout", "pgmin", "pgmout", "sysexin", "sysexout", "mtof", "ftom"
 };
 
 struct ZoomLabel : public TextButton

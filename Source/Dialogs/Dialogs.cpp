@@ -96,63 +96,119 @@ void Dialogs::showObjectMenu(PluginEditor* parent, Component* target)
     
     PopupMenu guiMenu;
     {
-        guiMenu.addItem(createCommandItem(CommandIDs::NewNumbox, "Number"));
-        guiMenu.addItem(createCommandItem(CommandIDs::NewBang, "Bang"));
-        guiMenu.addItem(createCommandItem(CommandIDs::NewToggle, "Toggle"));
-        guiMenu.addItem(createCommandItem(CommandIDs::NewButton, "Button"));
-        guiMenu.addItem(createCommandItem(CommandIDs::NewVerticalSlider, "Vertical Slider"));
-        guiMenu.addItem(createCommandItem(CommandIDs::NewHorizontalSlider, "Horizontal Slider"));
-        guiMenu.addItem(createCommandItem(CommandIDs::NewVerticalRadio, "Vertical Radio"));
-        guiMenu.addItem(createCommandItem(CommandIDs::NewHorizontalRadio, "Horizontal Radio"));
+        guiMenu.addItem(createCommandItem(ObjectIDs::NewNumbox, "Number"));
+        guiMenu.addItem(createCommandItem(ObjectIDs::NewBang, "Bang"));
+        guiMenu.addItem(createCommandItem(ObjectIDs::NewToggle, "Toggle"));
+        guiMenu.addItem(createCommandItem(ObjectIDs::NewButton, "Button"));
+        guiMenu.addItem(createCommandItem(ObjectIDs::NewVerticalSlider, "Vertical Slider"));
+        guiMenu.addItem(createCommandItem(ObjectIDs::NewHorizontalSlider, "Horizontal Slider"));
+        guiMenu.addItem(createCommandItem(ObjectIDs::NewVerticalRadio, "Vertical Radio"));
+        guiMenu.addItem(createCommandItem(ObjectIDs::NewHorizontalRadio, "Horizontal Radio"));
         
         guiMenu.addSeparator();
-        guiMenu.addItem(createCommandItem(CommandIDs::NewCanvas, "Canvas"));
+        guiMenu.addItem(createCommandItem(ObjectIDs::NewCanvas, "Canvas"));
 
-        
-        guiMenu.addItem(createCommandItem(CommandIDs::NewKeyboard, "Keyboard"));
-        guiMenu.addItem(createCommandItem(CommandIDs::NewVUMeterObject, "VU Meter"));
-        guiMenu.addItem(createCommandItem(CommandIDs::NewNumboxTilde, "Signal Numbox"));
-        guiMenu.addItem(createCommandItem(CommandIDs::NewOscilloscope, "Oscilloscope"));
-        guiMenu.addItem(createCommandItem(CommandIDs::NewFunction, "Function"));
+        guiMenu.addItem(createCommandItem(ObjectIDs::NewKeyboard, "Keyboard"));
+        guiMenu.addItem(createCommandItem(ObjectIDs::NewVUMeterObject, "VU Meter"));
+        guiMenu.addItem(createCommandItem(ObjectIDs::NewNumboxTilde, "Signal Numbox"));
+        guiMenu.addItem(createCommandItem(ObjectIDs::NewOscilloscope, "Oscilloscope"));
+        guiMenu.addItem(createCommandItem(ObjectIDs::NewFunction, "Function"));
+    }
+    
+    PopupMenu timeMenu;
+    {
+        timeMenu.addItem(createCommandItem(ObjectIDs::NewMetro, "metro"));
+        timeMenu.addItem(createCommandItem(ObjectIDs::NewTimer, "timer"));
+        timeMenu.addItem(createCommandItem(ObjectIDs::NewDelay, "delay"));
+        timeMenu.addItem(createCommandItem(ObjectIDs::NewTimedGate, "timed.gate"));
+        timeMenu.addItem(createCommandItem(ObjectIDs::NewDateTime, "datetime"));
+        timeMenu.addSeparator();
+        timeMenu.addItem(createCommandItem(ObjectIDs::NewSignalDelay, "delay~"));
     }
     
     PopupMenu filtersMenu;
     {
-        
+        filtersMenu.addItem(createCommandItem(ObjectIDs::NewLop, "lop~"));
+        filtersMenu.addItem(createCommandItem(ObjectIDs::NewVcf, "vcf~"));
+        filtersMenu.addItem(createCommandItem(ObjectIDs::NewLores, "lores~"));
+        filtersMenu.addItem(createCommandItem(ObjectIDs::NewSvf, "svf~"));
+        filtersMenu.addItem(createCommandItem(ObjectIDs::NewBob, "bob~"));
+        filtersMenu.addItem(createCommandItem(ObjectIDs::NewOnepole, "onepole~"));
+        filtersMenu.addItem(createCommandItem(ObjectIDs::NewReson, "reson~"));
+        filtersMenu.addItem(createCommandItem(ObjectIDs::NewAllpass, "allpass~"));
+        filtersMenu.addItem(createCommandItem(ObjectIDs::NewComb, "comb~"));
+        filtersMenu.addItem(createCommandItem(ObjectIDs::NewHip, "hip~"));
     }
     
     PopupMenu oscillatorsMenu;
     {
-        oscillatorsMenu.addItem(createCommandItem(CommandIDs::NewObject, "osc~"));
-        oscillatorsMenu.addItem(createCommandItem(CommandIDs::NewObject, "bl.osc~"));
-    }
-    
+        oscillatorsMenu.addItem(createCommandItem(ObjectIDs::NewOsc, "osc~"));
+        oscillatorsMenu.addItem(createCommandItem(ObjectIDs::NewPhasor, "phasor~"));
+        oscillatorsMenu.addSeparator();
+        oscillatorsMenu.addItem(createCommandItem(ObjectIDs::NewSaw, "saw~"));
+        oscillatorsMenu.addItem(createCommandItem(ObjectIDs::NewSaw2, "saw2~"));
+        oscillatorsMenu.addItem(createCommandItem(ObjectIDs::NewSquare, "square~"));
+        oscillatorsMenu.addItem(createCommandItem(ObjectIDs::NewTriangle, "triangle~"));
+        oscillatorsMenu.addItem(createCommandItem(ObjectIDs::NewImp, "imp~"));
+        oscillatorsMenu.addItem(createCommandItem(ObjectIDs::NewImp2, "imp2~"));
+        oscillatorsMenu.addItem(createCommandItem(ObjectIDs::NewWavetable, "wavetable~"));
+        oscillatorsMenu.addSeparator();
+        oscillatorsMenu.addItem(createCommandItem(ObjectIDs::NewBlOsc, "bl.osc~"));
+        oscillatorsMenu.addItem(createCommandItem(ObjectIDs::NewBlSaw, "bl.saw~"));
+        oscillatorsMenu.addItem(createCommandItem(ObjectIDs::NewBlSaw2, "bl.saw2~"));
+        oscillatorsMenu.addItem(createCommandItem(ObjectIDs::NewBlSquare, "bl.square~"));
+        oscillatorsMenu.addItem(createCommandItem(ObjectIDs::NewBlTriangle, "bl.triangle~"));
+        oscillatorsMenu.addItem(createCommandItem(ObjectIDs::NewBlImp, "bl.imp~"));
+        oscillatorsMenu.addItem(createCommandItem(ObjectIDs::NewBlImp2, "bl.imp2~"));
+        oscillatorsMenu.addItem(createCommandItem(ObjectIDs::NewBlWavetable, "bl.wavetable"));
 
-    
+        
+    }    
     PopupMenu IOMenu;
     {
-        
+        IOMenu.addItem(createCommandItem(ObjectIDs::NewAdc, "adc~"));
+        IOMenu.addItem(createCommandItem(ObjectIDs::NewDac, "dac~"));
+        IOMenu.addItem(createCommandItem(ObjectIDs::NewOut, "out~"));
+    }
+    
+    PopupMenu midiMenu;
+    {
+        midiMenu.addItem(createCommandItem(ObjectIDs::NewMidiIn, "midiin"));
+        midiMenu.addItem(createCommandItem(ObjectIDs::NewMidiOut, "midiout"));
+        midiMenu.addItem(createCommandItem(ObjectIDs::NewNoteIn, "notein"));
+        midiMenu.addItem(createCommandItem(ObjectIDs::NewNoteOut, "noteout"));
+        midiMenu.addItem(createCommandItem(ObjectIDs::NewCtlIn, "ctlin"));
+        midiMenu.addItem(createCommandItem(ObjectIDs::NewCtlOut, "ctlout"));
+        midiMenu.addItem(createCommandItem(ObjectIDs::NewPgmIn, "pgmin"));
+        midiMenu.addItem(createCommandItem(ObjectIDs::NewPgmOut, "pgmout"));
+        midiMenu.addItem(createCommandItem(ObjectIDs::NewSysexIn, "sysexin"));
+        midiMenu.addItem(createCommandItem(ObjectIDs::NewSysexOut, "sysexout"));
+        midiMenu.addItem(createCommandItem(ObjectIDs::NewMtof, "mtof"));
+        midiMenu.addItem(createCommandItem(ObjectIDs::NewFtom, "ftom"));
+
     }
 
     menu.addSeparator();
     
     menu.addSubMenu("GUI", guiMenu);
+    menu.addSubMenu("Time", timeMenu);
     menu.addSubMenu("Filters", filtersMenu);
     menu.addSubMenu("Oscillators", oscillatorsMenu);
-    
     menu.addSubMenu("IO", IOMenu);
+    menu.addSubMenu("MIDI", midiMenu);
+    
     menu.addSeparator();
     
-    menu.addItem(createCommandItem(CommandIDs::NewObject, "Empty Object"));
-    menu.addItem(createCommandItem(CommandIDs::NewMessage, "New Message"));
-    menu.addItem(createCommandItem(CommandIDs::NewFloatAtom, "Float box"));
-    menu.addItem(createCommandItem(CommandIDs::NewSymbolAtom, "Symbol box"));
-    menu.addItem(createCommandItem(CommandIDs::NewListAtom, "List box"));
-    menu.addItem(createCommandItem(CommandIDs::NewComment, "Comment"));
+    menu.addItem(createCommandItem(ObjectIDs::NewObject, "Empty Object"));
+    menu.addItem(createCommandItem(ObjectIDs::NewMessage, "New Message"));
+    menu.addItem(createCommandItem(ObjectIDs::NewFloatAtom, "Float box"));
+    menu.addItem(createCommandItem(ObjectIDs::NewSymbolAtom, "Symbol box"));
+    menu.addItem(createCommandItem(ObjectIDs::NewListAtom, "List box"));
+    menu.addItem(createCommandItem(ObjectIDs::NewComment, "Comment"));
     menu.addSeparator();
     
-    menu.addItem(createCommandItem(CommandIDs::NewArray, "Array..."));
-    menu.addItem(createCommandItem(CommandIDs::NewGraphOnParent, "GraphOnParent"));
+    menu.addItem(createCommandItem(ObjectIDs::NewArray, "Array..."));
+    menu.addItem(createCommandItem(ObjectIDs::NewGraphOnParent, "GraphOnParent"));
 
     menu.showMenuAsync(PopupMenu::Options().withMinimumWidth(100).withMaximumNumColumns(1).withTargetComponent(target).withParentComponent(parent),
         [parent](int result) {

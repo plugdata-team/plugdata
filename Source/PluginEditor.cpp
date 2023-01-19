@@ -797,6 +797,11 @@ void PluginEditor::getAllCommands(Array<CommandID>& commands)
     for (int n = NewProject; n < NumItems; n++) {
         commands.add(n);
     }
+    
+    // Add all object IDs
+    for (int n = NewObject; n < NumObjects; n++) {
+        commands.add(n);
+    }
 }
 
 void PluginEditor::getCommandInfo(const CommandID commandID, ApplicationCommandInfo& result)
@@ -822,313 +827,197 @@ void PluginEditor::getCommandInfo(const CommandID commandID, ApplicationCommandI
     }
 
     switch (commandID) {
-    case CommandIDs::NewProject: {
-        result.setInfo("New patch", "Create a new patch", "General", 0);
-        result.addDefaultKeypress(78, ModifierKeys::commandModifier);
-        break;
-    }
-    case CommandIDs::OpenProject: {
-        result.setInfo("Open patch...", "Open a patch", "General", 0);
-        result.addDefaultKeypress(79, ModifierKeys::commandModifier);
-        break;
-    }
-    case CommandIDs::SaveProject: {
-        result.setInfo("Save patch", "Save patch at current location", "General", 0);
-        result.addDefaultKeypress(83, ModifierKeys::commandModifier);
-        result.setActive(hasCanvas);
-        break;
-    }
-    case CommandIDs::SaveProjectAs: {
-        result.setInfo("Save patch as...", "Save patch in chosen location", "General", 0);
-        result.addDefaultKeypress(83, ModifierKeys::commandModifier | ModifierKeys::shiftModifier);
-        result.setActive(hasCanvas);
-        break;
-    }
-    case CommandIDs::CloseTab: {
-        result.setInfo("Close tab", "Close currently opened tab", "General", 0);
-        result.addDefaultKeypress(87, ModifierKeys::commandModifier);
-        result.setActive(hasCanvas);
-        break;
-    }
-    case CommandIDs::Undo: {
-        result.setInfo("Undo", "Undo action", "General", 0);
-        result.addDefaultKeypress(90, ModifierKeys::commandModifier);
-        result.setActive(hasCanvas && !isDragging && canUndo);
-
-        break;
-    }
-
-    case CommandIDs::Redo: {
-        result.setInfo("Redo", "Redo action", "General", 0);
-        result.addDefaultKeypress(90, ModifierKeys::commandModifier | ModifierKeys::shiftModifier);
-        result.setActive(hasCanvas && !isDragging && canRedo);
-        break;
-    }
-    case CommandIDs::Lock: {
-        result.setInfo("Run mode", "Run Mode", "Edit", 0);
-        result.addDefaultKeypress(69, ModifierKeys::commandModifier);
-        result.setActive(hasCanvas && !isDragging && !static_cast<bool>(statusbar.presentationMode.getValue()));
-        break;
-    }
-    case CommandIDs::ConnectionPathfind: {
-        result.setInfo("Tidy connection", "Find best path for connection", "Edit", 0);
-        result.addDefaultKeypress(89, ModifierKeys::commandModifier | ModifierKeys::shiftModifier);
-        result.setActive(hasCanvas && !isDragging);
-        break;
-    }
-    case CommandIDs::ConnectionStyle: {
-        result.setInfo("Connection style", "Set connection style", "Edit", 0);
-        result.setActive(hasCanvas && !isDragging && statusbar.connectionStyleButton->isEnabled());
-        break;
-    }
-    case CommandIDs::ZoomIn: {
-        result.setInfo("Zoom in", "Zoom in", "Edit", 0);
-        result.addDefaultKeypress(61, ModifierKeys::commandModifier);
-        result.setActive(hasCanvas && !isDragging);
-        break;
-    }
-    case CommandIDs::ZoomOut: {
-        result.setInfo("Zoom out", "Zoom out", "Edit", 0);
-        result.addDefaultKeypress(45, ModifierKeys::commandModifier);
-        result.setActive(hasCanvas && !isDragging);
-        break;
-    }
-    case CommandIDs::ZoomNormal: {
-        result.setInfo("Zoom 100%", "Revert zoom to 100%", "Edit", 0);
-        result.addDefaultKeypress(33, ModifierKeys::commandModifier | ModifierKeys::shiftModifier);
-        result.setActive(hasCanvas && !isDragging);
-        break;
-    }
-    case CommandIDs::Copy: {
-        result.setInfo("Copy", "Copy", "Edit", 0);
-        result.addDefaultKeypress(67, ModifierKeys::commandModifier);
-        result.setActive(hasCanvas && !locked && hasBoxSelection && !isDragging);
-        break;
-    }
-    case CommandIDs::Cut: {
-        result.setInfo("Cut", "Cut selection", "Edit", 0);
-        result.addDefaultKeypress(88, ModifierKeys::commandModifier);
-        result.setActive(hasCanvas && !locked && hasSelection && !isDragging);
-        break;
-    }
-    case CommandIDs::Paste: {
-        result.setInfo("Paste", "Paste", "Edit", 0);
-        result.addDefaultKeypress(86, ModifierKeys::commandModifier);
-        result.setActive(hasCanvas && !locked && !isDragging);
-        break;
-    }
-    case CommandIDs::Delete: {
-        result.setInfo("Delete", "Delete selection", "Edit", 0);
-        result.addDefaultKeypress(KeyPress::backspaceKey, ModifierKeys::noModifiers);
-        result.addDefaultKeypress(KeyPress::deleteKey, ModifierKeys::noModifiers);
-
-        result.setActive(hasCanvas && !isDragging && !locked && hasSelection);
-        break;
-    }
-    case CommandIDs::Encapsulate: {
-        result.setInfo("Encapsulate", "Encapsulate objects", "Edit", 0);
-        result.addDefaultKeypress(69, ModifierKeys::commandModifier | ModifierKeys::shiftModifier);
-        result.setActive(hasCanvas && !isDragging && !locked && hasSelection);
-        break;
-    }
-    case CommandIDs::Duplicate: {
-
-        result.setInfo("Duplicate", "Duplicate selection", "Edit", 0);
-        result.addDefaultKeypress(68, ModifierKeys::commandModifier);
-        result.setActive(hasCanvas && !isDragging && !locked && hasBoxSelection);
-        break;
-    }
-    case CommandIDs::CreateConnection: {
-        result.setInfo("Create connection", "Create a connection between selected objects", "General", 0);
-        result.addDefaultKeypress(75, ModifierKeys::commandModifier);
-        result.setActive(canConnect);
-        break;
-    }
-    case CommandIDs::SelectAll: {
-        result.setInfo("Select all", "Select all objects and connections", "Edit", 0);
-        result.addDefaultKeypress(65, ModifierKeys::commandModifier);
-        result.setActive(hasCanvas && !isDragging && !locked);
-        break;
-    }
-    case CommandIDs::ShowBrowser: {
-        result.setInfo("Show Browser", "Open documentation browser panel", "Edit", 0);
-        result.addDefaultKeypress(66, ModifierKeys::commandModifier);
-        result.setActive(true);
-        break;
-    }
-    case CommandIDs::Search: {
-        result.setInfo("Search Current Patch", "Search for objects in current patch", "Edit", 0);
-        result.addDefaultKeypress(70, ModifierKeys::commandModifier);
-        result.setActive(true);
-        break;
-    }
-    case CommandIDs::NextTab: {
-        result.setInfo("Next Tab", "Show the next tab", "View", 0);
-
+        case CommandIDs::NewProject: {
+            result.setInfo("New patch", "Create a new patch", "General", 0);
+            result.addDefaultKeypress(78, ModifierKeys::commandModifier);
+            break;
+        }
+        case CommandIDs::OpenProject: {
+            result.setInfo("Open patch...", "Open a patch", "General", 0);
+            result.addDefaultKeypress(79, ModifierKeys::commandModifier);
+            break;
+        }
+        case CommandIDs::SaveProject: {
+            result.setInfo("Save patch", "Save patch at current location", "General", 0);
+            result.addDefaultKeypress(83, ModifierKeys::commandModifier);
+            result.setActive(hasCanvas);
+            break;
+        }
+        case CommandIDs::SaveProjectAs: {
+            result.setInfo("Save patch as...", "Save patch in chosen location", "General", 0);
+            result.addDefaultKeypress(83, ModifierKeys::commandModifier | ModifierKeys::shiftModifier);
+            result.setActive(hasCanvas);
+            break;
+        }
+        case CommandIDs::CloseTab: {
+            result.setInfo("Close tab", "Close currently opened tab", "General", 0);
+            result.addDefaultKeypress(87, ModifierKeys::commandModifier);
+            result.setActive(hasCanvas);
+            break;
+        }
+        case CommandIDs::Undo: {
+            result.setInfo("Undo", "Undo action", "General", 0);
+            result.addDefaultKeypress(90, ModifierKeys::commandModifier);
+            result.setActive(hasCanvas && !isDragging && canUndo);
+            
+            break;
+        }
+            
+        case CommandIDs::Redo: {
+            result.setInfo("Redo", "Redo action", "General", 0);
+            result.addDefaultKeypress(90, ModifierKeys::commandModifier | ModifierKeys::shiftModifier);
+            result.setActive(hasCanvas && !isDragging && canRedo);
+            break;
+        }
+        case CommandIDs::Lock: {
+            result.setInfo("Run mode", "Run Mode", "Edit", 0);
+            result.addDefaultKeypress(69, ModifierKeys::commandModifier);
+            result.setActive(hasCanvas && !isDragging && !static_cast<bool>(statusbar.presentationMode.getValue()));
+            break;
+        }
+        case CommandIDs::ConnectionPathfind: {
+            result.setInfo("Tidy connection", "Find best path for connection", "Edit", 0);
+            result.addDefaultKeypress(89, ModifierKeys::commandModifier | ModifierKeys::shiftModifier);
+            result.setActive(hasCanvas && !isDragging);
+            break;
+        }
+        case CommandIDs::ConnectionStyle: {
+            result.setInfo("Connection style", "Set connection style", "Edit", 0);
+            result.setActive(hasCanvas && !isDragging && statusbar.connectionStyleButton->isEnabled());
+            break;
+        }
+        case CommandIDs::ZoomIn: {
+            result.setInfo("Zoom in", "Zoom in", "Edit", 0);
+            result.addDefaultKeypress(61, ModifierKeys::commandModifier);
+            result.setActive(hasCanvas && !isDragging);
+            break;
+        }
+        case CommandIDs::ZoomOut: {
+            result.setInfo("Zoom out", "Zoom out", "Edit", 0);
+            result.addDefaultKeypress(45, ModifierKeys::commandModifier);
+            result.setActive(hasCanvas && !isDragging);
+            break;
+        }
+        case CommandIDs::ZoomNormal: {
+            result.setInfo("Zoom 100%", "Revert zoom to 100%", "Edit", 0);
+            result.addDefaultKeypress(33, ModifierKeys::commandModifier | ModifierKeys::shiftModifier);
+            result.setActive(hasCanvas && !isDragging);
+            break;
+        }
+        case CommandIDs::Copy: {
+            result.setInfo("Copy", "Copy", "Edit", 0);
+            result.addDefaultKeypress(67, ModifierKeys::commandModifier);
+            result.setActive(hasCanvas && !locked && hasBoxSelection && !isDragging);
+            break;
+        }
+        case CommandIDs::Cut: {
+            result.setInfo("Cut", "Cut selection", "Edit", 0);
+            result.addDefaultKeypress(88, ModifierKeys::commandModifier);
+            result.setActive(hasCanvas && !locked && hasSelection && !isDragging);
+            break;
+        }
+        case CommandIDs::Paste: {
+            result.setInfo("Paste", "Paste", "Edit", 0);
+            result.addDefaultKeypress(86, ModifierKeys::commandModifier);
+            result.setActive(hasCanvas && !locked && !isDragging);
+            break;
+        }
+        case CommandIDs::Delete: {
+            result.setInfo("Delete", "Delete selection", "Edit", 0);
+            result.addDefaultKeypress(KeyPress::backspaceKey, ModifierKeys::noModifiers);
+            result.addDefaultKeypress(KeyPress::deleteKey, ModifierKeys::noModifiers);
+            
+            result.setActive(hasCanvas && !isDragging && !locked && hasSelection);
+            break;
+        }
+        case CommandIDs::Encapsulate: {
+            result.setInfo("Encapsulate", "Encapsulate objects", "Edit", 0);
+            result.addDefaultKeypress(69, ModifierKeys::commandModifier | ModifierKeys::shiftModifier);
+            result.setActive(hasCanvas && !isDragging && !locked && hasSelection);
+            break;
+        }
+        case CommandIDs::Duplicate: {
+            
+            result.setInfo("Duplicate", "Duplicate selection", "Edit", 0);
+            result.addDefaultKeypress(68, ModifierKeys::commandModifier);
+            result.setActive(hasCanvas && !isDragging && !locked && hasBoxSelection);
+            break;
+        }
+        case CommandIDs::CreateConnection: {
+            result.setInfo("Create connection", "Create a connection between selected objects", "General", 0);
+            result.addDefaultKeypress(75, ModifierKeys::commandModifier);
+            result.setActive(canConnect);
+            break;
+        }
+        case CommandIDs::SelectAll: {
+            result.setInfo("Select all", "Select all objects and connections", "Edit", 0);
+            result.addDefaultKeypress(65, ModifierKeys::commandModifier);
+            result.setActive(hasCanvas && !isDragging && !locked);
+            break;
+        }
+        case CommandIDs::ShowBrowser: {
+            result.setInfo("Show Browser", "Open documentation browser panel", "Edit", 0);
+            result.addDefaultKeypress(66, ModifierKeys::commandModifier);
+            result.setActive(true);
+            break;
+        }
+        case CommandIDs::Search: {
+            result.setInfo("Search Current Patch", "Search for objects in current patch", "Edit", 0);
+            result.addDefaultKeypress(70, ModifierKeys::commandModifier);
+            result.setActive(true);
+            break;
+        }
+        case CommandIDs::NextTab: {
+            result.setInfo("Next Tab", "Show the next tab", "View", 0);
+            
 #if JUCE_MAC
-        result.addDefaultKeypress(KeyPress::rightKey, ModifierKeys::commandModifier);
+            result.addDefaultKeypress(KeyPress::rightKey, ModifierKeys::commandModifier);
 #else
-        result.addDefaultKeypress(KeyPress::pageDownKey, ModifierKeys::commandModifier);
+            result.addDefaultKeypress(KeyPress::pageDownKey, ModifierKeys::commandModifier);
 #endif
-
-        break;
-    }
-    case CommandIDs::PreviousTab: {
-        result.setInfo("Previous Tab", "Show the previous tab", "View", 0);
-
+            
+            break;
+        }
+        case CommandIDs::PreviousTab: {
+            result.setInfo("Previous Tab", "Show the previous tab", "View", 0);
+            
 #if JUCE_MAC
-        result.addDefaultKeypress(KeyPress::leftKey, ModifierKeys::commandModifier);
+            result.addDefaultKeypress(KeyPress::leftKey, ModifierKeys::commandModifier);
 #else
-        result.addDefaultKeypress(KeyPress::pageUpKey, ModifierKeys::commandModifier);
+            result.addDefaultKeypress(KeyPress::pageUpKey, ModifierKeys::commandModifier);
 #endif
-
-        break;
+            
+            break;
+        }
+        case CommandIDs::ToggleGrid: {
+            result.setInfo("Toggle grid", "Toggle grid enablement", "Edit", 0);
+            result.addDefaultKeypress(103, ModifierKeys::commandModifier);
+            result.setActive(true);
+            break;
+        }
+        case CommandIDs::ClearConsole: {
+            result.setInfo("Clear Console", "Clear the console", "Edit", 0);
+            result.addDefaultKeypress(76, ModifierKeys::commandModifier | ModifierKeys::shiftModifier);
+            result.setActive(true);
+            break;
+        }
     }
-    case CommandIDs::ToggleGrid: {
-        result.setInfo("Toggle grid", "Toggle grid enablement", "Edit", 0);
-        result.addDefaultKeypress(103, ModifierKeys::commandModifier);
-        result.setActive(true);
-        break;
-    }
-    case CommandIDs::ClearConsole: {
-        result.setInfo("Clear Console", "Clear the console", "Edit", 0);
-        result.addDefaultKeypress(76, ModifierKeys::commandModifier | ModifierKeys::shiftModifier);
-        result.setActive(true);
-        break;
-    }
-
-    case CommandIDs::NewObject: {
-        result.setInfo("New Object", "Create new object", "Objects", 0);
-        result.addDefaultKeypress(49, ModifierKeys::commandModifier);
+    
+    Array<int> defaultShortcuts = {49, 53, 66, 50, 84, 70, -1, -1, -1, 51, -1, 52, 86, 74, 68, 73, 65, 71, 67, -1, 85};
+    
+    if(commandID >= ObjectIDs::NewObject)
+    {
+        int idx = commandID - ObjectIDs::NewObject;
+        auto name = objectNames[idx];
+        
+        if(name.isEmpty()) name = "object";
+      
+        result.setInfo("New " + name, "Create new " + name, "Objects", 0);
         result.setActive(hasCanvas && !isDragging && !locked);
-        break;
-    }
-    case CommandIDs::NewComment: {
-        result.setInfo("New Comment", "Create new comment", "Objects", 0);
-        result.addDefaultKeypress(53, ModifierKeys::commandModifier);
-        result.setActive(hasCanvas && !isDragging && !locked);
-        break;
-    }
-    case CommandIDs::NewBang: {
-        result.setInfo("New Bang", "Create new bang", "Objects", 0);
-        result.addDefaultKeypress(66, ModifierKeys::commandModifier | ModifierKeys::shiftModifier);
-        result.setActive(hasCanvas && !isDragging && !locked);
-        break;
-    }
-    case CommandIDs::NewMessage: {
-        result.setInfo("New Message", "Create new message", "Objects", 0);
-        result.addDefaultKeypress(50, ModifierKeys::commandModifier);
-        result.setActive(hasCanvas && !isDragging && !locked);
-        break;
-    }
-    case CommandIDs::NewToggle: {
-        result.setInfo("New Toggle", "Create new toggle", "Objects", 0);
-        result.addDefaultKeypress(84, ModifierKeys::commandModifier | ModifierKeys::shiftModifier);
-        result.setActive(hasCanvas && !isDragging && !locked);
-        break;
-    }
-    case CommandIDs::NewNumbox: {
-        result.setInfo("New Number", "Create new number object", "Objects", 0);
-        result.addDefaultKeypress(70, ModifierKeys::commandModifier | ModifierKeys::shiftModifier);
-        result.setActive(hasCanvas && !isDragging && !locked);
-
-        break;
-    }
-    case CommandIDs::NewNumboxTilde: {
-        result.setInfo("New Numbox~", "Create new numbox~ object", "Objects", 0);
-        result.setActive(hasCanvas && !isDragging && !locked);
-
-        break;
-    }
-    case CommandIDs::NewOscilloscope: {
-        result.setInfo("New Oscilloscope", "Create new oscilloscope object", "Objects", 0);
-        result.setActive(hasCanvas && !isDragging && !locked);
-
-        break;
-    }
-    case CommandIDs::NewFunction: {
-        result.setInfo("New Function", "Create new function object", "Objects", 0);
-        result.setActive(hasCanvas && !isDragging && !locked);
-
-        break;
-    }
-    case CommandIDs::NewFloatAtom: {
-        result.setInfo("New Floatatom", "Create new floatatom", "Objects", 0);
-        result.addDefaultKeypress(51, ModifierKeys::commandModifier);
-        result.setActive(hasCanvas && !isDragging && !locked);
-        break;
-    }
-    case CommandIDs::NewSymbolAtom: {
-        result.setInfo("New Symbolatom", "Create new symbolatom", "Objects", 0);
-        result.setActive(hasCanvas && !isDragging && !locked);
-        break;
-    }
-    case CommandIDs::NewListAtom: {
-        result.setInfo("New Listatom", "Create new listatom", "Objects", 0);
-        result.addDefaultKeypress(52, ModifierKeys::commandModifier);
-        result.setActive(hasCanvas && !isDragging && !locked);
-        break;
-    }
-    case CommandIDs::NewVerticalSlider: {
-        result.setInfo("New Vertical Slider", "Create new vertical slider", "Objects", 0);
-        result.addDefaultKeypress(86, ModifierKeys::commandModifier | ModifierKeys::shiftModifier);
-        result.setActive(hasCanvas && !isDragging && !locked);
-        break;
-    }
-    case CommandIDs::NewHorizontalSlider: {
-        result.setInfo("New Horizontal Slider", "Create new horizontal slider", "Objects", 0);
-        result.addDefaultKeypress(74, ModifierKeys::commandModifier | ModifierKeys::shiftModifier);
-        result.setActive(hasCanvas && !isDragging && !locked);
-        break;
-    }
-    case CommandIDs::NewVerticalRadio: {
-        result.setInfo("New Vertical Radio", "Create new vertical radio", "Objects", 0);
-        result.addDefaultKeypress(68, ModifierKeys::commandModifier | ModifierKeys::shiftModifier);
-        result.setActive(hasCanvas && !isDragging && !locked);
-        break;
-    }
-    case CommandIDs::NewHorizontalRadio: {
-        result.setInfo("New Horizontal Radio", "Create new horizontal radio", "Objects", 0);
-        result.addDefaultKeypress(73, ModifierKeys::commandModifier | ModifierKeys::shiftModifier);
-        result.setActive(hasCanvas && !isDragging && !locked);
-        break;
-    }
-    case CommandIDs::NewArray: {
-        result.setInfo("New Array", "Create new array", "Objects", 0);
-        result.addDefaultKeypress(65, ModifierKeys::commandModifier | ModifierKeys::shiftModifier);
-        result.setActive(hasCanvas && !isDragging && !locked);
-        break;
-    }
-    case CommandIDs::NewGraphOnParent: {
-        result.setInfo("New GraphOnParent", "Create new graph on parent", "Objects", 0);
-        result.addDefaultKeypress(71, ModifierKeys::commandModifier | ModifierKeys::shiftModifier);
-        result.setActive(hasCanvas && !isDragging && !locked);
-        break;
-    }
-    case CommandIDs::NewCanvas: {
-        result.setInfo("New Canvas", "Create new canvas object", "Objects", 0);
-        result.addDefaultKeypress(67, ModifierKeys::commandModifier | ModifierKeys::shiftModifier);
-        result.setActive(hasCanvas && !isDragging && !locked);
-        break;
-    }
-    case CommandIDs::NewKeyboard: {
-        result.setInfo("New Keyboard", "Create new keyboard", "Objects", 0);
-        result.setActive(hasCanvas && !isDragging && !locked);
-        break;
-    }
-    case CommandIDs::NewVUMeterObject: {
-        result.setInfo("New VU Meter", "Create new VU meter", "Objects", 0);
-        result.addDefaultKeypress(85, ModifierKeys::commandModifier | ModifierKeys::shiftModifier);
-        result.setActive(hasCanvas && !isDragging && !locked);
-        break;
-    }
-    case CommandIDs::NewButton: {
-        result.setInfo("New Button", "Create new button", "Objects", 0);
-        result.setActive(hasCanvas && !isDragging && !locked);
-        break;
-    }
-    default:
-        break;
+        
+        if(isPositiveAndBelow(idx, defaultShortcuts.size()) && defaultShortcuts[idx] > 0) {
+            result.addDefaultKeypress(defaultShortcuts[idx], ModifierKeys::commandModifier);
+        }
     }
 }
 
@@ -1291,7 +1180,7 @@ bool PluginEditor::perform(InvocationInfo const& info)
         return true;
     }
 
-    case CommandIDs::NewArray: {
+    case ObjectIDs::NewArray: {
 
         Dialogs::showArrayDialog(&openedDialog, this,
             [this](int result, String const& name, String const& size) {
@@ -1305,11 +1194,13 @@ bool PluginEditor::perform(InvocationInfo const& info)
     }
 
     default: {
-        const StringArray objectNames = { "", "comment", "bng", "msg", "tgl", "nbx", "vsl", "hsl", "vradio", "hradio", "floatatom", "symbolatom", "listbox", "array", "graph", "cnv", "keyboard", "vu", "button", "numbox~", "oscope~", "function" };
+        
+        int objNamesSize = objectNames.size();
+        int numObjects = ObjectIDs::NumObjects - ObjectIDs::NewObject;
 
-        jassert(objectNames.size() == CommandIDs::NumItems - CommandIDs::NewObject);
+        jassert(objectNames.size() == (ObjectIDs::NumObjects - ObjectIDs::NewObject));
 
-        int idx = static_cast<int>(info.commandID) - CommandIDs::NewObject;
+        int idx = static_cast<int>(info.commandID) - ObjectIDs::NewObject;
         if (isPositiveAndBelow(idx, objectNames.size())) {
             if (cnv->getSelectionOfType<Object>().size() == 1) {
                 // if 1 object is selected, create new object beneath selected
