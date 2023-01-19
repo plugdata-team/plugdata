@@ -20,7 +20,7 @@ inlets:
   nth:
   - type: anything
     description: any message to be selected
-  2nd: #rightmost inlet
+  2nd:
   - type: float
     description: sets which inlet is selected
 

@@ -17,8 +17,6 @@ inlets:
   1st:
   - type: float
     description: MIDI pitch to be retuned
-  - type: base <float>
-    description: MIDI pitch base (decimals allowed)
   2nd:
   - type: list
     description: scale in cents
@@ -31,6 +29,10 @@ outlets:
 flags:
 - name: -base <f>
   description: base MIDI pitch (default 60)
+
+methods:
+  - type: base <float>
+    description: MIDI pitch base (decimals allowed)
 
 draft: false
 ---

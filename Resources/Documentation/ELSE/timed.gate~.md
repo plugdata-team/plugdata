@@ -43,6 +43,12 @@ outlets:
   - type: signal
     description: timed gate
 
+methods:
+  - type: ms <float>
+    description: gate time in ms
+  - type: retrigger <float>
+    description: non-zero sets to retrigger mode
+
 draft: false
 ---
 

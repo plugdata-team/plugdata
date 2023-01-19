@@ -10,7 +10,7 @@ pdcategory: Message Management
 
 arguments:
 - type: symbol
-  description: 1) symbol - sets order, <fifo> or <lifo>
+  description: sets order, <fifo> or <lifo>
   default: fifo
 
 inlets:

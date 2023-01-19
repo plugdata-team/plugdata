@@ -19,7 +19,7 @@ inlets:
   - type: float
     description: set bpm immediately
   - type: list
-    description: two floats set target and amount of beats and three floats set start, target and number of beats
+    description: <f,f> — target, number of beats; <f,f,f> — start, target, number of beats
 
 outlets:
   1st:

@@ -26,7 +26,7 @@ inlets:
   1st:
   - type: float/signal
     description: frequency in Hz
-  2rd:
+  2nd:
   - type: float/signal
     description: phase sync (ressets internal phase)
   3rd:

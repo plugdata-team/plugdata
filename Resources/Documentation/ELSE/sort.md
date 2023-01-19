@@ -9,8 +9,8 @@ categories:
 pdcategory: General
 
 arguments:
-- type: float - order
-  description: >=  ascending, descending otherwise
+- type: float
+  description: >= 0 — ascending, descending otherwise
   default: 0
 
 inlets:
