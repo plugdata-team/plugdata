@@ -166,6 +166,11 @@ struct ThemePanel : public Component
                 newTheme.setProperty("theme", name, nullptr);
                 colourThemes.appendChild(newTheme, nullptr);
                 
+                for (auto const& [colourId, colourNames] : PlugDataColourNames) {
+                    auto [id, colourName, category] = colourNames;
+                    PlugDataLook::colourSettings[name][colourId] = Colour::fromString(newTheme.getProperty(colourName).toString());
+                }
+                
                 updateThemes();
                 updateSwatches();
             };
