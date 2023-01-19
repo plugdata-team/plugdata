@@ -122,8 +122,6 @@ void Dialogs::showObjectMenu(PluginEditor* parent, Component* target)
         timeMenu.addItem(createCommandItem(ObjectIDs::NewDelay, "delay"));
         timeMenu.addItem(createCommandItem(ObjectIDs::NewTimedGate, "timed.gate"));
         timeMenu.addItem(createCommandItem(ObjectIDs::NewDateTime, "datetime"));
-        timeMenu.addSeparator();
-        timeMenu.addItem(createCommandItem(ObjectIDs::NewSignalDelay, "delay~"));
     }
     
     PopupMenu filtersMenu;
@@ -160,15 +158,7 @@ void Dialogs::showObjectMenu(PluginEditor* parent, Component* target)
         oscillatorsMenu.addItem(createCommandItem(ObjectIDs::NewBlTriangle, "bl.triangle~"));
         oscillatorsMenu.addItem(createCommandItem(ObjectIDs::NewBlImp, "bl.imp~"));
         oscillatorsMenu.addItem(createCommandItem(ObjectIDs::NewBlImp2, "bl.imp2~"));
-        oscillatorsMenu.addItem(createCommandItem(ObjectIDs::NewBlWavetable, "bl.wavetable"));
-
-        
-    }    
-    PopupMenu IOMenu;
-    {
-        IOMenu.addItem(createCommandItem(ObjectIDs::NewAdc, "adc~"));
-        IOMenu.addItem(createCommandItem(ObjectIDs::NewDac, "dac~"));
-        IOMenu.addItem(createCommandItem(ObjectIDs::NewOut, "out~"));
+        oscillatorsMenu.addItem(createCommandItem(ObjectIDs::NewBlWavetable, "bl.wavetable~"));
     }
     
     PopupMenu midiMenu;
@@ -190,22 +180,75 @@ void Dialogs::showObjectMenu(PluginEditor* parent, Component* target)
     
     PopupMenu arrayMenu;
     {
+        arrayMenu.addItem(createCommandItem(ObjectIDs::NewArraySet, "array set"));
+        arrayMenu.addItem(createCommandItem(ObjectIDs::NewArrayGet, "array get"));
+        arrayMenu.addItem(createCommandItem(ObjectIDs::NewArrayDefine, "array define"));
+        arrayMenu.addItem(createCommandItem(ObjectIDs::NewArraySize, "array size"));
+        
+        arrayMenu.addItem(createCommandItem(ObjectIDs::NewArrayMin, "array min"));
+        arrayMenu.addItem(createCommandItem(ObjectIDs::NewArrayMax, "array max"));
+        arrayMenu.addItem(createCommandItem(ObjectIDs::NewArrayRandom, "array random"));
+        arrayMenu.addItem(createCommandItem(ObjectIDs::NewArrayQuantile, "array quantile"));
+    }
+    
+    PopupMenu listMenu;
+    {
+        listMenu.addItem(createCommandItem(ObjectIDs::NewListAppend, "list append"));
+        listMenu.addItem(createCommandItem(ObjectIDs::NewListPrepend, "list prepend"));
+        listMenu.addItem(createCommandItem(ObjectIDs::NewListStore, "list store"));
+        listMenu.addItem(createCommandItem(ObjectIDs::NewListSplit, "list split"));
+        
+        listMenu.addItem(createCommandItem(ObjectIDs::NewListTrim, "list trim"));
+        listMenu.addItem(createCommandItem(ObjectIDs::NewListLength, "list length"));
+        listMenu.addItem(createCommandItem(ObjectIDs::NewListFromSymbol, "list fromsymbol"));
+        listMenu.addItem(createCommandItem(ObjectIDs::NewListToSymbol,  "list tosymbol"));
     }
     
     PopupMenu mathMenu;
     {
+            mathMenu.addItem(createCommandItem(ObjectIDs::NewAdd, "+"));
+            mathMenu.addItem(createCommandItem(ObjectIDs::NewSubtract, "-"));
+            mathMenu.addItem(createCommandItem(ObjectIDs::NewMultiply, "*"));
+            mathMenu.addItem(createCommandItem(ObjectIDs::NewDivide, "/"));
+            mathMenu.addItem(createCommandItem(ObjectIDs::NewModulo, "%"));
+            
+            mathMenu.addItem(createCommandItem(ObjectIDs::NewInverseSubtract, "!-"));
+            mathMenu.addItem(createCommandItem(ObjectIDs::NewInverseDivide, "!/"));
     }
     
     PopupMenu logicMenu;
     {
+            logicMenu.addItem(createCommandItem(ObjectIDs::NewBiggerThan, ">"));
+            logicMenu.addItem(createCommandItem(ObjectIDs::NewSmallerThan, "<"));
+            logicMenu.addItem(createCommandItem(ObjectIDs::NewBiggerThanOrEqual, ">="));
+            logicMenu.addItem(createCommandItem(ObjectIDs::NewSmallerThanOrEqual, "<="));
+            logicMenu.addItem(createCommandItem(ObjectIDs::NewEquals, "=="));
+            logicMenu.addItem(createCommandItem(ObjectIDs::NewNotEquals, "!="));
     }
     
     PopupMenu signalMenu;
     {
+        signalMenu.addItem(createCommandItem(ObjectIDs::NewAdc, "adc~"));
+        signalMenu.addItem(createCommandItem(ObjectIDs::NewDac, "dac~"));
+        signalMenu.addItem(createCommandItem(ObjectIDs::NewOut, "out~"));
+        signalMenu.addItem(createCommandItem(ObjectIDs::NewSignalDelay, "delay~"));
     }
     
     PopupMenu signalMathMenu;
     {
+        signalMathMenu.addItem(createCommandItem(ObjectIDs::NewSignalAdd, "+~"));
+        signalMathMenu.addItem(createCommandItem(ObjectIDs::NewSignalSubtract, "-~"));
+        signalMathMenu.addItem(createCommandItem(ObjectIDs::NewSignalMultiply, "*~"));
+        signalMathMenu.addItem(createCommandItem(ObjectIDs::NewSignalDivide, "/~"));
+        signalMathMenu.addItem(createCommandItem(ObjectIDs::NewSignalModulo, "%~"));
+        signalMathMenu.addItem(createCommandItem(ObjectIDs::NewSignalInverseSubtract, "!-~"));
+        signalMathMenu.addItem(createCommandItem(ObjectIDs::NewSignalInverseDivide, "!/~"));
+        signalMathMenu.addItem(createCommandItem(ObjectIDs::NewSignalBiggerThan, ">~"));
+        signalMathMenu.addItem(createCommandItem(ObjectIDs::NewSignalSmallerThan, "<~"));
+        signalMathMenu.addItem(createCommandItem(ObjectIDs::NewSignalBiggerThanOrEqual, ">=~"));
+        signalMathMenu.addItem(createCommandItem(ObjectIDs::NewSignalSmallerThanOrEqual, "<=~"));
+        signalMathMenu.addItem(createCommandItem(ObjectIDs::NewSignalEquals, "==~"));
+        signalMathMenu.addItem(createCommandItem(ObjectIDs::NewSignalNotEquals, "!=~"));
     }
     
     menu.addSeparator();
@@ -214,6 +257,7 @@ void Dialogs::showObjectMenu(PluginEditor* parent, Component* target)
     menu.addSubMenu("Time", timeMenu);
     menu.addSubMenu("MIDI", midiMenu);
     menu.addSubMenu("Array", arrayMenu);
+    menu.addSubMenu("List", listMenu);
     menu.addSubMenu("Math", mathMenu);
     menu.addSubMenu("Logic", logicMenu);
     
