@@ -33,7 +33,7 @@ struct MousePadObject final : public GUIObject {
 
         // Only intercept global mouse events
         setInterceptsMouseClicks(false, false);
-        
+
         isLocked = static_cast<bool>(cnv->locked.getValue());
     }
 
@@ -128,7 +128,6 @@ struct MousePadObject final : public GUIObject {
         sys_lock();
         outlet_anything(x->x_obj.ob_outlet, &s_list, 2, at);
         sys_unlock();
-        
     }
 
     void mouseUp(MouseEvent const& e) override

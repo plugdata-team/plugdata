@@ -122,7 +122,7 @@ public:
         // Set up the button list that contains our suggestions
         buttonholder = std::make_unique<Component>();
 
-        if(Desktop::canUseSemiTransparentWindows()) {
+        if (Desktop::canUseSemiTransparentWindows()) {
             dropShadower.setOwner(this);
         }
 

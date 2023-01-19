@@ -92,8 +92,7 @@ void Dialogs::showObjectMenu(PluginEditor* parent, Component* target)
     menu.addItem("Open Object Browser...", [parent]() mutable {
         Dialogs::showObjectBrowserDialog(&parent->openedDialog, parent);
     });
-    
-    
+
     PopupMenu guiMenu;
     {
         guiMenu.addItem(createCommandItem(ObjectIDs::NewNumbox, "Number"));
@@ -104,7 +103,7 @@ void Dialogs::showObjectMenu(PluginEditor* parent, Component* target)
         guiMenu.addItem(createCommandItem(ObjectIDs::NewHorizontalSlider, "Horizontal Slider"));
         guiMenu.addItem(createCommandItem(ObjectIDs::NewVerticalRadio, "Vertical Radio"));
         guiMenu.addItem(createCommandItem(ObjectIDs::NewHorizontalRadio, "Horizontal Radio"));
-        
+
         guiMenu.addSeparator();
         guiMenu.addItem(createCommandItem(ObjectIDs::NewCanvas, "Canvas"));
 
@@ -114,7 +113,7 @@ void Dialogs::showObjectMenu(PluginEditor* parent, Component* target)
         guiMenu.addItem(createCommandItem(ObjectIDs::NewOscilloscope, "Oscilloscope"));
         guiMenu.addItem(createCommandItem(ObjectIDs::NewFunction, "Function"));
     }
-    
+
     PopupMenu timeMenu;
     {
         timeMenu.addItem(createCommandItem(ObjectIDs::NewMetro, "metro"));
@@ -123,7 +122,7 @@ void Dialogs::showObjectMenu(PluginEditor* parent, Component* target)
         timeMenu.addItem(createCommandItem(ObjectIDs::NewTimedGate, "timed.gate"));
         timeMenu.addItem(createCommandItem(ObjectIDs::NewDateTime, "datetime"));
     }
-    
+
     PopupMenu filtersMenu;
     {
         filtersMenu.addItem(createCommandItem(ObjectIDs::NewLop, "lop~"));
@@ -137,7 +136,7 @@ void Dialogs::showObjectMenu(PluginEditor* parent, Component* target)
         filtersMenu.addItem(createCommandItem(ObjectIDs::NewComb, "comb~"));
         filtersMenu.addItem(createCommandItem(ObjectIDs::NewHip, "hip~"));
     }
-    
+
     PopupMenu oscillatorsMenu;
     {
         oscillatorsMenu.addItem(createCommandItem(ObjectIDs::NewOsc, "osc~"));
@@ -160,7 +159,7 @@ void Dialogs::showObjectMenu(PluginEditor* parent, Component* target)
         oscillatorsMenu.addItem(createCommandItem(ObjectIDs::NewBlImp2, "bl.imp2~"));
         oscillatorsMenu.addItem(createCommandItem(ObjectIDs::NewBlWavetable, "bl.wavetable~"));
     }
-    
+
     PopupMenu midiMenu;
     {
         midiMenu.addItem(createCommandItem(ObjectIDs::NewMidiIn, "midiin"));
@@ -175,57 +174,56 @@ void Dialogs::showObjectMenu(PluginEditor* parent, Component* target)
         midiMenu.addItem(createCommandItem(ObjectIDs::NewSysexOut, "sysexout"));
         midiMenu.addItem(createCommandItem(ObjectIDs::NewMtof, "mtof"));
         midiMenu.addItem(createCommandItem(ObjectIDs::NewFtom, "ftom"));
+    }
 
-    }    
-    
     PopupMenu arrayMenu;
     {
         arrayMenu.addItem(createCommandItem(ObjectIDs::NewArraySet, "array set"));
         arrayMenu.addItem(createCommandItem(ObjectIDs::NewArrayGet, "array get"));
         arrayMenu.addItem(createCommandItem(ObjectIDs::NewArrayDefine, "array define"));
         arrayMenu.addItem(createCommandItem(ObjectIDs::NewArraySize, "array size"));
-        
+
         arrayMenu.addItem(createCommandItem(ObjectIDs::NewArrayMin, "array min"));
         arrayMenu.addItem(createCommandItem(ObjectIDs::NewArrayMax, "array max"));
         arrayMenu.addItem(createCommandItem(ObjectIDs::NewArrayRandom, "array random"));
         arrayMenu.addItem(createCommandItem(ObjectIDs::NewArrayQuantile, "array quantile"));
     }
-    
+
     PopupMenu listMenu;
     {
         listMenu.addItem(createCommandItem(ObjectIDs::NewListAppend, "list append"));
         listMenu.addItem(createCommandItem(ObjectIDs::NewListPrepend, "list prepend"));
         listMenu.addItem(createCommandItem(ObjectIDs::NewListStore, "list store"));
         listMenu.addItem(createCommandItem(ObjectIDs::NewListSplit, "list split"));
-        
+
         listMenu.addItem(createCommandItem(ObjectIDs::NewListTrim, "list trim"));
         listMenu.addItem(createCommandItem(ObjectIDs::NewListLength, "list length"));
         listMenu.addItem(createCommandItem(ObjectIDs::NewListFromSymbol, "list fromsymbol"));
-        listMenu.addItem(createCommandItem(ObjectIDs::NewListToSymbol,  "list tosymbol"));
+        listMenu.addItem(createCommandItem(ObjectIDs::NewListToSymbol, "list tosymbol"));
     }
-    
+
     PopupMenu mathMenu;
     {
-            mathMenu.addItem(createCommandItem(ObjectIDs::NewAdd, "+"));
-            mathMenu.addItem(createCommandItem(ObjectIDs::NewSubtract, "-"));
-            mathMenu.addItem(createCommandItem(ObjectIDs::NewMultiply, "*"));
-            mathMenu.addItem(createCommandItem(ObjectIDs::NewDivide, "/"));
-            mathMenu.addItem(createCommandItem(ObjectIDs::NewModulo, "%"));
-            
-            mathMenu.addItem(createCommandItem(ObjectIDs::NewInverseSubtract, "!-"));
-            mathMenu.addItem(createCommandItem(ObjectIDs::NewInverseDivide, "!/"));
+        mathMenu.addItem(createCommandItem(ObjectIDs::NewAdd, "+"));
+        mathMenu.addItem(createCommandItem(ObjectIDs::NewSubtract, "-"));
+        mathMenu.addItem(createCommandItem(ObjectIDs::NewMultiply, "*"));
+        mathMenu.addItem(createCommandItem(ObjectIDs::NewDivide, "/"));
+        mathMenu.addItem(createCommandItem(ObjectIDs::NewModulo, "%"));
+
+        mathMenu.addItem(createCommandItem(ObjectIDs::NewInverseSubtract, "!-"));
+        mathMenu.addItem(createCommandItem(ObjectIDs::NewInverseDivide, "!/"));
     }
-    
+
     PopupMenu logicMenu;
     {
-            logicMenu.addItem(createCommandItem(ObjectIDs::NewBiggerThan, ">"));
-            logicMenu.addItem(createCommandItem(ObjectIDs::NewSmallerThan, "<"));
-            logicMenu.addItem(createCommandItem(ObjectIDs::NewBiggerThanOrEqual, ">="));
-            logicMenu.addItem(createCommandItem(ObjectIDs::NewSmallerThanOrEqual, "<="));
-            logicMenu.addItem(createCommandItem(ObjectIDs::NewEquals, "=="));
-            logicMenu.addItem(createCommandItem(ObjectIDs::NewNotEquals, "!="));
+        logicMenu.addItem(createCommandItem(ObjectIDs::NewBiggerThan, ">"));
+        logicMenu.addItem(createCommandItem(ObjectIDs::NewSmallerThan, "<"));
+        logicMenu.addItem(createCommandItem(ObjectIDs::NewBiggerThanOrEqual, ">="));
+        logicMenu.addItem(createCommandItem(ObjectIDs::NewSmallerThanOrEqual, "<="));
+        logicMenu.addItem(createCommandItem(ObjectIDs::NewEquals, "=="));
+        logicMenu.addItem(createCommandItem(ObjectIDs::NewNotEquals, "!="));
     }
-    
+
     PopupMenu signalMenu;
     {
         signalMenu.addItem(createCommandItem(ObjectIDs::NewAdc, "adc~"));
@@ -233,7 +231,7 @@ void Dialogs::showObjectMenu(PluginEditor* parent, Component* target)
         signalMenu.addItem(createCommandItem(ObjectIDs::NewOut, "out~"));
         signalMenu.addItem(createCommandItem(ObjectIDs::NewSignalDelay, "delay~"));
     }
-    
+
     PopupMenu signalMathMenu;
     {
         signalMathMenu.addItem(createCommandItem(ObjectIDs::NewSignalAdd, "+~"));
@@ -250,9 +248,9 @@ void Dialogs::showObjectMenu(PluginEditor* parent, Component* target)
         signalMathMenu.addItem(createCommandItem(ObjectIDs::NewSignalEquals, "==~"));
         signalMathMenu.addItem(createCommandItem(ObjectIDs::NewSignalNotEquals, "!=~"));
     }
-    
+
     menu.addSeparator();
-    
+
     menu.addSubMenu("GUI", guiMenu);
     menu.addSubMenu("Time", timeMenu);
     menu.addSubMenu("MIDI", midiMenu);
@@ -260,16 +258,16 @@ void Dialogs::showObjectMenu(PluginEditor* parent, Component* target)
     menu.addSubMenu("List", listMenu);
     menu.addSubMenu("Math", mathMenu);
     menu.addSubMenu("Logic", logicMenu);
-    
+
     menu.addSeparator();
-    
+
     menu.addSubMenu("Signal~", signalMenu);
     menu.addSubMenu("Oscillators~", oscillatorsMenu);
     menu.addSubMenu("Filters~", filtersMenu);
     menu.addSubMenu("Math~", signalMathMenu);
 
     menu.addSeparator();
-    
+
     menu.addItem(createCommandItem(ObjectIDs::NewObject, "Empty Object"));
     menu.addItem(createCommandItem(ObjectIDs::NewMessage, "New Message"));
     menu.addItem(createCommandItem(ObjectIDs::NewFloatAtom, "Float box"));
@@ -277,7 +275,7 @@ void Dialogs::showObjectMenu(PluginEditor* parent, Component* target)
     menu.addItem(createCommandItem(ObjectIDs::NewListAtom, "List box"));
     menu.addItem(createCommandItem(ObjectIDs::NewComment, "Comment"));
     menu.addSeparator();
-    
+
     menu.addItem(createCommandItem(ObjectIDs::NewArray, "Array..."));
     menu.addItem(createCommandItem(ObjectIDs::NewGraphOnParent, "GraphOnParent"));
 

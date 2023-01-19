@@ -199,12 +199,12 @@ struct SettingsPopup : public PopupMenu {
         addCustomItem(1, themeSelector, 70, 45, false);
         addCustomItem(2, zoomSelector, 70, 30, false);
         addSeparator();
-        
-        StringArray iconText = {Icons::New, Icons::Open, Icons::Save, Icons::SaveAs, Icons::Settings, Icons::Info, Icons::History};
-        
+
+        StringArray iconText = { Icons::New, Icons::Open, Icons::Save, Icons::SaveAs, Icons::Settings, Icons::Info, Icons::History };
+
         Array<Image> icons;
-            
-        for(int i = 0; i < iconText.size(); i++) {
+
+        for (int i = 0; i < iconText.size(); i++) {
             icons.add(Image(Image::ARGB, 32, 32, true));
             auto& icon = icons.getReference(i);
             Graphics g(icon);
@@ -212,18 +212,18 @@ struct SettingsPopup : public PopupMenu {
             g.setFont(editor->pd->lnf->iconFont.withHeight(28));
             g.drawText(iconText[i], 0, 0, 32, 32, Justification::right);
         }
-        
+
         addItem(1, "New patch", true, false, icons[0]);
 
         addSeparator();
 
         addItem(2, "Open patch...", true, false, icons[1]);
-        
+
         PopupMenu recentlyOpened;
-        
+
         auto recentlyOpenedTree = tree.getChildWithName("RecentlyOpened");
-        if(recentlyOpenedTree.isValid()) {
-            for(int i = 0; i < recentlyOpenedTree.getNumChildren(); i++) {
+        if (recentlyOpenedTree.isValid()) {
+            for (int i = 0; i < recentlyOpenedTree.getNumChildren(); i++) {
                 auto path = File(recentlyOpenedTree.getChild(i).getProperty("Path").toString());
                 recentlyOpened.addItem(path.getFileName(), [this, path, editor]() mutable {
                     editor->pd->loadPatch(path);
@@ -231,17 +231,16 @@ struct SettingsPopup : public PopupMenu {
                 });
             }
         }
-        
+
         addSubMenu("Recently opened", recentlyOpened, true, icons[6]);
-        
+
         addSeparator();
 
         addItem(3, "Save patch", editor->getCurrentCanvas() != nullptr, false, icons[2]);
         addItem(4, "Save patch as...", editor->getCurrentCanvas() != nullptr, false, icons[3]);
 
         addSeparator();
-        
-        
+
         // Toggles hvcc compatibility mode
         bool hvccModeEnabled = settingsTree.hasProperty("HvccMode") ? static_cast<bool>(settingsTree.getProperty("HvccMode")) : false;
         addItem("Compiled mode", true, hvccModeEnabled, [this]() mutable {
@@ -274,7 +273,6 @@ struct SettingsPopup : public PopupMenu {
 
         popup->showMenuAsync(PopupMenu::Options().withMinimumWidth(170).withMaximumNumColumns(1).withTargetComponent(centre).withParentComponent(editor),
             [editor, processor, popup, manager, centre, settingsTree](int result) {
-                
                 if (result == 1) {
                     editor->newProject();
                 }
@@ -386,7 +384,7 @@ struct SettingsPopup : public PopupMenu {
 
             firstBounds = firstBounds.withSizeKeepingCentre(30, 30);
             secondBounds = secondBounds.withSizeKeepingCentre(30, 30);
-            
+
             g.setColour(PlugDataLook::getThemeColour(PlugDataLook::selectedThemes[0], PlugDataColour::canvasBackgroundColourId));
             g.fillEllipse(firstBounds.toFloat());
 
@@ -395,18 +393,17 @@ struct SettingsPopup : public PopupMenu {
 
             g.setColour(PlugDataLook::getThemeColour(PlugDataLook::selectedThemes[0], PlugDataColour::objectOutlineColourId));
             g.drawEllipse(firstBounds.toFloat(), 1.0f);
-            
+
             g.setColour(PlugDataLook::getThemeColour(PlugDataLook::selectedThemes[1], PlugDataColour::objectOutlineColourId));
             g.drawEllipse(secondBounds.toFloat(), 1.0f);
 
             auto tick = getLookAndFeel().getTickShape(0.6f);
             auto tickBounds = Rectangle<int>();
-            
-            if(theme.toString() == PlugDataLook::selectedThemes[0]) {
+
+            if (theme.toString() == PlugDataLook::selectedThemes[0]) {
                 g.setColour(PlugDataLook::getThemeColour(PlugDataLook::selectedThemes[0], PlugDataColour::canvasTextColourId));
                 tickBounds = firstBounds;
-            }
-            else {
+            } else {
                 g.setColour(PlugDataLook::getThemeColour(PlugDataLook::selectedThemes[1], PlugDataColour::canvasTextColourId));
                 tickBounds = secondBounds;
             }
@@ -434,7 +431,6 @@ struct SettingsPopup : public PopupMenu {
         Value theme;
     };
 
-    
     ThemeSelector themeSelector;
     ZoomSelector zoomSelector;
 

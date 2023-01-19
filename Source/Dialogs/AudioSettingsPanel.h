@@ -99,11 +99,11 @@ public:
     void updateDevices()
     {
         items = isInput ? MidiInput::getAvailableDevices() : MidiOutput::getAvailableDevices();
-        
-        if(!isInput) {
+
+        if (!isInput) {
             MidiDeviceInfo internalSynth;
-            internalSynth.name  = "Internal synth";
-            internalSynth.identifier  = "internal";
+            internalSynth.name = "Internal synth";
+            internalSynth.identifier = "internal";
             items.insert(0, internalSynth);
         }
     }
@@ -123,8 +123,8 @@ public:
             auto item = items[row];
 
             bool enabled = isInput ? deviceManager.isMidiInputDeviceEnabled(item.identifier) : (getEnabledMidiOutputWithID(item.identifier) != nullptr);
-            
-            if(item.identifier == "internal") {
+
+            if (item.identifier == "internal") {
                 enabled = audioProcessor->enableInternalSynth;
             }
 
@@ -206,11 +206,10 @@ private:
                 deviceManager.setMidiInputDeviceEnabled(identifier, !deviceManager.isMidiInputDeviceEnabled(identifier));
                 updateContent();
             } else {
-                
-                if(identifier == "internal") {
+
+                if (identifier == "internal") {
                     audioProcessor->enableInternalSynth = !audioProcessor->enableInternalSynth;
-                }
-                else if (auto* midiOut = getEnabledMidiOutputWithID(identifier)) {
+                } else if (auto* midiOut = getEnabledMidiOutputWithID(identifier)) {
                     audioProcessor->midiOutputs.removeObject(midiOut);
                     updateContent();
                     return;

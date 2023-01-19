@@ -155,7 +155,6 @@ struct DrawableCurve final : public DrawableTemplate
         mouseListener.globalMouseDown = [this](MouseEvent const& e) {
             handleMouseDown(e);
         };
-        
     }
 
     void handleMouseDown(MouseEvent const& e)
@@ -168,7 +167,7 @@ struct DrawableCurve final : public DrawableTemplate
         auto dbl = 0;
 
         canvas->pd->setThis();
-        
+
         t_template* t = template_findbyname(scalar->sc_template);
         scalar_doclick(scalar->sc_vec, t, scalar, 0, canvas->patch.getPointer(), 0, 0, e.x, getHeight() - e.y, shift, alt, dbl, 1);
 
