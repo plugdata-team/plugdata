@@ -214,37 +214,26 @@ PluginProcessor::~PluginProcessor()
 
 void PluginProcessor::initialiseFilesystem()
 {
+    auto library = homeDir.getChildFile("Library");
+    auto deken = homeDir.getChildFile("Deken");
+    
     // Check if the abstractions directory exists, if not, unzip it from binaryData
     if (!homeDir.exists() || !abstractions.exists()) {
         MemoryInputStream binaryFilesystem(BinaryData::Filesystem_zip, BinaryData::Filesystem_zipSize, false);
         auto file = ZipFile(binaryFilesystem);
         file.uncompressTo(homeDir);
-
+        
         // Create filesystem for this specific version
         homeDir.getChildFile("plugdata_version").moveFileTo(versionDataDir);
-
-        auto library = homeDir.getChildFile("Library");
-        auto deken = homeDir.getChildFile("Deken");
-
-        // For transitioning between v0.5.3 -> v0.6.0
-        // TODO: remove this soon
-        auto library_backup = homeDir.getChildFile("Library_backup");
-        if (!library.exists()) {
-            library.createDirectory();
-        }
-
-#if !JUCE_WINDOWS
-        // This may not work on Windows, Windows users REALLY need to thrash their plugdata folder
-        else if (library.getChildFile("Deken").isDirectory() && !library.getChildFile("Deken").isSymbolicLink()) {
-            library.moveFileTo(library_backup);
-            library.createDirectory();
-        }
-#endif
-
+                
         deken.createDirectory();
-
+    }
+    
+    library.deleteRecursively();
+    library.createDirectory();
+    
+    // We always want to update the symlinks in case an older version of plugdata is was used
 #if JUCE_WINDOWS
-
         // Get paths that need symlinks
         auto abstractionsPath = versionDataDir.getChildFile("Abstractions").getFullPathName().replaceCharacters("/", "\\");
         auto documentationPath = versionDataDir.getChildFile("Documentation").getFullPathName().replaceCharacters("/", "\\");
@@ -266,7 +255,6 @@ void PluginProcessor::initialiseFilesystem()
         versionDataDir.getChildFile("Extra").createSymbolicLink(library.getChildFile("Extra"), true);
         deken.createSymbolicLink(library.getChildFile("Deken"), true);
 #endif
-    }
 
     // Check if settings file exists, if not, create the default
     if (!settingsFile.existsAsFile()) {
