@@ -373,7 +373,7 @@ struct ThemePanel : public Component
     void updateThemes() {
         for(int i = 0; i < 2; i++) {
             
-            int selectedIdx = themeSelectors[i].getSelectedItemIndex();
+            auto selectedText = themeSelectors[i].getText();
             themeSelectors[i].clear();
             
             StringArray allThemes;
@@ -386,8 +386,10 @@ struct ThemePanel : public Component
                 allThemes.add(themeName);
             }
             
-            if(isPositiveAndBelow(selectedIdx, themeSelectors[i].getNumItems())) {
-                themeSelectors[i].setSelectedItemIndex(selectedIdx, dontSendNotification);
+            int newIdx = allThemes.indexOf(selectedText);
+            
+            if(isPositiveAndBelow(newIdx, themeSelectors[i].getNumItems())) {
+                themeSelectors[i].setSelectedItemIndex(newIdx, dontSendNotification);
             }
             else {
                 themeSelectors[i].setSelectedItemIndex(i, dontSendNotification);
