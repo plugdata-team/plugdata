@@ -10,7 +10,7 @@ pdcategory: Message management
 
 arguments:
 - type: anything
-  description: list types to route; no argument — everything is sent to the outlet
+  description: list of types to route; no args — everything is sent to the outlet
   default:
 
 inlets:
