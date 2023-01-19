@@ -116,7 +116,7 @@ public:
 
     void titleChanged() override;
 
-    void setTheme(bool themeToUse);
+    void setTheme(String themeToUse);
 
     Colour getForegroundColour() override;
     Colour getBackgroundColour() override;

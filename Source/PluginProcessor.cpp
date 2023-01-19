@@ -154,7 +154,7 @@ PluginProcessor::PluginProcessor()
                 }
             }
 
-            setTheme(static_cast<bool>(settingsTree.getProperty("Theme")));
+            setTheme(settingsTree.getProperty("Theme").toString());
         }
 
         settingsChangedInternally = false;
@@ -164,7 +164,17 @@ PluginProcessor::PluginProcessor()
     };
 
     if (settingsTree.hasProperty("Theme")) {
-        setTheme(static_cast<bool>(settingsTree.getProperty("Theme")));
+        auto themeName = settingsTree.getProperty("Theme").toString();
+        
+        // Make sure theme exists
+        if(!settingsTree.getChildWithName("ColourThemes").getChildWithProperty("theme", themeName).isValid()) {
+            
+            settingsTree.setProperty("Theme", PlugDataLook::selectedThemes[0], nullptr);
+            themeName = PlugDataLook::selectedThemes[0];
+        }
+        
+        setTheme(themeName);
+        saveSettings();
     }
 
     if (settingsTree.hasProperty("Oversampling")) {
@@ -264,7 +274,7 @@ void PluginProcessor::initialiseFilesystem()
 
         // Add default settings
         settingsTree.setProperty("BrowserPath", homeDir.getChildFile("Library").getFullPathName(), nullptr);
-        settingsTree.setProperty("Theme", 1, nullptr);
+        settingsTree.setProperty("Theme", "light", nullptr);
         settingsTree.setProperty("GridEnabled", 1, nullptr);
         settingsTree.setProperty("Zoom", 1.0f, nullptr);
 
@@ -283,6 +293,11 @@ void PluginProcessor::initialiseFilesystem()
         settingsTree.appendChild(pathTree, nullptr);
 
         settingsTree.appendChild(ValueTree("Keymap"), nullptr);
+        
+        auto selectedThemes = ValueTree("SelectedThemes");
+        selectedThemes.setProperty("first", "light", nullptr);
+        selectedThemes.setProperty("second", "dark", nullptr);
+        settingsTree.appendChild(selectedThemes, nullptr);
 
         settingsTree.setProperty("DefaultFont", "Inter", nullptr);
         auto colourThemesTree = ValueTree("ColourThemes");
@@ -290,7 +305,7 @@ void PluginProcessor::initialiseFilesystem()
         for (auto const& theme : lnf->colourSettings) {
             auto themeName = theme.first;
             auto themeColours = theme.second;
-            auto themeTree = ValueTree(themeName);
+            auto themeTree = ValueTree("Theme");
             colourThemesTree.appendChild(themeTree, nullptr);
             themeTree.setProperty("theme", themeName, nullptr);
             for (auto const& defaultColours : lnf->defaultDarkTheme) {
@@ -309,6 +324,18 @@ void PluginProcessor::initialiseFilesystem()
             auto fontname = settingsTree.getProperty("DefaultFont").toString();
             PlugDataLook::setDefaultFont(fontname);
         }
+        
+        if (!settingsTree.getChildWithName("SelectedThemes").isValid()) {
+            auto selectedThemes = ValueTree("SelectedThemes");
+            selectedThemes.setProperty("first", "light", nullptr);
+            selectedThemes.setProperty("second", "dark", nullptr);
+            settingsTree.appendChild(selectedThemes, nullptr);
+        }
+        else {
+            auto selectedThemes = settingsTree.getChildWithName("SelectedThemes");
+            PlugDataLook::selectedThemes.set(0,  selectedThemes.getProperty("first").toString());
+            PlugDataLook::selectedThemes.set(1, selectedThemes.getProperty("second").toString());
+        }
 
         if (!settingsTree.getChildWithName("ColourThemes").isValid()) {
             auto colourThemesTree = ValueTree("ColourThemes");
@@ -316,10 +343,11 @@ void PluginProcessor::initialiseFilesystem()
             for (auto const& theme : lnf->colourSettings) {
                 auto themeName = theme.first;
                 auto themeColours = theme.second;
-                auto themeTree = ValueTree(themeName);
+                auto themeTree = ValueTree("Theme");
 
                 colourThemesTree.appendChild(themeTree, nullptr);
                 themeTree.setProperty("theme", themeName, nullptr);
+                
                 for (auto const& [colourId, colour] : PlugDataLook::defaultThemes.at(themeName)) {
                     auto [id, colourName, category] = PlugDataColourNames.at(colourId);
                     themeTree.setProperty(colourName, colour.toString(), nullptr);
@@ -333,7 +361,18 @@ void PluginProcessor::initialiseFilesystem()
             auto colourThemesTree = settingsTree.getChildWithName("ColourThemes");
             for (auto themeTree : colourThemesTree) {
                 auto themeName = themeTree.getProperty("theme");
+                
+                if(!PlugDataLook::defaultThemes.count(themeName))  {
+                    
+                    for (auto const& [colourId, colourNames] : PlugDataColourNames) {
+                        auto [id, colourName, category] = colourNames;
+                        lnf->colourSettings[themeName][colourId] = Colour::fromString(themeTree.getProperty(colourName).toString());
+                        
+                    }
 
+                    continue;
+                }
+                
                 for (auto const& [colourId, colour] : PlugDataLook::defaultThemes.at(themeName)) {
                     auto [id, colourName, category] = PlugDataColourNames.at(colourId);
 
@@ -364,8 +403,8 @@ void PluginProcessor::initialiseFilesystem()
         settingsTree.setProperty("DashedSignalConnection", false, nullptr);
     }
 
-    if (!settingsTree.hasProperty("StraighConnections")) {
-        settingsTree.setProperty("StraighConnections", false, nullptr);
+    if (!settingsTree.hasProperty("StraightConnections")) {
+        settingsTree.setProperty("StraightConnections", false, nullptr);
     }
 
     if (!settingsTree.hasProperty("Zoom")) {
@@ -1113,8 +1152,13 @@ pd::Patch* PluginProcessor::loadPatch(String patchText)
     return patch;
 }
 
-void PluginProcessor::setTheme(bool themeToUse)
+void PluginProcessor::setTheme(String themeToUse)
 {
+    // Check if theme name is valid
+    if(!settingsTree.getChildWithName("ColourThemes").getChildWithProperty("theme", themeToUse).isValid()) {
+        themeToUse = PlugDataLook::selectedThemes[0];
+    }
+    
     lnf->setTheme(themeToUse);
     if (auto* editor = dynamic_cast<PluginEditor*>(getActiveEditor())) {
         editor->getTopLevelComponent()->repaint();
