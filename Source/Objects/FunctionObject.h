@@ -160,7 +160,7 @@ struct FunctionObject final : public GUIObject {
         }
     }
 
-    void updateValue() override
+    void getPointsFromFunction()
     {
         // Don't update while dragging
         if (dragIdx != -1)
@@ -317,7 +317,7 @@ struct FunctionObject final : public GUIObject {
 
         dragIdx = -1;
 
-        updateValue();
+        getPointsFromFunction();
     }
 
     void triggerOutput()
@@ -377,7 +377,7 @@ struct FunctionObject final : public GUIObject {
 
         } else if (v.refersToSameSourceAs(range)) {
             setRange(getRange());
-            updateValue();
+            getPointsFromFunction();
         }
     }
 
@@ -410,7 +410,7 @@ struct FunctionObject final : public GUIObject {
             auto* function = static_cast<t_fake_function*>(ptr);
             Array<var> arr = { function->x_min, function->x_max };
             setParameterExcludingListener(range, var(arr));
-            updateValue();
+            getPointsFromFunction();
         }
     }
 };
