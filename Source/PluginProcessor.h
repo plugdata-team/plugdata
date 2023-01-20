@@ -170,6 +170,9 @@ public:
     InternalSynth internalSynth;
     std::atomic<bool> enableInternalSynth = false;
 #endif
+        
+    Value useDashedConnection;
+    Value useStraightConnection;
 
 private:
     void processInternal();

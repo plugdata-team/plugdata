@@ -420,10 +420,7 @@ public:
 
     Value hvccMode;
     Value autoconnect;
-        
-    Value useDashedConnection;
-    Value useStraightConnection;
-
+    
 private:
     std::unique_ptr<FileChooser> saveChooser;
     std::unique_ptr<FileChooser> openChooser;

@@ -187,6 +187,9 @@ PluginProcessor::PluginProcessor()
     }
 #endif
     
+    useDashedConnection = settingsTree.getChildWithName("ColourThemes").getChildWithProperty("theme", PlugDataLook::currentTheme).getProperty("DashedSignalConnection");
+    useStraightConnection = settingsTree.getChildWithName("ColourThemes").getChildWithProperty("theme", PlugDataLook::currentTheme).getProperty("StraightConnections");
+    
     updateSearchPaths();
 
     // ag: This needs to be done *after* the library data has been unpacked on
@@ -1141,10 +1144,8 @@ void PluginProcessor::setTheme(String themeToUse)
         themeToUse = PlugDataLook::selectedThemes[0];
     }
     else {
-        if (auto* editor = dynamic_cast<PluginEditor*>(getActiveEditor())) {
-            editor->useDashedConnection = static_cast<int>(themeTree.getProperty("DashedSignalConnection"));
-            editor->useStraightConnection = static_cast<int>(themeTree.getProperty("StraightConnections"));
-        }
+        useDashedConnection = static_cast<int>(themeTree.getProperty("DashedSignalConnection"));
+        useStraightConnection = static_cast<int>(themeTree.getProperty("StraightConnections"));
     }
 
     lnf->setTheme(themeTree);
