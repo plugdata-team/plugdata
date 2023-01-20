@@ -135,6 +135,17 @@ struct PropertiesPanel : public PropertyPanel {
                 addAndMakeVisible(property);
             }
         }
+        
+        MultiPropertyComponent(String const& propertyName, Array<Value*> values, std::vector<String> options)
+            : Property(propertyName)
+            , numProperties(values.size())
+        {
+            for (int i = 0; i < numProperties; i++) {
+                auto* property = properties.add(new T(propertyName, *values[i], options));
+                property->setHideLabel(true);
+                addAndMakeVisible(property);
+            }
+        }
 
         void resized() override
         {

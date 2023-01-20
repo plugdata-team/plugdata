@@ -108,8 +108,6 @@ struct ThemePanel : public Component
 
     ValueTree settingsTree;
     Value fontValue;
-    Value dashedSignalConnection;
-    Value straightConnections;
 
     ComboBox themeSelectors[2];
 
@@ -329,14 +327,6 @@ struct ThemePanel : public Component
 
         addAndMakeVisible(panel);
 
-        // straight connections
-        straightConnections.referTo(settingsTree.getPropertyAsValue("StraightConnections", nullptr));
-        straightConnections.addListener(this);
-
-        // dashed signal setting
-        dashedSignalConnection.referTo(settingsTree.getPropertyAsValue("DashedSignalConnection", nullptr));
-        dashedSignalConnection.addListener(this);
-
         // font setting
         fontValue.setValue(LookAndFeel::getDefaultLookAndFeel().getTypefaceForFont(Font())->getName());
         fontValue.addListener(this);
@@ -346,7 +336,6 @@ struct ThemePanel : public Component
 
     void updateSwatches()
     {
-
         panel.clear();
         allPanels.clear();
 
@@ -382,13 +371,22 @@ struct ThemePanel : public Component
         addAndMakeVisible(*fontPanel);
 
         panel.addSection("Fonts", { fontPanel });
-
-        auto* useStraightConnections = new PropertiesPanel::BoolComponent("Use straight line for connections", straightConnections, { "No", "Yes" });
+        
+        for(int i = 0; i < 2; i++) {
+            swatches[PlugDataLook::selectedThemes[i]]["DashedSignalConnection"].referTo(settingsTree.getChildWithName("ColourThemes").getChildWithProperty("theme", PlugDataLook::selectedThemes[i]).getPropertyAsValue("DashedSignalConnection", nullptr));
+            
+            swatches[PlugDataLook::selectedThemes[i]]["StraightConnections"].referTo(settingsTree.getChildWithName("ColourThemes").getChildWithProperty("theme", PlugDataLook::selectedThemes[i]).getPropertyAsValue("StraightConnections", nullptr));
+        }
+        
+        Array<Value*> dashedConnectionValues = {&swatches[PlugDataLook::selectedThemes[0]]["DashedSignalConnection"],  &swatches[PlugDataLook::selectedThemes[1]]["DashedSignalConnection"]};
+        
+        Array<Value*> straightConnectionValues = {&swatches[PlugDataLook::selectedThemes[0]]["StraightConnections"],  &swatches[PlugDataLook::selectedThemes[1]]["StraightConnections"]};
+        
+        auto* useStraightConnections = new PropertiesPanel::MultiPropertyComponent<PropertiesPanel::BoolComponent>("Use straight line for connections", straightConnectionValues, { "No", "Yes" });
         allPanels.add(useStraightConnections);
         addAndMakeVisible(*useStraightConnections);
-
-        auto* useDashedSignalConnection = new PropertiesPanel::BoolComponent("Display signal connections dashed", dashedSignalConnection, { "No", "Yes" });
-
+        
+        auto* useDashedSignalConnection = new PropertiesPanel::MultiPropertyComponent< PropertiesPanel::BoolComponent>("Display signal connections dashed", dashedConnectionValues, { "No", "Yes" });
         allPanels.add(useDashedSignalConnection);
         addAndMakeVisible(*useDashedSignalConnection);
 
@@ -436,18 +434,6 @@ struct ThemePanel : public Component
         if (v.refersToSameSourceAs(fontValue)) {
             lnf.setDefaultFont(fontValue.toString());
             settingsTree.setProperty("DefaultFont", fontValue.getValue(), nullptr);
-            getTopLevelComponent()->repaint();
-            return;
-        }
-
-        if (v.refersToSameSourceAs(dashedSignalConnection)) {
-            settingsTree.setProperty("DashedSignalConnection", dashedSignalConnection.getValue(), nullptr);
-            getTopLevelComponent()->repaint();
-            return;
-        }
-
-        if (v.refersToSameSourceAs(straightConnections)) {
-            settingsTree.setProperty("StraightConnections", straightConnections.getValue(), nullptr);
             getTopLevelComponent()->repaint();
             return;
         }
@@ -509,12 +495,6 @@ struct ThemePanel : public Component
 
         lnf.setDefaultFont(fontValue.toString());
         settingsTree.setProperty("DefaultFont", fontValue.getValue(), nullptr);
-
-        straightConnections = false;
-        settingsTree.setProperty("StraightConnections", straightConnections.getValue(), nullptr);
-
-        dashedSignalConnection = false;
-        settingsTree.setProperty("DashedSignalConnection", dashedSignalConnection.getValue(), nullptr);
 
         auto colourThemesTree = settingsTree.getChildWithName("ColourThemes");
 

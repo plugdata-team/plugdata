@@ -1167,8 +1167,7 @@ struct PlugDataLook : public LookAndFeel_V4 {
 
         return allThemes;
     }
-
-    // TODO: swap this out for a string theme name perhaps?
+    
     static inline String currentTheme = "light";
     static inline StringArray selectedThemes = { "light", "dark" };
 };
