@@ -69,18 +69,14 @@ Connection::Connection(Canvas* parent, Iolet* s, Iolet* e, bool exists)
     componentMovedOrResized(*outlet, true, true);
     componentMovedOrResized(*inlet, true, true);
 
-    useStraightConnections.referTo(cnv->pd->useStraightConnection);
-    useStraightConnections.addListener(this);
-    valueChanged(useStraightConnections);
-
-    // Attach useDashedSignalConnection to the DashedSignalConnection property
-    useDashedSignalConnection.referTo(cnv->pd->useDashedConnection);
+    cnv->pd->useStraightConnection.addListener(this);
+    valueChanged(cnv->pd->useStraightConnection);
 
     // Listen for signal connection proptery changes
-    useDashedSignalConnection.addListener(this);
+    cnv->pd->useDashedConnection.addListener(this);
 
     // Make sure it gets updated on init
-    valueChanged(useDashedSignalConnection);
+    valueChanged(cnv->pd->useDashedConnection);
     valueChanged(presentationMode);
 
     updatePath();
@@ -89,12 +85,12 @@ Connection::Connection(Canvas* parent, Iolet* s, Iolet* e, bool exists)
 
 void Connection::valueChanged(Value& v)
 {
-    if (v.refersToSameSourceAs(useDashedSignalConnection)) {
-        useDashed = static_cast<bool>(useDashedSignalConnection.getValue());
+    if (v.refersToSameSourceAs(cnv->pd->useDashedConnection)) {
+        useDashed = static_cast<bool>(cnv->pd->useDashedConnection.getValue());
     } else if (v.refersToSameSourceAs(presentationMode)) {
         setVisible(presentationMode != var(true) && !cnv->isGraph);
-    } else if (v.refersToSameSourceAs(useStraightConnections)) {
-        useStraight = static_cast<bool>(useStraightConnections.getValue());
+    } else if (v.refersToSameSourceAs(cnv->pd->useStraightConnection)) {
+        useStraight = static_cast<bool>(cnv->pd->useStraightConnection.getValue());
         updatePath();
     }
 }
@@ -165,6 +161,9 @@ Connection::~Connection()
     if (inobj) {
         inobj->removeComponentListener(this);
     }
+    
+    cnv->pd->useDashedConnection.removeListener(this);
+    cnv->pd->useStraightConnection.removeListener(this);
 }
 
 bool Connection::hitTest(int x, int y)

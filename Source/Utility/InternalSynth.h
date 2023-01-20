@@ -7,11 +7,26 @@
 #include "FluidLite/include/fluidlite.h"
 #include "FluidLite/src/fluid_sfont.h"
 
+#include <StandaloneBinaryData.h>
+
 // InternalSynth is an internal General MIDI synthesizer that can be used as a MIDI output device
 // The goal is to get something similar to the "AU DLS Synth" in Max/MSP on macOS, but cross-platform
 // Since fluidsynth is alraedy included for the sfont~ object, we can reuse it here to read a GM soundfont
 
 struct InternalSynth {
+    
+    File homeDir = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory).getChildFile("plugdata");
+
+    File soundFont = homeDir.getChildFile("Library").getChildFile("Extra").getChildFile("GS").getChildFile("FluidR3Mono_GM.sf3");
+    
+    InternalSynth() {
+        // Unpack soundfont
+        if(!soundFont.existsAsFile()) {
+            FileOutputStream ostream(soundFont);
+            ostream.write(StandaloneBinaryData::FluidR3Mono_GM_sf3, StandaloneBinaryData::FluidR3Mono_GM_sf3Size);
+            ostream.flush();
+        }
+    }
     
     ~InternalSynth()
     {
@@ -43,10 +58,6 @@ struct InternalSynth {
             return;
         }
         
-        File homeDir = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory).getChildFile("plugdata");
-
-        auto soundFont = homeDir.getChildFile("Library").getChildFile("Extra").getChildFile("GS").getChildFile("FluidR3Mono_GM.sf3");
-
         internalBuffer.setSize(numChannels, blockSize);
         internalBuffer.clear();
         

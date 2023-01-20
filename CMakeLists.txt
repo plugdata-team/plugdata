@@ -283,8 +283,15 @@ file(GLOB PlugDataBinaryDataSources
     ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Filesystem.zip
     )
 
+file(GLOB StandaloneBinarySources
+    ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Extra/FluidR3Mono_GM.sf3
+    )
+
 juce_add_binary_data(PlugDataBinaryData SOURCES ${PlugDataBinaryDataSources})
 set_target_properties(PlugDataBinaryData PROPERTIES POSITION_INDEPENDENT_CODE ON)
+
+juce_add_binary_data(StandaloneBinaryData HEADER_NAME "StandaloneBinaryData.h" NAMESPACE StandaloneBinaryData SOURCES ${StandaloneBinarySources} )
+set_target_properties(StandaloneBinaryData PROPERTIES POSITION_INDEPENDENT_CODE ON)
 
 set(libs
   PlugDataBinaryData
@@ -308,9 +315,9 @@ elseif(UNIX AND NOT APPLE)
 endif()
 
 if(MSVC)
-target_link_libraries(plugdata_standalone PRIVATE pd ${CMAKE_CURRENT_SOURCE_DIR}/Plugins/Standalone/pd.lib ${libs})
+target_link_libraries(plugdata_standalone PRIVATE pd ${CMAKE_CURRENT_SOURCE_DIR}/Plugins/Standalone/pd.lib ${libs} StandaloneBinaryData)
 else()
-target_link_libraries(plugdata_standalone PRIVATE pd ${libs})
+target_link_libraries(plugdata_standalone PRIVATE pd ${libs} StandaloneBinaryData)
 endif()
 
 target_link_libraries(plugdata PRIVATE pd-multi ${libs})
