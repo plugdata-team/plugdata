@@ -8,6 +8,7 @@
 #include "Canvas.h"
 #include "Iolet.h"
 #include "LookAndFeel.h"
+#include "PluginEditor.h"
 
 Connection::Connection(Canvas* parent, Iolet* s, Iolet* e, bool exists)
     : cnv(parent)
@@ -69,12 +70,12 @@ Connection::Connection(Canvas* parent, Iolet* s, Iolet* e, bool exists)
     componentMovedOrResized(*outlet, true, true);
     componentMovedOrResized(*inlet, true, true);
 
-    useStraightConnections.referTo(cnv->pd->settingsTree.getPropertyAsValue("StraightConnections", nullptr));
+    useStraightConnections.referTo(cnv->editor->useStraightConnection);
     useStraightConnections.addListener(this);
     valueChanged(useStraightConnections);
 
     // Attach useDashedSignalConnection to the DashedSignalConnection property
-    useDashedSignalConnection.referTo(cnv->pd->settingsTree.getPropertyAsValue("DashedSignalConnection", nullptr));
+    useDashedSignalConnection.referTo(cnv->editor->useDashedConnection);
 
     // Listen for signal connection proptery changes
     useDashedSignalConnection.addListener(this);

@@ -353,6 +353,9 @@ void PluginProcessor::initialiseFilesystem()
 
                 colourThemesTree.appendChild(themeTree, nullptr);
                 themeTree.setProperty("theme", themeName, nullptr);
+                
+                themeTree.setProperty("DashedSignalConnection", false, nullptr);
+                themeTree.setProperty("StraightConnections", false, nullptr);
 
                 for (auto const& [colourId, colour] : PlugDataLook::defaultThemes.at(themeName)) {
                     auto [id, colourName, category] = PlugDataColourNames.at(colourId);
@@ -367,6 +370,13 @@ void PluginProcessor::initialiseFilesystem()
             auto colourThemesTree = settingsTree.getChildWithName("ColourThemes");
             for (auto themeTree : colourThemesTree) {
                 auto themeName = themeTree.getProperty("theme");
+                
+                if(!themeTree.hasProperty("DashedSignalConnection")) {
+                    themeTree.setProperty("DashedSignalConnection", true, nullptr);
+                }
+                if(!themeTree.hasProperty("StraightConnections")) {
+                    themeTree.setProperty("StraightConnections", false, nullptr);
+                }
 
                 if (!PlugDataLook::defaultThemes.count(themeName)) {
 
@@ -403,15 +413,6 @@ void PluginProcessor::initialiseFilesystem()
     if (!settingsTree.hasProperty("ReloadLastState")) {
         settingsTree.setProperty("ReloadLastState", false, nullptr);
     }
-
-    if (!settingsTree.hasProperty("DashedSignalConnection")) {
-        settingsTree.setProperty("DashedSignalConnection", false, nullptr);
-    }
-
-    if (!settingsTree.hasProperty("StraightConnections")) {
-        settingsTree.setProperty("StraightConnections", false, nullptr);
-    }
-
     if (!settingsTree.hasProperty("Zoom")) {
         settingsTree.setProperty("Zoom", 1.0f, nullptr);
     }
@@ -1169,12 +1170,22 @@ pd::Patch* PluginProcessor::loadPatch(String patchText)
 
 void PluginProcessor::setTheme(String themeToUse)
 {
+    
+    auto themeTree = settingsTree.getChildWithName("ColourThemes").getChildWithProperty("theme", themeToUse);
     // Check if theme name is valid
-    if (!settingsTree.getChildWithName("ColourThemes").getChildWithProperty("theme", themeToUse).isValid()) {
+    if (!themeTree.isValid()) {
         themeToUse = PlugDataLook::selectedThemes[0];
+    }
+    else {
+        if (auto* editor = dynamic_cast<PluginEditor*>(getActiveEditor())) {
+            editor->useDashedConnection = static_cast<int>(themeTree.getProperty("DashedSignalConnection"));
+            editor->useStraightConnection = static_cast<int>(themeTree.getProperty("StraightConnections"));
+        }
     }
 
     lnf->setTheme(themeToUse);
+    
+    
     if (auto* editor = dynamic_cast<PluginEditor*>(getActiveEditor())) {
         editor->getTopLevelComponent()->repaint();
         editor->repaint();

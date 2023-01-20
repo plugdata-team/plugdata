@@ -88,6 +88,9 @@ PluginEditor::PluginEditor(PluginProcessor& p)
 
     theme.referTo(pd->settingsTree.getPropertyAsValue("Theme", nullptr));
     theme.addListener(this);
+    
+    useDashedConnection = pd->settingsTree.getChildWithName("ColourThemes").getChildWithProperty("theme", PlugDataLook::currentTheme).getProperty("DashedSignalConnection");
+    useStraightConnection = pd->settingsTree.getChildWithName("ColourThemes").getChildWithProperty("theme", PlugDataLook::currentTheme).getProperty("StraightConnections");
 
     if (!pd->settingsTree.hasProperty("HvccMode"))
         pd->settingsTree.setProperty("HvccMode", false, nullptr);
