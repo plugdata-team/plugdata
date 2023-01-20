@@ -50,15 +50,30 @@ def globFindAndReplaceText(path, to_find, replacement):
             file.write(filedata)
 
 def makeArchive(name, root_dir, base_dir):
-  #shutil.make_archive(name, "zip", root_dir, base_dir)
-  os.system("zip -9 -r --quiet " + name + ".zip " + base_dir)
+  shutil.make_archive(name, "zip", root_dir, base_dir)
 
-def addBinaryResources(path):
-  filename = os.path.basename(path);
-  name = os.path.splitext(path)[0];
-  os.system("python3 " + os.path.dirname(os.path.realpath(__file__)) + "/bin2c.py " + name + ".cpp " + name + ".h " + filename + " " + name)
-  copyFile(name + ".cpp", outpath + "/BinaryData")
-  copyFile(name + ".h", outpath + "/BinaryData")
+def split(arr, size):
+  arrs = []
+  while len(arr) > size:
+    pice = arr[:size]
+    arrs.append(pice)
+    arr   = arr[size:]
+  arrs.append(arr)
+  return arrs
+
+def splitFile(file, maxsize):
+  with open(file, 'rb') as fd:
+    data_in = split(fd.read(), maxsize)
+    files = []
+    count = 0;
+    for entry in data_in:
+      name = os.path.splitext(file)[0];
+      extension = os.path.splitext(file)[1];
+      filename = name + "_" + str(count) + extension
+      files += filename
+      with open(filename, "wb") as fd:
+        fd.write(entry)
+      count += 1
 
 if existsAsFile("../Filesystem.zip"):
     removeFile("../Filesystem.zip")
@@ -133,11 +148,5 @@ changeWorkingDir("./..")
 makeArchive("Filesystem", "./", "./plugdata_version")
 removeDir("./plugdata_version")
 
-outpath = sys.argv[1]
-
-if existsAsDir(outpath + "/BinaryData"):
-  removeDir(outpath + "/BinaryData")
-
-makeDir(outpath + "/BinaryData")
-
-addBinaryResources("./Filesystem.zip")
+splitFile("./Filesystem.zip", 17000000)
+removeFile("./Filesystem.zip")
