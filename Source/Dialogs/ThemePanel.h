@@ -369,6 +369,11 @@ struct ThemePanel : public Component
         
         Array<Value*> straightConnectionValues = {&swatches[PlugDataLook::selectedThemes[0]]["StraightConnections"],  &swatches[PlugDataLook::selectedThemes[1]]["StraightConnections"]};
         
+        swatches[PlugDataLook::selectedThemes[0]]["DashedSignalConnection"].addListener(this);
+        swatches[PlugDataLook::selectedThemes[1]]["DashedSignalConnection"].addListener(this);
+        swatches[PlugDataLook::selectedThemes[0]]["StraightConnections"].addListener(this);
+        swatches[PlugDataLook::selectedThemes[1]]["StraightConnections"].addListener(this);
+        
         auto* useStraightConnections = new PropertiesPanel::MultiPropertyComponent<PropertiesPanel::BoolComponent>("Use straight line for connections", straightConnectionValues, { "No", "Yes" });
         allPanels.add(useStraightConnections);
         addAndMakeVisible(*useStraightConnections);
@@ -423,6 +428,26 @@ struct ThemePanel : public Component
             settingsTree.setProperty("DefaultFont", fontValue.getValue(), nullptr);
             getTopLevelComponent()->repaint();
             return;
+        }
+        
+        if (v.refersToSameSourceAs(swatches[PlugDataLook::currentTheme]["DashedSignalConnection"])) {
+            
+            getTopLevelComponent()->repaint();
+            
+            auto themeTree = settingsTree.getChildWithName("ColourThemes");
+            auto currentThemeTree = themeTree.getChildWithProperty("theme", lnf.currentTheme);
+            lnf.setTheme(currentThemeTree);
+            
+        }
+        if (v.refersToSameSourceAs(swatches[PlugDataLook::currentTheme]["StraightConnections"])) {
+            
+            getTopLevelComponent()->repaint();
+            
+            auto themeTree = settingsTree.getChildWithName("ColourThemes");
+            auto currentThemeTree = themeTree.getChildWithProperty("theme", lnf.currentTheme);
+            lnf.setTheme(currentThemeTree);
+            
+            // TODO: update all connection paths!
         }
 
         auto themeTree = settingsTree.getChildWithName("ColourThemes");
