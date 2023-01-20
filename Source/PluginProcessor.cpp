@@ -181,10 +181,12 @@ PluginProcessor::PluginProcessor()
         oversampling = static_cast<int>(settingsTree.getProperty("Oversampling"));
     }
     
+#if PLUGDATA_STANDALONE
     if (settingsTree.hasProperty("InternalSynth")) {
         enableInternalSynth = static_cast<int>(settingsTree.getProperty("InternalSynth"));
     }
-
+#endif
+    
     updateSearchPaths();
 
     // ag: This needs to be done *after* the library data has been unpacked on

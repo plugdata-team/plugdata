@@ -89,12 +89,6 @@ makeDir("Documentation/11.heavylib")
 copyDir("../../Libraries/heavylib", "./Abstractions/heavylib")
 globMove("./Abstractions/heavylib/*-help.pd", "./Documentation/11.heavylib")
 
-# Remove else and cyclone prefixes in helpfiles
-globFindAndReplaceText("./Abstractions/else/*.pd", "else/", "")
-globFindAndReplaceText("./Abstractions/*.pd", "cyclone/", "")
-globFindAndReplaceText("./Documentation/9.else/*.pd", "else/", "")
-globFindAndReplaceText("./Documentation/10.cyclone/*.pd", "cyclone/", "")
-
 removeFile("./Documentation/Makefile.am")
 
 # pd-lua
@@ -105,6 +99,13 @@ makeDir("Extra/GS")
 copyDir("../../Libraries/ELSE/Extra", "Extra/ELSE");
 copyDir("../../Libraries/ELSE/sfont~/sf", "Extra/ELSE/sf");
 globCopy("../../Libraries/pure-data/doc/sound/*", "Extra/ELSE");
+
+# Remove else and cyclone prefixes in helpfiles
+globFindAndReplaceText("./Abstractions/else/*.pd", "else/", "")
+globFindAndReplaceText("./Extra/else/*.pd", "else/", "")
+globFindAndReplaceText("./Abstractions/*.pd", "cyclone/", "")
+globFindAndReplaceText("./Documentation/9.else/*.pd", "else/", "")
+globFindAndReplaceText("./Documentation/10.cyclone/*.pd", "cyclone/", "")
 
 pdlua_srcdir = "../../Libraries/pd-lua/"
 for src in ["pd.lua", "COPYING", "README"]:
