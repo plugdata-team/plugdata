@@ -95,7 +95,7 @@ struct InternalSynth {
                 fluid_synth_pitch_bend(synth, channel, message.getPitchWheelValue());
             }
             if (message.isSysEx()) {
-                fluid_synth_sysex(synth, message.getSysExData(), message.getSysExDataSize(), nullptr, nullptr, nullptr, 0);
+                fluid_synth_sysex(synth, reinterpret_cast<const char*>(message.getSysExData()), message.getSysExDataSize(), nullptr, nullptr, nullptr, 0);
             }
         }
         
