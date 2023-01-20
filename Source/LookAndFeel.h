@@ -209,7 +209,6 @@ struct PlugDataLook : public LookAndFeel_V4 {
         , iconFont(resources->iconTypeface)
         , monoFont(resources->monoTypeface)
     {
-        setTheme("light");
         setDefaultSansSerifTypeface(resources->defaultTypeface);
     }
 
@@ -976,193 +975,99 @@ struct PlugDataLook : public LookAndFeel_V4 {
             lnf.setDefaultSansSerifTypeface(newFont.getTypefacePtr());
         }
     }
+    
+    static inline const String defaultThemesXml = "<ColourThemes>\n"
+    "    <Theme theme=\"classic\" toolbar_background=\"ffffffff\" toolbar_text=\"ff000000\"\n"
+    "           toolbar_active=\"ff000000\" tab_background=\"ffffffff\" tab_text=\"ff000000\"\n"
+    "           active_tab_background=\"ffffffff\" active_tab_text=\"ff000000\" canvas_background=\"ffffffff\"\n"
+    "           canvas_text=\"ff000000\" canvas_dots=\"ff000000\" default_object_background=\"ffffffff\"\n"
+    "           object_outline_colour=\"ff000000\" selected_object_outline_colour=\"ff000000\"\n"
+    "           outline_colour=\"ff000000\" data_colour=\"ff000000\" connection_colour=\"ff000000\"\n"
+    "           signal_colour=\"ff000000\" dialog_background=\"ffffffff\" sidebar_colour=\"ffffffff\"\n"
+    "           sidebar_text=\"ff000000\" sidebar_background_active=\"ffffffff\"\n"
+    "           sidebar_active_text=\"ff000000\" levelmeter_active=\"ff000000\" levelmeter_inactive=\"ffffffff\"\n"
+    "           levelmeter_track=\"ff000000\" levelmeter_thumb=\"ff000000\" panel_colour=\"ffffffff\"\n"
+    "           panel_text=\"ff000000\" panel_background_active=\"ffffffff\" panel_active_text=\"ff000000\"\n"
+    "           popup_background=\"ffffffff\" popup_background_active=\"ffffffff\"\n"
+    "           popup_text=\"ff000000\" popup_active_text=\"ff000000\" scrollbar_thumb=\"ff000000\"\n"
+    "           graph_resizer=\"ff000000\" grid_colour=\"ff000000\" caret_colour=\"ff000000\"\n"
+    "           DashedSignalConnection=\"1\" StraightConnections=\"1\"/>\n"
+    "    <Theme theme=\"dark\" toolbar_background=\"ff191919\" toolbar_text=\"ffffffff\"\n"
+    "           toolbar_active=\"ff42a2c8\" tab_background=\"ff191919\" tab_text=\"ffffffff\"\n"
+    "           active_tab_background=\"ff232323\" active_tab_text=\"ffffffff\" canvas_background=\"ff232323\"\n"
+    "           canvas_text=\"ffffffff\" canvas_dots=\"ff7f7f7f\" default_object_background=\"ff191919\"\n"
+    "           object_outline_colour=\"ff696969\" selected_object_outline_colour=\"ff42a2c8\"\n"
+    "           outline_colour=\"ff393939\" data_colour=\"ff42a2c8\" connection_colour=\"ffe1e1e1\"\n"
+    "           signal_colour=\"ffff8500\" dialog_background=\"ff191919\" sidebar_colour=\"ff191919\"\n"
+    "           sidebar_text=\"ffffffff\" sidebar_background_active=\"ff282828\"\n"
+    "           sidebar_active_text=\"ffffffff\" levelmeter_active=\"ff42a2c8\" levelmeter_inactive=\"ff2d2d2d\"\n"
+    "           levelmeter_track=\"fff5f5f5\" levelmeter_thumb=\"fff5f5f5\" panel_colour=\"ff232323\"\n"
+    "           panel_text=\"ffffffff\" panel_background_active=\"ff373737\" panel_active_text=\"ffffffff\"\n"
+    "           popup_background=\"ff191919\" popup_background_active=\"ff282828\"\n"
+    "           popup_text=\"ffffffff\" popup_active_text=\"ffffffff\" scrollbar_thumb=\"ff42a2c8\"\n"
+    "           graph_resizer=\"ff42a2c8\" grid_colour=\"ff42a2c8\" caret_colour=\"ff42a2c8\"\n"
+    "           DashedSignalConnection=\"1\" StraightConnections=\"0\"/>\n"
+    "    <Theme theme=\"light\" toolbar_background=\"ffe4e4e4\" toolbar_text=\"ff5a5a5a\"\n"
+    "           toolbar_active=\"ff007aff\" tab_background=\"ffe4e4e4\" tab_text=\"ff5a5a5a\"\n"
+    "           active_tab_background=\"fffafafa\" active_tab_text=\"ff5a5a5a\" canvas_background=\"fffafafa\"\n"
+    "           canvas_text=\"ff5a5a5a\" canvas_dots=\"ff909090\" default_object_background=\"ffe4e4e4\"\n"
+    "           object_outline_colour=\"ffa8a8a8\" selected_object_outline_colour=\"ff007aff\"\n"
+    "           outline_colour=\"ffc8c8c8\" data_colour=\"ff007aff\" connection_colour=\"ffb3b3b3\"\n"
+    "           signal_colour=\"ffff8500\" dialog_background=\"ffe4e4e4\" sidebar_colour=\"ffeeeeee\"\n"
+    "           sidebar_text=\"ff5a5a5a\" sidebar_background_active=\"ffd9d9d9\"\n"
+    "           sidebar_active_text=\"ff5a5a5a\" levelmeter_active=\"ff007aff\" levelmeter_inactive=\"ffeeeeee\"\n"
+    "           levelmeter_track=\"ff5a5a5a\" levelmeter_thumb=\"ff7a7a7a\" panel_colour=\"fffafafa\"\n"
+    "           panel_text=\"ff5a5a5a\" panel_background_active=\"ffebebeb\" panel_active_text=\"ff5a5a5a\"\n"
+    "           popup_background=\"ffe4e4e4\" popup_background_active=\"ffcfcfcf\"\n"
+    "           popup_text=\"ff5a5a5a\" popup_active_text=\"ff5a5a5a\" scrollbar_thumb=\"ff007aff\"\n"
+    "           graph_resizer=\"ff007aff\" grid_colour=\"ff007aff\" caret_colour=\"ff007aff\"\n"
+    "           DashedSignalConnection=\"0\" StraightConnections=\"0\"/>\n"
+    "  </ColourThemes>";
 
-    inline static const std::map<PlugDataColour, Colour> defaultDarkTheme = {
-        { PlugDataColour::toolbarBackgroundColourId, Colour(25, 25, 25) },
-        { PlugDataColour::toolbarTextColourId, Colour(255, 255, 255) },
-        { PlugDataColour::toolbarActiveColourId, Colour(66, 162, 200) },
-
-        { PlugDataColour::tabBackgroundColourId, Colour(25, 25, 25) },
-        { PlugDataColour::tabTextColourId, Colour(255, 255, 255) },
-        { PlugDataColour::activeTabBackgroundColourId, Colour(35, 35, 35) },
-        { PlugDataColour::activeTabTextColourId, Colour(255, 255, 255) },
-
-        { PlugDataColour::canvasBackgroundColourId, Colour(35, 35, 35) },
-        { PlugDataColour::canvasTextColourId, Colour(255, 255, 255) },
-        { PlugDataColour::canvasDotsColourId, Colour(127, 127, 127) },
-
-        { PlugDataColour::outlineColourId, Colour(57, 57, 57) },
-
-        { PlugDataColour::defaultObjectBackgroundColourId, Colour(25, 25, 25) },
-        { PlugDataColour::objectOutlineColourId, Colour(105, 105, 105) },
-        { PlugDataColour::objectSelectedOutlineColourId, Colour(66, 162, 200) },
-
-        { PlugDataColour::dataColourId, Colour(66, 162, 200) },
-        { PlugDataColour::connectionColourId, Colour(225, 225, 225) },
-        { PlugDataColour::signalColourId, Colour(255, 133, 0) },
-        { PlugDataColour::dialogBackgroundColourId, Colour(25, 25, 25) },
-        { PlugDataColour::panelBackgroundColourId, Colour(35, 35, 35) },
-        { PlugDataColour::panelTextColourId, Colour(255, 255, 255) },
-        { PlugDataColour::panelActiveBackgroundColourId, Colour(55, 55, 55) },
-        { PlugDataColour::panelActiveTextColourId, Colour(255, 255, 255) },
-
-        { PlugDataColour::scrollbarThumbColourId, Colour(66, 162, 200) },
-        { PlugDataColour::gridLineColourId, Colour(66, 162, 200) },
-        { PlugDataColour::caretColourId, Colour(66, 162, 200) },
-        { PlugDataColour::resizeableCornerColourId, Colour(66, 162, 200) },
-
-        { PlugDataColour::sidebarBackgroundColourId, Colour(25, 25, 25) },
-        { PlugDataColour::sidebarTextColourId, Colour(255, 255, 255) },
-        { PlugDataColour::sidebarActiveBackgroundColourId, Colour(40, 40, 40) },
-        { PlugDataColour::sidebarActiveTextColourId, Colour(255, 255, 255) },
-
-        { PlugDataColour::levelMeterActiveColourId, Colour(66, 162, 200) },
-        { PlugDataColour::levelMeterInactiveColourId, Colour(45, 45, 45) },
-        { PlugDataColour::levelMeterTrackColourId, Colour(245, 245, 245) },
-        { PlugDataColour::levelMeterThumbColourId, Colour(245, 245, 245) },
-
-        { PlugDataColour::popupMenuBackgroundColourId, Colour(25, 25, 25) },
-        { PlugDataColour::popupMenuActiveBackgroundColourId, Colour(40, 40, 40) },
-        { PlugDataColour::popupMenuTextColourId, Colour(255, 255, 255) },
-        { PlugDataColour::popupMenuActiveTextColourId, Colour(255, 255, 255) }
-    };
-
-    inline static const std::map<PlugDataColour, Colour> defaultLightTheme = {
-        { PlugDataColour::toolbarBackgroundColourId, Colour(228, 228, 228) },
-        { PlugDataColour::toolbarTextColourId, Colour(90, 90, 90) },
-        { PlugDataColour::toolbarActiveColourId, Colour(0, 122, 255) },
-
-        { PlugDataColour::tabBackgroundColourId, Colour(228, 228, 228) },
-        { PlugDataColour::tabTextColourId, Colour(90, 90, 90) },
-        { PlugDataColour::activeTabBackgroundColourId, Colour(250, 250, 250) },
-        { PlugDataColour::activeTabTextColourId, Colour(90, 90, 90) },
-
-        { PlugDataColour::canvasBackgroundColourId, Colour(250, 250, 250) },
-        { PlugDataColour::canvasTextColourId, Colour(90, 90, 90) },
-        { PlugDataColour::canvasDotsColourId, Colour(144, 144, 144) },
-
-        { PlugDataColour::outlineColourId, Colour(200, 200, 200) },
-        { PlugDataColour::dataColourId, Colour(0, 122, 255) },
-        { PlugDataColour::connectionColourId, Colour(179, 179, 179) },
-        { PlugDataColour::signalColourId, Colour(255, 133, 0) },
-
-        { PlugDataColour::defaultObjectBackgroundColourId, Colour(228, 228, 228) },
-        { PlugDataColour::objectOutlineColourId, Colour(168, 168, 168) },
-        { PlugDataColour::objectSelectedOutlineColourId, Colour(0, 122, 255) },
-
-        { PlugDataColour::dialogBackgroundColourId, Colour(228, 228, 228) },
-        { PlugDataColour::panelBackgroundColourId, Colour(250, 250, 250) },
-        { PlugDataColour::panelTextColourId, Colour(90, 90, 90) },
-        { PlugDataColour::panelActiveBackgroundColourId, Colour(235, 235, 235) },
-        { PlugDataColour::panelActiveTextColourId, Colour(90, 90, 90) },
-
-        { PlugDataColour::scrollbarThumbColourId, Colour(0, 122, 255) },
-        { PlugDataColour::resizeableCornerColourId, Colour(0, 122, 255) },
-        { PlugDataColour::gridLineColourId, Colour(0, 122, 255) },
-        { PlugDataColour::caretColourId, Colour(0, 122, 255) },
-
-        { PlugDataColour::sidebarBackgroundColourId, Colour(238, 238, 238) },
-        { PlugDataColour::sidebarTextColourId, Colour(90, 90, 90) },
-        { PlugDataColour::sidebarActiveBackgroundColourId, Colour(217, 217, 217) },
-        { PlugDataColour::sidebarActiveTextColourId, Colour(90, 90, 90) },
-
-        { PlugDataColour::levelMeterActiveColourId, Colour(0, 122, 255) },
-        { PlugDataColour::levelMeterInactiveColourId, Colour(238, 238, 238) },
-        { PlugDataColour::levelMeterTrackColourId, Colour(90, 90, 90) },
-        { PlugDataColour::levelMeterThumbColourId, Colour(122, 122, 122) },
-
-        { PlugDataColour::popupMenuBackgroundColourId, Colour(228, 228, 228) },
-        { PlugDataColour::popupMenuActiveBackgroundColourId, Colour(207, 207, 207) },
-        { PlugDataColour::popupMenuTextColourId, Colour(90, 90, 90) },
-        { PlugDataColour::popupMenuActiveTextColourId, Colour(90, 90, 90) }
-    };
-
-    inline static const std::map<PlugDataColour, Colour> defaultClassicTheme = {
-        { PlugDataColour::toolbarBackgroundColourId, Colour(255, 255, 255) },
-        { PlugDataColour::toolbarTextColourId, Colour(0, 0, 0) },
-        { PlugDataColour::toolbarActiveColourId, Colour(0, 0, 0) },
-
-        { PlugDataColour::tabBackgroundColourId, Colour(255, 255, 255) },
-        { PlugDataColour::tabTextColourId, Colour(0, 0, 0) },
-        { PlugDataColour::activeTabBackgroundColourId, Colour(255, 255, 255) },
-        { PlugDataColour::activeTabTextColourId, Colour(0, 0, 0) },
-
-        { PlugDataColour::canvasBackgroundColourId, Colour(255, 255, 255) },
-        { PlugDataColour::canvasTextColourId, Colour(0, 0, 0) },
-        { PlugDataColour::canvasDotsColourId, Colour(0, 0, 0) },
-
-        { PlugDataColour::outlineColourId, Colour(0, 0, 0) },
-        { PlugDataColour::dataColourId, Colour(0, 0, 0) },
-        { PlugDataColour::connectionColourId, Colour(0, 0, 0) },
-        { PlugDataColour::signalColourId, Colour(0, 0, 0) },
-
-        { PlugDataColour::defaultObjectBackgroundColourId, Colour(255, 255, 255) },
-        { PlugDataColour::objectOutlineColourId, Colour(0, 0, 0) },
-        { PlugDataColour::objectSelectedOutlineColourId, Colour(0, 0, 0) },
-
-        { PlugDataColour::dialogBackgroundColourId, Colour(255, 255, 255) },
-        { PlugDataColour::panelBackgroundColourId, Colour(255, 255, 255) },
-        { PlugDataColour::panelTextColourId, Colour(0, 0, 0) },
-        { PlugDataColour::panelActiveBackgroundColourId, Colour(255, 255, 255) },
-        { PlugDataColour::panelActiveTextColourId, Colour(0, 0, 00) },
-
-        { PlugDataColour::scrollbarThumbColourId, Colour(0, 0, 0) },
-        { PlugDataColour::resizeableCornerColourId, Colour(0, 0, 0) },
-        { PlugDataColour::gridLineColourId, Colour(0, 0, 0) },
-        { PlugDataColour::caretColourId, Colour(0, 0, 0) },
-
-        { PlugDataColour::sidebarBackgroundColourId, Colour(255, 255, 255) },
-        { PlugDataColour::sidebarTextColourId, Colour(0, 0, 0) },
-        { PlugDataColour::sidebarActiveBackgroundColourId, Colour(255, 255, 255) },
-        { PlugDataColour::sidebarActiveTextColourId, Colour(0, 0, 0) },
-
-        { PlugDataColour::levelMeterActiveColourId, Colour(0, 0, 0) },
-        { PlugDataColour::levelMeterInactiveColourId, Colour(255, 255, 255) },
-        { PlugDataColour::levelMeterTrackColourId, Colour(0, 0, 0) },
-        { PlugDataColour::levelMeterThumbColourId, Colour(0, 0, 0) },
-
-        { PlugDataColour::popupMenuBackgroundColourId, Colour(255, 255, 255) },
-        { PlugDataColour::popupMenuActiveBackgroundColourId, Colour(255, 255, 255) },
-        { PlugDataColour::popupMenuTextColourId, Colour(0, 0, 0) },
-        { PlugDataColour::popupMenuActiveTextColourId, Colour(0, 0, 0) }
-    };
-
-    inline static const std::map<String, std::map<PlugDataColour, Colour>> defaultThemes = {
-        { "light", defaultLightTheme },
-        { "dark", defaultDarkTheme },
-        { "classic", defaultClassicTheme }
-    };
-
-    inline static std::map<String, std::map<PlugDataColour, Colour>> colourSettings = defaultThemes;
-
-    void resetColours()
+    void resetColours(ValueTree themesTree)
     {
-        colourSettings = defaultThemes;
+        auto defaultThemesTree = ValueTree::fromXml(PlugDataLook::defaultThemesXml);
+        
+        for (auto themeTree : defaultThemesTree) {
+            if(themesTree.getChildWithProperty("theme", themeTree.getProperty("theme").toString()).isValid()) {
+                auto childToRemove = themesTree.getChildWithProperty("theme", themeTree.getProperty("theme"));
+                themesTree.removeChild(childToRemove, nullptr);
+            }
+            
+            themesTree.appendChild(themeTree.createCopy(), nullptr);
+        }
+        
         selectedThemes = { "light", "dark" };
-        setTheme("light");
     }
 
-    void setThemeColour(String themeName, PlugDataColour colourId, Colour colour)
+    void setThemeColour(ValueTree themeTree, PlugDataColour colourId, Colour colour)
     {
-        colourSettings[themeName][colourId] = colour;
+        themeTree.setProperty(std::get<1>(PlugDataColourNames.at(colourId)), colour.toString(), nullptr);
     }
 
-    static Colour getThemeColour(String themeName, PlugDataColour colourId)
+    static Colour getThemeColour(ValueTree themeTree, PlugDataColour colourId)
     {
-        return colourSettings[themeName][colourId];
+        return Colour::fromString(themeTree.getProperty(std::get<1>(PlugDataColourNames.at(colourId))).toString());
     }
 
-    void setTheme(String themeName)
+    void setTheme(ValueTree themeTree)
     {
-        setColours(colourSettings.at(themeName));
-        currentTheme = themeName;
+        std::map<PlugDataColour, Colour> colours;
+        
+        for (auto const& [colourId, colourNames] : PlugDataColourNames) {
+            auto [id, colourName, category] = colourNames;
+            colours[colourId] = Colour::fromString(themeTree.getProperty(colourName).toString());
+        }
+        
+        setColours(colours);
+        currentTheme = themeTree.getProperty("theme").toString();
     }
 
-    static StringArray getAllThemes()
+    static StringArray getAllThemes(ValueTree themeTree)
     {
         StringArray allThemes;
-        for (auto& [themeName, theme] : PlugDataLook::colourSettings) {
-            allThemes.add(themeName);
+        for (auto theme : themeTree) {
+            allThemes.add(theme.getProperty("theme").toString());
         }
 
         return allThemes;
