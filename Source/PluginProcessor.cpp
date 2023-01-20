@@ -6,8 +6,6 @@
 
 #include <JuceHeader.h>
 
-#include <Filesystem.h>
-
 #ifdef JUCE_WINDOWS
 #    include "Utility/OSUtils.h"
 #endif
@@ -235,8 +233,28 @@ void PluginProcessor::initialiseFilesystem()
     
     // Check if the abstractions directory exists, if not, unzip it from binaryData
     if (!homeDir.exists() || !abstractions.exists()) {
-
-        MemoryInputStream memstream(__Filesystem, __Filesystem_length, false);
+        
+        // Binary data shouldn't be too big, then the compiler will run out of memory
+        // To prevent this, we split the binarydata into multiple files, and add them back together here
+        std::vector<char> allData;
+        int i = 0;
+        while(true) {
+            int size;
+            auto* resource = BinaryData::getNamedResource((String("Filesystem_") + String(i) + "_zip").toRawUTF8(), size);
+            
+            if(!resource) {
+                break;
+            }
+            
+            auto oldSize = allData.size();
+            allData.resize(oldSize + size);
+            
+            std::copy(resource, resource + size, allData.begin() + oldSize);
+            
+            i++;
+        }
+        
+        MemoryInputStream memstream(allData.data(), allData.size(), false);
        
         auto file = ZipFile(memstream);
         file.uncompressTo(homeDir);
