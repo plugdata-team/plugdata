@@ -22,7 +22,7 @@ struct Inspector : public Component {
         g.fillRect(getLocalBounds().withTrimmedBottom(30));
 
         g.setColour(findColour(PlugDataColour::toolbarBackgroundColourId));
-        g.fillRoundedRectangle(getLocalBounds().removeFromBottom(30).toFloat(), Constants::windowCornerRadius);
+        g.fillRoundedRectangle(getLocalBounds().removeFromBottom(30).toFloat(), PlugDataLook::windowCornerRadius);
 
         g.setColour(findColour(PlugDataColour::sidebarTextColourId));
         g.drawText(title, getLocalBounds().removeFromTop(23), Justification::centred);

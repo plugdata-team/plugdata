@@ -9,12 +9,6 @@
 #include <JuceHeader.h>
 #include <map>
 
-struct Constants {
-    inline static float const windowCornerRadius = 7.5f;
-    inline static float const defaultCornerRadius = 6.0f;
-    inline static float const smallCornerRadius = 4.0f;
-    inline static float const objectCornerRadius = 2.75f;
-};
 
 #include "Utility/StackShadow.h"
 
@@ -440,7 +434,7 @@ struct PlugDataLook : public LookAndFeel_V4 {
 
         if (Desktop::canUseSemiTransparentWindows()) {
             Path shadowPath;
-            shadowPath.addRoundedRectangle(Rectangle<float>(0.0f, 0.0f, width, height).reduced(10.0f), Constants::defaultCornerRadius);
+            shadowPath.addRoundedRectangle(Rectangle<float>(0.0f, 0.0f, width, height).reduced(10.0f), PlugDataLook::defaultCornerRadius);
             StackShadow::renderDropShadow(g, shadowPath, Colour(0, 0, 0).withAlpha(0.6f), 10, { 0, 2 });
 
             // Add a bit of alpha to disable the opaque flag
@@ -448,10 +442,10 @@ struct PlugDataLook : public LookAndFeel_V4 {
             g.setColour(background);
 
             auto bounds = Rectangle<float>(0, 0, width, height).reduced(7);
-            g.fillRoundedRectangle(bounds, Constants::defaultCornerRadius);
+            g.fillRoundedRectangle(bounds, PlugDataLook::defaultCornerRadius);
 
             g.setColour(findColour(PlugDataColour::outlineColourId));
-            g.drawRoundedRectangle(bounds, Constants::defaultCornerRadius, 1.0f);
+            g.drawRoundedRectangle(bounds, PlugDataLook::defaultCornerRadius, 1.0f);
         } else {
             auto bounds = Rectangle<float>(0, 0, width, height);
 
@@ -662,7 +656,7 @@ struct PlugDataLook : public LookAndFeel_V4 {
 
     void drawPdButton(Graphics& g, Button& button, Colour const& backgroundColour, bool shouldDrawButtonAsHighlighted, bool shouldDrawButtonAsDown)
     {
-        auto cornerSize = Constants::defaultCornerRadius;
+        auto cornerSize = PlugDataLook::defaultCornerRadius;
         auto bounds = button.getLocalBounds().toFloat();
 
         auto baseColour = findColour(TextButton::buttonColourId);
@@ -775,7 +769,7 @@ struct PlugDataLook : public LookAndFeel_V4 {
         corner.startNewSubPath(0, h);
         corner.lineTo(w, h);
         corner.lineTo(w, 0);
-        corner = corner.createPathWithRoundedCorners(Constants::windowCornerRadius);
+        corner = corner.createPathWithRoundedCorners(PlugDataLook::windowCornerRadius);
         corner.lineTo(0, h);
 
         g.setColour(findColour(PlugDataColour::resizeableCornerColourId).withAlpha(isMouseOver ? 1.0f : 0.6f));
@@ -785,7 +779,7 @@ struct PlugDataLook : public LookAndFeel_V4 {
     void drawTooltip(Graphics& g, String const& text, int width, int height) override
     {
         Rectangle<int> bounds(width, height);
-        auto cornerSize = Constants::defaultCornerRadius;
+        auto cornerSize = PlugDataLook::defaultCornerRadius;
 
         g.setColour(findColour(PlugDataColour::popupMenuBackgroundColourId));
         g.fillRoundedRectangle(bounds.toFloat(), cornerSize);
@@ -991,7 +985,8 @@ struct PlugDataLook : public LookAndFeel_V4 {
     "           popup_background=\"ffffffff\" popup_background_active=\"ffffffff\"\n"
     "           popup_text=\"ff000000\" popup_active_text=\"ff000000\" scrollbar_thumb=\"ff000000\"\n"
     "           graph_resizer=\"ff000000\" grid_colour=\"ff000000\" caret_colour=\"ff000000\"\n"
-    "           DashedSignalConnection=\"1\" StraightConnections=\"1\"/>\n"
+    "           DashedSignalConnection=\"0\" StraightConnections=\"1\" ThinConnections=\"1\"\n"
+    "           SquareIolets=\"1\" SquareObjectCorners=\"1\"/>\n"
     "    <Theme theme=\"dark\" toolbar_background=\"ff191919\" toolbar_text=\"ffffffff\"\n"
     "           toolbar_active=\"ff42a2c8\" tab_background=\"ff191919\" tab_text=\"ffffffff\"\n"
     "           active_tab_background=\"ff232323\" active_tab_text=\"ffffffff\" canvas_background=\"ff232323\"\n"
@@ -1006,7 +1001,8 @@ struct PlugDataLook : public LookAndFeel_V4 {
     "           popup_background=\"ff191919\" popup_background_active=\"ff282828\"\n"
     "           popup_text=\"ffffffff\" popup_active_text=\"ffffffff\" scrollbar_thumb=\"ff42a2c8\"\n"
     "           graph_resizer=\"ff42a2c8\" grid_colour=\"ff42a2c8\" caret_colour=\"ff42a2c8\"\n"
-    "           DashedSignalConnection=\"1\" StraightConnections=\"0\"/>\n"
+    "           DashedSignalConnection=\"1\" StraightConnections=\"0\" ThinConnections=\"0\"\n"
+    "           SquareIolets=\"0\" SquareObjectCorners=\"0\"/>\n"
     "    <Theme theme=\"light\" toolbar_background=\"ffe4e4e4\" toolbar_text=\"ff5a5a5a\"\n"
     "           toolbar_active=\"ff007aff\" tab_background=\"ffe4e4e4\" tab_text=\"ff5a5a5a\"\n"
     "           active_tab_background=\"fffafafa\" active_tab_text=\"ff5a5a5a\" canvas_background=\"fffafafa\"\n"
@@ -1021,7 +1017,8 @@ struct PlugDataLook : public LookAndFeel_V4 {
     "           popup_background=\"ffe4e4e4\" popup_background_active=\"ffcfcfcf\"\n"
     "           popup_text=\"ff5a5a5a\" popup_active_text=\"ff5a5a5a\" scrollbar_thumb=\"ff007aff\"\n"
     "           graph_resizer=\"ff007aff\" grid_colour=\"ff007aff\" caret_colour=\"ff007aff\"\n"
-    "           DashedSignalConnection=\"0\" StraightConnections=\"0\"/>\n"
+    "           DashedSignalConnection=\"1\" StraightConnections=\"0\" ThinConnections=\"0\"\n"
+    "           SquareIolets=\"0\" SquareObjectCorners=\"0\"/>\n"
     "  </ColourThemes>";
 
     void resetColours(ValueTree themesTree)
@@ -1061,6 +1058,8 @@ struct PlugDataLook : public LookAndFeel_V4 {
         
         setColours(colours);
         currentTheme = themeTree.getProperty("theme").toString();
+        
+        objectCornerRadius = themeTree.getProperty("SquareObjectCorners") ? 0.0f : 2.75f;
     }
 
     static StringArray getAllThemes(ValueTree themeTree)
@@ -1075,4 +1074,9 @@ struct PlugDataLook : public LookAndFeel_V4 {
     
     static inline String currentTheme = "light";
     static inline StringArray selectedThemes = { "light", "dark" };
+    
+    inline static float const windowCornerRadius = 7.5f;
+    inline static float const defaultCornerRadius = 6.0f;
+    inline static float const smallCornerRadius = 4.0f;
+    inline static float objectCornerRadius = 2.75f;
 };

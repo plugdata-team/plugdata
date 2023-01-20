@@ -49,7 +49,7 @@ struct ObjectReferenceDialog : public Component {
     void paint(Graphics& g) override
     {
         g.setColour(findColour(PlugDataColour::panelBackgroundColourId));
-        g.fillRoundedRectangle(getLocalBounds().reduced(1).toFloat(), Constants::windowCornerRadius);
+        g.fillRoundedRectangle(getLocalBounds().reduced(1).toFloat(), PlugDataLook::windowCornerRadius);
 
         auto const font = Font(15.0f);
 
@@ -110,7 +110,7 @@ struct ObjectReferenceDialog : public Component {
 
         auto outlineBounds = objectRect.withSizeKeepingCentre(width, 22).toFloat();
         g.setColour(findColour(PlugDataColour::objectOutlineColourId));
-        g.drawRoundedRectangle(outlineBounds, Constants::objectCornerRadius, 1.0f);
+        g.drawRoundedRectangle(outlineBounds, PlugDataLook::objectCornerRadius, 1.0f);
 
         auto textBounds = outlineBounds.reduced(2.0f);
         g.setColour(findColour(PlugDataColour::canvasTextColourId));

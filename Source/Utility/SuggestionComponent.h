@@ -59,7 +59,7 @@ class SuggestionComponent : public Component
             auto buttonArea = getLocalBounds().reduced(6, 2).withTrimmedRight(scrollbarIndent).toFloat();
 
             g.setColour(backgroundColour);
-            g.fillRoundedRectangle(buttonArea, Constants::defaultCornerRadius);
+            g.fillRoundedRectangle(buttonArea, PlugDataLook::defaultCornerRadius);
 
             auto font = lnf->semiBoldFont.withHeight(12.0f);
             g.setFont(font);
@@ -99,7 +99,7 @@ class SuggestionComponent : public Component
                 auto iconbound = getLocalBounds().reduced(4);
                 iconbound.setWidth(getHeight() - 8);
                 iconbound.translate(6, 0);
-                g.fillRoundedRectangle(iconbound.toFloat(), Constants::smallCornerRadius);
+                g.fillRoundedRectangle(iconbound.toFloat(), PlugDataLook::smallCornerRadius);
 
                 g.setColour(Colours::white);
                 g.setFont(font.withHeight(type ? 12 : 10));
@@ -300,13 +300,13 @@ private:
 #endif
 
         g.setColour(findColour(PlugDataColour::popupMenuBackgroundColourId));
-        g.fillRoundedRectangle(port->getBounds().reduced(1).toFloat(), Constants::defaultCornerRadius);
+        g.fillRoundedRectangle(port->getBounds().reduced(1).toFloat(), PlugDataLook::defaultCornerRadius);
     }
 
     void paintOverChildren(Graphics& g) override
     {
         g.setColour(findColour(PlugDataColour::outlineColourId).darker(0.1f));
-        g.drawRoundedRectangle(port->getBounds().toFloat().reduced(0.5f), Constants::defaultCornerRadius, 1.0f);
+        g.drawRoundedRectangle(port->getBounds().toFloat().reduced(0.5f), PlugDataLook::defaultCornerRadius, 1.0f);
     }
 
     bool keyPressed(KeyPress const& key, Component* originatingComponent) override

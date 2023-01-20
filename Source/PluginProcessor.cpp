@@ -187,8 +187,13 @@ PluginProcessor::PluginProcessor()
     }
 #endif
     
-    useDashedConnection = settingsTree.getChildWithName("ColourThemes").getChildWithProperty("theme", PlugDataLook::currentTheme).getProperty("DashedSignalConnection");
-    useStraightConnection = settingsTree.getChildWithName("ColourThemes").getChildWithProperty("theme", PlugDataLook::currentTheme).getProperty("StraightConnections");
+    auto currentThemeTree = settingsTree.getChildWithName("ColourThemes").getChildWithProperty("theme", PlugDataLook::currentTheme);
+    
+    useDashedConnection = currentThemeTree.getProperty("DashedSignalConnection");
+    useStraightConnection = currentThemeTree.getProperty("StraightConnections");
+    useThinConnection = currentThemeTree.getProperty("ThinConnections");
+    useSquareIolets = currentThemeTree.getProperty("SquareIolets");
+    useSquareObjectCorners = currentThemeTree.getProperty("SquareObjectCorners");
     
     updateSearchPaths();
 
@@ -350,6 +355,15 @@ void PluginProcessor::initialiseFilesystem()
                 }
                 if(!themeTree.hasProperty("StraightConnections")) {
                     themeTree.setProperty("StraightConnections", false, nullptr);
+                }
+                if(!themeTree.hasProperty("ThinConnections")) {
+                    themeTree.setProperty("ThinConnections", false, nullptr);
+                }
+                if(!themeTree.hasProperty("SquareIolets")) {
+                    themeTree.setProperty("SquareIolets", false, nullptr);
+                }
+                if(!themeTree.hasProperty("SquareObjectCorners")) {
+                    themeTree.setProperty("SquareObjectCorners", false, nullptr);
                 }
 
                 if (!defaultThemesTree.getChildWithProperty("theme", themeName).isValid()) {
@@ -1144,8 +1158,11 @@ void PluginProcessor::setTheme(String themeToUse)
         themeToUse = PlugDataLook::selectedThemes[0];
     }
     else {
-        useDashedConnection = static_cast<int>(themeTree.getProperty("DashedSignalConnection"));
-        useStraightConnection = static_cast<int>(themeTree.getProperty("StraightConnections"));
+        useDashedConnection = themeTree.getProperty("DashedSignalConnection");
+        useStraightConnection = themeTree.getProperty("StraightConnections");
+        useThinConnection = themeTree.getProperty("ThinConnections");
+        useSquareIolets = themeTree.getProperty("SquareIolets");
+        useSquareObjectCorners = themeTree.getProperty("SquareObjectCorners");
     }
 
     lnf->setTheme(themeTree);

@@ -311,7 +311,7 @@ void Object::paintOverChildren(Graphics& g)
         }
 
         g.setColour(Colours::violet);
-        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(Object::margin + 1.0f), Constants::objectCornerRadius, 2.0f);
+        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(Object::margin + 1.0f), PlugDataLook::objectCornerRadius, 2.0f);
 
         g.restoreState();
     } else if (!isHvccCompatible) {
@@ -323,7 +323,7 @@ void Object::paintOverChildren(Graphics& g)
         }
 
         g.setColour(Colours::orange);
-        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(Object::margin + 1.0f), Constants::objectCornerRadius, 2.0f);
+        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(Object::margin + 1.0f), PlugDataLook::objectCornerRadius, 2.0f);
 
         g.restoreState();
     } else if (attachedToMouse) {
@@ -335,7 +335,7 @@ void Object::paintOverChildren(Graphics& g)
         }
 
         g.setColour(Colours::lightgreen);
-        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(Object::margin + 1.0f), Constants::objectCornerRadius, 2.0f);
+        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(Object::margin + 1.0f), PlugDataLook::objectCornerRadius, 2.0f);
 
         g.restoreState();
     } else if (indexShown) {
@@ -376,7 +376,7 @@ void Object::paint(Graphics& g)
 
         // Draw resize iolets when selected
         for (auto& rect : getCorners()) {
-            g.fillRoundedRectangle(rect, Constants::objectCornerRadius);
+            g.fillRoundedRectangle(rect, PlugDataLook::objectCornerRadius);
         }
         g.restoreState();
     }

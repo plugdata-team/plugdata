@@ -137,7 +137,7 @@ struct FunctionObject final : public GUIObject {
         auto outlineColour = object->findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : objectOutlineColourId);
 
         g.setColour(outlineColour);
-        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Constants::objectCornerRadius, 1.0f);
+        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), PlugDataLook::objectCornerRadius, 1.0f);
 
         g.setColour(Colour::fromString(primaryColour.toString()));
 

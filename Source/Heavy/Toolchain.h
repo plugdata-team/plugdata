@@ -92,7 +92,7 @@ struct ToolchainInstaller : public Component
             g.setColour(findColour(PlugDataColour::panelActiveBackgroundColourId));
 
             if (isMouseOver()) {
-                g.fillRoundedRectangle(1, 1, getWidth() - 2, getHeight() - 2, Constants::smallCornerRadius);
+                g.fillRoundedRectangle(1, 1, getWidth() - 2, getHeight() - 2, PlugDataLook::smallCornerRadius);
             }
 
             g.setColour(findColour(PlugDataColour::canvasTextColourId));

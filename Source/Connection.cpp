@@ -74,6 +74,7 @@ Connection::Connection(Canvas* parent, Iolet* s, Iolet* e, bool exists)
 
     // Listen for signal connection proptery changes
     cnv->pd->useDashedConnection.addListener(this);
+    cnv->pd->useThinConnection.addListener(this);
 
     // Make sure it gets updated on init
     valueChanged(cnv->pd->useDashedConnection);
@@ -229,15 +230,19 @@ void Connection::paint(Graphics& g)
         baseColour = outlet->isSignal ? signalColour : dataColour;
         baseColour = baseColour.brighter(0.6f);
     }
+    
+    bool useThinConnection = static_cast<bool>(cnv->pd->useThinConnection.getValue());
 
-    // outer stroke
-    g.setColour(baseColour.darker(1.0f));
-    g.strokePath(toDraw, PathStrokeType(2.5f, PathStrokeType::mitered, PathStrokeType::rounded));
-
+    if(!useThinConnection) {
+        // outer stroke
+        g.setColour(baseColour.darker(1.0f));
+        g.strokePath(toDraw, PathStrokeType(2.5f, PathStrokeType::mitered, PathStrokeType::rounded));
+    }
+    
     // inner stroke
     g.setColour(baseColour);
     Path innerPath = toDraw;
-    PathStrokeType innerStroke(1.5f);
+    PathStrokeType innerStroke(useThinConnection ? 1.0f : 1.5f);
 
     if (useDashed && outlet->isSignal) {
         PathStrokeType dashedStroke(0.8f);

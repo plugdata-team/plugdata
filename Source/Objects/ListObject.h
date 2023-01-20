@@ -78,7 +78,7 @@ struct ListObject final : public AtomObject {
         getLookAndFeel().setColour(Label::textColourId, object->findColour(Label::textColourId));
 
         g.setColour(object->findColour(PlugDataColour::defaultObjectBackgroundColourId));
-        g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Constants::objectCornerRadius);
+        g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), PlugDataLook::objectCornerRadius);
 
         g.setColour(object->findColour(PlugDataColour::outlineColourId));
 

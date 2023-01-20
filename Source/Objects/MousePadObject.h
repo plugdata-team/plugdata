@@ -47,12 +47,12 @@ struct MousePadObject final : public GUIObject {
         auto* x = static_cast<t_pad*>(ptr);
         auto fillColour = Colour(x->x_color[0], x->x_color[1], x->x_color[2]);
         g.setColour(fillColour);
-        g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Constants::objectCornerRadius);
+        g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), PlugDataLook::objectCornerRadius);
 
         auto outlineColour = object->findColour(cnv->isSelected(object) && !cnv->isGraph ? PlugDataColour::objectSelectedOutlineColourId : PlugDataColour::outlineColourId);
 
         g.setColour(outlineColour);
-        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Constants::objectCornerRadius, 1.0f);
+        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), PlugDataLook::objectCornerRadius, 1.0f);
     };
 
     void mouseDown(MouseEvent const& e) override
