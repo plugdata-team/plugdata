@@ -23,12 +23,17 @@ struct InternalSynth {
 
     void prepare(int sampleRate, int blockSize, int numChannels)
     {
+        if(sampleRate == lastSampleRate && blockSize == lastBlockSize && numChannels == lastNumChannels) {
+            return;
+        }
+        
         File homeDir = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory).getChildFile("plugdata");
 
         auto soundFont = homeDir.getChildFile("Library").getChildFile("Extra").getChildFile("GS").getChildFile("FluidR3Mono_GM.sf3");
 
-        internalBuffer.setSize(2, blockSize);
-
+        internalBuffer.setSize(numChannels, blockSize);
+        internalBuffer.clear();
+        
         // Check if soundfont exists to prevent crashing
         if (soundFont.existsAsFile()) {
             auto pathName = soundFont.getFullPathName();
@@ -38,7 +43,7 @@ struct InternalSynth {
             fluid_settings_setint(settings, "synth.ladspa.active", 0);
             fluid_settings_setint(settings, "synth.midi-channels", 16);
             fluid_settings_setnum(settings, "synth.gain", 0.75f);
-            fluid_settings_setnum(settings, "synth.sample-rate", sampleRate);
+            fluid_settings_setnum(settings, "synth.audio-channels", numChannels);
             fluid_settings_setnum(settings, "synth.sample-rate", sampleRate);
             synth = new_fluid_synth(settings); // Create fluidsynth instance:
 
@@ -51,6 +56,10 @@ struct InternalSynth {
 
             ready = true;
         }
+        
+        lastSampleRate = sampleRate;
+        lastBlockSize = blockSize;
+        lastNumChannels = numChannels;
     }
 
     void process(AudioBuffer<float>& buffer, MidiBuffer& midiMessages)
@@ -85,13 +94,18 @@ struct InternalSynth {
             if (message.isPitchWheel()) {
                 fluid_synth_pitch_bend(synth, channel, message.getPitchWheelValue());
             }
+            if (message.isSysEx()) {
+                fluid_synth_sysex(synth, message.getSysExData(), message.getSysExDataSize(), nullptr, nullptr, nullptr, 0);
+            }
         }
-
+        
         // Run audio through fluidsynth
-        fluid_synth_write_float(synth, buffer.getNumSamples(), internalBuffer.getWritePointer(0), 0, 1, internalBuffer.getWritePointer(1), 0, 1);
+        fluid_synth_process(synth, buffer.getNumSamples(), buffer.getNumChannels(), const_cast<float**>(buffer.getArrayOfReadPointers()), buffer.getNumChannels(), const_cast<float**>(buffer.getArrayOfWritePointers()));
 
-        buffer.addFrom(0, 0, internalBuffer, 0, 0, buffer.getNumSamples());
-        buffer.addFrom(1, 0, internalBuffer, 1, 0, buffer.getNumSamples());
+        for(int ch = 0; ch < buffer.getNumChannels(); ch++) {
+            buffer.addFrom(ch, 0, internalBuffer, ch, 0, buffer.getNumSamples());
+        }
+        
     }
 
 private:
@@ -100,6 +114,10 @@ private:
     fluid_settings_t* settings = nullptr;
 
     bool ready = false;
+    
+    int lastSampleRate = 0;
+    int lastBlockSize = 0;
+    int lastNumChannels = 0;
 
     AudioBuffer<float> internalBuffer;
 };
