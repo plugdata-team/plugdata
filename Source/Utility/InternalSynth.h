@@ -58,7 +58,7 @@ struct InternalSynth {
             settings = new_fluid_settings();
             fluid_settings_setint(settings, "synth.ladspa.active", 0);
             fluid_settings_setint(settings, "synth.midi-channels", 16);
-            fluid_settings_setnum(settings, "synth.gain", 0.75f);
+            fluid_settings_setnum(settings, "synth.gain", 0.9f);
             fluid_settings_setnum(settings, "synth.audio-channels", numChannels);
             fluid_settings_setnum(settings, "synth.sample-rate", sampleRate);
             synth = new_fluid_synth(settings); // Create fluidsynth instance:

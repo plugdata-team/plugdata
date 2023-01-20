@@ -1,0 +1,1283 @@
+----------------------------------------------------------------------------
+    **************************** CHANGELOG ****************************
+----------------------------------------------------------------------------
+
+ELSE (EL Locus Solus's externals) with Live Electronics Tutorial
+
+----------------------------------------------------------------------------
+
+
+----------------------------------------------------------------------------
+1.0-0 Release Candidate 6:
+----------------------------------------------------------------------------
+
+**LIBRARY:**
+
+Breaking changes:
+- [scales] - removed 3rd outlet (no more 'cents' output), 2nd outlet also removed (a new message changes the mode to output midi pitches instead).
+- [pipe2], this is now a compiled object and you there's no more 'clear'/'flush' messages.
+- deleted [gui] object (never liked it and it was a request by someone who's not really using it)
+
+Enhancements/fixes:
+- [pipe2] fixed time management bug.
+- [eqdiv] fixed loading arguments.
+- [resonbank~]: added 'decayall'/'ampall' messages/flags.
+- 8 new objects for a total of 473: [sclae2freq], [osc.route], [osc.parse], [osc.format], [osc.send], [osc.receive], [pdlua] and [pdluax] (these aren't really part of ELSE but were included [version 0.11.1]).
+
+
+--------------------------------------
+
+**TUTORIAL:**
+- Updated OSC section, total number of examples is now 494.
+
+
+----------------------------------------------------------------------------
+1.0-0 Release Candidate 5:
+----------------------------------------------------------------------------
+
+**LIBRARY:**
+
+Breaking changes:
+- newly included [rand.d] renamed to [rand.dist]
+- [oscope~]: removed 'drawstyle' mode.
+- [messbox] renamed 'size' message to 'dim', removed undocumented resizing handle (wasn't working well either)
+- [table~] object removed, use [tabreader~] instead which is basically the same thing.
+- [tabplayer~]/[wavetable~]/[del~]/[ffdelay~]/[fbdelay~]/[shaper~] changed default interpolator to spline.
+
+Enhancements/fixes:
+- [numbox~] fixed loading properties window.
+- [keyboard] fixed display in GOP.
+- [oscope~] fixed resizing with handle.
+- [pic]/[pad]/[button]/[keyboard] fixed zooming issues.
+- [messbox]/[bicoeff] added zoom.
+- [rand.i]/[rand.i~] fixed range for negative values.
+- [rand.hist] fixed list input when not in unrepeated mode and clear message.
+- [tabgen] removed stupid cyclone dependency & allow commands as args.
+- [wavetable~] new interpolation modes.
+- [scala] fix loading certain files.
+- [spread] now takes lists, which allows 'keyboard split'.
+- 3 new objects for a total of 466: [tabreader], [tabreader~] and [gendyn~].  
+
+--------------------------------------
+
+**TUTORIAL:**
+- new examples for newly added objects and a rewritten section with more interpolation modes from tabreader/tabreader~
+- new chapter (21) on "Basic-Signal-Analysis"
+- new chapter (38) for "stochastic synthesis" (this one is basically nothing now but the plan is to improve it with a patch implementation of gendyn~ not to mention add other chapters in this part of "advanced synthesis")
+- Total number of examples is now 492
+
+----------------------------------------------------------------------------
+1.0-0 Release Candidate 4:
+----------------------------------------------------------------------------
+
+**LIBRARY:**
+
+Breaking changes:
+- swapped rightmost inlets for [polymetro] and [polymetro~] (they were in a different order than the arguments)
+- [rand.f]/[rand.f~]/[rand.i]/[rand.i~] - changed and simplified arguments to just take min/max values (also fixed issues/bugs in loading arguments in some of them).
+- [rand.seq] removed, use now the new [rand.hist] object instead, which is quite similar (in a sense it's like the object has been renamed)
+- [chance] removed index mode (use [rand.hist] instead).
+
+Enhancements/fixes:
+- [button]: fixed drawing outlet when zoomed
+- [wrap2]/[fold]: fixed repeated output.
+- [swap2]: fixed left input.
+- [xmod~]: fixed '-pm' flag.
+- [canvas.file]: takes now anythings (this also fixes 'open' message to [play.file~])
+- [oscope~]: fixed zooming and resizing issues plus other minor cosmetic details. Added outline. Added undo.
+- [numbox~]: fixed zooming bugs.
+- fixed [limit] input for float and symbol (by consequence fixing granulator abstractions like [grain.synth~]).
+- [stepnoise~] fixed loading frequency argument as a float (not an int).
+- [note]: We finally have a decent properties window (thanks to Tim Schoen)!!! Fixed some issues with zooming. Fixed flags. Fixed saving parameters. Added outline parameter. Added width parameter (this was only set before via dragging the handle in edit mode). Improved drawing the handle. Fixed resizing when max width wasn't set. Added undo.
+- 6 new objects for a total of 464: [datetime], [rand.d], [rand.u], [rand.hist], [histogram] and [tabgen].  
+
+**TUTORIAL:**
+- new examples and updates for new objects: [rand.d], [rand.u], [rand.hist], [histogram] and [tabgen]. Total number of examples is now 481!
+- 20-Stochastic section revised
+
+----------------------------------------------------------------------------
+1.0-0 Release Candidate 3:
+----------------------------------------------------------------------------
+
+
+**LIBRARY:**
+
+Breaking changes:
+- [bl.sine~] removed, but you can use [bl.wavetable~] with a sine ave table.
+- [display~] removed, use [numbox~] now (new object).
+- [clipnoise~] removed, use [white~] now (new object) with the '-clip' flag.
+- [bicoeff] renamed to [bicoeff2] since [bicoeff] is now a new GUI object.
+- Replaced some band limited oscillators abstractions for compiled objects that are backwards compatible, more efficient, but hey, they sound different and produce different waveforms. They are: [bl.tri~], [bl.square~], [bl.saw~], [bl.saw2~] and [bl.vsaw~].
+- [sysrt.out] added new 2nd "tick" outlet.
+- rint/floor/ceil: removed 2nd inlet and bang/set methods
+- free.rev~: decay parameter is now mapped differently internally
+- Objects with random number generators now have a unique seed based on system time, this is more of an improvement than a breaking change. The pseudo random generator algorithm has also been unified. Now all objects have a 'seed' method and a seed flag. I lost track which objects break in this change. Some objects did not even have this and now have. These objects are: brown, brown~, chance, chance~, drunkard, drunkard~, dust~, dust2~, gray~, lfnoise, lfnoise~, markov, perlin, pink~, rampnoise, rampnoise~, rand.f, rand.f~, rand.i, rand.i~, rand.list, rand.seq, randpulse, randpulse~, randpulse2, randpulse~, stepnoise, stepnoise~, tempo, tempo~, white~
+- All random generators now have a '-seed' flag instead of an argument.
+- [pinknoise~] was actually renamed to [pink~], design has also changed.
+- [db2lin]: argument is now minimum value.
+- [lin2db]: argument and bang method is now removed, minimum value is now -inf.
+- [lin2db~]: minimum value is now -inf.
+
+Enhancements/fixes:
+- [note]: many improvements/fixes, specially in resizing and justification.
+- added "tick" to sysrt.in / sysrt.out.
+- fixed [swap2] for list input.
+- fixed behaviour for special list cases in all objects with list methods (like an empty list being a bang message).
+- added inlet for last value in [lastvalue~]
+- [brown~]: added step value parameter and signal trigger input.
+- [downsample~]: added bang input for sync.
+- [spread]: added new mode for "<=".
+- fixed anything input for [merge].
+- [free.rev~]: an infinite decay time is now possible.
+- [play.file~]: fixed arg loading.
+- [db2lin]/[db2lin~]: added new minimum value to correspond do 0 amplitude.
+- [biplot]: now has a prettier red and thicker plot line.
+- Added seed to [rand.seq], [perlin~] and improved seeding for all the other random generating objects.
+- [trighold~]: added clear message.
+- Objects with pseudo random number generators have been improved (see breaking changes above). The tempo, tempo~ and markov objects now also have a seed parameter.
+- 13 new objects for a total of 459: [brown], [white~], [numbox~], [bl.osc~], [blip~], [bitnormal~], [bicoeff], [makenote2], [route2], [delete], [replace], [chrono] and [scala]. 
+
+**TUTORIAL:**
+- updates to include some of the new objects: [bicoeff], [brown], [numbox~], [white~], [blip~], [bl.osc~], [makenote2] and [scala]
+- Revision of bandlimited oscillators and noise chapters (12 & 13)
+- Fixed major theoretical flaw where an impulse is a sum of cosines, not of sines.
+- Revision of phase distortion example in waveshaping section
+- Total number of examples is now 477.
+
+----------------------------------------------------------------------------
+1.0-0 Release Candidate 2:
+----------------------------------------------------------------------------
+
+LIBRARY:
+---------
+
+Breaking changes:
+- [pluck~] swapped first two inlets
+- [eqdiv] swapped the two inlets
+- standardized messages: [sample~], [rec], [score] and [score2] now have "open"/"save" (like other objects in ELSE) instead of read/write and "load". Show/hide is now used instead of open/close in [presets], [score]/[score2], [stack]/[store].
+
+Enhancements/fixes:
+- [eqdiv] fixed resolution issue.
+- fixed memory crash in [args].
+- fixed [shaper~] freezing pd on windows.
+- [pluck~] added float and bang method for control triggering. Changed internal filter to a 1 pole filter (this is like the new [lop2~] object and arguably another breaking change). General efficiency improved.
+- improved efficiency for friendly 2nd order filters (highpass~/lowpass~, etc).
+- fixed memory leaks for a few objects ([chance~], [fdn.rev~], [match~], [rotate~], [spread~], [xgate~] & [xselect~])    
+- [keyboard]: valocity values are now clipped to maximum when mouse goes over bounds; default low C is now '2' (3 seemed too high for me and I consider this an improvement).
+- [drum.seq]: fixed "import" message.
+- improved file opening mechanism to search paths and relative dir; affected objects: [pic], [midi], [rec], [sample~], [play.file~], [player~], [pvoc.player~], [gran.player~], [presets], [score] and [score2].
+- [score]/[score2]: fixed "write" message (actually, now it is "save" message).
+- [midi]: fixed crash when not opening files.
+- [rec]: clicking now opens file. Added rightmost outlet to bang when finishing playing recording. An extra symbol argument sets text filename to open. Better help file. 
+- 3 new objects for a total of 449: [canvas.file], [lop2~] and [sfont~]. 
+
+
+TUTORIAL:
+---------
+- new examples for the [lop2~] and [sfont~] objects, revision of Karplus-Strong section, total number of examples is now 468.
+
+----------------------------------------------------------------------------
+1.0-0 Release Candidate 1:
+----------------------------------------------------------------------------
+
+LIBRARY:
+---------
+
+Breaking changes:
+- FLAGS now should come first!!! This was a major issue in ELSE, where it allows flags after arguments and this is not how flags work in Pd Vanilla, so this has finally been fixed but it breaks the majority of the following affected objects: count, grain.live~, grain.sampler~, grain.synth~, gran.player~, pvoc.player~, bpbank~, oscbank~, oscbank2~, resonbank~, resonbank2~, function~, envgen~, sample~, rec.file~, play.file~, player~, adsr~, asr~, allpass.2nd~, autotune, bandpass~, bandstop~, bend.in/out, cents2frac, chance, clock, comb.filt~, dec2frac, deg2rad, del~, dir, drive~, drunkard/drunkard~, duck~, envelope~, eq~, fbdelay~, ffdelay~, flanger~, glide / glide2 /  glide~ / glide2~, group, highpass~, impulse, interpolate, iterate, lfo, lb, loop, lowpass~, merge, metronome, midi, mono, morph, mov.avg~, mov.rms~, noisegate~, norm~, note.in, note.out, openfile, out1~, pattern, phasor, peak~, pimp, pitch2note, pluck~, presets, pulse, quantizer/quantizer~, rad2deg, ramp~, rescale / rescale~, resonant~, retune, rms~, scales, sh~, shaper~, s2f~, slew / slew2, suspedal, tabplayer~, tabwriter~, touch.in, touch.out, unmerge, voices, xmod~, vocoder~
+- [tabplayer~]: signal input behaviour is completely different (see enhancements)!
+- [oscbank~] has an extra frequency 2nd argument
+- [function~]/[envgen~]: '-exp' flag/message is now different and a new 'expl' message has the old behaviour.
+- [tempo]/[tempo~]: 'div' parameter renamed to 'mul' (which does not affect immediately in [tempo~] anymore but waits the next bang as in [metro]). No more 'mode' settings in [tempo] and now the default mode is "immediate". These changes make the objects consistent to each other and to other objects in ELSE. 
+- [oscilloscope~]: renamed to [oscope~].
+- [trigger2]: object removed.
+- [pimp]: default grain is 5ms, resetting phase to 0/1 doesn't bang anymore.
+- [metronome]: new design with different outlets.
+- [clock]: multiplier parameter is an actual frequency multiplier instead of divider (so it's the opposite now, where '2' is twice as fast instead of twice as slow; this is better for tuplets/polyrhythms by the way).
+- [envgen~]: probably fixed some crashing bug, but reduced the number of maximum segments to 64!
+
+Enhancements/fixes:
+- Lots of Code cleaning, got rid of all compilation warnings, fixed many many many small bugs, specially in oscillators.
+- [tabplayer~]: now can trigger playing and stop at audio rate with signal input.
+- [gain~]/[gain2~]: fixed initialization.
+- [mtx.ctl]: now has flags instead of args as the other GUIs.
+- [chance]: fixed loading -seed flag.
+- [function~]/[envgen~]: new 'expi' message sets exponential factor for a single element.
+- [pulsediv~]: added 2nd outlet to send impulse for non divided pulses.
+- [impseq~]: added 2nd outlet to send impulse when reaching end of sequence.
+- [sequencer~]: added 2nd outlet to send impulse when reaching end of sequence.
+- [pimpmul~]: fixed resolution issue.
+- [pimp]/[pimp~]: no bang/impulse at load time if freq = 0.
+- [pvoc.player~]: fixed some playing control issues.
+- [gran.player~]: fixed transposition.
+- [note]/[oscope~]: fixed a couple of errors (tcl error when closing a subpatch in edit mode / not deleting resizing handle when deleting object).
+- [lincong~]: fixed rescaled output.
+- [frac2dec]: allow 2nd fraction in parenthesis: "7/(3/4)" or "(8/3)/2".
+- [dec2frac]/[cents2frac]: fixed resolution bug.
+- [count]: fixed 'set'/'reset' message.
+- [clock]: fixed loading args.
+- [loop]: expanded 'set' message, added 'range' message.
+- [drive~]: fixed loading '-mode' flag.
+- [separate]: now takes anythings for input as well.
+- [metronome]: added output for actual beat length, actual bpm and bar duration. Added support for crazier time signatures with other integer and non integer denominator values (including fractions) and also alternating/aggregate signatures. Added beat length message/flag, sub message/flag and 'pause'/'continue' messages.
+- 12 new objects for a total of 446: [swap2], [metronome~], [speed], [note2dur], [frac.add], [frac.mul], [polymetro], [polymetro~], [noteinfo], [rec2], [score] and [score2]. 
+
+TUTORIAL:
+---------
+
+- new section on metronomes and clocks in 14-Triggers-LFO-LFNoise
+- new objects contemplated in new examples as usual
+- revision and new examples for chapter 37-Data.Structures
+- total number of examples is now 464
+
+----------------------------------------------------------------------------
+
+1.0-0 beta 45
+
+LIBRARY:
+
+Breaking changes:
+- [sr~] removed functionality to set sample rate because it doesn't work any more in Pd 0.52 (will try to figure out how t bring this back).
+- [output~] object removed. I always hated it! Now Vanilla has one with the same name as of Pd 0.52, which also bad, but nothing justifies keeping this here now...
+- [canvas.wname] object removed, this functionality is now incorporated into [canvas.name].
+- [ctl.in] added a new mid inlet for control number.
+- [clock] renamed to [midi.clock] / [clock] is now a new object
+
+Enhancements/fixes:
+- [note]: support for italic variants of DejaVu Sans Mono thanks to Pd 0.52.
+- [sample~]: added support for .caf sound file thanks to Pd 0.52.
+- [display]: improved efficiency in canvas label handling thanks to improvements in GUI labels in Pd 0.52.
+- [else]: fixed minimum Pd version checking.
+- [loadbanger]/[lb]: now reacts to 'loadbang' message sent to subpatch/abstraction.
+- [sequencer]: fixed bug getting the right index.
+- [pattern] added a '-i' flag to output index;
+- [player~]: fixed sample rate compensation on 'open' message.
+- [message] can now expand dollar signs via inlet;
+- [median~] fixed it blowing up Pd;
+- [bin.shift~] fixed "divide by 0" warning;
+- [ctl.out] added arg to set control #;
+- [canvas.name] added -w and -env flag;
+- 4 new objects for a total of 434: [metronome], [clock], [tap] and [midi.learn]. 
+
+TUTORIAL:
+- small fixes/improvements; a mentioning of the new [midi.learn]/[tap] objects; and new examples for [metronome] and [clock]. Total number of examples is now 450.
+
+----------------------------------------------------------------------------
+
+1.0-0 beta 44
+
+LIBRARY:
+
+Breaking changes:
+- stack: removed -store and export functionality in favor of a new [store] object
+- midi: start message now only sets to slave mode. Added a new 'play' message that works a bit like the old start.
+
+Enhancements/fixes:
+- [midi]; added 'loop' method; 'read' message now warns when file is not found, same for file argument; [midi] now correctly finds "end of track"; opening files while reading an old one now restart from the beginning. Import/export to txt files; new clear message; fixed dump message; fix stop message when in 'clock' mode.
+- [nmess] fixed initialization, this fixes many abstractions ([samps2ms], [gran.player~], [pvoc.player~] and probably much more).
+- [keyboard]: new 'set' message and a new (considered better) color scheme.
+- [op] fixed "<<" and ">>" and symbol input to set the operator
+- [gain~]/[gain2~], fixed loading args correctly
+- minor fixes in [group] and [circle]
+- [tabplayer~]: fix arg loading.
+- [function]: fixed initialization.
+- [presets]: fixed asking to save, added click functionality to open edit window.
+- 2 new objects for a total of 433: [rec] and [store].
+
+TUTORIAL:
+- Revised 19-Sequencing, added an example for [presets], added new examples to reflect new features and objects ([midi] / [rec] / [store]).
+
+----------------------------------------------------------------------------
+
+1.0-0 beta 43
+
+LIBRARY:
+
+Breaking changes:
+- envelope~: phase argument removed, use a flag now
+- range~: reset method replaced by a bang message
+- rad2hz~ and hz2rad~ have been removed... it was just too stupid... others like that might go too...
+
+Enhancements/fixes:
+- [envelope~] added 3 new envelope types: vsaw (variable saw), gauss (gaussian) and trap (trapezoid).
+- [grain.synth~]/[grain.sampler~]/[grain.live~], added more envelope options (hann, tri and gaussian).
+- [midi2freq] can now convert lists.
+- [pattern] fixed crash.
+- [morph] added exponential factor to morph.
+- [presets] added exponential factor to morph too besides interpolation.
+- [op]/[op~] added '%' (fmod) operator
+- [drive~] added a 3rd new mode
+- [glide~]/[glide2~] fixed a bug when updating the target before reaching the last target
+- 8 new objects for a total of 431: [gaussian~], [pimpmul~], [freq2midi], [deg2rad], [rad2deg], [pz2coeff], [coeff2pz] and [zbiplot]
+
+TUTORIAL:
+- added examples for [freq2midi], [gaussian~] oscillator and gaussian envelope.
+- revised 14-Triggers-LFO-LFNoise section, added more examples with more objects, including the new [pimpmul~] object.
+- added an example for [impseq~] in 19-Sequencing.
+- Filters-II section Revised/Rewrritten, fixed some bugs/translations, added a new section about Moving Average Filters, added new examples and now we're using new objects from the ELSE library [pz2coeff], [coeff2pz] and [zbiplot].
+- Total number of examples is now 440!
+
+----------------------------------------------------------------------------
+
+1.0-0 beta 42
+
+LIBRARY:
+
+Breaking changes:
+- [sequencer]: bar outlet now gives bar number instead of 'bang' - (and default now is 'empty', where nothing comes out!)
+
+Enhancements/fixes:
+- [unmerge] fixed output for mixed (float/symbol) input.
+- [break] now can break with symbols more than character that matches the argument.
+- [presets] fixed a bug where it didn't handle messages with a single '|' (as needed for [else/sequencer]).
+- [sequencer]: fixed float input not take into account barlines as elements in the sequence. Fixed dealing with actual symbols that start with "-" (by not considering a symbol separator). Added 'clear' method - plus other fixes.
+- [sample~]: fixed 'load' message.
+- 1 new object for a total of 425: [pattern]. 
+
+TUTORIAL:
+- revised '01-Pd.Quickstart/2.syntax'
+
+----------------------------------------------------------------------------
+
+1.0-0 beta 41
+
+LIBRARY:
+
+Breaking changes:
+- [limit]: ignore mode behaviour changed, now the limit clock gets restarted when new messages come in before the time limit.
+
+Enhancements/fixes:
+- [messbox] expands $0 and takes "$1", fixed regression bug with append message, handle displacement and other improvements.
+- [morph] behaviour is now better thanks to the changes in [limit].
+- [scales] added 3rd outlet for scale output in cents.
+- [slider2d] fixed bug by removing unnecessary cnv.
+- 3 new objects for a total of 424: [glide], [glide2] and [presets]. 
+
+TUTORIAL:
+- incremented an example to include the new [glide/[glide2] object
+- incremented example on [eqdiv] to also include [gmean] and [amean] as means to generate scales
+- added an example on how to do a markov chain in a low level patch (lower than [markov])
+- fixed some minor bugs.
+
+----------------------------------------------------------------------------
+
+1.0-0 beta 40 
+
+LIBRARY:
+
+Breaking changes:
+- [slider2d]: xsyze/ysize messages renamed to 'width'/'height', -xsyze/-ysize flags replaced by -dim
+- [store]: renamed to [default]
+- [autofade~]/[autofade2~]: gate values now set the maximum fade level.
+
+Enhancements/fixes:
+- [slider2d]: bgcolor fixed
+- [slice]: fixed float/symbol input
+- [play.file~]: fixed 'set' message
+- [keyboard]: new 'on'/'off' messages
+- [eqdiv]: added new 'ratio' flag
+- [stack]: make it also store 'bang' message
+- [retrieve] can now retrieve from built-in receive names in compiled objects.
+- [range.hsl]/[slder2d]/[circle]/[multi.vsl] abstraction now work with [retrieve] with built-in receive names.
+- [range.hsl]: fixed receive/send symbols
+- [messbox]: some usability improvements and bug fixes, mostly now hitting enter outputs the message instead of shift+click
+- [changed]: fixed bug with 'anythings' as input
+- [receiver]: new bang method outputs receive names
+- 10 new objects for a total of 421: [pipe2], [pimp], [slew], [slew~], [slew2], [slew2~], [cents2scale], [scale2cents], [frac2cents] and [cents2frac]. 
+
+
+TUTORIAL:
+- Major reorg, new chapter order, removed separation in volumes. Part 04-Control had chapters 16-Lines, 17-Envelopes and 18-MIDI-OSC revised, new examples added. A new chapter 20-Stochastic was included as such (these examples were first part of the 'sequencer' chapter).
+- New part Part.02-Basic-Processing came to be as a division from Part 1. New chapter just for fade.in/fade.out, new examples for [autofde~]/autofade2~] objects and new examples that reflect the new [slew~]/[slew2~] objects from ELSE beta 40.
+
+----------------------------------------------------------------------------
+
+1.0-0 beta 39 
+
+LIBRARY:
+
+Breaking changes:
+- [note2pitch]: -list flag now needs to be given for inputs like 'C 5'
+
+Enhancements/fixes:
+- [conv~] it just wasn't working, fixed.
+- [iterate] fixed symbol input.
+- [keyboard] middle C color in 'flush' method
+- [pitch2note] / [note2pitch]: fixed the right value for B# / Cb and added support for list.
+- 1 new object for a total of 411: [scales] 
+
+----------------------------------------------------------------------------
+
+1.0-0 beta 38
+
+Breaking changes:
+- [nbang] removed, use the new [nmess] object instead which is more powerful and works for any kind of messages.
+- [int~] renamed to [trunc~].
+- [changed] right outlet now sends unchanged message instead of a bang 
+- [buffer], "rename" method renamed to "name", set method works differently now and allows you to set just 1 or more values.
+
+Enhancements/fixes:
+- [buffer]: new set method allows you to set just 1 or more values.
+- [loop]: fixed counting for list input.
+- [slder2d]: regression bug from beta 37: fixed drawing when resizing
+- [circle]: regression bug from beta 37: fixed drawing altogether
+- [free.rev~]: fixed 'decay' message
+- 12 new objects for a total of 410: [power~], [rand.list], [amean], [gmean], [nmess], [store], [op], [trunc], [multi.vsl], [morph], [interpolate] and [retrieve].
+
+----------------------------------------------------------------------------
+
+1.0-0 beta 37
+
+Breaking changes:
+- [tabwriter~]: bang outlet is now a new right outlet, left outlet is now a signal outlet for index. 
+- [router]: outlets are now indexed from 0 (sorry, I was tired of always using [+ 1])
+- [selector]: inlets are now indexed from 0 (to be compliant with router)
+- [sequencer]: new 'barline' outlet inserted as 3rd outlet instead of "end of sequencer". Now a rest is "_" instead of "."
+- [receiver]: now it can't expand dollar symbols anymore (use [dollsym] if you have to).
+- [common.div] renamed to [gcd].
+- [frac2ratio]: renamed to [frac2dec]
+- [dec2hex]: changed format output to precede "0x" and use upper case letters
+- [slice]: 'rev' mode removed, now use negative 'n' points
+- [stack]: Now right inlets outputs number of elements instead of bangs when empty.
+- [drum.seq]: import/export messages' syntax changed.
+
+Enhancements/fixes:
+- [tabplayer~] fixed speed setting in "play" message
+- [tabwriter~] fixed star/end in ms, new signal outlet to provide sample index
+- [ffdelay~] and [fbdelay~] added a new "freeze" method. 
+- [gcd] (old common.div) has an argument to set right inlet value. 
+- [hex2dec] fixed conversion errors, added support for lists. 
+- [dec2hex] added support for lists. 
+- [note.in]/[note.out] fixed dealing with note off messages. 
+- [bangdiv] fixed reset message. 
+- [tempo] fixed many messages. 
+- [bangdiv] added 2nd inlet to set division. 
+- [sequencer] added a "barline" syntax/outlet. 
+- [count] fixed resetting issues. 
+- [receiver] now you can set up to 2 receive symbols
+- [rotate] fixed rotating for "0" and anything input
+- [pulsecount~] fixed default argument
+- [routeall] fixed matching a "1 element anything" (like "a")
+- [stack] fixed documentation and added 'n' method
+- [stream] fixed bang method
+- [drum.seq] now export/import messages also encodes the number of tracks/slots so you can set it when importing data 
+- 6 new objects for a total of 399: [del~], [dec2frac], [lcm], [note2pitch], [pitch2note] and [buffer].
+
+----------------------------------------------------------------------------
+
+1.0-0 beta 36
+
+Breaking changes:
+- [gran.player~] inserted a 2nd inlet so it's consistent to [stretch.shift~]
+- [tabplayer~] range message is now proportional (from 0-1) instead of ms.
+- Reverted changes from beta 31 in random generators. Now seeds are back to the way it was before, so we do not have a different seed every time we open Pd.
+
+Enhancements/fixes:
+- Many fixes so we can compile ELSE in camomile on windows.
+- [sample~] fixed loading args correctly.
+- [envelope~] improved efficiency and now we allow the user to change the envelope type.
+- [dollsym] added symbol argument to expand to, anything and bang method.
+- [loop] now can count with float precision.
+- [tabplayer~] Fixed looping while playing backwards, fixed loading flags and 'set' message, added a new 'pos' method and added 'fade in/out' parameter, 'xfade' mode and sample rate correction method message/flag. Added other missing flags (range/speed). 
+- [player~] fixed loading args correctly, added sample rate correction, fade/xfade methods and flags for missing parameters.
+- [limit] now works properly, it was really malfunctioning. New 2nd argument sets to "ignore" mode. This is also now a compiled object.
+- [chance] now you can change the number of chances via messages.
+- [message] fixed dealing with anything messages of only one element. 
+- [circle] fixed loading size argument. 
+- 10 new objects for a total of 393: [grain.synth~], [grain.sampler~], [grain.live~], [rdelay~], [autotune], [autotune2], [retune], [eqdiv], [midi2freq] and [frac2ratio].
+
+----------------------------------------------------------------------------
+
+1.0-0 beta 35
+
+Breaking changes:
+- [moses~] object deleted (that was just stupid, right?)
+- [setmess] object deleted (use the new [insert] object instead)
+- [coin]/[coin~] objects deleted (use the new [chance]/[chance~] objects instead now)
+- [plate.rev~] not a real issue I hope, but now we have some default parameters other than 0.
+
+Breaking enhancement:
+- [sequencer] new middle outlet output rests as bangs. Now "." are filtered to represent a "tie"
+
+Enhancements/fixes:
+- [mono] fixed input bug, now picthes need to be >= 0, otherwise it's ignored
+- [routeall] new right inlet sets element to match to
+- [bangdiv] new right outlet bangs when there is a rest
+- [group] new right outlet bangs when there's no remainder
+- [drum.seq] outputs bangs when reaching the end of the sequence. Export now takes an argument to define a single track number to export.
+- 6 new objects for a total of 383: [markov], [euclid], [spread], [chance], [chance~] and [insert]
+
+----------------------------------------------------------------------------
+
+1.0-0 beta 34
+
+Breaking changes:
+- [tabplayer~]: changed the purpose of 'start' message, a new 'play' message handles what start did.
+- [player~] also has some method changes like 'play' instead of start (and is now based on tabplayer~).
+- [lfo] vsaw now has width from 0 to 1 as vsaw~
+
+Changes:
+- [note] has 'Menlo' as the default font for mac, since this is the default font for mac in Pd in 0.51-3
+ 
+Improvements/fixes:
+- [tabplayer~]: several new methods and fixed a bug with banging when finished playing.
+- [player~]: is now based on [tabplayer~] and has no issues reading very large files.
+- [pvoc.player~] & [gran.player~]: fixed several range and loop issues.
+- [sample~]: new info method. 
+- [sequencer] new right inlet to set sequence and new right outlet to bang when finishing sequence.
+- [susloop~] new right outlet to report status. 
+- [voices] add right intlet to set release time.
+- [keyboard] fixed a bug where it always made Pd ask if you wanted to save changes. 
+- [xselect~]/[xgate~]: both now have an extra outlet to report off status. 
+- [bl.wavetable~]: new 'set' method.
+- [drum.seq]: new 'track' method and fixed 'slots' and 'tracks' method and other minor fixes
+- [mtx.ctl]: fixed initialization issues.
+- 1 new object for a total of 381: [phasor] 
+
+----------------------------------------------------------------------------
+
+1.0-0 beta 33
+
+Breaking changes:
+- [lastvalue]: default is now 'none'.
+- [drum.seq]: tracks and slots are now indexed from 1 (like sequencer/sequencer~/imp.seq~).
+- [sequencer]: float now outputs value.
+- [sequencer~]: float method removed, it is now a "goto" message.
+- [pic]: set message removed.
+
+Improvements/fixes:
+- [drum.seq]: fixed crashing at creation. Added goto message and bang method.
+- [sequencer] now allows symbols/bangs as elements, and a new "-" syntax joins elements together or represents a pause. A new 'goto' message sets index but doesn't output as the float method used to.
+- [nbang] now allows '0' bangs.
+- Fixed all band limited oscillators.
+- [lastvalue] has lots new functionalities, like setting to 'none', which prevents output when first value is received.
+- [stack]: new store method/flag, dump method and now clicking the object opens window. Fixed a bug where you always had "list" selector displayed.
+- [midi] new dump method.
+- 1 new object for a total of 380: [combine] 
+
+----------------------------------------------------------------------------
+
+1.0-0 beta 32
+
+
+Breaking changes:
+- [note]: changed some method/flag names.
+- [separate]: now elements that look like floats are converted to floats / separator method has been removed in favor of a secondary inlet (this now makes it compliant to a new counterpart object named [unite]).
+- [colors]: you must now specify "iemgui" instead of "gui", and default output is now 'hexadecimal'
+- [else]: now it won't add else's path anymore to preference's path, so you must now load else via preferences => path or [declare -path else]. You can still load else in startup to print the library version.
+
+Improvements/fixes:
+- Fixed issues that prevented ELSE from being compiled inside Camomile (which turns pd patches into plugins). 
+- Lots of random objects now have a unique seed value based on system time. Objects affected: rand.f/rand.f~/rand.i/rand.i~/rampnoise/rampnoise~/stepnoise/stepnoise~/lfnoise/lfnoise~.
+- [drum.seq]: fixed embedding sequence values. 
+- [note]: several new methods and graphical improvements as well as a properties window (this is basically stolen from cyclone's comment). Improved GOP, fixed loading receive symbol arg without making Pd asking to save changes. 
+- [separate]: added an "empty" separator that separates all characters from the symbol. 
+- virtually all abstractions: now it's possible to create them and load them correctly via dynamic patching. 
+- improved GOP visibility for GUI objects: keyboard, pad, button & function. 
+- [canvas.edit]/[canvas.zoom]/[fontsize]: added a a bang method to query for status. 
+- [spectrograph~]: added a hann window and fixed a bug related to setting parameters via messages and also another bug with the -db and -log flags. Added a rate parameter and the possibility to graph via bangs. 
+- [colors]: added input for gray scale, CMYK, HSL and HSV. 
+- [unmerge]: fixed outlet order (now is right to left). 
+- [rotate~]: added a 2nd argument for position. 
+- [player~]: added a float argument to the start message to set a staring point in ms. 
+- [gain~]/[gain2~]: fixed set method, added init option, bang method to mute/unmute, added flags for all parameters and now pd asks you if you want to save changes. 
+- [canvas.edit]: now also detects getting into edit mode via "select all" (also true for compiled GUI objects that react to getting in and out of edit mode: keyboard/pad/pic/function/button). 
+- 3 new objects for a total of 379: [unite], [symbol2any] and [oscilloscope~] (basically stolen from cyclone).
+
+----------------------------------------------------------------------------
+
+1.0-0 beta 31
+
+Breaking changes:
+- [xgate~] & [xselect~]: Removed linear crossfade option, instead of adding this option to all the other objects that were similar, it was decided just not to support this option, as it doesn't seem the best option.
+- [rec~] renamed to [tabwriter~], so it's related to [tabwrite~] and [tabplayer~]. Design has changed as well.
+
+Non breaking changes:
+- [mono.rev~] and [stereo.rev~]: Default wet values is now "0.5". 
+- [rec.file~]: minimum fade is now 0 ms. 
+- [pvoc.live~]: 1st buffer size argument is not obligatory anymore, default is 5000ms. 
+- [stretch.shift~~]: 1st argument default is now 5000ms like in [pvoc.live~]. 
+
+Improvements/fixes:
+- [else]: fixed Pd version check (minimum should have been 0.51-1, not 0.51-0). 
+- [tempo] & [tempo~]: added 'hz' time measure and messages with more than one item (like 'ms 100') now sets other parameters. 
+- [function]: improvements on drawing instructions, don't draw if it should not be visible. Now inlet/outlets are only shown if in edit mode and if no send/receive symbol are given.
+- [tabplayer~]: fixed -loop flag. 
+- [slider2d]: init message fixed. 
+- [circle] & [slider2d]: Now these can be used in a GOP (Graph On Parent) buried more than one level of depth (this means it can be used anywhere) - this is thanks to a new implementation based on the new [pad] object. 
+- [button]: this is now a compiled object and can now be used inside GOP (in any depth level). You can set colors and different dimension sizes for x/y axis. 
+- 3 new objects for a total of 376: [pad], [perlin~] and [batch.write~].
+
+----------------------------------------------------------------------------
+
+1.0-0 beta 30
+
+Breaking changes:
+- [dollarzero] renamed to [dollsym] as the name was just plain wrong as it also expands any dollar sign symbols (bang method was also removed).
+- [messbox]: clear message remove, just use 'set' instead.
+- [rec.file~]: leftmost inlet now takes control messages, this makes it more compliant to other similar objects in the library (as [rec~] and [autofade~]).
+
+Improvements/fixes:
+- [else]: fixed version checking (it would complain if you upgrade to newer versions of Pd)
+- [sample~]: fixed loading arguments
+- [play.file~] and [sample]: fixed a bug where they couldn't load files that didn't exist by the time they were created.
+- [display] now resizes better for non-fixed size setting with characters like "ç" and "ã", but still doesn't work well for other foreign alphabets like katakana and stuff. Instead of an abstraction, I should probably write an actual GUI compiled external for this and [display~] soonish.
+- 3 new objects for a total of 372: [batch.rec~], [tabplayer~] and [fontsize] 
+
+----------------------------------------------------------------------------
+
+1.0-0 beta 29
+
+Breaking changes:
+- deleted [fromany] and [toany] objects. These were requested by Liam Goodrace for his "Context Sequencer", but not even him can tell me anymore why this is/was needed. I think it's obsolete and unnecessary and offer no real substantial advantage to [list from/tosymbol]. If anyone actually needed this for any reason, let me know...  
+- [keyboard] - behaviour changed a bit: now, by default, the velocity value depends on where you click on the vertical axis. You can set a normalized value if you want.
+- [pic] deleted 'bang' method.
+- [makesymbol] renamed to [format] and behaviour also changed: now it outputs anythings instead of symbols, bang method was removed from secondary inlets, variable arguments are mandatory for the object to output values (errors are given otherwise). You can still generate symbols as [makesymbol] used to (see help file for details).
+- [drum.seq] the 'export' message now outputs a list preceded by "export", which shall avoid issues and make it easier to manage/route.
+
+Improvements/fixes:
+- [dir]: now you can open absolute paths in windows, which was never possible before (yikes).
+- keyboard: Now velocities can be set depending where you click, there's a normalization method, and you can also toggle keys by pressing "shift". Also added send/receive symbols, and inlets/outlet are drawn when in edit mode. Now we have a checkbutton (toggle) in the properties where pertinent. You should also now use flags instead of arguments. There are also many improvements to the code and other minor fixes. 
+- [pic]: Fixed a bug in the properties window where you couldn't set "report size". Improved management of special characters in properties window (now you don't need to escape them anymore, for instance). Now we have a checkbutton (toggle) in the properties where pertinent, plus other minor improvements to the code.
+- [any2symbol] added new inlet/argument to set a new separator character.
+- [drunkard~]: added secondary inlets to set lower and upper bounds.
+- [routeall] fixed/improved routing for anythings.
+- 1 new object for a total of 370: [messbox] 
+
+----------------------------------------------------------------------------
+
+1.0-0 beta 28
+
+Breaking changes:
+- With the new feature of inlet~ where it can take control messages (as of Pd 0.51), several objects had their inlet messages changed. 29 objects affected: [bin.shift~], [bpbank], [compress~], [conv~], [drunkard~], [duck~], [free.rev~], [freeze~], [gain~], [gain2~], [graph~], [mix2~], [mix4~], [mono.rev~], [oscbank~], [out~], [out1~], [out4~], [out8~], [phaser~], [plate.rev~], [pvoc.freeze~], [pvoc.live~], [resonbank~], [resonbank2~], [spectrograph~], [stereo.rev~], [stretch.shift~] & [vocoder~] 
+- [savechange] object deleted (using something based on [canvas.setname] for what that other object did now).
+
+
+Improvements/fixes:
+- The ELSE library now is accompanied by the Live Electronics Tutorial by Alexandre Torres Porres as a single download combo.
+- The ELSE library now should be loaded as a binary pack because of a new "else" binary. This allows the ELSE library to be loaded as a regular lib, via Startup, or using [declare -lib else]. The binary can also be loaded as an object, which outputs version and information about the library.
+- With the new feature of inlet~ where it can take arguments, several objects got improvements. 11 objects affected: [allpass.filt~], [bl.imp~], [bl.imp2~], [bl.saw~], [bl.saw2~], [bl.sine~], [bl.square~], [bl.tri~], [bl.vsaw~], [bl.wavetable~] & [crusher~].
+- [keyboard]: many improvements to the code (basically a rewrite from scratch). Implemented zooming. Finally implemented the toggle mode and added a flush message. Improved/fixed the way it was detecting the click on the right keys. Fixed clicking in Graph on Parent. Now the object asks you if you want to save changes after changing parameters from messages, plus other minor fixes.
+- [slider2d] and [cricle] are now usable in an abstraction or GOP subpatch, but only as deep as only one layer of encapsulation.
+- [avg]: fixed "clear" message.
+- [nyquist~]: wasn't creating in linux.
+- [graph~]: added an outlet for the input signal come out to.
+- [dir]: fixed a bug where it printed an annoying error on windows.
+- [canvas.vis]: fixed bug when it didn't report it being invisible when the window was closed, added an inlet to query for visibility with a bang.
+- [pic]: added "set" and "size" methods - included an example on how to use [canvas.zoom] for emulating a zoom.
+- fixed peak estimation for [peak~], [vu~], [meter~], [meter2~], [meter4~] and [meter8~].
+- Now [spectrograph~], [graph~], [range.hsl], [drum.seq], [mtx.ctl] and [button] will properly ask if you want to save changes on parent patch.
+- 6 new objects for a total of 371: [else], [canvas.bounds], [canvas.pos], [canvas.gop], [canvas.zoom] & [canvas.setname].
+
+----------------------------------------------------------------------------
+
+1.0-0 beta 27
+
+Breaking changes:
+- [pic]: argument order has changed, now you should use flags anyway.
+- [canvas.active] no bang input, removed visibility outlet (this is now in a separate object)
+
+Improvements/fixes:
+- [blocksize~] / [sr~] / [nyquist]: fixed potential risky issues that could crash Pd.
+- [dir]: fixed bugs where it wasn't loading directories quite right and the behaviour of the open flag - improved documentation.
+- [play.file~]: fixed opening files as messages and arguments.
+- fixed a regression bug in [keyboard] where it was just not working
+- fixed a bug in [canvas.active] where in Linux it did deactivate in a wrong way
+- fixed 'clip' function in [rescale] and [rescale~].
+- added ZOOM support for [canvas.mouse], also added zero and reset methods. Fixed the output order of outlets!
+- [slider2d] and [circle]: improved efficiency by including the [limit] object. Fixed the way [savechange] was being used. Because of the ZOOM support in [canvas.mouse], these objects also now work properly in ZOOM mode!
+- [circle]: improved mouse interaction, added bgcolor and 'no-clip' mode.
+- [range.hsl]: improved a bit; management when in ZOOM (still has known issues).
+- [function] & [note]: added 'dirty' flag for when things changed so it asks you if you wanna save it.
+- [function]: Implemented ZOOM capability! Fixed outline color of dots to foreground's (it was always black), fixed a bug where setting receive name repeatedly made the object disappear.
+- [pic]: fixed and improved many things, the image now is properly adjusted to the objects's coordinate; object now asks if you want to save changes; now clicking on it sends a bang; added send/receive symbols; added outline mode; now when you're in edit mode you can see an outline and the inlet/outlet; Implemented ZOOM capability (but this doesn't mean the picture gets zoomed); there's also a handy properties windows now! 
+- 2 new objects for a total of 366 (228 signal and 138 control objects): [canvas.edit], [canvas.vis]
+
+----------------------------------------------------------------------------
+
+1.0-0 beta 26
+
+Breaking changes:
+- [slider2d] has a new argument order because it now includes an independent x/y size. By default it doesn't work with jump on click but a new steady mode.
+- [canvas.mouse] is now not responsive while in 'edit mode' ([mouse] still is)
+- [window] renamed to [canvas.active]
+
+Improvements/fixes:
+- [slider2d]: included send/receive names, independent x/y sizes, an option to hide coordinate lines, a grid option, colors for background and foreground, an 'init' option, a steady mode (default [jump on click now setable]), shift key now offers fine tuning, new [savechange] object offers a better management of saving changes.
+- [canvas.mouse] has a new argument for 'position mode'.
+- [canvas.active] has a new outlet for 'visibility'.
+- [receiver] now always has an inlet, fixed a bug where dollarzeros were not expanded, and added a clear method.
+- [lastvalue] new inlet to set initial/last value.
+- [args] has a new depth argument.
+- [unmnerge] fixed a bug where the number of outlets argument wasn't really happening.
+- [match~] new list method resets arguments
+- 3 new objects for a total of 364 (228 signal and 136 control objects): [circle], [limit] and [savechange]
+
+----------------------------------------------------------------------------
+
+1.0-0 beta 25
+
+Breaking changes:
+- [sequencer] and [sequencer~] have been simplified and some methods are gone, the 'goto' method is now a float method.
+- [slider2d] does not clip values anymore to be compliant with pd vanilla's sliders behaviour.
+
+Improvements/fixes:
+- actually include [canvas.wname] (accidentally, it wasn't really included in the last release) 
+- fixed bug in [rms~]/[peak~]/[vu~]/[meter~]/[meter2~]/[meter4~]/[meter8~] for Linux where the output was just wrong...
+- fixed [display] not correctly loading default arguments
+- 2 new object for a total of 360: [timed.gate] and [trig2bang].
+
+----------------------------------------------------------------------------
+
+1.0-0 beta 24
+
+Breaking changes:
+- [bpm] has been oversimplified (and also fixed).
+
+Improvements/fixes:
+- fixed negative frequencies for [lfnoise].
+- fixed [dir]: annoying error on windows and fixed 'reset' message.
+- added 'get' message to [mtx.ctl] so it can query for stored values.
+- 16 new objects for a total of 358: [randpulse], [randpulse2], [canvas.mouse], [canvas.name], [canvas.wname] , [rampnoise], [stepnoise], [gui], [op~], [range], [range~], [out1~], [out4~], [out8~], [meter4~], [meter8~] and [pan8~] 
+
+----------------------------------------------------------------------------
+
+1.0-0 beta 23
+
+Breaking changes:
+- [glide2~] renamed to [lag~]
+- [slew~] renamed to [glide2~] (sorry, old names and structure didn't make sense! I don't know what I was thinking...)
+
+Improvements/fixes:
+- [asr~]/[adsr~] have an optional log mode.
+- [glide~]/[glide2~] have an exponential parameter like [rescale~]/[envgen~].
+- fixed missing symbol/list selector in [separator]. 
+- fixed [rint~] (this was useless, sorry). 
+- fixed [graph~] bug where dim message did reset range.
+- fixes to [envgen~] - it wasn't retriggering right.
+- improvements to [trigger2].
+- 6 new objects for a total of 342: [lag2~], [common.div], [factor], [mouse], [range.hsl] & [button].
+
+----------------------------------------------------------------------------
+
+1.0-0 beta 22
+
+Breaking changes:
+- [dir]: the 3rd outlet now reports 'n' number of found files, the open flag is now reported on a new 4th outlet. Moreover, [dir] now needs to 'reopen' to reload the contents of a directory.
+
+Improvements/fixes:
+- [dir] can now specify a file format to browse in the directory, fixed a bug where the output wasn't sorted, new 'reopen' message. 
+- [sort] is now a compiled object that can also sort symbols. 
+- [spectrograph~], new 'dim' method to set dimensions and ability to set the object with flags and save the properties with the patch.
+- [function], fixed a bug where using the flags corrupted the object when saving, new (and considered nicer) dot design.
+- [envgen~] & [function~]: new 'exp' method/flag to set exponentiality of line segments.
+- [rescale]/[rescale~], negative exponentials are allowed, in a similar way as to [envgen~]/[function~].
+- 3 new objects for a total of 336: [sum], [slice] and [stream].
+
+----------------------------------------------------------------------------
+
+1.0-0 beta 21
+
+Breaking changes:
+- [loop] - the 2nd outlet was removed (painful change, but I got convinced that just using trigger to send a bang after the loop is finished is a better design choice).
+
+Improvements/fixes:
+- [loop] - new float inlet set number of iterations. 
+- [mtx.ctl] - New import/export/flush methods. Improvements under the hood. It can now keep/save its parameters as regular GUIs do. A new embed method saves the contents within the object.
+- [slider2d] - fixed a bug that didn't save its parameters/arguments right.
+- [graph~] - new 'dim' method/flag sets dimension.
+- [sort] - new outlet to spit indexes and better and more efficient design under the hood. 
+- [play.file~] - fixed a regression bug where it didn't play if you only had 1 argument.
+- [unmerge] - fixed selector output, now a symbol/list selector is output.
+- [merge]/[unmerge] - added a -trim flag. 
+- [routetype] - can now handle pointers.  
+- [display] - now it can print pointers.
+- [function] - fixed a bug that triggered a tcl error.
+- [voices] - added a new 'voices' method that only works for list mode and resets the number of voices.
+- 4 new objects for a total of 333: [reverse], [rotate], [iterate] and [drum.seq].
+
+----------------------------------------------------------------------------
+
+1.0-0 beta 20
+
+Breaking changes:
+- [changed] - removed the 'set' method
+- [setmess] - designed changed dramatically, it almost got deleted and renamed
+
+Improvements/fixes:
+- [pick] - this was worthless, now it's fixed
+- [rand.seq] - fixed a bug where lists with '0' crashed Pd.
+- [message] - now you can set a message to store vias the main (hot) inlet and a new (cold) one.
+- [loop] - new -b flag sets it to output bangs instead of floats
+- [changed] - new inlet sets internal state instead of the 'set' method
+- [function] - new float and 'i' method that reads the function, fixes to binding receive names, ability to save unexpanded send/receive names
+- [note] - now it allows saving unexpanded receive names
+- [envgen~] - new inlet sets envelope
+- [dir] - fixed a bug with the dump message where it leaked file handles
+- [args] - has been rewritten and now contains a built in [break] function, so you don't need to use [break] with it anymore.
+- [slider2d] - new methods allow setting independent x/y range and other fixes (this one was kinda bad).
+- [display] - now it can handle literal '$0' and expands it (thanks to [dollarzero])
+- 3 new objects for a total of 329: [stack], [dollarzero] and [receiver].
+
+----------------------------------------------------------------------------
+
+1.0-0 beta 19
+
+Breaking changes:
+- [function] arguments have changed, so patches may break.
+
+
+Improvements/fixes:
+- fixed a regression bug in [function] where it didn't load its args in beta 18 and got completely ruined.
+- [function] now saves its current state with the patch 
+- fixed a couple of bugs in [dir] where the open message crashed Pd.
+- added a symbol arg to [dir] to specify directory to open.
+- added a 3rd outlet to [dir] to inform if the directory was successfully opened or not.
+- improved the way [play.file~] loads sound files.
+- 2 new objects for a total of 326: [message] and [lfnoise].
+
+----------------------------------------------------------------------------
+
+1.0-0 beta 18
+
+Breaking changes:
+
+- [plateverb~] renamed to [plate.rev~] to conform with the standard of reverb objects in else. All messages are now sent to a secondary inlet and a new "clear" method was included.
+- [randf]/[randf~]/[randi~]/[randi] renamed to [rand.f]/[rand.f~]/[rand.i~]/[rand.i] to conform with the standard of random objects in else that now includes a new [rand.seq] object.
+
+Improvements/fixes:
+
+- [biplot] now works for cascading.
+- [keyboard] now works properly in a subpatch
+- [meter~] and [meter2~] now have a release hardcoded to 2 seconds
+- fixes to [display] and [any2symbol]
+- fixes to "clip" function in [rescale]/[rescale~]
+- [player~], [gran.player~] and [pvoc.player~] now have a new 'range' parameter to set a sample range.
+- finished [fdn.rev~] - this was quite experimental in the last release, so in practice it counts as a new object.
+- 30 new objects for a total of 324: [spectrograph~], [pick], [sort], [rand.seq], [regroup], [scramble], [trigger2]/[t2], [avg], [mov.avg], [merge], [unmerge], [router], [selector], [meter], [note], [allpass.filt~], [phaser~], [mono.rev~], [stereo.rev~], [echo.rev~], [giga.rev~], [free.rev~], [chorus~], [maxpeak~], [compress~], [duck~], [expand~], [slew~], [above] and [above~] (the [above~] object is the same as the [past~] object that had been removed in ELSE 1.0 beta 11).
+
+----------------------------------------------------------------------------
+
+1.0-0 beta 17
+
+- [rec.file~]: fixes and improvements.
+- [conv~]: fixes partition scheme and now you can set partition size and IR with messages as well.
+- [dir]: fixed crash when loading many instances.
+- 1 new experimental object for a total of 294: [fdn.rev~].
+
+----------------------------------------------------------------------------
+
+1.0-0 beta 16
+
+Breaking changes:
+
+[xmod~] now defaults to a new FM method, PM is obtained via a flag
+
+Improvements:
+
+[s2f~] abstraction was deleted, so you can load the new compiled version from 1.0 beta 15
+[ms2samps] and [samps2ms] do not output a value at initialization anymore (that was a bug, of course).
+7 new objects for a total of 293: [makesymbol], [xmod2~], [conv~], [cmul~], [separate], [rec~] and [sample~].
+
+----------------------------------------------------------------------------
+
+1.0-0 beta 15
+
+Breaking changes:
+
+[elapsed~] renamed to [detect~], and new options added (hz/bpm)
+[envelope] renamed to [function]
+[sampler~] renamed to [play.file~]
+[pshift~] renamed to [pitch.shift~]
+[coin]/[coin~] 2nd argument now sets a new parameter (total chance) instead of seed
+[freqshift~] renamed to [freq.shift~]
+[sig2float~] is now a compiled object and "start" and "stop" messages are now sent to the main left inlet. Float in the right inlet now syncs the output.
+[xgate2~] inlets were swapped
+
+
+Improvements:
+
+[allpass.2nd~] - help file fix
+[tempo]/[tempo~] - can now set time in ms and have a subdivision parameter
+[envgen~] - bug fix
+[coin]/[coin~] - added -seed flag, 2nd outlet for negative cases and a total chance parameter
+[any2symbol]/[order] - fixed stack overflow for large lists.
+[timed.gate~] - added 'ms' method
+[graph~] - fixed range message
+[sig2float~] is now a compiled object with many new features (such as: offset, sync and more), there's also a [s2f~] alias.
+15 new objects: [moses~], [drunkard], [drunkard~], [stretch.shift~], [gran.player~], [pvoc.player~], [pvoc.live~], [rec.file~], [vocoder~], [freeze~], [pvoc.freeze~], [bin.shift~], [spread~], [impulse], and [pulse].
+
+----------------------------------------------------------------------------
+
+1.0-0 beta 14
+
+Breaking changes:
+
+[pluck~] has been completely redesigned
+
+Improvements:
+
+5 new objects (for a total of 271): [flanger~], [vibrato~], [ping.pong~], [pshift~] and [morph~].
+
+----------------------------------------------------------------------------
+
+1.0-0 beta 13
+
+[hann~] object fixed;
+1 new object (for a total of 266): [comb.filt~].
+
+----------------------------------------------------------------------------
+
+1.0-0 beta 12
+
+Breaking changes:
+
+[power] and [power~] objects removed, cause now [pow] and [pow~] have been fixed for Pd 0.49
+
+Fixes/improvements:
+
+[envelope] - added flags (send/receive/duration/min/max) & methods (send/receive), fix bug where duration from args wasn't right
+[function~] - automatic normalizing overall duration to 1
+[envgen~] - added legato/retrigger/init/suspoint/maxsustain and signal input
+6 new objects (for a total of 265): [hann~], [comb.rev~], [ms2samps], [ms2samps~], [samps2ms] & [samps2ms~].
+
+----------------------------------------------------------------------------
+
+1.0-0 beta 11
+
+breaking changes:
+
+[past~] - this was deleted! 
+[accum~] - this was basically deleted, and a new proper accumulator is named as [add~] (the [accum~] behaviour is still kinda possible using [ramp~])
+[mrms~] - renamed to [mov.rms~] and -abs flag was added
+[mavg~] - renamed to [mov.avg~]
+[pluck~] - trigger now determines output amplitude
+[downsample~] - default frequency argument now is pd's sample rate, not 0
+[vsaw~] - width is now from 0 to 1 to be more like [square~]
+[decay2~] - normalization factor added, plus bang and float methods
+
+Fixes/improvements:
+
+[pulsecount~] - added "max" argument
+[decay~] - bang and float methods
+[clipnoise~] - added seed and made it a compiled object
+[changed2~] - added 2nd outlet like cyclone/change~
+[rescale]/[rescale~] - added clip method/flag
+[player~] - fix for windows
+[shaper~] - addition of a DC filter
+[graph~] - added graph range parameter
+16 new objects (for a total of 261): [envelope], [envgen~], [median], [add], [bangdiv], [coin], [power], [power~], [envelope~], [svfilter~], [tremolo~], [rm~], [sequencer], [norm~], [freqshift~] and [function~]
+
+----------------------------------------------------------------------------
+
+1.0-0 beta 10
+
+breaking changes:
+
+- [togedge~] changed to [status~], added an argument
+- [rotate~] is now multichannel and 1st argument now represents number of channels
+- [sawtooth~] renamed to [saw~]
+- [triangular~] renamed to [tri~].
+
+Fixes/improvements:
+
+- [fbdelay~] added 4 point interpolation instead of linear, added samps mode and -gain flag
+- [lfo] frequency bug fixed
+- [sr~] now sets the sample rate and outputs when sample rate changes
+- [nyquist~] outputs when sample rate changes
+- [elapsed~] triggered in negative to positive transition, -ms flag
+- many other bug fixes, featuring objects like [ramp~], [dir], [player~] and stuff...
+- 35 new objects, for a total of 247 objects: [panic], [sysrt.in], [sysrt.out], [ctl.in], [ctl.out], [touch.in], [touch.out], [pgm.in], [pgm.out], [note.in], [note.out], [bend.in], [bend.out], [noisegate~], [bpm], [table~], [randpulse2~], [bl.imp~], [bl.imp2~], [bl.saw~], [bl.saw2~], [bl.sine~], [bl.square~], [bl.tri~], [bl.vsaw~], [bl.wavetable~], [initmess], [status], [crossover~], [drive~], [shaper~], [blocksize~], [wavetable~] & [nbang].
+
+----------------------------------------------------------------------------
+
+1.0-0 beta 9
+
+breaking changes:
+- [graph~]: new design, and you can now set a "skip" parameter that reflects on the refresh rate. The changed parameters are saved with the patch.
+- [rescaled]/[rescaled~]: "factor" method changed to "exp", new behaviour for extra arguments
+- [inlet2~] removed because it crashed on windows
+- [oscbank~] reverted back to version from 1.0 beta 7 because [inlet2~] was removed 
+
+Fixes/improvements:
+- random number generator (noise) from supercollider ported by Matt Barber, brown~ and gray~ now use it
+- fixed [lfo]
+- [args] now sets args
+- [dir] now can get the directory from parent patches
+- [player~]/[sampler~] can search and open files in the same folder as the parent patch, thanks to the [dir] update
+- clicking on [player~]/[sampler~] opens files, clicking on [e]/pi is the same as "bang"
+- added "retrigger" to [adsr~]
+- [fbdelay~] time can now be set in samples as well
+- 30 new objects (for a total of 211): [count], [mrms~], [schmitt], [schmitt~], [hot], [crusher~], [quantizer], [quantizer~], [int~], [rint], [rint~], [pinknoise~], [ffdelay~], [mavg~], [suspedal], [voices], [mono], [openfile], [colors], [pic], [hex2dec], [dec2hex], [click], [properties], [car2pol], [car2pol~], [mag], [mag~], [pol2car] & [pol2car~].
+
+----------------------------------------------------------------------------
+
+1.0-0 beta 8
+
+Breaking changes:
+
+- Renamed [tdel~]/[tdel2~]/[tgate~] to [trig.delay~]/[trig.delay2~]/[timed.gate~] 
+- [metro~] object has been  renamed to [tempo~] and now includes a new swing feature
+- [dust~] and [dust2~] are now actual clones of supercollider's 
+- [autofade~] is now multichannel, has a bang outlet and the inlet configuration changed 
+- [oscbank~] has a different argument order and can now handle frequency argument thanks to the new [inlet2~] object
+
+Improvements/additions:
+
+- [loop] now can also count backwards, has a secondary bang outlet and a new step parameter 
+- [asr~] has a status outlet like [adsr~] 
+- [ramp~] has a secondary bang outlet 
+- [sr~] and [nyquist~] now also report period (in sec and ms) 
+- fixed bugs in [changed] where it wasn't really changing 
+- fixes in [ceil]/[cents2ratio]/[floor]/hz2rad]/[rad2hz]/[ratio2cents]
+- 18 new objects for a total of 182: - [slider2d] / [mtx~] / [mtx.ctl] / [lorenz~] / [lfo] / [toany] / [fromany] / [tempo] / [window] / [togedge~] / [biquads~] / [lop.bw~] / [hip.bw~] / [fbsine2~] / [player~] / [autofade2~] / [pack2] / [inlet2~] (I might try and hope to include the functionalities of this object into Pd Vanilla's [inlet~], making this useless)
+
+----------------------------------------------------------------------------
+
+1.0-0 beta 7
+
+- [sampler~] now loads automatically number of channels and has a bang outlet for when the file is done
+- [brown~] has an inlet to set the seed
+- [loop] has a list and an offset method and a new behaviour for 2 arguments
+- many bug fixes
+- 9 new objects: [gray~] (thanks to Matt Barber), [float2bits] (thanks to Matt Barber again), [setmess], [randi], [randf], [dir], [routeall], [routetype] and [clock]
+
+
+----------------------------------------------------------------------------
+
+1.0-0 beta 6
+
+- [adsr~] has a status right outlet for turning DSP on and off in suboatches/abstractions
+- New [keyboard] GUI object - what a nice thing, huh? Thanks to Flávio Schiavoni
+- [trigger~] and [togedge~] have been deleted and sort of combined into a new object named [past~]
+- more new objects: [gatehold~], [gate2imp~]
+- [e] object fixed
+- [setdsp~] has now an inlet and outlet
+- [display] can now display the selector
+
+----------------------------------------------------------------------------
+
+1.0-0 beta 5
+
+- new adsr~ object (finally a nice one for Pd)
+- [args] is now a compiled object, not a subpatch model
+- new [break] object - this allows to manage arguments in abstractions much more easily.
+- thanks to the [break] object, I added flag arguments to bank objects (oscbank~/oscbank2~/resonbank~/resonbank2~/bpbank~) and also sampler~
+- changed the pre delay time parameter of [plateverb~] back to ms (sorry, don't know what  I was thinking).
+
+----------------------------------------------------------------------------
+
+1.0-0 beta 4
+
+- changed [brickwall~] default to 0.75 * nyquist cause it works better
+- increased the pre delay size of [plateverb~] to 1 second and made this parameter in seconds (not ms)
+- [sampler~] is now multi channel
+- [random~] was renamed to [randf~] and there's a new [randi~] object
+- new [loadbanger] object
+- new [output~] object compatible to Purr Data's
+- new [args] object
+- new [changed] object
+
+----------------------------------------------------------------------------
+
+1.0-0 beta 3
+
+the ar~ object has been renamed to asr~ cause that's what makes sense
+the fbcomb~ object has been deleted, it's functionality is now the default one in the already existing fbdelay~ object, and it's older functionality is now an extra option.
+the apass~ object has been renamed to allpass.rev~ and has an extra functionality for a gain coefficient, just like in fbdelay~
+the apass~ object has been renamed to allpass.2nd~
+brickwall~ is now a 10th order filter
+added "magic" baheviour to [fbsine~] and swapped the rightmost inlets
+the oscbak~ object is now oscbank2~ and there is a new oscbank~ object
+new plateverb~ object
+
+----------------------------------------------------------------------------
+
+1.0-0 beta 2
+
+- the trigate~ object has been removed
+- new objects are: display / display~ / ar~ / metro~ / impseq~ / sequencer~ / trig2bang~ / trigger~ / sampler~ / trighold~ / randpulse~ / brickwall~
+
+----------------------------------------------------------------------------
+
+1.0-0 beta 1
+
+First Beta Release of ELSE, list of objects:
+
+Current Object list (134 objects):
+
+AUDIO PROCESSING: [4]
+
+[downsample~]
+[apass2~]
+[fbcomb~]
+[fbdelay~]
+
+PHYSICAL MODELLING: [1]
+
+[pluck~]
+
+OSCILLATORS (DETERMINISTIC GENERATORS): [13]
+
+[cosine~]
+[impulse~] / [imp~]
+[impulse2~] / [imp2~]
+[parabolic~]
+[pulse~]
+[sawtooth~]
+[sawtooth2~]
+[oscbank~]
+[sine~]
+[square~]
+[triangular~]
+[vsaw~]
+[pmosc~]
+
+CHAOTIC GENERATORS: [17]
+
+[brown~]
+[clipnoise~]
+[crackle~]
+[cusp~]
+[fbsine~]
+[gbman~]
+[henon~]
+[ikeda~]
+[latoocarfian~]
+[lfnoise~]
+[lincong~]
+[logistic~]
+[quad~]
+[rampnoise~]
+[standard~]
+[stepnoise~]
+[xmod~]
+
+FILTERS (15):
+
+[apass~]
+[bandpass~]
+[bandstop~]
+[bpbank~]
+[bicoeff]
+[biplot]
+[eq~]
+[highpass~]
+[highshelf~]
+[lowpass~]
+[lowshelf~]
+[resonbank~]
+[resonbank2~]
+[resonant~]
+[resonant2~]
+
+SIGNAL ROUTING: [9]
+
+[balance~]
+[pan2~]
+[pan4~]
+[rotate~]
+[xfade~]
+[xgate~]
+[xgate2~]
+[xselect~]
+[xselect2~]
+
+TRIGGERS: [12]
+
+[coin~]
+[dust~]
+[dust2~]
+[pimp~]
+[pulsecount~]
+[pulsediv~]
+[sh~]
+[tdelay~]
+[tdelay2~]
+[toggleff~]
+[tgate~]
+[trigate~]
+
+SIGNAL ANALYSIS: [10]
+
+[changed~]
+[changed2~]
+[elapsed~]
+[lastvalue~]
+[median~]
+[peak~]
+[rms~]
+[togedge~]
+[vu~]
+[zerocross~]
+
+CONTROL: [8]
+
+[autofade~]
+[decay~]
+[decay2~]
+[fader~]
+[glide~]
+[glide2~]
+[ramp~]
+[susloop~]
+
+GUI: [10]
+
+[display]
+[out~]
+[gain~]
+[gain2~]
+[graph~]
+[meter~]
+[meter2~]
+[mix2~]
+[mix4~]
+[setdsp~]
+
+MATH/LOGIC: [13]
+
+[accum~]
+[ceil]
+[ceil~]
+[floor]
+[floor~]
+[fold]
+[fold~]
+[lastvalue]
+[loop]
+[random~]
+[sin~]
+[wrap2]
+[wrap2~]
+
+CONSTANT VALUES: [4]
+
+[nyquist]
+[pi]
+[sr~]
+[e]
+
+CONVERSION: [17]
+
+[any2symbol]
+[cents2rato]
+[cents2ratio~]
+[db2lin]
+[db2lin~]
+[float2sig~]
+[hz2rad]
+[hz2rad~]
+[lin2db]
+[lin2db~]
+[rad2hz]
+[rad2hz~]
+[ratio2cents]
+[ratio2cents~]
+[rescale]
+[rescale~]
+[sig2float~]
+
+MANAGE LISTS: [1]
+
+[order]

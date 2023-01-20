@@ -1,0 +1,8 @@
+\$0-A symbol one || \$0-B 1 ||;
+\$0-A symbol two || \$0-B 2 ||;
+\$0-A symbol three || \$0-B 3 ||;
+\$0-A symbol four || \$0-B 4 ||;
+\$0-A symbol five || \$0-B 5 ||;
+\$0-A symbol six || \$0-B 6 ||;
+\$0-A symbol seven || \$0-B 7 ||;
+\$0-A symbol eight || \$0-B 8 ||;

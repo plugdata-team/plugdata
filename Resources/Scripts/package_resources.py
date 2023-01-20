@@ -102,6 +102,9 @@ makeDir("Extra")
 makeDir("Extra/pdlua")
 makeDir("Extra/GS")
 
+copyDir("../../Libraries/ELSE/Extra", "Extra/ELSE");
+copyDir("../../Libraries/ELSE/sfont~/sf", "Extra/ELSE/sf");
+
 pdlua_srcdir = "../../Libraries/pd-lua/"
 for src in ["pd.lua", "COPYING", "README"]:
     copyFile(pdlua_srcdir+src, "./Extra/pdlua")
