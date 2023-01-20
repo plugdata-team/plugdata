@@ -6,8 +6,11 @@
 
 // Inherit to customise drawing
 struct MIDIKeyboard : public MidiKeyboardComponent {
-    MIDIKeyboard(MidiKeyboardState& stateToUse, Orientation orientationToUse)
-        : MidiKeyboardComponent(stateToUse, orientationToUse)
+    
+    Object* object;
+    
+    MIDIKeyboard(Object* parent, MidiKeyboardState& stateToUse, Orientation orientationToUse)
+        : MidiKeyboardComponent(stateToUse, orientationToUse), object(parent)
     {
         // Make sure nothing is drawn outside of our custom draw functions
         setColour(MidiKeyboardComponent::whiteNoteColourId, Colours::transparentBlack);
@@ -46,7 +49,7 @@ struct MIDIKeyboard : public MidiKeyboardComponent {
             g.fillRect(area);
         }
 
-        g.setColour(findColour(PlugDataColour::outlineColourId));
+        g.setColour(object->findColour(PlugDataColour::outlineColourId));
         g.fillRect(area.withWidth(1.0f));
 
         if (!(midiNoteNumber % 12)) {
@@ -71,6 +74,7 @@ struct MIDIKeyboard : public MidiKeyboardComponent {
                 p.clear();
             }
 
+            g.setColour(object->findColour(PlugDataColour::canvasTextColourId));
             g.fillPath(outline, outline.getTransformToScaleToFit(rectangle, true));
         }
     }
@@ -135,7 +139,7 @@ struct KeyboardObject final : public GUIObject
 
     KeyboardObject(void* ptr, Object* object)
         : GUIObject(ptr, object)
-        , keyboard(state, MidiKeyboardComponent::horizontalKeyboard)
+        , keyboard(object, state, MidiKeyboardComponent::horizontalKeyboard)
     {
         keyboard.setMidiChannel(1);
         keyboard.setAvailableRange(36, 83);
