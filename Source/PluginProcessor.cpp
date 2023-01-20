@@ -559,7 +559,7 @@ void PluginProcessor::prepareToPlay(double sampleRate, int samplesPerBlock)
     oversampler->initProcessing(samplesPerBlock);
 
 #if PLUGDATA_STANDALONE
-    internalSynth.prepare(sampleRate, samplesPerBlock, 2);
+    internalSynth.prepare(sampleRate, samplesPerBlock, maxChannels);
 #endif
 
     audioAdvancement = 0;
