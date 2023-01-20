@@ -96,6 +96,13 @@ public:
         setOutlineThickness(1);
     }
 
+    void resized() override
+    {
+        auto extra = getOutlineThickness() * 2;
+        setSize(getWidth(), jmin(4 * getRowHeight(), items.size() * getRowHeight()) + extra);
+        RoundedListBox::resized();
+    }
+
     void updateDevices()
     {
         items = isInput ? MidiInput::getAvailableDevices() : MidiOutput::getAvailableDevices();
@@ -117,8 +124,7 @@ public:
     {
         if (isPositiveAndBelow(row, items.size())) {
             if (rowIsSelected)
-                g.fillAll(findColour(TextEditor::highlightColourId)
-                              .withMultipliedAlpha(0.3f));
+                g.fillAll(findColour(TextEditor::highlightColourId).withMultipliedAlpha(0.3f));
 
             auto item = items[row];
 
@@ -204,23 +210,19 @@ private:
 
             if (isInput) {
                 deviceManager.setMidiInputDeviceEnabled(identifier, !deviceManager.isMidiInputDeviceEnabled(identifier));
-                updateContent();
             } else {
-
                 if (identifier == "internal") {
                     audioProcessor->enableInternalSynth = !audioProcessor->enableInternalSynth;
                     audioProcessor->settingsTree.setProperty("InternalSynth", static_cast<int>(audioProcessor->enableInternalSynth), nullptr);
                 } else if (auto* midiOut = getEnabledMidiOutputWithID(identifier)) {
                     audioProcessor->midiOutputs.removeObject(midiOut);
-                    updateContent();
-                    return;
                 } else {
                     auto* device = audioProcessor->midiOutputs.add(MidiOutput::openDevice(identifier));
-
                     device->startBackgroundThread();
-                    updateContent();
                 }
             }
+        updateContent();
+        repaint();
         }
     }
 
@@ -270,7 +272,7 @@ public:
         addAndMakeVisible(midiInputsList.get());
 
         midiInputsLabel.reset(new Label({}, TRANS("MIDI inputs:")));
-        midiInputsLabel->setJustificationType(Justification::topRight);
+        midiInputsLabel->setJustificationType(Justification::centredRight);
         midiInputsLabel->attachToComponent(midiInputsList.get(), true);
 
         // Temporarily disable this, it causes a crash at the moment
@@ -285,6 +287,7 @@ public:
         addAndMakeVisible(midiOutputsList.get());
 
         midiOutputLabel.reset(new Label("lm", TRANS("MIDI Outputs:")));
+        midiOutputLabel->setJustificationType(Justification::centredRight);
         midiOutputLabel->attachToComponent(midiOutputsList.get(), true);
 
         deviceManager.addChangeListener(this);
@@ -329,9 +332,7 @@ public:
 
         if (audioDeviceSettingsComp != nullptr) {
             audioDeviceSettingsComp->resized();
-            audioDeviceSettingsComp->setBounds(r.removeFromTop(audioDeviceSettingsComp->getHeight())
-                                                   .withX(0)
-                                                   .withWidth(getWidth()));
+            audioDeviceSettingsComp->setBounds(r.removeFromTop(audioDeviceSettingsComp->getHeight()).withX(0).withWidth(getWidth()));
             r.removeFromTop(space);
         }
 
@@ -349,7 +350,7 @@ public:
         if (midiOutputsList != nullptr) {
             midiOutputsList->setRowHeight(jmin(22, itemHeight));
             midiOutputsList->setBounds(r.removeFromTop(midiOutputsList->getBestHeight(jmin(itemHeight * 8, getHeight() - r.getY() - space - itemHeight))));
-            r.removeFromTop(space);
+            r.removeFromTop(itemHeight / 2); //FIXME this is a heuristic
         }
 
         r.removeFromTop(itemHeight);
