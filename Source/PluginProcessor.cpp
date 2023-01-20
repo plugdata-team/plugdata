@@ -6,6 +6,8 @@
 
 #include <JuceHeader.h>
 
+#include <Filesystem.h>
+
 #ifdef JUCE_WINDOWS
 #    include "Utility/OSUtils.h"
 #endif
@@ -233,8 +235,10 @@ void PluginProcessor::initialiseFilesystem()
     
     // Check if the abstractions directory exists, if not, unzip it from binaryData
     if (!homeDir.exists() || !abstractions.exists()) {
-        MemoryInputStream binaryFilesystem(BinaryData::Filesystem_zip, BinaryData::Filesystem_zipSize, false);
-        auto file = ZipFile(binaryFilesystem);
+
+        MemoryInputStream memstream(__Filesystem, __Filesystem_length, false);
+       
+        auto file = ZipFile(memstream);
         file.uncompressTo(homeDir);
         
         // Create filesystem for this specific version
