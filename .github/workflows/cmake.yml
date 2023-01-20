@@ -22,6 +22,11 @@ jobs:
       with:
         key: macos
 
+    - name: Set Swap Space
+      uses: pierotofy/set-swap-space@master
+      with:
+        swap-size-gb: 10
+
     - name: Create Build Environment
       run: cmake -E make_directory ${{github.workspace}}/build        
 
@@ -215,6 +220,11 @@ jobs:
               pacman: pacman
 
       steps:
+        - name: Set Swap Space
+          uses: pierotofy/set-swap-space@master
+          with:
+            swap-size-gb: 10
+
         - name: Install Dependencies (dnf)
           if: ${{ matrix.pacman == 'dnf' }}
           run: dnf install -y git cmake alsa-lib-devel libXinerama-devel freetype-devel curl libcurl-devel gcc-c++ libXcomposite-devel freeglut-devel libXrandr-devel libXcursor-devel xz ccache python
