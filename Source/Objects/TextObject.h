@@ -54,7 +54,7 @@ struct TextBase : public ObjectBase
     void paint(Graphics& g) override
     {
         g.setColour(object->findColour(PlugDataColour::canvasBackgroundColourId));
-        g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Constants::objectCornerRadius);
+        g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), PlugDataLook::objectCornerRadius);
 
         TextLayout textLayout;
         auto textArea = border.subtractedFrom(getLocalBounds());
@@ -73,7 +73,7 @@ struct TextBase : public ObjectBase
         }
 
         g.setColour(outlineColour);
-        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Constants::objectCornerRadius, 1.0f);
+        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), PlugDataLook::objectCornerRadius, 1.0f);
     }
 
     void updateValue() override {};

@@ -941,7 +941,7 @@ private:
         {
             if (auto* c = dynamic_cast<TopLevelWindow*>(target.get())) {
                 auto shadowPath = Path();
-                shadowPath.addRoundedRectangle(getLocalArea(c, c->getLocalBounds().reduced(shadow.radius * 0.9f)).toFloat(), Constants::windowCornerRadius);
+                shadowPath.addRoundedRectangle(getLocalArea(c, c->getLocalBounds().reduced(shadow.radius * 0.9f)).toFloat(), windowCornerRadius);
 
                 auto radius = c->isActiveWindow() ? shadow.radius * 2.0f : shadow.radius * 1.5f;
                 StackShadow::renderDropShadow(g, shadowPath, shadow.colour, radius, shadow.offset);
@@ -969,6 +969,8 @@ private:
         WeakReference<Component> target;
         DropShadow shadow;
 
+        inline static float const windowCornerRadius = 7.5f;
+        
         int shadowCornerRadius;
 
         JUCE_DECLARE_NON_COPYABLE(ShadowWindow)
@@ -1134,7 +1136,7 @@ private:
 
     std::unique_ptr<ParentVisibilityChangedListener> visibilityChangedListener;
     std::unique_ptr<VirtualDesktopWatcher> virtualDesktopWatcher;
-
+    
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(StackDropShadower);
     JUCE_DECLARE_WEAK_REFERENCEABLE(StackDropShadower);
 };

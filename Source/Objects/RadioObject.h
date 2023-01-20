@@ -140,7 +140,7 @@ struct RadioObject final : public IEMObject {
     void paint(Graphics& g) override
     {
         g.setColour(getBackgroundColour());
-        g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Constants::objectCornerRadius);
+        g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), PlugDataLook::objectCornerRadius);
 
         int size = (isVertical ? getWidth() : getHeight());
         int minSize = 12;
@@ -173,7 +173,7 @@ struct RadioObject final : public IEMObject {
         auto outlineColour = object->findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : objectOutlineColourId);
 
         g.setColour(outlineColour);
-        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Constants::objectCornerRadius, 1.0f);
+        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), PlugDataLook::objectCornerRadius, 1.0f);
     }
 
     ObjectParameters defineParameters() override

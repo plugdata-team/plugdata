@@ -136,12 +136,12 @@ struct SettingsDialog : public Component {
     void paint(Graphics& g) override
     {
         g.setColour(findColour(PlugDataColour::panelBackgroundColourId));
-        g.fillRoundedRectangle(getLocalBounds().reduced(1).toFloat(), Constants::windowCornerRadius);
+        g.fillRoundedRectangle(getLocalBounds().reduced(1).toFloat(), PlugDataLook::windowCornerRadius);
 
         g.setColour(findColour(PlugDataColour::toolbarBackgroundColourId));
 
         auto toolbarBounds = Rectangle<float>(1, 1, getWidth() - 2, toolbarHeight);
-        g.fillRoundedRectangle(toolbarBounds, Constants::windowCornerRadius);
+        g.fillRoundedRectangle(toolbarBounds, PlugDataLook::windowCornerRadius);
         g.fillRect(toolbarBounds.withTrimmedTop(15.0f));
 
 #ifdef PLUGDATA_STANDALONE
@@ -155,7 +155,7 @@ struct SettingsDialog : public Component {
             g.setColour(findColour(PlugDataColour::toolbarBackgroundColourId));
 
             g.fillRect(statusbarBounds.withHeight(20));
-            g.fillRoundedRectangle(statusbarBounds, Constants::windowCornerRadius);
+            g.fillRoundedRectangle(statusbarBounds, PlugDataLook::windowCornerRadius);
         }
 
         g.setColour(findColour(PlugDataColour::outlineColourId));

@@ -40,7 +40,7 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     , statusbar(&p)
     , sidebar(&p, this)
     , tooltipWindow(this, 500)
-    , tooltipShadow(DropShadow(Colour(0, 0, 0).withAlpha(0.2f), 4, { 0, 0 }), Constants::defaultCornerRadius)
+    , tooltipShadow(DropShadow(Colour(0, 0, 0).withAlpha(0.2f), 4, { 0, 0 }), PlugDataLook::defaultCornerRadius)
 {
     toolbarButtons = { new TextButton(Icons::Menu),
         new TextButton(Icons::Undo),
@@ -232,7 +232,7 @@ PluginEditor::~PluginEditor()
 void PluginEditor::paint(Graphics& g)
 {
     g.setColour(findColour(PlugDataColour::canvasBackgroundColourId));
-    g.fillRoundedRectangle(getLocalBounds().toFloat(), Constants::windowCornerRadius);
+    g.fillRoundedRectangle(getLocalBounds().toFloat(), PlugDataLook::windowCornerRadius);
 
     auto baseColour = findColour(PlugDataColour::toolbarBackgroundColourId);
 
@@ -242,12 +242,12 @@ void PluginEditor::paint(Graphics& g)
         // Toolbar background
         g.setColour(baseColour);
         g.fillRect(0, 10, getWidth(), toolbarHeight - 9);
-        g.fillRoundedRectangle(0.0f, 0.0f, getWidth(), toolbarHeight, Constants::windowCornerRadius);
+        g.fillRoundedRectangle(0.0f, 0.0f, getWidth(), toolbarHeight, PlugDataLook::windowCornerRadius);
 
         // Statusbar background
         g.setColour(baseColour);
         g.fillRect(0, getHeight() - statusbar.getHeight(), getWidth(), statusbar.getHeight() - 12);
-        g.fillRoundedRectangle(0.0f, getHeight() - statusbar.getHeight(), getWidth(), statusbar.getHeight(), Constants::windowCornerRadius);
+        g.fillRoundedRectangle(0.0f, getHeight() - statusbar.getHeight(), getWidth(), statusbar.getHeight(), PlugDataLook::windowCornerRadius);
     } else {
         // Toolbar background
         g.setColour(baseColour);

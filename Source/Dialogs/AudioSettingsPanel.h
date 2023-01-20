@@ -16,13 +16,13 @@ struct RoundedListBox : public ListBox {
     void paint(Graphics& g) override
     {
         g.setColour(findColour(PlugDataColour::toolbarBackgroundColourId));
-        g.fillRoundedRectangle(getLocalBounds().toFloat(), Constants::defaultCornerRadius);
+        g.fillRoundedRectangle(getLocalBounds().toFloat(), PlugDataLook::defaultCornerRadius);
     }
 
     void paintOverChildren(Graphics& g) override
     {
         g.setColour(findColour(PlugDataColour::outlineColourId));
-        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Constants::defaultCornerRadius, 1.0f);
+        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), PlugDataLook::defaultCornerRadius, 1.0f);
     }
 };
 

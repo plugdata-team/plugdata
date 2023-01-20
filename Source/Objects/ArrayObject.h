@@ -259,7 +259,7 @@ public:
     void paint(Graphics& g) override
     {
         g.setColour(object->findColour(PlugDataColour::defaultObjectBackgroundColourId));
-        g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Constants::objectCornerRadius);
+        g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), PlugDataLook::objectCornerRadius);
 
         if (error) {
             // TODO: error colour
@@ -428,13 +428,13 @@ struct ArrayEditorDialog : public Component {
     void paintOverChildren(Graphics& g)
     {
         g.setColour(findColour(PlugDataColour::defaultObjectBackgroundColourId));
-        g.drawRoundedRectangle(getLocalBounds().toFloat(), Constants::windowCornerRadius, 1.0f);
+        g.drawRoundedRectangle(getLocalBounds().toFloat(), PlugDataLook::windowCornerRadius, 1.0f);
     }
 
     void paint(Graphics& g)
     {
         g.setColour(findColour(PlugDataColour::defaultObjectBackgroundColourId));
-        g.fillRoundedRectangle(getLocalBounds().toFloat(), Constants::windowCornerRadius);
+        g.fillRoundedRectangle(getLocalBounds().toFloat(), PlugDataLook::windowCornerRadius);
 
         g.setColour(findColour(PlugDataColour::canvasTextColourId));
         g.drawHorizontalLine(39, 0, getWidth());
@@ -637,7 +637,7 @@ public:
         auto outlineColour = object->findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : objectOutlineColourId);
 
         g.setColour(outlineColour);
-        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Constants::objectCornerRadius, 1.0f);
+        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), PlugDataLook::objectCornerRadius, 1.0f);
     }
 
     PdArray getArray() const

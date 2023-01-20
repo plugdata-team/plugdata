@@ -169,7 +169,7 @@ public:
             return;
 
         g.setColour(findColour(PlugDataColour::panelBackgroundColourId));
-        g.fillRoundedRectangle(getLocalBounds().toFloat(), Constants::windowCornerRadius);
+        g.fillRoundedRectangle(getLocalBounds().toFloat(), PlugDataLook::windowCornerRadius);
 
         if (state == Busy) {
             g.setColour(findColour(PlugDataColour::canvasTextColourId));

@@ -69,7 +69,7 @@ struct FloatAtomObject final : public AtomObject {
 
         if (highlighed) {
             g.setColour(object->findColour(PlugDataColour::objectSelectedOutlineColourId));
-            g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(1.0f), Constants::objectCornerRadius, 2.0f);
+            g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(1.0f), PlugDataLook::objectCornerRadius, 2.0f);
         }
     }
 

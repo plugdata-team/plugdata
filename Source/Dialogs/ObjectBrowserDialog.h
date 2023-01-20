@@ -37,7 +37,7 @@ struct CategoriesListBox : public ListBox
     {
         if (rowIsSelected) {
             g.setColour(findColour(PlugDataColour::panelActiveBackgroundColourId));
-            g.fillRoundedRectangle({ 4.0f, 1.0f, width - 8.0f, height - 2.0f }, Constants::defaultCornerRadius);
+            g.fillRoundedRectangle({ 4.0f, 1.0f, width - 8.0f, height - 2.0f }, PlugDataLook::defaultCornerRadius);
         }
 
         g.setColour(rowIsSelected ? findColour(PlugDataColour::panelActiveTextColourId) : findColour(PlugDataColour::panelTextColourId));
@@ -91,7 +91,7 @@ struct ObjectsListBox : public ListBox
 
         if (rowIsSelected) {
             g.setColour(findColour(PlugDataColour::panelActiveBackgroundColourId));
-            g.fillRoundedRectangle({ 4.0f, 1.0f, width - 8.0f, height - 2.0f }, Constants::defaultCornerRadius);
+            g.fillRoundedRectangle({ 4.0f, 1.0f, width - 8.0f, height - 2.0f }, PlugDataLook::defaultCornerRadius);
         }
 
         g.setColour(rowIsSelected ? findColour(PlugDataColour::panelActiveTextColourId) : findColour(PlugDataColour::panelTextColourId));
@@ -243,7 +243,7 @@ struct ObjectViewer : public Component {
 
         auto outlineBounds = objectRect.withSizeKeepingCentre(width, 22).toFloat();
         g.setColour(findColour(PlugDataColour::objectOutlineColourId));
-        g.drawRoundedRectangle(outlineBounds, Constants::objectCornerRadius, 1.0f);
+        g.drawRoundedRectangle(outlineBounds, PlugDataLook::objectCornerRadius, 1.0f);
 
         auto textBounds = outlineBounds.reduced(2.0f);
         g.setColour(findColour(PlugDataColour::canvasTextColourId));
@@ -494,7 +494,7 @@ public:
     {
         if (rowIsSelected) {
             g.setColour(findColour(PlugDataColour::panelActiveBackgroundColourId));
-            g.fillRoundedRectangle(4, 2, w - 8, h - 4, Constants::smallCornerRadius);
+            g.fillRoundedRectangle(4, 2, w - 8, h - 4, PlugDataLook::smallCornerRadius);
         }
 
         g.setColour(rowIsSelected ? findColour(PlugDataColour::panelActiveTextColourId) : findColour(ComboBox::textColourId));
@@ -539,7 +539,7 @@ public:
         auto iconbound = g.getClipBounds().reduced(6);
         iconbound.setWidth(iconbound.getHeight());
         iconbound.translate(6, 0);
-        g.fillRoundedRectangle(iconbound.toFloat(), Constants::smallCornerRadius);
+        g.fillRoundedRectangle(iconbound.toFloat(), PlugDataLook::smallCornerRadius);
 
         g.setColour(Colours::white);
         g.setFont(font.withHeight(type ? 12 : 10));
@@ -713,7 +713,7 @@ struct ObjectBrowserDialog : public Component {
     void paint(Graphics& g) override
     {
         g.setColour(findColour(PlugDataColour::panelBackgroundColourId));
-        g.fillRoundedRectangle(getLocalBounds().reduced(1).toFloat(), Constants::windowCornerRadius);
+        g.fillRoundedRectangle(getLocalBounds().reduced(1).toFloat(), PlugDataLook::windowCornerRadius);
     }
 
 private:
