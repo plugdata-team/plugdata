@@ -31,9 +31,12 @@ struct WelcomePanel : public Component {
             if (isMouseOver()) {
                 g.setColour(findColour(PlugDataColour::panelActiveBackgroundColourId));
                 g.fillRoundedRectangle(1, 1, getWidth() - 2, getHeight() - 2, 6.0f);
+                
+                g.setColour(findColour(PlugDataColour::panelActiveTextColourId));
             }
-
-            g.setColour(findColour(PlugDataColour::canvasTextColourId));
+            else {
+                g.setColour(findColour(PlugDataColour::panelTextColourId));
+            }
 
             g.setFont(lnf->iconFont.withHeight(24));
             g.drawText(iconText, 20, 5, 40, 40, Justification::centredLeft);
