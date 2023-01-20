@@ -209,6 +209,7 @@ private:
 
                 if (identifier == "internal") {
                     audioProcessor->enableInternalSynth = !audioProcessor->enableInternalSynth;
+                    audioProcessor->settingsTree.setProperty("InternalSynth", static_cast<int>(audioProcessor->enableInternalSynth), nullptr);
                 } else if (auto* midiOut = getEnabledMidiOutputWithID(identifier)) {
                     audioProcessor->midiOutputs.removeObject(midiOut);
                     updateContent();

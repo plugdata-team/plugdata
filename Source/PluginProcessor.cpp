@@ -180,6 +180,10 @@ PluginProcessor::PluginProcessor()
     if (settingsTree.hasProperty("Oversampling")) {
         oversampling = static_cast<int>(settingsTree.getProperty("Oversampling"));
     }
+    
+    if (settingsTree.hasProperty("InternalSynth")) {
+        enableInternalSynth = static_cast<int>(settingsTree.getProperty("InternalSynth"));
+    }
 
     updateSearchPaths();
 
@@ -559,7 +563,9 @@ void PluginProcessor::prepareToPlay(double sampleRate, int samplesPerBlock)
     oversampler->initProcessing(samplesPerBlock);
 
 #if PLUGDATA_STANDALONE
-    internalSynth.prepare(sampleRate, samplesPerBlock, maxChannels);
+    if(enableInternalSynth) {
+        internalSynth.prepare(sampleRate, samplesPerBlock, maxChannels);
+    }
 #endif
 
     audioAdvancement = 0;
@@ -663,7 +669,14 @@ void PluginProcessor::processBlock(AudioBuffer<float>& buffer, MidiBuffer& midiM
     }
 
     // If the internalSynth is enabled and loaded, let it process the midi
-    if (enableInternalSynth) {
+    if (enableInternalSynth && internalSynth.isReady()) {
+        internalSynth.process(buffer, midiMessages);
+    }
+    else if(!enableInternalSynth && internalSynth.isReady()) {
+        internalSynth.unprepare();
+    }
+    else if(enableInternalSynth && !internalSynth.isReady()) {
+        internalSynth.prepare(getSampleRate(), AudioProcessor::getBlockSize(), std::max(totalNumInputChannels, totalNumOutputChannels));
         internalSynth.process(buffer, midiMessages);
     }
 

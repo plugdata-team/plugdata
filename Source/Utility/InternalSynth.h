@@ -20,6 +20,22 @@ struct InternalSynth {
         if (settings)
             delete_fluid_settings(settings);
     }
+    
+    void unprepare()
+    {
+        if(ready) {
+            if (synth)
+                delete_fluid_synth(synth);
+            if (settings)
+                delete_fluid_settings(settings);
+            
+            lastSampleRate = 0;
+            lastBlockSize = 0;
+            lastNumChannels = 0;
+            
+            ready = false;
+        }
+    }
 
     void prepare(int sampleRate, int blockSize, int numChannels)
     {
@@ -64,9 +80,6 @@ struct InternalSynth {
 
     void process(AudioBuffer<float>& buffer, MidiBuffer& midiMessages)
     {
-        if (!ready)
-            return;
-
         // Pass MIDI messages to fluidsynth
         for (auto const& event : midiMessages) {
             auto const message = event.getMessage();
@@ -106,6 +119,10 @@ struct InternalSynth {
             buffer.addFrom(ch, 0, internalBuffer, ch, 0, buffer.getNumSamples());
         }
         
+    }
+    
+    bool isReady() {
+        return ready;
     }
 
 private:

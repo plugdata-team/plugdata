@@ -168,7 +168,7 @@ public:
     OwnedArray<MidiOutput> midiOutputs;
 
     InternalSynth internalSynth;
-    std::atomic<bool> enableInternalSynth = true;
+    std::atomic<bool> enableInternalSynth = false;
 #endif
 
 private:
