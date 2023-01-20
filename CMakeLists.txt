@@ -38,7 +38,7 @@ cmake_policy(SET CMP0091 NEW)
 set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 
 message("-- Packaging resources")
-execute_process(COMMAND python3 package_resources.py WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Scripts)
+execute_process(COMMAND python3 package_resources.py ${CMAKE_CURRENT_BINARY_DIR} WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Scripts)
 
 
 set(PLUGDATA_VERSION                    "0.7.0")
@@ -76,6 +76,7 @@ file(GLOB PlugDataSources
     ${SOURCES_DIRECTORY}/Pd/*.h
     ${SOURCES_DIRECTORY}/Heavy/*.cpp
     ${SOURCES_DIRECTORY}/Heavy/*.h
+    ${CMAKE_CURRENT_BINARY_DIR}/BinaryData/*.cpp
 )
 
 if(APPLE)
@@ -257,6 +258,7 @@ target_compile_definitions(plugdata_midi PUBLIC ${PLUGDATA_COMPILE_DEFINITIONS})
 target_compile_definitions(plugdata_midi PUBLIC ${LIBPD_MULTI_COMPILE_DEFINITIONS})
 endif()
 
+list(APPEND PLUGDATA_INCLUDE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/BinaryData/")
 list(APPEND PLUGDATA_INCLUDE_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/Libraries/ELSE/sfont~/")
 list(APPEND PLUGDATA_INCLUDE_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/Libraries/pure-data/src")
 list(APPEND PLUGDATA_INCLUDE_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/Libraries/libpd/")
@@ -280,7 +282,6 @@ file(GLOB PlugDataBinaryDataSources
     ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Fonts/InterThin.ttf
     ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Fonts/IBMPlexMono.ttf
     ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Icons/plugdata_logo.png
-    ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Filesystem.zip
     )
 
 file(GLOB StandaloneBinarySources

@@ -1,11 +1,9 @@
 import shutil
 import os
 import glob
+import sys
 
 # Utility filesystem functions
-def makeArchive(name, root_dir, base_dir):
-    shutil.make_archive(name, "zip", root_dir, base_dir)
-
 def removeFile(path):
     os.remove(path)
 
@@ -51,6 +49,16 @@ def globFindAndReplaceText(path, to_find, replacement):
         with open(src, 'w', encoding='utf-8') as file:
             file.write(filedata)
 
+def makeArchive(name, root_dir, base_dir):
+  #shutil.make_archive(name, "zip", root_dir, base_dir)
+  os.system("zip -9 -r --quiet " + name + ".zip " + base_dir)
+
+def addBinaryResources(path):
+  filename = os.path.basename(path);
+  name = os.path.splitext(path)[0];
+  os.system("python3 " + os.path.dirname(os.path.realpath(__file__)) + "/bin2c.py " + name + ".cpp " + name + ".h " + filename + " " + name)
+  copyFile(name + ".cpp", outpath + "/BinaryData")
+  copyFile(name + ".h", outpath + "/BinaryData")
 
 if existsAsFile("../Filesystem.zip"):
     removeFile("../Filesystem.zip")
@@ -125,4 +133,11 @@ changeWorkingDir("./..")
 makeArchive("Filesystem", "./", "./plugdata_version")
 removeDir("./plugdata_version")
 
+outpath = sys.argv[1]
 
+if existsAsDir(outpath + "/BinaryData"):
+  removeDir(outpath + "/BinaryData")
+
+makeDir(outpath + "/BinaryData")
+
+addBinaryResources("./Filesystem.zip")
