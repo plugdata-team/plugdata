@@ -93,7 +93,7 @@ void libpd_get_search_paths(char** paths, int* numItems) {
         i++;
     }
     
-    *numItems = i;
+    *numItems = i + 1;
     *paths = malloc(i * sizeof(char*));
     
     pathList = STUFF->st_searchpath;
