@@ -291,20 +291,7 @@ void PluginProcessor::initialiseFilesystem()
         settingsTree.appendChild(selectedThemes, nullptr);
 
         settingsTree.setProperty("DefaultFont", "Inter", nullptr);
-        auto colourThemesTree = ValueTree("ColourThemes");
-
-        for (auto const& theme : lnf->colourSettings) {
-            auto themeName = theme.first;
-            auto themeColours = theme.second;
-            auto themeTree = ValueTree("Theme");
-            colourThemesTree.appendChild(themeTree, nullptr);
-            themeTree.setProperty("theme", themeName, nullptr);
-            for (auto const& defaultColours : lnf->defaultDarkTheme) {
-                auto [colourId, colourName, colourCategory] = PlugDataColourNames.at(defaultColours.first);
-                themeTree.setProperty(colourName, themeColours.at(defaultColours.first).toString(), nullptr);
-            }
-        }
-
+        auto colourThemesTree = ValueTree::fromXml(PlugDataLook::defaultThemesXml);
         settingsTree.appendChild(colourThemesTree, nullptr);
         saveSettings();
     } else {
@@ -344,30 +331,14 @@ void PluginProcessor::initialiseFilesystem()
         }
 
         if (!settingsTree.getChildWithName("ColourThemes").isValid()) {
-            auto colourThemesTree = ValueTree("ColourThemes");
-
-            for (auto const& theme : lnf->colourSettings) {
-                auto themeName = theme.first;
-                auto themeColours = theme.second;
-                auto themeTree = ValueTree("Theme");
-
-                colourThemesTree.appendChild(themeTree, nullptr);
-                themeTree.setProperty("theme", themeName, nullptr);
-                
-                themeTree.setProperty("DashedSignalConnection", false, nullptr);
-                themeTree.setProperty("StraightConnections", false, nullptr);
-
-                for (auto const& [colourId, colour] : PlugDataLook::defaultThemes.at(themeName)) {
-                    auto [id, colourName, category] = PlugDataColourNames.at(colourId);
-                    themeTree.setProperty(colourName, colour.toString(), nullptr);
-                }
-            }
-
+            auto colourThemesTree = ValueTree::fromXml(PlugDataLook::defaultThemesXml);
             settingsTree.appendChild(colourThemesTree, nullptr);
             saveSettings();
         } else {
             bool wasMissingColours = false;
             auto colourThemesTree = settingsTree.getChildWithName("ColourThemes");
+            auto defaultThemesTree = ValueTree::fromXml(PlugDataLook::defaultThemesXml);
+            
             for (auto themeTree : colourThemesTree) {
                 auto themeName = themeTree.getProperty("theme");
                 
@@ -378,26 +349,20 @@ void PluginProcessor::initialiseFilesystem()
                     themeTree.setProperty("StraightConnections", false, nullptr);
                 }
 
-                if (!PlugDataLook::defaultThemes.count(themeName)) {
-
-                    for (auto const& [colourId, colourNames] : PlugDataColourNames) {
-                        auto [id, colourName, category] = colourNames;
-                        lnf->colourSettings[themeName][colourId] = Colour::fromString(themeTree.getProperty(colourName).toString());
-                    }
-
+                if (!defaultThemesTree.getChildWithProperty("theme", themeName).isValid()) {
                     continue;
                 }
 
-                for (auto const& [colourId, colour] : PlugDataLook::defaultThemes.at(themeName)) {
-                    auto [id, colourName, category] = PlugDataColourNames.at(colourId);
+                for (auto const& [colourId, colourInfo] : PlugDataColourNames) {
+                    auto& [cId, colourName, colourCategory] = colourInfo;
 
+                    auto defaultTree = defaultThemesTree.getChildWithProperty("theme", themeName);
+                    
                     // For when we add new colours in the future
                     if (!themeTree.hasProperty(colourName)) {
-                        themeTree.setProperty(colourName, colour.toString(), nullptr);
+                        themeTree.setProperty(colourName, defaultTree.getProperty(colourName).toString(), nullptr);
                         wasMissingColours = true;
                     }
-
-                    lnf->colourSettings[themeName][colourId] = Colour::fromString(themeTree.getProperty(colourName).toString());
                 }
             }
 
@@ -1170,7 +1135,6 @@ pd::Patch* PluginProcessor::loadPatch(String patchText)
 
 void PluginProcessor::setTheme(String themeToUse)
 {
-    
     auto themeTree = settingsTree.getChildWithName("ColourThemes").getChildWithProperty("theme", themeToUse);
     // Check if theme name is valid
     if (!themeTree.isValid()) {
@@ -1183,7 +1147,7 @@ void PluginProcessor::setTheme(String themeToUse)
         }
     }
 
-    lnf->setTheme(themeToUse);
+    lnf->setTheme(themeTree);
     
     
     if (auto* editor = dynamic_cast<PluginEditor*>(getActiveEditor())) {

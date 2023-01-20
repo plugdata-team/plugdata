@@ -5,7 +5,7 @@
  */
 
 struct NewThemeDialog : public Component {
-    NewThemeDialog(Dialog* parent, std::function<void(int, String, String)> callback)
+    NewThemeDialog(ValueTree settingsTree, Dialog* parent, std::function<void(int, String, String)> callback)
         : cb(callback)
     {
         setSize(400, 200);
@@ -22,8 +22,8 @@ struct NewThemeDialog : public Component {
                 });
         };
 
-        ok.onClick = [this, parent] {
-            StringArray allThemes = PlugDataLook::getAllThemes();
+        ok.onClick = [this, parent, settingsTree]() mutable {
+            StringArray allThemes = PlugDataLook::getAllThemes(settingsTree.getChildWithName("ColourThemes"));
 
             if (nameEditor.getText().isEmpty()) {
                 errorMessage = "Theme name cannot be empty";
@@ -42,13 +42,12 @@ struct NewThemeDialog : public Component {
                     parent->closeDialog();
                 });
         };
-
-        for (int i = 0; i < PlugDataLook::colourSettings.size(); i++) {
-            auto it = PlugDataLook::colourSettings.begin();
-            std::advance(it, i);
-            auto [themeName, themeColours] = *it;
-
-            baseThemeSelector.addItem(themeName, i + 1);
+        
+        auto allThemes = PlugDataLook::getAllThemes(settingsTree.getChildWithName("ColourThemes"));
+        int i = 1;
+        for(auto& theme : allThemes) {
+            baseThemeSelector.addItem(theme, i);
+            i++;
         }
 
         baseThemeSelector.setSelectedItemIndex(0);
@@ -144,7 +143,7 @@ struct ThemePanel : public Component
                 });
         };
 
-        StringArray allThemes = PlugDataLook::getAllThemes();
+        StringArray allThemes = PlugDataLook::getAllThemes(settingsTree.getChildWithName("ColourThemes"));
 
         newButton.setTooltip("New theme");
         newButton.setName("statusbar:new");
@@ -160,17 +159,12 @@ struct ThemePanel : public Component
                 newTheme.setProperty("theme", name, nullptr);
                 colourThemes.appendChild(newTheme, nullptr);
 
-                for (auto const& [colourId, colourNames] : PlugDataColourNames) {
-                    auto [id, colourName, category] = colourNames;
-                    PlugDataLook::colourSettings[name][colourId] = Colour::fromString(newTheme.getProperty(colourName).toString());
-                }
-
                 updateThemes();
                 updateSwatches();
             };
 
             auto* d = new Dialog(&dialog, getParentComponent(), 400, 190, 220, false);
-            auto* dialogContent = new NewThemeDialog(d, callback);
+            auto* dialogContent = new NewThemeDialog(settingsTree, d, callback);
 
             d->setViewedComponent(dialogContent);
             dialog.reset(d);
@@ -191,11 +185,12 @@ struct ThemePanel : public Component
                 auto themeTree = ValueTree::fromXml(themeXml);
                 auto themeName = themeTree.getProperty("theme").toString();
 
-                if (PlugDataLook::getAllThemes().contains(themeName)) {
+                auto allThemes = PlugDataLook::getAllThemes(settingsTree.getChildWithName("ColourThemes"));
+                if (allThemes.contains(themeName)) {
                     int i = 1;
                     auto finalThemeName = themeName + "_" + String(i);
 
-                    while (PlugDataLook::getAllThemes().contains(finalThemeName)) {
+                    while (allThemes.contains(finalThemeName)) {
                         i++;
                         finalThemeName = themeName + "_" + String(i);
                     }
@@ -204,11 +199,6 @@ struct ThemePanel : public Component
                 }
 
                 settingsTree.getChildWithName("ColourThemes").appendChild(themeTree, nullptr);
-
-                for (auto const& [colourId, colourNames] : PlugDataColourNames) {
-                    auto [id, colourName, category] = colourNames;
-                    PlugDataLook::colourSettings[themeName][colourId] = Colour::fromString(themeTree.getProperty(colourName).toString());
-                }
 
                 updateThemes();
                 updateSwatches();
@@ -220,7 +210,7 @@ struct ThemePanel : public Component
         addAndMakeVisible(saveButton);
         saveButton.setConnectedEdges(12);
         saveButton.onClick = [this]() mutable {
-            auto allThemes = PlugDataLook::getAllThemes();
+            auto allThemes = PlugDataLook::getAllThemes(settingsTree.getChildWithName("ColourThemes"));
 
             PopupMenu menu;
 
@@ -255,7 +245,7 @@ struct ThemePanel : public Component
         addAndMakeVisible(deleteButton);
         deleteButton.setConnectedEdges(12);
         deleteButton.onClick = [this]() mutable {
-            auto allThemes = PlugDataLook::getAllThemes();
+            auto allThemes = PlugDataLook::getAllThemes(settingsTree.getChildWithName("ColourThemes"));
 
             PopupMenu menu;
 
@@ -272,8 +262,6 @@ struct ThemePanel : public Component
                 auto themeTree = settingsTree.getChildWithName("ColourThemes").getChildWithProperty("theme", themeName);
 
                 settingsTree.getChildWithName("ColourThemes").removeChild(themeTree, nullptr);
-
-                PlugDataLook::colourSettings.erase(themeName);
 
                 auto selectedThemes = settingsTree.getChildWithName("SelectedThemes");
                 if (selectedThemes.getProperty("first").toString() == themeName) {
@@ -318,7 +306,7 @@ struct ThemePanel : public Component
 
                 auto& lnf = dynamic_cast<PlugDataLook&>(getLookAndFeel());
 
-                lnf.setTheme(PlugDataLook::selectedThemes[themeIdx]);
+                lnf.setTheme(settingsTree.getChildWithName("ColourThemes").getChildWithProperty("theme", PlugDataLook::selectedThemes[themeIdx]));
                 settingsTree.setProperty("Theme", PlugDataLook::selectedThemes[themeIdx], nullptr);
 
                 getTopLevelComponent()->repaint();
@@ -351,7 +339,6 @@ struct ThemePanel : public Component
             // Loop over themes
             for (int i = 0; i < 2; i++) {
                 auto themeName = PlugDataLook::selectedThemes[i];
-                auto const& themeColours = PlugDataLook::colourSettings[themeName];
                 swatchesToAdd.add(&(swatches[themeName][colourId]));
                 auto* swatch = swatchesToAdd.getLast();
 
@@ -407,7 +394,7 @@ struct ThemePanel : public Component
             auto selectedText = themeSelectors[i].getText();
             themeSelectors[i].clear();
 
-            StringArray allThemes = PlugDataLook::getAllThemes();
+            StringArray allThemes = PlugDataLook::getAllThemes(settingsTree.getChildWithName("ColourThemes"));
             for (int j = 0; j < allThemes.size(); j++) {
                 themeSelectors[i].addItem(allThemes[j], j + 1);
             }
@@ -438,14 +425,19 @@ struct ThemePanel : public Component
             return;
         }
 
-        for (auto const& [themeName, theme] : lnf.colourSettings) {
-            for (auto const& [colourId, value] : theme) {
-                auto [colId, colourName, colCat] = PlugDataColourNames.at(colourId);
+        auto themeTree = settingsTree.getChildWithName("ColourThemes");
+        for(auto theme : themeTree) {
+            auto themeName = theme.getProperty("theme").toString();
+            
+            for(auto [colourId, colourInfo] : PlugDataColourNames) {
+                auto& [colId, colourName, colCat] = colourInfo;
+                
                 if (v.refersToSameSourceAs(swatches[themeName][colourName])) {
-
-                    lnf.setThemeColour(themeName, colourId, Colour::fromString(v.toString()));
-
-                    lnf.setTheme(lnf.currentTheme);
+                    lnf.setThemeColour(theme, colourId, Colour::fromString(v.toString()));
+                    
+                    auto currentThemeTree = themeTree.getChildWithProperty("theme", lnf.currentTheme);
+                    lnf.setTheme(currentThemeTree);
+                    
                     getTopLevelComponent()->repaint();
                 }
             }
@@ -487,35 +479,20 @@ struct ThemePanel : public Component
 
     void resetDefaults()
     {
+        auto colourThemesTree = settingsTree.getChildWithName("ColourThemes");
+        
         auto& lnf = dynamic_cast<PlugDataLook&>(getLookAndFeel());
-        lnf.resetColours();
+        lnf.resetColours(colourThemesTree);
 
         dynamic_cast<PropertiesPanel::FontComponent*>(allPanels[0])->setFont("Inter");
         fontValue = "Inter";
 
         lnf.setDefaultFont(fontValue.toString());
         settingsTree.setProperty("DefaultFont", fontValue.getValue(), nullptr);
-
-        auto colourThemesTree = settingsTree.getChildWithName("ColourThemes");
-
-        for (auto const& [themeName, theme] : lnf.colourSettings) {
-            auto themeTree = colourThemesTree.getChildWithProperty("theme", themeName);
-            for (auto const& [colourId, colourValue] : theme) {
-                auto [colId, colourName, colCat] = PlugDataColourNames.at(colourId);
-                swatches[themeName][colourName] = colourValue.toString();
-                themeTree.setProperty(colourName, colourValue.toString(), nullptr);
-            }
-        }
-
-        lnf.setTheme(lnf.currentTheme);
+        
+        lnf.setTheme(colourThemesTree.getChildWithProperty("theme", lnf.currentTheme));
         getTopLevelComponent()->repaint();
-
-        for (auto* panel : allPanels) {
-            if (auto* multiPanel = dynamic_cast<PropertiesPanel::MultiPropertyComponent<PropertiesPanel::ColourComponent>*>(panel)) {
-                for (auto* property : multiPanel->properties) {
-                    property->updateColour();
-                }
-            }
-        }
+    
+        updateSwatches();
     }
 };

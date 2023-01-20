@@ -372,7 +372,7 @@ struct SettingsPopup : public PopupMenu {
     };
 
     struct ThemeSelector : public Component {
-        ThemeSelector(ValueTree settingsTree)
+        ThemeSelector(ValueTree tree) : settingsTree(tree)
         {
             theme.referTo(settingsTree.getPropertyAsValue("Theme", nullptr));
         }
@@ -384,27 +384,31 @@ struct SettingsPopup : public PopupMenu {
 
             firstBounds = firstBounds.withSizeKeepingCentre(30, 30);
             secondBounds = secondBounds.withSizeKeepingCentre(30, 30);
+            
+            auto themesTree = settingsTree.getChildWithName("ColourThemes");
+            auto firstThemeTree = themesTree.getChildWithProperty("theme", PlugDataLook::selectedThemes[0]);
+            auto secondThemeTree = themesTree.getChildWithProperty("theme", PlugDataLook::selectedThemes[1]);
 
-            g.setColour(PlugDataLook::getThemeColour(PlugDataLook::selectedThemes[0], PlugDataColour::canvasBackgroundColourId));
+            g.setColour(PlugDataLook::getThemeColour(firstThemeTree, PlugDataColour::canvasBackgroundColourId));
             g.fillEllipse(firstBounds.toFloat());
 
-            g.setColour(PlugDataLook::getThemeColour(PlugDataLook::selectedThemes[1], PlugDataColour::canvasBackgroundColourId));
+            g.setColour(PlugDataLook::getThemeColour(secondThemeTree, PlugDataColour::canvasBackgroundColourId));
             g.fillEllipse(secondBounds.toFloat());
 
-            g.setColour(PlugDataLook::getThemeColour(PlugDataLook::selectedThemes[0], PlugDataColour::objectOutlineColourId));
+            g.setColour(PlugDataLook::getThemeColour(firstThemeTree, PlugDataColour::objectOutlineColourId));
             g.drawEllipse(firstBounds.toFloat(), 1.0f);
 
-            g.setColour(PlugDataLook::getThemeColour(PlugDataLook::selectedThemes[1], PlugDataColour::objectOutlineColourId));
+            g.setColour(PlugDataLook::getThemeColour(secondThemeTree, PlugDataColour::objectOutlineColourId));
             g.drawEllipse(secondBounds.toFloat(), 1.0f);
 
             auto tick = getLookAndFeel().getTickShape(0.6f);
             auto tickBounds = Rectangle<int>();
 
-            if (theme.toString() == PlugDataLook::selectedThemes[0]) {
-                g.setColour(PlugDataLook::getThemeColour(PlugDataLook::selectedThemes[0], PlugDataColour::canvasTextColourId));
+            if (theme.toString() == firstThemeTree.getProperty("theme").toString()) {
+                g.setColour(PlugDataLook::getThemeColour(firstThemeTree, PlugDataColour::canvasTextColourId));
                 tickBounds = firstBounds;
             } else {
-                g.setColour(PlugDataLook::getThemeColour(PlugDataLook::selectedThemes[1], PlugDataColour::canvasTextColourId));
+                g.setColour(PlugDataLook::getThemeColour(secondThemeTree, PlugDataColour::canvasTextColourId));
                 tickBounds = secondBounds;
             }
 
@@ -429,6 +433,7 @@ struct SettingsPopup : public PopupMenu {
         }
 
         Value theme;
+        ValueTree settingsTree;
     };
 
     ThemeSelector themeSelector;
