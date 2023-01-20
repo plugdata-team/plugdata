@@ -113,7 +113,7 @@ struct InternalSynth {
         }
         
         // Run audio through fluidsynth
-        fluid_synth_process(synth, buffer.getNumSamples(), buffer.getNumChannels(), const_cast<float**>(buffer.getArrayOfReadPointers()), buffer.getNumChannels(), const_cast<float**>(buffer.getArrayOfWritePointers()));
+        fluid_synth_process(synth, buffer.getNumSamples(), buffer.getNumChannels(), const_cast<float**>(internalBuffer.getArrayOfReadPointers()), buffer.getNumChannels(), const_cast<float**>(internalBuffer.getArrayOfWritePointers()));
 
         for(int ch = 0; ch < buffer.getNumChannels(); ch++) {
             buffer.addFrom(ch, 0, internalBuffer, ch, 0, buffer.getNumSamples());
