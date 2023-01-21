@@ -15,12 +15,16 @@ extern "C" {
 char* pdgui_strnescape(char* dst, size_t dstlen, char const* src, size_t srclen);
 }
 
-struct IEMObject : public ObjectBase {
+struct IEMHelper {
 
     Value initialise;
 
-    IEMObject(void* ptr, Object* parent)
-        : ObjectBase(ptr, parent)
+    IEMHelper(void* ptr, Object* parent, ObjectBase* base)
+        : object(parent)
+        , gui(base)
+        , cnv(parent->cnv)
+        , pd(parent->cnv->pd)
+        , iemgui(static_cast<t_iemgui*>(ptr))
     {
         /*
 
@@ -41,73 +45,51 @@ struct IEMObject : public ObjectBase {
 
         labelText = getLabelText();
 
-        auto* iemgui = static_cast<t_iemgui*>(ptr);
-
         labelX = iemgui->x_ldx;
         labelY = iemgui->x_ldy;
         labelHeight = getFontHeight();
 
-        initialise = static_cast<bool>(iemgui->x_isa.x_loadinit);
-        initialise.addListener(this);
+        // TODO: fix this!
+        //initialise = static_cast<bool>(iemgui->x_isa.x_loadinit);
+        //initialise.addListener(this);
 
         sendSymbol = getSendSymbol();
         receiveSymbol = getReceiveSymbol();
+        
+        updateParameters();
     }
 
-    void paint(Graphics& g) override
-    {
-        g.setColour(getBackgroundColour());
-        g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), PlugDataLook::objectCornerRadius);
-
-        bool selected = cnv->isSelected(object) && !cnv->isGraph;
-        auto outlineColour = object->findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : objectOutlineColourId);
-
-        g.setColour(outlineColour);
-        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), PlugDataLook::objectCornerRadius, 1.0f);
-    }
-
-    void applyBounds() override
-    {
-        auto b = object->getObjectBounds();
-
-        auto* iemgui = static_cast<t_iemgui*>(ptr);
-        iemgui->x_obj.te_xpix = b.getX();
-        iemgui->x_obj.te_ypix = b.getY();
-        iemgui->x_w = b.getWidth();
-        iemgui->x_h = b.getHeight();
-    }
-
-    void updateParameters() override
+    void updateParameters()
     {
         primaryColour = Colour(getForegroundColour()).toString();
         secondaryColour = Colour(getBackgroundColour()).toString();
         labelColour = Colour(getLabelColour()).toString();
 
-        getLookAndFeel().setColour(TextButton::buttonOnColourId, Colour::fromString(primaryColour.toString()));
-        getLookAndFeel().setColour(Slider::thumbColourId, Colour::fromString(primaryColour.toString()));
+        gui->getLookAndFeel().setColour(TextButton::buttonOnColourId, Colour::fromString(primaryColour.toString()));
+        gui->getLookAndFeel().setColour(Slider::thumbColourId, Colour::fromString(primaryColour.toString()));
 
-        getLookAndFeel().setColour(TextEditor::backgroundColourId, Colour::fromString(secondaryColour.toString()));
-        getLookAndFeel().setColour(TextButton::buttonColourId, Colour::fromString(secondaryColour.toString()));
+        gui->getLookAndFeel().setColour(TextEditor::backgroundColourId, Colour::fromString(secondaryColour.toString()));
+        gui->getLookAndFeel().setColour(TextButton::buttonColourId, Colour::fromString(secondaryColour.toString()));
 
         auto sliderBackground = Colour::fromString(secondaryColour.toString());
         sliderBackground = sliderBackground.getBrightness() > 0.5f ? sliderBackground.darker(0.6f) : sliderBackground.brighter(0.6f);
 
-        getLookAndFeel().setColour(Slider::backgroundColourId, sliderBackground);
+        gui->getLookAndFeel().setColour(Slider::backgroundColourId, sliderBackground);
 
-        auto params = getParameters();
+        auto params = gui->getParameters();
         for (auto& [name, type, cat, value, list] : params) {
-            value->addListener(this);
+            value->addListener(gui);
 
             // Push current parameters to pd
             valueChanged(*value);
         }
 
-        repaint();
+        gui->repaint();
     }
 
-    ObjectParameters getParameters() override
+    ObjectParameters getParameters()
     {
-        ObjectParameters params = defineParameters();
+        ObjectParameters params;
 
         params.push_back({ "Foreground", tColour, cAppearance, &primaryColour, {} });
         params.push_back({ "Background", tColour, cAppearance, &secondaryColour, {} });
@@ -119,15 +101,16 @@ struct IEMObject : public ObjectBase {
         params.push_back({ "Label Y", tInt, cLabel, &labelY, {} });
         params.push_back({ "Label Height", tInt, cLabel, &labelHeight, {} });
         params.push_back({ "Initialise", tBool, cGeneral, &initialise, { "No", "Yes" } });
+        
         return params;
     }
 
-    void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
+    void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms)
     {
         auto setColour = [this](Value& targetValue, pd::Atom& atom) {
             if (atom.isSymbol()) {
                 auto colour = "#FF" + atom.getSymbol().fromFirstOccurrenceOf("#", false, false);
-                setParameterExcludingListener(targetValue, colour);
+                gui->setParameterExcludingListener(targetValue, colour);
             } else {
 
                 int iemcolor = atom.getFloat();
@@ -144,11 +127,17 @@ struct IEMObject : public ObjectBase {
 
                 auto colour = Colour(static_cast<uint32>(convert_from_iem_color(iemcolor)));
 
-                setParameterExcludingListener(targetValue, colour.toString());
+                gui->setParameterExcludingListener(targetValue, colour.toString());
             }
         };
 
-        if (symbol == "color") {
+        if (symbol == "send" && atoms.size() >= 1) {
+            gui->setParameterExcludingListener(sendSymbol, atoms[0].getSymbol());
+        }
+        else if (symbol == "receive" && atoms.size() >= 1) {
+            gui->setParameterExcludingListener(receiveSymbol, atoms[0].getSymbol());
+        }
+        else if (symbol == "color") {
 
             if (atoms.size() > 0)
                 setColour(secondaryColour, atoms[0]);
@@ -157,23 +146,22 @@ struct IEMObject : public ObjectBase {
             if (atoms.size() > 2)
                 setColour(labelColour, atoms[2]);
 
-            repaint();
-            updateLabel();
+            gui->repaint();
+            gui->updateLabel();
         } else if (symbol == "label" && atoms.size() >= 1) {
-            setParameterExcludingListener(labelText, atoms[0].getSymbol());
-            updateLabel();
+            gui->setParameterExcludingListener(labelText, atoms[0].getSymbol());
+            gui->updateLabel();
         } else if (symbol == "label_pos" && atoms.size() >= 2) {
-            setParameterExcludingListener(labelX, static_cast<int>(atoms[0].getFloat()));
-            setParameterExcludingListener(labelY, static_cast<int>(atoms[1].getFloat()));
-            updateLabel();
+            gui->setParameterExcludingListener(labelX, static_cast<int>(atoms[0].getFloat()));
+            gui->setParameterExcludingListener(labelY, static_cast<int>(atoms[1].getFloat()));
+            gui->updateLabel();
         } else if (symbol == "label_font" && atoms.size() >= 2) {
-            setParameterExcludingListener(labelHeight, static_cast<int>(atoms[1].getFloat()));
-            updateLabel();
+            gui->setParameterExcludingListener(labelHeight, static_cast<int>(atoms[1].getFloat()));
+            gui->updateLabel();
         } else if (symbol == "init" && atoms.size() >= 1) {
-            setParameterExcludingListener(initialise, static_cast<bool>(atoms[0].getFloat()));
+            gui->setParameterExcludingListener(initialise, static_cast<bool>(atoms[0].getFloat()));
         } else if (symbol == "vis_size" && atoms.size() >= 1) {
             pd->getCallbackLock()->enter();
-            auto* iemgui = static_cast<t_iemgui*>(ptr);
             auto bounds = Rectangle<int>(iemgui->x_obj.te_xpix, iemgui->x_obj.te_ypix, atoms[0].getFloat(), atoms[1].getFloat());
             pd->getCallbackLock()->exit();
 
@@ -181,7 +169,7 @@ struct IEMObject : public ObjectBase {
         }
     }
 
-    void valueChanged(Value& v) override
+    void valueChanged(Value& v)
     {
         if (v.refersToSameSourceAs(sendSymbol)) {
             setSendSymbol(sendSymbol.toString());
@@ -192,60 +180,70 @@ struct IEMObject : public ObjectBase {
             setForegroundColour(colour);
 
             // TODO: move this!
-            getLookAndFeel().setColour(TextButton::buttonOnColourId, colour);
-            getLookAndFeel().setColour(Slider::thumbColourId, colour);
-            getLookAndFeel().setColour(Slider::trackColourId, colour);
+            gui->getLookAndFeel().setColour(TextButton::buttonOnColourId, colour);
+            gui->getLookAndFeel().setColour(Slider::thumbColourId, colour);
+            gui->getLookAndFeel().setColour(Slider::trackColourId, colour);
 
-            getLookAndFeel().setColour(Label::textColourId, colour);
-            getLookAndFeel().setColour(Label::textWhenEditingColourId, colour);
-            getLookAndFeel().setColour(TextEditor::textColourId, colour);
+            gui->getLookAndFeel().setColour(Label::textColourId, colour);
+            gui->getLookAndFeel().setColour(Label::textWhenEditingColourId, colour);
+            gui->getLookAndFeel().setColour(TextEditor::textColourId, colour);
 
-            repaint();
+            gui->repaint();
         } else if (v.refersToSameSourceAs(secondaryColour)) {
             auto colour = Colour::fromString(secondaryColour.toString());
             setBackgroundColour(colour);
 
-            getLookAndFeel().setColour(TextEditor::backgroundColourId, colour);
-            getLookAndFeel().setColour(TextButton::buttonColourId, colour);
+            gui->getLookAndFeel().setColour(TextEditor::backgroundColourId, colour);
+            gui->getLookAndFeel().setColour(TextButton::buttonColourId, colour);
 
-            getLookAndFeel().setColour(Slider::backgroundColourId, colour);
+            gui->getLookAndFeel().setColour(Slider::backgroundColourId, colour);
 
-            repaint();
+            gui->repaint();
         }
 
         else if (v.refersToSameSourceAs(labelColour)) {
             setLabelColour(Colour::fromString(labelColour.toString()));
-            updateLabel();
+            gui->updateLabel();
         } else if (v.refersToSameSourceAs(labelX)) {
             setLabelPosition({ static_cast<int>(labelX.getValue()), static_cast<int>(labelY.getValue()) });
-            updateLabel();
+            gui->updateLabel();
         }
         if (v.refersToSameSourceAs(labelY)) {
             setLabelPosition({ static_cast<int>(labelX.getValue()), static_cast<int>(labelY.getValue()) });
-            updateLabel();
+            gui->updateLabel();
         } else if (v.refersToSameSourceAs(labelHeight)) {
             setFontHeight(static_cast<int>(labelHeight.getValue()));
-            updateLabel();
+            gui->updateLabel();
         } else if (v.refersToSameSourceAs(labelText)) {
             setLabelText(labelText.toString());
-            updateLabel();
+            gui->updateLabel();
         } else if (v.refersToSameSourceAs(initialise)) {
+            /*
             auto* nbx = static_cast<t_my_numbox*>(ptr);
-            nbx->x_gui.x_isa.x_loadinit = static_cast<bool>(initialise.getValue());
+            nbx->x_gui.x_isa.x_loadinit = static_cast<bool>(initialise.getValue()); */
         }
     }
 
-    void updateBounds() override
+    void updateBounds()
     {
         pd->getCallbackLock()->enter();
-        auto* iemgui = static_cast<t_iemgui*>(ptr);
         auto bounds = Rectangle<int>(iemgui->x_obj.te_xpix, iemgui->x_obj.te_ypix, iemgui->x_w, iemgui->x_h);
         pd->getCallbackLock()->exit();
 
         object->setObjectBounds(bounds);
     }
+    
+    void applyBounds()
+    {
+        auto b = object->getObjectBounds();
 
-    void updateLabel() override
+        iemgui->x_obj.te_xpix = b.getX();
+        iemgui->x_obj.te_ypix = b.getY();
+        iemgui->x_w = b.getWidth();
+        iemgui->x_h = b.getHeight();
+    }
+
+    void updateLabel(std::unique_ptr<ObjectLabel>& label)
     {
         int fontHeight = getFontHeight();
 
@@ -274,12 +272,11 @@ struct IEMObject : public ObjectBase {
     {
         auto objectBounds = object->getBounds().reduced(Object::margin);
 
-        t_symbol const* sym = canvas_realizedollar(static_cast<t_iemgui*>(ptr)->x_glist, static_cast<t_iemgui*>(ptr)->x_lab);
+        t_symbol const* sym = canvas_realizedollar(iemgui->x_glist, iemgui->x_lab);
         if (sym) {
             int fontHeight = getFontHeight();
             int labelLength = Font(fontHeight).getStringWidth(getExpandedLabelText());
 
-            auto const* iemgui = static_cast<t_iemgui*>(ptr);
             int const posx = objectBounds.getX() + iemgui->x_ldx;
             int const posy = objectBounds.getY() + iemgui->x_ldy;
 
@@ -292,7 +289,6 @@ struct IEMObject : public ObjectBase {
     String getSendSymbol()
     {
         t_symbol* srlsym[3];
-        auto* iemgui = static_cast<t_iemgui*>(ptr);
         iemgui_all_sym2dollararg(iemgui, srlsym);
 
         if (srl_is_valid(srlsym[0])) {
@@ -305,7 +301,6 @@ struct IEMObject : public ObjectBase {
     String getReceiveSymbol()
     {
         t_symbol* srlsym[3];
-        auto* iemgui = static_cast<t_iemgui*>(ptr);
         iemgui_all_sym2dollararg(iemgui, srlsym);
 
         if (srl_is_valid(srlsym[1])) {
@@ -318,64 +313,62 @@ struct IEMObject : public ObjectBase {
     void setSendSymbol(String const& symbol) const
     {
         auto* sym = symbol.isEmpty() ? nullptr : pd->generateSymbol(symbol);
-        auto* iemgui = static_cast<t_iemgui*>(ptr);
-        iemgui_send(ptr, iemgui, sym);
+        iemgui_send(iemgui, iemgui, sym);
     }
 
     void setReceiveSymbol(String const& symbol) const
     {
 
         auto* sym = symbol.isEmpty() ? nullptr : pd->generateSymbol(symbol);
-        auto* iemgui = static_cast<t_iemgui*>(ptr);
-        iemgui_receive(ptr, iemgui, sym);
+        iemgui_receive(iemgui, iemgui, sym);
     }
 
     Colour getBackgroundColour() const
     {
-        return Colour(static_cast<uint32>(libpd_iemgui_get_background_color(ptr)));
+        return Colour(static_cast<uint32>(libpd_iemgui_get_background_color(iemgui)));
     }
 
     Colour getForegroundColour() const
     {
-        return Colour(static_cast<uint32>(libpd_iemgui_get_foreground_color(ptr)));
+        return Colour(static_cast<uint32>(libpd_iemgui_get_foreground_color(iemgui)));
     }
 
     Colour getLabelColour() const
     {
-        return Colour(static_cast<uint32>(libpd_iemgui_get_label_color(ptr)));
+        return Colour(static_cast<uint32>(libpd_iemgui_get_label_color(iemgui)));
     }
 
     void setBackgroundColour(Colour colour)
     {
         String colourStr = colour.toString();
-        libpd_iemgui_set_background_color(ptr, colourStr.toRawUTF8());
+        libpd_iemgui_set_background_color(iemgui, colourStr.toRawUTF8());
     }
 
     void setForegroundColour(Colour colour)
     {
         String colourStr = colour.toString();
-        libpd_iemgui_set_foreground_color(ptr, colourStr.toRawUTF8());
+        libpd_iemgui_set_foreground_color(iemgui, colourStr.toRawUTF8());
     }
 
     void setLabelColour(Colour colour)
     {
         String colourStr = colour.toString();
-        libpd_iemgui_set_label_color(ptr, colourStr.toRawUTF8());
+        libpd_iemgui_set_label_color(iemgui, colourStr.toRawUTF8());
     }
 
     int getFontHeight() const
     {
-        return static_cast<t_iemgui*>(ptr)->x_fontsize;
+        return iemgui->x_fontsize;
     }
 
     void setFontHeight(float newSize)
     {
-        static_cast<t_iemgui*>(ptr)->x_fontsize = newSize;
+        iemgui->x_fontsize = newSize;
     }
 
     String getExpandedLabelText() const
     {
-        t_symbol const* sym = static_cast<t_iemgui*>(ptr)->x_lab;
+        t_symbol const* sym = iemgui->x_lab;
         if (sym) {
             auto const text = String::fromUTF8(sym->s_name);
             if (text.isNotEmpty() && text != "empty") {
@@ -388,7 +381,7 @@ struct IEMObject : public ObjectBase {
 
     String getLabelText() const
     {
-        t_symbol const* sym = static_cast<t_iemgui*>(ptr)->x_lab_unexpanded;
+        t_symbol const* sym = iemgui->x_lab_unexpanded;
         if (sym) {
             auto const text = String::fromUTF8(sym->s_name);
             if (text.isNotEmpty() && text != "empty") {
@@ -404,7 +397,6 @@ struct IEMObject : public ObjectBase {
         if (newText.isEmpty())
             newText = "empty";
 
-        auto* iemgui = static_cast<t_iemgui*>(ptr);
         if (newText != "empty") {
             iemgui->x_lab_unexpanded = pd->generateSymbol(newText);
             iemgui->x_lab = canvas_realizedollar(iemgui->x_glist, iemgui->x_lab_unexpanded);
@@ -413,9 +405,8 @@ struct IEMObject : public ObjectBase {
 
     void setLabelPosition(Point<int> position)
     {
-        auto* iem = static_cast<t_iemgui*>(ptr);
-        iem->x_ldx = position.x;
-        iem->x_ldy = position.y;
+        iemgui->x_ldx = position.x;
+        iemgui->x_ldy = position.y;
     }
 
     int iemgui_color_hex[30] = {
@@ -426,4 +417,23 @@ struct IEMObject : public ObjectBase {
         12369084, 6316128, 0, 9177096, 5779456,
         7874580, 2641940, 17488, 5256, 5767248
     };
+    
+    Object* object;
+    ObjectBase* gui;
+    Canvas* cnv;
+    PluginProcessor* pd;
+    
+    t_iemgui* iemgui;
+    
+    Value primaryColour;
+    Value secondaryColour;
+    Value labelColour;
+    
+    Value labelX = Value(0.0f);
+    Value labelY = Value(0.0f);
+    Value labelHeight = Value(18.0f);
+    Value labelText;
+    
+    Value sendSymbol;
+    Value receiveSymbol;
 };

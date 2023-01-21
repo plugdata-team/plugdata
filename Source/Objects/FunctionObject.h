@@ -47,6 +47,8 @@ struct FunctionObject final : public ObjectBase {
     bool newPointAdded = false;
 
     Value range;
+    Value primaryColour;
+    Value secondaryColour;
 
     FunctionObject(void* ptr, Object* object)
         : ObjectBase(ptr, object)
@@ -410,7 +412,13 @@ struct FunctionObject final : public ObjectBase {
 
     void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
     {
-        if(symbol == "list") {
+        if (symbol == "send" && atoms.size() >= 1) {
+            setParameterExcludingListener(sendSymbol, atoms[0].getSymbol());
+        }
+        else if (symbol == "receive" && atoms.size() >= 1) {
+            setParameterExcludingListener(receiveSymbol, atoms[0].getSymbol());
+        }
+        else if(symbol == "list") {
             getPointsFromFunction();
         }
         if (symbol == "min" || symbol == "max") {
@@ -421,5 +429,8 @@ struct FunctionObject final : public ObjectBase {
         }
     }
     
+    Value sendSymbol;
+    Value receiveSymbol;
+
     
 };

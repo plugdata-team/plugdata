@@ -154,7 +154,7 @@ struct ButtonObject : public ObjectBase {
         }
     }
 
-    ObjectParameters defineParameters() override
+    ObjectParameters getParameters() override
     {
         return {
             { "Foreground", tColour, cAppearance, &primaryColour, {} },
@@ -191,4 +191,7 @@ struct ButtonObject : public ObjectBase {
             repaint();
         }
     }
+    
+    Value primaryColour;
+    Value secondaryColour;
 };

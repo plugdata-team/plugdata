@@ -4,15 +4,18 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
-struct RadioObject final : public IEMObject {
+struct RadioObject final : public ObjectBase {
 
     bool alreadyToggled = false;
     bool isVertical;
 
-    RadioObject(void* obj, Object* parent)
-        : IEMObject(obj, parent)
+    IEMHelper iemHelper;
+    
+    RadioObject(void* ptr, Object* object)
+        : ObjectBase(ptr, object)
+        , iemHelper(ptr, object, this)
     {
-        isVertical = static_cast<t_radio*>(obj)->x_orientation;
+        isVertical = static_cast<t_radio*>(ptr)->x_orientation;
 
         max = getMaximum();
         max.addListener(this);
@@ -23,6 +26,11 @@ struct RadioObject final : public IEMObject {
         }
     }
 
+    void updateParameters() override
+    {
+        iemHelper.updateParameters();
+    }
+    
     void resized() override
     {
         int size = (isVertical ? getWidth() : getHeight());
@@ -84,7 +92,7 @@ struct RadioObject final : public IEMObject {
         } else if (symbol == "number" && atoms.size() >= 1) {
             setParameterExcludingListener(max, static_cast<int>(atoms[0].getFloat()));
         } else {
-            IEMObject::receiveObjectMessage(symbol, atoms);
+            iemHelper.receiveObjectMessage(symbol, atoms);
         }
     }
 
@@ -137,7 +145,7 @@ struct RadioObject final : public IEMObject {
 
     void paint(Graphics& g) override
     {
-        g.setColour(getBackgroundColour());
+        g.setColour(iemHelper.getBackgroundColour());
         g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), PlugDataLook::objectCornerRadius);
 
         int size = (isVertical ? getWidth() : getHeight());
@@ -154,7 +162,7 @@ struct RadioObject final : public IEMObject {
             }
         }
 
-        g.setColour(getForegroundColour());
+        g.setColour(iemHelper.getForegroundColour());
 
         int currentValue = value;
         int selectionX = isVertical ? 0 : currentValue * size;
@@ -174,9 +182,14 @@ struct RadioObject final : public IEMObject {
         g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), PlugDataLook::objectCornerRadius, 1.0f);
     }
 
-    ObjectParameters defineParameters() override
-    {
-        return { { "Options", tInt, cGeneral, &max, {} } };
+    ObjectParameters getParameters() override
+    {        
+        ObjectParameters allParameters = { { "Options", tInt, cGeneral, &max, {} } };
+           
+        auto iemParameters = iemHelper.getParameters();
+        allParameters.insert(allParameters.end(), iemParameters.begin(), iemParameters.end());
+        
+        return allParameters;
     }
 
     void valueChanged(Value& value) override
@@ -185,7 +198,7 @@ struct RadioObject final : public IEMObject {
             setMaximum(limitValueMin(value, 1));
             repaint();
         } else {
-            IEMObject::valueChanged(value);
+            iemHelper.valueChanged(value);
         }
     }
 

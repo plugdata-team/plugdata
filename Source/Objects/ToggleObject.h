@@ -4,28 +4,48 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
-struct ToggleObject final : public IEMObject {
+struct ToggleObject final : public ObjectBase {
     bool toggleState = false;
     bool alreadyToggled = false;
     Value nonZero;
+    
+    IEMHelper iemHelper;
 
-    ToggleObject(void* obj, Object* parent)
-        : IEMObject(obj, parent)
+    ToggleObject(void* ptr, Object* object)
+    : ObjectBase(ptr, object)
+    , iemHelper(ptr, object, this)
     {
+    }
+    
+    void updateBounds() override
+    {
+        iemHelper.updateBounds();
+    }
+    
+    void applyBounds() override
+    {
+        iemHelper.applyBounds();
     }
 
     void updateParameters() override
     {
         nonZero = static_cast<t_toggle*>(ptr)->x_nonzero;
-        IEMObject::updateParameters();
+        iemHelper.updateParameters();
     }
 
     void paint(Graphics& g) override
     {
-        IEMObject::paint(g);
+        g.setColour(iemHelper.getBackgroundColour());
+        g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), PlugDataLook::objectCornerRadius);
 
-        auto toggledColour = getForegroundColour();
-        auto untoggledColour = toggledColour.interpolatedWith(getBackgroundColour(), 0.8f);
+        bool selected = cnv->isSelected(object) && !cnv->isGraph;
+        auto outlineColour = object->findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : objectOutlineColourId);
+
+        g.setColour(outlineColour);
+        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), PlugDataLook::objectCornerRadius, 1.0f);
+
+        auto toggledColour = iemHelper.getForegroundColour();
+        auto untoggledColour = toggledColour.interpolatedWith(iemHelper.getBackgroundColour(), 0.8f);
         g.setColour(toggleState ? toggledColour : untoggledColour);
 
         auto crossBounds = getLocalBounds().reduced((getWidth() * 0.08f) + 4.5f).toFloat();
@@ -84,11 +104,16 @@ struct ToggleObject final : public IEMObject {
         }
     }
 
-    ObjectParameters defineParameters() override
+    ObjectParameters getParameters() override
     {
-        return {
-            { "Non-zero value", tInt, cGeneral, &nonZero, {} },
+        ObjectParameters allParameters = {
+            { "Non-zero value", tInt, cGeneral, &nonZero, {} }
         };
+           
+        auto iemParameters = iemHelper.getParameters();
+        allParameters.insert(allParameters.end(), iemParameters.begin(), iemParameters.end());
+        
+        return allParameters;
     }
 
     void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
@@ -106,7 +131,7 @@ struct ToggleObject final : public IEMObject {
         if (symbol == "nonzero" && atoms.size() >= 1) {
             setParameterExcludingListener(nonZero, atoms[0].getFloat());
         } else {
-            IEMObject::receiveObjectMessage(symbol, atoms);
+            iemHelper.receiveObjectMessage(symbol, atoms);
         }
     }
 
@@ -117,7 +142,7 @@ struct ToggleObject final : public IEMObject {
             max = val;
             static_cast<t_toggle*>(ptr)->x_nonzero = val;
         } else {
-            IEMObject::valueChanged(value);
+            iemHelper.valueChanged(value);
         }
     }
 

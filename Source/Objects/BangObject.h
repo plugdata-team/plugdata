@@ -4,7 +4,7 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
-struct BangObject final : public IEMObject {
+struct BangObject final : public ObjectBase {
     uint32_t lastBang = 0;
 
     Value bangInterrupt = Value(100.0f);
@@ -13,14 +13,32 @@ struct BangObject final : public IEMObject {
     bool bangState = false;
     bool alreadyBanged = false;
     
+    IEMHelper iemHelper;
+    
     BangObject(void* obj, Object* parent)
-        : IEMObject(obj, parent)
+        : ObjectBase(obj, parent)
+        , iemHelper(obj, parent, this)
     {
         auto* bng = static_cast<t_bng*>(ptr);
         bangInterrupt = bng->x_flashtime_break;
         bangHold = bng->x_flashtime_hold;
     }
 
+    void updateParameters() override
+    {
+        iemHelper.updateParameters();
+    }
+    
+    void updateBounds() override
+    {
+        iemHelper.updateBounds();
+    }
+    
+    void applyBounds() override
+    {
+        iemHelper.applyBounds();
+    }
+    
     void checkBounds() override
     {
         // Fix aspect ratio and apply limits
@@ -53,13 +71,18 @@ struct BangObject final : public IEMObject {
 
         // Make sure we don't re-click with an accidental drag
         alreadyBanged = true;
-
-        update();
     }
 
     void paint(Graphics& g) override
     {
-        IEMObject::paint(g);
+        g.setColour(iemHelper.getBackgroundColour());
+        g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), PlugDataLook::objectCornerRadius);
+
+        bool selected = cnv->isSelected(object) && !cnv->isGraph;
+        auto outlineColour = object->findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : objectOutlineColourId);
+
+        g.setColour(outlineColour);
+        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), PlugDataLook::objectCornerRadius, 1.0f);
 
         auto const bounds = getLocalBounds().reduced(1).toFloat();
         auto const width = std::max(bounds.getWidth(), bounds.getHeight());
@@ -71,7 +94,7 @@ struct BangObject final : public IEMObject {
         g.drawEllipse(bounds.reduced(width - circleOuter), circleThickness);
 
         if (bangState) {
-            g.setColour(getForegroundColour());
+            g.setColour(iemHelper.getForegroundColour());
             g.fillEllipse(bounds.reduced(width - circleOuter + circleThickness));
         }
     }
@@ -121,12 +144,18 @@ struct BangObject final : public IEMObject {
         }
     }
 
-    ObjectParameters defineParameters() override
+    
+    ObjectParameters getParameters() override
     {
-        return {
+        ObjectParameters allParameters = {
             { "Minimum flash time", tInt, cGeneral, &bangInterrupt, {} },
             { "Maximum flash time", tInt, cGeneral, &bangHold, {} },
         };
+           
+        auto iemParameters = iemHelper.getParameters();
+        allParameters.insert(allParameters.end(), iemParameters.begin(), iemParameters.end());
+        
+        return allParameters;
     }
 
     void valueChanged(Value& value) override
@@ -137,7 +166,7 @@ struct BangObject final : public IEMObject {
         if (value.refersToSameSourceAs(bangHold)) {
             static_cast<t_bng*>(ptr)->x_flashtime_hold = bangHold.getValue();
         } else {
-            IEMObject::valueChanged(value);
+            iemHelper.valueChanged(value);
         }
     }
 
@@ -157,7 +186,7 @@ struct BangObject final : public IEMObject {
             if (atoms.size() > 1)
                 setParameterExcludingListener(bangHold, atoms[1].getFloat());
         } else {
-            IEMObject::receiveObjectMessage(symbol, atoms);
+            iemHelper.receiveObjectMessage(symbol, atoms);
         }
     }
     
