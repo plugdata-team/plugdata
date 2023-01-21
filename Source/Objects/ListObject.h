@@ -130,6 +130,13 @@ struct ListObject final : public AtomObject {
             listLabel.showEditor();
         }
     }
+    
+    void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
+    {
+        if(symbol == "float" || symbol == "symbol" || symbol == "list") {
+            updateValue();
+        }
+    };
 
 private:
     DraggableListNumber listLabel;
