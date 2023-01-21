@@ -144,7 +144,7 @@ public:
         } else {
             getTabbedButtonBar().setVisible(true);
             welcomePanel.setVisible(false);
-            setTabBarDepth(28);
+            setTabBarDepth(26);
         }
 
         onTabChange(newCurrentTabIndex);
