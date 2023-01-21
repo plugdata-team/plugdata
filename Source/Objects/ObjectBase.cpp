@@ -577,3 +577,7 @@ ObjectLabel* ObjectBase::getLabel()
 {
     return label.get();
 }
+bool ObjectBase::isDraggingSlider()
+{
+    return draggingSlider;
+}

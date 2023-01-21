@@ -166,12 +166,9 @@ public:
         }
     }
 
-    void receiveMessage(String const& symbol, int argc, t_atom* argv) override
+    void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
     {
-        MessageManager::callAsync([_this = SafePointer(this)]() {
-            if (_this)
-                _this->updateValue();
-        });
+        updateValue();
     }
 
     void resized() override

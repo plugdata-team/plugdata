@@ -84,17 +84,10 @@ public:
         openSubpatch();
     }
 
-    void receiveMessage(String const& symbol, int argc, t_atom* argv) override
+    void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
     {
-        auto atoms = pd::Atom::fromAtoms(argc, argv);
-
-        MessageManager::callAsync([_this = SafePointer(this), symbol, atoms]() mutable {
-            if (!_this)
-                return;
-
-            if (symbol == "vis" && atoms.size() > 2) {
-                // TODO: implement this!
-            }
-        });
+        if (symbol == "vis" && atoms.size() > 2) {
+            // TODO: implement this!
+        }
     }
 };
