@@ -28,8 +28,10 @@ public:
     }
 };
 
-struct SimpleDeviceManagerInputLevelMeter : public Component
+class SimpleDeviceManagerInputLevelMeter : public Component
     , public Timer {
+        
+public:
     SimpleDeviceManagerInputLevelMeter(AudioDeviceManager& m)
         : manager(m)
     {
@@ -1139,8 +1141,11 @@ public:
 
 #else
 
-struct DAWAudioSettings : public Component
+class DAWAudioSettings : public Component
     , public Value::Listener {
+        
+        
+public:
     explicit DAWAudioSettings(AudioProcessor* p)
         : processor(p)
     {

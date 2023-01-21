@@ -54,6 +54,18 @@ extern "C" {
 #include "ScopeObject.h"
 #include "FunctionObject.h"
 
+// Class for non-patchable objects
+class NonPatchable : public ObjectBase {
+
+public:
+    NonPatchable(void* obj, Object* parent) : ObjectBase(obj, parent) {
+        parent->setVisible(false);
+    }
+
+    void updateBounds() override {};
+    void applyBounds() override {};
+};
+
 void ObjectLabel::ObjectListener::componentMovedOrResized(Component& component, bool moved, bool resized)
 {
 
@@ -322,17 +334,6 @@ void ObjectBase::paint(Graphics& g)
     g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), PlugDataLook::objectCornerRadius, 1.0f);
 }
 
-NonPatchable::NonPatchable(void* obj, Object* parent)
-    : ObjectBase(obj, parent)
-{
-    // Make object invisible
-    object->setVisible(false);
-}
-
-NonPatchable::~NonPatchable()
-{
-}
-
 struct Lambda {
     template<typename Tret, typename T>
     static Tret lambda_ptr_exec(void* data)
@@ -558,7 +559,6 @@ void ObjectBase::receiveMessage(String const& symbol, int argc, t_atom* argv)
             return;
 
         if (symbol == "size" || symbol == "delta" || symbol == "pos" || symbol == "dim" || symbol == "width" || symbol == "height") {
-            // TODO: we can't really ensure the object has updated its bounds yet!
             _this->updateBounds();
         } else {
             _this->receiveObjectMessage(symbol, atoms);

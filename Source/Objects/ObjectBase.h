@@ -178,15 +178,3 @@ protected:
     friend class IEMHelper;
     friend class AtomHelper;
 };
-
-// Class for non-patchable objects
-class NonPatchable : public ObjectBase {
-
-public:
-    NonPatchable(void* obj, Object* parent);
-    ~NonPatchable();
-
-    virtual void updateValue() {};
-    virtual void updateBounds() {};
-    virtual void applyBounds() {};
-};

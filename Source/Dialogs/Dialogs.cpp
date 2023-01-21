@@ -289,8 +289,9 @@ void Dialogs::showObjectMenu(PluginEditor* parent, Component* target)
         });
 }
 
-struct OkayCancelDialog : public Component {
+class OkayCancelDialog : public Component {
 
+public:
     OkayCancelDialog(Dialog* dialog, String const& title, std::function<void(bool)> callback)
         : label("", title)
     {
