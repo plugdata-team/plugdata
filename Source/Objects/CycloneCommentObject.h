@@ -62,12 +62,13 @@ typedef struct _comment {
 } t_fake_comment;
 
 // This object is a dumb version of [cyclone/comment] that only serves to make cyclone's documentation readable
-struct CycloneCommentObject final : public ObjectBase {
+class CycloneCommentObject final : public ObjectBase {
 
     Colour textColour;
     Font font;
     BorderSize<int> border { 1, 7, 1, 2 };
 
+public:
     CycloneCommentObject(void* obj, Object* object)
         : ObjectBase(obj, object)
     {

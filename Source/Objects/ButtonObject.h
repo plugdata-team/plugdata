@@ -28,11 +28,11 @@ typedef struct _button {
     unsigned char x_fgcolor[3];
 } t_fake_button;
 
-struct ButtonObject : public ObjectBase {
+class ButtonObject : public ObjectBase {
 
     bool state = false;
     bool alreadyTriggered = false;
-
+public:
     ButtonObject(void* obj, Object* parent)
         : ObjectBase(obj, parent)
     {

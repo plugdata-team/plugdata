@@ -4,13 +4,14 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
-struct CanvasActiveObject final : public TextBase
+class CanvasActiveObject final : public TextBase
     , public FocusChangeListener {
 
     bool lastFocus = 0;
 
     t_symbol* canvasName;
 
+public:
     CanvasActiveObject(void* ptr, Object* object)
         : TextBase(ptr, object)
     {
@@ -52,7 +53,7 @@ struct CanvasActiveObject final : public TextBase
     }
 };
 
-struct CanvasMouseObject final : public TextBase {
+class CanvasMouseObject final : public TextBase {
 
     struct t_fake_canvas_mouse {
         t_object x_obj;
@@ -70,6 +71,7 @@ struct CanvasMouseObject final : public TextBase {
 
     bool lastFocus = 0;
 
+public:
     CanvasMouseObject(void* ptr, Object* object)
         : TextBase(ptr, object)
     {
@@ -114,7 +116,7 @@ struct CanvasMouseObject final : public TextBase {
     }
 };
 
-struct CanvasVisibleObject final : public TextBase
+class CanvasVisibleObject final : public TextBase
     , public ComponentListener
     , public Timer {
     struct t_fake_canvas_vis {
@@ -125,6 +127,7 @@ struct CanvasVisibleObject final : public TextBase
 
     bool lastFocus = 0;
 
+public:
     CanvasVisibleObject(void* ptr, Object* object)
         : TextBase(ptr, object)
     {
@@ -165,7 +168,7 @@ struct CanvasVisibleObject final : public TextBase
     }
 };
 
-struct CanvasZoomObject final : public TextBase {
+class CanvasZoomObject final : public TextBase {
     struct t_fake_zoom {
         t_object x_obj;
         void* x_proxy;
@@ -175,6 +178,7 @@ struct CanvasZoomObject final : public TextBase {
 
     float lastScale;
 
+public:
     CanvasZoomObject(void* ptr, Object* object)
         : TextBase(ptr, object)
     {
@@ -194,7 +198,7 @@ struct CanvasZoomObject final : public TextBase {
     }
 };
 
-struct CanvasEditObject final : public TextBase {
+class CanvasEditObject final : public TextBase {
     struct t_fake_edit {
         t_object x_obj;
         void* x_proxy;
@@ -204,6 +208,7 @@ struct CanvasEditObject final : public TextBase {
 
     bool lastEditMode;
 
+public:
     CanvasEditObject(void* ptr, Object* object)
         : TextBase(ptr, object)
     {

@@ -5,7 +5,7 @@
  */
 
 // ELSE mousepad
-struct MousePadObject final : public ObjectBase {
+class MousePadObject final : public ObjectBase {
     bool isLocked = false;
     bool isPressed = false;
 
@@ -26,6 +26,7 @@ struct MousePadObject final : public ObjectBase {
         unsigned char x_color[3];
     } t_pad;
 
+public:
     MousePadObject(void* ptr, Object* object)
         : ObjectBase(ptr, object)
     {

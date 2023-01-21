@@ -19,11 +19,12 @@ class Patch;
 
 class Object;
 
-struct ObjectLabel : public Label {
+class ObjectLabel : public Label {
     struct ObjectListener : public juce::ComponentListener {
         void componentMovedOrResized(Component& component, bool moved, bool resized) override;
     };
 
+public:
     ObjectLabel(Component* parent)
         : object(parent)
     {
@@ -41,20 +42,17 @@ struct ObjectLabel : public Label {
         object->removeComponentListener(&objListener);
     }
 
+private:
     ObjectListener objListener;
     Component* object;
 };
 
-struct ObjectBase : public Component
+class ObjectBase : public Component
     , public pd::MessageListener
     , public Value::Listener
     , public SettableTooltipClient {
-        
-    void* ptr;
-    Object* object;
-    Canvas* cnv;
-    PluginProcessor* pd;
 
+public:
     ObjectBase(void* obj, Object* parent);
 
     virtual ~ObjectBase();
@@ -117,14 +115,15 @@ struct ObjectBase : public Component
     virtual void toggleObject(Point<int> position) {};
     virtual void untoggleObject() {};
 
+    virtual ObjectLabel* getLabel();
+        
+protected:
     void setParameterExcludingListener(Value& parameter, var value);
 
     void startEdition();
     void stopEdition();
 
     void valueChanged(Value& value) override {};
-
-    virtual ObjectLabel* getLabel();
 
     void sendFloatValue(float value);
 
@@ -144,17 +143,28 @@ struct ObjectBase : public Component
         return clampedValue;
     }
 
+public:
     static inline bool draggingSlider = false;
-
+        
+    void* ptr;
+    Object* object;
+    Canvas* cnv;
+    PluginProcessor* pd;
+        
+protected:
     std::unique_ptr<ObjectLabel> label;
-
     static inline constexpr int maxSize = 1000000;
-
     std::atomic<bool> edited;
+        
+        
+    friend class IEMHelper;
+    friend class AtomHelper;
 };
 
 // Class for non-patchable objects
-struct NonPatchable : public ObjectBase {
+class NonPatchable : public ObjectBase {
+    
+public:
     NonPatchable(void* obj, Object* parent);
     ~NonPatchable();
 

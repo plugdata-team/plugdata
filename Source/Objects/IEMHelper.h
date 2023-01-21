@@ -15,10 +15,11 @@ extern "C" {
 char* pdgui_strnescape(char* dst, size_t dstlen, char const* src, size_t srclen);
 }
 
-struct IEMHelper {
+class IEMHelper {
 
     Value initialise;
 
+public:
     IEMHelper(void* ptr, Object* parent, ObjectBase* base)
         : object(parent)
         , gui(base)

@@ -4,10 +4,11 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
-struct VUMeterObject final : public ObjectBase {
+class VUMeterObject final : public ObjectBase {
 
     IEMHelper iemHelper;
 
+public:
     VUMeterObject(void* ptr, Object* object)
         : ObjectBase(ptr, object)
         , iemHelper(ptr, object, this)

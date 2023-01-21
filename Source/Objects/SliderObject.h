@@ -4,7 +4,7 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
-struct SliderObject : public ObjectBase {
+class SliderObject : public ObjectBase {
     bool isVertical;
     Value isLogarithmic = Value(var(false));
 
@@ -17,6 +17,7 @@ struct SliderObject : public ObjectBase {
     
     float value = 0.0f;
 
+public:
     SliderObject(void* obj, Object* object)
         : ObjectBase(obj, object)
         , iemHelper(obj, object, this)

@@ -6,16 +6,17 @@
 #pragma once
 #include <JuceHeader.h>
 
-struct Canvas;
-struct LevelMeter;
-struct MidiBlinker;
-struct PluginProcessor;
+class Canvas;
+class LevelMeter;
+class MidiBlinker;
+class PluginProcessor;
 
-struct Statusbar : public Component
+class Statusbar : public Component
     , public Value::Listener
     , public Timer {
     PluginProcessor* pd;
 
+public:
     explicit Statusbar(PluginProcessor* processor);
     ~Statusbar();
 

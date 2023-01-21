@@ -4,7 +4,15 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
-struct SubpatchObject final : public TextBase {
+class SubpatchObject final : public TextBase {
+    
+    pd::Patch subpatch;
+    Value isGraphChild = Value(var(false));
+    Value hideNameAndArgs = Value(var(false));
+
+    bool locked = false;
+    
+public:
     SubpatchObject(void* obj, Object* object)
         : TextBase(obj, object)
         , subpatch({ ptr, cnv->pd })
@@ -113,11 +121,4 @@ struct SubpatchObject final : public TextBase {
             }
         }
     }
-
-protected:
-    pd::Patch subpatch;
-    Value isGraphChild = Value(var(false));
-    Value hideNameAndArgs = Value(var(false));
-
-    bool locked = false;
 };
