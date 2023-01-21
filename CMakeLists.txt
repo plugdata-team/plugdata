@@ -79,7 +79,7 @@ file(GLOB PlugDataSources
 )
 
 if(APPLE)
-  list(APPEND PlugDataSources ${SOURCES_DIRECTORY}/Utility/FileSystemWatcher.mm)
+  list(APPEND PlugDataSources ${SOURCES_DIRECTORY}/Utility/FileSystemWatcher.mm ${SOURCES_DIRECTORY}/Utility/OSUtils.mm)
 else()
   list(APPEND PlugDataSources ${SOURCES_DIRECTORY}/Utility/FileSystemWatcher.cxx)
 endif()

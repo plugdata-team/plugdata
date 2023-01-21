@@ -279,19 +279,24 @@ void PluginEditor::resized()
 
     statusbar.setBounds(0, getHeight() - statusbar.getHeight(), getWidth() - sidebar.getWidth(), statusbar.getHeight());
 
-    toolbarButton(Settings)->setBounds(20, 0, toolbarHeight, toolbarHeight);
-    toolbarButton(Undo)->setBounds(100, 0, toolbarHeight, toolbarHeight);
-    toolbarButton(Redo)->setBounds(180, 0, toolbarHeight, toolbarHeight);
-    toolbarButton(Add)->setBounds(260, 0, toolbarHeight, toolbarHeight);
-
-#ifdef PLUGDATA_STANDALONE
-    int offset = 150;
-#else
-    int offset = 80;
-#endif
-
     auto useNativeTitlebar = static_cast<bool>(pd->settingsTree.getProperty("NativeWindow"));
+    
+#if JUCE_MAC && PLUGDATA_STANDALONE
+    int leftOffset = useNativeTitlebar ? 20 : 70;
+#else
+    int leftOffset = 20;
+#endif
+    
+    toolbarButton(Settings)->setBounds(leftOffset, 0, toolbarHeight, toolbarHeight);
+    toolbarButton(Undo)->setBounds(leftOffset + 80, 0, toolbarHeight, toolbarHeight);
+    toolbarButton(Redo)->setBounds(leftOffset + 160, 0, toolbarHeight, toolbarHeight);
+    toolbarButton(Add)->setBounds(leftOffset + 240, 0, toolbarHeight, toolbarHeight);
+
+#if !PLUGDATA_STANDALONE || JUCE_MAC
+    auto windowControlsOffset = 70.0f;
+#else
     auto windowControlsOffset = useNativeTitlebar ? 70.0f : 170.0f;
+#endif
 
     int hidePosition = getWidth() - windowControlsOffset;
     int pinPosition = hidePosition - 65;

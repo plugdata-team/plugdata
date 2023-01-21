@@ -26,14 +26,11 @@
 
 #include <JuceHeader.h>
 
-#if JUCE_LINUX
-bool isMaximised(void* handle);
-void maximiseLinuxWindow(void* handle);
-#endif
 
 #include "../PluginEditor.h"
 
 #include "../Utility/StackShadow.h"
+#include "../Utility/OSUtils.h"
 
 // For each OS, we have a different approach to rendering the window shadow
 // macOS:
@@ -100,6 +97,7 @@ public:
         else
             init(audioInputRequired, preferredDefaultDeviceName);
 #endif
+    
     }
 
     void init(bool enableAudioInput, String const& preferredDefaultDeviceName)
@@ -522,7 +520,13 @@ public:
     {
         bool nativeWindow = static_cast<bool>(v.getValue());
 
+        
+#if JUCE_MAC
+        setUsingNativeTitleBar(true);
+        enableInsetTitlebarButtons(getPeer()->getNativeHandle(), !nativeWindow);
+#else
         setUsingNativeTitleBar(nativeWindow);
+#endif
 
         if (!nativeWindow) {
 
@@ -662,11 +666,11 @@ public:
             Rectangle<int> titleBarArea;
             if (drawWindowShadow && SystemStats::getOperatingSystemType() == SystemStats::Linux) {
                 auto margin = mainComponent ? mainComponent->getMargin() : 18;
-                titleBarArea = Rectangle<int>(0, 10 + margin, getWidth() - (6 + margin), 25);
+                titleBarArea = Rectangle<int>(0, 7 + margin, getWidth() - (6 + margin), 23);
                 if (resizer)
                     resizer->setBounds(getLocalBounds().reduced(margin));
             } else {
-                titleBarArea = Rectangle<int>(0, 10, getWidth() - 6, 25);
+                titleBarArea = Rectangle<int>(0, 7, getWidth() - 6, 23);
                 if (auto* b = getMaximiseButton())
                     b->setToggleState(isFullScreen(), dontSendNotification);
 
