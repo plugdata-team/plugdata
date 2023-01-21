@@ -426,9 +426,9 @@ private:
     std::unique_ptr<FileChooser> openChooser;
 
 #ifdef PLUGDATA_STANDALONE
-    static constexpr int toolbarHeight = 45;
-#else
     static constexpr int toolbarHeight = 40;
+#else
+    static constexpr int toolbarHeight = 35;
 #endif
 
     OwnedArray<TextButton> toolbarButtons;
