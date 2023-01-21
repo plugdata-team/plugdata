@@ -521,12 +521,7 @@ public:
         bool nativeWindow = static_cast<bool>(v.getValue());
 
         
-#if JUCE_MAC
-        setUsingNativeTitleBar(true);
-        enableInsetTitlebarButtons(getPeer()->getNativeHandle(), !nativeWindow);
-#else
         setUsingNativeTitleBar(nativeWindow);
-#endif
 
         if (!nativeWindow) {
 
