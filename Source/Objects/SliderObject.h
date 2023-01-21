@@ -247,8 +247,7 @@ public:
 
         if (minimum != maximum || minimum != 0 || maximum != 0) {
             value = (minimum < maximum) ? std::max(std::min(v, maximum), minimum) : std::max(std::min(v, minimum), maximum);
-        }
-        else {
+        } else {
             value = v;
         }
 

@@ -77,8 +77,8 @@ class PackageManager : public Thread
     , public ActionBroadcaster
     , public ValueTree::Listener
     , public DeletedAtShutdown {
-        
-    public:
+
+public:
     struct DownloadTask : public Thread {
         PackageManager& manager;
         PackageInfo packageInfo;

@@ -7,7 +7,7 @@
 #if PLUGDATA_STANDALONE
 
 class RoundedListBox : public ListBox {
-    
+
 public:
     RoundedListBox(String const& componentName = String(), ListBoxModel* model = nullptr)
         : ListBox(componentName, model)
@@ -30,7 +30,7 @@ public:
 
 class SimpleDeviceManagerInputLevelMeter : public Component
     , public Timer {
-        
+
 public:
     SimpleDeviceManagerInputLevelMeter(AudioDeviceManager& m)
         : manager(m)
@@ -1143,8 +1143,7 @@ public:
 
 class DAWAudioSettings : public Component
     , public Value::Listener {
-        
-        
+
 public:
     explicit DAWAudioSettings(AudioProcessor* p)
         : processor(p)

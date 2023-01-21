@@ -97,7 +97,7 @@ public:
 
     virtual Canvas* getCanvas();
     virtual pd::Patch* getPatch();
-        
+
     // Override if you want a part of your object to ignore mouse clicks
     virtual bool canReceiveMouseEvent(int x, int y);
 
@@ -116,22 +116,21 @@ public:
     virtual ObjectParameters getParameters();
 
     virtual void updateLabel() {};
-        
+
     // Implement this if you want to allow toggling an object by dragging over it in run mode
     virtual void toggleObject(Point<int> position) {};
     virtual void untoggleObject() {};
 
     virtual ObjectLabel* getLabel();
-        
+
     // Should return current object text if applicable
     // Currently only used to subsitute arguments in tooltips
     // TODO: does that even work?
     virtual String getText();
-        
+
     static bool isDraggingSlider();
-        
+
 protected:
-        
     // Set parameter without triggering valueChanged
     void setParameterExcludingListener(Value& parameter, var value);
 
@@ -161,7 +160,6 @@ protected:
         v = clampedValue;
         return clampedValue;
     }
-
 
 public:
     void* ptr;

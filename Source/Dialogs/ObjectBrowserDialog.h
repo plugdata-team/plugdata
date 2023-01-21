@@ -129,7 +129,7 @@ public:
 };
 
 class ObjectViewer : public Component {
-    
+
 public:
     ObjectViewer(PluginEditor* editor, ObjectReferenceDialog& objectReference)
         : reference(objectReference)

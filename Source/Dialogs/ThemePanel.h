@@ -5,7 +5,7 @@
  */
 
 class NewThemeDialog : public Component {
-    
+
 public:
     NewThemeDialog(ValueTree settingsTree, Dialog* parent, std::function<void(int, String, String)> callback)
         : cb(callback)

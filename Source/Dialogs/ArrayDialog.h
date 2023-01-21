@@ -5,7 +5,7 @@
  */
 
 struct ArrayDialog : public Component {
-    
+
 public:
     ArrayDialog(Component* editor, Dialog* parent, std::function<void(int, String, String)> callback)
         : cb(callback)

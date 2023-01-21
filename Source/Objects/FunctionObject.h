@@ -51,7 +51,7 @@ class FunctionObject final : public ObjectBase {
     Value secondaryColour;
     Value sendSymbol;
     Value receiveSymbol;
-    
+
 public:
     FunctionObject(void* ptr, Object* object)
         : ObjectBase(ptr, object)

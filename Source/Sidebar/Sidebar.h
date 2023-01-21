@@ -40,7 +40,7 @@ using ObjectParameter = std::tuple<String, ParameterType, ParameterCategory, Val
 using ObjectParameters = std::vector<ObjectParameter>; // List of elements and update function
 
 class Sidebar : public Component {
-    
+
 public:
     explicit Sidebar(PluginProcessor* instance, PluginEditor* parent);
 

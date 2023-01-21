@@ -19,14 +19,14 @@ bool wantsNativeDialog();
 // Base classes for communication between parent and child classes
 class DocumentBrowserViewBase : public TreeView
     , public DirectoryContentsDisplayComponent {
-        
+
 public:
     DocumentBrowserViewBase(DirectoryContentsList& listToShow)
         : DirectoryContentsDisplayComponent(listToShow) {};
 };
 
 class DocumentBrowserBase : public Component {
-    
+
 public:
     DocumentBrowserBase(PluginProcessor* processor)
         : pd(processor)
@@ -701,7 +701,7 @@ private:
 
 class DocumentBrowser : public DocumentBrowserBase
     , public FileSystemWatcher::Listener {
-        
+
 public:
     DocumentBrowser(PluginProcessor* processor)
         : DocumentBrowserBase(processor)

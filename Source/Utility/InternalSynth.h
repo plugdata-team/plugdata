@@ -135,12 +135,10 @@ public:
     }
 
 private:
-    
     File homeDir = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory).getChildFile("plugdata");
 
     File soundFont = homeDir.getChildFile("Library").getChildFile("Extra").getChildFile("GS").getChildFile("FluidR3Mono_GM.sf3");
 
-    
     // Fluidsynth state
     fluid_synth_t* synth = nullptr;
     fluid_settings_t* settings = nullptr;
