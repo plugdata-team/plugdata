@@ -7,7 +7,7 @@
 // Text base class that text objects with special implementation details can derive from
 class TextBase : public ObjectBase
     , public TextEditor::Listener {
-       
+
 protected:
     Justification justification = Justification::centredLeft;
     std::unique_ptr<TextEditor> editor;
@@ -23,7 +23,7 @@ protected:
 
     bool wasSelected = false;
     bool isValid = true;
-        
+
 public:
     TextBase(void* obj, Object* parent, bool valid = true)
         : ObjectBase(obj, parent)
@@ -253,12 +253,11 @@ public:
     {
         return true;
     }
-
 };
 
 // Actual text object, marked final for optimisation
 class TextObject final : public TextBase {
-    
+
 public:
     TextObject(void* obj, Object* parent, bool isValid = true)
         : TextBase(obj, parent, isValid)

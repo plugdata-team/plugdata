@@ -100,7 +100,6 @@ public:
 class DrawableTemplate {
 
 public:
-    
     virtual void update() = 0;
 
     /* getting and setting values via fielddescs -- note confusing names;

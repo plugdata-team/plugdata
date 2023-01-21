@@ -32,6 +32,7 @@ class ButtonObject : public ObjectBase {
 
     bool state = false;
     bool alreadyTriggered = false;
+
 public:
     ButtonObject(void* obj, Object* parent)
         : ObjectBase(obj, parent)

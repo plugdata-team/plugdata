@@ -298,9 +298,9 @@ const std::map<ObjectIDs, String> objectNames {
 
 class ZoomLabel : public TextButton
     , public Timer {
-        
-        ComponentAnimator labelAnimator;
-        
+
+    ComponentAnimator labelAnimator;
+
 public:
     ZoomLabel()
     {

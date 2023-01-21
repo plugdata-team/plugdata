@@ -36,7 +36,7 @@ class MessageObject final : public ObjectBase
     bool isValid = true;
     bool isDown = false;
     bool isLocked = false;
-        
+
 public:
     MessageObject(void* obj, Object* parent)
         : ObjectBase(obj, parent)
@@ -371,5 +371,4 @@ public:
     {
         return true;
     }
-
 };

@@ -13,7 +13,7 @@ class SymbolAtomObject final : public ObjectBase
     AtomHelper atomHelper;
 
     String lastMessage;
-    
+
     Label input;
 
 public:
@@ -133,7 +133,7 @@ public:
 
         repaint();
     }
- 
+
     void paint(Graphics& g) override
     {
         getLookAndFeel().setColour(Label::textWhenEditingColourId, object->findColour(PlugDataColour::canvasTextColourId));

@@ -10,10 +10,10 @@ class FloatAtomObject final : public ObjectBase {
 
     AtomHelper atomHelper;
     DraggableNumber input;
-    
+
     Value min = Value(0.0f);
     Value max = Value(0.0f);
-    
+
     float value = 0.0f;
 
 public:

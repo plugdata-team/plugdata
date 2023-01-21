@@ -12,10 +12,10 @@ class NumberObject final : public ObjectBase {
     IEMHelper iemHelper;
 
     float preFocusValue;
-    
+
     Value min = Value(0.0f);
     Value max = Value(0.0f);
-    
+
     float value = 0.0f;
 
 public:

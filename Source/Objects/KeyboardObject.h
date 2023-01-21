@@ -139,13 +139,13 @@ class KeyboardObject final : public ObjectBase
         t_outlet* x_out;
     } t_keyboard;
 
-        Value lowC;
-        Value octaves;
-        int numKeys = 0;
+    Value lowC;
+    Value octaves;
+    int numKeys = 0;
 
-        MidiKeyboardState state;
-        MIDIKeyboard keyboard;
-        
+    MidiKeyboardState state;
+    MIDIKeyboard keyboard;
+
 public:
     KeyboardObject(void* ptr, Object* object)
         : ObjectBase(ptr, object)
@@ -353,5 +353,4 @@ public:
         g.setColour(outlineColour);
         g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), PlugDataLook::objectCornerRadius, 1.0f);
     }
-
 };

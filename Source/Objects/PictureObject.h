@@ -45,7 +45,7 @@ class PictureObject final : public ObjectBase {
     Value path;
     File imageFile;
     Image img;
-    
+
 public:
     PictureObject(void* ptr, Object* object)
         : ObjectBase(ptr, object)

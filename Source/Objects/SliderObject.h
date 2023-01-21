@@ -11,10 +11,10 @@ class SliderObject : public ObjectBase {
     Slider slider;
 
     IEMHelper iemHelper;
-    
+
     Value min = Value(0.0f);
     Value max = Value(0.0f);
-    
+
     float value = 0.0f;
 
 public:

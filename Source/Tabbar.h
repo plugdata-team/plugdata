@@ -14,9 +14,8 @@ class WelcomePanel : public Component {
         String bottomText;
 
     public:
-        
         std::function<void(void)> onClick = []() {};
-        
+
         WelcomeButton(String icon, String mainText, String subText)
             : iconText(icon)
             , topText(mainText)
@@ -104,10 +103,10 @@ public:
 };
 
 class TabComponent : public TabbedComponent {
-    
+
     TextButton newButton = TextButton(Icons::Add);
     WelcomePanel welcomePanel;
-    
+
 public:
     std::function<void(int)> onTabChange = [](int) {};
     std::function<void()> newTab = []() {};
