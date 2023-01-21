@@ -61,9 +61,9 @@ public:
         input.dragEnd = [this]() { stopEdition(); };
     }
 
-    void updateParameters() override
+    void initialiseParameters() override
     {
-        iemHelper.updateParameters();
+        iemHelper.initialiseParameters();
     }
 
     void updateBounds() override

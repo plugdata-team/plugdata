@@ -557,7 +557,7 @@ public:
         graph.setBounds(getLocalBounds());
     }
 
-    void updateParameters() override
+    void initialiseParameters() override
     {
         auto params = getParameters();
         for (auto& [name, type, cat, value, list] : params) {

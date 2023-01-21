@@ -51,7 +51,7 @@ public:
         }
     }
 
-    void updateParameters() override
+    void initialiseParameters() override
     {
         auto* button = static_cast<t_fake_button*>(ptr);
 

@@ -77,7 +77,7 @@ ObjectBase::ObjectBase(void* obj, Object* parent)
 
     MessageManager::callAsync([_this = SafePointer<ObjectBase>(this)] {
         if (_this) {
-            _this->updateParameters();
+            _this->initialiseParameters();
         }
     });
 }
@@ -357,7 +357,7 @@ struct Lambda {
     }
 };
 
-void ObjectBase::updateParameters()
+void ObjectBase::initialiseParameters()
 {
     getLookAndFeel().setColour(Label::textWhenEditingColourId, object->findColour(Label::textWhenEditingColourId));
     getLookAndFeel().setColour(Label::textColourId, object->findColour(Label::textColourId));

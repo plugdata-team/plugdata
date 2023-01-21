@@ -30,10 +30,10 @@ public:
         iemHelper.applyBounds();
     }
 
-    void updateParameters() override
+    void initialiseParameters() override
     {
         nonZero = static_cast<t_toggle*>(ptr)->x_nonzero;
-        iemHelper.updateParameters();
+        iemHelper.initialiseParameters();
     }
 
     void paint(Graphics& g) override

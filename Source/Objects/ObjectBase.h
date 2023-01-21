@@ -75,7 +75,7 @@ public:
     // Called whenever a drawable changes
     virtual void updateDrawables() {};
 
-    virtual void updateParameters();
+    virtual void initialiseParameters();
 
     virtual bool canOpenFromMenu();
     virtual void openFromMenu();

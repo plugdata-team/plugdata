@@ -25,9 +25,9 @@ public:
         bangHold = bng->x_flashtime_hold;
     }
 
-    void updateParameters() override
+    void initialiseParameters() override
     {
-        iemHelper.updateParameters();
+        iemHelper.initialiseParameters();
     }
 
     void updateBounds() override
