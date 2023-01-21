@@ -246,7 +246,10 @@ public:
         auto maximum = static_cast<float>(max.getValue());
 
         if (minimum != maximum || minimum != 0 || maximum != 0) {
-            v = (minimum < maximum) ? std::max(std::min(v, maximum), minimum) : std::max(std::min(v, minimum), maximum);
+            value = (minimum < maximum) ? std::max(std::min(v, maximum), minimum) : std::max(std::min(v, minimum), maximum);
+        }
+        else {
+            value = v;
         }
 
         sendFloatValue(value);
