@@ -33,7 +33,7 @@ typedef struct _numbox {
     char x_buf[32]; // number buffer
 } t_numbox;
 
-struct NumboxTildeObject final : public GUIObject
+class NumboxTildeObject final : public ObjectBase
     , public Timer {
     DraggableNumber input;
 
@@ -42,8 +42,15 @@ struct NumboxTildeObject final : public GUIObject
 
     Value interval, ramp, init;
 
+    Value min = Value(0.0f);
+    Value max = Value(0.0f);
+
+    Value primaryColour;
+    Value secondaryColour;
+
+public:
     NumboxTildeObject(void* obj, Object* parent)
-        : GUIObject(obj, parent)
+        : ObjectBase(obj, parent)
         , input(false)
     {
         input.onEditorShow = [this]() {
@@ -55,7 +62,7 @@ struct NumboxTildeObject final : public GUIObject
         };
 
         input.onEditorHide = [this]() {
-            setValue(input.getText().getFloatValue());
+            sendFloatValue(input.getText().getFloatValue());
         };
 
         addAndMakeVisible(input);
@@ -80,7 +87,7 @@ struct NumboxTildeObject final : public GUIObject
 
         addMouseListener(this, true);
 
-        input.valueChanged = [this](float value) { setValue(value); };
+        input.valueChanged = [this](float value) { sendFloatValue(value); };
 
         mode = static_cast<t_numbox*>(ptr)->x_outmode;
 
@@ -136,7 +143,7 @@ struct NumboxTildeObject final : public GUIObject
         input.setFont(getHeight() - 6);
     }
 
-    ObjectParameters defineParameters() override
+    ObjectParameters getParameters() override
     {
         return {
             { "Minimum", tFloat, cGeneral, &min, {} },
@@ -153,10 +160,8 @@ struct NumboxTildeObject final : public GUIObject
     {
         if (value.refersToSameSourceAs(min)) {
             setMinimum(static_cast<float>(min.getValue()));
-            updateValue();
         } else if (value.refersToSameSourceAs(max)) {
             setMaximum(static_cast<float>(max.getValue()));
-            updateValue();
         } else if (value.refersToSameSourceAs(interval)) {
             auto* nbx = static_cast<t_numbox*>(ptr);
             nbx->x_rate = static_cast<float>(interval.getValue());
@@ -221,34 +226,24 @@ struct NumboxTildeObject final : public GUIObject
 
     void timerCallback() override
     {
+        auto val = getValue();
+
         if (!mode) {
-            input.setText(input.formatNumber(getValueOriginal()), dontSendNotification);
+            input.setText(input.formatNumber(val), dontSendNotification);
         }
 
         startTimer(nextInterval);
     }
 
-    void setValue(float newValue)
+    float getValue()
     {
-        t_atom at;
-        SETFLOAT(&at, newValue);
-        setValueOriginal(newValue);
+        auto* obj = static_cast<t_numbox*>(ptr);
 
-        pd->getCallbackLock()->enter();
-        pd_float(static_cast<t_pd*>(ptr), newValue);
-        pd->getCallbackLock()->exit();
-    }
+        mode = obj->x_outmode;
 
-    float getValue() override
-    {
-        auto* object = static_cast<t_numbox*>(ptr);
+        nextInterval = obj->x_rate;
 
-        // Kinda ugly, but use this audio-thread function to update all the variables
-
-        mode = object->x_outmode;
-        nextInterval = object->x_rate;
-
-        return mode ? object->x_display : object->x_in_val;
+        return mode ? obj->x_display : obj->x_in_val;
     }
 
     float getMinimum()
@@ -261,26 +256,17 @@ struct NumboxTildeObject final : public GUIObject
         return (static_cast<t_numbox*>(ptr))->x_max;
     }
 
-    void setMinimum(float value)
+    void setMinimum(float minValue)
     {
-        static_cast<t_numbox*>(ptr)->x_min = value;
+        static_cast<t_numbox*>(ptr)->x_min = minValue;
 
-        input.setMinimum(value);
-
-        if (static_cast<float>(min.getValue()) < static_cast<float>(max.getValue())) {
-
-            setValueOriginal(std::clamp(getValueOriginal(), value, static_cast<float>(max.getValue())));
-        }
+        input.setMinimum(minValue);
     }
 
-    void setMaximum(float value)
+    void setMaximum(float maxValue)
     {
-        static_cast<t_numbox*>(ptr)->x_max = value;
+        static_cast<t_numbox*>(ptr)->x_max = maxValue;
 
-        input.setMaximum(value);
-
-        if (static_cast<float>(max.getValue()) > static_cast<float>(min.getValue())) {
-            setValueOriginal(std::clamp(getValueOriginal(), static_cast<float>(min.getValue()), value));
-        }
+        input.setMaximum(maxValue);
     }
 };

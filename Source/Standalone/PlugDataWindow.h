@@ -26,7 +26,6 @@
 
 #include <JuceHeader.h>
 
-
 #include "../PluginEditor.h"
 
 #include "../Utility/StackShadow.h"
@@ -97,7 +96,6 @@ public:
         else
             init(audioInputRequired, preferredDefaultDeviceName);
 #endif
-    
     }
 
     void init(bool enableAudioInput, String const& preferredDefaultDeviceName)

@@ -4,8 +4,15 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
-struct SubpatchObject final : public TextBase
-    , public Value::Listener {
+class SubpatchObject final : public TextBase {
+
+    pd::Patch subpatch;
+    Value isGraphChild = Value(var(false));
+    Value hideNameAndArgs = Value(var(false));
+
+    bool locked = false;
+
+public:
     SubpatchObject(void* obj, Object* object)
         : TextBase(obj, object)
         , subpatch({ ptr, cnv->pd })
@@ -29,7 +36,7 @@ struct SubpatchObject final : public TextBase
         closeOpenedSubpatchers();
     }
 
-    void updateValue() override
+    void updateValue()
     {
         // Change from subpatch to graph
         if (static_cast<t_canvas*>(ptr)->gl_isgraph) {
@@ -114,11 +121,4 @@ struct SubpatchObject final : public TextBase
             }
         }
     }
-
-protected:
-    pd::Patch subpatch;
-    Value isGraphChild = Value(var(false));
-    Value hideNameAndArgs = Value(var(false));
-
-    bool locked = false;
 };

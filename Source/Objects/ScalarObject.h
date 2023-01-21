@@ -62,9 +62,10 @@ int scalar_doclick(t_word* data, t_template* t, t_scalar* sc,
 // accidentally passing on mouse scroll events to the viewport.
 // This prevents that with a separation layer.
 
-struct GlobalMouseListener : public MouseListener {
+class GlobalMouseListener : public MouseListener {
     Component* target;
 
+public:
     GlobalMouseListener(Component* targetComponent)
         : target(targetComponent)
     {
@@ -96,8 +97,9 @@ struct GlobalMouseListener : public MouseListener {
     }
 };
 
-struct DrawableTemplate {
+class DrawableTemplate {
 
+public:
     virtual void update() = 0;
 
     /* getting and setting values via fielddescs -- note confusing names;
@@ -135,7 +137,7 @@ struct DrawableTemplate {
     }
 };
 
-struct DrawableCurve final : public DrawableTemplate
+class DrawableCurve final : public DrawableTemplate
     , public DrawablePath {
     t_scalar* scalar;
     t_fake_curve* object;
@@ -144,6 +146,7 @@ struct DrawableCurve final : public DrawableTemplate
 
     GlobalMouseListener mouseListener;
 
+public:
     DrawableCurve(t_scalar* s, t_gobj* obj, Canvas* cnv, int x, int y)
         : scalar(s)
         , object(reinterpret_cast<t_fake_curve*>(obj))
@@ -179,9 +182,8 @@ struct DrawableCurve final : public DrawableTemplate
         }
     }
 
-    void update() override
+    void update()
     {
-
         if (!scalar || !scalar->sc_template)
             return;
 
@@ -276,13 +278,14 @@ struct DrawableCurve final : public DrawableTemplate
     }
 };
 
-struct DrawableSymbol final : public DrawableTemplate
+class DrawableSymbol final : public DrawableTemplate
     , public DrawableText {
     t_scalar* scalar;
     t_fake_drawnumber* object;
     int baseX, baseY;
     Canvas* canvas;
 
+public:
     DrawableSymbol(t_scalar* s, t_gobj* obj, Canvas* cnv, int x, int y)
         : scalar(s)
         , object(reinterpret_cast<t_fake_drawnumber*>(obj))

@@ -26,11 +26,12 @@ struct t_fake_text_define {
 };
 
 // Actual text object, marked final for optimisation
-struct TextDefineObject final : public TextBase {
+class TextDefineObject final : public TextBase {
 
     std::unique_ptr<Component> textEditor;
     std::unique_ptr<Dialog> saveDialog;
 
+public:
     TextDefineObject(void* obj, Object* parent, bool isValid = true)
         : TextBase(obj, parent, isValid)
         , textEditor(nullptr)

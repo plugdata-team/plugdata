@@ -4,23 +4,35 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
-struct RadioObject final : public IEMObject {
+class RadioObject final : public ObjectBase {
 
     bool alreadyToggled = false;
     bool isVertical;
 
-    RadioObject(void* obj, Object* parent)
-        : IEMObject(obj, parent)
+    int selected;
+
+    IEMHelper iemHelper;
+
+    Value max = Value(0.0f);
+
+public:
+    RadioObject(void* ptr, Object* object)
+        : ObjectBase(ptr, object)
+        , iemHelper(ptr, object, this)
     {
-        isVertical = static_cast<t_radio*>(obj)->x_orientation;
+        isVertical = static_cast<t_radio*>(ptr)->x_orientation;
 
         max = getMaximum();
         max.addListener(this);
 
-        int selected = getValueOriginal();
         if (selected > static_cast<int>(max.getValue())) {
-            setValueOriginal(std::min<int>(static_cast<int>(max.getValue()) - 1, selected));
+            selected = std::min<int>(static_cast<int>(max.getValue()) - 1, selected);
         }
+    }
+
+    void updateParameters() override
+    {
+        iemHelper.updateParameters();
     }
 
     void resized() override
@@ -64,9 +76,9 @@ struct RadioObject final : public IEMObject {
 
         int idx = std::clamp<int>((pos / div) * numItems, 0, numItems - 1);
 
-        if (idx != static_cast<int>(getValueOriginal())) {
+        if (idx != static_cast<int>(selected)) {
             startEdition();
-            setValueOriginal(idx);
+            sendFloatValue(idx);
             stopEdition();
             repaint();
         }
@@ -74,14 +86,17 @@ struct RadioObject final : public IEMObject {
 
     void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
     {
-
+        if (symbol == "float") {
+            selected = atoms[0].getFloat();
+            repaint();
+        }
         if (symbol == "orientation" && atoms.size() >= 1) {
             isVertical = static_cast<bool>(atoms[0].getFloat());
             updateBounds();
         } else if (symbol == "number" && atoms.size() >= 1) {
             setParameterExcludingListener(max, static_cast<int>(atoms[0].getFloat()));
         } else {
-            IEMObject::receiveObjectMessage(symbol, atoms);
+            iemHelper.receiveObjectMessage(symbol, atoms);
         }
     }
 
@@ -100,20 +115,15 @@ struct RadioObject final : public IEMObject {
 
         alreadyToggled = true;
         startEdition();
-        setValueOriginal(idx);
+        sendFloatValue(idx);
         stopEdition();
 
         repaint();
     }
 
-    float getValue() override
+    float getValue()
     {
         return static_cast<t_radio*>(ptr)->x_on;
-    }
-
-    void update() override
-    {
-        repaint();
     }
 
     void updateBounds() override
@@ -139,7 +149,7 @@ struct RadioObject final : public IEMObject {
 
     void paint(Graphics& g) override
     {
-        g.setColour(getBackgroundColour());
+        g.setColour(iemHelper.getBackgroundColour());
         g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), PlugDataLook::objectCornerRadius);
 
         int size = (isVertical ? getWidth() : getHeight());
@@ -156,9 +166,9 @@ struct RadioObject final : public IEMObject {
             }
         }
 
-        g.setColour(getForegroundColour());
+        g.setColour(iemHelper.getForegroundColour());
 
-        int currentValue = getValueOriginal();
+        int currentValue = selected;
         int selectionX = isVertical ? 0 : currentValue * size;
         int selectionY = isVertical ? currentValue * size : 0;
 
@@ -176,9 +186,14 @@ struct RadioObject final : public IEMObject {
         g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), PlugDataLook::objectCornerRadius, 1.0f);
     }
 
-    ObjectParameters defineParameters() override
+    ObjectParameters getParameters() override
     {
-        return { { "Options", tInt, cGeneral, &max, {} } };
+        ObjectParameters allParameters = { { "Options", tInt, cGeneral, &max, {} } };
+
+        auto iemParameters = iemHelper.getParameters();
+        allParameters.insert(allParameters.end(), iemParameters.begin(), iemParameters.end());
+
+        return allParameters;
     }
 
     void valueChanged(Value& value) override
@@ -187,7 +202,7 @@ struct RadioObject final : public IEMObject {
             setMaximum(limitValueMin(value, 1));
             repaint();
         } else {
-            IEMObject::valueChanged(value);
+            iemHelper.valueChanged(value);
         }
     }
 
@@ -196,13 +211,13 @@ struct RadioObject final : public IEMObject {
         return static_cast<t_radio*>(ptr)->x_number;
     }
 
-    void setMaximum(float value)
+    void setMaximum(float maxValue)
     {
-        if (getValueOriginal() >= value) {
-            setValueOriginal(value - 1);
+        if (selected >= maxValue) {
+            selected = maxValue - 1;
         }
 
-        static_cast<t_radio*>(ptr)->x_number = value;
+        static_cast<t_radio*>(ptr)->x_number = maxValue;
 
         resized();
     }

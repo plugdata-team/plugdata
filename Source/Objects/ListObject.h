@@ -4,15 +4,20 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
-struct ListObject final : public AtomObject {
+class ListObject final : public ObjectBase {
+
+    AtomHelper atomHelper;
+    DraggableListNumber listLabel;
+    
+public:
     ListObject(void* obj, Object* parent)
-        : AtomObject(obj, parent)
+        : ObjectBase(obj, parent)
+        , atomHelper(obj, parent, this)
     {
         listLabel.setBounds(2, 0, getWidth() - 2, getHeight() - 1);
         listLabel.setMinimumHorizontalScale(1.f);
         listLabel.setJustificationType(Justification::centredLeft);
         listLabel.setBorderSize(BorderSize<int>(2, 6, 2, 2));
-        listLabel.setText(String(getValueOriginal()), dontSendNotification);
 
         addAndMakeVisible(listLabel);
 
@@ -43,6 +48,11 @@ struct ListObject final : public AtomObject {
         updateValue();
     }
 
+    void valueChanged(Value& v) override
+    {
+        atomHelper.valueChanged(v);
+    }
+
     void updateFromGui()
     {
         auto array = StringArray();
@@ -67,9 +77,79 @@ struct ListObject final : public AtomObject {
 
     void resized() override
     {
-        AtomObject::resized();
+        int fontWidth = glist_fontwidth(cnv->patch.getPointer());
+        int width = jlimit(30, ObjectBase::maxSize, (getWidth() / fontWidth) * fontWidth);
+        int height = jlimit(12, ObjectBase::maxSize, getHeight());
+        if (getWidth() != width || getHeight() != height) {
+            object->setSize(width + Object::doubleMargin, height + Object::doubleMargin);
+        }
 
         listLabel.setBounds(getLocalBounds());
+    }
+
+    void updateBounds() override
+    {
+        pd->getCallbackLock()->enter();
+
+        auto* atom = static_cast<t_fake_gatom*>(ptr);
+
+        int x, y, w, h;
+        libpd_get_object_bounds(cnv->patch.getPointer(), atom, &x, &y, &w, &h);
+
+        w = std::max<int>(4, atom->a_text.te_width) * glist_fontwidth(cnv->patch.getPointer());
+
+        auto bounds = Rectangle<int>(x, y, w, atomHelper.getAtomHeight());
+
+        pd->getCallbackLock()->exit();
+
+        object->setObjectBounds(bounds);
+    }
+
+    void checkBounds() override
+    {
+        // Apply size limits
+        int w = jlimit(30, maxSize, object->getWidth());
+        int h = atomHelper.getAtomHeight() + Object::doubleMargin;
+
+        if (w != object->getWidth() || h != object->getHeight()) {
+            object->setSize(w, h);
+        }
+    }
+
+    ObjectParameters getParameters() override
+    {
+        return atomHelper.getParameters();
+    }
+
+    void applyBounds() override
+    {
+        auto b = object->getObjectBounds();
+        libpd_moveobj(cnv->patch.getPointer(), static_cast<t_gobj*>(ptr), b.getX(), b.getY());
+
+        int fontWidth = glist_fontwidth(cnv->patch.getPointer());
+
+        auto* atom = static_cast<t_fake_gatom*>(ptr);
+        atom->a_text.te_width = b.getWidth() / fontWidth;
+    }
+
+    void updateLabel() override
+    {
+        atomHelper.updateLabel(label);
+    }
+
+    void paintOverChildren(Graphics& g) override
+    {
+        g.setColour(object->findColour(PlugDataColour::outlineColourId));
+        Path triangle;
+        triangle.addTriangle(Point<float>(getWidth() - 8, 0), Point<float>(getWidth(), 0), Point<float>(getWidth(), 8));
+        triangle = triangle.createPathWithRoundedCorners(4.0f);
+        g.fillPath(triangle);
+
+        bool selected = cnv->isSelected(object) && !cnv->isGraph;
+        auto outlineColour = object->findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : objectOutlineColourId);
+
+        g.setColour(outlineColour);
+        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), PlugDataLook::objectCornerRadius, 1.0f);
     }
 
     void paint(Graphics& g) override
@@ -88,7 +168,7 @@ struct ListObject final : public AtomObject {
         g.fillPath(bottomTriangle);
     }
 
-    void updateValue() override
+    void updateValue()
     {
         if (!edited && !listLabel.isBeingEdited()) {
             auto const array = getList();
@@ -130,6 +210,14 @@ struct ListObject final : public AtomObject {
         }
     }
 
-private:
-    DraggableListNumber listLabel;
+    void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
+    {
+        if (symbol == "float" || symbol == "symbol" || symbol == "list") {
+            updateValue();
+        } else if (symbol == "send" && atoms.size() >= 1) {
+            setParameterExcludingListener(atomHelper.sendSymbol, atoms[0].getSymbol());
+        } else if (symbol == "receive" && atoms.size() >= 1) {
+            setParameterExcludingListener(atomHelper.receiveSymbol, atoms[0].getSymbol());
+        }
+    };
 };

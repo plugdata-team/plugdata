@@ -184,7 +184,7 @@ const std::map<ObjectIDs, String> objectNames {
     { NewHorizontalRadio, "hradio" },
     { NewFloatAtom, "floatatom" },
     { NewSymbolAtom, "symbolatom" },
-    { NewListAtom, "listatom" },
+    { NewListAtom, "listbox" },
     { NewArray, "array" },
     { NewGraphOnParent, "graph" },
     { NewCanvas, "cnv" },
@@ -296,8 +296,12 @@ const std::map<ObjectIDs, String> objectNames {
     { NewSignalNotEquals, "!=~" },
 };
 
-struct ZoomLabel : public TextButton
+class ZoomLabel : public TextButton
     , public Timer {
+
+    ComponentAnimator labelAnimator;
+
+public:
     ZoomLabel()
     {
         setInterceptsMouseClicks(false, false);
@@ -317,8 +321,6 @@ struct ZoomLabel : public TextButton
     {
         labelAnimator.fadeOut(this, 200);
     }
-
-    ComponentAnimator labelAnimator;
 };
 
 struct WelcomeButton;
@@ -420,7 +422,7 @@ public:
 
     Value hvccMode;
     Value autoconnect;
-    
+
 private:
     std::unique_ptr<FileChooser> saveChooser;
     std::unique_ptr<FileChooser> openChooser;

@@ -14,7 +14,7 @@
 #include "Statusbar.h"
 
 #if PLUGDATA_STANDALONE
-#include "Utility/InternalSynth.h"
+#    include "Utility/InternalSynth.h"
 #endif
 
 class PlugDataLook;
@@ -50,7 +50,6 @@ public:
     bool isMidiEffect() const override;
     double getTailLengthSeconds() const override;
 
-    std::atomic<int> callbackType = 0;
     void timerCallback() override;
 
     int getNumPrograms() override;
@@ -74,7 +73,7 @@ public:
     void parameterGestureChanged(int parameterIndex, bool gestureIsStarting) override;
 
     void receiveDSPState(bool dsp) override;
-    void receiveGuiUpdate(int type) override;
+    void receiveGuiUpdate() override;
 
     void updateConsole() override;
 
@@ -172,13 +171,12 @@ public:
     InternalSynth internalSynth;
     std::atomic<bool> enableInternalSynth = false;
 #endif
-        
+
     Value useDashedConnection;
     Value useStraightConnection;
     Value useThinConnection;
     Value useSquareIolets;
     Value useSquareObjectCorners;
-        
 
 private:
     void processInternal();

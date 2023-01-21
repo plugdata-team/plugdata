@@ -117,7 +117,7 @@ public:
     void* instance = nullptr;
 };
 
-struct GraphicalArray : public Component {
+class GraphicalArray : public Component {
 public:
     Object* object;
 
@@ -370,12 +370,13 @@ public:
     PluginProcessor* pd;
 };
 
-struct ArrayEditorDialog : public Component {
+class ArrayEditorDialog : public Component {
     ResizableBorderComponent resizer;
     std::unique_ptr<Button> closeButton;
     ComponentDragger windowDragger;
     ComponentBoundsConstrainer constrainer;
 
+public:
     std::function<void()> onClose;
     GraphicalArray array;
 
@@ -446,11 +447,12 @@ struct ArrayEditorDialog : public Component {
     }
 };
 
-struct ArrayObject final : public GUIObject {
+class ArrayObject final : public ObjectBase
+    , public Timer {
 public:
     // Array component
     ArrayObject(void* obj, Object* object)
-        : GUIObject(obj, object)
+        : ObjectBase(obj, object)
         , array(getArray())
         , graph(cnv->pd, array, object)
     {
@@ -469,6 +471,13 @@ public:
         labelColour = object->findColour(PlugDataColour::canvasTextColourId).toString();
 
         updateLabel();
+
+        startTimer(20);
+    }
+
+    void timerCallback() override
+    {
+        updateValue();
     }
 
     void updateLabel() override
@@ -479,7 +488,7 @@ public:
 
         if (text.isNotEmpty()) {
             if (!label) {
-                label = std::make_unique<Label>();
+                label = std::make_unique<ObjectLabel>(object);
             }
 
             auto bounds = object->getBounds().reduced(Object::margin).removeFromTop(fontHeight + 2);
@@ -487,13 +496,8 @@ public:
             bounds.translate(2, -(fontHeight + 2));
 
             label->setFont(Font(fontHeight));
-            label->setJustificationType(Justification::centredLeft);
             label->setBounds(bounds);
-            label->setBorderSize(BorderSize<int>(0, 0, 0, 0));
-            label->setMinimumHorizontalScale(1.f);
             label->setText(text, dontSendNotification);
-            label->setEditable(false, false);
-            label->setInterceptsMouseClicks(false, false);
 
             label->setColour(Label::textColourId, object->findColour(PlugDataColour::canvasTextColourId));
 
@@ -527,7 +531,7 @@ public:
         }
     }
 
-    ObjectParameters defineParameters() override
+    ObjectParameters getParameters() override
     {
         return {
             { "Name", tString, cGeneral, &name, {} },
@@ -606,7 +610,7 @@ public:
         graph.repaint();
     }
 
-    void updateValue() override
+    void updateValue()
     {
         int currentSize = graph.array.size();
         if (graph.vec.size() != currentSize) {
@@ -627,7 +631,7 @@ public:
             graph.array.setScale({ min, max });
             graph.repaint();
         } else {
-            GUIObject::valueChanged(value);
+            ObjectBase::valueChanged(value);
         }
     }
 
@@ -663,18 +667,27 @@ public:
         };
     }
 
+    void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
+    {
+        if (symbol == "float" || symbol == "symbol" || symbol == "list") {
+        }
+    };
+
 private:
     Value name, size, drawMode, saveContents, range;
 
     PdArray array;
     GraphicalArray graph;
     std::unique_ptr<ArrayEditorDialog> dialog;
+
+    Value labelColour;
 };
 
 // Actual text object, marked final for optimisation
-struct ArrayDefineObject final : public TextBase {
+class ArrayDefineObject final : public TextBase {
     std::unique_ptr<ArrayEditorDialog> editor;
 
+public:
     ArrayDefineObject(void* obj, Object* parent, bool isValid = true)
         : TextBase(obj, parent, isValid)
     {
@@ -703,7 +716,6 @@ struct ArrayDefineObject final : public TextBase {
 
         editor = std::make_unique<ArrayEditorDialog>(cnv->pd, array, object);
         editor->onClose = [this]() {
-            updateValue();
             editor.reset(nullptr);
         };
     }

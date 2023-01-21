@@ -6,13 +6,14 @@
 
 #pragma once
 
-struct WelcomePanel : public Component {
+class WelcomePanel : public Component {
 
-    struct WelcomeButton : public Component {
+    class WelcomeButton : public Component {
         String iconText;
         String topText;
         String bottomText;
 
+    public:
         std::function<void(void)> onClick = []() {};
 
         WelcomeButton(String icon, String mainText, String subText)
@@ -31,10 +32,9 @@ struct WelcomePanel : public Component {
             if (isMouseOver()) {
                 g.setColour(findColour(PlugDataColour::panelActiveBackgroundColourId));
                 g.fillRoundedRectangle(1, 1, getWidth() - 2, getHeight() - 2, 6.0f);
-                
+
                 g.setColour(findColour(PlugDataColour::panelActiveTextColourId));
-            }
-            else {
+            } else {
                 g.setColour(findColour(PlugDataColour::panelTextColourId));
             }
 
@@ -64,6 +64,7 @@ struct WelcomePanel : public Component {
         }
     };
 
+public:
     WelcomePanel()
     {
         newButton = std::make_unique<WelcomeButton>(Icons::New, "New patch", "Create a new empty patch");
@@ -101,12 +102,15 @@ struct WelcomePanel : public Component {
     std::unique_ptr<WelcomeButton> openButton;
 };
 
-struct TabComponent : public TabbedComponent {
+class TabComponent : public TabbedComponent {
+
+    TextButton newButton = TextButton(Icons::Add);
+    WelcomePanel welcomePanel;
+
+public:
     std::function<void(int)> onTabChange = [](int) {};
     std::function<void()> newTab = []() {};
     std::function<void()> openProject = []() {};
-
-    TextButton newButton = TextButton(Icons::Add);
 
     TabComponent()
         : TabbedComponent(TabbedButtonBar::TabsAtTop)
@@ -173,6 +177,4 @@ struct TabComponent : public TabbedComponent {
 
         g.drawLine(0, 0, getWidth(), 0);
     }
-
-    WelcomePanel welcomePanel;
 };

@@ -180,21 +180,21 @@ PluginProcessor::PluginProcessor()
     if (settingsTree.hasProperty("Oversampling")) {
         oversampling = static_cast<int>(settingsTree.getProperty("Oversampling"));
     }
-    
+
 #if PLUGDATA_STANDALONE
     if (settingsTree.hasProperty("InternalSynth")) {
         enableInternalSynth = static_cast<int>(settingsTree.getProperty("InternalSynth"));
     }
 #endif
-    
+
     auto currentThemeTree = settingsTree.getChildWithName("ColourThemes").getChildWithProperty("theme", PlugDataLook::currentTheme);
-    
+
     useDashedConnection = currentThemeTree.getProperty("DashedSignalConnection");
     useStraightConnection = currentThemeTree.getProperty("StraightConnections");
     useThinConnection = currentThemeTree.getProperty("ThinConnections");
     useSquareIolets = currentThemeTree.getProperty("SquareIolets");
     useSquareObjectCorners = currentThemeTree.getProperty("SquareObjectCorners");
-    
+
     updateSearchPaths();
 
     // ag: This needs to be done *after* the library data has been unpacked on
@@ -230,66 +230,66 @@ void PluginProcessor::initialiseFilesystem()
 {
     auto library = homeDir.getChildFile("Library");
     auto deken = homeDir.getChildFile("Deken");
-    
+
     // Check if the abstractions directory exists, if not, unzip it from binaryData
     if (!homeDir.exists() || !abstractions.exists()) {
-        
+
         // Binary data shouldn't be too big, then the compiler will run out of memory
         // To prevent this, we split the binarydata into multiple files, and add them back together here
         std::vector<char> allData;
         int i = 0;
-        while(true) {
+        while (true) {
             int size;
             auto* resource = BinaryData::getNamedResource((String("Filesystem_") + String(i) + "_zip").toRawUTF8(), size);
-            
-            if(!resource) {
+
+            if (!resource) {
                 break;
             }
-            
+
             auto oldSize = allData.size();
             allData.resize(oldSize + size);
-            
+
             std::copy(resource, resource + size, allData.begin() + oldSize);
-            
+
             i++;
         }
-        
+
         MemoryInputStream memstream(allData.data(), allData.size(), false);
-       
+
         auto file = ZipFile(memstream);
         file.uncompressTo(homeDir);
-        
+
         // Create filesystem for this specific version
         homeDir.getChildFile("plugdata_version").moveFileTo(versionDataDir);
-                
+
         deken.createDirectory();
     }
-    
+
     library.deleteRecursively();
     library.createDirectory();
-    
+
     // We always want to update the symlinks in case an older version of plugdata is was used
 #if JUCE_WINDOWS
-        // Get paths that need symlinks
-        auto abstractionsPath = versionDataDir.getChildFile("Abstractions").getFullPathName().replaceCharacters("/", "\\");
-        auto documentationPath = versionDataDir.getChildFile("Documentation").getFullPathName().replaceCharacters("/", "\\");
-        auto extraPath = versionDataDir.getChildFile("Extra").getFullPathName().replaceCharacters("/", "\\");
-        auto dekenPath = deken.getFullPathName();
+    // Get paths that need symlinks
+    auto abstractionsPath = versionDataDir.getChildFile("Abstractions").getFullPathName().replaceCharacters("/", "\\");
+    auto documentationPath = versionDataDir.getChildFile("Documentation").getFullPathName().replaceCharacters("/", "\\");
+    auto extraPath = versionDataDir.getChildFile("Extra").getFullPathName().replaceCharacters("/", "\\");
+    auto dekenPath = deken.getFullPathName();
 
-        // Create NTFS directory junctions
-        createJunction(library.getChildFile("Abstractions").getFullPathName().replaceCharacters("/", "\\").toStdString(), abstractionsPath.toStdString());
+    // Create NTFS directory junctions
+    createJunction(library.getChildFile("Abstractions").getFullPathName().replaceCharacters("/", "\\").toStdString(), abstractionsPath.toStdString());
 
-        createJunction(library.getChildFile("Documentation").getFullPathName().replaceCharacters("/", "\\").toStdString(), documentationPath.toStdString());
+    createJunction(library.getChildFile("Documentation").getFullPathName().replaceCharacters("/", "\\").toStdString(), documentationPath.toStdString());
 
-        createJunction(library.getChildFile("Extra").getFullPathName().replaceCharacters("/", "\\").toStdString(), extraPath.toStdString());
+    createJunction(library.getChildFile("Extra").getFullPathName().replaceCharacters("/", "\\").toStdString(), extraPath.toStdString());
 
-        createJunction(library.getChildFile("Deken").getFullPathName().replaceCharacters("/", "\\").toStdString(), dekenPath.toStdString());
+    createJunction(library.getChildFile("Deken").getFullPathName().replaceCharacters("/", "\\").toStdString(), dekenPath.toStdString());
 
 #else
-        versionDataDir.getChildFile("Abstractions").createSymbolicLink(library.getChildFile("Abstractions"), true);
-        versionDataDir.getChildFile("Documentation").createSymbolicLink(library.getChildFile("Documentation"), true);
-        versionDataDir.getChildFile("Extra").createSymbolicLink(library.getChildFile("Extra"), true);
-        deken.createSymbolicLink(library.getChildFile("Deken"), true);
+    versionDataDir.getChildFile("Abstractions").createSymbolicLink(library.getChildFile("Abstractions"), true);
+    versionDataDir.getChildFile("Documentation").createSymbolicLink(library.getChildFile("Documentation"), true);
+    versionDataDir.getChildFile("Extra").createSymbolicLink(library.getChildFile("Extra"), true);
+    deken.createSymbolicLink(library.getChildFile("Deken"), true);
 #endif
 
     // Check if settings file exists, if not, create the default
@@ -305,12 +305,12 @@ void PluginProcessor::initialiseFilesystem()
         auto pathTree = ValueTree("Paths");
         auto library = homeDir.getChildFile("Library");
 
-        for(auto path : pd::Library::defaultPaths) {
+        for (auto path : pd::Library::defaultPaths) {
             auto pathSubTree = ValueTree("Path");
             pathSubTree.setProperty("Path", path.getFullPathName(), nullptr);
             pathTree.appendChild(pathSubTree, nullptr);
         }
-        
+
         settingsTree.appendChild(pathTree, nullptr);
 
         settingsTree.appendChild(ValueTree("Keymap"), nullptr);
@@ -330,20 +330,20 @@ void PluginProcessor::initialiseFilesystem()
 
         // Make sure all the default paths are in place
         StringArray currentPaths;
-        
+
         auto pathTree = settingsTree.getChildWithName("Paths");
-        for(auto child : pathTree) {
+        for (auto child : pathTree) {
             currentPaths.add(child.getProperty("Path").toString());
         }
-        
-        for(auto path : pd::Library::defaultPaths) {
-            if(!currentPaths.contains(path.getFullPathName())) {
+
+        for (auto path : pd::Library::defaultPaths) {
+            if (!currentPaths.contains(path.getFullPathName())) {
                 auto pathSubTree = ValueTree("Path");
                 pathSubTree.setProperty("Path", path.getFullPathName(), nullptr);
                 pathTree.appendChild(pathSubTree, nullptr);
             }
         }
-        
+
         if (settingsTree.hasProperty("DefaultFont")) {
             auto fontname = settingsTree.getProperty("DefaultFont").toString();
             PlugDataLook::setDefaultFont(fontname);
@@ -368,23 +368,23 @@ void PluginProcessor::initialiseFilesystem()
             bool wasMissingColours = false;
             auto colourThemesTree = settingsTree.getChildWithName("ColourThemes");
             auto defaultThemesTree = ValueTree::fromXml(PlugDataLook::defaultThemesXml);
-            
+
             for (auto themeTree : colourThemesTree) {
                 auto themeName = themeTree.getProperty("theme");
-                
-                if(!themeTree.hasProperty("DashedSignalConnection")) {
+
+                if (!themeTree.hasProperty("DashedSignalConnection")) {
                     themeTree.setProperty("DashedSignalConnection", true, nullptr);
                 }
-                if(!themeTree.hasProperty("StraightConnections")) {
+                if (!themeTree.hasProperty("StraightConnections")) {
                     themeTree.setProperty("StraightConnections", false, nullptr);
                 }
-                if(!themeTree.hasProperty("ThinConnections")) {
+                if (!themeTree.hasProperty("ThinConnections")) {
                     themeTree.setProperty("ThinConnections", false, nullptr);
                 }
-                if(!themeTree.hasProperty("SquareIolets")) {
+                if (!themeTree.hasProperty("SquareIolets")) {
                     themeTree.setProperty("SquareIolets", false, nullptr);
                 }
-                if(!themeTree.hasProperty("SquareObjectCorners")) {
+                if (!themeTree.hasProperty("SquareObjectCorners")) {
                     themeTree.setProperty("SquareObjectCorners", false, nullptr);
                 }
 
@@ -396,7 +396,7 @@ void PluginProcessor::initialiseFilesystem()
                     auto& [cId, colourName, colourCategory] = colourInfo;
 
                     auto defaultTree = defaultThemesTree.getChildWithProperty("theme", themeName);
-                    
+
                     // For when we add new colours in the future
                     if (!themeTree.hasProperty(colourName)) {
                         themeTree.setProperty(colourName, defaultTree.getProperty(colourName).toString(), nullptr);
@@ -447,14 +447,14 @@ void PluginProcessor::updateSearchPaths()
     getCallbackLock()->enter();
 
     libpd_clear_search_path();
-    
+
     auto paths = pd::Library::defaultPaths;
-    
+
     for (auto child : pathTree) {
         auto path = child.getProperty("Path").toString().replace("\\", "/");
         paths.addIfNotAlreadyThere(path);
     }
-    
+
     for (auto path : paths) {
         libpd_add_to_search_path(path.getFullPathName().toRawUTF8());
     }
@@ -570,7 +570,7 @@ void PluginProcessor::prepareToPlay(double sampleRate, int samplesPerBlock)
     oversampler->initProcessing(samplesPerBlock);
 
 #if PLUGDATA_STANDALONE
-    if(enableInternalSynth) {
+    if (enableInternalSynth) {
         internalSynth.prepare(sampleRate, samplesPerBlock, maxChannels);
     }
 #endif
@@ -678,11 +678,9 @@ void PluginProcessor::processBlock(AudioBuffer<float>& buffer, MidiBuffer& midiM
     // If the internalSynth is enabled and loaded, let it process the midi
     if (enableInternalSynth && internalSynth.isReady()) {
         internalSynth.process(buffer, midiMessages);
-    }
-    else if(!enableInternalSynth && internalSynth.isReady()) {
+    } else if (!enableInternalSynth && internalSynth.isReady()) {
         internalSynth.unprepare();
-    }
-    else if(enableInternalSynth && !internalSynth.isReady()) {
+    } else if (enableInternalSynth && !internalSynth.isReady()) {
         internalSynth.prepare(getSampleRate(), AudioProcessor::getBlockSize(), std::max(totalNumInputChannels, totalNumOutputChannels));
         internalSynth.process(buffer, midiMessages);
     }
@@ -1178,8 +1176,7 @@ void PluginProcessor::setTheme(String themeToUse)
     // Check if theme name is valid
     if (!themeTree.isValid()) {
         themeToUse = PlugDataLook::selectedThemes[0];
-    }
-    else {
+    } else {
         useDashedConnection = themeTree.getProperty("DashedSignalConnection");
         useStraightConnection = themeTree.getProperty("StraightConnections");
         useThinConnection = themeTree.getProperty("ThinConnections");
@@ -1188,8 +1185,7 @@ void PluginProcessor::setTheme(String themeToUse)
     }
 
     lnf->setTheme(themeTree);
-    
-    
+
     if (auto* editor = dynamic_cast<PluginEditor*>(getActiveEditor())) {
         editor->getTopLevelComponent()->repaint();
         editor->repaint();
@@ -1203,7 +1199,7 @@ void PluginProcessor::setTheme(String themeToUse)
                 object->gui->repaint();
 
                 // Make sure label colour gets updated
-                if (auto* gui = dynamic_cast<GUIObject*>(object->gui.get())) {
+                if (auto* gui = dynamic_cast<ObjectBase*>(object->gui.get())) {
                     gui->updateLabel();
                 }
             }
@@ -1367,10 +1363,8 @@ void PluginProcessor::receiveDSPState(bool dsp)
         });
 }
 
-void PluginProcessor::receiveGuiUpdate(int type)
+void PluginProcessor::receiveGuiUpdate()
 {
-    callbackType |= (1 << type);
-
     if (!isTimerRunning()) {
         startTimer(16);
     }
@@ -1379,19 +1373,9 @@ void PluginProcessor::receiveGuiUpdate(int type)
 void PluginProcessor::timerCallback()
 {
     if (auto* editor = dynamic_cast<PluginEditor*>(getActiveEditor())) {
-        if (!callbackType)
-            return;
-
         if (auto* cnv = editor->getCurrentCanvas()) {
-            if (callbackType & 2 || callbackType & 8) {
-                cnv->updateGuiValues();
-            }
-            if (callbackType & 4) {
-                cnv->updateDrawables();
-            }
+            cnv->updateDrawables();
         }
-
-        callbackType = 0;
         stopTimer();
     }
 }

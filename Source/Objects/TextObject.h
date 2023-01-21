@@ -5,8 +5,26 @@
  */
 
 // Text base class that text objects with special implementation details can derive from
-struct TextBase : public ObjectBase
+class TextBase : public ObjectBase
     , public TextEditor::Listener {
+
+protected:
+    Justification justification = Justification::centredLeft;
+    std::unique_ptr<TextEditor> editor;
+    BorderSize<int> border = BorderSize<int>(1, 7, 1, 2);
+    float minimumHorizontalScale = 0.8f;
+
+    String objectText;
+    Font font = Font(15.0f);
+
+    int textObjectWidth = 0;
+    int textWidthOffset = 0;
+    int numLines = 1;
+
+    bool wasSelected = false;
+    bool isValid = true;
+
+public:
     TextBase(void* obj, Object* parent, bool valid = true)
         : ObjectBase(obj, parent)
         , isValid(valid)
@@ -75,8 +93,6 @@ struct TextBase : public ObjectBase
         g.setColour(outlineColour);
         g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), PlugDataLook::objectCornerRadius, 1.0f);
     }
-
-    void updateValue() override {};
 
     // Override to cancel default behaviour
     void lock(bool isLocked) override
@@ -182,9 +198,11 @@ struct TextBase : public ObjectBase
             editor->applyFontToAllText(font);
 
             copyAllExplicitColoursTo(*editor);
-            editor->setColour(Label::textWhenEditingColourId, findColour(TextEditor::textColourId));
-            editor->setColour(Label::backgroundWhenEditingColourId, findColour(TextEditor::backgroundColourId));
-            editor->setColour(Label::outlineWhenEditingColourId, findColour(TextEditor::focusedOutlineColourId));
+            editor->setColour(Label::textWhenEditingColourId, object->findColour(PlugDataColour::canvasTextColourId));
+            editor->setColour(TextEditor::textColourId, object->findColour(PlugDataColour::canvasTextColourId));
+            editor->setColour(TextEditor::backgroundColourId, object->findColour(PlugDataColour::canvasBackgroundColourId));
+            editor->setColour(Label::backgroundWhenEditingColourId, object->findColour(TextEditor::backgroundColourId));
+            editor->setColour(Label::outlineWhenEditingColourId, object->findColour(TextEditor::focusedOutlineColourId));
 
             editor->setAlwaysOnTop(true);
 
@@ -235,26 +253,12 @@ struct TextBase : public ObjectBase
     {
         return true;
     }
-
-protected:
-    Justification justification = Justification::centredLeft;
-    std::unique_ptr<TextEditor> editor;
-    BorderSize<int> border = BorderSize<int>(1, 7, 1, 2);
-    float minimumHorizontalScale = 0.8f;
-
-    String objectText;
-    Font font = Font(15.0f);
-
-    int textObjectWidth = 0;
-    int textWidthOffset = 0;
-    int numLines = 1;
-
-    bool wasSelected = false;
-    bool isValid = true;
 };
 
 // Actual text object, marked final for optimisation
-struct TextObject final : public TextBase {
+class TextObject final : public TextBase {
+
+public:
     TextObject(void* obj, Object* parent, bool isValid = true)
         : TextBase(obj, parent, isValid)
     {

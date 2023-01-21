@@ -5,7 +5,7 @@
  */
 
 // ELSE pic
-struct PictureObject final : public GUIObject {
+class PictureObject final : public ObjectBase {
     typedef struct _edit_proxy {
         t_object p_obj;
         t_symbol* p_sym;
@@ -42,8 +42,13 @@ struct PictureObject final : public GUIObject {
         t_outlet* x_outlet;
     } t_pic;
 
+    Value path;
+    File imageFile;
+    Image img;
+
+public:
     PictureObject(void* ptr, Object* object)
-        : GUIObject(ptr, object)
+        : ObjectBase(ptr, object)
     {
         auto* pic = static_cast<t_pic*>(ptr);
 
@@ -55,7 +60,7 @@ struct PictureObject final : public GUIObject {
         }
     }
 
-    ObjectParameters defineParameters() override
+    ObjectParameters getParameters() override
     {
         return { { "File", tString, cGeneral, &path, {} } };
     };
@@ -183,8 +188,4 @@ struct PictureObject final : public GUIObject {
         } else
             return (0);
     }
-
-    Value path;
-    File imageFile;
-    Image img;
 };

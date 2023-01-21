@@ -8,7 +8,7 @@
 
 #include "PdInstance.h"
 #include "PdStorage.h"
-#include "../Objects/GUIObject.h"
+#include "../Objects/ObjectBase.h"
 
 extern "C" {
 #include <m_pd.h>

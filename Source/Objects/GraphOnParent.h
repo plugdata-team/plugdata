@@ -4,13 +4,21 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
-struct GraphOnParent final : public GUIObject {
+class GraphOnParent final : public ObjectBase {
+    
     bool isLocked = false;
 
+    Value isGraphChild = Value(var(false));
+    Value hideNameAndArgs = Value(var(false));
+    Value xRange, yRange;
+
+    pd::Patch subpatch;
+    std::unique_ptr<Canvas> canvas;
+    
 public:
     // Graph On Parent
     GraphOnParent(void* obj, Object* object)
-        : GUIObject(obj, object)
+        : ObjectBase(obj, object)
         , subpatch({ ptr, cnv->pd })
     {
         auto* glist = static_cast<t_canvas*>(ptr);
@@ -145,7 +153,7 @@ public:
         canvas->locked.referTo(cnv->locked);
     }
 
-    void updateValue() override
+    void updateValue()
     {
         // Change from subpatch to graph
         if (!static_cast<t_canvas*>(ptr)->gl_isgraph) {
@@ -156,15 +164,6 @@ public:
         }
 
         updateCanvas();
-
-        if (!canvas)
-            return;
-
-        for (auto& object : canvas->objects) {
-            if (object->gui) {
-                object->gui->updateValue();
-            }
-        }
     }
 
     void updateDrawables() override
@@ -243,12 +242,4 @@ public:
     {
         openSubpatch();
     }
-
-private:
-    Value isGraphChild = Value(var(false));
-    Value hideNameAndArgs = Value(var(false));
-    Value xRange, yRange;
-
-    pd::Patch subpatch;
-    std::unique_ptr<Canvas> canvas;
 };

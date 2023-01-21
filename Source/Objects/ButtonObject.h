@@ -28,13 +28,17 @@ typedef struct _button {
     unsigned char x_fgcolor[3];
 } t_fake_button;
 
-struct ButtonObject : public GUIObject {
+class ButtonObject : public ObjectBase {
 
     bool state = false;
     bool alreadyTriggered = false;
-
+    
+    Value primaryColour;
+    Value secondaryColour;
+    
+public:
     ButtonObject(void* obj, Object* parent)
-        : GUIObject(obj, parent)
+        : ObjectBase(obj, parent)
     {
     }
 
@@ -154,7 +158,7 @@ struct ButtonObject : public GUIObject {
         }
     }
 
-    ObjectParameters defineParameters() override
+    ObjectParameters getParameters() override
     {
         return {
             { "Foreground", tColour, cAppearance, &primaryColour, {} },
