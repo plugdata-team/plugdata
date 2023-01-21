@@ -5,7 +5,7 @@
  */
 
 struct SubpatchObject final : public TextBase
-    , public Value::Listener {
+{
     SubpatchObject(void* obj, Object* object)
         : TextBase(obj, object)
         , subpatch({ ptr, cnv->pd })

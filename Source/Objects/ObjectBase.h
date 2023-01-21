@@ -19,9 +19,36 @@ class Patch;
 
 class Object;
 
+struct ObjectLabel : public Label
+{
+    struct ObjectListener : public juce::ComponentListener
+    {
+        void componentMovedOrResized(Component& component, bool moved, bool resized) override;
+    };
+    
+    ObjectLabel(Component* parent) : object(parent)
+    {
+        object->addComponentListener(&objListener);
+        
+        setJustificationType(Justification::centredLeft);
+        setBorderSize(BorderSize<int>(0, 0, 0, 0));
+        setMinimumHorizontalScale(1.f);
+        setEditable(false, false);
+        setInterceptsMouseClicks(false, false);
+    }
+    
+    ~ObjectLabel() {
+        object->removeComponentListener(&objListener);
+    }
+    
+    ObjectListener objListener;
+    Component* object;
+};
+
 struct ObjectBase : public Component
-    , public SettableTooltipClient
     , public pd::MessageListener
+    , public Value::Listener
+    , public SettableTooltipClient
 {
     void* ptr;
     Object* object;
@@ -41,7 +68,6 @@ struct ObjectBase : public Component
 
     virtual void checkBounds() {};
 
-
     // Gets position from pd and applies it to Object
     virtual void updateBounds() = 0;
 
@@ -51,7 +77,7 @@ struct ObjectBase : public Component
     // Called whenever a drawable changes
     virtual void updateDrawables() {};
 
-    virtual void updateParameters() {};
+    virtual void updateParameters();
 
     virtual bool canOpenFromMenu()
     {
@@ -87,18 +113,10 @@ struct ObjectBase : public Component
     {
         return nullptr;
     };
-    virtual Label* getLabel()
-    {
-        return nullptr;
-    };
+
     virtual pd::Patch* getPatch()
     {
         return nullptr;
-    };
-
-    virtual ObjectParameters getParameters()
-    {
-        return {};
     };
 
     virtual bool canReceiveMouseEvent(int x, int y)
@@ -113,6 +131,7 @@ struct ObjectBase : public Component
 
     virtual String getText();
     
+
     void receiveMessage(String const& symbol, int argc, t_atom* argv) override
     {
         auto atoms = pd::Atom::fromAtoms(argc, argv);
@@ -124,39 +143,21 @@ struct ObjectBase : public Component
             if (symbol == "size" || symbol == "delta" || symbol == "pos" || symbol == "dim" || symbol == "width" || symbol == "height") {
                 // TODO: we can't really ensure the object has updated its bounds yet!
                 _this->updateBounds();
+            } else if (symbol == "send" && atoms.size() >= 1) {
+                _this->setParameterExcludingListener(_this->sendSymbol, atoms[0].getSymbol());
+            } else if (symbol == "receive" && atoms.size() >= 1) {
+                _this->setParameterExcludingListener(_this->receiveSymbol, atoms[0].getSymbol());
             } else {
                 _this->receiveObjectMessage(symbol, atoms);
             }
         });
     }
-};
-
-// Class for non-patchable objects
-struct NonPatchable : public ObjectBase {
-    NonPatchable(void* obj, Object* parent);
-    ~NonPatchable();
-
-    virtual void updateValue() {};
-    virtual void updateBounds() {};
-    virtual void applyBounds() {};
-};
-
-struct GUIObject : public ObjectBase
-    , public ComponentListener
-    , public Value::Listener {
-    GUIObject(void* obj, Object* parent);
-
-    ~GUIObject() override;
-
-    void updateParameters() override;
-
-    void componentMovedOrResized(Component& component, bool moved, bool resized) override;
 
     static ObjectBase* createGui(void* ptr, Object* parent);
 
     // Get rid of this mess!!
     virtual ObjectParameters defineParameters();
-    ObjectParameters getParameters() override;
+    virtual ObjectParameters getParameters();
 
     virtual void updateLabel() {};
 
@@ -167,7 +168,6 @@ struct GUIObject : public ObjectBase
 
     virtual void toggleObject(Point<int> position) {};
     virtual void untoggleObject() {};
-
 
     void setParameterExcludingListener(Value& parameter, var value)
     {
@@ -181,7 +181,7 @@ struct GUIObject : public ObjectBase
 
     void valueChanged(Value& value) override {};
 
-    Label* getLabel() override
+    virtual ObjectLabel* getLabel()
     {
         return label.get();
     }
@@ -206,12 +206,9 @@ struct GUIObject : public ObjectBase
 
     static inline bool draggingSlider = false;
 
-protected:
-    std::unique_ptr<Label> label;
+    std::unique_ptr<ObjectLabel> label;
 
     static inline constexpr int maxSize = 1000000;
-
-    PluginProcessor* processor;
 
     std::atomic<bool> edited;
     float value = 0;
@@ -228,29 +225,15 @@ protected:
     Value labelX = Value(0.0f);
     Value labelY = Value(0.0f);
     Value labelHeight = Value(18.0f);
-
     Value labelText;
+};
 
-private:
-    
-        void receiveMessage(String const& symbol, int argc, t_atom* argv) override
-        {
-            auto atoms = pd::Atom::fromAtoms(argc, argv);
+// Class for non-patchable objects
+struct NonPatchable : public ObjectBase {
+    NonPatchable(void* obj, Object* parent);
+    ~NonPatchable();
 
-            MessageManager::callAsync([_this = SafePointer(this), symbol, atoms]() mutable {
-                if (!_this)
-                    return;
-
-                if (symbol == "size" || symbol == "delta" || symbol == "pos" || symbol == "dim" || symbol == "width" || symbol == "height") {
-                    // TODO: we can't really ensure the object has updated its bounds yet!
-                    _this->updateBounds();
-                } else if (symbol == "send" && atoms.size() >= 1) {
-                    _this->setParameterExcludingListener(_this->sendSymbol, atoms[0].getSymbol());
-                } else if (symbol == "receive" && atoms.size() >= 1) {
-                    _this->setParameterExcludingListener(_this->receiveSymbol, atoms[0].getSymbol());
-                } else {
-                    _this->receiveObjectMessage(symbol, atoms);
-                }
-            });
-        }
+    virtual void updateValue() {};
+    virtual void updateBounds() {};
+    virtual void applyBounds() {};
 };

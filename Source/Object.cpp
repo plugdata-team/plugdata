@@ -239,7 +239,7 @@ void Object::setType(String const& newType, void* existingObject)
     }
 
     // Create gui for the object
-    gui.reset(GUIObject::createGui(objectPtr, this));
+    gui.reset(ObjectBase::createGui(objectPtr, this));
 
     if (gui) {
         gui->lock(locked == var(true));

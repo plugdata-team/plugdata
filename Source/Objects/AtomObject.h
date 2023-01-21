@@ -39,9 +39,9 @@ static t_atom* fake_gatom_getatom(t_fake_gatom* x)
     return (binbuf_getvec(x->a_text.te_binbuf));
 }
 
-struct AtomObject : public GUIObject {
+struct AtomObject : public ObjectBase {
     AtomObject(void* ptr, Object* parent)
-        : GUIObject(ptr, parent)
+        : ObjectBase(ptr, parent)
     {
         auto* atom = static_cast<t_fake_gatom*>(ptr);
 
@@ -186,20 +186,14 @@ struct AtomObject : public GUIObject {
 
         if (text.isNotEmpty()) {
             if (!label) {
-                label = std::make_unique<Label>();
+                label = std::make_unique<ObjectLabel>(object);
             }
 
             auto bounds = getLabelBounds();
+            
             label->setBounds(bounds);
-
             label->setFont(Font(fontHeight));
-            label->setJustificationType(Justification::centredLeft);
-
-            label->setBorderSize(BorderSize<int>(0, 0, 0, 0));
-            label->setMinimumHorizontalScale(1.f);
             label->setText(text, dontSendNotification);
-            label->setEditable(false, false);
-            label->setInterceptsMouseClicks(false, false);
 
             label->setColour(Label::textColourId, object->findColour(PlugDataColour::canvasTextColourId));
 

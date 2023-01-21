@@ -1203,7 +1203,7 @@ void PluginProcessor::setTheme(String themeToUse)
                 object->gui->repaint();
 
                 // Make sure label colour gets updated
-                if (auto* gui = dynamic_cast<GUIObject*>(object->gui.get())) {
+                if (auto* gui = dynamic_cast<ObjectBase*>(object->gui.get())) {
                     gui->updateLabel();
                 }
             }

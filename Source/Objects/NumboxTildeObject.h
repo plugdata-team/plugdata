@@ -33,7 +33,7 @@ typedef struct _numbox {
     char x_buf[32]; // number buffer
 } t_numbox;
 
-struct NumboxTildeObject final : public GUIObject
+struct NumboxTildeObject final : public ObjectBase
     , public Timer {
     DraggableNumber input;
 
@@ -43,7 +43,7 @@ struct NumboxTildeObject final : public GUIObject
     Value interval, ramp, init;
 
     NumboxTildeObject(void* obj, Object* parent)
-        : GUIObject(obj, parent)
+        : ObjectBase(obj, parent)
         , input(false)
     {
         input.onEditorShow = [this]() {

@@ -28,13 +28,13 @@ typedef struct _button {
     unsigned char x_fgcolor[3];
 } t_fake_button;
 
-struct ButtonObject : public GUIObject {
+struct ButtonObject : public ObjectBase {
 
     bool state = false;
     bool alreadyTriggered = false;
 
     ButtonObject(void* obj, Object* parent)
-        : GUIObject(obj, parent)
+        : ObjectBase(obj, parent)
     {
     }
 

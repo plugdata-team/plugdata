@@ -5,7 +5,7 @@
  */
 
 // ELSE pic
-struct PictureObject final : public GUIObject {
+struct PictureObject final : public ObjectBase {
     typedef struct _edit_proxy {
         t_object p_obj;
         t_symbol* p_sym;
@@ -43,7 +43,7 @@ struct PictureObject final : public GUIObject {
     } t_pic;
 
     PictureObject(void* ptr, Object* object)
-        : GUIObject(ptr, object)
+        : ObjectBase(ptr, object)
     {
         auto* pic = static_cast<t_pic*>(ptr);
 

@@ -40,7 +40,7 @@ struct t_fake_function {
     unsigned char x_bgcolor[3];
 } t_function;
 
-struct FunctionObject final : public GUIObject {
+struct FunctionObject final : public ObjectBase {
 
     int hoverIdx = -1;
     int dragIdx = -1;
@@ -49,7 +49,7 @@ struct FunctionObject final : public GUIObject {
     Value range;
 
     FunctionObject(void* ptr, Object* object)
-        : GUIObject(ptr, object)
+        : ObjectBase(ptr, object)
     {
         auto* function = static_cast<t_fake_function*>(ptr);
         secondaryColour = colourFromHexArray(function->x_bgcolor).toString();
@@ -211,7 +211,7 @@ struct FunctionObject final : public GUIObject {
                 setHoverIdx(i);
             }
         }
-        return GUIObject::hitTest(x, y);
+        return ObjectBase::hitTest(x, y);
     }
 
     void mouseExit(MouseEvent const& e) override

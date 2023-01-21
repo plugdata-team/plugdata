@@ -89,7 +89,7 @@ struct t_fake_scope {
 };
 
 template<typename S>
-struct ScopeBase : public GUIObject
+struct ScopeBase : public ObjectBase
     , public Timer {
 
     std::vector<float> x_buffer;
@@ -98,7 +98,7 @@ struct ScopeBase : public GUIObject
     Value gridColour, triggerMode, triggerValue, samplesPerPoint, bufferSize, delay, signalRange;
 
     ScopeBase(void* ptr, Object* object)
-        : GUIObject(ptr, object)
+        : ObjectBase(ptr, object)
     {
         startTimerHz(25);
 

@@ -93,7 +93,7 @@ struct MIDIKeyboard : public MidiKeyboardComponent {
     }
 };
 // ELSE keyboard
-struct KeyboardObject final : public GUIObject
+struct KeyboardObject final : public ObjectBase
     , public Timer
     , public MidiKeyboardStateListener {
     typedef struct _edit_proxy {
@@ -138,7 +138,7 @@ struct KeyboardObject final : public GUIObject
     } t_keyboard;
 
     KeyboardObject(void* ptr, Object* object)
-        : GUIObject(ptr, object)
+        : ObjectBase(ptr, object)
         , keyboard(object, state, MidiKeyboardComponent::horizontalKeyboard)
     {
         keyboard.setMidiChannel(1);
