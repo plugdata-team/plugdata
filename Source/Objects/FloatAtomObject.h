@@ -10,6 +10,11 @@ struct FloatAtomObject final : public ObjectBase {
 
     AtomHelper atomHelper;
     DraggableNumber input;
+    
+    Value min = Value(0.0f);
+    Value max = Value(0.0f);
+    
+    float value = 0.0f;
 
     FloatAtomObject(void* obj, Object* parent)
         : ObjectBase(obj, parent)
@@ -28,7 +33,7 @@ struct FloatAtomObject final : public ObjectBase {
         };
 
         input.onEditorHide = [this]() {
-            setValue(input.getText().getFloatValue());
+            sendFloatValue(input.getText().getFloatValue());
             stopEdition();
         };
 
@@ -44,7 +49,7 @@ struct FloatAtomObject final : public ObjectBase {
         input.dragStart = [this]() { startEdition(); };
 
         input.valueChanged = [this](float newValue) {
-            setValue(newValue);
+            sendFloatValue(newValue);
         };
 
         input.dragEnd = [this]() { stopEdition(); };
@@ -181,7 +186,7 @@ struct FloatAtomObject final : public ObjectBase {
         }
     }
 
-    float getValue() override
+    float getValue()
     {
         return atom_getfloat(fake_gatom_getatom(static_cast<t_fake_gatom*>(ptr)));
     }

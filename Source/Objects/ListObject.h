@@ -16,7 +16,6 @@ struct ListObject final : public ObjectBase {
         listLabel.setMinimumHorizontalScale(1.f);
         listLabel.setJustificationType(Justification::centredLeft);
         listLabel.setBorderSize(BorderSize<int>(2, 6, 2, 2));
-        listLabel.setText(String(value), dontSendNotification);
 
         addAndMakeVisible(listLabel);
 
@@ -47,7 +46,7 @@ struct ListObject final : public ObjectBase {
         updateValue();
     }
 
-    void valueChanged(Value& v)
+    void valueChanged(Value& v) override
     {
         atomHelper.valueChanged(v);
     }

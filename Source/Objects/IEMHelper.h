@@ -26,37 +26,17 @@ struct IEMHelper {
         , pd(parent->cnv->pd)
         , iemgui(static_cast<t_iemgui*>(ptr))
     {
-        /*
-
-        t_symbol* srlsym[3];
-        srlsym[0] = iemgui->x_snd;
-        srlsym[1] = iemgui->x_rcv;
-        srlsym[2] = iemgui->x_lab;
-
-        char label_chars[MAXPDSTRING];
-
-        for(int i = 0; i < 3; i++) {
-            if(srlsym[i])
-                srlsym[i] = pd->generateSymbol(pdgui_strnescape(label_chars, sizeof(label_chars), srlsym[i]->s_name, strlen(srlsym[i]->s_name)));
-        }
-
-        String label = String::fromUTF8(pd->generateSymbol[2]->s_name).removeCharacters("\\");
-        iemgui->x_lab_unexpanded = pd->generateSymbol(label)); */
-
         labelText = getLabelText();
 
         labelX = iemgui->x_ldx;
         labelY = iemgui->x_ldy;
         labelHeight = getFontHeight();
 
-        // TODO: fix this!
-        // initialise = static_cast<bool>(iemgui->x_isa.x_loadinit);
-        // initialise.addListener(this);
+        initialise = static_cast<bool>(iemgui->x_isa.x_loadinit);
+        initialise.addListener(base);
 
         sendSymbol = getSendSymbol();
         receiveSymbol = getReceiveSymbol();
-
-        updateParameters();
     }
 
     void updateParameters()

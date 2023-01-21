@@ -49,6 +49,7 @@ struct ObjectBase : public Component
     , public pd::MessageListener
     , public Value::Listener
     , public SettableTooltipClient {
+        
     void* ptr;
     Object* object;
     Canvas* cnv;
@@ -78,50 +79,26 @@ struct ObjectBase : public Component
 
     virtual void updateParameters();
 
-    virtual bool canOpenFromMenu()
-    {
-        return zgetfn(static_cast<t_pd*>(ptr), pd->generateSymbol("menu-open")) != nullptr;
-    }
-
-    virtual void openFromMenu()
-    {
-        pd_typedmess(static_cast<t_pd*>(ptr), pd->generateSymbol("menu-open"), 0, nullptr);
-    };
+    virtual bool canOpenFromMenu();
+    virtual void openFromMenu();
 
     // Flag to make object visible or hidden inside a GraphOnParent
-    virtual bool hideInGraph()
-    {
-        return false;
-    }
+    virtual bool hideInGraph();
 
     virtual void setText(String const&) {};
 
     // Most objects ignore mouseclicks when locked
     // Objects can override this to do custom locking behaviour
-    virtual void lock(bool isLocked)
-    {
-        setInterceptsMouseClicks(isLocked, isLocked);
-    }
+    virtual void lock(bool isLocked);
 
     String getType() const;
 
     void moveToFront();
     void moveToBack();
 
-    virtual Canvas* getCanvas()
-    {
-        return nullptr;
-    };
-
-    virtual pd::Patch* getPatch()
-    {
-        return nullptr;
-    };
-
-    virtual bool canReceiveMouseEvent(int x, int y)
-    {
-        return true;
-    }
+    virtual Canvas* getCanvas();
+    virtual pd::Patch* getPatch();
+    virtual bool canReceiveMouseEvent(int x, int y);
 
     virtual void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) {};
 
@@ -130,55 +107,26 @@ struct ObjectBase : public Component
 
     virtual String getText();
 
-    void receiveMessage(String const& symbol, int argc, t_atom* argv) override
-    {
-        auto atoms = pd::Atom::fromAtoms(argc, argv);
-
-        MessageManager::callAsync([_this = SafePointer(this), symbol, atoms]() mutable {
-            if (!_this)
-                return;
-
-            if (symbol == "size" || symbol == "delta" || symbol == "pos" || symbol == "dim" || symbol == "width" || symbol == "height") {
-                // TODO: we can't really ensure the object has updated its bounds yet!
-                _this->updateBounds();
-            } else {
-                _this->receiveObjectMessage(symbol, atoms);
-            }
-        });
-    }
+    void receiveMessage(String const& symbol, int argc, t_atom* argv) override;
 
     static ObjectBase* createGui(void* ptr, Object* parent);
 
     virtual ObjectParameters getParameters();
 
     virtual void updateLabel() {};
-
-    virtual float getValue()
-    {
-        return 0.0f;
-    };
-
     virtual void toggleObject(Point<int> position) {};
     virtual void untoggleObject() {};
 
-    void setParameterExcludingListener(Value& parameter, var value)
-    {
-        parameter.removeListener(this);
-        parameter.setValue(value);
-        parameter.addListener(this);
-    }
+    void setParameterExcludingListener(Value& parameter, var value);
 
     void startEdition();
     void stopEdition();
 
     void valueChanged(Value& value) override {};
 
-    virtual ObjectLabel* getLabel()
-    {
-        return label.get();
-    }
+    virtual ObjectLabel* getLabel();
 
-    void setValue(float value);
+    void sendFloatValue(float value);
 
     template<typename T>
     T limitValueMax(Value& v, T max)
@@ -203,9 +151,6 @@ struct ObjectBase : public Component
     static inline constexpr int maxSize = 1000000;
 
     std::atomic<bool> edited;
-    float value = 0;
-    Value min = Value(0.0f);
-    Value max = Value(0.0f);
 };
 
 // Class for non-patchable objects

@@ -12,6 +12,11 @@ struct NumberObject final : public ObjectBase {
     IEMHelper iemHelper;
 
     float preFocusValue;
+    
+    Value min = Value(0.0f);
+    Value max = Value(0.0f);
+    
+    float value = 0.0f;
 
     NumberObject(void* ptr, Object* object)
         : ObjectBase(ptr, object)
@@ -31,7 +36,7 @@ struct NumberObject final : public ObjectBase {
         };
 
         input.onEditorHide = [this]() {
-            setValue(input.getText().getFloatValue());
+            sendFloatValue(input.getText().getFloatValue());
             stopEdition();
         };
 
@@ -49,7 +54,7 @@ struct NumberObject final : public ObjectBase {
         input.dragStart = [this]() { startEdition(); };
 
         input.valueChanged = [this](float newValue) {
-            setValue(newValue);
+            sendFloatValue(newValue);
         };
 
         input.dragEnd = [this]() { stopEdition(); };
@@ -112,7 +117,7 @@ struct NumberObject final : public ObjectBase {
     {
         auto inputValue = input.getText().getFloatValue();
         if (inputValue != preFocusValue) {
-            setValue(inputValue);
+            sendFloatValue(inputValue);
         }
         repaint();
     }
@@ -203,7 +208,7 @@ struct NumberObject final : public ObjectBase {
         g.fillPath(triangle);
     }
 
-    float getValue() override
+    float getValue()
     {
         return (static_cast<t_my_numbox*>(ptr))->x_val;
     }

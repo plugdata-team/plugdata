@@ -41,6 +41,9 @@ struct NumboxTildeObject final : public ObjectBase
     std::atomic<int> mode = 0;
 
     Value interval, ramp, init;
+        
+    Value min = Value(0.0f);
+    Value max = Value(0.0f);
 
     NumboxTildeObject(void* obj, Object* parent)
         : ObjectBase(obj, parent)
@@ -55,7 +58,7 @@ struct NumboxTildeObject final : public ObjectBase
         };
 
         input.onEditorHide = [this]() {
-            setValue(input.getText().getFloatValue());
+            sendFloatValue(input.getText().getFloatValue());
         };
 
         addAndMakeVisible(input);
@@ -80,7 +83,7 @@ struct NumboxTildeObject final : public ObjectBase
 
         addMouseListener(this, true);
 
-        input.valueChanged = [this](float value) { setValue(value); };
+        input.valueChanged = [this](float value) { sendFloatValue(value); };
 
         mode = static_cast<t_numbox*>(ptr)->x_outmode;
 
@@ -228,18 +231,8 @@ struct NumboxTildeObject final : public ObjectBase
         startTimer(nextInterval);
     }
 
-    void setValue(float newValue)
-    {
-        t_atom at;
-        SETFLOAT(&at, newValue);
-        setValue(newValue);
 
-        pd->getCallbackLock()->enter();
-        pd_float(static_cast<t_pd*>(ptr), newValue);
-        pd->getCallbackLock()->exit();
-    }
-
-    float getValue() override
+    float getValue()
     {
         auto* obj = static_cast<t_numbox*>(ptr);
 
@@ -265,11 +258,6 @@ struct NumboxTildeObject final : public ObjectBase
         static_cast<t_numbox*>(ptr)->x_min = minValue;
 
         input.setMinimum(minValue);
-
-        if (static_cast<float>(min.getValue()) < static_cast<float>(max.getValue())) {
-
-            value = std::clamp(value, minValue, static_cast<float>(max.getValue()));
-        }
     }
 
     void setMaximum(float maxValue)
@@ -277,10 +265,6 @@ struct NumboxTildeObject final : public ObjectBase
         static_cast<t_numbox*>(ptr)->x_max = maxValue;
 
         input.setMaximum(maxValue);
-
-        if (static_cast<float>(max.getValue()) > static_cast<float>(min.getValue())) {
-            value = std::clamp(value, static_cast<float>(min.getValue()), maxValue);
-        }
     }
 
     Value primaryColour;

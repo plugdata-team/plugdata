@@ -8,8 +8,12 @@ struct RadioObject final : public ObjectBase {
 
     bool alreadyToggled = false;
     bool isVertical;
+    
+    int selected;
 
     IEMHelper iemHelper;
+    
+    Value max = Value(0.0f);
 
     RadioObject(void* ptr, Object* object)
         : ObjectBase(ptr, object)
@@ -20,9 +24,8 @@ struct RadioObject final : public ObjectBase {
         max = getMaximum();
         max.addListener(this);
 
-        int selected = value;
         if (selected > static_cast<int>(max.getValue())) {
-            value = std::min<int>(static_cast<int>(max.getValue()) - 1, selected);
+            selected = std::min<int>(static_cast<int>(max.getValue()) - 1, selected);
         }
     }
 
@@ -72,9 +75,9 @@ struct RadioObject final : public ObjectBase {
 
         int idx = std::clamp<int>((pos / div) * numItems, 0, numItems - 1);
 
-        if (idx != static_cast<int>(value)) {
+        if (idx != static_cast<int>(selected)) {
             startEdition();
-            setValue(idx);
+            sendFloatValue(idx);
             stopEdition();
             repaint();
         }
@@ -83,7 +86,7 @@ struct RadioObject final : public ObjectBase {
     void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
     {
         if (symbol == "float") {
-            value = atoms[0].getFloat();
+            selected = atoms[0].getFloat();
             repaint();
         }
         if (symbol == "orientation" && atoms.size() >= 1) {
@@ -111,13 +114,13 @@ struct RadioObject final : public ObjectBase {
 
         alreadyToggled = true;
         startEdition();
-        setValue(idx);
+        sendFloatValue(idx);
         stopEdition();
 
         repaint();
     }
 
-    float getValue() override
+    float getValue()
     {
         return static_cast<t_radio*>(ptr)->x_on;
     }
@@ -164,7 +167,7 @@ struct RadioObject final : public ObjectBase {
 
         g.setColour(iemHelper.getForegroundColour());
 
-        int currentValue = value;
+        int currentValue = selected;
         int selectionX = isVertical ? 0 : currentValue * size;
         int selectionY = isVertical ? currentValue * size : 0;
 
@@ -209,8 +212,8 @@ struct RadioObject final : public ObjectBase {
 
     void setMaximum(float maxValue)
     {
-        if (value >= maxValue) {
-            value = maxValue - 1;
+        if (selected >= maxValue) {
+            selected = maxValue - 1;
         }
 
         static_cast<t_radio*>(ptr)->x_number = maxValue;

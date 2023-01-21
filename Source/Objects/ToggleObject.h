@@ -8,6 +8,8 @@ struct ToggleObject final : public ObjectBase {
     bool toggleState = false;
     bool alreadyToggled = false;
     Value nonZero;
+    
+    float value = 0.0f;
 
     IEMHelper iemHelper;
 
@@ -66,7 +68,7 @@ struct ToggleObject final : public ObjectBase {
         if (!alreadyToggled) {
             startEdition();
             auto newValue = value != 0 ? 0 : static_cast<float>(nonZero.getValue());
-            setValue(newValue);
+            sendFloatValue(newValue);
             toggleState = newValue;
             stopEdition();
             alreadyToggled = true;
@@ -85,7 +87,7 @@ struct ToggleObject final : public ObjectBase {
     {
         startEdition();
         auto newValue = value != 0 ? 0 : static_cast<float>(nonZero.getValue());
-        setValue(newValue);
+        sendFloatValue(newValue);
         toggleState = newValue;
         stopEdition();
 
@@ -139,14 +141,13 @@ struct ToggleObject final : public ObjectBase {
     {
         if (value.refersToSameSourceAs(nonZero)) {
             float val = nonZero.getValue();
-            max = val;
             static_cast<t_toggle*>(ptr)->x_nonzero = val;
         } else {
             iemHelper.valueChanged(value);
         }
     }
 
-    float getValue() override
+    float getValue()
     {
         return (static_cast<t_toggle*>(ptr))->x_on;
     }

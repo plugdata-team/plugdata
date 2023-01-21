@@ -305,11 +305,9 @@ struct KeyboardObject final : public ObjectBase
     void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
     {
         if (symbol == "float") {
-            value = atoms[0].getFloat();
             updateValue();
         }
         if (symbol == "list") {
-            value = atoms[0].getFloat();
             updateValue();
         }
         if (symbol == "lowc") {
