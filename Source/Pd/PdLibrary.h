@@ -65,8 +65,9 @@ public:
     int autocomplete(String query, Suggestions& result);
 };
 
-struct Library : public FileSystemWatcher::Listener {
+class Library : public FileSystemWatcher::Listener {
 
+public:
     ~Library()
     {
         appDirChanged = nullptr;

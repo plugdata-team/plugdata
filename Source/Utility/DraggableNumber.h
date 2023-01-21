@@ -7,8 +7,9 @@
 #pragma once
 #include <JuceHeader.h>
 
-struct DraggableNumber : public Label {
+class DraggableNumber : public Label {
 
+protected:
     float dragValue = 0.0f;
     bool shift = false;
     int decimalDrag = 0;
@@ -20,6 +21,7 @@ struct DraggableNumber : public Label {
     bool onlyIntegers = false;
     float min, max;
 
+public:
     std::function<void(float)> valueChanged = [](float) {};
     std::function<void()> dragStart = []() {};
     std::function<void()> dragEnd = []() {};

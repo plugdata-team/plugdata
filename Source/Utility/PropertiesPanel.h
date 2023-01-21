@@ -7,11 +7,15 @@
 #pragma once
 #include "DraggableNumber.h"
 
-struct PropertiesPanel : public PropertyPanel {
+class PropertiesPanel : public PropertyPanel {
 
-    struct Property : public PropertyComponent {
+public:
+    class Property : public PropertyComponent {
+        
+    protected:
         bool hideLabel = false;
 
+    public:
         Property(String const& propertyName)
             : PropertyComponent(propertyName, 23)
         {

@@ -4,7 +4,9 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
-struct Console : public Component {
+class Console : public Component {
+    
+public:
     explicit Console(pd::Instance* instance)
     {
         // Viewport takes ownership

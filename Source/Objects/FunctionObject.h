@@ -49,7 +49,9 @@ class FunctionObject final : public ObjectBase {
     Value range;
     Value primaryColour;
     Value secondaryColour;
-
+    Value sendSymbol;
+    Value receiveSymbol;
+    
 public:
     FunctionObject(void* ptr, Object* object)
         : ObjectBase(ptr, object)
@@ -427,7 +429,4 @@ public:
             getPointsFromFunction();
         }
     }
-
-    Value sendSymbol;
-    Value receiveSymbol;
 };
