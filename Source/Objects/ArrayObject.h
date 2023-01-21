@@ -446,7 +446,7 @@ struct ArrayEditorDialog : public Component {
     }
 };
 
-struct ArrayObject final : public GUIObject {
+struct ArrayObject final : public GUIObject, public Timer {
 public:
     // Array component
     ArrayObject(void* obj, Object* object)
@@ -469,6 +469,13 @@ public:
         labelColour = object->findColour(PlugDataColour::canvasTextColourId).toString();
 
         updateLabel();
+        
+        startTimer(20);
+    }
+    
+    void timerCallback() override
+    {
+        updateValue();
     }
 
     void updateLabel() override
@@ -663,6 +670,13 @@ public:
         };
     }
 
+    void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
+    {
+        if(symbol == "float" || symbol == "symbol" || symbol == "list") {
+            
+        }
+    };
+    
 private:
     Value name, size, drawMode, saveContents, range;
 
@@ -711,4 +725,5 @@ struct ArrayDefineObject final : public TextBase {
     {
         openArrayEditor();
     }
+
 };

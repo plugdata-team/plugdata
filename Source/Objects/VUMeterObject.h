@@ -105,4 +105,11 @@ struct VUMeterObject final : public IEMObject {
         g.setColour(outlineColour);
         g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), PlugDataLook::objectCornerRadius, 1.0f);
     }
+    
+    void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
+    {
+        if(symbol == "float") {
+            repaint();
+        }
+    }
 };

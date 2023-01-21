@@ -410,6 +410,9 @@ struct FunctionObject final : public GUIObject {
 
     void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
     {
+        if(symbol == "list") {
+            getPointsFromFunction();
+        }
         if (symbol == "min" || symbol == "max") {
             auto* function = static_cast<t_fake_function*>(ptr);
             Array<var> arr = { function->x_min, function->x_max };
@@ -417,4 +420,6 @@ struct FunctionObject final : public GUIObject {
             getPointsFromFunction();
         }
     }
+    
+    
 };

@@ -137,8 +137,18 @@ struct FloatAtomObject final : public AtomObject {
     void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
     {
         if(symbol == "float") {
-            value = atoms[0].getFloat();
-            input.setText(input.formatNumber(atoms[0].getFloat()), dontSendNotification);
+            auto min = getMinimum();
+            auto max = getMaximum();
+            
+            if(min != 0 || max != 0) {
+                value = std::clamp(atoms[0].getFloat(), min, max);
+            }
+            else
+            {
+                value = atoms[0].getFloat();
+            }
+
+            input.setText(input.formatNumber(value), dontSendNotification);
         }
     };
     
