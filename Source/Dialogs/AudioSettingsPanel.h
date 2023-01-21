@@ -6,7 +6,9 @@
 
 #if PLUGDATA_STANDALONE
 
-struct RoundedListBox : public ListBox {
+class RoundedListBox : public ListBox {
+    
+public:
     RoundedListBox(String const& componentName = String(), ListBoxModel* model = nullptr)
         : ListBox(componentName, model)
     {

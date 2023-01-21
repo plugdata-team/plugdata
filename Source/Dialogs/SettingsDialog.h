@@ -18,11 +18,12 @@
 
 // Toolbar button for settings panel, with both icon and text
 // We have too many specific items to have only icons at this point
-struct SettingsToolbarButton : public TextButton {
+class SettingsToolbarButton : public TextButton {
 
     String icon;
     String text;
 
+public:
     SettingsToolbarButton(String iconToUse, String textToShow)
         : icon(iconToUse)
         , text(textToShow)
@@ -56,8 +57,9 @@ struct SettingsToolbarButton : public TextButton {
     }
 };
 
-struct SettingsDialog : public Component {
+class SettingsDialog : public Component {
 
+public:
     SettingsDialog(AudioProcessor* processor, Dialog* dialog, AudioDeviceManager* manager, ValueTree const& settingsTree)
         : audioProcessor(processor)
     {
@@ -187,8 +189,9 @@ struct SettingsDialog : public Component {
     OwnedArray<TextButton> toolbarButtons;
 };
 
-struct SettingsPopup : public PopupMenu {
+class SettingsPopup : public PopupMenu {
 
+public:
     SettingsPopup(AudioProcessor* processor, ValueTree tree)
         : settingsTree(tree)
         , themeSelector(tree)

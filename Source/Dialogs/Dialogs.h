@@ -11,8 +11,9 @@
 
 class PluginEditor;
 
-struct Dialog : public Component {
+class Dialog : public Component {
 
+public:
     Dialog(std::unique_ptr<Dialog>* ownerPtr, Component* editor, int childWidth, int childHeight, int yPosition, bool showCloseButton)
         : parentComponent(editor)
         , height(childHeight)

@@ -8,10 +8,11 @@ extern "C" {
 EXTERN char* pd_version;
 }
 
-struct AboutPanel : public Component {
+class AboutPanel : public Component {
 
     Image logo = ImageFileFormat::loadFrom(BinaryData::plugdata_logo_png, BinaryData::plugdata_logo_pngSize);
 
+public:
     void paint(Graphics& g) override
     {
         auto* lnf = dynamic_cast<PlugDataLook*>(&getLookAndFeel());

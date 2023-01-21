@@ -5,8 +5,9 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
-struct ObjectReferenceDialog : public Component {
+class ObjectReferenceDialog : public Component {
 
+public:
     ObjectReferenceDialog(PluginEditor* editor, bool showBackButton)
         : library(editor->pd->objectLibrary)
     {

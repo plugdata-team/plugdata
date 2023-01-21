@@ -4,7 +4,9 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
-struct NewThemeDialog : public Component {
+class NewThemeDialog : public Component {
+    
+public:
     NewThemeDialog(ValueTree settingsTree, Dialog* parent, std::function<void(int, String, String)> callback)
         : cb(callback)
     {
@@ -102,7 +104,7 @@ private:
     String errorMessage;
 };
 
-struct ThemePanel : public Component
+class ThemePanel : public Component
     , public Value::Listener {
 
     ValueTree settingsTree;
@@ -127,6 +129,7 @@ struct ThemePanel : public Component
     std::unique_ptr<FileChooser> saveChooser;
     std::unique_ptr<FileChooser> openChooser;
 
+public:
     explicit ThemePanel(ValueTree tree)
         : settingsTree(tree)
     {
