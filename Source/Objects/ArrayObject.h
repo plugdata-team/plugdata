@@ -117,7 +117,7 @@ public:
     void* instance = nullptr;
 };
 
-struct GraphicalArray : public Component {
+class GraphicalArray : public Component {
 public:
     Object* object;
 
@@ -370,12 +370,13 @@ public:
     PluginProcessor* pd;
 };
 
-struct ArrayEditorDialog : public Component {
+class ArrayEditorDialog : public Component {
     ResizableBorderComponent resizer;
     std::unique_ptr<Button> closeButton;
     ComponentDragger windowDragger;
     ComponentBoundsConstrainer constrainer;
 
+public:
     std::function<void()> onClose;
     GraphicalArray array;
 
@@ -446,7 +447,7 @@ struct ArrayEditorDialog : public Component {
     }
 };
 
-struct ArrayObject final : public ObjectBase
+class ArrayObject final : public ObjectBase
     , public Timer {
 public:
     // Array component
@@ -683,9 +684,10 @@ private:
 };
 
 // Actual text object, marked final for optimisation
-struct ArrayDefineObject final : public TextBase {
+class ArrayDefineObject final : public TextBase {
     std::unique_ptr<ArrayEditorDialog> editor;
 
+public:
     ArrayDefineObject(void* obj, Object* parent, bool isValid = true)
         : TextBase(obj, parent, isValid)
     {

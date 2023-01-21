@@ -6,7 +6,7 @@
 
 #include "../Utility/DraggableNumber.h"
 
-struct NumberObject final : public ObjectBase {
+class NumberObject final : public ObjectBase {
 
     DraggableNumber input;
     IEMHelper iemHelper;
@@ -18,6 +18,7 @@ struct NumberObject final : public ObjectBase {
     
     float value = 0.0f;
 
+public:
     NumberObject(void* ptr, Object* object)
         : ObjectBase(ptr, object)
         , iemHelper(ptr, object, this)

@@ -4,7 +4,7 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
-struct BangObject final : public ObjectBase {
+class BangObject final : public ObjectBase {
     uint32_t lastBang = 0;
 
     Value bangInterrupt = Value(100.0f);
@@ -14,7 +14,8 @@ struct BangObject final : public ObjectBase {
     bool alreadyBanged = false;
 
     IEMHelper iemHelper;
-
+    
+public:
     BangObject(void* obj, Object* parent)
         : ObjectBase(obj, parent)
         , iemHelper(obj, parent, this)

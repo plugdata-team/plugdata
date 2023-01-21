@@ -40,7 +40,7 @@ struct t_fake_function {
     unsigned char x_bgcolor[3];
 } t_function;
 
-struct FunctionObject final : public ObjectBase {
+class FunctionObject final : public ObjectBase {
 
     int hoverIdx = -1;
     int dragIdx = -1;
@@ -50,6 +50,7 @@ struct FunctionObject final : public ObjectBase {
     Value primaryColour;
     Value secondaryColour;
 
+public:
     FunctionObject(void* ptr, Object* object)
         : ObjectBase(ptr, object)
     {

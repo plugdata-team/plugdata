@@ -33,7 +33,7 @@ typedef struct _numbox {
     char x_buf[32]; // number buffer
 } t_numbox;
 
-struct NumboxTildeObject final : public ObjectBase
+class NumboxTildeObject final : public ObjectBase
     , public Timer {
     DraggableNumber input;
 
@@ -45,6 +45,10 @@ struct NumboxTildeObject final : public ObjectBase
     Value min = Value(0.0f);
     Value max = Value(0.0f);
 
+    Value primaryColour;
+    Value secondaryColour;
+        
+public:
     NumboxTildeObject(void* obj, Object* parent)
         : ObjectBase(obj, parent)
         , input(false)
@@ -266,7 +270,4 @@ struct NumboxTildeObject final : public ObjectBase
 
         input.setMaximum(maxValue);
     }
-
-    Value primaryColour;
-    Value secondaryColour;
 };

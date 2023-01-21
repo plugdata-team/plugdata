@@ -6,7 +6,7 @@
 
 #include "../Utility/DraggableNumber.h"
 
-struct FloatAtomObject final : public ObjectBase {
+class FloatAtomObject final : public ObjectBase {
 
     AtomHelper atomHelper;
     DraggableNumber input;
@@ -16,6 +16,7 @@ struct FloatAtomObject final : public ObjectBase {
     
     float value = 0.0f;
 
+public:
     FloatAtomObject(void* obj, Object* parent)
         : ObjectBase(obj, parent)
         , atomHelper(obj, parent, this)

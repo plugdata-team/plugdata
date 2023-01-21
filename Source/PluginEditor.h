@@ -296,8 +296,12 @@ const std::map<ObjectIDs, String> objectNames {
     { NewSignalNotEquals, "!=~" },
 };
 
-struct ZoomLabel : public TextButton
+class ZoomLabel : public TextButton
     , public Timer {
+        
+        ComponentAnimator labelAnimator;
+        
+public:
     ZoomLabel()
     {
         setInterceptsMouseClicks(false, false);
@@ -317,8 +321,6 @@ struct ZoomLabel : public TextButton
     {
         labelAnimator.fadeOut(this, 200);
     }
-
-    ComponentAnimator labelAnimator;
 };
 
 struct WelcomeButton;

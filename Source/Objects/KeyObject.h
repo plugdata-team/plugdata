@@ -5,18 +5,21 @@
  */
 
 // Wrapper for Pd's key, keyup and keyname objects
-struct KeyObject final : public TextBase
+class KeyObject final : public TextBase
     , public KeyListener {
 
+    std::vector<KeyPress> heldKeys;
+
+public:
+        
     enum KeyObjectType {
         Key,
         KeyUp,
         KeyName
     };
-
+        
     KeyObjectType type;
-    std::vector<KeyPress> heldKeys;
-
+    
     KeyObject(void* ptr, Object* object, KeyObjectType keyObjectType)
         : TextBase(ptr, object)
         , type(keyObjectType)

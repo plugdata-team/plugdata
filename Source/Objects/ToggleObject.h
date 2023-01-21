@@ -4,7 +4,7 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
-struct ToggleObject final : public ObjectBase {
+class ToggleObject final : public ObjectBase {
     bool toggleState = false;
     bool alreadyToggled = false;
     Value nonZero;
@@ -13,6 +13,7 @@ struct ToggleObject final : public ObjectBase {
 
     IEMHelper iemHelper;
 
+public:
     ToggleObject(void* ptr, Object* object)
         : ObjectBase(ptr, object)
         , iemHelper(ptr, object, this)

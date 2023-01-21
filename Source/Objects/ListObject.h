@@ -4,10 +4,11 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
-struct ListObject final : public ObjectBase {
+class ListObject final : public ObjectBase {
 
     AtomHelper atomHelper;
 
+public:
     ListObject(void* obj, Object* parent)
         : ObjectBase(obj, parent)
         , atomHelper(obj, parent, this)

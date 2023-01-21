@@ -4,7 +4,7 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
-struct GraphOnParent final : public ObjectBase {
+class GraphOnParent final : public ObjectBase {
     bool isLocked = false;
 
 public:

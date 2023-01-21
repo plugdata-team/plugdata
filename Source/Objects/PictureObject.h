@@ -5,7 +5,7 @@
  */
 
 // ELSE pic
-struct PictureObject final : public ObjectBase {
+class PictureObject final : public ObjectBase {
     typedef struct _edit_proxy {
         t_object p_obj;
         t_symbol* p_sym;
@@ -42,6 +42,11 @@ struct PictureObject final : public ObjectBase {
         t_outlet* x_outlet;
     } t_pic;
 
+    Value path;
+    File imageFile;
+    Image img;
+    
+public:
     PictureObject(void* ptr, Object* object)
         : ObjectBase(ptr, object)
     {
@@ -183,8 +188,4 @@ struct PictureObject final : public ObjectBase {
         } else
             return (0);
     }
-
-    Value path;
-    File imageFile;
-    Image img;
 };

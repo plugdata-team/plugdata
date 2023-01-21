@@ -39,7 +39,9 @@ static t_atom* fake_gatom_getatom(t_fake_gatom* x)
     return (binbuf_getvec(x->a_text.te_binbuf));
 }
 
-struct AtomHelper {
+class AtomHelper {
+    
+public:
     AtomHelper(void* ptr, Object* parent, ObjectBase* base)
         : object(parent)
         , gui(base)

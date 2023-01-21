@@ -5,10 +5,11 @@
  */
 
 // Inherit to customise drawing
-struct MIDIKeyboard : public MidiKeyboardComponent {
+class MIDIKeyboard : public MidiKeyboardComponent {
 
     Object* object;
 
+public:
     MIDIKeyboard(Object* parent, MidiKeyboardState& stateToUse, Orientation orientationToUse)
         : MidiKeyboardComponent(stateToUse, orientationToUse)
         , object(parent)
@@ -94,7 +95,7 @@ struct MIDIKeyboard : public MidiKeyboardComponent {
     }
 };
 // ELSE keyboard
-struct KeyboardObject final : public ObjectBase
+class KeyboardObject final : public ObjectBase
     , public Timer
     , public MidiKeyboardStateListener {
     typedef struct _edit_proxy {
@@ -138,6 +139,14 @@ struct KeyboardObject final : public ObjectBase
         t_outlet* x_out;
     } t_keyboard;
 
+        Value lowC;
+        Value octaves;
+        int numKeys = 0;
+
+        MidiKeyboardState state;
+        MIDIKeyboard keyboard;
+        
+public:
     KeyboardObject(void* ptr, Object* object)
         : ObjectBase(ptr, object)
         , keyboard(object, state, MidiKeyboardComponent::horizontalKeyboard)
@@ -345,10 +354,4 @@ struct KeyboardObject final : public ObjectBase
         g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), PlugDataLook::objectCornerRadius, 1.0f);
     }
 
-    Value lowC;
-    Value octaves;
-    int numKeys = 0;
-
-    MidiKeyboardState state;
-    MIDIKeyboard keyboard;
 };

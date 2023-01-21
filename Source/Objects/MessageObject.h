@@ -16,12 +16,28 @@ typedef struct _message {
     t_clock* m_clock;
 } t_message;
 
-struct MessageObject final : public ObjectBase
+class MessageObject final : public ObjectBase
     , public KeyListener
     , public TextEditor::Listener {
+
+    Justification justification = Justification::centredLeft;
+    std::unique_ptr<TextEditor> editor;
+    BorderSize<int> border = BorderSize<int>(1, 7, 1, 2);
+    float minimumHorizontalScale = 0.8f;
+
+    String objectText;
+    Font font = Font(15.0f);
+
+    int textObjectWidth = 0;
+    int textWidthOffset = 0;
+    int numLines = 1;
+
+    bool wasSelected = false;
+    bool isValid = true;
     bool isDown = false;
     bool isLocked = false;
-
+        
+public:
     MessageObject(void* obj, Object* parent)
         : ObjectBase(obj, parent)
     {
@@ -356,18 +372,4 @@ struct MessageObject final : public ObjectBase
         return true;
     }
 
-    Justification justification = Justification::centredLeft;
-    std::unique_ptr<TextEditor> editor;
-    BorderSize<int> border = BorderSize<int>(1, 7, 1, 2);
-    float minimumHorizontalScale = 0.8f;
-
-    String objectText;
-    Font font = Font(15.0f);
-
-    int textObjectWidth = 0;
-    int textWidthOffset = 0;
-    int numLines = 1;
-
-    bool wasSelected = false;
-    bool isValid = true;
 };

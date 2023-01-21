@@ -4,7 +4,7 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
-struct SymbolAtomObject final : public ObjectBase
+class SymbolAtomObject final : public ObjectBase
     , public KeyListener {
 
     bool isDown = false;
@@ -13,7 +13,10 @@ struct SymbolAtomObject final : public ObjectBase
     AtomHelper atomHelper;
 
     String lastMessage;
+    
+    Label input;
 
+public:
     SymbolAtomObject(void* obj, Object* parent)
         : ObjectBase(obj, parent)
         , atomHelper(obj, parent, this)
@@ -194,6 +197,4 @@ struct SymbolAtomObject final : public ObjectBase
             setParameterExcludingListener(atomHelper.receiveSymbol, atoms[0].getSymbol());
         }
     };
-
-    Label input;
 };

@@ -4,12 +4,13 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
-struct CanvasObject final : public ObjectBase {
+class CanvasObject final : public ObjectBase {
 
     bool locked;
 
     IEMHelper iemHelper;
 
+public:
     CanvasObject(void* ptr, Object* object)
         : ObjectBase(ptr, object)
         , iemHelper(ptr, object, this)

@@ -4,7 +4,7 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
-struct RadioObject final : public ObjectBase {
+class RadioObject final : public ObjectBase {
 
     bool alreadyToggled = false;
     bool isVertical;
@@ -15,6 +15,7 @@ struct RadioObject final : public ObjectBase {
     
     Value max = Value(0.0f);
 
+public:
     RadioObject(void* ptr, Object* object)
         : ObjectBase(ptr, object)
         , iemHelper(ptr, object, this)
