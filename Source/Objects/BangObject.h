@@ -12,7 +12,7 @@ struct BangObject final : public IEMObject {
 
     bool bangState = false;
     bool alreadyBanged = false;
-
+    
     BangObject(void* obj, Object* parent)
         : IEMObject(obj, parent)
     {
@@ -33,7 +33,7 @@ struct BangObject final : public IEMObject {
     {
         if (!alreadyBanged) {
             startEdition();
-            setValueOriginal(1);
+            setValue(1.0f);
             stopEdition();
             update();
             alreadyBanged = true;
@@ -48,7 +48,7 @@ struct BangObject final : public IEMObject {
     void mouseDown(MouseEvent const& e) override
     {
         startEdition();
-        setValueOriginal(1);
+        setValue(1.0f);
         stopEdition();
 
         // Make sure we don't re-click with an accidental drag
@@ -86,9 +86,9 @@ struct BangObject final : public IEMObject {
         return 0.0f;
     }
 
-    void update() override
+    void update()
     {
-        if (getValueOriginal() > std::numeric_limits<float>::epsilon()) {
+        if (value > std::numeric_limits<float>::epsilon()) {
             bangState = true;
             repaint();
 
@@ -143,6 +143,14 @@ struct BangObject final : public IEMObject {
 
     void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
     {
+        if(symbol == "float") {
+            value = atoms[0].getFloat();
+            update();
+        }
+        if(symbol == "bang") {
+            value = 1.0f;
+            update();
+        }
         if (symbol == "flashtime") {
             if (atoms.size() > 0)
                 setParameterExcludingListener(bangInterrupt, atoms[0].getFloat());
@@ -152,4 +160,5 @@ struct BangObject final : public IEMObject {
             IEMObject::receiveObjectMessage(symbol, atoms);
         }
     }
+    
 };

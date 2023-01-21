@@ -28,7 +28,7 @@ struct NumberObject final : public IEMObject {
         };
 
         input.onEditorHide = [this]() {
-            setValueOriginal(input.getText().getFloatValue());
+            setValue(input.getText().getFloatValue());
             stopEdition();
         };
 
@@ -36,7 +36,7 @@ struct NumberObject final : public IEMObject {
 
         addAndMakeVisible(input);
 
-        input.setText(input.formatNumber(getValueOriginal()), dontSendNotification);
+        input.setText(input.formatNumber(value), dontSendNotification);
 
         min = getMinimum();
         max = getMaximum();
@@ -45,7 +45,9 @@ struct NumberObject final : public IEMObject {
 
         input.dragStart = [this]() { startEdition(); };
 
-        input.valueChanged = [this](float value) { setValueOriginal(value); };
+        input.valueChanged = [this](float newValue) {
+            setValue(newValue);
+        };
 
         input.dragEnd = [this]() { stopEdition(); };
     }
@@ -94,7 +96,7 @@ struct NumberObject final : public IEMObject {
 
     void focusGained(FocusChangeType cause) override
     {
-        preFocusValue = getValueOriginal();
+        preFocusValue = value;
         repaint();
     }
 
@@ -102,7 +104,7 @@ struct NumberObject final : public IEMObject {
     {
         auto inputValue = input.getText().getFloatValue();
         if (inputValue != preFocusValue) {
-            setValueOriginal(inputValue);
+            setValue(inputValue);
         }
         repaint();
     }
@@ -118,24 +120,25 @@ struct NumberObject final : public IEMObject {
         repaint();
     }
 
-    void update() override
-    {
-        input.setText(input.formatNumber(getValueOriginal()), dontSendNotification);
-    }
-
     ObjectParameters defineParameters() override
     {
         return { { "Minimum", tFloat, cGeneral, &min, {} }, { "Maximum", tFloat, cGeneral, &max, {} } };
     }
+    
+    void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
+    {
+        if(symbol == "float") {
+            value = atoms[0].getFloat();
+            input.setText(input.formatNumber(atoms[0].getFloat()), dontSendNotification);
+        }
+    };
 
     void valueChanged(Value& value) override
     {
         if (value.refersToSameSourceAs(min)) {
             setMinimum(static_cast<float>(min.getValue()));
-            updateValue();
         } else if (value.refersToSameSourceAs(max)) {
             setMaximum(static_cast<float>(max.getValue()));
-            updateValue();
         } else {
             IEMObject::valueChanged(value);
         }

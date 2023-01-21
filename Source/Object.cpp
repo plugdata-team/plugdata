@@ -243,7 +243,6 @@ void Object::setType(String const& newType, void* existingObject)
 
     if (gui) {
         gui->lock(locked == var(true));
-        gui->updateValue();
         gui->addMouseListener(this, true);
         addAndMakeVisible(gui.get());
     }

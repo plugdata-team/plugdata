@@ -45,8 +45,8 @@ struct ToggleObject final : public IEMObject {
     {
         if (!alreadyToggled) {
             startEdition();
-            auto newValue = getValueOriginal() != 0 ? 0 : static_cast<float>(nonZero.getValue());
-            setValueOriginal(newValue);
+            auto newValue = value != 0 ? 0 : static_cast<float>(nonZero.getValue());
+            setValue(newValue);
             toggleState = newValue;
             stopEdition();
             alreadyToggled = true;
@@ -64,8 +64,8 @@ struct ToggleObject final : public IEMObject {
     void mouseDown(MouseEvent const& e) override
     {
         startEdition();
-        auto newValue = getValueOriginal() != 0 ? 0 : static_cast<float>(nonZero.getValue());
-        setValueOriginal(newValue);
+        auto newValue = value != 0 ? 0 : static_cast<float>(nonZero.getValue());
+        setValue(newValue);
         toggleState = newValue;
         stopEdition();
 
@@ -93,7 +93,16 @@ struct ToggleObject final : public IEMObject {
 
     void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
     {
-
+        if(symbol == "bang") {
+            value = !value;
+            toggleState = value > std::numeric_limits<float>::epsilon();
+            repaint();
+        }
+        if(symbol == "float") {
+            value = atoms[0].getFloat();
+            toggleState = value > std::numeric_limits<float>::epsilon();
+            repaint();
+        }
         if (symbol == "nonzero" && atoms.size() >= 1) {
             setParameterExcludingListener(nonZero, atoms[0].getFloat());
         } else {
@@ -115,11 +124,5 @@ struct ToggleObject final : public IEMObject {
     float getValue() override
     {
         return (static_cast<t_toggle*>(ptr))->x_on;
-    }
-
-    void update() override
-    {
-        toggleState = getValueOriginal() > std::numeric_limits<float>::epsilon();
-        repaint();
     }
 };

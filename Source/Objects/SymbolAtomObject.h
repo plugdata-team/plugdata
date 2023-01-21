@@ -54,10 +54,6 @@ struct SymbolAtomObject final : public AtomObject
         input.setBounds(getLocalBounds());
     }
 
-    void update() override
-    {
-        input.setText(getSymbol(), dontSendNotification);
-    }
 
     void setSymbol(String const& value)
     {
@@ -70,17 +66,6 @@ struct SymbolAtomObject final : public AtomObject
         return String::fromUTF8(atom_getsymbol(fake_gatom_getatom(static_cast<t_fake_gatom*>(ptr)))->s_name);
     }
 
-    void updateValue() override
-    {
-        if (!edited) {
-            String v = getSymbol();
-
-            if (lastMessage != v && !v.startsWith("click")) {
-                lastMessage = v;
-                update();
-            }
-        }
-    }
 
     void mouseUp(MouseEvent const& e) override
     {
@@ -116,6 +101,13 @@ struct SymbolAtomObject final : public AtomObject
         }
         return false;
     }
-
+        
+    void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
+    {
+        if(symbol == "symbol") {
+            input.setText(atoms[0].getSymbol(), dontSendNotification);
+        }
+    };
+    
     Label input;
 };

@@ -5,6 +5,7 @@
  */
 
 struct ListObject final : public AtomObject {
+    
     ListObject(void* obj, Object* parent)
         : AtomObject(obj, parent)
     {
@@ -12,7 +13,7 @@ struct ListObject final : public AtomObject {
         listLabel.setMinimumHorizontalScale(1.f);
         listLabel.setJustificationType(Justification::centredLeft);
         listLabel.setBorderSize(BorderSize<int>(2, 6, 2, 2));
-        listLabel.setText(String(getValueOriginal()), dontSendNotification);
+        listLabel.setText(String(value), dontSendNotification);
 
         addAndMakeVisible(listLabel);
 
@@ -88,7 +89,7 @@ struct ListObject final : public AtomObject {
         g.fillPath(bottomTriangle);
     }
 
-    void updateValue() override
+    void updateValue()
     {
         if (!edited && !listLabel.isBeingEdited()) {
             auto const array = getList();

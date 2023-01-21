@@ -60,6 +60,12 @@ ObjectBase::ObjectBase(void* obj, Object* parent)
     , cnv(object->cnv)
     , pd(object->cnv->pd)
 {
+    pd->registerMessageListener(ptr, this);
+}
+
+ObjectBase::~ObjectBase()
+{
+    pd->unregisterMessageListener(ptr, this);
 }
 
 String ObjectBase::getText()
@@ -346,12 +352,11 @@ GUIObject::GUIObject(void* obj, Object* parent)
         }
     });
 
-    pd->registerMessageListener(ptr, this);
+
 }
 
 GUIObject::~GUIObject()
 {
-    pd->unregisterMessageListener(ptr, this);
     object->removeComponentListener(this);
     auto* lnf = &getLookAndFeel();
     setLookAndFeel(nullptr);
@@ -384,41 +389,6 @@ ObjectParameters GUIObject::getParameters()
     return defineParameters();
 }
 
-float GUIObject::getValueOriginal() const
-{
-    return value;
-}
-
-void GUIObject::setValueOriginal(float v)
-{
-    auto minimum = static_cast<float>(min.getValue());
-    auto maximum = static_cast<float>(max.getValue());
-
-    if (minimum != maximum || minimum != 0 || maximum != 0) {
-        v = (minimum < maximum) ? std::max(std::min(v, maximum), minimum) : std::max(std::min(v, minimum), maximum);
-    }
-
-    value = v;
-    setValue(value);
-}
-
-float GUIObject::getValueScaled() const
-{
-    auto minimum = static_cast<float>(min.getValue());
-    auto maximum = static_cast<float>(max.getValue());
-
-    return (minimum < maximum) ? (value - minimum) / (maximum - minimum) : 1.f - (value - maximum) / (minimum - maximum);
-}
-
-void GUIObject::setValueScaled(float v)
-{
-    auto minimum = static_cast<float>(min.getValue());
-    auto maximum = static_cast<float>(max.getValue());
-
-    value = (minimum < maximum) ? std::max(std::min(v, 1.f), 0.f) * (maximum - minimum) + minimum : (1.f - std::max(std::min(v, 1.f), 0.f)) * (minimum - maximum) + maximum;
-    setValue(value);
-}
-
 void GUIObject::startEdition()
 {
     edited = true;
@@ -433,28 +403,6 @@ void GUIObject::stopEdition()
     processor->enqueueMessages("gui", "mouse", { 0.f });
 }
 
-void GUIObject::updateValue()
-{
-    if (!edited) {
-        pd->enqueueFunction(
-            [_this = SafePointer(this)]() {
-                if (!_this)
-                    return;
-
-                const float v = _this->getValue();
-                if (_this->value != v) {
-                    MessageManager::callAsync(
-                        [_this, v]() mutable {
-                            if (_this) {
-                                _this->value = v;
-                                _this->update();
-                            }
-                        });
-                }
-            });
-    }
-}
-
 void GUIObject::componentMovedOrResized(Component& component, bool moved, bool resized)
 {
     updateLabel();
@@ -465,9 +413,10 @@ void GUIObject::componentMovedOrResized(Component& component, bool moved, bool r
     checkBounds();
 }
 
-void GUIObject::setValue(float value)
+void GUIObject::setValue(float newValue)
 {
-    cnv->pd->enqueueDirectMessages(ptr, value);
+    value = newValue;
+    cnv->pd->enqueueDirectMessages(ptr, newValue);
 }
 
 ObjectBase* GUIObject::createGui(void* ptr, Object* parent)

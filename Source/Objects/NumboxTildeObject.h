@@ -153,10 +153,8 @@ struct NumboxTildeObject final : public GUIObject
     {
         if (value.refersToSameSourceAs(min)) {
             setMinimum(static_cast<float>(min.getValue()));
-            updateValue();
         } else if (value.refersToSameSourceAs(max)) {
             setMaximum(static_cast<float>(max.getValue()));
-            updateValue();
         } else if (value.refersToSameSourceAs(interval)) {
             auto* nbx = static_cast<t_numbox*>(ptr);
             nbx->x_rate = static_cast<float>(interval.getValue());
@@ -222,7 +220,7 @@ struct NumboxTildeObject final : public GUIObject
     void timerCallback() override
     {
         if (!mode) {
-            input.setText(input.formatNumber(getValueOriginal()), dontSendNotification);
+            input.setText(input.formatNumber(value), dontSendNotification);
         }
 
         startTimer(nextInterval);
@@ -232,7 +230,7 @@ struct NumboxTildeObject final : public GUIObject
     {
         t_atom at;
         SETFLOAT(&at, newValue);
-        setValueOriginal(newValue);
+        setValue(newValue);
 
         pd->getCallbackLock()->enter();
         pd_float(static_cast<t_pd*>(ptr), newValue);
@@ -261,26 +259,26 @@ struct NumboxTildeObject final : public GUIObject
         return (static_cast<t_numbox*>(ptr))->x_max;
     }
 
-    void setMinimum(float value)
+    void setMinimum(float minValue)
     {
-        static_cast<t_numbox*>(ptr)->x_min = value;
+        static_cast<t_numbox*>(ptr)->x_min = minValue;
 
-        input.setMinimum(value);
+        input.setMinimum(minValue);
 
         if (static_cast<float>(min.getValue()) < static_cast<float>(max.getValue())) {
 
-            setValueOriginal(std::clamp(getValueOriginal(), value, static_cast<float>(max.getValue())));
+            value = std::clamp(value, minValue, static_cast<float>(max.getValue()));
         }
     }
 
-    void setMaximum(float value)
+    void setMaximum(float maxValue)
     {
-        static_cast<t_numbox*>(ptr)->x_max = value;
+        static_cast<t_numbox*>(ptr)->x_max = maxValue;
 
-        input.setMaximum(value);
+        input.setMaximum(maxValue);
 
         if (static_cast<float>(max.getValue()) > static_cast<float>(min.getValue())) {
-            setValueOriginal(std::clamp(getValueOriginal(), static_cast<float>(min.getValue()), value));
+            value = std::clamp(value, static_cast<float>(min.getValue()), maxValue);
         }
     }
 };

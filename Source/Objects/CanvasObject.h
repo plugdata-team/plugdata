@@ -61,8 +61,6 @@ struct CanvasObject final : public IEMObject {
         g.fillAll(Colour::fromString(secondaryColour.toString()));
     }
 
-    void updateValue() override {};
-
     ObjectParameters getParameters() override
     {
         ObjectParameters params;

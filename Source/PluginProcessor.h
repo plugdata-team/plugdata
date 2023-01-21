@@ -50,7 +50,6 @@ public:
     bool isMidiEffect() const override;
     double getTailLengthSeconds() const override;
 
-    std::atomic<int> callbackType = 0;
     void timerCallback() override;
 
     int getNumPrograms() override;
@@ -74,7 +73,7 @@ public:
     void parameterGestureChanged(int parameterIndex, bool gestureIsStarting) override;
 
     void receiveDSPState(bool dsp) override;
-    void receiveGuiUpdate(int type) override;
+    void receiveGuiUpdate() override;
 
     void updateConsole() override;
 

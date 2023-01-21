@@ -20,7 +20,9 @@ class Patch;
 class Object;
 
 struct ObjectBase : public Component
-    , public SettableTooltipClient {
+    , public SettableTooltipClient
+    , public pd::MessageListener
+{
     void* ptr;
     Object* object;
     Canvas* cnv;
@@ -28,7 +30,7 @@ struct ObjectBase : public Component
 
     ObjectBase(void* obj, Object* parent);
 
-    virtual ~ObjectBase() {};
+    virtual ~ObjectBase();
 
     void paint(Graphics& g) override;
 
@@ -39,8 +41,6 @@ struct ObjectBase : public Component
 
     virtual void checkBounds() {};
 
-    // Called whenever any GUI object's value changes
-    virtual void updateValue() = 0;
 
     // Gets position from pd and applies it to Object
     virtual void updateBounds() = 0;
@@ -105,11 +105,30 @@ struct ObjectBase : public Component
     {
         return true;
     }
+    
+    virtual void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) {};
 
     void closeOpenedSubpatchers();
     void openSubpatch();
 
     virtual String getText();
+    
+    void receiveMessage(String const& symbol, int argc, t_atom* argv) override
+    {
+        auto atoms = pd::Atom::fromAtoms(argc, argv);
+
+        MessageManager::callAsync([_this = SafePointer(this), symbol, atoms]() mutable {
+            if (!_this)
+                return;
+
+            if (symbol == "size" || symbol == "delta" || symbol == "pos" || symbol == "dim" || symbol == "width" || symbol == "height") {
+                // TODO: we can't really ensure the object has updated its bounds yet!
+                _this->updateBounds();
+            } else {
+                _this->receiveObjectMessage(symbol, atoms);
+            }
+        });
+    }
 };
 
 // Class for non-patchable objects
@@ -123,17 +142,11 @@ struct NonPatchable : public ObjectBase {
 };
 
 struct GUIObject : public ObjectBase
-    , public pd::MessageListener
     , public ComponentListener
     , public Value::Listener {
     GUIObject(void* obj, Object* parent);
 
     ~GUIObject() override;
-
-    void updateValue() override;
-
-    virtual void update() {};
-    virtual void updateFromAudioThread() {};
 
     void updateParameters() override;
 
@@ -155,13 +168,6 @@ struct GUIObject : public ObjectBase
     virtual void toggleObject(Point<int> position) {};
     virtual void untoggleObject() {};
 
-    float getValueOriginal() const;
-
-    void setValueOriginal(float v);
-
-    float getValueScaled() const;
-
-    void setValueScaled(float v);
 
     void setParameterExcludingListener(Value& parameter, var value)
     {
@@ -198,8 +204,6 @@ struct GUIObject : public ObjectBase
         return clampedValue;
     }
 
-    virtual void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) {};
-
     static inline bool draggingSlider = false;
 
 protected:
@@ -228,24 +232,25 @@ protected:
     Value labelText;
 
 private:
-    void receiveMessage(String const& symbol, int argc, t_atom* argv) override
-    {
-        auto atoms = pd::Atom::fromAtoms(argc, argv);
+    
+        void receiveMessage(String const& symbol, int argc, t_atom* argv) override
+        {
+            auto atoms = pd::Atom::fromAtoms(argc, argv);
 
-        MessageManager::callAsync([_this = SafePointer(this), symbol, atoms]() mutable {
-            if (!_this)
-                return;
+            MessageManager::callAsync([_this = SafePointer(this), symbol, atoms]() mutable {
+                if (!_this)
+                    return;
 
-            if (symbol == "size" || symbol == "delta" || symbol == "pos" || symbol == "dim" || symbol == "width" || symbol == "height") {
-                // TODO: we can't really ensure the object has updated its bounds yet!
-                _this->updateBounds();
-            } else if (symbol == "send" && atoms.size() >= 1) {
-                _this->setParameterExcludingListener(_this->sendSymbol, atoms[0].getSymbol());
-            } else if (symbol == "receive" && atoms.size() >= 1) {
-                _this->setParameterExcludingListener(_this->receiveSymbol, atoms[0].getSymbol());
-            } else {
-                _this->receiveObjectMessage(symbol, atoms);
-            }
-        });
-    }
+                if (symbol == "size" || symbol == "delta" || symbol == "pos" || symbol == "dim" || symbol == "width" || symbol == "height") {
+                    // TODO: we can't really ensure the object has updated its bounds yet!
+                    _this->updateBounds();
+                } else if (symbol == "send" && atoms.size() >= 1) {
+                    _this->setParameterExcludingListener(_this->sendSymbol, atoms[0].getSymbol());
+                } else if (symbol == "receive" && atoms.size() >= 1) {
+                    _this->setParameterExcludingListener(_this->receiveSymbol, atoms[0].getSymbol());
+                } else {
+                    _this->receiveObjectMessage(symbol, atoms);
+                }
+            });
+        }
 };
