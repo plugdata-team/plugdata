@@ -184,7 +184,7 @@ const std::map<ObjectIDs, String> objectNames {
     { NewHorizontalRadio, "hradio" },
     { NewFloatAtom, "floatatom" },
     { NewSymbolAtom, "symbolatom" },
-    { NewListAtom, "listatom" },
+    { NewListAtom, "listbox" },
     { NewArray, "array" },
     { NewGraphOnParent, "graph" },
     { NewCanvas, "cnv" },
