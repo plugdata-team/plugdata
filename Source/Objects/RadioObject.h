@@ -8,11 +8,11 @@ class RadioObject final : public ObjectBase {
 
     bool alreadyToggled = false;
     bool isVertical;
-    
+
     int selected;
 
     IEMHelper iemHelper;
-    
+
     Value max = Value(0.0f);
 
 public:

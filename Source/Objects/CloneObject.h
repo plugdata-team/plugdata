@@ -45,7 +45,7 @@ typedef struct _clone {
 }
 
 class CloneObject final : public TextBase {
-    
+
 public:
     CloneObject(void* obj, Object* object)
         : TextBase(obj, object)

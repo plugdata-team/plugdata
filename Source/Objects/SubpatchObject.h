@@ -5,13 +5,13 @@
  */
 
 class SubpatchObject final : public TextBase {
-    
+
     pd::Patch subpatch;
     Value isGraphChild = Value(var(false));
     Value hideNameAndArgs = Value(var(false));
 
     bool locked = false;
-    
+
 public:
     SubpatchObject(void* obj, Object* object)
         : TextBase(obj, object)

@@ -14,7 +14,7 @@ class BangObject final : public ObjectBase {
     bool alreadyBanged = false;
 
     IEMHelper iemHelper;
-    
+
 public:
     BangObject(void* obj, Object* parent)
         : ObjectBase(obj, parent)

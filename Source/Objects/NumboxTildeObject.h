@@ -41,13 +41,13 @@ class NumboxTildeObject final : public ObjectBase
     std::atomic<int> mode = 0;
 
     Value interval, ramp, init;
-        
+
     Value min = Value(0.0f);
     Value max = Value(0.0f);
 
     Value primaryColour;
     Value secondaryColour;
-        
+
 public:
     NumboxTildeObject(void* obj, Object* parent)
         : ObjectBase(obj, parent)
@@ -234,7 +234,6 @@ public:
 
         startTimer(nextInterval);
     }
-
 
     float getValue()
     {

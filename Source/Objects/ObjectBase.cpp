@@ -524,7 +524,6 @@ void ObjectBase::openFromMenu()
     pd_typedmess(static_cast<t_pd*>(ptr), pd->generateSymbol("menu-open"), 0, nullptr);
 };
 
-
 bool ObjectBase::hideInGraph()
 {
     return false;
@@ -550,7 +549,6 @@ bool ObjectBase::canReceiveMouseEvent(int x, int y)
     return true;
 }
 
-
 void ObjectBase::receiveMessage(String const& symbol, int argc, t_atom* argv)
 {
     auto atoms = pd::Atom::fromAtoms(argc, argv);
@@ -567,7 +565,6 @@ void ObjectBase::receiveMessage(String const& symbol, int argc, t_atom* argv)
         }
     });
 }
-
 
 void ObjectBase::setParameterExcludingListener(Value& parameter, var value)
 {

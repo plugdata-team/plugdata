@@ -116,7 +116,7 @@ public:
     virtual void untoggleObject() {};
 
     virtual ObjectLabel* getLabel();
-        
+
 protected:
     void setParameterExcludingListener(Value& parameter, var value);
 
@@ -145,25 +145,24 @@ protected:
 
 public:
     static inline bool draggingSlider = false;
-        
+
     void* ptr;
     Object* object;
     Canvas* cnv;
     PluginProcessor* pd;
-        
+
 protected:
     std::unique_ptr<ObjectLabel> label;
     static inline constexpr int maxSize = 1000000;
     std::atomic<bool> edited;
-        
-        
+
     friend class IEMHelper;
     friend class AtomHelper;
 };
 
 // Class for non-patchable objects
 class NonPatchable : public ObjectBase {
-    
+
 public:
     NonPatchable(void* obj, Object* parent);
     ~NonPatchable();

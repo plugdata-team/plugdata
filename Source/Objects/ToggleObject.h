@@ -8,7 +8,7 @@ class ToggleObject final : public ObjectBase {
     bool toggleState = false;
     bool alreadyToggled = false;
     Value nonZero;
-    
+
     float value = 0.0f;
 
     IEMHelper iemHelper;

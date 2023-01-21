@@ -11,15 +11,14 @@ class KeyObject final : public TextBase
     std::vector<KeyPress> heldKeys;
 
 public:
-        
     enum KeyObjectType {
         Key,
         KeyUp,
         KeyName
     };
-        
+
     KeyObjectType type;
-    
+
     KeyObject(void* ptr, Object* object, KeyObjectType keyObjectType)
         : TextBase(ptr, object)
         , type(keyObjectType)

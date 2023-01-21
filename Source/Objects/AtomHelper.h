@@ -40,7 +40,7 @@ static t_atom* fake_gatom_getatom(t_fake_gatom* x)
 }
 
 class AtomHelper {
-    
+
 public:
     AtomHelper(void* ptr, Object* parent, ObjectBase* base)
         : object(parent)
