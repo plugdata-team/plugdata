@@ -456,7 +456,7 @@ void Canvas::mouseDrag(MouseEvent const& e)
     }
 
     bool draggingLabel = dynamic_cast<Label*>(e.originalComponent) != nullptr;
-    bool draggingSlider = ObjectBase::draggingSlider;
+    bool draggingSlider = ObjectBase::isDraggingSlider();
     // Ignore on graphs or when locked
     if ((isGraph || locked == var(true) || commandLocked == var(true)) && !draggingLabel && !draggingSlider) {
         bool hasToggled = false;

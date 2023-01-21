@@ -71,7 +71,7 @@ public:
         repaint();
     }
 
-    void paint(Graphics& g)
+    void paint(Graphics& g) override
     {
         getLookAndFeel().setColour(Label::textWhenEditingColourId, object->findColour(PlugDataColour::canvasTextColourId));
         getLookAndFeel().setColour(Label::textColourId, object->findColour(PlugDataColour::canvasTextColourId));

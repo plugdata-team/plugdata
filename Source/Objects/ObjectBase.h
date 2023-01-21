@@ -64,6 +64,7 @@ public:
     virtual void showEditor() {};
     virtual void hideEditor() {};
 
+    // TODO: get rid of this!
     virtual void checkBounds() {};
 
     // Gets position from pd and applies it to Object
@@ -75,6 +76,7 @@ public:
     // Called whenever a drawable changes
     virtual void updateDrawables() {};
 
+    // Called after creation, to initialise parameter listeners
     virtual void initialiseParameters();
 
     virtual bool canOpenFromMenu();
@@ -83,12 +85,11 @@ public:
     // Flag to make object visible or hidden inside a GraphOnParent
     virtual bool hideInGraph();
 
-    virtual void setText(String const&) {};
-
     // Most objects ignore mouseclicks when locked
     // Objects can override this to do custom locking behaviour
     virtual void lock(bool isLocked);
 
+    // Returns the Pd class name of the object
     String getType() const;
 
     void moveToFront();
@@ -96,37 +97,55 @@ public:
 
     virtual Canvas* getCanvas();
     virtual pd::Patch* getPatch();
+        
+    // Override if you want a part of your object to ignore mouse clicks
     virtual bool canReceiveMouseEvent(int x, int y);
 
+    // Called whenever the object receives a pd message
     virtual void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) {};
 
+    // Close any tabs with opened subpatchers
     void closeOpenedSubpatchers();
     void openSubpatch();
-
-    virtual String getText();
 
     void receiveMessage(String const& symbol, int argc, t_atom* argv) override;
 
     static ObjectBase* createGui(void* ptr, Object* parent);
 
+    // Override this to return parameters that will be shown in the inspector
     virtual ObjectParameters getParameters();
 
     virtual void updateLabel() {};
+        
+    // Implement this if you want to allow toggling an object by dragging over it in run mode
     virtual void toggleObject(Point<int> position) {};
     virtual void untoggleObject() {};
 
     virtual ObjectLabel* getLabel();
-
+        
+    // Should return current object text if applicable
+    // Currently only used to subsitute arguments in tooltips
+    // TODO: does that even work?
+    virtual String getText();
+        
+    static bool isDraggingSlider();
+        
 protected:
+        
+    // Set parameter without triggering valueChanged
     void setParameterExcludingListener(Value& parameter, var value);
 
+    // Call when you start/stop editing a gui object
     void startEdition();
     void stopEdition();
 
+    // Called whenever one of the inspector parameters changes
     void valueChanged(Value& value) override {};
 
+    // Send a float value to Pd
     void sendFloatValue(float value);
 
+    // Min and max limit a juce::Value
     template<typename T>
     T limitValueMax(Value& v, T max)
     {
@@ -143,9 +162,8 @@ protected:
         return clampedValue;
     }
 
-public:
-    static inline bool draggingSlider = false;
 
+public:
     void* ptr;
     Object* object;
     Canvas* cnv;
@@ -155,6 +173,7 @@ protected:
     std::unique_ptr<ObjectLabel> label;
     static inline constexpr int maxSize = 1000000;
     std::atomic<bool> edited;
+    static inline bool draggingSlider = false;
 
     friend class IEMHelper;
     friend class AtomHelper;
