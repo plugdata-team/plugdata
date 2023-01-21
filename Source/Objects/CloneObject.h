@@ -45,7 +45,7 @@ typedef struct _clone {
 }
 
 struct CloneObject final : public TextBase
-    , public pd::MessageListener {
+{
     CloneObject(void* obj, Object* object)
         : TextBase(obj, object)
         , subpatch({ nullptr, nullptr })

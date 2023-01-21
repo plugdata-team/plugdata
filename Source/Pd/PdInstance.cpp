@@ -136,21 +136,18 @@ Instance::Instance(String const& symbol)
 
     // Register callback when pd's gui changes
     // Needs to be done on pd's thread
-    auto gui_trigger = [](void* instance, void* target) {
-        auto* pd = static_cast<t_pd*>(target);
-
-        // redraw scalar
-        if (pd && !strcmp((*pd)->c_name->s_name, "scalar")) {
-            static_cast<Instance*>(instance)->receiveGuiUpdate(2);
-        } else {
-            static_cast<Instance*>(instance)->receiveGuiUpdate(1);
+    auto gui_trigger = [](void* instance, const char* name, t_atom* arg1 , t_atom* arg2, t_atom* arg3) {
+        
+        if(String(name) == "openpanel") {
+            
+            static_cast<Instance*>(instance)->createPanel(atom_getfloat(arg1), atom_getsymbol(arg3)->s_name, atom_getsymbol(arg2)->s_name);
         }
-    };
-
-    auto panel_trigger = [](void* instance, int open, char const* snd, char const* location) { static_cast<Instance*>(instance)->createPanel(open, snd, location); };
-
-    auto openfile_trigger = [](void* instance, char const* fileToOpen) {
-        File(fileToOpen).startAsProcess();
+        if(String(name) == "openfile") {
+            File(String::fromUTF8(atom_getsymbol(arg1)->s_name)).startAsProcess();
+        }
+        if(String(name) == "repaint") {
+            static_cast<Instance*>(instance)->receiveGuiUpdate();
+        }        
     };
 
     auto message_trigger = [](void* instance, void* target, t_symbol* symbol, int argc, t_atom* argv) {
@@ -180,7 +177,7 @@ Instance::Instance(String const& symbol)
         }
     };
 
-    register_gui_triggers(static_cast<t_pdinstance*>(m_instance), this, gui_trigger, panel_trigger, openfile_trigger, message_trigger);
+    register_gui_triggers(static_cast<t_pdinstance*>(m_instance), this, gui_trigger, message_trigger);
 
     // HACK: create full path names for c-coded externals
     // Temporarily disabled because bugs

@@ -48,7 +48,7 @@ struct SliderObject : public IEMObject {
                 float minValue = static_cast<float>(min.getValue());
                 float maxValue = static_cast<float>(max.getValue());
                 float minimum = minValue == 0.0f ? std::numeric_limits<float>::epsilon() : minValue;
-                setValueOriginal(exp(val * log(maxValue / minimum)) * minimum);
+                setValue(exp(val * log(maxValue / minimum)) * minimum);
             } else {
                 setValueScaled(val);
             }
@@ -62,6 +62,20 @@ struct SliderObject : public IEMObject {
 
     void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
     {
+        if(symbol == "float") {
+            
+            setValue(atoms[0].getFloat());
+            
+            float maxValue = static_cast<float>(max.getValue());
+            float minValue = static_cast<float>(min.getValue()) == 0.0f ? std::numeric_limits<float>::epsilon() : static_cast<float>(min.getValue());
+
+            auto scaledValue = isLogScale() ? std::log(value / minValue) / std::log(maxValue / minValue) : getValueScaled();
+
+            if (!std::isfinite(scaledValue))
+                scaledValue = 0.0f;
+
+            slider.setValue(scaledValue, dontSendNotification);
+        }
 
         if (symbol == "lin") {
             setParameterExcludingListener(isLogarithmic, false);
@@ -100,19 +114,6 @@ struct SliderObject : public IEMObject {
         slider.setBounds(getLocalBounds());
     }
 
-    void update() override
-    {
-
-        float maxValue = static_cast<float>(max.getValue());
-        float minValue = static_cast<float>(min.getValue()) == 0.0f ? std::numeric_limits<float>::epsilon() : static_cast<float>(min.getValue());
-
-        auto value = isLogScale() ? std::log(getValueOriginal() / minValue) / std::log(maxValue / minValue) : getValueScaled();
-
-        if (!std::isfinite(value))
-            value = 0.0f;
-
-        slider.setValue(value, dontSendNotification);
-    }
 
     ObjectParameters defineParameters() override
     {
@@ -181,5 +182,22 @@ struct SliderObject : public IEMObject {
     void setLogScale(bool log)
     {
         static_cast<t_slider*>(ptr)->x_lin0_log1 = log;
+    }
+    
+    float getValueScaled() const
+    {
+        auto minimum = static_cast<float>(min.getValue());
+        auto maximum = static_cast<float>(max.getValue());
+
+        return (minimum < maximum) ? (value - minimum) / (maximum - minimum) : 1.f - (value - maximum) / (minimum - maximum);
+    }
+
+    void setValueScaled(float v)
+    {
+        auto minimum = static_cast<float>(min.getValue());
+        auto maximum = static_cast<float>(max.getValue());
+
+        value = (minimum < maximum) ? std::max(std::min(v, 1.f), 0.f) * (maximum - minimum) + minimum : (1.f - std::max(std::min(v, 1.f), 0.f)) * (minimum - maximum) + maximum;
+        setValue(value);
     }
 };

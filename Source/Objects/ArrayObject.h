@@ -606,7 +606,7 @@ public:
         graph.repaint();
     }
 
-    void updateValue() override
+    void updateValue()
     {
         int currentSize = graph.array.size();
         if (graph.vec.size() != currentSize) {
@@ -703,7 +703,6 @@ struct ArrayDefineObject final : public TextBase {
 
         editor = std::make_unique<ArrayEditorDialog>(cnv->pd, array, object);
         editor->onClose = [this]() {
-            updateValue();
             editor.reset(nullptr);
         };
     }

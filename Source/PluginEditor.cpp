@@ -126,7 +126,6 @@ PluginEditor::PluginEditor(PluginProcessor& p)
         }
 
         cnv->synchronise();
-        cnv->updateGuiValues();
         cnv->updateDrawables();
 
         updateCommandStatus();

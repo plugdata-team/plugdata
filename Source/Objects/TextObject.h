@@ -76,8 +76,6 @@ struct TextBase : public ObjectBase
         g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), PlugDataLook::objectCornerRadius, 1.0f);
     }
 
-    void updateValue() override {};
-
     // Override to cancel default behaviour
     void lock(bool isLocked) override
     {

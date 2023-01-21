@@ -18,19 +18,17 @@ typedef struct _message {
 
 struct MessageObject final : public TextBase
     , public KeyListener
-    , public pd::MessageListener {
+{
     bool isDown = false;
     bool isLocked = false;
 
     MessageObject(void* obj, Object* parent)
         : TextBase(obj, parent)
     {
-        object->cnv->pd->registerMessageListener(ptr, this);
     }
 
     ~MessageObject()
     {
-        object->cnv->pd->unregisterMessageListener(ptr, this);
     }
 
     void updateBounds() override
@@ -135,7 +133,7 @@ struct MessageObject final : public TextBase
         return maxWidth;
     }
 
-    void updateValue() override
+    void updateValue()
     {
         String v = getSymbol();
 

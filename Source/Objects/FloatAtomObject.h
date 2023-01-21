@@ -26,13 +26,13 @@ struct FloatAtomObject final : public AtomObject {
         };
 
         input.onEditorHide = [this]() {
-            setValueOriginal(input.getText().getFloatValue());
+            setValue(input.getText().getFloatValue());
             stopEdition();
         };
 
         addAndMakeVisible(input);
 
-        input.setText(input.formatNumber(getValueOriginal()), dontSendNotification);
+        input.setText(input.formatNumber(value), dontSendNotification);
 
         min = getMinimum();
         max = getMaximum();
@@ -41,7 +41,9 @@ struct FloatAtomObject final : public AtomObject {
 
         input.dragStart = [this]() { startEdition(); };
 
-        input.valueChanged = [this](float value) { setValueOriginal(value); };
+        input.valueChanged = [this](float newValue) {
+            setValue(newValue);
+        };
 
         input.dragEnd = [this]() { stopEdition(); };
     }
@@ -81,11 +83,6 @@ struct FloatAtomObject final : public AtomObject {
         input.setFont(getHeight() - 6);
     }
 
-    void update() override
-    {
-        input.setText(input.formatNumber(getValueOriginal()), dontSendNotification);
-    }
-
     void lock(bool isLocked) override
     {
         setInterceptsMouseClicks(isLocked, isLocked);
@@ -100,10 +97,8 @@ struct FloatAtomObject final : public AtomObject {
     {
         if (value.refersToSameSourceAs(min)) {
             setMinimum(static_cast<float>(min.getValue()));
-            updateValue();
         } else if (value.refersToSameSourceAs(max)) {
             setMaximum(static_cast<float>(max.getValue()));
-            updateValue();
         } else {
             AtomObject::valueChanged(value);
         }
@@ -138,4 +133,13 @@ struct FloatAtomObject final : public AtomObject {
         input.setMaximum(value);
         gatom->a_draghi = value;
     }
+    
+    void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
+    {
+        if(symbol == "float") {
+            value = atoms[0].getFloat();
+            input.setText(input.formatNumber(atoms[0].getFloat()), dontSendNotification);
+        }
+    };
+    
 };

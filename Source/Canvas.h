@@ -45,7 +45,6 @@ public:
     void synchronise(bool updatePosition = true);
 
     void updateDrawables();
-    void updateGuiValues();
 
     bool keyPressed(KeyPress const& key) override;
     void valueChanged(Value& v) override;

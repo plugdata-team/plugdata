@@ -29,7 +29,7 @@ struct SubpatchObject final : public TextBase
         closeOpenedSubpatchers();
     }
 
-    void updateValue() override
+    void updateValue()
     {
         // Change from subpatch to graph
         if (static_cast<t_canvas*>(ptr)->gl_isgraph) {

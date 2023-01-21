@@ -281,8 +281,6 @@ struct ScopeBase : public GUIObject
         repaint();
     }
 
-    void updateValue() override {};
-
     void valueChanged(Value& v) override
     {
         auto* scope = static_cast<S*>(ptr);

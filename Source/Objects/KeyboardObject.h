@@ -287,7 +287,7 @@ struct KeyboardObject final : public GUIObject
         }
     }
 
-    void updateValue() override
+    void updateValue()
     {
         auto* keyboardObject = static_cast<t_keyboard*>(ptr);
 
@@ -303,6 +303,14 @@ struct KeyboardObject final : public GUIObject
 
     void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
     {
+        if(symbol == "float") {
+            value = atoms[0].getFloat();
+            updateValue();
+        }
+        if(symbol == "list") {
+            value = atoms[0].getFloat();
+            updateValue();
+        }
         if (symbol == "lowc") {
             setParameterExcludingListener(lowC, static_cast<int>(atoms[0].getFloat()));
             int numOctaves = std::clamp<int>(static_cast<int>(octaves.getValue()), 1, 11);

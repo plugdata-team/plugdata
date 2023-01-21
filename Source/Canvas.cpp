@@ -289,15 +289,6 @@ void Canvas::updateDrawables()
     }
 }
 
-void Canvas::updateGuiValues()
-{
-    for (auto* object : objects) {
-        if (object->gui) {
-            object->gui->updateValue();
-        }
-    }
-}
-
 void Canvas::mouseDown(MouseEvent const& e)
 {
     auto* source = e.originalComponent;

@@ -145,7 +145,7 @@ public:
         canvas->locked.referTo(cnv->locked);
     }
 
-    void updateValue() override
+    void updateValue()
     {
         // Change from subpatch to graph
         if (!static_cast<t_canvas*>(ptr)->gl_isgraph) {
@@ -156,15 +156,6 @@ public:
         }
 
         updateCanvas();
-
-        if (!canvas)
-            return;
-
-        for (auto& object : canvas->objects) {
-            if (object->gui) {
-                object->gui->updateValue();
-            }
-        }
     }
 
     void updateDrawables() override

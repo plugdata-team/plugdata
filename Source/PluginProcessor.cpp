@@ -1367,10 +1367,8 @@ void PluginProcessor::receiveDSPState(bool dsp)
         });
 }
 
-void PluginProcessor::receiveGuiUpdate(int type)
+void PluginProcessor::receiveGuiUpdate()
 {
-    callbackType |= (1 << type);
-
     if (!isTimerRunning()) {
         startTimer(16);
     }
@@ -1379,19 +1377,9 @@ void PluginProcessor::receiveGuiUpdate(int type)
 void PluginProcessor::timerCallback()
 {
     if (auto* editor = dynamic_cast<PluginEditor*>(getActiveEditor())) {
-        if (!callbackType)
-            return;
-
         if (auto* cnv = editor->getCurrentCanvas()) {
-            if (callbackType & 2 || callbackType & 8) {
-                cnv->updateGuiValues();
-            }
-            if (callbackType & 4) {
-                cnv->updateDrawables();
-            }
+            cnv->updateDrawables();
         }
-
-        callbackType = 0;
         stopTimer();
     }
 }
