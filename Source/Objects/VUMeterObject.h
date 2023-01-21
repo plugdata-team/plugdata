@@ -25,9 +25,9 @@ public:
         return iemHelper.getParameters();
     }
 
-    void updateParameters() override
+    void initialiseParameters() override
     {
-        iemHelper.updateParameters();
+        iemHelper.initialiseParameters();
     }
 
     void updateBounds() override

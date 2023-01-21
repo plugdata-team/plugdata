@@ -189,7 +189,7 @@ struct AutomationPanel : public Component
     }
 
 #if PLUGDATA_STANDALONE
-    void updateParameters()
+    void initialiseParameters()
     {
         for (int p = 0; p < PluginProcessor::numParameters; p++) {
             sliders.rows[p]->slider.setValue(sliders.pd->standaloneParams[p]);

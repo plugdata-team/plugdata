@@ -40,7 +40,7 @@ public:
         receiveSymbol = getReceiveSymbol();
     }
 
-    void updateParameters()
+    void initialiseParameters()
     {
         primaryColour = Colour(getForegroundColour()).toString();
         secondaryColour = Colour(getBackgroundColour()).toString();

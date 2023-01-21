@@ -227,7 +227,7 @@ void Sidebar::updateAutomationParameters()
 {
     if (automationPanel) {
         // Might be called from audio thread
-        MessageManager::callAsync([this]() { // automationPanel->updateParameters();
+        MessageManager::callAsync([this]() { // automationPanel->initialiseParameters();
 
         });
     };
