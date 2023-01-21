@@ -44,8 +44,11 @@ typedef struct _clone {
 } t_fake_clone;
 }
 
-struct CloneObject final : public TextBase
-    , public pd::MessageListener {
+class CloneObject final : public TextBase {
+
+    pd::Patch subpatch;
+    
+public:
     CloneObject(void* obj, Object* object)
         : TextBase(obj, object)
         , subpatch({ nullptr, nullptr })
@@ -94,7 +97,4 @@ struct CloneObject final : public TextBase
             }
         });
     }
-
-protected:
-    pd::Patch subpatch;
 };

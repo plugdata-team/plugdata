@@ -23,7 +23,9 @@ struct DocumentBrowserViewBase : public TreeView
         : DirectoryContentsDisplayComponent(listToShow) {};
 };
 
-struct DocumentBrowserBase : public Component {
+class DocumentBrowserBase : public Component {
+    
+public:
     DocumentBrowserBase(PluginProcessor* processor)
         : pd(processor)
         , filter("*", "*", "All files")

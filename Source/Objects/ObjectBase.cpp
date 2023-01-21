@@ -4,7 +4,7 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
-#include "GUIObject.h"
+#include "ObjectBase.h"
 
 extern "C" {
 #include <m_pd.h>
@@ -20,8 +20,8 @@ extern "C" {
 #include "LookAndFeel.h"
 #include "Pd/PdPatch.h"
 
-#include "IEMObject.h"
-#include "AtomObject.h"
+#include "IEMHelper.h"
+#include "AtomHelper.h"
 
 #include "TextObject.h"
 #include "ToggleObject.h"
@@ -54,12 +54,41 @@ extern "C" {
 #include "ScopeObject.h"
 #include "FunctionObject.h"
 
+void ObjectLabel::ObjectListener::componentMovedOrResized(Component& component, bool moved, bool resized)
+{
+
+    dynamic_cast<Object&>(component).gui->updateLabel();
+}
+
 ObjectBase::ObjectBase(void* obj, Object* parent)
     : ptr(obj)
     , object(parent)
-    , cnv(object->cnv)
-    , pd(object->cnv->pd)
+    , cnv(parent->cnv)
+    , pd(parent->cnv->pd)
+    , edited(false)
 {
+    pd->registerMessageListener(ptr, this);
+
+    updateLabel(); // TODO: fix virtual call from constructor
+
+    setWantsKeyboardFocus(true);
+
+    setLookAndFeel(new PlugDataLook);
+
+    MessageManager::callAsync([_this = SafePointer<ObjectBase>(this)] {
+        if (_this) {
+            _this->updateParameters();
+        }
+    });
+}
+
+ObjectBase::~ObjectBase()
+{
+    pd->unregisterMessageListener(ptr, this);
+
+    auto* lnf = &getLookAndFeel();
+    setLookAndFeel(nullptr);
+    delete lnf;
 }
 
 String ObjectBase::getText()
@@ -328,37 +357,7 @@ struct Lambda {
     }
 };
 
-GUIObject::GUIObject(void* obj, Object* parent)
-    : ObjectBase(obj, parent)
-    , processor(parent->cnv->pd)
-    , edited(false)
-{
-    object->addComponentListener(this);
-    updateLabel(); // TODO: fix virtual call from constructor
-
-    setWantsKeyboardFocus(true);
-
-    setLookAndFeel(new PlugDataLook);
-
-    MessageManager::callAsync([_this = SafePointer<GUIObject>(this)] {
-        if (_this) {
-            _this->updateParameters();
-        }
-    });
-
-    pd->registerMessageListener(ptr, this);
-}
-
-GUIObject::~GUIObject()
-{
-    pd->unregisterMessageListener(ptr, this);
-    object->removeComponentListener(this);
-    auto* lnf = &getLookAndFeel();
-    setLookAndFeel(nullptr);
-    delete lnf;
-}
-
-void GUIObject::updateParameters()
+void ObjectBase::updateParameters()
 {
     getLookAndFeel().setColour(Label::textWhenEditingColourId, object->findColour(Label::textWhenEditingColourId));
     getLookAndFeel().setColour(Label::textColourId, object->findColour(Label::textColourId));
@@ -374,103 +373,29 @@ void GUIObject::updateParameters()
     repaint();
 }
 
-ObjectParameters GUIObject::defineParameters()
+ObjectParameters ObjectBase::getParameters()
 {
     return {};
-};
-
-ObjectParameters GUIObject::getParameters()
-{
-    return defineParameters();
 }
 
-float GUIObject::getValueOriginal() const
-{
-    return value;
-}
-
-void GUIObject::setValueOriginal(float v)
-{
-    auto minimum = static_cast<float>(min.getValue());
-    auto maximum = static_cast<float>(max.getValue());
-
-    if (minimum != maximum || minimum != 0 || maximum != 0) {
-        v = (minimum < maximum) ? std::max(std::min(v, maximum), minimum) : std::max(std::min(v, minimum), maximum);
-    }
-
-    value = v;
-    setValue(value);
-}
-
-float GUIObject::getValueScaled() const
-{
-    auto minimum = static_cast<float>(min.getValue());
-    auto maximum = static_cast<float>(max.getValue());
-
-    return (minimum < maximum) ? (value - minimum) / (maximum - minimum) : 1.f - (value - maximum) / (minimum - maximum);
-}
-
-void GUIObject::setValueScaled(float v)
-{
-    auto minimum = static_cast<float>(min.getValue());
-    auto maximum = static_cast<float>(max.getValue());
-
-    value = (minimum < maximum) ? std::max(std::min(v, 1.f), 0.f) * (maximum - minimum) + minimum : (1.f - std::max(std::min(v, 1.f), 0.f)) * (minimum - maximum) + maximum;
-    setValue(value);
-}
-
-void GUIObject::startEdition()
+void ObjectBase::startEdition()
 {
     edited = true;
-    processor->enqueueMessages("gui", "mouse", { 1.f });
-
-    value = getValue();
+    pd->enqueueMessages("gui", "mouse", { 1.f });
 }
 
-void GUIObject::stopEdition()
+void ObjectBase::stopEdition()
 {
     edited = false;
-    processor->enqueueMessages("gui", "mouse", { 0.f });
+    pd->enqueueMessages("gui", "mouse", { 0.f });
 }
 
-void GUIObject::updateValue()
+void ObjectBase::sendFloatValue(float newValue)
 {
-    if (!edited) {
-        pd->enqueueFunction(
-            [_this = SafePointer(this)]() {
-                if (!_this)
-                    return;
-
-                const float v = _this->getValue();
-                if (_this->value != v) {
-                    MessageManager::callAsync(
-                        [_this, v]() mutable {
-                            if (_this) {
-                                _this->value = v;
-                                _this->update();
-                            }
-                        });
-                }
-            });
-    }
+    cnv->pd->enqueueDirectMessages(ptr, newValue);
 }
 
-void GUIObject::componentMovedOrResized(Component& component, bool moved, bool resized)
-{
-    updateLabel();
-
-    if (!resized)
-        return;
-
-    checkBounds();
-}
-
-void GUIObject::setValue(float value)
-{
-    cnv->pd->enqueueDirectMessages(ptr, value);
-}
-
-ObjectBase* GUIObject::createGui(void* ptr, Object* parent)
+ObjectBase* ObjectBase::createGui(void* ptr, Object* parent)
 {
     const String name = libpd_get_object_class_name(ptr);
     if (name == "bng") {
@@ -587,4 +512,68 @@ ObjectBase* GUIObject::createGui(void* ptr, Object* parent)
     }
 
     return new TextObject(ptr, parent);
+}
+
+bool ObjectBase::canOpenFromMenu()
+{
+    return zgetfn(static_cast<t_pd*>(ptr), pd->generateSymbol("menu-open")) != nullptr;
+}
+
+void ObjectBase::openFromMenu()
+{
+    pd_typedmess(static_cast<t_pd*>(ptr), pd->generateSymbol("menu-open"), 0, nullptr);
+};
+
+bool ObjectBase::hideInGraph()
+{
+    return false;
+}
+
+void ObjectBase::lock(bool isLocked)
+{
+    setInterceptsMouseClicks(isLocked, isLocked);
+}
+
+Canvas* ObjectBase::getCanvas()
+{
+    return nullptr;
+};
+
+pd::Patch* ObjectBase::getPatch()
+{
+    return nullptr;
+};
+
+bool ObjectBase::canReceiveMouseEvent(int x, int y)
+{
+    return true;
+}
+
+void ObjectBase::receiveMessage(String const& symbol, int argc, t_atom* argv)
+{
+    auto atoms = pd::Atom::fromAtoms(argc, argv);
+
+    MessageManager::callAsync([_this = SafePointer(this), symbol, atoms]() mutable {
+        if (!_this)
+            return;
+
+        if (symbol == "size" || symbol == "delta" || symbol == "pos" || symbol == "dim" || symbol == "width" || symbol == "height") {
+            // TODO: we can't really ensure the object has updated its bounds yet!
+            _this->updateBounds();
+        } else {
+            _this->receiveObjectMessage(symbol, atoms);
+        }
+    });
+}
+
+void ObjectBase::setParameterExcludingListener(Value& parameter, var value)
+{
+    parameter.removeListener(this);
+    parameter.setValue(value);
+    parameter.addListener(this);
+}
+
+ObjectLabel* ObjectBase::getLabel()
+{
+    return label.get();
 }

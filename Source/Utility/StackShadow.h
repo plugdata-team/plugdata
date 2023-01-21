@@ -18,7 +18,7 @@
 #    include <juce_gui_basics/native/juce_win32_ScopedThreadDPIAwarenessSetter.h>
 #endif
 
-struct StackShadow {
+class StackShadow {
 
     static inline unsigned short const stackblur_mul[255] = {
         512, 512, 456, 512, 328, 456, 335, 512, 405, 328, 271, 456, 388, 335, 292, 512,
@@ -58,6 +58,7 @@ struct StackShadow {
         24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24
     };
 
+public:
     static void applyStackBlurBW(Image& img, unsigned int radius)
     {
         unsigned int const w = (unsigned int)img.getWidth();
@@ -970,7 +971,7 @@ private:
         DropShadow shadow;
 
         inline static float const windowCornerRadius = 7.5f;
-        
+
         int shadowCornerRadius;
 
         JUCE_DECLARE_NON_COPYABLE(ShadowWindow)
@@ -1136,7 +1137,7 @@ private:
 
     std::unique_ptr<ParentVisibilityChangedListener> visibilityChangedListener;
     std::unique_ptr<VirtualDesktopWatcher> virtualDesktopWatcher;
-    
+
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(StackDropShadower);
     JUCE_DECLARE_WEAK_REFERENCEABLE(StackDropShadower);
 };

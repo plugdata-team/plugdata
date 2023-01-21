@@ -162,7 +162,7 @@ Connection::~Connection()
     if (inobj) {
         inobj->removeComponentListener(this);
     }
-    
+
     cnv->pd->useDashedConnection.removeListener(this);
     cnv->pd->useStraightConnection.removeListener(this);
     cnv->pd->useThinConnection.removeListener(this);
@@ -231,15 +231,15 @@ void Connection::paint(Graphics& g)
         baseColour = outlet->isSignal ? signalColour : dataColour;
         baseColour = baseColour.brighter(0.6f);
     }
-    
+
     bool useThinConnection = static_cast<bool>(cnv->pd->useThinConnection.getValue());
 
-    if(!useThinConnection) {
+    if (!useThinConnection) {
         // outer stroke
         g.setColour(baseColour.darker(1.0f));
         g.strokePath(toDraw, PathStrokeType(2.5f, PathStrokeType::mitered, PathStrokeType::rounded));
     }
-    
+
     // inner stroke
     g.setColour(baseColour);
     Path innerPath = toDraw;

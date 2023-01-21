@@ -5,7 +5,7 @@
  */
 
 // ELSE mousepad
-struct MousePadObject final : public GUIObject {
+class MousePadObject final : public ObjectBase {
     bool isLocked = false;
     bool isPressed = false;
 
@@ -26,8 +26,9 @@ struct MousePadObject final : public GUIObject {
         unsigned char x_color[3];
     } t_pad;
 
+public:
     MousePadObject(void* ptr, Object* object)
-        : GUIObject(ptr, object)
+        : ObjectBase(ptr, object)
     {
         cnv->addMouseListener(this, true);
 

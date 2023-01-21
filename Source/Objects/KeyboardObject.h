@@ -5,12 +5,14 @@
  */
 
 // Inherit to customise drawing
-struct MIDIKeyboard : public MidiKeyboardComponent {
-    
+class MIDIKeyboard : public MidiKeyboardComponent {
+
     Object* object;
-    
+
+public:
     MIDIKeyboard(Object* parent, MidiKeyboardState& stateToUse, Orientation orientationToUse)
-        : MidiKeyboardComponent(stateToUse, orientationToUse), object(parent)
+        : MidiKeyboardComponent(stateToUse, orientationToUse)
+        , object(parent)
     {
         // Make sure nothing is drawn outside of our custom draw functions
         setColour(MidiKeyboardComponent::whiteNoteColourId, Colours::transparentBlack);
@@ -93,7 +95,7 @@ struct MIDIKeyboard : public MidiKeyboardComponent {
     }
 };
 // ELSE keyboard
-struct KeyboardObject final : public GUIObject
+class KeyboardObject final : public ObjectBase
     , public Timer
     , public MidiKeyboardStateListener {
     typedef struct _edit_proxy {
@@ -137,8 +139,16 @@ struct KeyboardObject final : public GUIObject
         t_outlet* x_out;
     } t_keyboard;
 
+    Value lowC;
+    Value octaves;
+    int numKeys = 0;
+
+    MidiKeyboardState state;
+    MIDIKeyboard keyboard;
+
+public:
     KeyboardObject(void* ptr, Object* object)
-        : GUIObject(ptr, object)
+        : ObjectBase(ptr, object)
         , keyboard(object, state, MidiKeyboardComponent::horizontalKeyboard)
     {
         keyboard.setMidiChannel(1);
@@ -259,7 +269,7 @@ struct KeyboardObject final : public GUIObject
             });
     };
 
-    ObjectParameters defineParameters() override
+    ObjectParameters getParameters() override
     {
         return { { "Start octave", tInt, cGeneral, &lowC, {} }, { "Num. octaves", tInt, cGeneral, &octaves, {} } };
     };
@@ -287,7 +297,7 @@ struct KeyboardObject final : public GUIObject
         }
     }
 
-    void updateValue() override
+    void updateValue()
     {
         auto* keyboardObject = static_cast<t_keyboard*>(ptr);
 
@@ -303,6 +313,12 @@ struct KeyboardObject final : public GUIObject
 
     void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
     {
+        if (symbol == "float") {
+            updateValue();
+        }
+        if (symbol == "list") {
+            updateValue();
+        }
         if (symbol == "lowc") {
             setParameterExcludingListener(lowC, static_cast<int>(atoms[0].getFloat()));
             int numOctaves = std::clamp<int>(static_cast<int>(octaves.getValue()), 1, 11);
@@ -337,11 +353,4 @@ struct KeyboardObject final : public GUIObject
         g.setColour(outlineColour);
         g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), PlugDataLook::objectCornerRadius, 1.0f);
     }
-
-    Value lowC;
-    Value octaves;
-    int numKeys = 0;
-
-    MidiKeyboardState state;
-    MIDIKeyboard keyboard;
 };

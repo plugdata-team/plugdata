@@ -4,10 +4,40 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
-struct VUMeterObject final : public IEMObject {
+class VUMeterObject final : public ObjectBase {
+
+    IEMHelper iemHelper;
+
+public:
     VUMeterObject(void* ptr, Object* object)
-        : IEMObject(ptr, object)
+        : ObjectBase(ptr, object)
+        , iemHelper(ptr, object, this)
     {
+    }
+
+    void valueChanged(Value& v) override
+    {
+        iemHelper.valueChanged(v);
+    }
+
+    ObjectParameters getParameters() override
+    {
+        return iemHelper.getParameters();
+    }
+
+    void updateParameters() override
+    {
+        iemHelper.updateParameters();
+    }
+
+    void updateBounds() override
+    {
+        iemHelper.updateBounds();
+    }
+
+    void applyBounds() override
+    {
+        iemHelper.applyBounds();
     }
 
     void checkBounds() override
@@ -21,23 +51,9 @@ struct VUMeterObject final : public IEMObject {
         }
     }
 
-    float getValue() override
-    {
-        return static_cast<t_vu*>(ptr)->x_fp;
-    }
-
-    float getRMS()
-    {
-        return static_cast<t_vu*>(ptr)->x_fr;
-    }
-
-    void resized() override
-    {
-    }
-
     void paint(Graphics& g) override
     {
-        auto values = std::vector<float> { getValue(), getRMS() };
+        auto values = std::vector<float> { static_cast<t_vu*>(ptr)->x_fp, static_cast<t_vu*>(ptr)->x_fr };
 
         int height = getHeight();
         int width = getWidth();
@@ -106,8 +122,12 @@ struct VUMeterObject final : public IEMObject {
         g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), PlugDataLook::objectCornerRadius, 1.0f);
     }
 
-    void updateValue() override
+    void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
     {
-        repaint();
-    };
+        if (symbol == "float") {
+            repaint();
+        } else {
+            iemHelper.receiveObjectMessage(symbol, atoms);
+        }
+    }
 };

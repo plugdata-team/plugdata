@@ -39,14 +39,18 @@ static t_atom* fake_gatom_getatom(t_fake_gatom* x)
     return (binbuf_getvec(x->a_text.te_binbuf));
 }
 
-struct AtomObject : public GUIObject {
-    AtomObject(void* ptr, Object* parent)
-        : GUIObject(ptr, parent)
-    {
-        auto* atom = static_cast<t_fake_gatom*>(ptr);
+class AtomHelper {
 
+public:
+    AtomHelper(void* ptr, Object* parent, ObjectBase* base)
+        : object(parent)
+        , gui(base)
+        , cnv(parent->cnv)
+        , pd(parent->cnv->pd)
+        , atom(static_cast<t_fake_gatom*>(ptr))
+    {
         labelText = getLabelText();
-        labelX = static_cast<int>(atom->a_wherelabel + 1);
+        labelPosition = static_cast<int>(atom->a_wherelabel + 1);
 
         int h = getFontHeight();
 
@@ -55,55 +59,6 @@ struct AtomObject : public GUIObject {
 
         sendSymbol = getSendSymbol();
         receiveSymbol = getReceiveSymbol();
-    }
-
-    void updateBounds() override
-    {
-        pd->getCallbackLock()->enter();
-
-        int x, y, w, h;
-        libpd_get_object_bounds(cnv->patch.getPointer(), ptr, &x, &y, &w, &h);
-
-        auto* gatom = static_cast<t_fake_gatom*>(ptr);
-        w = std::max<int>(4, gatom->a_text.te_width) * glist_fontwidth(cnv->patch.getPointer());
-
-        auto bounds = Rectangle<int>(x, y, w, getAtomHeight());
-
-        pd->getCallbackLock()->exit();
-
-        object->setObjectBounds(bounds);
-    }
-
-    void checkBounds() override
-    {
-        // Apply size limits
-        int w = jlimit(30, maxSize, object->getWidth());
-        int h = getAtomHeight() + Object::doubleMargin;
-
-        if (w != object->getWidth() || h != object->getHeight()) {
-            object->setSize(w, h);
-        }
-    }
-
-    void applyBounds() override
-    {
-        auto b = object->getObjectBounds();
-        libpd_moveobj(cnv->patch.getPointer(), static_cast<t_gobj*>(ptr), b.getX(), b.getY());
-
-        int fontWidth = glist_fontwidth(cnv->patch.getPointer());
-
-        auto* gatom = static_cast<t_fake_gatom*>(ptr);
-        gatom->a_text.te_width = b.getWidth() / fontWidth;
-    }
-
-    void resized() override
-    {
-        int fontWidth = glist_fontwidth(cnv->patch.getPointer());
-        int width = jlimit(30, maxSize, (getWidth() / fontWidth) * fontWidth);
-        int height = jlimit(12, maxSize, getHeight());
-        if (getWidth() != width || getHeight() != height) {
-            object->setSize(width + Object::doubleMargin, height + Object::doubleMargin);
-        }
     }
 
     int getAtomHeight() const
@@ -116,34 +71,9 @@ struct AtomObject : public GUIObject {
         }
     }
 
-    void paint(Graphics& g) override
+    ObjectParameters getParameters()
     {
-        getLookAndFeel().setColour(Label::textWhenEditingColourId, object->findColour(PlugDataColour::canvasTextColourId));
-        getLookAndFeel().setColour(Label::textColourId, object->findColour(PlugDataColour::canvasTextColourId));
-        getLookAndFeel().setColour(TextEditor::textColourId, object->findColour(PlugDataColour::canvasTextColourId));
-
-        g.setColour(object->findColour(PlugDataColour::defaultObjectBackgroundColourId));
-        g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), PlugDataLook::objectCornerRadius);
-    }
-
-    void paintOverChildren(Graphics& g) override
-    {
-        g.setColour(object->findColour(PlugDataColour::outlineColourId));
-        Path triangle;
-        triangle.addTriangle(Point<float>(getWidth() - 8, 0), Point<float>(getWidth(), 0), Point<float>(getWidth(), 8));
-        triangle = triangle.createPathWithRoundedCorners(4.0f);
-        g.fillPath(triangle);
-
-        bool selected = cnv->isSelected(object) && !cnv->isGraph;
-        auto outlineColour = object->findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : objectOutlineColourId);
-
-        g.setColour(outlineColour);
-        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), PlugDataLook::objectCornerRadius, 1.0f);
-    }
-
-    ObjectParameters getParameters() override
-    {
-        ObjectParameters params = defineParameters();
+        ObjectParameters params;
 
         params.push_back({ "Font size", tCombo, cGeneral, &labelHeight, { "auto", "8", "10", "12", "16", "24", "36" } });
 
@@ -151,22 +81,22 @@ struct AtomObject : public GUIObject {
         params.push_back({ "Receive Symbol", tString, cGeneral, &receiveSymbol, {} });
 
         params.push_back({ "Label", tString, cLabel, &labelText, {} });
-        params.push_back({ "Label Position", tCombo, cLabel, &labelX, { "left", "right", "top", "bottom" } });
+        params.push_back({ "Label Position", tCombo, cLabel, &labelPosition, { "left", "right", "top", "bottom" } });
 
         return params;
     }
 
-    void valueChanged(Value& v) override
+    void valueChanged(Value& v)
     {
-        if (v.refersToSameSourceAs(labelX)) {
-            setLabelPosition(static_cast<int>(labelX.getValue()));
-            updateLabel();
+        if (v.refersToSameSourceAs(labelPosition)) {
+            setLabelPosition(static_cast<int>(labelPosition.getValue()));
+            gui->updateLabel();
         } else if (v.refersToSameSourceAs(labelHeight)) {
-            updateLabel();
-            updateBounds();
+            gui->updateLabel();
+            gui->updateBounds();
         } else if (v.refersToSameSourceAs(labelText)) {
             setLabelText(labelText.toString());
-            updateLabel();
+            gui->updateLabel();
         } else if (v.refersToSameSourceAs(sendSymbol)) {
             setSendSymbol(sendSymbol.toString());
         } else if (v.refersToSameSourceAs(receiveSymbol)) {
@@ -174,7 +104,7 @@ struct AtomObject : public GUIObject {
         }
     }
 
-    void updateLabel() override
+    void updateLabel(std::unique_ptr<ObjectLabel>& label)
     {
         int idx = std::clamp<int>(labelHeight.getValue(), 1, 7);
 
@@ -186,20 +116,14 @@ struct AtomObject : public GUIObject {
 
         if (text.isNotEmpty()) {
             if (!label) {
-                label = std::make_unique<Label>();
+                label = std::make_unique<ObjectLabel>(object);
             }
 
             auto bounds = getLabelBounds();
+
             label->setBounds(bounds);
-
             label->setFont(Font(fontHeight));
-            label->setJustificationType(Justification::centredLeft);
-
-            label->setBorderSize(BorderSize<int>(0, 0, 0, 0));
-            label->setMinimumHorizontalScale(1.f);
             label->setText(text, dontSendNotification);
-            label->setEditable(false, false);
-            label->setInterceptsMouseClicks(false, false);
 
             label->setColour(Label::textColourId, object->findColour(PlugDataColour::canvasTextColourId));
 
@@ -209,12 +133,12 @@ struct AtomObject : public GUIObject {
 
     float getFontHeight() const
     {
-        return static_cast<t_fake_gatom*>(ptr)->a_fontsize;
+        return atom->a_fontsize;
     }
 
     void setFontHeight(float newSize)
     {
-        static_cast<t_fake_gatom*>(ptr)->a_fontsize = newSize;
+        atom->a_fontsize = newSize;
     }
 
     Rectangle<int> getLabelBounds() const
@@ -223,7 +147,7 @@ struct AtomObject : public GUIObject {
         int fontHeight = getAtomHeight() - 6;
 
         int labelLength = Font(fontHeight).getStringWidth(getExpandedLabelText());
-        int labelPosition = static_cast<t_fake_gatom*>(ptr)->a_wherelabel;
+        int labelPosition = atom->a_wherelabel;
         auto labelBounds = objectBounds.withSizeKeepingCentre(labelLength, fontHeight);
 
         if (labelPosition == 0) { // left
@@ -241,8 +165,7 @@ struct AtomObject : public GUIObject {
 
     String getExpandedLabelText() const
     {
-        auto* gatom = static_cast<t_fake_gatom*>(ptr);
-        t_symbol const* sym = canvas_realizedollar(gatom->a_glist, gatom->a_label);
+        t_symbol const* sym = canvas_realizedollar(atom->a_glist, atom->a_label);
         if (sym) {
             auto const text = String::fromUTF8(sym->s_name);
             if (text.isNotEmpty() && text != "empty") {
@@ -255,8 +178,7 @@ struct AtomObject : public GUIObject {
 
     String getLabelText() const
     {
-        auto* gatom = static_cast<t_fake_gatom*>(ptr);
-        t_symbol const* sym = gatom->a_label;
+        t_symbol const* sym = atom->a_label;
         if (sym) {
             auto const text = String::fromUTF8(sym->s_name);
             if (text.isNotEmpty() && text != "empty") {
@@ -269,25 +191,21 @@ struct AtomObject : public GUIObject {
 
     void setLabelText(String newText)
     {
-        auto* atom = static_cast<t_fake_gatom*>(ptr);
         atom->a_label = pd->generateSymbol(newText);
     }
 
     void setLabelPosition(int wherelabel)
     {
-        auto* gatom = static_cast<t_fake_gatom*>(ptr);
-        gatom->a_wherelabel = wherelabel - 1;
+        atom->a_wherelabel = wherelabel - 1;
     }
 
     String getSendSymbol()
     {
-        auto* atom = static_cast<t_fake_gatom*>(ptr);
         return String::fromUTF8(atom->a_symto->s_name);
     }
 
     String getReceiveSymbol()
     {
-        auto* atom = static_cast<t_fake_gatom*>(ptr);
         return String::fromUTF8(atom->a_symfrom->s_name);
     }
 
@@ -296,7 +214,6 @@ struct AtomObject : public GUIObject {
         if (symbol.isEmpty())
             return;
 
-        auto* atom = static_cast<t_fake_gatom*>(ptr);
         atom->a_symto = pd->generateSymbol(symbol);
         atom->a_expanded_to = canvas_realizedollar(atom->a_glist, atom->a_symto);
     }
@@ -306,7 +223,6 @@ struct AtomObject : public GUIObject {
         if (symbol.isEmpty())
             return;
 
-        auto* atom = static_cast<t_fake_gatom*>(ptr);
         if (*atom->a_symfrom->s_name)
             pd_unbind(&atom->a_text.te_pd, canvas_realizedollar(atom->a_glist, atom->a_symfrom));
         atom->a_symfrom = pd->generateSymbol(symbol);
@@ -315,7 +231,7 @@ struct AtomObject : public GUIObject {
     }
 
     /* prepend "-" as necessary to avoid empty strings, so we can
-    use them in Pd messages. */
+     use them in Pd messages. */
     t_symbol* gatom_escapit(t_symbol* s)
     {
         if (!*s->s_name)
@@ -331,12 +247,12 @@ struct AtomObject : public GUIObject {
     }
 
     /* undo previous operation: strip leading "-" if found.  This is used
-    both to restore send, etc., names when loading from a file, and to
-    set them from the properties dialog.  In the former case, since before
-    version 0.52 '$" was aliases to "#", we also bash any "#" characters
-    to "$".  This is unnecessary when reading files saved from 0.52 or later,
-    and really we should test for that and only bash when necessary, just
-    in case someone wants to have a "#" in a name. */
+     both to restore send, etc., names when loading from a file, and to
+     set them from the properties dialog.  In the former case, since before
+     version 0.52 '$" was aliases to "#", we also bash any "#" characters
+     to "$".  This is unnecessary when reading files saved from 0.52 or later,
+     and really we should test for that and only bash when necessary, just
+     in case someone wants to have a "#" in a name. */
     t_symbol* gatom_unescapit(t_symbol* s)
     {
         if (*s->s_name == '-')
@@ -346,4 +262,20 @@ struct AtomObject : public GUIObject {
     }
 
     int const atomSizes[7] = { 0, 8, 10, 12, 16, 24, 36 };
+
+    Object* object;
+    ObjectBase* gui;
+    Canvas* cnv;
+    PluginProcessor* pd;
+
+    t_fake_gatom* atom;
+
+    Value labelColour;
+
+    Value labelPosition = Value(0.0f);
+    Value labelHeight = Value(18.0f);
+    Value labelText;
+
+    Value sendSymbol;
+    Value receiveSymbol;
 };

@@ -289,15 +289,6 @@ void Canvas::updateDrawables()
     }
 }
 
-void Canvas::updateGuiValues()
-{
-    for (auto* object : objects) {
-        if (object->gui) {
-            object->gui->updateValue();
-        }
-    }
-}
-
 void Canvas::mouseDown(MouseEvent const& e)
 {
     auto* source = e.originalComponent;
@@ -465,7 +456,7 @@ void Canvas::mouseDrag(MouseEvent const& e)
     }
 
     bool draggingLabel = dynamic_cast<Label*>(e.originalComponent) != nullptr;
-    bool draggingSlider = GUIObject::draggingSlider;
+    bool draggingSlider = ObjectBase::draggingSlider;
     // Ignore on graphs or when locked
     if ((isGraph || locked == var(true) || commandLocked == var(true)) && !draggingLabel && !draggingSlider) {
         bool hasToggled = false;
@@ -475,7 +466,7 @@ void Canvas::mouseDrag(MouseEvent const& e)
             if (!object->getBounds().contains(e.getEventRelativeTo(this).getPosition()) || !object->gui)
                 continue;
 
-            if (auto* obj = dynamic_cast<GUIObject*>(object->gui.get())) {
+            if (auto* obj = object->gui.get()) {
                 obj->toggleObject(e.getEventRelativeTo(obj).getPosition());
                 hasToggled = true;
                 break;
@@ -484,7 +475,7 @@ void Canvas::mouseDrag(MouseEvent const& e)
 
         if (!hasToggled) {
             for (auto* object : objects) {
-                if (auto* obj = dynamic_cast<GUIObject*>(object->gui.get())) {
+                if (auto* obj = object->gui.get()) {
                     obj->untoggleObject();
                 }
             }

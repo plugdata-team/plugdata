@@ -16,21 +16,40 @@ typedef struct _message {
     t_clock* m_clock;
 } t_message;
 
-struct MessageObject final : public TextBase
+class MessageObject final : public ObjectBase
     , public KeyListener
-    , public pd::MessageListener {
+    , public TextEditor::Listener {
+
+    Justification justification = Justification::centredLeft;
+    std::unique_ptr<TextEditor> editor;
+    BorderSize<int> border = BorderSize<int>(1, 7, 1, 2);
+    float minimumHorizontalScale = 0.8f;
+
+    String objectText;
+    Font font = Font(15.0f);
+
+    int textObjectWidth = 0;
+    int textWidthOffset = 0;
+    int numLines = 1;
+
+    bool wasSelected = false;
+    bool isValid = true;
     bool isDown = false;
     bool isLocked = false;
 
+public:
     MessageObject(void* obj, Object* parent)
-        : TextBase(obj, parent)
+        : ObjectBase(obj, parent)
     {
-        object->cnv->pd->registerMessageListener(ptr, this);
+        objectText = getText();
+
+        // To get enter/exit messages
+        addMouseListener(object, false);
     }
 
     ~MessageObject()
     {
-        object->cnv->pd->unregisterMessageListener(ptr, this);
+        removeMouseListener(object);
     }
 
     void updateBounds() override
@@ -123,7 +142,7 @@ struct MessageObject final : public TextBase
         }
     }
 
-    int getBestTextWidth(String const& text) override
+    int getBestTextWidth(String const& text)
     {
         auto lines = StringArray::fromLines(text);
         auto maxWidth = 32;
@@ -135,7 +154,7 @@ struct MessageObject final : public TextBase
         return maxWidth;
     }
 
-    void updateValue() override
+    void updateValue()
     {
         String v = getSymbol();
 
@@ -155,6 +174,26 @@ struct MessageObject final : public TextBase
         });
     }
 
+    void resized() override
+    {
+        int fontWidth = glist_fontwidth(cnv->patch.getPointer());
+        textObjectWidth = (getWidth() - textWidthOffset) / fontWidth;
+
+        int width = textObjectWidth * fontWidth + textWidthOffset;
+        width = std::max(width, std::max({ 1, object->numInputs, object->numOutputs }) * 18);
+
+        numLines = StringUtils::getNumLines(objectText, width);
+        int height = numLines * 19 + 2;
+
+        if (getWidth() != width || getHeight() != height) {
+            object->setSize(width + Object::doubleMargin, height + Object::doubleMargin);
+        }
+
+        if (editor) {
+            editor->setBounds(getLocalBounds());
+        }
+    }
+
     void showEditor() override
     {
         if (editor == nullptr) {
@@ -164,7 +203,8 @@ struct MessageObject final : public TextBase
             editor->applyFontToAllText(font);
 
             copyAllExplicitColoursTo(*editor);
-            editor->setColour(Label::textWhenEditingColourId, findColour(TextEditor::textColourId));
+            editor->setColour(Label::textWhenEditingColourId, object->findColour(PlugDataColour::canvasTextColourId));
+            editor->setColour(TextEditor::textColourId, object->findColour(PlugDataColour::canvasTextColourId));
             editor->setColour(TextEditor::backgroundColourId, object->findColour(PlugDataColour::defaultObjectBackgroundColourId));
             editor->setColour(Label::outlineWhenEditingColourId, findColour(TextEditor::focusedOutlineColourId));
 
@@ -178,11 +218,12 @@ struct MessageObject final : public TextBase
             editor->setJustification(justification);
 
             editor->setSize(10, 10);
-            addAndMakeVisible(editor.get());
 
             editor->setText(objectText, false);
             editor->addListener(this);
             editor->addKeyListener(this);
+
+            addAndMakeVisible(editor.get());
 
             editor->onFocusLost = [this]() {
                 hideEditor();
@@ -266,11 +307,22 @@ struct MessageObject final : public TextBase
         repaint();
     }
 
-    /*
-     void valueChanged(Value& v) override
-     {
-     GUIObject::valueChanged(v);
-     } */
+    void textEditorReturnKeyPressed(TextEditor& ed) override
+    {
+        if (editor != nullptr) {
+            editor->giveAwayKeyboardFocus();
+        }
+    }
+
+    void textEditorTextChanged(TextEditor& ed) override
+    {
+        // For resize-while-typing behaviour
+        auto width = getBestTextWidth(ed.getText());
+
+        if (width > getWidth()) {
+            setSize(width, getHeight());
+        }
+    }
 
     String getSymbol() const
     {

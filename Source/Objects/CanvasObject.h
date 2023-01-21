@@ -4,15 +4,34 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
-struct CanvasObject final : public IEMObject {
+class CanvasObject final : public ObjectBase {
 
     bool locked;
 
+    IEMHelper iemHelper;
+
+public:
     CanvasObject(void* ptr, Object* object)
-        : IEMObject(ptr, object)
+        : ObjectBase(ptr, object)
+        , iemHelper(ptr, object, this)
     {
         object->setColour(PlugDataColour::outlineColourId, Colours::transparentBlack);
         locked = static_cast<bool>(object->locked.getValue());
+    }
+
+    void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
+    {
+        iemHelper.receiveObjectMessage(symbol, atoms);
+    }
+
+    void updateParameters() override
+    {
+        iemHelper.updateParameters();
+    }
+
+    void applyBounds() override
+    {
+        iemHelper.applyBounds();
     }
 
     bool canReceiveMouseEvent(int x, int y) override
@@ -58,22 +77,26 @@ struct CanvasObject final : public IEMObject {
 
     void paint(Graphics& g) override
     {
-        g.fillAll(Colour::fromString(secondaryColour.toString()));
+        g.fillAll(Colour::fromString(iemHelper.secondaryColour.toString()));
     }
 
-    void updateValue() override {};
+    void valueChanged(Value& v) override
+    {
+        iemHelper.valueChanged(v);
+    }
 
     ObjectParameters getParameters() override
     {
+        // TODO: simplify this
         ObjectParameters params;
-        params.push_back({ "Background", tColour, cAppearance, &secondaryColour, {} });
-        params.push_back({ "Send Symbol", tString, cGeneral, &sendSymbol, {} });
-        params.push_back({ "Receive Symbol", tString, cGeneral, &receiveSymbol, {} });
-        params.push_back({ "Label", tString, cLabel, &labelText, {} });
-        params.push_back({ "Label Colour", tColour, cLabel, &labelColour, {} });
-        params.push_back({ "Label X", tInt, cLabel, &labelX, {} });
-        params.push_back({ "Label Y", tInt, cLabel, &labelY, {} });
-        params.push_back({ "Label Height", tInt, cLabel, &labelHeight, {} });
+        params.push_back({ "Background", tColour, cAppearance, &iemHelper.secondaryColour, {} });
+        params.push_back({ "Send Symbol", tString, cGeneral, &iemHelper.sendSymbol, {} });
+        params.push_back({ "Receive Symbol", tString, cGeneral, &iemHelper.receiveSymbol, {} });
+        params.push_back({ "Label", tString, cLabel, &iemHelper.labelText, {} });
+        params.push_back({ "Label Colour", tColour, cLabel, &iemHelper.labelColour, {} });
+        params.push_back({ "Label X", tInt, cLabel, &iemHelper.labelX, {} });
+        params.push_back({ "Label Y", tInt, cLabel, &iemHelper.labelY, {} });
+        params.push_back({ "Label Height", tInt, cLabel, &iemHelper.labelHeight, {} });
         return params;
     }
 };
