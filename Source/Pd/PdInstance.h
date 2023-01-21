@@ -13,7 +13,7 @@
 
 extern "C" {
 #include <z_libpd.h>
-#include "s_libpd_inter.h"
+#include <s_inter.h>
 }
 
 #include "PdPatch.h"
