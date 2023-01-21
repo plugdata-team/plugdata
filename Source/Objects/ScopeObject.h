@@ -346,7 +346,7 @@ struct ScopeBase : public ObjectBase
         return params;
     }
 
-    void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms)
+    void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
     {
         if (symbol == "send" && atoms.size() >= 1) {
             setParameterExcludingListener(sendSymbol, atoms[0].getSymbol());

@@ -297,7 +297,7 @@ struct DrawableSymbol final : public DrawableTemplate
     }
 
 #define DRAWNUMBER_BUFSIZE 1024
-    void update()
+    void update() override
     {
         // TODO: hacky workaround for potential crash. Doens't always work. Fix this.
         // may have been fixed already by correctly setting pd_this??

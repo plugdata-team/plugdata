@@ -51,7 +51,7 @@ struct BangObject final : public ObjectBase {
     {
         if (!alreadyBanged) {
             startEdition();
-            setValue(1.0f);
+            sendFloatValue(1.0f);
             stopEdition();
             update();
             alreadyBanged = true;
@@ -66,7 +66,7 @@ struct BangObject final : public ObjectBase {
     void mouseDown(MouseEvent const& e) override
     {
         startEdition();
-        setValue(1.0f);
+        sendFloatValue(1.0f);
         stopEdition();
 
         // Make sure we don't re-click with an accidental drag
@@ -99,7 +99,7 @@ struct BangObject final : public ObjectBase {
         }
     }
 
-    float getValue() override
+    float getValue()
     {
         // hack to trigger off the bang if no GUI update
         if ((static_cast<t_bng*>(ptr))->x_flashed > 0) {
@@ -111,7 +111,7 @@ struct BangObject final : public ObjectBase {
 
     void update()
     {
-        if (value > std::numeric_limits<float>::epsilon()) {
+        if (getValue() > std::numeric_limits<float>::epsilon()) {
             bangState = true;
             repaint();
 
@@ -172,11 +172,9 @@ struct BangObject final : public ObjectBase {
     void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
     {
         if (symbol == "float") {
-            value = atoms[0].getFloat();
             update();
         }
         if (symbol == "bang") {
-            value = 1.0f;
             update();
         }
         if (symbol == "flashtime") {

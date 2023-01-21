@@ -50,19 +50,9 @@ struct VUMeterObject final : public ObjectBase {
         }
     }
 
-    float getValue() override
-    {
-        return static_cast<t_vu*>(ptr)->x_fp;
-    }
-
-    float getRMS()
-    {
-        return static_cast<t_vu*>(ptr)->x_fr;
-    }
-
     void paint(Graphics& g) override
     {
-        auto values = std::vector<float> { getValue(), getRMS() };
+        auto values = std::vector<float> { static_cast<t_vu*>(ptr)->x_fp, static_cast<t_vu*>(ptr)->x_fr };
 
         int height = getHeight();
         int width = getWidth();

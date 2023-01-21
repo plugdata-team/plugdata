@@ -11,6 +11,11 @@ struct SliderObject : public ObjectBase {
     Slider slider;
 
     IEMHelper iemHelper;
+    
+    Value min = Value(0.0f);
+    Value max = Value(0.0f);
+    
+    float value = 0.0f;
 
     SliderObject(void* obj, Object* object)
         : ObjectBase(obj, object)
@@ -157,7 +162,7 @@ struct SliderObject : public ObjectBase {
         return allParameters;
     }
 
-    float getValue() override
+    float getValue()
     {
         return static_cast<t_slider*>(ptr)->x_fval;
     }
@@ -231,7 +236,7 @@ struct SliderObject : public ObjectBase {
         auto maximum = static_cast<float>(max.getValue());
 
         value = (minimum < maximum) ? std::max(std::min(v, 1.f), 0.f) * (maximum - minimum) + minimum : (1.f - std::max(std::min(v, 1.f), 0.f)) * (minimum - maximum) + maximum;
-        setValue(value);
+        sendFloatValue(value);
     }
 
     void setValueOriginal(float v)
@@ -243,6 +248,6 @@ struct SliderObject : public ObjectBase {
             v = (minimum < maximum) ? std::max(std::min(v, maximum), minimum) : std::max(std::min(v, minimum), maximum);
         }
 
-        setValue(value);
+        sendFloatValue(value);
     }
 };

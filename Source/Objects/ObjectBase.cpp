@@ -382,8 +382,6 @@ void ObjectBase::startEdition()
 {
     edited = true;
     pd->enqueueMessages("gui", "mouse", { 1.f });
-
-    value = getValue();
 }
 
 void ObjectBase::stopEdition()
@@ -392,9 +390,8 @@ void ObjectBase::stopEdition()
     pd->enqueueMessages("gui", "mouse", { 0.f });
 }
 
-void ObjectBase::setValue(float newValue)
+void ObjectBase::sendFloatValue(float newValue)
 {
-    value = newValue;
     cnv->pd->enqueueDirectMessages(ptr, newValue);
 }
 
@@ -515,4 +512,71 @@ ObjectBase* ObjectBase::createGui(void* ptr, Object* parent)
     }
 
     return new TextObject(ptr, parent);
+}
+
+bool ObjectBase::canOpenFromMenu()
+{
+    return zgetfn(static_cast<t_pd*>(ptr), pd->generateSymbol("menu-open")) != nullptr;
+}
+
+void ObjectBase::openFromMenu()
+{
+    pd_typedmess(static_cast<t_pd*>(ptr), pd->generateSymbol("menu-open"), 0, nullptr);
+};
+
+
+bool ObjectBase::hideInGraph()
+{
+    return false;
+}
+
+void ObjectBase::lock(bool isLocked)
+{
+    setInterceptsMouseClicks(isLocked, isLocked);
+}
+
+Canvas* ObjectBase::getCanvas()
+{
+    return nullptr;
+};
+
+pd::Patch* ObjectBase::getPatch()
+{
+    return nullptr;
+};
+
+bool ObjectBase::canReceiveMouseEvent(int x, int y)
+{
+    return true;
+}
+
+
+void ObjectBase::receiveMessage(String const& symbol, int argc, t_atom* argv)
+{
+    auto atoms = pd::Atom::fromAtoms(argc, argv);
+
+    MessageManager::callAsync([_this = SafePointer(this), symbol, atoms]() mutable {
+        if (!_this)
+            return;
+
+        if (symbol == "size" || symbol == "delta" || symbol == "pos" || symbol == "dim" || symbol == "width" || symbol == "height") {
+            // TODO: we can't really ensure the object has updated its bounds yet!
+            _this->updateBounds();
+        } else {
+            _this->receiveObjectMessage(symbol, atoms);
+        }
+    });
+}
+
+
+void ObjectBase::setParameterExcludingListener(Value& parameter, var value)
+{
+    parameter.removeListener(this);
+    parameter.setValue(value);
+    parameter.addListener(this);
+}
+
+ObjectLabel* ObjectBase::getLabel()
+{
+    return label.get();
 }
