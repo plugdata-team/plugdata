@@ -6,12 +6,14 @@
 
 #include "../Utility/DraggableNumber.h"
 
-struct FloatAtomObject final : public AtomObject {
+struct FloatAtomObject final : public ObjectBase {
 
+    AtomHelper atomHelper;
     DraggableNumber input;
 
     FloatAtomObject(void* obj, Object* parent)
-        : AtomObject(obj, parent)
+        : ObjectBase(obj, parent)
+        , atomHelper(obj, parent, this)
         , input(false)
     {
         input.onEditorShow = [this]() {
@@ -63,9 +65,29 @@ struct FloatAtomObject final : public AtomObject {
         repaint();
     }
 
+    void paint(Graphics& g)
+    {
+    getLookAndFeel().setColour(Label::textWhenEditingColourId, object->findColour(PlugDataColour::canvasTextColourId));
+    getLookAndFeel().setColour(Label::textColourId, object->findColour(PlugDataColour::canvasTextColourId));
+    getLookAndFeel().setColour(TextEditor::textColourId, object->findColour(PlugDataColour::canvasTextColourId));
+    
+    g.setColour(object->findColour(PlugDataColour::defaultObjectBackgroundColourId));
+    g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), PlugDataLook::objectCornerRadius);
+    }
+    
     void paintOverChildren(Graphics& g) override
     {
-        AtomObject::paintOverChildren(g);
+        g.setColour(object->findColour(PlugDataColour::outlineColourId));
+        Path triangle;
+        triangle.addTriangle(Point<float>(getWidth() - 8, 0), Point<float>(getWidth(), 0), Point<float>(getWidth(), 8));
+        triangle = triangle.createPathWithRoundedCorners(4.0f);
+        g.fillPath(triangle);
+        
+        bool selected = cnv->isSelected(object) && !cnv->isGraph;
+        auto outlineColour = object->findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : objectOutlineColourId);
+        
+        g.setColour(outlineColour);
+        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), PlugDataLook::objectCornerRadius, 1.0f);
 
         bool highlighed = hasKeyboardFocus(true) && static_cast<bool>(object->locked.getValue());
 
@@ -74,10 +96,61 @@ struct FloatAtomObject final : public AtomObject {
             g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(1.0f), PlugDataLook::objectCornerRadius, 2.0f);
         }
     }
+    
+    void updateLabel() override
+    {
+        atomHelper.updateLabel(label);
+    }
+
+    void updateBounds() override
+    {
+        pd->getCallbackLock()->enter();
+
+        auto* atom = static_cast<t_fake_gatom*>(ptr);
+        
+        int x, y, w, h;
+        libpd_get_object_bounds(cnv->patch.getPointer(), atom, &x, &y, &w, &h);
+
+        w = std::max<int>(4, atom->a_text.te_width) * glist_fontwidth(cnv->patch.getPointer());
+
+        auto bounds = Rectangle<int>(x, y, w, atomHelper.getAtomHeight());
+
+        pd->getCallbackLock()->exit();
+
+        object->setObjectBounds(bounds);
+    }
+
+    void checkBounds() override
+    {
+        // Apply size limits
+        int w = jlimit(30, maxSize, object->getWidth());
+        int h = atomHelper.getAtomHeight() + Object::doubleMargin;
+
+        if (w != object->getWidth() || h != object->getHeight()) {
+            object->setSize(w, h);
+        }
+    }
+
+    void applyBounds() override
+    {
+        auto b = object->getObjectBounds();
+        libpd_moveobj(cnv->patch.getPointer(), static_cast<t_gobj*>(ptr), b.getX(), b.getY());
+
+        int fontWidth = glist_fontwidth(cnv->patch.getPointer());
+
+        auto* atom = static_cast<t_fake_gatom*>(ptr);
+        atom->a_text.te_width = b.getWidth() / fontWidth;
+    }
+    
 
     void resized() override
     {
-        AtomObject::resized();
+        int fontWidth = glist_fontwidth(cnv->patch.getPointer());
+        int width = jlimit(30, ObjectBase::maxSize, (getWidth() / fontWidth) * fontWidth);
+        int height = jlimit(12, ObjectBase::maxSize, getHeight());
+        if (getWidth() != width || getHeight() != height) {
+            object->setSize(width + Object::doubleMargin, height + Object::doubleMargin);
+        }
 
         input.setBounds(getLocalBounds());
         input.setFont(getHeight() - 6);
@@ -88,9 +161,14 @@ struct FloatAtomObject final : public AtomObject {
         setInterceptsMouseClicks(isLocked, isLocked);
     }
 
-    ObjectParameters defineParameters() override
+    ObjectParameters getParameters() override
     {
-        return { { "Minimum", tFloat, cGeneral, &min, {} }, { "Maximum", tFloat, cGeneral, &max, {} } };
+        ObjectParameters allParameters = { { "Minimum", tFloat, cGeneral, &min, {} }, { "Maximum", tFloat, cGeneral, &max, {} } };
+           
+        auto atomParameters = atomHelper.getParameters();
+        allParameters.insert(allParameters.end(), atomParameters.begin(), atomParameters.end());
+        
+        return allParameters;
     }
 
     void valueChanged(Value& value) override
@@ -100,7 +178,7 @@ struct FloatAtomObject final : public AtomObject {
         } else if (value.refersToSameSourceAs(max)) {
             setMaximum(static_cast<float>(max.getValue()));
         } else {
-            AtomObject::valueChanged(value);
+            atomHelper.valueChanged(value);
         }
     }
 
@@ -149,6 +227,12 @@ struct FloatAtomObject final : public AtomObject {
             }
 
             input.setText(input.formatNumber(value), dontSendNotification);
+        }
+        else if (symbol == "send" && atoms.size() >= 1) {
+            setParameterExcludingListener(atomHelper.sendSymbol, atoms[0].getSymbol());
+        }
+        else if (symbol == "receive" && atoms.size() >= 1) {
+            setParameterExcludingListener(atomHelper.receiveSymbol, atoms[0].getSymbol());
         }
     };
     

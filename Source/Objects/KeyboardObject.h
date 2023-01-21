@@ -259,7 +259,7 @@ struct KeyboardObject final : public ObjectBase
             });
     };
 
-    ObjectParameters defineParameters() override
+    ObjectParameters getParameters() override
     {
         return { { "Start octave", tInt, cGeneral, &lowC, {} }, { "Num. octaves", tInt, cGeneral, &octaves, {} } };
     };

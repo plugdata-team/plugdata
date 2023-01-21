@@ -55,7 +55,7 @@ struct PictureObject final : public ObjectBase {
         }
     }
 
-    ObjectParameters defineParameters() override
+    ObjectParameters getParameters() override
     {
         return { { "File", tString, cGeneral, &path, {} } };
     };

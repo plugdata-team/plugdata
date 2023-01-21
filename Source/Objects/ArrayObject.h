@@ -529,7 +529,7 @@ public:
         }
     }
 
-    ObjectParameters defineParameters() override
+    ObjectParameters getParameters() override
     {
         return {
             { "Name", tString, cGeneral, &name, {} },
@@ -678,6 +678,9 @@ private:
     PdArray array;
     GraphicalArray graph;
     std::unique_ptr<ArrayEditorDialog> dialog;
+    
+    
+    Value labelColour;
 };
 
 // Actual text object, marked final for optimisation
@@ -720,5 +723,4 @@ struct ArrayDefineObject final : public TextBase {
     {
         openArrayEditor();
     }
-
 };

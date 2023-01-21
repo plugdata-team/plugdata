@@ -20,8 +20,8 @@ extern "C" {
 #include "LookAndFeel.h"
 #include "Pd/PdPatch.h"
 
-#include "IEMObject.h"
-#include "AtomObject.h"
+#include "IEMHelper.h"
+#include "AtomHelper.h"
 
 #include "TextObject.h"
 #include "ToggleObject.h"
@@ -62,8 +62,8 @@ void ObjectLabel::ObjectListener::componentMovedOrResized(Component& component, 
 ObjectBase::ObjectBase(void* obj, Object* parent)
     : ptr(obj)
     , object(parent)
-    , cnv(object->cnv)
-    , pd(object->cnv->pd)
+    , cnv(parent->cnv)
+    , pd(parent->cnv->pd)
     , edited(false)
 {
     pd->registerMessageListener(ptr, this);
@@ -372,14 +372,9 @@ void ObjectBase::updateParameters()
     repaint();
 }
 
-ObjectParameters ObjectBase::defineParameters()
-{
-    return {};
-};
-
 ObjectParameters ObjectBase::getParameters()
 {
-    return defineParameters();
+    return {};
 }
 
 void ObjectBase::startEdition()

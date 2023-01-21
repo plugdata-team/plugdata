@@ -4,14 +4,17 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
-struct SliderObject : public IEMObject {
+struct SliderObject : public ObjectBase {
     bool isVertical;
     Value isLogarithmic = Value(var(false));
 
     Slider slider;
+    
+    IEMHelper iemHelper;
 
-    SliderObject(void* obj, Object* parent)
-        : IEMObject(obj, parent)
+    SliderObject(void* obj, Object* object)
+    : ObjectBase(obj, object)
+    , iemHelper(obj, object, this)
     {
         isVertical = static_cast<t_slider*>(obj)->x_orientation;
         addAndMakeVisible(slider);
@@ -60,6 +63,21 @@ struct SliderObject : public IEMObject {
         };
     }
 
+    void updateParameters() override
+    {
+        iemHelper.updateParameters();
+    }
+    
+    void updateBounds() override
+    {
+        iemHelper.updateBounds();
+    }
+    
+    void applyBounds() override
+    {
+        iemHelper.applyBounds();
+    }
+    
     void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
     {
         if(symbol == "float") {
@@ -84,7 +102,7 @@ struct SliderObject : public IEMObject {
             setParameterExcludingListener(min, atoms[0].getFloat());
             setParameterExcludingListener(max, atoms[1].getFloat());
         } else {
-            IEMObject::receiveObjectMessage(symbol, atoms);
+            iemHelper.receiveObjectMessage(symbol, atoms);
         }
     }
 
@@ -97,6 +115,18 @@ struct SliderObject : public IEMObject {
         if (w != object->getWidth() || h != object->getHeight()) {
             object->setSize(w, h);
         }
+    }
+    
+    void paint(Graphics& g) override
+    {
+        g.setColour(iemHelper.getBackgroundColour());
+        g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), PlugDataLook::objectCornerRadius);
+
+        bool selected = cnv->isSelected(object) && !cnv->isGraph;
+        auto outlineColour = object->findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : objectOutlineColourId);
+
+        g.setColour(outlineColour);
+        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), PlugDataLook::objectCornerRadius, 1.0f);
     }
 
     void paintOverChildren(Graphics& g) override
@@ -114,13 +144,18 @@ struct SliderObject : public IEMObject {
     }
 
 
-    ObjectParameters defineParameters() override
+    ObjectParameters getParameters() override
     {
-        return {
+        ObjectParameters allParameters = {
             { "Minimum", tFloat, cGeneral, &min, {} },
             { "Maximum", tFloat, cGeneral, &max, {} },
             { "Logarithmic", tBool, cGeneral, &isLogarithmic, { "off", "on" } },
         };
+           
+        auto iemParameters = iemHelper.getParameters();
+        allParameters.insert(allParameters.end(), iemParameters.begin(), iemParameters.end());
+        
+        return allParameters;
     }
 
     float getValue() override
@@ -169,7 +204,7 @@ struct SliderObject : public IEMObject {
                 setMinimum(std::numeric_limits<float>::epsilon());
             }
         } else {
-            IEMObject::valueChanged(value);
+            iemHelper.valueChanged(value);
         }
     }
 

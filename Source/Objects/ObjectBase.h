@@ -143,11 +143,8 @@ struct ObjectBase : public Component
             if (symbol == "size" || symbol == "delta" || symbol == "pos" || symbol == "dim" || symbol == "width" || symbol == "height") {
                 // TODO: we can't really ensure the object has updated its bounds yet!
                 _this->updateBounds();
-            } else if (symbol == "send" && atoms.size() >= 1) {
-                _this->setParameterExcludingListener(_this->sendSymbol, atoms[0].getSymbol());
-            } else if (symbol == "receive" && atoms.size() >= 1) {
-                _this->setParameterExcludingListener(_this->receiveSymbol, atoms[0].getSymbol());
-            } else {
+            }
+             else {
                 _this->receiveObjectMessage(symbol, atoms);
             }
         });
@@ -155,8 +152,6 @@ struct ObjectBase : public Component
 
     static ObjectBase* createGui(void* ptr, Object* parent);
 
-    // Get rid of this mess!!
-    virtual ObjectParameters defineParameters();
     virtual ObjectParameters getParameters();
 
     virtual void updateLabel() {};
@@ -214,18 +209,6 @@ struct ObjectBase : public Component
     float value = 0;
     Value min = Value(0.0f);
     Value max = Value(0.0f);
-
-    Value sendSymbol;
-    Value receiveSymbol;
-
-    Value primaryColour;
-    Value secondaryColour;
-    Value labelColour;
-
-    Value labelX = Value(0.0f);
-    Value labelY = Value(0.0f);
-    Value labelHeight = Value(18.0f);
-    Value labelText;
 };
 
 // Class for non-patchable objects

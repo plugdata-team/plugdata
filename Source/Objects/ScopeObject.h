@@ -95,7 +95,7 @@ struct ScopeBase : public ObjectBase
     std::vector<float> x_buffer;
     std::vector<float> y_buffer;
 
-    Value gridColour, triggerMode, triggerValue, samplesPerPoint, bufferSize, delay, signalRange;
+    Value gridColour, triggerMode, triggerValue, samplesPerPoint, bufferSize, delay, signalRange, primaryColour, secondaryColour;
 
     ScopeBase(void* ptr, Object* object)
         : ObjectBase(ptr, object)
@@ -345,6 +345,20 @@ struct ScopeBase : public ObjectBase
 
         return params;
     }
+        
+    void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms)
+    {
+        if (symbol == "send" && atoms.size() >= 1) {
+            setParameterExcludingListener(sendSymbol, atoms[0].getSymbol());
+        }
+        else if (symbol == "receive" && atoms.size() >= 1) {
+            setParameterExcludingListener(receiveSymbol, atoms[0].getSymbol());
+        }
+    }
+            
+    Value sendSymbol;
+    Value receiveSymbol;
+
 };
 
 // Hilarious use of templates to support both cyclone/scope and else/oscope in the same code

@@ -136,7 +136,7 @@ struct NumboxTildeObject final : public ObjectBase
         input.setFont(getHeight() - 6);
     }
 
-    ObjectParameters defineParameters() override
+    ObjectParameters getParameters() override
     {
         return {
             { "Minimum", tFloat, cGeneral, &min, {} },
@@ -282,4 +282,7 @@ struct NumboxTildeObject final : public ObjectBase
             value = std::clamp(value, static_cast<float>(min.getValue()), maxValue);
         }
     }
+        
+    Value primaryColour;
+    Value secondaryColour;
 };
