@@ -68,6 +68,10 @@ public:
                     if (result == 2) {
                         setText(lastText);
                         textEditor.reset(nullptr);
+
+                        // enable notification on second outlet //
+                        const char* target =static_cast<t_fake_text_define*>(ptr)->x_bindsym->s_name;
+                        pd->sendMessage(target, "notify", {});
                     }
                     if (result == 1) {
                         textEditor.reset(nullptr);
