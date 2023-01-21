@@ -7,11 +7,12 @@
 #include "ObjectReferenceDialog.h"
 #include "../Canvas.h"
 
-struct CategoriesListBox : public ListBox
+class CategoriesListBox : public ListBox
     , public ListBoxModel {
 
     StringArray categories = { "All", "Audio", "More" };
 
+public:
     CategoriesListBox()
     {
         setOutlineThickness(0);
