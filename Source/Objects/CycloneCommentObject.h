@@ -62,14 +62,14 @@ typedef struct _comment {
 } t_fake_comment;
 
 // This object is a dumb version of [cyclone/comment] that only serves to make cyclone's documentation readable
-struct CycloneCommentObject final : public GUIObject {
+struct CycloneCommentObject final : public ObjectBase {
 
     Colour textColour;
     Font font;
     BorderSize<int> border { 1, 7, 1, 2 };
 
     CycloneCommentObject(void* obj, Object* object)
-        : GUIObject(obj, object)
+        : ObjectBase(obj, object)
     {
         auto* comment = static_cast<t_fake_comment*>(ptr);
         font = font.withHeight(comment->x_fontsize);

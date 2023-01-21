@@ -4,7 +4,7 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
-#include "GUIObject.h"
+#include "ObjectBase.h"
 
 extern "C" {
 #include <m_pd.h>
@@ -54,18 +54,40 @@ extern "C" {
 #include "ScopeObject.h"
 #include "FunctionObject.h"
 
+void ObjectLabel::ObjectListener::componentMovedOrResized(Component& component, bool moved, bool resized) {
+    
+    dynamic_cast<Object&>(component).gui->updateLabel();
+}
+
 ObjectBase::ObjectBase(void* obj, Object* parent)
     : ptr(obj)
     , object(parent)
     , cnv(object->cnv)
     , pd(object->cnv->pd)
+    , edited(false)
 {
     pd->registerMessageListener(ptr, this);
+    
+    updateLabel(); // TODO: fix virtual call from constructor
+
+    setWantsKeyboardFocus(true);
+
+    setLookAndFeel(new PlugDataLook);
+
+    MessageManager::callAsync([_this = SafePointer<ObjectBase>(this)] {
+        if (_this) {
+            _this->updateParameters();
+        }
+    });
 }
 
 ObjectBase::~ObjectBase()
 {
     pd->unregisterMessageListener(ptr, this);
+    
+    auto* lnf = &getLookAndFeel();
+    setLookAndFeel(nullptr);
+    delete lnf;
 }
 
 String ObjectBase::getText()
@@ -334,36 +356,7 @@ struct Lambda {
     }
 };
 
-GUIObject::GUIObject(void* obj, Object* parent)
-    : ObjectBase(obj, parent)
-    , processor(parent->cnv->pd)
-    , edited(false)
-{
-    object->addComponentListener(this);
-    updateLabel(); // TODO: fix virtual call from constructor
-
-    setWantsKeyboardFocus(true);
-
-    setLookAndFeel(new PlugDataLook);
-
-    MessageManager::callAsync([_this = SafePointer<GUIObject>(this)] {
-        if (_this) {
-            _this->updateParameters();
-        }
-    });
-
-
-}
-
-GUIObject::~GUIObject()
-{
-    object->removeComponentListener(this);
-    auto* lnf = &getLookAndFeel();
-    setLookAndFeel(nullptr);
-    delete lnf;
-}
-
-void GUIObject::updateParameters()
+void ObjectBase::updateParameters()
 {
     getLookAndFeel().setColour(Label::textWhenEditingColourId, object->findColour(Label::textWhenEditingColourId));
     getLookAndFeel().setColour(Label::textColourId, object->findColour(Label::textColourId));
@@ -379,47 +372,38 @@ void GUIObject::updateParameters()
     repaint();
 }
 
-ObjectParameters GUIObject::defineParameters()
+ObjectParameters ObjectBase::defineParameters()
 {
     return {};
 };
 
-ObjectParameters GUIObject::getParameters()
+ObjectParameters ObjectBase::getParameters()
 {
     return defineParameters();
 }
 
-void GUIObject::startEdition()
+void ObjectBase::startEdition()
 {
     edited = true;
-    processor->enqueueMessages("gui", "mouse", { 1.f });
+    pd->enqueueMessages("gui", "mouse", { 1.f });
 
     value = getValue();
 }
 
-void GUIObject::stopEdition()
+void ObjectBase::stopEdition()
 {
     edited = false;
-    processor->enqueueMessages("gui", "mouse", { 0.f });
+    pd->enqueueMessages("gui", "mouse", { 0.f });
 }
 
-void GUIObject::componentMovedOrResized(Component& component, bool moved, bool resized)
-{
-    updateLabel();
 
-    if (!resized)
-        return;
-
-    checkBounds();
-}
-
-void GUIObject::setValue(float newValue)
+void ObjectBase::setValue(float newValue)
 {
     value = newValue;
     cnv->pd->enqueueDirectMessages(ptr, newValue);
 }
 
-ObjectBase* GUIObject::createGui(void* ptr, Object* parent)
+ObjectBase* ObjectBase::createGui(void* ptr, Object* parent)
 {
     const String name = libpd_get_object_class_name(ptr);
     if (name == "bng") {

@@ -4,13 +4,13 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
-struct GraphOnParent final : public GUIObject {
+struct GraphOnParent final : public ObjectBase {
     bool isLocked = false;
 
 public:
     // Graph On Parent
     GraphOnParent(void* obj, Object* object)
-        : GUIObject(obj, object)
+        : ObjectBase(obj, object)
         , subpatch({ ptr, cnv->pd })
     {
         auto* glist = static_cast<t_canvas*>(ptr);

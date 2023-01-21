@@ -14,7 +14,7 @@ extern "C" {
 
 #include "Utility/ObjectGrid.h"
 #include "Iolet.h"
-#include "Objects/GUIObject.h"
+#include "Objects/ObjectBase.h"
 
 class Canvas;
 class Object : public Component

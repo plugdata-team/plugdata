@@ -166,7 +166,7 @@ struct CanvasVisibleObject final : public TextBase
 };
 
 struct CanvasZoomObject final : public TextBase
-    , public Value::Listener {
+{
     struct t_fake_zoom {
         t_object x_obj;
         void* x_proxy;
@@ -196,7 +196,7 @@ struct CanvasZoomObject final : public TextBase
 };
 
 struct CanvasEditObject final : public TextBase
-    , public Value::Listener {
+{
     struct t_fake_edit {
         t_object x_obj;
         void* x_proxy;

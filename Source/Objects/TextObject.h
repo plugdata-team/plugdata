@@ -180,9 +180,11 @@ struct TextBase : public ObjectBase
             editor->applyFontToAllText(font);
 
             copyAllExplicitColoursTo(*editor);
-            editor->setColour(Label::textWhenEditingColourId, findColour(TextEditor::textColourId));
-            editor->setColour(Label::backgroundWhenEditingColourId, findColour(TextEditor::backgroundColourId));
-            editor->setColour(Label::outlineWhenEditingColourId, findColour(TextEditor::focusedOutlineColourId));
+            editor->setColour(Label::textWhenEditingColourId, object->findColour(PlugDataColour::canvasTextColourId));
+            editor->setColour(TextEditor::textColourId, object->findColour(PlugDataColour::canvasTextColourId));
+            editor->setColour(TextEditor::backgroundColourId, object->findColour(PlugDataColour::canvasBackgroundColourId));
+            editor->setColour(Label::backgroundWhenEditingColourId, object->findColour(TextEditor::backgroundColourId));
+            editor->setColour(Label::outlineWhenEditingColourId, object->findColour(TextEditor::focusedOutlineColourId));
 
             editor->setAlwaysOnTop(true);
 

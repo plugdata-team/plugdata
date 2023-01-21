@@ -15,12 +15,12 @@ extern "C" {
 char* pdgui_strnescape(char* dst, size_t dstlen, char const* src, size_t srclen);
 }
 
-struct IEMObject : public GUIObject {
+struct IEMObject : public ObjectBase {
 
     Value initialise;
 
     IEMObject(void* ptr, Object* parent)
-        : GUIObject(ptr, parent)
+        : ObjectBase(ptr, parent)
     {
         /*
 
@@ -253,7 +253,7 @@ struct IEMObject : public GUIObject {
 
         if (text.isNotEmpty()) {
             if (!label) {
-                label = std::make_unique<Label>();
+                label = std::make_unique<ObjectLabel>(object);
             }
 
             auto bounds = getLabelBounds();
@@ -261,13 +261,8 @@ struct IEMObject : public GUIObject {
             bounds.translate(0, fontHeight / -2.0f);
 
             label->setFont(Font(fontHeight));
-            label->setJustificationType(Justification::centredLeft);
             label->setBounds(bounds);
-            label->setBorderSize(BorderSize<int>(0, 0, 0, 0));
-            label->setMinimumHorizontalScale(1.f);
             label->setText(text, dontSendNotification);
-            label->setEditable(false, false);
-            label->setInterceptsMouseClicks(false, false);
 
             label->setColour(Label::textColourId, getLabelColour());
 
