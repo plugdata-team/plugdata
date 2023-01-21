@@ -48,7 +48,7 @@ struct SliderObject : public IEMObject {
                 float minValue = static_cast<float>(min.getValue());
                 float maxValue = static_cast<float>(max.getValue());
                 float minimum = minValue == 0.0f ? std::numeric_limits<float>::epsilon() : minValue;
-                setValue(exp(val * log(maxValue / minimum)) * minimum);
+                setValueOriginal(exp(val * log(maxValue / minimum)) * minimum);
             } else {
                 setValueScaled(val);
             }
@@ -63,8 +63,7 @@ struct SliderObject : public IEMObject {
     void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
     {
         if(symbol == "float") {
-            
-            setValue(atoms[0].getFloat());
+            value = atoms[0].getFloat();
             
             float maxValue = static_cast<float>(max.getValue());
             float minValue = static_cast<float>(min.getValue()) == 0.0f ? std::numeric_limits<float>::epsilon() : static_cast<float>(min.getValue());
@@ -198,6 +197,18 @@ struct SliderObject : public IEMObject {
         auto maximum = static_cast<float>(max.getValue());
 
         value = (minimum < maximum) ? std::max(std::min(v, 1.f), 0.f) * (maximum - minimum) + minimum : (1.f - std::max(std::min(v, 1.f), 0.f)) * (minimum - maximum) + maximum;
+        setValue(value);
+    }
+    
+    void setValueOriginal(float v)
+    {
+        auto minimum = static_cast<float>(min.getValue());
+        auto maximum = static_cast<float>(max.getValue());
+
+        if (minimum != maximum || minimum != 0 || maximum != 0) {
+            v = (minimum < maximum) ? std::max(std::min(v, maximum), minimum) : std::max(std::min(v, minimum), maximum);
+        }
+
         setValue(value);
     }
 };

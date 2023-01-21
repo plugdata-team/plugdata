@@ -128,8 +128,9 @@ struct NumberObject final : public IEMObject {
     void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
     {
         if(symbol == "float") {
-            value = atoms[0].getFloat();
-            input.setText(input.formatNumber(atoms[0].getFloat()), dontSendNotification);
+            value = std::clamp(atoms[0].getFloat(), static_cast<float>(min.getValue()), static_cast<float>(max.getValue()));
+                               
+            input.setText(input.formatNumber(value), dontSendNotification);
         }
     };
 

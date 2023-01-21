@@ -219,8 +219,10 @@ struct NumboxTildeObject final : public GUIObject
 
     void timerCallback() override
     {
+        auto val = getValue();
+        
         if (!mode) {
-            input.setText(input.formatNumber(value), dontSendNotification);
+            input.setText(input.formatNumber(val), dontSendNotification);
         }
 
         startTimer(nextInterval);
@@ -239,14 +241,13 @@ struct NumboxTildeObject final : public GUIObject
 
     float getValue() override
     {
-        auto* object = static_cast<t_numbox*>(ptr);
+        auto* obj = static_cast<t_numbox*>(ptr);
 
-        // Kinda ugly, but use this audio-thread function to update all the variables
+        mode = obj->x_outmode;
+        
+        nextInterval = obj->x_rate;
 
-        mode = object->x_outmode;
-        nextInterval = object->x_rate;
-
-        return mode ? object->x_display : object->x_in_val;
+        return mode ? obj->x_display : obj->x_in_val;
     }
 
     float getMinimum()
