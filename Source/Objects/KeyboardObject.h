@@ -6,11 +6,12 @@
 
 // Inherit to customise drawing
 struct MIDIKeyboard : public MidiKeyboardComponent {
-    
+
     Object* object;
-    
+
     MIDIKeyboard(Object* parent, MidiKeyboardState& stateToUse, Orientation orientationToUse)
-        : MidiKeyboardComponent(stateToUse, orientationToUse), object(parent)
+        : MidiKeyboardComponent(stateToUse, orientationToUse)
+        , object(parent)
     {
         // Make sure nothing is drawn outside of our custom draw functions
         setColour(MidiKeyboardComponent::whiteNoteColourId, Colours::transparentBlack);
@@ -303,11 +304,11 @@ struct KeyboardObject final : public ObjectBase
 
     void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
     {
-        if(symbol == "float") {
+        if (symbol == "float") {
             value = atoms[0].getFloat();
             updateValue();
         }
-        if(symbol == "list") {
+        if (symbol == "list") {
             value = atoms[0].getFloat();
             updateValue();
         }

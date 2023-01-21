@@ -41,24 +41,24 @@ static t_atom* fake_gatom_getatom(t_fake_gatom* x)
 
 struct AtomHelper {
     AtomHelper(void* ptr, Object* parent, ObjectBase* base)
-    : object(parent)
-    , gui(base)
-    , cnv(parent->cnv)
-    , pd(parent->cnv->pd)
-    , atom(static_cast<t_fake_gatom*>(ptr))
+        : object(parent)
+        , gui(base)
+        , cnv(parent->cnv)
+        , pd(parent->cnv->pd)
+        , atom(static_cast<t_fake_gatom*>(ptr))
     {
         labelText = getLabelText();
         labelPosition = static_cast<int>(atom->a_wherelabel + 1);
-        
+
         int h = getFontHeight();
-        
+
         int idx = static_cast<int>(std::find(atomSizes, atomSizes + 7, h) - atomSizes);
         labelHeight = idx + 1;
-        
+
         sendSymbol = getSendSymbol();
         receiveSymbol = getReceiveSymbol();
     }
-    
+
     int getAtomHeight() const
     {
         int idx = static_cast<int>(labelHeight.getValue()) - 1;
@@ -68,22 +68,22 @@ struct AtomHelper {
             return atomSizes[idx] + 7;
         }
     }
-    
+
     ObjectParameters getParameters()
     {
         ObjectParameters params;
-        
+
         params.push_back({ "Font size", tCombo, cGeneral, &labelHeight, { "auto", "8", "10", "12", "16", "24", "36" } });
-        
+
         params.push_back({ "Send Symbol", tString, cGeneral, &sendSymbol, {} });
         params.push_back({ "Receive Symbol", tString, cGeneral, &receiveSymbol, {} });
-        
+
         params.push_back({ "Label", tString, cLabel, &labelText, {} });
         params.push_back({ "Label Position", tCombo, cLabel, &labelPosition, { "left", "right", "top", "bottom" } });
-        
+
         return params;
     }
-    
+
     void valueChanged(Value& v)
     {
         if (v.refersToSameSourceAs(labelPosition)) {
@@ -101,53 +101,53 @@ struct AtomHelper {
             setReceiveSymbol(receiveSymbol.toString());
         }
     }
-    
+
     void updateLabel(std::unique_ptr<ObjectLabel>& label)
     {
         int idx = std::clamp<int>(labelHeight.getValue(), 1, 7);
-        
+
         // TODO: fix data race
         setFontHeight(atomSizes[idx - 1]);
-        
+
         int fontHeight = getAtomHeight() - 6;
         const String text = getExpandedLabelText();
-        
+
         if (text.isNotEmpty()) {
             if (!label) {
                 label = std::make_unique<ObjectLabel>(object);
             }
-            
+
             auto bounds = getLabelBounds();
-            
+
             label->setBounds(bounds);
             label->setFont(Font(fontHeight));
             label->setText(text, dontSendNotification);
-            
+
             label->setColour(Label::textColourId, object->findColour(PlugDataColour::canvasTextColourId));
-            
+
             object->cnv->addAndMakeVisible(label.get());
         }
     }
-    
+
     float getFontHeight() const
     {
         return atom->a_fontsize;
     }
-    
+
     void setFontHeight(float newSize)
     {
         atom->a_fontsize = newSize;
     }
-    
+
     Rectangle<int> getLabelBounds() const
     {
         auto objectBounds = object->getBounds().reduced(Object::margin);
         int fontHeight = getAtomHeight() - 6;
-        
+
         int labelLength = Font(fontHeight).getStringWidth(getExpandedLabelText());
         int labelPosition = atom->a_wherelabel;
         auto labelBounds = objectBounds.withSizeKeepingCentre(labelLength, fontHeight);
-        
+
         if (labelPosition == 0) { // left
             return labelBounds.withRightX(objectBounds.getX() - 4);
         }
@@ -157,10 +157,10 @@ struct AtomHelper {
         if (labelPosition == 2) { // top
             return labelBounds.withX(objectBounds.getX()).withBottomY(objectBounds.getY());
         }
-        
+
         return labelBounds.withX(objectBounds.getX()).withY(objectBounds.getBottom());
     }
-    
+
     String getExpandedLabelText() const
     {
         t_symbol const* sym = canvas_realizedollar(atom->a_glist, atom->a_label);
@@ -170,10 +170,10 @@ struct AtomHelper {
                 return text;
             }
         }
-        
+
         return "";
     }
-    
+
     String getLabelText() const
     {
         t_symbol const* sym = atom->a_label;
@@ -183,44 +183,44 @@ struct AtomHelper {
                 return text;
             }
         }
-        
+
         return "";
     }
-    
+
     void setLabelText(String newText)
     {
         atom->a_label = pd->generateSymbol(newText);
     }
-    
+
     void setLabelPosition(int wherelabel)
     {
         atom->a_wherelabel = wherelabel - 1;
     }
-    
+
     String getSendSymbol()
     {
         return String::fromUTF8(atom->a_symto->s_name);
     }
-    
+
     String getReceiveSymbol()
     {
         return String::fromUTF8(atom->a_symfrom->s_name);
     }
-    
+
     void setSendSymbol(String const& symbol) const
     {
         if (symbol.isEmpty())
             return;
-        
+
         atom->a_symto = pd->generateSymbol(symbol);
         atom->a_expanded_to = canvas_realizedollar(atom->a_glist, atom->a_symto);
     }
-    
+
     void setReceiveSymbol(String const& symbol) const
     {
         if (symbol.isEmpty())
             return;
-        
+
         if (*atom->a_symfrom->s_name)
             pd_unbind(&atom->a_text.te_pd, canvas_realizedollar(atom->a_glist, atom->a_symfrom));
         atom->a_symfrom = pd->generateSymbol(symbol);
@@ -228,7 +228,6 @@ struct AtomHelper {
             pd_bind(&atom->a_text.te_pd, canvas_realizedollar(atom->a_glist, atom->a_symfrom));
     }
 
-    
     /* prepend "-" as necessary to avoid empty strings, so we can
      use them in Pd messages. */
     t_symbol* gatom_escapit(t_symbol* s)
@@ -244,7 +243,7 @@ struct AtomHelper {
         } else
             return (s);
     }
-    
+
     /* undo previous operation: strip leading "-" if found.  This is used
      both to restore send, etc., names when loading from a file, and to
      set them from the properties dialog.  In the former case, since before
@@ -259,22 +258,22 @@ struct AtomHelper {
         else
             return (iemgui_raute2dollar(s));
     }
-    
+
     int const atomSizes[7] = { 0, 8, 10, 12, 16, 24, 36 };
-    
+
     Object* object;
     ObjectBase* gui;
     Canvas* cnv;
     PluginProcessor* pd;
-    
+
     t_fake_gatom* atom;
-    
+
     Value labelColour;
-    
+
     Value labelPosition = Value(0.0f);
     Value labelHeight = Value(18.0f);
     Value labelText;
-    
+
     Value sendSymbol;
     Value receiveSymbol;
 };

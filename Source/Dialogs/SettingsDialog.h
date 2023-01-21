@@ -372,7 +372,8 @@ struct SettingsPopup : public PopupMenu {
     };
 
     struct ThemeSelector : public Component {
-        ThemeSelector(ValueTree tree) : settingsTree(tree)
+        ThemeSelector(ValueTree tree)
+            : settingsTree(tree)
         {
             theme.referTo(settingsTree.getPropertyAsValue("Theme", nullptr));
         }
@@ -384,7 +385,7 @@ struct SettingsPopup : public PopupMenu {
 
             firstBounds = firstBounds.withSizeKeepingCentre(30, 30);
             secondBounds = secondBounds.withSizeKeepingCentre(30, 30);
-            
+
             auto themesTree = settingsTree.getChildWithName("ColourThemes");
             auto firstThemeTree = themesTree.getChildWithProperty("theme", PlugDataLook::selectedThemes[0]);
             auto secondThemeTree = themesTree.getChildWithProperty("theme", PlugDataLook::selectedThemes[1]);

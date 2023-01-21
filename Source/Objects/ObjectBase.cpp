@@ -54,8 +54,9 @@ extern "C" {
 #include "ScopeObject.h"
 #include "FunctionObject.h"
 
-void ObjectLabel::ObjectListener::componentMovedOrResized(Component& component, bool moved, bool resized) {
-    
+void ObjectLabel::ObjectListener::componentMovedOrResized(Component& component, bool moved, bool resized)
+{
+
     dynamic_cast<Object&>(component).gui->updateLabel();
 }
 
@@ -67,7 +68,7 @@ ObjectBase::ObjectBase(void* obj, Object* parent)
     , edited(false)
 {
     pd->registerMessageListener(ptr, this);
-    
+
     updateLabel(); // TODO: fix virtual call from constructor
 
     setWantsKeyboardFocus(true);
@@ -84,7 +85,7 @@ ObjectBase::ObjectBase(void* obj, Object* parent)
 ObjectBase::~ObjectBase()
 {
     pd->unregisterMessageListener(ptr, this);
-    
+
     auto* lnf = &getLookAndFeel();
     setLookAndFeel(nullptr);
     delete lnf;
@@ -390,7 +391,6 @@ void ObjectBase::stopEdition()
     edited = false;
     pd->enqueueMessages("gui", "mouse", { 0.f });
 }
-
 
 void ObjectBase::setValue(float newValue)
 {

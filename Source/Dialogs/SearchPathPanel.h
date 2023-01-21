@@ -257,7 +257,7 @@ private:
         changeButton.setVisible(anythingSelected);
         upButton.setVisible(anythingSelected);
         downButton.setVisible(anythingSelected);
-        
+
         removeButton.setEnabled(!readOnlyPath);
         changeButton.setEnabled(!readOnlyPath);
         upButton.setEnabled(!readOnlyPath);

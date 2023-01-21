@@ -220,7 +220,7 @@ struct NumboxTildeObject final : public ObjectBase
     void timerCallback() override
     {
         auto val = getValue();
-        
+
         if (!mode) {
             input.setText(input.formatNumber(val), dontSendNotification);
         }
@@ -244,7 +244,7 @@ struct NumboxTildeObject final : public ObjectBase
         auto* obj = static_cast<t_numbox*>(ptr);
 
         mode = obj->x_outmode;
-        
+
         nextInterval = obj->x_rate;
 
         return mode ? obj->x_display : obj->x_in_val;
@@ -282,7 +282,7 @@ struct NumboxTildeObject final : public ObjectBase
             value = std::clamp(value, static_cast<float>(min.getValue()), maxValue);
         }
     }
-        
+
     Value primaryColour;
     Value secondaryColour;
 };

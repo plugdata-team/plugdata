@@ -9,12 +9,12 @@ struct SliderObject : public ObjectBase {
     Value isLogarithmic = Value(var(false));
 
     Slider slider;
-    
+
     IEMHelper iemHelper;
 
     SliderObject(void* obj, Object* object)
-    : ObjectBase(obj, object)
-    , iemHelper(obj, object, this)
+        : ObjectBase(obj, object)
+        , iemHelper(obj, object, this)
     {
         isVertical = static_cast<t_slider*>(obj)->x_orientation;
         addAndMakeVisible(slider);
@@ -67,22 +67,22 @@ struct SliderObject : public ObjectBase {
     {
         iemHelper.updateParameters();
     }
-    
+
     void updateBounds() override
     {
         iemHelper.updateBounds();
     }
-    
+
     void applyBounds() override
     {
         iemHelper.applyBounds();
     }
-    
+
     void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
     {
-        if(symbol == "float") {
+        if (symbol == "float") {
             value = atoms[0].getFloat();
-            
+
             float maxValue = static_cast<float>(max.getValue());
             float minValue = static_cast<float>(min.getValue()) == 0.0f ? std::numeric_limits<float>::epsilon() : static_cast<float>(min.getValue());
 
@@ -116,7 +116,7 @@ struct SliderObject : public ObjectBase {
             object->setSize(w, h);
         }
     }
-    
+
     void paint(Graphics& g) override
     {
         g.setColour(iemHelper.getBackgroundColour());
@@ -143,7 +143,6 @@ struct SliderObject : public ObjectBase {
         slider.setBounds(getLocalBounds());
     }
 
-
     ObjectParameters getParameters() override
     {
         ObjectParameters allParameters = {
@@ -151,10 +150,10 @@ struct SliderObject : public ObjectBase {
             { "Maximum", tFloat, cGeneral, &max, {} },
             { "Logarithmic", tBool, cGeneral, &isLogarithmic, { "off", "on" } },
         };
-           
+
         auto iemParameters = iemHelper.getParameters();
         allParameters.insert(allParameters.end(), iemParameters.begin(), iemParameters.end());
-        
+
         return allParameters;
     }
 
@@ -217,7 +216,7 @@ struct SliderObject : public ObjectBase {
     {
         static_cast<t_slider*>(ptr)->x_lin0_log1 = log;
     }
-    
+
     float getValueScaled() const
     {
         auto minimum = static_cast<float>(min.getValue());
@@ -234,7 +233,7 @@ struct SliderObject : public ObjectBase {
         value = (minimum < maximum) ? std::max(std::min(v, 1.f), 0.f) * (maximum - minimum) + minimum : (1.f - std::max(std::min(v, 1.f), 0.f)) * (minimum - maximum) + maximum;
         setValue(value);
     }
-    
+
     void setValueOriginal(float v)
     {
         auto minimum = static_cast<float>(min.getValue());

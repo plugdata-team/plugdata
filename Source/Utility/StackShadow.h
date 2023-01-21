@@ -970,7 +970,7 @@ private:
         DropShadow shadow;
 
         inline static float const windowCornerRadius = 7.5f;
-        
+
         int shadowCornerRadius;
 
         JUCE_DECLARE_NON_COPYABLE(ShadowWindow)
@@ -1136,7 +1136,7 @@ private:
 
     std::unique_ptr<ParentVisibilityChangedListener> visibilityChangedListener;
     std::unique_ptr<VirtualDesktopWatcher> virtualDesktopWatcher;
-    
+
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(StackDropShadower);
     JUCE_DECLARE_WEAK_REFERENCEABLE(StackDropShadower);
 };

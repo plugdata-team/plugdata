@@ -19,28 +19,28 @@ class Patch;
 
 class Object;
 
-struct ObjectLabel : public Label
-{
-    struct ObjectListener : public juce::ComponentListener
-    {
+struct ObjectLabel : public Label {
+    struct ObjectListener : public juce::ComponentListener {
         void componentMovedOrResized(Component& component, bool moved, bool resized) override;
     };
-    
-    ObjectLabel(Component* parent) : object(parent)
+
+    ObjectLabel(Component* parent)
+        : object(parent)
     {
         object->addComponentListener(&objListener);
-        
+
         setJustificationType(Justification::centredLeft);
         setBorderSize(BorderSize<int>(0, 0, 0, 0));
         setMinimumHorizontalScale(1.f);
         setEditable(false, false);
         setInterceptsMouseClicks(false, false);
     }
-    
-    ~ObjectLabel() {
+
+    ~ObjectLabel()
+    {
         object->removeComponentListener(&objListener);
     }
-    
+
     ObjectListener objListener;
     Component* object;
 };
@@ -48,8 +48,7 @@ struct ObjectLabel : public Label
 struct ObjectBase : public Component
     , public pd::MessageListener
     , public Value::Listener
-    , public SettableTooltipClient
-{
+    , public SettableTooltipClient {
     void* ptr;
     Object* object;
     Canvas* cnv;
@@ -123,14 +122,13 @@ struct ObjectBase : public Component
     {
         return true;
     }
-    
+
     virtual void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) {};
 
     void closeOpenedSubpatchers();
     void openSubpatch();
 
     virtual String getText();
-    
 
     void receiveMessage(String const& symbol, int argc, t_atom* argv) override
     {
@@ -143,8 +141,7 @@ struct ObjectBase : public Component
             if (symbol == "size" || symbol == "delta" || symbol == "pos" || symbol == "dim" || symbol == "width" || symbol == "height") {
                 // TODO: we can't really ensure the object has updated its bounds yet!
                 _this->updateBounds();
-            }
-             else {
+            } else {
                 _this->receiveObjectMessage(symbol, atoms);
             }
         });

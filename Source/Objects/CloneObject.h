@@ -44,8 +44,7 @@ typedef struct _clone {
 } t_fake_clone;
 }
 
-struct CloneObject final : public TextBase
-{
+struct CloneObject final : public TextBase {
     CloneObject(void* obj, Object* object)
         : TextBase(obj, object)
         , subpatch({ nullptr, nullptr })

@@ -18,8 +18,7 @@ typedef struct _message {
 
 struct MessageObject final : public ObjectBase
     , public KeyListener
-    , public TextEditor::Listener
-{
+    , public TextEditor::Listener {
     bool isDown = false;
     bool isLocked = false;
 
@@ -178,7 +177,7 @@ struct MessageObject final : public ObjectBase
             editor->setBounds(getLocalBounds());
         }
     }
-    
+
     void showEditor() override
     {
         if (editor == nullptr) {
@@ -186,7 +185,7 @@ struct MessageObject final : public ObjectBase
 
             editor = std::make_unique<TextEditor>(getName());
             editor->applyFontToAllText(font);
-            
+
             copyAllExplicitColoursTo(*editor);
             editor->setColour(Label::textWhenEditingColourId, object->findColour(PlugDataColour::canvasTextColourId));
             editor->setColour(TextEditor::textColourId, object->findColour(PlugDataColour::canvasTextColourId));
@@ -204,13 +203,12 @@ struct MessageObject final : public ObjectBase
 
             editor->setSize(10, 10);
 
-
             editor->setText(objectText, false);
             editor->addListener(this);
             editor->addKeyListener(this);
 
             addAndMakeVisible(editor.get());
-            
+
             editor->onFocusLost = [this]() {
                 hideEditor();
             };
@@ -357,7 +355,7 @@ struct MessageObject final : public ObjectBase
     {
         return true;
     }
-    
+
     Justification justification = Justification::centredLeft;
     std::unique_ptr<TextEditor> editor;
     BorderSize<int> border = BorderSize<int>(1, 7, 1, 2);

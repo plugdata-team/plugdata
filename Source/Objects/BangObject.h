@@ -12,9 +12,9 @@ struct BangObject final : public ObjectBase {
 
     bool bangState = false;
     bool alreadyBanged = false;
-    
+
     IEMHelper iemHelper;
-    
+
     BangObject(void* obj, Object* parent)
         : ObjectBase(obj, parent)
         , iemHelper(obj, parent, this)
@@ -28,17 +28,17 @@ struct BangObject final : public ObjectBase {
     {
         iemHelper.updateParameters();
     }
-    
+
     void updateBounds() override
     {
         iemHelper.updateBounds();
     }
-    
+
     void applyBounds() override
     {
         iemHelper.applyBounds();
     }
-    
+
     void checkBounds() override
     {
         // Fix aspect ratio and apply limits
@@ -144,17 +144,16 @@ struct BangObject final : public ObjectBase {
         }
     }
 
-    
     ObjectParameters getParameters() override
     {
         ObjectParameters allParameters = {
             { "Minimum flash time", tInt, cGeneral, &bangInterrupt, {} },
             { "Maximum flash time", tInt, cGeneral, &bangHold, {} },
         };
-           
+
         auto iemParameters = iemHelper.getParameters();
         allParameters.insert(allParameters.end(), iemParameters.begin(), iemParameters.end());
-        
+
         return allParameters;
     }
 
@@ -172,11 +171,11 @@ struct BangObject final : public ObjectBase {
 
     void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
     {
-        if(symbol == "float") {
+        if (symbol == "float") {
             value = atoms[0].getFloat();
             update();
         }
-        if(symbol == "bang") {
+        if (symbol == "bang") {
             value = 1.0f;
             update();
         }
@@ -189,5 +188,4 @@ struct BangObject final : public ObjectBase {
             iemHelper.receiveObjectMessage(symbol, atoms);
         }
     }
-    
 };

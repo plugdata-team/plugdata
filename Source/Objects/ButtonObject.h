@@ -191,7 +191,7 @@ struct ButtonObject : public ObjectBase {
             repaint();
         }
     }
-    
+
     Value primaryColour;
     Value secondaryColour;
 };

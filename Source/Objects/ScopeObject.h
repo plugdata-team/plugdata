@@ -345,20 +345,18 @@ struct ScopeBase : public ObjectBase
 
         return params;
     }
-        
+
     void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms)
     {
         if (symbol == "send" && atoms.size() >= 1) {
             setParameterExcludingListener(sendSymbol, atoms[0].getSymbol());
-        }
-        else if (symbol == "receive" && atoms.size() >= 1) {
+        } else if (symbol == "receive" && atoms.size() >= 1) {
             setParameterExcludingListener(receiveSymbol, atoms[0].getSymbol());
         }
     }
-            
+
     Value sendSymbol;
     Value receiveSymbol;
-
 };
 
 // Hilarious use of templates to support both cyclone/scope and else/oscope in the same code

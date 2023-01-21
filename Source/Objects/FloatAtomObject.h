@@ -67,14 +67,14 @@ struct FloatAtomObject final : public ObjectBase {
 
     void paint(Graphics& g)
     {
-    getLookAndFeel().setColour(Label::textWhenEditingColourId, object->findColour(PlugDataColour::canvasTextColourId));
-    getLookAndFeel().setColour(Label::textColourId, object->findColour(PlugDataColour::canvasTextColourId));
-    getLookAndFeel().setColour(TextEditor::textColourId, object->findColour(PlugDataColour::canvasTextColourId));
-    
-    g.setColour(object->findColour(PlugDataColour::defaultObjectBackgroundColourId));
-    g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), PlugDataLook::objectCornerRadius);
+        getLookAndFeel().setColour(Label::textWhenEditingColourId, object->findColour(PlugDataColour::canvasTextColourId));
+        getLookAndFeel().setColour(Label::textColourId, object->findColour(PlugDataColour::canvasTextColourId));
+        getLookAndFeel().setColour(TextEditor::textColourId, object->findColour(PlugDataColour::canvasTextColourId));
+
+        g.setColour(object->findColour(PlugDataColour::defaultObjectBackgroundColourId));
+        g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), PlugDataLook::objectCornerRadius);
     }
-    
+
     void paintOverChildren(Graphics& g) override
     {
         g.setColour(object->findColour(PlugDataColour::outlineColourId));
@@ -82,10 +82,10 @@ struct FloatAtomObject final : public ObjectBase {
         triangle.addTriangle(Point<float>(getWidth() - 8, 0), Point<float>(getWidth(), 0), Point<float>(getWidth(), 8));
         triangle = triangle.createPathWithRoundedCorners(4.0f);
         g.fillPath(triangle);
-        
+
         bool selected = cnv->isSelected(object) && !cnv->isGraph;
         auto outlineColour = object->findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : objectOutlineColourId);
-        
+
         g.setColour(outlineColour);
         g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), PlugDataLook::objectCornerRadius, 1.0f);
 
@@ -96,7 +96,7 @@ struct FloatAtomObject final : public ObjectBase {
             g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(1.0f), PlugDataLook::objectCornerRadius, 2.0f);
         }
     }
-    
+
     void updateLabel() override
     {
         atomHelper.updateLabel(label);
@@ -107,7 +107,7 @@ struct FloatAtomObject final : public ObjectBase {
         pd->getCallbackLock()->enter();
 
         auto* atom = static_cast<t_fake_gatom*>(ptr);
-        
+
         int x, y, w, h;
         libpd_get_object_bounds(cnv->patch.getPointer(), atom, &x, &y, &w, &h);
 
@@ -141,7 +141,6 @@ struct FloatAtomObject final : public ObjectBase {
         auto* atom = static_cast<t_fake_gatom*>(ptr);
         atom->a_text.te_width = b.getWidth() / fontWidth;
     }
-    
 
     void resized() override
     {
@@ -164,10 +163,10 @@ struct FloatAtomObject final : public ObjectBase {
     ObjectParameters getParameters() override
     {
         ObjectParameters allParameters = { { "Minimum", tFloat, cGeneral, &min, {} }, { "Maximum", tFloat, cGeneral, &max, {} } };
-           
+
         auto atomParameters = atomHelper.getParameters();
         allParameters.insert(allParameters.end(), atomParameters.begin(), atomParameters.end());
-        
+
         return allParameters;
     }
 
@@ -211,29 +210,24 @@ struct FloatAtomObject final : public ObjectBase {
         input.setMaximum(value);
         gatom->a_draghi = value;
     }
-    
+
     void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
     {
-        if(symbol == "float") {
+        if (symbol == "float") {
             auto min = getMinimum();
             auto max = getMaximum();
-            
-            if(min != 0 || max != 0) {
+
+            if (min != 0 || max != 0) {
                 value = std::clamp(atoms[0].getFloat(), min, max);
-            }
-            else
-            {
+            } else {
                 value = atoms[0].getFloat();
             }
 
             input.setText(input.formatNumber(value), dontSendNotification);
-        }
-        else if (symbol == "send" && atoms.size() >= 1) {
+        } else if (symbol == "send" && atoms.size() >= 1) {
             setParameterExcludingListener(atomHelper.sendSymbol, atoms[0].getSymbol());
-        }
-        else if (symbol == "receive" && atoms.size() >= 1) {
+        } else if (symbol == "receive" && atoms.size() >= 1) {
             setParameterExcludingListener(atomHelper.receiveSymbol, atoms[0].getSymbol());
         }
     };
-    
 };

@@ -4,8 +4,7 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
-struct SubpatchObject final : public TextBase
-{
+struct SubpatchObject final : public TextBase {
     SubpatchObject(void* obj, Object* object)
         : TextBase(obj, object)
         , subpatch({ ptr, cnv->pd })

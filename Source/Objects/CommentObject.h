@@ -6,8 +6,7 @@
 
 struct CommentObject final : public ObjectBase
     , public KeyListener
-    , public TextEditor::Listener
-{
+    , public TextEditor::Listener {
     CommentObject(void* obj, Object* object)
         : ObjectBase(obj, object)
     {
@@ -15,13 +14,13 @@ struct CommentObject final : public ObjectBase
         font = font.withHeight(13.5f);
 
         locked = static_cast<bool>(object->locked.getValue());
-        
+
         objectText = getText();
 
         // To get enter/exit messages
         addMouseListener(object, false);
     }
-    
+
     ~CommentObject()
     {
         removeMouseListener(object);
@@ -179,7 +178,7 @@ struct CommentObject final : public ObjectBase
             editor->grabKeyboardFocus();
         }
     }
-    
+
     void updateBounds() override
     {
         pd->getCallbackLock()->enter();
@@ -225,7 +224,7 @@ struct CommentObject final : public ObjectBase
         auto* textObj = static_cast<t_text*>(ptr);
         textObj->te_width = textObjectWidth;
     }
-    
+
     bool hideInGraph() override
     {
         return false;
@@ -273,7 +272,7 @@ struct CommentObject final : public ObjectBase
             editor->setBounds(getLocalBounds());
         }
     }
-        
+
     void textEditorReturnKeyPressed(TextEditor& ed) override
     {
         if (editor != nullptr) {
@@ -292,7 +291,7 @@ struct CommentObject final : public ObjectBase
     }
 
     bool locked;
-        
+
     Justification justification = Justification::centredLeft;
     std::unique_ptr<TextEditor> editor;
     BorderSize<int> border = BorderSize<int>(1, 7, 1, 2);

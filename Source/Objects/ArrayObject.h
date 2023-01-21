@@ -446,7 +446,8 @@ struct ArrayEditorDialog : public Component {
     }
 };
 
-struct ArrayObject final : public ObjectBase, public Timer {
+struct ArrayObject final : public ObjectBase
+    , public Timer {
 public:
     // Array component
     ArrayObject(void* obj, Object* object)
@@ -469,10 +470,10 @@ public:
         labelColour = object->findColour(PlugDataColour::canvasTextColourId).toString();
 
         updateLabel();
-        
+
         startTimer(20);
     }
-    
+
     void timerCallback() override
     {
         updateValue();
@@ -496,7 +497,7 @@ public:
             label->setFont(Font(fontHeight));
             label->setBounds(bounds);
             label->setText(text, dontSendNotification);
-            
+
             label->setColour(Label::textColourId, object->findColour(PlugDataColour::canvasTextColourId));
 
             object->cnv->addAndMakeVisible(label.get());
@@ -667,19 +668,17 @@ public:
 
     void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
     {
-        if(symbol == "float" || symbol == "symbol" || symbol == "list") {
-            
+        if (symbol == "float" || symbol == "symbol" || symbol == "list") {
         }
     };
-    
+
 private:
     Value name, size, drawMode, saveContents, range;
 
     PdArray array;
     GraphicalArray graph;
     std::unique_ptr<ArrayEditorDialog> dialog;
-    
-    
+
     Value labelColour;
 };
 

@@ -73,23 +73,20 @@ void Iolet::paint(Graphics& g)
     if ((getHeight() % 2) == 0) {
         bounds.translate(0.0f, isInlet ? -1.0f : 0.0f);
     }
-    
-    if(static_cast<bool>(object->cnv->pd->useSquareIolets.getValue())) {
+
+    if (static_cast<bool>(object->cnv->pd->useSquareIolets.getValue())) {
         g.setColour(backgroundColour);
         g.fillRect(bounds);
 
         g.setColour(findColour(PlugDataColour::objectOutlineColourId));
         g.drawRect(bounds, 1.0f);
-    }
-    else {
+    } else {
         g.setColour(backgroundColour);
         g.fillEllipse(bounds);
 
         g.setColour(findColour(PlugDataColour::objectOutlineColourId));
         g.drawEllipse(bounds, 1.0f);
     }
-
-
 
     if (stateSaved) {
         g.restoreState();
