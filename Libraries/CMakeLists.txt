@@ -89,6 +89,7 @@ file(GLOB PD_SOURCES
     ${PD_PATH}/src/m_atom.c
     ${PD_PATH}/src/m_binbuf.c
     ${PD_PATH}/src/m_conf.c
+    ${PD_PATH}/src/m_class.c
     ${PD_PATH}/src/m_glob.c
     ${PD_PATH}/src/m_imp.h
     ${PD_PATH}/src/m_memory.c
@@ -107,6 +108,9 @@ file(GLOB PD_SOURCES
     ${PD_PATH}/src/s_stuff.h
     ${PD_PATH}/src/s_utf8.c
     ${PD_PATH}/src/s_utf8.h
+    ${PD_PATH}/src/s_inter_gui.c
+    ${PD_PATH}/src/s_inter.c
+    ${PD_PATH}/src/s_inter.h
     ${PD_PATH}/src/x_acoustics.c
     ${PD_PATH}/src/x_arithmetic.c
     ${PD_PATH}/src/x_array.c
@@ -165,10 +169,6 @@ set(LIBPD_SOURCES
     ${LIBPD_PATH}/x_libpd_mod_utils.h
     ${LIBPD_PATH}/x_libpd_multi.c
     ${LIBPD_PATH}/x_libpd_multi.h
-    ${LIBPD_PATH}/s_libpd_inter_gui.c
-    ${LIBPD_PATH}/s_libpd_inter.c
-    ${LIBPD_PATH}/s_libpd_inter.h
-    ${LIBPD_PATH}/m_libpd_class.c
 )
 
 include_directories(${LIBPD_PATH})
