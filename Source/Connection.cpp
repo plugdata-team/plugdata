@@ -165,6 +165,7 @@ Connection::~Connection()
     
     cnv->pd->useDashedConnection.removeListener(this);
     cnv->pd->useStraightConnection.removeListener(this);
+    cnv->pd->useThinConnection.removeListener(this);
 }
 
 bool Connection::hitTest(int x, int y)
