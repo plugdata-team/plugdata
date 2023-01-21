@@ -112,14 +112,14 @@ void Sidebar::paint(Graphics& g)
 
     // Background for buttons
     g.setColour(findColour(PlugDataColour::toolbarBackgroundColourId));
-    g.fillRect(0, 0, getWidth(), 28);
+    g.fillRect(0, 0, getWidth(), 26);
 }
 
 void Sidebar::paintOverChildren(Graphics& g)
 {
     g.setColour(findColour(PlugDataColour::outlineColourId));
     g.drawLine(0, 0, getWidth(), 0);
-    g.drawLine(0, 28, getWidth(), 28);
+    g.drawLine(0, 26, getWidth(), 26);
     g.drawLine(0.0f, getHeight() - 29.5f, static_cast<float>(getWidth()), getHeight() - 29.5f);
     g.drawLine(0.5f, 0, 0.5f, getHeight() - 29.5f);
 }
@@ -128,7 +128,7 @@ void Sidebar::resized()
 {
     auto bounds = getLocalBounds();
 
-    auto tabbarBounds = bounds.removeFromTop(28);
+    auto tabbarBounds = bounds.removeFromTop(26);
 
     int buttonWidth = getWidth() / 4;
 
