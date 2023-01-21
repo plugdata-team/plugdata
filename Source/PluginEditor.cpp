@@ -290,7 +290,6 @@ void PluginEditor::resized()
 #else
     auto windowControlsOffset = 70.0f;
 #endif
-    
 
     int hidePosition = getWidth() - windowControlsOffset;
     int pinPosition = hidePosition - 65;

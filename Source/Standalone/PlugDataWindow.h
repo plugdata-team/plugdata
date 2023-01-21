@@ -520,7 +520,6 @@ public:
     {
         bool nativeWindow = static_cast<bool>(v.getValue());
 
-        
         setUsingNativeTitleBar(nativeWindow);
 
         if (!nativeWindow) {
