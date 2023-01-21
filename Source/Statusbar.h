@@ -57,7 +57,9 @@ public:
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(Statusbar)
 };
 
-struct StatusbarSource {
+class StatusbarSource {
+    
+public:
     StatusbarSource();
 
     void processBlock(AudioBuffer<float> const& buffer, MidiBuffer& midiIn, MidiBuffer& midiOut, int outChannels);

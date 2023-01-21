@@ -17,8 +17,10 @@
 bool wantsNativeDialog();
 
 // Base classes for communication between parent and child classes
-struct DocumentBrowserViewBase : public TreeView
+class DocumentBrowserViewBase : public TreeView
     , public DirectoryContentsDisplayComponent {
+        
+public:
     DocumentBrowserViewBase(DirectoryContentsList& listToShow)
         : DirectoryContentsDisplayComponent(listToShow) {};
 };
@@ -697,8 +699,10 @@ private:
     TextButton closeButton = TextButton(Icons::Clear);
 };
 
-struct DocumentBrowser : public DocumentBrowserBase
+class DocumentBrowser : public DocumentBrowserBase
     , public FileSystemWatcher::Listener {
+        
+public:
     DocumentBrowser(PluginProcessor* processor)
         : DocumentBrowserBase(processor)
         , fileList(directory, this)

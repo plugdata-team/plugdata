@@ -60,9 +60,10 @@ public:
     std::function<void(String const&)> changeCallback;
 };
 
-struct ObjectsListBox : public ListBox
+class ObjectsListBox : public ListBox
     , public ListBoxModel {
 
+public:
     ObjectsListBox(pd::Library& library)
     {
         setOutlineThickness(0);
@@ -127,7 +128,9 @@ struct ObjectsListBox : public ListBox
     std::function<void(String const&)> changeCallback;
 };
 
-struct ObjectViewer : public Component {
+class ObjectViewer : public Component {
+    
+public:
     ObjectViewer(PluginEditor* editor, ObjectReferenceDialog& objectReference)
         : reference(objectReference)
         , library(editor->pd->objectLibrary)
@@ -625,8 +628,9 @@ private:
     std::unordered_map<String, String> objectDescriptions;
 };
 
-struct ObjectBrowserDialog : public Component {
+class ObjectBrowserDialog : public Component {
 
+public:
     ObjectBrowserDialog(Component* pluginEditor, Dialog* parent)
         : editor(dynamic_cast<PluginEditor*>(pluginEditor))
         , objectsList(editor->pd->objectLibrary)

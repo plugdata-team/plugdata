@@ -372,13 +372,16 @@ public:
     }
 };
 
-struct ScalarObject final : public NonPatchable {
+struct ScalarObject final : public ObjectBase {
     OwnedArray<Component> templates;
 
     ScalarObject(void* obj, Object* object)
-        : NonPatchable(obj, object)
+        : ObjectBase(obj, object)
     {
         cnv->pd->setThis();
+        
+        // Make object invisible
+        object->setVisible(false);
 
         auto* x = reinterpret_cast<t_scalar*>(obj);
         auto* templ = template_findbyname(x->sc_template);
@@ -423,4 +426,7 @@ struct ScalarObject final : public NonPatchable {
             dynamic_cast<DrawableTemplate*>(drawable)->update();
         }
     }
+    
+    void updateBounds() override {};
+    void applyBounds() override {};
 };

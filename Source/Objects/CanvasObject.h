@@ -87,7 +87,6 @@ public:
 
     ObjectParameters getParameters() override
     {
-        // TODO: simplify this
         ObjectParameters params;
         params.push_back({ "Background", tColour, cAppearance, &iemHelper.secondaryColour, {} });
         params.push_back({ "Send Symbol", tString, cGeneral, &iemHelper.sendSymbol, {} });

@@ -308,13 +308,14 @@ public:
             });
     }
 
-    struct ZoomSelector : public Component {
+    class ZoomSelector : public Component {
         TextButton zoomIn;
         TextButton zoomOut;
         TextButton zoomReset;
 
         Value zoomValue;
 
+    public:
         ZoomSelector(ValueTree settingsTree)
         {
             zoomValue = settingsTree.getPropertyAsValue("Zoom", nullptr);
@@ -374,7 +375,13 @@ public:
         }
     };
 
-    struct ThemeSelector : public Component {
+    class ThemeSelector : public Component {
+        
+        
+        Value theme;
+        ValueTree settingsTree;
+        
+    public:
         ThemeSelector(ValueTree tree)
             : settingsTree(tree)
         {
@@ -436,8 +443,6 @@ public:
             }
         }
 
-        Value theme;
-        ValueTree settingsTree;
     };
 
     ThemeSelector themeSelector;

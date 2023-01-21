@@ -6,11 +6,12 @@
 
 #include "Canvas.h"
 
-struct AutomationSlider : public Component
+class AutomationSlider : public Component
     , public Value::Listener {
 
     PluginProcessor* pd;
 
+public:
     AutomationSlider(int idx, PluginProcessor* processor)
         : index(idx)
         , pd(processor)
@@ -117,9 +118,10 @@ struct AutomationSlider : public Component
 #endif
 };
 
-struct AutomationComponent : public Component {
-    PluginProcessor* pd;
+class AutomationComponent : public Component {
 
+
+public:
     explicit AutomationComponent(PluginProcessor* processor)
         : pd(processor)
     {
@@ -140,11 +142,14 @@ struct AutomationComponent : public Component {
         }
     }
 
+    PluginProcessor* pd;
     OwnedArray<AutomationSlider> rows;
 };
 
-struct AutomationPanel : public Component
+class AutomationPanel : public Component
     , public ScrollBar::Listener {
+        
+public:
     explicit AutomationPanel(PluginProcessor* processor)
         : sliders(processor)
     {

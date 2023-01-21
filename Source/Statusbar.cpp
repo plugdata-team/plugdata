@@ -12,11 +12,12 @@
 #include "Canvas.h"
 #include "Connection.h"
 
-struct LevelMeter : public Component
+class LevelMeter : public Component
     , public Timer {
     int numChannels = 2;
     StatusbarSource& source;
 
+public:
     explicit LevelMeter(StatusbarSource& statusbarSource)
         : source(statusbarSource)
     {
@@ -98,10 +99,11 @@ struct LevelMeter : public Component
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(LevelMeter)
 };
 
-struct MidiBlinker : public Component
+class MidiBlinker : public Component
     , public Timer {
     StatusbarSource& source;
 
+public:
     explicit MidiBlinker(StatusbarSource& statusbarSource)
         : source(statusbarSource)
     {
