@@ -14,7 +14,7 @@
 #include "Statusbar.h"
 
 #if PLUGDATA_STANDALONE
-#include "Utility/InternalSynth.h"
+#    include "Utility/InternalSynth.h"
 #endif
 
 class PlugDataLook;
@@ -171,13 +171,12 @@ public:
     InternalSynth internalSynth;
     std::atomic<bool> enableInternalSynth = false;
 #endif
-        
+
     Value useDashedConnection;
     Value useStraightConnection;
     Value useThinConnection;
     Value useSquareIolets;
     Value useSquareObjectCorners;
-        
 
 private:
     void processInternal();

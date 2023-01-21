@@ -272,8 +272,8 @@ void Library::updateLibrary()
         }
 
         searchTree->insert("graph");
-        
-        for(auto& path : defaultPaths) {
+
+        for (auto& path : defaultPaths) {
             for (const auto& iter : RangedDirectoryIterator(path, false)) {
                 auto file = iter.getFile();
                 // Get pd files but not help files

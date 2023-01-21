@@ -221,8 +221,8 @@ private:
                     device->startBackgroundThread();
                 }
             }
-        updateContent();
-        repaint();
+            updateContent();
+            repaint();
         }
     }
 
@@ -350,7 +350,7 @@ public:
         if (midiOutputsList != nullptr) {
             midiOutputsList->setRowHeight(jmin(22, itemHeight));
             midiOutputsList->setBounds(r.removeFromTop(midiOutputsList->getBestHeight(jmin(itemHeight * 8, getHeight() - r.getY() - space - itemHeight))));
-            r.removeFromTop(itemHeight / 2); //FIXME this is a heuristic
+            r.removeFromTop(itemHeight / 2); // FIXME this is a heuristic
         }
 
         r.removeFromTop(itemHeight);

@@ -31,10 +31,9 @@ struct WelcomePanel : public Component {
             if (isMouseOver()) {
                 g.setColour(findColour(PlugDataColour::panelActiveBackgroundColourId));
                 g.fillRoundedRectangle(1, 1, getWidth() - 2, getHeight() - 2, 6.0f);
-                
+
                 g.setColour(findColour(PlugDataColour::panelActiveTextColourId));
-            }
-            else {
+            } else {
                 g.setColour(findColour(PlugDataColour::panelTextColourId));
             }
 

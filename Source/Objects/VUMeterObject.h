@@ -5,35 +5,35 @@
  */
 
 struct VUMeterObject final : public ObjectBase {
-    
+
     IEMHelper iemHelper;
-    
+
     VUMeterObject(void* ptr, Object* object)
-    : ObjectBase(ptr, object)
-    , iemHelper(ptr, object, this)
+        : ObjectBase(ptr, object)
+        , iemHelper(ptr, object, this)
     {
     }
-    
+
     void valueChanged(Value& v) override
     {
         iemHelper.valueChanged(v);
     }
-    
+
     ObjectParameters getParameters() override
     {
         return iemHelper.getParameters();
     }
-    
+
     void updateParameters() override
     {
         iemHelper.updateParameters();
     }
-    
+
     void updateBounds() override
     {
         iemHelper.updateBounds();
     }
-    
+
     void applyBounds() override
     {
         iemHelper.applyBounds();
@@ -130,13 +130,12 @@ struct VUMeterObject final : public ObjectBase {
         g.setColour(outlineColour);
         g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), PlugDataLook::objectCornerRadius, 1.0f);
     }
-    
+
     void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
     {
-        if(symbol == "float") {
+        if (symbol == "float") {
             repaint();
-        }
-        else {
+        } else {
             iemHelper.receiveObjectMessage(symbol, atoms);
         }
     }

@@ -135,7 +135,7 @@ struct PropertiesPanel : public PropertyPanel {
                 addAndMakeVisible(property);
             }
         }
-        
+
         MultiPropertyComponent(String const& propertyName, Array<Value*> values, std::vector<String> options)
             : Property(propertyName)
             , numProperties(values.size())

@@ -7,7 +7,7 @@
 struct CanvasObject final : public ObjectBase {
 
     bool locked;
-    
+
     IEMHelper iemHelper;
 
     CanvasObject(void* ptr, Object* object)
@@ -18,22 +18,21 @@ struct CanvasObject final : public ObjectBase {
         locked = static_cast<bool>(object->locked.getValue());
     }
 
-    
     void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
     {
         iemHelper.receiveObjectMessage(symbol, atoms);
     }
-    
+
     void updateParameters() override
     {
         iemHelper.updateParameters();
     }
-    
+
     void applyBounds() override
     {
         iemHelper.applyBounds();
     }
-    
+
     bool canReceiveMouseEvent(int x, int y) override
     {
         return !locked;
@@ -79,7 +78,7 @@ struct CanvasObject final : public ObjectBase {
     {
         g.fillAll(Colour::fromString(iemHelper.secondaryColour.toString()));
     }
-    
+
     void valueChanged(Value& v) override
     {
         iemHelper.valueChanged(v);

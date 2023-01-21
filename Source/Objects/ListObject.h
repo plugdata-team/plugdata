@@ -5,12 +5,12 @@
  */
 
 struct ListObject final : public ObjectBase {
-    
+
     AtomHelper atomHelper;
-    
+
     ListObject(void* obj, Object* parent)
-    : ObjectBase(obj, parent)
-    , atomHelper(obj, parent, this)
+        : ObjectBase(obj, parent)
+        , atomHelper(obj, parent, this)
     {
         listLabel.setBounds(2, 0, getWidth() - 2, getHeight() - 1);
         listLabel.setMinimumHorizontalScale(1.f);
@@ -46,8 +46,9 @@ struct ListObject final : public ObjectBase {
 
         updateValue();
     }
-    
-    void valueChanged(Value& v) {
+
+    void valueChanged(Value& v)
+    {
         atomHelper.valueChanged(v);
     }
 
@@ -84,13 +85,13 @@ struct ListObject final : public ObjectBase {
 
         listLabel.setBounds(getLocalBounds());
     }
-    
+
     void updateBounds() override
     {
         pd->getCallbackLock()->enter();
 
         auto* atom = static_cast<t_fake_gatom*>(ptr);
-        
+
         int x, y, w, h;
         libpd_get_object_bounds(cnv->patch.getPointer(), atom, &x, &y, &w, &h);
 
@@ -113,8 +114,9 @@ struct ListObject final : public ObjectBase {
             object->setSize(w, h);
         }
     }
-    
-    ObjectParameters getParameters() override {
+
+    ObjectParameters getParameters() override
+    {
         return atomHelper.getParameters();
     }
 
@@ -128,12 +130,11 @@ struct ListObject final : public ObjectBase {
         auto* atom = static_cast<t_fake_gatom*>(ptr);
         atom->a_text.te_width = b.getWidth() / fontWidth;
     }
-    
+
     void updateLabel() override
     {
         atomHelper.updateLabel(label);
     }
-    
 
     void paintOverChildren(Graphics& g) override
     {
@@ -142,10 +143,10 @@ struct ListObject final : public ObjectBase {
         triangle.addTriangle(Point<float>(getWidth() - 8, 0), Point<float>(getWidth(), 0), Point<float>(getWidth(), 8));
         triangle = triangle.createPathWithRoundedCorners(4.0f);
         g.fillPath(triangle);
-        
+
         bool selected = cnv->isSelected(object) && !cnv->isGraph;
         auto outlineColour = object->findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : objectOutlineColourId);
-        
+
         g.setColour(outlineColour);
         g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), PlugDataLook::objectCornerRadius, 1.0f);
     }
@@ -207,16 +208,14 @@ struct ListObject final : public ObjectBase {
             listLabel.showEditor();
         }
     }
-    
+
     void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
     {
-        if(symbol == "float" || symbol == "symbol" || symbol == "list") {
+        if (symbol == "float" || symbol == "symbol" || symbol == "list") {
             updateValue();
-        }
-        else if (symbol == "send" && atoms.size() >= 1) {
+        } else if (symbol == "send" && atoms.size() >= 1) {
             setParameterExcludingListener(atomHelper.sendSymbol, atoms[0].getSymbol());
-        }
-        else if (symbol == "receive" && atoms.size() >= 1) {
+        } else if (symbol == "receive" && atoms.size() >= 1) {
             setParameterExcludingListener(atomHelper.receiveSymbol, atoms[0].getSymbol());
         }
     };

@@ -100,15 +100,15 @@ struct Library : public FileSystemWatcher::Listener {
     std::function<void()> appDirChanged;
 
     static inline const File appDataDir = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory).getChildFile("plugdata");
-    
-    static inline const Array<File> defaultPaths = {
+
+    static inline Array<File> const defaultPaths = {
         appDataDir.getChildFile("Library").getChildFile("Abstractions").getChildFile("else"),
         appDataDir.getChildFile("Library").getChildFile("Abstractions").getChildFile("heavylib"),
         appDataDir.getChildFile("Library").getChildFile("Abstractions"),
         appDataDir.getChildFile("Library").getChildFile("Deken"),
         appDataDir.getChildFile("Library").getChildFile("Extra").getChildFile("else")
     };
-    
+
 private:
     ObjectMap objectDescriptions;
     KeywordMap objectKeywords;
@@ -122,10 +122,8 @@ private:
     std::mutex libraryLock;
 
     std::unique_ptr<Trie> searchTree = nullptr;
-    
-    FileSystemWatcher watcher;
-    
 
+    FileSystemWatcher watcher;
 };
 
 } // namespace pd

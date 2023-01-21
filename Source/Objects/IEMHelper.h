@@ -50,12 +50,12 @@ struct IEMHelper {
         labelHeight = getFontHeight();
 
         // TODO: fix this!
-        //initialise = static_cast<bool>(iemgui->x_isa.x_loadinit);
-        //initialise.addListener(this);
+        // initialise = static_cast<bool>(iemgui->x_isa.x_loadinit);
+        // initialise.addListener(this);
 
         sendSymbol = getSendSymbol();
         receiveSymbol = getReceiveSymbol();
-        
+
         updateParameters();
     }
 
@@ -101,7 +101,7 @@ struct IEMHelper {
         params.push_back({ "Label Y", tInt, cLabel, &labelY, {} });
         params.push_back({ "Label Height", tInt, cLabel, &labelHeight, {} });
         params.push_back({ "Initialise", tBool, cGeneral, &initialise, { "No", "Yes" } });
-        
+
         return params;
     }
 
@@ -133,11 +133,9 @@ struct IEMHelper {
 
         if (symbol == "send" && atoms.size() >= 1) {
             gui->setParameterExcludingListener(sendSymbol, atoms[0].getSymbol());
-        }
-        else if (symbol == "receive" && atoms.size() >= 1) {
+        } else if (symbol == "receive" && atoms.size() >= 1) {
             gui->setParameterExcludingListener(receiveSymbol, atoms[0].getSymbol());
-        }
-        else if (symbol == "color") {
+        } else if (symbol == "color") {
 
             if (atoms.size() > 0)
                 setColour(secondaryColour, atoms[0]);
@@ -232,7 +230,7 @@ struct IEMHelper {
 
         object->setObjectBounds(bounds);
     }
-    
+
     void applyBounds()
     {
         auto b = object->getObjectBounds();
@@ -417,23 +415,23 @@ struct IEMHelper {
         12369084, 6316128, 0, 9177096, 5779456,
         7874580, 2641940, 17488, 5256, 5767248
     };
-    
+
     Object* object;
     ObjectBase* gui;
     Canvas* cnv;
     PluginProcessor* pd;
-    
+
     t_iemgui* iemgui;
-    
+
     Value primaryColour;
     Value secondaryColour;
     Value labelColour;
-    
+
     Value labelX = Value(0.0f);
     Value labelY = Value(0.0f);
     Value labelHeight = Value(18.0f);
     Value labelText;
-    
+
     Value sendSymbol;
     Value receiveSymbol;
 };

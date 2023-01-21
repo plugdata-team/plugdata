@@ -14,20 +14,21 @@
 // Since fluidsynth is alraedy included for the sfont~ object, we can reuse it here to read a GM soundfont
 
 struct InternalSynth {
-    
+
     File homeDir = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory).getChildFile("plugdata");
 
     File soundFont = homeDir.getChildFile("Library").getChildFile("Extra").getChildFile("GS").getChildFile("FluidR3Mono_GM.sf3");
-    
-    InternalSynth() {
+
+    InternalSynth()
+    {
         // Unpack soundfont
-        if(!soundFont.existsAsFile()) {
+        if (!soundFont.existsAsFile()) {
             FileOutputStream ostream(soundFont);
             ostream.write(StandaloneBinaryData::FluidR3Mono_GM_sf3, StandaloneBinaryData::FluidR3Mono_GM_sf3Size);
             ostream.flush();
         }
     }
-    
+
     ~InternalSynth()
     {
         if (synth)
@@ -35,32 +36,32 @@ struct InternalSynth {
         if (settings)
             delete_fluid_settings(settings);
     }
-    
+
     void unprepare()
     {
-        if(ready) {
+        if (ready) {
             if (synth)
                 delete_fluid_synth(synth);
             if (settings)
                 delete_fluid_settings(settings);
-            
+
             lastSampleRate = 0;
             lastBlockSize = 0;
             lastNumChannels = 0;
-            
+
             ready = false;
         }
     }
 
     void prepare(int sampleRate, int blockSize, int numChannels)
     {
-        if(sampleRate == lastSampleRate && blockSize == lastBlockSize && numChannels == lastNumChannels) {
+        if (sampleRate == lastSampleRate && blockSize == lastBlockSize && numChannels == lastNumChannels) {
             return;
         }
-        
+
         internalBuffer.setSize(numChannels, blockSize);
         internalBuffer.clear();
-        
+
         // Check if soundfont exists to prevent crashing
         if (soundFont.existsAsFile()) {
             auto pathName = soundFont.getFullPathName();
@@ -83,7 +84,7 @@ struct InternalSynth {
 
             ready = true;
         }
-        
+
         lastSampleRate = sampleRate;
         lastBlockSize = blockSize;
         lastNumChannels = numChannels;
@@ -119,20 +120,20 @@ struct InternalSynth {
                 fluid_synth_pitch_bend(synth, channel, message.getPitchWheelValue());
             }
             if (message.isSysEx()) {
-                fluid_synth_sysex(synth, reinterpret_cast<const char*>(message.getSysExData()), message.getSysExDataSize(), nullptr, nullptr, nullptr, 0);
+                fluid_synth_sysex(synth, reinterpret_cast<char const*>(message.getSysExData()), message.getSysExDataSize(), nullptr, nullptr, nullptr, 0);
             }
         }
-        
+
         // Run audio through fluidsynth
         fluid_synth_process(synth, buffer.getNumSamples(), buffer.getNumChannels(), const_cast<float**>(internalBuffer.getArrayOfReadPointers()), buffer.getNumChannels(), const_cast<float**>(internalBuffer.getArrayOfWritePointers()));
 
-        for(int ch = 0; ch < buffer.getNumChannels(); ch++) {
+        for (int ch = 0; ch < buffer.getNumChannels(); ch++) {
             buffer.addFrom(ch, 0, internalBuffer, ch, 0, buffer.getNumSamples());
         }
-        
     }
-    
-    bool isReady() {
+
+    bool isReady()
+    {
         return ready;
     }
 
@@ -142,7 +143,7 @@ private:
     fluid_settings_t* settings = nullptr;
 
     bool ready = false;
-    
+
     int lastSampleRate = 0;
     int lastBlockSize = 0;
     int lastNumChannels = 0;

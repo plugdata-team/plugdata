@@ -10,7 +10,7 @@ struct RadioObject final : public ObjectBase {
     bool isVertical;
 
     IEMHelper iemHelper;
-    
+
     RadioObject(void* ptr, Object* object)
         : ObjectBase(ptr, object)
         , iemHelper(ptr, object, this)
@@ -30,7 +30,7 @@ struct RadioObject final : public ObjectBase {
     {
         iemHelper.updateParameters();
     }
-    
+
     void resized() override
     {
         int size = (isVertical ? getWidth() : getHeight());
@@ -82,7 +82,7 @@ struct RadioObject final : public ObjectBase {
 
     void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
     {
-        if(symbol == "float") {
+        if (symbol == "float") {
             value = atoms[0].getFloat();
             repaint();
         }
@@ -183,12 +183,12 @@ struct RadioObject final : public ObjectBase {
     }
 
     ObjectParameters getParameters() override
-    {        
+    {
         ObjectParameters allParameters = { { "Options", tInt, cGeneral, &max, {} } };
-           
+
         auto iemParameters = iemHelper.getParameters();
         allParameters.insert(allParameters.end(), iemParameters.begin(), iemParameters.end());
-        
+
         return allParameters;
     }
 

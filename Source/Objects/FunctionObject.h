@@ -414,11 +414,9 @@ struct FunctionObject final : public ObjectBase {
     {
         if (symbol == "send" && atoms.size() >= 1) {
             setParameterExcludingListener(sendSymbol, atoms[0].getSymbol());
-        }
-        else if (symbol == "receive" && atoms.size() >= 1) {
+        } else if (symbol == "receive" && atoms.size() >= 1) {
             setParameterExcludingListener(receiveSymbol, atoms[0].getSymbol());
-        }
-        else if(symbol == "list") {
+        } else if (symbol == "list") {
             getPointsFromFunction();
         }
         if (symbol == "min" || symbol == "max") {
@@ -428,9 +426,7 @@ struct FunctionObject final : public ObjectBase {
             getPointsFromFunction();
         }
     }
-    
+
     Value sendSymbol;
     Value receiveSymbol;
-
-    
 };

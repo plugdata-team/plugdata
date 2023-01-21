@@ -8,20 +8,20 @@ struct ToggleObject final : public ObjectBase {
     bool toggleState = false;
     bool alreadyToggled = false;
     Value nonZero;
-    
+
     IEMHelper iemHelper;
 
     ToggleObject(void* ptr, Object* object)
-    : ObjectBase(ptr, object)
-    , iemHelper(ptr, object, this)
+        : ObjectBase(ptr, object)
+        , iemHelper(ptr, object, this)
     {
     }
-    
+
     void updateBounds() override
     {
         iemHelper.updateBounds();
     }
-    
+
     void applyBounds() override
     {
         iemHelper.applyBounds();
@@ -109,21 +109,21 @@ struct ToggleObject final : public ObjectBase {
         ObjectParameters allParameters = {
             { "Non-zero value", tInt, cGeneral, &nonZero, {} }
         };
-           
+
         auto iemParameters = iemHelper.getParameters();
         allParameters.insert(allParameters.end(), iemParameters.begin(), iemParameters.end());
-        
+
         return allParameters;
     }
 
     void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
     {
-        if(symbol == "bang") {
+        if (symbol == "bang") {
             value = !value;
             toggleState = value > std::numeric_limits<float>::epsilon();
             repaint();
         }
-        if(symbol == "float") {
+        if (symbol == "float") {
             value = atoms[0].getFloat();
             toggleState = value > std::numeric_limits<float>::epsilon();
             repaint();
