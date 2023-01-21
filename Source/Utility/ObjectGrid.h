@@ -26,8 +26,9 @@ inline GridType operator&(GridType a, GridType b)
 
 class Object;
 class Canvas;
-struct ObjectGrid {
+class ObjectGrid {
 
+public:
     ObjectGrid(Canvas* parent);
 
     Point<int> handleMouseDrag(Object* toDrag, Point<int> dragOffset, Rectangle<int> viewBounds);

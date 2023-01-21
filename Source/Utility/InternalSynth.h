@@ -13,12 +13,9 @@
 // The goal is to get something similar to the "AU DLS Synth" in Max/MSP on macOS, but cross-platform
 // Since fluidsynth is alraedy included for the sfont~ object, we can reuse it here to read a GM soundfont
 
-struct InternalSynth {
+class InternalSynth {
 
-    File homeDir = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory).getChildFile("plugdata");
-
-    File soundFont = homeDir.getChildFile("Library").getChildFile("Extra").getChildFile("GS").getChildFile("FluidR3Mono_GM.sf3");
-
+public:
     InternalSynth()
     {
         // Unpack soundfont
@@ -138,6 +135,12 @@ struct InternalSynth {
     }
 
 private:
+    
+    File homeDir = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory).getChildFile("plugdata");
+
+    File soundFont = homeDir.getChildFile("Library").getChildFile("Extra").getChildFile("GS").getChildFile("FluidR3Mono_GM.sf3");
+
+    
     // Fluidsynth state
     fluid_synth_t* synth = nullptr;
     fluid_settings_t* settings = nullptr;

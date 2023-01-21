@@ -46,6 +46,8 @@ typedef struct _clone {
 
 class CloneObject final : public TextBase {
 
+    pd::Patch subpatch;
+    
 public:
     CloneObject(void* obj, Object* object)
         : TextBase(obj, object)
@@ -95,7 +97,4 @@ public:
             }
         });
     }
-
-protected:
-    pd::Patch subpatch;
 };

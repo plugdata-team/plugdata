@@ -39,7 +39,9 @@ using ObjectParameter = std::tuple<String, ParameterType, ParameterCategory, Val
 
 using ObjectParameters = std::vector<ObjectParameter>; // List of elements and update function
 
-struct Sidebar : public Component {
+class Sidebar : public Component {
+    
+public:
     explicit Sidebar(PluginProcessor* instance, PluginEditor* parent);
 
     ~Sidebar() override;

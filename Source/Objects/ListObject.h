@@ -7,7 +7,8 @@
 class ListObject final : public ObjectBase {
 
     AtomHelper atomHelper;
-
+    DraggableListNumber listLabel;
+    
 public:
     ListObject(void* obj, Object* parent)
         : ObjectBase(obj, parent)
@@ -219,7 +220,4 @@ public:
             setParameterExcludingListener(atomHelper.receiveSymbol, atoms[0].getSymbol());
         }
     };
-
-private:
-    DraggableListNumber listLabel;
 };

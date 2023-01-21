@@ -5,11 +5,12 @@
  */
 
 // Graph bounds component
-struct GraphArea : public Component
+class GraphArea : public Component
     , public ComponentDragger {
     ResizableCornerComponent resizer;
     Canvas* canvas;
 
+public:
     explicit GraphArea(Canvas* parent)
         : resizer(this, nullptr)
         , canvas(parent)

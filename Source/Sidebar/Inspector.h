@@ -6,11 +6,12 @@
 
 #include "../Utility/PropertiesPanel.h"
 
-struct Inspector : public Component {
+class Inspector : public Component {
 
     PropertiesPanel panel;
     String title;
 
+public:
     Inspector()
     {
         addAndMakeVisible(panel);
