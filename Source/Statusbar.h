@@ -58,7 +58,7 @@ public:
 };
 
 class StatusbarSource {
-    
+
 public:
     StatusbarSource();
 

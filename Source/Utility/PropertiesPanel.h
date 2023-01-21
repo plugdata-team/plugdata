@@ -11,7 +11,7 @@ class PropertiesPanel : public PropertyPanel {
 
 public:
     class Property : public PropertyComponent {
-        
+
     protected:
         bool hideLabel = false;
 

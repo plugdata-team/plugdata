@@ -8,7 +8,7 @@ class ListObject final : public ObjectBase {
 
     AtomHelper atomHelper;
     DraggableListNumber listLabel;
-    
+
 public:
     ListObject(void* obj, Object* parent)
         : ObjectBase(obj, parent)

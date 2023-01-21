@@ -376,11 +376,10 @@ public:
     };
 
     class ThemeSelector : public Component {
-        
-        
+
         Value theme;
         ValueTree settingsTree;
-        
+
     public:
         ThemeSelector(ValueTree tree)
             : settingsTree(tree)
@@ -442,7 +441,6 @@ public:
                 repaint();
             }
         }
-
     };
 
     ThemeSelector themeSelector;

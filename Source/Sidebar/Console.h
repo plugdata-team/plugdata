@@ -5,7 +5,7 @@
  */
 
 class Console : public Component {
-    
+
 public:
     explicit Console(pd::Instance* instance)
     {
@@ -109,12 +109,12 @@ public:
 
     class ConsoleComponent : public Component {
         class ConsoleMessage : public Component {
-            
+
             ConsoleComponent& console;
 
         public:
             int idx;
-            
+
             ConsoleMessage(int index, ConsoleComponent& parent)
                 : idx(index)
                 , console(parent)
@@ -200,10 +200,9 @@ public:
 
         pd::Instance* pd; // instance to get console messages from
     public:
-        
         std::deque<std::unique_ptr<ConsoleMessage>> messages;
         Array<SafePointer<ConsoleMessage>> selectedItems;
-        
+
         ConsoleComponent(pd::Instance* instance, std::array<TextButton, 5>& b, Viewport& v)
             : buttons(b)
             , viewport(v)

@@ -32,10 +32,10 @@ class ButtonObject : public ObjectBase {
 
     bool state = false;
     bool alreadyTriggered = false;
-    
+
     Value primaryColour;
     Value secondaryColour;
-    
+
 public:
     ButtonObject(void* obj, Object* parent)
         : ObjectBase(obj, parent)

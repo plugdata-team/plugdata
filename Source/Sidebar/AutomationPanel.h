@@ -120,7 +120,6 @@ public:
 
 class AutomationComponent : public Component {
 
-
 public:
     explicit AutomationComponent(PluginProcessor* processor)
         : pd(processor)
@@ -148,7 +147,7 @@ public:
 
 class AutomationPanel : public Component
     , public ScrollBar::Listener {
-        
+
 public:
     explicit AutomationPanel(PluginProcessor* processor)
         : sliders(processor)

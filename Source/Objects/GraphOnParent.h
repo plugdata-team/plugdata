@@ -5,7 +5,7 @@
  */
 
 class GraphOnParent final : public ObjectBase {
-    
+
     bool isLocked = false;
 
     Value isGraphChild = Value(var(false));
@@ -14,7 +14,7 @@ class GraphOnParent final : public ObjectBase {
 
     pd::Patch subpatch;
     std::unique_ptr<Canvas> canvas;
-    
+
 public:
     // Graph On Parent
     GraphOnParent(void* obj, Object* object)

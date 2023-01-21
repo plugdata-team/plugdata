@@ -379,7 +379,7 @@ struct ScalarObject final : public ObjectBase {
         : ObjectBase(obj, object)
     {
         cnv->pd->setThis();
-        
+
         // Make object invisible
         object->setVisible(false);
 
@@ -426,7 +426,7 @@ struct ScalarObject final : public ObjectBase {
             dynamic_cast<DrawableTemplate*>(drawable)->update();
         }
     }
-    
+
     void updateBounds() override {};
     void applyBounds() override {};
 };

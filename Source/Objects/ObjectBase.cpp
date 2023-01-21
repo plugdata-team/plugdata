@@ -58,7 +58,9 @@ extern "C" {
 class NonPatchable : public ObjectBase {
 
 public:
-    NonPatchable(void* obj, Object* parent) : ObjectBase(obj, parent) {
+    NonPatchable(void* obj, Object* parent)
+        : ObjectBase(obj, parent)
+    {
         parent->setVisible(false);
     }
 

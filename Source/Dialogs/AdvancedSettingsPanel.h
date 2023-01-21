@@ -7,7 +7,7 @@
 #pragma once
 
 class AdvancedSettingsPanel : public Component {
-    
+
 public:
     AdvancedSettingsPanel(ValueTree tree)
         : settingsTree(tree)
