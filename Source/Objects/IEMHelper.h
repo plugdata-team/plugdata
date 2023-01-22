@@ -17,7 +17,7 @@ char* pdgui_strnescape(char* dst, size_t dstlen, char const* src, size_t srclen)
 
 class IEMHelper {
 
-    Value initialise;
+
 
 public:
     IEMHelper(void* ptr, Object* parent, ObjectBase* base)
@@ -32,9 +32,6 @@ public:
         labelX = iemgui->x_ldx;
         labelY = iemgui->x_ldy;
         labelHeight = getFontHeight();
-
-        initialise = static_cast<bool>(iemgui->x_isa.x_loadinit);
-        initialise.addListener(base);
 
         sendSymbol = getSendSymbol();
         receiveSymbol = getReceiveSymbol();
@@ -69,21 +66,18 @@ public:
     }
 
     ObjectParameters getParameters()
-    {
-        ObjectParameters params;
-
-        params.push_back({ "Foreground", tColour, cAppearance, &primaryColour, {} });
-        params.push_back({ "Background", tColour, cAppearance, &secondaryColour, {} });
-        params.push_back({ "Send Symbol", tString, cGeneral, &sendSymbol, {} });
-        params.push_back({ "Receive Symbol", tString, cGeneral, &receiveSymbol, {} });
-        params.push_back({ "Label", tString, cLabel, &labelText, {} });
-        params.push_back({ "Label Colour", tColour, cLabel, &labelColour, {} });
-        params.push_back({ "Label X", tInt, cLabel, &labelX, {} });
-        params.push_back({ "Label Y", tInt, cLabel, &labelY, {} });
-        params.push_back({ "Label Height", tInt, cLabel, &labelHeight, {} });
-        params.push_back({ "Initialise", tBool, cGeneral, &initialise, { "No", "Yes" } });
-
-        return params;
+    {        
+        return {
+            { "Foreground", tColour, cAppearance, &primaryColour, {} },
+            { "Background", tColour, cAppearance, &secondaryColour, {} },
+            { "Receive Symbol", tString, cGeneral, &receiveSymbol, {} },
+            { "Send Symbol", tString, cGeneral, &sendSymbol, {} },
+            { "Label", tString, cLabel, &labelText, {} },
+            { "Label Colour", tColour, cLabel, &labelColour, {} },
+            { "Label X", tInt, cLabel, &labelX, {} },
+            { "Label Y", tInt, cLabel, &labelY, {} },
+            { "Label Height", tInt, cLabel, &labelHeight, {} }
+        };
     }
 
     void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms)
@@ -137,8 +131,6 @@ public:
         } else if (symbol == "label_font" && atoms.size() >= 2) {
             gui->setParameterExcludingListener(labelHeight, static_cast<int>(atoms[1].getFloat()));
             gui->updateLabel();
-        } else if (symbol == "init" && atoms.size() >= 1) {
-            gui->setParameterExcludingListener(initialise, static_cast<bool>(atoms[0].getFloat()));
         } else if (symbol == "vis_size" && atoms.size() >= 1) {
             pd->getCallbackLock()->enter();
             auto bounds = Rectangle<int>(iemgui->x_obj.te_xpix, iemgui->x_obj.te_ypix, atoms[0].getFloat(), atoms[1].getFloat());
@@ -196,10 +188,6 @@ public:
         } else if (v.refersToSameSourceAs(labelText)) {
             setLabelText(labelText.toString());
             gui->updateLabel();
-        } else if (v.refersToSameSourceAs(initialise)) {
-            /*
-            auto* nbx = static_cast<t_my_numbox*>(ptr);
-            nbx->x_gui.x_isa.x_loadinit = static_cast<bool>(initialise.getValue()); */
         }
     }
 

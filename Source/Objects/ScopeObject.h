@@ -327,24 +327,18 @@ public:
 
     ObjectParameters getParameters() override
     {
-        ObjectParameters params;
-
-        params.push_back({ "Background", tColour, cAppearance, &secondaryColour, {} });
-        params.push_back({ "Foreground", tColour, cAppearance, &primaryColour, {} });
-        params.push_back({ "Grid", tColour, cAppearance, &gridColour, {} });
-
-        params.push_back({ "Trigger mode", tCombo, cGeneral, &triggerMode, { "None", "Up", "Down" } });
-        params.push_back({ "Trigger value", tFloat, cGeneral, &triggerValue, {} });
-
-        params.push_back({ "Samples per point", tInt, cGeneral, &samplesPerPoint, {} });
-        params.push_back({ "Buffer size", tInt, cGeneral, &bufferSize, {} });
-        params.push_back({ "Delay", tInt, cGeneral, &delay, {} });
-
-        params.push_back({ "Signal range", tRange, cGeneral, &signalRange, {} });
-
-        params.push_back({ "Receive symbol", tString, cGeneral, &receiveSymbol, {} });
-
-        return params;
+        return {
+            { "Background", tColour, cAppearance, &secondaryColour, {} },
+            { "Foreground", tColour, cAppearance, &primaryColour, {} },
+            { "Grid", tColour, cAppearance, &gridColour, {} },
+            { "Trigger mode", tCombo, cGeneral, &triggerMode, { "None", "Up", "Down" } },
+            { "Trigger value", tFloat, cGeneral, &triggerValue, {} },
+            { "Samples per point", tInt, cGeneral, &samplesPerPoint, {} },
+            { "Buffer size", tInt, cGeneral, &bufferSize, {} },
+            { "Delay", tInt, cGeneral, &delay, {} },
+            { "Signal range", tRange, cGeneral, &signalRange, {} },
+            { "Receive symbol", tString, cGeneral, &receiveSymbol, {} }
+        };
     }
 
     void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override

@@ -87,15 +87,15 @@ public:
 
     ObjectParameters getParameters() override
     {
-        ObjectParameters params;
-        params.push_back({ "Background", tColour, cAppearance, &iemHelper.secondaryColour, {} });
-        params.push_back({ "Send Symbol", tString, cGeneral, &iemHelper.sendSymbol, {} });
-        params.push_back({ "Receive Symbol", tString, cGeneral, &iemHelper.receiveSymbol, {} });
-        params.push_back({ "Label", tString, cLabel, &iemHelper.labelText, {} });
-        params.push_back({ "Label Colour", tColour, cLabel, &iemHelper.labelColour, {} });
-        params.push_back({ "Label X", tInt, cLabel, &iemHelper.labelX, {} });
-        params.push_back({ "Label Y", tInt, cLabel, &iemHelper.labelY, {} });
-        params.push_back({ "Label Height", tInt, cLabel, &iemHelper.labelHeight, {} });
-        return params;
+        return {
+            { "Background", tColour, cAppearance, &iemHelper.secondaryColour, {} },
+            { "Send Symbol", tString, cGeneral, &iemHelper.sendSymbol, {} },
+            { "Receive Symbol", tString, cGeneral, &iemHelper.receiveSymbol, {} },
+            { "Label", tString, cLabel, &iemHelper.labelText, {} },
+            { "Label Colour", tColour, cLabel, &iemHelper.labelColour, {} },
+            { "Label X", tInt, cLabel, &iemHelper.labelX, {} },
+            { "Label Y", tInt, cLabel, &iemHelper.labelY, {} },
+            { "Label Height", tInt, cLabel, &iemHelper.labelHeight, {} },
+        };
     }
 };

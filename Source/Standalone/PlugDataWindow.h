@@ -30,6 +30,7 @@
 
 #include "../Utility/StackShadow.h"
 #include "../Utility/OSUtils.h"
+#include "../Utility/SettingsFile.h"
 
 // For each OS, we have a different approach to rendering the window shadow
 // macOS:
@@ -416,12 +417,11 @@ private:
  @tags{Audio}
  */
 class PlugDataWindow : public DocumentWindow
-    , public Value::Listener {
+    , public SettingsFileListener {
 
     Image shadowImage;
     std::unique_ptr<ResizableBorderComponent> resizer;
     std::unique_ptr<StackDropShadower> dropShadower;
-    Value useNativeWindow;
 
 public:
     typedef StandalonePluginHolder::PluginInOuts PluginInOuts;
@@ -449,7 +449,8 @@ public:
         mainComponent = new MainContentComponent(*this);
         auto* editor = mainComponent->getEditor();
 
-        auto settingsTree = getSettingsTree();
+        
+        auto settingsTree = SettingsFile::getInstance()->getValueTree();
         bool hasReloadStateProperty = settingsTree.hasProperty("ReloadLastState");
 
         // When starting with any sysargs, assume we don't want the last patch to open
@@ -463,14 +464,8 @@ public:
 
         setContentOwned(mainComponent, true);
 
-        // Attach useNativeWindow to the native window property
-        useNativeWindow.referTo(settingsTree.getPropertyAsValue("NativeWindow", nullptr));
-
-        // Listen for window style changes
-        useNativeWindow.addListener(this);
-
         // Make sure it gets updated on init
-        valueChanged(useNativeWindow);
+        propertyChanged("NativeWindow", settingsTree.getProperty("NativeWindow"));
 
         auto const getWindowScreenBounds = [this]() -> Rectangle<int> {
             const auto width = getWidth();
@@ -498,6 +493,57 @@ public:
 
         setBoundsConstrained(getWindowScreenBounds());
     }
+        
+        
+    void propertyChanged(String name, var value) override {
+        if(name == "NativeWindow") {
+            
+            bool nativeWindow = static_cast<bool>(value);
+
+            setUsingNativeTitleBar(nativeWindow);
+
+            if (!nativeWindow) {
+
+                setOpaque(false);
+
+                setResizable(false, false);
+
+                resizer = std::make_unique<ResizableBorderComponent>(this, getConstrainer());
+                resizer->setBorderThickness(BorderSize(4));
+                resizer->setAlwaysOnTop(true);
+                Component::addAndMakeVisible(resizer.get());
+
+                if (drawWindowShadow) {
+
+    #if JUCE_MAC
+                    setDropShadowEnabled(true);
+    #else
+                    setDropShadowEnabled(false);
+    #endif
+
+    #if JUCE_WINDOWS
+                    dropShadower = std::make_unique<StackDropShadower>(DropShadow(Colour(0, 0, 0).withAlpha(0.8f), 22, { 0, 3 }));
+                    dropShadower->setOwner(this);
+    #endif
+                } else {
+                    setDropShadowEnabled(false);
+                }
+            } else {
+                setOpaque(true);
+                resizer.reset(nullptr);
+                dropShadower.reset(nullptr);
+                setDropShadowEnabled(true);
+                setResizable(true, false);
+            }
+
+            if (auto* editor = getAudioProcessor()->getActiveEditor()) {
+                editor->resized();
+            }
+
+            resized();
+            repaint();
+        }
+    }
 
     int parseSystemArguments(String const& arguments);
 
@@ -513,54 +559,6 @@ public:
         return BorderSize<int>(0);
     }
 
-    // Called when switching between native vs non-native titlebar
-    void valueChanged(Value& v) override
-    {
-        bool nativeWindow = static_cast<bool>(v.getValue());
-
-        setUsingNativeTitleBar(nativeWindow);
-
-        if (!nativeWindow) {
-
-            setOpaque(false);
-
-            setResizable(false, false);
-
-            resizer = std::make_unique<ResizableBorderComponent>(this, getConstrainer());
-            resizer->setBorderThickness(BorderSize(4));
-            resizer->setAlwaysOnTop(true);
-            Component::addAndMakeVisible(resizer.get());
-
-            if (drawWindowShadow) {
-
-#if JUCE_MAC
-                setDropShadowEnabled(true);
-#else
-                setDropShadowEnabled(false);
-#endif
-
-#if JUCE_WINDOWS
-                dropShadower = std::make_unique<StackDropShadower>(DropShadow(Colour(0, 0, 0).withAlpha(0.8f), 22, { 0, 3 }));
-                dropShadower->setOwner(this);
-#endif
-            } else {
-                setDropShadowEnabled(false);
-            }
-        } else {
-            setOpaque(true);
-            resizer.reset(nullptr);
-            dropShadower.reset(nullptr);
-            setDropShadowEnabled(true);
-            setResizable(true, false);
-        }
-
-        if (auto* editor = getAudioProcessor()->getActiveEditor()) {
-            editor->resized();
-        }
-
-        resized();
-        repaint();
-    }
 
     AudioProcessor* getAudioProcessor() const noexcept
     {
@@ -605,8 +603,7 @@ public:
     }
 
     void closeAllPatches();      // implemented in PlugDataApp.cpp
-    ValueTree getSettingsTree(); // implemented in PlugDataApp.cpp
-
+        
     void maximiseButtonPressed() override
     {
 #if JUCE_LINUX

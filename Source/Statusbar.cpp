@@ -212,7 +212,9 @@ Statusbar::Statusbar(PluginProcessor* processor)
     gridButton->setClickingTogglesState(true);
     gridButton->setConnectedEdges(12);
     gridButton->setName("statusbar:grid");
-    gridButton->getToggleStateValue().referTo(pd->settingsTree.getPropertyAsValue("GridEnabled", nullptr));
+    
+    
+    gridButton->getToggleStateValue().referTo(SettingsFile::getInstance()->getPropertyAsValue("GridEnabled"));
     addAndMakeVisible(gridButton.get());
 
     powerButton->onClick = [this]() { powerButton->getToggleState() ? pd->startDSP() : pd->releaseDSP(); };

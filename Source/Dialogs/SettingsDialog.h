@@ -117,7 +117,7 @@ public:
     ~SettingsDialog() override
     {
         lastPanel = currentPanel;
-        dynamic_cast<PluginProcessor*>(audioProcessor)->saveSettings();
+        SettingsFile::getInstance()->saveSettings();
     }
 
     void resized() override

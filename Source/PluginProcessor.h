@@ -10,6 +10,7 @@
 
 #include "Pd/PdInstance.h"
 #include "Pd/PdLibrary.h"
+#include "Utility/SettingsFile.h"
 #include "LookAndFeel.h"
 #include "Statusbar.h"
 
@@ -26,7 +27,6 @@ class PluginProcessor : public AudioProcessor
     , public AudioProcessorParameter::Listener {
 public:
     PluginProcessor();
-    ~PluginProcessor() override;
 
     static AudioProcessor::BusesProperties buildBusesProperties();
 
@@ -104,7 +104,6 @@ public:
     }
 
     void initialiseFilesystem();
-    void saveSettings();
     void updateSearchPaths();
 
     void sendMidiBuffer();
@@ -134,14 +133,13 @@ public:
     std::vector<float*> channelPointers;
     std::atomic<float>* volume;
 
-    ValueTree settingsTree = ValueTree("plugdatasettings");
-
+    SettingsFile* settingsFile;
+        
     pd::Library objectLibrary;
 
     File homeDir = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory).getChildFile("plugdata");
     File versionDataDir = homeDir.getChildFile(ProjectInfo::versionString);
 
-    File settingsFile = homeDir.getChildFile("Settings.xml");
     File abstractions = versionDataDir.getChildFile("Abstractions");
 
     Value commandLocked = Value(var(false));

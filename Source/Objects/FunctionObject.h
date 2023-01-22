@@ -392,14 +392,13 @@ public:
 
     ObjectParameters getParameters() override
     {
-        ObjectParameters params;
-        params.push_back({ "Foreground", tColour, cAppearance, &primaryColour, {} });
-        params.push_back({ "Background", tColour, cAppearance, &secondaryColour, {} });
-        params.push_back({ "Range", tRange, cGeneral, &range, {} });
-        params.push_back({ "Send Symbol", tString, cGeneral, &sendSymbol, {} });
-        params.push_back({ "Receive Symbol", tString, cGeneral, &receiveSymbol, {} });
-
-        return params;
+        return {
+            { "Foreground", tColour, cAppearance, &primaryColour, {} },
+            { "Background", tColour, cAppearance, &secondaryColour, {} },
+            { "Range", tRange, cGeneral, &range, {} },
+            { "Send Symbol", tString, cGeneral, &sendSymbol, {} },
+            { "Receive Symbol", tString, cGeneral, &receiveSymbol, {} },
+        };
     }
 
     Colour colourFromHexArray(unsigned char* hex)

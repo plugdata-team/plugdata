@@ -127,35 +127,18 @@ PluginProcessor::PluginProcessor()
 
     objectLibrary.appDirChanged = [this]() {
         // If we changed the settings from within the app, don't reload
-        if (!settingsChangedInternally) {
-
-            auto newTree = ValueTree::fromXml(settingsFile.loadFileAsString());
-
-            // Prevents causing an update loop
-            if (auto* editor = dynamic_cast<PluginEditor*>(getActiveEditor())) {
-                settingsTree.removeListener(editor);
+        
+        settingsFile->reloadSettings();
+        
+        if (auto* editor = dynamic_cast<PluginEditor*>(getActiveEditor())) {
+            for (auto* cnv : editor->canvases) {
+                // Make sure inlets/outlets are updated
+                for (auto* object : cnv->objects)
+                    object->updatePorts();
             }
-
-            settingsTree.getChildWithName("Paths").copyPropertiesAndChildrenFrom(newTree.getChildWithName("Paths"), nullptr);
-
-            // Direct children shouldn't be overwritten as that would break some valueTree links, for example in SettingsDialog
-            for (auto child : settingsTree) {
-                child.copyPropertiesAndChildrenFrom(newTree.getChildWithName(child.getType()), nullptr);
-            }
-            settingsTree.copyPropertiesFrom(newTree, nullptr);
-
-            if (auto* editor = dynamic_cast<PluginEditor*>(getActiveEditor())) {
-                settingsTree.addListener(editor);
-
-                for (auto* cnv : editor->canvases) {
-                    // Make sure inlets/outlets are updated
-                    for (auto* object : cnv->objects)
-                        object->updatePorts();
-                }
-            }
-
-            setTheme(settingsTree.getProperty("Theme").toString());
         }
+
+        setTheme(settingsFile->getProperty("Theme").toString());
 
         settingsChangedInternally = false;
 
@@ -163,31 +146,31 @@ PluginProcessor::PluginProcessor()
         objectLibrary.updateLibrary();
     };
 
-    if (settingsTree.hasProperty("Theme")) {
-        auto themeName = settingsTree.getProperty("Theme").toString();
+    if (settingsFile->hasProperty("Theme")) {
+        auto themeName = settingsFile->getProperty("Theme").toString();
 
         // Make sure theme exists
-        if (!settingsTree.getChildWithName("ColourThemes").getChildWithProperty("theme", themeName).isValid()) {
+        if (!settingsFile->getChildTree("ColourThemes").getChildWithProperty("theme", themeName).isValid()) {
 
-            settingsTree.setProperty("Theme", PlugDataLook::selectedThemes[0], nullptr);
+            settingsFile->setProperty("Theme", PlugDataLook::selectedThemes[0]);
             themeName = PlugDataLook::selectedThemes[0];
         }
 
         setTheme(themeName);
-        saveSettings();
+        settingsFile->saveSettings();
     }
 
-    if (settingsTree.hasProperty("Oversampling")) {
-        oversampling = static_cast<int>(settingsTree.getProperty("Oversampling"));
+    if (settingsFile->hasProperty("Oversampling")) {
+        oversampling = static_cast<int>(settingsFile->getProperty("Oversampling"));
     }
 
 #if PLUGDATA_STANDALONE
-    if (settingsTree.hasProperty("InternalSynth")) {
-        enableInternalSynth = static_cast<int>(settingsTree.getProperty("InternalSynth"));
+    if (settingsFile->hasProperty("InternalSynth")) {
+        enableInternalSynth = static_cast<int>(settingsFile->getProperty("InternalSynth"));
     }
 #endif
 
-    auto currentThemeTree = settingsTree.getChildWithName("ColourThemes").getChildWithProperty("theme", PlugDataLook::currentTheme);
+    auto currentThemeTree = settingsFile->getChildTree("ColourThemes").getChildWithProperty("theme", PlugDataLook::currentTheme);
 
     useDashedConnection = currentThemeTree.getProperty("DashedSignalConnection");
     useStraightConnection = currentThemeTree.getProperty("StraightConnections");
@@ -218,12 +201,6 @@ PluginProcessor::PluginProcessor()
         midiOutputs.add(newOut)->startBackgroundThread();
     }
 #endif
-}
-
-PluginProcessor::~PluginProcessor()
-{
-    // Save current settings before quitting
-    saveSettings();
 }
 
 void PluginProcessor::initialiseFilesystem()
@@ -291,156 +268,14 @@ void PluginProcessor::initialiseFilesystem()
     versionDataDir.getChildFile("Extra").createSymbolicLink(library.getChildFile("Extra"), true);
     deken.createSymbolicLink(library.getChildFile("Deken"), true);
 #endif
-
-    // Check if settings file exists, if not, create the default
-    if (!settingsFile.existsAsFile()) {
-        settingsFile.create();
-
-        // Add default settings
-        settingsTree.setProperty("BrowserPath", homeDir.getChildFile("Library").getFullPathName(), nullptr);
-        settingsTree.setProperty("Theme", "light", nullptr);
-        settingsTree.setProperty("GridEnabled", 1, nullptr);
-        settingsTree.setProperty("Zoom", 1.0f, nullptr);
-
-        auto pathTree = ValueTree("Paths");
-        auto library = homeDir.getChildFile("Library");
-
-        for (auto path : pd::Library::defaultPaths) {
-            auto pathSubTree = ValueTree("Path");
-            pathSubTree.setProperty("Path", path.getFullPathName(), nullptr);
-            pathTree.appendChild(pathSubTree, nullptr);
-        }
-
-        settingsTree.appendChild(pathTree, nullptr);
-
-        settingsTree.appendChild(ValueTree("Keymap"), nullptr);
-
-        auto selectedThemes = ValueTree("SelectedThemes");
-        selectedThemes.setProperty("first", "light", nullptr);
-        selectedThemes.setProperty("second", "dark", nullptr);
-        settingsTree.appendChild(selectedThemes, nullptr);
-
-        settingsTree.setProperty("DefaultFont", "Inter", nullptr);
-        auto colourThemesTree = ValueTree::fromXml(PlugDataLook::defaultThemesXml);
-        settingsTree.appendChild(colourThemesTree, nullptr);
-        saveSettings();
-    } else {
-        // Or load the settings when they exist already
-        settingsTree = ValueTree::fromXml(settingsFile.loadFileAsString());
-
-        // Make sure all the default paths are in place
-        StringArray currentPaths;
-
-        auto pathTree = settingsTree.getChildWithName("Paths");
-        for (auto child : pathTree) {
-            currentPaths.add(child.getProperty("Path").toString());
-        }
-
-        for (auto path : pd::Library::defaultPaths) {
-            if (!currentPaths.contains(path.getFullPathName())) {
-                auto pathSubTree = ValueTree("Path");
-                pathSubTree.setProperty("Path", path.getFullPathName(), nullptr);
-                pathTree.appendChild(pathSubTree, nullptr);
-            }
-        }
-
-        if (settingsTree.hasProperty("DefaultFont")) {
-            auto fontname = settingsTree.getProperty("DefaultFont").toString();
-            PlugDataLook::setDefaultFont(fontname);
-        }
-
-        if (!settingsTree.getChildWithName("SelectedThemes").isValid()) {
-            auto selectedThemes = ValueTree("SelectedThemes");
-            selectedThemes.setProperty("first", "light", nullptr);
-            selectedThemes.setProperty("second", "dark", nullptr);
-            settingsTree.appendChild(selectedThemes, nullptr);
-        } else {
-            auto selectedThemes = settingsTree.getChildWithName("SelectedThemes");
-            PlugDataLook::selectedThemes.set(0, selectedThemes.getProperty("first").toString());
-            PlugDataLook::selectedThemes.set(1, selectedThemes.getProperty("second").toString());
-        }
-
-        if (!settingsTree.getChildWithName("ColourThemes").isValid()) {
-            auto colourThemesTree = ValueTree::fromXml(PlugDataLook::defaultThemesXml);
-            settingsTree.appendChild(colourThemesTree, nullptr);
-            saveSettings();
-        } else {
-            bool wasMissingColours = false;
-            auto colourThemesTree = settingsTree.getChildWithName("ColourThemes");
-            auto defaultThemesTree = ValueTree::fromXml(PlugDataLook::defaultThemesXml);
-
-            for (auto themeTree : colourThemesTree) {
-                auto themeName = themeTree.getProperty("theme");
-
-                if (!themeTree.hasProperty("DashedSignalConnection")) {
-                    themeTree.setProperty("DashedSignalConnection", true, nullptr);
-                }
-                if (!themeTree.hasProperty("StraightConnections")) {
-                    themeTree.setProperty("StraightConnections", false, nullptr);
-                }
-                if (!themeTree.hasProperty("ThinConnections")) {
-                    themeTree.setProperty("ThinConnections", false, nullptr);
-                }
-                if (!themeTree.hasProperty("SquareIolets")) {
-                    themeTree.setProperty("SquareIolets", false, nullptr);
-                }
-                if (!themeTree.hasProperty("SquareObjectCorners")) {
-                    themeTree.setProperty("SquareObjectCorners", false, nullptr);
-                }
-
-                if (!defaultThemesTree.getChildWithProperty("theme", themeName).isValid()) {
-                    continue;
-                }
-
-                for (auto const& [colourId, colourInfo] : PlugDataColourNames) {
-                    auto& [cId, colourName, colourCategory] = colourInfo;
-
-                    auto defaultTree = defaultThemesTree.getChildWithProperty("theme", themeName);
-
-                    // For when we add new colours in the future
-                    if (!themeTree.hasProperty(colourName)) {
-                        themeTree.setProperty(colourName, defaultTree.getProperty(colourName).toString(), nullptr);
-                        wasMissingColours = true;
-                    }
-                }
-            }
-
-            if (wasMissingColours)
-                saveSettings();
-        }
-    }
-
-    if (!settingsTree.hasProperty("NativeWindow")) {
-        settingsTree.setProperty("NativeWindow", false, nullptr);
-    }
-
-    if (!settingsTree.hasProperty("ReloadLastState")) {
-        settingsTree.setProperty("ReloadLastState", false, nullptr);
-    }
-    if (!settingsTree.hasProperty("Zoom")) {
-        settingsTree.setProperty("Zoom", 1.0f, nullptr);
-    }
-
-    if (!settingsTree.getChildWithName("Libraries").isValid()) {
-        settingsTree.appendChild(ValueTree("Libraries"), nullptr);
-    }
-
-    if (!settingsTree.hasProperty("AutoConnect")) {
-        settingsTree.setProperty("AutoConnect", true, nullptr);
-    }
-}
-
-void PluginProcessor::saveSettings()
-{
-    // Save settings to file
-    auto xml = settingsTree.toXmlString();
-    settingsFile.replaceWithText(xml);
+    
+    settingsFile = SettingsFile::getInstance()->initialise();
 }
 
 void PluginProcessor::updateSearchPaths()
 {
     // Reload pd search paths from settings
-    auto pathTree = settingsTree.getChildWithName("Paths");
+    auto pathTree = settingsFile->getChildTree("Paths");
 
     setThis();
 
@@ -463,7 +298,7 @@ void PluginProcessor::updateSearchPaths()
         libpd_add_to_search_path(path.replace("\\", "/").toRawUTF8());
     }
 
-    auto librariesTree = settingsTree.getChildWithName("Libraries");
+    auto librariesTree = settingsFile->getChildTree("Libraries");
 
     for (auto library : librariesTree) {
         if (!library.hasProperty("Name") || library.getProperty("Name").toString().isEmpty()) {
@@ -546,8 +381,8 @@ void PluginProcessor::changeProgramName(int index, String const& newName)
 
 void PluginProcessor::setOversampling(int amount)
 {
-    settingsTree.setProperty("Oversampling", var(amount), nullptr);
-    saveSettings();
+    settingsFile->setProperty("Oversampling", var(amount));
+    settingsFile->saveSettings(); // TODO: i think this is unnecessary?
 
     oversampling = amount;
     auto blockSize = AudioProcessor::getBlockSize();
@@ -1172,7 +1007,7 @@ pd::Patch* PluginProcessor::loadPatch(String patchText)
 
 void PluginProcessor::setTheme(String themeToUse)
 {
-    auto themeTree = settingsTree.getChildWithName("ColourThemes").getChildWithProperty("theme", themeToUse);
+    auto themeTree = settingsFile->getChildTree("ColourThemes").getChildWithProperty("theme", themeToUse);
     // Check if theme name is valid
     if (!themeTree.isValid()) {
         themeToUse = PlugDataLook::selectedThemes[0];

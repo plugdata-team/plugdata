@@ -73,17 +73,13 @@ public:
 
     ObjectParameters getParameters()
     {
-        ObjectParameters params;
-
-        params.push_back({ "Font size", tCombo, cGeneral, &labelHeight, { "auto", "8", "10", "12", "16", "24", "36" } });
-
-        params.push_back({ "Send Symbol", tString, cGeneral, &sendSymbol, {} });
-        params.push_back({ "Receive Symbol", tString, cGeneral, &receiveSymbol, {} });
-
-        params.push_back({ "Label", tString, cLabel, &labelText, {} });
-        params.push_back({ "Label Position", tCombo, cLabel, &labelPosition, { "left", "right", "top", "bottom" } });
-
-        return params;
+        return {
+            { "Font size", tCombo, cGeneral, &labelHeight, { "auto", "8", "10", "12", "16", "24", "36" } },
+            { "Send Symbol", tString, cGeneral, &sendSymbol, {} },
+            { "Receive Symbol", tString, cGeneral, &receiveSymbol, {} },
+            { "Label", tString, cLabel, &labelText, {} },
+            { "Label Position", tCombo, cLabel, &labelPosition, { "left", "right", "top", "bottom" } }
+        };
     }
 
     void valueChanged(Value& v)
