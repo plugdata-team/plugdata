@@ -31,7 +31,7 @@ public:
     
     SettingsFile* initialise() {
         
-        if(isInitialised) return;
+        if(isInitialised) return getInstance();
         
         isInitialised = true;
         
