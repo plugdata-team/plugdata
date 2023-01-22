@@ -206,6 +206,7 @@ public:
         StringArray iconText = { Icons::New, Icons::Open, Icons::Save, Icons::SaveAs, Icons::Settings, Icons::Info, Icons::History };
 
         Array<Image> icons;
+    
 
         for (int i = 0; i < iconText.size(); i++) {
             icons.add(Image(Image::ARGB, 32, 32, true));
@@ -216,57 +217,61 @@ public:
             g.drawText(iconText[i], 0, 0, 32, 32, Justification::right);
         }
 
-        addItem(1, "New patch", true, false, icons[0]);
+        addCustomItem(1, *menuItems[0], 70, 22, true, nullptr, "New patch");
 
         addSeparator();
 
-        addItem(2, "Open patch...", true, false, icons[1]);
+        addCustomItem(2, *menuItems[1], 70, 22, true, nullptr, "Open patch");
 
-        PopupMenu recentlyOpened;
+        auto recentlyOpened = new PopupMenu();
 
         auto recentlyOpenedTree = tree.getChildWithName("RecentlyOpened");
         if (recentlyOpenedTree.isValid()) {
             for (int i = 0; i < recentlyOpenedTree.getNumChildren(); i++) {
                 auto path = File(recentlyOpenedTree.getChild(i).getProperty("Path").toString());
-                recentlyOpened.addItem(path.getFileName(), [this, path, editor]() mutable {
+                recentlyOpened->addItem(path.getFileName(), [this, path, editor]() mutable {
                     editor->pd->loadPatch(path);
                     editor->addToRecentlyOpened(path);
                 });
             }
+            
+            menuItems[2]->isActive = recentlyOpenedTree.getNumChildren() > 0;
         }
+        
+        auto recentlyOpenedOwner = std::unique_ptr<const PopupMenu>(recentlyOpened);
+        
+        addCustomItem(100, *menuItems[2], 70, 22, false, std::move(recentlyOpenedOwner), "Recently opened");
 
-        addSubMenu("Recently opened", recentlyOpened, true, icons[6]);
+        addSeparator();
+        addCustomItem(3, *menuItems[3], 70, 22, true, nullptr, "Save patch");
+        addCustomItem(4, *menuItems[4], 70, 22, true, nullptr, "Save patch as");
 
         addSeparator();
 
-        addItem(3, "Save patch", editor->getCurrentCanvas() != nullptr, false, icons[2]);
-        addItem(4, "Save patch as...", editor->getCurrentCanvas() != nullptr, false, icons[3]);
+        addCustomItem(5, *menuItems[5], 70, 22, true, nullptr, "Compiled mode");
+        addCustomItem(6, *menuItems[6], 70, 22, true, nullptr, "Compile...");
+                
+        addSeparator();
+        
+        addCustomItem(7, *menuItems[7], 70, 22, true, nullptr, "Auto-connect objects");
 
         addSeparator();
-
+        
+        addCustomItem(8, *menuItems[8], 70, 22, true, nullptr, "Settings...");
+        addCustomItem(9, *menuItems[9], 70, 22, true, nullptr, "About...");
+        
+        
         // Toggles hvcc compatibility mode
         bool hvccModeEnabled = settingsTree.hasProperty("HvccMode") ? static_cast<bool>(settingsTree.getProperty("HvccMode")) : false;
-        addItem("Compiled mode", true, hvccModeEnabled, [this]() mutable {
-            bool ticked = settingsTree.hasProperty("HvccMode") ? static_cast<bool>(settingsTree.getProperty("HvccMode")) : false;
-            settingsTree.setProperty("HvccMode", !ticked, nullptr);
-        });
-
-        addItem("Compile...", [this, editor]() mutable {
-            Dialogs::showHeavyExportDialog(&editor->openedDialog, editor);
-        });
-
-        addSeparator();
-
         bool autoconnectEnabled = settingsTree.hasProperty("AutoConnect") ? static_cast<bool>(settingsTree.getProperty("AutoConnect")) : false;
+        bool hasCanvas = editor->getCurrentCanvas() != nullptr;;
+        
+        menuItems[3]->isActive = hasCanvas;
+        menuItems[4]->isActive = hasCanvas;
+        
+        menuItems[5]->isTicked = hvccModeEnabled;
+        menuItems[7]->isTicked = autoconnectEnabled;
 
-        addItem("Auto-connect objects", true, autoconnectEnabled, [this]() mutable {
-            bool ticked = settingsTree.hasProperty("AutoConnect") ? static_cast<bool>(settingsTree.getProperty("AutoConnect")) : false;
-            settingsTree.setProperty("AutoConnect", !ticked, nullptr);
-        });
-
-        addSeparator();
-        addItem(5, "Settings...", true, false, icons[4]);
-        addItem(6, "About...", true, false, icons[5]);
     }
 
     static void showSettingsPopup(AudioProcessor* processor, AudioDeviceManager* manager, Component* centre, ValueTree settingsTree)
@@ -274,8 +279,8 @@ public:
         auto* popup = new SettingsPopup(processor, settingsTree);
         auto* editor = dynamic_cast<PluginEditor*>(processor->getActiveEditor());
 
-        popup->showMenuAsync(PopupMenu::Options().withMinimumWidth(170).withMaximumNumColumns(1).withTargetComponent(centre).withParentComponent(editor),
-            [editor, processor, popup, manager, centre, settingsTree](int result) {
+        popup->showMenuAsync(PopupMenu::Options().withMinimumWidth(220).withMaximumNumColumns(1).withTargetComponent(centre).withParentComponent(editor),
+            [editor, processor, popup, manager, centre, settingsTree](int result) mutable {
                 if (result == 1) {
                     editor->newProject();
                 }
@@ -288,14 +293,25 @@ public:
                 if (result == 4 && editor->getCurrentCanvas()) {
                     editor->saveProjectAs();
                 }
-                if (result == 5) {
+                if(result == 5) {
+                    bool ticked = settingsTree.hasProperty("HvccMode") ? static_cast<bool>(settingsTree.getProperty("HvccMode")) : false;
+                    settingsTree.setProperty("HvccMode", !ticked, nullptr);
+                }
+                if(result == 6) {
+                    Dialogs::showHeavyExportDialog(&editor->openedDialog, editor);
+                }
+                if(result == 7) {
+                    bool ticked = settingsTree.hasProperty("AutoConnect") ? static_cast<bool>(settingsTree.getProperty("AutoConnect")) : false;
+                    settingsTree.setProperty("AutoConnect", !ticked, nullptr);
+                }
+                if (result == 8) {
 
                     auto* dialog = new Dialog(&editor->openedDialog, editor, 675, 500, editor->getBounds().getCentreY() + 250, true);
                     auto* settingsDialog = new SettingsDialog(processor, dialog, manager, settingsTree);
                     dialog->setViewedComponent(settingsDialog);
                     editor->openedDialog.reset(dialog);
                 }
-                if (result == 6) {
+                if (result == 9) {
                     auto* dialog = new Dialog(&editor->openedDialog, editor, 675, 500, editor->getBounds().getCentreY() + 250, true);
                     auto* aboutPanel = new AboutPanel();
                     dialog->setViewedComponent(aboutPanel);
@@ -374,6 +390,108 @@ public:
             zoomIn.setBounds(bounds.removeFromLeft(buttonWidth).expanded(1, 0));
         }
     };
+    
+    class IconMenuItem : public Component {
+        
+        String menuItemIcon;
+        String menuItemText;
+
+        bool hasSubMenu;
+        bool isMouseOver = false;
+
+        
+    public:
+        bool isTicked = false;
+        bool isActive = true;
+        
+        IconMenuItem(String icon, String text, bool hasChildren)
+        : menuItemIcon(icon)
+        , menuItemText(text)
+        , hasSubMenu(hasChildren)
+        {
+            
+        }
+        
+        void mouseEnter(const MouseEvent& e)
+        {
+            isMouseOver = true;
+            repaint();
+        }
+        
+        void mouseExit(const MouseEvent& e) {
+            isMouseOver = false;
+            repaint();
+        }
+        
+        void paint(Graphics& g)
+        {
+            
+            if(auto* parent = findParentComponentOfClass<PopupMenu>()) {
+                //isMouseOver = parent->isMouseOver();
+            }
+            
+            auto r = getLocalBounds().reduced(0, 1);
+
+            if (isMouseOver && isActive) {
+                g.setColour(findColour(PlugDataColour::popupMenuActiveBackgroundColourId));
+                g.fillRoundedRectangle(r.toFloat().reduced(2, 0), 4.0f);
+
+                g.setColour(findColour(PlugDataColour::popupMenuActiveTextColourId));
+            } else {
+                g.setColour(findColour(PopupMenu::textColourId).withMultipliedAlpha(isActive ? 1.0f : 0.5f));
+            }
+
+            r.reduce(jmin(5, r.getWidth() / 20), 0);
+
+            auto maxFontHeight = (float)r.getHeight() / 1.3f;
+
+            auto& lnf = dynamic_cast<PlugDataLook&>(getLookAndFeel());
+            auto iconArea = r.removeFromLeft(roundToInt(maxFontHeight));
+            
+            if(menuItemIcon.isNotEmpty()) {
+                g.setFont(lnf.iconFont.withHeight(std::min(15.0f, maxFontHeight)));
+                
+                g.drawFittedText(menuItemIcon, iconArea, Justification::centredLeft, 1);
+            }
+            else if (isTicked) {
+                auto tick = lnf.getTickShape(1.0f);
+                g.fillPath(tick, tick.getTransformToScaleToFit(iconArea.reduced(iconArea.getWidth() / 5, 0).toFloat(), true));
+            }
+            
+            r.removeFromLeft(roundToInt(maxFontHeight * 0.5f));
+
+            auto font = Font(std::min(17.0f, maxFontHeight));
+            
+            g.setFont(font);
+            
+            if (hasSubMenu) {
+                auto arrowH = 0.6f * font.getAscent();
+
+                auto x = static_cast<float>(r.removeFromRight((int)arrowH).getX());
+                auto halfH = static_cast<float>(r.getCentreY());
+
+                Path path;
+                path.startNewSubPath(x, halfH - arrowH * 0.5f);
+                path.lineTo(x + arrowH * 0.6f, halfH);
+                path.lineTo(x, halfH + arrowH * 0.5f);
+
+                g.strokePath(path, PathStrokeType(2.0f));
+            }
+
+            r.removeFromRight(3);
+            g.drawFittedText(menuItemText, r, Justification::centredLeft, 1);
+
+            /*
+            if (shortcutKeyText.isNotEmpty()) {
+                auto f2 = font;
+                f2.setHeight(f2.getHeight() * 0.75f);
+                f2.setHorizontalScale(0.95f);
+                g.setFont(f2);
+
+                g.drawText(shortcutKeyText, r.translated(-2, 0), Justification::centredRight, true);
+            } */
+        }
+    };
 
     class ThemeSelector : public Component {
 
@@ -447,4 +565,21 @@ public:
     ZoomSelector zoomSelector;
 
     ValueTree settingsTree;
+    
+    OwnedArray<IconMenuItem> menuItems = {
+        new IconMenuItem(Icons::New, "New patch", false),
+        new IconMenuItem(Icons::Open, "Open patch", false),
+        new IconMenuItem(Icons::History, "Recently opened", true),
+        
+        new IconMenuItem(Icons::Save, "Save patch", false),
+        new IconMenuItem(Icons::SaveAs, "Save patch as", false),
+        
+        new IconMenuItem("", "Compiled Mode", false),
+        new IconMenuItem("", "Compile...", false),
+        
+        new IconMenuItem("", "Auto-connect objects", false),
+        
+        new IconMenuItem(Icons::Settings, "Settings...", false),
+        new IconMenuItem(Icons::Info, "About...", false),
+    };
 };
