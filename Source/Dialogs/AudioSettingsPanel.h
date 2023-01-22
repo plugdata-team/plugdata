@@ -3,6 +3,7 @@
  // For information on usage and redistribution, and for a DISCLAIMER OF ALL
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
+#include <JuceHeader.h>
 
 #if PLUGDATA_STANDALONE
 
@@ -103,7 +104,7 @@ public:
     void resized() override
     {
         auto extra = getOutlineThickness() * 2;
-        setSize(getWidth(), jmin(4 * getRowHeight(), items.size() * getRowHeight()) + extra);
+        setSize(getWidth(), jmin(8 * getRowHeight(), items.size() * getRowHeight()) + extra);
         RoundedListBox::resized();
     }
 
@@ -127,9 +128,6 @@ public:
     void paintListBoxItem(int row, Graphics& g, int width, int height, bool rowIsSelected) override
     {
         if (isPositiveAndBelow(row, items.size())) {
-            if (rowIsSelected)
-                g.fillAll(findColour(TextEditor::highlightColourId).withMultipliedAlpha(0.3f));
-
             auto item = items[row];
 
             bool enabled = isInput ? deviceManager.isMidiInputDeviceEnabled(item.identifier) : (getEnabledMidiOutputWithID(item.identifier) != nullptr);
@@ -342,7 +340,7 @@ public:
 
         if (midiInputsList != nullptr) {
             midiInputsList->setRowHeight(jmin(22, itemHeight));
-            midiInputsList->setBounds(r.removeFromTop(midiInputsList->getBestHeight(jmin(itemHeight * 8, getHeight() - r.getY() - space - itemHeight))));
+            midiInputsList->setBounds(r.removeFromTop(midiInputsList->getHeight()));
             r.removeFromTop(space);
         }
 
@@ -353,8 +351,8 @@ public:
 
         if (midiOutputsList != nullptr) {
             midiOutputsList->setRowHeight(jmin(22, itemHeight));
-            midiOutputsList->setBounds(r.removeFromTop(midiOutputsList->getBestHeight(jmin(itemHeight * 8, getHeight() - r.getY() - space - itemHeight))));
-            r.removeFromTop(itemHeight / 2); // FIXME this is a heuristic
+            midiOutputsList->setBounds(r.removeFromTop(midiOutputsList->getHeight()));
+            r.removeFromTop(space);
         }
 
         r.removeFromTop(itemHeight);
