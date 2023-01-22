@@ -323,15 +323,13 @@ public:
     }
 };
 
-struct WelcomeButton;
+class WelcomeButton;
 class Canvas;
 class PluginProcessor;
 class PluginEditor : public AudioProcessorEditor
     , public Value::Listener
-    , public ValueTree::Listener
     , public ApplicationCommandTarget
     , public ApplicationCommandManager
-    , public Timer
     , public FileDragAndDropTarget {
 public:
     enum ToolbarButtonType {
@@ -389,13 +387,7 @@ public:
     void getCommandInfo(const CommandID commandID, ApplicationCommandInfo& result) override;
     bool perform(InvocationInfo const& info) override;
 
-    void valueTreePropertyChanged(ValueTree& treeWhosePropertyHasChanged, Identifier const& property) override;
-    void valueTreeChildAdded(ValueTree& parentTree, ValueTree& childWhichHasBeenAdded) override;
-    void valueTreeChildRemoved(ValueTree& parentTree, ValueTree& childWhichHasBeenRemoved, int indexFromWhichChildWasRemoved) override;
-
     void addToRecentlyOpened(File path);
-
-    void timerCallback() override;
 
     TextButton* toolbarButton(ToolbarButtonType type)
     {

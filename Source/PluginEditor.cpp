@@ -63,16 +63,16 @@ PluginEditor::PluginEditor(PluginProcessor& p)
 
     addKeyListener(getKeyMappings());
 
-    pd->settingsTree.addListener(this);
-
     setWantsKeyboardFocus(true);
     registerAllCommandsForTarget(this);
 
     for (auto& seperator : seperators) {
         addChildComponent(&seperator);
     }
+    
+    auto* settingsFile = SettingsFile::getInstance();
 
-    auto keymap = p.settingsTree.getChildWithName("Keymap");
+    auto keymap = settingsFile->getChildTree("Keymap");
     if (keymap.isValid()) {
         auto xmlStr = keymap.getProperty("keyxml").toString();
         auto elt = XmlDocument(xmlStr).getDocumentElement();
@@ -81,19 +81,19 @@ PluginEditor::PluginEditor(PluginProcessor& p)
             getKeyMappings()->restoreFromXml(*elt);
         }
     } else {
-        p.settingsTree.appendChild(ValueTree("Keymap"), nullptr);
+        settingsFile->getValueTree().appendChild(ValueTree("Keymap"), nullptr);
     }
 
-    autoconnect.referTo(pd->settingsTree.getPropertyAsValue("AutoConnect", nullptr));
+    autoconnect.referTo(settingsFile->getPropertyAsValue("AutoConnect"));
 
-    theme.referTo(pd->settingsTree.getPropertyAsValue("Theme", nullptr));
+    theme.referTo(settingsFile->getPropertyAsValue("Theme"));
     theme.addListener(this);
 
-    if (!pd->settingsTree.hasProperty("HvccMode"))
-        pd->settingsTree.setProperty("HvccMode", false, nullptr);
-    hvccMode.referTo(pd->settingsTree.getPropertyAsValue("HvccMode", nullptr));
+    if (!settingsFile->hasProperty("HvccMode"))
+        settingsFile->setProperty("HvccMode", false);
+    hvccMode.referTo(settingsFile->getPropertyAsValue("HvccMode"));
 
-    zoomScale.referTo(pd->settingsTree.getPropertyAsValue("Zoom", nullptr));
+    zoomScale.referTo(settingsFile->getPropertyAsValue("Zoom"));
     zoomScale.addListener(this);
 
     addAndMakeVisible(statusbar);
@@ -148,9 +148,9 @@ PluginEditor::PluginEditor(PluginProcessor& p)
         // Initialise settings dialog for DAW and standalone
         auto* pluginHolder = findParentComponentOfClass<PlugDataWindow>()->getPluginHolder();
 
-        Dialogs::createSettingsDialog(pd, &pluginHolder->deviceManager, toolbarButton(Settings), pd->settingsTree);
+        Dialogs::createSettingsDialog(pd, &pluginHolder->deviceManager, toolbarButton(Settings), pd->settingsFile->getValueTree());
 #else
-        Dialogs::createSettingsDialog(pd, nullptr, toolbarButton(Settings), pd->settingsTree);
+        Dialogs::createSettingsDialog(pd, nullptr, toolbarButton(Settings), pd->settingsFile->getValueTree());
 #endif
     };
 
@@ -221,7 +221,6 @@ PluginEditor::~PluginEditor()
 {
     setConstrainer(nullptr);
 
-    pd->settingsTree.removeListener(this);
     zoomScale.removeListener(this);
     theme.removeListener(this);
 
@@ -284,7 +283,7 @@ void PluginEditor::resized()
     toolbarButton(Add)->setBounds(260, 0, toolbarHeight, toolbarHeight);
 
 #ifdef PLUGDATA_STANDALONE
-    auto useNativeTitlebar = static_cast<bool>(pd->settingsTree.getProperty("NativeWindow"));
+    auto useNativeTitlebar = static_cast<bool>(SettingsFile::getInstance()->getProperty("NativeWindow"));
     auto windowControlsOffset = useNativeTitlebar ? 70.0f : 170.0f;
 #else
     auto windowControlsOffset = 70.0f;
@@ -419,11 +418,11 @@ void PluginEditor::newProject()
 
 void PluginEditor::addToRecentlyOpened(File path)
 {
-    auto recentlyOpened = pd->settingsTree.getChildWithName("RecentlyOpened");
+    auto recentlyOpened = SettingsFile::getInstance()->getChildTree("RecentlyOpened");
 
     if (!recentlyOpened.isValid()) {
         recentlyOpened = ValueTree("RecentlyOpened");
-        pd->settingsTree.appendChild(recentlyOpened, nullptr);
+        SettingsFile::getInstance()->getValueTree().appendChild(recentlyOpened, nullptr);
     }
 
     if (recentlyOpened.getChildWithProperty("Path", path.getFullPathName()).isValid()) {
@@ -462,28 +461,28 @@ void PluginEditor::openProject()
         File openedFile = f.getResult();
 
         if (openedFile.exists() && openedFile.getFileExtension().equalsIgnoreCase(".pd")) {
-            pd->settingsTree.setProperty("LastChooserPath", openedFile.getParentDirectory().getFullPathName(), nullptr);
+            SettingsFile::getInstance()->setProperty("LastChooserPath", openedFile.getParentDirectory().getFullPathName());
 
             pd->loadPatch(openedFile);
             addToRecentlyOpened(openedFile);
         }
     };
 
-    openChooser = std::make_unique<FileChooser>("Choose file to open", File(pd->settingsTree.getProperty("LastChooserPath")), "*.pd", wantsNativeDialog());
+    openChooser = std::make_unique<FileChooser>("Choose file to open", File(SettingsFile::getInstance()->getProperty("LastChooserPath")), "*.pd", wantsNativeDialog());
 
     openChooser->launchAsync(FileBrowserComponent::openMode | FileBrowserComponent::canSelectFiles, openFunc);
 }
 
 void PluginEditor::saveProjectAs(std::function<void()> const& nestedCallback)
 {
-    saveChooser = std::make_unique<FileChooser>("Select a save file", File(pd->settingsTree.getProperty("LastChooserPath")), "*.pd", wantsNativeDialog());
+    saveChooser = std::make_unique<FileChooser>("Select a save file", File(SettingsFile::getInstance()->getProperty("LastChooserPath")), "*.pd", wantsNativeDialog());
 
     saveChooser->launchAsync(FileBrowserComponent::saveMode | FileBrowserComponent::warnAboutOverwriting,
         [this, nestedCallback](FileChooser const& f) mutable {
             File result = saveChooser->getResult();
 
             if (result.getFullPathName().isNotEmpty()) {
-                pd->settingsTree.setProperty("LastChooserPath", result.getParentDirectory().getFullPathName(), nullptr);
+                SettingsFile::getInstance()->setProperty("LastChooserPath", result.getParentDirectory().getFullPathName());
 
                 result.deleteFile();
                 result = result.withFileExtension(".pd");
@@ -678,29 +677,6 @@ void PluginEditor::valueChanged(Value& v)
     }
 }
 
-void PluginEditor::valueTreePropertyChanged(ValueTree& treeWhosePropertyHasChanged, Identifier const& property)
-{
-    pd->settingsChangedInternally = true;
-    startTimer(300);
-}
-void PluginEditor::valueTreeChildAdded(ValueTree& parentTree, ValueTree& childWhichHasBeenAdded)
-{
-    pd->settingsChangedInternally = true;
-    startTimer(300);
-}
-void PluginEditor::valueTreeChildRemoved(ValueTree& parentTree, ValueTree& childWhichHasBeenRemoved, int indexFromWhichChildWasRemoved)
-{
-    pd->settingsChangedInternally = true;
-    startTimer(300);
-}
-
-void PluginEditor::timerCallback()
-{
-    // Save settings to file whenever valuetree state changes
-    // Use timer to group changes together
-    pd->saveSettings();
-    stopTimer();
-}
 
 void PluginEditor::modifierKeysChanged(ModifierKeys const& modifiers)
 {
@@ -1005,7 +981,7 @@ void PluginEditor::getCommandInfo(const CommandID commandID, ApplicationCommandI
         { NewBang, { 66, cmdMod | shiftMod } },
         { NewMessage, { 50, cmdMod } },
         { NewToggle, { 84, cmdMod | shiftMod } },
-        { NewNumbox, { 70, cmdMod | shiftMod } },
+        { NewNumbox, { 78, cmdMod | shiftMod } },
         { NewVerticalSlider, { 86, cmdMod | shiftMod } },
         { NewHorizontalSlider, { 74, cmdMod | shiftMod } },
         { NewVerticalRadio, { 68, cmdMod | shiftMod } },
@@ -1179,14 +1155,14 @@ bool PluginEditor::perform(InvocationInfo const& info)
         return true;
     }
     case CommandIDs::ToggleGrid: {
-        auto value = static_cast<bool>(pd->settingsTree.getProperty("GridEnabled"));
-        pd->settingsTree.setProperty("GridEnabled", !value, nullptr);
+        auto value = static_cast<bool>(SettingsFile::getInstance()->getProperty("GridEnabled"));
+        SettingsFile::getInstance()->setProperty("GridEnabled", !value);
 
         return true;
     }
     case CommandIDs::ClearConsole: {
-        auto value = static_cast<bool>(pd->settingsTree.getProperty("GridEnabled"));
-        pd->settingsTree.setProperty("GridEnabled", !value, nullptr);
+        auto value = static_cast<bool>(SettingsFile::getInstance()->getProperty("GridEnabled"));
+        SettingsFile::getInstance()->setProperty("GridEnabled", !value);
 
         sidebar.clearConsole();
 

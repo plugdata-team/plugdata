@@ -127,9 +127,7 @@ void Sidebar::paintOverChildren(Graphics& g)
 void Sidebar::resized()
 {
     auto bounds = getLocalBounds();
-
     auto tabbarBounds = bounds.removeFromTop(26);
-
     int buttonWidth = getWidth() / 4;
 
     consoleButton.setBounds(tabbarBounds.removeFromLeft(buttonWidth));
