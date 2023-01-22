@@ -273,7 +273,7 @@ public:
                 }
                 if (selectedThemes.getProperty("second").toString() == themeName) {
                     selectedThemes.setProperty("second", "dark", nullptr);
-                    PlugDataLook::selectedThemes.set(0, "dark");
+                    PlugDataLook::selectedThemes.set(1, "dark");
                 }
 
                 updateThemes();

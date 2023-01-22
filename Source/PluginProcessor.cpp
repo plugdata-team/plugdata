@@ -82,8 +82,9 @@ PluginProcessor::PluginProcessor()
 
         LookAndFeel::setDefaultLookAndFeel(&lnf.get());
 
-        // On first startup, initialise abstractions and settings
+        // Initialise directory structure and settings file
         initialiseFilesystem();
+        settingsFile = SettingsFile::getInstance()->initialise();
     }
 
     parameters.createAndAddParameter(std::make_unique<AudioParameterFloat>(ParameterID("volume", 1), "Volume", NormalisableRange<float>(0.0f, 1.0f, 0.001f, 0.75f, false), 1.0f));
@@ -91,8 +92,6 @@ PluginProcessor::PluginProcessor()
     // General purpose automation parameters you can get by using "receive param1" etc.
     for (int n = 0; n < numParameters; n++) {
         auto id = ParameterID("param" + String(n + 1), 1);
-        // auto* parameter = parameters.createAndAddParameter(std::make_unique<PlugDataParameter>(this, "Parameter " + String(n + 1),  "", 0.0f));
-
         auto* parameter = parameters.createAndAddParameter(std::make_unique<AudioParameterFloat>(id, "Parameter " + String(n + 1), 0.0f, 1.0f, 0.0f));
 
         lastParameters[n] = 0;
@@ -140,8 +139,6 @@ PluginProcessor::PluginProcessor()
 
         setTheme(settingsFile->getProperty("Theme").toString());
 
-        settingsChangedInternally = false;
-
         updateSearchPaths();
         objectLibrary.updateLibrary();
     };
@@ -150,7 +147,7 @@ PluginProcessor::PluginProcessor()
         auto themeName = settingsFile->getProperty("Theme").toString();
 
         // Make sure theme exists
-        if (!settingsFile->getChildTree("ColourThemes").getChildWithProperty("theme", themeName).isValid()) {
+        if (!settingsFile->getTheme(themeName).isValid()) {
 
             settingsFile->setProperty("Theme", PlugDataLook::selectedThemes[0]);
             themeName = PlugDataLook::selectedThemes[0];
@@ -170,7 +167,7 @@ PluginProcessor::PluginProcessor()
     }
 #endif
 
-    auto currentThemeTree = settingsFile->getChildTree("ColourThemes").getChildWithProperty("theme", PlugDataLook::currentTheme);
+    auto currentThemeTree = settingsFile->getTheme(PlugDataLook::currentTheme);
 
     useDashedConnection = currentThemeTree.getProperty("DashedSignalConnection");
     useStraightConnection = currentThemeTree.getProperty("StraightConnections");
@@ -268,14 +265,12 @@ void PluginProcessor::initialiseFilesystem()
     versionDataDir.getChildFile("Extra").createSymbolicLink(library.getChildFile("Extra"), true);
     deken.createSymbolicLink(library.getChildFile("Deken"), true);
 #endif
-    
-    settingsFile = SettingsFile::getInstance()->initialise();
 }
 
 void PluginProcessor::updateSearchPaths()
 {
     // Reload pd search paths from settings
-    auto pathTree = settingsFile->getChildTree("Paths");
+    auto pathTree = settingsFile->getPathsTree();
 
     setThis();
 
@@ -298,7 +293,7 @@ void PluginProcessor::updateSearchPaths()
         libpd_add_to_search_path(path.replace("\\", "/").toRawUTF8());
     }
 
-    auto librariesTree = settingsFile->getChildTree("Libraries");
+    auto librariesTree = settingsFile->getLibrariesTree();
 
     for (auto library : librariesTree) {
         if (!library.hasProperty("Name") || library.getProperty("Name").toString().isEmpty()) {
@@ -1007,7 +1002,7 @@ pd::Patch* PluginProcessor::loadPatch(String patchText)
 
 void PluginProcessor::setTheme(String themeToUse)
 {
-    auto themeTree = settingsFile->getChildTree("ColourThemes").getChildWithProperty("theme", themeToUse);
+    auto themeTree = settingsFile->getTheme(themeToUse);
     // Check if theme name is valid
     if (!themeTree.isValid()) {
         themeToUse = PlugDataLook::selectedThemes[0];

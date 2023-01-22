@@ -160,8 +160,6 @@ public:
     int oversampling = 0;
     int lastTab = -1;
 
-    bool settingsChangedInternally = false;
-
 #if PLUGDATA_STANDALONE
     std::atomic<float> standaloneParams[numParameters] = { 0 };
     OwnedArray<MidiOutput> midiOutputs;

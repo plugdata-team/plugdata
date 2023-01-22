@@ -72,7 +72,7 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     
     auto* settingsFile = SettingsFile::getInstance();
 
-    auto keymap = settingsFile->getChildTree("Keymap");
+    auto keymap = settingsFile->getKeyMapTree();
     if (keymap.isValid()) {
         auto xmlStr = keymap.getProperty("keyxml").toString();
         auto elt = XmlDocument(xmlStr).getDocumentElement();
@@ -418,7 +418,7 @@ void PluginEditor::newProject()
 
 void PluginEditor::addToRecentlyOpened(File path)
 {
-    auto recentlyOpened = SettingsFile::getInstance()->getChildTree("RecentlyOpened");
+    auto recentlyOpened = SettingsFile::getInstance()->getRecentlyOpenedTree();
 
     if (!recentlyOpened.isValid()) {
         recentlyOpened = ValueTree("RecentlyOpened");
