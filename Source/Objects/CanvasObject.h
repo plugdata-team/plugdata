@@ -18,6 +18,11 @@ public:
         object->setColour(PlugDataColour::outlineColourId, Colours::transparentBlack);
         locked = static_cast<bool>(object->locked.getValue());
     }
+    
+    void updateLabel() override
+    {
+        iemHelper.updateLabel(label);
+    }
 
     void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
     {

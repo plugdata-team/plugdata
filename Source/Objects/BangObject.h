@@ -29,6 +29,11 @@ public:
     {
         iemHelper.initialiseParameters();
     }
+    
+    void updateLabel() override
+    {
+        iemHelper.updateLabel(label);
+    }
 
     void updateBounds() override
     {

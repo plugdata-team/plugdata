@@ -18,11 +18,11 @@ struct SettingsFileListener
 };
 
 // Class that manages the settings file
-class SettingsFile : public ValueTree::Listener, public Timer
+class SettingsFile : public ValueTree::Listener, public Timer, public DeletedAtShutdown
 {
 public:
     
-    ~SettingsFile() {
+    virtual ~SettingsFile() {
         // Save current settings before quitting
         saveSettings();
         

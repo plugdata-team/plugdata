@@ -14,6 +14,11 @@ public:
         , iemHelper(ptr, object, this)
     {
     }
+    
+    void updateLabel() override
+    {
+        iemHelper.updateLabel(label);
+    }
 
     void valueChanged(Value& v) override
     {

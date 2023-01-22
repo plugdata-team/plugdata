@@ -167,6 +167,7 @@ Instance::Instance(String const& symbol)
         }
 
         // If any pointers were invalid, clean them up
+        // TODO: profile if this is really the best place to do that
         if (cleanUp) {
             for (int i = listeners[target].size() - 1; i >= 0; i--) {
                 if (!listeners[target][i]) {
