@@ -409,27 +409,26 @@ public:
         , menuItemText(text)
         , hasSubMenu(hasChildren)
         {
-            
+            Desktop::getInstance().addGlobalMouseListener(this);
         }
         
-        void mouseEnter(const MouseEvent& e)
+        ~IconMenuItem() {
+            Desktop::getInstance().removeGlobalMouseListener(this);
+        }
+        
+        
+        void mouseMove(const MouseEvent& e) override
         {
-            isMouseOver = true;
-            repaint();
-        }
-        
-        void mouseExit(const MouseEvent& e) {
-            isMouseOver = false;
-            repaint();
-        }
-        
-        void paint(Graphics& g)
-        {
-            
-            if(auto* parent = findParentComponentOfClass<PopupMenu>()) {
-                //isMouseOver = parent->isMouseOver();
+            if(getScreenBounds().contains(e.getScreenPosition())) {
+                isMouseOver = true;
             }
-            
+            else {
+                isMouseOver = false;
+            }
+        }
+        
+        void paint(Graphics& g) override
+        {
             auto r = getLocalBounds().reduced(0, 1);
 
             if (isMouseOver && isActive) {

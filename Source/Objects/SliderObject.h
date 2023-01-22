@@ -68,6 +68,11 @@ public:
             draggingSlider = false;
         };
     }
+    
+    void updateLabel() override
+    {
+        iemHelper.updateLabel(label);
+    }
 
     void initialiseParameters() override
     {

@@ -29,6 +29,11 @@ public:
             selected = std::min<int>(static_cast<int>(max.getValue()) - 1, selected);
         }
     }
+    
+    void updateLabel() override
+    {
+        iemHelper.updateLabel(label);
+    }
 
     void initialiseParameters() override
     {
