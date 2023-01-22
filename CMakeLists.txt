@@ -157,7 +157,7 @@ juce_add_plugin(plugdata_fx
     PLUGIN_MANUFACTURER_CODE    PlDt
     PLUGIN_CODE                 PdFx
     FORMATS                     AU VST3 LV2
-    LV2URI                      https://github.com/timothyschoen/plugdata_fx
+    LV2URI                      https://github.com/timothyschoen/plugdata
     PRODUCT_NAME                "plugdata-fx"
     AU_MAIN_TYPE                kAudioUnitType_MusicEffect
     VST3_CATEGORIES             Fx
@@ -408,19 +408,19 @@ set(CMAKE_INSTALL_DEFAULT_DIRECTORY_PERMISSIONS
 )
 
 if(APPLE)
-  install(DIRECTORY ${PLUGDATA_PLUGINS_LOCATION}/VST3/plugdata.vst3 DESTINATION "/Library/Audio/Plug-ins/VST3/")
-  install(DIRECTORY ${PLUGDATA_PLUGINS_LOCATION}/VST3/plugdata_fx.vst3 DESTINATION "/Library/Audio/Plug-ins/VST3/")
-  install(DIRECTORY ${PLUGDATA_PLUGINS_LOCATION}/LV2/plugdata.lv2 DESTINATION "/Library/Audio/Plug-ins/LV2/")
-  install(DIRECTORY ${PLUGDATA_PLUGINS_LOCATION}/LV2/plugdata_fx.lv2 DESTINATION "/Library/Audio/Plug-ins/LV2/")
-  install(DIRECTORY ${PLUGDATA_PLUGINS_LOCATION}/AU/plugdata.component DESTINATION "/Library/Audio/Plug-ins/Components/")
-  install(DIRECTORY ${PLUGDATA_PLUGINS_LOCATION}/AU/plugdata_fx.component DESTINATION "/Library/Audio/Plug-ins/Components/")
-  install(DIRECTORY ${PLUGDATA_PLUGINS_LOCATION}/AU/plugdata_midi.component DESTINATION "/Library/Audio/Plug-ins/Components/")
+  install(DIRECTORY ${PLUGDATA_PLUGINS_LOCATION}/VST3/plugdata.vst3 DESTINATION "/Library/Audio/Plug-ins/VST3")
+  install(DIRECTORY ${PLUGDATA_PLUGINS_LOCATION}/VST3/plugdata-fx.vst3 DESTINATION "/Library/Audio/Plug-ins/VST3")
+  install(DIRECTORY ${PLUGDATA_PLUGINS_LOCATION}/LV2/plugdata.lv2 DESTINATION "/Library/Audio/Plug-ins/LV2")
+  install(DIRECTORY ${PLUGDATA_PLUGINS_LOCATION}/LV2/plugdata-fx.lv2 DESTINATION "/Library/Audio/Plug-ins/LV2")
+  install(DIRECTORY ${PLUGDATA_PLUGINS_LOCATION}/AU/plugdata.component DESTINATION "/Library/Audio/Plug-ins/Components")
+  install(DIRECTORY ${PLUGDATA_PLUGINS_LOCATION}/AU/plugdata-fx.component DESTINATION "/Library/Audio/Plug-ins/Components")
+  install(DIRECTORY ${PLUGDATA_PLUGINS_LOCATION}/AU/plugdata-midi.component DESTINATION "/Library/Audio/Plug-ins/Components")
   install(DIRECTORY ${PLUGDATA_PLUGINS_LOCATION}/Standalone/plugdata.app DESTINATION "/Applications")
 elseif(WIN32)
   install(DIRECTORY ${PLUGDATA_PLUGINS_LOCATION}/VST3/plugdata.vst3 DESTINATION "$ENV{PROGRAMFILES}/Common Files/VST3")
-  install(DIRECTORY ${PLUGDATA_PLUGINS_LOCATION}/VST3/plugdata_fx.vst3 DESTINATION "$ENV{PROGRAMFILES}/Common Files/VST3")
+  install(DIRECTORY ${PLUGDATA_PLUGINS_LOCATION}/VST3/plugdata-fx.vst3 DESTINATION "$ENV{PROGRAMFILES}/Common Files/VST3")
   install(DIRECTORY ${PLUGDATA_PLUGINS_LOCATION}/LV2/plugdata.lv2 DESTINATION "$ENV{PROGRAMFILES}/Common Files/LV2")
-  install(DIRECTORY ${PLUGDATA_PLUGINS_LOCATION}/LV2/plugdata_fx.lv2 DESTINATION "$ENV{PROGRAMFILES}/Common Files/LV2")
+  install(DIRECTORY ${PLUGDATA_PLUGINS_LOCATION}/LV2/plugdata-fx.lv2 DESTINATION "$ENV{PROGRAMFILES}/Common Files/LV2")
   install(PROGRAMS ${PLUGDATA_PLUGINS_LOCATION}/Standalone/plugdata.exe DESTINATION "$ENV{PROGRAMFILES}/plugdata/")
   install(PROGRAMS ${PLUGDATA_PLUGINS_LOCATION}/LV2/pd.dll DESTINATION "$ENV{PROGRAMFILES}/plugdata/")
 elseif(UNIX AND NOT APPLE) # Linux or BSD
