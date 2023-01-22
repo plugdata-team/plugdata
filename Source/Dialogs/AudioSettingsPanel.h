@@ -1154,7 +1154,7 @@ public:
         dynamic_cast<DraggableNumber*>(latencyNumberBox.label.get())->setMinimum(64);
 
         auto* proc = dynamic_cast<PluginProcessor*>(processor);
-        auto& settingsTree = dynamic_cast<PluginProcessor*>(p)->settingsTree;
+        auto& settingsTree = dynamic_cast<PluginProcessor*>(p)->settingsTree.getValueTree();
 
         if (!settingsTree.hasProperty("NativeDialog")) {
             settingsTree.setProperty("NativeDialog", true, nullptr);
