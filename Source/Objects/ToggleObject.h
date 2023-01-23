@@ -18,6 +18,7 @@ public:
         : ObjectBase(ptr, object)
         , iemHelper(ptr, object, this)
     {
+        value = getValue();
     }
     
     void updateLabel() override
