@@ -60,6 +60,10 @@ public:
             onDelete(this);
         };
         
+        deleteButton.setTooltip("Remove parameter");
+        createButton.setTooltip("Create [param] object");
+        settingsButton.setTooltip("Expand settings");
+        
         settingsButton.onClick = [this, parentComponent]() mutable {
             parentComponent->resized();
             
@@ -77,6 +81,7 @@ public:
             
             valueLabel.setMinimum(minimum);
             valueLabel.setMaximum(maximum);
+            valueLabel.setValue(std::clamp(valueLabel.getValue(), minimum, maximum));
             
             maxValue.setMinimum(minimum + 0.000001f);
             
@@ -94,6 +99,7 @@ public:
             
             valueLabel.setMinimum(minimum);
             valueLabel.setMaximum(maximum);
+            valueLabel.setValue(std::clamp(valueLabel.getValue(), minimum, maximum));
             
             minValue.setMaximum(maximum);
             
