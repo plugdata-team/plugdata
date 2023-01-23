@@ -39,6 +39,13 @@ public:
         lastName = param->getTitle();
         nameLabel.setText(lastName, dontSendNotification);
 
+        nameLabel.setFont(Font(14.0f));
+        valueLabel.setFont(Font(14.0f));
+        minLabel.setFont(Font(14.0f));
+        maxLabel.setFont(Font(14.0f));
+        minValue.setFont(Font(14.0f));
+        maxValue.setFont(Font(14.0f));
+         
         createButton.onClick = [this]() mutable {
             if (auto* editor = dynamic_cast<PluginEditor*>(pd->getActiveEditor())) {
                 auto* cnv = editor->getCurrentCanvas();
@@ -220,7 +227,7 @@ public:
         
     int getItemHeight() {
         if(param->isEnabled()) {
-            return settingsButton.getToggleState() ? 68.0f : 46.0f;
+            return settingsButton.getToggleState() ? 70.0f : 50.0f;
         }
         else {
             return 0.0f;
@@ -243,7 +250,7 @@ public:
         
         auto bounds = getLocalBounds().reduced(6, 2);
         
-        int rowHeight = bounds.getHeight() / numRows;
+        int rowHeight = 22;
         
         auto firstRow = bounds.removeFromTop(rowHeight);
         
@@ -267,7 +274,7 @@ public:
         nameLabel.setBounds(firstRow);
         
         settingsButton.setBounds(secondRow.removeFromLeft(25));
-        slider.setBounds(secondRow.removeFromLeft(getWidth() - 70));
+        slider.setBounds(secondRow.removeFromLeft(getWidth() - 90));
         valueLabel.setBounds(secondRow);
         
         createButton.setBounds(buttonsBounds.removeFromLeft(25));
@@ -276,15 +283,15 @@ public:
 
     void paint(Graphics& g) override
     {
-        slider.setColour(Slider::backgroundColourId, findColour(PlugDataColour::toolbarBackgroundColourId));
+        slider.setColour(Slider::backgroundColourId, findColour(PlugDataColour::sidebarBackgroundColourId));
         slider.setColour(Slider::trackColourId, findColour(PlugDataColour::sidebarTextColourId));
         
         indexLabel.setColour(Label::textColourId, findColour(PlugDataColour::sidebarTextColourId));
         nameLabel.setColour(Label::textColourId, findColour(PlugDataColour::sidebarTextColourId));
         valueLabel.setColour(Label::textColourId, findColour(PlugDataColour::sidebarTextColourId));
 
-        g.setColour(findColour(PlugDataColour::sidebarBackgroundColourId));
-        g.fillRect(getLocalBounds());
+        g.setColour(findColour(PlugDataColour::sidebarActiveBackgroundColourId).withAlpha(0.5f));
+        g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(4.5f, 3.0f), PlugDataLook::defaultCornerRadius);
     }
 
     std::function<void(AutomationSlider*)> onDelete = [](AutomationSlider*){};
