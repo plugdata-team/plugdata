@@ -51,10 +51,10 @@ public:
     void changeListenerCallback(ChangeBroadcaster* source) override
     {
         auto newTree = mappings.createXml(true)->toString();
-        if (settingsTree.getChildWithName("Keymap").isValid()) {
-            settingsTree.getChildWithName("Keymap").setProperty("keyxml", newTree, nullptr);
+        if (settingsTree.getChildWithName("KeyMap").isValid()) {
+            settingsTree.getChildWithName("KeyMap").setProperty("keyxml", newTree, nullptr);
         } else {
-            auto keyMap = ValueTree("Keymap");
+            auto keyMap = ValueTree("KeyMap");
             keyMap.setProperty("keyxml", newTree, nullptr);
             settingsTree.appendChild(keyMap, nullptr);
         }
