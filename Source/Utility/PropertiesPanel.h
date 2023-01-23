@@ -327,17 +327,20 @@ public:
             , property(value)
         {
             if constexpr (std::is_arithmetic<T>::value) {
-                label = std::make_unique<DraggableNumber>(std::is_integral<T>::value);
+                auto* draggableNumber = new DraggableNumber(std::is_integral<T>::value);
+                label = std::unique_ptr<DraggableNumber>(draggableNumber);
 
                 dynamic_cast<DraggableNumber*>(label.get())->valueChanged = [this](float value) {
                     property = value;
                 };
+                
+                draggableNumber->setEditableOnClick(true);
             } else {
                 label = std::make_unique<Label>();
+                label->setEditable(true, false);
             }
 
             addAndMakeVisible(label.get());
-            label->setEditable(true, false);
             label->getTextValue().referTo(property);
             label->addMouseListener(this, true);
 

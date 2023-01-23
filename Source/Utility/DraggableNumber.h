@@ -32,15 +32,17 @@ public:
         setWantsKeyboardFocus(true);
         addListener(this);
     }
+    
+    void labelTextChanged (Label *labelThatHasChanged) override {};
 
-    void editorShown (Label *l, TextEditor&) override
+    void editorShown(Label *l, TextEditor&) override
     {
         dragStart();
     }
     
-    void labelTextChanged (Label *l) override
+    void editorHidden(Label* l, TextEditor& editor) override
     {
-        auto newValue = l->getText().getFloatValue();
+        auto newValue = editor.getText().getFloatValue();
         
         if (isMinLimited)
             newValue = std::max(newValue, min);
@@ -55,7 +57,7 @@ public:
     
     void setEditableOnClick(bool editable)
     {
-        setEditable(true, false);
+        setEditable(true, true);
         setInterceptsMouseClicks(true, true);
     }
 
@@ -251,8 +253,10 @@ public:
         mouseSource.setScreenPosition(e.getMouseDownScreenPosition().toFloat());
         mouseSource.enableUnboundedMouseMovement(false);
         dragEnd();
-
-        Label::mouseUp(e);
+        
+        if(!e.mouseWasDraggedSinceMouseDown()) {
+            Label::mouseUp(e);
+        }
     }
 
     String formatNumber(float value, int precision = -1)
