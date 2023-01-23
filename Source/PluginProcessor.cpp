@@ -1139,6 +1139,12 @@ void PluginProcessor::performParameterChange(int type, String name, float value)
                 
                 // Send new value to DAW
                 pldParam->setUnscaledValueNotifyingHost(value);
+                
+#if PLUGDATA_STANDALONE
+                if (auto* editor = dynamic_cast<PluginEditor*>(getActiveEditor())) {
+                    editor->sidebar.updateAutomationParameters();
+                }
+#endif
             }
         }
     }

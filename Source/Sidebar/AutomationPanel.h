@@ -7,45 +7,46 @@
 #include "Canvas.h"
 #include "Utility/PluginParameter.h"
 
-class ExpandButton : public TextButton
-{
-    void paint(Graphics& g) {
-        
-        auto isOpen = getToggleState();
-        auto mouseOver = isMouseOver();
-        auto area = getLocalBounds().reduced(2).toFloat();
-        
-        Path p;
-        p.addTriangle(0.0f, 0.0f, 1.0f, isOpen ? 0.0f : 0.5f, isOpen ? 0.5f : 0.0f, 1.0f);
-        g.setColour(findColour(PlugDataColour::panelTextColourId).withAlpha(mouseOver ? 0.7f : 1.0f));
-        
-        g.fillPath(p, p.getTransformToScaleToFit(area.reduced(2, area.getHeight() / 4), true));
-    }
-};
-
 class AutomationSlider : public Component
-    , public Value::Listener {
-
+, public Value::Listener {
+    
+    class ExpandButton : public TextButton
+    {
+        void paint(Graphics& g) {
+            
+            auto isOpen = getToggleState();
+            auto mouseOver = isMouseOver();
+            auto area = getLocalBounds().reduced(2).toFloat();
+            
+            Path p;
+            p.addTriangle(0.0f, 0.0f, 1.0f, isOpen ? 0.0f : 0.5f, isOpen ? 0.5f : 0.0f, 1.0f);
+            g.setColour(findColour(PlugDataColour::panelTextColourId).withAlpha(mouseOver ? 0.7f : 1.0f));
+            
+            g.fillPath(p, p.getTransformToScaleToFit(area.reduced(2, area.getHeight() / 4), true));
+        }
+    };
+    
+    
     PluginProcessor* pd;
     PlugDataParameter* param;
-
+    
 public:
-        AutomationSlider(int idx, Component* parentComponent, PluginProcessor* processor)
-        : index(idx)
-        , pd(processor)
+    AutomationSlider(int idx, Component* parentComponent, PluginProcessor* processor)
+    : index(idx)
+    , pd(processor)
     {
         param = dynamic_cast<PlugDataParameter*>(pd->getParameters()[index + 1]);
         
         lastName = param->getTitle();
         nameLabel.setText(lastName, dontSendNotification);
-
+        
         nameLabel.setFont(Font(14.0f));
         valueLabel.setFont(Font(14.0f));
         minLabel.setFont(Font(14.0f));
         maxLabel.setFont(Font(14.0f));
         minValue.setFont(Font(14.0f));
         maxValue.setFont(Font(14.0f));
-         
+        
         createButton.onClick = [this]() mutable {
             if (auto* editor = dynamic_cast<PluginEditor*>(pd->getActiveEditor())) {
                 auto* cnv = editor->getCurrentCanvas();
@@ -105,16 +106,16 @@ public:
             
             // make sure max is always bigger than min
             maximum = std::max(maximum, minimum + 0.000001f);
-
+            
             slider.setRange(minimum, maximum, 0.000001f);
             param->setRange(minimum, maximum);
-
+            
             param->notifyDAW();
         };
-                
+        
         slider.setScrollWheelEnabled(false);
         slider.setTextBoxStyle(Slider::NoTextBox, false, 45, 13);
-
+        
         auto range = param->getNormalisableRange().getRange();
         
         auto minimum = range.getStart();
@@ -149,7 +150,7 @@ public:
         attachment = std::make_unique<SliderParameterAttachment>(*param, slider, nullptr);
         valueLabel.setText(String(param->getValue(), 2), dontSendNotification);
 #endif
-
+        
         valueLabel.valueChanged = [this](float newValue) mutable {
             auto minimum = param->getNormalisableRange().start;
             auto maximum = param->getNormalisableRange().end;
@@ -160,17 +161,17 @@ public:
             param->setUnscaledValueNotifyingHost(value);
             slider.setValue(value, dontSendNotification);
         };
-
+        
         valueLabel.setMinimumHorizontalScale(1.0f);
         valueLabel.setJustificationType(Justification::centred);
         
         nameLabel.setMinimumHorizontalScale(1.0f);
         nameLabel.setJustificationType(Justification::left);
-
+        
         valueLabel.setEditable(true);
         
         settingsButton.setClickingTogglesState(true);
-
+        
         nameLabel.setEditable(true, true);
         nameLabel.onEditorShow = [this](){
             if(auto* editor = nameLabel.getCurrentTextEditor()) {
@@ -190,8 +191,8 @@ public:
             
             // Check if name is valid
             if((character == '_' || character == '-'
-               || (character >= 'a' && character <= 'z')
-               || (character >= 'A' && character <= 'Z')) && newName.containsOnly("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890_-") && !allNames.contains(newName)) {
+                || (character >= 'a' && character <= 'z')
+                || (character >= 'A' && character <= 'Z')) && newName.containsOnly("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890_-") && !allNames.contains(newName)) {
                 param->setName(nameLabel.getText(true));
                 param->notifyDAW();
             }
@@ -220,17 +221,17 @@ public:
         minValue.setEditable(true);
         maxValue.setEditable(true);
     }
-
+    
     ~AutomationSlider()
     {
         // pd->locked.removeListener(this);
     }
-
+    
     void valueChanged(Value& v) override
     {
         createButton.setEnabled(!static_cast<bool>(v.getValue()));
     }
-        
+    
     int getItemHeight() {
         if(param->isEnabled()) {
             return settingsButton.getToggleState() ? 70.0f : 50.0f;
@@ -239,16 +240,16 @@ public:
             return 0.0f;
         }
     }
-        
+    
     bool isEnabled() {
         return param->isEnabled();
     }
-        
-    bool setEnabled(bool shouldBeEnabled) {
+    
+    void setEnabled(bool shouldBeEnabled) {
         param->setEnabled(shouldBeEnabled);
         param->notifyDAW();
     }
-
+    
     void resized() override
     {
         bool settingsVisible = settingsButton.getToggleState();
@@ -286,7 +287,7 @@ public:
         createButton.setBounds(buttonsBounds.removeFromLeft(25));
         deleteButton.setBounds(buttonsBounds.removeFromLeft(25));
     }
-
+    
     void paint(Graphics& g) override
     {
         slider.setColour(Slider::backgroundColourId, findColour(PlugDataColour::sidebarBackgroundColourId));
@@ -295,97 +296,97 @@ public:
         indexLabel.setColour(Label::textColourId, findColour(PlugDataColour::sidebarTextColourId));
         nameLabel.setColour(Label::textColourId, findColour(PlugDataColour::sidebarTextColourId));
         valueLabel.setColour(Label::textColourId, findColour(PlugDataColour::sidebarTextColourId));
-
+        
         g.setColour(findColour(PlugDataColour::sidebarActiveBackgroundColourId).withAlpha(0.5f));
         g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(4.5f, 3.0f), PlugDataLook::defaultCornerRadius);
     }
-
+    
     std::function<void(AutomationSlider*)> onDelete = [](AutomationSlider*){};
-        
+    
     TextButton createButton = TextButton(Icons::Add);
     TextButton deleteButton = TextButton(Icons::Clear);
     ExpandButton settingsButton;
-
+    
     Label minLabel = Label("", "Min:");
     Label maxLabel = Label("", "Max:");
-        
+    
     DraggableNumber minValue = DraggableNumber(false);
     DraggableNumber maxValue = DraggableNumber(false);
     DraggableNumber valueLabel = DraggableNumber(false);
-        
+    
     Label indexLabel;
     Label nameLabel;
-        
+    
     String lastName;
-        
+    
     Slider slider;
-
+    
     int index;
-
+    
 #if !PLUGDATA_STANDALONE
     std::unique_ptr<SliderParameterAttachment> attachment;
 #endif
-        
+    
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(AutomationSlider)
 };
 
-class AddParameterButton : public Component {
-    
-    bool mouseIsOver = false;
-    
-public:
-    std::function<void()> onClick = [](){};
-    
-    void paint(Graphics& g) override {
-        
-        auto bounds = getLocalBounds().reduced(5, 2);
-        auto textBounds = bounds;
-        auto iconBounds = textBounds.removeFromLeft(textBounds.getHeight());
-        
-        auto& lnf = dynamic_cast<PlugDataLook&>(getLookAndFeel());
-        
-        if(mouseIsOver) {
-            g.setColour(findColour(PlugDataColour::sidebarActiveBackgroundColourId));
-            g.fillRoundedRectangle(bounds.toFloat(), PlugDataLook::defaultCornerRadius);
-            
-            g.setColour(findColour(PlugDataColour::sidebarActiveTextColourId));
-        }
-        else {
-            g.setColour(findColour(PlugDataColour::sidebarTextColourId));
-        }
-        
-        g.setFont(lnf.iconFont.withHeight(13));
-        g.drawText(Icons::Add, iconBounds, Justification::centred);
-        
-        g.setFont(lnf.defaultFont.withHeight(13));
-        g.drawText("Add new parameter", textBounds, Justification::left);
-    }
-    
-    void mouseEnter(const MouseEvent& e) override
-    {
-        mouseIsOver = true;
-        repaint();
-    }
-    
-    void mouseExit(const MouseEvent& e) override
-    {
-        mouseIsOver = false;
-        repaint();
-    }
-    
-    void mouseUp(const MouseEvent& e) override
-    {
-        onClick();
-    }
-};
-
 class AutomationComponent : public Component {
-
+    
+    class AddParameterButton : public Component {
+        
+        bool mouseIsOver = false;
+        
+    public:
+        std::function<void()> onClick = [](){};
+        
+        void paint(Graphics& g) override {
+            
+            auto bounds = getLocalBounds().reduced(5, 2);
+            auto textBounds = bounds;
+            auto iconBounds = textBounds.removeFromLeft(textBounds.getHeight());
+            
+            auto& lnf = dynamic_cast<PlugDataLook&>(getLookAndFeel());
+            
+            if(mouseIsOver) {
+                g.setColour(findColour(PlugDataColour::sidebarActiveBackgroundColourId));
+                g.fillRoundedRectangle(bounds.toFloat(), PlugDataLook::defaultCornerRadius);
+                
+                g.setColour(findColour(PlugDataColour::sidebarActiveTextColourId));
+            }
+            else {
+                g.setColour(findColour(PlugDataColour::sidebarTextColourId));
+            }
+            
+            g.setFont(lnf.iconFont.withHeight(13));
+            g.drawText(Icons::Add, iconBounds, Justification::centred);
+            
+            g.setFont(lnf.defaultFont.withHeight(13));
+            g.drawText("Add new parameter", textBounds, Justification::left);
+        }
+        
+        void mouseEnter(const MouseEvent& e) override
+        {
+            mouseIsOver = true;
+            repaint();
+        }
+        
+        void mouseExit(const MouseEvent& e) override
+        {
+            mouseIsOver = false;
+            repaint();
+        }
+        
+        void mouseUp(const MouseEvent& e) override
+        {
+            onClick();
+        }
+    };
+    
 public:
     explicit AutomationComponent(PluginProcessor* processor, Component* parent)
-        : pd(processor)
-        , parentComponent(parent)
-{
+    : pd(processor)
+    , parentComponent(parent)
+    {
         
         updateSliders();
         
@@ -406,7 +407,7 @@ public:
                 row->resized();
                 row->repaint();
             }
-
+            
             checkMaxNumParameters();
         };
     }
@@ -446,7 +447,7 @@ public:
                 parameterValues.emplace_back(false, newParamName, 0.0f, 0.0f, 1.0f);
                 
                 
-
+                
                 for(int i = 0; i < rows.size(); i++) {
                     auto* param = dynamic_cast<PlugDataParameter*>(pd->getParameters()[i + 1]);
                     
@@ -471,7 +472,7 @@ public:
     void checkMaxNumParameters() {
         addParameterButton.setVisible(getNumEnabled() < PluginProcessor::numParameters);
     }
-
+    
     void resized() override
     {
         int y = 2;
@@ -502,7 +503,7 @@ public:
         
         return y;
     }
-
+    
     PluginProcessor* pd;
     Component* parentComponent;
     OwnedArray<AutomationSlider> rows;
@@ -512,29 +513,29 @@ public:
 };
 
 class AutomationPanel : public Component
-    , public ScrollBar::Listener {
-
+, public ScrollBar::Listener {
+    
 public:
     explicit AutomationPanel(PluginProcessor* processor)
-        : sliders(processor, this)
-        , pd(processor)
+    : sliders(processor, this)
+    , pd(processor)
     {
         viewport.setViewedComponent(&sliders, false);
         viewport.setScrollBarsShown(true, false, false, false);
-
+        
         viewport.getVerticalScrollBar().addListener(this);
-
+        
         setWantsKeyboardFocus(false);
         viewport.setWantsKeyboardFocus(false);
-
+        
         addAndMakeVisible(viewport);
     }
-
+    
     void scrollBarMoved(ScrollBar* scrollBarThatHasMoved, double newRangeStart) override
     {
         repaint();
     }
-
+    
     void paint(Graphics& g) override
     {
         g.setColour(findColour(PlugDataColour::sidebarBackgroundColourId));
@@ -544,14 +545,14 @@ public:
         g.setColour(findColour(PlugDataColour::toolbarBackgroundColourId));
         g.fillRoundedRectangle(0, getHeight() - 30, getWidth(), 30, PlugDataLook::defaultCornerRadius);
     }
-
+    
     void resized() override
     {
         viewport.setBounds(getLocalBounds().withTrimmedBottom(30));
         
         sliders.setSize(getWidth(), sliders.getTotalHeight());
     }
-
+    
     
     void updateParameters()
     {
@@ -565,10 +566,10 @@ public:
         sliders.updateSliders();
 #endif
     }
-
+    
     Viewport viewport;
     AutomationComponent sliders;
     PluginProcessor* pd;
-        
+    
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(AutomationPanel)
 };
