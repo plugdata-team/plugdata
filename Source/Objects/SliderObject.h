@@ -14,6 +14,7 @@ class SliderObject : public ObjectBase {
 
     Value min = Value(0.0f);
     Value max = Value(0.0f);
+    Value steadyOnClick = Value(false);
 
     float value = 0.0f;
 
@@ -24,7 +25,11 @@ public:
     {
         isVertical = static_cast<t_slider*>(obj)->x_orientation;
         addAndMakeVisible(slider);
-
+        
+        auto steady = getSteadyOnClick();
+        steadyOnClick = steady;
+        slider.setSliderSnapsToMousePosition(!steady);
+        
         min = getMinimum();
         max = getMaximum();
 
@@ -88,6 +93,16 @@ public:
     {
         iemHelper.applyBounds();
     }
+    
+    void updateRange() {
+        min = getMinimum();
+        max = getMaximum();
+        
+        if (static_cast<float>(min.getValue()) == 0.0f && static_cast<bool>(isLogarithmic.getValue())) {
+            min = std::numeric_limits<float>::epsilon();
+            setMinimum(std::numeric_limits<float>::epsilon());
+        }
+    }
 
     void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
     {
@@ -107,12 +122,24 @@ public:
 
         if (symbol == "lin") {
             setParameterExcludingListener(isLogarithmic, false);
+            updateRange();
+            
         } else if (symbol == "log") {
+            
             setParameterExcludingListener(isLogarithmic, true);
+            updateRange();
+            
         } else if (symbol == "range" && atoms.size() >= 2) {
             setParameterExcludingListener(min, atoms[0].getFloat());
             setParameterExcludingListener(max, atoms[1].getFloat());
-        } else {
+            updateRange();
+        }
+        else if (symbol == "steady" && atoms.size() >= 1) {
+            bool steady = atoms[0].getFloat();
+            setParameterExcludingListener(steadyOnClick, steady);
+            slider.setSliderSnapsToMousePosition(!steady);
+        }
+        else {
             iemHelper.receiveObjectMessage(symbol, atoms);
         }
     }
@@ -160,6 +187,7 @@ public:
             { "Minimum", tFloat, cGeneral, &min, {} },
             { "Maximum", tFloat, cGeneral, &max, {} },
             { "Logarithmic", tBool, cGeneral, &isLogarithmic, { "off", "on" } },
+            { "Steady", tBool, cGeneral, &steadyOnClick, { "Jump on click", "Steady on click"} }
         };
 
         auto iemParameters = iemHelper.getParameters();
@@ -193,9 +221,9 @@ public:
         static_cast<t_slider*>(ptr)->x_max = value;
     }
 
-    bool jumpOnClick() const
+    bool getSteadyOnClick() const
     {
-        return !static_cast<t_slider*>(ptr)->x_steady;
+        return static_cast<t_slider*>(ptr)->x_steady;
     }
 
     void valueChanged(Value& value) override
@@ -206,14 +234,12 @@ public:
             setMaximum(static_cast<float>(max.getValue()));
         } else if (value.refersToSameSourceAs(isLogarithmic)) {
             setLogScale(isLogarithmic == var(true));
-            min = getMinimum();
-            max = getMaximum();
-
-            if (static_cast<float>(min.getValue()) == 0.0f && static_cast<bool>(isLogarithmic.getValue())) {
-                min = std::numeric_limits<float>::epsilon();
-                setMinimum(std::numeric_limits<float>::epsilon());
-            }
-        } else {
+            updateRange();
+        }
+        else if (value.refersToSameSourceAs(steadyOnClick)) {
+            slider.setSliderSnapsToMousePosition(!static_cast<bool>(steadyOnClick.getValue()));
+       }
+        else {
             iemHelper.valueChanged(value);
         }
     }
