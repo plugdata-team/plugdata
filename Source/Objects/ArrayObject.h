@@ -370,7 +370,7 @@ public:
     PluginProcessor* pd;
 };
 
-class ArrayEditorDialog : public Component {
+class ArrayEditorDialog : public Component, public Timer {
     ResizableBorderComponent resizer;
     std::unique_ptr<Button> closeButton;
     ComponentDragger windowDragger;
@@ -378,14 +378,14 @@ class ArrayEditorDialog : public Component {
 
 public:
     std::function<void()> onClose;
-    GraphicalArray array;
+    GraphicalArray graph;
 
     String title;
 
     ArrayEditorDialog(PluginProcessor* instance, PdArray& arr, Object* parent)
         : resizer(this, &constrainer)
         , title(arr.getExpandedName())
-        , array(instance, arr, parent)
+        , graph(instance, arr, parent)
     {
 
         closeButton.reset(LookAndFeel::getDefaultLookAndFeel().createDocumentWindowButton(DocumentWindow::closeButton));
@@ -405,34 +405,46 @@ public:
         // Position in centre of screen
         setBounds(Desktop::getInstance().getDisplays().getPrimaryDisplay()->userArea.withSizeKeepingCentre(600, 400));
 
-        addAndMakeVisible(array);
+        addAndMakeVisible(graph);
         addAndMakeVisible(resizer);
+        
+        startTimer(40);
     }
 
-    void resized()
+    void resized() override
     {
         resizer.setBounds(getLocalBounds());
         closeButton->setBounds(getLocalBounds().removeFromTop(30).removeFromRight(30).translated(-5, 5));
-        array.setBounds(getLocalBounds().withTrimmedTop(40));
+        graph.setBounds(getLocalBounds().withTrimmedTop(40));
+    }
+    
+    void timerCallback() override
+    {
+        int currentSize = graph.array.size();
+        if (graph.vec.size() != currentSize) {
+
+            graph.vec.resize(currentSize);
+        }
+        graph.update();
     }
 
-    void mouseDown(MouseEvent const& e)
+    void mouseDown(MouseEvent const& e) override
     {
         windowDragger.startDraggingComponent(this, e);
     }
 
-    void mouseDrag(MouseEvent const& e)
+    void mouseDrag(MouseEvent const& e) override
     {
         windowDragger.dragComponent(this, e, nullptr);
     }
 
-    void paintOverChildren(Graphics& g)
+    void paintOverChildren(Graphics& g) override
     {
         g.setColour(findColour(PlugDataColour::defaultObjectBackgroundColourId));
         g.drawRoundedRectangle(getLocalBounds().toFloat(), PlugDataLook::windowCornerRadius, 1.0f);
     }
 
-    void paint(Graphics& g)
+    void paint(Graphics& g) override
     {
         g.setColour(findColour(PlugDataColour::defaultObjectBackgroundColourId));
         g.fillRoundedRectangle(getLocalBounds().toFloat(), PlugDataLook::windowCornerRadius);
@@ -477,7 +489,16 @@ public:
 
     void timerCallback() override
     {
-        updateValue();
+        // Check if size has changed
+        int currentSize = graph.array.size();
+        if (graph.vec.size() != currentSize) {
+
+            graph.vec.resize(currentSize);
+            size = currentSize;
+        }
+        
+        // Update values
+        graph.update();
     }
 
     void updateLabel() override
@@ -610,17 +631,6 @@ public:
         graph.repaint();
     }
 
-    void updateValue()
-    {
-        int currentSize = graph.array.size();
-        if (graph.vec.size() != currentSize) {
-
-            graph.vec.resize(currentSize);
-            size = currentSize;
-        }
-        graph.update();
-    }
-
     void valueChanged(Value& value) override
     {
         if (value.refersToSameSourceAs(name) || value.refersToSameSourceAs(size) || value.refersToSameSourceAs(drawMode) || value.refersToSameSourceAs(saveContents)) {
@@ -662,7 +672,6 @@ public:
         openSubpatch();
         dialog = std::make_unique<ArrayEditorDialog>(cnv->pd, array, object);
         dialog->onClose = [this]() {
-            updateValue();
             dialog.reset(nullptr);
         };
     }
