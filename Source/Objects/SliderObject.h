@@ -37,7 +37,7 @@ public:
         else
             slider.setSliderStyle(Slider::LinearBar);
 
-        slider.setRange(0., 1., 0.001);
+        slider.setRange(0., 1., 0.000001);
         slider.setTextBoxStyle(Slider::NoTextBox, 0, 0, 0);
         slider.setScrollWheelEnabled(false);
         slider.setName("object:slider");

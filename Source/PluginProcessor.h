@@ -108,10 +108,9 @@ public:
 
     void sendMidiBuffer();
     void sendPlayhead();
-    void sendParameters();
 
     void messageEnqueued() override;
-    void performParameterChange(int type, int idx, float value) override;
+    void performParameterChange(int type, String name, float value) override;
 
     pd::Patch* loadPatch(String patch);
     pd::Patch* loadPatch(File const& patch);
@@ -144,8 +143,6 @@ public:
 
     Value commandLocked = Value(var(false));
 
-    AudioProcessorValueTreeState parameters;
-
     StatusbarSource statusbarSource;
 
     Value tailLength = Value(0.0f);
@@ -161,7 +158,6 @@ public:
     int lastTab = -1;
 
 #if PLUGDATA_STANDALONE
-    std::atomic<float> standaloneParams[numParameters] = { 0 };
     OwnedArray<MidiOutput> midiOutputs;
 
     InternalSynth internalSynth;
@@ -189,9 +185,6 @@ private:
     bool midiByteIsSysex = false;
     uint8 midiByteBuffer[512] = { 0 };
     size_t midiByteIndex = 0;
-
-    std::array<float, numParameters> lastParameters = { 0 };
-    std::array<float, numParameters> changeGestureState = { 0 };
 
     std::vector<pd::Atom> atoms_playhead;
 

@@ -368,7 +368,7 @@ public:
     void enqueueDirectMessages(void* object, String const& msg);
     void enqueueDirectMessages(void* object, float const msg);
 
-    virtual void performParameterChange(int type, int idx, float value) {};
+    virtual void performParameterChange(int type, String name, float value) {};
 
     void logMessage(String const& message);
     void logError(String const& message);

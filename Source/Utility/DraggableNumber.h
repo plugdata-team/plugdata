@@ -7,7 +7,7 @@
 #pragma once
 #include <JuceHeader.h>
 
-class DraggableNumber : public Label {
+class DraggableNumber : public Label, public Label::Listener  {
 
 protected:
     float dragValue = 0.0f;
@@ -30,12 +30,29 @@ public:
         : onlyIntegers(integerDrag)
     {
         setWantsKeyboardFocus(true);
+        addListener(this);
     }
 
-    ~DraggableNumber()
+    void editorShown (Label *l, TextEditor&) override
     {
+        dragStart();
     }
-
+    
+    void labelTextChanged (Label *l) override
+    {
+        auto newValue = l->getText().getFloatValue();
+        
+        if (isMinLimited)
+            newValue = std::max(newValue, min);
+        if (isMaxLimited)
+            newValue = std::min(newValue, max);
+        
+        lastValue = newValue;
+        setText(formatNumber(newValue), dontSendNotification);
+        
+        dragEnd();
+    }
+    
     void setEditableOnClick(bool editable)
     {
         setEditable(true, false);
@@ -94,6 +111,10 @@ public:
             setText(String(newValue), sendNotification);
             valueChanged(newValue);
         }
+    }
+    
+    float getValue() {
+        return lastValue;
     }
 
     // Make sure mouse cursor gets reset, sometimes this doesn't happen automatically
@@ -204,9 +225,9 @@ public:
             newValue = static_cast<int64_t>(newValue);
         }
 
-        if (isMinLimited && min < max)
+        if (isMinLimited)
             newValue = std::max(newValue, min);
-        if (isMaxLimited && max > min)
+        if (isMaxLimited)
             newValue = std::min(newValue, max);
 
         setText(String(newValue), dontSendNotification);

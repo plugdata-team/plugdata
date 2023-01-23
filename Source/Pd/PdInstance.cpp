@@ -433,14 +433,16 @@ void Instance::sendMessage(char const* receiver, char const* msg, std::vector<At
 
 void Instance::processMessage(Message mess)
 {
-    if (mess.destination == "param") {
-        int index = mess.list[0].getFloat();
-        float value = std::clamp(mess.list[1].getFloat(), 0.0f, 1.0f);
-        performParameterChange(0, index - 1, value);
-    } else if (mess.destination == "param_change") {
-        int index = mess.list[0].getFloat();
+    if (mess.destination == "param" && mess.list.size() >= 2) {
+        if(!mess.list[0].isSymbol() || !mess.list[1].isFloat()) return;
+        auto name = mess.list[0].getSymbol();
+        float value = mess.list[1].getFloat();
+        performParameterChange(0, name, value);
+    } else if (mess.destination == "param_change" && mess.list.size() >= 2) {
+        if(!mess.list[0].isSymbol() || !mess.list[1].isFloat()) return;
+        auto name = mess.list[0].getSymbol();
         int state = mess.list[1].getFloat() != 0;
-        performParameterChange(1, index - 1, state);
+        performParameterChange(1, name, state);
     } else if (mess.selector == "bang") {
         receiveBang(mess.destination);
     } else if (mess.selector == "float") {

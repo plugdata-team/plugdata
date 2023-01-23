@@ -49,7 +49,7 @@ public:
     void mouseDown(MouseEvent const& e) override
     {
         //  If locked and it's a left click
-        if (locked && !e.mods.isRightButtonDown()) {
+        if (locked && !e.mods.isRightButtonDown() && !object->attachedToMouse) {
             openSubpatch();
 
             return;
@@ -116,6 +116,8 @@ public:
                 libpd_get_object_text(object, &text, &size);
 
                 checkHvccCompatibility(patch, prefix + String(text) + " -> ");
+                freebytes(static_cast<void*>(text), static_cast<size_t>(size) * sizeof(char));
+                
             } else if (!Object::hvccObjects.contains(name)) {
                 instance->logWarning(String("Warning: object \"" + prefix + name + "\" is not supported in Compiled Mode").toRawUTF8());
             }

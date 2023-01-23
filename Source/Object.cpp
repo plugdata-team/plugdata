@@ -43,9 +43,9 @@ Object::Object(Canvas* parent, String const& name, Point<int> position)
     // Open the text editor of a new object if it has one
     // Don't do this if the object is attached to the mouse
     // Param objects are an exception where we don't want to open on mouse-down
-    if (attachedToMouse && !name.startsWith("param")) {
+    if (attachedToMouse && !name.startsWith("param") && !static_cast<bool>(locked.getValue())) {
         createEditorOnMouseDown = true;
-    } else if (!attachedToMouse) {
+    } else if (!attachedToMouse && !static_cast<bool>(locked.getValue())) {
         showEditor();
     }
 }
@@ -464,6 +464,7 @@ void Object::updateTooltips()
                 // Anything after the first space will be the comment
                 auto const text = String::fromUTF8(str_ptr, size);
                 inletMessages.emplace_back(x, text.fromFirstOccurrenceOf(" ", false, false));
+                freebytes(static_cast<void*>(str_ptr), static_cast<size_t>(size) * sizeof(char));
             }
             if (name == "outlet" || name == "outlet~") {
                 int size;
@@ -475,6 +476,8 @@ void Object::updateTooltips()
 
                 auto const text = String::fromUTF8(str_ptr, size);
                 outletMessages.emplace_back(x, text.fromFirstOccurrenceOf(" ", false, false));
+                
+                freebytes(static_cast<void*>(str_ptr), static_cast<size_t>(size) * sizeof(char));
             }
         }
     }

@@ -75,9 +75,7 @@ public:
 
     void tabChanged();
 
-#if PLUGDATA_STANDALONE
     void updateAutomationParameters();
-#endif
 
     static constexpr int dragbarWidth = 5;
 
