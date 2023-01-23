@@ -567,11 +567,11 @@ public:
     
     OwnedArray<IconMenuItem> menuItems = {
         new IconMenuItem(Icons::New, "New patch", false),
-        new IconMenuItem(Icons::Open, "Open patch", false),
+        new IconMenuItem(Icons::Open, "Open patch...", false),
         new IconMenuItem(Icons::History, "Recently opened", true),
         
         new IconMenuItem(Icons::Save, "Save patch", false),
-        new IconMenuItem(Icons::SaveAs, "Save patch as", false),
+        new IconMenuItem(Icons::SaveAs, "Save patch as...", false),
         
         new IconMenuItem("", "Compiled Mode", false),
         new IconMenuItem("", "Compile...", false),
