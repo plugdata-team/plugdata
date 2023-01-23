@@ -81,7 +81,7 @@ PluginEditor::PluginEditor(PluginProcessor& p)
             getKeyMappings()->restoreFromXml(*elt);
         }
     } else {
-        settingsFile->getValueTree().appendChild(ValueTree("Keymap"), nullptr);
+        settingsFile->getValueTree().appendChild(ValueTree("KeyMap"), nullptr);
     }
 
     autoconnect.referTo(settingsFile->getPropertyAsValue("AutoConnect"));
