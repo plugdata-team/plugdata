@@ -207,7 +207,7 @@ public:
 
         Array<Image> icons;
     
-
+        
         for (int i = 0; i < iconText.size(); i++) {
             icons.add(Image(Image::ARGB, 32, 32, true));
             auto& icon = icons.getReference(i);
@@ -217,11 +217,11 @@ public:
             g.drawText(iconText[i], 0, 0, 32, 32, Justification::right);
         }
 
-        addCustomItem(1, *menuItems[0], 70, 22, true, nullptr, "New patch");
+        addCustomItem(1, std::unique_ptr<IconMenuItem>(menuItems[0]), nullptr, "New patch");
 
         addSeparator();
 
-        addCustomItem(2, *menuItems[1], 70, 22, true, nullptr, "Open patch");
+        addCustomItem(2, std::unique_ptr<IconMenuItem>(menuItems[1]), nullptr, "Open patch");
 
         auto recentlyOpened = new PopupMenu();
 
@@ -237,28 +237,26 @@ public:
             
             menuItems[2]->isActive = recentlyOpenedTree.getNumChildren() > 0;
         }
-        
-        auto recentlyOpenedOwner = std::unique_ptr<const PopupMenu>(recentlyOpened);
-        
-        addCustomItem(100, *menuItems[2], 70, 22, false, std::move(recentlyOpenedOwner), "Recently opened");
+                
+        addCustomItem(100, std::unique_ptr<IconMenuItem>(menuItems[2]), std::unique_ptr<const PopupMenu>(recentlyOpened), "Recently opened");
 
         addSeparator();
-        addCustomItem(3, *menuItems[3], 70, 22, true, nullptr, "Save patch");
-        addCustomItem(4, *menuItems[4], 70, 22, true, nullptr, "Save patch as");
+        addCustomItem(3, std::unique_ptr<IconMenuItem>(menuItems[3]), nullptr, "Save patch");
+        addCustomItem(4, std::unique_ptr<IconMenuItem>(menuItems[4]), nullptr, "Save patch as");
 
         addSeparator();
 
-        addCustomItem(5, *menuItems[5], 70, 22, true, nullptr, "Compiled mode");
-        addCustomItem(6, *menuItems[6], 70, 22, true, nullptr, "Compile...");
+        addCustomItem(5, std::unique_ptr<IconMenuItem>(menuItems[5]), nullptr, "Compiled mode");
+        addCustomItem(6, std::unique_ptr<IconMenuItem>(menuItems[6]), nullptr, "Compile...");
                 
         addSeparator();
         
-        addCustomItem(7, *menuItems[7], 70, 22, true, nullptr, "Auto-connect objects");
+        addCustomItem(7, std::unique_ptr<IconMenuItem>(menuItems[7]), nullptr, "Auto-connect objects");
 
         addSeparator();
         
-        addCustomItem(8, *menuItems[8], 70, 22, true, nullptr, "Settings...");
-        addCustomItem(9, *menuItems[9], 70, 22, true, nullptr, "About...");
+        addCustomItem(8, std::unique_ptr<IconMenuItem>(menuItems[8]), nullptr, "Settings...");
+        addCustomItem(9, std::unique_ptr<IconMenuItem>(menuItems[9]), nullptr, "About...");
         
         
         // Toggles hvcc compatibility mode
@@ -273,7 +271,7 @@ public:
         menuItems[7]->isTicked = autoconnectEnabled;
 
     }
-
+    
     static void showSettingsPopup(AudioProcessor* processor, AudioDeviceManager* manager, Component* centre, ValueTree settingsTree)
     {
         auto* popup = new SettingsPopup(processor, settingsTree);
@@ -391,7 +389,7 @@ public:
         }
     };
     
-    class IconMenuItem : public Component {
+    class IconMenuItem : public PopupMenu::CustomComponent {
         
         String menuItemIcon;
         String menuItemText;
@@ -409,29 +407,19 @@ public:
         , menuItemText(text)
         , hasSubMenu(hasChildren)
         {
-            Desktop::getInstance().addGlobalMouseListener(this);
         }
-        
-        ~IconMenuItem() {
-            Desktop::getInstance().removeGlobalMouseListener(this);
-        }
-        
-        
-        void mouseMove(const MouseEvent& e) override
+
+        void getIdealSize (int &idealWidth, int &idealHeight) override
         {
-            if(getScreenBounds().contains(e.getScreenPosition())) {
-                isMouseOver = true;
-            }
-            else {
-                isMouseOver = false;
-            }
+            idealWidth = 70;
+            idealHeight = 22;
         }
-        
+    
         void paint(Graphics& g) override
         {
             auto r = getLocalBounds().reduced(0, 1);
 
-            if (isMouseOver && isActive) {
+            if (isItemHighlighted() && isActive) {
                 g.setColour(findColour(PlugDataColour::popupMenuActiveBackgroundColourId));
                 g.fillRoundedRectangle(r.toFloat().reduced(2, 0), 4.0f);
 
@@ -560,12 +548,7 @@ public:
         }
     };
 
-    ThemeSelector themeSelector;
-    ZoomSelector zoomSelector;
-
-    ValueTree settingsTree;
-    
-    OwnedArray<IconMenuItem> menuItems = {
+    std::vector<IconMenuItem*> menuItems = {
         new IconMenuItem(Icons::New, "New patch", false),
         new IconMenuItem(Icons::Open, "Open patch...", false),
         new IconMenuItem(Icons::History, "Recently opened", true),
@@ -581,4 +564,9 @@ public:
         new IconMenuItem(Icons::Settings, "Settings...", false),
         new IconMenuItem(Icons::Info, "About...", false),
     };
+    
+    ThemeSelector themeSelector;
+    ZoomSelector zoomSelector;
+
+    ValueTree settingsTree;
 };
