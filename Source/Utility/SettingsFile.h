@@ -283,7 +283,7 @@ private:
     
     StringArray childTrees {
         "Paths",
-        "Keymap",
+        "KeyMap",  
         "ColourThemes",
         "SelectedThemes",
         "RecentlyOpened",
