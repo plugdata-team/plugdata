@@ -209,7 +209,8 @@ void Sidebar::showPanel(int panelToShow)
     if (showSearch && !searchWasVisisble)
         searchPanel->grabFocus();
     searchPanel->setInterceptsMouseClicks(showSearch, showSearch);
-
+    
+    
     hideParameters();
 
     currentPanel = panelToShow;
@@ -268,6 +269,8 @@ void Sidebar::showParameters(String const& name, ObjectParameters& params)
     if (!pinned) {
         inspector->setVisible(true);
     }
+    
+    inspector->grabKeyboardFocus();
 }
 
 void Sidebar::showParameters()
