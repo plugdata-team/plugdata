@@ -456,11 +456,10 @@ void Canvas::mouseDrag(MouseEvent const& e)
         }
     }
 
-    // TODO: instead of checking for draggingLabel, can't we just set draggingSlider to true when we are dragging numboxes?
-    bool draggingLabel = dynamic_cast<Label*>(e.originalComponent) != nullptr;
-    bool draggingSlider = ObjectBase::isDraggingSlider();
+    bool objectIsBeingEdited = ObjectBase::isBeingEdited();
+    
     // Ignore on graphs or when locked
-    if ((isGraph || locked == var(true) || commandLocked == var(true)) && !draggingLabel && !draggingSlider) {
+    if ((isGraph || locked == var(true) || commandLocked == var(true)) && !objectIsBeingEdited) {
         bool hasToggled = false;
 
         // Behaviour for dragging over toggles, bang and radiogroup to toggle them
@@ -491,7 +490,7 @@ void Canvas::mouseDrag(MouseEvent const& e)
         auto const scrollSpeed = 8.5f;
 
         // Middle mouse pan
-        if (e.mods.isMiddleButtonDown() && !draggingLabel) {
+        if (e.mods.isMiddleButtonDown() && !ObjectBase::isBeingEdited()) {
 
             auto delta = Point<int> { viewportEvent.getDistanceFromDragStartX(), viewportEvent.getDistanceFromDragStartY() };
 
@@ -504,7 +503,7 @@ void Canvas::mouseDrag(MouseEvent const& e)
         float scale = (1.0f / static_cast<float>(editor->zoomScale.getValue()));
 
         // Auto scroll when dragging close to the iolet
-        if (!ObjectBase::isDraggingSlider() && viewport->autoScroll(viewportEvent.x * scale, viewportEvent.y * scale, 50, scrollSpeed)) {
+        if (!ObjectBase::isBeingEdited() && viewport->autoScroll(viewportEvent.x * scale, viewportEvent.y * scale, 50, scrollSpeed)) {
             beginDragAutoRepeat(40);
         }
     }

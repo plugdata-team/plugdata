@@ -52,7 +52,6 @@ public:
         slider.setValue(getValueScaled());
 
         slider.onDragStart = [this]() {
-            draggingSlider = true;
             startEdition();
         };
 
@@ -70,7 +69,6 @@ public:
 
         slider.onDragEnd = [this]() {
             stopEdition();
-            draggingSlider = false;
         };
     }
     

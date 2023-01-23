@@ -34,11 +34,15 @@ public:
             }
         };
 
-        listLabel.dragStart = [this]() { startEdition(); };
+        listLabel.dragStart = [this]() {
+            startEdition();
+        };
 
         listLabel.valueChanged = [this](float) { updateFromGui(); };
 
-        listLabel.dragEnd = [this]() { stopEdition(); };
+        listLabel.dragEnd = [this]() {
+            stopEdition();
+        };
 
         listLabel.addMouseListener(this, false);
 

@@ -79,7 +79,6 @@ ObjectBase::ObjectBase(void* obj, Object* parent)
     , object(parent)
     , cnv(parent->cnv)
     , pd(parent->cnv->pd)
-    , edited(false)
 {
     pd->registerMessageListener(ptr, this);
 
@@ -579,7 +578,7 @@ ObjectLabel* ObjectBase::getLabel()
 {
     return label.get();
 }
-bool ObjectBase::isDraggingSlider()
+bool ObjectBase::isBeingEdited()
 {
-    return draggingSlider;
+    return edited;
 }

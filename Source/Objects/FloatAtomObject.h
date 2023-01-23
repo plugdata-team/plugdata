@@ -47,7 +47,9 @@ public:
 
         addMouseListener(this, true);
 
-        input.dragStart = [this]() { startEdition(); };
+        input.dragStart = [this]() {
+            startEdition();
+        };
 
         input.valueChanged = [this](float newValue) {
             sendFloatValue(newValue);
@@ -57,7 +59,9 @@ public:
         input.setMaximum(static_cast<float>(max.getValue()));
 
 
-        input.dragEnd = [this]() { stopEdition(); };
+        input.dragEnd = [this]() {
+            stopEdition();
+        };
     }
 
     void focusGained(FocusChangeType cause) override

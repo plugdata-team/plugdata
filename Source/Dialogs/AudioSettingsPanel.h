@@ -188,7 +188,6 @@ public:
 
 private:
 
-        
     AudioDeviceManager& deviceManager;
     PluginProcessor* audioProcessor;
     const String noItemsMessage;

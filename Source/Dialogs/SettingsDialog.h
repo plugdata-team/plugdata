@@ -231,7 +231,7 @@ public:
                 auto path = File(recentlyOpenedTree.getChild(i).getProperty("Path").toString());
                 recentlyOpened->addItem(path.getFileName(), [this, path, editor]() mutable {
                     editor->pd->loadPatch(path);
-                    editor->addToRecentlyOpened(path);
+                    SettingsFile::getInstance()->addToRecentlyOpened(path);
                 });
             }
             
