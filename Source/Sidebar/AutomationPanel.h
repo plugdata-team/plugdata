@@ -357,10 +357,10 @@ class AutomationComponent : public Component {
                 g.setColour(findColour(PlugDataColour::sidebarTextColourId));
             }
             
-            g.setFont(lnf.iconFont.withHeight(13));
+            g.setFont(lnf.iconFont.withHeight(14));
             g.drawText(Icons::Add, iconBounds, Justification::centred);
             
-            g.setFont(lnf.defaultFont.withHeight(13));
+            g.setFont(lnf.defaultFont.withHeight(14));
             g.drawText("Add new parameter", textBounds, Justification::left);
         }
         

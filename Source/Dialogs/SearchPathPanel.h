@@ -11,6 +11,57 @@ bool wantsNativeDialog();
 class SearchPathComponent : public Component
     , public FileDragAndDropTarget
     , private ListBoxModel {
+        
+        class AddPathButton : public Component {
+            
+            bool mouseIsOver = false;
+            
+        public:
+            std::function<void()> onClick = [](){};
+            
+            void paint(Graphics& g) override {
+                
+                auto bounds = getLocalBounds().reduced(5, 2);
+                auto textBounds = bounds;
+                auto iconBounds = textBounds.removeFromLeft(textBounds.getHeight());
+                
+                auto& lnf = dynamic_cast<PlugDataLook&>(getLookAndFeel());
+                
+                if(mouseIsOver) {
+                    g.setColour(findColour(PlugDataColour::panelActiveBackgroundColourId));
+                    g.fillRoundedRectangle(bounds.toFloat(), PlugDataLook::defaultCornerRadius);
+                    
+                    g.setColour(findColour(PlugDataColour::panelActiveTextColourId));
+                }
+                else {
+                    g.setColour(findColour(PlugDataColour::panelTextColourId));
+                }
+                
+                g.setFont(lnf.iconFont.withHeight(14));
+                g.drawText(Icons::Add, iconBounds, Justification::centred);
+                
+                g.setFont(lnf.defaultFont.withHeight(14));
+                g.drawText("Add search path", textBounds, Justification::left);
+            }
+            
+            void mouseEnter(const MouseEvent& e) override
+            {
+                mouseIsOver = true;
+                repaint();
+            }
+            
+            void mouseExit(const MouseEvent& e) override
+            {
+                mouseIsOver = false;
+                repaint();
+            }
+            
+            void mouseUp(const MouseEvent& e) override
+            {
+                onClick();
+            }
+        };
+        
 public:
     std::unique_ptr<Dialog> confirmationDialog;
     //==============================================================================
@@ -26,11 +77,8 @@ public:
         listBox.setColour(ListBox::backgroundColourId, Colours::transparentBlack);
         listBox.setColour(ListBox::outlineColourId, Colours::transparentBlack);
 
-        addButton.setTooltip("Add search path");
-        addButton.setName("statusbar:add");
         addAndMakeVisible(addButton);
         addButton.onClick = [this] { addPath(); };
-        addButton.setConnectedEdges(12);
 
         removeButton.setTooltip("Remove search path");
         addAndMakeVisible(removeButton);
@@ -128,7 +176,7 @@ public:
 
         g.setColour(rowIsSelected ? findColour(PlugDataColour::panelActiveTextColourId) : findColour(PlugDataColour::panelTextColourId));
 
-        g.setFont(Font(15));
+        g.setFont(Font(14));
 
         g.drawText(path[rowNumber].getFullPathName(), 12, 0, width - 9, height, Justification::centredLeft, true);
     }
@@ -175,9 +223,9 @@ public:
         listBox.setBounds(0, 4, getWidth(), statusbarY);
 
         auto statusbarBounds = Rectangle<int>(2, statusbarY + 6, getWidth() - 6, statusbarHeight);
-
-        addButton.setBounds(statusbarBounds.removeFromLeft(statusbarHeight));
         resetButton.setBounds(statusbarBounds.removeFromRight(statusbarHeight));
+        
+        updateButtons();
     }
 
     bool isInterestedInFileDrag(StringArray const&) override
@@ -209,7 +257,7 @@ private:
     TextButton upButton = TextButton(Icons::Up);
     TextButton downButton = TextButton(Icons::Down);
 
-    TextButton addButton = TextButton(Icons::Add);
+    AddPathButton addButton;
     TextButton removeButton = TextButton(Icons::Clear);
     TextButton resetButton = TextButton(Icons::Refresh);
     TextButton changeButton = TextButton(Icons::Edit);
@@ -277,6 +325,9 @@ private:
             downButton.setBounds(selectionBounds.removeFromRight(buttonHeight));
             upButton.setBounds(selectionBounds.removeFromRight(buttonHeight));
         }
+        
+        auto addButtonBounds = listBox.getRowPosition(getNumRows(), false).translated(0, 5).withHeight(25);
+        addButton.setBounds(addButtonBounds);
     }
 
     void addPath()
