@@ -476,9 +476,10 @@ public:
     void resized() override
     {
         int y = 2;
-        for (int p = 0; p < PluginProcessor::numParameters; p++) {
+        int width = getWidth();
+        for (int p = 0; p < getNumEnabled(); p++) {
             int height = rows[p]->getItemHeight();
-            rows[p]->setBounds(0, y, getWidth(), height);
+            rows[p]->setBounds(0, y, width, height);
             y += height;
         }
         
