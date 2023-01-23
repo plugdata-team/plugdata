@@ -260,8 +260,8 @@ Statusbar::Statusbar(PluginProcessor* processor)
     volumeSlider.setValue(0.75);
     volumeSlider.setRange(0.0f, 1.0f);
     volumeSlider.setName("statusbar:meter");
-
-    volumeAttachment = std::make_unique<SliderParameterAttachment>(*pd->parameters.getParameter("volume"), volumeSlider, nullptr);
+    
+    volumeAttachment = std::make_unique<SliderParameterAttachment>(*dynamic_cast<RangedAudioParameter*>(pd->getParameters()[0]), volumeSlider, nullptr);
 
     addAndMakeVisible(levelMeter);
     addAndMakeVisible(midiBlinker);

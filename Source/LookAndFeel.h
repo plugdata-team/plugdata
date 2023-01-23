@@ -291,7 +291,7 @@ struct PlugDataLook : public LookAndFeel_V4 {
     Font getTextButtonFont(TextButton& but, int buttonHeight) override
     {
         if (but.getName().startsWith("toolbar")) {
-            return getToolbarFont(buttonHeight * 1.2f);
+            return getToolbarFont(buttonHeight * 1.3f);
         }
         if (but.getName().startsWith("statusbar:oversample")) {
             return { buttonHeight / 2.0f };

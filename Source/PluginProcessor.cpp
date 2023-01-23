@@ -55,7 +55,6 @@ PluginProcessor::PluginProcessor()
     ,
 #endif
     pd::Instance("plugdata")
-    , parameters(*this, nullptr)
 {
     // Make sure to use dots for decimal numbers, pd requires that
     std::setlocale(LC_ALL, "C");
@@ -86,22 +85,20 @@ PluginProcessor::PluginProcessor()
         initialiseFilesystem();
         settingsFile = SettingsFile::getInstance()->initialise();
     }
-
-    parameters.createAndAddParameter(std::make_unique<AudioParameterFloat>(ParameterID("volume", 1), "Volume", NormalisableRange<float>(0.0f, 1.0f, 0.001f, 0.75f, false), 1.0f));
-
+    
+    auto* volumeParameter = new PlugDataParameter(this, "volume", 1.0f, true);
+    addParameter(volumeParameter);
+    volume = volumeParameter->getValuePointer();
+    
     // General purpose automation parameters you can get by using "receive param1" etc.
     for (int n = 0; n < numParameters; n++) {
-        auto id = ParameterID("param" + String(n + 1), 1);
-        auto* parameter = parameters.createAndAddParameter(std::make_unique<AudioParameterFloat>(id, "Parameter " + String(n + 1), 0.0f, 1.0f, 0.0f));
-
-        lastParameters[n] = 0;
+        auto* parameter = new PlugDataParameter(this, "param" + String(n + 1), 0.0f, false);
+        addParameter(parameter);
         parameter->addListener(this);
     }
-
-    volume = parameters.getRawParameterValue("volume");
-
+    
     // Make sure that the parameter valuetree has a name, to prevent assertion failures
-    parameters.replaceState(ValueTree("plugdata"));
+    //parameters.replaceState(ValueTree("plugdata"));
 
     logMessage("plugdata v" + String(ProjectInfo::versionString));
     logMessage("Based on " + String(pd_version).upToFirstOccurrenceOf("(", false, false));
@@ -788,7 +785,6 @@ void PluginProcessor::processInternal()
     sendMessagesFromQueue();
     sendPlayhead();
     sendMidiBuffer();
-    sendParameters();
 
     // Process audio
     FloatVectorOperations::copy(audioBufferIn.data() + (2 * 64), audioBufferOut.data() + (2 * 64), (minOut - 2) * 64);
@@ -822,16 +818,9 @@ AudioProcessorEditor* PluginProcessor::createEditor()
 
 void PluginProcessor::getStateInformation(MemoryBlock& destData)
 {
-    MemoryBlock xmlBlock;
-
     suspendProcessing(true); // These functions can be called from any thread, so suspend processing prevent threading issues
 
     setThis();
-    auto stateXml = parameters.copyState().createXml();
-
-    stateXml->setAttribute("Version", PLUGDATA_VERSION);
-
-    copyXmlToBinary(*stateXml, xmlBlock);
 
     // Store pure-data state
     MemoryOutputStream ostream(destData, false);
@@ -847,6 +836,14 @@ void PluginProcessor::getStateInformation(MemoryBlock& destData)
     ostream.writeInt(getLatencySamples());
     ostream.writeInt(oversampling);
     ostream.writeFloat(static_cast<float>(tailLength.getValue()));
+    
+    XmlElement xml = XmlElement("plugdata_save");
+    xml.setAttribute("Version", PLUGDATA_VERSION);
+    PlugDataParameter::saveStateInformation(xml, getParameters());
+    
+    MemoryBlock xmlBlock;
+    copyXmlToBinary(xml, xmlBlock);
+
     ostream.writeInt(static_cast<int>(xmlBlock.getSize()));
     ostream.write(xmlBlock.getData(), xmlBlock.getSize());
 
@@ -910,20 +907,13 @@ void PluginProcessor::setStateInformation(void const* data, int sizeInBytes)
 
             tailLength = var(tail);
 
-            void* xmlData = static_cast<void*>(new char[xmlSize]);
+            auto* xmlData = new char[xmlSize];
             istream.read(xmlData, xmlSize);
 
             std::unique_ptr<XmlElement> xmlState(getXmlFromBinary(xmlData, xmlSize));
-
-            auto saveVersion = String("0.6.1");
-            if (xmlState->hasAttribute("Version")) {
-                saveVersion = xmlState->getStringAttribute("Version");
-            }
-
+            
             if (xmlState) {
-                if (xmlState->hasTagName(parameters.state.getType())) {
-                    parameters.replaceState(ValueTree::fromXml(*xmlState));
-                }
+                PlugDataParameter::loadStateInformation(*xmlState, getParameters());
             }
 
             setLatencySamples(latency);
@@ -932,6 +922,11 @@ void PluginProcessor::setStateInformation(void const* data, int sizeInBytes)
             suspendProcessing(false);
 
             freebytes(copy, sizeInBytes);
+            delete [] xmlData;
+            
+            if (auto* editor = dynamic_cast<PluginEditor*>(getActiveEditor())) {
+                editor->sidebar.updateAutomationParameters();
+            }
         });
 }
 
@@ -1118,54 +1113,34 @@ void PluginProcessor::receiveMidiByte(int const port, int const byte)
     }
 }
 
-// Only for standalone: check which parameters have changed and forward them to pd
-void PluginProcessor::sendParameters()
-{
-#if PLUGDATA_STANDALONE
-    for (int idx = 0; idx < numParameters; idx++) {
-        float value = standaloneParams[idx].load();
-        if (value != lastParameters[idx]) {
-            auto paramID = "param" + String(idx + 1);
-            sendFloat(paramID.toRawUTF8(), value);
-            lastParameters[idx] = value;
-        }
-    }
-#endif
-}
-
-void PluginProcessor::performParameterChange(int type, int idx, float value)
+void PluginProcessor::performParameterChange(int type, String name, float value)
 {
     // Type == 1 means it sets the change gesture state
     if (type) {
-        if (changeGestureState[idx] == value) {
-            logMessage("parameter change " + String(idx) + (value ? " already started" : " not started"));
-        } else {
-#if !PLUGDATA_STANDALONE
-            auto* parameter = parameters.getParameter("param" + String(idx + 1));
-            value ? parameter->beginChangeGesture() : parameter->endChangeGesture();
-#endif
-            changeGestureState[idx] = value;
+        for(auto* param : getParameters()) {
+            auto* pldParam = dynamic_cast<PlugDataParameter*>(param);
+            if (pldParam->getGestureState() == value) {
+                logMessage("parameter change " + name + (value ? " already started" : " not started"));
+            }
+            else if(pldParam->isEnabled() && pldParam->getTitle() == name) {
+                pldParam->setGestureState(value);
+            }
         }
     } else { // otherwise set parameter value
-#if PLUGDATA_STANDALONE
-        // Set the value
-        standaloneParams[idx].store(value);
-
-        // Update values in automation panel
-        if (lastParameters[idx] == value)
-            return;
-        if (auto* editor = dynamic_cast<PluginEditor*>(getActiveEditor())) {
-            editor->sidebar.updateAutomationParameters();
+        for(auto* param : getParameters()) {
+            auto* pldParam = dynamic_cast<PlugDataParameter*>(param);
+            if(pldParam->isEnabled() && pldParam->getTitle() == name) {
+                
+                // Update values in automation panel
+                if (pldParam->getLastValue() == value)
+                    return;
+                
+                pldParam->setLastValue(value);
+                
+                // Send new value to DAW
+                pldParam->setUnscaledValueNotifyingHost(value);
+            }
         }
-        lastParameters[idx] = value;
-#else
-        auto paramID = "param" + String(idx + 1);
-        if (lastParameters[idx] == value)
-            return; // Prevent feedback
-        // Send new value to DAW
-        parameters.getParameter(paramID)->setValueNotifyingHost(value);
-        lastParameters[idx] = value;
-#endif
     }
 }
 
@@ -1173,9 +1148,11 @@ void PluginProcessor::performParameterChange(int type, int idx, float value)
 void PluginProcessor::parameterValueChanged(int idx, float value)
 {
     enqueueFunction([this, idx, value]() mutable {
-        auto paramID = "param" + String(idx);
-        sendFloat(paramID.toRawUTF8(), value);
-        lastParameters[idx - 1] = value;
+        auto* parameter = dynamic_cast<PlugDataParameter*>(getParameters()[idx]);
+        auto name = parameter->getTitle();
+        auto newValue = parameter->getUnscaledValue();
+        sendFloat(name.toRawUTF8(), newValue);
+        parameter->setLastValue(newValue);
     });
 }
 

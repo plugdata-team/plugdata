@@ -220,17 +220,16 @@ bool Sidebar::isShowingBrowser()
     return browser->isVisible();
 }
 
-#if PLUGDATA_STANDALONE
 void Sidebar::updateAutomationParameters()
 {
     if (automationPanel) {
         // Might be called from audio thread
-        MessageManager::callAsync([this]() { // automationPanel->initialiseParameters();
+        MessageManager::callAsync([this]() {
+            automationPanel->updateParameters();
 
         });
     };
 };
-#endif
 
 void Sidebar::showSidebar(bool show)
 {
