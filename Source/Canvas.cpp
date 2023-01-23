@@ -456,6 +456,7 @@ void Canvas::mouseDrag(MouseEvent const& e)
         }
     }
 
+    // TODO: instead of checking for draggingLabel, can't we just set draggingSlider to true when we are dragging numboxes?
     bool draggingLabel = dynamic_cast<Label*>(e.originalComponent) != nullptr;
     bool draggingSlider = ObjectBase::isDraggingSlider();
     // Ignore on graphs or when locked
@@ -503,7 +504,7 @@ void Canvas::mouseDrag(MouseEvent const& e)
         float scale = (1.0f / static_cast<float>(editor->zoomScale.getValue()));
 
         // Auto scroll when dragging close to the iolet
-        if (viewport->autoScroll(viewportEvent.x * scale, viewportEvent.y * scale, 50, scrollSpeed)) {
+        if (!ObjectBase::isDraggingSlider() && viewport->autoScroll(viewportEvent.x * scale, viewportEvent.y * scale, 50, scrollSpeed)) {
             beginDragAutoRepeat(40);
         }
     }
