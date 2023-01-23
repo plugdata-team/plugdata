@@ -11,6 +11,57 @@ bool wantsNativeDialog();
 class LibraryLoadPanel : public Component
     , public TextEditor::Listener
     , private ListBoxModel {
+        
+        class AddLibraryButton : public Component {
+            
+            bool mouseIsOver = false;
+            
+        public:
+            std::function<void()> onClick = [](){};
+            
+            void paint(Graphics& g) override {
+                
+                auto bounds = getLocalBounds().reduced(5, 2);
+                auto textBounds = bounds;
+                auto iconBounds = textBounds.removeFromLeft(textBounds.getHeight());
+                
+                auto& lnf = dynamic_cast<PlugDataLook&>(getLookAndFeel());
+                
+                if(mouseIsOver) {
+                    g.setColour(findColour(PlugDataColour::panelActiveBackgroundColourId));
+                    g.fillRoundedRectangle(bounds.toFloat(), PlugDataLook::defaultCornerRadius);
+                    
+                    g.setColour(findColour(PlugDataColour::panelActiveTextColourId));
+                }
+                else {
+                    g.setColour(findColour(PlugDataColour::panelTextColourId));
+                }
+                
+                g.setFont(lnf.iconFont.withHeight(14));
+                g.drawText(Icons::Add, iconBounds, Justification::centred);
+                
+                g.setFont(lnf.defaultFont.withHeight(14));
+                g.drawText("Add library to load on startup", textBounds, Justification::left);
+            }
+            
+            void mouseEnter(const MouseEvent& e) override
+            {
+                mouseIsOver = true;
+                repaint();
+            }
+            
+            void mouseExit(const MouseEvent& e) override
+            {
+                mouseIsOver = false;
+                repaint();
+            }
+            
+            void mouseUp(const MouseEvent& e) override
+            {
+                onClick();
+            }
+        };
+        
 public:
     std::unique_ptr<Dialog> confirmationDialog;
     //==============================================================================
@@ -26,11 +77,8 @@ public:
         listBox.setColour(ListBox::backgroundColourId, Colours::transparentBlack);
         listBox.setColour(ListBox::outlineColourId, Colours::transparentBlack);
 
-        addButton.setTooltip("Add search path");
-        addButton.setName("statusbar:add");
         addAndMakeVisible(addButton);
-        addButton.onClick = [this] { addPath(); };
-        addButton.setConnectedEdges(12);
+        addButton.onClick = [this](){ addPath(); };
 
         removeButton.setTooltip("Remove search path");
         addAndMakeVisible(removeButton);
@@ -43,6 +91,7 @@ public:
         addAndMakeVisible(changeButton);
         changeButton.setConnectedEdges(12);
         changeButton.onClick = [this] { editSelected(); };
+        
 
         addChildComponent(editor);
         editor.addListener(this);
@@ -51,7 +100,7 @@ public:
         editor.setColour(TextEditor::focusedOutlineColourId, Colours::transparentBlack);
         editor.setColour(TextEditor::outlineColourId, Colours::transparentBlack);
 
-        editor.setFont(Font(15));
+        editor.setFont(Font(14));
 
         // Load state from valuetree
         externalChange();
@@ -85,7 +134,7 @@ public:
 
         g.setColour(rowIsSelected ? findColour(PlugDataColour::panelActiveTextColourId) : findColour(PlugDataColour::panelTextColourId));
 
-        g.setFont(Font(15));
+        g.setFont(Font(14));
 
         if (!editor.isVisible() || rowBeingEdited != rowNumber) {
             g.drawText(librariesToLoad[rowNumber], 12, 0, width - 9, height, Justification::centredLeft, true);
@@ -130,13 +179,12 @@ public:
 
         listBox.setBounds(0, 4, getWidth(), statusbarY);
 
-        auto statusbarBounds = Rectangle<int>(2, statusbarY + 6, getWidth() - 6, statusbarHeight);
-        addButton.setBounds(statusbarBounds.removeFromLeft(statusbarHeight));
-
         if (editor.isVisible()) {
             auto selectionBounds = listBox.getRowPosition(listBox.getSelectedRow(), false).translated(0, 3);
             editor.setBounds(selectionBounds.withTrimmedRight(80).withTrimmedLeft(6).reduced(1));
         }
+        
+        updateButtons();
     }
 
 private:
@@ -145,7 +193,7 @@ private:
 
     ListBox listBox;
 
-    TextButton addButton = TextButton(Icons::Add);
+    AddLibraryButton addButton;
     TextButton removeButton = TextButton(Icons::Clear);
     TextButton changeButton = TextButton(Icons::Edit);
 
@@ -199,6 +247,9 @@ private:
             removeButton.setBounds(selectionBounds.removeFromRight(buttonHeight));
             changeButton.setBounds(selectionBounds.removeFromRight(buttonHeight - 4));
         }
+        
+        auto addButtonBounds = listBox.getRowPosition(getNumRows(), false).translated(0, 5).withHeight(25);
+        addButton.setBounds(addButtonBounds);
     }
 
     void addPath()
