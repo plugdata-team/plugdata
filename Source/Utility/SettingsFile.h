@@ -135,9 +135,24 @@ public:
             colourThemesTree.copyPropertiesAndChildrenFrom(defaultColourThemesTree, nullptr);
         }
         else {
+            
+            // Check if all the default themes are still there
+            // Mostly for updating from v0.6.3 -> v0.7.0
+            for(auto themeTree : defaultColourThemesTree) {
+                if(!colourThemesTree.getChildWithProperty("theme", themeTree.getProperty("theme")).isValid()) {
+                    
+                    colourThemesTree.appendChild(themeTree.createCopy(), nullptr);
+                }
+            }
+            
             // Ensure each theme is valid
             for (auto themeTree : colourThemesTree) {
+                
                 auto themeName = themeTree.getProperty("theme");
+                
+                if (!defaultColourThemesTree.getChildWithProperty("theme", themeName).isValid()) {
+                    continue;
+                }
                 
                 if (!themeTree.hasProperty("DashedSignalConnection")) {
                     themeTree.setProperty("DashedSignalConnection", true, nullptr);
