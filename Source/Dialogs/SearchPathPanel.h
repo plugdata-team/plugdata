@@ -64,7 +64,8 @@ class SearchPathComponent : public Component
         
 public:
     std::unique_ptr<Dialog> confirmationDialog;
-    //==============================================================================
+    
+
     /** Creates an empty FileSearchPathListObject. */
     SearchPathComponent(ValueTree libraryTree)
         : tree(std::move(libraryTree))
@@ -114,14 +115,11 @@ public:
                     if (result == 0)
                         return;
 
-                    auto libraryDir = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory).getChildFile("plugdata").getChildFile("Library");
-
-                    auto abstractionsDir = libraryDir.getChildFile("Abstractions");
-                    auto dekenDir = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory).getChildFile("plugdata").getChildFile("Library").getChildFile("Deken");
-
-                    path = FileSearchPath();
-                    path.add(abstractionsDir);
-                    path.add(dekenDir);
+                    paths.clear();
+                
+                    for(const auto& dir : pd::Library::defaultPaths) {
+                        paths.add(dir.getFullPathName());
+                    }
 
                     internalChange();
                 });
@@ -131,20 +129,13 @@ public:
         externalChange();
     }
 
-    //==============================================================================
-    /** Returns the path as it is currently shown. */
-    FileSearchPath const& getPath() const
-    {
-        return path;
-    }
-
     /** Changes the current path. */
     void updatePath(ValueTree& tree)
     {
-        path = FileSearchPath();
+        paths.clear();
 
         for (auto child : tree) {
-            path.add(File(child.getProperty("Path").toString()));
+            paths.addIfNotAlreadyThere(child.getProperty("Path").toString());
         }
 
         internalChange();
@@ -160,11 +151,9 @@ public:
         defaultBrowseTarget = newDefaultDirectory;
     }
 
-    //==============================================================================
-
     int getNumRows() override
     {
-        return path.getNumPaths();
+        return paths.size();
     };
 
     void paintListBoxItem(int rowNumber, Graphics& g, int width, int height, bool rowIsSelected) override
@@ -178,20 +167,20 @@ public:
 
         g.setFont(Font(14));
 
-        g.drawText(path[rowNumber].getFullPathName(), 12, 0, width - 9, height, Justification::centredLeft, true);
+        g.drawText(paths[rowNumber], 12, 0, width - 9, height, Justification::centredLeft, true);
     }
 
     void deleteKeyPressed(int row) override
     {
-        if (isPositiveAndBelow(row, path.getNumPaths())) {
-            path.remove(row);
+        if (isPositiveAndBelow(row, paths.size())) {
+            paths.remove(row);
             internalChange();
         }
     }
 
     void returnKeyPressed(int row) override
     {
-        chooser = std::make_unique<FileChooser>(TRANS("Change folder..."), path[row], "*", wantsNativeDialog());
+        chooser = std::make_unique<FileChooser>(TRANS("Change folder..."), paths[row], "*", wantsNativeDialog());
         auto chooserFlags = FileBrowserComponent::openMode | FileBrowserComponent::canSelectDirectories;
 
         chooser->launchAsync(chooserFlags,
@@ -199,8 +188,8 @@ public:
                 if (fc.getResult() == File {})
                     return;
 
-                path.remove(row);
-                path.add(fc.getResult(), row);
+                paths.remove(row);
+                paths.addIfNotAlreadyThere(fc.getResult().getFullPathName(), row);
                 internalChange();
             });
     }
@@ -237,18 +226,17 @@ public:
     {
         for (int i = filenames.size(); --i >= 0;) {
             const File f(filenames[i]);
-
             if (f.isDirectory()) {
-                auto row = listBox.getRowContainingPosition(0, y - listBox.getY());
-                path.add(f, row);
+                paths.add(f.getFullPathName());
                 internalChange();
             }
         }
     }
 
 private:
-    //==============================================================================
-    FileSearchPath path;
+    
+
+    StringArray paths;
     File defaultBrowseTarget;
     std::unique_ptr<FileChooser> chooser;
 
@@ -266,11 +254,11 @@ private:
 
     void externalChange()
     {
-        path = FileSearchPath();
+        paths.clear();
 
         for (auto child : tree) {
             if (child.hasType("Path")) {
-                path.addIfNotAlreadyThere(File(child.getProperty("Path").toString()));
+                paths.addIfNotAlreadyThere(child.getProperty("Path").toString());
             }
         }
 
@@ -282,8 +270,8 @@ private:
     {
         tree.removeAllChildren(nullptr);
 
-        for (int p = 0; p < path.getNumPaths(); p++) {
-            auto dir = path[p];
+        for (int p = 0; p < paths.size(); p++) {
+            auto dir = File(paths[p]);
             if (dir.isDirectory()) {
                 auto newPath = ValueTree("Path");
                 newPath.setProperty("Path", dir.getFullPathName(), nullptr);
@@ -299,7 +287,7 @@ private:
     void updateButtons()
     {
         bool const anythingSelected = listBox.getNumSelectedRows() > 0;
-        bool const readOnlyPath = pd::Library::defaultPaths.contains(path[listBox.getSelectedRow()]);
+        bool const readOnlyPath = pd::Library::defaultPaths.contains(paths[listBox.getSelectedRow()]);
 
         removeButton.setVisible(anythingSelected);
         changeButton.setVisible(anythingSelected);
@@ -335,7 +323,7 @@ private:
         auto start = defaultBrowseTarget;
 
         if (start == File())
-            start = path[0];
+            start = paths[0];
 
         if (start == File())
             start = File::getCurrentWorkingDirectory();
@@ -348,7 +336,7 @@ private:
                 if (fc.getResult() == File {})
                     return;
 
-                path.add(fc.getResult(), listBox.getSelectedRow());
+                paths.addIfNotAlreadyThere(fc.getResult().getFullPathName(), listBox.getSelectedRow());
                 internalChange();
             });
     }
@@ -370,13 +358,10 @@ private:
         jassert(delta == -1 || delta == 1);
         auto currentRow = listBox.getSelectedRow();
 
-        if (isPositiveAndBelow(currentRow, path.getNumPaths())) {
-            auto newRow = jlimit(0, path.getNumPaths() - 1, currentRow + delta);
-
+        if (isPositiveAndBelow(currentRow, paths.size())) {
+            auto newRow = jlimit(0, paths.size() - 1, currentRow + delta);
             if (currentRow != newRow) {
-                auto f = path[currentRow];
-                path.remove(currentRow);
-                path.add(f, newRow);
+                paths.move(currentRow, newRow);
                 listBox.selectRow(newRow);
                 internalChange();
             }

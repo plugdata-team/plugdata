@@ -85,7 +85,7 @@ static void drawTextLayout(Graphics& g, Component& owner, StringRef text, Rectan
     textLayout.draw(g, textBounds.toFloat());
 }
 
-//==============================================================================
+
 class MidiSelectorComponentListBox : public RoundedListBox
     , private ListBoxModel {
 public:
@@ -187,7 +187,8 @@ public:
     }
 
 private:
-    //==============================================================================
+
+        
     AudioDeviceManager& deviceManager;
     PluginProcessor* audioProcessor;
     const String noItemsMessage;
@@ -237,7 +238,8 @@ private:
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(MidiSelectorComponentListBox)
 };
 
-//==============================================================================
+
+
 struct AudioDeviceSetupDetails {
     AudioDeviceManager* manager;
     int minNumInputChannels, maxNumInputChannels;
@@ -321,7 +323,8 @@ public:
         return static_cast<ListBox*>(midiInputsList.get());
     }
 
-    //==============================================================================
+    
+
     /** @internal */
     void resized() override
     {
@@ -361,7 +364,8 @@ public:
     }
 
 private:
-    //==============================================================================
+    
+
     void handleBluetoothButton()
     {
         if (!RuntimePermissions::isGranted(RuntimePermissions::bluetoothMidi))
@@ -438,7 +442,8 @@ private:
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(StandaloneAudioSettingsComponent)
 
-    //==============================================================================
+    
+
     class AudioDeviceSettingsPanel : public Component
         , private ChangeListener {
     public:
@@ -900,7 +905,8 @@ private:
         }
 
     public:
-        //==============================================================================
+        
+
         class ChannelSelectorListBox : public RoundedListBox
             , private ListBoxModel {
         public:
@@ -909,7 +915,8 @@ private:
                 audioOutputType
             };
 
-            //==============================================================================
+            
+
             ChannelSelectorListBox(AudioDeviceSetupDetails const& setupDetails, BoxType boxType, String const& noItemsText)
                 : RoundedListBox({}, nullptr)
                 , setup(setupDetails)
@@ -1023,7 +1030,8 @@ private:
             }
 
         private:
-            //==============================================================================
+            
+
             const AudioDeviceSetupDetails setup;
             const BoxType type;
             const String noItemsMessage;
