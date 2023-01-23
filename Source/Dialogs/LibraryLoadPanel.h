@@ -64,8 +64,7 @@ class LibraryLoadPanel : public Component
         
 public:
     std::unique_ptr<Dialog> confirmationDialog;
-    //==============================================================================
-    /** Creates an empty FileSearchPathListObject. */
+
     LibraryLoadPanel(ValueTree libraryTree)
         : tree(std::move(libraryTree))
     {
@@ -78,15 +77,15 @@ public:
         listBox.setColour(ListBox::outlineColourId, Colours::transparentBlack);
 
         addAndMakeVisible(addButton);
-        addButton.onClick = [this](){ addPath(); };
+        addButton.onClick = [this](){ addLibrary(); };
 
-        removeButton.setTooltip("Remove search path");
+        removeButton.setTooltip("Remove library");
         addAndMakeVisible(removeButton);
         removeButton.onClick = [this] { deleteSelected(); };
         removeButton.setConnectedEdges(12);
         removeButton.setName("statusbar:remove");
 
-        changeButton.setTooltip("Edit search path");
+        changeButton.setTooltip("Edit library");
         changeButton.setName("statusbar:change");
         addAndMakeVisible(changeButton);
         changeButton.setConnectedEdges(12);
@@ -106,7 +105,6 @@ public:
         externalChange();
     }
 
-    /** Changes the current path. */
     void updateLibraries(ValueTree& tree)
     {
         librariesToLoad.clear();
@@ -118,7 +116,8 @@ public:
         internalChange();
     }
 
-    //==============================================================================
+    
+
 
     int getNumRows() override
     {
@@ -188,7 +187,8 @@ public:
     }
 
 private:
-    //==============================================================================
+    
+
     StringArray librariesToLoad;
 
     ListBox listBox;
@@ -221,9 +221,9 @@ private:
         tree.removeAllChildren(nullptr);
 
         for (int i = 0; i < librariesToLoad.size(); i++) {
-            auto newPath = ValueTree("Library");
-            newPath.setProperty("Name", librariesToLoad[i], nullptr);
-            tree.appendChild(newPath, nullptr);
+            auto newLibrary = ValueTree("Library");
+            newLibrary.setProperty("Name", librariesToLoad[i], nullptr);
+            tree.appendChild(newLibrary, nullptr);
         }
 
         listBox.updateContent();
@@ -252,7 +252,7 @@ private:
         addButton.setBounds(addButtonBounds);
     }
 
-    void addPath()
+    void addLibrary()
     {
         librariesToLoad.add("");
         internalChange();

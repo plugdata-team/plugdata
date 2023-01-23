@@ -44,7 +44,8 @@ public:
     WildcardFileFilter filter;
 };
 
-//==============================================================================
+
+
 class DocumentBrowserItem : public TreeViewItem
     , private AsyncUpdater
     , private ChangeListener {
@@ -82,7 +83,8 @@ public:
         g.fillPath(p, p.getTransformToScaleToFit(pathArea.reduced(2, pathArea.getHeight() / 4), true));
     }
 
-    //==============================================================================
+    
+
     bool mightContainSubItems() override
     {
         return isDirectory;
@@ -261,7 +263,8 @@ class DocumentBrowserView : public DocumentBrowserViewBase
     , public FileBrowserListener
     , public ScrollBar::Listener {
 public:
-    //==============================================================================
+    
+
     /** Creates a listbox to show the contents of a specified directory.
      */
     DocumentBrowserView(DirectoryContentsList& listToShow, DocumentBrowserBase* parent)
@@ -295,7 +298,8 @@ public:
                 clearSelectedItems();
     }
 
-    //==============================================================================
+    
+
     /** Returns the number of files the user has got selected.
         @see getSelectedFile
     */
@@ -463,7 +467,8 @@ public:
     }
 
 private:
-    //==============================================================================
+    
+
 
     DocumentBrowserBase* browser;
     bool isDraggingFile = false;
