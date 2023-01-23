@@ -26,6 +26,8 @@ public:
         , input(false)
 
     {
+        value = getValue();
+        
         input.onEditorShow = [this]() {
             auto* editor = input.getCurrentTextEditor();
             startEdition();
@@ -41,6 +43,8 @@ public:
             sendFloatValue(input.getText().getFloatValue());
             stopEdition();
         };
+        
+        value = getValue();
                 
         input.setBorderSize({ 1, 15, 1, 1 });
 

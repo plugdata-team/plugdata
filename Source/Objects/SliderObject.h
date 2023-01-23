@@ -32,6 +32,8 @@ public:
         
         min = getMinimum();
         max = getMaximum();
+        
+        value = getValue();
 
         isLogarithmic = isLogScale();
 

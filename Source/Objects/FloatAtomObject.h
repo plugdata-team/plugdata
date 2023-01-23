@@ -22,6 +22,9 @@ public:
         , atomHelper(obj, parent, this)
         , input(false)
     {
+        
+        value = getValue();
+        
         input.onEditorShow = [this]() {
             auto* editor = input.getCurrentTextEditor();
             startEdition();
