@@ -215,7 +215,7 @@ const std::map<ObjectIDs, String> objectNames {
     { NewBlSaw, "bl.saw~" },
     { NewBlSaw2, "bl.saw2~" },
     { NewBlSquare, "bl.square~" },
-    { NewBlTriangle, "bl.triangle~" },
+    { NewBlTriangle, "bl.tri~" },
     { NewBlImp, "bl.imp~" },
     { NewBlImp2, "bl.imp2~" },
     { NewBlWavetable, "bl.wavetable~" },
