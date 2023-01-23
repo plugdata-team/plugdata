@@ -44,10 +44,7 @@ public:
     {
         auto newValue = editor.getText().getFloatValue();
         
-        if (isMinLimited)
-            newValue = std::max(newValue, min);
-        if (isMaxLimited)
-            newValue = std::min(newValue, max);
+        newValue = limitValue(newValue);
         
         lastValue = newValue;
         setText(formatNumber(newValue), dontSendNotification);
@@ -227,16 +224,27 @@ public:
             newValue = static_cast<int64_t>(newValue);
         }
 
-        if (isMinLimited)
-            newValue = std::max(newValue, min);
-        if (isMaxLimited)
-            newValue = std::min(newValue, max);
+        newValue = limitValue(newValue);
 
         setText(String(newValue), dontSendNotification);
 
         numDecimalsToShow = decimal;
 
         setValue(newValue);
+    }
+    
+    
+    float limitValue(float valueToLimit) {
+        
+        if(min == 0.0f && max == 0.0f)
+            return valueToLimit;
+        
+        if (isMinLimited)
+            valueToLimit = std::max(valueToLimit, min);
+        if (isMaxLimited)
+            valueToLimit = std::min(valueToLimit, max);
+        
+        return valueToLimit;
     }
 
     void mouseUp(MouseEvent const& e) override
