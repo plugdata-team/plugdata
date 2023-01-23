@@ -128,7 +128,8 @@ public:
     // TODO: does that even work?
     virtual String getText();
 
-    static bool isDraggingSlider();
+    // Global flag to find out if any GUI object is currently being interacted with
+    static bool isBeingEdited();
 
 protected:
     // Set parameter without triggering valueChanged
@@ -170,8 +171,7 @@ public:
 protected:
     std::unique_ptr<ObjectLabel> label;
     static inline constexpr int maxSize = 1000000;
-    std::atomic<bool> edited;
-    static inline bool draggingSlider = false;
+    static inline std::atomic<bool> edited = false;
 
     friend class IEMHelper;
     friend class AtomHelper;

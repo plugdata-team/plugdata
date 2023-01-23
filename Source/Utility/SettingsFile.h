@@ -70,6 +70,7 @@ public:
         return this;
     }
     
+    // TODO: instead of exposing these trees, try to encapsulate most of the interaction with those trees in functions
     ValueTree getKeyMapTree() {
         return settingsTree.getChildWithName("KeyMap");
     }
@@ -90,10 +91,6 @@ public:
         return settingsTree.getChildWithName("Libraries");
     }
     
-    ValueTree getRecentlyOpenedTree() {
-        return settingsTree.getChildWithName("RecentlyOpened");
-    }
-    
     ValueTree getTheme(String name)
     {
         return getColourThemesTree().getChildWithProperty("theme", name);
@@ -103,13 +100,13 @@ public:
         
         // Make sure all the default paths are in place
         StringArray currentPaths;
-
+        
         auto pathTree = getPathsTree();
         
         for (auto child : pathTree) {
             currentPaths.add(child.getProperty("Path").toString());
         }
-
+        
         for (auto path : pd::Library::defaultPaths) {
             if (!currentPaths.contains(path.getFullPathName())) {
                 auto pathSubTree = ValueTree("Path");
@@ -117,8 +114,47 @@ public:
                 pathTree.appendChild(pathSubTree, nullptr);
             }
         }
-        
     }
+    
+    void addToRecentlyOpened(File path)
+    {
+        auto recentlyOpened = settingsTree.getChildWithName("RecentlyOpened");
+
+        if (!recentlyOpened.isValid()) {
+            recentlyOpened = ValueTree("RecentlyOpened");
+            SettingsFile::getInstance()->getValueTree().appendChild(recentlyOpened, nullptr);
+        }
+
+        if (recentlyOpened.getChildWithProperty("Path", path.getFullPathName()).isValid()) {
+
+            recentlyOpened.getChildWithProperty("Path", path.getFullPathName()).setProperty("Time", Time::getCurrentTime().toMilliseconds(), nullptr);
+
+            int oldIdx = recentlyOpened.indexOf(recentlyOpened.getChildWithProperty("Path", path.getFullPathName()));
+            recentlyOpened.moveChild(oldIdx, 0, nullptr);
+        } else {
+            ValueTree subTree("Path");
+            subTree.setProperty("Path", path.getFullPathName(), nullptr);
+            subTree.setProperty("Time", Time::getCurrentTime().toMilliseconds(), nullptr);
+            recentlyOpened.appendChild(subTree, nullptr);
+        }
+
+        while (recentlyOpened.getNumChildren() > 10) {
+            auto minTime = Time::getCurrentTime().toMilliseconds();
+            int minIdx = -1;
+
+            // Find oldest entry
+            for (int i = 0; i < recentlyOpened.getNumChildren(); i++) {
+                auto time = static_cast<int>(recentlyOpened.getChild(i).getProperty("Time"));
+                if (time < minTime) {
+                    minIdx = i;
+                    minTime = time;
+                }
+            }
+
+            recentlyOpened.removeChild(minIdx, nullptr);
+        }
+    }
+
     
     void initialiseThemesTree() {
         

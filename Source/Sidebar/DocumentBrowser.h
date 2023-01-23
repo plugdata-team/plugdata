@@ -381,6 +381,7 @@ public:
             file.revealToUser();
         } else if (file.existsAsFile() && file.hasFileExtension("pd")) {
             browser->pd->loadPatch(file);
+            SettingsFile::getInstance()->addToRecentlyOpened(file);
         } else if (file.existsAsFile()) {
             auto* editor = dynamic_cast<PluginEditor*>(browser->pd->getActiveEditor());
             if (auto* cnv = editor->getCurrentCanvas()) {
@@ -735,6 +736,7 @@ public:
         searchComponent.openFile = [this](File& file) {
             if (file.existsAsFile()) {
                 pd->loadPatch(file);
+                SettingsFile::getInstance()->addToRecentlyOpened(file);
             }
         };
 

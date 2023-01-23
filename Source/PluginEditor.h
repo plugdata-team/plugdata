@@ -387,8 +387,6 @@ public:
     void getCommandInfo(const CommandID commandID, ApplicationCommandInfo& result) override;
     bool perform(InvocationInfo const& info) override;
 
-    void addToRecentlyOpened(File path);
-
     TextButton* toolbarButton(ToolbarButtonType type)
     {
         return toolbarButtons[static_cast<int>(type)];
