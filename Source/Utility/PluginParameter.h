@@ -77,7 +77,7 @@ public:
         return value;
     }
     
-    float setUnscaledValueNotifyingHost(float newValue)
+    void setUnscaledValueNotifyingHost(float newValue)
     {
         value = std::clamp(newValue, range.start, range.end);
         sendValueChangedMessageToListeners(getValue());
