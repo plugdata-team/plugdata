@@ -62,6 +62,9 @@ public:
         input.valueChanged = [this](float newValue) {
             sendFloatValue(newValue);
         };
+        
+        input.setMinimum(static_cast<float>(min.getValue()));
+        input.setMaximum(static_cast<float>(max.getValue()));
 
         input.dragEnd = [this]() { stopEdition(); };
     }
