@@ -76,7 +76,8 @@ public:
             { "Label Colour", tColour, cLabel, &labelColour, {} },
             { "Label X", tInt, cLabel, &labelX, {} },
             { "Label Y", tInt, cLabel, &labelY, {} },
-            { "Label Height", tInt, cLabel, &labelHeight, {} }
+            { "Label Height", tInt, cLabel, &labelHeight, {} },
+            { "Initialise", tBool, cGeneral, &initialise, { "No", "Yes" } }
         };
     }
 
@@ -138,6 +139,9 @@ public:
 
             object->setObjectBounds(bounds);
         }
+        else if (symbol == "init" && atoms.size() >= 1) {
+            gui->setParameterExcludingListener(initialise, static_cast<bool>(atoms[0].getFloat()));
+        }
     }
 
     void valueChanged(Value& v)
@@ -171,7 +175,6 @@ public:
 
             gui->repaint();
         }
-
         else if (v.refersToSameSourceAs(labelColour)) {
             setLabelColour(Colour::fromString(labelColour.toString()));
             gui->updateLabel();
@@ -179,7 +182,7 @@ public:
             setLabelPosition({ static_cast<int>(labelX.getValue()), static_cast<int>(labelY.getValue()) });
             gui->updateLabel();
         }
-        if (v.refersToSameSourceAs(labelY)) {
+        else if (v.refersToSameSourceAs(labelY)) {
             setLabelPosition({ static_cast<int>(labelX.getValue()), static_cast<int>(labelY.getValue()) });
             gui->updateLabel();
         } else if (v.refersToSameSourceAs(labelHeight)) {
@@ -188,7 +191,17 @@ public:
         } else if (v.refersToSameSourceAs(labelText)) {
             setLabelText(labelText.toString());
             gui->updateLabel();
+        } else if(v.refersToSameSourceAs(initialise)) {
+            setInit(static_cast<bool>(initialise.getValue()));
         }
+    }
+    
+    void setInit(bool init) {
+        iemgui->x_isa.x_loadinit = init;
+    }
+    
+    bool getInit() {
+        return iemgui->x_isa.x_loadinit;
     }
 
     void updateBounds()
@@ -401,6 +414,7 @@ public:
     Value labelHeight = Value(18.0f);
     Value labelText;
 
+    Value initialise;
     Value sendSymbol;
     Value receiveSymbol;
 };

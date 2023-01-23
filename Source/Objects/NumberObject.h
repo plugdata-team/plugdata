@@ -16,7 +16,6 @@ class NumberObject final : public ObjectBase {
 
     Value min = Value(0.0f);
     Value max = Value(0.0f);
-    Value initialise;
     
     float value = 0.0f;
 
@@ -42,10 +41,7 @@ public:
             sendFloatValue(input.getText().getFloatValue());
             stopEdition();
         };
-        
-        initialise = static_cast<bool>(static_cast<t_iemgui*>(ptr)->x_isa.x_loadinit);
-        initialise.addListener(this);
-        
+                
         input.setBorderSize({ 1, 15, 1, 1 });
 
         addAndMakeVisible(input);
@@ -154,7 +150,7 @@ public:
     ObjectParameters getParameters() override
     {
 
-        ObjectParameters allParameters = { { "Minimum", tFloat, cGeneral, &min, {} }, { "Maximum", tFloat, cGeneral, &max, {} }, { "Initialise", tBool, cGeneral, &initialise, { "No", "Yes" } } };
+        ObjectParameters allParameters = { { "Minimum", tFloat, cGeneral, &min, {} }, { "Maximum", tFloat, cGeneral, &max, {} } };
 
         auto iemParameters = iemHelper.getParameters();
         allParameters.insert(allParameters.end(), iemParameters.begin(), iemParameters.end());
@@ -169,9 +165,6 @@ public:
 
             input.setText(input.formatNumber(value), dontSendNotification);
         }
-        else if (symbol == "init" && atoms.size() >= 1) {
-            setParameterExcludingListener(initialise, static_cast<bool>(atoms[0].getFloat()));
-        }
         else {
             iemHelper.receiveObjectMessage(symbol, atoms);
         }
@@ -184,10 +177,6 @@ public:
         } else if (value.refersToSameSourceAs(max)) {
             setMaximum(static_cast<float>(max.getValue()));
         }
-        else if (value.refersToSameSourceAs(initialise)) {
-           auto* nbx = static_cast<t_my_numbox*>(ptr);
-           nbx->x_gui.x_isa.x_loadinit = static_cast<bool>(initialise.getValue());
-       }
         else {
             iemHelper.valueChanged(value);
         }
