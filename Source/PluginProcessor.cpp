@@ -846,6 +846,15 @@ void PluginProcessor::getStateInformation(MemoryBlock& destData)
 
     ostream.writeInt(static_cast<int>(xmlBlock.getSize()));
     ostream.write(xmlBlock.getData(), xmlBlock.getSize());
+    
+    if(auto* editor = getActiveEditor()) {
+        ostream.writeInt(editor->getWidth());
+        ostream.writeInt(editor->getHeight());
+    }
+    else {
+        ostream.writeInt(lastUIWidth);
+        ostream.writeInt(lastUIHeight);
+    }
 
     suspendProcessing(false);
 }
@@ -915,6 +924,24 @@ void PluginProcessor::setStateInformation(void const* data, int sizeInBytes)
             if (xmlState) {
                 PlugDataParameter::loadStateInformation(*xmlState, getParameters());
             }
+            
+            auto versionString = String("0.6.1");
+            
+            if(xmlState->hasAttribute("Version")) {
+                versionString = xmlState->getStringAttribute("Version");
+            }
+            
+            if(versionString.startsWith("0.7") && !istream.isExhausted()) {
+                int windowWidth = istream.readInt();
+                int windowHeight = istream.readInt();
+                
+                lastUIWidth = windowWidth;
+                lastUIHeight = windowHeight;
+                if(auto* editor = getActiveEditor()) {
+                    editor->setSize(lastUIWidth, lastUIHeight);
+                }
+            }
+            
 
             setLatencySamples(latency);
             setOversampling(oversampling);
