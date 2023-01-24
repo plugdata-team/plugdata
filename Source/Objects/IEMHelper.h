@@ -136,7 +136,7 @@ public:
             pd->getCallbackLock()->enter();
             auto bounds = Rectangle<int>(iemgui->x_obj.te_xpix, iemgui->x_obj.te_ypix, atoms[0].getFloat(), atoms[1].getFloat());
             pd->getCallbackLock()->exit();
-            
+
             object->setObjectBounds(bounds);
         } else if (symbol == "init" && atoms.size() >= 1) {
             gui->setParameterExcludingListener(initialise, static_cast<bool>(atoms[0].getFloat()));

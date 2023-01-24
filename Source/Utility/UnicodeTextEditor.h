@@ -21,7 +21,7 @@
    DISCLAIMED.
 
   ==============================================================================
- 
+
     Modified by Timothy Schoen in 2022-2023 to support fallback fonts
 */
 #pragma once
@@ -36,10 +36,9 @@
 
 #include <JuceHeader.h>
 
-class UnicodeTextEditor  : public Component,
-public TextInputTarget,
-public SettableTooltipClient
-{
+class UnicodeTextEditor : public Component
+    , public TextInputTarget
+    , public SettableTooltipClient {
 public:
     //==============================================================================
     /** Creates a new, empty text editor.
@@ -52,8 +51,8 @@ public:
                                     for a black splodge (not all fonts include this, though), or 0x2022,
                                     which is a bullet (probably the best choice for linux).
     */
-    explicit UnicodeTextEditor (const String& componentName = String(),
-                                juce_wchar passwordCharacter = 0);
+    explicit UnicodeTextEditor(String const& componentName = String(),
+        juce_wchar passwordCharacter = 0);
 
     /** Destructor. */
     ~UnicodeTextEditor() override;
@@ -74,8 +73,8 @@ public:
 
         @see isMultiLine, setReturnKeyStartsNewLine, setScrollbarsShown
     */
-    void setMultiLine (bool shouldBeMultiLine,
-                       bool shouldWordWrap = true);
+    void setMultiLine(bool shouldBeMultiLine,
+        bool shouldWordWrap = true);
 
     /** Returns true if the editor is in multi-line mode. */
     bool isMultiLine() const;
@@ -88,12 +87,12 @@ public:
         method. By default this is set to false, and when true it will only insert
         new-lines when in multi-line mode (see setMultiLine()).
     */
-    void setReturnKeyStartsNewLine (bool shouldStartNewLine);
+    void setReturnKeyStartsNewLine(bool shouldStartNewLine);
 
     /** Returns the value set by setReturnKeyStartsNewLine().
         See setReturnKeyStartsNewLine() for more info.
     */
-    bool getReturnKeyStartsNewLine() const                      { return returnKeyStartsNewLine; }
+    bool getReturnKeyStartsNewLine() const { return returnKeyStartsNewLine; }
 
     /** Indicates whether the tab key should be accepted and used to input a tab character,
         or whether it gets ignored.
@@ -101,12 +100,12 @@ public:
         By default the tab key is ignored, so that it can be used to switch keyboard focus
         between components.
     */
-    void setTabKeyUsedAsCharacter (bool shouldTabKeyBeUsed);
+    void setTabKeyUsedAsCharacter(bool shouldTabKeyBeUsed);
 
     /** Returns true if the tab key is being used for input.
         @see setTabKeyUsedAsCharacter
     */
-    bool isTabKeyUsedAsCharacter() const                        { return tabKeyUsed; }
+    bool isTabKeyUsedAsCharacter() const { return tabKeyUsed; }
 
     /** This can be used to change whether escape and return keypress events are
         propagated up to the parent component.
@@ -114,7 +113,7 @@ public:
         parent, but you may want to allow them through so that they can trigger other
         actions, e.g. closing a dialog box, etc.
     */
-    void setEscapeAndReturnKeysConsumed (bool shouldBeConsumed) noexcept;
+    void setEscapeAndReturnKeysConsumed(bool shouldBeConsumed) noexcept;
 
     //==============================================================================
     /** Changes the editor to read-only mode.
@@ -126,7 +125,7 @@ public:
 
         @see isReadOnly, setCaretVisible
     */
-    void setReadOnly (bool shouldBeReadOnly);
+    void setReadOnly(bool shouldBeReadOnly);
 
     /** Returns true if the editor is in read-only mode. */
     bool isReadOnly() const noexcept;
@@ -136,12 +135,12 @@ public:
         By default the caret is visible.
         @see setCaretColour, setCaretPosition
     */
-    void setCaretVisible (bool shouldBeVisible);
+    void setCaretVisible(bool shouldBeVisible);
 
     /** Returns true if the caret is enabled.
         @see setCaretVisible
     */
-    bool isCaretVisible() const noexcept                            { return caretVisible && ! isReadOnly(); }
+    bool isCaretVisible() const noexcept { return caretVisible && !isReadOnly(); }
 
     //==============================================================================
     /** Enables or disables scrollbars (this only applies when in multi-line mode).
@@ -152,12 +151,12 @@ public:
 
         By default scrollbars are enabled.
     */
-    void setScrollbarsShown (bool shouldBeEnabled);
+    void setScrollbarsShown(bool shouldBeEnabled);
 
     /** Returns true if scrollbars are enabled.
         @see setScrollbarsShown
     */
-    bool areScrollbarsShown() const noexcept                        { return scrollbarVisible; }
+    bool areScrollbarsShown() const noexcept { return scrollbarVisible; }
 
     /** Changes the password character used to disguise the text.
 
@@ -168,12 +167,12 @@ public:
                                     for a black splodge (not all fonts include this, though), or 0x2022,
                                     which is a bullet (probably the best choice for linux).
     */
-    void setPasswordCharacter (juce_wchar passwordCharacter);
+    void setPasswordCharacter(juce_wchar passwordCharacter);
 
     /** Returns the current password character.
         @see setPasswordCharacter
     */
-    juce_wchar getPasswordCharacter() const noexcept                { return passwordCharacter; }
+    juce_wchar getPasswordCharacter() const noexcept { return passwordCharacter; }
 
     //==============================================================================
     /** Allows a right-click menu to appear for the editor.
@@ -183,15 +182,15 @@ public:
         If enabled, right-clicking (or command-clicking on the Mac) will pop up a menu
         of options such as cut/copy/paste, undo/redo, etc.
     */
-    void setPopupMenuEnabled (bool menuEnabled);
+    void setPopupMenuEnabled(bool menuEnabled);
 
     /** Returns true if the right-click menu is enabled.
         @see setPopupMenuEnabled
     */
-    bool isPopupMenuEnabled() const noexcept                        { return popupMenuEnabled; }
+    bool isPopupMenuEnabled() const noexcept { return popupMenuEnabled; }
 
     /** Returns true if a popup-menu is currently being displayed. */
-    bool isPopupMenuCurrentlyActive() const noexcept                { return menuActive; }
+    bool isPopupMenuCurrentlyActive() const noexcept { return menuActive; }
 
     //==============================================================================
     /** A set of colour IDs to use to change the colour of various aspects of the editor.
@@ -203,30 +202,29 @@ public:
 
         @see Component::setColour, Component::findColour, LookAndFeel::setColour, LookAndFeel::findColour
     */
-    enum ColourIds
-    {
-        backgroundColourId       = 0x1000200, /**< The colour to use for the text component's background - this can be
-                                                   transparent if necessary. */
+    enum ColourIds {
+        backgroundColourId = 0x1000200, /**< The colour to use for the text component's background - this can be
+                                             transparent if necessary. */
 
-        textColourId             = 0x1000201, /**< The colour that will be used when text is added to the editor. Note
-                                                   that because the editor can contain multiple colours, calling this
-                                                   method won't change the colour of existing text - to do that, use
-                                                   the applyColourToAllText() method */
+        textColourId = 0x1000201, /**< The colour that will be used when text is added to the editor. Note
+                                       that because the editor can contain multiple colours, calling this
+                                       method won't change the colour of existing text - to do that, use
+                                       the applyColourToAllText() method */
 
-        highlightColourId        = 0x1000202, /**< The colour with which to fill the background of highlighted sections of
-                                                   the text - this can be transparent if you don't want to show any
-                                                   highlighting.*/
+        highlightColourId = 0x1000202, /**< The colour with which to fill the background of highlighted sections of
+                                            the text - this can be transparent if you don't want to show any
+                                            highlighting.*/
 
-        highlightedTextColourId  = 0x1000203, /**< The colour with which to draw the text in highlighted sections. */
+        highlightedTextColourId = 0x1000203, /**< The colour with which to draw the text in highlighted sections. */
 
-        outlineColourId          = 0x1000205, /**< If this is non-transparent, it will be used to draw a box around
-                                                   the edge of the component. */
+        outlineColourId = 0x1000205, /**< If this is non-transparent, it will be used to draw a box around
+                                          the edge of the component. */
 
-        focusedOutlineColourId   = 0x1000206, /**< If this is non-transparent, it will be used to draw a box around
-                                                   the edge of the component when it has focus. */
+        focusedOutlineColourId = 0x1000206, /**< If this is non-transparent, it will be used to draw a box around
+                                                 the edge of the component when it has focus. */
 
-        shadowColourId           = 0x1000207, /**< If this is non-transparent, it'll be used to draw an inner shadow
-                                                   around the edge of the editor. */
+        shadowColourId = 0x1000207, /**< If this is non-transparent, it'll be used to draw an inner shadow
+                                         around the edge of the editor. */
     };
 
     //==============================================================================
@@ -238,7 +236,7 @@ public:
 
         @see applyFontToAllText
     */
-    void setFont (const Font& newFont);
+    void setFont(Font const& newFont);
 
     /** Applies a font to all the text in the editor.
 
@@ -247,32 +245,32 @@ public:
 
         @see setFont
     */
-    void applyFontToAllText (const Font& newFont, bool changeCurrentFont = true);
+    void applyFontToAllText(Font const& newFont, bool changeCurrentFont = true);
 
     /** Returns the font that's currently being used for new text.
 
         @see setFont
     */
-    const Font& getFont() const noexcept  { return currentFont; }
+    Font const& getFont() const noexcept { return currentFont; }
 
     /** Applies a colour to all the text in the editor.
 
         If the changeCurrentTextColour argument is true then this will also set the
         new colour as the colour to be used for any new text that's added.
     */
-    void applyColourToAllText (const Colour& newColour, bool changeCurrentTextColour = true);
+    void applyColourToAllText(Colour const& newColour, bool changeCurrentTextColour = true);
 
     /** Sets whether whitespace should be underlined when the editor font is underlined.
 
         @see isWhitespaceUnderlined
     */
-    void setWhitespaceUnderlined (bool shouldUnderlineWhitespace) noexcept  { underlineWhitespace = shouldUnderlineWhitespace; }
+    void setWhitespaceUnderlined(bool shouldUnderlineWhitespace) noexcept { underlineWhitespace = shouldUnderlineWhitespace; }
 
     /** Returns true if whitespace is underlined for underlined fonts.
 
         @see setWhitespaceIsUnderlined
     */
-    bool isWhitespaceUnderlined() const noexcept                            { return underlineWhitespace; }
+    bool isWhitespaceUnderlined() const noexcept { return underlineWhitespace; }
 
     //==============================================================================
     /** If set to true, focusing on the editor will highlight all its text.
@@ -282,7 +280,7 @@ public:
         This is useful for boxes where you expect the user to re-enter all the
         text when they focus on the component, rather than editing what's already there.
     */
-    void setSelectAllWhenFocused (bool shouldSelectAll);
+    void setSelectAllWhenFocused(bool shouldSelectAll);
 
     /** When the text editor is empty, it can be set to display a message.
 
@@ -290,19 +288,19 @@ public:
         string is only displayed, it's not taken to actually be the contents of
         the editor.
     */
-    void setTextToShowWhenEmpty (const String& text, Colour colourToUse);
+    void setTextToShowWhenEmpty(String const& text, Colour colourToUse);
 
     /** Returns the text that will be shown when the text editor is empty.
 
         @see setTextToShowWhenEmpty
     */
-    String getTextToShowWhenEmpty() const noexcept    { return textToShowWhenEmpty; }
+    String getTextToShowWhenEmpty() const noexcept { return textToShowWhenEmpty; }
 
     //==============================================================================
     /** Changes the size of the scrollbars that are used.
         Handy if you need smaller scrollbars for a small text box.
     */
-    void setScrollBarThickness (int newThicknessPixels);
+    void setScrollBarThickness(int newThicknessPixels);
 
     //==============================================================================
     /**
@@ -310,34 +308,33 @@ public:
 
         @see UnicodeTextEditor::addListener
     */
-    class Listener
-    {
+    class Listener {
     public:
         /** Destructor. */
         virtual ~Listener() = default;
 
         /** Called when the user changes the text in some way. */
-        virtual void textEditorTextChanged (UnicodeTextEditor&) {}
+        virtual void textEditorTextChanged(UnicodeTextEditor&) { }
 
         /** Called when the user presses the return key. */
-        virtual void textEditorReturnKeyPressed (UnicodeTextEditor&) {}
+        virtual void textEditorReturnKeyPressed(UnicodeTextEditor&) { }
 
         /** Called when the user presses the escape key. */
-        virtual void textEditorEscapeKeyPressed (UnicodeTextEditor&) {}
+        virtual void textEditorEscapeKeyPressed(UnicodeTextEditor&) { }
 
         /** Called when the text editor loses focus. */
-        virtual void textEditorFocusLost (UnicodeTextEditor&) {}
+        virtual void textEditorFocusLost(UnicodeTextEditor&) { }
     };
 
     /** Registers a listener to be told when things happen to the text.
         @see removeListener
     */
-    void addListener (Listener* newListener);
+    void addListener(Listener* newListener);
 
     /** Deregisters a listener.
         @see addListener
     */
-    void removeListener (Listener* listenerToRemove);
+    void removeListener(Listener* listenerToRemove);
 
     //==============================================================================
     /** You can assign a lambda to this callback object to have it called when the text is changed. */
@@ -357,7 +354,7 @@ public:
     String getText() const;
 
     /** Returns a section of the contents of the editor. */
-    String getTextInRange (const Range<int>& textRange) const override;
+    String getTextInRange(Range<int> const& textRange) const override;
 
     /** Returns true if there are no characters in the editor.
         This is far more efficient than calling getText().isEmpty().
@@ -376,8 +373,8 @@ public:
                                         be sent to all the listeners.
         @see insertTextAtCaret
     */
-    void setText (const String& newText,
-                  bool sendTextChangeMessage = true);
+    void setText(String const& newText,
+        bool sendTextChangeMessage = true);
 
     /** Returns a Value object that can be used to get or set the text.
 
@@ -397,7 +394,7 @@ public:
 
         @see setCaretPosition, getCaretPosition, setHighlightedRegion
     */
-    void insertTextAtCaret (const String& textToInsert) override;
+    void insertTextAtCaret(String const& textToInsert) override;
 
     /** Deletes all the text from the editor. */
     void clear();
@@ -427,7 +424,7 @@ public:
     /** Moves the caret to be in front of a given character.
         @see getCaretPosition, moveCaretToEnd
     */
-    void setCaretPosition (int newIndex);
+    void setCaretPosition(int newIndex);
 
     /** Attempts to scroll the text editor so that the caret ends up at
         a specified position.
@@ -440,22 +437,22 @@ public:
         scroll far enough for the caret to reach this exact position, but it
         will go as far as it can in that direction.
     */
-    void scrollEditorToPositionCaret (int desiredCaretX, int desiredCaretY);
+    void scrollEditorToPositionCaret(int desiredCaretX, int desiredCaretY);
 
     /** Get the graphical position of the caret for a particular index in the text.
 
         The rectangle returned is relative to the component's top-left corner.
     */
-    Rectangle<int> getCaretRectangleForCharIndex (int index) const override;
-    
+    Rectangle<int> getCaretRectangleForCharIndex(int index) const override;
+
     /** Selects a section of the text. */
-    void setHighlightedRegion (const Range<int>& newSelection) override;
+    void setHighlightedRegion(Range<int> const& newSelection) override;
 
     /** Returns the range of characters that are selected.
         If nothing is selected, this will return an empty range.
         @see setHighlightedRegion
     */
-    Range<int> getHighlightedRegion() const override            { return selection; }
+    Range<int> getHighlightedRegion() const override { return selection; }
 
     /** Returns the section of text that is currently selected. */
     String getHighlightedText() const;
@@ -463,17 +460,17 @@ public:
     /** Finds the index of the character at a given position.
         The coordinates are relative to the component's top-left.
     */
-    int getTextIndexAt (int x, int y) const;
+    int getTextIndexAt(int x, int y) const;
 
     /** Finds the index of the character at a given position.
         The coordinates are relative to the component's top-left.
     */
-    int getTextIndexAt (Point<int>) const;
+    int getTextIndexAt(Point<int>) const;
 
     /** Like getTextIndexAt, but doesn't snap to the beginning/end of the range for
         points vertically outside the text.
     */
-    int getCharIndexForPoint (Point<int> point) const override;
+    int getCharIndexForPoint(Point<int> point) const override;
 
     /** Counts the number of characters in the text.
 
@@ -499,22 +496,22 @@ public:
     /** Changes the size of the gap at the top and left-edge of the editor.
         By default there's a gap of 4 pixels.
     */
-    void setIndents (int newLeftIndent, int newTopIndent);
+    void setIndents(int newLeftIndent, int newTopIndent);
 
     /** Returns the gap at the top edge of the editor.
         @see setIndents
     */
-    int getTopIndent() const noexcept   { return topIndent; }
+    int getTopIndent() const noexcept { return topIndent; }
 
     /** Returns the gap at the left edge of the editor.
         @see setIndents
     */
-    int getLeftIndent() const noexcept  { return leftIndent; }
+    int getLeftIndent() const noexcept { return leftIndent; }
 
     /** Changes the size of border left around the edge of the component.
         @see getBorder
     */
-    void setBorder (BorderSize<int> border);
+    void setBorder(BorderSize<int> border);
 
     /** Returns the size of border around the edge of the component.
         @see setBorder
@@ -526,22 +523,22 @@ public:
         If true (the default), the editor will scroll when the caret moves offscreen. If
         set to false, it won't.
     */
-    void setScrollToShowCursor (bool shouldScrollToShowCaret);
+    void setScrollToShowCursor(bool shouldScrollToShowCaret);
 
     /** Modifies the justification of the text within the editor window. */
-    void setJustification (Justification newJustification);
+    void setJustification(Justification newJustification);
 
     /** Returns the type of justification, as set in setJustification(). */
-    Justification getJustificationType() const noexcept             { return justification; }
+    Justification getJustificationType() const noexcept { return justification; }
 
     /** Sets the line spacing of the UnicodeTextEditor.
         The default (and minimum) value is 1.0 and values > 1.0 will increase the line spacing as a
         multiple of the line height e.g. for double-spacing call this method with an argument of 2.0.
     */
-    void setLineSpacing (float newLineSpacing) noexcept             { lineSpacing = jmax (1.0f, newLineSpacing); }
+    void setLineSpacing(float newLineSpacing) noexcept { lineSpacing = jmax(1.0f, newLineSpacing); }
 
     /** Returns the current line spacing of the UnicodeTextEditor. */
-    float getLineSpacing() const noexcept                           { return lineSpacing; }
+    float getLineSpacing() const noexcept { return lineSpacing; }
 
     /** Returns the bounding box for a range of text in the editor. As the range may span
         multiple lines, this method returns a RectangleList.
@@ -549,24 +546,24 @@ public:
         The bounds are relative to the component's top-left and may extend beyond the bounds
         of the component if the text is long and word wrapping is disabled.
     */
-    RectangleList<int> getTextBounds (Range<int> textRange) const override;
+    RectangleList<int> getTextBounds(Range<int> textRange) const override;
 
     //==============================================================================
     void moveCaretToEnd();
-    bool moveCaretLeft (bool moveInWholeWordSteps, bool selecting);
-    bool moveCaretRight (bool moveInWholeWordSteps, bool selecting);
-    bool moveCaretUp (bool selecting);
-    bool moveCaretDown (bool selecting);
-    bool pageUp (bool selecting);
-    bool pageDown (bool selecting);
+    bool moveCaretLeft(bool moveInWholeWordSteps, bool selecting);
+    bool moveCaretRight(bool moveInWholeWordSteps, bool selecting);
+    bool moveCaretUp(bool selecting);
+    bool moveCaretDown(bool selecting);
+    bool pageUp(bool selecting);
+    bool pageDown(bool selecting);
     bool scrollDown();
     bool scrollUp();
-    bool moveCaretToTop (bool selecting);
-    bool moveCaretToStartOfLine (bool selecting);
-    bool moveCaretToEnd (bool selecting);
-    bool moveCaretToEndOfLine (bool selecting);
-    bool deleteBackwards (bool moveInWholeWordSteps);
-    bool deleteForwards (bool moveInWholeWordSteps);
+    bool moveCaretToTop(bool selecting);
+    bool moveCaretToStartOfLine(bool selecting);
+    bool moveCaretToEnd(bool selecting);
+    bool moveCaretToEndOfLine(bool selecting);
+    bool deleteBackwards(bool moveInWholeWordSteps);
+    bool deleteForwards(bool moveInWholeWordSteps);
     bool copyToClipboard();
     bool cutToClipboard();
     bool pasteFromClipboard();
@@ -595,8 +592,8 @@ public:
 
         @see performPopupMenuAction, setPopupMenuEnabled, isPopupMenuEnabled
     */
-    virtual void addPopupMenuItems (PopupMenu& menuToAddTo,
-                                    const MouseEvent* mouseClickEvent);
+    virtual void addPopupMenuItems(PopupMenu& menuToAddTo,
+        MouseEvent const* mouseClickEvent);
 
     /** This is called to perform one of the items that was shown on the popup menu.
 
@@ -609,14 +606,13 @@ public:
 
         @see addPopupMenuItems, setPopupMenuEnabled, isPopupMenuEnabled
     */
-    virtual void performPopupMenuAction (int menuItemID);
+    virtual void performPopupMenuAction(int menuItemID);
 
     //==============================================================================
     /** Base class for input filters that can be applied to a UnicodeTextEditor to restrict
         the text that can be entered.
     */
-    class InputFilter
-    {
+    class InputFilter {
     public:
         InputFilter() = default;
         virtual ~InputFilter() = default;
@@ -625,14 +621,13 @@ public:
             An implementation of this class should should check the input string,
             and return an edited version of it that should be used.
         */
-        virtual String filterNewText (UnicodeTextEditor&, const String& newInput) = 0;
+        virtual String filterNewText(UnicodeTextEditor&, String const& newInput) = 0;
     };
 
     /** An input filter for a UnicodeTextEditor that limits the length of text and/or the
         characters that it may contain.
     */
-    class LengthAndCharacterRestriction  : public InputFilter
-    {
+    class LengthAndCharacterRestriction : public InputFilter {
     public:
         /** Creates a filter that limits the length of text, and/or the characters that it can contain.
             @param maxNumChars          if this is > 0, it sets a maximum length limit; if <= 0, no
@@ -640,15 +635,15 @@ public:
             @param allowedCharacters    if this is non-empty, then only characters that occur in
                                         this string are allowed to be entered into the editor.
         */
-        LengthAndCharacterRestriction (int maxNumChars, const String& allowedCharacters);
+        LengthAndCharacterRestriction(int maxNumChars, String const& allowedCharacters);
 
-        String filterNewText (UnicodeTextEditor&, const String&) override;
+        String filterNewText(UnicodeTextEditor&, String const&) override;
 
     private:
         String allowedCharacters;
         int maxLength;
 
-        JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (LengthAndCharacterRestriction)
+        JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(LengthAndCharacterRestriction)
     };
 
     /** Sets an input filter that should be applied to this editor.
@@ -656,10 +651,10 @@ public:
         If takeOwnership is true, then the filter will be owned and deleted by the editor
         when no longer needed.
     */
-    void setInputFilter (InputFilter* newFilter, bool takeOwnership);
+    void setInputFilter(InputFilter* newFilter, bool takeOwnership);
 
     /** Returns the current InputFilter, as set by setInputFilter(). */
-    InputFilter* getInputFilter() const noexcept                { return inputFilter; }
+    InputFilter* getInputFilter() const noexcept { return inputFilter; }
 
     /** Sets limits on the characters that can be entered.
         This is just a shortcut that passes an instance of the LengthAndCharacterRestriction
@@ -670,13 +665,13 @@ public:
         @param allowedCharacters    if this is non-empty, then only characters that occur in
                                     this string are allowed to be entered into the editor.
     */
-    void setInputRestrictions (int maxTextLength,
-                               const String& allowedCharacters = String());
+    void setInputRestrictions(int maxTextLength,
+        String const& allowedCharacters = String());
 
     /** Sets the type of virtual keyboard that should be displayed when this editor has
         focus.
     */
-    void setKeyboardType (VirtualKeyboardType type) noexcept    { keyboardType = type; }
+    void setKeyboardType(VirtualKeyboardType type) noexcept { keyboardType = type; }
 
     /** Sets the behaviour of mouse/touch interactions outside this component.
 
@@ -684,41 +679,41 @@ public:
         If false, then the virtual keyboard will remain onscreen for as long as the UnicodeTextEditor has
         keyboard focus.
     */
-    void setClicksOutsideDismissVirtualKeyboard (bool);
+    void setClicksOutsideDismissVirtualKeyboard(bool);
 
     /** Returns true if the editor is configured to hide the virtual keyboard when the mouse is
         pressed on another component.
     */
-    bool getClicksOutsideDismissVirtualKeyboard() const     { return clicksOutsideDismissVirtualKeyboard; }
+    bool getClicksOutsideDismissVirtualKeyboard() const { return clicksOutsideDismissVirtualKeyboard; }
 
     // LookAndFeel-ish functions: you can override these for custom drawing behaviour
-    virtual void fillTextEditorBackground (Graphics&, int width, int height);
-    virtual void drawTextEditorOutline (Graphics&, int width, int height);
-    virtual CaretComponent* createCaretComponent (Component* keyFocusOwner);
+    virtual void fillTextEditorBackground(Graphics&, int width, int height);
+    virtual void drawTextEditorOutline(Graphics&, int width, int height);
+    virtual CaretComponent* createCaretComponent(Component* keyFocusOwner);
 
     //==============================================================================
     /** @internal */
-    void paint (Graphics&) override;
+    void paint(Graphics&) override;
     /** @internal */
-    void paintOverChildren (Graphics&) override;
+    void paintOverChildren(Graphics&) override;
     /** @internal */
-    void mouseDown (const MouseEvent&) override;
+    void mouseDown(MouseEvent const&) override;
     /** @internal */
-    void mouseUp (const MouseEvent&) override;
+    void mouseUp(MouseEvent const&) override;
     /** @internal */
-    void mouseDrag (const MouseEvent&) override;
+    void mouseDrag(MouseEvent const&) override;
     /** @internal */
-    void mouseDoubleClick (const MouseEvent&) override;
+    void mouseDoubleClick(MouseEvent const&) override;
     /** @internal */
-    void mouseWheelMove (const MouseEvent&, const MouseWheelDetails&) override;
+    void mouseWheelMove(MouseEvent const&, MouseWheelDetails const&) override;
     /** @internal */
-    bool keyPressed (const KeyPress&) override;
+    bool keyPressed(KeyPress const&) override;
     /** @internal */
-    bool keyStateChanged (bool) override;
+    bool keyStateChanged(bool) override;
     /** @internal */
-    void focusGained (FocusChangeType) override;
+    void focusGained(FocusChangeType) override;
     /** @internal */
-    void focusLost (FocusChangeType) override;
+    void focusLost(FocusChangeType) override;
     /** @internal */
     void resized() override;
     /** @internal */
@@ -730,9 +725,9 @@ public:
     /** @internal */
     bool isTextInputActive() const override;
     /** @internal */
-    void setTemporaryUnderlining (const Array<Range<int>>&) override;
+    void setTemporaryUnderlining(Array<Range<int>> const&) override;
     /** @internal */
-    VirtualKeyboardType getKeyboardType() override    { return keyboardType; }
+    VirtualKeyboardType getKeyboardType() override { return keyboardType; }
 
 protected:
     //==============================================================================
@@ -801,8 +796,7 @@ private:
     VirtualKeyboardType keyboardType = TextInputTarget::textKeyboard;
     float lineSpacing = 1.0f;
 
-    enum DragType
-    {
+    enum DragType {
         notDragging,
         draggingSelectionStart,
         draggingSelectionEnd
@@ -814,48 +808,46 @@ private:
     Array<Range<int>> underlinedSections;
 
     std::unique_ptr<AccessibilityHandler> createAccessibilityHandler() override;
-    void moveCaret (int newCaretPos);
-    void moveCaretTo (int newPosition, bool isSelecting);
+    void moveCaret(int newCaretPos);
+    void moveCaretTo(int newPosition, bool isSelecting);
     void recreateCaret();
-    void handleCommandMessage (int) override;
+    void handleCommandMessage(int) override;
     void coalesceSimilarSections();
-    void splitSection (int sectionIndex, int charToSplitAt);
-    void clearInternal (UndoManager*);
-    void insert (const String&, int insertIndex, const Font&, Colour, UndoManager*, int newCaretPos);
-    void reinsert (int insertIndex, const OwnedArray<UniformTextSection>&);
-    void remove (Range<int>, UndoManager*, int caretPositionToMoveTo);
-    void getCharPosition (int index, Point<float>&, float& lineHeight) const;
+    void splitSection(int sectionIndex, int charToSplitAt);
+    void clearInternal(UndoManager*);
+    void insert(String const&, int insertIndex, Font const&, Colour, UndoManager*, int newCaretPos);
+    void reinsert(int insertIndex, OwnedArray<UniformTextSection> const&);
+    void remove(Range<int>, UndoManager*, int caretPositionToMoveTo);
+    void getCharPosition(int index, Point<float>&, float& lineHeight) const;
     void updateCaretPosition();
     void updateValueFromText();
     void textWasChangedByValue();
-    int indexAtPosition (float x, float y) const;
-    int findWordBreakAfter (int position) const;
-    int findWordBreakBefore (int position) const;
-    bool moveCaretWithTransaction (int newPos, bool selecting);
-    void drawContent (Graphics&);
+    int indexAtPosition(float x, float y) const;
+    int findWordBreakAfter(int position) const;
+    int findWordBreakBefore(int position) const;
+    bool moveCaretWithTransaction(int newPos, bool selecting);
+    void drawContent(Graphics&);
     void checkLayout();
     int getWordWrapWidth() const;
     int getMaximumTextWidth() const;
     int getMaximumTextHeight() const;
     void timerCallbackInt();
     void checkFocus();
-    void repaintText (Range<int>);
-    void scrollByLines (int deltaLines);
-    bool undoOrRedo (bool shouldUndo);
+    void repaintText(Range<int>);
+    void scrollByLines(int deltaLines);
+    bool undoOrRedo(bool shouldUndo);
     UndoManager* getUndoManager() noexcept;
-    void setSelection (Range<int>) noexcept;
+    void setSelection(Range<int>) noexcept;
     Point<int> getTextOffset() const noexcept;
 
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (UnicodeTextEditor)
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(UnicodeTextEditor)
 };
 
-
-class  UnicodeLabel  : public Component,
-                         public SettableTooltipClient,
-                         protected UnicodeTextEditor::Listener,
-                         private ComponentListener,
-                         private Value::Listener
-{
+class UnicodeLabel : public Component
+    , public SettableTooltipClient
+    , protected UnicodeTextEditor::Listener
+    , private ComponentListener
+    , private Value::Listener {
 public:
     //==============================================================================
     /** Creates a Label.
@@ -863,8 +855,8 @@ public:
         @param componentName    the name to give the component
         @param labelText        the text to show in the label
     */
-    UnicodeLabel (const String& componentName = String(),
-           const String& labelText = String());
+    UnicodeLabel(String const& componentName = String(),
+        String const& labelText = String());
 
     /** Destructor. */
     ~UnicodeLabel() override;
@@ -875,8 +867,8 @@ public:
         The NotificationType parameter indicates whether to send a change message to
         any Label::Listener objects if the new text is different.
     */
-    void setText (const String& newText,
-                  NotificationType notification);
+    void setText(String const& newText,
+        NotificationType notification);
 
     /** Returns the label's current text.
 
@@ -887,19 +879,19 @@ public:
                                             the user has finished typing and pressed the return
                                             key.
     */
-    String getText (bool returnActiveEditorContents = false) const;
+    String getText(bool returnActiveEditorContents = false) const;
 
     /** Returns the text content as a Value object.
         You can call Value::referTo() on this object to make the label read and control
         a Value object that you supply.
     */
-    Value& getTextValue() noexcept                          { return textValue; }
+    Value& getTextValue() noexcept { return textValue; }
 
     //==============================================================================
     /** Changes the font to use to draw the text.
         @see getFont
     */
-    void setFont (const Font& newFont);
+    void setFont(Font const& newFont);
 
     /** Returns the font currently being used.
         This may be the one set by setFont(), unless it has been overridden by the current LookAndFeel
@@ -907,24 +899,23 @@ public:
     */
     Font getFont() const noexcept;
 
-
     //==============================================================================
     /** Sets the style of justification to be used for positioning the text.
         (The default is Justification::centredLeft)
     */
-    void setJustificationType (Justification justification);
+    void setJustificationType(Justification justification);
 
     /** Returns the type of justification, as set in setJustificationType(). */
-    Justification getJustificationType() const noexcept                         { return justification; }
+    Justification getJustificationType() const noexcept { return justification; }
 
     /** Changes the border that is left between the edge of the component and the text.
         By default there's a small gap left at the sides of the component to allow for
         the drawing of the border, but you can change this if necessary.
     */
-    void setBorderSize (BorderSize<int> newBorderSize);
+    void setBorderSize(BorderSize<int> newBorderSize);
 
     /** Returns the size of the border to be left around the text. */
-    BorderSize<int> getBorderSize() const noexcept                              { return border; }
+    BorderSize<int> getBorderSize() const noexcept { return border; }
 
     /** Makes this label "stick to" another component.
 
@@ -935,7 +926,7 @@ public:
         @param onLeft   if true, the label will stay on the left of its component; if
                         false, it will stay above it.
     */
-    void attachToComponent (Component* owner, bool onLeft);
+    void attachToComponent(Component* owner, bool onLeft);
 
     /** If this label has been attached to another component using attachToComponent, this
         returns the other component.
@@ -949,20 +940,20 @@ public:
         Returns false if the label is above the other component. This is only relevant if
         attachToComponent() has been called.
     */
-    bool isAttachedOnLeft() const noexcept                                      { return leftOfOwnerComp; }
+    bool isAttachedOnLeft() const noexcept { return leftOfOwnerComp; }
 
     /** Specifies the minimum amount that the font can be squashed horizontally before it starts
         using ellipsis. Use a value of 0 for a default value.
 
         @see Graphics::drawFittedText
     */
-    void setMinimumHorizontalScale (float newScale);
+    void setMinimumHorizontalScale(float newScale);
 
     /** Specifies the amount that the font can be squashed horizontally. */
-    float getMinimumHorizontalScale() const noexcept                            { return minimumHorizontalScale; }
+    float getMinimumHorizontalScale() const noexcept { return minimumHorizontalScale; }
 
     /** Set a keyboard type for use when the text editor is shown. */
-    void setKeyboardType (TextInputTarget::VirtualKeyboardType type) noexcept   { keyboardType = type; }
+    void setKeyboardType(TextInputTarget::VirtualKeyboardType type) noexcept { keyboardType = type; }
 
     //==============================================================================
     /**
@@ -975,27 +966,26 @@ public:
 
         @see Label::addListener, Label::removeListener
     */
-    class Listener
-    {
+    class Listener {
     public:
         /** Destructor. */
         virtual ~Listener() = default;
 
         /** Called when a Label's text has changed. */
-        virtual void labelTextChanged (UnicodeLabel* labelThatHasChanged) = 0;
+        virtual void labelTextChanged(UnicodeLabel* labelThatHasChanged) = 0;
 
         /** Called when a Label goes into editing mode and displays a TextEditor. */
-        virtual void editorShown (UnicodeLabel*, UnicodeTextEditor&) {}
+        virtual void editorShown(UnicodeLabel*, UnicodeTextEditor&) { }
 
         /** Called when a Label is about to delete its TextEditor and exit editing mode. */
-        virtual void editorHidden (UnicodeLabel*, UnicodeTextEditor&) {}
+        virtual void editorHidden(UnicodeLabel*, UnicodeTextEditor&) { }
     };
 
     /** Registers a listener that will be called when the label's text changes. */
-    void addListener (Listener* listener);
+    void addListener(Listener* listener);
 
     /** Deregisters a previously-registered listener. */
-    void removeListener (Listener* listener);
+    void removeListener(Listener* listener);
 
     //==============================================================================
     /** You can assign a lambda to this callback object to have it called when the label text is changed. */
@@ -1028,21 +1018,21 @@ public:
                                             commit the changes.
         @see showEditor, setEditorColours, TextEditor
     */
-    void setEditable (bool editOnSingleClick,
-                      bool editOnDoubleClick = false,
-                      bool lossOfFocusDiscardsChanges = false);
+    void setEditable(bool editOnSingleClick,
+        bool editOnDoubleClick = false,
+        bool lossOfFocusDiscardsChanges = false);
 
     /** Returns true if this option was set using setEditable(). */
-    bool isEditableOnSingleClick() const noexcept                       { return editSingleClick; }
+    bool isEditableOnSingleClick() const noexcept { return editSingleClick; }
 
     /** Returns true if this option was set using setEditable(). */
-    bool isEditableOnDoubleClick() const noexcept                       { return editDoubleClick; }
+    bool isEditableOnDoubleClick() const noexcept { return editDoubleClick; }
 
     /** Returns true if this option has been set in a call to setEditable(). */
-    bool doesLossOfFocusDiscardChanges() const noexcept                 { return lossOfFocusDiscardsChanges; }
+    bool doesLossOfFocusDiscardChanges() const noexcept { return lossOfFocusDiscardsChanges; }
 
     /** Returns true if the user can edit this label's text. */
-    bool isEditable() const noexcept                                    { return editSingleClick || editDoubleClick; }
+    bool isEditable() const noexcept { return editSingleClick || editDoubleClick; }
 
     /** Makes the editor appear as if the label had been clicked by the user.
         @see textWasEdited, setEditable
@@ -1057,7 +1047,7 @@ public:
                                                 editor will be used to set the label's text
                                                 before it is hidden.
     */
-    void hideEditor (bool discardCurrentEditorContents);
+    void hideEditor(bool discardCurrentEditorContents);
 
     /** Returns true if the editor is currently focused and active. */
     bool isBeingEdited() const noexcept;
@@ -1069,13 +1059,12 @@ public:
     /** This abstract base class is implemented by LookAndFeel classes to provide
         label drawing functionality.
     */
-    struct JUCE_API  LookAndFeelMethods
-    {
+    struct JUCE_API LookAndFeelMethods {
         virtual ~LookAndFeelMethods() = default;
 
-        virtual void drawLabel (Graphics&, UnicodeLabel&) = 0;
-        virtual Font getLabelFont (UnicodeLabel&) = 0;
-        virtual BorderSize<int> getLabelBorderSize (UnicodeLabel&) = 0;
+        virtual void drawLabel(Graphics&, UnicodeLabel&) = 0;
+        virtual Font getLabelFont(UnicodeLabel&) = 0;
+        virtual BorderSize<int> getLabelBorderSize(UnicodeLabel&) = 0;
     };
 
 protected:
@@ -1092,46 +1081,46 @@ protected:
     virtual void textWasChanged();
 
     /** Called when the text editor has just appeared, due to a user click or other focus change. */
-    virtual void editorShown (UnicodeTextEditor*);
+    virtual void editorShown(UnicodeTextEditor*);
 
     /** Called when the text editor is going to be deleted, after editing has finished. */
-    virtual void editorAboutToBeHidden (UnicodeTextEditor*);
+    virtual void editorAboutToBeHidden(UnicodeTextEditor*);
 
     //==============================================================================
     /** @internal */
-    void paint (Graphics&) override;
+    void paint(Graphics&) override;
     /** @internal */
     void resized() override;
     /** @internal */
-    void mouseUp (const MouseEvent&) override;
+    void mouseUp(MouseEvent const&) override;
     /** @internal */
-    void mouseDoubleClick (const MouseEvent&) override;
+    void mouseDoubleClick(MouseEvent const&) override;
     /** @internal */
-    void componentMovedOrResized (Component&, bool wasMoved, bool wasResized) override;
+    void componentMovedOrResized(Component&, bool wasMoved, bool wasResized) override;
     /** @internal */
-    void componentParentHierarchyChanged (Component&) override;
+    void componentParentHierarchyChanged(Component&) override;
     /** @internal */
-    void componentVisibilityChanged (Component&) override;
+    void componentVisibilityChanged(Component&) override;
     /** @internal */
     void inputAttemptWhenModal() override;
     /** @internal */
-    void focusGained (FocusChangeType) override;
+    void focusGained(FocusChangeType) override;
     /** @internal */
     void enablementChanged() override;
     /** @internal */
     std::unique_ptr<ComponentTraverser> createKeyboardFocusTraverser() override;
     /** @internal */
-    void textEditorTextChanged (UnicodeTextEditor&) override;
+    void textEditorTextChanged(UnicodeTextEditor&) override;
     /** @internal */
-    void textEditorReturnKeyPressed (UnicodeTextEditor&) override;
+    void textEditorReturnKeyPressed(UnicodeTextEditor&) override;
     /** @internal */
-    void textEditorEscapeKeyPressed (UnicodeTextEditor&) override;
+    void textEditorEscapeKeyPressed(UnicodeTextEditor&) override;
     /** @internal */
-    void textEditorFocusLost (UnicodeTextEditor&) override;
+    void textEditorFocusLost(UnicodeTextEditor&) override;
     /** @internal */
     void colourChanged() override;
     /** @internal */
-    void valueChanged (Value&) override;
+    void valueChanged(Value&) override;
     /** @internal */
     void callChangeListeners();
 
@@ -1153,7 +1142,7 @@ private:
     bool leftOfOwnerComp = false;
 
     std::unique_ptr<AccessibilityHandler> createAccessibilityHandler() override;
-    bool updateFromTextEditorContents (UnicodeTextEditor&);
+    bool updateFromTextEditorContents(UnicodeTextEditor&);
 
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (UnicodeLabel)
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(UnicodeLabel)
 };

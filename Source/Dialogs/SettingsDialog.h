@@ -387,7 +387,6 @@ public:
         bool isTicked = false;
         bool isActive = true;
 
-
         IconMenuItem(String icon, String text, bool hasChildren, bool tickBox)
             : menuItemIcon(icon)
             , menuItemText(text)
@@ -428,17 +427,16 @@ public:
 
                 PlugDataLook::drawFittedText(g, menuItemIcon, iconArea, Justification::centredLeft, colour);
             } else if (hasTickBox) {
-                                
-                g.setColour (findColour (ToggleButton::tickDisabledColourId));
+
+                g.setColour(findColour(ToggleButton::tickDisabledColourId));
                 g.drawRoundedRectangle(iconArea.toFloat().translated(0, 0.5f), 4.0f, 1.0f);
 
-                if (isTicked)
-                {
-                    g.setColour (findColour (ToggleButton::tickColourId));
-                    auto tick = lnf.getTickShape (1.0f);
-                    g.fillPath (tick, tick.getTransformToScaleToFit (iconArea.toFloat().translated(0, 0.5f).reduced (2.5f, 3.5f), false));
+                if (isTicked) {
+                    g.setColour(findColour(ToggleButton::tickColourId));
+                    auto tick = lnf.getTickShape(1.0f);
+                    g.fillPath(tick, tick.getTransformToScaleToFit(iconArea.toFloat().translated(0, 0.5f).reduced(2.5f, 3.5f), false));
                 }
-                
+
                 /*
                 auto tick = lnf.getTickShape(1.0f);
                 g.fillPath(tick, tick.getTransformToScaleToFit(, true)); */

@@ -483,7 +483,6 @@ public:
 
         listBox.getViewport()->setScrollBarsShown(true, false, false, false);
 
-        
         input.getProperties().set("NoOutline", true);
         input.addKeyListener(this);
         input.onTextChange = [this]() {
