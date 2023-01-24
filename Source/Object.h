@@ -12,7 +12,7 @@ extern "C" {
 #include <m_pd.h>
 }
 
-#include "Utility/ObjectGrid.h"
+#include "ObjectGrid.h"
 #include "Iolet.h"
 #include "Objects/ObjectBase.h"
 

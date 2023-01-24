@@ -294,7 +294,6 @@ public:
         slider.setColour(Slider::backgroundColourId, findColour(PlugDataColour::sidebarBackgroundColourId));
         slider.setColour(Slider::trackColourId, findColour(PlugDataColour::sidebarTextColourId));
 
-        indexLabel.setColour(Label::textColourId, findColour(PlugDataColour::sidebarTextColourId));
         nameLabel.setColour(Label::textColourId, findColour(PlugDataColour::sidebarTextColourId));
         valueLabel.setColour(Label::textColourId, findColour(PlugDataColour::sidebarTextColourId));
 
@@ -315,8 +314,7 @@ public:
     DraggableNumber maxValue = DraggableNumber(false);
     DraggableNumber valueLabel = DraggableNumber(false);
 
-    Label indexLabel;
-    Label nameLabel;
+    UnicodeLabel nameLabel;
 
     String lastName;
 

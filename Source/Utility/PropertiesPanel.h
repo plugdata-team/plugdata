@@ -317,7 +317,7 @@ public:
 
     template<typename T>
     struct EditableComponent : public Property {
-        std::unique_ptr<Label> label;
+        std::unique_ptr<Component> label;
         Value& property;
 
         EditableComponent(String propertyName, Value& value)
@@ -327,32 +327,36 @@ public:
             if constexpr (std::is_arithmetic<T>::value) {
                 auto* draggableNumber = new DraggableNumber(std::is_integral<T>::value);
                 label = std::unique_ptr<DraggableNumber>(draggableNumber);
-
+                
+                draggableNumber->getTextValue().referTo(property);
+                draggableNumber->setFont(Font(14));
+                
                 dynamic_cast<DraggableNumber*>(label.get())->valueChanged = [this](float value) {
                     property = value;
                 };
 
                 draggableNumber->setEditableOnClick(true);
+                
+                draggableNumber->onEditorShow = [this, draggableNumber]() {
+                    auto* editor = draggableNumber->getCurrentTextEditor();
+
+                    if constexpr (std::is_floating_point<T>::value) {
+                        editor->setInputRestrictions(0, "0123456789.-");
+                    } else if constexpr (std::is_integral<T>::value) {
+                        editor->setInputRestrictions(0, "0123456789-");
+                    }
+                };
             } else {
-                label = std::make_unique<Label>();
-                label->setEditable(true, false);
+                auto* unicodeLabel = new UnicodeLabel();
+                label = std::unique_ptr<UnicodeLabel>(unicodeLabel);
+                unicodeLabel->setEditable(true, false);
+                unicodeLabel->getTextValue().referTo(property);
+                unicodeLabel->setFont(Font(14));
             }
 
             addAndMakeVisible(label.get());
-            label->getTextValue().referTo(property);
+
             label->addMouseListener(this, true);
-
-            label->setFont(Font(14));
-
-            label->onEditorShow = [this]() {
-                auto* editor = label->getCurrentTextEditor();
-
-                if constexpr (std::is_floating_point<T>::value) {
-                    editor->setInputRestrictions(0, "0123456789.-");
-                } else if constexpr (std::is_integral<T>::value) {
-                    editor->setInputRestrictions(0, "0123456789-");
-                }
-            };
         }
 
         void resized() override
@@ -362,7 +366,7 @@ public:
     };
 
     struct FilePathComponent : public Property {
-        Label label;
+        UnicodeLabel label;
         TextButton browseButton = TextButton(Icons::File);
         Value& property;
 
