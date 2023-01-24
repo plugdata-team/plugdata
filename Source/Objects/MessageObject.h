@@ -18,10 +18,10 @@ typedef struct _message {
 
 class MessageObject final : public ObjectBase
     , public KeyListener
-    , public TextEditor::Listener {
+    , public UnicodeTextEditor::Listener {
 
     Justification justification = Justification::centredLeft;
-    std::unique_ptr<TextEditor> editor;
+    std::unique_ptr<UnicodeTextEditor> editor;
     BorderSize<int> border = BorderSize<int>(1, 7, 1, 2);
     float minimumHorizontalScale = 0.8f;
 
@@ -196,7 +196,7 @@ public:
         if (editor == nullptr) {
             BorderSize<int> border { 1, 6, 1, 4 };
 
-            editor = std::make_unique<TextEditor>(getName());
+            editor = std::make_unique<UnicodeTextEditor>(getName());
             editor->applyFontToAllText(Font(15));
 
             copyAllExplicitColoursTo(*editor);
@@ -245,7 +245,7 @@ public:
     {
         if (editor != nullptr) {
             WeakReference<Component> deletionChecker(this);
-            std::unique_ptr<TextEditor> outgoingEditor;
+            std::unique_ptr<UnicodeTextEditor> outgoingEditor;
             std::swap(outgoingEditor, editor);
 
             outgoingEditor->setInputFilter(nullptr, false);
@@ -305,7 +305,7 @@ public:
         repaint();
     }
 
-    void textEditorReturnKeyPressed(TextEditor& ed) override
+    void textEditorReturnKeyPressed(UnicodeTextEditor& ed) override
     {
         int caretPosition = ed.getCaretPosition();
         auto text = ed.getText();
@@ -316,7 +316,7 @@ public:
     }
 
     // For resize-while-typing behaviour
-    void textEditorTextChanged(TextEditor& ed) override
+    void textEditorTextChanged(UnicodeTextEditor& ed) override
     {
         auto text = ed.getText();
 

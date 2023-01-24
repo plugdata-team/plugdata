@@ -94,7 +94,7 @@ private:
     Label nameLabel = Label("", "Name:");
     Label baseThemeLabel = Label("", "Base theme:");
 
-    TextEditor nameEditor;
+    UnicodeTextEditor nameEditor;
     ComboBox baseThemeSelector;
 
     TextButton cancel = TextButton("Cancel");

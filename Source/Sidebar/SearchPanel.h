@@ -7,6 +7,7 @@
 #include <m_pd.h>
 #include <m_imp.h>
 #include <x_libpd_extra_utils.h>
+#include <Utility/UnicodeTextEditor.h>
 
 class SearchPanel : public Component
     , public ListBoxModel
@@ -23,7 +24,7 @@ public:
 
         listBox.getViewport()->setScrollBarsShown(true, false, false, false);
 
-        input.setName("sidebar::searcheditor");
+        input.getProperties().set("NoOutline", true);
 
         input.onTextChange = [this]() {
             updateResults();
@@ -393,7 +394,7 @@ private:
     ListBox listBox;
 
     Array<std::tuple<String, String, Object*, void*>> searchResult;
-    TextEditor input;
+    UnicodeTextEditor input;
     TextButton closeButton = TextButton(Icons::Clear);
 
     PluginEditor* editor;

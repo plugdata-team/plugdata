@@ -13,6 +13,8 @@
 #include "LookAndFeel.h"
 #include "PluginEditor.h"
 
+#include #include <Utility/UnicodeTextEditor.h>
+
 extern "C" {
 #include <m_pd.h>
 #include <m_imp.h>
@@ -715,7 +717,7 @@ void Object::hideEditor()
         gui->hideEditor();
     } else if (newObjectEditor) {
         WeakReference<Component> deletionChecker(this);
-        std::unique_ptr<TextEditor> outgoingEditor;
+        std::unique_ptr<UnicodeTextEditor> outgoingEditor;
         std::swap(outgoingEditor, newObjectEditor);
 
         outgoingEditor->setInputFilter(nullptr, false);
@@ -752,7 +754,7 @@ void* Object::getPointer() const
 void Object::openNewObjectEditor()
 {
     if (!newObjectEditor) {
-        newObjectEditor = std::make_unique<TextEditor>();
+        newObjectEditor = std::make_unique<UnicodeTextEditor>();
 
         auto* editor = newObjectEditor.get();
         editor->applyFontToAllText(Font(14.5));
@@ -802,7 +804,7 @@ void Object::openNewObjectEditor()
     }
 }
 
-void Object::textEditorReturnKeyPressed(TextEditor& ed)
+void Object::textEditorReturnKeyPressed(UnicodeTextEditor& ed)
 {
     if (newObjectEditor) {
         newObjectEditor->giveAwayKeyboardFocus();
@@ -810,7 +812,7 @@ void Object::textEditorReturnKeyPressed(TextEditor& ed)
     }
 }
 
-void Object::textEditorTextChanged(TextEditor& ed)
+void Object::textEditorTextChanged(UnicodeTextEditor& ed)
 {
     // For resize-while-typing behaviour
     auto width = Font(14.5).getStringWidth(ed.getText()) + 25;

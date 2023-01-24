@@ -20,7 +20,7 @@ class Canvas;
 class Object : public Component
     , public Value::Listener
     , public Timer
-    , private TextEditor::Listener {
+    , private UnicodeTextEditor::Listener {
 public:
     Object(Canvas* parent, String const& name = "", Point<int> position = { 100, 100 });
 
@@ -62,8 +62,8 @@ public:
     void mouseUp(MouseEvent const& e) override;
     void mouseDrag(MouseEvent const& e) override;
 
-    void textEditorReturnKeyPressed(TextEditor& ed) override;
-    void textEditorTextChanged(TextEditor& ed) override;
+    void textEditorReturnKeyPressed(UnicodeTextEditor& ed) override;
+    void textEditorTextChanged(UnicodeTextEditor& ed) override;
 
     bool hitTest(int x, int y) override;
 
@@ -115,7 +115,7 @@ private:
     bool indexShown = false;
     bool isHvccCompatible = true;
 
-    std::unique_ptr<TextEditor> newObjectEditor;
+    std::unique_ptr<UnicodeTextEditor> newObjectEditor;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(Object)
 };

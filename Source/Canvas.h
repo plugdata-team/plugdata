@@ -84,7 +84,7 @@ public:
 
     void updateSidebarSelection();
 
-    void showSuggestions(Object* object, TextEditor* textEditor);
+    void showSuggestions(Object* object, UnicodeTextEditor* textEditor);
     void hideSuggestions();
 
     template<typename T>

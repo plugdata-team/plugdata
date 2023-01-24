@@ -82,8 +82,8 @@ private:
     Label nameLabel = Label("namelabel", "Name:");
     Label sizeLabel = Label("sizelabel", "Size:");
 
-    TextEditor nameEditor;
-    TextEditor sizeEditor;
+    UnicodeTextEditor nameEditor;
+    UnicodeTextEditor sizeEditor;
 
     TextButton cancel = TextButton("Cancel");
     TextButton ok = TextButton("OK");

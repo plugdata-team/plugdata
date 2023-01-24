@@ -6,11 +6,11 @@
 
 // Text base class that text objects with special implementation details can derive from
 class TextBase : public ObjectBase
-    , public TextEditor::Listener {
+    , public UnicodeTextEditor::Listener {
 
 protected:
     Justification justification = Justification::centredLeft;
-    std::unique_ptr<TextEditor> editor;
+    std::unique_ptr<UnicodeTextEditor> editor;
     BorderSize<int> border = BorderSize<int>(1, 7, 1, 2);
     float minimumHorizontalScale = 0.8f;
 
@@ -100,14 +100,14 @@ public:
         return std::max<float>(round(Font(15).getStringWidthFloat(text) + 14.0f), 32);
     }
 
-    void textEditorReturnKeyPressed(TextEditor& ed) override
+    void textEditorReturnKeyPressed(UnicodeTextEditor& ed) override
     {
         if (editor != nullptr) {
             editor->giveAwayKeyboardFocus();
         }
     }
 
-    void textEditorTextChanged(TextEditor& ed) override
+    void textEditorTextChanged(UnicodeTextEditor& ed) override
     {
         // For resize-while-typing behaviour
         auto width = getBestTextWidth(ed.getText());
@@ -158,7 +158,7 @@ public:
     {
         if (editor != nullptr) {
             WeakReference<Component> deletionChecker(this);
-            std::unique_ptr<TextEditor> outgoingEditor;
+            std::unique_ptr<UnicodeTextEditor> outgoingEditor;
             std::swap(outgoingEditor, editor);
 
             outgoingEditor->setInputFilter(nullptr, false);
@@ -190,7 +190,7 @@ public:
     void showEditor() override
     {
         if (editor == nullptr) {
-            editor = std::make_unique<TextEditor>(getName());
+            editor = std::make_unique<UnicodeTextEditor>(getName());
             editor->applyFontToAllText(Font(15));
 
             copyAllExplicitColoursTo(*editor);
@@ -240,7 +240,7 @@ public:
     }
 
     /** Returns the currently-visible text editor, or nullptr if none is open. */
-    TextEditor* getCurrentTextEditor() const
+    UnicodeTextEditor* getCurrentTextEditor() const
     {
         return editor.get();
     }

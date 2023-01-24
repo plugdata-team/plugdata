@@ -9,7 +9,7 @@
 bool wantsNativeDialog();
 
 class LibraryLoadPanel : public Component
-    , public TextEditor::Listener
+    , public UnicodeTextEditor::Listener
     , private ListBoxModel {
 
     class AddLibraryButton : public Component {
@@ -192,7 +192,7 @@ private:
 
     ValueTree tree;
 
-    TextEditor editor;
+    UnicodeTextEditor editor;
     int rowBeingEdited = -1;
 
     void externalChange()
@@ -265,7 +265,7 @@ private:
         internalChange();
     }
 
-    void textEditorReturnKeyPressed(TextEditor& ed) override
+    void textEditorReturnKeyPressed(UnicodeTextEditor& ed) override
     {
         if (isPositiveAndBelow(rowBeingEdited, librariesToLoad.size())) {
             librariesToLoad.set(rowBeingEdited, editor.getText());
@@ -275,7 +275,7 @@ private:
         }
     }
 
-    void textEditorFocusLost(TextEditor& ed) override
+    void textEditorFocusLost(UnicodeTextEditor& ed) override
     {
         if (isPositiveAndBelow(rowBeingEdited, librariesToLoad.size())) {
             librariesToLoad.set(rowBeingEdited, editor.getText());
