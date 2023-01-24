@@ -11,59 +11,59 @@ bool wantsNativeDialog();
 class SearchPathComponent : public Component
     , public FileDragAndDropTarget
     , private ListBoxModel {
-        
-        class AddPathButton : public Component {
-            
-            bool mouseIsOver = false;
-            
-        public:
-            std::function<void()> onClick = [](){};
-            
-            void paint(Graphics& g) override {
-                
-                auto bounds = getLocalBounds().reduced(5, 2);
-                auto textBounds = bounds;
-                auto iconBounds = textBounds.removeFromLeft(textBounds.getHeight());
-                
-                auto& lnf = dynamic_cast<PlugDataLook&>(getLookAndFeel());
-                
-                auto colour = findColour(PlugDataColour::panelTextColourId);
-                if(mouseIsOver) {
-                    g.setColour(findColour(PlugDataColour::panelActiveBackgroundColourId));
-                    g.fillRoundedRectangle(bounds.toFloat(), PlugDataLook::defaultCornerRadius);
-                    
-                    colour = findColour(PlugDataColour::panelActiveTextColourId);
-                }
-                
-                g.setColour(colour);
-                g.setFont(lnf.iconFont.withHeight(14));
-                g.drawText(Icons::Add, iconBounds, Justification::centred);
-                
-                g.setFont(Font(14));
-                PlugDataLook::drawText(g, "Add search path", textBounds, Justification::centredLeft, colour);
+
+    class AddPathButton : public Component {
+
+        bool mouseIsOver = false;
+
+    public:
+        std::function<void()> onClick = []() {};
+
+        void paint(Graphics& g) override
+        {
+
+            auto bounds = getLocalBounds().reduced(5, 2);
+            auto textBounds = bounds;
+            auto iconBounds = textBounds.removeFromLeft(textBounds.getHeight());
+
+            auto& lnf = dynamic_cast<PlugDataLook&>(getLookAndFeel());
+
+            auto colour = findColour(PlugDataColour::panelTextColourId);
+            if (mouseIsOver) {
+                g.setColour(findColour(PlugDataColour::panelActiveBackgroundColourId));
+                g.fillRoundedRectangle(bounds.toFloat(), PlugDataLook::defaultCornerRadius);
+
+                colour = findColour(PlugDataColour::panelActiveTextColourId);
             }
-            
-            void mouseEnter(const MouseEvent& e) override
-            {
-                mouseIsOver = true;
-                repaint();
-            }
-            
-            void mouseExit(const MouseEvent& e) override
-            {
-                mouseIsOver = false;
-                repaint();
-            }
-            
-            void mouseUp(const MouseEvent& e) override
-            {
-                onClick();
-            }
-        };
-        
+
+            g.setColour(colour);
+            g.setFont(lnf.iconFont.withHeight(14));
+            g.drawText(Icons::Add, iconBounds, Justification::centred);
+
+            g.setFont(Font(14));
+            PlugDataLook::drawText(g, "Add search path", textBounds, Justification::centredLeft, colour);
+        }
+
+        void mouseEnter(MouseEvent const& e) override
+        {
+            mouseIsOver = true;
+            repaint();
+        }
+
+        void mouseExit(MouseEvent const& e) override
+        {
+            mouseIsOver = false;
+            repaint();
+        }
+
+        void mouseUp(MouseEvent const& e) override
+        {
+            onClick();
+        }
+    };
+
 public:
     std::unique_ptr<Dialog> confirmationDialog;
-    
 
     /** Creates an empty FileSearchPathListObject. */
     SearchPathComponent(ValueTree libraryTree)
@@ -115,8 +115,8 @@ public:
                         return;
 
                     paths.clear();
-                
-                    for(const auto& dir : pd::Library::defaultPaths) {
+
+                    for (const auto& dir : pd::Library::defaultPaths) {
                         paths.add(dir.getFullPathName());
                     }
 
@@ -212,7 +212,7 @@ public:
 
         auto statusbarBounds = Rectangle<int>(2, statusbarY + 6, getWidth() - 6, statusbarHeight);
         resetButton.setBounds(statusbarBounds.removeFromRight(statusbarHeight));
-        
+
         updateButtons();
     }
 
@@ -233,8 +233,6 @@ public:
     }
 
 private:
-    
-
     StringArray paths;
     File defaultBrowseTarget;
     std::unique_ptr<FileChooser> chooser;
@@ -312,7 +310,7 @@ private:
             downButton.setBounds(selectionBounds.removeFromRight(buttonHeight));
             upButton.setBounds(selectionBounds.removeFromRight(buttonHeight));
         }
-        
+
         auto addButtonBounds = listBox.getRowPosition(getNumRows(), false).translated(0, 5).withHeight(25);
         addButton.setBounds(addButtonBounds);
     }

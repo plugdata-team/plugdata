@@ -14,7 +14,7 @@ public:
         , iemHelper(ptr, object, this)
     {
     }
-    
+
     void updateLabel() override
     {
         iemHelper.updateLabel(label);

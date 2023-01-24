@@ -91,7 +91,6 @@ public:
 
         g.setFont(lnf->thinFont.withHeight(23));
         PlugDataLook::drawText(g, "Open a file to begin patching", 0, getHeight() / 2 - 120, getWidth(), 40, Justification::centred, findColour(PlugDataColour::canvasTextColourId));
-
     }
 
     std::unique_ptr<WelcomeButton> newButton;

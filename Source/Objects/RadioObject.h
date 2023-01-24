@@ -24,14 +24,14 @@ public:
 
         max = getMaximum();
         max.addListener(this);
-        
+
         selected = getValue();
 
         if (selected > static_cast<int>(max.getValue())) {
             selected = std::min<int>(static_cast<int>(max.getValue()) - 1, selected);
         }
     }
-    
+
     void updateLabel() override
     {
         iemHelper.updateLabel(label);

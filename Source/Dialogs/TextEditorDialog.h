@@ -1753,15 +1753,12 @@ void PlugDataTextEditor::mouseMagnify(MouseEvent const& e, float scaleFactor)
 
 bool PlugDataTextEditor::keyPressed(KeyPress const& key)
 {
-    
 
     using Target = TextDocument::Target;
     using Direction = TextDocument::Direction;
     auto mods = key.getModifiers();
     auto isTab = tabKeyUsed && key == KeyPress::tabKey;
     auto isBackspace = key == KeyPress::backspaceKey;
-
-    
 
     auto nav = [this, mods](Target target, Direction direction) {
         if (mods.isShiftDown())

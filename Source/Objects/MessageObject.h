@@ -179,7 +179,7 @@ public:
         int width = textObjectWidth * fontWidth + textWidthOffset;
 
         auto objText = editor ? editor->getText() : objectText;
-        
+
         numLines = StringUtils::getNumLines(objText, width);
         int height = numLines * 19 + 2;
 
@@ -208,8 +208,6 @@ public:
 
             editor->setAlwaysOnTop(true);
 
-            
-            
             editor->setMultiLine(true);
             editor->setReturnKeyStartsNewLine(false);
             editor->setScrollbarsShown(false);
@@ -313,7 +311,7 @@ public:
         int caretPosition = ed.getCaretPosition();
         auto text = ed.getText();
         text = text.substring(0, caretPosition) + ";\n" + text.substring(caretPosition);
-        
+
         ed.setText(text);
         ed.setCaretPosition(caretPosition + 2);
     }
@@ -322,18 +320,18 @@ public:
     void textEditorTextChanged(TextEditor& ed) override
     {
         auto text = ed.getText();
-        
+
         auto width = getBestTextWidth(text);
 
         width = std::max(width, getWidth());
         int fontWidth = glist_fontwidth(cnv->patch.getPointer());
         width = std::min(width / fontWidth, 60) * fontWidth;
-        
+
         numLines = StringUtils::getNumLines(text, width);
         auto height = numLines * 19 + 2;
-        
+
         height = std::max(height, getHeight());
-        
+
         if (width != getWidth() || height != getHeight()) {
             auto newBounds = Rectangle<int>(object->getX(), object->getY(), width + Object::doubleMargin, height + Object::doubleMargin);
             object->setBounds(newBounds);

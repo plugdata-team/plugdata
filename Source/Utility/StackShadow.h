@@ -723,8 +723,6 @@ bool isWindowOnCurrentVirtualDesktop(void* x);
 
 class StackDropShadower : private ComponentListener {
 public:
-    
-
     /** Creates a DropShadower. */
     StackDropShadower(DropShadow const& shadowType, int cornerRadius = 0)
         : shadow(shadowType)
@@ -790,8 +788,6 @@ public:
     }
 
 private:
-    
-
     void componentMovedOrResized(Component& c, bool, bool) override
     {
         if (owner == &c)
@@ -982,8 +978,6 @@ private:
     class VirtualDesktopWatcher final : public ComponentListener
         , private Timer {
     public:
-        
-
         VirtualDesktopWatcher(Component& c)
             : component(&c)
         {
@@ -1014,8 +1008,6 @@ private:
             listeners.erase(listener);
         }
 
-        
-
         void componentParentHierarchyChanged(Component& c) override
         {
             if (component.get() == &c)
@@ -1023,8 +1015,6 @@ private:
         }
 
     private:
-        
-
         void update()
         {
             auto const newHasReasonToHide = [this]() {
@@ -1046,8 +1036,6 @@ private:
         {
             update();
         }
-
-        
 
         WeakReference<Component> component;
         bool const isWindows = (SystemStats::getOperatingSystemType() & SystemStats::Windows) != 0;

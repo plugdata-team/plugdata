@@ -20,7 +20,7 @@ public:
     {
         value = getValue();
     }
-    
+
     void updateLabel() override
     {
         iemHelper.updateLabel(label);

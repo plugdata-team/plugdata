@@ -133,7 +133,7 @@ public:
     std::atomic<float>* volume;
 
     SettingsFile* settingsFile;
-        
+
     pd::Library objectLibrary;
 
     File homeDir = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory).getChildFile("plugdata");

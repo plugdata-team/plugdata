@@ -475,7 +475,7 @@ void Object::updateTooltips()
 
                 auto const text = String::fromUTF8(str_ptr, size);
                 outletMessages.emplace_back(x, text.fromFirstOccurrenceOf(" ", false, false));
-                
+
                 freebytes(static_cast<void*>(str_ptr), static_cast<size_t>(size) * sizeof(char));
             }
         }

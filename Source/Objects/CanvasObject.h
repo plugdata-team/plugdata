@@ -18,7 +18,7 @@ public:
         object->setColour(PlugDataColour::outlineColourId, Colours::transparentBlack);
         locked = static_cast<bool>(object->locked.getValue());
     }
-    
+
     void updateLabel() override
     {
         iemHelper.updateLabel(label);

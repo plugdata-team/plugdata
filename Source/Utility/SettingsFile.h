@@ -8,105 +8,110 @@
 #include "LookAndFeel.h"
 #include "Pd/PdLibrary.h"
 
-struct SettingsFileListener
-{
+struct SettingsFileListener {
     SettingsFileListener();
-    
+
     ~SettingsFileListener();
-    
+
     virtual void propertyChanged(String name, var value) = 0;
 };
 
 // Class that manages the settings file
-class SettingsFile : public ValueTree::Listener, public Timer, public DeletedAtShutdown
-{
+class SettingsFile : public ValueTree::Listener
+    , public Timer
+    , public DeletedAtShutdown {
 public:
-    
-    virtual ~SettingsFile() {
+    virtual ~SettingsFile()
+    {
         // Save current settings before quitting
         saveSettings();
-        
+
         clearSingletonInstance();
     }
-    
-    SettingsFile* initialise() {
-        
-        if(isInitialised) return getInstance();
-        
+
+    SettingsFile* initialise()
+    {
+
+        if (isInitialised)
+            return getInstance();
+
         isInitialised = true;
-        
+
         // Check if settings file exists, if not, create the default
         if (!settingsFile.existsAsFile()) {
             settingsFile.create();
-        }
-        else {
+        } else {
             // Or load the settings when they exist already
             settingsTree = ValueTree::fromXml(settingsFile.loadFileAsString());
         }
-        
+
         // Make sure all the properties exist
-        for(auto& [propertyName, propertyValue] : defaultSettings)
-        {
+        for (auto& [propertyName, propertyValue] : defaultSettings) {
             // If it doesn't exists, set it to the default value
-            if(!settingsTree.hasProperty(propertyName))  {
+            if (!settingsTree.hasProperty(propertyName)) {
                 settingsTree.setProperty(propertyName, propertyValue, nullptr);
             }
         }
         // Make sure all the child trees exist
-        for(auto& childName : childTrees)
-        {
-            if(!settingsTree.getChildWithName(childName).isValid())  {
+        for (auto& childName : childTrees) {
+            if (!settingsTree.getChildWithName(childName).isValid()) {
                 settingsTree.appendChild(ValueTree(childName), nullptr);
             }
         }
-        
+
         initialisePathsTree();
         initialiseThemesTree();
-            
+
         saveSettings();
 
         settingsTree.addListener(this);
-    
+
         return this;
     }
-    
+
     // TODO: instead of exposing these trees, try to encapsulate most of the interaction with those trees in functions
-    ValueTree getKeyMapTree() {
+    ValueTree getKeyMapTree()
+    {
         return settingsTree.getChildWithName("KeyMap");
     }
-    
-    ValueTree getColourThemesTree() {
+
+    ValueTree getColourThemesTree()
+    {
         return settingsTree.getChildWithName("ColourThemes");
     }
-    
-    ValueTree getPathsTree() {
+
+    ValueTree getPathsTree()
+    {
         return settingsTree.getChildWithName("Paths");
     }
-    
-    ValueTree getSelectedThemesTree() {
+
+    ValueTree getSelectedThemesTree()
+    {
         return settingsTree.getChildWithName("SelectedThemes");
     }
-    
-    ValueTree getLibrariesTree() {
+
+    ValueTree getLibrariesTree()
+    {
         return settingsTree.getChildWithName("Libraries");
     }
-    
+
     ValueTree getTheme(String name)
     {
         return getColourThemesTree().getChildWithProperty("theme", name);
     }
-    
-    void initialisePathsTree() {
-        
+
+    void initialisePathsTree()
+    {
+
         // Make sure all the default paths are in place
         StringArray currentPaths;
-        
+
         auto pathTree = getPathsTree();
-        
+
         for (auto child : pathTree) {
             currentPaths.add(child.getProperty("Path").toString());
         }
-        
+
         for (auto path : pd::Library::defaultPaths) {
             if (!currentPaths.contains(path.getFullPathName())) {
                 auto pathSubTree = ValueTree("Path");
@@ -115,7 +120,7 @@ public:
             }
         }
     }
-    
+
     void addToRecentlyOpened(File path)
     {
         auto recentlyOpened = settingsTree.getChildWithName("RecentlyOpened");
@@ -155,41 +160,42 @@ public:
         }
     }
 
-    
-    void initialiseThemesTree() {
-        
+    void initialiseThemesTree()
+    {
+
         // Initialise selected themes tree
         auto selectedThemes = getSelectedThemesTree();
-        
-        if(!selectedThemes.hasProperty("first"))  selectedThemes.setProperty("first", "light", nullptr);
-        if(!selectedThemes.hasProperty("second")) selectedThemes.setProperty("second", "dark", nullptr);
-        
+
+        if (!selectedThemes.hasProperty("first"))
+            selectedThemes.setProperty("first", "light", nullptr);
+        if (!selectedThemes.hasProperty("second"))
+            selectedThemes.setProperty("second", "dark", nullptr);
+
         auto defaultColourThemesTree = ValueTree::fromXml(PlugDataLook::defaultThemesXml);
         auto colourThemesTree = getColourThemesTree();
-        
-        if(colourThemesTree.getNumChildren() == 0) {
+
+        if (colourThemesTree.getNumChildren() == 0) {
             colourThemesTree.copyPropertiesAndChildrenFrom(defaultColourThemesTree, nullptr);
-        }
-        else {
-            
+        } else {
+
             // Check if all the default themes are still there
             // Mostly for updating from v0.6.3 -> v0.7.0
-            for(auto themeTree : defaultColourThemesTree) {
-                if(!colourThemesTree.getChildWithProperty("theme", themeTree.getProperty("theme")).isValid()) {
-                    
+            for (auto themeTree : defaultColourThemesTree) {
+                if (!colourThemesTree.getChildWithProperty("theme", themeTree.getProperty("theme")).isValid()) {
+
                     colourThemesTree.appendChild(themeTree.createCopy(), nullptr);
                 }
             }
-            
+
             // Ensure each theme is valid
             for (auto themeTree : colourThemesTree) {
-                
+
                 auto themeName = themeTree.getProperty("theme");
-                
+
                 if (!defaultColourThemesTree.getChildWithProperty("theme", themeName).isValid()) {
                     continue;
                 }
-                
+
                 if (!themeTree.hasProperty("DashedSignalConnection")) {
                     themeTree.setProperty("DashedSignalConnection", true, nullptr);
                 }
@@ -205,16 +211,16 @@ public:
                 if (!themeTree.hasProperty("SquareObjectCorners")) {
                     themeTree.setProperty("SquareObjectCorners", false, nullptr);
                 }
-                
+
                 if (!defaultColourThemesTree.getChildWithProperty("theme", themeName).isValid()) {
                     continue;
                 }
-                
+
                 for (auto const& [colourId, colourInfo] : PlugDataColourNames) {
                     auto& [cId, colourName, colourCategory] = colourInfo;
-                    
+
                     auto defaultTree = defaultColourThemesTree.getChildWithProperty("theme", themeName);
-                    
+
                     // For when we add new colours in the future
                     if (!themeTree.hasProperty(colourName)) {
                         themeTree.setProperty(colourName, defaultTree.getProperty(colourName).toString(), nullptr);
@@ -223,11 +229,12 @@ public:
             }
         }
     }
-    
-    void reloadSettings() {
+
+    void reloadSettings()
+    {
 
         jassert(isInitialised);
-        
+
         auto newTree = ValueTree::fromXml(settingsFile.loadFileAsString());
 
         // Prevents causing an update loop
@@ -240,26 +247,26 @@ public:
         settingsTree.copyPropertiesFrom(newTree, nullptr);
 
         settingsTree.addListener(this);
-        
+
         settingsChangedInternally = false;
     }
-    
+
     void valueTreePropertyChanged(ValueTree& treeWhosePropertyHasChanged, Identifier const& property) override
     {
-        for(auto* listener : listeners) {
+        for (auto* listener : listeners) {
             listener->propertyChanged(property.toString(), treeWhosePropertyHasChanged.getProperty(property));
         }
-        
+
         settingsChangedInternally = true;
         startTimer(300);
     }
-    
+
     void valueTreeChildAdded(ValueTree& parentTree, ValueTree& childWhichHasBeenAdded) override
     {
         settingsChangedInternally = true;
         startTimer(300);
     }
-    
+
     void valueTreeChildRemoved(ValueTree& parentTree, ValueTree& childWhichHasBeenRemoved, int indexFromWhichChildWasRemoved) override
     {
         settingsChangedInternally = true;
@@ -269,13 +276,13 @@ public:
     void timerCallback() override
     {
         jassert(isInitialised);
-        
+
         // Save settings to file whenever valuetree state changes
         // Use timer to group changes together
         saveSettings();
         stopTimer();
     }
-    
+
     void saveSettings()
     {
         jassert(isInitialised);
@@ -283,67 +290,70 @@ public:
         auto xml = settingsTree.toXmlString();
         settingsFile.replaceWithText(xml);
     }
-    
-    void setProperty(String name, var value) {
+
+    void setProperty(String name, var value)
+    {
         jassert(isInitialised);
         settingsTree.setProperty(name, value, nullptr);
     }
-    
-    var getProperty(String name) {
+
+    var getProperty(String name)
+    {
         jassert(isInitialised);
         return settingsTree.getProperty(name);
     }
-    
-    bool hasProperty(String name) {
+
+    bool hasProperty(String name)
+    {
         jassert(isInitialised);
         return settingsTree.hasProperty(name);
     }
-    
-    Value getPropertyAsValue(String name) {
+
+    Value getPropertyAsValue(String name)
+    {
         jassert(isInitialised);
         return settingsTree.getPropertyAsValue(name, nullptr);
     }
-    
-    ValueTree getValueTree() {
+
+    ValueTree getValueTree()
+    {
         jassert(isInitialised);
         return settingsTree;
     }
-    
+
 private:
-    
     bool isInitialised = false;
-    
+
     Array<SettingsFileListener*> listeners;
-    
+
     File homeDir = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory).getChildFile("plugdata");
 
     File settingsFile = homeDir.getChildFile("Settings.xml");
     ValueTree settingsTree = ValueTree("SettingsTree");
     bool settingsChangedInternally = false;
-    
+
     std::vector<std::pair<String, var>> defaultSettings {
-        { "BrowserPath", var(homeDir.getChildFile("Library").getFullPathName())},
+        { "BrowserPath", var(homeDir.getChildFile("Library").getFullPathName()) },
         { "Theme", var("light") },
         { "GridEnabled", var(1) },
-        { "Zoom", var(1.0f)},
-        { "DefaultFont", var("Inter")},
-        { "NativeWindow", var(false)},
-        { "ReloadLastState", var(false)},
-        { "AutoConnect", var(true)}
+        { "Zoom", var(1.0f) },
+        { "DefaultFont", var("Inter") },
+        { "NativeWindow", var(false) },
+        { "ReloadLastState", var(false) },
+        { "AutoConnect", var(true) }
     };
-    
+
     StringArray childTrees {
         "Paths",
-        "KeyMap",  
+        "KeyMap",
         "ColourThemes",
         "SelectedThemes",
         "RecentlyOpened",
         "Libraries",
     };
-    
+
 public:
-    
     JUCE_DECLARE_SINGLETON(SettingsFile, false)
-    
+
     friend class SettingsFileListener;
 };

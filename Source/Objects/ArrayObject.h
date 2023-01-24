@@ -369,7 +369,8 @@ public:
     PluginProcessor* pd;
 };
 
-class ArrayEditorDialog : public Component, public Timer {
+class ArrayEditorDialog : public Component
+    , public Timer {
     ResizableBorderComponent resizer;
     std::unique_ptr<Button> closeButton;
     ComponentDragger windowDragger;
@@ -406,7 +407,7 @@ public:
 
         addAndMakeVisible(graph);
         addAndMakeVisible(resizer);
-        
+
         startTimer(40);
     }
 
@@ -416,7 +417,7 @@ public:
         closeButton->setBounds(getLocalBounds().removeFromTop(30).removeFromRight(30).translated(-5, 5));
         graph.setBounds(getLocalBounds().withTrimmedTop(40));
     }
-    
+
     void timerCallback() override
     {
         int currentSize = graph.array.size();
@@ -494,7 +495,7 @@ public:
             graph.vec.resize(currentSize);
             size = currentSize;
         }
-        
+
         // Update values
         graph.update();
     }

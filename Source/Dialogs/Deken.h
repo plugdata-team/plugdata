@@ -540,7 +540,7 @@ public:
 
             // Slightly faded colour for placeholder text
             g.setFont(Font());
-            
+
             PlugDataLook::drawText(g, "Type to search for objects or libraries", 32, 0, 350, 30, Justification::centredLeft, findColour(PlugDataColour::panelTextColourId).withAlpha(0.5f));
         }
 

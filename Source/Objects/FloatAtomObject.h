@@ -22,9 +22,9 @@ public:
         , atomHelper(obj, parent, this)
         , input(false)
     {
-        
+
         value = getValue();
-        
+
         input.onEditorShow = [this]() {
             auto* editor = input.getCurrentTextEditor();
             startEdition();
@@ -57,10 +57,9 @@ public:
         input.valueChanged = [this](float newValue) {
             sendFloatValue(newValue);
         };
-        
+
         input.setMinimum(static_cast<float>(min.getValue()));
         input.setMaximum(static_cast<float>(max.getValue()));
-
 
         input.dragEnd = [this]() {
             stopEdition();

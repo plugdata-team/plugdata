@@ -58,7 +58,6 @@ Storage::Storage(t_glist* patch, Instance* inst)
                     loadInfoFromPatch(); // load info from existsing object
                     return;
                 }
-                
             }
         }
     }
@@ -106,7 +105,7 @@ void Storage::loadInfoFromPatch()
     String content = String::fromUTF8(text, size).fromFirstOccurrenceOf("plugdatainfo ", false, false);
 
     freebytes(static_cast<void*>(text), static_cast<size_t>(size) * sizeof(char));
-    
+
     canvas_map(infoParent, 0);
     canvas_vis(infoParent, 0);
     canvas_unsetcurrent(infoParent);

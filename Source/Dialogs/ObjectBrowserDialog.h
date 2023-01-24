@@ -206,7 +206,6 @@ public:
         g.setFont(lnf->boldFont.withHeight(16.0f));
         PlugDataLook::drawText(g, objectName, getLocalBounds().removeFromTop(35).translated(0, 4), Justification::centred, colour);
 
-
         g.setFont(font);
 
         auto numInlets = unknownInletLayout ? "Unknown" : String(inlets.size());

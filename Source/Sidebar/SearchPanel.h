@@ -197,7 +197,7 @@ public:
 
         if (input.getText().isEmpty()) {
             g.setFont(Font(14));
-            
+
             PlugDataLook::drawText(g, "Type to search in patch", 30, 0, 300, 30, Justification::centredLeft, findColour(PlugDataColour::sidebarTextColourId).withAlpha(0.5f));
         }
     }
@@ -360,7 +360,7 @@ public:
             addObject(String::fromUTF8(objectText, len), topLevel, object);
 
             freebytes(static_cast<void*>(objectText), static_cast<size_t>(len) * sizeof(char));
-            
+
             auto objTextStr = String::fromUTF8(objectText, len);
 
             auto tokens = StringArray::fromTokens(objTextStr, false);

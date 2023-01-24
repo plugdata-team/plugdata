@@ -449,7 +449,6 @@ public:
         mainComponent = new MainContentComponent(*this);
         auto* editor = mainComponent->getEditor();
 
-        
         auto settingsTree = SettingsFile::getInstance()->getValueTree();
         bool hasReloadStateProperty = settingsTree.hasProperty("ReloadLastState");
 
@@ -493,11 +492,11 @@ public:
 
         setBoundsConstrained(getWindowScreenBounds());
     }
-        
-        
-    void propertyChanged(String name, var value) override {
-        if(name == "NativeWindow") {
-            
+
+    void propertyChanged(String name, var value) override
+    {
+        if (name == "NativeWindow") {
+
             bool nativeWindow = static_cast<bool>(value);
 
             setUsingNativeTitleBar(nativeWindow);
@@ -515,16 +514,16 @@ public:
 
                 if (drawWindowShadow) {
 
-    #if JUCE_MAC
+#if JUCE_MAC
                     setDropShadowEnabled(true);
-    #else
+#else
                     setDropShadowEnabled(false);
-    #endif
+#endif
 
-    #if JUCE_WINDOWS
+#if JUCE_WINDOWS
                     dropShadower = std::make_unique<StackDropShadower>(DropShadow(Colour(0, 0, 0).withAlpha(0.8f), 22, { 0, 3 }));
                     dropShadower->setOwner(this);
-    #endif
+#endif
                 } else {
                     setDropShadowEnabled(false);
                 }
@@ -558,7 +557,6 @@ public:
     {
         return BorderSize<int>(0);
     }
-
 
     AudioProcessor* getAudioProcessor() const noexcept
     {
@@ -602,8 +600,8 @@ public:
         closeAllPatches();
     }
 
-    void closeAllPatches();      // implemented in PlugDataApp.cpp
-        
+    void closeAllPatches(); // implemented in PlugDataApp.cpp
+
     void maximiseButtonPressed() override
     {
 #if JUCE_LINUX

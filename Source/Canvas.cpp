@@ -457,7 +457,7 @@ void Canvas::mouseDrag(MouseEvent const& e)
     }
 
     bool objectIsBeingEdited = ObjectBase::isBeingEdited();
-    
+
     // Ignore on graphs or when locked
     if ((isGraph || locked == var(true) || commandLocked == var(true)) && !objectIsBeingEdited) {
         bool hasToggled = false;

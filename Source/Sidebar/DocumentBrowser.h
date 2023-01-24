@@ -44,8 +44,6 @@ public:
     WildcardFileFilter filter;
 };
 
-
-
 class DocumentBrowserItem : public TreeViewItem
     , private AsyncUpdater
     , private ChangeListener {
@@ -82,8 +80,6 @@ public:
         auto pathArea = area.translated(10, 0);
         g.fillPath(p, p.getTransformToScaleToFit(pathArea.reduced(2, pathArea.getHeight() / 4), true));
     }
-
-    
 
     bool mightContainSubItems() override
     {
@@ -177,7 +173,7 @@ public:
 
         g.setFont(dynamic_cast<PlugDataLook*>(&owner.getLookAndFeel())->iconFont);
         g.setColour(colour);
-        
+
         if (isDirectory) {
             g.drawFittedText(Icons::Folder, Rectangle<int>(6, 2, x - 4, height - 4), Justification::centred, 1);
         } else {
@@ -261,8 +257,6 @@ class DocumentBrowserView : public DocumentBrowserViewBase
     , public FileBrowserListener
     , public ScrollBar::Listener {
 public:
-    
-
     /** Creates a listbox to show the contents of a specified directory.
      */
     DocumentBrowserView(DirectoryContentsList& listToShow, DocumentBrowserBase* parent)
@@ -295,8 +289,6 @@ public:
             if (!t->selectFile(target))
                 clearSelectedItems();
     }
-
-    
 
     /** Returns the number of files the user has got selected.
         @see getSelectedFile
@@ -466,9 +458,6 @@ public:
     }
 
 private:
-    
-
-
     DocumentBrowserBase* browser;
     bool isDraggingFile = false;
 
@@ -577,7 +566,7 @@ public:
 
         if (input.getText().isEmpty()) {
             g.setFont(Font(14));
-            
+
             PlugDataLook::drawText(g, "Type to search documentation", 30, 0, 300, 30, Justification::centredLeft, findColour(PlugDataColour::sidebarTextColourId).withAlpha(0.5f));
         }
     }
@@ -714,7 +703,6 @@ public:
     {
         auto location = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory).getChildFile("plugdata").getChildFile("Library");
 
-       
         if (SettingsFile::getInstance()->hasProperty("BrowserPath")) {
             auto customLocation = File(pd->settingsFile->getProperty("BrowserPath"));
             if (customLocation.exists()) {

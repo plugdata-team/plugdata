@@ -220,10 +220,10 @@ public:
                     SettingsFile::getInstance()->addToRecentlyOpened(path);
                 });
             }
-            
+
             menuItems[2]->isActive = recentlyOpenedTree.getNumChildren() > 0;
         }
-                
+
         addCustomItem(100, std::unique_ptr<IconMenuItem>(menuItems[2]), std::unique_ptr<const PopupMenu>(recentlyOpened), "Recently opened");
 
         addSeparator();
@@ -234,30 +234,29 @@ public:
 
         addCustomItem(5, std::unique_ptr<IconMenuItem>(menuItems[5]), nullptr, "Compiled mode");
         addCustomItem(6, std::unique_ptr<IconMenuItem>(menuItems[6]), nullptr, "Compile...");
-                
+
         addSeparator();
-        
+
         addCustomItem(7, std::unique_ptr<IconMenuItem>(menuItems[7]), nullptr, "Auto-connect objects");
 
         addSeparator();
-        
+
         addCustomItem(8, std::unique_ptr<IconMenuItem>(menuItems[8]), nullptr, "Settings...");
         addCustomItem(9, std::unique_ptr<IconMenuItem>(menuItems[9]), nullptr, "About...");
-        
-        
+
         // Toggles hvcc compatibility mode
         bool hvccModeEnabled = settingsTree.hasProperty("HvccMode") ? static_cast<bool>(settingsTree.getProperty("HvccMode")) : false;
         bool autoconnectEnabled = settingsTree.hasProperty("AutoConnect") ? static_cast<bool>(settingsTree.getProperty("AutoConnect")) : false;
-        bool hasCanvas = editor->getCurrentCanvas() != nullptr;;
-        
+        bool hasCanvas = editor->getCurrentCanvas() != nullptr;
+        ;
+
         menuItems[3]->isActive = hasCanvas;
         menuItems[4]->isActive = hasCanvas;
-        
+
         menuItems[5]->isTicked = hvccModeEnabled;
         menuItems[7]->isTicked = autoconnectEnabled;
-
     }
-    
+
     static void showSettingsPopup(AudioProcessor* processor, AudioDeviceManager* manager, Component* centre, ValueTree settingsTree)
     {
         auto* popup = new SettingsPopup(processor, settingsTree);
@@ -277,14 +276,14 @@ public:
                 if (result == 4 && editor->getCurrentCanvas()) {
                     editor->saveProjectAs();
                 }
-                if(result == 5) {
+                if (result == 5) {
                     bool ticked = settingsTree.hasProperty("HvccMode") ? static_cast<bool>(settingsTree.getProperty("HvccMode")) : false;
                     settingsTree.setProperty("HvccMode", !ticked, nullptr);
                 }
-                if(result == 6) {
+                if (result == 6) {
                     Dialogs::showHeavyExportDialog(&editor->openedDialog, editor);
                 }
-                if(result == 7) {
+                if (result == 7) {
                     bool ticked = settingsTree.hasProperty("AutoConnect") ? static_cast<bool>(settingsTree.getProperty("AutoConnect")) : false;
                     settingsTree.setProperty("AutoConnect", !ticked, nullptr);
                 }
@@ -374,33 +373,32 @@ public:
             zoomIn.setBounds(bounds.removeFromLeft(buttonWidth).expanded(1, 0));
         }
     };
-    
+
     class IconMenuItem : public PopupMenu::CustomComponent {
-        
+
         String menuItemIcon;
         String menuItemText;
 
         bool hasSubMenu;
         bool isMouseOver = false;
 
-        
     public:
         bool isTicked = false;
         bool isActive = true;
-        
+
         IconMenuItem(String icon, String text, bool hasChildren)
-        : menuItemIcon(icon)
-        , menuItemText(text)
-        , hasSubMenu(hasChildren)
+            : menuItemIcon(icon)
+            , menuItemText(text)
+            , hasSubMenu(hasChildren)
         {
         }
 
-        void getIdealSize (int &idealWidth, int &idealHeight) override
+        void getIdealSize(int& idealWidth, int& idealHeight) override
         {
             idealWidth = 70;
             idealHeight = 22;
         }
-    
+
         void paint(Graphics& g) override
         {
             auto r = getLocalBounds().reduced(0, 1);
@@ -412,7 +410,7 @@ public:
 
                 colour = findColour(PlugDataColour::popupMenuActiveTextColourId);
             }
-            
+
             g.setColour(colour);
 
             r.reduce(jmin(5, r.getWidth() / 20), 0);
@@ -421,23 +419,22 @@ public:
 
             auto& lnf = dynamic_cast<PlugDataLook&>(getLookAndFeel());
             auto iconArea = r.removeFromLeft(roundToInt(maxFontHeight));
-            
-            if(menuItemIcon.isNotEmpty()) {
+
+            if (menuItemIcon.isNotEmpty()) {
                 g.setFont(lnf.iconFont.withHeight(std::min(15.0f, maxFontHeight)));
-                
+
                 PlugDataLook::drawFittedText(g, menuItemIcon, iconArea, Justification::centredLeft, colour);
-            }
-            else if (isTicked) {
+            } else if (isTicked) {
                 auto tick = lnf.getTickShape(1.0f);
                 g.fillPath(tick, tick.getTransformToScaleToFit(iconArea.reduced(iconArea.getWidth() / 5, 0).toFloat(), true));
             }
-            
+
             r.removeFromLeft(roundToInt(maxFontHeight * 0.5f));
 
             auto font = Font(std::min(17.0f, maxFontHeight));
-            
+
             g.setFont(font);
-            
+
             if (hasSubMenu) {
                 auto arrowH = 0.6f * font.getAscent();
 
@@ -539,19 +536,19 @@ public:
         new IconMenuItem(Icons::New, "New patch", false),
         new IconMenuItem(Icons::Open, "Open patch...", false),
         new IconMenuItem(Icons::History, "Recently opened", true),
-        
+
         new IconMenuItem(Icons::Save, "Save patch", false),
         new IconMenuItem(Icons::SaveAs, "Save patch as...", false),
-        
+
         new IconMenuItem("", "Compiled Mode", false),
         new IconMenuItem("", "Compile...", false),
-        
+
         new IconMenuItem("", "Auto-connect objects", false),
-        
+
         new IconMenuItem(Icons::Settings, "Settings...", false),
         new IconMenuItem(Icons::Info, "About...", false),
     };
-    
+
     ThemeSelector themeSelector;
     ZoomSelector zoomSelector;
 

@@ -119,9 +119,9 @@ public:
             }
 
             auto const textColour = findColour(rowIsSelected ? PlugDataColour::sidebarActiveTextColourId : PlugDataColour::sidebarTextColourId);
-            
+
             g.setFont(15);
-            
+
             PlugDataLook::drawText(g, items[row], Rectangle<int>(15, 0, width - 30, height), Justification::centredLeft, textColour);
         }
     }

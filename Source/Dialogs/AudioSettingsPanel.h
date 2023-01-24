@@ -85,7 +85,6 @@ static void drawTextLayout(Graphics& g, Component& owner, StringRef text, Rectan
     textLayout.draw(g, textBounds.toFloat());
 }
 
-
 class MidiSelectorComponentListBox : public RoundedListBox
     , private ListBoxModel {
 public:
@@ -170,11 +169,11 @@ public:
 
         if (items.isEmpty()) {
             g.setFont(0.5f * (float)getRowHeight());
-            
+
             // TODO: fix colour
             PlugDataLook::drawText(g, noItemsMessage,
-                                   0, 0, getWidth(), getHeight() / 2,
-                                   Justification::centred, Colours::grey);
+                0, 0, getWidth(), getHeight() / 2,
+                Justification::centred, Colours::grey);
         }
     }
 
@@ -188,7 +187,6 @@ public:
     }
 
 private:
-
     AudioDeviceManager& deviceManager;
     PluginProcessor* audioProcessor;
     const String noItemsMessage;
@@ -216,7 +214,7 @@ private:
             } else {
                 if (identifier == "internal") {
                     audioProcessor->enableInternalSynth = !audioProcessor->enableInternalSynth;
-                    
+
                     audioProcessor->settingsFile->setProperty("InternalSynth", static_cast<int>(audioProcessor->enableInternalSynth));
                 } else if (auto* midiOut = getEnabledMidiOutputWithID(identifier)) {
                     audioProcessor->midiOutputs.removeObject(midiOut);
@@ -237,8 +235,6 @@ private:
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(MidiSelectorComponentListBox)
 };
-
-
 
 struct AudioDeviceSetupDetails {
     AudioDeviceManager* manager;
@@ -323,8 +319,6 @@ public:
         return static_cast<ListBox*>(midiInputsList.get());
     }
 
-    
-
     /** @internal */
     void resized() override
     {
@@ -364,8 +358,6 @@ public:
     }
 
 private:
-    
-
     void handleBluetoothButton()
     {
         if (!RuntimePermissions::isGranted(RuntimePermissions::bluetoothMidi))
@@ -441,8 +433,6 @@ private:
     std::unique_ptr<TextButton> bluetoothButton;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(StandaloneAudioSettingsComponent)
-
-    
 
     class AudioDeviceSettingsPanel : public Component
         , private ChangeListener {
@@ -905,8 +895,6 @@ private:
         }
 
     public:
-        
-
         class ChannelSelectorListBox : public RoundedListBox
             , private ListBoxModel {
         public:
@@ -914,8 +902,6 @@ private:
                 audioInputType,
                 audioOutputType
             };
-
-            
 
             ChannelSelectorListBox(AudioDeviceSetupDetails const& setupDetails, BoxType boxType, String const& noItemsText)
                 : RoundedListBox({}, nullptr)
@@ -1016,7 +1002,7 @@ private:
 
                 if (items.isEmpty()) {
                     g.setFont(0.5f * (float)getRowHeight());
-                    PlugDataLook::drawText(g,noItemsMessage,
+                    PlugDataLook::drawText(g, noItemsMessage,
                         0, 0, getWidth(), getHeight() / 2,
                         Justification::centred, Colours::grey);
                 }
@@ -1029,8 +1015,6 @@ private:
             }
 
         private:
-            
-
             const AudioDeviceSetupDetails setup;
             const BoxType type;
             const String noItemsMessage;
@@ -1162,7 +1146,7 @@ public:
 
         auto* proc = dynamic_cast<PluginProcessor*>(processor);
         auto settingsTree = SettingsFile::getInstance()->getValueTree();
-        
+
         if (!settingsTree.hasProperty("NativeDialog")) {
             settingsTree.setProperty("NativeDialog", true, nullptr);
         }
