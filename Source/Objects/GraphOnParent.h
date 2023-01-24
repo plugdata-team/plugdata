@@ -38,9 +38,8 @@ public:
 
     void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
     {
-        // TODO: actually read atoms
         if (symbol == "coords" && atoms.size() >= 8) {
-            updateBounds();
+            
             // x_range: 0 1
             // y_range: 1 -1
             // w: $4 h: 22
@@ -62,6 +61,7 @@ public:
 
     void resized() override
     {
+        updateCanvas();
         updateDrawables();
     }
 
