@@ -110,11 +110,11 @@ public:
         g.setColour(object->findColour(PlugDataColour::defaultObjectBackgroundColourId));
         g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), PlugDataLook::objectCornerRadius);
 
-        g.setColour(object->findColour(PlugDataColour::canvasTextColourId));
         g.setFont(font);
 
         auto textArea = border.subtractedFrom(getLocalBounds());
-        g.drawFittedText(objectText, textArea, justification, numLines, minimumHorizontalScale);
+        // TODO: fix num lines??
+        PlugDataLook::drawFittedText(g, objectText, textArea, justification, object->findColour(PlugDataColour::canvasTextColourId));
 
         bool selected = cnv->isSelected(object) && !cnv->isGraph;
         auto outlineColour = object->findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : PlugDataColour::objectOutlineColourId);

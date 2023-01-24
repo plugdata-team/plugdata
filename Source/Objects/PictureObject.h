@@ -71,8 +71,7 @@ public:
             g.drawImageAt(img, 0, 0);
         } else {
             g.setFont(30);
-            g.setColour(object->findColour(PlugDataColour::canvasTextColourId));
-            g.drawText("?", getLocalBounds(), Justification::centred);
+            PlugDataLook::drawText(g, "?", getLocalBounds(), Justification::centred, object->findColour(PlugDataColour::canvasTextColourId));
         }
 
         bool selected = cnv->isSelected(object) && !cnv->isGraph;

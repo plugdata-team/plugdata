@@ -171,25 +171,22 @@ public:
         g.setColour(findColour(PlugDataColour::panelBackgroundColourId));
         g.fillRoundedRectangle(getLocalBounds().toFloat(), PlugDataLook::windowCornerRadius);
 
+        // TODO: use panel colour IDs?
         if (state == Busy) {
-            g.setColour(findColour(PlugDataColour::canvasTextColourId));
             g.setFont(lnf->boldFont.withHeight(32));
-            g.drawText("Exporting...", 0, 25, getWidth(), 40, Justification::centred);
+            PlugDataLook::drawText(g, "Exporting...", 0, 25, getWidth(), 40, Justification::centred, findColour(PlugDataColour::canvasTextColourId));
 
             lnf->drawSpinningWaitAnimation(g, findColour(PlugDataColour::canvasTextColourId), getWidth() / 2 - 16, getHeight() / 2 + 135, 32, 32);
         } else if (state == Success) {
-            g.setColour(findColour(PlugDataColour::canvasTextColourId));
             g.setFont(lnf->boldFont.withHeight(32));
-            g.drawText("Export successful", 0, 25, getWidth(), 40, Justification::centred);
+            PlugDataLook::drawText(g, "Export successful", 0, 25, getWidth(), 40, Justification::centred, findColour(PlugDataColour::canvasTextColourId));
 
         } else if (state == Failure) {
-            g.setColour(findColour(PlugDataColour::canvasTextColourId));
             g.setFont(lnf->boldFont.withHeight(32));
-            g.drawText("Exporting failed", 0, 25, getWidth(), 40, Justification::centred);
+            PlugDataLook::drawText(g, "Exporting failed", 0, 25, getWidth(), 40, Justification::centred, findColour(PlugDataColour::canvasTextColourId));
         } else if (state == WaitingForUserInput) {
-            g.setColour(findColour(PlugDataColour::canvasTextColourId));
             g.setFont(lnf->boldFont.withHeight(32));
-            g.drawText(userInteractionMessage, 0, 25, getWidth(), 40, Justification::centred);
+            PlugDataLook::drawText(g, userInteractionMessage, 0, 25, getWidth(), 40, Justification::centred, findColour(PlugDataColour::canvasTextColourId));
         }
     }
 

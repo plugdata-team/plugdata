@@ -189,11 +189,10 @@ public:
     void paint(Graphics& g) override
     {
         if (!isBeingEdited()) {
-            g.setColour(findColour(Label::textColourId));
             g.setFont(getFont());
 
             auto textArea = getBorderSize().subtractedFrom(getLocalBounds());
-            g.drawText(formatNumber(getText().getFloatValue(), decimalDrag), textArea, Justification::left, false);
+            PlugDataLook::drawText(g, formatNumber(getText().getFloatValue(), decimalDrag), textArea, Justification::centredLeft, findColour(Label::textColourId));
         }
     }
 
@@ -399,11 +398,10 @@ struct DraggableListNumber : public DraggableNumber {
     void paint(Graphics& g) override
     {
         if (!isBeingEdited()) {
-            g.setColour(findColour(Label::textColourId));
             g.setFont(getFont());
 
             auto textArea = getBorderSize().subtractedFrom(getLocalBounds());
-            g.drawText(getText(), textArea, Justification::left, false);
+            PlugDataLook::drawText(g, getText(), textArea, Justification::centredLeft, findColour(Label::textColourId));
         }
     }
 };

@@ -41,11 +41,11 @@ public:
             g.fillRoundedRectangle({ 4.0f, 1.0f, width - 8.0f, height - 2.0f }, PlugDataLook::defaultCornerRadius);
         }
 
-        g.setColour(rowIsSelected ? findColour(PlugDataColour::panelActiveTextColourId) : findColour(PlugDataColour::panelTextColourId));
+        auto colour = rowIsSelected ? findColour(PlugDataColour::panelActiveTextColourId) : findColour(PlugDataColour::panelTextColourId);
 
         g.setFont(Font(15));
 
-        g.drawText(categories[rowNumber], 12, 0, width - 9, height, Justification::centredLeft, true);
+        PlugDataLook::drawText(g, categories[rowNumber], 12, 0, width - 9, height, Justification::centredLeft, colour);
     }
 
     void initialise(StringArray newCategories)
@@ -96,17 +96,17 @@ public:
             g.fillRoundedRectangle({ 4.0f, 1.0f, width - 8.0f, height - 2.0f }, PlugDataLook::defaultCornerRadius);
         }
 
-        g.setColour(rowIsSelected ? findColour(PlugDataColour::panelActiveTextColourId) : findColour(PlugDataColour::panelTextColourId));
+        auto colour = rowIsSelected ? findColour(PlugDataColour::panelActiveTextColourId) : findColour(PlugDataColour::panelTextColourId);
 
         g.setFont(lnf->boldFont.withHeight(14));
 
         auto textBounds = Rectangle<int>(0, 0, width, height).reduced(18, 6);
 
-        g.drawText(objectName, textBounds.removeFromTop(textBounds.proportionOfHeight(0.5f)), Justification::centredLeft, true);
+        PlugDataLook::drawText(g, objectName, textBounds.removeFromTop(textBounds.proportionOfHeight(0.5f)), Justification::centredLeft, colour);
 
         g.setFont(lnf->defaultFont.withHeight(14));
 
-        g.drawText(objectDescription, textBounds, Justification::centredLeft, true);
+        PlugDataLook::drawText(g, objectDescription, textBounds, Justification::centredLeft, colour);
     }
 
     void selectedRowsChanged(int row) override
@@ -202,11 +202,11 @@ public:
         if (!lnf)
             return;
 
-        g.setColour(findColour(PlugDataColour::canvasTextColourId));
+        auto colour = findColour(PlugDataColour::canvasTextColourId);
         g.setFont(lnf->boldFont.withHeight(16.0f));
-        g.drawText(objectName, getLocalBounds().removeFromTop(35).translated(0, 4), Justification::centred);
+        PlugDataLook::drawText(g, objectName, getLocalBounds().removeFromTop(35).translated(0, 4), Justification::centred, colour);
 
-        g.setColour(findColour(PlugDataColour::canvasTextColourId));
+
         g.setFont(font);
 
         auto numInlets = unknownInletLayout ? "Unknown" : String(inlets.size());
@@ -217,14 +217,14 @@ public:
 
         for (int i = 0; i < infoNames.size(); i++) {
             auto localBounds = infoBounds.removeFromTop(25);
-            g.drawText(infoNames[i], localBounds.removeFromLeft(90), Justification::topLeft);
-            g.drawText(infoText[i], localBounds, Justification::topLeft);
+            PlugDataLook::drawText(g, infoNames[i], localBounds.removeFromLeft(90), Justification::topLeft, colour);
+            PlugDataLook::drawText(g, infoText[i], localBounds, Justification::topLeft, colour);
         }
 
         auto descriptionBounds = infoBounds.removeFromTop(25);
-        g.drawText("Description: ", descriptionBounds.removeFromLeft(90), Justification::topLeft);
+        PlugDataLook::drawText(g, "Description: ", descriptionBounds.removeFromLeft(90), Justification::topLeft, colour);
 
-        g.drawFittedText(description, descriptionBounds.withHeight(180), Justification::topLeft, 5, 1.0f);
+        PlugDataLook::drawFittedText(g, description, descriptionBounds.withHeight(180), Justification::topLeft, colour);
 
         if (!unknownInletLayout && !unknownOutletLayout) {
             drawObject(g, objectDisplayBounds);
@@ -232,7 +232,7 @@ public:
             auto questionMarkBounds = objectDisplayBounds.withSizeKeepingCentre(48, 48);
             g.drawRoundedRectangle(questionMarkBounds.toFloat(), 6.0f, 3.0f);
             g.setFont(Font(40));
-            g.drawText("?", questionMarkBounds, Justification::centred);
+            PlugDataLook::drawText(g, "?", questionMarkBounds, Justification::centred, colour);
         }
     }
 
@@ -250,9 +250,8 @@ public:
         g.drawRoundedRectangle(outlineBounds, PlugDataLook::objectCornerRadius, 1.0f);
 
         auto textBounds = outlineBounds.reduced(2.0f);
-        g.setColour(findColour(PlugDataColour::canvasTextColourId));
         g.setFont(font);
-        g.drawText(objectName, textBounds, Justification::centred);
+        PlugDataLook::drawText(g, objectName, textBounds.toNearestInt(), Justification::centred, findColour(PlugDataColour::canvasTextColourId));
 
         auto ioletBounds = outlineBounds.reduced(8, 0);
 
@@ -488,9 +487,8 @@ public:
 
         if (input.getText().isEmpty()) {
             g.setFont(Font(14));
-            g.setColour(findColour(PlugDataColour::sidebarTextColourId).withAlpha(0.5f));
 
-            g.drawText("Type to search for objects", 30, 0, 300, 30, Justification::centredLeft);
+            PlugDataLook::drawText(g, "Type to search for objects", 30, 0, 300, 30, Justification::centredLeft, findColour(PlugDataColour::sidebarTextColourId).withAlpha(0.5f));
         }
     }
 
@@ -508,7 +506,7 @@ public:
         auto font = lnf->semiBoldFont.withHeight(12.0f);
         g.setFont(font);
 
-        g.setColour(rowIsSelected ? findColour(PlugDataColour::popupMenuActiveTextColourId) : findColour(PlugDataColour::popupMenuTextColourId));
+        auto colour = rowIsSelected ? findColour(PlugDataColour::popupMenuActiveTextColourId) : findColour(PlugDataColour::popupMenuTextColourId);
 
         auto yIndent = jmin<float>(4, h * 0.3f);
         auto leftIndent = 34;
@@ -516,7 +514,7 @@ public:
         auto textWidth = w - leftIndent - rightIndent;
 
         if (textWidth > 0)
-            g.drawFittedText(item, leftIndent, yIndent, textWidth, h - yIndent * 2, Justification::left, 2);
+            PlugDataLook::drawFittedText(g, item, leftIndent, yIndent, textWidth, h - yIndent * 2, Justification::left, colour);
 
         font = lnf->defaultFont.withHeight(12);
         g.setFont(font);
@@ -526,7 +524,7 @@ public:
         if (objectDescription.isNotEmpty()) {
             auto textLength = font.getStringWidth(item);
 
-            g.setColour(rowIsSelected ? findColour(PlugDataColour::popupMenuActiveTextColourId) : findColour(PlugDataColour::popupMenuTextColourId));
+            g.setColour(colour);
 
             leftIndent += textLength;
             auto textWidth = getWidth() - leftIndent - rightIndent;
@@ -545,9 +543,8 @@ public:
         iconbound.translate(6, 0);
         g.fillRoundedRectangle(iconbound.toFloat(), PlugDataLook::smallCornerRadius);
 
-        g.setColour(Colours::white);
         g.setFont(font.withHeight(type ? 12 : 10));
-        g.drawFittedText(type ? "~" : "pd", iconbound.reduced(1), Justification::centred, 1);
+        PlugDataLook::drawFittedText(g, type ? "~" : "pd", iconbound.reduced(1), Justification::centred, Colours::white);
     }
 
     int getNumRows() override

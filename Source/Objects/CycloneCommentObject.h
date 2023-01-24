@@ -102,11 +102,10 @@ public:
     {
         auto* comment = static_cast<t_fake_comment*>(ptr);
 
-        g.setColour(textColour);
         g.setFont(font.withHeight(comment->x_fontsize));
 
         auto textArea = border.subtractedFrom(getLocalBounds());
-        g.drawFittedText(getText(), textArea, Justification::centredLeft, 1, 0.9f);
+        PlugDataLook::drawFittedText(g, getText(), textArea, Justification::centredLeft, textColour);
 
         auto selected = cnv->isSelected(object);
         if (object->locked == var(false) && (object->isMouseOverOrDragging(true) || selected) && !cnv->isGraph) {

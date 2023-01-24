@@ -189,10 +189,10 @@ public:
         // Strangly, the title goes below the graph content in pd
         if (!static_cast<bool>(hideNameAndArgs.getValue()) && getText() != "graph") {
             auto text = getText();
-            g.setColour(object->findColour(PlugDataColour::canvasTextColourId));
+
             g.setFont(Font(15));
             auto textArea = getLocalBounds().removeFromTop(20).withTrimmedLeft(5);
-            g.drawFittedText(text, textArea, Justification::left, 1, 1.0f);
+            PlugDataLook::drawFittedText(g, text, textArea, Justification::centredLeft, object->findColour(PlugDataColour::canvasTextColourId));
         }
     }
 

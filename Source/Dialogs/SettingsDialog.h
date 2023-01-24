@@ -39,7 +39,7 @@ public:
 
         auto b = getLocalBounds().reduced(2);
 
-        g.setColour(findColour(getToggleState() ? PlugDataColour::toolbarActiveColourId : PlugDataColour::toolbarTextColourId));
+        auto colour = findColour(getToggleState() ? PlugDataColour::toolbarActiveColourId : PlugDataColour::toolbarTextColourId);
 
         auto iconBounds = b.removeFromTop(b.getHeight() * 0.65f).withTrimmedTop(5);
         auto textBounds = b.withTrimmedBottom(3);
@@ -47,13 +47,13 @@ public:
         auto font = lnf->iconFont.withHeight(iconBounds.getHeight() / 1.9f);
         g.setFont(font);
 
-        g.drawFittedText(icon, iconBounds, Justification::centred, 1);
+        PlugDataLook::drawFittedText(g, icon, iconBounds, Justification::centred, colour);
 
         font = lnf->defaultFont.withHeight(textBounds.getHeight() / 1.25f);
         g.setFont(font);
 
         // Draw bottom text
-        g.drawFittedText(text, textBounds, Justification::centred, 1);
+        PlugDataLook::drawFittedText(g, text, textBounds, Justification::centred, colour);
     }
 };
 
@@ -202,20 +202,6 @@ public:
         addCustomItem(1, themeSelector, 70, 45, false);
         addCustomItem(2, zoomSelector, 70, 30, false);
         addSeparator();
-
-        StringArray iconText = { Icons::New, Icons::Open, Icons::Save, Icons::SaveAs, Icons::Settings, Icons::Info, Icons::History };
-
-        Array<Image> icons;
-    
-        
-        for (int i = 0; i < iconText.size(); i++) {
-            icons.add(Image(Image::ARGB, 32, 32, true));
-            auto& icon = icons.getReference(i);
-            Graphics g(icon);
-            g.setColour(editor->findColour(PlugDataColour::popupMenuTextColourId));
-            g.setFont(editor->pd->lnf->iconFont.withHeight(28));
-            g.drawText(iconText[i], 0, 0, 32, 32, Justification::right);
-        }
 
         addCustomItem(1, std::unique_ptr<IconMenuItem>(menuItems[0]), nullptr, "New patch");
 
@@ -419,14 +405,15 @@ public:
         {
             auto r = getLocalBounds().reduced(0, 1);
 
+            auto colour = findColour(PopupMenu::textColourId).withMultipliedAlpha(isActive ? 1.0f : 0.5f);
             if (isItemHighlighted() && isActive) {
                 g.setColour(findColour(PlugDataColour::popupMenuActiveBackgroundColourId));
                 g.fillRoundedRectangle(r.toFloat().reduced(2, 0), 4.0f);
 
-                g.setColour(findColour(PlugDataColour::popupMenuActiveTextColourId));
-            } else {
-                g.setColour(findColour(PopupMenu::textColourId).withMultipliedAlpha(isActive ? 1.0f : 0.5f));
+                colour = findColour(PlugDataColour::popupMenuActiveTextColourId);
             }
+            
+            g.setColour(colour);
 
             r.reduce(jmin(5, r.getWidth() / 20), 0);
 
@@ -438,7 +425,7 @@ public:
             if(menuItemIcon.isNotEmpty()) {
                 g.setFont(lnf.iconFont.withHeight(std::min(15.0f, maxFontHeight)));
                 
-                g.drawFittedText(menuItemIcon, iconArea, Justification::centredLeft, 1);
+                PlugDataLook::drawFittedText(g, menuItemIcon, iconArea, Justification::centredLeft, colour);
             }
             else if (isTicked) {
                 auto tick = lnf.getTickShape(1.0f);
@@ -466,7 +453,7 @@ public:
             }
 
             r.removeFromRight(3);
-            g.drawFittedText(menuItemText, r, Justification::centredLeft, 1);
+            PlugDataLook::drawFittedText(g, menuItemText, r, Justification::centredLeft, colour);
 
             /*
             if (shortcutKeyText.isNotEmpty()) {
@@ -475,7 +462,7 @@ public:
                 f2.setHorizontalScale(0.95f);
                 g.setFont(f2);
 
-                g.drawText(shortcutKeyText, r.translated(-2, 0), Justification::centredRight, true);
+             PlugDataLook::drawText(g, shortcutKeyText, r.translated(-2, 0), Justification::centredRight, findColour(PopupMenu::textColourId));
             } */
         }
     };

@@ -74,14 +74,11 @@ public:
         g.setColour(object->findColour(PlugDataColour::canvasBackgroundColourId));
         g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), PlugDataLook::objectCornerRadius);
 
-        TextLayout textLayout;
         auto textArea = border.subtractedFrom(getLocalBounds());
-        AttributedString attributedObjectText(objectText);
-        attributedObjectText.setColour(object->findColour(PlugDataColour::canvasTextColourId));
-        attributedObjectText.setFont(font);
+        auto attributedObjectText = AttributedString();
+        attributedObjectText.append(objectText, font, object->findColour(PlugDataColour::canvasTextColourId));
         attributedObjectText.setJustification(justification);
-        textLayout.createLayout(attributedObjectText, textArea.getWidth());
-        textLayout.draw(g, textArea.toFloat());
+        attributedObjectText.draw(g, textArea.toFloat());
 
         bool selected = cnv->isSelected(object) && !cnv->isGraph;
         auto outlineColour = object->findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : objectOutlineColourId);

@@ -70,11 +70,9 @@ public:
 
         void paint(Graphics& g) override
         {
-            g.setColour(findColour(PlugDataColour::panelTextColourId));
-
             auto font = Font(fontName, 15, Font::plain);
             g.setFont(font);
-            g.drawText(fontName, getLocalBounds().reduced(2), Justification::left);
+            PlugDataLook::drawText(g, fontName, getLocalBounds().reduced(2), Justification::centredLeft, findColour(PlugDataColour::panelTextColourId));
         }
 
         void getIdealSize(int& idealWidth, int& idealHeight) override

@@ -166,7 +166,7 @@ public:
         valueLabel.setJustificationType(Justification::centred);
         
         nameLabel.setMinimumHorizontalScale(1.0f);
-        nameLabel.setJustificationType(Justification::left);
+        nameLabel.setJustificationType(Justification::centredLeft);
         
         valueLabel.setEditable(true);
         
@@ -347,21 +347,20 @@ class AutomationComponent : public Component {
             
             auto& lnf = dynamic_cast<PlugDataLook&>(getLookAndFeel());
             
+            auto colour = findColour(PlugDataColour::sidebarTextColourId);
             if(mouseIsOver) {
                 g.setColour(findColour(PlugDataColour::sidebarActiveBackgroundColourId));
                 g.fillRoundedRectangle(bounds.toFloat(), PlugDataLook::defaultCornerRadius);
                 
-                g.setColour(findColour(PlugDataColour::sidebarActiveTextColourId));
+                colour = findColour(PlugDataColour::sidebarActiveTextColourId);
             }
-            else {
-                g.setColour(findColour(PlugDataColour::sidebarTextColourId));
-            }
-            
+
+            g.setColour(colour);
             g.setFont(lnf.iconFont.withHeight(14));
             g.drawText(Icons::Add, iconBounds, Justification::centred);
             
-            g.setFont(lnf.defaultFont.withHeight(14));
-            g.drawText("Add new parameter", textBounds, Justification::left);
+            g.setFont(Font(14));
+            PlugDataLook::drawText(g, "Add new parameter", textBounds, Justification::centredLeft, colour);
         }
         
         void mouseEnter(const MouseEvent& e) override
