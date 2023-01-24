@@ -192,7 +192,7 @@ public:
             if ((character == '_' || character == '-'
                     || (character >= 'a' && character <= 'z')
                     || (character >= 'A' && character <= 'Z'))
-                && newName.containsOnly("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890_-") && !allNames.contains(newName)) {
+                && newName.containsOnly("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890_-") && !allNames.contains(newName) && newName.isNotEmpty()) {
                 param->setName(nameLabel.getText(true));
                 param->notifyDAW();
             } else {
@@ -261,11 +261,10 @@ public:
         int rowHeight = 22;
 
         auto firstRow = bounds.removeFromTop(rowHeight);
-
-        auto secondRow = bounds;
+        auto secondRow = bounds.removeFromTop(rowHeight);
 
         if (settingsVisible) {
-            auto thirdRow = secondRow.removeFromBottom(rowHeight);
+            auto thirdRow = bounds;
 
             auto oneThird = thirdRow.getWidth() / 3.0f;
             auto oneSixth = thirdRow.getWidth() * (1.0f / 6.0f);
