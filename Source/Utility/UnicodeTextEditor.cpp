@@ -436,7 +436,7 @@ struct UnicodeTextEditor::Iterator {
     }
 
     //==============================================================================
-    void draw(Graphics& g, UniformTextSection const*& lastSection, AffineTransform transform) const
+    void draw(Graphics& g, AffineTransform transform) const
     {
         if (atom == nullptr)
             return;
@@ -444,12 +444,12 @@ struct UnicodeTextEditor::Iterator {
         if (passwordCharacter != 0 || (underlineWhitespace || !atom->isWhitespace())) {
             jassert(atom->getTrimmedText(passwordCharacter).isNotEmpty());
 
-            AttributedString attributedString;
-            attributedString.append(atom->getTrimmedText(passwordCharacter));
-
+            auto attributedString = AttributedString();
             attributedString.setJustification(justification);
-            attributedString.setColour(currentSection->colour);
-            attributedString.setFont(currentSection->font);
+
+            attributedString.append(atom->getTrimmedText(passwordCharacter), currentSection->font, currentSection->colour);
+            
+            auto font = currentSection->font;
 
             g.saveState();
             g.addTransform(transform);
@@ -476,17 +476,43 @@ struct UnicodeTextEditor::Iterator {
             return;
 
         if (passwordCharacter != 0 || !atom->isWhitespace()) {
-            AttributedString attributedString;
-
+            auto attributedString = AttributedString();
             attributedString.setJustification(justification);
-            attributedString.append(atom->getTrimmedText(passwordCharacter));
             attributedString.setFont(currentSection->font);
-            attributedString.setColour(currentSection->colour);
 
-            if (!selected.isEmpty()) {
-                attributedString.setColour(selected, selectedTextColour);
+            auto trimmedText = atom->getTrimmedText(passwordCharacter);
+            auto selectionText = trimmedText;
+            auto preSelectionText = String();
+            auto postSelectionText = String();
+            
+            auto font = currentSection->font;
+            
+            if (selected.getStart() > indexInText)
+            {
+                preSelectionText = trimmedText.substring(0, selected.getStart() - indexInText);
+                selectionText = selectionText.substring(selected.getStart() - indexInText);
             }
-
+            if (selected.getEnd() < indexInText + atom->numChars)
+            {
+                postSelectionText = trimmedText.substring(selected.getEnd() - indexInText);
+                selectionText = selectionText.substring(0, selected.getEnd() - indexInText);
+            }
+            
+            std::cout << "pre: " << preSelectionText << std::endl;
+            std::cout << "min: " << selectionText << std::endl;
+            std::cout << "post: " << postSelectionText << std::endl;
+            std::cout << std::endl;
+            
+            if(preSelectionText.isNotEmpty()) {
+                attributedString.append(preSelectionText, currentSection->colour);
+            }
+            
+            attributedString.append(selectionText, selectedTextColour);
+            
+            if(postSelectionText.isNotEmpty()) {
+                attributedString.append(postSelectionText, currentSection->colour);
+            }
+              
             g.saveState();
             g.addTransform(transform);
             attributedString.draw(g, { atomX, lineY, atom->width, lineHeight });
@@ -1634,15 +1660,12 @@ void UnicodeTextEditor::drawContent(Graphics& g)
             g.fillPath(boundingBox.toPath(), transform);
         }
 
-        UniformTextSection const* lastSection = nullptr;
-
         while (i.next() && i.lineY < (float)clip.getBottom()) {
             if (i.lineY + i.lineHeight >= (float)clip.getY()) {
-                if (selection.intersects({ i.indexInText, i.indexInText + i.atom->numChars })) {
+                if (selection.intersects({ i.indexInText, i.indexInText + i.atom->numChars})) {
                     i.drawSelectedText(g, selection, selectedTextColour, transform);
-                    lastSection = nullptr;
                 } else {
-                    i.draw(g, lastSection, transform);
+                    i.draw(g, transform);
                 }
             }
         }
