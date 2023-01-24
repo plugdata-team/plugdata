@@ -16,3 +16,6 @@
 [submodule "Libraries/pd-lua"]
 	path = Libraries/pd-lua
 	url = https://github.com/agraef/pd-lua.git
+[submodule "Libraries/juce_UnicodeTextEditor"]
+	path = Libraries/juce_UnicodeTextEditor
+	url = https://github.com/timothyschoen/juce_UnicodeTextEditor.git
