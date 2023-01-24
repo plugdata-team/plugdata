@@ -19,7 +19,6 @@ class CommentObject final : public ObjectBase
     Font font = Font(15.0f);
 
     int textObjectWidth = 0;
-    int textWidthOffset = 0;
     int numLines = 1;
 
     bool wasSelected = false;
@@ -137,11 +136,11 @@ public:
                                     maxWidth = std::max<int>(_this->font.getStringWidthFloat(line) + 19, maxWidth);
                                 }
 
-                                int newHeight = (lines.size() * 20) + Object::doubleMargin;
-                                int newWidth = maxWidth + +Object::doubleMargin + 4;
-
-                                auto newBounds = Rectangle<int>(_this->object->getX(), _this->object->getY(), newWidth, newHeight);
-                                _this->object->setObjectBounds(newBounds.reduced(Object::margin));
+                                int newHeight = (lines.size() * 17 + 3) + Object::doubleMargin;
+                                int newWidth = maxWidth + Object::doubleMargin + 4;
+                                
+                                auto newBounds = Rectangle<int>(_this->object->getX(), _this->object->getY(), newWidth + Object::doubleMargin, newHeight + Object::doubleMargin);
+                                _this->object->setBounds(newBounds);
 
                                 _this->applyBounds();
 
@@ -209,6 +208,8 @@ public:
         libpd_get_object_bounds(cnv->patch.getPointer(), ptr, &x, &y, &w, &h);
 
         Rectangle<int> bounds = { x, y, textObj->te_width, h };
+        
+        auto objText = editor ? editor->getText() : objectText;
 
         int fontWidth = glist_fontwidth(cnv->patch.getPointer());
         int textWidth = getBestTextWidth(objectText);
@@ -216,18 +217,17 @@ public:
         pd->getCallbackLock()->exit();
 
         // We need to handle the resizable width, which pd saves in amount of text characters
-        textWidthOffset = textWidth % fontWidth;
         textObjectWidth = bounds.getWidth();
 
         if (textObjectWidth == 0) {
-            textObjectWidth = std::min((textWidth - textWidthOffset) / fontWidth, 60);
+            textObjectWidth = std::min(textWidth / fontWidth, 60);
         }
 
-        int width = textObjectWidth * fontWidth + textWidthOffset;
+        int width = textObjectWidth * fontWidth;
         width = std::max(width, std::max({ 1, object->numInputs, object->numOutputs }) * 18);
 
-        numLines = StringUtils::getNumLines(objectText, width);
-        int height = numLines * 20 + 1;
+        numLines = StringUtils::getNumLines(objText, width);
+        int height = numLines * 17 + 3;
 
         bounds.setWidth(width);
         bounds.setHeight(height);
@@ -276,12 +276,14 @@ public:
     void resized() override
     {
         int fontWidth = glist_fontwidth(cnv->patch.getPointer());
-        textObjectWidth = (getWidth() - textWidthOffset) / fontWidth;
+        textObjectWidth = getWidth() / fontWidth;
 
-        int width = textObjectWidth * fontWidth + textWidthOffset;
+        int width = textObjectWidth * fontWidth;
+        
+        auto objText = editor ? editor->getText() : objectText;
 
-        numLines = StringUtils::getNumLines(objectText, width);
-        int height = numLines * 20;
+        numLines = StringUtils::getNumLines(objText, width);
+        auto height = numLines * 17 + 3;
 
         if (getWidth() != width || getHeight() != height) {
             object->setSize(width + Object::doubleMargin, height + Object::doubleMargin);
@@ -294,18 +296,29 @@ public:
 
     void textEditorReturnKeyPressed(TextEditor& ed) override
     {
-        if (editor != nullptr) {
-            editor->giveAwayKeyboardFocus();
-        }
+        ed.setText(ed.getText() + ";\n");
+        ed.moveCaretToEnd();
+
+        applyBounds();
+        object->updateBounds();
     }
 
     void textEditorTextChanged(TextEditor& ed) override
     {
+        auto text = ed.getText();
+        
         // For resize-while-typing behaviour
-        auto width = getBestTextWidth(ed.getText());
+        auto width = getBestTextWidth(text);
 
-        if (width > getWidth()) {
-            setSize(width, getHeight());
+        numLines = StringUtils::getNumLines(text, width);
+        auto height = numLines * 19 + 2;
+        
+        width = std::max(width, getWidth());
+        height = std::max(height, getHeight());
+        
+        if (width != getWidth() || height != getHeight()) {
+            auto newBounds = Rectangle<int>(object->getX(), object->getY(), width + Object::doubleMargin, height + Object::doubleMargin);
+            object->setBounds(newBounds);
         }
     }
 };
