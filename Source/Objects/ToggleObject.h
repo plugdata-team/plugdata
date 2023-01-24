@@ -40,6 +40,7 @@ public:
     {
         nonZero = static_cast<t_toggle*>(ptr)->x_nonzero;
         iemHelper.initialiseParameters();
+        toggleState = value != 0;
     }
 
     void paint(Graphics& g) override
@@ -116,7 +117,7 @@ public:
     ObjectParameters getParameters() override
     {
         ObjectParameters allParameters = {
-            { "Non-zero value", tInt, cGeneral, &nonZero, {} }
+            { "Non-zero value", tFloat, cGeneral, &nonZero, {} }
         };
 
         auto iemParameters = iemHelper.getParameters();
