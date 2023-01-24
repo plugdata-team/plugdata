@@ -509,7 +509,6 @@ void PluginProcessor::processBlock(AudioBuffer<float>& buffer, MidiBuffer& midiM
         internalSynth.unprepare();
     } else if (enableInternalSynth && !internalSynth.isReady()) {
         internalSynth.prepare(getSampleRate(), AudioProcessor::getBlockSize(), std::max(totalNumInputChannels, totalNumOutputChannels));
-        internalSynth.process(buffer, midiMessages);
     }
 
 #endif

@@ -13,10 +13,10 @@
 // The goal is to get something similar to the "AU DLS Synth" in Max/MSP on macOS, but cross-platform
 // Since fluidsynth is alraedy included for the sfont~ object, we can reuse it here to read a GM soundfont
 
-class InternalSynth {
+class InternalSynth : public Thread{
 
 public:
-    InternalSynth()
+    InternalSynth() : Thread("InternalSynthInit")
     {
         // Unpack soundfont
         if (!soundFont.existsAsFile()) {
@@ -28,14 +28,53 @@ public:
 
     ~InternalSynth()
     {
+        stopThread(6000);
+        
         if (synth)
             delete_fluid_synth(synth);
         if (settings)
             delete_fluid_settings(settings);
     }
+    
+    
+    // Initialise fluidsynth on another thread, because it takes a while
+    void run() override {
+        
+        unprepareLock.lock();
+        
+        internalBuffer.setSize(lastNumChannels, lastBlockSize);
+        internalBuffer.clear();
+        
+        // Check if soundfont exists to prevent crashing
+        if (soundFont.existsAsFile()) {
+            auto pathName = soundFont.getFullPathName();
+
+            // Initialise fluidsynth
+            settings = new_fluid_settings();
+            fluid_settings_setint(settings, "synth.ladspa.active", 0);
+            fluid_settings_setint(settings, "synth.midi-channels", 16);
+            fluid_settings_setnum(settings, "synth.gain", 0.9f);
+            fluid_settings_setnum(settings, "synth.audio-channels", lastNumChannels);
+            fluid_settings_setnum(settings, "synth.sample-rate", lastSampleRate);
+            synth = new_fluid_synth(settings); // Create fluidsynth instance:
+
+            // Load the soundfont
+            int ret = fluid_synth_sfload(synth, pathName.toRawUTF8(), 0);
+
+            if (ret >= 0) {
+                fluid_synth_program_reset(synth);
+            }
+
+            ready = true;
+        }
+        
+        unprepareLock.unlock();
+    }
 
     void unprepare()
     {
+        unprepareLock.lock();
+        
         if (ready) {
             if (synth)
                 delete_fluid_synth(synth);
@@ -48,47 +87,31 @@ public:
 
             ready = false;
         }
+        
+        unprepareLock.unlock();
     }
 
     void prepare(int sampleRate, int blockSize, int numChannels)
     {
-        if (sampleRate == lastSampleRate && blockSize == lastBlockSize && numChannels == lastNumChannels) {
+        if (ready && !isThreadRunning() && sampleRate == lastSampleRate && blockSize == lastBlockSize && numChannels == lastNumChannels) {
             return;
         }
-
-        internalBuffer.setSize(numChannels, blockSize);
-        internalBuffer.clear();
-
-        // Check if soundfont exists to prevent crashing
-        if (soundFont.existsAsFile()) {
-            auto pathName = soundFont.getFullPathName();
-
-            // Initialise fluidsynth
-            settings = new_fluid_settings();
-            fluid_settings_setint(settings, "synth.ladspa.active", 0);
-            fluid_settings_setint(settings, "synth.midi-channels", 16);
-            fluid_settings_setnum(settings, "synth.gain", 0.9f);
-            fluid_settings_setnum(settings, "synth.audio-channels", numChannels);
-            fluid_settings_setnum(settings, "synth.sample-rate", sampleRate);
-            synth = new_fluid_synth(settings); // Create fluidsynth instance:
-
-            // Load the soundfont
-            int ret = fluid_synth_sfload(synth, pathName.toRawUTF8(), 0);
-
-            if (ret >= 0) {
-                fluid_synth_program_reset(synth);
-            }
-
-            ready = true;
+        else {
+            lastSampleRate = sampleRate;
+            lastBlockSize = blockSize;
+            lastNumChannels = numChannels;
+            
+            startThread();
         }
-
-        lastSampleRate = sampleRate;
-        lastBlockSize = blockSize;
-        lastNumChannels = numChannels;
     }
 
     void process(AudioBuffer<float>& buffer, MidiBuffer& midiMessages)
     {
+        if(buffer.getNumChannels() != lastNumChannels || buffer.getNumSamples() > lastBlockSize) {
+            unprepare();
+            return;
+        }
+        
         // Pass MIDI messages to fluidsynth
         for (auto const& event : midiMessages) {
             auto const message = event.getMessage();
@@ -143,7 +166,8 @@ private:
     fluid_synth_t* synth = nullptr;
     fluid_settings_t* settings = nullptr;
 
-    bool ready = false;
+    std::atomic<bool> ready = false;
+    std::mutex unprepareLock;
 
     int lastSampleRate = 0;
     int lastBlockSize = 0;
