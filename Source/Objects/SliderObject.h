@@ -178,6 +178,16 @@ public:
     void resized() override
     {
         slider.setBounds(getLocalBounds());
+
+        // TODO we would also want to have a high precision mode, use keypress to change sensitivity etc
+        // Currently we set the sensitivity to 1:1 of current slider size
+        int sliderLength;
+        if (isVertical) {
+            sliderLength = slider.getHeight();
+        } else {
+            sliderLength = slider.getWidth();
+        }
+        slider.setMouseDragSensitivity(sliderLength);
     }
 
     ObjectParameters getParameters() override
