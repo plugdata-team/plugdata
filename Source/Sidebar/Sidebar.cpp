@@ -267,8 +267,6 @@ void Sidebar::showParameters(String const& name, ObjectParameters& params)
     if (!pinned) {
         inspector->setVisible(true);
     }
-
-    inspector->grabKeyboardFocus();
 }
 
 void Sidebar::showParameters()

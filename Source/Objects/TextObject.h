@@ -214,12 +214,14 @@ public:
                     return;
                 }
 
+                // TODO: this system is fragile
+                // If anything grabs keyboard focus when clicking an object, this will close the editor!
                 hideEditor();
             };
 
             cnv->showSuggestions(object, editor.get());
 
-            editor->setSize(10, 10);
+            editor->setBounds(getLocalBounds());
             addAndMakeVisible(editor.get());
 
             editor->setText(objectText, false);

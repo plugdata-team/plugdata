@@ -475,7 +475,6 @@ void PluginProcessor::processBlock(AudioBuffer<float>& buffer, MidiBuffer& midiM
     // continuityChecker.setTimer();
 
     setThis();
-    
     sendPlayhead();
 
     for (int i = totalNumInputChannels; i < totalNumOutputChannels; ++i) {
@@ -639,6 +638,7 @@ void PluginProcessor::process(dsp::AudioBlock<float> buffer, MidiBuffer& midiMes
 void PluginProcessor::sendPlayhead()
 {
     AudioPlayHead* playhead = getPlayHead();
+    
     if (!playhead)
         return;
 
