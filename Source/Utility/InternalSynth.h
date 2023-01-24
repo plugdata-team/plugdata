@@ -30,10 +30,12 @@ public:
     {
         stopThread(6000);
         
-        if (synth)
-            delete_fluid_synth(synth);
-        if (settings)
-            delete_fluid_settings(settings);
+        if(ready) {
+            if (synth)
+                delete_fluid_synth(synth);
+            if (settings)
+                delete_fluid_settings(settings);
+        }
     }
     
     
@@ -86,6 +88,9 @@ public:
             lastNumChannels = 0;
 
             ready = false;
+            
+            synth = nullptr;
+            settings = nullptr;
         }
         
         unprepareLock.unlock();
