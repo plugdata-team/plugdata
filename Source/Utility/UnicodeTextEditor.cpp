@@ -436,7 +436,7 @@ struct UnicodeTextEditor::Iterator {
     }
 
     //==============================================================================
-    void draw(Graphics& g, AffineTransform transform) const
+    void draw(Graphics& g, Range<int> selected, Colour selectedColour, Colour unselectedColour, AffineTransform transform) const
     {
         if (atom == nullptr)
             return;
@@ -447,7 +447,11 @@ struct UnicodeTextEditor::Iterator {
             auto attributedString = AttributedString();
             attributedString.setJustification(justification);
 
-            attributedString.append(atom->getTrimmedText(passwordCharacter), currentSection->font, currentSection->colour);
+            attributedString.append(atom->getTrimmedText(passwordCharacter), currentSection->font, unselectedColour);
+            
+            if(!selected.isEmpty()) {
+                attributedString.setColour(selected, selectedColour);
+            }
             
             auto font = currentSection->font;
 
@@ -468,56 +472,6 @@ struct UnicodeTextEditor::Iterator {
         g.addTransform(transform);
         g.reduceClipRegion({ startX, baselineY, endX - startX, 1 });
         g.fillCheckerBoard({ (float)endX, (float)baselineY + 1.0f }, 3.0f, 1.0f, colour, Colours::transparentBlack);
-    }
-
-    void drawSelectedText(Graphics& g, Range<int> selected, Colour selectedTextColour, AffineTransform transform) const
-    {
-        if (atom == nullptr)
-            return;
-
-        if (passwordCharacter != 0 || !atom->isWhitespace()) {
-            auto attributedString = AttributedString();
-            attributedString.setJustification(justification);
-            attributedString.setFont(currentSection->font);
-
-            auto trimmedText = atom->getTrimmedText(passwordCharacter);
-            auto selectionText = trimmedText;
-            auto preSelectionText = String();
-            auto postSelectionText = String();
-            
-            auto font = currentSection->font;
-            
-            if (selected.getStart() > indexInText)
-            {
-                preSelectionText = trimmedText.substring(0, selected.getStart() - indexInText);
-                selectionText = selectionText.substring(selected.getStart() - indexInText);
-            }
-            if (selected.getEnd() < indexInText + atom->numChars)
-            {
-                postSelectionText = trimmedText.substring(selected.getEnd() - indexInText);
-                selectionText = selectionText.substring(0, selected.getEnd() - indexInText);
-            }
-            
-            std::cout << "pre: " << preSelectionText << std::endl;
-            std::cout << "min: " << selectionText << std::endl;
-            std::cout << "post: " << postSelectionText << std::endl;
-            std::cout << std::endl;
-            
-            if(preSelectionText.isNotEmpty()) {
-                attributedString.append(preSelectionText, currentSection->colour);
-            }
-            
-            attributedString.append(selectionText, selectedTextColour);
-            
-            if(postSelectionText.isNotEmpty()) {
-                attributedString.append(postSelectionText, currentSection->colour);
-            }
-              
-            g.saveState();
-            g.addTransform(transform);
-            attributedString.draw(g, { atomX, lineY, atom->width, lineHeight });
-            g.restoreState();
-        }
     }
 
     //==============================================================================
@@ -1293,6 +1247,10 @@ void UnicodeTextEditor::checkFocus()
 
 void UnicodeTextEditor::repaintText(Range<int> range)
 {
+    textHolder->repaint();
+    return;
+    
+    /* TODO: find out if this optimisation is worth reenabling
     if (!range.isEmpty()) {
         if (range.getEnd() >= getTotalNumChars()) {
             textHolder->repaint();
@@ -1317,7 +1275,7 @@ void UnicodeTextEditor::repaintText(Range<int> range)
 
         auto offset = i.getYOffset();
         textHolder->repaint(0, roundToInt(y1 + offset), textHolder->getWidth(), roundToInt((float)y2 - y1 + offset));
-    }
+    } */
 }
 
 //==============================================================================
@@ -1662,10 +1620,11 @@ void UnicodeTextEditor::drawContent(Graphics& g)
 
         while (i.next() && i.lineY < (float)clip.getBottom()) {
             if (i.lineY + i.lineHeight >= (float)clip.getY()) {
+                
                 if (selection.intersects({ i.indexInText, i.indexInText + i.atom->numChars})) {
-                    i.drawSelectedText(g, selection, selectedTextColour, transform);
+                    i.draw(g, selection, selectedTextColour, findColour(textColourId), transform);
                 } else {
-                    i.draw(g, transform);
+                    i.draw(g, selection, selectedTextColour, findColour(textColourId), transform);
                 }
             }
         }
