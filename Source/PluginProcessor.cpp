@@ -475,6 +475,8 @@ void PluginProcessor::processBlock(AudioBuffer<float>& buffer, MidiBuffer& midiM
     // continuityChecker.setTimer();
 
     setThis();
+    
+    sendPlayhead();
 
     for (int i = totalNumInputChannels; i < totalNumOutputChannels; ++i) {
         buffer.clear(i, 0, buffer.getNumSamples());
@@ -782,7 +784,6 @@ void PluginProcessor::processInternal()
 
     // Dequeue messages
     sendMessagesFromQueue();
-    sendPlayhead();
     sendMidiBuffer();
 
     // Process audio
