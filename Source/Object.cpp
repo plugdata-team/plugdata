@@ -757,7 +757,7 @@ void Object::openNewObjectEditor()
         newObjectEditor = std::make_unique<UnicodeTextEditor>();
 
         auto* editor = newObjectEditor.get();
-        editor->applyFontToAllText(Font(14.5));
+        editor->applyFontToAllText(Font(15));
 
         copyAllExplicitColoursTo(*editor);
         editor->setColour(Label::textWhenEditingColourId, findColour(TextEditor::textColourId));
