@@ -2784,8 +2784,10 @@ void UnicodeTextEditor::fillTextEditorBackground (Graphics& g, int width, int he
     g.setColour (findColour (TextEditor::backgroundColourId));
     g.fillRect (0, 0, width, height);
 
-    g.setColour (findColour (TextEditor::outlineColourId));
-    g.drawHorizontalLine (height - 1, 0.0f, static_cast<float> (width));
+    if(getProperties()["NoOutline"].isVoid()) {
+        g.setColour (findColour (TextEditor::outlineColourId));
+        g.drawHorizontalLine (height - 1, 0.0f, static_cast<float> (width));
+    }
 }
 
 void UnicodeTextEditor::drawTextEditorOutline (Graphics& g, int width, int height)
