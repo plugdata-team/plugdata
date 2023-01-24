@@ -65,7 +65,6 @@ typedef struct _comment {
 class CycloneCommentObject final : public ObjectBase {
 
     Colour textColour;
-    Font font;
     BorderSize<int> border { 1, 7, 1, 2 };
 
 public:
@@ -73,8 +72,6 @@ public:
         : ObjectBase(obj, object)
     {
         auto* comment = static_cast<t_fake_comment*>(ptr);
-        font = font.withHeight(comment->x_fontsize);
-
         textColour = Colour(comment->x_red, comment->x_green, comment->x_blue);
     }
 
@@ -102,7 +99,7 @@ public:
     {
         auto* comment = static_cast<t_fake_comment*>(ptr);
 
-        g.setFont(font.withHeight(comment->x_fontsize));
+        g.setFont(Font(comment->x_fontsize));
 
         auto textArea = border.subtractedFrom(getLocalBounds());
         PlugDataLook::drawFittedText(g, getText(), textArea, Justification::centredLeft, textColour);
@@ -151,6 +148,8 @@ public:
 
     int getBestTextWidth(String const& text)
     {
-        return std::max<float>(round(font.getStringWidthFloat(text) + 14.0f), 32);
+        auto* comment = static_cast<t_fake_comment*>(ptr);
+
+        return std::max<float>(round(Font(comment->x_fontsize).getStringWidthFloat(text) + 14.0f), 32);
     }
 };

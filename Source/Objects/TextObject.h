@@ -15,7 +15,6 @@ protected:
     float minimumHorizontalScale = 0.8f;
 
     String objectText;
-    Font font = Font(15.0f);
 
     int textObjectWidth = 0;
     int textWidthOffset = 0;
@@ -76,7 +75,7 @@ public:
 
         auto textArea = border.subtractedFrom(getLocalBounds());
         auto attributedObjectText = AttributedString();
-        attributedObjectText.append(objectText, font, object->findColour(PlugDataColour::canvasTextColourId));
+        attributedObjectText.append(objectText, Font(15), object->findColour(PlugDataColour::canvasTextColourId));
         attributedObjectText.setJustification(justification);
         attributedObjectText.draw(g, textArea.toFloat());
 
@@ -98,7 +97,7 @@ public:
 
     virtual int getBestTextWidth(String const& text)
     {
-        return std::max<float>(round(font.getStringWidthFloat(text) + 14.0f), 32);
+        return std::max<float>(round(Font(15).getStringWidthFloat(text) + 14.0f), 32);
     }
 
     void textEditorReturnKeyPressed(TextEditor& ed) override
@@ -192,7 +191,7 @@ public:
     {
         if (editor == nullptr) {
             editor = std::make_unique<TextEditor>(getName());
-            editor->applyFontToAllText(font);
+            editor->applyFontToAllText(Font(15));
 
             copyAllExplicitColoursTo(*editor);
             editor->setColour(Label::textWhenEditingColourId, object->findColour(PlugDataColour::canvasTextColourId));

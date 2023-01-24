@@ -16,7 +16,6 @@ class CommentObject final : public ObjectBase
     float minimumHorizontalScale = 0.8f;
 
     String objectText;
-    Font font = Font(15.0f);
 
     int textObjectWidth = 0;
     int numLines = 1;
@@ -29,8 +28,6 @@ public:
         : ObjectBase(obj, object)
     {
         justification = Justification::topLeft;
-        font = font.withHeight(13.5f);
-
         locked = static_cast<bool>(object->locked.getValue());
 
         objectText = getText();
@@ -47,17 +44,14 @@ public:
     void paint(Graphics& g) override
     {
         g.setColour(object->findColour(PlugDataColour::canvasTextColourId));
-        g.setFont(font);
 
         if (!editor) {
-            TextLayout textLayout;
+            
             auto textArea = getLocalBounds().reduced(4, 2);
-            AttributedString attributedObjectText(objectText);
-            attributedObjectText.setColour(object->findColour(PlugDataColour::canvasTextColourId));
-            attributedObjectText.setFont(font);
+            auto attributedObjectText = AttributedString();
             attributedObjectText.setJustification(justification);
-            textLayout.createLayout(attributedObjectText, textArea.getWidth());
-            textLayout.draw(g, textArea.toFloat());
+            attributedObjectText.append(objectText, Font(13.5f), object->findColour(PlugDataColour::canvasTextColourId));
+            attributedObjectText.draw(g, textArea.toFloat());
 
             auto selected = cnv->isSelected(object);
             if (object->locked == var(false) && (object->isMouseOverOrDragging(true) || selected) && !cnv->isGraph) {
@@ -74,7 +68,7 @@ public:
         auto maxWidth = 32;
 
         for (auto& line : lines) {
-            maxWidth = std::max<int>(font.getStringWidthFloat(line) + 19, maxWidth);
+            maxWidth = std::max<int>(Font(13.5f).getStringWidthFloat(line) + 19, maxWidth);
         }
 
         return maxWidth;
@@ -133,7 +127,7 @@ public:
                                 auto maxWidth = 32;
 
                                 for (auto& line : lines) {
-                                    maxWidth = std::max<int>(_this->font.getStringWidthFloat(line) + 19, maxWidth);
+                                    maxWidth = std::max<int>(Font(13.5f).getStringWidthFloat(line) + 19, maxWidth);
                                 }
 
                                 int newHeight = (lines.size() * 16 + 4) + Object::doubleMargin;
@@ -155,7 +149,7 @@ public:
     {
         if (editor == nullptr) {
             editor = std::make_unique<TextEditor>(getName());
-            editor->applyFontToAllText(font);
+            editor->applyFontToAllText(Font(13.5f));
 
             copyAllExplicitColoursTo(*editor);
             editor->setColour(Label::textWhenEditingColourId, object->findColour(PlugDataColour::canvasTextColourId));

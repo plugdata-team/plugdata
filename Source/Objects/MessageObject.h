@@ -26,7 +26,6 @@ class MessageObject final : public ObjectBase
     float minimumHorizontalScale = 0.8f;
 
     String objectText;
-    Font font = Font(15.0f);
 
     int textObjectWidth = 0;
     int textWidthOffset = 0;
@@ -110,7 +109,7 @@ public:
         g.setColour(object->findColour(PlugDataColour::defaultObjectBackgroundColourId));
         g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), PlugDataLook::objectCornerRadius);
 
-        g.setFont(font);
+        g.setFont(Font(15));
 
         auto textArea = border.subtractedFrom(getLocalBounds());
         // TODO: fix num lines??
@@ -148,7 +147,7 @@ public:
         auto maxWidth = 32;
 
         for (auto& line : lines) {
-            maxWidth = std::max<int>(font.getStringWidthFloat(line) + 19, maxWidth);
+            maxWidth = std::max<int>(Font(15).getStringWidthFloat(line) + 19, maxWidth);
         }
 
         return maxWidth;
@@ -198,7 +197,7 @@ public:
             BorderSize<int> border { 1, 6, 1, 4 };
 
             editor = std::make_unique<TextEditor>(getName());
-            editor->applyFontToAllText(font);
+            editor->applyFontToAllText(Font(15));
 
             copyAllExplicitColoursTo(*editor);
             editor->setColour(Label::textWhenEditingColourId, object->findColour(PlugDataColour::canvasTextColourId));
@@ -268,7 +267,7 @@ public:
             auto maxWidth = 32;
 
             for (auto& line : lines) {
-                maxWidth = std::max<int>(font.getStringWidthFloat(line) + 19, maxWidth);
+                maxWidth = std::max<int>(Font(15).getStringWidthFloat(line) + 19, maxWidth);
             }
 
             int newHeight = (lines.size() * 19) + Object::doubleMargin;
