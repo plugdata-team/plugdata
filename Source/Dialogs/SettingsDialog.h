@@ -380,16 +380,19 @@ public:
         String menuItemText;
 
         bool hasSubMenu;
+        bool hasTickBox;
         bool isMouseOver = false;
 
     public:
         bool isTicked = false;
         bool isActive = true;
 
-        IconMenuItem(String icon, String text, bool hasChildren)
+
+        IconMenuItem(String icon, String text, bool hasChildren, bool tickBox)
             : menuItemIcon(icon)
             , menuItemText(text)
             , hasSubMenu(hasChildren)
+            , hasTickBox(tickBox)
         {
         }
 
@@ -418,15 +421,27 @@ public:
             auto maxFontHeight = (float)r.getHeight() / 1.3f;
 
             auto& lnf = dynamic_cast<PlugDataLook&>(getLookAndFeel());
-            auto iconArea = r.removeFromLeft(roundToInt(maxFontHeight));
+            auto iconArea = r.removeFromLeft(roundToInt(maxFontHeight)).withSizeKeepingCentre(maxFontHeight, maxFontHeight);
 
             if (menuItemIcon.isNotEmpty()) {
                 g.setFont(lnf.iconFont.withHeight(std::min(15.0f, maxFontHeight)));
 
                 PlugDataLook::drawFittedText(g, menuItemIcon, iconArea, Justification::centredLeft, colour);
-            } else if (isTicked) {
+            } else if (hasTickBox) {
+                                
+                g.setColour (findColour (ToggleButton::tickDisabledColourId));
+                g.drawRoundedRectangle(iconArea.toFloat().translated(0, 0.5f), 4.0f, 1.0f);
+
+                if (isTicked)
+                {
+                    g.setColour (findColour (ToggleButton::tickColourId));
+                    auto tick = lnf.getTickShape (1.0f);
+                    g.fillPath (tick, tick.getTransformToScaleToFit (iconArea.toFloat().translated(0, 0.5f).reduced (2.5f, 3.5f), false));
+                }
+                
+                /*
                 auto tick = lnf.getTickShape(1.0f);
-                g.fillPath(tick, tick.getTransformToScaleToFit(iconArea.reduced(iconArea.getWidth() / 5, 0).toFloat(), true));
+                g.fillPath(tick, tick.getTransformToScaleToFit(, true)); */
             }
 
             r.removeFromLeft(roundToInt(maxFontHeight * 0.5f));
@@ -533,20 +548,20 @@ public:
     };
 
     std::vector<IconMenuItem*> menuItems = {
-        new IconMenuItem(Icons::New, "New patch", false),
-        new IconMenuItem(Icons::Open, "Open patch...", false),
-        new IconMenuItem(Icons::History, "Recently opened", true),
+        new IconMenuItem(Icons::New, "New patch", false, false),
+        new IconMenuItem(Icons::Open, "Open patch...", false, false),
+        new IconMenuItem(Icons::History, "Recently opened", true, false),
 
-        new IconMenuItem(Icons::Save, "Save patch", false),
-        new IconMenuItem(Icons::SaveAs, "Save patch as...", false),
+        new IconMenuItem(Icons::Save, "Save patch", false, false),
+        new IconMenuItem(Icons::SaveAs, "Save patch as...", false, false),
 
-        new IconMenuItem("", "Compiled Mode", false),
-        new IconMenuItem("", "Compile...", false),
+        new IconMenuItem("", "Compiled Mode", false, true),
+        new IconMenuItem("", "Compile...", false, false),
 
-        new IconMenuItem("", "Auto-connect objects", false),
+        new IconMenuItem("", "Auto-connect objects", false, true),
 
-        new IconMenuItem(Icons::Settings, "Settings...", false),
-        new IconMenuItem(Icons::Info, "About...", false),
+        new IconMenuItem(Icons::Settings, "Settings...", false, false),
+        new IconMenuItem(Icons::Info, "About...", false, false),
     };
 
     ThemeSelector themeSelector;
