@@ -148,5 +148,5 @@ changeWorkingDir("./..")
 makeArchive("Filesystem", "./", "./plugdata_version")
 removeDir("./plugdata_version")
 
-splitFile("./Filesystem.zip", 17000000)
+splitFile("./Filesystem.zip", 10000000)
 removeFile("./Filesystem.zip")
