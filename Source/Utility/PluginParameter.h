@@ -12,7 +12,7 @@ class PlugDataParameter : public RangedAudioParameter {
 public:
     PluginProcessor& processor;
 
-    PlugDataParameter(PluginProcessor* p, String const& defaultName,  float const def, bool enabled)
+    PlugDataParameter(PluginProcessor* p, String const& defaultName, float const def, bool enabled)
         : RangedAudioParameter(ParameterID(defaultName, 1), defaultName, defaultName)
         , range(0.0f, 1.0f, 0.000001f)
         , defaultValue(def)
@@ -24,10 +24,10 @@ public:
     }
 
     ~PlugDataParameter() {};
-    
+
     int getNumSteps() const override
     {
-        return (static_cast<int> ((range.end - range.start) / 0.000001f) + 1);
+        return (static_cast<int>((range.end - range.start) / 0.000001f) + 1);
     }
 
     void setRange(float min, float max)
@@ -42,17 +42,17 @@ public:
 
     String getName(int maximumStringLength) const override
     {
-        if(!isEnabled()) {
+        if (!isEnabled()) {
             return ("(DISABLED) " + name).substring(0, maximumStringLength - 1);
         }
-        
+
         return name.substring(0, maximumStringLength - 1);
     }
-    
-    String getTitle() {
+
+    String getTitle()
+    {
         return name;
     }
-    
 
     void setEnabled(bool shouldBeEnabled)
     {
@@ -71,18 +71,18 @@ public:
         processor.updateHostDisplay(details);
 #endif
     }
-    
+
     float getUnscaledValue() const
     {
         return value;
     }
-    
+
     void setUnscaledValueNotifyingHost(float newValue)
     {
         value = std::clamp(newValue, range.start, range.end);
         sendValueChangedMessageToListeners(getValue());
     }
-    
+
     float getValue() const override
     {
         return range.convertTo0to1(value);
@@ -101,7 +101,7 @@ public:
     String getText(float value, int maximumStringLength) const override
     {
         auto const mappedValue = range.convertFrom0to1(value);
-        
+
         return maximumStringLength > 0 ? String(mappedValue).substring(0, maximumStringLength) : String(mappedValue, 6);
     }
 
@@ -119,8 +119,9 @@ public:
     {
         return false;
     }
-    
-    bool isEnabled() const {
+
+    bool isEnabled() const
+    {
         return enabled;
     }
 
@@ -140,68 +141,70 @@ public:
         volumeXml->setAttribute("id", "volume");
         volumeXml->setAttribute("value", parameters[0]->getValue());
         xml.addChildElement(volumeXml);
-        
+
         for (int i = 1; i < parameters.size(); i++) {
-            
+
             auto* param = dynamic_cast<PlugDataParameter*>(parameters[i]);
-            
+
             auto* paramXml = new XmlElement("PARAM");
-            
+
             paramXml->setAttribute("id", String("param") + String(i));
-            
+
             paramXml->setAttribute(String("name"), param->getTitle());
             paramXml->setAttribute(String("min"), param->range.start);
             paramXml->setAttribute(String("max"), param->range.end);
             paramXml->setAttribute(String("enabled"), static_cast<int>(param->enabled));
-            
+
             paramXml->setAttribute(String("value"), static_cast<double>(param->getValue()));
-            
+
             xml.addChildElement(paramXml);
         }
     }
-    
-    std::atomic<float>* getValuePointer() {
+
+    std::atomic<float>* getValuePointer()
+    {
         return &value;
     }
 
     static void loadStateInformation(XmlElement const& xml, Array<AudioProcessorParameter*> const& parameters)
     {
         auto* volumeParam = xml.getChildByAttribute("id", "volume");
-        if(volumeParam) {
+        if (volumeParam) {
             auto const navalue = static_cast<float>(volumeParam->getDoubleAttribute(String("value"),
                 static_cast<double>(parameters[0]->getValue())));
-            
+
             parameters[0]->setValueNotifyingHost(navalue);
         }
-        
+
         for (int i = 1; i < parameters.size(); i++) {
             auto* param = dynamic_cast<PlugDataParameter*>(parameters[i]);
-            
+
             auto xmlParam = xml.getChildByAttribute("id", "param" + String(i));
-            
-            if(!xmlParam) continue;
-            
+
+            if (!xmlParam)
+                continue;
+
             auto const navalue = static_cast<float>(xmlParam->getDoubleAttribute(String("value"),
                 static_cast<double>(param->getValue())));
-            
+
             String name = "param" + String(i);
             float min = 0.0f, max = 1.0f;
             bool enabled = true;
-            
+
             // Check for these values, they may not be there in legacy versions
-            if(xmlParam->hasAttribute("name")) {
+            if (xmlParam->hasAttribute("name")) {
                 name = xmlParam->getStringAttribute(String("name"));
             }
-            if(xmlParam->hasAttribute("min")) {
+            if (xmlParam->hasAttribute("min")) {
                 min = xmlParam->getDoubleAttribute("min");
             }
-            if(xmlParam->hasAttribute("max")) {
+            if (xmlParam->hasAttribute("max")) {
                 max = xmlParam->getDoubleAttribute("max");
             }
-            if(xmlParam->hasAttribute("enabled")) {
+            if (xmlParam->hasAttribute("enabled")) {
                 enabled = xmlParam->getIntAttribute("enabled");
             }
-            
+
             param->setEnabled(enabled);
             param->setRange(min, max);
             param->setName(name);
@@ -209,35 +212,38 @@ public:
             param->notifyDAW();
         }
     }
-    
-    void setLastValue(float v) {
+
+    void setLastValue(float v)
+    {
         lastValue = v;
     }
-    
-    float getLastValue() {
+
+    float getLastValue()
+    {
         return lastValue;
     }
-    
-    float getGestureState() {
+
+    float getGestureState()
+    {
         return gestureState;
     }
-    
-    void setGestureState(float v) {
-        
+
+    void setGestureState(float v)
+    {
+
 #if !PLUGDATA_STANDALONE
         // Send new value to DAW
         v ? beginChangeGesture() : endChangeGesture();
 #endif
-        
+
         gestureState = v;
     }
-    
+
 private:
-    
     float lastValue = 0.0f;
     float gestureState = 0.0f;
     float const defaultValue;
-    
+
     std::atomic<float> value;
     NormalisableRange<float> range;
     String name;

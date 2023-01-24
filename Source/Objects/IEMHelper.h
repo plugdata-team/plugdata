@@ -66,7 +66,7 @@ public:
     }
 
     ObjectParameters getParameters()
-    {        
+    {
         return {
             { "Foreground", tColour, cAppearance, &primaryColour, {} },
             { "Background", tColour, cAppearance, &secondaryColour, {} },
@@ -138,8 +138,7 @@ public:
             pd->getCallbackLock()->exit();
 
             object->setObjectBounds(bounds);
-        }
-        else if (symbol == "init" && atoms.size() >= 1) {
+        } else if (symbol == "init" && atoms.size() >= 1) {
             gui->setParameterExcludingListener(initialise, static_cast<bool>(atoms[0].getFloat()));
         }
     }
@@ -174,15 +173,13 @@ public:
             gui->getLookAndFeel().setColour(Slider::backgroundColourId, colour);
 
             gui->repaint();
-        }
-        else if (v.refersToSameSourceAs(labelColour)) {
+        } else if (v.refersToSameSourceAs(labelColour)) {
             setLabelColour(Colour::fromString(labelColour.toString()));
             gui->updateLabel();
         } else if (v.refersToSameSourceAs(labelX)) {
             setLabelPosition({ static_cast<int>(labelX.getValue()), static_cast<int>(labelY.getValue()) });
             gui->updateLabel();
-        }
-        else if (v.refersToSameSourceAs(labelY)) {
+        } else if (v.refersToSameSourceAs(labelY)) {
             setLabelPosition({ static_cast<int>(labelX.getValue()), static_cast<int>(labelY.getValue()) });
             gui->updateLabel();
         } else if (v.refersToSameSourceAs(labelHeight)) {
@@ -191,16 +188,18 @@ public:
         } else if (v.refersToSameSourceAs(labelText)) {
             setLabelText(labelText.toString());
             gui->updateLabel();
-        } else if(v.refersToSameSourceAs(initialise)) {
+        } else if (v.refersToSameSourceAs(initialise)) {
             setInit(static_cast<bool>(initialise.getValue()));
         }
     }
-    
-    void setInit(bool init) {
+
+    void setInit(bool init)
+    {
         iemgui->x_isa.x_loadinit = init;
     }
-    
-    bool getInit() {
+
+    bool getInit()
+    {
         return iemgui->x_isa.x_loadinit;
     }
 

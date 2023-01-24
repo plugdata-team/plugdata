@@ -211,8 +211,7 @@ Statusbar::Statusbar(PluginProcessor* processor)
     gridButton->setClickingTogglesState(true);
     gridButton->setConnectedEdges(12);
     gridButton->setName("statusbar:grid");
-    
-    
+
     gridButton->getToggleStateValue().referTo(SettingsFile::getInstance()->getPropertyAsValue("GridEnabled"));
     addAndMakeVisible(gridButton.get());
 
@@ -259,7 +258,7 @@ Statusbar::Statusbar(PluginProcessor* processor)
     volumeSlider.setValue(0.75);
     volumeSlider.setRange(0.0f, 1.0f);
     volumeSlider.setName("statusbar:meter");
-    
+
     volumeAttachment = std::make_unique<SliderParameterAttachment>(*dynamic_cast<RangedAudioParameter*>(pd->getParameters()[0]), volumeSlider, nullptr);
 
     addAndMakeVisible(levelMeter);

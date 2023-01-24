@@ -135,8 +135,6 @@ public:
     }
 
 private:
-    
-
     KeyPressMappingSet& mappings;
     TreeView tree;
     TextButton resetPdButton;
@@ -212,8 +210,6 @@ private:
             else
                 setSize(jlimit(h * 4, h * 8, 6 + Font((float)h * 0.6f).getStringWidth(getName())), h);
         }
-
-        
 
         class KeyEntryWindow : public AlertWindow {
         public:
@@ -323,8 +319,6 @@ private:
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(ChangeKeyButton)
     };
 
-    
-
     class ItemComponent : public Component {
     public:
         ItemComponent(KeyMappingComponent& kec, CommandID command)
@@ -387,8 +381,6 @@ private:
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(ItemComponent)
     };
 
-    
-
     class MappingItem : public TreeViewItem {
     public:
         MappingItem(KeyMappingComponent& kec, CommandID command)
@@ -409,8 +401,6 @@ private:
 
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(MappingItem)
     };
-
-    
 
     class CategoryItem : public TreeViewItem {
     public:
@@ -454,8 +444,6 @@ private:
 
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(CategoryItem)
     };
-
-    
 
     class TopLevelItem : public TreeViewItem
         , private ChangeListener {

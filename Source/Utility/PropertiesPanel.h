@@ -331,7 +331,7 @@ public:
                 dynamic_cast<DraggableNumber*>(label.get())->valueChanged = [this](float value) {
                     property = value;
                 };
-                
+
                 draggableNumber->setEditableOnClick(true);
             } else {
                 label = std::make_unique<Label>();

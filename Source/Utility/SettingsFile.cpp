@@ -6,14 +6,14 @@
 
 #include "SettingsFile.h"
 
-SettingsFileListener::SettingsFileListener() {
+SettingsFileListener::SettingsFileListener()
+{
     SettingsFile::getInstance()->listeners.add(this);
 }
 
-SettingsFileListener::~SettingsFileListener() {
+SettingsFileListener::~SettingsFileListener()
+{
     SettingsFile::getInstance()->listeners.removeFirstMatchingValue(this);
 }
 
-
 JUCE_IMPLEMENT_SINGLETON(SettingsFile)
-

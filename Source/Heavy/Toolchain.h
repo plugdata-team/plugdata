@@ -169,7 +169,7 @@ struct ToolchainInstaller : public Component
             return;
 
         // TODO: don't use canvas colour IDs!
-        
+
         auto colour = findColour(PlugDataColour::canvasTextColourId);
         g.setFont(lnf->boldFont.withHeight(32));
         if (needsUpdate) {

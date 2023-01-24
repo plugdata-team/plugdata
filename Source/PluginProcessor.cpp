@@ -85,20 +85,20 @@ PluginProcessor::PluginProcessor()
         initialiseFilesystem();
         settingsFile = SettingsFile::getInstance()->initialise();
     }
-    
+
     auto* volumeParameter = new PlugDataParameter(this, "volume", 1.0f, true);
     addParameter(volumeParameter);
     volume = volumeParameter->getValuePointer();
-    
+
     // General purpose automation parameters you can get by using "receive param1" etc.
     for (int n = 0; n < numParameters; n++) {
         auto* parameter = new PlugDataParameter(this, "param" + String(n + 1), 0.0f, false);
         addParameter(parameter);
         parameter->addListener(this);
     }
-    
+
     // Make sure that the parameter valuetree has a name, to prevent assertion failures
-    //parameters.replaceState(ValueTree("plugdata"));
+    // parameters.replaceState(ValueTree("plugdata"));
 
     logMessage("plugdata v" + String(ProjectInfo::versionString));
     logMessage("Based on " + String(pd_version).upToFirstOccurrenceOf("(", false, false));
@@ -123,9 +123,9 @@ PluginProcessor::PluginProcessor()
 
     objectLibrary.appDirChanged = [this]() {
         // If we changed the settings from within the app, don't reload
-        
+
         settingsFile->reloadSettings();
-        
+
         if (auto* editor = dynamic_cast<PluginEditor*>(getActiveEditor())) {
             for (auto* cnv : editor->canvases) {
                 // Make sure inlets/outlets are updated
@@ -836,22 +836,21 @@ void PluginProcessor::getStateInformation(MemoryBlock& destData)
     ostream.writeInt(getLatencySamples());
     ostream.writeInt(oversampling);
     ostream.writeFloat(static_cast<float>(tailLength.getValue()));
-    
+
     XmlElement xml = XmlElement("plugdata_save");
     xml.setAttribute("Version", PLUGDATA_VERSION);
     PlugDataParameter::saveStateInformation(xml, getParameters());
-    
+
     MemoryBlock xmlBlock;
     copyXmlToBinary(xml, xmlBlock);
 
     ostream.writeInt(static_cast<int>(xmlBlock.getSize()));
     ostream.write(xmlBlock.getData(), xmlBlock.getSize());
-    
-    if(auto* editor = getActiveEditor()) {
+
+    if (auto* editor = getActiveEditor()) {
         ostream.writeInt(editor->getWidth());
         ostream.writeInt(editor->getHeight());
-    }
-    else {
+    } else {
         ostream.writeInt(lastUIWidth);
         ostream.writeInt(lastUIHeight);
     }
@@ -920,28 +919,27 @@ void PluginProcessor::setStateInformation(void const* data, int sizeInBytes)
             istream.read(xmlData, xmlSize);
 
             std::unique_ptr<XmlElement> xmlState(getXmlFromBinary(xmlData, xmlSize));
-            
+
             if (xmlState) {
                 PlugDataParameter::loadStateInformation(*xmlState, getParameters());
             }
-            
+
             auto versionString = String("0.6.1");
-            
-            if(xmlState->hasAttribute("Version")) {
+
+            if (xmlState->hasAttribute("Version")) {
                 versionString = xmlState->getStringAttribute("Version");
             }
-            
-            if(versionString.startsWith("0.7") && !istream.isExhausted()) {
+
+            if (versionString.startsWith("0.7") && !istream.isExhausted()) {
                 int windowWidth = istream.readInt();
                 int windowHeight = istream.readInt();
-                
+
                 lastUIWidth = windowWidth;
                 lastUIHeight = windowHeight;
-                if(auto* editor = getActiveEditor()) {
+                if (auto* editor = getActiveEditor()) {
                     editor->setSize(lastUIWidth, lastUIHeight);
                 }
             }
-            
 
             setLatencySamples(latency);
             setOversampling(oversampling);
@@ -949,8 +947,8 @@ void PluginProcessor::setStateInformation(void const* data, int sizeInBytes)
             suspendProcessing(false);
 
             freebytes(copy, sizeInBytes);
-            delete [] xmlData;
-            
+            delete[] xmlData;
+
             if (auto* editor = dynamic_cast<PluginEditor*>(getActiveEditor())) {
                 editor->sidebar.updateAutomationParameters();
             }
@@ -1144,29 +1142,28 @@ void PluginProcessor::performParameterChange(int type, String name, float value)
 {
     // Type == 1 means it sets the change gesture state
     if (type) {
-        for(auto* param : getParameters()) {
+        for (auto* param : getParameters()) {
             auto* pldParam = dynamic_cast<PlugDataParameter*>(param);
             if (pldParam->getGestureState() == value) {
                 logMessage("parameter change " + name + (value ? " already started" : " not started"));
-            }
-            else if(pldParam->isEnabled() && pldParam->getTitle() == name) {
+            } else if (pldParam->isEnabled() && pldParam->getTitle() == name) {
                 pldParam->setGestureState(value);
             }
         }
     } else { // otherwise set parameter value
-        for(auto* param : getParameters()) {
+        for (auto* param : getParameters()) {
             auto* pldParam = dynamic_cast<PlugDataParameter*>(param);
-            if(pldParam->isEnabled() && pldParam->getTitle() == name) {
-                
+            if (pldParam->isEnabled() && pldParam->getTitle() == name) {
+
                 // Update values in automation panel
                 if (pldParam->getLastValue() == value)
                     return;
-                
+
                 pldParam->setLastValue(value);
-                
+
                 // Send new value to DAW
                 pldParam->setUnscaledValueNotifyingHost(value);
-                
+
 #if PLUGDATA_STANDALONE
                 if (auto* editor = dynamic_cast<PluginEditor*>(getActiveEditor())) {
                     editor->sidebar.updateAutomationParameters();

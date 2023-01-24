@@ -69,7 +69,7 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     for (auto& seperator : seperators) {
         addChildComponent(&seperator);
     }
-    
+
     auto* settingsFile = SettingsFile::getInstance();
 
     auto keymap = settingsFile->getKeyMapTree();
@@ -637,7 +637,6 @@ void PluginEditor::valueChanged(Value& v)
         getTopLevelComponent()->repaint();
     }
 }
-
 
 void PluginEditor::modifierKeysChanged(ModifierKeys const& modifiers)
 {

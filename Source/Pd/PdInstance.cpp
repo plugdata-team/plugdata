@@ -434,12 +434,14 @@ void Instance::sendMessage(char const* receiver, char const* msg, std::vector<At
 void Instance::processMessage(Message mess)
 {
     if (mess.destination == "param" && mess.list.size() >= 2) {
-        if(!mess.list[0].isSymbol() || !mess.list[1].isFloat()) return;
+        if (!mess.list[0].isSymbol() || !mess.list[1].isFloat())
+            return;
         auto name = mess.list[0].getSymbol();
         float value = mess.list[1].getFloat();
         performParameterChange(0, name, value);
     } else if (mess.destination == "param_change" && mess.list.size() >= 2) {
-        if(!mess.list[0].isSymbol() || !mess.list[1].isFloat()) return;
+        if (!mess.list[0].isSymbol() || !mess.list[1].isFloat())
+            return;
         auto name = mess.list[0].getSymbol();
         int state = mess.list[1].getFloat() != 0;
         performParameterChange(1, name, state);

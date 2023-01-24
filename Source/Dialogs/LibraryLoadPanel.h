@@ -11,56 +11,57 @@ bool wantsNativeDialog();
 class LibraryLoadPanel : public Component
     , public TextEditor::Listener
     , private ListBoxModel {
-        
-        class AddLibraryButton : public Component {
-            
-            bool mouseIsOver = false;
-            
-        public:
-            std::function<void()> onClick = [](){};
-            
-            void paint(Graphics& g) override {
-                
-                auto bounds = getLocalBounds().reduced(5, 2);
-                auto textBounds = bounds;
-                auto iconBounds = textBounds.removeFromLeft(textBounds.getHeight());
-                
-                auto& lnf = dynamic_cast<PlugDataLook&>(getLookAndFeel());
-                
-                auto colour = findColour(PlugDataColour::panelTextColourId);
-                if(mouseIsOver) {
-                    g.setColour(findColour(PlugDataColour::panelActiveBackgroundColourId));
-                    g.fillRoundedRectangle(bounds.toFloat(), PlugDataLook::defaultCornerRadius);
-                    
-                    colour = findColour(PlugDataColour::panelActiveTextColourId);
-                }
 
-                g.setColour(colour);
-                g.setFont(lnf.iconFont.withHeight(14));
-                g.drawText(Icons::Add, iconBounds, Justification::centred);
-                
-                g.setFont(Font(14));
-                PlugDataLook::drawText(g, "Add library to load on startup", textBounds, Justification::centredLeft, colour);
+    class AddLibraryButton : public Component {
+
+        bool mouseIsOver = false;
+
+    public:
+        std::function<void()> onClick = []() {};
+
+        void paint(Graphics& g) override
+        {
+
+            auto bounds = getLocalBounds().reduced(5, 2);
+            auto textBounds = bounds;
+            auto iconBounds = textBounds.removeFromLeft(textBounds.getHeight());
+
+            auto& lnf = dynamic_cast<PlugDataLook&>(getLookAndFeel());
+
+            auto colour = findColour(PlugDataColour::panelTextColourId);
+            if (mouseIsOver) {
+                g.setColour(findColour(PlugDataColour::panelActiveBackgroundColourId));
+                g.fillRoundedRectangle(bounds.toFloat(), PlugDataLook::defaultCornerRadius);
+
+                colour = findColour(PlugDataColour::panelActiveTextColourId);
             }
-            
-            void mouseEnter(const MouseEvent& e) override
-            {
-                mouseIsOver = true;
-                repaint();
-            }
-            
-            void mouseExit(const MouseEvent& e) override
-            {
-                mouseIsOver = false;
-                repaint();
-            }
-            
-            void mouseUp(const MouseEvent& e) override
-            {
-                onClick();
-            }
-        };
-        
+
+            g.setColour(colour);
+            g.setFont(lnf.iconFont.withHeight(14));
+            g.drawText(Icons::Add, iconBounds, Justification::centred);
+
+            g.setFont(Font(14));
+            PlugDataLook::drawText(g, "Add library to load on startup", textBounds, Justification::centredLeft, colour);
+        }
+
+        void mouseEnter(MouseEvent const& e) override
+        {
+            mouseIsOver = true;
+            repaint();
+        }
+
+        void mouseExit(MouseEvent const& e) override
+        {
+            mouseIsOver = false;
+            repaint();
+        }
+
+        void mouseUp(MouseEvent const& e) override
+        {
+            onClick();
+        }
+    };
+
 public:
     std::unique_ptr<Dialog> confirmationDialog;
 
@@ -76,7 +77,7 @@ public:
         listBox.setColour(ListBox::outlineColourId, Colours::transparentBlack);
 
         addAndMakeVisible(addButton);
-        addButton.onClick = [this](){ addLibrary(); };
+        addButton.onClick = [this]() { addLibrary(); };
 
         removeButton.setTooltip("Remove library");
         addAndMakeVisible(removeButton);
@@ -89,7 +90,6 @@ public:
         addAndMakeVisible(changeButton);
         changeButton.setConnectedEdges(12);
         changeButton.onClick = [this] { editSelected(); };
-        
 
         addChildComponent(editor);
         editor.addListener(this);
@@ -114,9 +114,6 @@ public:
 
         internalChange();
     }
-
-    
-
 
     int getNumRows() override
     {
@@ -180,13 +177,11 @@ public:
             auto selectionBounds = listBox.getRowPosition(listBox.getSelectedRow(), false).translated(0, 3);
             editor.setBounds(selectionBounds.withTrimmedRight(80).withTrimmedLeft(6).reduced(1));
         }
-        
+
         updateButtons();
     }
 
 private:
-    
-
     StringArray librariesToLoad;
 
     ListBox listBox;
@@ -245,7 +240,7 @@ private:
             removeButton.setBounds(selectionBounds.removeFromRight(buttonHeight));
             changeButton.setBounds(selectionBounds.removeFromRight(buttonHeight - 4));
         }
-        
+
         auto addButtonBounds = listBox.getRowPosition(getNumRows(), false).translated(0, 5).withHeight(25);
         addButton.setBounds(addButtonBounds);
     }

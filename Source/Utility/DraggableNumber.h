@@ -7,7 +7,8 @@
 #pragma once
 #include <JuceHeader.h>
 
-class DraggableNumber : public Label, public Label::Listener  {
+class DraggableNumber : public Label
+    , public Label::Listener {
 
 protected:
     float dragValue = 0.0f;
@@ -32,26 +33,26 @@ public:
         setWantsKeyboardFocus(true);
         addListener(this);
     }
-    
-    void labelTextChanged (Label *labelThatHasChanged) override {};
 
-    void editorShown(Label *l, TextEditor&) override
+    void labelTextChanged(Label* labelThatHasChanged) override {};
+
+    void editorShown(Label* l, TextEditor&) override
     {
         dragStart();
     }
-    
+
     void editorHidden(Label* l, TextEditor& editor) override
     {
         auto newValue = editor.getText().getFloatValue();
-        
+
         newValue = limitValue(newValue);
-        
+
         lastValue = newValue;
         setText(formatNumber(newValue), dontSendNotification);
-        
+
         dragEnd();
     }
-    
+
     void setEditableOnClick(bool editable)
     {
         setEditable(true, true);
@@ -111,8 +112,9 @@ public:
             valueChanged(newValue);
         }
     }
-    
-    float getValue() {
+
+    float getValue()
+    {
         return lastValue;
     }
 
@@ -231,18 +233,18 @@ public:
 
         setValue(newValue);
     }
-    
-    
-    float limitValue(float valueToLimit) {
-        
-        if(min == 0.0f && max == 0.0f)
+
+    float limitValue(float valueToLimit)
+    {
+
+        if (min == 0.0f && max == 0.0f)
             return valueToLimit;
-        
+
         if (isMinLimited)
             valueToLimit = std::max(valueToLimit, min);
         if (isMaxLimited)
             valueToLimit = std::min(valueToLimit, max);
-        
+
         return valueToLimit;
     }
 
@@ -260,8 +262,8 @@ public:
         mouseSource.setScreenPosition(e.getMouseDownScreenPosition().toFloat());
         mouseSource.enableUnboundedMouseMovement(false);
         dragEnd();
-        
-        if(!e.mouseWasDraggedSinceMouseDown()) {
+
+        if (!e.mouseWasDraggedSinceMouseDown()) {
             Label::mouseUp(e);
         }
     }

@@ -25,14 +25,14 @@ public:
     {
         isVertical = static_cast<t_slider*>(obj)->x_orientation;
         addAndMakeVisible(slider);
-        
+
         auto steady = getSteadyOnClick();
         steadyOnClick = steady;
         slider.setSliderSnapsToMousePosition(!steady);
-        
+
         min = getMinimum();
         max = getMaximum();
-        
+
         value = getValue();
 
         isLogarithmic = isLogScale();
@@ -73,7 +73,7 @@ public:
             stopEdition();
         };
     }
-    
+
     void updateLabel() override
     {
         iemHelper.updateLabel(label);
@@ -93,11 +93,12 @@ public:
     {
         iemHelper.applyBounds();
     }
-    
-    void updateRange() {
+
+    void updateRange()
+    {
         min = getMinimum();
         max = getMaximum();
-        
+
         if (static_cast<float>(min.getValue()) == 0.0f && static_cast<bool>(isLogarithmic.getValue())) {
             min = std::numeric_limits<float>::epsilon();
             setMinimum(std::numeric_limits<float>::epsilon());
@@ -123,23 +124,21 @@ public:
         if (symbol == "lin") {
             setParameterExcludingListener(isLogarithmic, false);
             updateRange();
-            
+
         } else if (symbol == "log") {
-            
+
             setParameterExcludingListener(isLogarithmic, true);
             updateRange();
-            
+
         } else if (symbol == "range" && atoms.size() >= 2) {
             setParameterExcludingListener(min, atoms[0].getFloat());
             setParameterExcludingListener(max, atoms[1].getFloat());
             updateRange();
-        }
-        else if (symbol == "steady" && atoms.size() >= 1) {
+        } else if (symbol == "steady" && atoms.size() >= 1) {
             bool steady = atoms[0].getFloat();
             setParameterExcludingListener(steadyOnClick, steady);
             slider.setSliderSnapsToMousePosition(!steady);
-        }
-        else {
+        } else {
             iemHelper.receiveObjectMessage(symbol, atoms);
         }
     }
@@ -187,7 +186,7 @@ public:
             { "Minimum", tFloat, cGeneral, &min, {} },
             { "Maximum", tFloat, cGeneral, &max, {} },
             { "Logarithmic", tBool, cGeneral, &isLogarithmic, { "off", "on" } },
-            { "Steady", tBool, cGeneral, &steadyOnClick, { "Jump on click", "Steady on click"} }
+            { "Steady", tBool, cGeneral, &steadyOnClick, { "Jump on click", "Steady on click" } }
         };
 
         auto iemParameters = iemHelper.getParameters();
@@ -235,11 +234,9 @@ public:
         } else if (value.refersToSameSourceAs(isLogarithmic)) {
             setLogScale(isLogarithmic == var(true));
             updateRange();
-        }
-        else if (value.refersToSameSourceAs(steadyOnClick)) {
+        } else if (value.refersToSameSourceAs(steadyOnClick)) {
             slider.setSliderSnapsToMousePosition(!static_cast<bool>(steadyOnClick.getValue()));
-       }
-        else {
+        } else {
             iemHelper.valueChanged(value);
         }
     }

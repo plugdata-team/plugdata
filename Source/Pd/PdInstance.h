@@ -450,14 +450,14 @@ protected:
         {
             auto item = std::pair<String, bool>();
             bool receivedMessage = false;
-            
+
             while (pendingMessages.try_dequeue(item)) {
                 auto& [message, type] = item;
                 consoleMessages.emplace_back(message, type, fastStringWidth.getStringWidth(message) + 8);
-                
+
                 if (consoleMessages.size() > 800)
                     consoleMessages.pop_front();
-                
+
                 receivedMessage = true;
             }
 
@@ -490,7 +490,7 @@ protected:
         void processPrint(char const* message)
         {
             std::function<void(const String)> forwardMessage =
-                [this](const String& message) {
+                [this](String const& message) {
                     if (message.startsWith("error")) {
                         logError(message.substring(7));
                     } else if (message.startsWith("verbose(0):") || message.startsWith("verbose(1):")) {
@@ -498,11 +498,9 @@ protected:
                     } else {
                         if (message.startsWith("verbose(")) {
                             logMessage(message.substring(12));
-                        }
-                        else {
+                        } else {
                             logMessage(message);
                         }
-                        
                     }
                 };
 

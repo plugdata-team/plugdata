@@ -11,12 +11,11 @@ class NumberObject final : public ObjectBase {
     DraggableNumber input;
     IEMHelper iemHelper;
 
-    
     float preFocusValue;
 
     Value min = Value(0.0f);
     Value max = Value(0.0f);
-    
+
     float value = 0.0f;
 
 public:
@@ -27,7 +26,7 @@ public:
 
     {
         value = getValue();
-        
+
         input.onEditorShow = [this]() {
             auto* editor = input.getCurrentTextEditor();
             startEdition();
@@ -43,9 +42,9 @@ public:
             sendFloatValue(input.getText().getFloatValue());
             stopEdition();
         };
-        
+
         value = getValue();
-                
+
         input.setBorderSize({ 1, 15, 1, 1 });
 
         addAndMakeVisible(input);
@@ -64,7 +63,7 @@ public:
         input.valueChanged = [this](float newValue) {
             sendFloatValue(newValue);
         };
-        
+
         input.setMinimum(static_cast<float>(min.getValue()));
         input.setMaximum(static_cast<float>(max.getValue()));
 
@@ -77,7 +76,7 @@ public:
     {
         iemHelper.initialiseParameters();
     }
-    
+
     void updateLabel() override
     {
         iemHelper.updateLabel(label);
@@ -168,8 +167,7 @@ public:
             value = std::clamp(atoms[0].getFloat(), static_cast<float>(min.getValue()), static_cast<float>(max.getValue()));
 
             input.setText(input.formatNumber(value), dontSendNotification);
-        }
-        else {
+        } else {
             iemHelper.receiveObjectMessage(symbol, atoms);
         }
     };
@@ -180,8 +178,7 @@ public:
             setMinimum(static_cast<float>(min.getValue()));
         } else if (value.refersToSameSourceAs(max)) {
             setMaximum(static_cast<float>(max.getValue()));
-        }
-        else {
+        } else {
             iemHelper.valueChanged(value);
         }
     }
