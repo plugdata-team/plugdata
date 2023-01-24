@@ -281,6 +281,7 @@ file(GLOB PlugDataBinaryDataSources
     ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Icons/plugdata_logo.png
     ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Filesystem_0.zip
     ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Filesystem_1.zip
+    ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Filesystem_2.zip
     )
 
 file(GLOB StandaloneBinarySources

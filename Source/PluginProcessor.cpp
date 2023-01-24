@@ -220,7 +220,7 @@ void PluginProcessor::initialiseFilesystem()
             auto oldSize = allData.size();
             allData.resize(oldSize + size);
 
-            std::copy(resource, resource + size, allData.begin() + oldSize);
+            std::copy(resource, resource + size, allData.end() + oldSize);
 
             i++;
         }
