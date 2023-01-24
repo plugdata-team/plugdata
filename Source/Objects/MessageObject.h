@@ -179,7 +179,9 @@ public:
         int width = textObjectWidth * fontWidth + textWidthOffset;
         width = std::max(width, std::max({ 1, object->numInputs, object->numOutputs }) * 18);
 
-        numLines = StringUtils::getNumLines(objectText, width);
+        auto objText = editor ? editor->getText() : objectText;
+        
+        numLines = StringUtils::getNumLines(objText, width);
         int height = numLines * 19 + 2;
 
         if (getWidth() != width || getHeight() != height) {
@@ -272,8 +274,8 @@ public:
             int newHeight = (lines.size() * 19) + Object::doubleMargin;
             int newWidth = maxWidth + Object::doubleMargin + 4;
 
-            auto newBounds = Rectangle<int>(object->getX(), object->getY(), newWidth, newHeight);
-            object->setObjectBounds(newBounds.reduced(Object::margin));
+            auto newBounds = Rectangle<int>(object->getX() + Object::margin, object->getY() + Object::margin, newWidth, newHeight);
+            object->setObjectBounds(newBounds);
 
             applyBounds();
 
@@ -306,18 +308,27 @@ public:
 
     void textEditorReturnKeyPressed(TextEditor& ed) override
     {
-        if (editor != nullptr) {
-            editor->giveAwayKeyboardFocus();
-        }
+        editor->setText(editor->getText() + ";\n");
+        checkBounds();
+        editor->moveCaretToEnd();
     }
 
     void textEditorTextChanged(TextEditor& ed) override
     {
+        
+        auto text = ed.getText();
+        
         // For resize-while-typing behaviour
-        auto width = getBestTextWidth(ed.getText());
+        auto width = getBestTextWidth(text);
 
-        if (width > getWidth()) {
-            setSize(width, getHeight());
+        numLines = StringUtils::getNumLines(text, width);
+        int height = numLines * 19 + 2;
+        
+        width = std::max(width, getWidth());
+        height = std::max(height, getHeight());
+        
+        if (width != getWidth() || height != getHeight()) {
+            setSize(width, height);
         }
     }
 
