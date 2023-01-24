@@ -34,7 +34,7 @@ public:
         addMouseListener(object, false);
     }
 
-    ~TextBase()
+    virtual ~TextBase()
     {
         removeMouseListener(object);
     }

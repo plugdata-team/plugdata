@@ -13,7 +13,7 @@
 #include "LookAndFeel.h"
 #include "PluginEditor.h"
 
-#include #include <Utility/UnicodeTextEditor.h>
+#include <Utility/UnicodeTextEditor.h>
 
 extern "C" {
 #include <m_pd.h>

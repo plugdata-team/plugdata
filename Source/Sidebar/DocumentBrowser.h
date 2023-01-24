@@ -10,7 +10,7 @@
 
 #include "../Utility/FileSystemWatcher.h"
 
-#include #include <Utility/UnicodeTextEditor.h>
+#include <Utility/UnicodeTextEditor.h>
 
 #if JUCE_WINDOWS
 #    include "../Utility/OSUtils.h"
@@ -483,7 +483,8 @@ public:
 
         listBox.getViewport()->setScrollBarsShown(true, false, false, false);
 
-        input.setName("sidebar::searcheditor");
+        
+        input.getProperties().set("NoOutline", true);
         input.addKeyListener(this);
         input.onTextChange = [this]() {
             bool notEmpty = input.getText().isNotEmpty();

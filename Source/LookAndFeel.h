@@ -564,24 +564,6 @@ struct PlugDataLook : public LookAndFeel_V4 {
         }
     };
 
-    void drawTextEditorOutline(Graphics& g, int width, int height, TextEditor& textEditor) override
-    {
-        if (textEditor.getName() == "sidebar::searcheditor")
-            return;
-
-        if (dynamic_cast<AlertWindow*>(textEditor.getParentComponent()) == nullptr) {
-            if (textEditor.isEnabled()) {
-                if (textEditor.hasKeyboardFocus(true) && !textEditor.isReadOnly()) {
-                    g.setColour(textEditor.findColour(TextEditor::focusedOutlineColourId));
-                    g.drawRect(0, 0, width, height, 2);
-                } else {
-                    g.setColour(textEditor.findColour(TextEditor::outlineColourId));
-                    g.drawRect(0, 0, width, height, 1);
-                }
-            }
-        }
-    }
-
     void drawTreeviewPlusMinusBox(Graphics& g, Rectangle<float> const& area, Colour backgroundColour, bool isOpen, bool isMouseOver) override
     {
         Path p;
