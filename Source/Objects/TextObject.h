@@ -202,7 +202,7 @@ public:
 
             editor->setAlwaysOnTop(true);
 
-            editor->setMultiLine(false);
+            editor->setMultiLine(true);
             editor->setReturnKeyStartsNewLine(false);
             editor->setBorder(border);
             editor->setIndents(0, 0);
