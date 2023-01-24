@@ -132,11 +132,11 @@ public:
         } else if (symbol == "label_font" && atoms.size() >= 2) {
             gui->setParameterExcludingListener(labelHeight, static_cast<int>(atoms[1].getFloat()));
             gui->updateLabel();
-        } else if (symbol == "vis_size" && atoms.size() >= 1) {
+        } else if (symbol == "vis_size" && atoms.size() >= 2) {
             pd->getCallbackLock()->enter();
             auto bounds = Rectangle<int>(iemgui->x_obj.te_xpix, iemgui->x_obj.te_ypix, atoms[0].getFloat(), atoms[1].getFloat());
             pd->getCallbackLock()->exit();
-
+            
             object->setObjectBounds(bounds);
         } else if (symbol == "init" && atoms.size() >= 1) {
             gui->setParameterExcludingListener(initialise, static_cast<bool>(atoms[0].getFloat()));
