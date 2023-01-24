@@ -613,7 +613,7 @@ private:
     bool enableSyntaxHighlighting = false;
     bool allowCoreGraphics = true;
 
-    RenderScheme renderScheme = RenderScheme::usingGlyphArrangement;
+    RenderScheme renderScheme = RenderScheme::usingAttributedStringSingle;
 
     double lastTransactionTime;
     bool tabKeyUsed = true;

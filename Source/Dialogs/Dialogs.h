@@ -14,12 +14,13 @@ class PluginEditor;
 class Dialog : public Component {
 
 public:
-    Dialog(std::unique_ptr<Dialog>* ownerPtr, Component* editor, int childWidth, int childHeight, int yPosition, bool showCloseButton)
+    Dialog(std::unique_ptr<Dialog>* ownerPtr, Component* editor, int childWidth, int childHeight, int yPosition, bool showCloseButton, int margin = 0)
         : parentComponent(editor)
         , height(childHeight)
         , width(childWidth)
         , y(yPosition)
         , owner(ownerPtr)
+        , backgroundMargin(margin)
     {
         parentComponent->addAndMakeVisible(this);
         setBounds(0, 0, parentComponent->getWidth(), parentComponent->getHeight());
@@ -57,10 +58,13 @@ public:
     {
         g.setColour(Colours::black.withAlpha(0.5f));
 
+        
+        auto bounds = getLocalBounds().reduced(backgroundMargin);
+        
         if (wantsRoundedCorners()) {
-            g.fillRoundedRectangle(getLocalBounds().toFloat(), PlugDataLook::windowCornerRadius);
+            g.fillRoundedRectangle(bounds.toFloat(), PlugDataLook::windowCornerRadius);
         } else {
-            g.fillRect(getLocalBounds());
+            g.fillRect(bounds);
         }
 
         if (viewedComponent) {
@@ -117,12 +121,14 @@ public:
     std::unique_ptr<Component> viewedComponent = nullptr;
     std::unique_ptr<Button> closeButton = nullptr;
     std::unique_ptr<Dialog>* owner;
+    
+    int backgroundMargin = 0;
 };
 
 struct Dialogs {
     static Component* showTextEditorDialog(String text, String filename, std::function<void(String, bool)> callback);
 
-    static void showSaveDialog(std::unique_ptr<Dialog>* target, Component* centre, String filename, std::function<void(int)> callback);
+    static void showSaveDialog(std::unique_ptr<Dialog>* target, Component* centre, String filename, std::function<void(int)> callback, int margin = 0);
     static void showArrayDialog(std::unique_ptr<Dialog>* target, Component* centre, std::function<void(int, String, String)> callback);
 
     static void createSettingsDialog(AudioProcessor* processor, AudioDeviceManager* manager, Component* centre, ValueTree const& settingsTree);

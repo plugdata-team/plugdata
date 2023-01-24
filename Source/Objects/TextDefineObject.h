@@ -76,7 +76,7 @@ public:
                     if (result == 1) {
                         textEditor.reset(nullptr);
                     }
-                });
+                }, 15);
             }));
     }
 
