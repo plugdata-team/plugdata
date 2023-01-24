@@ -187,7 +187,7 @@ public:
 
     void paint(Graphics& g) override
     {
-        auto const font = Font(15.0f);
+        auto const font = Font(15);
 
         g.setColour(findColour(PlugDataColour::outlineColourId));
         g.drawLine(5, 0, 5, getHeight());
@@ -237,7 +237,7 @@ public:
 
     void drawObject(Graphics& g, Rectangle<int> objectRect)
     {
-        auto const font = Font(15.0f);
+        auto const font = Font(15);
 
         int const ioletSize = 8;
         int const ioletWidth = (ioletSize + 4) * std::max(inlets.size(), outlets.size());

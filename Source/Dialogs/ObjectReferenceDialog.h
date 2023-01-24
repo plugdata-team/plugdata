@@ -29,7 +29,7 @@ public:
         rightSideInfo.setReadOnly(true);
         rightSideInfo.setMultiLine(true);
         rightSideInfo.setColour(TextEditor::outlineColourId, Colours::transparentBlack);
-        rightSideInfo.setFont(Font(15.0f));
+        rightSideInfo.setFont(Font(15));
 
         backButton.setName("toolbar:backbutton");
     }
@@ -52,7 +52,7 @@ public:
         g.setColour(findColour(PlugDataColour::panelBackgroundColourId));
         g.fillRoundedRectangle(getLocalBounds().reduced(1).toFloat(), PlugDataLook::windowCornerRadius);
 
-        auto const font = Font(15.0f);
+        auto const font = Font(15);
 
         if (objectName.isEmpty())
             return;
@@ -102,7 +102,7 @@ public:
 
     void drawObject(Graphics& g, Rectangle<int> objectRect)
     {
-        auto const font = Font(15.0f);
+        auto const font = Font(15);
 
         int const ioletSize = 8;
         int const ioletWidth = (ioletSize + 4) * std::max(inlets.size(), outlets.size());
