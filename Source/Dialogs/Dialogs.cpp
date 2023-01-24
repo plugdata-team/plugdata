@@ -28,12 +28,12 @@ Component* Dialogs::showTextEditorDialog(String text, String filename, std::func
     return editor;
 }
 
-void Dialogs::showSaveDialog(std::unique_ptr<Dialog>* target, Component* centre, String filename, std::function<void(int)> callback)
+void Dialogs::showSaveDialog(std::unique_ptr<Dialog>* target, Component* centre, String filename, std::function<void(int)> callback, int margin)
 {
     if (*target)
         return;
 
-    auto* dialog = new Dialog(target, centre, 400, 130, 160, false);
+    auto* dialog = new Dialog(target, centre, 400, 130, 160, false, margin);
     auto* saveDialog = new SaveDialog(centre, dialog, filename, callback);
 
     dialog->setViewedComponent(saveDialog);
