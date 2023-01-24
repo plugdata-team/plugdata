@@ -450,7 +450,8 @@ struct UnicodeTextEditor::Iterator {
             attributedString.append(atom->getTrimmedText(passwordCharacter), currentSection->font, unselectedColour);
             
             if(!selected.isEmpty()) {
-                attributedString.setColour(selected, selectedColour);
+                
+                attributedString.setColour(selected - indexInText, selectedColour);
             }
             
             auto font = currentSection->font;
