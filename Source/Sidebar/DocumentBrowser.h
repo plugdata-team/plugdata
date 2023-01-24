@@ -10,6 +10,8 @@
 
 #include "../Utility/FileSystemWatcher.h"
 
+#include #include <Utility/UnicodeTextEditor.h>
+
 #if JUCE_WINDOWS
 #    include "../Utility/OSUtils.h"
 #endif
@@ -688,7 +690,7 @@ private:
 
     DirectoryContentsList& searchPath;
     Array<File> searchResult;
-    TextEditor input;
+    UnicodeTextEditor input;
     TextButton closeButton = TextButton(Icons::Clear);
 };
 

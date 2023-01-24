@@ -139,7 +139,7 @@ public:
 
     ~CanvasVisibleObject()
     {
-        cnv->addComponentListener(this);
+        cnv->removeComponentListener(this);
     }
 
     void updateVisibility()
