@@ -427,7 +427,7 @@ public:
 
         input.setJustification(Justification::centredLeft);
         input.setBorder({ 1, 23, 3, 1 });
-        input.setName("sidebar::searcheditor");
+        input.getProperties().set("NoOutline", true);
         input.onTextChange = [this]() {
             filterResults();
         };

@@ -7,7 +7,7 @@
 #pragma once
 
 #include <JuceHeader.h>
-#include #include <Utility/UnicodeTextEditor.h>
+#include <Utility/UnicodeTextEditor.h>
 
 #include "PluginProcessor.h"
 #include "Sidebar/Sidebar.h"
@@ -38,7 +38,7 @@ public:
         setInterceptsMouseClicks(false, false);
     }
 
-    ~ObjectLabel()
+    virtual ~ObjectLabel()
     {
         object->removeComponentListener(&objListener);
     }
