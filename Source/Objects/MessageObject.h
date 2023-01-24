@@ -314,20 +314,24 @@ public:
 
     void textEditorTextChanged(TextEditor& ed) override
     {
-        
+    
         auto text = ed.getText();
         
         // For resize-while-typing behaviour
         auto width = getBestTextWidth(text);
 
-        numLines = StringUtils::getNumLines(text, width);
-        int height = numLines * 19 + 2;
-        
         width = std::max(width, getWidth());
+        int fontWidth = glist_fontwidth(cnv->patch.getPointer());
+        width = std::min(width / fontWidth, 60) * fontWidth;
+        
+        numLines = StringUtils::getNumLines(text, width);
+        auto height = numLines * 19 + 2;
+        
         height = std::max(height, getHeight());
         
         if (width != getWidth() || height != getHeight()) {
-            setSize(width, height);
+            auto newBounds = Rectangle<int>(object->getX(), object->getY(), width + Object::doubleMargin, height + Object::doubleMargin);
+            object->setBounds(newBounds);
         }
     }
 

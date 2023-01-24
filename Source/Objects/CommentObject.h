@@ -315,7 +315,7 @@ public:
         width = std::min(width / fontWidth, 60) * fontWidth;
         
         numLines = StringUtils::getNumLines(text, width);
-        auto height = numLines * 19 + 2;
+        auto height = numLines * 17 + 3;
         
         height = std::max(height, getHeight());
         
