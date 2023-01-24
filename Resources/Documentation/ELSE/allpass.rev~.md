@@ -26,12 +26,6 @@ inlets:
   1st:
   - type: signal
     description: signal to be filtered
-  - type: size <float>
-    description: changes the max delay size (in ms)
-  - type: clear
-    description: clears the delay buffer
-  - type: gain <float>
-    description: non-0 sets to gain mode
   2nd:
   - type: float/signal
     description: delay time in ms
@@ -43,6 +37,14 @@ outlets:
   1st:
   - type: signal
     description: the filtered signal
+
+methods:
+  - type: size <float>
+    description: changes the max delay size (in ms)
+  - type: clear
+    description: clears the delay buffer
+  - type: gain <float>
+    description: non-0 sets to gain mode
 
 draft: false
 ---

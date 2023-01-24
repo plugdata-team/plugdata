@@ -22,8 +22,6 @@ inlets:
   1st:
   - type: signal
     description: the signal to be shifted
-  - type: wrap <float>
-    description: non-zero sets to wrap mode
   2nd:
   - type: float
     description: sets number of bins to shift
@@ -32,6 +30,10 @@ outlets:
   1st:
   - type: signal
     description: the bin shifted signal
+
+methods:
+  - type: wrap <float>
+    description: non-zero sets to wrap mode
 
 draft: false
 ---

@@ -30,10 +30,6 @@ inlets:
     description: generates coefficients
   - type: list <f, f, f>
     description: sets frequency, Q/Slope and gain, and then outputs coefficients
-  - type: qs <float>
-    description: sets "Q" or "Slope" and outputs coefficients
-  - type: gain <float>
-    description: sets gain in db and outputs coefficients
   - type: anything
     description: sets filter type <allpass, lowpass, highpass, bandpass, resonant, bandstop, eq, lowshelf, highshelf, off>. It takes 3 more optional arguments that set frequency, Q/Slope and gain
   2nd:
@@ -47,6 +43,12 @@ outlets:
   1st:
   - type: list
     description: 5 coefficients for the vanilla [biquad~] object
+
+methods:
+  - type: qs <float>
+    description: sets "Q" or "Slope" and outputs coefficients
+  - type: gain <float>
+    description: sets gain in db and outputs coefficients
 
 draft: false
 ---

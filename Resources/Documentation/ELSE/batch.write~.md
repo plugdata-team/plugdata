@@ -20,9 +20,9 @@ inlets:
   1st:
   - type: bang
     description: record the whole array
-  - type: set <symbol>
-    description: sets array value
-  Nth:
+  - type: signal
+    description: signal inputs to record for each channel
+  nth:
   - type: signal
     description: signal inputs to record for each channel
 
@@ -30,6 +30,10 @@ outlets:
   1st:
   - type: bang
     description: outputs a bang when the object is done recording
+
+methods:
+  - type: set <symbol>
+    description: sets array value
 
 draft: false
 ---

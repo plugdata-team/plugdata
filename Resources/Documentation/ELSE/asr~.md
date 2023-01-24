@@ -26,8 +26,6 @@ inlets:
   1st:
   - type: float/signal
     description: gate values
-  - type: log <float>
-    description: - non zero sets to "log" mode, "linear" otherwise
   2nd:
   - type: float/signal
     description: attack time in ms
@@ -42,6 +40,10 @@ outlets:
   2nd:
   - type: float
     description: envelope status (on=1 / off=0)
+
+methods:
+  - type: log <float>
+    description: - non zero sets to "log" mode, "linear" otherwise
 
 draft: false
 ---
