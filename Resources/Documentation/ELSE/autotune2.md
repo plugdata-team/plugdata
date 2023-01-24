@@ -17,8 +17,6 @@ inlets:
   1st:
   - type: float
     description: pitch value in cents to be retuned
-  - type: bypass <float>
-    description: non zero sets to bypass mode
   2nd:
   - type: list
     description: scale in cents
@@ -27,6 +25,10 @@ outlets:
   1st:
   - type: float
     description: retuned pitch in cents
+
+methods:
+  - type: bypass <float>
+    description: non zero sets to bypass mode
 
 draft: false
 ---

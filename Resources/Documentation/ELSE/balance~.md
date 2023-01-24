@@ -27,10 +27,10 @@ inlets:
 outlets:
   1st:
   - type: signal
-    description:
+    description: left channel
   2nd:
   - type: signal
-    description:
+    description: right channel
 
 draft: false
 ---
