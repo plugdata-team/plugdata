@@ -208,6 +208,8 @@ public:
 
             editor->setAlwaysOnTop(true);
 
+            
+            
             editor->setMultiLine(true);
             editor->setReturnKeyStartsNewLine(false);
             editor->setScrollbarsShown(false);
@@ -220,6 +222,7 @@ public:
             editor->setText(objectText, false);
             editor->addListener(this);
             editor->addKeyListener(this);
+            editor->setScrollToShowCursor(false);
 
             addAndMakeVisible(editor.get());
 
@@ -307,17 +310,19 @@ public:
 
     void textEditorReturnKeyPressed(TextEditor& ed) override
     {
-        editor->setText(editor->getText() + ";\n");
-        checkBounds();
-        editor->moveCaretToEnd();
+        int caretPosition = ed.getCaretPosition();
+        auto text = ed.getText();
+        text = text.substring(0, caretPosition) + ";\n" + text.substring(caretPosition);
+        
+        ed.setText(text);
+        ed.setCaretPosition(caretPosition + 2);
     }
 
+    // For resize-while-typing behaviour
     void textEditorTextChanged(TextEditor& ed) override
     {
-    
         auto text = ed.getText();
         
-        // For resize-while-typing behaviour
         auto width = getBestTextWidth(text);
 
         width = std::max(width, getWidth());
