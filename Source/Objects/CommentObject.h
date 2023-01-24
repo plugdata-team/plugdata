@@ -219,12 +219,13 @@ public:
         // We need to handle the resizable width, which pd saves in amount of text characters
         textObjectWidth = bounds.getWidth();
 
+        int width;
         if (textObjectWidth == 0) {
-            textObjectWidth = std::min(textWidth / fontWidth, 60);
+            width = std::min(textWidth / fontWidth, 60) * fontWidth;
         }
-
-        int width = textObjectWidth * fontWidth;
-        width = std::max(width, std::max({ 1, object->numInputs, object->numOutputs }) * 18);
+        else {
+            width = textObjectWidth * fontWidth;
+        }
 
         numLines = StringUtils::getNumLines(objText, width);
         int height = numLines * 17 + 3;
@@ -276,9 +277,8 @@ public:
     void resized() override
     {
         int fontWidth = glist_fontwidth(cnv->patch.getPointer());
-        textObjectWidth = getWidth() / fontWidth;
 
-        int width = textObjectWidth * fontWidth;
+        int width = (getWidth() / fontWidth) * fontWidth;
         
         auto objText = editor ? editor->getText() : objectText;
 
@@ -310,10 +310,13 @@ public:
         // For resize-while-typing behaviour
         auto width = getBestTextWidth(text);
 
+        width = std::max(width, getWidth());
+        int fontWidth = glist_fontwidth(cnv->patch.getPointer());
+        width = std::min(width / fontWidth, 60) * fontWidth;
+        
         numLines = StringUtils::getNumLines(text, width);
         auto height = numLines * 19 + 2;
         
-        width = std::max(width, getWidth());
         height = std::max(height, getHeight());
         
         if (width != getWidth() || height != getHeight()) {

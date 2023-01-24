@@ -177,7 +177,6 @@ public:
         textObjectWidth = (getWidth() - textWidthOffset) / fontWidth;
 
         int width = textObjectWidth * fontWidth + textWidthOffset;
-        width = std::max(width, std::max({ 1, object->numInputs, object->numOutputs }) * 18);
 
         auto objText = editor ? editor->getText() : objectText;
         
