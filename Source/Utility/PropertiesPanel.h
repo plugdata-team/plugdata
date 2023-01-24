@@ -327,16 +327,16 @@ public:
             if constexpr (std::is_arithmetic<T>::value) {
                 auto* draggableNumber = new DraggableNumber(std::is_integral<T>::value);
                 label = std::unique_ptr<DraggableNumber>(draggableNumber);
-                
+
                 draggableNumber->getTextValue().referTo(property);
                 draggableNumber->setFont(Font(14));
-                
+
                 dynamic_cast<DraggableNumber*>(label.get())->valueChanged = [this](float value) {
                     property = value;
                 };
 
                 draggableNumber->setEditableOnClick(true);
-                
+
                 draggableNumber->onEditorShow = [this, draggableNumber]() {
                     auto* editor = draggableNumber->getCurrentTextEditor();
 

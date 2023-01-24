@@ -554,7 +554,7 @@ bool ObjectBase::canReceiveMouseEvent(int x, int y)
 void ObjectBase::receiveMessage(String const& symbol, int argc, t_atom* argv)
 {
     auto atoms = pd::Atom::fromAtoms(argc, argv);
-    
+
     MessageManager::callAsync([_this = SafePointer(this), symbol, atoms]() mutable {
         if (!_this)
             return;

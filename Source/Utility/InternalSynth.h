@@ -13,10 +13,11 @@
 // The goal is to get something similar to the "AU DLS Synth" in Max/MSP on macOS, but cross-platform
 // Since fluidsynth is alraedy included for the sfont~ object, we can reuse it here to read a GM soundfont
 
-class InternalSynth : public Thread{
+class InternalSynth : public Thread {
 
 public:
-    InternalSynth() : Thread("InternalSynthInit")
+    InternalSynth()
+        : Thread("InternalSynthInit")
     {
         // Unpack soundfont
         if (!soundFont.existsAsFile()) {
@@ -29,24 +30,24 @@ public:
     ~InternalSynth()
     {
         stopThread(6000);
-        
-        if(ready) {
+
+        if (ready) {
             if (synth)
                 delete_fluid_synth(synth);
             if (settings)
                 delete_fluid_settings(settings);
         }
     }
-    
-    
+
     // Initialise fluidsynth on another thread, because it takes a while
-    void run() override {
-        
+    void run() override
+    {
+
         unprepareLock.lock();
-        
+
         internalBuffer.setSize(lastNumChannels, lastBlockSize);
         internalBuffer.clear();
-        
+
         // Check if soundfont exists to prevent crashing
         if (soundFont.existsAsFile()) {
             auto pathName = soundFont.getFullPathName();
@@ -69,14 +70,14 @@ public:
 
             ready = true;
         }
-        
+
         unprepareLock.unlock();
     }
 
     void unprepare()
     {
         unprepareLock.lock();
-        
+
         if (ready) {
             if (synth)
                 delete_fluid_synth(synth);
@@ -88,11 +89,11 @@ public:
             lastNumChannels = 0;
 
             ready = false;
-            
+
             synth = nullptr;
             settings = nullptr;
         }
-        
+
         unprepareLock.unlock();
     }
 
@@ -100,23 +101,22 @@ public:
     {
         if (ready && !isThreadRunning() && sampleRate == lastSampleRate && blockSize == lastBlockSize && numChannels == lastNumChannels) {
             return;
-        }
-        else {
+        } else {
             lastSampleRate = sampleRate;
             lastBlockSize = blockSize;
             lastNumChannels = numChannels;
-            
+
             startThread();
         }
     }
 
     void process(AudioBuffer<float>& buffer, MidiBuffer& midiMessages)
     {
-        if(buffer.getNumChannels() != lastNumChannels || buffer.getNumSamples() > lastBlockSize) {
+        if (buffer.getNumChannels() != lastNumChannels || buffer.getNumSamples() > lastBlockSize) {
             unprepare();
             return;
         }
-        
+
         // Pass MIDI messages to fluidsynth
         for (auto const& event : midiMessages) {
             auto const message = event.getMessage();

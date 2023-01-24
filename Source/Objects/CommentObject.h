@@ -46,7 +46,7 @@ public:
         g.setColour(object->findColour(PlugDataColour::canvasTextColourId));
 
         if (!editor) {
-            
+
             auto textArea = getLocalBounds().reduced(4, 2);
             auto attributedObjectText = AttributedString();
             attributedObjectText.setJustification(justification);

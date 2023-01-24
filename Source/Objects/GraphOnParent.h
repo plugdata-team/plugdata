@@ -39,7 +39,7 @@ public:
     void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
     {
         if (symbol == "coords" && atoms.size() >= 8) {
-            
+
             // x_range: 0 1
             // y_range: 1 -1
             // w: $4 h: 22
