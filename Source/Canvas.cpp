@@ -17,7 +17,7 @@ extern "C" {
 #include "LookAndFeel.h"
 
 #include "Utility/GraphArea.h"
-#include "Utility/SuggestionComponent.h"
+#include "SuggestionComponent.h"
 
 Canvas::Canvas(PluginEditor* parent, pd::Patch& p, Component* parentGraph)
     : editor(parent)
