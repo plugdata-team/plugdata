@@ -173,13 +173,11 @@ public:
     {
         int const x = 40;
 
-        if (isSelected())
-            g.setColour(owner.findColour(PlugDataColour::sidebarActiveTextColourId));
-        else
-            g.setColour(owner.findColour(PlugDataColour::sidebarTextColourId));
+        auto colour = isSelected() ? owner.findColour(PlugDataColour::sidebarActiveTextColourId) : owner.findColour(PlugDataColour::sidebarTextColourId);
 
         g.setFont(dynamic_cast<PlugDataLook*>(&owner.getLookAndFeel())->iconFont);
-
+        g.setColour(colour);
+        
         if (isDirectory) {
             g.drawFittedText(Icons::Folder, Rectangle<int>(6, 2, x - 4, height - 4), Justification::centred, 1);
         } else {
@@ -187,7 +185,7 @@ public:
         }
 
         g.setFont(Font());
-        g.drawFittedText(file.getFileName(), x, 0, width - x, height, Justification::centredLeft, 1);
+        PlugDataLook::drawFittedText(g, file.getFileName(), x, 0, width - x, height, Justification::centredLeft, colour);
     }
 
     String getAccessibilityName() override
@@ -579,9 +577,8 @@ public:
 
         if (input.getText().isEmpty()) {
             g.setFont(Font(14));
-            g.setColour(findColour(PlugDataColour::sidebarTextColourId).withAlpha(0.5f));
-
-            g.drawText("Type to search documentation", 30, 0, 300, 30, Justification::centredLeft);
+            
+            PlugDataLook::drawText(g, "Type to search documentation", 30, 0, 300, 30, Justification::centredLeft, findColour(PlugDataColour::sidebarTextColourId).withAlpha(0.5f));
         }
     }
 
@@ -592,12 +589,13 @@ public:
             g.fillRoundedRectangle(4, 2, w - 8, h - 4, PlugDataLook::smallCornerRadius);
         }
 
-        g.setColour(rowIsSelected ? findColour(PlugDataColour::sidebarActiveTextColourId) : findColour(ComboBox::textColourId));
+        auto colour = rowIsSelected ? findColour(PlugDataColour::sidebarActiveTextColourId) : findColour(ComboBox::textColourId);
         const String item = searchResult[rowNumber].getFileName();
 
         g.setFont(Font());
-        g.drawText(item, 28, 0, w - 4, h, Justification::centredLeft, true);
+        PlugDataLook::drawText(g, item, 28, 0, w - 4, h, Justification::centredLeft, colour);
 
+        g.setColour(colour);
         g.setFont(getLookAndFeel().getTextButtonFont(closeButton, 23));
         g.drawText(Icons::File, 12, 0, 24, 24, Justification::centredLeft);
     }

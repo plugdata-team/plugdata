@@ -29,23 +29,21 @@ class WelcomePanel : public Component {
         {
             auto* lnf = dynamic_cast<PlugDataLook*>(&getLookAndFeel());
 
+            auto colour = findColour(PlugDataColour::panelTextColourId);
             if (isMouseOver()) {
                 g.setColour(findColour(PlugDataColour::panelActiveBackgroundColourId));
                 g.fillRoundedRectangle(1, 1, getWidth() - 2, getHeight() - 2, 6.0f);
-
-                g.setColour(findColour(PlugDataColour::panelActiveTextColourId));
-            } else {
-                g.setColour(findColour(PlugDataColour::panelTextColourId));
+                colour = findColour(PlugDataColour::panelActiveTextColourId);
             }
 
             g.setFont(lnf->iconFont.withHeight(24));
-            g.drawText(iconText, 20, 5, 40, 40, Justification::centredLeft);
+            PlugDataLook::drawText(g, iconText, 20, 5, 40, 40, Justification::centredLeft, colour);
 
             g.setFont(lnf->defaultFont.withHeight(16));
-            g.drawText(topText, 60, 7, getWidth() - 60, 20, Justification::centredLeft);
+            PlugDataLook::drawText(g, topText, 60, 7, getWidth() - 60, 20, Justification::centredLeft, colour);
 
             g.setFont(lnf->thinFont.withHeight(14));
-            g.drawText(bottomText, 60, 25, getWidth() - 60, 16, Justification::centredLeft);
+            PlugDataLook::drawText(g, bottomText, 60, 25, getWidth() - 60, 16, Justification::centredLeft, colour);
         }
 
         void mouseUp(MouseEvent const& e)
@@ -88,14 +86,12 @@ public:
 
         g.fillAll(findColour(PlugDataColour::canvasBackgroundColourId));
 
-        g.setColour(findColour(PlugDataColour::canvasTextColourId));
         g.setFont(lnf->boldFont.withHeight(32));
-        g.drawText("No Patch Open", 0, getHeight() / 2 - 150, getWidth(), 40, Justification::centred);
+        PlugDataLook::drawText(g, "No Patch Open", 0, getHeight() / 2 - 150, getWidth(), 40, Justification::centred, findColour(PlugDataColour::canvasTextColourId));
 
         g.setFont(lnf->thinFont.withHeight(23));
-        g.drawText("Open a file to begin patching", 0, getHeight() / 2 - 120, getWidth(), 40, Justification::centred);
+        PlugDataLook::drawText(g, "Open a file to begin patching", 0, getHeight() / 2 - 120, getWidth(), 40, Justification::centred, findColour(PlugDataColour::canvasTextColourId));
 
-        g.setColour(findColour(PlugDataColour::outlineColourId));
     }
 
     std::unique_ptr<WelcomeButton> newButton;

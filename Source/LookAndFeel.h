@@ -284,7 +284,25 @@ struct PlugDataLook : public LookAndFeel_V4 {
         } else if (button.getName().startsWith("statusbar")) {
             drawStatusbarButtonText(g, button, isMouseOverButton, isButtonDown);
         } else {
-            LookAndFeel_V4::drawButtonText(g, button, isMouseOverButton, isButtonDown);
+            
+            Font font (getTextButtonFont (button, button.getHeight()));
+            g.setFont (font);
+            auto colour = button.findColour (button.getToggleState() ? TextButton::textColourOnId
+                                                                    : TextButton::textColourOffId)
+                               .withMultipliedAlpha (button.isEnabled() ? 1.0f : 0.5f);
+
+            const int yIndent = jmin (4, button.proportionOfHeight (0.3f));
+            const int cornerSize = jmin (button.getHeight(), button.getWidth()) / 2;
+
+            const int fontHeight = roundToInt (font.getHeight() * 0.6f);
+            const int leftIndent  = jmin (fontHeight, 2 + cornerSize / (button.isConnectedOnLeft() ? 4 : 2));
+            const int rightIndent = jmin (fontHeight, 2 + cornerSize / (button.isConnectedOnRight() ? 4 : 2));
+            const int textWidth = button.getWidth() - leftIndent - rightIndent;
+
+            if (textWidth > 0)
+                PlugDataLook::drawFittedText(g, button.getButtonText(),
+                                  leftIndent, yIndent, textWidth, button.getHeight() - yIndent * 2,
+                                  Justification::centred, colour);
         }
     }
 
@@ -317,6 +335,7 @@ struct PlugDataLook : public LookAndFeel_V4 {
         }
     }
 
+    // TODO: do we use this??
     void drawDocumentWindowTitleBar(DocumentWindow& window, Graphics& g, int w, int h, int titleSpaceX, int titleSpaceW, Image const* icon, bool drawTitleTextOnLeft) override
     {
         if (w * h == 0)
@@ -330,8 +349,7 @@ struct PlugDataLook : public LookAndFeel_V4 {
 
         g.setColour(getCurrentColourScheme().getUIColour(ColourScheme::defaultText));
 
-        g.setColour(Colours::white);
-        g.drawText(window.getName(), 0, 0, w, h, Justification::centred, true);
+        PlugDataLook::drawText(g, window.getName(), 0, 0, w, h, Justification::centred, Colours::white);
     }
 
     Button* createDocumentWindowButton(int buttonType) override
@@ -473,15 +491,15 @@ struct PlugDataLook : public LookAndFeel_V4 {
             g.fillRect(r.removeFromTop(1));
         } else {
             auto r = area.reduced(margin, 1);
-
+            
+            auto colour = findColour(PopupMenu::textColourId).withMultipliedAlpha(isActive ? 1.0f : 0.5f);
             if (isHighlighted && isActive) {
                 g.setColour(findColour(PlugDataColour::popupMenuActiveBackgroundColourId));
                 g.fillRoundedRectangle(r.toFloat().reduced(4, 0), 4.0f);
-
-                g.setColour(findColour(PlugDataColour::popupMenuActiveTextColourId));
-            } else {
-                g.setColour(findColour(PopupMenu::textColourId).withMultipliedAlpha(isActive ? 1.0f : 0.5f));
+                colour = findColour(PlugDataColour::popupMenuActiveTextColourId);
             }
+            
+            g.setColour(colour);
 
             r.reduce(jmin(5, area.getWidth() / 20), 0);
 
@@ -519,15 +537,15 @@ struct PlugDataLook : public LookAndFeel_V4 {
             }
 
             r.removeFromRight(3);
-            g.drawFittedText(text, r, Justification::centredLeft, 1);
+            PlugDataLook::drawFittedText(g, text, r, Justification::centredLeft, colour);
 
             if (shortcutKeyText.isNotEmpty()) {
                 auto f2 = font;
                 f2.setHeight(f2.getHeight() * 0.75f);
                 f2.setHorizontalScale(0.95f);
                 g.setFont(f2);
-
-                g.drawText(shortcutKeyText, r.translated(-2, 0), Justification::centredRight, true);
+    
+                PlugDataLook::drawText(g, shortcutKeyText, r.translated(-2, 0), Justification::centredRight, colour);
             }
         }
     }
@@ -631,16 +649,14 @@ struct PlugDataLook : public LookAndFeel_V4 {
         Font font(getTextButtonFont(button, button.getHeight()));
         g.setFont(font);
 
+        auto colour = button.findColour(PlugDataColour::toolbarTextColourId);
         if (!button.isEnabled()) {
-            g.setColour(Colours::grey);
+            colour = Colours::grey;
         } else if (button.getToggleState()) {
-            g.setColour(button.findColour(PlugDataColour::toolbarActiveColourId));
+            colour = button.findColour(PlugDataColour::toolbarActiveColourId);
         } else if (shouldDrawButtonAsHighlighted) {
-            g.setColour(button.findColour(PlugDataColour::toolbarActiveColourId).brighter(0.8f));
-        } else {
-            g.setColour(button.findColour(PlugDataColour::toolbarTextColourId));
+            colour = button.findColour(PlugDataColour::toolbarActiveColourId).brighter(0.8f);
         }
-
         int const yIndent = jmin(4, button.proportionOfHeight(0.3f));
         int const cornerSize = jmin(button.getHeight(), button.getWidth()) / 2;
 
@@ -650,7 +666,7 @@ struct PlugDataLook : public LookAndFeel_V4 {
         int const textWidth = button.getWidth() - leftIndent - rightIndent;
 
         if (textWidth > 0)
-            g.drawFittedText(button.getButtonText(), leftIndent, yIndent, textWidth, button.getHeight() - yIndent * 2, Justification::centred, 2);
+            PlugDataLook::drawFittedText(g, button.getButtonText(), leftIndent, yIndent, textWidth, button.getHeight() - yIndent * 2, Justification::centred, colour);
     }
 
     void drawPdButton(Graphics& g, Button& button, Colour const& backgroundColour, bool shouldDrawButtonAsHighlighted, bool shouldDrawButtonAsDown)
@@ -746,20 +762,6 @@ struct PlugDataLook : public LookAndFeel_V4 {
         g.fillRoundedRectangle(Rectangle<float>(static_cast<float>(thumbWidth), static_cast<float>(22)).withCentre(maxPoint), 2.0f);
     }
 
-    void drawPropertyPanelSectionHeader(Graphics& g, String const& name, bool isOpen, int width, int height) override
-    {
-        auto buttonSize = (float)height * 0.75f;
-        auto buttonIndent = ((float)height - buttonSize) * 0.5f;
-
-        drawTreeviewPlusMinusBox(g, { buttonIndent, buttonIndent, buttonSize, buttonSize }, findColour(ResizableWindow::backgroundColourId), isOpen, false);
-
-        auto textX = static_cast<int>((buttonIndent * 2.0f + buttonSize + 2.0f));
-
-        g.setColour(findColour(PropertyComponent::labelTextColourId));
-
-        g.setFont({ (float)height * 0.6f, Font::bold });
-        g.drawText(name, textX, 0, std::max(width - textX - 4, 0), height, Justification::centredLeft, true);
-    }
 
     void drawCornerResizer(Graphics& g, int w, int h, bool isMouseOver, bool isMouseDragging) override
     {
@@ -810,7 +812,84 @@ struct PlugDataLook : public LookAndFeel_V4 {
         tl.createLayoutWithBalancedLineLengths(s, (float)maxToolTipWidth);
         tl.draw(g, { static_cast<float>(width), static_cast<float>(height) });
     }
+    
+    
+    static void drawText(Graphics& g, String textToDraw, Rectangle<int> bounds, Justification justification, Colour colour)
+    {
+        auto font = g.getCurrentFont();
+        
+        auto attributedString = AttributedString();
+        attributedString.setJustification(justification);
+        attributedString.append(textToDraw, font, colour);
+        attributedString.draw(g, bounds.toFloat());
+    }
+    
+    static void drawText(Graphics& g, String textToDraw, int x, int y, int w, int h, Justification justification, Colour colour) {
+        drawText(g, textToDraw, {x, y, w, h}, justification, colour);
+    }
+    
+    // Just there so we can differentiate later
+    static void drawFittedText(Graphics& g, String textToDraw, int x, int y, int w, int h, Justification justification, Colour colour) {
+        
+        drawText(g, textToDraw, {x, y, w, h}, justification, colour);
+    }
+    static void drawFittedText(Graphics& g, String textToDraw, Rectangle<int> bounds, Justification justification, Colour colour) {
+        
+        drawText(g, textToDraw, bounds, justification, colour);
+    }
+    
+    void drawLabel (Graphics& g, Label& label) override
+    {
+        g.fillAll (label.findColour (Label::backgroundColourId));
 
+        if (! label.isBeingEdited())
+        {
+            auto alpha = label.isEnabled() ? 1.0f : 0.5f;
+            const Font font (getLabelFont (label));
+
+            g.setFont (font);
+
+            auto textArea = getLabelBorderSize (label).subtractedFrom (label.getLocalBounds());
+
+            PlugDataLook::drawFittedText (g, label.getText(), textArea, label.getJustificationType(), label.findColour(Label::textColourId).withMultipliedAlpha(alpha));
+
+            g.setColour (label.findColour (Label::outlineColourId).withMultipliedAlpha (alpha));
+        }
+        else if (label.isEnabled())
+        {
+            g.setColour (label.findColour (Label::outlineColourId));
+        }
+
+        g.drawRect (label.getLocalBounds());
+    }
+    
+    void drawPropertyComponentLabel (Graphics& g, int width, int height, PropertyComponent& component) override
+    {
+        auto indent = jmin (10, component.getWidth() / 10);
+
+        auto colour = component.findColour (PropertyComponent::labelTextColourId)
+                              .withMultipliedAlpha (component.isEnabled() ? 1.0f : 0.6f);
+
+        g.setFont ((float) jmin (height, 24) * 0.65f);
+
+        auto r = getPropertyComponentContentPosition (component);
+
+        PlugDataLook::drawFittedText(g, component.getName(), indent, r.getY(), r.getX() - 5, r.getHeight(), Justification::centredLeft, colour);
+    }
+    
+    void drawPropertyPanelSectionHeader(Graphics& g, String const& name, bool isOpen, int width, int height) override
+    {
+        auto buttonSize = (float)height * 0.75f;
+        auto buttonIndent = ((float)height - buttonSize) * 0.5f;
+
+        drawTreeviewPlusMinusBox(g, { buttonIndent, buttonIndent, buttonSize, buttonSize }, findColour(ResizableWindow::backgroundColourId), isOpen, false);
+
+        auto textX = static_cast<int>((buttonIndent * 2.0f + buttonSize + 2.0f));
+
+        g.setFont({ (float)height * 0.6f, Font::bold });
+        PlugDataLook::drawText(g, name, textX, 0, std::max(width - textX - 4, 0), height, Justification::centredLeft, findColour(PropertyComponent::labelTextColourId));
+    }
+    
     Rectangle<int> getTooltipBounds(String const& tipText, Point<int> screenPos, Rectangle<int> parentArea) override
     {
         float const tooltipFontSize = 14.0f;

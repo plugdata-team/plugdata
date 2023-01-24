@@ -350,9 +350,8 @@ void Object::paintOverChildren(Graphics& g)
         g.setColour(findColour(PlugDataColour::objectSelectedOutlineColourId));
         g.fillRoundedRectangle(indexBounds.toFloat(), 2.0f);
 
-        g.setColour(findColour(PlugDataColour::objectSelectedOutlineColourId).contrasting());
         g.setFont(font);
-        g.drawText(text, indexBounds, Justification::centred);
+        PlugDataLook::drawText(g, text, indexBounds, Justification::centred, findColour(PlugDataColour::objectSelectedOutlineColourId).contrasting());
     }
 }
 
@@ -779,7 +778,7 @@ void Object::openNewObjectEditor()
         editor->setReturnKeyStartsNewLine(false);
         editor->setBorder(BorderSize<int> { 1, 7, 1, 2 });
         editor->setIndents(0, 0);
-        editor->setJustification(Justification::left);
+        editor->setJustification(Justification::centredLeft);
 
         editor->onFocusLost = [this, editor]() {
             if (reinterpret_cast<Component*>(cnv->suggestor)->hasKeyboardFocus(true) || Component::getCurrentlyFocusedComponent() == editor) {

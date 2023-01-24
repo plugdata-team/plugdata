@@ -109,15 +109,12 @@ public:
 
         if (getWidth() > g.getCurrentFont().getStringWidth(textValue + " dB")) {
             // Check noscale flag, otherwise display next to slider
-            g.setColour(Colours::white);
-            g.drawFittedText(textValue + " dB", Rectangle<int>(getLocalBounds().removeFromBottom(20)).reduced(2), Justification::centred, 1, 0.6f);
+            PlugDataLook::drawFittedText(g, textValue + " dB", Rectangle<int>(getLocalBounds().removeFromBottom(20)).reduced(2), Justification::centred, Colours::white);
         } else if (getWidth() > g.getCurrentFont().getStringWidth(textValue)) {
-            g.setColour(Colours::white);
-            g.drawFittedText(textValue, Rectangle<int>(getLocalBounds().removeFromBottom(20)).reduced(2), Justification::centred, 1, 0.6f);
+            PlugDataLook::drawFittedText(g, textValue, Rectangle<int>(getLocalBounds().removeFromBottom(20)).reduced(2), Justification::centred, Colours::white);
         } else {
-            g.setColour(Colours::white);
             g.setFont(11);
-            g.drawFittedText(String(std::max(values[1], -96.0f), 0), Rectangle<int>(getLocalBounds().removeFromBottom(20)).reduced(2), Justification::centred, 1, 0.6f);
+            PlugDataLook::drawFittedText(g, String(std::max(values[1], -96.0f), 0), Rectangle<int>(getLocalBounds().removeFromBottom(20)).reduced(2), Justification::centred, Colours::white);
         }
 
         bool selected = cnv->isSelected(object) && !cnv->isGraph;

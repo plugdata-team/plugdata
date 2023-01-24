@@ -27,21 +27,20 @@ class LibraryLoadPanel : public Component
                 
                 auto& lnf = dynamic_cast<PlugDataLook&>(getLookAndFeel());
                 
+                auto colour = findColour(PlugDataColour::panelTextColourId);
                 if(mouseIsOver) {
                     g.setColour(findColour(PlugDataColour::panelActiveBackgroundColourId));
                     g.fillRoundedRectangle(bounds.toFloat(), PlugDataLook::defaultCornerRadius);
                     
-                    g.setColour(findColour(PlugDataColour::panelActiveTextColourId));
+                    colour = findColour(PlugDataColour::panelActiveTextColourId);
                 }
-                else {
-                    g.setColour(findColour(PlugDataColour::panelTextColourId));
-                }
-                
+
+                g.setColour(colour);
                 g.setFont(lnf.iconFont.withHeight(14));
                 g.drawText(Icons::Add, iconBounds, Justification::centred);
                 
-                g.setFont(lnf.defaultFont.withHeight(14));
-                g.drawText("Add library to load on startup", textBounds, Justification::left);
+                g.setFont(Font(14));
+                PlugDataLook::drawText(g, "Add library to load on startup", textBounds, Justification::centredLeft, colour);
             }
             
             void mouseEnter(const MouseEvent& e) override
@@ -131,12 +130,11 @@ public:
             g.fillRoundedRectangle({ 4.0f, 1.0f, width - 8.0f, height - 2.0f }, PlugDataLook::defaultCornerRadius);
         }
 
-        g.setColour(rowIsSelected ? findColour(PlugDataColour::panelActiveTextColourId) : findColour(PlugDataColour::panelTextColourId));
-
         g.setFont(Font(14));
 
         if (!editor.isVisible() || rowBeingEdited != rowNumber) {
-            g.drawText(librariesToLoad[rowNumber], 12, 0, width - 9, height, Justification::centredLeft, true);
+            auto colour = rowIsSelected ? findColour(PlugDataColour::panelActiveTextColourId) : findColour(PlugDataColour::panelTextColourId);
+            PlugDataLook::drawText(g, librariesToLoad[rowNumber], 12, 0, width - 9, height, Justification::centredLeft, colour);
         }
     }
 

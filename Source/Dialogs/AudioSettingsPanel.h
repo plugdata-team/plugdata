@@ -169,11 +169,12 @@ public:
         RoundedListBox::paint(g);
 
         if (items.isEmpty()) {
-            g.setColour(Colours::grey);
             g.setFont(0.5f * (float)getRowHeight());
-            g.drawText(noItemsMessage,
-                0, 0, getWidth(), getHeight() / 2,
-                Justification::centred, true);
+            
+            // TODO: fix colour
+            PlugDataLook::drawText(g, noItemsMessage,
+                                   0, 0, getWidth(), getHeight() / 2,
+                                   Justification::centred, Colours::grey);
         }
     }
 
@@ -1014,11 +1015,10 @@ private:
                 RoundedListBox::paint(g);
 
                 if (items.isEmpty()) {
-                    g.setColour(Colours::grey);
                     g.setFont(0.5f * (float)getRowHeight());
-                    g.drawText(noItemsMessage,
+                    PlugDataLook::drawText(g,noItemsMessage,
                         0, 0, getWidth(), getHeight() / 2,
-                        Justification::centred, true);
+                        Justification::centred, Colours::grey);
                 }
             }
 

@@ -95,16 +95,16 @@ struct ToolchainInstaller : public Component
                 g.fillRoundedRectangle(1, 1, getWidth() - 2, getHeight() - 2, PlugDataLook::smallCornerRadius);
             }
 
-            g.setColour(findColour(PlugDataColour::canvasTextColourId));
+            auto colour = findColour(PlugDataColour::canvasTextColourId);
 
             g.setFont(lnf->iconFont.withHeight(24));
-            g.drawText(iconText, 20, 5, 40, 40, Justification::centredLeft);
+            PlugDataLook::drawText(g, iconText, 20, 5, 40, 40, Justification::centredLeft, colour);
 
             g.setFont(lnf->defaultFont.withHeight(16));
-            g.drawText(topText, 60, 7, getWidth() - 60, 20, Justification::centredLeft);
+            PlugDataLook::drawText(g, topText, 60, 7, getWidth() - 60, 20, Justification::centredLeft, colour);
 
             g.setFont(lnf->thinFont.withHeight(14));
-            g.drawText(bottomText, 60, 25, getWidth() - 60, 16, Justification::centredLeft);
+            PlugDataLook::drawText(g, bottomText, 60, 25, getWidth() - 60, 16, Justification::centredLeft, colour);
         }
 
         void mouseUp(MouseEvent const& e)
@@ -168,19 +168,21 @@ struct ToolchainInstaller : public Component
         if (!lnf)
             return;
 
-        g.setColour(findColour(PlugDataColour::canvasTextColourId));
+        // TODO: don't use canvas colour IDs!
+        
+        auto colour = findColour(PlugDataColour::canvasTextColourId);
         g.setFont(lnf->boldFont.withHeight(32));
         if (needsUpdate) {
-            g.drawText("Toolchain needs to be updated", 0, getHeight() / 2 - 150, getWidth(), 40, Justification::centred);
+            PlugDataLook::drawText(g, "Toolchain needs to be updated", 0, getHeight() / 2 - 150, getWidth(), 40, Justification::centred, colour);
         } else {
-            g.drawText("Toolchain not found", 0, getHeight() / 2 - 150, getWidth(), 40, Justification::centred);
+            PlugDataLook::drawText(g, "Toolchain not found", 0, getHeight() / 2 - 150, getWidth(), 40, Justification::centred, colour);
         }
 
         g.setFont(lnf->thinFont.withHeight(23));
         if (needsUpdate) {
-            g.drawText("Update the toolchain to get started", 0, getHeight() / 2 - 120, getWidth(), 40, Justification::centred);
+            PlugDataLook::drawText(g, "Update the toolchain to get started", 0, getHeight() / 2 - 120, getWidth(), 40, Justification::centred, colour);
         } else {
-            g.drawText("Install the toolchain to get started", 0, getHeight() / 2 - 120, getWidth(), 40, Justification::centred);
+            PlugDataLook::drawText(g, "Install the toolchain to get started", 0, getHeight() / 2 - 120, getWidth(), 40, Justification::centred, colour);
         }
 
         if (installProgress != 0.0f) {
@@ -202,8 +204,7 @@ struct ToolchainInstaller : public Component
 
         if (errorMessage.isNotEmpty()) {
             g.setFont(Font(15));
-            g.setColour(Colours::red);
-            g.drawText(errorMessage, Rectangle<float>(90.0f, 300.0f, getWidth() - 90.0f, 20), Justification::centred);
+            PlugDataLook::drawText(g, errorMessage, Rectangle<int>(90, 300, getWidth(), 20), Justification::centred, Colours::red);
         }
 
         if (isTimerRunning()) {

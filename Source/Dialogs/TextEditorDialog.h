@@ -2140,8 +2140,7 @@ struct TextEditorDialog : public Component {
         g.drawHorizontalLine(b.getHeight() - 20, b.getY() + 48, b.getWidth());
 
         if (!title.isEmpty()) {
-            g.setColour(findColour(PlugDataColour::toolbarTextColourId));
-            g.drawText(title, b.getX(), b.getY(), b.getWidth(), 40, Justification::centred);
+            PlugDataLook::drawText(g, title, b.getX(), b.getY(), b.getWidth(), 40, Justification::centred, findColour(PlugDataColour::toolbarTextColourId));
         }
     }
 };

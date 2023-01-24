@@ -190,8 +190,7 @@ public:
                     textColour = Colours::red;
 
                 // Draw text
-                g.setColour(textColour);
-                g.drawFittedText(message, getLocalBounds().reduced(14, 2), Justification::centredLeft, numLines, 0.9f);
+                PlugDataLook::drawFittedText(g, message, getLocalBounds().reduced(14, 2), Justification::centredLeft, textColour);
             }
         };
 

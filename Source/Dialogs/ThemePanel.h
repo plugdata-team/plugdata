@@ -82,8 +82,7 @@ public:
     void paint(Graphics& g) override
     {
         if (errorMessage.isNotEmpty()) {
-            g.setColour(Colours::red);
-            g.drawText(errorMessage, 0, getHeight() - 70, getWidth(), 23, Justification::centred);
+            PlugDataLook::drawText(g, errorMessage, 0, getHeight() - 70, getWidth(), 23, Justification::centred, Colours::red);
         }
     }
 
@@ -494,9 +493,8 @@ public:
     {
         auto bounds = getLocalBounds().removeFromLeft(getWidth() / 2).withTrimmedLeft(6);
 
-        g.setColour(findColour(PlugDataColour::panelTextColourId));
         auto themeRow = bounds.removeFromTop(23);
-        g.drawText("Theme", themeRow, Justification::left);
+        PlugDataLook::drawText(g, "Theme", themeRow, Justification::centredLeft, findColour(PlugDataColour::panelTextColourId));
 
         auto fullThemeRow = getLocalBounds().removeFromTop(23);
         g.setColour(findColour(PlugDataColour::outlineColourId));

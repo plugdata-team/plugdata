@@ -17,8 +17,6 @@ char* pdgui_strnescape(char* dst, size_t dstlen, char const* src, size_t srclen)
 
 class IEMHelper {
 
-
-
 public:
     IEMHelper(void* ptr, Object* parent, ObjectBase* base)
         : object(parent)

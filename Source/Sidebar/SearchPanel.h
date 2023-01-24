@@ -197,9 +197,8 @@ public:
 
         if (input.getText().isEmpty()) {
             g.setFont(Font(14));
-            g.setColour(findColour(PlugDataColour::sidebarTextColourId).withAlpha(0.5f));
-
-            g.drawText("Type to search in patch", 30, 0, 300, 30, Justification::centredLeft);
+            
+            PlugDataLook::drawText(g, "Type to search in patch", 30, 0, 300, 30, Justification::centredLeft, findColour(PlugDataColour::sidebarTextColourId).withAlpha(0.5f));
         }
     }
 
@@ -235,7 +234,7 @@ public:
             g.fillRoundedRectangle(4, 2, w - 8, h - 4, PlugDataLook::smallCornerRadius);
         }
 
-        g.setColour(rowIsSelected ? findColour(PlugDataColour::sidebarActiveTextColourId) : findColour(ComboBox::textColourId));
+        auto colour = rowIsSelected ? findColour(PlugDataColour::sidebarActiveTextColourId) : findColour(ComboBox::textColourId);
 
         auto const& [name, prefix, object, ptr] = searchResult[rowNumber];
 
@@ -247,8 +246,8 @@ public:
         auto positionTextX = getWidth() - positionTextWidth - 16;
 
         g.setFont(Font());
-        g.drawText(text, 12, 0, positionTextX - 16, h, Justification::centredLeft, true);
-        g.drawText(size, positionTextX, 0, positionTextWidth, h, Justification::centredRight, true);
+        PlugDataLook::drawText(g, text, 12, 0, positionTextX - 16, h, Justification::centredLeft, colour);
+        PlugDataLook::drawText(g, size, positionTextX, 0, positionTextWidth, h, Justification::centredRight, colour);
     }
 
     int getNumRows() override

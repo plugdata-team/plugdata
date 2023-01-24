@@ -48,13 +48,11 @@ class SuggestionComponent : public Component
 
         void paint(Graphics& g) override
         {
-            auto colour = PlugDataColour::popupMenuBackgroundColourId;
-
             auto* lnf = dynamic_cast<PlugDataLook*>(&getLookAndFeel());
 
             auto scrollbarIndent = parent->port->canScrollVertically() ? 5 : 0;
 
-            auto backgroundColour = findColour(getToggleState() ? PlugDataColour::popupMenuActiveBackgroundColourId : colour);
+            auto backgroundColour = findColour(getToggleState() ? PlugDataColour::popupMenuActiveBackgroundColourId : PlugDataColour::popupMenuBackgroundColourId);
 
             auto buttonArea = getLocalBounds().reduced(6, 2).withTrimmedRight(scrollbarIndent).toFloat();
 
@@ -64,7 +62,7 @@ class SuggestionComponent : public Component
             auto font = lnf->semiBoldFont.withHeight(12.0f);
             g.setFont(font);
 
-            g.setColour(getToggleState() ? findColour(PlugDataColour::popupMenuActiveTextColourId) : findColour(PlugDataColour::popupMenuTextColourId));
+            auto colour = getToggleState() ? findColour(PlugDataColour::popupMenuActiveTextColourId) : findColour(PlugDataColour::popupMenuTextColourId);
 
             auto yIndent = jmin(4, proportionOfHeight(0.3f));
             auto leftIndent = drawIcon ? 34 : 11;
@@ -72,7 +70,7 @@ class SuggestionComponent : public Component
             auto textWidth = getWidth() - leftIndent - rightIndent;
 
             if (textWidth > 0)
-                g.drawFittedText(getButtonText(), leftIndent, yIndent, textWidth, getHeight() - yIndent * 2, Justification::left, 2);
+                PlugDataLook::drawFittedText(g, getButtonText(), leftIndent, yIndent, textWidth, getHeight() - yIndent * 2, Justification::centredLeft, colour);
 
             font = lnf->defaultFont.withHeight(12);
             g.setFont(font);
@@ -80,13 +78,12 @@ class SuggestionComponent : public Component
             if (objectDescription.isNotEmpty()) {
                 auto textLength = font.getStringWidth(getButtonText());
 
-                g.setColour(getToggleState() ? findColour(PlugDataColour::popupMenuActiveTextColourId) : findColour(PlugDataColour::popupMenuTextColourId));
-
                 leftIndent += textLength;
                 auto textWidth = getWidth() - leftIndent - rightIndent;
 
+                g.setColour(colour);
                 // Draw seperator (which is an en dash)
-                g.drawText(String::fromUTF8("  \xe2\x80\x93  ") + objectDescription, Rectangle<int>(leftIndent, yIndent, textWidth, getHeight() - yIndent * 2), Justification::left);
+                g.drawText(String::fromUTF8("  \xe2\x80\x93  ") + objectDescription, Rectangle<int>(leftIndent, yIndent, textWidth, getHeight() - yIndent * 2), Justification::centredLeft);
             }
 
             if (type == -1)
@@ -101,9 +98,8 @@ class SuggestionComponent : public Component
                 iconbound.translate(6, 0);
                 g.fillRoundedRectangle(iconbound.toFloat(), PlugDataLook::smallCornerRadius);
 
-                g.setColour(Colours::white);
                 g.setFont(font.withHeight(type ? 12 : 10));
-                g.drawFittedText(type ? "~" : "pd", iconbound.reduced(1), Justification::centred, 1);
+                PlugDataLook::drawFittedText(g, type ? "~" : "pd", iconbound.reduced(1), Justification::centred, Colours::white);
             }
         }
 
