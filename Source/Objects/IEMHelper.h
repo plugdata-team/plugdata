@@ -35,6 +35,8 @@ public:
 
         sendSymbol = getSendSymbol();
         receiveSymbol = getReceiveSymbol();
+
+        initialise = getInit();
     }
 
     void initialiseParameters()
