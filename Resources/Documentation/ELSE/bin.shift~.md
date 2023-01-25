@@ -1,19 +1,17 @@
 ---
 title: bin.shift~
 
-description: Shift bins
+description: shift bins
 
 categories:
 - object
 
-pdcategory: General Audio Manipulation
+pdcategory: Effects
 
 arguments:
-  1st:
   - description: sets shift number
     type: float
     default: 0
-  2nd:
   - description: non-zero sets to wrap mode
     type: float
     default: 0

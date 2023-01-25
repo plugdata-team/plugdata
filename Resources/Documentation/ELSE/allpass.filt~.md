@@ -1,12 +1,12 @@
 ---
 title: allpass.filt~
 
-description: Allpass filter
+description: allpass filter
 
 categories:
 - object
 
-pdcategory: Audio Filters
+pdcategory: Filters
 
 arguments:
   1st:

@@ -1,12 +1,12 @@
 ---
 title: balance~
 
-description: Stereo balancer
+description: stereo balancer
 
 categories:
  - object
 
-pdcategory: General Audio Manipulation
+pdcategory: Effects
 
 arguments:
 - type: float

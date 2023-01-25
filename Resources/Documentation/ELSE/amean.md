@@ -1,12 +1,12 @@
 ---
 title: amean
 
-description: Generate list with arithmetic means
+description: generate list with arithmetic means
 
 categories:
 - object
 
-pdcategory: Math
+pdcategory: Data Math
 
 arguments:
   1st:

@@ -1,12 +1,12 @@
 ---
 title: any2symbol
 
-description: Convert anything to symbol
+description: convert anything to symbol
 
 categories:
 - object
 
-pdcategory: General
+pdcategory: Data Management
 
 arguments:
 

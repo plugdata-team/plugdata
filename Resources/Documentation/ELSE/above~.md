@@ -1,12 +1,12 @@
 ---
 title: above~
 
-description: Threshold detection
+description: threshold detection
 
 categories:
  - object
 
-pdcategory: Audio Math
+pdcategory: Signal Math
 
 arguments:
 - description: initial threshold value

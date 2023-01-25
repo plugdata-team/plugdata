@@ -1,15 +1,14 @@
 ---
 title: bitnormal~
 
-description: Biquad Series
+description: biquad Series
 
 categories:
  - object
 
-pdcategory: Audio Math
+pdcategory: Signal Math, Filters
 
-arguments: (none)
-
+arguments:
 inlets:
   1st:
   - type: signal
