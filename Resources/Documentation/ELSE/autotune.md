@@ -21,10 +21,6 @@ inlets:
   1st:
   - type: float
     description: MIDI pitch to be retuned
-  - type: base <float>
-    description: MIDI pitch base
-  - type: bypass <float>
-    description: non-zero sets to bypass mode
   2nd:
   - type: list
     description: scale in cents
@@ -33,6 +29,12 @@ outlets:
   1st:
   - type: float
     description: retuned MIDI pitch
+
+methods:
+  - type: base <float>
+    description: MIDI pitch base
+  - type: bypass <float>
+    description: non-zero sets to bypass mode
 
 draft: false
 ---

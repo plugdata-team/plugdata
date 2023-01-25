@@ -9,9 +9,6 @@ categories:
 pdcategory: General
 
 arguments:
-- description: none
-  type:
-  default:
 
 inlets:
   1st:

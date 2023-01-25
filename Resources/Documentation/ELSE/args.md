@@ -22,7 +22,6 @@ inlets:
   1st:
   - type: bang
     description: output arguments list
-  2nd:
   - type: anything
     description: sets new arguments
 

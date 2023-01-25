@@ -9,16 +9,11 @@ categories:
 pdcategory: Math
 
 arguments:
-- description: none
-  type:
-  default:
 
 inlets:
   1st:
   - type: float
     description: number to add to the moving average
-  - type: 
-    description: clears memory (previously received numbers)
 outlets:
   1st:
   - type: float
@@ -26,6 +21,10 @@ outlets:
   2nd:
   - type: float
     description: total count of values processed
+
+methods:
+  - type: clear
+    description: clears memory (previously received numbers)
 
 draft: false
 ---
