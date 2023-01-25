@@ -145,12 +145,10 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     toolbarButton(Settings)->setTooltip("Settings");
     toolbarButton(Settings)->onClick = [this]() {
 #ifdef PLUGDATA_STANDALONE
-        // Initialise settings dialog for DAW and standalone
-        auto* pluginHolder = findParentComponentOfClass<PlugDataWindow>()->getPluginHolder();
 
-        Dialogs::createSettingsDialog(pd, &pluginHolder->deviceManager, toolbarButton(Settings), pd->settingsFile->getValueTree());
+        Dialogs::showMainMenu(this, toolbarButton(Settings));
 #else
-        Dialogs::createSettingsDialog(pd, nullptr, toolbarButton(Settings), pd->settingsFile->getValueTree());
+        Dialogs::showMainMenu(this, toolbarButton(Settings));
 #endif
     };
 
@@ -931,6 +929,26 @@ void PluginEditor::getCommandInfo(const CommandID commandID, ApplicationCommandI
         result.setActive(true);
         break;
     }
+    case CommandIDs::ShowSettings: {
+        result.setInfo("Open Settings", "Open settings panel", "Edit", 0);
+        result.addDefaultKeypress(44, ModifierKeys::commandModifier); // Cmd + , to open settings
+        result.setActive(true);
+        break;
+    }
+    case CommandIDs::ShowReference: {
+        result.setInfo("Open Reference", "Open reference panel", "Edit", 0);
+        result.addDefaultKeypress(KeyPress::F1Key, ModifierKeys::noModifiers); // f1 to open settings
+        
+        if(auto* cnv = getCurrentCanvas()) {
+            auto selection = cnv->getSelectionOfType<Object>();
+            bool enabled = selection.size() == 1 && selection[0]->gui && selection[0]->gui->getType().isNotEmpty();
+            result.setActive(enabled);
+        }
+        else {
+            result.setActive(false);
+        }
+        break;
+    }
     }
 
     static auto const cmdMod = ModifierKeys::commandModifier;
@@ -1128,7 +1146,25 @@ bool PluginEditor::perform(InvocationInfo const& info)
 
         return true;
     }
+    case CommandIDs::ShowSettings: {
+        Dialogs::showSettingsDialog(this);
 
+        return true;
+    }
+    case CommandIDs::ShowReference: {
+        if(auto* cnv = getCurrentCanvas()) {
+            auto selection = cnv->getSelectionOfType<Object>();
+            if(selection.size() != 1 || !selection[0]->gui || selection[0]->gui->getType().isEmpty()) {
+                return false;
+            }
+            
+            Dialogs::showObjectReferenceDialog(&openedDialog, this, selection[0]->gui->getType());
+            
+            return true;
+        }
+        
+        return false;
+    }
     case ObjectIDs::NewArray: {
 
         Dialogs::showArrayDialog(&openedDialog, this,

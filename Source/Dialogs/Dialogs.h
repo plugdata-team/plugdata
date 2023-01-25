@@ -131,8 +131,10 @@ struct Dialogs {
     static void showSaveDialog(std::unique_ptr<Dialog>* target, Component* centre, String filename, std::function<void(int)> callback, int margin = 0);
     static void showArrayDialog(std::unique_ptr<Dialog>* target, Component* centre, std::function<void(int, String, String)> callback);
 
-    static void createSettingsDialog(AudioProcessor* processor, AudioDeviceManager* manager, Component* centre, ValueTree const& settingsTree);
+    static void showSettingsDialog(PluginEditor* editor);
 
+    static void showMainMenu(PluginEditor* editor, Component* centre);
+    
     static void showObjectMenu(PluginEditor* parent, Component* target);
 
     static void showOkayCancelDialog(std::unique_ptr<Dialog>* target, Component* parent, String const& title, std::function<void(bool)> callback);

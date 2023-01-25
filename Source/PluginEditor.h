@@ -42,6 +42,8 @@ enum CommandIDs {
     PreviousTab,
     ToggleGrid,
     ClearConsole,
+    ShowSettings,
+    ShowReference,
     NumItems
 };
 
