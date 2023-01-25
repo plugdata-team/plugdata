@@ -40,7 +40,7 @@ public:
     {
         nonZero = static_cast<t_toggle*>(ptr)->x_nonzero;
         iemHelper.initialiseParameters();
-        toggleState = value != 0;
+        setToggleStateFromFloat(value);
     }
 
     void paint(Graphics& g) override
@@ -77,11 +77,9 @@ public:
             startEdition();
             auto newValue = value != 0 ? 0 : static_cast<float>(nonZero.getValue());
             sendFloatValue(newValue);
-            toggleState = newValue;
+            setToggleStateFromFloat(newValue);
             stopEdition();
             alreadyToggled = true;
-
-            repaint();
         }
     }
 
@@ -96,13 +94,11 @@ public:
         startEdition();
         auto newValue = value != 0 ? 0 : static_cast<float>(nonZero.getValue());
         sendFloatValue(newValue);
-        toggleState = newValue;
+        setToggleStateFromFloat(newValue);
         stopEdition();
 
         // Make sure we don't re-toggle with an accidental drag
         alreadyToggled = true;
-
-        repaint();
     }
 
     void checkBounds() override
@@ -126,17 +122,21 @@ public:
         return allParameters;
     }
 
+    void setToggleStateFromFloat(float value)
+    {
+        toggleState = std::abs(value) > std::numeric_limits<float>::epsilon();
+        repaint();
+    }
+
     void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
     {
         if (symbol == "bang") {
             value = !value;
-            toggleState = value > std::numeric_limits<float>::epsilon();
-            repaint();
+            setToggleStateFromFloat(value);
         }
         if (symbol == "float") {
             value = atoms[0].getFloat();
-            toggleState = value > std::numeric_limits<float>::epsilon();
-            repaint();
+            setToggleStateFromFloat(value);
         }
         if (symbol == "nonzero" && atoms.size() >= 1) {
             setParameterExcludingListener(nonZero, atoms[0].getFloat());
