@@ -1,23 +1,20 @@
 ---
 title: bl.square~
 
-description: Bandlimited square oscillator
+description: bandlimited square oscillator
 
 categories:
 - object
 
-pdcategory: Audio Oscillators and Tables
+pdcategory: Signal Generators
 
 arguments:
-  1st:
   - description:  frequency in Hz
     type: float
     default: 0
-  2nd:
   - description:  initial pulse width
     type: float
     default: 0.5
-  3rd:
   - description: initial phase offset 
     type: float
     default: 0

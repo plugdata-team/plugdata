@@ -1,12 +1,12 @@
 ---
 title: blip~
 
-description: Bandlimited cosine oscillator  
+description: bandlimited cosine oscillator  
 
 categories:
 - object
 
-pdcategory: Audio Oscillators and Tables
+pdcategory: Signal Generators
 
 arguments:
 - type: float
@@ -31,7 +31,7 @@ inlets:
     description: impulses reset phase
   3rd:
   - type: float/signal
-    description: phase modulationa input
+    description: phase modulation input
   4th:
     - type: float/signal
       description: spectral multiplier

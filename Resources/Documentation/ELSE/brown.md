@@ -6,7 +6,7 @@ description: Brownian motion
 categories:
  - object
 
-pdcategory: Noise
+pdcategory: Noise, Data Math
 
 arguments:
 - type: float

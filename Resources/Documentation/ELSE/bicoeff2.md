@@ -1,24 +1,20 @@
 ---
 title: bicoeff2
 
-description: Biquad coefficient generator
+description: biquad coefficient generator
 
 categories:
  - object
 
-pdcategory: Audio Math
+pdcategory: Filters
 
 arguments:
-  1st:
   - type: symbol
     description: (optional) sets type <hipass/etc>, (default='off')
-  2nd:
   - type: float
     description: sets cutoff/center frequency (default=0)
-  3rd:
   - type: float
     description: sets Q/slope (default=1)
-  4th:
   - type: float
     description: sets gain in db (default=0)
 

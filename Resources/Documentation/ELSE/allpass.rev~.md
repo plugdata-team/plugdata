@@ -1,23 +1,20 @@
 ---
 title: allpass.rev~
 
-description: Allpass reverberator
+description: allpass reverberator
 
 categories:
  - object
 
-pdcategory: Audio Filters, Audio Delays, General Audio Manipulation
+pdcategory: Filters, Effects
 
 arguments:
-  1st:
   - type: float
     description: maximum and initial delay time in ms
     default: 0
-  2nd:
   - type: float
     description: decay time in ms
     default: 0
-  3rd:
   - type: float
     description: non-0 sets to gain mode
     default: 0

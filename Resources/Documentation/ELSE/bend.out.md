@@ -6,7 +6,7 @@ description: MIDI pitch bend output
 categories:
  - object
 
-pdcategory: I/O, MIDI
+pdcategory: MIDI
 
 arguments:
 - type: float
