@@ -18,7 +18,9 @@
 #include "ObjectBrowserDialog.h"
 #include "ObjectReferenceDialog.h"
 #include "../Heavy/HeavyExportDialog.h"
+#include "MainMenu.h"
 #include "Canvas.h"
+
 
 Component* Dialogs::showTextEditorDialog(String text, String filename, std::function<void(String, bool)> callback)
 {
@@ -50,9 +52,57 @@ void Dialogs::showArrayDialog(std::unique_ptr<Dialog>* target, Component* centre
     target->reset(dialog);
 }
 
-void Dialogs::createSettingsDialog(AudioProcessor* processor, AudioDeviceManager* manager, Component* centre, ValueTree const& settingsTree)
+void Dialogs::showSettingsDialog(PluginEditor* editor)
 {
-    SettingsPopup::showSettingsPopup(processor, manager, centre, settingsTree);
+    auto* dialog = new Dialog(&editor->openedDialog, editor, 675, 500, editor->getBounds().getCentreY() + 250, true);
+    auto* settingsDialog = new SettingsDialog(editor, dialog);
+    dialog->setViewedComponent(settingsDialog);
+    editor->openedDialog.reset(dialog);
+}
+
+void Dialogs::showMainMenu(PluginEditor* editor, Component* centre)
+{
+    auto* popup = new MainMenu(editor);
+
+    popup->showMenuAsync(PopupMenu::Options().withMinimumWidth(220).withMaximumNumColumns(1).withTargetComponent(centre).withParentComponent(editor),
+        [editor, popup, centre, settingsTree = SettingsFile::getInstance()->getValueTree()](int result) mutable {
+            if (result == 1) {
+                editor->newProject();
+            }
+            if (result == 2) {
+                editor->openProject();
+            }
+            if (result == 3 && editor->getCurrentCanvas()) {
+                editor->saveProject();
+            }
+            if (result == 4 && editor->getCurrentCanvas()) {
+                editor->saveProjectAs();
+            }
+            if (result == 5) {
+                bool ticked = settingsTree.hasProperty("HvccMode") ? static_cast<bool>(settingsTree.getProperty("HvccMode")) : false;
+                settingsTree.setProperty("HvccMode", !ticked, nullptr);
+            }
+            if (result == 6) {
+                Dialogs::showHeavyExportDialog(&editor->openedDialog, editor);
+            }
+            if (result == 7) {
+                bool ticked = settingsTree.hasProperty("AutoConnect") ? static_cast<bool>(settingsTree.getProperty("AutoConnect")) : false;
+                settingsTree.setProperty("AutoConnect", !ticked, nullptr);
+            }
+            if (result == 8) {
+                Dialogs::showSettingsDialog(editor);
+            }
+            if (result == 9) {
+                auto* dialog = new Dialog(&editor->openedDialog, editor, 675, 500, editor->getBounds().getCentreY() + 250, true);
+                auto* aboutPanel = new AboutPanel();
+                dialog->setViewedComponent(aboutPanel);
+                editor->openedDialog.reset(dialog);
+            }
+
+            MessageManager::callAsync([popup]() {
+                delete popup;
+            });
+        });
 }
 
 void Dialogs::showObjectMenu(PluginEditor* parent, Component* target)
