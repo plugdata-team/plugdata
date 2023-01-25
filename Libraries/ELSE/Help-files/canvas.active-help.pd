@@ -1,90 +1,114 @@
-#N canvas 497 69 560 342 10;
-#X obj 1 211 cnv 3 550 3 empty empty inlets 8 12 0 13 #dcdcdc #000000
-0;
-#X obj 1 244 cnv 3 550 3 empty empty outlets 8 12 0 13 #dcdcdc #000000
-0;
-#X obj 1 281 cnv 3 550 3 empty empty arguments 8 12 0 13 #dcdcdc #000000
-0;
-#X obj 135 254 cnv 17 3 17 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
-;
-#X obj 1 314 cnv 15 552 21 empty empty empty 20 12 0 14 #e0e0e0 #202020
-0;
-#X text 167 255 float -;
-#X text 112 182 status;
-#X obj 4 5 cnv 15 301 42 empty empty canvas.active 20 20 2 37 #e0e0e0
-#000000 0;
-#X obj 307 6 cnv 15 250 40 empty empty empty 12 13 0 18 #7c7c7c #e0e4dc
-0;
-#N canvas 0 22 450 278 (subpatch) 0;
+#N canvas 436 56 560 491 10;
+#X obj 1 323 cnv 3 550 3 empty empty inlets 8 12 0 13 #dcdcdc #000000 0;
+#X obj 1 356 cnv 3 550 3 empty empty outlets 8 12 0 13 #dcdcdc #000000 0;
+#X obj 1 428 cnv 3 550 3 empty empty arguments 8 12 0 13 #dcdcdc #000000 0;
+#X obj 135 366 cnv 17 3 17 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0;
+#X obj 1 461 cnv 15 552 21 empty empty empty 20 12 0 14 #e0e0e0 #202020 0;
+#X text 167 367 float -;
+#X text 185 222 status;
+#X obj 4 5 cnv 15 301 42 empty empty canvas.active 20 20 2 37 #e0e0e0 #000000 0;
+#X obj 307 6 cnv 15 250 40 empty empty empty 12 13 0 18 #7c7c7c #e0e4dc 0;
+#N canvas 0 22 450 278 (subpatch) 1;
+#N canvas 0 50 450 250 (subpatch) 0;
+#X text 0 0 plugdatainfo <?xml version="1.0" encoding="UTF-8"?> <plugdatainfo/>;
+#X coords 0 1 100 -1 1 1 1;
+#X restore 0 0 graph;
 #X coords 0 1 100 -1 302 42 1;
 #X restore 3 5 graph;
-#X obj 346 13 cnv 10 10 10 empty empty ELSE 0 15 2 30 #7c7c7c #e0e4dc
-0;
-#X obj 24 42 cnv 4 4 4 empty empty Report 0 28 2 18 #e0e0e0 #000000
-0;
-#X obj 459 13 cnv 10 10 10 empty empty EL 0 6 2 13 #7c7c7c #e0e4dc
-0;
-#X obj 479 13 cnv 10 10 10 empty empty Locus 0 6 2 13 #7c7c7c #e0e4dc
-0;
-#X obj 516 13 cnv 10 10 10 empty empty Solus' 0 6 2 13 #7c7c7c #e0e4dc
-0;
-#X obj 465 28 cnv 10 10 10 empty empty ELSE 0 6 2 13 #7c7c7c #e0e4dc
-0;
-#X obj 503 28 cnv 10 10 10 empty empty library 0 6 2 13 #7c7c7c #e0e4dc
-0;
-#N canvas 0 22 450 278 (subpatch) 0;
+#X obj 346 13 cnv 10 10 10 empty empty ELSE 0 15 2 30 #7c7c7c #e0e4dc 0;
+#X obj 24 42 cnv 4 4 4 empty empty Report 0 28 2 18 #e0e0e0 #000000 0;
+#X obj 459 13 cnv 10 10 10 empty empty EL 0 6 2 13 #7c7c7c #e0e4dc 0;
+#X obj 479 13 cnv 10 10 10 empty empty Locus 0 6 2 13 #7c7c7c #e0e4dc 0;
+#X obj 516 13 cnv 10 10 10 empty empty Solus' 0 6 2 13 #7c7c7c #e0e4dc 0;
+#X obj 465 28 cnv 10 10 10 empty empty ELSE 0 6 2 13 #7c7c7c #e0e4dc 0;
+#X obj 503 28 cnv 10 10 10 empty empty library 0 6 2 13 #7c7c7c #e0e4dc 0;
+#N canvas 0 22 450 278 (subpatch) 1;
+#N canvas 0 50 450 250 (subpatch) 0;
+#X text 0 0 plugdatainfo <?xml version="1.0" encoding="UTF-8"?> <plugdatainfo/>;
+#X coords 0 1 100 -1 1 1 1;
+#X restore 0 0 graph;
 #X coords 0 1 100 -1 252 42 1 0 0;
 #X restore 306 5 graph;
-#X obj 81 42 cnv 4 4 4 empty empty window 0 28 2 18 #e0e0e0 #000000
-0;
-#X obj 149 42 cnv 4 4 4 empty empty activity 0 28 2 18 #e0e0e0 #000000
-0;
-#X text 150 290 1) float - depth \, default 0 (current window);
-#X obj 160 151 else/canvas.active;
-#X text 222 254 window activity (0 inactive / 1 active);
-#N canvas 761 302 389 296 subpatch 0;
+#X obj 81 42 cnv 4 4 4 empty empty window 0 28 2 18 #e0e0e0 #000000 0;
+#X obj 149 42 cnv 4 4 4 empty empty activity 0 28 2 18 #e0e0e0 #000000 0;
+#X text 150 437 1) float - depth \, default 0 (current window);
+#X text 222 366 window activity (0 inactive / 1 active);
+#N canvas 761 302 389 296 subpatch 1;
 #X obj 132 108 else/display;
-#X obj 132 81 else/canvas.active;
 #X text 157 111 activity;
 #X obj 151 241 print subptach;
 #X msg 136 206 is inactive;
 #X msg 151 177 is active;
 #X obj 132 151 sel 0 1;
-#X text 55 26 The [canvas.active] reports this subpatch's window activity.
-, f 43;
-#X connect 0 0 6 0;
-#X connect 1 0 0 0;
-#X connect 4 0 3 0;
+#X text 55 26 The [canvas.active] reports this subpatch's window activity., f 43;
+#N canvas 0 50 450 250 (subpatch) 0;
+#X text 0 0 plugdatainfo <?xml version="1.0" encoding="UTF-8"?> <plugdatainfo/>;
+#X coords 0 1 100 -1 1 1 1;
+#X restore 0 0 graph;
+#X obj 132 81 canvas.active;
+#X connect 0 0 5 0;
+#X connect 3 0 2 0;
+#X connect 4 0 2 0;
 #X connect 5 0 3 0;
-#X connect 6 0 4 0;
-#X connect 6 1 5 0;
-#X restore 437 153 pd subpatch;
-#N canvas 635 220 372 345 depth-1 0;
-#X obj 107 114 tgl 18 0 empty empty empty 0 -6 0 8 #d0d0d0 #404040
-#000000 0 1;
-#X text 57 278 Note that the depth is not only for subpatches \, but
-also abstractions!!, f 37;
-#X obj 107 86 else/canvas.active 1;
+#X connect 5 1 4 0;
+#X connect 8 0 0 0;
+#X restore 470 238 pd subpatch;
+#N canvas 635 220 372 345 depth-1 1;
+#X obj 107 114 tgl 18 0 empty empty empty 0 -6 0 8 #d0d0d0 #404040 #000000 0 1;
+#X text 57 278 Note that the depth is not only for subpatches \, but also abstractions!!, f 37;
 #X text 132 113 activity;
 #X obj 126 231 print parent;
 #X msg 111 201 is inactive;
 #X msg 126 172 is active;
 #X obj 107 146 sel 0 1;
-#X text 61 20 With the depth argument of 1 \, this [canvas.active]
-reports the parent patch activity., f 35;
-#X connect 0 0 7 0;
-#X connect 2 0 0 0;
-#X connect 5 0 4 0;
+#X text 61 20 With the depth argument of 1 \, this [canvas.active] reports the parent patch activity., f 35;
+#N canvas 0 50 450 250 (subpatch) 0;
+#X text 0 0 plugdatainfo <?xml version="1.0" encoding="UTF-8"?> <plugdatainfo/>;
+#X coords 0 1 100 -1 1 1 1;
+#X restore 0 0 graph;
+#X obj 107 86 canvas.active 1;
+#X connect 0 0 6 0;
+#X connect 4 0 3 0;
+#X connect 5 0 3 0;
 #X connect 6 0 4 0;
-#X connect 7 0 5 0;
-#X connect 7 1 6 0;
-#X restore 437 177 pd depth-1;
-#X text 367 153 examples:;
-#X obj 160 178 else/display;
-#X text 64 88 The [canvas.active] object outputs activity status. It
-sends 1 if the window is active (when it's the front-most window) and
-0 when inactive. It can also query the parent status with the depth
-argument (1 goes up to the parent patch \, 2 queries the parent's parent
-and so on)., f 71;
-#X text 164 221 (none);
-#X connect 21 0 26 0;
+#X connect 6 1 5 0;
+#X connect 9 0 0 0;
+#X restore 470 262 pd depth-1;
+#X text 466 207 examples:;
+#X obj 233 218 else/display;
+#X text 164 333 (none);
+#X obj 234 286 else/display;
+#X text 64 88 The [canvas.active] object outputs activity status. It sends 1 if the window is active (when it's the front-most window) and 0 when inactive. It can also query the parent status with the depth argument (1 goes up to the parent patch \, 2 queries the parent's parent and so on)., f 71;
+#X text 37 255 see also:;
+#X obj 1 393 cnv 3 550 3 empty empty flags 8 12 0 13 #dcdcdc #000000 0;
+#X text 179 403 -name: sets to name mode.;
+#X text 64 138 With the -name flag it outputs the active window's name (in which case depth argument is ignored). You can use this as a send symbol to do things like dynamic patching with the active window or get messages from an active window., f 71;
+#N canvas 990 153 343 288 name 1;
+#X obj 121 116 else/display;
+#X obj 121 239 print;
+#X obj 121 208 spigot;
+#X obj 154 183 tgl 16 0 empty empty empty 0 -8 0 10 #dfdfdf #000000 #000000 0 1;
+#X obj 76 160 send;
+#X text 108 31 This is more for dynamic patching ninjas., f 24;
+#N canvas 0 50 450 250 (subpatch) 0;
+#X text 0 0 plugdatainfo <?xml version="1.0" encoding="UTF-8"?> <plugdatainfo/>;
+#X coords 0 1 100 -1 1 1 1;
+#X restore 0 0 graph;
+#X obj 121 89 canvas.active -name;
+#X obj 121 153 receiver;
+#X connect 0 0 4 1;
+#X connect 0 0 8 0;
+#X connect 2 0 1 0;
+#X connect 3 0 2 1;
+#X connect 7 0 0 0;
+#X connect 8 0 2 0;
+#X restore 471 288 pd name;
+#N canvas 0 50 450 250 (subpatch) 0;
+#X text 0 0 plugdatainfo <?xml version="1.0" encoding="UTF-8"?> <plugdatainfo/>;
+#X coords 0 1 100 -1 1 1 1;
+#X restore 0 0 graph;
+#X obj 233 191 canvas.active;
+#X obj 234 259 canvas.active -name;
+#X obj 30 280 canvas.name;
+#X connect 35 0 25 0;
+#X connect 36 0 27 0;
