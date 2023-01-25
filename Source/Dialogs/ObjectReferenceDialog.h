@@ -179,9 +179,10 @@ public:
             return;
         }
 
-        inletDescriptions = library.getInletDescriptions()[name];
-        outletDescriptions = library.getOutletDescriptions()[name];
-
+        auto inletDescriptions = library.getInletDescriptions()[name];
+        auto outletDescriptions = library.getOutletDescriptions()[name];
+        auto methods = library.getMethods()[name];
+        
         inlets.resize(inletDescriptions.size());
         outlets.resize(outletDescriptions.size());
 
@@ -263,7 +264,18 @@ public:
 
             numOut++;
         }
+        
+        if (methods.size())
+            rightSideInfoText += "\n\nMethods:";
 
+        int numMethods = 1;
+        for (auto [type, description] : methods) {
+            rightSideInfoText += "\n" + String(numMethods) + ": ";
+            rightSideInfoText += type.isNotEmpty() ? "(" + type + ") " : "";
+            rightSideInfoText += description;
+            numMethods++;
+        }
+        
         rightSideInfo.setText(rightSideInfoText);
     }
 
@@ -273,9 +285,6 @@ public:
     String objectName;
     std::vector<bool> inlets;
     std::vector<bool> outlets;
-
-    Array<std::pair<String, bool>> inletDescriptions;
-    Array<std::pair<String, bool>> outletDescriptions;
 
     TextEditor rightSideInfo;
 

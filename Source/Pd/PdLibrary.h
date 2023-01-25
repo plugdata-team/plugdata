@@ -25,6 +25,9 @@ using Suggestions = std::vector<Suggestion>;
 using Arguments = std::vector<std::tuple<String, String, String>>;
 using ArgumentMap = std::unordered_map<String, Arguments>;
 
+using Methods = std::vector<std::pair<String, String>>;
+using MethodMap = std::unordered_map<String, Methods>;
+
 using ObjectMap = std::unordered_map<String, String>;
 using KeywordMap = std::unordered_map<String, StringArray>;
 using CategoryMap = std::unordered_map<String, StringArray>;
@@ -98,6 +101,7 @@ public:
     IODescriptionMap getOutletDescriptions();
     StringArray getAllObjects();
     ArgumentMap getArguments();
+    MethodMap getMethods();
 
     std::function<void()> appDirChanged;
 
@@ -118,6 +122,7 @@ private:
     IODescriptionMap inletDescriptions;
     IODescriptionMap outletDescriptions;
     ArgumentMap arguments;
+    MethodMap methods;
 
     StringArray allObjects;
 

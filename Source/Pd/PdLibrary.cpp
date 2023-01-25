@@ -391,6 +391,17 @@ void Library::parseDocumentation(String const& path)
             if (sections.count("description")) {
                 objectDescriptions[name] = sections["description"].first;
             }
+            if (sections.count("methods")) {
+                
+                Methods methodList;
+                for (auto& method : sectionsFromHyphens(sections["methods"].first)) {
+                    auto sectionMap = getSections(method, { "type", "description"});
+                    methodList.push_back({ sectionMap["type"].first, sectionMap["description"].first });
+                }
+                
+                methods[name] = methodList;
+            }
+
 
             if (sections.count("pdcategory")) {
                 auto categories = sections["pdcategory"].first;
@@ -622,6 +633,18 @@ ArgumentMap Library::getArguments()
     }
     return {};
 }
+
+MethodMap Library::getMethods()
+{
+    if (libraryLock.try_lock()) {
+        auto m = methods;
+        libraryLock.unlock();
+        return m;
+    }
+    return {};
+}
+
+
 
 } // namespace pd
 
