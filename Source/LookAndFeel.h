@@ -205,11 +205,11 @@ struct PlugDataLook : public LookAndFeel_V4 {
         setDefaultSansSerifTypeface(resources->defaultTypeface);
         
 #if JUCE_WINDOWS
-        Font::setFallbackFont("MS UI Gothic");
+        Font::setFallbackFontName("MS UI Gothic");
 #elif JUCE_MAC
-        Font::setFallbackFont("Arial Unicode MS");
+        Font::setFallbackFontName("Arial Unicode MS");
 #else
-        Font::setFallbackFont("Droid Sans Fallback");
+        Font::setFallbackFontName("Droid Sans Fallback");
 #endif
         
     }
