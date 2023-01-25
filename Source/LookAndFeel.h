@@ -182,6 +182,8 @@ struct Resources {
     Typeface::Ptr iconTypeface = Typeface::createSystemTypefaceFor(BinaryData::IconFont_ttf, BinaryData::IconFont_ttfSize);
 
     Typeface::Ptr monoTypeface = Typeface::createSystemTypefaceFor(BinaryData::IBMPlexMono_ttf, BinaryData::IBMPlexMono_ttfSize);
+    
+    Typeface::Ptr unicodeTypeface = Typeface::createSystemTypefaceFor(BinaryData::GoNotoCurrent_ttf, BinaryData::GoNotoCurrent_ttfSize);
 };
 
 struct PlugDataLook : public LookAndFeel_V4 {
@@ -193,6 +195,7 @@ struct PlugDataLook : public LookAndFeel_V4 {
     Font thinFont;
     Font iconFont;
     Font monoFont;
+    Font fallbackFont;
 
     PlugDataLook()
         : defaultFont(resources->defaultTypeface)
@@ -201,15 +204,13 @@ struct PlugDataLook : public LookAndFeel_V4 {
         , thinFont(resources->thinTypeface)
         , iconFont(resources->iconTypeface)
         , monoFont(resources->monoTypeface)
+        , fallbackFont(resources->unicodeTypeface)
     {
         setDefaultSansSerifTypeface(resources->defaultTypeface);
         
-#if JUCE_WINDOWS
-        Font::setFallbackFontName("MS UI Gothic");
-#elif JUCE_MAC
-        Font::setFallbackFontName("Arial Unicode MS");
-#else
-        Font::setFallbackFontName("Droid Sans Fallback");
+        // On macOS, fallback fonts will be handled automatically
+#if !JUCE_MAC
+        Font::setFallbackFontName(resources->unicodeTypeface->getName());
 #endif
         
     }
@@ -810,7 +811,11 @@ struct PlugDataLook : public LookAndFeel_V4 {
         auto attributedString = AttributedString();
         attributedString.setJustification(justification);
         attributedString.append(textToDraw, font, colour);
-        attributedString.draw(g, bounds.toFloat());
+        //attributedString.draw(g, bounds.toFloat());
+        
+        TextLayout layout;
+        layout.createLayout (attributedString, bounds.getWidth());
+        layout.draw (g, bounds.toFloat());
     }
 
     static void drawText(Graphics& g, String textToDraw, int x, int y, int w, int h, Justification justification, Colour colour)
