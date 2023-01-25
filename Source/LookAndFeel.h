@@ -203,6 +203,15 @@ struct PlugDataLook : public LookAndFeel_V4 {
         , monoFont(resources->monoTypeface)
     {
         setDefaultSansSerifTypeface(resources->defaultTypeface);
+        
+#if JUCE_WINDOWS
+        Font::setFallbackFont("MS UI Gothic");
+#elif JUCE_MAC
+        Font::setFallbackFont("Arial Unicode MS");
+#else
+        Font::setFallbackFont("Droid Sans Fallback");
+#endif
+        
     }
 
     class PlugData_DocumentWindowButton : public Button {
