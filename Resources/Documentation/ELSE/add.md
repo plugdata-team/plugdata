@@ -1,12 +1,12 @@
 ---
 title: add
 
-description: Number accumulator
+description: number accumulator
 
 categories:
 - object
 
-pdcategory: Math
+pdcategory: Data Math
 
 arguments:
 - description: starting sum

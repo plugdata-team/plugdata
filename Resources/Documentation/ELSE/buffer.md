@@ -1,12 +1,12 @@
 ---
 title: buffer
 
-description: Get/set array buffer
+description: get/set array buffer
 
 categories:
  - object
 
-pdcategory: Array
+pdcategory: Arrays and Tables, Buffers, Data Management
 
 arguments:
 - type: symbol

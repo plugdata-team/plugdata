@@ -1,15 +1,14 @@
 ---
 title: blocksize~
 
-description: Get block size
+description: get block size
 
 categories:
  - object
 
-pdcategory: Accessing Data
+pdcategory: Data Management
 
-arguments: none
-
+arguments:
 inlets:
   1st:
   - type: bang

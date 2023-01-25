@@ -1,12 +1,12 @@
 ---
 title: biquads~
 
-description: Biquad Series
+description: biquad Series
 
 categories:
  - object
 
-pdcategory: Audio Filters
+pdcategory: Filters
 
 inlets:
   1st:

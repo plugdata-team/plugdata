@@ -1,12 +1,12 @@
 ---
 title: allpass.2nd~
 
-description: Allpass filter
+description: allpass filter
 
 categories:
  - object
 
-pdcategory: General
+pdcategory: Filters
 
 arguments:
   1st:
