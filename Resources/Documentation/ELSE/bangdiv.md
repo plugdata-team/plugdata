@@ -1,19 +1,17 @@
 ---
 title: bangdiv
 
-description: Bang divider
+description: bang divider
 
 categories:
 - object
 
-pdcategory: General
+pdcategory: Triggers and Clocks, Sequencing
 
 arguments:
-  1st:
   - description: divisor value
     type: float
     default: 1
-  2nd:
   - description: start count value
     type: float
     default: 0
@@ -29,7 +27,7 @@ inlets:
 outlets:
   1st:
   - type: bang
-    description: 1st bang count
+    description: first bang
   2nd:
   - type: bang
     description: subsequent bangs until divisor value is hit

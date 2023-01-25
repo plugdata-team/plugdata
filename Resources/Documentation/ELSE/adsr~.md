@@ -1,12 +1,12 @@
 ---
 title: adsr~
 
-description: Attack/Decay/Sustain/Release gated envelope
+description: attack/decay/sustain/release gated envelope
 
 categories:
  - object
 
-pdcategory: General
+pdcategory: Envelopes and LFOs
 
 arguments:
   1st:

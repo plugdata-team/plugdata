@@ -6,14 +6,14 @@ description: bandpass resonant filter
 categories:
  - object
 
-pdcategory: Audio Filters
+pdcategory: Filters
 
 arguments:
 - type: float
   description: central frequency in Hz
   default: 0
 - type: float
-  description: resonanace, either in Q (default) or bandwidth
+  description: resonance, either in Q (default) or bandwidth
   default: 1
 
 flags:
@@ -50,3 +50,4 @@ draft: false
 ---
 
 [bandpass~] is a 2nd order bandpass resonant filter. Unlike [else/resonant~], it has a maximum and constant gain at 0dB.
+

@@ -6,12 +6,12 @@ description: MIDI pitch bend input
 categories:
  - object
 
-pdcategory: I/O, MIDI
+pdcategory: MIDI
 
 arguments:
 - type: float
   description: sets channel number
-  default: default=0 - OMNI
+  default: 0 - OMNI
 
 flags:
 - name: -raw

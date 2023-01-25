@@ -1,19 +1,17 @@
 ---
 title: bandstop~
 
-description: Band stop filter
+description: band stop filter
 
 categories:
  - object
 
-pdcategory: Audio Filters
+pdcategory: Filters
 
 arguments:
-  1st:
   - type: float
     description: central frequency in Hz
     default: 0
-  2nd:
   - type: float
     description: resonance, either in 'Q' (default) or 'bw'
     default: 1
