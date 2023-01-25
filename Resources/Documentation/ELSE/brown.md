@@ -22,15 +22,14 @@ inlets:
 
 outlets:
   1st:
-  - type: signal
-    description: brown noise
+  - type: float
+    description: random value based on brownian motion
 
-  flags:
+flags:
   - name: -seed <float>
-    description: sets seed
-    default: unique internal
+    description: sets seed (default: unique internal)
 
-  methods:
+methods:
   - type: seed <float>
     description: a float sets seed, no float sets a unique internal
 

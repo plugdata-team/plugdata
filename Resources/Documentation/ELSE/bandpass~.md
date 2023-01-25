@@ -1,7 +1,7 @@
 ---
 title: bandpass~
 
-description: bandpass resonant filter (constant gain)
+description: bandpass resonant filter
 
 categories:
  - object
@@ -24,14 +24,6 @@ inlets:
   1st:
   - type: signal
     description: signal to be filtered
-  - type: clear
-    description: clears filter's memory if you blow it up
-  - type: bypass <float>
-    description: 1 (bypasses input signal) or 0 (doesn't bypass)
-  - type: bw
-    description: sets resonance parameter to bandwidth in octaves
-  - type: q
-    description: sets resonance parameter to Q (default)
   2nd:
   - type: signal
     description: central frequency in Hertz
@@ -43,6 +35,16 @@ outlets:
   1st:
   - type: signal
     description: filtered signal
+
+methods:
+  - type: clear
+    description: clears filter's memory if you blow it up
+  - type: bypass <float>
+    description: 1 (bypasses input signal) or 0 (doesn't bypass)
+  - type: bw
+    description: sets resonance parameter to bandwidth in octaves
+  - type: q
+    description: sets resonance parameter to Q (default)
 
 draft: false
 ---

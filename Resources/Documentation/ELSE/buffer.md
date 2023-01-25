@@ -1,5 +1,5 @@
 ---
-title: brown
+title: buffer
 
 description: Get/set array buffer
 
@@ -29,7 +29,7 @@ outlets:
     description:  array values
 
 
-  methods:
+methods:
   - type: set <list>
     description: 1st item is index, the next are values from that index
   - type: name <symbol>
