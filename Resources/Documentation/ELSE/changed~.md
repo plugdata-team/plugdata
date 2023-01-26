@@ -1,12 +1,12 @@
 ---
 title: changed~
 
-description: Detect signal changes
+description: detect signal changes
 
 categories:
  - object
 
-pdcategory: Analysis
+pdcategory: Analysis, Triggers and Clocks
 
 arguments:
 - type: float

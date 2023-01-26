@@ -1,12 +1,12 @@
 ---
 title: crackle~
 
-description: Crackle Noise generator
+description: crackle Noise generator
 
 categories:
  - object
 
-pdcategory: Noise
+pdcategory: Noise, Signal Generators
 
 arguments:
 - type: float
@@ -17,13 +17,15 @@ inlets:
   1st:
   - type: float/signal
     description: chaotic parameter 'p' (from 0 to 1)
-  - type: clear
-    description: clear filter's memory
 
 outlets:
   1st:
   - type: signal
     description: crackle noise
+
+methods:
+  - type: clear
+    description: clear filter's memory
  
 draft: false
 ---

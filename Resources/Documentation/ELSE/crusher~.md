@@ -1,18 +1,16 @@
 ---
 title: crusher~
 
-description: Bitcrush/Decimator
+description: bitcrush/decimator
 
 categories:
 - object
 
-pdcategory: DSP (Assorted)
+pdcategory: Effects
 
 arguments:
-  1st:
   - description: bit reduction
     type: float
-  2nd:
   - description: decimation
     type: float
 
@@ -23,7 +21,7 @@ inlets:
   2nd: 
   - type: float/signal
     description: bit reduction from 0-1
-  2nd:
+  3rd:
   - type: float/signal
     description: decimation (sample rate reduction) from 0-1
 

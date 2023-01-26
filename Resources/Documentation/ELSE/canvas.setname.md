@@ -1,12 +1,12 @@
 ---
 title: canvas.setname
 
-description: Set canvas name
+description: set canvas name
 
 categories:
  - object
 
-pdcategory: Patch Management
+pdcategory: GUI
 
 arguments:
 - type: symbol
