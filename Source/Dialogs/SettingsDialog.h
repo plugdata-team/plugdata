@@ -34,28 +34,23 @@ public:
 
     void paint(Graphics& g) override
     {
-
-        auto* lnf = dynamic_cast<PlugDataLook*>(&getLookAndFeel());
-        if (!lnf)
-            return;
-
         auto b = getLocalBounds().reduced(2);
 
-        auto colour = findColour(getToggleState() ? PlugDataColour::toolbarActiveColourId : PlugDataColour::toolbarTextColourId);
+        g.setColour(findColour(getToggleState() ? PlugDataColour::toolbarActiveColourId : PlugDataColour::toolbarTextColourId));
 
         auto iconBounds = b.removeFromTop(b.getHeight() * 0.65f).withTrimmedTop(5);
         auto textBounds = b.withTrimmedBottom(3);
 
-        auto font = lnf->iconFont.withHeight(iconBounds.getHeight() / 1.9f);
+        auto font = PlugDataLook::iconFont.withHeight(iconBounds.getHeight() / 1.9f);
         g.setFont(font);
 
-        PlugDataLook::drawFittedText(g, icon, iconBounds, Justification::centred, colour);
+        g.drawFittedText(icon, iconBounds, Justification::centred, 1);
 
-        font = lnf->defaultFont.withHeight(textBounds.getHeight() / 1.25f);
+        font = PlugDataLook::defaultFont.withHeight(textBounds.getHeight() / 1.25f);
         g.setFont(font);
 
         // Draw bottom text
-        PlugDataLook::drawFittedText(g, text, textBounds, Justification::centred, colour);
+        g.drawFittedText(text, textBounds, Justification::centred, 1);
     }
 };
 

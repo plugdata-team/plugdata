@@ -1581,7 +1581,8 @@ PlugDataTextEditor::PlugDataTextEditor()
     lastTransactionTime = Time::getApproximateMillisecondCounter();
     document.setSelections({ Selection() });
 
-    setFont(Font(Font::getDefaultMonospacedFontName(), 16, 0));
+    
+    setFont(Font(PlugDataLook::defaultFont.withHeight(15)));
 
     translateView(GUTTER_WIDTH, 0);
     setWantsKeyboardFocus(true);
@@ -2137,7 +2138,7 @@ struct TextEditorDialog : public Component {
         g.drawHorizontalLine(b.getHeight() - 20, b.getY() + 48, b.getWidth());
 
         if (!title.isEmpty()) {
-            PlugDataLook::drawText(g, title, b.getX(), b.getY(), b.getWidth(), 40, Justification::centred, findColour(PlugDataColour::toolbarTextColourId));
+            PlugDataLook::drawText(g, title, b.getX(), b.getY(), b.getWidth(), 40, findColour(PlugDataColour::toolbarTextColourId), 15, Justification::centred);
         }
     }
 };

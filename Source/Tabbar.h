@@ -27,8 +27,6 @@ class WelcomePanel : public Component {
 
         void paint(Graphics& g)
         {
-            auto* lnf = dynamic_cast<PlugDataLook*>(&getLookAndFeel());
-
             auto colour = findColour(PlugDataColour::panelTextColourId);
             if (isMouseOver()) {
                 g.setColour(findColour(PlugDataColour::panelActiveBackgroundColourId));
@@ -36,14 +34,9 @@ class WelcomePanel : public Component {
                 colour = findColour(PlugDataColour::panelActiveTextColourId);
             }
 
-            g.setFont(lnf->iconFont.withHeight(24));
-            PlugDataLook::drawText(g, iconText, 20, 5, 40, 40, Justification::centredLeft, colour);
-
-            g.setFont(lnf->defaultFont.withHeight(16));
-            PlugDataLook::drawText(g, topText, 60, 7, getWidth() - 60, 20, Justification::centredLeft, colour);
-
-            g.setFont(lnf->thinFont.withHeight(14));
-            PlugDataLook::drawText(g, bottomText, 60, 25, getWidth() - 60, 16, Justification::centredLeft, colour);
+            PlugDataLook::drawIcon(g, iconText, 20, 5, 40, colour, 24, false);
+            PlugDataLook::drawText(g, topText, 60, 7, getWidth() - 60, 20, colour, 16);
+            PlugDataLook::drawStyledText(g, bottomText, 60, 25, getWidth() - 60, 16, colour, Thin, 14);
         }
 
         void mouseUp(MouseEvent const& e)
@@ -81,16 +74,12 @@ public:
     void paint(Graphics& g) override
     {
         auto styles = Font(32).getAvailableStyles();
-
-        auto* lnf = dynamic_cast<PlugDataLook*>(&getLookAndFeel());
-
+        
         g.fillAll(findColour(PlugDataColour::canvasBackgroundColourId));
 
-        g.setFont(lnf->boldFont.withHeight(32));
-        PlugDataLook::drawText(g, "No Patch Open", 0, getHeight() / 2 - 150, getWidth(), 40, Justification::centred, findColour(PlugDataColour::canvasTextColourId));
+        PlugDataLook::drawStyledText(g, "No Patch Open", 0, getHeight() / 2 - 150, getWidth(), 40, findColour(PlugDataColour::canvasTextColourId), Bold, 32, Justification::centred);
 
-        g.setFont(lnf->thinFont.withHeight(23));
-        PlugDataLook::drawText(g, "Open a file to begin patching", 0, getHeight() / 2 - 120, getWidth(), 40, Justification::centred, findColour(PlugDataColour::canvasTextColourId));
+        PlugDataLook::drawStyledText(g, "Open a file to begin patching", 0, getHeight() / 2 - 120, getWidth(), 40, findColour(PlugDataColour::canvasTextColourId), Thin, 23, Justification::centred);
     }
 
     std::unique_ptr<WelcomeButton> newButton;

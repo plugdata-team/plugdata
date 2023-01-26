@@ -112,8 +112,7 @@ public:
 
     void paint(Graphics& g) override
     {
-        g.setFont(Font(11));
-        PlugDataLook::drawText(g, "MIDI", getLocalBounds().removeFromLeft(28), Justification::centredRight, findColour(ComboBox::textColourId));
+        PlugDataLook::drawText(g, "MIDI", getLocalBounds().removeFromLeft(28), findColour(ComboBox::textColourId), 11, Justification::centredRight);
 
         auto midiInRect = Rectangle<float>(38.0f, 8.0f, 15.0f, 3.0f);
         auto midiOutRect = Rectangle<float>(38.0f, 17.0f, 15.0f, 3.0f);

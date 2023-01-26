@@ -523,25 +523,16 @@ public:
     void paint(Graphics& g) override
     {
         if (errorMessage.isNotEmpty()) {
-            PlugDataLook::drawText(g, errorMessage, getLocalBounds().removeFromBottom(28).withTrimmedLeft(8).translated(0, 2), Justification::centredLeft, Colours::red);
+            PlugDataLook::drawText(g, errorMessage, getLocalBounds().removeFromBottom(28).withTrimmedLeft(8).translated(0, 2), Colours::red);
         }
     }
 
     void paintOverChildren(Graphics& g) override
     {
-        g.setFont(getLookAndFeel().getTextButtonFont(clearButton, 30));
-
-        auto panelColour = findColour(PlugDataColour::panelTextColourId);
-        g.setColour(panelColour);
-
-        g.drawText(Icons::Search, 0, 0, 30, 30, Justification::centred);
+        PlugDataLook::drawIcon(g, Icons::Search, 0, 0, 30, findColour(PlugDataColour::panelTextColourId), 12);
 
         if (input.getText().isEmpty()) {
-
-            // Slightly faded colour for placeholder text
-            g.setFont(Font());
-
-            PlugDataLook::drawText(g, "Type to search for objects or libraries", 32, 0, 350, 30, Justification::centredLeft, findColour(PlugDataColour::panelTextColourId).withAlpha(0.5f));
+            PlugDataLook::drawText(g, "Type to search for objects or libraries", 32, 0, 350, 30, findColour(PlugDataColour::panelTextColourId).withAlpha(0.5f));
         }
 
         g.setColour(findColour(PlugDataColour::outlineColourId));
@@ -819,8 +810,7 @@ private:
 
         void paint(Graphics& g) override
         {
-            g.setFont(Font());
-            PlugDataLook::drawFittedText(g, packageInfo.name, 5, 0, 200, getHeight(), Justification::centredLeft, findColour(ComboBox::textColourId));
+            PlugDataLook::drawFittedText(g, packageInfo.name, 5, 0, 200, getHeight(), findColour(ComboBox::textColourId));
 
             // draw progressbar
             if (deken.packageManager->getDownloadForPackage(packageInfo)) {
@@ -839,9 +829,9 @@ private:
                 g.setColour(findColour(PlugDataColour::panelActiveBackgroundColourId));
                 g.strokePath(downloadPath, PathStrokeType(8.0f, PathStrokeType::JointStyle::curved, PathStrokeType::EndCapStyle::rounded));
             } else {
-                PlugDataLook::drawFittedText(g, packageInfo.version, 150, 0, 150, getHeight(), Justification::centredLeft, findColour(PlugDataColour::panelTextColourId));
-                PlugDataLook::drawFittedText(g, packageInfo.author, 330, 0, 110, getHeight(), Justification::centredLeft, findColour(PlugDataColour::panelTextColourId));
-                PlugDataLook::drawFittedText(g, packageInfo.timestamp, 435, 0, 200, getHeight(), Justification::centredLeft, findColour(PlugDataColour::panelTextColourId));
+                PlugDataLook::drawFittedText(g, packageInfo.version, 150, 0, 150, getHeight(), findColour(PlugDataColour::panelTextColourId));
+                PlugDataLook::drawFittedText(g, packageInfo.author, 330, 0, 110, getHeight(), findColour(PlugDataColour::panelTextColourId));
+                PlugDataLook::drawFittedText(g, packageInfo.timestamp, 435, 0, 200, getHeight(), findColour(PlugDataColour::panelTextColourId));
             }
         }
 

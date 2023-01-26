@@ -9,7 +9,6 @@ class TextBase : public ObjectBase
     , public TextEditor::Listener {
 
 protected:
-    Justification justification = Justification::centredLeft;
     std::unique_ptr<TextEditor> editor;
     BorderSize<int> border = BorderSize<int>(1, 7, 1, 2);
     float minimumHorizontalScale = 0.8f;
@@ -74,11 +73,9 @@ public:
         g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), PlugDataLook::objectCornerRadius);
 
         auto textArea = border.subtractedFrom(getLocalBounds());
-        auto attributedObjectText = AttributedString();
-        attributedObjectText.append(objectText, Font(15), object->findColour(PlugDataColour::canvasTextColourId));
-        attributedObjectText.setJustification(justification);
-        attributedObjectText.draw(g, textArea.toFloat());
-
+        
+        PlugDataLook::drawFittedText(g, objectText, textArea, object->findColour(PlugDataColour::canvasTextColourId), numLines, 0.95f);
+        
         bool selected = cnv->isSelected(object) && !cnv->isGraph;
         auto outlineColour = object->findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : objectOutlineColourId);
 
@@ -206,7 +203,7 @@ public:
             editor->setReturnKeyStartsNewLine(false);
             editor->setBorder(border);
             editor->setIndents(0, 0);
-            editor->setJustification(justification);
+            editor->setJustification(Justification::centredLeft);
 
             editor->onFocusLost = [this]() {
                 if (reinterpret_cast<Component*>(cnv->suggestor)->hasKeyboardFocus(true) || Component::getCurrentlyFocusedComponent() == editor.get()) {

@@ -67,10 +67,7 @@ public:
 
         // To ensure custom LnF got assigned...
         MessageManager::callAsync([this]() {
-            auto* lnf = dynamic_cast<PlugDataLook*>(&getLookAndFeel());
-            if (!lnf)
-                return;
-            console.setFont(lnf->monoFont);
+            console.setFont(PlugDataLook::monoFont);
         });
     }
 
@@ -164,29 +161,21 @@ public:
 
     void paint(Graphics& g) override
     {
-        auto* lnf = dynamic_cast<PlugDataLook*>(&getLookAndFeel());
-        if (!lnf)
-            return;
-
         g.setColour(findColour(PlugDataColour::panelBackgroundColourId));
         g.fillRoundedRectangle(getLocalBounds().toFloat(), PlugDataLook::windowCornerRadius);
 
         // TODO: use panel colour IDs?
         if (state == Busy) {
-            g.setFont(lnf->boldFont.withHeight(32));
-            PlugDataLook::drawText(g, "Exporting...", 0, 25, getWidth(), 40, Justification::centred, findColour(PlugDataColour::canvasTextColourId));
+            PlugDataLook::drawStyledText(g, "Exporting...", 0, 25, getWidth(), 40, findColour(PlugDataColour::canvasTextColourId), Bold, 32, Justification::centred);
 
-            lnf->drawSpinningWaitAnimation(g, findColour(PlugDataColour::canvasTextColourId), getWidth() / 2 - 16, getHeight() / 2 + 135, 32, 32);
+            getLookAndFeel().drawSpinningWaitAnimation(g, findColour(PlugDataColour::canvasTextColourId), getWidth() / 2 - 16, getHeight() / 2 + 135, 32, 32);
         } else if (state == Success) {
-            g.setFont(lnf->boldFont.withHeight(32));
-            PlugDataLook::drawText(g, "Export successful", 0, 25, getWidth(), 40, Justification::centred, findColour(PlugDataColour::canvasTextColourId));
+            PlugDataLook::drawStyledText(g, "Export successful", 0, 25, getWidth(), 40, findColour(PlugDataColour::canvasTextColourId), Bold, 32, Justification::centred);
 
         } else if (state == Failure) {
-            g.setFont(lnf->boldFont.withHeight(32));
-            PlugDataLook::drawText(g, "Exporting failed", 0, 25, getWidth(), 40, Justification::centred, findColour(PlugDataColour::canvasTextColourId));
+            PlugDataLook::drawStyledText(g, "Exporting failed", 0, 25, getWidth(), 40, findColour(PlugDataColour::canvasTextColourId), Bold, 32, Justification::centred);
         } else if (state == WaitingForUserInput) {
-            g.setFont(lnf->boldFont.withHeight(32));
-            PlugDataLook::drawText(g, userInteractionMessage, 0, 25, getWidth(), 40, Justification::centred, findColour(PlugDataColour::canvasTextColourId));
+            PlugDataLook::drawStyledText(g, userInteractionMessage, 0, 25, getWidth(), 40, findColour(PlugDataColour::canvasTextColourId), Bold, 32, Justification::centred);
         }
     }
 

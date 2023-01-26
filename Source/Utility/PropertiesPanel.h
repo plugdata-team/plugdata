@@ -72,7 +72,8 @@ public:
         {
             auto font = Font(fontName, 15, Font::plain);
             g.setFont(font);
-            PlugDataLook::drawText(g, fontName, getLocalBounds().reduced(2), Justification::centredLeft, findColour(PlugDataColour::panelTextColourId));
+            g.setColour(findColour(PlugDataColour::panelTextColourId));
+            g.drawText(fontName, getLocalBounds().reduced(2), Justification::centredLeft);
         }
 
         void getIdealSize(int& idealWidth, int& idealHeight) override

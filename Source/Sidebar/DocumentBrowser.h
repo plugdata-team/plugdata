@@ -171,17 +171,13 @@ public:
 
         auto colour = isSelected() ? owner.findColour(PlugDataColour::sidebarActiveTextColourId) : owner.findColour(PlugDataColour::sidebarTextColourId);
 
-        g.setFont(dynamic_cast<PlugDataLook*>(&owner.getLookAndFeel())->iconFont);
-        g.setColour(colour);
-
         if (isDirectory) {
-            g.drawFittedText(Icons::Folder, Rectangle<int>(6, 2, x - 4, height - 4), Justification::centred, 1);
+            PlugDataLook::drawIcon(g, Icons::Folder, Rectangle<int>(6, 2, x - 4, height - 4), colour, 12);
         } else {
-            g.drawFittedText(Icons::File, Rectangle<int>(6, 2, x - 4, height - 4), Justification::centred, 1);
+            PlugDataLook::drawIcon(g, Icons::File, Rectangle<int>(6, 2, x - 4, height - 4), colour, 12);
         }
 
-        g.setFont(Font());
-        PlugDataLook::drawFittedText(g, file.getFileName(), x, 0, width - x, height, Justification::centredLeft, colour);
+        PlugDataLook::drawFittedText(g, file.getFileName(), x, 0, width - x, height, colour);
     }
 
     String getAccessibilityName() override
@@ -559,15 +555,12 @@ public:
 
     void paintOverChildren(Graphics& g) override
     {
-        g.setFont(getLookAndFeel().getTextButtonFont(closeButton, 30));
-        g.setColour(findColour(PlugDataColour::sidebarTextColourId));
+        auto colour = findColour(PlugDataColour::sidebarTextColourId);
 
-        g.drawText(Icons::Search, 0, 0, 30, 30, Justification::centred);
+        PlugDataLook::drawIcon(g, Icons::Search, 0, 0, 30, colour, 12, false);
 
         if (input.getText().isEmpty()) {
-            g.setFont(Font(14));
-
-            PlugDataLook::drawText(g, "Type to search documentation", 30, 0, 300, 30, Justification::centredLeft, findColour(PlugDataColour::sidebarTextColourId).withAlpha(0.5f));
+            PlugDataLook::drawText(g, "Type to search documentation", 30, 0, 300, 30, colour.withAlpha(0.5f), 14);
         }
     }
 
@@ -581,12 +574,8 @@ public:
         auto colour = rowIsSelected ? findColour(PlugDataColour::sidebarActiveTextColourId) : findColour(ComboBox::textColourId);
         const String item = searchResult[rowNumber].getFileName();
 
-        g.setFont(Font());
-        PlugDataLook::drawText(g, item, 28, 0, w - 4, h, Justification::centredLeft, colour);
-
-        g.setColour(colour);
-        g.setFont(getLookAndFeel().getTextButtonFont(closeButton, 23));
-        g.drawText(Icons::File, 12, 0, 24, 24, Justification::centredLeft);
+        PlugDataLook::drawText(g, item, 28, 0, w - 4, h, colour);
+        PlugDataLook::drawIcon(g, Icons::File, 12, 0, 24, colour, 12);
     }
 
     int getNumRows() override

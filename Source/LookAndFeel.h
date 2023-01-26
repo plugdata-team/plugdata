@@ -172,8 +172,32 @@ inline const std::map<PlugDataColour, std::tuple<String, String, String>> PlugDa
 
 struct Resources {
 
+
+    Resources() {
+        
+        // Our unicode font is too big, the compiler will run out of memory
+        // To prevent this, we split the binarydata into multiple files, and add them back together here
+        std::vector<char> interUnicode;
+        int i = 0;
+        while (true) {
+            int size;
+            auto* resource = BinaryData::getNamedResource((String("InterUnicode_") + String(i) + "_ttf").toRawUTF8(), size);
+
+            if (!resource) {
+                break;
+            }
+
+            interUnicode.insert(interUnicode.end(), resource, resource + size);
+            i++;
+        }
+        
+        defaultTypeface = Typeface::createSystemTypefaceFor(interUnicode.data(), interUnicode.size());
+    }
+    
     // Default typeface is Inter combined with Unicode symbols from GoNotoUniversal and emojis from NotoEmoji
-    Typeface::Ptr defaultTypeface = Typeface::createSystemTypefaceFor(BinaryData::InterUnicode_ttf, BinaryData::InterUnicode_ttfSize);
+    
+    
+    Typeface::Ptr defaultTypeface; // Initialised in constructor
 
     Typeface::Ptr thinTypeface = Typeface::createSystemTypefaceFor(BinaryData::InterThin_ttf, BinaryData::InterThin_ttfSize);
 
@@ -186,24 +210,46 @@ struct Resources {
     Typeface::Ptr monoTypeface = Typeface::createSystemTypefaceFor(BinaryData::IBMPlexMono_ttf, BinaryData::IBMPlexMono_ttfSize);
 };
 
+enum FontStyle
+{
+    Regular,
+    Bold,
+    Semibold,
+    Thin,
+    Monospace,
+};
+
+
 struct PlugDataLook : public LookAndFeel_V4 {
     SharedResourcePointer<Resources> resources;
 
-    Font defaultFont;
-    Font boldFont;
-    Font semiBoldFont;
-    Font thinFont;
-    Font iconFont;
-    Font monoFont;
-
+    static inline Font defaultFont;
+    static inline Font boldFont;
+    static inline Font semiBoldFont;
+    static inline Font thinFont;
+    static inline Font iconFont;
+    static inline Font monoFont;
+    static inline std::atomic<bool> fontsAreInitialised = false;
+    static inline std::mutex fontsLock;
+    
     PlugDataLook()
-        : defaultFont(resources->defaultTypeface)
-        , boldFont(resources->boldTypeface)
-        , semiBoldFont(resources->semiBoldTypeface)
-        , thinFont(resources->thinTypeface)
-        , iconFont(resources->iconTypeface)
-        , monoFont(resources->monoTypeface)
     {
+        fontsLock.lock();
+        
+        if(!fontsAreInitialised) {
+                        
+            // Initialise fonts
+            defaultFont = Font(resources->defaultTypeface);
+            boldFont = Font(resources->boldTypeface);
+            semiBoldFont = Font(resources->semiBoldTypeface);
+            thinFont = Font(resources->thinTypeface);
+            iconFont = Font(resources->iconTypeface);
+            monoFont = Font(resources->monoTypeface);
+            fontsAreInitialised = true;
+        }
+        
+        fontsLock.unlock();
+        
         setDefaultSansSerifTypeface(resources->defaultTypeface);
     }
 
@@ -267,9 +313,8 @@ struct PlugDataLook : public LookAndFeel_V4 {
             g.fillAll(findColour(PlugDataColour::tabBackgroundColourId));
         } else if (button.getName().startsWith("statusbar")) {
             drawStatusbarButton(g, button, backgroundColour, shouldDrawButtonAsHighlighted, shouldDrawButtonAsDown);
-        } else if (button.getName().startsWith("pd")) {
-            drawPdButton(g, button, backgroundColour, shouldDrawButtonAsHighlighted, shouldDrawButtonAsDown);
-        } else if (button.getName().startsWith("inspector")) {
+        }
+        else if (button.getName().startsWith("inspector")) {
             drawInspectorButton(g, button, backgroundColour, shouldDrawButtonAsHighlighted, shouldDrawButtonAsDown);
         } else {
             LookAndFeel_V4::drawButtonBackground(g, button, backgroundColour, shouldDrawButtonAsHighlighted, shouldDrawButtonAsDown);
@@ -301,10 +346,12 @@ struct PlugDataLook : public LookAndFeel_V4 {
             int const rightIndent = jmin(fontHeight, 2 + cornerSize / (button.isConnectedOnRight() ? 4 : 2));
             int const textWidth = button.getWidth() - leftIndent - rightIndent;
 
-            if (textWidth > 0)
-                PlugDataLook::drawFittedText(g, button.getButtonText(),
-                    leftIndent, yIndent, textWidth, button.getHeight() - yIndent * 2,
-                    Justification::centred, colour);
+            g.setColour(colour);
+            
+            if (textWidth > 0) {
+                g.drawFittedText(button.getButtonText(), leftIndent, yIndent, textWidth, button.getHeight() - yIndent * 2, Justification::centred, 1);
+                
+            }
         }
     }
 
@@ -346,12 +393,7 @@ struct PlugDataLook : public LookAndFeel_V4 {
         g.setColour(findColour(ComboBox::backgroundColourId));
         g.fillAll();
 
-        Font font(h * 0.65f, Font::plain);
-        g.setFont(font);
-
-        g.setColour(getCurrentColourScheme().getUIColour(ColourScheme::defaultText));
-
-        PlugDataLook::drawText(g, window.getName(), 0, 0, w, h, Justification::centred, Colours::white);
+        PlugDataLook::drawText(g, window.getName(), 0, 0, w, h, getCurrentColourScheme().getUIColour(ColourScheme::defaultText), h * 0.65f);
     }
 
     Button* createDocumentWindowButton(int buttonType) override
@@ -539,7 +581,7 @@ struct PlugDataLook : public LookAndFeel_V4 {
             }
 
             r.removeFromRight(3);
-            PlugDataLook::drawFittedText(g, text, r, Justification::centredLeft, colour);
+            PlugDataLook::drawFittedText(g, text, r,  colour);
 
             if (shortcutKeyText.isNotEmpty()) {
                 auto f2 = font;
@@ -547,7 +589,8 @@ struct PlugDataLook : public LookAndFeel_V4 {
                 f2.setHorizontalScale(0.95f);
                 g.setFont(f2);
 
-                PlugDataLook::drawText(g, shortcutKeyText, r.translated(-2, 0), Justification::centredRight, colour);
+                g.setColour(colour);
+                g.drawText(shortcutKeyText, r.translated(-2, 0), Justification::centredRight);
             }
         }
     }
@@ -629,69 +672,32 @@ struct PlugDataLook : public LookAndFeel_V4 {
     }
 
     void drawStatusbarButtonText(Graphics& g, TextButton& button, bool shouldDrawButtonAsHighlighted, bool shouldDrawButtonAsDown)
-    {
-        Font font(getTextButtonFont(button, button.getHeight()));
-        g.setFont(font);
+        {
+            Font font(getTextButtonFont(button, button.getHeight()));
+            g.setFont(font);
 
-        auto colour = button.findColour(PlugDataColour::toolbarTextColourId);
-        if (!button.isEnabled()) {
-            colour = Colours::grey;
-        } else if (button.getToggleState()) {
-            colour = button.findColour(PlugDataColour::toolbarActiveColourId);
-        } else if (shouldDrawButtonAsHighlighted) {
-            colour = button.findColour(PlugDataColour::toolbarActiveColourId).brighter(0.8f);
+            if (!button.isEnabled()) {
+                g.setColour(Colours::grey);
+            } else if (button.getToggleState()) {
+                g.setColour(button.findColour(PlugDataColour::toolbarActiveColourId));
+            } else if (shouldDrawButtonAsHighlighted) {
+                g.setColour(button.findColour(PlugDataColour::toolbarActiveColourId).brighter(0.8f));
+            } else {
+                g.setColour(button.findColour(PlugDataColour::toolbarTextColourId));
+            }
+
+            int const yIndent = jmin(4, button.proportionOfHeight(0.3f));
+            int const cornerSize = jmin(button.getHeight(), button.getWidth()) / 2;
+
+            int const fontHeight = roundToInt(font.getHeight() * 0.6f);
+            int const leftIndent = jmin(fontHeight, 2 + cornerSize / (button.isConnectedOnLeft() ? 4 : 2));
+            int const rightIndent = jmin(fontHeight, 2 + cornerSize / (button.isConnectedOnRight() ? 4 : 2));
+            int const textWidth = button.getWidth() - leftIndent - rightIndent;
+
+            if (textWidth > 0)
+                g.drawFittedText(button.getButtonText(), leftIndent, yIndent, textWidth, button.getHeight() - yIndent * 2, Justification::centred, 2);
         }
-        int const yIndent = jmin(4, button.proportionOfHeight(0.3f));
-        int const cornerSize = jmin(button.getHeight(), button.getWidth()) / 2;
-
-        int const fontHeight = roundToInt(font.getHeight() * 0.6f);
-        int const leftIndent = jmin(fontHeight, 2 + cornerSize / (button.isConnectedOnLeft() ? 4 : 2));
-        int const rightIndent = jmin(fontHeight, 2 + cornerSize / (button.isConnectedOnRight() ? 4 : 2));
-        int const textWidth = button.getWidth() - leftIndent - rightIndent;
-
-        if (textWidth > 0)
-            PlugDataLook::drawFittedText(g, button.getButtonText(), leftIndent, yIndent, textWidth, button.getHeight() - yIndent * 2, Justification::centred, colour);
-    }
-
-    void drawPdButton(Graphics& g, Button& button, Colour const& backgroundColour, bool shouldDrawButtonAsHighlighted, bool shouldDrawButtonAsDown)
-    {
-        auto cornerSize = PlugDataLook::defaultCornerRadius;
-        auto bounds = button.getLocalBounds().toFloat();
-
-        auto baseColour = findColour(TextButton::buttonColourId);
-
-        auto highlightColour = findColour(TextButton::buttonOnColourId);
-
-        if (shouldDrawButtonAsDown || button.getToggleState())
-            baseColour = highlightColour;
-
-        baseColour = baseColour.withMultipliedSaturation(button.hasKeyboardFocus(true) ? 1.3f : 0.9f).withMultipliedAlpha(button.isEnabled() ? 1.0f : 0.5f);
-
-        g.setColour(baseColour);
-
-        auto flatOnLeft = button.isConnectedOnLeft();
-        auto flatOnRight = button.isConnectedOnRight();
-        auto flatOnTop = button.isConnectedOnTop();
-        auto flatOnBottom = button.isConnectedOnBottom();
-
-        if (flatOnLeft || flatOnRight || flatOnTop || flatOnBottom) {
-            Path path;
-            path.addRoundedRectangle(bounds.getX(), bounds.getY(), bounds.getWidth(), bounds.getHeight(), cornerSize, cornerSize, !(flatOnLeft || flatOnTop), !(flatOnRight || flatOnTop), !(flatOnLeft || flatOnBottom), !(flatOnRight || flatOnBottom));
-
-            g.fillPath(path);
-
-            g.setColour(button.findColour(ComboBox::outlineColourId));
-            g.strokePath(path, PathStrokeType(1.0f));
-        } else {
-            int dimension = std::min(bounds.getHeight(), bounds.getWidth()) / 2.0f;
-            auto centre = bounds.getCentre();
-            auto ellpiseBounds = Rectangle<float>(centre.translated(-dimension, -dimension), centre.translated(dimension, dimension));
-            g.fillEllipse(ellpiseBounds);
-
-            g.setColour(button.findColour(ComboBox::outlineColourId));
-            g.drawEllipse(ellpiseBounds, 1.0f);
-        }
-    }
+    
     void drawGUIObjectSlider(Graphics& g, int x, int y, int width, int height, float sliderPos, float minSliderPos, float maxSliderPos, Slider& slider)
     {
         auto sliderBounds = slider.getLocalBounds().toFloat().reduced(1.0f);
@@ -827,40 +833,82 @@ struct PlugDataLook : public LookAndFeel_V4 {
         tl.createLayoutWithBalancedLineLengths(s, (float)maxToolTipWidth);
         tl.draw(g, { static_cast<float>(width), static_cast<float>(height) });
     }
-
-    static void drawText(Graphics& g, String textToDraw, Rectangle<int> bounds, Justification justification, Colour colour)
+    
+    // For drawing icons with icon font    
+    static void drawIcon(Graphics& g, const String& icon, Rectangle<int> bounds, Colour colour,  int fontHeight = -1, bool centred = true)
     {
-        auto font = g.getCurrentFont();
+        if(fontHeight < 0) fontHeight = bounds.getHeight() / 1.2f;
+        
+        auto justification = centred ? Justification::centred :  Justification::centredLeft;
+        g.setFont(PlugDataLook::iconFont.withHeight(fontHeight));
+        g.setColour(colour);
+        g.drawText(icon, bounds, justification, false);
+    }
+    
+    static void drawIcon(Graphics& g, const String& icon, int x, int y, int size, Colour colour, int fontHeight = -1, bool centred = true)
+    {
+        drawIcon(g, icon, {x, y, size, size}, colour, fontHeight, centred);
+    }
 
+    // For drawing bold, semibold or thin text
+    static void drawStyledText(Graphics& g, const String& textToDraw, Rectangle<int> bounds, Colour colour, FontStyle style, int fontHeight = 15, Justification justification = Justification::centredLeft)
+    {
+        Font font;
+        switch (style)
+        {
+            case Regular:
+                font = PlugDataLook::defaultFont;
+                break;
+            case Bold:
+                font = PlugDataLook::boldFont;
+                break;
+            case Semibold:
+                font = PlugDataLook::semiBoldFont;
+                break;
+            case Thin:
+                font = PlugDataLook::thinFont;
+                break;
+            case Monospace:
+                font = PlugDataLook::monoFont;
+                break;
+        }
+        
+        g.setFont(font.withHeight(fontHeight));
         g.setColour(colour);
         g.drawText(textToDraw, bounds, justification);
-        /*
-        auto attributedString = AttributedString();
-        attributedString.setJustification(justification);
-        attributedString.append(textToDraw, font, colour);
-        //attributedString.draw(g, bounds.toFloat());
+    }
+    
+    static void drawStyledText(Graphics& g, const String& textToDraw, int x, int y, int w, int h, Colour colour, FontStyle style, int fontHeight = 15, Justification justification = Justification::centredLeft)
+    {
+        drawStyledText(g, textToDraw, { x, y, w, h }, colour, style, fontHeight, justification);
         
-        TextLayout layout;
-        layout.createLayout (attributedString, bounds.getWidth());
-        layout.draw (g, bounds.toFloat()); */
     }
-
-    static void drawText(Graphics& g, String textToDraw, int x, int y, int w, int h, Justification justification, Colour colour)
+    
+    // For drawing regular text
+    static void drawText(Graphics& g, const String& textToDraw, Rectangle<int> bounds, Colour colour, int fontHeight = 15, Justification justification = Justification::centredLeft)
     {
-        drawText(g, textToDraw, { x, y, w, h }, justification, colour);
+        g.setFont(PlugDataLook::defaultFont.withHeight(fontHeight));
+        g.setColour(colour);
+        g.drawText(textToDraw, bounds, justification);
     }
-
-    // Just there so we can differentiate later
-    static void drawFittedText(Graphics& g, String textToDraw, int x, int y, int w, int h, Justification justification, Colour colour)
+    
+    static void drawText(Graphics& g, const String& textToDraw, int x, int y, int w, int h, Colour colour, int fontHeight = 15, Justification justification = Justification::centredLeft)
     {
-
-        drawText(g, textToDraw, { x, y, w, h }, justification, colour);
+        drawText(g, textToDraw, { x, y, w, h }, colour, fontHeight, justification);
     }
-    static void drawFittedText(Graphics& g, String textToDraw, Rectangle<int> bounds, Justification justification, Colour colour)
+    
+    static void drawFittedText(Graphics& g, const String& textToDraw, Rectangle<int> bounds, Colour colour, int numLines = 1, float minimumHoriontalScale = 1.0f, int fontHeight = 15, Justification justification = Justification::centredLeft)
     {
-
-        drawText(g, textToDraw, bounds, justification, colour);
+        g.setFont(PlugDataLook::defaultFont.withHeight(fontHeight));
+        g.setColour(colour);
+        g.drawFittedText(textToDraw, bounds, justification, numLines);
     }
+
+    static void drawFittedText(Graphics& g, const String& textToDraw, int x, int y, int w, int h, const Colour& colour, int numLines = 1, float minimumHoriontalScale = 1.0f, int fontHeight = 15, Justification justification = Justification::centredLeft)
+    {
+        drawFittedText(g, textToDraw, { x, y, w, h }, colour, numLines, minimumHoriontalScale, fontHeight, justification);
+    }
+    
 
     void drawLabel(Graphics& g, Label& label) override
     {
@@ -870,11 +918,15 @@ struct PlugDataLook : public LookAndFeel_V4 {
             auto alpha = label.isEnabled() ? 1.0f : 0.5f;
             const Font font(getLabelFont(label));
 
-            g.setFont(font);
+            
 
             auto textArea = getLabelBorderSize(label).subtractedFrom(label.getLocalBounds());
 
-            PlugDataLook::drawFittedText(g, label.getText(), textArea, label.getJustificationType(), label.findColour(Label::textColourId).withMultipliedAlpha(alpha));
+            // TODO: check if this is correct, can we get the correct numlines and scale?
+            g.setFont(font);
+            g.setColour(label.findColour(Label::textColourId));
+            
+            g.drawFittedText(label.getText(), textArea, label.getJustificationType(), 1, 1.0f);
 
             g.setColour(label.findColour(Label::outlineColourId).withMultipliedAlpha(alpha));
         } else if (label.isEnabled()) {
@@ -891,11 +943,9 @@ struct PlugDataLook : public LookAndFeel_V4 {
         auto colour = component.findColour(PropertyComponent::labelTextColourId)
                           .withMultipliedAlpha(component.isEnabled() ? 1.0f : 0.6f);
 
-        g.setFont((float)jmin(height, 24) * 0.65f);
-
         auto r = getPropertyComponentContentPosition(component);
 
-        PlugDataLook::drawFittedText(g, component.getName(), indent, r.getY(), r.getX() - 5, r.getHeight(), Justification::centredLeft, colour);
+        PlugDataLook::drawFittedText(g, component.getName(), indent, r.getY(), r.getX() - 5, r.getHeight(), colour, 1, 1.0f, (float)jmin(height, 24) * 0.65f, Justification::centredLeft);
     }
 
     void drawPropertyPanelSectionHeader(Graphics& g, String const& name, bool isOpen, int width, int height) override
@@ -907,8 +957,7 @@ struct PlugDataLook : public LookAndFeel_V4 {
 
         auto textX = static_cast<int>((buttonIndent * 2.0f + buttonSize + 2.0f));
 
-        g.setFont({ (float)height * 0.6f, Font::bold });
-        PlugDataLook::drawText(g, name, textX, 0, std::max(width - textX - 4, 0), height, Justification::centredLeft, findColour(PropertyComponent::labelTextColourId));
+        PlugDataLook::drawStyledText(g, name, textX, 0, std::max(width - textX - 4, 0), height, findColour(PropertyComponent::labelTextColourId), Bold, height * 0.6f);
     }
 
     Rectangle<int> getTooltipBounds(String const& tipText, Point<int> screenPos, Rectangle<int> parentArea) override

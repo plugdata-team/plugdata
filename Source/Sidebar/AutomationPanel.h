@@ -354,12 +354,9 @@ class AutomationComponent : public Component {
                 colour = findColour(PlugDataColour::sidebarActiveTextColourId);
             }
 
-            g.setColour(colour);
-            g.setFont(lnf.iconFont.withHeight(14));
-            g.drawText(Icons::Add, iconBounds, Justification::centred);
+            PlugDataLook::drawIcon(g, Icons::Add, iconBounds, colour, 12);
 
-            g.setFont(Font(14));
-            PlugDataLook::drawText(g, "Add new parameter", textBounds, Justification::centredLeft, colour);
+            PlugDataLook::drawText(g, "Add new parameter", textBounds, colour, 14);
         }
 
         void mouseEnter(MouseEvent const& e) override

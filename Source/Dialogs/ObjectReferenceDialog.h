@@ -52,8 +52,6 @@ public:
         g.setColour(findColour(PlugDataColour::panelBackgroundColourId));
         g.fillRoundedRectangle(getLocalBounds().reduced(1).toFloat(), PlugDataLook::windowCornerRadius);
 
-        auto const font = Font(15);
-
         if (objectName.isEmpty())
             return;
 
@@ -62,16 +60,10 @@ public:
         auto infoBounds = leftPanelBounds.withTrimmedBottom(100).withTrimmedTop(100).withTrimmedLeft(5).reduced(10);
         auto objectDisplayBounds = leftPanelBounds.removeFromTop(140);
 
-        auto* lnf = dynamic_cast<PlugDataLook*>(&getLookAndFeel());
-        if (!lnf)
-            return;
-
-        g.setFont(lnf->boldFont.withHeight(16.0f));
         // TODO: use panel background colour ID?
-        PlugDataLook::drawText(g, "Reference: " + objectName, getLocalBounds().removeFromTop(35).translated(0, 4), Justification::centred, findColour(PlugDataColour::canvasTextColourId));
+        PlugDataLook::drawStyledText(g, "Reference: " + objectName, getLocalBounds().removeFromTop(35).translated(0, 4), findColour(PlugDataColour::canvasTextColourId), Bold, 16, Justification::centred);
 
         auto colour = findColour(PlugDataColour::canvasTextColourId);
-        g.setFont(font);
 
         auto numInlets = unknownInletLayout ? "Unknown" : String(inlets.size());
         auto numOutlets = unknownOutletLayout ? "Unknown" : String(outlets.size());
@@ -81,32 +73,29 @@ public:
 
         for (int i = 0; i < infoNames.size(); i++) {
             auto localBounds = infoBounds.removeFromTop(25);
-            PlugDataLook::drawText(g, infoNames[i], localBounds.removeFromLeft(90), Justification::topLeft, colour);
-            PlugDataLook::drawText(g, infoText[i], localBounds, Justification::topLeft, colour);
+            PlugDataLook::drawText(g, infoNames[i], localBounds.removeFromLeft(90), colour, 15, Justification::topLeft);
+            PlugDataLook::drawText(g, infoText[i], localBounds, colour, 15, Justification::topLeft);
         }
 
         auto descriptionBounds = infoBounds.removeFromTop(25);
-        PlugDataLook::drawText(g, "Description: ", descriptionBounds.removeFromLeft(90), Justification::topLeft, colour);
+        PlugDataLook::drawText(g, "Description: ", descriptionBounds.removeFromLeft(90), colour, 15, Justification::topLeft);
 
-        PlugDataLook::drawFittedText(g, description, descriptionBounds.withHeight(180), Justification::topLeft, colour);
+        PlugDataLook::drawFittedText(g, description, descriptionBounds.withHeight(180), colour, 10, 0.9f, 15, Justification::topLeft);
 
         if (!unknownInletLayout && !unknownOutletLayout) {
             drawObject(g, objectDisplayBounds);
         } else {
             auto questionMarkBounds = objectDisplayBounds.withSizeKeepingCentre(48, 48);
             g.drawRoundedRectangle(questionMarkBounds.toFloat(), 6.0f, 3.0f);
-            g.setFont(Font(40));
-            PlugDataLook::drawText(g, "?", questionMarkBounds, Justification::centred, colour);
+            PlugDataLook::drawText(g, "?", questionMarkBounds, colour, 40, Justification::centred);
         }
     }
 
     void drawObject(Graphics& g, Rectangle<int> objectRect)
     {
-        auto const font = Font(15);
-
         int const ioletSize = 8;
         int const ioletWidth = (ioletSize + 4) * std::max(inlets.size(), outlets.size());
-        int const textWidth = font.getStringWidth(objectName);
+        int const textWidth = Font(15).getStringWidth(objectName);
         int const width = std::max(ioletWidth, textWidth) + 14;
 
         auto outlineBounds = objectRect.withSizeKeepingCentre(width, 22).toFloat();
@@ -114,8 +103,7 @@ public:
         g.drawRoundedRectangle(outlineBounds, PlugDataLook::objectCornerRadius, 1.0f);
 
         auto textBounds = outlineBounds.reduced(2.0f);
-        g.setFont(font);
-        PlugDataLook::drawText(g, objectName, textBounds.toNearestInt(), Justification::centred, findColour(PlugDataColour::canvasTextColourId));
+        PlugDataLook::drawText(g, objectName, textBounds.toNearestInt(), findColour(PlugDataColour::canvasTextColourId), 15, Justification::centred);
 
         auto ioletBounds = outlineBounds.reduced(8, 0);
 

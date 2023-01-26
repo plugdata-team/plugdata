@@ -87,8 +87,6 @@ struct ToolchainInstaller : public Component
 
         void paint(Graphics& g)
         {
-            auto* lnf = dynamic_cast<PlugDataLook*>(&getLookAndFeel());
-
             g.setColour(findColour(PlugDataColour::panelActiveBackgroundColourId));
 
             if (isMouseOver()) {
@@ -97,14 +95,11 @@ struct ToolchainInstaller : public Component
 
             auto colour = findColour(PlugDataColour::canvasTextColourId);
 
-            g.setFont(lnf->iconFont.withHeight(24));
-            PlugDataLook::drawText(g, iconText, 20, 5, 40, 40, Justification::centredLeft, colour);
+            PlugDataLook::drawIcon(g, iconText, 20, 5, 40, colour, 24);
 
-            g.setFont(lnf->defaultFont.withHeight(16));
-            PlugDataLook::drawText(g, topText, 60, 7, getWidth() - 60, 20, Justification::centredLeft, colour);
+            PlugDataLook::drawText(g, topText, 60, 7, getWidth() - 60, 20, colour, 16);
 
-            g.setFont(lnf->thinFont.withHeight(14));
-            PlugDataLook::drawText(g, bottomText, 60, 25, getWidth() - 60, 16, Justification::centredLeft, colour);
+            PlugDataLook::drawStyledText(g, bottomText, 60, 25, getWidth() - 60, 16, colour, Thin, 14);
         }
 
         void mouseUp(MouseEvent const& e)
@@ -164,25 +159,19 @@ struct ToolchainInstaller : public Component
 
     void paint(Graphics& g) override
     {
-        auto* lnf = dynamic_cast<PlugDataLook*>(&getLookAndFeel());
-        if (!lnf)
-            return;
-
         // TODO: don't use canvas colour IDs!
 
         auto colour = findColour(PlugDataColour::canvasTextColourId);
-        g.setFont(lnf->boldFont.withHeight(32));
         if (needsUpdate) {
-            PlugDataLook::drawText(g, "Toolchain needs to be updated", 0, getHeight() / 2 - 150, getWidth(), 40, Justification::centred, colour);
+            PlugDataLook::drawStyledText(g, "Toolchain needs to be updated", 0, getHeight() / 2 - 150, getWidth(), 40, colour, Bold, 32, Justification::centred);
         } else {
-            PlugDataLook::drawText(g, "Toolchain not found", 0, getHeight() / 2 - 150, getWidth(), 40, Justification::centred, colour);
+            PlugDataLook::drawStyledText(g, "Toolchain not found", 0, getHeight() / 2 - 150, getWidth(), 40, colour, Bold, 32, Justification::centred);
         }
 
-        g.setFont(lnf->thinFont.withHeight(23));
         if (needsUpdate) {
-            PlugDataLook::drawText(g, "Update the toolchain to get started", 0, getHeight() / 2 - 120, getWidth(), 40, Justification::centred, colour);
+            PlugDataLook::drawStyledText(g, "Update the toolchain to get started", 0, getHeight() / 2 - 120, getWidth(), 40, colour, Thin, 23, Justification::centred);
         } else {
-            PlugDataLook::drawText(g, "Install the toolchain to get started", 0, getHeight() / 2 - 120, getWidth(), 40, Justification::centred, colour);
+            PlugDataLook::drawStyledText(g, "Install the toolchain to get started", 0, getHeight() / 2 - 120, getWidth(), 40, colour, Thin, 23, Justification::centred);
         }
 
         if (installProgress != 0.0f) {
@@ -203,12 +192,11 @@ struct ToolchainInstaller : public Component
         }
 
         if (errorMessage.isNotEmpty()) {
-            g.setFont(Font(15));
-            PlugDataLook::drawText(g, errorMessage, Rectangle<int>(90, 300, getWidth(), 20), Justification::centred, Colours::red);
+            PlugDataLook::drawText(g, errorMessage, Rectangle<int>(90, 300, getWidth(), 20), Colours::red, 15);
         }
 
         if (isTimerRunning()) {
-            lnf->drawSpinningWaitAnimation(g, findColour(PlugDataColour::canvasTextColourId), getWidth() / 2 - 16, getHeight() / 2 + 135, 32, 32);
+            getLookAndFeel().drawSpinningWaitAnimation(g, findColour(PlugDataColour::canvasTextColourId), getWidth() / 2 - 16, getHeight() / 2 + 135, 32, 32);
         }
     }
 

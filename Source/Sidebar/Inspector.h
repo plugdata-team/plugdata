@@ -25,7 +25,7 @@ public:
         g.setColour(findColour(PlugDataColour::toolbarBackgroundColourId));
         g.fillRoundedRectangle(getLocalBounds().removeFromBottom(30).toFloat(), PlugDataLook::windowCornerRadius);
 
-        PlugDataLook::drawText(g, title, getLocalBounds().removeFromTop(23), Justification::centred, findColour(PlugDataColour::sidebarTextColourId));
+        PlugDataLook::drawText(g, title, getLocalBounds().removeFromTop(23), findColour(PlugDataColour::sidebarTextColourId), 15, Justification::centred);
 
         g.setColour(findColour(PlugDataColour::outlineColourId));
         g.drawLine(0, 23, getWidth(), 23);
