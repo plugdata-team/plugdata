@@ -52,25 +52,18 @@ def globFindAndReplaceText(path, to_find, replacement):
 def makeArchive(name, root_dir, base_dir):
   shutil.make_archive(name, "zip", root_dir, base_dir)
 
-def split(arr, size):
-  arrs = []
-  while len(arr) > size:
-    pice = arr[:size]
-    arrs.append(pice)
-    arr   = arr[size:]
-  arrs.append(arr)
-  return arrs
+def split(a, n):
+  k, m = divmod(len(a), n)
+  return (a[i*k+min(i, m):(i+1)*k+min(i+1, m)] for i in range(n))
 
-def splitFile(file, maxsize):
+def splitFile(file, num_files):
   with open(file, 'rb') as fd:
-    data_in = split(fd.read(), maxsize)
-    files = []
+    data_in = split(fd.read(), num_files)
     count = 0;
     for entry in data_in:
       name = os.path.splitext(file)[0];
       extension = os.path.splitext(file)[1];
       filename = name + "_" + str(count) + extension
-      files += filename
       with open(filename, "wb") as fd:
         fd.write(entry)
       count += 1
@@ -148,5 +141,7 @@ changeWorkingDir("./..")
 makeArchive("Filesystem", "./", "./plugdata_version")
 removeDir("./plugdata_version")
 
-splitFile("./Filesystem.zip", 10000000)
+splitFile("./Fonts/InterUnicode.ttf", 3)
+
+splitFile("./Filesystem.zip", 3)
 removeFile("./Filesystem.zip")
