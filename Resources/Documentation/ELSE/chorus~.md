@@ -1,12 +1,12 @@
 ---
 title: chorus~
 
-description: Chorus effect
+description: chorus effect
 
 categories:
 - object
 
-pdcategory: DSP (assorted)
+pdcategory: Effects
 
 arguments:
   1st:
