@@ -1,43 +1,47 @@
 ---
 title: compress~
 
-description: Compressor
+description: compressor
 
 categories:
 - object
 
-pdcategory: DSP (Dynamics)
+pdcategory: Effects
 
 arguments:
-  1st:
   - type: float
     description: threshold in dB
     default: -10
-  2nd:
   - type: float
     description: attenuation ratio (default 1)
     default: 1
-  3rd:
   - type: float
     description: attack time in ms
     default: 10
-  4th:
   - type: float
     description: release time in ms
     default: 10
-  5th:
   - type: float
     description: output gain adjustment in dB
     default: 0
-  6th:
   - type: float
-    description: rms average size in samples
+    description: RMS average size in samples
     default: 512
 
 inlets:
   1st:
   - type: signal
     description: input signal
+
+outlets:
+  1st:
+  - type: signal
+    description: compressed signal
+  2nd:
+  - type: float
+    description: reduction in dB
+
+methods:
   - type: thresh <float>
     description: sets threshold in dB
   - type: ratio <float>
@@ -49,15 +53,7 @@ inlets:
   - type: gain <float>
     description: output gain adjustment in dB
   - type: size <float>
-    description: rms average size in samples (from 1 to 512)
-
-outlets:
-  1st:
-  - type: signal
-    description: compressed signal
-  1st:
-  - type: float
-    description: reduction in dB
+    description: RMS average size in samples (from 1 to 512)
 
 draft: false
 ---

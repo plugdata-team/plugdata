@@ -1,12 +1,12 @@
 ---
 title: changed
 
-description: Pass data when changed
+description: pass data when changed
 
 categories:
  - object
 
-pdcategory: Message Management
+pdcategory: Data Management
 
 arguments:
 - type: anything
@@ -26,7 +26,7 @@ inlets:
 outlets:
   1st:
   - type: anything
-    description: any mesesage that's different from the previous
+    description: any message that's different from the previous
   2nd:
   - type: anything
     description: unchanged message
