@@ -147,7 +147,7 @@ struct Dialogs {
     
     static void showObjectMenu(PluginEditor* parent, Component* target);
     
-    static PopupMenu createObjectMenu(PluginEditor* parent, std::function<void(int)>& callback);
+    static PopupMenu createObjectMenu(PluginEditor* parent);
 };
 
 struct DekenInterface {

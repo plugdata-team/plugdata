@@ -257,7 +257,7 @@ void Dialogs::showCanvasRightClickMenu(Canvas* cnv, Component* originalComponent
     
     auto* editor = cnv->editor;
     std::function<void(int)> createObjectCallback;
-    popupMenu.addSubMenu("Add", createObjectMenu(editor, createObjectCallback));
+    popupMenu.addSubMenu("Add", createObjectMenu(editor));
     
     popupMenu.addSeparator();
     popupMenu.addCommandItem(editor, CommandIDs::Cut);
@@ -315,24 +315,35 @@ void Dialogs::showCanvasRightClickMenu(Canvas* cnv, Component* originalComponent
 
             break;
         default:
-            createObjectCallback(result);
             break;
         }
     };
 
-    popupMenu.showMenuAsync(PopupMenu::Options().withMinimumWidth(100).withMaximumNumColumns(1).withParentComponent(editor).withTargetScreenArea(Rectangle<int>(position, position.translated(1, 1))), ModalCallbackFunction::create(callback));
+    popupMenu.showMenuAsync(PopupMenu::Options().withMinimumWidth(100).withMaximumNumColumns(1).withParentComponent(editor).withTargetScreenArea(Rectangle<int>(position, position.translated(1, 1))), ModalCallbackFunction::create([cnv, position](int result){
+        
+        if(result >= 100) {
+            cnv->lastMousePosition = cnv->getLocalPoint(nullptr, position);
+        }
+    }));
 }
 
 void Dialogs::showObjectMenu(PluginEditor* parent, Component* target)
 {
-    std::function<void(int)> callback;
-    auto menu = createObjectMenu(parent, callback);
+    std::function<void(int)> attachToMouseCallback = [parent](int result) {
+        if (result > 0) {
+            if (auto* cnv = parent->getCurrentCanvas()) {
+                cnv->attachNextObjectToMouse = true;
+            }
+        }
+    };
     
-    menu.showMenuAsync(PopupMenu::Options().withMinimumWidth(100).withMaximumNumColumns(1).withTargetComponent(target).withParentComponent(parent), callback);
+    auto menu = createObjectMenu(parent);
+    
+    menu.showMenuAsync(PopupMenu::Options().withMinimumWidth(100).withMaximumNumColumns(1).withTargetComponent(target).withParentComponent(parent), attachToMouseCallback);
 }
 
 
-PopupMenu Dialogs::createObjectMenu(PluginEditor* parent, std::function<void(int)>& callback)
+PopupMenu Dialogs::createObjectMenu(PluginEditor* parent)
 {
     PopupMenu menu;
 
@@ -556,15 +567,6 @@ PopupMenu Dialogs::createObjectMenu(PluginEditor* parent, std::function<void(int
 
     menu.addItem(createCommandItem(ObjectIDs::NewArray, "Array..."));
     menu.addItem(createCommandItem(ObjectIDs::NewGraphOnParent, "GraphOnParent"));
-
-    callback = [parent](int result) {
-        if (result > 0) {
-            if (auto* cnv = parent->getCurrentCanvas()) {
-                cnv->attachNextObjectToMouse = true;
-            }
-        }
-    };
-    
     return menu;
 }
 
