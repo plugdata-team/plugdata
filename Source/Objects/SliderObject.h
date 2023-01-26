@@ -51,7 +51,10 @@ public:
 
         slider.setVelocityModeParameters(1.0f, 1, 0.0f, false, ModifierKeys::shiftModifier);
 
-        slider.setValue(getValueScaled());
+        if (isLogScale())
+            setValueScaled(getValueScaled());
+        else
+            setValueOriginal(getValue());
 
         slider.onDragStart = [this]() {
             startEdition();
