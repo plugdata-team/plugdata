@@ -204,9 +204,9 @@ public:
         addAndMakeVisible(slider);
         addAndMakeVisible(valueLabel);
 
-        createButton.setName("statusbar:createbutton");
-        settingsButton.setName("statusbar:settingsbutton");
-        deleteButton.setName("statusbar:deletebutton");
+        createButton.getProperties().set("Style", "SmallIcon");
+        settingsButton.getProperties().set("Style", "SmallIcon");
+        deleteButton.getProperties().set("Style", "SmallIcon");
 
         addAndMakeVisible(createButton);
         addAndMakeVisible(settingsButton);

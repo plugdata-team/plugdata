@@ -99,7 +99,7 @@ public:
             toolbarButtons[i]->setClickingTogglesState(true);
             toolbarButtons[i]->setRadioGroupId(0110);
             toolbarButtons[i]->setConnectedEdges(12);
-            toolbarButtons[i]->setName("toolbar:settings");
+            toolbarButtons[i]->getProperties().set("Style", "LargeIcon");
             addAndMakeVisible(toolbarButtons[i]);
 
             addChildComponent(panels[i]);

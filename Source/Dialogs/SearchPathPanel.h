@@ -79,28 +79,28 @@ public:
         addAndMakeVisible(removeButton);
         removeButton.onClick = [this] { deleteSelected(); };
         removeButton.setConnectedEdges(12);
-        removeButton.setName("statusbar:remove");
+        removeButton.getProperties().set("Style", "SmallIcon");
 
         changeButton.setTooltip("Edit search path");
-        changeButton.setName("statusbar:change");
+        changeButton.getProperties().set("Style", "SmallIcon");
         addAndMakeVisible(changeButton);
         changeButton.setConnectedEdges(12);
         changeButton.onClick = [this] { editSelected(); };
 
         upButton.setTooltip("Move selection up");
-        upButton.setName("statusbar:up");
+        upButton.getProperties().set("Style", "SmallIcon");
         addAndMakeVisible(upButton);
         upButton.setConnectedEdges(12);
         upButton.onClick = [this] { moveSelection(-1); };
 
         upButton.setTooltip("Move selection down");
-        downButton.setName("statusbar:down");
+        downButton.getProperties().set("Style", "SmallIcon");
         addAndMakeVisible(downButton);
         downButton.setConnectedEdges(12);
         downButton.onClick = [this] { moveSelection(1); };
 
         resetButton.setTooltip("Reset to default");
-        resetButton.setName("statusbar:reset");
+        resetButton.getProperties().set("Style", "SmallIcon");
         addAndMakeVisible(resetButton);
         resetButton.setConnectedEdges(12);
         resetButton.onClick = [this]() {

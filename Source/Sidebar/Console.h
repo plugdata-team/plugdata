@@ -31,7 +31,7 @@ public:
 
         auto i = 0;
         for (auto& button : buttons) {
-            button.setName("statusbar:console");
+            button.getProperties().set("Style", "SmallIcon");
             button.setConnectedEdges(12);
             addAndMakeVisible(button);
 

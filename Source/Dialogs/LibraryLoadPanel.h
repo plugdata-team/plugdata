@@ -79,10 +79,10 @@ public:
         addAndMakeVisible(removeButton);
         removeButton.onClick = [this] { deleteSelected(); };
         removeButton.setConnectedEdges(12);
-        removeButton.setName("statusbar:remove");
+        removeButton.getProperties().set("Style", "SmallIcon");
 
         changeButton.setTooltip("Edit library");
-        changeButton.setName("statusbar:change");
+        changeButton.getProperties().set("Style", "SmallIcon");
         addAndMakeVisible(changeButton);
         changeButton.setConnectedEdges(12);
         changeButton.onClick = [this] { editSelected(); };

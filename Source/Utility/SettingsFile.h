@@ -170,6 +170,14 @@ public:
             selectedThemes.setProperty("first", "light", nullptr);
         if (!selectedThemes.hasProperty("second"))
             selectedThemes.setProperty("second", "dark", nullptr);
+        
+        if(selectedThemes.getProperty("first").toString() != getProperty("Theme").toString() && selectedThemes.getProperty("second").toString() != getProperty("Theme").toString()) {
+            
+            setProperty("Theme", selectedThemes.getProperty("first").toString());
+        }
+        
+        PlugDataLook::selectedThemes.set(0,  selectedThemes.getProperty("first").toString());
+        PlugDataLook::selectedThemes.set(1,  selectedThemes.getProperty("second").toString());
 
         auto defaultColourThemesTree = ValueTree::fromXml(PlugDataLook::defaultThemesXml);
         auto colourThemesTree = getColourThemesTree();

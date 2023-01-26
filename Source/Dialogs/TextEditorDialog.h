@@ -589,6 +589,7 @@ public:
 
     void resized() override;
     void paint(Graphics& g) override;
+    void paintOverChildren(Graphics& g) override;
 
     void mouseDown(MouseEvent const& e) override;
     void mouseDrag(MouseEvent const& e) override;
@@ -714,8 +715,7 @@ void GutterComponent::paint(Graphics& g)
      Draw the gutter background, shadow, and outline
      ------------------------------------------------------------------
      */
-    auto bg = getParentComponent()->findColour(PlugDataColour::canvasBackgroundColourId);
-    auto ln = bg.overlaidWith(getParentComponent()->findColour(PlugDataColour::toolbarBackgroundColourId));
+    auto ln = getParentComponent()->findColour(PlugDataColour::sidebarBackgroundColourId);
 
     g.setColour(ln);
     g.fillRect(getLocalBounds().removeFromLeft(GUTTER_WIDTH));
@@ -740,7 +740,7 @@ void GutterComponent::paint(Graphics& g)
     auto rowData = document.findRowsIntersecting(area);
     auto verticalTransform = transform.withAbsoluteTranslation(0.f, transform.getTranslationY());
 
-    g.setColour(ln.contrasting(0.1f));
+    g.setColour(findColour(PlugDataColour::sidebarActiveBackgroundColourId));
 
     for (auto const& r : rowData) {
         if (r.isRowSelected) {
@@ -749,12 +749,12 @@ void GutterComponent::paint(Graphics& g)
                          .withX(0)
                          .withWidth(GUTTER_WIDTH);
 
-            g.fillRect(A);
+            g.fillRoundedRectangle(A.reduced(4, 1), PlugDataLook::smallCornerRadius);
         }
     }
 
     for (auto const& r : rowData) {
-        g.setColour(getParentComponent()->findColour(r.isRowSelected ? PlugDataColour::objectSelectedOutlineColourId : PlugDataColour::canvasTextColourId));
+        g.setColour(getParentComponent()->findColour(r.isRowSelected ? PlugDataColour::panelActiveTextColourId : PlugDataColour::panelTextColourId));
         memoizedGlyphArrangements(r.rowNumber).draw(g, verticalTransform);
     }
 }
@@ -1592,6 +1592,14 @@ PlugDataTextEditor::PlugDataTextEditor()
     addAndMakeVisible(gutter);
 }
 
+
+void PlugDataTextEditor::paintOverChildren(Graphics& g)
+{
+    g.setColour(findColour(PlugDataColour::outlineColourId));
+    g.drawHorizontalLine(0, 0, getWidth());
+    g.drawHorizontalLine(getHeight() - 1, 0, getWidth());
+}
+
 void PlugDataTextEditor::setFont(Font font)
 {
     document.setFont(font);
@@ -1956,7 +1964,7 @@ void PlugDataTextEditor::renderTextUsingAttributedStringSingle(Graphics& g)
 
     while (!si.isEOF()) {
         auto tokenType = CppTokeniserFunctions::readNextToken(si);
-        auto colour = enableSyntaxHighlighting ? colourScheme.types[tokenType].colour : findColour(PlugDataColour::canvasTextColourId);
+        auto colour = enableSyntaxHighlighting ? colourScheme.types[tokenType].colour : findColour(PlugDataColour::panelTextColourId);
         auto token = String(previous, si.t);
 
         previous = si.t;
@@ -2003,7 +2011,7 @@ void PlugDataTextEditor::renderTextUsingAttributedString(Graphics& g)
 
             while (!si.isEOF()) {
                 auto tokenType = CppTokeniserFunctions::readNextToken(si);
-                auto colour = enableSyntaxHighlighting ? colourScheme.types[tokenType].colour : findColour(PlugDataColour::canvasTextColourId);
+                auto colour = enableSyntaxHighlighting ? colourScheme.types[tokenType].colour : findColour(PlugDataColour::panelTextColourId);
                 auto token = String(previous, si.t);
 
                 previous = si.t;
@@ -2049,7 +2057,7 @@ void PlugDataTextEditor::renderTextUsingGlyphArrangement(Graphics& g)
             document.findGlyphsIntersecting(g.getClipBounds().toFloat(), n).draw(g);
         }
     } else {
-        g.setColour(findColour(PlugDataColour::canvasTextColourId));
+        g.setColour(findColour(PlugDataColour::panelTextColourId));
         document.findGlyphsIntersecting(g.getClipBounds().toFloat()).draw(g);
     }
     g.restoreState();

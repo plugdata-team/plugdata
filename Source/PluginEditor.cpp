@@ -136,7 +136,7 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     addAndMakeVisible(sidebar);
 
     for (auto* button : toolbarButtons) {
-        button->setName("toolbar:button");
+        button->getProperties().set("Style", "LargeIcon");
         button->setConnectedEdges(12);
         addAndMakeVisible(button);
     }
@@ -171,7 +171,7 @@ PluginEditor::PluginEditor(PluginProcessor& p)
 
     // Hide sidebar
     toolbarButton(Hide)->setTooltip("Hide Sidebar");
-    toolbarButton(Hide)->setName("toolbar:hide");
+    toolbarButton(Hide)->getProperties().set("Style", "LargeIcon");
     toolbarButton(Hide)->setClickingTogglesState(true);
     toolbarButton(Hide)->setColour(ComboBox::outlineColourId, findColour(TextButton::buttonColourId));
     toolbarButton(Hide)->setConnectedEdges(12);
@@ -189,7 +189,7 @@ PluginEditor::PluginEditor(PluginProcessor& p)
 
     // Hide pin sidebar panel
     toolbarButton(Pin)->setTooltip("Pin Panel");
-    toolbarButton(Pin)->setName("toolbar:pin");
+    toolbarButton(Pin)->getProperties().set("Style", "LargeIcon");
     toolbarButton(Pin)->setClickingTogglesState(true);
     toolbarButton(Pin)->setColour(ComboBox::outlineColourId, findColour(TextButton::buttonColourId));
     toolbarButton(Pin)->setConnectedEdges(12);
@@ -559,7 +559,7 @@ void PluginEditor::addTab(Canvas* cnv, bool deleteWhenClosed)
             });
     };
 
-    closeTabButton->setName("tab:close");
+    closeTabButton->getProperties().set("Style", "SmallIcon");
     closeTabButton->setColour(TextButton::buttonColourId, Colour());
     closeTabButton->setColour(TextButton::buttonOnColourId, Colour());
     closeTabButton->setColour(ComboBox::outlineColourId, Colour());

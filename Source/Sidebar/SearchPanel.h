@@ -32,7 +32,7 @@ public:
         input.addKeyListener(this);
         listBox.addKeyListener(this);
 
-        closeButton.setName("statusbar:clearsearch");
+        closeButton.getProperties().set("Style", "SmallIcon");
         closeButton.onClick = [this]() {
             clearSearchTargets();
             input.clear();

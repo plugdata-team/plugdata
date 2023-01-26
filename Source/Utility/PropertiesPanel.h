@@ -46,7 +46,7 @@ public:
                 comboBox.addItem(options[n], n + 1);
             }
 
-            comboBox.setName("inspector:combo");
+            comboBox.getProperties().set("Style", "Inspector");
             comboBox.getSelectedIdAsValue().referTo(value);
 
             addAndMakeVisible(comboBox);
@@ -97,7 +97,7 @@ public:
             }
 
             comboBox.setText(value.toString());
-            comboBox.setName("inspector:combo");
+            comboBox.getProperties().set("Style", "Inspector");
             fontValue.referTo(value);
 
             comboBox.onChange = [this]() {
@@ -173,7 +173,7 @@ public:
             toggleButton.getToggleStateValue().referTo(value);
             toggleButton.setButtonText(static_cast<bool>(value.getValue()) ? options[1] : options[0]);
 
-            toggleButton.setName("inspector:toggle");
+            toggleButton.getProperties().set("Style", "Inspector");
 
             addAndMakeVisible(toggleButton);
 
@@ -209,7 +209,6 @@ public:
 
             button.onClick = [this]() {
                 std::unique_ptr<ColourSelector> colourSelector = std::make_unique<ColourSelector>(ColourSelector::showColourAtTop | ColourSelector::showSliders | ColourSelector::showColourspace);
-                colourSelector->setName("background");
                 colourSelector->addChangeListener(this);
                 colourSelector->setSize(300, 400);
                 colourSelector->setColour(ColourSelector::backgroundColourId, findColour(PlugDataColour::panelBackgroundColourId));
@@ -382,7 +381,7 @@ public:
             label.addMouseListener(this, true);
             label.setFont(Font(14));
 
-            browseButton.setName("statusbar::browse");
+            browseButton.getProperties().set("Style", "SmallIcon");
 
             addAndMakeVisible(label);
             addAndMakeVisible(browseButton);
