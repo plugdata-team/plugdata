@@ -31,7 +31,7 @@ public:
         rightSideInfo.setColour(TextEditor::outlineColourId, Colours::transparentBlack);
         rightSideInfo.setFont(Font(15));
 
-        backButton.setName("toolbar:backbutton");
+        backButton.getProperties().set("Style", "LargeIcon");
     }
 
     void resized() override
@@ -60,10 +60,9 @@ public:
         auto infoBounds = leftPanelBounds.withTrimmedBottom(100).withTrimmedTop(100).withTrimmedLeft(5).reduced(10);
         auto objectDisplayBounds = leftPanelBounds.removeFromTop(140);
 
-        // TODO: use panel background colour ID?
-        PlugDataLook::drawStyledText(g, "Reference: " + objectName, getLocalBounds().removeFromTop(35).translated(0, 4), findColour(PlugDataColour::canvasTextColourId), Bold, 16, Justification::centred);
+        PlugDataLook::drawStyledText(g, "Reference: " + objectName, getLocalBounds().removeFromTop(35).translated(0, 4), findColour(PlugDataColour::panelTextColourId), Bold, 16, Justification::centred);
 
-        auto colour = findColour(PlugDataColour::canvasTextColourId);
+        auto colour = findColour(PlugDataColour::panelTextColourId);
 
         auto numInlets = unknownInletLayout ? "Unknown" : String(inlets.size());
         auto numOutlets = unknownOutletLayout ? "Unknown" : String(outlets.size());
@@ -103,7 +102,7 @@ public:
         g.drawRoundedRectangle(outlineBounds, PlugDataLook::objectCornerRadius, 1.0f);
 
         auto textBounds = outlineBounds.reduced(2.0f);
-        PlugDataLook::drawText(g, objectName, textBounds.toNearestInt(), findColour(PlugDataColour::canvasTextColourId), 15, Justification::centred);
+        PlugDataLook::drawText(g, objectName, textBounds.toNearestInt(), findColour(PlugDataColour::panelTextColourId), 15, Justification::centred);
 
         auto ioletBounds = outlineBounds.reduced(8, 0);
 

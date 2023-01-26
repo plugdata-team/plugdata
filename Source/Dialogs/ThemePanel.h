@@ -133,7 +133,7 @@ public:
         : settingsTree(tree)
     {
         resetButton.setTooltip("Reset to default");
-        resetButton.setName("statusbar:reset");
+        resetButton.getProperties().set("Style", "SmallIcon");
         addAndMakeVisible(resetButton);
         resetButton.setConnectedEdges(12);
         resetButton.onClick = [this]() {
@@ -148,7 +148,7 @@ public:
         StringArray allThemes = PlugDataLook::getAllThemes(settingsTree.getChildWithName("ColourThemes"));
 
         newButton.setTooltip("New theme");
-        newButton.setName("statusbar:new");
+        newButton.getProperties().set("Style", "SmallIcon");
         addAndMakeVisible(newButton);
         newButton.setConnectedEdges(12);
         newButton.onClick = [this]() {
@@ -173,7 +173,7 @@ public:
         };
 
         loadButton.setTooltip("Load theme");
-        loadButton.setName("statusbar:load");
+        loadButton.getProperties().set("Style", "SmallIcon");
         addAndMakeVisible(loadButton);
         loadButton.setConnectedEdges(12);
         loadButton.onClick = [this]() {
@@ -208,7 +208,7 @@ public:
         };
 
         saveButton.setTooltip("Save theme");
-        saveButton.setName("statusbar:save");
+        saveButton.getProperties().set("Style", "SmallIcon");
         addAndMakeVisible(saveButton);
         saveButton.setConnectedEdges(12);
         saveButton.onClick = [this]() mutable {
@@ -243,7 +243,7 @@ public:
         };
 
         deleteButton.setTooltip("Delete theme");
-        deleteButton.setName("statusbar:save");
+        deleteButton.getProperties().set("Style", "SmallIcon");
         addAndMakeVisible(deleteButton);
         deleteButton.setConnectedEdges(12);
         deleteButton.onClick = [this]() mutable {
@@ -312,6 +312,8 @@ public:
                 settingsTree.setProperty("Theme", PlugDataLook::selectedThemes[themeIdx], nullptr);
 
                 getTopLevelComponent()->repaint();
+                
+                SettingsFile::getInstance()->saveSettings();
             };
         }
 

@@ -159,9 +159,7 @@ struct ToolchainInstaller : public Component
 
     void paint(Graphics& g) override
     {
-        // TODO: don't use canvas colour IDs!
-
-        auto colour = findColour(PlugDataColour::canvasTextColourId);
+        auto colour = findColour(PlugDataColour::panelTextColourId);
         if (needsUpdate) {
             PlugDataLook::drawStyledText(g, "Toolchain needs to be updated", 0, getHeight() / 2 - 150, getWidth(), 40, colour, Bold, 32, Justification::centred);
         } else {

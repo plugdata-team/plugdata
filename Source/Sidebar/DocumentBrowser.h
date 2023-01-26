@@ -491,7 +491,7 @@ public:
             updateResults(input.getText());
         };
 
-        closeButton.setName("statusbar:clearsearch");
+        closeButton.getProperties().set("Style", "SmallIcon");
         closeButton.onClick = [this]() {
             input.clear();
             input.giveAwayKeyboardFocus();
@@ -716,9 +716,9 @@ public:
             }
         };
 
-        revealButton.setName("statusbar:reveal");
-        loadFolderButton.setName("statusbar:browserpathopen");
-        resetFolderButton.setName("statusbar:browserpathreset");
+        revealButton.getProperties().set("Style", "SmallIcon");
+        loadFolderButton.getProperties().set("Style", "SmallIcon");
+        resetFolderButton.getProperties().set("Style", "SmallIcon");
 
 #if JUCE_MAC
         String revealTip = "Show in Finder";

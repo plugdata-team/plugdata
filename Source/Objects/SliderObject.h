@@ -47,7 +47,7 @@ public:
         slider.setRange(0., 1., 0.000001);
         slider.setTextBoxStyle(Slider::NoTextBox, 0, 0, 0);
         slider.setScrollWheelEnabled(false);
-        slider.setName("object:slider");
+        slider.getProperties().set("Style", "SliderObject");
 
         slider.setVelocityModeParameters(1.0f, 1, 0.0f, false, ModifierKeys::shiftModifier);
 

@@ -166,16 +166,16 @@ public:
 
         // TODO: use panel colour IDs?
         if (state == Busy) {
-            PlugDataLook::drawStyledText(g, "Exporting...", 0, 25, getWidth(), 40, findColour(PlugDataColour::canvasTextColourId), Bold, 32, Justification::centred);
+            PlugDataLook::drawStyledText(g, "Exporting...", 0, 25, getWidth(), 40, findColour(PlugDataColour::panelTextColourId), Bold, 32, Justification::centred);
 
-            getLookAndFeel().drawSpinningWaitAnimation(g, findColour(PlugDataColour::canvasTextColourId), getWidth() / 2 - 16, getHeight() / 2 + 135, 32, 32);
+            getLookAndFeel().drawSpinningWaitAnimation(g, findColour(PlugDataColour::panelTextColourId), getWidth() / 2 - 16, getHeight() / 2 + 135, 32, 32);
         } else if (state == Success) {
-            PlugDataLook::drawStyledText(g, "Export successful", 0, 25, getWidth(), 40, findColour(PlugDataColour::canvasTextColourId), Bold, 32, Justification::centred);
+            PlugDataLook::drawStyledText(g, "Export successful", 0, 25, getWidth(), 40, findColour(PlugDataColour::panelTextColourId), Bold, 32, Justification::centred);
 
         } else if (state == Failure) {
-            PlugDataLook::drawStyledText(g, "Exporting failed", 0, 25, getWidth(), 40, findColour(PlugDataColour::canvasTextColourId), Bold, 32, Justification::centred);
+            PlugDataLook::drawStyledText(g, "Exporting failed", 0, 25, getWidth(), 40, findColour(PlugDataColour::panelTextColourId), Bold, 32, Justification::centred);
         } else if (state == WaitingForUserInput) {
-            PlugDataLook::drawStyledText(g, userInteractionMessage, 0, 25, getWidth(), 40, findColour(PlugDataColour::canvasTextColourId), Bold, 32, Justification::centred);
+            PlugDataLook::drawStyledText(g, userInteractionMessage, 0, 25, getWidth(), 40, findColour(PlugDataColour::panelTextColourId), Bold, 32, Justification::centred);
         }
     }
 

@@ -288,7 +288,8 @@ struct PlugDataLook : public LookAndFeel_V4 {
 
     int getSliderThumbRadius(Slider& s) override
     {
-        if (s.getName().startsWith("statusbar")) {
+        
+        if (s.getProperties()["Style"] == "VolumeSlider") {
             return 6;
         }
         return LookAndFeel_V4::getSliderThumbRadius(s);
@@ -307,14 +308,10 @@ struct PlugDataLook : public LookAndFeel_V4 {
 
     void drawButtonBackground(Graphics& g, Button& button, Colour const& backgroundColour, bool shouldDrawButtonAsHighlighted, bool shouldDrawButtonAsDown) override
     {
-        if (button.getName().startsWith("toolbar")) {
-            drawToolbarButton(g, button, backgroundColour, shouldDrawButtonAsHighlighted, shouldDrawButtonAsDown);
-        } else if (button.getName().startsWith("tabbar")) {
-            g.fillAll(findColour(PlugDataColour::tabBackgroundColourId));
-        } else if (button.getName().startsWith("statusbar")) {
-            drawStatusbarButton(g, button, backgroundColour, shouldDrawButtonAsHighlighted, shouldDrawButtonAsDown);
+        if (button.getProperties()["Style"].toString().contains("Icon")) {
+            return;
         }
-        else if (button.getName().startsWith("inspector")) {
+        if (button.getProperties()["Style"] == "Inspector") {
             drawInspectorButton(g, button, backgroundColour, shouldDrawButtonAsHighlighted, shouldDrawButtonAsDown);
         } else {
             LookAndFeel_V4::drawButtonBackground(g, button, backgroundColour, shouldDrawButtonAsHighlighted, shouldDrawButtonAsDown);
@@ -323,15 +320,36 @@ struct PlugDataLook : public LookAndFeel_V4 {
 
     void drawButtonText(Graphics& g, TextButton& button, bool isMouseOverButton, bool isButtonDown) override
     {
-        if (button.getName().startsWith("toolbar")) {
+        if (button.getProperties()["Style"] == "LargeIcon") {
             button.setColour(TextButton::textColourOnId, findColour(PlugDataColour::toolbarActiveColourId));
             button.setColour(TextButton::textColourOffId, findColour(PlugDataColour::toolbarTextColourId));
 
             LookAndFeel_V4::drawButtonText(g, button, isMouseOverButton, isButtonDown);
-        } else if (button.getName().startsWith("statusbar")) {
-            drawStatusbarButtonText(g, button, isMouseOverButton, isButtonDown);
-        } else {
+        } else if (button.getProperties()["Style"] == "SmallIcon") {
+            Font font(getTextButtonFont(button, button.getHeight()));
+            g.setFont(font);
 
+            if (!button.isEnabled()) {
+                g.setColour(Colours::grey);
+            } else if (button.getToggleState()) {
+                g.setColour(button.findColour(PlugDataColour::toolbarActiveColourId));
+            } else if (isMouseOverButton) {
+                g.setColour(button.findColour(PlugDataColour::toolbarActiveColourId).brighter(0.8f));
+            } else {
+                g.setColour(button.findColour(PlugDataColour::toolbarTextColourId));
+            }
+
+            int const yIndent = jmin(4, button.proportionOfHeight(0.3f));
+            int const cornerSize = jmin(button.getHeight(), button.getWidth()) / 2;
+
+            int const fontHeight = roundToInt(font.getHeight() * 0.6f);
+            int const leftIndent = jmin(fontHeight, 2 + cornerSize / (button.isConnectedOnLeft() ? 4 : 2));
+            int const rightIndent = jmin(fontHeight, 2 + cornerSize / (button.isConnectedOnRight() ? 4 : 2));
+            int const textWidth = button.getWidth() - leftIndent - rightIndent;
+
+            if (textWidth > 0)
+                g.drawFittedText(button.getButtonText(), leftIndent, yIndent, textWidth, button.getHeight() - yIndent * 2, Justification::centred, 2);
+        } else {
             Font font(getTextButtonFont(button, button.getHeight()));
             g.setFont(font);
             auto colour = button.findColour(button.getToggleState() ? TextButton::textColourOnId
@@ -357,27 +375,33 @@ struct PlugDataLook : public LookAndFeel_V4 {
 
     Font getTextButtonFont(TextButton& but, int buttonHeight) override
     {
-        if (but.getName().startsWith("toolbar")) {
-            return getToolbarFont(buttonHeight * 1.3f);
+        
+        if (!but.getProperties()["FontScale"].isVoid()) {
+            float scale = static_cast<float>(but.getProperties()["FontScale"]);
+            if(but.getProperties()["Style"] == "Icon") {
+                
+                return iconFont.withHeight(buttonHeight * scale);
+            }
+            else {
+                return Font(buttonHeight * scale);
+            }
         }
-        if (but.getName().startsWith("statusbar:oversample")) {
-            return { buttonHeight / 2.0f };
+        if (but.getProperties()["Style"] == "SmallIcon") {
+            return iconFont.withHeight(buttonHeight * 0.44f);
         }
-        if (but.getName().startsWith("tabbar")) {
-            return iconFont.withHeight(buttonHeight / 2.4f);
+        // For large buttons, the icon should actually be smaller
+        if (but.getProperties()["Style"] == "LargeIcon") {
+            return iconFont.withHeight(buttonHeight * 0.34f);
         }
-        if (but.getName().startsWith("statusbar") || but.getName().startsWith("tab")) {
-            return getStatusbarFont(buttonHeight * 1.1f);
-        }
-
+        
         return { buttonHeight / 1.7f };
     }
 
     void drawLinearSlider(Graphics& g, int x, int y, int width, int height, float sliderPos, float minSliderPos, float maxSliderPos, const Slider::SliderStyle style, Slider& slider) override
     {
-        if (slider.getName().startsWith("statusbar")) {
+        if (slider.getProperties()["Style"] == "VolumeSlider") {
             drawVolumeSlider(g, x, y, width, height, sliderPos, minSliderPos, maxSliderPos, style, slider);
-        } else if (slider.getName() == "object:slider") {
+        } else if (slider.getProperties()["Style"] == "SliderObject") {
             drawGUIObjectSlider(g, x, y, width, height, sliderPos, minSliderPos, maxSliderPos, slider);
         } else {
             LookAndFeel_V4::drawLinearSlider(g, x, y, width, height, sliderPos, minSliderPos, maxSliderPos, style, slider);
@@ -481,11 +505,6 @@ struct PlugDataLook : public LookAndFeel_V4 {
     Font getToolbarFont(int buttonHeight)
     {
         return iconFont.withHeight(buttonHeight / 3.5);
-    }
-
-    Font getStatusbarFont(int buttonHeight)
-    {
-        return iconFont.withHeight(buttonHeight / 2.5);
     }
 
     void drawPopupMenuBackgroundWithOptions(Graphics& g, int width, int height, PopupMenu::Options const& options) override
@@ -617,13 +636,10 @@ struct PlugDataLook : public LookAndFeel_V4 {
         g.fillPath(p, p.getTransformToScaleToFit(area.reduced(2, area.getHeight() / 4), true));
     }
 
-    void drawToolbarButton(Graphics& g, Button& button, Colour const& backgroundColour, bool shouldDrawButtonAsHighlighted, bool shouldDrawButtonAsDown)
-    {
-    }
 
     void drawComboBox(Graphics& g, int width, int height, bool, int, int, int, int, ComboBox& object) override
     {
-        bool inspectorElement = object.getName().startsWith("inspector");
+        bool inspectorElement = object.getProperties()["Style"] == "Inspector";
 
         auto cornerSize = inspectorElement ? 0.0f : 3.0f;
         Rectangle<int> boxBounds(0, 0, width, height);
@@ -646,9 +662,6 @@ struct PlugDataLook : public LookAndFeel_V4 {
         g.strokePath(path, PathStrokeType(2.0f));
     }
 
-    void drawStatusbarButton(Graphics& g, Button& button, Colour const& backgroundColour, bool shouldDrawButtonAsHighlighted, bool shouldDrawButtonAsDown)
-    {
-    }
 
     void drawResizableFrame(Graphics& g, int w, int h, BorderSize<int> const& border) override
     {
@@ -671,32 +684,6 @@ struct PlugDataLook : public LookAndFeel_V4 {
         g.setColour(button.findColour(ComboBox::outlineColourId));
     }
 
-    void drawStatusbarButtonText(Graphics& g, TextButton& button, bool shouldDrawButtonAsHighlighted, bool shouldDrawButtonAsDown)
-        {
-            Font font(getTextButtonFont(button, button.getHeight()));
-            g.setFont(font);
-
-            if (!button.isEnabled()) {
-                g.setColour(Colours::grey);
-            } else if (button.getToggleState()) {
-                g.setColour(button.findColour(PlugDataColour::toolbarActiveColourId));
-            } else if (shouldDrawButtonAsHighlighted) {
-                g.setColour(button.findColour(PlugDataColour::toolbarActiveColourId).brighter(0.8f));
-            } else {
-                g.setColour(button.findColour(PlugDataColour::toolbarTextColourId));
-            }
-
-            int const yIndent = jmin(4, button.proportionOfHeight(0.3f));
-            int const cornerSize = jmin(button.getHeight(), button.getWidth()) / 2;
-
-            int const fontHeight = roundToInt(font.getHeight() * 0.6f);
-            int const leftIndent = jmin(fontHeight, 2 + cornerSize / (button.isConnectedOnLeft() ? 4 : 2));
-            int const rightIndent = jmin(fontHeight, 2 + cornerSize / (button.isConnectedOnRight() ? 4 : 2));
-            int const textWidth = button.getWidth() - leftIndent - rightIndent;
-
-            if (textWidth > 0)
-                g.drawFittedText(button.getButtonText(), leftIndent, yIndent, textWidth, button.getHeight() - yIndent * 2, Justification::centred, 2);
-        }
     
     void drawGUIObjectSlider(Graphics& g, int x, int y, int width, int height, float sliderPos, float minSliderPos, float maxSliderPos, Slider& slider)
     {

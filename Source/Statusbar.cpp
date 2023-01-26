@@ -154,7 +154,7 @@ Statusbar::Statusbar(PluginProcessor* processor)
     commandLocked.addListener(this);
 
     oversampleSelector.setTooltip("Set oversampling");
-    oversampleSelector.setName("statusbar:oversample");
+    oversampleSelector.getProperties().set("FontScale", 0.5f);
     oversampleSelector.setColour(ComboBox::outlineColourId, Colours::transparentBlack);
 
     oversampleSelector.setButtonText(String(1 << pd->oversampling) + "x");
@@ -187,7 +187,7 @@ Statusbar::Statusbar(PluginProcessor* processor)
     presentationButton->setTooltip("Presentation Mode");
     presentationButton->setClickingTogglesState(true);
     presentationButton->setConnectedEdges(12);
-    presentationButton->setName("statusbar:presentation");
+    presentationButton->getProperties().set("Style", "SmallIcon");
     presentationButton->getToggleStateValue().referTo(presentationMode);
 
     presentationButton->onClick = [this]() {
@@ -203,13 +203,13 @@ Statusbar::Statusbar(PluginProcessor* processor)
     powerButton->setTooltip("Mute");
     powerButton->setClickingTogglesState(true);
     powerButton->setConnectedEdges(12);
-    powerButton->setName("statusbar:mute");
+    powerButton->getProperties().set("Style", "SmallIcon");
     addAndMakeVisible(powerButton.get());
 
     gridButton->setTooltip("Enable grid");
     gridButton->setClickingTogglesState(true);
     gridButton->setConnectedEdges(12);
-    gridButton->setName("statusbar:grid");
+    gridButton->getProperties().set("Style", "SmallIcon");
 
     gridButton->getToggleStateValue().referTo(SettingsFile::getInstance()->getPropertyAsValue("GridEnabled"));
     addAndMakeVisible(gridButton.get());
@@ -221,7 +221,7 @@ Statusbar::Statusbar(PluginProcessor* processor)
     lockButton->setTooltip("Edit Mode");
     lockButton->setClickingTogglesState(true);
     lockButton->setConnectedEdges(12);
-    lockButton->setName("statusbar:lock");
+    lockButton->getProperties().set("Style", "SmallIcon");
     lockButton->getToggleStateValue().referTo(locked);
     addAndMakeVisible(lockButton.get());
     lockButton->setButtonText(locked == var(true) ? Icons::Lock : Icons::Unlock);
@@ -234,7 +234,7 @@ Statusbar::Statusbar(PluginProcessor* processor)
     connectionStyleButton->setTooltip("Enable segmented connections");
     connectionStyleButton->setClickingTogglesState(true);
     connectionStyleButton->setConnectedEdges(12);
-    connectionStyleButton->setName("statusbar:connectionstyle");
+    connectionStyleButton->getProperties().set("Style", "SmallIcon");
     connectionStyleButton->onClick = [this]() {
         bool segmented = connectionStyleButton->getToggleState();
         auto* editor = dynamic_cast<PluginEditor*>(pd->getActiveEditor());
@@ -247,7 +247,7 @@ Statusbar::Statusbar(PluginProcessor* processor)
 
     connectionPathfind->setTooltip("Find best connection path");
     connectionPathfind->setConnectedEdges(12);
-    connectionPathfind->setName("statusbar:findpath");
+    connectionPathfind->getProperties().set("Style", "SmallIcon");
     connectionPathfind->onClick = [this]() { dynamic_cast<ApplicationCommandManager*>(pd->getActiveEditor())->invokeDirectly(CommandIDs::ConnectionPathfind, true); };
     addAndMakeVisible(connectionPathfind.get());
 
@@ -256,7 +256,7 @@ Statusbar::Statusbar(PluginProcessor* processor)
 
     volumeSlider.setValue(0.75);
     volumeSlider.setRange(0.0f, 1.0f);
-    volumeSlider.setName("statusbar:meter");
+    volumeSlider.getProperties().set("Style", "VolumeSlider");
 
     volumeAttachment = std::make_unique<SliderParameterAttachment>(*dynamic_cast<RangedAudioParameter*>(pd->getParameters()[0]), volumeSlider, nullptr);
 

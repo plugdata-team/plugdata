@@ -186,7 +186,7 @@ public:
         auto infoBounds = getLocalBounds().withTrimmedBottom(100).reduced(20);
         auto objectDisplayBounds = infoBounds.removeFromTop(100).reduced(60);
 
-        auto colour = findColour(PlugDataColour::canvasTextColourId);
+        auto colour = findColour(PlugDataColour::panelTextColourId);
         PlugDataLook::drawStyledText(g, objectName, getLocalBounds().removeFromTop(35).translated(0, 4), colour, Bold, 16.0f, Justification::centred);
 
 
@@ -229,7 +229,7 @@ public:
 
        
         auto textBounds = outlineBounds.reduced(2.0f);
-        PlugDataLook::drawText(g, objectName, textBounds.toNearestInt(), findColour(PlugDataColour::canvasTextColourId), 15, Justification::centred);
+        PlugDataLook::drawText(g, objectName, textBounds.toNearestInt(), findColour(PlugDataColour::panelTextColourId), 15, Justification::centred);
 
         auto ioletBounds = outlineBounds.reduced(8, 0);
 
@@ -387,7 +387,7 @@ public:
             updateResults(input.getText());
         };
 
-        clearButton.setName("statusbar:clearsearch");
+        clearButton.getProperties().set("Style", "SmallIcon");
         clearButton.onClick = [this]() {
             input.clear();
             input.giveAwayKeyboardFocus();

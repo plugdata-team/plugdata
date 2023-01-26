@@ -100,7 +100,8 @@ public:
         : TabbedComponent(TabbedButtonBar::TabsAtTop)
     {
         addAndMakeVisible(newButton);
-        newButton.setName("tabbar:newbutton");
+        newButton.getProperties().set("FontScale", 0.4f);
+        newButton.getProperties().set("Style", "Icon");
         newButton.onClick = [this]() {
             newTab();
         };
@@ -150,6 +151,11 @@ public:
                 comp->setBounds(content);
             }
         }
+    }
+    
+    void paint(Graphics& g) override
+    {
+        g.fillAll(findColour(PlugDataColour::tabBackgroundColourId));
     }
 
     void paintOverChildren(Graphics& g) override

@@ -432,7 +432,7 @@ public:
             filterResults();
         };
 
-        clearButton.setName("statusbar:clearsearch");
+        clearButton.getProperties().set("Style", "SmallIcon");
         clearButton.setAlwaysOnTop(true);
         clearButton.onClick = [this]() {
             input.clear();
@@ -449,7 +449,7 @@ public:
         addAndMakeVisible(updateSpinner);
 
         refreshButton.setTooltip("Refresh packages");
-        refreshButton.setName("statusbar:refresh");
+        refreshButton.getProperties().set("Style", "SmallIcon");
         addAndMakeVisible(refreshButton);
         refreshButton.setConnectedEdges(12);
         refreshButton.onClick = [this]() {
@@ -722,10 +722,10 @@ private:
             addChildComponent(addToPathButton);
 
             // Use statusbar button style
-            installButton.setName("statusbar:install");
-            reinstallButton.setName("statusbar:reinstall");
-            uninstallButton.setName("statusbar:uninstall");
-            addToPathButton.setName("statusbar:addtopath");
+            installButton.getProperties().set("Style", "SmallIcon");
+            reinstallButton.getProperties().set("Style", "SmallIcon");
+            uninstallButton.getProperties().set("Style", "SmallIcon");
+            addToPathButton.getProperties().set("Style", "SmallIcon");
 
             installButton.setTooltip("Install package");
             reinstallButton.setTooltip("Reinstall package");
