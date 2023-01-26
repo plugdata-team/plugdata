@@ -502,11 +502,6 @@ struct PlugDataLook : public LookAndFeel_V4 {
         return { height * 0.4f };
     }
 
-    Font getToolbarFont(int buttonHeight)
-    {
-        return iconFont.withHeight(buttonHeight / 3.5);
-    }
-
     void drawPopupMenuBackgroundWithOptions(Graphics& g, int width, int height, PopupMenu::Options const& options) override
     {
 
