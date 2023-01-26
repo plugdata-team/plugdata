@@ -7,7 +7,6 @@
 #include <m_pd.h>
 #include <m_imp.h>
 #include <x_libpd_extra_utils.h>
-#include <Utility/UnicodeTextEditor.h>
 
 class SearchPanel : public Component
     , public ListBoxModel
@@ -394,7 +393,7 @@ private:
     ListBox listBox;
 
     Array<std::tuple<String, String, Object*, void*>> searchResult;
-    UnicodeTextEditor input;
+    TextEditor input;
     TextButton closeButton = TextButton(Icons::Clear);
 
     PluginEditor* editor;

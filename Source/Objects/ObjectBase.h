@@ -7,7 +7,6 @@
 #pragma once
 
 #include <JuceHeader.h>
-#include <Utility/UnicodeTextEditor.h>
 
 #include "PluginProcessor.h"
 #include "Sidebar/Sidebar.h"

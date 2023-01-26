@@ -313,7 +313,7 @@ public:
     DraggableNumber maxValue = DraggableNumber(false);
     DraggableNumber valueLabel = DraggableNumber(false);
 
-    UnicodeLabel nameLabel;
+    Label nameLabel;
 
     String lastName;
 

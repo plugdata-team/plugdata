@@ -4,7 +4,6 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 #include <JuceHeader.h>
-#include <Utility/UnicodeTextEditor.h>
 
 #include "Dialogs.h"
 

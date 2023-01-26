@@ -273,7 +273,7 @@ endif()
 
 file(GLOB PlugDataBinaryDataSources
     ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Fonts/IconFont.ttf
-    ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Fonts/InterRegular.ttf
+    ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Fonts/InterUnicode.ttf
     ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Fonts/InterBold.ttf
     ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Fonts/InterSemiBold.ttf
     ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Fonts/InterThin.ttf

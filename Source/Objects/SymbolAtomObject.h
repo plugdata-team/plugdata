@@ -14,7 +14,7 @@ class SymbolAtomObject final : public ObjectBase
 
     String lastMessage;
 
-    UnicodeLabel input;
+    Label input;
 
 public:
     SymbolAtomObject(void* obj, Object* parent)

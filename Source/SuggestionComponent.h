@@ -7,7 +7,7 @@
 // Suggestions component that shows up when objects are edited
 class SuggestionComponent : public Component
     , public KeyListener
-    , public UnicodeTextEditor::InputFilter {
+    , public TextEditor::InputFilter {
 
     class Suggestion : public TextButton {
         int idx = 0;
@@ -157,7 +157,7 @@ public:
         buttons.clear();
     }
 
-    void createCalloutBox(Object* object, UnicodeTextEditor* editor)
+    void createCalloutBox(Object* object, TextEditor* editor)
     {
         currentBox = object;
         openedEditor = editor;
@@ -253,7 +253,7 @@ public:
         repaint();
     }
 
-    UnicodeTextEditor* openedEditor = nullptr;
+    TextEditor* openedEditor = nullptr;
     SafePointer<Object> currentBox;
 
     void resized() override
@@ -335,7 +335,7 @@ private:
         return false;
     }
 
-    String filterNewText(UnicodeTextEditor& e, String const& newInput) override
+    String filterNewText(TextEditor& e, String const& newInput) override
     {
         if (!currentBox) {
             return newInput;

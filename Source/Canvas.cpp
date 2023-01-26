@@ -1176,7 +1176,7 @@ void Canvas::valueChanged(Value& v)
     }
 }
 
-void Canvas::showSuggestions(Object* object, UnicodeTextEditor* textEditor)
+void Canvas::showSuggestions(Object* object, TextEditor* textEditor)
 {
     suggestor->createCalloutBox(object, textEditor);
 }
