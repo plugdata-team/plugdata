@@ -1,12 +1,12 @@
 ---
 title: table~
 
-description: Table Reader
+description: table Reader
 
 categories:
 - object
 
-pdcategory: General
+pdcategory: Arrays and Tables, Buffers
 
 arguments:
   1st:

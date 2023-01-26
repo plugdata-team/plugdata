@@ -1,12 +1,12 @@
 ---
 title: susloop~
 
-description: Sustain looper for samplers
+description: sustain looper for samplers
 
 categories:
  - object
  
-pdcategory: General
+pdcategory: Buffers
 
 arguments:
 - type: float
@@ -25,7 +25,7 @@ arguments:
 inlets:
   1st:
   - type: float/signal
-    description: 0 to non-0 transition: trigger. Non-0 to 0 transition: release (loop is off)
+    description: 0 to non-0: starts and loops. Non-0 to 0: loop is off
   - type: bang
     description: trigger: starts from 0 and loops
   2nd:

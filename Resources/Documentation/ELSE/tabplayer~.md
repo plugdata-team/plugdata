@@ -1,12 +1,12 @@
 ---
 title: tabplayer~
 
-description: Array/table player
+description: array/table player
 
 categories:
 - object
 
-pdcategory: General
+pdcategory: Arrays and Tables, Buffers
 
 arguments:
  1st:
@@ -41,11 +41,11 @@ flags:
 inlets:
   1st:
   - type: float
-    description: non-zero plays, <0> stops
+    description: non-0 plays, 0 stops
   - type: bang
     description: play (same as non-zero)
   - type: signal
-    description: gate on or impulse starts playing, gate off stops if not in trigger mode, which is the default mode
+    description: gate on/impulse — starts, gate off — stops (not in trigger mode)
 
 outlets:
   1st:
@@ -71,9 +71,10 @@ methods:
   - type: reset
     description: resets range from 0 to array size
   - type: speed <float>
-    description: sets playing speed in percentage (default 100)
+    description: sets playing speed in percentage 
+    default: 100
   - type: play <f, f, f>
-    description: start playing - optional 1st float sets start (ms), 2nd sets end (in ms) and 3rd sets speed rate
+    description: start playing, optional <start in ms, end in ms, speed rate>
   - type: <stop>
     description: stops playing and outputs 0 (cannot be resumed)
   - type: <pause>
@@ -81,11 +82,14 @@ methods:
   - type: <resume>
     description: resumes playing after being paused
   - type: loop <float>
-    description: non zero enables looping, <0> disables it (default 0)
+    description: non zero enables looping, <0> disables it 
+    default: 0
   - type: fade <float>
-    description: sets fade time in ms (default 0)
+    description: sets fade time in ms 
+    default: 0
   - type: xfade <float>
-    description: sets to crossfade mode when looping (default no crossfade)
+    description: sets to crossfade mode when looping 
+    default: no crossfade
   - type: sr <float>
     description: sets sample rate of sample (default, Pd's sample rate)
 

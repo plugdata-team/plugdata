@@ -1,12 +1,12 @@
 ---
 title: slew2
 
-description: Control slew limiter
+description: control slew limiter
 
 categories:
 - object
 
-pdcategory: Control
+pdcategory: Envelopes and LFOs
 
 arguments:
 - type: float

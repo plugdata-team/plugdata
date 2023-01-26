@@ -1,12 +1,12 @@
 ---
 title: trunc~
 
-description: Truncate to integer
+description: truncate to integer
 
 categories:
 - object
 
-pdcategory: General
+pdcategory: Signal Math
 
 arguments:
 - description:

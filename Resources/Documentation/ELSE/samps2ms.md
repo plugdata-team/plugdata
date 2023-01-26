@@ -1,12 +1,12 @@
 ---
 title: samps2ms
 
-description: Convert samples to ms
+description: convert samples to ms
 
 categories:
 - object
 
-pdcategory: Math (Conversion)
+pdcategory: Math
 
 arguments: (none)
 

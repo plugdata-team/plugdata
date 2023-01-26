@@ -1,12 +1,12 @@
 ---
 title: tap
 
-description: Tapped tempo
+description: tapped tempo
 
 categories:
 - object
 
-pdcategory:
+pdcategory: Sequencing, Triggers and Clocks
 
 flags:
 - name: -ms

@@ -1,7 +1,7 @@
 ---
 title: sysrt.out
 
-description: Midi system/real-time output
+description: MIDI system/real-time output
 
 categories:
 - object
