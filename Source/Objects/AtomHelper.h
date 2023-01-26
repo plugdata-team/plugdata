@@ -75,8 +75,8 @@ public:
     {
         return {
             { "Font size", tCombo, cGeneral, &labelHeight, { "auto", "8", "10", "12", "16", "24", "36" } },
-            { "Send Symbol", tString, cGeneral, &sendSymbol, {} },
             { "Receive Symbol", tString, cGeneral, &receiveSymbol, {} },
+            { "Send Symbol", tString, cGeneral, &sendSymbol, {} },
             { "Label", tString, cLabel, &labelText, {} },
             { "Label Position", tCombo, cLabel, &labelPosition, { "left", "right", "top", "bottom" } }
         };
@@ -124,6 +124,9 @@ public:
             label->setColour(Label::textColourId, object->findColour(PlugDataColour::canvasTextColourId));
 
             object->cnv->addAndMakeVisible(label.get());
+        }
+        else {
+            label.reset(nullptr);
         }
     }
 
