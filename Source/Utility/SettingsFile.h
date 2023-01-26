@@ -233,6 +233,11 @@ public:
     void reloadSettings()
     {
 
+        if(settingsChangedInternally) {
+            settingsChangedInternally = false;
+            return;
+        }
+        
         jassert(isInitialised);
 
         auto newTree = ValueTree::fromXml(settingsFile.loadFileAsString());
@@ -247,8 +252,6 @@ public:
         settingsTree.copyPropertiesFrom(newTree, nullptr);
 
         settingsTree.addListener(this);
-
-        settingsChangedInternally = false;
     }
 
     void valueTreePropertyChanged(ValueTree& treeWhosePropertyHasChanged, Identifier const& property) override
