@@ -245,6 +245,9 @@ public:
 
             object->cnv->addAndMakeVisible(label.get());
         }
+        else {
+            label.reset(nullptr);
+        }
     }
 
     Rectangle<int> getLabelBounds() const
@@ -376,10 +379,8 @@ public:
         if (newText.isEmpty())
             newText = "empty";
 
-        if (newText != "empty") {
-            iemgui->x_lab_unexpanded = pd->generateSymbol(newText);
-            iemgui->x_lab = canvas_realizedollar(iemgui->x_glist, iemgui->x_lab_unexpanded);
-        }
+        iemgui->x_lab_unexpanded = pd->generateSymbol(newText);
+        iemgui->x_lab = canvas_realizedollar(iemgui->x_glist, iemgui->x_lab_unexpanded);
     }
 
     void setLabelPosition(Point<int> position)
