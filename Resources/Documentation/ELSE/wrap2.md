@@ -6,7 +6,7 @@ description: wraps between two values
 categories:
  - object
  
-pdcategory: Math 
+pdcategory: Data Math 
 
 arguments:
   - type: list

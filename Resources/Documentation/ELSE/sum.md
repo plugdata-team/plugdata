@@ -6,7 +6,7 @@ description: sum a list
 categories:
 - object
 
-pdcategory: Data Management 
+pdcategory: Data Management, Data Math 
 
 arguments: (none)
 
