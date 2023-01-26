@@ -6,7 +6,7 @@ description: automatic fade-in/out
 categories:
  - object
 
-pdcategory: Effects
+pdcategory: Mixing and Routing, Effects
 
 arguments:
   - type: symbol
