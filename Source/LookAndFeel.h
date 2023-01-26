@@ -171,7 +171,9 @@ inline const std::map<PlugDataColour, std::tuple<String, String, String>> PlugDa
 };
 
 struct Resources {
-    Typeface::Ptr defaultTypeface = Typeface::createSystemTypefaceFor(BinaryData::InterRegular_ttf, BinaryData::InterRegular_ttfSize);
+
+    // Default typeface is Inter combined with Unicode symbols from GoNotoUniversal and emojis from NotoEmoji
+    Typeface::Ptr defaultTypeface = Typeface::createSystemTypefaceFor(BinaryData::InterUnicode_ttf, BinaryData::InterUnicode_ttfSize);
 
     Typeface::Ptr thinTypeface = Typeface::createSystemTypefaceFor(BinaryData::InterThin_ttf, BinaryData::InterThin_ttfSize);
 
@@ -182,8 +184,6 @@ struct Resources {
     Typeface::Ptr iconTypeface = Typeface::createSystemTypefaceFor(BinaryData::IconFont_ttf, BinaryData::IconFont_ttfSize);
 
     Typeface::Ptr monoTypeface = Typeface::createSystemTypefaceFor(BinaryData::IBMPlexMono_ttf, BinaryData::IBMPlexMono_ttfSize);
-    
-    Typeface::Ptr unicodeTypeface = Typeface::createSystemTypefaceFor(BinaryData::GoNotoCurrent_ttf, BinaryData::GoNotoCurrent_ttfSize);
 };
 
 struct PlugDataLook : public LookAndFeel_V4 {
@@ -195,7 +195,6 @@ struct PlugDataLook : public LookAndFeel_V4 {
     Font thinFont;
     Font iconFont;
     Font monoFont;
-    Font fallbackFont;
 
     PlugDataLook()
         : defaultFont(resources->defaultTypeface)
@@ -204,15 +203,8 @@ struct PlugDataLook : public LookAndFeel_V4 {
         , thinFont(resources->thinTypeface)
         , iconFont(resources->iconTypeface)
         , monoFont(resources->monoTypeface)
-        , fallbackFont(resources->unicodeTypeface)
     {
         setDefaultSansSerifTypeface(resources->defaultTypeface);
-        
-        // On macOS, fallback fonts will be handled automatically
-#if !JUCE_MAC
-        Font::setFallbackFontName(resources->unicodeTypeface->getName());
-#endif
-        
     }
 
     class PlugData_DocumentWindowButton : public Button {
@@ -752,6 +744,23 @@ struct PlugDataLook : public LookAndFeel_V4 {
         g.setColour(slider.findColour(PlugDataColour::levelMeterThumbColourId));
 
         g.fillRoundedRectangle(Rectangle<float>(static_cast<float>(thumbWidth), static_cast<float>(22)).withCentre(maxPoint), 2.0f);
+    }
+    
+    void fillTextEditorBackground(Graphics& g, int width, int height, TextEditor& textEditor) override
+    {
+        if (dynamic_cast<AlertWindow*> (textEditor.getParentComponent()) != nullptr)
+        {
+            g.setColour (textEditor.findColour (TextEditor::backgroundColourId));
+            g.fillRect (0, 0, width, height);
+        }
+        else
+        {
+            g.fillAll (textEditor.findColour (TextEditor::backgroundColourId));
+        }
+    }
+    
+    void drawTextEditorOutline (Graphics& g, int width, int height, TextEditor& textEditor) override
+    {
     }
 
     void drawCornerResizer(Graphics& g, int w, int h, bool isMouseOver, bool isMouseDragging) override

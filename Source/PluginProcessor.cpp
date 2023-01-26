@@ -217,16 +217,14 @@ void PluginProcessor::initialiseFilesystem()
                 break;
             }
 
-            auto oldSize = allData.size();
-            allData.resize(oldSize + size);
-
-            std::copy(resource, resource + size, allData.begin() + oldSize);
-
+            allData.insert(allData.end(), resource, resource + size);
             i++;
         }
 
         MemoryInputStream memstream(allData.data(), allData.size(), false);
-
+        
+        homeDir.createDirectory();
+        
         auto file = ZipFile(memstream);
         file.uncompressTo(homeDir);
 

@@ -618,7 +618,7 @@ private:
     ListBox listBox;
 
     Array<String> searchResult;
-    UnicodeTextEditor input;
+    TextEditor input;
     TextButton clearButton = TextButton(Icons::Clear);
 
     std::unordered_map<String, String> objectDescriptions;

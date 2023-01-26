@@ -700,7 +700,7 @@ private:
 
     PackageManager* packageManager = PackageManager::getInstance();
 
-    UnicodeTextEditor input;
+    TextEditor input;
     TextButton clearButton = TextButton(Icons::Clear);
 
     Spinner updateSpinner;

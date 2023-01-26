@@ -317,7 +317,7 @@ public:
 
     template<typename T>
     struct EditableComponent : public Property {
-        std::unique_ptr<Component> label;
+        std::unique_ptr<Label> label;
         Value& property;
 
         EditableComponent(String propertyName, Value& value)
@@ -331,7 +331,7 @@ public:
                 draggableNumber->getTextValue().referTo(property);
                 draggableNumber->setFont(Font(14));
 
-                dynamic_cast<DraggableNumber*>(label.get())->valueChanged = [this](float value) {
+                draggableNumber->valueChanged = [this](float value) {
                     property = value;
                 };
 
@@ -347,11 +347,10 @@ public:
                     }
                 };
             } else {
-                auto* unicodeLabel = new UnicodeLabel();
-                label = std::unique_ptr<UnicodeLabel>(unicodeLabel);
-                unicodeLabel->setEditable(true, false);
-                unicodeLabel->getTextValue().referTo(property);
-                unicodeLabel->setFont(Font(14));
+                label = std::make_unique<Label>();
+                label->setEditable(true, false);
+                label->getTextValue().referTo(property);
+                label->setFont(Font(14));
             }
 
             addAndMakeVisible(label.get());
@@ -366,7 +365,7 @@ public:
     };
 
     struct FilePathComponent : public Property {
-        UnicodeLabel label;
+        Label label;
         TextButton browseButton = TextButton(Icons::File);
         Value& property;
 
