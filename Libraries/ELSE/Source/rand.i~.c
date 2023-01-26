@@ -37,18 +37,14 @@ static t_int *randi_perform(t_int *w){
         float trig = *in1++;
         float input2 = *in2++;
         float input3 = *in3++;
-        float out_low = (int)input2;      // Output LOW
-        float out_high = (int)input3 + 1; // Output HIGH
+        float out_low = (int)input2;  // Output LOW
+        float out_high = (int)input3; // Output HIGH
         if(out_low > out_high){
             int temp = out_low;
             out_low = out_high;
             out_high = temp;
         }
-        if(out_low < 0)
-            out_low -= 1;
-        if(out_high < 0)
-            out_high -= 1;
-        int range = out_high - out_low;   // Range
+        int range = out_high - out_low; // Range
         if(range == 0)
             randi = out_low;
         else{
@@ -64,7 +60,7 @@ static t_int *randi_perform(t_int *w){
                 uint32_t *s2 = &x->x_rstate.s2;
                 uint32_t *s3 = &x->x_rstate.s3;
                 t_float noise = (t_float)(random_frand(s1, s2, s3)) * 0.5 + 0.5;
-                randi = (int)((noise * range) + out_low);
+                randi = (int)((noise * (range + 1))) + out_low;
             }
         }
         *out++ = randi;

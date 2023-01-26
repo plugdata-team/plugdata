@@ -1,10 +1,10 @@
-#N canvas 713 95 575 304 10;
+#N canvas 713 95 584 455 10;
 #X declare -path else;
-#X obj 23 193 *~;
+#X obj 23 323 *~;
 #X obj 105 36 inlet~;
-#X obj 105 192 *~;
-#X obj 23 78 hip~ 3;
-#X obj 105 77 hip~ 3;
+#X obj 68 322 *~;
+#X obj 23 208 hip~ 3;
+#X obj 68 207 hip~ 3;
 #N canvas 627 117 636 328 set_GUI 0;
 #X obj 66 225 s \$0-set-slider;
 #X obj 98 18 inlet;
@@ -46,22 +46,17 @@
 #X connect 19 6 12 0;
 #X connect 20 0 15 0;
 #X connect 20 0 16 0;
-#X restore 273 77 pd set_GUI;
+#X restore 236 207 pd set_GUI;
 #N canvas 965 168 332 251 GUI 0;
-#X obj 103 116 hsl 89 20 0 1 0 0 \$0-slider \$0-set-slider volume 17
-9 0 14 #dcdcdc #000000 #000000 0 1;
+#X obj 103 116 hsl 89 20 0 1 0 0 \$0-slider \$0-set-slider volume 17 9 0 14 #dcdcdc #000000 #000000 0 1;
 #N canvas 565 338 514 332 DSP 0;
-#X obj 100 100 tgl 16 0 \$0-dsp-toggle \$0-dsp-toggle-set empty 19
-8 0 12 #dcdcdc #7c7c7c #fcfcfc 0 1;
-#X obj 117 101 cnv 5 24 14 empty \$0-cnv_dsp dsp 2 6 0 12 #dcdcdc #585854
-0;
+#X obj 100 100 tgl 16 0 \$0-dsp-toggle \$0-dsp-toggle-set empty 19 8 0 12 #4a4f51 #cde5c3 #fcfcfc 0 1;
+#X obj 117 101 cnv 5 24 14 empty \$0-cnv_dsp dsp 2 6 0 12 #dcdcdc #585854 0;
 #X coords 0 -1 1 1 42 16 2 100 100;
 #X restore 100 100 pd DSP;
 #N canvas 335 32 409 332 mute 0;
-#X obj 101 101 cnv 5 34 14 empty \$0-cnv_mute mute 4 6 0 12 #dcdcdc
-#585854 0;
-#X obj 64 133 tgl 16 0 \$0-mute \$0-mute-set empty 19 7 0 12 #dcdcdc
-#7c7c7c #fcfcfc 0 1;
+#X obj 101 101 cnv 5 34 14 empty \$0-cnv_mute mute 4 6 0 12 #dcdcdc #585854 0;
+#X obj 64 133 tgl 16 0 \$0-mute \$0-mute-set empty 19 7 0 12 #dcdcdc #7c7c7c #fcfcfc 0 1;
 #X obj 130 162 select 0 1;
 #N canvas 612 446 324 271 set_tgl_color 0;
 #X obj 47 30 inlet;
@@ -216,8 +211,7 @@
 #X connect 28 2 25 0;
 #X restore 310 198 pd on;
 #X obj 267 233 s \$0-set-slider;
-#X obj 136 100 bng 16 500 250 0 \$0-mute-bng \$0-mute-bng-set empty
-17 7 0 10 #dcdcdc #000000 #000000;
+#X obj 136 100 bng 16 500 250 0 \$0-mute-bng \$0-mute-bng-set empty 17 7 0 10 #dcdcdc #000000 #000000;
 #X obj 64 48 else/lb;
 #X connect 1 0 2 0;
 #X connect 1 0 3 0;
@@ -388,7 +382,7 @@
 #X connect 14 0 13 0;
 #X connect 15 0 13 0;
 #X connect 16 0 15 1;
-#X restore 224 116 pd Gui_control;
+#X restore 187 246 pd Gui_control;
 #N canvas 341 432 366 298 gain-mute 0;
 #N canvas 251 205 450 331 quartic 0;
 #X obj 100 126 line~;
@@ -586,20 +580,24 @@
 #X connect 5 0 0 0;
 #X connect 6 0 1 0;
 #X connect 7 0 6 1;
-#X restore 224 152 pd gain-mute;
-#X text 269 206 Part of ELSE \; https://github.com/porres/pd-else;
-#X obj 90 238 dac~ 1 2 3 4;
+#X restore 187 282 pd gain-mute;
+#X text 232 336 Part of ELSE \; https://github.com/porres/pd-else;
+#X obj 45 368 dac~ 1 2 3 4;
 #X obj 157 36 inlet~;
-#X obj 157 193 *~;
+#X obj 120 323 *~;
 #X obj 209 36 inlet~;
-#X obj 209 192 *~;
-#X obj 157 78 hip~ 3;
-#X obj 209 77 hip~ 3;
-#X text 271 187 Alexandre Torres Porres (2019);
+#X obj 172 322 *~;
+#X obj 120 208 hip~ 3;
+#X obj 172 207 hip~ 3;
+#X text 234 317 Alexandre Torres Porres (2019);
 #X obj 23 36 inlet~ fwd;
 #X obj 355 65 declare -path else;
+#X obj 193 104 else/nchs~;
+#X obj 23 94 unpack~ 4;
+#X obj 68 156 else/xfade~ 3;
+#X obj 193 127 expr if($f1 != 1 \, -1 \, 1);
 #X connect 0 0 10 0;
-#X connect 1 0 4 0;
+#X connect 1 0 22 3;
 #X connect 2 0 10 1;
 #X connect 3 0 0 0;
 #X connect 4 0 2 0;
@@ -608,12 +606,22 @@
 #X connect 8 0 0 1;
 #X connect 8 0 12 1;
 #X connect 8 0 14 1;
-#X connect 11 0 15 0;
+#X connect 11 0 22 4;
 #X connect 12 0 10 2;
-#X connect 13 0 16 0;
+#X connect 13 0 22 5;
 #X connect 14 0 10 3;
 #X connect 15 0 12 0;
 #X connect 16 0 14 0;
-#X connect 18 0 3 0;
+#X connect 18 0 20 0;
+#X connect 18 0 21 0;
 #X connect 18 1 5 0;
+#X connect 20 0 23 0;
+#X connect 21 0 3 0;
+#X connect 21 1 22 0;
+#X connect 21 2 22 1;
+#X connect 21 3 22 2;
+#X connect 22 0 4 0;
+#X connect 22 1 15 0;
+#X connect 22 2 16 0;
+#X connect 23 0 22 6;
 #X coords 0 0 1 1 94 51 1 360 90;

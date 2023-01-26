@@ -18,24 +18,20 @@ static void randi_seed(t_randi *x, t_symbol *s, int ac, t_atom *av){
 }
 
 static void randi_bang(t_randi *x){
-    int min = (int)x->x_min, max = (int)x->x_max + 1;
+    int min = (int)x->x_min, max = (int)x->x_max;
     if(min > max){
         int temp = min;
         min = max;
         max = temp;
     }
-    if(min < 0)
-        min -= 1;
-    if(max < 0)
-        max -= 1;
-    int range = max - min;
+    int range = (max - min);
     int random = min;
     if(range){
         uint32_t *s1 = &x->x_rstate.s1;
         uint32_t *s2 = &x->x_rstate.s2;
         uint32_t *s3 = &x->x_rstate.s3;
         t_float noise = (t_float)(random_frand(s1, s2, s3)) * 0.5 + 0.5;
-        random = (int)((noise * range) + min);
+        random = (int)((noise * (range + 1))) + min;
     }
     outlet_float(x->x_obj.ob_outlet, random);
 }

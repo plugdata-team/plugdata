@@ -46,20 +46,15 @@
 #X connect 20 0 19 0;
 #X restore 159 77 pd set_GUI;
 #N canvas 965 168 332 251 GUI 0;
-#X obj 103 116 hsl 89 20 0 1 0 0 \$0-slider \$0-set-slider volume 17
-9 0 14 #dcdcdc #000000 #000000 0 1;
+#X obj 103 116 hsl 89 20 0 1 0 0 \$0-slider \$0-set-slider volume 17 9 0 14 #dcdcdc #000000 #000000 0 1;
 #N canvas 565 338 514 332 DSP 0;
-#X obj 100 100 tgl 16 0 \$0-dsp-toggle \$0-dsp-toggle-set empty 19
-8 0 12 #dcdcdc #7c7c7c #fcfcfc 0 1;
-#X obj 117 101 cnv 5 24 14 empty \$0-cnv_dsp dsp 2 6 0 12 #dcdcdc #585854
-0;
+#X obj 100 100 tgl 16 0 \$0-dsp-toggle \$0-dsp-toggle-set empty 19 8 0 12 #dcdcdc #7c7c7c #fcfcfc 0 1;
+#X obj 117 101 cnv 5 24 14 empty \$0-cnv_dsp dsp 2 6 0 12 #dcdcdc #585854 0;
 #X coords 0 -1 1 1 42 16 2 100 100;
 #X restore 100 100 pd DSP;
 #N canvas 830 23 409 332 mute 0;
-#X obj 101 101 cnv 5 34 14 empty \$0-cnv_mute mute 4 6 0 12 #dcdcdc
-#585854 0;
-#X obj 64 133 tgl 16 0 \$0-mute \$0-mute-set empty 19 7 0 12 #dcdcdc
-#7c7c7c #fcfcfc 0 1;
+#X obj 101 101 cnv 5 34 14 empty \$0-cnv_mute mute 4 6 0 12 #dcdcdc #585854 0;
+#X obj 64 133 tgl 16 0 \$0-mute \$0-mute-set empty 19 7 0 12 #dcdcdc #7c7c7c #fcfcfc 0 1;
 #X obj 130 162 select 0 1;
 #N canvas 612 446 324 271 set_tgl_color 0;
 #X obj 47 30 inlet;
@@ -214,8 +209,7 @@
 #X connect 28 2 25 0;
 #X restore 310 198 pd on;
 #X obj 267 233 s \$0-set-slider;
-#X obj 136 100 bng 16 500 250 0 \$0-mute-bng \$0-mute-bng-set empty
-17 7 0 10 #dcdcdc #000000 #000000;
+#X obj 136 100 bng 16 500 250 0 \$0-mute-bng \$0-mute-bng-set empty 17 7 0 10 #dcdcdc #000000 #000000;
 #X obj 64 47 else/lb;
 #X connect 1 0 2 0;
 #X connect 1 0 3 0;
@@ -588,24 +582,47 @@
 #X restore 156 132 pd gain-mute;
 #X text 165 234 Part of ELSE \; https://github.com/porres/pd-else;
 #X obj 23 36 inlet~ fwd;
-#N canvas 347 63 385 245 switch 0;
-#X obj 87 122 *~;
-#X obj 225 30 inlet~;
-#X obj 67 30 inlet~;
-#X obj 67 188 outlet~;
-#X obj 225 188 outlet~;
-#X obj 225 122 *~;
-#X obj 240 96 else/op~ != 10000;
-#X obj 102 97 else/op~ == 10000;
-#X connect 0 0 4 0;
+#N canvas 495 63 418 373 switch 0;
+#X obj 223 239 *~;
+#X obj 296 30 inlet~;
+#X obj 133 30 inlet~;
+#X obj 67 328 outlet~;
+#X obj 118 328 outlet~;
+#X obj 296 239 *~;
+#X obj 311 202 else/op~ != 10000, f 8;
+#X obj 238 202 else/op~ == 10000, f 8;
+#X obj 118 288 else/xselect~ 2 10;
+#X obj 133 76 else/nchs~;
+#X obj 133 102 == 1;
+#X obj 84 165 *~;
+#X obj 118 166 *~;
+#X obj 133 131 == 0;
+#X obj 67 75 unpack~ 2;
+#X obj 150 167 sel 0;
+#X msg 150 261 2;
+#X connect 0 0 8 1;
 #X connect 1 0 5 0;
 #X connect 1 0 6 0;
 #X connect 1 0 7 0;
-#X connect 2 0 0 0;
-#X connect 2 0 3 0;
-#X connect 5 0 4 0;
+#X connect 2 0 9 0;
+#X connect 2 0 14 0;
+#X connect 5 0 8 1;
 #X connect 6 0 5 1;
 #X connect 7 0 0 1;
+#X connect 8 0 4 0;
+#X connect 9 0 10 0;
+#X connect 10 0 13 0;
+#X connect 10 0 11 1;
+#X connect 11 0 0 0;
+#X connect 12 0 8 0;
+#X connect 13 0 12 1;
+#X connect 13 0 15 0;
+#X connect 14 0 3 0;
+#X connect 14 0 11 0;
+#X connect 14 1 12 0;
+#X connect 15 0 16 0;
+#X connect 15 1 8 0;
+#X connect 16 0 8 0;
 #X restore 54 73 pd switch;
 #X obj 105 104 hip~ 3;
 #X obj 54 105 hip~ 3;
