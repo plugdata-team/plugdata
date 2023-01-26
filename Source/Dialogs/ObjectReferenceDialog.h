@@ -103,7 +103,31 @@ public:
 
         auto textBounds = outlineBounds.reduced(2.0f);
         PlugDataLook::drawText(g, objectName, textBounds.toNearestInt(), findColour(PlugDataColour::panelTextColourId), 15, Justification::centred);
+        
+        auto themeTree = SettingsFile::getInstance()->getTheme(SettingsFile::getInstance()->getProperty("Theme"));
+        
+        auto squareIolets = static_cast<bool>(themeTree.getProperty("SquareIolets"));
 
+        auto drawIolet = [this, squareIolets](Graphics& g, Rectangle<float> bounds, bool type) mutable
+        {
+            g.setColour(type ? findColour(PlugDataColour::signalColourId) : findColour(PlugDataColour::dataColourId));
+            
+            if(squareIolets) {
+                g.fillRect(bounds);
+                
+                g.setColour(findColour(PlugDataColour::objectOutlineColourId));
+                g.drawRect(bounds, 1.0f);
+            }
+            else {
+                
+                g.fillEllipse(bounds);
+                
+                g.setColour(findColour(PlugDataColour::objectOutlineColourId));
+                g.drawEllipse(bounds, 1.0f);
+            }
+            
+        };
+        
         auto ioletBounds = outlineBounds.reduced(8, 0);
 
         for (int i = 0; i < inlets.size(); i++) {
@@ -121,11 +145,8 @@ public:
 
                 inletBounds = Rectangle<int>(ioletBounds.getX() + ratio * i, yPosition, ioletSize, ioletSize);
             }
-            g.setColour(inlets[i] ? findColour(PlugDataColour::signalColourId) : findColour(PlugDataColour::dataColourId));
-            g.fillEllipse(inletBounds.toFloat());
-
-            g.setColour(findColour(PlugDataColour::objectOutlineColourId));
-            g.drawEllipse(inletBounds.toFloat(), 1.0f);
+ 
+            drawIolet(g, inletBounds.toFloat(), inlets[i]);
         }
 
         for (int i = 0; i < outlets.size(); i++) {
@@ -143,12 +164,8 @@ public:
                 float const ratio = (ioletBounds.getWidth() - ioletSize) / static_cast<float>(total - 1);
                 outletBounds = Rectangle<int>(ioletBounds.getX() + ratio * i, yPosition, ioletSize, ioletSize);
             }
-
-            g.setColour(outlets[i] ? findColour(PlugDataColour::signalColourId) : findColour(PlugDataColour::dataColourId));
-            g.fillEllipse(outletBounds.toFloat());
-
-            g.setColour(findColour(PlugDataColour::objectOutlineColourId));
-            g.drawEllipse(outletBounds.toFloat(), 1.0f);
+            
+            drawIolet(g, outletBounds.toFloat(), outlets[i]);
         }
     }
 
@@ -279,6 +296,8 @@ public:
 
     String category;
     String description;
+    
+    PluginEditor* editor;
 
     pd::Library& library;
 };
