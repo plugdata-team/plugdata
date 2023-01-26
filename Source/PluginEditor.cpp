@@ -559,7 +559,8 @@ void PluginEditor::addTab(Canvas* cnv, bool deleteWhenClosed)
             });
     };
 
-    closeTabButton->getProperties().set("Style", "SmallIcon");
+    closeTabButton->getProperties().set("Style", "Icon");
+    closeTabButton->getProperties().set("FontScale", 0.44f);
     closeTabButton->setColour(TextButton::buttonColourId, Colour());
     closeTabButton->setColour(TextButton::buttonOnColourId, Colour());
     closeTabButton->setColour(ComboBox::outlineColourId, Colour());
