@@ -346,11 +346,9 @@ private:
 
         void paint(Graphics& g) override
         {
-            g.setFont((float)getHeight() * 0.6f);
-
             PlugDataLook::drawFittedText(g, owner.getCommandManager().getNameOfCommand(commandID),
                 6, 0, jmax(40, getChildComponent(0)->getX() - 5), getHeight(),
-                Justification::centredLeft, owner.findColour(KeyMappingEditorComponent::textColourId));
+                 owner.findColour(KeyMappingEditorComponent::textColourId), (float)getHeight() * 0.6f);
         }
 
         void resized() override
@@ -417,9 +415,7 @@ private:
 
         void paintItem(Graphics& g, int width, int height) override
         {
-            g.setFont(Font((float)height * 0.6f, Font::bold));
-
-            PlugDataLook::drawText(g, categoryName, 6, 0, width - 2, height, Justification::centredLeft, owner.findColour(KeyMappingEditorComponent::textColourId));
+            PlugDataLook::drawStyledText(g, categoryName, 6, 0, width - 2, height, owner.findColour(KeyMappingEditorComponent::textColourId), Bold, (float)height * 0.6f);
         }
 
         void paintOpenCloseButton(Graphics& g, Rectangle<float> const& area, Colour backgroundColour, bool isMouseOver) override

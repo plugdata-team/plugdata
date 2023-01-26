@@ -10,7 +10,6 @@ class CommentObject final : public ObjectBase
 
     bool locked;
 
-    Justification justification = Justification::centredLeft;
     std::unique_ptr<TextEditor> editor;
     BorderSize<int> border = BorderSize<int>(1, 7, 1, 2);
     float minimumHorizontalScale = 0.8f;
@@ -27,7 +26,6 @@ public:
     CommentObject(void* obj, Object* object)
         : ObjectBase(obj, object)
     {
-        justification = Justification::topLeft;
         locked = static_cast<bool>(object->locked.getValue());
 
         objectText = getText();
@@ -48,11 +46,9 @@ public:
         if (!editor) {
 
             auto textArea = getLocalBounds().reduced(4, 2);
-            auto attributedObjectText = AttributedString();
-            attributedObjectText.setJustification(justification);
-            attributedObjectText.append(objectText, Font(13.5f), object->findColour(PlugDataColour::canvasTextColourId));
-            attributedObjectText.draw(g, textArea.toFloat());
 
+            PlugDataLook::drawFittedText(g, objectText, textArea, object->findColour(PlugDataColour::canvasTextColourId), numLines, 0.95f, 13.5f, Justification::topLeft);
+            
             auto selected = cnv->isSelected(object);
             if (object->locked == var(false) && (object->isMouseOverOrDragging(true) || selected) && !cnv->isGraph) {
                 g.setColour(object->findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : PlugDataColour::objectOutlineColourId));
@@ -165,7 +161,7 @@ public:
             editor->setScrollbarsShown(false);
             editor->setBorder(BorderSize<int> { 1, 4, 0, 0 });
             editor->setIndents(0, 0);
-            editor->setJustification(justification);
+            editor->setJustification(Justification::topLeft);
             editor->setScrollToShowCursor(false);
 
             editor->onFocusLost = [this]() {

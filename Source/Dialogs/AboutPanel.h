@@ -15,15 +15,9 @@ class AboutPanel : public Component {
 public:
     void paint(Graphics& g) override
     {
-        auto* lnf = dynamic_cast<PlugDataLook*>(&getLookAndFeel());
-        if (!lnf)
-            return;
+        PlugDataLook::drawStyledText(g, "plugdata " + String(ProjectInfo::versionString), 150, 20, 300, 30, findColour(PlugDataColour::panelTextColourId), Bold, 30);
 
-        g.setFont(lnf->boldFont.withHeight(30));
-        g.setColour(findColour(PlugDataColour::panelTextColourId));
-        g.drawFittedText("plugdata " + String(ProjectInfo::versionString), 150, 20, 300, 30, Justification::left, 1);
-
-        g.setFont(lnf->defaultFont.withHeight(16));
+        g.setFont(Font(16));
         g.drawFittedText("By Timothy Schoen", 150, 50, getWidth() - 150, 30, Justification::left, 1);
         g.drawFittedText("Based on " + String(pd_version).upToFirstOccurrenceOf("(", false, false) + " by Miller Puckette and others", 150, 70, getWidth() - 150, 30, Justification::left, 1);
 

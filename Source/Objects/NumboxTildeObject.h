@@ -201,15 +201,8 @@ public:
 
     void paintOverChildren(Graphics& g) override
     {
-        g.setColour(object->findColour(PlugDataColour::dataColourId));
-
         auto iconBounds = Rectangle<int>(2, 0, getHeight(), getHeight());
-
-        auto font = dynamic_cast<PlugDataLook&>(object->getLookAndFeel()).iconFont.withHeight(getHeight() - 8);
-        g.setFont(font);
-
-        g.drawFittedText(mode ? Icons::ThinDown : Icons::Sine, iconBounds,
-            juce::Justification::centred, 1);
+        PlugDataLook::drawIcon(g, mode ? Icons::ThinDown : Icons::Sine, iconBounds, object->findColour(PlugDataColour::dataColourId));
     }
 
     void paint(Graphics& g) override

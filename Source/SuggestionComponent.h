@@ -48,8 +48,6 @@ class SuggestionComponent : public Component
 
         void paint(Graphics& g) override
         {
-            auto* lnf = dynamic_cast<PlugDataLook*>(&getLookAndFeel());
-
             auto scrollbarIndent = parent->port->canScrollVertically() ? 5 : 0;
 
             auto backgroundColour = findColour(getToggleState() ? PlugDataColour::popupMenuActiveBackgroundColourId : PlugDataColour::popupMenuBackgroundColourId);
@@ -59,9 +57,6 @@ class SuggestionComponent : public Component
             g.setColour(backgroundColour);
             g.fillRoundedRectangle(buttonArea, PlugDataLook::defaultCornerRadius);
 
-            auto font = lnf->semiBoldFont.withHeight(12.0f);
-            g.setFont(font);
-
             auto colour = getToggleState() ? findColour(PlugDataColour::popupMenuActiveTextColourId) : findColour(PlugDataColour::popupMenuTextColourId);
 
             auto yIndent = jmin(4, proportionOfHeight(0.3f));
@@ -70,20 +65,16 @@ class SuggestionComponent : public Component
             auto textWidth = getWidth() - leftIndent - rightIndent;
 
             if (textWidth > 0)
-                PlugDataLook::drawFittedText(g, getButtonText(), leftIndent, yIndent, textWidth, getHeight() - yIndent * 2, Justification::centredLeft, colour);
-
-            font = lnf->defaultFont.withHeight(12);
-            g.setFont(font);
+                PlugDataLook::drawStyledText(g, getButtonText(), leftIndent, yIndent, textWidth, getHeight() - yIndent * 2, colour, Semibold, 12);
 
             if (objectDescription.isNotEmpty()) {
-                auto textLength = font.getStringWidth(getButtonText());
+                auto textLength = PlugDataLook::semiBoldFont.withHeight(12).getStringWidth(getButtonText());
 
                 leftIndent += textLength;
                 auto textWidth = getWidth() - leftIndent - rightIndent;
 
-                g.setColour(colour);
                 // Draw seperator (which is an en dash)
-                g.drawText(String::fromUTF8("  \xe2\x80\x93  ") + objectDescription, Rectangle<int>(leftIndent, yIndent, textWidth, getHeight() - yIndent * 2), Justification::centredLeft);
+                PlugDataLook::drawText(g, String::fromUTF8("  \xe2\x80\x93  ") + objectDescription, Rectangle<int>(leftIndent, yIndent, textWidth, getHeight() - yIndent * 2), colour, 12);
             }
 
             if (type == -1)
@@ -98,8 +89,7 @@ class SuggestionComponent : public Component
                 iconbound.translate(6, 0);
                 g.fillRoundedRectangle(iconbound.toFloat(), PlugDataLook::smallCornerRadius);
 
-                g.setFont(font.withHeight(type ? 12 : 10));
-                PlugDataLook::drawFittedText(g, type ? "~" : "pd", iconbound.reduced(1), Justification::centred, Colours::white);
+                PlugDataLook::drawFittedText(g, type ? "~" : "pd", iconbound.reduced(1), Colours::white, 1, 1.0f, type ? 12 : 10, Justification::centred);
             }
         }
 

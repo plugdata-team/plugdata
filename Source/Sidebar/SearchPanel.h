@@ -187,18 +187,16 @@ public:
 
     void paintOverChildren(Graphics& g) override
     {
+        
+        
         g.setColour(findColour(PlugDataColour::outlineColourId));
         g.drawLine(0, 29, getWidth(), 29);
 
-        g.setFont(getLookAndFeel().getTextButtonFont(closeButton, 30));
-        g.setColour(findColour(PlugDataColour::sidebarTextColourId));
-
-        g.drawText(Icons::Search, 0, 0, 30, 30, Justification::centred);
+        auto colour = findColour(PlugDataColour::sidebarTextColourId);
+        PlugDataLook::drawIcon(g, Icons::Search, 0, 0, 30, colour, 12);
 
         if (input.getText().isEmpty()) {
-            g.setFont(Font(14));
-
-            PlugDataLook::drawText(g, "Type to search in patch", 30, 0, 300, 30, Justification::centredLeft, findColour(PlugDataColour::sidebarTextColourId).withAlpha(0.5f));
+            PlugDataLook::drawText(g, "Type to search in patch", 30, 0, 300, 30, colour.withAlpha(0.5f), 14);
         }
     }
 
@@ -209,15 +207,15 @@ public:
 
         int maxWidth = getWidth() - 20;
 
-        if (Font().getStringWidth(prefix + name + positionString) > maxWidth) {
+        if (PlugDataLook::defaultFont.getStringWidth(prefix + name + positionString) > maxWidth) {
             positionString = "";
         }
 
-        if (prefix.containsNonWhitespaceChars() && Font().getStringWidth(prefix + name + positionString) > maxWidth) {
+        if (prefix.containsNonWhitespaceChars() && PlugDataLook::defaultFont.getStringWidth(prefix + name + positionString) > maxWidth) {
             prefix = prefix.upToFirstOccurrenceOf("->", true, true) + " ... " + prefix.fromLastOccurrenceOf("->", true, true);
         }
 
-        if (prefix.containsNonWhitespaceChars() && Font().getStringWidth(prefix + name + positionString) > maxWidth) {
+        if (prefix.containsNonWhitespaceChars() && PlugDataLook::defaultFont.getStringWidth(prefix + name + positionString) > maxWidth) {
             prefix = "... -> ";
         }
 
@@ -242,12 +240,11 @@ public:
 
         auto [text, size] = formatSearchResultString(name, prefix, x, y);
 
-        auto positionTextWidth = Font().getStringWidth(size);
+        auto positionTextWidth = PlugDataLook::defaultFont.getStringWidth(size);
         auto positionTextX = getWidth() - positionTextWidth - 16;
 
-        g.setFont(Font());
-        PlugDataLook::drawText(g, text, 12, 0, positionTextX - 16, h, Justification::centredLeft, colour);
-        PlugDataLook::drawText(g, size, positionTextX, 0, positionTextWidth, h, Justification::centredRight, colour);
+        PlugDataLook::drawText(g, text, 12, 0, positionTextX - 16, h, colour, 14);
+        PlugDataLook::drawFittedText(g, size, positionTextX, 0, positionTextWidth, h, colour, 1, 0.9f, 14);
     }
 
     int getNumRows() override

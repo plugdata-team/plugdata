@@ -341,8 +341,7 @@ void Object::paintOverChildren(Graphics& g)
         int halfHeight = 5;
 
         auto text = String(cnv->objects.indexOf(this));
-        auto font = dynamic_cast<PlugDataLook&>(getLookAndFeel()).monoFont.withHeight(10);
-        int textWidth = font.getStringWidth(text) + 5;
+        int textWidth = PlugDataLook::monoFont.getStringWidth(text) + 5;
         int left = std::min<int>(getWidth() - (1.5 * margin), getWidth() - textWidth);
 
         auto indexBounds = Rectangle<int>(left, (getHeight() / 2) - halfHeight, getWidth() - left, halfHeight * 2);
@@ -350,8 +349,7 @@ void Object::paintOverChildren(Graphics& g)
         g.setColour(findColour(PlugDataColour::objectSelectedOutlineColourId));
         g.fillRoundedRectangle(indexBounds.toFloat(), 2.0f);
 
-        g.setFont(font);
-        PlugDataLook::drawText(g, text, indexBounds, Justification::centred, findColour(PlugDataColour::objectSelectedOutlineColourId).contrasting());
+        PlugDataLook::drawStyledText(g, text, indexBounds,  findColour(PlugDataColour::objectSelectedOutlineColourId).contrasting(), Monospace, 10, Justification::centred);
     }
 }
 

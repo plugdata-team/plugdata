@@ -190,9 +190,8 @@ public:
         if (!static_cast<bool>(hideNameAndArgs.getValue()) && getText() != "graph") {
             auto text = getText();
 
-            g.setFont(Font(15));
             auto textArea = getLocalBounds().removeFromTop(20).withTrimmedLeft(5);
-            PlugDataLook::drawFittedText(g, text, textArea, Justification::centredLeft, object->findColour(PlugDataColour::canvasTextColourId));
+            PlugDataLook::drawFittedText(g, text, textArea, object->findColour(PlugDataColour::canvasTextColourId));
         }
     }
 

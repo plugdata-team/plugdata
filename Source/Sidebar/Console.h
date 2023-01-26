@@ -135,9 +135,6 @@ public:
 
             void paint(Graphics& g)
             {
-                auto font = Font(Font::getDefaultSansSerifFontName(), 13, 0);
-                g.setFont(font);
-
                 bool isSelected = console.selectedItems.contains(this);
 
                 bool showMessages = console.buttons[2].getToggleState();
@@ -190,7 +187,7 @@ public:
                     textColour = Colours::red;
 
                 // Draw text
-                PlugDataLook::drawFittedText(g, message, getLocalBounds().reduced(14, 2), Justification::centredLeft, textColour);
+                PlugDataLook::drawFittedText(g, message, getLocalBounds().reduced(14, 2), textColour, numLines, 0.9f,  13);
             }
         };
 
@@ -298,8 +295,6 @@ public:
         {
             auto showMessages = buttons[2].getToggleState();
             auto showErrors = buttons[3].getToggleState();
-
-            auto font = Font(Font::getDefaultSansSerifFontName(), 13, 0);
             auto totalHeight = 0;
 
             for (auto& [message, type, length] : pd->getConsoleMessages()) {

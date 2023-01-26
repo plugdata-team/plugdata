@@ -263,7 +263,7 @@ public:
 
         if (error) {
             // TODO: error colour
-            PlugDataLook::drawText(g, "array " + array.getUnexpandedName() + " is invalid", 0, 0, getWidth(), getHeight(), Justification::centred, object->findColour(PlugDataColour::canvasTextColourId));
+            PlugDataLook::drawText(g, "array " + array.getUnexpandedName() + " is invalid", 0, 0, getWidth(), getHeight(), object->findColour(PlugDataColour::canvasTextColourId), 15, Justification::centred);
             error = false;
         } else {
             paintGraph(g);
@@ -453,7 +453,7 @@ public:
         g.drawHorizontalLine(39, 0, getWidth());
 
         if (!title.isEmpty()) {
-            PlugDataLook::drawText(g, title, 0, 0, getWidth(), 40, Justification::centred, findColour(PlugDataColour::canvasTextColourId));
+            PlugDataLook::drawText(g, title, 0, 0, getWidth(), 40, findColour(PlugDataColour::canvasTextColourId), 15, Justification::centred);
         }
     }
 };

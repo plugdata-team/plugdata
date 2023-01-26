@@ -35,13 +35,9 @@ class LibraryLoadPanel : public Component
 
                 colour = findColour(PlugDataColour::panelActiveTextColourId);
             }
-
-            g.setColour(colour);
-            g.setFont(lnf.iconFont.withHeight(14));
-            g.drawText(Icons::Add, iconBounds, Justification::centred);
-
-            g.setFont(Font(14));
-            PlugDataLook::drawText(g, "Add library to load on startup", textBounds, Justification::centredLeft, colour);
+            
+            PlugDataLook::drawIcon(g, Icons::Add, iconBounds, colour, 12);
+            PlugDataLook::drawText(g, "Add library to load on startup", textBounds, colour, 14);
         }
 
         void mouseEnter(MouseEvent const& e) override
@@ -127,11 +123,9 @@ public:
             g.fillRoundedRectangle({ 4.0f, 1.0f, width - 8.0f, height - 2.0f }, PlugDataLook::defaultCornerRadius);
         }
 
-        g.setFont(Font(14));
-
         if (!editor.isVisible() || rowBeingEdited != rowNumber) {
             auto colour = rowIsSelected ? findColour(PlugDataColour::panelActiveTextColourId) : findColour(PlugDataColour::panelTextColourId);
-            PlugDataLook::drawText(g, librariesToLoad[rowNumber], 12, 0, width - 9, height, Justification::centredLeft, colour);
+            PlugDataLook::drawText(g, librariesToLoad[rowNumber], 12, 0, width - 9, height, colour, 14);
         }
     }
 

@@ -35,13 +35,8 @@ class SearchPathComponent : public Component
 
                 colour = findColour(PlugDataColour::panelActiveTextColourId);
             }
-
-            g.setColour(colour);
-            g.setFont(lnf.iconFont.withHeight(14));
-            g.drawText(Icons::Add, iconBounds, Justification::centred);
-
-            g.setFont(Font(14));
-            PlugDataLook::drawText(g, "Add search path", textBounds, Justification::centredLeft, colour);
+            PlugDataLook::drawIcon(g, Icons::Add, iconBounds, colour, 12);
+            PlugDataLook::drawText(g, "Add search path", textBounds, colour, 14);
         }
 
         void mouseEnter(MouseEvent const& e) override
@@ -163,10 +158,8 @@ public:
         }
 
         auto colour = rowIsSelected ? findColour(PlugDataColour::panelActiveTextColourId) : findColour(PlugDataColour::panelTextColourId);
-
-        g.setFont(Font(14));
-
-        PlugDataLook::drawText(g, paths[rowNumber], 12, 0, width - 9, height, Justification::centredLeft, colour);
+        
+        PlugDataLook::drawText(g, paths[rowNumber], 12, 0, width - 9, height, colour, 14);
     }
 
     void deleteKeyPressed(int row) override

@@ -70,8 +70,7 @@ public:
         if (imageFile.existsAsFile()) {
             g.drawImageAt(img, 0, 0);
         } else {
-            g.setFont(30);
-            PlugDataLook::drawText(g, "?", getLocalBounds(), Justification::centred, object->findColour(PlugDataColour::canvasTextColourId));
+            PlugDataLook::drawText(g, "?", getLocalBounds(), object->findColour(PlugDataColour::canvasTextColourId), 30, Justification::centred);
         }
 
         bool selected = cnv->isSelected(object) && !cnv->isGraph;

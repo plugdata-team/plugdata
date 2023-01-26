@@ -148,7 +148,7 @@ public:
         auto const textArea = getBorderSize().subtractedFrom(getLocalBounds());
 
         GlyphArrangement glyphs;
-        glyphs.addFittedText(getFont(), formatNumber(dragValue), textArea.getX(), 0., textArea.getWidth(), getHeight(), Justification::centredLeft, 1, getMinimumHorizontalScale());
+        glyphs.addFittedText(getFont(), formatNumber(dragValue), textArea.getX(), 0., textArea.getWidth(), getHeight(), 1, getMinimumHorizontalScale());
 
         if (onlyIntegers) {
             decimalDrag = 0;
@@ -192,9 +192,10 @@ public:
     {
         if (!isBeingEdited()) {
             g.setFont(getFont());
-
+            g.setColour(findColour(Label::textColourId));
+            
             auto textArea = getBorderSize().subtractedFrom(getLocalBounds());
-            PlugDataLook::drawText(g, formatNumber(getText().getFloatValue(), decimalDrag), textArea, Justification::centredLeft, findColour(Label::textColourId));
+            g.drawText(formatNumber(getText().getFloatValue(), decimalDrag), textArea, Justification::centredLeft);
         }
     }
 
@@ -401,9 +402,10 @@ struct DraggableListNumber : public DraggableNumber {
     {
         if (!isBeingEdited()) {
             g.setFont(getFont());
-
+            g.setColour(findColour(Label::textColourId));
+            
             auto textArea = getBorderSize().subtractedFrom(getLocalBounds());
-            PlugDataLook::drawText(g, getText(), textArea, Justification::centredLeft, findColour(Label::textColourId));
+            g.drawText(formatNumber(getText().getFloatValue(), decimalDrag), textArea, Justification::centredLeft);
         }
     }
 };

@@ -20,7 +20,6 @@ class MessageObject final : public ObjectBase
     , public KeyListener
     , public TextEditor::Listener {
 
-    Justification justification = Justification::centredLeft;
     std::unique_ptr<TextEditor> editor;
     BorderSize<int> border = BorderSize<int>(1, 7, 1, 2);
     float minimumHorizontalScale = 0.8f;
@@ -28,7 +27,6 @@ class MessageObject final : public ObjectBase
     String objectText;
 
     int textObjectWidth = 0;
-    int textWidthOffset = 0;
     int numLines = 1;
 
     bool wasSelected = false;
@@ -109,11 +107,9 @@ public:
         g.setColour(object->findColour(PlugDataColour::defaultObjectBackgroundColourId));
         g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), PlugDataLook::objectCornerRadius);
 
-        g.setFont(Font(15));
-
         auto textArea = border.subtractedFrom(getLocalBounds());
-        // TODO: fix num lines??
-        PlugDataLook::drawFittedText(g, objectText, textArea, justification, object->findColour(PlugDataColour::canvasTextColourId));
+
+        PlugDataLook::drawFittedText(g, objectText, textArea, object->findColour(PlugDataColour::canvasTextColourId), numLines, 0.95f);
 
         bool selected = cnv->isSelected(object) && !cnv->isGraph;
         auto outlineColour = object->findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : PlugDataColour::objectOutlineColourId);
@@ -173,9 +169,9 @@ public:
     void resized() override
     {
         int fontWidth = glist_fontwidth(cnv->patch.getPointer());
-        textObjectWidth = (getWidth() - textWidthOffset) / fontWidth;
+        textObjectWidth = getWidth() / fontWidth;
 
-        int width = textObjectWidth * fontWidth + textWidthOffset;
+        int width = textObjectWidth * fontWidth;
 
         auto objText = editor ? editor->getText() : objectText;
 
@@ -212,7 +208,7 @@ public:
             editor->setScrollbarsShown(false);
             editor->setBorder(border);
             editor->setIndents(0, 0);
-            editor->setJustification(justification);
+            editor->setJustification(Justification::centredLeft);
 
             editor->setSize(10, 10);
 
