@@ -575,7 +575,7 @@ public:
         const String item = searchResult[rowNumber].getFileName();
 
         PlugDataLook::drawText(g, item, 28, 0, w - 4, h, colour);
-        PlugDataLook::drawIcon(g, Icons::File, 12, 0, 24, colour, 12, false);
+        PlugDataLook::drawIcon(g, Icons::File, 12, 3, 24, colour, 12, false);
     }
 
     int getNumRows() override
