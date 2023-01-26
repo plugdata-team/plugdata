@@ -1,12 +1,12 @@
 ---
 title: xgate2~
 
-description: Route an input with crossfade
+description: route an input with crossfade
 
 categories:
  - object
  
-pdcategory: Control(Fader/Panning/Routing)
+pdcategory: Mixing and Routing
 
 arguments:
 - type: float

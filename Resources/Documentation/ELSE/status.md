@@ -1,15 +1,15 @@
 ---
 title: status
 
-description: Report 0/non-0 transitions
+description: report 0/non-0 transitions
 
 categories:
 - object
 
-pdcategory: Control (Triggers)
+pdcategory: Triggers and Clocks
 
 arguments:
-- description: initial status value (default no status)
+- description: initial status value
   type: float
   default: no status
 

@@ -6,7 +6,7 @@ description: import 'scala' files
 categories:
 - object
 
-pdcategory: Misc
+pdcategory: Tuning
 
 arguments:
 - type: symbol

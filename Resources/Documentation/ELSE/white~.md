@@ -1,12 +1,12 @@
 ---
 title: white~
 
-description: White noise generator
+description: white noise generator
 
 categories:
  - object
  
-pdcategory: Audio Oscillators And Tables
+pdcategory: Noise
 
 arguments: (none)
   

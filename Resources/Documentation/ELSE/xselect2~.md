@@ -1,12 +1,12 @@
 ---
 title: xselect2~
 
-description: Select channel with crossfade
+description: select channel with crossfade
 
 categories:
  - object
  
-pdcategory: Control(Fader/Panning/Routing), General Audio Manipulation
+pdcategory: Mixing and Routing
 
 arguments:
 - type: float

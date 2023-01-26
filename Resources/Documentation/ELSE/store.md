@@ -1,12 +1,12 @@
 ---
 title: store
 
-description: Store messages sequentially
+description: store messages sequentially
 
 categories:
 - object
 
-pdcategory: Message Management 
+pdcategory: Data Management 
 
 arguments:
 - type: float

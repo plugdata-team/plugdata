@@ -1,12 +1,12 @@
 ---
 title: spectrograph~
 
-description: Specrtal graph
+description: specrtal graph
 
 categories:
 - object
 
-pdcategory: GUI
+pdcategory: GUI, Analysis
 
 arguments: (none)
 

@@ -1,12 +1,12 @@
 ---
 title: wrap2
 
-description: Wraps between two values
+description: wraps between two values
 
 categories:
  - object
  
-pdcategory: Math Functions
+pdcategory: Data Math 
 
 arguments:
   - type: list

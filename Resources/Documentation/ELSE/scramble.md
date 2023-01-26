@@ -1,12 +1,12 @@
 ---
 title: scramble
 
-description: Scramble messages
+description: scramble messages
 
 categories:
 - object
 
-pdcategory:
+pdcategory: Data Management
 
 arguments: (none)
 

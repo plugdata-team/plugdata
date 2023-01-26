@@ -1,7 +1,7 @@
 ---
 title: sfont~
 
-description: Soundfont synthesizer
+description: soundfont synthesizer
 
 categories:
  - object
@@ -31,10 +31,10 @@ outlets:
   - type: signal
     description: left output signal of stereo output
   2nd:
-    - type: amything
+    - type: anything
         description: right output signal of stereo output
   3rd:
-    - type: amything
+    - type: anything
       description: preset and scale name
 
 methods:
@@ -63,7 +63,7 @@ methods:
   - type: sysex <list>
     description: sysex message
   - type: panic
-    description: resets synth and clears hanging notesv
+    description: resets synth and clears hanging notes
   - type: version
     description: prints version info on terminal
   - type: info

@@ -1,12 +1,12 @@
 ---
 title: symbol2any
 
-description: Convert symbol to anything
+description: convert symbol to anything
 
 categories:
  - object
 
-pdcategory: Message Management 
+pdcategory: Data Management 
 
 arguments: (none)
 

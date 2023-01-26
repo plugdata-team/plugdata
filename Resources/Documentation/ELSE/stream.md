@@ -1,12 +1,12 @@
 ---
 title: stream
 
-description: Pack a stream of numbers
+description: pack a stream of numbers
 
 categories:
 - object
 
-pdcategory:
+pdcategory: Data Management
 
 arguments:
 - type: float

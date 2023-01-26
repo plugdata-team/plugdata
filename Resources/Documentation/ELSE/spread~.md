@@ -1,12 +1,12 @@
 ---
 title: spread~
 
-description: Spread inputs to outputs
+description: spread inputs to outputs
 
 categories:
  - object
 
-pdcategory: General
+pdcategory: Mixing and Routing
 
 arguments:
 - type: float

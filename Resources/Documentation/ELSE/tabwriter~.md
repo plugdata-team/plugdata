@@ -1,12 +1,12 @@
 ---
 title: tabwriter~
 
-description: Record signals into arrays
+description: record signals into arrays
 
 categories:
 - object
 
-pdcategory: General
+pdcategory: Arrays and Tables, Buffers
 
 arguments:
   1st:

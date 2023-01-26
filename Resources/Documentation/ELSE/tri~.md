@@ -1,12 +1,12 @@
 ---
 title: tri~
 
-description: Triangular wave oscillator
+description: triangular wave oscillator
 
 categories:
  - object
 
-pdcategory: General
+pdcategory: Signal Generators
 
 arguments:
   1st:

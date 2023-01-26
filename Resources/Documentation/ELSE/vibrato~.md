@@ -1,12 +1,12 @@
 ---
 title: vibrato~
 
-description: Vibrato
+description: vibrato
 
 categories:
 - object
 
-pdcategory: General Audio Manipulation
+pdcategory: Effects
 
 arguments:
   - type: float

@@ -1,12 +1,12 @@
 ---
 title: xmod2~
 
-description: Cross modulation
+description: cross-modulation
 
 categories:
  - object
  
-pdcategory: Noise, General Audio Manipulation
+pdcategory: Signal Generators
 
 arguments:
   - type: float
