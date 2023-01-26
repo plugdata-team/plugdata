@@ -1,12 +1,12 @@
 ---
 title: avg
 
-description: Mean average
+description: mean average
 
 categories:
 - object
 
-pdcategory: Math
+pdcategory: Data Math
 
 arguments:
 

@@ -1,19 +1,17 @@
 ---
 title: batch.rec~
 
-description: Sound file batch record
+description: sound file batch record
 
 categories:
 - object
 
-pdcategory: General Audio Manipulation
+pdcategory: Buffers
 
 arguments:
-  1st:
   - description:  (optional) file name to save to
     type: symbol
     default: file.wav
-  2nd:
   - description: number of channels to record
     type: symbol
     default: 1, max 64
@@ -33,9 +31,6 @@ methods:
     description: starts recording for given amount of time in ms. If no float is given, the last set value is used
   - type: set <symbol>
     description: sets file name (no symbol opens dialog box)
-
-click:
-  - description: clicking on the object opens a dialog box to set a file to save to
 
 draft: false
 ---

@@ -1,15 +1,14 @@
 ---
 title: biplot
 
-description: Biquad plot
+description: biquad plot
 
 categories:
 - object
 
-pdcategory: Audio filters, Analysis
+pdcategory: Filters, Analysis
 
 arguments:
-
 inlets:
   1st:
   - type: list

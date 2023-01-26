@@ -1,23 +1,20 @@
 ---
 title: bl.vsaw~
 
-description: Bandlimited sawtooth-triangular oscillator
+description: bandlimited sawtooth-triangular oscillator
 
 categories:
 - object
 
-pdcategory: Audio Oscillators and Tables
+pdcategory: Signal Generators
 
 arguments:
-  1st:
   - description: frequency in Hz
     type: float
     default: 0
-  2nd:
   - description: initial width
     type: float
     default: 0
-  3rd:
   - description: initial phase offset
     type: float
     default: 0

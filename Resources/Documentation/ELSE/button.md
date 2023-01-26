@@ -2,15 +2,14 @@
 
 title: button
 
-description: Button GUI
+description: button GUI
 
 categories:
  - object
 
-pdcategory: General
+pdcategory: GUI
 
-arguments: none
-
+arguments:
 inlets:
   1st:
   - type: dim <f, f>

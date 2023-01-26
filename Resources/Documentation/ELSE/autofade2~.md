@@ -1,27 +1,23 @@
 ---
 title: autofade2~
 
-description: Automatic fade-in/out
+description: automatic fade-in/out
 
 categories:
  - object
 
-pdcategory: General
+pdcategory: Effects
 
 arguments:
-  1st:
   - type: symbol
     description: (optional) fade types <quartic, sin, sqrt, lin, hann, lin, hannsin, linsin>
     default: quartic
-  2nd:
   - type: float
     description: fade in time in ms
     default: 0
-  3rd:
   - type: float
     description: fade out time in ms
     default: 0
-  4th:
   - type: float
     description: number of channels
     default: 1

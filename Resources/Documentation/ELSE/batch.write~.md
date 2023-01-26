@@ -1,12 +1,12 @@
 ---
 title: batch.write~
 
-description: Table batch write
+description: table batch write
 
 categories:
 - object
 
-pdcategory: General Audio Manipulation
+pdcategory: Buffers
 
 arguments:
 - description: array name to write to
