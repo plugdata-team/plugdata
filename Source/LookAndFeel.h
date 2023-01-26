@@ -221,7 +221,7 @@ enum FontStyle
 
 
 struct PlugDataLook : public LookAndFeel_V4 {
-    static inline SharedResourcePointer<Resources> resources;
+    static inline Resources resources;
 
     static inline Font defaultFont;
     static inline Font boldFont;
@@ -239,18 +239,18 @@ struct PlugDataLook : public LookAndFeel_V4 {
         if(!fontsAreInitialised) {
                         
             // Initialise fonts
-            defaultFont = Font(resources->defaultTypeface);
-            boldFont = Font(resources->boldTypeface);
-            semiBoldFont = Font(resources->semiBoldTypeface);
-            thinFont = Font(resources->thinTypeface);
-            iconFont = Font(resources->iconTypeface);
-            monoFont = Font(resources->monoTypeface);
+            defaultFont = Font(resources.defaultTypeface);
+            boldFont = Font(resources.boldTypeface);
+            semiBoldFont = Font(resources.semiBoldTypeface);
+            thinFont = Font(resources.thinTypeface);
+            iconFont = Font(resources.iconTypeface);
+            monoFont = Font(resources.monoTypeface);
             fontsAreInitialised = true;
         }
         
         fontsLock.unlock();
         
-        setDefaultSansSerifTypeface(resources->defaultTypeface);
+        setDefaultSansSerifTypeface(resources.defaultTypeface);
     }
 
     class PlugData_DocumentWindowButton : public Button {
