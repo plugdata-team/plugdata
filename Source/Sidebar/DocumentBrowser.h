@@ -77,8 +77,8 @@ public:
         p.addTriangle(0.0f, 0.0f, 1.0f, isOpen() ? 0.0f : 0.5f, isOpen() ? 0.5f : 0.0f, 1.0f);
         g.setColour(isSelected() ? getOwnerView()->findColour(PlugDataColour::sidebarActiveTextColourId) : getOwnerView()->findColour(PlugDataColour::sidebarTextColourId).withAlpha(isMouseOver ? 0.7f : 1.0f));
 
-        auto pathArea = area.translated(10, 0);
-        g.fillPath(p, p.getTransformToScaleToFit(pathArea.reduced(2, pathArea.getHeight() / 4), true));
+        auto pathArea = area.translated(3, 0);
+        g.fillPath(p, p.getTransformToScaleToFit(pathArea.reduced(2, pathArea.getHeight() / 3.5f), true));
     }
 
     bool mightContainSubItems() override
@@ -167,14 +167,14 @@ public:
 
     void paintItem(Graphics& g, int width, int height) override
     {
-        int const x = 40;
+        int const x = 24;
 
         auto colour = isSelected() ? owner.findColour(PlugDataColour::sidebarActiveTextColourId) : owner.findColour(PlugDataColour::sidebarTextColourId);
 
         if (isDirectory) {
-            PlugDataLook::drawIcon(g, Icons::Folder, Rectangle<int>(6, 2, x - 4, height - 4), colour, 12);
+            PlugDataLook::drawIcon(g, Icons::Folder, Rectangle<int>(6, 2, x - 4, height - 4), colour, 12, false);
         } else {
-            PlugDataLook::drawIcon(g, Icons::File, Rectangle<int>(6, 2, x - 4, height - 4), colour, 12);
+            PlugDataLook::drawIcon(g, Icons::File, Rectangle<int>(6, 2, x - 4, height - 4), colour, 12, false);
         }
 
         PlugDataLook::drawFittedText(g, file.getFileName(), x, 0, width - x, height, colour);
@@ -260,6 +260,7 @@ public:
         , itemHeight(24)
         , browser(parent)
     {
+        setIndentSize(16);
         setRootItemVisible(false);
         refresh();
         addListener(this);
@@ -574,8 +575,8 @@ public:
         auto colour = rowIsSelected ? findColour(PlugDataColour::sidebarActiveTextColourId) : findColour(ComboBox::textColourId);
         const String item = searchResult[rowNumber].getFileName();
 
-        PlugDataLook::drawText(g, item, 28, 0, w - 4, h, colour);
-        PlugDataLook::drawIcon(g, Icons::File, 12, 3, 24, colour, 12, false);
+        PlugDataLook::drawText(g, item, h + 4, 0, w - 4, h, colour);
+        PlugDataLook::drawIcon(g, Icons::File, 12, 0, h, colour, 12, false);
     }
 
     int getNumRows() override
