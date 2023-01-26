@@ -6,7 +6,7 @@ description: truncate to integer
 categories:
 - object
 
-pdcategory: Math
+pdcategory: Data Math
 
 arguments:
 - description:

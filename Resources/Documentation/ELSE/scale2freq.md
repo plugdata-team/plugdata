@@ -6,7 +6,7 @@ description: convert scale into a frequency list
 categories:
  - object
 
-pdcategory: Tuning, Math
+pdcategory: Tuning, Data Math
 
 arguments:
   - type: list
