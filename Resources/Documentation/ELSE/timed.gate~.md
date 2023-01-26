@@ -1,12 +1,12 @@
 ---
 title: timed.gate~
 
-description: Signal timed gate
+description: signal timed gate
 
 categories:
 - object
 
-pdcategory:
+pdcategory: Triggers and Clock
 
 arguments:
   1st:

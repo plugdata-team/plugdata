@@ -1,12 +1,12 @@
 ---
 title: tabreader~
 
-description: Table reader for signals
+description: table reader for signals
 
 categories:
 - object
 
-pdcategory: General
+pdcategory: Arrays and Tables, Buffers
 
 arguments:
   1st:
@@ -17,7 +17,7 @@ arguments:
 
 inlets:
   1st:
-  - type: float/siganl
+  - type: float/signal
     description: sets index/phase
 
 outlets:
@@ -27,17 +27,17 @@ outlets:
 
 flags:
   - name: -lin
-    description: sets intepolation type
+    description: sets interpolation type
   - name: -cos
-    description: sets intepolation type
+    description: sets interpolation type
   - name: -cubic
-    description: sets intepolation type
+    description: sets interpolation type
   - name: -lagrange
-    description: sets intepolation type
+    description: sets interpolation type
   - name: -hermite <f, f>
-    description: sets intepolation type
+    description: sets interpolation type
   - name: -none
-    description: sets intepolation type
+    description: sets interpolation type
   - name: -ch <float>
     description: set initial loaded channel (default 1)
   - name: -loop

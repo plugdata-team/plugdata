@@ -1,11 +1,12 @@
 ---
 title: scale2freq
-description: Convert scale into a frequency list
+
+description: convert scale into a frequency list
 
 categories:
  - object
 
-pdcategory: General
+pdcategory: Tuning, Data Math
 
 arguments:
   - type: list

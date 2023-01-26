@@ -1,12 +1,12 @@
 ---
 title: tabgen
 
-description: Table generator
+description: table generator
 
 categories:
 - object
 
-pdcategory: General
+pdcategory: Arrays and Tables
 
 arguments:
   - type: float

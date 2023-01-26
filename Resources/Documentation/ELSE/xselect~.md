@@ -1,12 +1,12 @@
 ---
 title: xselect~
 
-description: Select input with crossfade
+description: select input with crossfade
 
 categories:
  - object
  
-pdcategory: Control(Fader/Panning/Routing), General Audio Manipulation
+pdcategory: Mixing and Routing
 
 arguments:
   - type: float

@@ -1,12 +1,12 @@
 ---
 title: touch.out
 
-description: Midi aftertouch input
+description: MIDI aftertouch input
 
 categories:
  - object
 
-pdcategory: General
+pdcategory: MIDI
 
 arguments:
 - type: float
@@ -20,7 +20,7 @@ flags:
 inlets:
   1st:
   - type: float
-    description: MIDI Aftertouch
+    description: MIDI aftertouch
   2nd:
   - type: float
     description: MIDI channel

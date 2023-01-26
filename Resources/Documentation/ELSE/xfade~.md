@@ -1,12 +1,12 @@
 ---
 title: xfade~
 
-description: Multi-channel Crossfade
+description: multi-channel crossfade
 
 categories:
  - object
  
-pdcategory: Control(Fader/Panning/Routing)
+pdcategory: Mixing and Routing
 
 arguments:
   - type: float

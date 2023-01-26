@@ -1,12 +1,12 @@
 ---
 title: sequencer
 
-description: Data sequencer
+description: data sequencer
 
 categories:
 - object
 
-pdcategory: Control (Sequencers) 
+pdcategory: Sequencing  
 
 arguments:
 - type: list
@@ -31,7 +31,7 @@ outlets:
     description: element(s) from a sequence
   2nd:
   - type: bang
-    description: whene there is a rest
+    description: when there is a rest
   3rd:
   - type: float
     description: bar number

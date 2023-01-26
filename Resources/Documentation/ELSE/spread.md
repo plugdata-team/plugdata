@@ -1,12 +1,12 @@
 ---
 title: spread
 
-description: Compare floats and spread them
+description: compare floats and spread them
 
 categories:
  - object
 
-pdcategory: Message Management 
+pdcategory: Data Management 
 
 arguments:
 - type: list
