@@ -1085,11 +1085,15 @@ bool PluginEditor::perform(InvocationInfo const& info)
         return true;
     }
     case CommandIDs::ZoomIn: {
-        zoomScale = static_cast<float>(zoomScale.getValue()) + 0.1f;
+        float newScale = static_cast<float>(zoomScale.getValue()) + 0.1f;
+        zoomScale = static_cast<float>(static_cast<int>(round(std::clamp(newScale, 0.5f, 2.0f) * 10.))) / 10.;
+
         return true;
     }
     case CommandIDs::ZoomOut: {
-        zoomScale = static_cast<float>(zoomScale.getValue()) - 0.1f;
+        float newScale = static_cast<float>(zoomScale.getValue()) - 0.1f;
+        zoomScale = static_cast<float>(static_cast<int>(round(std::clamp(newScale, 0.5f, 2.0f) * 10.))) / 10.;
+
         return true;
     }
     case CommandIDs::ZoomNormal: {
