@@ -396,8 +396,8 @@ public:
             { "Foreground", tColour, cAppearance, &primaryColour, {} },
             { "Background", tColour, cAppearance, &secondaryColour, {} },
             { "Range", tRange, cGeneral, &range, {} },
-            { "Send Symbol", tString, cGeneral, &sendSymbol, {} },
             { "Receive Symbol", tString, cGeneral, &receiveSymbol, {} },
+            { "Send Symbol", tString, cGeneral, &sendSymbol, {} },
         };
     }
 
