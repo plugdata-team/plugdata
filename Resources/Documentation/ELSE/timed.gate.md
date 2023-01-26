@@ -1,12 +1,12 @@
 ---
 title: timed.gate
 
-description: Control timed gate
+description: control timed gate
 
 categories:
 - object
 
-pdcategory:
+pdcategory: Triggers and Clocks
 
 arguments:
   1st:

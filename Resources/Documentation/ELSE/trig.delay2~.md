@@ -1,12 +1,12 @@
 ---
 title: trig.delay2~
 
-description: Trigger delay
+description: trigger delay
 
 categories:
  - object
 
-pdcategory: General
+pdcategory: Triggers and Clocks
 
 arguments:
   1st:

@@ -1,12 +1,12 @@
 ---
 title: sum
 
-description: Sum a list
+description: sum a list
 
 categories:
 - object
 
-pdcategory: List Management 
+pdcategory: Data Management 
 
 arguments: (none)
 

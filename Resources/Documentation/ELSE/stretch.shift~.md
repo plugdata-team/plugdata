@@ -1,12 +1,12 @@
 ---
 title: stretch.shift~
 
-description: Pitch-Shift Time-Stretch
+description: pitch-shift time-stretch
 
 categories:
 - object
 
-pdcategory:
+pdcategory: Effects
 
 arguments:
 - type: float

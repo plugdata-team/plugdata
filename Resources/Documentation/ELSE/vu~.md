@@ -1,7 +1,7 @@
 ---
 title: vu~
 
-description: Amplitude detector for [vu]
+description: amplitude detector for [vu]
 
 categories:
  - object

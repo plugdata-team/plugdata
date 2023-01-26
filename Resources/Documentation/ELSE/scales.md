@@ -1,12 +1,12 @@
 ---
 title: scales
 
-description: Generate scales
+description: generate scales
 
 categories:
 - object
 
-pdcategory:
+pdcategory: Tuning
 
 arguments:
 - type: float

@@ -1,12 +1,12 @@
 ---
 title: s2f~
 
-description: Convert signal to float
+description: convert signal to float
 
 categories:
  - object
 
-pdcategory: General
+pdcategory: Signal Math
 
 arguments:
 - type: float
@@ -18,7 +18,8 @@ arguments:
 
 flags:
 - name: -off
-  description: turns it off (default: on)
+  description: turns it off 
+  default: on
 
 inlets:
   1st:

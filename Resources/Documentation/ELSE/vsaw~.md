@@ -1,12 +1,12 @@
 ---
 title: vsaw~
 
-description: Variable sawtooth-triangle oscillator
+description: variable sawtooth-triangle oscillator
 
 categories:
  - object
  
-pdcategory: Audio Oscillators And Tables
+pdcategory: Signal Generators
 
 arguments:
   - type: float

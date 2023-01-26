@@ -1,12 +1,12 @@
 ---
 title: scale2cents
 
-description: Scale/Cents conversion
+description: scale/cents conversion
 
 categories:
 - object
 
-pdcategory: Scale tools
+pdcategory: Tuning, Math
 
 arguments: (none)
 

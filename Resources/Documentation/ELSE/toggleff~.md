@@ -2,17 +2,17 @@
 title: toggleff~
 
 
-description: Toggle flip flop
+description: toggle flip flop
 
 categories:
 - object
 
-pdcategory: General
+pdcategory: Triggers and Clocks
 
 arguments:
   1st:
   - type: float
-    description: initial ouput <0 or 1>
+    description: initial output <0 or 1>
     default: 0
 
 inlets:

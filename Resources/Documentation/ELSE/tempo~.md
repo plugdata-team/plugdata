@@ -1,12 +1,12 @@
 ---
 title: tempo~
 
-description: Metronome
+description: metronome
 
 categories:
 - object
 
-pdcategory:
+pdcategory: Sequencing, Triggers and Clocks
 
 arguments:
   1st:

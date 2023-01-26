@@ -1,12 +1,12 @@
 ---
 title: trig2bang
 
-description: Trigger to bang conversion
+description: trigger to bang conversion
 
 categories:
 - object
 
-pdcategory:
+pdcategory: Triggers and Clocks
 
 arguments:
 - description:

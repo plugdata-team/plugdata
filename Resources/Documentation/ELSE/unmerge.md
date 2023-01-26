@@ -1,12 +1,12 @@
 ---
 title: unmerge
 
-description: Split messages
+description: split messages
 
 categories:
  - object
  
-pdcategory: Message Management
+pdcategory: Data Management
 
 arguments:
   - type: float

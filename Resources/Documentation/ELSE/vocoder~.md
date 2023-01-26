@@ -1,12 +1,12 @@
 ---
 title: vocoder~
 
-description: Channel Vocoder
+description: channel Vocoder
 
 categories:
 - object
 
-pdcategory: Audio Filter
+pdcategory: Effects, Filters
 
 arguments:
 - type: float

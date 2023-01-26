@@ -1,12 +1,12 @@
 ---
 title: stack
 
-description: Stack messages and output via fifo/lifo
+description: stack messages and output via fifo/lifo
 
 categories:
 - object
 
-pdcategory: Message Management 
+pdcategory: Data Management 
 
 arguments:
 - type: symbol

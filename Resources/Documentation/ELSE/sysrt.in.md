@@ -1,7 +1,7 @@
 ---
 title: sysrt.in
 
-description: Midi system/real-time input
+description: MIDI system/real-time input
 
 categories:
 - object

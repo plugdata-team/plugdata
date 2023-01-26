@@ -1,12 +1,12 @@
 ---
 title: stepnoise
 
-description: Control stepnoise
+description: control stepnoise
 
 categories:
 - object
 
-pdcategory: Control (Random)
+pdcategory: Noise
 
 arguments:
 - type: float

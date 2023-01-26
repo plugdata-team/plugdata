@@ -1,12 +1,12 @@
 ---
 title: sr~
 
-description: Get/set sample rate
+description: set/set sample rate
 
 categories:
  - object
 
-pdcategory: Math (Constant)
+pdcategory: Signal Math
 
 arguments: (none)
 

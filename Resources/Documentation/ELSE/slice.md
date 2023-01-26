@@ -1,12 +1,12 @@
 ---
 title: slice
 
-description: Split lists
+description: split lists
 
 categories:
  - object
 
-pdcategory: List Management 
+pdcategory: Data Management 
 
 arguments:
 - type: float

@@ -1,12 +1,12 @@
 ---
 title: sig2float~
 
-description: Convert signal to float
+description: convert signal to float
 
 categories:
  - object
 
-pdcategory: General
+pdcategory: Signal Math
 
 arguments:
 - type: float

@@ -1,7 +1,7 @@
 ---
 title: slider2d
 
-description: Two-dimensional slider
+description: two-dimensional slider
 
 categories:
 - object

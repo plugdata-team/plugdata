@@ -6,7 +6,7 @@ description: Signal sine function
 categories:
  - object
 
-pdcategory: Math Functions 
+pdcategory: Signal Math
 
 arguments: (none)
 
