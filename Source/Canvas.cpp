@@ -637,6 +637,8 @@ bool Canvas::keyPressed(KeyPress const& key)
     int moveMargin = 10;
     if (key.getModifiers().isShiftDown()) {
         moveMargin = 1;
+    } else if (key.getModifiers().isCommandDown()) {
+        moveMargin = 50;
     }
 
     if (keycode == KeyPress::leftKey) {
