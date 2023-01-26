@@ -170,10 +170,10 @@ inline const std::map<PlugDataColour, std::tuple<String, String, String>> PlugDa
     { sidebarActiveTextColourId, { "Sidebar Active Text", "sidebar_active_text", "Sidebar" } },
 };
 
-struct Resources {
+struct Typefaces : public DeletedAtShutdown {
 
 
-    Resources() {
+    Typefaces() {
         
         // Our unicode font is too big, the compiler will run out of memory
         // To prevent this, we split the binarydata into multiple files, and add them back together here
@@ -219,9 +219,8 @@ enum FontStyle
     Monospace,
 };
 
-
 struct PlugDataLook : public LookAndFeel_V4 {
-    static inline Resources resources;
+    static inline Typefaces* typefaces;
 
     static inline Font defaultFont;
     static inline Font boldFont;
@@ -237,20 +236,23 @@ struct PlugDataLook : public LookAndFeel_V4 {
         fontsLock.lock();
         
         if(!fontsAreInitialised) {
+        
+            // Initialising this statically leads to Static Initialization Order Fiasco
+            typefaces = new Typefaces;
                         
             // Initialise fonts
-            defaultFont = Font(resources.defaultTypeface);
-            boldFont = Font(resources.boldTypeface);
-            semiBoldFont = Font(resources.semiBoldTypeface);
-            thinFont = Font(resources.thinTypeface);
-            iconFont = Font(resources.iconTypeface);
-            monoFont = Font(resources.monoTypeface);
+            defaultFont = Font(typefaces->defaultTypeface);
+            boldFont = Font(typefaces->boldTypeface);
+            semiBoldFont = Font(typefaces->semiBoldTypeface);
+            thinFont = Font(typefaces->thinTypeface);
+            iconFont = Font(typefaces->iconTypeface);
+            monoFont = Font(typefaces->monoTypeface);
             fontsAreInitialised = true;
         }
         
         fontsLock.unlock();
         
-        setDefaultSansSerifTypeface(resources.defaultTypeface);
+        setDefaultSansSerifTypeface(typefaces->defaultTypeface);
     }
 
     class PlugData_DocumentWindowButton : public Button {
@@ -816,7 +818,7 @@ struct PlugDataLook : public LookAndFeel_V4 {
         tl.draw(g, { static_cast<float>(width), static_cast<float>(height) });
     }
     
-    // For drawing icons with icon font    
+    // For drawing icons with icon font
     static void drawIcon(Graphics& g, const String& icon, Rectangle<int> bounds, Colour colour,  int fontHeight = -1, bool centred = true)
     {
         if(fontHeight < 0) fontHeight = bounds.getHeight() / 1.2f;
