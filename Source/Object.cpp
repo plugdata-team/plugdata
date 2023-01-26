@@ -341,7 +341,7 @@ void Object::paintOverChildren(Graphics& g)
         int halfHeight = 5;
 
         auto text = String(cnv->objects.indexOf(this));
-        int textWidth = PlugDataLook::monoFont.getStringWidth(text) + 5;
+        int textWidth = Fonts::getMonospaceFont().withHeight(10).getStringWidth(text) + 5;
         int left = std::min<int>(getWidth() - (1.5 * margin), getWidth() - textWidth);
 
         auto indexBounds = Rectangle<int>(left, (getHeight() / 2) - halfHeight, getWidth() - left, halfHeight * 2);

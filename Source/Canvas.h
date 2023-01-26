@@ -86,6 +86,8 @@ public:
 
     void showSuggestions(Object* object, TextEditor* textEditor);
     void hideSuggestions();
+        
+    ObjectParameters& getInspectorParameters();
 
     template<typename T>
     Array<T*> getSelectionOfType()
@@ -162,9 +164,6 @@ private:
     SafePointer<TabbedComponent> tabbar;
 
     LassoComponent<WeakReference<Component>> lasso;
-
-    // Static makes sure there can only be one
-    PopupMenu popupMenu;
 
     // Properties that can be shown in the inspector by right-clicking on canvas
     ObjectParameters parameters = { { "Is graph", tBool, cGeneral, &isGraphChild, { "No", "Yes" } },

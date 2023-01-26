@@ -335,110 +335,7 @@ void Canvas::mouseDown(MouseEvent const& e)
     else {
 
         cancelConnectionCreation();
-
-        // Info about selection status
-        auto selectedBoxes = getSelectionOfType<Object>();
-
-        bool hasSelection = !selectedBoxes.isEmpty();
-        bool multiple = selectedBoxes.size() > 1;
-
-        Object* object = nullptr;
-        if (auto* obj = dynamic_cast<Object*>(e.originalComponent)) {
-            object = obj;
-            setSelected(object, true);
-        } else if (auto* obj = e.originalComponent->findParentComponentOfClass<Object>()) {
-            object = obj;
-            if (!locked.getValue()) {
-                setSelected(object, true);
-            }
-        } else if (hasSelection && !multiple) {
-            object = selectedBoxes.getFirst();
-        }
-
-        Array<Object*> parents;
-        for (auto* p = source->getParentComponent(); p != nullptr; p = p->getParentComponent()) {
-            if (auto* target = dynamic_cast<Object*>(p))
-                parents.add(target);
-        }
-
-        auto* originalComponent = e.originalComponent;
-
-        // Get top-level parent object... A bit clumsy but otherwise it will open subpatchers deeper down the chain
-        if (parents.size() && originalComponent != this) {
-            object = parents.getLast();
-        }
-
-        auto params = object && object->gui ? object->gui->getParameters() : ObjectParameters();
-        bool canBeOpened = object && object->gui && object->gui->canOpenFromMenu();
-
-        // Create popup menu
-        popupMenu.clear();
-
-        popupMenu.addItem(1, "Open", object && !multiple && canBeOpened); // for opening subpatches
-        popupMenu.addSeparator();
-
-        popupMenu.addCommandItem(editor, CommandIDs::Cut);
-        popupMenu.addCommandItem(editor, CommandIDs::Copy);
-        popupMenu.addCommandItem(editor, CommandIDs::Paste);
-        popupMenu.addCommandItem(editor, CommandIDs::Duplicate);
-        popupMenu.addCommandItem(editor, CommandIDs::Encapsulate);
-        popupMenu.addCommandItem(editor, CommandIDs::Delete);
-        popupMenu.addSeparator();
-
-        popupMenu.addItem(8, "To Front", object != nullptr);
-        popupMenu.addItem(9, "To Back", object != nullptr);
-        popupMenu.addSeparator();
-        popupMenu.addItem(10, "Help", object != nullptr);
-        popupMenu.addItem(11, "Reference", object != nullptr);
-        popupMenu.addSeparator();
-        popupMenu.addItem(12, "Properties", originalComponent == this || (object && !params.empty()));
-        // showObjectReferenceDialog
-        auto callback = [this, object, originalComponent, params](int result) mutable {
-            popupMenu.clear();
-
-            if (object)
-                object->repaint();
-
-            if (result < 1)
-                return;
-
-            switch (result) {
-            case 1: // Open subpatch
-                object->gui->openFromMenu();
-                break;
-            case 8: // To Front
-                object->toFront(false);
-                if (object->gui)
-                    object->gui->moveToFront();
-                synchronise();
-                break;
-            case 9: // To Back
-                object->toBack();
-                if (object->gui)
-                    object->gui->moveToBack();
-                synchronise();
-                break;
-            case 10: // Open help
-                object->openHelpPatch();
-                break;
-            case 11: // Open reference
-                Dialogs::showObjectReferenceDialog(&editor->openedDialog, editor, object->gui->getType());
-                break;
-            case 12:
-                if (originalComponent == this) {
-                    // Open help
-                    editor->sidebar.showParameters("canvas", parameters);
-                } else {
-                    editor->sidebar.showParameters(object->gui->getText(), params);
-                }
-
-                break;
-            default:
-                break;
-            }
-        };
-
-        popupMenu.showMenuAsync(PopupMenu::Options().withMinimumWidth(100).withMaximumNumColumns(1).withParentComponent(editor).withTargetScreenArea(Rectangle<int>(e.getScreenX(), e.getScreenY(), 2, 2)), ModalCallbackFunction::create(callback));
+        Dialogs::showCanvasRightClickMenu(this, source, e.getScreenPosition());
     }
 }
 
@@ -1520,4 +1417,8 @@ void Canvas::findLassoItemsInArea(Array<WeakReference<Component>>& itemsFound, R
             setSelected(con, false);
         }
     }
+}
+
+ObjectParameters& Canvas::getInspectorParameters() {
+    return parameters;
 }

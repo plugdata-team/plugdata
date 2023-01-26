@@ -1582,7 +1582,7 @@ PlugDataTextEditor::PlugDataTextEditor()
     document.setSelections({ Selection() });
 
     
-    setFont(Font(PlugDataLook::defaultFont.withHeight(15)));
+    setFont(Font(Fonts::getDefaultFont().withHeight(15)));
 
     translateView(GUTTER_WIDTH, 0);
     setWantsKeyboardFocus(true);

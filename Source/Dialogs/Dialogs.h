@@ -10,6 +10,7 @@
 #include "LookAndFeel.h"
 
 class PluginEditor;
+class Canvas;
 
 class Dialog : public Component {
 
@@ -135,14 +136,18 @@ struct Dialogs {
 
     static void showMainMenu(PluginEditor* editor, Component* centre);
     
-    static void showObjectMenu(PluginEditor* parent, Component* target);
-
     static void showOkayCancelDialog(std::unique_ptr<Dialog>* target, Component* parent, String const& title, std::function<void(bool)> callback);
 
     static void showHeavyExportDialog(std::unique_ptr<Dialog>* target, Component* parent);
 
     static void showObjectBrowserDialog(std::unique_ptr<Dialog>* target, Component* parent);
     static void showObjectReferenceDialog(std::unique_ptr<Dialog>* target, Component* parent, String objectName);
+    
+    static void showCanvasRightClickMenu(Canvas* cnv, Component* originalComponent, Point<int> position);
+    
+    static void showObjectMenu(PluginEditor* parent, Component* target);
+    
+    static PopupMenu createObjectMenu(PluginEditor* parent, std::function<void(int)>& callback);
 };
 
 struct DekenInterface {

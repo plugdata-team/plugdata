@@ -41,12 +41,12 @@ public:
         auto iconBounds = b.removeFromTop(b.getHeight() * 0.65f).withTrimmedTop(5);
         auto textBounds = b.withTrimmedBottom(3);
 
-        auto font = PlugDataLook::iconFont.withHeight(iconBounds.getHeight() / 1.9f);
+        auto font = Fonts::getIconFont().withHeight(iconBounds.getHeight() / 1.9f);
         g.setFont(font);
 
         g.drawFittedText(icon, iconBounds, Justification::centred, 1);
 
-        font = PlugDataLook::defaultFont.withHeight(textBounds.getHeight() / 1.25f);
+        font = Fonts::getDefaultFont().withHeight(textBounds.getHeight() / 1.25f);
         g.setFont(font);
 
         // Draw bottom text
