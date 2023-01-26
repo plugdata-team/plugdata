@@ -557,7 +557,7 @@ public:
     {
         auto colour = findColour(PlugDataColour::sidebarTextColourId);
 
-        PlugDataLook::drawIcon(g, Icons::Search, 0, 0, 30, colour, 12, false);
+        PlugDataLook::drawIcon(g, Icons::Search, 0, 0, 30, colour, 12);
 
         if (input.getText().isEmpty()) {
             PlugDataLook::drawText(g, "Type to search documentation", 30, 0, 300, 30, colour.withAlpha(0.5f), 14);
@@ -575,7 +575,7 @@ public:
         const String item = searchResult[rowNumber].getFileName();
 
         PlugDataLook::drawText(g, item, 28, 0, w - 4, h, colour);
-        PlugDataLook::drawIcon(g, Icons::File, 12, 0, 24, colour, 12);
+        PlugDataLook::drawIcon(g, Icons::File, 12, 0, 24, colour, 12, false);
     }
 
     int getNumRows() override
