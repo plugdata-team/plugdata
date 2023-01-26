@@ -221,7 +221,7 @@ enum FontStyle
 
 
 struct PlugDataLook : public LookAndFeel_V4 {
-    SharedResourcePointer<Resources> resources;
+    static inline SharedResourcePointer<Resources> resources;
 
     static inline Font defaultFont;
     static inline Font boldFont;
