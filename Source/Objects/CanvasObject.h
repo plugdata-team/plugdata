@@ -94,8 +94,8 @@ public:
     {
         return {
             { "Background", tColour, cAppearance, &iemHelper.secondaryColour, {} },
-            { "Send Symbol", tString, cGeneral, &iemHelper.sendSymbol, {} },
             { "Receive Symbol", tString, cGeneral, &iemHelper.receiveSymbol, {} },
+            { "Send Symbol", tString, cGeneral, &iemHelper.sendSymbol, {} },
             { "Label", tString, cLabel, &iemHelper.labelText, {} },
             { "Label Colour", tColour, cLabel, &iemHelper.labelColour, {} },
             { "Label X", tInt, cLabel, &iemHelper.labelX, {} },
