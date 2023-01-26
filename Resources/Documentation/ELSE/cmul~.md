@@ -1,28 +1,27 @@
 ---
 title: cmul~
 
-description: Complex multiplication
+description: complex multiplication
 
 categories:
  - object
 
-pdcategory: Math Functions
+pdcategory: Signal Math
 
-arguments: none
-
+arguments:
 inlets:
   1st:
   - type: signal
     description: real part of complex number 1
   2nd:
   - type: signal
-    description: imaginary part of complex nunmber 1
+    description: imaginary part of complex number 1
   3rd:
   - type: signal
     description: real part of complex number 2
   4th:
   - type: signal
-    description: imaginary part of complex nunmber 1
+    description: imaginary part of complex number 1
 
 outlets:
   1st:

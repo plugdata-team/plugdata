@@ -1,12 +1,12 @@
 ---
 title: changed2~
 
-description: Detect direction changes
+description: detect direction changes
 
 categories:
  - object
 
-pdcategory: Analysis
+pdcategory: Analysis, Triggers and Clocks
 
 arguments: none
 
@@ -21,7 +21,7 @@ outlets:
     description: impulse at detected direction change
   2nd:
   - type: signal
-    description: status (1, -1 or 0)
+    description: status (1, -1, or 0)
 
 draft: false
 ---

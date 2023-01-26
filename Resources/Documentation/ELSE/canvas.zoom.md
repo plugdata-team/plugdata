@@ -1,17 +1,17 @@
 ---
 title: canvas.zoom
 
-description: Report zoom status
+description: report zoom status
 
 categories:
  - object
 
-pdcategory: Patch Management
+pdcategory: GUI
 
 arguments:
 - type: float
   description: depth
-  default: 0 (current window)
+  default: 0 - current window
 
 inlets:
   1st:
@@ -26,4 +26,4 @@ outlets:
 draft: false
 ---
 
-The [canvas.zoom] object outputs zoom status at loadtime and when it changes - it outputs 1 when the window is in zoom mode and 0 when it is not. You can also query with a bang.
+The [canvas.zoom] object outputs zoom status at load time and when it changes - it outputs 1 when the window is in zoom mode and 0 when it is not. You can also query with a bang.

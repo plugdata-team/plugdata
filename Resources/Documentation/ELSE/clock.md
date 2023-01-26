@@ -1,31 +1,27 @@
 ---
 title: clock
 
-description: Synced clocks
+description: synced clocks
 
 categories:
 - object
 
-pdcategory: Control (Triggers/Clocks)
+pdcategory: Triggers and Clocks
 
 arguments:
-  1st:
   - description: (optional) clock name
   type: symbol
-  default: default, internal local to patch
-  2nd:
+  default: internal local to patch
   - description: BPM for main clock, or divider for synced clocks
   type: float/symbol
-  default: 120 (for main clock) 1 (for synced clocks)
+  default: 120 for main clock, 1 for synced clocks
 
 inlets:
   1st:
   - type: float
-    description: non-ero starts the clock, zero stops it
+    description: non-zero starts the clock, zero stops it
   - type: bang
     description: resyncs the clock
-  - type: beat <float>
-    description: sets beat length
   2nd:
   - type: float
     description: BPM for main clock or multiplier for synced clock
@@ -41,6 +37,9 @@ flags:
   - name: -s
   description: set to synced clock (default main)
 
+methods:
+  - type: beat <float>
+    description: sets beat length
 
 draft: false
 ---
