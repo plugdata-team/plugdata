@@ -1,12 +1,12 @@
 ---
 title: args
 
-description: Manage arguments
+description: manage arguments
 
 categories:
  - object
 
-pdcategory: General
+pdcategory: Data Management
 
 arguments:
   1st:

@@ -1,19 +1,17 @@
 ---
 title: asr~
 
-description: Attack/Sustain/Release gated envelope
+description: attack/sustain/release gated envelope
 
 categories:
  - object
 
-pdcategory: General
+pdcategory: Envelopes and LFOs
 
 arguments:
-  1st:
   - type: float
     description: attack time in ms
     default: 0
-  2nd:
   - type: float
     description: release time in  ms
     default: 0

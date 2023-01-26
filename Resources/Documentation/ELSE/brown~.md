@@ -1,12 +1,12 @@
 ---
 title: brown~
 
-description: Brown noise generator
+description: brown noise generator
 
 categories:
  - object
 
-pdcategory: Noise
+pdcategory: Noise, Signal Generators, Signal Math
 
 arguments:
 - type: float

@@ -1,12 +1,12 @@
 ---
 title: bl.osc~
 
-description: Bandlimited oscillator
+description: bandlimited oscillator
 
 categories:
 - object
 
-pdcategory: Audio Oscillators and Tables
+pdcategory: Signal Generators
 
 arguments:
   - type: symbol
@@ -28,7 +28,7 @@ inlets:
     description: frequency in Hz
   2nd:
   - type: float/signal
-    description: phase sync (ressets internal phase)
+    description: phase sync (resets internal phase)
   3rd:
   - type: float/signal
     description: phase offset (modulation input)
