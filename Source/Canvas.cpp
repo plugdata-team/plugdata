@@ -634,20 +634,27 @@ bool Canvas::keyPressed(KeyPress const& key)
     };
 
     // Move objects with arrow keys
+    int moveMargin = 10;
+    if (key.getModifiers().isShiftDown()) {
+        moveMargin = 1;
+    } else if (key.getModifiers().isCommandDown()) {
+        moveMargin = 50;
+    }
+
     if (keycode == KeyPress::leftKey) {
-        moveSelection(-10, 0);
+        moveSelection(-moveMargin, 0);
         return true;
     }
     if (keycode == KeyPress::rightKey) {
-        moveSelection(10, 0);
+        moveSelection(moveMargin, 0);
         return true;
     }
     if (keycode == KeyPress::upKey) {
-        moveSelection(0, -10);
+        moveSelection(0, -moveMargin);
         return true;
     }
     if (keycode == KeyPress::downKey) {
-        moveSelection(0, 10);
+        moveSelection(0, moveMargin);
         return true;
     }
 
