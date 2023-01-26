@@ -155,7 +155,8 @@ public:
     
     void paint(Graphics& g) override
     {
-        g.fillAll(findColour(PlugDataColour::tabBackgroundColourId));
+        g.setColour(findColour(PlugDataColour::tabBackgroundColourId));
+        g.fillRect(getLocalBounds().removeFromTop(26));
     }
 
     void paintOverChildren(Graphics& g) override
