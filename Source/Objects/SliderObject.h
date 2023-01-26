@@ -275,7 +275,6 @@ public:
         auto maximum = static_cast<float>(max.getValue());
 
         value = (minimum < maximum) ? std::max(std::min(v, 1.f), 0.f) * (maximum - minimum) + minimum : (1.f - std::max(std::min(v, 1.f), 0.f)) * (minimum - maximum) + maximum;
-        sendFloatValue(value);
     }
 
     void setValueOriginal(float v)
@@ -288,7 +287,5 @@ public:
         } else {
             value = v;
         }
-
-        sendFloatValue(value);
     }
 };
