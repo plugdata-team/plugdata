@@ -832,6 +832,9 @@ struct PlugDataLook : public LookAndFeel_V4 {
     {
         auto font = g.getCurrentFont();
 
+        g.setColour(colour);
+        g.drawText(textToDraw, bounds, justification);
+        /*
         auto attributedString = AttributedString();
         attributedString.setJustification(justification);
         attributedString.append(textToDraw, font, colour);
@@ -839,7 +842,7 @@ struct PlugDataLook : public LookAndFeel_V4 {
         
         TextLayout layout;
         layout.createLayout (attributedString, bounds.getWidth());
-        layout.draw (g, bounds.toFloat());
+        layout.draw (g, bounds.toFloat()); */
     }
 
     static void drawText(Graphics& g, String textToDraw, int x, int y, int w, int h, Justification justification, Colour colour)
