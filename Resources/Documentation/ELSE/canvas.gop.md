@@ -1,12 +1,12 @@
 ---
 title: canvas.gop
 
-description: Report 'GOP' information
+description: report `GOP` information
 
 categories:
  - object
 
-pdcategory: Patch Management
+pdcategory: GUI
 
 arguments:
 - type: float
@@ -21,7 +21,7 @@ inlets:
 outlets:
   1st:
   - type: list
-    description: GOP info -- <gop status, x size, y size, coords (x1, y1, x2, y1)>
+    description: GOP info <gop status, x size, y size, coords (x1, y1, x2, y1)>
 
 draft: false
 ---

@@ -1,15 +1,14 @@
 ---
 title: ceil
 
-description: Ceil function
+description: ceiling function
 
 categories:
  - object
 
-pdcategory: Math Functions
+pdcategory: Data Math
 
-arguments: none
-
+arguments:
 inlets:
   1st:
   - type: float/list
@@ -23,4 +22,4 @@ outlets:
 draft: false
 ---
 
-[ceil] is a ceil math function.
+[ceil] is a ceiling math function.

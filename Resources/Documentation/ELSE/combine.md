@@ -1,12 +1,12 @@
 ---
 title: combine
 
-description: Combine data received close together
+description: combine data received close together
 
 categories:
 - object
 
-pdcategory: Message Management
+pdcategory: Data Management
 
 arguments:
 - description: initial time in ms
@@ -29,4 +29,4 @@ outlets:
 draft: false
 ---
 
-[combine] collects messages (with one or more elements) into a single list if they come within a certain given amount of time, but not if greater than it. A "0" time is possible if messages are sent in a sequence usch as from a [loop] object. Each item or list is appended to the previous stored items. A negative time value will not combine anythng.
+[combine] collects messages (with one or more elements) into a single list if they come within a certain given amount of time, but not if greater than it. A "0" time is possible if messages are sent in a sequence such as from a [loop] object. Each item or list is appended to the previous stored items. A negative time value will not combine anything.

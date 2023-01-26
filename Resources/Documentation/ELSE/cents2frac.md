@@ -1,12 +1,12 @@
 ---
 title: cents2frac
 
-description: Cents/Fraction conversion
+description: cents/fraction conversion
 
 categories:
 - object
 
-pdcategory: Tuning / Scale Tools
+pdcategory: Tuning
 
 arguments:
 - description: conversion resolution
@@ -17,13 +17,15 @@ inlets:
   1st:
   - type: list
     description: cents value(s)
-  - type: res <float>
-    description: set conversion resolution
 
 outlets:
   1st:
   - type: list
     description: converted fractional value(s)
+
+methods:
+  - type: res <float>
+    description: set conversion resolution
 
 draft: false
 ---

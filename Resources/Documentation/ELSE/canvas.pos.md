@@ -1,17 +1,17 @@
 ---
 title: canvas.pos
 
-description: Report canvas position
+description: report canvas position
 
 categories:
  - object
 
-pdcategory: Patch Management
+pdcategory: GUI
 
 arguments:
 - type: float
   description: depth
-  default: 0 (current window)
+  default: 0 - current window
 
 inlets:
   1st:
