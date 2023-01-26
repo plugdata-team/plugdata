@@ -761,6 +761,21 @@ struct PlugDataLook : public LookAndFeel_V4 {
     
     void drawTextEditorOutline (Graphics& g, int width, int height, TextEditor& textEditor) override
     {
+        if(textEditor.getProperties()["NoOutline"].isVoid()) {
+            if (textEditor.isEnabled())
+            {
+                if (textEditor.hasKeyboardFocus (true) && ! textEditor.isReadOnly())
+                {
+                    g.setColour (textEditor.findColour (TextEditor::focusedOutlineColourId));
+                    g.drawRect (0, 0, width, height, 2);
+                }
+                else
+                {
+                    g.setColour (textEditor.findColour (TextEditor::outlineColourId));
+                    g.drawRect (0, 0, width, height);
+                }
+            }
+        }
     }
 
     void drawCornerResizer(Graphics& g, int w, int h, bool isMouseOver, bool isMouseDragging) override
