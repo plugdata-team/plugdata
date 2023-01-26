@@ -6,7 +6,7 @@ description: biquad filter coefficient generator GUI
 categories:
  - object
 
-pdcategory: Filters
+pdcategory: Filters, Data Math
 
 arguments:
 inlets:

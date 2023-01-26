@@ -1,12 +1,12 @@
 ---
 title: canvas.file
 
-description: Search for file
+description: search for file
 
 categories:
  - object
 
-pdcategory: Patch Management
+pdcategory: GUI, Data Management
 
 arguments:
 - type: float
