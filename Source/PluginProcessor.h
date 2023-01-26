@@ -147,6 +147,7 @@ public:
 
     Value tailLength = Value(0.0f);
 
+    // Just so we never have to deal with deleting the default LnF
     SharedResourcePointer<PlugDataLook> lnf;
 
     static inline constexpr int numParameters = 512;

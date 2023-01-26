@@ -68,7 +68,7 @@ class SuggestionComponent : public Component
                 PlugDataLook::drawStyledText(g, getButtonText(), leftIndent, yIndent, textWidth, getHeight() - yIndent * 2, colour, Semibold, 12);
 
             if (objectDescription.isNotEmpty()) {
-                auto textLength = PlugDataLook::semiBoldFont.withHeight(12).getStringWidth(getButtonText());
+                auto textLength = Fonts::getSemiBoldFont().withHeight(12).getStringWidth(getButtonText());
 
                 leftIndent += textLength;
                 auto textWidth = getWidth() - leftIndent - rightIndent;

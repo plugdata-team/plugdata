@@ -67,7 +67,7 @@ public:
 
         // To ensure custom LnF got assigned...
         MessageManager::callAsync([this]() {
-            console.setFont(PlugDataLook::monoFont);
+            console.setFont(Fonts::getMonospaceFont());
         });
     }
 

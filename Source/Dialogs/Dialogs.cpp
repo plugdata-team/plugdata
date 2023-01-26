@@ -104,7 +104,235 @@ void Dialogs::showMainMenu(PluginEditor* editor, Component* centre)
         });
 }
 
+class OkayCancelDialog : public Component {
+
+public:
+    OkayCancelDialog(Dialog* dialog, String const& title, std::function<void(bool)> callback)
+        : label("", title)
+    {
+        setSize(400, 200);
+        addAndMakeVisible(label);
+        addAndMakeVisible(cancel);
+        addAndMakeVisible(okay);
+
+        cancel.setColour(TextButton::buttonColourId, Colours::transparentBlack);
+        okay.setColour(TextButton::buttonColourId, Colours::transparentBlack);
+
+        cancel.onClick = [this, dialog, callback] {
+            callback(false);
+            dialog->closeDialog();
+        };
+
+        okay.onClick = [this, dialog, callback] {
+            callback(true);
+            dialog->closeDialog();
+        };
+
+        cancel.changeWidthToFitText();
+        okay.changeWidthToFitText();
+        setOpaque(false);
+    }
+
+    void resized() override
+    {
+        label.setBounds(20, 25, 360, 30);
+        cancel.setBounds(20, 80, 80, 25);
+        okay.setBounds(300, 80, 80, 25);
+    }
+
+private:
+    Label label;
+
+    TextButton cancel = TextButton("Cancel");
+    TextButton okay = TextButton("OK");
+};
+
+void Dialogs::showOkayCancelDialog(std::unique_ptr<Dialog>* target, Component* parent, String const& title, std::function<void(bool)> callback)
+{
+    auto* dialog = new Dialog(target, parent, 400, 130, 160, false);
+    auto* dialogContent = new OkayCancelDialog(dialog, title, callback);
+
+    dialog->setViewedComponent(dialogContent);
+    target->reset(dialog);
+}
+
+void Dialogs::showHeavyExportDialog(std::unique_ptr<Dialog>* target, Component* parent)
+{
+    auto* dialog = new Dialog(target, parent, 625, 400, parent->getBounds().getCentreY() + 200, true);
+    auto* dialogContent = new HeavyExportDialog(dialog);
+
+    dialog->setViewedComponent(dialogContent);
+    target->reset(dialog);
+}
+
+void Dialogs::showObjectBrowserDialog(std::unique_ptr<Dialog>* target, Component* parent)
+{
+
+    auto* dialog = new Dialog(target, parent, 750, 450, parent->getBounds().getCentreY() + 200, true);
+    auto* dialogContent = new ObjectBrowserDialog(parent, dialog);
+
+    dialog->setViewedComponent(dialogContent);
+    target->reset(dialog);
+}
+
+void Dialogs::showObjectReferenceDialog(std::unique_ptr<Dialog>* target, Component* parent, String objectName)
+{
+    auto* dialog = new Dialog(target, parent, 750, 450, parent->getBounds().getCentreY() + 200, true);
+    auto* dialogContent = new ObjectReferenceDialog(dynamic_cast<PluginEditor*>(parent), false);
+
+    dialogContent->showObject(objectName);
+
+    dialog->setViewedComponent(dialogContent);
+    target->reset(dialog);
+}
+
+StringArray DekenInterface::getExternalPaths()
+{
+    StringArray searchPaths;
+
+    for (auto package : PackageManager::getInstance()->packageState) {
+        if (!package.hasProperty("AddToPath") || !static_cast<bool>(package.getProperty("AddToPath"))) {
+            continue;
+        }
+
+        searchPaths.add(package.getProperty("Path"));
+    }
+
+    return searchPaths;
+}
+
+bool Dialog::wantsRoundedCorners()
+{
+    // Check if the editor wants rounded corners
+    if (auto* editor = dynamic_cast<PluginEditor*>(parentComponent)) {
+        return editor->wantsRoundedCorners();
+    }
+    // Otherwise assume rounded corners for the rest of the UI
+    else {
+        return true;
+    }
+}
+
+void Dialogs::showCanvasRightClickMenu(Canvas* cnv, Component* originalComponent, Point<int> position)
+{
+    // Info about selection status
+    auto selectedBoxes = cnv->getSelectionOfType<Object>();
+
+    bool hasSelection = !selectedBoxes.isEmpty();
+    bool multiple = selectedBoxes.size() > 1;
+
+    Object* object = nullptr;
+    if (auto* obj = dynamic_cast<Object*>(originalComponent)) {
+        object = obj;
+        cnv->setSelected(object, true);
+    } else if (auto* obj = originalComponent->findParentComponentOfClass<Object>()) {
+        object = obj;
+        if (!cnv->locked.getValue()) {
+            cnv->setSelected(object, true);
+        }
+    } else if (hasSelection && !multiple) {
+        object = selectedBoxes.getFirst();
+    }
+
+    // Find top-level parent
+    Array<Object*> parents;
+    for (auto* p = originalComponent->getParentComponent(); p != nullptr; p = p->getParentComponent()) {
+        if (auto* target = dynamic_cast<Object*>(p))
+            parents.add(target);
+    }
+
+    // Get top-level parent object... A bit clumsy but otherwise it will open subpatchers deeper down the chain
+    if (parents.size() && originalComponent != cnv) {
+        object = parents.getLast();
+    }
+
+    auto params = object && object->gui ? object->gui->getParameters() : ObjectParameters();
+    bool canBeOpened = object && object->gui && object->gui->canOpenFromMenu();
+
+    // Create popup menu
+    PopupMenu popupMenu;
+    
+    popupMenu.addItem(1, "Open", object && !multiple && canBeOpened); // for opening subpatches
+    popupMenu.addSeparator();
+    
+    auto* editor = cnv->editor;
+    std::function<void(int)> createObjectCallback;
+    popupMenu.addSubMenu("Add", createObjectMenu(editor, createObjectCallback));
+    
+    popupMenu.addSeparator();
+    popupMenu.addCommandItem(editor, CommandIDs::Cut);
+    popupMenu.addCommandItem(editor, CommandIDs::Copy);
+    popupMenu.addCommandItem(editor, CommandIDs::Paste);
+    popupMenu.addCommandItem(editor, CommandIDs::Duplicate);
+    popupMenu.addCommandItem(editor, CommandIDs::Encapsulate);
+    popupMenu.addCommandItem(editor, CommandIDs::Delete);
+    popupMenu.addSeparator();
+
+    popupMenu.addItem(8, "To Front", object != nullptr);
+    popupMenu.addItem(9, "To Back", object != nullptr);
+    popupMenu.addSeparator();
+    popupMenu.addItem(10, "Help", object != nullptr);
+    popupMenu.addItem(11, "Reference", object != nullptr);
+    popupMenu.addSeparator();
+    popupMenu.addItem(12, "Properties", originalComponent == cnv || (object && !params.empty()));
+    // showObjectReferenceDialog
+    auto callback = [cnv, editor, object, originalComponent, params, createObjectCallback](int result) mutable {
+        if (object)
+            object->repaint();
+
+        if (result < 1)
+            return;
+
+        switch (result) {
+        case 1: // Open subpatch
+            object->gui->openFromMenu();
+            break;
+        case 8: // To Front
+            object->toFront(false);
+            if (object->gui)
+                object->gui->moveToFront();
+            cnv->synchronise();
+            break;
+        case 9: // To Back
+            object->toBack();
+            if (object->gui)
+                object->gui->moveToBack();
+                cnv->synchronise();
+            break;
+        case 10: // Open help
+            object->openHelpPatch();
+            break;
+        case 11: // Open reference
+            Dialogs::showObjectReferenceDialog(&editor->openedDialog, editor, object->gui->getType());
+            break;
+        case 12:
+            if (originalComponent == cnv) {
+                // Open help
+                editor->sidebar.showParameters("canvas", cnv->getInspectorParameters());
+            } else {
+                editor->sidebar.showParameters(object->gui->getText(), params);
+            }
+
+            break;
+        default:
+            createObjectCallback(result);
+            break;
+        }
+    };
+
+    popupMenu.showMenuAsync(PopupMenu::Options().withMinimumWidth(100).withMaximumNumColumns(1).withParentComponent(editor).withTargetScreenArea(Rectangle<int>(position, position.translated(1, 1))), ModalCallbackFunction::create(callback));
+}
+
 void Dialogs::showObjectMenu(PluginEditor* parent, Component* target)
+{
+    std::function<void(int)> callback;
+    auto menu = createObjectMenu(parent, callback);
+    
+    menu.showMenuAsync(PopupMenu::Options().withMinimumWidth(100).withMaximumNumColumns(1).withTargetComponent(target).withParentComponent(parent), callback);
+}
+
+
+PopupMenu Dialogs::createObjectMenu(PluginEditor* parent, std::function<void(int)>& callback)
 {
     PopupMenu menu;
 
@@ -329,121 +557,14 @@ void Dialogs::showObjectMenu(PluginEditor* parent, Component* target)
     menu.addItem(createCommandItem(ObjectIDs::NewArray, "Array..."));
     menu.addItem(createCommandItem(ObjectIDs::NewGraphOnParent, "GraphOnParent"));
 
-    menu.showMenuAsync(PopupMenu::Options().withMinimumWidth(100).withMaximumNumColumns(1).withTargetComponent(target).withParentComponent(parent),
-        [parent](int result) {
-            if (result > 0) {
-                if (auto* cnv = parent->getCurrentCanvas()) {
-                    cnv->attachNextObjectToMouse = true;
-                }
+    callback = [parent](int result) {
+        if (result > 0) {
+            if (auto* cnv = parent->getCurrentCanvas()) {
+                cnv->attachNextObjectToMouse = true;
             }
-        });
-}
-
-class OkayCancelDialog : public Component {
-
-public:
-    OkayCancelDialog(Dialog* dialog, String const& title, std::function<void(bool)> callback)
-        : label("", title)
-    {
-        setSize(400, 200);
-        addAndMakeVisible(label);
-        addAndMakeVisible(cancel);
-        addAndMakeVisible(okay);
-
-        cancel.setColour(TextButton::buttonColourId, Colours::transparentBlack);
-        okay.setColour(TextButton::buttonColourId, Colours::transparentBlack);
-
-        cancel.onClick = [this, dialog, callback] {
-            callback(false);
-            dialog->closeDialog();
-        };
-
-        okay.onClick = [this, dialog, callback] {
-            callback(true);
-            dialog->closeDialog();
-        };
-
-        cancel.changeWidthToFitText();
-        okay.changeWidthToFitText();
-        setOpaque(false);
-    }
-
-    void resized() override
-    {
-        label.setBounds(20, 25, 360, 30);
-        cancel.setBounds(20, 80, 80, 25);
-        okay.setBounds(300, 80, 80, 25);
-    }
-
-private:
-    Label label;
-
-    TextButton cancel = TextButton("Cancel");
-    TextButton okay = TextButton("OK");
-};
-
-void Dialogs::showOkayCancelDialog(std::unique_ptr<Dialog>* target, Component* parent, String const& title, std::function<void(bool)> callback)
-{
-    auto* dialog = new Dialog(target, parent, 400, 130, 160, false);
-    auto* dialogContent = new OkayCancelDialog(dialog, title, callback);
-
-    dialog->setViewedComponent(dialogContent);
-    target->reset(dialog);
-}
-
-void Dialogs::showHeavyExportDialog(std::unique_ptr<Dialog>* target, Component* parent)
-{
-    auto* dialog = new Dialog(target, parent, 625, 400, parent->getBounds().getCentreY() + 200, true);
-    auto* dialogContent = new HeavyExportDialog(dialog);
-
-    dialog->setViewedComponent(dialogContent);
-    target->reset(dialog);
-}
-
-void Dialogs::showObjectBrowserDialog(std::unique_ptr<Dialog>* target, Component* parent)
-{
-
-    auto* dialog = new Dialog(target, parent, 750, 450, parent->getBounds().getCentreY() + 200, true);
-    auto* dialogContent = new ObjectBrowserDialog(parent, dialog);
-
-    dialog->setViewedComponent(dialogContent);
-    target->reset(dialog);
-}
-
-void Dialogs::showObjectReferenceDialog(std::unique_ptr<Dialog>* target, Component* parent, String objectName)
-{
-    auto* dialog = new Dialog(target, parent, 750, 450, parent->getBounds().getCentreY() + 200, true);
-    auto* dialogContent = new ObjectReferenceDialog(dynamic_cast<PluginEditor*>(parent), false);
-
-    dialogContent->showObject(objectName);
-
-    dialog->setViewedComponent(dialogContent);
-    target->reset(dialog);
-}
-
-StringArray DekenInterface::getExternalPaths()
-{
-    StringArray searchPaths;
-
-    for (auto package : PackageManager::getInstance()->packageState) {
-        if (!package.hasProperty("AddToPath") || !static_cast<bool>(package.getProperty("AddToPath"))) {
-            continue;
         }
-
-        searchPaths.add(package.getProperty("Path"));
-    }
-
-    return searchPaths;
+    };
+    
+    return menu;
 }
 
-bool Dialog::wantsRoundedCorners()
-{
-    // Check if the editor wants rounded corners
-    if (auto* editor = dynamic_cast<PluginEditor*>(parentComponent)) {
-        return editor->wantsRoundedCorners();
-    }
-    // Otherwise assume rounded corners for the rest of the UI
-    else {
-        return true;
-    }
-}

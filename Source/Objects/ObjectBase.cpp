@@ -86,7 +86,7 @@ ObjectBase::ObjectBase(void* obj, Object* parent)
 
     setWantsKeyboardFocus(true);
 
-    setLookAndFeel(new PlugDataLook);
+    setLookAndFeel(new PlugDataLook());
 
     MessageManager::callAsync([_this = SafePointer<ObjectBase>(this)] {
         if (_this) {
