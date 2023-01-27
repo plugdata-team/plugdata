@@ -276,7 +276,7 @@ void Dialogs::showCanvasRightClickMenu(Canvas* cnv, Component* originalComponent
     popupMenu.addSeparator();
     popupMenu.addItem(12, "Properties", originalComponent == cnv || (object && !params.empty()));
     // showObjectReferenceDialog
-    auto callback = [cnv, editor, object, originalComponent, params, createObjectCallback](int result) mutable {
+    auto callback = [cnv, editor, object, originalComponent, params, createObjectCallback, position](int result) mutable {
         if (object)
             object->repaint();
 
@@ -284,47 +284,46 @@ void Dialogs::showCanvasRightClickMenu(Canvas* cnv, Component* originalComponent
             return;
 
         switch (result) {
-        case 1: // Open subpatch
-            object->gui->openFromMenu();
-            break;
-        case 8: // To Front
-            object->toFront(false);
-            if (object->gui)
-                object->gui->moveToFront();
-            cnv->synchronise();
-            break;
-        case 9: // To Back
-            object->toBack();
-            if (object->gui)
-                object->gui->moveToBack();
+            case 1: // Open subpatch
+                object->gui->openFromMenu();
+                break;
+            case 8: // To Front
+                object->toFront(false);
+                if (object->gui)
+                    object->gui->moveToFront();
                 cnv->synchronise();
-            break;
-        case 10: // Open help
-            object->openHelpPatch();
-            break;
-        case 11: // Open reference
-            Dialogs::showObjectReferenceDialog(&editor->openedDialog, editor, object->gui->getType());
-            break;
-        case 12:
-            if (originalComponent == cnv) {
-                // Open help
-                editor->sidebar.showParameters("canvas", cnv->getInspectorParameters());
-            } else {
-                editor->sidebar.showParameters(object->gui->getText(), params);
+                break;
+            case 9: // To Back
+                object->toBack();
+                if (object->gui)
+                    object->gui->moveToBack();
+                cnv->synchronise();
+                break;
+            case 10: // Open help
+                object->openHelpPatch();
+                break;
+            case 11: // Open reference
+                Dialogs::showObjectReferenceDialog(&editor->openedDialog, editor, object->gui->getType());
+                break;
+            case 12:
+                if (originalComponent == cnv) {
+                    // Open help
+                    editor->sidebar.showParameters("canvas", cnv->getInspectorParameters());
+                } else {
+                    editor->sidebar.showParameters(object->gui->getText(), params);
+                }
+                
+                break;
+            default: {
+                if(result >= 100) {
+                    cnv->lastMousePosition = cnv->getLocalPoint(nullptr, position);
+                }
+                break;
             }
-
-            break;
-        default:
-            break;
         }
     };
 
-    popupMenu.showMenuAsync(PopupMenu::Options().withMinimumWidth(100).withMaximumNumColumns(1).withParentComponent(editor).withTargetScreenArea(Rectangle<int>(position, position.translated(1, 1))), ModalCallbackFunction::create([cnv, position](int result){
-        
-        if(result >= 100) {
-            cnv->lastMousePosition = cnv->getLocalPoint(nullptr, position);
-        }
-    }));
+    popupMenu.showMenuAsync(PopupMenu::Options().withMinimumWidth(100).withMaximumNumColumns(1).withParentComponent(editor).withTargetScreenArea(Rectangle<int>(position, position.translated(1, 1))), ModalCallbackFunction::create(callback));
 }
 
 void Dialogs::showObjectMenu(PluginEditor* parent, Component* target)
