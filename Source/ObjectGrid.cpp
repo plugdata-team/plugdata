@@ -18,6 +18,9 @@ ObjectGrid::ObjectGrid(Canvas* parent)
         line.setStrokeThickness(1);
         line.setAlwaysOnTop(true);
     }
+    
+    gridEnabled = static_cast<int>(SettingsFile::getInstance()->getProperty("GridEnabled"));
+    
 }
 
 Point<int> ObjectGrid::setState(bool isSnapped, int i, Point<int> pos, Component* s, Component* e, bool horizontal)
@@ -110,8 +113,6 @@ Point<int> ObjectGrid::handleMouseDrag(Object* toDrag, Point<int> dragOffset, Re
 {
     gridLines[0].setStrokeFill(FillType(toDrag->findColour(PlugDataColour::gridLineColourId)));
     gridLines[1].setStrokeFill(FillType(toDrag->findColour(PlugDataColour::gridLineColourId)));
-    
-    auto gridEnabled = static_cast<int>(SettingsFile::getInstance()->getProperty("GridEnabled"));
     
     if(gridEnabled == 1) {
         // Check for snap points on both axes
@@ -300,4 +301,11 @@ bool ObjectGrid::trySnap(int distance)
     }
     totalSnaps++;
     return false;
+}
+
+void ObjectGrid::propertyChanged(String name, var value)
+{
+    if(name == "GridEnabled") {
+        gridEnabled = static_cast<int>(value);
+    }
 }
