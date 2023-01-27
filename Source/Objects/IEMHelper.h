@@ -25,7 +25,7 @@ public:
         , pd(parent->cnv->pd)
         , iemgui(static_cast<t_iemgui*>(ptr))
     {
-        labelText = getLabelText();
+        labelText = getExpandedLabelText();
 
         labelX = iemgui->x_ldx;
         labelY = iemgui->x_ldy;
