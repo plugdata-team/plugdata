@@ -27,7 +27,7 @@ public:
 
     bool hitTest(int x, int y) override
     {
-        return !getLocalBounds().reduced(8).contains(Point<int> { x, y });
+        return !getLocalBounds().reduced(8).contains(Point<int>(x, y));
     }
 
     void mouseMove(MouseEvent const& e) override

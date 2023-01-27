@@ -312,9 +312,7 @@ void ObjectBase::moveToBack()
     auto* canvas = static_cast<t_canvas*>(cnv->patch.getPointer());
     t_gobj* y = static_cast<t_gobj*>(ptr);
 
-    auto idx = pd::Storage::isInfoParent(canvas->gl_list);
-
-    changePos(canvas, y, idx);
+    changePos(canvas, y, 0);
 }
 
 void ObjectBase::paint(Graphics& g)

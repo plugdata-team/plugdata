@@ -50,10 +50,9 @@ public:
 
         auto* cnvPtr = cnv->patch.getPointer();
         auto objText = editor ? editor->getText() : objectText;
-        auto* textObj = static_cast<t_text*>(ptr);
         auto newNumLines = 0;
         
-        auto newBounds = TextObjectHelper::recalculateTextObjectBounds(cnvPtr, textObj, objText, 15, newNumLines);
+        auto newBounds = TextObjectHelper::recalculateTextObjectBounds(cnvPtr, ptr, objText, 15, newNumLines);
         
         numLines = newNumLines;
         
@@ -155,7 +154,6 @@ public:
             editor.reset(TextObjectHelper::createTextEditor(object, 15));
             
             editor->setBorder(border);
-            editor->setJustification(Justification::centredLeft);
             editor->setBounds(getLocalBounds().withTrimmedRight(5));
             editor->setText(objectText, false);
             editor->addListener(this);
@@ -197,6 +195,8 @@ public:
             applyBounds();  // Send new bounds to Pd
 
             setSymbol(objectText);
+            
+            repaint();
         }
     }
 
@@ -227,6 +227,8 @@ public:
     {
         int caretPosition = ed.getCaretPosition();
         auto text = ed.getText();
+        
+        if(!ed.getHighlightedRegion().isEmpty()) return;
         
         if(text[caretPosition - 1] == ';') {
             text = text.substring(0, caretPosition) + "\n" + text.substring(caretPosition);

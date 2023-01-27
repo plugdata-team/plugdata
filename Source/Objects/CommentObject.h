@@ -35,7 +35,7 @@ public:
     void paint(Graphics& g) override
     {
         if (!editor) {
-            auto textArea = getLocalBounds().reduced(4, 2);
+            auto textArea = border.subtractedFrom(getLocalBounds());
 
             PlugDataLook::drawFittedText(g, objectText, textArea, object->findColour(PlugDataColour::canvasTextColourId), numLines, 0.8f, 14.0f, Justification::centredLeft);
         }
@@ -74,24 +74,18 @@ public:
 
             newText = TextObjectHelper::fixNewlines(newText);
             
-            bool changed;
             if (objectText != newText) {
                 objectText = newText;
-                repaint();
-                changed = true;
-            } else {
-                changed = false;
             }
-
+            
             outgoingEditor.reset();
 
+            
             updateBounds(); // Recalculate bounds
             applyBounds();  // Send new bounds to Pd
-
-            // update if the name has changed, or if pdobject is unassigned
-            if (changed) {
-                setSymbol(objectText);
-            }
+                
+            setSymbol(objectText);
+            repaint();
         }
     }
 
@@ -100,8 +94,7 @@ public:
         if (editor == nullptr) {
             editor.reset(TextObjectHelper::createTextEditor(object, 14));
             
-            editor->setBorder(BorderSize<int> { 1, 4, 0, 0 });
-            editor->setJustification(Justification::centredLeft);
+            editor->setBorder(border);
             editor->setBounds(getLocalBounds());
             editor->setText(objectText, false);
             editor->addListener(this);
@@ -126,15 +119,21 @@ public:
 
         auto* cnvPtr = cnv->patch.getPointer();
         auto objText = editor ? editor->getText() : objectText;
-        auto* textObj = static_cast<t_text*>(ptr);
         auto newNumLines = 0;
         
-        auto newBounds = TextObjectHelper::recalculateTextObjectBounds(cnvPtr, textObj, objText, 14, newNumLines);
+        auto newBounds = TextObjectHelper::recalculateTextObjectBounds(cnvPtr, ptr, objText, 14, newNumLines).expanded(Object::margin) - cnv->canvasOrigin;
         
         numLines = newNumLines;
         
-        if(newBounds != object->getObjectBounds()) {
-            object->setObjectBounds(newBounds);
+        auto objBounds = object->getBounds();
+        
+        // TODO: this is a hack
+        // why is there a weird 1px offset, only for comment but not for textobj or message?
+        if(objBounds.getPosition().getDistanceFrom(newBounds.getPosition()) > 2) {
+            object->setTopLeftPosition(newBounds.getX(), newBounds.getY());
+        }
+        if(newBounds.getWidth() != objBounds.getWidth() || newBounds.getHeight() != objBounds.getHeight()) {
+            object->setSize(newBounds.getWidth(), newBounds.getHeight());
         }
         
         pd->getCallbackLock()->exit();
@@ -212,6 +211,8 @@ public:
     {
         int caretPosition = ed.getCaretPosition();
         auto text = ed.getText();
+        
+        if(!ed.getHighlightedRegion().isEmpty()) return;
         
         if(text[caretPosition - 1] == ';') {
             text = text.substring(0, caretPosition) + "\n" + text.substring(caretPosition);

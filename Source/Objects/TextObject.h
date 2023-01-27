@@ -117,6 +117,7 @@ struct TextObjectHelper
         editor->setScrollbarsShown(false);
         editor->setIndents(0, 0);
         editor->setScrollToShowCursor(false);
+        editor->setJustification(Justification::centredLeft);
         
         return editor;
     }
@@ -198,11 +199,10 @@ public:
         pd->getCallbackLock()->enter();
 
         auto* cnvPtr = cnv->patch.getPointer();
-        auto* textObj = static_cast<t_text*>(ptr);
         auto objText = editor ? editor->getText() : objectText;
         auto newNumLines = 0;
         
-        auto newBounds = TextObjectHelper::recalculateTextObjectBounds(cnvPtr, textObj, objText, 15, newNumLines, true, std::max({1, object->numInputs, object->numOutputs}));
+        auto newBounds = TextObjectHelper::recalculateTextObjectBounds(cnvPtr, ptr, objText, 15, newNumLines, true, std::max({1, object->numInputs, object->numOutputs}));
         
         numLines = newNumLines;
         
@@ -273,7 +273,6 @@ public:
             editor.reset(TextObjectHelper::createTextEditor(object, 15));
             
             editor->setBorder(border);
-            editor->setJustification(Justification::centredLeft);
             editor->setBounds(getLocalBounds());
             editor->setText(objectText, false);
             editor->addListener(this);
