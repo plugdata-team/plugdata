@@ -62,6 +62,8 @@ private:
 
     Point<int> performVerticalSnap(Object* toDrag, Point<int> dragOffset, Rectangle<int> viewBounds);
     Point<int> performHorizontalSnap(Object* toDrag, Point<int> dragOffset, Rectangle<int> viewBounds);
+    
+    Point<int> performAbsoluteSnap(Object* toDrag, Point<int> dragOffset);
 
     bool trySnap(int distance);
 };

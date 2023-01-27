@@ -327,11 +327,11 @@ struct PlugDataLook : public LookAndFeel_V4 {
             if (!button.isEnabled()) {
                 g.setColour(Colours::grey);
             } else if (button.getToggleState()) {
-                g.setColour(button.findColour(PlugDataColour::toolbarActiveColourId));
+                g.setColour(button.findColour(TextButton::textColourOnId));
             } else if (isMouseOverButton) {
-                g.setColour(button.findColour(PlugDataColour::toolbarActiveColourId).brighter(0.8f));
+                g.setColour(button.findColour(TextButton::textColourOnId).brighter(0.8f));
             } else {
-                g.setColour(button.findColour(PlugDataColour::toolbarTextColourId));
+                g.setColour(button.findColour(TextButton::textColourOffId));
             }
             
             int const yIndent = jmin(4, button.proportionOfHeight(0.3f));

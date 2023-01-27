@@ -110,16 +110,23 @@ Point<int> ObjectGrid::handleMouseDrag(Object* toDrag, Point<int> dragOffset, Re
 {
     gridLines[0].setStrokeFill(FillType(toDrag->findColour(PlugDataColour::gridLineColourId)));
     gridLines[1].setStrokeFill(FillType(toDrag->findColour(PlugDataColour::gridLineColourId)));
-
-    // Check for snap points on both axes
-    dragOffset = performVerticalSnap(toDrag, dragOffset, viewBounds);
-    dragOffset = performHorizontalSnap(toDrag, dragOffset, viewBounds);
-
-    // Update grid line when snapped
-    // Async to make sure the objects position gets updated first...
-    MessageManager::callAsync([this]() {
-        updateMarker();
-    });
+    
+    auto gridEnabled = static_cast<int>(SettingsFile::getInstance()->getProperty("GridEnabled"));
+    
+    if(gridEnabled == 1) {
+        // Check for snap points on both axes
+        dragOffset = performVerticalSnap(toDrag, dragOffset, viewBounds);
+        dragOffset = performHorizontalSnap(toDrag, dragOffset, viewBounds);
+        
+        // Update grid line when snapped
+        // Async to make sure the objects position gets updated first...
+        MessageManager::callAsync([this]() {
+            updateMarker();
+        });
+    }
+    else if(gridEnabled == 2){
+        dragOffset = performAbsoluteSnap(toDrag, dragOffset);
+    }
 
     return dragOffset;
 }
@@ -253,6 +260,22 @@ Point<int> ObjectGrid::performHorizontalSnap(Object* toDrag, Point<int> dragOffs
     }
 
     return dragOffset;
+}
+
+Point<int> ObjectGrid::performAbsoluteSnap(Object* toDrag, Point<int> dragOffset)
+{
+    auto roundedDrag = (dragOffset / 10) * 10;
+    auto offset = ((toDrag->mouseDownPos / 10) * 10) - toDrag->mouseDownPos;
+
+    auto totalOffset = roundedDrag + offset;
+    
+    position[1].x = totalOffset.x;
+    position[0].y = totalOffset.y;
+   
+    snapped[0] = true;
+    snapped[1] = true;
+    
+    return totalOffset;
 }
 
 Point<int> ObjectGrid::handleMouseUp(Point<int> dragOffset)
