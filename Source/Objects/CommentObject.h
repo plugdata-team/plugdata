@@ -20,7 +20,6 @@ class CommentObject final : public ObjectBase
     int numLines = 1;
 
     bool wasSelected = false;
-    bool isValid = true;
 
 public:
     CommentObject(void* obj, Object* object)
@@ -47,7 +46,7 @@ public:
 
             auto textArea = getLocalBounds().reduced(4, 2);
 
-            PlugDataLook::drawFittedText(g, objectText, textArea, object->findColour(PlugDataColour::canvasTextColourId), numLines, 0.95f, 13.5f, Justification::topLeft);
+            PlugDataLook::drawFittedText(g, objectText, textArea, object->findColour(PlugDataColour::canvasTextColourId), numLines, 0.95f, 14.0f, Justification::topLeft);
             
             auto selected = cnv->isSelected(object);
             if (object->locked == var(false) && (object->isMouseOverOrDragging(true) || selected) && !cnv->isGraph) {
@@ -64,7 +63,7 @@ public:
         auto maxWidth = 32;
 
         for (auto& line : lines) {
-            maxWidth = std::max<int>(Font(13.5f).getStringWidthFloat(line) + 19, maxWidth);
+            maxWidth = std::max<int>(Font(14.f).getStringWidthFloat(line) + 19, maxWidth);
         }
 
         return maxWidth;
@@ -123,10 +122,10 @@ public:
                                 auto maxWidth = 32;
 
                                 for (auto& line : lines) {
-                                    maxWidth = std::max<int>(Font(13.5f).getStringWidthFloat(line) + 19, maxWidth);
+                                    maxWidth = std::max<int>(Font(14.f).getStringWidthFloat(line) + 19, maxWidth);
                                 }
-
-                                int newHeight = (lines.size() * 16 + 4) + Object::doubleMargin;
+                                
+                                int newHeight = (lines.size() * 14 + 7) + Object::doubleMargin;
                                 int newWidth = maxWidth + Object::doubleMargin + 4;
 
                                 auto newBounds = Rectangle<int>(_this->object->getX(), _this->object->getY(), newWidth + Object::doubleMargin, newHeight + Object::doubleMargin);
@@ -145,7 +144,7 @@ public:
     {
         if (editor == nullptr) {
             editor = std::make_unique<TextEditor>(getName());
-            editor->applyFontToAllText(Font(13.5f));
+            editor->applyFontToAllText(Font(14.f));
 
             copyAllExplicitColoursTo(*editor);
             editor->setColour(Label::textWhenEditingColourId, object->findColour(PlugDataColour::canvasTextColourId));
@@ -218,7 +217,7 @@ public:
         }
 
         numLines = StringUtils::getNumLines(objText, width);
-        int height = numLines * 16 + 4;
+        int height = numLines * 14 + 7;
 
         bounds.setWidth(width);
         bounds.setHeight(height);
@@ -273,7 +272,7 @@ public:
         auto objText = editor ? editor->getText() : objectText;
 
         numLines = StringUtils::getNumLines(objText, width);
-        auto height = numLines * 16 + 4;
+        auto height = numLines * 14 + 7;
 
         if (getWidth() != width || getHeight() != height) {
             object->setSize(width + Object::doubleMargin, height + Object::doubleMargin);
@@ -306,7 +305,7 @@ public:
         width = std::min(width / fontWidth, 60) * fontWidth;
 
         numLines = StringUtils::getNumLines(text, width);
-        auto height = numLines * 16 + 4;
+        auto height = numLines * 14 + 7;
 
         height = std::max(height, getHeight());
 

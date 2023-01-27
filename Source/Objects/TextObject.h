@@ -56,7 +56,7 @@ public:
         width = std::max(width, std::max({ 1, object->numInputs, object->numOutputs }) * 18);
 
         numLines = StringUtils::getNumLines(objectText, width);
-        int height = numLines * 19 + 2;
+        int height = numLines * 15 + 6;
 
         if (getWidth() != width || getHeight() != height) {
             object->setSize(width + Object::doubleMargin, height + Object::doubleMargin);
@@ -143,7 +143,7 @@ public:
         width = std::max(width, std::max({ 1, object->numInputs, object->numOutputs }) * 18);
 
         numLines = StringUtils::getNumLines(objectText, width);
-        int height = numLines * 20 + 1;
+        int height = numLines * 15 + 6;
 
         bounds.setWidth(width);
         bounds.setHeight(height);

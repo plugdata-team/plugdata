@@ -30,7 +30,6 @@ class MessageObject final : public ObjectBase
     int numLines = 1;
 
     bool wasSelected = false;
-    bool isValid = true;
     bool isDown = false;
     bool isLocked = false;
 
@@ -75,7 +74,7 @@ public:
     {
         int numLines = StringUtils::getNumLines(getText(), object->getWidth() - Object::doubleMargin - 5);
         int fontWidth = glist_fontwidth(cnv->patch.getPointer());
-        int newHeight = (numLines * 19) + Object::doubleMargin + 2;
+        int newHeight = numLines * 15 + 6 + Object::doubleMargin;
         int newWidth = getWidth() / fontWidth;
 
         static_cast<t_text*>(ptr)->te_width = newWidth;
@@ -102,8 +101,6 @@ public:
 
     void paint(Graphics& g) override
     {
-        BorderSize<int> border { 1, 6, 1, 4 };
-
         g.setColour(object->findColour(PlugDataColour::defaultObjectBackgroundColourId));
         g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), PlugDataLook::objectCornerRadius);
 
@@ -113,10 +110,6 @@ public:
 
         bool selected = cnv->isSelected(object) && !cnv->isGraph;
         auto outlineColour = object->findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : PlugDataColour::objectOutlineColourId);
-
-        if (!isValid) {
-            outlineColour = selected ? Colours::red.brighter(1.5) : Colours::red;
-        }
 
         g.setColour(outlineColour);
         g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), PlugDataLook::objectCornerRadius, 1.0f);
@@ -176,7 +169,7 @@ public:
         auto objText = editor ? editor->getText() : objectText;
 
         numLines = StringUtils::getNumLines(objText, width);
-        int height = numLines * 19 + 2;
+        int height = numLines * 15 + 6;
 
         if (getWidth() != width || getHeight() != height) {
             object->setSize(width + Object::doubleMargin, height + Object::doubleMargin);
@@ -190,8 +183,6 @@ public:
     void showEditor() override
     {
         if (editor == nullptr) {
-            BorderSize<int> border { 1, 6, 1, 4 };
-
             editor = std::make_unique<TextEditor>(getName());
             editor->applyFontToAllText(Font(15));
 
@@ -212,7 +203,7 @@ public:
 
             editor->setSize(10, 10);
 
-            editor->setText(objectText, false);
+            editor->setText(objectText.trimEnd(), false);
             editor->addListener(this);
             editor->addKeyListener(this);
             editor->setScrollToShowCursor(false);
@@ -228,12 +219,12 @@ public:
 
             editor->setHighlightedRegion(Range<int>(0, objectText.length()));
 
-            resized();
-            repaint();
-
             if (isShowing()) {
                 editor->grabKeyboardFocus();
             }
+            
+            resized();
+            repaint();
         }
     }
 
@@ -246,37 +237,43 @@ public:
 
             outgoingEditor->setInputFilter(nullptr, false);
 
-            auto newText = outgoingEditor->getText();
+            auto newText = outgoingEditor->getText().trimEnd();
 
             if (objectText != newText) {
                 objectText = newText;
-                repaint();
-            } else {
             }
-
+            
             outgoingEditor.reset();
 
             repaint();
 
             // Calculate size of new text
             auto lines = StringArray::fromTokens(newText, ";\n", "");
-            auto maxWidth = 32;
+            auto maxWidth = 32.0f;
 
             for (auto& line : lines) {
-                maxWidth = std::max<int>(Font(15).getStringWidthFloat(line) + 19, maxWidth);
+                maxWidth = std::max<float>(Font(15).getStringWidthFloat(line) + 19.0f, maxWidth);
             }
+            
+            int fontWidth = glist_fontwidth(cnv->patch.getPointer());
+            textObjectWidth = round(maxWidth) / fontWidth;
+            
+            int newWidth = textObjectWidth * fontWidth;
+            
+            numLines = std::max(1, lines.size());
+            newWidth += Object::doubleMargin + 4;
+            
+            int newHeight = (numLines * 15) + 6 + Object::doubleMargin;
 
-            int newHeight = (lines.size() * 19) + Object::doubleMargin;
-            int newWidth = maxWidth + Object::doubleMargin + 4;
-
-            auto newBounds = Rectangle<int>(object->getX() + Object::margin, object->getY() + Object::margin, newWidth, newHeight);
-            object->setObjectBounds(newBounds);
+            auto newBounds = Rectangle<int>(object->getX(), object->getY(), newWidth, newHeight);
+            object->setBounds(newBounds);
 
             applyBounds();
 
             object->setType(newText);
         }
     }
+        
 
     void mouseDown(MouseEvent const& e) override
     {
@@ -323,7 +320,7 @@ public:
         width = std::min(width / fontWidth, 60) * fontWidth;
 
         numLines = StringUtils::getNumLines(text, width);
-        auto height = numLines * 19 + 2;
+        auto height = numLines * 15 + 6;
 
         height = std::max(height, getHeight());
 
