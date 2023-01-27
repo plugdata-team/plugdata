@@ -44,25 +44,4 @@ struct StringUtils {
 
         return std::max<int>(round(static_cast<float>(stringWidth) / (width - 38.0f)), 1);
     }
-
-    // Used by text objects for estimating best text height for a set width
-    static int getNumLines(String const& text, int width, Font font = Font(Font::getDefaultSansSerifFontName(), 13, 0))
-    {
-        int numLines = 1;
-
-        Array<int> glyphs;
-        Array<float> xOffsets;
-        font.getGlyphPositions(text, glyphs, xOffsets);
-
-        for (int i = 0; i < xOffsets.size(); i++) {
-            if ((xOffsets[i] + 12) >= static_cast<float>(width) || text.getCharPointer()[i] == '\n') {
-                for (int j = i + 1; j < xOffsets.size(); j++) {
-                    xOffsets.getReference(j) -= xOffsets[i];
-                }
-                numLines++;
-            }
-        }
-
-        return numLines;
-    }
 };

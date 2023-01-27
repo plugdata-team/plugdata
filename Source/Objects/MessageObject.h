@@ -183,8 +183,10 @@ public:
 
             outgoingEditor->setInputFilter(nullptr, false);
 
-            auto newText = outgoingEditor->getText().trimEnd();
+            auto newText = outgoingEditor->getText();
 
+            newText = TextObjectHelper::fixNewlines(newText);
+            
             if (objectText != newText) {
                 objectText = newText;
             }
