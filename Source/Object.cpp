@@ -125,13 +125,12 @@ void Object::valueChanged(Value& v)
 
     // else it was a lock/unlock action
     // Hide certain objects in GOP
-    resized();
+    //resized();
 
     if (gui) {
         gui->lock(locked == var(true) || commandLocked == var(true));
     }
 
-    resized();
     repaint();
 }
 
@@ -265,7 +264,7 @@ void Object::setType(String const& newType, void* existingObject)
         auto outlet = cnv->lastSelectedObject->iolets[cnv->lastSelectedObject->numInputs];
         auto inlet = iolets[0];
         if (outlet->isSignal == inlet->isSignal) {
-            cnv->connections.add(new Connection(cnv, outlet, inlet, false));
+            cnv->connections.add(new Connection(cnv, outlet, inlet, nullptr));
         }
     }
     if (cnv->lastSelectedConnection) {
@@ -275,10 +274,10 @@ void Object::setType(String const& newType, void* existingObject)
         auto outlet = outobj->iolets[outobj->numInputs + cnv->lastSelectedConnection->outIdx];
         auto inlet = inobj->iolets[cnv->lastSelectedConnection->inIdx];
         if ((outlet->isSignal == iolets[0]->isSignal) && (inlet->isSignal == iolets[this->numInputs]->isSignal)) {
-            cnv->connections.add(new Connection(cnv, outlet, iolets[0], false));
-            cnv->connections.add(new Connection(cnv, iolets[this->numInputs], inlet, false));
+            cnv->connections.add(new Connection(cnv, outlet, iolets[0], nullptr));
+            cnv->connections.add(new Connection(cnv, iolets[this->numInputs], inlet, nullptr));
             // remove the previous connection
-            cnv->patch.removeConnection(outobj->getPointer(), cnv->lastSelectedConnection->outIdx, inobj->getPointer(), cnv->lastSelectedConnection->inIdx);
+            cnv->patch.removeConnection(outobj->getPointer(), cnv->lastSelectedConnection->outIdx, inobj->getPointer(), cnv->lastSelectedConnection->inIdx, cnv->lastSelectedConnection->getState());
             cnv->connections.removeObject(cnv->lastSelectedConnection);
         }
     }
@@ -772,7 +771,7 @@ void Object::openNewObjectEditor()
         editor->setAlwaysOnTop(true);
         editor->setMultiLine(false);
         editor->setReturnKeyStartsNewLine(false);
-        editor->setBorder(BorderSize<int> { 1, 7, 1, 2 });
+        editor->setBorder(BorderSize<int>(1, 7, 1, 2 ));
         editor->setIndents(0, 0);
         editor->setJustification(Justification::centredLeft);
 

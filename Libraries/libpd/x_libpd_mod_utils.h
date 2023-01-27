@@ -45,8 +45,8 @@ void libpd_removeselection(t_canvas* cnv);
 void libpd_moveselection(t_canvas* cnv, int dx, int dy);
 
 int libpd_hasconnection(t_canvas* cnv, t_object* src, int nout, t_object* sink, int nin);
-void libpd_createconnection(t_canvas* cnv, t_object* src, int nout, t_object* sink, int nin);
-void libpd_removeconnection(t_canvas* cnv, t_object* src, int nout, t_object* sink, int nin);
+void* libpd_createconnection(t_canvas* cnv, t_object* src, int nout, t_object* sink, int nin);
+void libpd_removeconnection(t_canvas* cnv, t_object* src, int nout, t_object* sink, int nin, t_symbol* connection_path);
 
 void libpd_getcontent(t_canvas* cnv, char** buf, int* bufsize);
 void libpd_savetofile(t_canvas* cnv, t_symbol* filename, t_symbol* dir);
@@ -71,7 +71,7 @@ void libpd_canvas_saveto(t_canvas* cnv, t_binbuf* b);
 
 void gobj_setposition(t_gobj* x, t_glist* glist, int xpos, int ypos);
 
-int libpd_tryconnect(t_canvas* cnv, t_object* src, int nout, t_object* sink, int nin);
+void* libpd_tryconnect(t_canvas* cnv, t_object* src, int nout, t_object* sink, int nin);
 int libpd_canconnect(t_canvas* cnv, t_object* src, int nout, t_object* sink, int nin);
 
 void libpd_collecttemplatesfor(t_canvas* cnv, int* ntemplatesp,

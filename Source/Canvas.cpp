@@ -23,7 +23,6 @@ Canvas::Canvas(PluginEditor* parent, pd::Patch& p, Component* parentGraph)
     : editor(parent)
     , pd(parent->pd)
     , patch(p)
-    , storage(patch.getPointer(), pd)
 {
     isGraphChild = glist_isgraph(p.getPointer());
     hideNameAndArgs = static_cast<bool>(p.getPointer()->gl_hidetext);
@@ -210,7 +209,7 @@ void Canvas::synchronise(bool updatePosition)
     auto pdConnections = patch.getConnections();
 
     for (auto& connection : pdConnections) {
-        auto& [inno, inobj, outno, outobj] = connection;
+        auto& [ptr, inno, inobj, outno, outobj] = connection;
 
         int srcno = patch.getIndex(&inobj->te_g);
         int sinkno = patch.getIndex(&outobj->te_g);
@@ -226,9 +225,9 @@ void Canvas::synchronise(bool updatePosition)
 
         auto* it = std::find_if(connections.begin(), connections.end(),
             [this, &connection, &srcno, &sinkno](Connection* c) {
-                auto& [inno, inobj, outno, outobj] = connection;
+                auto& [ptr, inno, inobj, outno, outobj] = connection;
 
-                if (!c->inlet || !c->outlet)
+                if (!ptr || !c->inlet || !c->outlet)
                     return false;
 
                 bool sameStart = c->outobj == objects[srcno];
@@ -238,8 +237,9 @@ void Canvas::synchronise(bool updatePosition)
             });
 
         if (it == connections.end()) {
-            connections.add(new Connection(this, srcEdges[objects[srcno]->numInputs + outno], sinkEdges[inno], true));
+            connections.add(new Connection(this, srcEdges[objects[srcno]->numInputs + outno], sinkEdges[inno], ptr));
         } else {
+            /*
             // Update storage ids for connections
             auto& c = *(*it);
 
@@ -257,11 +257,9 @@ void Canvas::synchronise(bool updatePosition)
             if (info.length())
                 c.setState(info);
 
-            c.repaint();
+            c.repaint(); */
         }
     }
-
-    storage.confirmIds();
 
     if (!isGraph) {
         setTransform(editor->transform);
@@ -389,7 +387,7 @@ void Canvas::mouseDrag(MouseEvent const& e)
         // Middle mouse pan
         if (e.mods.isMiddleButtonDown() && !ObjectBase::isBeingEdited()) {
 
-            auto delta = Point<int> { viewportEvent.getDistanceFromDragStartX(), viewportEvent.getDistanceFromDragStartY() };
+            auto delta = Point<int>(viewportEvent.getDistanceFromDragStartX(), viewportEvent.getDistanceFromDragStartY());
 
             viewport->setViewPosition(viewportPositionBeforeMiddleDrag.x - delta.x, viewportPositionBeforeMiddleDrag.y - delta.y);
 
@@ -683,12 +681,12 @@ void Canvas::duplicateSelection()
                     for (auto* dup : duplicated) {
                         for (auto* conIn : conInlets) {
                             if ((conIn->outlet == objIolet) && object->iolets[iolet] && !dup->iolets.contains(conIn->outlet)) {
-                                connections.add(new Connection(this, dup->iolets[0], object->iolets[iolet], false));
+                                connections.add(new Connection(this, dup->iolets[0], object->iolets[iolet], nullptr));
                             }
                         }
                         for (auto* conOut : conOutlets) {
                             if ((conOut->inlet == objIolet) && (iolet < object->numInputs)) {
-                                connections.add(new Connection(this, dup->iolets[dup->numInputs], object->iolets[iolet], false));
+                                connections.add(new Connection(this, dup->iolets[dup->numInputs], object->iolets[iolet], nullptr));
                             }
                         }
                     }
@@ -751,7 +749,7 @@ void Canvas::removeSelection()
     for (auto* con : connections) {
         if (isSelected(con)) {
             if (!(objects.contains(con->outobj->getPointer()) || objects.contains(con->inobj->getPointer()))) {
-                patch.removeConnection(con->outobj->getPointer(), con->outIdx, con->inobj->getPointer(), con->inIdx);
+                patch.removeConnection(con->outobj->getPointer(), con->outIdx, con->inobj->getPointer(), con->inIdx, con->getState());
             }
         }
     }
@@ -934,9 +932,6 @@ void Canvas::cancelConnectionCreation()
 
 void Canvas::undo()
 {
-    // Performs undo on storage data if the next undo event if a dummy
-    storage.undoIfNeeded();
-
     // Tell pd to undo the last action
     patch.undo();
 
@@ -948,9 +943,6 @@ void Canvas::undo()
 
 void Canvas::redo()
 {
-    // Performs redo on storage data if the next redo event if a dummy
-    storage.redoIfNeeded();
-
     // Tell pd to undo the last action
     patch.redo();
 
@@ -1197,7 +1189,7 @@ void Canvas::handleMouseUp(Component* component, MouseEvent const& e)
 
         patch.startUndoSequence("SnapInbetween");
 
-        patch.removeConnection(c->outobj->getPointer(), c->outIdx, c->inobj->getPointer(), c->inIdx);
+        patch.removeConnection(c->outobj->getPointer(), c->outIdx, c->inobj->getPointer(), c->inIdx, c->getState());
 
         patch.createConnection(c->outobj->getPointer(), c->outIdx, objectSnappingInbetween->getPointer(), 0);
         patch.createConnection(objectSnappingInbetween->getPointer(), 0, c->inobj->getPointer(), c->inIdx);
@@ -1304,14 +1296,14 @@ void Canvas::handleMouseDrag(MouseEvent const& e)
             auto* outlet = inputs[0]->outlet.getComponent();
 
             for (auto* c : outputs) {
-                patch.removeConnection(c->outobj->getPointer(), c->outIdx, c->inobj->getPointer(), c->inIdx);
+                patch.removeConnection(c->outobj->getPointer(), c->outIdx, c->inobj->getPointer(), c->inIdx, c->getState());
 
-                connections.add(new Connection(this, outlet, c->inlet, false));
+                connections.add(new Connection(this, outlet, c->inlet, nullptr));
                 connections.removeObject(c);
             }
 
             auto* c = inputs[0];
-            patch.removeConnection(c->outobj->getPointer(), c->outIdx, c->inobj->getPointer(), c->inIdx);
+            patch.removeConnection(c->outobj->getPointer(), c->outIdx, c->inobj->getPointer(), c->inIdx, c->getState());
             connections.removeObject(c);
 
             object->iolets[0]->isTargeted = false;
@@ -1324,14 +1316,14 @@ void Canvas::handleMouseDrag(MouseEvent const& e)
             auto* inlet = outputs[0]->inlet.getComponent();
 
             for (auto* c : inputs) {
-                patch.removeConnection(c->outobj->getPointer(), c->outIdx, c->inobj->getPointer(), c->inIdx);
+                patch.removeConnection(c->outobj->getPointer(), c->outIdx, c->inobj->getPointer(), c->inIdx, c->getState());
 
-                connections.add(new Connection(this, c->outlet, inlet, false));
+                connections.add(new Connection(this, c->outlet, inlet, nullptr));
                 connections.removeObject(c);
             }
 
             auto* c = outputs[0];
-            patch.removeConnection(c->outobj->getPointer(), c->outIdx, c->inobj->getPointer(), c->inIdx);
+            patch.removeConnection(c->outobj->getPointer(), c->outIdx, c->inobj->getPointer(), c->inIdx, c->getState());
             connections.removeObject(c);
 
             object->iolets[0]->isTargeted = false;

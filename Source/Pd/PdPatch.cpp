@@ -7,7 +7,6 @@
 #include "PdPatch.h"
 
 #include "PdInstance.h"
-#include "PdStorage.h"
 #include "../Objects/ObjectBase.h"
 
 extern "C" {
@@ -152,9 +151,6 @@ int Patch::getIndex(void* obj)
     auto* cnv = getPointer();
 
     for (t_gobj* y = cnv->gl_list; y; y = y->g_next) {
-        if (Storage::isInfoParent(y))
-            continue;
-
         if (obj == y) {
             return i;
         }
@@ -181,7 +177,7 @@ Connections Patch::getConnections() const
 
     // TODO: fix data race
     while ((oc = linetraverser_next(&t))) {
-        connections.push_back({ t.tr_inno, t.tr_ob, t.tr_outno, t.tr_ob2 });
+        connections.push_back({oc, t.tr_inno, t.tr_ob, t.tr_outno, t.tr_ob2 });
     }
 
     // instance->getCallbackLock()->exit();
@@ -198,9 +194,6 @@ std::vector<void*> Patch::getObjects()
         t_canvas const* cnv = getPointer();
 
         for (t_gobj* y = cnv->gl_list; y; y = y->g_next) {
-            if (Storage::isInfoParent(y))
-                continue;
-
             objects.push_back(static_cast<void*>(y));
         }
 
@@ -472,7 +465,7 @@ void Patch::removeObject(void* obj)
 bool Patch::hasConnection(void* src, int nout, void* sink, int nin)
 {
     bool hasConnection = false;
-    bool hasReturned = false;
+    std::atomic<bool> hasReturned = false;
 
     instance->enqueueFunction(
         [this, &hasConnection, &hasReturned, src, nout, sink, nin]() mutable {
@@ -498,40 +491,47 @@ bool Patch::canConnect(void* src, int nout, void* sink, int nin)
     return canConnect;
 }
 
-bool Patch::createConnection(void* src, int nout, void* sink, int nin)
+void* Patch::createConnection(void* src, int nout, void* sink, int nin)
 {
     if (!src || !sink || !ptr)
-        return false;
+        return nullptr;
 
-    bool canConnect = false;
+    void* outconnect = nullptr;
+    std::atomic<bool> hasReturned = false;
 
     instance->enqueueFunction(
-        [this, &canConnect, src, nout, sink, nin]() mutable {
-            canConnect = libpd_canconnect(getPointer(), checkObject(src), nout, checkObject(sink), nin);
+        [this, &outconnect, &hasReturned, src, nout, sink, nin]() mutable {
+            bool canConnect = libpd_canconnect(getPointer(), checkObject(src), nout, checkObject(sink), nin);
 
-            if (!canConnect)
+            if (!canConnect) {
+                hasReturned = true;
                 return;
-
+            }
+            
             setCurrent();
 
-            libpd_createconnection(getPointer(), checkObject(src), nout, checkObject(sink), nin);
+            outconnect = libpd_createconnection(getPointer(), checkObject(src), nout, checkObject(sink), nin);
+            
+            hasReturned = true;
         });
 
-    instance->waitForStateUpdate();
-
-    return canConnect;
+    while (!hasReturned) {
+        instance->waitForStateUpdate();
+    }
+    
+    return outconnect;
 }
 
-void Patch::removeConnection(void* src, int nout, void* sink, int nin)
+void Patch::removeConnection(void* src, int nout, void* sink, int nin, String connectionPath)
 {
     if (!src || !sink || !ptr)
         return;
 
     instance->enqueueFunction(
-        [this, src, nout, sink, nin]() mutable {
+        [this, src, nout, sink, nin, connectionPath]() mutable {
             setCurrent();
 
-            libpd_removeconnection(getPointer(), checkObject(src), nout, checkObject(sink), nin);
+            libpd_removeconnection(getPointer(), checkObject(src), nout, checkObject(sink), nin, instance->generateSymbol(connectionPath));
         });
 }
 

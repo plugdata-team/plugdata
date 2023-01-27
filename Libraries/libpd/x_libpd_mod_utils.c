@@ -244,7 +244,7 @@ int libpd_canconnect(t_canvas* cnv, t_object* src, int nout, t_object* sink, int
         obj_issignalinlet(sink, nin));
 }
 
-int libpd_tryconnect(t_canvas* cnv, t_object* src, int nout, t_object* sink, int nin)
+void* libpd_tryconnect(t_canvas* cnv, t_object* src, int nout, t_object* sink, int nin)
 {
     if (libpd_canconnect(cnv, src, nout, sink, nin)) {
         t_outconnect* oc = obj_connect(src, nout, sink, nin);
@@ -272,12 +272,12 @@ int libpd_tryconnect(t_canvas* cnv, t_object* src, int nout, t_object* sink, int
                 lx1, ly1, lx2, ly2,
                 (obj_issignaloutlet(src, nout) ? 2 : 1) * cnv->gl_zoom,
                 oc);
-            canvas_undo_add(cnv, UNDO_CONNECT, "connect", canvas_undo_set_connect(cnv, canvas_getindex(cnv, &src->ob_g), nout, canvas_getindex(cnv, &sink->ob_g), nin));
+            canvas_undo_add(cnv, UNDO_CONNECT, "connect", canvas_undo_set_connect(cnv, canvas_getindex(cnv, &src->ob_g), nout, canvas_getindex(cnv, &sink->ob_g), nin, gensym("empty")));
             canvas_dirty(cnv, 1);
-            return 1;
+            return oc;
         }
     }
-    return 0;
+    return NULL;
 }
 
 static int binbuf_getpos(t_binbuf* b, int* x0, int* y0, t_symbol** type)
@@ -455,8 +455,8 @@ void libpd_canvas_saveto(t_canvas* cnv, t_binbuf* b)
     while (linetraverser_next(&t)) {
         int srcno = canvas_getindex(cnv, &t.tr_ob->ob_g);
         int sinkno = canvas_getindex(cnv, &t.tr_ob2->ob_g);
-        binbuf_addv(b, "ssiiii;", gensym("#X"), gensym("connect"),
-            srcno, t.tr_outno, sinkno, t.tr_inno);
+        binbuf_addv(b, "ssiiiis;", gensym("#X"), gensym("connect"),
+            srcno, t.tr_outno, sinkno, t.tr_inno, t.outconnect_path_info);
     }
     // unless everything is the default (as in ordinary subpatches)
     // print out a "coords" message to set up the coordinate systems
@@ -601,7 +601,9 @@ t_pd* libpd_creategraphonparent(t_canvas* cnv, int x, int y)
     SETFLOAT(argv + 8, py2);
 
     sys_lock();
+    //canvas_setcurrent(cnv);
     pd_typedmess((t_pd*)cnv, gensym("graph"), argc, argv);
+    //canvas_unsetcurrent(cnv);
     sys_unlock();
 
     glist_noselect(cnv);
@@ -774,10 +776,11 @@ void libpd_moveobj(t_canvas* cnv, t_gobj* obj, int x, int y)
     ((t_object*)obj)->te_ypix = y;
 }
 
-void libpd_createconnection(t_canvas* cnv, t_object* src, int nout, t_object* sink, int nin)
+void* libpd_createconnection(t_canvas* cnv, t_object* src, int nout, t_object* sink, int nin)
 {
-    libpd_tryconnect(cnv, src, nout, sink, nin);
+    void* oc = libpd_tryconnect(cnv, src, nout, sink, nin);
     glist_noselect(cnv);
+    return oc;
 }
 
 /* ------- specific undo methods: 1. connect -------- */
@@ -793,7 +796,7 @@ int libpd_hasconnection(t_canvas* cnv, t_object* src, int nout, t_object* sink, 
     return canvas_isconnected(cnv, src, nout, sink, nin);
 }
 
-void libpd_removeconnection(t_canvas* cnv, t_object* src, int nout, t_object* sink, int nin)
+void libpd_removeconnection(t_canvas* cnv, t_object* src, int nout, t_object* sink, int nin, t_symbol* connection_path)
 {
 
     if (!libpd_hasconnection(cnv, src, nout, sink, nin)) {
@@ -806,7 +809,7 @@ void libpd_removeconnection(t_canvas* cnv, t_object* src, int nout, t_object* si
     int dest_i = canvas_getindex(cnv, &(sink->te_g));
     int src_i = canvas_getindex(cnv, &(src->te_g));
 
-    canvas_undo_add(cnv, UNDO_DISCONNECT, "disconnect", canvas_undo_set_disconnect(cnv, src_i, nout, dest_i, nin));
+    canvas_undo_add(cnv, UNDO_DISCONNECT, "disconnect", canvas_undo_set_disconnect(cnv, src_i, nout, dest_i, nin, connection_path));
     glist_noselect(cnv);
 }
 

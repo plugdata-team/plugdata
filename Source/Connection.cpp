@@ -9,12 +9,13 @@
 #include "Iolet.h"
 #include "LookAndFeel.h"
 
-Connection::Connection(Canvas* parent, Iolet* s, Iolet* e, bool exists)
+Connection::Connection(Canvas* parent, Iolet* s, Iolet* e, void* oc)
     : cnv(parent)
     , outlet(s->isInlet ? e : s)
     , inlet(s->isInlet ? s : e)
     , outobj(outlet->object)
     , inobj(inlet->object)
+    , ptr(static_cast<t_fake_outconnect*>(oc))
 {
     locked.referTo(parent->locked);
     presentationMode.referTo(parent->presentationMode);
@@ -35,10 +36,12 @@ Connection::Connection(Canvas* parent, Iolet* s, Iolet* e, bool exists)
     inlet->repaint();
 
     // If it doesn't already exist in pd, create connection in pd
-    if (!exists) {
-        bool canConnect = parent->patch.createConnection(outobj->getPointer(), outIdx, inobj->getPointer(), inIdx);
+    if (!oc) {
+        auto* oc = parent->patch.createConnection(outobj->getPointer(), outIdx, inobj->getPointer(), inIdx);
 
-        if (!canConnect) {
+        ptr = static_cast<t_fake_outconnect*>(oc);
+        
+        if (!ptr) {
             outlet = nullptr;
             inlet = nullptr;
 
@@ -47,9 +50,7 @@ Connection::Connection(Canvas* parent, Iolet* s, Iolet* e, bool exists)
             return;
         }
     } else {
-        auto info = cnv->storage.getInfo(getId(), "Path");
-        if (!info.isEmpty())
-            setState(info);
+        setState(String(ptr->outconnect_path_data->s_name));
     }
 
     // Listen to changes at iolets
@@ -126,6 +127,10 @@ void Connection::setState(String const& state)
 
             plan.emplace_back(x + outlet->getCanvasBounds().getCentreX(), y + outlet->getCanvasBounds().getCentreY());
         }
+        segmented = true;
+    }
+    else {
+        segmented = false;
     }
     currentPlan = plan;
     updatePath();
@@ -277,10 +282,11 @@ bool Connection::isSegmented()
 {
     return segmented;
 }
+
 void Connection::setSegmented(bool isSegmented)
 {
     segmented = isSegmented;
-    cnv->storage.setInfo(getId(), "Segmented", segmented ? "1" : "0");
+    ptr->outconnect_path_data = segmented ? cnv->pd->generateSymbol(getState()) : cnv->pd->generateSymbol("empty");
     updatePath();
     repaint();
 }
@@ -374,10 +380,9 @@ void Connection::mouseDrag(MouseEvent const& e)
 void Connection::mouseUp(MouseEvent const& e)
 {
     if (dragIdx != -1) {
+        
         auto state = getState();
-        lastId = getId();
-
-        cnv->storage.setInfo(lastId, "Path", state);
+        ptr->outconnect_path_data = cnv->pd->generateSymbol(state);
         dragIdx = -1;
     }
 
@@ -439,7 +444,7 @@ void Connection::reconnect(Iolet* target, bool dragged)
 
         if (cnv->patch.hasConnection(c->outobj->getPointer(), c->outIdx, c->inobj->getPointer(), c->inIdx)) {
             // Delete connection from pd if we haven't done that yet
-            cnv->patch.removeConnection(c->outobj->getPointer(), c->outIdx, c->inobj->getPointer(), c->inIdx);
+            cnv->patch.removeConnection(c->outobj->getPointer(), c->outIdx, c->inobj->getPointer(), c->inIdx, c->getState());
         }
 
         // Create new connection
@@ -462,7 +467,7 @@ void Connection::componentMovedOrResized(Component& component, bool wasMoved, bo
     auto pstart = getStartPoint();
     auto pend = getEndPoint();
 
-    if (currentPlan.size() <= 2 || cnv->storage.getInfo(getId(), "Style") == "0") {
+    if (currentPlan.size() <= 2) {
         updatePath();
         return;
     }
@@ -520,11 +525,6 @@ void Connection::updatePath()
 
     auto pstart = getStartPoint() - origin;
     auto pend = getEndPoint() - origin;
-
-    if (lastId.isEmpty())
-        lastId = getId();
-
-    segmented = cnv->storage.getInfo(lastId, "Segmented") == "1";
 
     if (!segmented) {
         toDraw.clear();
@@ -700,8 +700,7 @@ void Connection::findPath()
     currentPlan = simplifiedPath;
 
     auto state = getState();
-    lastId = getId();
-    cnv->storage.setInfo(lastId, "Path", state);
+    ptr->outconnect_path_data = cnv->pd->generateSymbol(state);
 }
 
 int Connection::findLatticePaths(PathPlan& bestPath, PathPlan& pathStack, Point<float> pstart, Point<float> pend, Point<float> increment)

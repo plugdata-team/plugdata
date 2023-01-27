@@ -1387,7 +1387,7 @@ int parse_startup_arguments(char const** argv, size_t argc, t_namelist** sys_ope
             if (argc < 2)
                 goto usage;
             
-            // TODO: load libraries that we added manually
+            // TODO: load libraries that we added manually (??)
 
             STUFF->st_externlist = namelist_append_files(STUFF->st_externlist, argv[1]);
             argc -= 2;
