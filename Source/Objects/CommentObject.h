@@ -212,10 +212,18 @@ public:
     {
         int caretPosition = ed.getCaretPosition();
         auto text = ed.getText();
-        text = text.substring(0, caretPosition) + ";\n" + text.substring(caretPosition);
-
+        
+        if(text[caretPosition - 1] == ';') {
+            text = text.substring(0, caretPosition) + "\n" + text.substring(caretPosition);
+            caretPosition += 1;
+        }
+        else {
+            text = text.substring(0, caretPosition) + ";\n" + text.substring(caretPosition);
+            caretPosition += 2;
+        }
+        
         ed.setText(text);
-        ed.setCaretPosition(caretPosition + 2);
+        ed.setCaretPosition(caretPosition);
     }
 
     // For resize-while-typing behaviour
