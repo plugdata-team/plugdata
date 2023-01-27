@@ -207,11 +207,36 @@ Statusbar::Statusbar(PluginProcessor* processor)
     addAndMakeVisible(powerButton.get());
 
     gridButton->setTooltip("Enable grid");
-    gridButton->setClickingTogglesState(true);
     gridButton->setConnectedEdges(12);
     gridButton->getProperties().set("Style", "SmallIcon");
 
-    gridButton->getToggleStateValue().referTo(SettingsFile::getInstance()->getPropertyAsValue("GridEnabled"));
+    gridButton->onClick = [this](){
+        PopupMenu gridSelector;
+        int gridEnabled = SettingsFile::getInstance()->getProperty("GridEnabled");
+        gridSelector.addItem("Absolute grid", true, gridEnabled == 2, [this](){
+            gridButton->setColour(TextButton::textColourOffId, Colours::orange);
+            SettingsFile::getInstance()->setProperty("GridEnabled", 2);
+        });
+        gridSelector.addItem("Relative grid", true, gridEnabled == 1, [this](){
+            gridButton->setColour(TextButton::textColourOffId, findColour(PlugDataColour::gridLineColourId));
+            SettingsFile::getInstance()->setProperty("GridEnabled", 1);
+        });
+        gridSelector.addItem("No grid", true, gridEnabled == 0, [this](){
+            gridButton->setColour(TextButton::textColourOffId, findColour(PlugDataColour::toolbarTextColourId));
+            SettingsFile::getInstance()->setProperty("GridEnabled", 0);
+        });
+        
+        gridSelector.showMenuAsync(PopupMenu::Options().withMinimumWidth(150).withMaximumNumColumns(1).withTargetComponent(gridButton.get()).withParentComponent(pd->getActiveEditor()));
+        
+    };
+    auto gridEnabled = static_cast<int>(SettingsFile::getInstance()->getProperty("GridEnabled"));
+    if(gridEnabled == 1) {
+        gridButton->setColour(TextButton::textColourOffId, findColour(PlugDataColour::gridLineColourId));
+    }
+    if(gridEnabled == 2) {
+        gridButton->setColour(TextButton::textColourOffId, Colours::orange);
+    }
+    
     addAndMakeVisible(gridButton.get());
 
     powerButton->onClick = [this]() { powerButton->getToggleState() ? pd->startDSP() : pd->releaseDSP(); };
