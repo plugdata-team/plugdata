@@ -266,8 +266,9 @@ Point<int> ObjectGrid::performHorizontalSnap(Object* toDrag, Point<int> dragOffs
 Point<int> ObjectGrid::performAbsoluteSnap(Object* toDrag, Point<int> dragOffset)
 {
     auto roundedDrag = (dragOffset / 10) * 10;
-    auto offset = ((toDrag->mouseDownPos / 10) * 10) - toDrag->mouseDownPos;
-
+    auto objectPos = toDrag->mouseDownPos + Point<int>(Object::margin, Object::margin);
+    auto offset = ((objectPos / 10) * 10) - objectPos;
+    
     auto totalOffset = roundedDrag + offset;
     
     position[1].x = totalOffset.x;
