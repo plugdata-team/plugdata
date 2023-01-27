@@ -25,13 +25,13 @@ public:
         , pd(parent->cnv->pd)
         , iemgui(static_cast<t_iemgui*>(ptr))
     {
-        labelText = getExpandedLabelText();
+        
 
         labelX = iemgui->x_ldx;
         labelY = iemgui->x_ldy;
         labelHeight = getFontHeight();
-        labelText = getLabelText();
-
+        labelText = getExpandedLabelText();
+        
         sendSymbol = getSendSymbol();
         receiveSymbol = getReceiveSymbol();
 
