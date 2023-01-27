@@ -30,6 +30,7 @@ public:
         labelX = iemgui->x_ldx;
         labelY = iemgui->x_ldy;
         labelHeight = getFontHeight();
+        labelText = getLabelText();
 
         sendSymbol = getSendSymbol();
         receiveSymbol = getReceiveSymbol();
@@ -54,11 +55,14 @@ public:
 
         gui->getLookAndFeel().setColour(Slider::backgroundColourId, sliderBackground);
 
+        
+        
         auto params = gui->getParameters();
         for (auto& [name, type, cat, value, list] : params) {
             value->addListener(gui);
 
             // Push current parameters to pd
+            // TODO: How about we don't do that tho?
             valueChanged(*value);
         }
 
