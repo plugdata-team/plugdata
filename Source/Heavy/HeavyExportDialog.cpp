@@ -71,7 +71,7 @@ public:
         auto listboxBounds = getLocalBounds().removeFromLeft(200);
 
         g.setColour(findColour(PlugDataColour::outlineColourId));
-        g.drawLine(Line<float> { listboxBounds.getTopRight().toFloat(), listboxBounds.getBottomRight().toFloat() });
+        g.drawLine(Line<float>(listboxBounds.getTopRight().toFloat(), listboxBounds.getBottomRight().toFloat()));
     }
 
     void selectedRowsChanged(int lastRowSelected) override
