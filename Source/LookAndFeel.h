@@ -750,7 +750,7 @@ struct PlugDataLook : public LookAndFeel_V4 {
                 if (textEditor.hasKeyboardFocus (true) && ! textEditor.isReadOnly())
                 {
                     g.setColour (textEditor.findColour (TextEditor::focusedOutlineColourId));
-                    g.drawRect (0, 0, width, height, 2);
+                    g.drawRect (0, 0, width, height, 1);
                 }
                 else
                 {
