@@ -34,33 +34,21 @@ public:
 
     void paint(Graphics& g) override
     {
-        g.setColour(object->findColour(PlugDataColour::canvasTextColourId));
-
         if (!editor) {
-
             auto textArea = getLocalBounds().reduced(4, 2);
 
-            PlugDataLook::drawFittedText(g, objectText, textArea, object->findColour(PlugDataColour::canvasTextColourId), numLines, 0.9f, 14.0f, Justification::topLeft);
-            
-            auto selected = cnv->isSelected(object);
-            if (object->locked == var(false) && (object->isMouseOverOrDragging(true) || selected) && !cnv->isGraph) {
-                g.setColour(object->findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : PlugDataColour::objectOutlineColourId));
-
-                g.drawRect(getLocalBounds().toFloat(), 0.5f);
-            }
+            PlugDataLook::drawFittedText(g, objectText, textArea, object->findColour(PlugDataColour::canvasTextColourId), numLines, 0.8f, 14.0f, Justification::centredLeft);
         }
     }
-
-    int getBestTextWidth(String const& text)
+        
+    void paintOverChildren(Graphics& g) override
     {
-        auto lines = StringArray::fromLines(text);
-        auto maxWidth = 32;
+        auto selected = cnv->isSelected(object);
+        if (object->locked == var(false) && (object->isMouseOverOrDragging(true) || selected) && !cnv->isGraph) {
+            g.setColour(object->findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : PlugDataColour::objectOutlineColourId));
 
-        for (auto& line : lines) {
-            maxWidth = std::max<int>(Font(14.f).getStringWidthFloat(line) + 19, maxWidth);
+            g.drawRect(getLocalBounds().toFloat(), 0.5f);
         }
-
-        return maxWidth;
     }
 
     void mouseEnter(MouseEvent const& e) override
@@ -95,29 +83,12 @@ public:
 
             outgoingEditor.reset();
 
-            repaint();
+            updateBounds(); // Recalculate bounds
+            applyBounds();  // Send new bounds to Pd
 
             // update if the name has changed, or if pdobject is unassigned
             if (changed) {
-                cnv->pd->enqueueFunction(
-                    [this, _this = SafePointer<CommentObject>(this)]() mutable {
-                        if (!_this)
-                            return;
-
-                        auto* newName = objectText.toRawUTF8();
-                        libpd_renameobj(cnv->patch.getPointer(), static_cast<t_gobj*>(ptr), newName, objectText.getNumBytesAsUTF8());
-
-                        MessageManager::callAsync(
-                            [_this]() {
-                                if (!_this)
-                                    return;
-
-                                _this->updateBounds();
-                                _this->applyBounds();
-
-        
-                            });
-                    });
+                setSymbol(objectText);
             }
         }
     }
@@ -125,47 +96,25 @@ public:
     void showEditor() override
     {
         if (editor == nullptr) {
-            editor = std::make_unique<TextEditor>(getName());
-            editor->applyFontToAllText(Font(14.f));
-
-            copyAllExplicitColoursTo(*editor);
-            editor->setColour(Label::textWhenEditingColourId, object->findColour(PlugDataColour::canvasTextColourId));
-            editor->setColour(TextEditor::textColourId, object->findColour(PlugDataColour::canvasTextColourId));
-            editor->setColour(Label::backgroundWhenEditingColourId, Colours::transparentBlack);
-            editor->setColour(Label::outlineWhenEditingColourId, object->findColour(TextEditor::focusedOutlineColourId));
-            editor->setColour(TextEditor::backgroundColourId, Colours::transparentBlack);
-
-            editor->setAlwaysOnTop(true);
-
-            editor->setMultiLine(true);
-            editor->setReturnKeyStartsNewLine(false);
-            editor->setScrollbarsShown(false);
+            editor.reset(TextObjectHelper::createTextEditor(object, 14));
+            
             editor->setBorder(BorderSize<int> { 1, 4, 0, 0 });
-            editor->setIndents(0, 0);
-            editor->setJustification(Justification::topLeft);
-            editor->setScrollToShowCursor(false);
-
+            editor->setJustification(Justification::centredLeft);
+            editor->setBounds(getLocalBounds());
+            editor->setText(objectText, false);
+            editor->addListener(this);
+            editor->addKeyListener(this);
+            editor->selectAll();
+            
+            addAndMakeVisible(editor.get());
+            editor->grabKeyboardFocus();
+            
             editor->onFocusLost = [this]() {
                 hideEditor();
             };
 
-            editor->setSize(10, 10);
-            addAndMakeVisible(editor.get());
-
-            editor->setText(objectText, false);
-
-            editor->addListener(this);
-            editor->addKeyListener(this);
-
-            if (editor == nullptr) // may be deleted by a callback
-                return;
-
-            editor->selectAll();
-
             resized();
             repaint();
-
-            editor->grabKeyboardFocus();
         }
     }
 
@@ -180,9 +129,7 @@ public:
         
         auto newBounds = TextObjectHelper::recalculateTextObjectBounds(cnvPtr, textObj, objText, 14, newNumLines);
         
-        if(newNumLines > 0) {
-            numLines = newNumLines;
-        }
+        numLines = newNumLines;
         
         if(newBounds != object->getObjectBounds()) {
             object->setObjectBounds(newBounds);
@@ -206,6 +153,21 @@ public:
         if(TextObjectHelper::getWidthInChars(ptr)) {
             TextObjectHelper::setWidthInChars(ptr,  b.getWidth() / glist_fontwidth(cnv->patch.getPointer()));
         }
+    }
+        
+    void setSymbol(String const& value)
+    {
+        cnv->pd->enqueueFunction(
+            [_this = SafePointer(this), ptr = this->ptr, value]() mutable {
+                if (!_this)
+                    return;
+
+                auto* cstr = value.toRawUTF8();
+                auto* messobj = static_cast<t_message*>(ptr);
+                auto* canvas = _this->cnv->patch.getPointer();
+
+                libpd_renameobj(canvas, &messobj->m_text.te_g, cstr, value.getNumBytesAsUTF8());
+            });
     }
         
     bool hideInGraph() override

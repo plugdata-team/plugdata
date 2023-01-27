@@ -363,14 +363,15 @@ void Object::showIndex(bool shouldShowIndex)
 
 void Object::paint(Graphics& g)
 {
-
-    if (cnv->isSelected(this) && !cnv->isGraph) {
+    if ((cnv->isSelected(this) && !cnv->isGraph) || newObjectEditor) {
         g.setColour(findColour(PlugDataColour::objectSelectedOutlineColourId));
 
+        if(newObjectEditor) {
+            g.drawRoundedRectangle(getLocalBounds().reduced(Object::margin + 1).toFloat(), PlugDataLook::objectCornerRadius, 1.0f);
+        }
         g.saveState();
         g.excludeClipRegion(getLocalBounds().reduced(margin + 1));
-
-        // Draw resize iolets when selected
+        
         for (auto& rect : getCorners()) {
             g.fillRoundedRectangle(rect, PlugDataLook::objectCornerRadius);
         }
@@ -756,10 +757,21 @@ void Object::openNewObjectEditor()
         editor->applyFontToAllText(Font(15));
 
         copyAllExplicitColoursTo(*editor);
-        editor->setColour(Label::textWhenEditingColourId, findColour(TextEditor::textColourId));
-        editor->setColour(Label::backgroundWhenEditingColourId, findColour(TextEditor::backgroundColourId));
-        editor->setColour(Label::outlineWhenEditingColourId, findColour(TextEditor::focusedOutlineColourId));
+        editor->setColour(TextEditor::textColourId, findColour(PlugDataColour::canvasTextColourId));
+        editor->setColour(TextEditor::backgroundColourId, Colours::transparentBlack);
+        editor->setColour(TextEditor::outlineColourId, Colours::transparentBlack);
+        editor->setColour(TextEditor::focusedOutlineColourId, Colours::transparentBlack);
 
+        editor->setAlwaysOnTop(true);
+        editor->setMultiLine(false);
+        editor->setReturnKeyStartsNewLine(false);
+        editor->setBorder(BorderSize<int> { 1, 7, 1, 2 });
+        editor->setIndents(0, 0);
+        editor->setJustification(Justification::centredLeft);
+
+        editor->setBounds(getLocalBounds().reduced(Object::margin));
+        editor->addListener(this);
+        
         // Allow cancelling object creation with escape
         editor->onEscapeKey = [this]() {
             MessageManager::callAsync([_this = SafePointer(this)]() {
@@ -771,13 +783,10 @@ void Object::openNewObjectEditor()
             cnv->lastSelectedObject = nullptr;
             cnv->lastSelectedConnection = nullptr;
         };
-        editor->setAlwaysOnTop(true);
-        editor->setMultiLine(false);
-        editor->setReturnKeyStartsNewLine(false);
-        editor->setBorder(BorderSize<int> { 1, 7, 1, 2 });
-        editor->setIndents(0, 0);
-        editor->setJustification(Justification::centredLeft);
-
+        
+        addAndMakeVisible(editor);
+        editor->grabKeyboardFocus();
+        
         editor->onFocusLost = [this, editor]() {
             if (reinterpret_cast<Component*>(cnv->suggestor)->hasKeyboardFocus(true) || Component::getCurrentlyFocusedComponent() == editor) {
                 editor->grabKeyboardFocus();
@@ -789,14 +798,8 @@ void Object::openNewObjectEditor()
 
         cnv->showSuggestions(this, editor);
 
-        editor->setSize(10, 10);
-        addAndMakeVisible(editor);
-        editor->addListener(this);
-
         resized();
         repaint();
-
-        editor->grabKeyboardFocus();
     }
 }
 
@@ -811,11 +814,11 @@ void Object::textEditorReturnKeyPressed(TextEditor& ed)
 void Object::textEditorTextChanged(TextEditor& ed)
 {
     // For resize-while-typing behaviour
-    auto width = Font(14.5).getStringWidth(ed.getText()) + 25;
+    auto width = Font(15).getStringWidth(ed.getText()) + 14.0f;
 
-    if (width > getWidth()) {
-        setSize(width, getHeight());
-    }
+    width += Object::doubleMargin;
+    
+    setSize(width, getHeight());
 }
 
 void Object::openHelpPatch() const

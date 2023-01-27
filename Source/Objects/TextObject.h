@@ -7,7 +7,7 @@
 
 struct TextObjectHelper
 {
-    static Rectangle<int> recalculateTextObjectBounds(void* patchPtr, void* objPtr, String currentText, int fontHeight, int& numLines, bool applyOffset = false, int maxIolets = 0) {
+    static Rectangle<int> recalculateTextObjectBounds(void* patchPtr, void* objPtr, const String& currentText, int fontHeight, int& numLines, bool applyOffset = false, int maxIolets = 0) {
         
         int x, y, w, h;
         libpd_get_object_bounds(patchPtr, objPtr, &x, &y, &w, &h);
@@ -23,13 +23,14 @@ struct TextObjectHelper
             w = 35;
         }
         else if (charWidth == 0) { // If width is set to automatic, calculate based on text width
-            w = idealTextWidth;
+            w = std::min(idealTextWidth, fontWidth * 60);
         }
         else { // If width was set manually, calculate what the width is
             w = std::max(35, charWidth * fontWidth) + offset;
         }
         
         w = std::max(w, maxIolets * 18);
+        
                 
         numLines = StringUtils::getNumLines(currentText, w);
         // Calculate height so that height with 1 line is 21px, after that scale along with fontheight
@@ -55,6 +56,25 @@ struct TextObjectHelper
         }
         
         return w;
+    }
+    
+    static TextEditor* createTextEditor(Object* object, int fontHeight) {
+        TextEditor* editor = new TextEditor;
+        editor->applyFontToAllText(Font(fontHeight));
+        
+        object->copyAllExplicitColoursTo(*editor);
+        editor->setColour(TextEditor::textColourId, object->findColour(PlugDataColour::canvasTextColourId));
+        editor->setColour(TextEditor::backgroundColourId, Colours::transparentBlack);
+        editor->setColour(TextEditor::focusedOutlineColourId,  Colours::transparentBlack);
+
+        editor->setAlwaysOnTop(true);
+        editor->setMultiLine(true);
+        editor->setReturnKeyStartsNewLine(false);
+        editor->setScrollbarsShown(false);
+        editor->setIndents(0, 0);
+        editor->setScrollToShowCursor(false);
+        
+        return editor;
     }
 };
 
@@ -91,17 +111,23 @@ public:
         g.setColour(object->findColour(PlugDataColour::canvasBackgroundColourId));
         g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), PlugDataLook::objectCornerRadius);
 
-        auto textArea = border.subtractedFrom(getLocalBounds());
+        if(!editor) {
+            auto textArea = border.subtractedFrom(getLocalBounds());
+            
+            PlugDataLook::drawFittedText(g, objectText, textArea, object->findColour(PlugDataColour::canvasTextColourId), numLines, 0.9f);
+        }
+    }
         
-        PlugDataLook::drawFittedText(g, objectText, textArea, object->findColour(PlugDataColour::canvasTextColourId), numLines, 0.9f);
-        
+    void paintOverChildren(Graphics& g) override
+    {
         bool selected = cnv->isSelected(object) && !cnv->isGraph;
+        
         auto outlineColour = object->findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : objectOutlineColourId);
 
         if (!isValid) {
             outlineColour = selected ? Colours::red.brighter(1.5) : Colours::red;
         }
-
+        
         g.setColour(outlineColour);
         g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), PlugDataLook::objectCornerRadius, 1.0f);
     }
@@ -128,15 +154,13 @@ public:
         pd->getCallbackLock()->enter();
 
         auto* cnvPtr = cnv->patch.getPointer();
-        auto objText = editor ? editor->getText() : objectText;
         auto* textObj = static_cast<t_text*>(ptr);
+        auto objText = editor ? editor->getText() : objectText;
         auto newNumLines = 0;
         
         auto newBounds = TextObjectHelper::recalculateTextObjectBounds(cnvPtr, textObj, objText, 15, newNumLines, true, std::max({1, object->numInputs, object->numOutputs}));
         
-        if(newNumLines > 0) {
-            numLines = newNumLines;
-        }
+        numLines = newNumLines;
         
         if(newBounds != object->getObjectBounds()) {
             object->setObjectBounds(newBounds);
@@ -162,7 +186,6 @@ public:
         }
     }
     
-
     void hideEditor() override
     {
         if (editor != nullptr) {
@@ -193,30 +216,26 @@ public:
             if (changed) {
                 object->setType(newText);
             }
+            
         }
     }
 
     void showEditor() override
     {
         if (editor == nullptr) {
-            editor = std::make_unique<TextEditor>(getName());
-            editor->applyFontToAllText(Font(15));
-
-            copyAllExplicitColoursTo(*editor);
-            editor->setColour(Label::textWhenEditingColourId, object->findColour(PlugDataColour::canvasTextColourId));
-            editor->setColour(TextEditor::textColourId, object->findColour(PlugDataColour::canvasTextColourId));
-            editor->setColour(TextEditor::backgroundColourId, object->findColour(PlugDataColour::canvasBackgroundColourId));
-            editor->setColour(Label::backgroundWhenEditingColourId, object->findColour(TextEditor::backgroundColourId));
-            editor->setColour(Label::outlineWhenEditingColourId, object->findColour(TextEditor::focusedOutlineColourId));
-
-            editor->setAlwaysOnTop(true);
-
-            editor->setMultiLine(true);
-            editor->setReturnKeyStartsNewLine(false);
+            auto background = object->findColour(PlugDataColour::canvasBackgroundColourId);
+            editor.reset(TextObjectHelper::createTextEditor(object, 15));
+            
             editor->setBorder(border);
-            editor->setIndents(0, 0);
             editor->setJustification(Justification::centredLeft);
-
+            editor->setBounds(getLocalBounds());
+            editor->setText(objectText, false);
+            editor->addListener(this);
+            editor->selectAll();
+            
+            addAndMakeVisible(editor.get());
+            editor->grabKeyboardFocus();
+            
             editor->onFocusLost = [this]() {
                 if (reinterpret_cast<Component*>(cnv->suggestor)->hasKeyboardFocus(true) || Component::getCurrentlyFocusedComponent() == editor.get()) {
                     editor->grabKeyboardFocus();
@@ -229,24 +248,16 @@ public:
             };
 
             cnv->showSuggestions(object, editor.get());
-
-            editor->setBounds(getLocalBounds());
-            addAndMakeVisible(editor.get());
-
-            editor->setText(objectText, false);
-            editor->addListener(this);
-
-            if (editor == nullptr) // may be deleted by a callback
-                return;
-
-            editor->setHighlightedRegion(Range<int>(0, objectText.length()));
-
+            
             resized();
             repaint();
-
-            if (isShowing()) {
-                editor->grabKeyboardFocus();
-            }
+        }
+    }
+        
+    void resized() override
+    {
+        if (editor) {
+            editor->setBounds(getLocalBounds());
         }
     }
 

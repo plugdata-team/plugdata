@@ -33,7 +33,7 @@ public:
     MessageObject(void* obj, Object* parent)
         : ObjectBase(obj, parent)
     {
-        objectText = getText();
+        objectText = getSymbol();
 
         // To get enter/exit messages
         addMouseListener(object, false);
@@ -55,12 +55,10 @@ public:
         
         auto newBounds = TextObjectHelper::recalculateTextObjectBounds(cnvPtr, textObj, objText, 15, newNumLines);
         
-        // Create extra space for drawing the message box flag
-        newBounds.setWidth(newBounds.getWidth() + 4);
+        numLines = newNumLines;
         
-        if(newNumLines > 0) {
-            numLines = newNumLines;
-        }
+        // Create extra space for drawing the message box flag
+        newBounds.setWidth(newBounds.getWidth() + 5);
         
         if(newBounds != object->getObjectBounds()) {
             object->setObjectBounds(newBounds);
@@ -91,21 +89,17 @@ public:
         isLocked = locked;
     }
 
-
     void paint(Graphics& g) override
     {
+        // Draw background
         g.setColour(object->findColour(PlugDataColour::defaultObjectBackgroundColourId));
         g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), PlugDataLook::objectCornerRadius);
-
-        auto textArea = border.subtractedFrom(getLocalBounds());
-
-        PlugDataLook::drawFittedText(g, objectText, textArea, object->findColour(PlugDataColour::canvasTextColourId), numLines, 0.90f);
-
-        bool selected = cnv->isSelected(object) && !cnv->isGraph;
-        auto outlineColour = object->findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : PlugDataColour::objectOutlineColourId);
-
-        g.setColour(outlineColour);
-        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), PlugDataLook::objectCornerRadius, 1.0f);
+        
+        // Draw text
+        if(!editor) {
+            auto textArea = border.subtractedFrom(getLocalBounds().withTrimmedRight(5));
+            PlugDataLook::drawFittedText(g, objectText, textArea, object->findColour(PlugDataColour::canvasTextColourId), numLines, 0.8f);
+        }
     }
 
     void paintOverChildren(Graphics& g) override
@@ -115,17 +109,28 @@ public:
         Path flagPath;
         flagPath.addQuadrilateral(b.getRight(), b.getY(), b.getRight() - 4, b.getY() + 4, b.getRight() - 4, b.getBottom() - 4, b.getRight(), b.getBottom());
 
-        g.setColour(object->findColour(PlugDataColour::outlineColourId));
-        g.fillPath(flagPath);
-
-        if (isDown) {
+        if(isDown) {
+            g.setColour(object->findColour(PlugDataColour::outlineColourId));
             g.drawRoundedRectangle(b.reduced(1).toFloat(), PlugDataLook::objectCornerRadius, 3.0f);
+            
+            g.setColour(object->findColour(PlugDataColour::objectSelectedOutlineColourId));
+            g.fillPath(flagPath);
         }
+        else {
+            g.setColour(object->findColour(PlugDataColour::outlineColourId));
+            g.fillPath(flagPath);
+        }
+        
+        bool selected = cnv->isSelected(object) && !cnv->isGraph;
+        auto outlineColour = object->findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : PlugDataColour::objectOutlineColourId);
+
+        g.setColour(outlineColour);
+        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), PlugDataLook::objectCornerRadius, 1.0f);
     }
 
-
-    void updateValue()
+    void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
     {
+        // TODO: select messages
         String v = getSymbol();
 
         if (objectText != v && !v.startsWith("click")) {
@@ -133,82 +138,37 @@ public:
             objectText = v;
 
             repaint();
+            updateBounds();
         }
-    }
-
-    void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
-    {
-        updateValue();
     }
 
     void resized() override
     {
-        /*
-        int fontWidth = glist_fontwidth(cnv->patch.getPointer());
-        textObjectWidth = getWidth() / fontWidth;
-
-        int width = textObjectWidth * fontWidth;
-
-        auto objText = editor ? editor->getText() : objectText;
-
-        numLines = StringUtils::getNumLines(objText, width);
-        int height = numLines * 15 + 6;
-        
-        std::cout << "Resized: " << height << std::endl;
-
-
-        if (getWidth() != width || getHeight() != height) {
-            object->setSize(width + Object::doubleMargin, height + Object::doubleMargin);
-        } */
-
         if (editor) {
-            editor->setBounds(getLocalBounds());
+            editor->setBounds(getLocalBounds().withTrimmedRight(5));
         }
     }
 
     void showEditor() override
     {
         if (editor == nullptr) {
-            editor = std::make_unique<TextEditor>(getName());
-            editor->applyFontToAllText(Font(15));
-
-            copyAllExplicitColoursTo(*editor);
-            editor->setColour(Label::textWhenEditingColourId, object->findColour(PlugDataColour::canvasTextColourId));
-            editor->setColour(TextEditor::textColourId, object->findColour(PlugDataColour::canvasTextColourId));
-            editor->setColour(TextEditor::backgroundColourId, object->findColour(PlugDataColour::defaultObjectBackgroundColourId));
-            editor->setColour(Label::outlineWhenEditingColourId, findColour(TextEditor::focusedOutlineColourId));
-
-            editor->setAlwaysOnTop(true);
-
-            editor->setMultiLine(true);
-            editor->setReturnKeyStartsNewLine(false);
-            editor->setScrollbarsShown(false);
+            editor.reset(TextObjectHelper::createTextEditor(object, 15));
+            
             editor->setBorder(border);
-            editor->setIndents(0, 0);
             editor->setJustification(Justification::centredLeft);
-
-            editor->setSize(10, 10);
-
-            editor->setText(objectText.trimEnd(), false);
+            editor->setBounds(getLocalBounds().withTrimmedRight(5));
+            editor->setText(objectText, false);
             editor->addListener(this);
             editor->addKeyListener(this);
-            editor->setScrollToShowCursor(false);
-
+            editor->selectAll();
+            
             addAndMakeVisible(editor.get());
-
+            editor->grabKeyboardFocus();
+            
             editor->onFocusLost = [this]() {
                 hideEditor();
             };
 
-            if (editor == nullptr) // may be deleted by a callback
-                return;
-
-            editor->setHighlightedRegion(Range<int>(0, objectText.length()));
-
-            if (isShowing()) {
-                editor->grabKeyboardFocus();
-            }
-            
             resized();
             repaint();
         }
@@ -231,13 +191,12 @@ public:
             
             outgoingEditor.reset();
             
-            updateBounds();
-            applyBounds();
+            updateBounds(); // Recalculate bounds
+            applyBounds();  // Send new bounds to Pd
 
-            object->setType(newText);
+            setSymbol(objectText);
         }
     }
-        
 
     void mouseDown(MouseEvent const& e) override
     {
@@ -292,7 +251,22 @@ public:
 
         return result;
     }
+        
+    void setSymbol(String const& value)
+    {
+        cnv->pd->enqueueFunction(
+            [_this = SafePointer(this), ptr = this->ptr, value]() mutable {
+                if (!_this)
+                    return;
 
+                auto* cstr = value.toRawUTF8();
+                auto* messobj = static_cast<t_message*>(ptr);
+                auto* canvas = _this->cnv->patch.getPointer();
+
+                libpd_renameobj(canvas, &messobj->m_text.te_g, cstr, value.getNumBytesAsUTF8());
+            });
+    }
+        
     bool keyPressed(KeyPress const& key, Component* component) override
     {
         if (key == KeyPress::rightKey && editor && !editor->getHighlightedRegion().isEmpty()) {
