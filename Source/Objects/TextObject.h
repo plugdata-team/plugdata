@@ -4,6 +4,60 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
+
+struct TextObjectHelper
+{
+    static Rectangle<int> recalculateTextObjectBounds(void* patchPtr, void* objPtr, String currentText, int fontHeight, int& numLines, bool applyOffset = false, int maxIolets = 0) {
+        
+        int x, y, w, h;
+        libpd_get_object_bounds(patchPtr, objPtr, &x, &y, &w, &h);
+        
+        int charWidth = getWidthInChars(objPtr);
+        int fontWidth = glist_fontwidth(static_cast<t_glist*>(patchPtr));
+        int idealTextWidth = getIdealWidthForText(currentText, fontHeight);
+        
+        // For regular text object, we want to adjust the width so ideal text with aligns with fontWidth
+        int offset = applyOffset ? idealTextWidth % fontWidth : 0;
+        
+        if(currentText.isEmpty()) { // If text is empty, set to minimum width
+            w = 35;
+        }
+        else if (charWidth == 0) { // If width is set to automatic, calculate based on text width
+            w = idealTextWidth;
+        }
+        else { // If width was set manually, calculate what the width is
+            w = std::max(35, charWidth * fontWidth) + offset;
+        }
+        
+        w = std::max(w, maxIolets * 18);
+                
+        numLines = StringUtils::getNumLines(currentText, w);
+        // Calculate height so that height with 1 line is 21px, after that scale along with fontheight
+        h = numLines * fontHeight + (21 - fontHeight);
+        
+        return {x, y, w, h};
+    }
+    
+    static int getWidthInChars(void* ptr) {
+        return static_cast<t_text*>(ptr)->te_width;
+    }
+    
+    static int setWidthInChars(void* ptr, int newWidth) {
+        return static_cast<t_text*>(ptr)->te_width = newWidth;
+    }
+    
+    static int getIdealWidthForText(String text, int fontHeight) {
+        auto lines = StringArray::fromLines(text);
+        int w = 35;
+
+        for (auto& line : lines) {
+            w = std::max<int>(Font(fontHeight).getStringWidthFloat(line) + 14.0f, w);
+        }
+        
+        return w;
+    }
+};
+
 // Text base class that text objects with special implementation details can derive from
 class TextBase : public ObjectBase
     , public TextEditor::Listener {
@@ -11,15 +65,9 @@ class TextBase : public ObjectBase
 protected:
     std::unique_ptr<TextEditor> editor;
     BorderSize<int> border = BorderSize<int>(1, 7, 1, 2);
-    float minimumHorizontalScale = 0.8f;
 
     String objectText;
-
-    int textObjectWidth = 0;
-    int textWidthOffset = 0;
     int numLines = 1;
-
-    bool wasSelected = false;
     bool isValid = true;
 
 public:
@@ -38,35 +86,6 @@ public:
         removeMouseListener(object);
     }
 
-    void applyBounds() override
-    {
-        auto b = object->getObjectBounds();
-        libpd_moveobj(cnv->patch.getPointer(), static_cast<t_gobj*>(ptr), b.getX(), b.getY());
-
-        auto* textObj = static_cast<t_text*>(ptr);
-        textObj->te_width = textObjectWidth;
-    }
-
-    void resized() override
-    {
-        int fontWidth = glist_fontwidth(cnv->patch.getPointer());
-        textObjectWidth = (getWidth() - textWidthOffset) / fontWidth;
-
-        int width = textObjectWidth * fontWidth + textWidthOffset;
-        width = std::max(width, std::max({ 1, object->numInputs, object->numOutputs }) * 18);
-
-        numLines = StringUtils::getNumLines(objectText, width);
-        int height = numLines * 15 + 6;
-
-        if (getWidth() != width || getHeight() != height) {
-            object->setSize(width + Object::doubleMargin, height + Object::doubleMargin);
-        }
-
-        if (editor) {
-            editor->setBounds(getLocalBounds());
-        }
-    }
-
     void paint(Graphics& g) override
     {
         g.setColour(object->findColour(PlugDataColour::canvasBackgroundColourId));
@@ -74,7 +93,7 @@ public:
 
         auto textArea = border.subtractedFrom(getLocalBounds());
         
-        PlugDataLook::drawFittedText(g, objectText, textArea, object->findColour(PlugDataColour::canvasTextColourId), numLines, 0.95f);
+        PlugDataLook::drawFittedText(g, objectText, textArea, object->findColour(PlugDataColour::canvasTextColourId), numLines, 0.9f);
         
         bool selected = cnv->isSelected(object) && !cnv->isGraph;
         auto outlineColour = object->findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : objectOutlineColourId);
@@ -92,11 +111,6 @@ public:
     {
     }
 
-    virtual int getBestTextWidth(String const& text)
-    {
-        return std::max<float>(round(Font(15).getStringWidthFloat(text) + 14.0f), 32);
-    }
-
     void textEditorReturnKeyPressed(TextEditor& ed) override
     {
         if (editor != nullptr) {
@@ -106,50 +120,48 @@ public:
 
     void textEditorTextChanged(TextEditor& ed) override
     {
-        // For resize-while-typing behaviour
-        auto width = getBestTextWidth(ed.getText());
-
-        if (width > getWidth()) {
-            setSize(width, getHeight());
-        }
+        updateBounds();
     }
 
     void updateBounds() override
     {
         pd->getCallbackLock()->enter();
 
-        int x, y, w, h;
-
+        auto* cnvPtr = cnv->patch.getPointer();
+        auto objText = editor ? editor->getText() : objectText;
         auto* textObj = static_cast<t_text*>(ptr);
-
-        libpd_get_object_bounds(cnv->patch.getPointer(), ptr, &x, &y, &w, &h);
-
-        Rectangle<int> bounds = { x, y, textObj->te_width, h };
-
-        int fontWidth = glist_fontwidth(cnv->patch.getPointer());
-        int textWidth = getBestTextWidth(objectText);
-
-        pd->getCallbackLock()->exit();
-
-        // We need to handle the resizable width, which pd saves in amount of text characters
-        textWidthOffset = textWidth % fontWidth;
-        textObjectWidth = bounds.getWidth();
-
-        if (textObjectWidth == 0) {
-            textObjectWidth = std::min((textWidth - textWidthOffset) / fontWidth, 60);
+        auto newNumLines = 0;
+        
+        auto newBounds = TextObjectHelper::recalculateTextObjectBounds(cnvPtr, textObj, objText, 15, newNumLines, true, std::max({1, object->numInputs, object->numOutputs}));
+        
+        if(newNumLines > 0) {
+            numLines = newNumLines;
         }
-
-        int width = textObjectWidth * fontWidth + textWidthOffset;
-        width = std::max(width, std::max({ 1, object->numInputs, object->numOutputs }) * 18);
-
-        numLines = StringUtils::getNumLines(objectText, width);
-        int height = numLines * 15 + 6;
-
-        bounds.setWidth(width);
-        bounds.setHeight(height);
-
-        object->setObjectBounds(bounds);
+        
+        if(newBounds != object->getObjectBounds()) {
+            object->setObjectBounds(newBounds);
+        }
+        
+        pd->getCallbackLock()->exit();
     }
+
+    void checkBounds() override
+    {
+        int fontWidth = glist_fontwidth(cnv->patch.getPointer());
+        TextObjectHelper::setWidthInChars(ptr, getWidth() / fontWidth);
+        updateBounds();
+    }
+
+    void applyBounds() override
+    {
+        auto b = object->getObjectBounds();
+        libpd_moveobj(cnv->patch.getPointer(), static_cast<t_gobj*>(ptr), b.getX(), b.getY());
+
+        if(TextObjectHelper::getWidthInChars(ptr)) {
+            TextObjectHelper::setWidthInChars(ptr,  b.getWidth() / glist_fontwidth(cnv->patch.getPointer()));
+        }
+    }
+    
 
     void hideEditor() override
     {

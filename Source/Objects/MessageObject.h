@@ -22,14 +22,10 @@ class MessageObject final : public ObjectBase
 
     std::unique_ptr<TextEditor> editor;
     BorderSize<int> border = BorderSize<int>(1, 7, 1, 2);
-    float minimumHorizontalScale = 0.8f;
 
     String objectText;
 
-    int textObjectWidth = 0;
     int numLines = 1;
-
-    bool wasSelected = false;
     bool isDown = false;
     bool isLocked = false;
 
@@ -52,42 +48,32 @@ public:
     {
         pd->getCallbackLock()->enter();
 
-        int x = 0, y = 0, w = 0, h = 0;
-
-        // If it's a text object, we need to handle the resizable width, which pd saves in amount of text characters
+        auto* cnvPtr = cnv->patch.getPointer();
+        auto objText = editor ? editor->getText() : objectText;
         auto* textObj = static_cast<t_text*>(ptr);
-
-        libpd_get_object_bounds(cnv->patch.getPointer(), ptr, &x, &y, &w, &h);
-
-        w = std::max(35, textObj->te_width * glist_fontwidth(cnv->patch.getPointer()));
-
-        if (textObj->te_width == 0 && !getText().isEmpty()) {
-            w = getBestTextWidth(getText());
+        auto newNumLines = 0;
+        
+        auto newBounds = TextObjectHelper::recalculateTextObjectBounds(cnvPtr, textObj, objText, 15, newNumLines);
+        
+        // Create extra space for drawing the message box flag
+        newBounds.setWidth(newBounds.getWidth() + 4);
+        
+        if(newNumLines > 0) {
+            numLines = newNumLines;
         }
-
+        
+        if(newBounds != object->getObjectBounds()) {
+            object->setObjectBounds(newBounds);
+        }
+        
         pd->getCallbackLock()->exit();
-
-        object->setObjectBounds({ x, y, w, h });
     }
 
     void checkBounds() override
     {
-        int numLines = StringUtils::getNumLines(getText(), object->getWidth() - Object::doubleMargin - 5);
         int fontWidth = glist_fontwidth(cnv->patch.getPointer());
-        int newHeight = numLines * 15 + 6 + Object::doubleMargin;
-        int newWidth = getWidth() / fontWidth;
-
-        static_cast<t_text*>(ptr)->te_width = newWidth;
-        newWidth = std::max((newWidth * fontWidth), 35) + Object::doubleMargin;
-
-        if (getParentComponent() && (object->getHeight() != newHeight || newWidth != object->getWidth())) {
-            object->setSize(newWidth, newHeight);
-        }
-    }
-
-    void lock(bool locked) override
-    {
-        isLocked = locked;
+        TextObjectHelper::setWidthInChars(ptr, getWidth() / fontWidth);
+        updateBounds();
     }
 
     void applyBounds() override
@@ -95,9 +81,16 @@ public:
         auto b = object->getObjectBounds();
         libpd_moveobj(cnv->patch.getPointer(), static_cast<t_gobj*>(ptr), b.getX(), b.getY());
 
-        auto* textObj = static_cast<t_text*>(ptr);
-        textObj->te_width = b.getWidth() / glist_fontwidth(cnv->patch.getPointer());
+        if(TextObjectHelper::getWidthInChars(ptr)) {
+            TextObjectHelper::setWidthInChars(ptr,  b.getWidth() / glist_fontwidth(cnv->patch.getPointer()));
+        }
     }
+        
+    void lock(bool locked) override
+    {
+        isLocked = locked;
+    }
+
 
     void paint(Graphics& g) override
     {
@@ -106,7 +99,7 @@ public:
 
         auto textArea = border.subtractedFrom(getLocalBounds());
 
-        PlugDataLook::drawFittedText(g, objectText, textArea, object->findColour(PlugDataColour::canvasTextColourId), numLines, 0.95f);
+        PlugDataLook::drawFittedText(g, objectText, textArea, object->findColour(PlugDataColour::canvasTextColourId), numLines, 0.90f);
 
         bool selected = cnv->isSelected(object) && !cnv->isGraph;
         auto outlineColour = object->findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : PlugDataColour::objectOutlineColourId);
@@ -130,17 +123,6 @@ public:
         }
     }
 
-    int getBestTextWidth(String const& text)
-    {
-        auto lines = StringArray::fromLines(text);
-        auto maxWidth = 32;
-
-        for (auto& line : lines) {
-            maxWidth = std::max<int>(Font(15).getStringWidthFloat(line) + 19, maxWidth);
-        }
-
-        return maxWidth;
-    }
 
     void updateValue()
     {
@@ -161,6 +143,7 @@ public:
 
     void resized() override
     {
+        /*
         int fontWidth = glist_fontwidth(cnv->patch.getPointer());
         textObjectWidth = getWidth() / fontWidth;
 
@@ -170,10 +153,13 @@ public:
 
         numLines = StringUtils::getNumLines(objText, width);
         int height = numLines * 15 + 6;
+        
+        std::cout << "Resized: " << height << std::endl;
+
 
         if (getWidth() != width || getHeight() != height) {
             object->setSize(width + Object::doubleMargin, height + Object::doubleMargin);
-        }
+        } */
 
         if (editor) {
             editor->setBounds(getLocalBounds());
@@ -244,30 +230,8 @@ public:
             }
             
             outgoingEditor.reset();
-
-            repaint();
-
-            // Calculate size of new text
-            auto lines = StringArray::fromTokens(newText, ";\n", "");
-            auto maxWidth = 32.0f;
-
-            for (auto& line : lines) {
-                maxWidth = std::max<float>(Font(15).getStringWidthFloat(line) + 19.0f, maxWidth);
-            }
             
-            int fontWidth = glist_fontwidth(cnv->patch.getPointer());
-            textObjectWidth = round(maxWidth) / fontWidth;
-            
-            int newWidth = textObjectWidth * fontWidth;
-            
-            numLines = std::max(1, lines.size());
-            newWidth += Object::doubleMargin + 4;
-            
-            int newHeight = (numLines * 15) + 6 + Object::doubleMargin;
-
-            auto newBounds = Rectangle<int>(object->getX(), object->getY(), newWidth, newHeight);
-            object->setBounds(newBounds);
-
+            updateBounds();
             applyBounds();
 
             object->setType(newText);
@@ -311,23 +275,7 @@ public:
     // For resize-while-typing behaviour
     void textEditorTextChanged(TextEditor& ed) override
     {
-        auto text = ed.getText();
-
-        auto width = getBestTextWidth(text);
-
-        width = std::max(width, getWidth());
-        int fontWidth = glist_fontwidth(cnv->patch.getPointer());
-        width = std::min(width / fontWidth, 60) * fontWidth;
-
-        numLines = StringUtils::getNumLines(text, width);
-        auto height = numLines * 15 + 6;
-
-        height = std::max(height, getHeight());
-
-        if (width != getWidth() || height != getHeight()) {
-            auto newBounds = Rectangle<int>(object->getX(), object->getY(), width + Object::doubleMargin, height + Object::doubleMargin);
-            object->setBounds(newBounds);
-        }
+        updateBounds();
     }
 
     String getSymbol() const
@@ -356,21 +304,6 @@ public:
             return true;
         }
         return false;
-    }
-
-    void setSymbol(String const& value)
-    {
-        cnv->pd->enqueueFunction(
-            [_this = SafePointer(this), ptr = this->ptr, value]() mutable {
-                if (!_this)
-                    return;
-
-                auto* cstr = value.toRawUTF8();
-                auto* messobj = static_cast<t_message*>(ptr);
-                auto* canvas = _this->cnv->patch.getPointer();
-
-                libpd_renameobj(canvas, &messobj->m_text.te_g, cstr, value.getNumBytesAsUTF8());
-            });
     }
 
     bool hideInGraph() override
