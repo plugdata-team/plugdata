@@ -30,7 +30,7 @@ public:
     Path toDraw;
     String lastId;
 
-    Connection(Canvas* parent, Iolet* start, Iolet* end, bool exists = false);
+    Connection(Canvas* parent, Iolet* start, Iolet* end, void* oc);
     ~Connection() override;
 
     void paint(Graphics&) override;
@@ -72,6 +72,7 @@ public:
     bool straightLineIntersectsObject(Line<float> toCheck, Array<Object*>& objects);
 
 private:
+        
     bool wasSelected = false;
     bool segmented = false;
 
@@ -96,6 +97,15 @@ private:
     bool useDashed;
 
     void valueChanged(Value& v) override;
+        
+    struct t_fake_outconnect
+    {
+        void *oc_next;
+        t_pd *oc_to;
+        t_symbol* outconnect_path_data;
+    };
+    
+    t_fake_outconnect* ptr;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(Connection)
 };

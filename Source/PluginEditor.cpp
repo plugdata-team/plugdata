@@ -526,6 +526,10 @@ void PluginEditor::addTab(Canvas* cnv, bool deleteWhenClosed)
             }
 
             auto* patch = &cnv->patch;
+            
+            if(canvas_getcurrent() ==  patch->getPointer()) {
+                canvas_unsetcurrent(patch->getPointer());
+            }
 
             if (deleteWhenClosed) {
                 patch->close();

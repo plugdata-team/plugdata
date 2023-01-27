@@ -10,7 +10,6 @@
 
 #include "Object.h"
 #include "Pd/PdPatch.h"
-#include "Pd/PdStorage.h"
 #include "PluginProcessor.h"
 #include "ObjectGrid.h"
 
@@ -150,8 +149,6 @@ public:
     bool didStartDragging = false;
     int const minimumMovementToStartDrag = 5;
     SafePointer<Object> componentBeingDragged = nullptr;
-
-    pd::Storage storage;
 
     Point<int> lastMousePosition;
     Point<int> pastedPosition;

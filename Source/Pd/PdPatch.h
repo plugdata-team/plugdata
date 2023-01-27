@@ -10,15 +10,13 @@
 #include <array>
 #include <vector>
 
-#include "PdStorage.h"
-
 extern "C" {
 #include "x_libpd_mod_utils.h"
 }
 
 namespace pd {
 
-using Connections = std::vector<std::tuple<int, t_object*, int, t_object*>>;
+using Connections = std::vector<std::tuple<void*, int, t_object*, int, t_object*>>;
 class Instance;
 
 // The Pd patch.
@@ -88,8 +86,8 @@ public:
 
     bool hasConnection(void* src, int nout, void* sink, int nin);
     bool canConnect(void* src, int nout, void* sink, int nin);
-    bool createConnection(void* src, int nout, void* sink, int nin);
-    void removeConnection(void* src, int nout, void* sink, int nin);
+    void* createConnection(void* src, int nout, void* sink, int nin);
+    void removeConnection(void* src, int nout, void* sink, int nin, String connectionPath);
 
     Connections getConnections() const;
 
