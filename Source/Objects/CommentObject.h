@@ -70,8 +70,10 @@ public:
 
             outgoingEditor->setInputFilter(nullptr, false);
 
-            auto newText = outgoingEditor->getText().trimEnd();
+            auto newText = outgoingEditor->getText();
 
+            newText = TextObjectHelper::fixNewlines(newText);
+            
             bool changed;
             if (objectText != newText) {
                 objectText = newText;

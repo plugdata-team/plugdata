@@ -32,7 +32,7 @@ struct TextObjectHelper
         w = std::max(w, maxIolets * 18);
         
                 
-        numLines = StringUtils::getNumLines(currentText, w);
+        numLines = getNumLines(currentText, w, fontHeight);
         // Calculate height so that height with 1 line is 21px, after that scale along with fontheight
         h = numLines * fontHeight + (21 - fontHeight);
         
@@ -47,6 +47,25 @@ struct TextObjectHelper
         return static_cast<t_text*>(ptr)->te_width = newWidth;
     }
     
+    static String fixNewlines(String text) {
+        // Don't want \r
+        text = text.replace("\r", "");
+        
+        // Temporarily use \r to represent a real newline in pd
+        text = text.replace(";\n", "\r");
+        
+        // Remove \n
+        text = text.replace("\n", " ");
+        
+        // Replace the real newlines with \n
+        text =  text.replace("\r", ";\n");
+        
+        // Remove whitespace from end
+        text = text.trimEnd();
+        
+        return text;
+    }
+    
     static int getIdealWidthForText(String text, int fontHeight) {
         auto lines = StringArray::fromLines(text);
         int w = 35;
@@ -56,6 +75,31 @@ struct TextObjectHelper
         }
         
         return w;
+    }
+    
+    // Used by text objects for estimating best text height for a set width
+    static int getNumLines(String const& text, int width, int fontSize)
+    {
+        int numLines = 1;
+
+        Array<int> glyphs;
+        Array<float> xOffsets;
+        
+        auto font = Font(fontSize);
+        font.getGlyphPositions(text, glyphs, xOffsets);
+
+        wchar_t lastChar;
+        for (int i = 0; i < xOffsets.size(); i++) {
+            if ((xOffsets[i] + 12) >= static_cast<float>(width) || (text.getCharPointer()[i] == '\n' && lastChar == ';')) {
+                for (int j = i + 1; j < xOffsets.size(); j++) {
+                    xOffsets.getReference(j) -= xOffsets[i];
+                }
+                numLines++;
+            }
+            lastChar = text.getCharPointer()[i];
+        }
+
+        return numLines;
     }
     
     static TextEditor* createTextEditor(Object* object, int fontHeight) {
@@ -199,6 +243,8 @@ public:
 
             auto newText = outgoingEditor->getText();
 
+            newText = TextObjectHelper::fixNewlines(newText);
+            
             bool changed;
             if (objectText != newText) {
                 objectText = newText;

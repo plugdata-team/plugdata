@@ -364,11 +364,18 @@ void Object::showIndex(bool shouldShowIndex)
 void Object::paint(Graphics& g)
 {
     if ((cnv->isSelected(this) && !cnv->isGraph) || newObjectEditor) {
-        g.setColour(findColour(PlugDataColour::objectSelectedOutlineColourId));
-
+        
         if(newObjectEditor) {
+            
+            g.setColour(findColour(PlugDataColour::canvasBackgroundColourId));
+            g.fillRoundedRectangle(getLocalBounds().reduced(Object::margin + 1).toFloat(), PlugDataLook::objectCornerRadius);
+            
+            g.setColour(findColour(PlugDataColour::objectSelectedOutlineColourId));
             g.drawRoundedRectangle(getLocalBounds().reduced(Object::margin + 1).toFloat(), PlugDataLook::objectCornerRadius, 1.0f);
         }
+        
+        g.setColour(findColour(PlugDataColour::objectSelectedOutlineColourId));
+        
         g.saveState();
         g.excludeClipRegion(getLocalBounds().reduced(margin + 1));
         
