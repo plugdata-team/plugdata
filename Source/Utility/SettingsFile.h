@@ -240,18 +240,16 @@ public:
 
     void reloadSettings()
     {
-
         if(settingsChangedInternally) {
             settingsChangedInternally = false;
             return;
         }
         
+        settingsChangedExternally = true;
+        
         jassert(isInitialised);
 
         auto newTree = ValueTree::fromXml(settingsFile.loadFileAsString());
-
-        // Prevents causing an update loop
-        settingsTree.removeListener(this);
 
         // Direct children shouldn't be overwritten as that would break some valueTree links, for example in SettingsDialog
         for (auto child : settingsTree) {
@@ -259,7 +257,6 @@ public:
         }
         settingsTree.copyPropertiesFrom(newTree, nullptr);
 
-        settingsTree.addListener(this);
     }
 
     void valueTreePropertyChanged(ValueTree& treeWhosePropertyHasChanged, Identifier const& property) override
@@ -287,6 +284,11 @@ public:
     void timerCallback() override
     {
         jassert(isInitialised);
+        
+        if(settingsChangedExternally) {
+            settingsChangedExternally = false;
+            return;
+        }
 
         // Save settings to file whenever valuetree state changes
         // Use timer to group changes together
@@ -342,6 +344,7 @@ private:
     File settingsFile = homeDir.getChildFile("Settings.xml");
     ValueTree settingsTree = ValueTree("SettingsTree");
     bool settingsChangedInternally = false;
+    bool settingsChangedExternally = false;
 
     std::vector<std::pair<String, var>> defaultSettings {
         { "BrowserPath", var(homeDir.getChildFile("Library").getFullPathName()) },
