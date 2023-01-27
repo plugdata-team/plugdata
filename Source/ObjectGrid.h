@@ -6,6 +6,7 @@
 
 #pragma once
 #include <JuceHeader.h>
+#include "Utility/SettingsFile.h"
 
 enum GridType {
     NotSnappedToGrid = 0,
@@ -26,7 +27,7 @@ inline GridType operator&(GridType a, GridType b)
 
 class Object;
 class Canvas;
-class ObjectGrid {
+class ObjectGrid : public SettingsFileListener {
 
 public:
     ObjectGrid(Canvas* parent);
@@ -55,6 +56,8 @@ private:
     DrawablePath gridLines[2];
 
     int totalSnaps = 0;
+    
+    int gridEnabled = 1;
 
     Point<int> setState(bool isSnapped, int idx, Point<int> position, Component* start, Component* end, bool horizontal);
     void updateMarker();
@@ -66,4 +69,6 @@ private:
     Point<int> performAbsoluteSnap(Object* toDrag, Point<int> dragOffset);
 
     bool trySnap(int distance);
+    
+    void propertyChanged(String name, var value) override;
 };

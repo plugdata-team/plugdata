@@ -5,6 +5,7 @@
 */
 #pragma once
 #include <JuceHeader.h>
+#include "Utility/SettingsFile.h"
 
 class Canvas;
 class LevelMeter;
@@ -12,6 +13,7 @@ class MidiBlinker;
 class PluginProcessor;
 
 class Statusbar : public Component
+    , public SettingsFileListener
     , public Value::Listener
     , public Timer {
     PluginProcessor* pd;
@@ -26,8 +28,9 @@ public:
 
     void modifierKeysChanged(ModifierKeys const& modifiers) override;
 
+    void propertyChanged(String name, var value) override;
     void valueChanged(Value& v) override;
-
+        
     void timerCallback() override;
 
     void attachToCanvas(Canvas* cnv);

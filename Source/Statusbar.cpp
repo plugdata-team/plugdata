@@ -227,15 +227,10 @@ Statusbar::Statusbar(PluginProcessor* processor)
         });
         
         gridSelector.showMenuAsync(PopupMenu::Options().withMinimumWidth(150).withMaximumNumColumns(1).withTargetComponent(gridButton.get()).withParentComponent(pd->getActiveEditor()));
-        
     };
-    auto gridEnabled = static_cast<int>(SettingsFile::getInstance()->getProperty("GridEnabled"));
-    if(gridEnabled == 1) {
-        gridButton->setColour(TextButton::textColourOffId, findColour(PlugDataColour::gridLineColourId));
-    }
-    if(gridEnabled == 2) {
-        gridButton->setColour(TextButton::textColourOffId, Colours::orange);
-    }
+        
+    // Initialise grid state
+    propertyChanged("GridEnabled", static_cast<int>(SettingsFile::getInstance()->getProperty("GridEnabled")));
     
     addAndMakeVisible(gridButton.get());
 
@@ -307,6 +302,26 @@ void Statusbar::attachToCanvas(Canvas* cnv)
 {
     locked.referTo(cnv->locked);
     lockButton->getToggleStateValue().referTo(cnv->locked);
+}
+
+void Statusbar::propertyChanged(String name, var value)
+{
+    if(name == "GridEnabled") {
+        int gridEnabled = static_cast<int>(value);
+        if(gridEnabled == 0) {
+            gridButton->setColour(TextButton::textColourOffId, findColour(PlugDataColour::toolbarTextColourId));
+            gridButton->setColour(TextButton::textColourOnId, findColour(PlugDataColour::toolbarActiveColourId));
+        }
+        if(gridEnabled == 1) {
+            gridButton->setColour(TextButton::textColourOffId, findColour(PlugDataColour::gridLineColourId));
+            gridButton->setColour(TextButton::textColourOnId, findColour(PlugDataColour::gridLineColourId).brighter(0.4f));
+        }
+        else if(gridEnabled == 2) {
+            gridButton->setColour(TextButton::textColourOffId, findColour(PlugDataColour::signalColourId));
+            // TODO: fix weird colour id usage
+            gridButton->setColour(TextButton::textColourOnId, findColour(PlugDataColour::signalColourId).brighter(0.4f));
+        }
+    }
 }
 
 void Statusbar::valueChanged(Value& v)
