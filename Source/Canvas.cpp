@@ -118,7 +118,7 @@ void Canvas::paint(Graphics& g)
     }
 
     if (locked == var(false) && !isGraph) {
-        int const objectGridSize = 25;
+        int const objectGridSize = 20;
         Rectangle<int> const clipBounds = g.getClipBounds();
 
         g.setColour(findColour(PlugDataColour::canvasDotsColourId));
@@ -531,27 +531,27 @@ bool Canvas::keyPressed(KeyPress const& key)
     };
 
     // Move objects with arrow keys
-    int moveMargin = 10;
+    int moveDistance = 10;
     if (key.getModifiers().isShiftDown()) {
-        moveMargin = 1;
+        moveDistance = 1;
     } else if (key.getModifiers().isCommandDown()) {
-        moveMargin = 50;
+        moveDistance = 50;
     }
 
     if (keycode == KeyPress::leftKey) {
-        moveSelection(-moveMargin, 0);
+        moveSelection(-moveDistance, 0);
         return true;
     }
     if (keycode == KeyPress::rightKey) {
-        moveSelection(moveMargin, 0);
+        moveSelection(moveDistance, 0);
         return true;
     }
     if (keycode == KeyPress::upKey) {
-        moveSelection(0, -moveMargin);
+        moveSelection(0, -moveDistance);
         return true;
     }
     if (keycode == KeyPress::downKey) {
-        moveSelection(0, moveMargin);
+        moveSelection(0, moveDistance);
         return true;
     }
 
