@@ -129,7 +129,7 @@ void Connection::pushPathState()
 {
     // Timer to group nearby events together,
     // to ensure we don't get duplicate undo events
-    startTimer(50);
+    startTimer(10);
 }
 
 void Connection::popPathState()
