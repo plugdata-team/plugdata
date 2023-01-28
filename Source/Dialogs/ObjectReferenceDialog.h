@@ -106,7 +106,7 @@ public:
         
         auto themeTree = SettingsFile::getInstance()->getCurrentTheme();
         
-        auto squareIolets = static_cast<bool>(themeTree.getProperty("SquareIolets"));
+        auto squareIolets = static_cast<bool>(themeTree.getProperty("square_iolets"));
 
         auto drawIolet = [this, squareIolets](Graphics& g, Rectangle<float> bounds, bool type) mutable
         {

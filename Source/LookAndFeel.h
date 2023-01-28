@@ -10,6 +10,7 @@
 #include <map>
 
 #include "Utility/StackShadow.h"
+#include "Utility/SettingsFile.h"
 
 struct Icons {
     inline static const String Open = "b";
@@ -1110,8 +1111,8 @@ struct PlugDataLook : public LookAndFeel_V4 {
     "           popup_background=\"ffffffff\" popup_background_active=\"ff000000\"\n"
     "           popup_text=\"ff000000\" popup_active_text=\"ffffffff\" scrollbar_thumb=\"ff000000\"\n"
     "           graph_resizer=\"ff000000\" grid_colour=\"ff000000\" caret_colour=\"ff000000\"\n"
-    "           DashedSignalConnection=\"0\" StraightConnections=\"1\" ThinConnections=\"1\"\n"
-    "           SquareIolets=\"1\" SquareObjectCorners=\"1\"/>\n"
+    "           dashed_signal_connections=\"0\" straight_connections=\"1\" thin_connections=\"1\"\n"
+    "           square_iolets=\"1\" square_object_corners=\"1\"/>\n"
     "    <Theme theme=\"classic_dark\" toolbar_background=\"ff000000\" toolbar_text=\"ffffffff\"\n"
     "           toolbar_active=\"ff787878\" tab_background=\"ff000000\" tab_text=\"ffffffff\"\n"
     "           active_tab_background=\"ff000000\" active_tab_text=\"ffffffff\" canvas_background=\"ff000000\"\n"
@@ -1126,8 +1127,8 @@ struct PlugDataLook : public LookAndFeel_V4 {
     "           popup_background=\"ff000000\" popup_background_active=\"ffffffff\"\n"
     "           popup_text=\"ffffffff\" popup_active_text=\"ff000000\" scrollbar_thumb=\"ffffffff\"\n"
     "           graph_resizer=\"ffffffff\" grid_colour=\"ffffffff\" caret_colour=\"ffffffff\"\n"
-    "           DashedSignalConnection=\"0\" StraightConnections=\"1\" ThinConnections=\"1\"\n"
-    "           SquareIolets=\"1\" SquareObjectCorners=\"1\"/>\n"
+    "           dashed_signal_connections=\"0\" straight_connections=\"1\" thin_connections=\"1\"\n"
+    "           square_iolets=\"1\" square_object_corners=\"1\"/>\n"
     "    <Theme theme=\"dark\" toolbar_background=\"ff191919\" toolbar_text=\"ffffffff\"\n"
     "           toolbar_active=\"ff42a2c8\" tab_background=\"ff191919\" tab_text=\"ffffffff\"\n"
     "           active_tab_background=\"ff232323\" active_tab_text=\"ffffffff\" canvas_background=\"ff232323\"\n"
@@ -1142,8 +1143,8 @@ struct PlugDataLook : public LookAndFeel_V4 {
     "           popup_background=\"ff191919\" popup_background_active=\"ff282828\"\n"
     "           popup_text=\"ffffffff\" popup_active_text=\"ffffffff\" scrollbar_thumb=\"ff42a2c8\"\n"
     "           graph_resizer=\"ff42a2c8\" grid_colour=\"ff42a2c8\" caret_colour=\"ff42a2c8\"\n"
-    "           DashedSignalConnection=\"1\" StraightConnections=\"0\" ThinConnections=\"0\"\n"
-    "           SquareIolets=\"0\" SquareObjectCorners=\"0\"/>\n"
+    "           dashed_signal_connections=\"1\" straight_connections=\"0\" thin_connections=\"0\"\n"
+    "           square_iolets=\"0\" square_object_corners=\"0\"/>\n"
     "    <Theme theme=\"light\" toolbar_background=\"ffe4e4e4\" toolbar_text=\"ff5a5a5a\"\n"
     "           toolbar_active=\"ff007aff\" tab_background=\"ffe4e4e4\" tab_text=\"ff5a5a5a\"\n"
     "           active_tab_background=\"fffafafa\" active_tab_text=\"ff5a5a5a\" canvas_background=\"fffafafa\"\n"
@@ -1158,11 +1159,11 @@ struct PlugDataLook : public LookAndFeel_V4 {
     "           popup_background=\"ffe4e4e4\" popup_background_active=\"ffcfcfcf\"\n"
     "           popup_text=\"ff5a5a5a\" popup_active_text=\"ff5a5a5a\" scrollbar_thumb=\"ff007aff\"\n"
     "           graph_resizer=\"ff007aff\" grid_colour=\"ff007aff\" caret_colour=\"ff007aff\"\n"
-    "           DashedSignalConnection=\"1\" StraightConnections=\"0\" ThinConnections=\"0\"\n"
-    "           SquareIolets=\"0\" SquareObjectCorners=\"0\"/>\n"
+    "           dashed_signal_connections=\"1\" straight_connections=\"0\" thin_connections=\"0\"\n"
+    "           square_iolets=\"0\" square_object_corners=\"0\"/>\n"
     "  </ColourThemes>";
     
-    void resetColours(ValueTree themesTree)
+    static void resetColours(ValueTree themesTree)
     {
         auto defaultThemesTree = ValueTree::fromXml(PlugDataLook::defaultThemesXml);
         
@@ -1178,7 +1179,7 @@ struct PlugDataLook : public LookAndFeel_V4 {
         selectedThemes = { "light", "dark" };
     }
     
-    void setThemeColour(ValueTree themeTree, PlugDataColour colourId, Colour colour)
+    static void setThemeColour(ValueTree themeTree, PlugDataColour colourId, Colour colour)
     {
         themeTree.setProperty(std::get<1>(PlugDataColourNames.at(colourId)), colour.toString(), nullptr);
     }
@@ -1203,12 +1204,16 @@ struct PlugDataLook : public LookAndFeel_V4 {
         setColours(colours);
         currentTheme = themeTree.getProperty("theme").toString();
         
-        objectCornerRadius = themeTree.getProperty("SquareObjectCorners") ? 0.0f : 2.75f;
+        objectCornerRadius = themeTree.getProperty("square_object_corners") ? 0.0f : 2.75f;
+        useDashedConnections = themeTree.getProperty("dashed_signal_connections");
+        useStraightConnections = themeTree.getProperty("straight_connections");
+        useThinConnections = themeTree.getProperty("thin_connections");
+        useSquareIolets = themeTree.getProperty("square_iolets");
     }
     
     static StringArray getAllThemes()
     {
-        themeTree = SettingsFile::getInstance()->getThemesTree();
+        auto themeTree = SettingsFile::getInstance()->getColourThemesTree();
         StringArray allThemes;
         for (auto theme : themeTree) {
             allThemes.add(theme.getProperty("theme").toString());
@@ -1216,6 +1221,28 @@ struct PlugDataLook : public LookAndFeel_V4 {
         
         return allThemes;
     }
+    
+    static bool getUseDashedConnections()
+    {
+        return useDashedConnections;
+    }
+    static bool getUseStraightConnections()
+    {
+        return useStraightConnections;
+    }
+    static bool getUseThinConnections()
+    {
+        return useThinConnections;
+    }
+    static bool getUseSquareIolets()
+    {
+        return useSquareIolets;
+    }
+
+    static inline bool useDashedConnections = true;
+    static inline bool useStraightConnections = false;
+    static inline bool useThinConnections = false;
+    static inline bool useSquareIolets = false;
     
     static inline String currentTheme = "light";
     static inline StringArray selectedThemes = { "light", "dark" };

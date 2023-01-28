@@ -105,7 +105,7 @@ private:
 };
 
 class ThemePanel : public Component
-    , public Value::Listener {
+    , public Value::Listener, public SettingsFileListener {
 
     Value fontValue;
 
@@ -131,7 +131,7 @@ class ThemePanel : public Component
     PluginProcessor* pd;
 
 public:
-    explicit ThemePanel(PluginProcessor* processor) : processor(pd)
+    explicit ThemePanel(PluginProcessor* processor) : pd(processor)
     {
         resetButton.setTooltip("Reset to default");
         resetButton.getProperties().set("Style", "SmallIcon");
@@ -310,7 +310,7 @@ public:
                 updateSwatches();
 
                 pd->setTheme(PlugDataLook::selectedThemes[themeIdx]);
-                SettingsFile::getInstance()->setProperty("Theme", PlugDataLook::selectedThemes[themeIdx]);
+                SettingsFile::getInstance()->setProperty("theme", PlugDataLook::selectedThemes[themeIdx]);
                 
                 getTopLevelComponent()->repaint();
                 
@@ -326,6 +326,10 @@ public:
 
         updateSwatches();
     }
+        
+    void settingsFileReloaded() override {
+        updateSwatches();
+    };
 
     void updateSwatches()
     {
@@ -367,27 +371,27 @@ public:
         Array<Value*> dashedConnectionValues, straightConnectionValues, squareIoletsValues, squareObjectCornersValues, thinConnectionValues;
 
         for (int i = 0; i < 2; i++) {
-            auto themeName = PlugDataLook::selectedThemes[i];
+            const auto& themeName = PlugDataLook::selectedThemes[i];
             auto& swatch = swatches[themeName];
-            auto themeTree = SettingsFile::getInstance()->getColourThemesTree().getChildWithProperty("theme", themeName);
+            auto themeTree = SettingsFile::getInstance()->getTheme(themeName);
 
-            swatch["DashedSignalConnection"].referTo(themeTree.getPropertyAsValue("DashedSignalConnection", nullptr));
-            swatch["StraightConnections"].referTo(themeTree.getPropertyAsValue("StraightConnections", nullptr));
-            swatch["SquareIolets"].referTo(themeTree.getPropertyAsValue("SquareIolets", nullptr));
-            swatch["SquareObjectCorners"].referTo(themeTree.getPropertyAsValue("SquareObjectCorners", nullptr));
-            swatch["ThinConnections"].referTo(themeTree.getPropertyAsValue("ThinConnections", nullptr));
+            swatch["dashed_signal_connections"].referTo(themeTree.getPropertyAsValue("dashed_signal_connections", nullptr));
+            swatch["straight_connections"].referTo(themeTree.getPropertyAsValue("straight_connections", nullptr));
+            swatch["square_iolets"].referTo(themeTree.getPropertyAsValue("square_iolets", nullptr));
+            swatch["square_object_corners"].referTo(themeTree.getPropertyAsValue("square_object_corners", nullptr));
+            swatch["thin_connections"].referTo(themeTree.getPropertyAsValue("thin_connections", nullptr));
 
-            swatch["DashedSignalConnection"].addListener(this);
-            swatch["StraightConnections"].addListener(this);
-            swatch["SquareIolets"].addListener(this);
-            swatch["SquareObjectCorners"].addListener(this);
-            swatch["ThinConnections"].addListener(this);
+            swatch["dashed_signal_connections"].addListener(this);
+            swatch["straight_connections"].addListener(this);
+            swatch["square_iolets"].addListener(this);
+            swatch["square_object_corners"].addListener(this);
+            swatch["thin_connections"].addListener(this);
 
-            dashedConnectionValues.add(&swatch["DashedSignalConnection"]);
-            straightConnectionValues.add(&swatch["StraightConnections"]);
-            squareIoletsValues.add(&swatch["SquareIolets"]);
-            squareObjectCornersValues.add(&swatch["SquareObjectCorners"]);
-            thinConnectionValues.add(&swatch["ThinConnections"]);
+            dashedConnectionValues.add(&swatch["dashed_signal_connections"]);
+            straightConnectionValues.add(&swatch["straight_connections"]);
+            squareIoletsValues.add(&swatch["square_iolets"]);
+            squareObjectCornersValues.add(&swatch["square_object_corners"]);
+            thinConnectionValues.add(&swatch["thin_connections"]);
         }
 
         auto* useStraightConnections = new PropertiesPanel::MultiPropertyComponent<PropertiesPanel::BoolComponent>("Use straight line for connections", straightConnectionValues, { "No", "Yes" });
@@ -445,7 +449,7 @@ public:
 
         if (!PlugDataLook::selectedThemes.contains(PlugDataLook::currentTheme)) {
             PlugDataLook::currentTheme = PlugDataLook::selectedThemes[0];
-            SettingsFile::getInstance()->setProperty("Theme", PlugDataLook::currentTheme);
+            SettingsFile::getInstance()->setProperty("theme", PlugDataLook::currentTheme);
         }
     }
 
@@ -453,19 +457,19 @@ public:
     {
         if (v.refersToSameSourceAs(fontValue)) {
             PlugDataLook::setDefaultFont(fontValue.toString());
-            SettingsFile::getInstance()->setProperty("DefaultFont", fontValue.getValue());
+            SettingsFile::getInstance()->setProperty("default_font", fontValue.getValue());
             getTopLevelComponent()->repaint();
             return;
         }
 
-        if (v.refersToSameSourceAs(swatches[PlugDataLook::currentTheme]["DashedSignalConnection"])
-            || v.refersToSameSourceAs(swatches[PlugDataLook::currentTheme]["StraightConnections"])
-            || v.refersToSameSourceAs(swatches[PlugDataLook::currentTheme]["SquareIolets"])
-            || v.refersToSameSourceAs(swatches[PlugDataLook::currentTheme]["SquareObjectCorners"])
-            || v.refersToSameSourceAs(swatches[PlugDataLook::currentTheme]["ThinConnections"])) {
+        if (v.refersToSameSourceAs(swatches[PlugDataLook::currentTheme]["dashed_signal_connections"])
+            || v.refersToSameSourceAs(swatches[PlugDataLook::currentTheme]["straight_connections"])
+            || v.refersToSameSourceAs(swatches[PlugDataLook::currentTheme]["square_iolets"])
+            || v.refersToSameSourceAs(swatches[PlugDataLook::currentTheme]["square_object_corners"])
+            || v.refersToSameSourceAs(swatches[PlugDataLook::currentTheme]["thin_connections"])) {
 
-            getTopLevelComponent()->repaint();
-            pd->setTheme(lnf.currentTheme);
+            pd->setTheme(PlugDataLook::currentTheme);
+            return;
         }
 
         auto themeTree = SettingsFile::getInstance()->getColourThemesTree();
@@ -476,10 +480,9 @@ public:
                 auto& [colId, colourName, colCat] = colourInfo;
 
                 if (v.refersToSameSourceAs(swatches[themeName][colourName])) {
-                    lnf.setThemeColour(theme, colourId, Colour::fromString(v.toString()));
-
-                    auto currentThemeTree = themeTree.getChildWithProperty("theme", lnf.currentTheme);
-                    pd->setTheme(lnf.currentTheme);
+                    PlugDataLook::setThemeColour(theme, colourId, Colour::fromString(v.toString()));
+                    pd->setTheme(PlugDataLook::currentTheme);
+                    return;
                 }
             }
         }
@@ -490,7 +493,7 @@ public:
         auto bounds = getLocalBounds().removeFromLeft(getWidth() / 2).withTrimmedLeft(6);
 
         auto themeRow = bounds.removeFromTop(23);
-        PlugDataLook::drawText(g, "Theme", themeRow, findColour(PlugDataColour::panelTextColourId));
+        PlugDataLook::drawText(g, "theme", themeRow, findColour(PlugDataColour::panelTextColourId));
 
         auto fullThemeRow = getLocalBounds().removeFromTop(23);
         g.setColour(findColour(PlugDataColour::outlineColourId));
@@ -527,7 +530,7 @@ public:
         fontValue = "Inter";
 
         PlugDataLook::setDefaultFont(fontValue.toString());
-        SettingsFile::getInstance()->setProperty("DefaultFont", fontValue.getValue());
+        SettingsFile::getInstance()->setProperty("default_font", fontValue.getValue());
 
         pd->setTheme(PlugDataLook::currentTheme);
         updateSwatches();

@@ -58,8 +58,8 @@ public:
         addCustomItem(9, std::unique_ptr<IconMenuItem>(menuItems[9]), nullptr, "About...");
 
         // Toggles hvcc compatibility mode
-        bool hvccModeEnabled = settingsTree.hasProperty("HvccMode") ? static_cast<bool>(settingsTree.getProperty("HvccMode")) : false;
-        bool autoconnectEnabled = settingsTree.hasProperty("AutoConnect") ? static_cast<bool>(settingsTree.getProperty("AutoConnect")) : false;
+        bool hvccModeEnabled = settingsTree.hasProperty("hvcc_mode") ? static_cast<bool>(settingsTree.getProperty("hvcc_mode")) : false;
+        bool autoconnectEnabled = settingsTree.hasProperty("autoconnect") ? static_cast<bool>(settingsTree.getProperty("autoconnect")) : false;
         bool hasCanvas = editor->getCurrentCanvas() != nullptr;
         ;
 
@@ -80,7 +80,7 @@ public:
     public:
         ZoomSelector(ValueTree settingsTree)
         {
-            zoomValue = settingsTree.getPropertyAsValue("Zoom", nullptr);
+            zoomValue = settingsTree.getPropertyAsValue("zoom", nullptr);
 
             zoomIn.setButtonText("+");
             zoomReset.setButtonText(String(static_cast<float>(zoomValue.getValue()) * 100, 1) + "%");
@@ -193,7 +193,7 @@ public:
 
                 if (isTicked) {
                     g.setColour(findColour(ToggleButton::tickColourId));
-                    auto tick = lnf.getTickShape(1.0f);
+                    auto tick = getLookAndFeel().getTickShape(1.0f);
                     g.fillPath(tick, tick.getTransformToScaleToFit(iconArea.toFloat().translated(0, 0.5f).reduced(2.5f, 3.5f), false));
                 }
 
@@ -238,7 +238,7 @@ public:
         ThemeSelector(ValueTree tree)
             : settingsTree(tree)
         {
-            theme.referTo(settingsTree.getPropertyAsValue("Theme", nullptr));
+            theme.referTo(settingsTree.getPropertyAsValue("theme", nullptr));
         }
 
         void paint(Graphics& g)

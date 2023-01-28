@@ -693,8 +693,8 @@ public:
     {
         auto location = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory).getChildFile("plugdata").getChildFile("Library");
 
-        if (SettingsFile::getInstance()->hasProperty("BrowserPath")) {
-            auto customLocation = File(pd->settingsFile->getProperty("BrowserPath"));
+        if (SettingsFile::getInstance()->hasProperty("browser_path")) {
+            auto customLocation = File(pd->settingsFile->getProperty<String>("browser_path"));
             if (customLocation.exists()) {
                 location = customLocation;
             }
@@ -745,7 +745,7 @@ public:
                     const auto file = fileChooser.getResult();
                     if (file.exists()) {
                         auto path = file.getFullPathName();
-                        pd->settingsFile->setProperty("BrowserPath", path);
+                        pd->settingsFile->setProperty("browser_path", path);
                         directory.setDirectory(path, true, true);
                         watcher.addFolder(file);
                     }
@@ -755,7 +755,7 @@ public:
         resetFolderButton.onClick = [this]() {
             auto location = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory).getChildFile("plugdata").getChildFile("Library");
             auto path = location.getFullPathName();
-            pd->settingsFile->setProperty("BrowserPath", path);
+            pd->settingsFile->setProperty("browser_path", path);
             directory.setDirectory(path, true, true);
         };
 

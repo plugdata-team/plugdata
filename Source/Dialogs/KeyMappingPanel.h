@@ -5,9 +5,8 @@
 class KeyMappingComponent : public Component
     , public ChangeListener {
 public:
-    KeyMappingComponent(KeyPressMappingSet& mappingSet, ValueTree settingsValueTree)
+    KeyMappingComponent(KeyPressMappingSet& mappingSet)
         : mappings(mappingSet)
-        , settingsTree(settingsValueTree)
         , resetPdButton("Reset to Pd defaults")
         , resetMaxButton("Reset to Max defaults")
     {
@@ -50,14 +49,10 @@ public:
 
     void changeListenerCallback(ChangeBroadcaster* source) override
     {
+        auto keyMapTree = SettingsFile::getInstance()->getKeyMapTree();
+        
         auto newTree = mappings.createXml(true)->toString();
-        if (settingsTree.getChildWithName("KeyMap").isValid()) {
-            settingsTree.getChildWithName("KeyMap").setProperty("keyxml", newTree, nullptr);
-        } else {
-            auto keyMap = ValueTree("KeyMap");
-            keyMap.setProperty("keyxml", newTree, nullptr);
-            settingsTree.appendChild(keyMap, nullptr);
-        }
+        keyMapTree.setProperty("keyxml", newTree, nullptr);
     }
 
     static void resetKeyMappingsToPdCallback(int result, KeyMappingComponent* owner)
@@ -148,7 +143,6 @@ private:
     std::unique_ptr<TopLevelItem> treeItem;
 
     std::unique_ptr<Dialog> confirmationDialog;
-    ValueTree settingsTree;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(KeyMappingComponent)
 

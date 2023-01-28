@@ -227,9 +227,7 @@ public:
         g.setColour(findColour(PlugDataColour::objectOutlineColourId));
         g.drawRoundedRectangle(outlineBounds, PlugDataLook::objectCornerRadius, 1.0f);
         
-        auto themeTree = SettingsFile::getInstance()->getCurrentTheme();
-        
-        auto squareIolets = static_cast<bool>(themeTree.getProperty("SquareIolets"));
+        auto squareIolets = PlugDataLook::getUseSquareIolets();
 
         auto drawIolet = [this, squareIolets](Graphics& g, Rectangle<float> bounds, bool type) mutable
         {
