@@ -73,8 +73,6 @@ private:
         
         auto colour = findColour(PlugDataColour::canvasTextColourId).withAlpha(0.65f);
         PlugDataLook::drawText(g, suggestion, completionBounds, colour);
-        
-        std::cout << suggestion << std::endl;
     }
 };
 // Suggestions component that shows up when objects are edited
