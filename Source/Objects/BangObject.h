@@ -47,14 +47,6 @@ public:
         iemHelper.applyBounds();
     }
 
-    void checkBounds() override
-    {
-        // Fix aspect ratio and apply limits
-        int size = jlimit(30, maxSize, object->getWidth());
-        if (size != object->getHeight() || size != object->getWidth()) {
-            object->setSize(size, size);
-        }
-    }
     void toggleObject(Point<int> position) override
     {
         if (!alreadyBanged) {
