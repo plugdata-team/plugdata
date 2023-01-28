@@ -21,7 +21,7 @@ public:
     {
         locked = static_cast<bool>(object->locked.getValue());
 
-        objectText = getText();
+        objectText = getText().trimEnd();
 
         // To get enter/exit messages
         addMouseListener(object, false);

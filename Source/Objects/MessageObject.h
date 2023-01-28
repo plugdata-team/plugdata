@@ -263,7 +263,7 @@ public:
         auto result = String::fromUTF8(text, size);
         freebytes(text, size);
 
-        return result;
+        return result.trimEnd();
     }
         
     void setSymbol(String const& value)
