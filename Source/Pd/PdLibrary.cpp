@@ -431,7 +431,7 @@ void Library::parseDocumentation(String const& path)
             auto numbers = { "1st", "2nd", "3rd", "4th", "5th", "6th", "7th", "8th", "nth" };
             if (sections.count("inlets")) {
                 auto section = getSections(sections["inlets"].first, numbers);
-                inletDescriptions[name].resize(static_cast<int>(section.size()));
+                ioletDescriptions[name][0].resize(static_cast<int>(section.size()));
                 for (auto [number, content] : section) {
                     String tooltip;
                     for (auto& argument : sectionsFromHyphens(content.first)) {
@@ -442,12 +442,12 @@ void Library::parseDocumentation(String const& path)
                         tooltip += "(" + sectionMap["type"].first + ") " + sectionMap["description"].first + "\n";
                     }
 
-                    inletDescriptions[name].getReference(content.second) = { tooltip, number == "nth" };
+                    ioletDescriptions[name][0].getReference(content.second) = { tooltip, number == "nth" };
                 }
             }
             if (sections.count("outlets")) {
                 auto section = getSections(sections["outlets"].first, numbers);
-                outletDescriptions[name].resize(static_cast<int>(section.size()));
+                ioletDescriptions[name][1].resize(static_cast<int>(section.size()));
                 for (auto [number, content] : section) {
                     String tooltip;
 
@@ -458,7 +458,7 @@ void Library::parseDocumentation(String const& path)
                         tooltip += "(" + sectionMap["type"].first + ") " + sectionMap["description"].first + "\n";
                     }
 
-                    outletDescriptions[name].getReference(content.second) = { tooltip, number == "nth" };
+                    ioletDescriptions[name][1].getReference(content.second) = { tooltip, number == "nth" };
                 }
             }
         }
@@ -485,38 +485,47 @@ Suggestions Library::autocomplete(String query) const
     return result;
 }
 
-String Library::getInletOutletTooltip(String type, String name, int idx, int total, bool isInlet)
+std::array<StringArray, 2> Library::getIoletTooltips(const String& type, const String& name, int numIn, int numOut)
 {
     auto args = StringArray::fromTokens(name.fromFirstOccurrenceOf(" ", false, false), true);
 
-    auto findInfo = [&type, &args, &total, &idx](IODescriptionMap map) {
-        // TODO: replace with map.contains once all compilers support this!
-        if (map.count(type)) {
-            auto descriptions = map.at(type);
+    const auto& map = getIoletDescriptions();
+    
+    auto result = std::array<StringArray, 2>();
+    
+    // TODO: replace with map.contains once all compilers support this!
+    if (map.count(type)) {
+        const auto& ioletDescriptions = map.at(type);
 
-            // if the amount of inlets is not equal to the amount in the spec, look for repeating inlets
+        for(int type = 0; type < 2; type++) {
+            int total = type ? numOut : numIn;
+            auto descriptions = ioletDescriptions[type];
+            // if the amount of inlets is not equal to the amount in the spec, look for repeating iolets
             if (descriptions.size() < total) {
                 for (int i = 0; i < descriptions.size(); i++) {
                     if (descriptions[i].second) { // repeating inlet found
                         for (int j = 0; j < total - descriptions.size(); j++) {
-                            descriptions.insert(i, descriptions[i]);
+                            
+                            // TODO: check if this is correct!
+                            auto description = isPositiveAndBelow(i, descriptions.size()) ? descriptions[i].first : String();
+                            description = description.replace("$mth", String(i));
+                            description = description.replace("$nth", String(i + 1));
+                            description = description.replace("$arg", args[i]);
+                            
+                            descriptions.insert(i, {description, true});
                         }
                     }
                 }
             }
-
-            auto result = isPositiveAndBelow(idx, descriptions.size()) ? descriptions[idx].first : String();
-            result = result.replace("$mth", String(idx));
-            result = result.replace("$nth", String(idx + 1));
-            result = result.replace("$arg", args[idx]);
-
-            return result;
+            
+            for (int i = 0; i < descriptions.size(); i++) {
+                result[type].add(descriptions[i].first);
+            }
         }
+        
+        return result;
+    }
 
-        return String();
-    };
-
-    return isInlet ? findInfo(getInletDescriptions()) : findInfo(getOutletDescriptions());
 }
 
 StringArray Library::getAllObjects()
@@ -607,24 +616,16 @@ CategoryMap Library::getObjectCategories()
     }
     return {};
 }
-IODescriptionMap Library::getInletDescriptions()
+IODescriptionMap Library::getIoletDescriptions()
 {
     if (libraryLock.try_lock()) {
-        auto descriptions = inletDescriptions;
+        auto descriptions = ioletDescriptions;
         libraryLock.unlock();
         return descriptions;
     }
     return {};
 }
-IODescriptionMap Library::getOutletDescriptions()
-{
-    if (libraryLock.try_lock()) {
-        auto descriptions = outletDescriptions;
-        libraryLock.unlock();
-        return descriptions;
-    }
-    return {};
-}
+
 ArgumentMap Library::getArguments()
 {
     if (libraryLock.try_lock()) {

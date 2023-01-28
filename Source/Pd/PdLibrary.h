@@ -17,7 +17,7 @@
 namespace pd {
 
 using IODescription = Array<std::pair<String, bool>>;
-using IODescriptionMap = std::unordered_map<String, IODescription>;
+using IODescriptionMap = std::unordered_map<String, std::array<IODescription, 2>>;
 
 using Suggestion = std::pair<String, bool>;
 using Suggestions = std::vector<Suggestion>;
@@ -84,7 +84,7 @@ public:
 
     Suggestions autocomplete(String query) const;
 
-    String getInletOutletTooltip(String type, String name, int idx, int total, bool isInlet);
+    std::array<StringArray, 2> getIoletTooltips(const String& type, const String& name, int numIn, int numOut);
 
     void fsChangeCallback() override;
 
@@ -97,8 +97,7 @@ public:
     ObjectMap getObjectDescriptions();
     KeywordMap getObjectKeywords();
     CategoryMap getObjectCategories();
-    IODescriptionMap getInletDescriptions();
-    IODescriptionMap getOutletDescriptions();
+    IODescriptionMap getIoletDescriptions();
     StringArray getAllObjects();
     ArgumentMap getArguments();
     MethodMap getMethods();
@@ -119,8 +118,7 @@ private:
     ObjectMap objectDescriptions;
     KeywordMap objectKeywords;
     CategoryMap objectCategories;
-    IODescriptionMap inletDescriptions;
-    IODescriptionMap outletDescriptions;
+    IODescriptionMap ioletDescriptions;
     ArgumentMap arguments;
     MethodMap methods;
 
