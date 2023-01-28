@@ -6,7 +6,7 @@ description: perlin noise generator
 categories:
 - object
 
-pdcategory: Noise, Signal Generators
+pdcategory: Random and Noise, Signal Generators
 
 arguments:
 - description: sets frequency in hertz

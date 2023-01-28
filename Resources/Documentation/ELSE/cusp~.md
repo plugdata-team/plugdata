@@ -6,7 +6,7 @@ description: cusp map chaotic generator
 categories:
  - object
 
-pdcategory: Noise, Signal Generators
+pdcategory: Random and Noise, Signal Generators
 
 arguments:
   - type: float

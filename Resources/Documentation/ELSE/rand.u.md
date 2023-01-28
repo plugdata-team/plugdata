@@ -6,7 +6,7 @@ description: unrepeatable random values
 categories:
 - object
 
-pdcategory: Noise
+pdcategory: Random and Noise
 
 arguments:
 - type: float
