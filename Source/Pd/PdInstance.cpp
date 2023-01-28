@@ -627,7 +627,7 @@ void Instance::setThis() const
     libpd_set_instance(static_cast<t_pdinstance*>(m_instance));
 }
 
-t_symbol* Instance::generateSymbol(String symbol) const
+t_symbol* Instance::generateSymbol(const String& symbol) const
 {
     setThis();
     return gensym(symbol.toRawUTF8());

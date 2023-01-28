@@ -19,7 +19,8 @@ using PathPlan = std::vector<Point<float>>;
 class Canvas;
 class Connection : public Component
     , public ComponentListener
-    , public Value::Listener {
+    , public Value::Listener
+    , public Timer {
 public:
     int inIdx;
     int outIdx;
@@ -34,6 +35,8 @@ public:
     ~Connection() override;
 
     void paint(Graphics&) override;
+        
+    void timerCallback() override;
 
     bool isSegmented();
     void setSegmented(bool segmented);
@@ -58,8 +61,11 @@ public:
 
     String getId() const;
 
-    String getState();
-    void setState(String const& block);
+    void setPointer(void* ptr);
+        
+    t_symbol* getPathState();
+    void pushPathState();
+    void popPathState();
 
     void componentMovedOrResized(Component& component, bool wasMoved, bool wasResized) override;
 
@@ -100,8 +106,8 @@ private:
         
     struct t_fake_outconnect
     {
-        void *oc_next;
-        t_pd *oc_to;
+        void*oc_next;
+        t_pd* oc_to;
         t_symbol* outconnect_path_data;
     };
     

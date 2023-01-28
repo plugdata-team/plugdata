@@ -522,17 +522,37 @@ void* Patch::createConnection(void* src, int nout, void* sink, int nin)
     return outconnect;
 }
 
-void Patch::removeConnection(void* src, int nout, void* sink, int nin, String connectionPath)
+void Patch::removeConnection(void* src, int nout, void* sink, int nin, t_symbol* connectionPath)
 {
     if (!src || !sink || !ptr)
         return;
-
+    
     instance->enqueueFunction(
         [this, src, nout, sink, nin, connectionPath]() mutable {
             setCurrent();
-
-            libpd_removeconnection(getPointer(), checkObject(src), nout, checkObject(sink), nin, instance->generateSymbol(connectionPath));
+            libpd_removeconnection(getPointer(), checkObject(src), nout, checkObject(sink), nin, connectionPath);
         });
+}
+
+void* Patch::setConnctionPath(void* src, int nout, void* sink, int nin, t_symbol* oldConnectionPath, t_symbol* newConnectionPath) {
+    
+    void* outconnect = nullptr;
+    std::atomic<bool> hasReturned = false;
+
+    instance->enqueueFunction(
+        [this, &hasReturned, &outconnect, src, nout, sink, nin, oldConnectionPath, newConnectionPath]() mutable {
+            setCurrent();
+
+            outconnect = libpd_setconnectionpath(getPointer(), checkObject(src), nout, checkObject(sink), nin, oldConnectionPath, newConnectionPath);
+            
+            hasReturned = true;
+        });
+    
+    while (!hasReturned) {
+        instance->waitForStateUpdate();
+    }
+    
+    return outconnect;
 }
 
 void Patch::moveObjects(std::vector<void*> const& objects, int dx, int dy)

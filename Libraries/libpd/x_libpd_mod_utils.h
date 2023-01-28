@@ -48,6 +48,8 @@ int libpd_hasconnection(t_canvas* cnv, t_object* src, int nout, t_object* sink, 
 void* libpd_createconnection(t_canvas* cnv, t_object* src, int nout, t_object* sink, int nin);
 void libpd_removeconnection(t_canvas* cnv, t_object* src, int nout, t_object* sink, int nin, t_symbol* connection_path);
 
+void* libpd_setconnectionpath(t_canvas* cnv, t_object* src, int nout, t_object* sink, int nin, t_symbol* old_connection_path, t_symbol* new_connection_path);
+
 void libpd_getcontent(t_canvas* cnv, char** buf, int* bufsize);
 void libpd_savetofile(t_canvas* cnv, t_symbol* filename, t_symbol* dir);
 

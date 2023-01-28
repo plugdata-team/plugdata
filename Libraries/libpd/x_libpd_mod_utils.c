@@ -244,35 +244,33 @@ int libpd_canconnect(t_canvas* cnv, t_object* src, int nout, t_object* sink, int
         obj_issignalinlet(sink, nin));
 }
 
+void* libpd_setconnectionpath(t_canvas* cnv, t_object* src, int nout, t_object* sink, int nin, t_symbol* old_connection_path, t_symbol* new_connection_path)
+{
+    libpd_start_undo_sequence(cnv, "ConnectionPath");
+    
+    libpd_removeconnection(cnv, src, nout, sink, nin, old_connection_path);
+    
+    t_outconnect* oc = obj_connect(src, nout, sink, nin);
+    if (oc) {
+        outconnect_set_path_data(oc, new_connection_path);
+        
+        canvas_undo_add(cnv, UNDO_CONNECT, "connect", canvas_undo_set_connect(cnv, canvas_getindex(cnv, &src->ob_g), nout, canvas_getindex(cnv, &sink->ob_g), nin, new_connection_path));
+        
+        canvas_dirty(cnv, 1);
+    }
+    
+    libpd_end_undo_sequence(cnv, "ConnectionPath");
+    
+    return oc;
+}
 void* libpd_tryconnect(t_canvas* cnv, t_object* src, int nout, t_object* sink, int nin)
 {
     if (libpd_canconnect(cnv, src, nout, sink, nin)) {
         t_outconnect* oc = obj_connect(src, nout, sink, nin);
         if (oc) {
-            int iow = IOWIDTH * cnv->gl_zoom;
-            int iom = IOMIDDLE * cnv->gl_zoom;
-            int x11 = 0, x12 = 0, x21 = 0, x22 = 0;
-            int y11 = 0, y12 = 0, y21 = 0, y22 = 0;
-            int noutlets1, ninlets, lx1, ly1, lx2, ly2;
-            gobj_getrect(&src->ob_g, cnv, &x11, &y11, &x12, &y12);
-            gobj_getrect(&sink->ob_g, cnv, &x21, &y21, &x22, &y22);
-
-            noutlets1 = obj_noutlets(src);
-            ninlets = obj_ninlets(sink);
-
-            lx1 = x11 + (noutlets1 > 1 ? ((x12 - x11 - iow) * nout) / (noutlets1 - 1) : 0)
-                + iom;
-            ly1 = y12;
-            lx2 = x21 + (ninlets > 1 ? ((x22 - x21 - iow) * nin) / (ninlets - 1) : 0)
-                + iom;
-            ly2 = y21;
-            sys_vgui(
-                ".x%lx.c create line %d %d %d %d -width %d -tags [list l%lx cord]\n",
-                glist_getcanvas(cnv),
-                lx1, ly1, lx2, ly2,
-                (obj_issignaloutlet(src, nout) ? 2 : 1) * cnv->gl_zoom,
-                oc);
+            
             canvas_undo_add(cnv, UNDO_CONNECT, "connect", canvas_undo_set_connect(cnv, canvas_getindex(cnv, &src->ob_g), nout, canvas_getindex(cnv, &sink->ob_g), nin, gensym("empty")));
+            
             canvas_dirty(cnv, 1);
             return oc;
         }
