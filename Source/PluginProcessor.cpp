@@ -164,7 +164,7 @@ PluginProcessor::PluginProcessor()
     }
 #endif
 
-    auto currentThemeTree = settingsFile->getTheme(PlugDataLook::currentTheme);
+    auto currentThemeTree = settingsFile->getCurrentTheme();
 
     useDashedConnection = currentThemeTree.getProperty("DashedSignalConnection");
     useStraightConnection = currentThemeTree.getProperty("StraightConnections");

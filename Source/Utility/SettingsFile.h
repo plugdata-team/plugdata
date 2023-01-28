@@ -99,6 +99,11 @@ public:
     {
         return getColourThemesTree().getChildWithProperty("theme", name);
     }
+        
+    ValueTree getCurrentTheme()
+    {
+        return getColourThemesTree().getChildWithProperty("theme", settingsTree.getProperty("Theme"));
+    }
 
     void initialisePathsTree()
     {

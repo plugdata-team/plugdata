@@ -104,7 +104,7 @@ public:
         auto textBounds = outlineBounds.reduced(2.0f);
         PlugDataLook::drawText(g, objectName, textBounds.toNearestInt(), findColour(PlugDataColour::panelTextColourId), 15, Justification::centred);
         
-        auto themeTree = SettingsFile::getInstance()->getTheme(SettingsFile::getInstance()->getProperty("Theme"));
+        auto themeTree = SettingsFile::getInstance()->getCurrentTheme();
         
         auto squareIolets = static_cast<bool>(themeTree.getProperty("SquareIolets"));
 

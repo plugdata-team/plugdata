@@ -182,7 +182,6 @@ public:
 
             auto maxFontHeight = (float)r.getHeight() / 1.3f;
 
-            auto& lnf = dynamic_cast<PlugDataLook&>(getLookAndFeel());
             auto iconArea = r.removeFromLeft(roundToInt(maxFontHeight)).withSizeKeepingCentre(maxFontHeight, maxFontHeight);
 
             if (menuItemIcon.isNotEmpty()) {

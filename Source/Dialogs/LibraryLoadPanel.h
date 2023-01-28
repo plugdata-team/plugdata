@@ -26,8 +26,6 @@ class LibraryLoadPanel : public Component
             auto textBounds = bounds;
             auto iconBounds = textBounds.removeFromLeft(textBounds.getHeight());
 
-            auto& lnf = dynamic_cast<PlugDataLook&>(getLookAndFeel());
-
             auto colour = findColour(PlugDataColour::panelTextColourId);
             if (mouseIsOver) {
                 g.setColour(findColour(PlugDataColour::panelActiveBackgroundColourId));
