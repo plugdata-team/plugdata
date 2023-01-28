@@ -9,11 +9,9 @@ categories:
 pdcategory: Arrays and Tables, Buffers
 
 arguments:
-  1st:
   - type: symbol
     description: array name (optional)
     default:
-  2nd:
   - type: float
     description: channels to record (max 64)
     default: 1

@@ -8,7 +8,7 @@ categories:
 
 pdcategory: Data Management, Data Math 
 
-arguments: (none)
+arguments:
 
 inlets:
   1st:

@@ -8,7 +8,7 @@ categories:
 
 pdcategory: Data Management 
 
-arguments: (none)
+arguments:
 
 inlets:
   1st:

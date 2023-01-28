@@ -9,7 +9,7 @@ categories:
 pdcategory: MIDI
 
 arguments:
-- description: none
+- description:
   type:
   default:
 

@@ -9,11 +9,9 @@ categories:
 pdcategory: Data Management
 
 arguments:
-  1st:
   - type: symbol
     description: (optional) break character
     default: none
-  2nd:
   - type: float
     description: depth level
     default: 0

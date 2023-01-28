@@ -8,7 +8,7 @@ categories:
 pdcategory: GUI
 
 arguments:
-- description: none
+- description:
   type:
   default:
 
