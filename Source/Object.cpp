@@ -213,7 +213,7 @@ void Object::setType(String const& newType, void* existingObject)
     void* objectPtr;
     // "exists" indicates that this object already exists in pd
     // When setting exists to true, the gui needs to be assigned already
-    if (!existingObject) {
+    if (!existingObject || cnv->patch.objectWasDeleted(existingObject)) {
         auto* pd = &cnv->patch;
         if (gui) {
             // Clear connections to this object
@@ -585,13 +585,14 @@ void Object::mouseDown(MouseEvent const& e)
         stopTimer();
         repaint();
 
-        auto object = SafePointer<Object>(this);
         // Tell pd about new position
         cnv->pd->enqueueFunction(
-            [this, object]() {
-                if (!object || !object->gui)
+            [_this = SafePointer(this)]() {
+                if ((!_this || !_this->gui) && !_this->cnv->patch.objectWasDeleted(_this->gui->ptr)) {
                     return;
-                gui->applyBounds();
+                }
+                
+                _this->gui->applyBounds();
             });
 
         if (createEditorOnMouseDown) {
@@ -651,23 +652,26 @@ void Object::mouseUp(MouseEvent const& e)
         originalBounds.setBounds(0, 0, 0, 0);
 
         cnv->pd->enqueueFunction(
-            [this, object = SafePointer<Object>(this), e]() mutable {
-                if (!object || !gui)
-                    return;
+            [_this = SafePointer<Object>(this), e]() mutable {
+                
+                if (!_this || !_this->gui) return;
+                
+                auto* obj = static_cast<t_gobj*>(_this->getPointer());
+                auto* cnv = _this->cnv;
+                
+                if(cnv->patch.objectWasDeleted(obj)) return;
 
                 // Used for size changes, could also be used for properties
-                auto* obj = static_cast<t_gobj*>(getPointer());
-                auto* canvas = static_cast<t_canvas*>(cnv->patch.getPointer());
-                libpd_undo_apply(canvas, obj);
+                libpd_undo_apply(cnv->patch.getPointer(), obj);
 
-                gui->applyBounds();
+                _this->gui->applyBounds();
 
                 // To make sure it happens after setting object bounds
-                if (!cnv->viewport->getViewArea().contains(getBounds())) {
+                if (!cnv->viewport->getViewArea().contains(_this->getBounds())) {
                     MessageManager::callAsync(
-                        [object]() {
-                            if (object)
-                                object->cnv->checkBounds();
+                        [_this]() {
+                            if (_this)
+                                _this->cnv->checkBounds();
                         });
                 }
             });
