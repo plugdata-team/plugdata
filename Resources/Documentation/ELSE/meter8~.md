@@ -1,12 +1,12 @@
 ---
 title: meter8~
 
-description: Octaaphonic VU-meter
+description: octaphonic VU-meter
 
 categories:
 - object
 
-pdcategory: GUI
+pdcategory: GUI, Analysis
 
 arguments:
 - type: float
@@ -32,4 +32,4 @@ outlets:
 draft: false
 ---
 
-[meter4~] is a convenient qudraphonic VU-meter abstraction based on [vu~] and vanilla's [vu] GUI - see also: [meter~], [meter2~] and [meter4~].
+[meter8~] is a convenient octaphonic VU-meter abstraction based on [vu~] and vanilla's [vu] GUI - see also: [meter~], [meter2~] and [meter4~].

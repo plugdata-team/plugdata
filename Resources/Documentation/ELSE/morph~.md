@@ -1,12 +1,12 @@
 ---
 title: morph~
 
-description: Cross synthesis
+description: cross synthesis
 
 categories:
 - object
 
-pdcategory: DSP
+pdcategory: Effects, Mixing and Routing
 
 arguments:
 - type: float
@@ -38,4 +38,4 @@ outlets:
 draft: false
 ---
 
-LONG DESCRIPTION HERE
+[morph~] allows you to make a spectral crossfade between the amplitudes and phases of two inputs. You can then do cross synthesis and spectral morphing.

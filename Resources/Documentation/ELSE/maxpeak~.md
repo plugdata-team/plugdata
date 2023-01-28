@@ -1,12 +1,12 @@
 ---
 title: maxpeak~
 
-description: Maximum peak amplitude
+description: maximum peak amplitude
 
 categories:
 - object
 
-pdcategory:
+pdcategory: Analysis
 
 arguments: (none)
 

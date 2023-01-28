@@ -1,11 +1,12 @@
 ---
 title: loop
-description: Loop counter
+
+description: loop counter
 
 categories:
  - object
 
-pdcategory: General
+pdcategory: Triggers and Clocks, Data Management
 
 arguments:
 - type: float

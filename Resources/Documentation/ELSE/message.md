@@ -1,7 +1,7 @@
 ---
 title: message
 
-description: Store messages
+description: store messages
 
 categories:
  - object

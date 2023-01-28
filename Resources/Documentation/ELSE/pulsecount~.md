@@ -5,7 +5,7 @@ description: pulse counter
 categories:
  - object
 
-pdcategory: Triggers and CLocks
+pdcategory: Triggers and Clocks
 
 arguments:
 - type: float

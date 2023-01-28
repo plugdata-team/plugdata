@@ -1,11 +1,12 @@
 ---
 title: lowpass~
-description: Lowpass resonant filter
+
+description: lowpass resonant filter
 
 categories:
  - object
 
-pdcategory: General
+pdcategory: Filters
 
 arguments:
 - type: float

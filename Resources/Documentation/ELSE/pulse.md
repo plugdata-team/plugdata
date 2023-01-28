@@ -6,7 +6,7 @@ description: control pulse
 categories:
 - object
 
-pdcategory: Trigger and Clocks
+pdcategory: Triggers and Clocks
 
 arguments:
 - description: frequency in hertz

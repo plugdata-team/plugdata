@@ -1,7 +1,7 @@
 ---
 title: mono
 
-description: Monophonic voice manager
+description: monophonic voice manager
 
 categories:
 - object
@@ -52,4 +52,4 @@ methods:
 draft: false
 ---
 
-[mono] takes note messages and handles them to emulate monophonic synth behaviour. Its internal memory can remember up to the last 10 input voices *and pitches need to be >= 0).
+[mono] takes note messages and handles them to emulate monophonic synth behavior. Its internal memory can remember up to the last 10 input voices *and pitches need to be >= 0).

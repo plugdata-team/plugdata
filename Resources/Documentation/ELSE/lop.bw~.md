@@ -1,12 +1,12 @@
 ---
 title: lop.bw~
 
-description: Lowpass butterworth filter
+description: lowpass butterworth filter
 
 categories:
 - object
 
-pdcategory:
+pdcategory: Filters
 
 arguments:
 - description: cutoff in hertz

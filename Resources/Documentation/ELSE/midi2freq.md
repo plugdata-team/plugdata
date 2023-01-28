@@ -1,12 +1,12 @@
 ---
 title: midi2freq
 
-description: Convert MIDI to frequency
+description: convert MIDI to frequency
 
 categories:
 - object
 
-pdcategory: Scale tools
+pdcategory: MIDI, Data Math, Tuning
 
 arguments:
 - type: float
