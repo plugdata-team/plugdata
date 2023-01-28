@@ -148,7 +148,6 @@ public:
 
         // To get enter/exit messages
         addMouseListener(object, false);
-        
     }
 
     virtual ~TextBase()
@@ -231,15 +230,17 @@ public:
         auto newBounds = TextObjectHelper::recalculateTextObjectBounds(cnvPtr, ptr, objText, 15, newNumLines, true, std::max({ 1, object->numInputs, object->numOutputs }));
 
         numLines = newNumLines;
-
-        if (newBounds != object->getObjectBounds()) {
-            object->setObjectBounds(newBounds);
+        
+        if(newBounds != object->getObjectBounds()) {
+            //object->setObjectBounds(newBounds);
+            object->setMinimumHeight(newBounds.getHeight());
+            object->setMaximumHeight(newBounds.getHeight());
         }
 
         pd->getCallbackLock()->exit();
     }
 
-    void checkBounds() override
+    void checkBoundsLocal()
     {
         int fontWidth = glist_fontwidth(cnv->patch.getPointer());
         TextObjectHelper::setWidthInChars(ptr, getWidth() / fontWidth);
@@ -329,6 +330,7 @@ public:
         if (editor) {
             editor->setBounds(getLocalBounds());
         }
+        checkBoundsLocal();
     }
 
     /** Returns the currently-visible text editor, or nullptr if none is open. */
