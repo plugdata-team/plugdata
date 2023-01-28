@@ -264,20 +264,20 @@ public:
         for (auto* listener : listeners) {
             listener->propertyChanged(property.toString(), treeWhosePropertyHasChanged.getProperty(property));
         }
-
-        settingsChangedInternally = true;
+        
+        if(!settingsChangedExternally) settingsChangedInternally = true;
         startTimer(300);
     }
 
     void valueTreeChildAdded(ValueTree& parentTree, ValueTree& childWhichHasBeenAdded) override
     {
-        settingsChangedInternally = true;
+        if(!settingsChangedExternally) settingsChangedInternally = true;
         startTimer(300);
     }
 
     void valueTreeChildRemoved(ValueTree& parentTree, ValueTree& childWhichHasBeenRemoved, int indexFromWhichChildWasRemoved) override
     {
-        settingsChangedInternally = true;
+        if(!settingsChangedExternally) settingsChangedInternally = true;
         startTimer(300);
     }
 
@@ -285,8 +285,10 @@ public:
     {
         jassert(isInitialised);
         
+        // Don't save again if we just loaded it from file
         if(settingsChangedExternally) {
             settingsChangedExternally = false;
+            stopTimer();
             return;
         }
 

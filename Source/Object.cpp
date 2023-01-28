@@ -277,7 +277,7 @@ void Object::setType(String const& newType, void* existingObject)
             cnv->connections.add(new Connection(cnv, outlet, iolets[0], nullptr));
             cnv->connections.add(new Connection(cnv, iolets[this->numInputs], inlet, nullptr));
             // remove the previous connection
-            cnv->patch.removeConnection(outobj->getPointer(), cnv->lastSelectedConnection->outIdx, inobj->getPointer(), cnv->lastSelectedConnection->inIdx, cnv->lastSelectedConnection->getState());
+            cnv->patch.removeConnection(outobj->getPointer(), cnv->lastSelectedConnection->outIdx, inobj->getPointer(), cnv->lastSelectedConnection->inIdx, cnv->lastSelectedConnection->getPathState());
             cnv->connections.removeObject(cnv->lastSelectedConnection);
         }
     }

@@ -50,7 +50,8 @@ Connection::Connection(Canvas* parent, Iolet* s, Iolet* e, void* oc)
             return;
         }
     } else {
-        setState(String(ptr->outconnect_path_data->s_name));
+        
+        popPathState();
     }
 
     // Listen to changes at iolets
@@ -97,27 +98,58 @@ void Connection::valueChanged(Value& v)
     }
 }
 
-String Connection::getState()
+void Connection::timerCallback()
 {
-    String pathAsString;
-
-    MemoryOutputStream stream;
-
-    for (auto& point : currentPlan) {
-        stream.writeInt(point.x - outlet->getCanvasBounds().getCentre().x);
-        stream.writeInt(point.y - outlet->getCanvasBounds().getCentre().y);
+    t_symbol* newPathState;
+    t_symbol* oldPathState = ptr->outconnect_path_data;
+    if(segmented) {
+        MemoryOutputStream stream;
+        
+        for (auto& point : currentPlan) {
+            stream.writeInt(point.x - outlet->getCanvasBounds().getCentre().x);
+            stream.writeInt(point.y - outlet->getCanvasBounds().getCentre().y);
+        }
+        auto base64 = stream.getMemoryBlock().toBase64Encoding();
+        newPathState = cnv->pd->generateSymbol(base64);
     }
-
-    return stream.getMemoryBlock().toBase64Encoding();
+    else {
+        newPathState = cnv->pd->generateSymbol("empty");
+    }
+    
+    // This will recreate the connection with the new connection path, and return the new pointer
+    // Since we mostly used indices and object pointers to differentiate connections, this is fine
+    
+    auto* newConnection = cnv->patch.setConnctionPath(outobj->getPointer(), outIdx, inobj->getPointer(), inIdx, oldPathState, newPathState);
+    ptr = static_cast<t_fake_outconnect*>(newConnection);
+    
+    std::cout << "State pushed: " << newPathState->s_name << std::endl;
+    
+    stopTimer();
 }
 
-void Connection::setState(String const& state)
+void Connection::pushPathState()
 {
-    auto plan = PathPlan();
+    // Timer to group nearby events together,
+    // to ensure we don't get duplicate undo events
+    startTimer(50);
+}
 
+void Connection::popPathState()
+{
+    auto const state = String(ptr->outconnect_path_data->s_name);
+    
+    std::cout << "State popped: " << state << std::endl;
+    if(state == "empty") {
+        segmented = false;
+        updatePath();
+        return;
+    }
+    
     auto block = MemoryBlock();
     auto succeeded = block.fromBase64Encoding(state);
 
+    auto plan = PathPlan();
+    
     if (succeeded) {
         auto stream = MemoryInputStream(block, false);
 
@@ -127,27 +159,22 @@ void Connection::setState(String const& state)
 
             plan.emplace_back(x + outlet->getCanvasBounds().getCentreX(), y + outlet->getCanvasBounds().getCentreY());
         }
-        segmented = true;
+        segmented = !plan.empty();
     }
     else {
         segmented = false;
     }
+    
     currentPlan = plan;
     updatePath();
 }
 
-String Connection::getId() const
-{
-    MemoryOutputStream stream;
+void Connection::setPointer(void* newPtr) {
+    ptr = static_cast<t_fake_outconnect*>(newPtr);
+}
 
-    // TODO: check if connection is still valid before requesting idx from object
-
-    stream.writeInt(cnv->patch.getIndex(inobj->getPointer()));
-    stream.writeInt(cnv->patch.getIndex(outobj->getPointer()));
-    stream.writeInt(inIdx);
-    stream.writeInt(outobj->numInputs + outIdx);
-
-    return stream.getMemoryBlock().toBase64Encoding();
+t_symbol* Connection::getPathState() {
+    return ptr->outconnect_path_data;
 }
 
 Connection::~Connection()
@@ -286,7 +313,7 @@ bool Connection::isSegmented()
 void Connection::setSegmented(bool isSegmented)
 {
     segmented = isSegmented;
-    ptr->outconnect_path_data = segmented ? cnv->pd->generateSymbol(getState()) : cnv->pd->generateSymbol("empty");
+    pushPathState();
     updatePath();
     repaint();
 }
@@ -381,8 +408,7 @@ void Connection::mouseUp(MouseEvent const& e)
 {
     if (dragIdx != -1) {
         
-        auto state = getState();
-        ptr->outconnect_path_data = cnv->pd->generateSymbol(state);
+        pushPathState();
         dragIdx = -1;
     }
 
@@ -444,7 +470,7 @@ void Connection::reconnect(Iolet* target, bool dragged)
 
         if (cnv->patch.hasConnection(c->outobj->getPointer(), c->outIdx, c->inobj->getPointer(), c->inIdx)) {
             // Delete connection from pd if we haven't done that yet
-            cnv->patch.removeConnection(c->outobj->getPointer(), c->outIdx, c->inobj->getPointer(), c->inIdx, c->getState());
+            cnv->patch.removeConnection(c->outobj->getPointer(), c->outIdx, c->inobj->getPointer(), c->inIdx, c->getPathState());
         }
 
         // Create new connection
@@ -699,8 +725,7 @@ void Connection::findPath()
 
     currentPlan = simplifiedPath;
 
-    auto state = getState();
-    ptr->outconnect_path_data = cnv->pd->generateSymbol(state);
+    pushPathState();
 }
 
 int Connection::findLatticePaths(PathPlan& bestPath, PathPlan& pathStack, Point<float> pstart, Point<float> pend, Point<float> increment)

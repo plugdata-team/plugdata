@@ -395,7 +395,7 @@ public:
     virtual void reloadAbstractions(File changedPatch, t_glist* except) = 0;
 
     void setThis() const;
-    t_symbol* generateSymbol(String symbol) const;
+    t_symbol* generateSymbol(const String& symbol) const;
 
     void waitForStateUpdate();
 

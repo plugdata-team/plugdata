@@ -44,7 +44,7 @@ public:
     void* createObject(String const& name, int x, int y);
     void removeObject(void* obj);
     void* renameObject(void* obj, String const& name);
-
+    
     void moveObjects(std::vector<void*> const&, int x, int y);
 
     void finishRemove();
@@ -87,8 +87,9 @@ public:
     bool hasConnection(void* src, int nout, void* sink, int nin);
     bool canConnect(void* src, int nout, void* sink, int nin);
     void* createConnection(void* src, int nout, void* sink, int nin);
-    void removeConnection(void* src, int nout, void* sink, int nin, String connectionPath);
-
+    void removeConnection(void* src, int nout, void* sink, int nin, t_symbol* connectionPath);
+    void* setConnctionPath(void* src, int nout, void* sink, int nin, t_symbol* oldConnectionPath, t_symbol* newConnectionPath);
+    
     Connections getConnections() const;
 
     t_canvas* getPointer() const

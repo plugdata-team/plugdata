@@ -1192,6 +1192,9 @@ struct PlugDataLook : public LookAndFeel_V4 {
     {
         std::map<PlugDataColour, Colour> colours;
         
+        // Quick check if this tree is valid
+        if(!themeTree.hasProperty("theme")) return;
+        
         for (auto const& [colourId, colourNames] : PlugDataColourNames) {
             auto [id, colourName, category] = colourNames;
             colours[colourId] = Colour::fromString(themeTree.getProperty(colourName).toString());
