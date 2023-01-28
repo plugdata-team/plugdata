@@ -258,7 +258,7 @@ public:
 
     void paint(Graphics& g) override
     {
-        g.setColour(object->findColour(PlugDataColour::defaultObjectBackgroundColourId));
+        g.setColour(object->findColour(PlugDataColour::guiObjectBackgroundColourId));
         g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), PlugDataLook::objectCornerRadius);
 
         if (error) {
@@ -440,13 +440,13 @@ public:
 
     void paintOverChildren(Graphics& g) override
     {
-        g.setColour(findColour(PlugDataColour::defaultObjectBackgroundColourId));
+        g.setColour(findColour(PlugDataColour::guiObjectBackgroundColourId));
         g.drawRoundedRectangle(getLocalBounds().toFloat(), PlugDataLook::windowCornerRadius, 1.0f);
     }
 
     void paint(Graphics& g) override
     {
-        g.setColour(findColour(PlugDataColour::defaultObjectBackgroundColourId));
+        g.setColour(findColour(PlugDataColour::guiObjectBackgroundColourId));
         g.fillRoundedRectangle(getLocalBounds().toFloat(), PlugDataLook::windowCornerRadius);
 
         g.setColour(findColour(PlugDataColour::canvasTextColourId));

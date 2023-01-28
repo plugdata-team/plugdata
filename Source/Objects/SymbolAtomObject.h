@@ -139,9 +139,9 @@ public:
         getLookAndFeel().setColour(Label::textWhenEditingColourId, object->findColour(PlugDataColour::canvasTextColourId));
         getLookAndFeel().setColour(Label::textColourId, object->findColour(PlugDataColour::canvasTextColourId));
         getLookAndFeel().setColour(TextEditor::textColourId, object->findColour(PlugDataColour::canvasTextColourId));
-        getLookAndFeel().setColour(TextEditor::backgroundColourId, object->findColour(PlugDataColour::defaultObjectBackgroundColourId));
+        getLookAndFeel().setColour(TextEditor::backgroundColourId, object->findColour(PlugDataColour::guiObjectBackgroundColourId));
 
-        g.setColour(object->findColour(PlugDataColour::defaultObjectBackgroundColourId));
+        g.setColour(object->findColour(PlugDataColour::guiObjectBackgroundColourId));
         g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), PlugDataLook::objectCornerRadius);
     }
 

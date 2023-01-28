@@ -91,7 +91,7 @@ public:
     void paint(Graphics& g) override
     {
         // Draw background
-        g.setColour(object->findColour(PlugDataColour::defaultObjectBackgroundColourId));
+        g.setColour(object->findColour(PlugDataColour::guiObjectBackgroundColourId));
         g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), PlugDataLook::objectCornerRadius);
 
         // Draw text

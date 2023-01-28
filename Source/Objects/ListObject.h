@@ -161,7 +161,7 @@ public:
         getLookAndFeel().setColour(Label::textWhenEditingColourId, object->findColour(Label::textWhenEditingColourId));
         getLookAndFeel().setColour(Label::textColourId, object->findColour(Label::textColourId));
 
-        g.setColour(object->findColour(PlugDataColour::defaultObjectBackgroundColourId));
+        g.setColour(object->findColour(PlugDataColour::guiObjectBackgroundColourId));
         g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), PlugDataLook::objectCornerRadius);
 
         g.setColour(object->findColour(PlugDataColour::outlineColourId));

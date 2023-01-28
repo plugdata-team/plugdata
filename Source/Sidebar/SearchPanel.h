@@ -56,6 +56,7 @@ public:
         listBox.getViewport()->getVerticalScrollBar().addListener(this);
 
         setWantsKeyboardFocus(false);
+        repaint();
     }
 
     void mouseDown(MouseEvent const& e) override
@@ -181,7 +182,13 @@ public:
 
     void paint(Graphics& g) override
     {
-        g.setColour(findColour(PlugDataColour::sidebarBackgroundColourId));
+        auto backgroundColour = findColour(PlugDataColour::sidebarBackgroundColourId);
+        auto textColour = findColour(PlugDataColour::sidebarTextColourId);
+
+        input.setColour(TextEditor::backgroundColourId, backgroundColour.brighter(0.7f));
+        input.setColour(TextEditor::textColourId, textColour);
+        
+        g.setColour(backgroundColour);
         g.fillRect(getLocalBounds().withTrimmedBottom(30));
     }
 

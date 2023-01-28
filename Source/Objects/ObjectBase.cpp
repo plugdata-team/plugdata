@@ -329,7 +329,7 @@ void ObjectBase::paint(Graphics& g)
     getLookAndFeel().setColour(Label::textWhenEditingColourId, object->findColour(PlugDataColour::canvasTextColourId));
     getLookAndFeel().setColour(TextEditor::textColourId, object->findColour(PlugDataColour::canvasTextColourId));
 
-    g.setColour(object->findColour(PlugDataColour::defaultObjectBackgroundColourId));
+    g.setColour(object->findColour(PlugDataColour::guiObjectBackgroundColourId));
     g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), PlugDataLook::objectCornerRadius);
 
     bool selected = cnv->isSelected(object) && !cnv->isGraph;
