@@ -450,11 +450,11 @@ public:
         auto* editor = mainComponent->getEditor();
 
         auto settingsTree = SettingsFile::getInstance()->getValueTree();
-        bool hasReloadStateProperty = settingsTree.hasProperty("ReloadLastState");
+        bool hasReloadStateProperty = settingsTree.hasProperty("reload_last_state");
 
         // When starting with any sysargs, assume we don't want the last patch to open
         // Prevents a possible crash and generally kinda makes sense
-        if (systemArguments.isEmpty() && hasReloadStateProperty && static_cast<bool>(settingsTree.getProperty("ReloadLastState"))) {
+        if (systemArguments.isEmpty() && hasReloadStateProperty && static_cast<bool>(settingsTree.getProperty("reload_last_state"))) {
             pluginHolder->reloadPluginState();
         }
 
@@ -464,7 +464,7 @@ public:
         setContentOwned(mainComponent, true);
 
         // Make sure it gets updated on init
-        propertyChanged("NativeWindow", settingsTree.getProperty("NativeWindow"));
+        propertyChanged("native_window", settingsTree.getProperty("native_window"));
 
         auto const getWindowScreenBounds = [this]() -> Rectangle<int> {
             const auto width = getWidth();
@@ -495,7 +495,7 @@ public:
 
     void propertyChanged(String name, var value) override
     {
-        if (name == "NativeWindow") {
+        if (name == "native_window") {
 
             bool nativeWindow = static_cast<bool>(value);
 

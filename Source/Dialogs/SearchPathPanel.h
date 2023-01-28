@@ -59,8 +59,7 @@ public:
     std::unique_ptr<Dialog> confirmationDialog;
 
     /** Creates an empty FileSearchPathListObject. */
-    SearchPathComponent(ValueTree libraryTree)
-        : tree(std::move(libraryTree))
+    SearchPathComponent()
     {
         listBox.setOutlineThickness(0);
         listBox.setRowHeight(25);
@@ -117,31 +116,10 @@ public:
                 });
         };
 
-        // Load state from valuetree
+        // Load state from settings file
         externalChange();
     }
 
-    /** Changes the current path. */
-    void updatePath(ValueTree& tree)
-    {
-        paths.clear();
-
-        for (auto child : tree) {
-            paths.addIfNotAlreadyThere(child.getProperty("Path").toString());
-        }
-
-        internalChange();
-    }
-
-    /** Sets a file or directory to be the default starting point for the browser to show.
-
-     This is only used if the current file hasn't been set.
-     */
-    void setDefaultBrowseTarget(File const& newDefaultDirectory)
-
-    {
-        defaultBrowseTarget = newDefaultDirectory;
-    }
 
     int getNumRows() override
     {
@@ -244,7 +222,7 @@ private:
     {
         paths.clear();
 
-        for (auto child : tree) {
+        for (auto child : SettingsFile::getInstance()->getPathsTree()) {
             if (child.hasType("Path")) {
                 paths.addIfNotAlreadyThere(child.getProperty("Path").toString());
             }
@@ -256,14 +234,15 @@ private:
     }
     void internalChange()
     {
-        tree.removeAllChildren(nullptr);
+        auto pathsTree = SettingsFile::getInstance()->getPathsTree();
+        pathsTree.removeAllChildren(nullptr);
 
         for (int p = 0; p < paths.size(); p++) {
             auto dir = File(paths[p]);
             if (dir.isDirectory()) {
                 auto newPath = ValueTree("Path");
                 newPath.setProperty("Path", dir.getFullPathName(), nullptr);
-                tree.appendChild(newPath, nullptr);
+                pathsTree.appendChild(newPath, nullptr);
             }
         }
 

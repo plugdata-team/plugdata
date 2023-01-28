@@ -25,9 +25,6 @@ Connection::Connection(Canvas* parent, Iolet* s, Iolet* e, void* oc)
     presentationMode.referTo(parent->presentationMode);
     presentationMode.addListener(this);
     
-    useStraight = static_cast<bool>(cnv->pd->useStraightConnection.getValue());
-    useDashed = static_cast<bool>(cnv->pd->useDashedConnection.getValue());
-    
     // Make sure it's not 2x the same iolet
     if (!outlet || !inlet || outlet->isInlet == inlet->isInlet) {
         outlet = nullptr;
@@ -78,15 +75,6 @@ Connection::Connection(Canvas* parent, Iolet* s, Iolet* e, void* oc)
     componentMovedOrResized(*outlet, true, true);
     componentMovedOrResized(*inlet, true, true);
 
-    cnv->pd->useStraightConnection.addListener(this);
-    valueChanged(cnv->pd->useStraightConnection);
-
-    // Listen for signal connection proptery changes
-    cnv->pd->useDashedConnection.addListener(this);
-    cnv->pd->useThinConnection.addListener(this);
-
-    // Make sure it gets updated on init
-    valueChanged(cnv->pd->useDashedConnection);
     valueChanged(presentationMode);
 
     updatePath();
@@ -95,13 +83,8 @@ Connection::Connection(Canvas* parent, Iolet* s, Iolet* e, void* oc)
 
 void Connection::valueChanged(Value& v)
 {
-    if (v.refersToSameSourceAs(cnv->pd->useDashedConnection)) {
-        useDashed = static_cast<bool>(cnv->pd->useDashedConnection.getValue());
-    } else if (v.refersToSameSourceAs(presentationMode)) {
+    if (v.refersToSameSourceAs(presentationMode)) {
         setVisible(presentationMode != var(true) && !cnv->isGraph);
-    } else if (v.refersToSameSourceAs(cnv->pd->useStraightConnection)) {
-        useStraight = static_cast<bool>(cnv->pd->useStraightConnection.getValue());
-        updatePath();
     }
 }
 
@@ -185,10 +168,6 @@ Connection::~Connection()
     if (inobj) {
         inobj->removeComponentListener(this);
     }
-
-    cnv->pd->useDashedConnection.removeListener(this);
-    cnv->pd->useStraightConnection.removeListener(this);
-    cnv->pd->useThinConnection.removeListener(this);
 }
 
 bool Connection::hitTest(int x, int y)
@@ -255,7 +234,7 @@ void Connection::paint(Graphics& g)
         baseColour = baseColour.brighter(0.6f);
     }
 
-    bool useThinConnection = static_cast<bool>(cnv->pd->useThinConnection.getValue());
+    bool useThinConnection = PlugDataLook::getUseThinConnections();
 
     if (!useThinConnection) {
         // outer stroke
@@ -268,7 +247,7 @@ void Connection::paint(Graphics& g)
     Path innerPath = toDraw;
     PathStrokeType innerStroke(useThinConnection ? 1.0f : 1.5f);
 
-    if (useDashed && outlet->isSignal) {
+    if (PlugDataLook::getUseDashedConnections() && outlet->isSignal) {
         PathStrokeType dashedStroke(0.8f);
         float dash[1] = { 5.0f };
         Path dashedPath;
@@ -546,7 +525,7 @@ void Connection::updatePath()
     if (!segmented) {
         toDraw.clear();
         toDraw.startNewSubPath(pstart);
-        if (!useStraight) {
+        if (!PlugDataLook::getUseStraightConnections()) {
             float const width = std::max(pstart.x, pend.x) - std::min(pstart.x, pend.x);
             float const height = std::max(pstart.y, pend.y) - std::min(pstart.y, pend.y);
 
@@ -598,7 +577,7 @@ void Connection::updatePath()
         }
 
         connectionPath.lineTo(pend.toFloat());
-        toDraw = connectionPath.createPathWithRoundedCorners(useStraight ? 0.0f : 8.0f);
+        toDraw = connectionPath.createPathWithRoundedCorners(PlugDataLook::getUseStraightConnections() ? 0.0f : 8.0f);
     }
 
     repaint();

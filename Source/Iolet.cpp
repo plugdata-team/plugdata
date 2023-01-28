@@ -74,7 +74,7 @@ void Iolet::paint(Graphics& g)
         bounds.translate(0.0f, isInlet ? -1.0f : 0.0f);
     }
 
-    if (static_cast<bool>(object->cnv->pd->useSquareIolets.getValue())) {
+    if (PlugDataLook::getUseSquareIolets()) {
         g.setColour(backgroundColour);
         g.fillRect(bounds);
 

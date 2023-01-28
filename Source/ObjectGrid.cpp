@@ -19,7 +19,7 @@ ObjectGrid::ObjectGrid(Canvas* parent)
         line.setAlwaysOnTop(true);
     }
     
-    gridEnabled = static_cast<int>(SettingsFile::getInstance()->getProperty("GridEnabled"));
+    gridEnabled = SettingsFile::getInstance()->getProperty<int>("grid_enabled");
     
 }
 
@@ -306,7 +306,7 @@ bool ObjectGrid::trySnap(int distance)
 
 void ObjectGrid::propertyChanged(String name, var value)
 {
-    if(name == "GridEnabled") {
+    if(name == "grid_enabled") {
         gridEnabled = static_cast<int>(value);
     }
 }

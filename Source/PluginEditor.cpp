@@ -84,16 +84,16 @@ PluginEditor::PluginEditor(PluginProcessor& p)
         settingsFile->getValueTree().appendChild(ValueTree("KeyMap"), nullptr);
     }
 
-    autoconnect.referTo(settingsFile->getPropertyAsValue("AutoConnect"));
+    autoconnect.referTo(settingsFile->getPropertyAsValue("autoconnect"));
 
-    theme.referTo(settingsFile->getPropertyAsValue("Theme"));
+    theme.referTo(settingsFile->getPropertyAsValue("theme"));
     theme.addListener(this);
 
-    if (!settingsFile->hasProperty("HvccMode"))
-        settingsFile->setProperty("HvccMode", false);
-    hvccMode.referTo(settingsFile->getPropertyAsValue("HvccMode"));
+    if (!settingsFile->hasProperty("hvcc_mode"))
+        settingsFile->setProperty("hvcc_mode", false);
+    hvccMode.referTo(settingsFile->getPropertyAsValue("hvcc_mode"));
 
-    zoomScale.referTo(settingsFile->getPropertyAsValue("Zoom"));
+    zoomScale.referTo(settingsFile->getPropertyAsValue("zoom"));
     zoomScale.addListener(this);
 
     addAndMakeVisible(statusbar);
@@ -281,7 +281,7 @@ void PluginEditor::resized()
     toolbarButton(Add)->setBounds(260, 0, toolbarHeight, toolbarHeight);
 
 #ifdef PLUGDATA_STANDALONE
-    auto useNativeTitlebar = static_cast<bool>(SettingsFile::getInstance()->getProperty("NativeWindow"));
+    auto useNativeTitlebar = SettingsFile::getInstance()->getProperty<bool>("native_window");
     auto windowControlsOffset = useNativeTitlebar ? 70.0f : 170.0f;
 #else
     auto windowControlsOffset = 70.0f;
@@ -420,28 +420,28 @@ void PluginEditor::openProject()
         File openedFile = f.getResult();
 
         if (openedFile.exists() && openedFile.getFileExtension().equalsIgnoreCase(".pd")) {
-            SettingsFile::getInstance()->setProperty("LastChooserPath", openedFile.getParentDirectory().getFullPathName());
+            SettingsFile::getInstance()->setProperty("last_filechooser_path", openedFile.getParentDirectory().getFullPathName());
 
             pd->loadPatch(openedFile);
             SettingsFile::getInstance()->addToRecentlyOpened(openedFile);
         }
     };
 
-    openChooser = std::make_unique<FileChooser>("Choose file to open", File(SettingsFile::getInstance()->getProperty("LastChooserPath")), "*.pd", wantsNativeDialog());
+    openChooser = std::make_unique<FileChooser>("Choose file to open", File(SettingsFile::getInstance()->getProperty<String>("last_filechooser_path")), "*.pd", wantsNativeDialog());
 
     openChooser->launchAsync(FileBrowserComponent::openMode | FileBrowserComponent::canSelectFiles, openFunc);
 }
 
 void PluginEditor::saveProjectAs(std::function<void()> const& nestedCallback)
 {
-    saveChooser = std::make_unique<FileChooser>("Select a save file", File(SettingsFile::getInstance()->getProperty("LastChooserPath")), "*.pd", wantsNativeDialog());
+    saveChooser = std::make_unique<FileChooser>("Select a save file", File(SettingsFile::getInstance()->getProperty<String>("last_filechooser_path")), "*.pd", wantsNativeDialog());
 
     saveChooser->launchAsync(FileBrowserComponent::saveMode | FileBrowserComponent::warnAboutOverwriting,
         [this, nestedCallback](FileChooser const& f) mutable {
             File result = saveChooser->getResult();
 
             if (result.getFullPathName().isNotEmpty()) {
-                SettingsFile::getInstance()->setProperty("LastChooserPath", result.getParentDirectory().getFullPathName());
+                SettingsFile::getInstance()->setProperty("last_filechooser_path", result.getParentDirectory().getFullPathName());
 
                 result.deleteFile();
                 result = result.withFileExtension(".pd");
@@ -1142,17 +1142,13 @@ bool PluginEditor::perform(InvocationInfo const& info)
         return true;
     }
     case CommandIDs::ToggleGrid: {
-        auto value = static_cast<bool>(SettingsFile::getInstance()->getProperty("GridEnabled"));
-        SettingsFile::getInstance()->setProperty("GridEnabled", !value);
+        auto value = SettingsFile::getInstance()->getProperty<int>("grid_enabled");
+        SettingsFile::getInstance()->setProperty("grid_enabled", !value);
 
         return true;
     }
     case CommandIDs::ClearConsole: {
-        auto value = static_cast<bool>(SettingsFile::getInstance()->getProperty("GridEnabled"));
-        SettingsFile::getInstance()->setProperty("GridEnabled", !value);
-
         sidebar.clearConsole();
-
         return true;
     }
     case CommandIDs::ShowSettings: {

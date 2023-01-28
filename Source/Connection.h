@@ -100,9 +100,6 @@ private:
 
     float mouseDownPosition = 0;
 
-    bool useStraight;
-    bool useDashed;
-
     void valueChanged(Value& v) override;
         
     struct t_fake_outconnect

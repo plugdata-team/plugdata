@@ -78,15 +78,15 @@ void Dialogs::showMainMenu(PluginEditor* editor, Component* centre)
                 editor->saveProjectAs();
             }
             if (result == 5) {
-                bool ticked = settingsTree.hasProperty("HvccMode") ? static_cast<bool>(settingsTree.getProperty("HvccMode")) : false;
-                settingsTree.setProperty("HvccMode", !ticked, nullptr);
+                bool ticked = settingsTree.hasProperty("hvcc_mode") ? static_cast<bool>(settingsTree.getProperty("hvcc_mode")) : false;
+                settingsTree.setProperty("hvcc_mode", !ticked, nullptr);
             }
             if (result == 6) {
                 Dialogs::showHeavyExportDialog(&editor->openedDialog, editor);
             }
             if (result == 7) {
-                bool ticked = settingsTree.hasProperty("AutoConnect") ? static_cast<bool>(settingsTree.getProperty("AutoConnect")) : false;
-                settingsTree.setProperty("AutoConnect", !ticked, nullptr);
+                bool ticked = settingsTree.hasProperty("autoconnect") ? static_cast<bool>(settingsTree.getProperty("autoconnect")) : false;
+                settingsTree.setProperty("autoconnect", !ticked, nullptr);
             }
             if (result == 8) {
                 Dialogs::showSettingsDialog(editor);

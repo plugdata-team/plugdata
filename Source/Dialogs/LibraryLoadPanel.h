@@ -59,8 +59,7 @@ class LibraryLoadPanel : public Component
 public:
     std::unique_ptr<Dialog> confirmationDialog;
 
-    LibraryLoadPanel(ValueTree libraryTree)
-        : tree(std::move(libraryTree))
+    LibraryLoadPanel()
     {
         listBox.setOutlineThickness(0);
         listBox.setRowHeight(25);
@@ -94,11 +93,11 @@ public:
 
         editor.setFont(Font(14));
 
-        // Load state from valuetree
+        // Load state from settings file
         externalChange();
     }
 
-    void updateLibraries(ValueTree& tree)
+    void updateLibraries()
     {
         librariesToLoad.clear();
 
@@ -191,7 +190,7 @@ private:
     {
         librariesToLoad.clear();
 
-        for (auto child : tree) {
+        for (auto child : SettingsFile::getInstance()->getLibrariesTree()) {
             if (child.hasType("Library")) {
                 librariesToLoad.addIfNotAlreadyThere(child.getProperty("Name").toString());
             }
@@ -203,12 +202,13 @@ private:
     }
     void internalChange()
     {
-        tree.removeAllChildren(nullptr);
+        auto librariesTree = SettingsFile::getInstance()->getLibrariesTree();
+        librariesTree.removeAllChildren(nullptr);
 
         for (int i = 0; i < librariesToLoad.size(); i++) {
             auto newLibrary = ValueTree("Library");
             newLibrary.setProperty("Name", librariesToLoad[i], nullptr);
-            tree.appendChild(newLibrary, nullptr);
+            librariesTree.appendChild(newLibrary, nullptr);
         }
 
         listBox.updateContent();

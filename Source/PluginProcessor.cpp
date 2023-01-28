@@ -134,19 +134,19 @@ PluginProcessor::PluginProcessor()
             }
         }
 
-        setTheme(settingsFile->getProperty("Theme").toString());
+        setTheme(settingsFile->getProperty<String>("theme"));
 
         updateSearchPaths();
         objectLibrary.updateLibrary();
     };
 
-    if (settingsFile->hasProperty("Theme")) {
-        auto themeName = settingsFile->getProperty("Theme").toString();
+    if (settingsFile->hasProperty("theme")) {
+        auto themeName = settingsFile->getProperty<String>("theme");
 
         // Make sure theme exists
         if (!settingsFile->getTheme(themeName).isValid()) {
 
-            settingsFile->setProperty("Theme", PlugDataLook::selectedThemes[0]);
+            settingsFile->setProperty("theme", PlugDataLook::selectedThemes[0]);
             themeName = PlugDataLook::selectedThemes[0];
         }
 
@@ -155,22 +155,16 @@ PluginProcessor::PluginProcessor()
     }
 
     if (settingsFile->hasProperty("Oversampling")) {
-        oversampling = static_cast<int>(settingsFile->getProperty("Oversampling"));
+        oversampling = settingsFile->getProperty<int>("Oversampling");
     }
 
 #if PLUGDATA_STANDALONE
-    if (settingsFile->hasProperty("InternalSynth")) {
-        enableInternalSynth = static_cast<int>(settingsFile->getProperty("InternalSynth"));
+    if (settingsFile->hasProperty("internal_synth")) {
+        enableInternalSynth = settingsFile->getProperty<int>("internal_synth");
     }
 #endif
 
     auto currentThemeTree = settingsFile->getCurrentTheme();
-
-    useDashedConnection = currentThemeTree.getProperty("DashedSignalConnection");
-    useStraightConnection = currentThemeTree.getProperty("StraightConnections");
-    useThinConnection = currentThemeTree.getProperty("ThinConnections");
-    useSquareIolets = currentThemeTree.getProperty("SquareIolets");
-    useSquareObjectCorners = currentThemeTree.getProperty("SquareObjectCorners");
 
     updateSearchPaths();
 
@@ -1024,12 +1018,7 @@ void PluginProcessor::setTheme(String themeToUse)
     // Check if theme name is valid
     if (!themeTree.isValid()) {
         themeToUse = PlugDataLook::selectedThemes[0];
-    } else {
-        useDashedConnection = themeTree.getProperty("DashedSignalConnection");
-        useStraightConnection = themeTree.getProperty("StraightConnections");
-        useThinConnection = themeTree.getProperty("ThinConnections");
-        useSquareIolets = themeTree.getProperty("SquareIolets");
-        useSquareObjectCorners = themeTree.getProperty("SquareObjectCorners");
+        themeTree = settingsFile->getTheme(themeToUse);
     }
 
     lnf->setTheme(themeTree);

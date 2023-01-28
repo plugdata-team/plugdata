@@ -165,12 +165,6 @@ public:
     std::atomic<bool> enableInternalSynth = false;
 #endif
 
-    Value useDashedConnection;
-    Value useStraightConnection;
-    Value useThinConnection;
-    Value useSquareIolets;
-    Value useSquareObjectCorners;
-
 private:
     void processInternal();
 

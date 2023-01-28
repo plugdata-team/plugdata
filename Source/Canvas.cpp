@@ -51,7 +51,7 @@ Canvas::Canvas(PluginEditor* parent, pd::Patch& p, Component* parentGraph)
     commandLocked.addListener(this);
 
     // TODO: use SettingsFileListener
-    gridEnabled.referTo(SettingsFile::getInstance()->getPropertyAsValue("GridEnabled"));
+    gridEnabled.referTo(SettingsFile::getInstance()->getPropertyAsValue("grid_enabled"));
 
     tabbar = &editor->tabbar;
 

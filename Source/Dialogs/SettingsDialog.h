@@ -84,15 +84,14 @@ public:
         panels.add(new DAWAudioSettings(processor));
 #endif
 
-        auto settingsTree = SettingsFile::getInstance()->getValueTree();
-        panels.add(new ThemePanel(settingsTree));
-        panels.add(new SearchPathComponent(settingsTree.getChildWithName("Paths")));
-        panels.add(new LibraryLoadPanel(settingsTree.getChildWithName("Libraries")));
-        panels.add(new KeyMappingComponent(*editor->getKeyMappings(), settingsTree));
+        panels.add(new ThemePanel(processor));
+        panels.add(new SearchPathComponent());
+        panels.add(new LibraryLoadPanel());
+        panels.add(new KeyMappingComponent(*editor->getKeyMappings()));
         panels.add(new Deken());
 
 #if PLUGDATA_STANDALONE
-        panels.add(new AdvancedSettingsPanel(settingsTree));
+        panels.add(new AdvancedSettingsPanel());
 #endif
 
         for (int i = 0; i < toolbarButtons.size(); i++) {

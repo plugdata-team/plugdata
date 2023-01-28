@@ -212,25 +212,25 @@ Statusbar::Statusbar(PluginProcessor* processor)
 
     gridButton->onClick = [this](){
         PopupMenu gridSelector;
-        int gridEnabled = SettingsFile::getInstance()->getProperty("GridEnabled");
+        int gridEnabled = SettingsFile::getInstance()->getProperty<int>("grid_enabled");
         gridSelector.addItem("Absolute grid", true, gridEnabled == 2, [this](){
             gridButton->setColour(TextButton::textColourOffId, Colours::orange);
-            SettingsFile::getInstance()->setProperty("GridEnabled", 2);
+            SettingsFile::getInstance()->setProperty("grid_enabled", 2);
         });
         gridSelector.addItem("Relative grid", true, gridEnabled == 1, [this](){
             gridButton->setColour(TextButton::textColourOffId, findColour(PlugDataColour::gridLineColourId));
-            SettingsFile::getInstance()->setProperty("GridEnabled", 1);
+            SettingsFile::getInstance()->setProperty("grid_enabled", 1);
         });
         gridSelector.addItem("No grid", true, gridEnabled == 0, [this](){
             gridButton->setColour(TextButton::textColourOffId, findColour(PlugDataColour::toolbarTextColourId));
-            SettingsFile::getInstance()->setProperty("GridEnabled", 0);
+            SettingsFile::getInstance()->setProperty("grid_enabled", 0);
         });
         
         gridSelector.showMenuAsync(PopupMenu::Options().withMinimumWidth(150).withMaximumNumColumns(1).withTargetComponent(gridButton.get()).withParentComponent(pd->getActiveEditor()));
     };
         
     // Initialise grid state
-    propertyChanged("GridEnabled", static_cast<int>(SettingsFile::getInstance()->getProperty("GridEnabled")));
+    propertyChanged("grid_enabled", SettingsFile::getInstance()->getProperty<int>("grid_enabled"));
     
     addAndMakeVisible(gridButton.get());
 
@@ -313,7 +313,7 @@ void Statusbar::attachToCanvas(Canvas* cnv)
 
 void Statusbar::propertyChanged(String name, var value)
 {
-    if(name == "GridEnabled") {
+    if(name == "grid_enabled") {
         int gridEnabled = static_cast<int>(value);
         if(gridEnabled == 0) {
             gridButton->setColour(TextButton::textColourOffId, findColour(PlugDataColour::toolbarTextColourId));
