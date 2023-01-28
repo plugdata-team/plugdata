@@ -71,7 +71,7 @@ private:
         auto editorTextWidth = editor->getFont().getStringWidthFloat(editorText);
         auto completionBounds = getLocalBounds().toFloat().withTrimmedLeft(editorTextWidth + 7.5f);
         
-        auto colour = findColour(PlugDataColour::canvasTextColourId).withAlpha(0.5f);
+        auto colour = findColour(PlugDataColour::canvasTextColourId).withAlpha(0.65f);
         PlugDataLook::drawText(g, suggestion, completionBounds, colour);
         
         std::cout << suggestion << std::endl;
