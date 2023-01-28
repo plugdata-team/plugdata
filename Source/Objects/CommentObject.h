@@ -39,7 +39,6 @@ public:
 
             auto scale = getWidth() < 50 ? 0.5f : 1.0f;
             
-            std::cout << scale << std::endl;
             PlugDataLook::drawFittedText(g, objectText, textArea, object->findColour(PlugDataColour::canvasTextColourId), numLines, scale, 14.0f, Justification::centredLeft);
         }
     }
