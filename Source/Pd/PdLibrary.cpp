@@ -485,17 +485,25 @@ Suggestions Library::autocomplete(String query) const
     return result;
 }
 
-std::array<StringArray, 2> Library::getIoletTooltips(const String& type, const String& name, int numIn, int numOut)
+std::array<StringArray, 2> Library::getIoletTooltips(String type, String name, int numIn, int numOut)
 {
     auto args = StringArray::fromTokens(name.fromFirstOccurrenceOf(" ", false, false), true);
 
-    const auto& map = getIoletDescriptions();
+    const IODescriptionMap* map = nullptr;
+    if (libraryLock.try_lock()) {
+        map = &ioletDescriptions;
+        libraryLock.unlock();
+    }
     
     auto result = std::array<StringArray, 2>();
     
+    if(!map) {
+        return result;
+    }
+    
     // TODO: replace with map.contains once all compilers support this!
-    if (map.count(type)) {
-        const auto& ioletDescriptions = map.at(type);
+    if (map->count(type)) {
+        const auto& ioletDescriptions = map->at(type);
 
         for(int type = 0; type < 2; type++) {
             int total = type ? numOut : numIn;
@@ -522,9 +530,9 @@ std::array<StringArray, 2> Library::getIoletTooltips(const String& type, const S
                 result[type].add(descriptions[i].first);
             }
         }
-        
-        return result;
     }
+    
+    return result;
 
 }
 
@@ -623,6 +631,7 @@ IODescriptionMap Library::getIoletDescriptions()
         libraryLock.unlock();
         return descriptions;
     }
+    
     return {};
 }
 
