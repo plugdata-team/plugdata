@@ -134,7 +134,7 @@ public:
         // TODO: select messages
         String v = getSymbol();
 
-        if (objectText != v && !v.startsWith("click")) {
+        if (objectText != v) {
 
             objectText = v;
 

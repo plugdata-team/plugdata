@@ -256,7 +256,7 @@ void Object::setType(String const& newType, void* existingObject)
     }
 
     // Update inlets/outlets
-    updatePorts();
+    updateIolets();
     updateBounds();
 
     // Auto patching
@@ -518,7 +518,7 @@ void Object::updateTooltips()
     }
 }
 
-void Object::updatePorts()
+void Object::updateIolets()
 {
     if (!getPointer())
         return;

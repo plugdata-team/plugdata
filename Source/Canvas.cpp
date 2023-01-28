@@ -185,7 +185,7 @@ void Canvas::synchronise(bool updatePosition)
             auto* object = *it;
 
             // Check if number of inlets/outlets is correct
-            object->updatePorts();
+            object->updateIolets();
 
             // Only update positions if we need to and there is a significant difference
             // There may be rounding errors when scaling the gui, this makes the experience smoother
