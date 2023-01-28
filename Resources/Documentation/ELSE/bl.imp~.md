@@ -9,7 +9,6 @@ categories:
 pdcategory: Signal Generators
 
 arguments:
-  1st:
   - description: frequency in Hz
     type: float
     default: 0

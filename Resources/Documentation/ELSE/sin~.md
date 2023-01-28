@@ -8,7 +8,7 @@ categories:
 
 pdcategory: Signal Math
 
-arguments: (none)
+arguments:
 
 inlets:
   1st:

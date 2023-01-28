@@ -9,11 +9,9 @@ categories:
 pdcategory: Data Math, Data Management
 
 arguments:
-  1st:
   - description: operator: see [pd set] for all options
     type: symbol
     default: +
-  2nd:
   - description: inlet value - ignored for bitnot
     type: float
     default: 0

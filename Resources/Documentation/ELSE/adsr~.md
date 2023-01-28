@@ -9,19 +9,15 @@ categories:
 pdcategory: Envelopes and LFOs
 
 arguments:
-  1st:
   - type: float
     description: attack time in ms
     default: 0
-  2nd:
   - type: float
     description: decay time in ms
     default: 0
-  3rd:
   - type: float
     description: sustain amplitude (ratio to gate value)
     default: 0
-  4th:
   - type: float
     description: release time in ms
     default: 0

@@ -9,15 +9,12 @@ categories:
 pdcategory: Arrays and Tables, Buffers
 
 arguments:
-  1st:
   - type: symbol
     description: array name (optional)
     default: none
-  2nd:
   - type: float
     description: non-0 sets to guard mode
     default: 1
-  3rd:
   - type: float
     description: non-0 sets to index mode
     default: 0

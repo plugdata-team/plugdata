@@ -10,7 +10,6 @@ categories:
 pdcategory: Triggers and Clocks
 
 arguments:
-  1st:
   - type: float
     description: initial output <0 or 1>
     default: 0

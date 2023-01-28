@@ -9,11 +9,9 @@ categories:
 pdcategory: Arrays and Tables, Buffers
 
 arguments:
- 1st:
   - type: symbol
     description: table name (optional)
     default:
-  2nd:
   - type: float
     description: number of output channels (maximum 64)
     default: 1

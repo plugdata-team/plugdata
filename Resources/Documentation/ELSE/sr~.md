@@ -8,7 +8,7 @@ categories:
 
 pdcategory: Signal Math
 
-arguments: (none)
+arguments:
 
 flags:
 - name: -khz
