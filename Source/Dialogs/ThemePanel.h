@@ -7,7 +7,7 @@
 class NewThemeDialog : public Component {
 
 public:
-    NewThemeDialog(ValueTree settingsTree, Dialog* parent, std::function<void(int, String, String)> callback)
+    NewThemeDialog(Dialog* parent, std::function<void(int, String, String)> callback)
         : cb(callback)
     {
         setSize(400, 200);
@@ -24,8 +24,9 @@ public:
                 });
         };
 
-        ok.onClick = [this, parent, settingsTree]() mutable {
-            StringArray allThemes = PlugDataLook::getAllThemes(settingsTree.getChildWithName("ColourThemes"));
+        ok.onClick = [this, parent]() mutable {
+            
+            StringArray allThemes = PlugDataLook::getAllThemes();
 
             if (nameEditor.getText().isEmpty()) {
                 errorMessage = "Theme name cannot be empty";
@@ -45,7 +46,7 @@ public:
                 });
         };
 
-        auto allThemes = PlugDataLook::getAllThemes(settingsTree.getChildWithName("ColourThemes"));
+        auto allThemes = PlugDataLook::getAllThemes();
         int i = 1;
         for (auto& theme : allThemes) {
             baseThemeSelector.addItem(theme, i);
@@ -106,7 +107,6 @@ private:
 class ThemePanel : public Component
     , public Value::Listener {
 
-    ValueTree settingsTree;
     Value fontValue;
 
     ComboBox themeSelectors[2];
@@ -127,10 +127,11 @@ class ThemePanel : public Component
 
     std::unique_ptr<FileChooser> saveChooser;
     std::unique_ptr<FileChooser> openChooser;
+        
+    PluginProcessor* pd;
 
 public:
-    explicit ThemePanel(ValueTree tree)
-        : settingsTree(tree)
+    explicit ThemePanel(PluginProcessor* processor) : processor(pd)
     {
         resetButton.setTooltip("Reset to default");
         resetButton.getProperties().set("Style", "SmallIcon");
@@ -145,7 +146,7 @@ public:
                 });
         };
 
-        StringArray allThemes = PlugDataLook::getAllThemes(settingsTree.getChildWithName("ColourThemes"));
+        StringArray allThemes = PlugDataLook::getAllThemes();
 
         newButton.setTooltip("New theme");
         newButton.getProperties().set("Style", "SmallIcon");
@@ -156,7 +157,7 @@ public:
                 if (!result)
                     return;
 
-                auto colourThemes = settingsTree.getChildWithName("ColourThemes");
+                auto colourThemes = SettingsFile::getInstance()->getColourThemesTree();
                 auto newTheme = colourThemes.getChildWithProperty("theme", baseTheme).createCopy();
                 newTheme.setProperty("theme", name, nullptr);
                 colourThemes.appendChild(newTheme, nullptr);
@@ -166,7 +167,7 @@ public:
             };
 
             auto* d = new Dialog(&dialog, getParentComponent(), 400, 190, 220, false);
-            auto* dialogContent = new NewThemeDialog(settingsTree, d, callback);
+            auto* dialogContent = new NewThemeDialog(d, callback);
 
             d->setViewedComponent(dialogContent);
             dialog.reset(d);
@@ -187,7 +188,7 @@ public:
                 auto themeTree = ValueTree::fromXml(themeXml);
                 auto themeName = themeTree.getProperty("theme").toString();
 
-                auto allThemes = PlugDataLook::getAllThemes(settingsTree.getChildWithName("ColourThemes"));
+                auto allThemes = PlugDataLook::getAllThemes();
                 if (allThemes.contains(themeName)) {
                     int i = 1;
                     auto finalThemeName = themeName + "_" + String(i);
@@ -200,7 +201,7 @@ public:
                     themeName = finalThemeName;
                 }
 
-                settingsTree.getChildWithName("ColourThemes").appendChild(themeTree, nullptr);
+                SettingsFile::getInstance()->getColourThemesTree().appendChild(themeTree, nullptr);
 
                 updateThemes();
                 updateSwatches();
@@ -212,7 +213,7 @@ public:
         addAndMakeVisible(saveButton);
         saveButton.setConnectedEdges(12);
         saveButton.onClick = [this]() mutable {
-            auto allThemes = PlugDataLook::getAllThemes(settingsTree.getChildWithName("ColourThemes"));
+            auto allThemes = PlugDataLook::getAllThemes();
 
             PopupMenu menu;
 
@@ -226,7 +227,7 @@ public:
 
                 auto themeName = allThemes[result - 1];
 
-                auto themeTree = settingsTree.getChildWithName("ColourThemes").getChildWithProperty("theme", themeName);
+                auto themeTree = SettingsFile::getInstance()->getColourThemesTree().getChildWithProperty("theme", themeName);
 
                 auto themeXml = themeTree.toXmlString();
 
@@ -247,7 +248,7 @@ public:
         addAndMakeVisible(deleteButton);
         deleteButton.setConnectedEdges(12);
         deleteButton.onClick = [this]() mutable {
-            auto allThemes = PlugDataLook::getAllThemes(settingsTree.getChildWithName("ColourThemes"));
+            auto allThemes = PlugDataLook::getAllThemes();
 
             PopupMenu menu;
 
@@ -259,13 +260,15 @@ public:
                 if (result < 1)
                     return;
 
+                auto colourThemesTree   = SettingsFile::getInstance()->getColourThemesTree();
+                auto selectedThemesTree = SettingsFile::getInstance()->getSelectedThemesTree();
                 auto themeName = allThemes[result - 1];
 
-                auto themeTree = settingsTree.getChildWithName("ColourThemes").getChildWithProperty("theme", themeName);
+                auto themeTree = colourThemesTree.getChildWithProperty("theme", themeName);
 
-                settingsTree.getChildWithName("ColourThemes").removeChild(themeTree, nullptr);
+                colourThemesTree.removeChild(themeTree, nullptr);
 
-                auto selectedThemes = settingsTree.getChildWithName("SelectedThemes");
+                auto selectedThemes = selectedThemesTree;
                 if (selectedThemes.getProperty("first").toString() == themeName) {
                     selectedThemes.setProperty("first", "light", nullptr);
                     PlugDataLook::selectedThemes.set(0, "light");
@@ -296,7 +299,7 @@ public:
 
                 String themeId = i == 0 ? "first" : "second";
 
-                settingsTree.getChildWithName("SelectedThemes").setProperty(themeId, themeSelectors[i].getText(), nullptr);
+                SettingsFile::getInstance()->getSelectedThemesTree().setProperty(themeId, themeSelectors[i].getText(), nullptr);
 
                 auto selectedThemeName = themeSelectors[i].getText();
 
@@ -306,11 +309,9 @@ public:
                 PlugDataLook::selectedThemes.set(i, selectedThemeName);
                 updateSwatches();
 
-                auto& lnf = dynamic_cast<PlugDataLook&>(getLookAndFeel());
-
-                lnf.setTheme(settingsTree.getChildWithName("ColourThemes").getChildWithProperty("theme", PlugDataLook::selectedThemes[themeIdx]));
-                settingsTree.setProperty("Theme", PlugDataLook::selectedThemes[themeIdx], nullptr);
-
+                pd->setTheme(PlugDataLook::selectedThemes[themeIdx]);
+                SettingsFile::getInstance()->setProperty("Theme", PlugDataLook::selectedThemes[themeIdx]);
+                
                 getTopLevelComponent()->repaint();
                 
                 SettingsFile::getInstance()->saveSettings();
@@ -346,7 +347,7 @@ public:
                 swatchesToAdd.add(&(swatches[themeName][colourId]));
                 auto* swatch = swatchesToAdd.getLast();
 
-                auto value = settingsTree.getChildWithName("ColourThemes").getChildWithProperty("theme", themeName).getPropertyAsValue(colourId, nullptr);
+                auto value = SettingsFile::getInstance()->getColourThemesTree().getChildWithProperty("theme", themeName).getPropertyAsValue(colourId, nullptr);
 
                 swatch->referTo(value);
                 swatch->addListener(this);
@@ -368,7 +369,7 @@ public:
         for (int i = 0; i < 2; i++) {
             auto themeName = PlugDataLook::selectedThemes[i];
             auto& swatch = swatches[themeName];
-            auto themeTree = settingsTree.getChildWithName("ColourThemes").getChildWithProperty("theme", themeName);
+            auto themeTree = SettingsFile::getInstance()->getColourThemesTree().getChildWithProperty("theme", themeName);
 
             swatch["DashedSignalConnection"].referTo(themeTree.getPropertyAsValue("DashedSignalConnection", nullptr));
             swatch["StraightConnections"].referTo(themeTree.getPropertyAsValue("StraightConnections", nullptr));
@@ -428,7 +429,7 @@ public:
             auto selectedText = themeSelectors[i].getText();
             themeSelectors[i].clear();
 
-            StringArray allThemes = PlugDataLook::getAllThemes(settingsTree.getChildWithName("ColourThemes"));
+            StringArray allThemes = PlugDataLook::getAllThemes();
             for (int j = 0; j < allThemes.size(); j++) {
                 themeSelectors[i].addItem(allThemes[j], j + 1);
             }
@@ -444,17 +445,15 @@ public:
 
         if (!PlugDataLook::selectedThemes.contains(PlugDataLook::currentTheme)) {
             PlugDataLook::currentTheme = PlugDataLook::selectedThemes[0];
-            settingsTree.setProperty("Theme", PlugDataLook::currentTheme, nullptr);
+            SettingsFile::getInstance()->setProperty("Theme", PlugDataLook::currentTheme);
         }
     }
 
     void valueChanged(Value& v) override
     {
-        auto& lnf = dynamic_cast<PlugDataLook&>(getLookAndFeel());
-
         if (v.refersToSameSourceAs(fontValue)) {
-            lnf.setDefaultFont(fontValue.toString());
-            settingsTree.setProperty("DefaultFont", fontValue.getValue(), nullptr);
+            PlugDataLook::setDefaultFont(fontValue.toString());
+            SettingsFile::getInstance()->setProperty("DefaultFont", fontValue.getValue());
             getTopLevelComponent()->repaint();
             return;
         }
@@ -466,13 +465,10 @@ public:
             || v.refersToSameSourceAs(swatches[PlugDataLook::currentTheme]["ThinConnections"])) {
 
             getTopLevelComponent()->repaint();
-
-            auto themeTree = settingsTree.getChildWithName("ColourThemes");
-            auto currentThemeTree = themeTree.getChildWithProperty("theme", lnf.currentTheme);
-            lnf.setTheme(currentThemeTree);
+            pd->setTheme(lnf.currentTheme);
         }
 
-        auto themeTree = settingsTree.getChildWithName("ColourThemes");
+        auto themeTree = SettingsFile::getInstance()->getColourThemesTree();
         for (auto theme : themeTree) {
             auto themeName = theme.getProperty("theme").toString();
 
@@ -483,9 +479,7 @@ public:
                     lnf.setThemeColour(theme, colourId, Colour::fromString(v.toString()));
 
                     auto currentThemeTree = themeTree.getChildWithProperty("theme", lnf.currentTheme);
-                    lnf.setTheme(currentThemeTree);
-
-                    getTopLevelComponent()->repaint();
+                    pd->setTheme(lnf.currentTheme);
                 }
             }
         }
@@ -525,20 +519,17 @@ public:
 
     void resetDefaults()
     {
-        auto colourThemesTree = settingsTree.getChildWithName("ColourThemes");
+        auto colourThemesTree = SettingsFile::getInstance()->getColourThemesTree();
 
-        auto& lnf = dynamic_cast<PlugDataLook&>(getLookAndFeel());
-        lnf.resetColours(colourThemesTree);
+        PlugDataLook::resetColours(colourThemesTree);
 
         dynamic_cast<PropertiesPanel::FontComponent*>(allPanels[0])->setFont("Inter");
         fontValue = "Inter";
 
-        lnf.setDefaultFont(fontValue.toString());
-        settingsTree.setProperty("DefaultFont", fontValue.getValue(), nullptr);
+        PlugDataLook::setDefaultFont(fontValue.toString());
+        SettingsFile::getInstance()->setProperty("DefaultFont", fontValue.getValue());
 
-        lnf.setTheme(colourThemesTree.getChildWithProperty("theme", lnf.currentTheme));
-        getTopLevelComponent()->repaint();
-
+        pd->setTheme(PlugDataLook::currentTheme);
         updateSwatches();
     }
 };

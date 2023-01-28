@@ -1206,8 +1206,9 @@ struct PlugDataLook : public LookAndFeel_V4 {
         objectCornerRadius = themeTree.getProperty("SquareObjectCorners") ? 0.0f : 2.75f;
     }
     
-    static StringArray getAllThemes(ValueTree themeTree)
+    static StringArray getAllThemes()
     {
+        themeTree = SettingsFile::getInstance()->getThemesTree();
         StringArray allThemes;
         for (auto theme : themeTree) {
             allThemes.add(theme.getProperty("theme").toString());

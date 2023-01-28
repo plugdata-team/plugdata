@@ -344,8 +344,6 @@ class AutomationComponent : public Component {
             auto textBounds = bounds;
             auto iconBounds = textBounds.removeFromLeft(textBounds.getHeight());
 
-            auto& lnf = dynamic_cast<PlugDataLook&>(getLookAndFeel());
-
             auto colour = findColour(PlugDataColour::sidebarTextColourId);
             if (mouseIsOver) {
                 g.setColour(findColour(PlugDataColour::sidebarActiveBackgroundColourId));
@@ -355,7 +353,6 @@ class AutomationComponent : public Component {
             }
 
             PlugDataLook::drawIcon(g, Icons::Add, iconBounds, colour, 12);
-
             PlugDataLook::drawText(g, "Add new parameter", textBounds, colour, 14);
         }
 
