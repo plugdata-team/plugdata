@@ -6,7 +6,7 @@ description: control ramp noise
 categories:
 - object
 
-pdcategory: Noise
+pdcategory: Random and Noise
 
 arguments:
 - type: float

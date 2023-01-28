@@ -11,17 +11,16 @@ see_also:
 - receive~
 - samplerate~
 arguments:
-- description: 'send symbol (if given,  2nd inlet is suppressed,  default: empty symbol)'
+- description: send symbol (if given, 2nd inlet is suppressed)
+  default: empty symbol
   type: symbol
 inlets:
   1st:
-  - type: any message
-    description: 'sends to the corresponding receive object,  or any named object
-      which name corresponds to the stored symbol. e.g: array,  value,  iemguis,  directly
-      to a named patch,  etc...'
-  '2nd: (if created without arguments)':
+  - type: anything
+    description: sends to the corresponding receive object, or any named object which name corresponds to the stored symbol. e.g. array, value, iemguis, directly to a named patch, etc
+  2nd: (if created without arguments)
   - type: symbol
-    description: sets the send name.
+    description: sets the send name
 aliases:
 - s
 draft: false
