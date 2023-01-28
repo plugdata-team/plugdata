@@ -7,17 +7,17 @@
 #pragma once
 
 #include <JuceHeader.h>
-
-#include <map>
-#include <utility>
+//#include <map>
+//#include <utility>
 
 extern "C" {
 #include <z_libpd.h>
 #include <s_inter.h>
 }
 
+#include <concurrentqueue.h>
+
 #include "PdPatch.h"
-#include "concurrentqueue.h"
 #include "../Utility/StringUtils.h"
 
 namespace pd {

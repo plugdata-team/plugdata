@@ -554,7 +554,7 @@ void ObjectBase::receiveMessage(String const& symbol, int argc, t_atom* argv)
     auto atoms = pd::Atom::fromAtoms(argc, argv);
 
     MessageManager::callAsync([_this = SafePointer(this), symbol, atoms]() mutable {
-        if (!_this)
+        if (!_this || _this->cnv->patch.objectWasDeleted(_this->ptr))
             return;
 
         if (symbol == "size" || symbol == "delta" || symbol == "pos" || symbol == "dim" || symbol == "width" || symbol == "height") {

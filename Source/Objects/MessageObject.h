@@ -270,7 +270,7 @@ public:
     {
         cnv->pd->enqueueFunction(
             [_this = SafePointer(this), ptr = this->ptr, value]() mutable {
-                if (!_this)
+                if (!_this || _this->cnv->patch.objectWasDeleted(_this->ptr))
                     return;
 
                 auto* cstr = value.toRawUTF8();

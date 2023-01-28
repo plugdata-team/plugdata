@@ -1079,6 +1079,8 @@ bool PluginEditor::perform(InvocationInfo const& info)
         return true;
     }
     case CommandIDs::ConnectionPathfind: {
+        cnv->patch.startUndoSequence("ConnectionPathFind");
+        
         statusbar.connectionStyleButton->setToggleState(true, sendNotification);
         for (auto* con : cnv->connections) {
             if (cnv->isSelected(con)) {
@@ -1086,6 +1088,8 @@ bool PluginEditor::perform(InvocationInfo const& info)
                 con->updatePath();
             }
         }
+        
+        cnv->patch.endUndoSequence("ConnectionPathFind");
 
         return true;
     }

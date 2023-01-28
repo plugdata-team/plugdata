@@ -107,8 +107,10 @@ public:
             SETSYMBOL(&atoms.back(), pd->generateSymbol(";"));
         }
 
-        pd->enqueueFunction([this, atoms, &textbuf]() mutable {
-            pd->setThis();
+        pd->enqueueFunction([_this = SafePointer(this), atoms, &textbuf]() mutable {
+            
+            if(!_this || _this->cnv->patch.objectWasDeleted(_this->ptr)) return;
+            _this->pd->setThis();
 
             binbuf_clear(textbuf.b_binbuf);
 

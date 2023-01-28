@@ -258,9 +258,16 @@ Statusbar::Statusbar(PluginProcessor* processor)
     connectionStyleButton->onClick = [this]() {
         bool segmented = connectionStyleButton->getToggleState();
         auto* editor = dynamic_cast<PluginEditor*>(pd->getActiveEditor());
-        for (auto& connection : editor->getCurrentCanvas()->getSelectionOfType<Connection>()) {
+        
+        auto* cnv = editor->getCurrentCanvas();
+        
+        //cnv->patch.startUndoSequence("ChangeSegmentedPaths");
+        
+        for (auto& connection : cnv->getSelectionOfType<Connection>()) {
             connection->setSegmented(segmented);
         }
+        
+        //cnv->patch.endUndoSequence("ChangeSegmentedPaths");
     };
 
     addAndMakeVisible(connectionStyleButton.get());

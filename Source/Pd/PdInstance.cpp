@@ -675,6 +675,7 @@ void Instance::createPanel(int type, char const* snd, char const* location)
                         auto const file = fileChooser.getResult();
                         enqueueFunction(
                             [this, obj, file]() mutable {
+                                
                                 String pathname = file.getFullPathName().toRawUTF8();
 
                     // Convert slashes to backslashes
