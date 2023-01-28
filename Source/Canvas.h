@@ -17,6 +17,8 @@ class SuggestionComponent;
 struct GraphArea;
 class Iolet;
 class PluginEditor;
+class ConnectionPathUpdater;
+
 class Canvas : public Component
     , public Value::Listener
     , public LassoSource<WeakReference<Component>> {
@@ -154,6 +156,8 @@ public:
     Point<int> pastedPosition;
     Point<int> pastedPadding;
     std::vector<Point<int>> mouseDownObjectPositions; // Stores object positions for alt + drag
+        
+    std::unique_ptr<ConnectionPathUpdater> pathUpdater;
 
 private:
     SafePointer<Object> objectSnappingInbetween;

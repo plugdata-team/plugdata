@@ -75,14 +75,11 @@ public:
     void savePatch(File const& location);
     void savePatch();
 
-    File getCurrentFile() const
-    {
-        return currentFile;
-    }
-    void setCurrentFile(File newFile)
-    {
-        currentFile = newFile;
-    }
+    File getCurrentFile() const;
+    void setCurrentFile(File newFile);
+    
+    bool objectWasDeleted(void* ptr);
+    bool connectionWasDeleted(void* ptr);
 
     bool hasConnection(void* src, int nout, void* sink, int nin);
     bool canConnect(void* src, int nout, void* sink, int nin);
@@ -100,18 +97,8 @@ public:
     // Gets the objects of the patch.
     std::vector<void*> getObjects();
 
-    String getCanvasContent()
-    {
-        if (!ptr)
-            return {};
-        char* buf;
-        int bufsize;
-        libpd_getcontent(static_cast<t_canvas*>(ptr), &buf, &bufsize);
-
-        auto content = String::fromUTF8(buf, static_cast<size_t>(bufsize));
-        return content;
-    }
-
+    String getCanvasContent();
+    
     int getIndex(void* obj);
 
     static t_object* checkObject(void* obj);

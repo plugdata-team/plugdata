@@ -12,15 +12,18 @@ extern "C" {
 #include <m_pd.h>
 }
 
+#include <concurrentqueue.h>
 #include "Iolet.h"
 
 using PathPlan = std::vector<Point<float>>;
 
 class Canvas;
+class PathUpdater;
+
 class Connection : public Component
     , public ComponentListener
     , public Value::Listener
-    , public Timer {
+{
 public:
     int inIdx;
     int outIdx;
@@ -35,8 +38,6 @@ public:
     ~Connection() override;
 
     void paint(Graphics&) override;
-        
-    void timerCallback() override;
 
     bool isSegmented();
     void setSegmented(bool segmented);
@@ -113,5 +114,26 @@ private:
     
     t_fake_outconnect* ptr;
 
+    friend class ConnectionPathUpdater;
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(Connection)
+};
+
+
+// Helper class to group connection path changes together into undoable/redoable actions
+class ConnectionPathUpdater : public Timer
+{
+    Canvas* canvas;
+    
+    moodycamel::ConcurrentQueue<std::pair<Component::SafePointer<Connection>, t_symbol*>> connectionUpdateQueue =  moodycamel::ConcurrentQueue<std::pair<Component::SafePointer<Connection>, t_symbol*>>(4096);
+    
+    void timerCallback() override;
+    
+public:
+    
+    ConnectionPathUpdater(Canvas* cnv) : canvas(cnv) {};
+    
+    void pushPathState(Connection* connection, t_symbol* newPathState) {
+        connectionUpdateQueue.enqueue({connection, newPathState});
+        startTimer(50);
+    }
 };

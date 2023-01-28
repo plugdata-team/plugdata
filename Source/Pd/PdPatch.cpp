@@ -166,21 +166,16 @@ Connections Patch::getConnections() const
 
     Connections connections;
 
-    // instance->getCallbackLock()->enter();
-
     t_outconnect* oc;
     t_linetraverser t;
-    auto* x = getPointer();
 
     // Get connections from pd
-    linetraverser_start(&t, x);
+    linetraverser_start(&t, getPointer());
 
     // TODO: fix data race
     while ((oc = linetraverser_next(&t))) {
         connections.push_back({oc, t.tr_inno, t.tr_ob, t.tr_outno, t.tr_ob2 });
     }
-
-    // instance->getCallbackLock()->exit();
 
     return connections;
 }
@@ -366,28 +361,50 @@ void* Patch::renameObject(void* obj, String const& name)
     if (!obj || !ptr)
         return nullptr;
 
-    auto type = name.upToFirstOccurrenceOf(" ", false, false);
-    String newName = name;
-    // Also apply default style when renaming
-    if (guiDefaults.find(type) != guiDefaults.end()) {
-        auto preset = guiDefaults.at(type);
+    StringArray tokens;
+    tokens.addTokens(name, false);
 
-        auto bg = instance->getBackgroundColour().toString().substring(2);
-        auto fg = instance->getForegroundColour().toString().substring(2);
-        auto lbl = instance->getTextColour().toString().substring(2);
-        auto ln = instance->getOutlineColour().toString().substring(2);
+    // See if we have preset parameters for this object
+    // These parameters are designed to make the experience in plugdata better
+    // Mostly larger GUI objects and a different colour scheme
+    if (guiDefaults.find(tokens[0]) != guiDefaults.end()) {
+        auto preset = guiDefaults.at(tokens[0]);
 
-        preset = preset.replace("bgColour", "#" + bg);
-        preset = preset.replace("fgColour", "#" + fg);
-        preset = preset.replace("lblColour", "#" + lbl);
-        preset = preset.replace("lnColour", "#" + ln);
+        auto bg = instance->getBackgroundColour();
+        auto fg = instance->getForegroundColour();
+        auto lbl = instance->getTextColour();
+        auto ln = instance->getOutlineColour();
 
-        newName += " " + preset;
+        auto bg_str = bg.toString().substring(2);
+        auto fg_str = fg.toString().substring(2);
+        auto lbl_str = lbl.toString().substring(2);
+        auto ln_str = ln.toString().substring(2);
+
+        preset = preset.replace("bgColour_rgb", String(bg.getRed()) + " " + String(bg.getGreen()) + " " + String(bg.getBlue()));
+        preset = preset.replace("fgColour_rgb", String(fg.getRed()) + " " + String(fg.getGreen()) + " " + String(fg.getBlue()));
+        preset = preset.replace("lblColour_rgb", String(lbl.getRed()) + " " + String(lbl.getGreen()) + " " + String(lbl.getBlue()));
+        preset = preset.replace("lnColour_rgb", String(ln.getRed()) + " " + String(ln.getGreen()) + " " + String(ln.getBlue()));
+
+        preset = preset.replace("bgColour", "#" + bg_str);
+        preset = preset.replace("fgColour", "#" + fg_str);
+        preset = preset.replace("lblColour", "#" + lbl_str);
+        preset = preset.replace("lnColour", "#" + ln_str);
+
+        tokens.addTokens(preset, false);
     }
+    String newName = tokens.joinIntoString(" ");
 
     std::atomic<bool> done = false;
     t_pd* pdobject = nullptr;
     instance->enqueueFunction([this, &pdobject, &done, obj, newName]() mutable {
+        
+        if(objectWasDeleted(obj)) {
+            
+            pdobject = libpd_newest(getPointer());
+            done = true;
+            return;
+        }
+        
         setCurrent();
         libpd_renameobj(getPointer(), &checkObject(obj)->te_g, newName.toRawUTF8(), newName.getNumBytesAsUTF8());
 
@@ -435,7 +452,7 @@ void Patch::selectObject(void* obj)
     instance->enqueueFunction(
         [this, obj]() {
             auto* checked = &checkObject(obj)->te_g;
-            if (!glist_isselected(getPointer(), checked)) {
+            if (!objectWasDeleted(obj) && !glist_isselected(getPointer(), checked)) {
                 glist_select(getPointer(), checked);
             }
         });
@@ -457,6 +474,8 @@ void Patch::removeObject(void* obj)
 
     instance->enqueueFunction(
         [this, obj]() {
+            if(objectWasDeleted(obj)) return;
+            
             setCurrent();
             libpd_removeobj(getPointer(), &checkObject(obj)->te_g);
         });
@@ -484,7 +503,11 @@ bool Patch::canConnect(void* src, int nout, void* sink, int nin)
 {
     bool canConnect = false;
 
-    instance->enqueueFunction([this, &canConnect, src, nout, sink, nin]() mutable { canConnect = libpd_canconnect(getPointer(), checkObject(src), nout, checkObject(sink), nin); });
+    instance->enqueueFunction([this, &canConnect, src, nout, sink, nin]() mutable {
+        if(objectWasDeleted(src) || objectWasDeleted(sink)) return;
+        canConnect = libpd_canconnect(getPointer(), checkObject(src), nout, checkObject(sink), nin);
+        
+    });
 
     instance->waitForStateUpdate();
 
@@ -501,6 +524,8 @@ void* Patch::createConnection(void* src, int nout, void* sink, int nin)
 
     instance->enqueueFunction(
         [this, &outconnect, &hasReturned, src, nout, sink, nin]() mutable {
+            if(objectWasDeleted(src) || objectWasDeleted(sink)) return;
+            
             bool canConnect = libpd_canconnect(getPointer(), checkObject(src), nout, checkObject(sink), nin);
 
             if (!canConnect) {
@@ -529,6 +554,8 @@ void Patch::removeConnection(void* src, int nout, void* sink, int nin, t_symbol*
     
     instance->enqueueFunction(
         [this, src, nout, sink, nin, connectionPath]() mutable {
+            if(objectWasDeleted(src) || objectWasDeleted(sink)) return;
+            
             setCurrent();
             libpd_removeconnection(getPointer(), checkObject(src), nout, checkObject(sink), nin, connectionPath);
         });
@@ -541,6 +568,9 @@ void* Patch::setConnctionPath(void* src, int nout, void* sink, int nin, t_symbol
 
     instance->enqueueFunction(
         [this, &hasReturned, &outconnect, src, nout, sink, nin, oldConnectionPath, newConnectionPath]() mutable {
+                        
+            if(objectWasDeleted(src) || objectWasDeleted(sink)) return;
+            
             setCurrent();
 
             outconnect = libpd_setconnectionpath(getPointer(), checkObject(src), nout, checkObject(sink), nin, oldConnectionPath, newConnectionPath);
@@ -566,7 +596,7 @@ void Patch::moveObjects(std::vector<void*> const& objects, int dx, int dy)
             glist_noselect(getPointer());
 
             for (auto* obj : objects) {
-                if (!obj)
+                if (!obj || objectWasDeleted(obj))
                     continue;
 
                 glist_select(getPointer(), &checkObject(obj)->te_g);
@@ -661,6 +691,53 @@ void Patch::setTitle(String const& title)
     getPointer()->gl_name = instance->generateSymbol(title);
     canvas_bind(getPointer());
     instance->titleChanged();
+}
+
+File Patch::getCurrentFile() const
+{
+    return currentFile;
+}
+void Patch::setCurrentFile(File newFile)
+{
+    currentFile = newFile;
+}
+
+String Patch::getCanvasContent()
+{
+    if (!ptr)
+        return {};
+    char* buf;
+    int bufsize;
+    libpd_getcontent(static_cast<t_canvas*>(ptr), &buf, &bufsize);
+
+    auto content = String::fromUTF8(buf, static_cast<size_t>(bufsize));
+    return content;
+}
+
+bool Patch::objectWasDeleted(void* ptr) {
+    
+    t_canvas const* cnv = getPointer();
+
+    for (t_gobj* y = cnv->gl_list; y; y = y->g_next) {
+        if(y == ptr) return false;
+    }
+    
+    return true;
+}
+bool Patch::connectionWasDeleted(void* ptr) {
+    
+    t_outconnect* oc;
+    t_linetraverser t;
+
+    
+    // Get connections from pd
+    linetraverser_start(&t, getPointer());
+
+    while ((oc = linetraverser_next(&t))) {
+        if(oc == ptr) return false;
+    }
+    
+    return true;
 }
 
 } // namespace pd
