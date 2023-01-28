@@ -1,12 +1,12 @@
 ---
 title: markov
 
-description: Create/play markov chains
+description: create/play markov chains
 
 categories:
 - object
 
-pdcategory: Control
+pdcategory: Data Management, Data Math, Sequencing
 
 arguments:
 - type: float 

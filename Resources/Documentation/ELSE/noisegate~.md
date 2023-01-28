@@ -1,12 +1,12 @@
 ---
 title: noisegate~
 
-description: Noise gate
+description: noise gate
 
 categories:
 - object
 
-pdcategory:
+pdcategory: Effects
 
 arguments:
   1st:

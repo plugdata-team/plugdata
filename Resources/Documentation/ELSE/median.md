@@ -1,12 +1,12 @@
 ---
 title: median
 
-description: List median
+description: list median
 
 categories:
 - object
 
-pdcategory:
+pdcategory: Data Management, Data Math
 
 arguments: (none)
 

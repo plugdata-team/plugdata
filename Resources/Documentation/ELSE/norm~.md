@@ -1,12 +1,12 @@
 ---
 title: norm~
 
-description: Normalizer
+description: normalizer
 
 categories:
 - object
 
-pdcategory:
+pdcategory: Effects
 
 arguments:
 - description: normalize level in dBFS

@@ -6,7 +6,7 @@ description: 1st order lowpass filter
 categories:
 - object
 
-pdcategory:
+pdcategory: Filters
 
 arguments:
 - description: cutoff frequency

@@ -1,12 +1,12 @@
 ---
 title: nmess
 
-description: Message gate
+description: message gate
 
 categories:
 - object
 
-pdcategory:
+pdcategory: Data Management
 
 arguments:
 - description: sets 'n' number of messages

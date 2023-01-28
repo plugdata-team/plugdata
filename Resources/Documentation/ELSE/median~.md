@@ -1,12 +1,12 @@
 ---
 title: median~
 
-description: Signal median
+description: signal median
 
 categories:
  - object
 
-pdcategory: Analysis
+pdcategory: Analysis, Signal Math
 
 arguments:
 - type: float

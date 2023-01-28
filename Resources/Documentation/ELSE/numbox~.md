@@ -1,9 +1,13 @@
 ---
 title: numbox~
-description: Signal number box
+
+description: signal number box
+
 categories:
  - object
-pdcategory: General
+
+pdcategory: GUI
+
 arguments:
 - type: none
   description:

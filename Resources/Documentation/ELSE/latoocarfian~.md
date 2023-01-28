@@ -1,11 +1,12 @@
 ---
 title: latoocarfian~
-description: Latoocarfian chaotic generator
+
+description: latoocarfian chaotic generator
 
 categories:
  - object
 
-pdcategory: General
+pdcategory: Signal Generators
 
 arguments:
 - type: float

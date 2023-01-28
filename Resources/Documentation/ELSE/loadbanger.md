@@ -1,11 +1,12 @@
 ---
 title: loadbanger
-description: Multiple loadbangs
+
+description: multiple loadbangs
 
 categories:
  - object
 
-pdcategory: General
+pdcategory: Data Management
 
 arguments:
 - type: float

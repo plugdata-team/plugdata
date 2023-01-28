@@ -1,12 +1,12 @@
 ---
 title: mag
 
-description: Get spectral magnitudes
+description: get spectral magnitudes
 
 categories:
 - object
 
-pdcategory: Math
+pdcategory: Data Math, Analysis
 
 arguments:
 - type: symbol
