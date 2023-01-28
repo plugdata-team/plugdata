@@ -508,12 +508,12 @@ void Object::updateTooltips()
     for (int i = 0; i < iolets.size(); i++) {
         auto* iolet = iolets[i];
 
-        auto& tooltip = ioletTooltips[!iolet->isInlet][i];
+        auto& tooltip = ioletTooltips[!iolet->isInlet][iolet->isInlet ? i : i - numInputs];
 
         // Don't overwrite custom documentation
         if (tooltip.isNotEmpty()) {
             iolet->setTooltip(tooltip);
-            return;
+            continue;
         }
 
         if ((iolet->isInlet && numIn >= inletMessages.size()) || (!iolet->isInlet && numOut >= outletMessages.size()))
