@@ -136,16 +136,16 @@ class SuggestionComponent : public Component
             auto textWidth = getWidth() - leftIndent - rightIndent;
 
             if (textWidth > 0)
-                PlugDataLook::drawStyledText(g, getButtonText(), leftIndent, yIndent, textWidth, getHeight() - yIndent * 2, colour, Semibold, 12);
+                PlugDataLook::drawStyledText(g, getButtonText(), leftIndent, yIndent, textWidth, getHeight() - yIndent * 2, colour, Semibold, 13);
 
             if (objectDescription.isNotEmpty()) {
-                auto textLength = Fonts::getSemiBoldFont().withHeight(12).getStringWidth(getButtonText());
+                auto textLength = Fonts::getSemiBoldFont().withHeight(13).getStringWidth(getButtonText());
 
                 leftIndent += textLength;
                 auto textWidth = getWidth() - leftIndent - rightIndent;
 
                 // Draw seperator (which is an en dash)
-                PlugDataLook::drawText(g, String::fromUTF8("  \xe2\x80\x93  ") + objectDescription, Rectangle<int>(leftIndent, yIndent, textWidth, getHeight() - yIndent * 2), colour, 12);
+                PlugDataLook::drawText(g, String::fromUTF8("  \xe2\x80\x93  ") + objectDescription, Rectangle<int>(leftIndent, yIndent, textWidth, getHeight() - yIndent * 2), colour, 13);
             }
 
             if (type == -1)
