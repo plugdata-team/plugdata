@@ -84,7 +84,7 @@ public:
 
     Suggestions autocomplete(String query) const;
 
-    std::array<StringArray, 2> getIoletTooltips(const String& type, const String& name, int numIn, int numOut);
+    std::array<StringArray, 2> getIoletTooltips(String type, String name, int numIn, int numOut);
 
     void fsChangeCallback() override;
 
