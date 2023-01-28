@@ -103,6 +103,8 @@ public:
             min = std::numeric_limits<float>::epsilon();
             setMinimum(std::numeric_limits<float>::epsilon());
         }
+        
+        slider.setValue(getValueScaled(), dontSendNotification);
     }
 
     void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
@@ -239,8 +241,10 @@ public:
     {
         if (value.refersToSameSourceAs(min)) {
             setMinimum(static_cast<float>(min.getValue()));
+            updateRange();
         } else if (value.refersToSameSourceAs(max)) {
             setMaximum(static_cast<float>(max.getValue()));
+            updateRange();
         } else if (value.refersToSameSourceAs(isLogarithmic)) {
             setLogScale(isLogarithmic == var(true));
             updateRange();
