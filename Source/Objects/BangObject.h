@@ -183,6 +183,9 @@ public:
         if (symbol == "bang") {
             update();
         }
+        if (symbol == "list") {
+            update();
+        }
         if (symbol == "flashtime") {
             if (atoms.size() > 0)
                 setParameterExcludingListener(bangInterrupt, atoms[0].getFloat());
