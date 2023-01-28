@@ -58,24 +58,7 @@ PluginProcessor::PluginProcessor()
 {
     // Make sure to use dots for decimal numbers, pd requires that
     std::setlocale(LC_ALL, "C");
-
-    // continuityChecker keeps track of whether audio is running and creates a backup scheduler in case it isn't
-    /*
-    continuityChecker.setCallback([this](t_float* in, t_float* out){
-
-        if(isNonRealtime()) return;
-
-        if(getCallbackLock()->tryEnter()) {
-
-            // Dequeue messages
-            sendMessagesFromQueue();
-
-            libpd_set_instance(static_cast<t_pdinstance*>(m_instance));
-            libpd_process_nodsp();
-            getCallbackLock()->exit();
-        }
-    }); */
-
+    
     {
         const MessageManagerLock mmLock;
 
@@ -462,9 +445,6 @@ void PluginProcessor::processBlock(AudioBuffer<float>& buffer, MidiBuffer& midiM
     ScopedNoDenormals noDenormals;
     auto totalNumInputChannels = getTotalNumInputChannels();
     auto totalNumOutputChannels = getTotalNumOutputChannels();
-
-    // continuityChecker.setNonRealtime(isNonRealtime());
-    // continuityChecker.setTimer();
 
     setThis();
     sendPlayhead();
