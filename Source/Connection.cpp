@@ -9,6 +9,9 @@
 #include "Iolet.h"
 #include "LookAndFeel.h"
 
+
+
+
 Connection::Connection(Canvas* parent, Iolet* s, Iolet* e, void* oc)
     : cnv(parent)
     , outlet(s->isInlet ? e : s)
@@ -17,10 +20,14 @@ Connection::Connection(Canvas* parent, Iolet* s, Iolet* e, void* oc)
     , inobj(inlet->object)
     , ptr(static_cast<t_fake_outconnect*>(oc))
 {
+
     locked.referTo(parent->locked);
     presentationMode.referTo(parent->presentationMode);
     presentationMode.addListener(this);
-
+    
+    useStraight = static_cast<bool>(cnv->pd->useStraightConnection.getValue());
+    useDashed = static_cast<bool>(cnv->pd->useDashedConnection.getValue());
+    
     // Make sure it's not 2x the same iolet
     if (!outlet || !inlet || outlet->isInlet == inlet->isInlet) {
         outlet = nullptr;
@@ -98,10 +105,10 @@ void Connection::valueChanged(Value& v)
     }
 }
 
-void Connection::timerCallback()
+void Connection::pushPathState()
 {
+    
     t_symbol* newPathState;
-    t_symbol* oldPathState = ptr->outconnect_path_data;
     if(segmented) {
         MemoryOutputStream stream;
         
@@ -116,20 +123,7 @@ void Connection::timerCallback()
         newPathState = cnv->pd->generateSymbol("empty");
     }
     
-    // This will recreate the connection with the new connection path, and return the new pointer
-    // Since we mostly used indices and object pointers to differentiate connections, this is fine
-    
-    auto* newConnection = cnv->patch.setConnctionPath(outobj->getPointer(), outIdx, inobj->getPointer(), inIdx, oldPathState, newPathState);
-    ptr = static_cast<t_fake_outconnect*>(newConnection);
-        
-    stopTimer();
-}
-
-void Connection::pushPathState()
-{
-    // Timer to group nearby events together,
-    // to ensure we don't get duplicate undo events
-    startTimer(10);
+    cnv->pathUpdater->pushPathState(this, newPathState);
 }
 
 void Connection::popPathState()
@@ -419,7 +413,7 @@ void Connection::mouseUp(MouseEvent const& e)
         // Async to safely self-destruct
         MessageManager::callAsync([canvas = SafePointer(cnv), r = reconnecting]() mutable {
             for (auto& c : r) {
-                if (c && canvas) {
+                if (c && canvas && !canvas->patch.connectionWasDeleted(c->ptr)) {
                     canvas->connections.removeObject(c.getComponent());
                 }
             }
@@ -846,4 +840,59 @@ bool Connection::straightLineIntersectsObject(Line<float> toCheck, Array<Object*
         // TODO: possible mark areas that have already been visited?
     }
     return false;
+}
+
+
+
+void ConnectionPathUpdater::timerCallback() {
+    
+    std::pair<Component::SafePointer<Connection>, t_symbol*> currentConnection;
+    
+    canvas->patch.startUndoSequence("SetConnectionPaths");
+    
+    while(connectionUpdateQueue.try_dequeue(currentConnection)) {
+
+        auto& [connection, newPathState] = currentConnection;
+        
+        if(!connection) continue;
+        
+        bool found = false;
+        t_linetraverser t;
+        
+        t_object *outObj;
+        int outIdx;
+        t_object *inObj;
+        int inIdx;
+        
+        // Get connections from pd
+        linetraverser_start(&t, connection->cnv->patch.getPointer());
+
+        while (auto* oc = linetraverser_next(&t)) {
+            if(reinterpret_cast<Connection::t_fake_outconnect*>(oc) == connection->ptr)  {
+                
+                outObj = t.tr_ob;
+                outIdx = t.tr_outno;
+                inObj = t.tr_ob2;
+                inIdx = t.tr_inno;
+                
+                found = true;
+                break;
+            }
+        }
+        
+        if(!found) continue;
+        
+        t_symbol* oldPathState = connection->ptr->outconnect_path_data;
+        
+        // This will recreate the connection with the new connection path, and return the new pointer
+        // Since we mostly used indices and object pointers to differentiate connections, this is fine
+        
+        
+        auto* newConnection = connection->cnv->patch.setConnctionPath(outObj, outIdx, inObj, inIdx, oldPathState, newPathState);
+        connection->ptr = static_cast<Connection::t_fake_outconnect*>(newConnection);
+    }
+    
+    canvas->patch.endUndoSequence("SetConnectionPaths");
+    
+    stopTimer();
 }
