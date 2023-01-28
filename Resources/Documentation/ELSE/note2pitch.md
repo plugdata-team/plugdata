@@ -1,12 +1,12 @@
 ---
 title: note2pitch
 
-description: Convert note name to MIDI pitch
+description: convert note name to MIDI pitch
 
 categories:
 - object
 
-pdcategory:
+pdcategory: MIDI
 
 arguments:
 - description: none

@@ -1,9 +1,12 @@
 ---
 title: noteinfo
-description: Detailed MIDI note information
+
+description: detailed MIDI note information
+
 categories:
  - object
-pdcategory: General
+
+pdcategory: MIDI
 
 arguments:
 

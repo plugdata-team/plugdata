@@ -1,12 +1,12 @@
 ---
 title: mtx~
 
-description: Signal routing matrix
+description: signal routing matrix
 
 categories:
  - object
 
-pdcategory: Control
+pdcategory: Mixing and Routing
 
 arguments:
 - type: float
@@ -39,7 +39,7 @@ methods:
   - type: fade <float>
     description: sets fade time in ms
   - type: dump
-    description: ouputs state of all cells
+    description: outputs state of all cells
   - type: clear
     description: clears all connections
 

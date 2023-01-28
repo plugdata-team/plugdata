@@ -1,19 +1,19 @@
 ---
 title: mtx.ctl
 
-description: Matrix control GUI
+description: matrix control GUI
 
 categories:
 - object
 
-pdcategory: GUI
+pdcategory: GUI, Mixing and Routing
 
 arguments: (none)
 
 inlets:
   1st:
   - type: list
-    description: sets and ouputs column, row and status
+    description: sets and outputs column, row and status
 
 outlets:
   1st:

@@ -1,11 +1,12 @@
 ---
 title: limit
-description: Limit message with time
+
+description: limit message with time
 
 categories:
  - object
 
-pdcategory: General
+pdcategory: Data Management
 
 arguments:
 - type: float

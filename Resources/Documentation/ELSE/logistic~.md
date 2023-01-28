@@ -1,11 +1,12 @@
 ---
 title: logistic~
-description: Logistic chaotic generator
+
+description: logistic chaotic generator
 
 categories:
  - object
 
-pdcategory: General
+pdcategory: Signal Generators
 
 arguments:
 - type: float

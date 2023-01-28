@@ -1,7 +1,7 @@
 ---
 title: midi
 
-description: Read/write MIDI files
+description: read/write MIDI files
 
 categories:
 - object

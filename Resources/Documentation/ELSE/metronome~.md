@@ -1,12 +1,12 @@
 ---
 title: metronome~
 
-description: Metronome clicks
+description: metronome clicks
 
 categories:
 - object
 
-pdcategory: Control
+pdcategory: Triggers and Clocks
 
 arguments:
 - type: list

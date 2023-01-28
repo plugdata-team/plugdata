@@ -6,7 +6,7 @@ description: receive messages
 categories:
  - object
 
-pdcategory: Data management
+pdcategory: Data Management
 
 arguments:
 - type: list
