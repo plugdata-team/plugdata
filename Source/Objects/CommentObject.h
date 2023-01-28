@@ -120,7 +120,7 @@ public:
         auto objText = editor ? editor->getText() : objectText;
         auto newNumLines = 0;
 
-        auto newBounds = TextObjectHelper::recalculateTextObjectBounds(cnvPtr, ptr, objText, 14, newNumLines).expanded(Object::margin) - cnv->canvasOrigin;
+        auto newBounds = TextObjectHelper::recalculateTextObjectBounds(cnvPtr, ptr, objText, 14, newNumLines).expanded(Object::margin) + cnv->canvasOrigin;
 
         numLines = newNumLines;
 
