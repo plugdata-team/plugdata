@@ -353,11 +353,11 @@ public:
             int len;
             libpd_get_object_text(object, &objectText, &len);
 
-            addObject(String::fromUTF8(objectText, len), topLevel, object);
+            auto objTextStr = String::fromUTF8(objectText, len);
+            
+            addObject(objTextStr, topLevel, object);
 
             freebytes(static_cast<void*>(objectText), static_cast<size_t>(len) * sizeof(char));
-
-            auto objTextStr = String::fromUTF8(objectText, len);
 
             auto tokens = StringArray::fromTokens(objTextStr, false);
             String newPrefix;
