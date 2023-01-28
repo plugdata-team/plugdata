@@ -511,22 +511,28 @@ std::array<StringArray, 2> Library::getIoletTooltips(String type, String name, i
             if (descriptions.size() < total) {
                 for (int i = 0; i < descriptions.size(); i++) {
                     if (descriptions[i].second) { // repeating inlet found
-                        for (int j = 0; j < total - descriptions.size(); j++) {
+                        for (int j = 0; j < (total - descriptions.size()) + 1; j++) {
 
-                            // TODO: check if this is correct!
-                            auto description = isPositiveAndBelow(i, descriptions.size()) ? descriptions[i].first : String();
-                            description = description.replace("$mth", String(i));
-                            description = description.replace("$nth", String(i + 1));
-                            description = description.replace("$arg", args[i]);
-
-                            descriptions.insert(i, { description, true });
+                            auto description = descriptions[i].first;
+                            description = description.replace("$mth", String(j));
+                            description = description.replace("$nth", String(j + 1));
+                            
+                            if(isPositiveAndBelow(j, args.size())) {
+                                description = description.replace("$arg", args[j]);
+                            }
+                    
+                            result[type].add(description);
                         }
+                    }
+                    else {
+                        result[type].add(descriptions[i].first);
                     }
                 }
             }
-
-            for (int i = 0; i < descriptions.size(); i++) {
-                result[type].add(descriptions[i].first);
+            else {
+                for (int i = 0; i < descriptions.size(); i++) {
+                    result[type].add(descriptions[i].first);
+                }
             }
         }
     }
