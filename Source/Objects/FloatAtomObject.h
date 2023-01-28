@@ -87,7 +87,7 @@ public:
         getLookAndFeel().setColour(Label::textColourId, object->findColour(PlugDataColour::canvasTextColourId));
         getLookAndFeel().setColour(TextEditor::textColourId, object->findColour(PlugDataColour::canvasTextColourId));
 
-        g.setColour(object->findColour(PlugDataColour::defaultObjectBackgroundColourId));
+        g.setColour(object->findColour(PlugDataColour::guiObjectBackgroundColourId));
         g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), PlugDataLook::objectCornerRadius);
     }
 

@@ -518,6 +518,7 @@ public:
         listBox.getViewport()->getVerticalScrollBar().addListener(this);
 
         setInterceptsMouseClicks(false, true);
+        repaint();
     }
 
     void mouseDoubleClick(MouseEvent const& e) override
@@ -556,12 +557,16 @@ public:
 
     void paintOverChildren(Graphics& g) override
     {
-        auto colour = findColour(PlugDataColour::sidebarTextColourId);
+        auto backgroundColour = findColour(PlugDataColour::sidebarBackgroundColourId);
+        auto textColour = findColour(PlugDataColour::sidebarTextColourId);
 
-        PlugDataLook::drawIcon(g, Icons::Search, 0, 0, 30, colour, 12);
+        input.setColour(TextEditor::backgroundColourId, backgroundColour.brighter(0.7f));
+        input.setColour(TextEditor::textColourId, textColour);
+        
+        PlugDataLook::drawIcon(g, Icons::Search, 0, 0, 30, textColour, 12);
 
         if (input.getText().isEmpty()) {
-            PlugDataLook::drawText(g, "Type to search documentation", 30, 0, 300, 30, colour.withAlpha(0.5f), 14);
+            PlugDataLook::drawText(g, "Type to search documentation", 30, 0, 300, 30, textColour.withAlpha(0.5f), 14);
         }
     }
 

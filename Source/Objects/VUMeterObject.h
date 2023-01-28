@@ -63,7 +63,7 @@ public:
         int height = getHeight();
         int width = getWidth();
 
-        g.setColour(object->findColour(PlugDataColour::defaultObjectBackgroundColourId));
+        g.setColour(object->findColour(PlugDataColour::guiObjectBackgroundColourId));
         g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), PlugDataLook::objectCornerRadius);
 
         auto outerBorderWidth = 2.0f;

@@ -157,9 +157,18 @@ public:
 
     void paint(Graphics& g) override
     {
-        g.setColour(object->findColour(PlugDataColour::canvasBackgroundColourId));
+        auto backgroundColour = object->findColour(PlugDataColour::textObjectBackgroundColourId);
+        g.setColour(backgroundColour);
         g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), PlugDataLook::objectCornerRadius);
 
+        auto ioletAreaColour = object->findColour(PlugDataColour::ioletAreaColourId);
+        
+        if(ioletAreaColour != backgroundColour) {
+            g.setColour(ioletAreaColour);
+            g.fillRect(getLocalBounds().removeFromTop(3));
+            g.fillRect(getLocalBounds().removeFromBottom(3));
+        }
+        
         if (!editor) {
             auto textArea = border.subtractedFrom(getLocalBounds());
 

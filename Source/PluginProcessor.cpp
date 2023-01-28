@@ -1026,7 +1026,7 @@ Colour PluginProcessor::getForegroundColour()
 
 Colour PluginProcessor::getBackgroundColour()
 {
-    return lnf->findColour(PlugDataColour::defaultObjectBackgroundColourId);
+    return lnf->findColour(PlugDataColour::guiObjectBackgroundColourId);
 }
 
 Colour PluginProcessor::getTextColour()

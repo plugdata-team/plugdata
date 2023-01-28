@@ -372,7 +372,7 @@ void Object::paint(Graphics& g)
 
         if (newObjectEditor) {
 
-            g.setColour(findColour(PlugDataColour::canvasBackgroundColourId));
+            g.setColour(findColour(PlugDataColour::textObjectBackgroundColourId));
             g.fillRoundedRectangle(getLocalBounds().reduced(Object::margin + 1).toFloat(), PlugDataLook::objectCornerRadius);
 
             g.setColour(findColour(PlugDataColour::objectSelectedOutlineColourId));
