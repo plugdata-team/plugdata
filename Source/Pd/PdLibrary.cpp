@@ -490,6 +490,7 @@ String Library::getInletOutletTooltip(String type, String name, int idx, int tot
     auto args = StringArray::fromTokens(name.fromFirstOccurrenceOf(" ", false, false), true);
 
     auto findInfo = [&type, &args, &total, &idx](IODescriptionMap map) {
+        // TODO: replace with map.contains once all compilers support this!
         if (map.count(type)) {
             auto descriptions = map.at(type);
 
