@@ -121,9 +121,7 @@ void Connection::timerCallback()
     
     auto* newConnection = cnv->patch.setConnctionPath(outobj->getPointer(), outIdx, inobj->getPointer(), inIdx, oldPathState, newPathState);
     ptr = static_cast<t_fake_outconnect*>(newConnection);
-    
-    std::cout << "State pushed: " << newPathState->s_name << std::endl;
-    
+        
     stopTimer();
 }
 
@@ -138,7 +136,6 @@ void Connection::popPathState()
 {
     auto const state = String::fromUTF8(ptr->outconnect_path_data->s_name);
     
-    std::cout << "State popped: " << state << std::endl;
     if(state == "empty") {
         segmented = false;
         updatePath();
