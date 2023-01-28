@@ -6,7 +6,7 @@ description: random distribution
 categories:
  - object
 
-pdcategory: Data Management, Noise
+pdcategory: Data Management, Random and Noise
 
 arguments:
 - type: symbol

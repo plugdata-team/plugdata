@@ -6,7 +6,7 @@ description: random float number generator
 categories:
  - object
 
-pdcategory: Data Math, Noise
+pdcategory: Data Math, Random and Noise
 
 arguments:
 - type: float

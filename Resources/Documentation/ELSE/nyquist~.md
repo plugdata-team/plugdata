@@ -9,7 +9,7 @@ categories:
 pdcategory: Analysis
 
 arguments:
-- type: none
+- type:
   description:
   default:
 

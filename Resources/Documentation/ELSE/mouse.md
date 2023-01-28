@@ -8,7 +8,7 @@ categories:
 
 pdcategory: Networking
 
-arguments: (none)
+arguments:
 
 inlets:
   1st:

@@ -9,15 +9,12 @@ categories:
 pdcategory: Effects
 
 arguments:
-  1st:
   - description: rate in hertz
     type: float
     default: 0
-  2nd:
   - description: depth
     type: float
     default: 0 
-  3rd:
   - description: dry (0) to wet (1)
     type: float
     default: 0

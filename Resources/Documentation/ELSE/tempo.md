@@ -9,11 +9,9 @@ categories:
 pdcategory: Sequencing, Triggers and Clocks
 
 arguments:
-  1st:
   - type: float
     description: bpm/hz/ms
     default: 0
-  2nd:
   - type: float
     description: swing deviation in %
     default: 0
