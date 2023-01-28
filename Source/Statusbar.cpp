@@ -12,43 +12,40 @@
 #include "Canvas.h"
 #include "Connection.h"
 
-class LevelMeter : public Component
-    , public Timer {
+class LevelMeter : public Component, public StatusbarSource::Listener
+{
+    int totalBlocks = 15;
+    int blocks[2] = { 0 };
+        
     int numChannels = 2;
-    StatusbarSource& source;
 
 public:
-    explicit LevelMeter(StatusbarSource& statusbarSource)
-        : source(statusbarSource)
-    {
-        startTimerHz(20);
-    }
-
-    void timerCallback() override
-    {
-        if (isShowing()) {
-            bool needsRepaint = false;
-            for (int ch = 0; ch < numChannels; ch++) {
-                auto newLevel = source.level[ch].load();
-
-                if (!std::isfinite(newLevel)) {
-                    source.level[ch] = 0;
-                    blocks[ch] = 0;
-                    return;
-                }
-
-                float lvl = (float)std::exp(std::log(newLevel) / 3.0) * (newLevel > 0.002);
-                auto numBlocks = roundToInt(totalBlocks * lvl);
-
-                if (blocks[ch] != numBlocks) {
-                    blocks[ch] = numBlocks;
-                    needsRepaint = true;
-                }
+    
+    LevelMeter() {};
+        
+    void audioLevelChanged(float level[2]) override {
+        
+        bool needsRepaint = false;
+        
+        for (int ch = 0; ch < numChannels; ch++) {
+            auto chLevel = level[ch];
+            
+            if (!std::isfinite(chLevel)) {
+                blocks[ch] = 0;
+                return;
             }
-
-            if (needsRepaint)
-                repaint();
+            
+            auto lvl = static_cast<float>(std::exp(std::log(chLevel) / 3.0) * (chLevel > 0.002));
+            auto numBlocks = roundToInt(totalBlocks * lvl);
+            
+            if (blocks[ch] != numBlocks) {
+                blocks[ch] = numBlocks;
+            }
+            needsRepaint = true;
         }
+        
+        if (needsRepaint && isShowing())
+            repaint();
     }
 
     void paint(Graphics& g) override
@@ -93,22 +90,13 @@ public:
         g.drawRoundedRectangle(x + outerBorderWidth, outerBorderWidth, width - doubleOuterBorderWidth, getHeight() - doubleOuterBorderWidth, 4.0f, 1.0f);
     }
 
-    int totalBlocks = 15;
-    int blocks[2] = { 0 };
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(LevelMeter)
 };
 
-class MidiBlinker : public Component
-    , public Timer {
-    StatusbarSource& source;
+class MidiBlinker : public Component, public StatusbarSource::Listener {
 
 public:
-    explicit MidiBlinker(StatusbarSource& statusbarSource)
-        : source(statusbarSource)
-    {
-        startTimer(200);
-    }
 
     void paint(Graphics& g) override
     {
@@ -124,18 +112,16 @@ public:
         g.fillRoundedRectangle(midiOutRect, 1.0f);
     }
 
-    void timerCallback() override
-    {
-        if (source.midiReceived != blinkMidiIn) {
-            blinkMidiIn = source.midiReceived;
-            repaint();
-        }
-        if (source.midiSent != blinkMidiOut) {
-            blinkMidiOut = source.midiSent;
-            repaint();
-        }
-    }
-
+    void midiReceivedChanged(bool midiReceived) override {
+        blinkMidiIn = midiReceived;
+        repaint();
+    };
+        
+    void midiSentChanged(bool midiSent) override {
+        blinkMidiOut = midiSent;
+        repaint();
+    };
+        
     bool blinkMidiIn = false;
     bool blinkMidiOut = false;
 };
@@ -143,8 +129,13 @@ public:
 Statusbar::Statusbar(PluginProcessor* processor)
     : pd(processor)
 {
-    levelMeter = new LevelMeter(pd->statusbarSource);
-    midiBlinker = new MidiBlinker(pd->statusbarSource);
+    levelMeter = new LevelMeter();
+    midiBlinker = new MidiBlinker();
+    
+    pd->statusbarSource.addListener(levelMeter);
+    pd->statusbarSource.addListener(midiBlinker);
+    pd->statusbarSource.addListener(this);
+
 
     setWantsKeyboardFocus(true);
 
@@ -301,6 +292,10 @@ Statusbar::Statusbar(PluginProcessor* processor)
 
 Statusbar::~Statusbar()
 {
+    pd->statusbarSource.removeListener(levelMeter);
+    pd->statusbarSource.removeListener(midiBlinker);
+    pd->statusbarSource.removeListener(this);
+    
     delete midiBlinker;
     delete levelMeter;
 }
@@ -408,10 +403,20 @@ void Statusbar::timerCallback()
     modifierKeysChanged(ModifierKeys::getCurrentModifiersRealtime());
 }
 
+void Statusbar::audioProcessedChanged(bool audioProcessed)
+{
+    auto colour = findColour(audioProcessed ? PlugDataColour::levelMeterActiveColourId : PlugDataColour::signalColourId);
+    
+    powerButton->setColour(TextButton::textColourOnId, colour);
+    
+}
+
 StatusbarSource::StatusbarSource()
 {
     level[0] = 0.0f;
     level[1] = 0.0f;
+    
+    startTimer(100);
 }
 
 static bool hasRealEvents(MidiBuffer& buffer)
@@ -458,22 +463,49 @@ void StatusbarSource::processBlock(AudioBuffer<float> const& buffer, MidiBuffer&
     auto hasInEvents = hasRealEvents(midiIn);
     auto hasOutEvents = hasRealEvents(midiOut);
 
-    if (!hasInEvents && (now - lastMidiIn).inMilliseconds() > 700) {
-        midiReceived = false;
-    } else if (hasInEvents) {
-        midiReceived = true;
-        lastMidiIn = now;
-    }
-
-    if (!hasOutEvents && (now - lastMidiOut).inMilliseconds() > 700) {
-        midiSent = false;
-    } else if (hasOutEvents) {
-        midiSent = true;
-        lastMidiOut = now;
-    }
+    lastAudioProcessedTime = Time::getCurrentTime().getMillisecondCounter();
+    
+    
+    if(hasOutEvents) lastMidiSentTime = Time::getCurrentTime().getMillisecondCounter();
+    if(hasInEvents)  lastMidiReceivedTime = Time::getCurrentTime().getMillisecondCounter();
 }
 
 void StatusbarSource::prepareToPlay(int nChannels)
 {
     numChannels = nChannels;
+}
+
+void StatusbarSource::timerCallback()
+{
+    auto currentTime = Time::getCurrentTime().getMillisecondCounter();
+    
+    auto hasReceivedMidi = currentTime - lastMidiReceivedTime < 700;
+    auto hasSentMidi = currentTime - lastMidiSentTime < 700;
+    auto hasProcessedAudio = currentTime - lastAudioProcessedTime < 700;
+    
+    if(hasReceivedMidi != midiReceivedState) {
+        midiReceivedState = hasReceivedMidi;
+        for(auto* listener : listeners) listener->midiReceivedChanged(hasReceivedMidi);
+    }
+    if(hasSentMidi != midiSentState) {
+        midiSentState = hasSentMidi;
+        for(auto* listener : listeners) listener->midiSentChanged(hasSentMidi);
+    }
+    if(hasProcessedAudio != audioProcessedState) {
+        audioProcessedState = hasProcessedAudio;
+        for(auto* listener : listeners) listener->audioProcessedChanged(hasProcessedAudio);
+    }
+    
+    float currentLevel[2] = {level[0].load(), level[1].load()};
+    for(auto* listener : listeners) listener->audioLevelChanged(currentLevel);
+}
+
+void StatusbarSource::addListener(Listener* l)
+{
+    listeners.push_back(l);
+}
+
+void StatusbarSource::removeListener(Listener* l)
+{
+    listeners.erase(std::remove(listeners.begin(), listeners.end(), l), listeners.end());
 }
