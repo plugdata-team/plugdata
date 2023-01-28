@@ -180,8 +180,6 @@ public:
             std::unique_ptr<TextEditor> outgoingEditor;
             std::swap(outgoingEditor, editor);
 
-            outgoingEditor->setInputFilter(nullptr, false);
-
             auto newText = outgoingEditor->getText();
 
             newText = TextObjectHelper::fixNewlines(newText);

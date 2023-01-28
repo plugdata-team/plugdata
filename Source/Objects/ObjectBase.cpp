@@ -16,6 +16,7 @@ extern "C" {
 
 #include "Object.h"
 #include "Canvas.h"
+#include "SuggestionComponent.h"
 #include "PluginEditor.h"
 #include "LookAndFeel.h"
 #include "Pd/PdPatch.h"

@@ -4,10 +4,83 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
+#include "PluginEditor.h"
+
+// Component that sits on top of a TextEditor and will draw auto-complete suggestions over it
+class AutoCompleteComponent
+    : public Component
+    , public ComponentListener
+{
+    String suggestion;
+    Canvas* cnv;
+    Component::SafePointer<TextEditor> editor;
+        
+public:
+    
+    AutoCompleteComponent(TextEditor* e, Canvas* c) : editor(e), cnv(c)
+    {
+        setAlwaysOnTop(true);
+        
+        editor->addComponentListener(this);
+        cnv->addAndMakeVisible(this);
+        
+        setInterceptsMouseClicks(false, false);
+    }
+    
+    ~AutoCompleteComponent() {
+        editor->removeComponentListener(this);
+    }
+    
+    String getSuggestion() {
+        
+        if(!editor) return String();
+        
+        return editor->getText() + suggestion;
+    }
+    
+    void autocomplete() {
+        if(!editor) return;
+        
+        editor->setText(editor->getText() + suggestion, sendNotification);
+    }
+    
+    void setSuggestion(const String& suggestionText) {
+        if(!editor) return;
+        
+        auto textUpToSpace = editor->getText().upToFirstOccurrenceOf(" ", false, false);
+        
+        setVisible(suggestionText.isNotEmpty() && textUpToSpace != suggestionText);
+        
+        suggestion = suggestionText.fromFirstOccurrenceOf(textUpToSpace, false, true);
+        repaint();
+    }
+    
+private:
+    void componentMovedOrResized(Component& component, bool moved, bool resized) override
+    {
+        if(!editor) return;
+        setBounds(cnv->getLocalArea(editor, editor->getLocalBounds()));
+    }
+    
+
+    void paint(Graphics& g) override
+    {
+        if(!editor) return;
+        
+        auto editorText = editor->getText();
+        auto editorTextWidth = editor->getFont().getStringWidthFloat(editorText);
+        auto completionBounds = getLocalBounds().toFloat().withTrimmedLeft(editorTextWidth + 7.5f);
+        
+        auto colour = findColour(PlugDataColour::canvasTextColourId).withAlpha(0.5f);
+        PlugDataLook::drawText(g, suggestion, completionBounds, colour);
+        
+        std::cout << suggestion << std::endl;
+    }
+};
 // Suggestions component that shows up when objects are edited
 class SuggestionComponent : public Component
     , public KeyListener
-    , public TextEditor::InputFilter {
+    , public TextEditor::Listener {
 
     class Suggestion : public TextButton {
         int idx = 0;
@@ -98,7 +171,6 @@ class SuggestionComponent : public Component
     };
 
 public:
-    bool selecting = false;
 
     SuggestionComponent()
         : resizer(this, &constrainer)
@@ -154,15 +226,8 @@ public:
 
         setTransform(object->cnv->editor->getTransform());
 
-        editor->setInputFilter(this, false);
+        editor->addListener(this);
         editor->addKeyListener(this);
-
-        // Should run after the input filter
-        editor->onTextChange = [this, editor, object]() {
-            if (state == ShowingObjects && !editor->getText().containsChar(' ')) {
-                editor->setHighlightedRegion({ highlightStart, highlightEnd });
-            }
-        };
 
         for (int i = 0; i < buttons.size(); i++) {
             auto* but = buttons[i];
@@ -181,6 +246,8 @@ public:
         auto objectPos = object->getScreenBounds().reduced(Object::margin).getBottomLeft().translated(0, 5);
 
         setTopLeftPosition(objectPos);
+        
+        autoCompleteComponent = std::make_unique<AutoCompleteComponent>(editor, object->cnv);
 
         setVisible(false);
         toFront(false);
@@ -195,10 +262,9 @@ public:
         if (isOnDesktop()) {
             removeFromDesktop();
         }
-
-        if (openedEditor) {
-            openedEditor->setInputFilter(nullptr, false);
-        }
+        
+        autoCompleteComponent.reset(nullptr);
+        openedEditor->removeListener(this);
 
         openedEditor = nullptr;
         currentBox = nullptr;
@@ -226,11 +292,10 @@ public:
 
         but->setToggleState(true, dontSendNotification);
 
-        if (openedEditor) {
+        if (autoCompleteComponent) {
             String newText = buttons[currentidx]->getButtonText();
-            openedEditor->setText(newText, dontSendNotification);
-            highlightEnd = newText.length();
-            openedEditor->setHighlightedRegion({ highlightStart, highlightEnd });
+            autoCompleteComponent->setSuggestion(newText);
+            currentBox->updateBounds();
         }
 
         // Auto-scroll item into viewport bounds
@@ -242,9 +307,6 @@ public:
 
         repaint();
     }
-
-    TextEditor* openedEditor = nullptr;
-    SafePointer<Object> currentBox;
 
     void resized() override
     {
@@ -261,6 +323,14 @@ public:
 
         port->setViewPosition(0, yScroll);
         repaint();
+    }
+        
+    String getText() const {
+        if(autoCompleteComponent) {
+            return autoCompleteComponent->getSuggestion();
+        }
+        
+        return String();
     }
 
 private:
@@ -305,16 +375,18 @@ private:
             openedEditor->setCaretPosition(openedEditor->getHighlightedRegion().getEnd());
             return true;
         }
+        if(key == KeyPress::rightKey && autoCompleteComponent) {
+            autoCompleteComponent->autocomplete();
+            return true;
+        }
         if (key == KeyPress::leftKey && !openedEditor->getHighlightedRegion().isEmpty()) {
             openedEditor->setCaretPosition(openedEditor->getHighlightedRegion().getStart());
             return true;
         }
-        if (key == KeyPress::tabKey && !openedEditor->getHighlightedRegion().isEmpty()) {
-            openedEditor->setCaretPosition(openedEditor->getHighlightedRegion().getEnd());
-            // openedEditor->insertTextAtCaret(" "); // Will show argument suggestions
+        if (key == KeyPress::tabKey && autoCompleteComponent) {
+            autoCompleteComponent->autocomplete();
             return true;
         }
-
         if (state != ShowingObjects)
             return false;
 
@@ -324,7 +396,8 @@ private:
         }
         return false;
     }
-
+        
+        /*
     String filterNewText(TextEditor& e, String const& newInput) override
     {
         if (!currentBox) {
@@ -339,18 +412,22 @@ private:
         int start = e.getHighlightedRegion().getLength() > 0 ? e.getHighlightedRegion().getStart() : e.getText().length();
 
         // Reconstruct users typing
-        String typedText = e.getText().substring(0, start) + mutableInput;
-        highlightStart = typedText.length();
-
-        constrainer.setSizeLimits(150, 100, 500, 400);
+        
+    } */
+    
+    void textEditorTextChanged(TextEditor& e) override
+    {
+        if (!currentBox) return;
+            
+        String currentText = e.getText();
         resized();
 
         auto& library = currentBox->cnv->pd->objectLibrary;
 
         // If there's a space, open arguments panel
-        if ((e.getText() + mutableInput).contains(" ")) {
+        if (currentText.contains(" ")) {
             state = ShowingArguments;
-            auto found = library.getArguments()[typedText.upToFirstOccurrenceOf(" ", false, false)];
+            auto found = library.getArguments()[currentText.upToFirstOccurrenceOf(" ", false, false)];
             for (int i = 0; i < std::min<int>(buttons.size(), static_cast<int>(found.size())); i++) {
                 auto& [type, description, init] = found[i];
                 buttons[i]->setText(type, description, false);
@@ -367,16 +444,20 @@ private:
 
             setVisible(numOptions);
             currentidx = 0;
+            if(autoCompleteComponent)  {
+                autoCompleteComponent->setSuggestion("");
+                currentBox->updateBounds();
+            }
 
             resized();
 
-            return mutableInput;
+            return;
         }
 
         buttons[currentidx]->setToggleState(true, dontSendNotification);
 
         // Update suggestions
-        auto found = library.autocomplete(typedText.toStdString());
+        auto found = library.autocomplete(currentText.toStdString());
 
         // When hvcc mode is enabled, show only hvcc compatible objects
         if (static_cast<bool>(currentBox->cnv->editor->hvccMode.getValue())) {
@@ -392,6 +473,7 @@ private:
 
         numOptions = static_cast<int>(found.size());
 
+        // Apply object name and descriptions to buttons
         for (int i = 0; i < std::min<int>(buttons.size(), numOptions); i++) {
             auto& [name, autocomplete] = found[i];
 
@@ -411,18 +493,14 @@ private:
         resized();
 
         // Get length of user-typed text
-        int textlen = e.getText().substring(0, start).length();
+        int textlen = e.getText().length();
 
         if (found.empty() || textlen == 0) {
             state = Hidden;
+            if(autoCompleteComponent) autoCompleteComponent->setSuggestion("");
+            currentBox->updateBounds();
             setVisible(false);
-            highlightEnd = 0;
-            return mutableInput;
-        }
-
-        if (newInput.isEmpty() || e.getCaretPosition() != textlen) {
-            highlightEnd = 0;
-            return mutableInput;
+            return;
         }
 
         // Limit it to minimum of the number of buttons and the number of suggestions
@@ -434,14 +512,17 @@ private:
         auto const& fullName = found[currentidx].first;
 
         state = ShowingObjects;
-        if (fullName.length() > textlen) {
-            mutableInput = fullName.substring(textlen);
+        if (fullName.length() > textlen && autoCompleteComponent) {
+            autoCompleteComponent->setSuggestion(fullName);
         }
+        else {
+            autoCompleteComponent->setSuggestion("");
+        }
+        
+        // duplicate call to updateBounds :(
+        currentBox->updateBounds();
 
         setVisible(true);
-        highlightEnd = fullName.length();
-
-        return mutableInput;
     }
 
     enum SugesstionState {
@@ -453,6 +534,7 @@ private:
     int numOptions = 0;
     int currentidx = 0;
 
+    std::unique_ptr<AutoCompleteComponent> autoCompleteComponent;
     std::unique_ptr<Viewport> port;
     std::unique_ptr<Component> buttonholder;
     OwnedArray<Suggestion> buttons;
@@ -461,9 +543,9 @@ private:
     ComponentBoundsConstrainer constrainer;
 
     StackDropShadower dropShadower;
-
-    int highlightStart = 0;
-    int highlightEnd = 0;
-
+    
     SugesstionState state = Hidden;
+        
+    TextEditor* openedEditor = nullptr;
+    SafePointer<Object> currentBox;
 };

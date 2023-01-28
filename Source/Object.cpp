@@ -8,6 +8,7 @@
 #include <memory>
 
 #include "Canvas.h"
+#include "SuggestionComponent.h"
 #include "Connection.h"
 #include "Iolet.h"
 #include "LookAndFeel.h"
@@ -202,6 +203,11 @@ void Object::updateBounds()
         cnv->pd->setThis();
         gui->updateBounds();
     }
+    
+    if(newObjectEditor) {
+        textEditorTextChanged(*newObjectEditor);
+    }
+    
     resized();
 }
 
@@ -724,8 +730,6 @@ void Object::hideEditor()
         std::unique_ptr<TextEditor> outgoingEditor;
         std::swap(outgoingEditor, newObjectEditor);
 
-        outgoingEditor->setInputFilter(nullptr, false);
-
         cnv->hideSuggestions();
 
         // Get entered text, remove extra spaces at the end
@@ -818,10 +822,19 @@ void Object::textEditorReturnKeyPressed(TextEditor& ed)
     }
 }
 
+// For resize-while-typing behaviour
 void Object::textEditorTextChanged(TextEditor& ed)
 {
+    String currentText;
+    if(cnv->suggestor && !cnv->suggestor->getText().isEmpty()) {
+        currentText = cnv->suggestor->getText();
+    }
+    else {
+        currentText = ed.getText();
+    }
+    
     // For resize-while-typing behaviour
-    auto width = Font(15).getStringWidth(ed.getText()) + 14.0f;
+    auto width = Font(15).getStringWidth(currentText) + 14.0f;
 
     width += Object::doubleMargin;
 
