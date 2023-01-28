@@ -6,7 +6,7 @@ description: brown noise generator
 categories:
  - object
 
-pdcategory: Noise, Signal Generators, Signal Math
+pdcategory: Random and Noise, Signal Generators, Signal Math
 
 arguments:
 - type: float
