@@ -1,12 +1,12 @@
 ---
 title: router
 
-description: Route messages
+description: route messages
 
 categories:
  - object
 
-pdcategory: Message management
+pdcategory: Data Management
 
 arguments:
 - type: float

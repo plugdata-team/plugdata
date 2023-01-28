@@ -1,12 +1,12 @@
 ---
 title: randpulse
 
-description: Random pulses
+description: random pulses
 
 categories:
 - object
 
-pdcategory: General
+pdcategory: Noise, Signal Generators
 
 arguments:
 - type: float

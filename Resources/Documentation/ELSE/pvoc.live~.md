@@ -1,12 +1,12 @@
 ---
 title: pvoc.live~
 
-description: Pitch-shift Time-stretch
+description: pitch-shift time-stretch
 
 categories:
 - object
 
-pdcategory:
+pdcategory: Effects
 
 arguments:
 - description: sets buffer size in ms

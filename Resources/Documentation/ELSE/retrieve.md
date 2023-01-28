@@ -1,15 +1,16 @@
 ---
 title: retrieve
-description: Retrieve data from "recieves"
+
+description: retrieve data from "receives"
 
 categories:
  - object
 
-pdcategory: General
+pdcategory: Data Management
 
 arguments:
 - type: symbol
-  description: recieve name
+  description: receive name
   default: none
 
 inlets: 
@@ -24,9 +25,9 @@ outlets:
 
 methods:
   - type: set <symbol>
-    description: sets a recieve name
+    description: sets a receive name
 
 draft: false
 ---
 
-[retrieve] retrieves values from things that are connected to a "receive" symbol that matches the argument. It works with [rceive], [receiver] and built-in receives in GUIs. In a sense, it uses "receive" names as a "send" as well.
+[retrieve] retrieves values from things that are connected to a "receive" symbol that matches the argument. It works with [receive], [receiver] and built-in receives in GUIs. In a sense, it uses "receive" names as a "send" as well.

@@ -1,12 +1,12 @@
 ---
 title: phasor
 
-description: Control phasor
+description: control phasor
 
 categories:
 - object
 
-pdcategory:
+pdcategory: Triggers and Clocks, Envelopes and LFOs
 
 arguments:
 - description: frequency in hertz
@@ -22,7 +22,7 @@ inlets:
     description: frequency in hz
   2nd:
   - type: float
-    description: phase sync (ressets internal phase)
+    description: phase sync (resets internal phase)
 
 outlets:
   1st:

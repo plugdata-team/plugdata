@@ -1,7 +1,7 @@
 ---
 title: range~
 
-description: Anylize range
+description: analyze range
 
 categories:
  - object

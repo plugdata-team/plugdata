@@ -1,12 +1,12 @@
 ---
 title: pimp
 
-description: Control phasor+imp
+description: control phasor + imp
 
 categories:
 - object
 
-pdcategory:
+pdcategory: Signal Generators
 
 arguments:
 - description: frequency in hertz
@@ -22,7 +22,7 @@ inlets:
     description: frequency in hz
   2nd:
   - type: float
-    description: phase sync (ressets internal phase)
+    description: phase sync (resets internal phase)
 
 outlets:
   1st:
@@ -34,7 +34,8 @@ outlets:
 
 flags:
   - name: -rate <float>
-    description: rate period in ms (default 5, min 0.1)
+    description: rate period in ms 
+    default: 5, min 0.1
 
 methods:
   - type: rate <float>

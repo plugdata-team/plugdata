@@ -1,12 +1,12 @@
 ---
 title: out4~
 
-description: Quadraphonic output
+description: quadraphonic output
 
 categories:
 - object
 
-pdcategory:
+pdcategory: Audio I/O
 
 arguments:
   1st:

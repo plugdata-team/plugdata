@@ -1,12 +1,12 @@
 ---
 title: rescale~
 
-description: Rescale audio
+description: rescale audio
 
 categories:
  - object
 
-pdcategory: Math
+pdcategory: Signal Math
 
 arguments:
 - type: list
