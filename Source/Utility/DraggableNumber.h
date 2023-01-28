@@ -193,7 +193,7 @@ public:
         if (!isBeingEdited()) {
             g.setFont(getFont());
             g.setColour(findColour(Label::textColourId));
-            
+
             auto textArea = getBorderSize().subtractedFrom(getLocalBounds());
             g.drawText(formatNumber(getText().getFloatValue(), decimalDrag), textArea, Justification::centredLeft);
         }
@@ -403,7 +403,7 @@ struct DraggableListNumber : public DraggableNumber {
         if (!isBeingEdited()) {
             g.setFont(getFont());
             g.setColour(findColour(Label::textColourId));
-            
+
             auto textArea = getBorderSize().subtractedFrom(getLocalBounds());
             g.drawText(formatNumber(getText().getFloatValue(), decimalDrag), textArea, Justification::centredLeft);
         }

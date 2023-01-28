@@ -33,7 +33,7 @@ class LibraryLoadPanel : public Component
 
                 colour = findColour(PlugDataColour::panelActiveTextColourId);
             }
-            
+
             PlugDataLook::drawIcon(g, Icons::Add, iconBounds, colour, 12);
             PlugDataLook::drawText(g, "Add library to load on startup", textBounds, colour, 14);
         }

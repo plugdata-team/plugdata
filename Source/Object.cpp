@@ -125,7 +125,7 @@ void Object::valueChanged(Value& v)
 
     // else it was a lock/unlock action
     // Hide certain objects in GOP
-    //resized();
+    // resized();
 
     if (gui) {
         gui->lock(locked == var(true) || commandLocked == var(true));
@@ -348,7 +348,7 @@ void Object::paintOverChildren(Graphics& g)
         g.setColour(findColour(PlugDataColour::objectSelectedOutlineColourId));
         g.fillRoundedRectangle(indexBounds.toFloat(), 2.0f);
 
-        PlugDataLook::drawStyledText(g, text, indexBounds,  findColour(PlugDataColour::objectSelectedOutlineColourId).contrasting(), Monospace, 10, Justification::centred);
+        PlugDataLook::drawStyledText(g, text, indexBounds, findColour(PlugDataColour::objectSelectedOutlineColourId).contrasting(), Monospace, 10, Justification::centred);
     }
 }
 
@@ -363,21 +363,21 @@ void Object::showIndex(bool shouldShowIndex)
 void Object::paint(Graphics& g)
 {
     if ((cnv->isSelected(this) && !cnv->isGraph) || newObjectEditor) {
-        
-        if(newObjectEditor) {
-            
+
+        if (newObjectEditor) {
+
             g.setColour(findColour(PlugDataColour::canvasBackgroundColourId));
             g.fillRoundedRectangle(getLocalBounds().reduced(Object::margin + 1).toFloat(), PlugDataLook::objectCornerRadius);
-            
+
             g.setColour(findColour(PlugDataColour::objectSelectedOutlineColourId));
             g.drawRoundedRectangle(getLocalBounds().reduced(Object::margin + 1).toFloat(), PlugDataLook::objectCornerRadius, 1.0f);
         }
-        
+
         g.setColour(findColour(PlugDataColour::objectSelectedOutlineColourId));
-        
+
         g.saveState();
         g.excludeClipRegion(getLocalBounds().reduced(margin + 1));
-        
+
         for (auto& rect : getCorners()) {
             g.fillRoundedRectangle(rect, PlugDataLook::objectCornerRadius);
         }
@@ -495,7 +495,7 @@ void Object::updateTooltips()
 
     int numIn = 0;
     int numOut = 0;
-    
+
     // Check pd library for pddp tooltips, those have priority
     auto ioletTooltips = cnv->pd->objectLibrary.getIoletTooltips(gui->getType(), gui->getText(), numInputs, numOutputs);
 
@@ -591,7 +591,7 @@ void Object::mouseDown(MouseEvent const& e)
                 if ((!_this || !_this->gui) && !_this->cnv->patch.objectWasDeleted(_this->gui->ptr)) {
                     return;
                 }
-                
+
                 _this->gui->applyBounds();
             });
 
@@ -653,13 +653,14 @@ void Object::mouseUp(MouseEvent const& e)
 
         cnv->pd->enqueueFunction(
             [_this = SafePointer<Object>(this), e]() mutable {
-                
-                if (!_this || !_this->gui) return;
-                
+                if (!_this || !_this->gui)
+                    return;
+
                 auto* obj = static_cast<t_gobj*>(_this->getPointer());
                 auto* cnv = _this->cnv;
-                
-                if(cnv->patch.objectWasDeleted(obj)) return;
+
+                if (cnv->patch.objectWasDeleted(obj))
+                    return;
 
                 // Used for size changes, could also be used for properties
                 libpd_undo_apply(cnv->patch.getPointer(), obj);
@@ -771,13 +772,13 @@ void Object::openNewObjectEditor()
         editor->setAlwaysOnTop(true);
         editor->setMultiLine(false);
         editor->setReturnKeyStartsNewLine(false);
-        editor->setBorder(BorderSize<int>(1, 7, 1, 2 ));
+        editor->setBorder(BorderSize<int>(1, 7, 1, 2));
         editor->setIndents(0, 0);
         editor->setJustification(Justification::centredLeft);
 
         editor->setBounds(getLocalBounds().reduced(Object::margin));
         editor->addListener(this);
-        
+
         // Allow cancelling object creation with escape
         editor->onEscapeKey = [this]() {
             MessageManager::callAsync([_this = SafePointer(this)]() {
@@ -789,10 +790,10 @@ void Object::openNewObjectEditor()
             cnv->lastSelectedObject = nullptr;
             cnv->lastSelectedConnection = nullptr;
         };
-        
+
         addAndMakeVisible(editor);
         editor->grabKeyboardFocus();
-        
+
         editor->onFocusLost = [this, editor]() {
             if (reinterpret_cast<Component*>(cnv->suggestor)->hasKeyboardFocus(true) || Component::getCurrentlyFocusedComponent() == editor) {
                 editor->grabKeyboardFocus();
@@ -823,7 +824,7 @@ void Object::textEditorTextChanged(TextEditor& ed)
     auto width = Font(15).getStringWidth(ed.getText()) + 14.0f;
 
     width += Object::doubleMargin;
-    
+
     setSize(width, getHeight());
 }
 

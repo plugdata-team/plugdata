@@ -25,13 +25,12 @@ public:
         , pd(parent->cnv->pd)
         , iemgui(static_cast<t_iemgui*>(ptr))
     {
-        
 
         labelX = iemgui->x_ldx;
         labelY = iemgui->x_ldy;
         labelHeight = getFontHeight();
         labelText = getExpandedLabelText();
-        
+
         sendSymbol = getSendSymbol();
         receiveSymbol = getReceiveSymbol();
 
@@ -55,8 +54,6 @@ public:
 
         gui->getLookAndFeel().setColour(Slider::backgroundColourId, sliderBackground);
 
-        
-        
         auto params = gui->getParameters();
         for (auto& [name, type, cat, value, list] : params) {
             value->addListener(gui);
@@ -248,8 +245,7 @@ public:
             label->setColour(Label::textColourId, getLabelColour());
 
             object->cnv->addAndMakeVisible(label.get());
-        }
-        else {
+        } else {
             label.reset(nullptr);
         }
     }

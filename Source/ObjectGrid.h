@@ -56,7 +56,7 @@ private:
     DrawablePath gridLines[2];
 
     int totalSnaps = 0;
-    
+
     int gridEnabled = 1;
 
     Point<int> setState(bool isSnapped, int idx, Point<int> position, Component* start, Component* end, bool horizontal);
@@ -65,10 +65,10 @@ private:
 
     Point<int> performVerticalSnap(Object* toDrag, Point<int> dragOffset, Rectangle<int> viewBounds);
     Point<int> performHorizontalSnap(Object* toDrag, Point<int> dragOffset, Rectangle<int> viewBounds);
-    
+
     Point<int> performAbsoluteSnap(Object* toDrag, Point<int> dragOffset);
 
     bool trySnap(int distance);
-    
+
     void propertyChanged(String name, var value) override;
 };

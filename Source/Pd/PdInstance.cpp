@@ -627,7 +627,7 @@ void Instance::setThis() const
     libpd_set_instance(static_cast<t_pdinstance*>(m_instance));
 }
 
-t_symbol* Instance::generateSymbol(const String& symbol) const
+t_symbol* Instance::generateSymbol(String const& symbol) const
 {
     setThis();
     return gensym(symbol.toRawUTF8());
@@ -675,7 +675,6 @@ void Instance::createPanel(int type, char const* snd, char const* location)
                         auto const file = fileChooser.getResult();
                         enqueueFunction(
                             [this, obj, file]() mutable {
-                                
                                 String pathname = file.getFullPathName().toRawUTF8();
 
                     // Convert slashes to backslashes

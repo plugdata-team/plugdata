@@ -1581,7 +1581,6 @@ PlugDataTextEditor::PlugDataTextEditor()
     lastTransactionTime = Time::getApproximateMillisecondCounter();
     document.setSelections({ Selection() });
 
-    
     setFont(Font(Fonts::getDefaultFont().withHeight(15)));
 
     translateView(GUTTER_WIDTH, 0);
@@ -1591,7 +1590,6 @@ PlugDataTextEditor::PlugDataTextEditor()
     addAndMakeVisible(caret);
     addAndMakeVisible(gutter);
 }
-
 
 void PlugDataTextEditor::paintOverChildren(Graphics& g)
 {

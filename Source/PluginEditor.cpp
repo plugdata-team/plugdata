@@ -145,7 +145,6 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     toolbarButton(Settings)->setTooltip("Settings");
     toolbarButton(Settings)->onClick = [this]() {
 #ifdef PLUGDATA_STANDALONE
-
         Dialogs::showMainMenu(this, toolbarButton(Settings));
 #else
         Dialogs::showMainMenu(this, toolbarButton(Settings));
@@ -526,8 +525,8 @@ void PluginEditor::addTab(Canvas* cnv, bool deleteWhenClosed)
             }
 
             auto* patch = &cnv->patch;
-            
-            if(canvas_getcurrent() ==  patch->getPointer()) {
+
+            if (canvas_getcurrent() == patch->getPointer()) {
                 canvas_unsetcurrent(patch->getPointer());
             }
 
@@ -943,13 +942,12 @@ void PluginEditor::getCommandInfo(const CommandID commandID, ApplicationCommandI
     case CommandIDs::ShowReference: {
         result.setInfo("Open Reference", "Open reference panel", "Edit", 0);
         result.addDefaultKeypress(KeyPress::F1Key, ModifierKeys::noModifiers); // f1 to open settings
-        
-        if(auto* cnv = getCurrentCanvas()) {
+
+        if (auto* cnv = getCurrentCanvas()) {
             auto selection = cnv->getSelectionOfType<Object>();
             bool enabled = selection.size() == 1 && selection[0]->gui && selection[0]->gui->getType().isNotEmpty();
             result.setActive(enabled);
-        }
-        else {
+        } else {
             result.setActive(false);
         }
         break;
@@ -1080,7 +1078,7 @@ bool PluginEditor::perform(InvocationInfo const& info)
     }
     case CommandIDs::ConnectionPathfind: {
         cnv->patch.startUndoSequence("ConnectionPathFind");
-        
+
         statusbar.connectionStyleButton->setToggleState(true, sendNotification);
         for (auto* con : cnv->connections) {
             if (cnv->isSelected(con)) {
@@ -1088,7 +1086,7 @@ bool PluginEditor::perform(InvocationInfo const& info)
                 con->updatePath();
             }
         }
-        
+
         cnv->patch.endUndoSequence("ConnectionPathFind");
 
         return true;
@@ -1157,17 +1155,17 @@ bool PluginEditor::perform(InvocationInfo const& info)
         return true;
     }
     case CommandIDs::ShowReference: {
-        if(auto* cnv = getCurrentCanvas()) {
+        if (auto* cnv = getCurrentCanvas()) {
             auto selection = cnv->getSelectionOfType<Object>();
-            if(selection.size() != 1 || !selection[0]->gui || selection[0]->gui->getType().isEmpty()) {
+            if (selection.size() != 1 || !selection[0]->gui || selection[0]->gui->getType().isEmpty()) {
                 return false;
             }
-            
+
             Dialogs::showObjectReferenceDialog(&openedDialog, this, selection[0]->gui->getType());
-            
+
             return true;
         }
-        
+
         return false;
     }
     case ObjectIDs::NewArray: {

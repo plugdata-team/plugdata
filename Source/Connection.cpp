@@ -9,9 +9,6 @@
 #include "Iolet.h"
 #include "LookAndFeel.h"
 
-
-
-
 Connection::Connection(Canvas* parent, Iolet* s, Iolet* e, void* oc)
     : cnv(parent)
     , outlet(s->isInlet ? e : s)
@@ -24,7 +21,7 @@ Connection::Connection(Canvas* parent, Iolet* s, Iolet* e, void* oc)
     locked.referTo(parent->locked);
     presentationMode.referTo(parent->presentationMode);
     presentationMode.addListener(this);
-    
+
     // Make sure it's not 2x the same iolet
     if (!outlet || !inlet || outlet->isInlet == inlet->isInlet) {
         outlet = nullptr;
@@ -44,7 +41,7 @@ Connection::Connection(Canvas* parent, Iolet* s, Iolet* e, void* oc)
         auto* oc = parent->patch.createConnection(outobj->getPointer(), outIdx, inobj->getPointer(), inIdx);
 
         ptr = static_cast<t_fake_outconnect*>(oc);
-        
+
         if (!ptr) {
             outlet = nullptr;
             inlet = nullptr;
@@ -54,7 +51,7 @@ Connection::Connection(Canvas* parent, Iolet* s, Iolet* e, void* oc)
             return;
         }
     } else {
-        
+
         popPathState();
     }
 
@@ -90,40 +87,39 @@ void Connection::valueChanged(Value& v)
 
 void Connection::pushPathState()
 {
-    
+
     t_symbol* newPathState;
-    if(segmented) {
+    if (segmented) {
         MemoryOutputStream stream;
-        
+
         for (auto& point : currentPlan) {
             stream.writeInt(point.x - outlet->getCanvasBounds().getCentre().x);
             stream.writeInt(point.y - outlet->getCanvasBounds().getCentre().y);
         }
         auto base64 = stream.getMemoryBlock().toBase64Encoding();
         newPathState = cnv->pd->generateSymbol(base64);
-    }
-    else {
+    } else {
         newPathState = cnv->pd->generateSymbol("empty");
     }
-    
+
     cnv->pathUpdater->pushPathState(this, newPathState);
 }
 
 void Connection::popPathState()
 {
     auto const state = String::fromUTF8(ptr->outconnect_path_data->s_name);
-    
-    if(state == "empty") {
+
+    if (state == "empty") {
         segmented = false;
         updatePath();
         return;
     }
-    
+
     auto block = MemoryBlock();
     auto succeeded = block.fromBase64Encoding(state);
 
     auto plan = PathPlan();
-    
+
     if (succeeded) {
         auto stream = MemoryInputStream(block, false);
 
@@ -134,20 +130,21 @@ void Connection::popPathState()
             plan.emplace_back(x + outlet->getCanvasBounds().getCentreX(), y + outlet->getCanvasBounds().getCentreY());
         }
         segmented = !plan.empty();
-    }
-    else {
+    } else {
         segmented = false;
     }
-    
+
     currentPlan = plan;
     updatePath();
 }
 
-void Connection::setPointer(void* newPtr) {
+void Connection::setPointer(void* newPtr)
+{
     ptr = static_cast<t_fake_outconnect*>(newPtr);
 }
 
-t_symbol* Connection::getPathState() {
+t_symbol* Connection::getPathState()
+{
     return ptr->outconnect_path_data;
 }
 
@@ -377,7 +374,7 @@ void Connection::mouseDrag(MouseEvent const& e)
 void Connection::mouseUp(MouseEvent const& e)
 {
     if (dragIdx != -1) {
-        
+
         pushPathState();
         dragIdx = -1;
     }
@@ -821,57 +818,57 @@ bool Connection::straightLineIntersectsObject(Line<float> toCheck, Array<Object*
     return false;
 }
 
+void ConnectionPathUpdater::timerCallback()
+{
 
-
-void ConnectionPathUpdater::timerCallback() {
-    
     std::pair<Component::SafePointer<Connection>, t_symbol*> currentConnection;
-    
+
     canvas->patch.startUndoSequence("SetConnectionPaths");
-    
-    while(connectionUpdateQueue.try_dequeue(currentConnection)) {
+
+    while (connectionUpdateQueue.try_dequeue(currentConnection)) {
 
         auto& [connection, newPathState] = currentConnection;
-        
-        if(!connection) continue;
-        
+
+        if (!connection)
+            continue;
+
         bool found = false;
         t_linetraverser t;
-        
-        t_object *outObj;
+
+        t_object* outObj;
         int outIdx;
-        t_object *inObj;
+        t_object* inObj;
         int inIdx;
-        
+
         // Get connections from pd
         linetraverser_start(&t, connection->cnv->patch.getPointer());
 
         while (auto* oc = linetraverser_next(&t)) {
-            if(reinterpret_cast<Connection::t_fake_outconnect*>(oc) == connection->ptr)  {
-                
+            if (reinterpret_cast<Connection::t_fake_outconnect*>(oc) == connection->ptr) {
+
                 outObj = t.tr_ob;
                 outIdx = t.tr_outno;
                 inObj = t.tr_ob2;
                 inIdx = t.tr_inno;
-                
+
                 found = true;
                 break;
             }
         }
-        
-        if(!found) continue;
-        
+
+        if (!found)
+            continue;
+
         t_symbol* oldPathState = connection->ptr->outconnect_path_data;
-        
+
         // This will recreate the connection with the new connection path, and return the new pointer
         // Since we mostly used indices and object pointers to differentiate connections, this is fine
-        
-        
+
         auto* newConnection = connection->cnv->patch.setConnctionPath(outObj, outIdx, inObj, inIdx, oldPathState, newPathState);
         connection->ptr = static_cast<Connection::t_fake_outconnect*>(newConnection);
     }
-    
+
     canvas->patch.endUndoSequence("SetConnectionPaths");
-    
+
     stopTimer();
 }

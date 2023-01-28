@@ -30,7 +30,7 @@ public:
 
     void propertyChanged(String name, var value) override;
     void valueChanged(Value& v) override;
-        
+
     void timerCallback() override;
 
     void attachToCanvas(Canvas* cnv);

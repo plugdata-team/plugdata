@@ -124,8 +124,7 @@ public:
             label->setColour(Label::textColourId, object->findColour(PlugDataColour::canvasTextColourId));
 
             object->cnv->addAndMakeVisible(label.get());
-        }
-        else {
+        } else {
             label.reset(nullptr);
         }
     }

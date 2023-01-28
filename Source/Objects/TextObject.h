@@ -4,82 +4,82 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
+struct TextObjectHelper {
 
-struct TextObjectHelper
-{
-    
     inline static int minWidth = 25;
-    
-    static Rectangle<int> recalculateTextObjectBounds(void* patchPtr, void* objPtr, const String& currentText, int fontHeight, int& numLines, bool applyOffset = false, int maxIolets = 0) {
-        
+
+    static Rectangle<int> recalculateTextObjectBounds(void* patchPtr, void* objPtr, String const& currentText, int fontHeight, int& numLines, bool applyOffset = false, int maxIolets = 0)
+    {
+
         int x, y, w, h;
         libpd_get_object_bounds(patchPtr, objPtr, &x, &y, &w, &h);
-        
+
         int charWidth = getWidthInChars(objPtr);
         int fontWidth = glist_fontwidth(static_cast<t_glist*>(patchPtr));
         int idealTextWidth = getIdealWidthForText(currentText, fontHeight);
-        
+
         // For regular text object, we want to adjust the width so ideal text with aligns with fontWidth
         int offset = applyOffset ? idealTextWidth % fontWidth : 0;
-        
-        if(currentText.isEmpty()) { // If text is empty, set to minimum width
+
+        if (currentText.isEmpty()) { // If text is empty, set to minimum width
             w = minWidth;
-        }
-        else if (charWidth == 0) { // If width is set to automatic, calculate based on text width
+        } else if (charWidth == 0) { // If width is set to automatic, calculate based on text width
             w = std::min(idealTextWidth, fontWidth * 60);
-        }
-        else { // If width was set manually, calculate what the width is
+        } else { // If width was set manually, calculate what the width is
             w = std::max(minWidth, charWidth * fontWidth) + offset;
         }
-        
+
         w = std::max(w, maxIolets * 18);
-        
-                
+
         numLines = getNumLines(currentText, w, fontHeight);
         // Calculate height so that height with 1 line is 21px, after that scale along with fontheight
         h = numLines * fontHeight + (21 - fontHeight);
-        
-        return {x, y, w, h};
+
+        return { x, y, w, h };
     }
-    
-    static int getWidthInChars(void* ptr) {
+
+    static int getWidthInChars(void* ptr)
+    {
         return static_cast<t_text*>(ptr)->te_width;
     }
-    
-    static int setWidthInChars(void* ptr, int newWidth) {
+
+    static int setWidthInChars(void* ptr, int newWidth)
+    {
         return static_cast<t_text*>(ptr)->te_width = newWidth;
     }
-    
-    static String fixNewlines(String text) {
+
+    static String fixNewlines(String text)
+    {
         // Don't want \r
         text = text.replace("\r", "");
-        
+
         // Temporarily use \r to represent a real newline in pd
         text = text.replace(";\n", "\r");
-        
+
         // Remove \n
         text = text.replace("\n", " ");
-        
+
         // Replace the real newlines with \n
-        text =  text.replace("\r", ";\n");
-        
+        text = text.replace("\r", ";\n");
+
         // Remove whitespace from end
         text = text.trimEnd();
-        
+
         return text;
     }
-    
-    static int getIdealWidthForText(String text, int fontHeight) {
+
+    static int getIdealWidthForText(String text, int fontHeight)
+    {
         auto lines = StringArray::fromLines(text);
         int w = minWidth;
 
         for (auto& line : lines) {
             w = std::max<int>(Font(fontHeight).getStringWidthFloat(line) + 14.0f, w);
         }
-        
+
         return w;
     }
-    
+
     // Used by text objects for estimating best text height for a set width
     static int getNumLines(String const& text, int width, int fontSize)
     {
@@ -87,7 +87,7 @@ struct TextObjectHelper
 
         Array<int> glyphs;
         Array<float> xOffsets;
-        
+
         auto font = Font(fontSize);
         font.getGlyphPositions(text, glyphs, xOffsets);
 
@@ -104,15 +104,16 @@ struct TextObjectHelper
 
         return numLines;
     }
-    
-    static TextEditor* createTextEditor(Object* object, int fontHeight) {
+
+    static TextEditor* createTextEditor(Object* object, int fontHeight)
+    {
         TextEditor* editor = new TextEditor;
         editor->applyFontToAllText(Font(fontHeight));
-        
+
         object->copyAllExplicitColoursTo(*editor);
         editor->setColour(TextEditor::textColourId, object->findColour(PlugDataColour::canvasTextColourId));
         editor->setColour(TextEditor::backgroundColourId, Colours::transparentBlack);
-        editor->setColour(TextEditor::focusedOutlineColourId,  Colours::transparentBlack);
+        editor->setColour(TextEditor::focusedOutlineColourId, Colours::transparentBlack);
 
         editor->setAlwaysOnTop(true);
         editor->setMultiLine(true);
@@ -121,7 +122,7 @@ struct TextObjectHelper
         editor->setIndents(0, 0);
         editor->setScrollToShowCursor(false);
         editor->setJustification(Justification::centredLeft);
-        
+
         return editor;
     }
 };
@@ -159,24 +160,24 @@ public:
         g.setColour(object->findColour(PlugDataColour::canvasBackgroundColourId));
         g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), PlugDataLook::objectCornerRadius);
 
-        if(!editor) {
+        if (!editor) {
             auto textArea = border.subtractedFrom(getLocalBounds());
-            
+
             auto scale = getWidth() < 40 ? 0.9f : 1.0f;
             PlugDataLook::drawFittedText(g, objectText, textArea, object->findColour(PlugDataColour::canvasTextColourId), numLines, scale);
         }
     }
-        
+
     void paintOverChildren(Graphics& g) override
     {
         bool selected = cnv->isSelected(object) && !cnv->isGraph;
-        
+
         auto outlineColour = object->findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : objectOutlineColourId);
 
         if (!isValid) {
             outlineColour = selected ? Colours::red.brighter(1.5) : Colours::red;
         }
-        
+
         g.setColour(outlineColour);
         g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), PlugDataLook::objectCornerRadius, 1.0f);
     }
@@ -205,15 +206,15 @@ public:
         auto* cnvPtr = cnv->patch.getPointer();
         auto objText = editor ? editor->getText() : objectText;
         auto newNumLines = 0;
-        
-        auto newBounds = TextObjectHelper::recalculateTextObjectBounds(cnvPtr, ptr, objText, 15, newNumLines, true, std::max({1, object->numInputs, object->numOutputs}));
-        
+
+        auto newBounds = TextObjectHelper::recalculateTextObjectBounds(cnvPtr, ptr, objText, 15, newNumLines, true, std::max({ 1, object->numInputs, object->numOutputs }));
+
         numLines = newNumLines;
-        
-        if(newBounds != object->getObjectBounds()) {
+
+        if (newBounds != object->getObjectBounds()) {
             object->setObjectBounds(newBounds);
         }
-        
+
         pd->getCallbackLock()->exit();
     }
 
@@ -229,11 +230,11 @@ public:
         auto b = object->getObjectBounds();
         libpd_moveobj(cnv->patch.getPointer(), static_cast<t_gobj*>(ptr), b.getX(), b.getY());
 
-        if(TextObjectHelper::getWidthInChars(ptr)) {
-            TextObjectHelper::setWidthInChars(ptr,  b.getWidth() / glist_fontwidth(cnv->patch.getPointer()));
+        if (TextObjectHelper::getWidthInChars(ptr)) {
+            TextObjectHelper::setWidthInChars(ptr, b.getWidth() / glist_fontwidth(cnv->patch.getPointer()));
         }
     }
-    
+
     void hideEditor() override
     {
         if (editor != nullptr) {
@@ -248,7 +249,7 @@ public:
             auto newText = outgoingEditor->getText();
 
             newText = TextObjectHelper::fixNewlines(newText);
-            
+
             bool changed;
             if (objectText != newText) {
                 objectText = newText;
@@ -266,7 +267,6 @@ public:
             if (changed) {
                 object->setType(newText);
             }
-            
         }
     }
 
@@ -275,16 +275,16 @@ public:
         if (editor == nullptr) {
             auto background = object->findColour(PlugDataColour::canvasBackgroundColourId);
             editor.reset(TextObjectHelper::createTextEditor(object, 15));
-            
+
             editor->setBorder(border);
             editor->setBounds(getLocalBounds());
             editor->setText(objectText, false);
             editor->addListener(this);
             editor->selectAll();
-            
+
             addAndMakeVisible(editor.get());
             editor->grabKeyboardFocus();
-            
+
             editor->onFocusLost = [this]() {
                 if (reinterpret_cast<Component*>(cnv->suggestor)->hasKeyboardFocus(true) || Component::getCurrentlyFocusedComponent() == editor.get()) {
                     editor->grabKeyboardFocus();
@@ -297,12 +297,12 @@ public:
             };
 
             cnv->showSuggestions(object, editor.get());
-            
+
             resized();
             repaint();
         }
     }
-        
+
     void resized() override
     {
         if (editor) {

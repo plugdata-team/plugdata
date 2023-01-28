@@ -20,7 +20,6 @@
 #include "MainMenu.h"
 #include "Canvas.h"
 
-
 Component* Dialogs::showTextEditorDialog(String text, String filename, std::function<void(String, bool)> callback)
 {
     auto* editor = new TextEditorDialog(filename);
@@ -251,14 +250,14 @@ void Dialogs::showCanvasRightClickMenu(Canvas* cnv, Component* originalComponent
 
     // Create popup menu
     PopupMenu popupMenu;
-    
+
     popupMenu.addItem(1, "Open", object && !multiple && canBeOpened); // for opening subpatches
     popupMenu.addSeparator();
-    
+
     auto* editor = cnv->editor;
     std::function<void(int)> createObjectCallback;
     popupMenu.addSubMenu("Add", createObjectMenu(editor));
-    
+
     popupMenu.addSeparator();
     popupMenu.addCommandItem(editor, CommandIDs::Cut);
     popupMenu.addCommandItem(editor, CommandIDs::Copy);
@@ -284,42 +283,42 @@ void Dialogs::showCanvasRightClickMenu(Canvas* cnv, Component* originalComponent
             return;
 
         switch (result) {
-            case 1: // Open subpatch
-                object->gui->openFromMenu();
-                break;
-            case 8: // To Front
-                object->toFront(false);
-                if (object->gui)
-                    object->gui->moveToFront();
-                cnv->synchronise();
-                break;
-            case 9: // To Back
-                object->toBack();
-                if (object->gui)
-                    object->gui->moveToBack();
-                cnv->synchronise();
-                break;
-            case 10: // Open help
-                object->openHelpPatch();
-                break;
-            case 11: // Open reference
-                Dialogs::showObjectReferenceDialog(&editor->openedDialog, editor, object->gui->getType());
-                break;
-            case 12:
-                if (originalComponent == cnv) {
-                    // Open help
-                    editor->sidebar.showParameters("canvas", cnv->getInspectorParameters());
-                } else {
-                    editor->sidebar.showParameters(object->gui->getText(), params);
-                }
-                
-                break;
-            default: {
-                if(result >= 100) {
-                    cnv->lastMousePosition = cnv->getLocalPoint(nullptr, position);
-                }
-                break;
+        case 1: // Open subpatch
+            object->gui->openFromMenu();
+            break;
+        case 8: // To Front
+            object->toFront(false);
+            if (object->gui)
+                object->gui->moveToFront();
+            cnv->synchronise();
+            break;
+        case 9: // To Back
+            object->toBack();
+            if (object->gui)
+                object->gui->moveToBack();
+            cnv->synchronise();
+            break;
+        case 10: // Open help
+            object->openHelpPatch();
+            break;
+        case 11: // Open reference
+            Dialogs::showObjectReferenceDialog(&editor->openedDialog, editor, object->gui->getType());
+            break;
+        case 12:
+            if (originalComponent == cnv) {
+                // Open help
+                editor->sidebar.showParameters("canvas", cnv->getInspectorParameters());
+            } else {
+                editor->sidebar.showParameters(object->gui->getText(), params);
             }
+
+            break;
+        default: {
+            if (result >= 100) {
+                cnv->lastMousePosition = cnv->getLocalPoint(nullptr, position);
+            }
+            break;
+        }
         }
     };
 
@@ -335,12 +334,11 @@ void Dialogs::showObjectMenu(PluginEditor* parent, Component* target)
             }
         }
     };
-    
+
     auto menu = createObjectMenu(parent);
-    
+
     menu.showMenuAsync(PopupMenu::Options().withMinimumWidth(100).withMaximumNumColumns(1).withTargetComponent(target).withParentComponent(parent), attachToMouseCallback);
 }
-
 
 PopupMenu Dialogs::createObjectMenu(PluginEditor* parent)
 {
@@ -568,4 +566,3 @@ PopupMenu Dialogs::createObjectMenu(PluginEditor* parent)
     menu.addItem(createCommandItem(ObjectIDs::NewGraphOnParent, "GraphOnParent"));
     return menu;
 }
-

@@ -74,7 +74,7 @@ public:
     void paint(Graphics& g) override
     {
         auto styles = Font(32).getAvailableStyles();
-        
+
         g.fillAll(findColour(PlugDataColour::canvasBackgroundColourId));
 
         PlugDataLook::drawStyledText(g, "No Patch Open", 0, getHeight() / 2 - 150, getWidth(), 40, findColour(PlugDataColour::canvasTextColourId), Bold, 32, Justification::centred);
@@ -152,7 +152,7 @@ public:
             }
         }
     }
-    
+
     void paint(Graphics& g) override
     {
         g.setColour(findColour(PlugDataColour::tabBackgroundColourId));

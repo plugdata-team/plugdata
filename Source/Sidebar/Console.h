@@ -187,7 +187,7 @@ public:
                     textColour = Colours::red;
 
                 // Draw text
-                PlugDataLook::drawFittedText(g, message, getLocalBounds().reduced(14, 2), textColour, numLines, 0.9f,  13);
+                PlugDataLook::drawFittedText(g, message, getLocalBounds().reduced(14, 2), textColour, numLines, 0.9f, 13);
             }
         };
 

@@ -174,7 +174,7 @@ Connections Patch::getConnections() const
 
     // TODO: fix data race
     while ((oc = linetraverser_next(&t))) {
-        connections.push_back({oc, t.tr_inno, t.tr_ob, t.tr_outno, t.tr_ob2 });
+        connections.push_back({ oc, t.tr_inno, t.tr_ob, t.tr_outno, t.tr_ob2 });
     }
 
     return connections;
@@ -397,14 +397,13 @@ void* Patch::renameObject(void* obj, String const& name)
     std::atomic<bool> done = false;
     t_pd* pdobject = nullptr;
     instance->enqueueFunction([this, &pdobject, &done, obj, newName]() mutable {
-        
-        if(objectWasDeleted(obj)) {
-            
+        if (objectWasDeleted(obj)) {
+
             pdobject = libpd_newest(getPointer());
             done = true;
             return;
         }
-        
+
         setCurrent();
         libpd_renameobj(getPointer(), &checkObject(obj)->te_g, newName.toRawUTF8(), newName.getNumBytesAsUTF8());
 
@@ -474,8 +473,9 @@ void Patch::removeObject(void* obj)
 
     instance->enqueueFunction(
         [this, obj]() {
-            if(objectWasDeleted(obj)) return;
-            
+            if (objectWasDeleted(obj))
+                return;
+
             setCurrent();
             libpd_removeobj(getPointer(), &checkObject(obj)->te_g);
         });
@@ -504,9 +504,9 @@ bool Patch::canConnect(void* src, int nout, void* sink, int nin)
     bool canConnect = false;
 
     instance->enqueueFunction([this, &canConnect, src, nout, sink, nin]() mutable {
-        if(objectWasDeleted(src) || objectWasDeleted(sink)) return;
+        if (objectWasDeleted(src) || objectWasDeleted(sink))
+            return;
         canConnect = libpd_canconnect(getPointer(), checkObject(src), nout, checkObject(sink), nin);
-        
     });
 
     instance->waitForStateUpdate();
@@ -524,26 +524,27 @@ void* Patch::createConnection(void* src, int nout, void* sink, int nin)
 
     instance->enqueueFunction(
         [this, &outconnect, &hasReturned, src, nout, sink, nin]() mutable {
-            if(objectWasDeleted(src) || objectWasDeleted(sink)) return;
-            
+            if (objectWasDeleted(src) || objectWasDeleted(sink))
+                return;
+
             bool canConnect = libpd_canconnect(getPointer(), checkObject(src), nout, checkObject(sink), nin);
 
             if (!canConnect) {
                 hasReturned = true;
                 return;
             }
-            
+
             setCurrent();
 
             outconnect = libpd_createconnection(getPointer(), checkObject(src), nout, checkObject(sink), nin);
-            
+
             hasReturned = true;
         });
 
     while (!hasReturned) {
         instance->waitForStateUpdate();
     }
-    
+
     return outconnect;
 }
 
@@ -551,37 +552,39 @@ void Patch::removeConnection(void* src, int nout, void* sink, int nin, t_symbol*
 {
     if (!src || !sink || !ptr)
         return;
-    
+
     instance->enqueueFunction(
         [this, src, nout, sink, nin, connectionPath]() mutable {
-            if(objectWasDeleted(src) || objectWasDeleted(sink)) return;
-            
+            if (objectWasDeleted(src) || objectWasDeleted(sink))
+                return;
+
             setCurrent();
             libpd_removeconnection(getPointer(), checkObject(src), nout, checkObject(sink), nin, connectionPath);
         });
 }
 
-void* Patch::setConnctionPath(void* src, int nout, void* sink, int nin, t_symbol* oldConnectionPath, t_symbol* newConnectionPath) {
-    
+void* Patch::setConnctionPath(void* src, int nout, void* sink, int nin, t_symbol* oldConnectionPath, t_symbol* newConnectionPath)
+{
+
     void* outconnect = nullptr;
     std::atomic<bool> hasReturned = false;
 
     instance->enqueueFunction(
         [this, &hasReturned, &outconnect, src, nout, sink, nin, oldConnectionPath, newConnectionPath]() mutable {
-                        
-            if(objectWasDeleted(src) || objectWasDeleted(sink)) return;
-            
+            if (objectWasDeleted(src) || objectWasDeleted(sink))
+                return;
+
             setCurrent();
 
             outconnect = libpd_setconnectionpath(getPointer(), checkObject(src), nout, checkObject(sink), nin, oldConnectionPath, newConnectionPath);
-            
+
             hasReturned = true;
         });
-    
+
     while (!hasReturned) {
         instance->waitForStateUpdate();
     }
-    
+
     return outconnect;
 }
 
@@ -714,29 +717,32 @@ String Patch::getCanvasContent()
     return content;
 }
 
-bool Patch::objectWasDeleted(void* ptr) {
-    
+bool Patch::objectWasDeleted(void* ptr)
+{
+
     t_canvas const* cnv = getPointer();
 
     for (t_gobj* y = cnv->gl_list; y; y = y->g_next) {
-        if(y == ptr) return false;
+        if (y == ptr)
+            return false;
     }
-    
+
     return true;
 }
-bool Patch::connectionWasDeleted(void* ptr) {
-    
+bool Patch::connectionWasDeleted(void* ptr)
+{
+
     t_outconnect* oc;
     t_linetraverser t;
 
-    
     // Get connections from pd
     linetraverser_start(&t, getPointer());
 
     while ((oc = linetraverser_next(&t))) {
-        if(oc == ptr) return false;
+        if (oc == ptr)
+            return false;
     }
-    
+
     return true;
 }
 
