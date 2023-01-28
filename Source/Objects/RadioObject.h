@@ -3,6 +3,7 @@
  // For information on usage and redistribution, and for a DISCLAIMER OF ALL
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
+#include <JuceHeader.h>
 
 class RadioObject final : public ObjectBase {
 
@@ -46,20 +47,12 @@ public:
     }
 
     void applyBounds() override
-    {        
-        auto* radio = static_cast<t_radio*>(ptr);
-
-        if (isVertical) {
-            radio->x_gui.x_w = getWidth();
-            radio->x_gui.x_h = getHeight();
-        } else {
-            radio->x_gui.x_w = getHeight();
-            radio->x_gui.x_h = getWidth();
-        }
+    {
+        iemHelper.applyBounds();
     }
 
     void toggleObject(Point<int> position) override
-    {
+    {        printf("calling: %s\n", __PRETTY_FUNCTION__);
         if (alreadyToggled) {
             alreadyToggled = false;
         }
@@ -94,12 +87,12 @@ public:
     }
 
     void untoggleObject() override
-    {
+    {        printf("calling: %s\n", __PRETTY_FUNCTION__);
         alreadyToggled = false;
     }
 
     void mouseDown(MouseEvent const& e) override
-    {
+    {        printf("calling: %s\n", __PRETTY_FUNCTION__);
         float pos = isVertical ? e.y : e.x;
         float div = isVertical ? getHeight() : getWidth();
 
@@ -114,12 +107,13 @@ public:
     }
 
     float getValue()
-    {
+    {        printf("calling: %s\n", __PRETTY_FUNCTION__);
         return static_cast<t_radio*>(ptr)->x_on;
     }
 
     void updateBounds() override
-    {
+    {        
+        printf("calling: %s\n", __PRETTY_FUNCTION__);
         pd->getCallbackLock()->enter();
 
         int x = 0, y = 0, w = 0, h = 0;
@@ -129,9 +123,9 @@ public:
         auto* radio = static_cast<t_radio*>(ptr);
 
         if (isVertical) {
-            bounds.setSize(radio->x_gui.x_w, radio->x_gui.x_h);
+            bounds.setSize(radio->x_gui.x_w, radio->x_gui.x_w * numItems);
         } else {
-            bounds.setSize(radio->x_gui.x_h, radio->x_gui.x_w);
+            bounds.setSize(radio->x_gui.x_h * numItems , radio->x_gui.x_h);
         }
 
         pd->getCallbackLock()->exit();
@@ -144,7 +138,7 @@ public:
         g.setColour(iemHelper.getBackgroundColour());
         g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), PlugDataLook::objectCornerRadius);
 
-        int size = (isVertical ? getWidth() : getHeight());
+        int size = (isVertical ? getHeight() / numItems : getHeight());
         //int minSize = 12;
         //size = std::max(size, minSize);
 
@@ -178,7 +172,7 @@ public:
     }
 
     ObjectParameters getParameters() override
-    {
+    {        printf("calling: %s\n", __PRETTY_FUNCTION__);
         ObjectParameters allParameters = { { "Options", tInt, cGeneral, &max, {} } };
 
         auto iemParameters = iemHelper.getParameters();
@@ -188,7 +182,7 @@ public:
     }
 
     void updateAspectRatio() 
-    {
+    {        printf("calling: %s\n", __PRETTY_FUNCTION__);
         float verticalLength = ((object->getWidth() - Object::doubleMargin) * numItems) + Object::doubleMargin;
         float horizontalLength = ((object->getHeight() - Object::doubleMargin) * numItems) + Object::doubleMargin;
 
@@ -197,27 +191,30 @@ public:
         } else {
             object->setSize(horizontalLength, object->getHeight());
         }
-        object->setFixedAspectRatio(isVertical ? 1.0f /  numItems : numItems / 1.0f);
+        object->setFixedAspectRatio(isVertical ? 1.0f /  numItems : static_cast<float>(numItems) / 1.0f);
     }
 
     void valueChanged(Value& value) override
-    {
+    {        printf("calling: %s\n", __PRETTY_FUNCTION__);
         if (value.refersToSameSourceAs(max)) {
-            numItems = static_cast<int>(max.getValue());
-            updateAspectRatio();
-            setMaximum(limitValueMin(value, 1));
+            if (static_cast<int>(max.getValue()) != numItems) {
+                limitValueMin(value, 1);
+                numItems = static_cast<int>(max.getValue());
+                updateAspectRatio();
+                setMaximum(numItems);
+            }
         } else {
             iemHelper.valueChanged(value);
         }
     }
 
     float getMaximum()
-    {
+    {        printf("calling: %s\n", __PRETTY_FUNCTION__);
         return static_cast<t_radio*>(ptr)->x_number;
     }
 
     void setMaximum(float maxValue)
-    {
+    {        printf("calling: %s\n", __PRETTY_FUNCTION__);
         if (selected >= maxValue) {
             selected = maxValue - 1;
         }
