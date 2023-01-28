@@ -8,7 +8,7 @@ categories:
 
 pdcategory: GUI, Mixing and Routing
 
-arguments: (none)
+arguments:
 
 inlets:
   1st:

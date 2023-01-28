@@ -8,8 +8,7 @@ categories:
 
 pdcategory: Filters, Data Math
 
-arguments: none
-
+arguments:
 inlets:
   1st:
   - type: list

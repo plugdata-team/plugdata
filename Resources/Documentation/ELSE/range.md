@@ -8,7 +8,7 @@ categories:
 
 pdcategory: Analysis
 
-arguments:(none)
+arguments:
 
 inlets:
   1st:
