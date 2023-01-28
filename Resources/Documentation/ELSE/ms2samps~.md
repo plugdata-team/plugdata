@@ -1,12 +1,12 @@
 ---
 title: ms2samps~
 
-description: Convert ms to samples
+description: convert ms to samples
 
 categories:
 - object
 
-pdcategory: Math
+pdcategory: Signal Math
 
 arguments: (none)
 

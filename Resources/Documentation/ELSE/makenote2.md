@@ -1,7 +1,7 @@
 ---
 title: makenote2
 
-description: [Makenote] variation
+description: [makenote] variation
 
 categories:
 - object

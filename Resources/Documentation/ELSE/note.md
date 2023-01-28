@@ -1,9 +1,11 @@
 ---
 title: note
-description: Text note
+
+description: text note
+
 categories:
  - object
-pdcategory: General
+pdcategory: GUI
 
 arguments:
 - description: none

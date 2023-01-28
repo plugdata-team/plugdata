@@ -1,12 +1,12 @@
 ---
 title: multi.vsl
 
-description: Multi vertical slider
+description: multi vertical slider
 
 categories:
 - object
 
-pdcategory:
+pdcategory: GUI
 
 arguments: (none)
 
@@ -29,7 +29,7 @@ flags:
  - name: -n <float>
    description: sets number of sliders size (default: 8), f 72;
  - name: -range <float \, float>
-   description: sets slidrs' range (default: 0 \, 127), f 72;
+   description: sets slider's' range (default: 0 \, 127), f 72;
  - name:  -name <symbol>
    description: sets arrays name (default: internal), f 72;
  - name: -jump <float>
@@ -45,9 +45,9 @@ flags:
  - name: -bgcolor <f \, f \, f>
     description: sets background color in RGB (default: 255 255 255), f 72;
  - name: -fgcolor <f \, f \, f>
-    description: sets frontground color in RGB (default: 220 220 220), f 72;
+    description: sets foreground color in RGB (default: 220 220 220), f 72;
  - name: -linecolor <f \, f \, f>
-    dscription: sets line color in RGB (default: 0 0 0), f 72;
+    description: sets line color in RGB (default: 0 0 0), f 72;
  - name: -set <list>
     description: sets slider's values (default: 0 0 0 0 0 0 0 0), f 72;
  - name -mode <float>
@@ -60,7 +60,7 @@ methods:
   - type: dump
     description: outputs values sequentially as slider number / value
   - type: set <list>
-    description: sets values from the index deefined in the first float
+    description: sets values from the index defined in the first float
   - type: setall <float>
     description: sets all sliders' values
   - type: get <list>
@@ -82,7 +82,7 @@ methods:
   - type: export
     description: outputs sliders values as a list
   - type: init <float>
-    description: non zerto sets to jump on click mode
+    description: non zero sets to jump on click mode
   - type: send <symbol>
     description: sets send name
   - type: receive <symbol>
@@ -90,11 +90,11 @@ methods:
   - type: bgcolor <f, f, f>
     description: sets background color in RGB
   - type: fgcolor <f, f, f>
-    description: sets frontground color in RGB
+    description: sets foreground color in RGB
   - type: linecolor <f, f, f>
     description: sets line color in RGB
 
 draft: false
 ---
 
-[multi.vsler] is a multi slider GUI abstraction.
+[multi.vsl] is a multi slider GUI abstraction.

@@ -1,12 +1,12 @@
 ---
 title: mouse
 
-description: Grab mouse
+description: grab mouse
 
 categories:
  - object
 
-pdcategory: Control
+pdcategory: Networking
 
 arguments: (none)
 

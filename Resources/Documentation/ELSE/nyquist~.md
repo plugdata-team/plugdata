@@ -1,9 +1,13 @@
 ---
 title: nyquist~
-description: Get nyquist
+
+description: get nyquist
+
 categories:
  - object
-pdcategory: General
+
+pdcategory: Analysis
+
 arguments:
 - type: none
   description:

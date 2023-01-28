@@ -1,12 +1,12 @@
 ---
 title: lin2db
 
-description: Convert linear amplitude to dBFS
+description: convert linear amplitude to dBFS
 
 categories:
 - object
 
-pdcategory:
+pdcategory: Data Math
 
 arguments:
 

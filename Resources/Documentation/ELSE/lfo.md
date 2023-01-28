@@ -1,12 +1,12 @@
 ---
 title: lfo
 
-description: Control LFO
+description: control LFO
 
 categories:
 - object
 
-pdcategory:
+pdcategory: Envelopes and LFOs
 
 arguments:
 - description: sets frequency in hertz (default 0)

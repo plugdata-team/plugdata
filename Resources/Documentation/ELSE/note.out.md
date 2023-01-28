@@ -1,9 +1,12 @@
 ---
 title: note.out
-description: Midi pitch output
+
+description: MIDI pitch output
+
 categories:
  - object
-pdcategory: General
+
+pdcategory: MIDI
 
 arguments:
 - type: float
@@ -19,7 +22,7 @@ inlets:
     description: velocity values
   3rd:
   - type: float
-    description: note on/off flag (if -rel flagis given)
+    description: note on/off flag (if -rel flag is given)
 outlets:
   1st:
   - type: float

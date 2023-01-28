@@ -1,11 +1,12 @@
 ---
 title: lag2~
+
 description: non-linear lag
 
 categories:
  - object
 
-pdcategory: General
+pdcategory: Envelopes and LFOs
 
 arguments:
 - type: float
