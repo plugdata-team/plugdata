@@ -7,6 +7,9 @@
 
 struct TextObjectHelper
 {
+    
+    inline static int minWidth = 25;
+    
     static Rectangle<int> recalculateTextObjectBounds(void* patchPtr, void* objPtr, const String& currentText, int fontHeight, int& numLines, bool applyOffset = false, int maxIolets = 0) {
         
         int x, y, w, h;
@@ -20,13 +23,13 @@ struct TextObjectHelper
         int offset = applyOffset ? idealTextWidth % fontWidth : 0;
         
         if(currentText.isEmpty()) { // If text is empty, set to minimum width
-            w = 35;
+            w = minWidth;
         }
         else if (charWidth == 0) { // If width is set to automatic, calculate based on text width
             w = std::min(idealTextWidth, fontWidth * 60);
         }
         else { // If width was set manually, calculate what the width is
-            w = std::max(35, charWidth * fontWidth) + offset;
+            w = std::max(minWidth, charWidth * fontWidth) + offset;
         }
         
         w = std::max(w, maxIolets * 18);
@@ -68,7 +71,7 @@ struct TextObjectHelper
     
     static int getIdealWidthForText(String text, int fontHeight) {
         auto lines = StringArray::fromLines(text);
-        int w = 35;
+        int w = minWidth;
 
         for (auto& line : lines) {
             w = std::max<int>(Font(fontHeight).getStringWidthFloat(line) + 14.0f, w);
