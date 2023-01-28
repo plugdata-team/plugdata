@@ -1025,6 +1025,7 @@ void PluginProcessor::setTheme(String themeToUse)
 
     if (auto* editor = dynamic_cast<PluginEditor*>(getActiveEditor())) {
         if (auto* cnv = editor->getCurrentCanvas()) {
+            // Calling synchonise here is not neat, but it's a way to make sure both colours and other theme properties get applied...
             cnv->synchronise();
         }
         
