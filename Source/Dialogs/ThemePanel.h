@@ -294,7 +294,8 @@ public:
 
             themeSelectors[i].setColour(ComboBox::backgroundColourId, Colours::transparentBlack);
             themeSelectors[i].setColour(ComboBox::outlineColourId, Colours::transparentBlack);
-
+            themeSelectors[i].setColour(ComboBox::textColourId, findColour(PlugDataColour::canvasTextColourId));
+            
             themeSelectors[i].onChange = [this, i]() mutable {
                 int themeIdx = PlugDataLook::selectedThemes.indexOf(PlugDataLook::currentTheme);
 
@@ -487,6 +488,12 @@ public:
                     return;
                 }
             }
+        }
+        
+        for(int i = 0; i < 2; i++) {
+            themeSelectors[i].setColour(ComboBox::backgroundColourId, Colours::transparentBlack);
+            themeSelectors[i].setColour(ComboBox::outlineColourId, Colours::transparentBlack);
+            themeSelectors[i].setColour(ComboBox::textColourId, findColour(PlugDataColour::canvasTextColourId));
         }
     }
 

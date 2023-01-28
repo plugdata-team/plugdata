@@ -1024,26 +1024,12 @@ void PluginProcessor::setTheme(String themeToUse)
     lnf->setTheme(themeTree);
 
     if (auto* editor = dynamic_cast<PluginEditor*>(getActiveEditor())) {
+        if (auto* cnv = editor->getCurrentCanvas()) {
+            cnv->synchronise();
+        }
+        
         editor->getTopLevelComponent()->repaint();
         editor->repaint();
-
-        if (auto* cnv = editor->getCurrentCanvas()) {
-            cnv->viewport->repaint();
-
-            // Some objects with setBufferedToImage need manual repainting
-            for (auto* object : cnv->objects) {
-
-                object->gui->repaint();
-
-                // Make sure label colour gets updated
-                if (auto* gui = dynamic_cast<ObjectBase*>(object->gui.get())) {
-                    gui->updateLabel();
-                }
-            }
-            for (auto* con : cnv->connections)
-                reinterpret_cast<Component*>(con)->repaint();
-            cnv->repaint();
-        }
     }
 }
 
