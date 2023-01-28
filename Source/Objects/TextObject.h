@@ -138,6 +138,7 @@ protected:
     String objectText;
     int numLines = 1;
     bool isValid = true;
+    bool firstRun = true;
 
 public:
     TextBase(void* obj, Object* parent, bool valid = true)
@@ -232,7 +233,10 @@ public:
         numLines = newNumLines;
         
         if(newBounds != object->getObjectBounds()) {
-            //object->setObjectBounds(newBounds);
+            if (firstRun) {
+                object->setObjectBounds(newBounds);
+                firstRun = false;
+            }
             object->setMinimumHeight(newBounds.getHeight());
             object->setMaximumHeight(newBounds.getHeight());
         }
