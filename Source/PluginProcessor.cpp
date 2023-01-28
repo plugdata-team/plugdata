@@ -130,7 +130,7 @@ PluginProcessor::PluginProcessor()
             for (auto* cnv : editor->canvases) {
                 // Make sure inlets/outlets are updated
                 for (auto* object : cnv->objects)
-                    object->updatePorts();
+                    object->updateIolets();
             }
         }
 

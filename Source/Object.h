@@ -36,7 +36,7 @@ public:
     void paintOverChildren(Graphics&) override;
     void resized() override;
 
-    void updatePorts();
+    void updateIolets();
 
     void setType(String const& newType, void* existingObject = nullptr);
     void updateBounds();
