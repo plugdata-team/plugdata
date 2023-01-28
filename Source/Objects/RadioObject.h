@@ -93,7 +93,7 @@ public:
 
     void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
     {
-        if (symbol == "float") {
+        if (symbol == "float" || symbol == "set") {
             selected = atoms[0].getFloat();
             repaint();
         }
