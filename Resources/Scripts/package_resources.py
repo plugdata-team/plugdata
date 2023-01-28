@@ -87,6 +87,7 @@ globCopy("../../Libraries/pure-data/extra/**/*-help.pd", "./Abstractions")
 globCopy("../../Libraries/ELSE/Abstractions/*.pd", "./Abstractions/else")
 copyFile("../Patches/playhead.pd", "./Abstractions")
 copyFile("../Patches/param.pd", "./Abstractions")
+copyFile("../Patches/beat.pd", "./Abstractions")
 
 globMove("./Abstractions/*-help.pd", "./Documentation/5.reference")
 
