@@ -77,8 +77,8 @@ public:
         ramp = object->x_ramp_ms;
         init = object->x_set_val;
 
-        primaryColour = "ff" + String(object->x_fg->s_name + 1);
-        secondaryColour = "ff" + String(object->x_bg->s_name + 1);
+        primaryColour = "ff" + String::fromUTF8(object->x_fg->s_name + 1);
+        secondaryColour = "ff" + String::fromUTF8(object->x_bg->s_name + 1);
 
         auto fg = Colour::fromString(primaryColour.toString());
         getLookAndFeel().setColour(Label::textColourId, fg);

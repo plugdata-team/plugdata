@@ -278,7 +278,7 @@ public:
         iemgui_all_sym2dollararg(iemgui, srlsym);
 
         if (srl_is_valid(srlsym[0])) {
-            return String(iemgui->x_snd_unexpanded->s_name);
+            return String::fromUTF8(iemgui->x_snd_unexpanded->s_name);
         }
 
         return "";
@@ -290,7 +290,7 @@ public:
         iemgui_all_sym2dollararg(iemgui, srlsym);
 
         if (srl_is_valid(srlsym[1])) {
-            return String(iemgui->x_rcv_unexpanded->s_name);
+            return String::fromUTF8(iemgui->x_rcv_unexpanded->s_name);
         }
 
         return "";

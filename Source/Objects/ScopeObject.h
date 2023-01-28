@@ -113,7 +113,7 @@ public:
         primaryColour = colourFromHexArray(scope->x_fg).toString();
         gridColour = colourFromHexArray(scope->x_gg).toString();
 
-        auto rcv = String(scope->x_rcv_raw->s_name);
+        auto rcv = String::fromUTF8(scope->x_rcv_raw->s_name);
         if (rcv == "empty")
             rcv = "";
         receiveSymbol = rcv;

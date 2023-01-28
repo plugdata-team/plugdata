@@ -143,17 +143,17 @@ String ObjectBase::getType() const
             return String::fromUTF8(namebuf).fromLastOccurrenceOf("/", false, false);
         }
         // Deal with different text objects
-        if (String(libpd_get_object_class_name(ptr)) == "text" && static_cast<t_text*>(ptr)->te_type == T_OBJECT) {
+        if (String::fromUTF8(libpd_get_object_class_name(ptr)) == "text" && static_cast<t_text*>(ptr)->te_type == T_OBJECT) {
             return String("invalid");
         }
-        if (String(libpd_get_object_class_name(ptr)) == "text" && static_cast<t_text*>(ptr)->te_type == T_TEXT) {
+        if (String::fromUTF8(libpd_get_object_class_name(ptr)) == "text" && static_cast<t_text*>(ptr)->te_type == T_TEXT) {
             return String("comment");
         }
-        if (String(libpd_get_object_class_name(ptr)) == "text" && static_cast<t_text*>(ptr)->te_type == T_MESSAGE) {
+        if (String::fromUTF8(libpd_get_object_class_name(ptr)) == "text" && static_cast<t_text*>(ptr)->te_type == T_MESSAGE) {
             return String("message");
         }
         // Deal with atoms
-        if (String(libpd_get_object_class_name(ptr)) == "gatom") {
+        if (String::fromUTF8(libpd_get_object_class_name(ptr)) == "gatom") {
             if (static_cast<t_fake_gatom*>(ptr)->a_flavor == A_FLOAT)
                 return "floatbox";
             else if (static_cast<t_fake_gatom*>(ptr)->a_flavor == A_SYMBOL)
@@ -163,7 +163,7 @@ String ObjectBase::getType() const
         }
         // Get class name for all other objects
         if (auto* name = libpd_get_object_class_name(ptr)) {
-            return String(name);
+            return String::fromUTF8(name);
         }
     }
 

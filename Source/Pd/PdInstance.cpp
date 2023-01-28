@@ -24,27 +24,27 @@ struct pd::Instance::internal {
 
     static void instance_multi_bang(pd::Instance* ptr, char const* recv)
     {
-        ptr->enqueueFunctionAsync([ptr, recv]() { ptr->processMessage({ String("bang"), String(recv) }); });
+        ptr->enqueueFunctionAsync([ptr, recv]() { ptr->processMessage({ String("bang"), String::fromUTF8(recv) }); });
     }
 
     static void instance_multi_float(pd::Instance* ptr, char const* recv, float f)
     {
-        ptr->enqueueFunctionAsync([ptr, recv, f]() mutable { ptr->processMessage({ String("float"), String(recv), std::vector<Atom>(1, { f }) }); });
+        ptr->enqueueFunctionAsync([ptr, recv, f]() mutable { ptr->processMessage({ String("float"), String::fromUTF8(recv), std::vector<Atom>(1, { f }) }); });
     }
 
     static void instance_multi_symbol(pd::Instance* ptr, char const* recv, char const* sym)
     {
-        ptr->enqueueFunctionAsync([ptr, recv, sym]() mutable { ptr->processMessage({ String("symbol"), String(recv), std::vector<Atom>(1, String(sym)) }); });
+        ptr->enqueueFunctionAsync([ptr, recv, sym]() mutable { ptr->processMessage({ String("symbol"), String::fromUTF8(recv), std::vector<Atom>(1, String::fromUTF8(sym)) }); });
     }
 
     static void instance_multi_list(pd::Instance* ptr, char const* recv, int argc, t_atom* argv)
     {
-        Message mess { String("list"), String(recv), std::vector<Atom>(argc) };
+        Message mess { String("list"), String::fromUTF8(recv), std::vector<Atom>(argc) };
         for (int i = 0; i < argc; ++i) {
             if (argv[i].a_type == A_FLOAT)
                 mess.list[i] = Atom(atom_getfloat(argv + i));
             else if (argv[i].a_type == A_SYMBOL)
-                mess.list[i] = Atom(String(atom_getsymbol(argv + i)->s_name));
+                mess.list[i] = Atom(String::fromUTF8(atom_getsymbol(argv + i)->s_name));
         }
 
         ptr->enqueueFunctionAsync([ptr, mess]() mutable { ptr->processMessage(mess); });
@@ -52,12 +52,12 @@ struct pd::Instance::internal {
 
     static void instance_multi_message(pd::Instance* ptr, char const* recv, char const* msg, int argc, t_atom* argv)
     {
-        Message mess { msg, String(recv), std::vector<Atom>(argc) };
+        Message mess { msg, String::fromUTF8(recv), std::vector<Atom>(argc) };
         for (int i = 0; i < argc; ++i) {
             if (argv[i].a_type == A_FLOAT)
                 mess.list[i] = Atom(atom_getfloat(argv + i));
             else if (argv[i].a_type == A_SYMBOL)
-                mess.list[i] = Atom(String(atom_getsymbol(argv + i)->s_name));
+                mess.list[i] = Atom(String::fromUTF8(atom_getsymbol(argv + i)->s_name));
         }
         ptr->enqueueFunctionAsync([ptr, mess]() mutable { ptr->processMessage(std::move(mess)); });
     }
@@ -137,14 +137,14 @@ Instance::Instance(String const& symbol)
     // Register callback when pd's gui changes
     // Needs to be done on pd's thread
     auto gui_trigger = [](void* instance, char const* name, t_atom* arg1, t_atom* arg2, t_atom* arg3) {
-        if (String(name) == "openpanel") {
+        if (String::fromUTF8(name) == "openpanel") {
 
             static_cast<Instance*>(instance)->createPanel(atom_getfloat(arg1), atom_getsymbol(arg3)->s_name, atom_getsymbol(arg2)->s_name);
         }
-        if (String(name) == "openfile") {
+        if (String::fromUTF8(name) == "openfile") {
             File(String::fromUTF8(atom_getsymbol(arg1)->s_name)).startAsProcess();
         }
-        if (String(name) == "repaint") {
+        if (String::fromUTF8(name) == "repaint") {
             static_cast<Instance*>(instance)->receiveGuiUpdate();
         }
     };
@@ -162,7 +162,7 @@ Instance::Instance(String const& symbol)
                 cleanUp = true;
                 continue;
             }
-            auto sym = String(symbol->s_name);
+            auto sym = String::fromUTF8(symbol->s_name);
             listener->receiveMessage(sym, argc, argv);
         }
 

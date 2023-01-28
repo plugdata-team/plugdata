@@ -136,7 +136,7 @@ void Connection::pushPathState()
 
 void Connection::popPathState()
 {
-    auto const state = String(ptr->outconnect_path_data->s_name);
+    auto const state = String::fromUTF8(ptr->outconnect_path_data->s_name);
     
     std::cout << "State popped: " << state << std::endl;
     if(state == "empty") {
