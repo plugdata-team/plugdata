@@ -6,7 +6,7 @@ description: random values from histogram
 categories:
  - object
 
-pdcategory: Data Management, Noise
+pdcategory: Data Management, Random and Noise
 
 arguments:
 - type: list
