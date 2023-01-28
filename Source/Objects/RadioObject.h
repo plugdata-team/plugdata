@@ -28,7 +28,7 @@ public:
 
         selected = getValue();
 
-        numItems = static_cast<int>(max.getValue());
+        valueChanged(max);
 
         if (selected > static_cast<int>(max.getValue())) {
             selected = std::min<int>(static_cast<int>(max.getValue()) - 1, selected);
@@ -43,20 +43,6 @@ public:
     void initialiseParameters() override
     {
         iemHelper.initialiseParameters();
-    }
-
-    void resized() override
-    {
-        int size = (isVertical ? getWidth() : getHeight());
-        int minSize = 12;
-        size = std::max(size, minSize);
-
-        // Fix aspect ratio
-        if (isVertical) {
-            object->setSize(std::max(object->getWidth(), minSize + Object::doubleMargin), size * numItems + Object::doubleMargin);
-        } else {
-            object->setSize(size * numItems + Object::doubleMargin, std::max(object->getHeight(), minSize + Object::doubleMargin));
-        }
     }
 
     void applyBounds() override
