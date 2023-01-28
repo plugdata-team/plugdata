@@ -6,7 +6,7 @@ description: signal operator
 categories:
 - object
 
-pdcategory:
+pdcategory: Signal Math
 
 arguments:
   1st:

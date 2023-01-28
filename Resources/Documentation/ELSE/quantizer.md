@@ -1,18 +1,18 @@
 ---
 title: quantizer
-description: Quantize to steps
+description: quantize to steps
 
 categories:
  - object
 
-pdcategory: General
+pdcategory: Data Math
 
 arguments:
 - type: float
   description: step value
   default: 0, no approximation
 - type: float
-  description: approximation mode: 0 (round), 1 (int), 2 (floor), or 3 (ceil)
+  description: mode: 0 (round), 1 (int), 2 (floor), or 3 (ceil)
   default: 0
 
 inlets:
@@ -32,7 +32,7 @@ outlets:
 
 methods:
   - type: mode <float>
-    description: sets approximarion mode <0, 1, 2, or 3>
+    description: sets approximation mode <0, 1, 2, or 3>
 
 ---
 

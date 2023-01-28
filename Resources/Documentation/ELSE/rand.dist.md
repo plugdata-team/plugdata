@@ -1,12 +1,12 @@
 ---
 title: rand.dist
 
-description: Random distribution 
+description: random distribution 
 
 categories:
  - object
 
-pdcategory: Control
+pdcategory: Data Management, Noise
 
 arguments:
 - type: symbol

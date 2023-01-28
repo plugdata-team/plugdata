@@ -1,11 +1,11 @@
 ---
 title: properties
-description: Respond to properties on parent
+description: respond to properties on parent
 
 categories:
  - object
 
-pdcategory: General
+pdcategory: Data Management
 
 arguments:
 - type: float

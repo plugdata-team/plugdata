@@ -1,12 +1,12 @@
 ---
 title: pol2car~
 
-description: Polar to cartesian conversion
+description: polar to cartesian conversion
 
 categories:
 - object
 
-pdcategory:
+pdcategory: Signal Math
 
 arguments:
 - description:

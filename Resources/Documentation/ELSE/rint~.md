@@ -1,12 +1,12 @@
 ---
 title: rint~
 
-description: Round to nearest integer
+description: round to nearest integer
 
 categories:
  - object
 
-pdcategory: Math
+pdcategory: Signal Math
 
 arguments: (none)
 

@@ -1,12 +1,12 @@
 ---
 title: out1~
 
-description: Mono output
+description: mono output
 
 categories:
 - object
 
-pdcategory:
+pdcategory: Audio I/O
 
 arguments:
   1st:

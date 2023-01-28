@@ -1,6 +1,7 @@
 ---
 title: rms~
-description: Detecr RMS amplitude
+
+description: detect RMS amplitude
 
 categories:
  - object

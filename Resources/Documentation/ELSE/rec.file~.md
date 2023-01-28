@@ -1,12 +1,12 @@
 ---
 title: rec.file~
 
-description: Record sound file
+description: record sound file
 
 categories:
 - object
 
-pdcategory: General
+pdcategory: Buffers
 
 arguments:
 - type: symbol
@@ -27,7 +27,7 @@ inlets:
 
   nth:
   - type: signal
-    description: signal inputs to record for each channek
+    description: signal inputs to record for each channel
 
 outlets:
   1st:

@@ -1,11 +1,11 @@
 ---
 title: osc.parse
-description: Parse OSC messages
+description: parse OSC messages
 
 categories:
  - object
 
-pdcategory: General
+pdcategory: Networking
 
 arguments:
 

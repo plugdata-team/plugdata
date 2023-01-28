@@ -1,12 +1,12 @@
 ---
 title: routetype
 
-description: Route message types
+description: route message types
 
 categories:
  - object
 
-pdcategory: Message management
+pdcategory: Data Management
 
 arguments:
 - type: anything
@@ -24,10 +24,10 @@ outlets:
     description: any message that corresponds to a type
   2nd:
   - type: anything
-    description: uncorresponding messages if less than the 6 types are given
+    description: non-corresponding messages if less than the 6 types are given
 
 draft: false
 ---
 
 [routetype] routes messages according to its type, such as "bang", "float", "list" and "symbol". There is also the "anything" type, which is can be defined as "any other" message that is not the former ones.
-These 5 types are given as arguments, and there's an outlet corresponding to each given argument that sends out the message type according to the argumentm(bang", "float", "list", "symbol" or "any").
+These 5 types are given as arguments, and there's an outlet corresponding to each given argument that sends out the message type according to the arguments(bang", "float", "list", "symbol" or "any").

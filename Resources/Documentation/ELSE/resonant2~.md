@@ -1,15 +1,16 @@
 ---
 title: resonant2~
-description: Resonant filter with attack/decay time
+
+description: resonant filter with attack/decay time
 
 categories:
  - object
 
-pdcategory: DSP
+pdcategory: Filters, Effects
 
 arguments:
 - type: float
-  description: center frequency in herz
+  description: center frequency in hertz
   default: 0
 - type: float
   description: attack time in ms
@@ -21,7 +22,7 @@ arguments:
 inlets:
   1st:
   - type: signal
-    description: singal to be filtered or excite the resonator
+    description: signal to be filtered or excite the resonator
   2nd:
   - type: float/signal
     description: central frequency in hertz

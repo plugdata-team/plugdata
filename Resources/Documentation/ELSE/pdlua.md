@@ -1,11 +1,12 @@
 ---
 title: pdlua
-description: Load externals written in Lua
+
+description: load externals written in Lua
 
 categories:
  - object
 
-pdcategory: General
+pdcategory: Data Management
 
 arguments:
 
