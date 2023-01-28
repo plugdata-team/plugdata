@@ -108,7 +108,7 @@ void Object::valueChanged(Value& v)
 {
     if (v.refersToSameSourceAs(hvccMode)) {
         if (gui) {
-            auto typeName = String(libpd_get_object_class_name(gui->ptr));
+            auto typeName = String::fromUTF8(libpd_get_object_class_name(gui->ptr));
             // Check hvcc compatibility
             bool isSubpatch = gui ? gui->getPatch() != nullptr : false;
             isHvccCompatible = !static_cast<bool>(hvccMode.getValue()) || isSubpatch || hvccObjects.contains(typeName);
@@ -246,7 +246,7 @@ void Object::setType(String const& newType, void* existingObject)
         addAndMakeVisible(gui.get());
     }
 
-    auto typeName = String(libpd_get_object_class_name(objectPtr));
+    auto typeName = String::fromUTF8(libpd_get_object_class_name(objectPtr));
     // Check hvcc compatibility
     bool isSubpatch = gui ? gui->getPatch() != nullptr : false;
     isHvccCompatible = !static_cast<bool>(hvccMode.getValue()) || isSubpatch || hvccObjects.contains(typeName);

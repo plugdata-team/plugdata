@@ -63,8 +63,8 @@ public:
         Array<var> arr = { function->x_min, function->x_max };
         range = var(arr);
 
-        auto sndSym = String(function->x_send->s_name);
-        auto rcvSym = String(function->x_receive->s_name);
+        auto sndSym = String::fromUTF8(function->x_send->s_name);
+        auto rcvSym = String::fromUTF8(function->x_receive->s_name);
 
         sendSymbol = sndSym != "empty" ? sndSym : "";
         receiveSymbol = rcvSym != "empty" ? rcvSym : "";

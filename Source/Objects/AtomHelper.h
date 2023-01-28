@@ -255,7 +255,7 @@ public:
     t_symbol* gatom_unescapit(t_symbol* s)
     {
         if (*s->s_name == '-')
-            return (pd->generateSymbol(String(s->s_name + 1)));
+            return (pd->generateSymbol(String::fromUTF8(s->s_name + 1)));
         else
             return (iemgui_raute2dollar(s));
     }

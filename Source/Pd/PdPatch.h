@@ -108,7 +108,7 @@ public:
         int bufsize;
         libpd_getcontent(static_cast<t_canvas*>(ptr), &buf, &bufsize);
 
-        auto content = String(buf, static_cast<size_t>(bufsize));
+        auto content = String::fromUTF8(buf, static_cast<size_t>(bufsize));
         return content;
     }
 
