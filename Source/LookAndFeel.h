@@ -849,6 +849,14 @@ struct PlugDataLook : public LookAndFeel_V4 {
     }
 
     // For drawing regular text
+    static void drawText(Graphics& g, String const& textToDraw, Rectangle<float> bounds, Colour colour, int fontHeight = 15, Justification justification = Justification::centredLeft)
+    {
+        g.setFont(Fonts::getDefaultFont().withHeight(fontHeight));
+        g.setColour(colour);
+        g.drawText(textToDraw, bounds, justification);
+    }
+    
+    // For drawing regular text
     static void drawText(Graphics& g, String const& textToDraw, Rectangle<int> bounds, Colour colour, int fontHeight = 15, Justification justification = Justification::centredLeft)
     {
         g.setFont(Fonts::getDefaultFont().withHeight(fontHeight));
@@ -858,7 +866,7 @@ struct PlugDataLook : public LookAndFeel_V4 {
 
     static void drawText(Graphics& g, String const& textToDraw, int x, int y, int w, int h, Colour colour, int fontHeight = 15, Justification justification = Justification::centredLeft)
     {
-        drawText(g, textToDraw, { x, y, w, h }, colour, fontHeight, justification);
+        drawText(g, textToDraw, Rectangle<int>(x, y, w, h), colour, fontHeight, justification);
     }
 
     static void drawFittedText(Graphics& g, String const& textToDraw, Rectangle<int> bounds, Colour colour, int numLines = 1, float minimumHoriontalScale = 1.0f, int fontHeight = 15, Justification justification = Justification::centredLeft)

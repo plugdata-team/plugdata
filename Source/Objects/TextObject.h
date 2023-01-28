@@ -204,7 +204,18 @@ public:
         pd->getCallbackLock()->enter();
 
         auto* cnvPtr = cnv->patch.getPointer();
-        auto objText = editor ? editor->getText() : objectText;
+                
+        String objText;
+        if(editor && cnv->suggestor && cnv->suggestor->getText().isNotEmpty()) {
+            objText = cnv->suggestor->getText();
+        }
+        else if(editor) {
+            objText = editor->getText();
+        }
+        else {
+            objText = objectText;
+        }
+        
         auto newNumLines = 0;
 
         auto newBounds = TextObjectHelper::recalculateTextObjectBounds(cnvPtr, ptr, objText, 15, newNumLines, true, std::max({ 1, object->numInputs, object->numOutputs }));
@@ -241,8 +252,6 @@ public:
             WeakReference<Component> deletionChecker(this);
             std::unique_ptr<TextEditor> outgoingEditor;
             std::swap(outgoingEditor, editor);
-
-            outgoingEditor->setInputFilter(nullptr, false);
 
             cnv->hideSuggestions();
 
