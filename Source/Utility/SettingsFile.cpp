@@ -142,7 +142,7 @@ void SettingsFile::addToRecentlyOpened(File path)
         ValueTree subTree("Path");
         subTree.setProperty("Path", path.getFullPathName(), nullptr);
         subTree.setProperty("Time", Time::getCurrentTime().toMilliseconds(), nullptr);
-        recentlyOpened.appendChild(subTree, nullptr);
+        recentlyOpened.addChild(subTree, 0, nullptr);
     }
 
     while (recentlyOpened.getNumChildren() > 10) {
