@@ -1,7 +1,7 @@
 ---
 title: route2
 
-description: [Route] variant
+description: [route] variant
 
 categories:
  - object
@@ -10,7 +10,7 @@ pdcategory: Data Management
 
 arguments:
 - type: float/symbol
-  description: list of adrresses to route to
+  description: list of addresses to route to
   default: 
 
 inlets:

@@ -1,11 +1,11 @@
 ---
 title: osc.send
-description: Send OSC messages
+description: send OSC messages
 
 categories:
  - object
 
-pdcategory: General
+pdcategory: Networking
 
 arguments:
   - type: anything

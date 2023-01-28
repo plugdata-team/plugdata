@@ -1,12 +1,12 @@
 ---
 title: resonbank~
 
-description: Bank of resonant filters
+description: bank of resonant filters
 
 categories:
 - object
 
-pdcategory: DSP
+pdcategory: Filters, Effects
 
 arguments:
 - type: float

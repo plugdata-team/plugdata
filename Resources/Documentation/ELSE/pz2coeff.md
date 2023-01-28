@@ -1,12 +1,12 @@
 ---
 title: pz2coeff
 
-description: Poles/Zeros to biquad coefficients conversion
+description: poles/zeros to biquad coefficients conversion
 
 categories:
 - object
 
-pdcategory:
+pdcategory: Data Math, Filters
 
 arguments:
 - description:

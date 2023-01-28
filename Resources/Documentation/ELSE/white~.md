@@ -6,7 +6,7 @@ description: white noise generator
 categories:
  - object
  
-pdcategory: Noise
+pdcategory: Noise, Signal Generators
 
 arguments: (none)
   

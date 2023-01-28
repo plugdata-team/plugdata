@@ -1,12 +1,12 @@
 ---
 title: pick
 
-description: Pick element from message
+description: pick element from message
 
 categories:
 - object
 
-pdcategory:
+pdcategory: Data Management
 
 arguments:
 - description: element number

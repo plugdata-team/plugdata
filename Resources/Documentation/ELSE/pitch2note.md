@@ -6,7 +6,7 @@ description: Convert MIDI pitch to note name
 categories:
 - object
 
-pdcategory:
+pdcategory: MIDI
 
 arguments:
 - description:
@@ -28,13 +28,14 @@ outlets:
 
 flags:
   - name: -unicode
-    description: sets to unicode moode
+    description: sets to unicode mode
   - name: -list
     description: sets to list output mode
 
 methods:
   - type: chromatic
-    description: sets to chromatic mode (default)
+    description: sets to chromatic mode 
+    default: chromatic
   - type: sharp
     description: sets to sharp mode
   - type: flat

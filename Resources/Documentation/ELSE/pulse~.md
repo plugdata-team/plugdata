@@ -1,11 +1,11 @@
 ---
 title: pulse~
-description: Pulse train oscillator
+description: pulse train oscillator
 
 categories:
  - object
 
-pdcategory: General
+pdcategory: Signal Generators
 
 arguments:
 - type: float
@@ -27,7 +27,7 @@ inlets:
     description: pulse width (from 0 to 1)
   3rd:
   - type: float/signal
-    description: phase sync (ressets internal phase)
+    description: phase sync (resets internal phase)
   4th:
   - type: float/signal
     description: phase offset (modulation input)

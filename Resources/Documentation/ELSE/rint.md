@@ -1,18 +1,19 @@
 ---
 title: rint
-description: Round to nearest integer
+
+description: round to nearest integer
 
 categories:
  - object
 
-pdcategory: Math
+pdcategory: Data Math
 
 arguments: (none)
 
 inlets:
   1st:
   - type: float/list
-    description: inout value(s) to round
+    description: value(s) to round
 
 outlets:
   1st:

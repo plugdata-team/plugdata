@@ -1,12 +1,12 @@
 ---
 title: polymetro
 
-description: Polyrhythmic metronome
+description: polyrhythmic metronome
 
 categories:
 - object
 
-pdcategory:
+pdcategory: Triggers and Clocks
 
 arguments:
 - description: tempo in BPM

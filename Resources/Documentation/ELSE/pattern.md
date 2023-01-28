@@ -1,12 +1,12 @@
 ---
 title: pattern
 
-description: Rhythmic pattern sequencer
+description: rhythmic pattern sequencer
 
 categories:
 - object
 
-pdcategory:
+pdcategory: Sequencing
 
 arguments:
 - description: sets sequence

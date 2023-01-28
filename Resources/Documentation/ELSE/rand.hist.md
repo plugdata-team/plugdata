@@ -1,12 +1,12 @@
 ---
 title: rand.hist
 
-description: Random values from histogram
+description: random values from histogram
 
 categories:
  - object
 
-pdcategory: Control
+pdcategory: Data Management, Noise
 
 arguments:
 - type: list

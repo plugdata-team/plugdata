@@ -1,12 +1,12 @@
 ---
 title: pi
 
-description: Get the value of Pi
+description: get the value of Pi
 
 categories:
 - object
 
-pdcategory:
+pdcategory: Data Math
 
 arguments:
 - description: multiplier

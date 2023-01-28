@@ -1,12 +1,12 @@
 ---
 title: pan8~
 
-description: Octaphonic panning
+description: octaphonic panning
 
 categories:
 - object
 
-pdcategory:
+pdcategory: Mixing and Routing
 
 arguments:
 - description:

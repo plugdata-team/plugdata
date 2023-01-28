@@ -1,12 +1,12 @@
 ---
 title: rand.i
 
-description: Random integer number generator
+description: random integer number generator
 
 categories:
  - object
 
-pdcategory: Control
+pdcategory: Noise, Data Math
 
 arguments:
 - type: float

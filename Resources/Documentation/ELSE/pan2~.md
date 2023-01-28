@@ -1,10 +1,12 @@
 ---
 title: pan2~
-description: Stereo panning
+
+description: stereo panning
 
 categories:
  - object
-pdcategory: General
+
+pdcategory: Mixing and Routing
 
 arguments:
 - type: float

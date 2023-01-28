@@ -1,12 +1,12 @@
 ---
 title: rand.f
 
-description: Random float number generator
+description: random float number generator
 
 categories:
  - object
 
-pdcategory: Control
+pdcategory: Data Math, Noise
 
 arguments:
 - type: float

@@ -1,12 +1,12 @@
 ---
 title: rm~
 
-description: Ring Modulator
+description: ring modulator
 
 categories:
 - object
 
-pdcategory: DSP
+pdcategory: Effects
 
 arguments:
 - type: float
