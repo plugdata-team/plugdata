@@ -401,11 +401,19 @@ struct DraggableListNumber : public DraggableNumber {
     void paint(Graphics& g) override
     {
         if (!isBeingEdited()) {
-            g.setFont(getFont());
             g.setColour(findColour(Label::textColourId));
+            g.setFont(getFont());
 
             auto textArea = getBorderSize().subtractedFrom(getLocalBounds());
-            g.drawText(formatNumber(getText().getFloatValue(), decimalDrag), textArea, Justification::centredLeft);
+            g.drawText(getText(), textArea, Justification::centredLeft, false);
         }
+    }
+    
+    
+    void editorHidden(Label* l, TextEditor& editor) override
+    {
+        setText(editor.getText().trimEnd(), dontSendNotification);
+
+        dragEnd();
     }
 };
