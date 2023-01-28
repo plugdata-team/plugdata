@@ -23,6 +23,7 @@ public:
         virtual void midiSentChanged(bool midiSent) {};
         virtual void audioProcessedChanged(bool audioProcessed) {};
         virtual void audioLevelChanged(float newLevel[2]) {};
+        virtual void timerCallback() {};
     };
     
     StatusbarSource();
@@ -56,7 +57,6 @@ private:
 class Statusbar : public Component
     , public SettingsFileListener
     , public Value::Listener
-    , public Timer
     , public StatusbarSource::Listener
 {
     PluginProcessor* pd;

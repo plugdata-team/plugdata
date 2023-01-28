@@ -284,10 +284,6 @@ Statusbar::Statusbar(PluginProcessor* processor)
     levelMeter->toBehind(&volumeSlider);
 
     setSize(getWidth(), statusbarHeight);
-
-    // Timer to make sure modifier keys are up-to-date...
-    // Hoping to find a better solution for this
-    startTimer(150);
 }
 
 Statusbar::~Statusbar()
@@ -497,7 +493,10 @@ void StatusbarSource::timerCallback()
     }
     
     float currentLevel[2] = {level[0].load(), level[1].load()};
-    for(auto* listener : listeners) listener->audioLevelChanged(currentLevel);
+    for(auto* listener : listeners) {
+        listener->audioLevelChanged(currentLevel);
+        listener->timerCallback();
+    }
 }
 
 void StatusbarSource::addListener(Listener* l)
