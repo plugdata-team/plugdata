@@ -313,8 +313,9 @@ public:
             return;
         }
 
-        auto inletDescriptions = library.getInletDescriptions()[name];
-        auto outletDescriptions = library.getOutletDescriptions()[name];
+        auto ioletDescriptions = library.getIoletDescriptions()[name];
+        auto& inletDescriptions = ioletDescriptions[0];
+        auto& outletDescriptions = ioletDescriptions[1];
 
         inlets.resize(inletDescriptions.size());
         outlets.resize(outletDescriptions.size());
