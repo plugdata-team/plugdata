@@ -25,7 +25,6 @@ public:
         };
 
         ok.onClick = [this, parent]() mutable {
-            
             StringArray allThemes = PlugDataLook::getAllThemes();
 
             if (nameEditor.getText().isEmpty()) {
@@ -105,7 +104,8 @@ private:
 };
 
 class ThemePanel : public Component
-    , public Value::Listener, public SettingsFileListener {
+    , public Value::Listener
+    , public SettingsFileListener {
 
     Value fontValue;
 
@@ -127,11 +127,12 @@ class ThemePanel : public Component
 
     std::unique_ptr<FileChooser> saveChooser;
     std::unique_ptr<FileChooser> openChooser;
-        
+
     PluginProcessor* pd;
 
 public:
-    explicit ThemePanel(PluginProcessor* processor) : pd(processor)
+    explicit ThemePanel(PluginProcessor* processor)
+        : pd(processor)
     {
         resetButton.setTooltip("Reset to default");
         resetButton.getProperties().set("Style", "SmallIcon");
@@ -260,7 +261,7 @@ public:
                 if (result < 1)
                     return;
 
-                auto colourThemesTree   = SettingsFile::getInstance()->getColourThemesTree();
+                auto colourThemesTree = SettingsFile::getInstance()->getColourThemesTree();
                 auto selectedThemesTree = SettingsFile::getInstance()->getSelectedThemesTree();
                 auto themeName = allThemes[result - 1];
 
@@ -311,9 +312,9 @@ public:
 
                 pd->setTheme(PlugDataLook::selectedThemes[themeIdx]);
                 SettingsFile::getInstance()->setProperty("theme", PlugDataLook::selectedThemes[themeIdx]);
-                
+
                 getTopLevelComponent()->repaint();
-                
+
                 SettingsFile::getInstance()->saveSettings();
             };
         }
@@ -326,8 +327,9 @@ public:
 
         updateSwatches();
     }
-        
-    void settingsFileReloaded() override {
+
+    void settingsFileReloaded() override
+    {
         updateSwatches();
     };
 
@@ -371,7 +373,7 @@ public:
         Array<Value*> dashedConnectionValues, straightConnectionValues, squareIoletsValues, squareObjectCornersValues, thinConnectionValues;
 
         for (int i = 0; i < 2; i++) {
-            const auto& themeName = PlugDataLook::selectedThemes[i];
+            auto const& themeName = PlugDataLook::selectedThemes[i];
             auto& swatch = swatches[themeName];
             auto themeTree = SettingsFile::getInstance()->getTheme(themeName);
 

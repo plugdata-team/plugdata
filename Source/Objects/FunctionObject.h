@@ -357,9 +357,9 @@ public:
         }
 
         pd->enqueueFunction([_this = SafePointer(this), x, at, ac]() mutable {
-            
-            if(!_this || _this->cnv->patch.objectWasDeleted(x)) return;
-            
+            if (!_this || _this->cnv->patch.objectWasDeleted(x))
+                return;
+
             outlet_list(x->x_obj.ob_outlet, &s_list, ac - 2, at.data());
             if (x->x_send != &s_ && x->x_send->s_thing)
                 pd_list(x->x_send->s_thing, &s_list, ac - 2, at.data());

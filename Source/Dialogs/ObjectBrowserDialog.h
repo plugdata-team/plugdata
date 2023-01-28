@@ -189,7 +189,6 @@ public:
         auto colour = findColour(PlugDataColour::panelTextColourId);
         PlugDataLook::drawStyledText(g, objectName, getLocalBounds().removeFromTop(35).translated(0, 4), colour, Bold, 16.0f, Justification::centred);
 
-
         auto numInlets = unknownInletLayout ? "Unknown" : String(inlets.size());
         auto numOutlets = unknownOutletLayout ? "Unknown" : String(outlets.size());
 
@@ -220,36 +219,32 @@ public:
     {
         int const ioletSize = 8;
         int const ioletWidth = (ioletSize + 4) * std::max(inlets.size(), outlets.size());
-        int const textWidth =  Fonts::getDefaultFont().getStringWidth(objectName);
+        int const textWidth = Fonts::getDefaultFont().getStringWidth(objectName);
         int const width = std::max(ioletWidth, textWidth) + 14;
 
         auto outlineBounds = objectRect.withSizeKeepingCentre(width, 22).toFloat();
         g.setColour(findColour(PlugDataColour::objectOutlineColourId));
         g.drawRoundedRectangle(outlineBounds, PlugDataLook::objectCornerRadius, 1.0f);
-        
+
         auto squareIolets = PlugDataLook::getUseSquareIolets();
 
-        auto drawIolet = [this, squareIolets](Graphics& g, Rectangle<float> bounds, bool type) mutable
-        {
+        auto drawIolet = [this, squareIolets](Graphics& g, Rectangle<float> bounds, bool type) mutable {
             g.setColour(type ? findColour(PlugDataColour::signalColourId) : findColour(PlugDataColour::dataColourId));
-            
-            if(squareIolets) {
+
+            if (squareIolets) {
                 g.fillRect(bounds);
-                
+
                 g.setColour(findColour(PlugDataColour::objectOutlineColourId));
                 g.drawRect(bounds, 1.0f);
-            }
-            else {
-                
+            } else {
+
                 g.fillEllipse(bounds);
-                
+
                 g.setColour(findColour(PlugDataColour::objectOutlineColourId));
                 g.drawEllipse(bounds, 1.0f);
             }
-            
         };
 
-       
         auto textBounds = outlineBounds.reduced(2.0f);
         PlugDataLook::drawText(g, objectName, textBounds.toNearestInt(), findColour(PlugDataColour::panelTextColourId), 15, Justification::centred);
 
@@ -270,7 +265,7 @@ public:
 
                 inletBounds = Rectangle<int>(ioletBounds.getX() + ratio * i, yPosition, ioletSize, ioletSize);
             }
-            
+
             drawIolet(g, inletBounds.toFloat(), inlets[i]);
         }
 
@@ -514,7 +509,7 @@ public:
             auto textWidth = getWidth() - leftIndent - rightIndent;
 
             g.setFont(font);
-            
+
             // Draw seperator (which is an en dash)
             g.drawText(String::fromUTF8("  \xe2\x80\x93  ") + objectDescription, Rectangle<int>(leftIndent, yIndent, textWidth, h - yIndent * 2), Justification::left);
         }

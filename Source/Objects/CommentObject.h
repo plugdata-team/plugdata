@@ -38,11 +38,11 @@ public:
             auto textArea = border.subtractedFrom(getLocalBounds());
 
             auto scale = getWidth() < 50 ? 0.5f : 1.0f;
-            
+
             PlugDataLook::drawFittedText(g, objectText, textArea, object->findColour(PlugDataColour::canvasTextColourId), numLines, scale, 14.0f, Justification::centredLeft);
         }
     }
-        
+
     void paintOverChildren(Graphics& g) override
     {
         auto selected = cnv->isSelected(object);
@@ -75,17 +75,16 @@ public:
             auto newText = outgoingEditor->getText();
 
             newText = TextObjectHelper::fixNewlines(newText);
-            
+
             if (objectText != newText) {
                 objectText = newText;
             }
-            
+
             outgoingEditor.reset();
 
-            
             updateBounds(); // Recalculate bounds
             applyBounds();  // Send new bounds to Pd
-                
+
             setSymbol(objectText);
             repaint();
         }
@@ -95,17 +94,17 @@ public:
     {
         if (editor == nullptr) {
             editor.reset(TextObjectHelper::createTextEditor(object, 14));
-            
+
             editor->setBorder(border);
             editor->setBounds(getLocalBounds());
             editor->setText(objectText, false);
             editor->addListener(this);
             editor->addKeyListener(this);
             editor->selectAll();
-            
+
             addAndMakeVisible(editor.get());
             editor->grabKeyboardFocus();
-            
+
             editor->onFocusLost = [this]() {
                 hideEditor();
             };
@@ -122,22 +121,22 @@ public:
         auto* cnvPtr = cnv->patch.getPointer();
         auto objText = editor ? editor->getText() : objectText;
         auto newNumLines = 0;
-        
+
         auto newBounds = TextObjectHelper::recalculateTextObjectBounds(cnvPtr, ptr, objText, 14, newNumLines).expanded(Object::margin) - cnv->canvasOrigin;
-        
+
         numLines = newNumLines;
-        
+
         auto objBounds = object->getBounds();
-        
+
         // TODO: this is a hack
         // why is there a weird 1px offset, only for comment but not for textobj or message?
-        if(objBounds.getPosition().getDistanceFrom(newBounds.getPosition()) > 2) {
+        if (objBounds.getPosition().getDistanceFrom(newBounds.getPosition()) > 2) {
             object->setTopLeftPosition(newBounds.getX(), newBounds.getY());
         }
-        if(newBounds.getWidth() != objBounds.getWidth() || newBounds.getHeight() != objBounds.getHeight()) {
+        if (newBounds.getWidth() != objBounds.getWidth() || newBounds.getHeight() != objBounds.getHeight()) {
             object->setSize(newBounds.getWidth(), newBounds.getHeight());
         }
-        
+
         pd->getCallbackLock()->exit();
     }
 
@@ -153,11 +152,11 @@ public:
         auto b = object->getObjectBounds();
         libpd_moveobj(cnv->patch.getPointer(), static_cast<t_gobj*>(ptr), b.getX(), b.getY());
 
-        if(TextObjectHelper::getWidthInChars(ptr)) {
-            TextObjectHelper::setWidthInChars(ptr,  b.getWidth() / glist_fontwidth(cnv->patch.getPointer()));
+        if (TextObjectHelper::getWidthInChars(ptr)) {
+            TextObjectHelper::setWidthInChars(ptr, b.getWidth() / glist_fontwidth(cnv->patch.getPointer()));
         }
     }
-        
+
     void setSymbol(String const& value)
     {
         cnv->pd->enqueueFunction(
@@ -172,7 +171,7 @@ public:
                 libpd_renameobj(canvas, &messobj->m_text.te_g, cstr, value.getNumBytesAsUTF8());
             });
     }
-        
+
     bool hideInGraph() override
     {
         return false;
@@ -213,18 +212,18 @@ public:
     {
         int caretPosition = ed.getCaretPosition();
         auto text = ed.getText();
-        
-        if(!ed.getHighlightedRegion().isEmpty()) return;
-        
-        if(text[caretPosition - 1] == ';') {
+
+        if (!ed.getHighlightedRegion().isEmpty())
+            return;
+
+        if (text[caretPosition - 1] == ';') {
             text = text.substring(0, caretPosition) + "\n" + text.substring(caretPosition);
             caretPosition += 1;
-        }
-        else {
+        } else {
             text = text.substring(0, caretPosition) + ";\n" + text.substring(caretPosition);
             caretPosition += 2;
         }
-        
+
         ed.setText(text);
         ed.setCaretPosition(caretPosition);
     }

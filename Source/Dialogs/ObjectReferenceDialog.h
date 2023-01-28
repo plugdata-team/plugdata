@@ -103,31 +103,28 @@ public:
 
         auto textBounds = outlineBounds.reduced(2.0f);
         PlugDataLook::drawText(g, objectName, textBounds.toNearestInt(), findColour(PlugDataColour::panelTextColourId), 15, Justification::centred);
-        
+
         auto themeTree = SettingsFile::getInstance()->getCurrentTheme();
-        
+
         auto squareIolets = static_cast<bool>(themeTree.getProperty("square_iolets"));
 
-        auto drawIolet = [this, squareIolets](Graphics& g, Rectangle<float> bounds, bool type) mutable
-        {
+        auto drawIolet = [this, squareIolets](Graphics& g, Rectangle<float> bounds, bool type) mutable {
             g.setColour(type ? findColour(PlugDataColour::signalColourId) : findColour(PlugDataColour::dataColourId));
-            
-            if(squareIolets) {
+
+            if (squareIolets) {
                 g.fillRect(bounds);
-                
+
                 g.setColour(findColour(PlugDataColour::objectOutlineColourId));
                 g.drawRect(bounds, 1.0f);
-            }
-            else {
-                
+            } else {
+
                 g.fillEllipse(bounds);
-                
+
                 g.setColour(findColour(PlugDataColour::objectOutlineColourId));
                 g.drawEllipse(bounds, 1.0f);
             }
-            
         };
-        
+
         auto ioletBounds = outlineBounds.reduced(8, 0);
 
         for (int i = 0; i < inlets.size(); i++) {
@@ -145,7 +142,7 @@ public:
 
                 inletBounds = Rectangle<int>(ioletBounds.getX() + ratio * i, yPosition, ioletSize, ioletSize);
             }
- 
+
             drawIolet(g, inletBounds.toFloat(), inlets[i]);
         }
 
@@ -164,7 +161,7 @@ public:
                 float const ratio = (ioletBounds.getWidth() - ioletSize) / static_cast<float>(total - 1);
                 outletBounds = Rectangle<int>(ioletBounds.getX() + ratio * i, yPosition, ioletSize, ioletSize);
             }
-            
+
             drawIolet(g, outletBounds.toFloat(), outlets[i]);
         }
     }
@@ -183,11 +180,11 @@ public:
             return;
         }
 
-        const auto ioletDescriptions = library.getIoletDescriptions()[name];
-        const auto& inletDescriptions = ioletDescriptions[0];
-        const auto& outletDescriptions = ioletDescriptions[1];
+        auto const ioletDescriptions = library.getIoletDescriptions()[name];
+        auto const& inletDescriptions = ioletDescriptions[0];
+        auto const& outletDescriptions = ioletDescriptions[1];
         auto methods = library.getMethods()[name];
-        
+
         inlets.resize(inletDescriptions.size());
         outlets.resize(outletDescriptions.size());
 
@@ -269,7 +266,7 @@ public:
 
             numOut++;
         }
-        
+
         if (methods.size())
             rightSideInfoText += "\n\nMethods:";
 
@@ -280,7 +277,7 @@ public:
             rightSideInfoText += description;
             numMethods++;
         }
-        
+
         rightSideInfo.setText(rightSideInfoText);
     }
 
@@ -297,7 +294,7 @@ public:
 
     String category;
     String description;
-    
+
     PluginEditor* editor;
 
     pd::Library& library;

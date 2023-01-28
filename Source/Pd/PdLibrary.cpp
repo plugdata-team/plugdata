@@ -392,16 +392,15 @@ void Library::parseDocumentation(String const& path)
                 objectDescriptions[name] = sections["description"].first;
             }
             if (sections.count("methods")) {
-                
+
                 Methods methodList;
                 for (auto& method : sectionsFromHyphens(sections["methods"].first)) {
-                    auto sectionMap = getSections(method, { "type", "description"});
+                    auto sectionMap = getSections(method, { "type", "description" });
                     methodList.push_back({ sectionMap["type"].first, sectionMap["description"].first });
                 }
-                
+
                 methods[name] = methodList;
             }
-
 
             if (sections.count("pdcategory")) {
                 auto categories = sections["pdcategory"].first;
@@ -489,23 +488,23 @@ std::array<StringArray, 2> Library::getIoletTooltips(String type, String name, i
 {
     auto args = StringArray::fromTokens(name.fromFirstOccurrenceOf(" ", false, false), true);
 
-    const IODescriptionMap* map = nullptr;
+    IODescriptionMap const* map = nullptr;
     if (libraryLock.try_lock()) {
         map = &ioletDescriptions;
         libraryLock.unlock();
     }
-    
+
     auto result = std::array<StringArray, 2>();
-    
-    if(!map) {
+
+    if (!map) {
         return result;
     }
-    
+
     // TODO: replace with map.contains once all compilers support this!
     if (map->count(type)) {
-        const auto& ioletDescriptions = map->at(type);
+        auto const& ioletDescriptions = map->at(type);
 
-        for(int type = 0; type < 2; type++) {
+        for (int type = 0; type < 2; type++) {
             int total = type ? numOut : numIn;
             auto descriptions = ioletDescriptions[type];
             // if the amount of inlets is not equal to the amount in the spec, look for repeating iolets
@@ -513,27 +512,26 @@ std::array<StringArray, 2> Library::getIoletTooltips(String type, String name, i
                 for (int i = 0; i < descriptions.size(); i++) {
                     if (descriptions[i].second) { // repeating inlet found
                         for (int j = 0; j < total - descriptions.size(); j++) {
-                            
+
                             // TODO: check if this is correct!
                             auto description = isPositiveAndBelow(i, descriptions.size()) ? descriptions[i].first : String();
                             description = description.replace("$mth", String(i));
                             description = description.replace("$nth", String(i + 1));
                             description = description.replace("$arg", args[i]);
-                            
-                            descriptions.insert(i, {description, true});
+
+                            descriptions.insert(i, { description, true });
                         }
                     }
                 }
             }
-            
+
             for (int i = 0; i < descriptions.size(); i++) {
                 result[type].add(descriptions[i].first);
             }
         }
     }
-    
-    return result;
 
+    return result;
 }
 
 StringArray Library::getAllObjects()
@@ -631,7 +629,7 @@ IODescriptionMap Library::getIoletDescriptions()
         libraryLock.unlock();
         return descriptions;
     }
-    
+
     return {};
 }
 
@@ -654,8 +652,6 @@ MethodMap Library::getMethods()
     }
     return {};
 }
-
-
 
 } // namespace pd
 

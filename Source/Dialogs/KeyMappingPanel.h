@@ -50,7 +50,7 @@ public:
     void changeListenerCallback(ChangeBroadcaster* source) override
     {
         auto keyMapTree = SettingsFile::getInstance()->getKeyMapTree();
-        
+
         auto newTree = mappings.createXml(true)->toString();
         keyMapTree.setProperty("keyxml", newTree, nullptr);
     }
@@ -342,7 +342,7 @@ private:
         {
             PlugDataLook::drawFittedText(g, owner.getCommandManager().getNameOfCommand(commandID),
                 6, 0, jmax(40, getChildComponent(0)->getX() - 5), getHeight(),
-                 owner.findColour(KeyMappingEditorComponent::textColourId), (float)getHeight() * 0.6f);
+                owner.findColour(KeyMappingEditorComponent::textColourId), (float)getHeight() * 0.6f);
         }
 
         void resized() override

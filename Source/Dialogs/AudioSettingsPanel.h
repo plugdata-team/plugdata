@@ -999,7 +999,7 @@ private:
                 if (items.isEmpty()) {
                     PlugDataLook::drawText(g, noItemsMessage,
                         0, 0, getWidth(), getHeight() / 2,
-                                           Colours::grey, 0.5f * (float)getRowHeight(), Justification::centred);
+                        Colours::grey, 0.5f * (float)getRowHeight(), Justification::centred);
                 }
             }
 

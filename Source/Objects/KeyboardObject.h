@@ -238,8 +238,9 @@ public:
 
         cnv->pd->enqueueFunction(
             [_this = SafePointer(this), x, note, velocity]() mutable {
-                if(!_this || _this->cnv->patch.objectWasDeleted(x)) return;
-                
+                if (!_this || _this->cnv->patch.objectWasDeleted(x))
+                    return;
+
                 int ac = 2;
                 t_atom at[2];
                 SETFLOAT(at, note);
@@ -260,9 +261,9 @@ public:
 
         cnv->pd->enqueueFunction(
             [_this = SafePointer(this), x, note]() mutable {
-                
-                if(!_this || _this->cnv->patch.objectWasDeleted(x)) return;
-                
+                if (!_this || _this->cnv->patch.objectWasDeleted(x))
+                    return;
+
                 int ac = 2;
                 t_atom at[2];
                 SETFLOAT(at, note);

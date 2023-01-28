@@ -216,9 +216,9 @@ void PluginProcessor::initialiseFilesystem()
         }
 
         MemoryInputStream memstream(allData.data(), allData.size(), false);
-        
+
         homeDir.createDirectory();
-        
+
         auto file = ZipFile(memstream);
         file.uncompressTo(homeDir);
 
@@ -630,7 +630,7 @@ void PluginProcessor::process(dsp::AudioBlock<float> buffer, MidiBuffer& midiMes
 void PluginProcessor::sendPlayhead()
 {
     AudioPlayHead* playhead = getPlayHead();
-    
+
     if (!playhead)
         return;
 

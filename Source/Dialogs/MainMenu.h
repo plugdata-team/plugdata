@@ -317,6 +317,4 @@ public:
     ValueTree settingsTree;
     ThemeSelector themeSelector;
     ZoomSelector zoomSelector;
-
-
 };

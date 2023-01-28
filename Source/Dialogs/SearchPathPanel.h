@@ -120,7 +120,6 @@ public:
         externalChange();
     }
 
-
     int getNumRows() override
     {
         return paths.size();
@@ -134,7 +133,7 @@ public:
         }
 
         auto colour = rowIsSelected ? findColour(PlugDataColour::panelActiveTextColourId) : findColour(PlugDataColour::panelTextColourId);
-        
+
         PlugDataLook::drawText(g, paths[rowNumber], 12, 0, width - 9, height, colour, 14);
     }
 

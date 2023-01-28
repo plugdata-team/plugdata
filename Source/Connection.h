@@ -22,8 +22,7 @@ class PathUpdater;
 
 class Connection : public Component
     , public ComponentListener
-    , public Value::Listener
-{
+    , public Value::Listener {
 public:
     int inIdx;
     int outIdx;
@@ -63,7 +62,7 @@ public:
     String getId() const;
 
     void setPointer(void* ptr);
-        
+
     t_symbol* getPathState();
     void pushPathState();
     void popPathState();
@@ -79,7 +78,6 @@ public:
     bool straightLineIntersectsObject(Line<float> toCheck, Array<Object*>& objects);
 
 private:
-        
     bool wasSelected = false;
     bool segmented = false;
 
@@ -101,36 +99,34 @@ private:
     float mouseDownPosition = 0;
 
     void valueChanged(Value& v) override;
-        
-    struct t_fake_outconnect
-    {
-        void*oc_next;
+
+    struct t_fake_outconnect {
+        void* oc_next;
         t_pd* oc_to;
         t_symbol* outconnect_path_data;
     };
-    
+
     t_fake_outconnect* ptr;
 
     friend class ConnectionPathUpdater;
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(Connection)
 };
 
-
 // Helper class to group connection path changes together into undoable/redoable actions
-class ConnectionPathUpdater : public Timer
-{
+class ConnectionPathUpdater : public Timer {
     Canvas* canvas;
-    
-    moodycamel::ConcurrentQueue<std::pair<Component::SafePointer<Connection>, t_symbol*>> connectionUpdateQueue =  moodycamel::ConcurrentQueue<std::pair<Component::SafePointer<Connection>, t_symbol*>>(4096);
-    
+
+    moodycamel::ConcurrentQueue<std::pair<Component::SafePointer<Connection>, t_symbol*>> connectionUpdateQueue = moodycamel::ConcurrentQueue<std::pair<Component::SafePointer<Connection>, t_symbol*>>(4096);
+
     void timerCallback() override;
-    
+
 public:
-    
-    ConnectionPathUpdater(Canvas* cnv) : canvas(cnv) {};
-    
-    void pushPathState(Connection* connection, t_symbol* newPathState) {
-        connectionUpdateQueue.enqueue({connection, newPathState});
+    ConnectionPathUpdater(Canvas* cnv)
+        : canvas(cnv) {};
+
+    void pushPathState(Connection* connection, t_symbol* newPathState)
+    {
+        connectionUpdateQueue.enqueue({ connection, newPathState });
         startTimer(50);
     }
 };

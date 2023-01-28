@@ -1396,6 +1396,7 @@ void Canvas::findLassoItemsInArea(Array<WeakReference<Component>>& itemsFound, R
     }
 }
 
-ObjectParameters& Canvas::getInspectorParameters() {
+ObjectParameters& Canvas::getInspectorParameters()
+{
     return parameters;
 }

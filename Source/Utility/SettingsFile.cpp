@@ -19,7 +19,6 @@ SettingsFileListener::~SettingsFileListener()
 
 JUCE_IMPLEMENT_SINGLETON(SettingsFile)
 
-
 SettingsFile::~SettingsFile()
 {
     // Save current settings before quitting
@@ -97,7 +96,7 @@ ValueTree SettingsFile::getTheme(String name)
 {
     return getColourThemesTree().getChildWithProperty("theme", name);
 }
-    
+
 ValueTree SettingsFile::getCurrentTheme()
 {
     return getColourThemesTree().getChildWithProperty("theme", settingsTree.getProperty("theme"));
@@ -173,14 +172,14 @@ void SettingsFile::initialiseThemesTree()
         selectedThemes.setProperty("first", "light", nullptr);
     if (!selectedThemes.hasProperty("second"))
         selectedThemes.setProperty("second", "dark", nullptr);
-    
-    if(selectedThemes.getProperty("first").toString() != getProperty<String>("theme") && selectedThemes.getProperty("second").toString() != getProperty<String>("theme")) {
-        
+
+    if (selectedThemes.getProperty("first").toString() != getProperty<String>("theme") && selectedThemes.getProperty("second").toString() != getProperty<String>("theme")) {
+
         setProperty("theme", selectedThemes.getProperty("first").toString());
     }
-    
-    PlugDataLook::selectedThemes.set(0,  selectedThemes.getProperty("first").toString());
-    PlugDataLook::selectedThemes.set(1,  selectedThemes.getProperty("second").toString());
+
+    PlugDataLook::selectedThemes.set(0, selectedThemes.getProperty("first").toString());
+    PlugDataLook::selectedThemes.set(1, selectedThemes.getProperty("second").toString());
 
     auto defaultColourThemesTree = ValueTree::fromXml(PlugDataLook::defaultThemesXml);
     auto colourThemesTree = getColourThemesTree();
@@ -243,13 +242,13 @@ void SettingsFile::initialiseThemesTree()
 
 void SettingsFile::reloadSettings()
 {
-    if(settingsChangedInternally) {
+    if (settingsChangedInternally) {
         settingsChangedInternally = false;
         return;
     }
-    
+
     settingsChangedExternally = true;
-    
+
     jassert(isInitialised);
 
     auto newTree = ValueTree::fromXml(settingsFile.loadFileAsString());
@@ -258,13 +257,12 @@ void SettingsFile::reloadSettings()
     for (auto child : settingsTree) {
         child.copyPropertiesAndChildrenFrom(newTree.getChildWithName(child.getType()), nullptr);
     }
-    
+
     settingsTree.copyPropertiesFrom(newTree, nullptr);
 
     for (auto* listener : listeners) {
         listener->settingsFileReloaded();
     }
-    
 }
 
 void SettingsFile::valueTreePropertyChanged(ValueTree& treeWhosePropertyHasChanged, Identifier const& property)
@@ -272,29 +270,32 @@ void SettingsFile::valueTreePropertyChanged(ValueTree& treeWhosePropertyHasChang
     for (auto* listener : listeners) {
         listener->propertyChanged(property.toString(), treeWhosePropertyHasChanged.getProperty(property));
     }
-    
-    if(!settingsChangedExternally) settingsChangedInternally = true;
+
+    if (!settingsChangedExternally)
+        settingsChangedInternally = true;
     startTimer(300);
 }
 
 void SettingsFile::valueTreeChildAdded(ValueTree& parentTree, ValueTree& childWhichHasBeenAdded)
 {
-    if(!settingsChangedExternally) settingsChangedInternally = true;
+    if (!settingsChangedExternally)
+        settingsChangedInternally = true;
     startTimer(300);
 }
 
 void SettingsFile::valueTreeChildRemoved(ValueTree& parentTree, ValueTree& childWhichHasBeenRemoved, int indexFromWhichChildWasRemoved)
 {
-    if(!settingsChangedExternally) settingsChangedInternally = true;
+    if (!settingsChangedExternally)
+        settingsChangedInternally = true;
     startTimer(300);
 }
 
 void SettingsFile::timerCallback()
 {
     jassert(isInitialised);
-    
+
     // Don't save again if we just loaded it from file
-    if(settingsChangedExternally) {
+    if (settingsChangedExternally) {
         settingsChangedExternally = false;
         stopTimer();
         return;

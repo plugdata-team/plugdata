@@ -59,9 +59,8 @@ public:
     {
         g.setColour(Colours::black.withAlpha(0.5f));
 
-        
         auto bounds = getLocalBounds().reduced(backgroundMargin);
-        
+
         if (wantsRoundedCorners()) {
             g.fillRoundedRectangle(bounds.toFloat(), PlugDataLook::windowCornerRadius);
         } else {
@@ -122,7 +121,7 @@ public:
     std::unique_ptr<Component> viewedComponent = nullptr;
     std::unique_ptr<Button> closeButton = nullptr;
     std::unique_ptr<Dialog>* owner;
-    
+
     int backgroundMargin = 0;
 };
 
@@ -135,18 +134,18 @@ struct Dialogs {
     static void showSettingsDialog(PluginEditor* editor);
 
     static void showMainMenu(PluginEditor* editor, Component* centre);
-    
+
     static void showOkayCancelDialog(std::unique_ptr<Dialog>* target, Component* parent, String const& title, std::function<void(bool)> callback);
 
     static void showHeavyExportDialog(std::unique_ptr<Dialog>* target, Component* parent);
 
     static void showObjectBrowserDialog(std::unique_ptr<Dialog>* target, Component* parent);
     static void showObjectReferenceDialog(std::unique_ptr<Dialog>* target, Component* parent, String objectName);
-    
+
     static void showCanvasRightClickMenu(Canvas* cnv, Component* originalComponent, Point<int> position);
-    
+
     static void showObjectMenu(PluginEditor* parent, Component* target);
-    
+
     static PopupMenu createObjectMenu(PluginEditor* parent);
 };
 

@@ -18,9 +18,8 @@ ObjectGrid::ObjectGrid(Canvas* parent)
         line.setStrokeThickness(1);
         line.setAlwaysOnTop(true);
     }
-    
+
     gridEnabled = SettingsFile::getInstance()->getProperty<int>("grid_enabled");
-    
 }
 
 Point<int> ObjectGrid::setState(bool isSnapped, int i, Point<int> pos, Component* s, Component* e, bool horizontal)
@@ -113,19 +112,18 @@ Point<int> ObjectGrid::handleMouseDrag(Object* toDrag, Point<int> dragOffset, Re
 {
     gridLines[0].setStrokeFill(FillType(toDrag->findColour(PlugDataColour::gridLineColourId)));
     gridLines[1].setStrokeFill(FillType(toDrag->findColour(PlugDataColour::gridLineColourId)));
-    
-    if(gridEnabled == 1) {
+
+    if (gridEnabled == 1) {
         // Check for snap points on both axes
         dragOffset = performVerticalSnap(toDrag, dragOffset, viewBounds);
         dragOffset = performHorizontalSnap(toDrag, dragOffset, viewBounds);
-        
+
         // Update grid line when snapped
         // Async to make sure the objects position gets updated first...
         MessageManager::callAsync([this]() {
             updateMarker();
         });
-    }
-    else if(gridEnabled == 2){
+    } else if (gridEnabled == 2) {
         dragOffset = performAbsoluteSnap(toDrag, dragOffset);
     }
 
@@ -268,15 +266,15 @@ Point<int> ObjectGrid::performAbsoluteSnap(Object* toDrag, Point<int> dragOffset
     auto roundedDrag = (dragOffset / 10) * 10;
     auto objectPos = toDrag->mouseDownPos + Point<int>(Object::margin, Object::margin);
     auto offset = ((objectPos / 10) * 10) - objectPos;
-    
+
     auto totalOffset = roundedDrag + offset;
-    
+
     position[1].x = totalOffset.x;
     position[0].y = totalOffset.y;
-   
+
     snapped[0] = true;
     snapped[1] = true;
-    
+
     return totalOffset;
 }
 
@@ -306,7 +304,7 @@ bool ObjectGrid::trySnap(int distance)
 
 void ObjectGrid::propertyChanged(String name, var value)
 {
-    if(name == "grid_enabled") {
+    if (name == "grid_enabled") {
         gridEnabled = static_cast<int>(value);
     }
 }

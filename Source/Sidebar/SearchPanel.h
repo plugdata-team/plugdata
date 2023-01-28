@@ -187,8 +187,7 @@ public:
 
     void paintOverChildren(Graphics& g) override
     {
-        
-        
+
         g.setColour(findColour(PlugDataColour::outlineColourId));
         g.drawLine(0, 29, getWidth(), 29);
 

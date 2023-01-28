@@ -51,18 +51,18 @@ public:
         auto* cnvPtr = cnv->patch.getPointer();
         auto objText = editor ? editor->getText() : objectText;
         auto newNumLines = 0;
-        
+
         auto newBounds = TextObjectHelper::recalculateTextObjectBounds(cnvPtr, ptr, objText, 15, newNumLines);
-        
+
         numLines = newNumLines;
-        
+
         // Create extra space for drawing the message box flag
         newBounds.setWidth(newBounds.getWidth() + 5);
-        
-        if(newBounds != object->getObjectBounds()) {
+
+        if (newBounds != object->getObjectBounds()) {
             object->setObjectBounds(newBounds);
         }
-        
+
         pd->getCallbackLock()->exit();
     }
 
@@ -78,11 +78,11 @@ public:
         auto b = object->getObjectBounds();
         libpd_moveobj(cnv->patch.getPointer(), static_cast<t_gobj*>(ptr), b.getX(), b.getY());
 
-        if(TextObjectHelper::getWidthInChars(ptr)) {
-            TextObjectHelper::setWidthInChars(ptr,  b.getWidth() / glist_fontwidth(cnv->patch.getPointer()));
+        if (TextObjectHelper::getWidthInChars(ptr)) {
+            TextObjectHelper::setWidthInChars(ptr, b.getWidth() / glist_fontwidth(cnv->patch.getPointer()));
         }
     }
-        
+
     void lock(bool locked) override
     {
         isLocked = locked;
@@ -93,12 +93,12 @@ public:
         // Draw background
         g.setColour(object->findColour(PlugDataColour::defaultObjectBackgroundColourId));
         g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), PlugDataLook::objectCornerRadius);
-        
+
         // Draw text
-        if(!editor) {
+        if (!editor) {
             auto textArea = border.subtractedFrom(getLocalBounds().withTrimmedRight(5));
             auto scale = getWidth() < 50 ? 0.5f : 1.0f;
-            
+
             PlugDataLook::drawFittedText(g, objectText, textArea, object->findColour(PlugDataColour::canvasTextColourId), numLines, scale);
         }
     }
@@ -110,18 +110,17 @@ public:
         Path flagPath;
         flagPath.addQuadrilateral(b.getRight(), b.getY(), b.getRight() - 4, b.getY() + 4, b.getRight() - 4, b.getBottom() - 4, b.getRight(), b.getBottom());
 
-        if(isDown) {
+        if (isDown) {
             g.setColour(object->findColour(PlugDataColour::outlineColourId));
             g.drawRoundedRectangle(b.reduced(1).toFloat(), PlugDataLook::objectCornerRadius, 3.0f);
-            
+
             g.setColour(object->findColour(PlugDataColour::objectSelectedOutlineColourId));
             g.fillPath(flagPath);
-        }
-        else {
+        } else {
             g.setColour(object->findColour(PlugDataColour::outlineColourId));
             g.fillPath(flagPath);
         }
-        
+
         bool selected = cnv->isSelected(object) && !cnv->isGraph;
         auto outlineColour = object->findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : PlugDataColour::objectOutlineColourId);
 
@@ -154,17 +153,17 @@ public:
     {
         if (editor == nullptr) {
             editor.reset(TextObjectHelper::createTextEditor(object, 15));
-            
+
             editor->setBorder(border);
             editor->setBounds(getLocalBounds().withTrimmedRight(5));
             editor->setText(objectText, false);
             editor->addListener(this);
             editor->addKeyListener(this);
             editor->selectAll();
-            
+
             addAndMakeVisible(editor.get());
             editor->grabKeyboardFocus();
-            
+
             editor->onFocusLost = [this]() {
                 hideEditor();
             };
@@ -186,18 +185,18 @@ public:
             auto newText = outgoingEditor->getText();
 
             newText = TextObjectHelper::fixNewlines(newText);
-            
+
             if (objectText != newText) {
                 objectText = newText;
             }
-            
+
             outgoingEditor.reset();
-            
+
             updateBounds(); // Recalculate bounds
             applyBounds();  // Send new bounds to Pd
 
             setSymbol(objectText);
-            
+
             repaint();
         }
     }
@@ -229,18 +228,18 @@ public:
     {
         int caretPosition = ed.getCaretPosition();
         auto text = ed.getText();
-        
-        if(!ed.getHighlightedRegion().isEmpty()) return;
-        
-        if(text[caretPosition - 1] == ';') {
+
+        if (!ed.getHighlightedRegion().isEmpty())
+            return;
+
+        if (text[caretPosition - 1] == ';') {
             text = text.substring(0, caretPosition) + "\n" + text.substring(caretPosition);
             caretPosition += 1;
-        }
-        else {
+        } else {
             text = text.substring(0, caretPosition) + ";\n" + text.substring(caretPosition);
             caretPosition += 2;
         }
-        
+
         ed.setText(text);
         ed.setCaretPosition(caretPosition);
     }
@@ -265,7 +264,7 @@ public:
 
         return result.trimEnd();
     }
-        
+
     void setSymbol(String const& value)
     {
         cnv->pd->enqueueFunction(
@@ -280,7 +279,7 @@ public:
                 libpd_renameobj(canvas, &messobj->m_text.te_g, cstr, value.getNumBytesAsUTF8());
             });
     }
-        
+
     bool keyPressed(KeyPress const& key, Component* component) override
     {
         if (key == KeyPress::rightKey && editor && !editor->getHighlightedRegion().isEmpty()) {

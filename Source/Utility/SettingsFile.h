@@ -9,11 +9,11 @@
 
 struct SettingsFileListener {
     SettingsFileListener();
-    
+
     ~SettingsFileListener();
-    
+
     virtual void propertyChanged(String name, var value) {};
-    
+
     virtual void settingsFileReloaded() {};
 };
 
@@ -22,7 +22,6 @@ class SettingsFile : public ValueTree::Listener
     , public Timer
     , public DeletedAtShutdown {
 public:
-        
     virtual ~SettingsFile();
 
     SettingsFile* initialise();
@@ -54,12 +53,12 @@ public:
     void saveSettings();
 
     void setProperty(String name, var value);
-        
+
     template<typename T>
     T getProperty(String name)
     {
         jassert(isInitialised);
-        
+
         return static_cast<T>(settingsTree.getProperty(name));
     }
 

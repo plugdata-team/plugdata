@@ -87,7 +87,7 @@ public:
 
     void showSuggestions(Object* object, TextEditor* textEditor);
     void hideSuggestions();
-        
+
     ObjectParameters& getInspectorParameters();
 
     template<typename T>
@@ -156,7 +156,7 @@ public:
     Point<int> pastedPosition;
     Point<int> pastedPadding;
     std::vector<Point<int>> mouseDownObjectPositions; // Stores object positions for alt + drag
-        
+
     std::unique_ptr<ConnectionPathUpdater> pathUpdater;
 
 private:

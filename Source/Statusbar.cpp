@@ -210,28 +210,28 @@ Statusbar::Statusbar(PluginProcessor* processor)
     gridButton->setConnectedEdges(12);
     gridButton->getProperties().set("Style", "SmallIcon");
 
-    gridButton->onClick = [this](){
+    gridButton->onClick = [this]() {
         PopupMenu gridSelector;
         int gridEnabled = SettingsFile::getInstance()->getProperty<int>("grid_enabled");
-        gridSelector.addItem("Absolute grid", true, gridEnabled == 2, [this](){
+        gridSelector.addItem("Absolute grid", true, gridEnabled == 2, [this]() {
             gridButton->setColour(TextButton::textColourOffId, Colours::orange);
             SettingsFile::getInstance()->setProperty("grid_enabled", 2);
         });
-        gridSelector.addItem("Relative grid", true, gridEnabled == 1, [this](){
+        gridSelector.addItem("Relative grid", true, gridEnabled == 1, [this]() {
             gridButton->setColour(TextButton::textColourOffId, findColour(PlugDataColour::gridLineColourId));
             SettingsFile::getInstance()->setProperty("grid_enabled", 1);
         });
-        gridSelector.addItem("No grid", true, gridEnabled == 0, [this](){
+        gridSelector.addItem("No grid", true, gridEnabled == 0, [this]() {
             gridButton->setColour(TextButton::textColourOffId, findColour(PlugDataColour::toolbarTextColourId));
             SettingsFile::getInstance()->setProperty("grid_enabled", 0);
         });
-        
+
         gridSelector.showMenuAsync(PopupMenu::Options().withMinimumWidth(150).withMaximumNumColumns(1).withTargetComponent(gridButton.get()).withParentComponent(pd->getActiveEditor()));
     };
-        
+
     // Initialise grid state
     propertyChanged("grid_enabled", SettingsFile::getInstance()->getProperty<int>("grid_enabled"));
-    
+
     addAndMakeVisible(gridButton.get());
 
     powerButton->onClick = [this]() { powerButton->getToggleState() ? pd->startDSP() : pd->releaseDSP(); };
@@ -258,16 +258,16 @@ Statusbar::Statusbar(PluginProcessor* processor)
     connectionStyleButton->onClick = [this]() {
         bool segmented = connectionStyleButton->getToggleState();
         auto* editor = dynamic_cast<PluginEditor*>(pd->getActiveEditor());
-        
+
         auto* cnv = editor->getCurrentCanvas();
-        
-        //cnv->patch.startUndoSequence("ChangeSegmentedPaths");
-        
+
+        // cnv->patch.startUndoSequence("ChangeSegmentedPaths");
+
         for (auto& connection : cnv->getSelectionOfType<Connection>()) {
             connection->setSegmented(segmented);
         }
-        
-        //cnv->patch.endUndoSequence("ChangeSegmentedPaths");
+
+        // cnv->patch.endUndoSequence("ChangeSegmentedPaths");
     };
 
     addAndMakeVisible(connectionStyleButton.get());
@@ -313,17 +313,16 @@ void Statusbar::attachToCanvas(Canvas* cnv)
 
 void Statusbar::propertyChanged(String name, var value)
 {
-    if(name == "grid_enabled") {
+    if (name == "grid_enabled") {
         int gridEnabled = static_cast<int>(value);
-        if(gridEnabled == 0) {
+        if (gridEnabled == 0) {
             gridButton->setColour(TextButton::textColourOffId, findColour(PlugDataColour::toolbarTextColourId));
             gridButton->setColour(TextButton::textColourOnId, findColour(PlugDataColour::toolbarActiveColourId));
         }
-        if(gridEnabled == 1) {
+        if (gridEnabled == 1) {
             gridButton->setColour(TextButton::textColourOffId, findColour(PlugDataColour::gridLineColourId));
             gridButton->setColour(TextButton::textColourOnId, findColour(PlugDataColour::gridLineColourId).brighter(0.4f));
-        }
-        else if(gridEnabled == 2) {
+        } else if (gridEnabled == 2) {
             gridButton->setColour(TextButton::textColourOffId, findColour(PlugDataColour::signalColourId));
             // TODO: fix weird colour id usage
             gridButton->setColour(TextButton::textColourOnId, findColour(PlugDataColour::signalColourId).brighter(0.4f));
