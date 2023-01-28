@@ -266,7 +266,7 @@ public:
         }
         
         autoCompleteComponent.reset(nullptr);
-        openedEditor->removeListener(this);
+        if(openedEditor) openedEditor->removeListener(this);
 
         openedEditor = nullptr;
         currentBox = nullptr;
