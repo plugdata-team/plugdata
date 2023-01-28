@@ -457,6 +457,7 @@ public:
 
         checkMaxNumParameters();
         parentComponent->resized();
+        resized();
     }
 
     void checkMaxNumParameters()
