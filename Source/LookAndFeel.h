@@ -878,7 +878,7 @@ struct PlugDataLook : public LookAndFeel_V4 {
     {
         g.setFont(Fonts::getDefaultFont().withHeight(fontHeight));
         g.setColour(colour);
-        g.drawFittedText(textToDraw, bounds, justification, numLines);
+        g.drawFittedText(textToDraw, bounds, justification, numLines, minimumHoriontalScale);
     }
     
     static void drawFittedText(Graphics& g, const String& textToDraw, int x, int y, int w, int h, const Colour& colour, int numLines = 1, float minimumHoriontalScale = 1.0f, int fontHeight = 15, Justification justification = Justification::centredLeft)
