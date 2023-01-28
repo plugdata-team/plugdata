@@ -196,6 +196,11 @@ void ObjectBase::closeOpenedSubpatchers()
             break;
         }
     }
+    
+    // Makes the tabbar check if it needs to hide
+    if(tabbar->getNumTabs() == 0) {
+        tabbar->currentTabChanged(-1, String());
+    }
 
     MessageManager::callAsync([this, safeTabbar = SafePointer(tabbar)]() {
         if (!safeTabbar)

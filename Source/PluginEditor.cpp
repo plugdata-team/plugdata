@@ -107,7 +107,10 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     };
 
     tabbar.onTabChange = [this](int idx) {
-        if (idx == -1 || pd->isPerformingGlobalSync)
+        
+        auto* cnv = getCurrentCanvas();
+        
+        if (!cnv || idx == -1 || pd->isPerformingGlobalSync)
             return;
 
         sidebar.tabChanged();
@@ -120,7 +123,6 @@ PluginEditor::PluginEditor(PluginProcessor& p)
                 cnv->synchronise();
         }
 
-        auto* cnv = getCurrentCanvas();
         if (cnv->patch.getPointer()) {
             cnv->patch.setCurrent();
         }
@@ -531,7 +533,9 @@ void PluginEditor::addTab(Canvas* cnv, bool deleteWhenClosed)
             }
 
             if (deleteWhenClosed) {
+                pd->getCallbackLock()->enter();
                 patch->close();
+                pd->getCallbackLock()->exit();
             }
 
             canvases.removeObject(cnv);
