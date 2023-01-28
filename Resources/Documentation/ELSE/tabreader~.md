@@ -9,7 +9,6 @@ categories:
 pdcategory: Arrays and Tables, Buffers
 
 arguments:
-  1st:
   - type: symbol
     description: array name (optional)
     default: none

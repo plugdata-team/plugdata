@@ -9,15 +9,12 @@ categories:
 pdcategory: Triggers and Clocks
 
 arguments:
-  1st:
   - type: float
     description: gate time in ms
     default: 0, no gate
-  2nd:
   - type: float
     description: initial gate amplitude
     default: 1
-  3rd:
   - type: float
     description: non-zero sets to retrigger mode
     default: 0

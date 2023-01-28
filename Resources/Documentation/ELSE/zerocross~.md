@@ -8,7 +8,7 @@ categories:
  
 pdcategory: Triggers and Clocks, Analysis
 
-arguments: (none)
+arguments:
 
 inlets: 
   1st:

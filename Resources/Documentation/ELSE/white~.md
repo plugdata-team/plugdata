@@ -8,7 +8,7 @@ categories:
  
 pdcategory: Noise, Signal Generators
 
-arguments: (none)
+arguments:
   
 inlets:
   - type: float

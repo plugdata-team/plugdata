@@ -9,7 +9,7 @@ categories:
 pdcategory: GUI, Analysis
 
 arguments:
-- type: none
+- type:
   description:
   default:
 

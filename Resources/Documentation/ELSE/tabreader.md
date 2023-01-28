@@ -9,7 +9,6 @@ categories:
 pdcategory: Arrays and Tables
 
 arguments:
-  1st:
   - type: symbol
     description: array name (optional)
     default: none

@@ -8,7 +8,7 @@ categories:
 
 pdcategory: GUI, Filters
 
-arguments: (none)
+arguments:
 
 inlets:
   1st:

@@ -9,7 +9,6 @@ categories:
 pdcategory: Triggers and Clocks
 
 arguments:
-  1st:
   - type: float
     description: delay time in ms
     default: 0

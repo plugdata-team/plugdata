@@ -9,11 +9,9 @@ categories:
 pdcategory: Effects
 
 arguments:
-  1st:
   - type: float
     description: tremolo frequency
     default: 0
-  2nd:
   - type: float
     description: tremolo depth
     default: 1

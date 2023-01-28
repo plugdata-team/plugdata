@@ -8,7 +8,7 @@ categories:
 
 pdcategory: GUI
 
-arguments: (none)
+arguments:
 
 flags:
 - name: -size <f>
