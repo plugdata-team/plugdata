@@ -1144,6 +1144,22 @@ struct PlugDataLook : public LookAndFeel_V4 {
                                                   "           graph_resizer=\"ff007aff\" grid_colour=\"ff007aff\" caret_colour=\"ff007aff\"\n"
                                                   "           dashed_signal_connections=\"1\" straight_connections=\"0\" thin_connections=\"0\"\n"
                                                   "           square_iolets=\"0\" square_object_corners=\"0\"/>\n"
+                                                  "    <Theme theme=\"warm\" toolbar_background=\"ffd2cdc4\" toolbar_text=\"ff5a5a5a\"\n"
+                                                  "           toolbar_active=\"ff5da0c4\" tab_background=\"ffd2cdc4\" tab_text=\"ff5a5a5a\"\n"
+                                                  "           active_tab_background=\"ffdedad3\" active_tab_text=\"ff5a5a5a\" canvas_background=\"ffe3dfd9\"\n"
+                                                  "           canvas_text=\"ff5a5a5a\" canvas_dots=\"ff909090\" default_object_background=\"ffe3dfd9\"\n"
+                                                  "           object_outline_colour=\"ff968e82\" selected_object_outline_colour=\"ff5da0c4\"\n"
+                                                  "           outline_colour=\"ff968e82\" data_colour=\"ff5da0c4\" connection_colour=\"ffb3b3b3\"\n"
+                                                  "           signal_colour=\"ffff8502\" dialog_background=\"ffd2cdc4\" sidebar_colour=\"ffdedad3\"\n"
+                                                  "           sidebar_text=\"ff5a5a5a\" sidebar_background_active=\"ffd2cdc4\"\n"
+                                                  "           sidebar_active_text=\"ff5a5a5a\" levelmeter_active=\"ff5da0c4\" levelmeter_inactive=\"ffd2cdc4\"\n"
+                                                  "           levelmeter_track=\"ff5a5a5a\" levelmeter_thumb=\"ff7a7a7a\" panel_colour=\"ffe3dfd9\"\n"
+                                                  "           panel_text=\"ff5a5a5a\" panel_background_active=\"ffebebeb\" panel_active_text=\"ff5a5a5a\"\n"
+                                                  "           popup_background=\"ffd2cdc4\" popup_background_active=\"ffdedad3\"\n"
+                                                  "           popup_text=\"ff5a5a5a\" popup_active_text=\"ff5a5a5a\" scrollbar_thumb=\"ff5da0c4\"\n"
+                                                  "           graph_resizer=\"ff5da0c4\" grid_colour=\"ff5da0c4\" caret_colour=\"ff5da0c4\"\n"
+                                                  "           dashed_signal_connections=\"1\" straight_connections=\"0\" thin_connections=\"0\"\n"
+                                                  "           square_iolets=\"0\" square_object_corners=\"0\"/>"
                                                   "  </ColourThemes>";
 
     static void resetColours(ValueTree themesTree)
