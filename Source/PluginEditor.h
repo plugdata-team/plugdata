@@ -322,6 +322,8 @@ public:
     void timerCallback() override
     {
         labelAnimator.fadeOut(this, 200);
+        stopTimer();
+        
     }
 };
 

@@ -118,130 +118,6 @@ private:
     String symbol;
 };
 
-struct ContinuityChecker : public Timer {
-
-    struct BackupTimer : public HighResolutionTimer {
-        t_pdinstance* pd;
-
-        std::atomic<bool>& hasTicked;
-
-        std::vector<t_float> emptyInBuffer;
-        std::vector<t_float> emptyOutBuffer;
-
-        std::function<void(t_float*, t_float*)> callback;
-
-        int numBlocksPerCallback;
-        int intervalMs;
-
-        BackupTimer(std::atomic<bool>& ticked)
-            : hasTicked(ticked)
-        {
-        }
-
-        void prepare(int samplesPerBlock, int schedulerInterval, int numChannels)
-        {
-            pd = pd_this;
-
-            numBlocksPerCallback = samplesPerBlock / libpd_blocksize();
-            intervalMs = schedulerInterval;
-
-            emptyInBuffer.resize(numChannels * samplesPerBlock);
-            emptyOutBuffer.resize(numChannels * samplesPerBlock);
-        }
-
-        void startScheduler()
-        {
-            if (isTimerRunning())
-                return;
-
-                // startTimer(intervalMs);
-#if JUCE_DEBUG
-                // std::cout << "backup scheduler started" << std::endl;
-#endif
-        }
-
-        void stopScheduler()
-        {
-            if (!isTimerRunning())
-                return;
-
-                // stopTimer();
-
-#if JUCE_DEBUG
-                // std::cout << "backup scheduler stopped" << std::endl;
-#endif
-        }
-
-        void hiResTimerCallback() override
-        {
-            if (hasTicked) {
-                stopScheduler();
-                return;
-            }
-
-            for (int i = 0; i < numBlocksPerCallback; i++) {
-                std::fill(emptyInBuffer.begin(), emptyInBuffer.end(), 0.0f);
-
-                callback(emptyInBuffer.data(), emptyOutBuffer.data());
-
-                std::fill(emptyOutBuffer.begin(), emptyOutBuffer.end(), 0.0f);
-            }
-        }
-    };
-
-    ContinuityChecker()
-        : backupTimer(hasTicked) {};
-
-    void setCallback(std::function<void(t_float*, t_float*)> cb)
-    {
-        backupTimer.callback = std::move(cb);
-    }
-
-    void prepare(double sampleRate, int samplesPerBlock, int numChannels)
-    {
-        timePerBlock = std::round((samplesPerBlock / sampleRate) * 1000.0);
-
-        backupTimer.prepare(samplesPerBlock, timePerBlock, numChannels);
-
-        startTimer(timePerBlock);
-    }
-
-    void setTimer()
-    {
-        lastTime = Time::getCurrentTime().getMillisecondCounterHiRes();
-        hasTicked = true;
-    }
-
-    void setNonRealtime(bool nonRealtime)
-    {
-        isNonRealtime = nonRealtime;
-        if (isNonRealtime)
-            backupTimer.stopScheduler();
-    }
-
-    void timerCallback() override
-    {
-        int timePassed = Time::getCurrentTime().getMillisecondCounterHiRes() - lastTime;
-
-        // Scheduler
-        if (timePassed > 2 * timePerBlock && !hasTicked && !isNonRealtime) {
-            backupTimer.startScheduler();
-        }
-
-        hasTicked = false;
-    }
-
-    t_pdinstance* pd;
-
-    std::atomic<double> lastTime;
-    std::atomic<bool> hasTicked;
-
-    std::atomic<bool> isNonRealtime = false;
-    int timePerBlock;
-
-    BackupTimer backupTimer;
-};
-
 struct MessageListener {
     virtual void receiveMessage(String const& name, int argc, t_atom* argv) {};
 
@@ -433,7 +309,6 @@ private:
     WaitableEvent updateWait;
 
 protected:
-    // ContinuityChecker continuityChecker;
 
     struct internal;
 

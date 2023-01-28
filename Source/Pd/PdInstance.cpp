@@ -282,7 +282,6 @@ void Instance::prepareDSP(int const nins, int const nouts, double const samplera
 {
     libpd_set_instance(static_cast<t_pdinstance*>(m_instance));
     libpd_init_audio(nins, nouts, static_cast<int>(samplerate));
-    // continuityChecker.prepare(samplerate, blockSize, std::max(nins, nouts));
 }
 
 void Instance::startDSP()
