@@ -1,12 +1,12 @@
 ---
 title: presets
 
-description: Presets manager
+description: presets manager
 
 categories:
 - object
 
-pdcategory:
+pdcategory: Data Management
 
 arguments:
 - description: one or more receive names
@@ -23,7 +23,7 @@ inlets:
     description: import presets from a list
   2nd:
   - type: float
-    description: interpolation value (when in interpoltion mode)
+    description: interpolation value (when in interpolation mode)
 
 outlets:
   1st:

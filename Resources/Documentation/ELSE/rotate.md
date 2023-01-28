@@ -1,12 +1,12 @@
 ---
 title: rotate
 
-description: Rotate messages
+description: rotate messages
 
 categories:
 - object
 
-pdcategory: List management
+pdcategory: Data Management
 
 arguments:
 - type: float

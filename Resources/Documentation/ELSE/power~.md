@@ -1,9 +1,12 @@
 ---
 title: power~
-description: Power function waveshaper
+
+description: power function waveshaper
+
 categories:
  - object
-pdcategory: General
+
+pdcategory: Effects
 
 arguments:
 - type: float
@@ -25,5 +28,5 @@ outlets:
 
 ---
 
-[power~] is a power functiona waveshaper for signals that extends the usual definition of exponentiation and returns -pow(-a, b) when you have a negative signal input. This allows not only the output of negative values but also the exponentiation of negative values by noninteger exponents.
+[power~] is a power function waveshaper for signals that extends the usual definition of exponentiation and returns -pow(-a, b) when you have a negative signal input. This allows not only the output of negative values but also the exponentiation of negative values by noninteger exponents.
 

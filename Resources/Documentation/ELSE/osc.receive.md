@@ -1,11 +1,11 @@
 ---
 title: osc.receive
-description: Receive OSC messages
+description: receive OSC messages
 
 categories:
  - object
 
-pdcategory: General
+pdcategory: Networking
 
 arguments:
   - type: float

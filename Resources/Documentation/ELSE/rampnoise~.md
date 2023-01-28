@@ -1,7 +1,7 @@
 ---
 title: rampnoise~
 
-description: Ramp noise
+description: ramp noise
 
 categories:
  - object

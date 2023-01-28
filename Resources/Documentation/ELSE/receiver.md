@@ -1,12 +1,12 @@
 ---
 title: receiver
 
-description: Receive messages
+description: receive messages
 
 categories:
  - object
 
-pdcategory: Subpatch management
+pdcategory: Data management
 
 arguments:
 - type: list

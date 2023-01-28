@@ -1,12 +1,12 @@
 ---
 title: rescale
 
-description: Rescale MIDI values
+description: rescale MIDI values
 
 categories:
  - object
 
-pdcategory: Math
+pdcategory: MIDI, Data Math
 
 arguments:
 - type: list

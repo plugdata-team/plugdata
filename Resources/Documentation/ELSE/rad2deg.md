@@ -1,12 +1,12 @@
 ---
 title: rad2deg
 
-description: Radiants to degrees conversion
+description: radiants to degrees conversion
 
 categories:
 - object
 
-pdcategory: Math
+pdcategory: Data Math
 
 arguments:
 - type: float

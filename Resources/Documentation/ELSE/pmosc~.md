@@ -1,9 +1,9 @@
 ---
 title: pmosc~
-description: Phase modulation oscillator pair
+description: phase modulation oscillator pair
 categories:
  - object
-pdcategory: General
+pdcategory: Signal Generators
 
 arguments:
 - type: float

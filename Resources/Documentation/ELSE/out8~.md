@@ -1,12 +1,12 @@
 ---
 title: out8~
 
-description: Octaphonic output
+description: octaphonic output
 
 categories:
 - object
 
-pdcategory:
+pdcategory: Audio I/O
 
 arguments:
   1st:
