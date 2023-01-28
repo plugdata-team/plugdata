@@ -159,7 +159,8 @@ public:
         if(!editor) {
             auto textArea = border.subtractedFrom(getLocalBounds());
             
-            PlugDataLook::drawFittedText(g, objectText, textArea, object->findColour(PlugDataColour::canvasTextColourId), numLines, 0.9f);
+            auto scale = getWidth() < 40 ? 0.9f : 1.0f;
+            PlugDataLook::drawFittedText(g, objectText, textArea, object->findColour(PlugDataColour::canvasTextColourId), numLines, scale);
         }
     }
         
