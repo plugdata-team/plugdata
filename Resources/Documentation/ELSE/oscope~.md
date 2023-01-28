@@ -1,10 +1,12 @@
 ---
 title: oscope~
-description: Oscilloscope display
+
+description: oscilloscope display
+
 categories:
  - object
 
-pdcategory: General
+pdcategory: GUI, Analysis
 
 arguments:
 - type: none

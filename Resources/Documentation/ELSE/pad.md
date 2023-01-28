@@ -1,11 +1,11 @@
 ---
 title: pad
-description: Mouse pad
+description: mouse pad
 
 categories:
  - object
 
-pdcategory: General
+pdcategory: GUI
 
 arguments:
 - type: none

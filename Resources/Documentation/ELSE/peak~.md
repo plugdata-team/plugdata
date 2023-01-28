@@ -1,9 +1,12 @@
 ---
 title: peak~
-description: Detect peak amplitude
+
+description: detect peak amplitude
+
 categories:
  - object
-pdcategory: General
+
+pdcategory: Analysis
 
 arguments:
   1st:

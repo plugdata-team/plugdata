@@ -1,9 +1,11 @@
 ---
 title: pan4~
-description: Quadraphonic panning
+description: quadraphonic panning
+
 categories:
  - object
-pdcategory: General
+
+pdcategory: Mixing and Routing
 
 arguments:
   1st:

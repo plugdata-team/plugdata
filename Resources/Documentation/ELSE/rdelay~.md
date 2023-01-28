@@ -1,12 +1,12 @@
 ---
 title: rdelay~
 
-description: Reverse delay 
+description: reverse delay 
 
 categories:
 - object
 
-pdcategory: General
+pdcategory: Effects
 
 arguments:
 - type: float

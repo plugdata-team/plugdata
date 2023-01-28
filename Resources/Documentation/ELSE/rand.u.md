@@ -1,12 +1,12 @@
 ---
 title: rand.u
 
-description: Unrepeatable random values
+description: unrepeatable random values
 
 categories:
 - object
 
-pdcategory: Control
+pdcategory: Noise
 
 arguments:
 - type: float

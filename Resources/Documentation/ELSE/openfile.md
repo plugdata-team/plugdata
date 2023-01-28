@@ -1,10 +1,11 @@
 ---
 title: openfile
-description: Open folders/files/weblinks
+
+description: open folders/files/weblinks
 
 categories:
  - object
-pdcategory: General
+pdcategory: Networking
 
 arguments:
 - type: symbol

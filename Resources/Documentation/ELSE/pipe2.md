@@ -1,12 +1,12 @@
 ---
 title: pipe2
 
-description: Delay messages
+description: delay messages
 
 categories:
 - object
 
-pdcategory:
+pdcategory: Data Management
 
 arguments:
 - description: delay time in ms

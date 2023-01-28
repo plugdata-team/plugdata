@@ -1,7 +1,7 @@
 ---
 title: range.hsl
 
-description: Range horizontal slider
+description: range horizontal slider
 
 categories:
 - object
