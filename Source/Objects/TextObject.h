@@ -257,6 +257,8 @@ public:
 
             auto newText = outgoingEditor->getText();
 
+            outgoingEditor->removeListener(cnv->suggestor);
+            
             newText = TextObjectHelper::fixNewlines(newText);
 
             bool changed;

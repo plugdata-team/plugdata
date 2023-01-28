@@ -62,6 +62,10 @@ private:
         setBounds(cnv->getLocalArea(editor, editor->getLocalBounds()));
     }
     
+    void componentBeingDeleted(Component &component)
+    {
+        editor->removeComponentListener(this);
+    }
 
     void paint(Graphics& g) override
     {

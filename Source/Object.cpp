@@ -731,6 +731,8 @@ void Object::hideEditor()
         std::swap(outgoingEditor, newObjectEditor);
 
         cnv->hideSuggestions();
+        
+        outgoingEditor->removeListener(cnv->suggestor);
 
         // Get entered text, remove extra spaces at the end
         auto newText = outgoingEditor->getText().trimEnd();
