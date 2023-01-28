@@ -1,12 +1,12 @@
 ---
 title: reverse
 
-description: Reverse messages
+description: reverse messages
 
 categories:
 - object
 
-pdcategory: List management
+pdcategory: Data Management
 
 arguments: (none)
 

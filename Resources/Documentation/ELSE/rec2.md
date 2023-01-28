@@ -1,12 +1,12 @@
 ---
 title: rec2
 
-description: Record note messages into text
+description: record note messages into text
 
 categories:
 - object
 
-pdcategory:
+pdcategory: MIDI
 
 arguments:
 - type: symbol

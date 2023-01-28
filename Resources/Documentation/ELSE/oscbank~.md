@@ -1,12 +1,12 @@
 ---
 title: oscbank~
 
-description: Bank of oscillators
+description: bank of oscillators
 
 categories:
 - object
 
-pdcategory:
+pdcategory: Signal Generators
 
 arguments:
   1st:

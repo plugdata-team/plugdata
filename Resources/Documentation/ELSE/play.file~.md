@@ -1,12 +1,12 @@
 ---
 title: play.file~
 
-description: Play sound files
+description: play sound files
 
 categories:
 - object
 
-pdcategory:
+pdcategory: Buffers
 
 arguments:
   - description: (optional) number of channels (max 64)

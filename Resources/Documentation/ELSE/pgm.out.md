@@ -1,9 +1,13 @@
 ---
 title: pgm.out
+
 description: MIDI program output
+
 categories:
  - object
-pdcategory: General
+
+pdcategory: MIDI
+
 arguments:
 - type: float
   description: sets channel number

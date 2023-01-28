@@ -1,12 +1,12 @@
 ---
 title: pink~
 
-description: Pink noise
+description: pink noise
 
 categories:
  - object
 
-pdcategory: General
+pdcategory: Noise, Signal Generators
 
 arguments:
 - type: float

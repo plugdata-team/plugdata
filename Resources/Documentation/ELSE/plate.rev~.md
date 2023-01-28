@@ -1,12 +1,12 @@
 ---
 title: plate.rev~
 
-description: Plate reverb
+description: plate reverb
 
 categories:
 - object
 
-pdcategory:
+pdcategory: Effects
 
 arguments:
 - description: pre delay in ms (0-1000)
@@ -15,7 +15,7 @@ arguments:
 - description: filter cutoff (0-1)
   type: float
   default: 0.5
-- description: high frequnecy damping (0-1)
+- description: high frequency damping (0-1)
   type: float
   default: 0.25
 - description: room size (0-1)

@@ -1,9 +1,9 @@
 ---
 title: pluck~
-description: A Karplus-Strong algorithm
+description: a karplus-strong algorithm
 categories:
  - object
-pdcategory: General
+pdcategory: Signal Generators
 
 arguments:
 - type: float

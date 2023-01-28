@@ -1,12 +1,12 @@
 ---
 title: order
 
-description: Split and index list elements
+description: split and index list elements
 
 categories:
 - object
 
-pdcategory:
+pdcategory: Data Management
 
 arguments:
   1st:

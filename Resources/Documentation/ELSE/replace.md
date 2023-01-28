@@ -1,12 +1,12 @@
 ---
 title: replace
 
-description: Replace element from a message
+description: replace element from a message
 
 categories:
  - object
 
-pdcategory: Data management
+pdcategory: Data Management
 
 arguments:
 - type: float
@@ -36,4 +36,4 @@ outlets:
 draft: false
 ---
 
-[replace] replaces an element from an input message according to an element number defined by the 1st argument or mid inlet. Elements are indexed from 1, a 0 value means no element is replaced and negative values count from last to the first element. Element numbers get cliped to the first and last items of the input message. The right inlet or 2nd argument sets the new element.
+[replace] replaces an element from an input message according to an element number defined by the 1st argument or mid inlet. Elements are indexed from 1, a 0 value means no element is replaced and negative values count from last to the first element. Element numbers get clipped to the first and last items of the input message. The right inlet or 2nd argument sets the new element.

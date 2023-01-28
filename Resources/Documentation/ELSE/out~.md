@@ -1,12 +1,12 @@
 ---
 title: out~
 
-description: Stereo output
+description: stereo output
 
 categories:
 - object
 
-pdcategory:
+pdcategory: Audio I/O
 
 arguments:
   1st:

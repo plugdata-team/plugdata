@@ -1,12 +1,12 @@
 ---
 title: rand.list
 
-description: Choose randomly from a list
+description: choose randomly from a list
 
 categories:
 - object
 
-pdcategory: Control
+pdcategory: Data Management, Noise
 
 arguments:
 - type: list
