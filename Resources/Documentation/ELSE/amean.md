@@ -9,15 +9,12 @@ categories:
 pdcategory: Data Math
 
 arguments:
-  1st:
   - description: sets start
     type: float
     default: 1
-  2nd:
   - description: sets end
     type: float
     default: 2
-  3rd:
   - description: sets step-count
     type: float
     default: 2

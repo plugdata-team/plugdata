@@ -9,15 +9,12 @@ categories:
 pdcategory: Filters
 
 arguments:
-  1st:
   - description: order from 2 to 64
     type: float
     default: 2
-  2nd:
   - description: frequency in Hz
     type: float
     default: 10
-  3rd:
   - description: filter Q
     type: float
     default: 1

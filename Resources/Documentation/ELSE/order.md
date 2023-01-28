@@ -9,11 +9,9 @@ categories:
 pdcategory: Data Management
 
 arguments:
-  1st:
   - description: 'n' number of elements to be ordered
     type: float
     default: 1
-  2nd:
   - description: index offset
     type: float
     default: 0

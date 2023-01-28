@@ -9,15 +9,12 @@ categories:
 pdcategory: Signal Generators
 
 arguments:
-  1st:
   - description: number of oscillators 
     type: float
     default: 1
-  2nd:
   - description: fundamental frequency in hz
     type: float
     default: 0
-  3rd:
   - description: ramp time in ms
     type: float
     default: 10

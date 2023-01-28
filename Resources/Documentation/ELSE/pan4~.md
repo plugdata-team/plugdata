@@ -8,11 +8,9 @@ categories:
 pdcategory: Mixing and Routing
 
 arguments:
-  1st:
   - type: float
     description: initial X pan value
     default: 0
-  2nd:
   - type: float
     description: initial Y pan value
     default: 0

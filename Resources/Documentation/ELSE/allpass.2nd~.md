@@ -9,11 +9,9 @@ categories:
 pdcategory: Filters
 
 arguments:
-  1st:
   - type: float
     description: central frequency in Hz
     default: 0
-  2nd:
   - type: float
     description: resonance
     default: 1

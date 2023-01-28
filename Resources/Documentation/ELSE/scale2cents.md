@@ -8,7 +8,7 @@ categories:
 
 pdcategory: Tuning, Data Math
 
-arguments: (none)
+arguments:
 
 inlets:
   1st:
