@@ -130,9 +130,8 @@ public:
             getTabbedButtonBar().setVisible(true);
             welcomePanel.setVisible(false);
             setTabBarDepth(26);
+            onTabChange(newCurrentTabIndex);
         }
-
-        onTabChange(newCurrentTabIndex);
     }
 
     void resized() override
