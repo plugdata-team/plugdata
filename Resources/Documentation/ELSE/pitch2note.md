@@ -9,9 +9,6 @@ categories:
 pdcategory: MIDI
 
 arguments:
-- description:
-  type:
-  default:
 
 inlets:
   1st:

@@ -9,9 +9,6 @@ categories:
 pdcategory: GUI, Analysis
 
 arguments:
-- type:
-  description:
-  default:
 
 inlets:
   1st:

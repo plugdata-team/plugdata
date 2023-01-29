@@ -9,9 +9,6 @@ categories:
 pdcategory: Data Math, Filters
 
 arguments:
-- description:
-  type:
-  default:
 
 inlets:
   1st:
