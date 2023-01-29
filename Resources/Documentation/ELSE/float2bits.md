@@ -5,7 +5,7 @@ description: convert float to bits
 categories:
  - object
 
-pdcategory: General
+pdcategory: Data Math
 
 arguments:
 - type: float

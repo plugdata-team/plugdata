@@ -5,15 +5,15 @@ description: highpass resonant filter
 categories:
  - object
 
-pdcategory: General
+pdcategory: Filters
 
 arguments:
 - type: float
   description: central frequency in Hertz
   default: 0
 - type: float
-  description: resonance, either in 'Q' (default) or 'bw'
-  default: 1
+  description: resonance, either in 'Q' or 'bw'
+  default: 1 - in Q
 
 inlets:
   1st:

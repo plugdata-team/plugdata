@@ -6,7 +6,7 @@ description: default message
 categories:
  - object
 
-pdcategory: General
+pdcategory: Data Management
 
 arguments:
 - type: anything

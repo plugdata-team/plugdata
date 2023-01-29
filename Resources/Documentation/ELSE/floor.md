@@ -5,7 +5,7 @@ description: floor function
 categories:
  - object
 
-pdcategory: General
+pdcategory: Data Math
 
 arguments:
 

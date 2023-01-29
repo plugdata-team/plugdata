@@ -6,7 +6,7 @@ description: factorization
 categories:
  - object
 
-pdcategory: General
+pdcategory: Data Math
 
 arguments:
 

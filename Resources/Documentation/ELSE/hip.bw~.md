@@ -6,7 +6,7 @@ description: highpass butterworth filter
 categories:
 - object
 
-pdcategory:
+pdcategory: Filters
 
 arguments:
 - description: cutoff in hertz

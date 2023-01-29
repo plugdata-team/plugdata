@@ -5,12 +5,12 @@ description: gingerbread man chaotic generator
 categories:
  - object
 
-pdcategory: General
+pdcategory: Random and Noise, Signal Generators
 
 arguments:
 - type: float
   description: sets frequency in hertz
-  default: nyquist
+  default: Nyquist
 - type: float
   description: sets initial feedback value of y[n-1]
   default: 1.2

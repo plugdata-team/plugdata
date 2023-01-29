@@ -6,7 +6,7 @@ description: signal graph
 categories:
 - object
 
-pdcategory:
+pdcategory: Analysis, Signal Math
 
 arguments:
 

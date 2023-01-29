@@ -5,7 +5,7 @@ description: keyboard GUI
 categories:
  - object
 
-pdcategory: General
+pdcategory: GUI, Tuning, Sequencing
 
 arguments:
 

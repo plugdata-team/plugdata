@@ -5,11 +5,11 @@ description: format messages
 categories:
  - object
 
-pdcategory: General
+pdcategory: Data Management
 
 arguments:
 - type: anything
-  description: atoms that may contain '%' variables (obrigatory)
+  description: atoms that may contain '%' variables (obligatory)
 
 inlets:
   1st:

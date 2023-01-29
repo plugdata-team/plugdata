@@ -5,7 +5,7 @@ description: gate to impulse
 categories:
  - object
 
-pdcategory: General
+pdcategory: Triggers and Clocks
 
 arguments:
 

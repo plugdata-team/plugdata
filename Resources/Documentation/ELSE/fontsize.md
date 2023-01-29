@@ -5,7 +5,7 @@ description: report font size
 categories:
  - object
 
-pdcategory: General
+pdcategory: GUI
 
 arguments:
 - type: float
