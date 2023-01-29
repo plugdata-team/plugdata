@@ -1,7 +1,7 @@
 ---
 title: dust2~
 
-description: Random impulses
+description: random impulses
 
 categories:
  - object

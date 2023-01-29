@@ -1,7 +1,7 @@
 ---
 title: graph~
 
-description: Signal graph
+description: signal graph
 
 categories:
 - object

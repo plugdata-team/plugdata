@@ -1,7 +1,7 @@
 ---
 title: frac.mul
 
-description: Multiply fractions
+description: multiply fractions
 
 categories:
 - object

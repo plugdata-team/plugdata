@@ -1,6 +1,6 @@
 ---
 title: initmess
-description: Initialization message
+description: initialization message
 
 categories:
  - object

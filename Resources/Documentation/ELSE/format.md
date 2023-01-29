@@ -1,6 +1,6 @@
 ---
 title: format
-description: Format messages
+description: format messages
 
 categories:
  - object

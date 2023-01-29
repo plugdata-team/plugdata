@@ -1,7 +1,7 @@
 ---
 title: gmean
 
-description: Generate list with geometric means
+description: generate list with geometric means
 
 categories:
 - object

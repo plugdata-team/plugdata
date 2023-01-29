@@ -1,6 +1,6 @@
 ---
 title: histogram
-description: Probability distribution histogram
+description: probability distribution histogram
 
 categories:
  - object

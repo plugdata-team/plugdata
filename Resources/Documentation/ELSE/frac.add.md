@@ -1,7 +1,7 @@
 ---
 title: frac.add
 
-description: Add fractions
+description: add fractions
 
 categories:
 - object

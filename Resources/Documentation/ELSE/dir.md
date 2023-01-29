@@ -1,6 +1,6 @@
 ---
 title: dir
-description: Access file directory
+description: access file directory
 
 categories:
  - object

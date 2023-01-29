@@ -1,7 +1,7 @@
 ---
 title: del~ in
 
-description: Delay line input
+description: delay line input
 
 categories:
  - object

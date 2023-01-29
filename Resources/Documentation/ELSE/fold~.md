@@ -1,6 +1,6 @@
 ---
 title: fold~
-description: Fold signals between two values
+description: fold signals between two values
 
 categories:
  - object

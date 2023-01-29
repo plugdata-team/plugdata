@@ -1,7 +1,7 @@
 ---
 title: drum.seq
 
-description: Drum sequence pattern GUI
+description: drum sequence pattern GUI
 
 categories:
 - object

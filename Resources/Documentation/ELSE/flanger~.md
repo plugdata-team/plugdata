@@ -1,7 +1,7 @@
 ---
 title: flanger~
 
-description: Flanger
+description: flanger
 
 categories:
 - object

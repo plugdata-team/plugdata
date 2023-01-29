@@ -1,7 +1,7 @@
 ---
 title: gatehold~
 
-description: Hold gate values
+description: hold gate values
 
 categories:
 - object

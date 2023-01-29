@@ -1,7 +1,7 @@
 ---
 title: dec2hex
 
-description: Convert decimal to hexadecimal
+description: convert decimal to hexadecimal
 
 categories:
 - object

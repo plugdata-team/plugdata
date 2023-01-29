@@ -1,7 +1,7 @@
 ---
 title: echo.rev~
 
-description: Echo reverb
+description: echo reverb
 
 categories:
 - object

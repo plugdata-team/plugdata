@@ -1,7 +1,7 @@
 ---
 title: drive~
 
-description: Soft-clip distortion
+description: soft-clip distortion
 
 categories:
  - object

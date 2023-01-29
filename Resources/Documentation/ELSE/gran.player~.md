@@ -1,7 +1,7 @@
 ---
 title: gran.player~
 
-description: Multi-channel granular player
+description: multi-channel granular player
 
 categories:
 - object

@@ -1,6 +1,6 @@
 ---
 title: gaussian~
-description: Gaussian oscillator
+description: gaussian oscillator
 
 categories:
  - object

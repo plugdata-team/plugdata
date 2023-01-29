@@ -1,7 +1,7 @@
 ---
 title: gain2~
 
-description: Stereo gain
+description: stereo gain
 
 categories:
 - object

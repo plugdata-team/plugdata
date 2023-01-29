@@ -1,7 +1,7 @@
 ---
 title: hip.bw~
 
-description: Highpass butterworth filter
+description: highpass butterworth filter
 
 categories:
 - object

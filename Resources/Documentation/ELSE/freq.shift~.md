@@ -1,6 +1,6 @@
 ---
 title: freq.shift~
-description: Frequency shifter
+description: frequency shifter
 
 categories:
  - object
