@@ -227,12 +227,15 @@ struct Fonts {
     static Font getThinFont() { return Font(instance->thinTypeface); }
     static Font getIconFont() { return Font(instance->iconTypeface); }
     static Font getMonospaceFont() { return Font(instance->monoTypeface); }
+    
+    static Font setDefaultFont(Font font) { return instance->defaultTypeface = font.getTypefacePtr(); }
 
 private:
     // This is effectively a singleton because it's loaded through SharedResourcePointer
     static inline Fonts* instance = nullptr;
 
     // Default typeface is Inter combined with Unicode symbols from GoNotoUniversal and emojis from NotoEmoji
+    // though it can be overriden by the user
     Typeface::Ptr defaultTypeface;
 
     Typeface::Ptr thinTypeface;
@@ -660,6 +663,7 @@ struct PlugDataLook : public LookAndFeel_V4 {
 
         g.strokePath(path, PathStrokeType(2.0f));
     }
+
 
     void drawResizableFrame(Graphics& g, int w, int h, BorderSize<int> const& border) override
     {
@@ -1094,8 +1098,9 @@ struct PlugDataLook : public LookAndFeel_V4 {
         if (fontName.isEmpty() || fontName == "Inter") {
             lnf.setDefaultSansSerifTypeface(Fonts::getDefaultFont().getTypefacePtr());
         } else {
-            auto newFont = Font(fontName, 15, Font::plain);
-            lnf.setDefaultSansSerifTypeface(newFont.getTypefacePtr());
+            auto newDefaultFont = Font(fontName, 15, Font::plain);
+            Fonts::setDefaultFont(newDefaultFont);
+            lnf.setDefaultSansSerifTypeface(newDefaultFont.getTypefacePtr());
         }
     }
 
