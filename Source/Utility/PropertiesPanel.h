@@ -197,41 +197,7 @@ public:
             : Property(propertyName)
             , currentColour(value)
         {
-            String strValue = currentColour.toString();
-            if (strValue.length() > 2) {
-                button.setButtonText(String("#") + strValue.substring(2).toUpperCase());
-            }
-            button.setConnectedEdges(12);
-            button.setColour(ComboBox::outlineColourId, Colours::transparentBlack);
-
-            addAndMakeVisible(button);
-            updateColour();
-
-            button.onClick = [this]() {
-                std::unique_ptr<ColourSelector> colourSelector = std::make_unique<ColourSelector>(ColourSelector::showColourAtTop | ColourSelector::showSliders | ColourSelector::showColourspace);
-                colourSelector->addChangeListener(this);
-                colourSelector->setSize(300, 400);
-                colourSelector->setColour(ColourSelector::backgroundColourId, findColour(PlugDataColour::panelBackgroundColourId));
-                colourSelector->setCurrentColour(Colour::fromString(currentColour.toString()));
-
-                CallOutBox::launchAsynchronously(std::move(colourSelector), button.getScreenBounds(), nullptr);
-            };
-        }
-
-        void updateColour()
-        {
-            auto colour = Colour::fromString(currentColour.toString());
-
-            button.setColour(TextButton::buttonColourId, colour);
-            button.setColour(TextButton::buttonOnColourId, colour.brighter());
-
-            auto textColour = colour.getPerceivedBrightness() > 0.5 ? Colours::black : Colours::white;
-
-            // make sure text is readable
-            button.setColour(TextButton::textColourOffId, textColour);
-            button.setColour(TextButton::textColourOnId, textColour);
-
-            button.setButtonText(String("#") + currentColour.toString().substring(2).toUpperCase());
+            repaint();
         }
 
         void changeListenerCallback(ChangeBroadcaster* source) override
@@ -240,19 +206,47 @@ public:
 
             auto colour = cs->getCurrentColour();
             currentColour = colour.toString();
-
-            updateColour();
+            
+            repaint();
         }
 
         ~ColourComponent() override = default;
 
-        void resized() override
+        void paint(Graphics& g) override
         {
-            button.setBounds(getLocalBounds().removeFromRight(getWidth() / (2 - hideLabel)));
+            auto colour = Colour::fromString(currentColour.toString());
+            auto textColour = colour.getPerceivedBrightness() > 0.5 ? Colours::black : Colours::white;
+            
+            if(isMouseOver()) colour = colour.brighter(0.4f);
+            g.fillAll(colour);
+            
+            auto bounds = getLocalBounds().removeFromRight(getWidth() / (2 - hideLabel));
+            
+
+            PlugDataLook::drawText(g, String("#") + currentColour.toString().substring(2).toUpperCase(), bounds, textColour, 14.0f, Justification::centred);
+        }
+            
+        void mouseEnter(const MouseEvent& e) override {
+            repaint();
+        }
+            
+        void mouseExit(const MouseEvent& e) override {
+            repaint();
+        }
+            
+        void mouseUp(const MouseEvent& e) override
+        {
+            std::unique_ptr<ColourSelector> colourSelector = std::make_unique<ColourSelector>(ColourSelector::showColourAtTop | ColourSelector::showSliders | ColourSelector::showColourspace);
+            colourSelector->addChangeListener(this);
+            colourSelector->setSize(300, 400);
+            colourSelector->setColour(ColourSelector::backgroundColourId, findColour(PlugDataColour::panelBackgroundColourId));
+            colourSelector->setCurrentColour(Colour::fromString(currentColour.toString()));
+
+            CallOutBox::launchAsynchronously(std::move(colourSelector), getScreenBounds(), nullptr);
         }
 
     private:
-        TextButton button;
+        
         Value& currentColour;
     };
 

@@ -462,6 +462,8 @@ public:
             PlugDataLook::setDefaultFont(fontValue.toString());
             SettingsFile::getInstance()->setProperty("default_font", fontValue.getValue());
             getTopLevelComponent()->repaint();
+            for(auto* panel : allPanels) panel->repaint();
+            
             return;
         }
 
