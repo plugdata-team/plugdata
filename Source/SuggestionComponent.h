@@ -30,6 +30,7 @@ public:
     ~AutoCompleteComponent() {
         editor->removeComponentListener(this);
     }
+
     
     String getSuggestion() {
         
@@ -377,7 +378,7 @@ private:
             openedEditor->setCaretPosition(openedEditor->getHighlightedRegion().getEnd());
             return true;
         }
-        if(key == KeyPress::rightKey && autoCompleteComponent) {
+        if(key == KeyPress::rightKey && autoCompleteComponent && openedEditor->getCaretPosition() == openedEditor->getText().length()) {
             autoCompleteComponent->autocomplete();
             return true;
         }
