@@ -1,7 +1,7 @@
 ---
 title: insert
 
-description: Insert message in a list
+description: insert message in a list
 
 categories:
 - object

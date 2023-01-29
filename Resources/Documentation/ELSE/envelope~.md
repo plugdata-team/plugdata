@@ -1,7 +1,7 @@
 ---
 title: envelope~
 
-description: Envelope waveforms
+description: envelope waveforms
 
 categories:
 - object

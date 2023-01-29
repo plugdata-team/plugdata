@@ -1,7 +1,7 @@
 ---
 title: downsample~
 
-description: Downsample a signal
+description: downsample a signal
 
 categories:
  - object

@@ -1,6 +1,6 @@
 ---
 title: fbsine~
-description: Feedback sine oscillator
+description: feedback sine oscillator
 
 categories:
  - object

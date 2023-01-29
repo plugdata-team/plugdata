@@ -1,7 +1,7 @@
 ---
 title: display
 
-description: Display messages
+description: display messages
 
 categories:
 - object

@@ -1,6 +1,6 @@
 ---
 title: fdn.rev~
-description: Feedback delay network reverberator
+description: feedback delay network reverberator
 
 categories:
  - object

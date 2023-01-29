@@ -1,6 +1,6 @@
 ---
 title: glide~
-description: Signal glide/portamento
+description: signal glide/portamento
 
 categories:
  - object

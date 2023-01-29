@@ -1,7 +1,7 @@
 ---
 title: grain.synth~
 
-description: Granular synthesis
+description: granular synthesis
 
 categories:
 - object

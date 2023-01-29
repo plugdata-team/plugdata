@@ -1,6 +1,6 @@
 ---
 title: fbsine2~
-description: Feedback sine with chaotic phase indexing
+description: feedback sine with chaotic phase indexing
 
 categories:
  - object

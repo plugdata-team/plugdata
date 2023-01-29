@@ -1,6 +1,6 @@
 ---
 title: function~
-description: Function generator
+description: function generator
 
 categories:
  - object

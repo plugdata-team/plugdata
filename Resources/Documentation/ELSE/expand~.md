@@ -1,7 +1,7 @@
 ---
 title: expand~
 
-description: Expander
+description: expander
 
 categories:
 - object

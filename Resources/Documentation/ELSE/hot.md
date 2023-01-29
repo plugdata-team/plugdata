@@ -1,6 +1,6 @@
 ---
 title: hot
-description: Make all inputs hot
+description: make all inputs hot
 
 categories:
  - object

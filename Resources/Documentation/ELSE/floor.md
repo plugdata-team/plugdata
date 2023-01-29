@@ -1,6 +1,6 @@
 ---
 title: floor
-description: Floor function
+description: floor function
 
 categories:
  - object

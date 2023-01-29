@@ -1,6 +1,6 @@
 ---
 title: highpass~
-description: Highpass resonant filter
+description: highpass resonant filter
 
 categories:
  - object

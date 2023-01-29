@@ -1,7 +1,7 @@
 ---
 title: impulse
 
-description: Control impulse
+description: control impulse
 
 categories:
 - object

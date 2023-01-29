@@ -1,7 +1,7 @@
 ---
 title: interpolate
 
-description: Interpolate between values
+description: interpolate between values
 
 categories:
 - object

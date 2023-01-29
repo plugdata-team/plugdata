@@ -1,7 +1,7 @@
 ---
 title: freq2midi
 
-description: Convert frequency to MIDI
+description: convert frequency to MIDI
 
 categories:
 - object

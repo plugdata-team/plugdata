@@ -1,7 +1,7 @@
 ---
 title: euclid
 
-description: Euclidean rhythm algorithm
+description: euclidean rhythm algorithm
 
 categories:
 - object

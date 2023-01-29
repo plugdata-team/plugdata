@@ -1,7 +1,7 @@
 ---
 title: gain~
 
-description: Mono gain
+description: mono gain
 
 categories:
 - object

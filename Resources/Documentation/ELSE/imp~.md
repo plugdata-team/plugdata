@@ -1,6 +1,6 @@
 ---
 title: imp~
-description: Impulse oscillator
+description: impulse oscillator
 
 categories:
  - object

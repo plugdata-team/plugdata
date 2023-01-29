@@ -1,6 +1,6 @@
 ---
 title: float2sig~
-description: Convert float to signal
+description: convert float to signal
 
 categories:
  - object

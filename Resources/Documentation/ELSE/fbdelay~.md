@@ -1,6 +1,6 @@
 ---
 title: fbdelay~
-description: Feedback delay line
+description: feedback delay line
 
 categories:
  - object

@@ -1,6 +1,6 @@
 ---
 title: fontsize
-description: Report font size
+description: report font size
 
 categories:
  - object

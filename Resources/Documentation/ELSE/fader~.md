@@ -1,6 +1,6 @@
 ---
 title: fader~
-description: Fader waveshaper
+description: fader waveshaper
 
 categories:
  - object
