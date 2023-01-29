@@ -6,7 +6,7 @@ description: mono gain
 categories:
 - object
 
-pdcategory:
+pdcategory: Effects, Mixing and Routing
 
 arguments:
 

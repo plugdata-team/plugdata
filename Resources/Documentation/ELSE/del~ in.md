@@ -6,7 +6,7 @@ description: delay line input
 categories:
  - object
 
-pdcategory: General
+pdcategory: Effects, Buffers
 
 arguments:
 - type: symbol
@@ -17,6 +17,7 @@ arguments:
   default: 1 sample
 
 inlets:
+  1st:
   - type: signal
     description: signal input into the delay line
 

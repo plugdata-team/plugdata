@@ -6,7 +6,7 @@ description: sidechain compression
 categories:
 - object
 
-pdcategory:
+pdcategory: Effects, Mixing and Routing
 
 arguments:
 - description: threshold in dB

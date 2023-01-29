@@ -6,7 +6,7 @@ description: echo reverb
 categories:
 - object
 
-pdcategory:
+pdcategory: Effects
 
 arguments:
 - description: number of stages from 4 to 20

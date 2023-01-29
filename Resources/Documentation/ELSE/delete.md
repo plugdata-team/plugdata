@@ -1,17 +1,17 @@
 ---
 title: delete
 
-description: delete element(s) from message
+description: delete elements from message
 
 categories:
  - object
 
-pdcategory: General
+pdcategory: Data Management
 
 arguments:
 - type: float
   description: element index to delete from
-  default: 0, none
+  default: 0 - none
 - type: float
   description: number of elements to delete
   default: 1
@@ -23,6 +23,9 @@ inlets:
   2nd:
   - type: float
     description: element number
+  3rd:
+  - type: float
+    description: number of elements to delete
 
 outlets:
   1st:

@@ -5,7 +5,7 @@ description: fold signals between two values
 categories:
  - object
 
-pdcategory: General
+pdcategory: Signal Math
 
 arguments:
 - type: list

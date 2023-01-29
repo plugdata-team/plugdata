@@ -6,7 +6,7 @@ description: group messages into a list
 categories:
 - object
 
-pdcategory:
+pdcategory: Data Management
 
 arguments:
 - description: group size

@@ -6,7 +6,7 @@ description: freeze
 categories:
 - object
 
-pdcategory:
+pdcategory: Effects
 
 arguments:
 

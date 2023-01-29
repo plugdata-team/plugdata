@@ -6,7 +6,7 @@ description: envelope waveforms
 categories:
 - object
 
-pdcategory:
+pdcategory: Envelopes and LFOs
 
 arguments:
 - description: envelope symbol and optional arguments: sin, hann, tri, vsaw <float>, gauss <float>, and trapezoid <float, float>

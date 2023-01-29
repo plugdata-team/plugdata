@@ -6,12 +6,12 @@ description: hold gate values
 categories:
 - object
 
-pdcategory:
+pdcategory: Triggers and Clocks
 
 arguments:
 - description: hold time in ms
   type: float
-  default: 0, no hold
+  default: 0 - no hold
 
 inlets:
   1st:

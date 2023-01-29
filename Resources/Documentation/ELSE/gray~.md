@@ -5,7 +5,7 @@ description: gray code noise generator
 categories:
  - object
 
-pdcategory: General
+pdcategory: Random and Noise, Signal Generators
 
 arguments:
 

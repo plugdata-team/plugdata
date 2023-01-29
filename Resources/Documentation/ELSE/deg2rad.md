@@ -6,7 +6,7 @@ description: degrees to radians conversion
 categories:
 - object
 
-pdcategory:
+pdcategory: Data Math
 
 arguments:
 - description: initial degree value

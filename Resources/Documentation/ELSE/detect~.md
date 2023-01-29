@@ -5,7 +5,7 @@ description: period/frequency detection
 categories:
  - object
 
-pdcategory: General
+pdcategory: Analysis
 
 arguments:
 - type: symbol
