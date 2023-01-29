@@ -792,6 +792,8 @@ void PluginProcessor::getStateInformation(MemoryBlock& destData)
 {
     suspendProcessing(true); // These functions can be called from any thread, so suspend processing prevent threading issues
 
+    const MessageManagerLock mmlock;
+    
     setThis();
 
     // Store pure-data state
@@ -842,89 +844,90 @@ void PluginProcessor::setStateInformation(void const* data, int sizeInBytes)
     // By calling this asynchronously on the message thread and also suspending processing on the audio thread, we can make sure this is safe
     // The DAW can call this function from basically any thread, hence the need for this
     // Audio will only be reactivated once this action is completed
-    MessageManager::callAsync(
-        [this, copy, sizeInBytes]() mutable {
-            MemoryInputStream istream(copy, sizeInBytes, false);
+    
+    const MessageManagerLock mmLock;
 
-            suspendProcessing(true);
 
-            // Close any opened patches
-            if (auto* editor = dynamic_cast<PluginEditor*>(getActiveEditor())) {
-                editor->tabbar.clearTabs();
-                editor->canvases.clear();
-            }
+    MemoryInputStream istream(copy, sizeInBytes, false);
 
-            for (auto& patch : patches)
-                patch->close();
-            patches.clear();
+    suspendProcessing(true);
 
-            int numPatches = istream.readInt();
+    // Close any opened patches
+    if (auto* editor = dynamic_cast<PluginEditor*>(getActiveEditor())) {
+        editor->tabbar.clearTabs();
+        editor->canvases.clear();
+    }
 
-            for (int i = 0; i < numPatches; i++) {
-                auto state = istream.readString();
-                auto location = File(istream.readString());
+    for (auto& patch : patches)
+        patch->close();
+    patches.clear();
 
-                auto parentPath = location.getParentDirectory().getFullPathName();
+    int numPatches = istream.readInt();
 
-                // Add patch path to search path to make sure it finds abstractions in the saved patch!
-                setThis();
-                libpd_add_to_search_path(parentPath.toRawUTF8());
+    for (int i = 0; i < numPatches; i++) {
+        auto state = istream.readString();
+        auto location = File(istream.readString());
 
-                auto* patch = loadPatch(state);
+        auto parentPath = location.getParentDirectory().getFullPathName();
 
-                if ((location.exists() && location.getParentDirectory() == File::getSpecialLocation(File::tempDirectory)) || !location.exists()) {
-                    patch->setTitle("Untitled Patcher");
-                } else if (location.existsAsFile()) {
-                    patch->setCurrentFile(location);
-                    patch->setTitle(location.getFileName());
-                }
-            }
+        // Add patch path to search path to make sure it finds abstractions in the saved patch!
+        setThis();
+        libpd_add_to_search_path(parentPath.toRawUTF8());
 
-            auto latency = istream.readInt();
-            auto oversampling = istream.readInt();
-            auto tail = istream.readFloat();
-            auto xmlSize = istream.readInt();
+        auto* patch = loadPatch(state);
 
-            tailLength = var(tail);
+        if ((location.exists() && location.getParentDirectory() == File::getSpecialLocation(File::tempDirectory)) || !location.exists()) {
+            patch->setTitle("Untitled Patcher");
+        } else if (location.existsAsFile()) {
+            patch->setCurrentFile(location);
+            patch->setTitle(location.getFileName());
+        }
+    }
 
-            auto* xmlData = new char[xmlSize];
-            istream.read(xmlData, xmlSize);
+    auto latency = istream.readInt();
+    auto oversampling = istream.readInt();
+    auto tail = istream.readFloat();
+    auto xmlSize = istream.readInt();
 
-            std::unique_ptr<XmlElement> xmlState(getXmlFromBinary(xmlData, xmlSize));
+    tailLength = var(tail);
 
-            if (xmlState) {
-                PlugDataParameter::loadStateInformation(*xmlState, getParameters());
-            }
+    auto* xmlData = new char[xmlSize];
+    istream.read(xmlData, xmlSize);
 
-            auto versionString = String("0.6.1");
+    std::unique_ptr<XmlElement> xmlState(getXmlFromBinary(xmlData, xmlSize));
 
-            if (xmlState->hasAttribute("Version")) {
-                versionString = xmlState->getStringAttribute("Version");
-            }
+    if (xmlState) {
+        PlugDataParameter::loadStateInformation(*xmlState, getParameters());
+    }
 
-            if (versionString.startsWith("0.7") && !istream.isExhausted()) {
-                int windowWidth = istream.readInt();
-                int windowHeight = istream.readInt();
+    auto versionString = String("0.6.1");
 
-                lastUIWidth = windowWidth;
-                lastUIHeight = windowHeight;
-                if (auto* editor = getActiveEditor()) {
-                    editor->setSize(lastUIWidth, lastUIHeight);
-                }
-            }
+    if (xmlState->hasAttribute("Version")) {
+        versionString = xmlState->getStringAttribute("Version");
+    }
 
-            setLatencySamples(latency);
-            setOversampling(oversampling);
+    if (versionString.startsWith("0.7") && !istream.isExhausted()) {
+        int windowWidth = istream.readInt();
+        int windowHeight = istream.readInt();
 
-            suspendProcessing(false);
+        lastUIWidth = windowWidth;
+        lastUIHeight = windowHeight;
+        if (auto* editor = getActiveEditor()) {
+            editor->setSize(lastUIWidth, lastUIHeight);
+        }
+    }
 
-            freebytes(copy, sizeInBytes);
-            delete[] xmlData;
+    setLatencySamples(latency);
+    setOversampling(oversampling);
 
-            if (auto* editor = dynamic_cast<PluginEditor*>(getActiveEditor())) {
-                editor->sidebar.updateAutomationParameters();
-            }
-        });
+    suspendProcessing(false);
+
+    freebytes(copy, sizeInBytes);
+    delete[] xmlData;
+
+    if (auto* editor = dynamic_cast<PluginEditor*>(getActiveEditor())) {
+        editor->sidebar.updateAutomationParameters();
+    }
 }
 
 pd::Patch* PluginProcessor::loadPatch(File const& patchFile)
