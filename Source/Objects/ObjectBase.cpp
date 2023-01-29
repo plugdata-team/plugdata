@@ -269,7 +269,7 @@ static void changePos(t_canvas* cnv, t_gobj* obj, int pos)
     {
         assert(link == root);
         obj = root->g_next;
-        root = obj;
+        cnv->gl_list = obj;
     } else {
         assert(prev != 0);
         prev->g_next = link->g_next;
@@ -278,7 +278,7 @@ static void changePos(t_canvas* cnv, t_gobj* obj, int pos)
     if (pos == 0) // Move to start; update root
     {
         link->g_next = root;
-        obj = link;
+        cnv->gl_list = link;
         return;
     }
 
