@@ -583,6 +583,7 @@ void Object::updateIolets()
 
 void Object::mouseDown(MouseEvent const& e)
 {
+    // TODO: why would this ever happen??
     if (!getLocalBounds().contains(e.getPosition()))
         return;
 

@@ -316,7 +316,6 @@ void Canvas::mouseDown(MouseEvent const& e)
     }
     // Right click
     else {
-
         cancelConnectionCreation();
         Dialogs::showCanvasRightClickMenu(this, source, e.getScreenPosition());
     }
@@ -1091,22 +1090,24 @@ bool Canvas::isSelected(Component* component) const
 
 void Canvas::handleMouseDown(Component* component, MouseEvent const& e)
 {
-    if (e.mods.isLeftButtonDown()) {
-        if (e.mods.isShiftDown()) {
-            // select multiple objects
-            wasSelectedOnMouseDown = isSelected(component);
-        } else if (!isSelected(component)) {
-            // not interfeering with alt + drag
-            // unselect all & select clicked object
-            for (auto* object : objects) {
-                setSelected(object, false);
-            }
-            for (auto* connection : connections) {
-                setSelected(connection, false);
-            }
-        }
+    if (e.mods.isRightButtonDown()) {
         setSelected(component, true);
+        return;
     }
+    if (e.mods.isShiftDown()) {
+        // select multiple objects
+        wasSelectedOnMouseDown = isSelected(component);
+    } else if (!isSelected(component)) {
+        // not interfeering with alt + drag
+        // unselect all & select clicked object
+        for (auto* object : objects) {
+            setSelected(object, false);
+        }
+        for (auto* connection : connections) {
+            setSelected(connection, false);
+        }
+    }
+    setSelected(component, true);
 
     if (auto* object = dynamic_cast<Object*>(component)) {
         componentBeingDragged = object;
