@@ -110,17 +110,6 @@ public:
         object->setObjectBounds(bounds);
     }
 
-    void checkBounds() override
-    {
-        auto* pic = static_cast<t_pic*>(ptr);
-
-        if (!imageFile.existsAsFile()) {
-            object->setSize(50, 50);
-        } else if (pic->x_height != img.getHeight() || pic->x_width != img.getWidth()) {
-            object->setSize(img.getWidth(), img.getHeight());
-        }
-    }
-
     void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
     {
         if (symbol == "open" && atoms.size() >= 1) {
