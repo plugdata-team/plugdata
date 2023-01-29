@@ -297,6 +297,7 @@ void Dialogs::showCanvasRightClickMenu(Canvas* cnv, Component* originalComponent
                     }
                 }
             }
+            cnv->synchronise();
             break;
         }
         case 9: {// To Back
