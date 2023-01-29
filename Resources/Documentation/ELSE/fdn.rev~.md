@@ -5,7 +5,7 @@ description: feedback delay network reverberator
 categories:
  - object
 
-pdcategory: General
+pdcategory: Effects
 
 arguments:
 inlets:

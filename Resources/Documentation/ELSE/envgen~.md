@@ -6,7 +6,7 @@ description: envelope generator
 categories:
  - object
 
-pdcategory: General
+pdcategory: Envelopes and LFOs
 
 arguments:
 - type: list
@@ -69,7 +69,7 @@ methods:
   - type: suspoint <float>
     description: sets sustain point
   - type: maxsustain <float>
-    description: sets maximum sustain lengthn in ms
+    description: sets maximum sustain length in ms
   - type: retrigger <float>
     description: retrigger time in ms
   - type: legato <float>

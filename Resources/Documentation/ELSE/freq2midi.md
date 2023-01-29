@@ -6,7 +6,7 @@ description: convert frequency to MIDI
 categories:
 - object
 
-pdcategory:
+pdcategory: MIDI, Data Math, Tuning
 
 arguments:
 - description: set A4 value
@@ -29,5 +29,5 @@ outlets:
 draft: false
 ---
 
-[freq2midi] converts frequency to MIDI like [ftom], but it also converts lists and allows you so set a different frequency reference value for A4 so you can explore different tunnings.
+[freq2midi] converts frequency to MIDI like [ftom], but it also converts lists and allows you so set a different frequency reference value for A4 so you can explore different tunings.
 

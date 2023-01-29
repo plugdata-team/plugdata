@@ -6,7 +6,7 @@ description: interpolate between values
 categories:
 - object
 
-pdcategory:
+pdcategory: Data Math
 
 arguments:
 - description: sets start value(s)

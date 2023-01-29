@@ -6,7 +6,7 @@ description: the ELSE binary
 categories:
  - object
 
-pdcategory: General
+pdcategory:
 
 arguments:
 
@@ -23,6 +23,7 @@ methods:
   - type: version
     description: outputs version information as a list
 
+draft: true #category?
 ---
 
 The else binary does nothing but give some basic information about the ELSE library in Pd's window at creation time (but only once if multiple else objects are loaded). It accepts the "about" message that prints this basic information (version, release date, etc) on the terminal on demand and also accepts the "version" message that outputs the version information as a list.

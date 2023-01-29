@@ -1,12 +1,12 @@
 ---
 title: euclid
 
-description: euclidean rhythm algorithm
+description: Euclidean rhythm algorithm
 
 categories:
 - object
 
-pdcategory:
+pdcategory: Triggers and Clocks, Sequencing
 
 arguments:
 - description: number of steps
@@ -47,5 +47,5 @@ outlets:
 draft: false
 ---
 
-[euclid] implements an euclidean rhythm algorithm. It takes a step number and returns if that step is a hit or a rest depending on parameters of: number of steps, number of hits and rotation value.
+[euclid] implements an Euclidean rhythm algorithm. It takes a step number and returns if that step is a hit or a rest depending on parameters of: number of steps, number of hits and rotation value.
 

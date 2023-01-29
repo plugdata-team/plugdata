@@ -5,7 +5,7 @@ description: Giga reverb
 categories:
  - object
 
-pdcategory: General
+pdcategory: Effects
 
 arguments:
 

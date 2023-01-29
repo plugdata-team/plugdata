@@ -1,11 +1,11 @@
 ---
-title: float2sig~
+title: float2sig~, f2s~
 description: convert float to signal
 
 categories:
  - object
 
-pdcategory: General
+pdcategory: Signal Math, Data Math
 
 arguments:
 - type: float

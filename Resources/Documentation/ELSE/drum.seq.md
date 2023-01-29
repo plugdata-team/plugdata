@@ -6,7 +6,7 @@ description: drum sequence pattern GUI
 categories:
 - object
 
-pdcategory:
+pdcategory: Sequencing, Triggers and Clocks
 
 arguments:
 inlets:
@@ -33,7 +33,7 @@ flags:
   - name: -size <float>
     description: sets cell size in pixels (default 20)
   - name: -embed
-    description: sets emebding mode (default no embedding)
+    description: sets embedding mode (default no embedding)
 
 methods:
   - type: track <list>

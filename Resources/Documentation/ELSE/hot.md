@@ -5,7 +5,7 @@ description: make all inputs hot
 categories:
  - object
 
-pdcategory: General
+pdcategory: Data Management
 
 arguments:
 - type: float

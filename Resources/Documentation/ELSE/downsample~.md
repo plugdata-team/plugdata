@@ -6,7 +6,7 @@ description: downsample a signal
 categories:
  - object
 
-pdcategory: General
+pdcategory: Effects
 
 arguments:
 - type: float
@@ -24,7 +24,7 @@ inlets:
     description: restart cycle and sync output
   2nd:
   - type: float/signal
-    description: rate (in hertz) used to downsample the input signal
+    description: rate (in Hertz) used to downsample the input signal
 
 outlets:
   1st:
