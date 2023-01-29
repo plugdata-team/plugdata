@@ -1,6 +1,6 @@
 ---
 title: gbman~
-description: Gingerbread man chaotic generator
+description: gingerbread man chaotic generator
 
 categories:
  - object

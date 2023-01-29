@@ -1,6 +1,6 @@
 ---
 title: highshelf~
-description: Highshelf filter
+description: highshelf filter
 
 categories:
  - object

@@ -1,7 +1,7 @@
 ---
 title: freeze~
 
-description: Freeze
+description: freeze
 
 categories:
 - object

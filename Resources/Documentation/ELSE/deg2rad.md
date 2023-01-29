@@ -1,7 +1,7 @@
 ---
 title: deg2rad
 
-description: Degrees to radians conversion
+description: degrees to radians conversion
 
 categories:
 - object

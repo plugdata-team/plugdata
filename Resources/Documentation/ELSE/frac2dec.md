@@ -1,7 +1,7 @@
 ---
 title: frac2dec
 
-description: Fraction/Decimal cenversion
+description: fraction/Decimal cenversion
 
 categories:
 - object

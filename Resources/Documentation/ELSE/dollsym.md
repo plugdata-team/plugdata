@@ -1,7 +1,7 @@
 ---
 title: dollsym
 
-description: Expand dollar symbols
+description: expand dollar symbols
 
 categories:
  - object

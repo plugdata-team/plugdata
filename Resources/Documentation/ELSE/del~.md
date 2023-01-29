@@ -1,7 +1,7 @@
 ---
 title: del~
 
-description: Delay line
+description: delay line
 
 categories:
  - object

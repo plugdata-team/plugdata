@@ -1,6 +1,6 @@
 ---
 title: impulse2~
-description: Two-sided impulse oscillator
+description: two-sided impulse oscillator
 
 categories:
  - object

@@ -1,7 +1,7 @@
 ---
 title: glide
 
-description: Control glide/portamento
+description: control glide/portamento
 
 categories:
 - object

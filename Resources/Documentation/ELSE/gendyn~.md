@@ -1,6 +1,6 @@
 ---
 title: gendyn~
-description: Dynamic stochastic synthesis
+description: dynamic stochastic synthesis
 
 categories:
  - object

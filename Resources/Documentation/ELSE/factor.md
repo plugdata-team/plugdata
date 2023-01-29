@@ -1,7 +1,7 @@
 ---
 title: factor
 
-description: Factorization
+description: factorization
 
 categories:
  - object
