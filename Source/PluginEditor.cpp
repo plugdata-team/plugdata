@@ -42,12 +42,12 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     , tooltipWindow(this, 500)
     , tooltipShadow(DropShadow(Colour(0, 0, 0).withAlpha(0.2f), 4, { 0, 0 }), PlugDataLook::defaultCornerRadius)
 {
-    toolbarButtons = { new TextButton(Icons::Menu),
-        new TextButton(Icons::Undo),
-        new TextButton(Icons::Redo),
-        new TextButton(Icons::Add),
-        new TextButton(Icons::Hide),
-        new TextButton(Icons::Pin) };
+    mainMenuButton.setButtonText(Icons::Menu);
+    undoButton.setButtonText(Icons::Undo);
+    redoButton.setButtonText(Icons::Redo);
+    addObjectMenuButton.setButtonText(Icons::Add);
+    hideSidebarButton.setButtonText(Icons::Hide);
+    pinButton.setButtonText(Icons::Pin);
 
 #if PLUGDATA_STANDALONE
     // In the standalone, the resizer handling is done on the window class
@@ -137,66 +137,66 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     addAndMakeVisible(tabbar);
     addAndMakeVisible(sidebar);
 
-    for (auto* button : toolbarButtons) {
+    for (auto* button : std::vector<TextButton*>{&mainMenuButton, &undoButton, &redoButton, &addObjectMenuButton, &pinButton, &hideSidebarButton}) {
         button->getProperties().set("Style", "LargeIcon");
         button->setConnectedEdges(12);
         addAndMakeVisible(button);
     }
 
     // Show settings
-    toolbarButton(Settings)->setTooltip("Settings");
-    toolbarButton(Settings)->onClick = [this]() {
+    mainMenuButton.setTooltip("Settings");
+    mainMenuButton.onClick = [this]() {
 #ifdef PLUGDATA_STANDALONE
-        Dialogs::showMainMenu(this, toolbarButton(Settings));
+        Dialogs::showMainMenu(this, &mainMenuButton);
 #else
-        Dialogs::showMainMenu(this, toolbarButton(Settings));
+        Dialogs::showMainMenu(this, &mainMenuButton);
 #endif
     };
 
-    addAndMakeVisible(toolbarButton(Settings));
+    addAndMakeVisible(mainMenuButton);
 
     //  Undo button
-    toolbarButton(Undo)->setTooltip("Undo");
-    toolbarButton(Undo)->onClick = [this]() { getCurrentCanvas()->undo(); };
-    addAndMakeVisible(toolbarButton(Undo));
+    undoButton.setTooltip("Undo");
+    undoButton.onClick = [this]() { getCurrentCanvas()->undo(); };
+    addAndMakeVisible(undoButton);
 
     // Redo button
-    toolbarButton(Redo)->setTooltip("Redo");
-    toolbarButton(Redo)->onClick = [this]() { getCurrentCanvas()->redo(); };
-    addAndMakeVisible(toolbarButton(Redo));
+    redoButton.setTooltip("Redo");
+    redoButton.onClick = [this]() { getCurrentCanvas()->redo(); };
+    addAndMakeVisible(redoButton);
 
     // New object button
-    toolbarButton(Add)->setTooltip("Create object");
-    toolbarButton(Add)->onClick = [this]() { Dialogs::showObjectMenu(this, toolbarButton(Add)); };
-    addAndMakeVisible(toolbarButton(Add));
+    addObjectMenuButton.setTooltip("Create object");
+    addObjectMenuButton.onClick = [this]() { Dialogs::showObjectMenu(this, &addObjectMenuButton); };
+    addAndMakeVisible(addObjectMenuButton);
 
     // Hide sidebar
-    toolbarButton(Hide)->setTooltip("Hide Sidebar");
-    toolbarButton(Hide)->getProperties().set("Style", "LargeIcon");
-    toolbarButton(Hide)->setClickingTogglesState(true);
-    toolbarButton(Hide)->setColour(ComboBox::outlineColourId, findColour(TextButton::buttonColourId));
-    toolbarButton(Hide)->setConnectedEdges(12);
-    toolbarButton(Hide)->onClick = [this]() {
-        bool show = !toolbarButton(Hide)->getToggleState();
+    hideSidebarButton.setTooltip("Hide Sidebar");
+    hideSidebarButton.getProperties().set("Style", "LargeIcon");
+    hideSidebarButton.setClickingTogglesState(true);
+    hideSidebarButton.setColour(ComboBox::outlineColourId, findColour(TextButton::buttonColourId));
+    hideSidebarButton.setConnectedEdges(12);
+    hideSidebarButton.onClick = [this]() {
+        bool show = !hideSidebarButton.getToggleState();
 
         sidebar.showSidebar(show);
-        toolbarButton(Hide)->setButtonText(show ? Icons::Hide : Icons::Show);
-        toolbarButton(Hide)->setTooltip(show ? "Hide Sidebar" : "Show Sidebar");
-        toolbarButton(Pin)->setVisible(show);
+        hideSidebarButton.setButtonText(show ? Icons::Hide : Icons::Show);
+        hideSidebarButton.setTooltip(show ? "Hide Sidebar" : "Show Sidebar");
+        pinButton.setVisible(show);
 
         repaint();
         resized();
     };
 
     // Hide pin sidebar panel
-    toolbarButton(Pin)->setTooltip("Pin Panel");
-    toolbarButton(Pin)->getProperties().set("Style", "LargeIcon");
-    toolbarButton(Pin)->setClickingTogglesState(true);
-    toolbarButton(Pin)->setColour(ComboBox::outlineColourId, findColour(TextButton::buttonColourId));
-    toolbarButton(Pin)->setConnectedEdges(12);
-    toolbarButton(Pin)->onClick = [this]() { sidebar.pinSidebar(toolbarButton(Pin)->getToggleState()); };
+    pinButton.setTooltip("Pin Panel");
+    pinButton.getProperties().set("Style", "LargeIcon");
+    pinButton.setClickingTogglesState(true);
+    pinButton.setColour(ComboBox::outlineColourId, findColour(TextButton::buttonColourId));
+    pinButton.setConnectedEdges(12);
+    pinButton.onClick = [this]() { sidebar.pinSidebar(pinButton.getToggleState()); };
 
-    addAndMakeVisible(toolbarButton(Hide));
+    addAndMakeVisible(hideSidebarButton);
 
     sidebar.setSize(250, pd->lastUIHeight - 40);
     setSize(pd->lastUIWidth, pd->lastUIHeight);
@@ -276,10 +276,10 @@ void PluginEditor::resized()
 
     statusbar.setBounds(0, getHeight() - statusbar.getHeight(), getWidth() - sidebar.getWidth(), statusbar.getHeight());
 
-    toolbarButton(Settings)->setBounds(20, 0, toolbarHeight, toolbarHeight);
-    toolbarButton(Undo)->setBounds(100, 0, toolbarHeight, toolbarHeight);
-    toolbarButton(Redo)->setBounds(180, 0, toolbarHeight, toolbarHeight);
-    toolbarButton(Add)->setBounds(260, 0, toolbarHeight, toolbarHeight);
+    mainMenuButton.setBounds(20, 0, toolbarHeight, toolbarHeight);
+    undoButton.setBounds(100, 0, toolbarHeight, toolbarHeight);
+    redoButton.setBounds(180, 0, toolbarHeight, toolbarHeight);
+    addObjectMenuButton.setBounds(260, 0, toolbarHeight, toolbarHeight);
 
 #ifdef PLUGDATA_STANDALONE
     auto useNativeTitlebar = SettingsFile::getInstance()->getProperty<bool>("native_window");
@@ -291,8 +291,8 @@ void PluginEditor::resized()
     int hidePosition = getWidth() - windowControlsOffset;
     int pinPosition = hidePosition - 65;
 
-    toolbarButton(Hide)->setBounds(hidePosition, 0, 70, toolbarHeight);
-    toolbarButton(Pin)->setBounds(pinPosition, 0, 70, toolbarHeight);
+    hideSidebarButton.setBounds(hidePosition, 0, 70, toolbarHeight);
+    pinButton.setBounds(pinPosition, 0, 70, toolbarHeight);
 
     pd->lastUIWidth = getWidth();
     pd->lastUIHeight = getHeight();
@@ -695,8 +695,8 @@ void PluginEditor::updateCommandStatus()
                         if (!deletionCheck)
                             return;
 
-                        toolbarButton(Undo)->setEnabled(canUndo);
-                        toolbarButton(Redo)->setEnabled(canRedo);
+                        undoButton.setEnabled(canUndo);
+                        redoButton.setEnabled(canRedo);
 
                         // Application commands need to be updated when undo state changes
                         commandStatusChanged();
@@ -707,7 +707,7 @@ void PluginEditor::updateCommandStatus()
         statusbar.presentationButton->setEnabled(true);
         statusbar.gridButton->setEnabled(true);
 
-        toolbarButton(Add)->setEnabled(!locked);
+        addObjectMenuButton.setEnabled(!locked);
     } else {
         statusbar.connectionStyleButton->setEnabled(false);
         statusbar.connectionPathfind->setEnabled(false);
@@ -717,9 +717,9 @@ void PluginEditor::updateCommandStatus()
         statusbar.presentationButton->setEnabled(false);
         statusbar.gridButton->setEnabled(false);
 
-        toolbarButton(Undo)->setEnabled(false);
-        toolbarButton(Redo)->setEnabled(false);
-        toolbarButton(Add)->setEnabled(false);
+        undoButton.setEnabled(false);
+        redoButton.setEnabled(false);
+        addObjectMenuButton.setEnabled(false);
     }
 }
 

@@ -190,23 +190,54 @@ public:
     private:
         TextButton toggleButton;
     };
+    
+    struct ColourPicker : public ColourSelector, public ChangeListener
+    {
+        static inline bool isShowing = false;
+        
+        ColourPicker(std::function<void(Colour)> cb) : ColourSelector(ColourSelector::showColourAtTop | ColourSelector::showSliders | ColourSelector::showColourspace), callback(cb)
+        {
+            setSize(300, 400);
+            addChangeListener(this);
+            
+            auto& lnf = LookAndFeel::getDefaultLookAndFeel();
+            
+            setColour(ColourSelector::backgroundColourId, lnf.findColour(PlugDataColour::panelBackgroundColourId));
+        }
+        
+        ~ColourPicker() {
+            removeChangeListener(this);
+            isShowing = false;
+        }
+        
+        static void show(Colour currentColour, Rectangle<int> bounds, std::function<void(Colour)> callback) {
+            
+            if(isShowing) return;
+            
+            isShowing = true;
+            
+            std::unique_ptr<ColourPicker> colourSelector = std::make_unique<ColourPicker>(callback);
+            
+            colourSelector->setCurrentColour(currentColour);
+            CallOutBox::launchAsynchronously(std::move(colourSelector), bounds, nullptr);
+        }
+        
+    private:
+        
+        void changeListenerCallback(ChangeBroadcaster* source) override
+        {
+            callback(dynamic_cast<ColourSelector*>(source)->getCurrentColour());
+        }
+        
+        std::function<void(Colour)> callback = [](Colour){};
+    };
 
     struct ColourComponent : public Property
-        , public ChangeListener {
+         {
         ColourComponent(String const& propertyName, Value& value)
             : Property(propertyName)
             , currentColour(value)
         {
-            repaint();
-        }
-
-        void changeListenerCallback(ChangeBroadcaster* source) override
-        {
-            auto* cs = dynamic_cast<ColourSelector*>(source);
-
-            auto colour = cs->getCurrentColour();
-            currentColour = colour.toString();
-            
             repaint();
         }
 
@@ -234,15 +265,14 @@ public:
             repaint();
         }
             
-        void mouseUp(const MouseEvent& e) override
+        void mouseDown(const MouseEvent& e) override
         {
-            std::unique_ptr<ColourSelector> colourSelector = std::make_unique<ColourSelector>(ColourSelector::showColourAtTop | ColourSelector::showSliders | ColourSelector::showColourspace);
-            colourSelector->addChangeListener(this);
-            colourSelector->setSize(300, 400);
-            colourSelector->setColour(ColourSelector::backgroundColourId, findColour(PlugDataColour::panelBackgroundColourId));
-            colourSelector->setCurrentColour(Colour::fromString(currentColour.toString()));
-
-            CallOutBox::launchAsynchronously(std::move(colourSelector), getScreenBounds(), nullptr);
+            ColourPicker::show(Colour::fromString(currentColour.toString()), getScreenBounds(), [_this = SafePointer(this)](Colour c){
+                
+                if(!_this) return;
+                
+                _this->currentColour = c.toString();
+            });
         }
 
     private:

@@ -391,11 +391,6 @@ public:
     void getCommandInfo(const CommandID commandID, ApplicationCommandInfo& result) override;
     bool perform(InvocationInfo const& info) override;
 
-    TextButton* toolbarButton(ToolbarButtonType type)
-    {
-        return toolbarButtons[static_cast<int>(type)];
-    }
-
     bool wantsRoundedCorners();
 
     PluginProcessor* pd;
@@ -427,7 +422,7 @@ private:
     static constexpr int toolbarHeight = 35;
 #endif
 
-    OwnedArray<TextButton> toolbarButtons;
+    TextButton mainMenuButton, undoButton, redoButton, addObjectMenuButton, pinButton, hideSidebarButton;
 
     TooltipWindow tooltipWindow;
     StackDropShadower tooltipShadow;
