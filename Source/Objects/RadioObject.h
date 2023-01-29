@@ -34,6 +34,7 @@ public:
         if (selected > static_cast<int>(max.getValue())) {
             selected = std::min<int>(static_cast<int>(max.getValue()) - 1, selected);
         }
+        object->setMinimumSize(15, 15);
     }
 
     void updateLabel() override
@@ -48,11 +49,11 @@ public:
 
     void applyBounds() override
     {
-        iemHelper.applyBounds();
+        iemHelper.applyBounds(isVertical);
     }
 
     void toggleObject(Point<int> position) override
-    {        printf("calling: %s\n", __PRETTY_FUNCTION__);
+    {
         if (alreadyToggled) {
             alreadyToggled = false;
         }
@@ -87,12 +88,12 @@ public:
     }
 
     void untoggleObject() override
-    {        printf("calling: %s\n", __PRETTY_FUNCTION__);
+    {
         alreadyToggled = false;
     }
 
     void mouseDown(MouseEvent const& e) override
-    {        printf("calling: %s\n", __PRETTY_FUNCTION__);
+    {
         float pos = isVertical ? e.y : e.x;
         float div = isVertical ? getHeight() : getWidth();
 
@@ -107,13 +108,12 @@ public:
     }
 
     float getValue()
-    {        printf("calling: %s\n", __PRETTY_FUNCTION__);
+    {
         return static_cast<t_radio*>(ptr)->x_on;
     }
 
     void updateBounds() override
-    {        
-        printf("calling: %s\n", __PRETTY_FUNCTION__);
+    {
         pd->getCallbackLock()->enter();
 
         int x = 0, y = 0, w = 0, h = 0;
@@ -172,7 +172,7 @@ public:
     }
 
     ObjectParameters getParameters() override
-    {        printf("calling: %s\n", __PRETTY_FUNCTION__);
+    {
         ObjectParameters allParameters = { { "Options", tInt, cGeneral, &max, {} } };
 
         auto iemParameters = iemHelper.getParameters();
@@ -182,7 +182,7 @@ public:
     }
 
     void updateAspectRatio() 
-    {        printf("calling: %s\n", __PRETTY_FUNCTION__);
+    {
         float verticalLength = ((object->getWidth() - Object::doubleMargin) * numItems) + Object::doubleMargin;
         float horizontalLength = ((object->getHeight() - Object::doubleMargin) * numItems) + Object::doubleMargin;
 
@@ -195,7 +195,7 @@ public:
     }
 
     void valueChanged(Value& value) override
-    {        printf("calling: %s\n", __PRETTY_FUNCTION__);
+    {
         if (value.refersToSameSourceAs(max)) {
             if (static_cast<int>(max.getValue()) != numItems) {
                 limitValueMin(value, 1);
@@ -209,12 +209,12 @@ public:
     }
 
     float getMaximum()
-    {        printf("calling: %s\n", __PRETTY_FUNCTION__);
+    {
         return static_cast<t_radio*>(ptr)->x_number;
     }
 
     void setMaximum(float maxValue)
-    {        printf("calling: %s\n", __PRETTY_FUNCTION__);
+    {
         if (selected >= maxValue) {
             selected = maxValue - 1;
         }
