@@ -91,17 +91,6 @@ public:
         return false;
     }
 
-    void checkBounds() override
-    {
-        // Apply size limits
-        int w = jlimit(25, maxSize, object->getWidth());
-        int h = jlimit(25, maxSize, object->getHeight());
-
-        if (w != object->getWidth() || h != object->getHeight()) {
-            object->setSize(w, h);
-        }
-    }
-
     void updateBounds() override
     {
         pd->getCallbackLock()->enter();
