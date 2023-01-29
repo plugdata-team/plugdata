@@ -9,9 +9,6 @@ categories:
 pdcategory: Effects
 
 arguments:
-- description:
-  type:
-  default:
 
 inlets:
   1st:

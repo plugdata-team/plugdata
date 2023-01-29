@@ -9,9 +9,6 @@ categories:
 pdcategory: Mixing and Routing
 
 arguments:
-- description:
-  type:
-  default:
 
 inlets:
   1st:

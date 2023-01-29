@@ -9,9 +9,6 @@ categories:
 pdcategory: Triggers and Clocks
 
 arguments:
-- description:
-  type:
-  default:
 
 inlets:
   1st:
