@@ -8,10 +8,6 @@ categories:
 pdcategory: General
 
 arguments:
-- type:
-  description:
-  default:
-
 inlets:
   1st:
   - type: signal

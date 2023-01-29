@@ -8,9 +8,6 @@ categories:
 pdcategory: GUI
 
 arguments:
-- type:
-  description:
-  default:
 
 inlets:
   1st:
