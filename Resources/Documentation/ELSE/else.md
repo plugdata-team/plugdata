@@ -1,7 +1,7 @@
 ---
 title: else
 
-description: The ELSE binary
+description: the ELSE binary
 
 categories:
  - object

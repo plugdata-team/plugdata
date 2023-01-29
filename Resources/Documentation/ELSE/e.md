@@ -1,7 +1,7 @@
 ---
 title: e
 
-description: Get the value of 'e'
+description: get the value of 'e'
 
 categories:
 - object

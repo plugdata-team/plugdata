@@ -1,7 +1,7 @@
 ---
 title: del~ out
 
-description: Delay line output
+description: delay line output
 
 categories:
  - object

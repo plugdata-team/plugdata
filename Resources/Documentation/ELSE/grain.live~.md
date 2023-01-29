@@ -1,7 +1,7 @@
 ---
 title: grain.live~
 
-description: Live granulator
+description: live granulator
 
 categories:
 - object

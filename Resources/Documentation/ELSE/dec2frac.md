@@ -1,7 +1,7 @@
 ---
 title: dec2frac
 
-description: Decimal/Fraction conversion
+description: decimal/Fraction conversion
 
 categories:
 - object

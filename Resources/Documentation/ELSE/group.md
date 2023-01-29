@@ -1,7 +1,7 @@
 ---
 title: group
 
-description: Group messages into a list
+description: group messages into a list
 
 categories:
 - object

@@ -1,6 +1,6 @@
 ---
 title: f2s~
-description: Convert float to signal
+description: convert float to signal
 
 categories:
  - object

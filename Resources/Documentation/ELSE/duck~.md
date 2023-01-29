@@ -1,7 +1,7 @@
 ---
 title: duck~
 
-description: Sidechain compression
+description: sidechain compression
 
 categories:
 - object

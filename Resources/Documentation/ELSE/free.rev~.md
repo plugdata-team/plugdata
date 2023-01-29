@@ -1,7 +1,7 @@
 ---
 title: free.rev~
 
-description: Free reverb
+description: free reverb
 
 categories:
 - object

@@ -1,7 +1,7 @@
 ---
 title: gui
 
-description: Run GUI commands
+description: run GUI commands
 
 categories:
 - object

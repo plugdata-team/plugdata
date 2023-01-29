@@ -1,6 +1,6 @@
 ---
 title: impulse~
-description: Impulse oscillator
+description: impulse oscillator
 
 categories:
  - object

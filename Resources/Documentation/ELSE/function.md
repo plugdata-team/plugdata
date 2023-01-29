@@ -1,6 +1,6 @@
 ---
 title: function
-description: Function GUI
+description: function GUI
 
 categories:
  - object

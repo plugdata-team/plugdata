@@ -1,7 +1,7 @@
 ---
 title: grain.sampler~
 
-description: Granular sampler
+description: granular sampler
 
 categories:
 - object

@@ -1,6 +1,6 @@
 ---
 title: detect~
-description: Period/frequency detection
+description: period/frequency detection
 
 categories:
  - object

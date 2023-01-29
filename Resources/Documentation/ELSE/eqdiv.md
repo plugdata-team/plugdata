@@ -1,7 +1,7 @@
 ---
 title: eqdiv
 
-description: Equal divisions of intervals
+description: equal divisions of intervals
 
 categories:
 - object

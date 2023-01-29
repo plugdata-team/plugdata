@@ -1,7 +1,7 @@
 ---
 title: iterate
 
-description: Iterate through a list
+description: iterate through a list
 
 categories:
 - object

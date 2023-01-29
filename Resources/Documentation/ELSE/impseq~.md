@@ -1,6 +1,6 @@
 ---
 title: impseq~
-description: Impulse generator and sequencer
+description: impulse generator and sequencer
 
 categories:
  - object

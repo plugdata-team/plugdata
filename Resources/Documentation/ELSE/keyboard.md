@@ -1,6 +1,6 @@
 ---
 title: keyboard
-description: Keyboard GUI
+description: keyboard GUI
 
 categories:
  - object

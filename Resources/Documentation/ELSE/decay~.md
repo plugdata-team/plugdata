@@ -1,6 +1,6 @@
 ---
 title: decay~
-description: Exponential decay
+description: exponential decay
 
 categories:
  - object

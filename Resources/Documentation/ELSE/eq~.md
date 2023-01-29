@@ -1,7 +1,7 @@
 ---
 title: eq~
 
-description: Parametric equalizer filter
+description: parametric equalizer filter
 
 categories:
  - object

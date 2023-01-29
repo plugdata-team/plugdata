@@ -1,6 +1,6 @@
 ---
 title: gray~
-description: Gray code noise generator
+description: gray code noise generator
 
 categories:
  - object

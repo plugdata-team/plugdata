@@ -1,7 +1,7 @@
 ---
 title: envgen~
 
-description: Envelope generator
+description: envelope generator
 
 categories:
  - object
