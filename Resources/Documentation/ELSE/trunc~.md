@@ -9,9 +9,6 @@ categories:
 pdcategory: Signal Math
 
 arguments:
-- description:
-  type:
-  default:
 
 inlets:
   1st:

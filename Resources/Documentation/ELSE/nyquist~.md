@@ -9,9 +9,6 @@ categories:
 pdcategory: Analysis
 
 arguments:
-- type:
-  description:
-  default:
 
 inlets:
   1st:

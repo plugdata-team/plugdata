@@ -14,11 +14,18 @@ arguments:
 inlets:
   1st:
   - type: float/symbol
-    description: input to compare to arguments.
+    description: input to compare to arguments
+  2nd:
+  - type: float/symbol
+    description: if there's one argument, an inlet is created to update it
 outlets:
   nth:
   - type: float/symbol
-    description: bang if input matches $arg.
-  1st:
+    description: bang if input matches $arg
+  2nd: #rightmost
   - type: float/symbol
-    description: value if input didn't match.
+    description: value if input didn't match
+
+---
+compare numbers or symbols.
+

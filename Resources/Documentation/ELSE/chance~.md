@@ -6,7 +6,7 @@ description: weighted random
 categories:
  - object
 
-pdcategory: Triggers and clocks, Random and Noise, Signal Generators
+pdcategory: Triggers and Clocks, Random and Noise, Signal Generators
 
 arguments:
 - type: list

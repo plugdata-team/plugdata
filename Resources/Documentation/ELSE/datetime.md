@@ -1,18 +1,14 @@
 ---
 title: datetime
 
-description: Get date and time
+description: get date and time
 
 categories:
 - object
 
-pdcategory:
+pdcategory: 
 
 arguments:
-- description:
-  type:
-  default:
-
 inlets:
   1st:
   - type: bang
