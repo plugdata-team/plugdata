@@ -6,7 +6,7 @@ description: get the value of 'e'
 categories:
 - object
 
-pdcategory:
+pdcategory: Data Math
 
 arguments:
 - description: multiplier

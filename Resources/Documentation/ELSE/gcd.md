@@ -5,7 +5,7 @@ description: greatest common divisor
 categories:
  - object
 
-pdcategory: General
+pdcategory: Data Math
 
 arguments:
 - type: float

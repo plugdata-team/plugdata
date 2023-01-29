@@ -6,7 +6,7 @@ description: granular sampler
 categories:
 - object
 
-pdcategory:
+pdcategory: Effects, Buffers
 
 arguments:
 
@@ -30,7 +30,7 @@ flags:
   - name: -n <f>
     description:
   - name: -t <symbol>
-    description: (table name)
+    description: table name
   - name: -dur <f>
     description:
   - name: -size <f, f>

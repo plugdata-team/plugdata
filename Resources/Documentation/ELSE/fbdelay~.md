@@ -5,7 +5,7 @@ description: feedback delay line
 categories:
  - object
 
-pdcategory: General
+pdcategory: Effects
 
 arguments:
 - type: float

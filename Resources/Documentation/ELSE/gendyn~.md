@@ -5,7 +5,7 @@ description: dynamic stochastic synthesis
 categories:
  - object
 
-pdcategory: General
+pdcategory: Signal Generators
 
 arguments:
 
@@ -33,15 +33,15 @@ methods:
   - type: freq_step <float>
     description: set maximum frequency step in percentage (default 50)
   - type: amp_step <float>
-    description: set maximum amplitued step in percentage (default 25)
+    description: set maximum amplitude step in percentage (default 25)
   - type: interp <float>
     description: sets interpolation mode (default 1, linear)
   - type: seed <float>
     description: sets seed, no float sets unique internal (default)
   - type: dist <f, f, f, f>
-    description: sets distributions and parametes, see [pd distributions]
+    description: sets distributions and parameters, see [pd distributions]
 
 ---
 
-[gendyn~] implements "Dynamic Strochastic Synthesis" based on Xenakis' 'GenDyn' algorhythm. The waveform has a given number of points (linearly interpolated by default). The period of each point and its value changes according to a random walk (a.k.a. brownian motion) with given distributions.
+[gendyn~] implements "Dynamic Stochastic Synthesis" based on Xenakis' 'GenDyn' algorithm. The waveform has a given number of points (linearly interpolated by default). The period of each point and its value changes according to a random walk (a.k.a. Brownian motion) with given distributions.
 

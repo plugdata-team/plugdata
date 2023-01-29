@@ -5,7 +5,7 @@ description: exponential decay
 categories:
  - object
 
-pdcategory: General
+pdcategory: Envelopes and LFOs
 
 arguments:
 - type: float

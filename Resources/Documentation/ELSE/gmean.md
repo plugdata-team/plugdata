@@ -6,7 +6,7 @@ description: generate list with geometric means
 categories:
 - object
 
-pdcategory:
+pdcategory: Data Math
 
 arguments:
 - description: sets start

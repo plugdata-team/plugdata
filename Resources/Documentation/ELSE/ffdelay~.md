@@ -5,7 +5,7 @@ description: feed-forward delay line
 categories:
  - object
 
-pdcategory: General
+pdcategory: Effects
 
 arguments:
 - type: float

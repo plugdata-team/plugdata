@@ -6,7 +6,7 @@ description: multi-channel granular player
 categories:
 - object
 
-pdcategory:
+pdcategory: Effects, Buffers
 
 arguments:
 - description: (optional) channels (max 64)
@@ -27,7 +27,7 @@ inlets:
   - type: bang
     description: (re)start playing the buffer from the beginning
   - type: float
-    description: <1> is the same as "start", "0" is the same as "stop"
+    description: 1 is the same as "start", 0 is the same as "stop"
   2nd:
   - type: float
     description: grain size in ms

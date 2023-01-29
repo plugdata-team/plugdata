@@ -6,7 +6,7 @@ description: random impulses
 categories:
  - object
 
-pdcategory: General
+pdcategory: Random and Noise, Signal Generators
 
 arguments:
 - type: float

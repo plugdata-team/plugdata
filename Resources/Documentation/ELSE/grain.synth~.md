@@ -6,14 +6,17 @@ description: granular synthesis
 categories:
 - object
 
-pdcategory:
+pdcategory: Effects, Buffers
 
 arguments:
 
 inlets:
   1st:
   - type: bang
-    description: plays an dur of pitch clouds
+    description: plays <dur> of pitched clouds
+  2nd:
+  - type: float
+    description: density (number of grains)
 
 outlets:
   1st:
@@ -27,7 +30,7 @@ flags:
   - name: -n <float>
     description: 
   - name: -t <symbol>
-    description: (table name)
+    description: table name
   - name: -dur <f>
     description: 
   - name: -size <f, f>
