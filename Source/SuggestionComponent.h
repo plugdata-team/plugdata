@@ -232,15 +232,25 @@ public:
         editor->addListener(this);
         editor->addKeyListener(this);
 
+        autoCompleteComponent = std::make_unique<AutoCompleteComponent>(editor, object->cnv);
+        
         for (int i = 0; i < buttons.size(); i++) {
             auto* but = buttons[i];
             but->setAlwaysOnTop(true);
 
-            but->onClick = [this, i, editor]() mutable {
+            but->onClick = [this, i, but, editor]() mutable {
+                
+                // If the button is already selected, perform autocomplete
+                if(but->getToggleState() && autoCompleteComponent) {
+                    autoCompleteComponent->autocomplete();
+                    return;
+                }
+                
                 move(0, i);
                 if (!editor->isVisible())
                     editor->setVisible(true);
                 editor->grabKeyboardFocus();
+
             };
         }
 
@@ -250,7 +260,6 @@ public:
 
         setTopLeftPosition(objectPos);
         
-        autoCompleteComponent = std::make_unique<AutoCompleteComponent>(editor, object->cnv);
 
         setVisible(false);
         toFront(false);
