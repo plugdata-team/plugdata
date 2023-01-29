@@ -275,7 +275,7 @@ void Dialogs::showCanvasRightClickMenu(Canvas* cnv, Component* originalComponent
     popupMenu.addSeparator();
     popupMenu.addItem(12, "Properties", originalComponent == cnv || (object && !params.empty()));
     // showObjectReferenceDialog
-    auto callback = [cnv, editor, object, originalComponent, params, createObjectCallback, position](int result) mutable {
+    auto callback = [cnv, editor, object, originalComponent, params, createObjectCallback, position, selectedBoxes](int result) mutable {
         if (object)
             object->repaint();
 
@@ -286,18 +286,33 @@ void Dialogs::showCanvasRightClickMenu(Canvas* cnv, Component* originalComponent
         case 1: // Open subpatch
             object->gui->openFromMenu();
             break;
-        case 8: // To Front
-            object->toFront(false);
-            if (object->gui)
-                object->gui->moveToFront();
+        case 8: {// To Front
+            // The double for loop makes sure that they keep their original order
+            auto objects = cnv->patch.getObjects();
+            for(int i = objects.size() - 1; i >= 0; i--) {
+                for(auto* selectedBox : selectedBoxes) {
+                    if(objects[i] == selectedBox->getPointer()) {
+                        selectedBox->toFront(false);
+                        if(selectedBox->gui) selectedBox->gui->moveToFront();
+                    }
+                }
+            }
+            break;
+        }
+        case 9: {// To Back
+            auto objects = cnv->patch.getObjects();
+            // The double for loop makes sure that they keep their original order
+            for(int i = objects.size() - 1; i >= 0; i--) {
+                for(auto* selectedBox : selectedBoxes) {
+                    if(objects[i] == selectedBox->getPointer()) {
+                        selectedBox->toBack();
+                        if(selectedBox->gui) selectedBox->gui->moveToBack();
+                    }
+                }
+            }
             cnv->synchronise();
             break;
-        case 9: // To Back
-            object->toBack();
-            if (object->gui)
-                object->gui->moveToBack();
-            cnv->synchronise();
-            break;
+        }
         case 10: // Open help
             object->openHelpPatch();
             break;
