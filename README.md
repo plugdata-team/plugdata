@@ -55,6 +55,7 @@ cmake --build .
 ```
 
 **Important:**
+- plugdata requires cmake 3.21 or later. I've bundled install scripts for Linux in ".github/scripts/", if your cmake is out of date, run the correct one for your architecture.
 - Please ensure that the git submodules are initialized and updated! You can use the `--recursive` option while cloning or `git submodule update --init --recursive` in the plugdata repository .
 - On Linux, Juce framework requires to install dependencies, please refer to [Linux Dependencies.md](https://github.com/juce-framework/JUCE/blob/master/docs/Linux%20Dependencies.md) and use the full command.
 - The CMake build system has been tested with *Unix Makefiles*, *XCode* and *Visual Studio 16 2019*.
