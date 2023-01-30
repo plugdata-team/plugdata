@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.15)
+cmake_minimum_required(VERSION 3.21)
 
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
@@ -8,6 +8,12 @@ option(ENABLE_TESTING "" OFF)
 option(ENABLE_SFONT "" ON)
 
 set (CMAKE_CXX_STANDARD 20)
+
+function(message)
+    if (NOT MESSAGE_QUIET)
+        _message(${ARGN})
+    endif()
+endfunction()
 
 if(APPLE)
   set(CMAKE_XCODE_BUILD_SYSTEM "12" CACHE STRING "" FORCE)
@@ -139,9 +145,12 @@ juce_add_plugin(plugdata
     VST3_CATEGORIES             Instrument
     VST2_CATEGORY               kPlugCategSynth)
 
+# Silence excessive messaging from juce-clap-extensions
+set(MESSAGE_QUIET ON)
 clap_juce_extensions_plugin(TARGET plugdata
     CLAP_ID "com.timothyschoen.plugdata"
     CLAP_FEATURES "instrument")    
+unset(MESSAGE_QUIET)
 
 juce_add_plugin(plugdata_fx
     VERSION                     ${PLUGDATA_VERSION}
@@ -167,9 +176,11 @@ juce_add_plugin(plugdata_fx
     VST3_CATEGORIES             Fx
     VST2_CATEGORY               kPlugCategEffect)
 
+set(MESSAGE_QUIET ON)
 clap_juce_extensions_plugin(TARGET plugdata_fx
     CLAP_ID "com.timothyschoen.plugdata-fx"
     CLAP_FEATURES "effect")
+unset(MESSAGE_QUIET)
 
 if(APPLE)
 juce_add_plugin(plugdata_midi
