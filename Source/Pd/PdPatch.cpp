@@ -125,7 +125,7 @@ void Patch::setCurrent(bool lock)
     canvas_setcurrent(getPointer());
 
     t_atom args[1];
-    SETFLOAT(args, 0);
+    SETFLOAT(args, 1);
     pd_typedmess(static_cast<t_pd*>(ptr), instance->generateSymbol("vis"), 1, args);
     pd_typedmess(static_cast<t_pd*>(ptr), instance->generateSymbol("map"), 1, args);
 
