@@ -849,8 +849,8 @@ void Object::openHelpPatch() const
     cnv->pd->setThis();
 
     if (auto* ptr = static_cast<t_object*>(getPointer())) {
-        auto patchdir = cnv->patch.getCurrentFile().getParentDirectory();
-        auto file = cnv->pd->objectLibrary.findHelpfile(ptr, patchdir);
+    
+        auto file = cnv->pd->objectLibrary.findHelpfile(ptr, cnv->patch.getCurrentFile());
 
         if (!file.existsAsFile()) {
             cnv->pd->logMessage("Couldn't find help file");
