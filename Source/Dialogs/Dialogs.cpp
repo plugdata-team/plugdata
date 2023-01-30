@@ -232,17 +232,12 @@ void Dialogs::showCanvasRightClickMenu(Canvas* cnv, Component* originalComponent
     } else if (hasSelection && !multiple) {
         object = selectedBoxes.getFirst();
     }
-
-    // Find top-level parent
-    Array<Object*> parents;
-    for (auto* p = originalComponent->getParentComponent(); p != nullptr; p = p->getParentComponent()) {
-        if (auto* target = dynamic_cast<Object*>(p))
-            parents.add(target);
-    }
-
-    // Get top-level parent object... A bit clumsy but otherwise it will open subpatchers deeper down the chain
-    if (parents.size() && originalComponent != cnv) {
-        object = parents.getLast();
+    
+    if(object && object->findParentComponentOfClass<Object>()) {
+        while(auto* nextObject = object->findParentComponentOfClass<Object>())
+        {
+            object = nextObject;
+        }
     }
 
     auto params = object && object->gui ? object->gui->getParameters() : ObjectParameters();

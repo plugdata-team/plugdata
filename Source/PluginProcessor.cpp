@@ -1157,21 +1157,14 @@ void PluginProcessor::receiveDSPState(bool dsp)
         });
 }
 
-void PluginProcessor::receiveGuiUpdate()
-{
-    if (!isTimerRunning()) {
-        startTimer(16);
-    }
-}
-
-void PluginProcessor::timerCallback()
+void PluginProcessor::updateDrawables()
 {
     if (auto* editor = dynamic_cast<PluginEditor*>(getActiveEditor())) {
-        if (auto* cnv = editor->getCurrentCanvas()) {
-            cnv->updateDrawables();
-        }
-        stopTimer();
+        MessageManager::callAsync([cnv = editor->getCurrentCanvas()](){
+            if(cnv) cnv->updateDrawables();
+        });
     }
+
 }
 
 void PluginProcessor::updateConsole()

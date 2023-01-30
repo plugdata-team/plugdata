@@ -23,7 +23,6 @@ class PlugDataLook;
 class PluginEditor;
 class PluginProcessor : public AudioProcessor
     , public pd::Instance
-    , public Timer
     , public AudioProcessorParameter::Listener {
 public:
     PluginProcessor();
@@ -50,8 +49,6 @@ public:
     bool isMidiEffect() const override;
     double getTailLengthSeconds() const override;
 
-    void timerCallback() override;
-
     int getNumPrograms() override;
     int getCurrentProgram() override;
     void setCurrentProgram(int index) override;
@@ -73,7 +70,7 @@ public:
     void parameterGestureChanged(int parameterIndex, bool gestureIsStarting) override;
 
     void receiveDSPState(bool dsp) override;
-    void receiveGuiUpdate() override;
+    void updateDrawables() override;
 
     void updateConsole() override;
 

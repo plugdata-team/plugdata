@@ -145,7 +145,7 @@ Instance::Instance(String const& symbol)
             File(String::fromUTF8(atom_getsymbol(arg1)->s_name)).startAsProcess();
         }
         if (String::fromUTF8(name) == "repaint") {
-            static_cast<Instance*>(instance)->receiveGuiUpdate();
+            static_cast<Instance*>(instance)->updateDrawables();
         }
     };
 

@@ -421,7 +421,7 @@ struct ScalarObject final : public ObjectBase {
     void updateDrawables() override
     {
         pd->setThis();
-
+        
         for (auto* drawable : templates) {
             dynamic_cast<DrawableTemplate*>(drawable)->update();
         }
