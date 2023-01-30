@@ -88,9 +88,9 @@ public:
 
     void fsChangeCallback() override;
 
-    File findHelpfile(t_object* obj, File patchDir);
+    File findHelpfile(t_object* obj, File parentPatchFile);
 
-    std::vector<File> helpPaths;
+    Array<File> helpPaths;
 
     ThreadPool libraryUpdateThread = ThreadPool(1);
 

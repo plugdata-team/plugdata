@@ -550,7 +550,7 @@ void Library::fsChangeCallback()
     appDirChanged();
 }
 
-File Library::findHelpfile(t_object* obj, File patchDir)
+File Library::findHelpfile(t_object* obj, File parentPatchFile)
 {
     String helpName;
 
@@ -571,7 +571,20 @@ File Library::findHelpfile(t_object* obj, File patchDir)
     }
     
     auto patchHelpPaths = helpPaths;
-    patchHelpPaths.add(patchDir);
+    
+
+    // Add abstraction dir to search paths
+    if(pd_class(reinterpret_cast<t_pd*>(obj)) == canvas_class &&
+       canvas_isabstraction(reinterpret_cast<t_canvas*>(obj))) {
+        auto* cnv = reinterpret_cast<t_canvas*>(obj);
+        patchHelpPaths.add(File(String::fromUTF8(canvas_getenv(cnv)->ce_dir->s_name)));
+    }
+    
+    // Add parent patch dir to search paths
+    if(parentPatchFile.existsAsFile()) {
+        patchHelpPaths.add(parentPatchFile.getParentDirectory());
+    }
+
 
     String firstName = helpName + "-help.pd";
     String secondName = "help-" + helpName + ".pd";
@@ -663,170 +676,3 @@ MethodMap Library::getMethods()
 }
 
 } // namespace pd
-
-/* Code for generating library markdown files, not in usage but useful for later
-
- // wait for pd to initialise
- Timer::callAfterDelay(1200, [this](){
-
-     enqueueFunction([this](){
-     t_class* o = pd_objectmaker;
-#if PDINSTANCE
-     t_methodentry* mlist = o->c_methods[pd_this->pd_instanceno];
-#else
-     t_methodentry* mlist = o->c_methods;
-#endif
-
- t_methodentry* m;
-
- int i;
- for (i = o->c_nmethod, m = mlist; i--; m++)
- {
-     String name(m->me_name->s_name);
-     StringArray arguments;
-
-     if(name == "onebang_proxy" || name == "midi") continue;
-
-     t_atom args[9];
-     int nargs = 3;
-     for(int i = 0; i < 6; i++) {
-         auto atomtype = (t_atomtype)m->me_arg[i];
-         String type;
-         auto* target = args + i + 3;
-
-         if(atomtype == A_NULL) {
-             break;
-         }
-
-         nargs++;
-         if(atomtype == A_FLOAT) {
-             type = "float";
-             SETFLOAT(target, 0);
-         }
-         else if(atomtype == A_SYMBOL) {
-             type = "symbol";
-             SETSYMBOL(target, generateSymbol("0"));
-         }
-         else if(atomtype == A_GIMME) {
-             type = "gimme";
-             SETFLOAT(target, 0);
-             arguments.add(type);
-             break;
-         }
-         else if(atomtype == A_POINTER) {
-             type = "pointer";
-             SETPOINTER(target, 0);
-         }
-         else if(atomtype == A_SEMI) {
-             type = "semi";
-             SETSEMI(target);
-         }
-         else if(atomtype == A_COMMA) {
-             type = "comma";
-             SETCOMMA(target);
-         }
-         else if(atomtype == A_DEFFLOAT) {
-             type = "float";
-             SETFLOAT(target, 0);
-         }
-         else if(atomtype == A_DEFSYM) {
-             type = "symbol";
-             SETSYMBOL(target, generateSymbol("0"));
-         }
-         else if(atomtype == A_DOLLSYM) {
-             type = "dollsym";
-             SETDOLLSYM(target, generateSymbol("$1"));
-         }
-
-         arguments.add(type);
-     }
-
-     SETFLOAT(args, 20.0f);
-     SETFLOAT(args + 1, 20.0f);
-     SETSYMBOL(args + 2, generateSymbol(name)));
-
-     auto* obj = pd_checkobject(libpd_createobj(patches[0]->getPointer(), generateSymbol("obj"), nargs, args));
-
-     if(!obj) continue;
-     int nin = libpd_ninlets(obj);
-     int nout = libpd_noutlets(obj);
-
-     t_inlet* i;
-     t_outlet* i_out;
-
-     StringArray inletTypes;
-     StringArray outletTypes;
-
-     for (i = (t_inlet*)obj->ob_inlet; i; i = i->i_next) {
-         if(!i->i_symfrom) {
-             inletTypes.add("?");
-             continue;
-         }
-         inletTypes.add(i->i_symfrom->s_name);
-     }
-     while(inletTypes.size() && nin > inletTypes.size()) {
-         inletTypes.add(inletTypes.getReference(inletTypes.size() - 1));
-         nin--;
-     }
-
-     for (i_out = (t_outlet*)obj->ob_outlet; i_out; i_out = i_out->o_next) {
-         if(!i_out->o_sym) {
-             outletTypes.add("?");
-             continue;
-         }
-         outletTypes.add(i_out->o_sym->s_name);
-     }
-
-     while(outletTypes.size() && nout > outletTypes.size()) {
-         outletTypes.add(outletTypes.getReference(outletTypes.size() - 1));
-         nout--;
-     }
-
-     auto file = File("/Users/timschoen/Projecten/plugdata/Resources/pddp/NEW/" + name + ".md");
-
-     String newFile;
-     newFile += "---\n";
-     newFile += "title: " + name + "\n";
-     newFile += "description:\n";
-     newFile += "categories:\n";
-     newFile += " - object\n";
-     newFile += "pdcategory: General\n";
-     newFile += "arguments:\n";
-
-     StringArray numbers = {"1st", "2nd", "3rd", "4th", "5th", "6th", "7th", "8th", "9th", "10th"};
-
-
-     for(auto& arg : arguments) {
-
-         newFile += "- type: " + arg + "\n";
-         newFile += "  description:\n";
-         newFile += "  default:\n";
-     }
-
-     int idx = 0;
-     newFile += "inlets:\n";
-     for(auto& inlet : inletTypes) {
-         newFile += "  " + numbers[idx] + ":\n";
-         newFile += "  - type: " + inlet + "\n";
-         newFile += "    description:\n";
-         idx++;
-     }
-
-     idx = 0;
-     newFile += "outlets:\n";
-     for(auto& outlet : outletTypes) {
-         newFile += "  " + numbers[idx] + ":\n";
-         newFile += "  - type: " + outlet + "\n";
-         newFile += "    description:\n";
-         idx++;
-     }
-
-     file.create();
-     file.replaceWithText(newFile);
-
- }
-
-     });
- });
-
- */

@@ -24,7 +24,7 @@ public:
         hideNameAndArgs.addListener(this);
 
         object->hvccMode.addListener(this);
-
+        
         if (static_cast<bool>(object->hvccMode.getValue())) {
             checkHvccCompatibility(subpatch);
         }
