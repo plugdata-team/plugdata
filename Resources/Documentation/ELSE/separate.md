@@ -6,7 +6,7 @@ description: separate symbols
 categories:
  - object
 
-pdcategory: Data Management
+pdcategory: ELSE, Data Management
 
 arguments:
 - type: symbol

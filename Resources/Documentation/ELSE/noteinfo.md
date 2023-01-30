@@ -6,7 +6,7 @@ description: detailed MIDI note information
 categories:
  - object
 
-pdcategory: MIDI
+pdcategory: ELSE, MIDI
 
 arguments:
 

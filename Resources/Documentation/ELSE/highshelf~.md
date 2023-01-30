@@ -5,7 +5,7 @@ description: highshelf filter
 categories:
  - object
 
-pdcategory: Filters, Mixing and Routing
+pdcategory: ELSE, Filters, Mixing and Routing
 
 arguments:
 - type: float

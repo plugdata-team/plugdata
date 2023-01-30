@@ -9,7 +9,7 @@ see_also:
 - inlet~
 - block~
 - pd
-pdcategory: Subwindows
+pdcategory: vanilla,  Subwindows
 last_update: '0.51'
 inlets:
   1st:

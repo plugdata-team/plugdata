@@ -6,7 +6,7 @@ description: MIDI program input
 categories:
  - object
 
-pdcategory: MIDI
+pdcategory: ELSE, MIDI
 
 arguments:
 - type: float

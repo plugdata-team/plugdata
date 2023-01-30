@@ -6,7 +6,7 @@ description: truncate to integer
 categories:
 - object
 
-pdcategory: Data Math
+pdcategory: ELSE, Data Math
 
 arguments:
 

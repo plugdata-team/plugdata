@@ -6,7 +6,7 @@ description: rescale MIDI values
 categories:
  - object
 
-pdcategory: MIDI, Data Math
+pdcategory: ELSE, MIDI, Data Math
 
 arguments:
 - type: list

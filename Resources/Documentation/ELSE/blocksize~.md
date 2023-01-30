@@ -6,7 +6,7 @@ description: get block size
 categories:
  - object
 
-pdcategory: Data Management, Audio I/O
+pdcategory: ELSE, Data Management, Audio I/O
 
 arguments:
 inlets:

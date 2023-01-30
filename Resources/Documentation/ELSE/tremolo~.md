@@ -6,7 +6,7 @@ description: amplitude modulation
 categories:
 - object
 
-pdcategory: Effects
+pdcategory: ELSE, Effects
 
 arguments:
   - type: float

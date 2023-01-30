@@ -6,7 +6,7 @@ description: detect direction changes
 categories:
  - object
 
-pdcategory: Analysis, Triggers and Clocks
+pdcategory: ELSE, Analysis, Triggers and Clocks
 
 arguments:
 inlets:

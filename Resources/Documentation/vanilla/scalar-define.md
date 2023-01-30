@@ -7,7 +7,7 @@ see_also:
 - array
 - text
 - list
-pdcategory: Accessing Data
+pdcategory: vanilla,  Accessing Data
 last_update: '0.49'
 inlets:
   1st:

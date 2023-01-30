@@ -5,7 +5,7 @@ description: gate to impulse
 categories:
  - object
 
-pdcategory: Triggers and Clocks
+pdcategory: ELSE, Triggers and Clocks
 
 arguments:
 

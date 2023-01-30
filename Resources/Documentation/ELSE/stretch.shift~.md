@@ -6,7 +6,7 @@ description: pitch-shift time-stretch
 categories:
 - object
 
-pdcategory: Effects
+pdcategory: ELSE, Effects
 
 arguments:
 - type: float

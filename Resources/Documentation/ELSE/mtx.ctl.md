@@ -6,7 +6,7 @@ description: matrix control GUI
 categories:
 - object
 
-pdcategory: GUI, Mixing and Routing
+pdcategory: ELSE, GUI, Mixing and Routing
 
 arguments:
 

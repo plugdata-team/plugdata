@@ -6,7 +6,7 @@ description: presets manager
 categories:
 - object
 
-pdcategory: Data Management
+pdcategory: ELSE, Data Management
 
 arguments:
 - description: one or more receive names

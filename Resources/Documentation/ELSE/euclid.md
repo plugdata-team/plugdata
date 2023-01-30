@@ -6,7 +6,7 @@ description: Euclidean rhythm algorithm
 categories:
 - object
 
-pdcategory: Triggers and Clocks, Sequencing
+pdcategory: ELSE, Triggers and Clocks, Sequencing
 
 arguments:
 - description: number of steps

@@ -3,7 +3,7 @@ title: key
 description: grab keyboard input
 categories:
 - object
-pdcategory: Misc
+pdcategory: vanilla,  Misc
 last_update: '0.32'
 see_also:
 - keyup

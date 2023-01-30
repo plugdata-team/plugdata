@@ -6,7 +6,7 @@ description: retrieve data from "receives"
 categories:
  - object
 
-pdcategory: Data Management
+pdcategory: ELSE, Data Management
 
 arguments:
 - type: symbol

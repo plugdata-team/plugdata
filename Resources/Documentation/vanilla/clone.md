@@ -5,7 +5,7 @@ categories:
 - object
 see_also: 
 - poly
-pdcategory: Subwindows
+pdcategory: vanilla,  Subwindows
 last_update: '0.47'
 inlets:
   'n: (number and type depends on the abstraction)':

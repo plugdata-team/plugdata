@@ -6,7 +6,7 @@ description: bang loop/counter
 categories:
  - object
 
-pdcategory: General
+pdcategory: cyclone, General
 
 arguments:
 - type: float

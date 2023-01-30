@@ -5,7 +5,7 @@ description: initialization message
 categories:
  - object
 
-pdcategory: Data Management, Triggers and Clocks
+pdcategory: ELSE, Data Management, Triggers and Clocks
 
 arguments:
 - type: anything

@@ -3,7 +3,7 @@ title: cosh~
 description: signal hyperbolic cosine function
 categories:
  - object
-pdcategory: General
+pdcategory: cyclone, General
 arguments:
 inlets:
   1st:

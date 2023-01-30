@@ -6,7 +6,7 @@ description: tapped tempo
 categories:
 - object
 
-pdcategory: Sequencing, Triggers and Clocks
+pdcategory: ELSE, Sequencing, Triggers and Clocks
 
 flags:
 - name: -ms

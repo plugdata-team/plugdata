@@ -10,7 +10,7 @@ see_also:
 - tabwrite
 - soundfiler
 - array
-pdcategory: Audio Oscillators And Tables
+pdcategory: vanilla,  Audio Oscillators And Tables
 last_update: '0.43'
 inlets:
   1st:

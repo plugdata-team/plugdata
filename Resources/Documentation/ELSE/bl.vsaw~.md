@@ -6,7 +6,7 @@ description: bandlimited sawtooth-triangular oscillator
 categories:
 - object
 
-pdcategory: Signal Generators
+pdcategory: ELSE, Signal Generators
 
 arguments:
   - description: frequency in Hz

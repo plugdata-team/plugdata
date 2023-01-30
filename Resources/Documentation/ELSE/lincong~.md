@@ -6,7 +6,7 @@ description: linear congruential chaotic generator
 categories:
  - object
 
-pdcategory: Signal Generators
+pdcategory: ELSE, Signal Generators
 
 arguments:
 - type: float

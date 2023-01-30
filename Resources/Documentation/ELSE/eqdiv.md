@@ -6,7 +6,7 @@ description: equal divisions of intervals
 categories:
 - object
 
-pdcategory: Tuning
+pdcategory: ELSE, Tuning
 
 arguments:
 - description: number of equal divisions

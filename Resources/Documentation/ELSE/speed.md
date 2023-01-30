@@ -6,7 +6,7 @@ description: change bpm speed over amount of beats
 categories:
 - object
 
-pdcategory: Envelopes and LFOs, Triggers and Clocks
+pdcategory: ELSE, Envelopes and LFOs, Triggers and Clocks
 
 arguments:
 - type: float

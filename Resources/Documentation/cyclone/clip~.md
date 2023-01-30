@@ -3,7 +3,7 @@ title: clip~, cyclone/clip~
 description: constrain a signal to a given range
 categories:
 - object
-pdcategory:
+pdcategory: cyclone
 arguments:
 - description: sets minimum value
   type: float

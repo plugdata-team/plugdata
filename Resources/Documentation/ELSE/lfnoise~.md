@@ -6,7 +6,7 @@ description: low frequency noise
 categories:
  - object
 
-pdcategory: Random and Noise, Signal Generators, Envelopes and LFOs
+pdcategory: ELSE, Random and Noise, Signal Generators, Envelopes and LFOs
 
 arguments:
 - type: float

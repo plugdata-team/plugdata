@@ -3,7 +3,7 @@ title: funnel
 description: tag data based on inlet
 categories:
  - object
-pdcategory: General
+pdcategory: cyclone, General
 arguments:
 - type: float
   description: sets 'n' number of inlets

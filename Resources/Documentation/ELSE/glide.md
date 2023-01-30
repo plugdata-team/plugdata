@@ -6,7 +6,7 @@ description: control glide/portamento
 categories:
 - object
 
-pdcategory: Data Management, Effects, Filters
+pdcategory: ELSE, Data Management, Effects, Filters
 
 arguments:
 - description: glide time in ms

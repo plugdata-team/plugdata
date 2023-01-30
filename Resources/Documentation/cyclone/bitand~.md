@@ -3,7 +3,7 @@ title: bitand~
 description: signal Bitwise-AND
 categories:
  - object
-pdcategory: General
+pdcategory: cyclone, General
 arguments:
 - type: float
   description: converted to integer and used as bitmask

@@ -6,7 +6,7 @@ description: weighted random
 categories:
  - object
 
-pdcategory: Triggers and Clocks, Random and Noise
+pdcategory: ELSE, Triggers and Clocks, Random and Noise
 
 arguments:
 - type: list

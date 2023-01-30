@@ -3,7 +3,7 @@ title: midiflush
 description: flush hanging note-ons on raw MIDI
 categories:
  - object
-pdcategory: General
+pdcategory: cyclone, General
 arguments:
 inlets:
   1st:

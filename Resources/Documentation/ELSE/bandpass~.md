@@ -6,7 +6,7 @@ description: bandpass resonant filter
 categories:
  - object
 
-pdcategory: Filters
+pdcategory: ELSE, Filters
 
 arguments:
 - type: float

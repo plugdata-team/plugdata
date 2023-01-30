@@ -6,7 +6,7 @@ description: normalizer
 categories:
 - object
 
-pdcategory: Effects
+pdcategory: ELSE, Effects
 
 arguments:
 - description: normalize level in dBFS

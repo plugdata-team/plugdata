@@ -4,7 +4,7 @@ description: attach the canvas window to a name
 categories:
 - object
 see_also: {}
-pdcategory: Subwindows
+pdcategory: vanilla,  Subwindows
 last_update: '0.52'
 arguments:
 - type: symbol

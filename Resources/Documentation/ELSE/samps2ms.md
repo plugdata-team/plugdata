@@ -6,7 +6,7 @@ description: convert samples to ms
 categories:
 - object
 
-pdcategory: Data Math
+pdcategory: ELSE, Data Math
 
 arguments:
 

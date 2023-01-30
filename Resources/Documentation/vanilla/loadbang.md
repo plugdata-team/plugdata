@@ -3,7 +3,7 @@ title: loadbang
 description: bang on load
 categories:
 - object
-pdcategory: Misc
+pdcategory: vanilla,  Misc
 last_update: '0.47'
 see_also:
 - bang

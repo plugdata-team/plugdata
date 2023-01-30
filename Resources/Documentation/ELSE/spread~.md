@@ -6,7 +6,7 @@ description: spread inputs to outputs
 categories:
  - object
 
-pdcategory: Mixing and Routing
+pdcategory: ELSE, Mixing and Routing
 
 arguments:
 - type: float

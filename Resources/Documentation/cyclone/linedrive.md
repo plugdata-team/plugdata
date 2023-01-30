@@ -3,7 +3,7 @@ title: linedrive
 description: exponential scaler for [line~]
 categories:
  - object
-pdcategory: General
+pdcategory: cyclone, General
 arguments:
 - type: float
   description: input range

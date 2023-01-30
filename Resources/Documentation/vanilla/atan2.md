@@ -3,7 +3,7 @@ title: atan2
 description: 2-argument arctangens functions
 categories:
 - object
-pdcategory: Math
+pdcategory: vanilla,  Math
 see_also:
 - +~
 - +

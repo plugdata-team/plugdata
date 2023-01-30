@@ -3,7 +3,7 @@ title: capture
 description: store data
 categories:
  - object
-pdcategory: General
+pdcategory: cyclone, General
 arguments:
 - type: float
   description: number of stored values

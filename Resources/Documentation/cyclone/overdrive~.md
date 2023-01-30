@@ -6,7 +6,7 @@ description: analog overdrive simulation
 categories:
  - object
 
-pdcategory: General
+pdcategory: cyclone, General
 
 arguments:
 - type: float

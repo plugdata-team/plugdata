@@ -6,7 +6,7 @@ description: phase-vocoder freeze
 categories:
 - object
 
-pdcategory: Effects
+pdcategory: ELSE, Effects
 
 arguments:
 

@@ -3,7 +3,7 @@ title: flush
 description: flush hanging note-ons
 categories:
  - object
-pdcategory: General
+pdcategory: cyclone, General
 arguments:
 inlets:
   1st:

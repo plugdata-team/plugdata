@@ -3,7 +3,7 @@ title: delta~
 description: difference between samples
 categories:
  - object
-pdcategory: General
+pdcategory: cyclone, General
 arguments:
 inlets:
   1st:

@@ -10,7 +10,7 @@ see_also:
 - send
 - send~
 - tabsend~
-pdcategory: General Audio Manipulation
+pdcategory: vanilla,  General Audio Manipulation
 last_update: '0.33'
 inlets:
   1st:

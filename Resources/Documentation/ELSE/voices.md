@@ -6,7 +6,7 @@ description: polyphonic voice allocator
 categories:
  - object
  
-pdcategory: Data Management, MIDI
+pdcategory: ELSE, Data Management, MIDI
 
 arguments:
   - type: float

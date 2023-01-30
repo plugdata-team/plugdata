@@ -6,7 +6,7 @@ description: float/list operators
 categories:
 - object
 
-pdcategory: Data Math, Data Management
+pdcategory: ELSE, Data Math, Data Management
 
 arguments:
   - description: operator: see [pd set] for all options

@@ -3,7 +3,7 @@ title: drunk
 description: random drunk walk
 categories:
  - object
-pdcategory: General
+pdcategory: cyclone, General
 arguments:
 - type: float
   description: sets maximum value

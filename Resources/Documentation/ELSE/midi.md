@@ -6,7 +6,7 @@ description: read/write MIDI files
 categories:
 - object
 
-pdcategory: MIDI
+pdcategory: ELSE, MIDI
 
 arguments:
 - type: symbol

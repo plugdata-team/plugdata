@@ -6,7 +6,7 @@ description: mean average
 categories:
 - object
 
-pdcategory: Data Math
+pdcategory: ELSE, Data Math
 
 arguments:
 

@@ -3,7 +3,7 @@ title: text insert
 description: insert a line.
 categories:
 - object
-pdcategory: Misc
+pdcategory: vanilla,  Misc
 last_update: '0.49'
 see_also:
 - list

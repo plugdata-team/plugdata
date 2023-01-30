@@ -3,7 +3,7 @@ title: textfile
 description: read and write text files
 categories:
 - object
-pdcategory: Misc
+pdcategory: vanilla,  Misc
 last_update: '0.33'
 see_also:
 - qlist

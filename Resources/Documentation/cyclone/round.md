@@ -6,7 +6,7 @@ description: rounds floats/lists
 categories:
  - object
 
-pdcategory: General
+pdcategory: cyclone, General
 
 arguments:
 - type: float

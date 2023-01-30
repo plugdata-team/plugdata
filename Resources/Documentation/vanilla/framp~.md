@@ -3,7 +3,7 @@ title: framp~
 description: estimate frequency and amplitude of FFT.
 categories:
 - object
-pdcategory: Audio Math
+pdcategory: vanilla,  Audio Math
 last_update: '0.47'
 inlets:
   1st:

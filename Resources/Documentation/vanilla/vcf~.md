@@ -12,7 +12,7 @@ see_also:
 - slop~
 - cpole~
 - fexpr~
-pdcategory: Audio Filters
+pdcategory: vanilla,  Audio Filters
 last_update: '0.46'
 inlets:
   1st:

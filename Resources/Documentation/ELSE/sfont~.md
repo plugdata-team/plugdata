@@ -6,7 +6,7 @@ description: soundfont synthesizer
 categories:
  - object
 
-pdcategory: MIDI
+pdcategory: ELSE, MIDI
 
 arguments:
 - type: symbol

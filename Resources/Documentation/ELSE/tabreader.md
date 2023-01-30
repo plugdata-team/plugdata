@@ -6,7 +6,7 @@ description: table reader
 categories:
 - object
 
-pdcategory: Arrays and Tables
+pdcategory: ELSE, Arrays and Tables
 
 arguments:
   - type: symbol

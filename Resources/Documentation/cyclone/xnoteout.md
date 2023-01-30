@@ -6,7 +6,7 @@ description: send release velocity messages
 categories:
  - object
 
-pdcategory: General
+pdcategory: cyclone, General
 
 arguments:
 - type: float

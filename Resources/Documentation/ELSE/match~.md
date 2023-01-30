@@ -6,7 +6,7 @@ description: compare signals to numbers
 categories:
  - object
 
-pdcategory: Analysis, Mixing and Routing
+pdcategory: ELSE, Analysis, Mixing and Routing
 
 arguments:
 - type: list

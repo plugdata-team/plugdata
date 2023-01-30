@@ -3,7 +3,7 @@ title: pow~
 description: power function for signals
 categories:
 - object
-pdcategory: Audio Math
+pdcategory: vanilla,  Audio Math
 last_update: '0.42'
 see_also:
 - pow

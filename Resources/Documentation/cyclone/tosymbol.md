@@ -6,7 +6,7 @@ description: convert anything to symbol
 categories:
  - object
 
-pdcategory: General
+pdcategory: cyclone, General
 
 arguments: (none)
 

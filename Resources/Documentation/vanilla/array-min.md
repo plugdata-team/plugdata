@@ -3,7 +3,7 @@ title: array min
 description: output minimum value of an array.
 categories:
 - object
-pdcategory: Arrays & Tables
+pdcategory: vanilla,  Arrays & Tables
 last_update: '0.52'
 see_also:
 - array

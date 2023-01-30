@@ -4,7 +4,7 @@ description: uniformly distributed white noise
 categories:
 - object
 see_also: {}
-pdcategory: Audio Oscillators And Tables
+pdcategory: vanilla,  Audio Oscillators And Tables
 last_update: '0.48-2'
 inlets:
   1st:

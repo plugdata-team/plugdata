@@ -6,7 +6,7 @@ description: oscilloscope display
 categories:
  - object
 
-pdcategory: General
+pdcategory: cyclone, General
 
 arguments: (none)
 

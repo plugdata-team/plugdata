@@ -6,7 +6,7 @@ description: parametric equalizer filter
 categories:
  - object
 
-pdcategory: Filters, Effects, Mixing and Routing
+pdcategory: ELSE, Filters, Effects, Mixing and Routing
 
 arguments:
 - type: float

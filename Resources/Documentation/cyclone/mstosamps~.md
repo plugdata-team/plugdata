@@ -3,7 +3,7 @@ title: mstosamps~
 description: convert milliseconds to samples
 categories:
  - object
-pdcategory: General
+pdcategory: cyclone, General
 arguments:
 inlets:
   1st:

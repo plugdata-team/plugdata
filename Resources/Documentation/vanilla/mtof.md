@@ -3,7 +3,7 @@ title: mtof
 description: convert acoustical units
 categories:
 - object
-pdcategory: Math
+pdcategory: vanilla,  Math
 last_update: '0.40'
 see_also:
 - mtof~

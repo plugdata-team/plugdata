@@ -3,7 +3,7 @@ title: delay~
 description: delay a signal
 categories:
  - object
-pdcategory: General
+pdcategory: cyclone, General
 arguments:
 - type: float
   description: sets the maximum delay in samples

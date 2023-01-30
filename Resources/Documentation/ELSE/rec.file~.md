@@ -6,7 +6,7 @@ description: record sound file
 categories:
 - object
 
-pdcategory: Buffers
+pdcategory: ELSE, Buffers
 
 arguments:
 - type: symbol

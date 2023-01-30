@@ -6,7 +6,7 @@ description: signal operator
 categories:
 - object
 
-pdcategory: Signal Math
+pdcategory: ELSE, Signal Math
 
 arguments:
   - description: operator. >, <, >=, <=, ==, !=, &&, ||, &, |, ~, ^, >>, <<, or %

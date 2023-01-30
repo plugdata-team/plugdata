@@ -6,7 +6,7 @@ description: ceiling function for signals
 categories:
  - object
 
-pdcategory: Signal Math
+pdcategory: ELSE, Signal Math
 
 arguments:
 inlets:

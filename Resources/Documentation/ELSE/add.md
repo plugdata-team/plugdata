@@ -6,7 +6,7 @@ description: number accumulator
 categories:
 - object
 
-pdcategory: Data Math
+pdcategory: ELSE, Data Math
 
 arguments:
 - description: starting sum
