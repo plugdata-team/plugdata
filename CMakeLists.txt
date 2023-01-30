@@ -132,12 +132,16 @@ juce_add_plugin(plugdata
     COPY_PLUGIN_AFTER_BUILD     FALSE
     PLUGIN_MANUFACTURER_CODE    PlDt
     PLUGIN_CODE                 PdIn
-    FORMATS                     AU VST3 LV2
+    FORMATS                     AU VST3 LV2 CLAP
     LV2URI                      https://github.com/timothyschoen/plugdata
     PRODUCT_NAME                "plugdata"
     AU_MAIN_TYPE                kAudioUnitType_MusicDevice
     VST3_CATEGORIES             Instrument
     VST2_CATEGORY               kPlugCategSynth)
+
+clap_juce_extensions_plugin(TARGET plugdata
+    CLAP_ID "com.timothyschoen.plugdata"
+    CLAP_FEATURES "instrument")    
 
 juce_add_plugin(plugdata_fx
     VERSION                     ${PLUGDATA_VERSION}
@@ -156,12 +160,16 @@ juce_add_plugin(plugdata_fx
     COPY_PLUGIN_AFTER_BUILD     FALSE
     PLUGIN_MANUFACTURER_CODE    PlDt
     PLUGIN_CODE                 PdFx
-    FORMATS                     AU VST3 LV2
+    FORMATS                     AU VST3 LV2 CLAP
     LV2URI                      https://github.com/timothyschoen/plugdata
     PRODUCT_NAME                "plugdata-fx"
     AU_MAIN_TYPE                kAudioUnitType_MusicEffect
     VST3_CATEGORIES             Fx
     VST2_CATEGORY               kPlugCategEffect)
+
+clap_juce_extensions_plugin(TARGET plugdata_fx
+    CLAP_ID "com.timothyschoen.plugdata-fx"
+    CLAP_FEATURES "effect")
 
 if(APPLE)
 juce_add_plugin(plugdata_midi

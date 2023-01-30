@@ -16,3 +16,6 @@
 [submodule "Libraries/pd-lua"]
 	path = Libraries/pd-lua
 	url = https://github.com/agraef/pd-lua.git
+[submodule "Libraries/clap-juce-extensions"]
+	path = Libraries/clap-juce-extensions
+	url = https://github.com/free-audio/clap-juce-extensions.git

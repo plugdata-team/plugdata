@@ -16,6 +16,7 @@ cmake_policy(SET CMP0091 NEW)
 set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 
 add_subdirectory(JUCE)
+add_subdirectory(clap-juce-extensions EXCLUDE_FROM_ALL)
 
 # ------------------------------------------------------------------------------#
 set(CMAKE_MACOSX_RPATH ON)
