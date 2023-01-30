@@ -238,8 +238,8 @@ jobs:
 
         - name: Update cmake
           working-directory: ${{github.workspace}}
-          run: ./.github/scripts/cmake-3.25.2-linux-x86_64.sh
-          
+          run: ./.github/scripts/cmake-3.25.2-linux-x86_64.sh --skip-license
+
         - name: ccache
           uses: hendrikmuhs/ccache-action@v1.2
           with:
