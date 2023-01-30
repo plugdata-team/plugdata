@@ -88,7 +88,7 @@ public:
 
     void fsChangeCallback() override;
 
-    File findHelpfile(t_object* obj);
+    File findHelpfile(t_object* obj, File patchDir);
 
     std::vector<File> helpPaths;
 
