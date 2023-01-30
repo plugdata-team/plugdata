@@ -53,10 +53,7 @@ void* libpd_setconnectionpath(t_canvas* cnv, t_object* src, int nout, t_object* 
 void libpd_getcontent(t_canvas* cnv, char** buf, int* bufsize);
 void libpd_savetofile(t_canvas* cnv, t_symbol* filename, t_symbol* dir);
 
-int libpd_type_exists(char const* type);
-
 int libpd_noutlets(t_object const* x);
-
 int libpd_ninlets(t_object const* x);
 
 int libpd_can_undo(t_canvas* cnv);
@@ -70,19 +67,10 @@ void libpd_undo_apply(t_canvas* cnv, t_gobj* obj);
 int libpd_issignalinlet(t_object const* x, int m);
 int libpd_issignaloutlet(t_object const* x, int m);
 
-void libpd_canvas_doclear(t_canvas* cnv);
-
 void libpd_canvas_saveto(t_canvas* cnv, t_binbuf* b);
-
-void gobj_setposition(t_gobj* x, t_glist* glist, int xpos, int ypos);
 
 void* libpd_tryconnect(t_canvas* cnv, t_object* src, int nout, t_object* sink, int nin);
 int libpd_canconnect(t_canvas* cnv, t_object* src, int nout, t_object* sink, int nin);
-
-void libpd_collecttemplatesfor(t_canvas* cnv, int* ntemplatesp,
-    t_symbol*** templatevecp);
-
-extern void canvas_reload(t_symbol *name, t_symbol *dir, t_glist *except);
 
 #ifdef __cplusplus
 }

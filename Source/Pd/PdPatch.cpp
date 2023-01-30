@@ -18,25 +18,26 @@ extern "C" {
 #include "x_libpd_extra_utils.h"
 #include "x_libpd_multi.h"
 
-struct _instanceeditor {
-    t_binbuf* copy_binbuf;
-    char* canvas_textcopybuf;
+struct _instanceeditor
+{
+    t_binbuf *copy_binbuf;
+    char *canvas_textcopybuf;
     int canvas_textcopybufsize;
-    t_undofn canvas_undo_fn;      /* current undo function if any */
-    int canvas_undo_whatnext;     /* whether we can now UNDO or REDO */
-    void* canvas_undo_buf;        /* data private to the undo function */
-    t_canvas* canvas_undo_canvas; /* which canvas we can undo on */
-    char const* canvas_undo_name;
+    t_undofn canvas_undo_fn;         /* current undo function if any */
+    int canvas_undo_whatnext;        /* whether we can now UNDO or REDO */
+    void *canvas_undo_buf;           /* data private to the undo function */
+    t_canvas *canvas_undo_canvas;    /* which canvas we can undo on */
+    const char *canvas_undo_name;
     int canvas_undo_already_set_move;
     double canvas_upclicktime;
     int canvas_upx, canvas_upy;
     int canvas_find_index, canvas_find_wholeword;
-    t_binbuf* canvas_findbuf;
+    t_binbuf *canvas_findbuf;
     int paste_onset;
-    t_canvas* paste_canvas;
-    t_glist* canvas_last_glist;
+    t_canvas *paste_canvas;
+    t_glist *canvas_last_glist;
     int canvas_last_glist_x, canvas_last_glist_y;
-    t_canvas* canvas_cursorcanvaswas;
+    t_canvas *canvas_cursorcanvaswas;
     unsigned int canvas_cursorwas;
 };
 
