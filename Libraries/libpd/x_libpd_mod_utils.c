@@ -85,6 +85,17 @@ static void canvas_collecttemplatesfor(t_canvas* x, int* ntemplatesp,
     }
 }
 
+static t_gobj *glist_nth(t_glist *x, int n)
+{
+    t_gobj *y;
+    int indx;
+    for (y = x->gl_list, indx = 0; y; y = y->g_next, indx++)
+        if (indx == n)
+            return (y);
+    return (0);
+}
+
+
 void libpd_get_search_paths(char** paths, int* numItems) {
 
     t_namelist* pathList = STUFF->st_searchpath;
@@ -388,6 +399,7 @@ void libpd_undo(t_canvas* cnv)
     sys_lock();
     canvas_setcurrent(cnv);
     pd_typedmess((t_pd*)cnv, gensym("undo"), 0, NULL);
+    glist_noselect(cnv);
     canvas_unsetcurrent(cnv);
     sys_unlock();
 }
@@ -402,8 +414,91 @@ void libpd_redo(t_canvas* cnv)
     sys_lock();
     canvas_setcurrent(cnv);
     pd_typedmess((t_pd*)cnv, gensym("redo"), 0, NULL);
+    glist_noselect(cnv);
     canvas_unsetcurrent(cnv);
     sys_unlock();
+}
+        
+int libpd_tofront(t_canvas* cnv, t_gobj* obj)
+{
+    t_gobj* y_begin = cnv->gl_list;
+    t_gobj* y_end = y_begin;
+    t_gobj* oldy_prev = NULL;
+    t_gobj* oldy_next = NULL;
+    
+    while(y_end->g_next) {
+        y_end = y_end->g_next;
+    }
+    
+    // This will create an undo action, even if the object is already in the right position
+    // Skipping the undo action if the object is alraedy in the right position would be confusing
+    canvas_undo_add(cnv, UNDO_ARRANGE, "arrange",
+        canvas_undo_set_arrange(cnv, obj, 1));
+    
+    // Already in the right place
+    if(obj == y_end) return;
+    
+    // Check for an object before ours
+    int oldidx = glist_getindex(cnv, obj);
+    oldy_prev = glist_nth(cnv, oldidx - 1);
+
+    // If there is an object after ours
+    if (obj->g_next)
+        oldy_next = obj->g_next;
+    
+    // Put the object at the end of the cue
+    y_end->g_next = obj;
+    obj->g_next = NULL;
+
+    // now fix links in the hole made in the list due to moving of the oldy
+    // (we know there is oldy_next as y_end != oldy in canvas_done_popup)
+         
+    if (oldy_prev) // there is indeed more before the oldy position
+        oldy_prev->g_next = oldy_next;
+    else cnv->gl_list = oldy_next;
+    
+    glist_noselect(cnv);
+}
+
+int libpd_toback(t_canvas* cnv, t_gobj* obj)
+{
+    t_gobj* y_begin = cnv->gl_list;
+    t_gobj* y_end = y_begin;
+    t_gobj* oldy_prev = NULL;
+    t_gobj* oldy_next = NULL;
+    
+    canvas_undo_add(cnv, UNDO_ARRANGE, "arrange",
+        canvas_undo_set_arrange(cnv, obj, 0));
+    
+    // Already in the right place
+    if(obj == y_begin) return;
+    
+    while(y_end->g_next) {
+        y_end = y_end->g_next;
+    }
+    
+    // Check for an object before ours
+    int oldidx = glist_getindex(cnv, obj);
+    oldy_prev = glist_nth(cnv, oldidx - 1);
+
+    // If there is an object after ours
+    if (obj->g_next)
+        oldy_next = obj->g_next;
+    
+    cnv->gl_list = obj; /* put it to the beginning of the cue */
+    obj->g_next = y_begin; /* make it point to the old beginning */
+
+        /* now fix links in the hole made in the list due to moving of the oldy
+         * (we know there is oldy_prev as y_begin != oldy in canvas_done_popup)
+         */
+    if (oldy_prev)
+    {
+        if (oldy_next) /* there is indeed more after oldy position */
+            oldy_prev->g_next = oldy_next;
+        else oldy_prev->g_next = NULL; /* oldy was the last in the cue */
+    }
+    
+    glist_noselect(cnv);
 }
 
 void libpd_duplicate(t_canvas* cnv)

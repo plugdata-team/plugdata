@@ -246,79 +246,16 @@ void ObjectBase::openSubpatch()
     newCanvas->checkBounds();
 }
 
-static void changePos(t_canvas* cnv, t_gobj* obj, int pos)
-{
-    assert(cnv != 0 && obj != 0 && pos >= 0);
-
-    auto* root = cnv->gl_list;
-    auto* link = root;
-    t_gobj* prev = nullptr;
-    int count = 0;
-
-    while (link != nullptr && link != obj) {
-        prev = link;
-        link = link->g_next;
-        count++;
-    }
-
-    if (link == 0) // Name not found - no swap!
-        return;
-    if (count == pos) // Already in target position - no swap
-        return;
-    if (count == 0) // Moving first item; update root
-    {
-        assert(link == root);
-        obj = root->g_next;
-        cnv->gl_list = obj;
-    } else {
-        assert(prev != 0);
-        prev->g_next = link->g_next;
-    }
-    // link is detached; now where does it go?
-    if (pos == 0) // Move to start; update root
-    {
-        link->g_next = root;
-        cnv->gl_list = link;
-        return;
-    }
-
-    auto* node = root;
-    for (int i = 0; i < pos - 1 && node->g_next != 0; i++)
-        node = node->g_next;
-
-    link->g_next = node->g_next;
-    node->g_next = link;
-}
-
 void ObjectBase::moveToFront()
 {
-    auto* canvas = static_cast<t_canvas*>(cnv->patch.getPointer());
-
     pd->setThis();
-
-    t_gobj* y2 = canvas->gl_list;
-    int idx = -1;
-    while (y2 != nullptr) {
-        y2 = y2->g_next;
-        idx++;
-    }
-
-    if (idx < 0)
-        return;
-
-    t_gobj* y = static_cast<t_gobj*>(ptr);
-
-    changePos(canvas, y, idx);
+    libpd_tofront(cnv->patch.getPointer(), static_cast<t_gobj*>(ptr));
 }
 
 void ObjectBase::moveToBack()
 {
     pd->setThis();
-
-    auto* canvas = static_cast<t_canvas*>(cnv->patch.getPointer());
-    t_gobj* y = static_cast<t_gobj*>(ptr);
-
-    changePos(canvas, y, 0);
+    libpd_toback(cnv->patch.getPointer(), static_cast<t_gobj*>(ptr));
 }
 
 void ObjectBase::paint(Graphics& g)

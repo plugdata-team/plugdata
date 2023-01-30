@@ -790,7 +790,7 @@ AudioProcessorEditor* PluginProcessor::createEditor()
 
 void PluginProcessor::getStateInformation(MemoryBlock& destData)
 {
-    suspendProcessing(true); // These functions can be called from any thread, so suspend processing prevent threading issues
+    getCallbackLock()->enter();
 
     const MessageManagerLock mmlock;
     
@@ -829,7 +829,7 @@ void PluginProcessor::getStateInformation(MemoryBlock& destData)
         ostream.writeInt(lastUIHeight);
     }
 
-    suspendProcessing(false);
+    getCallbackLock()->exit();
 }
 
 void PluginProcessor::setStateInformation(void const* data, int sizeInBytes)
