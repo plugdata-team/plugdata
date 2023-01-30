@@ -6,7 +6,7 @@ description: convert signal to float
 categories:
  - object
 
-pdcategory: Signal Math, Data Math
+pdcategory: ELSE, Signal Math, Data Math
 
 arguments:
 - type: float

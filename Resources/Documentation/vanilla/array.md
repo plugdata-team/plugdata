@@ -3,7 +3,7 @@ title: array
 description: general array creation and manipulation
 categories:
 - object
-pdcategory: Arrays & Tables
+pdcategory: vanilla,  Arrays & Tables
 last_update: '0.52'
 see_also:
 - array define

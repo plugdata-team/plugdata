@@ -6,7 +6,7 @@ description: metronome
 categories:
 - object
 
-pdcategory: Sequencing, Triggers and Clocks
+pdcategory: ELSE, Sequencing, Triggers and Clocks
 
 arguments:
   - type: float

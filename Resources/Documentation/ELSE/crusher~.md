@@ -6,7 +6,7 @@ description: bitcrush/decimator
 categories:
 - object
 
-pdcategory: Effects
+pdcategory: ELSE, Effects
 
 arguments:
   - description: bit reduction

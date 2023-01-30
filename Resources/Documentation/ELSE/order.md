@@ -6,7 +6,7 @@ description: split and index list elements
 categories:
 - object
 
-pdcategory: Data Management
+pdcategory: ELSE, Data Management
 
 arguments:
   - description: 'n' number of elements to be ordered

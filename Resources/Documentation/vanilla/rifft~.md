@@ -3,7 +3,7 @@ title: rifft~
 description: inverse real FFT
 categories:
 - object
-pdcategory: Audio Math
+pdcategory: vanilla,  Audio Math
 last_update: '0.33'
 see_also:
 - block~

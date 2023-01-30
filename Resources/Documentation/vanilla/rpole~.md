@@ -12,7 +12,7 @@ see_also:
 - biquad~
 - fexpr~
 - slop~
-pdcategory: Audio Filters
+pdcategory: vanilla,  Audio Filters
 last_update: '0.42'
 inlets:
   1st:

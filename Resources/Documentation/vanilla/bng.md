@@ -1,7 +1,7 @@
 ---
 title: bng
 description: Bang button
-pdcategory: GUI
+pdcategory: vanilla,  GUI
 inlets:
   1st:
   - type: anything

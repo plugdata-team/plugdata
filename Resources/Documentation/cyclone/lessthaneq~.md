@@ -3,7 +3,7 @@ title: lessthaneq~, <=~, cyclone/<=~
 description: `is less than or equal to` comparison for signals
 categories:
  - object
-pdcategory: General
+pdcategory: cyclone, General
 arguments:
 - type: float
   description: value for comparison with left inlet's input

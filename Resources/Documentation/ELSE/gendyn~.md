@@ -5,7 +5,7 @@ description: dynamic stochastic synthesis
 categories:
  - object
 
-pdcategory: Signal Generators
+pdcategory: ELSE, Signal Generators
 
 arguments:
 

@@ -6,7 +6,7 @@ description: write to an array
 categories:
  - object
 
-pdcategory: General
+pdcategory: cyclone, General
 
 arguments:
 - type: symbol

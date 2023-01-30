@@ -5,7 +5,7 @@ description: send OSC messages
 categories:
  - object
 
-pdcategory: Networking
+pdcategory: ELSE, Networking
 
 arguments:
   - type: anything

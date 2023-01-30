@@ -3,7 +3,7 @@ title: unpack
 description: get elements of compound messages
 categories:
 - object
-pdcategory: General
+pdcategory: vanilla,  General
 last_update: '0.33'
 see_also:
 - pack

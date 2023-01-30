@@ -6,7 +6,7 @@ description: signal accumulator
 categories:
  - object
 
-pdcategory: Signal Math
+pdcategory: ELSE, Signal Math
 
 arguments:
 - type: float

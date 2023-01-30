@@ -6,7 +6,7 @@ description: record note messages into text
 categories:
 - object
 
-pdcategory: MIDI
+pdcategory: ELSE, MIDI
 
 arguments:
 - type: symbol

@@ -5,7 +5,7 @@ description: format OSC messages
 categories:
  - object
 
-pdcategory: Networking
+pdcategory: ELSE, Networking
 
 arguments:
 

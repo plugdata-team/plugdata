@@ -6,7 +6,7 @@ description: MIDI clock
 categories:
 - object
 
-pdcategory: MIDI
+pdcategory: ELSE, MIDI
 
 arguments:
 - type: float

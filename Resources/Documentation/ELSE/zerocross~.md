@@ -6,7 +6,7 @@ description: send impulses at zero crossings
 categories:
  - object
  
-pdcategory: Triggers and Clocks, Analysis
+pdcategory: ELSE, Triggers and Clocks, Analysis
 
 arguments:
 

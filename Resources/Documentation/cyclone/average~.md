@@ -3,7 +3,7 @@ title: average~
 description: signal moving average
 categories:
  - object
-pdcategory: General
+pdcategory: cyclone, General
 arguments:
 - type: float
   description: maximum and initial 'n' samples (minimum 1)

@@ -3,7 +3,7 @@ title: tabread4~
 description: four-point interpolating table read
 categories:
 - object
-pdcategory: Audio Oscillators And Tables
+pdcategory: vanilla,  Audio Oscillators And Tables
 inlets:
   1st:
 outlets:

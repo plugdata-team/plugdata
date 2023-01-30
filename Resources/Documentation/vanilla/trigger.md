@@ -3,7 +3,7 @@ title: trigger, t
 description: sequence messages in right-to-left order.
 categories:
 - object
-pdcategory: General
+pdcategory: vanilla,  General
 last_update: '0.52'
 see_also:
 - bang

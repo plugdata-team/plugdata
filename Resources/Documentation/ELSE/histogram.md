@@ -5,7 +5,7 @@ description: probability distribution histogram
 categories:
  - object
 
-pdcategory: Data Math, Analysis
+pdcategory: ELSE, Data Math, Analysis
 
 arguments:
 - type: symbol

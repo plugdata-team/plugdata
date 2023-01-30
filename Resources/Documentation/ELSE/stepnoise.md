@@ -6,7 +6,7 @@ description: control stepnoise
 categories:
 - object
 
-pdcategory: Random and Noise
+pdcategory: ELSE, Random and Noise
 
 arguments:
 - type: float

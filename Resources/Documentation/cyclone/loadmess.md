@@ -3,7 +3,7 @@ title: loadmess
 description: send a message when the patch is loaded
 categories:
  - object
-pdcategory: General
+pdcategory: cyclone, General
 arguments:
 - type: anything
   description: message to be sent

@@ -3,7 +3,7 @@ title: allpass~
 description: all pass filter
 categories:
  - object
-pdcategory: General
+pdcategory: cyclone, General
 arguments:
 - type: float
   description: maximum delay time in ms

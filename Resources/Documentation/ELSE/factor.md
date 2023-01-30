@@ -6,7 +6,7 @@ description: factorization
 categories:
  - object
 
-pdcategory: Data Math
+pdcategory: ELSE, Data Math
 
 arguments:
 

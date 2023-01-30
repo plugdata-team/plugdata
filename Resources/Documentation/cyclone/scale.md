@@ -6,7 +6,7 @@ description: map values to an output range
 categories:
  - object
 
-pdcategory: General
+pdcategory: cyclone, General
 
 arguments:
 - type: float

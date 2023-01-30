@@ -3,7 +3,7 @@ title: bitxor~
 description: signal Bitwise-XOR
 categories:
  - object
-pdcategory: General
+pdcategory: cyclone, General
 arguments:
 - type: float
   description: converted to integer and used as bitmask

@@ -9,7 +9,7 @@ see_also:
 - plot
 - set
 - text
-pdcategory: Data Templates
+pdcategory: vanilla,  Data Templates
 last_update: '0.51'
 inlets:
   1st:

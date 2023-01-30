@@ -6,7 +6,7 @@ description: control impulse
 categories:
 - object
 
-pdcategory: Triggers and Clocks
+pdcategory: ELSE, Triggers and Clocks
 
 arguments:
 - description: frequency in hertz

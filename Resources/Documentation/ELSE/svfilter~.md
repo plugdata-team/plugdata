@@ -6,7 +6,7 @@ description: state-variable pedal
 categories:
  - object
   
-pdcategory: Filters
+pdcategory: ELSE, Filters
 
 arguments:
   - type: float

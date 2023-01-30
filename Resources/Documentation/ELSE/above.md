@@ -6,7 +6,7 @@ description: threshold detection
 categories:
 - object
 
-pdcategory: Data Math
+pdcategory: ELSE, Data Math
 
 arguments:
 - description: initial threshold value

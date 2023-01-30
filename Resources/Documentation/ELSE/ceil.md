@@ -6,7 +6,7 @@ description: ceiling function
 categories:
  - object
 
-pdcategory: Data Math
+pdcategory: ELSE, Data Math
 
 arguments:
 inlets:

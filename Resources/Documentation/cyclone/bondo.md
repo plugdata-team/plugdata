@@ -3,7 +3,7 @@ title: bondo
 description: sync a group of messages
 categories:
  - object
-pdcategory: General
+pdcategory: cyclone, General
 arguments:
 - type: float
   description: sets the number of inlets/outlets

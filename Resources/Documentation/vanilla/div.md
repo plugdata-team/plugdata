@@ -3,7 +3,7 @@ title: div
 description: Divide numbers
 categories:
 - object
-pdcategory: Math
+pdcategory: vanilla,  Math
 see_also:
 - +~
 - +

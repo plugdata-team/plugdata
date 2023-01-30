@@ -5,7 +5,7 @@ categories:
 - object
 see_also:
 - tabread4~
-pdcategory: Extra
+pdcategory: vanilla,  Extra
 last_update: '0.31'
 inlets:
   1st:

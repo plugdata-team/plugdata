@@ -6,7 +6,7 @@ description: random integer number generator
 categories:
  - object
 
-pdcategory: Random and Noise, Signal Math
+pdcategory: ELSE, Random and Noise, Signal Math
 
 arguments:
 - type: float

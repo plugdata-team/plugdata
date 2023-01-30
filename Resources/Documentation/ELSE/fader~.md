@@ -5,7 +5,7 @@ description: fader waveshaper
 categories:
  - object
 
-pdcategory: Effects
+pdcategory: ELSE, Effects
 
 arguments:
 - type: symbol

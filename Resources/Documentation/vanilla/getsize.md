@@ -9,7 +9,7 @@ see_also:
 - element
 - setsize
 - array get 
-pdcategory: Accessing Data
+pdcategory: vanilla,  Accessing Data
 last_update: '0.47'
 inlets:
   1st:

@@ -3,7 +3,7 @@ title: symbol
 description: store and recall a symbol
 categories:
 - object
-pdcategory: General
+pdcategory: vanilla,  General
 last_update: '0.45'
 see_also:
 - print

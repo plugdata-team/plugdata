@@ -6,7 +6,7 @@ description: MIDI control output
 categories:
  - object
 
-pdcategory: MIDI
+pdcategory: ELSE, MIDI
 
 arguments:
 - type: list

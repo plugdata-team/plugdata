@@ -3,7 +3,7 @@ title: threshold~
 description: trigger from audio signal. generator
 categories:
 - object
-pdcategory: General Audio Manipulation
+pdcategory: vanilla,  General Audio Manipulation
 last_update: '0.32'
 see_also:
 - line

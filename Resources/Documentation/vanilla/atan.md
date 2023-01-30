@@ -3,7 +3,7 @@ title: atan
 description: Arctangens functions
 categories:
 - object
-pdcategory: Math
+pdcategory: vanilla,  Math
 see_also:
 - +~
 - +

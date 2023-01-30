@@ -6,7 +6,7 @@ description: chronometer/timer
 categories:
  - object
 
-pdcategory: Triggers and Clocks
+pdcategory: ELSE, Triggers and Clocks
 
 arguments:
 - type: list

@@ -3,7 +3,7 @@ title: bendout
 description: MIDI output
 categories:
 - object
-pdcategory: I/O 
+pdcategory: vanilla,  I/O 
 last_update: 0.48-2
 see_also:
 - notein

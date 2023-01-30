@@ -3,7 +3,7 @@ title: mtr
 description: multi-track message recorder
 categories:
  - object
-pdcategory: General
+pdcategory: cyclone, General
 arguments:
   - type: float
     description: number of tracks (max 64)

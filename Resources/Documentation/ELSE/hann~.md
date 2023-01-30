@@ -6,7 +6,7 @@ description: Hann window
 categories:
 - object
 
-pdcategory: Analysis, Effects, Signal Math
+pdcategory: ELSE, Analysis, Effects, Signal Math
 
 arguments:
 

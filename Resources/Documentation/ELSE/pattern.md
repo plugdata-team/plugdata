@@ -6,7 +6,7 @@ description: rhythmic pattern sequencer
 categories:
 - object
 
-pdcategory: Sequencing
+pdcategory: ELSE, Sequencing
 
 arguments:
 - description: sets sequence

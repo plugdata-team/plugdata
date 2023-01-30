@@ -5,7 +5,7 @@ description: floor function
 categories:
  - object
 
-pdcategory: Signal Math
+pdcategory: ELSE, Signal Math
 
 arguments:
 

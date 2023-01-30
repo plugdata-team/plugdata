@@ -6,7 +6,7 @@ description: delay messages
 categories:
 - object
 
-pdcategory: Data Management
+pdcategory: ELSE, Data Management
 
 arguments:
 - description: delay time in ms

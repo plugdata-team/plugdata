@@ -6,7 +6,7 @@ description: delay line
 categories:
  - object
 
-pdcategory: Effects, Buffers
+pdcategory: ELSE, Effects, Buffers
 
 arguments:
 - type: symbol

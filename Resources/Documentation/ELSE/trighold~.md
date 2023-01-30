@@ -6,7 +6,7 @@ description: hold a trigger value
 categories:
 - object
 
-pdcategory: Triggers and Clocks
+pdcategory: ELSE, Triggers and Clocks
 
 arguments:
 

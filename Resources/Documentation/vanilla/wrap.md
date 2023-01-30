@@ -3,7 +3,7 @@ title: wrap
 description: wrap a number to range [[0, 1)
 categories:
 - object
-pdcategory: Math
+pdcategory: vanilla,  Math
 see_also:
 - +~
 - +

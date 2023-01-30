@@ -6,7 +6,7 @@ description: freeze
 categories:
 - object
 
-pdcategory: Effects
+pdcategory: ELSE, Effects
 
 arguments:
 

@@ -6,7 +6,7 @@ description: crossover filter
 categories:
  - object
 
-pdcategory: Filters
+pdcategory: ELSE, Filters
 
 arguments:
 - type: float

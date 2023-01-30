@@ -6,7 +6,7 @@ description: array/table player
 categories:
 - object
 
-pdcategory: Arrays and Tables, Buffers
+pdcategory: ELSE, Arrays and Tables, Buffers
 
 arguments:
   - type: symbol

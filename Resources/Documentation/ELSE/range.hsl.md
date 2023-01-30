@@ -6,7 +6,7 @@ description: range horizontal slider
 categories:
 - object
 
-pdcategory: GUI
+pdcategory: ELSE, GUI
 
 arguments:
 

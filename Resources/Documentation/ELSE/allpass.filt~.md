@@ -6,7 +6,7 @@ description: allpass filter
 categories:
 - object
 
-pdcategory: Filters
+pdcategory: ELSE, Filters
 
 arguments:
   - description: order from 2 to 64

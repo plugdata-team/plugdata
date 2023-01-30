@@ -7,7 +7,7 @@ see_also:
 - fft~
 - bang~
 - block~
-pdcategory: Subwindows
+pdcategory: vanilla,  Subwindows
 last_update: '0.43'
 inlets:
   1st:

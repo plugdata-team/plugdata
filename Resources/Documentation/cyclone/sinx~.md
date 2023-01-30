@@ -6,7 +6,7 @@ description: signal sine function (radian input)
 categories:
  - object
 
-pdcategory: General
+pdcategory: cyclone, General
 
 arguments: (none)
 

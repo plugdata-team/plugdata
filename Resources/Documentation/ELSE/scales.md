@@ -6,7 +6,7 @@ description: generate scales
 categories:
 - object
 
-pdcategory: Tuning
+pdcategory: ELSE, Tuning
 
 arguments:
 - type: float

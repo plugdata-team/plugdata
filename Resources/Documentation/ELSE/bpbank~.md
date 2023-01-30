@@ -6,7 +6,7 @@ description: bank of bandpass filters
 categories:
 - object
 
-pdcategory: Filters
+pdcategory: ELSE, Filters
 
 arguments:
   - description: number of bandpass filters

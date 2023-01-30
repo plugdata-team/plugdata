@@ -3,7 +3,7 @@ title: mousestate
 description: retrieve mouse data
 categories:
  - object
-pdcategory: General
+pdcategory: cyclone, General
 arguments:
 inlets:
   1st:

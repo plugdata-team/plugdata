@@ -5,7 +5,7 @@ description: pulse divider
 categories:
  - object
 
-pdcategory: Signal Generators, Triggers and Clocks
+pdcategory: ELSE, Signal Generators, Triggers and Clocks
 
 arguments:
 - type: float

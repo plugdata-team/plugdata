@@ -6,7 +6,7 @@ description: sample and hold
 categories:
  - object
 
-pdcategory: General
+pdcategory: cyclone, General
 
 arguments:
 - type: float

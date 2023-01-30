@@ -6,7 +6,7 @@ description: get date and time
 categories:
 - object
 
-pdcategory: Triggers and Clocks, Data Management
+pdcategory: ELSE, Triggers and Clocks, Data Management
 
 arguments:
 inlets:

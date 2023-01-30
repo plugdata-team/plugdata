@@ -5,7 +5,7 @@ categories:
 - object
 see_also:
 - send~
-pdcategory: General Audio Manipulation
+pdcategory: vanilla,  General Audio Manipulation
 last_update: '0.33'
 outlets:
   1st:

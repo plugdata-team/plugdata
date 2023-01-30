@@ -5,7 +5,7 @@ description: receive OSC messages
 categories:
  - object
 
-pdcategory: Networking
+pdcategory: ELSE, Networking
 
 arguments:
   - type: float

@@ -3,7 +3,7 @@ title: clip, cyclone/clip
 description: constrain values to a given range
 categories:
 - object
-pdcategory:
+pdcategory: cyclone
 arguments:
 - description: sets minimum
   type: float

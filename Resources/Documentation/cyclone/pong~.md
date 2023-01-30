@@ -6,7 +6,7 @@ description: signal range limiter (fold, wrap & clip)
 categories:
  - object
 
-pdcategory: General
+pdcategory: cyclone, General
 
 arguments:
 - type: float

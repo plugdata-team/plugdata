@@ -6,7 +6,7 @@ description: signal timed gate
 categories:
 - object
 
-pdcategory: Triggers and Clocks
+pdcategory: ELSE, Triggers and Clocks
 
 arguments:
   - type: float

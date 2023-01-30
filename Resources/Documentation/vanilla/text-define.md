@@ -3,7 +3,7 @@ title: text define
 description: create, store, and/or edit texts
 categories:
 - object
-pdcategory: Misc
+pdcategory: vanilla,  Misc
 last_update: '0.49'
 see_also:
 - list

@@ -6,7 +6,7 @@ description: convert linear amplitude to dBFS
 categories:
 - object
 
-pdcategory: Signal Math
+pdcategory: ELSE, Signal Math
 
 arguments:
 

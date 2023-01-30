@@ -6,7 +6,7 @@ description: biquad Series
 categories:
  - object
 
-pdcategory: Signal Math, Filters
+pdcategory: ELSE, Signal Math, Filters
 
 arguments:
 inlets:
