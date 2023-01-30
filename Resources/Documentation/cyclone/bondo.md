@@ -1,6 +1,6 @@
 ---
 title: bondo
-description: Sync a group of messages
+description: sync a group of messages
 categories:
  - object
 pdcategory: General

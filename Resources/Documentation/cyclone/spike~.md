@@ -1,7 +1,7 @@
 ---
 title: spike~
 
-description: Report zero to non-zero transition intervals
+description: report zero to non-zero transition intervals
 
 categories:
  - object

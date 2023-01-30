@@ -1,7 +1,7 @@
 ---
 title: number~
 
-description: Signal generator/monitor
+description: signal generator/monitor
 
 categories:
  - object

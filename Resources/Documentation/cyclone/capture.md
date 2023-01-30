@@ -1,6 +1,6 @@
 ---
 title: capture
-description: Store data
+description: store data
 categories:
  - object
 pdcategory: General

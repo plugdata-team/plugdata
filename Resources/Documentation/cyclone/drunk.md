@@ -1,6 +1,6 @@
 ---
 title: drunk
-description: Random drunk walk
+description: random drunk walk
 categories:
  - object
 pdcategory: General

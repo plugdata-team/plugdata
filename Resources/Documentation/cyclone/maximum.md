@@ -1,6 +1,6 @@
 ---
 title: maximum
-description: Compare maximum
+description: compare maximum
 categories:
  - object
 pdcategory: General

@@ -1,7 +1,7 @@
 ---
 title: onepole~
 
-description: One-pole lowpass filter
+description: one-pole lowpass filter
 
 categories:
  - object

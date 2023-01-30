@@ -1,6 +1,6 @@
 ---
 title: minmax~
-description: Minimum/Maximum values of a signal
+description: minimum/Maximum values of a signal
 categories:
  - object
 pdcategory: General

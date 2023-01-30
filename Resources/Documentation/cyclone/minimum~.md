@@ -1,6 +1,6 @@
 ---
 title: minimum~
-description: Signal minimum of two values
+description: signal minimum of two values
 categories:
  - object
 pdcategory: General

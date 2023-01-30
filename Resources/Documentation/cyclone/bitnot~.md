@@ -1,6 +1,6 @@
 ---
 title: bitnot~
-description: Signal Bitwise-NOT
+description: signal Bitwise-NOT
 categories:
  - object
 pdcategory: General

@@ -1,7 +1,7 @@
 ---
 title: vectral~
 
-description: Smooth/filter frame based signal data
+description: smooth/filter frame based signal data
 
 categories:
  - object

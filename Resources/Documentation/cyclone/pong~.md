@@ -1,7 +1,7 @@
 ---
 title: pong~
 
-description: Signal range limiter (fold, wrap & clip)
+description: signal range limiter (fold, wrap & clip)
 
 categories:
  - object

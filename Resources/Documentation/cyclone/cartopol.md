@@ -1,6 +1,6 @@
 ---
 title: cartopol
-description: Cartesian to polar conversion
+description: cartesian to polar conversion
 categories:
  - object
 pdcategory: General

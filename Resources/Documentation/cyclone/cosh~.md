@@ -1,6 +1,6 @@
 ---
 title: cosh~
-description: Signal hyperbolic cosine function
+description: signal hyperbolic cosine function
 categories:
  - object
 pdcategory: General

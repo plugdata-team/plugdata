@@ -1,6 +1,6 @@
 ---
 title: funbuff
-description: Stores pairs of integers
+description: stores pairs of integers
 categories:
  - object
 pdcategory: General

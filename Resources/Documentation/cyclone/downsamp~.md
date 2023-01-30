@@ -1,6 +1,6 @@
 ---
 title: downsamp~
-description: Downsample a signal
+description: downsample a signal
 categories:
  - object
 pdcategory: General

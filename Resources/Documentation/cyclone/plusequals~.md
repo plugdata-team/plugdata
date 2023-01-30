@@ -1,7 +1,7 @@
 ---
 title: plusequals~, +=~, cyclone/+=~
 
-description: Signal accumulator
+description: signal accumulator
 
 categories:
  - object

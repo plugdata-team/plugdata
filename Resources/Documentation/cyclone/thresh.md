@@ -1,7 +1,7 @@
 ---
 title: thresh
 
-description: Combine data recieved close together
+description: combine data received close together
 
 categories:
  - object

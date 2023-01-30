@@ -1,6 +1,6 @@
 ---
 title: linedrive
-description: Exponential scaler for [line~]
+description: exponential scaler for [line~]
 categories:
  - object
 pdcategory: General

@@ -1,6 +1,6 @@
 ---
 title: buffir~
-description: Convolve with a buffer
+description: convolve with a buffer
 categories:
  - object
 pdcategory: General

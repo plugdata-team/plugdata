@@ -1,7 +1,7 @@
 ---
 title: urn
 
-description: Unrepeated random numbers
+description: unrepeated random numbers
 
 categories:
  - object

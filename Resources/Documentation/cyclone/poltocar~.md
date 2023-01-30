@@ -1,7 +1,7 @@
 ---
 title: poltocar~
 
-description: Signal polar to cartesian conversion
+description: signal polar to cartesian conversion
 
 categories:
  - object

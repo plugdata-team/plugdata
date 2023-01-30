@@ -1,7 +1,7 @@
 ---
 title: uzi
 
-description: Bang loop/counter
+description: bang loop/counter
 
 categories:
  - object

@@ -1,6 +1,6 @@
 ---
 title: average~
-description: Signal moving average
+description: signal moving average
 categories:
  - object
 pdcategory: General

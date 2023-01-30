@@ -1,7 +1,7 @@
 ---
 title: sinh
 
-description: Hyperbolic sine function
+description: hyperbolic sine function
 
 categories:
  - object

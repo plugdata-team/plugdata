@@ -1,6 +1,6 @@
 ---
 title: deltaclip~
-description: Limit changes between samples
+description: limit changes between samples
 categories:
  - object
 pdcategory: General

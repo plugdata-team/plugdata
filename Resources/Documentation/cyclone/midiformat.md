@@ -1,6 +1,6 @@
 ---
 title: midiformat
-description: Format MIDI messages
+description: format MIDI messages
 categories:
  - object
 pdcategory: General

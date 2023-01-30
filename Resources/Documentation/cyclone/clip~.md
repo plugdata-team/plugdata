@@ -1,6 +1,6 @@
 ---
 title: clip~, cyclone/clip~
-description: Constrain a signal to a given range
+description: constrain a signal to a given range
 categories:
 - object
 pdcategory:

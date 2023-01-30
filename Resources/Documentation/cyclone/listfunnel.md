@@ -1,6 +1,6 @@
 ---
 title: listfunnel
-description: Index and output list elements
+description: index and output list elements
 categories:
  - object
 pdcategory: General

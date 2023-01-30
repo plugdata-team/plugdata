@@ -1,7 +1,7 @@
 ---
 title: sinx~
 
-description: Signal sine function (radian input)
+description: signal sine function (radian input)
 
 categories:
  - object

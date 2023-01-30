@@ -1,7 +1,7 @@
 ---
 title: tosymbol
 
-description: Convert anthing to symbol
+description: convert anything to symbol
 
 categories:
  - object

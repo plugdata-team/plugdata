@@ -1,6 +1,6 @@
 ---
 title: comb~
-description: Comb filter
+description: comb filter
 categories:
  - object
 pdcategory: General

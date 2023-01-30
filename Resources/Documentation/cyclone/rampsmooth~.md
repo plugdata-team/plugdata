@@ -1,7 +1,7 @@
 ---
 title: rampsmooth~
 
-description: Smooth signals linearly
+description: smooth signals linearly
 
 categories:
  - object

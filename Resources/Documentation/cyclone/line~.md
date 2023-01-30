@@ -1,7 +1,7 @@
 ---
 title: line~, cyclone/line~
 
-description: Linear ramp generator
+description: linear ramp generator
 
 categories:
 - object

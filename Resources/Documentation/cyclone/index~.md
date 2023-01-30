@@ -1,6 +1,6 @@
 ---
 title: index~
-description: Non-interpolating array reader
+description: non-interpolating array reader
 categories:
  - object
 pdcategory: General

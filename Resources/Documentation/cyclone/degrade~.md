@@ -1,6 +1,6 @@
 ---
 title: degrade~
-description: Signal quality reducer
+description: signal quality reducer
 categories:
  - object
 pdcategory: General
