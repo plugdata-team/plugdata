@@ -1,6 +1,6 @@
 ---
 title: cosx~
-description: Signal cosine function with radian input
+description: signal cosine function with radian input
 categories:
  - object
 pdcategory: General

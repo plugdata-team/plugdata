@@ -1,7 +1,7 @@
 ---
 title: overdrive~
 
-description: Analog overdrive simulation
+description: analog overdrive simulation
 
 categories:
  - object

@@ -1,6 +1,6 @@
 ---
 title: capture~
-description: Store samples
+description: store samples
 categories:
  - object
 pdcategory: General

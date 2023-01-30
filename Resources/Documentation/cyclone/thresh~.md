@@ -1,7 +1,7 @@
 ---
 title: thresh~
 
-description: Detect signal above threshold
+description: detect signal above threshold
 
 categories:
  - object

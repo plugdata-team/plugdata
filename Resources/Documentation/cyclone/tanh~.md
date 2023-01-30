@@ -1,7 +1,7 @@
 ---
 title: tanh~
 
-description: Signal hyperbolic tangent function
+description: signal hyperbolic tangent function
 
 categories:
  - object

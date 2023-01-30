@@ -1,7 +1,7 @@
 ---
 title: play~
 
-description: Array player
+description: array player
 
 categories:
  - object

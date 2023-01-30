@@ -1,7 +1,7 @@
 ---
 title: table, cyclone/table
 
-description: Store and edit a number array
+description: store and edit a number array
 categories:
 - object
 pdcategory:

@@ -1,7 +1,7 @@
 ---
 title: onebang
 
-description: Gate a bang with a bang
+description: gate a bang with a bang
 
 categories:
  - object

@@ -1,7 +1,7 @@
 ---
 title: pak
 
-description: Ouput a list when any element changes
+description: output a list when any element changes
 
 categories:
  - object

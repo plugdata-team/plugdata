@@ -1,6 +1,6 @@
 ---
 title: cross~
-description: Crossover filter
+description: crossover filter
 categories:
  - object
 pdcategory: General

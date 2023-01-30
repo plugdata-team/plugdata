@@ -1,6 +1,6 @@
 ---
 title: asinh
-description: Hyperbolic arc-sine function
+description: hyperbolic arc-sine function
 categories:
  - object
 pdcategory: General

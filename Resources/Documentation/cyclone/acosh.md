@@ -1,6 +1,6 @@
 ---
 title: acosh
-description: Hyperbolic arc-cosine function
+description: hyperbolic arc-cosine function
 categories:
  - object
 pdcategory: General

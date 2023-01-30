@@ -1,9 +1,13 @@
 ---
 title: accum
-description: Accumulate to a value
+
+description: accumulate to a value
+
 categories:
  - object
+
 pdcategory: General
+
 arguments:
 - type: float
   description: sets initial value

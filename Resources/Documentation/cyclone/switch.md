@@ -1,7 +1,7 @@
 ---
 title: switch
 
-description: Pass messages from a specified inlet
+description: pass messages from a specified inlet
 
 categories:
  - object

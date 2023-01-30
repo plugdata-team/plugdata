@@ -1,7 +1,7 @@
 ---
 title: triangle~
 
-description: Variable duty triangular wave
+description: variable duty triangular wave
 
 categories:
  - object

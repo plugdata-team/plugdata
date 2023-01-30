@@ -1,7 +1,7 @@
 ---
 title: prob
 
-description: Probability matrix
+description: probability matrix
 
 categories:
  - object

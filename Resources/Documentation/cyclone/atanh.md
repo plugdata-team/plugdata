@@ -1,6 +1,6 @@
 ---
 title: atanh
-description: Hyperbolic arc-tangent function
+description: hyperbolic arc-tangent function
 categories:
  - object
 pdcategory: General

@@ -1,7 +1,7 @@
 ---
 title: trough
 
-description: Output numbers smaller than the previous
+description: output numbers smaller than the previous
 
 categories:
  - object

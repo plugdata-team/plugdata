@@ -1,6 +1,6 @@
 ---
 title: gate
-description: Route message to an outlet
+description: route message to an outlet
 categories:
  - object
 pdcategory: General

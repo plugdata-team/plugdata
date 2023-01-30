@@ -1,7 +1,7 @@
 ---
 title: next
 
-description: Detect separation of messages
+description: detect separation of messages
 
 categories:
  - object

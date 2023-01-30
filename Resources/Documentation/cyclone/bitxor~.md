@@ -1,6 +1,6 @@
 ---
 title: bitxor~
-description: Signal Bitwise-XOR
+description: signal Bitwise-XOR
 categories:
  - object
 pdcategory: General

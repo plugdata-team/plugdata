@@ -1,7 +1,7 @@
 ---
 title: xnotein
 
-description: Retrieve velocity messages
+description: retrieve velocity messages
 
 categories:
  - object

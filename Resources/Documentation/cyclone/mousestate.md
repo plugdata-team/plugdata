@@ -1,6 +1,6 @@
 ---
 title: mousestate
-description: Retrieve mouse data
+description: retrieve mouse data
 categories:
  - object
 pdcategory: General

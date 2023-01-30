@@ -1,7 +1,7 @@
 ---
 title: universal
 
-description: Sends messages to all objects of the same type
+description: sends messages to all objects of the same type
 
 categories:
  - object

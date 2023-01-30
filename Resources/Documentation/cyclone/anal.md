@@ -1,6 +1,6 @@
 ---
 title: anal
-description: Number pairs histogram
+description: number pairs histogram
 categories:
  - object
 pdcategory: General

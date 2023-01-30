@@ -1,7 +1,7 @@
 ---
 title: append, cyclone/append
 
-description: Append a message to the incoming message
+description: append a message to the incoming message
 
 categories:
 - object

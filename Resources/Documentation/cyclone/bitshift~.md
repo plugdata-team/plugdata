@@ -1,6 +1,6 @@
 ---
 title: bitshift~
-description: Signal bit-shifting
+description: signal bit-shifting
 categories:
  - object
 pdcategory: General

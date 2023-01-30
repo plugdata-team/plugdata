@@ -1,6 +1,6 @@
 ---
 title: bangbang
-description: Send a numer of bangs
+description: send a number of bangs
 categories:
  - object
 pdcategory: General

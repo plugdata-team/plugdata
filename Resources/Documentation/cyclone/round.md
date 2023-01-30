@@ -1,7 +1,7 @@
 ---
 title: round
 
-description: Rounds floats/lists
+description: rounds floats/lists
 
 categories:
  - object

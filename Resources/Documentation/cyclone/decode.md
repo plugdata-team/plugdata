@@ -1,6 +1,6 @@
 ---
 title: decode
-description: Switch an outlet according to input
+description: switch an outlet according to input
 categories:
  - object
 pdcategory: General

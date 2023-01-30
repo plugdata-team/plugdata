@@ -1,7 +1,7 @@
 ---
 title: rand~
 
-description: Interplated bandlimited noise
+description: interpolated bandlimited noise
 
 categories:
  - object

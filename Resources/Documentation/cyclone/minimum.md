@@ -1,6 +1,6 @@
 ---
 title: minimum
-description: Compare minimum
+description: compare minimum
 categories:
  - object
 pdcategory: General
@@ -25,7 +25,7 @@ outlets:
     description: the minimum (smallest) value of two or more numbers
   2nd:
   - type: float
-    description: the index of the minimnum value
+    description: the index of the minimum value
 
 ---
 
