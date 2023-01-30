@@ -30,9 +30,6 @@ public:
         : ObjectBase(ptr, object)
     {
         cnv->addMouseListener(this, true);
-
-        // Only intercept global mouse events
-        setInterceptsMouseClicks(false, false);
     }
 
     ~MousePadObject()
