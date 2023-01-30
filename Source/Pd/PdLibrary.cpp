@@ -550,7 +550,7 @@ void Library::fsChangeCallback()
     appDirChanged();
 }
 
-File Library::findHelpfile(t_object* obj)
+File Library::findHelpfile(t_object* obj, File patchDir)
 {
     String helpName;
 
@@ -569,6 +569,9 @@ File Library::findHelpfile(t_object* obj)
     } else {
         helpName = class_gethelpname(pdclass);
     }
+    
+    auto patchHelpPaths = helpPaths;
+    patchHelpPaths.add(patchDir);
 
     String firstName = helpName + "-help.pd";
     String secondName = "help-" + helpName + ".pd";
@@ -583,7 +586,7 @@ File Library::findHelpfile(t_object* obj)
         return File();
     };
 
-    for (auto& path : helpPaths) {
+    for (auto& path : patchHelpPaths) {
         auto file = findHelpPatch(path, true);
         if (file.existsAsFile()) {
             return file;
