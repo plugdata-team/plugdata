@@ -12,14 +12,11 @@ arguments:
   description: atoms that may contain '%' variables (obligatory)
 
 inlets:
-  1st:
+  nth:
   - type: bang
     description: outputs the formatted message
   - type: anything
-    description: float/symbol atoms to format variables (messages with more than one item and sends the remaining items to the next inlets).
-  nth:
-  - type: anything
-    description: float/symbol atoms to format variables (messages with more than one item and sends the remaining items to the next inlets).
+    description: float/symbol atoms to format variables (messages with more than one item and sends the remaining items to the next inlets)
 
 outlets:
   1st:
