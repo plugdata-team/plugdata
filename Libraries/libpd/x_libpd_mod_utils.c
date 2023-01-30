@@ -419,7 +419,7 @@ void libpd_redo(t_canvas* cnv)
     sys_unlock();
 }
         
-int libpd_tofront(t_canvas* cnv, t_gobj* obj)
+void libpd_tofront(t_canvas* cnv, t_gobj* obj)
 {
     t_gobj* y_begin = cnv->gl_list;
     t_gobj* y_end = y_begin;
@@ -460,7 +460,7 @@ int libpd_tofront(t_canvas* cnv, t_gobj* obj)
     glist_noselect(cnv);
 }
 
-int libpd_toback(t_canvas* cnv, t_gobj* obj)
+void libpd_toback(t_canvas* cnv, t_gobj* obj)
 {
     t_gobj* y_begin = cnv->gl_list;
     t_gobj* y_end = y_begin;
