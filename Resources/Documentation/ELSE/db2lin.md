@@ -26,5 +26,5 @@ outlets:
 draft: false
 ---
 
-[db2lin] converts amplitude values from deciBel Full Scale (dBFS) to linear. By default, a minimum value of -100 becomes zero - in theory, stereo is minus infinity and an argument sets another minimum dB value to correspond to minus infinity. Conversion expression is: amp = pow(10, dBFS / 20).
+[db2lin] converts amplitude values from deciBel Full Scale (dBFS) to linear. By default, a minimum value of -100 becomes zero - in theory, zero is minus infinity and an argument sets another minimum dB value to correspond to minus infinity. Conversion expression is: amp = pow(10, dBFS / 20).
 
