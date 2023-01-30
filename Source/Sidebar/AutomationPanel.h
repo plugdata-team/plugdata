@@ -254,7 +254,6 @@ public:
     void resized() override
     {
         bool settingsVisible = settingsButton.getToggleState();
-        int numRows = settingsVisible ? 3 : 2;
 
         auto bounds = getLocalBounds().reduced(6, 2);
 

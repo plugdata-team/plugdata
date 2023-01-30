@@ -1674,7 +1674,6 @@ void PlugDataTextEditor::resized()
 
 void PlugDataTextEditor::paint(Graphics& g)
 {
-    auto start = Time::getMillisecondCounterHiRes();
     g.fillAll(findColour(PlugDataColour::canvasBackgroundColourId));
 
     String renderSchemeString;
@@ -1958,7 +1957,6 @@ void PlugDataTextEditor::renderTextUsingAttributedStringSingle(Graphics& g)
 
     CppTokeniserFunctions::StringIterator si(content);
     auto previous = si.t;
-    auto start = Time::getMillisecondCounterHiRes();
 
     while (!si.isEOF()) {
         auto tokenType = CppTokeniserFunctions::readNextToken(si);
@@ -2002,8 +2000,6 @@ void PlugDataTextEditor::renderTextUsingAttributedString(Graphics& g)
         if (!enableSyntaxHighlighting) {
             s.append(line, font);
         } else {
-            auto start = Time::getMillisecondCounterHiRes();
-
             CppTokeniserFunctions::StringIterator si(line);
             auto previous = si.t;
 
@@ -2040,7 +2036,6 @@ void PlugDataTextEditor::renderTextUsingGlyphArrangement(Graphics& g)
         auto it = TextDocument::Iterator(document, index);
         auto previous = it.getIndex();
         auto zones = Array<Selection>();
-        auto start = Time::getMillisecondCounterHiRes();
 
         while (it.getIndex().x < rows.getEnd() && !it.isEOF()) {
             auto tokenType = CppTokeniserFunctions::readNextToken(it);

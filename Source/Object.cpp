@@ -793,9 +793,9 @@ void Object::openNewObjectEditor()
                     return;
                 _this->cnv->hideSuggestions();
                 _this->cnv->objects.removeObject(_this.getComponent());
+                _this->cnv->lastSelectedObject = nullptr;
+                _this->cnv->lastSelectedConnection = nullptr;
             });
-            cnv->lastSelectedObject = nullptr;
-            cnv->lastSelectedConnection = nullptr;
         };
 
         addAndMakeVisible(editor);

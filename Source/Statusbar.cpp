@@ -454,16 +454,15 @@ void StatusbarSource::processBlock(AudioBuffer<float> const& buffer, MidiBuffer&
         level[ch & 1] = localLevel;
     }
 
-    auto now = Time::getCurrentTime();
-
+    
+    auto nowInMs = Time::getCurrentTime().getMillisecondCounter();
     auto hasInEvents = hasRealEvents(midiIn);
     auto hasOutEvents = hasRealEvents(midiOut);
 
-    lastAudioProcessedTime = Time::getCurrentTime().getMillisecondCounter();
+    lastAudioProcessedTime = nowInMs;
     
-    
-    if(hasOutEvents) lastMidiSentTime = Time::getCurrentTime().getMillisecondCounter();
-    if(hasInEvents)  lastMidiReceivedTime = Time::getCurrentTime().getMillisecondCounter();
+    if(hasOutEvents) lastMidiSentTime = nowInMs;
+    if(hasInEvents)  lastMidiReceivedTime = nowInMs;
 }
 
 void StatusbarSource::prepareToPlay(int nChannels)

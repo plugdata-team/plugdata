@@ -293,7 +293,6 @@ public:
     void showEditor() override
     {
         if (editor == nullptr) {
-            auto background = object->findColour(PlugDataColour::canvasBackgroundColourId);
             editor.reset(TextObjectHelper::createTextEditor(object, 15));
 
             editor->setBorder(border);

@@ -193,8 +193,7 @@ public:
         auto* templ = template_findbyname(scalar->sc_template);
 
         auto* x = reinterpret_cast<t_fake_curve*>(object);
-        int i, n = x->x_npoints;
-        t_fake_fielddesc* f = x->x_vec;
+        int n = x->x_npoints;
         auto* data = scalar->sc_vec;
 
         if (!fielddesc_getfloat(&x->x_vis, templ, data, 0)) {
@@ -216,7 +215,8 @@ public:
 
             canvas->pd->getCallbackLock()->enter();
 
-            for (i = 0, f = x->x_vec; i < n; i++, f += 2) {
+            for (int i = 0; i < n; i++) {
+                auto* f = x->x_vec + (i * 2);
                 float xCoord = (baseX + fielddesc_getcoord((t_fielddesc*)f, templ, data, 1)) / (glist->gl_x2 - glist->gl_x1);
                 float yCoord = (baseY + fielddesc_getcoord((t_fielddesc*)(f + 1), templ, data, 1)) / (glist->gl_y1 - glist->gl_y2);
 
@@ -252,7 +252,7 @@ public:
             Path toDraw;
 
             toDraw.startNewSubPath(pix[0], pix[1]);
-            for (i = 1; i < n; i++) {
+            for (int i = 1; i < n; i++) {
                 toDraw.lineTo(pix[2 * i], pix[2 * i + 1]);
             }
 
