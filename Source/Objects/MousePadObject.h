@@ -6,7 +6,6 @@
 
 // ELSE mousepad
 class MousePadObject final : public ObjectBase {
-    bool isLocked = false;
     bool isPressed = false;
 
     Point<int> lastPosition;
@@ -34,8 +33,6 @@ public:
 
         // Only intercept global mouse events
         setInterceptsMouseClicks(false, false);
-
-        isLocked = static_cast<bool>(cnv->locked.getValue());
     }
 
     ~MousePadObject()
@@ -60,7 +57,7 @@ public:
     {
         auto relativeEvent = e.getEventRelativeTo(this);
 
-        if (!getLocalBounds().contains(relativeEvent.getPosition()) || !isLocked || !object->cnv->isShowing())
+        if (!getLocalBounds().contains(relativeEvent.getPosition()) || !isLocked() || !object->cnv->isShowing())
             return;
 
         auto* x = static_cast<t_pad*>(ptr);
@@ -79,7 +76,7 @@ public:
 
     void mouseDrag(MouseEvent const& e) override
     {
-        if ((!getScreenBounds().contains(e.getMouseDownScreenPosition()) && !isPressed) || !isLocked)
+        if ((!getScreenBounds().contains(e.getMouseDownScreenPosition()) && !isPressed) || !isLocked())
             return;
 
         auto* x = static_cast<t_pad*>(ptr);
@@ -106,7 +103,7 @@ public:
 
     void mouseMove(MouseEvent const& e) override
     {
-        if (!getScreenBounds().contains(e.getScreenPosition()) || isPressed || !isLocked)
+        if (!getScreenBounds().contains(e.getScreenPosition()) || isPressed || !isLocked())
             return;
 
         auto* x = static_cast<t_pad*>(ptr);
@@ -133,7 +130,7 @@ public:
 
     void mouseUp(MouseEvent const& e) override
     {
-        if ((!getScreenBounds().contains(e.getMouseDownScreenPosition()) && !isPressed) || !isLocked)
+        if ((!getScreenBounds().contains(e.getMouseDownScreenPosition()) && !isPressed) || !isLocked())
             return;
 
         auto* x = static_cast<t_pad*>(ptr);
@@ -165,9 +162,17 @@ public:
         object->setObjectBounds({ x, y, w, h });
     }
 
-    void lock(bool locked) override
-    {
-        isLocked = locked;
+    // Check if top-level canvas is locked to determine if we should respond to mouse events
+    bool isLocked() {
+    
+        // Find top-level canvas
+        auto* topLevel = findParentComponentOfClass<Canvas>();
+        while(auto* nextCanvas = topLevel->findParentComponentOfClass<Canvas>())
+        {
+            topLevel = nextCanvas;
+        }
+        
+        return static_cast<bool>(topLevel->locked.getValue());
     }
 
     void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override

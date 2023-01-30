@@ -197,7 +197,7 @@ public:
     {
     }
 
-    virtual void receiveGuiUpdate() {};
+    virtual void updateDrawables() {};
     virtual void synchroniseCanvas(void* cnv) {};
 
     virtual void createPanel(int type, char const* snd, char const* location);
