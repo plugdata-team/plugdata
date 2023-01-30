@@ -377,7 +377,6 @@ if(RUN_CLANG_TIDY)
     set(DO_CLANG_TIDY "${CLANG_TIDY_EXE}" "-checks=clang-diagnostic-*,clang-diagnostic-unused-value,clang-analyzer-*,bugprone-*,performance-*,readability-*,-readability-magic-numbers,-readability-braces-around-statements,-readability-inconsistent-declaration-parameter-name,-readability-named-parameter  --header-filter='.*'") 
   endif()
   set_target_properties(plugdata_standalone PROPERTIES CXX_CLANG_TIDY "${DO_CLANG_TIDY}")
-
 endif()
 
 # Set up testing framework
