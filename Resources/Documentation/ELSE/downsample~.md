@@ -6,7 +6,7 @@ description: downsample a signal
 categories:
  - object
 
-pdcategory: Effects
+pdcategory: ELSE, Effects
 
 arguments:
 - type: float

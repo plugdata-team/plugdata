@@ -6,7 +6,7 @@ description: accumulate to a value
 categories:
  - object
 
-pdcategory: General
+pdcategory: cyclone, General
 
 arguments:
 - type: float

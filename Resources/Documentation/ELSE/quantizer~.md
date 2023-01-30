@@ -5,7 +5,7 @@ description: quantize to steps
 categories:
  - object
 
-pdcategory: Signal Math
+pdcategory: ELSE, Signal Math
 
 arguments:
 - type: float

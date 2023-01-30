@@ -5,7 +5,7 @@ description: flush hanging MIDI notes
 
 categories:
  - object
-pdcategory: MIDI
+pdcategory: ELSE, MIDI
 
 arguments:
 

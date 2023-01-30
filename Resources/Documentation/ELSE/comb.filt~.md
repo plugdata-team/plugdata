@@ -6,7 +6,7 @@ description: comb filter
 categories:
  - object
 
-pdcategory: Filters, Effects
+pdcategory: ELSE, Filters, Effects
 
 arguments:
   - type: float

@@ -6,7 +6,7 @@ description: select channel with crossfade
 categories:
  - object
  
-pdcategory: Mixing and Routing
+pdcategory: ELSE, Mixing and Routing
 
 arguments:
 - type: float

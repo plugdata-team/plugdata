@@ -4,7 +4,7 @@ title: table, cyclone/table
 description: store and edit a number array
 categories:
 - object
-pdcategory:
+pdcategory: cyclone
 arguments:
 - description: sets table name - if two or more [table] objects share the same name, they also share the same values
   type: symbol

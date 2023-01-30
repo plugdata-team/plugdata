@@ -6,7 +6,7 @@ description: sound file batch record
 categories:
 - object
 
-pdcategory: Buffers
+pdcategory: ELSE, Buffers
 
 arguments:
   - description:  (optional) file name to save to

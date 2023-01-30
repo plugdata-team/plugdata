@@ -6,7 +6,7 @@ description: control phasor
 categories:
 - object
 
-pdcategory: Triggers and Clocks, Envelopes and LFOs
+pdcategory: ELSE, Triggers and Clocks, Envelopes and LFOs
 
 arguments:
 - description: frequency in hertz

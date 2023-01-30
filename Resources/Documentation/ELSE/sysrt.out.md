@@ -6,7 +6,7 @@ description: MIDI system/real-time output
 categories:
 - object
 
-pdcategory: MIDI
+pdcategory: ELSE, MIDI
 
 arguments:
 

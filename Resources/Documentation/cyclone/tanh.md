@@ -6,7 +6,7 @@ description: hyperbolic tangent function
 categories:
  - object
 
-pdcategory: General
+pdcategory: cyclone, General
 
 arguments:
 - type: float

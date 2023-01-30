@@ -6,7 +6,7 @@ description: stereo gain
 categories:
 - object
 
-pdcategory: Effects, Mixing and Routing
+pdcategory: ELSE, Effects, Mixing and Routing
 
 arguments:
 

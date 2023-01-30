@@ -6,7 +6,7 @@ description: convert frequency to MIDI
 categories:
 - object
 
-pdcategory: MIDI, Data Math, Tuning
+pdcategory: ELSE, MIDI, Data Math, Tuning
 
 arguments:
 - description: set A4 value

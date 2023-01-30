@@ -6,7 +6,7 @@ categories:
 see_also:
 - rev1~
 - rev2~
-pdcategory: Extra
+pdcategory: vanilla,  Extra
 last_update: '0.37.1'
 inlets:
   1st:

@@ -6,7 +6,7 @@ description: crackle Noise generator
 categories:
  - object
 
-pdcategory: Random and Noise, Signal Generators
+pdcategory: ELSE, Random and Noise, Signal Generators
 
 arguments:
 - type: float

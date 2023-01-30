@@ -6,7 +6,7 @@ description: resonant filter with attack/decay time
 categories:
  - object
 
-pdcategory: Filters, Effects
+pdcategory: ELSE, Filters, Effects
 
 arguments:
 - type: float

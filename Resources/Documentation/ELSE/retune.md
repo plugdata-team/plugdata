@@ -6,7 +6,7 @@ description: retune to a given scale
 categories:
 - object
 
-pdcategory: Tuning
+pdcategory: ELSE, Tuning
 
 arguments:
 - type: list

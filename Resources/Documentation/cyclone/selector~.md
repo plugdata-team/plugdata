@@ -6,7 +6,7 @@ description: select messages from an inlet
 categories:
  - object
 
-pdcategory: General
+pdcategory: cyclone, General
 
 arguments:
 - type: float

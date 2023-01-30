@@ -6,7 +6,7 @@ description: signal hyperbolic sine function
 categories:
  - object
 
-pdcategory: General
+pdcategory: cyclone, General
 
 arguments: (none)
 

@@ -6,7 +6,7 @@ description: load externals written in Lua
 categories:
  - object
 
-pdcategory: Data Management
+pdcategory: pdlua, ELSE, Data Management
 
 arguments:
   - type: symbol

@@ -3,7 +3,7 @@ title: atanh~
 description: signal hyperbolic arc-tangent function
 categories:
  - object
-pdcategory: General
+pdcategory: cyclone, General
 arguments:
 inlets:
   1st:

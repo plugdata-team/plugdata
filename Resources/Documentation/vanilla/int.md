@@ -3,7 +3,7 @@ title: int, i
 description: store and recall an integer
 categories:
 - object
-pdcategory: General
+pdcategory: vanilla,  General
 last_update: '0.48'
 see_also:
 - float

@@ -6,7 +6,7 @@ description: detect RMS amplitude
 categories:
  - object
 
-pdcategory: Analysis
+pdcategory: ELSE, Analysis
 
 arguments:
 - type: float

@@ -6,7 +6,7 @@ description: pick/convert colors
 categories:
  - object
 
-pdcategory: GUI
+pdcategory: ELSE, GUI
 
 arguments:
 inlets:

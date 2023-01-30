@@ -3,7 +3,7 @@ title: deltaclip~
 description: limit changes between samples
 categories:
  - object
-pdcategory: General
+pdcategory: cyclone, General
 arguments:
 - type: float
   description: delta minimum - typically negative

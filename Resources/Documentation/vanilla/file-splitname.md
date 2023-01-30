@@ -3,7 +3,7 @@ title: file splitname
 description: separates directory an file components.
 categories:
 - object
-pdcategory: Misc
+pdcategory: vanilla,  Misc
 last_update: '0.52'
 see_also:
 - text

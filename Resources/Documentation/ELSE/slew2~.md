@@ -6,7 +6,7 @@ description: control slew limiter
 categories:
  - object
 
-pdcategory: Envelopes and LFOs
+pdcategory: ELSE, Envelopes and LFOs
 
 arguments:
 - type: float

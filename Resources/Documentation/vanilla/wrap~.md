@@ -3,7 +3,7 @@ title: wrap~
 description: remainder modulo 1 for signals
 categories:
 - object
-pdcategory: Audio Math
+pdcategory: vanilla,  Audio Math
 last_update: '0.48'
 see_also:
 - wrap

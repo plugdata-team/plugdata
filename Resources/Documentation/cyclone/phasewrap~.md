@@ -6,7 +6,7 @@ description: wrap between pi & -pi
 categories:
  - object
 
-pdcategory: General
+pdcategory: cyclone, General
 
 arguments: (none)
 

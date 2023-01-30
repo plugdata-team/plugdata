@@ -3,7 +3,7 @@ title: maximum~
 description: signal maximum of two values
 categories:
  - object
-pdcategory: General
+pdcategory: cyclone, General
 arguments:
 - type: float
   description: value to compare maximum with

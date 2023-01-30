@@ -6,7 +6,7 @@ description: create/play markov chains
 categories:
 - object
 
-pdcategory: Data Management, Data Math, Sequencing
+pdcategory: ELSE, Data Management, Data Math, Sequencing
 
 arguments:
 - type: float 

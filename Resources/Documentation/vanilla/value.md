@@ -3,7 +3,7 @@ title: value, v
 description: shared numeric value
 categories:
 - object
-pdcategory: General
+pdcategory: vanilla,  General
 last_update: '0.51'
 see_also:
 - send

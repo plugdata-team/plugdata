@@ -7,7 +7,7 @@ description: toggle flip flop
 categories:
 - object
 
-pdcategory: Triggers and Clocks
+pdcategory: ELSE, Triggers and Clocks
 
 arguments:
   - type: float

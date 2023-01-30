@@ -6,7 +6,7 @@ description: round to nearest integer
 categories:
  - object
 
-pdcategory: Signal Math
+pdcategory: ELSE, Signal Math
 
 arguments:
 

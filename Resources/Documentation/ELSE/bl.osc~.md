@@ -6,7 +6,7 @@ description: bandlimited oscillator
 categories:
 - object
 
-pdcategory: Signal Generators
+pdcategory: ELSE, Signal Generators
 
 arguments:
   - type: symbol

@@ -3,7 +3,7 @@ title: bucket
 description: pass numbers from outlet to outlet
 categories:
  - object
-pdcategory: General
+pdcategory: cyclone, General
 arguments:
 - type: float
   description: sets number of outlets

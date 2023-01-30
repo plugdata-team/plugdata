@@ -6,7 +6,7 @@ description: get spectral magnitudes
 categories:
 - object
 
-pdcategory: Data Math, Analysis
+pdcategory: ELSE, Data Math, Analysis
 
 arguments:
 - type: symbol

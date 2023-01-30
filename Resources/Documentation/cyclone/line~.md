@@ -5,7 +5,7 @@ description: linear ramp generator
 
 categories:
 - object
-pdcategory:
+pdcategory: cyclone
 arguments:
 - description: sets an initial value for the signal output
   type: float

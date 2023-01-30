@@ -6,7 +6,7 @@ description: radiants to degrees conversion
 categories:
 - object
 
-pdcategory: Data Math
+pdcategory: ELSE, Data Math
 
 arguments:
 - type: float

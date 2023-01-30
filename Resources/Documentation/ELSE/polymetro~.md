@@ -6,7 +6,7 @@ description: polyrhythmic metronome
 categories:
 - object
 
-pdcategory: Triggers and Clocks
+pdcategory: ELSE, Triggers and Clocks
 
 arguments:
 - description: tempo in BPM

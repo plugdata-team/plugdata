@@ -6,7 +6,7 @@ description: wavetable oscillator
 categories:
  - object
 
-pdcategory: Signal Generators, Arrays and Tables, Buffers
+pdcategory: ELSE, Signal Generators, Arrays and Tables, Buffers
 
 arguments:
   - type: symbol

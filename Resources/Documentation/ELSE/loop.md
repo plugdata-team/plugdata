@@ -6,7 +6,7 @@ description: loop counter
 categories:
  - object
 
-pdcategory: Triggers and Clocks, Data Management
+pdcategory: ELSE, Triggers and Clocks, Data Management
 
 arguments:
 - type: float

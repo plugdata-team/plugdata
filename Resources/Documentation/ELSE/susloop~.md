@@ -6,7 +6,7 @@ description: sustain looper for samplers
 categories:
  - object
  
-pdcategory: Buffers
+pdcategory: ELSE, Buffers
 
 arguments:
 - type: float

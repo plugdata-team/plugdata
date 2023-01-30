@@ -6,7 +6,7 @@ description: synced clocks
 categories:
 - object
 
-pdcategory: Triggers and Clocks
+pdcategory: ELSE, Triggers and Clocks
 
 arguments:
   - description: (optional) clock name

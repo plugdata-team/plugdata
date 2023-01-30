@@ -6,7 +6,7 @@ description: store one-timer number pairs
 categories:
  - object
 
-pdcategory: General
+pdcategory: cyclone, General
 
 arguments: (none)
 

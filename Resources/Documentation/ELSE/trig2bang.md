@@ -6,7 +6,7 @@ description: trigger to bang conversion
 categories:
 - object
 
-pdcategory: Triggers and Clocks
+pdcategory: ELSE, Triggers and Clocks
 
 arguments:
 

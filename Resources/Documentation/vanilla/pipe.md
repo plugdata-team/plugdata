@@ -3,7 +3,7 @@ title: pipe
 description: dynamically growable delay line for numbers
 categories:
 - object
-pdcategory: Time
+pdcategory: vanilla,  Time
 last_update: '0.33'
 see_also:
 - delay

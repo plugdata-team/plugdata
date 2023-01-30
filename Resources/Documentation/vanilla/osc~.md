@@ -7,7 +7,7 @@ see_also:
 - phasor~
 - cos~
 - tabread4~
-pdcategory: Audio Oscillators And Tables
+pdcategory: vanilla,  Audio Oscillators And Tables
 last_update: '0.33'
 inlets:
   1st:

@@ -4,7 +4,7 @@ description: sinusoidal analysis and pitch tracking
 categories:
 - object
 see_also: {}
-pdcategory: Extra
+pdcategory: vanilla,  Extra
 last_update: '0.46'
 inlets:
   1st:

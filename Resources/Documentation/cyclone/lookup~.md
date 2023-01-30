@@ -3,7 +3,7 @@ title: lookup~
 description: transfer function lookup table
 categories:
  - object
-pdcategory: General
+pdcategory: cyclone, General
 arguments:
 - type: symbol
   description: array/table name to be used for lookup

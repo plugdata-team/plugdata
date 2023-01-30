@@ -3,7 +3,7 @@ title: bag
 description: collection of numbers
 categories:
 - object
-pdcategory: Misc
+pdcategory: vanilla,  Misc
 last_update: '0.33'
 see_also:
 - poly

@@ -6,7 +6,7 @@ description: cents/scale conversion
 categories:
 - object
 
-pdcategory: Tuning
+pdcategory: ELSE, Tuning
 
 arguments:
 inlets:

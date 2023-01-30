@@ -7,7 +7,7 @@ description: button GUI
 categories:
  - object
 
-pdcategory: GUI
+pdcategory: ELSE, GUI
 
 arguments:
 inlets:

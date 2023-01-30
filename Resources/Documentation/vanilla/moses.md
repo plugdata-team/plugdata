@@ -3,7 +3,7 @@ title: moses
 description: part a numeric stream
 categories:
 - object
-pdcategory: General
+pdcategory: vanilla,  General
 last_update: '0.33'
 see_also:
 - change

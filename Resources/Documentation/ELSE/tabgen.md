@@ -6,7 +6,7 @@ description: table generator
 categories:
 - object
 
-pdcategory: Arrays and Tables
+pdcategory: ELSE, Arrays and Tables
 
 arguments:
   - type: float

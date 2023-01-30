@@ -3,7 +3,7 @@ title: file
 description: low-level file operations
 categories:
 - object
-pdcategory: Misc
+pdcategory: vanilla,  Misc
 last_update: '0.52'
 see_also:
 - text

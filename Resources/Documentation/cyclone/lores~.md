@@ -3,7 +3,7 @@ title: lores~
 description: low-pass resonant filter
 categories:
  - object
-pdcategory: General
+pdcategory: cyclone, General
 arguments:
 - type: float
   description: cutoff frequency

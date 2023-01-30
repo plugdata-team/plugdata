@@ -6,7 +6,7 @@ description: signal sequencer
 categories:
  - object
 
-pdcategory: Sequencing
+pdcategory: ELSE, Sequencing
 
 arguments:
 - type: list <f>

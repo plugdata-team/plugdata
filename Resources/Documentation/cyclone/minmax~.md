@@ -3,7 +3,7 @@ title: minmax~
 description: minimum/Maximum values of a signal
 categories:
  - object
-pdcategory: General
+pdcategory: cyclone, General
 arguments:
 inlets:
   1st:

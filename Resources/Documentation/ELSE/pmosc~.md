@@ -3,7 +3,7 @@ title: pmosc~
 description: phase modulation oscillator pair
 categories:
  - object
-pdcategory: Signal Generators
+pdcategory: ELSE, Signal Generators
 
 arguments:
 - type: float

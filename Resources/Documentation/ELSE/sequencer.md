@@ -6,7 +6,7 @@ description: data sequencer
 categories:
 - object
 
-pdcategory: Sequencing  
+pdcategory: ELSE, Sequencing  
 
 arguments:
 - type: list

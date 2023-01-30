@@ -6,7 +6,7 @@ description: combine data received close together
 categories:
 - object
 
-pdcategory: Data Management
+pdcategory: ELSE, Data Management
 
 arguments:
 - description: initial time in ms

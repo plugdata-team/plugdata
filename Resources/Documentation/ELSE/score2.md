@@ -6,7 +6,7 @@ description: score sequencer variant
 categories:
 - object
 
-pdcategory: Sequencing
+pdcategory: ELSE, Sequencing
 
 arguments:
 - type: symbol

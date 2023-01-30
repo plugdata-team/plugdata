@@ -3,7 +3,7 @@ title: clip~
 description: restrict a signal between two limits
 categories:
 - object
-pdcategory: Audio Math
+pdcategory: vanilla,  Audio Math
 last_update: '0.33'
 see_also:
 - min~

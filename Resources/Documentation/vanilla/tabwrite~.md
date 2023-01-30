@@ -10,7 +10,7 @@ see_also:
 - tabsend~
 - tabreceive~
 - soundfiler
-pdcategory: Audio Oscillators And Tables
+pdcategory: vanilla,  Audio Oscillators And Tables
 last_update: '0.40'
 inlets:
   1st:

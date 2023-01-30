@@ -6,7 +6,7 @@ description: hold gate values
 categories:
 - object
 
-pdcategory: Triggers and Clocks
+pdcategory: ELSE, Triggers and Clocks
 
 arguments:
 - description: hold time in ms

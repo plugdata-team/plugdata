@@ -3,7 +3,7 @@ title: bitnot~
 description: signal Bitwise-NOT
 categories:
  - object
-pdcategory: General
+pdcategory: cyclone, General
 arguments:
 - type: float
   description: mode [0 or 1] (details in help)

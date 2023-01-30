@@ -6,7 +6,7 @@ description: message gate
 categories:
 - object
 
-pdcategory: Data Management
+pdcategory: ELSE, Data Management
 
 arguments:
 - description: sets 'n' number of messages

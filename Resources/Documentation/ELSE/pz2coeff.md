@@ -6,7 +6,7 @@ description: poles/zeros to biquad coefficients conversion
 categories:
 - object
 
-pdcategory: Data Math, Filters
+pdcategory: ELSE, Data Math, Filters
 
 arguments:
 

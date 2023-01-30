@@ -6,7 +6,7 @@ description: choose randomly from a list
 categories:
 - object
 
-pdcategory: Data Management, Random and Noise
+pdcategory: ELSE, Data Management, Random and Noise
 
 arguments:
 - type: list

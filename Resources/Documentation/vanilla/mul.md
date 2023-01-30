@@ -3,7 +3,7 @@ title: '*'
 description: multiply two numbers
 categories:
 - object
-pdcategory: Math
+pdcategory: vanilla,  Math
 last_update: '0.47'
 see_also:
 - +~

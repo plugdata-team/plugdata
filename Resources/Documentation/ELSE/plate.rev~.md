@@ -6,7 +6,7 @@ description: plate reverb
 categories:
 - object
 
-pdcategory: Effects
+pdcategory: ELSE, Effects
 
 arguments:
 - description: pre delay in ms (0-1000)

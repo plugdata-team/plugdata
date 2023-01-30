@@ -3,7 +3,7 @@ title: index~
 description: non-interpolating array reader
 categories:
  - object
-pdcategory: General
+pdcategory: cyclone, General
 arguments:
 - type: symbol
   description: name of array

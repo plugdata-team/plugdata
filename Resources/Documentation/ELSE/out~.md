@@ -6,7 +6,7 @@ description: stereo output
 categories:
 - object
 
-pdcategory: Audio I/O
+pdcategory: ELSE, Audio I/O
 
 arguments:
   - description: max gain (needs to be > 0)

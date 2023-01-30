@@ -6,7 +6,7 @@ description: get nyquist
 categories:
  - object
 
-pdcategory: Analysis
+pdcategory: ELSE, Analysis
 
 arguments:
 

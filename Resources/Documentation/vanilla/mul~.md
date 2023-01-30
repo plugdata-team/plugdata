@@ -3,7 +3,7 @@ title: '*~'
 description: binary operators on audio signals
 categories:
 - object
-pdcategory: Audio Math
+pdcategory: vanilla,  Audio Math
 last_update: '0.27'
 see_also:
 - +

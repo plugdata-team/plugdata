@@ -6,7 +6,7 @@ description: fraction/decimal conversion
 categories:
 - object
 
-pdcategory: Data Math
+pdcategory: ELSE, Data Math
 
 arguments:
 

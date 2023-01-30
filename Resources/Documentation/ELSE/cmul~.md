@@ -6,7 +6,7 @@ description: complex multiplication
 categories:
  - object
 
-pdcategory: Signal Math
+pdcategory: ELSE, Signal Math
 
 arguments:
 inlets:

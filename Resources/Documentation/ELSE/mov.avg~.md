@@ -6,7 +6,7 @@ description: moving average filter
 categories:
  - object
 
-pdcategory: Analysis, Filters, Signal Math
+pdcategory: ELSE, Analysis, Filters, Signal Math
 
 arguments:
 - type: float

@@ -6,7 +6,7 @@ description: report last value
 categories:
  - object
 
-pdcategory: Analysis
+pdcategory: ELSE, Analysis
 
 arguments:
 - type: float

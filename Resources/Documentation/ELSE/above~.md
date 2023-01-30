@@ -6,7 +6,7 @@ description: threshold detection
 categories:
  - object
 
-pdcategory: Signal Math
+pdcategory: ELSE, Signal Math
 
 arguments:
 - description: initial threshold value
