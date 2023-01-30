@@ -6,7 +6,7 @@ description: signal routing matrix
 categories:
  - object
 
-pdcategory: Mixing and Routing
+pdcategory: ELSE, Mixing and Routing
 
 arguments:
 - type: float

@@ -6,7 +6,7 @@ description: control phasor + imp
 categories:
 - object
 
-pdcategory: Signal Generators
+pdcategory: ELSE, Signal Generators
 
 arguments:
 - description: frequency in hertz

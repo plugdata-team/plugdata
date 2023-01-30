@@ -3,7 +3,7 @@ title: <
 description: relational tests
 categories:
 - object
-pdcategory: Math
+pdcategory: vanilla,  Math
 see_also:
 - +~
 - expr

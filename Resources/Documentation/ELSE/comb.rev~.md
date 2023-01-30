@@ -6,7 +6,7 @@ description: comb reverberator
 categories:
  - object
 
-pdcategory: Effects
+pdcategory: ELSE, Effects
 arguments:
   - type: float
     description: maximum and initial delay time in ms

@@ -6,7 +6,7 @@ description: multi-channel granular player
 categories:
 - object
 
-pdcategory: Effects, Buffers
+pdcategory: ELSE, Effects, Buffers
 
 arguments:
 - description: (optional) channels (max 64)

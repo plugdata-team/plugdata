@@ -3,7 +3,7 @@ title: expr~
 description: evaluation of audio signal expressions on a vector by vector basis
 categories:
 - object
-pdcategory: Audio Math
+pdcategory: vanilla,  Audio Math
 last_update: 0.51-3
 see_also:
 - +

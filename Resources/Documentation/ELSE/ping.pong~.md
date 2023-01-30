@@ -6,7 +6,7 @@ description: ping pong delay
 categories:
 - object
 
-pdcategory: Effects
+pdcategory: ELSE, Effects
 
 arguments:
 - description: delay time

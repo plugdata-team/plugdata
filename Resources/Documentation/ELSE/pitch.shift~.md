@@ -6,7 +6,7 @@ description: pitch shifter
 categories:
 - object
 
-pdcategory: Effects
+pdcategory: ELSE, Effects
 
 arguments:
 - description: transposition in cents

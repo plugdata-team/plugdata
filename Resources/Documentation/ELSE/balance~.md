@@ -6,7 +6,7 @@ description: stereo balancer
 categories:
  - object
 
-pdcategory: Mixing and Routing, Effects
+pdcategory: ELSE, Mixing and Routing, Effects
 
 arguments:
 - type: float

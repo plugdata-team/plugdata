@@ -3,7 +3,7 @@ title: rand.seq
 description:
 categories:
  - object
-pdcategory: General
+pdcategory: ELSE, General
 arguments:
 - type: gimme
   description:

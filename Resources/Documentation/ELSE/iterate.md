@@ -6,7 +6,7 @@ description: iterate through a list
 categories:
 - object
 
-pdcategory: Data Management, Sequencing
+pdcategory: ELSE, Data Management, Sequencing
 
 arguments:
 - description: direction, >= 0 is left to right, < 0 is reverse

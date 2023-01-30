@@ -6,7 +6,7 @@ description: the ELSE binary
 categories:
  - object
 
-pdcategory:
+pdcategory: ELSE
 
 arguments:
 

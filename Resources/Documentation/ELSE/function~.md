@@ -5,7 +5,7 @@ description: function generator
 categories:
  - object
 
-pdcategory: Signal Math, Effects
+pdcategory: ELSE, Signal Math, Effects
 
 arguments:
 - type: list

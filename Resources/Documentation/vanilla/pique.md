@@ -5,7 +5,7 @@ categories:
 - object
 see_also:
 - sigmund~
-pdcategory: "Obsolete"
+pdcategory: vanilla,  "Obsolete"
 last_update: '0.31'
 inlets:
   1st:

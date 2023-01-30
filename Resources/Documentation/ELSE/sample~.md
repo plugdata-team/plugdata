@@ -6,7 +6,7 @@ description: audio buffer
 categories:
 - object
 
-pdcategory: Buffers
+pdcategory: ELSE, Buffers
 
 arguments:
 - type: symbol

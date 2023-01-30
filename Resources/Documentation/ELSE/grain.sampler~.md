@@ -6,7 +6,7 @@ description: granular sampler
 categories:
 - object
 
-pdcategory: Effects, Buffers
+pdcategory: ELSE, Effects, Buffers
 
 arguments:
 

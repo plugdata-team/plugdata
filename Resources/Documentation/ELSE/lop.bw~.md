@@ -6,7 +6,7 @@ description: lowpass butterworth filter
 categories:
 - object
 
-pdcategory: Filters
+pdcategory: ELSE, Filters
 
 arguments:
 - description: cutoff in hertz

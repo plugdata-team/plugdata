@@ -3,7 +3,7 @@ title: file which
 description: locate a file
 categories:
 - object
-pdcategory: Misc
+pdcategory: vanilla,  Misc
 last_update: '0.52'
 see_also:
 - text

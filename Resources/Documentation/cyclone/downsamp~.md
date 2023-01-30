@@ -3,7 +3,7 @@ title: downsamp~
 description: downsample a signal
 categories:
  - object
-pdcategory: General
+pdcategory: cyclone, General
 arguments:
 - type: float
   description: rate as number of samples

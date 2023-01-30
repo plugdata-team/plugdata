@@ -6,7 +6,7 @@ description: record signals into arrays
 categories:
 - object
 
-pdcategory: Arrays and Tables, Buffers
+pdcategory: ELSE, Arrays and Tables, Buffers
 
 arguments:
   - type: symbol

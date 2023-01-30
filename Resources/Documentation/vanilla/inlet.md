@@ -9,7 +9,7 @@ see_also:
 - outlet~
 - block~
 - pd
-pdcategory: Subwindows
+pdcategory: vanilla,  Subwindows
 last_update: '0.51'
 outlets:
   1st:

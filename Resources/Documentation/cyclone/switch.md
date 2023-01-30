@@ -6,7 +6,7 @@ description: pass messages from a specified inlet
 categories:
  - object
 
-pdcategory: General
+pdcategory: cyclone, General
 
 arguments:
 - type: float

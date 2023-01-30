@@ -6,7 +6,7 @@ description: biquad coefficient generator
 categories:
  - object
 
-pdcategory: Filters, Data Math
+pdcategory: ELSE, Filters, Data Math
 
 arguments:
   - type: symbol

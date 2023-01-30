@@ -1,7 +1,7 @@
 ---
 title: vslider, vsl
 description: Vertical slider
-pdcategory: GUI
+pdcategory: vanilla,  GUI
 inlets:
   1st:
   - type: float

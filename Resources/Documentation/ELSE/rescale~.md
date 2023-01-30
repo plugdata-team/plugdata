@@ -6,7 +6,7 @@ description: rescale audio
 categories:
  - object
 
-pdcategory: Signal Math
+pdcategory: ELSE, Signal Math
 
 arguments:
 - type: list

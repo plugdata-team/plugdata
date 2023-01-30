@@ -6,7 +6,7 @@ description: shift bins
 categories:
 - object
 
-pdcategory: Effects
+pdcategory: ELSE, Effects
 
 arguments:
   - description: sets shift number

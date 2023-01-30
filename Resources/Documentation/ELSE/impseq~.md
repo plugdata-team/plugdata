@@ -5,7 +5,7 @@ description: impulse generator and sequencer
 categories:
  - object
 
-pdcategory: Signal Generators, Sequencing
+pdcategory: ELSE, Signal Generators, Sequencing
 
 arguments:
 - type: list

@@ -3,7 +3,7 @@ title: scope~
 description: (use tabwrite~ now)
 categories:
 - object
-pdcategory: Obsolete
+pdcategory: vanilla,  Obsolete
 inlets:
   1st:
 outlets:

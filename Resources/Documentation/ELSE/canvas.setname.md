@@ -6,7 +6,7 @@ description: set canvas name
 categories:
  - object
 
-pdcategory: GUI
+pdcategory: ELSE, GUI
 
 arguments:
 - type: symbol

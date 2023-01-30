@@ -6,7 +6,7 @@ description: signal median
 categories:
  - object
 
-pdcategory: Analysis, Signal Math
+pdcategory: ELSE, Analysis, Signal Math
 
 arguments:
 - type: float

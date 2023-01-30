@@ -3,7 +3,7 @@ title: histo
 description: create a histogram of numbers
 categories:
  - object
-pdcategory: General
+pdcategory: cyclone, General
 arguments:
 - type: float
   description: sets the histogram size

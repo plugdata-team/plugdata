@@ -6,7 +6,7 @@ description: flanger effect
 categories:
 - object
 
-pdcategory: Effects
+pdcategory: ELSE, Effects
 
 arguments:
 - description: rate in hertz

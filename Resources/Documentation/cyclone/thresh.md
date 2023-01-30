@@ -6,7 +6,7 @@ description: combine data received close together
 categories:
  - object
 
-pdcategory: General
+pdcategory: cyclone, General
 
 arguments:
 - type: float

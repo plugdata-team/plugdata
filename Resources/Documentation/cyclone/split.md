@@ -6,7 +6,7 @@ description: split numbers according to a range
 categories:
  - object
 
-pdcategory: General
+pdcategory: cyclone, General
 
 arguments:
 - type: float

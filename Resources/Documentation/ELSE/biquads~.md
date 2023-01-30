@@ -6,7 +6,7 @@ description: biquad Series
 categories:
  - object
 
-pdcategory: Filters
+pdcategory: ELSE, Filters
 
 inlets:
   1st:

@@ -6,7 +6,7 @@ description: bank of oscillators
 categories:
 - object
 
-pdcategory: Signal Generators
+pdcategory: ELSE, Signal Generators
 
 arguments:
   - description: number of oscillators 

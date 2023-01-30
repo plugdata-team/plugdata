@@ -7,7 +7,7 @@ see_also:
 - fexpr~
 - delwrite~
 - delread~
-pdcategory: Audio Delay
+pdcategory: vanilla,  Audio Delay
 last_update: '0.52'
 inlets:
   1st:

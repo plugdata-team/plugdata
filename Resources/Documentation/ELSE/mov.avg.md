@@ -6,7 +6,7 @@ description: moving average
 categories:
 - object
 
-pdcategory: Analysis, Data Math
+pdcategory: ELSE, Analysis, Data Math
 
 arguments:
 - type: float

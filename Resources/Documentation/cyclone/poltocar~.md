@@ -6,7 +6,7 @@ description: signal polar to cartesian conversion
 categories:
  - object
 
-pdcategory: General
+pdcategory: cyclone, General
 
 arguments: (none)
 

@@ -5,7 +5,7 @@ description: signal glide/portamento
 categories:
  - object
 
-pdcategory: Filters, Effects
+pdcategory: ELSE, Filters, Effects
 
 arguments:
 - type: float

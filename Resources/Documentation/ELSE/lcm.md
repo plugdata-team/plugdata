@@ -6,7 +6,7 @@ description: least common multiple
 categories:
 - object
 
-pdcategory: Data Math
+pdcategory: ELSE, Data Math
 
 arguments:
 - description: right inlet value

@@ -6,7 +6,7 @@ description: control low frequency noise
 categories:
 - object
 
-pdcategory: Random and Noise, Envelopes and LFOs
+pdcategory: ELSE, Random and Noise, Envelopes and LFOs
 
 arguments:
 - description: frequency in hertz

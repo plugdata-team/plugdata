@@ -5,7 +5,7 @@ description: open folders/files/weblinks
 
 categories:
  - object
-pdcategory: Networking
+pdcategory: ELSE, Networking
 
 arguments:
 - type: symbol

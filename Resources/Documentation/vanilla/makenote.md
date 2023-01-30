@@ -3,7 +3,7 @@ title: makenote
 description: schedule delayed 'note off' message for a note-on
 categories:
 - object
-pdcategory: I/O 
+pdcategory: vanilla,  I/O 
 last_update: '0.33'
 see_also:
 - stripnote

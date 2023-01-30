@@ -6,7 +6,7 @@ description: free reverb
 categories:
 - object
 
-pdcategory: Effects
+pdcategory: ELSE, Effects
 
 arguments:
 - description: decay or 'liveness' (0-1)

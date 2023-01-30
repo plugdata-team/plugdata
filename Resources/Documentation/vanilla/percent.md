@@ -3,7 +3,7 @@ title: '%'
 description: Divide two numbers, output remainder
 categories:
 - object
-pdcategory: Math
+pdcategory: vanilla,  Math
 see_also:
 - +~
 - expr

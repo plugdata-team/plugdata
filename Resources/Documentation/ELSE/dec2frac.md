@@ -6,7 +6,7 @@ description: decimal/Fraction conversion
 categories:
 - object
 
-pdcategory: Data Math
+pdcategory: ELSE, Data Math
 
 arguments:
 - description: conversion resolution (min 10)

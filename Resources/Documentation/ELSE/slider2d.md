@@ -6,7 +6,7 @@ description: two-dimensional slider
 categories:
 - object
 
-pdcategory: GUI
+pdcategory: ELSE, GUI
 
 arguments:
 

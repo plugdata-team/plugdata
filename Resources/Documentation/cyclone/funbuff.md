@@ -3,7 +3,7 @@ title: funbuff
 description: stores pairs of integers
 categories:
  - object
-pdcategory: General
+pdcategory: cyclone, General
 arguments:
 - type: symbol
   description: sets a file name to load in the buffer

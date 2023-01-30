@@ -4,7 +4,7 @@ description: search for a best match to an incoming list
 categories:
 - object
 see_also: {}
-pdcategory: Extra
+pdcategory: vanilla,  Extra
 last_update: '0.30'
 inlets:
   1st:

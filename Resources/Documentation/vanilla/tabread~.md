@@ -12,7 +12,7 @@ see_also:
 - tabwrite
 - tabreceive~
 - tabplay~
-pdcategory: Audio Oscillators And Tables
+pdcategory: vanilla,  Audio Oscillators And Tables
 last_update: '0.43'
 inlets:
   1st:

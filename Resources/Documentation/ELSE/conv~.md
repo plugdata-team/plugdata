@@ -6,7 +6,7 @@ description: partitioned convolution
 categories:
 - object
 
-pdcategory: Effects
+pdcategory: ELSE, Effects
 
 arguments:
 - description: optional - partition size

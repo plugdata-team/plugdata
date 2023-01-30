@@ -6,7 +6,7 @@ description: power function waveshaper
 categories:
  - object
 
-pdcategory: Effects
+pdcategory: ELSE, Effects
 
 arguments:
 - type: float

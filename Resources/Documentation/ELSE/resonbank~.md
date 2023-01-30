@@ -6,7 +6,7 @@ description: bank of resonant filters
 categories:
 - object
 
-pdcategory: Filters, Effects
+pdcategory: ELSE, Filters, Effects
 
 arguments:
 - type: float

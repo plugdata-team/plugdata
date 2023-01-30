@@ -6,7 +6,7 @@ description: expand dollar symbols
 categories:
  - object
 
-pdcategory: Data Management
+pdcategory: ELSE, Data Management
 
 arguments:
 - type: float

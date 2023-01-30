@@ -6,7 +6,7 @@ description: retune to a close scale step
 categories:
 - object
 
-pdcategory: Tuning
+pdcategory: ELSE, Tuning
 
 arguments:
 - description: scale in cents

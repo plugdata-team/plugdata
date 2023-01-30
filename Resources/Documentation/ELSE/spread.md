@@ -6,7 +6,7 @@ description: compare floats and spread them
 categories:
  - object
 
-pdcategory: Data Management 
+pdcategory: ELSE, Data Management 
 
 arguments:
 - type: list

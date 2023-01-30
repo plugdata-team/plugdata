@@ -6,7 +6,7 @@ description: cents/rational conversion for signals
 categories:
  - object
 
-pdcategory: Tuning
+pdcategory: ELSE, Tuning
 
 arguments:
 inlets: 

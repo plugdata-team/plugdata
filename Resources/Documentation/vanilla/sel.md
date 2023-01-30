@@ -3,7 +3,7 @@ title: sel
 description: test for matching numbers or symbols
 categories:
 - object
-pdcategory: General
+pdcategory: vanilla,  General
 last_update: '0.33'
 see_also:
 - select

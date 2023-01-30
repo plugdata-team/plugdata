@@ -3,7 +3,7 @@ title: change
 description: remove repeated numbers from a stream
 categories:
 - object
-pdcategory: General
+pdcategory: vanilla,  General
 last_update: '0.27'
 arguments:
 - description: initial value 

@@ -6,7 +6,7 @@ description: analyze range
 categories:
  - object
 
-pdcategory: Analysis
+pdcategory: ELSE, Analysis
 
 arguments:
 

@@ -6,7 +6,7 @@ description: reversed inlets division
 categories:
  - object
 
-pdcategory: General
+pdcategory: cyclone, General
 
 arguments:
 - type: float

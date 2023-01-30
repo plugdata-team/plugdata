@@ -3,7 +3,7 @@ title: list
 description: manipulate lists
 categories:
 - object
-pdcategory: General
+pdcategory: vanilla,  General
 see_also:
 - list append
 - list prepend

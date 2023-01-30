@@ -6,7 +6,7 @@ description: smooth signals linearly
 categories:
  - object
 
-pdcategory: General
+pdcategory: cyclone, General
 
 arguments:
 - type: float

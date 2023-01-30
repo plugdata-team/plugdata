@@ -6,7 +6,7 @@ description: control LFO
 categories:
 - object
 
-pdcategory: Envelopes and LFOs
+pdcategory: ELSE, Envelopes and LFOs
 
 arguments:
 - description: sets frequency in hertz (default 0)

@@ -5,7 +5,7 @@ categories:
 - object
 see_also:
 - sig~
-pdcategory: General Audio Manipulation
+pdcategory: vanilla,  General Audio Manipulation
 last_update: '0.37'
 inlets:
   1st:

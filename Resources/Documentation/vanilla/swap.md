@@ -5,7 +5,7 @@ categories:
 - object
 aliases:
 - fswap
-pdcategory: General
+pdcategory: vanilla,  General
 last_update: '0.41'
 arguments:
 - description: initial right inlet value 

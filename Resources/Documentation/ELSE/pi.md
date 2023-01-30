@@ -6,7 +6,7 @@ description: get the value of Pi
 categories:
 - object
 
-pdcategory: Data Math
+pdcategory: ELSE, Data Math
 
 arguments:
 - description: multiplier

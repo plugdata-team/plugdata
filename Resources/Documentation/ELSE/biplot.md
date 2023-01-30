@@ -6,7 +6,7 @@ description: biquad plot
 categories:
 - object
 
-pdcategory: Filters, Analysis
+pdcategory: ELSE, Filters, Analysis
 
 arguments:
 inlets:

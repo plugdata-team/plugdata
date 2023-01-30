@@ -3,7 +3,7 @@ title: sqrt
 description: math functions
 categories:
 - object
-pdcategory: Math
+pdcategory: vanilla,  Math
 see_also:
 - +~
 - +

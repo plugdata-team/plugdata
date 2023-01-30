@@ -3,7 +3,7 @@ title: midiparse
 description: retrieve MIDI messages
 categories:
  - object
-pdcategory: General
+pdcategory: cyclone, General
 arguments:
 inlets:
   1st:

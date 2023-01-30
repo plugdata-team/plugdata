@@ -6,7 +6,7 @@ description: table batch write
 categories:
 - object
 
-pdcategory: Buffers
+pdcategory: ELSE, Buffers
 
 arguments:
 - description: array name to write to

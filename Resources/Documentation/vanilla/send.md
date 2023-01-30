@@ -3,7 +3,7 @@ title: send, s
 description: Send messages without patch cords.
 categories:
 - object
-pdcategory: General
+pdcategory: vanilla,  General
 last_update: '0.48'
 see_also:
 - send~

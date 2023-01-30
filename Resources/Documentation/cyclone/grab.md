@@ -3,7 +3,7 @@ title: grab
 description: grabs the output of another object
 categories:
  - object
-pdcategory: General
+pdcategory: cyclone, General
 arguments:
 - type: float
   description: number of outlets besides the rightmost one

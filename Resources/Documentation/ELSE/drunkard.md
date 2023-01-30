@@ -6,7 +6,7 @@ description: Drunkard's walk algorithm
 categories:
 - object
 
-pdcategory: Random and Noise
+pdcategory: ELSE, Random and Noise
 
 arguments:
 - description: sets step range

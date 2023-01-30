@@ -6,7 +6,7 @@ description: convert hexadecimal to decimal
 categories:
 - object
 
-pdcategory: Data Math
+pdcategory: ELSE, Data Math
 
 arguments:
 - description: hexadecimal values to convert

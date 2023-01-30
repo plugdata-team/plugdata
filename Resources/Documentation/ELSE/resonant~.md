@@ -6,7 +6,7 @@ description: bandpass resonant filter (constant skirt)
 categories:
  - object
 
-pdcategory: Filters, Effects
+pdcategory: ELSE, Filters, Effects
 
 arguments:
 - type: float

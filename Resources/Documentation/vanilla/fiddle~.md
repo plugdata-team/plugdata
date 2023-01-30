@@ -1,7 +1,7 @@
 ---
 title: fiddle~
 description: Pitch estimator and sinusoidal peak finder
-pdcategory: Audio
+pdcategory: vanilla,  Audio
 inlets:
   1st:
   - type: signal

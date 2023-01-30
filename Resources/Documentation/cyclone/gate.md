@@ -3,7 +3,7 @@ title: gate
 description: route message to an outlet
 categories:
  - object
-pdcategory: General
+pdcategory: cyclone, General
 arguments:
 - type: float
   description: `n` number of outlets (1 to 100)

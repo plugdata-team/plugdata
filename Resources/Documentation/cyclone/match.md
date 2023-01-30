@@ -3,7 +3,7 @@ title: match
 description: output matching input
 categories:
  - object
-pdcategory: General
+pdcategory: cyclone, General
 arguments:
 - type: anything
   description: elements to match ('nn' = wildcard for any number)

@@ -6,7 +6,7 @@ description: responds to clicks on parent
 categories:
  - object
 
-pdcategory: GUI, Triggers and Clocks
+pdcategory: ELSE, GUI, Triggers and Clocks
 
 arguments:
 - type: float

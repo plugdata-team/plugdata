@@ -6,7 +6,7 @@ description: waveshaper
 categories:
  - object
 
-pdcategory: Effects
+pdcategory: ELSE, Effects
 
 arguments:
 - type: anything

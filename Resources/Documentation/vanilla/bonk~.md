@@ -4,7 +4,7 @@ description: attack detection and spectral envelope measurement
 categories:
 - object
 see_also: {}
-pdcategory: Extra
+pdcategory: vanilla,  Extra
 last_update: '0.42'
 inlets:
   1st:
