@@ -232,6 +232,7 @@ jobs:
           run: pacman -Sy && pacman -S --noconfirm cmake git alsa-lib freetype2 libx11 libxcursor libxext libxinerama libxrandr libxrender webkit2gtk cmake make gcc pkgconf python curl ccache && pacman --noconfirm -Syu
 
         - name: Update cmake
+          working-directory: ${{github.workspace}}
           run: ./.github/scripts/cmake-3.25.2-linux-x86_64.sh
 
         - uses: actions/checkout@v3
