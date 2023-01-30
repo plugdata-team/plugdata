@@ -276,11 +276,16 @@ void Dialogs::showCanvasRightClickMenu(Canvas* cnv, Component* originalComponent
     popupMenu.addItem(12, "Properties", originalComponent == cnv || (object && !params.empty()));
     // showObjectReferenceDialog
     auto callback = [cnv, editor, object, originalComponent, params, createObjectCallback, position, selectedBoxes](int result) mutable {
-        if (object)
-            object->repaint();
-
-        if (result < 1)
+        
+        // Set position where new objet will be created
+        if(result > 100) {
+            cnv->lastMousePosition = cnv->getLocalPoint(nullptr, position);
+        }
+        
+        if ((!object && result < 100) || result < 1)
             return;
+        
+        object->repaint();
 
         switch (result) {
         case 1: // Open subpatch
@@ -335,12 +340,8 @@ void Dialogs::showCanvasRightClickMenu(Canvas* cnv, Component* originalComponent
             }
 
             break;
-        default: {
-            if (result >= 100) {
-                cnv->lastMousePosition = cnv->getLocalPoint(nullptr, position);
-            }
+        default:
             break;
-        }
         }
     };
 

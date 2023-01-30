@@ -265,7 +265,6 @@ void Canvas::synchronise(bool updatePosition)
 
 void Canvas::updateDrawables()
 {
-
     for (auto* object : objects) {
         if (object->gui) {
             object->gui->updateDrawables();
@@ -881,8 +880,10 @@ bool Canvas::canConnectSelectedObjects()
         return false;
 
     Object* topObject = selection[0]->getY() > selection[1]->getY() ? selection[1] : selection[0];
-    Object* bottom = selection[0] == topObject ? selection[1] : selection[0];
-    bool hasInlet = topObject->numInputs > 0;
+    Object* bottomObject = selection[0] == topObject ? selection[1] : selection[0];
+    
+    
+    bool hasInlet = bottomObject->numInputs > 0;
     bool hasOutlet = topObject->numOutputs > 0;
 
     return hasInlet && hasOutlet;
