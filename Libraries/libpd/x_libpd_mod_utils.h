@@ -62,6 +62,9 @@ int libpd_ninlets(t_object const* x);
 int libpd_can_undo(t_canvas* cnv);
 int libpd_can_redo(t_canvas* cnv);
 
+int libpd_tofront(t_canvas* cnv, t_gobj* obj);
+int libpd_toback(t_canvas* cnv, t_gobj* obj);
+
 void libpd_undo_apply(t_canvas* cnv, t_gobj* obj);
 
 int libpd_issignalinlet(t_object const* x, int m);

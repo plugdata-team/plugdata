@@ -289,6 +289,8 @@ void Dialogs::showCanvasRightClickMenu(Canvas* cnv, Component* originalComponent
         case 8: {// To Front
             // The double for loop makes sure that they keep their original order
             auto objects = cnv->patch.getObjects();
+            
+            cnv->patch.startUndoSequence("ToFront");
             for(int i = objects.size() - 1; i >= 0; i--) {
                 for(auto* selectedBox : selectedBoxes) {
                     if(objects[i] == selectedBox->getPointer()) {
@@ -297,11 +299,14 @@ void Dialogs::showCanvasRightClickMenu(Canvas* cnv, Component* originalComponent
                     }
                 }
             }
+            cnv->patch.startUndoSequence("ToBack");
             cnv->synchronise();
             break;
         }
         case 9: {// To Back
             auto objects = cnv->patch.getObjects();
+            
+            cnv->patch.startUndoSequence("ToBack");
             // The double for loop makes sure that they keep their original order
             for(int i = objects.size() - 1; i >= 0; i--) {
                 for(auto* selectedBox : selectedBoxes) {
@@ -311,6 +316,7 @@ void Dialogs::showCanvasRightClickMenu(Canvas* cnv, Component* originalComponent
                     }
                 }
             }
+            cnv->patch.endUndoSequence("ToBack");
             cnv->synchronise();
             break;
         }
