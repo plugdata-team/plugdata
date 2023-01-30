@@ -3,6 +3,7 @@
  // For information on usage and redistribution, and for a DISCLAIMER OF ALL
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
+#include <JuceHeader.h>
 
 // Inherit to customise drawing
 class MIDIKeyboard : public MidiKeyboardComponent {
@@ -22,13 +23,37 @@ public:
         setColour(MidiKeyboardComponent::shadowColourId, Colours::transparentBlack);
     }
 
+   /*  Return the amount of white notes in the current displayed range.
+    *  We use this to calculate & resize the keyboard width when more range is added
+    *  because setKeyWidth sets the width of white keys
+    */
+    int getCountOfWhiteNotesInRange() 
+    {
+    /*
+    ┌──┬─┬─┬─┬──┬──┬─┬─┬─┬─┬─┬──┐
+    │  │┼│ │┼│  │  │┼│ │┼│ │┼│  │
+    │  │┼│ │┼│  │  │┼│ │┼│ │┼│  │
+    │  └┼┘ └┼┘  │  └┼┘ └┼┘ └┼┘  │
+    │ 0 │ 2 │ 4 │ 5 │ 7 │ 9 │11 │
+    └───┴───┴───┴───┴───┴───┴───┘
+    */
+        int count = 0;
+        for (int i = getRangeStart(); i <= getRangeEnd(); i++) {
+            if (i % 12 == 0 || i % 12 == 2 || i % 12 == 4 || i % 12 == 5 || i % 12 == 7 || i % 12 == 9 || i % 12 == 11) {
+                count++;
+            }
+        }
+        return count;
+    }
+
     void drawWhiteNote(int midiNoteNumber, Graphics& g, Rectangle<float> area, bool isDown, bool isOver, Colour lineColour, Colour textColour) override
     {
+        // TODO: this should be a theme preference, or setting for keyboard
         auto c = Colour(225, 225, 225);
         if (isOver)
             c = Colour(235, 235, 235);
         if (isDown)
-            c = Colour(245, 245, 245);
+            c = Colour(0, 0, 245);
 
         area = area.reduced(0.0f, 0.5f);
 
@@ -37,23 +62,25 @@ public:
         // Rounded first and last keys to fix objects
         if (midiNoteNumber == getRangeStart()) {
             Path keyPath;
-            keyPath.addRoundedRectangle(area.getX() + 0.5f, area.getY(), area.getWidth() - 0.5f, area.getHeight(), PlugDataLook::objectCornerRadius, PlugDataLook::objectCornerRadius, true, false, true, false);
+            keyPath.addRoundedRectangle(area.getX(), area.getY(), area.getWidth(), area.getHeight(), PlugDataLook::objectCornerRadius, PlugDataLook::objectCornerRadius, true, false, true, false);
 
             g.fillPath(keyPath);
-        }
-        if (midiNoteNumber == getRangeEnd()) {
+        } else if (midiNoteNumber == getRangeEnd()) {
             Path keyPath;
-            keyPath.addRoundedRectangle(area.getX(), area.getY(), area.getWidth() - 3.5f, area.getHeight(), PlugDataLook::objectCornerRadius, PlugDataLook::objectCornerRadius, false, true, false, true);
+            keyPath.addRoundedRectangle(area.getX(), area.getY(), area.getWidth(), area.getHeight(), PlugDataLook::objectCornerRadius, PlugDataLook::objectCornerRadius, false, true, false, true);
 
             g.fillPath(keyPath);
         } else {
-            area = area.expanded(0.0f, -0.5f);
             g.fillRect(area);
         }
 
-        g.setColour(object->findColour(PlugDataColour::outlineColourId));
-        g.fillRect(area.withWidth(1.0f));
+        // don't draw the first separator line to fix object look
+        if (midiNoteNumber != getRangeStart()) {
+            g.setColour(object->findColour(PlugDataColour::outlineColourId));
+            g.fillRect(area.withWidth(1.0f));
+        }
 
+        // draw C octave numbers
         if (!(midiNoteNumber % 12)) {
             Array<int> glyphs;
             Array<float> offsets;
@@ -76,19 +103,21 @@ public:
                 p.clear();
             }
 
-            g.setColour(object->findColour(PlugDataColour::canvasTextColourId));
+            // TODO: C octave number text colour should be a theme prefernece or setting
+            g.setColour(Colour(90, 90, 90));
             g.fillPath(outline, outline.getTransformToScaleToFit(rectangle, true));
         }
     }
 
     void drawBlackNote(int midiNoteNumber, Graphics& g, Rectangle<float> area, bool isDown, bool isOver, Colour noteFillColour) override
     {
+        // TODO: this should be a theme preference, or setting for keyboard
         auto c = Colour(90, 90, 90);
 
         if (isOver)
             c = Colour(101, 101, 101);
         if (isDown)
-            c = Colour(60, 60, 60);
+            c = Colour(0, 0, 60);
 
         g.setColour(c);
         g.fillRect(area);
@@ -141,10 +170,11 @@ class KeyboardObject final : public ObjectBase
 
     Value lowC;
     Value octaves;
-    int numKeys = 0;
+    int numWhiteKeys = 0;
 
     MidiKeyboardState state;
     MIDIKeyboard keyboard;
+    int keyRatio = 5;
 
 public:
     KeyboardObject(void* ptr, Object* object)
@@ -152,25 +182,22 @@ public:
         , keyboard(object, state, MidiKeyboardComponent::horizontalKeyboard)
     {
         keyboard.setMidiChannel(1);
-        keyboard.setAvailableRange(36, 83);
         keyboard.setScrollButtonsVisible(false);
 
         state.addListener(this);
 
         addAndMakeVisible(keyboard);
 
-        auto* x = (t_keyboard*)ptr;
-        x->x_width = getWidth();
+        auto* elseKeyboard = static_cast<t_keyboard*>(ptr);
+        lowC.setValue(elseKeyboard->x_low_c);
+        octaves.setValue(elseKeyboard->x_octaves);
 
-        lowC = x->x_low_c;
-        octaves = x->x_octaves;
-
-        if (static_cast<int>(lowC.getValue()) == 0 || static_cast<int>(octaves.getValue()) == 0) {
-            lowC = 3;
-            octaves = 4;
-        }
+        valueChanged(lowC);
+        valueChanged(octaves);
 
         startTimer(150);
+
+        updateBounds();
     }
 
     void updateBounds() override
@@ -180,33 +207,12 @@ public:
         int x, y, w, h;
         libpd_get_object_bounds(cnv->patch.getPointer(), ptr, &x, &y, &w, &h);
 
-        auto* keyboard = static_cast<t_keyboard*>(ptr);
-        auto bounds = Rectangle<int>(x, y, keyboard->x_width, keyboard->x_height);
+        auto* elseKeyboard = static_cast<t_keyboard*>(ptr);
+        auto bounds = Rectangle<int>(x, y, keyboard.getWidth(), elseKeyboard->x_height);
 
         pd->getCallbackLock()->exit();
 
         object->setObjectBounds(bounds);
-    }
-
-    void checkBounds() override
-    {
-        int range_end = keyboard.getRangeEnd();
-        if (range_end == 127) {
-            range_end = 128;
-        }
-        numKeys = std::clamp<int>(range_end - keyboard.getRangeStart(), 8, 128);
-        float ratio = numKeys / 9.55f;
-
-        auto* keyboardObject = static_cast<t_keyboard*>(ptr);
-
-        if (object->getWidth() / ratio != object->getHeight()) {
-            object->setSize(object->getHeight() * ratio, object->getHeight());
-
-            if (getWidth() > 0) {
-                keyboard.setKeyWidth(getWidth() / (numKeys * 0.584f));
-                keyboardObject->x_width = getWidth();
-            }
-        }
     }
 
     void applyBounds() override
@@ -214,19 +220,17 @@ public:
         auto b = object->getObjectBounds();
         libpd_moveobj(cnv->patch.getPointer(), static_cast<t_gobj*>(ptr), b.getX(), b.getY());
 
-        auto* keyboard = static_cast<t_keyboard*>(ptr);
-        keyboard->x_width = b.getWidth();
-        keyboard->x_height = b.getHeight();
+        auto* elseKeyboard = static_cast<t_keyboard*>(ptr);
+        elseKeyboard->x_height = b.getHeight();
     }
 
     void resized() override
     {
-        auto* keyboardObject = static_cast<t_keyboard*>(ptr);
-        keyboard.setSize(getWidth(), getHeight());
-        if (getWidth() > 0) {
-            keyboard.setKeyWidth(getWidth() / (numKeys * 0.584f));
-            keyboardObject->x_width = getWidth();
-        }
+        float keyWidth = static_cast<float>(object->getHeight() - Object::doubleMargin) / keyRatio;
+
+        keyboard.setKeyWidth(keyWidth);
+        keyboard.setSize(keyWidth * numWhiteKeys, object->getHeight() - Object::doubleMargin);
+        applyBounds();
     }
 
     void handleNoteOn(MidiKeyboardState* source, int midiChannel, int note, float velocity) override
@@ -234,11 +238,11 @@ public:
         if (midiChannel != 1)
             return;
 
-        auto* x = (t_keyboard*)ptr;
+        auto* elseKeyboard = static_cast<t_keyboard*>(ptr);
 
         cnv->pd->enqueueFunction(
-            [_this = SafePointer(this), x, note, velocity]() mutable {
-                if (!_this || _this->cnv->patch.objectWasDeleted(x))
+            [_this = SafePointer(this), elseKeyboard, note, velocity]() mutable {
+                if (!_this || _this->cnv->patch.objectWasDeleted(elseKeyboard))
                     return;
 
                 int ac = 2;
@@ -246,9 +250,9 @@ public:
                 SETFLOAT(at, note);
                 SETFLOAT(at + 1, velocity * 127);
 
-                outlet_list(x->x_out, &s_list, ac, at);
-                if (x->x_send != &s_ && x->x_send->s_thing)
-                    pd_list(x->x_send->s_thing, &s_list, ac, at);
+                outlet_list(elseKeyboard->x_out, &s_list, ac, at);
+                if (elseKeyboard->x_send != &s_ && elseKeyboard->x_send->s_thing)
+                    pd_list(elseKeyboard->x_send->s_thing, &s_list, ac, at);
             });
     }
 
@@ -257,11 +261,11 @@ public:
         if (midiChannel != 1)
             return;
 
-        auto* x = (t_keyboard*)ptr;
+        auto* elseKeyboard = static_cast<t_keyboard*>(ptr);
 
         cnv->pd->enqueueFunction(
-            [_this = SafePointer(this), x, note]() mutable {
-                if (!_this || _this->cnv->patch.objectWasDeleted(x))
+            [_this = SafePointer(this), elseKeyboard, note]() mutable {
+                if (!_this || _this->cnv->patch.objectWasDeleted(elseKeyboard))
                     return;
 
                 int ac = 2;
@@ -269,49 +273,60 @@ public:
                 SETFLOAT(at, note);
                 SETFLOAT(at + 1, 0);
 
-                outlet_list(x->x_out, &s_list, ac, at);
-                if (x->x_send != &s_ && x->x_send->s_thing)
-                    pd_list(x->x_send->s_thing, &s_list, ac, at);
+                outlet_list(elseKeyboard->x_out, &s_list, ac, at);
+                if (elseKeyboard->x_send != &s_ && elseKeyboard->x_send->s_thing)
+                    pd_list(elseKeyboard->x_send->s_thing, &s_list, ac, at);
             });
-    };
+    }
 
     ObjectParameters getParameters() override
     {
-        return { { "Start octave", tInt, cGeneral, &lowC, {} }, { "Num. octaves", tInt, cGeneral, &octaves, {} } };
-    };
+        return { 
+            { "Start octave", tInt, cGeneral, &lowC, {} }, 
+            { "Num. octaves", tInt, cGeneral, &octaves, {} } 
+        };
+    }
+
+    void updateAspectRatio() 
+    {
+        int numOctaves = static_cast<int>(octaves.getValue());
+        int lowest = static_cast<int>(lowC.getValue());
+        int highest = std::clamp<int>(lowest + 1 + numOctaves, 0, 11);
+        keyboard.setAvailableRange(((lowest + 1) * 12), std::min((highest * 12) - 1, 127));
+
+        float horizontalLength = keyboard.getTotalKeyboardWidth();
+
+        // we only need to get the amount of white notes when the number of keys has changed
+        numWhiteKeys = keyboard.getCountOfWhiteNotesInRange();
+        
+        object->setSize(horizontalLength + Object::doubleMargin, object->getHeight());
+        object->setFixedAspectRatio(horizontalLength / static_cast<float>(object->getHeight() - Object::doubleMargin));
+    }
 
     void valueChanged(Value& value) override
     {
-        auto* keyboardObject = static_cast<t_keyboard*>(ptr);
+        auto* elseKeyboard = static_cast<t_keyboard*>(ptr);
 
         if (value.refersToSameSourceAs(lowC)) {
-            int numOctaves = std::clamp<int>(static_cast<int>(octaves.getValue()), 1, 11);
             lowC = std::clamp<int>(static_cast<int>(lowC.getValue()), -1, 9);
-            int lowest = static_cast<int>(lowC.getValue());
-            int highest = std::clamp<int>(lowest + 1 + numOctaves, 0, 11);
-            keyboard.setAvailableRange(((lowest + 1) * 12), std::min((highest * 12), 127));
-            keyboardObject->x_low_c = lowest;
-            checkBounds();
+            elseKeyboard->x_low_c = static_cast<int>(lowC.getValue());
+            updateAspectRatio();
         } else if (value.refersToSameSourceAs(octaves)) {
             octaves = std::clamp<int>(static_cast<int>(octaves.getValue()), 1, 11);
-            int numOctaves = static_cast<int>(octaves.getValue());
-            int lowest = std::clamp<int>(lowC.getValue(), -1, 9);
-            int highest = std::clamp<int>(lowest + 1 + numOctaves, 0, 11);
-            keyboard.setAvailableRange(((lowest + 1) * 12), std::min((highest * 12), 127));
-            keyboardObject->x_octaves = numOctaves;
-            checkBounds();
+            elseKeyboard->x_octaves = static_cast<int>(octaves.getValue());
+            updateAspectRatio();
         }
     }
 
     void updateValue()
     {
-        auto* keyboardObject = static_cast<t_keyboard*>(ptr);
+        auto* elseKeyboard = static_cast<t_keyboard*>(ptr);
 
         for (int i = keyboard.getRangeStart(); i < keyboard.getRangeEnd(); i++) {
-            if (keyboardObject->x_tgl_notes[i] && !(state.isNoteOn(2, i) && state.isNoteOn(1, i))) {
+            if (elseKeyboard->x_tgl_notes[i] && !(state.isNoteOn(2, i) && state.isNoteOn(1, i))) {
                 state.noteOn(2, i, 1.0f);
             }
-            if (!keyboardObject->x_tgl_notes[i] && !(state.isNoteOn(2, i) && state.isNoteOn(1, i))) {
+            if (!elseKeyboard->x_tgl_notes[i] && !(state.isNoteOn(2, i) && state.isNoteOn(1, i))) {
                 state.noteOff(2, i, 1.0f);
             }
         }
@@ -327,18 +342,13 @@ public:
         }
         if (symbol == "lowc") {
             setParameterExcludingListener(lowC, static_cast<int>(atoms[0].getFloat()));
-            int numOctaves = std::clamp<int>(static_cast<int>(octaves.getValue()), 1, 11);
-            int lowest = std::clamp<int>(lowC.getValue(), -1, 9);
-            int highest = std::clamp<int>(lowest + 1 + numOctaves, 0, 11);
-            keyboard.setAvailableRange(((lowest + 1) * 12), std::min((highest * 12), 127));
-            checkBounds();
+            updateAspectRatio();
+        } else if (symbol == "oct") {
+            setParameterExcludingListener(lowC, std::clamp<int>(static_cast<int>(lowC.getValue()) + static_cast<int>(atoms[0].getFloat()), -1, 9));
+            updateAspectRatio();
         } else if (symbol == "8ves") {
             setParameterExcludingListener(octaves, static_cast<int>(atoms[0].getFloat()));
-            int numOctaves = std::clamp<int>(static_cast<int>(octaves.getValue()), 1, 11);
-            int lowest = std::clamp<int>(lowC.getValue(), -1, 9);
-            int highest = std::clamp<int>(lowest + 1 + numOctaves, 0, 11);
-            keyboard.setAvailableRange(((lowest + 1) * 12), std::min((highest * 12), 127));
-            checkBounds();
+            updateAspectRatio();
         }
     }
 
