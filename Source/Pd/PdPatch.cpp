@@ -41,19 +41,8 @@ struct _instanceeditor
     unsigned int canvas_cursorwas;
 };
 
-static void canvas_bind(t_canvas* x)
-{
-    if (strcmp(x->gl_name->s_name, "Pd"))
-        pd_bind(&x->gl_pd, canvas_makebindsym(x->gl_name));
-}
+extern void canvas_reload(t_symbol *name, t_symbol *dir, t_glist *except);
 
-static void canvas_unbind(t_canvas* x)
-{
-    if (strcmp(x->gl_name->s_name, "Pd"))
-        pd_unbind(&x->gl_pd, canvas_makebindsym(x->gl_name));
-}
-
-void canvas_map(t_canvas* x, t_floatarg f);
 }
 
 namespace pd {
@@ -134,10 +123,13 @@ void Patch::setCurrent(bool lock)
         instance->getCallbackLock()->enter();
 
     canvas_setcurrent(getPointer());
-    canvas_vis(getPointer(), 1.);
-    canvas_map(getPointer(), 1.);
 
-    canvas_create_editor(getPointer());
+    t_atom args[1];
+    SETFLOAT(args, 0);
+    pd_typedmess(static_cast<t_pd*>(ptr), instance->generateSymbol("vis"), 1, args);
+    pd_typedmess(static_cast<t_pd*>(ptr), instance->generateSymbol("map"), 1, args);
+
+    canvas_create_editor(getPointer()); // can't hurt to make sure of this!
     canvas_unsetcurrent(getPointer());
 
     if (lock)
@@ -680,10 +672,17 @@ void Patch::setTitle(String const& title)
 {
     if (!getPointer())
         return;
+    
+    setCurrent();
+    
+    auto* pathSym = instance->generateSymbol(getCurrentFile().getFullPathName());
+    
+    t_atom args[2];
+    SETSYMBOL(args, instance->generateSymbol(title));
+    SETSYMBOL(args + 1, pathSym);
+    
+    pd_typedmess(static_cast<t_pd*>(ptr), instance->generateSymbol("rename"), 2, args);
 
-    canvas_unbind(getPointer());
-    getPointer()->gl_name = instance->generateSymbol(title);
-    canvas_bind(getPointer());
     instance->titleChanged();
 }
 
@@ -706,6 +705,13 @@ String Patch::getCanvasContent()
 
     auto content = String::fromUTF8(buf, static_cast<size_t>(bufsize));
     return content;
+}
+
+void Patch::reloadPatch(File changedPatch, t_glist* except)
+{
+    auto* dir = gensym(changedPatch.getParentDirectory().getFullPathName().replace("\\", "/").toRawUTF8());
+    auto* file = gensym(changedPatch.getFileName().toRawUTF8());
+    canvas_reload(file, dir, except);
 }
 
 bool Patch::objectWasDeleted(void* ptr)
