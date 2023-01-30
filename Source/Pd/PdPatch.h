@@ -98,6 +98,8 @@ public:
     std::vector<void*> getObjects();
 
     String getCanvasContent();
+    
+    static void reloadPatch(File changedPatch, t_glist* except);
 
     int getIndex(void* obj);
 

@@ -41,8 +41,7 @@ struct _instanceeditor
 };
 
 extern int glist_getindex(t_glist* cnv, t_gobj* y);
-extern void canvas_doaddtemplate(t_symbol* templatesym,
-    int* p_ntemplates, t_symbol*** p_templatevec);
+extern void canvas_savedeclarationsto(t_canvas *x, t_binbuf *b);
 
 void libpd_get_search_paths(char** paths, int* numItems) {
 
@@ -691,7 +690,73 @@ void libpd_removeconnection(t_canvas* cnv, t_object* src, int nout, t_object* si
 void libpd_getcontent(t_canvas* cnv, char** buf, int* bufsize)
 {
     t_binbuf* b = binbuf_new();
-    libpd_canvas_saveto(cnv, b);
+    
+    t_gobj *y;
+    t_linetraverser t;
+    t_outconnect *oc;
+
+        /* subpatch */
+    if (cnv->gl_owner && !cnv->gl_env)
+    {
+        /* have to go to original binbuf to find out how we were named. */
+        t_binbuf *bz = binbuf_new();
+        t_symbol *patchsym;
+        binbuf_addbinbuf(bz, cnv->gl_obj.ob_binbuf);
+        patchsym = atom_getsymbolarg(1, binbuf_getnatom(bz), binbuf_getvec(bz));
+        binbuf_free(bz);
+        binbuf_addv(b, "ssiiiisi;", gensym("#N"), gensym("canvas"),
+            (int)(cnv->gl_screenx1),
+            (int)(cnv->gl_screeny1),
+            (int)(cnv->gl_screenx2 - cnv->gl_screenx1),
+            (int)(cnv->gl_screeny2 - cnv->gl_screeny1),
+            (patchsym != &s_ ? patchsym: gensym("(subpatch)")),
+                    cnv->gl_mapped);
+    }
+        /* root or abstraction */
+    else
+    {
+        binbuf_addv(b, "ssiiiii;", gensym("#N"), gensym("canvas"),
+            (int)(cnv->gl_screenx1),
+            (int)(cnv->gl_screeny1),
+            (int)(cnv->gl_screenx2 - cnv->gl_screenx1),
+            (int)(cnv->gl_screeny2 - cnv->gl_screeny1),
+                (int)cnv->gl_font);
+        canvas_savedeclarationsto(cnv, b);
+    }
+    for (y = cnv->gl_list; y; y = y->g_next)
+        gobj_save(y, b);
+
+    linetraverser_start(&t, cnv);
+    while ((oc = linetraverser_next(&t)))
+    {
+        int srcno = canvas_getindex(cnv, &t.tr_ob->ob_g);
+        int sinkno = canvas_getindex(cnv, &t.tr_ob2->ob_g);
+        binbuf_addv(b, "ssiiiis;", gensym("#X"), gensym("connect"),
+            srcno, t.tr_outno, sinkno, t.tr_inno, t.outconnect_path_info);
+    }
+        /* unless everything is the default (as in ordinary subpatches)
+        print out a "coords" message to set up the coordinate systems */
+    if (cnv->gl_isgraph || cnv->gl_x1 || cnv->gl_y1 ||
+        cnv->gl_x2 != 1 ||  cnv->gl_y2 != 1 || cnv->gl_pixwidth || cnv->gl_pixheight)
+    {
+        if (cnv->gl_isgraph && cnv->gl_goprect)
+                /* if we have a graph-on-parent rectangle, we're new style.
+                The format is arranged so
+                that old versions of Pd can at least do something with it. */
+            binbuf_addv(b, "ssfffffffff;", gensym("#X"), gensym("coords"),
+                        cnv->gl_x1, cnv->gl_y1,
+                        cnv->gl_x2, cnv->gl_y2,
+                (t_float)cnv->gl_pixwidth, (t_float)cnv->gl_pixheight,
+                (t_float)((cnv->gl_hidetext)?2.:1.),
+                (t_float)cnv->gl_xmargin, (t_float)cnv->gl_ymargin);
+                    /* otherwise write in 0.38-compatible form */
+        else binbuf_addv(b, "ssfffffff;", gensym("#X"), gensym("coords"),
+                         cnv->gl_x1, cnv->gl_y1,
+                         cnv->gl_x2, cnv->gl_y2,
+                (t_float)cnv->gl_pixwidth, (t_float)cnv->gl_pixheight,
+                (t_float)cnv->gl_isgraph);
+    }
+    
     binbuf_gettext(b, buf, bufsize);
 }
 

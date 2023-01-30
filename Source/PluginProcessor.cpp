@@ -1187,10 +1187,7 @@ void PluginProcessor::reloadAbstractions(File changedPatch, t_glist* except)
 
     isPerformingGlobalSync = true;
 
-    auto* dir = generateSymbol(changedPatch.getParentDirectory().getFullPathName().replace("\\", "/"));
-    auto* file = generateSymbol(changedPatch.getFileName());
-
-    canvas_reload(file, dir, except);
+    pd::Patch::reloadPatch(changedPatch, except);
 
     // Synchronising can potentially delete some other canvases, so make sure we use a safepointer
     Array<Component::SafePointer<Canvas>> canvases;
