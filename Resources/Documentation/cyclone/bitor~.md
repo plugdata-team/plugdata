@@ -1,6 +1,6 @@
 ---
 title: bitor~
-description: Signal Bitwise-OR
+description: signal Bitwise-OR
 categories:
  - object
 pdcategory: General

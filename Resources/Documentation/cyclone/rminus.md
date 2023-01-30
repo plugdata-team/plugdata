@@ -1,7 +1,7 @@
 ---
 title: rminus, !-, cyclone/!-
 
-description: Reversed inlets subtraction
+description: reversed inlets subtraction
 
 categories:
  - object

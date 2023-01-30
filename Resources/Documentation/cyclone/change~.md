@@ -1,6 +1,6 @@
 ---
 title: change~
-description: Detect signal change & direction
+description: detect signal change & direction
 categories:
  - object
 pdcategory: General

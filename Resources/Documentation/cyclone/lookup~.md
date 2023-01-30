@@ -1,6 +1,6 @@
 ---
 title: lookup~
-description: Transfer function lookup table
+description: transfer function lookup table
 categories:
  - object
 pdcategory: General

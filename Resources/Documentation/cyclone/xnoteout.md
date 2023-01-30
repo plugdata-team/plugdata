@@ -1,7 +1,7 @@
 ---
 title: xnoteout
 
-description: Send release velocity messages
+description: send release velocity messages
 
 categories:
  - object

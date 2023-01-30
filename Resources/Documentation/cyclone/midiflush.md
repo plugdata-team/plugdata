@@ -1,6 +1,6 @@
 ---
 title: midiflush
-description: Flush hanging note-ons on raw MIDI
+description: flush hanging note-ons on raw MIDI
 categories:
  - object
 pdcategory: General

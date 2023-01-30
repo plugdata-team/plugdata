@@ -1,6 +1,6 @@
 ---
 title: coll
-description: Store/edit message collections
+description: store/edit message collections
 categories:
  - object
 pdcategory: General

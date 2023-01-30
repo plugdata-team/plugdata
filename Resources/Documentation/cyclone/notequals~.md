@@ -1,7 +1,7 @@
 ---
 title: notequals~, !=~, cyclone/!=~
 
-description: `Not equal to` comparison for signals
+description: `not equal to` comparison for signals
 
 categories:
  - object

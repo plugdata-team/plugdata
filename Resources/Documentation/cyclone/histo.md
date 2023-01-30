@@ -1,6 +1,6 @@
 ---
 title: histo
-description: Create a histogram of numbers
+description: create a histogram of numbers
 categories:
  - object
 pdcategory: General

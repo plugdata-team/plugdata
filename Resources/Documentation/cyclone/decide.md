@@ -1,6 +1,6 @@
 ---
 title: decide
-description: Randomly output 0 or 1
+description: randomly output 0 or 1
 categories:
  - object
 pdcategory: General

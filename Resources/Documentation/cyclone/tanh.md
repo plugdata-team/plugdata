@@ -1,7 +1,7 @@
 ---
 title: tanh
 
-description: Hyperbolic tangent function
+description: hyperbolic tangent function
 
 categories:
  - object

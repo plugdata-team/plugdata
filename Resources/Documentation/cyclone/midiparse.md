@@ -1,6 +1,6 @@
 ---
 title: midiparse
-description: Retrieve MIDI messages
+description: retrieve MIDI messages
 categories:
  - object
 pdcategory: General

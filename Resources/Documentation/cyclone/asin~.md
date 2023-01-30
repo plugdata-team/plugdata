@@ -1,6 +1,6 @@
 ---
 title: asin~
-description: Signal arc-sine function
+description: signal arc-sine function
 categories:
  - object
 pdcategory: General

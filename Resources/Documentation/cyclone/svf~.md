@@ -1,7 +1,7 @@
 ---
 title: svf~
 
-description: State variable filter
+description: state variable filter
 
 categories:
  - object

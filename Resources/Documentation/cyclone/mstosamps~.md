@@ -1,6 +1,6 @@
 ---
 title: mstosamps~
-description: Convert milliseconds to samples
+description: convert milliseconds to samples
 categories:
  - object
 pdcategory: General

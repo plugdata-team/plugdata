@@ -1,6 +1,6 @@
 ---
 title: grab
-description: Grabs the output of another object
+description: grabs the output of another object
 categories:
  - object
 pdcategory: General

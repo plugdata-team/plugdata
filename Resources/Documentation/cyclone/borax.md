@@ -1,6 +1,6 @@
 ---
 title: borax
-description: Reports note on/off info
+description: reports note on/off info
 categories:
  - object
 pdcategory: General

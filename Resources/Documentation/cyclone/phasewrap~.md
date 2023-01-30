@@ -1,7 +1,7 @@
 ---
 title: phasewrap~
 
-description: Wrap between pi & -pi
+description: wrap between pi & -pi
 
 categories:
  - object

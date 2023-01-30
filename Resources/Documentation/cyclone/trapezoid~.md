@@ -1,7 +1,7 @@
 ---
 title: trapezoid~
 
-description: Trapezoidal wavetable
+description: trapezoidal wavetable
 
 categories:
  - object

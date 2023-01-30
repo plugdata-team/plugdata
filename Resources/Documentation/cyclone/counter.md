@@ -1,6 +1,6 @@
 ---
 title: counter
-description: Counts over a range
+description: counts over a range
 categories:
  - object
 pdcategory: General

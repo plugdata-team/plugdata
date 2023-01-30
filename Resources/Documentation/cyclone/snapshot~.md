@@ -1,6 +1,6 @@
 ---
 title: snapshot~, cyclone/snapshot~
-description: Convert signal to float
+description: convert signal to float
 categories:
 - object
 pdcategory:

@@ -1,6 +1,6 @@
 ---
 title: edge~
-description: Detect signal transitions
+description: detect signal transitions
 categories:
  - object
 pdcategory: General

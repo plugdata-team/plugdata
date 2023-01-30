@@ -1,6 +1,6 @@
 ---
 title: atan~
-description: Signal arc-tangent function
+description: signal arc-tangent function
 categories:
  - object
 pdcategory: General

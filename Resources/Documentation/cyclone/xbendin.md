@@ -1,7 +1,7 @@
 ---
 title: xbendin
 
-description: Retrieve 14-bit pitch bend messages
+description: retrieve 14-bit pitch bend messages
 
 categories:
  - object

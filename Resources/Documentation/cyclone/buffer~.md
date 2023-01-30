@@ -1,6 +1,6 @@
 ---
 title: buffer~
-description: Audio buffer
+description: audio buffer
 categories:
  - object
 pdcategory: General

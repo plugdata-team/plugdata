@@ -1,7 +1,7 @@
 ---
 title: spray
 
-description: Distribute values to outlets
+description: distribute values to outlets
 
 categories:
  - object

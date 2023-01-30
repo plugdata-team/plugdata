@@ -1,6 +1,6 @@
 ---
 title: atodb~
-description: Linear amplitude to dBFS conversion for signals
+description: linear amplitude to dBFS conversion for signals
 categories:
  - object
 pdcategory: General

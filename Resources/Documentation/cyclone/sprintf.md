@@ -1,7 +1,7 @@
 ---
 title: sprintf
 
-description: Message formatter
+description: message formatter
 
 categories:
  - object

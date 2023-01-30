@@ -1,6 +1,6 @@
 ---
 title: allpass~
-description: All pass filter
+description: all pass filter
 categories:
  - object
 pdcategory: General

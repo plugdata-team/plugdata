@@ -1,7 +1,7 @@
 ---
 title: reson~
 
-description: Bandpass resonant filter
+description: bandpass resonant filter
 
 categories:
  - object

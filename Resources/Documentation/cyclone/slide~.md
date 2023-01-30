@@ -1,7 +1,7 @@
 ---
 title: slide~
 
-description: Smooth signals logarithmically
+description: smooth signals logarithmically
 
 categories:
  - object

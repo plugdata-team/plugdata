@@ -1,7 +1,7 @@
 ---
 title: sah~
 
-description: Sample and hold
+description: sample and hold
 
 categories:
  - object

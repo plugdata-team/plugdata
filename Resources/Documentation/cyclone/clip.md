@@ -1,6 +1,6 @@
 ---
 title: clip, cyclone/clip
-description: Constrain values to a given range
+description: constrain values to a given range
 categories:
 - object
 pdcategory:

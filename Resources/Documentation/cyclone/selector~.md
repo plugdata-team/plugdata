@@ -1,7 +1,7 @@
 ---
 title: selector~
 
-description: Select messages from an inlet
+description: select messages from an inlet
 
 categories:
  - object

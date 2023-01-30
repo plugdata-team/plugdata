@@ -1,6 +1,6 @@
 ---
 title: mean
-description: Moving mean average
+description: moving mean average
 categories:
  - object
 pdcategory: General
@@ -12,7 +12,7 @@ inlets:
   - type: float
     description: number to add to the moving average
   - type: list
-    description: clears memory and calclates the mean from the list
+    description: clears memory and calculates the mean from the list
 outlets:
   1st:
   - type: float

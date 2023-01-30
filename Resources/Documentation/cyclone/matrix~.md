@@ -1,6 +1,6 @@
 ---
 title: matrix~
-description: Signal routing/mixing matrix
+description: signal routing/mixing matrix
 categories:
  - object
 pdcategory: General

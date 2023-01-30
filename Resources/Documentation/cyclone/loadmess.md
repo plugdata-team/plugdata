@@ -1,6 +1,6 @@
 ---
 title: loadmess
-description: Send a message when the patch is loaded
+description: send a message when the patch is loaded
 categories:
  - object
 pdcategory: General
