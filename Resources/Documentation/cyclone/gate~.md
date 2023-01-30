@@ -1,6 +1,6 @@
 ---
 title: gate~
-description: Route a signal to `n` outlets
+description: route a signal to `n` outlets
 categories:
  - object
 pdcategory: General

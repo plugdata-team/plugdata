@@ -1,7 +1,7 @@
 ---
 title: scale
 
-description: Map values to an output range
+description: map values to an output range
 
 categories:
  - object

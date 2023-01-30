@@ -1,7 +1,7 @@
 ---
 title: scope~
 
-description: Oscilloscope display
+description: oscilloscope display
 
 categories:
  - object

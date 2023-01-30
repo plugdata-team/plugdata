@@ -1,6 +1,6 @@
 ---
 title: cycle~
-description: Wavetable oscillator
+description: wavetable oscillator
 categories:
  - object
 pdcategory: General

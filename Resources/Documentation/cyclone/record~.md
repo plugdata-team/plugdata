@@ -1,7 +1,7 @@
 ---
 title: record~
 
-description: Record signals in arrays
+description: record signals in arrays
 
 categories:
  - object

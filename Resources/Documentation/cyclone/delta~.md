@@ -1,6 +1,6 @@
 ---
 title: delta~
-description: Difference between samples
+description: difference between samples
 categories:
  - object
 pdcategory: General

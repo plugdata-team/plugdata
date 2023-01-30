@@ -1,6 +1,6 @@
 ---
 title: cosh
-description: Hyperbolic cosine function
+description: hyperbolic cosine function
 categories:
  - object
 pdcategory: General

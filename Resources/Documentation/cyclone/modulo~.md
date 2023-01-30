@@ -1,6 +1,6 @@
 ---
 title: modulo~, %~, cyclone/%~
-description: Modulo for signals
+description: modulo for signals
 categories:
  - object
 pdcategory: General

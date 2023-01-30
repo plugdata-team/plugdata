@@ -1,6 +1,6 @@
 ---
 title: comment
-description: Comment GUI
+description: comment GUI
 categories:
  - object
 pdcategory: General

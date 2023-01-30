@@ -1,6 +1,6 @@
 ---
 title: match
-description: Output matching input
+description: output matching input
 categories:
  - object
 pdcategory: General

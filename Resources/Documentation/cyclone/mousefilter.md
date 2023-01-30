@@ -1,6 +1,6 @@
 ---
 title: mousefilter
-description: Filters data with the mouse click
+description: filters data with the mouse click
 categories:
  - object
 pdcategory: General

@@ -1,6 +1,6 @@
 ---
 title: click~
-description: Impulse generator
+description: impulse generator
 categories:
  - object
 pdcategory: General

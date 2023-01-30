@@ -1,6 +1,6 @@
 ---
 title: bitsafe~
-description: Replace nan/inf and denormal signals with 0
+description: replace nan/inf and denormal signals with 0
 categories:
  - object
 pdcategory: General

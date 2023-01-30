@@ -1,6 +1,6 @@
 ---
 title: delay~
-description: Delay a signal
+description: delay a signal
 categories:
  - object
 pdcategory: General

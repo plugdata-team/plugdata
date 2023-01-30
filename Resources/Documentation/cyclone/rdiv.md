@@ -1,7 +1,7 @@
 ---
 title: rdiv, !/, cyclone/!/
 
-description: Reversed inlets division
+description: reversed inlets division
 
 categories:
  - object

@@ -1,7 +1,7 @@
 ---
 title: peakamp~
 
-description: Signal's peak amplitude
+description: signal's peak amplitude
 
 categories:
  - object

@@ -1,6 +1,6 @@
 ---
 title: active
-description: Report window activity
+description: report window activity
 categories:
  - object
 pdcategory: General

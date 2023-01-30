@@ -1,7 +1,7 @@
 ---
 title: wave~
 
-description: Wavetable reader
+description: wavetable reader
 
 categories:
  - object

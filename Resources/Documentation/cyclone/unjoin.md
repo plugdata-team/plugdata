@@ -1,7 +1,7 @@
 ---
 title: unjoin
 
-description: Break a list into seperate messages
+description: break a list into separate messages
 
 categories:
  - object

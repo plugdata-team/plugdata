@@ -1,7 +1,7 @@
 ---
 title: xbendout2
 
-description: Send 14-bit MIDI pitch bend messages
+description: send 14-bit MIDI pitch bend messages
 
 categories:
  - object

@@ -1,6 +1,6 @@
 ---
 title: flush
-description: Flush hanging note-ons
+description: flush hanging note-ons
 categories:
  - object
 pdcategory: General

@@ -1,6 +1,6 @@
 ---
 title: dbtoa
-description: Convert dBFS to linear amplitude
+description: convert dBFS to linear amplitude
 categories:
  - object
 pdcategory: General

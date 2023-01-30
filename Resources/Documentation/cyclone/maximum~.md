@@ -1,6 +1,6 @@
 ---
 title: maximum~
-description: Signal maximum of two values
+description: signal maximum of two values
 categories:
  - object
 pdcategory: General

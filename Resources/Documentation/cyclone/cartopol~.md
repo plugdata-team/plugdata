@@ -1,6 +1,6 @@
 ---
 title: cartopol~
-description: Signal cartesian to polar conversion
+description: signal cartesian to polar conversion
 categories:
  - object
 pdcategory: General

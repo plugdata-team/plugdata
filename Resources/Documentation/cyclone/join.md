@@ -1,6 +1,6 @@
 ---
 title: join
-description: Combine items into a list
+description: combine items into a list
 categories:
  - object
 pdcategory: General

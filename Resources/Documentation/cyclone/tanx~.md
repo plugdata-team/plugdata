@@ -1,7 +1,7 @@
 ---
 title: tanx~
 
-description: Signal tangent function (radian input)
+description: signal tangent function (radian input)
 
 categories:
  - object

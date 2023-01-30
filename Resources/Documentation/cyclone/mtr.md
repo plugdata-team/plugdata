@@ -1,6 +1,6 @@
 ---
 title: mtr
-description: Multi-track message recorder
+description: multi-track message recorder
 categories:
  - object
 pdcategory: General

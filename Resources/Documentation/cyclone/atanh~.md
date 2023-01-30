@@ -1,6 +1,6 @@
 ---
 title: atanh~
-description: Signal hyperbolic arc-tangent function
+description: signal hyperbolic arc-tangent function
 categories:
  - object
 pdcategory: General

@@ -1,7 +1,7 @@
 ---
 title: zerox~
 
-description: Detect zero crossings
+description: detect zero crossings
 
 categories:
  - object

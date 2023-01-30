@@ -1,6 +1,6 @@
 ---
 title: iter
-description: Split messages sequentially
+description: split messages sequentially
 categories:
  - object
 pdcategory: General

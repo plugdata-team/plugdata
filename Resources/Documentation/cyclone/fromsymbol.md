@@ -1,6 +1,6 @@
 ---
 title: fromsymbol
-description: Convert symbol to anything
+description: convert symbol to anything
 categories:
  - object
 pdcategory: General

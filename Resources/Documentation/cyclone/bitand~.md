@@ -1,6 +1,6 @@
 ---
 title: bitand~
-description: Signal Bitwise-AND
+description: signal Bitwise-AND
 categories:
  - object
 pdcategory: General

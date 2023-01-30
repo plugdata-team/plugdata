@@ -1,6 +1,6 @@
 ---
 title: funnel
-description: Tag data based on inlet
+description: tag data based on inlet
 categories:
  - object
 pdcategory: General

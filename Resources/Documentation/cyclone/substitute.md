@@ -1,7 +1,7 @@
 ---
 title: substitute
 
-description: Substitute elements in messages
+description: substitute elements in messages
 
 categories:
  - object
@@ -16,7 +16,7 @@ arguments:
   description: the replacement for the match 
   default: 0
 - type: float/symbol
-  description: any float or symbol sets susbtitute to "first only" mode
+  description: any float or symbol sets substitute to "first only" mode
   default: 0
 
 inlets:

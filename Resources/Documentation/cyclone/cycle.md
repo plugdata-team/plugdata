@@ -1,6 +1,6 @@
 ---
 title: cycle
-description: Round-robin messages to outlets
+description: round-robin messages to outlets
 categories:
  - object
 pdcategory: General

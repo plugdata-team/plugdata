@@ -1,6 +1,6 @@
 ---
 title: kink~
-description: Phase distortion
+description: phase distortion
 categories:
  - object
 pdcategory: General

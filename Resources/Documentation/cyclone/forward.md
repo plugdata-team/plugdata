@@ -1,6 +1,6 @@
 ---
 title: forward
-description: Send remote messages
+description: send remote messages
 categories:
  - object
 pdcategory: General
