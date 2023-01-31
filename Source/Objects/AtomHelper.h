@@ -123,7 +123,7 @@ public:
         if(resizingOnLeft) {
             auto widthDiff = (newCharWidth - oldCharWidth) * fontWidth;
             auto x = oldBounds.getX() - widthDiff;
-            auto y = newBounds.getY();
+            auto y = oldBounds.getY();
             
             libpd_moveobj(patch, reinterpret_cast<t_gobj*>(atom), x, y);
         }

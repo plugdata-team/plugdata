@@ -97,7 +97,7 @@ void Object::initialise()
     hvccMode.addListener(this);
 
     originalBounds.setBounds(0, 0, 0, 0);
-    constrainer->setMinimumSize(15, 15);
+    constrainer->setMinimumSize(12, 12);
 }
 
 void Object::timerCallback()
@@ -141,19 +141,6 @@ void Object::valueChanged(Value& v)
 
 bool Object::hitTest(int x, int y)
 {
-    resizeZone = ResizableBorderComponent::Zone::fromPositionOnBorder(getLocalBounds().reduced(margin - 2), BorderSize<int>(5), Point<int>(x, y));
-    // check if the resizeZone is valid, we currently only use corners to resize, not sides
-    if (!(resizeZone.getZoneFlags() == ResizableBorderComponent::Zone::left   ||
-          resizeZone.getZoneFlags() == ResizableBorderComponent::Zone::right  ||
-          resizeZone.getZoneFlags() == ResizableBorderComponent::Zone::top    ||
-          resizeZone.getZoneFlags() == ResizableBorderComponent::Zone::bottom) 
-        ) {
-        validResizeZone = true;
-        return true;
-    } else {
-        validResizeZone = false;
-    }
-
     if (gui && !gui->canReceiveMouseEvent(x, y)) {
         return false;
     }
@@ -167,6 +154,17 @@ bool Object::hitTest(int x, int y)
     for (auto* iolet : iolets) {
         if (iolet->getBounds().contains(x, y))
             return true;
+    }
+    
+    // Mouse over corners
+    if (cnv->isSelected(this)) {
+        
+        for (auto& corner : getCorners()) {
+            if (corner.contains(x, y))
+                return true;
+        }
+        
+        return getLocalBounds().reduced(1, margin).contains(x, y);
     }
 
     return false;
@@ -190,6 +188,11 @@ void Object::mouseMove(MouseEvent const& e)
         updateMouseCursor();
         return;
     }
+    
+    resizeZone = ResizableBorderComponent::Zone::fromPositionOnBorder(getLocalBounds().reduced(margin - 2), BorderSize<int>(5), Point<int>(e.x, e.y));
+    
+    validResizeZone = resizeZone.getZoneFlags() != ResizableBorderComponent::Zone::centre;
+    
     setMouseCursor(validResizeZone ? resizeZone.getMouseCursor() : MouseCursor::NormalCursor);
     updateMouseCursor();
 }
@@ -574,7 +577,6 @@ void Object::updateIolets()
     }
 
     updateTooltips();
-
     resized();
 }
 
