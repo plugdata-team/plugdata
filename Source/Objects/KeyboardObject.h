@@ -300,7 +300,7 @@ public:
         numWhiteKeys = keyboard.getCountOfWhiteNotesInRange();
         
         object->setSize(horizontalLength + Object::doubleMargin, object->getHeight());
-        object->setFixedAspectRatio(horizontalLength / static_cast<float>(object->getHeight() - Object::doubleMargin));
+        object->constrainer->setFixedAspectRatio(horizontalLength / static_cast<float>(object->getHeight() - Object::doubleMargin));
     }
 
     void valueChanged(Value& value) override

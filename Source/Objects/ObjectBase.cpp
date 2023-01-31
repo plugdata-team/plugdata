@@ -20,6 +20,7 @@ extern "C" {
 #include "PluginEditor.h"
 #include "LookAndFeel.h"
 #include "Pd/PdPatch.h"
+#include "Utility/ObjectBoundsConstrainer.h"
 
 #include "IEMHelper.h"
 #include "AtomHelper.h"

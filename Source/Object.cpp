@@ -13,6 +13,7 @@
 #include "Iolet.h"
 #include "LookAndFeel.h"
 #include "PluginEditor.h"
+#include "Utility/ObjectBoundsConstrainer.h"
 
 extern "C" {
 #include <m_pd.h>
@@ -79,6 +80,8 @@ void Object::setObjectBounds(Rectangle<int> bounds)
 
 void Object::initialise()
 {
+    constrainer = std::make_unique<ObjectBoundsConstrainer>();
+    
     addMouseListener(cnv, true); // Receive mouse messages on canvas
     cnv->addAndMakeVisible(this);
 
@@ -94,7 +97,7 @@ void Object::initialise()
     hvccMode.addListener(this);
 
     originalBounds.setBounds(0, 0, 0, 0);
-    setMinimumSize(25,25);
+    constrainer->setMinimumSize(25,25);
 }
 
 void Object::timerCallback()
@@ -689,7 +692,7 @@ void Object::mouseDrag(MouseEvent const& e)
         cnv->handleMouseDrag(e);
     } else if (validResizeZone) {
         const Rectangle<int> newBounds (resizeZone.resizeRectangleBy (originalBounds, e.getOffsetFromDragStart()));
-        setBoundsForComponent (this, newBounds, resizeZone.isDraggingTopEdge(),
+        constrainer->setBoundsForComponent (this, newBounds, resizeZone.isDraggingTopEdge(),
                                                 resizeZone.isDraggingLeftEdge(),
                                                 resizeZone.isDraggingBottomEdge(),
                                                 resizeZone.isDraggingRightEdge());

@@ -34,7 +34,7 @@ public:
         if (selected > static_cast<int>(max.getValue())) {
             selected = std::min<int>(static_cast<int>(max.getValue()) - 1, selected);
         }
-        object->setMinimumSize(15, 15);
+        object->constrainer->setMinimumSize(15, 15);
     }
 
     void updateLabel() override
@@ -191,7 +191,7 @@ public:
         } else {
             object->setSize(horizontalLength, object->getHeight());
         }
-        object->setFixedAspectRatio(isVertical ? 1.0f /  numItems : static_cast<float>(numItems) / 1.0f);
+        object->constrainer->setFixedAspectRatio(isVertical ? 1.0f /  numItems : static_cast<float>(numItems) / 1.0f);
     }
 
     void valueChanged(Value& value) override

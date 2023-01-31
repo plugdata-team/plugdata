@@ -13,15 +13,15 @@ extern "C" {
 }
 
 #include "ObjectGrid.h"
-#include "Utility/ObjectComponentBoundsConstrainer.h"
 #include "Iolet.h"
 #include "Objects/ObjectBase.h"
 
 class Canvas;
+class ObjectBoundsConstrainer;
+
 class Object : public Component
     , public Value::Listener
     , public Timer
-    , public ObjectComponentBoundsConstrainer
     , private TextEditor::Listener {
 public:
     Object(Canvas* parent, String const& name = "", Point<int> position = { 100, 100 });
@@ -105,6 +105,8 @@ public:
         // These are only for the suggestions
         "hv.comb", "hv.compressor", "hv.compressor2", "hv.dispatch", "hv.drunk", "hv.envfollow", "hv.eq", "hv.exp", "hv.filter.gain", "hv.filter", "hv.flanger", "hv.flanger2", "hv.freqshift", "hv.gt", "hv.gte", "hv.log", "hv.lt", "hv.lte", "hv.multiplex", "hv.neq", "hv.osc", "hv.pinknoise", "hv.pow", "hv.reverb", "hv.tanh", "hv.vline" };
 
+    std::unique_ptr<ObjectBoundsConstrainer> constrainer;
+        
 private:
     void initialise();
 

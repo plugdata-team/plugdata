@@ -141,7 +141,7 @@ public:
         setInterceptsMouseClicks(true, false);
         setOpaque(false);
 
-        object->setMinimumSize(100 - Object::doubleMargin, 40 - Object::doubleMargin);
+        object->constrainer->setMinimumSize(100 - Object::doubleMargin, 40 - Object::doubleMargin);
     }
 
     void setArray(PdArray& graph)
