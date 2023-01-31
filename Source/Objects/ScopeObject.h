@@ -159,17 +159,6 @@ public:
     {
     }
 
-    void checkBounds() override
-    {
-        // Apply size limits
-        int w = jlimit(20, maxSize, object->getWidth());
-        int h = jlimit(20, maxSize, object->getHeight());
-
-        if (w != object->getWidth() || h != object->getHeight()) {
-            object->setSize(w, h);
-        }
-    }
-
     void paint(Graphics& g) override
     {
         g.fillAll(Colour::fromString(secondaryColour.toString()));

@@ -40,15 +40,7 @@ public:
     ButtonObject(void* obj, Object* parent)
         : ObjectBase(obj, parent)
     {
-    }
-
-    void checkBounds() override
-    {
-        // Fix aspect ratio and apply limits
-        int size = jlimit(30, maxSize, object->getWidth());
-        if (size != object->getHeight() || size != object->getWidth()) {
-            object->setSize(size, size);
-        }
+        parent->setFixedAspectRatio(1);
     }
 
     void initialiseParameters() override

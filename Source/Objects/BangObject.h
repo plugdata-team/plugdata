@@ -23,6 +23,8 @@ public:
         auto* bng = static_cast<t_bng*>(ptr);
         bangInterrupt = bng->x_flashtime_break;
         bangHold = bng->x_flashtime_hold;
+
+        parent->setFixedAspectRatio(1);
     }
 
     void initialiseParameters() override
@@ -45,14 +47,6 @@ public:
         iemHelper.applyBounds();
     }
 
-    void checkBounds() override
-    {
-        // Fix aspect ratio and apply limits
-        int size = jlimit(30, maxSize, object->getWidth());
-        if (size != object->getHeight() || size != object->getWidth()) {
-            object->setSize(size, size);
-        }
-    }
     void toggleObject(Point<int> position) override
     {
         if (!alreadyBanged) {

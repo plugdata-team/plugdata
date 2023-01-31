@@ -13,6 +13,7 @@ public:
         : ObjectBase(ptr, object)
         , iemHelper(ptr, object, this)
     {
+        object->setMinimumSize(20,40);
     }
 
     void updateLabel() override
@@ -43,17 +44,6 @@ public:
     void applyBounds() override
     {
         iemHelper.applyBounds();
-    }
-
-    void checkBounds() override
-    {
-        // Apply size limits
-        int w = jlimit(30, maxSize, object->getWidth());
-        int h = jlimit(80, maxSize, object->getHeight());
-
-        if (w != object->getWidth() || h != object->getHeight()) {
-            object->setSize(w, h);
-        }
     }
 
     void paint(Graphics& g) override
