@@ -19,6 +19,7 @@ public:
         , iemHelper(ptr, object, this)
     {
         value = getValue();
+        object->setFixedAspectRatio(1);
     }
 
     void updateLabel() override
@@ -99,15 +100,6 @@ public:
 
         // Make sure we don't re-toggle with an accidental drag
         alreadyToggled = true;
-    }
-
-    void checkBounds() override
-    {
-        // Fix aspect ratio and apply limits
-        int size = jlimit(30, maxSize, object->getWidth());
-        if (size != object->getHeight() || size != object->getWidth()) {
-            object->setSize(size, size);
-        }
     }
 
     ObjectParameters getParameters() override

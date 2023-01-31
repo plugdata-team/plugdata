@@ -109,17 +109,6 @@ public:
         object->setObjectBounds(bounds);
     }
 
-    void checkBounds() override
-    {
-        // Apply size limits
-        int w = jlimit(30, maxSize, object->getWidth());
-        int h = atomHelper.getAtomHeight() + Object::doubleMargin;
-
-        if (w != object->getWidth() || h != object->getHeight()) {
-            object->setSize(w, h);
-        }
-    }
-
     ObjectParameters getParameters() override
     {
         return atomHelper.getParameters();

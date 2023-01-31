@@ -140,6 +140,8 @@ public:
 
         setInterceptsMouseClicks(true, false);
         setOpaque(false);
+
+        object->setMinimumSize(100 - Object::doubleMargin, 40 - Object::doubleMargin);
     }
 
     void setArray(PdArray& graph)
@@ -538,17 +540,6 @@ public:
         pd->getCallbackLock()->exit();
 
         object->setObjectBounds(bounds);
-    }
-
-    void checkBounds() override
-    {
-        // Apply size limits
-        int w = jlimit(100, maxSize, object->getWidth());
-        int h = jlimit(40, maxSize, object->getHeight());
-
-        if (w != object->getWidth() || h != object->getHeight()) {
-            object->setSize(w, h);
-        }
     }
 
     ObjectParameters getParameters() override

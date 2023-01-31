@@ -101,17 +101,6 @@ public:
         static_cast<t_my_canvas*>(ptr)->x_vis_h = getHeight();
     }
 
-    void checkBounds() override
-    {
-        // Apply size limits
-        int w = jlimit(20, maxSize, object->getWidth());
-        int h = jlimit(20, maxSize, object->getHeight());
-
-        if (w != object->getWidth() || h != object->getHeight()) {
-            object->setSize(w, h);
-        }
-    }
-
     Array<Point<float>> getRealPoints()
     {
         auto realPoints = Array<Point<float>>();

@@ -95,16 +95,6 @@ public:
         object->setObjectBounds(bounds);
     }
 
-    void checkBounds() override
-    {
-        int const widthIncrement = 9;
-        int width = jlimit(27, maxSize, (getWidth() / widthIncrement) * widthIncrement);
-        int height = jlimit(18, maxSize, getHeight());
-        if (getWidth() != width || getHeight() != height) {
-            object->setSize(width + Object::doubleMargin, height + Object::doubleMargin);
-        }
-    }
-
     void applyBounds() override
     {
         auto b = object->getObjectBounds();
