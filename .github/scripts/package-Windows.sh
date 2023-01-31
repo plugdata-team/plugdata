@@ -126,6 +126,20 @@ cat > ./plugdata.wxs <<-EOL
 							<File Id="LV2_FX_UI" Source="Plugins\LV2\plugdata-fx.lv2\ui.ttl"/>
 						</Component>
 					</Directory>
+          <Directory Id="CLAP_INSTALL_DIR" Name="CLAP">
+					<Directory Id="CLAP_PLUGIN_DIR" Name="plugdata.clap">
+						<Component Id="CLAP_FILES" Guid="deb58e55-8e6d-435d-8cdc-790970132f53" Win64="\$(var.Win64)">
+							<RemoveFile Id="CLAP_PLUGIN" Name="plugdata.dll" On="both"/>
+							<File Id="CLAP_PLUGIN" Source="Plugins\CLAP\plugdata.clap"/>
+							<ReserveCost Id="CLAP_COST" RunFromSource="82700000" RunLocal="82700000"></ReserveCost>
+						</Component>
+					</Directory>
+					<Directory Id="CLAP_FX_PLUGIN_DIR" Name="plugdata-fx.clap">
+						<Component Id="CLAP_FX_FILES" Guid="90ff8eae-2cfe-4070-9c73-b62e4d219a36" Win64="\$(var.Win64)">
+							<RemoveFile Id="CLAP_FX_PLUGIN" Name="plugdata-fx.dll" On="both"/>
+							<File Id="CLAP_FX_PLUGIN" Source="Plugins\CLAP\plugdata-fx.clap"/>
+						</Component>
+					</Directory>
 				</Directory>
 			</Directory>
 		</Directory>
@@ -150,10 +164,13 @@ cat > ./plugdata.wxs <<-EOL
 			<ComponentRef Id="LV2_FILES"/>
 			<ComponentRef Id="LV2_FX_FILES"/>
 		</Feature>
+    <Feature Id="CLAP" Level="1" Title="CLAP Plugin">
+			<ComponentRef Id="CLAP_FILES"/>
+			<ComponentRef Id="CLAP_FX_FILES"/>
+		</Feature>
 	</Product>
 </Wix>
 EOL
-
 
 
 if [[ $X64BitMode == "x64" ]]; then
