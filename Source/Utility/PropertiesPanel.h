@@ -7,6 +7,7 @@
 #pragma once
 #include "DraggableNumber.h"
 
+
 class PropertiesPanel : public PropertyPanel {
 
 public:
@@ -248,12 +249,11 @@ public:
             auto colour = Colour::fromString(currentColour.toString());
             auto textColour = colour.getPerceivedBrightness() > 0.5 ? Colours::black : Colours::white;
             
-            if(isMouseOver()) colour = colour.brighter(0.4f);
-            g.fillAll(colour);
-            
             auto bounds = getLocalBounds().removeFromRight(getWidth() / (2 - hideLabel));
             
-
+            g.setColour(isMouseOver() ? colour.brighter(0.4f) : colour);
+            g.fillRect(bounds);
+            
             PlugDataLook::drawText(g, String("#") + currentColour.toString().substring(2).toUpperCase(), bounds, textColour, 14.0f, Justification::centred);
         }
             
