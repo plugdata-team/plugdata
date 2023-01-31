@@ -28,6 +28,8 @@ public:
 
     void mouseEnter(MouseEvent const& e) override;
     void mouseExit(MouseEvent const& e) override;
+        
+    bool hitTest(int x, int y);
 
     void valueChanged(Value& v) override;
 

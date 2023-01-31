@@ -53,7 +53,7 @@ struct TextObjectHelper {
         if(resizingOnLeft) {
             auto widthDiff = (newCharWidth - oldCharWidth) * fontWidth;
             auto x = oldBounds.getX() - widthDiff;
-            auto y = newBounds.getY();
+            auto y = oldBounds.getY(); // don't allow y resize
             
             libpd_moveobj(static_cast<t_glist*>(patch), static_cast<t_gobj*>(obj), x, y);
         }

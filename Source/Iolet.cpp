@@ -39,6 +39,26 @@ Rectangle<int> Iolet::getCanvasBounds()
     return getBounds() + object->getPosition();
 }
 
+bool Iolet::hitTest(int x, int y)
+{
+    Path smallBounds;
+    smallBounds.addEllipse(getLocalBounds().toFloat().reduced(2));
+    smallBounds.closeSubPath();
+    
+    // Check if the small iolet bounds contains mouse, if so, return true
+    if(smallBounds.contains(x, y)) {
+        return true;
+    }
+    
+    // Check if we're hovering a resize zone
+    if(object->validResizeZone) {
+        return false;
+    }
+    
+    // Check if we're hovering the total iolet hitbox
+    return getLocalBounds().contains(x, y);
+}
+
 void Iolet::paint(Graphics& g)
 {
     auto bounds = getLocalBounds().toFloat().reduced(0.5f);

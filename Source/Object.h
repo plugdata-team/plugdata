@@ -116,7 +116,7 @@ private:
 
     void openNewObjectEditor();
 
-
+        
     bool createEditorOnMouseDown = false;
     bool selectionStateChanged = false;
     bool wasLockedOnMouseDown = false;
