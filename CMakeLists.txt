@@ -170,7 +170,7 @@ juce_add_plugin(plugdata_fx
     PLUGIN_MANUFACTURER_CODE    PlDt
     PLUGIN_CODE                 PdFx
     FORMATS                     AU VST3 LV2 CLAP
-    LV2URI                      https://github.com/timothyschoen/plugdata
+    LV2URI                      https://github.com/timothyschoen/plugdata-fx
     PRODUCT_NAME                "plugdata-fx"
     AU_MAIN_TYPE                kAudioUnitType_MusicEffect
     VST3_CATEGORIES             Fx
