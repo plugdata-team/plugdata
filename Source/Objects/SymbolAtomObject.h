@@ -33,7 +33,6 @@ public:
             auto width = input.getFont().getStringWidth(input.getText()) + 36;
             if (width < object->getWidth()) {
                 object->setSize(width, object->getHeight());
-                checkBounds();
             }
         };
 
@@ -56,7 +55,7 @@ public:
 
     void resized() override
     {
-        int fontWidth = glist_fontwidth(cnv->patch.getPointer());
+        auto fontWidth = glist_fontwidth(cnv->patch.getPointer());
         int width = jlimit(30, ObjectBase::maxSize, (getWidth() / fontWidth) * fontWidth);
         int height = jlimit(12, ObjectBase::maxSize, getHeight());
         if (getWidth() != width || getHeight() != height) {
@@ -89,7 +88,7 @@ public:
         auto b = object->getObjectBounds();
         libpd_moveobj(cnv->patch.getPointer(), static_cast<t_gobj*>(ptr), b.getX(), b.getY());
 
-        int fontWidth = glist_fontwidth(cnv->patch.getPointer());
+        auto fontWidth = glist_fontwidth(cnv->patch.getPointer());
 
         auto* atom = static_cast<t_fake_gatom*>(ptr);
         atom->a_text.te_width = b.getWidth() / fontWidth;

@@ -120,6 +120,9 @@ public:
         auto objText = editor ? editor->getText() : objectText;
         auto newNumLines = 0;
 
+        bool resizingOnRight = object->resizeZone.isDraggingRightEdge();
+        int currentWidth = getWidth();
+                                                  
         auto newBounds = TextObjectHelper::recalculateTextObjectBounds(cnvPtr, ptr, objText, 14, newNumLines).expanded(Object::margin) + cnv->canvasOrigin;
 
         numLines = newNumLines;
@@ -138,11 +141,13 @@ public:
         pd->getCallbackLock()->exit();
     }
 
-    void checkBounds() override
+    bool checkBounds(Rectangle<int> oldBounds, Rectangle<int> newBounds,  bool resizingOnLeft) override
     {
-        int fontWidth = glist_fontwidth(cnv->patch.getPointer());
-        TextObjectHelper::setWidthInChars(ptr, getWidth() / fontWidth);
+        auto fontWidth = glist_fontwidth(cnv->patch.getPointer());
+        auto* patch = cnv->patch.getPointer();
+        TextObjectHelper::checkBounds(patch, ptr, oldBounds, newBounds, resizingOnLeft, fontWidth);
         updateBounds();
+        return true;
     }
 
     void applyBounds() override

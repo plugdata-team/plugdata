@@ -8,14 +8,14 @@ struct TextObjectHelper {
 
     inline static int minWidth = 25;
 
-    static Rectangle<int> recalculateTextObjectBounds(void* patchPtr, void* objPtr, String const& currentText, int fontHeight, int& numLines, bool applyOffset = false, int maxIolets = 0)
+    static Rectangle<int> recalculateTextObjectBounds(void* patch, void* obj, String const& currentText, int fontHeight, int& numLines, bool applyOffset = false, int maxIolets = 0)
     {
 
         int x, y, w, h;
-        libpd_get_object_bounds(patchPtr, objPtr, &x, &y, &w, &h);
+        libpd_get_object_bounds(patch, obj, &x, &y, &w, &h);
 
-        int charWidth = getWidthInChars(objPtr);
-        int fontWidth = glist_fontwidth(static_cast<t_glist*>(patchPtr));
+        int charWidth = getWidthInChars(obj);
+        auto fontWidth = glist_fontwidth(static_cast<t_glist*>(patch));
         int idealTextWidth = getIdealWidthForText(currentText, fontHeight);
 
         // For regular text object, we want to adjust the width so ideal text with aligns with fontWidth
@@ -34,8 +34,32 @@ struct TextObjectHelper {
         numLines = getNumLines(currentText, w, fontHeight);
         // Calculate height so that height with 1 line is 21px, after that scale along with fontheight
         h = numLines * fontHeight + (21 - fontHeight);
-
+        
         return { x, y, w, h };
+    }
+
+    
+    static void checkBounds(void* patch, void* obj, Rectangle<int> oldBounds, Rectangle<int> newBounds, bool resizingOnLeft, int fontWidth)
+    {
+        // Remove margin
+        newBounds = newBounds.reduced(Object::margin);
+        oldBounds = oldBounds.reduced(Object::margin);
+        
+        // Calculate the width in text characters for both
+        auto oldCharWidth = oldBounds.getWidth() / fontWidth;
+        auto newCharWidth = newBounds.getWidth() / fontWidth;
+        
+        // If we're resizing the left edge, move the object left
+        if(resizingOnLeft) {
+            auto widthDiff = (newCharWidth - oldCharWidth) * fontWidth;
+            auto x = oldBounds.getX() - widthDiff;
+            auto y = newBounds.getY();
+            
+            libpd_moveobj(static_cast<t_glist*>(patch), static_cast<t_gobj*>(obj), x, y);
+        }
+        
+        // Set new width
+        TextObjectHelper::setWidthInChars(obj, newCharWidth);
     }
 
     static int getWidthInChars(void* ptr)
@@ -227,29 +251,33 @@ public:
         }
         
         auto newNumLines = 0;
-
+        
+        bool resizingOnLeft = object->resizeZone.isDraggingLeftEdge();
+        int oldWidth = object->originalBounds.getWidth() - Object::doubleMargin;
+        int currentWidth = getWidth();
+        int oldX = object->originalBounds.getX();
+        
         auto newBounds = TextObjectHelper::recalculateTextObjectBounds(cnvPtr, ptr, objText, 15, newNumLines, true, std::max({ 1, object->numInputs, object->numOutputs }));
 
         numLines = newNumLines;
         
         if(newBounds != object->getObjectBounds()) {
-            if (firstRun) {
-                object->setObjectBounds(newBounds);
-                firstRun = false;
-            }
+            object->setObjectBounds(newBounds);
+
             object->constrainer->setMinimumHeight(newBounds.getHeight());
             object->constrainer->setMaximumHeight(newBounds.getHeight());
         }
 
         pd->getCallbackLock()->exit();
     }
-        
-
-    void checkBoundsLocal()
+    
+    bool checkBounds(Rectangle<int> oldBounds, Rectangle<int> newBounds, bool resizingOnLeft) override
     {
-        int fontWidth = glist_fontwidth(cnv->patch.getPointer());
-        TextObjectHelper::setWidthInChars(ptr, getWidth() / fontWidth);
+        auto fontWidth = glist_fontwidth(cnv->patch.getPointer());
+        auto* patch = cnv->patch.getPointer();
+        TextObjectHelper::checkBounds(patch, ptr, oldBounds, newBounds, resizingOnLeft, fontWidth);
         updateBounds();
+        return true;
     }
 
     void applyBounds() override
@@ -334,7 +362,6 @@ public:
         if (editor) {
             editor->setBounds(getLocalBounds());
         }
-        checkBoundsLocal();
     }
 
     /** Returns the currently-visible text editor, or nullptr if none is open. */
