@@ -19,7 +19,7 @@ public:
         , iemHelper(ptr, object, this)
     {
         value = getValue();
-        object->setFixedAspectRatio(1);
+        object->constrainer->setFixedAspectRatio(1);
     }
 
     void updateLabel() override

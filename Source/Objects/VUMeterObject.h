@@ -13,7 +13,7 @@ public:
         : ObjectBase(ptr, object)
         , iemHelper(ptr, object, this)
     {
-        object->setMinimumSize(20,40);
+        object->constrainer->setMinimumSize(20,40);
     }
 
     void updateLabel() override

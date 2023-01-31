@@ -65,9 +65,9 @@ public:
             stopEdition();
         };
         if (isVertical) {
-            object->setMinimumSize(15, 30);
+            object->constrainer->setMinimumSize(15, 30);
         } else {
-            object->setMinimumSize(30, 15);
+            object->constrainer->setMinimumSize(30, 15);
         }
 
     }

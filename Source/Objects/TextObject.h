@@ -237,8 +237,8 @@ public:
                 object->setObjectBounds(newBounds);
                 firstRun = false;
             }
-            object->setMinimumHeight(newBounds.getHeight());
-            object->setMaximumHeight(newBounds.getHeight());
+            object->constrainer->setMinimumHeight(newBounds.getHeight());
+            object->constrainer->setMaximumHeight(newBounds.getHeight());
         }
 
         pd->getCallbackLock()->exit();
