@@ -3,7 +3,7 @@ title: soundfiler
 description: read and write tables to soundfiles
 categories:
 - object
-pdcategory: vanilla,  Arrays & Tables
+pdcategory: vanilla, Buffers, File Management, Arrays and Tables
 last_update: '0.51'
 see_also:
 - array

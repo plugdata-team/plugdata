@@ -3,7 +3,7 @@ title: clip
 description: force a number into a range
 categories:
 - object
-pdcategory: vanilla,  Math
+pdcategory: vanilla, Data Math
 last_update: '0.47'
 see_also:
 - clip~

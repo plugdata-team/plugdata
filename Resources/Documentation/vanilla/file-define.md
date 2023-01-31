@@ -1,9 +1,9 @@
 ---
 title: file define
-description: share file handles.
+description: share file handles
 categories:
 - object
-pdcategory: vanilla,  Misc
+pdcategory: vanilla, File Management
 last_update: '0.52'
 see_also:
 - text

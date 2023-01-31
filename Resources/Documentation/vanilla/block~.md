@@ -7,7 +7,7 @@ see_also:
 - fft~
 - bang~
 - switch~
-pdcategory: vanilla,  Subwindows
+pdcategory: vanilla, Analysis, Audio I/O
 last_update: '0.43'
 inlets:
   1st:

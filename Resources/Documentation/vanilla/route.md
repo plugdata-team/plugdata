@@ -3,7 +3,7 @@ title: route
 description: route messages according to first element
 categories:
 - object
-pdcategory: vanilla,  General
+pdcategory: vanilla, Mixing and Routing
 last_update: '0.43'
 see_also:
 - select

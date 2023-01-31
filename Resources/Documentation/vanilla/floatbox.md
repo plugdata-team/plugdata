@@ -1,7 +1,7 @@
 ---
 title: floatbox
 description: Number box
-pdcategory: vanilla,  GUI
+pdcategory: vanilla, GUI
 inlets:
   1st:
   - type: float

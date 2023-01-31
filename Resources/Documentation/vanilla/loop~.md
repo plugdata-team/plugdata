@@ -5,7 +5,7 @@ categories:
 - object
 see_also:
 - tabread4~
-pdcategory: vanilla,  Extra
+pdcategory: vanilla, Signal Generators, Envelopes and LFOs
 last_update: '0.52'
 inlets:
   1st:

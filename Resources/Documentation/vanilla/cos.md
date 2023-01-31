@@ -3,7 +3,7 @@ title: cos
 description: Cosine function
 categories:
 - object
-pdcategory: vanilla,  Math
+pdcategory: vanilla, Data Math
 see_also:
 - +~
 - +

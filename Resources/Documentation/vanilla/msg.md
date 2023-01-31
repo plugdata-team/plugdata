@@ -1,7 +1,7 @@
 ---
 title: msg
-description: Message box
-pdcategory: vanilla,  GUI
+description: message box
+pdcategory: vanilla, GUI
 inlets:
   1st:
   - type: anything

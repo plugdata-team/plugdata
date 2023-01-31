@@ -3,7 +3,7 @@ title: savestate
 description: save and restore run-time state from within an abstraction
 categories:
 - object
-pdcategory: vanilla,  Misc
+pdcategory: vanilla, GUI, File Management
 last_update: '0.49'
 inlets:
   1st:

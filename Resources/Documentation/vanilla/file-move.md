@@ -3,7 +3,7 @@ title: file move
 description: move a file to a new destination.
 categories:
 - object
-pdcategory: vanilla,  Misc
+pdcategory: vanilla, File Management
 last_update: '0.52'
 see_also:
 - text

@@ -8,7 +8,7 @@ see_also:
 - cos
 - tabread4~
 - expr~
-pdcategory: vanilla,  Audio Oscillators And Tables
+pdcategory: vanilla, Effects, Signal Math
 last_update: '0.41'
 inlets:
   1st:

@@ -3,7 +3,7 @@ title: file splitext
 description: separates directory+file and extension.
 categories:
 - object
-pdcategory: vanilla,  Misc
+pdcategory: vanilla, File Management
 last_update: '0.52'
 see_also:
 - text

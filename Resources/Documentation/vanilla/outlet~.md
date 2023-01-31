@@ -9,7 +9,7 @@ see_also:
 - inlet~
 - block~
 - pd
-pdcategory: vanilla,  Subwindows
+pdcategory: vanilla, GUI, Mixing and Routing, Audio I/O
 last_update: '0.51'
 inlets:
   1st:

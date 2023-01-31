@@ -1,9 +1,9 @@
 ---
 title: '%'
-description: Divide two numbers, output remainder
+description: divide two numbers, output remainder
 categories:
 - object
-pdcategory: vanilla,  Math
+pdcategory: vanilla, Data Math
 see_also:
 - +~
 - expr

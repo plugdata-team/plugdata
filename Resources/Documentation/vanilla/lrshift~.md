@@ -5,7 +5,7 @@ categories:
 - object
 see_also:
 - tabread4~
-pdcategory: vanilla,  Extra
+pdcategory: vanilla, Signal Math, Effects
 last_update: '0.31'
 inlets:
   1st:

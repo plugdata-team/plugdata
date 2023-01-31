@@ -5,7 +5,7 @@ categories:
 - object
 see_also:
 - dac~
-pdcategory: vanilla,  Extra
+pdcategory: vanilla, Audio I/O
 last_update: '0.52'
 inlets:
   1st:

@@ -1,9 +1,9 @@
 ---
 title: array set
-description: set contents from a list.
+description: set contents from a list
 categories:
 - object
-pdcategory: vanilla,  Arrays & Tables
+pdcategory: vanilla, Arrays and Tables
 last_update: '0.52'
 see_also:
 - array

@@ -1,9 +1,9 @@
 ---
-title: select
+title: select, sel
 description: test for matching numbers or symbols
 categories:
 - object
-pdcategory: vanilla,  General
+pdcategory: vanilla, Mixing and Routing, Sequencing
 last_update: '0.33'
 see_also:
 - route

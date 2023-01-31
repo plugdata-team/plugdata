@@ -1,6 +1,6 @@
 ---
 title: drawsymbol
-description: draw numbers, symbols or texts for Data Structures.
+description: draw numbers, symbols or texts for data structures
 categories:
 - object
 see_also: 
@@ -8,7 +8,7 @@ see_also:
 - drawpolygon
 - plot
 - set
-pdcategory: vanilla,  Data Templates
+pdcategory: vanilla, Data Structures
 last_update: '0.50'
 inlets:
   1st:
