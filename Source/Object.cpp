@@ -97,7 +97,7 @@ void Object::initialise()
     hvccMode.addListener(this);
 
     originalBounds.setBounds(0, 0, 0, 0);
-    constrainer->setMinimumSize(25,25);
+    constrainer->setMinimumSize(15, 15);
 }
 
 void Object::timerCallback()
@@ -690,7 +690,7 @@ void Object::mouseDrag(MouseEvent const& e)
     // Let canvas handle moving
     if (resizeZone.getZoneFlags() == ResizableBorderComponent::Zone::centre) {
         cnv->handleMouseDrag(e);
-    } else if (validResizeZone) {
+    } else if (validResizeZone && !originalBounds.isEmpty()) {
         const Rectangle<int> newBounds (resizeZone.resizeRectangleBy (originalBounds, e.getOffsetFromDragStart()));
         
         bool useConstrainer = gui && !gui->checkBounds(originalBounds - cnv->canvasOrigin, newBounds - cnv->canvasOrigin, resizeZone.isDraggingLeftEdge());
