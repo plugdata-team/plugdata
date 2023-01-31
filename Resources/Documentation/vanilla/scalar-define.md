@@ -7,7 +7,7 @@ see_also:
 - array
 - text
 - list
-pdcategory: vanilla,  Accessing Data
+pdcategory: vanilla, Data Structures
 last_update: '0.49'
 inlets:
   1st:

@@ -9,7 +9,7 @@ see_also:
 - struct
 - array
 - element
-pdcategory: vanilla,  Data Templates
+pdcategory: vanilla, Data Structures
 last_update: '0.52'
 inlets:
   1st:

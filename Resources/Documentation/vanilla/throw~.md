@@ -5,7 +5,7 @@ categories:
 - object
 see_also:
 - send~
-pdcategory: vanilla,  General Audio Manipulation
+pdcategory: vanilla, Mixing and Routing, Audio I/O
 last_update: '0.33'
 inlets:
   1st:

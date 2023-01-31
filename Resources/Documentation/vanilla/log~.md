@@ -1,9 +1,9 @@
 ---
 title: log~
-description: logarithms for signals.
+description: logarithmic function for signals
 categories:
 - object
-pdcategory: vanilla,  Audio Math
+pdcategory: vanilla, Signal Math
 last_update: '0.42'
 see_also:
 - pow

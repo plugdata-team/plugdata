@@ -6,7 +6,7 @@ categories:
 see_also:
 - lop~
 - fexpr~
-pdcategory: vanilla,  Audio Filters
+pdcategory: vanilla, Filters
 last_update: '0.50'
 inlets:
   1st:

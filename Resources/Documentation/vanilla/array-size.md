@@ -1,9 +1,9 @@
 ---
 title: array size
-description: output or set array size.
+description: output or set array size
 categories:
 - object
-pdcategory: vanilla,  Arrays & Tables
+pdcategory: vanilla, Arrays and Tables
 last_update: '0.52'
 see_also:
 - array

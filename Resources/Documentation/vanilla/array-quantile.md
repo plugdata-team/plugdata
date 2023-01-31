@@ -1,9 +1,9 @@
 ---
 title: array quantile
-description: outputs the specified quantile.
+description: outputs the specified quantile
 categories:
 - object
-pdcategory: vanilla,  Arrays & Tables
+pdcategory: vanilla, Arrays and Tables
 last_update: '0.52'
 see_also:
 - array

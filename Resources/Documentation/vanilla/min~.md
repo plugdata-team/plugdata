@@ -3,7 +3,7 @@ title: min~
 description: binary operators on audio signals
 categories:
 - object
-pdcategory: vanilla,  Audio Math
+pdcategory: vanilla, Signal Math
 last_update: '0.27'
 see_also:
 - +

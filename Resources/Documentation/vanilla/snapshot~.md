@@ -5,7 +5,7 @@ categories:
 - object
 see_also:
 - sig~
-pdcategory: vanilla,  General Audio Manipulation
+pdcategory: vanilla, Signal Math, Data Math, Analysis
 last_update: '0.37'
 inlets:
   1st:

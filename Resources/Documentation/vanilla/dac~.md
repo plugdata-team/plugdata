@@ -3,7 +3,7 @@ title: dac~
 description: audio output to sound card
 categories:
 - object
-pdcategory: vanilla,  General Audio Manipulation
+pdcategory: vanilla, Audio I/O
 last_update: '0.47'
 inlets:
   1st:

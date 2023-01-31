@@ -3,7 +3,7 @@ title: fudiformat
 description: FUDI messages to and from Pd lists
 categories:
 - object
-pdcategory: vanilla,  I/O 
+pdcategory: vanilla, Networking
 last_update: '0.48'
 see_also:
 - fudiparse

@@ -3,7 +3,7 @@ title: rmstodb
 description: convert acoustical units
 categories:
 - object
-pdcategory: vanilla,  Math
+pdcategory: vanilla, Data Math
 last_update: '0.40'
 see_also:
 - mtof~

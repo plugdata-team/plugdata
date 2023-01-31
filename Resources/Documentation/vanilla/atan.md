@@ -1,9 +1,9 @@
 ---
 title: atan
-description: Arctangens functions
+description: arctangens function
 categories:
 - object
-pdcategory: vanilla,  Math
+pdcategory: vanilla, Data Math
 see_also:
 - +~
 - +

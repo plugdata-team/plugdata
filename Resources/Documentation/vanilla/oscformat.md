@@ -3,7 +3,7 @@ title: oscformat
 description: OSC messages to and from Pd lists
 categories:
 - object
-pdcategory: vanilla,  I/O 
+pdcategory: vanilla, Networking
 last_update: 0.51.
 see_also:
 - oscparse

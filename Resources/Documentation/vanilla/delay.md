@@ -3,7 +3,7 @@ title: delay, del
 description: send a message after a time delay
 categories:
 - object
-pdcategory: vanilla,  Time
+pdcategory: vanilla, Triggers and Clocks, Data Management, Effects
 last_update: '0.45'
 see_also:
 - metro

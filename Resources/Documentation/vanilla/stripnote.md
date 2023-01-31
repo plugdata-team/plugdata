@@ -3,7 +3,7 @@ title: stripnote
 description: strip 'note off' messages
 categories:
 - object
-pdcategory: vanilla,  I/O 
+pdcategory: vanilla, MIDI
 last_update: '0.28'
 see_also:
 - makenote

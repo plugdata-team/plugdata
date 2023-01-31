@@ -1,7 +1,7 @@
 ---
 title: hslider, hsl
-description: Horizontal slider
-pdcategory: vanilla,  GUI
+description: horizontal slider
+pdcategory: vanilla, GUI
 inlets:
   1st:
   - type: float
