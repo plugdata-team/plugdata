@@ -243,6 +243,7 @@ public:
 
         pd->getCallbackLock()->exit();
     }
+        
 
     void checkBoundsLocal()
     {

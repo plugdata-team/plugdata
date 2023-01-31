@@ -254,9 +254,10 @@ public:
             g.setColour(isMouseOver() ? colour.brighter(0.4f) : colour);
             g.fillRect(bounds);
             
-            getLookAndFeel().drawPropertyComponentLabel(g, getWidth() / 2, getHeight(), *this);
-            
             PlugDataLook::drawText(g, String("#") + currentColour.toString().substring(2).toUpperCase(), bounds, textColour, 14.0f, Justification::centred);
+            
+            // Paint label
+            Property::paint(g);
         }
             
         void mouseEnter(const MouseEvent& e) override {
@@ -269,6 +270,8 @@ public:
             
         void mouseDown(const MouseEvent& e) override
         {
+            if(hideLabel && e.getPosition().x < getWidth() / 2) return;
+            
             ColourPicker::show(Colour::fromString(currentColour.toString()), getScreenBounds(), [_this = SafePointer(this)](Colour c){
                 
                 if(!_this) return;
@@ -276,6 +279,12 @@ public:
                 _this->currentColour = c.toString();
             });
         }
+             
+         bool hitTest(int x, int y) override
+         {
+             auto bounds = getLocalBounds().removeFromRight(getWidth() / (2 - hideLabel));
+             return bounds.contains(x, y);
+         }
 
     private:
         
