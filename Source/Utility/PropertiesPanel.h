@@ -254,6 +254,8 @@ public:
             g.setColour(isMouseOver() ? colour.brighter(0.4f) : colour);
             g.fillRect(bounds);
             
+            getLookAndFeel().drawPropertyComponentLabel(g, getWidth() / 2, getHeight(), *this);
+            
             PlugDataLook::drawText(g, String("#") + currentColour.toString().substring(2).toUpperCase(), bounds, textColour, 14.0f, Justification::centred);
         }
             
