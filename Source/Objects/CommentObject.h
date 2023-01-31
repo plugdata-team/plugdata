@@ -119,10 +119,7 @@ public:
         auto* cnvPtr = cnv->patch.getPointer();
         auto objText = editor ? editor->getText() : objectText;
         auto newNumLines = 0;
-
-        bool resizingOnRight = object->resizeZone.isDraggingRightEdge();
-        int currentWidth = getWidth();
-                                                  
+        
         auto newBounds = TextObjectHelper::recalculateTextObjectBounds(cnvPtr, ptr, objText, 14, newNumLines).expanded(Object::margin) + cnv->canvasOrigin;
 
         numLines = newNumLines;
