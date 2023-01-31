@@ -3,7 +3,7 @@ title: cputime
 description: measure CPU time
 categories:
 - object
-pdcategory: vanilla,  Time
+pdcategory: vanilla, Triggers and Clocks, Analysis
 last_update: '0.33'
 see_also:
 - realtime

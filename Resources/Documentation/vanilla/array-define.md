@@ -1,9 +1,9 @@
 ---
-title: array, array define
-description: Create an array.
+title: array define
+description: create an array
 categories:
 - object
-pdcategory: vanilla,  Arrays & Tables
+pdcategory: vanilla, Arrays and Tables
 last_update: '0.52'
 see_also:
 - array

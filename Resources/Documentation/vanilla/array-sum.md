@@ -1,9 +1,9 @@
 ---
 title: array sum
-description: sum all or a range of elements.
+description: sum all or a range of elements
 categories:
 - object
-pdcategory: vanilla,  Arrays & Tables
+pdcategory: vanilla, Arrays and Tables
 last_update: '0.52'
 see_also:
 - array

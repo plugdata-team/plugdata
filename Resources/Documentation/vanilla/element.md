@@ -9,7 +9,7 @@ see_also:
 - getsize
 - setsize
 - plot
-pdcategory: vanilla,  Accessing Data
+pdcategory: vanilla, Arrays and Tables
 last_update: '0.47'
 inlets:
   1st:

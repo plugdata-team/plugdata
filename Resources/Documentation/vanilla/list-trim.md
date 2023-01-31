@@ -3,7 +3,7 @@ title: list trim
 description: manipulate lists
 categories:
 - object
-pdcategory: vanilla,  General
+pdcategory: vanilla, Data Management
 see_also:
 - list
 - list append

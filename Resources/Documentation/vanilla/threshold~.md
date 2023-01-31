@@ -1,9 +1,9 @@
 ---
 title: threshold~
-description: trigger from audio signal. generator
+description: trigger from audio signal generator
 categories:
 - object
-pdcategory: vanilla,  General Audio Manipulation
+pdcategory: vanilla, Analysis, Effects, Signal Math
 last_update: '0.32'
 see_also:
 - line

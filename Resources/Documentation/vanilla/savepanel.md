@@ -3,7 +3,7 @@ title: savepanel
 description: query you for the name of a file to create.
 categories:
 - object
-pdcategory: vanilla,  Misc
+pdcategory: vanilla, File Management
 last_update: '0.48'
 see_also:
 - openpanel

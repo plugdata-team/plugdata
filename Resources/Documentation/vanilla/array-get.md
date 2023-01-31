@@ -1,9 +1,9 @@
 ---
 title: array get
-description: Get contents as a list.
+description: get contents as a list
 categories:
 - object
-pdcategory: vanilla,  Arrays & Tables
+pdcategory: vanilla, Arrays and Tables
 last_update: '0.52'
 see_also:
 - array

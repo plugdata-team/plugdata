@@ -1,7 +1,7 @@
 ---
 title: vu
 description: VU meter
-pdcategory: vanilla,  GUI
+pdcategory: vanilla, GUI
 inlets:
   1st:
   - type: float

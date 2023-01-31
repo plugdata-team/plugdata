@@ -1,9 +1,9 @@
 ---
 title: <=
-description: relational tests
+description: less than or equal to
 categories:
 - object
-pdcategory: vanilla,  Math
+pdcategory: vanilla, Logic
 see_also:
 - +~
 - expr

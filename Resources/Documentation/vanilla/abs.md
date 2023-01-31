@@ -1,9 +1,9 @@
 ---
 title: abs
-description: Calculates absolute value
+description: calculates absolute value
 categories:
 - object
-pdcategory: vanilla,  Math
+pdcategory: vanilla, Data Math
 see_also:
 - +~
 - +

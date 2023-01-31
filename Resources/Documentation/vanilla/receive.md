@@ -3,7 +3,7 @@ title: receive, r
 description: Receive messages without patch cords.
 categories:
 - object
-pdcategory: vanilla,  General
+pdcategory: vanilla, GUI, Mixing and Routing
 last_update: '0.48'
 see_also:
 - send~

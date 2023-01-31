@@ -3,7 +3,7 @@ title: text size
 description: get number of lines or elements.
 categories:
 - object
-pdcategory: vanilla,  Misc
+pdcategory: vanilla, Data Management
 last_update: '0.49'
 see_also:
 - list

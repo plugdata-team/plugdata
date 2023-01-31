@@ -3,7 +3,7 @@ title: '!='
 description: relational tests
 categories:
 - object
-pdcategory: vanilla,  Math
+pdcategory: vanilla, Logic
 see_also:
 - +~
 - expr

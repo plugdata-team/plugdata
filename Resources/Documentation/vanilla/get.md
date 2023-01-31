@@ -11,7 +11,7 @@ see_also:
 - setsize
 - element
 - struct
-pdcategory: vanilla,  Accessing Data
+pdcategory: vanilla, Data Structures
 last_update: '0.47'
 inlets:
   1st:

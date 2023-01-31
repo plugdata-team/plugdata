@@ -1,9 +1,9 @@
 ---
 title: array random
-description: array as probabilities.
+description: array as probabilities
 categories:
 - object
-pdcategory: vanilla,  Arrays & Tables
+pdcategory: vanilla, Arrays and Tables
 last_update: '0.52'
 see_also:
 - array

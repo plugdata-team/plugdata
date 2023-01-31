@@ -1,6 +1,6 @@
 ---
 title: rpole~
-description: real one-pole filter.
+description: real one-pole filter
 categories:
 - object
 see_also:
@@ -12,7 +12,7 @@ see_also:
 - biquad~
 - fexpr~
 - slop~
-pdcategory: vanilla,  Audio Filters
+pdcategory: vanilla, Filters
 last_update: '0.42'
 inlets:
   1st:

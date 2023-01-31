@@ -3,7 +3,7 @@ title: noteout
 description: MIDI output
 categories:
 - object
-pdcategory: vanilla,  I/O 
+pdcategory: vanilla, MIDI
 last_update: 0.48-2
 see_also:
 - notein

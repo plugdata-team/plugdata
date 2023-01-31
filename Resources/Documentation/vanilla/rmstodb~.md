@@ -6,7 +6,7 @@ categories:
 see_also:
 - mtof
 - expr~
-pdcategory: vanilla,  Audio Math
+pdcategory: vanilla,  Signal Math
 last_update: '0.33'
 inlets:
   1st:

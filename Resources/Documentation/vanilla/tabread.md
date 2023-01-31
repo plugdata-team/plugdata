@@ -3,7 +3,7 @@ title: tabread
 description: read a number from a table
 categories:
 - object
-pdcategory: vanilla,  Arrays & Tables
+pdcategory: vanilla, Arrays and Tables
 last_update: '0.43'
 see_also:
 - tabplay~
