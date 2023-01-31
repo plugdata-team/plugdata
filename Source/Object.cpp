@@ -692,10 +692,17 @@ void Object::mouseDrag(MouseEvent const& e)
         cnv->handleMouseDrag(e);
     } else if (validResizeZone) {
         const Rectangle<int> newBounds (resizeZone.resizeRectangleBy (originalBounds, e.getOffsetFromDragStart()));
-        constrainer->setBoundsForComponent (this, newBounds, resizeZone.isDraggingTopEdge(),
-                                                resizeZone.isDraggingLeftEdge(),
-                                                resizeZone.isDraggingBottomEdge(),
+        
+        bool useConstrainer = gui && !gui->checkBounds(originalBounds - cnv->canvasOrigin, newBounds - cnv->canvasOrigin, resizeZone.isDraggingLeftEdge());
+        
+        if(useConstrainer)
+        {
+            constrainer->setBoundsForComponent (this, newBounds, resizeZone.isDraggingTopEdge(),
+                                                    resizeZone.isDraggingLeftEdge(),
+                                                    resizeZone.isDraggingBottomEdge(),
                                                 resizeZone.isDraggingRightEdge());
+        }
+        
     }
 }
 

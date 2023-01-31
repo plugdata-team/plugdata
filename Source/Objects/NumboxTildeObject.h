@@ -108,7 +108,7 @@ public:
         object->setObjectBounds(bounds);
     }
 
-    void checkBounds() override
+    bool checkBounds(Rectangle<int> oldBounds, Rectangle<int> newBounds, bool resizingOnLeft) override
     {
         auto* nbx = static_cast<t_numbox*>(ptr);
 
@@ -122,6 +122,8 @@ public:
         if (getWidth() != width || getHeight() != height) {
             object->setSize(width + Object::doubleMargin, height + Object::doubleMargin);
         }
+        
+        return true;
     }
 
     void applyBounds() override

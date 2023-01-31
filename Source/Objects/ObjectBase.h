@@ -64,8 +64,7 @@ public:
     virtual void showEditor() {};
     virtual void hideEditor() {};
 
-    // TODO: get rid of this!
-    virtual void checkBounds() {};
+    virtual bool checkBounds(Rectangle<int> oldBounds, Rectangle<int> newBounds, bool resizingOnLeft) { return false; };
 
     // Gets position from pd and applies it to Object
     virtual void updateBounds() = 0;
