@@ -55,43 +55,24 @@ public:
 
     void resized() override
     {
-        auto fontWidth = glist_fontwidth(cnv->patch.getPointer());
-        int width = jlimit(30, ObjectBase::maxSize, (getWidth() / fontWidth) * fontWidth);
-        int height = jlimit(12, ObjectBase::maxSize, getHeight());
-        if (getWidth() != width || getHeight() != height) {
-            object->setSize(width + Object::doubleMargin, height + Object::doubleMargin);
-        }
-
         input.setBounds(getLocalBounds());
     }
 
     void updateBounds() override
     {
-        pd->getCallbackLock()->enter();
-
-        auto* atom = static_cast<t_fake_gatom*>(ptr);
-
-        int x, y, w, h;
-        libpd_get_object_bounds(cnv->patch.getPointer(), atom, &x, &y, &w, &h);
-
-        w = std::max<int>(4, atom->a_text.te_width) * glist_fontwidth(cnv->patch.getPointer());
-
-        auto bounds = Rectangle<int>(x, y, w, atomHelper.getAtomHeight());
-
-        pd->getCallbackLock()->exit();
-
-        object->setObjectBounds(bounds);
+        atomHelper.updateBounds();
     }
 
     void applyBounds() override
     {
-        auto b = object->getObjectBounds();
-        libpd_moveobj(cnv->patch.getPointer(), static_cast<t_gobj*>(ptr), b.getX(), b.getY());
+        atomHelper.applyBounds();
+    }
 
-        auto fontWidth = glist_fontwidth(cnv->patch.getPointer());
-
-        auto* atom = static_cast<t_fake_gatom*>(ptr);
-        atom->a_text.te_width = b.getWidth() / fontWidth;
+    bool checkBounds(Rectangle<int> oldBounds, Rectangle<int> newBounds, bool resizingOnLeft) override
+    {
+        atomHelper.checkBounds(oldBounds, newBounds, resizingOnLeft);
+        updateBounds();
+        return true;
     }
 
     ObjectParameters getParameters() override

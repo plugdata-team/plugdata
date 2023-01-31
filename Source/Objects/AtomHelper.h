@@ -41,7 +41,26 @@ static t_atom* fake_gatom_getatom(t_fake_gatom* x)
 
 class AtomHelper {
 
+    int const atomSizes[7] = { 0, 8, 10, 12, 16, 24, 36 };
+
+    Object* object;
+    ObjectBase* gui;
+    Canvas* cnv;
+    PluginProcessor* pd;
+
+    t_fake_gatom* atom;
+    
+    inline static int minWidth = 3;
+    
 public:
+    
+    Value labelColour;
+    Value labelPosition = Value(0.0f);
+    Value labelHeight = Value(18.0f);
+    Value labelText;
+    Value sendSymbol;
+    Value receiveSymbol;
+    
     AtomHelper(void* ptr, Object* parent, ObjectBase* base)
         : object(parent)
         , gui(base)
@@ -59,6 +78,58 @@ public:
 
         sendSymbol = getSendSymbol();
         receiveSymbol = getReceiveSymbol();
+    }
+    
+    void updateBounds()
+    {
+        pd->getCallbackLock()->enter();
+
+        int x, y, w, h;
+        libpd_get_object_bounds(cnv->patch.getPointer(), atom, &x, &y, &w, &h);
+
+        w = std::max<int>(minWidth, atom->a_text.te_width) * glist_fontwidth(cnv->patch.getPointer());
+
+        auto bounds = Rectangle<int>(x, y, w, getAtomHeight());
+
+        pd->getCallbackLock()->exit();
+
+        object->setObjectBounds(bounds);
+    }
+    
+    void applyBounds()
+    {
+        auto b = object->getObjectBounds();
+        libpd_moveobj(cnv->patch.getPointer(), reinterpret_cast<t_gobj*>(atom), b.getX(), b.getY());
+
+        auto fontWidth = glist_fontwidth(cnv->patch.getPointer());
+        atom->a_text.te_width = b.getWidth() / fontWidth;
+    }
+    
+    void checkBounds(Rectangle<int> oldBounds, Rectangle<int> newBounds, bool resizingOnLeft)
+    {
+        auto* patch = cnv->patch.getPointer();
+        
+        auto fontWidth = glist_fontwidth(patch);
+        
+        // Remove margin
+        newBounds = newBounds.reduced(Object::margin);
+        oldBounds = oldBounds.reduced(Object::margin);
+        
+        // Calculate the width in text characters for both
+        auto oldCharWidth = oldBounds.getWidth() / fontWidth;
+        auto newCharWidth = std::max(minWidth, newBounds.getWidth() / fontWidth);
+        
+        // If we're resizing the left edge, move the object left
+        if(resizingOnLeft) {
+            auto widthDiff = (newCharWidth - oldCharWidth) * fontWidth;
+            auto x = oldBounds.getX() - widthDiff;
+            auto y = newBounds.getY();
+            
+            libpd_moveobj(patch, reinterpret_cast<t_gobj*>(atom), x, y);
+        }
+        
+        // Set new width
+        atom->a_text.te_width = newCharWidth;
     }
 
     int getAtomHeight() const
@@ -258,22 +329,4 @@ public:
         else
             return (iemgui_raute2dollar(s));
     }
-
-    int const atomSizes[7] = { 0, 8, 10, 12, 16, 24, 36 };
-
-    Object* object;
-    ObjectBase* gui;
-    Canvas* cnv;
-    PluginProcessor* pd;
-
-    t_fake_gatom* atom;
-
-    Value labelColour;
-
-    Value labelPosition = Value(0.0f);
-    Value labelHeight = Value(18.0f);
-    Value labelText;
-
-    Value sendSymbol;
-    Value receiveSymbol;
 };

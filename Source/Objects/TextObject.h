@@ -6,27 +6,26 @@
 
 struct TextObjectHelper {
 
-    inline static int minWidth = 25;
+    inline static int minWidth = 3;
 
     static Rectangle<int> recalculateTextObjectBounds(void* patch, void* obj, String const& currentText, int fontHeight, int& numLines, bool applyOffset = false, int maxIolets = 0)
     {
-
         int x, y, w, h;
         libpd_get_object_bounds(patch, obj, &x, &y, &w, &h);
 
-        int charWidth = getWidthInChars(obj);
         auto fontWidth = glist_fontwidth(static_cast<t_glist*>(patch));
         int idealTextWidth = getIdealWidthForText(currentText, fontHeight);
 
         // For regular text object, we want to adjust the width so ideal text with aligns with fontWidth
         int offset = applyOffset ? idealTextWidth % fontWidth : 0;
-
+        int charWidth = getWidthInChars(obj);
+        
         if (currentText.isEmpty()) { // If text is empty, set to minimum width
-            w = minWidth;
+            w = std::max(charWidth, minWidth) * fontWidth;
         } else if (charWidth == 0) { // If width is set to automatic, calculate based on text width
-            w = std::min(idealTextWidth, fontWidth * 60);
+            w = std::clamp(idealTextWidth, minWidth * fontWidth, fontWidth * 60);
         } else { // If width was set manually, calculate what the width is
-            w = std::max(minWidth, charWidth * fontWidth) + offset;
+            w = std::max(charWidth, minWidth) * fontWidth + offset;
         }
 
         w = std::max(w, maxIolets * 18);
@@ -38,17 +37,18 @@ struct TextObjectHelper {
         return { x, y, w, h };
     }
 
-    
-    static void checkBounds(void* patch, void* obj, Rectangle<int> oldBounds, Rectangle<int> newBounds, bool resizingOnLeft, int fontWidth)
+    static void checkBounds(void* patch, void* obj, Rectangle<int> oldBounds, Rectangle<int> newBounds, bool resizingOnLeft, int fontWidth, int maxIolets = 0)
     {
         // Remove margin
         newBounds = newBounds.reduced(Object::margin);
         oldBounds = oldBounds.reduced(Object::margin);
         
+        auto minimumWidth = std::max(minWidth, (maxIolets * 18) / fontWidth);
+        
         // Calculate the width in text characters for both
         auto oldCharWidth = oldBounds.getWidth() / fontWidth;
-        auto newCharWidth = newBounds.getWidth() / fontWidth;
-        
+        auto newCharWidth = std::max(minimumWidth, newBounds.getWidth() / fontWidth);
+
         // If we're resizing the left edge, move the object left
         if(resizingOnLeft) {
             auto widthDiff = (newCharWidth - oldCharWidth) * fontWidth;
@@ -263,9 +263,6 @@ public:
         
         if(newBounds != object->getObjectBounds()) {
             object->setObjectBounds(newBounds);
-
-            object->constrainer->setMinimumHeight(newBounds.getHeight());
-            object->constrainer->setMaximumHeight(newBounds.getHeight());
         }
 
         pd->getCallbackLock()->exit();
@@ -275,7 +272,7 @@ public:
     {
         auto fontWidth = glist_fontwidth(cnv->patch.getPointer());
         auto* patch = cnv->patch.getPointer();
-        TextObjectHelper::checkBounds(patch, ptr, oldBounds, newBounds, resizingOnLeft, fontWidth);
+        TextObjectHelper::checkBounds(patch, ptr, oldBounds, newBounds, resizingOnLeft, fontWidth, std::max(object->numInputs, object->numOutputs));
         updateBounds();
         return true;
     }
