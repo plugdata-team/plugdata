@@ -4,7 +4,7 @@ description: envelope follower
 categories:
 - object
 see_also: {}
-pdcategory: vanilla,  Audio Filters
+pdcategory: vanilla, Filters, Envelopes and LFOs, Effects
 last_update: '0.40'
 inlets:
   1st:

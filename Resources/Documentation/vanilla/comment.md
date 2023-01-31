@@ -1,5 +1,5 @@
 ---
 title: comment
-description: Comment box
-pdcategory: vanilla,  GUI
+description: comment box
+pdcategory: vanilla, GUI
 draft: false

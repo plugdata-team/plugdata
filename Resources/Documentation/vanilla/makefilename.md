@@ -3,7 +3,7 @@ title: makefilename
 description: format a symbol with a variable field
 categories:
 - object
-pdcategory: vanilla,  General
+pdcategory: vanilla, Data Management, File Management
 arguments:
 - description: format strring with specifiers (%c,  %d,  '%i,  %e,  %E,  %f,  %g,  %G,  %o,  %s,  %u,  %x,  %X
     and %p).

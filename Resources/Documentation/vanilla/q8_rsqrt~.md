@@ -3,7 +3,7 @@ title: q8_rsqrt~
 description: signal reciprocal square root
 categories:
 - object
-pdcategory: vanilla,  Audio Math
+pdcategory: vanilla, Signal Math
 last_update: '0.47'
 see_also:
 - rsqrt~

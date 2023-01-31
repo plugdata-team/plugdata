@@ -3,7 +3,7 @@ title: pack
 description: make compound messages
 categories:
 - object
-pdcategory: vanilla,  Data Management
+pdcategory: vanilla, Data Management
 last_update: '0.34'
 see_also:
 - trigger

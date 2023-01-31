@@ -7,7 +7,7 @@ see_also:
 - phasor~
 - cos~
 - tabread4~
-pdcategory: vanilla,  Audio Oscillators And Tables
+pdcategory: vanilla, Signal Generators
 last_update: '0.33'
 inlets:
   1st:

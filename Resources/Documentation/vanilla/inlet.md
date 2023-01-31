@@ -9,7 +9,7 @@ see_also:
 - outlet~
 - block~
 - pd
-pdcategory: vanilla,  Subwindows
+pdcategory: vanilla, GUI, Mixing and Routing
 last_update: '0.51'
 outlets:
   1st:

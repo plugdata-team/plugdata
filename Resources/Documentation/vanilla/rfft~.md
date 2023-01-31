@@ -3,7 +3,7 @@ title: rfft~
 description: forward real FFT
 categories:
 - object
-pdcategory: vanilla,  Audio Math
+pdcategory: vanilla, Signal Math, Analysis
 last_update: '0.33'
 see_also:
 - block~

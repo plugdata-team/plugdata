@@ -1,9 +1,9 @@
 ---
 title: garray
-description: graphical array (messages received via array name).
+description: graphical array (messages received via array name)
 categories:
 - object
-pdcategory: vanilla,  Arrays & Tables
+pdcategory: vanilla, Arrays and Tables
 last_update: '0.52'
 see_also:
 - inlet

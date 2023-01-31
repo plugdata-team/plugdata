@@ -9,7 +9,7 @@ see_also:
 - array
 - tabwrite~
 - tabreceive~
-pdcategory: vanilla,  Audio Oscillators And Tables
+pdcategory: vanilla, Arrays and Tables, Mixing and Routing
 last_update: '0.43'
 inlets:
   1st:

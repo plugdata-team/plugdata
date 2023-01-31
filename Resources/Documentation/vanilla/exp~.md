@@ -3,7 +3,7 @@ title: exp~
 description: exponential function
 categories:
 - object
-pdcategory: vanilla,  Audio Math
+pdcategory: vanilla, Signal Math
 last_update: '0.47'
 see_also:
 - exp

@@ -3,7 +3,7 @@ title: file isdirectory
 description: check if path is an existing directory
 categories:
 - object
-pdcategory: vanilla,  Misc
+pdcategory: vanilla, File Management
 last_update: '0.52'
 see_also:
 - text

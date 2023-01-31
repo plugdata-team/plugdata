@@ -1,9 +1,9 @@
 ---
 title: file handle
-description: operate on file handles.
+description: operate on file handles
 categories:
 - object
-pdcategory: vanilla,  Misc
+pdcategory: vanilla, File Management
 last_update: '0.52'
 see_also:
 - text

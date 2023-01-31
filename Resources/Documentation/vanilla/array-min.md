@@ -1,9 +1,9 @@
 ---
 title: array min
-description: output minimum value of an array.
+description: output minimum value of an array
 categories:
 - object
-pdcategory: vanilla,  Arrays & Tables
+pdcategory: vanilla, Arrays and Tables
 last_update: '0.52'
 see_also:
 - array

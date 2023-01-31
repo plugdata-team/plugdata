@@ -1,7 +1,7 @@
 ---
 title: nbx, my_numbox
-description: Number box
-pdcategory: vanilla,  GUI
+description: number box
+pdcategory: vanilla, GUI
 inlets:
   1st:
   - type: float

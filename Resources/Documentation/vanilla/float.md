@@ -3,7 +3,7 @@ title: float, f
 description: store and recall a number
 categories:
 - object
-pdcategory: vanilla,  General
+pdcategory: vanilla, Data Math
 last_update: '0.48'
 see_also:
 - int

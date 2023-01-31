@@ -3,7 +3,7 @@ title: text delete
 description: delete a line or clear.
 categories:
 - object
-pdcategory: vanilla,  Misc
+pdcategory: vanilla, Data Management
 last_update: '0.49'
 see_also:
 - list

@@ -3,7 +3,7 @@ title: value, v
 description: shared numeric value
 categories:
 - object
-pdcategory: vanilla,  General
+pdcategory: vanilla, Mixing and Routing, Data Management
 last_update: '0.51'
 see_also:
 - send

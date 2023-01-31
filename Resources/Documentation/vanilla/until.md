@@ -3,7 +3,7 @@ title: until
 description: looping mechanism
 categories:
 - object
-pdcategory: vanilla,  General
+pdcategory: vanilla, Data Math, Sequencing
 last_update: '0.28'
 inlets:
   1st:

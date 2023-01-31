@@ -3,7 +3,7 @@ title: timer
 description: measure time intervals
 categories:
 - object
-pdcategory: vanilla,  Time
+pdcategory: vanilla, Triggers and Clocks
 last_update: '0.47'
 see_also:
 - cputime

@@ -1,7 +1,7 @@
 ---
 title: hradio, hdl, radiobutton, radiobut, rdb
-description: Horizontal radio
-pdcategory: vanilla,  GUI
+description: horizontal radio
+pdcategory: vanilla, GUI
 inlets:
   1st:
   - type: float

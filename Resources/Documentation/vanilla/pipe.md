@@ -3,7 +3,7 @@ title: pipe
 description: dynamically growable delay line for numbers
 categories:
 - object
-pdcategory: vanilla,  Time
+pdcategory: vanilla, Triggers and Clocks, Sequencing
 last_update: '0.33'
 see_also:
 - delay

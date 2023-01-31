@@ -1,9 +1,9 @@
 ---
 title: mtof
-description: convert acoustical units
+description: MIDI to frequency conversion
 categories:
 - object
-pdcategory: vanilla,  Math
+pdcategory: vanilla, Tuning, MIDI
 last_update: '0.40'
 see_also:
 - mtof~
