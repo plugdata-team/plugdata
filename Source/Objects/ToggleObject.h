@@ -122,16 +122,22 @@ public:
 
     void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
     {
-        if (symbol == "bang") {
-            value = !value;
-            setToggleStateFromFloat(value);
-        } else if (symbol == "float" || symbol == "set") {
-            value = atoms[0].getFloat();
-            setToggleStateFromFloat(value);
-        } else if (symbol == "nonzero" && atoms.size() >= 1) {
-            setParameterExcludingListener(nonZero, atoms[0].getFloat());
-        } else {
-            iemHelper.receiveObjectMessage(symbol, atoms);
+        switch (objectMessageMapped[symbol]) {
+            case objectMessage::msg_bang:
+                value = !value;
+                setToggleStateFromFloat(value);
+                break;
+            case objectMessage::msg_float:
+            case objectMessage::msg_set:
+                value = atoms[0].getFloat();
+                setToggleStateFromFloat(value);
+                break;
+            case objectMessage::msg_nonzero:
+                if (atoms.size() >= 1)
+                    setParameterExcludingListener(nonZero, atoms[0].getFloat());
+                break;
+            default:
+                iemHelper.receiveObjectMessage(symbol, atoms);
         }
     }
 

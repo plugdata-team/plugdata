@@ -115,10 +115,12 @@ public:
 
     void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
     {
-        if (symbol == "float") {
-            repaint();
-        } else {
-            iemHelper.receiveObjectMessage(symbol, atoms);
+        switch (objectMessageMapped[symbol]) {
+            case objectMessage::msg_float:
+                repaint();
+                break;
+            default:
+                iemHelper.receiveObjectMessage(symbol, atoms);
         }
     }
 };

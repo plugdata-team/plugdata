@@ -171,15 +171,20 @@ public:
 
     void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
     {
-        if (symbol == "float" || symbol == "bang" || symbol == "list" || symbol == "set") {
-            update();
-        } else if (symbol == "flashtime") {
-            if (atoms.size() > 0)
-                setParameterExcludingListener(bangInterrupt, atoms[0].getFloat());
-            if (atoms.size() > 1)
-                setParameterExcludingListener(bangHold, atoms[1].getFloat());
-        } else {
-            iemHelper.receiveObjectMessage(symbol, atoms);
+        switch (objectMessageMapped[symbol]) {
+            case objectMessage::msg_float:
+            case objectMessage::msg_bang:
+            case objectMessage::msg_list:
+                update();
+                break;
+            case objectMessage::msg_flashtime:
+                if (atoms.size() > 0)
+                    setParameterExcludingListener(bangInterrupt, atoms[0].getFloat());
+                if (atoms.size() > 1)
+                    setParameterExcludingListener(bangHold, atoms[1].getFloat());
+                break;
+            default:
+                iemHelper.receiveObjectMessage(symbol, atoms);
         }
     }
 };

@@ -199,21 +199,28 @@ public:
 
     void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
     {
-        if (symbol == "float") {
-            auto min = getMinimum();
-            auto max = getMaximum();
+        switch (objectMessageMapped[symbol]) {
+            case objectMessage::msg_float:
+                {
+                auto min = getMinimum();
+                auto max = getMaximum();
 
-            if (min != 0 || max != 0) {
-                value = std::clamp(atoms[0].getFloat(), min, max);
-            } else {
-                value = atoms[0].getFloat();
-            }
-
-            input.setText(input.formatNumber(value), dontSendNotification);
-        } else if (symbol == "send" && atoms.size() >= 1) {
-            setParameterExcludingListener(atomHelper.sendSymbol, atoms[0].getSymbol());
-        } else if (symbol == "receive" && atoms.size() >= 1) {
-            setParameterExcludingListener(atomHelper.receiveSymbol, atoms[0].getSymbol());
+                if (min != 0 || max != 0) {
+                    value = std::clamp(atoms[0].getFloat(), min, max);
+                } else {
+                    value = atoms[0].getFloat();
+                }
+                input.setText(input.formatNumber(value), dontSendNotification);
+                break;
+                }
+            case objectMessage::msg_send:
+                if (atoms.size() >= 1)
+                    setParameterExcludingListener(atomHelper.sendSymbol, atoms[0].getSymbol());
+                break;
+            case objectMessage::msg_receive:
+                if (atoms.size() >= 1) 
+                    setParameterExcludingListener(atomHelper.receiveSymbol, atoms[0].getSymbol());
+                break;
         }
-    };
+    }
 };

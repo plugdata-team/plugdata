@@ -334,17 +334,23 @@ public:
 
     void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
     {
-        if (symbol == "float" || symbol == "list" || symbol == "set") {
-            updateValue();
-        } else if (symbol == "lowc") {
-            setParameterExcludingListener(lowC, static_cast<int>(atoms[0].getFloat()));
-            updateAspectRatio();
-        } else if (symbol == "oct") {
-            setParameterExcludingListener(lowC, std::clamp<int>(static_cast<int>(lowC.getValue()) + static_cast<int>(atoms[0].getFloat()), -1, 9));
-            updateAspectRatio();
-        } else if (symbol == "8ves") {
-            setParameterExcludingListener(octaves, static_cast<int>(atoms[0].getFloat()));
-            updateAspectRatio();
+        switch (objectMessageMapped[symbol]) {
+            case objectMessage::msg_float:
+            case objectMessage::msg_list:
+            case objectMessage::msg_set:
+                updateValue();
+                break;
+            case objectMessage::msg_lowc:
+                setParameterExcludingListener(lowC, static_cast<int>(atoms[0].getFloat()));
+                updateAspectRatio();
+                break;
+            case objectMessage::msg_oct:
+                setParameterExcludingListener(lowC, std::clamp<int>(static_cast<int>(lowC.getValue()) + static_cast<int>(atoms[0].getFloat()), -1, 9));
+                updateAspectRatio();
+                break;
+            case objectMessage::msg_8ves:
+                setParameterExcludingListener(octaves, static_cast<int>(atoms[0].getFloat()));
+                updateAspectRatio();
         }
     }
 
