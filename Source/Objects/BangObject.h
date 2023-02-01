@@ -177,14 +177,17 @@ public:
             case objectMessage::msg_list:
                 update();
                 break;
-            case objectMessage::msg_flashtime:
+            case objectMessage::msg_flashtime: {
                 if (atoms.size() > 0)
                     setParameterExcludingListener(bangInterrupt, atoms[0].getFloat());
                 if (atoms.size() > 1)
                     setParameterExcludingListener(bangHold, atoms[1].getFloat());
                 break;
-            default:
+            }
+            default: {
                 iemHelper.receiveObjectMessage(symbol, atoms);
+                break;
+            }
         }
     }
 };

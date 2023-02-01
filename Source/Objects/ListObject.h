@@ -190,17 +190,21 @@ public:
             case objectMessage::msg_float:
             case objectMessage::msg_symbol:
             case objectMessage::msg_list:
-            case objectMessage::msg_set:
+            case objectMessage::msg_set: {
                 updateValue();
                 break;
-            case objectMessage::msg_send:
+            }
+            case objectMessage::msg_send: {
                 if (atoms.size() >= 1)
                     setParameterExcludingListener(atomHelper.sendSymbol, atoms[0].getSymbol());
                 break;
-            case objectMessage::msg_receive:
+            }
+            case objectMessage::msg_receive: {
                 if (atoms.size() >= 1)
                     setParameterExcludingListener(atomHelper.receiveSymbol, atoms[0].getSymbol());
                 break;
+            }
+            default: break;
         }
     }
 };

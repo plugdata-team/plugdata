@@ -155,12 +155,15 @@ public:
     {
         switch (objectMessageMapped[symbol]) {
             case objectMessage::msg_float:
-            case objectMessage::msg_set:
+            case objectMessage::msg_set: {
                 value = std::clamp(atoms[0].getFloat(), static_cast<float>(min.getValue()), static_cast<float>(max.getValue()));
                 input.setText(input.formatNumber(value), dontSendNotification);
                 break;
-            default:
+            }
+            default: {
                 iemHelper.receiveObjectMessage(symbol, atoms);
+                break;
+            }
         }
     }
 
