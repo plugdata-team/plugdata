@@ -159,12 +159,18 @@ public:
 
     void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
     {
-        if (symbol == "symbol") {
-            input.setText(atoms[0].getSymbol(), dontSendNotification);
-        } else if (symbol == "send" && atoms.size() >= 1) {
-            setParameterExcludingListener(atomHelper.sendSymbol, atoms[0].getSymbol());
-        } else if (symbol == "receive" && atoms.size() >= 1) {
-            setParameterExcludingListener(atomHelper.receiveSymbol, atoms[0].getSymbol());
+        switch (objectMessageMapped[symbol]) {
+            case objectMessage::msg_symbol:
+                input.setText(atoms[0].getSymbol(), dontSendNotification);
+                break;
+            case objectMessage::msg_send:
+                if (atoms.size() >= 1)
+                    setParameterExcludingListener(atomHelper.sendSymbol, atoms[0].getSymbol());
+                break;
+            case objectMessage::msg_receive:
+                if (atoms.size() >= 1) {
+                    setParameterExcludingListener(atomHelper.receiveSymbol, atoms[0].getSymbol());
+                }
         }
-    };
+    }
 };

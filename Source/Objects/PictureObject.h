@@ -112,8 +112,10 @@ public:
 
     void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
     {
-        if (symbol == "open" && atoms.size() >= 1) {
-            openFile(atoms[0].getSymbol());
+        switch (objectMessageMapped[symbol]) {
+            case objectMessage::msg_open:
+                if (atoms.size() >= 1)
+                    openFile(atoms[0].getSymbol());
         }
     }
 

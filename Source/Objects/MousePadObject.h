@@ -174,8 +174,9 @@ public:
 
     void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
     {
-        if (symbol == "color") {
-            repaint();
+        switch (objectMessageMapped[symbol]) {
+            case objectMessage::msg_color:
+                repaint();
         }
     }
 };
