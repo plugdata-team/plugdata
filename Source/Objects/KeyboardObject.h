@@ -334,13 +334,9 @@ public:
 
     void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
     {
-        if (symbol == "float") {
+        if (symbol == "float" || symbol == "list" || symbol == "set") {
             updateValue();
-        }
-        if (symbol == "list") {
-            updateValue();
-        }
-        if (symbol == "lowc") {
+        } else if (symbol == "lowc") {
             setParameterExcludingListener(lowC, static_cast<int>(atoms[0].getFloat()));
             updateAspectRatio();
         } else if (symbol == "oct") {

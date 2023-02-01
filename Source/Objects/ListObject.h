@@ -186,7 +186,7 @@ public:
 
     void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
     {
-        if (symbol == "float" || symbol == "symbol" || symbol == "list") {
+        if (symbol == "float" || symbol == "symbol" || symbol == "list" || symbol == "set") {
             updateValue();
         } else if (symbol == "send" && atoms.size() >= 1) {
             setParameterExcludingListener(atomHelper.sendSymbol, atoms[0].getSymbol());

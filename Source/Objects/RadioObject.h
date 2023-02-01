@@ -76,8 +76,7 @@ public:
         if (symbol == "float" || symbol == "set") {
             selected = atoms[0].getFloat();
             repaint();
-        }
-        if (symbol == "orientation" && atoms.size() >= 1) {
+        } else if (symbol == "orientation" && atoms.size() >= 1) {
             isVertical = static_cast<bool>(atoms[0].getFloat());
             updateBounds();
         } else if (symbol == "number" && atoms.size() >= 1) {

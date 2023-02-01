@@ -103,19 +103,15 @@ public:
 
     void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
     {
-        if (symbol == "float") {
+        if (symbol == "float" || symbol == "set") {
             value = atoms[0].getFloat();
             slider.setValue(value, dontSendNotification);
-        }
-
-        if (symbol == "lin") {
+        } else if (symbol == "lin") {
             setParameterExcludingListener(isLogarithmic, false);
             updateRange();
-
         } else if (symbol == "log") {
             setParameterExcludingListener(isLogarithmic, true);
             updateRange();
-
         } else if (symbol == "range" && atoms.size() >= 2) {
             setParameterExcludingListener(min, atoms[0].getFloat());
             setParameterExcludingListener(max, atoms[1].getFloat());

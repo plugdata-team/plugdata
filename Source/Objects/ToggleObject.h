@@ -125,12 +125,10 @@ public:
         if (symbol == "bang") {
             value = !value;
             setToggleStateFromFloat(value);
-        }
-        if (symbol == "float") {
+        } else if (symbol == "float" || symbol == "set") {
             value = atoms[0].getFloat();
             setToggleStateFromFloat(value);
-        }
-        if (symbol == "nonzero" && atoms.size() >= 1) {
+        } else if (symbol == "nonzero" && atoms.size() >= 1) {
             setParameterExcludingListener(nonZero, atoms[0].getFloat());
         } else {
             iemHelper.receiveObjectMessage(symbol, atoms);
