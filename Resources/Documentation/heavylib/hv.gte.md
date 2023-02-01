@@ -1,45 +1,28 @@
 ---
 title: hv.gte
 
-description: 
+description: signal rate greater-than-or-equal-to operation
 
 categories:
 - object
 
-pdcategory: heavylib
+pdcategory: heavylib, Logic
 
 arguments:
-- type: 
-  description: 
-  default: 
 
 inlets:
   1st:
-  - type: 
-    description: 
+  - type: signal
+    description: left-hand signal
   2nd:
-  - type: 
-    description: 
+  - type: signal
+    description: right-hand signal
 
 outlets:
   1st:
-  - type: 
-    description: 
-  2nd:
-  - type: 
-    description: 
-
-flags:
-  - name: 
-    description: 
-
-methods:
-  - type: 
-    description: 
+  - type: signal
+    description: 1 if left input >= right input, 0 otherwise
 
 draft: false
 ---
-
-
-
 
