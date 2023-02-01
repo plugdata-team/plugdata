@@ -156,15 +156,15 @@ bool Object::hitTest(int x, int y)
             return true;
     }
     
-    // Mouse over corners
+    // Mouse over corners - this is only needed for text objects, we use constrainer for all other objects!
     if (cnv->isSelected(this)) {
         
         for (auto& corner : getCorners()) {
             if (corner.contains(x, y))
                 return true;
         }
-        
-        return getLocalBounds().reduced(1, margin).contains(x, y);
+
+        return getLocalBounds().reduced(margin).contains(x, y);
     }
 
     return false;
@@ -178,6 +178,8 @@ void Object::mouseEnter(MouseEvent const& e)
 
 void Object::mouseExit(MouseEvent const& e)
 {
+    // we need to reset the resizeZone, otherwise it can have an old zone already selected on re-entry
+    resizeZone = ResizableBorderComponent::Zone(ResizableBorderComponent::Zone::centre);
     repaint();
 }
 
@@ -700,9 +702,9 @@ void Object::mouseDrag(MouseEvent const& e)
         if(useConstrainer)
         {
             constrainer->setBoundsForComponent (this, newBounds, resizeZone.isDraggingTopEdge(),
-                                                    resizeZone.isDraggingLeftEdge(),
-                                                    resizeZone.isDraggingBottomEdge(),
-                                                resizeZone.isDraggingRightEdge());
+                                                                 resizeZone.isDraggingLeftEdge(),
+                                                                 resizeZone.isDraggingBottomEdge(),
+                                                                 resizeZone.isDraggingRightEdge());
         }
         
     }
