@@ -668,9 +668,13 @@ public:
 
     void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
     {
-        if (symbol == "float" || symbol == "symbol" || symbol == "list") {
+        switch (objectMessageMapped[symbol]) {
+            case objectMessage::msg_float:
+            case objectMessage::msg_symbol:
+            case objectMessage::msg_list:
+                break;
         }
-    };
+    }
 
 private:
     Value name, size, drawMode, saveContents, range;

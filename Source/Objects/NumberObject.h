@@ -153,14 +153,16 @@ public:
 
     void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
     {
-        if (symbol == "float" || symbol == "set") {
-            value = std::clamp(atoms[0].getFloat(), static_cast<float>(min.getValue()), static_cast<float>(max.getValue()));
-
-            input.setText(input.formatNumber(value), dontSendNotification);
-        } else {
-            iemHelper.receiveObjectMessage(symbol, atoms);
+        switch (objectMessageMapped[symbol]) {
+            case objectMessage::msg_float:
+            case objectMessage::msg_set:
+                value = std::clamp(atoms[0].getFloat(), static_cast<float>(min.getValue()), static_cast<float>(max.getValue()));
+                input.setText(input.formatNumber(value), dontSendNotification);
+                break;
+            default:
+                iemHelper.receiveObjectMessage(symbol, atoms);
         }
-    };
+    }
 
     void valueChanged(Value& value) override
     {

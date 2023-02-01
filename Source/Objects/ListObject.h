@@ -186,12 +186,21 @@ public:
 
     void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
     {
-        if (symbol == "float" || symbol == "symbol" || symbol == "list" || symbol == "set") {
-            updateValue();
-        } else if (symbol == "send" && atoms.size() >= 1) {
-            setParameterExcludingListener(atomHelper.sendSymbol, atoms[0].getSymbol());
-        } else if (symbol == "receive" && atoms.size() >= 1) {
-            setParameterExcludingListener(atomHelper.receiveSymbol, atoms[0].getSymbol());
+        switch (objectMessageMapped[symbol]) {
+            case objectMessage::msg_float:
+            case objectMessage::msg_symbol:
+            case objectMessage::msg_list:
+            case objectMessage::msg_set:
+                updateValue();
+                break;
+            case objectMessage::msg_send:
+                if (atoms.size() >= 1)
+                    setParameterExcludingListener(atomHelper.sendSymbol, atoms[0].getSymbol());
+                break;
+            case objectMessage::msg_receive:
+                if (atoms.size() >= 1)
+                    setParameterExcludingListener(atomHelper.receiveSymbol, atoms[0].getSymbol());
+                break;
         }
-    };
+    }
 };

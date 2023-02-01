@@ -179,12 +179,15 @@ public:
 
     void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
     {
-        if (symbol == "bgcolor") {
-            setParameterExcludingListener(secondaryColour, Colour(atoms[0].getFloat(), atoms[1].getFloat(), atoms[2].getFloat()).toString());
-            repaint();
-        } else if (symbol == "fgcolor") {
-            setParameterExcludingListener(primaryColour, Colour(atoms[0].getFloat(), atoms[1].getFloat(), atoms[2].getFloat()).toString());
-            repaint();
+        switch (objectMessageMapped[symbol]) {
+            case objectMessage::msg_bgcolor:
+                setParameterExcludingListener(secondaryColour, Colour(atoms[0].getFloat(), atoms[1].getFloat(), atoms[2].getFloat()).toString());
+                repaint();
+                break;
+            case objectMessage::msg_fgcolor:
+                setParameterExcludingListener(primaryColour, Colour(atoms[0].getFloat(), atoms[1].getFloat(), atoms[2].getFloat()).toString());
+                repaint();
+                break;
         }
     }
 };
