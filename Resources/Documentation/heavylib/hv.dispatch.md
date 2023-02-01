@@ -24,7 +24,7 @@ inlets:
 outlets:
   1st:
   - type: anything
-    description: input with matching parameter trimmed
+    description: input with matching parameter and message trimmed
 
 draft: false
 ---
