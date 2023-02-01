@@ -1,45 +1,23 @@
 ---
 title: hv.pinknoise
 
-description: 
+description: pink noise
 
 categories:
 - object
 
-pdcategory: heavylib
+pdcategory: heavylib, Random and Noise, Signal Generators
 
 arguments:
-- type: 
-  description: 
-  default: 
 
 inlets:
   1st:
-  - type: 
-    description: 
-  2nd:
-  - type: 
-    description: 
 
 outlets:
   1st:
-  - type: 
-    description: 
-  2nd:
-  - type: 
-    description: 
-
-flags:
-  - name: 
-    description: 
-
-methods:
-  - type: 
-    description: 
+  - type: signal
+    description: pink noise
 
 draft: false
 ---
-
-
-
 

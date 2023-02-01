@@ -1,45 +1,37 @@
 ---
 title: hv.flanger
 
-description: 
+description: mono flanger effect unit
 
 categories:
 - object
 
-pdcategory: heavylib
+pdcategory: heavylib, Effects
 
 arguments:
-- type: 
-  description: 
+- type: float
+  description: delay time
   default: 
 
 inlets:
   1st:
-  - type: 
-    description: 
+  - type: signal
+    description: input signal
   2nd:
-  - type: 
-    description: 
+  - type: mix <float>
+    description: dry/wet (0 to 1)
+  - type: feedback <float>
+    description: -1 to 1
+  - type: speed <float>
+    description: 0 to 20 Hz
+  - type: intensity <float>
+    description: 0 to 1
 
 outlets:
   1st:
-  - type: 
-    description: 
-  2nd:
-  - type: 
-    description: 
-
-flags:
-  - name: 
-    description: 
-
-methods:
-  - type: 
-    description: 
+  - type: signal
+    description: flanger output
 
 draft: false
 ---
-
-
-
 

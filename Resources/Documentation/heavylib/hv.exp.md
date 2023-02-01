@@ -1,45 +1,26 @@
 ---
 title: hv.exp
 
-description: 
+description: alternative implementation to the exp~ object
 
 categories:
 - object
 
-pdcategory: heavylib
+pdcategory: heavylib, Signal Math
 
 arguments:
-- type: 
-  description: 
-  default: 
 
 inlets:
   1st:
-  - type: 
-    description: 
-  2nd:
-  - type: 
-    description: 
+  - type: signal
+    description: input value to exp function
 
 outlets:
   1st:
-  - type: 
-    description: 
-  2nd:
-  - type: 
-    description: 
-
-flags:
-  - name: 
-    description: 
-
-methods:
-  - type: 
-    description: 
+  - type: signal
+    description: output of exp function
 
 draft: false
 ---
-
-
-
+This abstraction presents an alternative implementation to the exp~ object. Heavy uses the system's expf() function (as does Pd), but some applications may wish to avoid the expf() function entirely, and instead use this reasonably fast approximation.
 

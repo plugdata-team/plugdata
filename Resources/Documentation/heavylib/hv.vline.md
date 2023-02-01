@@ -1,45 +1,31 @@
 ---
 title: hv.vline
 
-description: 
+description: [line~] based replacement for [vline~]
 
 categories:
 - object
 
-pdcategory: heavylib
+pdcategory: heavylib, Signal Generators, Envelopes and LFOs
 
 arguments:
-- type: 
-  description: 
-  default: 
 
 inlets:
   1st:
-  - type: 
-    description: 
-  2nd:
-  - type: 
-    description: 
+  - type: float
+    description: jump to value
+  - type: list
+    description: <target value, time interval in ms>
 
 outlets:
   1st:
-  - type: 
-    description: 
-  2nd:
-  - type: 
-    description: 
-
-flags:
-  - name: 
-    description: 
+  - type: signal
+    description: ramp output
 
 methods:
-  - type: 
-    description: 
+  - type: stop
+    description: freeze vline at its current value
 
 draft: false
 ---
-
-
-
 

@@ -1,45 +1,34 @@
 ---
 title: hv.multiplex
 
-description: 
+description: signal multiplexer
 
 categories:
 - object
 
-pdcategory: heavylib
+pdcategory: heavylib, Mixing and Routing
 
 arguments:
-- type: 
-  description: 
-  default: 
 
 inlets:
   1st:
-  - type: 
-    description: 
+  - type: signal
+    description: signal a
   2nd:
-  - type: 
-    description: 
+  - type: signal
+    description: signal b
+  3rd:
+  - type: float/signal
+    description: left-hand side
+  4th:
+  - type: float/signal
+    description: right-hand side
 
 outlets:
   1st:
-  - type: 
-    description: 
-  2nd:
-  - type: 
-    description: 
-
-flags:
-  - name: 
-    description: 
-
-methods:
-  - type: 
-    description: 
+  - type: signal
+    description: signal a if lhs > rhs, signal b otherwise
 
 draft: false
 ---
-
-
-
 
