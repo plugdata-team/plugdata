@@ -56,7 +56,7 @@ public:
     
     Value labelColour;
     Value labelPosition = Value(0.0f);
-    Value labelHeight = Value(18.0f);
+    Value fontSize = Value(18.0f);
     Value labelText;
     Value sendSymbol;
     Value receiveSymbol;
@@ -74,7 +74,7 @@ public:
         int h = getFontHeight();
 
         int idx = static_cast<int>(std::find(atomSizes, atomSizes + 7, h) - atomSizes);
-        labelHeight = idx + 1;
+        fontSize = idx + 1;
 
         sendSymbol = getSendSymbol();
         receiveSymbol = getReceiveSymbol();
@@ -130,11 +130,26 @@ public:
         
         // Set new width
         atom->a_text.te_width = newCharWidth;
+        
+        auto newHeight = newBounds.getHeight();
+        int heightIdx = 1;
+        
+        // Round to nearest atom size
+        for(int i = 1; i < 7; i++)
+        {
+            if(newHeight > atomSizes[i] + 7)
+            {
+                heightIdx = i;
+            }
+        }
+        
+        setFontHeight(atomSizes[heightIdx]);
+        gui->setParameterExcludingListener(fontSize, heightIdx + 1);
     }
 
     int getAtomHeight() const
     {
-        int idx = static_cast<int>(labelHeight.getValue()) - 1;
+        int idx = static_cast<int>(fontSize.getValue()) - 1;
         if (idx == 0) {
             return cnv->patch.getPointer()->gl_font + 7;
         } else {
@@ -145,7 +160,7 @@ public:
     ObjectParameters getParameters()
     {
         return {
-            { "Font size", tCombo, cGeneral, &labelHeight, { "auto", "8", "10", "12", "16", "24", "36" } },
+            { "Font size", tCombo, cGeneral, &fontSize, { "auto", "8", "10", "12", "16", "24", "36" } },
             { "Receive Symbol", tString, cGeneral, &receiveSymbol, {} },
             { "Send Symbol", tString, cGeneral, &sendSymbol, {} },
             { "Label", tString, cLabel, &labelText, {} },
@@ -158,7 +173,7 @@ public:
         if (v.refersToSameSourceAs(labelPosition)) {
             setLabelPosition(static_cast<int>(labelPosition.getValue()));
             gui->updateLabel();
-        } else if (v.refersToSameSourceAs(labelHeight)) {
+        } else if (v.refersToSameSourceAs(fontSize)) {
             gui->updateLabel();
             gui->updateBounds();
         } else if (v.refersToSameSourceAs(labelText)) {
@@ -173,7 +188,7 @@ public:
 
     void updateLabel(std::unique_ptr<ObjectLabel>& label)
     {
-        int idx = std::clamp<int>(labelHeight.getValue(), 1, 7);
+        int idx = std::clamp<int>(fontSize.getValue(), 1, 7);
 
         // TODO: fix data race
         setFontHeight(atomSizes[idx - 1]);
