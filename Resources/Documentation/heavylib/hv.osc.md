@@ -1,45 +1,30 @@
 ---
 title: hv.osc
 
-description: 
+description: polynomial band-limited polystep oscillators
 
 categories:
 - object
 
-pdcategory: heavylib
+pdcategory: heavylib, Signal Generators
 
 arguments:
-- type: 
-  description: 
-  default: 
+- type: symbol
+  description: wave shape, <sine, saw, or square>
 
 inlets:
   1st:
-  - type: 
-    description: 
+  - type: signal
+    description: frequency input
   2nd:
-  - type: 
-    description: 
+  - type: float
+    description: phase reset
 
 outlets:
   1st:
-  - type: 
-    description: 
-  2nd:
-  - type: 
-    description: 
-
-flags:
-  - name: 
-    description: 
-
-methods:
-  - type: 
-    description: 
+  - type: signal
+    description: oscillator output
 
 draft: false
 ---
-
-
-
 

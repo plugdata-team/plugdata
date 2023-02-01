@@ -1,45 +1,25 @@
 ---
 title: hv.tanh
 
-description: 
+description: Pade-approximation of tanh function
 
 categories:
 - object
 
-pdcategory: heavylib
+pdcategory: heavylib, Signal Math
 
 arguments:
-- type: 
-  description: 
-  default: 
 
 inlets:
   1st:
-  - type: 
-    description: 
-  2nd:
-  - type: 
-    description: 
+  - type: signal
+    description: input to tanh function
 
 outlets:
   1st:
-  - type: 
-    description: 
-  2nd:
-  - type: 
-    description: 
-
-flags:
-  - name: 
-    description: 
-
-methods:
-  - type: 
-    description: 
+  - type: signal
+    description: tanh of input
 
 draft: false
 ---
-
-
-
 
