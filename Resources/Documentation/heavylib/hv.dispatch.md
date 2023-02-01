@@ -6,29 +6,26 @@ description: automatically generate local send object for parameter distribution
 categories:
 - object
 
-pdcategory: heavylib, GUI, Data Management
+pdcategory: heavylib, Mixing and Routing
 
 arguments:
 - type: symbol
   description: unique ID
-  default: 
 - type: symbol
   description: parameter name
-  default: 
 - type: float
   description: default value
-  default: 
 
 inlets:
   1st:
   - type: anything
-    description: input to be sent
+    description: parameter name followed by message to send
 
 outlets:
   1st:
   - type: anything
-    description: (?)
+    description: input with matching parameter and message trimmed
 
-draft: true
+draft: false
 ---
-
+hv.dispatch creates local send objects. it's a way to funnel messages into a single abstraction input and then easily be able to distribute them. it outputs the remainder of messages, so that you can chain them together.
