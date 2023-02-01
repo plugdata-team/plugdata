@@ -107,40 +107,56 @@ public:
                 gui->setParameterExcludingListener(targetValue, colour.toString());
             }
         };
+        switch (objectMessageMapped[symbol]) {
+            case objectMessage::msg_send:
+                if (atoms.size() >= 1)
+                    gui->setParameterExcludingListener(sendSymbol, atoms[0].getSymbol());
+                break;
+            case objectMessage::msg_receive:
+                if (atoms.size() >= 1)
+                    gui->setParameterExcludingListener(receiveSymbol, atoms[0].getSymbol());
+                break;
+            case objectMessage::msg_color:
+                if (atoms.size() > 0)
+                    setColour(secondaryColour, atoms[0]);
+                if (atoms.size() > 1)
+                    setColour(primaryColour, atoms[1]);
+                if (atoms.size() > 2)
+                    setColour(labelColour, atoms[2]);
+                gui->repaint();
+                gui->updateLabel();
+                break;
+            case objectMessage::msg_label:
+                if (atoms.size() >= 1) {
+                    gui->setParameterExcludingListener(labelText, atoms[0].getSymbol());
+                    gui->updateLabel();
+                }
+                break;
+            case objectMessage::msg_label_pos:
+                if (atoms.size() >= 2) {
+                    gui->setParameterExcludingListener(labelX, static_cast<int>(atoms[0].getFloat()));
+                    gui->setParameterExcludingListener(labelY, static_cast<int>(atoms[1].getFloat()));
+                    gui->updateLabel();
+                }
+                break;
+            case objectMessage::msg_label_font:
+                if (atoms.size() >= 2) {
+                    gui->setParameterExcludingListener(labelHeight, static_cast<int>(atoms[1].getFloat()));
+                    gui->updateLabel();
+                }
+                break;
+            case objectMessage::msg_vis_size:
+                if (atoms.size() >= 2) {
+                    pd->getCallbackLock()->enter();
+                    auto bounds = Rectangle<int>(iemgui->x_obj.te_xpix, iemgui->x_obj.te_ypix, atoms[0].getFloat(), atoms[1].getFloat());
+                    pd->getCallbackLock()->exit();
 
-        if (symbol == "send" && atoms.size() >= 1) {
-            gui->setParameterExcludingListener(sendSymbol, atoms[0].getSymbol());
-        } else if (symbol == "receive" && atoms.size() >= 1) {
-            gui->setParameterExcludingListener(receiveSymbol, atoms[0].getSymbol());
-        } else if (symbol == "color") {
-
-            if (atoms.size() > 0)
-                setColour(secondaryColour, atoms[0]);
-            if (atoms.size() > 1)
-                setColour(primaryColour, atoms[1]);
-            if (atoms.size() > 2)
-                setColour(labelColour, atoms[2]);
-
-            gui->repaint();
-            gui->updateLabel();
-        } else if (symbol == "label" && atoms.size() >= 1) {
-            gui->setParameterExcludingListener(labelText, atoms[0].getSymbol());
-            gui->updateLabel();
-        } else if (symbol == "label_pos" && atoms.size() >= 2) {
-            gui->setParameterExcludingListener(labelX, static_cast<int>(atoms[0].getFloat()));
-            gui->setParameterExcludingListener(labelY, static_cast<int>(atoms[1].getFloat()));
-            gui->updateLabel();
-        } else if (symbol == "label_font" && atoms.size() >= 2) {
-            gui->setParameterExcludingListener(labelHeight, static_cast<int>(atoms[1].getFloat()));
-            gui->updateLabel();
-        } else if (symbol == "vis_size" && atoms.size() >= 2) {
-            pd->getCallbackLock()->enter();
-            auto bounds = Rectangle<int>(iemgui->x_obj.te_xpix, iemgui->x_obj.te_ypix, atoms[0].getFloat(), atoms[1].getFloat());
-            pd->getCallbackLock()->exit();
-
-            object->setObjectBounds(bounds);
-        } else if (symbol == "init" && atoms.size() >= 1) {
-            gui->setParameterExcludingListener(initialise, static_cast<bool>(atoms[0].getFloat()));
+                    object->setObjectBounds(bounds);
+                }
+                break;
+            case objectMessage::msg_init:
+                if (atoms.size() >= 1)
+                    gui->setParameterExcludingListener(initialise, static_cast<bool>(atoms[0].getFloat()));
         }
     }
 

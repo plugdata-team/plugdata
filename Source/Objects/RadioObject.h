@@ -73,17 +73,24 @@ public:
 
     void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
     {
-        if (symbol == "float" || symbol == "set") {
-            selected = atoms[0].getFloat();
-            repaint();
-        }
-        if (symbol == "orientation" && atoms.size() >= 1) {
-            isVertical = static_cast<bool>(atoms[0].getFloat());
-            updateBounds();
-        } else if (symbol == "number" && atoms.size() >= 1) {
-            setParameterExcludingListener(max, static_cast<int>(atoms[0].getFloat()));
-        } else {
-            iemHelper.receiveObjectMessage(symbol, atoms);
+        switch (objectMessageMapped[symbol]) {
+            case objectMessage::msg_float:
+            case objectMessage::msg_set:
+                selected = atoms[0].getFloat();
+                repaint();
+                break;
+            case objectMessage::msg_orientation:
+                if (atoms.size() >= 1) {
+                    isVertical = static_cast<bool>(atoms[0].getFloat());
+                    updateBounds();
+                }
+                break;
+            case objectMessage::msg_number:
+                if (atoms.size() >= 1)
+                    setParameterExcludingListener(max, static_cast<int>(atoms[0].getFloat()));
+                break;
+            default:
+                iemHelper.receiveObjectMessage(symbol, atoms);
         }
     }
 
