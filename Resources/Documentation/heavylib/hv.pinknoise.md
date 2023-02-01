@@ -11,7 +11,6 @@ pdcategory: heavylib, Random and Noise, Signal Generators
 arguments:
 
 inlets:
-  1st:
 
 outlets:
   1st:
