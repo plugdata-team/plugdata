@@ -6,7 +6,7 @@ description: automatically generate local send object for parameter distribution
 categories:
 - object
 
-pdcategory: heavylib, GUI, Mixing and Routing
+pdcategory: heavylib, Mixing and Routing
 
 arguments:
 - type: symbol
