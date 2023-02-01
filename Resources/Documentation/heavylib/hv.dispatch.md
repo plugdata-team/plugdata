@@ -1,45 +1,34 @@
 ---
 title: hv.dispatch
 
-description: 
+description: automatically generate local send object for parameter distribution
 
 categories:
 - object
 
-pdcategory: heavylib
+pdcategory: heavylib, GUI, Data Management
 
 arguments:
-- type: 
-  description: 
+- type: symbol
+  description: unique ID
+  default: 
+- type: symbol
+  description: parameter name
+  default: 
+- type: float
+  description: default value
   default: 
 
 inlets:
   1st:
-  - type: 
-    description: 
-  2nd:
-  - type: 
-    description: 
+  - type: anything
+    description: input to be sent
 
 outlets:
   1st:
-  - type: 
-    description: 
-  2nd:
-  - type: 
-    description: 
+  - type: anything
+    description: (?)
 
-flags:
-  - name: 
-    description: 
-
-methods:
-  - type: 
-    description: 
-
-draft: false
+draft: true
 ---
-
-
-
 

@@ -1,45 +1,28 @@
 ---
 title: hv.lt
 
-description: 
+description: signal rate less-than operation
 
 categories:
 - object
 
-pdcategory: heavylib
+pdcategory: heavylib, Logic
 
 arguments:
-- type: 
-  description: 
-  default: 
 
 inlets:
   1st:
-  - type: 
-    description: 
+  - type: signal
+    description: left-hand signal
   2nd:
-  - type: 
-    description: 
+  - type: signal
+    description: right-hand signal
 
 outlets:
   1st:
-  - type: 
-    description: 
-  2nd:
-  - type: 
-    description: 
-
-flags:
-  - name: 
-    description: 
-
-methods:
-  - type: 
-    description: 
+  - type: signal
+    description: 1 if left input is less than right input, 0 otherwise
 
 draft: false
 ---
-
-
-
 

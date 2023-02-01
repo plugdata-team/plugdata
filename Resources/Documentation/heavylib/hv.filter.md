@@ -1,45 +1,37 @@
 ---
 title: hv.filter
 
-description: 
+description: generic filter module with swappable filter types and frequency, Q settings
 
 categories:
 - object
 
-pdcategory: heavylib
+pdcategory: heavylib, Filters
 
 arguments:
-- type: 
-  description: 
-  default: 
+- type: symbol
+  description: filter type <allpass, lowpass, highpass, bandpass1, bandpass2, or notch>
+- type: float
+  description: frequency
+- type: float
+  description: Q
 
 inlets:
   1st:
-  - type: 
-    description: 
+  - type: signal
+    description: input signal
   2nd:
-  - type: 
-    description: 
+  - type: float
+    description: frequency
+  3rd:
+  - type: float
+    description: Q
 
 outlets:
   1st:
-  - type: 
-    description: 
-  2nd:
-  - type: 
-    description: 
-
-flags:
-  - name: 
-    description: 
-
-methods:
-  - type: 
-    description: 
+  - type: signal
+    description: filtered signal
 
 draft: false
 ---
-
-
-
 

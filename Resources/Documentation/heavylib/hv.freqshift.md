@@ -1,45 +1,28 @@
 ---
 title: hv.freqshift
 
-description: 
+description: frequency shifter effect unit
 
 categories:
 - object
 
-pdcategory: heavylib
+pdcategory: heavylib, Effects
 
 arguments:
-- type: 
-  description: 
-  default: 
 
 inlets:
   1st:
-  - type: 
-    description: 
+  - type: signal
+    description: signal to frequency shift
   2nd:
-  - type: 
-    description: 
+  - type: float/signal
+    description: shift amount in Hz
 
 outlets:
   1st:
-  - type: 
-    description: 
-  2nd:
-  - type: 
-    description: 
-
-flags:
-  - name: 
-    description: 
-
-methods:
-  - type: 
-    description: 
+  - type: float
+    description: frequency shifted signal
 
 draft: false
 ---
-
-
-
 

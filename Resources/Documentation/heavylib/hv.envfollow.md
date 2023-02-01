@@ -1,45 +1,31 @@
 ---
 title: hv.envfollow
 
-description: 
+description: envelope follower with adjustable attack parameter
 
 categories:
 - object
 
-pdcategory: heavylib
+pdcategory: heavylib, Envelopes and LFOs
 
 arguments:
-- type: 
-  description: 
-  default: 
 
 inlets:
   1st:
-  - type: 
-    description: 
+  - type: signal
+    description: signal to follow
   2nd:
-  - type: 
-    description: 
+  - type: float
+    description: attack time
+  3rd:
+  - type: float
+    description: release time
 
 outlets:
   1st:
-  - type: 
-    description: 
-  2nd:
-  - type: 
-    description: 
-
-flags:
-  - name: 
-    description: 
-
-methods:
-  - type: 
-    description: 
+  - type: signal
+    description: envelope
 
 draft: false
 ---
-
-
-
 
