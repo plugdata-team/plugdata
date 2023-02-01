@@ -171,16 +171,9 @@ public:
 
     void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
     {
-        if (symbol == "float") {
+        if (symbol == "float" || symbol == "bang" || symbol == "list" || symbol == "set") {
             update();
-        }
-        if (symbol == "bang") {
-            update();
-        }
-        if (symbol == "list") {
-            update();
-        }
-        if (symbol == "flashtime") {
+        } else if (symbol == "flashtime") {
             if (atoms.size() > 0)
                 setParameterExcludingListener(bangInterrupt, atoms[0].getFloat());
             if (atoms.size() > 1)
