@@ -17,7 +17,7 @@ inlets:
   2nd:
   - type: float
     description: attack time
-  2nd:
+  3rd:
   - type: float
     description: release time
 
