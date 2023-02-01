@@ -252,8 +252,7 @@ public:
                 }
                 break;
             }
-            default:
-                break;
+            default: break;
             }
         }
     }
@@ -671,8 +670,10 @@ public:
         switch (objectMessageMapped[symbol]) {
             case objectMessage::msg_float:
             case objectMessage::msg_symbol:
-            case objectMessage::msg_list:
+            case objectMessage::msg_list: {
                 break;
+            }
+            default: break;
         }
     }
 

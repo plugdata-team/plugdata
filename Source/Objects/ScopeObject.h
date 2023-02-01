@@ -333,13 +333,17 @@ public:
     void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
     {
         switch (objectMessageMapped[symbol]) {
-            case objectMessage::msg_send:
+            case objectMessage::msg_send: {
                 if (atoms.size() >= 1)
                     setParameterExcludingListener(sendSymbol, atoms[0].getSymbol());
+            }
                 break;
-            case objectMessage::msg_receive:
+            case objectMessage::msg_receive: {
                 if (atoms.size() >= 1)
                     setParameterExcludingListener(receiveSymbol, atoms[0].getSymbol());
+            }
+            default:
+                break;
         }
     }
 };

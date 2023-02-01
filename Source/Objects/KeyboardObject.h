@@ -337,20 +337,26 @@ public:
         switch (objectMessageMapped[symbol]) {
             case objectMessage::msg_float:
             case objectMessage::msg_list:
-            case objectMessage::msg_set:
+            case objectMessage::msg_set: {
                 updateValue();
                 break;
-            case objectMessage::msg_lowc:
+            }
+            case objectMessage::msg_lowc: {
                 setParameterExcludingListener(lowC, static_cast<int>(atoms[0].getFloat()));
                 updateAspectRatio();
                 break;
-            case objectMessage::msg_oct:
+            }
+            case objectMessage::msg_oct: {
                 setParameterExcludingListener(lowC, std::clamp<int>(static_cast<int>(lowC.getValue()) + static_cast<int>(atoms[0].getFloat()), -1, 9));
                 updateAspectRatio();
                 break;
-            case objectMessage::msg_8ves:
+            }
+            case objectMessage::msg_8ves: {
                 setParameterExcludingListener(octaves, static_cast<int>(atoms[0].getFloat()));
                 updateAspectRatio();
+                break;
+            }
+            default: break;
         }
     }
 

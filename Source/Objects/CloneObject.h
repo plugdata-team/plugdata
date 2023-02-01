@@ -95,11 +95,13 @@ public:
     void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
     {
         switch (objectMessageMapped[symbol]) {
-            case objectMessage::msg_vis:
+            case objectMessage::msg_vis: {
                 if (atoms.size() > 2) {
                     // TODO: implement this!
                 }
                 break;
+            }
+            default: break;
         }
     }
 };

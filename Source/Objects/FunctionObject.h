@@ -407,23 +407,29 @@ public:
     void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
     {
         switch (objectMessageMapped[symbol]) {
-            case objectMessage::msg_send:
+            case objectMessage::msg_send: {
                 if (atoms.size() >= 1)
                     setParameterExcludingListener(sendSymbol, atoms[0].getSymbol());
                 break;
-            case objectMessage::msg_receive:
+            }
+            case objectMessage::msg_receive: {
                 if (atoms.size() >= 1)
                     setParameterExcludingListener(receiveSymbol, atoms[0].getSymbol());
                 break;
-            case objectMessage::msg_list:
+            }
+            case objectMessage::msg_list: {
                 getPointsFromFunction();
                 break;
+            }
             case objectMessage::msg_min:
-            case objectMessage::msg_max:
+            case objectMessage::msg_max: {
                 auto* function = static_cast<t_fake_function*>(ptr);
                 Array<var> arr = { function->x_min, function->x_max };
                 setParameterExcludingListener(range, var(arr));
                 getPointsFromFunction();
+                break;
+            }
+            default:
                 break;
         }
     }
