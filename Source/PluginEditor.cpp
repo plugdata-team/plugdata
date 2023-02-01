@@ -809,7 +809,7 @@ void PluginEditor::getCommandInfo(const CommandID commandID, ApplicationCommandI
     case CommandIDs::Lock: {
         result.setInfo("Run mode", "Run Mode", "Edit", 0);
         result.addDefaultKeypress(69, ModifierKeys::commandModifier);
-        result.setActive(hasCanvas && !isDragging && !static_cast<bool>(statusbar.presentationMode.getValue()));
+        result.setActive(hasCanvas && !isDragging);
         break;
     }
     case CommandIDs::ConnectionPathfind: {
