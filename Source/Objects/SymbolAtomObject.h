@@ -136,14 +136,7 @@ public:
 
     void valueChanged(Value& v) override
     {
-        if (v.refersToSameSourceAs(atomHelper.labelHeight)) {
-            updateLabel();
-            if (getParentComponent()) {
-                object->updateBounds(); // update object size based on new font
-            }
-        } else {
-            atomHelper.valueChanged(v);
-        }
+        atomHelper.valueChanged(v);
     }
 
     bool keyPressed(KeyPress const& key, Component* originalComponent) override
