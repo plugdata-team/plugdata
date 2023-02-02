@@ -33,7 +33,7 @@ public:
 
     void valueChanged(Value& v) override;
 
-    static Iolet* findNearestEdge(Canvas* cnv, Point<int> position, bool inlet, Object* boxToExclude = nullptr);
+    static Iolet* findNearestIolet(Canvas* cnv, Point<int> position, bool inlet, Object* boxToExclude = nullptr);
 
     void createConnection();
 

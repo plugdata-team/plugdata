@@ -178,7 +178,7 @@ t_symbol* Connection::getPathState()
 
 bool Connection::hitTest(int x, int y)
 {
-    if (locked == var(true) || !cnv->connectingIolets.isEmpty())
+    if (locked == var(true) || !cnv->connectionsBeingCreated.isEmpty())
         return false;
 
     Point<float> position = Point<float>(static_cast<float>(x), static_cast<float>(y));
@@ -226,17 +226,18 @@ bool Connection::intersects(Rectangle<float> toCheck, int accuracy) const
 
     return false;
 }
-void Connection::paint(Graphics& g)
-{
-    auto baseColour = findColour(PlugDataColour::connectionColourId);
-    auto dataColour = findColour(PlugDataColour::dataColourId);
-    auto signalColour = findColour(PlugDataColour::signalColourId);
-    auto handleColour = outlet->isSignal ? dataColour : signalColour;
 
-    if (cnv->isSelected(this)) {
-        baseColour = outlet->isSignal ? signalColour : dataColour;
-    } else if (isMouseOver()) {
-        baseColour = outlet->isSignal ? signalColour : dataColour;
+void Connection::renderConnectionPath(Graphics& g, Canvas* cnv, Path connectionPath, bool isSignal, bool isMouseOver, bool isSelected, Point<int> mousePos) {
+    
+    auto baseColour = cnv->findColour(PlugDataColour::connectionColourId);
+    auto dataColour = cnv->findColour(PlugDataColour::dataColourId);
+    auto signalColour = cnv->findColour(PlugDataColour::signalColourId);
+    auto handleColour = isSignal ? dataColour : signalColour;
+
+    if (isSelected) {
+        baseColour = isSignal ? signalColour : dataColour;
+    } else if (isMouseOver) {
+        baseColour = isSignal ? signalColour : dataColour;
         baseColour = baseColour.brighter(0.6f);
     }
 
@@ -245,40 +246,46 @@ void Connection::paint(Graphics& g)
     if (!useThinConnection) {
         // outer stroke
         g.setColour(baseColour.darker(1.0f));
-        g.strokePath(toDraw, PathStrokeType(2.5f, PathStrokeType::mitered, PathStrokeType::rounded));
+        g.strokePath(connectionPath, PathStrokeType(2.5f, PathStrokeType::mitered, PathStrokeType::rounded));
     }
 
     // inner stroke
     g.setColour(baseColour);
-    Path innerPath = toDraw;
+    Path innerPath = connectionPath;
     PathStrokeType innerStroke(useThinConnection ? 1.0f : 1.5f);
 
-    if (PlugDataLook::getUseDashedConnections() && outlet->isSignal) {
+    if (PlugDataLook::getUseDashedConnections() && isSignal) {
         PathStrokeType dashedStroke(0.8f);
         float dash[1] = { 5.0f };
         Path dashedPath;
-        dashedStroke.createDashedStroke(dashedPath, toDraw, dash, 1);
+        dashedStroke.createDashedStroke(dashedPath, connectionPath, dash, 1);
         innerPath = dashedPath;
         innerStroke = dashedStroke;
     }
     innerStroke.setEndStyle(PathStrokeType::EndCapStyle::rounded);
     g.strokePath(innerPath, innerStroke);
 
-    if (cnv->isSelected(this)) {
-        auto mousePos = getMouseXYRelative();
-
+    if (isSelected) {
+        auto startReconnectHandle = Rectangle<float>(5, 5).withCentre(connectionPath.getPointAlongPath(8.5f));
+        auto endReconnectHandle = Rectangle<float>(5, 5).withCentre(connectionPath.getPointAlongPath(std::max(connectionPath.getLength() - 8.5f, 9.5f)));
+        
         bool overStart = startReconnectHandle.contains(mousePos.toFloat());
         bool overEnd = endReconnectHandle.contains(mousePos.toFloat());
 
         g.setColour(handleColour);
-
+        
         g.fillEllipse(startReconnectHandle.expanded(overStart ? 3.0f : 0.0f));
         g.fillEllipse(endReconnectHandle.expanded(overEnd ? 3.0f : 0.0f));
 
-        g.setColour(findColour(PlugDataColour::objectOutlineColourId));
+        g.setColour(cnv->findColour(PlugDataColour::objectOutlineColourId));
         g.drawEllipse(startReconnectHandle.expanded(overStart ? 3.0f : 0.0f), 0.5f);
         g.drawEllipse(endReconnectHandle.expanded(overEnd ? 3.0f : 0.0f), 0.5f);
     }
+}
+
+void Connection::paint(Graphics& g)
+{
+    renderConnectionPath(g, cnv, toDraw, outlet->isSignal, isMouseOver(), cnv->isSelected(this), getMouseXYRelative());
 }
 
 bool Connection::isSegmented()
@@ -450,7 +457,7 @@ void Connection::reconnect(Iolet* target, bool dragged)
         }
 
         // Create new connection
-        cnv->connectingIolets.add(target->isInlet ? c->inlet : c->outlet);
+        cnv->connectionsBeingCreated.add(new ConnectionBeingCreated(target->isInlet ? c->inlet : c->outlet, cnv));
 
         c->setVisible(false);
 

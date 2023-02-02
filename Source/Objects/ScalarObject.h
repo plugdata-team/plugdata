@@ -4,6 +4,8 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
+#include "Utility/GlobalMouseListener.h"
+
 struct t_fake_fielddesc {
     char fd_type; /* LATER consider removing this? */
     char fd_var;
@@ -61,41 +63,6 @@ int scalar_doclick(t_word* data, t_template* t, t_scalar* sc,
 // If you attach a normal global mouse listener to a component on canvas, you run the risk of
 // accidentally passing on mouse scroll events to the viewport.
 // This prevents that with a separation layer.
-
-class GlobalMouseListener : public MouseListener {
-    Component* target;
-
-public:
-    GlobalMouseListener(Component* targetComponent)
-        : target(targetComponent)
-    {
-        Desktop::getInstance().addGlobalMouseListener(this);
-    }
-
-    ~GlobalMouseListener()
-    {
-        Desktop::getInstance().removeGlobalMouseListener(this);
-    }
-
-    std::function<void(MouseEvent const& e)> globalMouseDown = [](MouseEvent const&) {};
-    std::function<void(MouseEvent const& e)> globalMouseUp = [](MouseEvent const&) {};
-    std::function<void(MouseEvent const& e)> globalMouseDrag = [](MouseEvent const&) {};
-
-    void mouseDown(MouseEvent const& e) override
-    {
-        globalMouseDown(e.getEventRelativeTo(target));
-    }
-
-    void mouseUp(MouseEvent const& e) override
-    {
-        globalMouseUp(e.getEventRelativeTo(target));
-    }
-
-    void mouseDrag(MouseEvent const& e) override
-    {
-        globalMouseDrag(e.getEventRelativeTo(target));
-    }
-};
 
 class DrawableTemplate {
 
