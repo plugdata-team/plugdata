@@ -151,7 +151,6 @@ void Iolet::mouseDrag(MouseEvent const& e)
                 cnv->nearestIolet = nullptr;
             }
         }
-        cnv->repaint();
     }
 }
 

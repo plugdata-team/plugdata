@@ -520,6 +520,35 @@ Point<float> Connection::getEndPoint()
     return Point<float>(inlet->getCanvasBounds().toFloat().getCentreX(), inlet->getCanvasBounds().toFloat().getCentreY());
 }
 
+Path Connection::getNonSegmentedPath(Point<float> start, Point<float> end)
+{
+    Path connectionPath;
+    connectionPath.startNewSubPath(start);
+    if (!PlugDataLook::getUseStraightConnections()) {
+        float const width = std::max(start.x, end.x) - std::min(start.x, end.x);
+        float const height = std::max(start.y, end.y) - std::min(start.y, end.y);
+
+        float const min = std::min<float>(width, height);
+        float const max = std::max<float>(width, height);
+
+        float const maxShiftY = 20.f;
+        float const maxShiftX = 20.f;
+
+        float const shiftY = std::min<float>(maxShiftY, max * 0.5);
+
+        float const shiftX = ((start.y >= end.y) ? std::min<float>(maxShiftX, min * 0.5) : 0.f) * ((start.x < end.x) ? -1. : 1.);
+
+        Point<float> const ctrlPoint1 { start.x - shiftX, start.y + shiftY };
+        Point<float> const ctrlPoint2 { end.x + shiftX, end.y - shiftY };
+
+        connectionPath.cubicTo(ctrlPoint1, ctrlPoint2, end);
+    } else {
+        connectionPath.lineTo(end);
+    }
+    
+    return connectionPath;
+}
+
 void Connection::updatePath()
 {
     if (!outlet || !inlet)
@@ -536,29 +565,7 @@ void Connection::updatePath()
     auto pend = getEndPoint() - origin;
 
     if (!segmented) {
-        toDraw.clear();
-        toDraw.startNewSubPath(pstart);
-        if (!PlugDataLook::getUseStraightConnections()) {
-            float const width = std::max(pstart.x, pend.x) - std::min(pstart.x, pend.x);
-            float const height = std::max(pstart.y, pend.y) - std::min(pstart.y, pend.y);
-
-            float const min = std::min<float>(width, height);
-            float const max = std::max<float>(width, height);
-
-            float const maxShiftY = 20.f;
-            float const maxShiftX = 20.f;
-
-            float const shiftY = std::min<float>(maxShiftY, max * 0.5);
-
-            float const shiftX = ((pstart.y >= pend.y) ? std::min<float>(maxShiftX, min * 0.5) : 0.f) * ((pstart.x < pend.x) ? -1. : 1.);
-
-            Point<float> const ctrlPoint1 { pstart.x - shiftX, pstart.y + shiftY };
-            Point<float> const ctrlPoint2 { pend.x + shiftX, pend.y - shiftY };
-
-            toDraw.cubicTo(ctrlPoint1, ctrlPoint2, pend);
-        } else {
-            toDraw.lineTo(pend);
-        }
+        toDraw = getNonSegmentedPath(pstart, pend);
         currentPlan.clear();
     } else {
         if (currentPlan.empty()) {
