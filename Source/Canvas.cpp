@@ -1093,11 +1093,15 @@ void Canvas::objectMouseUp(Object* component, MouseEvent const& e)
         setSelected(component, false);
     } else if (!e.mods.isShiftDown() && !e.mods.isAltDown() && isSelected(component) && !didStartDragging && !e.mods.isRightButtonDown()) {
 
-        deselectAll();
+        // Don't run normal deselectAll, that would clear the sidebar inspector as well
+        // We'll update sidebar selection later in this function
+        selectedComponents.deselectAll();
 
         setSelected(component, true);
     }
 
+    updateSidebarSelection();
+    
     if (didStartDragging) {
         auto objects = std::vector<void*>();
 
