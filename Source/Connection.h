@@ -144,10 +144,16 @@ public:
     
     void mouseMove(const MouseEvent& e) override
     {
+        
+        
         auto ioletPoint = cnv->getLocalPoint((Component*)iolet->object, iolet->getBounds().getCentre());
         auto cursorPoint = cnv->getLocalPoint(nullptr, e.getScreenPosition());
-                                              
-        connectionPath = Connection::getNonSegmentedPath(ioletPoint.toFloat(), cursorPoint.toFloat());
+                       
+        auto& startPoint = iolet->isInlet ? cursorPoint : ioletPoint;
+        auto& endPoint = iolet->isInlet ? ioletPoint : cursorPoint;
+        
+        
+        connectionPath = Connection::getNonSegmentedPath(startPoint.toFloat(), endPoint.toFloat());
         
         auto bounds = connectionPath.getBounds().getSmallestIntegerContainer().expanded(3);
         
@@ -158,6 +164,7 @@ public:
         connectionPath.applyTransform(AffineTransform::translation(-bounds.getX(), -bounds.getY()));
                                                     
         repaint();
+        iolet->repaint();
     }
     
     void paint(Graphics& g) override
