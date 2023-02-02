@@ -17,6 +17,9 @@ class BicoeffGraph : public Component {
     Object* object;
 
 public:
+    
+    std::function<void(float, float, float, float, float)> graphChangeCallback = [](float, float, float, float, float){};
+    
     enum FilterType {
         Allpass,
         Lowpass,
@@ -321,6 +324,8 @@ public:
         this->b0 = b0 / a0;
         this->b1 = b1 / a0;
         this->b2 = b2 / a0;
+        
+        graphChangeCallback(a1, a2, b0, b1, b2);
     }
 
     // lowpass
@@ -328,7 +333,6 @@ public:
     //    bw = bandwidth where 1 is an octave
     void lowpass()
     {
-
         auto [alpha, omega] = calcCoefficients();
 
         float b1 = 1.0 - cos(omega);
@@ -486,6 +490,18 @@ public:
         , graph(parent)
     {
         addAndMakeVisible(graph);
+        
+        graph.graphChangeCallback = [this](float a1, float a2, float b0, float b1, float b2) {
+            
+            t_atom at[5];
+            SETFLOAT(at, a1);
+            SETFLOAT(at+1, a2);
+            SETFLOAT(at+2, b0);
+            SETFLOAT(at+3, b1);
+            SETFLOAT(at+4, b2);
+            
+            pd_typedmess(static_cast<t_pd*>(ptr), pd->generateSymbol("biquad"), 5, at);
+        };
     }
 
     void resized() override
