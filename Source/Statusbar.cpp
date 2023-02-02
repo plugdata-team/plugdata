@@ -40,8 +40,9 @@ public:
 
             if (blocks[ch] != numBlocks) {
                 blocks[ch] = numBlocks;
+                needsRepaint = true;
             }
-            needsRepaint = true;
+            
         }
 
         if (needsRepaint && isShowing())
