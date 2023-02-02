@@ -54,7 +54,7 @@ public:
     {
         auto relativeEvent = e.getEventRelativeTo(this);
 
-        if (!getLocalBounds().contains(relativeEvent.getPosition()) || !isLocked() || !object->cnv->isShowing())
+        if (!getLocalBounds().contains(relativeEvent.getPosition()) || !isLocked() || !object->cnv->isShowing() || isPressed)
             return;
 
         auto* x = static_cast<t_pad*>(ptr);
@@ -91,7 +91,7 @@ public:
         SETFLOAT(at, x->x_x);
         SETFLOAT(at + 1, x->x_y);
 
-        lastPosition = { x->x_x, x->x_y };
+        lastPosition = { x->x_x, getHeight() - x->x_y };
 
         sys_lock();
         outlet_anything(x->x_obj.ob_outlet, &s_list, 2, at);
@@ -118,7 +118,7 @@ public:
         SETFLOAT(at, x->x_x);
         SETFLOAT(at + 1, x->x_y);
 
-        lastPosition = { x->x_x, x->x_y };
+        lastPosition = { x->x_x, getHeight() - x->x_y };
 
         sys_lock();
         outlet_anything(x->x_obj.ob_outlet, &s_list, 2, at);
@@ -127,7 +127,7 @@ public:
 
     void mouseUp(MouseEvent const& e) override
     {
-        if ((!getScreenBounds().contains(e.getMouseDownScreenPosition()) && !isPressed) || !isLocked())
+        if ((!getScreenBounds().contains(e.getMouseDownScreenPosition()) || !isPressed) || !isLocked())
             return;
 
         auto* x = static_cast<t_pad*>(ptr);
