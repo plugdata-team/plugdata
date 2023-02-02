@@ -76,6 +76,29 @@ Connection::Connection(Canvas* parent, Iolet* s, Iolet* e, void* oc)
 
     updatePath();
     repaint();
+
+    cnv->pd->registerMessageListener(ptr, this);
+}
+
+Connection::~Connection()
+{
+    cnv->pd->unregisterMessageListener(ptr, this);
+
+    if (outlet) {
+        outlet->repaint();
+        outlet->removeComponentListener(this);
+    }
+    if (outobj) {
+        outobj->removeComponentListener(this);
+    }
+
+    if (inlet) {
+        inlet->repaint();
+        inlet->removeComponentListener(this);
+    }
+    if (inobj) {
+        inobj->removeComponentListener(this);
+    }
 }
 
 void Connection::valueChanged(Value& v)
@@ -146,25 +169,6 @@ void Connection::setPointer(void* newPtr)
 t_symbol* Connection::getPathState()
 {
     return ptr->outconnect_path_data;
-}
-
-Connection::~Connection()
-{
-    if (outlet) {
-        outlet->repaint();
-        outlet->removeComponentListener(this);
-    }
-    if (outobj) {
-        outobj->removeComponentListener(this);
-    }
-
-    if (inlet) {
-        inlet->repaint();
-        inlet->removeComponentListener(this);
-    }
-    if (inobj) {
-        inobj->removeComponentListener(this);
-    }
 }
 
 bool Connection::hitTest(int x, int y)
@@ -871,4 +875,30 @@ void ConnectionPathUpdater::timerCallback()
     canvas->patch.endUndoSequence("SetConnectionPaths");
 
     stopTimer();
+}
+
+void Connection::receiveMessage(String const& name, int argc, t_atom* argv)
+{
+    auto args = std::vector<t_atom>(argv, argv + argc);
+
+    MessageManager::callAsync([this, name, args]() mutable {
+        if (name == "float" && args.size() >= 1) {
+            setTooltip(String(atom_getfloat(args.data())));
+        } else if (name == "symbol" && args.size() >= 1) {
+            setTooltip(String::fromUTF8(atom_getsymbol(args.data())->s_name));
+        } else if (name == "list") {
+            StringArray result;
+            for (auto& arg : args) {
+                if (arg.a_type == A_FLOAT) {
+                    result.add(String(atom_getfloat(&arg)));
+                } else if (arg.a_type == A_SYMBOL) {
+                    result.add(String::fromUTF8(atom_getsymbol(&arg)->s_name));
+                }
+            }
+
+            setTooltip(result.joinIntoString(" "));
+        } else {
+            setTooltip(name);
+        }
+    });
 }
