@@ -14,6 +14,7 @@ extern "C" {
 
 #include <concurrentqueue.h>
 #include "Iolet.h"
+#include "Pd/PdInstance.h"
 
 using PathPlan = std::vector<Point<float>>;
 
@@ -22,7 +23,9 @@ class PathUpdater;
 
 class Connection : public Component
     , public ComponentListener
-    , public Value::Listener {
+    , public Value::Listener
+    , public pd::MessageListener
+    , public SettableTooltipClient {
 public:
     int inIdx;
     int outIdx;
@@ -76,6 +79,8 @@ public:
 
     bool intersectsObject(Object* object);
     bool straightLineIntersectsObject(Line<float> toCheck, Array<Object*>& objects);
+
+    void receiveMessage(String const& name, int argc, t_atom* argv) override;
 
 private:
     bool wasSelected = false;
