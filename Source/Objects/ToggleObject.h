@@ -114,9 +114,10 @@ public:
         return allParameters;
     }
 
-    void setToggleStateFromFloat(float value)
+    void setToggleStateFromFloat(float newValue)
     {
-        toggleState = std::abs(value) > std::numeric_limits<float>::epsilon();
+        value = newValue;
+        toggleState = std::abs(newValue) > std::numeric_limits<float>::epsilon();
         repaint();
     }
 

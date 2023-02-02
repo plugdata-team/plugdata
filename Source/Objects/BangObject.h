@@ -71,6 +71,7 @@ public:
 
         // Make sure we don't re-click with an accidental drag
         alreadyBanged = true;
+        update();
     }
 
     void paint(Graphics& g) override

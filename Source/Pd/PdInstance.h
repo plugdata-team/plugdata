@@ -124,6 +124,13 @@ struct MessageListener {
     JUCE_DECLARE_WEAK_REFERENCEABLE(MessageListener);
 };
 
+struct t_fake_outconnect {
+    void* oc_next;
+    t_pd* oc_to;
+    t_symbol* outconnect_path_data;
+};
+
+
 class Instance {
     struct Message {
         String selector;

@@ -15,7 +15,7 @@ Connection::Connection(Canvas* parent, Iolet* s, Iolet* e, void* oc)
     , inlet(s->isInlet ? s : e)
     , outobj(outlet->object)
     , inobj(inlet->object)
-    , ptr(static_cast<t_fake_outconnect*>(oc))
+    , ptr(static_cast<pd::t_fake_outconnect*>(oc))
 {
 
     locked.referTo(parent->locked);
@@ -40,7 +40,7 @@ Connection::Connection(Canvas* parent, Iolet* s, Iolet* e, void* oc)
     if (!oc) {
         auto* oc = parent->patch.createConnection(outobj->getPointer(), outIdx, inobj->getPointer(), inIdx);
 
-        ptr = static_cast<t_fake_outconnect*>(oc);
+        ptr = static_cast<pd::t_fake_outconnect*>(oc);
 
         if (!ptr) {
             outlet = nullptr;
@@ -163,7 +163,12 @@ void Connection::popPathState()
 
 void Connection::setPointer(void* newPtr)
 {
-    ptr = static_cast<t_fake_outconnect*>(newPtr);
+    ptr = static_cast<pd::t_fake_outconnect*>(newPtr);
+}
+
+void* Connection::getPointer()
+{
+    return ptr;
 }
 
 t_symbol* Connection::getPathState()
@@ -848,7 +853,7 @@ void ConnectionPathUpdater::timerCallback()
         linetraverser_start(&t, connection->cnv->patch.getPointer());
 
         while (auto* oc = linetraverser_next(&t)) {
-            if (reinterpret_cast<Connection::t_fake_outconnect*>(oc) == connection->ptr) {
+            if (reinterpret_cast<pd::t_fake_outconnect*>(oc) == connection->ptr) {
 
                 outObj = t.tr_ob;
                 outIdx = t.tr_outno;
@@ -869,7 +874,7 @@ void ConnectionPathUpdater::timerCallback()
         // Since we mostly used indices and object pointers to differentiate connections, this is fine
 
         auto* newConnection = connection->cnv->patch.setConnctionPath(outObj, outIdx, inObj, inIdx, oldPathState, newPathState);
-        connection->ptr = static_cast<Connection::t_fake_outconnect*>(newConnection);
+        connection->ptr = static_cast<pd::t_fake_outconnect*>(newConnection);
     }
 
     canvas->patch.endUndoSequence("SetConnectionPaths");
@@ -898,7 +903,7 @@ void Connection::receiveMessage(String const& name, int argc, t_atom* argv)
 
             setTooltip(result.joinIntoString(" "));
         } else {
-            StringArray result = {"(" + name + ")"};
+            StringArray result = {name};
             for (auto& arg : args) {
                 if (arg.a_type == A_FLOAT) {
                     result.add(String(atom_getfloat(&arg)));

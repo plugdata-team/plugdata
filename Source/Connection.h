@@ -65,6 +65,7 @@ public:
     String getId() const;
 
     void setPointer(void* ptr);
+    void* getPointer();
 
     t_symbol* getPathState();
     void pushPathState();
@@ -105,13 +106,7 @@ private:
 
     void valueChanged(Value& v) override;
 
-    struct t_fake_outconnect {
-        void* oc_next;
-        t_pd* oc_to;
-        t_symbol* outconnect_path_data;
-    };
-
-    t_fake_outconnect* ptr;
+    pd::t_fake_outconnect* ptr;
 
     friend class ConnectionPathUpdater;
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(Connection)

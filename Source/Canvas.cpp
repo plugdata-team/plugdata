@@ -224,24 +224,17 @@ void Canvas::synchronise(bool updatePosition)
             continue;
         }
 
+        // TODO: compare by pointer, not by start/end!!
         auto* it = std::find_if(connections.begin(), connections.end(),
             [this, &connection, &srcno, &sinkno](Connection* c) {
                 auto& [ptr, inno, inobj, outno, outobj] = connection;
-
-                if (!ptr || !c->inlet || !c->outlet)
-                    return false;
-
-                bool sameStart = c->outobj == objects[srcno];
-                bool sameEnd = c->inobj == objects[sinkno];
-
-                return c->inIdx == inno && c->outIdx == outno && sameStart && sameEnd;
+                return ptr == c->getPointer();
             });
 
         if (it == connections.end()) {
             connections.add(new Connection(this, srcEdges[objects[srcno]->numInputs + outno], sinkEdges[inno], ptr));
         } else {
             auto& c = *(*it);
-            c.setPointer(ptr);
             c.popPathState();
         }
     }
@@ -321,10 +314,6 @@ void Canvas::mouseDown(MouseEvent const& e)
 
 void Canvas::mouseDrag(MouseEvent const& e)
 {
-    if (!connectingIolets.isEmpty()) {
-        repaint();
-    }
-
     if (connectingWithDrag) {
         for (auto* obj : objects) {
             for (auto* iolet : obj->iolets) {
@@ -475,12 +464,9 @@ void Canvas::paintOverChildren(Graphics& g)
     }
 }
 
+// TODO: can we get rid of this?
 void Canvas::mouseMove(MouseEvent const& e)
 {
-    if (!connectingIolets.isEmpty()) {
-        repaint();
-    }
-
     lastMousePosition = getMouseXYRelative();
 }
 
@@ -1361,6 +1347,7 @@ void Canvas::objectMouseDrag(MouseEvent const& e)
         }
     }
 }
+
 
 SelectedItemSet<WeakReference<Component>>& Canvas::getLassoSelection()
 {

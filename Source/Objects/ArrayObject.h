@@ -674,6 +674,13 @@ public:
         case objectMessage::msg_list: {
             break;
         }
+                /*
+        case objectMessage::msg_edit: {
+            if(!atoms.empty()) {
+                editable = atoms[0].getFloat();
+                setInterceptsMouseClicks(false, editable);
+            }
+        } */
         default:
             break;
         }
@@ -687,6 +694,7 @@ private:
     std::unique_ptr<ArrayEditorDialog> dialog;
 
     Value labelColour;
+    bool editable = true;
 };
 
 // Actual text object, marked final for optimisation
