@@ -119,7 +119,7 @@ public:
         auto* cnvPtr = cnv->patch.getPointer();
         auto objText = editor ? editor->getText() : objectText;
         auto newNumLines = 0;
-        
+
         auto newBounds = TextObjectHelper::recalculateTextObjectBounds(cnvPtr, ptr, objText, 14, newNumLines).expanded(Object::margin) + cnv->canvasOrigin;
 
         numLines = newNumLines;
@@ -138,7 +138,7 @@ public:
         pd->getCallbackLock()->exit();
     }
 
-    bool checkBounds(Rectangle<int> oldBounds, Rectangle<int> newBounds,  bool resizingOnLeft) override
+    bool checkBounds(Rectangle<int> oldBounds, Rectangle<int> newBounds, bool resizingOnLeft) override
     {
         auto fontWidth = glist_fontwidth(cnv->patch.getPointer());
         auto* patch = cnv->patch.getPointer();

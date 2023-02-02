@@ -74,28 +74,28 @@ public:
     void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
     {
         switch (objectMessageMapped[symbol]) {
-            case objectMessage::msg_float:
-            case objectMessage::msg_set: {
-                selected = atoms[0].getFloat();
-                repaint();
-                break;
+        case objectMessage::msg_float:
+        case objectMessage::msg_set: {
+            selected = atoms[0].getFloat();
+            repaint();
+            break;
+        }
+        case objectMessage::msg_orientation: {
+            if (atoms.size() >= 1) {
+                isVertical = static_cast<bool>(atoms[0].getFloat());
+                updateBounds();
             }
-            case objectMessage::msg_orientation: {
-                if (atoms.size() >= 1) {
-                    isVertical = static_cast<bool>(atoms[0].getFloat());
-                    updateBounds();
-                }
-                break;
-            }
-            case objectMessage::msg_number: {
-                if (atoms.size() >= 1)
-                    setParameterExcludingListener(max, static_cast<int>(atoms[0].getFloat()));
-                break;
-            }
-            default: {
-                iemHelper.receiveObjectMessage(symbol, atoms);
-                break;
-            }
+            break;
+        }
+        case objectMessage::msg_number: {
+            if (atoms.size() >= 1)
+                setParameterExcludingListener(max, static_cast<int>(atoms[0].getFloat()));
+            break;
+        }
+        default: {
+            iemHelper.receiveObjectMessage(symbol, atoms);
+            break;
+        }
         }
     }
 
@@ -137,7 +137,7 @@ public:
         if (isVertical) {
             bounds.setSize(radio->x_gui.x_w, radio->x_gui.x_w * numItems);
         } else {
-            bounds.setSize(radio->x_gui.x_h * numItems , radio->x_gui.x_h);
+            bounds.setSize(radio->x_gui.x_h * numItems, radio->x_gui.x_h);
         }
 
         pd->getCallbackLock()->exit();
@@ -151,8 +151,8 @@ public:
         g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), PlugDataLook::objectCornerRadius);
 
         int size = (isVertical ? getHeight() / numItems : getHeight());
-        //int minSize = 12;
-        //size = std::max(size, minSize);
+        // int minSize = 12;
+        // size = std::max(size, minSize);
 
         g.setColour(object->findColour(PlugDataColour::objectOutlineColourId));
 
@@ -193,17 +193,17 @@ public:
         return allParameters;
     }
 
-    void updateAspectRatio() 
+    void updateAspectRatio()
     {
         float verticalLength = ((object->getWidth() - Object::doubleMargin) * numItems) + Object::doubleMargin;
         float horizontalLength = ((object->getHeight() - Object::doubleMargin) * numItems) + Object::doubleMargin;
 
-        if (isVertical){
+        if (isVertical) {
             object->setSize(object->getWidth(), verticalLength);
         } else {
             object->setSize(horizontalLength, object->getHeight());
         }
-        object->constrainer->setFixedAspectRatio(isVertical ? 1.0f /  numItems : static_cast<float>(numItems) / 1.0f);
+        object->constrainer->setFixedAspectRatio(isVertical ? 1.0f / numItems : static_cast<float>(numItems) / 1.0f);
     }
 
     void valueChanged(Value& value) override

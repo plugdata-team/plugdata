@@ -23,20 +23,20 @@ public:
         setColour(MidiKeyboardComponent::shadowColourId, Colours::transparentBlack);
     }
 
-   /*  Return the amount of white notes in the current displayed range.
-    *  We use this to calculate & resize the keyboard width when more range is added
-    *  because setKeyWidth sets the width of white keys
-    */
-    int getCountOfWhiteNotesInRange() 
+    /*  Return the amount of white notes in the current displayed range.
+     *  We use this to calculate & resize the keyboard width when more range is added
+     *  because setKeyWidth sets the width of white keys
+     */
+    int getCountOfWhiteNotesInRange()
     {
-    /*
-    ┌──┬─┬─┬─┬──┬──┬─┬─┬─┬─┬─┬──┐
-    │  │┼│ │┼│  │  │┼│ │┼│ │┼│  │
-    │  │┼│ │┼│  │  │┼│ │┼│ │┼│  │
-    │  └┼┘ └┼┘  │  └┼┘ └┼┘ └┼┘  │
-    │ 0 │ 2 │ 4 │ 5 │ 7 │ 9 │11 │
-    └───┴───┴───┴───┴───┴───┴───┘
-    */
+        /*
+        ┌──┬─┬─┬─┬──┬──┬─┬─┬─┬─┬─┬──┐
+        │  │┼│ │┼│  │  │┼│ │┼│ │┼│  │
+        │  │┼│ │┼│  │  │┼│ │┼│ │┼│  │
+        │  └┼┘ └┼┘  │  └┼┘ └┼┘ └┼┘  │
+        │ 0 │ 2 │ 4 │ 5 │ 7 │ 9 │11 │
+        └───┴───┴───┴───┴───┴───┴───┘
+        */
         int count = 0;
         for (int i = getRangeStart(); i <= getRangeEnd(); i++) {
             if (i % 12 == 0 || i % 12 == 2 || i % 12 == 4 || i % 12 == 5 || i % 12 == 7 || i % 12 == 9 || i % 12 == 11) {
@@ -281,13 +281,13 @@ public:
 
     ObjectParameters getParameters() override
     {
-        return { 
-            { "Start octave", tInt, cGeneral, &lowC, {} }, 
-            { "Num. octaves", tInt, cGeneral, &octaves, {} } 
+        return {
+            { "Start octave", tInt, cGeneral, &lowC, {} },
+            { "Num. octaves", tInt, cGeneral, &octaves, {} }
         };
     }
 
-    void updateAspectRatio() 
+    void updateAspectRatio()
     {
         int numOctaves = static_cast<int>(octaves.getValue());
         int lowest = static_cast<int>(lowC.getValue());
@@ -298,7 +298,7 @@ public:
 
         // we only need to get the amount of white notes when the number of keys has changed
         numWhiteKeys = keyboard.getCountOfWhiteNotesInRange();
-        
+
         object->setSize(horizontalLength + Object::doubleMargin, object->getHeight());
         object->constrainer->setFixedAspectRatio(horizontalLength / static_cast<float>(object->getHeight() - Object::doubleMargin));
     }
@@ -335,28 +335,29 @@ public:
     void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
     {
         switch (objectMessageMapped[symbol]) {
-            case objectMessage::msg_float:
-            case objectMessage::msg_list:
-            case objectMessage::msg_set: {
-                updateValue();
-                break;
-            }
-            case objectMessage::msg_lowc: {
-                setParameterExcludingListener(lowC, static_cast<int>(atoms[0].getFloat()));
-                updateAspectRatio();
-                break;
-            }
-            case objectMessage::msg_oct: {
-                setParameterExcludingListener(lowC, std::clamp<int>(static_cast<int>(lowC.getValue()) + static_cast<int>(atoms[0].getFloat()), -1, 9));
-                updateAspectRatio();
-                break;
-            }
-            case objectMessage::msg_8ves: {
-                setParameterExcludingListener(octaves, static_cast<int>(atoms[0].getFloat()));
-                updateAspectRatio();
-                break;
-            }
-            default: break;
+        case objectMessage::msg_float:
+        case objectMessage::msg_list:
+        case objectMessage::msg_set: {
+            updateValue();
+            break;
+        }
+        case objectMessage::msg_lowc: {
+            setParameterExcludingListener(lowC, static_cast<int>(atoms[0].getFloat()));
+            updateAspectRatio();
+            break;
+        }
+        case objectMessage::msg_oct: {
+            setParameterExcludingListener(lowC, std::clamp<int>(static_cast<int>(lowC.getValue()) + static_cast<int>(atoms[0].getFloat()), -1, 9));
+            updateAspectRatio();
+            break;
+        }
+        case objectMessage::msg_8ves: {
+            setParameterExcludingListener(octaves, static_cast<int>(atoms[0].getFloat()));
+            updateAspectRatio();
+            break;
+        }
+        default:
+            break;
         }
     }
 

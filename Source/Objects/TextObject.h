@@ -19,7 +19,7 @@ struct TextObjectHelper {
         // For regular text object, we want to adjust the width so ideal text with aligns with fontWidth
         int offset = applyOffset ? idealTextWidth % fontWidth : 0;
         int charWidth = getWidthInChars(obj);
-        
+
         if (currentText.isEmpty()) { // If text is empty, set to minimum width
             w = std::max(charWidth, minWidth) * fontWidth;
         } else if (charWidth == 0) { // If width is set to automatic, calculate based on text width
@@ -33,7 +33,7 @@ struct TextObjectHelper {
         numLines = getNumLines(currentText, w, fontHeight);
         // Calculate height so that height with 1 line is 21px, after that scale along with fontheight
         h = numLines * fontHeight + (21 - fontHeight);
-        
+
         return { x, y, w, h };
     }
 
@@ -42,22 +42,22 @@ struct TextObjectHelper {
         // Remove margin
         newBounds = newBounds.reduced(Object::margin);
         oldBounds = oldBounds.reduced(Object::margin);
-        
+
         auto minimumWidth = std::max(minWidth, (maxIolets * 18) / fontWidth);
-        
+
         // Calculate the width in text characters for both
         auto oldCharWidth = oldBounds.getWidth() / fontWidth;
         auto newCharWidth = std::max(minimumWidth, newBounds.getWidth() / fontWidth);
 
         // If we're resizing the left edge, move the object left
-        if(resizingOnLeft) {
+        if (resizingOnLeft) {
             auto widthDiff = (newCharWidth - oldCharWidth) * fontWidth;
             auto x = oldBounds.getX() - widthDiff;
             auto y = oldBounds.getY(); // don't allow y resize
-            
+
             libpd_moveobj(static_cast<t_glist*>(patch), static_cast<t_gobj*>(obj), x, y);
         }
-        
+
         // Set new width
         TextObjectHelper::setWidthInChars(obj, newCharWidth);
     }
@@ -187,13 +187,13 @@ public:
         g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), PlugDataLook::objectCornerRadius);
 
         auto ioletAreaColour = object->findColour(PlugDataColour::ioletAreaColourId);
-        
-        if(ioletAreaColour != backgroundColour) {
+
+        if (ioletAreaColour != backgroundColour) {
             g.setColour(ioletAreaColour);
             g.fillRect(getLocalBounds().removeFromTop(3));
             g.fillRect(getLocalBounds().removeFromBottom(3));
         }
-        
+
         if (!editor) {
             auto textArea = border.subtractedFrom(getLocalBounds());
 
@@ -238,36 +238,34 @@ public:
         pd->getCallbackLock()->enter();
 
         auto* cnvPtr = cnv->patch.getPointer();
-                
+
         String objText;
-        if(editor && cnv->suggestor && cnv->suggestor->getText().isNotEmpty()) {
+        if (editor && cnv->suggestor && cnv->suggestor->getText().isNotEmpty()) {
             objText = cnv->suggestor->getText();
-        }
-        else if(editor) {
+        } else if (editor) {
             objText = editor->getText();
-        }
-        else {
+        } else {
             objText = objectText;
         }
-        
+
         auto newNumLines = 0;
-        
+
         bool resizingOnLeft = object->resizeZone.isDraggingLeftEdge();
         int oldWidth = object->originalBounds.getWidth() - Object::doubleMargin;
         int currentWidth = getWidth();
         int oldX = object->originalBounds.getX();
-        
+
         auto newBounds = TextObjectHelper::recalculateTextObjectBounds(cnvPtr, ptr, objText, 15, newNumLines, true, std::max({ 1, object->numInputs, object->numOutputs }));
 
         numLines = newNumLines;
-        
-        if(newBounds != object->getObjectBounds()) {
+
+        if (newBounds != object->getObjectBounds()) {
             object->setObjectBounds(newBounds);
         }
 
         pd->getCallbackLock()->exit();
     }
-    
+
     bool checkBounds(Rectangle<int> oldBounds, Rectangle<int> newBounds, bool resizingOnLeft) override
     {
         auto fontWidth = glist_fontwidth(cnv->patch.getPointer());
@@ -299,7 +297,7 @@ public:
             auto newText = outgoingEditor->getText();
 
             outgoingEditor->removeListener(cnv->suggestor);
-            
+
             newText = TextObjectHelper::fixNewlines(newText);
 
             bool changed;

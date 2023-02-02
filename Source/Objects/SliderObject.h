@@ -69,7 +69,6 @@ public:
         } else {
             object->constrainer->setMinimumSize(30, 15);
         }
-
     }
 
     void updateLabel() override
@@ -104,42 +103,42 @@ public:
     void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
     {
         switch (objectMessageMapped[symbol]) {
-            case objectMessage::msg_float:
-            case objectMessage::msg_set: {
-                value = atoms[0].getFloat();
-                slider.setValue(value, dontSendNotification);
-                break;
-            }
-            case objectMessage::msg_lin: {
-                setParameterExcludingListener(isLogarithmic, false);
+        case objectMessage::msg_float:
+        case objectMessage::msg_set: {
+            value = atoms[0].getFloat();
+            slider.setValue(value, dontSendNotification);
+            break;
+        }
+        case objectMessage::msg_lin: {
+            setParameterExcludingListener(isLogarithmic, false);
+            updateRange();
+            break;
+        }
+        case objectMessage::msg_log: {
+            setParameterExcludingListener(isLogarithmic, true);
+            updateRange();
+            break;
+        }
+        case objectMessage::msg_range: {
+            if (atoms.size() >= 2) {
+                setParameterExcludingListener(min, atoms[0].getFloat());
+                setParameterExcludingListener(max, atoms[1].getFloat());
                 updateRange();
-                break;
             }
-            case objectMessage::msg_log: {
-                setParameterExcludingListener(isLogarithmic, true);
-                updateRange();
-                break;
+            break;
+        }
+        case objectMessage::msg_steady: {
+            if (atoms.size() >= 1) {
+                bool steady = atoms[0].getFloat();
+                setParameterExcludingListener(steadyOnClick, steady);
+                slider.setSliderSnapsToMousePosition(!steady);
             }
-            case objectMessage::msg_range: {
-                if (atoms.size() >= 2) {
-                    setParameterExcludingListener(min, atoms[0].getFloat());
-                    setParameterExcludingListener(max, atoms[1].getFloat());
-                    updateRange();
-                }
-                break;
-            }
-            case objectMessage::msg_steady: {
-                if (atoms.size() >= 1) {
-                    bool steady = atoms[0].getFloat();
-                    setParameterExcludingListener(steadyOnClick, steady);
-                    slider.setSliderSnapsToMousePosition(!steady);
-                }
-                break;
-            }
-            default: {
-                iemHelper.receiveObjectMessage(symbol, atoms);
-                break;
-            }
+            break;
+        }
+        default: {
+            iemHelper.receiveObjectMessage(symbol, atoms);
+            break;
+        }
         }
     }
 

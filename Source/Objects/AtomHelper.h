@@ -49,18 +49,17 @@ class AtomHelper {
     PluginProcessor* pd;
 
     t_fake_gatom* atom;
-    
+
     inline static int minWidth = 3;
-    
+
 public:
-    
     Value labelColour;
     Value labelPosition = Value(0.0f);
     Value fontSize = Value(18.0f);
     Value labelText;
     Value sendSymbol;
     Value receiveSymbol;
-    
+
     AtomHelper(void* ptr, Object* parent, ObjectBase* base)
         : object(parent)
         , gui(base)
@@ -79,7 +78,7 @@ public:
         sendSymbol = getSendSymbol();
         receiveSymbol = getReceiveSymbol();
     }
-    
+
     void updateBounds()
     {
         pd->getCallbackLock()->enter();
@@ -95,7 +94,7 @@ public:
 
         object->setObjectBounds(bounds);
     }
-    
+
     void applyBounds()
     {
         auto b = object->getObjectBounds();
@@ -104,45 +103,43 @@ public:
         auto fontWidth = glist_fontwidth(cnv->patch.getPointer());
         atom->a_text.te_width = b.getWidth() / fontWidth;
     }
-    
+
     void checkBounds(Rectangle<int> oldBounds, Rectangle<int> newBounds, bool resizingOnLeft)
     {
         auto* patch = cnv->patch.getPointer();
-        
+
         auto fontWidth = glist_fontwidth(patch);
-        
+
         // Remove margin
         newBounds = newBounds.reduced(Object::margin);
         oldBounds = oldBounds.reduced(Object::margin);
-        
+
         // Calculate the width in text characters for both
         auto oldCharWidth = oldBounds.getWidth() / fontWidth;
         auto newCharWidth = std::max(minWidth, newBounds.getWidth() / fontWidth);
-        
+
         // If we're resizing the left edge, move the object left
-        if(resizingOnLeft) {
+        if (resizingOnLeft) {
             auto widthDiff = (newCharWidth - oldCharWidth) * fontWidth;
             auto x = oldBounds.getX() - widthDiff;
             auto y = oldBounds.getY();
-            
+
             libpd_moveobj(patch, reinterpret_cast<t_gobj*>(atom), x, y);
         }
-        
+
         // Set new width
         atom->a_text.te_width = newCharWidth;
-        
+
         auto newHeight = newBounds.getHeight();
         int heightIdx = 1;
-        
+
         // Round to nearest atom size
-        for(int i = 1; i < 7; i++)
-        {
-            if(newHeight > atomSizes[i] + 7)
-            {
+        for (int i = 1; i < 7; i++) {
+            if (newHeight > atomSizes[i] + 7) {
                 heightIdx = i;
             }
         }
-        
+
         setFontHeight(atomSizes[heightIdx]);
         gui->setParameterExcludingListener(fontSize, heightIdx + 1);
     }

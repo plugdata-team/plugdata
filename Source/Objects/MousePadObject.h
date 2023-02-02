@@ -160,26 +160,27 @@ public:
     }
 
     // Check if top-level canvas is locked to determine if we should respond to mouse events
-    bool isLocked() {
-    
+    bool isLocked()
+    {
+
         // Find top-level canvas
         auto* topLevel = findParentComponentOfClass<Canvas>();
-        while(auto* nextCanvas = topLevel->findParentComponentOfClass<Canvas>())
-        {
+        while (auto* nextCanvas = topLevel->findParentComponentOfClass<Canvas>()) {
             topLevel = nextCanvas;
         }
-        
+
         return static_cast<bool>(topLevel->locked.getValue());
     }
 
     void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
     {
         switch (objectMessageMapped[symbol]) {
-            case objectMessage::msg_color: {
-                repaint();
-                break;
-            }
-            default: break;
+        case objectMessage::msg_color: {
+            repaint();
+            break;
+        }
+        default:
+            break;
         }
     }
 };

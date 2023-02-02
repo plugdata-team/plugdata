@@ -13,7 +13,7 @@ public:
         : ObjectBase(ptr, object)
         , iemHelper(ptr, object, this)
     {
-        object->constrainer->setMinimumSize(20,40);
+        object->constrainer->setMinimumSize(20, 40);
     }
 
     void updateLabel() override
@@ -116,14 +116,14 @@ public:
     void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
     {
         switch (objectMessageMapped[symbol]) {
-            case objectMessage::msg_float: {
-                repaint();
-                break;
-            }
-            default: {
-                iemHelper.receiveObjectMessage(symbol, atoms);
-                break;
-            }
+        case objectMessage::msg_float: {
+            repaint();
+            break;
+        }
+        default: {
+            iemHelper.receiveObjectMessage(symbol, atoms);
+            break;
+        }
         }
     }
 };

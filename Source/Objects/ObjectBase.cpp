@@ -55,6 +55,7 @@ extern "C" {
 #include "CanvasListenerObjects.h"
 #include "ScopeObject.h"
 #include "FunctionObject.h"
+#include "BicoeffObject.h"
 
 // Class for non-patchable objects
 class NonPatchable : public ObjectBase {
@@ -197,9 +198,9 @@ void ObjectBase::closeOpenedSubpatchers()
             break;
         }
     }
-    
+
     // Makes the tabbar check if it needs to hide
-    if(tabbar->getNumTabs() == 0) {
+    if (tabbar->getNumTabs() == 0) {
         tabbar->currentTabChanged(-1, String());
     }
 
@@ -416,6 +417,8 @@ ObjectBase* ObjectBase::createGui(void* ptr, Object* parent)
         return new ScopeObject(ptr, parent);
     } else if (name == "function") {
         return new FunctionObject(ptr, parent);
+    } else if (name == "bicoeff") {
+        return new BicoeffObject(ptr, parent);
     } else if (name == "canvas.active") {
         return new CanvasActiveObject(ptr, parent);
     } else if (name == "canvas.mouse") {

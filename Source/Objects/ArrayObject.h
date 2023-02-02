@@ -252,7 +252,8 @@ public:
                 }
                 break;
             }
-            default: break;
+            default:
+                break;
             }
         }
     }
@@ -668,12 +669,13 @@ public:
     void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
     {
         switch (objectMessageMapped[symbol]) {
-            case objectMessage::msg_float:
-            case objectMessage::msg_symbol:
-            case objectMessage::msg_list: {
-                break;
-            }
-            default: break;
+        case objectMessage::msg_float:
+        case objectMessage::msg_symbol:
+        case objectMessage::msg_list: {
+            break;
+        }
+        default:
+            break;
         }
     }
 
