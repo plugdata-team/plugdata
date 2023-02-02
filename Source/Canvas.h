@@ -18,6 +18,7 @@ struct GraphArea;
 class Iolet;
 class PluginEditor;
 class ConnectionPathUpdater;
+class ConnectionBeingCreated;
 
 class Canvas : public Component
     , public Value::Listener
@@ -31,7 +32,6 @@ public:
     PluginProcessor* pd;
 
     void paint(Graphics& g) override;
-    void paintOverChildren(Graphics&) override;
 
     void resized() override
     {
@@ -107,8 +107,7 @@ public:
     Viewport* viewport = nullptr;
 
     bool connectingWithDrag = false;
-    Array<SafePointer<Iolet>> connectingIolets;
-    SafePointer<Iolet> nearestEdge;
+    SafePointer<Iolet> nearestIolet;
 
     pd::Patch& patch;
 
@@ -117,6 +116,7 @@ public:
 
     OwnedArray<Object> objects;
     OwnedArray<Connection> connections;
+    OwnedArray<ConnectionBeingCreated> connectionsBeingCreated;
 
     Value locked;
     Value commandLocked;
@@ -172,30 +172,6 @@ private:
         { "X range", tRange, cGeneral, &xRange, {} },
         { "Y range", tRange, cGeneral, &yRange, {} } };
 
-        
-    class ConnectionCreationMouseListener : public MouseListener {
-        
-        Canvas* cnv;
-        
-    public:
-        ConnectionCreationMouseListener(Canvas* canvas) : cnv(canvas)
-        {
-            Desktop::getInstance().addGlobalMouseListener(this);
-        }
-        
-        ~ConnectionCreationMouseListener() {
-            Desktop::getInstance().removeGlobalMouseListener(this);
-        }
-        
-        void mouseMove(const MouseEvent& e) override
-        {
-            if(cnv->connectingIolets.size()) {
-                cnv->repaint();
-            }
-        }
-    };
-        
-    ConnectionCreationMouseListener connectionCreationMouseListener = ConnectionCreationMouseListener(this);
-        
+    
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(Canvas)
 };

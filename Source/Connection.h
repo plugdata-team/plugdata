@@ -39,6 +39,8 @@ public:
     Connection(Canvas* parent, Iolet* start, Iolet* end, void* oc);
     ~Connection() override;
 
+    static void renderConnectionPath(Graphics& g, Canvas* cnv, Path connectionPath, bool isSignal, bool isMouseOver = false, bool isSelected = false, Point<int> mousePos = {0, 0});
+        
     void paint(Graphics&) override;
 
     bool isSegmented();
@@ -110,6 +112,62 @@ private:
 
     friend class ConnectionPathUpdater;
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(Connection)
+};
+
+class ConnectionBeingCreated : public Component
+{
+    SafePointer<Iolet> iolet;
+    Component* cnv;
+    Path connectionPath;
+public:
+    ConnectionBeingCreated(Iolet* target, Component* canvas) : iolet(target), cnv(canvas){
+        
+        // Only listen for mouse-events on canvas and the original iolet
+        setInterceptsMouseClicks(false, true);
+        cnv->addMouseListener(this, true);
+        iolet->addMouseListener(this, false);
+        
+        cnv->addAndMakeVisible(this);
+    }
+    
+    ~ConnectionBeingCreated() {
+        cnv->removeMouseListener(this);
+        iolet->removeMouseListener(this);
+    }
+    
+    void mouseDrag(const MouseEvent& e) override
+    {
+        mouseMove(e);
+    }
+    
+    void mouseMove(const MouseEvent& e) override
+    {
+        auto ioletPoint = cnv->getLocalPoint((Component*)iolet->object, iolet->getBounds().getCentre());
+        auto cursorPoint = cnv->getLocalPoint(nullptr, e.getScreenPosition());
+                                              
+        connectionPath.clear();
+        connectionPath.startNewSubPath(ioletPoint.toFloat());
+        connectionPath.lineTo(cursorPoint.toFloat());
+        
+        auto bounds = connectionPath.getBounds().getSmallestIntegerContainer().expanded(3);
+        
+        // Make sure we have minimal bounds, expand slightly to take line thickness into account
+        setBounds(bounds);
+        
+        // Remove bounds offset from path, because we've already set our origin by setting component bounds
+        connectionPath.applyTransform(AffineTransform::translation(-bounds.getX(), -bounds.getY()));
+                                                    
+        repaint();
+    }
+    
+    void paint(Graphics& g) override
+    {
+        Connection::renderConnectionPath(g, (Canvas*)cnv, connectionPath, iolet->isSignal);
+    }
+    
+    Iolet* getIolet() {
+        return iolet;
+    }
 };
 
 // Helper class to group connection path changes together into undoable/redoable actions

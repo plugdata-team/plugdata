@@ -435,34 +435,6 @@ void Canvas::updateSidebarSelection()
     }
 }
 
-void Canvas::paintOverChildren(Graphics& g)
-{
-    Point<float> mousePos = getMouseXYRelative().toFloat();
-
-    // Draw connections in the making over everything else
-    for (auto& iolet : connectingIolets) {
-        // In case we delete the object while connecting
-        if (!iolet)
-            continue;
-
-        Point<int> ioletPos = iolet->getCanvasBounds().getCentre();
-
-        Path path;
-        path.startNewSubPath(ioletPos.toFloat());
-        path.lineTo(mousePos);
-
-        auto baseColour = findColour(PlugDataColour::connectionColourId);
-
-        g.setColour(baseColour.darker(0.1));
-        g.strokePath(path, PathStrokeType(2.5f, PathStrokeType::mitered, PathStrokeType::square));
-
-        g.setColour(baseColour.darker(0.2));
-        g.strokePath(path, PathStrokeType(1.5f, PathStrokeType::mitered, PathStrokeType::square));
-
-        g.setColour(baseColour);
-        g.strokePath(path, PathStrokeType(0.5f, PathStrokeType::mitered, PathStrokeType::square));
-    }
-}
 
 // TODO: can we get rid of this?
 void Canvas::mouseMove(MouseEvent const& e)
@@ -893,10 +865,7 @@ bool Canvas::connectSelectedObjects()
 
 void Canvas::cancelConnectionCreation()
 {
-    if (!connectingIolets.isEmpty()) {
-        connectingIolets.clear();
-        repaint();
-    }
+    connectionsBeingCreated.clear();
 }
 
 void Canvas::undo()
