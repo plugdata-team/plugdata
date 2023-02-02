@@ -109,8 +109,14 @@ private:
     float mouseDownPosition = 0;
 
     void valueChanged(Value& v) override;
+        
+    struct t_fake_outconnect {
+        void* oc_next;
+        t_pd* oc_to;
+        t_symbol* outconnect_path_data;
+    };
 
-    pd::t_fake_outconnect* ptr;
+    t_fake_outconnect* ptr;
 
     friend class ConnectionPathUpdater;
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(Connection)
