@@ -309,7 +309,6 @@ private:
     WaitableEvent updateWait;
 
 protected:
-
     struct internal;
 
     struct ConsoleHandler : public Timer {

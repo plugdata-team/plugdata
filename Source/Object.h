@@ -106,9 +106,9 @@ public:
         "hv.comb", "hv.compressor", "hv.compressor2", "hv.dispatch", "hv.drunk", "hv.envfollow", "hv.eq", "hv.exp", "hv.filter.gain", "hv.filter", "hv.flanger", "hv.flanger2", "hv.freqshift", "hv.gt", "hv.gte", "hv.log", "hv.lt", "hv.lte", "hv.multiplex", "hv.neq", "hv.osc", "hv.pinknoise", "hv.pow", "hv.reverb", "hv.tanh", "hv.vline" };
 
     std::unique_ptr<ObjectBoundsConstrainer> constrainer;
-    
+
     Rectangle<int> originalBounds;
-        
+
 private:
     void initialise();
 
@@ -116,7 +116,6 @@ private:
 
     void openNewObjectEditor();
 
-        
     bool createEditorOnMouseDown = false;
     bool selectionStateChanged = false;
     bool wasLockedOnMouseDown = false;

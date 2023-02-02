@@ -7,7 +7,6 @@
 #pragma once
 #include "DraggableNumber.h"
 
-
 class PropertiesPanel : public PropertyPanel {
 
 public:
@@ -191,50 +190,53 @@ public:
     private:
         TextButton toggleButton;
     };
-    
-    struct ColourPicker : public ColourSelector, public ChangeListener
-    {
+
+    struct ColourPicker : public ColourSelector
+        , public ChangeListener {
         static inline bool isShowing = false;
-        
-        ColourPicker(std::function<void(Colour)> cb) : ColourSelector(ColourSelector::showColourAtTop | ColourSelector::showSliders | ColourSelector::showColourspace), callback(cb)
+
+        ColourPicker(std::function<void(Colour)> cb)
+            : ColourSelector(ColourSelector::showColourAtTop | ColourSelector::showSliders | ColourSelector::showColourspace)
+            , callback(cb)
         {
             setSize(300, 400);
             addChangeListener(this);
-            
+
             auto& lnf = LookAndFeel::getDefaultLookAndFeel();
-            
+
             setColour(ColourSelector::backgroundColourId, lnf.findColour(PlugDataColour::panelBackgroundColourId));
         }
-        
-        ~ColourPicker() {
+
+        ~ColourPicker()
+        {
             removeChangeListener(this);
             isShowing = false;
         }
-        
-        static void show(Colour currentColour, Rectangle<int> bounds, std::function<void(Colour)> callback) {
-            
-            if(isShowing) return;
-            
+
+        static void show(Colour currentColour, Rectangle<int> bounds, std::function<void(Colour)> callback)
+        {
+
+            if (isShowing)
+                return;
+
             isShowing = true;
-            
+
             std::unique_ptr<ColourPicker> colourSelector = std::make_unique<ColourPicker>(callback);
-            
+
             colourSelector->setCurrentColour(currentColour);
             CallOutBox::launchAsynchronously(std::move(colourSelector), bounds, nullptr);
         }
-        
+
     private:
-        
         void changeListenerCallback(ChangeBroadcaster* source) override
         {
             callback(dynamic_cast<ColourSelector*>(source)->getCurrentColour());
         }
-        
-        std::function<void(Colour)> callback = [](Colour){};
+
+        std::function<void(Colour)> callback = [](Colour) {};
     };
 
-    struct ColourComponent : public Property
-         {
+    struct ColourComponent : public Property {
         ColourComponent(String const& propertyName, Value& value)
             : Property(propertyName)
             , currentColour(value)
@@ -248,46 +250,48 @@ public:
         {
             auto colour = Colour::fromString(currentColour.toString());
             auto textColour = colour.getPerceivedBrightness() > 0.5 ? Colours::black : Colours::white;
-            
+
             auto bounds = getLocalBounds().removeFromRight(getWidth() / (2 - hideLabel));
-            
+
             g.setColour(isMouseOver() ? colour.brighter(0.4f) : colour);
             g.fillRect(bounds);
-            
+
             PlugDataLook::drawText(g, String("#") + currentColour.toString().substring(2).toUpperCase(), bounds, textColour, 14.0f, Justification::centred);
-            
+
             // Paint label
             Property::paint(g);
         }
-            
-        void mouseEnter(const MouseEvent& e) override {
-            repaint();
-        }
-            
-        void mouseExit(const MouseEvent& e) override {
-            repaint();
-        }
-            
-        void mouseDown(const MouseEvent& e) override
+
+        void mouseEnter(MouseEvent const& e) override
         {
-            if(hideLabel && e.getPosition().x < getWidth() / 2) return;
-            
-            ColourPicker::show(Colour::fromString(currentColour.toString()), getScreenBounds(), [_this = SafePointer(this)](Colour c){
-                
-                if(!_this) return;
-                
+            repaint();
+        }
+
+        void mouseExit(MouseEvent const& e) override
+        {
+            repaint();
+        }
+
+        void mouseDown(MouseEvent const& e) override
+        {
+            if (hideLabel && e.getPosition().x < getWidth() / 2)
+                return;
+
+            ColourPicker::show(Colour::fromString(currentColour.toString()), getScreenBounds(), [_this = SafePointer(this)](Colour c) {
+                if (!_this)
+                    return;
+
                 _this->currentColour = c.toString();
             });
         }
-             
-         bool hitTest(int x, int y) override
-         {
-             auto bounds = getLocalBounds().removeFromRight(getWidth() / (2 - hideLabel));
-             return bounds.contains(x, y);
-         }
+
+        bool hitTest(int x, int y) override
+        {
+            auto bounds = getLocalBounds().removeFromRight(getWidth() / (2 - hideLabel));
+            return bounds.contains(x, y);
+        }
 
     private:
-        
         Value& currentColour;
     };
 

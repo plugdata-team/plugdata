@@ -9,73 +9,81 @@
 // Component that sits on top of a TextEditor and will draw auto-complete suggestions over it
 class AutoCompleteComponent
     : public Component
-    , public ComponentListener
-{
+    , public ComponentListener {
     String suggestion;
     Canvas* cnv;
     Component::SafePointer<TextEditor> editor;
-        
+
 public:
-    
-    AutoCompleteComponent(TextEditor* e, Canvas* c) : editor(e), cnv(c)
+    AutoCompleteComponent(TextEditor* e, Canvas* c)
+        : editor(e)
+        , cnv(c)
     {
         setAlwaysOnTop(true);
-        
+
         editor->addComponentListener(this);
         cnv->addAndMakeVisible(this);
-        
+
         setInterceptsMouseClicks(false, false);
     }
-    
-    ~AutoCompleteComponent() {
+
+    ~AutoCompleteComponent()
+    {
         editor->removeComponentListener(this);
     }
 
-    
-    String getSuggestion() {
-        
-        if(!editor) return String();
-        
+    String getSuggestion()
+    {
+
+        if (!editor)
+            return String();
+
         return editor->getText() + suggestion;
     }
-    
-    void autocomplete() {
-        if(!editor) return;
-        
+
+    void autocomplete()
+    {
+        if (!editor)
+            return;
+
         editor->setText(editor->getText() + suggestion, sendNotification);
     }
-    
-    void setSuggestion(const String& suggestionText) {
-        if(!editor) return;
-        
+
+    void setSuggestion(String const& suggestionText)
+    {
+        if (!editor)
+            return;
+
         auto textUpToSpace = editor->getText().upToFirstOccurrenceOf(" ", false, false);
-        
+
         setVisible(suggestionText.isNotEmpty() && textUpToSpace != suggestionText);
-        
+
         suggestion = suggestionText.fromFirstOccurrenceOf(textUpToSpace, false, true);
         repaint();
     }
-    
+
 private:
     void componentMovedOrResized(Component& component, bool moved, bool resized) override
     {
-        if(!editor) return;
+        if (!editor)
+            return;
         setBounds(cnv->getLocalArea(editor, editor->getLocalBounds()));
     }
-    
-    void componentBeingDeleted(Component &component)
+
+    void componentBeingDeleted(Component& component)
     {
         editor->removeComponentListener(this);
     }
 
     void paint(Graphics& g) override
     {
-        if(!editor) return;
-        
+        if (!editor)
+            return;
+
         auto editorText = editor->getText();
         auto editorTextWidth = editor->getFont().getStringWidthFloat(editorText);
         auto completionBounds = getLocalBounds().toFloat().withTrimmedLeft(editorTextWidth + 7.5f);
-        
+
         auto colour = findColour(PlugDataColour::canvasTextColourId).withAlpha(0.65f);
         PlugDataLook::drawText(g, suggestion, completionBounds, colour);
     }
@@ -174,7 +182,6 @@ class SuggestionComponent : public Component
     };
 
 public:
-
     SuggestionComponent()
         : resizer(this, &constrainer)
         , currentBox(nullptr)
@@ -233,24 +240,22 @@ public:
         editor->addKeyListener(this);
 
         autoCompleteComponent = std::make_unique<AutoCompleteComponent>(editor, object->cnv);
-        
+
         for (int i = 0; i < buttons.size(); i++) {
             auto* but = buttons[i];
             but->setAlwaysOnTop(true);
 
             but->onClick = [this, i, but, editor]() mutable {
-                
                 // If the button is already selected, perform autocomplete
-                if(but->getToggleState() && autoCompleteComponent) {
+                if (but->getToggleState() && autoCompleteComponent) {
                     autoCompleteComponent->autocomplete();
                     return;
                 }
-                
+
                 move(0, i);
                 if (!editor->isVisible())
                     editor->setVisible(true);
                 editor->grabKeyboardFocus();
-
             };
         }
 
@@ -259,7 +264,6 @@ public:
         auto objectPos = object->getScreenBounds().reduced(Object::margin).getBottomLeft().translated(0, 5);
 
         setTopLeftPosition(objectPos);
-        
 
         setVisible(false);
         toFront(false);
@@ -274,9 +278,10 @@ public:
         if (isOnDesktop()) {
             removeFromDesktop();
         }
-        
+
         autoCompleteComponent.reset(nullptr);
-        if(openedEditor) openedEditor->removeListener(this);
+        if (openedEditor)
+            openedEditor->removeListener(this);
 
         openedEditor = nullptr;
         currentBox = nullptr;
@@ -336,12 +341,13 @@ public:
         port->setViewPosition(0, yScroll);
         repaint();
     }
-        
-    String getText() const {
-        if(autoCompleteComponent) {
+
+    String getText() const
+    {
+        if (autoCompleteComponent) {
             return autoCompleteComponent->getSuggestion();
         }
-        
+
         return String();
     }
 
@@ -387,7 +393,7 @@ private:
             openedEditor->setCaretPosition(openedEditor->getHighlightedRegion().getEnd());
             return true;
         }
-        if(key == KeyPress::rightKey && autoCompleteComponent && openedEditor->getCaretPosition() == openedEditor->getText().length()) {
+        if (key == KeyPress::rightKey && autoCompleteComponent && openedEditor->getCaretPosition() == openedEditor->getText().length()) {
             autoCompleteComponent->autocomplete();
             return true;
         }
@@ -408,29 +414,30 @@ private:
         }
         return false;
     }
-        
-        /*
-    String filterNewText(TextEditor& e, String const& newInput) override
-    {
-        if (!currentBox) {
-            return newInput;
-        }
 
-        String mutableInput = newInput;
+    /*
+String filterNewText(TextEditor& e, String const& newInput) override
+{
+    if (!currentBox) {
+        return newInput;
+    }
 
-        // Find start of highlighted region
-        // This is the start of the last auto-completion suggestion
-        // This region will automatically be removed after this function because it's selected
-        int start = e.getHighlightedRegion().getLength() > 0 ? e.getHighlightedRegion().getStart() : e.getText().length();
+    String mutableInput = newInput;
 
-        // Reconstruct users typing
-        
-    } */
-    
+    // Find start of highlighted region
+    // This is the start of the last auto-completion suggestion
+    // This region will automatically be removed after this function because it's selected
+    int start = e.getHighlightedRegion().getLength() > 0 ? e.getHighlightedRegion().getStart() : e.getText().length();
+
+    // Reconstruct users typing
+
+} */
+
     void textEditorTextChanged(TextEditor& e) override
     {
-        if (!currentBox) return;
-            
+        if (!currentBox)
+            return;
+
         String currentText = e.getText();
         resized();
 
@@ -456,7 +463,7 @@ private:
 
             setVisible(numOptions);
             currentidx = 0;
-            if(autoCompleteComponent)  {
+            if (autoCompleteComponent) {
                 autoCompleteComponent->setSuggestion("");
                 currentBox->updateBounds();
             }
@@ -509,7 +516,8 @@ private:
 
         if (found.empty() || textlen == 0) {
             state = Hidden;
-            if(autoCompleteComponent) autoCompleteComponent->setSuggestion("");
+            if (autoCompleteComponent)
+                autoCompleteComponent->setSuggestion("");
             currentBox->updateBounds();
             setVisible(false);
             return;
@@ -526,11 +534,10 @@ private:
         state = ShowingObjects;
         if (fullName.length() > textlen && autoCompleteComponent) {
             autoCompleteComponent->setSuggestion(fullName);
-        }
-        else {
+        } else {
             autoCompleteComponent->setSuggestion("");
         }
-        
+
         // duplicate call to updateBounds :(
         currentBox->updateBounds();
 
@@ -555,9 +562,9 @@ private:
     ComponentBoundsConstrainer constrainer;
 
     StackDropShadower dropShadower;
-    
+
     SugesstionState state = Hidden;
-        
+
     TextEditor* openedEditor = nullptr;
     SafePointer<Object> currentBox;
 };

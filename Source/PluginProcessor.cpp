@@ -58,7 +58,7 @@ PluginProcessor::PluginProcessor()
 {
     // Make sure to use dots for decimal numbers, pd requires that
     std::setlocale(LC_ALL, "C");
-    
+
     {
         const MessageManagerLock mmLock;
 
@@ -793,7 +793,7 @@ void PluginProcessor::getStateInformation(MemoryBlock& destData)
     getCallbackLock()->enter();
 
     const MessageManagerLock mmlock;
-    
+
     setThis();
 
     // Store pure-data state
@@ -844,9 +844,8 @@ void PluginProcessor::setStateInformation(void const* data, int sizeInBytes)
     // By calling this asynchronously on the message thread and also suspending processing on the audio thread, we can make sure this is safe
     // The DAW can call this function from basically any thread, hence the need for this
     // Audio will only be reactivated once this action is completed
-    
-    const MessageManagerLock mmLock;
 
+    const MessageManagerLock mmLock;
 
     MemoryInputStream istream(copy, sizeInBytes, false);
 
@@ -1011,7 +1010,7 @@ void PluginProcessor::setTheme(String themeToUse)
             // Calling synchonise here is not neat, but it's a way to make sure both colours and other theme properties get applied...
             cnv->synchronise();
         }
-        
+
         editor->getTopLevelComponent()->repaint();
         editor->repaint();
     }
@@ -1160,11 +1159,11 @@ void PluginProcessor::receiveDSPState(bool dsp)
 void PluginProcessor::updateDrawables()
 {
     if (auto* editor = dynamic_cast<PluginEditor*>(getActiveEditor())) {
-        MessageManager::callAsync([cnv = editor->getCurrentCanvas()](){
-            if(cnv) cnv->updateDrawables();
+        MessageManager::callAsync([cnv = editor->getCurrentCanvas()]() {
+            if (cnv)
+                cnv->updateDrawables();
         });
     }
-
 }
 
 void PluginProcessor::updateConsole()

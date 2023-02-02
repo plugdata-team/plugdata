@@ -562,7 +562,7 @@ public:
 
         input.setColour(TextEditor::backgroundColourId, backgroundColour.brighter(0.7f));
         input.setColour(TextEditor::textColourId, textColour);
-        
+
         PlugDataLook::drawIcon(g, Icons::Search, 0, 0, 30, textColour, 12);
 
         if (input.getText().isEmpty()) {

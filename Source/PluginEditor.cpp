@@ -107,9 +107,8 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     };
 
     tabbar.onTabChange = [this](int idx) {
-        
         auto* cnv = getCurrentCanvas();
-        
+
         if (!cnv || idx == -1 || pd->isPerformingGlobalSync)
             return;
 
@@ -137,7 +136,7 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     addAndMakeVisible(tabbar);
     addAndMakeVisible(sidebar);
 
-    for (auto* button : std::vector<TextButton*>{&mainMenuButton, &undoButton, &redoButton, &addObjectMenuButton, &pinButton, &hideSidebarButton}) {
+    for (auto* button : std::vector<TextButton*> { &mainMenuButton, &undoButton, &redoButton, &addObjectMenuButton, &pinButton, &hideSidebarButton }) {
         button->getProperties().set("Style", "LargeIcon");
         button->setConnectedEdges(12);
         addAndMakeVisible(button);

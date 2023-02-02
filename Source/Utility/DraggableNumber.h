@@ -408,8 +408,7 @@ struct DraggableListNumber : public DraggableNumber {
             g.drawText(getText(), textArea, Justification::centredLeft, false);
         }
     }
-    
-    
+
     void editorHidden(Label* l, TextEditor& editor) override
     {
         setText(editor.getText().trimEnd(), dontSendNotification);

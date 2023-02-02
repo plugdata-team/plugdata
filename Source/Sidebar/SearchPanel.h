@@ -187,7 +187,7 @@ public:
 
         input.setColour(TextEditor::backgroundColourId, backgroundColour.brighter(0.7f));
         input.setColour(TextEditor::textColourId, textColour);
-        
+
         g.setColour(backgroundColour);
         g.fillRect(getLocalBounds().withTrimmedBottom(30));
     }
@@ -361,7 +361,7 @@ public:
             libpd_get_object_text(object, &objectText, &len);
 
             auto objTextStr = String::fromUTF8(objectText, len);
-            
+
             addObject(objTextStr, topLevel, object);
 
             freebytes(static_cast<void*>(objectText), static_cast<size_t>(len) * sizeof(char));
