@@ -152,7 +152,6 @@ public:
         auto& startPoint = iolet->isInlet ? cursorPoint : ioletPoint;
         auto& endPoint = iolet->isInlet ? ioletPoint : cursorPoint;
         
-        
         connectionPath = Connection::getNonSegmentedPath(startPoint.toFloat(), endPoint.toFloat());
         
         auto bounds = connectionPath.getBounds().getSmallestIntegerContainer().expanded(3);
