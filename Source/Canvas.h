@@ -74,9 +74,9 @@ public:
     void setSelected(Component* component, bool shouldNowBeSelected);
     bool isSelected(Component* component) const;
 
-    void handleMouseDown(Component* component, MouseEvent const& e);
-    void handleMouseUp(Component* component, MouseEvent const& e);
-    void handleMouseDrag(MouseEvent const& e);
+    void objectMouseDown(Object* component, MouseEvent const& e);
+    void objectMouseUp(Object* component, MouseEvent const& e);
+    void objectMouseDrag(MouseEvent const& e);
 
     SelectedItemSet<WeakReference<Component>>& getLassoSelection() override;
 

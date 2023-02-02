@@ -586,7 +586,7 @@ void Object::mouseDown(MouseEvent const& e)
     // TODO: why would this ever happen??
     if (!getLocalBounds().contains(e.getPosition()))
         return;
-
+    
     if (attachedToMouse) {
         attachedToMouse = false;
         stopTimer();
@@ -626,7 +626,7 @@ void Object::mouseDown(MouseEvent const& e)
 
     bool wasSelected = cnv->isSelected(this);
 
-    cnv->handleMouseDown(this, e);
+    cnv->objectMouseDown(this, e);
 
     if (cnv->isSelected(this) != wasSelected) {
         selectionStateChanged = true;
@@ -674,7 +674,7 @@ void Object::mouseUp(MouseEvent const& e)
                 }
             });
     } else {
-        cnv->handleMouseUp(this, e);
+        cnv->objectMouseUp(this, e);
     }
 
     if (gui && !selectionStateChanged && cnv->isSelected(this) && !e.mouseWasDraggedSinceMouseDown() && !e.mods.isRightButtonDown()) {
@@ -693,7 +693,7 @@ void Object::mouseDrag(MouseEvent const& e)
 
     // Let canvas handle moving
     if (resizeZone.getZoneFlags() == ResizableBorderComponent::Zone::centre) {
-        cnv->handleMouseDrag(e);
+        cnv->objectMouseDrag(e);
     } else if (validResizeZone && !originalBounds.isEmpty()) {
         Rectangle<int> const newBounds(resizeZone.resizeRectangleBy(originalBounds, e.getOffsetFromDragStart()));
 

@@ -883,11 +883,11 @@ void Connection::receiveMessage(String const& name, int argc, t_atom* argv)
 
     MessageManager::callAsync([this, name, args]() mutable {
         if (name == "float" && args.size() >= 1) {
-            setTooltip(String(atom_getfloat(args.data())));
+            setTooltip("(float) " + String(atom_getfloat(args.data())));
         } else if (name == "symbol" && args.size() >= 1) {
-            setTooltip(String::fromUTF8(atom_getsymbol(args.data())->s_name));
+            setTooltip("(symbol): " + String::fromUTF8(atom_getsymbol(args.data())->s_name));
         } else if (name == "list") {
-            StringArray result;
+            StringArray result = {"(list)"};
             for (auto& arg : args) {
                 if (arg.a_type == A_FLOAT) {
                     result.add(String(atom_getfloat(&arg)));
@@ -898,7 +898,16 @@ void Connection::receiveMessage(String const& name, int argc, t_atom* argv)
 
             setTooltip(result.joinIntoString(" "));
         } else {
-            setTooltip(name);
+            StringArray result = {"(" + name + ")"};
+            for (auto& arg : args) {
+                if (arg.a_type == A_FLOAT) {
+                    result.add(String(atom_getfloat(&arg)));
+                } else if (arg.a_type == A_SYMBOL) {
+                    result.add(String::fromUTF8(atom_getsymbol(&arg)->s_name));
+                }
+            }
+
+            setTooltip(result.joinIntoString(" "));
         }
     });
 }

@@ -285,7 +285,7 @@ void Canvas::mouseDown(MouseEvent const& e)
     }
     // Left-click
     else if (!e.mods.isRightButtonDown()) {
-        if (source == this || source == graphArea) {
+        if (source == this /*|| source == graphArea */) {
 
             cancelConnectionCreation();
 
@@ -315,7 +315,6 @@ void Canvas::mouseDown(MouseEvent const& e)
     }
     // Right click
     else {
-        cancelConnectionCreation();
         Dialogs::showCanvasRightClickMenu(this, source, e.getScreenPosition());
     }
 }
@@ -1088,10 +1087,14 @@ bool Canvas::isSelected(Component* component) const
     return selectedComponents.isSelected(component);
 }
 
-void Canvas::handleMouseDown(Component* component, MouseEvent const& e)
+void Canvas::objectMouseDown(Object* component, MouseEvent const& e)
 {
     if (e.mods.isRightButtonDown()) {
         setSelected(component, true);
+        
+        PopupMenu::dismissAllActiveMenus();
+        Dialogs::showCanvasRightClickMenu(this, component, e.getScreenPosition());
+        
         return;
     }
     if (e.mods.isShiftDown()) {
@@ -1126,9 +1129,8 @@ void Canvas::handleMouseDown(Component* component, MouseEvent const& e)
 }
 
 // Call from component's mouseUp
-void Canvas::handleMouseUp(Component* component, MouseEvent const& e)
+void Canvas::objectMouseUp(Object* component, MouseEvent const& e)
 {
-
     if (e.mods.isShiftDown() && wasSelectedOnMouseDown && !didStartDragging) {
         // Unselect object if selected
         setSelected(component, false);
@@ -1204,7 +1206,7 @@ void Canvas::handleMouseUp(Component* component, MouseEvent const& e)
 }
 
 // Call from component's mouseDrag
-void Canvas::handleMouseDrag(MouseEvent const& e)
+void Canvas::objectMouseDrag(MouseEvent const& e)
 {
     /** Ensure tiny movements don't start a drag. */
     if (!didStartDragging && e.getDistanceFromDragStart() < minimumMovementToStartDrag)
