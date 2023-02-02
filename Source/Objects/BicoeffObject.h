@@ -15,6 +15,8 @@ class BicoeffGraph : public Component {
     float lastCentre, lastX1, lastX2, lastGain;
 
     Object* object;
+    
+    Path magnitudePath;
 
 public:
     
@@ -37,13 +39,12 @@ public:
     BicoeffGraph(Object* parent)
         : object(parent)
     {
-        setSize(100, 100);
-
         filterWidth = 50;
         filterCentre = getWidth() / 2.0f;
         filterX1 = filterCentre - (filterWidth / 2);
         filterX2 = filterCentre + (filterWidth / 2);
 
+        setSize(300, 300);
         update();
     }
 
@@ -100,6 +101,30 @@ public:
         default:
             break;
         }
+        
+        magnitudePath.clear();
+        
+        for (int x = 0; x <= getWidth(); x++) {
+            auto nn = (static_cast<float>(x) / getWidth()) * 120.0f + 16.766f;
+            auto freq = MidiMessage::getMidiNoteInHertz(nn);
+            auto result = calcMagnitudePhase((M_PI * 2.0 * freq) / 44100.0f, a1, a2, b0, b1, b2);
+
+            if(!std::isfinite(result.first)) {
+                continue;
+            }
+            
+            if (x == 0) {
+                magnitudePath.startNewSubPath(x, result.first);
+                // phasePath.startNewSubPath(x, result.second);
+
+            } else {
+                magnitudePath.lineTo(x, result.first);
+                // phasePath.lineTo(x, result.second);
+            }
+        }
+        
+        magnitudePath = magnitudePath.createPathWithRoundedCorners(10.0f);
+        
         repaint();
     }
 
@@ -143,34 +168,13 @@ public:
 
     void resized() override
     {
-        filterWidth = 60.0f;
-        filterCentre = filterWidth / 2.0f;
-
-        repaint();
+        update();
     }
 
     void paint(Graphics& g) override
     {
         g.setColour(object->findColour(PlugDataColour::guiObjectBackgroundColourId));
         g.fillRoundedRectangle(getLocalBounds().toFloat(), PlugDataLook::objectCornerRadius);
-
-        Path magnitudePath;
-        Path phasePath;
-
-        for (int x = 0; x <= getWidth(); x += 2) {
-            auto nn = (static_cast<float>(x) / getWidth()) * 120.0f + 16.766f;
-            auto freq = MidiMessage::getMidiNoteInHertz(nn);
-            auto result = calcMagnitudePhase((M_PI * 2.0 * freq) / 44100.0f, a1, a2, b0, b1, b2);
-
-            if (x == 0) {
-                magnitudePath.startNewSubPath(x, result.first);
-                // phasePath.startNewSubPath(x, result.second);
-
-            } else {
-                magnitudePath.lineTo(x, result.first);
-                // phasePath.lineTo(x, result.second);
-            }
-        }
 
         g.setColour(object->findColour(PlugDataColour::outlineColourId));
 
@@ -213,7 +217,7 @@ public:
         float fHz = f * 44100.0f / (2.0f * M_PI);
 
         // convert magnitude to dB scale
-        float logMagnitude = std::clamp<float>(20.0f * log(magnitude) / log(10), -25.f, 25.f);
+        float logMagnitude = std::clamp<float>(20.0f * std::log(magnitude) / std::log(10), -25.f, 25.f);
 
         // scale to pixel range
         float halfFrameHeight = getHeight() / 2.0;
@@ -409,7 +413,8 @@ public:
     {
         auto [alpha, omega] = calcCoefficients();
 
-        float amp = pow(10.0, (-1.0 * (filterGain / getHeight() * 50.0 - 25.0)) / 40.0);
+        float gain = std::min<float>(filterGain, getHeight());
+        float amp = pow(10.0, (-1.0 * (gain / getHeight() * 50.0 - 25.0)) / 40.0);
         float alphamulamp = alpha * amp;
         float alphadivamp = alpha / amp;
 
@@ -427,7 +432,8 @@ public:
     {
         auto [alpha, omega] = calcCoefficients();
 
-        float amp = pow(10.0, (-1.0 * (filterGain / getHeight() * 50.0 - 25.0)) / 40.0);
+        float gain = std::min<float>(filterGain, getHeight());
+        float amp = pow(10.0, (-1.0 * (gain / getHeight() * 50.0 - 25.0)) / 40.0);
 
         float alphaMod = 2.0 * sqrt(amp) * alpha;
         float cosOmega = cos(omega);
@@ -448,7 +454,8 @@ public:
     {
         auto [alpha, omega] = calcCoefficients();
 
-        float amp = pow(10.0, (-1.0 * (filterGain / getHeight() * 50.0 - 25.0)) / 40.0);
+        float gain = std::min<float>(filterGain, getHeight());
+        float amp = pow(10.0, (-1.0 * (gain / getHeight() * 50.0 - 25.0)) / 40.0);
 
         float alphaMod = 2.0 * sqrt(amp) * alpha;
         float cosOmega = cos(omega);
