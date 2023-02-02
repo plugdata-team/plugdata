@@ -41,6 +41,8 @@ public:
 
     static void renderConnectionPath(Graphics& g, Canvas* cnv, Path connectionPath, bool isSignal, bool isMouseOver = false, bool isSelected = false, Point<int> mousePos = {0, 0});
         
+    static Path getNonSegmentedPath(Point<float> start, Point<float> end);
+        
     void paint(Graphics&) override;
 
     bool isSegmented();
@@ -145,9 +147,7 @@ public:
         auto ioletPoint = cnv->getLocalPoint((Component*)iolet->object, iolet->getBounds().getCentre());
         auto cursorPoint = cnv->getLocalPoint(nullptr, e.getScreenPosition());
                                               
-        connectionPath.clear();
-        connectionPath.startNewSubPath(ioletPoint.toFloat());
-        connectionPath.lineTo(cursorPoint.toFloat());
+        connectionPath = Connection::getNonSegmentedPath(ioletPoint.toFloat(), cursorPoint.toFloat());
         
         auto bounds = connectionPath.getBounds().getSmallestIntegerContainer().expanded(3);
         
@@ -162,6 +162,10 @@ public:
     
     void paint(Graphics& g) override
     {
+        if(!iolet)  {
+            jassertfalse; // shouldn't happen
+            return;
+        }
         Connection::renderConnectionPath(g, (Canvas*)cnv, connectionPath, iolet->isSignal);
     }
     
