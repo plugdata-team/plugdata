@@ -4,6 +4,9 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
+#define _USE_MATH_DEFINES
+#include <math.h>
+
 class BicoeffGraph : public Component {
 
     float a1 = 0, a2 = 0, b0 = 1, b1 = 0, b2 = 0;
