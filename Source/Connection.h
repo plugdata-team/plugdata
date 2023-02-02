@@ -130,6 +130,8 @@ public:
         iolet->addMouseListener(this, false);
         
         cnv->addAndMakeVisible(this);
+
+        setAlwaysOnTop(true);
     }
     
     ~ConnectionBeingCreated() {
@@ -172,7 +174,7 @@ public:
             jassertfalse; // shouldn't happen
             return;
         }
-        Connection::renderConnectionPath(g, (Canvas*)cnv, connectionPath, iolet->isSignal);
+        Connection::renderConnectionPath(g, (Canvas*)cnv, connectionPath, iolet->isSignal, true);
     }
     
     Iolet* getIolet() {
