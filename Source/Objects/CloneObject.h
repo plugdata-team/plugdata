@@ -8,46 +8,42 @@ extern "C" {
 t_glist* clone_get_instance(t_gobj*, int);
 int clone_get_n(t_gobj*);
 
-struct t_copy
-{
-    t_glist *c_gl;
-    int c_on;           /* DSP running */
+struct t_copy {
+    t_glist* c_gl;
+    int c_on; /* DSP running */
 };
 
-struct t_in
-{
-    t_class *i_pd;
-    struct _clone *i_owner;
+struct t_in {
+    t_class* i_pd;
+    struct _clone* i_owner;
     int i_signal;
     int i_n;
 };
 
-struct t_out
-{
-    t_class *o_pd;
-    t_outlet *o_outlet;
+struct t_out {
+    t_class* o_pd;
+    t_outlet* o_outlet;
     int o_signal;
     int o_n;
 };
 
-struct t_fake_clone
-{
+struct t_fake_clone {
     t_object x_obj;
-    t_canvas *x_canvas; /* owning canvas */
+    t_canvas* x_canvas; /* owning canvas */
     int x_n;            /* number of copies */
-    t_copy *x_vec;      /* the copies */
+    t_copy* x_vec;      /* the copies */
     int x_nin;
-    t_in *x_invec;      /* inlet proxies */
+    t_in* x_invec; /* inlet proxies */
     int x_nout;
-    t_out **x_outvec;   /* outlet proxies */
-    t_symbol *x_s;      /* name of abstraction */
-    int x_argc;         /* creation arguments for abstractions */
-    t_atom *x_argv;
-    int x_phase;        /* phase for round-robin input message forwarding */
-    int x_startvoice;   /* number of first voice, 0 by default */
-    unsigned int x_suppressvoice:1; /* suppress voice number as $1 arg */
-    unsigned int x_distributein:1;  /* distribute input signals across clones */
-    unsigned int x_packout:1;       /* pack output signals */
+    t_out** x_outvec; /* outlet proxies */
+    t_symbol* x_s;    /* name of abstraction */
+    int x_argc;       /* creation arguments for abstractions */
+    t_atom* x_argv;
+    int x_phase;                      /* phase for round-robin input message forwarding */
+    int x_startvoice;                 /* number of first voice, 0 by default */
+    unsigned int x_suppressvoice : 1; /* suppress voice number as $1 arg */
+    unsigned int x_distributein : 1;  /* distribute input signals across clones */
+    unsigned int x_packout : 1;       /* pack output signals */
 };
 }
 
@@ -95,13 +91,14 @@ public:
     void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
     {
         switch (objectMessageMapped[symbol]) {
-            case objectMessage::msg_vis: {
-                if (atoms.size() > 2) {
-                    // TODO: implement this!
-                }
-                break;
+        case objectMessage::msg_vis: {
+            if (atoms.size() > 2) {
+                // TODO: implement this!
             }
-            default: break;
+            break;
+        }
+        default:
+            break;
         }
     }
 };

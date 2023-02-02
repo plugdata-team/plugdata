@@ -124,7 +124,8 @@ public:
 
     void paint(Graphics& g) override
     {
-        g.fillAll(Colour::fromString(secondaryColour.toString()));
+        g.setColour(Colour::fromString(secondaryColour.toString()));
+        g.fillRoundedRectangle(getLocalBounds().toFloat(), PlugDataLook::objectCornerRadius);
 
         bool selected = cnv->isSelected(object) && !cnv->isGraph;
         bool editing = cnv->locked == var(true) || cnv->presentationMode == var(true) || ModifierKeys::getCurrentModifiers().isCtrlDown();
@@ -407,30 +408,30 @@ public:
     void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
     {
         switch (objectMessageMapped[symbol]) {
-            case objectMessage::msg_send: {
-                if (atoms.size() >= 1)
-                    setParameterExcludingListener(sendSymbol, atoms[0].getSymbol());
-                break;
-            }
-            case objectMessage::msg_receive: {
-                if (atoms.size() >= 1)
-                    setParameterExcludingListener(receiveSymbol, atoms[0].getSymbol());
-                break;
-            }
-            case objectMessage::msg_list: {
-                getPointsFromFunction();
-                break;
-            }
-            case objectMessage::msg_min:
-            case objectMessage::msg_max: {
-                auto* function = static_cast<t_fake_function*>(ptr);
-                Array<var> arr = { function->x_min, function->x_max };
-                setParameterExcludingListener(range, var(arr));
-                getPointsFromFunction();
-                break;
-            }
-            default:
-                break;
+        case objectMessage::msg_send: {
+            if (atoms.size() >= 1)
+                setParameterExcludingListener(sendSymbol, atoms[0].getSymbol());
+            break;
+        }
+        case objectMessage::msg_receive: {
+            if (atoms.size() >= 1)
+                setParameterExcludingListener(receiveSymbol, atoms[0].getSymbol());
+            break;
+        }
+        case objectMessage::msg_list: {
+            getPointsFromFunction();
+            break;
+        }
+        case objectMessage::msg_min:
+        case objectMessage::msg_max: {
+            auto* function = static_cast<t_fake_function*>(ptr);
+            Array<var> arr = { function->x_min, function->x_max };
+            setParameterExcludingListener(range, var(arr));
+            getPointsFromFunction();
+            break;
+        }
+        default:
+            break;
         }
     }
 };

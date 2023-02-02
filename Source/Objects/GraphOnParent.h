@@ -39,29 +39,30 @@ public:
     void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
     {
         switch (objectMessageMapped[symbol]) {
-            case objectMessage::msg_coords: {
-                if (atoms.size() >= 8) {
-                    
-                    // x_range: 0 1
-                    // y_range: 1 -1
-                    // w: $4 h: 22
-                    // hidetext: 2
-                    // margin: 100 100
-                    // isgraph: 1
-                    
-                    pd->getCallbackLock()->enter();
-                    
-                    int x = 0, y = 0, w = 0, h = 0;
-                    libpd_get_object_bounds(cnv->patch.getPointer(), ptr, &x, &y, &w, &h);
-                    auto bounds = Rectangle<int>(x, y, atoms[4].getFloat(), atoms[5].getFloat());
-                    
-                    pd->getCallbackLock()->exit();
-                    
-                    object->setObjectBounds(bounds);
-                }
-                break;
+        case objectMessage::msg_coords: {
+            if (atoms.size() >= 8) {
+
+                // x_range: 0 1
+                // y_range: 1 -1
+                // w: $4 h: 22
+                // hidetext: 2
+                // margin: 100 100
+                // isgraph: 1
+
+                pd->getCallbackLock()->enter();
+
+                int x = 0, y = 0, w = 0, h = 0;
+                libpd_get_object_bounds(cnv->patch.getPointer(), ptr, &x, &y, &w, &h);
+                auto bounds = Rectangle<int>(x, y, atoms[4].getFloat(), atoms[5].getFloat());
+
+                pd->getCallbackLock()->exit();
+
+                object->setObjectBounds(bounds);
             }
-            default: break;
+            break;
+        }
+        default:
+            break;
         }
     }
 

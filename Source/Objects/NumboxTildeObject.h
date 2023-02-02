@@ -122,7 +122,7 @@ public:
         if (getWidth() != width || getHeight() != height) {
             object->setSize(width + Object::doubleMargin, height + Object::doubleMargin);
         }
-        
+
         return true;
     }
 
