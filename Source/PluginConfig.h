@@ -8,6 +8,9 @@
 
 #define JUCE_DISPLAY_SPLASH_SCREEN 0
 
+// uncomment to display repaint areas
+//#define JUCE_ENABLE_REPAINT_DEBUGGING 1
+
 namespace ProjectInfo {
 char const* const companyName = "plugdata";
 char const* const versionString = "0.7.0";
