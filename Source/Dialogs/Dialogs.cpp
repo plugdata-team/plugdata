@@ -232,10 +232,9 @@ void Dialogs::showCanvasRightClickMenu(Canvas* cnv, Component* originalComponent
     } else if (hasSelection && !multiple) {
         object = selectedBoxes.getFirst();
     }
-    
-    if(object && object->findParentComponentOfClass<Object>()) {
-        while(auto* nextObject = object->findParentComponentOfClass<Object>())
-        {
+
+    if (object && object->findParentComponentOfClass<Object>()) {
+        while (auto* nextObject = object->findParentComponentOfClass<Object>()) {
             object = nextObject;
         }
     }
@@ -271,31 +270,31 @@ void Dialogs::showCanvasRightClickMenu(Canvas* cnv, Component* originalComponent
     popupMenu.addItem(12, "Properties", originalComponent == cnv || (object && !params.empty()));
     // showObjectReferenceDialog
     auto callback = [cnv, editor, object, originalComponent, params, createObjectCallback, position, selectedBoxes](int result) mutable {
-        
         // Set position where new objet will be created
-        if(result > 100) {
+        if (result > 100) {
             cnv->lastMousePosition = cnv->getLocalPoint(nullptr, position);
         }
-        
+
         if ((!object && result < 100) || result < 1)
             return;
-        
+
         object->repaint();
 
         switch (result) {
         case 1: // Open subpatch
             object->gui->openFromMenu();
             break;
-        case 8: {// To Front
+        case 8: { // To Front
             // The double for loop makes sure that they keep their original order
             auto objects = cnv->patch.getObjects();
-            
+
             cnv->patch.startUndoSequence("ToFront");
-            for(int i = objects.size() - 1; i >= 0; i--) {
-                for(auto* selectedBox : selectedBoxes) {
-                    if(objects[i] == selectedBox->getPointer()) {
+            for (int i = objects.size() - 1; i >= 0; i--) {
+                for (auto* selectedBox : selectedBoxes) {
+                    if (objects[i] == selectedBox->getPointer()) {
                         selectedBox->toFront(false);
-                        if(selectedBox->gui) selectedBox->gui->moveToFront();
+                        if (selectedBox->gui)
+                            selectedBox->gui->moveToFront();
                     }
                 }
             }
@@ -303,16 +302,17 @@ void Dialogs::showCanvasRightClickMenu(Canvas* cnv, Component* originalComponent
             cnv->synchronise();
             break;
         }
-        case 9: {// To Back
+        case 9: { // To Back
             auto objects = cnv->patch.getObjects();
-            
+
             cnv->patch.startUndoSequence("ToBack");
             // The double for loop makes sure that they keep their original order
-            for(int i = objects.size() - 1; i >= 0; i--) {
-                for(auto* selectedBox : selectedBoxes) {
-                    if(objects[i] == selectedBox->getPointer()) {
+            for (int i = objects.size() - 1; i >= 0; i--) {
+                for (auto* selectedBox : selectedBoxes) {
+                    if (objects[i] == selectedBox->getPointer()) {
                         selectedBox->toBack();
-                        if(selectedBox->gui) selectedBox->gui->moveToBack();
+                        if (selectedBox->gui)
+                            selectedBox->gui->moveToBack();
                     }
                 }
             }

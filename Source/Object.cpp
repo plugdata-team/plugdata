@@ -81,7 +81,7 @@ void Object::setObjectBounds(Rectangle<int> bounds)
 void Object::initialise()
 {
     constrainer = std::make_unique<ObjectBoundsConstrainer>();
-    
+
     addMouseListener(cnv, true); // Receive mouse messages on canvas
     cnv->addAndMakeVisible(this);
 
@@ -155,10 +155,10 @@ bool Object::hitTest(int x, int y)
         if (iolet->getBounds().contains(x, y))
             return true;
     }
-    
+
     // Mouse over corners - this is only needed for text objects, we use constrainer for all other objects!
     if (cnv->isSelected(this)) {
-        
+
         for (auto& corner : getCorners()) {
             if (corner.contains(x, y))
                 return true;
@@ -190,11 +190,11 @@ void Object::mouseMove(MouseEvent const& e)
         updateMouseCursor();
         return;
     }
-    
+
     resizeZone = ResizableBorderComponent::Zone::fromPositionOnBorder(getLocalBounds().reduced(margin - 2), BorderSize<int>(5), Point<int>(e.x, e.y));
-    
+
     validResizeZone = resizeZone.getZoneFlags() != ResizableBorderComponent::Zone::centre;
-    
+
     setMouseCursor(validResizeZone ? resizeZone.getMouseCursor() : MouseCursor::NormalCursor);
     updateMouseCursor();
 }
@@ -205,11 +205,11 @@ void Object::updateBounds()
         cnv->pd->setThis();
         gui->updateBounds();
     }
-    
-    if(newObjectEditor) {
+
+    if (newObjectEditor) {
         textEditorTextChanged(*newObjectEditor);
     }
-    
+
     resized();
 }
 
@@ -620,7 +620,7 @@ void Object::mouseDown(MouseEvent const& e)
 
     wasLockedOnMouseDown = false;
 
-    if(resizeZone.getZoneFlags() != ResizableBorderComponent::Zone::centre) {
+    if (resizeZone.getZoneFlags() != ResizableBorderComponent::Zone::centre) {
         originalBounds = getBounds();
         return;
     }
@@ -687,26 +687,25 @@ void Object::mouseUp(MouseEvent const& e)
 
 void Object::mouseDrag(MouseEvent const& e)
 {
-    if (wasLockedOnMouseDown) return;
+    if (wasLockedOnMouseDown)
+        return;
 
     cnv->cancelConnectionCreation();
-    
+
     // Let canvas handle moving
     if (resizeZone.getZoneFlags() == ResizableBorderComponent::Zone::centre) {
         cnv->handleMouseDrag(e);
     } else if (validResizeZone && !originalBounds.isEmpty()) {
-        const Rectangle<int> newBounds (resizeZone.resizeRectangleBy (originalBounds, e.getOffsetFromDragStart()));
-        
+        Rectangle<int> const newBounds(resizeZone.resizeRectangleBy(originalBounds, e.getOffsetFromDragStart()));
+
         bool useConstrainer = gui && !gui->checkBounds(originalBounds - cnv->canvasOrigin, newBounds - cnv->canvasOrigin, resizeZone.isDraggingLeftEdge());
-        
-        if(useConstrainer)
-        {
-            constrainer->setBoundsForComponent (this, newBounds, resizeZone.isDraggingTopEdge(),
-                                                                 resizeZone.isDraggingLeftEdge(),
-                                                                 resizeZone.isDraggingBottomEdge(),
-                                                                 resizeZone.isDraggingRightEdge());
+
+        if (useConstrainer) {
+            constrainer->setBoundsForComponent(this, newBounds, resizeZone.isDraggingTopEdge(),
+                resizeZone.isDraggingLeftEdge(),
+                resizeZone.isDraggingBottomEdge(),
+                resizeZone.isDraggingRightEdge());
         }
-        
     }
 }
 
@@ -729,7 +728,7 @@ void Object::hideEditor()
         std::swap(outgoingEditor, newObjectEditor);
 
         cnv->hideSuggestions();
-        
+
         outgoingEditor->removeListener(cnv->suggestor);
 
         // Get entered text, remove extra spaces at the end
@@ -826,13 +825,12 @@ void Object::textEditorReturnKeyPressed(TextEditor& ed)
 void Object::textEditorTextChanged(TextEditor& ed)
 {
     String currentText;
-    if(cnv->suggestor && !cnv->suggestor->getText().isEmpty()) {
+    if (cnv->suggestor && !cnv->suggestor->getText().isEmpty()) {
         currentText = cnv->suggestor->getText();
-    }
-    else {
+    } else {
         currentText = ed.getText();
     }
-    
+
     // For resize-while-typing behaviour
     auto width = Font(15).getStringWidth(currentText) + 14.0f;
 
@@ -846,7 +844,7 @@ void Object::openHelpPatch() const
     cnv->pd->setThis();
 
     if (auto* ptr = static_cast<t_object*>(getPointer())) {
-    
+
         auto file = cnv->pd->objectLibrary.findHelpfile(ptr, cnv->patch.getCurrentFile());
 
         if (!file.existsAsFile()) {

@@ -44,17 +44,17 @@ bool Iolet::hitTest(int x, int y)
     Path smallBounds;
     smallBounds.addEllipse(getLocalBounds().toFloat().reduced(2));
     smallBounds.closeSubPath();
-    
+
     // Check if the small iolet bounds contains mouse, if so, return true
-    if(smallBounds.contains(x, y)) {
+    if (smallBounds.contains(x, y)) {
         return true;
     }
-    
+
     // Check if we're hovering a resize zone
-    if(object->validResizeZone) {
+    if (object->validResizeZone) {
         return false;
     }
-    
+
     // Check if we're hovering the total iolet hitbox
     return getLocalBounds().contains(x, y);
 }

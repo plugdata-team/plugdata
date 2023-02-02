@@ -18,31 +18,29 @@ extern "C" {
 #include "x_libpd_extra_utils.h"
 #include "x_libpd_multi.h"
 
-struct _instanceeditor
-{
-    t_binbuf *copy_binbuf;
-    char *canvas_textcopybuf;
+struct _instanceeditor {
+    t_binbuf* copy_binbuf;
+    char* canvas_textcopybuf;
     int canvas_textcopybufsize;
-    t_undofn canvas_undo_fn;         /* current undo function if any */
-    int canvas_undo_whatnext;        /* whether we can now UNDO or REDO */
-    void *canvas_undo_buf;           /* data private to the undo function */
-    t_canvas *canvas_undo_canvas;    /* which canvas we can undo on */
-    const char *canvas_undo_name;
+    t_undofn canvas_undo_fn;      /* current undo function if any */
+    int canvas_undo_whatnext;     /* whether we can now UNDO or REDO */
+    void* canvas_undo_buf;        /* data private to the undo function */
+    t_canvas* canvas_undo_canvas; /* which canvas we can undo on */
+    char const* canvas_undo_name;
     int canvas_undo_already_set_move;
     double canvas_upclicktime;
     int canvas_upx, canvas_upy;
     int canvas_find_index, canvas_find_wholeword;
-    t_binbuf *canvas_findbuf;
+    t_binbuf* canvas_findbuf;
     int paste_onset;
-    t_canvas *paste_canvas;
-    t_glist *canvas_last_glist;
+    t_canvas* paste_canvas;
+    t_glist* canvas_last_glist;
     int canvas_last_glist_x, canvas_last_glist_y;
-    t_canvas *canvas_cursorcanvaswas;
+    t_canvas* canvas_cursorcanvaswas;
     unsigned int canvas_cursorwas;
 };
 
-extern void canvas_reload(t_symbol *name, t_symbol *dir, t_glist *except);
-
+extern void canvas_reload(t_symbol* name, t_symbol* dir, t_glist* except);
 }
 
 namespace pd {
@@ -672,15 +670,15 @@ void Patch::setTitle(String const& title)
 {
     if (!getPointer())
         return;
-    
+
     setCurrent();
-    
+
     auto* pathSym = instance->generateSymbol(getCurrentFile().getFullPathName());
-    
+
     t_atom args[2];
     SETSYMBOL(args, instance->generateSymbol(title));
     SETSYMBOL(args + 1, pathSym);
-    
+
     pd_typedmess(static_cast<t_pd*>(ptr), instance->generateSymbol("rename"), 2, args);
 
     instance->titleChanged();

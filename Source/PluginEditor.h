@@ -323,7 +323,6 @@ public:
     {
         labelAnimator.fadeOut(this, 200);
         stopTimer();
-        
     }
 };
 

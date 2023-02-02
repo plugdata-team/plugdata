@@ -295,7 +295,7 @@ public:
             themeSelectors[i].setColour(ComboBox::backgroundColourId, Colours::transparentBlack);
             themeSelectors[i].setColour(ComboBox::outlineColourId, Colours::transparentBlack);
             themeSelectors[i].setColour(ComboBox::textColourId, findColour(PlugDataColour::canvasTextColourId));
-            
+
             themeSelectors[i].onChange = [this, i]() mutable {
                 int themeIdx = PlugDataLook::selectedThemes.indexOf(PlugDataLook::currentTheme);
 
@@ -462,8 +462,9 @@ public:
             PlugDataLook::setDefaultFont(fontValue.toString());
             SettingsFile::getInstance()->setProperty("default_font", fontValue.getValue());
             getTopLevelComponent()->repaint();
-            for(auto* panel : allPanels) panel->repaint();
-            
+            for (auto* panel : allPanels)
+                panel->repaint();
+
             return;
         }
 
@@ -491,8 +492,8 @@ public:
                 }
             }
         }
-        
-        for(int i = 0; i < 2; i++) {
+
+        for (int i = 0; i < 2; i++) {
             themeSelectors[i].setColour(ComboBox::backgroundColourId, Colours::transparentBlack);
             themeSelectors[i].setColour(ComboBox::outlineColourId, Colours::transparentBlack);
             themeSelectors[i].setColour(ComboBox::textColourId, findColour(PlugDataColour::canvasTextColourId));

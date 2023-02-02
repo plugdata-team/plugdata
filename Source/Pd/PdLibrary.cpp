@@ -516,20 +516,18 @@ std::array<StringArray, 2> Library::getIoletTooltips(String type, String name, i
                             auto description = descriptions[i].first;
                             description = description.replace("$mth", String(j));
                             description = description.replace("$nth", String(j + 1));
-                            
-                            if(isPositiveAndBelow(j, args.size())) {
+
+                            if (isPositiveAndBelow(j, args.size())) {
                                 description = description.replace("$arg", args[j]);
                             }
-                    
+
                             result[type].add(description);
                         }
-                    }
-                    else {
+                    } else {
                         result[type].add(descriptions[i].first);
                     }
                 }
-            }
-            else {
+            } else {
                 for (int i = 0; i < descriptions.size(); i++) {
                     result[type].add(descriptions[i].first);
                 }
@@ -569,22 +567,19 @@ File Library::findHelpfile(t_object* obj, File parentPatchFile)
     } else {
         helpName = class_gethelpname(pdclass);
     }
-    
+
     auto patchHelpPaths = helpPaths;
-    
 
     // Add abstraction dir to search paths
-    if(pd_class(reinterpret_cast<t_pd*>(obj)) == canvas_class &&
-       canvas_isabstraction(reinterpret_cast<t_canvas*>(obj))) {
+    if (pd_class(reinterpret_cast<t_pd*>(obj)) == canvas_class && canvas_isabstraction(reinterpret_cast<t_canvas*>(obj))) {
         auto* cnv = reinterpret_cast<t_canvas*>(obj);
         patchHelpPaths.add(File(String::fromUTF8(canvas_getenv(cnv)->ce_dir->s_name)));
     }
-    
+
     // Add parent patch dir to search paths
-    if(parentPatchFile.existsAsFile()) {
+    if (parentPatchFile.existsAsFile()) {
         patchHelpPaths.add(parentPatchFile.getParentDirectory());
     }
-
 
     String firstName = helpName + "-help.pd";
     String secondName = "help-" + helpName + ".pd";

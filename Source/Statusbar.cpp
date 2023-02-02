@@ -12,38 +12,38 @@
 #include "Canvas.h"
 #include "Connection.h"
 
-class LevelMeter : public Component, public StatusbarSource::Listener
-{
+class LevelMeter : public Component
+    , public StatusbarSource::Listener {
     int totalBlocks = 15;
     int blocks[2] = { 0 };
-        
+
     int numChannels = 2;
 
 public:
-    
     LevelMeter() {};
-        
-    void audioLevelChanged(float level[2]) override {
-        
+
+    void audioLevelChanged(float level[2]) override
+    {
+
         bool needsRepaint = false;
-        
+
         for (int ch = 0; ch < numChannels; ch++) {
             auto chLevel = level[ch];
-            
+
             if (!std::isfinite(chLevel)) {
                 blocks[ch] = 0;
                 return;
             }
-            
+
             auto lvl = static_cast<float>(std::exp(std::log(chLevel) / 3.0) * (chLevel > 0.002));
             auto numBlocks = roundToInt(totalBlocks * lvl);
-            
+
             if (blocks[ch] != numBlocks) {
                 blocks[ch] = numBlocks;
             }
             needsRepaint = true;
         }
-        
+
         if (needsRepaint && isShowing())
             repaint();
     }
@@ -90,14 +90,13 @@ public:
         g.drawRoundedRectangle(x + outerBorderWidth, outerBorderWidth, width - doubleOuterBorderWidth, getHeight() - doubleOuterBorderWidth, 4.0f, 1.0f);
     }
 
-
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(LevelMeter)
 };
 
-class MidiBlinker : public Component, public StatusbarSource::Listener {
+class MidiBlinker : public Component
+    , public StatusbarSource::Listener {
 
 public:
-
     void paint(Graphics& g) override
     {
         PlugDataLook::drawText(g, "MIDI", getLocalBounds().removeFromLeft(28), findColour(ComboBox::textColourId), 11, Justification::centredRight);
@@ -112,16 +111,18 @@ public:
         g.fillRoundedRectangle(midiOutRect, 1.0f);
     }
 
-    void midiReceivedChanged(bool midiReceived) override {
+    void midiReceivedChanged(bool midiReceived) override
+    {
         blinkMidiIn = midiReceived;
         repaint();
     };
-        
-    void midiSentChanged(bool midiSent) override {
+
+    void midiSentChanged(bool midiSent) override
+    {
         blinkMidiOut = midiSent;
         repaint();
     };
-        
+
     bool blinkMidiIn = false;
     bool blinkMidiOut = false;
 };
@@ -131,11 +132,10 @@ Statusbar::Statusbar(PluginProcessor* processor)
 {
     levelMeter = new LevelMeter();
     midiBlinker = new MidiBlinker();
-    
+
     pd->statusbarSource.addListener(levelMeter);
     pd->statusbarSource.addListener(midiBlinker);
     pd->statusbarSource.addListener(this);
-
 
     setWantsKeyboardFocus(true);
 
@@ -291,7 +291,7 @@ Statusbar::~Statusbar()
     pd->statusbarSource.removeListener(levelMeter);
     pd->statusbarSource.removeListener(midiBlinker);
     pd->statusbarSource.removeListener(this);
-    
+
     delete midiBlinker;
     delete levelMeter;
 }
@@ -402,16 +402,15 @@ void Statusbar::timerCallback()
 void Statusbar::audioProcessedChanged(bool audioProcessed)
 {
     auto colour = findColour(audioProcessed ? PlugDataColour::levelMeterActiveColourId : PlugDataColour::signalColourId);
-    
+
     powerButton->setColour(TextButton::textColourOnId, colour);
-    
 }
 
 StatusbarSource::StatusbarSource()
 {
     level[0] = 0.0f;
     level[1] = 0.0f;
-    
+
     startTimer(100);
 }
 
@@ -454,15 +453,16 @@ void StatusbarSource::processBlock(AudioBuffer<float> const& buffer, MidiBuffer&
         level[ch & 1] = localLevel;
     }
 
-    
     auto nowInMs = Time::getCurrentTime().getMillisecondCounter();
     auto hasInEvents = hasRealEvents(midiIn);
     auto hasOutEvents = hasRealEvents(midiOut);
 
     lastAudioProcessedTime = nowInMs;
-    
-    if(hasOutEvents) lastMidiSentTime = nowInMs;
-    if(hasInEvents)  lastMidiReceivedTime = nowInMs;
+
+    if (hasOutEvents)
+        lastMidiSentTime = nowInMs;
+    if (hasInEvents)
+        lastMidiReceivedTime = nowInMs;
 }
 
 void StatusbarSource::prepareToPlay(int nChannels)
@@ -473,26 +473,29 @@ void StatusbarSource::prepareToPlay(int nChannels)
 void StatusbarSource::timerCallback()
 {
     auto currentTime = Time::getCurrentTime().getMillisecondCounter();
-    
+
     auto hasReceivedMidi = currentTime - lastMidiReceivedTime < 700;
     auto hasSentMidi = currentTime - lastMidiSentTime < 700;
     auto hasProcessedAudio = currentTime - lastAudioProcessedTime < 700;
-    
-    if(hasReceivedMidi != midiReceivedState) {
+
+    if (hasReceivedMidi != midiReceivedState) {
         midiReceivedState = hasReceivedMidi;
-        for(auto* listener : listeners) listener->midiReceivedChanged(hasReceivedMidi);
+        for (auto* listener : listeners)
+            listener->midiReceivedChanged(hasReceivedMidi);
     }
-    if(hasSentMidi != midiSentState) {
+    if (hasSentMidi != midiSentState) {
         midiSentState = hasSentMidi;
-        for(auto* listener : listeners) listener->midiSentChanged(hasSentMidi);
+        for (auto* listener : listeners)
+            listener->midiSentChanged(hasSentMidi);
     }
-    if(hasProcessedAudio != audioProcessedState) {
+    if (hasProcessedAudio != audioProcessedState) {
         audioProcessedState = hasProcessedAudio;
-        for(auto* listener : listeners) listener->audioProcessedChanged(hasProcessedAudio);
+        for (auto* listener : listeners)
+            listener->audioProcessedChanged(hasProcessedAudio);
     }
-    
-    float currentLevel[2] = {level[0].load(), level[1].load()};
-    for(auto* listener : listeners) {
+
+    float currentLevel[2] = { level[0].load(), level[1].load() };
+    for (auto* listener : listeners) {
         listener->audioLevelChanged(currentLevel);
         listener->timerCallback();
     }

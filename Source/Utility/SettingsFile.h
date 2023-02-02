@@ -59,10 +59,9 @@ public:
     {
         jassert(isInitialised);
 
-        if constexpr(std::is_same<T, String>::value) {
+        if constexpr (std::is_same<T, String>::value) {
             return settingsTree.getProperty(name).toString();
-        }
-        else {
+        } else {
             return static_cast<T>(settingsTree.getProperty(name));
         }
     }
