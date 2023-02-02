@@ -18,6 +18,7 @@ extern "C" {
 #include "x_libpd_multi.h"
 #include "z_print_util.h"
 
+
 int sys_load_lib(t_canvas* canvas, char const* classname);
 
 struct pd::Instance::internal {
@@ -149,14 +150,29 @@ Instance::Instance(String const& symbol)
         }
     };
 
-    auto message_trigger = [](void* instance, void* target, t_symbol* symbol, int argc, t_atom* argv) {
+    auto message_trigger = [](void* instance, t_outconnect* target, t_symbol* symbol, int argc, t_atom* argv) {
+        
+        auto* oc = reinterpret_cast<t_fake_outconnect*>(target);
+        
+        void* object = nullptr; //oc->oc_to->i_dest;
+        
+        auto* classname = pd_class((t_pd*)oc->oc_to)->c_name;
+        
+        if(classname == gensym("inlet")) {
+            object = reinterpret_cast<_inlet*>(oc->oc_to)->i_dest;
+        }
+        else {
+            object = oc->oc_to;
+        }
+        
+        
         auto& listeners = static_cast<Instance*>(instance)->messageListeners;
         if (!listeners.count(target))
             return;
 
         bool cleanUp = false;
 
-        for (auto listener : listeners[target]) {
+        for (auto listener : listeners[object]) {
             // Check if the safepointer is still valid
             if (!listener) {
                 cleanUp = true;
@@ -165,6 +181,21 @@ Instance::Instance(String const& symbol)
             auto sym = String::fromUTF8(symbol->s_name);
             listener->receiveMessage(sym, argc, argv);
         }
+        
+        
+        if(true) {
+            
+            for (auto listener : listeners[oc]) {
+                // Check if the safepointer is still valid
+                if (!listener) {
+                    cleanUp = true;
+                    continue;
+                }
+                auto sym = String::fromUTF8(symbol->s_name);
+                listener->receiveMessage(sym, argc, argv);
+            }
+            
+        }
 
         // If any pointers were invalid, clean them up
         // TODO: profile if this is really the best place to do that
@@ -172,6 +203,8 @@ Instance::Instance(String const& symbol)
             for (int i = listeners[target].size() - 1; i >= 0; i--) {
                 if (!listeners[target][i]) {
                     listeners[target].erase(listeners[target].begin() + i);
+                    
+                    std::cout << "CLEANED UP" << std::endl;
                 }
             }
         }

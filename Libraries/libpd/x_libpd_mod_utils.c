@@ -778,32 +778,6 @@ typedef t_pd* (*t_fun5)(t_int i1, t_int i2, t_int i3, t_int i4, t_int i5,
 typedef t_pd* (*t_fun6)(t_int i1, t_int i2, t_int i3, t_int i4, t_int i5, t_int i6,
     t_floatarg d1, t_floatarg d2, t_floatarg d3, t_floatarg d4, t_floatarg d5);
 
-// Some duplicates and modifications of pure-data functions
-// We do this so we can keep pure-data and libpd intact and easily updatable
-
-struct _outlet {
-    t_object* o_owner;
-    struct _outlet* o_next;
-    t_outconnect* o_connections;
-    t_symbol* o_sym;
-};
-
-union inletunion {
-    t_symbol* iu_symto;
-    t_gpointer* iu_pointerslot;
-    t_float* iu_floatslot;
-    t_symbol** iu_symslot;
-    t_float iu_floatsignalvalue;
-};
-
-struct _inlet {
-    t_pd i_pd;
-    struct _inlet* i_next;
-    t_object* i_owner;
-    t_pd* i_dest;
-    t_symbol* i_symfrom;
-    union inletunion i_un;
-};
 
 int libpd_noutlets(t_object const* x)
 {

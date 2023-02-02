@@ -172,5 +172,30 @@ private:
         { "X range", tRange, cGeneral, &xRange, {} },
         { "Y range", tRange, cGeneral, &yRange, {} } };
 
+        
+    class ConnectionCreationMouseListener : public MouseListener {
+        
+        Canvas* cnv;
+        
+    public:
+        ConnectionCreationMouseListener(Canvas* canvas) : cnv(canvas)
+        {
+            Desktop::getInstance().addGlobalMouseListener(this);
+        }
+        
+        ~ConnectionCreationMouseListener() {
+            Desktop::getInstance().removeGlobalMouseListener(this);
+        }
+        
+        void mouseMove(const MouseEvent& e) override
+        {
+            if(cnv->connectingIolets.size()) {
+                cnv->repaint();
+            }
+        }
+    };
+        
+    ConnectionCreationMouseListener connectionCreationMouseListener = ConnectionCreationMouseListener(this);
+        
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(Canvas)
 };

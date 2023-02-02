@@ -15,6 +15,34 @@ extern "C" {
 #include <z_libpd.h>
 #include <g_canvas.h>
 
+
+// Some duplicates and modifications of pure-data functions, not a great way to do things
+
+struct _outlet {
+    t_object* o_owner;
+    struct _outlet* o_next;
+    t_outconnect* o_connections;
+    t_symbol* o_sym;
+};
+
+union inletunion {
+    t_symbol* iu_symto;
+    t_gpointer* iu_pointerslot;
+    t_float* iu_floatslot;
+    t_symbol** iu_symslot;
+    t_float iu_floatsignalvalue;
+};
+
+struct _inlet {
+    t_pd i_pd;
+    struct _inlet* i_next;
+    t_object* i_owner;
+    t_pd* i_dest;
+    t_symbol* i_symfrom;
+    union inletunion i_un;
+};
+
+
 void libpd_get_search_paths(char** paths, int* numItems);
 
 t_pd* libpd_newest(t_canvas* cnv);
