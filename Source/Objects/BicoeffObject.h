@@ -11,7 +11,7 @@ class BicoeffGraph : public Component {
     float filterGain = 100.0f;
 
     float filterWidth, filterCentre;
-    float filterX2, filterx2;
+    float filterX1, filterX2;
     float lastCentre, lastX1, lastX2, lastGain;
 
     Object* object;
@@ -38,8 +38,8 @@ public:
 
         filterWidth = 50;
         filterCentre = getWidth() / 2.0f;
-        filterX2 = filterCentre - (filterWidth / 2);
-        filterx2 = filterCentre + (filterWidth / 2);
+        filterX1 = filterCentre - (filterWidth / 2);
+        filterX2 = filterCentre + (filterWidth / 2);
 
         update();
     }
@@ -103,8 +103,8 @@ public:
     void mouseDown(MouseEvent const& e) override
     {
         lastCentre = filterCentre;
-        lastX1 = filterX2;
-        lastX2 = filterx2;
+        lastX1 = filterX1;
+        lastX2 = filterX2;
         lastGain = filterGain;
 
         repaint();
@@ -125,7 +125,7 @@ public:
     void mouseMove(MouseEvent const& e) override
     {
         if (canResizefilterWidth()) {
-            if (std::abs(e.x - filterX2) < 5 || std::abs(e.x - filterx2) < 5) {
+            if (std::abs(e.x - filterX1) < 5 || std::abs(e.x - filterX2) < 5) {
                 setMouseCursor(MouseCursor::LeftRightResizeCursor);
             } else {
                 setMouseCursor(MouseCursor::NormalCursor);
@@ -172,8 +172,8 @@ public:
         g.setColour(object->findColour(PlugDataColour::outlineColourId));
 
         if (canResizefilterWidth()) {
+            g.drawVerticalLine(filterX1, 0, getHeight());
             g.drawVerticalLine(filterX2, 0, getHeight());
-            g.drawVerticalLine(filterx2, 0, getHeight());
         }
 
         g.drawHorizontalLine(getHeight() / 2.0f, 0, getWidth());
@@ -247,41 +247,41 @@ public:
 
     void changeBandWidth(float x, float y, float previousX, float previousY)
     {
-        float filterX2 = 0, filterx2 = 0;
+        float filterX1 = 0, filterX2 = 0;
 
         float dx = x - previousX;
         if (previousX < filterCentre) {
             if (x < 0.0f) {
-                filterX2 = 0;
-                filterx2 = filterWidth;
+                filterX1 = 0;
+                filterX2 = filterWidth;
             } else if (x < filterCentre - 75) {
-                filterX2 = filterCentre - 75;
-                filterx2 = filterCentre + 75;
+                filterX1 = filterCentre - 75;
+                filterX2 = filterCentre + 75;
             } else if (x > filterCentre) {
+                filterX1 = filterCentre;
                 filterX2 = filterCentre;
-                filterx2 = filterCentre;
             } else {
-                filterX2 = x;
-                filterx2 = lastX2 - dx;
+                filterX1 = x;
+                filterX2 = lastX2 - dx;
             }
         } else {
             if (x > getWidth()) {
-                filterx2 = 0;
-                filterX2 = filterWidth;
+                filterX2 = 0;
+                filterX1 = filterWidth;
             } else if (x > filterCentre + 75) {
-                filterX2 = filterCentre - 75;
-                filterx2 = filterCentre + 75;
+                filterX1 = filterCentre - 75;
+                filterX2 = filterCentre + 75;
             } else if (x < filterCentre) {
+                filterX1 = filterCentre;
                 filterX2 = filterCentre;
-                filterx2 = filterCentre;
             } else {
-                filterx2 = x;
-                filterX2 = lastX1 - dx;
+                filterX2 = x;
+                filterX1 = lastX1 - dx;
             }
         }
 
-        filterWidth = filterx2 - filterX2;
-        filterCentre = filterX2 + (filterWidth / 2);
+        filterWidth = filterX2 - filterX1;
+        filterCentre = filterX1 + (filterWidth / 2);
 
         moveGain(y, previousY);
     }
@@ -294,18 +294,18 @@ public:
         float x2 = lastX2 + dx;
 
         if (x1 < 0.0f) {
-            filterX2 = 0;
-            filterx2 = filterWidth;
+            filterX1 = 0;
+            filterX2 = filterWidth;
         } else if (x2 > getWidth()) {
-            filterX2 = getWidth() - filterWidth;
-            filterx2 = getWidth();
+            filterX1 = getWidth() - filterWidth;
+            filterX2 = getWidth();
         } else {
-            filterX2 = x1;
-            filterx2 = x2;
+            filterX1 = x1;
+            filterX2 = x2;
         }
 
-        filterWidth = filterx2 - filterX2;
-        filterCentre = filterX2 + (filterWidth / 2.0);
+        filterWidth = filterX2 - filterX1;
+        filterCentre = filterX1 + (filterWidth / 2.0);
     }
 
     void moveGain(float y, float previousY)
@@ -314,7 +314,7 @@ public:
         filterGain = std::clamp<float>(gain, 0.0f, getHeight());
     }
 
-    void setCoefficients(float a0, float a1, float b0, float b1, float b2)
+    void setCoefficients(float a0, float a1, float a2, float b0, float b1, float b2)
     {
         this->a1 = -a1 / a0;
         this->a2 = -a2 / a0;
@@ -338,7 +338,7 @@ public:
         float a1 = -2.0 * cos(omega);
         float a2 = 1.0 - alpha;
 
-        setCoefficients(a1, a2, b0, b1, b2);
+        setCoefficients(a0, a1, a2, b0, b1, b2);
     }
 
     // highpass
@@ -353,7 +353,7 @@ public:
         float a1 = -2.0 * cos(omega);
         float a2 = 1.0 - alpha;
 
-        setCoefficients(a1, a2, b0, b1, b2);
+        setCoefficients(a0, a1, a2, b0, b1, b2);
     }
 
     // bandpass
@@ -368,7 +368,7 @@ public:
         float a1 = -2.0 * cos(omega);
         float a2 = 1.0 - alpha;
 
-        setCoefficients(a1, a2, b0, b1, b2);
+        setCoefficients(a0, a1, a2, b0, b1, b2);
     }
 
     // resonant
@@ -383,7 +383,7 @@ public:
         float a1 = -2.0 * cos(omega);
         float a2 = 1.0 - alpha;
 
-        setCoefficients(a1, a2, b0, b1, b2);
+        setCoefficients(a0, a1, a2, b0, b1, b2);
     }
 
     // notch
@@ -398,7 +398,7 @@ public:
         float a1 = b1;
         float a2 = 1.0 - alpha;
 
-        setCoefficients(a1, a2, b0, b1, b2);
+        setCoefficients(a0, a1, a2, b0, b1, b2);
     }
 
     void peaking()
@@ -416,7 +416,7 @@ public:
         float a1 = b1;
         float a2 = 1.0 - alphadivamp;
 
-        setCoefficients(a1, a2, b0, b1, b2);
+        setCoefficients(a0, a1, a2, b0, b1, b2);
     }
 
     void lowshelf()
@@ -437,7 +437,7 @@ public:
         float a1 = -2.0 * (ampMin + ampPlus * cosOmega);
         float a2 = ampPlus + ampMin * cosOmega - alphaMod;
 
-        setCoefficients(a1, a2, b0, b1, b2);
+        setCoefficients(a0, a1, a2, b0, b1, b2);
     }
 
     void highshelf()
@@ -458,7 +458,7 @@ public:
         float a1 = 2.0 * (ampMin - ampPlus * cosOmega);
         float a2 = ampPlus - ampMin * cosOmega - alphaMod;
 
-        setCoefficients(a1, a2, b0, b1, b2);
+        setCoefficients(a0, a1, a2, b0, b1, b2);
     }
 
     void allpass()
@@ -472,7 +472,7 @@ public:
         float a1 = b1;
         float a2 = b0;
 
-        setCoefficients(a1, a2, b0, b1, b2);
+        setCoefficients(a0, a1, a2, b0, b1, b2);
     }
 };
 
