@@ -82,7 +82,6 @@ void Object::initialise()
 {
     constrainer = std::make_unique<ObjectBoundsConstrainer>();
 
-    addMouseListener(cnv, true); // Receive mouse messages on canvas
     cnv->addAndMakeVisible(this);
 
     // Updates lock/unlock mode
