@@ -102,10 +102,6 @@ Sidebar::~Sidebar()
 
 void Sidebar::paint(Graphics& g)
 {
-    // Makes sure the theme gets updated
-    if (automationPanel)
-        automationPanel->viewport.repaint();
-
     // Sidebar
     g.setColour(findColour(PlugDataColour::sidebarBackgroundColourId));
     g.fillRect(0, 0, getWidth(), getHeight() - 30);
