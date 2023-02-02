@@ -300,7 +300,7 @@ void Canvas::mouseDown(MouseEvent const& e)
         }
 
         // Update selected object in sidebar when we click a object
-        if (source && (dynamic_cast<Object*>(source) || source->findParentComponentOfClass<Object>())) {
+        if (source && source->findParentComponentOfClass<Object>()) {
             updateSidebarSelection();
         }
 
@@ -1081,6 +1081,8 @@ void Canvas::objectMouseDown(Object* component, MouseEvent const& e)
     }
 
     canvasDragStartPosition = getPosition();
+    
+    updateSidebarSelection();
 }
 
 // Call from component's mouseUp
