@@ -107,7 +107,6 @@ void Canvas::timerCallback()
     rateLimit = true;
 }
 
-
 void Canvas::paint(Graphics& g)
 {
     if (!isGraph) {
@@ -321,6 +320,9 @@ void Canvas::mouseDown(MouseEvent const& e)
 
 void Canvas::mouseDrag(MouseEvent const& e)
 {
+    if (canvasRateReducer.tooFast())
+        return;
+
     if (connectingWithDrag) {
         for (auto* obj : objects) {
             for (auto* iolet : obj->iolets) {
@@ -364,14 +366,14 @@ void Canvas::mouseDrag(MouseEvent const& e)
 
         // Middle mouse pan
         if (e.mods.isMiddleButtonDown() && !ObjectBase::isBeingEdited()) {
-            
+
             auto delta = Point<int>(viewportEvent.getDistanceFromDragStartX(), viewportEvent.getDistanceFromDragStartY());
-            
+
             viewport->setViewPosition(viewportPositionBeforeMiddleDrag.x - delta.x, viewportPositionBeforeMiddleDrag.y - delta.y);
-            
+
             return; // Middle mouse button cancels any other drag actions
         }
-        
+
         // Auto scroll when dragging close to the iolet
         if (!ObjectBase::isBeingEdited() && viewport->autoScroll(viewportEvent.x, viewportEvent.y, 50, scrollSpeed) && (viewport->canScrollHorizontally() || viewport->canScrollVertically())) {
             beginDragAutoRepeat(40);
@@ -384,6 +386,8 @@ void Canvas::mouseDrag(MouseEvent const& e)
 
 void Canvas::mouseUp(MouseEvent const& e)
 {
+    canvasRateReducer.stop();
+
     setMouseCursor(MouseCursor::NormalCursor);
     editor->updateCommandStatus();
 
@@ -438,7 +442,6 @@ void Canvas::updateSidebarSelection()
         editor->sidebar.hideParameters();
     }
 }
-
 
 // TODO: can we get rid of this?
 void Canvas::mouseMove(MouseEvent const& e)
@@ -1038,7 +1041,7 @@ void Canvas::setSelected(Component* component, bool shouldNowBeSelected, bool up
         component->repaint();
     }
 
-    if(updateCommandStatus) {
+    if (updateCommandStatus) {
         editor->updateCommandStatus();
     }
 }
@@ -1052,10 +1055,10 @@ void Canvas::objectMouseDown(Object* component, MouseEvent const& e)
 {
     if (e.mods.isRightButtonDown()) {
         setSelected(component, true);
-        
+
         PopupMenu::dismissAllActiveMenus();
         Dialogs::showCanvasRightClickMenu(this, component, e.getScreenPosition());
-        
+
         return;
     }
     if (e.mods.isShiftDown()) {
@@ -1087,13 +1090,15 @@ void Canvas::objectMouseDown(Object* component, MouseEvent const& e)
     }
 
     canvasDragStartPosition = getPosition();
-    
+
     updateSidebarSelection();
 }
 
 // Call from component's mouseUp
 void Canvas::objectMouseUp(Object* component, MouseEvent const& e)
 {
+    objectRateReducer.stop();
+
     if (e.mods.isShiftDown() && wasSelectedOnMouseDown && !didStartDragging) {
         // Unselect object if selected
         setSelected(component, false);
@@ -1107,7 +1112,7 @@ void Canvas::objectMouseUp(Object* component, MouseEvent const& e)
     }
 
     updateSidebarSelection();
-    
+
     if (didStartDragging) {
         auto objects = std::vector<void*>();
 
@@ -1215,27 +1220,23 @@ void Canvas::objectMouseDrag(MouseEvent const& e)
         duplicateSelection();
         cancelConnectionCreation();
     }
-    
 
+    // FIXME: stop the mousedrag event from blocking the objects from redrawing, we shouldn't need to do this? JUCE bug?
+    if (!objectRateReducer.tooFast()) {
 
-    // move all selected objects
-    if (wasDragDuplicated) {
-        // Correct distancing
-        dragDistance = Point<int>(e.getOffsetFromDragStart().x + 10, e.getOffsetFromDragStart().y + 10);
-        // Move duplicated objects according to the origin position
-        for (auto object : selection) {
-            object->setTopLeftPosition(mouseDownObjectPositions[object] + dragDistance + canvasMoveOffset);
-        }
-    } else {
-        // FIXME: stop the mousedrag event from blocking the objects from redrawing, we shouldn't need to do this? JUCE bug?
-        if(!rateReducer.tooFast()) {
+        // move all selected objects
+        if (wasDragDuplicated) {
+            // Correct distancing
+            dragDistance = Point<int>(e.getOffsetFromDragStart().x + 10, e.getOffsetFromDragStart().y + 10);
+            // Move duplicated objects according to the origin position
+            for (auto object : selection) {
+                object->setTopLeftPosition(mouseDownObjectPositions[object] + dragDistance + canvasMoveOffset);
+            }
+        } else {
+
             for (auto* object : selection) {
                 object->setTopLeftPosition(object->mouseDownPos + dragDistance + canvasMoveOffset);
             }
-        }
-        else
-        {
-            std::cout << "Too fast!" << std::endl;
         }
     }
 
@@ -1336,7 +1337,6 @@ void Canvas::objectMouseDrag(MouseEvent const& e)
         }
     }
 }
-
 
 SelectedItemSet<WeakReference<Component>>& Canvas::getLassoSelection()
 {
