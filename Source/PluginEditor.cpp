@@ -49,11 +49,13 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     hideSidebarButton.setButtonText(Icons::Hide);
     pinButton.setButtonText(Icons::Pin);
 
-#if PLUGDATA_STANDALONE
-    // In the standalone, the resizer handling is done on the window class
     setResizable(true, false);
-#else
-    setResizable(true, true);
+    
+    // In the standalone, the resizer handling is done on the window class
+#if !PLUGDATA_STANDALONE
+    cornerResizer = std::make_unique<MouseRateReducedComponent<ResizableCornerComponent>>(this, getConstrainer());
+    cornerResizer->setAlwaysOnTop(true);
+    addAndMakeVisible(cornerResizer);
 #endif
 
     tooltipWindow.setOpaque(false);
@@ -284,6 +286,7 @@ void PluginEditor::resized()
     auto useNativeTitlebar = SettingsFile::getInstance()->getProperty<bool>("native_window");
     auto windowControlsOffset = useNativeTitlebar ? 70.0f : 170.0f;
 #else
+    cornerResizer->setBounds(getLocalBounds());
     auto windowControlsOffset = 70.0f;
 #endif
 

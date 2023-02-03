@@ -665,14 +665,16 @@ void Object::mouseUp(MouseEvent const& e)
                 libpd_undo_apply(cnv->patch.getPointer(), obj);
 
                 _this->gui->applyBounds();
-
+                
                 // To make sure it happens after setting object bounds
-                if (!cnv->viewport->getViewArea().contains(_this->getBounds())) {
-                    MessageManager::callAsync(
-                        [_this]() {
-                            if (_this)
-                                _this->cnv->checkBounds();
-                        });
+                // TODO: do we need this??
+                if (!cnv->viewport->getViewArea().contains(_this->getBounds()))
+                {
+                    MessageManager::callAsync([_this]()
+                                          {
+                                              if (_this)
+                                                  _this->cnv->checkBounds();
+                                          });
                 }
             });
     } else {

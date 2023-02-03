@@ -31,7 +31,7 @@
 #include "../Utility/StackShadow.h"
 #include "../Utility/OSUtils.h"
 #include "../Utility/SettingsFile.h"
-
+#include "../Utility/RateReducer.h"
 // For each OS, we have a different approach to rendering the window shadow
 // macOS:
 // - Use the native shadow, it works fine
@@ -420,7 +420,7 @@ class PlugDataWindow : public DocumentWindow
     , public SettingsFileListener {
 
     Image shadowImage;
-    std::unique_ptr<ResizableBorderComponent> resizer;
+    std::unique_ptr<MouseRateReducedComponent<ResizableBorderComponent>> resizer;
     std::unique_ptr<StackDropShadower> dropShadower;
 
 public:
@@ -507,7 +507,7 @@ public:
 
                 setResizable(false, false);
 
-                resizer = std::make_unique<ResizableBorderComponent>(this, getConstrainer());
+                resizer = std::make_unique<MouseRateReducedComponent<ResizableBorderComponent>>(this, getConstrainer());
                 resizer->setBorderThickness(BorderSize(4));
                 resizer->setAlwaysOnTop(true);
                 Component::addAndMakeVisible(resizer.get());

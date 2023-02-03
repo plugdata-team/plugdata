@@ -12,6 +12,7 @@
 #include "Sidebar/Sidebar.h"
 #include "Statusbar.h"
 #include "Tabbar.h"
+#include "Utility/RateReducer.h"
 
 enum CommandIDs {
     NewProject = 1,
@@ -436,6 +437,10 @@ private:
 
     bool isMaximised = false;
     bool isDraggingFile = false;
+        
+#if !PLUGDATA_STANDALONE
+        std::unique_ptr<MouseRateReducedComponent<ResizableCornerComponent>> cornerResizer;
+#endif
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PluginEditor)
 };
