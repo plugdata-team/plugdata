@@ -152,8 +152,6 @@ public:
     
     void mouseMove(const MouseEvent& e) override
     {
-        
-        
         auto ioletPoint = cnv->getLocalPoint((Component*)iolet->object, iolet->getBounds().getCentre());
         auto cursorPoint = cnv->getLocalPoint(nullptr, e.getScreenPosition());
                        
