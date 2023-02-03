@@ -143,7 +143,7 @@ public:
 
     void mouseDrag(MouseEvent const& e) override
     {
-        if (std::abs(e.mouseDownPosition.x - lastX1) < 5 || std::abs(e.mouseDownPosition.x - lastX2) < 5) {
+        if ((std::abs(e.mouseDownPosition.x - lastX1) < 5 || std::abs(e.mouseDownPosition.x - lastX2) < 5) && canResizefilterWidth()) {
             changeBandWidth(e.x, e.y, e.mouseDownPosition.x, e.mouseDownPosition.y);
         } else {
             moveBand(e.x, e.mouseDownPosition.x);
@@ -185,6 +185,10 @@ public:
             g.drawVerticalLine(filterX1, 0, getHeight());
             g.drawVerticalLine(filterX2, 0, getHeight());
         }
+        else {
+            g.drawVerticalLine(filterCentre, 0, getHeight());
+        }
+    
 
         g.drawHorizontalLine(getHeight() / 2.0f, 0, getWidth());
 
@@ -250,15 +254,13 @@ public:
         float bw = (bwf / f) - 1;
 
         float omega = (M_PI * 2.0 * f) / 44100.0f;
-        float alpha = sin(omega) * sinh(log(2.0) / 2.0 * bw * omega / sin(omega));
+        float alpha = std::sin(omega) * std::sinh(std::log(2.0) / 2.0 * bw * omega / std::sin(omega));
 
         return { alpha, omega };
     }
 
     void changeBandWidth(float x, float y, float previousX, float previousY)
     {
-        float filterX1 = 0, filterX2 = 0;
-
         float dx = x - previousX;
         if (previousX < filterCentre) {
             if (x < 0.0f) {
@@ -332,7 +334,7 @@ public:
         this->b1 = b1 / a0;
         this->b2 = b2 / a0;
         
-        graphChangeCallback(a1, a2, b0, b1, b2);
+        graphChangeCallback(this->a1, this->a2, this->b0, this->b1, this->b2);
     }
 
     // lowpass
