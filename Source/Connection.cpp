@@ -46,7 +46,7 @@ Connection::Connection(Canvas* parent, Iolet* s, Iolet* e, void* oc)
             outlet = nullptr;
             inlet = nullptr;
 
-            //MessageManager::callAsync([this]() { cnv->connections.removeObject(this); });
+            // MessageManager::callAsync([this]() { cnv->connections.removeObject(this); });
 
             return;
         }
@@ -227,8 +227,9 @@ bool Connection::intersects(Rectangle<float> toCheck, int accuracy) const
     return false;
 }
 
-void Connection::renderConnectionPath(Graphics& g, Canvas* cnv, Path connectionPath, bool isSignal, bool isMouseOver, bool isSelected, Point<int> mousePos) {
-    
+void Connection::renderConnectionPath(Graphics& g, Canvas* cnv, Path connectionPath, bool isSignal, bool isMouseOver, bool isSelected, Point<int> mousePos)
+{
+
     auto baseColour = cnv->findColour(PlugDataColour::connectionColourId);
     auto dataColour = cnv->findColour(PlugDataColour::dataColourId);
     auto signalColour = cnv->findColour(PlugDataColour::signalColourId);
@@ -268,12 +269,12 @@ void Connection::renderConnectionPath(Graphics& g, Canvas* cnv, Path connectionP
     if (isSelected) {
         auto startReconnectHandle = Rectangle<float>(5, 5).withCentre(connectionPath.getPointAlongPath(8.5f));
         auto endReconnectHandle = Rectangle<float>(5, 5).withCentre(connectionPath.getPointAlongPath(std::max(connectionPath.getLength() - 8.5f, 9.5f)));
-        
+
         bool overStart = startReconnectHandle.contains(mousePos.toFloat());
         bool overEnd = endReconnectHandle.contains(mousePos.toFloat());
 
         g.setColour(handleColour);
-        
+
         g.fillEllipse(startReconnectHandle.expanded(overStart ? 3.0f : 0.0f));
         g.fillEllipse(endReconnectHandle.expanded(overEnd ? 3.0f : 0.0f));
 
@@ -545,7 +546,7 @@ Path Connection::getNonSegmentedPath(Point<float> start, Point<float> end)
     } else {
         connectionPath.lineTo(end);
     }
-    
+
     return connectionPath;
 }
 
@@ -906,7 +907,7 @@ void Connection::receiveMessage(String const& name, int argc, t_atom* argv)
         } else if (name == "symbol" && args.size() >= 1) {
             setTooltip("(symbol): " + String::fromUTF8(atom_getsymbol(args.data())->s_name));
         } else if (name == "list") {
-            StringArray result = {"(list)"};
+            StringArray result = { "(list)" };
             for (auto& arg : args) {
                 if (arg.a_type == A_FLOAT) {
                     result.add(String(atom_getfloat(&arg)));
@@ -917,7 +918,7 @@ void Connection::receiveMessage(String const& name, int argc, t_atom* argv)
 
             setTooltip(result.joinIntoString(" "));
         } else {
-            StringArray result = {name};
+            StringArray result = { name };
             for (auto& arg : args) {
                 if (arg.a_type == A_FLOAT) {
                     result.add(String(atom_getfloat(&arg)));

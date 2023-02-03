@@ -34,11 +34,9 @@ public:
     {
         globalMouseDrag(e.getEventRelativeTo(target));
     }
-    
+
     void mouseMove(MouseEvent const& e) override
     {
         globalMouseMove(e.getEventRelativeTo(target));
     }
 };
-
-

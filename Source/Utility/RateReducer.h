@@ -4,64 +4,64 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
-
-
 #pragma once
 #include <JuceHeader.h>
 
 // Class that blocks events that are too close together, up to a certain rate
 // We use this to reduce the rate at which MouseEvents come in, to improve performance (especially on Linux)
-struct RateReducer : public Timer
-{
-    RateReducer(int rate) : timerHz(rate) {
+struct RateReducer : public Timer {
+    RateReducer(int rate)
+        : timerHz(rate)
+    {
     }
-    
-    bool tooFast() {
-        if(allowEvent) {
+
+    bool tooFast()
+    {
+        if (allowEvent) {
             allowEvent = false;
             startTimerHz(timerHz);
             return false;
         }
-    
+
         return true;
     }
-    
-    void timerCallback() override {
+
+    void timerCallback() override
+    {
         allowEvent = true;
     }
-    
-    void stop() {
+
+    void stop()
+    {
         stopTimer();
         allowEvent = true;
     }
-    
+
 private:
-     int timerHz;
-     bool allowEvent = true;
+    int timerHz;
+    bool allowEvent = true;
 };
 
-
 template<typename T, int hz = 90>
-class MouseRateReducedComponent : public T
-{
+class MouseRateReducedComponent : public T {
 public:
     using T::T;
-    
-    void mouseDrag(const MouseEvent& e) override
+
+    void mouseDrag(MouseEvent const& e) override
     {
-        if(rateReducer.tooFast()) return;
-            
+        if (rateReducer.tooFast())
+            return;
+
         T::mouseDrag(e);
     }
-    
-    
-    void mouseUp(const MouseEvent& e) override
+
+    void mouseUp(MouseEvent const& e) override
     {
         rateReducer.stop();
-        
+
         T::mouseUp(e);
     }
-    
+
 private:
     RateReducer rateReducer = RateReducer(hz);
 };

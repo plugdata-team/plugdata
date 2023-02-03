@@ -107,7 +107,6 @@ void Object::timerCallback()
         auto viewArea = cnv->viewport->getViewArea() / static_cast<float>(cnv->editor->zoomScale.getValue());
         setCentrePosition(viewArea.getConstrainedPoint(pos));
     }
-    
 }
 
 void Object::valueChanged(Value& v)
@@ -588,7 +587,7 @@ void Object::mouseDown(MouseEvent const& e)
     // TODO: why would this ever happen??
     if (!getLocalBounds().contains(e.getPosition()))
         return;
-    
+
     if (attachedToMouse) {
         attachedToMouse = false;
         stopTimer();
@@ -657,7 +656,7 @@ void Object::mouseUp(MouseEvent const& e)
 
                 auto* obj = static_cast<t_gobj*>(_this->getPointer());
                 auto* cnv = _this->cnv;
-                
+
                 if (cnv->patch.objectWasDeleted(obj))
                     return;
 
@@ -665,16 +664,14 @@ void Object::mouseUp(MouseEvent const& e)
                 libpd_undo_apply(cnv->patch.getPointer(), obj);
 
                 _this->gui->applyBounds();
-                
+
                 // To make sure it happens after setting object bounds
                 // TODO: do we need this??
-                if (!cnv->viewport->getViewArea().contains(_this->getBounds()))
-                {
-                    MessageManager::callAsync([_this]()
-                                          {
-                                              if (_this)
-                                                  _this->cnv->checkBounds();
-                                          });
+                if (!cnv->viewport->getViewArea().contains(_this->getBounds())) {
+                    MessageManager::callAsync([_this]() {
+                        if (_this)
+                            _this->cnv->checkBounds();
+                    });
                 }
             });
     } else {

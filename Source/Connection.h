@@ -40,10 +40,10 @@ public:
     Connection(Canvas* parent, Iolet* start, Iolet* end, void* oc);
     ~Connection() override;
 
-    static void renderConnectionPath(Graphics& g, Canvas* cnv, Path connectionPath, bool isSignal, bool isMouseOver = false, bool isSelected = false, Point<int> mousePos = {0, 0});
-        
+    static void renderConnectionPath(Graphics& g, Canvas* cnv, Path connectionPath, bool isSignal, bool isMouseOver = false, bool isSelected = false, Point<int> mousePos = { 0, 0 });
+
     static Path getNonSegmentedPath(Point<float> start, Point<float> end);
-        
+
     void paint(Graphics&) override;
 
     bool isSegmented();
@@ -110,7 +110,7 @@ private:
     float mouseDownPosition = 0;
 
     void valueChanged(Value& v) override;
-        
+
     struct t_fake_outconnect {
         void* oc_next;
         t_pd* oc_to;
@@ -123,77 +123,82 @@ private:
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(Connection)
 };
 
-class ConnectionBeingCreated : public Component
-{
+class ConnectionBeingCreated : public Component {
     SafePointer<Iolet> iolet;
     Component* cnv;
     Path connectionPath;
-    
+
 public:
-    ConnectionBeingCreated(Iolet* target, Component* canvas) : iolet(target), cnv(canvas){
-        
+    ConnectionBeingCreated(Iolet* target, Component* canvas)
+        : iolet(target)
+        , cnv(canvas)
+    {
+
         // Only listen for mouse-events on canvas and the original iolet
         setInterceptsMouseClicks(false, true);
         cnv->addMouseListener(this, true);
         iolet->addMouseListener(this, false);
-        
+
         cnv->addAndMakeVisible(this);
 
         setAlwaysOnTop(true);
     }
-    
-    ~ConnectionBeingCreated() {
+
+    ~ConnectionBeingCreated()
+    {
         cnv->removeMouseListener(this);
         iolet->removeMouseListener(this);
     }
-    
-    void mouseDrag(const MouseEvent& e) override
+
+    void mouseDrag(MouseEvent const& e) override
     {
         mouseMove(e);
     }
-    
-    void mouseMove(const MouseEvent& e) override
+
+    void mouseMove(MouseEvent const& e) override
     {
-        if(rateReducer.tooFast()) return;
-        
+        if (rateReducer.tooFast())
+            return;
+
         auto ioletPoint = cnv->getLocalPoint((Component*)iolet->object, iolet->getBounds().getCentre());
         auto cursorPoint = cnv->getLocalPoint(nullptr, e.getScreenPosition());
-                       
+
         auto& startPoint = iolet->isInlet ? cursorPoint : ioletPoint;
         auto& endPoint = iolet->isInlet ? ioletPoint : cursorPoint;
-        
+
         connectionPath = Connection::getNonSegmentedPath(startPoint.toFloat(), endPoint.toFloat());
-        
+
         auto bounds = connectionPath.getBounds().getSmallestIntegerContainer().expanded(3);
-        
+
         // Make sure we have minimal bounds, expand slightly to take line thickness into account
         setBounds(bounds);
-        
+
         // Remove bounds offset from path, because we've already set our origin by setting component bounds
         connectionPath.applyTransform(AffineTransform::translation(-bounds.getX(), -bounds.getY()));
-                                                    
+
         repaint();
         iolet->repaint();
     }
-    
-    void mouseUp(const MouseEvent& e) override
+
+    void mouseUp(MouseEvent const& e) override
     {
         rateReducer.stop();
     }
-    
+
     void paint(Graphics& g) override
     {
-        if(!iolet)  {
+        if (!iolet) {
             jassertfalse; // shouldn't happen
             return;
         }
         Connection::renderConnectionPath(g, (Canvas*)cnv, connectionPath, iolet->isSignal, true);
     }
-    
-    Iolet* getIolet() {
+
+    Iolet* getIolet()
+    {
         return iolet;
     }
-    
+
     RateReducer rateReducer = RateReducer(90);
 };
 
