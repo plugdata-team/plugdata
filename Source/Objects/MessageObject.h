@@ -34,14 +34,6 @@ public:
         : ObjectBase(obj, parent)
     {
         objectText = getSymbol();
-
-        // To get enter/exit messages
-        addMouseListener(object, false);
-    }
-
-    ~MessageObject()
-    {
-        removeMouseListener(object);
     }
 
     void updateBounds() override

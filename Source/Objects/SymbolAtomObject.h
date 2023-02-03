@@ -43,8 +43,6 @@ public:
         };
 
         input.setMinimumHorizontalScale(0.9f);
-
-        object->addMouseListener(this, false);
     }
 
     void lock(bool locked) override

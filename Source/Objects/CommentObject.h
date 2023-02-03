@@ -22,14 +22,10 @@ public:
         locked = static_cast<bool>(object->locked.getValue());
 
         objectText = getText().trimEnd();
-
-        // To get enter/exit messages
-        addMouseListener(object, false);
     }
 
     ~CommentObject()
     {
-        removeMouseListener(object);
     }
 
     void paint(Graphics& g) override
