@@ -357,19 +357,16 @@ void Canvas::mouseDrag(MouseEvent const& e)
 
         // Middle mouse pan
         if (e.mods.isMiddleButtonDown() && !ObjectBase::isBeingEdited()) {
-
+            
             auto delta = Point<int>(viewportEvent.getDistanceFromDragStartX(), viewportEvent.getDistanceFromDragStartY());
-
+            
             viewport->setViewPosition(viewportPositionBeforeMiddleDrag.x - delta.x, viewportPositionBeforeMiddleDrag.y - delta.y);
-
+            
             return; // Middle mouse button cancels any other drag actions
         }
-
-        // For fixing coords when zooming
-        float scale = (1.0f / static_cast<float>(editor->zoomScale.getValue()));
-
+        
         // Auto scroll when dragging close to the iolet
-        if (!ObjectBase::isBeingEdited() && viewport->autoScroll(viewportEvent.x * scale, viewportEvent.y * scale, 50, scrollSpeed)) {
+        if (!ObjectBase::isBeingEdited() && viewport->autoScroll(viewportEvent.x, viewportEvent.y, 50, scrollSpeed) && (viewport->canScrollHorizontally() || viewport->canScrollVertically())) {
             beginDragAutoRepeat(40);
         }
     }
