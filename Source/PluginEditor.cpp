@@ -55,7 +55,7 @@ PluginEditor::PluginEditor(PluginProcessor& p)
 #if !PLUGDATA_STANDALONE
     cornerResizer = std::make_unique<MouseRateReducedComponent<ResizableCornerComponent>>(this, getConstrainer());
     cornerResizer->setAlwaysOnTop(true);
-    addAndMakeVisible(cornerResizer);
+    addAndMakeVisible(cornerResizer.get());
 #endif
 
     tooltipWindow.setOpaque(false);
