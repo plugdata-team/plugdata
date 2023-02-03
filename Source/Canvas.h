@@ -171,8 +171,8 @@ private:
 
     LassoComponent<WeakReference<Component>> lasso;
 
-    RateReducer canvasRateReducer = RateReducer(60);
-    RateReducer objectRateReducer = RateReducer(60);
+    RateReducer canvasRateReducer = RateReducer(90);
+    RateReducer objectRateReducer = RateReducer(90);
 
     // Properties that can be shown in the inspector by right-clicking on canvas
     ObjectParameters parameters = { { "Is graph", tBool, cGeneral, &isGraphChild, { "No", "Yes" } },
