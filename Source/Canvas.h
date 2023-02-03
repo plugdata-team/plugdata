@@ -20,6 +20,22 @@ class PluginEditor;
 class ConnectionPathUpdater;
 class ConnectionBeingCreated;
 
+#if USE_DRAG_TIMER
+struct DragTimer : public Timer
+{
+    std::function<void()> onCallback = [](){};
+    
+    DragTimer() {
+        startTimerHz(30);
+    }
+    
+    void timerCallback() override
+    {
+        onCallback();
+    }
+};
+#endif
+
 class Canvas : public Component
     , public Value::Listener
     , public LassoSource<WeakReference<Component>> {
@@ -155,16 +171,22 @@ public:
     Point<int> lastMousePosition;
     Point<int> pastedPosition;
     Point<int> pastedPadding;
-    std::vector<Point<int>> mouseDownObjectPositions; // Stores object positions for alt + drag
+    std::map<Object*, Point<int>> mouseDownObjectPositions; // Stores object positions for alt + drag
 
     std::unique_ptr<ConnectionPathUpdater> pathUpdater;
-
+    
+#if USE_DRAG_TIMER
+    DragTimer dragTimer;
+#endif
+        
 private:
     SafePointer<Object> objectSnappingInbetween;
     SafePointer<Connection> connectionToSnapInbetween;
     SafePointer<TabbedComponent> tabbar;
 
     LassoComponent<WeakReference<Component>> lasso;
+    
+
 
     // Properties that can be shown in the inspector by right-clicking on canvas
     ObjectParameters parameters = { { "Is graph", tBool, cGeneral, &isGraphChild, { "No", "Yes" } },
