@@ -1,9 +1,9 @@
 ---
 title: dbtopow
-description: convert acoustical units
+description: dB to power units
 categories:
 - object
-pdcategory: vanilla, Data Math
+pdcategory: vanilla, Data Math, Mixing and Routing
 last_update: '0.40'
 see_also:
 - mtof~

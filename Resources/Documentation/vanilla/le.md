@@ -1,6 +1,6 @@
 ---
 title: <=
-description: less than or equal to
+description: less-than-or-equal Boolean
 categories:
 - object
 pdcategory: vanilla, Logic

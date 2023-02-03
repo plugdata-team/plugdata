@@ -1,6 +1,6 @@
 ---
 title: '>'
-description: greater than
+description: greater-than Boolean
 categories:
 - object
 pdcategory: vanilla, Logic
