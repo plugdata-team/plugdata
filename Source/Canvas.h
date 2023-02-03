@@ -163,15 +163,16 @@ public:
     std::map<Object*, Point<int>> mouseDownObjectPositions; // Stores object positions for alt + drag
 
     std::unique_ptr<ConnectionPathUpdater> pathUpdater;
-        
+
 private:
     SafePointer<Object> objectSnappingInbetween;
     SafePointer<Connection> connectionToSnapInbetween;
     SafePointer<TabbedComponent> tabbar;
 
     LassoComponent<WeakReference<Component>> lasso;
-    
-    RateReducer rateReducer = RateReducer(1000);
+
+    RateReducer canvasRateReducer = RateReducer(60);
+    RateReducer objectRateReducer = RateReducer(60);
 
     // Properties that can be shown in the inspector by right-clicking on canvas
     ObjectParameters parameters = { { "Is graph", tBool, cGeneral, &isGraphChild, { "No", "Yes" } },
@@ -179,6 +180,5 @@ private:
         { "X range", tRange, cGeneral, &xRange, {} },
         { "Y range", tRange, cGeneral, &yRange, {} } };
 
-    
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(Canvas)
 };
