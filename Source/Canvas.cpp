@@ -1220,20 +1220,9 @@ void Canvas::objectMouseDrag(MouseEvent const& e)
             object->setTopLeftPosition(mouseDownObjectPositions[object] + dragDistance + canvasMoveOffset);
         }
     } else {
-#if USE_DRAG_TIMER
-        if(!dragTimer.isTimerRunning()) dragTimer.startTimerHz(60.0f);
-        
-        dragTimer.onCallback = [this, selection, dragDistance, canvasMoveOffset]() mutable {
-            for (auto* object : selection) {
-                object->setTopLeftPosition(object->mouseDownPos + dragDistance + canvasMoveOffset);
-            }
-            dragTimer.stopTimer();
-        };
-#else
         for (auto* object : selection) {
             object->setTopLeftPosition(object->mouseDownPos + dragDistance + canvasMoveOffset);
         }
-#endif
     }
 
     // This handles the "unsnap" action when you shift-drag a connected object

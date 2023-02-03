@@ -657,10 +657,6 @@ void Object::mouseUp(MouseEvent const& e)
                 auto* obj = static_cast<t_gobj*>(_this->getPointer());
                 auto* cnv = _this->cnv;
                 
-#if USE_DRAG_TIMER
-                cnv->dragTimer.timerCallback();
-                cnv->dragTimer.onCallback = [](){};
-#endif
                 if (cnv->patch.objectWasDeleted(obj))
                     return;
 
