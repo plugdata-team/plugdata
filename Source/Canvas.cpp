@@ -101,6 +101,12 @@ Canvas::~Canvas()
     delete suggestor;
 }
 
+void Canvas::timerCallback()
+{
+    rateLimit = true;
+}
+
+
 void Canvas::paint(Graphics& g)
 {
     if (!isGraph) {
@@ -1218,8 +1224,13 @@ void Canvas::objectMouseDrag(MouseEvent const& e)
             object->setTopLeftPosition(mouseDownObjectPositions[selection.indexOf(object)] + dragDistance + canvasMoveOffset);
         }
     } else {
-        for (auto* object : selection) {
-            object->setTopLeftPosition(object->mouseDownPos + dragDistance + canvasMoveOffset);
+        // FIXME: stop the mousedrag event from blocking the objects from redrawing, we shouldn't need to do this? JUCE bug?
+        if (rateLimit) {
+            for (auto* object : selection) {
+                object->setTopLeftPosition(object->mouseDownPos + dragDistance + canvasMoveOffset);
+            }
+            rateLimit = false;
+            startTimer(1);
         }
     }
 
