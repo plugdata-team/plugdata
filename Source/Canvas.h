@@ -12,6 +12,7 @@
 #include "Pd/PdPatch.h"
 #include "PluginProcessor.h"
 #include "ObjectGrid.h"
+#include "Utility/RateReducer.h"
 
 class SuggestionComponent;
 struct GraphArea;
@@ -170,7 +171,7 @@ private:
 
     LassoComponent<WeakReference<Component>> lasso;
     
-
+    RateReducer rateReducer = RateReducer(1000);
 
     // Properties that can be shown in the inspector by right-clicking on canvas
     ObjectParameters parameters = { { "Is graph", tBool, cGeneral, &isGraphChild, { "No", "Yes" } },

@@ -7,21 +7,31 @@
 #pragma once
 #include <JuceHeader.h>
 
-struct RateReducer
+struct RateReducer : public Timer
 {
-    static bool tooFast(float hz) {
-
-        auto ms = 1000.0f / hz;
-
-        auto currentTime = Time::getCurrentTime().getMillisecondCounter();
-        if(currentTime - lastTime > ms) {
-            lastTime = currentTime;
+    RateReducer(int rate) : timerHz(rate) {
+    }
+    
+    bool tooFast() {
+        if(allowEvent) {
+            allowEvent = false;
+            startTimerHz(timerHz);
             return false;
         }
-
+    
         return true;
     }
-
-    static inline uint64_t lastTime = 0;
+    
+    void timerCallback() override {
+        allowEvent = true;
+    }
+    
+    void stop() {
+        stopTimer();
+        allowEvent = true;
+    }
+    
+private:
+     int timerHz;
+     bool allowEvent = true;
 };
-
