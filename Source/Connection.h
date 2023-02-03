@@ -15,6 +15,7 @@ extern "C" {
 #include <concurrentqueue.h>
 #include "Iolet.h"
 #include "Pd/PdInstance.h"
+#include "Utility/RateReducer.h"
 
 using PathPlan = std::vector<Point<float>>;
 
@@ -152,6 +153,8 @@ public:
     
     void mouseMove(const MouseEvent& e) override
     {
+        if(rateReducer.tooFast()) return;
+        
         auto ioletPoint = cnv->getLocalPoint((Component*)iolet->object, iolet->getBounds().getCentre());
         auto cursorPoint = cnv->getLocalPoint(nullptr, e.getScreenPosition());
                        
@@ -172,6 +175,11 @@ public:
         iolet->repaint();
     }
     
+    void mouseUp(const MouseEvent& e) override
+    {
+        rateReducer.stop();
+    }
+    
     void paint(Graphics& g) override
     {
         if(!iolet)  {
@@ -184,6 +192,8 @@ public:
     Iolet* getIolet() {
         return iolet;
     }
+    
+    RateReducer rateReducer = RateReducer(60);
 };
 
 // Helper class to group connection path changes together into undoable/redoable actions
