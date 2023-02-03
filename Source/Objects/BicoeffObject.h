@@ -8,19 +8,19 @@
 #include <math.h>
 
 class BicoeffGraph : public Component {
-
+    
     float a1 = 0, a2 = 0, b0 = 1, b1 = 0, b2 = 0;
-
+    
     float filterGain = 100.0f;
-
+    
     float filterWidth, filterCentre;
     float filterX1, filterX2;
     float lastCentre, lastX1, lastX2, lastGain;
-
+    
     Object* object;
     
     Path magnitudePath;
-
+    
 public:
     
     std::function<void(float, float, float, float, float)> graphChangeCallback = [](float, float, float, float, float){};
@@ -36,6 +36,8 @@ public:
         Lowshelf,
         Highshelf
     };
+    
+    StringArray filterTypeNames = {"allpass", "lowpass", "highpass", "bandpass", "resonant", "bandstop", "eq", "lowshelf", "highshelf"};
 
     FilterType filterType = EQ;
 
@@ -50,12 +52,24 @@ public:
         setSize(300, 300);
         update();
     }
-
+    
     void setFilterType(FilterType type)
     {
         filterType = type;
         update();
+        saveProperties();
     }
+    
+    // Hack to make it remember the bounds and filter type...
+    void saveProperties() {
+        auto b = object->getObjectBounds();
+        auto dim = String(" -dim ") + String(b.getWidth()) + " " + String(b.getHeight());
+        auto type = String(" -type ") + String(filterTypeNames[static_cast<int>(filterType)]);
+        auto buftext = String("bicoeff") + dim + type;
+        auto* ptr = static_cast<t_object*>(object->getPointer());
+        binbuf_text(ptr->te_binbuf, buftext.toRawUTF8(), buftext.getNumBytesAsUTF8());
+    }
+
 
     bool canResizefilterWidth()
     {
@@ -490,6 +504,7 @@ public:
 
         setCoefficients(a0, a1, a2, b0, b1, b2);
     }
+    
 };
 
 class BicoeffObject : public ObjectBase {
@@ -537,14 +552,17 @@ public:
     void applyBounds() override
     {
         auto b = object->getObjectBounds();
-        libpd_moveobj(cnv->patch.getPointer(), static_cast<t_gobj*>(ptr), b.getX(), b.getY());
-
+        libpd_moveobj(object->cnv->patch.getPointer(), static_cast<t_gobj*>(ptr), b.getX(), b.getY());
+        
         t_atom size[2];
         SETFLOAT(size, b.getWidth());
         SETFLOAT(size + 1, b.getHeight());
         pd_typedmess(static_cast<t_pd*>(ptr), pd->generateSymbol("dim"), 2, size);
+        
+        graph.saveProperties();
     }
-
+    
+    
     void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
     {
         switch (objectMessageMapped[symbol]) {
