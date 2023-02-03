@@ -39,3 +39,29 @@ private:
      int timerHz;
      bool allowEvent = true;
 };
+
+
+template<typename T, int hz = 90>
+class MouseRateReducedComponent : public T
+{
+public:
+    using T::T;
+    
+    void mouseDrag(const MouseEvent& e) override
+    {
+        if(rateReducer.tooFast()) return;
+            
+        T::mouseDrag(e);
+    }
+    
+    
+    void mouseUp(const MouseEvent& e) override
+    {
+        rateReducer.stop();
+        
+        T::mouseUp(e);
+    }
+    
+private:
+    RateReducer rateReducer = RateReducer(hz);
+};
