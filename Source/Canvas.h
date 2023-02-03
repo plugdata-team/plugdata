@@ -71,7 +71,7 @@ public:
 
     // Multi-dragger functions
     void deselectAll();
-    void setSelected(Component* component, bool shouldNowBeSelected);
+    void setSelected(Component* component, bool shouldNowBeSelected, bool updateCommandStatus = true);
     bool isSelected(Component* component) const;
 
     void objectMouseDown(Object* component, MouseEvent const& e);

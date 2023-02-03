@@ -1020,7 +1020,7 @@ void Canvas::hideSuggestions()
 }
 
 // Makes component selected
-void Canvas::setSelected(Component* component, bool shouldNowBeSelected)
+void Canvas::setSelected(Component* component, bool shouldNowBeSelected, bool updateCommandStatus)
 {
     bool isAlreadySelected = isSelected(component);
 
@@ -1034,7 +1034,9 @@ void Canvas::setSelected(Component* component, bool shouldNowBeSelected)
         component->repaint();
     }
 
-    editor->updateCommandStatus();
+    if(updateCommandStatus) {
+        editor->updateCommandStatus();
+    }
 }
 
 bool Canvas::isSelected(Component* component) const
@@ -1175,7 +1177,6 @@ void Canvas::objectMouseDrag(MouseEvent const& e)
 
     if (!didStartDragging) {
         didStartDragging = true;
-        editor->updateCommandStatus();
     }
 
     auto selection = getSelectionOfType<Object>();
@@ -1336,12 +1337,12 @@ void Canvas::removeSelectedComponent(Component* component)
 
 void Canvas::findLassoItemsInArea(Array<WeakReference<Component>>& itemsFound, Rectangle<int> const& area)
 {
-    for (auto* element : objects) {
-        if (area.intersects(element->getBounds())) {
-            itemsFound.add(element);
-            setSelected(element, true);
+    for (auto* object : objects) {
+        if (area.intersects(object->getBounds().reduced(Object::margin))) {
+            itemsFound.add(object);
+            setSelected(object, true, false);
         } else if (!ModifierKeys::getCurrentModifiers().isAnyModifierKeyDown()) {
-            setSelected(element, false);
+            setSelected(object, false, false);
         }
     }
 
@@ -1354,9 +1355,9 @@ void Canvas::findLassoItemsInArea(Array<WeakReference<Component>>& itemsFound, R
         // Check if path intersects with lasso
         if (con->intersects(lasso.getBounds().translated(-con->getX(), -con->getY()).toFloat())) {
             itemsFound.add(con);
-            setSelected(con, true);
+            setSelected(con, true, false);
         } else if (!ModifierKeys::getCurrentModifiers().isAnyModifierKeyDown()) {
-            setSelected(con, false);
+            setSelected(con, false, false);
         }
     }
 }

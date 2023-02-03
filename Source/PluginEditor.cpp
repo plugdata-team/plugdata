@@ -578,8 +578,6 @@ void PluginEditor::addTab(Canvas* cnv, bool deleteWhenClosed)
     tabbar.repaint();
 
     cnv->setVisible(true);
-
-    updateCommandStatus();
 }
 
 void PluginEditor::valueChanged(Value& v)
