@@ -1221,13 +1221,13 @@ void Canvas::objectMouseDrag(MouseEvent const& e)
         }
     } else {
 #if USE_DRAG_TIMER
-        if(!dragTimer.isTimerRunning()) tempTimer.startTimerHz(60.0f);
+        if(!dragTimer.isTimerRunning()) dragTimer.startTimerHz(60.0f);
         
-        tempTimer.onCallback = [this, selection, dragDistance, canvasMoveOffset]() mutable {
+        dragTimer.onCallback = [this, selection, dragDistance, canvasMoveOffset]() mutable {
             for (auto* object : selection) {
                 object->setTopLeftPosition(object->mouseDownPos + dragDistance + canvasMoveOffset);
             }
-            tempTimer.stopTimer();
+            dragTimer.stopTimer();
         };
 #else
         for (auto* object : selection) {
