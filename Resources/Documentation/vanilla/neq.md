@@ -1,6 +1,6 @@
 ---
 title: '!='
-description: relational tests
+description: not-equal-to Boolean
 categories:
 - object
 pdcategory: vanilla, Logic

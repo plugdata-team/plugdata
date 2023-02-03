@@ -1,12 +1,12 @@
 ---
 title: powtodb~
-description: acoustic conversions for audio signals
+description: power units to dB
 categories:
 - object
 see_also:
 - mtof
 - expr~
-pdcategory: vanilla, Signal Math
+pdcategory: vanilla, Signal Math, Mixing and Routing
 last_update: '0.33'
 inlets:
   1st:
