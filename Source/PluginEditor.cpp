@@ -290,7 +290,6 @@ void PluginEditor::resized()
     cornerResizer->setBounds(getWidth() - resizerSize,
         getHeight() - resizerSize,
         resizerSize, resizerSize);
-    cornerResizer->setBounds(getLocalBounds());
 
     auto windowControlsOffset = 70.0f;
 #endif
