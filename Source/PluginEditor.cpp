@@ -286,7 +286,12 @@ void PluginEditor::resized()
     auto useNativeTitlebar = SettingsFile::getInstance()->getProperty<bool>("native_window");
     auto windowControlsOffset = useNativeTitlebar ? 70.0f : 170.0f;
 #else
+    const int resizerSize = 18;
+    cornerResizer->setBounds (getWidth() - resizerSize,
+                                getHeight() - resizerSize,
+                                resizerSize, resizerSize);
     cornerResizer->setBounds(getLocalBounds());
+    
     auto windowControlsOffset = 70.0f;
 #endif
 
