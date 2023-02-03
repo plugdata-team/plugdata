@@ -22,6 +22,7 @@ class ConnectionBeingCreated;
 
 class Canvas : public Component
     , public Value::Listener
+    , public Timer
     , public LassoSource<WeakReference<Component>> {
 public:
     Canvas(PluginEditor* parent, pd::Patch& patch, Component* parentGraph = nullptr);
@@ -37,6 +38,9 @@ public:
     {
         repaint();
     }
+
+    void timerCallback() override;
+    bool rateLimit = true;
 
     void mouseDown(MouseEvent const& e) override;
     void mouseDrag(MouseEvent const& e) override;
