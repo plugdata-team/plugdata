@@ -1,6 +1,6 @@
 ---
 title: '||'
-description: bit twiddling
+description: logical OR
 categories:
 - object
 pdcategory: vanilla, Logic

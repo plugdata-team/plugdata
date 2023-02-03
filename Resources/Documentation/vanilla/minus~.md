@@ -1,6 +1,6 @@
 ---
 title: -~
-description: binary operators on audio signals
+description: subtract two signals
 categories:
 - object
 pdcategory: vanilla, Signal Math
