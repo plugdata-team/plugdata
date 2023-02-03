@@ -42,7 +42,6 @@ public:
                 blocks[ch] = numBlocks;
                 needsRepaint = true;
             }
-            
         }
 
         if (needsRepaint && isShowing())

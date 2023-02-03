@@ -124,7 +124,6 @@ struct MessageListener {
     JUCE_DECLARE_WEAK_REFERENCEABLE(MessageListener);
 };
 
-
 class Instance {
     struct Message {
         String selector;

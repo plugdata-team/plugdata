@@ -50,7 +50,7 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     pinButton.setButtonText(Icons::Pin);
 
     setResizable(true, false);
-    
+
     // In the standalone, the resizer handling is done on the window class
 #if !PLUGDATA_STANDALONE
     cornerResizer = std::make_unique<MouseRateReducedComponent<ResizableCornerComponent>>(this, getConstrainer());
@@ -286,12 +286,12 @@ void PluginEditor::resized()
     auto useNativeTitlebar = SettingsFile::getInstance()->getProperty<bool>("native_window");
     auto windowControlsOffset = useNativeTitlebar ? 70.0f : 170.0f;
 #else
-    const int resizerSize = 18;
-    cornerResizer->setBounds (getWidth() - resizerSize,
-                                getHeight() - resizerSize,
-                                resizerSize, resizerSize);
+    int const resizerSize = 18;
+    cornerResizer->setBounds(getWidth() - resizerSize,
+        getHeight() - resizerSize,
+        resizerSize, resizerSize);
     cornerResizer->setBounds(getLocalBounds());
-    
+
     auto windowControlsOffset = 70.0f;
 #endif
 

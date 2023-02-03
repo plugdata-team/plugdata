@@ -215,7 +215,7 @@ bool Dialog::wantsRoundedCorners()
 void Dialogs::showCanvasRightClickMenu(Canvas* cnv, Component* originalComponent, Point<int> position)
 {
     cnv->cancelConnectionCreation();
-    
+
     // Info about selection status
     auto selectedBoxes = cnv->getSelectionOfType<Object>();
 

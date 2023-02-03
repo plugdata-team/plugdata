@@ -674,13 +674,13 @@ public:
         case objectMessage::msg_list: {
             break;
         }
-                /*
-        case objectMessage::msg_edit: {
-            if(!atoms.empty()) {
-                editable = atoms[0].getFloat();
-                setInterceptsMouseClicks(false, editable);
-            }
-        } */
+            /*
+    case objectMessage::msg_edit: {
+        if(!atoms.empty()) {
+            editable = atoms[0].getFloat();
+            setInterceptsMouseClicks(false, editable);
+        }
+    } */
         default:
             break;
         }

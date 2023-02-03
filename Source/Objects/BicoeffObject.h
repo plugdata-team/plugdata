@@ -8,23 +8,22 @@
 #include <math.h>
 
 class BicoeffGraph : public Component {
-    
+
     float a1 = 0, a2 = 0, b0 = 1, b1 = 0, b2 = 0;
-    
+
     float filterGain = 100.0f;
-    
+
     float filterWidth, filterCentre;
     float filterX1, filterX2;
     float lastCentre, lastX1, lastX2, lastGain;
-    
+
     Object* object;
-    
+
     Path magnitudePath;
-    
+
 public:
-    
-    std::function<void(float, float, float, float, float)> graphChangeCallback = [](float, float, float, float, float){};
-    
+    std::function<void(float, float, float, float, float)> graphChangeCallback = [](float, float, float, float, float) {};
+
     enum FilterType {
         Allpass,
         Lowpass,
@@ -36,8 +35,8 @@ public:
         Lowshelf,
         Highshelf
     };
-    
-    StringArray filterTypeNames = {"allpass", "lowpass", "highpass", "bandpass", "resonant", "bandstop", "eq", "lowshelf", "highshelf"};
+
+    StringArray filterTypeNames = { "allpass", "lowpass", "highpass", "bandpass", "resonant", "bandstop", "eq", "lowshelf", "highshelf" };
 
     FilterType filterType = EQ;
 
@@ -52,16 +51,17 @@ public:
         setSize(300, 300);
         update();
     }
-    
+
     void setFilterType(FilterType type)
     {
         filterType = type;
         update();
         saveProperties();
     }
-    
+
     // Hack to make it remember the bounds and filter type...
-    void saveProperties() {
+    void saveProperties()
+    {
         auto b = object->getObjectBounds();
         auto dim = String(" -dim ") + String(b.getWidth()) + " " + String(b.getHeight());
         auto type = String(" -type ") + String(filterTypeNames[static_cast<int>(filterType)]);
@@ -69,7 +69,6 @@ public:
         auto* ptr = static_cast<t_object*>(object->getPointer());
         binbuf_text(ptr->te_binbuf, buftext.toRawUTF8(), buftext.getNumBytesAsUTF8());
     }
-
 
     bool canResizefilterWidth()
     {
@@ -118,18 +117,18 @@ public:
         default:
             break;
         }
-        
+
         magnitudePath.clear();
-        
+
         for (int x = 0; x <= getWidth(); x++) {
             auto nn = (static_cast<float>(x) / getWidth()) * 120.0f + 16.766f;
             auto freq = MidiMessage::getMidiNoteInHertz(nn);
             auto result = calcMagnitudePhase((M_PI * 2.0 * freq) / 44100.0f, a1, a2, b0, b1, b2);
 
-            if(!std::isfinite(result.first)) {
+            if (!std::isfinite(result.first)) {
                 continue;
             }
-            
+
             if (x == 0) {
                 magnitudePath.startNewSubPath(x, result.first);
                 // phasePath.startNewSubPath(x, result.second);
@@ -139,9 +138,9 @@ public:
                 // phasePath.lineTo(x, result.second);
             }
         }
-        
+
         magnitudePath = magnitudePath.createPathWithRoundedCorners(10.0f);
-        
+
         repaint();
     }
 
@@ -198,11 +197,9 @@ public:
         if (canResizefilterWidth()) {
             g.drawVerticalLine(filterX1, 0, getHeight());
             g.drawVerticalLine(filterX2, 0, getHeight());
-        }
-        else {
+        } else {
             g.drawVerticalLine(filterCentre, 0, getHeight());
         }
-    
 
         g.drawHorizontalLine(getHeight() / 2.0f, 0, getWidth());
 
@@ -347,7 +344,7 @@ public:
         this->b0 = b0 / a0;
         this->b1 = b1 / a0;
         this->b2 = b2 / a0;
-        
+
         graphChangeCallback(this->a1, this->a2, this->b0, this->b1, this->b2);
     }
 
@@ -504,7 +501,6 @@ public:
 
         setCoefficients(a0, a1, a2, b0, b1, b2);
     }
-    
 };
 
 class BicoeffObject : public ObjectBase {
@@ -517,16 +513,15 @@ public:
         , graph(parent)
     {
         addAndMakeVisible(graph);
-        
+
         graph.graphChangeCallback = [this](float a1, float a2, float b0, float b1, float b2) {
-            
             t_atom at[5];
             SETFLOAT(at, a1);
-            SETFLOAT(at+1, a2);
-            SETFLOAT(at+2, b0);
-            SETFLOAT(at+3, b1);
-            SETFLOAT(at+4, b2);
-            
+            SETFLOAT(at + 1, a2);
+            SETFLOAT(at + 2, b0);
+            SETFLOAT(at + 3, b1);
+            SETFLOAT(at + 4, b2);
+
             pd_typedmess(static_cast<t_pd*>(ptr), pd->generateSymbol("biquad"), 5, at);
         };
     }
@@ -553,16 +548,15 @@ public:
     {
         auto b = object->getObjectBounds();
         libpd_moveobj(object->cnv->patch.getPointer(), static_cast<t_gobj*>(ptr), b.getX(), b.getY());
-        
+
         t_atom size[2];
         SETFLOAT(size, b.getWidth());
         SETFLOAT(size + 1, b.getHeight());
         pd_typedmess(static_cast<t_pd*>(ptr), pd->generateSymbol("dim"), 2, size);
-        
+
         graph.saveProperties();
     }
-    
-    
+
     void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
     {
         switch (objectMessageMapped[symbol]) {

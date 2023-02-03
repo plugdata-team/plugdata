@@ -18,7 +18,6 @@ extern "C" {
 #include "x_libpd_multi.h"
 #include "z_print_util.h"
 
-
 int sys_load_lib(t_canvas* canvas, char const* classname);
 
 struct pd::Instance::internal {
@@ -151,32 +150,31 @@ Instance::Instance(String const& symbol)
     };
 
     auto message_trigger = [](void* instance, void* target, t_symbol* symbol, int argc, t_atom* argv) {
-        
         auto& listeners = static_cast<Instance*>(instance)->messageListeners;
-            if (!listeners.count(target))
-                return;
+        if (!listeners.count(target))
+            return;
 
-            bool cleanUp = false;
+        bool cleanUp = false;
 
-            for (auto listener : listeners[target]) {
-                // Check if the safepointer is still valid
-                if (!listener) {
-                    cleanUp = true;
-                    continue;
-                }
-                auto sym = String::fromUTF8(symbol->s_name);
-                listener->receiveMessage(sym, argc, argv);
+        for (auto listener : listeners[target]) {
+            // Check if the safepointer is still valid
+            if (!listener) {
+                cleanUp = true;
+                continue;
             }
+            auto sym = String::fromUTF8(symbol->s_name);
+            listener->receiveMessage(sym, argc, argv);
+        }
 
-            // If any pointers were invalid, clean them up
-            // TODO: profile if this is really the best place to do that
-            if (cleanUp) {
-                for (int i = listeners[target].size() - 1; i >= 0; i--) {
-                    if (!listeners[target][i]) {
-                        listeners[target].erase(listeners[target].begin() + i);
-                    }
+        // If any pointers were invalid, clean them up
+        // TODO: profile if this is really the best place to do that
+        if (cleanUp) {
+            for (int i = listeners[target].size() - 1; i >= 0; i--) {
+                if (!listeners[target][i]) {
+                    listeners[target].erase(listeners[target].begin() + i);
                 }
             }
+        }
     };
 
     register_gui_triggers(static_cast<t_pdinstance*>(m_instance), this, gui_trigger, message_trigger);
