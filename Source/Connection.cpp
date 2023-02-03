@@ -46,7 +46,7 @@ Connection::Connection(Canvas* parent, Iolet* s, Iolet* e, void* oc)
             outlet = nullptr;
             inlet = nullptr;
 
-            MessageManager::callAsync([this]() { cnv->connections.removeObject(this); });
+            //MessageManager::callAsync([this]() { cnv->connections.removeObject(this); });
 
             return;
         }

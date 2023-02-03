@@ -128,6 +128,7 @@ class ConnectionBeingCreated : public Component
     SafePointer<Iolet> iolet;
     Component* cnv;
     Path connectionPath;
+    
 public:
     ConnectionBeingCreated(Iolet* target, Component* canvas) : iolet(target), cnv(canvas){
         
@@ -193,7 +194,7 @@ public:
         return iolet;
     }
     
-    RateReducer rateReducer = RateReducer(60);
+    RateReducer rateReducer = RateReducer(90);
 };
 
 // Helper class to group connection path changes together into undoable/redoable actions
