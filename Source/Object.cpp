@@ -13,6 +13,7 @@
 #include "Iolet.h"
 #include "LookAndFeel.h"
 #include "PluginEditor.h"
+
 #include "Utility/ObjectBoundsConstrainer.h"
 
 extern "C" {

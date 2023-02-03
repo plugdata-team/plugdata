@@ -15,9 +15,10 @@ extern "C" {
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
 #include "LookAndFeel.h"
+#include "SuggestionComponent.h"
 
 #include "Utility/GraphArea.h"
-#include "SuggestionComponent.h"
+#include "Utility/RateReducer.h"
 
 Canvas::Canvas(PluginEditor* parent, pd::Patch& p, Component* parentGraph)
     : editor(parent)
@@ -1227,12 +1228,10 @@ void Canvas::objectMouseDrag(MouseEvent const& e)
         }
     } else {
         // FIXME: stop the mousedrag event from blocking the objects from redrawing, we shouldn't need to do this? JUCE bug?
-        if (rateLimit) {
+        if(!RateReducer::tooFast(60)) {
             for (auto* object : selection) {
                 object->setTopLeftPosition(object->mouseDownPos + dragDistance + canvasMoveOffset);
             }
-            rateLimit = false;
-            startTimer(1);
         }
     }
 
