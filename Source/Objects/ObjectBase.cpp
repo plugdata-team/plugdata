@@ -37,6 +37,7 @@ extern "C" {
 #include "GraphOnParent.h"
 #include "KeyboardObject.h"
 #include "KeyObject.h"
+#include "MessboxObject.h"
 #include "MousePadObject.h"
 #include "NumberObject.h"
 #include "NumboxTildeObject.h"
@@ -419,7 +420,9 @@ ObjectBase* ObjectBase::createGui(void* ptr, Object* parent)
         return new FunctionObject(ptr, parent);
     } else if (name == "bicoeff") {
         return new BicoeffObject(ptr, parent);
-    } else if (name == "canvas.active") {
+    } else if (name == "messbox") {
+        return new MessboxObject(ptr, parent);
+    }else if (name == "canvas.active") {
         return new CanvasActiveObject(ptr, parent);
     } else if (name == "canvas.mouse") {
         return new CanvasMouseObject(ptr, parent);
