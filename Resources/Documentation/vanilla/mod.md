@@ -1,6 +1,6 @@
 ---
 title: mod
-description: Divide two numbers, output remainder
+description: divide two numbers, output remainder
 categories:
 - object
 pdcategory: vanilla, Data Math

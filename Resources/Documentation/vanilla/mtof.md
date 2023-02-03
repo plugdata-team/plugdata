@@ -3,7 +3,7 @@ title: mtof
 description: MIDI to frequency conversion
 categories:
 - object
-pdcategory: vanilla, Tuning, MIDI
+pdcategory: vanilla, Data Math, Tuning, MIDI
 last_update: '0.40'
 see_also:
 - mtof~

@@ -1,6 +1,6 @@
 ---
 title: '<<'
-description: bit twiddling
+description: left signed bit shift
 categories:
 - object
 pdcategory: vanilla, Logic
