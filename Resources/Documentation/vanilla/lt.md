@@ -1,6 +1,6 @@
 ---
 title: <
-description: relational tests
+description: less-than Boolean
 categories:
 - object
 pdcategory: vanilla, Logic

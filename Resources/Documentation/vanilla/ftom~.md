@@ -6,7 +6,7 @@ categories:
 see_also:
 - mtof
 - expr~
-pdcategory: vanilla, MIDI, Tuning
+pdcategory: vanilla, Signal Math, MIDI, Tuning
 last_update: '0.33'
 inlets:
   1st:
