@@ -1228,10 +1228,14 @@ void Canvas::objectMouseDrag(MouseEvent const& e)
         }
     } else {
         // FIXME: stop the mousedrag event from blocking the objects from redrawing, we shouldn't need to do this? JUCE bug?
-        if(!RateReducer::tooFast(60)) {
+        if(!rateReducer.tooFast()) {
             for (auto* object : selection) {
                 object->setTopLeftPosition(object->mouseDownPos + dragDistance + canvasMoveOffset);
             }
+        }
+        else
+        {
+            std::cout << "Too fast!" << std::endl;
         }
     }
 
