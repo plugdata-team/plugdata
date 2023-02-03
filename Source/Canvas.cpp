@@ -1200,7 +1200,7 @@ void Canvas::objectMouseDrag(MouseEvent const& e)
 
         // Store origin object positions
         for (auto object : selection) {
-            mouseDownObjectPositions.emplace_back(object->getPosition());
+            mouseDownObjectPositions[object] = object->getPosition();
         }
 
         // Duplicate once
@@ -1208,6 +1208,8 @@ void Canvas::objectMouseDrag(MouseEvent const& e)
         duplicateSelection();
         cancelConnectionCreation();
     }
+    
+
 
     // move all selected objects
     if (wasDragDuplicated) {
@@ -1215,12 +1217,23 @@ void Canvas::objectMouseDrag(MouseEvent const& e)
         dragDistance = Point<int>(e.getOffsetFromDragStart().x + 10, e.getOffsetFromDragStart().y + 10);
         // Move duplicated objects according to the origin position
         for (auto object : selection) {
-            object->setTopLeftPosition(mouseDownObjectPositions[selection.indexOf(object)] + dragDistance + canvasMoveOffset);
+            object->setTopLeftPosition(mouseDownObjectPositions[object] + dragDistance + canvasMoveOffset);
         }
     } else {
+#if USE_DRAG_TIMER
+        if(!dragTimer.isTimerRunning()) tempTimer.startTimerHz(60.0f);
+        
+        tempTimer.onCallback = [this, selection, dragDistance, canvasMoveOffset]() mutable {
+            for (auto* object : selection) {
+                object->setTopLeftPosition(object->mouseDownPos + dragDistance + canvasMoveOffset);
+            }
+            tempTimer.stopTimer();
+        };
+#else
         for (auto* object : selection) {
             object->setTopLeftPosition(object->mouseDownPos + dragDistance + canvasMoveOffset);
         }
+#endif
     }
 
     // This handles the "unsnap" action when you shift-drag a connected object
