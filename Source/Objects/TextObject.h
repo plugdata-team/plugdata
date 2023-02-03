@@ -170,14 +170,10 @@ public:
         , isValid(valid)
     {
         objectText = getText();
-
-        // To get enter/exit messages
-        addMouseListener(object, false);
     }
 
     virtual ~TextBase()
     {
-        removeMouseListener(object);
     }
 
     void paint(Graphics& g) override
