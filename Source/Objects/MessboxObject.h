@@ -24,11 +24,6 @@ public:
         isLocked = static_cast<bool>(object->cnv->locked.getValue());
     }
 
-    ~MessboxObject()
-    {
-        removeMouseListener(object);
-    }
-
     void updateBounds() override
     {
         pd->getCallbackLock()->enter();
@@ -89,7 +84,6 @@ public:
             case msg_set: {
                 currentText = "";
                 getSymbols(atoms);
-                
                 break;
             }
             case msg_append: {
@@ -100,6 +94,7 @@ public:
                 setSymbols(currentText);
                 break;
             }
+            default: break;
         }
     }
 
@@ -243,20 +238,20 @@ public:
 
     bool keyPressed(KeyPress const& key, Component* component) override
     {
-        
-        if(key == KeyPress::returnKey && editor && key.getModifiers().isShiftDown()) {
+        if(editor && key.getKeyCode() == KeyPress::returnKey && key.getModifiers().isShiftDown()) {
+            
             int caretPosition = editor->getCaretPosition();
             auto text = editor->getText();
             
             if (!editor->getHighlightedRegion().isEmpty())
-                return;
+                return false;
             
             text = text.substring(0, caretPosition) + "\n" + text.substring(caretPosition);
             editor->setText(text);
             
             currentText = text;
             editor->setCaretPosition(caretPosition + 1);
-            
+           
             return true;
         }
         
