@@ -29,11 +29,6 @@ public:
             startEdition();
             setSymbol(input.getText().toStdString());
             stopEdition();
-
-            auto width = input.getFont().getStringWidth(input.getText()) + 36;
-            if (width < object->getWidth()) {
-                object->setSize(width, object->getHeight());
-            }
         };
 
         input.onEditorShow = [this]() {
@@ -53,6 +48,7 @@ public:
 
     void resized() override
     {
+        input.setFont(Font(getHeight() - 6));
         input.setBounds(getLocalBounds());
     }
 

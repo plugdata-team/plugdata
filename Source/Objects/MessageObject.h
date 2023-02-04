@@ -36,6 +36,7 @@ public:
         objectText = getSymbol();
     }
 
+
     void updateBounds() override
     {
         pd->getCallbackLock()->enter();
