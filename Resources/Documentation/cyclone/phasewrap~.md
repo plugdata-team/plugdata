@@ -6,7 +6,7 @@ description: wrap between pi & -pi
 categories:
  - object
 
-pdcategory: cyclone, General
+pdcategory: cyclone, Signal Math
 
 arguments: (none)
 

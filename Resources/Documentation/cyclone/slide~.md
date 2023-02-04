@@ -6,7 +6,7 @@ description: smooth signals logarithmically
 categories:
  - object
 
-pdcategory: cyclone, General
+pdcategory: cyclone, Envelopes and LFOs
 
 arguments:
 - type: float

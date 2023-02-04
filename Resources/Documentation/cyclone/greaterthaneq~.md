@@ -3,7 +3,7 @@ title: greaterthaneq~, >=~, cyclone/>=~
 description: `is greater than or equal to` comparison for signals
 categories:
  - object
-pdcategory: cyclone, General
+pdcategory: cyclone, Signal Math, Logic
 arguments:
 - type: float
   description: value for comparison with left inlet's input

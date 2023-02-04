@@ -3,7 +3,7 @@ title: deltaclip~
 description: limit changes between samples
 categories:
  - object
-pdcategory: cyclone, General
+pdcategory: cyclone, Signal Math, Effects
 arguments:
 - type: float
   description: delta minimum - typically negative
@@ -32,5 +32,5 @@ methods:
 
 ---
 
-[deltaclip~] limits the change between samples in an incoming signal. This is also known as 'slew limiting'. It has a negative maximum delta for when the signal decays and a positive maximum delta for when it rises. When they're both 0, the signal doesn't shift. Below we divide by the sample rate to get the max amplitude shift per second isntead of per sample.
+[deltaclip~] limits the change between samples in an incoming signal. This is also known as 'slew limiting'. It has a negative maximum delta for when the signal decays and a positive maximum delta for when it rises. When they're both 0, the signal doesn't shift. Below we divide by the sample rate to get the max amplitude shift per second instead of per sample.
 

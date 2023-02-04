@@ -3,7 +3,7 @@ title: comb~
 description: comb filter
 categories:
  - object
-pdcategory: cyclone, General
+pdcategory: cyclone, Filters, Effects
 arguments:
 - type: float
   description: maximum delay time in ms

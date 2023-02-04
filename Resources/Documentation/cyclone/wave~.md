@@ -6,7 +6,7 @@ description: wavetable reader
 categories:
  - object
 
-pdcategory: cyclone, General
+pdcategory: cyclone, Arrays and Tables
 
 arguments:
 - type: symbol

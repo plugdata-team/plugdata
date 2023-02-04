@@ -3,7 +3,7 @@ title: borax
 description: reports note on/off info
 categories:
  - object
-pdcategory: cyclone, General
+pdcategory: cyclone, MIDI
 arguments:
 inlets:
   1st:

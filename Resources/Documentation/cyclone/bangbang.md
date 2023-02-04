@@ -3,7 +3,7 @@ title: bangbang
 description: send a number of bangs
 categories:
  - object
-pdcategory: cyclone, General
+pdcategory: cyclone, Data Management
 arguments:
 - type: float
   description: sets the 'n' number of bangs/outlets (maximum 40)

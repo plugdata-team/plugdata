@@ -6,7 +6,7 @@ description: detect zero crossings
 categories:
  - object
 
-pdcategory: cyclone, General
+pdcategory: cyclone, Analysis
 
 arguments:
 - type: float

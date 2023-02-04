@@ -3,7 +3,7 @@ title: clip, cyclone/clip
 description: constrain values to a given range
 categories:
 - object
-pdcategory: cyclone
+pdcategory: cyclone, Data Math
 arguments:
 - description: sets minimum
   type: float
@@ -33,5 +33,5 @@ methods:
 draft: false
 ---
 
-Use [clip~] to constrain values from floats or lists between a range specified by a minimum and a maximum value.
+Use [clip] to constrain values from floats or lists between a range specified by a minimum and a maximum value.
 

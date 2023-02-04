@@ -3,7 +3,7 @@ title: frameaccum~
 description: FFT frame accumulation
 categories:
  - object
-pdcategory: cyclone, General
+pdcategory: cyclone, Signal Math
 arguments:
 - type: float
   description: "1" enables phase wrapping between -PI and PI. "0" disables and values are accumulated without bounds

@@ -6,7 +6,7 @@ description: append a message to the incoming message
 categories:
 - object
 
-pdcategory: cyclone
+pdcategory: cyclone, Data Management
 
 arguments:
 - description: sets message to append to the input

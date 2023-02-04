@@ -6,7 +6,7 @@ description: sustain pedal emulator
 categories:
  - object
 
-pdcategory: cyclone, General
+pdcategory: cyclone, MIDI
 
 arguments: (none)
 

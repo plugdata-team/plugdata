@@ -6,15 +6,15 @@ description: convert anything to symbol
 categories:
  - object
 
-pdcategory: cyclone, General
+pdcategory: cyclone, Converters
 
 arguments: (none)
 
 inlets: 
   1st:
   - type: bang
-    description: ouputs a bang
-  - type: antyhing
+    description: outputs a bang
+  - type: anything
     description: message to convert to symbol
 
 outlets:

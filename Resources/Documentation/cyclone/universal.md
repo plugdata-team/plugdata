@@ -6,7 +6,7 @@ description: sends messages to all objects of the same type
 categories:
  - object
 
-pdcategory: cyclone, General
+pdcategory: cyclone, Data Management
 
 arguments:
 - type: float

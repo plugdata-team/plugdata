@@ -3,7 +3,7 @@ title: edge~
 description: detect signal transitions
 categories:
  - object
-pdcategory: cyclone, General
+pdcategory: cyclone, Analysis
 arguments:
 inlets:
   1st:

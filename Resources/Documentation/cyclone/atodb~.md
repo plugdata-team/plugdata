@@ -3,7 +3,7 @@ title: atodb~
 description: linear amplitude to dBFS conversion for signals
 categories:
  - object
-pdcategory: cyclone, General
+pdcategory: cyclone, Converters
 arguments:
 inlets:
   1st:

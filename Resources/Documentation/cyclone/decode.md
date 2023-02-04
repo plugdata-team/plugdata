@@ -3,7 +3,7 @@ title: decode
 description: switch an outlet according to input
 categories:
  - object
-pdcategory: cyclone, General
+pdcategory: cyclone, Mixing and Routing
 arguments:
 - type: float
   description: sets the number of outlets

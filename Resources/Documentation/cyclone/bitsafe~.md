@@ -3,7 +3,7 @@ title: bitsafe~
 description: replace nan/inf and denormal signals with 0
 categories:
  - object
-pdcategory: cyclone, General
+pdcategory: cyclone, Logic, Signal Math
 arguments:
 inlets:
   1st:

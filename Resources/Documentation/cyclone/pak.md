@@ -6,7 +6,7 @@ description: output a list when any element changes
 categories:
  - object
 
-pdcategory: cyclone, General
+pdcategory: cyclone, Data Management
 
 arguments:
 - type: anything

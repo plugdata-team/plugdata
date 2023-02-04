@@ -6,7 +6,7 @@ description: array player
 categories:
  - object
 
-pdcategory: cyclone, General
+pdcategory: cyclone, Arrays and Tables
 
 arguments:
 - type: symbol

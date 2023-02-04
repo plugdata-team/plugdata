@@ -3,7 +3,7 @@ title: midiformat
 description: format MIDI messages
 categories:
  - object
-pdcategory: cyclone, General
+pdcategory: cyclone, MIDI
 arguments:
 - type: float
   description: channel number

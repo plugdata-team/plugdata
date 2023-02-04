@@ -3,7 +3,7 @@ title: dbtoa
 description: convert dBFS to linear amplitude
 categories:
  - object
-pdcategory: cyclone, General
+pdcategory: cyclone, Converters
 arguments:
 inlets:
   1st:

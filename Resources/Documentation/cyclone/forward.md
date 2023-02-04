@@ -3,7 +3,7 @@ title: forward
 description: send remote messages
 categories:
  - object
-pdcategory: cyclone, General
+pdcategory: cyclone, Data Management
 arguments:
 - type: symbol
   description: initially set destination

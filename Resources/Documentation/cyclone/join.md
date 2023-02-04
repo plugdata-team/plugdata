@@ -3,7 +3,7 @@ title: join
 description: combine items into a list
 categories:
  - object
-pdcategory: cyclone, General
+pdcategory: cyclone, Data Management
 arguments:
 - type: float
   description: number of inlets (min 2 / max 255)

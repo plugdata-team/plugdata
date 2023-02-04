@@ -6,7 +6,7 @@ description: signal tangent function (radian input)
 categories:
  - object
 
-pdcategory: cyclone, General
+pdcategory: cyclone, Signal Math
 
 arguments: (none)
 
