@@ -3,7 +3,7 @@ title: snapshot~, cyclone/snapshot~
 description: convert signal to float
 categories:
 - object
-pdcategory: cyclone
+pdcategory: cyclone, Converters
 arguments:
   - description: self clocking interval in ms
     type: float

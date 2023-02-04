@@ -3,7 +3,7 @@ title: iter
 description: split messages sequentially
 categories:
  - object
-pdcategory: cyclone, General
+pdcategory: cyclone, Data Management
 arguments:
 inlets:
   1st:
@@ -18,5 +18,5 @@ outlets:
 
 ---
 
-[iter] is similar to [unnpack], it splist a message (to floats/symbols) but outputs them sequentially in the given order.
+[iter] is similar to [unnpack], it splits a message (to floats/symbols) but outputs them sequentially in the given order.
 

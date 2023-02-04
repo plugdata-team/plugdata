@@ -6,7 +6,7 @@ description: output numbers greater than the previous
 categories:
  - object
 
-pdcategory: cyclone, General
+pdcategory: cyclone, Data Management
 
 arguments:
 - type: float

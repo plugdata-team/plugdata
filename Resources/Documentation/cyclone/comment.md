@@ -3,7 +3,7 @@ title: comment
 description: comment GUI
 categories:
  - object
-pdcategory: cyclone, General
+pdcategory: cyclone, UI
 arguments:
 inlets:
   1st:

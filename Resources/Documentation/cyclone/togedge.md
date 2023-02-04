@@ -6,7 +6,7 @@ description: report zero / non-zero transitions
 categories:
  - object
 
-pdcategory: cyclone, General
+pdcategory: cyclone, Data Management, Analysis
 
 arguments: (none)
 

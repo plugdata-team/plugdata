@@ -6,7 +6,7 @@ description: send 14-bit MIDI pitch bend messages
 categories:
  - object
 
-pdcategory: cyclone, General
+pdcategory: cyclone, MIDI
 
 arguments:
 - type: float

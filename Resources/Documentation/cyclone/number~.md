@@ -6,7 +6,7 @@ description: signal generator/monitor
 categories:
  - object
 
-pdcategory: cyclone, General
+pdcategory: cyclone, UI, Signal Generators
 
 arguments: (none)
 

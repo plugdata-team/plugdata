@@ -3,7 +3,7 @@ title: minimum
 description: compare minimum
 categories:
  - object
-pdcategory: cyclone, General
+pdcategory: cyclone, Data Math
 arguments:
 - type: float
   description: value to compare minimum with

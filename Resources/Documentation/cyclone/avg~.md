@@ -3,7 +3,7 @@ title: avg~
 description: signal absolute average
 categories:
  - object
-pdcategory: cyclone, General
+pdcategory: cyclone, Signal Math
 arguments:
 inlets:
   1st:

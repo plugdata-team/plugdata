@@ -3,7 +3,7 @@ title: maximum
 description: compare maximum
 categories:
  - object
-pdcategory: cyclone, General
+pdcategory: cyclone, Data Math
 arguments:
 - type: float
   description: value to compare maximum with

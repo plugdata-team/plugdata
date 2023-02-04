@@ -6,7 +6,7 @@ description: detect separation of messages
 categories:
  - object
 
-pdcategory: cyclone, General
+pdcategory: cyclone, Data Management
 
 arguments: (none)
 

@@ -6,7 +6,7 @@ description: reversed inlets division for signals
 categories:
  - object
 
-pdcategory: cyclone, General
+pdcategory: cyclone, Signal Math
 
 arguments:
 - type: float

@@ -3,7 +3,7 @@ title: bitor~
 description: signal Bitwise-OR
 categories:
  - object
-pdcategory: cyclone, General
+pdcategory: cyclone, Logic, Signal Math
 arguments:
 - type: float
   description: converted to integer and used as bitmask

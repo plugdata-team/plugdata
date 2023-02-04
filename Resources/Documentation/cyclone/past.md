@@ -6,7 +6,7 @@ description: check if input increases past a threshold
 categories:
  - object
 
-pdcategory: cyclone, General
+pdcategory: cyclone, Analysis, Data Management
 
 arguments:
 - type: float/list

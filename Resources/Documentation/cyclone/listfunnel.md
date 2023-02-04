@@ -3,7 +3,7 @@ title: listfunnel
 description: index and output list elements
 categories:
  - object
-pdcategory: cyclone, General
+pdcategory: cyclone, Data Management
 arguments:
 - type: float
   description: index offset

@@ -3,7 +3,7 @@ title: mean
 description: moving mean average
 categories:
  - object
-pdcategory: cyclone, General
+pdcategory: cyclone, Data Math
 arguments:
 inlets:
   1st:

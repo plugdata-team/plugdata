@@ -3,7 +3,7 @@ title: bucket
 description: pass numbers from outlet to outlet
 categories:
  - object
-pdcategory: cyclone, General
+pdcategory: cyclone, Data Management
 arguments:
 - type: float
   description: sets number of outlets
@@ -38,5 +38,5 @@ methods:
 
 ---
 
-As [bucket] is input with floats, it outputs them shiftting from outlet to outlet in a rotational pattern (or "passing the bucket" as in a ucket brigade).
+As [bucket] is input with floats, it outputs them shifting from outlet to outlet in a rotational pattern (or "passing the bucket" as in a bucket brigade).
 

@@ -6,7 +6,7 @@ description: signal's peak amplitude
 categories:
  - object
 
-pdcategory: cyclone, General
+pdcategory: cyclone, Analysis
 
 arguments:
 - type: float

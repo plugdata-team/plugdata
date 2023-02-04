@@ -6,7 +6,7 @@ description: unrepeated random numbers
 categories:
  - object
 
-pdcategory: cyclone, General
+pdcategory: cyclone, Random and Noise
 
 arguments:
 - type: float

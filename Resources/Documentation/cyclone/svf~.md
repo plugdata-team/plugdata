@@ -6,7 +6,7 @@ description: state variable filter
 categories:
  - object
 
-pdcategory: cyclone, General
+pdcategory: cyclone, Filters
 
 arguments:
 - type: float

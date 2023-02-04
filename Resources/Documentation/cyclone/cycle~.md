@@ -3,7 +3,7 @@ title: cycle~
 description: wavetable oscillator
 categories:
  - object
-pdcategory: cyclone, General
+pdcategory: cyclone, Signal Generators
 arguments:
 - type: float
   description: sets frequency in Hz

@@ -6,7 +6,7 @@ description: private (local) variable
 categories:
  - object
 
-pdcategory: cyclone, General
+pdcategory: cyclone, Data Management
 
 arguments:
 - type: symbol

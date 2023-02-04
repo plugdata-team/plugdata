@@ -6,7 +6,7 @@ description: variable duty triangular wave
 categories:
  - object
 
-pdcategory: cyclone, General
+pdcategory: cyclone, Signal Generators
 
 arguments:
 - type: float

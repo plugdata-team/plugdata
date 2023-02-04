@@ -6,7 +6,7 @@ description: accumulate to a value
 categories:
  - object
 
-pdcategory: cyclone, General
+pdcategory: cyclone, Data Math
 
 arguments:
 - type: float
@@ -35,5 +35,5 @@ methods:
 
 ---
 
-[accum] accumulates to a value by either adding an increment value to it or mulplying it by a given factor.
+[accum] accumulates to a value by either adding an increment value to it or multiplying it by a given factor.
 

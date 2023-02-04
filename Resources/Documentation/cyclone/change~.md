@@ -3,7 +3,7 @@ title: change~
 description: detect signal change & direction
 categories:
  - object
-pdcategory: cyclone, General
+pdcategory: cyclone, Analysis
 arguments:
 inlets:
   1st:

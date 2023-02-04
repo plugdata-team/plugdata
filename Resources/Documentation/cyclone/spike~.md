@@ -6,7 +6,7 @@ description: report zero to non-zero transition intervals
 categories:
  - object
 
-pdcategory: cyclone, General
+pdcategory: cyclone, Analysis
 
 arguments: (none)
 

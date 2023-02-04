@@ -6,7 +6,7 @@ description: convert input to ACSII values
 categories:
  - object
 
-pdcategory: cyclone, General
+pdcategory: cyclone, Converters
 
 arguments:
 - type: float

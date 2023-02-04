@@ -6,7 +6,7 @@ description: one-pole lowpass filter
 categories:
  - object
 
-pdcategory: cyclone, General
+pdcategory: cyclone, Filters
 
 arguments:
 - type: float
