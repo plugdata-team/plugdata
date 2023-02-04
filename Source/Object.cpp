@@ -636,8 +636,6 @@ void Object::mouseDown(MouseEvent const& e)
 
 void Object::mouseUp(MouseEvent const& e)
 {
-    resizeZone = ResizableBorderComponent::Zone();
-
     if (wasLockedOnMouseDown)
         return;
 
