@@ -227,7 +227,7 @@ bool Connection::intersects(Rectangle<float> toCheck, int accuracy) const
     return false;
 }
 
-void Connection::renderConnectionPath(Graphics& g, Canvas* cnv, Path connectionPath, bool isSignal, bool isMouseOver, bool isSelected, Point<int> mousePos)
+void Connection::renderConnectionPath(Graphics& g, Canvas* cnv, Path connectionPath, bool isSignal, bool isMouseOver, bool isSelected, Point<int> mousePos, bool isHovering)
 {
 
     auto baseColour = cnv->findColour(PlugDataColour::connectionColourId);
@@ -266,7 +266,8 @@ void Connection::renderConnectionPath(Graphics& g, Canvas* cnv, Path connectionP
     innerStroke.setEndStyle(PathStrokeType::EndCapStyle::rounded);
     g.strokePath(innerPath, innerStroke);
 
-    if (isSelected) {
+    // draw reconnect handles if connection is both selected & mouse is hovering over
+    if (isSelected && isHovering) {
         auto startReconnectHandle = Rectangle<float>(5, 5).withCentre(connectionPath.getPointAlongPath(8.5f));
         auto endReconnectHandle = Rectangle<float>(5, 5).withCentre(connectionPath.getPointAlongPath(std::max(connectionPath.getLength() - 8.5f, 9.5f)));
 
@@ -286,7 +287,7 @@ void Connection::renderConnectionPath(Graphics& g, Canvas* cnv, Path connectionP
 
 void Connection::paint(Graphics& g)
 {
-    renderConnectionPath(g, cnv, toDraw, outlet->isSignal, isMouseOver(), cnv->isSelected(this), getMouseXYRelative());
+    renderConnectionPath(g, cnv, toDraw, outlet->isSignal, isMouseOver(), cnv->isSelected(this), getMouseXYRelative(), isHovering);
 }
 
 bool Connection::isSegmented()
@@ -323,8 +324,15 @@ void Connection::mouseMove(MouseEvent const& e)
     repaint();
 }
 
+void Connection::mouseEnter(MouseEvent const& e)
+{
+    isHovering = true;
+    repaint();
+}
+
 void Connection::mouseExit(MouseEvent const& e)
 {
+    isHovering = false;
     repaint();
 }
 
