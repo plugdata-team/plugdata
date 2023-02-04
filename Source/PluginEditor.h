@@ -304,6 +304,7 @@ class ZoomLabel : public TextButton
 
     ComponentAnimator labelAnimator;
 
+    bool initRun = true;
 public:
     ZoomLabel()
     {
@@ -312,6 +313,11 @@ public:
 
     void setZoomLevel(float value)
     {
+        if(initRun) {
+            initRun = false;
+            return;
+        }
+        
         setButtonText(String(value * 100, 1) + "%");
         startTimer(2000);
 
