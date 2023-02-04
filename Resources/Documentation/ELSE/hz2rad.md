@@ -5,7 +5,7 @@ description: Hertz to radians-per-sample conversion
 categories:
  - object
 
-pdcategory: ELSE, Data Math
+pdcategory: ELSE, Data Math, Converters
 
 arguments:
 - type: float

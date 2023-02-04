@@ -6,7 +6,7 @@ description: run GUI commands
 categories:
 - object
 
-pdcategory: ELSE, GUI
+pdcategory: ELSE, UI
 
 arguments:
 

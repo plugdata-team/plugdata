@@ -5,7 +5,7 @@ categories:
 - object
 see_also:
 - stdout
-pdcategory: vanilla, GUI
+pdcategory: vanilla, UI
 last_update: '0.42'
 inlets:
   1st:

@@ -3,7 +3,7 @@ title: pdcontrol
 description: communicate with pd and/or this patch
 categories:
 - object
-pdcategory: vanilla, GUI, Networking
+pdcategory: vanilla, UI, Networking
 last_update: '0.49'
 inlets:
   1st:

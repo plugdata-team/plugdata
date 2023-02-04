@@ -1,7 +1,7 @@
 ---
 title: symbolbox
 description: symbol box
-pdcategory: vanilla, GUI
+pdcategory: vanilla, UI
 inlets:
   1st:
   - type: symbol

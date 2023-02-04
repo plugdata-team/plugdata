@@ -6,7 +6,7 @@ description: cents/fraction conversion
 categories:
 - object
 
-pdcategory: ELSE, Tuning
+pdcategory: ELSE, Tuning, Converters
 
 arguments:
 - description: conversion resolution

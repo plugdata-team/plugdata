@@ -5,7 +5,7 @@ description: keyboard GUI
 categories:
  - object
 
-pdcategory: ELSE, GUI, Tuning, Sequencing
+pdcategory: ELSE, UI, Tuning
 
 arguments:
 

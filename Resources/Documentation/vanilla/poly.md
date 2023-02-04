@@ -3,7 +3,7 @@ title: poly
 description: MIDI-style polyphonic voice allocator.
 categories:
 - object
-pdcategory: vanilla, MIDI, Sequencing
+pdcategory: vanilla, MIDI, Triggers and Clocks
 last_update: '0.25'
 see_also:
 - makenote

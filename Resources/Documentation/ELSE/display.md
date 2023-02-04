@@ -6,7 +6,7 @@ description: display messages
 categories:
 - object
 
-pdcategory: ELSE, GUI
+pdcategory: ELSE, UI
 
 arguments:
 - description: number of characters

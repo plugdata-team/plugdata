@@ -1,7 +1,7 @@
 ---
 title: listbox
 description: list box
-pdcategory: vanilla, GUI
+pdcategory: vanilla, UI
 inlets:
   1st:
   - type: list

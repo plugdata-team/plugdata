@@ -6,7 +6,7 @@ description: convert to/from bpm
 categories:
 - object
 
-pdcategory: ELSE, Data Math, Triggers and Clocks, Sequencing
+pdcategory: ELSE, Data Math, Triggers and Clocks
 
 arguments:
 inlets:

@@ -3,7 +3,7 @@ title: declare
 description: set environment for loading patch
 categories:
 - object
-pdcategory: vanilla, Data Management
+pdcategory: vanilla, UI, File Management
 last_update: '0.52'
 flags:
 - description: add to search path, relative to the patch or user paths.

@@ -6,7 +6,7 @@ description: specrtal graph
 categories:
 - object
 
-pdcategory: ELSE, GUI, Analysis
+pdcategory: ELSE, UI, Analysis
 
 arguments:
 
