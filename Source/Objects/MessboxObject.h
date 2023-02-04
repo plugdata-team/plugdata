@@ -9,14 +9,11 @@ class MessboxObject final : public ObjectBase
     , public KeyListener
     , public TextEditor::Listener {
 
-    std::unique_ptr<TextEditor> editor;
+    TextEditor editor;
     BorderSize<int> border = BorderSize<int>(5, 7, 1, 2);
 
-    String currentText;
-
     int numLines = 1;
-    bool isLocked = false;
-        
+
     Value primaryColour;
     Value secondaryColour;
     Value fontSize;
@@ -26,8 +23,45 @@ public:
     MessboxObject(void* obj, Object* parent)
         : ObjectBase(obj, parent)
     {
-        isLocked = static_cast<bool>(object->cnv->locked.getValue());
+        auto* messbox = static_cast<t_fake_messbox*>(ptr);
+        
+        bold = messbox->x_font_weight == pd->generateSymbol("bold");
+        fontSize = messbox->x_font_size;
+        
+       
+        editor.setColour(TextEditor::textColourId, object->findColour(PlugDataColour::canvasTextColourId));
+        editor.setColour(TextEditor::backgroundColourId, Colours::transparentBlack);
+        editor.setColour(TextEditor::focusedOutlineColourId, Colours::transparentBlack);
+        editor.setColour(TextEditor::outlineColourId, Colours::transparentBlack);
+        editor.setColour(ScrollBar::thumbColourId, object->findColour(PlugDataColour::scrollbarThumbColourId));
+        
+        editor.setAlwaysOnTop(true);
+        editor.setMultiLine(true);
+        editor.setReturnKeyStartsNewLine(false);
+        editor.setScrollbarsShown(true);
+        editor.setIndents(0, 0);
+        editor.setScrollToShowCursor(true);
+        editor.setJustification(Justification::topLeft);
+        editor.setBorder(border);
+        editor.setBounds(getLocalBounds().withTrimmedRight(5));
+        editor.setColour(TextEditor::textColourId, Colour::fromString(primaryColour.toString()));
+        editor.addListener(this);
+        editor.addKeyListener(this);
+        editor.selectAll();
+
+        addAndMakeVisible(editor);
+
+        editor.onFocusLost = [this]() {
+            hideEditor();
+        };
+
+        resized();
+        repaint();
+        
+        bool isLocked = static_cast<bool>(object->cnv->locked.getValue());
+        editor.setReadOnly(!isLocked);
     }
+        
         
     void initialiseParameters() override
     {
@@ -71,7 +105,7 @@ public:
 
     void lock(bool locked) override
     {
-        isLocked = locked;
+        editor.setReadOnly(!locked);
     }
 
     void paint(Graphics& g) override
@@ -80,16 +114,6 @@ public:
         // Draw background
         g.setColour(Colour::fromString(secondaryColour.toString()));
         g.fillRoundedRectangle(bounds.toFloat().reduced(0.5f), PlugDataLook::objectCornerRadius);
-
-        // Draw text
-        if (!editor) {
-            auto textColour = Colour::fromString(primaryColour.toString());
-            auto textArea = border.subtractedFrom(bounds.withTrimmedRight(5));
-            auto scale = bounds.getWidth() < 50 ? 0.5f : 1.0f;
-
-            
-            PlugDataLook::drawFittedText(g, currentText, textArea, textColour, numLines, scale, 15, Justification::topLeft);
-        }
     }
 
     void paintOverChildren(Graphics& g) override
@@ -108,7 +132,7 @@ public:
         switch(objectMessageMapped[symbol])
         {
             case msg_set: {
-                currentText = "";
+                editor.setText("");
                 getSymbols(atoms);
                 break;
             }
@@ -117,7 +141,7 @@ public:
                 break;
             }
             case msg_bang: {
-                setSymbols(currentText);
+                setSymbols(editor.getText());
                 break;
             }
             default: break;
@@ -126,60 +150,17 @@ public:
 
     void resized() override
     {
-        if (editor) {
-            editor->setBounds(getLocalBounds().withTrimmedRight(5));
-        }
+        editor.setBounds(getLocalBounds().withTrimmedRight(5));
     }
-
-    void showEditor() override
-    {
-        if(!isLocked) return;
         
-        if (editor == nullptr) {
-            editor.reset(TextObjectHelper::createTextEditor(object, 15));
-            
-            editor->setJustification(Justification::topLeft);
-            editor->setBorder(border);
-            editor->setBounds(getLocalBounds().withTrimmedRight(5));
-            editor->setText(currentText, false);
-            editor->addListener(this);
-            editor->addKeyListener(this);
-            editor->selectAll();
-
-            addAndMakeVisible(editor.get());
-            editor->grabKeyboardFocus();
-
-            editor->onFocusLost = [this]() {
-                hideEditor();
-            };
-
-            resized();
-            repaint();
-        }
+    void showEditor() override {
+        editor.grabKeyboardFocus();
     }
 
     void hideEditor() override
     {
-        if (editor != nullptr) {
-            WeakReference<Component> deletionChecker(this);
-            std::unique_ptr<TextEditor> outgoingEditor;
-            std::swap(outgoingEditor, editor);
-
-            auto newText = outgoingEditor->getText();
-
-            // newText = TextObjectHelper::fixNewlines(newText);
-
-            if (currentText != newText) {
-                currentText = newText;
-            }
-
-            outgoingEditor.reset();
-
-            updateBounds(); // Recalculate bounds
-            applyBounds();  // Send new bounds to Pd
-
-            repaint();
-        }
+        editor.setReadOnly(true);
+        repaint();
     }
 
     void mouseDown(MouseEvent const& e) override
@@ -258,35 +239,37 @@ public:
             }
         }
         
-        currentText = newText.trimEnd();
+        editor.setText(newText.trimEnd());
+
         repaint();
     }
 
     bool keyPressed(KeyPress const& key, Component* component) override
     {
-        if(editor && key.getKeyCode() == KeyPress::returnKey && key.getModifiers().isShiftDown()) {
+        bool editing = !editor.isReadOnly();
+        
+        if(editing && key.getKeyCode() == KeyPress::returnKey && key.getModifiers().isShiftDown()) {
             
-            int caretPosition = editor->getCaretPosition();
-            auto text = editor->getText();
+            int caretPosition = editor.getCaretPosition();
+            auto text = editor.getText();
             
-            if (!editor->getHighlightedRegion().isEmpty())
+            if (!editor.getHighlightedRegion().isEmpty())
                 return false;
             
             text = text.substring(0, caretPosition) + "\n" + text.substring(caretPosition);
-            editor->setText(text);
+            editor.setText(text);
             
-            currentText = text;
-            editor->setCaretPosition(caretPosition + 1);
+            editor.setCaretPosition(caretPosition + 1);
            
             return true;
         }
         
-        if (key == KeyPress::rightKey && editor && !editor->getHighlightedRegion().isEmpty()) {
-            editor->setCaretPosition(editor->getHighlightedRegion().getEnd());
+        if (editing && key == KeyPress::rightKey && !editor.getHighlightedRegion().isEmpty()) {
+            editor.setCaretPosition(editor.getHighlightedRegion().getEnd());
             return true;
         }
-        if (key == KeyPress::leftKey && editor && !editor->getHighlightedRegion().isEmpty()) {
-            editor->setCaretPosition(editor->getHighlightedRegion().getStart());
+        if (editing && key == KeyPress::leftKey && !editor.getHighlightedRegion().isEmpty()) {
+            editor.setCaretPosition(editor.getHighlightedRegion().getStart());
             return true;
         }
         return false;
@@ -306,6 +289,9 @@ public:
     {
         auto* messbox = static_cast<t_fake_messbox*>(ptr);
         if (value.refersToSameSourceAs(primaryColour)) {
+            
+            editor.setColour(TextEditor::textColourId, object->findColour(PlugDataColour::canvasTextColourId));
+            
             auto col = Colour::fromString(primaryColour.toString());
             messbox->x_fg[0] = col.getRed();
             messbox->x_fg[1] = col.getGreen();
@@ -320,10 +306,22 @@ public:
             repaint();
         }
         if (value.refersToSameSourceAs(fontSize)) {
-            // TODO
+            auto size = static_cast<int>(fontSize.getValue());
+            editor.applyFontToAllText(editor.getFont().withHeight(size));
+            messbox->x_font_size = size;
         }
         if (value.refersToSameSourceAs(bold)) {
-            // TODO 
+            auto size = static_cast<int>(fontSize.getValue());
+            if(static_cast<bool>(bold.getValue())) {
+                auto boldFont = Fonts::getBoldFont();
+                editor.applyFontToAllText(boldFont.withHeight(15));
+                messbox->x_font_weight = pd->generateSymbol("normal");
+            }
+            else {
+                auto defaultFont = Fonts::getDefaultFont();
+                editor.applyFontToAllText(defaultFont.withHeight(15));
+                messbox->x_font_weight = pd->generateSymbol("bold");
+            }
         }
     }
 
