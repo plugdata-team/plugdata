@@ -227,8 +227,8 @@ source_group(pdlua FILES ${PDLUA_SOURCES})
 
 # live version data for pdlua.c
 # set(PDLUA_VERSION 0.11.0)
-execute_process(COMMAND git -C ${CMAKE_CURRENT_SOURCE_DIR}/pd-lua describe --tags OUTPUT_STRIP_TRAILING_WHITESPACE OUTPUT_VARIABLE PDLUA_VERSION)
-set_source_files_properties(${PDLUA_PATH}/pdlua.c PROPERTIES COMPILE_DEFINITIONS PDLUA_VERSION=${PDLUA_VERSION})
+#execute_process(COMMAND git -C ${CMAKE_CURRENT_SOURCE_DIR}/pd-lua describe --tags OUTPUT_STRIP_TRAILING_WHITESPACE OUTPUT_VARIABLE PDLUA_VERSION)
+#set_source_files_properties(${PDLUA_PATH}/pdlua.c PROPERTIES COMPILE_DEFINITIONS PDLUA_VERSION=${PDLUA_VERSION})
 
 # ------------------------------------------------------------------------------#
 # COMPILE DEFINITIONS
