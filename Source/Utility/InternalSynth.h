@@ -22,7 +22,7 @@ public:
         // Unpack soundfont
         if (!soundFont.existsAsFile()) {
             FileOutputStream ostream(soundFont);
-            ostream.write(StandaloneBinaryData::FluidR3Mono_GM_sf3, StandaloneBinaryData::FluidR3Mono_GM_sf3Size);
+            ostream.write(StandaloneBinaryData::GeneralUser_GS_sf3, StandaloneBinaryData::GeneralUser_GS_sf3Size);
             ostream.flush();
         }
     }
@@ -165,7 +165,7 @@ public:
 private:
     File homeDir = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory).getChildFile("plugdata");
 
-    File soundFont = homeDir.getChildFile("Library").getChildFile("Extra").getChildFile("GS").getChildFile("FluidR3Mono_GM.sf3");
+    File soundFont = homeDir.getChildFile("Library").getChildFile("Extra").getChildFile("GS").getChildFile("GeneralUser_GS.sf3");
 
     // Fluidsynth state
     fluid_synth_t* synth = nullptr;
