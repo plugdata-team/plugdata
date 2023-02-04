@@ -3,7 +3,7 @@ title: file glob
 description: find pathnames matching a pattern
 categories:
 - object
-pdcategory: Misc
+pdcategory: vanilla, File Management
 last_update: '0.52'
 see_also:
 - text

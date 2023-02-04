@@ -4,20 +4,36 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
-struct SliderObject : public IEMObject {
+class SliderObject : public ObjectBase {
     bool isVertical;
     Value isLogarithmic = Value(var(false));
 
     Slider slider;
 
-    SliderObject(void* obj, Object* parent)
-        : IEMObject(obj, parent)
+    IEMHelper iemHelper;
+
+    Value min = Value(0.0f);
+    Value max = Value(0.0f);
+    Value steadyOnClick = Value(false);
+
+    float value = 0.0f;
+
+public:
+    SliderObject(void* obj, Object* object)
+        : ObjectBase(obj, object)
+        , iemHelper(obj, object, this)
     {
         isVertical = static_cast<t_slider*>(obj)->x_orientation;
         addAndMakeVisible(slider);
 
+        auto steady = getSteadyOnClick();
+        steadyOnClick = steady;
+        slider.setSliderSnapsToMousePosition(!steady);
+
         min = getMinimum();
         max = getMaximum();
+
+        value = getValue();
 
         isLogarithmic = isLogScale();
 
@@ -28,62 +44,114 @@ struct SliderObject : public IEMObject {
         else
             slider.setSliderStyle(Slider::LinearBar);
 
-        slider.setRange(0., 1., 0.001);
+        updateRange();
+
         slider.setTextBoxStyle(Slider::NoTextBox, 0, 0, 0);
         slider.setScrollWheelEnabled(false);
-        slider.setName("object:slider");
-
+        slider.getProperties().set("Style", "SliderObject");
         slider.setVelocityModeParameters(1.0f, 1, 0.0f, false, ModifierKeys::shiftModifier);
-
-        slider.setValue(getValueScaled());
+        slider.setValue(getValue(), dontSendNotification);
 
         slider.onDragStart = [this]() {
-            draggingSlider = true;
             startEdition();
         };
 
         slider.onValueChange = [this]() {
             const float val = slider.getValue();
-            if (isLogScale()) {
-                float minValue = static_cast<float>(min.getValue());
-                float maxValue = static_cast<float>(max.getValue());
-                float minimum = minValue == 0.0f ? std::numeric_limits<float>::epsilon() : minValue;
-                setValueOriginal(exp(val * log(maxValue / minimum)) * minimum);
-            } else {
-                setValueScaled(val);
-            }
+            setValue(val);
         };
 
         slider.onDragEnd = [this]() {
             stopEdition();
-            draggingSlider = false;
         };
+        if (isVertical) {
+            object->constrainer->setMinimumSize(15, 30);
+        } else {
+            object->constrainer->setMinimumSize(30, 15);
+        }
+    }
+
+    void updateLabel() override
+    {
+        iemHelper.updateLabel(label);
+    }
+
+    void initialiseParameters() override
+    {
+        iemHelper.initialiseParameters();
+    }
+
+    void updateBounds() override
+    {
+        iemHelper.updateBounds();
+    }
+
+    void applyBounds() override
+    {
+        iemHelper.applyBounds();
+    }
+
+    void updateRange()
+    {
+        if (isLogScale()) {
+            slider.setNormalisableRange(makeLogarithmicRange<double>(getMinimum(), getMaximum()));
+        } else {
+            slider.setRange(getMinimum(), getMaximum(), std::numeric_limits<float>::epsilon());
+        }
     }
 
     void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
     {
-
-        if (symbol == "lin") {
+        switch (objectMessageMapped[symbol]) {
+        case objectMessage::msg_float:
+        case objectMessage::msg_set: {
+            value = atoms[0].getFloat();
+            slider.setValue(value, dontSendNotification);
+            break;
+        }
+        case objectMessage::msg_lin: {
             setParameterExcludingListener(isLogarithmic, false);
-        } else if (symbol == "log") {
+            updateRange();
+            break;
+        }
+        case objectMessage::msg_log: {
             setParameterExcludingListener(isLogarithmic, true);
-        } else if (symbol == "range" && atoms.size() >= 2) {
-            setParameterExcludingListener(min, atoms[0].getFloat());
-            setParameterExcludingListener(max, atoms[1].getFloat());
-        } else {
-            IEMObject::receiveObjectMessage(symbol, atoms);
+            updateRange();
+            break;
+        }
+        case objectMessage::msg_range: {
+            if (atoms.size() >= 2) {
+                setParameterExcludingListener(min, atoms[0].getFloat());
+                setParameterExcludingListener(max, atoms[1].getFloat());
+                updateRange();
+            }
+            break;
+        }
+        case objectMessage::msg_steady: {
+            if (atoms.size() >= 1) {
+                bool steady = atoms[0].getFloat();
+                setParameterExcludingListener(steadyOnClick, steady);
+                slider.setSliderSnapsToMousePosition(!steady);
+            }
+            break;
+        }
+        default: {
+            iemHelper.receiveObjectMessage(symbol, atoms);
+            break;
+        }
         }
     }
 
-    void checkBounds() override
+    void paint(Graphics& g) override
     {
-        // Apply size limits
-        int w = jlimit(isVertical ? 23 : 50, maxSize, object->getWidth());
-        int h = jlimit(isVertical ? 77 : 25, maxSize, object->getHeight());
+        g.setColour(iemHelper.getBackgroundColour());
+        g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), PlugDataLook::objectCornerRadius);
 
-        if (w != object->getWidth() || h != object->getHeight()) {
-            object->setSize(w, h);
-        }
+        bool selected = cnv->isSelected(object) && !cnv->isGraph;
+        auto outlineColour = object->findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : objectOutlineColourId);
+
+        g.setColour(outlineColour);
+        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), PlugDataLook::objectCornerRadius, 1.0f);
     }
 
     void paintOverChildren(Graphics& g) override
@@ -92,39 +160,37 @@ struct SliderObject : public IEMObject {
         auto outlineColour = object->findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : objectOutlineColourId);
 
         g.setColour(outlineColour);
-        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Constants::objectCornerRadius, 1.0f);
+        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), PlugDataLook::objectCornerRadius, 1.0f);
     }
 
     void resized() override
     {
         slider.setBounds(getLocalBounds());
+
+        // TODO: we would also want to have a high precision mode, use keypress to change sensitivity etc
+        // Currently we set the sensitivity to 1:1 of current slider size
+        slider.setMouseDragSensitivity(isVertical ? slider.getHeight() : slider.getWidth());
     }
 
-    void update() override
+    ObjectParameters getParameters() override
     {
-
-        float maxValue = static_cast<float>(max.getValue());
-        float minValue = static_cast<float>(min.getValue()) == 0.0f ? std::numeric_limits<float>::epsilon() : static_cast<float>(min.getValue());
-
-        auto value = isLogScale() ? std::log(getValueOriginal() / minValue) / std::log(maxValue / minValue) : getValueScaled();
-
-        if (!std::isfinite(value))
-            value = 0.0f;
-
-        slider.setValue(value, dontSendNotification);
-    }
-
-    ObjectParameters defineParameters() override
-    {
-        return {
+        ObjectParameters allParameters = {
             { "Minimum", tFloat, cGeneral, &min, {} },
             { "Maximum", tFloat, cGeneral, &max, {} },
             { "Logarithmic", tBool, cGeneral, &isLogarithmic, { "off", "on" } },
+            { "Steady", tBool, cGeneral, &steadyOnClick, { "Jump on click", "Steady on click" } }
         };
+
+        auto iemParameters = iemHelper.getParameters();
+        allParameters.insert(allParameters.end(), iemParameters.begin(), iemParameters.end());
+
+        return allParameters;
     }
 
-    float getValue() override
+    float getValue()
     {
+        auto* slid = static_cast<t_slider*>(ptr);
+
         return static_cast<t_slider*>(ptr)->x_fval;
     }
 
@@ -148,28 +214,26 @@ struct SliderObject : public IEMObject {
         static_cast<t_slider*>(ptr)->x_max = value;
     }
 
-    bool jumpOnClick() const
+    bool getSteadyOnClick() const
     {
-        return !static_cast<t_slider*>(ptr)->x_steady;
+        return static_cast<t_slider*>(ptr)->x_steady;
     }
 
     void valueChanged(Value& value) override
     {
         if (value.refersToSameSourceAs(min)) {
             setMinimum(static_cast<float>(min.getValue()));
+            updateRange();
         } else if (value.refersToSameSourceAs(max)) {
             setMaximum(static_cast<float>(max.getValue()));
+            updateRange();
         } else if (value.refersToSameSourceAs(isLogarithmic)) {
             setLogScale(isLogarithmic == var(true));
-            min = getMinimum();
-            max = getMaximum();
-
-            if (static_cast<float>(min.getValue()) == 0.0f && static_cast<bool>(isLogarithmic.getValue())) {
-                min = std::numeric_limits<float>::epsilon();
-                setMinimum(std::numeric_limits<float>::epsilon());
-            }
+            updateRange();
+        } else if (value.refersToSameSourceAs(steadyOnClick)) {
+            slider.setSliderSnapsToMousePosition(!static_cast<bool>(steadyOnClick.getValue()));
         } else {
-            IEMObject::valueChanged(value);
+            iemHelper.valueChanged(value);
         }
     }
 
@@ -181,5 +245,25 @@ struct SliderObject : public IEMObject {
     void setLogScale(bool log)
     {
         static_cast<t_slider*>(ptr)->x_lin0_log1 = log;
+    }
+
+    void setValue(float v)
+    {
+        sendFloatValue(v);
+    }
+
+    template<typename FloatType>
+    static inline NormalisableRange<FloatType> makeLogarithmicRange(FloatType min, FloatType max)
+    {
+        min = std::max<float>(min, max / 100.0f);
+
+        return NormalisableRange<FloatType>(
+            min, max,
+            [](FloatType min, FloatType max, FloatType linVal) {
+                return std::pow(10.0f, (std::log10(max / min) * linVal + std::log10(min)));
+            },
+            [](FloatType min, FloatType max, FloatType logVal) {
+                return (std::log10(logVal / min) / std::log10(max / min));
+            });
     }
 };

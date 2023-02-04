@@ -1,11 +1,11 @@
 ---
 title: freq.shift~
-description: Frequency shifter
+description: frequency shifter
 
 categories:
  - object
 
-pdcategory: General
+pdcategory: ELSE, Effects
 
 arguments:
 - type: float
@@ -18,12 +18,15 @@ inlets:
     description: signal to be shifted in frequency
   2nd:
   - type: float/signal
-    description: the requency shift value
+    description: the frequency shift value
 
 outlets:
   1st:
   - type: signal
     description: frequency shifted signal
+  2nd:
+  - type: signal
+    description: signal shifted in the opposite direction
 
 methods:
   - type: clear

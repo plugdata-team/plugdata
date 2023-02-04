@@ -1,9 +1,9 @@
 ---
 title: cycle~
-description: Wavetable oscillator
+description: wavetable oscillator
 categories:
  - object
-pdcategory: General
+pdcategory: cyclone, General
 arguments:
 - type: float
   description: sets frequency in Hz

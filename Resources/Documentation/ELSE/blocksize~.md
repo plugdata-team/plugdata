@@ -1,25 +1,18 @@
 ---
 title: blocksize~
 
-description: Get block size
+description: get block size
 
 categories:
  - object
 
-pdcategory: Accessing Data
+pdcategory: ELSE, Data Management, Audio I/O
 
-arguments: none
-
+arguments:
 inlets:
   1st:
   - type: bang
     description: get block size period or frequency
-  - type: samps
-    description: set and get the block size period in samples
-  - type: ms
-    description: set and get the sample rate period in ms
-  - type: hz
-    description: set and get the block size frequency in Hz
 
 outlets:
   1st:
@@ -31,6 +24,14 @@ flags:
   description: sets to frequency in Hz
 - name: -ms
   description: sets to period in ms
+
+methods:
+  - type: samps
+    description: set and get the block size period in samples
+  - type: ms
+    description: set and get the sample rate period in ms
+  - type: hz
+    description: set and get the block size frequency in Hz
 
 draft: false
 ---

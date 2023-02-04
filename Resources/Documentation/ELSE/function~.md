@@ -1,11 +1,11 @@
 ---
 title: function~
-description: Function generator
+description: function generator
 
 categories:
  - object
 
-pdcategory: General
+pdcategory: ELSE, Signal Math, Effects
 
 arguments:
 - type: list

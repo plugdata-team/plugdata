@@ -3,7 +3,7 @@ title: file join
 description: '''join'' a list of components using ''/'' as the separator.'
 categories:
 - object
-pdcategory: Misc
+pdcategory: vanilla, File Management
 last_update: '0.52'
 see_also:
 - text

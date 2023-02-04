@@ -1,9 +1,9 @@
 ---
 title: array size
-description: output or set array size.
+description: output or set array size
 categories:
 - object
-pdcategory: Arrays & Tables
+pdcategory: vanilla, Arrays and Tables
 last_update: '0.52'
 see_also:
 - array
@@ -17,7 +17,7 @@ see_also:
 - array min
 arguments:
 - description: array name if no flags are given 
-  default: = none
+  default: none
   type: symbol
 flags:
 - description: struct name and field name of main structure.

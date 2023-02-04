@@ -1,12 +1,12 @@
 ---
 title: perlin~
 
-description: Perlin noise generator
+description: perlin noise generator
 
 categories:
 - object
 
-pdcategory:
+pdcategory: ELSE, Random and Noise, Signal Generators
 
 arguments:
 - description: sets frequency in hertz

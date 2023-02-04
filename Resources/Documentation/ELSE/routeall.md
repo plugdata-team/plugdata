@@ -1,12 +1,12 @@
 ---
 title: routeall
 
-description: Route all messages
+description: route all messages
 
 categories:
  - object
 
-pdcategory: Message management
+pdcategory: ELSE, Data Management
 
 arguments:
 - type: anything

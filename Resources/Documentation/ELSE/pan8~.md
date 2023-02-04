@@ -1,17 +1,14 @@
 ---
 title: pan8~
 
-description: Octaphonic panning
+description: octaphonic panning
 
 categories:
 - object
 
-pdcategory:
+pdcategory: ELSE, Mixing and Routing
 
 arguments:
-- description:
-  type:
-  default:
 
 inlets:
   1st:

@@ -117,7 +117,7 @@ public:
     void* instance = nullptr;
 };
 
-struct GraphicalArray : public Component {
+class GraphicalArray : public Component {
 public:
     Object* object;
 
@@ -140,6 +140,8 @@ public:
 
         setInterceptsMouseClicks(true, false);
         setOpaque(false);
+
+        object->constrainer->setMinimumSize(100 - Object::doubleMargin, 40 - Object::doubleMargin);
     }
 
     void setArray(PdArray& graph)
@@ -258,13 +260,12 @@ public:
 
     void paint(Graphics& g) override
     {
-        g.setColour(object->findColour(PlugDataColour::defaultObjectBackgroundColourId));
-        g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Constants::objectCornerRadius);
+        g.setColour(object->findColour(PlugDataColour::guiObjectBackgroundColourId));
+        g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), PlugDataLook::objectCornerRadius);
 
         if (error) {
             // TODO: error colour
-            g.setColour(object->findColour(PlugDataColour::canvasTextColourId));
-            g.drawText("array " + array.getUnexpandedName() + " is invalid", 0, 0, getWidth(), getHeight(), Justification::centred);
+            PlugDataLook::drawText(g, "array " + array.getUnexpandedName() + " is invalid", 0, 0, getWidth(), getHeight(), object->findColour(PlugDataColour::canvasTextColourId), 15, Justification::centred);
             error = false;
         } else {
             paintGraph(g);
@@ -370,21 +371,23 @@ public:
     PluginProcessor* pd;
 };
 
-struct ArrayEditorDialog : public Component {
+class ArrayEditorDialog : public Component
+    , public Timer {
     ResizableBorderComponent resizer;
     std::unique_ptr<Button> closeButton;
     ComponentDragger windowDragger;
     ComponentBoundsConstrainer constrainer;
 
+public:
     std::function<void()> onClose;
-    GraphicalArray array;
+    GraphicalArray graph;
 
     String title;
 
     ArrayEditorDialog(PluginProcessor* instance, PdArray& arr, Object* parent)
         : resizer(this, &constrainer)
         , title(arr.getExpandedName())
-        , array(instance, arr, parent)
+        , graph(instance, arr, parent)
     {
 
         closeButton.reset(LookAndFeel::getDefaultLookAndFeel().createDocumentWindowButton(DocumentWindow::closeButton));
@@ -404,53 +407,65 @@ struct ArrayEditorDialog : public Component {
         // Position in centre of screen
         setBounds(Desktop::getInstance().getDisplays().getPrimaryDisplay()->userArea.withSizeKeepingCentre(600, 400));
 
-        addAndMakeVisible(array);
+        addAndMakeVisible(graph);
         addAndMakeVisible(resizer);
+
+        startTimer(40);
     }
 
-    void resized()
+    void resized() override
     {
         resizer.setBounds(getLocalBounds());
         closeButton->setBounds(getLocalBounds().removeFromTop(30).removeFromRight(30).translated(-5, 5));
-        array.setBounds(getLocalBounds().withTrimmedTop(40));
+        graph.setBounds(getLocalBounds().withTrimmedTop(40));
     }
 
-    void mouseDown(MouseEvent const& e)
+    void timerCallback() override
+    {
+        int currentSize = graph.array.size();
+        if (graph.vec.size() != currentSize) {
+
+            graph.vec.resize(currentSize);
+        }
+        graph.update();
+    }
+
+    void mouseDown(MouseEvent const& e) override
     {
         windowDragger.startDraggingComponent(this, e);
     }
 
-    void mouseDrag(MouseEvent const& e)
+    void mouseDrag(MouseEvent const& e) override
     {
         windowDragger.dragComponent(this, e, nullptr);
     }
 
-    void paintOverChildren(Graphics& g)
+    void paintOverChildren(Graphics& g) override
     {
-        g.setColour(findColour(PlugDataColour::defaultObjectBackgroundColourId));
-        g.drawRoundedRectangle(getLocalBounds().toFloat(), Constants::windowCornerRadius, 1.0f);
+        g.setColour(findColour(PlugDataColour::guiObjectBackgroundColourId));
+        g.drawRoundedRectangle(getLocalBounds().toFloat(), PlugDataLook::windowCornerRadius, 1.0f);
     }
 
-    void paint(Graphics& g)
+    void paint(Graphics& g) override
     {
-        g.setColour(findColour(PlugDataColour::defaultObjectBackgroundColourId));
-        g.fillRoundedRectangle(getLocalBounds().toFloat(), Constants::windowCornerRadius);
+        g.setColour(findColour(PlugDataColour::guiObjectBackgroundColourId));
+        g.fillRoundedRectangle(getLocalBounds().toFloat(), PlugDataLook::windowCornerRadius);
 
         g.setColour(findColour(PlugDataColour::canvasTextColourId));
         g.drawHorizontalLine(39, 0, getWidth());
 
         if (!title.isEmpty()) {
-            g.setColour(findColour(PlugDataColour::canvasTextColourId));
-            g.drawText(title, 0, 0, getWidth(), 40, Justification::centred);
+            PlugDataLook::drawText(g, title, 0, 0, getWidth(), 40, findColour(PlugDataColour::canvasTextColourId), 15, Justification::centred);
         }
     }
 };
 
-struct ArrayObject final : public GUIObject {
+class ArrayObject final : public ObjectBase
+    , public Timer {
 public:
     // Array component
     ArrayObject(void* obj, Object* object)
-        : GUIObject(obj, object)
+        : ObjectBase(obj, object)
         , array(getArray())
         , graph(cnv->pd, array, object)
     {
@@ -469,6 +484,22 @@ public:
         labelColour = object->findColour(PlugDataColour::canvasTextColourId).toString();
 
         updateLabel();
+
+        startTimer(20);
+    }
+
+    void timerCallback() override
+    {
+        // Check if size has changed
+        int currentSize = graph.array.size();
+        if (graph.vec.size() != currentSize) {
+
+            graph.vec.resize(currentSize);
+            size = currentSize;
+        }
+
+        // Update values
+        graph.update();
     }
 
     void updateLabel() override
@@ -479,7 +510,7 @@ public:
 
         if (text.isNotEmpty()) {
             if (!label) {
-                label = std::make_unique<Label>();
+                label = std::make_unique<ObjectLabel>(object);
             }
 
             auto bounds = object->getBounds().reduced(Object::margin).removeFromTop(fontHeight + 2);
@@ -487,13 +518,8 @@ public:
             bounds.translate(2, -(fontHeight + 2));
 
             label->setFont(Font(fontHeight));
-            label->setJustificationType(Justification::centredLeft);
             label->setBounds(bounds);
-            label->setBorderSize(BorderSize<int>(0, 0, 0, 0));
-            label->setMinimumHorizontalScale(1.f);
             label->setText(text, dontSendNotification);
-            label->setEditable(false, false);
-            label->setInterceptsMouseClicks(false, false);
 
             label->setColour(Label::textColourId, object->findColour(PlugDataColour::canvasTextColourId));
 
@@ -516,18 +542,7 @@ public:
         object->setObjectBounds(bounds);
     }
 
-    void checkBounds() override
-    {
-        // Apply size limits
-        int w = jlimit(100, maxSize, object->getWidth());
-        int h = jlimit(40, maxSize, object->getHeight());
-
-        if (w != object->getWidth() || h != object->getHeight()) {
-            object->setSize(w, h);
-        }
-    }
-
-    ObjectParameters defineParameters() override
+    ObjectParameters getParameters() override
     {
         return {
             { "Name", tString, cGeneral, &name, {} },
@@ -553,7 +568,7 @@ public:
         graph.setBounds(getLocalBounds());
     }
 
-    void updateParameters() override
+    void initialiseParameters() override
     {
         auto params = getParameters();
         for (auto& [name, type, cat, value, list] : params) {
@@ -606,17 +621,6 @@ public:
         graph.repaint();
     }
 
-    void updateValue() override
-    {
-        int currentSize = graph.array.size();
-        if (graph.vec.size() != currentSize) {
-
-            graph.vec.resize(currentSize);
-            size = currentSize;
-        }
-        graph.update();
-    }
-
     void valueChanged(Value& value) override
     {
         if (value.refersToSameSourceAs(name) || value.refersToSameSourceAs(size) || value.refersToSameSourceAs(drawMode) || value.refersToSameSourceAs(saveContents)) {
@@ -627,7 +631,7 @@ public:
             graph.array.setScale({ min, max });
             graph.repaint();
         } else {
-            GUIObject::valueChanged(value);
+            ObjectBase::valueChanged(value);
         }
     }
 
@@ -637,7 +641,7 @@ public:
         auto outlineColour = object->findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : objectOutlineColourId);
 
         g.setColour(outlineColour);
-        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Constants::objectCornerRadius, 1.0f);
+        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), PlugDataLook::objectCornerRadius, 1.0f);
     }
 
     PdArray getArray() const
@@ -658,9 +662,28 @@ public:
         openSubpatch();
         dialog = std::make_unique<ArrayEditorDialog>(cnv->pd, array, object);
         dialog->onClose = [this]() {
-            updateValue();
             dialog.reset(nullptr);
         };
+    }
+
+    void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
+    {
+        switch (objectMessageMapped[symbol]) {
+        case objectMessage::msg_float:
+        case objectMessage::msg_symbol:
+        case objectMessage::msg_list: {
+            break;
+        }
+            /*
+    case objectMessage::msg_edit: {
+        if(!atoms.empty()) {
+            editable = atoms[0].getFloat();
+            setInterceptsMouseClicks(false, editable);
+        }
+    } */
+        default:
+            break;
+        }
     }
 
 private:
@@ -669,12 +692,16 @@ private:
     PdArray array;
     GraphicalArray graph;
     std::unique_ptr<ArrayEditorDialog> dialog;
+
+    Value labelColour;
+    bool editable = true;
 };
 
 // Actual text object, marked final for optimisation
-struct ArrayDefineObject final : public TextBase {
+class ArrayDefineObject final : public TextBase {
     std::unique_ptr<ArrayEditorDialog> editor;
 
+public:
     ArrayDefineObject(void* obj, Object* parent, bool isValid = true)
         : TextBase(obj, parent, isValid)
     {
@@ -703,7 +730,6 @@ struct ArrayDefineObject final : public TextBase {
 
         editor = std::make_unique<ArrayEditorDialog>(cnv->pd, array, object);
         editor->onClose = [this]() {
-            updateValue();
             editor.reset(nullptr);
         };
     }

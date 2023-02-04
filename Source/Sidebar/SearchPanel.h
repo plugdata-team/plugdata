@@ -23,7 +23,7 @@ public:
 
         listBox.getViewport()->setScrollBarsShown(true, false, false, false);
 
-        input.setName("sidebar::searcheditor");
+        input.getProperties().set("NoOutline", true);
 
         input.onTextChange = [this]() {
             updateResults();
@@ -32,7 +32,7 @@ public:
         input.addKeyListener(this);
         listBox.addKeyListener(this);
 
-        closeButton.setName("statusbar:clearsearch");
+        closeButton.getProperties().set("Style", "SmallIcon");
         closeButton.onClick = [this]() {
             clearSearchTargets();
             input.clear();
@@ -56,6 +56,7 @@ public:
         listBox.getViewport()->getVerticalScrollBar().addListener(this);
 
         setWantsKeyboardFocus(false);
+        repaint();
     }
 
     void mouseDown(MouseEvent const& e) override
@@ -181,25 +182,27 @@ public:
 
     void paint(Graphics& g) override
     {
-        g.setColour(findColour(PlugDataColour::sidebarBackgroundColourId));
+        auto backgroundColour = findColour(PlugDataColour::sidebarBackgroundColourId);
+        auto textColour = findColour(PlugDataColour::sidebarTextColourId);
+
+        input.setColour(TextEditor::backgroundColourId, backgroundColour.brighter(0.7f));
+        input.setColour(TextEditor::textColourId, textColour);
+
+        g.setColour(backgroundColour);
         g.fillRect(getLocalBounds().withTrimmedBottom(30));
     }
 
     void paintOverChildren(Graphics& g) override
     {
+
         g.setColour(findColour(PlugDataColour::outlineColourId));
         g.drawLine(0, 29, getWidth(), 29);
 
-        g.setFont(getLookAndFeel().getTextButtonFont(closeButton, 30));
-        g.setColour(findColour(PlugDataColour::sidebarTextColourId));
-
-        g.drawText(Icons::Search, 0, 0, 30, 30, Justification::centred);
+        auto colour = findColour(PlugDataColour::sidebarTextColourId);
+        PlugDataLook::drawIcon(g, Icons::Search, 0, 0, 30, colour, 12);
 
         if (input.getText().isEmpty()) {
-            g.setFont(Font(14));
-            g.setColour(findColour(PlugDataColour::sidebarTextColourId).withAlpha(0.5f));
-
-            g.drawText("Type to search in patch", 30, 0, 300, 30, Justification::centredLeft);
+            PlugDataLook::drawText(g, "Type to search in patch", 30, 0, 300, 30, colour.withAlpha(0.5f), 14);
         }
     }
 
@@ -210,15 +213,15 @@ public:
 
         int maxWidth = getWidth() - 20;
 
-        if (Font().getStringWidth(prefix + name + positionString) > maxWidth) {
+        if (Fonts::getDefaultFont().getStringWidth(prefix + name + positionString) > maxWidth) {
             positionString = "";
         }
 
-        if (prefix.containsNonWhitespaceChars() && Font().getStringWidth(prefix + name + positionString) > maxWidth) {
+        if (prefix.containsNonWhitespaceChars() && Fonts::getDefaultFont().getStringWidth(prefix + name + positionString) > maxWidth) {
             prefix = prefix.upToFirstOccurrenceOf("->", true, true) + " ... " + prefix.fromLastOccurrenceOf("->", true, true);
         }
 
-        if (prefix.containsNonWhitespaceChars() && Font().getStringWidth(prefix + name + positionString) > maxWidth) {
+        if (prefix.containsNonWhitespaceChars() && Fonts::getDefaultFont().getStringWidth(prefix + name + positionString) > maxWidth) {
             prefix = "... -> ";
         }
 
@@ -232,10 +235,10 @@ public:
 
         if (rowIsSelected) {
             g.setColour(findColour(PlugDataColour::sidebarActiveBackgroundColourId));
-            g.fillRoundedRectangle(4, 2, w - 8, h - 4, Constants::smallCornerRadius);
+            g.fillRoundedRectangle(4, 2, w - 8, h - 4, PlugDataLook::smallCornerRadius);
         }
 
-        g.setColour(rowIsSelected ? findColour(PlugDataColour::sidebarActiveTextColourId) : findColour(ComboBox::textColourId));
+        auto colour = rowIsSelected ? findColour(PlugDataColour::sidebarActiveTextColourId) : findColour(ComboBox::textColourId);
 
         auto const& [name, prefix, object, ptr] = searchResult[rowNumber];
 
@@ -243,12 +246,11 @@ public:
 
         auto [text, size] = formatSearchResultString(name, prefix, x, y);
 
-        auto positionTextWidth = Font().getStringWidth(size);
+        auto positionTextWidth = Fonts::getDefaultFont().getStringWidth(size);
         auto positionTextX = getWidth() - positionTextWidth - 16;
 
-        g.setFont(Font());
-        g.drawText(text, 12, 0, positionTextX - 16, h, Justification::centredLeft, true);
-        g.drawText(size, positionTextX, 0, positionTextWidth, h, Justification::centredRight, true);
+        PlugDataLook::drawText(g, text, 12, 0, positionTextX - 16, h, colour, 14);
+        PlugDataLook::drawFittedText(g, size, positionTextX, 0, positionTextWidth, h, colour, 1, 0.9f, 14);
     }
 
     int getNumRows() override
@@ -345,6 +347,7 @@ public:
                     int len;
                     libpd_get_object_text(object, &objectText, &len);
                     addObject(String::fromUTF8(objectText, len), topLevel, object);
+                    freebytes(static_cast<void*>(objectText), static_cast<size_t>(len) * sizeof(char));
                 }
             }
         }
@@ -357,9 +360,11 @@ public:
             int len;
             libpd_get_object_text(object, &objectText, &len);
 
-            addObject(String::fromUTF8(objectText, len), topLevel, object);
-
             auto objTextStr = String::fromUTF8(objectText, len);
+
+            addObject(objTextStr, topLevel, object);
+
+            freebytes(static_cast<void*>(objectText), static_cast<size_t>(len) * sizeof(char));
 
             auto tokens = StringArray::fromTokens(objTextStr, false);
             String newPrefix;

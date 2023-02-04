@@ -1,12 +1,12 @@
 ---
 title: free.rev~
 
-description: Free reverb
+description: free reverb
 
 categories:
 - object
 
-pdcategory:
+pdcategory: ELSE, Effects
 
 arguments:
 - description: decay or 'liveness' (0-1)

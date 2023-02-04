@@ -1,27 +1,23 @@
 ---
 title: adsr~
 
-description: Attack/Decay/Sustain/Release gated envelope
+description: attack/decay/sustain/release gated envelope
 
 categories:
  - object
 
-pdcategory: General
+pdcategory: ELSE, Envelopes and LFOs
 
 arguments:
-  1st:
   - type: float
     description: attack time in ms
     default: 0
-  2nd:
   - type: float
     description: decay time in ms
     default: 0
-  3rd:
   - type: float
     description: sustain amplitude (ratio to gate value)
     default: 0
-  4th:
   - type: float
     description: release time in ms
     default: 0
@@ -36,8 +32,6 @@ inlets:
     description: gate value
   - type: bang
     description: trigger/retrigger
-  - type: log <float>
-    description: non zero sets to "log" mode, "linear" otherwise
   2nd:
   - type: float/signal
     description: attack time in ms
@@ -58,6 +52,10 @@ outlets:
   2nd:
   - type: float
     description: envelope status (on=1 / off=0)
+
+methods:
+  - type: log <float>
+    description: non zero sets to "log" mode, "linear" otherwise
 
 draft: false
 ---

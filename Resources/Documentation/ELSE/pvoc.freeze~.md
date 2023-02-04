@@ -1,17 +1,14 @@
 ---
 title: pvoc.freeze~
 
-description: Phase-vocoder freeze
+description: phase-vocoder freeze
 
 categories:
 - object
 
-pdcategory:
+pdcategory: ELSE, Effects
 
 arguments:
-- description:
-  type:
-  default:
 
 inlets:
   1st:

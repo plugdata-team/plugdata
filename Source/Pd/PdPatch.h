@@ -10,15 +10,13 @@
 #include <array>
 #include <vector>
 
-#include "PdStorage.h"
-
 extern "C" {
 #include "x_libpd_mod_utils.h"
 }
 
 namespace pd {
 
-using Connections = std::vector<std::tuple<int, t_object*, int, t_object*>>;
+using Connections = std::vector<std::tuple<void*, int, t_object*, int, t_object*>>;
 class Instance;
 
 // The Pd patch.
@@ -77,19 +75,17 @@ public:
     void savePatch(File const& location);
     void savePatch();
 
-    File getCurrentFile() const
-    {
-        return currentFile;
-    }
-    void setCurrentFile(File newFile)
-    {
-        currentFile = newFile;
-    }
+    File getCurrentFile() const;
+    void setCurrentFile(File newFile);
+
+    bool objectWasDeleted(void* ptr);
+    bool connectionWasDeleted(void* ptr);
 
     bool hasConnection(void* src, int nout, void* sink, int nin);
     bool canConnect(void* src, int nout, void* sink, int nin);
-    bool createConnection(void* src, int nout, void* sink, int nin);
-    void removeConnection(void* src, int nout, void* sink, int nin);
+    void* createConnection(void* src, int nout, void* sink, int nin);
+    void removeConnection(void* src, int nout, void* sink, int nin, t_symbol* connectionPath);
+    void* setConnctionPath(void* src, int nout, void* sink, int nin, t_symbol* oldConnectionPath, t_symbol* newConnectionPath);
 
     Connections getConnections() const;
 
@@ -101,17 +97,9 @@ public:
     // Gets the objects of the patch.
     std::vector<void*> getObjects();
 
-    String getCanvasContent()
-    {
-        if (!ptr)
-            return {};
-        char* buf;
-        int bufsize;
-        libpd_getcontent(static_cast<t_canvas*>(ptr), &buf, &bufsize);
+    String getCanvasContent();
 
-        auto content = String(buf, static_cast<size_t>(bufsize));
-        return content;
-    }
+    static void reloadPatch(File changedPatch, t_glist* except);
 
     int getIndex(void* obj);
 

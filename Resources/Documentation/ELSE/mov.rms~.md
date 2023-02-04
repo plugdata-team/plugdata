@@ -1,12 +1,12 @@
 ---
 title: mov.rms~
 
-description: Moving RMS
+description: moving RMS
 
 categories:
  - object
 
-pdcategory: Analysis
+pdcategory: ELSE, Analysis, Signal Math
 
 arguments:
 - type: float

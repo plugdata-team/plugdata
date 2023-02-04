@@ -5,8 +5,9 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
-struct ObjectReferenceDialog : public Component {
+class ObjectReferenceDialog : public Component {
 
+public:
     ObjectReferenceDialog(PluginEditor* editor, bool showBackButton)
         : library(editor->pd->objectLibrary)
     {
@@ -28,9 +29,9 @@ struct ObjectReferenceDialog : public Component {
         rightSideInfo.setReadOnly(true);
         rightSideInfo.setMultiLine(true);
         rightSideInfo.setColour(TextEditor::outlineColourId, Colours::transparentBlack);
-        rightSideInfo.setFont(Font(15.0f));
+        rightSideInfo.setFont(Font(15));
 
-        backButton.setName("toolbar:backbutton");
+        backButton.getProperties().set("Style", "LargeIcon");
     }
 
     void resized() override
@@ -49,9 +50,7 @@ struct ObjectReferenceDialog : public Component {
     void paint(Graphics& g) override
     {
         g.setColour(findColour(PlugDataColour::panelBackgroundColourId));
-        g.fillRoundedRectangle(getLocalBounds().reduced(1).toFloat(), Constants::windowCornerRadius);
-
-        auto const font = Font(15.0f);
+        g.fillRoundedRectangle(getLocalBounds().reduced(1).toFloat(), PlugDataLook::windowCornerRadius);
 
         if (objectName.isEmpty())
             return;
@@ -61,16 +60,9 @@ struct ObjectReferenceDialog : public Component {
         auto infoBounds = leftPanelBounds.withTrimmedBottom(100).withTrimmedTop(100).withTrimmedLeft(5).reduced(10);
         auto objectDisplayBounds = leftPanelBounds.removeFromTop(140);
 
-        auto* lnf = dynamic_cast<PlugDataLook*>(&getLookAndFeel());
-        if (!lnf)
-            return;
+        PlugDataLook::drawStyledText(g, "Reference: " + objectName, getLocalBounds().removeFromTop(35).translated(0, 4), findColour(PlugDataColour::panelTextColourId), Bold, 16, Justification::centred);
 
-        g.setColour(findColour(PlugDataColour::canvasTextColourId));
-        g.setFont(lnf->boldFont.withHeight(16.0f));
-        g.drawText("Reference: " + objectName, getLocalBounds().removeFromTop(35).translated(0, 4), Justification::centred);
-
-        g.setColour(findColour(PlugDataColour::canvasTextColourId));
-        g.setFont(font);
+        auto colour = findColour(PlugDataColour::panelTextColourId);
 
         auto numInlets = unknownInletLayout ? "Unknown" : String(inlets.size());
         auto numOutlets = unknownOutletLayout ? "Unknown" : String(outlets.size());
@@ -80,42 +72,58 @@ struct ObjectReferenceDialog : public Component {
 
         for (int i = 0; i < infoNames.size(); i++) {
             auto localBounds = infoBounds.removeFromTop(25);
-            g.drawText(infoNames[i], localBounds.removeFromLeft(90), Justification::topLeft);
-            g.drawText(infoText[i], localBounds, Justification::topLeft);
+            PlugDataLook::drawText(g, infoNames[i], localBounds.removeFromLeft(90), colour, 15, Justification::topLeft);
+            PlugDataLook::drawText(g, infoText[i], localBounds, colour, 15, Justification::topLeft);
         }
 
         auto descriptionBounds = infoBounds.removeFromTop(25);
-        g.drawText("Description: ", descriptionBounds.removeFromLeft(90), Justification::topLeft);
+        PlugDataLook::drawText(g, "Description: ", descriptionBounds.removeFromLeft(90), colour, 15, Justification::topLeft);
 
-        g.drawFittedText(description, descriptionBounds.withHeight(180), Justification::topLeft, 5, 1.0f);
+        PlugDataLook::drawFittedText(g, description, descriptionBounds.withHeight(180), colour, 10, 0.9f, 15, Justification::topLeft);
 
         if (!unknownInletLayout && !unknownOutletLayout) {
             drawObject(g, objectDisplayBounds);
         } else {
             auto questionMarkBounds = objectDisplayBounds.withSizeKeepingCentre(48, 48);
             g.drawRoundedRectangle(questionMarkBounds.toFloat(), 6.0f, 3.0f);
-            g.setFont(Font(40));
-            g.drawText("?", questionMarkBounds, Justification::centred);
+            PlugDataLook::drawText(g, "?", questionMarkBounds, colour, 40, Justification::centred);
         }
     }
 
     void drawObject(Graphics& g, Rectangle<int> objectRect)
     {
-        auto const font = Font(15.0f);
-
         int const ioletSize = 8;
         int const ioletWidth = (ioletSize + 4) * std::max(inlets.size(), outlets.size());
-        int const textWidth = font.getStringWidth(objectName);
+        int const textWidth = Font(15).getStringWidth(objectName);
         int const width = std::max(ioletWidth, textWidth) + 14;
 
         auto outlineBounds = objectRect.withSizeKeepingCentre(width, 22).toFloat();
         g.setColour(findColour(PlugDataColour::objectOutlineColourId));
-        g.drawRoundedRectangle(outlineBounds, Constants::objectCornerRadius, 1.0f);
+        g.drawRoundedRectangle(outlineBounds, PlugDataLook::objectCornerRadius, 1.0f);
 
         auto textBounds = outlineBounds.reduced(2.0f);
-        g.setColour(findColour(PlugDataColour::canvasTextColourId));
-        g.setFont(font);
-        g.drawText(objectName, textBounds, Justification::centred);
+        PlugDataLook::drawText(g, objectName, textBounds.toNearestInt(), findColour(PlugDataColour::panelTextColourId), 15, Justification::centred);
+
+        auto themeTree = SettingsFile::getInstance()->getCurrentTheme();
+
+        auto squareIolets = static_cast<bool>(themeTree.getProperty("square_iolets"));
+
+        auto drawIolet = [this, squareIolets](Graphics& g, Rectangle<float> bounds, bool type) mutable {
+            g.setColour(type ? findColour(PlugDataColour::signalColourId) : findColour(PlugDataColour::dataColourId));
+
+            if (squareIolets) {
+                g.fillRect(bounds);
+
+                g.setColour(findColour(PlugDataColour::objectOutlineColourId));
+                g.drawRect(bounds, 1.0f);
+            } else {
+
+                g.fillEllipse(bounds);
+
+                g.setColour(findColour(PlugDataColour::objectOutlineColourId));
+                g.drawEllipse(bounds, 1.0f);
+            }
+        };
 
         auto ioletBounds = outlineBounds.reduced(8, 0);
 
@@ -134,11 +142,8 @@ struct ObjectReferenceDialog : public Component {
 
                 inletBounds = Rectangle<int>(ioletBounds.getX() + ratio * i, yPosition, ioletSize, ioletSize);
             }
-            g.setColour(inlets[i] ? findColour(PlugDataColour::signalColourId) : findColour(PlugDataColour::dataColourId));
-            g.fillEllipse(inletBounds.toFloat());
 
-            g.setColour(findColour(PlugDataColour::objectOutlineColourId));
-            g.drawEllipse(inletBounds.toFloat(), 1.0f);
+            drawIolet(g, inletBounds.toFloat(), inlets[i]);
         }
 
         for (int i = 0; i < outlets.size(); i++) {
@@ -157,11 +162,7 @@ struct ObjectReferenceDialog : public Component {
                 outletBounds = Rectangle<int>(ioletBounds.getX() + ratio * i, yPosition, ioletSize, ioletSize);
             }
 
-            g.setColour(outlets[i] ? findColour(PlugDataColour::signalColourId) : findColour(PlugDataColour::dataColourId));
-            g.fillEllipse(outletBounds.toFloat());
-
-            g.setColour(findColour(PlugDataColour::objectOutlineColourId));
-            g.drawEllipse(outletBounds.toFloat(), 1.0f);
+            drawIolet(g, outletBounds.toFloat(), outlets[i]);
         }
     }
 
@@ -179,8 +180,10 @@ struct ObjectReferenceDialog : public Component {
             return;
         }
 
-        inletDescriptions = library.getInletDescriptions()[name];
-        outletDescriptions = library.getOutletDescriptions()[name];
+        auto const ioletDescriptions = library.getIoletDescriptions()[name];
+        auto const& inletDescriptions = ioletDescriptions[0];
+        auto const& outletDescriptions = ioletDescriptions[1];
+        auto methods = library.getMethods()[name];
 
         inlets.resize(inletDescriptions.size());
         outlets.resize(outletDescriptions.size());
@@ -264,6 +267,17 @@ struct ObjectReferenceDialog : public Component {
             numOut++;
         }
 
+        if (methods.size())
+            rightSideInfoText += "\n\nMethods:";
+
+        int numMethods = 1;
+        for (auto [type, description] : methods) {
+            rightSideInfoText += "\n" + String(numMethods) + ": ";
+            rightSideInfoText += type.isNotEmpty() ? "(" + type + ") " : "";
+            rightSideInfoText += description;
+            numMethods++;
+        }
+
         rightSideInfo.setText(rightSideInfoText);
     }
 
@@ -274,15 +288,14 @@ struct ObjectReferenceDialog : public Component {
     std::vector<bool> inlets;
     std::vector<bool> outlets;
 
-    Array<std::pair<String, bool>> inletDescriptions;
-    Array<std::pair<String, bool>> outletDescriptions;
-
     TextEditor rightSideInfo;
 
     TextButton backButton = TextButton(Icons::Back);
 
     String category;
     String description;
+
+    PluginEditor* editor;
 
     pd::Library& library;
 };

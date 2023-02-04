@@ -1,12 +1,12 @@
 ---
 title: xselect2~
 
-description: Select channel with crossfade
+description: select channel with crossfade
 
 categories:
  - object
  
-pdcategory: Control(Fader/Panning/Routing), General Audio Manipulation
+pdcategory: ELSE, Mixing and Routing
 
 arguments:
 - type: float
@@ -30,7 +30,7 @@ outlets:
     description: crossfaded channels
 
 methods:
-  - name: -index <float>
+  - type: index <float>
     description: <1> - indexed mode, <0> - non-indexed (default)
 
 draft: false

@@ -1,12 +1,12 @@
 ---
 title: standard~
 
-description: Standard map chaotic generator
+description: standard map chaotic generator
 
 categories:
  - object
  
-pdcategory: Noise 
+pdcategory: ELSE, Random and Noise, Signal Generators
 
 arguments:
 - type: float

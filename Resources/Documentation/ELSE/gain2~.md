@@ -1,12 +1,12 @@
 ---
 title: gain2~
 
-description: Stereo gain
+description: stereo gain
 
 categories:
 - object
 
-pdcategory:
+pdcategory: ELSE, Effects, Mixing and Routing
 
 arguments:
 

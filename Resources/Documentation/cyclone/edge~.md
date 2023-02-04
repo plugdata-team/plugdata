@@ -1,15 +1,23 @@
 ---
 title: edge~
-description:
+description: detect signal transitions
 categories:
  - object
-pdcategory: General
+pdcategory: cyclone, General
 arguments:
 inlets:
+  1st:
+  - type: signal
+    description: the signal to analyse
 outlets:
   1st:
   - type: bang
-    description:
+    description: at zero to non-zero transition
   2nd:
   - type: bang
-    description:
+    description: at non-zero to zero transition
+
+---
+
+[edge~] detects signal transitions from zero to non-zero and vice versa and reports bangs accordingly.
+

@@ -1,17 +1,14 @@
 ---
 title: any2symbol
 
-description: Convert anything to symbol
+description: convert anything to symbol
 
 categories:
 - object
 
-pdcategory: General
+pdcategory: ELSE, Data Management
 
 arguments:
-- description: none
-  type:
-  default:
 
 inlets:
   1st:

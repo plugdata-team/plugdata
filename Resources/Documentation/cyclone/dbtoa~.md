@@ -1,12 +1,20 @@
 ---
 title: dbtoa~
-description:
+description: convert dBFS to linear amplitude for signals
 categories:
  - object
-pdcategory: General
+pdcategory: cyclone, General
 arguments:
 inlets:
+  1st:
+  - type: signal/float
+    description: value representing dBFS amplitude
 outlets:
   1st:
   - type: signal
-    description:
+    description: corresponding linear amplitude value
+
+---
+
+[atodb~] takes any given signal representing a dBFS amplitude value and outputs a signal which is a linear amplitude conversion of the input.
+

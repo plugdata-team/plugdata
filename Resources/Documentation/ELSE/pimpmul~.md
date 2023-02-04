@@ -5,7 +5,7 @@ description: [pimp~] multiplier
 categories:
  - object
 
-pdcategory: General
+pdcategory: ELSE, Signal Math
 
 arguments:
 - type: float
@@ -22,10 +22,10 @@ inlets:
 outlets:
   1st:
   - type: signal
-    description: muliplied phase signal
+    description: multiplied phase signal
   2nd:
   - type: signal
-    description: impulse at period transitoins
+    description: impulse at period transitions
 
 ---
 

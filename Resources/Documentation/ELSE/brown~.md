@@ -1,12 +1,12 @@
 ---
 title: brown~
 
-description: Brown noise generator
+description: brown noise generator
 
 categories:
  - object
 
-pdcategory: Audio Oscillators and Tables
+pdcategory: ELSE, Random and Noise, Signal Generators, Signal Math
 
 arguments:
 - type: float
@@ -19,13 +19,19 @@ inlets:
     description: impulses get a new random step
   - type: float
     description: sets maximum random step (from 0 to 1)
-  - type: seed <float>
-    description: a float sets seed, no float sets a unique internal
 
 outlets:
   1st:
   - type: signal
     description: brown noise
+
+flags:
+  - name: -seed <float>
+    description: sets seed (default: unique internal)
+
+methods:
+  - type: seed <float>
+    description: a float sets seed, no float sets a unique internal
 
 draft: false
 ---

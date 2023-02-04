@@ -1,11 +1,12 @@
 ---
 title: lincong~
-description: Linear congruential chaotic generator
+
+description: linear congruential chaotic generator
 
 categories:
  - object
 
-pdcategory: General
+pdcategory: ELSE, Signal Generators
 
 arguments:
 - type: float

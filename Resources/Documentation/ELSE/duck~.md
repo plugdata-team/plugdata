@@ -1,12 +1,12 @@
 ---
 title: duck~
 
-description: Sidechain compression
+description: sidechain compression
 
 categories:
 - object
 
-pdcategory:
+pdcategory: ELSE, Effects, Mixing and Routing
 
 arguments:
 - description: threshold in dB

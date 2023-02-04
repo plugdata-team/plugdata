@@ -3,7 +3,7 @@ title: qlist
 description: text-based sequencer
 categories:
 - object
-pdcategory: Misc
+pdcategory: vanilla, Sequencing
 last_update: '0.35'
 see_also:
 - textfile

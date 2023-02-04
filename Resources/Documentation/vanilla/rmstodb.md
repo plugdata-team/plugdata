@@ -1,9 +1,9 @@
 ---
 title: rmstodb
-description: convert acoustical units
+description: linear RMS amplitude to dB
 categories:
 - object
-pdcategory: Math
+pdcategory: vanilla, Data Math, Mixing and Routing
 last_update: '0.40'
 see_also:
 - mtof~

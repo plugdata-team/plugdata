@@ -1,12 +1,12 @@
 ---
 title: merge
 
-description: Merge messages
+description: merge messages
 
 categories:
  - object
 
-pdcategory: General
+pdcategory: ELSE, Data Management
 
 arguments:
 - type: float

@@ -1,12 +1,12 @@
 ---
 title: score2
 
-description: Score sequencer variant
+description: score sequencer variant
 
 categories:
 - object
 
-pdcategory: Control (Sequencers) 
+pdcategory: ELSE, Sequencing
 
 arguments:
 - type: symbol

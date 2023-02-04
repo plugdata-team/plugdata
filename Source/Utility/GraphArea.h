@@ -5,11 +5,12 @@
  */
 
 // Graph bounds component
-struct GraphArea : public Component
+class GraphArea : public Component
     , public ComponentDragger {
     ResizableCornerComponent resizer;
     Canvas* canvas;
 
+public:
     explicit GraphArea(Canvas* parent)
         : resizer(this, nullptr)
         , canvas(parent)
@@ -21,12 +22,12 @@ struct GraphArea : public Component
     void paint(Graphics& g) override
     {
         g.setColour(findColour(PlugDataColour::resizeableCornerColourId));
-        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(1.f), Constants::objectCornerRadius, Constants::smallCornerRadius);
+        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(1.f), PlugDataLook::objectCornerRadius, PlugDataLook::smallCornerRadius);
     }
 
     bool hitTest(int x, int y) override
     {
-        return !getLocalBounds().reduced(8).contains(Point<int> { x, y });
+        return !getLocalBounds().reduced(8).contains(Point<int>(x, y));
     }
 
     void mouseMove(MouseEvent const& e) override

@@ -1,13 +1,14 @@
 ---
 title: nyquist~
-description: Get nyquist
+
+description: get nyquist
+
 categories:
  - object
-pdcategory: General
+
+pdcategory: ELSE, Analysis
+
 arguments:
-- type: none
-  description:
-  default:
 
 inlets:
   1st:

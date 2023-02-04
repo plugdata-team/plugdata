@@ -9,7 +9,7 @@ see_also:
 - tabwrite~
 - tabread4~
 - array
-pdcategory: Audio Oscillators And Tables
+pdcategory: vanilla, Signal Generators, Arrays and Tables
 last_update: '0.33'
 inlets:
   1st:

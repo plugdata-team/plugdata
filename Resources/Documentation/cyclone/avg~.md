@@ -1,9 +1,9 @@
 ---
 title: avg~
-description: Signal absolute average
+description: signal absolute average
 categories:
  - object
-pdcategory: General
+pdcategory: cyclone, General
 arguments:
 inlets:
   1st:

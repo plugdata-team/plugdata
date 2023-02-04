@@ -1,16 +1,16 @@
 ---
 title: fbsine2~
-description: Feedback sine with chaotic phase indexing
+description: feedback sine with chaotic phase indexing
 
 categories:
  - object
 
-pdcategory: General
+pdcategory: ELSE, Signal Generators
 
 arguments:
 - type: float
   description: sets frequency in hertz
-  default: nyquist
+  default: Nyquist
 - type: float
   description: sets 'im'
   default: 1
@@ -50,7 +50,7 @@ methods:
 
 ---
 
-[fbsine2~] is a non-interpolating sound generator based on the difference equations below (for im = 1, fb = 0 and a = 1 a sinewave results);
+[fbsine2~] is a non-interpolating sound generator based on the difference equations below (for im = 1, fb = 0 and a = 1, a sine wave results);
 x(n+1) = sin(im * y(n) + fb * x(n));
 y(n+1) = (a * y(n) + c) % 2pi
 

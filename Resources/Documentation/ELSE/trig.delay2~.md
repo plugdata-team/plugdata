@@ -1,15 +1,14 @@
 ---
 title: trig.delay2~
 
-description: Trigger delay
+description: trigger delay
 
 categories:
  - object
 
-pdcategory: General
+pdcategory: ELSE, Triggers and Clocks
 
 arguments:
-  1st:
   - type: float
     description: delay time in ms
     default: 0

@@ -1,18 +1,18 @@
 ---
 title: lfnoise
 
-description: Control low frequency noise
+description: control low frequency noise
 
 categories:
 - object
 
-pdcategory:
+pdcategory: ELSE, Random and Noise, Envelopes and LFOs
 
 arguments:
 - description: frequency in hertz
   type: float
   default: 0
-- description: interrpolation off (0) or on (1)
+- description: interpolation off (0) or on (1)
   type: float
   default: 0
 

@@ -5,7 +5,7 @@
  */
 
 // Else "mouse" component
-struct MouseObject final : public TextBase {
+class MouseObject final : public TextBase {
     typedef struct _mouse {
         t_object x_obj;
         int x_hzero;
@@ -18,6 +18,7 @@ struct MouseObject final : public TextBase {
         t_outlet* x_vertical;
     } t_mouse;
 
+public:
     MouseObject(void* ptr, Object* object)
         : TextBase(ptr, object)
     {

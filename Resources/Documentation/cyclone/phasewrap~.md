@@ -1,12 +1,12 @@
 ---
 title: phasewrap~
 
-description: Wrap between pi & -pi
+description: wrap between pi & -pi
 
 categories:
  - object
 
-pdcategory: General
+pdcategory: cyclone, General
 
 arguments: (none)
 

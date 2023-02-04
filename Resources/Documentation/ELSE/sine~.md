@@ -6,7 +6,7 @@ description: Sine oscillator
 categories:
  - object
 
-pdcategory: Oscillators 
+pdcategory: ELSE, Signal Generators 
 
 arguments:
 - type: float

@@ -1,12 +1,12 @@
 ---
 title: interpolate
 
-description: Interpolate between values
+description: interpolate between values
 
 categories:
 - object
 
-pdcategory:
+pdcategory: ELSE, Data Math
 
 arguments:
 - description: sets start value(s)

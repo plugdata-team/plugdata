@@ -1,11 +1,11 @@
 ---
 title: gate2imp~
-description: Gate to impulse
+description: gate to impulse
 
 categories:
  - object
 
-pdcategory: General
+pdcategory: ELSE, Triggers and Clocks
 
 arguments:
 

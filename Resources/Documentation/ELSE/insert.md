@@ -1,12 +1,12 @@
 ---
 title: insert
 
-description: Insert message in a list
+description: insert message in a list
 
 categories:
 - object
 
-pdcategory:
+pdcategory: ELSE, Data Management
 
 arguments:
 - description: (optional) index
@@ -37,5 +37,5 @@ outlets:
 draft: false
 ---
 
-[insert] inserts a message into a list according to an index. An index 0 will prepend the message. The object doesn't output a list selector, use [list] aftwerwards if you want it.
+[insert] inserts a message into a list according to an index. An index 0 will prepend the message. The object doesn't output a list selector, use [list] afterwards if you want it.
 

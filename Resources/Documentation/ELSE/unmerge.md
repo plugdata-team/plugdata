@@ -1,12 +1,12 @@
 ---
 title: unmerge
 
-description: Split messages
+description: split messages
 
 categories:
  - object
  
-pdcategory: Message Management
+pdcategory: ELSE, Data Management
 
 arguments:
   - type: float
@@ -22,7 +22,6 @@ inlets:
   1st:
   - type: anything
     description: a message whose elements get unmerged
-    
   2nd:
   - type: size <float>
     description: number of elements in a group

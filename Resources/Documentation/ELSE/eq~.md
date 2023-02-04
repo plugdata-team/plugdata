@@ -1,20 +1,20 @@
 ---
 title: eq~
 
-description: Parametric equalizer filter
+description: parametric equalizer filter
 
 categories:
  - object
 
-pdcategory: General
+pdcategory: ELSE, Filters, Effects, Mixing and Routing
 
 arguments:
 - type: float
   description: central frequency in Hertz
   default: 0
 - type: float
-  description: resonance, either in 'Q' (default) or 'bw'
-  default: 1
+  description: resonance, either in 'Q' or 'bw'
+  default: 1 - in Q
 - type: float
   description: gain in dB
   default: 0

@@ -1,12 +1,12 @@
 ---
 title: teeth~
 
-description: Teeth comb filter
+description: teeth comb filter
 
 categories:
  - object
 
-pdcategory: General
+pdcategory: cyclone, General
 
 arguments:
 - type: float

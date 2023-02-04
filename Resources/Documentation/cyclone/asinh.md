@@ -1,9 +1,9 @@
 ---
 title: asinh
-description: Hyperbolic arc-sine function
+description: hyperbolic arc-sine function
 categories:
  - object
-pdcategory: General
+pdcategory: cyclone, General
 arguments:
 - type: float
   description: initially stored input value

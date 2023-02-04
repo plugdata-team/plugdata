@@ -1,15 +1,14 @@
 ---
 title: oscope~
-description: Oscilloscope display
+
+description: oscilloscope display
+
 categories:
  - object
 
-pdcategory: General
+pdcategory: ELSE, GUI, Analysis
 
 arguments:
-- type: none
-  description:
-  default:
 
 inlets:
   1st:

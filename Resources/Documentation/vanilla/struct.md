@@ -7,7 +7,7 @@ see_also:
 - drawpolygon
 - drawtext
 - plot
-pdcategory: Data Templates
+pdcategory: vanilla, Data Structures
 last_update: '0.35'
 outlets:
   1st:

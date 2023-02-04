@@ -1,11 +1,9 @@
 import shutil
 import os
 import glob
+import sys
 
 # Utility filesystem functions
-def makeArchive(name, root_dir, base_dir):
-    shutil.make_archive(name, "zip", root_dir, base_dir)
-
 def removeFile(path):
     os.remove(path)
 
@@ -51,6 +49,24 @@ def globFindAndReplaceText(path, to_find, replacement):
         with open(src, 'w', encoding='utf-8') as file:
             file.write(filedata)
 
+def makeArchive(name, root_dir, base_dir):
+  shutil.make_archive(name, "zip", root_dir, base_dir)
+
+def split(a, n):
+  k, m = divmod(len(a), n)
+  return (a[i*k+min(i, m):(i+1)*k+min(i+1, m)] for i in range(n))
+
+def splitFile(file, num_files):
+  with open(file, 'rb') as fd:
+    data_in = split(fd.read(), num_files)
+    count = 0;
+    for entry in data_in:
+      name = os.path.splitext(file)[0];
+      extension = os.path.splitext(file)[1];
+      filename = name + "_" + str(count) + extension
+      with open(filename, "wb") as fd:
+        fd.write(entry)
+      count += 1
 
 if existsAsFile("../Filesystem.zip"):
     removeFile("../Filesystem.zip")
@@ -71,6 +87,7 @@ globCopy("../../Libraries/pure-data/extra/**/*-help.pd", "./Abstractions")
 globCopy("../../Libraries/ELSE/Abstractions/*.pd", "./Abstractions/else")
 copyFile("../Patches/playhead.pd", "./Abstractions")
 copyFile("../Patches/param.pd", "./Abstractions")
+copyFile("../Patches/beat.pd", "./Abstractions")
 
 globMove("./Abstractions/*-help.pd", "./Documentation/5.reference")
 
@@ -78,6 +95,7 @@ copyDir("../Documentation", "./Documentation/pddp")
 copyDir("../../Libraries/ELSE/Help-files/", "./Documentation/9.else")
 
 copyFile("../../Libraries/ELSE/sfont~/sfont~-help.pd", "./Documentation/9.else")
+#copyFile("../Patches/beat-help.pd", "./Documentation/5.reference")
 #copyFile("../Patches/param-help.pd", "./Documentation/5.reference")
 copyFile("../Patches/playhead-help.pd", "./Documentation/5.reference")
 
@@ -89,17 +107,24 @@ makeDir("Documentation/11.heavylib")
 copyDir("../../Libraries/heavylib", "./Abstractions/heavylib")
 globMove("./Abstractions/heavylib/*-help.pd", "./Documentation/11.heavylib")
 
-# Remove else and cyclone prefixes in helpfiles
-globFindAndReplaceText("./Abstractions/else/*.pd", "else/", "")
-globFindAndReplaceText("./Abstractions/*.pd", "cyclone/", "")
-globFindAndReplaceText("./Documentation/9.else/*.pd", "else/", "")
-globFindAndReplaceText("./Documentation/10.cyclone/*.pd", "cyclone/", "")
-
 removeFile("./Documentation/Makefile.am")
 
 # pd-lua
 makeDir("Extra")
 makeDir("Extra/pdlua")
+makeDir("Extra/GS")
+
+copyDir("../../Libraries/ELSE/Extra", "Extra/ELSE");
+copyDir("../../Libraries/ELSE/sfont~/sf", "Extra/ELSE/sf");
+globCopy("../../Libraries/pure-data/doc/sound/*", "Extra/ELSE");
+
+# Remove else and cyclone prefixes in helpfiles
+globFindAndReplaceText("./Abstractions/else/*.pd", "else/", "")
+globFindAndReplaceText("./Extra/else/*.pd", "else/", "")
+globFindAndReplaceText("./Abstractions/*.pd", "cyclone/", "")
+globFindAndReplaceText("./Documentation/9.else/*.pd", "else/", "")
+globFindAndReplaceText("./Documentation/10.cyclone/*.pd", "cyclone/", "")
+
 pdlua_srcdir = "../../Libraries/pd-lua/"
 for src in ["pd.lua", "COPYING", "README"]:
     copyFile(pdlua_srcdir+src, "./Extra/pdlua")
@@ -118,4 +143,7 @@ changeWorkingDir("./..")
 makeArchive("Filesystem", "./", "./plugdata_version")
 removeDir("./plugdata_version")
 
+splitFile("./Fonts/InterUnicode.ttf", 3)
 
+splitFile("./Filesystem.zip", 3)
+removeFile("./Filesystem.zip")

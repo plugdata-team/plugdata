@@ -1,12 +1,12 @@
 ---
 title: sequencer~
 
-description: Signal sequencer
+description: signal sequencer
 
 categories:
  - object
 
-pdcategory: Control (Sequencers)
+pdcategory: ELSE, Sequencing
 
 arguments:
 - type: list <f>

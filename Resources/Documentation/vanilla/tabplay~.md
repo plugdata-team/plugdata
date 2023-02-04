@@ -1,6 +1,6 @@
 ---
 title: tabplay~
-description: play a table as a sample (non-transposing).
+description: play a table as a sample (non-transposing)
 categories:
 - object
 see_also:
@@ -10,7 +10,7 @@ see_also:
 - tabwrite
 - soundfiler
 - array
-pdcategory: Audio Oscillators And Tables
+pdcategory: vanilla, Signal Generators, Arrays and Tables, Buffers
 last_update: '0.43'
 inlets:
   1st:

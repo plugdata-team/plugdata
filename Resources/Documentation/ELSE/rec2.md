@@ -1,16 +1,16 @@
 ---
 title: rec2
 
-description: Record note messages into text
+description: record note messages into text
 
 categories:
 - object
 
-pdcategory:
+pdcategory: ELSE, MIDI
 
 arguments:
 - type: symbol
-  description: text name (necessary)
+  description: text name (required)
   default:
 
 inlets:

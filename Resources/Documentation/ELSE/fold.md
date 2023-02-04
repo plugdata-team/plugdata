@@ -1,11 +1,11 @@
 ---
 title: fold
-description: Folds between two values
+description: folds between two values
 
 categories:
  - object
 
-pdcategory: General
+pdcategory: ELSE, Data Math
 
 arguments:
 - type: list

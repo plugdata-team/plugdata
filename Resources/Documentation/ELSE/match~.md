@@ -1,12 +1,12 @@
 ---
 title: match~
 
-description: Compare signals to numbers
+description: compare signals to numbers
 
 categories:
  - object
 
-pdcategory: Control
+pdcategory: ELSE, Analysis, Mixing and Routing
 
 arguments:
 - type: list

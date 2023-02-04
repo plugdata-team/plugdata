@@ -1,14 +1,14 @@
 ---
 title: zerocross~
 
-description: Send impulses at zero crossings
+description: send impulses at zero crossings
 
 categories:
  - object
  
-pdcategory: Analysis
+pdcategory: ELSE, Triggers and Clocks, Analysis
 
-arguments: (none)
+arguments:
 
 inlets: 
   1st:

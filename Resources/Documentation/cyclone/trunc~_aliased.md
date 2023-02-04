@@ -3,7 +3,7 @@ title: trunc~_aliased
 description:
 categories:
  - object
-pdcategory: General
+pdcategory: cyclone, General
 arguments:
 inlets:
 outlets:

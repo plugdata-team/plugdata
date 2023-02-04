@@ -89,16 +89,17 @@ struct t_fake_scope {
 };
 
 template<typename S>
-struct ScopeBase : public GUIObject
+class ScopeBase : public ObjectBase
     , public Timer {
 
     std::vector<float> x_buffer;
     std::vector<float> y_buffer;
 
-    Value gridColour, triggerMode, triggerValue, samplesPerPoint, bufferSize, delay, signalRange;
+    Value gridColour, triggerMode, triggerValue, samplesPerPoint, bufferSize, delay, signalRange, primaryColour, secondaryColour, sendSymbol, receiveSymbol;
 
+public:
     ScopeBase(void* ptr, Object* object)
-        : GUIObject(ptr, object)
+        : ObjectBase(ptr, object)
     {
         startTimerHz(25);
 
@@ -112,7 +113,7 @@ struct ScopeBase : public GUIObject
         primaryColour = colourFromHexArray(scope->x_fg).toString();
         gridColour = colourFromHexArray(scope->x_gg).toString();
 
-        auto rcv = String(scope->x_rcv_raw->s_name);
+        auto rcv = String::fromUTF8(scope->x_rcv_raw->s_name);
         if (rcv == "empty")
             rcv = "";
         receiveSymbol = rcv;
@@ -158,17 +159,6 @@ struct ScopeBase : public GUIObject
     {
     }
 
-    void checkBounds() override
-    {
-        // Apply size limits
-        int w = jlimit(20, maxSize, object->getWidth());
-        int h = jlimit(20, maxSize, object->getHeight());
-
-        if (w != object->getWidth() || h != object->getHeight()) {
-            object->setSize(w, h);
-        }
-    }
-
     void paint(Graphics& g) override
     {
         g.fillAll(Colour::fromString(secondaryColour.toString()));
@@ -177,7 +167,7 @@ struct ScopeBase : public GUIObject
         auto outlineColour = object->findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : objectOutlineColourId);
 
         g.setColour(outlineColour);
-        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Constants::objectCornerRadius, 1.0f);
+        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), PlugDataLook::objectCornerRadius, 1.0f);
 
         auto dx = getWidth() * 0.125f;
         auto dy = getHeight() * 0.25f;
@@ -281,8 +271,6 @@ struct ScopeBase : public GUIObject
         repaint();
     }
 
-    void updateValue() override {};
-
     void valueChanged(Value& v) override
     {
         auto* scope = static_cast<S*>(ptr);
@@ -328,36 +316,48 @@ struct ScopeBase : public GUIObject
 
     ObjectParameters getParameters() override
     {
-        ObjectParameters params;
+        return {
+            { "Background", tColour, cAppearance, &secondaryColour, {} },
+            { "Foreground", tColour, cAppearance, &primaryColour, {} },
+            { "Grid", tColour, cAppearance, &gridColour, {} },
+            { "Trigger mode", tCombo, cGeneral, &triggerMode, { "None", "Up", "Down" } },
+            { "Trigger value", tFloat, cGeneral, &triggerValue, {} },
+            { "Samples per point", tInt, cGeneral, &samplesPerPoint, {} },
+            { "Buffer size", tInt, cGeneral, &bufferSize, {} },
+            { "Delay", tInt, cGeneral, &delay, {} },
+            { "Signal range", tRange, cGeneral, &signalRange, {} },
+            { "Receive symbol", tString, cGeneral, &receiveSymbol, {} }
+        };
+    }
 
-        params.push_back({ "Background", tColour, cAppearance, &secondaryColour, {} });
-        params.push_back({ "Foreground", tColour, cAppearance, &primaryColour, {} });
-        params.push_back({ "Grid", tColour, cAppearance, &gridColour, {} });
-
-        params.push_back({ "Trigger mode", tCombo, cGeneral, &triggerMode, { "None", "Up", "Down" } });
-        params.push_back({ "Trigger value", tFloat, cGeneral, &triggerValue, {} });
-
-        params.push_back({ "Samples per point", tInt, cGeneral, &samplesPerPoint, {} });
-        params.push_back({ "Buffer size", tInt, cGeneral, &bufferSize, {} });
-        params.push_back({ "Delay", tInt, cGeneral, &delay, {} });
-
-        params.push_back({ "Signal range", tRange, cGeneral, &signalRange, {} });
-
-        params.push_back({ "Receive symbol", tString, cGeneral, &receiveSymbol, {} });
-
-        return params;
+    void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
+    {
+        switch (objectMessageMapped[symbol]) {
+        case objectMessage::msg_send: {
+            if (atoms.size() >= 1)
+                setParameterExcludingListener(sendSymbol, atoms[0].getSymbol());
+        } break;
+        case objectMessage::msg_receive: {
+            if (atoms.size() >= 1)
+                setParameterExcludingListener(receiveSymbol, atoms[0].getSymbol());
+        }
+        default:
+            break;
+        }
     }
 };
 
 // Hilarious use of templates to support both cyclone/scope and else/oscope in the same code
-struct ScopeObject final : public ScopeBase<t_fake_scope> {
+class ScopeObject final : public ScopeBase<t_fake_scope> {
+public:
     ScopeObject(void* ptr, Object* object)
         : ScopeBase<t_fake_scope>(ptr, object)
     {
     }
 };
 
-struct OscopeObject final : public ScopeBase<t_fake_oscope> {
+class OscopeObject final : public ScopeBase<t_fake_oscope> {
+public:
     OscopeObject(void* ptr, Object* object)
         : ScopeBase<t_fake_oscope>(ptr, object)
     {

@@ -1,6 +1,6 @@
 ---
 title: getsize
-description: get size of a Data Structures array
+description: get size of a data structures array
 categories:
 - object
 see_also: 
@@ -9,7 +9,7 @@ see_also:
 - element
 - setsize
 - array get 
-pdcategory: Accessing Data
+pdcategory: vanilla, Data Structures
 last_update: '0.47'
 inlets:
   1st:

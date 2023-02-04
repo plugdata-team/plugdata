@@ -1,12 +1,12 @@
 ---
 title: speed
 
-description: Change bpm speed over amount of beats
+description: change bpm speed over amount of beats
 
 categories:
 - object
 
-pdcategory: Control (Triggers/Clocks)
+pdcategory: ELSE, Envelopes and LFOs, Triggers and Clocks
 
 arguments:
 - type: float
@@ -19,7 +19,7 @@ inlets:
   - type: float
     description: set bpm immediately
   - type: list
-    description: two floats set target and amount of beats and three floats set start, target and number of beats
+    description: <f,f> — target, number of beats; <f,f,f> — start, target, number of beats
 
 outlets:
   1st:
@@ -39,4 +39,4 @@ methods:
 draft: false
 ---
 
-[speed] is somewhat related to [line]. You give it a target bpm value and an amount of time in beats to reach it (speeding up or down). Then, the overall tempo in ms is outpu (via the right outlet) and bpm values are given for each beat until it reaches the target (left outlet), which correctly emulates an accelerando or ritardando.
+[speed] is somewhat related to [line]. You give it a target bpm value and an amount of time in beats to reach it (speeding up or down). Then, the overall tempo in ms is output (via the right outlet) and bpm values are given for each beat until it reaches the target (left outlet), which correctly emulates an accelerando or ritardando.

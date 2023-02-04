@@ -6,16 +6,27 @@
 
 #include "../Utility/DraggableNumber.h"
 
-struct NumberObject final : public IEMObject {
+class NumberObject final : public ObjectBase {
 
     DraggableNumber input;
+    IEMHelper iemHelper;
 
     float preFocusValue;
 
-    NumberObject(void* obj, Object* parent)
-        : IEMObject(obj, parent)
+    Value min = Value(0.0f);
+    Value max = Value(0.0f);
+
+    float value = 0.0f;
+
+public:
+    NumberObject(void* ptr, Object* object)
+        : ObjectBase(ptr, object)
+        , iemHelper(ptr, object, this)
         , input(false)
+
     {
+        value = getValue();
+
         input.onEditorShow = [this]() {
             auto* editor = input.getCurrentTextEditor();
             startEdition();
@@ -28,26 +39,47 @@ struct NumberObject final : public IEMObject {
         };
 
         input.onEditorHide = [this]() {
-            setValueOriginal(input.getText().getFloatValue());
+            sendFloatValue(input.getText().getFloatValue());
             stopEdition();
         };
+
+        value = getValue();
 
         input.setBorderSize({ 1, 15, 1, 1 });
 
         addAndMakeVisible(input);
 
-        input.setText(input.formatNumber(getValueOriginal()), dontSendNotification);
+        input.setText(input.formatNumber(value), dontSendNotification);
 
         min = getMinimum();
         max = getMaximum();
 
         addMouseListener(this, true);
 
-        input.dragStart = [this]() { startEdition(); };
+        input.dragStart = [this]() {
+            startEdition();
+        };
 
-        input.valueChanged = [this](float value) { setValueOriginal(value); };
+        input.valueChanged = [this](float newValue) {
+            sendFloatValue(newValue);
+        };
 
-        input.dragEnd = [this]() { stopEdition(); };
+        input.setMinimum(static_cast<float>(min.getValue()));
+        input.setMaximum(static_cast<float>(max.getValue()));
+
+        input.dragEnd = [this]() {
+            stopEdition();
+        };
+    }
+
+    void initialiseParameters() override
+    {
+        iemHelper.initialiseParameters();
+    }
+
+    void updateLabel() override
+    {
+        iemHelper.updateLabel(label);
     }
 
     void updateBounds() override
@@ -63,22 +95,10 @@ struct NumberObject final : public IEMObject {
         object->setObjectBounds(bounds);
     }
 
-    void checkBounds() override
-    {
-        int const widthIncrement = 9;
-        int width = jlimit(27, maxSize, (getWidth() / widthIncrement) * widthIncrement);
-        int height = jlimit(18, maxSize, getHeight());
-        if (getWidth() != width || getHeight() != height) {
-            object->setSize(width + Object::doubleMargin, height + Object::doubleMargin);
-        }
-    }
-
     void applyBounds() override
     {
         auto b = object->getObjectBounds();
         libpd_moveobj(cnv->patch.getPointer(), static_cast<t_gobj*>(ptr), b.getX(), b.getY());
-
-        int fontWidth = glist_fontwidth(cnv->patch.getPointer());
 
         auto* nbx = static_cast<t_my_numbox*>(ptr);
 
@@ -96,7 +116,7 @@ struct NumberObject final : public IEMObject {
 
     void focusGained(FocusChangeType cause) override
     {
-        preFocusValue = getValueOriginal();
+        preFocusValue = value;
         repaint();
     }
 
@@ -104,7 +124,7 @@ struct NumberObject final : public IEMObject {
     {
         auto inputValue = input.getText().getFloatValue();
         if (inputValue != preFocusValue) {
-            setValueOriginal(inputValue);
+            sendFloatValue(inputValue);
         }
         repaint();
     }
@@ -120,27 +140,54 @@ struct NumberObject final : public IEMObject {
         repaint();
     }
 
-    void update() override
+    ObjectParameters getParameters() override
     {
-        input.setText(input.formatNumber(getValueOriginal()), dontSendNotification);
+
+        ObjectParameters allParameters = { { "Minimum", tFloat, cGeneral, &min, {} }, { "Maximum", tFloat, cGeneral, &max, {} } };
+
+        auto iemParameters = iemHelper.getParameters();
+        allParameters.insert(allParameters.end(), iemParameters.begin(), iemParameters.end());
+
+        return allParameters;
     }
 
-    ObjectParameters defineParameters() override
+    void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
     {
-        return { { "Minimum", tFloat, cGeneral, &min, {} }, { "Maximum", tFloat, cGeneral, &max, {} } };
+        switch (objectMessageMapped[symbol]) {
+        case objectMessage::msg_float:
+        case objectMessage::msg_set: {
+            value = std::clamp(atoms[0].getFloat(), static_cast<float>(min.getValue()), static_cast<float>(max.getValue()));
+            input.setText(input.formatNumber(value), dontSendNotification);
+            break;
+        }
+        default: {
+            iemHelper.receiveObjectMessage(symbol, atoms);
+            break;
+        }
+        }
     }
 
     void valueChanged(Value& value) override
     {
         if (value.refersToSameSourceAs(min)) {
             setMinimum(static_cast<float>(min.getValue()));
-            updateValue();
         } else if (value.refersToSameSourceAs(max)) {
             setMaximum(static_cast<float>(max.getValue()));
-            updateValue();
         } else {
-            IEMObject::valueChanged(value);
+            iemHelper.valueChanged(value);
         }
+    }
+
+    void paint(Graphics& g) override
+    {
+        g.setColour(iemHelper.getBackgroundColour());
+        g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), PlugDataLook::objectCornerRadius);
+
+        bool selected = cnv->isSelected(object) && !cnv->isGraph;
+        auto outlineColour = object->findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : objectOutlineColourId);
+
+        g.setColour(outlineColour);
+        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), PlugDataLook::objectCornerRadius, 1.0f);
     }
 
     void paintOverChildren(Graphics& g) override
@@ -173,7 +220,7 @@ struct NumberObject final : public IEMObject {
         g.fillPath(triangle);
     }
 
-    float getValue() override
+    float getValue()
     {
         return (static_cast<t_my_numbox*>(ptr))->x_val;
     }

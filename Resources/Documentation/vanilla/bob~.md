@@ -12,7 +12,7 @@ see_also:
 - slop~
 - cpole~
 - fexpr~
-pdcategory: Extra
+pdcategory: vanilla, Filters
 last_update: '0.52'
 inlets:
   1st:

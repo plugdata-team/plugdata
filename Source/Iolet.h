@@ -29,9 +29,11 @@ public:
     void mouseEnter(MouseEvent const& e) override;
     void mouseExit(MouseEvent const& e) override;
 
+    bool hitTest(int x, int y);
+
     void valueChanged(Value& v) override;
 
-    static Iolet* findNearestEdge(Canvas* cnv, Point<int> position, bool inlet, Object* boxToExclude = nullptr);
+    static Iolet* findNearestIolet(Canvas* cnv, Point<int> position, bool inlet, Object* boxToExclude = nullptr);
 
     void createConnection();
 

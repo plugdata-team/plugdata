@@ -1,15 +1,14 @@
 ---
 title: ceil~
 
-description: Ceil function (for signals)
+description: ceiling function for signals
 
 categories:
  - object
 
-pdcategory: Math Functions
+pdcategory: ELSE, Signal Math
 
-arguments: none
-
+arguments:
 inlets:
   1st:
   - type: signal
@@ -18,9 +17,9 @@ inlets:
 outlets:
   1st:
   - type: signal
-    description: ceiled value
+    description: output of ceiling function
 
 draft: false
 ---
 
-[ceil~] is a ceil math function for signals.
+[ceil~] is a ceiling math function for signals.

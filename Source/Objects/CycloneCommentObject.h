@@ -62,18 +62,16 @@ typedef struct _comment {
 } t_fake_comment;
 
 // This object is a dumb version of [cyclone/comment] that only serves to make cyclone's documentation readable
-struct CycloneCommentObject final : public GUIObject {
+class CycloneCommentObject final : public ObjectBase {
 
     Colour textColour;
-    Font font;
     BorderSize<int> border { 1, 7, 1, 2 };
 
+public:
     CycloneCommentObject(void* obj, Object* object)
-        : GUIObject(obj, object)
+        : ObjectBase(obj, object)
     {
         auto* comment = static_cast<t_fake_comment*>(ptr);
-        font = font.withHeight(comment->x_fontsize);
-
         textColour = Colour(comment->x_red, comment->x_green, comment->x_blue);
     }
 
@@ -101,11 +99,8 @@ struct CycloneCommentObject final : public GUIObject {
     {
         auto* comment = static_cast<t_fake_comment*>(ptr);
 
-        g.setColour(textColour);
-        g.setFont(font.withHeight(comment->x_fontsize));
-
         auto textArea = border.subtractedFrom(getLocalBounds());
-        g.drawFittedText(getText(), textArea, Justification::centredLeft, 1, 0.9f);
+        PlugDataLook::drawFittedText(g, getText(), textArea, textColour, comment->x_fontsize);
 
         auto selected = cnv->isSelected(object);
         if (object->locked == var(false) && (object->isMouseOverOrDragging(true) || selected) && !cnv->isGraph) {
@@ -151,6 +146,8 @@ struct CycloneCommentObject final : public GUIObject {
 
     int getBestTextWidth(String const& text)
     {
-        return std::max<float>(round(font.getStringWidthFloat(text) + 14.0f), 32);
+        auto* comment = static_cast<t_fake_comment*>(ptr);
+
+        return std::max<float>(round(Font(comment->x_fontsize).getStringWidthFloat(text) + 14.0f), 32);
     }
 };

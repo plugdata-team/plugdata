@@ -6,13 +6,11 @@ description: signal operator
 categories:
 - object
 
-pdcategory:
+pdcategory: ELSE, Signal Math
 
 arguments:
-  1st:
-  - description: operator: >, <, >=, <=, ==, !=, &&, ||, &, |, ~, ^, >>, << or %
+  - description: operator. >, <, >=, <=, ==, !=, &&, ||, &, |, ~, ^, >>, <<, or %
     type: symbol
-  2nd:
   - description: inlet value - ignored for bitnot
     type: float/signal
     default: 0

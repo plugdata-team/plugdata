@@ -1,12 +1,12 @@
 ---
 title: play~
 
-description: Array player
+description: array player
 
 categories:
  - object
 
-pdcategory: General
+pdcategory: cyclone, General
 
 arguments:
 - type: symbol

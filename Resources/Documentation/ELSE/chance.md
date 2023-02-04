@@ -1,12 +1,12 @@
 ---
 title: chance
 
-description: Weighted random
+description: weighted random
 
 categories:
  - object
 
-pdcategory: Control (Triggers)
+pdcategory: ELSE, Triggers and Clocks, Random and Noise
 
 arguments:
 - type: list
@@ -17,8 +17,6 @@ inlets:
   1st:
   - type: bang
     description: a bang to be passed or not
-  - type: seed <float>
-    description: a float sets seed, no float sets a unique internal
   - type: list
     description: updates arguments if more than 1 is given
   2nd:
@@ -26,12 +24,13 @@ inlets:
     description: sets chance number if only one argument
 
 outlets:
-  1st:
+  nth:
   - type: bang
-    description: random bangs
-  2nd:
-  - type: float
-    description: index number if in index mode
+    description: bangs according to chance
+
+methods:
+  - type: seed <float>
+    description: a float sets seed, no float sets a unique internal
 
 draft: false
 ---

@@ -1,9 +1,9 @@
 ---
 title: counter
-description: Counts over a range
+description: counts over a range
 categories:
  - object
-pdcategory: General
+pdcategory: cyclone, General
 arguments:
 - type: list
   description: 1 float: max / 2 floats: min & max / 3 floats: direction (0: up / 1: down / 2: updown), min & max

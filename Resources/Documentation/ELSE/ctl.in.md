@@ -1,17 +1,17 @@
 ---
 title: ctl.in
 
-description: Midi control input
+description: MIDI control input
 
 categories:
  - object
 
-pdcategory: MIDI
+pdcategory: ELSE, MIDI
 
 arguments:
 - type: list
   description: one value sets channel number. Two values set control number
-  default: 0=Omni, 1=All
+  default: 0 = omni, 1 = all
 
 inlets:
   1st:

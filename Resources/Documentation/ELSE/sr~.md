@@ -1,14 +1,14 @@
 ---
 title: sr~
 
-description: Get/set sample rate
+description: set/set sample rate
 
 categories:
  - object
 
-pdcategory: Math (Constant)
+pdcategory: ELSE, Signal Math
 
-arguments: (none)
+arguments:
 
 flags:
 - name: -khz

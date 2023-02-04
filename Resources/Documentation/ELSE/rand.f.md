@@ -1,12 +1,12 @@
 ---
 title: rand.f
 
-description: Random float number generator
+description: random float number generator
 
 categories:
  - object
 
-pdcategory: Control
+pdcategory: ELSE, Data Math, Random and Noise
 
 arguments:
 - type: float
@@ -33,7 +33,7 @@ outlets:
     description: random values
 
 flags:
-  - type: seed <float> 
+  - name: -seed <float> 
     description: seed value
 
 methods:

@@ -5,12 +5,12 @@ description: Ikeda map chaotic generator
 categories:
  - object
 
-pdcategory: General
+pdcategory: ELSE, Random and Noise, Signal Generators
 
 arguments:
 - type: float
   description: sets frequency in hertz
-  default: nyquist
+  default: Nyquist
 - type: float
   description: sets initial "u" parameter
   default: 0.75
@@ -29,10 +29,10 @@ inlets:
 outlets:
   1st:
   - type: signal
-    description: y1[n]: ikeda map chaotic signal 1st output
+    description: y1[n]: Ikeda map chaotic signal 1st output
   2nd:
   - type: signal
-    description: y2[n]: ikeda map chaotic signal 2nd output
+    description: y2[n]: Ikeda map chaotic signal 2nd output
 
 methods:
   - type: u <float>

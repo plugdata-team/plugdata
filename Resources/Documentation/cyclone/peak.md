@@ -1,12 +1,12 @@
 ---
 title: peak
 
-description: Output numbers greater than the previous
+description: output numbers greater than the previous
 
 categories:
  - object
 
-pdcategory: General
+pdcategory: cyclone, General
 
 arguments:
 - type: float

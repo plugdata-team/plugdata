@@ -1,12 +1,12 @@
 ---
 title: touch.in
 
-description: Midi aftertouch input
+description: MIDI aftertouch input
 
 categories:
  - object
 
-pdcategory: General
+pdcategory: ELSE, MIDI
 
 arguments:
 - type: float
@@ -28,7 +28,7 @@ inlets:
 outlets:
   1st:
   - type: float
-    description: MIDI Aftertouch
+    description: MIDI aftertouch
   2nd:
   - type: float
     description: MIDI channel
@@ -36,4 +36,4 @@ outlets:
 draft: false
 ---
 
-[touch.in] extracts MIDI Aftertouch information from raw MIDI input (such as from [midiin]).
+[touch.in] extracts MIDI aftertouch information from raw MIDI input (such as from [midiin]).

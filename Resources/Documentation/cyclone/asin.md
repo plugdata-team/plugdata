@@ -1,9 +1,9 @@
 ---
 title: asin
-description: Arc-sine function
+description: arc-sine function
 categories:
  - object
-pdcategory: General
+pdcategory: cyclone, General
 arguments:
 - type: float
   description: initially stored value

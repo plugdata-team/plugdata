@@ -3,7 +3,7 @@
 	url = https://github.com/juce-framework/JUCE.git
 [submodule "Libraries/pure-data"]
 	path = Libraries/pure-data
-	url = https://github.com/pure-data/pure-data.git
+	url = https://github.com/plugdata-team/plugdata-pd
 [submodule "Libraries/concurrentqueue"]
 	path = Libraries/concurrentqueue
 	url = https://github.com/cameron314/concurrentqueue.git
@@ -16,3 +16,6 @@
 [submodule "Libraries/pd-lua"]
 	path = Libraries/pd-lua
 	url = https://github.com/agraef/pd-lua.git
+[submodule "Libraries/clap-juce-extensions"]
+	path = Libraries/clap-juce-extensions
+	url = https://github.com/free-audio/clap-juce-extensions.git

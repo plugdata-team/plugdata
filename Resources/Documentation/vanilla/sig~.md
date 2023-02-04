@@ -3,7 +3,7 @@ title: sig~
 description: convert numbers to signals
 categories:
 - object
-pdcategory: General Audio Manipulation
+pdcategory: vanilla, Signal Math, Data Math, Signal Generators
 last_update: '0.33'
 see_also:
 - snapshot~

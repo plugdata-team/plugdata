@@ -1,15 +1,15 @@
 ---
 title: initmess
-description: Initialization message
+description: initialization message
 
 categories:
  - object
 
-pdcategory: General
+pdcategory: ELSE, Data Management, Triggers and Clocks
 
 arguments:
 - type: anything
-  description: the message, where commas and semicolons behave as usual in message boxes, dollarsigns behave as usual inside objects too
+  description: the message, where commas and semicolons behave as usual in message boxes, dollar signs behave as usual inside objects too
   default: none
 
 inlets:

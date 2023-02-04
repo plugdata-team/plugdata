@@ -1,9 +1,9 @@
 ---
 title: anal
-description: Number pairs histogram
+description: number pairs histogram
 categories:
  - object
-pdcategory: General
+pdcategory: cyclone, General
 arguments:
 - type: float
   description: Maximum input, values accepted are between 0 and this number (max 16384)

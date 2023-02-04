@@ -1,17 +1,14 @@
 ---
 title: note2dur
 
-description: Convert note duration to fraction or float
+description: convert note duration to fraction or float
 
 categories:
 - object
 
-pdcategory:
+pdcategory: ELSE, MIDI
 
 arguments:
-- description:
-  type:
-  default:
 
 inlets:
   1st:

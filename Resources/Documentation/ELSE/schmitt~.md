@@ -1,12 +1,12 @@
 ---
 title: schmitt~
 
-description: Schmitt trigger
+description: schmitt trigger
 
 categories:
  - object
 
-pdcategory: Control (Triggers)
+pdcategory: ELSE, Triggers and Clocks
 
 arguments:
 - type: float

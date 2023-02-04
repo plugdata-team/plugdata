@@ -40,16 +40,21 @@ struct t_fake_function {
     unsigned char x_bgcolor[3];
 } t_function;
 
-struct FunctionObject final : public GUIObject {
+class FunctionObject final : public ObjectBase {
 
     int hoverIdx = -1;
     int dragIdx = -1;
     bool newPointAdded = false;
 
     Value range;
+    Value primaryColour;
+    Value secondaryColour;
+    Value sendSymbol;
+    Value receiveSymbol;
 
+public:
     FunctionObject(void* ptr, Object* object)
-        : GUIObject(ptr, object)
+        : ObjectBase(ptr, object)
     {
         auto* function = static_cast<t_fake_function*>(ptr);
         secondaryColour = colourFromHexArray(function->x_bgcolor).toString();
@@ -58,8 +63,8 @@ struct FunctionObject final : public GUIObject {
         Array<var> arr = { function->x_min, function->x_max };
         range = var(arr);
 
-        auto sndSym = String(function->x_send->s_name);
-        auto rcvSym = String(function->x_receive->s_name);
+        auto sndSym = String::fromUTF8(function->x_send->s_name);
+        auto rcvSym = String::fromUTF8(function->x_receive->s_name);
 
         sendSymbol = sndSym != "empty" ? sndSym : "";
         receiveSymbol = rcvSym != "empty" ? rcvSym : "";
@@ -96,17 +101,6 @@ struct FunctionObject final : public GUIObject {
         static_cast<t_my_canvas*>(ptr)->x_vis_h = getHeight();
     }
 
-    void checkBounds() override
-    {
-        // Apply size limits
-        int w = jlimit(20, maxSize, object->getWidth());
-        int h = jlimit(20, maxSize, object->getHeight());
-
-        if (w != object->getWidth() || h != object->getHeight()) {
-            object->setSize(w, h);
-        }
-    }
-
     Array<Point<float>> getRealPoints()
     {
         auto realPoints = Array<Point<float>>();
@@ -130,14 +124,15 @@ struct FunctionObject final : public GUIObject {
 
     void paint(Graphics& g) override
     {
-        g.fillAll(Colour::fromString(secondaryColour.toString()));
+        g.setColour(Colour::fromString(secondaryColour.toString()));
+        g.fillRoundedRectangle(getLocalBounds().toFloat(), PlugDataLook::objectCornerRadius);
 
         bool selected = cnv->isSelected(object) && !cnv->isGraph;
         bool editing = cnv->locked == var(true) || cnv->presentationMode == var(true) || ModifierKeys::getCurrentModifiers().isCtrlDown();
         auto outlineColour = object->findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : objectOutlineColourId);
 
         g.setColour(outlineColour);
-        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Constants::objectCornerRadius, 1.0f);
+        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), PlugDataLook::objectCornerRadius, 1.0f);
 
         g.setColour(Colour::fromString(primaryColour.toString()));
 
@@ -160,7 +155,7 @@ struct FunctionObject final : public GUIObject {
         }
     }
 
-    void updateValue() override
+    void getPointsFromFunction()
     {
         // Don't update while dragging
         if (dragIdx != -1)
@@ -211,7 +206,7 @@ struct FunctionObject final : public GUIObject {
                 setHoverIdx(i);
             }
         }
-        return GUIObject::hitTest(x, y);
+        return ObjectBase::hitTest(x, y);
     }
 
     void mouseExit(MouseEvent const& e) override
@@ -234,10 +229,12 @@ struct FunctionObject final : public GUIObject {
                     if (i == 0 || i == realPoints.size() - 1) {
                         points.getReference(i).y = 0.0f;
                         resetHoverIdx();
+                        triggerOutput();
                         return;
                     }
                     points.remove(i);
                     resetHoverIdx();
+                    triggerOutput();
                     return;
                 }
                 return;
@@ -248,6 +245,8 @@ struct FunctionObject final : public GUIObject {
         float newY = jmap(static_cast<float>(e.y), 3.0f, getHeight() - 3.0f, 1.0f, 0.0f);
 
         dragIdx = points.addSorted(*this, { newX, newY });
+
+        triggerOutput();
     }
 
     std::pair<float, float> getRange()
@@ -303,9 +302,6 @@ struct FunctionObject final : public GUIObject {
 
     void mouseUp(MouseEvent const& e) override
     {
-        if (dragIdx < 0)
-            return;
-
         auto* function = static_cast<t_fake_function*>(ptr);
         points.sort(*this);
 
@@ -320,7 +316,7 @@ struct FunctionObject final : public GUIObject {
 
         dragIdx = -1;
 
-        updateValue();
+        getPointsFromFunction();
     }
 
     void triggerOutput()
@@ -350,7 +346,10 @@ struct FunctionObject final : public GUIObject {
             SETFLOAT(at.data() + i, point);
         }
 
-        pd->enqueueFunction([x, at, ac]() mutable {
+        pd->enqueueFunction([_this = SafePointer(this), x, at, ac]() mutable {
+            if (!_this || _this->cnv->patch.objectWasDeleted(x))
+                return;
+
             outlet_list(x->x_obj.ob_outlet, &s_list, ac - 2, at.data());
             if (x->x_send != &s_ && x->x_send->s_thing)
                 pd_list(x->x_send->s_thing, &s_list, ac - 2, at.data());
@@ -380,20 +379,19 @@ struct FunctionObject final : public GUIObject {
 
         } else if (v.refersToSameSourceAs(range)) {
             setRange(getRange());
-            updateValue();
+            getPointsFromFunction();
         }
     }
 
     ObjectParameters getParameters() override
     {
-        ObjectParameters params;
-        params.push_back({ "Foreground", tColour, cAppearance, &primaryColour, {} });
-        params.push_back({ "Background", tColour, cAppearance, &secondaryColour, {} });
-        params.push_back({ "Range", tRange, cGeneral, &range, {} });
-        params.push_back({ "Send Symbol", tString, cGeneral, &sendSymbol, {} });
-        params.push_back({ "Receive Symbol", tString, cGeneral, &receiveSymbol, {} });
-
-        return params;
+        return {
+            { "Foreground", tColour, cAppearance, &primaryColour, {} },
+            { "Background", tColour, cAppearance, &secondaryColour, {} },
+            { "Range", tRange, cGeneral, &range, {} },
+            { "Receive Symbol", tString, cGeneral, &receiveSymbol, {} },
+            { "Send Symbol", tString, cGeneral, &sendSymbol, {} },
+        };
     }
 
     Colour colourFromHexArray(unsigned char* hex)
@@ -409,11 +407,31 @@ struct FunctionObject final : public GUIObject {
 
     void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
     {
-        if (symbol == "min" || symbol == "max") {
+        switch (objectMessageMapped[symbol]) {
+        case objectMessage::msg_send: {
+            if (atoms.size() >= 1)
+                setParameterExcludingListener(sendSymbol, atoms[0].getSymbol());
+            break;
+        }
+        case objectMessage::msg_receive: {
+            if (atoms.size() >= 1)
+                setParameterExcludingListener(receiveSymbol, atoms[0].getSymbol());
+            break;
+        }
+        case objectMessage::msg_list: {
+            getPointsFromFunction();
+            break;
+        }
+        case objectMessage::msg_min:
+        case objectMessage::msg_max: {
             auto* function = static_cast<t_fake_function*>(ptr);
             Array<var> arr = { function->x_min, function->x_max };
             setParameterExcludingListener(range, var(arr));
-            updateValue();
+            getPointsFromFunction();
+            break;
+        }
+        default:
+            break;
         }
     }
 };

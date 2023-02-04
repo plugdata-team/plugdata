@@ -1,6 +1,6 @@
 ---
 title: hip~
-description: one-pole high pass filter.
+description: one-pole high pass filter
 categories:
 - object
 see_also:
@@ -12,7 +12,7 @@ see_also:
 - slop~
 - cpole~
 - fexpr~
-pdcategory: Audio Filters
+pdcategory: vanilla, Filters
 last_update: '0.44'
 inlets:
   1st:

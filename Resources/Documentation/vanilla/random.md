@@ -3,7 +3,7 @@ title: random
 description: pseudo random integers
 categories:
 - object
-pdcategory: Math
+pdcategory: vanilla, Random and Noise
 last_update: '0.33'
 see_also:
 - expr

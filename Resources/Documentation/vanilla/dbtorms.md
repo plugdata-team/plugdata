@@ -1,9 +1,9 @@
 ---
 title: dbtorms
-description: convert acoustical units
+description: dB to linear RMS amplitude
 categories:
 - object
-pdcategory: Math
+pdcategory: vanilla, Data Math, Mixing and Routing
 last_update: '0.40'
 see_also:
 - mtof~

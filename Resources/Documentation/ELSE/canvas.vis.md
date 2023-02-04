@@ -1,17 +1,17 @@
 ---
 title: canvas.vis
 
-description: Report window visibility
+description: report window visibility
 
 categories:
  - object
 
-pdcategory: Subpatch Management
+pdcategory: ELSE, GUI
 
 arguments:
 - type: float
   description: depth
-  default: 0 (current window)
+  default: 0 - current window
 
 inlets:
   1st:
@@ -21,7 +21,7 @@ inlets:
 outlets:
   1st:
   - type: float
-    description: window visibility (0 invisibile / 1 visible)
+    description: window visibility (0 invisible / 1 visible)
 
 draft: false
 ---

@@ -1,12 +1,12 @@
 ---
 title: dec2frac
 
-description: Decimal/Fraction conversion
+description: decimal/Fraction conversion
 
 categories:
 - object
 
-pdcategory:
+pdcategory: ELSE, Data Math
 
 arguments:
 - description: conversion resolution (min 10)

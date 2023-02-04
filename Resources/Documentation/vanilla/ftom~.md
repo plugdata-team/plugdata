@@ -1,12 +1,12 @@
 ---
 title: ftom~
-description: acoustic conversions for audio signals
+description: frequency to MIDI conversion for signals
 categories:
 - object
 see_also:
 - mtof
 - expr~
-pdcategory: Audio Math
+pdcategory: vanilla, Signal Math, MIDI, Tuning
 last_update: '0.33'
 inlets:
   1st:

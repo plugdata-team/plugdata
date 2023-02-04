@@ -1,9 +1,9 @@
 ---
 title: log
-description: math functions
+description: logarithmic function
 categories:
 - object
-pdcategory: Math
+pdcategory: vanilla, Data Math
 see_also:
 - +~
 - +

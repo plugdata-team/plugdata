@@ -5,7 +5,7 @@ categories:
 - object
 see_also:
 - complex-mod~
-pdcategory: Extra
+pdcategory: vanilla, Analysis, Effects
 last_update: '0.52'
 inlets:
   1st:

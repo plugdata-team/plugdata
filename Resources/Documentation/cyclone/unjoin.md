@@ -1,12 +1,12 @@
 ---
 title: unjoin
 
-description: Break a list into seperate messages
+description: break a list into separate messages
 
 categories:
  - object
 
-pdcategory: General
+pdcategory: cyclone, General
 
 arguments:
 - type: float

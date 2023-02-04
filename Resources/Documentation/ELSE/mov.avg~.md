@@ -1,12 +1,12 @@
 ---
 title: mov.avg~
 
-description: Moving average filter
+description: moving average filter
 
 categories:
  - object
 
-pdcategory: General
+pdcategory: ELSE, Analysis, Filters, Signal Math
 
 arguments:
 - type: float

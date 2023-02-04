@@ -1,9 +1,9 @@
 ---
 title: asinh~
-description: Signal hyperbolic arc-sine function
+description: signal hyperbolic arc-sine function
 categories:
  - object
-pdcategory: General
+pdcategory: cyclone, General
 arguments:
 inlets:
   1st:

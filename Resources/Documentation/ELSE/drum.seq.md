@@ -1,18 +1,14 @@
 ---
 title: drum.seq
 
-description: Drum sequence pattern GUI
+description: drum sequence pattern GUI
 
 categories:
 - object
 
-pdcategory:
+pdcategory: ELSE, Sequencing, Triggers and Clocks
 
 arguments:
-- description:
-  type:
-  default:
-
 inlets:
   1st:
   - type: bang
@@ -37,7 +33,7 @@ flags:
   - name: -size <float>
     description: sets cell size in pixels (default 20)
   - name: -embed
-    description: sets emebding mode (default no embedding)
+    description: sets embedding mode (default no embedding)
 
 methods:
   - type: track <list>

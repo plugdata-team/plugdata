@@ -3,53 +3,52 @@
  // For information on usage and redistribution, and for a DISCLAIMER OF ALL
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
+#include <JuceHeader.h>
 
-struct RadioObject final : public IEMObject {
+class RadioObject final : public ObjectBase {
 
     bool alreadyToggled = false;
     bool isVertical;
+    int numItems = 0;
 
-    RadioObject(void* obj, Object* parent)
-        : IEMObject(obj, parent)
+    int selected;
+
+    IEMHelper iemHelper;
+
+    Value max = Value(0.0f);
+
+public:
+    RadioObject(void* ptr, Object* object)
+        : ObjectBase(ptr, object)
+        , iemHelper(ptr, object, this)
     {
-        isVertical = static_cast<t_radio*>(obj)->x_orientation;
+        isVertical = static_cast<t_radio*>(ptr)->x_orientation;
 
         max = getMaximum();
         max.addListener(this);
 
-        int selected = getValueOriginal();
+        selected = getValue();
+
+        valueChanged(max);
+
         if (selected > static_cast<int>(max.getValue())) {
-            setValueOriginal(std::min<int>(static_cast<int>(max.getValue()) - 1, selected));
+            selected = std::min<int>(static_cast<int>(max.getValue()) - 1, selected);
         }
     }
 
-    void resized() override
+    void updateLabel() override
     {
-        int size = (isVertical ? getWidth() : getHeight());
-        int minSize = 12;
-        size = std::max(size, minSize);
+        iemHelper.updateLabel(label);
+    }
 
-        int numItems = static_cast<int>(max.getValue());
-
-        // Fix aspect ratio
-        if (isVertical) {
-            object->setSize(std::max(object->getWidth(), minSize + Object::doubleMargin), size * numItems + Object::doubleMargin);
-        } else {
-            object->setSize(size * numItems + Object::doubleMargin, std::max(object->getHeight(), minSize + Object::doubleMargin));
-        }
+    void initialiseParameters() override
+    {
+        iemHelper.initialiseParameters();
     }
 
     void applyBounds() override
     {
-        auto* radio = static_cast<t_radio*>(ptr);
-
-        if (isVertical) {
-            radio->x_gui.x_w = getWidth();
-            radio->x_gui.x_h = getHeight() / radio->x_number;
-        } else {
-            radio->x_gui.x_w = getWidth() / radio->x_number;
-            radio->x_gui.x_h = getHeight();
-        }
+        iemHelper.applyBounds(isVertical);
     }
 
     void toggleObject(Point<int> position) override
@@ -60,13 +59,12 @@ struct RadioObject final : public IEMObject {
 
         float pos = isVertical ? position.y : position.x;
         float div = isVertical ? getHeight() : getWidth();
-        int numItems = static_cast<int>(max.getValue());
 
         int idx = std::clamp<int>((pos / div) * numItems, 0, numItems - 1);
 
-        if (idx != static_cast<int>(getValueOriginal())) {
+        if (idx != static_cast<int>(selected)) {
             startEdition();
-            setValueOriginal(idx);
+            sendFloatValue(idx);
             stopEdition();
             repaint();
         }
@@ -74,14 +72,29 @@ struct RadioObject final : public IEMObject {
 
     void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
     {
-
-        if (symbol == "orientation" && atoms.size() >= 1) {
-            isVertical = static_cast<bool>(atoms[0].getFloat());
-            updateBounds();
-        } else if (symbol == "number" && atoms.size() >= 1) {
-            setParameterExcludingListener(max, static_cast<int>(atoms[0].getFloat()));
-        } else {
-            IEMObject::receiveObjectMessage(symbol, atoms);
+        switch (objectMessageMapped[symbol]) {
+        case objectMessage::msg_float:
+        case objectMessage::msg_set: {
+            selected = atoms[0].getFloat();
+            repaint();
+            break;
+        }
+        case objectMessage::msg_orientation: {
+            if (atoms.size() >= 1) {
+                isVertical = static_cast<bool>(atoms[0].getFloat());
+                updateBounds();
+            }
+            break;
+        }
+        case objectMessage::msg_number: {
+            if (atoms.size() >= 1)
+                setParameterExcludingListener(max, static_cast<int>(atoms[0].getFloat()));
+            break;
+        }
+        default: {
+            iemHelper.receiveObjectMessage(symbol, atoms);
+            break;
+        }
         }
     }
 
@@ -94,26 +107,20 @@ struct RadioObject final : public IEMObject {
     {
         float pos = isVertical ? e.y : e.x;
         float div = isVertical ? getHeight() : getWidth();
-        int numItems = static_cast<int>(max.getValue());
 
         int idx = (pos / div) * numItems;
 
         alreadyToggled = true;
         startEdition();
-        setValueOriginal(idx);
+        sendFloatValue(idx);
         stopEdition();
 
         repaint();
     }
 
-    float getValue() override
+    float getValue()
     {
         return static_cast<t_radio*>(ptr)->x_on;
-    }
-
-    void update() override
-    {
-        repaint();
     }
 
     void updateBounds() override
@@ -127,9 +134,9 @@ struct RadioObject final : public IEMObject {
         auto* radio = static_cast<t_radio*>(ptr);
 
         if (isVertical) {
-            bounds.setSize(radio->x_gui.x_w, radio->x_gui.x_h);
+            bounds.setSize(radio->x_gui.x_w, radio->x_gui.x_w * numItems);
         } else {
-            bounds.setSize(radio->x_gui.x_w, radio->x_gui.x_h);
+            bounds.setSize(radio->x_gui.x_h * numItems, radio->x_gui.x_h);
         }
 
         pd->getCallbackLock()->exit();
@@ -139,16 +146,16 @@ struct RadioObject final : public IEMObject {
 
     void paint(Graphics& g) override
     {
-        g.setColour(getBackgroundColour());
-        g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Constants::objectCornerRadius);
+        g.setColour(iemHelper.getBackgroundColour());
+        g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), PlugDataLook::objectCornerRadius);
 
-        int size = (isVertical ? getWidth() : getHeight());
-        int minSize = 12;
-        size = std::max(size, minSize);
+        int size = (isVertical ? getHeight() / numItems : getHeight());
+        // int minSize = 12;
+        // size = std::max(size, minSize);
 
         g.setColour(object->findColour(PlugDataColour::objectOutlineColourId));
 
-        for (int i = 1; i < static_cast<int>(max.getValue()); i++) {
+        for (int i = 1; i < numItems; i++) {
             if (isVertical) {
                 g.drawLine(0, i * size, size, i * size);
             } else {
@@ -156,9 +163,9 @@ struct RadioObject final : public IEMObject {
             }
         }
 
-        g.setColour(getForegroundColour());
+        g.setColour(iemHelper.getForegroundColour());
 
-        int currentValue = getValueOriginal();
+        int currentValue = selected;
         int selectionX = isVertical ? 0 : currentValue * size;
         int selectionY = isVertical ? currentValue * size : 0;
 
@@ -168,26 +175,49 @@ struct RadioObject final : public IEMObject {
 
     void paintOverChildren(Graphics& g) override
     {
-
         bool selected = cnv->isSelected(object) && !cnv->isGraph;
         auto outlineColour = object->findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : objectOutlineColourId);
 
         g.setColour(outlineColour);
-        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Constants::objectCornerRadius, 1.0f);
+        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), PlugDataLook::objectCornerRadius, 1.0f);
     }
 
-    ObjectParameters defineParameters() override
+    ObjectParameters getParameters() override
     {
-        return { { "Options", tInt, cGeneral, &max, {} } };
+        ObjectParameters allParameters = { { "Options", tInt, cGeneral, &max, {} } };
+
+        auto iemParameters = iemHelper.getParameters();
+        allParameters.insert(allParameters.end(), iemParameters.begin(), iemParameters.end());
+
+        return allParameters;
+    }
+
+    void updateAspectRatio()
+    {
+        float verticalLength = ((object->getWidth() - Object::doubleMargin) * numItems) + Object::doubleMargin;
+        float horizontalLength = ((object->getHeight() - Object::doubleMargin) * numItems) + Object::doubleMargin;
+
+        if (isVertical) {
+            object->setSize(object->getWidth(), verticalLength);
+            object->constrainer->setMinimumSize(15, 15 * numItems);
+        } else {
+            object->setSize(horizontalLength, object->getHeight());
+            object->constrainer->setMinimumSize(15 * numItems, 15);
+        }
+        object->constrainer->setFixedAspectRatio(isVertical ? 1.0f / numItems : static_cast<float>(numItems) / 1.0f);
     }
 
     void valueChanged(Value& value) override
     {
         if (value.refersToSameSourceAs(max)) {
-            setMaximum(limitValueMin(value, 1));
-            repaint();
+            if (static_cast<int>(max.getValue()) != numItems) {
+                limitValueMin(value, 1);
+                numItems = static_cast<int>(max.getValue());
+                updateAspectRatio();
+                setMaximum(numItems);
+            }
         } else {
-            IEMObject::valueChanged(value);
+            iemHelper.valueChanged(value);
         }
     }
 
@@ -196,13 +226,13 @@ struct RadioObject final : public IEMObject {
         return static_cast<t_radio*>(ptr)->x_number;
     }
 
-    void setMaximum(float value)
+    void setMaximum(float maxValue)
     {
-        if (getValueOriginal() >= value) {
-            setValueOriginal(value - 1);
+        if (selected >= maxValue) {
+            selected = maxValue - 1;
         }
 
-        static_cast<t_radio*>(ptr)->x_number = value;
+        static_cast<t_radio*>(ptr)->x_number = maxValue;
 
         resized();
     }

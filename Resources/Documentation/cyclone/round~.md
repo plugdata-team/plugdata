@@ -1,12 +1,12 @@
 ---
 title: round~
 
-description: Rounds signals
+description: rounds signals
 
 categories:
  - object
 
-pdcategory: General
+pdcategory: cyclone, General
 
 arguments:
 - type: float

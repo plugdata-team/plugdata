@@ -1,12 +1,12 @@
 ---
 title: display
 
-description:
+description: display messages
 
 categories:
 - object
 
-pdcategory:
+pdcategory: ELSE, GUI
 
 arguments:
 - description: number of characters

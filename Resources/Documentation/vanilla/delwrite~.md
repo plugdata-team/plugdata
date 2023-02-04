@@ -1,13 +1,13 @@
 ---
 title: delwrite~
-description: write in a delay line.
+description: write in a delay line
 categories:
 - object
 see_also:
 - fexpr~
 - delread~
 - delread4~
-pdcategory: Audio Delay
+pdcategory: vanilla, Effects, Buffers
 last_update: '0.52'
 inlets:
   1st:

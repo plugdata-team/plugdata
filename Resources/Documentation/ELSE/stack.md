@@ -1,16 +1,16 @@
 ---
 title: stack
 
-description: Stack messages and output via fifo/lifo
+description: stack messages and output via fifo/lifo
 
 categories:
 - object
 
-pdcategory: Message Management 
+pdcategory: ELSE, Data Management 
 
 arguments:
 - type: symbol
-  description: 1) symbol - sets order, <fifo> or <lifo>
+  description: sets order, <fifo> or <lifo>
   default: fifo
 
 inlets:

@@ -1,11 +1,11 @@
 ---
 title: fbdelay~
-description: Feedback delay line
+description: feedback delay line
 
 categories:
  - object
 
-pdcategory: General
+pdcategory: ELSE, Effects
 
 arguments:
 - type: float

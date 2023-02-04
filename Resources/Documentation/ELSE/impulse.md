@@ -1,12 +1,12 @@
 ---
 title: impulse
 
-description: Control impulse
+description: control impulse
 
 categories:
 - object
 
-pdcategory:
+pdcategory: ELSE, Triggers and Clocks
 
 arguments:
 - description: frequency in hertz
@@ -19,10 +19,10 @@ arguments:
 inlets:
   1st:
   - type: float
-    description: frequency in hz
+    description: frequency in Hz
   2nd:
   - type: float
-    description: phase sync (ressets internal phase)
+    description: phase sync (resets internal phase)
 
 outlets:
   1st:

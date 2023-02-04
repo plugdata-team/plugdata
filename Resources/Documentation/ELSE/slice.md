@@ -1,16 +1,16 @@
 ---
 title: slice
 
-description: Split lists
+description: split lists
 
 categories:
  - object
 
-pdcategory: List Management 
+pdcategory: ELSE, Data Management 
 
 arguments:
 - type: float
-  description: splt point
+  description: split point
   default: 0
 
 inlets:

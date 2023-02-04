@@ -1,12 +1,12 @@
 ---
 title: xbendin2
 
-description: Retrieve 14-bit MIDI pitch bend messages
+description: retrieve 14-bit MIDI pitch bend messages
 
 categories:
  - object
 
-pdcategory: General
+pdcategory: cyclone, General
 
 arguments:
 - type: float

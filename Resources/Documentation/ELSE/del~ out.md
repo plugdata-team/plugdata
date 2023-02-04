@@ -1,12 +1,12 @@
 ---
 title: del~ out
 
-description: Delay line output
+description: delay line output
 
 categories:
  - object
 
-pdcategory: General
+pdcategory: ELSE, Effects, Buffers
 
 arguments:
 - type: symbol
@@ -29,8 +29,6 @@ outlets:
 flags:
   - name: -samps
     description: sets time value to samples (default is ms)
-
 ---
-
 Read from a delay line. It uses a cubic (4 point) interpolation called spline and considers the buffer to be circular (so index 0 to table size is accepted).
 

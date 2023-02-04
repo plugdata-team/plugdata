@@ -1,9 +1,9 @@
 ---
 title: acosh
-description: Hyperbolic arc-cosine function
+description: hyperbolic arc-cosine function
 categories:
  - object
-pdcategory: General
+pdcategory: cyclone, General
 arguments:
 - type: float
   description: initially stored input value

@@ -1,11 +1,11 @@
 ---
 title: keyboard
-description: Keyboard GUI
+description: keyboard GUI
 
 categories:
  - object
 
-pdcategory: General
+pdcategory: ELSE, GUI, Tuning, Sequencing
 
 arguments:
 

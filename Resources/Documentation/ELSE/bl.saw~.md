@@ -1,19 +1,17 @@
 ---
 title: bl.saw~
 
-description: Bandlimited sawtooth oscillator
+description: bandlimited sawtooth oscillator
 
 categories:
 - object
 
-pdcategory: Audio Oscillators and Tables
+pdcategory: ELSE, Signal Generators
 
 arguments:
-  1st:
   - description:  frequency in Hz
     type: float
     default: 0
-  2nd:
   - description: initial phase offset
     type: float
     default: 0

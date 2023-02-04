@@ -1,19 +1,19 @@
 ---
 title: spread~
 
-description: Spread inputs to outputs
+description: spread inputs to outputs
 
 categories:
  - object
 
-pdcategory: General
+pdcategory: ELSE, Mixing and Routing
 
 arguments:
 - type: float
-  description: - 'n' number of inputs (2 to 512)
+  description: 'n' number of inputs (2 to 512)
   default: 2
 - type: float
-  description: - 'n' number of outputs (2 to 512)
+  description: 'n' number of outputs (2 to 512)
   default: 2
 
 inlets:

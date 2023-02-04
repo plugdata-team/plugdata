@@ -1,15 +1,14 @@
 ---
 title: bpm
 
-description: Convert to/from bpm
+description: convert to/from bpm
 
 categories:
 - object
 
-pdcategory: Math
+pdcategory: ELSE, Data Math, Triggers and Clocks, Sequencing
 
-arguments: none
-
+arguments:
 inlets:
   1st:
   - type: float

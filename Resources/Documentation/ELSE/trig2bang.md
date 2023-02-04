@@ -1,17 +1,14 @@
 ---
 title: trig2bang
 
-description: Trigger to bang conversion
+description: trigger to bang conversion
 
 categories:
 - object
 
-pdcategory:
+pdcategory: ELSE, Triggers and Clocks
 
 arguments:
-- description:
-  type:
-  default:
 
 inlets:
   1st:

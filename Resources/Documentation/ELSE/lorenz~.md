@@ -1,11 +1,12 @@
 ---
 title: lorenz~
-description: Lorenz chaotic generator
+
+description: lorenz chaotic generator
 
 categories:
  - object
 
-pdcategory: General
+pdcategory: ELSE, Signal Generators
 
 arguments:
 - type: float

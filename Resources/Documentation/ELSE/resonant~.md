@@ -1,11 +1,12 @@
 ---
 title: resonant~
-description: Bandpass resonant filter (constant skirt)
+
+description: bandpass resonant filter (constant skirt)
 
 categories:
  - object
 
-pdcategory: DSP
+pdcategory: ELSE, Filters, Effects
 
 arguments:
 - type: float

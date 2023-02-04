@@ -1,12 +1,12 @@
 ---
 title: mtof~
-description: acoustic conversions for audio signals
+description: MIDI to frequency conversion for signals
 categories:
 - object
 see_also:
 - mtof
 - expr~
-pdcategory: Audio Math
+pdcategory: vanilla, Signal Math, Tuning, MIDI
 last_update: '0.33'
 inlets:
   1st:

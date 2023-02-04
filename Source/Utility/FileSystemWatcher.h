@@ -23,11 +23,9 @@ For more information visit www.rabiensoftware.com
  */
 class FileSystemWatcher {
 public:
-    //==============================================================================
     FileSystemWatcher();
     ~FileSystemWatcher();
 
-    //==============================================================================
     /** Adds a folder to be watched */
     void addFolder(File const& folder);
 
@@ -53,7 +51,6 @@ public:
         fileRenamedNewName
     };
 
-    //==============================================================================
     /** Receives callbacks from the FileSystemWatcher when a file changes */
     class Listener : public Timer {
     public:

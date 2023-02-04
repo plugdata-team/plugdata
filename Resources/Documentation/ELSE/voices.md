@@ -1,12 +1,12 @@
 ---
 title: voices
 
-description: Polyphonic voice allocator
+description: polyphonic voice allocator
 
 categories:
  - object
  
-pdcategory: General
+pdcategory: ELSE, Data Management, MIDI
 
 arguments:
   - type: float

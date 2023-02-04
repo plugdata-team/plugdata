@@ -1,12 +1,12 @@
 ---
 title: dollsym
 
-description: Expand dollar symbols
+description: expand dollar symbols
 
 categories:
  - object
 
-pdcategory: General
+pdcategory: ELSE, Data Management
 
 arguments:
 - type: float
@@ -31,5 +31,5 @@ outlets:
 
 ---
 
-[dollsym] gets and expands the value of dollar symbols ("$0-x", "$1-y", and so on). It can also get and expand according to the the values of a parent patch with the 'depth' argument. Symbols without dollar arguments are passed through unchanged.
+[dollsym] gets and expands the value of dollar symbols ("$0-x", "$1-y", and so on). It can also get and expand according to the values of a parent patch with the 'depth' argument. Symbols without dollar arguments are passed through unchanged.
 

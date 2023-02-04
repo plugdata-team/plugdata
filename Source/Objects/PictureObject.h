@@ -5,7 +5,7 @@
  */
 
 // ELSE pic
-struct PictureObject final : public GUIObject {
+class PictureObject final : public ObjectBase {
     typedef struct _edit_proxy {
         t_object p_obj;
         t_symbol* p_sym;
@@ -42,8 +42,13 @@ struct PictureObject final : public GUIObject {
         t_outlet* x_outlet;
     } t_pic;
 
+    Value path;
+    File imageFile;
+    Image img;
+
+public:
     PictureObject(void* ptr, Object* object)
-        : GUIObject(ptr, object)
+        : ObjectBase(ptr, object)
     {
         auto* pic = static_cast<t_pic*>(ptr);
 
@@ -55,7 +60,7 @@ struct PictureObject final : public GUIObject {
         }
     }
 
-    ObjectParameters defineParameters() override
+    ObjectParameters getParameters() override
     {
         return { { "File", tString, cGeneral, &path, {} } };
     };
@@ -65,16 +70,14 @@ struct PictureObject final : public GUIObject {
         if (imageFile.existsAsFile()) {
             g.drawImageAt(img, 0, 0);
         } else {
-            g.setFont(30);
-            g.setColour(object->findColour(PlugDataColour::canvasTextColourId));
-            g.drawText("?", getLocalBounds(), Justification::centred);
+            PlugDataLook::drawText(g, "?", getLocalBounds(), object->findColour(PlugDataColour::canvasTextColourId), 30, Justification::centred);
         }
 
         bool selected = cnv->isSelected(object) && !cnv->isGraph;
         auto outlineColour = object->findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : objectOutlineColourId);
 
         g.setColour(outlineColour);
-        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Constants::objectCornerRadius, 1.0f);
+        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), PlugDataLook::objectCornerRadius, 1.0f);
     }
 
     void valueChanged(Value& value) override
@@ -107,51 +110,46 @@ struct PictureObject final : public GUIObject {
         object->setObjectBounds(bounds);
     }
 
-    void checkBounds() override
-    {
-        auto* pic = static_cast<t_pic*>(ptr);
-
-        if (!imageFile.existsAsFile()) {
-            object->setSize(50, 50);
-        } else if (pic->x_height != img.getHeight() || pic->x_width != img.getWidth()) {
-            object->setSize(img.getWidth(), img.getHeight());
-        }
-    }
-    
     void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
     {
-        if(symbol == "open" && atoms.size() >= 1) {
-            openFile(atoms[0].getSymbol());
+        switch (objectMessageMapped[symbol]) {
+        case objectMessage::msg_open: {
+            if (atoms.size() >= 1)
+                openFile(atoms[0].getSymbol());
+            break;
+        }
+        default:
+            break;
         }
     }
 
     void openFile(String location)
     {
-        
-        auto findFile = [this](const String& name){
-            if(File(name).existsAsFile()) {
+
+        auto findFile = [this](String const& name) {
+            if (File(name).existsAsFile()) {
                 return File(name);
             }
-            if(File(String::fromUTF8(canvas_getdir(cnv->patch.getPointer())->s_name)).getChildFile(name).existsAsFile()) {
+            if (File(String::fromUTF8(canvas_getdir(cnv->patch.getPointer())->s_name)).getChildFile(name).existsAsFile()) {
                 return File(String::fromUTF8(canvas_getdir(cnv->patch.getPointer())->s_name)).getChildFile(name);
             }
-            
+
             // Get pd's search paths
             char* paths[1024];
             int numItems;
             libpd_get_search_paths(paths, &numItems);
-            
-            for(int i = 0; i < numItems; i++) {
+
+            for (int i = 0; i < numItems; i++) {
                 auto file = File(String::fromUTF8(paths[i])).getChildFile(name);
-                
-                if(file.existsAsFile()) {
+
+                if (file.existsAsFile()) {
                     return file;
                 }
             }
-            
+
             return File(name);
         };
- 
+
         auto* pic = static_cast<t_pic*>(ptr);
 
         imageFile = findFile(location);
@@ -183,8 +181,4 @@ struct PictureObject final : public GUIObject {
         } else
             return (0);
     }
-
-    Value path;
-    File imageFile;
-    Image img;
 };

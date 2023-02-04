@@ -18,7 +18,7 @@
 #    include <juce_gui_basics/native/juce_win32_ScopedThreadDPIAwarenessSetter.h>
 #endif
 
-struct StackShadow {
+class StackShadow {
 
     static inline unsigned short const stackblur_mul[255] = {
         512, 512, 456, 512, 328, 456, 335, 512, 405, 328, 271, 456, 388, 335, 292, 512,
@@ -58,6 +58,7 @@ struct StackShadow {
         24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24
     };
 
+public:
     static void applyStackBlurBW(Image& img, unsigned int radius)
     {
         unsigned int const w = (unsigned int)img.getWidth();
@@ -722,7 +723,6 @@ bool isWindowOnCurrentVirtualDesktop(void* x);
 
 class StackDropShadower : private ComponentListener {
 public:
-    //==============================================================================
     /** Creates a DropShadower. */
     StackDropShadower(DropShadow const& shadowType, int cornerRadius = 0)
         : shadow(shadowType)
@@ -788,7 +788,6 @@ public:
     }
 
 private:
-    //==============================================================================
     void componentMovedOrResized(Component& c, bool, bool) override
     {
         if (owner == &c)
@@ -941,7 +940,7 @@ private:
         {
             if (auto* c = dynamic_cast<TopLevelWindow*>(target.get())) {
                 auto shadowPath = Path();
-                shadowPath.addRoundedRectangle(getLocalArea(c, c->getLocalBounds().reduced(shadow.radius * 0.9f)).toFloat(), Constants::windowCornerRadius);
+                shadowPath.addRoundedRectangle(getLocalArea(c, c->getLocalBounds().reduced(shadow.radius * 0.9f)).toFloat(), windowCornerRadius);
 
                 auto radius = c->isActiveWindow() ? shadow.radius * 2.0f : shadow.radius * 1.5f;
                 StackShadow::renderDropShadow(g, shadowPath, shadow.colour, radius, shadow.offset);
@@ -969,6 +968,8 @@ private:
         WeakReference<Component> target;
         DropShadow shadow;
 
+        inline static float const windowCornerRadius = 7.5f;
+
         int shadowCornerRadius;
 
         JUCE_DECLARE_NON_COPYABLE(ShadowWindow)
@@ -977,7 +978,6 @@ private:
     class VirtualDesktopWatcher final : public ComponentListener
         , private Timer {
     public:
-        //==============================================================================
         VirtualDesktopWatcher(Component& c)
             : component(&c)
         {
@@ -1008,7 +1008,6 @@ private:
             listeners.erase(listener);
         }
 
-        //==============================================================================
         void componentParentHierarchyChanged(Component& c) override
         {
             if (component.get() == &c)
@@ -1016,7 +1015,6 @@ private:
         }
 
     private:
-        //==============================================================================
         void update()
         {
             auto const newHasReasonToHide = [this]() {
@@ -1039,7 +1037,6 @@ private:
             update();
         }
 
-        //==============================================================================
         WeakReference<Component> component;
         bool const isWindows = (SystemStats::getOperatingSystemType() & SystemStats::Windows) != 0;
         bool hasReasonToHide = false;

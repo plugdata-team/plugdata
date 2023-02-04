@@ -1,12 +1,12 @@
 ---
 title: rand.i~
 
-description: Random integer number generator
+description: random integer number generator
 
 categories:
  - object
 
-pdcategory: Control
+pdcategory: ELSE, Random and Noise, Signal Math
 
 arguments:
 - type: float
@@ -35,7 +35,7 @@ outlets:
     description: random values
 
 flags:
-  - type: seed <float> 
+  - name: -seed <float> 
     description: seed value
 
 methods:

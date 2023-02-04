@@ -1,12 +1,12 @@
 ---
 title: pulse
 
-description: Control pulse
+description: control pulse
 
 categories:
 - object
 
-pdcategory:
+pdcategory: ELSE, Triggers and Clocks
 
 arguments:
 - description: frequency in hertz

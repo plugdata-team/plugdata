@@ -1,12 +1,12 @@
 ---
 title: sah~
 
-description: Sample and hold
+description: sample and hold
 
 categories:
  - object
 
-pdcategory: General
+pdcategory: cyclone, General
 
 arguments:
 - type: float

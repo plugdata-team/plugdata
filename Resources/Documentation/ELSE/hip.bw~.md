@@ -1,12 +1,12 @@
 ---
 title: hip.bw~
 
-description: Highpass butterworth filter
+description: highpass butterworth filter
 
 categories:
 - object
 
-pdcategory:
+pdcategory: ELSE, Filters
 
 arguments:
 - description: cutoff in hertz

@@ -1,11 +1,12 @@
 ---
 title: lb
-description: Multiple loadbangs
+
+description: multiple loadbangs
 
 categories:
  - object
 
-pdcategory: General
+pdcategory: ELSE, Data Management
 
 arguments:
 - type: float

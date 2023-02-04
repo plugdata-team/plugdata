@@ -1,12 +1,12 @@
 ---
 title: canvas.name
 
-description: Get canvase name
+description: get canvas name
 
 categories:
  - object
 
-pdcategory: Patch Management
+pdcategory: ELSE, GUI
 
 arguments:
 - type: float

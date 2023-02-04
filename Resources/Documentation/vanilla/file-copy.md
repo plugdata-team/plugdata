@@ -1,9 +1,9 @@
 ---
 title: file copy
-description: copy a file around.
+description: copy a file around
 categories:
 - object
-pdcategory: Misc
+pdcategory: vanilla, File Management
 last_update: '0.52'
 see_also:
 - text

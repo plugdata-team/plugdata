@@ -1,9 +1,9 @@
 ---
 title: acos
-description: Arc-cosine function
+description: arc-cosine function
 categories:
  - object
-pdcategory: General
+pdcategory: cyclone, General
 arguments:
 - type: float
   description: initially stored value

@@ -1,14 +1,14 @@
 ---
 title: sysrt.out
 
-description: Midi system/real-time output
+description: MIDI system/real-time output
 
 categories:
 - object
 
-pdcategory: MIDI
+pdcategory: ELSE, MIDI
 
-arguments: (none)
+arguments:
 
 inlets:
   1st:

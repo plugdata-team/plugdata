@@ -24,27 +24,27 @@ struct pd::Instance::internal {
 
     static void instance_multi_bang(pd::Instance* ptr, char const* recv)
     {
-        ptr->enqueueFunctionAsync([ptr, recv]() { ptr->processMessage({ String("bang"), String(recv) }); });
+        ptr->enqueueFunctionAsync([ptr, recv]() { ptr->processMessage({ String("bang"), String::fromUTF8(recv) }); });
     }
 
     static void instance_multi_float(pd::Instance* ptr, char const* recv, float f)
     {
-        ptr->enqueueFunctionAsync([ptr, recv, f]() mutable { ptr->processMessage({ String("float"), String(recv), std::vector<Atom>(1, { f }) }); });
+        ptr->enqueueFunctionAsync([ptr, recv, f]() mutable { ptr->processMessage({ String("float"), String::fromUTF8(recv), std::vector<Atom>(1, { f }) }); });
     }
 
     static void instance_multi_symbol(pd::Instance* ptr, char const* recv, char const* sym)
     {
-        ptr->enqueueFunctionAsync([ptr, recv, sym]() mutable { ptr->processMessage({ String("symbol"), String(recv), std::vector<Atom>(1, String(sym)) }); });
+        ptr->enqueueFunctionAsync([ptr, recv, sym]() mutable { ptr->processMessage({ String("symbol"), String::fromUTF8(recv), std::vector<Atom>(1, String::fromUTF8(sym)) }); });
     }
 
     static void instance_multi_list(pd::Instance* ptr, char const* recv, int argc, t_atom* argv)
     {
-        Message mess { String("list"), String(recv), std::vector<Atom>(argc) };
+        Message mess { String("list"), String::fromUTF8(recv), std::vector<Atom>(argc) };
         for (int i = 0; i < argc; ++i) {
             if (argv[i].a_type == A_FLOAT)
                 mess.list[i] = Atom(atom_getfloat(argv + i));
             else if (argv[i].a_type == A_SYMBOL)
-                mess.list[i] = Atom(String(atom_getsymbol(argv + i)->s_name));
+                mess.list[i] = Atom(String::fromUTF8(atom_getsymbol(argv + i)->s_name));
         }
 
         ptr->enqueueFunctionAsync([ptr, mess]() mutable { ptr->processMessage(mess); });
@@ -52,12 +52,12 @@ struct pd::Instance::internal {
 
     static void instance_multi_message(pd::Instance* ptr, char const* recv, char const* msg, int argc, t_atom* argv)
     {
-        Message mess { msg, String(recv), std::vector<Atom>(argc) };
+        Message mess { msg, String::fromUTF8(recv), std::vector<Atom>(argc) };
         for (int i = 0; i < argc; ++i) {
             if (argv[i].a_type == A_FLOAT)
                 mess.list[i] = Atom(atom_getfloat(argv + i));
             else if (argv[i].a_type == A_SYMBOL)
-                mess.list[i] = Atom(String(atom_getsymbol(argv + i)->s_name));
+                mess.list[i] = Atom(String::fromUTF8(atom_getsymbol(argv + i)->s_name));
         }
         ptr->enqueueFunctionAsync([ptr, mess]() mutable { ptr->processMessage(std::move(mess)); });
     }
@@ -136,21 +136,17 @@ Instance::Instance(String const& symbol)
 
     // Register callback when pd's gui changes
     // Needs to be done on pd's thread
-    auto gui_trigger = [](void* instance, void* target) {
-        auto* pd = static_cast<t_pd*>(target);
+    auto gui_trigger = [](void* instance, char const* name, t_atom* arg1, t_atom* arg2, t_atom* arg3) {
+        if (String::fromUTF8(name) == "openpanel") {
 
-        // redraw scalar
-        if (pd && !strcmp((*pd)->c_name->s_name, "scalar")) {
-            static_cast<Instance*>(instance)->receiveGuiUpdate(2);
-        } else {
-            static_cast<Instance*>(instance)->receiveGuiUpdate(1);
+            static_cast<Instance*>(instance)->createPanel(atom_getfloat(arg1), atom_getsymbol(arg3)->s_name, atom_getsymbol(arg2)->s_name);
         }
-    };
-
-    auto panel_trigger = [](void* instance, int open, char const* snd, char const* location) { static_cast<Instance*>(instance)->createPanel(open, snd, location); };
-
-    auto openfile_trigger = [](void* instance, char const* fileToOpen) {
-        File(fileToOpen).startAsProcess();
+        if (String::fromUTF8(name) == "openfile") {
+            File(String::fromUTF8(atom_getsymbol(arg1)->s_name)).startAsProcess();
+        }
+        if (String::fromUTF8(name) == "repaint") {
+            static_cast<Instance*>(instance)->updateDrawables();
+        }
     };
 
     auto message_trigger = [](void* instance, void* target, t_symbol* symbol, int argc, t_atom* argv) {
@@ -166,11 +162,12 @@ Instance::Instance(String const& symbol)
                 cleanUp = true;
                 continue;
             }
-            auto sym = String(symbol->s_name);
+            auto sym = String::fromUTF8(symbol->s_name);
             listener->receiveMessage(sym, argc, argv);
         }
 
         // If any pointers were invalid, clean them up
+        // TODO: profile if this is really the best place to do that
         if (cleanUp) {
             for (int i = listeners[target].size() - 1; i >= 0; i--) {
                 if (!listeners[target][i]) {
@@ -180,7 +177,7 @@ Instance::Instance(String const& symbol)
         }
     };
 
-    register_gui_triggers(static_cast<t_pdinstance*>(m_instance), this, gui_trigger, panel_trigger, openfile_trigger, message_trigger);
+    register_gui_triggers(static_cast<t_pdinstance*>(m_instance), this, gui_trigger, message_trigger);
 
     // HACK: create full path names for c-coded externals
     // Temporarily disabled because bugs
@@ -269,6 +266,8 @@ void Instance::loadLibs(String& pdlua_version)
     libpd_init_pdlua(extra.getFullPathName().getCharPointer(), vers, 1000);
     if (*vers)
         pdlua_version = vers;
+
+    pdlua_version = pdlua_version.upToLastOccurrenceOf("-", false, false) + " " + pdlua_version.fromFirstOccurrenceOf("(", true, false);
     // ag: need to do this here to suppress noise from chatty externals
     m_print_receiver = libpd_multi_print_new(this, reinterpret_cast<t_libpd_multi_printhook>(internal::instance_multi_print));
     libpd_set_verbose(0);
@@ -283,7 +282,6 @@ void Instance::prepareDSP(int const nins, int const nouts, double const samplera
 {
     libpd_set_instance(static_cast<t_pdinstance*>(m_instance));
     libpd_init_audio(nins, nouts, static_cast<int>(samplerate));
-    // continuityChecker.prepare(samplerate, blockSize, std::max(nins, nouts));
 }
 
 void Instance::startDSP()
@@ -434,14 +432,18 @@ void Instance::sendMessage(char const* receiver, char const* msg, std::vector<At
 
 void Instance::processMessage(Message mess)
 {
-    if (mess.destination == "param") {
-        int index = mess.list[0].getFloat();
-        float value = std::clamp(mess.list[1].getFloat(), 0.0f, 1.0f);
-        performParameterChange(0, index - 1, value);
-    } else if (mess.destination == "param_change") {
-        int index = mess.list[0].getFloat();
+    if (mess.destination == "param" && mess.list.size() >= 2) {
+        if (!mess.list[0].isSymbol() || !mess.list[1].isFloat())
+            return;
+        auto name = mess.list[0].getSymbol();
+        float value = mess.list[1].getFloat();
+        performParameterChange(0, name, value);
+    } else if (mess.destination == "param_change" && mess.list.size() >= 2) {
+        if (!mess.list[0].isSymbol() || !mess.list[1].isFloat())
+            return;
+        auto name = mess.list[0].getSymbol();
         int state = mess.list[1].getFloat() != 0;
-        performParameterChange(1, index - 1, state);
+        performParameterChange(1, name, state);
     } else if (mess.selector == "bang") {
         receiveBang(mess.destination);
     } else if (mess.selector == "float") {
@@ -604,8 +606,6 @@ Patch Instance::openPatch(File const& toOpen)
 {
     t_canvas* cnv = nullptr;
 
-    bool done = false;
-
     String dirname = toOpen.getParentDirectory().getFullPathName().replace("\\", "/");
     auto const* dir = dirname.toRawUTF8();
 
@@ -615,7 +615,6 @@ Patch Instance::openPatch(File const& toOpen)
     setThis();
 
     cnv = static_cast<t_canvas*>(libpd_create_canvas(file, dir));
-    done = true;
 
     auto patch = Patch(cnv, this, toOpen);
 
@@ -627,7 +626,7 @@ void Instance::setThis() const
     libpd_set_instance(static_cast<t_pdinstance*>(m_instance));
 }
 
-t_symbol* Instance::generateSymbol(String symbol) const
+t_symbol* Instance::generateSymbol(String const& symbol) const
 {
     setThis();
     return gensym(symbol.toRawUTF8());

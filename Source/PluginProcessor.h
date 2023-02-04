@@ -10,19 +10,22 @@
 
 #include "Pd/PdInstance.h"
 #include "Pd/PdLibrary.h"
+#include "Utility/SettingsFile.h"
 #include "LookAndFeel.h"
 #include "Statusbar.h"
+
+#if PLUGDATA_STANDALONE
+#    include "Utility/InternalSynth.h"
+#endif
 
 class PlugDataLook;
 
 class PluginEditor;
 class PluginProcessor : public AudioProcessor
     , public pd::Instance
-    , public Timer
     , public AudioProcessorParameter::Listener {
 public:
     PluginProcessor();
-    ~PluginProcessor() override;
 
     static AudioProcessor::BusesProperties buildBusesProperties();
 
@@ -46,9 +49,6 @@ public:
     bool isMidiEffect() const override;
     double getTailLengthSeconds() const override;
 
-    std::atomic<int> callbackType = 0;
-    void timerCallback() override;
-
     int getNumPrograms() override;
     int getCurrentProgram() override;
     void setCurrentProgram(int index) override;
@@ -70,7 +70,7 @@ public:
     void parameterGestureChanged(int parameterIndex, bool gestureIsStarting) override;
 
     void receiveDSPState(bool dsp) override;
-    void receiveGuiUpdate(int type) override;
+    void updateDrawables() override;
 
     void updateConsole() override;
 
@@ -101,22 +101,20 @@ public:
     }
 
     void initialiseFilesystem();
-    void saveSettings();
     void updateSearchPaths();
 
     void sendMidiBuffer();
     void sendPlayhead();
-    void sendParameters();
 
     void messageEnqueued() override;
-    void performParameterChange(int type, int idx, float value) override;
+    void performParameterChange(int type, String name, float value) override;
 
     pd::Patch* loadPatch(String patch);
     pd::Patch* loadPatch(File const& patch);
 
     void titleChanged() override;
 
-    void setTheme(bool themeToUse);
+    void setTheme(String themeToUse);
 
     Colour getForegroundColour() override;
     Colour getBackgroundColour() override;
@@ -131,24 +129,22 @@ public:
     std::vector<float*> channelPointers;
     std::atomic<float>* volume;
 
-    ValueTree settingsTree = ValueTree("plugdatasettings");
+    SettingsFile* settingsFile;
 
     pd::Library objectLibrary;
 
     File homeDir = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory).getChildFile("plugdata");
     File versionDataDir = homeDir.getChildFile(ProjectInfo::versionString);
 
-    File settingsFile = homeDir.getChildFile("Settings.xml");
     File abstractions = versionDataDir.getChildFile("Abstractions");
 
     Value commandLocked = Value(var(false));
-
-    AudioProcessorValueTreeState parameters;
 
     StatusbarSource statusbarSource;
 
     Value tailLength = Value(0.0f);
 
+    // Just so we never have to deal with deleting the default LnF
     SharedResourcePointer<PlugDataLook> lnf;
 
     static inline constexpr int numParameters = 512;
@@ -159,11 +155,11 @@ public:
     int oversampling = 0;
     int lastTab = -1;
 
-    bool settingsChangedInternally = false;
-
 #if PLUGDATA_STANDALONE
-    std::atomic<float> standaloneParams[numParameters] = { 0 };
     OwnedArray<MidiOutput> midiOutputs;
+
+    InternalSynth internalSynth;
+    std::atomic<bool> enableInternalSynth = false;
 #endif
 
 private:
@@ -181,9 +177,6 @@ private:
     bool midiByteIsSysex = false;
     uint8 midiByteBuffer[512] = { 0 };
     size_t midiByteIndex = 0;
-
-    std::array<float, numParameters> lastParameters = { 0 };
-    std::array<float, numParameters> changeGestureState = { 0 };
 
     std::vector<pd::Atom> atoms_playhead;
 

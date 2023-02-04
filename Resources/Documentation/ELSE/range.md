@@ -1,19 +1,19 @@
 ---
 title: range
 
-description: Anylize range
+description: analyze range
 
 categories:
 - object
 
-pdcategory: General
+pdcategory: ELSE, Analysis
 
-arguments:(none)
+arguments:
 
 inlets:
   1st:
   - type: float/signal
-    description: input signal to analize
+    description: input signal to analyze
 
 outlets:
   1st:

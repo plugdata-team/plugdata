@@ -1,12 +1,12 @@
 ---
 title: past
 
-description: Check if input increases past a threshold
+description: check if input increases past a threshold
 
 categories:
  - object
 
-pdcategory: General
+pdcategory: cyclone, General
 
 arguments:
 - type: float/list

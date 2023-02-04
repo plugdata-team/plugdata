@@ -1,12 +1,12 @@
 ---
 title: freeze~
 
-description: Freeze
+description: freeze
 
 categories:
 - object
 
-pdcategory:
+pdcategory: ELSE, Effects
 
 arguments:
 

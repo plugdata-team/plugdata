@@ -1,7 +1,7 @@
 ---
 title: vradio, vdl
-description: Vertical radio
-pdcategory: GUI
+description: vertical radio
+pdcategory: vanilla, GUI
 inlets:
   1st:
   - type: float

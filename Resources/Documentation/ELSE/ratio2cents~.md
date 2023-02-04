@@ -1,13 +1,14 @@
 ---
 title: ratio2cents~
-description: Rational/Cents conversion (for signals)
+
+description: rational/Cents conversion (for signals)
 
 categories:
  - object
 
-pdcategory: Math
+pdcategory: ELSE, Signal Math
 
-arguments: (none)
+arguments:
 
 inlets: 
   1st:

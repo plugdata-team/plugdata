@@ -15,6 +15,34 @@ extern "C" {
 #include <z_libpd.h>
 #include <g_canvas.h>
 
+
+// Some duplicates and modifications of pure-data functions, not a great way to do things
+
+struct _outlet {
+    t_object* o_owner;
+    struct _outlet* o_next;
+    t_outconnect* o_connections;
+    t_symbol* o_sym;
+};
+
+union inletunion {
+    t_symbol* iu_symto;
+    t_gpointer* iu_pointerslot;
+    t_float* iu_floatslot;
+    t_symbol** iu_symslot;
+    t_float iu_floatsignalvalue;
+};
+
+struct _inlet {
+    t_pd i_pd;
+    struct _inlet* i_next;
+    t_object* i_owner;
+    t_pd* i_dest;
+    t_symbol* i_symfrom;
+    union inletunion i_un;
+};
+
+
 void libpd_get_search_paths(char** paths, int* numItems);
 
 t_pd* libpd_newest(t_canvas* cnv);
@@ -45,39 +73,32 @@ void libpd_removeselection(t_canvas* cnv);
 void libpd_moveselection(t_canvas* cnv, int dx, int dy);
 
 int libpd_hasconnection(t_canvas* cnv, t_object* src, int nout, t_object* sink, int nin);
-void libpd_createconnection(t_canvas* cnv, t_object* src, int nout, t_object* sink, int nin);
-void libpd_removeconnection(t_canvas* cnv, t_object* src, int nout, t_object* sink, int nin);
+void* libpd_createconnection(t_canvas* cnv, t_object* src, int nout, t_object* sink, int nin);
+void libpd_removeconnection(t_canvas* cnv, t_object* src, int nout, t_object* sink, int nin, t_symbol* connection_path);
+
+void* libpd_setconnectionpath(t_canvas* cnv, t_object* src, int nout, t_object* sink, int nin, t_symbol* old_connection_path, t_symbol* new_connection_path);
 
 void libpd_getcontent(t_canvas* cnv, char** buf, int* bufsize);
 void libpd_savetofile(t_canvas* cnv, t_symbol* filename, t_symbol* dir);
 
-int libpd_type_exists(char const* type);
-
 int libpd_noutlets(t_object const* x);
-
 int libpd_ninlets(t_object const* x);
 
 int libpd_can_undo(t_canvas* cnv);
 int libpd_can_redo(t_canvas* cnv);
+
+void libpd_tofront(t_canvas* cnv, t_gobj* obj);
+void libpd_toback(t_canvas* cnv, t_gobj* obj);
 
 void libpd_undo_apply(t_canvas* cnv, t_gobj* obj);
 
 int libpd_issignalinlet(t_object const* x, int m);
 int libpd_issignaloutlet(t_object const* x, int m);
 
-void libpd_canvas_doclear(t_canvas* cnv);
-
 void libpd_canvas_saveto(t_canvas* cnv, t_binbuf* b);
 
-void gobj_setposition(t_gobj* x, t_glist* glist, int xpos, int ypos);
-
-int libpd_tryconnect(t_canvas* cnv, t_object* src, int nout, t_object* sink, int nin);
+void* libpd_tryconnect(t_canvas* cnv, t_object* src, int nout, t_object* sink, int nin);
 int libpd_canconnect(t_canvas* cnv, t_object* src, int nout, t_object* sink, int nin);
-
-void libpd_collecttemplatesfor(t_canvas* cnv, int* ntemplatesp,
-    t_symbol*** templatevecp);
-
-extern void canvas_reload(t_symbol *name, t_symbol *dir, t_glist *except);
 
 #ifdef __cplusplus
 }

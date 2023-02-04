@@ -1,23 +1,20 @@
 ---
 title: timed.gate~
 
-description: Signal timed gate
+description: signal timed gate
 
 categories:
 - object
 
-pdcategory:
+pdcategory: ELSE, Triggers and Clocks
 
 arguments:
-  1st:
   - type: float
     description: gate time in ms
     default: 0, no gate
-  2nd:
   - type: float
     description: initial gate amplitude
     default: 1
-  3rd:
   - type: float
     description: non-zero sets to retrigger mode
     default: 0
@@ -42,6 +39,12 @@ outlets:
   1st:
   - type: signal
     description: timed gate
+
+methods:
+  - type: ms <float>
+    description: gate time in ms
+  - type: retrigger <float>
+    description: non-zero sets to retrigger mode
 
 draft: false
 ---

@@ -1,12 +1,12 @@
 ---
 title: above
 
-description: Threshold detection
+description: threshold detection
 
 categories:
 - object
 
-pdcategory: Math
+pdcategory: ELSE, Data Math
 
 arguments:
 - description: initial threshold value

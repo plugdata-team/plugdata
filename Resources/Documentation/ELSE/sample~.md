@@ -1,12 +1,12 @@
 ---
 title: sample~
 
-description: Audio buffer
+description: audio buffer
 
 categories:
 - object
 
-pdcategory: Buffer, Sampling, Playing, Granulation
+pdcategory: ELSE, Buffers
 
 arguments:
 - type: symbol

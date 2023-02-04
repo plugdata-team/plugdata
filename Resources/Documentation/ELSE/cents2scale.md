@@ -1,15 +1,14 @@
 ---
 title: cents2scale
 
-description: Cents/Scale conversion
+description: cents/scale conversion
 
 categories:
 - object
 
-pdcategory: Tuning / Scale Tools
+pdcategory: ELSE, Tuning
 
-arguments: none
-
+arguments:
 inlets:
   1st:
   - type: list

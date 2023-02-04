@@ -28,26 +28,22 @@ typedef struct _button {
     unsigned char x_fgcolor[3];
 } t_fake_button;
 
-struct ButtonObject : public GUIObject {
+class ButtonObject : public ObjectBase {
 
     bool state = false;
     bool alreadyTriggered = false;
 
+    Value primaryColour;
+    Value secondaryColour;
+
+public:
     ButtonObject(void* obj, Object* parent)
-        : GUIObject(obj, parent)
+        : ObjectBase(obj, parent)
     {
+        parent->constrainer->setFixedAspectRatio(1);
     }
 
-    void checkBounds() override
-    {
-        // Fix aspect ratio and apply limits
-        int size = jlimit(30, maxSize, object->getWidth());
-        if (size != object->getHeight() || size != object->getWidth()) {
-            object->setSize(size, size);
-        }
-    }
-
-    void updateParameters() override
+    void initialiseParameters() override
     {
         auto* button = static_cast<t_fake_button*>(ptr);
 
@@ -138,23 +134,23 @@ struct ButtonObject : public GUIObject {
         auto const bounds = getLocalBounds().toFloat();
 
         g.setColour(Colour::fromString(secondaryColour.toString()));
-        g.fillRoundedRectangle(bounds.reduced(0.5f), Constants::objectCornerRadius);
+        g.fillRoundedRectangle(bounds.reduced(0.5f), PlugDataLook::objectCornerRadius);
 
         bool selected = cnv->isSelected(object) && !cnv->isGraph;
 
         g.setColour(object->findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : objectOutlineColourId));
-        g.drawRoundedRectangle(bounds.reduced(0.5f), Constants::objectCornerRadius, 1.0f);
+        g.drawRoundedRectangle(bounds.reduced(0.5f), PlugDataLook::objectCornerRadius, 1.0f);
 
         g.setColour(object->findColour(PlugDataColour::objectOutlineColourId));
-        g.drawRoundedRectangle(bounds.reduced(6), Constants::objectCornerRadius, 1.5f);
+        g.drawRoundedRectangle(bounds.reduced(6), PlugDataLook::objectCornerRadius, 1.5f);
 
         if (state) {
             g.setColour(Colour::fromString(primaryColour.toString()));
-            g.fillRoundedRectangle(bounds.reduced(6), Constants::objectCornerRadius);
+            g.fillRoundedRectangle(bounds.reduced(6), PlugDataLook::objectCornerRadius);
         }
     }
 
-    ObjectParameters defineParameters() override
+    ObjectParameters getParameters() override
     {
         return {
             { "Foreground", tColour, cAppearance, &primaryColour, {} },
@@ -183,12 +179,19 @@ struct ButtonObject : public GUIObject {
 
     void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
     {
-        if (symbol == "bgcolor") {
+        switch (objectMessageMapped[symbol]) {
+        case objectMessage::msg_bgcolor: {
             setParameterExcludingListener(secondaryColour, Colour(atoms[0].getFloat(), atoms[1].getFloat(), atoms[2].getFloat()).toString());
             repaint();
-        } else if (symbol == "fgcolor") {
+            break;
+        }
+        case objectMessage::msg_fgcolor: {
             setParameterExcludingListener(primaryColour, Colour(atoms[0].getFloat(), atoms[1].getFloat(), atoms[2].getFloat()).toString());
             repaint();
+            break;
+        }
+        default:
+            break;
         }
     }
 };

@@ -1,12 +1,12 @@
 ---
 title: phaser~
 
-description: Phaser effect
+description: phaser effect
 
 categories:
 - object
 
-pdcategory:
+pdcategory: ELSE, Effects
 
 arguments:
 - description: number of stages from 2 to 64

@@ -3,7 +3,7 @@ title: line
 description: send a series of linearly stepped numbers
 categories:
 - object
-pdcategory: Time
+pdcategory: vanilla, Sequencing, Triggers and Clocks
 last_update: '0.48'
 see_also:
 - line~

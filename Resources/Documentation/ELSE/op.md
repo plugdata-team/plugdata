@@ -1,19 +1,17 @@
 ---
 title: op
 
-description: Float/list operators
+description: float/list operators
 
 categories:
 - object
 
-pdcategory:
+pdcategory: ELSE, Data Math, Data Management
 
 arguments:
-  1st:
   - description: operator: see [pd set] for all options
     type: symbol
     default: +
-  2nd:
   - description: inlet value - ignored for bitnot
     type: float
     default: 0

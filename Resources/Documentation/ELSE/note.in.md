@@ -1,9 +1,13 @@
 ---
 title: note.in
-description: Midi pitch input
+
+description: MIDI pitch input
+
 categories:
  - object
-pdcategory: General
+
+pdcategory: ELSE, MIDI
+
 arguments:
 - type: float
   description: sets channel number

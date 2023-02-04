@@ -1,11 +1,11 @@
 ---
 title: ffdelay~
-description: Feed-forward delay line
+description: feed-forward delay line
 
 categories:
  - object
 
-pdcategory: General
+pdcategory: ELSE, Effects
 
 arguments:
 - type: float

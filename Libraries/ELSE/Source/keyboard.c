@@ -813,8 +813,8 @@ void * keyboard_new(t_symbol *s, int ac, t_atom* av){
         pd_bind(&x->x_obj.ob_pd, x->x_receive);
     x->x_space = (init_space < 7) ? 7 : init_space; // key width
     x->x_height = (init_height < 10) ? 10 : init_height;
-    x->x_octaves = init_8ves < 1 ? 1 : init_8ves > 10 ? 10 : init_8ves;
-    x->x_low_c = init_low_c < 0 ? 0 : init_low_c > 8 ? 8 : init_low_c;
+    x->x_octaves = init_8ves < 1 ? 1 : init_8ves > 11 ? 11 : init_8ves;
+    x->x_low_c = init_low_c < -1 ? -1 : init_low_c > 9 ? 9 : init_low_c;
     x->x_norm = vel < 0 ? 0 : vel > 127 ? 127 : vel;
     x->x_toggle_mode = (tgl != 0);
     x->x_width = ((int)(x->x_space)) * 7 * (int)x->x_octaves;

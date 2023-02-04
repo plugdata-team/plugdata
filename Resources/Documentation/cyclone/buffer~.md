@@ -1,9 +1,9 @@
 ---
 title: buffer~
-description: Audio buffer
+description: audio buffer
 categories:
  - object
-pdcategory: General
+pdcategory: cyclone, General
 arguments:
 - type: symbol
   description: buffer name

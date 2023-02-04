@@ -1,19 +1,17 @@
 ---
 title: tempo~
 
-description: Metronome
+description: metronome
 
 categories:
 - object
 
-pdcategory:
+pdcategory: ELSE, Sequencing, Triggers and Clocks
 
 arguments:
-  1st:
   - type: float
     description: bpm/hz/ms
     default: 0
-  2nd:
   - type: float
     description: swing deviation in %
     default: 0
@@ -40,16 +38,6 @@ inlets:
     description: gate (on/off)
   - type: bang
     description: sync the metronome
-  - type: mul <float>
-    description: sets multiplier
-  - type: ms <f, f>
-    description: sets time to ms, optional floats set tempo and swing
-  - type: hz <f, f>
-    description: sets time to hz, optional floats set tempo and swing
-  - type: bpm <f, f>
-    description: sets time to bpm, optional floats set tempo and swing
-  - type: seed <float>
-    description: a float sets seed, no float sets a unique internal
   2nd:
   - type: float/signal
     description: tempo in ms or bpm
@@ -65,6 +53,17 @@ outlets:
   - type: signal
     description: impulses at metronome beat
 
+methods:
+  - type: mul <float>
+    description: sets multiplier
+  - type: ms <f, f>
+    description: sets time to ms, optional floats set tempo and swing
+  - type: hz <f, f>
+    description: sets time to hz, optional floats set tempo and swing
+  - type: bpm <f, f>
+    description: sets time to bpm, optional floats set tempo and swing
+  - type: seed <float>
+    description: a float sets seed, no float sets a unique internal
   
 draft: false
 ---

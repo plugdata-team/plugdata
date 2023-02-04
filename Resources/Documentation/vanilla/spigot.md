@@ -3,7 +3,7 @@ title: spigot
 description: pass or block messages
 categories:
 - object
-pdcategory: General
+pdcategory: vanilla, Mixing and Routing
 last_update: '0.38'
 arguments:
 - description: initialize right inlet.
