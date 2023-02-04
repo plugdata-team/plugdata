@@ -16,12 +16,35 @@ class MessboxObject final : public ObjectBase
 
     int numLines = 1;
     bool isLocked = false;
+        
+    Value primaryColour;
+    Value secondaryColour;
+    Value fontSize;
+    Value bold;
 
 public:
     MessboxObject(void* obj, Object* parent)
         : ObjectBase(obj, parent)
     {
         isLocked = static_cast<bool>(object->cnv->locked.getValue());
+    }
+        
+    void initialiseParameters() override
+    {
+        auto* messbox = static_cast<t_fake_messbox*>(ptr);
+
+        primaryColour = Colour(messbox->x_fg[0], messbox->x_fg[1], messbox->x_fg[2]).toString();
+        secondaryColour = Colour(messbox->x_bg[0], messbox->x_bg[1], messbox->x_bg[2]).toString();
+
+        auto params = getParameters();
+        for (auto& [name, type, cat, value, list] : params) {
+            value->addListener(this);
+
+            // Push current parameters to pd
+            valueChanged(*value);
+        }
+
+        repaint();
     }
 
     void updateBounds() override
@@ -53,16 +76,19 @@ public:
 
     void paint(Graphics& g) override
     {
+        auto bounds = getLocalBounds();
         // Draw background
-        g.setColour(object->findColour(PlugDataColour::guiObjectBackgroundColourId));
-        g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), PlugDataLook::objectCornerRadius);
+        g.setColour(Colour::fromString(secondaryColour.toString()));
+        g.fillRoundedRectangle(bounds.toFloat().reduced(0.5f), PlugDataLook::objectCornerRadius);
 
         // Draw text
         if (!editor) {
-            auto textArea = border.subtractedFrom(getLocalBounds().withTrimmedRight(5));
-            auto scale = getWidth() < 50 ? 0.5f : 1.0f;
+            auto textColour = Colour::fromString(primaryColour.toString());
+            auto textArea = border.subtractedFrom(bounds.withTrimmedRight(5));
+            auto scale = bounds.getWidth() < 50 ? 0.5f : 1.0f;
 
-            PlugDataLook::drawFittedText(g, currentText, textArea, object->findColour(PlugDataColour::canvasTextColourId), numLines, scale, 15, Justification::topLeft);
+            
+            PlugDataLook::drawFittedText(g, currentText, textArea, textColour, numLines, scale, 15, Justification::topLeft);
         }
     }
 
@@ -264,6 +290,41 @@ public:
             return true;
         }
         return false;
+    }
+        
+    ObjectParameters getParameters() override
+    {
+        return {
+            { "Text colour", tColour, cAppearance, &primaryColour, {} },
+            { "Background colour", tColour, cAppearance, &secondaryColour, {} },
+            { "Font size", tInt, cAppearance, &fontSize, {} },
+            { "Bold", tBool, cAppearance, &bold, {"no", "yes"} }
+        };
+    }
+    
+    void valueChanged(Value& value) override
+    {
+        auto* messbox = static_cast<t_fake_messbox*>(ptr);
+        if (value.refersToSameSourceAs(primaryColour)) {
+            auto col = Colour::fromString(primaryColour.toString());
+            messbox->x_fg[0] = col.getRed();
+            messbox->x_fg[1] = col.getGreen();
+            messbox->x_fg[2] = col.getBlue();
+            repaint();
+        }
+        if (value.refersToSameSourceAs(secondaryColour)) {
+            auto col = Colour::fromString(secondaryColour.toString());
+            messbox->x_bg[0] = col.getRed();
+            messbox->x_bg[1] = col.getGreen();
+            messbox->x_bg[2] = col.getBlue();
+            repaint();
+        }
+        if (value.refersToSameSourceAs(fontSize)) {
+            // TODO
+        }
+        if (value.refersToSameSourceAs(bold)) {
+            // TODO 
+        }
     }
 
     bool hideInGraph() override
