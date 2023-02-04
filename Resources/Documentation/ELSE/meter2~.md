@@ -1,12 +1,12 @@
 ---
 title: meter2~
 
-description: Stereo VU-meter
+description: stereo VU-meter
 
 categories:
 - object
 
-pdcategory: GUI
+pdcategory: ELSE, GUI, Analysis
 
 arguments:
 - type: float

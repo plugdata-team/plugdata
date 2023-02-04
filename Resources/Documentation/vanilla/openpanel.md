@@ -3,7 +3,7 @@ title: openpanel
 description: query for files or directories.
 categories:
 - object
-pdcategory: Misc
+pdcategory: vanilla, File Management
 last_update: '0.51'
 see_also:
 - savepanel

@@ -1,11 +1,11 @@
 ---
 title: quad~
-description: General quadratic map chaotic generator
+description: general quadratic map chaotic generator
 
 categories:
  - object
 
-pdcategory: General
+pdcategory: ELSE, Signal Generators
 
 arguments:
 - type: float

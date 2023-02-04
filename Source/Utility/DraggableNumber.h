@@ -7,8 +7,10 @@
 #pragma once
 #include <JuceHeader.h>
 
-struct DraggableNumber : public Label {
+class DraggableNumber : public Label
+    , public Label::Listener {
 
+protected:
     float dragValue = 0.0f;
     bool shift = false;
     int decimalDrag = 0;
@@ -20,6 +22,7 @@ struct DraggableNumber : public Label {
     bool onlyIntegers = false;
     float min, max;
 
+public:
     std::function<void(float)> valueChanged = [](float) {};
     std::function<void()> dragStart = []() {};
     std::function<void()> dragEnd = []() {};
@@ -28,15 +31,31 @@ struct DraggableNumber : public Label {
         : onlyIntegers(integerDrag)
     {
         setWantsKeyboardFocus(true);
+        addListener(this);
     }
 
-    ~DraggableNumber()
+    void labelTextChanged(Label* labelThatHasChanged) override {};
+
+    void editorShown(Label* l, TextEditor&) override
     {
+        dragStart();
+    }
+
+    void editorHidden(Label* l, TextEditor& editor) override
+    {
+        auto newValue = editor.getText().getFloatValue();
+
+        newValue = limitValue(newValue);
+
+        lastValue = newValue;
+        setText(formatNumber(newValue), dontSendNotification);
+
+        dragEnd();
     }
 
     void setEditableOnClick(bool editable)
     {
-        setEditable(true, false);
+        setEditable(true, true);
         setInterceptsMouseClicks(true, true);
     }
 
@@ -94,6 +113,11 @@ struct DraggableNumber : public Label {
         }
     }
 
+    float getValue()
+    {
+        return lastValue;
+    }
+
     // Make sure mouse cursor gets reset, sometimes this doesn't happen automatically
     void mouseEnter(MouseEvent const& e) override
     {
@@ -124,7 +148,7 @@ struct DraggableNumber : public Label {
         auto const textArea = getBorderSize().subtractedFrom(getLocalBounds());
 
         GlyphArrangement glyphs;
-        glyphs.addFittedText(getFont(), formatNumber(dragValue), textArea.getX(), 0., textArea.getWidth(), getHeight(), Justification::centredLeft, 1, getMinimumHorizontalScale());
+        glyphs.addFittedText(getFont(), formatNumber(dragValue), textArea.getX(), 0., textArea.getWidth(), getHeight(), 1, getMinimumHorizontalScale());
 
         if (onlyIntegers) {
             decimalDrag = 0;
@@ -167,11 +191,11 @@ struct DraggableNumber : public Label {
     void paint(Graphics& g) override
     {
         if (!isBeingEdited()) {
-            g.setColour(findColour(Label::textColourId));
             g.setFont(getFont());
+            g.setColour(findColour(Label::textColourId));
 
             auto textArea = getBorderSize().subtractedFrom(getLocalBounds());
-            g.drawText(formatNumber(getText().getFloatValue(), decimalDrag), textArea, Justification::left, false);
+            g.drawText(formatNumber(getText().getFloatValue(), decimalDrag), textArea, Justification::centredLeft);
         }
     }
 
@@ -202,16 +226,27 @@ struct DraggableNumber : public Label {
             newValue = static_cast<int64_t>(newValue);
         }
 
-        if (isMinLimited && min < max)
-            newValue = std::max(newValue, min);
-        if (isMaxLimited && max > min)
-            newValue = std::min(newValue, max);
+        newValue = limitValue(newValue);
 
         setText(String(newValue), dontSendNotification);
 
         numDecimalsToShow = decimal;
 
         setValue(newValue);
+    }
+
+    float limitValue(float valueToLimit)
+    {
+
+        if (min == 0.0f && max == 0.0f)
+            return valueToLimit;
+
+        if (isMinLimited)
+            valueToLimit = std::max(valueToLimit, min);
+        if (isMaxLimited)
+            valueToLimit = std::min(valueToLimit, max);
+
+        return valueToLimit;
     }
 
     void mouseUp(MouseEvent const& e) override
@@ -229,7 +264,9 @@ struct DraggableNumber : public Label {
         mouseSource.enableUnboundedMouseMovement(false);
         dragEnd();
 
-        Label::mouseUp(e);
+        if (!e.mouseWasDraggedSinceMouseDown()) {
+            Label::mouseUp(e);
+        }
     }
 
     String formatNumber(float value, int precision = -1)
@@ -368,7 +405,14 @@ struct DraggableListNumber : public DraggableNumber {
             g.setFont(getFont());
 
             auto textArea = getBorderSize().subtractedFrom(getLocalBounds());
-            g.drawText(getText(), textArea, Justification::left, false);
+            g.drawText(getText(), textArea, Justification::centredLeft, false);
         }
+    }
+
+    void editorHidden(Label* l, TextEditor& editor) override
+    {
+        setText(editor.getText().trimEnd(), dontSendNotification);
+
+        dragEnd();
     }
 };

@@ -1,11 +1,12 @@
 ---
 title: lastvalue~
-description: Report last value
+
+description: report last value
 
 categories:
  - object
 
-pdcategory: General
+pdcategory: ELSE, Analysis
 
 arguments:
 - type: float

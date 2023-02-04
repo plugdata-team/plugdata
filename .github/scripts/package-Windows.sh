@@ -37,7 +37,7 @@ cat > ./plugdata.wxs <<-EOL
 		<Property Id="ARPHELPLINK" Value="http://www.github.com/timothyschoen/plugdata"/>
 		<Property Id="ARPURLINFOABOUT" Value="http://www.github.com/timothyschoen/plugdata"/>
 		<Property Id="ARPNOREPAIR" Value="1"/>
-		<Directory Id="TARGETDIR" Name="SourceDir">
+<Directory Id="TARGETDIR" Name="SourceDir">
 			<!-- Copy Standalone to Program Files -->
 			<Directory Id="\$(var.PlatformProgramFilesFolder)">
 				<Directory Id="INSTALLDIR" Name="plugdata">
@@ -127,6 +127,16 @@ cat > ./plugdata.wxs <<-EOL
 						</Component>
 					</Directory>
 				</Directory>
+				<Directory Id="CLAP_INSTALL_DIR" Name="CLAP">
+					<Component Id="CLAP_FILES" Guid="deb58e55-8e6d-435d-8cdc-790970132f53" Win64="\$(var.Win64)">
+						<RemoveFile Id="CLAP_PLUGIN" Name="plugdata.clap" On="both"/>
+						<File Id="CLAP_PLUGIN" Source="Plugins\CLAP\plugdata.clap"/>
+					</Component>
+					<Component Id="CLAP_FX_FILES" Guid="90ff8eae-2cfe-4070-9c73-b62e4d219a36" Win64="\$(var.Win64)">
+						<RemoveFile Id="CLAP_FX_PLUGIN" Name="plugdata-fx.clap" On="both"/>
+						<File Id="CLAP_FX_PLUGIN" Source="Plugins\CLAP\plugdata-fx.clap"/>
+					</Component>
+				</Directory>
 			</Directory>
 		</Directory>
 		<Property Id="WIXUI_INSTALLDIR" Value="INSTALLDIR" />
@@ -150,10 +160,13 @@ cat > ./plugdata.wxs <<-EOL
 			<ComponentRef Id="LV2_FILES"/>
 			<ComponentRef Id="LV2_FX_FILES"/>
 		</Feature>
+    <Feature Id="CLAP" Level="1" Title="CLAP Plugin">
+			<ComponentRef Id="CLAP_FILES"/>
+			<ComponentRef Id="CLAP_FX_FILES"/>
+		</Feature>
 	</Product>
 </Wix>
 EOL
-
 
 
 if [[ $X64BitMode == "x64" ]]; then

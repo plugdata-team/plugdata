@@ -3,7 +3,7 @@ title: adc~
 description: Audio input from sound card
 categories:
 - object
-pdcategory: General Audio Manipulation
+pdcategory: vanilla, Audio I/O
 last_update: '0.47'
 inlets:
   1st:

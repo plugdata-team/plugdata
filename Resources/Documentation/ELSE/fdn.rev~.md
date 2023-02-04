@@ -1,17 +1,13 @@
 ---
 title: fdn.rev~
-description: Feedback delay network reverberator
+description: feedback delay network reverberator
 
 categories:
  - object
 
-pdcategory: General
+pdcategory: ELSE, Effects
 
 arguments:
-- type:
-  description:
-  default:
-
 inlets:
   1st:
   - type: signal

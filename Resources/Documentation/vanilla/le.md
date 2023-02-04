@@ -1,9 +1,9 @@
 ---
 title: <=
-description: relational tests
+description: less-than-or-equal Boolean
 categories:
 - object
-pdcategory: Math
+pdcategory: vanilla, Logic
 see_also:
 - +~
 - expr

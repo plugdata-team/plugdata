@@ -6,7 +6,7 @@ categories:
 see_also:
 - block~
 - receive
-pdcategory: General Audio Manipulation
+pdcategory: vanilla, Analysis, Audio I/O
 last_update: '0.47'
 inlets:
   1st:

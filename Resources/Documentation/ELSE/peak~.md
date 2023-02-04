@@ -1,16 +1,17 @@
 ---
 title: peak~
-description: Detect peak amplitude
+
+description: detect peak amplitude
+
 categories:
  - object
-pdcategory: General
+
+pdcategory: ELSE, Analysis
 
 arguments:
-  1st:
   - type: float
     description: analysis window size in samples
     default: 1024
-  2nd:
   - type: float
     description: hop size in samples
     default: half the window size

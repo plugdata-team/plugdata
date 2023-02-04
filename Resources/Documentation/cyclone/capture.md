@@ -1,9 +1,9 @@
 ---
 title: capture
-description: Store data
+description: store data
 categories:
  - object
-pdcategory: General
+pdcategory: cyclone, General
 arguments:
 - type: float
   description: number of stored values

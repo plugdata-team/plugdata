@@ -1,6 +1,6 @@
 ---
 title: append
-description: add an item to a Data Structure list.
+description: add an item to a data structure list
 see_also: 
 - pointer
 - getsize
@@ -10,7 +10,7 @@ see_also:
 - scalar
 - struct
 - element  
-pdcategory: Accessing Data
+pdcategory: vanilla, Data Management, GUI
 last_update: '0.47'
 inlets:
   1st:

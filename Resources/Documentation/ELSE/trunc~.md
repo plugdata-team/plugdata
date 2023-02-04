@@ -1,17 +1,14 @@
 ---
 title: trunc~
 
-description: Truncate to integer
+description: truncate to integer
 
 categories:
 - object
 
-pdcategory: General
+pdcategory: ELSE, Signal Math
 
 arguments:
-- description:
-  type:
-  default:
 
 inlets:
   1st:

@@ -3,7 +3,7 @@ title: text fromlist
 description: convert from list.
 categories:
 - object
-pdcategory: Misc
+pdcategory: vanilla, Data Management
 last_update: '0.49'
 see_also:
 - list

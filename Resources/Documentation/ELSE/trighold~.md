@@ -1,17 +1,14 @@
 ---
 title: trighold~
 
-description: Hold a trigger value
+description: hold a trigger value
 
 categories:
 - object
 
-pdcategory: General
+pdcategory: ELSE, Triggers and Clocks
 
 arguments:
-- description:
-  type:
-  default:
 
 inlets:
   1st:

@@ -1,9 +1,9 @@
 ---
 title: exp
-description: math functions
+description: exponential function
 categories:
 - object
-pdcategory: Math
+pdcategory: vanilla, Data Math
 see_also:
 - +~
 - +

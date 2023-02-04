@@ -11,7 +11,7 @@ see_also:
 - outlet
 - outlet~
 - namecanvas
-pdcategory: Subwindows
+pdcategory: vanilla, GUI
 last_update: '0.52'
 inlets:
   'n: depends on inlet/outlet objects':

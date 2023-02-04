@@ -69,7 +69,6 @@ jobs:
 
   windows-64-build:
     runs-on: windows-2022
-
     steps:
     - uses: actions/checkout@v3
       with:
@@ -235,6 +234,10 @@ jobs:
           with:
             submodules: recursive
             fetch-depth: 0
+
+        - name: Update cmake
+          working-directory: ${{github.workspace}}
+          run: ./.github/scripts/install-cmake.sh
 
         - name: ccache
           uses: hendrikmuhs/ccache-action@v1.2

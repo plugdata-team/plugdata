@@ -1,9 +1,9 @@
 ---
 title: curve~
-description: Curved ramp generator
+description: curved ramp generator
 categories:
  - object
-pdcategory: General
+pdcategory: cyclone, General
 arguments:
 - type: float
   description: initial value

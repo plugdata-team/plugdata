@@ -1,12 +1,12 @@
 ---
 title: vu~
 
-description: Amplitude detector for [vu]
+description: amplitude detector for [vu]
 
 categories:
  - object
  
-pdcategory: Analysis
+pdcategory: ELSE, Analysis
 
 arguments:
   - type: float

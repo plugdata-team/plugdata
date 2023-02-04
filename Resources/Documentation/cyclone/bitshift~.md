@@ -1,9 +1,9 @@
 ---
 title: bitshift~
-description: Signal bit-shifting
+description: signal bit-shifting
 categories:
  - object
-pdcategory: General
+pdcategory: cyclone, General
 arguments:
 - type: float
   description: number of bits to shift

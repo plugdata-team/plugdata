@@ -1,12 +1,12 @@
 ---
 title: mono.rev~
 
-description: Moni reverb
+description: mono reverb
 
 categories:
 - object
 
-pdcategory: DSP
+pdcategory: ELSE, Effects
 
 arguments:
 - type: float

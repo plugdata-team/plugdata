@@ -1,9 +1,9 @@
 ---
 title: wrap
-description: wrap a number to range [[0, 1)
+description: wrap a number to range [0, 1)
 categories:
 - object
-pdcategory: Math
+pdcategory: vanilla, Data Math
 see_also:
 - +~
 - +

@@ -27,7 +27,6 @@ For more information visit www.rabiensoftware.com
  #include <sys/time.h>
 #endif
 
-//==============================================================================
 #if JUCE_MAC
 class FileSystemWatcher::Impl
 {
@@ -100,7 +99,6 @@ public:
 };
 #endif
 
-//==============================================================================
 #ifdef JUCE_LINUX
 #define BUF_LEN (10 * (sizeof(struct inotify_event) + NAME_MAX + 1))
 
@@ -216,7 +214,6 @@ public:
 };
 #endif
 
-//==============================================================================
 #ifdef JUCE_WINDOWS
 class FileSystemWatcher::Impl : private AsyncUpdater,
                                 private Thread

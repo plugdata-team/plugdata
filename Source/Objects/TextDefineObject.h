@@ -26,11 +26,12 @@ struct t_fake_text_define {
 };
 
 // Actual text object, marked final for optimisation
-struct TextDefineObject final : public TextBase {
+class TextDefineObject final : public TextBase {
 
     std::unique_ptr<Component> textEditor;
     std::unique_ptr<Dialog> saveDialog;
 
+public:
     TextDefineObject(void* obj, Object* parent, bool isValid = true)
         : TextBase(obj, parent, isValid)
         , textEditor(nullptr)
@@ -63,15 +64,21 @@ struct TextDefineObject final : public TextBase {
                     return;
                 }
 
-                Dialogs::showSaveDialog(&saveDialog, textEditor.get(), "", [this, lastText](int result) mutable {
-                    if (result == 2) {
-                        setText(lastText);
-                        textEditor.reset(nullptr);
-                    }
-                    if (result == 1) {
-                        textEditor.reset(nullptr);
-                    }
-                });
+                Dialogs::showSaveDialog(
+                    &saveDialog, textEditor.get(), "", [this, lastText](int result) mutable {
+                        if (result == 2) {
+                            setText(lastText);
+                            textEditor.reset(nullptr);
+
+                            // enable notification on second outlet //
+                            const char* target = static_cast<t_fake_text_define*>(ptr)->x_bindsym->s_name;
+                            pd->sendMessage(target, "notify", {});
+                        }
+                        if (result == 1) {
+                            textEditor.reset(nullptr);
+                        }
+                    },
+                    15);
             }));
     }
 
@@ -102,8 +109,10 @@ struct TextDefineObject final : public TextBase {
             SETSYMBOL(&atoms.back(), pd->generateSymbol(";"));
         }
 
-        pd->enqueueFunction([this, atoms, &textbuf]() mutable {
-            pd->setThis();
+        pd->enqueueFunction([_this = SafePointer(this), atoms, &textbuf]() mutable {
+            if (!_this || _this->cnv->patch.objectWasDeleted(_this->ptr))
+                return;
+            _this->pd->setThis();
 
             binbuf_clear(textbuf.b_binbuf);
 

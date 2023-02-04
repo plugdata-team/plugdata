@@ -1,16 +1,13 @@
 ---
 title: pic
-description: Load pictures
+description: load pictures
 
 categories:
  - object
 
-pdcategory: General
+pdcategory: ELSE, GUI
 
 arguments:
-- type:
-  description:
-  default:
 
 inlets:
   1st:

@@ -1,12 +1,12 @@
 ---
 title: del~
 
-description: Delay line
+description: delay line
 
 categories:
  - object
 
-pdcategory: General
+pdcategory: ELSE, Effects, Buffers
 
 arguments:
 - type: symbol

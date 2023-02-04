@@ -1,12 +1,12 @@
 ---
 title: sinh~
 
-description: Signal hyperbolic sine function
+description: signal hyperbolic sine function
 
 categories:
  - object
 
-pdcategory: General
+pdcategory: cyclone, General
 
 arguments: (none)
 

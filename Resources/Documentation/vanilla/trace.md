@@ -3,7 +3,7 @@ title: trace
 description: message tracing for debugging
 categories:
 - object
-pdcategory: General
+pdcategory: vanilla, Analysis
 last_update: '0.52'
 inlets:
   1st:

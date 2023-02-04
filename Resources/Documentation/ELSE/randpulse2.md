@@ -1,12 +1,12 @@
 ---
 title: randpulse2
 
-description: Random pulse train oscillator
+description: random pulse train oscillator
 
 categories:
 - object
 
-pdcategory: General
+pdcategory: ELSE, Random and Noise, Signal Generators
 
 arguments:
 - type: float

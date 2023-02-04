@@ -1,11 +1,11 @@
 ---
 title: detect~
-description: Period/frequency detection
+description: period/frequency detection
 
 categories:
  - object
 
-pdcategory: General
+pdcategory: ELSE, Analysis
 
 arguments:
 - type: symbol

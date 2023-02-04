@@ -1,12 +1,12 @@
 ---
 title: rad2hz
 
-description: Radians_per_sample/Hertz conversion
+description: radians_per_sample/Hertz conversion
 
 categories:
  - object
 
-pdcategory: Math
+pdcategory: ELSE, Data Math
 
 arguments:
 - type: float

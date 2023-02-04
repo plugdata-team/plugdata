@@ -1,12 +1,12 @@
 ---
 title: wavetable~
 
-description: Wavetable oscillator
+description: wavetable oscillator
 
 categories:
  - object
 
-pdcategory: Audio Oscillators And Tables
+pdcategory: ELSE, Signal Generators, Arrays and Tables, Buffers
 
 arguments:
   - type: symbol

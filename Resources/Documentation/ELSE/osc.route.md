@@ -1,11 +1,11 @@
 ---
 title: osc.route
-description: Route OSC messages
+description: route OSC messages
 
 categories:
  - object
 
-pdcategory: General
+pdcategory: ELSE, Networking
 
 arguments:
   - type: anything

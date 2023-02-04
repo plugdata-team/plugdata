@@ -1,11 +1,11 @@
 ---
 title: fader~
-description: Fader waveshaper
+description: fader waveshaper
 
 categories:
  - object
 
-pdcategory: General
+pdcategory: ELSE, Effects
 
 arguments:
 - type: symbol

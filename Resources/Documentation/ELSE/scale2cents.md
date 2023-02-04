@@ -1,14 +1,14 @@
 ---
 title: scale2cents
 
-description: Scale/Cents conversion
+description: scale/cents conversion
 
 categories:
 - object
 
-pdcategory: Scale tools
+pdcategory: ELSE, Tuning, Data Math
 
-arguments: (none)
+arguments:
 
 inlets:
   1st:

@@ -1,12 +1,12 @@
 ---
 title: pvoc.player~
 
-description: Multi-channel phase vocoded player
+description: multi-channel phase vocoded player
 
 categories:
 - object
 
-pdcategory:
+pdcategory: ELSE, Buffers
 
 arguments:
 - description: (optional) number of channels (max 64)

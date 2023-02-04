@@ -3,7 +3,7 @@ title: +
 description: add two numbers
 categories:
 - object
-pdcategory: Math
+pdcategory: vanilla, Data Math
 last_update: '0.47'
 see_also:
 - +~

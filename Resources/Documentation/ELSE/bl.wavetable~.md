@@ -1,23 +1,20 @@
 ---
 title: bl.wavetable~
 
-description: Bandlimited wavetable oscillator
+description: bandlimited wavetable oscillator
 
 categories:
 - object
 
-pdcategory: Audio Oscillators and Tables
+pdcategory: ELSE, Signal Generators
 
 arguments:
-  1st:
   - description: array name (required)
     type: symbol
     default: none
-  2nd:
   - description: sets frequency in Hz
     type: float
     default: 0
-  3rd:
   - description: sets phase offset
     type: float
     default: 0
@@ -26,8 +23,6 @@ inlets:
   1st:
   - type: float/signal
     description: frequency in Hz
-  - type: set <symbol>
-    description: sets an entire array to be used as a waveform
   2nd:
   - type: float/signal
     description: phase sync (resets internal phase)
@@ -39,6 +34,10 @@ outlets:
   1st:
   - type: signal
     description: a periodically repeating waveform
+
+methods:
+  - type: set <symbol>
+    description: sets an entire array to be used as a waveform
 
 draft: false
 ---

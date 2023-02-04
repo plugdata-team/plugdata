@@ -4,6 +4,8 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
+#include "Utility/GlobalMouseListener.h"
+
 struct t_fake_fielddesc {
     char fd_type; /* LATER consider removing this? */
     char fd_var;
@@ -62,42 +64,9 @@ int scalar_doclick(t_word* data, t_template* t, t_scalar* sc,
 // accidentally passing on mouse scroll events to the viewport.
 // This prevents that with a separation layer.
 
-struct GlobalMouseListener : public MouseListener {
-    Component* target;
+class DrawableTemplate {
 
-    GlobalMouseListener(Component* targetComponent)
-        : target(targetComponent)
-    {
-        Desktop::getInstance().addGlobalMouseListener(this);
-    }
-
-    ~GlobalMouseListener()
-    {
-        Desktop::getInstance().removeGlobalMouseListener(this);
-    }
-
-    std::function<void(MouseEvent const& e)> globalMouseDown = [](MouseEvent const&) {};
-    std::function<void(MouseEvent const& e)> globalMouseUp = [](MouseEvent const&) {};
-    std::function<void(MouseEvent const& e)> globalMouseDrag = [](MouseEvent const&) {};
-
-    void mouseDown(MouseEvent const& e) override
-    {
-        globalMouseDown(e.getEventRelativeTo(target));
-    }
-
-    void mouseUp(MouseEvent const& e) override
-    {
-        globalMouseUp(e.getEventRelativeTo(target));
-    }
-
-    void mouseDrag(MouseEvent const& e) override
-    {
-        globalMouseDrag(e.getEventRelativeTo(target));
-    }
-};
-
-struct DrawableTemplate {
-
+public:
     virtual void update() = 0;
 
     /* getting and setting values via fielddescs -- note confusing names;
@@ -135,7 +104,7 @@ struct DrawableTemplate {
     }
 };
 
-struct DrawableCurve final : public DrawableTemplate
+class DrawableCurve final : public DrawableTemplate
     , public DrawablePath {
     t_scalar* scalar;
     t_fake_curve* object;
@@ -144,6 +113,7 @@ struct DrawableCurve final : public DrawableTemplate
 
     GlobalMouseListener mouseListener;
 
+public:
     DrawableCurve(t_scalar* s, t_gobj* obj, Canvas* cnv, int x, int y)
         : scalar(s)
         , object(reinterpret_cast<t_fake_curve*>(obj))
@@ -155,7 +125,6 @@ struct DrawableCurve final : public DrawableTemplate
         mouseListener.globalMouseDown = [this](MouseEvent const& e) {
             handleMouseDown(e);
         };
-        
     }
 
     void handleMouseDown(MouseEvent const& e)
@@ -168,7 +137,7 @@ struct DrawableCurve final : public DrawableTemplate
         auto dbl = 0;
 
         canvas->pd->setThis();
-        
+
         t_template* t = template_findbyname(scalar->sc_template);
         scalar_doclick(scalar->sc_vec, t, scalar, 0, canvas->patch.getPointer(), 0, 0, e.x, getHeight() - e.y, shift, alt, dbl, 1);
 
@@ -180,9 +149,8 @@ struct DrawableCurve final : public DrawableTemplate
         }
     }
 
-    void update() override
+    void update()
     {
-
         if (!scalar || !scalar->sc_template)
             return;
 
@@ -192,8 +160,7 @@ struct DrawableCurve final : public DrawableTemplate
         auto* templ = template_findbyname(scalar->sc_template);
 
         auto* x = reinterpret_cast<t_fake_curve*>(object);
-        int i, n = x->x_npoints;
-        t_fake_fielddesc* f = x->x_vec;
+        int n = x->x_npoints;
         auto* data = scalar->sc_vec;
 
         if (!fielddesc_getfloat(&x->x_vis, templ, data, 0)) {
@@ -215,7 +182,8 @@ struct DrawableCurve final : public DrawableTemplate
 
             canvas->pd->getCallbackLock()->enter();
 
-            for (i = 0, f = x->x_vec; i < n; i++, f += 2) {
+            for (int i = 0; i < n; i++) {
+                auto* f = x->x_vec + (i * 2);
                 float xCoord = (baseX + fielddesc_getcoord((t_fielddesc*)f, templ, data, 1)) / (glist->gl_x2 - glist->gl_x1);
                 float yCoord = (baseY + fielddesc_getcoord((t_fielddesc*)(f + 1), templ, data, 1)) / (glist->gl_y1 - glist->gl_y2);
 
@@ -251,7 +219,7 @@ struct DrawableCurve final : public DrawableTemplate
             Path toDraw;
 
             toDraw.startNewSubPath(pix[0], pix[1]);
-            for (i = 1; i < n; i++) {
+            for (int i = 1; i < n; i++) {
                 toDraw.lineTo(pix[2 * i], pix[2 * i + 1]);
             }
 
@@ -277,13 +245,14 @@ struct DrawableCurve final : public DrawableTemplate
     }
 };
 
-struct DrawableSymbol final : public DrawableTemplate
+class DrawableSymbol final : public DrawableTemplate
     , public DrawableText {
     t_scalar* scalar;
     t_fake_drawnumber* object;
     int baseX, baseY;
     Canvas* canvas;
 
+public:
     DrawableSymbol(t_scalar* s, t_gobj* obj, Canvas* cnv, int x, int y)
         : scalar(s)
         , object(reinterpret_cast<t_fake_drawnumber*>(obj))
@@ -370,13 +339,16 @@ struct DrawableSymbol final : public DrawableTemplate
     }
 };
 
-struct ScalarObject final : public NonPatchable {
+struct ScalarObject final : public ObjectBase {
     OwnedArray<Component> templates;
 
     ScalarObject(void* obj, Object* object)
-        : NonPatchable(obj, object)
+        : ObjectBase(obj, object)
     {
         cnv->pd->setThis();
+
+        // Make object invisible
+        object->setVisible(false);
 
         auto* x = reinterpret_cast<t_scalar*>(obj);
         auto* templ = template_findbyname(x->sc_template);
@@ -421,4 +393,7 @@ struct ScalarObject final : public NonPatchable {
             dynamic_cast<DrawableTemplate*>(drawable)->update();
         }
     }
+
+    void updateBounds() override {};
+    void applyBounds() override {};
 };

@@ -1,12 +1,12 @@
 ---
 title: eqdiv
 
-description: Equal divisions of intervals
+description: equal divisions of intervals
 
 categories:
 - object
 
-pdcategory:
+pdcategory: ELSE, Tuning
 
 arguments:
 - description: number of equal divisions

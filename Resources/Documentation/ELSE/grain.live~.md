@@ -1,12 +1,12 @@
 ---
 title: grain.live~
 
-description: Live granulator
+description: live granulator
 
 categories:
 - object
 
-pdcategory:
+pdcategory: ELSE, Effects
 
 arguments:
 
@@ -18,7 +18,7 @@ inlets:
     description: plays an event of cloud grains
   2nd:
   - type: float
-    description: number of grains in the event (default 16 min 1, max 256)
+    description: number of grains in the event (default 16, min 1, max 256)
 
 outlets:
   1st:
@@ -64,7 +64,7 @@ methods:
   - type: size <f, f>
     description: sets min/max grain sizes in ms (default 50 to 450)
   - type: transp <f, f>
-    description: sets min/max transpositin in cents (default -1200 to 1200)
+    description: sets min/max transposition in cents (default -1200 to 1200)
   - type: pan <f, f>
     description: sets left/right pan boundaries (default -1 to 1)
   - type: pos <f, f>

@@ -1,12 +1,12 @@
 ---
 title: deg2rad
 
-description: Degrees to radians conversion
+description: degrees to radians conversion
 
 categories:
 - object
 
-pdcategory:
+pdcategory: ELSE, Data Math
 
 arguments:
 - description: initial degree value

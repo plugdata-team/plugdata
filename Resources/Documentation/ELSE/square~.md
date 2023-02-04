@@ -1,12 +1,12 @@
 ---
 title: square~
 
-description: Square oscillator
+description: square oscillator
 
 categories:
  - object
 
-pdcategory: General
+pdcategory: ELSE, Signal Generators
 
 arguments:
 - type: float

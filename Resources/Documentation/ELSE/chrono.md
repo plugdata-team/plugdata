@@ -1,12 +1,12 @@
 ---
 title: chrono
 
-description: Chronometer/timer
+description: chronometer/timer
 
 categories:
  - object
 
-pdcategory: Time
+pdcategory: ELSE, Triggers and Clocks
 
 arguments:
 - type: list

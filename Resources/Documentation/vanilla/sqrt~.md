@@ -3,7 +3,7 @@ title: sqrt~
 description: signal square root
 categories:
 - object
-pdcategory: Audio Math
+pdcategory: vanilla, Signal Math
 last_update: '0.47'
 aliases:
 - q8_sqrt~

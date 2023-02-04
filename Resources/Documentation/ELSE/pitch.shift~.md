@@ -1,12 +1,12 @@
 ---
 title: pitch.shift~
 
-description: Pitch shifter
+description: pitch shifter
 
 categories:
 - object
 
-pdcategory:
+pdcategory: ELSE, Effects
 
 arguments:
 - description: transposition in cents

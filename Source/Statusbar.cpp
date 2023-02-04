@@ -12,42 +12,40 @@
 #include "Canvas.h"
 #include "Connection.h"
 
-struct LevelMeter : public Component
-    , public Timer {
+class LevelMeter : public Component
+    , public StatusbarSource::Listener {
+    int totalBlocks = 15;
+    int blocks[2] = { 0 };
+
     int numChannels = 2;
-    StatusbarSource& source;
 
-    explicit LevelMeter(StatusbarSource& statusbarSource)
-        : source(statusbarSource)
+public:
+    LevelMeter() {};
+
+    void audioLevelChanged(float level[2]) override
     {
-        startTimerHz(20);
-    }
 
-    void timerCallback() override
-    {
-        if (isShowing()) {
-            bool needsRepaint = false;
-            for (int ch = 0; ch < numChannels; ch++) {
-                auto newLevel = source.level[ch].load();
+        bool needsRepaint = false;
 
-                if (!std::isfinite(newLevel)) {
-                    source.level[ch] = 0;
-                    blocks[ch] = 0;
-                    return;
-                }
+        for (int ch = 0; ch < numChannels; ch++) {
+            auto chLevel = level[ch];
 
-                float lvl = (float)std::exp(std::log(newLevel) / 3.0) * (newLevel > 0.002);
-                auto numBlocks = roundToInt(totalBlocks * lvl);
-
-                if (blocks[ch] != numBlocks) {
-                    blocks[ch] = numBlocks;
-                    needsRepaint = true;
-                }
+            if (!std::isfinite(chLevel)) {
+                blocks[ch] = 0;
+                return;
             }
 
-            if (needsRepaint)
-                repaint();
+            auto lvl = static_cast<float>(std::exp(std::log(chLevel) / 3.0) * (chLevel > 0.002));
+            auto numBlocks = roundToInt(totalBlocks * lvl);
+
+            if (blocks[ch] != numBlocks) {
+                blocks[ch] = numBlocks;
+                needsRepaint = true;
+            }
         }
+
+        if (needsRepaint && isShowing())
+            repaint();
     }
 
     void paint(Graphics& g) override
@@ -92,27 +90,16 @@ struct LevelMeter : public Component
         g.drawRoundedRectangle(x + outerBorderWidth, outerBorderWidth, width - doubleOuterBorderWidth, getHeight() - doubleOuterBorderWidth, 4.0f, 1.0f);
     }
 
-    int totalBlocks = 15;
-    int blocks[2] = { 0 };
-
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(LevelMeter)
 };
 
-struct MidiBlinker : public Component
-    , public Timer {
-    StatusbarSource& source;
+class MidiBlinker : public Component
+    , public StatusbarSource::Listener {
 
-    explicit MidiBlinker(StatusbarSource& statusbarSource)
-        : source(statusbarSource)
-    {
-        startTimer(200);
-    }
-
+public:
     void paint(Graphics& g) override
     {
-        g.setColour(findColour(ComboBox::textColourId));
-        g.setFont(Font(11));
-        g.drawText("MIDI", getLocalBounds().removeFromLeft(28), Justification::right);
+        PlugDataLook::drawText(g, "MIDI", getLocalBounds().removeFromLeft(28), findColour(ComboBox::textColourId), 11, Justification::centredRight);
 
         auto midiInRect = Rectangle<float>(38.0f, 8.0f, 15.0f, 3.0f);
         auto midiOutRect = Rectangle<float>(38.0f, 17.0f, 15.0f, 3.0f);
@@ -124,17 +111,17 @@ struct MidiBlinker : public Component
         g.fillRoundedRectangle(midiOutRect, 1.0f);
     }
 
-    void timerCallback() override
+    void midiReceivedChanged(bool midiReceived) override
     {
-        if (source.midiReceived != blinkMidiIn) {
-            blinkMidiIn = source.midiReceived;
-            repaint();
-        }
-        if (source.midiSent != blinkMidiOut) {
-            blinkMidiOut = source.midiSent;
-            repaint();
-        }
-    }
+        blinkMidiIn = midiReceived;
+        repaint();
+    };
+
+    void midiSentChanged(bool midiSent) override
+    {
+        blinkMidiOut = midiSent;
+        repaint();
+    };
 
     bool blinkMidiIn = false;
     bool blinkMidiOut = false;
@@ -143,8 +130,12 @@ struct MidiBlinker : public Component
 Statusbar::Statusbar(PluginProcessor* processor)
     : pd(processor)
 {
-    levelMeter = new LevelMeter(pd->statusbarSource);
-    midiBlinker = new MidiBlinker(pd->statusbarSource);
+    levelMeter = new LevelMeter();
+    midiBlinker = new MidiBlinker();
+
+    pd->statusbarSource.addListener(levelMeter);
+    pd->statusbarSource.addListener(midiBlinker);
+    pd->statusbarSource.addListener(this);
 
     setWantsKeyboardFocus(true);
 
@@ -154,7 +145,7 @@ Statusbar::Statusbar(PluginProcessor* processor)
     commandLocked.addListener(this);
 
     oversampleSelector.setTooltip("Set oversampling");
-    oversampleSelector.setName("statusbar:oversample");
+    oversampleSelector.getProperties().set("FontScale", 0.5f);
     oversampleSelector.setColour(ComboBox::outlineColourId, Colours::transparentBlack);
 
     oversampleSelector.setButtonText(String(1 << pd->oversampling) + "x");
@@ -187,7 +178,7 @@ Statusbar::Statusbar(PluginProcessor* processor)
     presentationButton->setTooltip("Presentation Mode");
     presentationButton->setClickingTogglesState(true);
     presentationButton->setConnectedEdges(12);
-    presentationButton->setName("statusbar:presentation");
+    presentationButton->getProperties().set("Style", "SmallIcon");
     presentationButton->getToggleStateValue().referTo(presentationMode);
 
     presentationButton->onClick = [this]() {
@@ -203,14 +194,35 @@ Statusbar::Statusbar(PluginProcessor* processor)
     powerButton->setTooltip("Mute");
     powerButton->setClickingTogglesState(true);
     powerButton->setConnectedEdges(12);
-    powerButton->setName("statusbar:mute");
+    powerButton->getProperties().set("Style", "SmallIcon");
     addAndMakeVisible(powerButton.get());
 
     gridButton->setTooltip("Enable grid");
-    gridButton->setClickingTogglesState(true);
     gridButton->setConnectedEdges(12);
-    gridButton->setName("statusbar:grid");
-    gridButton->getToggleStateValue().referTo(pd->settingsTree.getPropertyAsValue("GridEnabled", nullptr));
+    gridButton->getProperties().set("Style", "SmallIcon");
+
+    gridButton->onClick = [this]() {
+        PopupMenu gridSelector;
+        int gridEnabled = SettingsFile::getInstance()->getProperty<int>("grid_enabled");
+        gridSelector.addItem("Absolute grid", true, gridEnabled == 2, [this]() {
+            gridButton->setColour(TextButton::textColourOffId, Colours::orange);
+            SettingsFile::getInstance()->setProperty("grid_enabled", 2);
+        });
+        gridSelector.addItem("Relative grid", true, gridEnabled == 1, [this]() {
+            gridButton->setColour(TextButton::textColourOffId, findColour(PlugDataColour::gridLineColourId));
+            SettingsFile::getInstance()->setProperty("grid_enabled", 1);
+        });
+        gridSelector.addItem("No grid", true, gridEnabled == 0, [this]() {
+            gridButton->setColour(TextButton::textColourOffId, findColour(PlugDataColour::toolbarTextColourId));
+            SettingsFile::getInstance()->setProperty("grid_enabled", 0);
+        });
+
+        gridSelector.showMenuAsync(PopupMenu::Options().withMinimumWidth(150).withMaximumNumColumns(1).withTargetComponent(gridButton.get()).withParentComponent(pd->getActiveEditor()));
+    };
+
+    // Initialise grid state
+    propertyChanged("grid_enabled", SettingsFile::getInstance()->getProperty<int>("grid_enabled"));
+
     addAndMakeVisible(gridButton.get());
 
     powerButton->onClick = [this]() { powerButton->getToggleState() ? pd->startDSP() : pd->releaseDSP(); };
@@ -220,7 +232,7 @@ Statusbar::Statusbar(PluginProcessor* processor)
     lockButton->setTooltip("Edit Mode");
     lockButton->setClickingTogglesState(true);
     lockButton->setConnectedEdges(12);
-    lockButton->setName("statusbar:lock");
+    lockButton->getProperties().set("Style", "SmallIcon");
     lockButton->getToggleStateValue().referTo(locked);
     addAndMakeVisible(lockButton.get());
     lockButton->setButtonText(locked == var(true) ? Icons::Lock : Icons::Unlock);
@@ -233,20 +245,27 @@ Statusbar::Statusbar(PluginProcessor* processor)
     connectionStyleButton->setTooltip("Enable segmented connections");
     connectionStyleButton->setClickingTogglesState(true);
     connectionStyleButton->setConnectedEdges(12);
-    connectionStyleButton->setName("statusbar:connectionstyle");
+    connectionStyleButton->getProperties().set("Style", "SmallIcon");
     connectionStyleButton->onClick = [this]() {
         bool segmented = connectionStyleButton->getToggleState();
         auto* editor = dynamic_cast<PluginEditor*>(pd->getActiveEditor());
-        for (auto& connection : editor->getCurrentCanvas()->getSelectionOfType<Connection>()) {
+
+        auto* cnv = editor->getCurrentCanvas();
+
+        // cnv->patch.startUndoSequence("ChangeSegmentedPaths");
+
+        for (auto& connection : cnv->getSelectionOfType<Connection>()) {
             connection->setSegmented(segmented);
         }
+
+        // cnv->patch.endUndoSequence("ChangeSegmentedPaths");
     };
 
     addAndMakeVisible(connectionStyleButton.get());
 
     connectionPathfind->setTooltip("Find best connection path");
     connectionPathfind->setConnectedEdges(12);
-    connectionPathfind->setName("statusbar:findpath");
+    connectionPathfind->getProperties().set("Style", "SmallIcon");
     connectionPathfind->onClick = [this]() { dynamic_cast<ApplicationCommandManager*>(pd->getActiveEditor())->invokeDirectly(CommandIDs::ConnectionPathfind, true); };
     addAndMakeVisible(connectionPathfind.get());
 
@@ -255,9 +274,9 @@ Statusbar::Statusbar(PluginProcessor* processor)
 
     volumeSlider.setValue(0.75);
     volumeSlider.setRange(0.0f, 1.0f);
-    volumeSlider.setName("statusbar:meter");
+    volumeSlider.getProperties().set("Style", "VolumeSlider");
 
-    volumeAttachment = std::make_unique<SliderParameterAttachment>(*pd->parameters.getParameter("volume"), volumeSlider, nullptr);
+    volumeAttachment = std::make_unique<SliderParameterAttachment>(*dynamic_cast<RangedAudioParameter*>(pd->getParameters()[0]), volumeSlider, nullptr);
 
     addAndMakeVisible(levelMeter);
     addAndMakeVisible(midiBlinker);
@@ -265,14 +284,14 @@ Statusbar::Statusbar(PluginProcessor* processor)
     levelMeter->toBehind(&volumeSlider);
 
     setSize(getWidth(), statusbarHeight);
-
-    // Timer to make sure modifier keys are up-to-date...
-    // Hoping to find a better solution for this
-    startTimer(150);
 }
 
 Statusbar::~Statusbar()
 {
+    pd->statusbarSource.removeListener(levelMeter);
+    pd->statusbarSource.removeListener(midiBlinker);
+    pd->statusbarSource.removeListener(this);
+
     delete midiBlinker;
     delete levelMeter;
 }
@@ -281,6 +300,25 @@ void Statusbar::attachToCanvas(Canvas* cnv)
 {
     locked.referTo(cnv->locked);
     lockButton->getToggleStateValue().referTo(cnv->locked);
+}
+
+void Statusbar::propertyChanged(String name, var value)
+{
+    if (name == "grid_enabled") {
+        int gridEnabled = static_cast<int>(value);
+        if (gridEnabled == 0) {
+            gridButton->setColour(TextButton::textColourOffId, findColour(PlugDataColour::toolbarTextColourId));
+            gridButton->setColour(TextButton::textColourOnId, findColour(PlugDataColour::toolbarActiveColourId));
+        }
+        if (gridEnabled == 1) {
+            gridButton->setColour(TextButton::textColourOffId, findColour(PlugDataColour::gridLineColourId));
+            gridButton->setColour(TextButton::textColourOnId, findColour(PlugDataColour::gridLineColourId).brighter(0.4f));
+        } else if (gridEnabled == 2) {
+            gridButton->setColour(TextButton::textColourOffId, findColour(PlugDataColour::signalColourId));
+            // TODO: fix weird colour id usage
+            gridButton->setColour(TextButton::textColourOnId, findColour(PlugDataColour::signalColourId).brighter(0.4f));
+        }
+    }
 }
 
 void Statusbar::valueChanged(Value& v)
@@ -361,10 +399,19 @@ void Statusbar::timerCallback()
     modifierKeysChanged(ModifierKeys::getCurrentModifiersRealtime());
 }
 
+void Statusbar::audioProcessedChanged(bool audioProcessed)
+{
+    auto colour = findColour(audioProcessed ? PlugDataColour::levelMeterActiveColourId : PlugDataColour::signalColourId);
+
+    powerButton->setColour(TextButton::textColourOnId, colour);
+}
+
 StatusbarSource::StatusbarSource()
 {
     level[0] = 0.0f;
     level[1] = 0.0f;
+
+    startTimer(100);
 }
 
 static bool hasRealEvents(MidiBuffer& buffer)
@@ -406,27 +453,60 @@ void StatusbarSource::processBlock(AudioBuffer<float> const& buffer, MidiBuffer&
         level[ch & 1] = localLevel;
     }
 
-    auto now = Time::getCurrentTime();
-
+    auto nowInMs = Time::getCurrentTime().getMillisecondCounter();
     auto hasInEvents = hasRealEvents(midiIn);
     auto hasOutEvents = hasRealEvents(midiOut);
 
-    if (!hasInEvents && (now - lastMidiIn).inMilliseconds() > 700) {
-        midiReceived = false;
-    } else if (hasInEvents) {
-        midiReceived = true;
-        lastMidiIn = now;
-    }
+    lastAudioProcessedTime = nowInMs;
 
-    if (!hasOutEvents && (now - lastMidiOut).inMilliseconds() > 700) {
-        midiSent = false;
-    } else if (hasOutEvents) {
-        midiSent = true;
-        lastMidiOut = now;
-    }
+    if (hasOutEvents)
+        lastMidiSentTime = nowInMs;
+    if (hasInEvents)
+        lastMidiReceivedTime = nowInMs;
 }
 
 void StatusbarSource::prepareToPlay(int nChannels)
 {
     numChannels = nChannels;
+}
+
+void StatusbarSource::timerCallback()
+{
+    auto currentTime = Time::getCurrentTime().getMillisecondCounter();
+
+    auto hasReceivedMidi = currentTime - lastMidiReceivedTime < 700;
+    auto hasSentMidi = currentTime - lastMidiSentTime < 700;
+    auto hasProcessedAudio = currentTime - lastAudioProcessedTime < 700;
+
+    if (hasReceivedMidi != midiReceivedState) {
+        midiReceivedState = hasReceivedMidi;
+        for (auto* listener : listeners)
+            listener->midiReceivedChanged(hasReceivedMidi);
+    }
+    if (hasSentMidi != midiSentState) {
+        midiSentState = hasSentMidi;
+        for (auto* listener : listeners)
+            listener->midiSentChanged(hasSentMidi);
+    }
+    if (hasProcessedAudio != audioProcessedState) {
+        audioProcessedState = hasProcessedAudio;
+        for (auto* listener : listeners)
+            listener->audioProcessedChanged(hasProcessedAudio);
+    }
+
+    float currentLevel[2] = { level[0].load(), level[1].load() };
+    for (auto* listener : listeners) {
+        listener->audioLevelChanged(currentLevel);
+        listener->timerCallback();
+    }
+}
+
+void StatusbarSource::addListener(Listener* l)
+{
+    listeners.push_back(l);
+}
+
+void StatusbarSource::removeListener(Listener* l)
+{
+    listeners.erase(std::remove(listeners.begin(), listeners.end(), l), listeners.end());
 }

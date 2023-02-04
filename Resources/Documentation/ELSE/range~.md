@@ -1,14 +1,14 @@
 ---
 title: range~
 
-description: Anylize range
+description: analyze range
 
 categories:
  - object
 
-pdcategory: Analysis
+pdcategory: ELSE, Analysis
 
-arguments: (none)
+arguments:
 
 inlets:
   1st:

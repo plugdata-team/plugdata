@@ -5,7 +5,7 @@ categories:
 - object
 see_also:
 - block~
-pdcategory: General Audio Manipulation
+pdcategory: vanilla, Triggers and Clocks
 last_update: '0.33'
 inlets:
   1st:

@@ -1,12 +1,12 @@
 ---
 title: sh~
 
-description: Sample & hold
+description: sample & hold
 
 categories:
  - object
 
-pdcategory: Control (Triggers)
+pdcategory: ELSE, Sequencing, Triggers and Clocks
 
 arguments:
 - type: float

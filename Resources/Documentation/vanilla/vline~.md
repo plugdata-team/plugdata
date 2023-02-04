@@ -3,7 +3,7 @@ title: vline~
 description: high-precision audio ramp generator
 categories:
 - object
-pdcategory: General Audio Manipulation
+pdcategory: vanilla, Signal Generators, Envelopes and LFOs
 last_update: '0.33'
 see_also:
 - line

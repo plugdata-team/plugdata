@@ -7,17 +7,17 @@
 #pragma once
 
 #include <JuceHeader.h>
-
-#include <map>
-#include <utility>
+//#include <map>
+//#include <utility>
 
 extern "C" {
 #include <z_libpd.h>
-#include "s_libpd_inter.h"
+#include <s_inter.h>
 }
 
+#include <concurrentqueue.h>
+
 #include "PdPatch.h"
-#include "concurrentqueue.h"
 #include "../Utility/StringUtils.h"
 
 namespace pd {
@@ -118,130 +118,6 @@ private:
     String symbol;
 };
 
-struct ContinuityChecker : public Timer {
-
-    struct BackupTimer : public HighResolutionTimer {
-        t_pdinstance* pd;
-
-        std::atomic<bool>& hasTicked;
-
-        std::vector<t_float> emptyInBuffer;
-        std::vector<t_float> emptyOutBuffer;
-
-        std::function<void(t_float*, t_float*)> callback;
-
-        int numBlocksPerCallback;
-        int intervalMs;
-
-        BackupTimer(std::atomic<bool>& ticked)
-            : hasTicked(ticked)
-        {
-        }
-
-        void prepare(int samplesPerBlock, int schedulerInterval, int numChannels)
-        {
-            pd = pd_this;
-
-            numBlocksPerCallback = samplesPerBlock / libpd_blocksize();
-            intervalMs = schedulerInterval;
-
-            emptyInBuffer.resize(numChannels * samplesPerBlock);
-            emptyOutBuffer.resize(numChannels * samplesPerBlock);
-        }
-
-        void startScheduler()
-        {
-            if (isTimerRunning())
-                return;
-
-                // startTimer(intervalMs);
-#if JUCE_DEBUG
-                // std::cout << "backup scheduler started" << std::endl;
-#endif
-        }
-
-        void stopScheduler()
-        {
-            if (!isTimerRunning())
-                return;
-
-                // stopTimer();
-
-#if JUCE_DEBUG
-                // std::cout << "backup scheduler stopped" << std::endl;
-#endif
-        }
-
-        void hiResTimerCallback() override
-        {
-            if (hasTicked) {
-                stopScheduler();
-                return;
-            }
-
-            for (int i = 0; i < numBlocksPerCallback; i++) {
-                std::fill(emptyInBuffer.begin(), emptyInBuffer.end(), 0.0f);
-
-                callback(emptyInBuffer.data(), emptyOutBuffer.data());
-
-                std::fill(emptyOutBuffer.begin(), emptyOutBuffer.end(), 0.0f);
-            }
-        }
-    };
-
-    ContinuityChecker()
-        : backupTimer(hasTicked) {};
-
-    void setCallback(std::function<void(t_float*, t_float*)> cb)
-    {
-        backupTimer.callback = std::move(cb);
-    }
-
-    void prepare(double sampleRate, int samplesPerBlock, int numChannels)
-    {
-        timePerBlock = std::round((samplesPerBlock / sampleRate) * 1000.0);
-
-        backupTimer.prepare(samplesPerBlock, timePerBlock, numChannels);
-
-        startTimer(timePerBlock);
-    }
-
-    void setTimer()
-    {
-        lastTime = Time::getCurrentTime().getMillisecondCounterHiRes();
-        hasTicked = true;
-    }
-
-    void setNonRealtime(bool nonRealtime)
-    {
-        isNonRealtime = nonRealtime;
-        if (isNonRealtime)
-            backupTimer.stopScheduler();
-    }
-
-    void timerCallback() override
-    {
-        int timePassed = Time::getCurrentTime().getMillisecondCounterHiRes() - lastTime;
-
-        // Scheduler
-        if (timePassed > 2 * timePerBlock && !hasTicked && !isNonRealtime) {
-            backupTimer.startScheduler();
-        }
-
-        hasTicked = false;
-    }
-
-    t_pdinstance* pd;
-
-    std::atomic<double> lastTime;
-    std::atomic<bool> hasTicked;
-
-    std::atomic<bool> isNonRealtime = false;
-    int timePerBlock;
-
-    BackupTimer backupTimer;
-};
-
 struct MessageListener {
     virtual void receiveMessage(String const& name, int argc, t_atom* argv) {};
 
@@ -321,7 +197,7 @@ public:
     {
     }
 
-    virtual void receiveGuiUpdate(int type) {};
+    virtual void updateDrawables() {};
     virtual void synchroniseCanvas(void* cnv) {};
 
     virtual void createPanel(int type, char const* snd, char const* location);
@@ -368,7 +244,7 @@ public:
     void enqueueDirectMessages(void* object, String const& msg);
     void enqueueDirectMessages(void* object, float const msg);
 
-    virtual void performParameterChange(int type, int idx, float value) {};
+    virtual void performParameterChange(int type, String name, float value) {};
 
     void logMessage(String const& message);
     void logError(String const& message);
@@ -395,7 +271,7 @@ public:
     virtual void reloadAbstractions(File changedPatch, t_glist* except) = 0;
 
     void setThis() const;
-    t_symbol* generateSymbol(String symbol) const;
+    t_symbol* generateSymbol(String const& symbol) const;
 
     void waitForStateUpdate();
 
@@ -433,8 +309,6 @@ private:
     WaitableEvent updateWait;
 
 protected:
-    // ContinuityChecker continuityChecker;
-
     struct internal;
 
     struct ConsoleHandler : public Timer {
@@ -449,16 +323,20 @@ protected:
         void timerCallback() override
         {
             auto item = std::pair<String, bool>();
+            bool receivedMessage = false;
+
             while (pendingMessages.try_dequeue(item)) {
                 auto& [message, type] = item;
                 consoleMessages.emplace_back(message, type, fastStringWidth.getStringWidth(message) + 8);
 
                 if (consoleMessages.size() > 800)
                     consoleMessages.pop_front();
+
+                receivedMessage = true;
             }
 
             // Check if any item got assigned
-            if (std::get<0>(item).isNotEmpty()) {
+            if (receivedMessage) {
                 instance->updateConsole();
             }
 
@@ -485,17 +363,18 @@ protected:
 
         void processPrint(char const* message)
         {
-            std::function<void(String)> forwardMessage =
-                [this](String message) {
+            std::function<void(const String)> forwardMessage =
+                [this](String const& message) {
                     if (message.startsWith("error")) {
                         logError(message.substring(7));
                     } else if (message.startsWith("verbose(0):") || message.startsWith("verbose(1):")) {
                         logError(message.substring(12));
                     } else {
                         if (message.startsWith("verbose(")) {
-                            message = message.substring(12);
+                            logMessage(message.substring(12));
+                        } else {
+                            logMessage(message);
                         }
-                        logMessage(message);
                     }
                 };
 

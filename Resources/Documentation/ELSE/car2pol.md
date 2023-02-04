@@ -6,29 +6,28 @@ description: Cartesian to polar conversion
 categories:
 - object
 
-pdcategory: Math (Conversion)
+pdcategory: ELSE, Data Math
 
-arguments: none
-
+arguments:
 inlets:
   1st:
   - type: bang
     description: converts the last received coordinates pair
   - type: float
-    description: real part from the cartesian coordinates
+    description: real part from the Cartesian coordinates
   2nd:
   - type: float
-    description: imaginary part from the cartesian coordinates
+    description: imaginary part from the Cartesian coordinates
 
 outlets:
   1st:
   - type: float
     description: amplitude of the polar form
-  1st:
+  2nd:
   - type: float
     description: phase in radians (-pi to pi) of the polar form
 
 draft: false
 ---
 
-[car2pol] converts cartesian coordinates (real / imaginary) to polar coordinates (amplitude / phase).
+[car2pol] converts Cartesian coordinates (real / imaginary) to polar coordinates (amplitude / phase).

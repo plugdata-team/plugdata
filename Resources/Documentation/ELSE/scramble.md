@@ -1,14 +1,14 @@
 ---
 title: scramble
 
-description: Scramble messages
+description: scramble messages
 
 categories:
 - object
 
-pdcategory:
+pdcategory: ELSE, Data Management
 
-arguments: (none)
+arguments:
 
 inlets:
   1st:

@@ -1,9 +1,9 @@
 ---
 title: cycle
-description: Round-robin messages to outlets
+description: round-robin messages to outlets
 categories:
  - object
-pdcategory: General
+pdcategory: cyclone, General
 arguments:
 - type: float
   description: sets number of outlets (max 128)

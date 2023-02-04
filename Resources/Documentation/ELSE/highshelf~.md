@@ -1,11 +1,11 @@
 ---
 title: highshelf~
-description: Highshelf filter
+description: highshelf filter
 
 categories:
  - object
 
-pdcategory: General
+pdcategory: ELSE, Filters, Mixing and Routing
 
 arguments:
 - type: float

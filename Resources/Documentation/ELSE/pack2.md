@@ -1,11 +1,11 @@
 ---
 title: pack2
-description: Combine atoms
+description: combine atoms
 
 categories:
  - object
 
-pdcategory: General
+pdcategory: ELSE, Data Management
 
 arguments:
 - type: anything

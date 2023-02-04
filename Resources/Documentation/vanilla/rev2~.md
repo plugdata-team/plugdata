@@ -6,7 +6,7 @@ categories:
 see_also:
 - rev1~
 - rev3~
-pdcategory: Extra
+pdcategory: vanilla, Effects
 last_update: '0.37'
 inlets:
   1st:

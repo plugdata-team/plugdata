@@ -1,12 +1,12 @@
 ---
 title: tanh~
 
-description: Signal hyperbolic tangent function
+description: signal hyperbolic tangent function
 
 categories:
  - object
 
-pdcategory: General
+pdcategory: cyclone, General
 
 arguments: (none)
 

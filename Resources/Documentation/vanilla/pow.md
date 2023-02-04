@@ -3,7 +3,7 @@ title: pow
 description: math functions
 categories:
 - object
-pdcategory: Math
+pdcategory: vanilla, Data Math
 see_also:
 - +~
 - +

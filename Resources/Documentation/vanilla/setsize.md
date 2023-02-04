@@ -3,7 +3,7 @@ title: setsize
 description: change the size of an array
 categories:
 - object
-pdcategory: Accessing Data
+pdcategory: vanilla, Data Structures
 inlets:
   1st:
 outlets:

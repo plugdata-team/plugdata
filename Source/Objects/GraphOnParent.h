@@ -4,13 +4,21 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
-struct GraphOnParent final : public GUIObject {
+class GraphOnParent final : public ObjectBase {
+
     bool isLocked = false;
+
+    Value isGraphChild = Value(var(false));
+    Value hideNameAndArgs = Value(var(false));
+    Value xRange, yRange;
+
+    pd::Patch subpatch;
+    std::unique_ptr<Canvas> canvas;
 
 public:
     // Graph On Parent
     GraphOnParent(void* obj, Object* object)
-        : GUIObject(obj, object)
+        : ObjectBase(obj, object)
         , subpatch({ ptr, cnv->pd })
     {
         auto* glist = static_cast<t_canvas*>(ptr);
@@ -30,30 +38,37 @@ public:
 
     void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
     {
-        // TODO: actually read atoms
-        if (symbol == "coords" && atoms.size() >= 8) {
-            updateBounds();
-            // x_range: 0 1
-            // y_range: 1 -1
-            // w: $4 h: 22
-            // hidetext: 2
-            // margin: 100 100
-            // isgraph: 1
+        switch (objectMessageMapped[symbol]) {
+        case objectMessage::msg_coords: {
+            if (atoms.size() >= 8) {
 
-            pd->getCallbackLock()->enter();
+                // x_range: 0 1
+                // y_range: 1 -1
+                // w: $4 h: 22
+                // hidetext: 2
+                // margin: 100 100
+                // isgraph: 1
 
-            int x = 0, y = 0, w = 0, h = 0;
-            libpd_get_object_bounds(cnv->patch.getPointer(), ptr, &x, &y, &w, &h);
-            auto bounds = Rectangle<int>(x, y, atoms[4].getFloat(), atoms[5].getFloat());
+                pd->getCallbackLock()->enter();
 
-            pd->getCallbackLock()->exit();
+                int x = 0, y = 0, w = 0, h = 0;
+                libpd_get_object_bounds(cnv->patch.getPointer(), ptr, &x, &y, &w, &h);
+                auto bounds = Rectangle<int>(x, y, atoms[4].getFloat(), atoms[5].getFloat());
 
-            object->setObjectBounds(bounds);
+                pd->getCallbackLock()->exit();
+
+                object->setObjectBounds(bounds);
+            }
+            break;
+        }
+        default:
+            break;
         }
     }
 
     void resized() override
     {
+        updateCanvas();
         updateDrawables();
     }
 
@@ -81,17 +96,6 @@ public:
         }
 
         return false;
-    }
-
-    void checkBounds() override
-    {
-        // Apply size limits
-        int w = jlimit(25, maxSize, object->getWidth());
-        int h = jlimit(25, maxSize, object->getHeight());
-
-        if (w != object->getWidth() || h != object->getHeight()) {
-            object->setSize(w, h);
-        }
     }
 
     void updateBounds() override
@@ -145,7 +149,7 @@ public:
         canvas->locked.referTo(cnv->locked);
     }
 
-    void updateValue() override
+    void updateValue()
     {
         // Change from subpatch to graph
         if (!static_cast<t_canvas*>(ptr)->gl_isgraph) {
@@ -156,15 +160,6 @@ public:
         }
 
         updateCanvas();
-
-        if (!canvas)
-            return;
-
-        for (auto& object : canvas->objects) {
-            if (object->gui) {
-                object->gui->updateValue();
-            }
-        }
     }
 
     void updateDrawables() override
@@ -185,15 +180,14 @@ public:
         auto outlineColour = object->findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : objectOutlineColourId);
 
         g.setColour(outlineColour);
-        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Constants::objectCornerRadius, 1.0f);
+        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), PlugDataLook::objectCornerRadius, 1.0f);
 
         // Strangly, the title goes below the graph content in pd
         if (!static_cast<bool>(hideNameAndArgs.getValue()) && getText() != "graph") {
             auto text = getText();
-            g.setColour(object->findColour(PlugDataColour::canvasTextColourId));
-            g.setFont(Font(15));
+
             auto textArea = getLocalBounds().removeFromTop(20).withTrimmedLeft(5);
-            g.drawFittedText(text, textArea, Justification::left, 1, 1.0f);
+            PlugDataLook::drawFittedText(g, text, textArea, object->findColour(PlugDataColour::canvasTextColourId));
         }
     }
 
@@ -243,12 +237,4 @@ public:
     {
         openSubpatch();
     }
-
-private:
-    Value isGraphChild = Value(var(false));
-    Value hideNameAndArgs = Value(var(false));
-    Value xRange, yRange;
-
-    pd::Patch subpatch;
-    std::unique_ptr<Canvas> canvas;
 };

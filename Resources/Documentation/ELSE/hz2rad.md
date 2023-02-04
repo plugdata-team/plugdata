@@ -1,11 +1,11 @@
 ---
 title: hz2rad
-description: Hertz/radians_per_sample conversion
+description: Hertz to radians-per-sample conversion
 
 categories:
  - object
 
-pdcategory: General
+pdcategory: ELSE, Data Math
 
 arguments:
 - type: float

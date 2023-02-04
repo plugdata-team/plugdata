@@ -114,6 +114,7 @@ public:
 
             if (pd && file.existsAsFile()) {
                 pd->loadPatch(file);
+                SettingsFile::getInstance()->addToRecentlyOpened(file);
             }
         }
     }
@@ -240,6 +241,7 @@ int PlugDataWindow::parseSystemArguments(String const& arguments)
         if (toOpen.existsAsFile() && toOpen.hasFileExtension(".pd")) {
             if (auto* pd = dynamic_cast<PluginProcessor*>(getAudioProcessor())) {
                 pd->loadPatch(toOpen);
+                SettingsFile::getInstance()->addToRecentlyOpened(toOpen);
                 openedPatches.add(toOpen.getFullPathName());
             }
         }
@@ -258,6 +260,7 @@ int PlugDataWindow::parseSystemArguments(String const& arguments)
         if (toOpen.existsAsFile() && toOpen.hasFileExtension(".pd") && !openedPatches.contains(toOpen.getFullPathName())) {
             if (auto* pd = dynamic_cast<PluginProcessor*>(getAudioProcessor())) {
                 pd->loadPatch(toOpen);
+                SettingsFile::getInstance()->addToRecentlyOpened(toOpen);
             }
         }
     }
@@ -276,12 +279,6 @@ int PlugDataWindow::parseSystemArguments(String const& arguments)
     messagelist = nullptr;
 
     return retval;
-}
-
-ValueTree PlugDataWindow::getSettingsTree()
-{
-    auto* editor = dynamic_cast<PluginEditor*>(mainComponent->getEditor());
-    return editor->pd->settingsTree;
 }
 
 // This macro generates the main() routine that launches the app.

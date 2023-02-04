@@ -1,14 +1,13 @@
 ---
 title: note
-description: Text note
+
+description: text note
+
 categories:
  - object
-pdcategory: General
+pdcategory: ELSE, GUI
 
 arguments:
-- description: none
-  type:
-  default:
 
 inlets:
   1st:

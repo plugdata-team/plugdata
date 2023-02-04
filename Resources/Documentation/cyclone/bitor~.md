@@ -1,9 +1,9 @@
 ---
 title: bitor~
-description: Signal Bitwise-OR
+description: signal Bitwise-OR
 categories:
  - object
-pdcategory: General
+pdcategory: cyclone, General
 arguments:
 - type: float
   description: converted to integer and used as bitmask

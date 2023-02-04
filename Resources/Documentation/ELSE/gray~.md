@@ -1,11 +1,11 @@
 ---
 title: gray~
-description: Gray code noise generator
+description: gray code noise generator
 
 categories:
  - object
 
-pdcategory: General
+pdcategory: ELSE, Random and Noise, Signal Generators
 
 arguments:
 

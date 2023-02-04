@@ -6,7 +6,7 @@ categories:
 see_also:
 - soundfiler
 - readsf~
-pdcategory: General Audio Manipulation
+pdcategory: vanilla, File Management, Buffers
 last_update: '0.51'
 inlets:
   1st:

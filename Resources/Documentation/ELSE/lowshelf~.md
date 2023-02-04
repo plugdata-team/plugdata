@@ -1,11 +1,12 @@
 ---
 title: lowshelf~
-description: Lowshelf filter
+
+description: lowshelf filter
 
 categories:
  - object
 
-pdcategory: General
+pdcategory: ELSE, Filters
 
 arguments:
 - type: float

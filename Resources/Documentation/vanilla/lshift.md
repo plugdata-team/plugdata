@@ -1,9 +1,9 @@
 ---
 title: '<<'
-description: bit twiddling
+description: left signed bit shift
 categories:
 - object
-pdcategory: Math
+pdcategory: vanilla, Logic
 see_also:
 - +~
 - expr

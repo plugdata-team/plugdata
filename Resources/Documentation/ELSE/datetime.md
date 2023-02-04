@@ -1,18 +1,14 @@
 ---
 title: datetime
 
-description: Get date and time
+description: get date and time
 
 categories:
 - object
 
-pdcategory:
+pdcategory: ELSE, Triggers and Clocks, Data Management
 
 arguments:
-- description:
-  type:
-  default:
-
 inlets:
   1st:
   - type: bang
@@ -28,7 +24,7 @@ outlets:
 
 methods:
   - type: seed
-    description: get number of seconds since the beggining of the month to use it as a seed value
+    description: get number of seconds since the beginning of the month to use it as a seed value
 
 draft: false
 ---

@@ -73,11 +73,12 @@ struct PackageSorter {
     }
 };
 
-struct PackageManager : public Thread
+class PackageManager : public Thread
     , public ActionBroadcaster
     , public ValueTree::Listener
     , public DeletedAtShutdown {
 
+public:
     struct DownloadTask : public Thread {
         PackageManager& manager;
         PackageInfo packageInfo;
@@ -91,7 +92,7 @@ struct PackageManager : public Thread
         {
             int statusCode = 0;
             instream = URL(info.url).createInputStream(URL::InputStreamOptions(URL::ParameterHandling::inAddress)
-                                                           .withConnectionTimeoutMs(5000)
+                                                           .withConnectionTimeoutMs(10000)
                                                            .withStatusCode(&statusCode));
 
             if (instream != nullptr && statusCode == 200) {
@@ -426,12 +427,12 @@ public:
 
         input.setJustification(Justification::centredLeft);
         input.setBorder({ 1, 23, 3, 1 });
-        input.setName("sidebar::searcheditor");
+        input.getProperties().set("NoOutline", true);
         input.onTextChange = [this]() {
             filterResults();
         };
 
-        clearButton.setName("statusbar:clearsearch");
+        clearButton.getProperties().set("Style", "SmallIcon");
         clearButton.setAlwaysOnTop(true);
         clearButton.onClick = [this]() {
             input.clear();
@@ -448,7 +449,7 @@ public:
         addAndMakeVisible(updateSpinner);
 
         refreshButton.setTooltip("Refresh packages");
-        refreshButton.setName("statusbar:refresh");
+        refreshButton.getProperties().set("Style", "SmallIcon");
         addAndMakeVisible(refreshButton);
         refreshButton.setConnectedEdges(12);
         refreshButton.onClick = [this]() {
@@ -522,26 +523,16 @@ public:
     void paint(Graphics& g) override
     {
         if (errorMessage.isNotEmpty()) {
-            g.setColour(Colours::red);
-            g.drawText(errorMessage, getLocalBounds().removeFromBottom(28).withTrimmedLeft(8).translated(0, 2), Justification::centredLeft);
+            PlugDataLook::drawText(g, errorMessage, getLocalBounds().removeFromBottom(28).withTrimmedLeft(8).translated(0, 2), Colours::red);
         }
     }
 
     void paintOverChildren(Graphics& g) override
     {
-        g.setFont(getLookAndFeel().getTextButtonFont(clearButton, 30));
-
-        auto panelColour = findColour(PlugDataColour::panelTextColourId);
-        g.setColour(panelColour);
-
-        g.drawText(Icons::Search, 0, 0, 30, 30, Justification::centred);
+        PlugDataLook::drawIcon(g, Icons::Search, 0, 0, 30, findColour(PlugDataColour::panelTextColourId), 12);
 
         if (input.getText().isEmpty()) {
-
-            // Slightly faded colour for placeholder text
-            g.setColour(findColour(PlugDataColour::panelTextColourId).withAlpha(0.5f));
-            g.setFont(Font());
-            g.drawText("Type to search for objects or libraries", 32, 0, 350, 30, Justification::centredLeft);
+            PlugDataLook::drawText(g, "Type to search for objects or libraries", 32, 0, 350, 30, findColour(PlugDataColour::panelTextColourId).withAlpha(0.5f));
         }
 
         g.setColour(findColour(PlugDataColour::outlineColourId));
@@ -731,10 +722,10 @@ private:
             addChildComponent(addToPathButton);
 
             // Use statusbar button style
-            installButton.setName("statusbar:install");
-            reinstallButton.setName("statusbar:reinstall");
-            uninstallButton.setName("statusbar:uninstall");
-            addToPathButton.setName("statusbar:addtopath");
+            installButton.getProperties().set("Style", "SmallIcon");
+            reinstallButton.getProperties().set("Style", "SmallIcon");
+            uninstallButton.getProperties().set("Style", "SmallIcon");
+            addToPathButton.getProperties().set("Style", "SmallIcon");
 
             installButton.setTooltip("Install package");
             reinstallButton.setTooltip("Reinstall package");
@@ -819,10 +810,7 @@ private:
 
         void paint(Graphics& g) override
         {
-            g.setColour(findColour(ComboBox::textColourId));
-
-            g.setFont(Font());
-            g.drawFittedText(packageInfo.name, 5, 0, 200, getHeight(), Justification::centredLeft, 1, 0.8f);
+            PlugDataLook::drawFittedText(g, packageInfo.name, 5, 0, 200, getHeight(), findColour(ComboBox::textColourId));
 
             // draw progressbar
             if (deken.packageManager->getDownloadForPackage(packageInfo)) {
@@ -841,9 +829,9 @@ private:
                 g.setColour(findColour(PlugDataColour::panelActiveBackgroundColourId));
                 g.strokePath(downloadPath, PathStrokeType(8.0f, PathStrokeType::JointStyle::curved, PathStrokeType::EndCapStyle::rounded));
             } else {
-                g.drawFittedText(packageInfo.version, 150, 0, 150, getHeight(), Justification::centredLeft, 1, 0.8f);
-                g.drawFittedText(packageInfo.author, 330, 0, 110, getHeight(), Justification::centredLeft, 1, 0.8f);
-                g.drawFittedText(packageInfo.timestamp, 435, 0, 200, getHeight(), Justification::centredLeft, 1, 0.8f);
+                PlugDataLook::drawFittedText(g, packageInfo.version, 150, 0, 150, getHeight(), findColour(PlugDataColour::panelTextColourId));
+                PlugDataLook::drawFittedText(g, packageInfo.author, 330, 0, 110, getHeight(), findColour(PlugDataColour::panelTextColourId));
+                PlugDataLook::drawFittedText(g, packageInfo.timestamp, 435, 0, 200, getHeight(), findColour(PlugDataColour::panelTextColourId));
             }
         }
 

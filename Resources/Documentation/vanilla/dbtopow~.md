@@ -1,12 +1,12 @@
 ---
 title: dbtopow~
-description: acoustic conversions for audio signals
+description: dB to power units
 categories:
 - object
 see_also:
 - mtof
 - expr~
-pdcategory: Audio Math
+pdcategory: vanilla, Signal Math, Mixing and Routing
 last_update: '0.33'
 inlets:
   1st:

@@ -1,12 +1,12 @@
 ---
 title: status~
 
-description: Report 0/non-0 transitions
+description: report 0/non-0 transitions
 
 categories:
  - object
  
-pdcategory: Control (Triggers)
+pdcategory: ELSE, Triggers and Clocks
 
 arguments:
 - type: float

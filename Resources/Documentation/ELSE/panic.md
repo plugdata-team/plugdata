@@ -1,9 +1,11 @@
 ---
 title: panic
-description: Flush hanging MIDI notes
+
+description: flush hanging MIDI notes
+
 categories:
  - object
-pdcategory: General
+pdcategory: ELSE, MIDI
 
 arguments:
 

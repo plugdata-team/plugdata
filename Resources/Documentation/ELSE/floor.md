@@ -1,11 +1,11 @@
 ---
 title: floor
-description: Floor function
+description: floor function
 
 categories:
  - object
 
-pdcategory: General
+pdcategory: ELSE, Data Math
 
 arguments:
 

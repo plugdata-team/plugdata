@@ -1,12 +1,12 @@
 ---
 title: lastvalue
 
-description: Report last value
+description: report last value
 
 categories:
 - object
 
-pdcategory:
+pdcategory: ELSE, Analysis
 
 arguments:
 - description: initial last value
@@ -16,7 +16,7 @@ arguments:
 inlets:
   1st:
   - type: float
-    description: stotes value and outputs last value
+    description: stores value and outputs last value
   - type: bang
     description: outputs last stored value
   2nd:

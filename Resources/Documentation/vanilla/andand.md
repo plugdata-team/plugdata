@@ -1,9 +1,9 @@
 ---
 title: '&&'
-description: Logical AND
+description: logical AND
 categories:
 - object
-pdcategory: Math
+pdcategory: vanilla, Logic
 see_also:
 - +~
 - expr

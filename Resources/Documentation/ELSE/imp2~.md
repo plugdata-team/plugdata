@@ -1,11 +1,11 @@
 ---
 title: imp2~
-description: Two-sided impulse oscillator
+description: two-sided impulse oscillator
 
 categories:
  - object
 
-pdcategory: General
+pdcategory: ELSE, Signal Generators
 
 arguments:
 - type: float
@@ -21,13 +21,13 @@ arguments:
 inlets:
   1st:
   - type: float/signal
-    description: frequency in hz
+    description: frequency in Hz
   2nd:
   - type: float/signal
     description: pulse width (from 0 to 1)
   3rd:
   - type: float/signal
-    description: phase sync (ressets internal phase)
+    description: phase sync (resets internal phase)
   4th:
   - type: float/signal
     description: phase offset (modulation input)

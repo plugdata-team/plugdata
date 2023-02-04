@@ -1,11 +1,12 @@
 ---
 title: lfnoise~
-description: Low frequency noise
+
+description: low frequency noise
 
 categories:
  - object
 
-pdcategory: General
+pdcategory: ELSE, Random and Noise, Signal Generators, Envelopes and LFOs
 
 arguments:
 - type: float

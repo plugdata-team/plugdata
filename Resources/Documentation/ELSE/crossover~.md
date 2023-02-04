@@ -1,12 +1,12 @@
 ---
 title: crossover~
 
-description: Crossover filter
+description: crossover filter
 
 categories:
  - object
 
-pdcategory: DSP (Filters)
+pdcategory: ELSE, Filters
 
 arguments:
 - type: float
@@ -17,8 +17,6 @@ inlets:
   1st:
   - type: signal
     description: signal to be filtered
-  - type: clear
-    description: clears filter's memory
   2nd:
   - type: float/signal
     description: cutoff frequency
@@ -30,6 +28,10 @@ outlets:
   2nd:
   - type: signal
     description: highpass output
+
+methods:
+  - type: clear
+    description: clears filter's memory
 
 draft: false
 ---

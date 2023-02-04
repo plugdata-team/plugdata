@@ -3,7 +3,7 @@ title: pointer
 description: point to an object belonging to a template
 categories:
 - object
-pdcategory: Accessing Data
+pdcategory: vanilla, Data Structures
 inlets:
   1st:
 outlets:

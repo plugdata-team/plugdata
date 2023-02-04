@@ -1,27 +1,25 @@
 ---
 title: cosine~
 
-description:
+description: cosine oscillator
 
 categories:
  - object
 
-pdcategory: Oscillators
+pdcategory: ELSE, Signal Generators
 
 arguments:
-  1st:
-  - type: float
-    description: frequency in hz
-    default: 0
-  2nd:
-  - type: float
-    description: initial phase offset
-    default: 0
+- type: float
+  description: frequency in Hz
+  default: 0
+- type: float
+  description: initial phase offset
+  default: 0
 
 inlets:
   1st:
   - type: float/signal
-    description: frequency in hz
+    description: frequency in Hz
   2nd:
   - type: float/signal
     description: phase sync (resets internal phase)

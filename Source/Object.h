@@ -12,11 +12,13 @@ extern "C" {
 #include <m_pd.h>
 }
 
-#include "Utility/ObjectGrid.h"
+#include "ObjectGrid.h"
 #include "Iolet.h"
-#include "Objects/GUIObject.h"
+#include "Objects/ObjectBase.h"
 
 class Canvas;
+class ObjectBoundsConstrainer;
+
 class Object : public Component
     , public Value::Listener
     , public Timer
@@ -36,7 +38,7 @@ public:
     void paintOverChildren(Graphics&) override;
     void resized() override;
 
-    void updatePorts();
+    void updateIolets();
 
     void setType(String const& newType, void* existingObject = nullptr);
     void updateBounds();
@@ -66,6 +68,8 @@ public:
     void textEditorTextChanged(TextEditor& ed) override;
 
     bool hitTest(int x, int y) override;
+
+    bool validResizeZone = false;
 
     Array<Rectangle<float>> getCorners() const;
 
@@ -101,6 +105,10 @@ public:
         // These are only for the suggestions
         "hv.comb", "hv.compressor", "hv.compressor2", "hv.dispatch", "hv.drunk", "hv.envfollow", "hv.eq", "hv.exp", "hv.filter.gain", "hv.filter", "hv.flanger", "hv.flanger2", "hv.freqshift", "hv.gt", "hv.gte", "hv.log", "hv.lt", "hv.lte", "hv.multiplex", "hv.neq", "hv.osc", "hv.pinknoise", "hv.pow", "hv.reverb", "hv.tanh", "hv.vline" };
 
+    std::unique_ptr<ObjectBoundsConstrainer> constrainer;
+
+    Rectangle<int> originalBounds;
+
 private:
     void initialise();
 
@@ -108,7 +116,6 @@ private:
 
     void openNewObjectEditor();
 
-    Rectangle<int> originalBounds;
     bool createEditorOnMouseDown = false;
     bool selectionStateChanged = false;
     bool wasLockedOnMouseDown = false;

@@ -1,12 +1,12 @@
 ---
 title: svfilter~
 
-description: State-variable pedal
+description: state-variable pedal
 
 categories:
  - object
   
-pdcategory: DSP (Filters) 
+pdcategory: ELSE, Filters
 
 arguments:
   - type: float

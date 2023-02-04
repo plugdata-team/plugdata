@@ -1,12 +1,12 @@
 ---
 title: stereo.rev~
 
-description:
+description: stereo reverb
 
 categories:
 - object
 
-pdcategory:
+pdcategory: ELSE, Effects
 
 arguments:
 - type: float

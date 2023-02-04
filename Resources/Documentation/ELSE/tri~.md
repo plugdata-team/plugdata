@@ -1,19 +1,17 @@
 ---
 title: tri~
 
-description: Triangular wave oscillator
+description: triangular wave oscillator
 
 categories:
  - object
 
-pdcategory: General
+pdcategory: ELSE, Signal Generators
 
 arguments:
-  1st:
   - type: float
     description: frequency in hertz
     default: 0
-  2nd:
   - type: float
     description: initial phase offset
     default: 0

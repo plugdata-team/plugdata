@@ -1,12 +1,12 @@
 ---
 title: suspedal
 
-description: Sustain pedal
+description: sustain pedal
 
 categories:
  - object
  
-pdcategory: General
+pdcategory: ELSE, MIDI
 
 arguments:
 - type: float

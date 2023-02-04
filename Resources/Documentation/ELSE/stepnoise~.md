@@ -1,12 +1,12 @@
 ---
 title: stepnoise~
 
-description: Step noise
+description: step noise
 
 categories:
  - object
  
-pdcategory: Noise 
+pdcategory: ELSE, Random and Noise, Signal Generators
 
 arguments:
 - type: float
@@ -15,7 +15,8 @@ arguments:
 
 flags:
 - name: -seed <float>
-  description: sets seed (default: unique internal)
+  description: sets seed 
+  default: unique internal
 
 inlets:
   1st:

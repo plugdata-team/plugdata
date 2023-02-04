@@ -3,7 +3,7 @@ title: netreceive
 description: listen for incoming messages from network
 categories:
 - object
-pdcategory: Misc
+pdcategory: vanilla, Networking
 last_update: '0.51'
 see_also:
 - netsend

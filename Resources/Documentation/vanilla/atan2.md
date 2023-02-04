@@ -1,9 +1,9 @@
 ---
 title: atan2
-description: 2-argument arctangens functions
+description: 2-argument arctangens function
 categories:
 - object
-pdcategory: Math
+pdcategory: vanilla, Data Math
 see_also:
 - +~
 - +

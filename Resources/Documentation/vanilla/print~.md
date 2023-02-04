@@ -6,7 +6,7 @@ categories:
 see_also:
 - print
 - block~
-pdcategory: General Audio Manipulation
+pdcategory: vanilla, Analysis
 last_update: '0.33'
 inlets:
   1st:

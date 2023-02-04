@@ -1,16 +1,16 @@
 ---
 title: shaper~
 
-description: Waveshaper
+description: waveshaper
 
 categories:
  - object
 
-pdcategory: General
+pdcategory: ELSE, Effects
 
 arguments:
 - type: anything
-  description: array/table name for lookup / list of floats for internal transfer function.
+  description: array/table name/list of floats
   default: 1
 
 flags:
@@ -47,4 +47,4 @@ draft: false
 ---
 
 [shaper~] performs waveshaping with transfer functions, in which signal input values (from -1 to 1) are mapped to the the transfer function's indexes. Values outside the -1 to 1 range are wrapped inside it.
-You can set an array for [shaper~], as in this example, or use its internal transfer function for chebyshev polinomials.
+You can set an array for [shaper~], as in this example, or use its internal transfer function for chebyshev polynomials.

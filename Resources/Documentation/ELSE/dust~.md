@@ -1,12 +1,12 @@
 ---
 title: dust~
 
-description: Random impulses
+description: random impulses
 
 categories:
  - object
 
-pdcategory: General
+pdcategory: ELSE, Random and Noise, Signal Generators
 
 arguments:
 - type: float

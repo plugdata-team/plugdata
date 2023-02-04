@@ -1,12 +1,12 @@
 ---
 title: triangle~
 
-description: Variable duty triangular wave
+description: variable duty triangular wave
 
 categories:
  - object
 
-pdcategory: General
+pdcategory: cyclone, General
 
 arguments:
 - type: float

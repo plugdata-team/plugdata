@@ -1,12 +1,12 @@
 ---
 title: factor
 
-description: Factorization
+description: factorization
 
 categories:
  - object
 
-pdcategory: General
+pdcategory: ELSE, Data Math
 
 arguments:
 

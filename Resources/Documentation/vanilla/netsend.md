@@ -3,7 +3,7 @@ title: netsend
 description: send Pd messages over a network
 categories:
 - object
-pdcategory: Misc
+pdcategory: vanilla, Networking
 last_update: '0.51'
 see_also:
 - netreceive

@@ -1,12 +1,12 @@
 ---
 title: graph~
 
-description: Signal graph
+description: signal graph
 
 categories:
 - object
 
-pdcategory:
+pdcategory: ELSE, Analysis, Signal Math
 
 arguments:
 

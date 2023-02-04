@@ -1,7 +1,7 @@
 ---
 title: tabread4
 description: 4-point-interpolating table lookup
-pdcategory: Arrays & Tables
+pdcategory: vanilla, Arrays and Tables
 inlets:
   1st:
   - type: float

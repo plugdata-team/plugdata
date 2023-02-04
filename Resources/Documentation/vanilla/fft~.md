@@ -3,7 +3,7 @@ title: fft~
 description: forward complex FFT
 categories:
 - object
-pdcategory: Audio Math
+pdcategory: vanilla, Signal Math, Analysis
 last_update: '0.33'
 see_also:
 - block~

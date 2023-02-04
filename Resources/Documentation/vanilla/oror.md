@@ -1,9 +1,9 @@
 ---
 title: '||'
-description: bit twiddling
+description: logical OR
 categories:
 - object
-pdcategory: Math
+pdcategory: vanilla, Logic
 see_also:
 - +~
 - expr

@@ -6,7 +6,7 @@ description: Drunkard's walk algorithm
 categories:
 - object
 
-pdcategory:
+pdcategory: ELSE, Random and Noise
 
 arguments:
 - description: sets step range
@@ -55,5 +55,5 @@ methods:
 draft: false
 ---
 
-[drunkard~] generates random nvalues within a given step range from the last output. When reaching the bounds, the values get wrapped.
+[drunkard~] generates random values within a given step range from the last output. When reaching the bounds, the values get wrapped.
 

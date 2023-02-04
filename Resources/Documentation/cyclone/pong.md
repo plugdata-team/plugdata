@@ -1,12 +1,12 @@
 ---
 title: pong
 
-description: Range limiter (fold, wrap & clip)
+description: range limiter (fold, wrap & clip)
 
 categories:
  - object
 
-pdcategory: General
+pdcategory: cyclone, General
 
 arguments:
 - type: float

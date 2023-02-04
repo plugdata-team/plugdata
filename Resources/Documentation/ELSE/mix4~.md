@@ -6,7 +6,7 @@ description: 4-channel mixer
 categories:
 - object
 
-pdcategory: GUI
+pdcategory: ELSE, GUI, Mixing and Routing
 
 arguments:
 - type: float
@@ -30,7 +30,7 @@ inlets:
 outlets:
   1st:
   - type: signal
-    description: left cnannel signal
+    description: left channel signal
   2nd:
   - type: signal
     description: right channel signal

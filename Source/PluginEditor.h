@@ -12,6 +12,7 @@
 #include "Sidebar/Sidebar.h"
 #include "Statusbar.h"
 #include "Tabbar.h"
+#include "Utility/RateReducer.h"
 
 enum CommandIDs {
     NewProject = 1,
@@ -42,7 +43,13 @@ enum CommandIDs {
     PreviousTab,
     ToggleGrid,
     ClearConsole,
-    NewObject,
+    ShowSettings,
+    ShowReference,
+    NumItems
+};
+
+enum ObjectIDs {
+    NewObject = 100,
     NewComment,
     NewBang,
     NewMessage,
@@ -64,11 +71,240 @@ enum CommandIDs {
     NewNumboxTilde,
     NewOscilloscope,
     NewFunction,
-    NumItems
+
+    NewMetro,
+    NewTimer,
+    NewDelay,
+    NewTimedGate,
+    NewDateTime,
+    NewSignalDelay,
+
+    NewOsc,
+    NewPhasor,
+    NewSaw,
+    NewSaw2,
+    NewSquare,
+    NewTriangle,
+    NewImp,
+    NewImp2,
+    NewWavetable,
+    NewBlOsc,
+    NewBlSaw,
+    NewBlSaw2,
+    NewBlSquare,
+    NewBlTriangle,
+    NewBlImp,
+    NewBlImp2,
+    NewBlWavetable,
+
+    NewLop,
+    NewVcf,
+    NewLores,
+    NewSvf,
+    NewBob,
+    NewOnepole,
+    NewReson,
+    NewAllpass,
+    NewComb,
+    NewHip,
+
+    NewDac,
+    NewAdc,
+    NewOut,
+
+    NewMidiIn,
+    NewMidiOut,
+    NewNoteIn,
+    NewNoteOut,
+    NewCtlIn,
+    NewCtlOut,
+    NewPgmIn,
+    NewPgmOut,
+    NewSysexIn,
+    NewSysexOut,
+    NewMtof,
+    NewFtom,
+
+    NewArraySet,
+    NewArrayGet,
+    NewArrayDefine,
+    NewArraySize,
+    NewArrayMin,
+    NewArrayMax,
+    NewArrayRandom,
+    NewArrayQuantile,
+
+    NewListAppend,
+    NewListPrepend,
+    NewListStore,
+    NewListSplit,
+    NewListTrim,
+    NewListLength,
+    NewListFromSymbol,
+    NewListToSymbol,
+
+    NewAdd,
+    NewSubtract,
+    NewMultiply,
+    NewDivide,
+    NewModulo,
+    NewInverseSubtract,
+    NewInverseDivide,
+    NewBiggerThan,
+    NewSmallerThan,
+    NewBiggerThanOrEqual,
+    NewSmallerThanOrEqual,
+    NewEquals,
+    NewNotEquals,
+
+    NewSignalAdd,
+    NewSignalSubtract,
+    NewSignalMultiply,
+    NewSignalDivide,
+    NewSignalModulo,
+    NewSignalInverseSubtract,
+    NewSignalInverseDivide,
+    NewSignalBiggerThan,
+    NewSignalSmallerThan,
+    NewSignalBiggerThanOrEqual,
+    NewSignalSmallerThanOrEqual,
+    NewSignalEquals,
+    NewSignalNotEquals,
+
+    NumObjects
 };
 
-struct ZoomLabel : public TextButton
+const std::map<ObjectIDs, String> objectNames {
+    { NewObject, "" },
+    { NewComment, "comment" },
+    { NewBang, "bng" },
+    { NewMessage, "msg" },
+    { NewToggle, "tgl" },
+    { NewNumbox, "nbx" },
+    { NewVerticalSlider, "vsl" },
+    { NewHorizontalSlider, "hsl" },
+    { NewVerticalRadio, "vradio" },
+    { NewHorizontalRadio, "hradio" },
+    { NewFloatAtom, "floatatom" },
+    { NewSymbolAtom, "symbolatom" },
+    { NewListAtom, "listbox" },
+    { NewArray, "array" },
+    { NewGraphOnParent, "graph" },
+    { NewCanvas, "cnv" },
+    { NewKeyboard, "keyboard" },
+    { NewVUMeterObject, "vu" },
+    { NewButton, "button" },
+    { NewNumboxTilde, "numbox~" },
+    { NewOscilloscope, "oscope~" },
+    { NewFunction, "function" },
+
+    { NewMetro, "metro" },
+    { NewTimer, "timer" },
+    { NewDelay, "delay" },
+    { NewTimedGate, "timed.gate" },
+    { NewDateTime, "datetime" },
+    { NewSignalDelay, "delay~" },
+
+    { NewOsc, "osc~" },
+    { NewPhasor, "phasor~" },
+    { NewSaw, "saw~" },
+    { NewSaw2, "saw2~" },
+    { NewSquare, "square~" },
+    { NewTriangle, "triangle~" },
+    { NewImp, "imp~" },
+    { NewImp2, "imp2~" },
+    { NewWavetable, "wavetable~" },
+    { NewBlOsc, "bl.osc~" },
+    { NewBlSaw, "bl.saw~" },
+    { NewBlSaw2, "bl.saw2~" },
+    { NewBlSquare, "bl.square~" },
+    { NewBlTriangle, "bl.tri~" },
+    { NewBlImp, "bl.imp~" },
+    { NewBlImp2, "bl.imp2~" },
+    { NewBlWavetable, "bl.wavetable~" },
+
+    { NewLop, "lop~" },
+    { NewVcf, "vcf~" },
+    { NewLores, "lores~" },
+    { NewSvf, "svf~" },
+    { NewBob, "bob~" },
+    { NewOnepole, "onepole~" },
+    { NewReson, "reson~" },
+    { NewAllpass, "allpass~" },
+    { NewComb, "comb~" },
+    { NewHip, "hip~" },
+
+    { NewDac, "dac~" },
+    { NewAdc, "adc~" },
+    { NewOut, "out~" },
+
+    { NewMidiIn, "midiin" },
+    { NewMidiOut, "midiout" },
+    { NewNoteIn, "notein" },
+    { NewNoteOut, "noteout" },
+    { NewCtlIn, "ctlin" },
+    { NewCtlOut, "ctlout" },
+    { NewPgmIn, "pgmin" },
+    { NewPgmOut, "pgmout" },
+    { NewSysexIn, "sysexin" },
+    { NewSysexOut, "sysexout" },
+    { NewMtof, "mtof" },
+    { NewFtom, "ftom" },
+
+    { NewArraySet, "array set" },
+    { NewArrayGet, "array get" },
+    { NewArrayDefine, "array define" },
+    { NewArraySize, "array size" },
+    { NewArrayMin, "array min" },
+    { NewArrayMax, "array max" },
+    { NewArrayRandom, "array random" },
+    { NewArrayQuantile, "array quantile" },
+
+    { NewListAppend, "list append" },
+    { NewListPrepend, "list prepend" },
+    { NewListStore, "list store" },
+    { NewListSplit, "list split" },
+    { NewListTrim, "list trim" },
+    { NewListLength, "list length" },
+    { NewListFromSymbol, "list fromsymbol" },
+    { NewListToSymbol, "list tosymbol" },
+
+    { NewAdd, "+" },
+    { NewSubtract, "-" },
+    { NewMultiply, "*" },
+    { NewDivide, "/" },
+    { NewModulo, "%" },
+    { NewInverseSubtract, "!-" },
+    { NewInverseDivide, "!/" },
+
+    { NewBiggerThan, ">" },
+    { NewSmallerThan, "<" },
+    { NewBiggerThanOrEqual, ">=" },
+    { NewSmallerThanOrEqual, "<=" },
+    { NewEquals, "==" },
+    { NewNotEquals, "!=" },
+
+    { NewSignalAdd, "+~" },
+    { NewSignalSubtract, "-~" },
+    { NewSignalMultiply, "*~" },
+    { NewSignalDivide, "/~" },
+    { NewSignalModulo, "%~" },
+    { NewSignalInverseSubtract, "!-~" },
+    { NewSignalInverseDivide, "!/~" },
+    { NewSignalBiggerThan, ">~" },
+    { NewSignalSmallerThan, "<~" },
+    { NewSignalBiggerThanOrEqual, ">=~" },
+    { NewSignalSmallerThanOrEqual, "<=~" },
+    { NewSignalEquals, "==~" },
+    { NewSignalNotEquals, "!=~" },
+};
+
+class ZoomLabel : public TextButton
     , public Timer {
+
+    ComponentAnimator labelAnimator;
+
+public:
     ZoomLabel()
     {
         setInterceptsMouseClicks(false, false);
@@ -87,30 +323,24 @@ struct ZoomLabel : public TextButton
     void timerCallback() override
     {
         labelAnimator.fadeOut(this, 200);
+        stopTimer();
     }
-
-    ComponentAnimator labelAnimator;
 };
 
-struct WelcomeButton;
+class WelcomeButton;
 class Canvas;
 class PluginProcessor;
 class PluginEditor : public AudioProcessorEditor
     , public Value::Listener
-    , public ValueTree::Listener
     , public ApplicationCommandTarget
     , public ApplicationCommandManager
-    , public Timer
     , public FileDragAndDropTarget {
 public:
     enum ToolbarButtonType {
-        Open = 0,
-        Save,
-        SaveAs,
+        Settings = 0,
         Undo,
         Redo,
         Add,
-        Settings,
         Hide,
         Pin
     };
@@ -161,17 +391,6 @@ public:
     void getCommandInfo(const CommandID commandID, ApplicationCommandInfo& result) override;
     bool perform(InvocationInfo const& info) override;
 
-    void valueTreePropertyChanged(ValueTree& treeWhosePropertyHasChanged, Identifier const& property) override;
-    void valueTreeChildAdded(ValueTree& parentTree, ValueTree& childWhichHasBeenAdded) override;
-    void valueTreeChildRemoved(ValueTree& parentTree, ValueTree& childWhichHasBeenRemoved, int indexFromWhichChildWasRemoved) override;
-
-    void timerCallback() override;
-
-    TextButton* toolbarButton(ToolbarButtonType type)
-    {
-        return toolbarButtons[static_cast<int>(type)];
-    }
-
     bool wantsRoundedCorners();
 
     PluginProcessor* pd;
@@ -198,12 +417,12 @@ private:
     std::unique_ptr<FileChooser> openChooser;
 
 #ifdef PLUGDATA_STANDALONE
-    static constexpr int toolbarHeight = 45;
-#else
     static constexpr int toolbarHeight = 40;
+#else
+    static constexpr int toolbarHeight = 35;
 #endif
 
-    OwnedArray<TextButton> toolbarButtons;
+    TextButton mainMenuButton, undoButton, redoButton, addObjectMenuButton, pinButton, hideSidebarButton;
 
     TooltipWindow tooltipWindow;
     StackDropShadower tooltipShadow;
@@ -218,6 +437,10 @@ private:
 
     bool isMaximised = false;
     bool isDraggingFile = false;
+
+#if !PLUGDATA_STANDALONE
+    std::unique_ptr<MouseRateReducedComponent<ResizableCornerComponent>> cornerResizer;
+#endif
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PluginEditor)
 };

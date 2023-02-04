@@ -1,12 +1,12 @@
 ---
 title: brickwall~
 
-description: Brickwall filter
+description: brickwall filter
 
 categories:
 - object
 
-pdcategory: Audio Filters
+pdcategory: ELSE, Filters
 
 arguments:
 - description: cutoff in Hz

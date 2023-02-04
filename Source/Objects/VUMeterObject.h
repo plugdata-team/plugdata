@@ -4,46 +4,57 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
-struct VUMeterObject final : public IEMObject {
+class VUMeterObject final : public ObjectBase {
+
+    IEMHelper iemHelper;
+
+public:
     VUMeterObject(void* ptr, Object* object)
-        : IEMObject(ptr, object)
+        : ObjectBase(ptr, object)
+        , iemHelper(ptr, object, this)
     {
+        object->constrainer->setMinimumSize(20, 40);
     }
 
-    void checkBounds() override
+    void updateLabel() override
     {
-        // Apply size limits
-        int w = jlimit(30, maxSize, object->getWidth());
-        int h = jlimit(80, maxSize, object->getHeight());
-
-        if (w != object->getWidth() || h != object->getHeight()) {
-            object->setSize(w, h);
-        }
+        iemHelper.updateLabel(label);
     }
 
-    float getValue() override
+    void valueChanged(Value& v) override
     {
-        return static_cast<t_vu*>(ptr)->x_fp;
+        iemHelper.valueChanged(v);
     }
 
-    float getRMS()
+    ObjectParameters getParameters() override
     {
-        return static_cast<t_vu*>(ptr)->x_fr;
+        return iemHelper.getParameters();
     }
 
-    void resized() override
+    void initialiseParameters() override
     {
+        iemHelper.initialiseParameters();
+    }
+
+    void updateBounds() override
+    {
+        iemHelper.updateBounds();
+    }
+
+    void applyBounds() override
+    {
+        iemHelper.applyBounds();
     }
 
     void paint(Graphics& g) override
     {
-        auto values = std::vector<float> { getValue(), getRMS() };
+        auto values = std::vector<float> { static_cast<t_vu*>(ptr)->x_fp, static_cast<t_vu*>(ptr)->x_fr };
 
         int height = getHeight();
         int width = getWidth();
 
-        g.setColour(object->findColour(PlugDataColour::defaultObjectBackgroundColourId));
-        g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Constants::objectCornerRadius);
+        g.setColour(object->findColour(PlugDataColour::guiObjectBackgroundColourId));
+        g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), PlugDataLook::objectCornerRadius);
 
         auto outerBorderWidth = 2.0f;
         auto totalBlocks = 30;
@@ -88,26 +99,31 @@ struct VUMeterObject final : public IEMObject {
 
         if (getWidth() > g.getCurrentFont().getStringWidth(textValue + " dB")) {
             // Check noscale flag, otherwise display next to slider
-            g.setColour(Colours::white);
-            g.drawFittedText(textValue + " dB", Rectangle<int>(getLocalBounds().removeFromBottom(20)).reduced(2), Justification::centred, 1, 0.6f);
+            PlugDataLook::drawFittedText(g, textValue + " dB", Rectangle<int>(getLocalBounds().removeFromBottom(20)).reduced(2), Colours::white, 1, 1.0f, Justification::centred);
         } else if (getWidth() > g.getCurrentFont().getStringWidth(textValue)) {
-            g.setColour(Colours::white);
-            g.drawFittedText(textValue, Rectangle<int>(getLocalBounds().removeFromBottom(20)).reduced(2), Justification::centred, 1, 0.6f);
+            PlugDataLook::drawFittedText(g, textValue, Rectangle<int>(getLocalBounds().removeFromBottom(20)).reduced(2), Colours::white, 1, 1.0f, Justification::centred);
         } else {
-            g.setColour(Colours::white);
-            g.setFont(11);
-            g.drawFittedText(String(std::max(values[1], -96.0f), 0), Rectangle<int>(getLocalBounds().removeFromBottom(20)).reduced(2), Justification::centred, 1, 0.6f);
+            PlugDataLook::drawFittedText(g, String(std::max(values[1], -96.0f), 0), Rectangle<int>(getLocalBounds().removeFromBottom(20)).reduced(2), Colours::white, 1, 1.0f, 11, Justification::centred);
         }
 
         bool selected = cnv->isSelected(object) && !cnv->isGraph;
         auto outlineColour = object->findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : objectOutlineColourId);
 
         g.setColour(outlineColour);
-        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Constants::objectCornerRadius, 1.0f);
+        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), PlugDataLook::objectCornerRadius, 1.0f);
     }
 
-    void updateValue() override
+    void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
     {
-        repaint();
-    };
+        switch (objectMessageMapped[symbol]) {
+        case objectMessage::msg_float: {
+            repaint();
+            break;
+        }
+        default: {
+            iemHelper.receiveObjectMessage(symbol, atoms);
+            break;
+        }
+        }
+    }
 };

@@ -1,23 +1,20 @@
 ---
 title: timed.gate
 
-description: Control timed gate
+description: control timed gate
 
 categories:
 - object
 
-pdcategory:
+pdcategory: ELSE, Triggers and Clocks
 
 arguments:
-  1st:
   - type: float
     description: gate time in ms
     default: 0, no gate
-  2nd:
   - type: float
     description: initial gate amplitude
     default: 1
-  3rd:
   - type: float
     description: non-zero sets to retrigger mode
     default: 0
@@ -28,10 +25,7 @@ inlets:
     description: control trigger with the gate value
   - type: bang
     description: control trigger with the last/initial gate value
-  - type: ms <float>
-    description: gate time in ms
-  - type: retrigger <float>
-    description: non-zero sets to retrigger mode
+
   2nd:
   - type: float
     description: gate time in ms
@@ -40,6 +34,12 @@ outlets:
   1st:
   - type: float
     description: timed gate
+
+methods:
+  - type: ms <float>
+    description: gate time in ms
+  - type: retrigger <float>
+    description: non-zero sets to retrigger mode
 
 draft: false
 ---

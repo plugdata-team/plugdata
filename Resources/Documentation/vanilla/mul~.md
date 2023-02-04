@@ -1,9 +1,9 @@
 ---
 title: '*~'
-description: binary operators on audio signals
+description: multiply two signals
 categories:
 - object
-pdcategory: Audio Math
+pdcategory: vanilla, Signal Math
 last_update: '0.27'
 see_also:
 - +

@@ -6,9 +6,9 @@ description: Signal sine function
 categories:
  - object
 
-pdcategory: Math Functions 
+pdcategory: ELSE, Signal Math
 
-arguments: (none)
+arguments:
 
 inlets:
   1st:

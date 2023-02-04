@@ -1,12 +1,12 @@
 ---
 title: unite
 
-description: Unite messages into a symbol
+description: unite messages into a symbol
 
 categories:
 - object
 
-pdcategory: Message Management
+pdcategory: ELSE, Data Management
 
 arguments:
   - type: symbol

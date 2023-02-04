@@ -1,11 +1,11 @@
 ---
 title: float2bits
-description: Convert float to bits
+description: convert float to bits
 
 categories:
  - object
 
-pdcategory: General
+pdcategory: ELSE, Data Math
 
 arguments:
 - type: float

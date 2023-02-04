@@ -3,10 +3,13 @@
  // For information on usage and redistribution, and for a DISCLAIMER OF ALL
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
+#include <JuceHeader.h>
 
 #if PLUGDATA_STANDALONE
 
-struct RoundedListBox : public ListBox {
+class RoundedListBox : public ListBox {
+
+public:
     RoundedListBox(String const& componentName = String(), ListBoxModel* model = nullptr)
         : ListBox(componentName, model)
     {
@@ -16,18 +19,20 @@ struct RoundedListBox : public ListBox {
     void paint(Graphics& g) override
     {
         g.setColour(findColour(PlugDataColour::toolbarBackgroundColourId));
-        g.fillRoundedRectangle(getLocalBounds().toFloat(), Constants::defaultCornerRadius);
+        g.fillRoundedRectangle(getLocalBounds().toFloat(), PlugDataLook::defaultCornerRadius);
     }
 
     void paintOverChildren(Graphics& g) override
     {
         g.setColour(findColour(PlugDataColour::outlineColourId));
-        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Constants::defaultCornerRadius, 1.0f);
+        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), PlugDataLook::defaultCornerRadius, 1.0f);
     }
 };
 
-struct SimpleDeviceManagerInputLevelMeter : public Component
+class SimpleDeviceManagerInputLevelMeter : public Component
     , public Timer {
+
+public:
     SimpleDeviceManagerInputLevelMeter(AudioDeviceManager& m)
         : manager(m)
     {
@@ -80,7 +85,6 @@ static void drawTextLayout(Graphics& g, Component& owner, StringRef text, Rectan
     textLayout.draw(g, textBounds.toFloat());
 }
 
-//==============================================================================
 class MidiSelectorComponentListBox : public RoundedListBox
     , private ListBoxModel {
 public:
@@ -96,9 +100,23 @@ public:
         setOutlineThickness(1);
     }
 
+    void resized() override
+    {
+        auto extra = getOutlineThickness() * 2;
+        setSize(getWidth(), jmin(8 * getRowHeight(), items.size() * getRowHeight()) + extra);
+        RoundedListBox::resized();
+    }
+
     void updateDevices()
     {
         items = isInput ? MidiInput::getAvailableDevices() : MidiOutput::getAvailableDevices();
+
+        if (!isInput) {
+            MidiDeviceInfo internalSynth;
+            internalSynth.name = "Internal synth";
+            internalSynth.identifier = "internal";
+            items.insert(0, internalSynth);
+        }
     }
 
     int getNumRows() override
@@ -109,13 +127,13 @@ public:
     void paintListBoxItem(int row, Graphics& g, int width, int height, bool rowIsSelected) override
     {
         if (isPositiveAndBelow(row, items.size())) {
-            if (rowIsSelected)
-                g.fillAll(findColour(TextEditor::highlightColourId)
-                              .withMultipliedAlpha(0.3f));
-
             auto item = items[row];
 
             bool enabled = isInput ? deviceManager.isMidiInputDeviceEnabled(item.identifier) : (getEnabledMidiOutputWithID(item.identifier) != nullptr);
+
+            if (item.identifier == "internal") {
+                enabled = audioProcessor->enableInternalSynth;
+            }
 
             auto x = getTickX();
             auto tickW = (float)height * 0.75f;
@@ -150,11 +168,8 @@ public:
         RoundedListBox::paint(g);
 
         if (items.isEmpty()) {
-            g.setColour(Colours::grey);
-            g.setFont(0.5f * (float)getRowHeight());
-            g.drawText(noItemsMessage,
-                0, 0, getWidth(), getHeight() / 2,
-                Justification::centred, true);
+            // TODO: fix colour
+            PlugDataLook::drawText(g, noItemsMessage, 0, 0, getWidth(), getHeight() / 2, Colours::grey, 0.5f * (float)getRowHeight(), Justification::centred);
         }
     }
 
@@ -168,7 +183,6 @@ public:
     }
 
 private:
-    //==============================================================================
     AudioDeviceManager& deviceManager;
     PluginProcessor* audioProcessor;
     const String noItemsMessage;
@@ -193,19 +207,20 @@ private:
 
             if (isInput) {
                 deviceManager.setMidiInputDeviceEnabled(identifier, !deviceManager.isMidiInputDeviceEnabled(identifier));
-                updateContent();
             } else {
-                if (auto* midiOut = getEnabledMidiOutputWithID(identifier)) {
+                if (identifier == "internal") {
+                    audioProcessor->enableInternalSynth = !audioProcessor->enableInternalSynth;
+
+                    audioProcessor->settingsFile->setProperty("internal_synth", static_cast<int>(audioProcessor->enableInternalSynth));
+                } else if (auto* midiOut = getEnabledMidiOutputWithID(identifier)) {
                     audioProcessor->midiOutputs.removeObject(midiOut);
-                    updateContent();
-                    return;
                 } else {
                     auto* device = audioProcessor->midiOutputs.add(MidiOutput::openDevice(identifier));
-
                     device->startBackgroundThread();
-                    updateContent();
                 }
             }
+            updateContent();
+            repaint();
         }
     }
 
@@ -217,7 +232,6 @@ private:
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(MidiSelectorComponentListBox)
 };
 
-//==============================================================================
 struct AudioDeviceSetupDetails {
     AudioDeviceManager* manager;
     int minNumInputChannels, maxNumInputChannels;
@@ -255,7 +269,7 @@ public:
         addAndMakeVisible(midiInputsList.get());
 
         midiInputsLabel.reset(new Label({}, TRANS("MIDI inputs:")));
-        midiInputsLabel->setJustificationType(Justification::topRight);
+        midiInputsLabel->setJustificationType(Justification::centredRight);
         midiInputsLabel->attachToComponent(midiInputsList.get(), true);
 
         // Temporarily disable this, it causes a crash at the moment
@@ -270,6 +284,7 @@ public:
         addAndMakeVisible(midiOutputsList.get());
 
         midiOutputLabel.reset(new Label("lm", TRANS("MIDI Outputs:")));
+        midiOutputLabel->setJustificationType(Justification::centredRight);
         midiOutputLabel->attachToComponent(midiOutputsList.get(), true);
 
         deviceManager.addChangeListener(this);
@@ -300,7 +315,6 @@ public:
         return static_cast<ListBox*>(midiInputsList.get());
     }
 
-    //==============================================================================
     /** @internal */
     void resized() override
     {
@@ -314,15 +328,13 @@ public:
 
         if (audioDeviceSettingsComp != nullptr) {
             audioDeviceSettingsComp->resized();
-            audioDeviceSettingsComp->setBounds(r.removeFromTop(audioDeviceSettingsComp->getHeight())
-                                                   .withX(0)
-                                                   .withWidth(getWidth()));
+            audioDeviceSettingsComp->setBounds(r.removeFromTop(audioDeviceSettingsComp->getHeight()).withX(0).withWidth(getWidth()));
             r.removeFromTop(space);
         }
 
         if (midiInputsList != nullptr) {
             midiInputsList->setRowHeight(jmin(22, itemHeight));
-            midiInputsList->setBounds(r.removeFromTop(midiInputsList->getBestHeight(jmin(itemHeight * 8, getHeight() - r.getY() - space - itemHeight))));
+            midiInputsList->setBounds(r.removeFromTop(midiInputsList->getHeight()));
             r.removeFromTop(space);
         }
 
@@ -333,7 +345,7 @@ public:
 
         if (midiOutputsList != nullptr) {
             midiOutputsList->setRowHeight(jmin(22, itemHeight));
-            midiOutputsList->setBounds(r.removeFromTop(midiOutputsList->getBestHeight(jmin(itemHeight * 8, getHeight() - r.getY() - space - itemHeight))));
+            midiOutputsList->setBounds(r.removeFromTop(midiOutputsList->getHeight()));
             r.removeFromTop(space);
         }
 
@@ -342,7 +354,6 @@ public:
     }
 
 private:
-    //==============================================================================
     void handleBluetoothButton()
     {
         if (!RuntimePermissions::isGranted(RuntimePermissions::bluetoothMidi))
@@ -419,7 +430,6 @@ private:
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(StandaloneAudioSettingsComponent)
 
-    //==============================================================================
     class AudioDeviceSettingsPanel : public Component
         , private ChangeListener {
     public:
@@ -881,7 +891,6 @@ private:
         }
 
     public:
-        //==============================================================================
         class ChannelSelectorListBox : public RoundedListBox
             , private ListBoxModel {
         public:
@@ -890,7 +899,6 @@ private:
                 audioOutputType
             };
 
-            //==============================================================================
             ChannelSelectorListBox(AudioDeviceSetupDetails const& setupDetails, BoxType boxType, String const& noItemsText)
                 : RoundedListBox({}, nullptr)
                 , setup(setupDetails)
@@ -989,11 +997,9 @@ private:
                 RoundedListBox::paint(g);
 
                 if (items.isEmpty()) {
-                    g.setColour(Colours::grey);
-                    g.setFont(0.5f * (float)getRowHeight());
-                    g.drawText(noItemsMessage,
+                    PlugDataLook::drawText(g, noItemsMessage,
                         0, 0, getWidth(), getHeight() / 2,
-                        Justification::centred, true);
+                        Colours::grey, 0.5f * (float)getRowHeight(), Justification::centred);
                 }
             }
 
@@ -1004,7 +1010,6 @@ private:
             }
 
         private:
-            //==============================================================================
             const AudioDeviceSetupDetails setup;
             const BoxType type;
             const String noItemsMessage;
@@ -1121,8 +1126,10 @@ public:
 
 #else
 
-struct DAWAudioSettings : public Component
+class DAWAudioSettings : public Component
     , public Value::Listener {
+
+public:
     explicit DAWAudioSettings(AudioProcessor* p)
         : processor(p)
     {
@@ -1133,7 +1140,7 @@ struct DAWAudioSettings : public Component
         dynamic_cast<DraggableNumber*>(latencyNumberBox.label.get())->setMinimum(64);
 
         auto* proc = dynamic_cast<PluginProcessor*>(processor);
-        auto& settingsTree = dynamic_cast<PluginProcessor*>(p)->settingsTree;
+        auto settingsTree = SettingsFile::getInstance()->getValueTree();
 
         if (!settingsTree.hasProperty("NativeDialog")) {
             settingsTree.setProperty("NativeDialog", true, nullptr);

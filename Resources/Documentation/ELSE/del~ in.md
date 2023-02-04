@@ -1,12 +1,12 @@
 ---
 title: del~ in
 
-description: Delay line input
+description: delay line input
 
 categories:
  - object
 
-pdcategory: General
+pdcategory: ELSE, Effects, Buffers
 
 arguments:
 - type: symbol
@@ -17,6 +17,7 @@ arguments:
   default: 1 sample
 
 inlets:
+  1st:
   - type: signal
     description: signal input into the delay line
 

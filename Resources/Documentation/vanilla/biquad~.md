@@ -17,7 +17,7 @@ see_also:
 - cpole~
 - czero~
 - czero_rev~
-pdcategory: Audio Filters
+pdcategory: vanilla, Filters
 last_update: '0.30'
 inlets:
   1st:

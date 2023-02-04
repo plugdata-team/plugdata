@@ -1,24 +1,31 @@
 ---
 title: gate
-description:
+description: route message to an outlet
 categories:
  - object
-pdcategory: General
+pdcategory: cyclone, General
 arguments:
 - type: float
-  description:
-  default:
+  description: `n` number of outlets (1 to 100)
+  default: 1
 - type: float
-  description:
-  default:
+  description: sets initially open outlet
+  default: 0 - none
 inlets:
   1st:
-  - type: ?
-    description:
+  - type: bang
+    description: reports the open outlet number on the left outlet
+  - type: float
+    description: sets outlet number (0 is none)
   2nd:
-  - type: ?
-    description:
-outlets:
-  1st:
   - type: anything
-    description:
+    description: message to send through a specified outlet
+outlets:
+  nth:
+  - type: anything
+    description: outlet $nth for routing any received message
+
+---
+
+[gate] routes a message from the second inlet to one of 'n' specified outlets or none of them.
+

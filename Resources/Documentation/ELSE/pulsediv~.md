@@ -1,11 +1,11 @@
 ---
 title: pulsediv~
-description: Pulse divider
+description: pulse divider
 
 categories:
  - object
 
-pdcategory: General
+pdcategory: ELSE, Signal Generators, Triggers and Clocks
 
 arguments:
 - type: float
@@ -32,5 +32,5 @@ outlets:
 
 ---
 
-[pulsediv~] outputs impulses when receiving triggers (signal changes from non-positive to positive). The left outlt outputs impulses according to the division value and the right outlet outputs impulses for the other trigger inputs.
+[pulsediv~] outputs impulses when receiving triggers (signal changes from non-positive to positive). The left outlet outputs impulses according to the division value and the right outlet outputs impulses for the other trigger inputs.
 

@@ -1,11 +1,11 @@
 ---
 title: hot
-description: Make all inputs hot
+description: make all inputs hot
 
 categories:
  - object
 
-pdcategory: General
+pdcategory: ELSE, Data Management
 
 arguments:
 - type: float

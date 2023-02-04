@@ -1,21 +1,26 @@
 ---
 title: downsamp~
-description:
+description: downsample a signal
 categories:
  - object
-pdcategory: General
+pdcategory: cyclone, General
 arguments:
 - type: float
-  description:
-  default:
+  description: rate as number of samples
+  default: 1
 inlets:
   1st:
   - type: signal
-    description:
+    description: signal to be downsampled
   2nd:
-  - type: signal
-    description:
+  - type: float/signal
+    description: rate (in samples) used to downsample the input signal
 outlets:
   1st:
   - type: signal
-    description:
+    description: downsampled signal
+
+---
+
+[downsamp~] samples and holds a signal received in the left inlet at a rate expressed in samples. No interpolation of the output is performed.
+

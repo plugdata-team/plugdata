@@ -1,9 +1,9 @@
 ---
 title: click~
-description: Impulse generator
+description: impulse generator
 categories:
  - object
-pdcategory: General
+pdcategory: cyclone, General
 arguments:
 - type: float/list
   description: amplitude value(s) of the impulse

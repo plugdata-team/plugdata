@@ -1,9 +1,9 @@
 ---
 title: abs~
-description: Calculates absolute value of signal
+description: calculates absolute value of signal
 categories:
 - object
-pdcategory: Audio Math
+pdcategory: vanilla, Signal Math
 last_update: '0.42'
 see_also:
 - abs

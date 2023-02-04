@@ -4,15 +4,22 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
-struct SymbolAtomObject final : public AtomObject
+class SymbolAtomObject final : public ObjectBase
     , public KeyListener {
+
     bool isDown = false;
     bool isLocked = false;
 
+    AtomHelper atomHelper;
+
     String lastMessage;
 
+    Label input;
+
+public:
     SymbolAtomObject(void* obj, Object* parent)
-        : AtomObject(obj, parent)
+        : ObjectBase(obj, parent)
+        , atomHelper(obj, parent, this)
     {
         addAndMakeVisible(input);
 
@@ -26,7 +33,6 @@ struct SymbolAtomObject final : public AtomObject
             auto width = input.getFont().getStringWidth(input.getText()) + 36;
             if (width < object->getWidth()) {
                 object->setSize(width, object->getHeight());
-                checkBounds();
             }
         };
 
@@ -37,8 +43,6 @@ struct SymbolAtomObject final : public AtomObject
         };
 
         input.setMinimumHorizontalScale(0.9f);
-
-        object->addMouseListener(this, false);
     }
 
     void lock(bool locked) override
@@ -49,14 +53,29 @@ struct SymbolAtomObject final : public AtomObject
 
     void resized() override
     {
-        AtomObject::resized();
-
         input.setBounds(getLocalBounds());
     }
 
-    void update() override
+    void updateBounds() override
     {
-        input.setText(getSymbol(), dontSendNotification);
+        atomHelper.updateBounds();
+    }
+
+    void applyBounds() override
+    {
+        atomHelper.applyBounds();
+    }
+
+    bool checkBounds(Rectangle<int> oldBounds, Rectangle<int> newBounds, bool resizingOnLeft) override
+    {
+        atomHelper.checkBounds(oldBounds, newBounds, resizingOnLeft);
+        updateBounds();
+        return true;
+    }
+
+    ObjectParameters getParameters() override
+    {
+        return atomHelper.getParameters();
     }
 
     void setSymbol(String const& value)
@@ -68,18 +87,6 @@ struct SymbolAtomObject final : public AtomObject
     {
         cnv->pd->setThis();
         return String::fromUTF8(atom_getsymbol(fake_gatom_getatom(static_cast<t_fake_gatom*>(ptr)))->s_name);
-    }
-
-    void updateValue() override
-    {
-        if (!edited) {
-            String v = getSymbol();
-
-            if (lastMessage != v && !v.startsWith("click")) {
-                lastMessage = v;
-                update();
-            }
-        }
     }
 
     void mouseUp(MouseEvent const& e) override
@@ -94,16 +101,40 @@ struct SymbolAtomObject final : public AtomObject
         repaint();
     }
 
+    void paint(Graphics& g) override
+    {
+        getLookAndFeel().setColour(Label::textWhenEditingColourId, object->findColour(PlugDataColour::canvasTextColourId));
+        getLookAndFeel().setColour(Label::textColourId, object->findColour(PlugDataColour::canvasTextColourId));
+        getLookAndFeel().setColour(TextEditor::textColourId, object->findColour(PlugDataColour::canvasTextColourId));
+        getLookAndFeel().setColour(TextEditor::backgroundColourId, object->findColour(PlugDataColour::guiObjectBackgroundColourId));
+
+        g.setColour(object->findColour(PlugDataColour::guiObjectBackgroundColourId));
+        g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), PlugDataLook::objectCornerRadius);
+    }
+
+    void paintOverChildren(Graphics& g) override
+    {
+        g.setColour(object->findColour(PlugDataColour::outlineColourId));
+        Path triangle;
+        triangle.addTriangle(Point<float>(getWidth() - 8, 0), Point<float>(getWidth(), 0), Point<float>(getWidth(), 8));
+        triangle = triangle.createPathWithRoundedCorners(4.0f);
+        g.fillPath(triangle);
+
+        bool selected = cnv->isSelected(object) && !cnv->isGraph;
+        auto outlineColour = object->findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : objectOutlineColourId);
+
+        g.setColour(outlineColour);
+        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), PlugDataLook::objectCornerRadius, 1.0f);
+    }
+
+    void updateLabel() override
+    {
+        atomHelper.updateLabel(label);
+    }
+
     void valueChanged(Value& v) override
     {
-        if (v.refersToSameSourceAs(labelHeight)) {
-            updateLabel();
-            if (getParentComponent()) {
-                object->updateBounds(); // update object size based on new font
-            }
-        } else {
-            AtomObject::valueChanged(v);
-        }
+        atomHelper.valueChanged(v);
     }
 
     bool keyPressed(KeyPress const& key, Component* originalComponent) override
@@ -117,5 +148,26 @@ struct SymbolAtomObject final : public AtomObject
         return false;
     }
 
-    Label input;
+    void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
+    {
+        switch (objectMessageMapped[symbol]) {
+        case objectMessage::msg_symbol: {
+            input.setText(atoms[0].getSymbol(), dontSendNotification);
+            break;
+        }
+        case objectMessage::msg_send: {
+            if (atoms.size() >= 1)
+                setParameterExcludingListener(atomHelper.sendSymbol, atoms[0].getSymbol());
+            break;
+        }
+        case objectMessage::msg_receive: {
+            if (atoms.size() >= 1) {
+                setParameterExcludingListener(atomHelper.receiveSymbol, atoms[0].getSymbol());
+            }
+            break;
+        }
+        default:
+            break;
+        }
+    }
 };

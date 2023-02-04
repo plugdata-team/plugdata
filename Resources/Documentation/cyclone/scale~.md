@@ -1,12 +1,12 @@
 ---
 title: scale~
 
-description: Map signals to an output range
+description: map signals to an output range
 
 categories:
  - object
 
-pdcategory: General
+pdcategory: cyclone, General
 
 arguments:
 - type: float
@@ -22,7 +22,7 @@ arguments:
   description: output high
   default: 1
 - type: float
-  description: expinentiation factor
+  description: exponentiation factor
   default: 1 (linear)
 
 inlets:

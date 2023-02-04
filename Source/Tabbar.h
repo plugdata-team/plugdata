@@ -6,13 +6,14 @@
 
 #pragma once
 
-struct WelcomePanel : public Component {
+class WelcomePanel : public Component {
 
-    struct WelcomeButton : public Component {
+    class WelcomeButton : public Component {
         String iconText;
         String topText;
         String bottomText;
 
+    public:
         std::function<void(void)> onClick = []() {};
 
         WelcomeButton(String icon, String mainText, String subText)
@@ -26,23 +27,16 @@ struct WelcomePanel : public Component {
 
         void paint(Graphics& g)
         {
-            auto* lnf = dynamic_cast<PlugDataLook*>(&getLookAndFeel());
-
+            auto colour = findColour(PlugDataColour::panelTextColourId);
             if (isMouseOver()) {
                 g.setColour(findColour(PlugDataColour::panelActiveBackgroundColourId));
                 g.fillRoundedRectangle(1, 1, getWidth() - 2, getHeight() - 2, 6.0f);
+                colour = findColour(PlugDataColour::panelActiveTextColourId);
             }
 
-            g.setColour(findColour(PlugDataColour::canvasTextColourId));
-
-            g.setFont(lnf->iconFont.withHeight(24));
-            g.drawText(iconText, 20, 5, 40, 40, Justification::centredLeft);
-
-            g.setFont(lnf->defaultFont.withHeight(16));
-            g.drawText(topText, 60, 7, getWidth() - 60, 20, Justification::centredLeft);
-
-            g.setFont(lnf->thinFont.withHeight(14));
-            g.drawText(bottomText, 60, 25, getWidth() - 60, 16, Justification::centredLeft);
+            PlugDataLook::drawIcon(g, iconText, 20, 5, 40, colour, 24, false);
+            PlugDataLook::drawText(g, topText, 60, 7, getWidth() - 60, 20, colour, 16);
+            PlugDataLook::drawStyledText(g, bottomText, 60, 25, getWidth() - 60, 16, colour, Thin, 14);
         }
 
         void mouseUp(MouseEvent const& e)
@@ -61,10 +55,11 @@ struct WelcomePanel : public Component {
         }
     };
 
+public:
     WelcomePanel()
     {
-        newButton = std::make_unique<WelcomeButton>(Icons::New, "New Patch", "Create a new empty patch");
-        openButton = std::make_unique<WelcomeButton>(Icons::Open, "Open Patch...", "Open a saved patch");
+        newButton = std::make_unique<WelcomeButton>(Icons::New, "New patch", "Create a new empty patch");
+        openButton = std::make_unique<WelcomeButton>(Icons::Open, "Open patch...", "Open a saved patch");
 
         addAndMakeVisible(newButton.get());
         addAndMakeVisible(openButton.get());
@@ -80,36 +75,33 @@ struct WelcomePanel : public Component {
     {
         auto styles = Font(32).getAvailableStyles();
 
-        auto* lnf = dynamic_cast<PlugDataLook*>(&getLookAndFeel());
-
         g.fillAll(findColour(PlugDataColour::canvasBackgroundColourId));
 
-        g.setColour(findColour(PlugDataColour::canvasTextColourId));
-        g.setFont(lnf->boldFont.withHeight(32));
-        g.drawText("No Patch Open", 0, getHeight() / 2 - 150, getWidth(), 40, Justification::centred);
+        PlugDataLook::drawStyledText(g, "No Patch Open", 0, getHeight() / 2 - 150, getWidth(), 40, findColour(PlugDataColour::canvasTextColourId), Bold, 32, Justification::centred);
 
-        g.setFont(lnf->thinFont.withHeight(23));
-        g.drawText("Open a file to begin patching", 0, getHeight() / 2 - 120, getWidth(), 40, Justification::centred);
-
-        g.setColour(findColour(PlugDataColour::outlineColourId));
+        PlugDataLook::drawStyledText(g, "Open a file to begin patching", 0, getHeight() / 2 - 120, getWidth(), 40, findColour(PlugDataColour::canvasTextColourId), Thin, 23, Justification::centred);
     }
 
     std::unique_ptr<WelcomeButton> newButton;
     std::unique_ptr<WelcomeButton> openButton;
 };
 
-struct TabComponent : public TabbedComponent {
+class TabComponent : public TabbedComponent {
+
+    TextButton newButton = TextButton(Icons::Add);
+    WelcomePanel welcomePanel;
+
+public:
     std::function<void(int)> onTabChange = [](int) {};
     std::function<void()> newTab = []() {};
     std::function<void()> openProject = []() {};
-
-    TextButton newButton = TextButton(Icons::Add);
 
     TabComponent()
         : TabbedComponent(TabbedButtonBar::TabsAtTop)
     {
         addAndMakeVisible(newButton);
-        newButton.setName("tabbar:newbutton");
+        newButton.getProperties().set("FontScale", 0.4f);
+        newButton.getProperties().set("Style", "Icon");
         newButton.onClick = [this]() {
             newTab();
         };
@@ -137,10 +129,9 @@ struct TabComponent : public TabbedComponent {
         } else {
             getTabbedButtonBar().setVisible(true);
             welcomePanel.setVisible(false);
-            setTabBarDepth(28);
+            setTabBarDepth(26);
+            onTabChange(newCurrentTabIndex);
         }
-
-        onTabChange(newCurrentTabIndex);
     }
 
     void resized() override
@@ -161,6 +152,12 @@ struct TabComponent : public TabbedComponent {
         }
     }
 
+    void paint(Graphics& g) override
+    {
+        g.setColour(findColour(PlugDataColour::tabBackgroundColourId));
+        g.fillRect(getLocalBounds().removeFromTop(26));
+    }
+
     void paintOverChildren(Graphics& g) override
     {
         g.setColour(findColour(PlugDataColour::outlineColourId));
@@ -170,6 +167,4 @@ struct TabComponent : public TabbedComponent {
 
         g.drawLine(0, 0, getWidth(), 0);
     }
-
-    WelcomePanel welcomePanel;
 };

@@ -1,9 +1,9 @@
 ---
 title: cosh
-description: Hyperbolic cosine function
+description: hyperbolic cosine function
 categories:
  - object
-pdcategory: General
+pdcategory: cyclone, General
 arguments:
 - type: float
   description: initially stored input value

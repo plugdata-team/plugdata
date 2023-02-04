@@ -4,7 +4,7 @@ description: sample and hold unit
 categories:
 - object
 see_also: {}
-pdcategory: Audio Filters
+pdcategory: vanilla, Filters, Analysis, Effects
 last_update: '0.39'
 inlets:
   1st:

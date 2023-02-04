@@ -1,11 +1,11 @@
 ---
 title: gcd
-description: Greatest common divisor
+description: greatest common divisor
 
 categories:
  - object
 
-pdcategory: General
+pdcategory: ELSE, Data Math
 
 arguments:
 - type: float

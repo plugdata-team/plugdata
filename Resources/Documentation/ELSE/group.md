@@ -1,12 +1,12 @@
 ---
 title: group
 
-description: Group messages into a list
+description: group messages into a list
 
 categories:
 - object
 
-pdcategory:
+pdcategory: ELSE, Data Management
 
 arguments:
 - description: group size

@@ -1,9 +1,9 @@
 ---
 title: bangbang
-description: Send a numer of bangs
+description: send a number of bangs
 categories:
  - object
-pdcategory: General
+pdcategory: cyclone, General
 arguments:
 - type: float
   description: sets the 'n' number of bangs/outlets (maximum 40)

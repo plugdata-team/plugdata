@@ -1,12 +1,12 @@
 ---
 title: metronome
 
-description: High level metronome
+description: high level metronome
 
 categories:
  - object
 
-pdcategory: Control
+pdcategory: ELSE, Triggers and Clocks
 
 arguments:
 - type: float

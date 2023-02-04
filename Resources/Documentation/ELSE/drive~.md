@@ -1,12 +1,12 @@
 ---
 title: drive~
 
-description:
+description: soft-clip distortion
 
 categories:
  - object
 
-pdcategory: General
+pdcategory: ELSE, Effects
 
 arguments:
 - type: float
@@ -28,7 +28,7 @@ outlets:
 
 flags:
   - name: -mode <float>
-    description: sets distorion (0 - default, 1, or 2)
+    description: sets distortion (0 - default, 1, or 2)
 
 methods:
   - type: mode <float>

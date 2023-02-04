@@ -1,9 +1,9 @@
 ---
 title: coll
-description: Store/edit message collections
+description: store/edit message collections
 categories:
  - object
-pdcategory: General
+pdcategory: cyclone, General
 arguments:
 - type: symbol
   description: name or filename to load (same name colls share contents)

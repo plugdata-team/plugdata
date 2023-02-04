@@ -1,32 +1,26 @@
----TODO
+---
 title: biplot
 
-description: Biquad plot
+description: biquad plot
 
 categories:
 - object
 
-pdcategory:
+pdcategory: ELSE, Filters, Analysis
 
 arguments:
-- description:
-  type:
-  default:
-
 inlets:
   1st:
-  - type:
-    description:
-  2nd:
-  - type:
-    description:
+  - type: list
+    description: list of coefficients as taken by [biquad~]
 
 outlets:
   1st:
-  - type:
-    description:
+  - type: list
+    description: list of coefficients is passed through
 
 draft: false
 ---
 
-LONG DESCRIPTION HERE
+[biplot] plots the filter response from biquad coefficients, the ones you send to [biquad~] or [biquads~].
+

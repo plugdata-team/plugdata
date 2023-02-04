@@ -3,7 +3,7 @@ title: realtime
 description: measure real time
 categories:
 - object
-pdcategory: Time
+pdcategory: vanilla, Triggers and Clocks, Analysis
 last_update: '0.33'
 see_also:
 - timer

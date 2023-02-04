@@ -1,16 +1,13 @@
 ---
 title: pad
-description: Mouse pad
+description: mouse pad
 
 categories:
  - object
 
-pdcategory: General
+pdcategory: ELSE, GUI
 
 arguments:
-- type: none
-  description:
-  default:
 
 inlets:
 

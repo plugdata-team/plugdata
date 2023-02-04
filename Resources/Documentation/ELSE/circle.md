@@ -1,15 +1,14 @@
 ---
 title: circle
 
-description: Circular slider
+description: circular slider
 
 categories:
 - object
 
-pdcategory: GUI
+pdcategory: ELSE, GUI
 
-arguments: none
-
+arguments:
 inlets:
   1st:
   - type: bang

@@ -1,11 +1,11 @@
 ---
 title: function
-description: Function GUI
+description: function GUI
 
 categories:
  - object
 
-pdcategory: General
+pdcategory: ELSE, GUI, Data Math, Envelopes and LFOs
 
 arguments:
 

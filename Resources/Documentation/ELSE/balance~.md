@@ -1,12 +1,12 @@
 ---
 title: balance~
 
-description: Stereo balancer
+description: stereo balancer
 
 categories:
  - object
 
-pdcategory: General Audio Manipulation
+pdcategory: ELSE, Mixing and Routing, Effects
 
 arguments:
 - type: float
@@ -27,10 +27,10 @@ inlets:
 outlets:
   1st:
   - type: signal
-    description:
+    description: left channel
   2nd:
   - type: signal
-    description:
+    description: right channel
 
 draft: false
 ---

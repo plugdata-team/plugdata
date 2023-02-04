@@ -1,11 +1,11 @@
 ---
 title: pulsecount~
-description: Pulse counter
+description: pulse counter
 
 categories:
  - object
 
-pdcategory: General
+pdcategory: ELSE, Triggers and Clocks
 
 arguments:
 - type: float

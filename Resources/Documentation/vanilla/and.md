@@ -1,9 +1,9 @@
 ---
 title: '&'
-description: Bitwise AND
+description: bitwise AND
 categories:
 - object
-pdcategory: Math
+pdcategory: vanilla, Logic
 see_also:
 - +~
 - expr

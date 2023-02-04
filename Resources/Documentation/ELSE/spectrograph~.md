@@ -1,14 +1,14 @@
 ---
 title: spectrograph~
 
-description: Specrtal graph
+description: specrtal graph
 
 categories:
 - object
 
-pdcategory: GUI
+pdcategory: ELSE, GUI, Analysis
 
-arguments: (none)
+arguments:
 
 flags:
 - name: -size <f>

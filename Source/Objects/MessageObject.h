@@ -16,57 +16,64 @@ typedef struct _message {
     t_clock* m_clock;
 } t_message;
 
-struct MessageObject final : public TextBase
+class MessageObject final : public ObjectBase
     , public KeyListener
-    , public pd::MessageListener {
+    , public TextEditor::Listener {
+
+    std::unique_ptr<TextEditor> editor;
+    BorderSize<int> border = BorderSize<int>(1, 7, 1, 2);
+
+    String objectText;
+
+    int numLines = 1;
     bool isDown = false;
     bool isLocked = false;
 
+public:
     MessageObject(void* obj, Object* parent)
-        : TextBase(obj, parent)
+        : ObjectBase(obj, parent)
     {
-        object->cnv->pd->registerMessageListener(ptr, this);
-    }
-
-    ~MessageObject()
-    {
-        object->cnv->pd->unregisterMessageListener(ptr, this);
+        objectText = getSymbol();
     }
 
     void updateBounds() override
     {
         pd->getCallbackLock()->enter();
 
-        int x = 0, y = 0, w = 0, h = 0;
+        auto* cnvPtr = cnv->patch.getPointer();
+        auto objText = editor ? editor->getText() : objectText;
+        auto newNumLines = 0;
 
-        // If it's a text object, we need to handle the resizable width, which pd saves in amount of text characters
-        auto* textObj = static_cast<t_text*>(ptr);
+        auto newBounds = TextObjectHelper::recalculateTextObjectBounds(cnvPtr, ptr, objText, 15, newNumLines);
 
-        libpd_get_object_bounds(cnv->patch.getPointer(), ptr, &x, &y, &w, &h);
+        numLines = newNumLines;
 
-        w = std::max(35, textObj->te_width * glist_fontwidth(cnv->patch.getPointer()));
+        // Create extra space for drawing the message box flag
+        newBounds.setWidth(newBounds.getWidth() + 5);
 
-        if (textObj->te_width == 0 && !getText().isEmpty()) {
-            w = getBestTextWidth(getText());
+        if (newBounds != object->getObjectBounds()) {
+            object->setObjectBounds(newBounds);
         }
 
         pd->getCallbackLock()->exit();
-
-        object->setObjectBounds({ x, y, w, h });
     }
 
-    void checkBounds() override
+    bool checkBounds(Rectangle<int> oldBounds, Rectangle<int> newBounds, bool resizingOnLeft) override
     {
-        int numLines = StringUtils::getNumLines(getText(), object->getWidth() - Object::doubleMargin - 5);
-        int fontWidth = glist_fontwidth(cnv->patch.getPointer());
-        int newHeight = (numLines * 19) + Object::doubleMargin + 2;
-        int newWidth = getWidth() / fontWidth;
+        auto fontWidth = glist_fontwidth(cnv->patch.getPointer());
+        auto* patch = cnv->patch.getPointer();
+        TextObjectHelper::checkBounds(patch, ptr, oldBounds, newBounds, resizingOnLeft, fontWidth);
+        updateBounds();
+        return true;
+    }
 
-        static_cast<t_text*>(ptr)->te_width = newWidth;
-        newWidth = std::max((newWidth * fontWidth), 35) + Object::doubleMargin;
+    void applyBounds() override
+    {
+        auto b = object->getObjectBounds();
+        libpd_moveobj(cnv->patch.getPointer(), static_cast<t_gobj*>(ptr), b.getX(), b.getY());
 
-        if (getParentComponent() && (object->getHeight() != newHeight || newWidth != object->getWidth())) {
-            object->setSize(newWidth, newHeight);
+        if (TextObjectHelper::getWidthInChars(ptr)) {
+            TextObjectHelper::setWidthInChars(ptr, b.getWidth() / glist_fontwidth(cnv->patch.getPointer()));
         }
     }
 
@@ -75,37 +82,19 @@ struct MessageObject final : public TextBase
         isLocked = locked;
     }
 
-    void applyBounds() override
-    {
-        auto b = object->getObjectBounds();
-        libpd_moveobj(cnv->patch.getPointer(), static_cast<t_gobj*>(ptr), b.getX(), b.getY());
-
-        auto* textObj = static_cast<t_text*>(ptr);
-        textObj->te_width = b.getWidth() / glist_fontwidth(cnv->patch.getPointer());
-    }
-
     void paint(Graphics& g) override
     {
-        BorderSize<int> border { 1, 6, 1, 4 };
+        // Draw background
+        g.setColour(object->findColour(PlugDataColour::guiObjectBackgroundColourId));
+        g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), PlugDataLook::objectCornerRadius);
 
-        g.setColour(object->findColour(PlugDataColour::defaultObjectBackgroundColourId));
-        g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Constants::objectCornerRadius);
+        // Draw text
+        if (!editor) {
+            auto textArea = border.subtractedFrom(getLocalBounds().withTrimmedRight(5));
+            auto scale = getWidth() < 50 ? 0.5f : 1.0f;
 
-        g.setColour(object->findColour(PlugDataColour::canvasTextColourId));
-        g.setFont(font);
-
-        auto textArea = border.subtractedFrom(getLocalBounds());
-        g.drawFittedText(objectText, textArea, justification, numLines, minimumHorizontalScale);
-
-        bool selected = cnv->isSelected(object) && !cnv->isGraph;
-        auto outlineColour = object->findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : PlugDataColour::objectOutlineColourId);
-
-        if (!isValid) {
-            outlineColour = selected ? Colours::red.brighter(1.5) : Colours::red;
+            PlugDataLook::drawFittedText(g, objectText, textArea, object->findColour(PlugDataColour::canvasTextColourId), numLines, scale);
         }
-
-        g.setColour(outlineColour);
-        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Constants::objectCornerRadius, 1.0f);
     }
 
     void paintOverChildren(Graphics& g) override
@@ -115,90 +104,66 @@ struct MessageObject final : public TextBase
         Path flagPath;
         flagPath.addQuadrilateral(b.getRight(), b.getY(), b.getRight() - 4, b.getY() + 4, b.getRight() - 4, b.getBottom() - 4, b.getRight(), b.getBottom());
 
-        g.setColour(object->findColour(PlugDataColour::outlineColourId));
-        g.fillPath(flagPath);
-
         if (isDown) {
-            g.drawRoundedRectangle(b.reduced(1).toFloat(), Constants::objectCornerRadius, 3.0f);
-        }
-    }
+            g.setColour(object->findColour(PlugDataColour::outlineColourId));
+            g.drawRoundedRectangle(b.reduced(1).toFloat(), PlugDataLook::objectCornerRadius, 3.0f);
 
-    int getBestTextWidth(String const& text) override
-    {
-        auto lines = StringArray::fromLines(text);
-        auto maxWidth = 32;
-
-        for (auto& line : lines) {
-            maxWidth = std::max<int>(font.getStringWidthFloat(line) + 19, maxWidth);
+            g.setColour(object->findColour(PlugDataColour::objectSelectedOutlineColourId));
+            g.fillPath(flagPath);
+        } else {
+            g.setColour(object->findColour(PlugDataColour::outlineColourId));
+            g.fillPath(flagPath);
         }
 
-        return maxWidth;
+        bool selected = cnv->isSelected(object) && !cnv->isGraph;
+        auto outlineColour = object->findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : PlugDataColour::objectOutlineColourId);
+
+        g.setColour(outlineColour);
+        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), PlugDataLook::objectCornerRadius, 1.0f);
     }
 
-    void updateValue() override
+    void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
     {
+        // TODO: select messages
         String v = getSymbol();
 
-        if (objectText != v && !v.startsWith("click")) {
+        if (objectText != v) {
 
             objectText = v;
 
             repaint();
+            updateBounds();
         }
     }
 
-    void receiveMessage(String const& symbol, int argc, t_atom* argv) override
+    void resized() override
     {
-        MessageManager::callAsync([_this = SafePointer(this)]() {
-            if (_this)
-                _this->updateValue();
-        });
+        if (editor) {
+            editor->setBounds(getLocalBounds().withTrimmedRight(5));
+        }
     }
 
     void showEditor() override
     {
         if (editor == nullptr) {
-            BorderSize<int> border { 1, 6, 1, 4 };
+            editor.reset(TextObjectHelper::createTextEditor(object, 15));
 
-            editor = std::make_unique<TextEditor>(getName());
-            editor->applyFontToAllText(font);
-
-            copyAllExplicitColoursTo(*editor);
-            editor->setColour(Label::textWhenEditingColourId, findColour(TextEditor::textColourId));
-            editor->setColour(TextEditor::backgroundColourId, object->findColour(PlugDataColour::defaultObjectBackgroundColourId));
-            editor->setColour(Label::outlineWhenEditingColourId, findColour(TextEditor::focusedOutlineColourId));
-
-            editor->setAlwaysOnTop(true);
-
-            editor->setMultiLine(true);
-            editor->setReturnKeyStartsNewLine(false);
-            editor->setScrollbarsShown(false);
             editor->setBorder(border);
-            editor->setIndents(0, 0);
-            editor->setJustification(justification);
-
-            editor->setSize(10, 10);
-            addAndMakeVisible(editor.get());
-
+            editor->setBounds(getLocalBounds().withTrimmedRight(5));
             editor->setText(objectText, false);
             editor->addListener(this);
             editor->addKeyListener(this);
+            editor->selectAll();
+
+            addAndMakeVisible(editor.get());
+            editor->grabKeyboardFocus();
 
             editor->onFocusLost = [this]() {
                 hideEditor();
             };
 
-            if (editor == nullptr) // may be deleted by a callback
-                return;
-
-            editor->setHighlightedRegion(Range<int>(0, objectText.length()));
-
             resized();
             repaint();
-
-            if (isShowing()) {
-                editor->grabKeyboardFocus();
-            }
         }
     }
 
@@ -209,40 +174,22 @@ struct MessageObject final : public TextBase
             std::unique_ptr<TextEditor> outgoingEditor;
             std::swap(outgoingEditor, editor);
 
-            outgoingEditor->setInputFilter(nullptr, false);
-
             auto newText = outgoingEditor->getText();
 
-            bool changed;
+            newText = TextObjectHelper::fixNewlines(newText);
+
             if (objectText != newText) {
                 objectText = newText;
-                repaint();
-                changed = true;
-            } else {
-                changed = false;
             }
 
             outgoingEditor.reset();
 
+            updateBounds(); // Recalculate bounds
+            applyBounds();  // Send new bounds to Pd
+
+            setSymbol(objectText);
+
             repaint();
-
-            // Calculate size of new text
-            auto lines = StringArray::fromTokens(newText, ";\n", "");
-            auto maxWidth = 32;
-
-            for (auto& line : lines) {
-                maxWidth = std::max<int>(font.getStringWidthFloat(line) + 19, maxWidth);
-            }
-
-            int newHeight = (lines.size() * 19) + Object::doubleMargin;
-            int newWidth = maxWidth + Object::doubleMargin + 4;
-
-            auto newBounds = Rectangle<int>(object->getX(), object->getY(), newWidth, newHeight);
-            object->setObjectBounds(newBounds.reduced(Object::margin));
-
-            applyBounds();
-
-            object->setType(newText);
         }
     }
 
@@ -269,11 +216,31 @@ struct MessageObject final : public TextBase
         repaint();
     }
 
-    /*
-     void valueChanged(Value& v) override
-     {
-     GUIObject::valueChanged(v);
-     } */
+    void textEditorReturnKeyPressed(TextEditor& ed) override
+    {
+        int caretPosition = ed.getCaretPosition();
+        auto text = ed.getText();
+
+        if (!ed.getHighlightedRegion().isEmpty())
+            return;
+
+        if (text[caretPosition - 1] == ';') {
+            text = text.substring(0, caretPosition) + "\n" + text.substring(caretPosition);
+            caretPosition += 1;
+        } else {
+            text = text.substring(0, caretPosition) + ";\n" + text.substring(caretPosition);
+            caretPosition += 2;
+        }
+
+        ed.setText(text);
+        ed.setCaretPosition(caretPosition);
+    }
+
+    // For resize-while-typing behaviour
+    void textEditorTextChanged(TextEditor& ed) override
+    {
+        updateBounds();
+    }
 
     String getSymbol() const
     {
@@ -287,7 +254,22 @@ struct MessageObject final : public TextBase
         auto result = String::fromUTF8(text, size);
         freebytes(text, size);
 
-        return result;
+        return result.trimEnd();
+    }
+
+    void setSymbol(String const& value)
+    {
+        cnv->pd->enqueueFunction(
+            [_this = SafePointer(this), ptr = this->ptr, value]() mutable {
+                if (!_this || _this->cnv->patch.objectWasDeleted(_this->ptr))
+                    return;
+
+                auto* cstr = value.toRawUTF8();
+                auto* messobj = static_cast<t_message*>(ptr);
+                auto* canvas = _this->cnv->patch.getPointer();
+
+                libpd_renameobj(canvas, &messobj->m_text.te_g, cstr, value.getNumBytesAsUTF8());
+            });
     }
 
     bool keyPressed(KeyPress const& key, Component* component) override
@@ -301,21 +283,6 @@ struct MessageObject final : public TextBase
             return true;
         }
         return false;
-    }
-
-    void setSymbol(String const& value)
-    {
-        cnv->pd->enqueueFunction(
-            [_this = SafePointer(this), ptr = this->ptr, value]() mutable {
-                if (!_this)
-                    return;
-
-                auto* cstr = value.toRawUTF8();
-                auto* messobj = static_cast<t_message*>(ptr);
-                auto* canvas = _this->cnv->patch.getPointer();
-
-                libpd_renameobj(canvas, &messobj->m_text.te_g, cstr, value.getNumBytesAsUTF8());
-            });
     }
 
     bool hideInGraph() override

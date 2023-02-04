@@ -1,12 +1,12 @@
 ---
 title: frac2cents
 
-description: Fraction/cents conversion
+description: fraction/cents conversion
 
 categories:
 - object
 
-pdcategory:
+pdcategory: ELSE, Tuning
 
 arguments:
 

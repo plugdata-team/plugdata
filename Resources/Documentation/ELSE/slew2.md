@@ -1,12 +1,12 @@
 ---
 title: slew2
 
-description: Control slew limiter
+description: control slew limiter
 
 categories:
 - object
 
-pdcategory: Control
+pdcategory: ELSE, Envelopes and LFOs
 
 arguments:
 - type: float
@@ -17,7 +17,7 @@ arguments:
   default: 0
 
 flags:
-- type: -rate <f>
+- type: -rate <float>
   description: sets refresh rate in ms (default 5, minimum 1)
 
 inlets:

@@ -1,12 +1,12 @@
 ---
 title: poke~
 
-description: Write to an attay
+description: write to an array
 
 categories:
  - object
 
-pdcategory: General
+pdcategory: cyclone, General
 
 arguments:
 - type: symbol

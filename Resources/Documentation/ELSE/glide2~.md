@@ -1,11 +1,11 @@
 ---
 title: glide2~
-description: Signal glide/portamento
+description: signal glide/portamento
 
 categories:
  - object
 
-pdcategory: General
+pdcategory: ELSE, Filters, Effects
 
 arguments:
 - type: float
@@ -33,7 +33,7 @@ outlets:
 
 flags:
   - name: -exp <float>
-    description: sets exponential factor (default '1', linear)
+    description: sets exponential factor (default 1 - linear)
 
 methods:
   - type: reset

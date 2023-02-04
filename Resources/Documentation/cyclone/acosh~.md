@@ -1,9 +1,9 @@
 ---
 title: acosh~
-description: Signal hyperbolic arc-cosine function
+description: signal hyperbolic arc-cosine function
 categories:
  - object
-pdcategory: General
+pdcategory: cyclone, General
 arguments:
 inlets:
   1st:

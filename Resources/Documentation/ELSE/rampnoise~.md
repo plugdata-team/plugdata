@@ -1,12 +1,12 @@
 ---
 title: rampnoise~
 
-description: Ramp noise
+description: ramp noise
 
 categories:
  - object
 
-pdcategory: Noise
+pdcategory: ELSE, Random and Noise
 
 arguments:
 - type: float

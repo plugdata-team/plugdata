@@ -1,9 +1,9 @@
 ---
 title: count~
-description: Counter at the sample rate
+description: counter at the sample rate
 categories:
  - object
-pdcategory: General
+pdcategory: cyclone, General
 arguments:
 - type: float
   description: minimum value

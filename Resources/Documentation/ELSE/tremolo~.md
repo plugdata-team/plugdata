@@ -1,19 +1,17 @@
 ---
 title: tremolo~
 
-description: Amplitude modulation
+description: amplitude modulation
 
 categories:
 - object
 
-pdcategory:
+pdcategory: ELSE, Effects
 
 arguments:
-  1st:
   - type: float
-    description: temolo frequency
+    description: tremolo frequency
     default: 0
-  2nd:
   - type: float
     description: tremolo depth
     default: 1
@@ -24,7 +22,7 @@ inlets:
     description: input signal to be processed
   2nd:
   - type: float
-    description: temolo frequency
+    description: tremolo frequency
   3rd:
   - type: float
     description: tremolo depth (0-1)

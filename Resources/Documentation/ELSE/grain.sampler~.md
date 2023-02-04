@@ -1,12 +1,12 @@
 ---
 title: grain.sampler~
 
-description: Granular sampler
+description: granular sampler
 
 categories:
 - object
 
-pdcategory:
+pdcategory: ELSE, Effects, Buffers
 
 arguments:
 
@@ -30,7 +30,7 @@ flags:
   - name: -n <f>
     description:
   - name: -t <symbol>
-    description: (table name)
+    description: table name
   - name: -dur <f>
     description:
   - name: -size <f, f>

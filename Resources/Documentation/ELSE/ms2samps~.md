@@ -1,14 +1,14 @@
 ---
 title: ms2samps~
 
-description: Convert ms to samples
+description: convert ms to samples
 
 categories:
 - object
 
-pdcategory: Math
+pdcategory: ELSE, Signal Math
 
-arguments: (none)
+arguments:
 
 inlets:
   1st:

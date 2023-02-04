@@ -1,12 +1,12 @@
 ---
 title: player~
 
-description: Multi-channel player
+description: multi-channel player
 
 categories:
 - object
 
-pdcategory:
+pdcategory: ELSE, Buffers
 
 arguments:
 - description: (optional) number of channels (max 64)

@@ -5,7 +5,7 @@ categories:
 - object
 aliases:
 - fswap
-pdcategory: General
+pdcategory: vanilla, Mixing and Routing
 last_update: '0.41'
 arguments:
 - description: initial right inlet value 

@@ -8,7 +8,7 @@ see_also:
 - drawpolygon
 - plot
 - set
-pdcategory: Data Templates
+pdcategory: vanilla, Data Structures
 last_update: '0.50'
 inlets:
   1st:

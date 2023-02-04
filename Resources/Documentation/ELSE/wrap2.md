@@ -1,12 +1,12 @@
 ---
 title: wrap2
 
-description: Wraps between two values
+description: wraps between two values
 
 categories:
  - object
  
-pdcategory: Math Functions
+pdcategory: ELSE, Data Math 
 
 arguments:
   - type: list
@@ -32,7 +32,7 @@ outlets:
     description:
 
 methods:
-  - name: -set <float>
+  - type: set <float>
     description: sets the next value to be wrapped via bang
 
 draft: false

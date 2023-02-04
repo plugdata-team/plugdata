@@ -3,7 +3,7 @@ title: expr
 description: evaluation of control data expressions
 categories:
 - object
-pdcategory: Math
+pdcategory: vanilla, Data Math, Logic
 last_update: 0.51-3
 see_also:
 - +
