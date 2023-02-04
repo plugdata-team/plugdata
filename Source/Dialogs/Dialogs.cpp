@@ -280,7 +280,8 @@ void Dialogs::showCanvasRightClickMenu(Canvas* cnv, Component* originalComponent
         if ((!object && result < 100) || result < 1)
             return;
 
-        object->repaint();
+        if (object)
+            object->repaint();
 
         switch (result) {
         case 1: // Open subpatch
