@@ -3,7 +3,7 @@ title: atan2~
 description: signal arctan(a/b) function
 categories:
  - object
-pdcategory: cyclone, General
+pdcategory: cyclone, Signal Math
 arguments:
 - type: float
   description: value of "b" (not documented in Max)

@@ -6,7 +6,7 @@ description: retrieve 14-bit pitch bend messages
 categories:
  - object
 
-pdcategory: cyclone, General
+pdcategory: cyclone, MIDI
 
 arguments:
 - type: float

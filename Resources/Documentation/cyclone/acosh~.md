@@ -3,7 +3,7 @@ title: acosh~
 description: signal hyperbolic arc-cosine function
 categories:
  - object
-pdcategory: cyclone, General
+pdcategory: cyclone, Signal Math
 arguments:
 inlets:
   1st:

@@ -3,7 +3,7 @@ title: grab
 description: grabs the output of another object
 categories:
  - object
-pdcategory: cyclone, General
+pdcategory: cyclone, Data Management
 arguments:
 - type: float
   description: number of outlets besides the rightmost one
@@ -28,5 +28,5 @@ methods:
 
 ---
 
-[grab] sends a message to another object and "grabs" its output, sending it through its outlet(s) isntead of the grabbed object.
+[grab] sends a message to another object and "grabs" its output, sending it through its outlet(s) instead of the grabbed object.
 

@@ -3,7 +3,7 @@ title: cross~
 description: crossover filter
 categories:
  - object
-pdcategory: cyclone, General
+pdcategory: cyclone, Filters
 arguments:
 - type: float
   description: cutoff frequency

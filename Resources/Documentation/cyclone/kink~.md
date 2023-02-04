@@ -3,7 +3,7 @@ title: kink~
 description: phase distortion
 categories:
  - object
-pdcategory: cyclone, General
+pdcategory: cyclone, Effects
 arguments:
 - type: float
   description: slope (minimum 0)

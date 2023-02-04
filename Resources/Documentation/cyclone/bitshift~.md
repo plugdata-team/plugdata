@@ -3,7 +3,7 @@ title: bitshift~
 description: signal bit-shifting
 categories:
  - object
-pdcategory: cyclone, General
+pdcategory: cyclone, Logic, Signal Math
 arguments:
 - type: float
   description: number of bits to shift

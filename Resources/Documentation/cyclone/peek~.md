@@ -6,7 +6,7 @@ description: read/write to array
 categories:
  - object
 
-pdcategory: cyclone, General
+pdcategory: cyclone, Arrays and Tables
 
 arguments:
 - type: symbol

@@ -3,7 +3,7 @@ title: index~
 description: non-interpolating array reader
 categories:
  - object
-pdcategory: cyclone, General
+pdcategory: cyclone, Arrays and Tables
 arguments:
 - type: symbol
   description: name of array
@@ -24,5 +24,5 @@ outlets:
 
 ---
 
-[index~] reads an array without interpolation. The input signal specifies the table index. It's like [tabread~] but works with multi channel arrays and index values are rounded isntead of being truncated.
+[index~] reads an array without interpolation. The input signal specifies the table index. It's like [tabread~] but works with multi channel arrays and index values are rounded instead of being truncated.
 

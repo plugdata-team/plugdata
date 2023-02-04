@@ -3,7 +3,7 @@ title: lessthaneq~, <=~, cyclone/<=~
 description: `is less than or equal to` comparison for signals
 categories:
  - object
-pdcategory: cyclone, General
+pdcategory: cyclone, Signal Math, Logic
 arguments:
 - type: float
   description: value for comparison with left inlet's input
@@ -22,5 +22,5 @@ outlets:
 
 ---
 
-[lessthaneq~] or [<=~] <~ outputs a 1 signal when the left input is greater-than or equal-to the right input or argument and a 0 when it is less-than the right input or rgument.
+[lessthaneq~] or [<=~] <~ outputs a 1 signal when the left input is greater-than or equal-to the right input or argument and a 0 when it is less-than the right input or argument.
 

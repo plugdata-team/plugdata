@@ -3,7 +3,7 @@ title: gate~
 description: route a signal to `n` outlets
 categories:
  - object
-pdcategory: cyclone, General
+pdcategory: cyclone, Mixing and Routing
 arguments:
 - type: float
   description: 'n' number of outlets (1 to 500)

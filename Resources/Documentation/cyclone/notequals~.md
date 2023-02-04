@@ -6,7 +6,7 @@ description: `not equal to` comparison for signals
 categories:
  - object
 
-pdcategory: cyclone, General
+pdcategory: cyclone, Signal Math, Logic
 
 arguments:
 - type: float

@@ -6,7 +6,7 @@ description: record signals in arrays
 categories:
  - object
 
-pdcategory: cyclone, General
+pdcategory: cyclone, Arrays and Tables
 
 arguments:
 - type: symbol

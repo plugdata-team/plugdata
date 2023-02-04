@@ -3,7 +3,7 @@ title: degrade~
 description: signal quality reducer
 categories:
  - object
-pdcategory: cyclone, General
+pdcategory: cyclone, Effects
 arguments:
 - type: float
   description: sample rate

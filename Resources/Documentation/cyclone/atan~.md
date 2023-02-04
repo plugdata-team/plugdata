@@ -3,7 +3,7 @@ title: atan~
 description: signal arc-tangent function
 categories:
  - object
-pdcategory: cyclone, General
+pdcategory: cyclone, Signal Math
 arguments:
 inlets:
   1st:

@@ -6,7 +6,7 @@ description: trapezoidal wavetable
 categories:
  - object
 
-pdcategory: cyclone, General
+pdcategory: cyclone, Signal Generators
 
 arguments:
 - type: float

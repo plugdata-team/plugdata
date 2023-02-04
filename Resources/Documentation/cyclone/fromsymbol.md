@@ -3,7 +3,7 @@ title: fromsymbol
 description: convert symbol to anything
 categories:
  - object
-pdcategory: cyclone, General
+pdcategory: cyclone, Converters
 arguments:
 inlets:
   1st:

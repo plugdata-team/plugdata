@@ -6,7 +6,7 @@ description: hyperbolic sine function
 categories:
  - object
 
-pdcategory: cyclone, General
+pdcategory: cyclone, Data Math
 
 arguments:
 - type: float

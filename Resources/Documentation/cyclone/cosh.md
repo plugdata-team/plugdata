@@ -3,7 +3,7 @@ title: cosh
 description: hyperbolic cosine function
 categories:
  - object
-pdcategory: cyclone, General
+pdcategory: cyclone, Data Math
 arguments:
 - type: float
   description: initially stored input value

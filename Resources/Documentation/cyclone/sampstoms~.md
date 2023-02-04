@@ -6,7 +6,7 @@ description: convert samples to milliseconds
 categories:
  - object
 
-pdcategory: cyclone, General
+pdcategory: cyclone, Converters
 
 arguments: (none)
 

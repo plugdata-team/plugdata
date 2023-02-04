@@ -3,7 +3,7 @@ title: matrix~
 description: signal routing/mixing matrix
 categories:
  - object
-pdcategory: cyclone, General
+pdcategory: cyclone, Mixing and Routing
 arguments:
 - type: float
   description: `n` number of inputs (1 to 250, default 1)

@@ -3,7 +3,7 @@ title: coll
 description: store/edit message collections
 categories:
  - object
-pdcategory: cyclone, General
+pdcategory: cyclone, Data Management
 arguments:
 - type: symbol
   description: name or filename to load (same name colls share contents)
