@@ -81,6 +81,7 @@ public:
 
     void resized() override
     {
+        listLabel.setFont(Font(getHeight() - 6));
         listLabel.setBounds(getLocalBounds());
     }
 
