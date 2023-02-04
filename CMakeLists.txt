@@ -149,7 +149,7 @@ juce_add_plugin(plugdata
 set(MESSAGE_QUIET ON)
 clap_juce_extensions_plugin(TARGET plugdata
     CLAP_ID "com.timothyschoen.plugdata"
-    CLAP_FEATURES "instrument")    
+    CLAP_FEATURES "instrument")
 unset(MESSAGE_QUIET)
 
 juce_add_plugin(plugdata_fx
@@ -307,7 +307,7 @@ file(GLOB PlugDataBinaryDataSources
     )
 
 file(GLOB StandaloneBinarySources
-    ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Extra/FluidR3Mono_GM.sf3
+    ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Extra/GeneralUser_GS.sf3
     )
 
 juce_add_binary_data(PlugDataBinaryData SOURCES ${PlugDataBinaryDataSources})
@@ -369,12 +369,12 @@ set_target_properties(plugdata_midi PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${PLUGDA
 endif()
 
 if(RUN_CLANG_TIDY)
-  find_program( CLANG_TIDY_EXE NAMES "clang-tidy" DOC "Path to clang-tidy executable" ) 
-  if(NOT CLANG_TIDY_EXE) 
-    message(STATUS "clang-tidy not found.") 
-  else() 
-    message(STATUS "clang-tidy found: ${CLANG_TIDY_EXE}") 
-    set(DO_CLANG_TIDY "${CLANG_TIDY_EXE}" "-checks=clang-diagnostic-*,clang-diagnostic-unused-value,clang-analyzer-*,bugprone-*,performance-*,readability-*,-readability-magic-numbers,-readability-braces-around-statements,-readability-inconsistent-declaration-parameter-name,-readability-named-parameter  --header-filter='.*'") 
+  find_program( CLANG_TIDY_EXE NAMES "clang-tidy" DOC "Path to clang-tidy executable" )
+  if(NOT CLANG_TIDY_EXE)
+    message(STATUS "clang-tidy not found.")
+  else()
+    message(STATUS "clang-tidy found: ${CLANG_TIDY_EXE}")
+    set(DO_CLANG_TIDY "${CLANG_TIDY_EXE}" "-checks=clang-diagnostic-*,clang-diagnostic-unused-value,clang-analyzer-*,bugprone-*,performance-*,readability-*,-readability-magic-numbers,-readability-braces-around-statements,-readability-inconsistent-declaration-parameter-name,-readability-named-parameter  --header-filter='.*'")
   endif()
   set_target_properties(plugdata_standalone PROPERTIES CXX_CLANG_TIDY "${DO_CLANG_TIDY}")
 endif()
@@ -454,4 +454,4 @@ endif()
 
 #add_custom_target(plugdata_standalone ALL)
 
-# 
+#
