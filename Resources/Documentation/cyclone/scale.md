@@ -6,7 +6,7 @@ description: map values to an output range
 categories:
  - object
 
-pdcategory: cyclone, General
+pdcategory: cyclone, Data Math
 
 arguments:
 - type: float
@@ -22,7 +22,7 @@ arguments:
   description: output high
   default: 1
 - type: float
-  description: expinentiation factor
+  description: exponentiation factor
   default: 1 (linear)
 
 inlets:

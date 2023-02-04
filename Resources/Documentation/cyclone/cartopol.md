@@ -3,7 +3,7 @@ title: cartopol
 description: cartesian to polar conversion
 categories:
  - object
-pdcategory: cyclone, General
+pdcategory: cyclone, Converters
 arguments:
 inlets:
   1st:

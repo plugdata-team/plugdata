@@ -6,7 +6,7 @@ description: distribute values to outlets
 categories:
  - object
 
-pdcategory: cyclone, General
+pdcategory: cyclone, Mixing and Routing, Data Management
 
 arguments:
 - type: float

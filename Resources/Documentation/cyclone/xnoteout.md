@@ -6,7 +6,7 @@ description: send release velocity messages
 categories:
  - object
 
-pdcategory: cyclone, General
+pdcategory: cyclone, MIDI
 
 arguments:
 - type: float

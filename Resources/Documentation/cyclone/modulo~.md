@@ -3,7 +3,7 @@ title: modulo~, %~, cyclone/%~
 description: modulo for signals
 categories:
  - object
-pdcategory: cyclone, General
+pdcategory: cyclone, Signal Math
 arguments:
 - type: float
   description: a value by which to divide the incoming signal

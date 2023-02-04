@@ -6,7 +6,7 @@ description: prepend a message to the incoming message
 categories:
  - object
 
-pdcategory: cyclone, General
+pdcategory: cyclone, Data Management
 
 arguments:
 - type: anything

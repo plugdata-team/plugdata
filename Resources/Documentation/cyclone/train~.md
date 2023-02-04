@@ -6,7 +6,7 @@ description: pure-train generator and metronome
 categories:
  - object
 
-pdcategory: cyclone, General
+pdcategory: cyclone, Triggers and Clocks
 
 arguments:
 - type: float

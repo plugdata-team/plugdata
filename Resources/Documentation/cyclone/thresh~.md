@@ -6,7 +6,7 @@ description: detect signal above threshold
 categories:
  - object
 
-pdcategory: cyclone, General
+pdcategory: cyclone, Analysis
 
 arguments:
 - type: float

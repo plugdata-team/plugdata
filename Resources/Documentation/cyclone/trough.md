@@ -6,7 +6,7 @@ description: output numbers smaller than the previous
 categories:
  - object
 
-pdcategory: cyclone, General
+pdcategory: cyclone, Data Math
 
 arguments:
 - type: float

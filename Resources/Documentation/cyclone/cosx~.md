@@ -3,7 +3,7 @@ title: cosx~
 description: signal cosine function with radian input
 categories:
  - object
-pdcategory: cyclone, General
+pdcategory: cyclone, Signal Math
 arguments:
 inlets:
   1st:

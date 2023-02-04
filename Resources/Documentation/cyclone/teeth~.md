@@ -6,7 +6,7 @@ description: teeth comb filter
 categories:
  - object
 
-pdcategory: cyclone, General
+pdcategory: cyclone, Filters, Effects
 
 arguments:
 - type: float

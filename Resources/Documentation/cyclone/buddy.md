@@ -3,7 +3,7 @@ title: buddy
 description: sync input messages
 categories:
  - object
-pdcategory: cyclone, General
+pdcategory: cyclone, Data Management
 arguments:
 - type: float
   description: sets the 'n' number of inlets/outlets

@@ -3,7 +3,7 @@ title: curve~
 description: curved ramp generator
 categories:
  - object
-pdcategory: cyclone, General
+pdcategory: cyclone, Envelopes and LFOs
 arguments:
 - type: float
   description: initial value
@@ -33,7 +33,7 @@ outlets:
 
 methods:
   - type: factor <float>
-    description: adjusts curve's expenential factor
+    description: adjusts curve's exponential factor
   - type: pause
     description: pauses the output
   - type: resume

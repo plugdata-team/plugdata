@@ -3,7 +3,7 @@ title: buffir~
 description: convolve with a buffer
 categories:
  - object
-pdcategory: cyclone, General
+pdcategory: cyclone, Buffers
 arguments:
 - type: symbol
   description: table name

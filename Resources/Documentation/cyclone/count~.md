@@ -3,7 +3,7 @@ title: count~
 description: counter at the sample rate
 categories:
  - object
-pdcategory: cyclone, General
+pdcategory: cyclone, Signal Math
 arguments:
 - type: float
   description: minimum value

@@ -6,7 +6,7 @@ description: probability matrix
 categories:
  - object
 
-pdcategory: cyclone, General
+pdcategory: cyclone, Random and Noise
 
 arguments: (none)
 

@@ -6,7 +6,7 @@ description: 2nd order Allpass filter
 categories:
  - object
 
-pdcategory: cyclone, General
+pdcategory: cyclone, Filters, Effects
 
 arguments:
 - type: float

@@ -3,7 +3,7 @@ title: active
 description: report window activity
 categories:
  - object
-pdcategory: cyclone, General
+pdcategory: cyclone, UI
 arguments:
 inlets:
 outlets:

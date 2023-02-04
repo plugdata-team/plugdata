@@ -3,7 +3,7 @@ title: mousefilter
 description: filters data with the mouse click
 categories:
  - object
-pdcategory: cyclone, General
+pdcategory: cyclone, UI
 arguments:
 inlets:
   1st:
