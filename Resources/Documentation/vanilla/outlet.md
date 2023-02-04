@@ -9,7 +9,7 @@ see_also:
 - outlet~
 - block~
 - pd
-pdcategory: vanilla, GUI, Mixing and Routing
+pdcategory: vanilla, UI, Mixing and Routing
 last_update: '0.51'
 inlets:
   1st:

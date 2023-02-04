@@ -6,7 +6,7 @@ description: report window activity
 categories:
  - object
 
-pdcategory: ELSE, GUI
+pdcategory: ELSE, UI
 
 arguments:
 - type: float

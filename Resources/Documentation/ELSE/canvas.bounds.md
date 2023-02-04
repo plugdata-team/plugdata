@@ -6,7 +6,7 @@ description: report canvas bounds
 categories:
  - object
 
-pdcategory: ELSE, GUI
+pdcategory: ELSE, UI
 
 arguments:
 - type: float

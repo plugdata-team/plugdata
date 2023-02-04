@@ -6,7 +6,7 @@ description: CPU meter
 categories:
 - object
 
-pdcategory: ELSE, GUI
+pdcategory: ELSE, UI
 
 arguments:
 - type: float

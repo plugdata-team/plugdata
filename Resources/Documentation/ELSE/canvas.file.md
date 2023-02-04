@@ -6,7 +6,7 @@ description: search for file
 categories:
  - object
 
-pdcategory: ELSE, GUI, Data Management
+pdcategory: ELSE, UI, Data Management
 
 arguments:
 - type: float

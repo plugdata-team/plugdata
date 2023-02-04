@@ -3,7 +3,7 @@ title: rmstodb
 description: linear RMS amplitude to dB
 categories:
 - object
-pdcategory: vanilla, Data Math, Mixing and Routing
+pdcategory: vanilla, Converters
 last_update: '0.40'
 see_also:
 - mtof~

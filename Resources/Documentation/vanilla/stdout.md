@@ -5,7 +5,7 @@ categories:
 - object
 see_also:
 - pd~
-pdcategory: vanilla, GUI, Analysis
+pdcategory: vanilla, UI, Analysis
 last_update: '0.48'
 inlets:
   1st:

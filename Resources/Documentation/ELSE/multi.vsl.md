@@ -6,7 +6,7 @@ description: multi vertical slider
 categories:
 - object
 
-pdcategory: ELSE, GUI
+pdcategory: ELSE, UI
 
 arguments:
 

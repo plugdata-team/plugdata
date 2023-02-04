@@ -6,7 +6,7 @@ description: bang divider
 categories:
 - object
 
-pdcategory: ELSE, Triggers and Clocks, Sequencing
+pdcategory: ELSE, Triggers and Clocks
 
 arguments:
   - description: divisor value

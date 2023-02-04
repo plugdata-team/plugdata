@@ -10,7 +10,7 @@ see_also:
 - send
 - receive~
 - tabsend~
-pdcategory: vanilla, GUI, Mixing and Routing, Audio I/O
+pdcategory: vanilla, UI, Mixing and Routing, Audio I/O
 last_update: '0.33'
 inlets:
   1st:

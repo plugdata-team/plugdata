@@ -6,7 +6,7 @@ description: convert note duration to fraction or float
 categories:
 - object
 
-pdcategory: ELSE, MIDI
+pdcategory: ELSE, Converters, Triggers and Clocks
 
 arguments:
 

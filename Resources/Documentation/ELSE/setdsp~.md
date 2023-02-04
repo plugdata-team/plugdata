@@ -6,7 +6,7 @@ description: DSP on/off interface
 categories:
 - object
 
-pdcategory: ELSE, GUI, Audio I/O 
+pdcategory: ELSE, UI, Audio I/O 
 
 arguments:
 - type: float

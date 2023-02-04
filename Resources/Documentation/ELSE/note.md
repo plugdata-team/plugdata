@@ -5,7 +5,7 @@ description: text note
 
 categories:
  - object
-pdcategory: ELSE, GUI
+pdcategory: ELSE, UI
 
 arguments:
 
