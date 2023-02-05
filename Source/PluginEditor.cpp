@@ -278,9 +278,9 @@ void PluginEditor::resized()
     statusbar.setBounds(0, getHeight() - statusbar.getHeight(), getWidth() - sidebar.getWidth(), statusbar.getHeight());
 
     mainMenuButton.setBounds(20, 0, toolbarHeight, toolbarHeight);
-    undoButton.setBounds(100, 0, toolbarHeight, toolbarHeight);
-    redoButton.setBounds(180, 0, toolbarHeight, toolbarHeight);
-    addObjectMenuButton.setBounds(260, 0, toolbarHeight, toolbarHeight);
+    undoButton.setBounds(90, 0, toolbarHeight, toolbarHeight);
+    redoButton.setBounds(160, 0, toolbarHeight, toolbarHeight);
+    addObjectMenuButton.setBounds(230, 0, toolbarHeight, toolbarHeight);
 
 #ifdef PLUGDATA_STANDALONE
     auto useNativeTitlebar = SettingsFile::getInstance()->getProperty<bool>("native_window");
