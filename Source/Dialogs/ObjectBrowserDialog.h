@@ -10,7 +10,7 @@
 class CategoriesListBox : public ListBox
     , public ListBoxModel {
 
-    StringArray categories = { "All"};
+    StringArray categories = {"All"};
 
 public:
     CategoriesListBox()
@@ -36,6 +36,11 @@ public:
 
     void paintListBoxItem(int rowNumber, Graphics& g, int width, int height, bool rowIsSelected) override
     {
+        if(categories[rowNumber] == "--------") {
+            g.setColour(findColour(PlugDataColour::outlineColourId));
+            g.drawHorizontalLine(height / 2, 5, width - 10);
+            return;
+        }
         if (rowIsSelected) {
             g.setColour(findColour(PlugDataColour::panelActiveBackgroundColourId));
             g.fillRoundedRectangle({ 4.0f, 1.0f, width - 8.0f, height - 2.0f }, PlugDataLook::defaultCornerRadius);
@@ -633,38 +638,47 @@ public:
     {
         auto& library = editor->pd->objectLibrary;
         objectsByCategory = library.getObjectCategories();
-
+        
         addAndMakeVisible(categoriesList);
         addAndMakeVisible(objectsList);
         addAndMakeVisible(objectViewer);
         addAndMakeVisible(objectSearch);
-
+        
         addChildComponent(objectReference);
-
+        
         objectsByCategory["All"] = StringArray();
-
+        
+        StringArray origins = {"vanilla", "cyclone", "ELSE", "pdlua", "heavylib"};
         StringArray categories;
         for (auto& [category, objects] : objectsByCategory) {
             // Sort alphabetically
             objects.sort(true);
-
+            
             // Add objects from every category to "All"
             if(category != "All") {
                 objectsByCategory["All"].addArray(objects);
             }
-            categories.add(category);
+         
+            if(!origins.contains(category)) categories.add(category);
         }
 
         // Also include undocumented objects
         objectsByCategory["All"].addArray(library.getAllObjects());
         objectsByCategory["All"].removeDuplicates(true);
 
-        // Sort alphabetically
+        // First sort alphabetically
         objectsByCategory["All"].sort(true);
         categories.sort(true);
-
+        
         // Make sure "All" is the first category
         categories.move(categories.indexOf("All"), 0);
+        
+        categories.insert(1, "--------");
+        categories.insert(2, "--------");
+        for(int i = origins.size() - 1; i >= 0; i--) {
+            categories.insert(2, origins[i]);
+        }
+        
 
 #if JUCE_DEBUG
         auto objectDescriptions = library.getObjectDescriptions();
