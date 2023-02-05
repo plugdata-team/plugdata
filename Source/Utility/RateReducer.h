@@ -29,13 +29,9 @@ struct RateReducer : public Timer {
     void timerCallback() override
     {
         allowEvent = true;
+        stopTimer();
     }
 
-    void stop()
-    {
-        stopTimer();
-        allowEvent = true;
-    }
 
 private:
     int timerHz;
@@ -53,13 +49,6 @@ public:
             return;
 
         T::mouseDrag(e);
-    }
-
-    void mouseUp(MouseEvent const& e) override
-    {
-        rateReducer.stop();
-
-        T::mouseUp(e);
     }
 
 private:

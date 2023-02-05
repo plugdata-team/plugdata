@@ -386,8 +386,6 @@ void Canvas::mouseDrag(MouseEvent const& e)
 
 void Canvas::mouseUp(MouseEvent const& e)
 {
-    canvasRateReducer.stop();
-
     setMouseCursor(MouseCursor::NormalCursor);
     editor->updateCommandStatus();
 
@@ -1097,8 +1095,6 @@ void Canvas::objectMouseDown(Object* component, MouseEvent const& e)
 // Call from component's mouseUp
 void Canvas::objectMouseUp(Object* component, MouseEvent const& e)
 {
-    objectRateReducer.stop();
-
     if (e.mods.isShiftDown() && wasSelectedOnMouseDown && !didStartDragging) {
         // Unselect object if selected
         setSelected(component, false);

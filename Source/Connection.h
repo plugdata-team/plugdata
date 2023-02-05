@@ -182,11 +182,6 @@ public:
         iolet->repaint();
     }
 
-    void mouseUp(MouseEvent const& e) override
-    {
-        rateReducer.stop();
-    }
-
     void paint(Graphics& g) override
     {
         if (!iolet) {
