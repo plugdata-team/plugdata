@@ -135,7 +135,7 @@ void Trie::suggestionsRec(String currPrefix, Suggestions& result)
 {
     // found aString in Trie with the given prefix
     if (isLeaf) {
-        result.push_back({ currPrefix, true });
+        result.add(currPrefix);
     }
 
     // All children struct node pointers are nullptr
@@ -189,7 +189,7 @@ int Trie::autocomplete(String query, Suggestions& result)
     // there is no subtree below the last
     // matching node.
     if (isWord && isLast) {
-        result.push_back({ query, true });
+        result.add(query);
         return -1;
     }
 
@@ -481,7 +481,73 @@ Suggestions Library::autocomplete(String query) const
     Suggestions result;
     if (searchTree)
         searchTree->autocomplete(std::move(query), result);
+    
     return result;
+}
+
+
+void Library::getExtraSuggestions(int currentNumSuggestions, String query, std::function<void(Suggestions)> callback)
+{
+    const int maxSuggestions = 20;
+    if(currentNumSuggestions > maxSuggestions) return;
+    
+    libraryUpdateThread.addJob([this, callback, currentNumSuggestions, query]() mutable {
+        
+        //if(!libraryLock.try_lock()) {
+         //   return;
+        //}
+        
+        Suggestions result;
+        
+        for(const auto& object : allObjects)
+        {
+            if(object.contains(query)) {
+                result.add(object);
+            }
+        }
+        
+        if(currentNumSuggestions + result.size() < maxSuggestions) {
+            
+            for(const auto& [object, keywords] : objectKeywords)
+            {
+                for(const auto& keyword : keywords) {
+                    if(keyword.contains(query)) {
+                        result.add(object);
+                    }
+                }
+            }
+        }
+        
+        if(currentNumSuggestions + result.size() < maxSuggestions) {
+            
+            for(const auto& [object, description] : objectDescriptions)
+            {
+                if(description.contains(query)) {
+                    result.add(object);
+                }
+            }
+        }
+        
+        if(currentNumSuggestions + result.size() > maxSuggestions) {
+            for(auto& [objectName, iolets] : ioletDescriptions)
+            {
+                for (int type = 0; type < 2; type++) {
+                    auto descriptions = iolets[type];
+                    for(auto& [description, type] : descriptions) {
+                        if(description.contains(query)) {
+                            result.add(objectName);
+                        }
+                    }
+                }
+            }
+        }
+        
+        //libraryLock.unlock();
+        
+        MessageManager::callAsync([callback, result](){
+            callback(result);
+        });
+    });
 }
 
 std::array<StringArray, 2> Library::getIoletTooltips(String type, String name, int numIn, int numOut)

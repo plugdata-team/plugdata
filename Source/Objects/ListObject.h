@@ -67,7 +67,7 @@ public:
             if (elem.getCharPointer().isDigit()) {
                 list.push_back({ elem.getFloatValue() });
             } else {
-                list.push_back({ elem.toStdString() });
+                list.push_back({ elem });
             }
         }
         if (list != getList()) {
