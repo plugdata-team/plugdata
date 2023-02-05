@@ -489,7 +489,6 @@ void setup_bl0x2eimp2_tilde();
 void setup_bl0x2esquare_tilde();
 void setup_bl0x2etri_tilde();
 void setup_bl0x2evsaw_tilde();
-void setup_bl0x2eosc_tilde();
 void setup_osc0x2eformat();
 void setup_osc0x2eparse();
 void setup_osc0x2eroute();
@@ -772,7 +771,6 @@ void libpd_init_else(void)
     setup_bl0x2esquare_tilde();
     setup_bl0x2etri_tilde();
     setup_bl0x2evsaw_tilde();
-    setup_bl0x2eosc_tilde();
     setup_osc0x2eformat();
     setup_osc0x2eparse();
     setup_osc0x2eroute();
