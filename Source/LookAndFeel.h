@@ -185,7 +185,8 @@ inline const std::map<PlugDataColour, std::tuple<String, String, String>> PlugDa
 struct Fonts {
     Fonts()
     {
-
+        Typeface::setTypefaceCacheSize(7);
+        
         jassert(!instance);
 
         // Our unicode font is too big, the compiler will run out of memory
@@ -206,7 +207,8 @@ struct Fonts {
 
         // Initialise typefaces
         defaultTypeface = Typeface::createSystemTypefaceFor(interUnicode.data(), interUnicode.size());
-
+        currentTypeface = defaultTypeface;
+        
         thinTypeface = Typeface::createSystemTypefaceFor(BinaryData::InterThin_ttf, BinaryData::InterThin_ttfSize);
 
         boldTypeface = Typeface::createSystemTypefaceFor(BinaryData::InterBold_ttf, BinaryData::InterBold_ttfSize);
@@ -220,6 +222,7 @@ struct Fonts {
         instance = this;
     }
 
+    static Font getCurrentFont() { return Font(instance->currentTypeface); }
     static Font getDefaultFont() { return Font(instance->defaultTypeface); }
     static Font getBoldFont() { return Font(instance->boldTypeface); }
     static Font getSemiBoldFont() { return Font(instance->semiBoldTypeface); }
@@ -227,16 +230,17 @@ struct Fonts {
     static Font getIconFont() { return Font(instance->iconTypeface); }
     static Font getMonospaceFont() { return Font(instance->monoTypeface); }
 
-    static Font setDefaultFont(Font font) { return instance->defaultTypeface = font.getTypefacePtr(); }
+    static Font setCurrentFont(Font font) { return instance->currentTypeface = font.getTypefacePtr(); }
 
 private:
     // This is effectively a singleton because it's loaded through SharedResourcePointer
     static inline Fonts* instance = nullptr;
 
     // Default typeface is Inter combined with Unicode symbols from GoNotoUniversal and emojis from NotoEmoji
-    // though it can be overriden by the user
     Typeface::Ptr defaultTypeface;
-
+    
+    Typeface::Ptr currentTypeface;
+    
     Typeface::Ptr thinTypeface;
     Typeface::Ptr boldTypeface;
     Typeface::Ptr semiBoldTypeface;
@@ -259,7 +263,7 @@ struct PlugDataLook : public LookAndFeel_V4 {
 
     PlugDataLook()
     {
-        setDefaultSansSerifTypeface(Fonts::getDefaultFont().getTypefacePtr());
+        setDefaultSansSerifTypeface(Fonts::getCurrentFont().getTypefacePtr());
     }
 
     class PlugData_DocumentWindowButton : public Button {
@@ -320,9 +324,7 @@ struct PlugDataLook : public LookAndFeel_V4 {
         if (button.getProperties()["Style"].toString().contains("Icon")) {
             return;
         }
-        if (button.getProperties()["Style"] == "Inspector") {
-            drawInspectorButton(g, button, backgroundColour, shouldDrawButtonAsHighlighted, shouldDrawButtonAsDown);
-        } else {
+        else {
             LookAndFeel_V4::drawButtonBackground(g, button, backgroundColour, shouldDrawButtonAsHighlighted, shouldDrawButtonAsDown);
         }
     }
@@ -667,22 +669,6 @@ struct PlugDataLook : public LookAndFeel_V4 {
     {
     }
 
-    void drawInspectorButton(Graphics& g, Button& button, Colour const& backgroundColour, bool shouldDrawButtonAsHighlighted, bool shouldDrawButtonAsDown)
-    {
-        auto bounds = button.getLocalBounds().toFloat().reduced(0.5f, 0.5f);
-
-        auto baseColour = backgroundColour.withMultipliedSaturation(button.hasKeyboardFocus(true) ? 1.3f : 0.9f).withMultipliedAlpha(button.isEnabled() ? 1.0f : 0.5f);
-
-        if (shouldDrawButtonAsDown || shouldDrawButtonAsHighlighted)
-            baseColour = baseColour.contrasting(shouldDrawButtonAsDown ? 0.2f : 0.05f);
-
-        if (!shouldDrawButtonAsHighlighted && !button.getToggleState())
-            baseColour = Colours::transparentBlack;
-
-        g.setColour(baseColour);
-        g.fillRect(bounds);
-        g.setColour(button.findColour(ComboBox::outlineColourId));
-    }
 
     void drawGUIObjectSlider(Graphics& g, int x, int y, int width, int height, float sliderPos, float minSliderPos, float maxSliderPos, Slider& slider)
     {
@@ -836,7 +822,7 @@ struct PlugDataLook : public LookAndFeel_V4 {
         Font font;
         switch (style) {
         case Regular:
-            font = Fonts::getDefaultFont();
+            font = Fonts::getCurrentFont();
             break;
         case Bold:
             font = Fonts::getBoldFont();
@@ -865,7 +851,7 @@ struct PlugDataLook : public LookAndFeel_V4 {
     // For drawing regular text
     static void drawText(Graphics& g, String const& textToDraw, Rectangle<float> bounds, Colour colour, int fontHeight = 15, Justification justification = Justification::centredLeft)
     {
-        g.setFont(Fonts::getDefaultFont().withHeight(fontHeight));
+        g.setFont(Fonts::getCurrentFont().withHeight(fontHeight));
         g.setColour(colour);
         g.drawText(textToDraw, bounds, justification);
     }
@@ -873,7 +859,7 @@ struct PlugDataLook : public LookAndFeel_V4 {
     // For drawing regular text
     static void drawText(Graphics& g, String const& textToDraw, Rectangle<int> bounds, Colour colour, int fontHeight = 15, Justification justification = Justification::centredLeft)
     {
-        g.setFont(Fonts::getDefaultFont().withHeight(fontHeight));
+        g.setFont(Fonts::getCurrentFont().withHeight(fontHeight));
         g.setColour(colour);
         g.drawText(textToDraw, bounds, justification);
     }
@@ -885,7 +871,7 @@ struct PlugDataLook : public LookAndFeel_V4 {
 
     static void drawFittedText(Graphics& g, String const& textToDraw, Rectangle<int> bounds, Colour colour, int numLines = 1, float minimumHoriontalScale = 1.0f, int fontHeight = 15, Justification justification = Justification::centredLeft)
     {
-        g.setFont(Fonts::getDefaultFont().withHeight(fontHeight));
+        g.setFont(Fonts::getCurrentFont().withHeight(fontHeight));
         g.setColour(colour);
         g.drawFittedText(textToDraw, bounds, justification, numLines, minimumHoriontalScale);
     }
@@ -901,7 +887,7 @@ struct PlugDataLook : public LookAndFeel_V4 {
 
         if (!label.isBeingEdited()) {
             auto alpha = label.isEnabled() ? 1.0f : 0.5f;
-            const Font font(getLabelFont(label));
+            const Font font = Fonts::getCurrentFont();
 
             auto textArea = getLabelBorderSize(label).subtractedFrom(label.getLocalBounds());
 
@@ -1094,10 +1080,12 @@ struct PlugDataLook : public LookAndFeel_V4 {
     {
         auto& lnf = dynamic_cast<PlugDataLook&>(getDefaultLookAndFeel());
         if (fontName.isEmpty() || fontName == "Inter") {
-            lnf.setDefaultSansSerifTypeface(Fonts::getDefaultFont().getTypefacePtr());
+            auto defaultFont = Fonts::getDefaultFont();
+            lnf.setDefaultSansSerifTypeface(defaultFont.getTypefacePtr());
+            Fonts::setCurrentFont(defaultFont);
         } else {
             auto newDefaultFont = Font(fontName, 15, Font::plain);
-            Fonts::setDefaultFont(newDefaultFont);
+            Fonts::setCurrentFont(newDefaultFont);
             lnf.setDefaultSansSerifTypeface(newDefaultFont.getTypefacePtr());
         }
     }

@@ -126,12 +126,16 @@ public:
         g.setColour(outlineColour);
         g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), PlugDataLook::objectCornerRadius, 1.0f);
     }
+    
+    void lookAndFeelChanged() override {
+        listLabel.setColour(Label::textWhenEditingColourId, object->findColour(PlugDataColour::canvasTextColourId));
+        listLabel.setColour(Label::textColourId, object->findColour(PlugDataColour::canvasTextColourId));
+        listLabel.setColour(TextEditor::textColourId, object->findColour(PlugDataColour::canvasTextColourId));
+        repaint();
+    }
 
     void paint(Graphics& g) override
     {
-        getLookAndFeel().setColour(Label::textWhenEditingColourId, object->findColour(Label::textWhenEditingColourId));
-        getLookAndFeel().setColour(Label::textColourId, object->findColour(Label::textColourId));
-
         g.setColour(object->findColour(PlugDataColour::guiObjectBackgroundColourId));
         g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), PlugDataLook::objectCornerRadius);
 

@@ -97,14 +97,15 @@ public:
         repaint();
     }
 
+    void lookAndFeelChanged() override {
+        input.setColour(Label::textWhenEditingColourId, object->findColour(PlugDataColour::canvasTextColourId));
+        input.setColour(Label::textColourId, object->findColour(PlugDataColour::canvasTextColourId));
+        input.setColour(TextEditor::textColourId, object->findColour(PlugDataColour::canvasTextColourId));
+        repaint();
+    }
+
     void paint(Graphics& g) override
     {
-        /*
-        getLookAndFeel().setColour(Label::textWhenEditingColourId, object->findColour(PlugDataColour::canvasTextColourId));
-        getLookAndFeel().setColour(Label::textColourId, object->findColour(PlugDataColour::canvasTextColourId));
-        getLookAndFeel().setColour(TextEditor::textColourId, object->findColour(PlugDataColour::canvasTextColourId));
-        getLookAndFeel().setColour(TextEditor::backgroundColourId, object->findColour(PlugDataColour::guiObjectBackgroundColourId));
- */
         g.setColour(object->findColour(PlugDataColour::guiObjectBackgroundColourId));
         g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), PlugDataLook::objectCornerRadius);
     }

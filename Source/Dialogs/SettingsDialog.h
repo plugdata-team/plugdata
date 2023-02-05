@@ -46,7 +46,7 @@ public:
 
         g.drawFittedText(icon, iconBounds, Justification::centred, 1);
 
-        font = Fonts::getDefaultFont().withHeight(textBounds.getHeight() / 1.25f);
+        font = Fonts::getCurrentFont().withHeight(textBounds.getHeight() / 1.25f);
         g.setFont(font);
 
         // Draw bottom text

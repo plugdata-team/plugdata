@@ -84,7 +84,7 @@ public:
         if (!(midiNoteNumber % 12)) {
             Array<int> glyphs;
             Array<float> offsets;
-            auto font = Fonts::getDefaultFont();
+            auto font = Fonts::getCurrentFont();
             Path p;
             Path outline;
             font.getGlyphPositions(String(floor(midiNoteNumber / 12) - 1), glyphs, offsets);
