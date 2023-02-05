@@ -273,21 +273,21 @@ void SettingsFile::valueTreePropertyChanged(ValueTree& treeWhosePropertyHasChang
 
     if (!settingsChangedExternally)
         settingsChangedInternally = true;
-    startTimer(300);
+    startTimer(700);
 }
 
 void SettingsFile::valueTreeChildAdded(ValueTree& parentTree, ValueTree& childWhichHasBeenAdded)
 {
     if (!settingsChangedExternally)
         settingsChangedInternally = true;
-    startTimer(300);
+    startTimer(700);
 }
 
 void SettingsFile::valueTreeChildRemoved(ValueTree& parentTree, ValueTree& childWhichHasBeenRemoved, int indexFromWhichChildWasRemoved)
 {
     if (!settingsChangedExternally)
         settingsChangedInternally = true;
-    startTimer(300);
+    startTimer(700);
 }
 
 void SettingsFile::timerCallback()
