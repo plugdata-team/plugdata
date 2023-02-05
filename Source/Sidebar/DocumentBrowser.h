@@ -8,8 +8,6 @@
 // 1. Sort by folders first
 // 2. Improve simplicity and efficiency by not using OS file icons (they look bad anyway)
 
-#include "../Utility/FileSystemWatcher.h"
-
 #if JUCE_WINDOWS
 #    include "../Utility/OSUtils.h"
 #endif
@@ -251,7 +249,9 @@ private:
 
 class DocumentBrowserView : public DocumentBrowserViewBase
     , public FileBrowserListener
-    , public ScrollBar::Listener {
+    , public ScrollBar::Listener
+    , public Timer
+{
 public:
     /** Creates a listbox to show the contents of a specified directory.
      */
@@ -259,12 +259,23 @@ public:
         : DocumentBrowserViewBase(listToShow)
         , itemHeight(24)
         , browser(parent)
+        , lastUpdateTime(listToShow.getDirectory().getLastModificationTime())
     {
         setIndentSize(16);
         setRootItemVisible(false);
         refresh();
         addListener(this);
         getViewport()->getVerticalScrollBar().addListener(this);
+        startTimer(1500);
+    }
+    
+    void timerCallback() override
+    {
+        auto lastModificationTime = directoryContentsList.getDirectory().getLastModificationTime();
+        if(lastModificationTime > lastUpdateTime) {
+            refresh();
+            lastUpdateTime = lastModificationTime;
+        }
     }
 
     /** Destructor. */
@@ -316,6 +327,8 @@ public:
     /** Updates the files in the list. */
     void refresh()
     {
+        directoryContentsList.refresh();
+        
         // Mouse events during update can cause a crash!
         setEnabled(false);
 
@@ -458,6 +471,7 @@ private:
     DocumentBrowserBase* browser;
     bool isDraggingFile = false;
 
+    Time lastUpdateTime;
     int itemHeight;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(DocumentBrowserView)
@@ -688,7 +702,7 @@ private:
 };
 
 class DocumentBrowser : public DocumentBrowserBase
-    , public FileSystemWatcher::Listener {
+{
 
 public:
     DocumentBrowser(PluginProcessor* processor)
@@ -705,14 +719,11 @@ public:
             }
         }
 
-        watcher.addFolder(location);
         directory.setDirectory(location, true, true);
 
         updateThread.startThread();
 
         addAndMakeVisible(fileList);
-
-        watcher.addListener(this);
 
         searchComponent.openFile = [this](File& file) {
             if (file.existsAsFile()) {
@@ -752,7 +763,6 @@ public:
                         auto path = file.getFullPathName();
                         pd->settingsFile->setProperty("browser_path", path);
                         directory.setDirectory(path, true, true);
-                        watcher.addFolder(file);
                     }
                 });
         };
@@ -781,13 +791,6 @@ public:
     ~DocumentBrowser()
     {
         updateThread.stopThread(1000);
-    }
-
-    // Called when folder changes
-    void fsChangeCallback() override
-    {
-        directory.refresh();
-        fileList.refresh();
     }
 
     bool isSearching() override
@@ -851,5 +854,4 @@ private:
 public:
     DocumentBrowserView fileList;
     FileSearchComponent searchComponent;
-    FileSystemWatcher watcher;
 };

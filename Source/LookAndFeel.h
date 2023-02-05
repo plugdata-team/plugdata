@@ -187,7 +187,7 @@ struct Fonts {
     {
         Typeface::setTypefaceCacheSize(7);
         
-        jassert(!instance);
+        //jassert(!instance);
 
         // Our unicode font is too big, the compiler will run out of memory
         // To prevent this, we split the BinaryData into multiple files, and add them back together here
