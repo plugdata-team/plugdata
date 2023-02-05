@@ -154,6 +154,7 @@ public:
 
     // Multi-dragger variables
     bool didStartDragging = false;
+
     int const minimumMovementToStartDrag = 5;
     SafePointer<Object> componentBeingDragged = nullptr;
 
@@ -163,6 +164,7 @@ public:
     std::map<Object*, Point<int>> mouseDownObjectPositions; // Stores object positions for alt + drag
 
     std::unique_ptr<ConnectionPathUpdater> pathUpdater;
+ 
 
 private:
     SafePointer<Object> objectSnappingInbetween;
