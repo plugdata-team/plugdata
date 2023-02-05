@@ -67,8 +67,8 @@ public:
         auto numInlets = unknownInletLayout ? "Unknown" : String(inlets.size());
         auto numOutlets = unknownOutletLayout ? "Unknown" : String(outlets.size());
 
-        StringArray infoNames = { "Category:", "Type:", "Num. Inlets:", "Num. Outlets:" };
-        StringArray infoText = { category, objectName.contains("~") ? String("Signal") : String("Data"), numInlets, numOutlets };
+        StringArray infoNames = { "Categories:", "Origin:", "Type:", "Num. Inlets:", "Num. Outlets:" };
+        StringArray infoText = { categories, origin, objectName.contains("~") ? String("Signal") : String("Data"), numInlets, numOutlets};
 
         for (int i = 0; i < infoNames.size(); i++) {
             auto localBounds = infoBounds.removeFromTop(25);
@@ -207,18 +207,32 @@ public:
         unknownOutletLayout = hasUnknownOutletLayout;
 
         objectName = name;
-        category = "";
-
+        categories = "";
+        origin = "";
+        
+        StringArray origins = {"vanilla", "cyclone", "ELSE", "pdlua", "heavylib"};
+        
         // Inverse lookup :(
         for (auto const& [cat, objects] : library.getObjectCategories()) {
-            if (objects.contains(name)) {
-                category = cat;
+            if(origins.contains(cat) && objects.contains(name)) {
+                origin = cat;
+            }
+            else if (objects.contains(name)) {
+                categories += cat + ", ";
             }
         }
-
-        if (category.isEmpty())
-            category = "Unknown";
-
+        
+        if(categories.isEmpty()) {
+            categories = "Unknown";
+        }
+        else {
+            categories = categories.dropLastCharacters(2);
+        }
+        
+        if(origin.isEmpty()) {
+            origin = "Unknown";
+        }
+        
         description = library.getObjectDescriptions()[name];
 
         if (description.isEmpty()) {
@@ -292,7 +306,8 @@ public:
 
     TextButton backButton = TextButton(Icons::Back);
 
-    String category;
+    String categories;
+    String origin;
     String description;
 
     PluginEditor* editor;
