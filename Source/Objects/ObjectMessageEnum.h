@@ -1,93 +1,63 @@
 #pragma once
 
-#include <map>
-#include <JuceHeader.h>
+//https://gist.github.com/ctmatthews/c1cbd1b2e68c29a88b236475a0b26cd0
+
+typedef uint32_t hash32;
+typedef uint8_t u8;
+#define EMPTY_HASH ((hash32)0x811c9dc5)
+
+constexpr hash32 hash(const char* str) {
+    hash32 result = EMPTY_HASH;
+
+    while (*str) {
+        result ^= (hash32) *str; // NOTE: make this toupper(*s) or tolower(*s) if you want case-insensitive hashes
+        result *= (hash32) 0x01000193; // 32 bit magic FNV-1a prime
+        str++;
+    }
+
+    return result;
+}
 
 enum objectMessage {
-    msg_float,
-    msg_bang,
-    msg_list,
-    msg_set,
-    msg_append,
-    msg_symbol,
-    msg_flashtime,
-    msg_bgcolor,
-    msg_fgcolor,
-    msg_color,
-    msg_vis,
-    msg_send,
-    msg_receive,
-    msg_min,
-    msg_max,
-    msg_coords,
-    msg_lowc,
-    msg_oct,
-    msg_8ves,
-    msg_open,
-    msg_orientation,
-    msg_number,
-    msg_lin,
-    msg_log,
-    msg_range,
-    msg_steady,
-    msg_nonzero,
-    msg_label,
-    msg_label_pos,
-    msg_label_font,
-    msg_vis_size,
-    msg_init,
-
-    msg_allpass,
-    msg_lowpass,
-    msg_highpass,
-    msg_bandpass,
-    msg_resonant,
-    msg_bandstop,
-    msg_eq,
-    msg_lowshelf,
-    msg_highshelf,
-};
-
-static inline std::map<String, objectMessage> objectMessageMapped = {
-    { "float", msg_float },
-    { "bang", msg_bang },
-    { "list", msg_list },
-    { "set", msg_set },
-    { "append", msg_append },
-    { "symbol", msg_symbol },
-    { "flashtime", msg_flashtime },
-    { "bgcolor", msg_bgcolor },
-    { "fgcolor", msg_fgcolor },
-    { "color", msg_color },
-    { "vis", msg_vis },
-    { "send", msg_send },
-    { "receive", msg_receive },
-    { "min", msg_min },
-    { "max", msg_max },
-    { "coords", msg_coords },
-    { "lowc", msg_lowc },
-    { "oct", msg_oct },
-    { "8ves", msg_8ves },
-    { "open", msg_open },
-    { "orientation", msg_orientation },
-    { "number", msg_number },
-    { "lin", msg_lin },
-    { "log", msg_log },
-    { "range", msg_range },
-    { "steady", msg_steady },
-    { "nonzero", msg_nonzero },
-    { "label", msg_label },
-    { "label_pos", msg_label_pos },
-    { "label_font", msg_label_font },
-    { "vis_size", msg_vis_size },
-    { "init", msg_init },
-    { "allpass", msg_allpass },
-    { "lowpass", msg_lowpass },
-    { "highpass", msg_highpass },
-    { "bandpass", msg_bandpass },
-    { "resonant", msg_resonant },
-    { "bandstop", msg_bandstop },
-    { "eq", msg_eq },
-    { "lowshelf", msg_lowshelf },
-    { "highshelf", msg_highshelf }
+    msg_float = hash("float"),
+    msg_bang = hash("bang"),
+    msg_list = hash("list"),
+    msg_set = hash("set"),
+    msg_append = hash("append"),
+    msg_symbol = hash("symbol"),
+    msg_flashtime = hash("flashtime"),
+    msg_bgcolor = hash("bgcolor"),
+    msg_fgcolor = hash("fgcolor"),
+    msg_color = hash("color"),
+    msg_vis = hash("vis"),
+    msg_send = hash("send"),
+    msg_receive = hash("receive"),
+    msg_min = hash("min"),
+    msg_max = hash("max"),
+    msg_coords = hash("coords"),
+    msg_lowc = hash("lowc"),
+    msg_oct = hash("oct"),
+    msg_8ves = hash("8ves"),
+    msg_open = hash("open"),
+    msg_orientation = hash("orientation"),
+    msg_number = hash("number"),
+    msg_lin = hash("lin"),
+    msg_log = hash("log"),
+    msg_range = hash("range"),
+    msg_steady = hash("steady"),
+    msg_nonzero = hash("nonzero"),
+    msg_label = hash("label"),
+    msg_label_pos = hash("label_pos"),
+    msg_label_font = hash("label_font"),
+    msg_vis_size = hash("vis_size"),
+    msg_init = hash("init"),
+    msg_allpass = hash("allpass"),
+    msg_lowpass = hash("lowpass"),
+    msg_highpass = hash("highpass"),
+    msg_bandpass = hash("bandpass"),
+    msg_resonant = hash("resonant"),
+    msg_bandstop = hash("bandstop"),
+    msg_eq = hash("eq"),
+    msg_lowshelf = hash("lowshelf"),
+    msg_highshelf = hash("highshelf")
 };
