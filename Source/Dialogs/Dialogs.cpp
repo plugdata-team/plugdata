@@ -400,34 +400,71 @@ PopupMenu Dialogs::createObjectMenu(PluginEditor* parent)
         Dialogs::showObjectBrowserDialog(&parent->openedDialog, parent);
     });
 
-    PopupMenu guiMenu;
+    PopupMenu uiMenu;
     {
-        guiMenu.addItem(createCommandItem(ObjectIDs::NewNumbox, "Number"));
-        guiMenu.addItem(createCommandItem(ObjectIDs::NewBang, "Bang"));
-        guiMenu.addItem(createCommandItem(ObjectIDs::NewToggle, "Toggle"));
-        guiMenu.addItem(createCommandItem(ObjectIDs::NewButton, "Button"));
-        guiMenu.addItem(createCommandItem(ObjectIDs::NewVerticalSlider, "Vertical Slider"));
-        guiMenu.addItem(createCommandItem(ObjectIDs::NewHorizontalSlider, "Horizontal Slider"));
-        guiMenu.addItem(createCommandItem(ObjectIDs::NewVerticalRadio, "Vertical Radio"));
-        guiMenu.addItem(createCommandItem(ObjectIDs::NewHorizontalRadio, "Horizontal Radio"));
+        uiMenu.addItem(createCommandItem(ObjectIDs::NewNumbox, "Number"));
+        uiMenu.addItem(createCommandItem(ObjectIDs::NewBang, "Bang"));
+        uiMenu.addItem(createCommandItem(ObjectIDs::NewToggle, "Toggle"));
+        uiMenu.addItem(createCommandItem(ObjectIDs::NewButton, "Button"));
+        uiMenu.addItem(createCommandItem(ObjectIDs::NewVerticalSlider, "Vertical Slider"));
+        uiMenu.addItem(createCommandItem(ObjectIDs::NewHorizontalSlider, "Horizontal Slider"));
+        uiMenu.addItem(createCommandItem(ObjectIDs::NewVerticalRadio, "Vertical Radio"));
+        uiMenu.addItem(createCommandItem(ObjectIDs::NewHorizontalRadio, "Horizontal Radio"));
 
-        guiMenu.addSeparator();
-        guiMenu.addItem(createCommandItem(ObjectIDs::NewCanvas, "Canvas"));
+        uiMenu.addSeparator();
+        uiMenu.addItem(createCommandItem(ObjectIDs::NewCanvas, "Canvas"));
 
-        guiMenu.addItem(createCommandItem(ObjectIDs::NewKeyboard, "Keyboard"));
-        guiMenu.addItem(createCommandItem(ObjectIDs::NewVUMeterObject, "VU Meter"));
-        guiMenu.addItem(createCommandItem(ObjectIDs::NewNumboxTilde, "Signal Numbox"));
-        guiMenu.addItem(createCommandItem(ObjectIDs::NewOscilloscope, "Oscilloscope"));
-        guiMenu.addItem(createCommandItem(ObjectIDs::NewFunction, "Function"));
+        uiMenu.addItem(createCommandItem(ObjectIDs::NewKeyboard, "Keyboard"));
+        uiMenu.addItem(createCommandItem(ObjectIDs::NewVUMeterObject, "VU Meter"));
+        uiMenu.addItem(createCommandItem(ObjectIDs::NewNumboxTilde, "Signal Numbox"));
+        uiMenu.addItem(createCommandItem(ObjectIDs::NewOscilloscope, "Oscilloscope"));
+        uiMenu.addItem(createCommandItem(ObjectIDs::NewFunction, "Function"));
+        uiMenu.addItem(createCommandItem(ObjectIDs::NewMessbox, "Messbox"));
+        uiMenu.addItem(createCommandItem(ObjectIDs::NewBicoeff, "Bicoeff"));
     }
-
-    PopupMenu timeMenu;
+    
+    PopupMenu generalMenu;
     {
-        timeMenu.addItem(createCommandItem(ObjectIDs::NewMetro, "metro"));
-        timeMenu.addItem(createCommandItem(ObjectIDs::NewTimer, "timer"));
-        timeMenu.addItem(createCommandItem(ObjectIDs::NewDelay, "delay"));
-        timeMenu.addItem(createCommandItem(ObjectIDs::NewTimedGate, "timed.gate"));
-        timeMenu.addItem(createCommandItem(ObjectIDs::NewDateTime, "datetime"));
+        generalMenu.addItem(createCommandItem(ObjectIDs::NewMetro, "metro"));
+        generalMenu.addItem(createCommandItem(ObjectIDs::NewSel, "sel"));
+        generalMenu.addItem(createCommandItem(ObjectIDs::NewRoute, "route"));
+        generalMenu.addItem(createCommandItem(ObjectIDs::NewExpr, "expr"));
+        
+        generalMenu.addItem(createCommandItem(ObjectIDs::NewLoadbang, "loadbang"));
+        
+        generalMenu.addItem(createCommandItem(ObjectIDs::NewPack, "pack"));
+        generalMenu.addItem(createCommandItem(ObjectIDs::NewUnpack, "unpack"));
+        generalMenu.addItem(createCommandItem(ObjectIDs::NewPrint, "print"));
+        
+        generalMenu.addItem(createCommandItem(ObjectIDs::NewNetsend, "netsend"));
+        generalMenu.addItem(createCommandItem(ObjectIDs::NewNetreceive, "netreceive"));
+        
+        generalMenu.addItem(createCommandItem(ObjectIDs::NewTimer, "timer"));
+        generalMenu.addItem(createCommandItem(ObjectIDs::NewDelay, "delay"));
+        generalMenu.addItem(createCommandItem(ObjectIDs::NewTimedGate, "timed.gate"));
+        
+    }
+    PopupMenu sequencingMenu;
+    {
+        //sequencingMenu.addItem(createCommandItem(ObjectIDs::NewMetro, "line"));
+    }
+    
+    PopupMenu effectsMenu;
+    {
+        effectsMenu.addItem(createCommandItem(ObjectIDs::NewCrusher, "crusher~"));
+        effectsMenu.addItem(createCommandItem(ObjectIDs::NewDelay, "delay~"));
+        effectsMenu.addItem(createCommandItem(ObjectIDs::NewDrive, "drive~"));
+        effectsMenu.addItem(createCommandItem(ObjectIDs::NewFlanger, "flanger~"));
+        effectsMenu.addItem(createCommandItem(ObjectIDs::NewFreeze, "freeze~"));
+
+        effectsMenu.addItem(createCommandItem(ObjectIDs::NewFreqShift, "freq.shift~"));
+        effectsMenu.addItem(createCommandItem(ObjectIDs::NewPhaser, "phaser~"));
+        effectsMenu.addItem(createCommandItem(ObjectIDs::NewShaper, "shaper~"));
+        effectsMenu.addItem(createCommandItem(ObjectIDs::NewRm, "rm~"));
+        effectsMenu.addItem(createCommandItem(ObjectIDs::NewTremolo, "tremolo~"));
+        effectsMenu.addItem(createCommandItem(ObjectIDs::NewVibrato, "vibrato~"));
+        effectsMenu.addItem(createCommandItem(ObjectIDs::NewVocoder, "vocoder~"));
+        
     }
 
     PopupMenu filtersMenu;
@@ -558,8 +595,8 @@ PopupMenu Dialogs::createObjectMenu(PluginEditor* parent)
 
     menu.addSeparator();
 
-    menu.addSubMenu("GUI", guiMenu);
-    menu.addSubMenu("Time", timeMenu);
+    menu.addSubMenu("UI", uiMenu);
+    menu.addSubMenu("Sequencing", sequencingMenu);
     menu.addSubMenu("MIDI", midiMenu);
     menu.addSubMenu("Array", arrayMenu);
     menu.addSubMenu("List", listMenu);
@@ -569,6 +606,7 @@ PopupMenu Dialogs::createObjectMenu(PluginEditor* parent)
     menu.addSeparator();
 
     menu.addSubMenu("Signal~", signalMenu);
+    menu.addSubMenu("Effects~", effectsMenu);
     menu.addSubMenu("Oscillators~", oscillatorsMenu);
     menu.addSubMenu("Filters~", filtersMenu);
     menu.addSubMenu("Math~", signalMathMenu);
