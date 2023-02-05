@@ -45,24 +45,45 @@ public:
     {
         if (!editor)
             return;
-
+        
         editor->setText(editor->getText() + suggestion, sendNotification);
+        suggestion = "";
+        repaint();
     }
 
     void setSuggestion(String const& suggestionText)
     {
-        if (!editor)
+        if (!editor || suggestionText.isEmpty())
             return;
-
-        auto textUpToSpace = editor->getText().upToFirstOccurrenceOf(" ", false, false);
-
-        setVisible(suggestionText.isNotEmpty() && textUpToSpace != suggestionText);
-
-        suggestion = suggestionText.fromFirstOccurrenceOf(textUpToSpace, false, true);
-        repaint();
+        
+        auto editorText = editor->getText();
+        
+        if(editorText.startsWith(suggestionText)) return;
+                
+        if(editorText.isEmpty()) {
+            editor->setText(stashedText, dontSendNotification);
+            editorText = stashedText;
+        }
+        
+        if(suggestionText.startsWith(editorText)) {
+            auto textUpToSpace = editorText.upToFirstOccurrenceOf(" ", false, false);
+            suggestion = suggestionText.fromFirstOccurrenceOf(textUpToSpace, false, true);
+            setVisible(suggestionText.isNotEmpty() && textUpToSpace != suggestionText);
+            repaint();
+        }
+        else if(editorText.isNotEmpty()) {
+            stashedText = editorText;
+            editor->setText("", dontSendNotification);
+            suggestion = suggestionText;
+            repaint();
+            std::cout << "STASH!" << std::endl;
+        }
     }
 
 private:
+    
+    String stashedText;
+        
     void componentMovedOrResized(Component& component, bool moved, bool resized) override
     {
         if (!editor)
@@ -70,7 +91,7 @@ private:
         setBounds(cnv->getLocalArea(editor, editor->getLocalBounds()));
     }
 
-    void componentBeingDeleted(Component& component)
+    void componentBeingDeleted(Component& component) override
     {
         editor->removeComponentListener(this);
     }
@@ -476,72 +497,98 @@ String filterNewText(TextEditor& e, String const& newInput) override
         buttons[currentidx]->setToggleState(true, dontSendNotification);
 
         // Update suggestions
-        auto found = library.autocomplete(currentText.toStdString());
+        auto found = library.autocomplete(currentText);
 
-        // When hvcc mode is enabled, show only hvcc compatible objects
-        if (static_cast<bool>(currentBox->cnv->editor->hvccMode.getValue())) {
-            std::vector<std::pair<String, bool>> hvccObjectsFound;
-            for (auto& object : found) {
-                if (Object::hvccObjects.contains(object.first)) {
-                    hvccObjectsFound.push_back(object);
+        auto filterNonHvccObjectsIfNeeded = [_this = SafePointer(this)](StringArray& toFilter) {
+            if(!_this || !_this->currentBox) return;
+            
+            if (static_cast<bool>(_this->currentBox->cnv->editor->hvccMode.getValue())) {
+                
+                StringArray hvccObjectsFound;
+                for (auto& object : toFilter) {
+                    if (Object::hvccObjects.contains(object)) {
+                        hvccObjectsFound.add(object);
+                    }
                 }
+                
+                toFilter = hvccObjectsFound;
+            }
+        };
+        
+        auto applySuggestionsToButtons = [this, &library, &e](StringArray& suggestions, String originalQuery){
+            
+            // This means the extra suggestions have returned too late to still be relevant
+            if(originalQuery != e.getText()) return;
+            
+            numOptions = static_cast<int>(suggestions.size());
+            
+            // Apply object name and descriptions to buttons
+            for (int i = 0; i < std::min<int>(buttons.size(), numOptions); i++) {
+                auto& name = suggestions[i];
+
+                auto descriptions = library.getObjectDescriptions();
+
+                if (descriptions.find(name) != descriptions.end()) {
+                    buttons[i]->setText(name, descriptions[name], true);
+                } else {
+                    buttons[i]->setText(name, "", true);
+                }
+                buttons[i]->setInterceptsMouseClicks(true, false);
             }
 
-            found = hvccObjectsFound;
-        }
+            for (int i = numOptions; i < buttons.size(); i++)
+                buttons[i]->setText("", "", false);
 
-        numOptions = static_cast<int>(found.size());
+            resized();
+            
+            // Get length of user-typed text
+            int textlen = e.getText().length();
 
-        // Apply object name and descriptions to buttons
-        for (int i = 0; i < std::min<int>(buttons.size(), numOptions); i++) {
-            auto& [name, autocomplete] = found[i];
+            if (suggestions.isEmpty() || textlen == 0) {
+                state = Hidden;
+                if (autoCompleteComponent)
+                    autoCompleteComponent->setSuggestion("");
+                currentBox->updateBounds();
+                setVisible(false);
+                return;
+            }
+            
+            // Limit it to minimum of the number of buttons and the number of suggestions
+            int numButtons = std::min(20, numOptions);
 
-            auto descriptions = library.getObjectDescriptions();
+            currentidx = (currentidx + numButtons) % numButtons;
 
-            if (descriptions.find(name) != descriptions.end()) {
-                buttons[i]->setText(name, descriptions[name], true);
+            // Retrieve best suggestion
+            auto const& fullName = suggestions[currentidx];
+
+            state = ShowingObjects;
+            if (fullName.length() > textlen && autoCompleteComponent) {
+                autoCompleteComponent->setSuggestion(fullName);
             } else {
-                buttons[i]->setText(name, "", true);
-            }
-            buttons[i]->setInterceptsMouseClicks(true, false);
-        }
-
-        for (int i = numOptions; i < buttons.size(); i++)
-            buttons[i]->setText("", "", false);
-
-        resized();
-
-        // Get length of user-typed text
-        int textlen = e.getText().length();
-
-        if (found.empty() || textlen == 0) {
-            state = Hidden;
-            if (autoCompleteComponent)
                 autoCompleteComponent->setSuggestion("");
+            }
+
+            // duplicate call to updateBounds :(
             currentBox->updateBounds();
-            setVisible(false);
-            return;
-        }
 
-        // Limit it to minimum of the number of buttons and the number of suggestions
-        int numButtons = std::min(20, numOptions);
+            setVisible(true);
+        };
+ 
+        // When hvcc mode is enabled, show only hvcc compatible objects
+        filterNonHvccObjectsIfNeeded(found);
+        applySuggestionsToButtons(found, currentText);
+        
+        library.getExtraSuggestions(found.size(), currentText, [filterNonHvccObjectsIfNeeded, applySuggestionsToButtons, found, currentText](StringArray s) mutable {
+            filterNonHvccObjectsIfNeeded(s);
+            
+            found.addArray(s);
+            found.removeDuplicates(false);
+            
+            applySuggestionsToButtons(found, currentText);
+        });
 
-        currentidx = (currentidx + numButtons) % numButtons;
 
-        // Retrieve best suggestion
-        auto const& fullName = found[currentidx].first;
-
-        state = ShowingObjects;
-        if (fullName.length() > textlen && autoCompleteComponent) {
-            autoCompleteComponent->setSuggestion(fullName);
-        } else {
-            autoCompleteComponent->setSuggestion("");
-        }
-
-        // duplicate call to updateBounds :(
-        currentBox->updateBounds();
-
-        setVisible(true);
+        
     }
 
     enum SugesstionState {

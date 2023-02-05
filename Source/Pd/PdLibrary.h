@@ -19,8 +19,7 @@ namespace pd {
 using IODescription = Array<std::pair<String, bool>>;
 using IODescriptionMap = std::unordered_map<String, std::array<IODescription, 2>>;
 
-using Suggestion = std::pair<String, bool>;
-using Suggestions = std::vector<Suggestion>;
+using Suggestions = StringArray;
 
 using Arguments = std::vector<std::tuple<String, String, String>>;
 using ArgumentMap = std::unordered_map<String, Arguments>;
@@ -83,6 +82,7 @@ public:
     void parseDocumentation(String const& path);
 
     Suggestions autocomplete(String query) const;
+    void getExtraSuggestions(int currentNumSuggestions, String query, std::function<void(Suggestions)> callback);
 
     std::array<StringArray, 2> getIoletTooltips(String type, String name, int numIn, int numOut);
 
@@ -113,6 +113,8 @@ public:
         appDataDir.getChildFile("Library").getChildFile("Deken"),
         appDataDir.getChildFile("Library").getChildFile("Extra").getChildFile("else")
     };
+    
+    static inline StringArray objectOrigins = {"vanilla", "ELSE", "cyclone", "heavylib", "pdlua"};
 
 private:
     ObjectMap objectDescriptions;

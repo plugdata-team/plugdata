@@ -209,12 +209,10 @@ public:
         objectName = name;
         categories = "";
         origin = "";
-        
-        StringArray origins = {"vanilla", "cyclone", "ELSE", "pdlua", "heavylib"};
-        
+                
         // Inverse lookup :(
         for (auto const& [cat, objects] : library.getObjectCategories()) {
-            if(origins.contains(cat) && objects.contains(name)) {
+            if(pd::Library::objectOrigins.contains(cat) && objects.contains(name)) {
                 origin = cat;
             }
             else if (objects.contains(name)) {

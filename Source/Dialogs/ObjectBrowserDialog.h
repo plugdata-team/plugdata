@@ -339,12 +339,10 @@ public:
         objectName = name;
         categories = "";
         origin = "";
-        
-        StringArray origins = {"vanilla", "cyclone", "ELSE", "pdlua", "heavylib"};
-        
+                
         // Inverse lookup :(
         for (auto const& [cat, objects] : library.getObjectCategories()) {
-            if(origins.contains(cat) && objects.contains(name)) {
+            if(pd::Library::objectOrigins.contains(cat) && objects.contains(name)) {
                 origin = cat;
             }
             else if (objects.contains(name)) {
@@ -648,7 +646,6 @@ public:
         
         objectsByCategory["All"] = StringArray();
         
-        StringArray origins = {"vanilla", "cyclone", "ELSE", "pdlua", "heavylib"};
         StringArray categories;
         for (auto& [category, objects] : objectsByCategory) {
             // Sort alphabetically
@@ -659,7 +656,7 @@ public:
                 objectsByCategory["All"].addArray(objects);
             }
          
-            if(!origins.contains(category)) categories.add(category);
+            if(!pd::Library::objectOrigins.contains(category)) categories.add(category);
         }
 
         // Also include undocumented objects
@@ -675,8 +672,8 @@ public:
         
         categories.insert(1, "--------");
         categories.insert(2, "--------");
-        for(int i = origins.size() - 1; i >= 0; i--) {
-            categories.insert(2, origins[i]);
+        for(int i = pd::Library::objectOrigins.size() - 1; i >= 0; i--) {
+            categories.insert(2, pd::Library::objectOrigins[i]);
         }
         
 
