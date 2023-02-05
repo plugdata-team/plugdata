@@ -5,7 +5,7 @@ description: load pictures
 categories:
  - object
 
-pdcategory: ELSE, GUI
+pdcategory: ELSE, UI
 
 arguments:
 

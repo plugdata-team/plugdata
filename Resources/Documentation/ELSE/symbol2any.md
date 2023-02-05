@@ -6,7 +6,7 @@ description: convert symbol to anything
 categories:
  - object
 
-pdcategory: ELSE, Data Management 
+pdcategory: ELSE, Data Management, Converters
 
 arguments:
 

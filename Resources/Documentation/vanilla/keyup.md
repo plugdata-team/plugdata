@@ -3,7 +3,7 @@ title: keyup
 description: grab keyboard input
 categories:
 - object
-pdcategory: vanilla, GUI
+pdcategory: vanilla, UI
 last_update: '0.32'
 see_also:
 - key

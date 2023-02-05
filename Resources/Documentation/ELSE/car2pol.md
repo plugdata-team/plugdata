@@ -6,7 +6,7 @@ description: Cartesian to polar conversion
 categories:
 - object
 
-pdcategory: ELSE, Data Math
+pdcategory: ELSE, Converters, Data Math
 
 arguments:
 inlets:

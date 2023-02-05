@@ -6,7 +6,7 @@ description: get canvas name
 categories:
  - object
 
-pdcategory: ELSE, GUI
+pdcategory: ELSE, UI
 
 arguments:
 - type: float

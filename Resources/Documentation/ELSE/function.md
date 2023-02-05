@@ -5,7 +5,7 @@ description: function GUI
 categories:
  - object
 
-pdcategory: ELSE, GUI, Data Math, Envelopes and LFOs
+pdcategory: ELSE, UI, Data Math, Envelopes and LFOs
 
 arguments:
 

@@ -1,7 +1,7 @@
 ---
 title: tgl, toggle
 description: toggle button
-pdcategory: vanilla, GUI
+pdcategory: vanilla, UI
 inlets:
   1st:
   - type: bang

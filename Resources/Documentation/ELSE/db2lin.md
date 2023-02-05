@@ -6,7 +6,7 @@ description: convert dBFS to linear amplitude
 categories:
 - object
 
-pdcategory: ELSE, Data Math, Mixing and Routing
+pdcategory: ELSE, Converters
 
 arguments:
 - description: minimum value (can be as low as "-inf")

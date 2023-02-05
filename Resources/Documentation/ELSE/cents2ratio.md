@@ -6,7 +6,7 @@ description: cents/rational conversion
 categories: 
  - object
 
-pdcategory: ELSE, Tuning
+pdcategory: ELSE, Tuning, Converters
 
 arguments:
 - type: float

@@ -3,7 +3,7 @@ title: print
 description: print messages to terminal window
 categories:
 - object
-pdcategory: vanilla, Analysis, GUI
+pdcategory: vanilla, Analysis, UI
 see_also:
 - print~
 arguments:

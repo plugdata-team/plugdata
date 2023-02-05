@@ -1,7 +1,7 @@
 ---
 title: cnv, my_canvas
 description: canvas object
-pdcategory: vanilla, GUI
+pdcategory: vanilla, UI
 methods:
 - type: vis_size <float>
   description: sets the GUI size

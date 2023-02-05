@@ -6,7 +6,7 @@ description: report `GOP` information
 categories:
  - object
 
-pdcategory: ELSE, GUI
+pdcategory: ELSE, UI
 
 arguments:
 - type: float

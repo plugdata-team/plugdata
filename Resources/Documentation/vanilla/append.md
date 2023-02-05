@@ -10,7 +10,7 @@ see_also:
 - scalar
 - struct
 - element  
-pdcategory: vanilla, Data Management, GUI
+pdcategory: vanilla, Data Management, UI
 last_update: '0.47'
 inlets:
   1st:

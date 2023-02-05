@@ -3,10 +3,10 @@ title: cyclone
 description:
 categories:
  - object
-pdcategory: cyclone, General
+pdcategory: cyclone
 arguments:
 inlets:
 outlets:
   1st:
-  - type: ?
+  - type:
     description:

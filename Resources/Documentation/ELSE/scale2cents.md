@@ -6,7 +6,7 @@ description: scale/cents conversion
 categories:
 - object
 
-pdcategory: ELSE, Tuning, Data Math
+pdcategory: ELSE, Tuning, Data Math, Converters
 
 arguments:
 

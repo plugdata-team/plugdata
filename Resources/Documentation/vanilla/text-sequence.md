@@ -3,7 +3,7 @@ title: text sequence
 description: sequencer/message-sender.
 categories:
 - object
-pdcategory: vanilla, Data Management, Sequencing
+pdcategory: vanilla, Data Management, Triggers and Clocks
 last_update: '0.49'
 see_also:
 - list
