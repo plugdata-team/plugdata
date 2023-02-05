@@ -1,5 +1,5 @@
 ---
-title: comment
+title: cyclone_comment
 description: comment GUI
 categories:
  - object
