@@ -394,8 +394,10 @@ void Iolet::valueChanged(Value& v)
 {
     if (v.refersToSameSourceAs(locked)) {
         setInterceptsMouseClicks(!static_cast<bool>(locked.getValue()), false);
+        repaint();
     }
     if (v.refersToSameSourceAs(presentationMode)) {
         setVisible(!static_cast<bool>(presentationMode.getValue()) && !object->cnv->isGraph);
+        repaint();
     }
 }
