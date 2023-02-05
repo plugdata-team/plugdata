@@ -6,7 +6,7 @@ description: rational/Cents conversion (for signals)
 categories:
  - object
 
-pdcategory: ELSE, Signal Math
+pdcategory: ELSE, Signal Math, Converters
 
 arguments:
 

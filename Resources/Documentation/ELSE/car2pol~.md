@@ -6,7 +6,7 @@ description: signal Cartesian to polar conversion
 categories:
 - object
 
-pdcategory: ELSE, Signal Math
+pdcategory: ELSE, Converters, Signal Math
 
 arguments:
 inlets:

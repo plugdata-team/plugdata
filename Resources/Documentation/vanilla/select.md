@@ -3,7 +3,7 @@ title: select, sel
 description: test for matching numbers or symbols
 categories:
 - object
-pdcategory: vanilla, Mixing and Routing, Sequencing
+pdcategory: vanilla, Mixing and Routing, Triggers and Clocks
 last_update: '0.33'
 see_also:
 - route

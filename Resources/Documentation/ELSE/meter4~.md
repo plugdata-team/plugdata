@@ -6,7 +6,7 @@ description: quadraphonic VU-meter
 categories:
 - object
 
-pdcategory: ELSE, GUI, Analysis
+pdcategory: ELSE, UI, Analysis
 
 arguments:
 - type: float

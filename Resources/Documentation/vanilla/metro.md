@@ -3,7 +3,7 @@ title: metro
 description: send a message periodically
 categories:
 - object
-pdcategory: vanilla, Triggers and Clocks, Sequencing
+pdcategory: vanilla, Triggers and Clocks
 see_also:
 - delay
 - text sequence

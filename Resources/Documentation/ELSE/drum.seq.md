@@ -6,7 +6,7 @@ description: drum sequence pattern GUI
 categories:
 - object
 
-pdcategory: ELSE, Sequencing, Triggers and Clocks
+pdcategory: ELSE, Triggers and Clocks
 
 arguments:
 inlets:

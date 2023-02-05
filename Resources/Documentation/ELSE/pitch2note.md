@@ -6,7 +6,7 @@ description: Convert MIDI pitch to note name
 categories:
 - object
 
-pdcategory: ELSE, MIDI
+pdcategory: ELSE, Converters, MIDI
 
 arguments:
 

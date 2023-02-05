@@ -6,7 +6,7 @@ description: oscilloscope display
 categories:
  - object
 
-pdcategory: ELSE, GUI, Analysis
+pdcategory: ELSE, UI, Analysis
 
 arguments:
 

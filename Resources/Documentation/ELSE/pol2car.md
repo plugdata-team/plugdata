@@ -6,7 +6,7 @@ description: polar to cartesian conversion
 categories:
 - object
 
-pdcategory: ELSE, Data Math
+pdcategory: ELSE, Data Math, Converters
 
 arguments:
 

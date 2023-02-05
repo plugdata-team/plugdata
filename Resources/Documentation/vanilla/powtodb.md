@@ -3,7 +3,7 @@ title: powtodb
 description: power units to dB
 categories:
 - object
-pdcategory: vanilla, Data Math, Mixing and Routing
+pdcategory: vanilla, Converters
 last_update: '0.40'
 see_also:
 - mtof~

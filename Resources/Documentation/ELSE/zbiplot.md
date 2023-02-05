@@ -6,7 +6,7 @@ description: z-plane biquad plot
 categories:
 - object
 
-pdcategory: ELSE, GUI, Filters
+pdcategory: ELSE, UI, Filters
 
 arguments:
 

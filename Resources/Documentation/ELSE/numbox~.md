@@ -6,7 +6,7 @@ description: signal number box
 categories:
  - object
 
-pdcategory: ELSE, GUI
+pdcategory: ELSE, UI
 
 arguments:
 
