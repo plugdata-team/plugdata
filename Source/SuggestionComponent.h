@@ -53,14 +53,18 @@ public:
 
     void setSuggestion(String const& suggestionText)
     {
-        if (!editor || suggestionText.isEmpty())
+        if (!editor)
             return;
         
         auto editorText = editor->getText();
         
+        std::cout << "edtext: " << editorText << std::endl;
+        std::cout << "suggtext: " << suggestionText << std::endl;
+        
         if(editorText.startsWith(suggestionText))
         {
             suggestion = "";
+            repaint();
             return;
         }
                 
@@ -519,10 +523,10 @@ String filterNewText(TextEditor& e, String const& newInput) override
             }
         };
         
-        auto applySuggestionsToButtons = [this, &library, &e](StringArray& suggestions, String originalQuery){
+        auto applySuggestionsToButtons = [this, &library](StringArray& suggestions, String originalQuery){
             
             // This means the extra suggestions have returned too late to still be relevant
-            if(originalQuery != e.getText()) return;
+            if(!openedEditor || originalQuery != openedEditor->getText()) return;
             
             numOptions = static_cast<int>(suggestions.size());
             
@@ -546,7 +550,7 @@ String filterNewText(TextEditor& e, String const& newInput) override
             resized();
             
             // Get length of user-typed text
-            int textlen = e.getText().length();
+            int textlen = openedEditor->getText().length();
 
             if (suggestions.isEmpty() || textlen == 0) {
                 state = Hidden;
