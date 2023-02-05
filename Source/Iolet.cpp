@@ -31,6 +31,9 @@ Iolet::Iolet(Object* parent, bool inlet)
 
     bool isPresenting = static_cast<bool>(presentationMode.getValue());
     setVisible(!isPresenting && !object->cnv->isGraph);
+    
+    // Drawing cirles is more expensive than you might think, especially because there can be a lot of iolets!
+    setBufferedToImage(true);
 }
 
 Rectangle<int> Iolet::getCanvasBounds()
