@@ -521,9 +521,6 @@ String filterNewText(TextEditor& e, String const& newInput) override
         
         auto applySuggestionsToButtons = [this, &library](StringArray& suggestions, String originalQuery){
             
-            // This means the extra suggestions have returned too late to still be relevant
-            if(!openedEditor || originalQuery != openedEditor->getText()) return;
-            
             numOptions = static_cast<int>(suggestions.size());
             
             // Apply object name and descriptions to buttons
@@ -582,8 +579,11 @@ String filterNewText(TextEditor& e, String const& newInput) override
         filterNonHvccObjectsIfNeeded(found);
         applySuggestionsToButtons(found, currentText);
         
-        library.getExtraSuggestions(found.size(), currentText, [filterNonHvccObjectsIfNeeded, applySuggestionsToButtons, found, currentText](StringArray s) mutable {
+        library.getExtraSuggestions(found.size(), currentText, [this, filterNonHvccObjectsIfNeeded, applySuggestionsToButtons, found, currentText](StringArray s) mutable {
             filterNonHvccObjectsIfNeeded(s);
+
+            // This means the extra suggestions have returned too late to still be relevant
+            if(!openedEditor || currentText != openedEditor->getText()) return;
             
             found.addArray(s);
             found.removeDuplicates(false);
