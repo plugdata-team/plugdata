@@ -114,9 +114,9 @@ makeDir("Extra")
 makeDir("Extra/pdlua")
 makeDir("Extra/GS")
 
-copyDir("../../Libraries/ELSE/Extra", "Extra/ELSE");
-copyDir("../../Libraries/ELSE/sfont~/sf", "Extra/ELSE/sf");
-globCopy("../../Libraries/pure-data/doc/sound/*", "Extra/ELSE");
+copyDir("../../Libraries/ELSE/Extra", "Extra/else");
+copyDir("../../Libraries/ELSE/sfont~/sf", "Extra/else/sf");
+globCopy("../../Libraries/pure-data/doc/sound/*", "Extra/else");
 
 # Remove else and cyclone prefixes in helpfiles
 globFindAndReplaceText("./Abstractions/else/*.pd", "else/", "")
