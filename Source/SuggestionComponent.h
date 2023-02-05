@@ -58,7 +58,11 @@ public:
         
         auto editorText = editor->getText();
         
-        if(editorText.startsWith(suggestionText)) return;
+        if(editorText.startsWith(suggestionText))
+        {
+            suggestion = "";
+            return;
+        }
                 
         if(editorText.isEmpty()) {
             editor->setText(stashedText, dontSendNotification);
