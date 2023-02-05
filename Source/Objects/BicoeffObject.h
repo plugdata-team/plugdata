@@ -124,8 +124,6 @@ public:
             auto nn = (static_cast<float>(x) / getWidth()) * 120.0f + 16.766f;
             auto freq = mtof(nn);
             auto result = calcMagnitudePhase((M_PI * 2.0 * freq) / 44100.0f, a1, a2, b0, b1, b2);
-
-            std::cout << freq << std::endl;
             
             if (!std::isfinite(result.first)) {
                 continue;
