@@ -120,11 +120,13 @@ public:
 
         magnitudePath.clear();
 
-        for (int x = 0; x <= getWidth(); x++) {
+        for (float x = 0; x <= getWidth(); x++) {
             auto nn = (static_cast<float>(x) / getWidth()) * 120.0f + 16.766f;
-            auto freq = MidiMessage::getMidiNoteInHertz(nn);
+            auto freq = mtof(nn);
             auto result = calcMagnitudePhase((M_PI * 2.0 * freq) / 44100.0f, a1, a2, b0, b1, b2);
 
+            std::cout << freq << std::endl;
+            
             if (!std::isfinite(result.first)) {
                 continue;
             }
@@ -139,9 +141,11 @@ public:
             }
         }
 
-        magnitudePath = magnitudePath.createPathWithRoundedCorners(15.0f);
-
         repaint();
+    }
+    
+    float mtof(float note) {
+        return 440.0f * std::pow (2.0f, (note - 69.0f) / 12.0f);;
     }
 
     void mouseDown(MouseEvent const& e) override
@@ -235,7 +239,7 @@ public:
         float fHz = f * 44100.0f / (2.0f * M_PI);
 
         // convert magnitude to dB scale
-        float logMagnitude = std::clamp<float>(20.0f * std::log(magnitude) / std::log(10), -25.f, 25.f);
+        float logMagnitude = std::clamp<float>(20.0f * std::log(magnitude) / std::log(10.0), -25.f, 25.f);
 
         // scale to pixel range
         float halfFrameHeight = getHeight() / 2.0;
@@ -243,7 +247,6 @@ public:
         // invert and offset
         logMagnitude = -1.0 * logMagnitude + halfFrameHeight;
 
-        //    puts stderr "PHASE at $fHz Hz ($f radians): $phase"
         // wrap phase
         if (phase > M_PI) {
             phase = phase - (M_PI * 2.0);
@@ -260,9 +263,9 @@ public:
     {
         float nn = (filterCentre) * 120.0f + 16.766f;
         float nn2 = (filterWidth + filterCentre) * 120.0f + 16.766f;
-        float f = MidiMessage::getMidiNoteInHertz(nn);
-        float bwf = MidiMessage::getMidiNoteInHertz(nn2);
-        float bw = (bwf / f) - 1;
+        float f = mtof(nn);
+        float bwf = mtof(nn2);
+        float bw = (bwf / f) - 1.0f;
 
         float omega = (M_PI * 2.0 * f) / 44100.0f;
         float alpha = std::sin(omega) * std::sinh(std::log(2.0) / 2.0 * bw * omega / std::sin(omega));
