@@ -11,7 +11,7 @@ class BicoeffGraph : public Component {
 
     float a1 = 0, a2 = 0, b0 = 1, b1 = 0, b2 = 0;
 
-    float filterGain = 100.0f;
+    float filterGain = 0.75f;
 
     float filterWidth, filterCentre;
     float filterX1, filterX2;
@@ -43,10 +43,10 @@ public:
     BicoeffGraph(Object* parent)
         : object(parent)
     {
-        filterWidth = 50;
-        filterCentre = getWidth() / 2.0f;
-        filterX1 = filterCentre - (filterWidth / 2);
-        filterX2 = filterCentre + (filterWidth / 2);
+        filterWidth = 0.2f;
+        filterCentre = 0.5f;
+        filterX1 = filterCentre - (filterWidth / 2.0f);
+        filterX2 = filterCentre + (filterWidth / 2.0f);
 
         setSize(300, 300);
         update();
@@ -139,7 +139,7 @@ public:
             }
         }
 
-        magnitudePath = magnitudePath.createPathWithRoundedCorners(10.0f);
+        magnitudePath = magnitudePath.createPathWithRoundedCorners(15.0f);
 
         repaint();
     }
@@ -156,7 +156,7 @@ public:
 
     void mouseDrag(MouseEvent const& e) override
     {
-        if ((std::abs(e.mouseDownPosition.x - lastX1) < 5 || std::abs(e.mouseDownPosition.x - lastX2) < 5) && canResizefilterWidth()) {
+        if (canResizefilterWidth() && (std::abs(e.mouseDownPosition.x - (lastX1 * getWidth())) < 5 || std::abs(e.mouseDownPosition.x - (lastX2 * getWidth())) < 5)) {
             changeBandWidth(e.x, e.y, e.mouseDownPosition.x, e.mouseDownPosition.y);
         } else {
             moveBand(e.x, e.mouseDownPosition.x);
@@ -169,7 +169,7 @@ public:
     void mouseMove(MouseEvent const& e) override
     {
         if (canResizefilterWidth()) {
-            if (std::abs(e.x - filterX1) < 5 || std::abs(e.x - filterX2) < 5) {
+            if (std::abs(e.x - (filterX1 * getWidth())) < 5 || std::abs(e.x - (filterX2 * getWidth())) < 5) {
                 setMouseCursor(MouseCursor::LeftRightResizeCursor);
             } else {
                 setMouseCursor(MouseCursor::NormalCursor);
@@ -195,8 +195,8 @@ public:
         g.setColour(object->findColour(PlugDataColour::outlineColourId));
 
         if (canResizefilterWidth()) {
-            g.drawVerticalLine(filterX1, 0, getHeight());
-            g.drawVerticalLine(filterX2, 0, getHeight());
+            g.drawVerticalLine(filterX1 * getWidth(), 0, getHeight());
+            g.drawVerticalLine(filterX2 * getWidth(), 0, getHeight());
         } else {
             g.drawVerticalLine(filterCentre, 0, getHeight());
         }
@@ -258,8 +258,8 @@ public:
 
     std::pair<float, float> calcCoefficients()
     {
-        float nn = (filterCentre / getWidth()) * 120.0f + 16.766f;
-        float nn2 = (filterWidth + filterCentre) / getWidth() * 120.0f + 16.766f;
+        float nn = (filterCentre) * 120.0f + 16.766f;
+        float nn2 = (filterWidth + filterCentre) * 120.0f + 16.766f;
         float f = MidiMessage::getMidiNoteInHertz(nn);
         float bwf = MidiMessage::getMidiNoteInHertz(nn2);
         float bw = (bwf / f) - 1;
@@ -272,46 +272,49 @@ public:
 
     void changeBandWidth(float x, float y, float previousX, float previousY)
     {
-        float dx = x - previousX;
-        if (previousX < filterCentre) {
-            if (x < 0.0f) {
+        float xScale = x / getWidth();
+        float previousXScale = previousX / getWidth();
+        
+        float dx = xScale - previousXScale;
+        if (previousXScale < filterCentre) {
+            if (xScale < 0.0f) {
                 filterX1 = 0;
                 filterX2 = filterWidth;
-            } else if (x < filterCentre - 75) {
-                filterX1 = filterCentre - 75;
-                filterX2 = filterCentre + 75;
-            } else if (x > filterCentre) {
+            } else if (xScale < filterCentre - 0.15f) {
+                filterX1 = filterCentre - 0.15f;
+                filterX2 = filterCentre + 0.15f;
+            } else if (xScale > filterCentre) {
                 filterX1 = filterCentre;
                 filterX2 = filterCentre;
             } else {
-                filterX1 = x;
+                filterX1 = xScale;
                 filterX2 = lastX2 - dx;
             }
         } else {
-            if (x > getWidth()) {
+            if (xScale >= 1.0f) {
                 filterX2 = 0;
                 filterX1 = filterWidth;
-            } else if (x > filterCentre + 75) {
-                filterX1 = filterCentre - 75;
-                filterX2 = filterCentre + 75;
-            } else if (x < filterCentre) {
+            } else if (xScale > filterCentre + 0.15f) {
+                filterX1 = filterCentre - 0.15f;
+                filterX2 = filterCentre + 0.15f;
+            } else if (xScale < filterCentre) {
                 filterX1 = filterCentre;
                 filterX2 = filterCentre;
             } else {
-                filterX2 = x;
+                filterX2 = xScale;
                 filterX1 = lastX1 - dx;
             }
         }
 
         filterWidth = filterX2 - filterX1;
-        filterCentre = filterX1 + (filterWidth / 2);
+        filterCentre = filterX1 + (filterWidth / 2.0f);
 
         moveGain(y, previousY);
     }
 
     void moveBand(float x, float previousX)
     {
-        float dx = x - previousX;
+        float dx = (x - previousX) / getWidth();
 
         float x1 = lastX1 + dx;
         float x2 = lastX2 + dx;
@@ -319,22 +322,22 @@ public:
         if (x1 < 0.0f) {
             filterX1 = 0;
             filterX2 = filterWidth;
-        } else if (x2 > getWidth()) {
-            filterX1 = getWidth() - filterWidth;
-            filterX2 = getWidth();
+        } else if (x2 >= 1.0f) {
+            filterX1 = 1.0f - filterWidth;
+            filterX2 = 1.0f;
         } else {
             filterX1 = x1;
             filterX2 = x2;
         }
 
         filterWidth = filterX2 - filterX1;
-        filterCentre = filterX1 + (filterWidth / 2.0);
+        filterCentre = filterX1 + (filterWidth / 2.0f);
     }
 
     void moveGain(float y, float previousY)
     {
-        float gain = lastGain + y - previousY;
-        filterGain = std::clamp<float>(gain, 0.0f, getHeight());
+        float dy = (y - previousY) / getHeight();
+        filterGain = std::clamp<float>(lastGain + dy, 0.0f, 1.0f);
     }
 
     void setCoefficients(float a0, float a1, float a2, float b0, float b1, float b2)
@@ -429,8 +432,8 @@ public:
     {
         auto [alpha, omega] = calcCoefficients();
 
-        float gain = std::min<float>(filterGain, getHeight());
-        float amp = pow(10.0, (-1.0 * (gain / getHeight() * 50.0 - 25.0)) / 40.0);
+        float gain = std::min<float>(filterGain, 1.0f);
+        float amp = pow(10.0, (-1.0 * (gain * 50.0 - 25.0)) / 40.0);
         float alphamulamp = alpha * amp;
         float alphadivamp = alpha / amp;
 
@@ -448,8 +451,8 @@ public:
     {
         auto [alpha, omega] = calcCoefficients();
 
-        float gain = std::min<float>(filterGain, getHeight());
-        float amp = pow(10.0, (-1.0 * (gain / getHeight() * 50.0 - 25.0)) / 40.0);
+        float gain = std::min<float>(filterGain, 1.0f);
+        float amp = pow(10.0, (-1.0 * (gain * 50.0 - 25.0)) / 40.0);
 
         float alphaMod = 2.0 * sqrt(amp) * alpha;
         float cosOmega = cos(omega);
@@ -470,8 +473,8 @@ public:
     {
         auto [alpha, omega] = calcCoefficients();
 
-        float gain = std::min<float>(filterGain, getHeight());
-        float amp = pow(10.0, (-1.0 * (gain / getHeight() * 50.0 - 25.0)) / 40.0);
+        float gain = std::min<float>(filterGain, 1.0f);
+        float amp = pow(10.0, (-1.0 * (gain * 50.0 - 25.0)) / 40.0);
 
         float alphaMod = 2.0 * sqrt(amp) * alpha;
         float cosOmega = cos(omega);
