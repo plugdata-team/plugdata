@@ -151,7 +151,7 @@ Instance::Instance(String const& symbol)
 
     auto message_trigger = [](void* instance, void* target, t_symbol* symbol, int argc, t_atom* argv) {
         auto& listeners = static_cast<Instance*>(instance)->messageListeners;
-        if (!listeners.count(target))
+        if (!symbol || !listeners.count(target))
             return;
 
         bool cleanUp = false;
