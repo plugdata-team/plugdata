@@ -107,10 +107,14 @@ void Canvas::timerCallback()
     rateLimit = true;
 }
 
+void Canvas::lookAndFeelChanged()
+{
+    lasso.setColour(LassoComponent<Object>::lassoFillColourId, findColour(PlugDataColour::objectSelectedOutlineColourId).withAlpha(0.3f));
+}
+
 void Canvas::paint(Graphics& g)
 {
     if (!isGraph) {
-        lasso.setColour(LassoComponent<Object>::lassoFillColourId, findColour(PlugDataColour::objectSelectedOutlineColourId).withAlpha(0.3f));
 
         g.fillAll(findColour(PlugDataColour::toolbarBackgroundColourId));
 

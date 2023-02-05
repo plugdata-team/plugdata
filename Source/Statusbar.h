@@ -58,6 +58,7 @@ public:
     explicit Statusbar(PluginProcessor* processor);
     ~Statusbar();
 
+    void lookAndFeelChanged() override;
     void paint(Graphics& g) override;
 
     void resized() override;

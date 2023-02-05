@@ -108,16 +108,17 @@ PluginProcessor::PluginProcessor()
         // If we changed the settings from within the app, don't reload
 
         settingsFile->reloadSettings();
-
+        setTheme(settingsFile->getProperty<String>("theme"));
+        
         if (auto* editor = dynamic_cast<PluginEditor*>(getActiveEditor())) {
             for (auto* cnv : editor->canvases) {
                 // Make sure inlets/outlets are updated
                 for (auto* object : cnv->objects)
                     object->updateIolets();
             }
+            
+            editor->sendLookAndFeelChange();
         }
-
-        setTheme(settingsFile->getProperty<String>("theme"));
 
         updateSearchPaths();
         objectLibrary.updateLibrary();

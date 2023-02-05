@@ -261,14 +261,9 @@ void ObjectBase::moveToBack()
     libpd_toback(cnv->patch.getPointer(), static_cast<t_gobj*>(ptr));
 }
 
+
 void ObjectBase::paint(Graphics& g)
 {
-    // make sure text is readable
-    // TODO: move this to places where it's relevant
-    getLookAndFeel().setColour(Label::textColourId, object->findColour(PlugDataColour::canvasTextColourId));
-    getLookAndFeel().setColour(Label::textWhenEditingColourId, object->findColour(PlugDataColour::canvasTextColourId));
-    getLookAndFeel().setColour(TextEditor::textColourId, object->findColour(PlugDataColour::canvasTextColourId));
-
     g.setColour(object->findColour(PlugDataColour::guiObjectBackgroundColourId));
     g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), PlugDataLook::objectCornerRadius);
 
