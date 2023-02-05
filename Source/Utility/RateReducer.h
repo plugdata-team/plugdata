@@ -9,40 +9,34 @@
 
 // Class that blocks events that are too close together, up to a certain rate
 // We use this to reduce the rate at which MouseEvents come in, to improve performance (especially on Linux)
-struct RateReducer : public Timer {
-    RateReducer(int rate)
-        : timerHz(rate)
+struct RateReducer {
+    RateReducer()
+        : lastEventTime(Time::getMillisecondCounter())
     {
     }
 
     bool tooFast()
     {
-        if (allowEvent) {
-            allowEvent = false;
-            startTimerHz(timerHz);
-            return false;
+        auto now = Time::getMillisecondCounter();
+        auto msSinceLastEvent = (lastEventTime >= now) ? now - lastEventTime
+                                                           : (std::numeric_limits<uint32>::max() - lastEventTime) + now;
+        
+        constexpr uint32 minimumEventInterval = 1000 / 60; // 60fps
+        
+        if (msSinceLastEvent < minimumEventInterval) {
+            return true;
         }
+        
+        lastEventTime = now;
 
-        return true;
-    }
-
-    void timerCallback() override
-    {
-        allowEvent = true;
-    }
-
-    void stop()
-    {
-        stopTimer();
-        allowEvent = true;
+        return false;
     }
 
 private:
-    int timerHz;
-    bool allowEvent = true;
+    uint32 lastEventTime;
 };
 
-template<typename T, int hz = 90>
+template<typename T>
 class MouseRateReducedComponent : public T {
 public:
     using T::T;
@@ -55,13 +49,6 @@ public:
         T::mouseDrag(e);
     }
 
-    void mouseUp(MouseEvent const& e) override
-    {
-        rateReducer.stop();
-
-        T::mouseUp(e);
-    }
-
 private:
-    RateReducer rateReducer = RateReducer(hz);
+    RateReducer rateReducer;
 };
