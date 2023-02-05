@@ -559,40 +559,40 @@ public:
 
     void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
     {
-        switch (objectMessageMapped[symbol]) {
-        case msg_allpass: {
+        switch (hash(symbol.toUTF8())) {
+        case objectMessage::msg_allpass: {
             graph.setFilterType(BicoeffGraph::Allpass);
             break;
         }
-        case msg_lowpass: {
+        case objectMessage::msg_lowpass: {
             graph.setFilterType(BicoeffGraph::Lowpass);
             break;
         }
-        case msg_highpass: {
+        case objectMessage::msg_highpass: {
             graph.setFilterType(BicoeffGraph::Highpass);
             break;
         }
-        case msg_bandpass: {
+        case objectMessage::msg_bandpass: {
             graph.setFilterType(BicoeffGraph::Bandpass);
             break;
         }
-        case msg_bandstop: {
+        case objectMessage::msg_bandstop: {
             graph.setFilterType(BicoeffGraph::Bandstop);
             break;
         }
-        case msg_resonant: {
+        case objectMessage::msg_resonant: {
             graph.setFilterType(BicoeffGraph::Resonant);
             break;
         }
-        case msg_eq: {
+        case objectMessage::msg_eq: {
             graph.setFilterType(BicoeffGraph::EQ);
             break;
         }
-        case msg_lowshelf: {
+        case objectMessage::msg_lowshelf: {
             graph.setFilterType(BicoeffGraph::Lowshelf);
             break;
         }
-        case msg_highshelf: {
+        case objectMessage::msg_highshelf: {
             graph.setFilterType(BicoeffGraph::Highshelf);
             break;
         }
