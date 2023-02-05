@@ -332,14 +332,17 @@ void Statusbar::valueChanged(Value& v)
     }
 }
 
+void Statusbar::lookAndFeelChanged()
+{
+    // Makes sure it gets updated on theme change
+    auto c = static_cast<bool>(commandLocked.getValue()) ? findColour(PlugDataColour::toolbarActiveColourId) : findColour(PlugDataColour::toolbarTextColourId);
+    lockButton->setColour(PlugDataColour::toolbarTextColourId, c);
+}
+
 void Statusbar::paint(Graphics& g)
 {
     g.setColour(findColour(PlugDataColour::outlineColourId));
     g.drawLine(0.0f, 0.5f, static_cast<float>(getWidth()), 0.5f);
-
-    // Makes sure it gets updated on theme change
-    auto c = static_cast<bool>(commandLocked.getValue()) ? findColour(PlugDataColour::toolbarActiveColourId) : findColour(PlugDataColour::toolbarTextColourId);
-    lockButton->setColour(PlugDataColour::toolbarTextColourId, c);
 }
 
 void Statusbar::resized()
