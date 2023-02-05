@@ -10,7 +10,7 @@
 class CategoriesListBox : public ListBox
     , public ListBoxModel {
 
-    StringArray categories = { "All", "Audio", "More" };
+    StringArray categories = { "All"};
 
 public:
     CategoriesListBox()
@@ -192,8 +192,8 @@ public:
         auto numInlets = unknownInletLayout ? "Unknown" : String(inlets.size());
         auto numOutlets = unknownOutletLayout ? "Unknown" : String(outlets.size());
 
-        StringArray infoNames = { "Category:", "Type:", "Num. Inlets:", "Num. Outlets:" };
-        StringArray infoText = { category, objectName.contains("~") ? String("Signal") : String("Data"), numInlets, numOutlets };
+        StringArray infoNames = { "Categories:", "Origin:", "Type:", "Num. Inlets:", "Num. Outlets:" };
+        StringArray infoText = { categories, origin, objectName.contains("~") ? String("Signal") : String("Data"), numInlets, numOutlets};
 
         for (int i = 0; i < infoNames.size(); i++) {
             auto localBounds = infoBounds.removeFromTop(25);
@@ -332,17 +332,32 @@ public:
         unknownOutletLayout = hasUnknownOutletLayout;
 
         objectName = name;
-        category = "";
-
+        categories = "";
+        origin = "";
+        
+        StringArray origins = {"vanilla", "cyclone", "ELSE", "pdlua", "heavylib"};
+        
         // Inverse lookup :(
         for (auto const& [cat, objects] : library.getObjectCategories()) {
-            if (objects.contains(name)) {
-                category = cat;
+            if(origins.contains(cat) && objects.contains(name)) {
+                origin = cat;
+            }
+            else if (objects.contains(name)) {
+                categories += cat + ", ";
             }
         }
-
-        if (category.isEmpty())
-            category = "Unknown";
+        
+        if(categories.isEmpty()) {
+            categories = "Unknown";
+        }
+        else {
+            categories = categories.dropLastCharacters(2);
+        }
+        
+        if(origin.isEmpty()) {
+            origin = "Unknown";
+        }
+        
 
         description = library.getObjectDescriptions()[name];
 
@@ -360,7 +375,8 @@ public:
     std::vector<bool> inlets;
     std::vector<bool> outlets;
 
-    String category;
+    String origin;
+    String categories;
     String description;
 
     TextButton openHelp = TextButton("Show Help");
@@ -628,12 +644,14 @@ public:
         objectsByCategory["All"] = StringArray();
 
         StringArray categories;
-        for (auto [category, objects] : objectsByCategory) {
+        for (auto& [category, objects] : objectsByCategory) {
             // Sort alphabetically
             objects.sort(true);
 
             // Add objects from every category to "All"
-            objectsByCategory["All"].addArray(objects);
+            if(category != "All") {
+                objectsByCategory["All"].addArray(objects);
+            }
             categories.add(category);
         }
 
