@@ -84,6 +84,7 @@ public:
     Suggestions autocomplete(String query) const;
     void getExtraSuggestions(int currentNumSuggestions, String query, std::function<void(Suggestions)> callback);
 
+    String getObjectTooltip(const String& type);
     std::array<StringArray, 2> getIoletTooltips(String type, String name, int numIn, int numOut);
 
     void fsChangeCallback() override;
@@ -126,7 +127,7 @@ private:
 
     StringArray allObjects;
 
-    std::mutex libraryLock;
+    std::recursive_mutex libraryLock;
 
     std::unique_ptr<Trie> searchTree = nullptr;
 

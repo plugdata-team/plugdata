@@ -226,6 +226,8 @@ void Library::initialiseLibrary()
         helpPaths = { appDataDir.getChildFile("Library").getChildFile("Documentation").getChildFile("5.reference"), appDataDir.getChildFile("Library").getChildFile("Documentation"),
             appDataDir.getChildFile("Deken") };
 
+        libraryLock.unlock();
+        
         // Update docs in GUI
         MessageManager::callAsync([this]() {
             watcher.addFolder(appDataDir);
@@ -234,8 +236,6 @@ void Library::initialiseLibrary()
             if (appDirChanged)
                 appDirChanged();
         });
-
-        libraryLock.unlock();
     };
 
     libraryUpdateThread.addJob(updateFn);
@@ -548,6 +548,16 @@ void Library::getExtraSuggestions(int currentNumSuggestions, String query, std::
             callback(result);
         });
     });
+}
+
+String Library::getObjectTooltip(const String& type)
+{
+    if (libraryLock.try_lock()) {
+        return objectDescriptions[type];
+        libraryLock.unlock();
+    }
+ 
+    return "";
 }
 
 std::array<StringArray, 2> Library::getIoletTooltips(String type, String name, int numIn, int numOut)

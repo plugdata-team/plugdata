@@ -1158,7 +1158,7 @@ bool PluginEditor::perform(InvocationInfo const& info)
         sidebar.clearConsole();
         return true;
     }
-    case CommandIDs::ShowSettings: {
+    case CommandIDs::ShowSettings: {        
         Dialogs::showSettingsDialog(this);
 
         return true;

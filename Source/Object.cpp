@@ -456,7 +456,7 @@ void Object::updateTooltips()
     std::vector<std::pair<int, String>> outletMessages;
 
     // Set object tooltip
-    gui->setTooltip(cnv->pd->objectLibrary.getObjectDescriptions()[gui->getType()]);
+    gui->setTooltip(cnv->pd->objectLibrary.getObjectTooltip(gui->getType()));
 
     if (auto* subpatch = gui->getPatch()) {
 
