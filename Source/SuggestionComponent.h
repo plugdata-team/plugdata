@@ -58,9 +58,6 @@ public:
         
         auto editorText = editor->getText();
         
-        std::cout << "edtext: " << editorText << std::endl;
-        std::cout << "suggtext: " << suggestionText << std::endl;
-        
         if(editorText.startsWith(suggestionText))
         {
             suggestion = "";
@@ -84,7 +81,6 @@ public:
             editor->setText("", dontSendNotification);
             suggestion = suggestionText;
             repaint();
-            std::cout << "STASH!" << std::endl;
         }
     }
 
