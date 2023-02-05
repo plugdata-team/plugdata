@@ -3,10 +3,13 @@ title: pink~
 description:
 categories:
  - object
-pdcategory: cyclone, General
+pdcategory: cyclone, Random and Noise
 arguments:
 inlets:
+  1st:
+  - type: signal
+    description: ignored
 outlets:
   1st:
   - type: signal
-    description:
+    description: pink noise
