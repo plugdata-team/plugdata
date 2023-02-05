@@ -213,15 +213,15 @@ public:
 
         int maxWidth = getWidth() - 20;
 
-        if (Fonts::getDefaultFont().getStringWidth(prefix + name + positionString) > maxWidth) {
+        if (Fonts::getCurrentFont().getStringWidth(prefix + name + positionString) > maxWidth) {
             positionString = "";
         }
 
-        if (prefix.containsNonWhitespaceChars() && Fonts::getDefaultFont().getStringWidth(prefix + name + positionString) > maxWidth) {
+        if (prefix.containsNonWhitespaceChars() && Fonts::getCurrentFont().getStringWidth(prefix + name + positionString) > maxWidth) {
             prefix = prefix.upToFirstOccurrenceOf("->", true, true) + " ... " + prefix.fromLastOccurrenceOf("->", true, true);
         }
 
-        if (prefix.containsNonWhitespaceChars() && Fonts::getDefaultFont().getStringWidth(prefix + name + positionString) > maxWidth) {
+        if (prefix.containsNonWhitespaceChars() && Fonts::getCurrentFont().getStringWidth(prefix + name + positionString) > maxWidth) {
             prefix = "... -> ";
         }
 
@@ -246,7 +246,7 @@ public:
 
         auto [text, size] = formatSearchResultString(name, prefix, x, y);
 
-        auto positionTextWidth = Fonts::getDefaultFont().getStringWidth(size);
+        auto positionTextWidth = Fonts::getCurrentFont().getStringWidth(size);
         auto positionTextX = getWidth() - positionTextWidth - 16;
 
         PlugDataLook::drawText(g, text, 12, 0, positionTextX - 16, h, colour, 14);

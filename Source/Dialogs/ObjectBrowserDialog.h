@@ -224,7 +224,7 @@ public:
     {
         int const ioletSize = 8;
         int const ioletWidth = (ioletSize + 4) * std::max(inlets.size(), outlets.size());
-        int const textWidth = Fonts::getDefaultFont().getStringWidth(objectName);
+        int const textWidth = Fonts::getCurrentFont().getStringWidth(objectName);
         int const width = std::max(ioletWidth, textWidth) + 14;
 
         auto outlineBounds = objectRect.withSizeKeepingCentre(width, 22).toFloat();

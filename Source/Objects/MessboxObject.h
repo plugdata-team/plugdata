@@ -318,7 +318,7 @@ public:
                 messbox->x_font_weight = pd->generateSymbol("normal");
             }
             else {
-                auto defaultFont = Fonts::getDefaultFont();
+                auto defaultFont = Fonts::getCurrentFont();
                 editor.applyFontToAllText(defaultFont.withHeight(15));
                 messbox->x_font_weight = pd->generateSymbol("bold");
             }

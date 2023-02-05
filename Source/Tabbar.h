@@ -75,11 +75,11 @@ public:
     {
         auto styles = Font(32).getAvailableStyles();
 
-        g.fillAll(findColour(PlugDataColour::canvasBackgroundColourId));
+        g.fillAll(findColour(PlugDataColour::panelBackgroundColourId));
 
-        PlugDataLook::drawStyledText(g, "No Patch Open", 0, getHeight() / 2 - 150, getWidth(), 40, findColour(PlugDataColour::canvasTextColourId), Bold, 32, Justification::centred);
+        PlugDataLook::drawStyledText(g, "No Patch Open", 0, getHeight() / 2 - 150, getWidth(), 40, findColour(PlugDataColour::panelTextColourId), Bold, 32, Justification::centred);
 
-        PlugDataLook::drawStyledText(g, "Open a file to begin patching", 0, getHeight() / 2 - 120, getWidth(), 40, findColour(PlugDataColour::canvasTextColourId), Thin, 23, Justification::centred);
+        PlugDataLook::drawStyledText(g, "Open a file to begin patching", 0, getHeight() / 2 - 120, getWidth(), 40, findColour(PlugDataColour::panelTextColourId), Thin, 23, Justification::centred);
     }
 
     std::unique_ptr<WelcomeButton> newButton;

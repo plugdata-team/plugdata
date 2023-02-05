@@ -164,30 +164,58 @@ public:
 
     struct BoolComponent : public Property {
         BoolComponent(String const& propertyName, Value& value, std::vector<String> options)
-            : Property(propertyName)
+            : Property(propertyName), textOptions(options)
         {
             toggleButton.setClickingTogglesState(true);
 
             toggleButton.setConnectedEdges(12);
 
-            toggleButton.getToggleStateValue().referTo(value);
-            toggleButton.setButtonText(static_cast<bool>(value.getValue()) ? options[1] : options[0]);
-
-            toggleButton.getProperties().set("Style", "Inspector");
-
-            addAndMakeVisible(toggleButton);
-
-            toggleButton.onStateChange = [this, value, options]() mutable {
-                toggleButton.setButtonText(toggleButton.getToggleState() ? options[1] : options[0]);
-            };
+            toggleStateValue.referTo(value);
+            
         }
 
         void resized() override
         {
             toggleButton.setBounds(getLocalBounds().removeFromRight(getWidth() / (2 - hideLabel)));
         }
+        
+        void paint(Graphics& g) override
+        {
+            bool isDown = static_cast<bool>(toggleStateValue.getValue());
+            bool isHovered = isMouseOver();
+
+            auto bounds = getLocalBounds().removeFromRight(getWidth() / (2 - hideLabel));
+
+            if (isDown || isHovered) {
+                // Add some alpha to make it look good on any background...
+                g.setColour(findColour(TextButton::buttonColourId).withAlpha(isDown ? 0.9f : 0.7f));
+                g.fillRect(bounds);
+            }
+
+            auto textColour = isDown ? findColour(PlugDataColour::panelActiveTextColourId) : findColour(PlugDataColour::panelTextColourId);
+            PlugDataLook::drawText(g, textOptions[isDown], bounds, textColour, 14.0f, Justification::centred);
+        }
+        
+        void mouseEnter(const MouseEvent& e) override
+        {
+            repaint();
+        }
+        
+        void mouseExit(const MouseEvent& e) override
+        {
+            repaint();
+        }
+        
+        
+        void mouseUp(const MouseEvent& e) override
+        {
+            toggleStateValue = !static_cast<bool>(toggleStateValue.getValue());
+            repaint();
+        }
 
     private:
+        std::vector<String> textOptions;
+        Value toggleStateValue;
         TextButton toggleButton;
     };
 

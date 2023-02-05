@@ -93,7 +93,7 @@ struct ToolchainInstaller : public Component
                 g.fillRoundedRectangle(1, 1, getWidth() - 2, getHeight() - 2, PlugDataLook::smallCornerRadius);
             }
 
-            auto colour = findColour(PlugDataColour::canvasTextColourId);
+            auto colour = findColour(PlugDataColour::panelTextColourId);
 
             PlugDataLook::drawIcon(g, iconText, 20, 5, 40, colour, 24);
 
@@ -194,7 +194,7 @@ struct ToolchainInstaller : public Component
         }
 
         if (isTimerRunning()) {
-            getLookAndFeel().drawSpinningWaitAnimation(g, findColour(PlugDataColour::canvasTextColourId), getWidth() / 2 - 16, getHeight() / 2 + 135, 32, 32);
+            getLookAndFeel().drawSpinningWaitAnimation(g, findColour(PlugDataColour::panelTextColourId), getWidth() / 2 - 16, getHeight() / 2 + 135, 32, 32);
         }
     }
 
