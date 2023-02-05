@@ -173,14 +173,15 @@ bool Object::hitTest(int x, int y)
 // To make iolets show/hide
 void Object::mouseEnter(MouseEvent const& e)
 {
-    repaint();
+    for(auto* iolet : iolets) iolet->repaint();
 }
 
 void Object::mouseExit(MouseEvent const& e)
 {
     // we need to reset the resizeZone, otherwise it can have an old zone already selected on re-entry
     resizeZone = ResizableBorderComponent::Zone(ResizableBorderComponent::Zone::centre);
-    repaint();
+    
+    for(auto* iolet : iolets) iolet->repaint();
 }
 
 void Object::mouseMove(MouseEvent const& e)
