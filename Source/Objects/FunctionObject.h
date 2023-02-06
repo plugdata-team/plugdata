@@ -407,7 +407,7 @@ public:
 
     void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
     {
-        switch (hash(symbol.toUTF8())) {
+        switch (hash(symbol)) {
         case objectMessage::msg_send: {
             if (atoms.size() >= 1)
                 setParameterExcludingListener(sendSymbol, atoms[0].getSymbol());

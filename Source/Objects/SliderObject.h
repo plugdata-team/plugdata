@@ -102,7 +102,7 @@ public:
 
     void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
     {
-        switch (hash(symbol.toUTF8())) {
+        switch (hash(symbol)) {
         case objectMessage::msg_float:
         case objectMessage::msg_set: {
             value = atoms[0].getFloat();
