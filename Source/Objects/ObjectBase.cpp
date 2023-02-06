@@ -441,9 +441,10 @@ ObjectBase* ObjectBase::createGui(void* ptr, Object* parent)
         case hash("canvas.edit"):
             return new CanvasEditObject(ptr, parent);
         default:
-            return new TextObject(ptr, parent);
+            break;
         }
     }
+    return new TextObject(ptr, parent);
 }
 
 bool ObjectBase::canOpenFromMenu()
