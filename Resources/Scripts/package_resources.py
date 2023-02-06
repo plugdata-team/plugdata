@@ -96,7 +96,7 @@ copyDir("../../Libraries/ELSE/Help-files/", "./Documentation/9.else")
 
 copyFile("../../Libraries/ELSE/sfont~/sfont~-help.pd", "./Documentation/9.else")
 #copyFile("../Patches/beat-help.pd", "./Documentation/5.reference")
-#copyFile("../Patches/param-help.pd", "./Documentation/5.reference")
+copyFile("../Patches/param-help.pd", "./Documentation/5.reference")
 copyFile("../Patches/playhead-help.pd", "./Documentation/5.reference")
 
 globCopy("../../Libraries/cyclone/cyclone_objects/abstractions/*.pd", "./Abstractions")

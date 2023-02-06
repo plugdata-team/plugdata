@@ -77,7 +77,6 @@ PluginProcessor::PluginProcessor()
     for (int n = 0; n < numParameters; n++) {
         auto* parameter = new PlugDataParameter(this, "param" + String(n + 1), 0.0f, false);
         addParameter(parameter);
-        parameter->addListener(this);
     }
 
     // Make sure that the parameter valuetree has a name, to prevent assertion failures
@@ -449,6 +448,7 @@ void PluginProcessor::processBlock(AudioBuffer<float>& buffer, MidiBuffer& midiM
 
     setThis();
     sendPlayhead();
+    sendParameters();
 
     for (int i = totalNumInputChannels; i < totalNumOutputChannels; ++i) {
         buffer.clear(i, 0, buffer.getNumSamples());
@@ -689,6 +689,18 @@ void PluginProcessor::sendPlayhead()
 
         sendMessage("playhead", "position", atoms_playhead);
         atoms_playhead.resize(1);
+    }
+}
+
+void PluginProcessor::sendParameters() {
+    for (auto* param : getParameters()) {
+        auto* pldParam = dynamic_cast<PlugDataParameter*>(param);
+        auto newvalue = pldParam->getUnscaledValue();
+        if (pldParam->isEnabled() && pldParam->getLastValue() != newvalue) {
+            auto title = pldParam->getTitle();
+            sendFloat(title.toRawUTF8(), pldParam->getUnscaledValue());
+            pldParam->setLastValue(newvalue);
+        }
     }
 }
 
@@ -1101,6 +1113,9 @@ void PluginProcessor::performParameterChange(int type, String name, float value)
     if (type) {
         for (auto* param : getParameters()) {
             auto* pldParam = dynamic_cast<PlugDataParameter*>(param);
+            
+            if(!pldParam->isEnabled() || pldParam->getTitle() != name) continue;
+            
             if (pldParam->getGestureState() == value) {
                 logMessage("parameter change " + name + (value ? " already started" : " not started"));
             } else if (pldParam->isEnabled() && pldParam->getTitle() == name) {
@@ -1110,42 +1125,26 @@ void PluginProcessor::performParameterChange(int type, String name, float value)
     } else { // otherwise set parameter value
         for (auto* param : getParameters()) {
             auto* pldParam = dynamic_cast<PlugDataParameter*>(param);
-            if (pldParam->isEnabled() && pldParam->getTitle() == name) {
+            if (!pldParam->isEnabled() || pldParam->getTitle() != name) continue;
+            
+            // Update values in automation panel
+            //if (pldParam->getLastValue() == value)
+            //    return;
 
-                // Update values in automation panel
-                if (pldParam->getLastValue() == value)
-                    return;
+            //pldParam->setLastValue(value);
 
-                pldParam->setLastValue(value);
-
-                // Send new value to DAW
-                pldParam->setUnscaledValueNotifyingHost(value);
+            // Send new value to DAW
+            pldParam->setUnscaledValueNotifyingHost(value);
 
 #if PLUGDATA_STANDALONE
-                if (auto* editor = dynamic_cast<PluginEditor*>(getActiveEditor())) {
-                    editor->sidebar.updateAutomationParameters();
-                }
-#endif
+            if (auto* editor = dynamic_cast<PluginEditor*>(getActiveEditor())) {
+                editor->sidebar.updateAutomationParameters();
             }
+#endif
         }
     }
 }
 
-// Callback when parameter values change
-void PluginProcessor::parameterValueChanged(int idx, float value)
-{
-    enqueueFunction([this, idx, value]() mutable {
-        auto* parameter = dynamic_cast<PlugDataParameter*>(getParameters()[idx]);
-        auto name = parameter->getTitle();
-        auto newValue = parameter->getUnscaledValue();
-        sendFloat(name.toRawUTF8(), newValue);
-        parameter->setLastValue(newValue);
-    });
-}
-
-void PluginProcessor::parameterGestureChanged(int parameterIndex, bool gestureIsStarting)
-{
-}
 
 void PluginProcessor::receiveDSPState(bool dsp)
 {
