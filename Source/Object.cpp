@@ -223,14 +223,14 @@ void Object::setType(String const& newType, void* existingObject)
     // "exists" indicates that this object already exists in pd
     // When setting exists to true, the gui needs to be assigned already
     if (!existingObject || cnv->patch.objectWasDeleted(existingObject)) {
-        auto* pd = &cnv->patch;
+        auto* patch = &cnv->patch;
         if (gui) {
             // Clear connections to this object
             // They will be remade by the synchronise call later
             for (auto* connection : getConnections())
                 cnv->connections.removeObject(connection);
 
-            objectPtr = pd->renameObject(getPointer(), newType);
+            objectPtr = patch->renameObject(getPointer(), newType);
 
             // Synchronise to make sure connections are preserved correctly
             // Asynchronous because it could possibly delete this object
@@ -240,7 +240,7 @@ void Object::setType(String const& newType, void* existingObject)
             });
         } else {
             auto rect = getObjectBounds();
-            objectPtr = pd->createObject(newType, rect.getX(), rect.getY());
+            objectPtr = patch->createObject(newType, rect.getX(), rect.getY());
         }
     } else {
         objectPtr = existingObject;
