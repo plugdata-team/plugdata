@@ -495,7 +495,22 @@ bool Patch::canConnect(void* src, int nout, void* sink, int nin)
     return canConnect;
 }
 
-void* Patch::createConnection(void* src, int nout, void* sink, int nin)
+void Patch::createConnection(void* src, int nout, void* sink, int nin)
+{
+    instance->enqueueFunction(
+        [this, src, nout, sink, nin]() mutable {
+            if (objectWasDeleted(src) || objectWasDeleted(sink))
+                return;
+
+            bool canConnect = libpd_canconnect(getPointer(), checkObject(src), nout, checkObject(sink), nin);
+
+            setCurrent();
+
+            libpd_createconnection(getPointer(), checkObject(src), nout, checkObject(sink), nin);
+        });
+}
+
+void* Patch::createAndReturnConnection(void* src, int nout, void* sink, int nin)
 {
     if (!src || !sink || !ptr)
         return nullptr;

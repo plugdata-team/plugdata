@@ -179,9 +179,8 @@ void Iolet::mouseUp(MouseEvent const& e)
             cnv->nearestIolet->isTargeted = false;
             cnv->nearestIolet->repaint();
 
-            for (auto& iolet : cnv->connectionsBeingCreated) {
-                cnv->nearestIolet->createConnection();
-            }
+            // CreateConnection will automatically create connections for all connections that are being created!
+            cnv->nearestIolet->createConnection();
 
             cnv->cancelConnectionCreation();
             cnv->nearestIolet = nullptr;
@@ -274,9 +273,7 @@ void Iolet::mouseUp(MouseEvent const& e)
             cnv->nearestIolet->isTargeted = false;
             cnv->nearestIolet->repaint();
 
-            for (auto& iolet : cnv->connectionsBeingCreated) {
-                cnv->nearestIolet->createConnection();
-            }
+            cnv->nearestIolet->createConnection();
 
             cnv->nearestIolet = nullptr;
             cnv->connectingWithDrag = false;
@@ -320,10 +317,14 @@ void Iolet::mouseExit(MouseEvent const& e)
 
 void Iolet::createConnection()
 {
-    object->cnv->hideAllActiveEditors();
+    auto* cnv = object->cnv;
+    
+    cnv->hideAllActiveEditors();
 
+    cnv->patch.startUndoSequence("Connecting");
     // Check if this is the start or end action of connecting
-    if (!object->cnv->connectionsBeingCreated.isEmpty()) {
+    if (!cnv->connectionsBeingCreated.isEmpty()) {
+        
         for (auto& c : object->cnv->connectionsBeingCreated) {
             // Check type for input and output
             bool sameDirection = isInlet == c->getIolet()->isInlet;
@@ -336,10 +337,26 @@ void Iolet::createConnection()
             }
             // Create new connection if allowed
             else if (connectionAllowed) {
-                auto* cnv = findParentComponentOfClass<Canvas>();
-                cnv->connections.add(new Connection(cnv, c->getIolet(), this, nullptr));
+                
+                auto outlet = isInlet ? c->getIolet() : this;
+                auto inlet = isInlet ? this : c->getIolet();
+                
+                auto outobj = outlet->object;
+                auto inobj = inlet->object;
+                
+                auto outIdx = outlet->ioletIdx;
+                auto inIdx = inlet->ioletIdx;
+                
+                if(!outobj->getPointer() || !inobj->getPointer()) return;
+                
+                cnv->patch.createConnection(outobj->getPointer(), outIdx, inobj->getPointer(), inIdx);
             }
         }
+        
+        cnv->patch.endUndoSequence("Connecting");
+        
+        cnv->synchronise(); // Load all newly created connection from pd patch!
+        
     }
     // Else set this iolet as start of a connection
     else {

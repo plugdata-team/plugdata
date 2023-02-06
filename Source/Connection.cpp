@@ -38,7 +38,7 @@ Connection::Connection(Canvas* parent, Iolet* s, Iolet* e, void* oc)
 
     // If it doesn't already exist in pd, create connection in pd
     if (!oc) {
-        auto* oc = parent->patch.createConnection(outobj->getPointer(), outIdx, inobj->getPointer(), inIdx);
+        auto* oc = parent->patch.createAndReturnConnection(outobj->getPointer(), outIdx, inobj->getPointer(), inIdx);
 
         ptr = static_cast<t_fake_outconnect*>(oc);
 
