@@ -179,12 +179,17 @@ void Iolet::mouseUp(MouseEvent const& e)
             cnv->nearestIolet->isTargeted = false;
             cnv->nearestIolet->repaint();
 
-            // CreateConnection will automatically create connections for all connections that are being created!
-            cnv->nearestIolet->createConnection();
+            // This will end up calling Canvas::synchronise, at which point we are not sure this class will survive, so we do an async call
+            MessageManager::callAsync([cnv = SafePointer(cnv)](){
+                if(!cnv) return;
+           
+                // CreateConnection will automatically create connections for all connections that are being created!
+                cnv->nearestIolet->createConnection();
 
-            cnv->cancelConnectionCreation();
-            cnv->nearestIolet = nullptr;
-            cnv->connectingWithDrag = false;
+                cnv->cancelConnectionCreation();
+                cnv->nearestIolet = nullptr;
+                cnv->connectingWithDrag = false;
+            });
 
         } else if (e.mods.isShiftDown() && cnv->getSelectionOfType<Object>().size() > 1 && (cnv->connectionsBeingCreated.size() == 1)) {
 
