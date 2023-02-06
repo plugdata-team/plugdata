@@ -128,9 +128,9 @@ void Object::valueChanged(Value& v)
         return;
     }
 
-    // else it was a lock/unlock action
+    // else it was a lock/unlock/presentation mode action
     // Hide certain objects in GOP
-    // resized();
+    setVisible(!((cnv->isGraph || cnv->presentationMode == var(true)) && gui && gui->hideInGraph()));
 
     if (gui) {
         gui->lock(locked == var(true) || commandLocked == var(true));
