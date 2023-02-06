@@ -115,7 +115,7 @@ public:
                 int size = 0;
                 libpd_get_object_text(object, &text, &size);
 
-                checkHvccCompatibility(patch, prefix + String(text) + " -> ");
+                checkHvccCompatibility(patch, prefix + String::fromUTF8(text) + " -> ");
                 freebytes(static_cast<void*>(text), static_cast<size_t>(size) * sizeof(char));
 
             } else if (!Object::hvccObjects.contains(name)) {
