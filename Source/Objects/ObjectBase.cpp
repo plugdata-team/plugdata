@@ -322,13 +322,14 @@ void ObjectBase::sendFloatValue(float newValue)
 
 ObjectBase* ObjectBase::createGui(void* ptr, Object* parent)
 {
+    const auto name = hash(libpd_get_object_class_name(ptr));
+    
     // check if object is a patcher object, or something else
-    if (!pd_checkobject(static_cast<t_pd*>(ptr)))
+    if (!pd_checkobject(static_cast<t_pd*>(ptr)) && name != hash("scalar")) {
         return new NonPatchable(ptr, parent);
+    }
     else {
-        const auto name = libpd_get_object_class_name(ptr);
-
-        switch(hash(name)) {
+        switch(name) {
         case hash("bng"):
             return new BangObject(ptr, parent);
         case hash("button"):
