@@ -81,7 +81,7 @@ public:
 
     void updateBounds()
     {
-        pd->getCallbackLock()->enter();
+        pd->lockAudioThread();
 
         int x, y, w, h;
         libpd_get_object_bounds(cnv->patch.getPointer(), atom, &x, &y, &w, &h);
@@ -90,7 +90,7 @@ public:
 
         auto bounds = Rectangle<int>(x, y, w, getAtomHeight());
 
-        pd->getCallbackLock()->exit();
+        pd->unlockAudioThread();
 
         object->setObjectBounds(bounds);
     }

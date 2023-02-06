@@ -127,10 +127,10 @@ public:
 
     void updateBounds() override
     {
-        pd->getCallbackLock()->enter();
+        pd->lockAudioThread();
         auto* comment = static_cast<t_fake_comment*>(ptr);
         int fontsize = comment->x_fontsize;
-        pd->getCallbackLock()->exit();
+        pd->unlockAudioThread();
 
         int width = getBestTextWidth(getText());
         int height = fontsize + 6;

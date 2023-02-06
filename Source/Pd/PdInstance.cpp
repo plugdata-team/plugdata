@@ -571,6 +571,8 @@ void Instance::waitForStateUpdate()
     if (m_function_queue.size_approx() == 0) {
         return;
     }
+    
+    waitingForStateUpdate = true;
 
     //  Append signal to resume thread at the end of the queue
     //  This will make sure that any actions we performed are definitely finished now
@@ -578,6 +580,8 @@ void Instance::waitForStateUpdate()
     enqueueFunction([this]() { updateWait.signal(); });
 
     updateWait.wait();
+    
+    waitingForStateUpdate = false;
 }
 
 void Instance::sendMessagesFromQueue()
@@ -711,5 +715,27 @@ bool Instance::loadLibrary(String libraryToLoad)
 {
     return sys_load_lib(nullptr, libraryToLoad.toRawUTF8());
 }
+
+void Instance::lockAudioThread() {
+    if(waitingForStateUpdate) return;
+    
+    audioLock->enter();
+}
+
+bool Instance::tryLockAudioThread() {
+    
+    if(waitingForStateUpdate) return true;
+    
+    return audioLock->tryEnter();
+}
+
+void Instance::unlockAudioThread() {
+    audioLock->exit();
+}
+
+void Instance::setCallbackLock(CriticalSection const* lock)
+{
+    audioLock = lock;
+};
 
 } // namespace pd

@@ -381,13 +381,14 @@ class ArrayEditorDialog : public Component
 public:
     std::function<void()> onClose;
     GraphicalArray graph;
-
+    PluginProcessor* pd;
     String title;
 
     ArrayEditorDialog(PluginProcessor* instance, PdArray& arr, Object* parent)
         : resizer(this, &constrainer)
         , title(arr.getExpandedName())
         , graph(instance, arr, parent)
+        , pd(instance)
     {
 
         closeButton.reset(LookAndFeel::getDefaultLookAndFeel().createDocumentWindowButton(DocumentWindow::closeButton));
@@ -422,12 +423,16 @@ public:
 
     void timerCallback() override
     {
+        if(!pd->tryLockAudioThread()) return;
+        
         int currentSize = graph.array.size();
         if (graph.vec.size() != currentSize) {
 
             graph.vec.resize(currentSize);
         }
         graph.update();
+           
+        pd->unlockAudioThread();
     }
 
     void mouseDown(MouseEvent const& e) override
@@ -529,7 +534,7 @@ public:
 
     void updateBounds() override
     {
-        pd->getCallbackLock()->enter();
+        pd->lockAudioThread();
 
         int x = 0, y = 0, w = 0, h = 0;
         libpd_get_object_bounds(cnv->patch.getPointer(), ptr, &x, &y, &w, &h);
@@ -537,7 +542,7 @@ public:
         auto* glist = static_cast<_glist*>(ptr);
         auto bounds = Rectangle<int>(x, y, glist->gl_pixwidth, glist->gl_pixheight);
 
-        pd->getCallbackLock()->exit();
+        pd->unlockAudioThread();
 
         object->setObjectBounds(bounds);
     }

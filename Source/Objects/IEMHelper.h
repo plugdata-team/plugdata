@@ -153,9 +153,9 @@ public:
         }
         case objectMessage::msg_vis_size: {
             if (atoms.size() >= 2) {
-                pd->getCallbackLock()->enter();
+                pd->lockAudioThread();
                 auto bounds = Rectangle<int>(iemgui->x_obj.te_xpix, iemgui->x_obj.te_ypix, atoms[0].getFloat(), atoms[1].getFloat());
-                pd->getCallbackLock()->exit();
+                pd->unlockAudioThread();
 
                 object->setObjectBounds(bounds);
             }
@@ -233,9 +233,9 @@ public:
 
     void updateBounds()
     {
-        pd->getCallbackLock()->enter();
+        pd->lockAudioThread();
         auto bounds = Rectangle<int>(iemgui->x_obj.te_xpix, iemgui->x_obj.te_ypix, iemgui->x_w, iemgui->x_h);
-        pd->getCallbackLock()->exit();
+        pd->unlockAudioThread();
 
         object->setObjectBounds(bounds);
     }

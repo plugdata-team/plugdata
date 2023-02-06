@@ -76,16 +76,6 @@ public:
 
     void process(dsp::AudioBlock<float>, MidiBuffer&);
 
-    void setCallbackLock(CriticalSection const* lock)
-    {
-        audioLock = lock;
-    };
-
-    CriticalSection const* getCallbackLock() override
-    {
-        return audioLock;
-    };
-
     bool canAddBus(bool isInput) const override
     {
         return true;
@@ -182,8 +172,6 @@ private:
     int minOut = 2;
 
     std::unique_ptr<dsp::Oversampling<float>> oversampler;
-
-    CriticalSection const* audioLock;
 
     static inline const String else_version = "ELSE v1.0-rc6";
     static inline const String cyclone_version = "cyclone v0.6-1";
