@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.21)
+cmake_minimum_required(VERSION 3.15)
 
 # ------------------------------------------------------------------------------#
 # LIBPD PROJECT IN C
@@ -17,9 +17,12 @@ set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 
 add_subdirectory(JUCE)
 
-set(MESSAGE_QUIET ON)
-add_subdirectory(clap-juce-extensions EXCLUDE_FROM_ALL)
-unset(MESSAGE_QUIET)
+if(${CMAKE_VERSION} VERSION_GREATER_EQUAL "3.21")
+  set(MESSAGE_QUIET ON)
+  add_subdirectory(clap-juce-extensions EXCLUDE_FROM_ALL)
+  unset(MESSAGE_QUIET)
+endif()
+
 # ------------------------------------------------------------------------------#
 set(CMAKE_MACOSX_RPATH ON)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
