@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.21)
+cmake_minimum_required(VERSION 3.15)
 
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
@@ -7,6 +7,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 option(RUN_CLANG_TIDY "" OFF)
 option(ENABLE_TESTING "" OFF)
 option(ENABLE_SFONT "" ON)
+option(VERBOSE "" OFF)
 
 set (CMAKE_CXX_STANDARD 20)
 
@@ -145,13 +146,6 @@ juce_add_plugin(plugdata
     VST3_CATEGORIES             Instrument
     VST2_CATEGORY               kPlugCategSynth)
 
-# Silence excessive messaging from juce-clap-extensions
-set(MESSAGE_QUIET ON)
-clap_juce_extensions_plugin(TARGET plugdata
-    CLAP_ID "com.timothyschoen.plugdata"
-    CLAP_FEATURES "instrument")
-unset(MESSAGE_QUIET)
-
 juce_add_plugin(plugdata_fx
     VERSION                     ${PLUGDATA_VERSION}
     COMPANY_NAME                ${PLUGDATA_COMPANY_NAME}
@@ -176,11 +170,7 @@ juce_add_plugin(plugdata_fx
     VST3_CATEGORIES             Fx
     VST2_CATEGORY               kPlugCategEffect)
 
-set(MESSAGE_QUIET ON)
-clap_juce_extensions_plugin(TARGET plugdata_fx
-    CLAP_ID "com.timothyschoen.plugdata-fx"
-    CLAP_FEATURES "effect")
-unset(MESSAGE_QUIET)
+
 
 if(APPLE)
 juce_add_plugin(plugdata_midi
@@ -203,6 +193,30 @@ juce_add_plugin(plugdata_midi
     FORMATS                     AU
     PRODUCT_NAME                "plugdata-midi"
     AU_MAIN_TYPE                kAudioUnitType_MIDIProcessor)
+endif()
+
+if(${CMAKE_VERSION} VERSION_GREATER_EQUAL "3.21")
+  # Silence excessive messaging from juce-clap-extensions
+  # Enable verbose flag to see these messages
+  if(VERBOSE)
+  else()
+  set(MESSAGE_QUIET ON)
+  endif()
+  clap_juce_extensions_plugin(TARGET plugdata
+      CLAP_ID "com.timothyschoen.plugdata"
+      CLAP_FEATURES "instrument")
+
+  clap_juce_extensions_plugin(TARGET plugdata_fx
+      CLAP_ID "com.timothyschoen.plugdata-fx"
+      CLAP_FEATURES "effect")
+
+  if(VERBOSE)
+  else()
+  unset(MESSAGE_QUIET)
+  endif()
+else()
+  message("\n-- Warning: Building CLAP plugins requires at least cmake 3.21, you have ${CMAKE_MAJOR_VERSION}.${CMAKE_MINOR_VERSION}")
+  message("-- CLAP plugin build will be disabed\n")
 endif()
 
 if(APPLE)

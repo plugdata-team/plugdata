@@ -930,7 +930,7 @@ void Canvas::checkBounds()
     auto viewBounds = Rectangle<int>(canvasOrigin.x, canvasOrigin.y, (viewport->getWidth() - 8) * scale, (viewport->getHeight() - 8) * scale);
 
     for (auto* obj : objects) {
-        viewBounds = viewBounds.getUnion(obj->getBoundsInParent());
+        viewBounds = viewBounds.getUnion(obj->getBoundsInParent().withTrimmedLeft(Object::margin).withTrimmedTop(Object::margin));
     }
 
     canvasOrigin -= { viewBounds.getX(), viewBounds.getY() };
