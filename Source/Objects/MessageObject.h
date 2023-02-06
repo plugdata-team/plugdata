@@ -143,6 +143,11 @@ public:
             editor->setBounds(getLocalBounds().withTrimmedRight(5));
         }
     }
+        
+    bool isEditorShown() override
+    {
+        return editor != nullptr;
+    }
 
     void showEditor() override
     {
