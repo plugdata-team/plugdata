@@ -46,7 +46,6 @@ class PictureObject final : public ObjectBase {
     File imageFile;
     Image img;
 
-    int minSize = 15;
 public:
     PictureObject(void* ptr, Object* object)
         : ObjectBase(ptr, object)
@@ -58,7 +57,7 @@ public:
             openFile(filePath);
         }
         
-        object->constrainer->setMinimumSize(minSize, minSize);
+        object->constrainer->setMinimumSize(15, 15);
     }
 
     ObjectParameters getParameters() override
@@ -104,7 +103,7 @@ public:
 
         int x = 0, y = 0, w = 0, h = 0;
         libpd_get_object_bounds(cnv->patch.getPointer(), ptr, &x, &y, &w, &h);
-        auto bounds = Rectangle<int>(x, y, std::max(w, minSize), std::max(h, minSize));
+        auto bounds = Rectangle<int>(x, y, w, h);
 
         pd->getCallbackLock()->exit();
 
