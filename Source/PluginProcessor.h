@@ -30,6 +30,7 @@ public:
     static AudioProcessor::BusesProperties buildBusesProperties();
 
     void setOversampling(int amount);
+    void setProtectedMode(bool enabled);
     void prepareToPlay(double sampleRate, int samplesPerBlock) override;
     void releaseResources() override;
 
@@ -139,8 +140,11 @@ public:
     static inline constexpr int numInputBuses = 16;
     static inline constexpr int numOutputBuses = 16;
 
+    // Protected mode value will decide if we apply clipping to output and remove non-finite numbers
+    std::atomic<bool> protectedMode = false;
+    
     // Zero means no oversampling
-    int oversampling = 0;
+    std::atomic<int> oversampling = 0;
     int lastTab = -1;
 
 #if PLUGDATA_STANDALONE

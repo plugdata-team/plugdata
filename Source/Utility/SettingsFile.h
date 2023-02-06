@@ -87,6 +87,9 @@ private:
     std::vector<std::pair<String, var>> defaultSettings {
         { "browser_path", var(homeDir.getChildFile("Library").getFullPathName()) },
         { "theme", var("light") },
+        { "oversampling", var(0) },
+        { "protected", var(0) },
+        { "internal_synth", var(0) },
         { "grid_enabled", var(1) },
         { "zoom", var(1.0f) },
         { "default_font", var("Inter") },
