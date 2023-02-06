@@ -149,16 +149,16 @@ public:
     void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
     {
         switch (hash(symbol)) {
-        case objectMessage::msg_symbol: {
+        case hash("symbol"): {
             input.setText(atoms[0].getSymbol(), dontSendNotification);
             break;
         }
-        case objectMessage::msg_send: {
+        case hash("send"): {
             if (atoms.size() >= 1)
                 setParameterExcludingListener(atomHelper.sendSymbol, atoms[0].getSymbol());
             break;
         }
-        case objectMessage::msg_receive: {
+        case hash("receive"): {
             if (atoms.size() >= 1) {
                 setParameterExcludingListener(atomHelper.receiveSymbol, atoms[0].getSymbol());
             }

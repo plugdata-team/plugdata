@@ -131,16 +131,16 @@ public:
     {
         switch(hash(symbol))
         {
-            case msg_set: {
+            case hash("set"): {
                 editor.setText("");
                 getSymbols(atoms);
                 break;
             }
-            case msg_append: {
+            case hash("append"): {
                 getSymbols(atoms);
                 break;
             }
-            case msg_bang: {
+            case hash("bang"): {
                 setSymbols(editor.getText());
                 break;
             }
