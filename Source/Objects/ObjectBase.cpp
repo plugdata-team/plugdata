@@ -186,8 +186,8 @@ void ObjectBase::closeOpenedSubpatchers()
     if (!tabbar)
         return;
     
-    bool tabRemoved = false;
-
+    auto lastTab = SafePointer(tabbar->getCurrentContentComponent());
+    int lastIndex = tabbar->getCurrentTabIndex();
     for (int n = tabbar->getNumTabs() - 1; n >= 0; n--) {
         auto* cnv = editor->getCanvas(n);
         if (cnv && cnv->patch == *getPatch()) {
@@ -197,7 +197,6 @@ void ObjectBase::closeOpenedSubpatchers()
             tabbar->removeTab(n);
 
             editor->pd->patches.removeObject(deletedPatch, false);
-            tabRemoved = true;
             break;
         }
     }
@@ -205,14 +204,16 @@ void ObjectBase::closeOpenedSubpatchers()
     // Makes the tabbar check if it needs to hide
     if (tabbar->getNumTabs() == 0) {
         tabbar->currentTabChanged(-1, String());
+        return;
     }
+    
 
-    if(tabRemoved) {
-        MessageManager::callAsync([safeTabbar = SafePointer(tabbar)]() {
+    if(!lastTab) {
+        MessageManager::callAsync([safeTabbar = SafePointer(tabbar), lastIndex]() {
             if (!safeTabbar)
                 return;
             
-            safeTabbar->setCurrentTabIndex(safeTabbar->getNumTabs() - 1, true);
+            safeTabbar->setCurrentTabIndex(std::min(lastIndex, safeTabbar->getNumTabs() - 1), true);
         });
     }
 }
