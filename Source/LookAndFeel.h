@@ -689,7 +689,6 @@ struct PlugDataLook : public LookAndFeel_V4 {
             
             g.setColour(findColour(Slider::trackColourId));
             g.fillRoundedRectangle(b, cornerSize);
-            
         } else {
             sliderPos = jmap<float>(sliderPos, y, height, y, height - thumbSize);
             auto b = Rectangle<float>(width, thumbSize).translated(x, sliderPos);
