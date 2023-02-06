@@ -107,7 +107,7 @@ public:
                 gui->setParameterExcludingListener(targetValue, colour.toString());
             }
         };
-        switch (hash(symbol.toUTF8())) {
+        switch (hash(symbol)) {
         case objectMessage::msg_send: {
             if (atoms.size() >= 1)
                 gui->setParameterExcludingListener(sendSymbol, atoms[0].getSymbol());

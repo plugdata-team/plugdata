@@ -1,18 +1,23 @@
 #pragma once
 
+#include <JuceHeader.h>
+
 //https://gist.github.com/ctmatthews/c1cbd1b2e68c29a88b236475a0b26cd0
 
 typedef uint32_t hash32;
 typedef uint8_t u8;
 #define EMPTY_HASH ((hash32)0x811c9dc5)
 
-constexpr hash32 hash(const char* str) {
+template<typename T>
+constexpr hash32 hash(T str)
+{
     hash32 result = EMPTY_HASH;
-
-    while (*str) {
-        result ^= (hash32) *str; // NOTE: make this toupper(*s) or tolower(*s) if you want case-insensitive hashes
+    unsigned i = 0;
+    
+    while (str[i]) {
+        result ^= (hash32) str[i]; // NOTE: make this toupper(str[i]) or tolower(str[i]) if you want case-insensitive hashes
         result *= (hash32) 0x01000193; // 32 bit magic FNV-1a prime
-        str++;
+        i++;
     }
 
     return result;
