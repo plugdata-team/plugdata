@@ -211,7 +211,9 @@ public:
         g.setColour(object->findColour(PlugDataColour::canvasTextColourId));
         g.strokePath(magnitudePath, PathStrokeType(1.0f, PathStrokeType::JointStyle::curved, PathStrokeType::EndCapStyle::square));
 
-        g.setColour(object->findColour(PlugDataColour::objectOutlineColourId));
+        bool selected = object->cnv->isSelected(object) && !object->cnv->isGraph;
+
+        g.setColour(object->findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : objectOutlineColourId));
         g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), PlugDataLook::objectCornerRadius, 1.0f);
     }
 
