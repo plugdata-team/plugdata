@@ -155,6 +155,7 @@ String ObjectBase::getType() const
                 return String("comment");
             if (static_cast<t_text*>(ptr)->te_type == T_MESSAGE)
                 return String("message");
+            break;
         // Deal with atoms
         case hash("gatom"):
             if (static_cast<t_fake_gatom*>(ptr)->a_flavor == A_FLOAT)
@@ -163,6 +164,9 @@ String ObjectBase::getType() const
                 return "symbolbox";
             if (static_cast<t_fake_gatom*>(ptr)->a_flavor == A_NULL)
                 return "listbox";
+            break;
+        default:
+            break;
         }
         // Get class name for all other objects
         if (auto* name = libpd_get_object_class_name(ptr)) {
