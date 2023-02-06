@@ -36,7 +36,7 @@ public:
             }
 
             auto lvl = static_cast<float>(std::exp(std::log(chLevel) / 3.0) * (chLevel > 0.002));
-            auto numBlocks = roundToInt(totalBlocks * lvl);
+            auto numBlocks = floor(totalBlocks * lvl);
 
             if (blocks[ch] != numBlocks) {
                 blocks[ch] = numBlocks;
@@ -174,10 +174,11 @@ Statusbar::Statusbar(PluginProcessor* processor)
     connectionPathfind = std::make_unique<TextButton>(Icons::Wand);
     presentationButton = std::make_unique<TextButton>(Icons::Presentation);
     gridButton = std::make_unique<TextButton>(Icons::Grid);
-
+    protectButton = std::make_unique<TextButton>(Icons::Protection);
+    
+    
     presentationButton->setTooltip("Presentation Mode");
     presentationButton->setClickingTogglesState(true);
-    presentationButton->setConnectedEdges(12);
     presentationButton->getProperties().set("Style", "SmallIcon");
     presentationButton->getToggleStateValue().referTo(presentationMode);
 
@@ -191,14 +192,12 @@ Statusbar::Statusbar(PluginProcessor* processor)
 
     addAndMakeVisible(presentationButton.get());
 
-    powerButton->setTooltip("Mute");
+    powerButton->setTooltip("Enable/disable DSP");
     powerButton->setClickingTogglesState(true);
-    powerButton->setConnectedEdges(12);
     powerButton->getProperties().set("Style", "SmallIcon");
     addAndMakeVisible(powerButton.get());
 
     gridButton->setTooltip("Enable grid");
-    gridButton->setConnectedEdges(12);
     gridButton->getProperties().set("Style", "SmallIcon");
 
     gridButton->onClick = [this]() {
@@ -231,7 +230,6 @@ Statusbar::Statusbar(PluginProcessor* processor)
 
     lockButton->setTooltip("Edit Mode");
     lockButton->setClickingTogglesState(true);
-    lockButton->setConnectedEdges(12);
     lockButton->getProperties().set("Style", "SmallIcon");
     lockButton->getToggleStateValue().referTo(locked);
     addAndMakeVisible(lockButton.get());
@@ -244,7 +242,6 @@ Statusbar::Statusbar(PluginProcessor* processor)
 
     connectionStyleButton->setTooltip("Enable segmented connections");
     connectionStyleButton->setClickingTogglesState(true);
-    connectionStyleButton->setConnectedEdges(12);
     connectionStyleButton->getProperties().set("Style", "SmallIcon");
     connectionStyleButton->onClick = [this]() {
         bool segmented = connectionStyleButton->getToggleState();
@@ -264,11 +261,18 @@ Statusbar::Statusbar(PluginProcessor* processor)
     addAndMakeVisible(connectionStyleButton.get());
 
     connectionPathfind->setTooltip("Find best connection path");
-    connectionPathfind->setConnectedEdges(12);
     connectionPathfind->getProperties().set("Style", "SmallIcon");
     connectionPathfind->onClick = [this]() { dynamic_cast<ApplicationCommandManager*>(pd->getActiveEditor())->invokeDirectly(CommandIDs::ConnectionPathfind, true); };
     addAndMakeVisible(connectionPathfind.get());
-
+    
+    protectButton->setTooltip("Clip output signal and filter non-finite values");
+    protectButton->getProperties().set("Style", "SmallIcon");
+    protectButton->setClickingTogglesState(true);
+    protectButton->onClick = [this]() {
+        pd->setProtectedMode(protectButton->getToggleState());
+    };
+    addAndMakeVisible(*protectButton);
+    
     addAndMakeVisible(volumeSlider);
     volumeSlider.setTextBoxStyle(Slider::NoTextBox, false, 0, 0);
 
@@ -368,6 +372,8 @@ void Statusbar::resized()
 
     pos = 0; // reset position for elements on the left
 
+    protectButton->setBounds(position(getHeight(), true), 0, getHeight(), getHeight());
+    
     powerButton->setBounds(position(getHeight(), true), 0, getHeight(), getHeight());
 
     int levelMeterPosition = position(100, true);

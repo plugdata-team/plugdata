@@ -123,28 +123,23 @@ PluginProcessor::PluginProcessor()
         objectLibrary.updateLibrary();
     };
 
-    if (settingsFile->hasProperty("theme")) {
-        auto themeName = settingsFile->getProperty<String>("theme");
+    auto themeName = settingsFile->getProperty<String>("theme");
 
-        // Make sure theme exists
-        if (!settingsFile->getTheme(themeName).isValid()) {
+    // Make sure theme exists
+    if (!settingsFile->getTheme(themeName).isValid()) {
 
-            settingsFile->setProperty("theme", PlugDataLook::selectedThemes[0]);
-            themeName = PlugDataLook::selectedThemes[0];
-        }
-
-        setTheme(themeName);
-        settingsFile->saveSettings();
+        settingsFile->setProperty("theme", PlugDataLook::selectedThemes[0]);
+        themeName = PlugDataLook::selectedThemes[0];
     }
 
-    if (settingsFile->hasProperty("Oversampling")) {
-        oversampling = settingsFile->getProperty<int>("Oversampling");
-    }
-
+    setTheme(themeName);
+    settingsFile->saveSettings();
+    
+    oversampling = settingsFile->getProperty<int>("oversampling");
+    
+    setProtectedMode(settingsFile->getProperty<int>("protected"));
 #if PLUGDATA_STANDALONE
-    if (settingsFile->hasProperty("internal_synth")) {
-        enableInternalSynth = settingsFile->getProperty<int>("internal_synth");
-    }
+    enableInternalSynth = settingsFile->getProperty<int>("internal_synth");
 #endif
 
     auto currentThemeTree = settingsFile->getCurrentTheme();
@@ -360,6 +355,11 @@ void PluginProcessor::setOversampling(int amount)
     suspendProcessing(false);
 }
 
+void PluginProcessor::setProtectedMode(bool enabled)
+{
+    protectedMode = enabled;
+}
+
 void PluginProcessor::prepareToPlay(double sampleRate, int samplesPerBlock)
 {
     float oversampleFactor = 1 << oversampling;
@@ -486,6 +486,20 @@ void PluginProcessor::processBlock(AudioBuffer<float>& buffer, MidiBuffer& midiM
     }
 
 #endif
+    
+    if(protectedMode) {
+        auto* const* writePtr = buffer.getArrayOfWritePointers();
+        for(int ch = 0; ch < buffer.getNumChannels(); ch++) {
+            for(int n = 0; n < buffer.getNumSamples(); n++) {
+                if(!std::isfinite(writePtr[ch][n])) {
+                    writePtr[ch][n] = 0.0f;
+                }
+                else {
+                    writePtr[ch][n] = std::clamp(writePtr[ch][n], -1.0f, 1.0f);
+                }
+            }
+        }
+    }
 }
 
 void PluginProcessor::process(dsp::AudioBlock<float> buffer, MidiBuffer& midiMessages)

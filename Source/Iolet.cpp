@@ -129,8 +129,10 @@ void Iolet::mouseDrag(MouseEvent const& e)
     auto* cnv = findParentComponentOfClass<Canvas>();
 
     if (cnv->connectionsBeingCreated.isEmpty() && e.getLengthOfMousePress() > 100) {
-        createConnection();
-        cnv->connectingWithDrag = true;
+        MessageManager::callAsync([_this = SafePointer(this)](){
+            _this->createConnection();
+            _this->object->cnv->connectingWithDrag = true;
+        });
     }
     if (cnv->connectingWithDrag && !cnv->connectionsBeingCreated.isEmpty()) {
         auto* connectingIolet = cnv->connectionsBeingCreated[0]->getIolet();
@@ -161,151 +163,156 @@ void Iolet::mouseUp(MouseEvent const& e)
 {
     if (static_cast<bool>(locked.getValue()) || e.mods.isRightButtonDown())
         return;
-
-    auto* cnv = findParentComponentOfClass<Canvas>();
-
-    if (!e.mouseWasDraggedSinceMouseDown() && cnv->connectionsBeingCreated.isEmpty()) {
-        createConnection();
-
-    } else if (!cnv->connectionsBeingCreated.isEmpty()) {
-
-        if (!e.mouseWasDraggedSinceMouseDown() && !e.mods.isShiftDown()) {
+    
+    // This might end up calling Canvas::synchronise, at which point we are not sure this class will survive, so we do an async call
+    
+    bool shiftIsDown = e.mods.isShiftDown();
+    bool wasDragged = e.mouseWasDraggedSinceMouseDown();
+    
+    MessageManager::callAsync([this, _this = SafePointer(this), shiftIsDown, wasDragged]() mutable {
+        if(!_this) return;
+        
+        auto* cnv = findParentComponentOfClass<Canvas>();
+        
+        if(!cnv) return;
+        
+        if (!wasDragged && cnv->connectionsBeingCreated.isEmpty()) {
             createConnection();
-            cnv->cancelConnectionCreation();
-
-        } else if (cnv->connectingWithDrag && cnv->nearestIolet && !e.mods.isShiftDown()) {
-            // Releasing a connect-by-drag action
-
-            cnv->nearestIolet->isTargeted = false;
-            cnv->nearestIolet->repaint();
-
-            // This will end up calling Canvas::synchronise, at which point we are not sure this class will survive, so we do an async call
-            MessageManager::callAsync([cnv = SafePointer(cnv)](){
-                if(!cnv) return;
-           
+            
+        } else if (!cnv->connectionsBeingCreated.isEmpty()) {
+            bool createdConnection = false;
+            if (!wasDragged && !shiftIsDown) {
+                createConnection();
+                cnv->cancelConnectionCreation();
+                
+            } else if (cnv->connectingWithDrag && cnv->nearestIolet && !shiftIsDown) {
+                // Releasing a connect-by-drag action
+                
+                cnv->nearestIolet->isTargeted = false;
+                cnv->nearestIolet->repaint();
+                createdConnection = true;
+                
                 // CreateConnection will automatically create connections for all connections that are being created!
                 cnv->nearestIolet->createConnection();
-
+                
                 cnv->cancelConnectionCreation();
                 cnv->nearestIolet = nullptr;
                 cnv->connectingWithDrag = false;
-            });
-
-        } else if (e.mods.isShiftDown() && cnv->getSelectionOfType<Object>().size() > 1 && (cnv->connectionsBeingCreated.size() == 1)) {
-
-            //
-            // Auto patching
-            //
-
-            auto selection = cnv->getSelectionOfType<Object>();
-
-            Object* nearestObject = object;
-            int inletIdx = ioletIdx;
-            if (cnv->nearestIolet) {
-                // If connected by drag
-                nearestObject = cnv->nearestIolet->object;
-                inletIdx = cnv->nearestIolet->ioletIdx;
-            }
-
-            // Sort selected objects by X position
-            std::sort(selection.begin(), selection.end(), [](Object const* lhs, Object const* rhs) {
-                return lhs->getX() < rhs->getX();
-            });
-
-            auto* conObj = cnv->connectionsBeingCreated.getFirst()->getIolet()->object;
-
-            if ((conObj->numOutputs > 1) && selection.contains(conObj) && selection.contains(nearestObject)) {
-
-                // If selected 'start object' has multiple outlets
-                // Connect all selected objects beneath to 'start object' outlets, ordered by position
-                int outletIdx = conObj->numInputs + cnv->connectionsBeingCreated.getFirst()->getIolet()->ioletIdx;
-                for (auto* sel : selection) {
-                    if ((sel != conObj) && (conObj->iolets[outletIdx]) && (sel->numInputs)) {
-                        if ((sel->getX() >= nearestObject->getX()) && (sel->getY() > (conObj->getY() + conObj->getHeight() - 15))) {
-                            cnv->connections.add(new Connection(cnv, conObj->iolets[outletIdx], sel->iolets.getFirst(), nullptr));
-                            outletIdx = outletIdx + 1;
+                
+            } else if (shiftIsDown && cnv->getSelectionOfType<Object>().size() > 1 && (cnv->connectionsBeingCreated.size() == 1)) {
+                
+                //
+                // Auto patching
+                //
+                
+                auto selection = cnv->getSelectionOfType<Object>();
+                
+                Object* nearestObject = object;
+                int inletIdx = ioletIdx;
+                if (cnv->nearestIolet) {
+                    // If connected by drag
+                    nearestObject = cnv->nearestIolet->object;
+                    inletIdx = cnv->nearestIolet->ioletIdx;
+                }
+                
+                // Sort selected objects by X position
+                std::sort(selection.begin(), selection.end(), [](Object const* lhs, Object const* rhs) {
+                    return lhs->getX() < rhs->getX();
+                });
+                
+                auto* conObj = cnv->connectionsBeingCreated.getFirst()->getIolet()->object;
+                
+                if ((conObj->numOutputs > 1) && selection.contains(conObj) && selection.contains(nearestObject)) {
+                    
+                    // If selected 'start object' has multiple outlets
+                    // Connect all selected objects beneath to 'start object' outlets, ordered by position
+                    int outletIdx = conObj->numInputs + cnv->connectionsBeingCreated.getFirst()->getIolet()->ioletIdx;
+                    for (auto* sel : selection) {
+                        if ((sel != conObj) && (conObj->iolets[outletIdx]) && (sel->numInputs)) {
+                            if ((sel->getX() >= nearestObject->getX()) && (sel->getY() > (conObj->getY() + conObj->getHeight() - 15))) {
+                                cnv->connections.add(new Connection(cnv, conObj->iolets[outletIdx], sel->iolets.getFirst(), nullptr));
+                                outletIdx = outletIdx + 1;
+                            }
+                        }
+                    }
+                } else if ((nearestObject->numInputs > 1) && selection.contains(nearestObject)) {
+                    
+                    // If selected 'end object' has multiple inputs
+                    // Connect all selected objects above to 'end object' inlets, ordered by index
+                    for (auto* sel : selection) {
+                        if ((nearestObject->numInputs > 1) && (nearestObject->getY() > (conObj->getY() + conObj->getHeight() - 15)) && (nearestObject->getY() > (sel->getY() + sel->getHeight() - 15))) {
+                            if ((sel != nearestObject) && (sel->getX() >= conObj->getX()) && nearestObject->iolets[inletIdx]->isInlet && (sel->numOutputs)) {
+                                
+                                cnv->connections.add(new Connection(cnv, sel->iolets[sel->numInputs], nearestObject->iolets[inletIdx], nullptr));
+                                inletIdx = inletIdx + 1;
+                            }
+                        }
+                    }
+                    
+                } else if (selection.contains(nearestObject)) {
+                    
+                    // If 'end object' is selected
+                    // Connect 'start outlet' with all selected objects beneath
+                    // Connect all selected objects at or above to 'end object'
+                    for (auto* sel : selection) {
+                        if ((sel->getY() > (conObj->getY() + conObj->getHeight() - 15))) {
+                            cnv->connections.add(new Connection(cnv, cnv->connectionsBeingCreated.getFirst()->getIolet(), sel->iolets.getFirst(), nullptr));
+                        } else {
+                            cnv->connections.add(new Connection(cnv, sel->iolets[sel->numInputs], nearestObject->iolets.getFirst(), nullptr));
                         }
                     }
                 }
-            } else if ((nearestObject->numInputs > 1) && selection.contains(nearestObject)) {
-
-                // If selected 'end object' has multiple inputs
-                // Connect all selected objects above to 'end object' inlets, ordered by index
-                for (auto* sel : selection) {
-                    if ((nearestObject->numInputs > 1) && (nearestObject->getY() > (conObj->getY() + conObj->getHeight() - 15)) && (nearestObject->getY() > (sel->getY() + sel->getHeight() - 15))) {
-                        if ((sel != nearestObject) && (sel->getX() >= conObj->getX()) && nearestObject->iolets[inletIdx]->isInlet && (sel->numOutputs)) {
-
-                            cnv->connections.add(new Connection(cnv, sel->iolets[sel->numInputs], nearestObject->iolets[inletIdx], nullptr));
-                            inletIdx = inletIdx + 1;
+                
+                else {
+                    // If 'start object' is selected
+                    // Connect 'end inlet' with all selected objects
+                    for (auto* sel : selection) {
+                        if (cnv->nearestIolet) {
+                            cnv->connections.add(new Connection(cnv, sel->iolets[sel->numInputs], cnv->nearestIolet, nullptr));
+                        } else {
+                            cnv->connections.add(new Connection(cnv, sel->iolets[sel->numInputs], this, nullptr));
                         }
                     }
                 }
-
-            } else if (selection.contains(nearestObject)) {
-
-                // If 'end object' is selected
-                // Connect 'start outlet' with all selected objects beneath
-                // Connect all selected objects at or above to 'end object'
-                for (auto* sel : selection) {
-                    if ((sel->getY() > (conObj->getY() + conObj->getHeight() - 15))) {
-                        cnv->connections.add(new Connection(cnv, cnv->connectionsBeingCreated.getFirst()->getIolet(), sel->iolets.getFirst(), nullptr));
-                    } else {
-                        cnv->connections.add(new Connection(cnv, sel->iolets[sel->numInputs], nearestObject->iolets.getFirst(), nullptr));
-                    }
-                }
+                
+                cnv->connectionsBeingCreated.clear();
+                
+            } else if (!wasDragged && shiftIsDown) {
+                createConnection();
+            } else if (cnv->connectingWithDrag && cnv->nearestIolet && shiftIsDown) {
+                // Releasing a connect-by-drag action
+                cnv->nearestIolet->isTargeted = false;
+                cnv->nearestIolet->repaint();
+                
+                cnv->nearestIolet->createConnection();
+                
+                cnv->nearestIolet = nullptr;
+                cnv->connectingWithDrag = false;
+                cnv->repaint();
             }
-
-            else {
-
-                // If 'start object' is selected
-                // Connect 'end inlet' with all selected objects
-                for (auto* sel : selection) {
-                    if (cnv->nearestIolet) {
-                        cnv->connections.add(new Connection(cnv, sel->iolets[sel->numInputs], cnv->nearestIolet, nullptr));
-                    } else {
-                        cnv->connections.add(new Connection(cnv, sel->iolets[sel->numInputs], this, nullptr));
-                    }
-                }
+            if (!shiftIsDown || cnv->connectionsBeingCreated.size() != 1) {
+                cnv->connectionsBeingCreated.clear();
+                cnv->repaint();
+                cnv->connectingWithDrag = false;
             }
-
-            cnv->connectionsBeingCreated.clear();
-
-        } else if (!e.mouseWasDraggedSinceMouseDown() && e.mods.isShiftDown()) {
-            createConnection();
-
-        } else if (cnv->connectingWithDrag && cnv->nearestIolet && e.mods.isShiftDown()) {
-            // Releasing a connect-by-drag action
-            cnv->nearestIolet->isTargeted = false;
-            cnv->nearestIolet->repaint();
-
-            cnv->nearestIolet->createConnection();
-
-            cnv->nearestIolet = nullptr;
-            cnv->connectingWithDrag = false;
-            cnv->repaint();
-        }
-        if (!e.mods.isShiftDown() || cnv->connectionsBeingCreated.size() != 1) {
-            cnv->connectionsBeingCreated.clear();
-            cnv->repaint();
-            cnv->connectingWithDrag = false;
-        }
-
-        // TODO: is this needed? Else delete.. :
-
-        // Unless the call originates from a connection, clear any connections that are being created
-        /*
-         if (cnv->connectingWithDrag && !dynamic_cast<Connection*>(e.originalComponent)) {
+            
+            // TODO: is this needed? Else delete.. :
+            
+            // Unless the call originates from a connection, clear any connections that are being created
+            /*
+             if (cnv->connectingWithDrag && !dynamic_cast<Connection*>(e.originalComponent)) {
              cnv->connectionsBeingCreated.clear();
              cnv->connectingWithDrag = false;
              cnv->repaint();
-         } */
-
-        if (cnv->nearestIolet) {
-            cnv->nearestIolet->isTargeted = false;
-            cnv->nearestIolet->repaint();
-            cnv->nearestIolet = nullptr;
+             } */
+            
+            if (cnv->nearestIolet) {
+                cnv->nearestIolet->isTargeted = false;
+                cnv->nearestIolet->repaint();
+                cnv->nearestIolet = nullptr;
+            }
         }
-    }
+    });
 }
 
 void Iolet::mouseEnter(MouseEvent const& e)
