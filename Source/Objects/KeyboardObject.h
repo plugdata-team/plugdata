@@ -49,11 +49,13 @@ public:
     void drawWhiteNote(int midiNoteNumber, Graphics& g, Rectangle<float> area, bool isDown, bool isOver, Colour lineColour, Colour textColour) override
     {
         // TODO: this should be a theme preference, or setting for keyboard
+        // yeah but we can set a less ugly default colour for now!
+        
         auto c = Colour(225, 225, 225);
         if (isOver)
             c = Colour(235, 235, 235);
         if (isDown)
-            c = Colour(0, 0, 245);
+            c = object->findColour(PlugDataColour::dataColourId);
 
         area = area.reduced(0.0f, 0.5f);
 
