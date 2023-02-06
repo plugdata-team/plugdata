@@ -637,7 +637,7 @@ void Object::mouseDown(MouseEvent const& e)
 
 void Object::mouseUp(MouseEvent const& e)
 {
-    if (wasLockedOnMouseDown)
+    if (wasLockedOnMouseDown || (gui && gui->isEditorShown()))
         return;
 
     if (!cnv->didStartDragging && !static_cast<bool>(locked.getValue()) && e.mods.isAltDown()) {
@@ -686,7 +686,7 @@ void Object::mouseUp(MouseEvent const& e)
 
 void Object::mouseDrag(MouseEvent const& e)
 {
-    if (wasLockedOnMouseDown)
+    if (wasLockedOnMouseDown || (gui && gui->isEditorShown()))
         return;
 
     cnv->cancelConnectionCreation();

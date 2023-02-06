@@ -315,6 +315,11 @@ public:
             }
         }
     }
+        
+    bool isEditorShown() override
+    {
+        return editor != nullptr;
+    }
 
     void showEditor() override
     {
