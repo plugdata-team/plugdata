@@ -46,6 +46,7 @@ class PictureObject final : public ObjectBase {
     File imageFile;
     Image img;
 
+    int minSize = 15;
 public:
     PictureObject(void* ptr, Object* object)
         : ObjectBase(ptr, object)
@@ -54,10 +55,10 @@ public:
 
         if (pic && pic->x_filename) {
             auto filePath = String::fromUTF8(pic->x_filename->s_name);
-            if (File(filePath).existsAsFile()) {
-                path = filePath;
-            }
+            openFile(filePath);
         }
+        
+        object->constrainer->setMinimumSize(minSize, minSize);
     }
 
     ObjectParameters getParameters() override
@@ -103,7 +104,7 @@ public:
 
         int x = 0, y = 0, w = 0, h = 0;
         libpd_get_object_bounds(cnv->patch.getPointer(), ptr, &x, &y, &w, &h);
-        auto bounds = Rectangle<int>(x, y, w, h);
+        auto bounds = Rectangle<int>(x, y, std::max(w, minSize), std::max(h, minSize));
 
         pd->getCallbackLock()->exit();
 
@@ -125,9 +126,10 @@ public:
 
     void openFile(String location)
     {
+        if(location.isEmpty() || location == "empty") return;
 
         auto findFile = [this](String const& name) {
-            if (File(name).existsAsFile()) {
+            if ((name.startsWith ("/") || name.startsWith ("./") || name.startsWith ("../")) && File(name).existsAsFile()) {
                 return File(name);
             }
             if (File(String::fromUTF8(canvas_getdir(cnv->patch.getPointer())->s_name)).getChildFile(name).existsAsFile()) {
