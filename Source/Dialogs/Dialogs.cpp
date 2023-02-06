@@ -367,33 +367,58 @@ PopupMenu Dialogs::createObjectMenu(PluginEditor* parent)
 
     // Custom function because JUCE adds "shortcut:" before some keycommands, which looks terrible!
     auto createCommandItem = [parent](const CommandID commandID, String const& displayName) {
-        ApplicationCommandInfo info(*parent->getCommandForID(commandID));
-        auto* target = parent->ApplicationCommandManager::getTargetForCommand(commandID, info);
-
-        PopupMenu::Item i;
-        i.text = displayName;
-        i.itemID = (int)commandID;
-        i.commandManager = parent;
-        i.isEnabled = target != nullptr && (info.flags & ApplicationCommandInfo::isDisabled) == 0;
-
-        String shortcutKey;
-
-        for (auto& keypress : parent->getKeyMappings()->getKeyPressesAssignedToCommand(commandID)) {
-            auto key = keypress.getTextDescriptionWithIcons();
-
-            auto shiftIcon = String(CharPointer_UTF8("\xe2\x87\xa7"));
-            if (key.contains(shiftIcon)) {
-                key = key.replace(shiftIcon, "shift-");
+        
+        if(commandID < NumEssentialObjects) {
+            
+            ApplicationCommandInfo info(*parent->getCommandForID(commandID));
+            auto* target = parent->ApplicationCommandManager::getTargetForCommand(commandID, info);
+            
+            PopupMenu::Item i;
+            i.text = displayName;
+            i.itemID = (int)commandID;
+            i.commandManager = parent;
+            i.isEnabled = target != nullptr && (info.flags & ApplicationCommandInfo::isDisabled) == 0;
+            
+            String shortcutKey;
+            
+            for (auto& keypress : parent->getKeyMappings()->getKeyPressesAssignedToCommand(commandID)) {
+                auto key = keypress.getTextDescriptionWithIcons();
+                
+                auto shiftIcon = String(CharPointer_UTF8("\xe2\x87\xa7"));
+                if (key.contains(shiftIcon)) {
+                    key = key.replace(shiftIcon, "shift-");
+                }
+                if (shortcutKey.isNotEmpty())
+                    shortcutKey << ", ";
+                
+                shortcutKey << key;
             }
-            if (shortcutKey.isNotEmpty())
-                shortcutKey << ", ";
-
-            shortcutKey << key;
+            
+            i.shortcutKeyDescription = shortcutKey.trim();
+            
+            return i;
         }
-
-        i.shortcutKeyDescription = shortcutKey.trim();
-
-        return i;
+        else {
+            
+            auto cnv = Component::SafePointer(parent->getCurrentCanvas());
+            bool locked = static_cast<bool>(cnv->locked.getValue()) || static_cast<bool>(cnv->commandLocked.getValue());
+            
+            PopupMenu::Item i;
+            i.text = displayName;
+            i.itemID = (int)commandID;
+            i.isEnabled = !locked;
+            i.action = [parent, cnv, commandID](){
+                if(!cnv) return;
+                
+                auto lastPosition = cnv->viewport->getViewArea().getConstrainedPoint(cnv->lastMousePosition - Point<int>(Object::margin, Object::margin));
+                
+                cnv->objects.add(new Object(cnv, objectNames.at(static_cast<ObjectIDs>(commandID)), lastPosition));
+                cnv->deselectAll();
+                cnv->setSelected(cnv->objects[cnv->objects.size() - 1], true); // Select newly created object
+            };
+            
+            return i;
+        }
     };
 
     menu.addItem("Open Object Browser...", [parent]() mutable {
@@ -426,6 +451,7 @@ PopupMenu Dialogs::createObjectMenu(PluginEditor* parent)
     PopupMenu generalMenu;
     {
         generalMenu.addItem(createCommandItem(ObjectIDs::NewMetro, "metro"));
+        generalMenu.addItem(createCommandItem(ObjectIDs::NewExpr, "counter"));
         generalMenu.addItem(createCommandItem(ObjectIDs::NewSel, "sel"));
         generalMenu.addItem(createCommandItem(ObjectIDs::NewRoute, "route"));
         generalMenu.addItem(createCommandItem(ObjectIDs::NewExpr, "expr"));
@@ -443,10 +469,6 @@ PopupMenu Dialogs::createObjectMenu(PluginEditor* parent)
         generalMenu.addItem(createCommandItem(ObjectIDs::NewDelay, "delay"));
         generalMenu.addItem(createCommandItem(ObjectIDs::NewTimedGate, "timed.gate"));
         
-    }
-    PopupMenu sequencingMenu;
-    {
-        //sequencingMenu.addItem(createCommandItem(ObjectIDs::NewMetro, "line"));
     }
     
     PopupMenu effectsMenu;
@@ -568,12 +590,31 @@ PopupMenu Dialogs::createObjectMenu(PluginEditor* parent)
         logicMenu.addItem(createCommandItem(ObjectIDs::NewNotEquals, "!="));
     }
 
-    PopupMenu signalMenu;
+    PopupMenu ioMenu;
     {
-        signalMenu.addItem(createCommandItem(ObjectIDs::NewAdc, "adc~"));
-        signalMenu.addItem(createCommandItem(ObjectIDs::NewDac, "dac~"));
-        signalMenu.addItem(createCommandItem(ObjectIDs::NewOut, "out~"));
-        signalMenu.addItem(createCommandItem(ObjectIDs::NewSignalDelay, "delay~"));
+        ioMenu.addItem(createCommandItem(ObjectIDs::NewAdc, "adc~"));
+        ioMenu.addItem(createCommandItem(ObjectIDs::NewDac, "dac~"));
+        ioMenu.addItem(createCommandItem(ObjectIDs::NewOut, "out~"));
+        ioMenu.addItem(createCommandItem(ObjectIDs::NewBlocksize, "blocksize~"));
+        ioMenu.addItem(createCommandItem(ObjectIDs::NewSamplerate, "samplerate~"));
+        ioMenu.addItem(createCommandItem(ObjectIDs::NewSetdsp, "setdsp~"));
+    }
+    
+    PopupMenu controlMenu;
+    {
+        controlMenu.addItem(createCommandItem(ObjectIDs::NewAdsr, "adsr~"));
+        controlMenu.addItem(createCommandItem(ObjectIDs::NewAsr, "asr~"));
+        controlMenu.addItem(createCommandItem(ObjectIDs::NewCurve, "curve~"));
+        controlMenu.addItem(createCommandItem(ObjectIDs::NewDecay, "decay~"));
+        controlMenu.addItem(createCommandItem(ObjectIDs::NewEnvelope, "envelope~"));
+        controlMenu.addItem(createCommandItem(ObjectIDs::NewEnvgen, "envgen~"));
+        controlMenu.addItem(createCommandItem(ObjectIDs::NewLfonoise, "lfonoise~"));
+        controlMenu.addItem(createCommandItem(ObjectIDs::NewSignalLine, "line~"));
+        controlMenu.addItem(createCommandItem(ObjectIDs::NewPhasor, "phasor~"));
+        controlMenu.addItem(createCommandItem(ObjectIDs::NewRamp, "ramp~"));
+        controlMenu.addItem(createCommandItem(ObjectIDs::NewSah, "sah~"));
+        controlMenu.addItem(createCommandItem(ObjectIDs::NewSignalSlider, "slider~"));
+        controlMenu.addItem(createCommandItem(ObjectIDs::NewVline, "vline~")); 
     }
 
     PopupMenu signalMathMenu;
@@ -596,7 +637,7 @@ PopupMenu Dialogs::createObjectMenu(PluginEditor* parent)
     menu.addSeparator();
 
     menu.addSubMenu("UI", uiMenu);
-    menu.addSubMenu("Sequencing", sequencingMenu);
+    menu.addSubMenu("General", generalMenu);
     menu.addSubMenu("MIDI", midiMenu);
     menu.addSubMenu("Array", arrayMenu);
     menu.addSubMenu("List", listMenu);
@@ -605,10 +646,11 @@ PopupMenu Dialogs::createObjectMenu(PluginEditor* parent)
 
     menu.addSeparator();
 
-    menu.addSubMenu("Signal~", signalMenu);
+    menu.addSubMenu("IO~", ioMenu);
     menu.addSubMenu("Effects~", effectsMenu);
     menu.addSubMenu("Oscillators~", oscillatorsMenu);
     menu.addSubMenu("Filters~", filtersMenu);
+    menu.addSubMenu("Control~", controlMenu);
     menu.addSubMenu("Math~", signalMathMenu);
 
     menu.addSeparator();
