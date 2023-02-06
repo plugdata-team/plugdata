@@ -185,6 +185,8 @@ void ObjectBase::closeOpenedSubpatchers()
 
     if (!tabbar)
         return;
+    
+    bool tabRemoved = false;
 
     for (int n = tabbar->getNumTabs() - 1; n >= 0; n--) {
         auto* cnv = editor->getCanvas(n);
@@ -195,7 +197,7 @@ void ObjectBase::closeOpenedSubpatchers()
             tabbar->removeTab(n);
 
             editor->pd->patches.removeObject(deletedPatch, false);
-
+            tabRemoved = true;
             break;
         }
     }
@@ -205,12 +207,14 @@ void ObjectBase::closeOpenedSubpatchers()
         tabbar->currentTabChanged(-1, String());
     }
 
-    MessageManager::callAsync([this, safeTabbar = SafePointer(tabbar)]() {
-        if (!safeTabbar)
-            return;
-
-        safeTabbar->setCurrentTabIndex(safeTabbar->getNumTabs() - 1, true);
-    });
+    if(tabRemoved) {
+        MessageManager::callAsync([safeTabbar = SafePointer(tabbar)]() {
+            if (!safeTabbar)
+                return;
+            
+            safeTabbar->setCurrentTabIndex(safeTabbar->getNumTabs() - 1, true);
+        });
+    }
 }
 
 void ObjectBase::openSubpatch()
