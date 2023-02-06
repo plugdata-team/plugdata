@@ -909,11 +909,13 @@ void Connection::receiveMessage(String const& name, int argc, t_atom* argv)
 {
     auto args = std::vector<t_atom>(argv, argv + argc);
 
-    MessageManager::callAsync([this, name, args]() mutable {
+    MessageManager::callAsync([_this = SafePointer(this), name, args]() mutable {
+        if(!_this) return;
+        
         if (name == "float" && args.size() >= 1) {
-            setTooltip("(float) " + String(atom_getfloat(args.data())));
+            _this->setTooltip("(float) " + String(atom_getfloat(args.data())));
         } else if (name == "symbol" && args.size() >= 1) {
-            setTooltip("(symbol): " + String::fromUTF8(atom_getsymbol(args.data())->s_name));
+            _this->setTooltip("(symbol): " + String::fromUTF8(atom_getsymbol(args.data())->s_name));
         } else if (name == "list") {
             StringArray result = { "(list)" };
             for (auto& arg : args) {
@@ -924,7 +926,7 @@ void Connection::receiveMessage(String const& name, int argc, t_atom* argv)
                 }
             }
 
-            setTooltip(result.joinIntoString(" "));
+            _this->setTooltip(result.joinIntoString(" "));
         } else {
             StringArray result = { name };
             for (auto& arg : args) {
@@ -935,7 +937,7 @@ void Connection::receiveMessage(String const& name, int argc, t_atom* argv)
                 }
             }
 
-            setTooltip(result.joinIntoString(" "));
+            _this->setTooltip(result.joinIntoString(" "));
         }
     });
 }
