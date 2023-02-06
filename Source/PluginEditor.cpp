@@ -1055,11 +1055,13 @@ bool PluginEditor::perform(InvocationInfo const& info)
         return true;
     }
     case CommandIDs::Cut: {
+        cnv->cancelConnectionCreation();
         cnv->copySelection();
         cnv->removeSelection();
         return true;
     }
     case CommandIDs::Delete: {
+        cnv->cancelConnectionCreation();
         cnv->removeSelection();
         return true;
     }
