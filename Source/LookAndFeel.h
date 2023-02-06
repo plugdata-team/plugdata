@@ -677,20 +677,28 @@ struct PlugDataLook : public LookAndFeel_V4 {
         g.setColour(findColour(Slider::backgroundColourId));
         g.fillRect(sliderBounds);
 
+        constexpr auto thumbSize = 4.0f;
+        constexpr auto halfThumbSize = thumbSize / 2.0f;
+        auto cornerSize = PlugDataLook::objectCornerRadius / 2.0f;
+        
         Path toDraw;
         if (slider.isHorizontal()) {
-            sliderPos = jmap<float>(sliderPos, x, width - (2 * x), 1.0f, width);
-            auto b = sliderBounds.withTrimmedRight(width - sliderPos);
-            toDraw.addRoundedRectangle(b.getX(), b.getY(), b.getWidth(), b.getHeight(), 1.0f, 1.0f, true, false, true, false);
+            sliderPos = jmap<float>(sliderPos, x, width, x, width - thumbSize);
+            
+            auto b = Rectangle<float>(thumbSize, height).translated(sliderPos, y);
+            
+            g.setColour(findColour(Slider::trackColourId));
+            g.fillRoundedRectangle(b, cornerSize);
+            
         } else {
-            sliderPos = jmap<float>(sliderPos, y, height, 0.0f, height - 2.0f);
-            auto b = sliderBounds.withTrimmedTop(sliderPos);
-            toDraw.addRoundedRectangle(b.getX(), b.getY(), b.getWidth(), b.getHeight(), 1.0f, 1.0f, false, false, true, true);
+            sliderPos = jmap<float>(sliderPos, y, height, y, height - thumbSize);
+            auto b = Rectangle<float>(width, thumbSize).translated(x, sliderPos);
+            
+            g.setColour(findColour(Slider::trackColourId));
+            g.fillRoundedRectangle(b, cornerSize);
         }
-
-        g.setColour(findColour(Slider::trackColourId));
-        g.fillPath(toDraw);
     }
+    
     void drawVolumeSlider(Graphics& g, int x, int y, int width, int height, float sliderPos, float minSliderPos, float maxSliderPos, const Slider::SliderStyle style, Slider& slider)
     {
         float trackWidth = 4.;
