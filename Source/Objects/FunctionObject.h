@@ -408,22 +408,22 @@ public:
     void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
     {
         switch (hash(symbol)) {
-        case objectMessage::msg_send: {
+        case hash("send"): {
             if (atoms.size() >= 1)
                 setParameterExcludingListener(sendSymbol, atoms[0].getSymbol());
             break;
         }
-        case objectMessage::msg_receive: {
+        case hash("receive"): {
             if (atoms.size() >= 1)
                 setParameterExcludingListener(receiveSymbol, atoms[0].getSymbol());
             break;
         }
-        case objectMessage::msg_list: {
+        case hash("list"): {
             getPointsFromFunction();
             break;
         }
-        case objectMessage::msg_min:
-        case objectMessage::msg_max: {
+        case hash("min"):
+        case hash("max"): {
             auto* function = static_cast<t_fake_function*>(ptr);
             Array<var> arr = { function->x_min, function->x_max };
             setParameterExcludingListener(range, var(arr));

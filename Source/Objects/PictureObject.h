@@ -113,7 +113,7 @@ public:
     void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
     {
         switch (hash(symbol)) {
-        case objectMessage::msg_open: {
+        case hash("open"): {
             if (atoms.size() >= 1)
                 openFile(atoms[0].getSymbol());
             break;

@@ -39,7 +39,7 @@ public:
     void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
     {
         switch (hash(symbol)) {
-        case objectMessage::msg_coords: {
+        case hash("coords"): {
             if (atoms.size() >= 8) {
 
                 // x_range: 0 1

@@ -338,23 +338,23 @@ public:
     void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
     {
         switch (hash(symbol)) {
-        case objectMessage::msg_float:
-        case objectMessage::msg_list:
-        case objectMessage::msg_set: {
+        case hash("float"):
+        case hash("list"):
+        case hash("set"): {
             updateValue();
             break;
         }
-        case objectMessage::msg_lowc: {
+        case hash("lowc"): {
             setParameterExcludingListener(lowC, static_cast<int>(atoms[0].getFloat()));
             updateAspectRatio();
             break;
         }
-        case objectMessage::msg_oct: {
+        case hash("oct"): {
             setParameterExcludingListener(lowC, std::clamp<int>(static_cast<int>(lowC.getValue()) + static_cast<int>(atoms[0].getFloat()), -1, 9));
             updateAspectRatio();
             break;
         }
-        case objectMessage::msg_8ves: {
+        case hash("8ves"): {
             setParameterExcludingListener(octaves, static_cast<int>(atoms[0].getFloat()));
             updateAspectRatio();
             break;

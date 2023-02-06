@@ -73,20 +73,20 @@ public:
     void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
     {
         switch (hash(symbol)) {
-        case objectMessage::msg_float:
-        case objectMessage::msg_set: {
+        case hash("float"):
+        case hash("set"): {
             selected = atoms[0].getFloat();
             repaint();
             break;
         }
-        case objectMessage::msg_orientation: {
+        case hash("orientation"): {
             if (atoms.size() >= 1) {
                 isVertical = static_cast<bool>(atoms[0].getFloat());
                 updateBounds();
             }
             break;
         }
-        case objectMessage::msg_number: {
+        case hash("number"): {
             if (atoms.size() >= 1)
                 setParameterExcludingListener(max, static_cast<int>(atoms[0].getFloat()));
             break;
