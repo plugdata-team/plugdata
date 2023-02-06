@@ -174,7 +174,7 @@ public:
 
     void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
     {
-        switch (hash(symbol.toUTF8())) {
+        switch (hash(symbol)) {
         case objectMessage::msg_color: {
             repaint();
             break;
