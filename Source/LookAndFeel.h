@@ -887,7 +887,7 @@ struct PlugDataLook : public LookAndFeel_V4 {
 
         if (!label.isBeingEdited()) {
             auto alpha = label.isEnabled() ? 1.0f : 0.5f;
-            const Font font = Fonts::getCurrentFont();
+            const Font font = Fonts::getCurrentFont().withHeight(label.getFont().getHeight());
 
             auto textArea = getLabelBorderSize(label).subtractedFrom(label.getLocalBounds());
 
