@@ -118,7 +118,7 @@ void Patch::setCurrent(bool lock)
         return;
 
     if (lock)
-        instance->getCallbackLock()->enter();
+        instance->lockAudioThread();
 
     canvas_setcurrent(getPointer());
 
@@ -131,7 +131,7 @@ void Patch::setCurrent(bool lock)
     canvas_unsetcurrent(getPointer());
 
     if (lock)
-        instance->getCallbackLock()->exit();
+        instance->unlockAudioThread();
 }
 
 int Patch::getIndex(void* obj)

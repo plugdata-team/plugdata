@@ -131,7 +131,10 @@ String ObjectBase::getText()
 
 String ObjectBase::getType() const
 {
-    ScopedLock lock(*pd->getCallbackLock());
+    // TODO: callback lock can cause deadlock :(
+    // We have a lot of threading problems to fix...
+    
+    //ScopedLock lock(*pd->getCallbackLock());
 
     if (ptr) {
         // Check if it's an abstraction or subpatch

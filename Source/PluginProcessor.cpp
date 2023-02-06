@@ -246,7 +246,7 @@ void PluginProcessor::updateSearchPaths()
 
     setThis();
 
-    getCallbackLock()->enter();
+    lockAudioThread();
 
     libpd_clear_search_path();
 
@@ -286,7 +286,7 @@ void PluginProcessor::updateSearchPaths()
         }
     }
 
-    getCallbackLock()->exit();
+    unlockAudioThread();
 }
 
 const String PluginProcessor::getName() const
@@ -709,10 +709,10 @@ void PluginProcessor::messageEnqueued()
     if (isNonRealtime() || isSuspended()) {
         sendMessagesFromQueue();
     } else {
-        CriticalSection const* cs = getCallbackLock();
-        if (cs->tryEnter()) {
+        if(tryLockAudioThread())
+        {
             sendMessagesFromQueue();
-            cs->exit();
+            unlockAudioThread();
         }
     }
 }
@@ -803,46 +803,48 @@ AudioProcessorEditor* PluginProcessor::createEditor()
 
 void PluginProcessor::getStateInformation(MemoryBlock& destData)
 {
-    getCallbackLock()->enter();
+    lockAudioThread();
 
-    const MessageManagerLock mmlock;
-
-    setThis();
-
-    // Store pure-data state
-    MemoryOutputStream ostream(destData, false);
-
-    ostream.writeInt(patches.size());
-
-    // Save path and content for patch
-    for (auto& patch : patches) {
-        ostream.writeString(patch->getCanvasContent());
-        ostream.writeString(patch->getCurrentFile().getFullPathName());
+    {   // Scope for mmlock
+        const MessageManagerLock mmlock;
+        
+        setThis();
+        
+        // Store pure-data state
+        MemoryOutputStream ostream(destData, false);
+        
+        ostream.writeInt(patches.size());
+        
+        // Save path and content for patch
+        for (auto& patch : patches) {
+            ostream.writeString(patch->getCanvasContent());
+            ostream.writeString(patch->getCurrentFile().getFullPathName());
+        }
+        
+        ostream.writeInt(getLatencySamples());
+        ostream.writeInt(oversampling);
+        ostream.writeFloat(static_cast<float>(tailLength.getValue()));
+        
+        XmlElement xml = XmlElement("plugdata_save");
+        xml.setAttribute("Version", PLUGDATA_VERSION);
+        PlugDataParameter::saveStateInformation(xml, getParameters());
+        
+        MemoryBlock xmlBlock;
+        copyXmlToBinary(xml, xmlBlock);
+        
+        ostream.writeInt(static_cast<int>(xmlBlock.getSize()));
+        ostream.write(xmlBlock.getData(), xmlBlock.getSize());
+        
+        if (auto* editor = getActiveEditor()) {
+            ostream.writeInt(editor->getWidth());
+            ostream.writeInt(editor->getHeight());
+        } else {
+            ostream.writeInt(lastUIWidth);
+            ostream.writeInt(lastUIHeight);
+        }
     }
 
-    ostream.writeInt(getLatencySamples());
-    ostream.writeInt(oversampling);
-    ostream.writeFloat(static_cast<float>(tailLength.getValue()));
-
-    XmlElement xml = XmlElement("plugdata_save");
-    xml.setAttribute("Version", PLUGDATA_VERSION);
-    PlugDataParameter::saveStateInformation(xml, getParameters());
-
-    MemoryBlock xmlBlock;
-    copyXmlToBinary(xml, xmlBlock);
-
-    ostream.writeInt(static_cast<int>(xmlBlock.getSize()));
-    ostream.write(xmlBlock.getData(), xmlBlock.getSize());
-
-    if (auto* editor = getActiveEditor()) {
-        ostream.writeInt(editor->getWidth());
-        ostream.writeInt(editor->getHeight());
-    } else {
-        ostream.writeInt(lastUIWidth);
-        ostream.writeInt(lastUIHeight);
-    }
-
-    getCallbackLock()->exit();
+    unlockAudioThread();
 }
 
 void PluginProcessor::setStateInformation(void const* data, int sizeInBytes)
@@ -858,84 +860,87 @@ void PluginProcessor::setStateInformation(void const* data, int sizeInBytes)
     // The DAW can call this function from basically any thread, hence the need for this
     // Audio will only be reactivated once this action is completed
 
-    const MessageManagerLock mmLock;
-
-    MemoryInputStream istream(copy, sizeInBytes, false);
-
     suspendProcessing(true);
-
-    // Close any opened patches
-    if (auto* editor = dynamic_cast<PluginEditor*>(getActiveEditor())) {
-        editor->tabbar.clearTabs();
-        editor->canvases.clear();
-    }
-
-    for (auto& patch : patches)
-        patch->close();
-    patches.clear();
-
-    int numPatches = istream.readInt();
-
-    for (int i = 0; i < numPatches; i++) {
-        auto state = istream.readString();
-        auto location = File(istream.readString());
-
-        auto parentPath = location.getParentDirectory().getFullPathName();
-
-        // Add patch path to search path to make sure it finds abstractions in the saved patch!
-        setThis();
-        libpd_add_to_search_path(parentPath.toRawUTF8());
-
-        auto* patch = loadPatch(state);
-
-        if ((location.exists() && location.getParentDirectory() == File::getSpecialLocation(File::tempDirectory)) || !location.exists()) {
-            patch->setTitle("Untitled Patcher");
-        } else if (location.existsAsFile()) {
-            patch->setCurrentFile(location);
-            patch->setTitle(location.getFileName());
+    
+    // Scope for mmlock
+    {
+        const MessageManagerLock mmLock;
+        
+        MemoryInputStream istream(copy, sizeInBytes, false);
+        
+        // Close any opened patches
+        if (auto* editor = dynamic_cast<PluginEditor*>(getActiveEditor())) {
+            editor->tabbar.clearTabs();
+            editor->canvases.clear();
         }
-    }
-
-    auto latency = istream.readInt();
-    auto oversampling = istream.readInt();
-    auto tail = istream.readFloat();
-    auto xmlSize = istream.readInt();
-
-    tailLength = var(tail);
-
-    auto* xmlData = new char[xmlSize];
-    istream.read(xmlData, xmlSize);
-
-    std::unique_ptr<XmlElement> xmlState(getXmlFromBinary(xmlData, xmlSize));
-
-    if (xmlState) {
-        PlugDataParameter::loadStateInformation(*xmlState, getParameters());
-    }
-
-    auto versionString = String("0.6.1");
-
-    if (xmlState->hasAttribute("Version")) {
-        versionString = xmlState->getStringAttribute("Version");
-    }
-
-    if (versionString.startsWith("0.7") && !istream.isExhausted()) {
-        int windowWidth = istream.readInt();
-        int windowHeight = istream.readInt();
-
-        lastUIWidth = windowWidth;
-        lastUIHeight = windowHeight;
-        if (auto* editor = getActiveEditor()) {
-            editor->setSize(lastUIWidth, lastUIHeight);
+        
+        for (auto& patch : patches)
+            patch->close();
+        patches.clear();
+        
+        int numPatches = istream.readInt();
+        
+        for (int i = 0; i < numPatches; i++) {
+            auto state = istream.readString();
+            auto location = File(istream.readString());
+            
+            auto parentPath = location.getParentDirectory().getFullPathName();
+            
+            // Add patch path to search path to make sure it finds abstractions in the saved patch!
+            setThis();
+            libpd_add_to_search_path(parentPath.toRawUTF8());
+            
+            auto* patch = loadPatch(state);
+            
+            if ((location.exists() && location.getParentDirectory() == File::getSpecialLocation(File::tempDirectory)) || !location.exists()) {
+                patch->setTitle("Untitled Patcher");
+            } else if (location.existsAsFile()) {
+                patch->setCurrentFile(location);
+                patch->setTitle(location.getFileName());
+            }
         }
+        
+        auto latency = istream.readInt();
+        auto oversampling = istream.readInt();
+        auto tail = istream.readFloat();
+        auto xmlSize = istream.readInt();
+        
+        tailLength = var(tail);
+        
+        auto* xmlData = new char[xmlSize];
+        istream.read(xmlData, xmlSize);
+        
+        std::unique_ptr<XmlElement> xmlState(getXmlFromBinary(xmlData, xmlSize));
+        
+        if (xmlState) {
+            PlugDataParameter::loadStateInformation(*xmlState, getParameters());
+        }
+        
+        auto versionString = String("0.6.1");
+        
+        if (xmlState->hasAttribute("Version")) {
+            versionString = xmlState->getStringAttribute("Version");
+        }
+        
+        if (versionString.startsWith("0.7") && !istream.isExhausted()) {
+            int windowWidth = istream.readInt();
+            int windowHeight = istream.readInt();
+            
+            lastUIWidth = windowWidth;
+            lastUIHeight = windowHeight;
+            if (auto* editor = getActiveEditor()) {
+                editor->setSize(lastUIWidth, lastUIHeight);
+            }
+        }
+        
+        setLatencySamples(latency);
+        setOversampling(oversampling);
+        
+        freebytes(copy, sizeInBytes);
+        delete[] xmlData;
     }
-
-    setLatencySamples(latency);
-    setOversampling(oversampling);
-
+    
     suspendProcessing(false);
-
-    freebytes(copy, sizeInBytes);
-    delete[] xmlData;
 
     if (auto* editor = dynamic_cast<PluginEditor*>(getActiveEditor())) {
         editor->sidebar.updateAutomationParameters();

@@ -540,9 +540,9 @@ void PluginEditor::addTab(Canvas* cnv, bool deleteWhenClosed)
             }
 
             if (deleteWhenClosed) {
-                pd->getCallbackLock()->enter();
+                pd->lockAudioThread();
                 patch->close();
-                pd->getCallbackLock()->exit();
+                pd->unlockAudioThread();
             }
 
             canvases.removeObject(cnv);
