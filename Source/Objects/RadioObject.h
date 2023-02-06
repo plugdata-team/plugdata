@@ -170,7 +170,7 @@ public:
         int selectionY = isVertical ? currentValue * size : 0;
 
         auto selectionBounds = Rectangle<int>(selectionX, selectionY, size, size);
-        g.fillRect(selectionBounds.reduced(5));
+        g.fillRoundedRectangle(selectionBounds.reduced(5).toFloat(), PlugDataLook::objectCornerRadius / 2.0f);
     }
 
     void paintOverChildren(Graphics& g) override
