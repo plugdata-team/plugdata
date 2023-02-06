@@ -23,7 +23,7 @@ class PlugDataLook;
 class PluginEditor;
 class PluginProcessor : public AudioProcessor
     , public pd::Instance
-    , public AudioProcessorParameter::Listener {
+{
 public:
     PluginProcessor();
 
@@ -66,9 +66,6 @@ public:
     void receivePolyAftertouch(int const channel, int const pitch, int const value) override;
     void receiveMidiByte(int const port, int const byte) override;
 
-    void parameterValueChanged(int parameterIndex, float newValue) override;
-    void parameterGestureChanged(int parameterIndex, bool gestureIsStarting) override;
-
     void receiveDSPState(bool dsp) override;
     void updateDrawables() override;
 
@@ -105,6 +102,7 @@ public:
 
     void sendMidiBuffer();
     void sendPlayhead();
+    void sendParameters();
 
     void messageEnqueued() override;
     void performParameterChange(int type, String name, float value) override;
