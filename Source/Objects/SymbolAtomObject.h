@@ -149,6 +149,7 @@ public:
     void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
     {
         switch (hash(symbol)) {
+        case objectMessage::msg_set:
         case objectMessage::msg_symbol: {
             input.setText(atoms[0].getSymbol(), dontSendNotification);
             break;
