@@ -817,7 +817,7 @@ AudioProcessorEditor* PluginProcessor::createEditor()
 
 void PluginProcessor::getStateInformation(MemoryBlock& destData)
 {
-    lockAudioThread();
+    suspendProcessing(true);
 
     setThis();
     
@@ -854,7 +854,7 @@ void PluginProcessor::getStateInformation(MemoryBlock& destData)
         ostream.writeInt(lastUIHeight);
     }
 
-    unlockAudioThread();
+    suspendProcessing(false);
 }
 
 void PluginProcessor::setStateInformation(void const* data, int sizeInBytes)
@@ -941,10 +941,10 @@ void PluginProcessor::setStateInformation(void const* data, int sizeInBytes)
         
         setLatencySamples(latency);
         setOversampling(oversampling);
-        suspendProcessing(false);
-        
         delete[] xmlData;
     }
+    
+    suspendProcessing(false);
 
     if (auto* editor = dynamic_cast<PluginEditor*>(getActiveEditor())) {
         editor->sidebar.updateAutomationParameters();
