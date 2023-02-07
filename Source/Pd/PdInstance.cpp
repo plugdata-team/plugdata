@@ -261,22 +261,27 @@ void Instance::loadLibs(String& pdlua_version)
     
     static bool initialised = false;
     if(!initialised) {
+        
+        File homeDir = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory).getChildFile("plugdata");
+        auto library = homeDir.getChildFile("Library");
+        auto extra = library.getChildFile("Extra");
+        
         set_class_prefix(gensym("else"));
         libpd_init_else();
         set_class_prefix(gensym("cyclone"));
         libpd_init_cyclone();
-        set_class_prefix(nullptr);
         
+        set_class_prefix(gensym("pdlua"));
+        char vers[1000];
+        *vers = 0;
+        libpd_init_pdlua(extra.getFullPathName().getCharPointer(), vers, 1000);
+        if (*vers)
+            pdlua_version = vers;
+        
+        set_class_prefix(nullptr);
         initialised = true;
     }
-    File homeDir = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory).getChildFile("plugdata");
-    auto library = homeDir.getChildFile("Library");
-    auto extra = library.getChildFile("Extra");
-    char vers[1000];
-    *vers = 0;
-    libpd_init_pdlua(extra.getFullPathName().getCharPointer(), vers, 1000);
-    if (*vers)
-        pdlua_version = vers;
+    
     // ag: need to do this here to suppress noise from chatty externals
     m_print_receiver = libpd_multi_print_new(this, reinterpret_cast<t_libpd_multi_printhook>(internal::instance_multi_print));
     libpd_set_verbose(0);
