@@ -200,19 +200,19 @@ public:
     void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
     {
         switch (hash(symbol)) {
-        case objectMessage::msg_float:
-        case objectMessage::msg_symbol:
-        case objectMessage::msg_list:
-        case objectMessage::msg_set: {
+        case hash("float"):
+        case hash("symbol"):
+        case hash("list"):
+        case hash("set"): {
             updateValue();
             break;
         }
-        case objectMessage::msg_send: {
+        case hash("send"): {
             if (atoms.size() >= 1)
                 setParameterExcludingListener(atomHelper.sendSymbol, atoms[0].getSymbol());
             break;
         }
-        case objectMessage::msg_receive: {
+        case hash("receive"): {
             if (atoms.size() >= 1)
                 setParameterExcludingListener(atomHelper.receiveSymbol, atoms[0].getSymbol());
             break;

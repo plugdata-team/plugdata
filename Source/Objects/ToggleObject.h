@@ -133,18 +133,18 @@ public:
     void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
     {
         switch (hash(symbol)) {
-        case objectMessage::msg_bang: {
+        case hash("bang"): {
             value = !value;
             setToggleStateFromFloat(value);
             break;
         }
-        case objectMessage::msg_float:
-        case objectMessage::msg_set: {
+        case hash("float"):
+        case hash("set"): {
             value = atoms[0].getFloat();
             setToggleStateFromFloat(value);
             break;
         }
-        case objectMessage::msg_nonzero: {
+        case hash("nonzero"): {
             if (atoms.size() >= 1)
                 setParameterExcludingListener(nonZero, atoms[0].getFloat());
             break;

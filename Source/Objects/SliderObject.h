@@ -112,23 +112,23 @@ public:
     void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
     {
         switch (hash(symbol)) {
-        case objectMessage::msg_float:
-        case objectMessage::msg_set: {
+        case hash("float"):
+        case hash("set"): {
             value = atoms[0].getFloat();
             slider.setValue(value, dontSendNotification);
             break;
         }
-        case objectMessage::msg_lin: {
+        case hash("lin"): {
             setParameterExcludingListener(isLogarithmic, false);
             updateRange();
             break;
         }
-        case objectMessage::msg_log: {
+        case hash("log"): {
             setParameterExcludingListener(isLogarithmic, true);
             updateRange();
             break;
         }
-        case objectMessage::msg_range: {
+        case hash("range"): {
             if (atoms.size() >= 2) {
                 setParameterExcludingListener(min, atoms[0].getFloat());
                 setParameterExcludingListener(max, atoms[1].getFloat());
@@ -136,7 +136,7 @@ public:
             }
             break;
         }
-        case objectMessage::msg_steady: {
+        case hash("steady"): {
             if (atoms.size() >= 1) {
                 bool steady = atoms[0].getFloat();
                 setParameterExcludingListener(steadyOnClick, steady);

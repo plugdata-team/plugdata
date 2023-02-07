@@ -460,20 +460,31 @@ void Instance::processMessage(Message mess)
 
 void Instance::processMidiEvent(midievent event)
 {
-    if (event.type == midievent::NOTEON)
+    switch(event.type) {
+    case midievent::NOTEON:
         receiveNoteOn(event.midi1 + 1, event.midi2, event.midi3);
-    else if (event.type == midievent::CONTROLCHANGE)
+        break;
+    case midievent::CONTROLCHANGE:
         receiveControlChange(event.midi1 + 1, event.midi2, event.midi3);
-    else if (event.type == midievent::PROGRAMCHANGE)
+        break;
+    case midievent::PROGRAMCHANGE:
         receiveProgramChange(event.midi1 + 1, event.midi2);
-    else if (event.type == midievent::PITCHBEND)
+        break;
+    case midievent::PITCHBEND:
         receivePitchBend(event.midi1 + 1, event.midi2);
-    else if (event.type == midievent::AFTERTOUCH)
+        break;
+    case midievent::AFTERTOUCH:
         receiveAftertouch(event.midi1 + 1, event.midi2);
-    else if (event.type == midievent::POLYAFTERTOUCH)
+        break;
+    case midievent::POLYAFTERTOUCH:
         receivePolyAftertouch(event.midi1 + 1, event.midi2, event.midi3);
-    else if (event.type == midievent::MIDIBYTE)
+        break;
+    case midievent::MIDIBYTE:
         receiveMidiByte(event.midi1, event.midi2);
+        break;
+    default:
+        break;
+    }
 }
 
 void Instance::processSend(dmessage mess)

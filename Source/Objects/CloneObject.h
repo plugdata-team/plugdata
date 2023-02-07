@@ -91,7 +91,7 @@ public:
     void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
     {
         switch (hash(symbol)) {
-        case objectMessage::msg_vis: {
+        case hash("vis"): {
             if (atoms.size() > 2) {
                 // TODO: implement this!
             }
