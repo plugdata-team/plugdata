@@ -10,7 +10,7 @@
 
 #include "PluginProcessor.h"
 #include "Sidebar/Sidebar.h"
-#include "ObjectMessageEnum.h"
+#include "Utility/HashUtils.h"
 
 class Canvas;
 

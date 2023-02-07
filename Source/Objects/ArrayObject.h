@@ -674,9 +674,9 @@ public:
     void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
     {
         switch (hash(symbol)) {
-        case objectMessage::msg_float:
-        case objectMessage::msg_symbol:
-        case objectMessage::msg_list: {
+        case hash("float"):
+        case hash("symbol"):
+        case hash("list"): {
             break;
         }
             /*

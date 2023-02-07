@@ -183,7 +183,7 @@ public:
     void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
     {
         switch (hash(symbol)) {
-        case objectMessage::msg_color: {
+        case hash("color"): {
             repaint();
             break;
         }

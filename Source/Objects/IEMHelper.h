@@ -108,17 +108,17 @@ public:
             }
         };
         switch (hash(symbol)) {
-        case objectMessage::msg_send: {
+        case hash("send"): {
             if (atoms.size() >= 1)
                 gui->setParameterExcludingListener(sendSymbol, atoms[0].getSymbol());
             break;
         }
-        case objectMessage::msg_receive: {
+        case hash("receive"): {
             if (atoms.size() >= 1)
                 gui->setParameterExcludingListener(receiveSymbol, atoms[0].getSymbol());
             break;
         }
-        case objectMessage::msg_color: {
+        case hash("color"): {
             if (atoms.size() > 0)
                 setColour(secondaryColour, atoms[0]);
             if (atoms.size() > 1)
@@ -129,14 +129,14 @@ public:
             gui->updateLabel();
             break;
         }
-        case objectMessage::msg_label: {
+        case hash("label"): {
             if (atoms.size() >= 1) {
                 gui->setParameterExcludingListener(labelText, atoms[0].getSymbol());
                 gui->updateLabel();
             }
             break;
         }
-        case objectMessage::msg_label_pos: {
+        case hash("label_pos"): {
             if (atoms.size() >= 2) {
                 gui->setParameterExcludingListener(labelX, static_cast<int>(atoms[0].getFloat()));
                 gui->setParameterExcludingListener(labelY, static_cast<int>(atoms[1].getFloat()));
@@ -144,14 +144,14 @@ public:
             }
             break;
         }
-        case objectMessage::msg_label_font: {
+        case hash("label_font"): {
             if (atoms.size() >= 2) {
                 gui->setParameterExcludingListener(labelHeight, static_cast<int>(atoms[1].getFloat()));
                 gui->updateLabel();
             }
             break;
         }
-        case objectMessage::msg_vis_size: {
+        case hash("vis_size"): {
             if (atoms.size() >= 2) {
                 pd->lockAudioThread();
                 auto bounds = Rectangle<int>(iemgui->x_obj.te_xpix, iemgui->x_obj.te_ypix, atoms[0].getFloat(), atoms[1].getFloat());
@@ -161,7 +161,7 @@ public:
             }
             break;
         }
-        case objectMessage::msg_init: {
+        case hash("init"): {
             if (atoms.size() >= 1)
                 gui->setParameterExcludingListener(initialise, static_cast<bool>(atoms[0].getFloat()));
             break;

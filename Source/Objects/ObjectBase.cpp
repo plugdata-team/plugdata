@@ -150,23 +150,26 @@ String ObjectBase::getType() const
             return String::fromUTF8(namebuf).fromLastOccurrenceOf("/", false, false);
         }
         // Deal with different text objects
-        if (String::fromUTF8(libpd_get_object_class_name(ptr)) == "text" && static_cast<t_text*>(ptr)->te_type == T_OBJECT) {
-            return String("invalid");
-        }
-        if (String::fromUTF8(libpd_get_object_class_name(ptr)) == "text" && static_cast<t_text*>(ptr)->te_type == T_TEXT) {
-            return String("comment");
-        }
-        if (String::fromUTF8(libpd_get_object_class_name(ptr)) == "text" && static_cast<t_text*>(ptr)->te_type == T_MESSAGE) {
-            return String("message");
-        }
+        switch(hash(libpd_get_object_class_name(ptr))) {
+        case hash("text"):
+            if (static_cast<t_text*>(ptr)->te_type == T_OBJECT)
+                return String("invalid");
+            if (static_cast<t_text*>(ptr)->te_type == T_TEXT)
+                return String("comment");
+            if (static_cast<t_text*>(ptr)->te_type == T_MESSAGE)
+                return String("message");
+            break;
         // Deal with atoms
-        if (String::fromUTF8(libpd_get_object_class_name(ptr)) == "gatom") {
+        case hash("gatom"):
             if (static_cast<t_fake_gatom*>(ptr)->a_flavor == A_FLOAT)
                 return "floatbox";
-            else if (static_cast<t_fake_gatom*>(ptr)->a_flavor == A_SYMBOL)
+            if (static_cast<t_fake_gatom*>(ptr)->a_flavor == A_SYMBOL)
                 return "symbolbox";
-            else if (static_cast<t_fake_gatom*>(ptr)->a_flavor == A_NULL)
+            if (static_cast<t_fake_gatom*>(ptr)->a_flavor == A_NULL)
                 return "listbox";
+            break;
+        default:
+            break;
         }
         // Get class name for all other objects
         if (auto* name = libpd_get_object_class_name(ptr)) {
@@ -450,9 +453,10 @@ ObjectBase* ObjectBase::createGui(void* ptr, Object* parent)
         case hash("canvas.edit"):
             return new CanvasEditObject(ptr, parent);
         default:
-            return new TextObject(ptr, parent);
+            break;
         }
     }
+    return new TextObject(ptr, parent);
 }
 
 bool ObjectBase::canOpenFromMenu()
@@ -498,9 +502,16 @@ void ObjectBase::receiveMessage(String const& symbol, int argc, t_atom* argv)
         if (!_this || _this->cnv->patch.objectWasDeleted(_this->ptr))
             return;
 
-        if (symbol == "size" || symbol == "delta" || symbol == "pos" || symbol == "dim" || symbol == "width" || symbol == "height") {
+        switch(hash(symbol)) {
+        case hash("size"):
+        case hash("delta"):
+        case hash("pos"):
+        case hash("dim"):
+        case hash("width"):
+        case hash("height"):
             _this->updateBounds();
-        } else {
+            break;
+        default:
             _this->receiveObjectMessage(symbol, atoms);
         }
     });

@@ -181,12 +181,12 @@ public:
     void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
     {
         switch (hash(symbol)) {
-        case objectMessage::msg_float:
-        case objectMessage::msg_bang:
-        case objectMessage::msg_list:
+        case hash("float"):
+        case hash("bang"):
+        case hash("list"):
             update();
             break;
-        case objectMessage::msg_flashtime: {
+        case hash("flashtime"): {
             if (atoms.size() > 0)
                 setParameterExcludingListener(bangInterrupt, atoms[0].getFloat());
             if (atoms.size() > 1)
