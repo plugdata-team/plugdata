@@ -617,7 +617,7 @@ void Object::mouseDown(MouseEvent const& e)
         // Tell pd about new position
         cnv->pd->enqueueFunction(
             [_this = SafePointer(this)]() {
-                if ((!_this || !_this->gui) && !_this->cnv->patch.objectWasDeleted(_this->gui->ptr)) {
+                if (!_this || !_this->gui || _this->cnv->patch.objectWasDeleted(_this->gui->ptr)) {
                     return;
                 }
 
@@ -803,10 +803,11 @@ void Object::openNewObjectEditor()
             MessageManager::callAsync([_this = SafePointer(this)]() {
                 if (!_this)
                     return;
-                _this->cnv->hideSuggestions();
-                _this->cnv->objects.removeObject(_this.getComponent());
-                _this->cnv->lastSelectedObject = nullptr;
-                _this->cnv->lastSelectedConnection = nullptr;
+                 auto* cnv = _this->cnv; // Copy pointer because _this will get deleted
+                cnv->hideSuggestions();
+                cnv->objects.removeObject(_this.getComponent());
+                cnv->lastSelectedObject = nullptr;
+                cnv->lastSelectedConnection = nullptr;
             });
         };
 
