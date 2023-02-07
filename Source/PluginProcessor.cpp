@@ -242,9 +242,13 @@ void PluginProcessor::updateSearchPaths()
     setThis();
 
     lockAudioThread();
-
-    libpd_clear_search_path();
-
+    
+    // Get pd's search paths
+    char* paths[1024];
+    int numItems;
+    libpd_get_search_paths(paths, &numItems);
+    auto currentPaths = StringArray(paths, numItems);
+    
     auto paths = pd::Library::defaultPaths;
 
     for (auto child : pathTree) {
@@ -253,10 +257,12 @@ void PluginProcessor::updateSearchPaths()
     }
 
     for (auto path : paths) {
+        if(currentPaths.contains(path)) continue;
         libpd_add_to_search_path(path.getFullPathName().toRawUTF8());
     }
 
     for (auto path : DekenInterface::getExternalPaths()) {
+        if(currentPaths.contains(path)) continue;
         libpd_add_to_search_path(path.replace("\\", "/").toRawUTF8());
     }
 
@@ -870,12 +876,15 @@ void PluginProcessor::setStateInformation(void const* data, int sizeInBytes)
     
     // Close any opened patches
     if (auto* editor = dynamic_cast<PluginEditor*>(getActiveEditor())) {
-        const MessageManagerLock mmLock;
-        editor->tabbar.clearTabs();
-        editor->canvases.clear();
+        MessageManager::callAsync([editor = Component::SafePointer(editor)](){
+            if(!editor) return;
+            editor->tabbar.clearTabs();
+            editor->canvases.clear();
+        });
     }
     
     suspendProcessing(true);
+    setThis();
     
     for (auto& patch : patches)
         patch->close();
@@ -887,18 +896,17 @@ void PluginProcessor::setStateInformation(void const* data, int sizeInBytes)
         auto state = istream.readString();
         auto location = File(istream.readString());
         
-        auto parentPath = location.getParentDirectory().getFullPathName();
+        if (location.getParentDirectory().exists()) {
+            auto parentPath = location.getParentDirectory().getFullPathName();
+            // Add patch path to search path to make sure it finds abstractions in the saved patch!
+            libpd_add_to_search_path(parentPath.toRawUTF8());
+        }
         
         auto* patch = loadPatch(state);
         
         if ((location.exists() && location.getParentDirectory() == File::getSpecialLocation(File::tempDirectory)) || !location.exists()) {
             patch->setTitle("Untitled Patcher");
         } else if (location.existsAsFile()) {
-            
-            // Add patch path to search path to make sure it finds abstractions in the saved patch!
-            setThis();
-            libpd_add_to_search_path(parentPath.toRawUTF8());
-            
             patch->setCurrentFile(location);
             patch->setTitle(location.getFileName());
         }
@@ -934,7 +942,10 @@ void PluginProcessor::setStateInformation(void const* data, int sizeInBytes)
             lastUIWidth = windowWidth;
             lastUIHeight = windowHeight;
             if (auto* editor = getActiveEditor()) {
-                editor->setSize(lastUIWidth, lastUIHeight);
+                MessageManager::callAsync([editor = Component::SafePointer(editor), windowWidth, windowHeight](){
+                    if(!editor) return;
+                    editor->setSize(windowWidth, windowHeight);
+                });
             }
         }
     }
@@ -947,7 +958,12 @@ void PluginProcessor::setStateInformation(void const* data, int sizeInBytes)
     suspendProcessing(false);
     
     if (auto* editor = dynamic_cast<PluginEditor*>(getActiveEditor())) {
-        editor->sidebar.updateAutomationParameters();
+        MessageManager::callAsync([editor = Component::SafePointer(editor)](){
+            if(!editor) return;
+            editor->sidebar.updateAutomationParameters();
+            
+        });
+        
     }
 }
 
@@ -1238,7 +1254,9 @@ void PluginProcessor::titleChanged()
 {
     if (auto* editor = dynamic_cast<PluginEditor*>(getActiveEditor())) {
         for (int n = 0; n < editor->tabbar.getNumTabs(); n++) {
-            editor->tabbar.setTabName(n, editor->getCanvas(n)->patch.getTitle());
+            auto* cnv = editor->getCanvas(n);
+            if(!cnv) return;
+            editor->tabbar.setTabName(n, cnv->patch.getTitle());
         }
     }
 }
