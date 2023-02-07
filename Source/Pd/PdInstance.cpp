@@ -19,7 +19,7 @@ extern "C" {
 #include "z_print_util.h"
 
 int sys_load_lib(t_canvas* canvas, char const* classname);
-void set_class_loadsym(t_symbol* dir);
+void set_class_prefix(t_symbol* dir);
 
 struct pd::Instance::internal {
 
@@ -261,11 +261,11 @@ void Instance::loadLibs(String& pdlua_version)
     
     static bool initialised = false;
     if(!initialised) {
-        set_class_loadsym(gensym("else"));
+        set_class_prefix(gensym("else"));
         libpd_init_else();
-        set_class_loadsym(gensym("cyclone"));
+        set_class_prefix(gensym("cyclone"));
         libpd_init_cyclone();
-        set_class_loadsym(nullptr);
+        set_class_prefix(nullptr);
         
         initialised = true;
     }
