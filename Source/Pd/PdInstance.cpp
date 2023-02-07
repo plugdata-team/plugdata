@@ -180,65 +180,6 @@ Instance::Instance(String const& symbol)
 
     register_gui_triggers(static_cast<t_pdinstance*>(m_instance), this, gui_trigger, message_trigger);
 
-    // HACK: create full path names for c-coded externals
-    // Temporarily disabled because bugs
-    /*
-    int i;
-    t_class* o = pd_objectmaker;
-
-    t_methodentry *mlist, *m;
-
-#if PDINSTANCE
-    mlist = o->c_methods[pd_this->pd_instanceno];
-#else
-    mlist = o->c_methods;
-#endif
-
-    bool insideElse = false;
-    bool insideCyclone = false;
-
-    std::vector<std::tuple<String, t_newmethod, std::array<t_atomtype, 6>>> newMethods;
-
-    // First find all the objects that need a full path and put them in a list
-    // Adding new entries while iterating over them is a bad idea
-    for (i = o->c_nmethod, m = mlist; i--; m++) {
-        String name(m->me_name->s_name);
-
-        if (name == "accum") {
-            insideCyclone = true;
-        }
-        if (name == "above~") {
-            insideElse = true;
-        }
-
-        if ((insideCyclone || insideElse) && !(name.contains("cyclone") || name.contains("else") || name == "Pow~" || name == "del~")) {
-            auto newName = insideCyclone ? "cyclone/" + name : "else/" + name;
-
-            std::array<t_atomtype, 6> args;
-            for (int n = 0; n < 6; n++) {
-                args[n] = static_cast<t_atomtype>(m->me_arg[n]);
-            }
-
-            auto* method = reinterpret_cast<t_newmethod>(m->me_fun);
-
-            newMethods.push_back({ newName, method, args });
-        }
-        if (name == "zerox~") {
-            insideCyclone = false;
-        }
-        if (name == "zerocross~") {
-            insideElse = false;
-        }
-    }
-
-    // Then create aliases for all these objects
-    // We seperate this process in two parts because adding new objects while looping through objects causes problems
-    for (auto [name, method, args] : newMethods) {
-        class_addcreator(method, pd->generateSymbol(name)), args[0], args[1], args[2], args[3], args[4], args[5]);
-    }
-
-     */
-
     setThis();
 }
 
@@ -270,15 +211,15 @@ void Instance::loadLibs(String& pdlua_version)
         libpd_init_else();
         set_class_prefix(gensym("cyclone"));
         libpd_init_cyclone();
+        set_class_prefix(nullptr);
         
-        set_class_prefix(gensym("pdlua"));
+        // Class prefix doesn't seem to work for pdlua
         char vers[1000];
         *vers = 0;
         libpd_init_pdlua(extra.getFullPathName().getCharPointer(), vers, 1000);
         if (*vers)
             pdlua_version = vers;
         
-        set_class_prefix(nullptr);
         initialised = true;
     }
     
