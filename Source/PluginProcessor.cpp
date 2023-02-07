@@ -899,6 +899,7 @@ void PluginProcessor::setStateInformation(void const* data, int sizeInBytes)
         if (location.getParentDirectory().exists()) {
             auto parentPath = location.getParentDirectory().getFullPathName();
             // Add patch path to search path to make sure it finds abstractions in the saved patch!
+            // TODO: is there any way to make this local the the canvas?
             libpd_add_to_search_path(parentPath.toRawUTF8());
         }
         

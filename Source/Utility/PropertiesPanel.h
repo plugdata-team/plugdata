@@ -164,7 +164,7 @@ public:
 
     struct BoolComponent : public Property {
         BoolComponent(String const& propertyName, Value& value, std::vector<String> options)
-            : Property(propertyName), textOptions(options)
+            : Property(propertyName), textOptions(options), toggleStateValue(value)
         {
         }
 
