@@ -91,8 +91,6 @@ public:
     static inline constexpr int doubleMargin = margin * 2;
     static inline constexpr int height = 37;
 
-    Point<int> mouseDownPos;
-
     bool attachedToMouse = false;
     bool isSearchTarget = false;
 

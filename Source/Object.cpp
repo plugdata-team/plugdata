@@ -640,11 +640,6 @@ void Object::mouseDown(MouseEvent const& e)
 
     wasLockedOnMouseDown = false;
 
-    if (resizeZone.getZoneFlags() != ResizableBorderComponent::Zone::centre) {
-        originalBounds = getBounds();
-        return;
-    }
-
     bool wasSelected = cnv->isSelected(this);
 
     cnv->objectMouseDown(this, e);
@@ -667,29 +662,37 @@ void Object::mouseUp(MouseEvent const& e)
     if (!originalBounds.isEmpty() && originalBounds.withPosition(0, 0) != getLocalBounds()) {
         originalBounds.setBounds(0, 0, 0, 0);
 
+        
+        Array<SafePointer<Object>> objectsToCheck;
+        for(auto* obj : cnv->getSelectionOfType<Object>()) objectsToCheck.add(obj);
+        
+        cnv->grid.handleMouseUp(e.getOffsetFromDragStart());
+        
         cnv->pd->enqueueFunction(
-            [_this = SafePointer<Object>(this), e]() mutable {
-                if (!_this || !_this->gui)
-                    return;
-
-                auto* obj = static_cast<t_gobj*>(_this->getPointer());
-                auto* cnv = _this->cnv;
-
-                if (cnv->patch.objectWasDeleted(obj))
-                    return;
-
-                // Used for size changes, could also be used for properties
-                libpd_undo_apply(cnv->patch.getPointer(), obj);
-
-                _this->gui->applyBounds();
-
-                // To make sure it happens after setting object bounds
-                // TODO: do we need this??
-                if (!cnv->viewport->getViewArea().contains(_this->getBounds())) {
-                    MessageManager::callAsync([_this]() {
-                        if (_this)
-                            _this->cnv->checkBounds();
-                    });
+            [objectsToCheck]() mutable {
+                
+                for(auto object : objectsToCheck) {
+                    if(!object || !object->gui) return;
+                    
+                    auto* obj = static_cast<t_gobj*>(object->getPointer());
+                    auto* cnv = object->cnv;
+                    
+                    if (cnv->patch.objectWasDeleted(obj))
+                        return;
+                    
+                    // Used for size changes, could also be used for properties
+                    libpd_undo_apply(cnv->patch.getPointer(), obj);
+                    
+                    object->gui->applyBounds();
+                    
+                    // To make sure it happens after setting object bounds
+                    // TODO: do we need this??
+                    if (!cnv->viewport->getViewArea().contains(object->getBounds())) {
+                        MessageManager::callAsync([object]() {
+                            if (object)
+                                object->cnv->checkBounds();
+                        });
+                    }
                 }
             });
     } else {
@@ -711,19 +714,28 @@ void Object::mouseDrag(MouseEvent const& e)
     cnv->cancelConnectionCreation();
 
     // Let canvas handle moving
-    if (resizeZone.getZoneFlags() == ResizableBorderComponent::Zone::centre) {
+    if (resizeZone.isDraggingWholeObject()) {
         cnv->objectMouseDrag(e);
     } else if (validResizeZone && !originalBounds.isEmpty()) {
-        Rectangle<int> const newBounds(resizeZone.resizeRectangleBy(originalBounds, e.getOffsetFromDragStart()));
+        
+        auto dragDistance = cnv->grid.handleMouseDrag(this, e.getOffsetFromDragStart(), cnv->viewport->getViewArea());
+        
+        auto toResize = e.mods.isShiftDown() ? cnv->getSelectionOfType<Object>() : Array<Object*>{this};
+        
+        for(auto* obj : toResize) {
+            auto const newBounds = resizeZone.resizeRectangleBy(obj->originalBounds, dragDistance);
+            
+            bool useConstrainer = obj->gui && !obj->gui->checkBounds(obj->originalBounds - cnv->canvasOrigin, newBounds - cnv->canvasOrigin, resizeZone.isDraggingLeftEdge());
 
-        bool useConstrainer = gui && !gui->checkBounds(originalBounds - cnv->canvasOrigin, newBounds - cnv->canvasOrigin, resizeZone.isDraggingLeftEdge());
-
-        if (useConstrainer) {
-            constrainer->setBoundsForComponent(this, newBounds, resizeZone.isDraggingTopEdge(),
-                resizeZone.isDraggingLeftEdge(),
-                resizeZone.isDraggingBottomEdge(),
-                resizeZone.isDraggingRightEdge());
+            if (useConstrainer) {
+                obj->constrainer->setBoundsForComponent(obj, newBounds, resizeZone.isDraggingTopEdge(),
+                    resizeZone.isDraggingLeftEdge(),
+                    resizeZone.isDraggingBottomEdge(),
+                    resizeZone.isDraggingRightEdge());
+            }
         }
+        
+        
     }
 }
 

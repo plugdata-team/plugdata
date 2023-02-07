@@ -169,6 +169,13 @@ PluginProcessor::PluginProcessor()
 #endif
 }
 
+PluginProcessor::~PluginProcessor()
+{
+    for(auto* patch : patches) patch->close();
+    
+    patches.clear();
+}
+
 void PluginProcessor::initialiseFilesystem()
 {
     auto library = homeDir.getChildFile("Library");

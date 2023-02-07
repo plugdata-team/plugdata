@@ -407,7 +407,7 @@ void Canvas::mouseUp(MouseEvent const& e)
     lasso.endLasso();
     isDraggingLasso = false;
     for (auto* object : objects)
-        object->mouseDownPos = { 0, 0 };
+        object->originalBounds = Rectangle<int>(0, 0, 0, 0);
 
     wasDragDuplicated = false;
     mouseDownObjectPositions.clear();
@@ -1082,10 +1082,8 @@ void Canvas::objectMouseDown(Object* component, MouseEvent const& e)
         componentBeingDragged = object;
     }
     
-    
-
     for (auto* object : getSelectionOfType<Object>()) {
-        object->mouseDownPos = object->getPosition();
+        object->originalBounds = object->getBounds();
         object->setBufferedToImage(true);
     }
 
@@ -1238,7 +1236,7 @@ void Canvas::objectMouseDrag(MouseEvent const& e)
             }
         } else {
             for (auto* object : selection) {
-                object->setTopLeftPosition(object->mouseDownPos + dragDistance + canvasMoveOffset);
+                object->setTopLeftPosition(object->originalBounds.getPosition() + dragDistance + canvasMoveOffset);
             }
         }
     }
