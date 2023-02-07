@@ -22,7 +22,6 @@ public:
         , atomHelper(obj, parent, this)
         , input(false)
     {
-
         value = getValue();
 
         input.onEditorShow = [this]() {
@@ -79,6 +78,14 @@ public:
     void focusOfChildComponentChanged(FocusChangeType cause) override
     {
         repaint();
+    }
+    
+    bool hideInlets() override {
+        return atomHelper.hasReceiveSymbol();
+    }
+    
+    bool hideOutlets() override {
+        return atomHelper.hasSendSymbol();
     }
     
     void lookAndFeelChanged() override {

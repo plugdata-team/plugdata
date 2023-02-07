@@ -536,7 +536,7 @@ void Object::updateIolets()
     int oldNumInputs = 0;
     int oldNumOutputs = 0;
 
-    for (auto& iolet : iolets) {
+    for (auto* iolet : iolets) {
         iolet->isInlet ? oldNumInputs++ : oldNumOutputs++;
     }
 
@@ -547,6 +547,26 @@ void Object::updateIolets()
         numInputs = libpd_ninlets(ptr);
         numOutputs = libpd_noutlets(ptr);
     }
+    
+    // Clear connections to iolets that are about to be hidden
+    if(gui && gui->hideInlets())  {
+        for (auto* iolet : iolets) {
+            if(iolet->isInlet) {
+                iolet->clearConnections();
+            }
+        }
+        numInputs = 0;
+    }
+    
+    if(gui && gui->hideOutlets())  {
+        for (auto* iolet : iolets) {
+            if(!iolet->isInlet) {
+                iolet->clearConnections();
+            }
+        }
+        numOutputs = 0;
+    }
+
 
     while (numInputs < oldNumInputs)
         iolets.remove(--oldNumInputs);
@@ -742,13 +762,10 @@ void Object::hideEditor()
 Array<Connection*> Object::getConnections() const
 {
     Array<Connection*> result;
-    for (auto* con : cnv->connections) {
-        for (auto* iolet : iolets) {
-            if (con->inlet == iolet || con->outlet == iolet) {
-                result.add(con);
-            }
-        }
+    for (auto* iolet : iolets) {
+        result.addArray(iolet->getConnections());
     }
+    
     return result;
 }
 
