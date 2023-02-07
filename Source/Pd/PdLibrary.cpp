@@ -266,9 +266,12 @@ void Library::updateLibrary()
         allObjects.clear();
 
         for (i = o->c_nmethod, m = mlist; i--; m++) {
-            String name(m->me_name->s_name);
-            searchTree->insert(m->me_name->s_name);
-            allObjects.add(m->me_name->s_name);
+            
+            auto newName = String(m->me_name->s_name);
+            if(!(newName.startsWith("else/") || newName.startsWith("cyclone/"))) {
+                allObjects.add(newName);
+                searchTree->insert(m->me_name->s_name);
+            }
         }
 
         searchTree->insert("graph");
