@@ -164,8 +164,9 @@ public:
 
     struct BoolComponent : public Property {
         BoolComponent(String const& propertyName, Value& value, std::vector<String> options)
-            : Property(propertyName), textOptions(options), toggleStateValue(value)
+            : Property(propertyName), textOptions(options)
         {
+            toggleStateValue.referTo(value);
         }
 
         void paint(Graphics& g) override
