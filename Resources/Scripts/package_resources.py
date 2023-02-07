@@ -143,7 +143,7 @@ changeWorkingDir("./..")
 makeArchive("Filesystem", "./", "./plugdata_version")
 removeDir("./plugdata_version")
 
-splitFile("./Fonts/InterUnicode.ttf", 3)
+splitFile("./Fonts/InterUnicode.ttf", 12)
 
-splitFile("./Filesystem.zip", 3)
+splitFile("./Filesystem.zip", 12)
 removeFile("./Filesystem.zip")

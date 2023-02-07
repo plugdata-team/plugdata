@@ -306,18 +306,14 @@ endif()
 
 file(GLOB PlugDataBinaryDataSources
     ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Fonts/IconFont.ttf
-    ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Fonts/InterUnicode_0.ttf
-    ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Fonts/InterUnicode_1.ttf
-    ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Fonts/InterUnicode_2.ttf
+    ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Fonts/InterUnicode_*.ttf
     ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Fonts/InterBold.ttf
     ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Fonts/InterSemiBold.ttf
     ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Fonts/InterThin.ttf
     ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Fonts/IBMPlexMono.ttf
     ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Fonts/GoNotoCurrent.ttf
     ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Icons/plugdata_logo.png
-    ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Filesystem_0.zip
-    ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Filesystem_1.zip
-    ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Filesystem_2.zip
+    ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Filesystem_*.zip
     )
 
 file(GLOB StandaloneBinarySources
