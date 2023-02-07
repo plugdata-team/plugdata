@@ -99,8 +99,8 @@ public:
 
     void resized() override
     {
-        static_cast<t_fake_function*>(ptr)->x_vis_w = getWidth();
-        static_cast<t_fake_function*>(ptr)->x_vis_h = getHeight();
+        static_cast<t_fake_function*>(ptr)->x_width = getWidth();
+        static_cast<t_fake_function*>(ptr)->x_height = getHeight();
     }
 
     Array<Point<float>> getRealPoints()
