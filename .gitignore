@@ -1,3 +1,9 @@
 *build
 *Plugins
 .DS_Store
+
+.vscode/
+.cache/
+
+Resources/Fonts/InterUnicode_*.ttf
+Resources/Filesystem_*.zip
