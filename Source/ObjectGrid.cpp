@@ -108,15 +108,15 @@ void ObjectGrid::clear(bool horizontal)
     updateMarker();
 }
 
-Point<int> ObjectGrid::handleMouseDrag(Object* toDrag, Point<int> dragOffset, Rectangle<int> viewBounds)
+Point<int> ObjectGrid::handleMouseDrag(Object* toDrag, Point<int> dragOffset, Rectangle<int> viewBounds, Rectangle<int> newResizeBounds)
 {
     gridLines[0].setStrokeFill(FillType(toDrag->findColour(PlugDataColour::gridLineColourId)));
     gridLines[1].setStrokeFill(FillType(toDrag->findColour(PlugDataColour::gridLineColourId)));
 
     if (gridEnabled == 1) {
         // Check for snap points on both axes
-        dragOffset = performVerticalSnap(toDrag, dragOffset, viewBounds);
-        dragOffset = performHorizontalSnap(toDrag, dragOffset, viewBounds);
+        dragOffset = performVerticalSnap(toDrag, dragOffset, viewBounds, newResizeBounds.reduced(Object::margin));
+        dragOffset = performHorizontalSnap(toDrag, dragOffset, viewBounds, newResizeBounds.reduced(Object::margin));
 
         // Update grid line when snapped
         // Async to make sure the objects position gets updated first...
@@ -130,7 +130,7 @@ Point<int> ObjectGrid::handleMouseDrag(Object* toDrag, Point<int> dragOffset, Re
     return dragOffset;
 }
 
-Point<int> ObjectGrid::performVerticalSnap(Object* toDrag, Point<int> dragOffset, Rectangle<int> viewBounds)
+Point<int> ObjectGrid::performVerticalSnap(Object* toDrag, Point<int> dragOffset, Rectangle<int> viewBounds, Rectangle<int> newResizeBounds)
 {
     auto* cnv = toDrag->cnv;
 
@@ -142,6 +142,11 @@ Point<int> ObjectGrid::performVerticalSnap(Object* toDrag, Point<int> dragOffset
 
         return { dragOffset.x, position[0].y };
     }
+    
+    bool isDragging = toDrag->resizeZone.isDraggingWholeObject();
+    bool topResize = toDrag->resizeZone.isDraggingTopEdge();
+    bool bottomResize = toDrag->resizeZone.isDraggingBottomEdge();
+    auto b2 = isDragging ? (toDrag->originalBounds + dragOffset).reduced(Object::margin) : newResizeBounds;
 
     for (auto* object : cnv->objects) {
         if (cnv->isSelected(object))
@@ -151,20 +156,19 @@ Point<int> ObjectGrid::performVerticalSnap(Object* toDrag, Point<int> dragOffset
             continue; // if the object is out of viewport bounds
 
         auto b1 = object->getBounds().reduced(Object::margin);
-        auto b2 = (toDrag->originalBounds + dragOffset).reduced(Object::margin);
 
         start[0] = object;
         end[0] = toDrag;
 
-        if (trySnap(b1.getY() - b2.getY())) {
+        if ((isDragging || topResize) && trySnap(b1.getY() - b2.getY())) {
             orientation[0] = SnappedLeft;
             return setState(true, totalSnaps, Point<int>(0, b1.getY() - b2.getY()) + dragOffset, object, toDrag, false);
         }
-        if (trySnap(b1.getCentreY() - b2.getCentreY())) {
+        if (isDragging && trySnap(b1.getCentreY() - b2.getCentreY())) {
             orientation[0] = SnappedCentre;
             return setState(true, totalSnaps, Point<int>(0, b1.getCentreY() - b2.getCentreY()) + dragOffset, object, toDrag, false);
         }
-        if (trySnap(b1.getBottom() - b2.getBottom())) {
+        if ((isDragging || bottomResize) && trySnap(b1.getBottom() - b2.getBottom())) {
             orientation[0] = SnappedRight;
             return setState(true, totalSnaps, Point<int>(0, b1.getBottom() - b2.getBottom()) + dragOffset, object, toDrag, false);
         }
@@ -173,7 +177,7 @@ Point<int> ObjectGrid::performVerticalSnap(Object* toDrag, Point<int> dragOffset
     return dragOffset;
 }
 
-Point<int> ObjectGrid::performHorizontalSnap(Object* toDrag, Point<int> dragOffset, Rectangle<int> viewBounds)
+Point<int> ObjectGrid::performHorizontalSnap(Object* toDrag, Point<int> dragOffset, Rectangle<int> viewBounds, Rectangle<int> newResizeBounds)
 {
 
     auto* cnv = toDrag->cnv;
@@ -226,11 +230,10 @@ Point<int> ObjectGrid::performHorizontalSnap(Object* toDrag, Point<int> dragOffs
         }
     }
     
-    auto b2 = (toDrag->originalBounds + dragOffset).reduced(Object::margin);
-
     bool isDragging = toDrag->resizeZone.isDraggingWholeObject();
     bool leftResize = toDrag->resizeZone.isDraggingLeftEdge();
     bool rightResize = toDrag->resizeZone.isDraggingRightEdge();
+    auto b2 = isDragging ? (toDrag->originalBounds + dragOffset).reduced(Object::margin) : newResizeBounds;
     
     for (auto* object : cnv->objects) {
         if(object == toDrag)
@@ -253,7 +256,7 @@ Point<int> ObjectGrid::performHorizontalSnap(Object* toDrag, Point<int> dragOffs
         auto r = b1.getX() < b2.getX() ? b1 : b2;
         auto l = b1.getX() > b2.getX() ? b1 : b2;
 
-        if ((leftResize || isDragging) && trySnap(b1.getX() - b2.getX())) {
+        if ((isDragging || leftResize) && trySnap(b1.getX() - b2.getX())) {
             orientation[1] = SnappedLeft;
             return setState(true, totalSnaps, Point<int>(b1.getX() - b2.getX(), 0) + dragOffset, object, toDrag, true);
         }
@@ -261,7 +264,7 @@ Point<int> ObjectGrid::performHorizontalSnap(Object* toDrag, Point<int> dragOffs
             orientation[1] = SnappedCentre;
             return setState(true, totalSnaps, Point<int>(b1.getCentreX() - b2.getCentreX(), 0) + dragOffset, object, toDrag, true);
         }
-        if ((rightResize || isDragging) && trySnap(b1.getRight() - b2.getRight())) {
+        if ((isDragging || rightResize) && trySnap(b1.getRight() - b2.getRight())) {
             orientation[1] = SnappedRight;
             return setState(true, totalSnaps, Point<int>(b1.getRight() - b2.getRight(), 0) + dragOffset, object, toDrag, true);
         }
@@ -280,6 +283,7 @@ Point<int> ObjectGrid::performAbsoluteSnap(Object* toDrag, Point<int> dragOffset
 
     position[1].x = totalOffset.x;
     position[0].y = totalOffset.y;
+    
 
     snapped[0] = true;
     snapped[1] = true;
