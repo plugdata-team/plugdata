@@ -153,9 +153,9 @@ public:
         }
         case hash("vis_size"): {
             if (atoms.size() >= 2) {
-                pd->getCallbackLock()->enter();
+                pd->lockAudioThread();
                 auto bounds = Rectangle<int>(iemgui->x_obj.te_xpix, iemgui->x_obj.te_ypix, atoms[0].getFloat(), atoms[1].getFloat());
-                pd->getCallbackLock()->exit();
+                pd->unlockAudioThread();
 
                 object->setObjectBounds(bounds);
             }
@@ -175,8 +175,10 @@ public:
     {
         if (v.refersToSameSourceAs(sendSymbol)) {
             setSendSymbol(sendSymbol.toString());
+            object->updateIolets();
         } else if (v.refersToSameSourceAs(receiveSymbol)) {
             setReceiveSymbol(receiveSymbol.toString());
+            object->updateIolets();
         } else if (v.refersToSameSourceAs(primaryColour)) {
             auto colour = Colour::fromString(primaryColour.toString());
             setForegroundColour(colour);
@@ -233,9 +235,9 @@ public:
 
     void updateBounds()
     {
-        pd->getCallbackLock()->enter();
+        pd->lockAudioThread();
         auto bounds = Rectangle<int>(iemgui->x_obj.te_xpix, iemgui->x_obj.te_ypix, iemgui->x_w, iemgui->x_h);
-        pd->getCallbackLock()->exit();
+        pd->unlockAudioThread();
 
         object->setObjectBounds(bounds);
     }
@@ -325,16 +327,33 @@ public:
 
         return "";
     }
+    
+    bool hasSendSymbol()
+    {
+        if(!iemgui->x_snd_unexpanded) return false;
+        
+        auto sym = getSendSymbol();
+        return sym.isNotEmpty() && sym != "empty";
+    }
+    
+    bool hasReceiveSymbol()
+    {
+        if(!iemgui->x_rcv_unexpanded) return false;
+        
+        auto sym = getReceiveSymbol();
+        return sym.isNotEmpty() && sym != "empty";
+    }
+    
 
     void setSendSymbol(String const& symbol) const
     {
         auto* sym = symbol.isEmpty() ? nullptr : pd->generateSymbol(symbol);
         iemgui_send(iemgui, iemgui, sym);
+        
     }
 
     void setReceiveSymbol(String const& symbol) const
     {
-
         auto* sym = symbol.isEmpty() ? nullptr : pd->generateSymbol(symbol);
         iemgui_receive(iemgui, iemgui, sym);
     }

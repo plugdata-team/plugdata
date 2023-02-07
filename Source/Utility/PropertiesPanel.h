@@ -166,19 +166,9 @@ public:
         BoolComponent(String const& propertyName, Value& value, std::vector<String> options)
             : Property(propertyName), textOptions(options)
         {
-            toggleButton.setClickingTogglesState(true);
-
-            toggleButton.setConnectedEdges(12);
-
             toggleStateValue.referTo(value);
-            
         }
 
-        void resized() override
-        {
-            toggleButton.setBounds(getLocalBounds().removeFromRight(getWidth() / (2 - hideLabel)));
-        }
-        
         void paint(Graphics& g) override
         {
             bool isDown = static_cast<bool>(toggleStateValue.getValue());
@@ -194,6 +184,9 @@ public:
 
             auto textColour = isDown ? findColour(PlugDataColour::panelActiveTextColourId) : findColour(PlugDataColour::panelTextColourId);
             PlugDataLook::drawText(g, textOptions[isDown], bounds, textColour, 14.0f, Justification::centred);
+        
+            // Paint label
+            Property::paint(g);
         }
         
         void mouseEnter(const MouseEvent& e) override
@@ -206,7 +199,6 @@ public:
             repaint();
         }
         
-        
         void mouseUp(const MouseEvent& e) override
         {
             toggleStateValue = !static_cast<bool>(toggleStateValue.getValue());
@@ -216,7 +208,6 @@ public:
     private:
         std::vector<String> textOptions;
         Value toggleStateValue;
-        TextButton toggleButton;
     };
 
     struct ColourPicker : public ColourSelector

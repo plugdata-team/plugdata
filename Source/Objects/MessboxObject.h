@@ -83,12 +83,12 @@ public:
 
     void updateBounds() override
     {
-        pd->getCallbackLock()->enter();
+        pd->lockAudioThread();
 
         int x = 0, y = 0, w = 0, h = 0;
         libpd_get_object_bounds(cnv->patch.getPointer(), ptr, &x, &y, &w, &h);
 
-        pd->getCallbackLock()->exit();
+        pd->unlockAudioThread();
 
         object->setObjectBounds({ x, y, w, h });
     }
@@ -192,10 +192,12 @@ public:
             }
         }
         
-        auto* sym = atom_getsymbol(&atoms[0]);
-        atoms.erase(atoms.begin());
-        
-        outlet_anything(static_cast<t_object*>(ptr)->ob_outlet, sym, atoms.size(), atoms.data());
+        if(atoms.size()) {
+            auto* sym = atom_getsymbol(&atoms[0]);
+            atoms.erase(atoms.begin());
+            
+            outlet_anything(static_cast<t_object*>(ptr)->ob_outlet, sym, atoms.size(), atoms.data());
+        }
     }
 
     void getSymbols(std::vector<pd::Atom> atoms)

@@ -123,28 +123,23 @@ PluginProcessor::PluginProcessor()
         objectLibrary.updateLibrary();
     };
 
-    if (settingsFile->hasProperty("theme")) {
-        auto themeName = settingsFile->getProperty<String>("theme");
+    auto themeName = settingsFile->getProperty<String>("theme");
 
-        // Make sure theme exists
-        if (!settingsFile->getTheme(themeName).isValid()) {
+    // Make sure theme exists
+    if (!settingsFile->getTheme(themeName).isValid()) {
 
-            settingsFile->setProperty("theme", PlugDataLook::selectedThemes[0]);
-            themeName = PlugDataLook::selectedThemes[0];
-        }
-
-        setTheme(themeName);
-        settingsFile->saveSettings();
+        settingsFile->setProperty("theme", PlugDataLook::selectedThemes[0]);
+        themeName = PlugDataLook::selectedThemes[0];
     }
 
-    if (settingsFile->hasProperty("Oversampling")) {
-        oversampling = settingsFile->getProperty<int>("Oversampling");
-    }
-
+    setTheme(themeName);
+    settingsFile->saveSettings();
+    
+    oversampling = settingsFile->getProperty<int>("oversampling");
+    
+    setProtectedMode(settingsFile->getProperty<int>("protected"));
 #if PLUGDATA_STANDALONE
-    if (settingsFile->hasProperty("internal_synth")) {
-        enableInternalSynth = settingsFile->getProperty<int>("internal_synth");
-    }
+    enableInternalSynth = settingsFile->getProperty<int>("internal_synth");
 #endif
 
     auto currentThemeTree = settingsFile->getCurrentTheme();
@@ -246,10 +241,14 @@ void PluginProcessor::updateSearchPaths()
 
     setThis();
 
-    getCallbackLock()->enter();
-
-    libpd_clear_search_path();
-
+    lockAudioThread();
+    
+    // Get pd's search paths
+    char* p[1024];
+    int numItems;
+    libpd_get_search_paths(p, &numItems);
+    auto currentPaths = StringArray(p, numItems);
+    
     auto paths = pd::Library::defaultPaths;
 
     for (auto child : pathTree) {
@@ -258,10 +257,12 @@ void PluginProcessor::updateSearchPaths()
     }
 
     for (auto path : paths) {
+        if(currentPaths.contains(path.getFullPathName())) continue;
         libpd_add_to_search_path(path.getFullPathName().toRawUTF8());
     }
 
     for (auto path : DekenInterface::getExternalPaths()) {
+        if(currentPaths.contains(path)) continue;
         libpd_add_to_search_path(path.replace("\\", "/").toRawUTF8());
     }
 
@@ -286,7 +287,7 @@ void PluginProcessor::updateSearchPaths()
         }
     }
 
-    getCallbackLock()->exit();
+    unlockAudioThread();
 }
 
 const String PluginProcessor::getName() const
@@ -358,6 +359,11 @@ void PluginProcessor::setOversampling(int amount)
     suspendProcessing(true);
     prepareToPlay(sampleRate, blockSize);
     suspendProcessing(false);
+}
+
+void PluginProcessor::setProtectedMode(bool enabled)
+{
+    protectedMode = enabled;
 }
 
 void PluginProcessor::prepareToPlay(double sampleRate, int samplesPerBlock)
@@ -486,6 +492,20 @@ void PluginProcessor::processBlock(AudioBuffer<float>& buffer, MidiBuffer& midiM
     }
 
 #endif
+    
+    if(protectedMode) {
+        auto* const* writePtr = buffer.getArrayOfWritePointers();
+        for(int ch = 0; ch < buffer.getNumChannels(); ch++) {
+            for(int n = 0; n < buffer.getNumSamples(); n++) {
+                if(!std::isfinite(writePtr[ch][n])) {
+                    writePtr[ch][n] = 0.0f;
+                }
+                else {
+                    writePtr[ch][n] = std::clamp(writePtr[ch][n], -1.0f, 1.0f);
+                }
+            }
+        }
+    }
 }
 
 void PluginProcessor::process(dsp::AudioBlock<float> buffer, MidiBuffer& midiMessages)
@@ -709,10 +729,10 @@ void PluginProcessor::messageEnqueued()
     if (isNonRealtime() || isSuspended()) {
         sendMessagesFromQueue();
     } else {
-        CriticalSection const* cs = getCallbackLock();
-        if (cs->tryEnter()) {
+        if(tryLockAudioThread())
+        {
             sendMessagesFromQueue();
-            cs->exit();
+            unlockAudioThread();
         }
     }
 }
@@ -803,37 +823,35 @@ AudioProcessorEditor* PluginProcessor::createEditor()
 
 void PluginProcessor::getStateInformation(MemoryBlock& destData)
 {
-    getCallbackLock()->enter();
-
-    const MessageManagerLock mmlock;
+    suspendProcessing(true);
 
     setThis();
-
+    
     // Store pure-data state
     MemoryOutputStream ostream(destData, false);
-
+    
     ostream.writeInt(patches.size());
-
+    
     // Save path and content for patch
     for (auto& patch : patches) {
         ostream.writeString(patch->getCanvasContent());
         ostream.writeString(patch->getCurrentFile().getFullPathName());
     }
-
+    
     ostream.writeInt(getLatencySamples());
     ostream.writeInt(oversampling);
     ostream.writeFloat(static_cast<float>(tailLength.getValue()));
-
+    
     XmlElement xml = XmlElement("plugdata_save");
     xml.setAttribute("Version", PLUGDATA_VERSION);
     PlugDataParameter::saveStateInformation(xml, getParameters());
-
+    
     MemoryBlock xmlBlock;
     copyXmlToBinary(xml, xmlBlock);
-
+    
     ostream.writeInt(static_cast<int>(xmlBlock.getSize()));
     ostream.write(xmlBlock.getData(), xmlBlock.getSize());
-
+    
     if (auto* editor = getActiveEditor()) {
         ostream.writeInt(editor->getWidth());
         ostream.writeInt(editor->getHeight());
@@ -842,52 +860,51 @@ void PluginProcessor::getStateInformation(MemoryBlock& destData)
         ostream.writeInt(lastUIHeight);
     }
 
-    getCallbackLock()->exit();
+    suspendProcessing(false);
 }
 
 void PluginProcessor::setStateInformation(void const* data, int sizeInBytes)
 {
     if (sizeInBytes == 0)
         return;
-
-    // Copy data to make sure it doesn't expire before our async function is called
-    void* copy = malloc(sizeInBytes);
-    memcpy(copy, data, sizeInBytes);
-
+    
     // By calling this asynchronously on the message thread and also suspending processing on the audio thread, we can make sure this is safe
     // The DAW can call this function from basically any thread, hence the need for this
     // Audio will only be reactivated once this action is completed
-
-    const MessageManagerLock mmLock;
-
-    MemoryInputStream istream(copy, sizeInBytes, false);
-
-    suspendProcessing(true);
-
+    
+    MemoryInputStream istream(data, sizeInBytes, false);
+    
     // Close any opened patches
     if (auto* editor = dynamic_cast<PluginEditor*>(getActiveEditor())) {
-        editor->tabbar.clearTabs();
-        editor->canvases.clear();
+        MessageManager::callAsync([editor = Component::SafePointer(editor)](){
+            if(!editor) return;
+            editor->tabbar.clearTabs();
+            editor->canvases.clear();
+        });
     }
-
+    
+    suspendProcessing(true);
+    setThis();
+    
     for (auto& patch : patches)
         patch->close();
     patches.clear();
-
+    
     int numPatches = istream.readInt();
-
+    
     for (int i = 0; i < numPatches; i++) {
         auto state = istream.readString();
         auto location = File(istream.readString());
-
-        auto parentPath = location.getParentDirectory().getFullPathName();
-
-        // Add patch path to search path to make sure it finds abstractions in the saved patch!
-        setThis();
-        libpd_add_to_search_path(parentPath.toRawUTF8());
-
+        
+        if (location.getParentDirectory().exists()) {
+            auto parentPath = location.getParentDirectory().getFullPathName();
+            // Add patch path to search path to make sure it finds abstractions in the saved patch!
+            // TODO: is there any way to make this local the the canvas?
+            libpd_add_to_search_path(parentPath.toRawUTF8());
+        }
+        
         auto* patch = loadPatch(state);
-
+        
         if ((location.exists() && location.getParentDirectory() == File::getSpecialLocation(File::tempDirectory)) || !location.exists()) {
             patch->setTitle("Untitled Patcher");
         } else if (location.existsAsFile()) {
@@ -895,50 +912,59 @@ void PluginProcessor::setStateInformation(void const* data, int sizeInBytes)
             patch->setTitle(location.getFileName());
         }
     }
-
+    
     auto latency = istream.readInt();
     auto oversampling = istream.readInt();
     auto tail = istream.readFloat();
     auto xmlSize = istream.readInt();
-
+    
     tailLength = var(tail);
-
+    
     auto* xmlData = new char[xmlSize];
     istream.read(xmlData, xmlSize);
-
+    
     std::unique_ptr<XmlElement> xmlState(getXmlFromBinary(xmlData, xmlSize));
-
+    
+    jassert(xmlState);
+    
     if (xmlState) {
         PlugDataParameter::loadStateInformation(*xmlState, getParameters());
-    }
-
-    auto versionString = String("0.6.1");
-
-    if (xmlState->hasAttribute("Version")) {
-        versionString = xmlState->getStringAttribute("Version");
-    }
-
-    if (versionString.startsWith("0.7") && !istream.isExhausted()) {
-        int windowWidth = istream.readInt();
-        int windowHeight = istream.readInt();
-
-        lastUIWidth = windowWidth;
-        lastUIHeight = windowHeight;
-        if (auto* editor = getActiveEditor()) {
-            editor->setSize(lastUIWidth, lastUIHeight);
+        
+        auto versionString = String("0.6.1");
+        
+        if (xmlState->hasAttribute("Version")) {
+            versionString = xmlState->getStringAttribute("Version");
+        }
+        
+        if (versionString.startsWith("0.7") && !istream.isExhausted()) {
+            int windowWidth = istream.readInt();
+            int windowHeight = istream.readInt();
+            
+            lastUIWidth = windowWidth;
+            lastUIHeight = windowHeight;
+            if (auto* editor = getActiveEditor()) {
+                MessageManager::callAsync([editor = Component::SafePointer(editor), windowWidth, windowHeight](){
+                    if(!editor) return;
+                    editor->setSize(windowWidth, windowHeight);
+                });
+            }
         }
     }
-
+    
+    
     setLatencySamples(latency);
     setOversampling(oversampling);
-
-    suspendProcessing(false);
-
-    freebytes(copy, sizeInBytes);
     delete[] xmlData;
-
+    
+    suspendProcessing(false);
+    
     if (auto* editor = dynamic_cast<PluginEditor*>(getActiveEditor())) {
-        editor->sidebar.updateAutomationParameters();
+        MessageManager::callAsync([editor = Component::SafePointer(editor)](){
+            if(!editor) return;
+            editor->sidebar.updateAutomationParameters();
+            
+        });
+        
     }
 }
 
@@ -1229,7 +1255,9 @@ void PluginProcessor::titleChanged()
 {
     if (auto* editor = dynamic_cast<PluginEditor*>(getActiveEditor())) {
         for (int n = 0; n < editor->tabbar.getNumTabs(); n++) {
-            editor->tabbar.setTabName(n, editor->getCanvas(n)->patch.getTitle());
+            auto* cnv = editor->getCanvas(n);
+            if(!cnv) return;
+            editor->tabbar.setTabName(n, cnv->patch.getTitle());
         }
     }
 }

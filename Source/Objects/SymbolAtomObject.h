@@ -125,6 +125,14 @@ public:
         g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), PlugDataLook::objectCornerRadius, 1.0f);
     }
 
+    bool hideInlets() override {
+        return atomHelper.hasReceiveSymbol();
+    }
+    
+    bool hideOutlets() override {
+        return atomHelper.hasSendSymbol();
+    }
+    
     void updateLabel() override
     {
         atomHelper.updateLabel(label);
@@ -149,6 +157,8 @@ public:
     void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
     {
         switch (hash(symbol)) {
+
+        case hash("set"):
         case hash("symbol"): {
             input.setText(atoms[0].getSymbol(), dontSendNotification);
             break;

@@ -30,6 +30,7 @@ public:
     static AudioProcessor::BusesProperties buildBusesProperties();
 
     void setOversampling(int amount);
+    void setProtectedMode(bool enabled);
     void prepareToPlay(double sampleRate, int samplesPerBlock) override;
     void releaseResources() override;
 
@@ -75,16 +76,6 @@ public:
     void reloadAbstractions(File changedPatch, t_glist* except) override;
 
     void process(dsp::AudioBlock<float>, MidiBuffer&);
-
-    void setCallbackLock(CriticalSection const* lock)
-    {
-        audioLock = lock;
-    };
-
-    CriticalSection const* getCallbackLock() override
-    {
-        return audioLock;
-    };
 
     bool canAddBus(bool isInput) const override
     {
@@ -149,8 +140,11 @@ public:
     static inline constexpr int numInputBuses = 16;
     static inline constexpr int numOutputBuses = 16;
 
+    // Protected mode value will decide if we apply clipping to output and remove non-finite numbers
+    std::atomic<bool> protectedMode = true;
+    
     // Zero means no oversampling
-    int oversampling = 0;
+    std::atomic<int> oversampling = 0;
     int lastTab = -1;
 
 #if PLUGDATA_STANDALONE
@@ -182,8 +176,6 @@ private:
     int minOut = 2;
 
     std::unique_ptr<dsp::Oversampling<float>> oversampler;
-
-    CriticalSection const* audioLock;
 
     static inline const String else_version = "ELSE v1.0-rc6";
     static inline const String cyclone_version = "cyclone v0.6-1";

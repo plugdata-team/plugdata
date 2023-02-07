@@ -275,10 +275,11 @@ public:
 
     void waitForStateUpdate();
 
-    virtual CriticalSection const* getCallbackLock()
-    {
-        return nullptr;
-    };
+    void lockAudioThread();
+    bool tryLockAudioThread();
+    void unlockAudioThread();
+    
+    void setCallbackLock(CriticalSection const* lock);
 
     bool loadLibrary(String library);
 
@@ -293,6 +294,7 @@ public:
 
     std::atomic<bool> canUndo = false;
     std::atomic<bool> canRedo = false;
+    std::atomic<bool> waitingForStateUpdate = false;
 
     inline static const String defaultPatch = "#N canvas 827 239 527 327 12;";
 
@@ -307,7 +309,8 @@ private:
     std::unique_ptr<FileChooser> openChooser;
 
     WaitableEvent updateWait;
-
+    CriticalSection const* audioLock;
+    
 protected:
     struct internal;
 

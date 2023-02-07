@@ -228,9 +228,9 @@ void Canvas::synchronise(bool updatePosition)
         auto& srcEdges = objects[srcno]->iolets;
         auto& sinkEdges = objects[sinkno]->iolets;
 
-        // TEMP: remove when we're sure this works
+        // TODO: sometimes we hit this if-statement when we hide iolets because of send/receive symbols
+        // not sure if that's a problem or not
         if (srcno >= objects.size() || sinkno >= objects.size() || outno >= srcEdges.size() || inno >= sinkEdges.size()) {
-            pd->logError("Error: impossible connection");
             continue;
         }
 

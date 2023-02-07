@@ -180,7 +180,7 @@ public:
             if (n > 100)
                 n = 100;
 
-            canvas->pd->getCallbackLock()->enter();
+            canvas->pd->lockAudioThread();
 
             for (int i = 0; i < n; i++) {
                 auto* f = x->x_vec + (i * 2);
@@ -198,7 +198,7 @@ public:
                 pix[2 * i + 1] = yCoord * bounds.getHeight() + yOffset;
             }
 
-            canvas->pd->getCallbackLock()->exit();
+            canvas->pd->unlockAudioThread();
 
             if (width < 1)
                 width = 1;

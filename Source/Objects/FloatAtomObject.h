@@ -22,11 +22,11 @@ public:
         , atomHelper(obj, parent, this)
         , input(false)
     {
-
         value = getValue();
 
         input.onEditorShow = [this]() {
             auto* editor = input.getCurrentTextEditor();
+            
             startEdition();
 
             editor->setBorder({ 0, 1, 3, 0 });
@@ -79,6 +79,14 @@ public:
     void focusOfChildComponentChanged(FocusChangeType cause) override
     {
         repaint();
+    }
+    
+    bool hideInlets() override {
+        return atomHelper.hasReceiveSymbol();
+    }
+    
+    bool hideOutlets() override {
+        return atomHelper.hasSendSymbol();
     }
     
     void lookAndFeelChanged() override {
@@ -203,6 +211,8 @@ public:
     void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
     {
         switch (hash(symbol)) {
+
+        case hash("set"):
         case hash("float"): {
             auto min = getMinimum();
             auto max = getMaximum();
