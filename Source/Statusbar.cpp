@@ -269,7 +269,9 @@ Statusbar::Statusbar(PluginProcessor* processor)
     protectButton->getProperties().set("Style", "SmallIcon");
     protectButton->setClickingTogglesState(true);
     protectButton->onClick = [this]() {
-        pd->setProtectedMode(protectButton->getToggleState());
+        int state = protectButton->getToggleState();
+        pd->setProtectedMode(state);
+        SettingsFile::getInstance()->setProperty("protected", state);
     };
     addAndMakeVisible(*protectButton);
     
