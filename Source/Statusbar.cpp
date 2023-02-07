@@ -268,6 +268,7 @@ Statusbar::Statusbar(PluginProcessor* processor)
     protectButton->setTooltip("Clip output signal and filter non-finite values");
     protectButton->getProperties().set("Style", "SmallIcon");
     protectButton->setClickingTogglesState(true);
+    protectButton->setToggleState(SettingsFile::getInstance()->getProperty<int>("protected"), dontSendNotification);
     protectButton->onClick = [this]() {
         int state = protectButton->getToggleState();
         pd->setProtectedMode(state);
