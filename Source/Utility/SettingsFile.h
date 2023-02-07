@@ -88,7 +88,7 @@ private:
         { "browser_path", var(homeDir.getChildFile("Library").getFullPathName()) },
         { "theme", var("light") },
         { "oversampling", var(0) },
-        { "protected", var(0) },
+        { "protected", var(1) },
         { "internal_synth", var(0) },
         { "grid_enabled", var(1) },
         { "zoom", var(1.0f) },

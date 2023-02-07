@@ -141,7 +141,7 @@ public:
     static inline constexpr int numOutputBuses = 16;
 
     // Protected mode value will decide if we apply clipping to output and remove non-finite numbers
-    std::atomic<bool> protectedMode = false;
+    std::atomic<bool> protectedMode = true;
     
     // Zero means no oversampling
     std::atomic<int> oversampling = 0;
