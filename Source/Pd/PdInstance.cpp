@@ -723,9 +723,6 @@ void Instance::lockAudioThread() {
 }
 
 bool Instance::tryLockAudioThread() {
-    
-    if(waitingForStateUpdate) return true;
-    
     return audioLock->tryEnter();
 }
 
