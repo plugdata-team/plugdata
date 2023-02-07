@@ -192,10 +192,12 @@ public:
             }
         }
         
-        auto* sym = atom_getsymbol(&atoms[0]);
-        atoms.erase(atoms.begin());
-        
-        outlet_anything(static_cast<t_object*>(ptr)->ob_outlet, sym, atoms.size(), atoms.data());
+        if(atoms.size()) {
+            auto* sym = atom_getsymbol(&atoms[0]);
+            atoms.erase(atoms.begin());
+            
+            outlet_anything(static_cast<t_object*>(ptr)->ob_outlet, sym, atoms.size(), atoms.data());
+        }
     }
 
     void getSymbols(std::vector<pd::Atom> atoms)
