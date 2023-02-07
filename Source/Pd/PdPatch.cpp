@@ -88,8 +88,13 @@ void Patch::savePatch(File const& location)
 
     setTitle(filename);
     canvas_dirty(getPointer(), 0);
+    
+    instance->lockAudioThread();
 
     libpd_savetofile(getPointer(), file, dir);
+    
+    instance->unlockAudioThread();
+    
     instance->reloadAbstractions(location, getPointer());
 
     currentFile = location;
@@ -106,7 +111,11 @@ void Patch::savePatch()
     setTitle(filename);
     canvas_dirty(getPointer(), 0);
 
+    instance->lockAudioThread();
+    
     libpd_savetofile(getPointer(), file, dir);
+    instance->unlockAudioThread();
+    
     instance->reloadAbstractions(currentFile, getPointer());
 }
 
