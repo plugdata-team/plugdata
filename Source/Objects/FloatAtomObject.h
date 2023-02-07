@@ -26,6 +26,7 @@ public:
 
         input.onEditorShow = [this]() {
             auto* editor = input.getCurrentTextEditor();
+            
             startEdition();
 
             editor->setBorder({ 0, 1, 3, 0 });
