@@ -861,22 +861,21 @@ void PluginProcessor::setStateInformation(void const* data, int sizeInBytes)
 {
     if (sizeInBytes == 0)
         return;
-
+    
     // By calling this asynchronously on the message thread and also suspending processing on the audio thread, we can make sure this is safe
     // The DAW can call this function from basically any thread, hence the need for this
     // Audio will only be reactivated once this action is completed
     
     MemoryInputStream istream(data, sizeInBytes, false);
     
-    suspendProcessing(true);
-
     // Close any opened patches
     if (auto* editor = dynamic_cast<PluginEditor*>(getActiveEditor())) {
+        const MessageManagerLock mmLock;
         editor->tabbar.clearTabs();
         editor->canvases.clear();
     }
     
-    bool locked = tryLockAudioThread();
+    suspendProcessing(true);
     
     for (auto& patch : patches)
         patch->close();
@@ -890,37 +889,37 @@ void PluginProcessor::setStateInformation(void const* data, int sizeInBytes)
         
         auto parentPath = location.getParentDirectory().getFullPathName();
         
-        // Add patch path to search path to make sure it finds abstractions in the saved patch!
-        setThis();
-        libpd_add_to_search_path(parentPath.toRawUTF8());
-        
         auto* patch = loadPatch(state);
         
         if ((location.exists() && location.getParentDirectory() == File::getSpecialLocation(File::tempDirectory)) || !location.exists()) {
             patch->setTitle("Untitled Patcher");
         } else if (location.existsAsFile()) {
+            
+            // Add patch path to search path to make sure it finds abstractions in the saved patch!
+            setThis();
+            libpd_add_to_search_path(parentPath.toRawUTF8());
+            
             patch->setCurrentFile(location);
             patch->setTitle(location.getFileName());
         }
-
-        
-        if(locked) unlockAudioThread();
-        
-        auto latency = istream.readInt();
-        auto oversampling = istream.readInt();
-        auto tail = istream.readFloat();
-        auto xmlSize = istream.readInt();
-        
-        tailLength = var(tail);
-        
-        auto* xmlData = new char[xmlSize];
-        istream.read(xmlData, xmlSize);
-        
-        std::unique_ptr<XmlElement> xmlState(getXmlFromBinary(xmlData, xmlSize));
-        
-        if (xmlState) {
-            PlugDataParameter::loadStateInformation(*xmlState, getParameters());
-        }
+    }
+    
+    auto latency = istream.readInt();
+    auto oversampling = istream.readInt();
+    auto tail = istream.readFloat();
+    auto xmlSize = istream.readInt();
+    
+    tailLength = var(tail);
+    
+    auto* xmlData = new char[xmlSize];
+    istream.read(xmlData, xmlSize);
+    
+    std::unique_ptr<XmlElement> xmlState(getXmlFromBinary(xmlData, xmlSize));
+    
+    jassert(xmlState);
+    
+    if (xmlState) {
+        PlugDataParameter::loadStateInformation(*xmlState, getParameters());
         
         auto versionString = String("0.6.1");
         
@@ -938,14 +937,15 @@ void PluginProcessor::setStateInformation(void const* data, int sizeInBytes)
                 editor->setSize(lastUIWidth, lastUIHeight);
             }
         }
-        
-        setLatencySamples(latency);
-        setOversampling(oversampling);
-        delete[] xmlData;
     }
     
+    
+    setLatencySamples(latency);
+    setOversampling(oversampling);
+    delete[] xmlData;
+    
     suspendProcessing(false);
-
+    
     if (auto* editor = dynamic_cast<PluginEditor*>(getActiveEditor())) {
         editor->sidebar.updateAutomationParameters();
     }
