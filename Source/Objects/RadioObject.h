@@ -84,7 +84,7 @@ public:
         switch (hash(symbol)) {
         case objectMessage::msg_float:
         case objectMessage::msg_set: {
-            selected = atoms[0].getFloat();
+            selected = std::clamp<float>(atoms[0].getFloat(), 0.0f, numItems - 1);
             repaint();
             break;
         }
