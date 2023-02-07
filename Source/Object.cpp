@@ -620,7 +620,6 @@ void Object::mouseDown(MouseEvent const& e)
                 if (!_this || !_this->gui || _this->cnv->patch.objectWasDeleted(_this->gui->ptr)) {
                     return;
                 }
-
                 _this->gui->applyBounds();
             });
 

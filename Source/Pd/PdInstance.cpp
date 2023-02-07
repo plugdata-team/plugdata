@@ -257,8 +257,13 @@ Instance::~Instance()
 void Instance::loadLibs(String& pdlua_version)
 {
     setThis();
-    libpd_init_else();
-    libpd_init_cyclone();
+    
+    static bool initialized = false;
+    if(!initialised) {
+        libpd_init_else();
+        libpd_init_cyclone();
+        initialized = true;
+    }
     File homeDir = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory).getChildFile("plugdata");
     auto library = homeDir.getChildFile("Library");
     auto extra = library.getChildFile("Extra");
