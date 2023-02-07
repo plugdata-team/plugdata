@@ -134,6 +134,10 @@ Point<int> ObjectGrid::performVerticalSnap(Object* toDrag, Point<int> dragOffset
 {
     auto* cnv = toDrag->cnv;
 
+    bool isDragging = toDrag->resizeZone.isDraggingWholeObject();
+    bool topResize = toDrag->resizeZone.isDraggingTopEdge();
+    bool bottomResize = toDrag->resizeZone.isDraggingBottomEdge();
+    
     if (snapped[0]) {
         if (std::abs(position[0].y - dragOffset.y) > range) {
             clear(false);
@@ -143,11 +147,8 @@ Point<int> ObjectGrid::performVerticalSnap(Object* toDrag, Point<int> dragOffset
         return { dragOffset.x, position[0].y };
     }
     
-    bool isDragging = toDrag->resizeZone.isDraggingWholeObject();
-    bool topResize = toDrag->resizeZone.isDraggingTopEdge();
-    bool bottomResize = toDrag->resizeZone.isDraggingBottomEdge();
     auto b2 = isDragging ? (toDrag->originalBounds + dragOffset).reduced(Object::margin) : newResizeBounds;
-
+    
     for (auto* object : cnv->objects) {
         if (cnv->isSelected(object))
             continue; // don't look at selected objects
@@ -162,6 +163,7 @@ Point<int> ObjectGrid::performVerticalSnap(Object* toDrag, Point<int> dragOffset
 
         if ((isDragging || topResize) && trySnap(b1.getY() - b2.getY())) {
             orientation[0] = SnappedLeft;
+            
             return setState(true, totalSnaps, Point<int>(0, b1.getY() - b2.getY()) + dragOffset, object, toDrag, false);
         }
         if (isDragging && trySnap(b1.getCentreY() - b2.getCentreY())) {
@@ -182,57 +184,62 @@ Point<int> ObjectGrid::performHorizontalSnap(Object* toDrag, Point<int> dragOffs
 
     auto* cnv = toDrag->cnv;
 
+    bool isDragging = toDrag->resizeZone.isDraggingWholeObject();
+    bool leftResize = toDrag->resizeZone.isDraggingLeftEdge();
+    bool rightResize = toDrag->resizeZone.isDraggingRightEdge();
+    
     // Check if already snapped
     if (snapped[1]) {
         if (std::abs(position[1].x - dragOffset.x) > range) {
             clear(true);
             return dragOffset;
         }
-
+        
         return { position[1].x, dragOffset.y };
     }
+    
+    if(isDragging) {
 
-    // Find snap points based on connection alignment
-    for (auto* connection : toDrag->getConnections()) {
-        auto inletBounds = connection->inlet->getCanvasBounds();
-        auto outletBounds = connection->outlet->getCanvasBounds();
-
-        // Don't snap if the cord is upside-down
-        if (inletBounds.getY() < outletBounds.getY())
-            continue;
-
-        auto recentDragOffset = (toDrag->originalBounds.getPosition() + dragOffset) - toDrag->getPosition();
-        if (connection->inobj == toDrag) {
-            // Skip if both objects are selected
-            if (cnv->isSelected(connection->outobj))
+        
+        // Find snap points based on connection alignment
+        for (auto* connection : toDrag->getConnections()) {
+            auto inletBounds = connection->inlet->getCanvasBounds();
+            auto outletBounds = connection->outlet->getCanvasBounds();
+            
+            // Don't snap if the cord is upside-down
+            if (inletBounds.getY() < outletBounds.getY())
                 continue;
-            inletBounds += recentDragOffset;
-        } else {
-            if (cnv->isSelected(connection->inobj))
-                continue;
-            outletBounds += recentDragOffset;
-        }
-
-        int snapDistance = inletBounds.getX() - outletBounds.getX();
-
-        // Check if the inlet or outlet is being moved, and invert if needed
-        if (connection->inobj == toDrag)
-            snapDistance = -snapDistance;
-
-        if (trySnap(snapDistance)) {
-            orientation[1] = SnappedConnection;
-            return setState(ConnectionSnap, totalSnaps, { snapDistance + dragOffset.x, dragOffset.y }, connection->outlet, connection->inlet, true);
-        }
-
-        // If we're close, don't snap for other reasons
-        if (std::abs(snapDistance) < tolerance * 2.0f) {
-            return dragOffset;
+            
+            auto recentDragOffset = (toDrag->originalBounds.getPosition() + dragOffset) - toDrag->getPosition();
+            if (connection->inobj == toDrag) {
+                // Skip if both objects are selected
+                if (cnv->isSelected(connection->outobj))
+                    continue;
+                inletBounds += recentDragOffset;
+            } else {
+                if (cnv->isSelected(connection->inobj))
+                    continue;
+                outletBounds += recentDragOffset;
+            }
+            
+            int snapDistance = inletBounds.getX() - outletBounds.getX();
+            
+            // Check if the inlet or outlet is being moved, and invert if needed
+            if (connection->inobj == toDrag)
+                snapDistance = -snapDistance;
+            
+            if (trySnap(snapDistance)) {
+                orientation[1] = SnappedConnection;
+                return setState(ConnectionSnap, totalSnaps, { snapDistance + dragOffset.x, dragOffset.y }, connection->outlet, connection->inlet, true);
+            }
+            
+            // If we're close, don't snap for other reasons
+            if (std::abs(snapDistance) < tolerance * 2.0f) {
+                return dragOffset;
+            }
         }
     }
-    
-    bool isDragging = toDrag->resizeZone.isDraggingWholeObject();
-    bool leftResize = toDrag->resizeZone.isDraggingLeftEdge();
-    bool rightResize = toDrag->resizeZone.isDraggingRightEdge();
+
     auto b2 = isDragging ? (toDrag->originalBounds + dragOffset).reduced(Object::margin) : newResizeBounds;
     
     for (auto* object : cnv->objects) {

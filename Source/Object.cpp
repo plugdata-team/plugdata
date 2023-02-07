@@ -659,43 +659,44 @@ void Object::mouseUp(MouseEvent const& e)
         openHelpPatch();
     }
 
-    if (!originalBounds.isEmpty() && originalBounds.withPosition(0, 0) != getLocalBounds()) {
-        originalBounds.setBounds(0, 0, 0, 0);
-
-        
+    if (wasResized) {
         Array<SafePointer<Object>> objectsToCheck;
         for(auto* obj : cnv->getSelectionOfType<Object>()) objectsToCheck.add(obj);
         
         cnv->grid.handleMouseUp(e.getOffsetFromDragStart());
         
         cnv->pd->enqueueFunction(
-            [objectsToCheck]() mutable {
-                
-                for(auto object : objectsToCheck) {
-                    if(!object || !object->gui) return;
-                    
-                    auto* obj = static_cast<t_gobj*>(object->getPointer());
-                    auto* cnv = object->cnv;
-                    
-                    if (cnv->patch.objectWasDeleted(obj))
-                        return;
-                    
-                    // Used for size changes, could also be used for properties
-                    libpd_undo_apply(cnv->patch.getPointer(), obj);
-                    
-                    object->gui->applyBounds();
-                    
-                    // To make sure it happens after setting object bounds
-                    // TODO: do we need this??
-                    if (!cnv->viewport->getViewArea().contains(object->getBounds())) {
-                        MessageManager::callAsync([object]() {
-                            if (object)
-                                object->cnv->checkBounds();
-                        });
-                    }
-                }
-            });
-    } else {
+         [objectsToCheck]() mutable {
+             
+             for(auto object : objectsToCheck) {
+                 if(!object || !object->gui) return;
+                 
+                 auto* obj = static_cast<t_gobj*>(object->getPointer());
+                 auto* cnv = object->cnv;
+                 
+                 if (cnv->patch.objectWasDeleted(obj))
+                     return;
+                 
+                 // Used for size changes, could also be used for properties
+                 libpd_undo_apply(cnv->patch.getPointer(), obj);
+                 
+                 object->gui->applyBounds();
+                 
+                 // To make sure it happens after setting object bounds
+                 // TODO: do we need this??
+                 if (!cnv->viewport->getViewArea().contains(object->getBounds())) {
+                     MessageManager::callAsync([object]() {
+                         if (object)
+                             object->cnv->checkBounds();
+                     });
+                 }
+             }
+         });
+        
+        wasResized = false;
+        originalBounds.setBounds(0, 0, 0, 0);
+    }
+    else {
         cnv->objectMouseUp(this, e);
     }
 
@@ -736,7 +737,7 @@ void Object::mouseDrag(MouseEvent const& e)
             }
         }
         
-        
+        wasResized = true;
     }
 }
 
