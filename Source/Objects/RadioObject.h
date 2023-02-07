@@ -35,6 +35,15 @@ public:
             selected = std::min<int>(static_cast<int>(max.getValue()) - 1, selected);
         }
     }
+    
+    bool hideInlets() override {
+        return iemHelper.hasReceiveSymbol();
+    }
+    
+    bool hideOutlets() override {
+        return iemHelper.hasSendSymbol();
+    }
+
 
     void updateLabel() override
     {
@@ -75,7 +84,7 @@ public:
         switch (hash(symbol)) {
         case hash("float"):
         case hash("set"): {
-            selected = atoms[0].getFloat();
+            selected = std::clamp<float>(atoms[0].getFloat(), 0.0f, numItems - 1);
             repaint();
             break;
         }
@@ -125,7 +134,7 @@ public:
 
     void updateBounds() override
     {
-        pd->getCallbackLock()->enter();
+        pd->lockAudioThread();
 
         int x = 0, y = 0, w = 0, h = 0;
         libpd_get_object_bounds(cnv->patch.getPointer(), ptr, &x, &y, &w, &h);
@@ -139,7 +148,7 @@ public:
             bounds.setSize(radio->x_gui.x_h * numItems, radio->x_gui.x_h);
         }
 
-        pd->getCallbackLock()->exit();
+        pd->unlockAudioThread();
 
         object->setObjectBounds(bounds);
     }
@@ -170,7 +179,7 @@ public:
         int selectionY = isVertical ? currentValue * size : 0;
 
         auto selectionBounds = Rectangle<int>(selectionX, selectionY, size, size);
-        g.fillRect(selectionBounds.reduced(5));
+        g.fillRoundedRectangle(selectionBounds.reduced(5).toFloat(), PlugDataLook::objectCornerRadius / 2.0f);
     }
 
     void paintOverChildren(Graphics& g) override

@@ -115,7 +115,7 @@ public:
 
     void updateBounds() override
     {
-        pd->getCallbackLock()->enter();
+        pd->lockAudioThread();
 
         auto* cnvPtr = cnv->patch.getPointer();
         auto objText = editor ? editor->getText() : objectText;
@@ -136,7 +136,7 @@ public:
             object->setSize(newBounds.getWidth(), newBounds.getHeight());
         }
 
-        pd->getCallbackLock()->exit();
+        pd->unlockAudioThread();
     }
 
     bool checkBounds(Rectangle<int> oldBounds, Rectangle<int> newBounds, bool resizingOnLeft) override

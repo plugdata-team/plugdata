@@ -204,7 +204,7 @@ public:
 
     void updateBounds() override
     {
-        pd->getCallbackLock()->enter();
+        pd->lockAudioThread();
 
         int x, y, w, h;
         libpd_get_object_bounds(cnv->patch.getPointer(), ptr, &x, &y, &w, &h);
@@ -212,7 +212,7 @@ public:
         auto* elseKeyboard = static_cast<t_keyboard*>(ptr);
         auto bounds = Rectangle<int>(x, y, keyboard.getWidth(), elseKeyboard->x_height);
 
-        pd->getCallbackLock()->exit();
+        pd->unlockAudioThread();
 
         object->setObjectBounds(bounds);
     }

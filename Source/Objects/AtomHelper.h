@@ -81,7 +81,7 @@ public:
 
     void updateBounds()
     {
-        pd->getCallbackLock()->enter();
+        pd->lockAudioThread();
 
         int x, y, w, h;
         libpd_get_object_bounds(cnv->patch.getPointer(), atom, &x, &y, &w, &h);
@@ -90,7 +90,7 @@ public:
 
         auto bounds = Rectangle<int>(x, y, w, getAtomHeight());
 
-        pd->getCallbackLock()->exit();
+        pd->unlockAudioThread();
 
         object->setObjectBounds(bounds);
     }
@@ -178,8 +178,10 @@ public:
             gui->updateLabel();
         } else if (v.refersToSameSourceAs(sendSymbol)) {
             setSendSymbol(sendSymbol.toString());
+            object->updateIolets();
         } else if (v.refersToSameSourceAs(receiveSymbol)) {
             setReceiveSymbol(receiveSymbol.toString());
+            object->updateIolets();
         }
     }
 
@@ -211,6 +213,7 @@ public:
             label.reset(nullptr);
         }
     }
+
 
     float getFontHeight() const
     {
@@ -279,6 +282,17 @@ public:
     {
         atom->a_wherelabel = wherelabel - 1;
     }
+    
+    bool hasSendSymbol()
+    {
+        return atom->a_symto && atom->a_symto != pd->generateSymbol("empty") && atom->a_symto != pd->generateSymbol("");
+    }
+    
+    bool hasReceiveSymbol()
+    {
+        return atom->a_symfrom && atom->a_symfrom != pd->generateSymbol("empty") && atom->a_symfrom != pd->generateSymbol("");
+    }
+
 
     String getSendSymbol()
     {
@@ -292,18 +306,12 @@ public:
 
     void setSendSymbol(String const& symbol) const
     {
-        if (symbol.isEmpty())
-            return;
-
         atom->a_symto = pd->generateSymbol(symbol);
         atom->a_expanded_to = canvas_realizedollar(atom->a_glist, atom->a_symto);
     }
 
     void setReceiveSymbol(String const& symbol) const
     {
-        if (symbol.isEmpty())
-            return;
-
         if (*atom->a_symfrom->s_name)
             pd_unbind(&atom->a_text.te_pd, canvas_realizedollar(atom->a_glist, atom->a_symfrom));
         atom->a_symfrom = pd->generateSymbol(symbol);

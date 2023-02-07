@@ -145,12 +145,12 @@ public:
 
     void updateBounds() override
     {
-        pd->getCallbackLock()->enter();
+        pd->lockAudioThread();
 
         int x = 0, y = 0, w = 0, h = 0;
         libpd_get_object_bounds(cnv->patch.getPointer(), ptr, &x, &y, &w, &h);
 
-        pd->getCallbackLock()->exit();
+        pd->unlockAudioThread();
 
         object->setObjectBounds({ x, y, w, h });
     }
@@ -221,25 +221,25 @@ public:
         if (object->iolets.size() == 3)
             object->iolets[2]->setVisible(false);
 
-        if (pd->getCallbackLock()->tryEnter()) {
+        {   // With locked audio thread, copy oscilloscope values
+            if (!pd->tryLockAudioThread()) return;
+            
             auto* x = static_cast<S*>(ptr);
             bufsize = x->x_bufsize;
             min = x->x_min;
             max = x->x_max;
             mode = x->x_xymode;
-
+            
             if (x_buffer.size() != bufsize) {
                 x_buffer.resize(bufsize);
                 y_buffer.resize(bufsize);
             }
-
+            
             std::copy(x->x_xbuflast, x->x_xbuflast + bufsize, x_buffer.data());
             std::copy(x->x_ybuflast, x->x_ybuflast + bufsize, y_buffer.data());
-            pd->getCallbackLock()->exit();
-        } else {
-            return;
+            pd->unlockAudioThread();
         }
-
+        
         if (min > max) {
             auto temp = max;
             max = min;

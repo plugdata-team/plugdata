@@ -256,6 +256,7 @@ Instance::~Instance()
 // ag: Stuff to be done after unpacking the library data on first launch.
 void Instance::loadLibs(String& pdlua_version)
 {
+    setThis();
     libpd_init_else();
     libpd_init_cyclone();
     File homeDir = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory).getChildFile("plugdata");
@@ -582,13 +583,23 @@ void Instance::waitForStateUpdate()
     if (m_function_queue.size_approx() == 0) {
         return;
     }
+    
+    waitingForStateUpdate = true;
 
     //  Append signal to resume thread at the end of the queue
     //  This will make sure that any actions we performed are definitely finished now
     //  If it can aquire a lock, it will dequeue all action immediately
     enqueueFunction([this]() { updateWait.signal(); });
 
-    updateWait.wait();
+    // Dequeuing should never take more than a few seconds, it should happen at audio rate
+    // By never blocking infinitely, and attempting to dequeue inbetween tries, we can possibly prevent deadlocks
+    for(int i = 0; i < 10; i++) {
+        messageEnqueued();
+        if(updateWait.wait(200)) return;
+    }
+    
+    
+    waitingForStateUpdate = false;
 }
 
 void Instance::sendMessagesFromQueue()
@@ -722,5 +733,24 @@ bool Instance::loadLibrary(String libraryToLoad)
 {
     return sys_load_lib(nullptr, libraryToLoad.toRawUTF8());
 }
+
+void Instance::lockAudioThread() {
+    if(waitingForStateUpdate) return;
+    
+    audioLock->enter();
+}
+
+bool Instance::tryLockAudioThread() {
+    return audioLock->tryEnter();
+}
+
+void Instance::unlockAudioThread() {
+    audioLock->exit();
+}
+
+void Instance::setCallbackLock(CriticalSection const* lock)
+{
+    audioLock = lock;
+};
 
 } // namespace pd

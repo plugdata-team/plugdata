@@ -211,7 +211,9 @@ public:
         g.setColour(object->findColour(PlugDataColour::canvasTextColourId));
         g.strokePath(magnitudePath, PathStrokeType(1.0f, PathStrokeType::JointStyle::curved, PathStrokeType::EndCapStyle::square));
 
-        g.setColour(object->findColour(PlugDataColour::objectOutlineColourId));
+        bool selected = object->cnv->isSelected(object) && !object->cnv->isGraph;
+
+        g.setColour(object->findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : objectOutlineColourId));
         g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), PlugDataLook::objectCornerRadius, 1.0f);
     }
 
@@ -537,13 +539,13 @@ public:
 
     void updateBounds() override
     {
-        pd->getCallbackLock()->enter();
+        pd->lockAudioThread();
 
         int x = 0, y = 0, w = 0, h = 0;
         libpd_get_object_bounds(cnv->patch.getPointer(), ptr, &x, &y, &w, &h);
         auto bounds = Rectangle<int>(x, y, w, h);
 
-        pd->getCallbackLock()->exit();
+        pd->unlockAudioThread();
 
         object->setObjectBounds(bounds);
     }

@@ -88,8 +88,13 @@ void Patch::savePatch(File const& location)
 
     setTitle(filename);
     canvas_dirty(getPointer(), 0);
+    
+    instance->lockAudioThread();
 
     libpd_savetofile(getPointer(), file, dir);
+    
+    instance->unlockAudioThread();
+    
     instance->reloadAbstractions(location, getPointer());
 
     currentFile = location;
@@ -106,7 +111,11 @@ void Patch::savePatch()
     setTitle(filename);
     canvas_dirty(getPointer(), 0);
 
+    instance->lockAudioThread();
+    
     libpd_savetofile(getPointer(), file, dir);
+    instance->unlockAudioThread();
+    
     instance->reloadAbstractions(currentFile, getPointer());
 }
 
@@ -118,7 +127,7 @@ void Patch::setCurrent(bool lock)
         return;
 
     if (lock)
-        instance->getCallbackLock()->enter();
+        instance->lockAudioThread();
 
     canvas_setcurrent(getPointer());
 
@@ -131,7 +140,7 @@ void Patch::setCurrent(bool lock)
     canvas_unsetcurrent(getPointer());
 
     if (lock)
-        instance->getCallbackLock()->exit();
+        instance->unlockAudioThread();
 }
 
 int Patch::getIndex(void* obj)
@@ -696,7 +705,9 @@ void Patch::setTitle(String const& title)
 
     pd_typedmess(static_cast<t_pd*>(ptr), instance->generateSymbol("rename"), 2, args);
 
-    instance->titleChanged();
+    MessageManager::callAsync([this](){
+        instance->titleChanged();
+    });
 }
 
 File Patch::getCurrentFile() const
