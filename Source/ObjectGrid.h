@@ -32,7 +32,7 @@ class ObjectGrid : public SettingsFileListener {
 public:
     ObjectGrid(Canvas* parent);
 
-    Point<int> handleMouseDrag(Object* toDrag, Point<int> dragOffset, Rectangle<int> viewBounds);
+    Point<int> handleMouseDrag(Object* toDrag, Point<int> dragOffset, Rectangle<int> viewBounds, Rectangle<int> resizeBounds = Rectangle<int>(0, 0, 0, 0));
     Point<int> handleMouseUp(Point<int> dragOffset);
 
     static constexpr int range = 5;
@@ -63,8 +63,8 @@ private:
     void updateMarker();
     void clear(bool horizontal);
 
-    Point<int> performVerticalSnap(Object* toDrag, Point<int> dragOffset, Rectangle<int> viewBounds);
-    Point<int> performHorizontalSnap(Object* toDrag, Point<int> dragOffset, Rectangle<int> viewBounds);
+    Point<int> performVerticalSnap(Object* toDrag, Point<int> dragOffset, Rectangle<int> viewBounds, Rectangle<int> newResizeBounds);
+    Point<int> performHorizontalSnap(Object* toDrag, Point<int> dragOffset, Rectangle<int> viewBounds, Rectangle<int> newResizeBounds);
 
     Point<int> performAbsoluteSnap(Object* toDrag, Point<int> dragOffset);
 

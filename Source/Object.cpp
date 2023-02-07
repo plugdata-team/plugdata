@@ -718,7 +718,8 @@ void Object::mouseDrag(MouseEvent const& e)
         cnv->objectMouseDrag(e);
     } else if (validResizeZone && !originalBounds.isEmpty()) {
         
-        auto dragDistance = cnv->grid.handleMouseDrag(this, e.getOffsetFromDragStart(), cnv->viewport->getViewArea());
+        auto draggedBounds = resizeZone.resizeRectangleBy(originalBounds, e.getOffsetFromDragStart());
+        auto dragDistance = cnv->grid.handleMouseDrag(this, e.getOffsetFromDragStart(), cnv->viewport->getViewArea(), draggedBounds);
         
         auto toResize = e.mods.isShiftDown() ? cnv->getSelectionOfType<Object>() : Array<Object*>{this};
         
