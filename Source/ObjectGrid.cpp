@@ -9,6 +9,7 @@
 #include "Connection.h"
 #include "Canvas.h"
 #include "LookAndFeel.h"
+#include "Utility/ObjectBoundsConstrainer.h"
 
 ObjectGrid::ObjectGrid(Canvas* parent)
 {
@@ -138,6 +139,11 @@ Point<int> ObjectGrid::performVerticalSnap(Object* toDrag, Point<int> dragOffset
     bool topResize = toDrag->resizeZone.isDraggingTopEdge();
     bool bottomResize = toDrag->resizeZone.isDraggingBottomEdge();
     
+    // If the aspect ratio is fixed, only allow 1 snap point when resizing
+    if(!isDragging && toDrag->constrainer->getFixedAspectRatio() && snapped[1]) {
+        return dragOffset.withY(dragOffset.x);
+    }
+    
     if (snapped[0]) {
         if (std::abs(position[0].y - dragOffset.y) > range) {
             clear(false);
@@ -181,12 +187,15 @@ Point<int> ObjectGrid::performVerticalSnap(Object* toDrag, Point<int> dragOffset
 
 Point<int> ObjectGrid::performHorizontalSnap(Object* toDrag, Point<int> dragOffset, Rectangle<int> viewBounds, Rectangle<int> newResizeBounds)
 {
-
     auto* cnv = toDrag->cnv;
 
     bool isDragging = toDrag->resizeZone.isDraggingWholeObject();
     bool leftResize = toDrag->resizeZone.isDraggingLeftEdge();
     bool rightResize = toDrag->resizeZone.isDraggingRightEdge();
+    
+    if(!isDragging && toDrag->constrainer->getFixedAspectRatio() && snapped[0]) {
+        return dragOffset.withX(dragOffset.y);
+    }
     
     // Check if already snapped
     if (snapped[1]) {
