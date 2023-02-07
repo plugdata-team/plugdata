@@ -590,9 +590,6 @@ String filterNewText(TextEditor& e, String const& newInput) override
             
             applySuggestionsToButtons(found, currentText);
         });
-
-
-        
     }
 
     enum SugesstionState {

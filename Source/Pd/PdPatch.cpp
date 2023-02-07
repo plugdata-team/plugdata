@@ -740,7 +740,6 @@ void Patch::reloadPatch(File changedPatch, t_glist* except)
 
 bool Patch::objectWasDeleted(void* ptr)
 {
-
     t_canvas const* cnv = getPointer();
 
     for (t_gobj* y = cnv->gl_list; y; y = y->g_next) {
