@@ -244,10 +244,10 @@ void PluginProcessor::updateSearchPaths()
     lockAudioThread();
     
     // Get pd's search paths
-    char* paths[1024];
+    char* p[1024];
     int numItems;
-    libpd_get_search_paths(paths, &numItems);
-    auto currentPaths = StringArray(paths, numItems);
+    libpd_get_search_paths(p, &numItems);
+    auto currentPaths = StringArray(p, numItems);
     
     auto paths = pd::Library::defaultPaths;
 
@@ -257,7 +257,7 @@ void PluginProcessor::updateSearchPaths()
     }
 
     for (auto path : paths) {
-        if(currentPaths.contains(path)) continue;
+        if(currentPaths.contains(path.getFullPathName())) continue;
         libpd_add_to_search_path(path.getFullPathName().toRawUTF8());
     }
 
