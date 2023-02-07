@@ -175,8 +175,10 @@ public:
     {
         if (v.refersToSameSourceAs(sendSymbol)) {
             setSendSymbol(sendSymbol.toString());
+            object->updateIolets();
         } else if (v.refersToSameSourceAs(receiveSymbol)) {
             setReceiveSymbol(receiveSymbol.toString());
+            object->updateIolets();
         } else if (v.refersToSameSourceAs(primaryColour)) {
             auto colour = Colour::fromString(primaryColour.toString());
             setForegroundColour(colour);
@@ -325,16 +327,33 @@ public:
 
         return "";
     }
+    
+    bool hasSendSymbol()
+    {
+        if(!iemgui->x_snd_unexpanded) return false;
+        
+        auto sym = getSendSymbol();
+        return sym.isNotEmpty() && sym != "empty";
+    }
+    
+    bool hasReceiveSymbol()
+    {
+        if(!iemgui->x_rcv_unexpanded) return false;
+        
+        auto sym = getReceiveSymbol();
+        return sym.isNotEmpty() && sym != "empty";
+    }
+    
 
     void setSendSymbol(String const& symbol) const
     {
         auto* sym = symbol.isEmpty() ? nullptr : pd->generateSymbol(symbol);
         iemgui_send(iemgui, iemgui, sym);
+        
     }
 
     void setReceiveSymbol(String const& symbol) const
     {
-
         auto* sym = symbol.isEmpty() ? nullptr : pd->generateSymbol(symbol);
         iemgui_receive(iemgui, iemgui, sym);
     }

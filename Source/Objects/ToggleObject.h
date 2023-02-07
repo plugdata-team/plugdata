@@ -21,6 +21,15 @@ public:
         value = getValue();
         object->constrainer->setFixedAspectRatio(1);
     }
+    
+    bool hideInlets() override {
+        return iemHelper.hasReceiveSymbol();
+    }
+    
+    bool hideOutlets() override {
+        return iemHelper.hasSendSymbol();
+    }
+
 
     void updateLabel() override
     {

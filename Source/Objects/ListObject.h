@@ -111,6 +111,14 @@ public:
     {
         atomHelper.updateLabel(label);
     }
+    
+    bool hideInlets() override {
+        return atomHelper.hasReceiveSymbol();
+    }
+    
+    bool hideOutlets() override {
+        return atomHelper.hasSendSymbol();
+    }
 
     void paintOverChildren(Graphics& g) override
     {

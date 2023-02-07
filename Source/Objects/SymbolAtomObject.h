@@ -125,6 +125,14 @@ public:
         g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), PlugDataLook::objectCornerRadius, 1.0f);
     }
 
+    bool hideInlets() override {
+        return atomHelper.hasReceiveSymbol();
+    }
+    
+    bool hideOutlets() override {
+        return atomHelper.hasSendSymbol();
+    }
+    
     void updateLabel() override
     {
         atomHelper.updateLabel(label);

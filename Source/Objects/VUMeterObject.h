@@ -15,6 +15,14 @@ public:
     {
         object->constrainer->setMinimumSize(20, 40);
     }
+    
+    bool hideInlets() override {
+        return iemHelper.hasReceiveSymbol();
+    }
+    
+    bool hideOutlets() override {
+        return iemHelper.hasSendSymbol();
+    }
 
     void updateLabel() override
     {

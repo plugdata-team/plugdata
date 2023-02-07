@@ -183,6 +183,9 @@ public:
 
             auto textColour = isDown ? findColour(PlugDataColour::panelActiveTextColourId) : findColour(PlugDataColour::panelTextColourId);
             PlugDataLook::drawText(g, textOptions[isDown], bounds, textColour, 14.0f, Justification::centred);
+        
+            // Paint label
+            Property::paint(g);
         }
         
         void mouseEnter(const MouseEvent& e) override

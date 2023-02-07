@@ -116,10 +116,6 @@ void Iolet::paint(Graphics& g)
     }
 }
 
-void Iolet::resized()
-{
-}
-
 void Iolet::mouseDrag(MouseEvent const& e)
 {
     // Ignore when locked
@@ -388,6 +384,32 @@ void Iolet::createConnection()
             object->cnv->connectionsBeingCreated.add(new ConnectionBeingCreated(this, object->cnv));
         }
     }
+}
+
+void Iolet::clearConnections()
+{
+    auto* cnv = object->cnv;
+    for(auto* c : getConnections()) {
+        
+        if (cnv->patch.hasConnection(c->outobj->getPointer(), c->outIdx, c->inobj->getPointer(), c->inIdx)) {
+            // Delete connection from pd if we haven't done that yet
+            cnv->patch.removeConnection(c->outobj->getPointer(), c->outIdx, c->inobj->getPointer(), c->inIdx, c->getPathState());
+        }
+        
+        cnv->connections.removeObject(c);
+    }
+}
+
+Array<Connection*> Iolet::getConnections()
+{
+    Array<Connection*> result;
+    for (auto* c : object->cnv->connections) {
+        if (c->inlet == this || c->outlet == this) {
+            result.add(c);
+        }
+    }
+    
+    return result;
 }
 
 Iolet* Iolet::findNearestIolet(Canvas* cnv, Point<int> position, bool inlet, Object* boxToExclude)
