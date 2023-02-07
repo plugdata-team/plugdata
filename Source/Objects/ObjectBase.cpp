@@ -305,12 +305,16 @@ ObjectParameters ObjectBase::getParameters()
 
 void ObjectBase::startEdition()
 {
+    if(edited) return;
+    
     edited = true;
     pd->enqueueMessages("gui", "mouse", { 1.f });
 }
 
 void ObjectBase::stopEdition()
 {
+    if(!edited) return;
+    
     edited = false;
     pd->enqueueMessages("gui", "mouse", { 0.f });
 }
