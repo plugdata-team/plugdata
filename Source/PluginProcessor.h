@@ -27,6 +27,8 @@ class PluginProcessor : public AudioProcessor
 public:
     PluginProcessor();
 
+    ~PluginProcessor();
+    
     static AudioProcessor::BusesProperties buildBusesProperties();
 
     void setOversampling(int amount);
