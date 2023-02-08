@@ -36,19 +36,6 @@ def existsAsFile(path):
 def existsAsDir(path):
     return os.path.isdir(path)
 
-def globFindAndReplaceText(path, to_find, replacement):
-    for src in glob.glob(path):
-        # Read in the file
-        with open(src, 'r', encoding='utf-8') as file :
-            filedata = file.read()
-
-        # Replace the target string
-        filedata = filedata.replace(to_find, replacement)
-
-        # Write the file out again
-        with open(src, 'w', encoding='utf-8') as file:
-            file.write(filedata)
-
 def makeArchive(name, root_dir, base_dir):
   shutil.make_archive(name, "zip", root_dir, base_dir)
 
@@ -117,13 +104,6 @@ makeDir("Extra/GS")
 copyDir("../../Libraries/ELSE/Extra", "Extra/else");
 copyDir("../../Libraries/ELSE/sfont~/sf", "Extra/else/sf");
 globCopy("../../Libraries/pure-data/doc/sound/*", "Extra/else");
-
-# Remove else and cyclone prefixes in helpfiles
-globFindAndReplaceText("./Abstractions/else/*.pd", "else/", "")
-globFindAndReplaceText("./Extra/else/*.pd", "else/", "")
-globFindAndReplaceText("./Abstractions/*.pd", "cyclone/", "")
-globFindAndReplaceText("./Documentation/9.else/*.pd", "else/", "")
-globFindAndReplaceText("./Documentation/10.cyclone/*.pd", "cyclone/", "")
 
 pdlua_srcdir = "../../Libraries/pd-lua/"
 for src in ["pd.lua", "COPYING", "README"]:
