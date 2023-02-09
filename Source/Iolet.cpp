@@ -44,7 +44,7 @@ Rectangle<int> Iolet::getCanvasBounds()
 
 bool Iolet::hitTest(int x, int y)
 {
-    // Don't intercept mouse clicks if locked
+    
     if(static_cast<bool>(locked.getValue())) return;
     
     Path smallBounds;
@@ -446,10 +446,6 @@ Iolet* Iolet::findNearestIolet(Canvas* cnv, Point<int> position, bool inlet, Obj
 
 void Iolet::valueChanged(Value& v)
 {
-    if (v.refersToSameSourceAs(locked)) {
-        setInterceptsMouseClicks(!static_cast<bool>(locked.getValue()), false);
-        repaint();
-    }
     if (v.refersToSameSourceAs(presentationMode)) {
         setVisible(!static_cast<bool>(presentationMode.getValue()) && !object->cnv->isGraph);
         repaint();
