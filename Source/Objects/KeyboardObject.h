@@ -119,7 +119,7 @@ public:
         if (isOver)
             c = Colour(101, 101, 101);
         if (isDown)
-            c = Colour(0, 0, 60);
+            c = object->findColour(PlugDataColour::dataColourId).darker(0.5f);
 
         g.setColour(c);
         g.fillRect(area);
