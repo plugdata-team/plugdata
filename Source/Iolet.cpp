@@ -44,6 +44,9 @@ Rectangle<int> Iolet::getCanvasBounds()
 
 bool Iolet::hitTest(int x, int y)
 {
+    // Don't intercept mouse clicks if locked
+    if(static_cast<bool>(locked.getValue())) return;
+    
     Path smallBounds;
     smallBounds.addEllipse(getLocalBounds().toFloat().reduced(2));
     smallBounds.closeSubPath();
