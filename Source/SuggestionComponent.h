@@ -50,13 +50,17 @@ public:
         suggestion = "";
         repaint();
     }
+        
+    bool enableAutocomplete(bool enabled)
+    {
+        shouldAutocomplete = enabled;
+    }
 
     void setSuggestion(String const& suggestionText)
     {
         if (!editor)
             return;
-        
-        auto editorText = editor->getText();
+            auto editorText = editor->getText();
         
         if(editorText.startsWith(suggestionText))
         {
@@ -69,7 +73,7 @@ public:
             editor->setText(stashedText, dontSendNotification);
             editorText = stashedText;
         }
-        
+    
         if(suggestionText.startsWith(editorText)) {
             auto textUpToSpace = editorText.upToFirstOccurrenceOf(" ", false, false);
             suggestion = suggestionText.fromFirstOccurrenceOf(textUpToSpace, false, true);
@@ -86,6 +90,7 @@ public:
 
 private:
     
+    bool shouldAutocomplete = true;
     String stashedText;
         
     void componentMovedOrResized(Component& component, bool moved, bool resized) override
@@ -102,7 +107,7 @@ private:
 
     void paint(Graphics& g) override
     {
-        if (!editor)
+        if (!editor || !shouldAutocomplete)
             return;
 
         auto editorText = editor->getText();
@@ -337,6 +342,7 @@ public:
         if (autoCompleteComponent) {
             String newText = buttons[currentidx]->getButtonText();
             autoCompleteComponent->setSuggestion(newText);
+            autoCompleteComponent->enableAutocomplete(true);
             currentBox->updateBounds();
         }
 
@@ -439,24 +445,16 @@ private:
         }
         return false;
     }
-
-    /*
-String filterNewText(TextEditor& e, String const& newInput) override
-{
-    if (!currentBox) {
-        return newInput;
+        
+    // if the editor text is empty and there's a suggestion, it feels right to choose that suggestion with the return key
+    void textEditorReturnKeyPressed(TextEditor& e) override
+    {
+        if(e.getText().isEmpty() && autoCompleteComponent && autoCompleteComponent->getSuggestion().isNotEmpty())
+        {
+            e.setText(autoCompleteComponent->getSuggestion());
+            autoCompleteComponent->setSuggestion("");
+        }
     }
-
-    String mutableInput = newInput;
-
-    // Find start of highlighted region
-    // This is the start of the last auto-completion suggestion
-    // This region will automatically be removed after this function because it's selected
-    int start = e.getHighlightedRegion().getLength() > 0 ? e.getHighlightedRegion().getStart() : e.getText().length();
-
-    // Reconstruct users typing
-
-} */
 
     void textEditorTextChanged(TextEditor& e) override
     {
@@ -487,9 +485,9 @@ String filterNewText(TextEditor& e, String const& newInput) override
             }
 
             setVisible(numOptions);
-            currentidx = 0;
+            
             if (autoCompleteComponent) {
-                autoCompleteComponent->setSuggestion("");
+                autoCompleteComponent->enableAutocomplete(false);
                 currentBox->updateBounds();
             }
 
@@ -498,10 +496,22 @@ String filterNewText(TextEditor& e, String const& newInput) override
             return;
         }
 
-        buttons[currentidx]->setToggleState(true, dontSendNotification);
+        if(isPositiveAndBelow(currentidx, buttons.size())) {
+            buttons[currentidx]->setToggleState(true, dontSendNotification);
+        }
 
         // Update suggestions
         auto found = library.autocomplete(currentText);
+        
+        if(found.isEmpty()) {
+            autoCompleteComponent->enableAutocomplete(false);
+            deselectAll();
+            currentidx = -1;
+        }
+        else {
+            currentidx = 0;
+            autoCompleteComponent->enableAutocomplete(true);
+        }
 
         auto filterNonHvccObjectsIfNeeded = [_this = SafePointer(this)](StringArray& toFilter) {
             if(!_this || !_this->currentBox) return;
@@ -548,7 +558,7 @@ String filterNewText(TextEditor& e, String const& newInput) override
             if (suggestions.isEmpty() || textlen == 0) {
                 state = Hidden;
                 if (autoCompleteComponent)
-                    autoCompleteComponent->setSuggestion("");
+                    autoCompleteComponent->enableAutocomplete(false);
                 currentBox->updateBounds();
                 setVisible(false);
                 return;
@@ -557,22 +567,25 @@ String filterNewText(TextEditor& e, String const& newInput) override
             // Limit it to minimum of the number of buttons and the number of suggestions
             int numButtons = std::min(20, numOptions);
 
+            // duplicate call to updateBounds :( do we need this?t
+            currentBox->updateBounds();
+
+            setVisible(true);
+            
+            state = ShowingObjects;
+            
+            if(currentidx < 0) return;
+            
             currentidx = (currentidx + numButtons) % numButtons;
 
             // Retrieve best suggestion
             auto const& fullName = suggestions[currentidx];
 
-            state = ShowingObjects;
             if (fullName.length() > textlen && autoCompleteComponent) {
                 autoCompleteComponent->setSuggestion(fullName);
-            } else {
+            } else if(autoCompleteComponent) {
                 autoCompleteComponent->setSuggestion("");
             }
-
-            // duplicate call to updateBounds :(
-            currentBox->updateBounds();
-
-            setVisible(true);
         };
  
         // When hvcc mode is enabled, show only hvcc compatible objects
@@ -590,6 +603,13 @@ String filterNewText(TextEditor& e, String const& newInput) override
             
             applySuggestionsToButtons(found, currentText);
         });
+    }
+        
+    void deselectAll() {
+        for(auto* button : buttons)
+        {
+            button->setToggleState(false, dontSendNotification);
+        }
     }
 
     enum SugesstionState {
