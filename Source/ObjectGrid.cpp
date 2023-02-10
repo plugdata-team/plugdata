@@ -23,11 +23,10 @@ ObjectGrid::ObjectGrid(Canvas* parent)
     gridEnabled = SettingsFile::getInstance()->getProperty<int>("grid_enabled");
 }
 
-Point<int> ObjectGrid::setState(bool isSnapped, int i, Point<int> pos, Component* s, Component* e, bool horizontal)
+Point<int> ObjectGrid::setState(bool isSnapped, Point<int> pos, Component* s, Component* e, bool horizontal)
 {
     snapped[horizontal] = isSnapped;
-    idx[horizontal] = i;
-    position[horizontal] = pos;
+    position = pos;
     start[horizontal] = s;
     end[horizontal] = e;
     updateMarker();
@@ -102,8 +101,7 @@ void ObjectGrid::updateMarker()
 void ObjectGrid::clear(bool horizontal)
 {
     snapped[horizontal] = NotSnappedToGrid;
-    idx[horizontal] = 0;
-    position[horizontal] = Point<int>();
+    position = Point<int>();
     start[horizontal] = nullptr;
     end[horizontal] = nullptr;
     updateMarker();
@@ -113,7 +111,20 @@ Point<int> ObjectGrid::handleMouseDrag(Object* toDrag, Point<int> dragOffset, Re
 {
     gridLines[0].setStrokeFill(FillType(toDrag->findColour(PlugDataColour::gridLineColourId)));
     gridLines[1].setStrokeFill(FillType(toDrag->findColour(PlugDataColour::gridLineColourId)));
-
+    
+    auto ratio = toDrag->constrainer->getFixedAspectRatio();
+    auto& resizeZone = toDrag->resizeZone;
+    auto isDraggingTop = resizeZone.isDraggingTopEdge();
+    auto isDraggingLeft = resizeZone.isDraggingLeftEdge();
+    auto isDraggingBottom = resizeZone.isDraggingBottomEdge();
+    auto isDraggingRight = resizeZone.isDraggingRightEdge();
+    
+    /*
+    if(ratio != 0.0f && ratio != 1.0f && (isDraggingLeft || isDraggingRight) && (isDraggingTop || isDraggingBottom))
+    {
+        return dragOffset;
+    } */
+        
     if (gridEnabled == 1) {
         // Check for snap points on both axes
         dragOffset = performVerticalSnap(toDrag, dragOffset, viewBounds, newResizeBounds.reduced(Object::margin));
@@ -139,18 +150,19 @@ Point<int> ObjectGrid::performVerticalSnap(Object* toDrag, Point<int> dragOffset
     bool topResize = toDrag->resizeZone.isDraggingTopEdge();
     bool bottomResize = toDrag->resizeZone.isDraggingBottomEdge();
     
-    // If the aspect ratio is fixed, only allow 1 snap point when resizing
-    if(!isDragging && toDrag->constrainer->getFixedAspectRatio() && snapped[1]) {
-        return dragOffset.withY(dragOffset.x);
-    }
-    
+
     if (snapped[0]) {
-        if (std::abs(position[0].y - dragOffset.y) > range) {
+        if (std::abs(position.y - dragOffset.y) > range) {
             clear(false);
             return dragOffset;
         }
 
-        return { dragOffset.x, position[0].y };
+        return { dragOffset.x, position.y };
+    }
+    
+    auto ratio = toDrag->constrainer->getFixedAspectRatio();
+    if(!isDragging && snapped[1] && ratio) {
+        return { dragOffset.x, position.x };
     }
     
     auto b2 = isDragging ? (toDrag->originalBounds + dragOffset).reduced(Object::margin) : newResizeBounds;
@@ -166,19 +178,19 @@ Point<int> ObjectGrid::performVerticalSnap(Object* toDrag, Point<int> dragOffset
 
         start[0] = object;
         end[0] = toDrag;
-
-        if ((isDragging || topResize) && trySnap(b1.getY() - b2.getY())) {
+        
+        if ((isDragging || topResize) && std::abs(b1.getY() - b2.getY()) < tolerance) {
             orientation[0] = SnappedLeft;
             
-            return setState(true, totalSnaps, Point<int>(0, b1.getY() - b2.getY()) + dragOffset, object, toDrag, false);
+            return setState(true, Point<int>(0, b1.getY() - b2.getY()) + dragOffset, object, toDrag, false);
         }
-        if (isDragging && trySnap(b1.getCentreY() - b2.getCentreY())) {
+        if (isDragging && std::abs(b1.getCentreY() - b2.getCentreY()) < tolerance) {
             orientation[0] = SnappedCentre;
-            return setState(true, totalSnaps, Point<int>(0, b1.getCentreY() - b2.getCentreY()) + dragOffset, object, toDrag, false);
+            return setState(true, Point<int>(0, b1.getCentreY() - b2.getCentreY()) + dragOffset, object, toDrag, false);
         }
-        if ((isDragging || bottomResize) && trySnap(b1.getBottom() - b2.getBottom())) {
+        if ((isDragging || bottomResize) && std::abs(b1.getBottom() - b2.getBottom()) < tolerance) {
             orientation[0] = SnappedRight;
-            return setState(true, totalSnaps, Point<int>(0, b1.getBottom() - b2.getBottom()) + dragOffset, object, toDrag, false);
+            return setState(true, Point<int>(0, b1.getBottom() - b2.getBottom()) + dragOffset, object, toDrag, false);
         }
     }
 
@@ -193,23 +205,22 @@ Point<int> ObjectGrid::performHorizontalSnap(Object* toDrag, Point<int> dragOffs
     bool leftResize = toDrag->resizeZone.isDraggingLeftEdge();
     bool rightResize = toDrag->resizeZone.isDraggingRightEdge();
     
-    if(!isDragging && toDrag->constrainer->getFixedAspectRatio() && snapped[0]) {
-        return dragOffset.withX(dragOffset.y);
-    }
-    
     // Check if already snapped
     if (snapped[1]) {
-        if (std::abs(position[1].x - dragOffset.x) > range) {
+        if (std::abs(position.x - dragOffset.x) > range) {
             clear(true);
             return dragOffset;
         }
         
-        return { position[1].x, dragOffset.y };
+        return { position.x, dragOffset.y };
+    }
+    
+    auto ratio = toDrag->constrainer->getFixedAspectRatio();
+    if(!isDragging && snapped[0] && ratio) {
+        return { dragOffset.x, position.y };
     }
     
     if(isDragging) {
-
-        
         // Find snap points based on connection alignment
         for (auto* connection : toDrag->getConnections()) {
             auto inletBounds = connection->inlet->getCanvasBounds();
@@ -237,9 +248,9 @@ Point<int> ObjectGrid::performHorizontalSnap(Object* toDrag, Point<int> dragOffs
             if (connection->inobj == toDrag)
                 snapDistance = -snapDistance;
             
-            if (trySnap(snapDistance)) {
+            if (std::abs(snapDistance) < tolerance) {
                 orientation[1] = SnappedConnection;
-                return setState(ConnectionSnap, totalSnaps, { snapDistance + dragOffset.x, dragOffset.y }, connection->outlet, connection->inlet, true);
+                return setState(ConnectionSnap, { snapDistance + dragOffset.x, dragOffset.y }, connection->outlet, connection->inlet, true);
             }
             
             // If we're close, don't snap for other reasons
@@ -267,22 +278,18 @@ Point<int> ObjectGrid::performHorizontalSnap(Object* toDrag, Point<int> dragOffs
         start[1] = object;
         end[1] = toDrag;
 
-        auto t = b1.getY() < b2.getY() ? b1 : b2;
-        auto b = b1.getY() > b2.getY() ? b1 : b2;
-        auto r = b1.getX() < b2.getX() ? b1 : b2;
-        auto l = b1.getX() > b2.getX() ? b1 : b2;
 
-        if ((isDragging || leftResize) && trySnap(b1.getX() - b2.getX())) {
+        if (std::abs(b1.getX() - b2.getX()) < tolerance) {
             orientation[1] = SnappedLeft;
-            return setState(true, totalSnaps, Point<int>(b1.getX() - b2.getX(), 0) + dragOffset, object, toDrag, true);
+            return setState(true, Point<int>(b1.getX() - b2.getX(), 0) + dragOffset, object, toDrag, true);
         }
-        if (isDragging && trySnap(b1.getCentreX() - b2.getCentreX())) {
+        if (isDragging && std::abs(b1.getCentreX() - b2.getCentreX()) < tolerance) {
             orientation[1] = SnappedCentre;
-            return setState(true, totalSnaps, Point<int>(b1.getCentreX() - b2.getCentreX(), 0) + dragOffset, object, toDrag, true);
+            return setState(true, Point<int>(b1.getCentreX() - b2.getCentreX(), 0) + dragOffset, object, toDrag, true);
         }
-        if ((isDragging || rightResize) && trySnap(b1.getRight() - b2.getRight())) {
+        if (std::abs(b1.getRight() - b2.getRight()) < tolerance) {
             orientation[1] = SnappedRight;
-            return setState(true, totalSnaps, Point<int>(b1.getRight() - b2.getRight(), 0) + dragOffset, object, toDrag, true);
+            return setState(true, Point<int>(b1.getRight() - b2.getRight(), 0) + dragOffset, object, toDrag, true);
         }
     }
 
@@ -297,8 +304,8 @@ Point<int> ObjectGrid::performAbsoluteSnap(Object* toDrag, Point<int> dragOffset
 
     auto totalOffset = roundedDrag + offset;
 
-    position[1].x = totalOffset.x;
-    position[0].y = totalOffset.y;
+    position.x = totalOffset.x;
+    position.y = totalOffset.y;
     
 
     snapped[0] = true;
@@ -310,12 +317,12 @@ Point<int> ObjectGrid::performAbsoluteSnap(Object* toDrag, Point<int> dragOffset
 Point<int> ObjectGrid::handleMouseUp(Point<int> dragOffset)
 {
     if (snapped[1]) {
-        dragOffset.x = position[1].x;
+        dragOffset.x = position.x;
         clear(1);
     }
 
     if (snapped[0]) {
-        dragOffset.y = position[0].y;
+        dragOffset.y = position.y;
         clear(0);
     }
 
@@ -327,7 +334,6 @@ bool ObjectGrid::trySnap(int distance)
     if (std::abs(distance) < tolerance) {
         return true;
     }
-    totalSnaps++;
     return false;
 }
 

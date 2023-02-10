@@ -49,17 +49,14 @@ private:
     bool snapped[2] = { false, false };
 
     SnapOrientation orientation[2];
-    int idx[2];
-    Point<int> position[2];
+    Point<int> position;
     Component::SafePointer<Component> start[2];
     Component::SafePointer<Component> end[2];
     DrawablePath gridLines[2];
 
-    int totalSnaps = 0;
-
     int gridEnabled = 1;
 
-    Point<int> setState(bool isSnapped, int idx, Point<int> position, Component* start, Component* end, bool horizontal);
+    Point<int> setState(bool isSnapped, Point<int> position, Component* start, Component* end, bool horizontal);
     void updateMarker();
     void clear(bool horizontal);
 
