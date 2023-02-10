@@ -45,7 +45,7 @@ Rectangle<int> Iolet::getCanvasBounds()
 bool Iolet::hitTest(int x, int y)
 {
     
-    if(static_cast<bool>(locked.getValue())) return;
+    if(static_cast<bool>(locked.getValue())) return false;
     
     Path smallBounds;
     smallBounds.addEllipse(getLocalBounds().toFloat().reduced(2));
