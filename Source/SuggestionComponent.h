@@ -446,10 +446,10 @@ private:
         return false;
     }
         
-    // if the editor text is empty and there's a suggestion, it feels right to choose that suggestion with the return key
+    // If there's a suggestion, it feels right to choose that suggestion with the return key
     void textEditorReturnKeyPressed(TextEditor& e) override
     {
-        if(e.getText().isEmpty() && autoCompleteComponent && autoCompleteComponent->getSuggestion().isNotEmpty())
+        if(autoCompleteComponent && autoCompleteComponent->getSuggestion().isNotEmpty())
         {
             e.setText(autoCompleteComponent->getSuggestion());
             autoCompleteComponent->setSuggestion("");
