@@ -329,14 +329,6 @@ Point<int> ObjectGrid::handleMouseUp(Point<int> dragOffset)
     return dragOffset;
 }
 
-bool ObjectGrid::trySnap(int distance)
-{
-    if (std::abs(distance) < tolerance) {
-        return true;
-    }
-    return false;
-}
-
 void ObjectGrid::propertyChanged(String name, var value)
 {
     if (name == "grid_enabled") {

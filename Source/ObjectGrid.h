@@ -65,7 +65,5 @@ private:
 
     Point<int> performAbsoluteSnap(Object* toDrag, Point<int> dragOffset);
 
-    bool trySnap(int distance);
-
     void propertyChanged(String name, var value) override;
 };
