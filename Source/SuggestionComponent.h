@@ -473,7 +473,6 @@ private:
             std::sort(suggestions.begin(), suggestions.end(),
                 [&query](const String& a, const String& b) -> bool
             {
-                
                 auto check = [&query](const String& a, const String& b) -> bool {
                     // Check if suggestion exacly matches query
                     if(a == query) {
@@ -488,6 +487,10 @@ private:
                     // Check if suggestion is equal to query with "." appended
                     if(a.startsWith(query + ".") && b != query && b != (query + "~") && !b.startsWith(query + "."))
                     {
+                        return true;
+                    }
+                    
+                    if(a.length() < b.length()) {
                         return true;
                     }
                     
@@ -636,10 +639,6 @@ private:
             if (!openedEditor || currentText != openedEditor->getText())
                 return;
             
-            // Don't sort this for now because it seems to cause segfault
-            // Sorting these is less important anyway
-            //s = sortSuggestions(currentText, s);
-
             found.addArray(s);
             found.removeDuplicates(false);
 

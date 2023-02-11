@@ -28,11 +28,11 @@ struct _canvasenvironment {
 namespace pd {
 
 // Iterative function to insert a key into a Trie
-void Trie::insert(String const& key)
+void Trie::insert(String key)
 {
     // Names with spaces not supported yet by the suggestor
     if (key.containsChar(' '))
-        return;
+        key = key.upToFirstOccurrenceOf(" ", false, false);
 
     // start from the root node
     Trie* curr = this;
@@ -501,44 +501,65 @@ void Library::getExtraSuggestions(int currentNumSuggestions, String query, std::
 
         Suggestions result;
 
+        Suggestions matches;
         for (const auto& object : allObjects) {
+            // Whitespace is not supported by our autocompletion, because normally it indicates the start of the arguments
+            if(object.contains(" ")) continue;
+            
             if (object.contains(query)) {
-                result.add(object);
+                matches.add(object);
             }
         }
-
+        
+        matches.sort(true);
+        result.addArray(matches);
+        matches.clear();
+        
         if (currentNumSuggestions + result.size() < maxSuggestions) {
-
             for (const auto& [object, keywords] : objectKeywords) {
+                if(object.contains(" ")) continue;
                 for (const auto& keyword : keywords) {
                     if (keyword.contains(query)) {
-                        result.add(object);
+                        matches.add(object);
                     }
                 }
             }
         }
-
+        
+        matches.sort(true);
+        result.addArray(matches);
+        matches.clear();
+        
         if (currentNumSuggestions + result.size() < maxSuggestions) {
-
             for (const auto& [object, description] : objectDescriptions) {
+                if(object.contains(" ")) continue;
                 if (description.contains(query)) {
-                    result.add(object);
+                    matches.add(object);
                 }
             }
         }
+        
+        matches.sort(true);
+        result.addArray(matches);
+        matches.clear();
 
         if (currentNumSuggestions + result.size() > maxSuggestions) {
-            for (auto& [objectName, iolets] : ioletDescriptions) {
+            for (auto& [object, iolets] : ioletDescriptions) {
+                if(object.contains(" ")) continue;
                 for (int type = 0; type < 2; type++) {
                     auto descriptions = iolets[type];
                     for (auto& [description, type] : descriptions) {
                         if (description.contains(query)) {
-                            result.add(objectName);
+                            matches.add(object);
                         }
                     }
                 }
             }
         }
+        
+        matches.sort(true);
+        result.addArray(matches);
+        matches.clear();
 
         // libraryLock.unlock();
 
