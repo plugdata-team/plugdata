@@ -1,6 +1,6 @@
 ---
 title: drawnumber
-description: draw numbers, symbols or texts for data structures.
+description: draw numbers, symbols or texts for data structures
 categories:
 - object
 see_also: 

@@ -1,6 +1,6 @@
 ---
 title: throw~
-description: throw signal to a matching catch~ object.
+description: throw signal to a matching catch~ object
 categories:
 - object
 see_also:
@@ -10,9 +10,9 @@ last_update: '0.33'
 inlets:
   1st:
   - type: signal
-    description: signal to throw to a matching catch~ object.
+    description: signal to throw to a matching catch~ object
   - type: set <symbol>
-    description: set throw~ name.
+    description: set throw~ name
 arguments:
 - type: symbol
   description: throw~ symbol name 

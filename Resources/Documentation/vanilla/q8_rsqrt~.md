@@ -12,11 +12,11 @@ see_also:
 inlets:
   1st:
   - type: signal
-    description: input to reciprocal square root function.
+    description: input to reciprocal square root function
 outlets:
   1st:
   - type: signal
-    description: output of reciprocal square root function.
+    description: output of reciprocal square root function
 draft: false
 ---
 q8_rsqrt~, is included in Pd for back compatibility but should probably not be used. It only gives about 8 bit accuracy.

@@ -12,7 +12,7 @@ last_update: '0.43'
 inlets:
   1st:
   - type: set <list>
-    description: set argument values (size, overlap, up/downsampling).
+    description: set argument values (size, overlap, up/downsampling)
 arguments:
 - type: float
   description: set block size 

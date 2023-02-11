@@ -1,6 +1,6 @@
 ---
 title: scalar define
-description: defines and maintains a scalar.
+description: defines and maintains a scalar
 categories:
 - object
 see_also: 
@@ -12,19 +12,19 @@ last_update: '0.49'
 inlets:
   1st:
   - type: bang
-    description: output a pointer to the scalar.
+    description: output a pointer to the scalar
   - type: send <symbol>
     description: send pointer to a named receive object
 outlets:
   1st:
   - type: pointer
-    description: a pointer to the scalar.
+    description: a pointer to the scalar
 flags:
 - name: -k
-  description: saves/keeps the contents with the patch.
+  description: saves/keeps the contents with the patch
 arguments:
 - type: symbol
-  description: template name.
+  description: template name
 draft: false
 ---
 create, store, and/or edit one

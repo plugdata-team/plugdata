@@ -10,11 +10,11 @@ last_update: '0.31'
 inlets:
   1st:
   - type: list
-    description: number of FFT points, table name for real part, table name forimaginary part and maximum number of peaks to report.
+    description: number of FFT points, table name for real part, table name forimaginary part and maximum number of peaks to report
 outlets:
   1st:
   - type: list
-    description: partial index, frequency in hz, amplitude, cosine and sine components.
+    description: partial index, frequency in hz, amplitude, cosine and sine components
 draft: false
 ---
 NOTE: pique is obsolete! consider using [sigmund~]

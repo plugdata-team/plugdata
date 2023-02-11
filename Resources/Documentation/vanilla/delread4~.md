@@ -12,11 +12,11 @@ last_update: '0.52'
 inlets:
   1st:
   - type: signal
-    description: delay time in ms.
+    description: delay time in ms
 outlets:
   1st:
   - type: signal
-    description: delayed signal.
+    description: delayed signal
 arguments:
   - type: symbol
     description: delay line name. 

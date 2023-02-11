@@ -8,7 +8,7 @@ pdcategory: vanilla, UI
 last_update: '0.52'
 arguments:
 - type: symbol
-  description: sets the canvas name.
+  description: sets the canvas name
 
 draft: false
 ---

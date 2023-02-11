@@ -14,7 +14,7 @@ arguments:
 inlets:
   1st:
   - type: float
-    description: MIDI aftertouch value.
+    description: MIDI aftertouch value
   2nd:
   - type: float
     description: MIDI note number

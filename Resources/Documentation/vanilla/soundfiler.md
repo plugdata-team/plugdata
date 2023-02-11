@@ -19,17 +19,17 @@ inlets:
       channels. `Optional flags`: -wave,  -aiff,  -caf,  -next,  -skip <float>,  -maxsize
       <float>,  -ascii,  -raw <list>.'
   - type: write <list>
-    description: 'sets a filename to write and one or more arrays to specify channels.
+    description: 'sets a filename to write and one or more arrays to specify channels
       `Optional flags`: -wave,  -aiff,  -caf,  -next,  -big,  -little,  -skip <float>,  -nframes
       <float>,  -ascii,  -normalize,  -rate <float>.'
 outlets:
   1st:
   - type: float
-    description: number of samples (when reading a file).
+    description: number of samples (when reading a file)
   2nd:
   - type: list
     description: sample rate,  header size,  number of channels,  bytes per sample
-      & endianness (when reading a file).
+      & endianness (when reading a file)
 draft: false
 ---
 The soundfiler object reads and writes floating point arrays to binary soundfiles which may contain uncompressed 2- or 3-byte integer ("pcm") or 4-byte floating point samples in wave, aiff, caf, next, or ascii text formats. The number of channels of the soundfile need not match the number of arrays given (extras are dropped and unsupplied channels are zeroed out).

@@ -10,13 +10,13 @@ see_also:
 inlets:
   1st:
   - type: float
-    description: number to convert to signal.
+    description: number to convert to signal
 outlets:
   1st:
   - type: signal
-    description: converted signal.
+    description: converted signal
 arguments:
   - type: float
-    description: initially converted value.
+    description: initially converted value
 draft: false
 ---

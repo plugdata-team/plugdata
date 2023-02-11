@@ -1,6 +1,6 @@
 ---
 title: text insert
-description: insert a line.
+description: insert a line
 categories:
 - object
 pdcategory: vanilla, Data Management
