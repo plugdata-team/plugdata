@@ -324,7 +324,7 @@ Array<Object*> ObjectGrid::getSnappableObjects(Canvas* cnv)
 {
     Array<Object*> snappable;
 
-    auto viewBounds = cnv->viewport->getViewArea();
+    auto viewBounds = reinterpret_cast<Viewport*>(cnv->viewport)->getViewArea();
 
     for (auto* object : cnv->objects) {
         if (cnv->isSelected(object) || !viewBounds.intersects(object->getBounds()))
