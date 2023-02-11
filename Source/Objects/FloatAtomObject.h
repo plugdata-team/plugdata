@@ -26,7 +26,7 @@ public:
 
         input.onEditorShow = [this]() {
             auto* editor = input.getCurrentTextEditor();
-            
+
             startEdition();
 
             editor->setBorder({ 0, 1, 3, 0 });
@@ -80,16 +80,19 @@ public:
     {
         repaint();
     }
-    
-    bool hideInlets() override {
+
+    bool hideInlets() override
+    {
         return atomHelper.hasReceiveSymbol();
     }
-    
-    bool hideOutlets() override {
+
+    bool hideOutlets() override
+    {
         return atomHelper.hasSendSymbol();
     }
-    
-    void lookAndFeelChanged() override {
+
+    void lookAndFeelChanged() override
+    {
         input.setColour(Label::textWhenEditingColourId, object->findColour(PlugDataColour::canvasTextColourId));
         input.setColour(Label::textColourId, object->findColour(PlugDataColour::canvasTextColourId));
         input.setColour(TextEditor::textColourId, object->findColour(PlugDataColour::canvasTextColourId));

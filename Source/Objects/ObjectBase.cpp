@@ -133,8 +133,8 @@ String ObjectBase::getType() const
 {
     // TODO: callback lock can cause deadlock :(
     // We have a lot of threading problems to fix...
-    
-    //ScopedLock lock(*pd->getCallbackLock());
+
+    // ScopedLock lock(*pd->getCallbackLock());
 
     if (ptr) {
         // Check if it's an abstraction or subpatch
@@ -150,7 +150,7 @@ String ObjectBase::getType() const
             return String::fromUTF8(namebuf).fromLastOccurrenceOf("/", false, false);
         }
         // Deal with different text objects
-        switch(hash(libpd_get_object_class_name(ptr))) {
+        switch (hash(libpd_get_object_class_name(ptr))) {
         case hash("text"):
             if (static_cast<t_text*>(ptr)->te_type == T_OBJECT)
                 return String("invalid");
@@ -191,7 +191,7 @@ void ObjectBase::closeOpenedSubpatchers()
 
     if (!tabbar)
         return;
-    
+
     auto lastTab = SafePointer(tabbar->getCurrentContentComponent());
     int lastIndex = tabbar->getCurrentTabIndex();
     for (int n = tabbar->getNumTabs() - 1; n >= 0; n--) {
@@ -212,13 +212,12 @@ void ObjectBase::closeOpenedSubpatchers()
         tabbar->currentTabChanged(-1, String());
         return;
     }
-    
 
-    if(!lastTab) {
+    if (!lastTab) {
         MessageManager::callAsync([safeTabbar = SafePointer(tabbar), lastIndex]() {
             if (!safeTabbar)
                 return;
-            
+
             safeTabbar->setCurrentTabIndex(std::min(lastIndex, safeTabbar->getNumTabs() - 1), true);
         });
     }
@@ -272,7 +271,6 @@ void ObjectBase::moveToBack()
     libpd_toback(cnv->patch.getPointer(), static_cast<t_gobj*>(ptr));
 }
 
-
 void ObjectBase::paint(Graphics& g)
 {
     g.setColour(object->findColour(PlugDataColour::guiObjectBackgroundColourId));
@@ -308,16 +306,18 @@ ObjectParameters ObjectBase::getParameters()
 
 void ObjectBase::startEdition()
 {
-    if(edited) return;
-    
+    if (edited)
+        return;
+
     edited = true;
     pd->enqueueMessages("gui", "mouse", { 1.f });
 }
 
 void ObjectBase::stopEdition()
 {
-    if(!edited) return;
-    
+    if (!edited)
+        return;
+
     edited = false;
     pd->enqueueMessages("gui", "mouse", { 0.f });
 }
@@ -329,14 +329,13 @@ void ObjectBase::sendFloatValue(float newValue)
 
 ObjectBase* ObjectBase::createGui(void* ptr, Object* parent)
 {
-    const auto name = hash(libpd_get_object_class_name(ptr));
-    
+    auto const name = hash(libpd_get_object_class_name(ptr));
+
     // check if object is a patcher object, or something else
     if (!pd_checkobject(static_cast<t_pd*>(ptr)) && name != hash("scalar")) {
         return new NonPatchable(ptr, parent);
-    }
-    else {
-        switch(name) {
+    } else {
+        switch (name) {
         case hash("bng"):
             return new BangObject(ptr, parent);
         case hash("button"):
@@ -412,7 +411,7 @@ ObjectBase* ObjectBase::createGui(void* ptr, Object* parent)
                 return new SubpatchObject(ptr, parent);
             }
         }
-        case hash("array define"): 
+        case hash("array define"):
             return new ArrayDefineObject(ptr, parent);
         case hash("clone"):
             return new CloneObject(ptr, parent);
@@ -502,7 +501,7 @@ void ObjectBase::receiveMessage(String const& symbol, int argc, t_atom* argv)
         if (!_this || _this->cnv->patch.objectWasDeleted(_this->ptr))
             return;
 
-        switch(hash(symbol)) {
+        switch (hash(symbol)) {
         case hash("size"):
         case hash("delta"):
         case hash("pos"):

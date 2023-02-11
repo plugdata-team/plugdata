@@ -32,7 +32,6 @@ struct RateReducer : public Timer {
         stopTimer();
     }
 
-
 private:
     int timerHz;
     bool allowEvent = true;

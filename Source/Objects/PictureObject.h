@@ -56,7 +56,7 @@ public:
             auto filePath = String::fromUTF8(pic->x_filename->s_name);
             openFile(filePath);
         }
-        
+
         object->constrainer->setMinimumSize(15, 15);
     }
 
@@ -125,10 +125,11 @@ public:
 
     void openFile(String location)
     {
-        if(location.isEmpty() || location == "empty") return;
+        if (location.isEmpty() || location == "empty")
+            return;
 
         auto findFile = [this](String const& name) {
-            if ((name.startsWith ("/") || name.startsWith ("./") || name.startsWith ("../")) && File(name).existsAsFile()) {
+            if ((name.startsWith("/") || name.startsWith("./") || name.startsWith("../")) && File(name).existsAsFile()) {
                 return File(name);
             }
             if (File(String::fromUTF8(canvas_getdir(cnv->patch.getPointer())->s_name)).getChildFile(name).existsAsFile()) {

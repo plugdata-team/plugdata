@@ -199,30 +199,30 @@ Instance::~Instance()
 void Instance::loadLibs(String& pdlua_version)
 {
     setThis();
-    
+
     static bool initialised = false;
-    if(!initialised) {
-        
+    if (!initialised) {
+
         File homeDir = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory).getChildFile("plugdata");
         auto library = homeDir.getChildFile("Library");
         auto extra = library.getChildFile("Extra");
-        
+
         set_class_prefix(gensym("else"));
         libpd_init_else();
         set_class_prefix(gensym("cyclone"));
         libpd_init_cyclone();
         set_class_prefix(nullptr);
-        
+
         // Class prefix doesn't seem to work for pdlua
         char vers[1000];
         *vers = 0;
         libpd_init_pdlua(extra.getFullPathName().getCharPointer(), vers, 1000);
         if (*vers)
             pdlua_version = vers;
-        
+
         initialised = true;
     }
-    
+
     // ag: need to do this here to suppress noise from chatty externals
     m_print_receiver = libpd_multi_print_new(this, reinterpret_cast<t_libpd_multi_printhook>(internal::instance_multi_print));
     libpd_set_verbose(0);
@@ -416,7 +416,7 @@ void Instance::processMessage(Message mess)
 
 void Instance::processMidiEvent(midievent event)
 {
-    switch(event.type) {
+    switch (event.type) {
     case midievent::NOTEON:
         receiveNoteOn(event.midi1 + 1, event.midi2, event.midi3);
         break;
@@ -539,7 +539,7 @@ void Instance::waitForStateUpdate()
     if (m_function_queue.size_approx() == 0) {
         return;
     }
-    
+
     waitingForStateUpdate = true;
 
     //  Append signal to resume thread at the end of the queue
@@ -549,12 +549,12 @@ void Instance::waitForStateUpdate()
 
     // Dequeuing should never take more than a few seconds, it should happen at audio rate
     // By never blocking infinitely, and attempting to dequeue inbetween tries, we can possibly prevent deadlocks
-    for(int i = 0; i < 10; i++) {
+    for (int i = 0; i < 10; i++) {
         messageEnqueued();
-        if(updateWait.wait(200)) return;
+        if (updateWait.wait(200))
+            return;
     }
-    
-    
+
     waitingForStateUpdate = false;
 }
 
@@ -690,17 +690,21 @@ bool Instance::loadLibrary(String libraryToLoad)
     return sys_load_lib(nullptr, libraryToLoad.toRawUTF8());
 }
 
-void Instance::lockAudioThread() {
-    if(waitingForStateUpdate) return;
-    
+void Instance::lockAudioThread()
+{
+    if (waitingForStateUpdate)
+        return;
+
     audioLock->enter();
 }
 
-bool Instance::tryLockAudioThread() {
+bool Instance::tryLockAudioThread()
+{
     return audioLock->tryEnter();
 }
 
-void Instance::unlockAudioThread() {
+void Instance::unlockAudioThread()
+{
     audioLock->exit();
 }
 

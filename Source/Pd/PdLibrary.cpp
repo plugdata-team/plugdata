@@ -227,7 +227,7 @@ void Library::initialiseLibrary()
             appDataDir.getChildFile("Deken") };
 
         libraryLock.unlock();
-        
+
         // Update docs in GUI
         MessageManager::callAsync([this]() {
             watcher.addFolder(appDataDir);
@@ -266,9 +266,9 @@ void Library::updateLibrary()
         allObjects.clear();
 
         for (i = o->c_nmethod, m = mlist; i--; m++) {
-            
+
             auto newName = String(m->me_name->s_name);
-            if(!(newName.startsWith("else/") || newName.startsWith("cyclone/"))) {
+            if (!(newName.startsWith("else/") || newName.startsWith("cyclone/"))) {
                 allObjects.add(newName);
                 searchTree->insert(m->me_name->s_name);
             }
@@ -484,82 +484,77 @@ Suggestions Library::autocomplete(String query) const
     Suggestions result;
     if (searchTree)
         searchTree->autocomplete(std::move(query), result);
-    
+
     return result;
 }
 
-
 void Library::getExtraSuggestions(int currentNumSuggestions, String query, std::function<void(Suggestions)> callback)
 {
-    const int maxSuggestions = 20;
-    if(currentNumSuggestions > maxSuggestions) return;
-    
+    int const maxSuggestions = 20;
+    if (currentNumSuggestions > maxSuggestions)
+        return;
+
     libraryUpdateThread.addJob([this, callback, currentNumSuggestions, query]() mutable {
-        
-        //if(!libraryLock.try_lock()) {
-         //   return;
+        // if(!libraryLock.try_lock()) {
+        //    return;
         //}
-        
+
         Suggestions result;
-        
-        for(const auto& object : allObjects)
-        {
-            if(object.contains(query)) {
+
+        for (const auto& object : allObjects) {
+            if (object.contains(query)) {
                 result.add(object);
             }
         }
-        
-        if(currentNumSuggestions + result.size() < maxSuggestions) {
-            
-            for(const auto& [object, keywords] : objectKeywords)
-            {
-                for(const auto& keyword : keywords) {
-                    if(keyword.contains(query)) {
+
+        if (currentNumSuggestions + result.size() < maxSuggestions) {
+
+            for (const auto& [object, keywords] : objectKeywords) {
+                for (const auto& keyword : keywords) {
+                    if (keyword.contains(query)) {
                         result.add(object);
                     }
                 }
             }
         }
-        
-        if(currentNumSuggestions + result.size() < maxSuggestions) {
-            
-            for(const auto& [object, description] : objectDescriptions)
-            {
-                if(description.contains(query)) {
+
+        if (currentNumSuggestions + result.size() < maxSuggestions) {
+
+            for (const auto& [object, description] : objectDescriptions) {
+                if (description.contains(query)) {
                     result.add(object);
                 }
             }
         }
-        
-        if(currentNumSuggestions + result.size() > maxSuggestions) {
-            for(auto& [objectName, iolets] : ioletDescriptions)
-            {
+
+        if (currentNumSuggestions + result.size() > maxSuggestions) {
+            for (auto& [objectName, iolets] : ioletDescriptions) {
                 for (int type = 0; type < 2; type++) {
                     auto descriptions = iolets[type];
-                    for(auto& [description, type] : descriptions) {
-                        if(description.contains(query)) {
+                    for (auto& [description, type] : descriptions) {
+                        if (description.contains(query)) {
                             result.add(objectName);
                         }
                     }
                 }
             }
         }
-        
-        //libraryLock.unlock();
-        
-        MessageManager::callAsync([callback, result](){
+
+        // libraryLock.unlock();
+
+        MessageManager::callAsync([callback, result]() {
             callback(result);
         });
     });
 }
 
-String Library::getObjectTooltip(const String& type)
+String Library::getObjectTooltip(String const& type)
 {
     if (libraryLock.try_lock()) {
         return objectDescriptions[type];
         libraryLock.unlock();
     }
- 
+
     return "";
 }
 

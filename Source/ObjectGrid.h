@@ -8,7 +8,6 @@
 #include <JuceHeader.h>
 #include "Utility/SettingsFile.h"
 
-
 class Object;
 class Canvas;
 class ObjectGrid : public SettingsFileListener {
@@ -16,11 +15,11 @@ class ObjectGrid : public SettingsFileListener {
 public:
     ObjectGrid(Canvas* parent);
 
-    //Point<int> handleMouseDrag(Object* toDrag, Point<int> dragOffset, Rectangle<int> viewBounds, Rectangle<int> resizeBounds = Rectangle<int>(0, 0, 0, 0));
+    // Point<int> handleMouseDrag(Object* toDrag, Point<int> dragOffset, Rectangle<int> viewBounds, Rectangle<int> resizeBounds = Rectangle<int>(0, 0, 0, 0));
     Point<int> handleMouseUp(Point<int> dragOffset);
-    
+
     Point<int> performMove(Object* toDrag, Point<int> dragOffset);
-    
+
     Point<int> performResize(Object* toDrag, Point<int> dragOffset, Rectangle<int> newResizeBounds);
 
     static constexpr int range = 5;
@@ -50,9 +49,9 @@ private:
 
     Point<int> performVerticalSnap(Object* toDrag, Point<int> dragOffset, Rectangle<int> viewBounds, Rectangle<int> newResizeBounds);
     Point<int> performHorizontalSnap(Object* toDrag, Point<int> dragOffset, Rectangle<int> viewBounds, Rectangle<int> newResizeBounds);
-    
+
     Point<int> performAbsoluteSnap(Object* toDrag, Point<int> dragOffset);
-    
+
     Array<Object*> getSnappableObjects(Canvas* cnv);
     bool isAlreadySnapped(bool horizontal, Point<int>& dragOffset);
 

@@ -250,8 +250,7 @@ private:
 class DocumentBrowserView : public DocumentBrowserViewBase
     , public FileBrowserListener
     , public ScrollBar::Listener
-    , public Timer
-{
+    , public Timer {
 public:
     /** Creates a listbox to show the contents of a specified directory.
      */
@@ -268,11 +267,11 @@ public:
         getViewport()->getVerticalScrollBar().addListener(this);
         startTimer(1500);
     }
-    
+
     void timerCallback() override
     {
         auto lastModificationTime = directoryContentsList.getDirectory().getLastModificationTime();
-        if(lastModificationTime > lastUpdateTime) {
+        if (lastModificationTime > lastUpdateTime) {
             refresh();
             lastUpdateTime = lastModificationTime;
         }
@@ -328,7 +327,7 @@ public:
     void refresh()
     {
         directoryContentsList.refresh();
-        
+
         // Mouse events during update can cause a crash!
         setEnabled(false);
 
@@ -701,8 +700,7 @@ private:
     TextButton closeButton = TextButton(Icons::Clear);
 };
 
-class DocumentBrowser : public DocumentBrowserBase
-{
+class DocumentBrowser : public DocumentBrowserBase {
 
 public:
     DocumentBrowser(PluginProcessor* processor)

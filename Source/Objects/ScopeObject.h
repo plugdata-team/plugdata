@@ -221,25 +221,26 @@ public:
         if (object->iolets.size() == 3)
             object->iolets[2]->setVisible(false);
 
-        {   // With locked audio thread, copy oscilloscope values
-            if (!pd->tryLockAudioThread()) return;
-            
+        { // With locked audio thread, copy oscilloscope values
+            if (!pd->tryLockAudioThread())
+                return;
+
             auto* x = static_cast<S*>(ptr);
             bufsize = x->x_bufsize;
             min = x->x_min;
             max = x->x_max;
             mode = x->x_xymode;
-            
+
             if (x_buffer.size() != bufsize) {
                 x_buffer.resize(bufsize);
                 y_buffer.resize(bufsize);
             }
-            
+
             std::copy(x->x_xbuflast, x->x_xbuflast + bufsize, x_buffer.data());
             std::copy(x->x_ybuflast, x->x_ybuflast + bufsize, y_buffer.data());
             pd->unlockAudioThread();
         }
-        
+
         if (min > max) {
             auto temp = max;
             max = min;

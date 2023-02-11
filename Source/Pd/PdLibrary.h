@@ -84,7 +84,7 @@ public:
     Suggestions autocomplete(String query) const;
     void getExtraSuggestions(int currentNumSuggestions, String query, std::function<void(Suggestions)> callback);
 
-    String getObjectTooltip(const String& type);
+    String getObjectTooltip(String const& type);
     std::array<StringArray, 2> getIoletTooltips(String type, String name, int numIn, int numOut);
 
     void fsChangeCallback() override;
@@ -114,8 +114,8 @@ public:
         appDataDir.getChildFile("Library").getChildFile("Deken"),
         appDataDir.getChildFile("Library").getChildFile("Extra").getChildFile("else")
     };
-    
-    static inline StringArray objectOrigins = {"vanilla", "ELSE", "cyclone", "heavylib", "pdlua"};
+
+    static inline StringArray objectOrigins = { "vanilla", "ELSE", "cyclone", "heavylib", "pdlua" };
 
 private:
     ObjectMap objectDescriptions;

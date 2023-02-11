@@ -37,7 +37,7 @@ public:
             menuItems[2]->isActive = recentlyOpenedTree.getNumChildren() > 0;
         }
 
-        addCustomItem(100, std::unique_ptr<IconMenuItem>(menuItems[2]), std::unique_ptr<const PopupMenu>(recentlyOpened), "Recently opened");
+        addCustomItem(100, std::unique_ptr<IconMenuItem>(menuItems[2]), std::unique_ptr<PopupMenu const>(recentlyOpened), "Recently opened");
 
         addSeparator();
         addCustomItem(3, std::unique_ptr<IconMenuItem>(menuItems[3]), nullptr, "Save patch");

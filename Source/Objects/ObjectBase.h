@@ -65,11 +65,10 @@ public:
     virtual bool isEditorShown() { return false; };
     virtual void showEditor() {};
     virtual void hideEditor() {};
-    
+
     // Some objects need to show/hide iolets when send/receive symbols are set
     virtual bool hideInlets() { return false; }
     virtual bool hideOutlets() { return false; }
-        
 
     virtual bool checkBounds(Rectangle<int> oldBounds, Rectangle<int> newBounds, bool resizingOnLeft) { return false; };
 

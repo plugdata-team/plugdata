@@ -36,7 +36,6 @@ public:
         objectText = getSymbol();
     }
 
-
     void updateBounds() override
     {
         pd->lockAudioThread();
@@ -143,7 +142,7 @@ public:
             editor->setBounds(getLocalBounds().withTrimmedRight(5));
         }
     }
-        
+
     bool isEditorShown() override
     {
         return editor != nullptr;

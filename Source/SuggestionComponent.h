@@ -45,12 +45,12 @@ public:
     {
         if (!editor)
             return;
-        
+
         editor->setText(editor->getText() + suggestion, sendNotification);
         suggestion = "";
         repaint();
     }
-        
+
     void enableAutocomplete(bool enabled)
     {
         shouldAutocomplete = enabled;
@@ -60,27 +60,25 @@ public:
     {
         if (!editor)
             return;
-            auto editorText = editor->getText();
-        
-        if(editorText.startsWith(suggestionText))
-        {
+        auto editorText = editor->getText();
+
+        if (editorText.startsWith(suggestionText)) {
             suggestion = "";
             repaint();
             return;
         }
-                
-        if(editorText.isEmpty()) {
+
+        if (editorText.isEmpty()) {
             editor->setText(stashedText, dontSendNotification);
             editorText = stashedText;
         }
-    
-        if(suggestionText.startsWith(editorText)) {
+
+        if (suggestionText.startsWith(editorText)) {
             auto textUpToSpace = editorText.upToFirstOccurrenceOf(" ", false, false);
             suggestion = suggestionText.fromFirstOccurrenceOf(textUpToSpace, false, true);
             setVisible(suggestionText.isNotEmpty() && textUpToSpace != suggestionText);
             repaint();
-        }
-        else if(editorText.isNotEmpty()) {
+        } else if (editorText.isNotEmpty()) {
             stashedText = editorText;
             editor->setText("", dontSendNotification);
             suggestion = suggestionText;
@@ -89,10 +87,9 @@ public:
     }
 
 private:
-    
     bool shouldAutocomplete = true;
     String stashedText;
-        
+
     void componentMovedOrResized(Component& component, bool moved, bool resized) override
     {
         if (!editor)
@@ -445,12 +442,11 @@ private:
         }
         return false;
     }
-        
+
     // If there's a suggestion, it feels right to choose that suggestion with the return key
     void textEditorReturnKeyPressed(TextEditor& e) override
     {
-        if(e.getText().isEmpty() && autoCompleteComponent && autoCompleteComponent->getSuggestion().isNotEmpty())
-        {
+        if (e.getText().isEmpty() && autoCompleteComponent && autoCompleteComponent->getSuggestion().isNotEmpty()) {
             e.setText(autoCompleteComponent->getSuggestion());
             autoCompleteComponent->setSuggestion("");
         }
@@ -485,7 +481,7 @@ private:
             }
 
             setVisible(numOptions);
-            
+
             if (autoCompleteComponent) {
                 autoCompleteComponent->enableAutocomplete(false);
                 currentBox->updateBounds();
@@ -496,43 +492,42 @@ private:
             return;
         }
 
-        if(isPositiveAndBelow(currentidx, buttons.size())) {
+        if (isPositiveAndBelow(currentidx, buttons.size())) {
             buttons[currentidx]->setToggleState(true, dontSendNotification);
         }
 
         // Update suggestions
         auto found = library.autocomplete(currentText);
-        
-        if(found.isEmpty()) {
+
+        if (found.isEmpty()) {
             autoCompleteComponent->enableAutocomplete(false);
             deselectAll();
             currentidx = -1;
-        }
-        else {
+        } else {
             currentidx = 0;
             autoCompleteComponent->enableAutocomplete(true);
         }
 
         auto filterNonHvccObjectsIfNeeded = [_this = SafePointer(this)](StringArray& toFilter) {
-            if(!_this || !_this->currentBox) return;
-            
+            if (!_this || !_this->currentBox)
+                return;
+
             if (static_cast<bool>(_this->currentBox->cnv->editor->hvccMode.getValue())) {
-                
+
                 StringArray hvccObjectsFound;
                 for (auto& object : toFilter) {
                     if (Object::hvccObjects.contains(object)) {
                         hvccObjectsFound.add(object);
                     }
                 }
-                
+
                 toFilter = hvccObjectsFound;
             }
         };
-        
-        auto applySuggestionsToButtons = [this, &library](StringArray& suggestions, String originalQuery){
-            
+
+        auto applySuggestionsToButtons = [this, &library](StringArray& suggestions, String originalQuery) {
             numOptions = static_cast<int>(suggestions.size());
-            
+
             // Apply object name and descriptions to buttons
             for (int i = 0; i < std::min<int>(buttons.size(), numOptions); i++) {
                 auto& name = suggestions[i];
@@ -551,7 +546,7 @@ private:
                 buttons[i]->setText("", "", false);
 
             resized();
-            
+
             // Get length of user-typed text
             int textlen = openedEditor->getText().length();
 
@@ -563,7 +558,7 @@ private:
                 setVisible(false);
                 return;
             }
-            
+
             // Limit it to minimum of the number of buttons and the number of suggestions
             int numButtons = std::min(20, numOptions);
 
@@ -571,11 +566,12 @@ private:
             currentBox->updateBounds();
 
             setVisible(true);
-            
+
             state = ShowingObjects;
-            
-            if(currentidx < 0) return;
-            
+
+            if (currentidx < 0)
+                return;
+
             currentidx = (currentidx + numButtons) % numButtons;
 
             // Retrieve best suggestion
@@ -583,31 +579,32 @@ private:
 
             if (fullName.length() > textlen && autoCompleteComponent) {
                 autoCompleteComponent->setSuggestion(fullName);
-            } else if(autoCompleteComponent) {
+            } else if (autoCompleteComponent) {
                 autoCompleteComponent->setSuggestion("");
             }
         };
- 
+
         // When hvcc mode is enabled, show only hvcc compatible objects
         filterNonHvccObjectsIfNeeded(found);
         applySuggestionsToButtons(found, currentText);
-        
+
         library.getExtraSuggestions(found.size(), currentText, [this, filterNonHvccObjectsIfNeeded, applySuggestionsToButtons, found, currentText](StringArray s) mutable {
             filterNonHvccObjectsIfNeeded(s);
 
             // This means the extra suggestions have returned too late to still be relevant
-            if(!openedEditor || currentText != openedEditor->getText()) return;
-            
+            if (!openedEditor || currentText != openedEditor->getText())
+                return;
+
             found.addArray(s);
             found.removeDuplicates(false);
-            
+
             applySuggestionsToButtons(found, currentText);
         });
     }
-        
-    void deselectAll() {
-        for(auto* button : buttons)
-        {
+
+    void deselectAll()
+    {
+        for (auto* button : buttons) {
             button->setToggleState(false, dontSendNotification);
         }
     }

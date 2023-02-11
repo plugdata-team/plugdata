@@ -355,7 +355,7 @@ public:
                 auto* swatch = swatchesToAdd.getLast();
 
                 auto value = SettingsFile::getInstance()->getColourThemesTree().getChildWithProperty("theme", themeName).getPropertyAsValue(colourId, nullptr);
-                
+
                 swatch->referTo(value);
                 swatch->addListener(this);
             }

@@ -22,13 +22,12 @@ class PlugDataLook;
 
 class PluginEditor;
 class PluginProcessor : public AudioProcessor
-    , public pd::Instance
-{
+    , public pd::Instance {
 public:
     PluginProcessor();
 
     ~PluginProcessor();
-    
+
     static AudioProcessor::BusesProperties buildBusesProperties();
 
     void setOversampling(int amount);
@@ -144,7 +143,7 @@ public:
 
     // Protected mode value will decide if we apply clipping to output and remove non-finite numbers
     std::atomic<bool> protectedMode = true;
-    
+
     // Zero means no oversampling
     std::atomic<int> oversampling = 0;
     int lastTab = -1;

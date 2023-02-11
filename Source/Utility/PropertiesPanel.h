@@ -164,7 +164,8 @@ public:
 
     struct BoolComponent : public Property {
         BoolComponent(String const& propertyName, Value& value, std::vector<String> options)
-            : Property(propertyName), textOptions(options)
+            : Property(propertyName)
+            , textOptions(options)
         {
             toggleStateValue.referTo(value);
         }
@@ -184,22 +185,22 @@ public:
 
             auto textColour = isDown ? findColour(PlugDataColour::panelActiveTextColourId) : findColour(PlugDataColour::panelTextColourId);
             PlugDataLook::drawText(g, textOptions[isDown], bounds, textColour, 14.0f, Justification::centred);
-        
+
             // Paint label
             Property::paint(g);
         }
-        
-        void mouseEnter(const MouseEvent& e) override
+
+        void mouseEnter(MouseEvent const& e) override
         {
             repaint();
         }
-        
-        void mouseExit(const MouseEvent& e) override
+
+        void mouseExit(MouseEvent const& e) override
         {
             repaint();
         }
-        
-        void mouseUp(const MouseEvent& e) override
+
+        void mouseUp(MouseEvent const& e) override
         {
             toggleStateValue = !static_cast<bool>(toggleStateValue.getValue());
             repaint();

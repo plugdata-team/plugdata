@@ -367,56 +367,55 @@ PopupMenu Dialogs::createObjectMenu(PluginEditor* parent)
 
     // Custom function because JUCE adds "shortcut:" before some keycommands, which looks terrible!
     auto createCommandItem = [parent](const CommandID commandID, String const& displayName) {
-        
-        if(commandID < NumEssentialObjects) {
-            
+        if (commandID < NumEssentialObjects) {
+
             ApplicationCommandInfo info(*parent->getCommandForID(commandID));
             auto* target = parent->ApplicationCommandManager::getTargetForCommand(commandID, info);
-            
+
             PopupMenu::Item i;
             i.text = displayName;
             i.itemID = (int)commandID;
             i.commandManager = parent;
             i.isEnabled = target != nullptr && (info.flags & ApplicationCommandInfo::isDisabled) == 0;
-            
+
             String shortcutKey;
-            
+
             for (auto& keypress : parent->getKeyMappings()->getKeyPressesAssignedToCommand(commandID)) {
                 auto key = keypress.getTextDescriptionWithIcons();
-                
+
                 auto shiftIcon = String(CharPointer_UTF8("\xe2\x87\xa7"));
                 if (key.contains(shiftIcon)) {
                     key = key.replace(shiftIcon, "shift-");
                 }
                 if (shortcutKey.isNotEmpty())
                     shortcutKey << ", ";
-                
+
                 shortcutKey << key;
             }
-            
+
             i.shortcutKeyDescription = shortcutKey.trim();
-            
+
             return i;
-        }
-        else {
-            
+        } else {
+
             auto cnv = Component::SafePointer(parent->getCurrentCanvas());
             bool locked = static_cast<bool>(cnv->locked.getValue()) || static_cast<bool>(cnv->commandLocked.getValue());
-            
+
             PopupMenu::Item i;
             i.text = displayName;
             i.itemID = (int)commandID;
             i.isEnabled = !locked;
-            i.action = [parent, cnv, commandID](){
-                if(!cnv) return;
-                
+            i.action = [parent, cnv, commandID]() {
+                if (!cnv)
+                    return;
+
                 auto lastPosition = cnv->viewport->getViewArea().getConstrainedPoint(cnv->lastMousePosition - Point<int>(Object::margin, Object::margin));
-                
+
                 cnv->objects.add(new Object(cnv, objectNames.at(static_cast<ObjectIDs>(commandID)), lastPosition));
                 cnv->deselectAll();
                 cnv->setSelected(cnv->objects[cnv->objects.size() - 1], true); // Select newly created object
             };
-            
+
             return i;
         }
     };
@@ -447,7 +446,7 @@ PopupMenu Dialogs::createObjectMenu(PluginEditor* parent)
         uiMenu.addItem(createCommandItem(ObjectIDs::NewMessbox, "Messbox"));
         uiMenu.addItem(createCommandItem(ObjectIDs::NewBicoeff, "Bicoeff"));
     }
-    
+
     PopupMenu generalMenu;
     {
         generalMenu.addItem(createCommandItem(ObjectIDs::NewMetro, "metro"));
@@ -455,22 +454,21 @@ PopupMenu Dialogs::createObjectMenu(PluginEditor* parent)
         generalMenu.addItem(createCommandItem(ObjectIDs::NewSel, "sel"));
         generalMenu.addItem(createCommandItem(ObjectIDs::NewRoute, "route"));
         generalMenu.addItem(createCommandItem(ObjectIDs::NewExpr, "expr"));
-        
+
         generalMenu.addItem(createCommandItem(ObjectIDs::NewLoadbang, "loadbang"));
-        
+
         generalMenu.addItem(createCommandItem(ObjectIDs::NewPack, "pack"));
         generalMenu.addItem(createCommandItem(ObjectIDs::NewUnpack, "unpack"));
         generalMenu.addItem(createCommandItem(ObjectIDs::NewPrint, "print"));
-        
+
         generalMenu.addItem(createCommandItem(ObjectIDs::NewNetsend, "netsend"));
         generalMenu.addItem(createCommandItem(ObjectIDs::NewNetreceive, "netreceive"));
-        
+
         generalMenu.addItem(createCommandItem(ObjectIDs::NewTimer, "timer"));
         generalMenu.addItem(createCommandItem(ObjectIDs::NewDelay, "delay"));
         generalMenu.addItem(createCommandItem(ObjectIDs::NewTimedGate, "timed.gate"));
-        
     }
-    
+
     PopupMenu effectsMenu;
     {
         effectsMenu.addItem(createCommandItem(ObjectIDs::NewCrusher, "crusher~"));
@@ -486,7 +484,6 @@ PopupMenu Dialogs::createObjectMenu(PluginEditor* parent)
         effectsMenu.addItem(createCommandItem(ObjectIDs::NewTremolo, "tremolo~"));
         effectsMenu.addItem(createCommandItem(ObjectIDs::NewVibrato, "vibrato~"));
         effectsMenu.addItem(createCommandItem(ObjectIDs::NewVocoder, "vocoder~"));
-        
     }
 
     PopupMenu filtersMenu;
@@ -599,7 +596,7 @@ PopupMenu Dialogs::createObjectMenu(PluginEditor* parent)
         ioMenu.addItem(createCommandItem(ObjectIDs::NewSamplerate, "samplerate~"));
         ioMenu.addItem(createCommandItem(ObjectIDs::NewSetdsp, "setdsp~"));
     }
-    
+
     PopupMenu controlMenu;
     {
         controlMenu.addItem(createCommandItem(ObjectIDs::NewAdsr, "adsr~"));
@@ -614,7 +611,7 @@ PopupMenu Dialogs::createObjectMenu(PluginEditor* parent)
         controlMenu.addItem(createCommandItem(ObjectIDs::NewRamp, "ramp~"));
         controlMenu.addItem(createCommandItem(ObjectIDs::NewSah, "sah~"));
         controlMenu.addItem(createCommandItem(ObjectIDs::NewSignalSlider, "slider~"));
-        controlMenu.addItem(createCommandItem(ObjectIDs::NewVline, "vline~")); 
+        controlMenu.addItem(createCommandItem(ObjectIDs::NewVline, "vline~"));
     }
 
     PopupMenu signalMathMenu;

@@ -35,15 +35,16 @@ public:
             selected = std::min<int>(static_cast<int>(max.getValue()) - 1, selected);
         }
     }
-    
-    bool hideInlets() override {
+
+    bool hideInlets() override
+    {
         return iemHelper.hasReceiveSymbol();
     }
-    
-    bool hideOutlets() override {
+
+    bool hideOutlets() override
+    {
         return iemHelper.hasSendSymbol();
     }
-
 
     void updateLabel() override
     {

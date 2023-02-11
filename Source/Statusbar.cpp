@@ -175,8 +175,7 @@ Statusbar::Statusbar(PluginProcessor* processor)
     presentationButton = std::make_unique<TextButton>(Icons::Presentation);
     gridButton = std::make_unique<TextButton>(Icons::Grid);
     protectButton = std::make_unique<TextButton>(Icons::Protection);
-    
-    
+
     presentationButton->setTooltip("Presentation Mode");
     presentationButton->setClickingTogglesState(true);
     presentationButton->getProperties().set("Style", "SmallIcon");
@@ -264,7 +263,7 @@ Statusbar::Statusbar(PluginProcessor* processor)
     connectionPathfind->getProperties().set("Style", "SmallIcon");
     connectionPathfind->onClick = [this]() { dynamic_cast<ApplicationCommandManager*>(pd->getActiveEditor())->invokeDirectly(CommandIDs::ConnectionPathfind, true); };
     addAndMakeVisible(connectionPathfind.get());
-    
+
     protectButton->setTooltip("Clip output signal and filter non-finite values");
     protectButton->getProperties().set("Style", "SmallIcon");
     protectButton->setClickingTogglesState(true);
@@ -275,7 +274,7 @@ Statusbar::Statusbar(PluginProcessor* processor)
         SettingsFile::getInstance()->setProperty("protected", state);
     };
     addAndMakeVisible(*protectButton);
-    
+
     addAndMakeVisible(volumeSlider);
     volumeSlider.setTextBoxStyle(Slider::NoTextBox, false, 0, 0);
 
@@ -376,7 +375,7 @@ void Statusbar::resized()
     pos = 0; // reset position for elements on the left
 
     protectButton->setBounds(position(getHeight(), true), 0, getHeight(), getHeight());
-    
+
     powerButton->setBounds(position(getHeight(), true), 0, getHeight(), getHeight());
 
     int levelMeterPosition = position(100, true);

@@ -173,15 +173,17 @@ bool Object::hitTest(int x, int y)
 // To make iolets show/hide
 void Object::mouseEnter(MouseEvent const& e)
 {
-    for(auto* iolet : iolets) iolet->repaint();
+    for (auto* iolet : iolets)
+        iolet->repaint();
 }
 
 void Object::mouseExit(MouseEvent const& e)
 {
     // we need to reset the resizeZone, otherwise it can have an old zone already selected on re-entry
     resizeZone = ResizableBorderComponent::Zone(ResizableBorderComponent::Zone::centre);
-    
-    for(auto* iolet : iolets) iolet->repaint();
+
+    for (auto* iolet : iolets)
+        iolet->repaint();
 }
 
 void Object::mouseMove(MouseEvent const& e)
@@ -547,26 +549,25 @@ void Object::updateIolets()
         numInputs = libpd_ninlets(ptr);
         numOutputs = libpd_noutlets(ptr);
     }
-    
+
     // Clear connections to iolets that are about to be hidden
-    if(gui && gui->hideInlets())  {
+    if (gui && gui->hideInlets()) {
         for (auto* iolet : iolets) {
-            if(iolet->isInlet) {
+            if (iolet->isInlet) {
                 iolet->clearConnections();
             }
         }
         numInputs = 0;
     }
-    
-    if(gui && gui->hideOutlets())  {
+
+    if (gui && gui->hideOutlets()) {
         for (auto* iolet : iolets) {
-            if(!iolet->isInlet) {
+            if (!iolet->isInlet) {
                 iolet->clearConnections();
             }
         }
         numOutputs = 0;
     }
-
 
     while (numInputs < oldNumInputs)
         iolets.remove(--oldNumInputs);
@@ -661,42 +662,42 @@ void Object::mouseUp(MouseEvent const& e)
 
     if (wasResized) {
         Array<SafePointer<Object>> objectsToCheck;
-        for(auto* obj : cnv->getSelectionOfType<Object>()) objectsToCheck.add(obj);
-        
+        for (auto* obj : cnv->getSelectionOfType<Object>())
+            objectsToCheck.add(obj);
+
         cnv->grid.handleMouseUp(e.getOffsetFromDragStart());
-        
+
         cnv->pd->enqueueFunction(
-         [objectsToCheck]() mutable {
-             
-             for(auto object : objectsToCheck) {
-                 if(!object || !object->gui) return;
-                 
-                 auto* obj = static_cast<t_gobj*>(object->getPointer());
-                 auto* cnv = object->cnv;
-                 
-                 if (cnv->patch.objectWasDeleted(obj))
-                     return;
-                 
-                 // Used for size changes, could also be used for properties
-                 libpd_undo_apply(cnv->patch.getPointer(), obj);
-                 
-                 object->gui->applyBounds();
-                 
-                 // To make sure it happens after setting object bounds
-                 // TODO: do we need this??
-                 if (!cnv->viewport->getViewArea().contains(object->getBounds())) {
-                     MessageManager::callAsync([object]() {
-                         if (object)
-                             object->cnv->checkBounds();
-                     });
-                 }
-             }
-         });
-        
+            [objectsToCheck]() mutable {
+                for (auto object : objectsToCheck) {
+                    if (!object || !object->gui)
+                        return;
+
+                    auto* obj = static_cast<t_gobj*>(object->getPointer());
+                    auto* cnv = object->cnv;
+
+                    if (cnv->patch.objectWasDeleted(obj))
+                        return;
+
+                    // Used for size changes, could also be used for properties
+                    libpd_undo_apply(cnv->patch.getPointer(), obj);
+
+                    object->gui->applyBounds();
+
+                    // To make sure it happens after setting object bounds
+                    // TODO: do we need this??
+                    if (!cnv->viewport->getViewArea().contains(object->getBounds())) {
+                        MessageManager::callAsync([object]() {
+                            if (object)
+                                object->cnv->checkBounds();
+                        });
+                    }
+                }
+            });
+
         wasResized = false;
         originalBounds.setBounds(0, 0, 0, 0);
-    }
-    else {
+    } else {
         cnv->objectMouseUp(this, e);
     }
 
@@ -718,15 +719,15 @@ void Object::mouseDrag(MouseEvent const& e)
     if (resizeZone.isDraggingWholeObject()) {
         cnv->objectMouseDrag(e);
     } else if (validResizeZone && !originalBounds.isEmpty()) {
-        
+
         auto draggedBounds = resizeZone.resizeRectangleBy(originalBounds, e.getOffsetFromDragStart());
         auto dragDistance = cnv->grid.performResize(this, e.getOffsetFromDragStart(), draggedBounds);
-        
-        auto toResize = e.mods.isShiftDown() ? cnv->getSelectionOfType<Object>() : Array<Object*>{this};
-        
-        for(auto* obj : toResize) {
+
+        auto toResize = e.mods.isShiftDown() ? cnv->getSelectionOfType<Object>() : Array<Object*> { this };
+
+        for (auto* obj : toResize) {
             auto const newBounds = resizeZone.resizeRectangleBy(obj->originalBounds, dragDistance);
-            
+
             bool useConstrainer = obj->gui && !obj->gui->checkBounds(obj->originalBounds - cnv->canvasOrigin, newBounds - cnv->canvasOrigin, resizeZone.isDraggingLeftEdge());
 
             if (useConstrainer) {
@@ -735,9 +736,8 @@ void Object::mouseDrag(MouseEvent const& e)
                     resizeZone.isDraggingBottomEdge(),
                     resizeZone.isDraggingRightEdge());
             }
-            
         }
-        
+
         wasResized = true;
     }
 }
@@ -779,7 +779,7 @@ Array<Connection*> Object::getConnections() const
     for (auto* iolet : iolets) {
         result.addArray(iolet->getConnections());
     }
-    
+
     return result;
 }
 
@@ -817,7 +817,7 @@ void Object::openNewObjectEditor()
             MessageManager::callAsync([_this = SafePointer(this)]() {
                 if (!_this)
                     return;
-                 auto* cnv = _this->cnv; // Copy pointer because _this will get deleted
+                auto* cnv = _this->cnv; // Copy pointer because _this will get deleted
                 cnv->hideSuggestions();
                 cnv->objects.removeObject(_this.getComponent());
                 cnv->lastSelectedObject = nullptr;

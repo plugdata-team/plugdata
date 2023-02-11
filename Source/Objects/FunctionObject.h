@@ -4,8 +4,6 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
-
-
 class FunctionObject final : public ObjectBase {
 
     struct t_fake_function {
@@ -43,7 +41,7 @@ class FunctionObject final : public ObjectBase {
         unsigned char x_fgcolor[3];
         unsigned char x_bgcolor[3];
     };
-    
+
     int hoverIdx = -1;
     int dragIdx = -1;
     bool newPointAdded = false;

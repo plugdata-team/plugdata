@@ -315,7 +315,7 @@ public:
             }
         }
     }
-        
+
     bool isEditorShown() override
     {
         return editor != nullptr;

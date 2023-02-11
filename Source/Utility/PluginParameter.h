@@ -71,8 +71,6 @@ public:
         processor.updateHostDisplay(details);
 #endif
     }
-    
-    
 
     float getUnscaledValue() const
     {

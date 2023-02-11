@@ -10,7 +10,7 @@
 class CategoriesListBox : public ListBox
     , public ListBoxModel {
 
-    StringArray categories = {"All"};
+    StringArray categories = { "All" };
 
 public:
     CategoriesListBox()
@@ -36,7 +36,7 @@ public:
 
     void paintListBoxItem(int rowNumber, Graphics& g, int width, int height, bool rowIsSelected) override
     {
-        if(categories[rowNumber] == "--------") {
+        if (categories[rowNumber] == "--------") {
             g.setColour(findColour(PlugDataColour::outlineColourId));
             g.drawHorizontalLine(height / 2, 5, width - 10);
             return;
@@ -198,7 +198,7 @@ public:
         auto numOutlets = unknownOutletLayout ? "Unknown" : String(outlets.size());
 
         StringArray infoNames = { "Categories:", "Origin:", "Type:", "Num. Inlets:", "Num. Outlets:" };
-        StringArray infoText = { categories, origin, objectName.contains("~") ? String("Signal") : String("Data"), numInlets, numOutlets};
+        StringArray infoText = { categories, origin, objectName.contains("~") ? String("Signal") : String("Data"), numInlets, numOutlets };
 
         for (int i = 0; i < infoNames.size(); i++) {
             auto localBounds = infoBounds.removeFromTop(25);
@@ -339,28 +339,25 @@ public:
         objectName = name;
         categories = "";
         origin = "";
-                
+
         // Inverse lookup :(
         for (auto const& [cat, objects] : library.getObjectCategories()) {
-            if(pd::Library::objectOrigins.contains(cat) && objects.contains(name)) {
+            if (pd::Library::objectOrigins.contains(cat) && objects.contains(name)) {
                 origin = cat;
-            }
-            else if (objects.contains(name)) {
+            } else if (objects.contains(name)) {
                 categories += cat + ", ";
             }
         }
-        
-        if(categories.isEmpty()) {
+
+        if (categories.isEmpty()) {
             categories = "Unknown";
-        }
-        else {
+        } else {
             categories = categories.dropLastCharacters(2);
         }
-        
-        if(origin.isEmpty()) {
+
+        if (origin.isEmpty()) {
             origin = "Unknown";
         }
-        
 
         description = library.getObjectDescriptions()[name];
 
@@ -636,27 +633,28 @@ public:
     {
         auto& library = editor->pd->objectLibrary;
         objectsByCategory = library.getObjectCategories();
-        
+
         addAndMakeVisible(categoriesList);
         addAndMakeVisible(objectsList);
         addAndMakeVisible(objectViewer);
         addAndMakeVisible(objectSearch);
-        
+
         addChildComponent(objectReference);
-        
+
         objectsByCategory["All"] = StringArray();
-        
+
         StringArray categories;
         for (auto& [category, objects] : objectsByCategory) {
             // Sort alphabetically
             objects.sort(true);
-            
+
             // Add objects from every category to "All"
-            if(category != "All") {
+            if (category != "All") {
                 objectsByCategory["All"].addArray(objects);
             }
-         
-            if(!pd::Library::objectOrigins.contains(category)) categories.add(category);
+
+            if (!pd::Library::objectOrigins.contains(category))
+                categories.add(category);
         }
 
         // Also include undocumented objects
@@ -666,16 +664,15 @@ public:
         // First sort alphabetically
         objectsByCategory["All"].sort(true);
         categories.sort(true);
-        
+
         // Make sure "All" is the first category
         categories.move(categories.indexOf("All"), 0);
-        
+
         categories.insert(1, "--------");
         categories.insert(2, "--------");
-        for(int i = pd::Library::objectOrigins.size() - 1; i >= 0; i--) {
+        for (int i = pd::Library::objectOrigins.size() - 1; i >= 0; i--) {
             categories.insert(2, pd::Library::objectOrigins[i]);
         }
-        
 
 #if JUCE_DEBUG
         auto objectDescriptions = library.getObjectDescriptions();
