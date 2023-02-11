@@ -24,7 +24,7 @@ inlets:
 outlets:
   nth:
   - type: anything
-    description: if an input message matches an argument, the corresponding outlet sends that message.
+    description: if an input message matches an argument, the corresponding outlet sends that message
   2nd:
   - type: anything
     description: any unmatched message
