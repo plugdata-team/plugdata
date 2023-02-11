@@ -6,7 +6,7 @@ description: get/set array buffer
 categories:
  - object
 
-pdcategory: ELSE, Arrays and Tables, Buffers, Data Management
+pdcategory: ELSE, Arrays and Tables, Buffers
 
 arguments:
 - type: symbol
