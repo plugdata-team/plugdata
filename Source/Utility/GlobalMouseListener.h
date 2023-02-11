@@ -1,10 +1,11 @@
+#pragma once
 #include <JuceHeader.h>
 
 class GlobalMouseListener : public MouseListener {
     Component* target;
 
 public:
-    GlobalMouseListener(Component* targetComponent)
+    GlobalMouseListener(Component* targetComponent = nullptr)
         : target(targetComponent)
     {
         Desktop::getInstance().addGlobalMouseListener(this);
@@ -22,21 +23,21 @@ public:
 
     void mouseDown(MouseEvent const& e) override
     {
-        globalMouseDown(e.getEventRelativeTo(target));
+        globalMouseDown(target ? e.getEventRelativeTo(target) : e);
     }
 
     void mouseUp(MouseEvent const& e) override
     {
-        globalMouseUp(e.getEventRelativeTo(target));
+        globalMouseUp(target ? e.getEventRelativeTo(target) : e);
     }
 
     void mouseDrag(MouseEvent const& e) override
     {
-        globalMouseDrag(e.getEventRelativeTo(target));
+        globalMouseDrag(target ? e.getEventRelativeTo(target) : e);
     }
 
     void mouseMove(MouseEvent const& e) override
     {
-        globalMouseMove(e.getEventRelativeTo(target));
+        globalMouseMove(target ? e.getEventRelativeTo(target) : e);
     }
 };
