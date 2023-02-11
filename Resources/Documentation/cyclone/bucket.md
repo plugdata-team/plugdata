@@ -9,7 +9,7 @@ arguments:
   description: sets number of outlets
   default: 1
 - type: float
-  description: output flag: <0> holds the input and passes it on the next round, <1> outputs the input immediately
+  description: <0> holds the input and passes it on the next round, <1> outputs the inputs immediately
   default: 0
 inlets:
   1st:

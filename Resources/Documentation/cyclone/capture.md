@@ -9,7 +9,7 @@ arguments:
   description: number of stored values
   default: 512
 - type: symbol
-  description: no argument: ints are displayed as decimal, "x": ints displayed as hex, "m": ints < 128 are decimal / larger are hex, "a": only symbols are displayed
+  description: no arg: as decimal, "x": hex, "m": < 128 — decimal / > — hex, "a": only symbols
 inlets:
   1st:
   - type: anything

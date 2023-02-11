@@ -9,7 +9,8 @@ arguments:
   description: number of outlets besides the rightmost one
   default: 1
 - type: symbol
-  description: messages in the inlet are sent to receive objects named by this symbol. In this case, there's no rightmost outlet
+  description: messages in the inlet are sent to receive objects named by this symbol
+
 inlets:
   1st:
   - type: anything

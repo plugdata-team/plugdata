@@ -16,7 +16,7 @@ inlets:
   - type: signal
     description: the signal to be averaged
   - type: float
-    description: 'n': number of last samples to apply the average to
+    description: number of last samples to apply the average to
 outlets:
   1st:
   - type: signal

@@ -6,7 +6,7 @@ categories:
 pdcategory: cyclone, Signal Math
 arguments:
 - type: float
-  description: "1" enables phase wrapping between -PI and PI. "0" disables and values are accumulated without bounds
+  description: ''1' wrap phase between -PI and PI. '0' — accumulate values without bounds
   default: 0
 inlets:
   1st:

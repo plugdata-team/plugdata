@@ -24,7 +24,7 @@ inlets:
 outlets:
   1st:
   - type: float/list
-    description: cliped value(s)
+    description: clipped value(s)
 
 methods:
   - type: set <f f>
