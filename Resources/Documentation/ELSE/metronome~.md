@@ -16,7 +16,7 @@ arguments:
 inlets:
   1st:
   - type: list
-    description: count ouput from [metronome]
+    description: count output from [metronome]
 
 outlets:
   1st:

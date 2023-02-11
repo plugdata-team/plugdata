@@ -9,7 +9,7 @@ pdcategory: ELSE, Data Management, Triggers and Clocks
 
 arguments:
 - type: anything
-  description: the message, where commas and semicolons behave as usual in message boxes, dollar signs behave as usual inside objects too
+  description: commas and semicolons behave as in message boxes, $ behave as in objects
   default: none
 
 inlets:

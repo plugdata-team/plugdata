@@ -27,7 +27,7 @@ outlets:
 
 flags:
   - name: -size <float>
-    description: sets delay size, which defines the delay's maximum time (default 1000 ms or argument's value if given)
+    description: delay size, defines the delay's maximum time (default 1000 ms or argument's value)
   - name: -samps
     description: sets delay time unit to "samples" (default is ms)
 

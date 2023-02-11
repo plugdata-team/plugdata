@@ -50,9 +50,9 @@ methods:
   - type: clear
     description: clears memory
   - type: inc <float>
-    description: set index and increase occurance by 1
+    description: set index and increase occurrence by 1
   - type: dec <float>
-    description: set index and decrease occurance by 1
+    description: set index and decrease occurrence by 1
   - type: size <float>
     description: clears the memory and sets a new 'n' size
   - type: eq <float>
