@@ -517,12 +517,15 @@ bool Canvas::keyPressed(KeyPress const& key)
 
 void Canvas::deselectAll()
 {
+    auto selection = selectedComponents;
+    
+    selectedComponents.deselectAll();
+    
     // Deselect objects
-    for (auto c : selectedComponents)
+    for (auto c : selection)
         if (!c.wasObjectDeleted())
             c->repaint();
-
-    selectedComponents.deselectAll();
+    
     editor->sidebar.hideParameters();
 }
 
@@ -1370,8 +1373,13 @@ void Canvas::findLassoItemsInArea(Array<WeakReference<Component>>& itemsFound, R
     for (auto& con : connections) {
         // If total bounds don't intersect, there can't be an intersection with the line
         // This is cheaper than checking the path intersection, so do this first
-        if (!con->getBounds().intersects(lasso.getBounds()))
+        if (!con->getBounds().intersects(lasso.getBounds())) {
+            if(isSelected(con)) {
+                setSelected(con, false, false);
+            }
             continue;
+        }
+            
 
         // Check if path intersects with lasso
         if (con->intersects(lasso.getBounds().translated(-con->getX(), -con->getY()).toFloat())) {
