@@ -10,7 +10,7 @@ pdcategory: ELSE, Triggers and Clocks, Data Management
 
 arguments:
 - type: float
-  description: sets the number of iterations if only one argument is given, or start value if there are more arguments
+  description: <f> — number of iterations, <f f f> — start, end, step
   default: 1
 - type: float
   description: sets the end value (optional)

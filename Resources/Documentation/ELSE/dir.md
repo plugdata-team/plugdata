@@ -9,7 +9,7 @@ pdcategory: ELSE, Data Management
 
 arguments:
 - type: float
-  description: relative directory level, 0 is current patch's directory, 1 is parent's patch's, 2 parent's parent's and so on
+  description: directory level, 0 — current patch's directory, 1 — parent's patch's, etc
   default: 0
 - type: symbol
   description: directory to open

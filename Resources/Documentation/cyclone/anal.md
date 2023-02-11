@@ -6,7 +6,7 @@ categories:
 pdcategory: cyclone, Data Math, Random and Noise
 arguments:
 - type: float
-  description: Maximum input, values accepted are between 0 and this number (max 16384)
+  description: maximum input (max 16384)
   default: 128
 inlets:
   1st:
@@ -14,8 +14,8 @@ inlets:
     description: the anal input data
 outlets:
   1st:
-  - type: list
-    description: three floats: <previous number, current number, occurrence>
+  - type: list <f, f, f>
+    description: <previous number, current number, occurrence>
 
 methods:
   - type: clear

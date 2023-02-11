@@ -6,7 +6,7 @@ categories:
 - object
 pdcategory: cyclone, Arrays and Tables
 arguments:
-- description: sets table name - if two or more [table] objects share the same name, they also share the same values
+- description: sets table name - [table] objects with the same name have the same values
   type: symbol
   default: none
 inlets:

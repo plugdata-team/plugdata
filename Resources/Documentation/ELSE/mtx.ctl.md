@@ -33,7 +33,7 @@ methods:
   - type: set <list>
     description: sets column, row and status (no output)
   - type: get <list>
-    description: ouputs value of row/column
+    description: outputs value of row/column
   - type: clear
     description: clears active cells
   - type: flush

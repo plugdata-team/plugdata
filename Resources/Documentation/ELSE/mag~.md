@@ -29,5 +29,5 @@ outlets:
 draft: false
 ---
 
-[mag~] gets the spectrum magnitudes (amplitudes) from cartesian coordinates (real / imaginary). This is much like the amplitude output of [car2pol~], but you can also get the power magnitudesinstead with the 1st argument.
+[mag~] gets the spectrum magnitudes (amplitudes) from cartesian coordinates (real / imaginary). This is much like the amplitude output of [car2pol~], but you can also get the power magnitudes instead with the 1st argument.
 This object is useful for spectral processing that doesn't require the phase values.
