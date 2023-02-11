@@ -9,7 +9,7 @@ TIMESTAMP_FILE=${FILE}_timestamp.txt
 DATE=$(date -u +"%d-%m-%y %H:%M UTC")
 COMMIT_TIMESTAMP=$(git show -s --format=%ct HEAD)
 
-LATEST_HASH=$(git ls-remote https://github.com/plugdata-team/plugdata.git HEAD)
+LATEST_HASH=$(git rev-parse HEAD)
 
 cat > $INFO_FILE <<END_FILE
 $DATE
