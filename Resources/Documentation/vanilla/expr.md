@@ -21,12 +21,27 @@ see_also:
 - sqrt~
 - pow~
 arguments:
-- description: see below
+- description: expression including operators, functions, inlet types, float and symbols
   type: list
 inlets:
-  remark: see below
+  1st:
+  - type: bang
+    description: evaluate expression
+  - type: float
+    description: if inlet type is '$f#' or '$i#'
+  - type: symbol
+    description: if inlet type is '$s#' or '$i#'
+  nth:
+  - type: float
+    description: if inlet type is '$f#' or '$i#'
+  - type: symbol
+    description: if inlet type is '$s#' or '$i#'
+
 outlets:
-  remark: see below
+  nth:
+  - type: float
+    description: expression result
+
 draft: false
 ---
 {{< md_include "objects/expr-family.md" >}}
