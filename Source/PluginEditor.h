@@ -290,7 +290,7 @@ const std::map<ObjectIDs, String> objectNames {
     { NewDecay, "decay~" },
     { NewEnvelope, "envelope~" },
     { NewEnvgen, "envgen~" },
-    { NewLfonoise, "lfonoise~" },
+    { NewLfnoise, "lfnoise~" },
     { NewSignalLine, "line~" },
     { NewPhasor, "phasor~" },
     { NewRamp, "ramp~" },
