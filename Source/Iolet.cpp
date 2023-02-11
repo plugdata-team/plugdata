@@ -450,6 +450,9 @@ Iolet* Iolet::findNearestIolet(Canvas* cnv, Point<int> position, bool inlet, Obj
 
 void Iolet::valueChanged(Value& v)
 {
+    if (v.refersToSameSourceAs(locked)) {
+        repaint();
+    }
     if (v.refersToSameSourceAs(presentationMode)) {
         setVisible(!static_cast<bool>(presentationMode.getValue()) && !object->cnv->isGraph);
         repaint();
