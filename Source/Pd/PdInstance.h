@@ -7,8 +7,8 @@
 #pragma once
 
 #include <JuceHeader.h>
-//#include <map>
-//#include <utility>
+// #include <map>
+// #include <utility>
 
 extern "C" {
 #include <z_libpd.h>
@@ -278,7 +278,7 @@ public:
     void lockAudioThread();
     bool tryLockAudioThread();
     void unlockAudioThread();
-    
+
     void setCallbackLock(CriticalSection const* lock);
 
     bool loadLibrary(String library);
@@ -310,7 +310,7 @@ private:
 
     WaitableEvent updateWait;
     CriticalSection const* audioLock;
-    
+
 protected:
     struct internal;
 

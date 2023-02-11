@@ -108,14 +108,14 @@ PluginProcessor::PluginProcessor()
 
         settingsFile->reloadSettings();
         setTheme(settingsFile->getProperty<String>("theme"));
-        
+
         if (auto* editor = dynamic_cast<PluginEditor*>(getActiveEditor())) {
             for (auto* cnv : editor->canvases) {
                 // Make sure inlets/outlets are updated
                 for (auto* object : cnv->objects)
                     object->updateIolets();
             }
-            
+
             editor->sendLookAndFeelChange();
         }
 
@@ -134,9 +134,9 @@ PluginProcessor::PluginProcessor()
 
     setTheme(themeName);
     settingsFile->saveSettings();
-    
+
     oversampling = settingsFile->getProperty<int>("oversampling");
-    
+
     setProtectedMode(settingsFile->getProperty<int>("protected"));
 #if PLUGDATA_STANDALONE
     enableInternalSynth = settingsFile->getProperty<int>("internal_synth");
@@ -171,8 +171,9 @@ PluginProcessor::PluginProcessor()
 
 PluginProcessor::~PluginProcessor()
 {
-    for(auto* patch : patches) patch->close();
-    
+    for (auto* patch : patches)
+        patch->close();
+
     patches.clear();
 }
 
@@ -249,13 +250,13 @@ void PluginProcessor::updateSearchPaths()
     setThis();
 
     lockAudioThread();
-    
+
     // Get pd's search paths
     char* p[1024];
     int numItems;
     libpd_get_search_paths(p, &numItems);
     auto currentPaths = StringArray(p, numItems);
-    
+
     auto paths = pd::Library::defaultPaths;
 
     for (auto child : pathTree) {
@@ -264,12 +265,14 @@ void PluginProcessor::updateSearchPaths()
     }
 
     for (auto path : paths) {
-        if(currentPaths.contains(path.getFullPathName())) continue;
+        if (currentPaths.contains(path.getFullPathName()))
+            continue;
         libpd_add_to_search_path(path.getFullPathName().toRawUTF8());
     }
 
     for (auto path : DekenInterface::getExternalPaths()) {
-        if(currentPaths.contains(path)) continue;
+        if (currentPaths.contains(path))
+            continue;
         libpd_add_to_search_path(path.replace("\\", "/").toRawUTF8());
     }
 
@@ -499,15 +502,14 @@ void PluginProcessor::processBlock(AudioBuffer<float>& buffer, MidiBuffer& midiM
     }
 
 #endif
-    
-    if(protectedMode) {
+
+    if (protectedMode) {
         auto* const* writePtr = buffer.getArrayOfWritePointers();
-        for(int ch = 0; ch < buffer.getNumChannels(); ch++) {
-            for(int n = 0; n < buffer.getNumSamples(); n++) {
-                if(!std::isfinite(writePtr[ch][n])) {
+        for (int ch = 0; ch < buffer.getNumChannels(); ch++) {
+            for (int n = 0; n < buffer.getNumSamples(); n++) {
+                if (!std::isfinite(writePtr[ch][n])) {
                     writePtr[ch][n] = 0.0f;
-                }
-                else {
+                } else {
                     writePtr[ch][n] = std::clamp(writePtr[ch][n], -1.0f, 1.0f);
                 }
             }
@@ -719,7 +721,8 @@ void PluginProcessor::sendPlayhead()
     }
 }
 
-void PluginProcessor::sendParameters() {
+void PluginProcessor::sendParameters()
+{
     for (auto* param : getParameters()) {
         auto* pldParam = dynamic_cast<PlugDataParameter*>(param);
         auto newvalue = pldParam->getUnscaledValue();
@@ -736,8 +739,7 @@ void PluginProcessor::messageEnqueued()
     if (isNonRealtime() || isSuspended()) {
         sendMessagesFromQueue();
     } else {
-        if(tryLockAudioThread())
-        {
+        if (tryLockAudioThread()) {
             sendMessagesFromQueue();
             unlockAudioThread();
         }
@@ -833,32 +835,32 @@ void PluginProcessor::getStateInformation(MemoryBlock& destData)
     suspendProcessing(true);
 
     setThis();
-    
+
     // Store pure-data state
     MemoryOutputStream ostream(destData, false);
-    
+
     ostream.writeInt(patches.size());
-    
+
     // Save path and content for patch
     for (auto& patch : patches) {
         ostream.writeString(patch->getCanvasContent());
         ostream.writeString(patch->getCurrentFile().getFullPathName());
     }
-    
+
     ostream.writeInt(getLatencySamples());
     ostream.writeInt(oversampling);
     ostream.writeFloat(static_cast<float>(tailLength.getValue()));
-    
+
     XmlElement xml = XmlElement("plugdata_save");
     xml.setAttribute("Version", PLUGDATA_VERSION);
     PlugDataParameter::saveStateInformation(xml, getParameters());
-    
+
     MemoryBlock xmlBlock;
     copyXmlToBinary(xml, xmlBlock);
-    
+
     ostream.writeInt(static_cast<int>(xmlBlock.getSize()));
     ostream.write(xmlBlock.getData(), xmlBlock.getSize());
-    
+
     if (auto* editor = getActiveEditor()) {
         ostream.writeInt(editor->getWidth());
         ostream.writeInt(editor->getHeight());
@@ -874,44 +876,45 @@ void PluginProcessor::setStateInformation(void const* data, int sizeInBytes)
 {
     if (sizeInBytes == 0)
         return;
-    
+
     // By calling this asynchronously on the message thread and also suspending processing on the audio thread, we can make sure this is safe
     // The DAW can call this function from basically any thread, hence the need for this
     // Audio will only be reactivated once this action is completed
-    
+
     MemoryInputStream istream(data, sizeInBytes, false);
-    
+
     // Close any opened patches
     if (auto* editor = dynamic_cast<PluginEditor*>(getActiveEditor())) {
-        MessageManager::callAsync([editor = Component::SafePointer(editor)](){
-            if(!editor) return;
+        MessageManager::callAsync([editor = Component::SafePointer(editor)]() {
+            if (!editor)
+                return;
             editor->tabbar.clearTabs();
             editor->canvases.clear();
         });
     }
-    
+
     suspendProcessing(true);
     setThis();
-    
+
     for (auto& patch : patches)
         patch->close();
     patches.clear();
-    
+
     int numPatches = istream.readInt();
-    
+
     for (int i = 0; i < numPatches; i++) {
         auto state = istream.readString();
         auto location = File(istream.readString());
-        
+
         if (location.getParentDirectory().exists()) {
             auto parentPath = location.getParentDirectory().getFullPathName();
             // Add patch path to search path to make sure it finds abstractions in the saved patch!
             // TODO: is there any way to make this local the the canvas?
             libpd_add_to_search_path(parentPath.toRawUTF8());
         }
-        
+
         auto* patch = loadPatch(state);
-        
+
         if ((location.exists() && location.getParentDirectory() == File::getSpecialLocation(File::tempDirectory)) || !location.exists()) {
             patch->setTitle("Untitled Patcher");
         } else if (location.existsAsFile()) {
@@ -919,59 +922,58 @@ void PluginProcessor::setStateInformation(void const* data, int sizeInBytes)
             patch->setTitle(location.getFileName());
         }
     }
-    
+
     auto latency = istream.readInt();
     auto oversampling = istream.readInt();
     auto tail = istream.readFloat();
     auto xmlSize = istream.readInt();
-    
+
     tailLength = var(tail);
-    
+
     auto* xmlData = new char[xmlSize];
     istream.read(xmlData, xmlSize);
-    
+
     std::unique_ptr<XmlElement> xmlState(getXmlFromBinary(xmlData, xmlSize));
-    
+
     jassert(xmlState);
-    
+
     if (xmlState) {
         PlugDataParameter::loadStateInformation(*xmlState, getParameters());
-        
+
         auto versionString = String("0.6.1");
-        
+
         if (xmlState->hasAttribute("Version")) {
             versionString = xmlState->getStringAttribute("Version");
         }
-        
+
         if (versionString.startsWith("0.7") && !istream.isExhausted()) {
             int windowWidth = istream.readInt();
             int windowHeight = istream.readInt();
-            
+
             lastUIWidth = windowWidth;
             lastUIHeight = windowHeight;
             if (auto* editor = getActiveEditor()) {
-                MessageManager::callAsync([editor = Component::SafePointer(editor), windowWidth, windowHeight](){
-                    if(!editor) return;
+                MessageManager::callAsync([editor = Component::SafePointer(editor), windowWidth, windowHeight]() {
+                    if (!editor)
+                        return;
                     editor->setSize(windowWidth, windowHeight);
                 });
             }
         }
     }
-    
-    
+
     setLatencySamples(latency);
     setOversampling(oversampling);
     delete[] xmlData;
-    
+
     suspendProcessing(false);
-    
+
     if (auto* editor = dynamic_cast<PluginEditor*>(getActiveEditor())) {
-        MessageManager::callAsync([editor = Component::SafePointer(editor)](){
-            if(!editor) return;
+        MessageManager::callAsync([editor = Component::SafePointer(editor)]() {
+            if (!editor)
+                return;
             editor->sidebar.updateAutomationParameters();
-            
         });
-        
     }
 }
 
@@ -1146,9 +1148,10 @@ void PluginProcessor::performParameterChange(int type, String name, float value)
     if (type) {
         for (auto* param : getParameters()) {
             auto* pldParam = dynamic_cast<PlugDataParameter*>(param);
-            
-            if(!pldParam->isEnabled() || pldParam->getTitle() != name) continue;
-            
+
+            if (!pldParam->isEnabled() || pldParam->getTitle() != name)
+                continue;
+
             if (pldParam->getGestureState() == value) {
                 logMessage("parameter change " + name + (value ? " already started" : " not started"));
             } else if (pldParam->isEnabled() && pldParam->getTitle() == name) {
@@ -1158,13 +1161,14 @@ void PluginProcessor::performParameterChange(int type, String name, float value)
     } else { // otherwise set parameter value
         for (auto* param : getParameters()) {
             auto* pldParam = dynamic_cast<PlugDataParameter*>(param);
-            if (!pldParam->isEnabled() || pldParam->getTitle() != name) continue;
-            
+            if (!pldParam->isEnabled() || pldParam->getTitle() != name)
+                continue;
+
             // Update values in automation panel
-            //if (pldParam->getLastValue() == value)
+            // if (pldParam->getLastValue() == value)
             //    return;
 
-            //pldParam->setLastValue(value);
+            // pldParam->setLastValue(value);
 
             // Send new value to DAW
             pldParam->setUnscaledValueNotifyingHost(value);
@@ -1177,7 +1181,6 @@ void PluginProcessor::performParameterChange(int type, String name, float value)
         }
     }
 }
-
 
 void PluginProcessor::receiveDSPState(bool dsp)
 {
@@ -1263,7 +1266,8 @@ void PluginProcessor::titleChanged()
     if (auto* editor = dynamic_cast<PluginEditor*>(getActiveEditor())) {
         for (int n = 0; n < editor->tabbar.getNumTabs(); n++) {
             auto* cnv = editor->getCanvas(n);
-            if(!cnv) return;
+            if (!cnv)
+                return;
             editor->tabbar.setTabName(n, cnv->patch.getTitle());
         }
     }

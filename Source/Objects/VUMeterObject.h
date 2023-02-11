@@ -15,12 +15,14 @@ public:
     {
         object->constrainer->setMinimumSize(20, 40);
     }
-    
-    bool hideInlets() override {
+
+    bool hideInlets() override
+    {
         return iemHelper.hasReceiveSymbol();
     }
-    
-    bool hideOutlets() override {
+
+    bool hideOutlets() override
+    {
         return iemHelper.hasSendSymbol();
     }
 

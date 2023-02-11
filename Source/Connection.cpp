@@ -910,8 +910,9 @@ void Connection::receiveMessage(String const& name, int argc, t_atom* argv)
     auto args = std::vector<t_atom>(argv, argv + argc);
 
     MessageManager::callAsync([_this = SafePointer(this), name, args]() mutable {
-        if(!_this) return;
-        
+        if (!_this)
+            return;
+
         if (name == "float" && args.size() >= 1) {
             _this->setTooltip("(float) " + String(atom_getfloat(args.data())));
         } else if (name == "symbol" && args.size() >= 1) {

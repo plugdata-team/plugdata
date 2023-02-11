@@ -57,7 +57,7 @@ public:
     void mouseMove(MouseEvent const& e) override;
     void mouseDrag(MouseEvent const& e) override;
     void mouseUp(MouseEvent const& e) override;
-    void mouseEnter(MouseEvent const& e) override;    
+    void mouseEnter(MouseEvent const& e) override;
     void mouseExit(MouseEvent const& e) override;
 
     Point<float> getStartPoint();

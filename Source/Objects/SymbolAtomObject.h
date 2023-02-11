@@ -97,7 +97,8 @@ public:
         repaint();
     }
 
-    void lookAndFeelChanged() override {
+    void lookAndFeelChanged() override
+    {
         input.setColour(Label::textWhenEditingColourId, object->findColour(PlugDataColour::canvasTextColourId));
         input.setColour(Label::textColourId, object->findColour(PlugDataColour::canvasTextColourId));
         input.setColour(TextEditor::textColourId, object->findColour(PlugDataColour::canvasTextColourId));
@@ -125,14 +126,16 @@ public:
         g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), PlugDataLook::objectCornerRadius, 1.0f);
     }
 
-    bool hideInlets() override {
+    bool hideInlets() override
+    {
         return atomHelper.hasReceiveSymbol();
     }
-    
-    bool hideOutlets() override {
+
+    bool hideOutlets() override
+    {
         return atomHelper.hasSendSymbol();
     }
-    
+
     void updateLabel() override
     {
         atomHelper.updateLabel(label);

@@ -423,15 +423,16 @@ public:
 
     void timerCallback() override
     {
-        if(!pd->tryLockAudioThread()) return;
-        
+        if (!pd->tryLockAudioThread())
+            return;
+
         int currentSize = graph.array.size();
         if (graph.vec.size() != currentSize) {
 
             graph.vec.resize(currentSize);
         }
         graph.update();
-           
+
         pd->unlockAudioThread();
     }
 

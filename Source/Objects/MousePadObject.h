@@ -77,7 +77,6 @@ public:
             return;
 
         auto* x = static_cast<t_pad*>(ptr);
-        
 
         auto relativeEvent = e.getEventRelativeTo(this);
 
@@ -85,24 +84,24 @@ public:
         if (relativeEvent.getPosition() == lastPosition)
             return;
 
-        int xPos = relativeEvent.getPosition().x;;
+        int xPos = relativeEvent.getPosition().x;
+        ;
         int yPos = getHeight() - relativeEvent.getPosition().y;
 
         lastPosition = { xPos, yPos };
 
         sys_lock();
-        pd->enqueueFunction([x, xPos, yPos](){
-            
+        pd->enqueueFunction([x, xPos, yPos]() {
             x->x_x = xPos;
             x->x_y = yPos;
 
             t_atom at[3];
             SETFLOAT(at, xPos);
             SETFLOAT(at + 1, yPos);
-            
+
             outlet_anything(x->x_obj.ob_outlet, &s_list, 2, at);
         });
-       
+
         sys_unlock();
     }
 

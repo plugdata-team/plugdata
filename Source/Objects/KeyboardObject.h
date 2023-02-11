@@ -50,7 +50,7 @@ public:
     {
         // TODO: this should be a theme preference, or setting for keyboard
         // yeah but we can set a less ugly default colour for now!
-        
+
         auto c = Colour(225, 225, 225);
         if (isOver)
             c = Colour(235, 235, 235);

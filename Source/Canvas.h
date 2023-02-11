@@ -160,7 +160,6 @@ public:
     Array<Point<int>> mouseDownObjectPositions; // Stores object positions for alt + drag
 
     std::unique_ptr<ConnectionPathUpdater> pathUpdater;
- 
 
 private:
     SafePointer<Object> objectSnappingInbetween;

@@ -111,12 +111,14 @@ public:
     {
         atomHelper.updateLabel(label);
     }
-    
-    bool hideInlets() override {
+
+    bool hideInlets() override
+    {
         return atomHelper.hasReceiveSymbol();
     }
-    
-    bool hideOutlets() override {
+
+    bool hideOutlets() override
+    {
         return atomHelper.hasSendSymbol();
     }
 
@@ -134,8 +136,9 @@ public:
         g.setColour(outlineColour);
         g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), PlugDataLook::objectCornerRadius, 1.0f);
     }
-    
-    void lookAndFeelChanged() override {
+
+    void lookAndFeelChanged() override
+    {
         listLabel.setColour(Label::textWhenEditingColourId, object->findColour(PlugDataColour::canvasTextColourId));
         listLabel.setColour(Label::textColourId, object->findColour(PlugDataColour::canvasTextColourId));
         listLabel.setColour(TextEditor::textColourId, object->findColour(PlugDataColour::canvasTextColourId));

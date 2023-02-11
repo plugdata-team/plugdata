@@ -187,8 +187,8 @@ struct Fonts {
     Fonts()
     {
         Typeface::setTypefaceCacheSize(7);
-        
-        //jassert(!instance);
+
+        // jassert(!instance);
 
         // Our unicode font is too big, the compiler will run out of memory
         // To prevent this, we split the BinaryData into multiple files, and add them back together here
@@ -209,7 +209,7 @@ struct Fonts {
         // Initialise typefaces
         defaultTypeface = Typeface::createSystemTypefaceFor(interUnicode.data(), interUnicode.size());
         currentTypeface = defaultTypeface;
-        
+
         thinTypeface = Typeface::createSystemTypefaceFor(BinaryData::InterThin_ttf, BinaryData::InterThin_ttfSize);
 
         boldTypeface = Typeface::createSystemTypefaceFor(BinaryData::InterBold_ttf, BinaryData::InterBold_ttfSize);
@@ -239,9 +239,9 @@ private:
 
     // Default typeface is Inter combined with Unicode symbols from GoNotoUniversal and emojis from NotoEmoji
     Typeface::Ptr defaultTypeface;
-    
+
     Typeface::Ptr currentTypeface;
-    
+
     Typeface::Ptr thinTypeface;
     Typeface::Ptr boldTypeface;
     Typeface::Ptr semiBoldTypeface;
@@ -324,8 +324,7 @@ struct PlugDataLook : public LookAndFeel_V4 {
     {
         if (button.getProperties()["Style"].toString().contains("Icon")) {
             return;
-        }
-        else {
+        } else {
             LookAndFeel_V4::drawButtonBackground(g, button, backgroundColour, shouldDrawButtonAsHighlighted, shouldDrawButtonAsDown);
         }
     }
@@ -670,7 +669,6 @@ struct PlugDataLook : public LookAndFeel_V4 {
     {
     }
 
-
     void drawGUIObjectSlider(Graphics& g, int x, int y, int width, int height, float sliderPos, float minSliderPos, float maxSliderPos, Slider& slider)
     {
         auto sliderBounds = slider.getLocalBounds().toFloat().reduced(1.0f);
@@ -681,24 +679,24 @@ struct PlugDataLook : public LookAndFeel_V4 {
         constexpr auto thumbSize = 4.0f;
         constexpr auto halfThumbSize = thumbSize / 2.0f;
         auto cornerSize = PlugDataLook::objectCornerRadius / 2.0f;
-        
+
         Path toDraw;
         if (slider.isHorizontal()) {
             sliderPos = jmap<float>(sliderPos, x, width, x, width - thumbSize);
-            
+
             auto b = Rectangle<float>(thumbSize, height).translated(sliderPos, y);
-            
+
             g.setColour(findColour(Slider::trackColourId));
             g.fillRoundedRectangle(b, cornerSize);
         } else {
             sliderPos = jmap<float>(sliderPos, y, height, y, height - thumbSize);
             auto b = Rectangle<float>(width, thumbSize).translated(x, sliderPos);
-            
+
             g.setColour(findColour(Slider::trackColourId));
             g.fillRoundedRectangle(b, cornerSize);
         }
     }
-    
+
     void drawVolumeSlider(Graphics& g, int x, int y, int width, int height, float sliderPos, float minSliderPos, float maxSliderPos, const Slider::SliderStyle style, Slider& slider)
     {
         float trackWidth = 4.;

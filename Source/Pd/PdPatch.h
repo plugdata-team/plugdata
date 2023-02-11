@@ -137,7 +137,7 @@ private:
         { "oscope~", "130 130 256 3 128 -1 1 0 0 0 0 fgColour_rgb bgColour_rgb lnColour_rgb 0 empty" },
         { "scope~", "130 130 256 3 128 -1 1 0 0 0 0 fgColour_rgb bgColour_rgb lnColour_rgb 0 empty" },
         { "function", "200 100 empty empty 0 1 bgColour_rgb lblColour_rgb 0 0 0 0 0 1000 0" },
-        {"messbox", "180 60 bgColour_rgb lblColour_rgb 0 12"}
+        { "messbox", "180 60 bgColour_rgb lblColour_rgb 0 12" }
     };
 
     friend class Instance;

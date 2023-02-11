@@ -68,7 +68,7 @@ public:
         auto numOutlets = unknownOutletLayout ? "Unknown" : String(outlets.size());
 
         StringArray infoNames = { "Categories:", "Origin:", "Type:", "Num. Inlets:", "Num. Outlets:" };
-        StringArray infoText = { categories, origin, objectName.contains("~") ? String("Signal") : String("Data"), numInlets, numOutlets};
+        StringArray infoText = { categories, origin, objectName.contains("~") ? String("Signal") : String("Data"), numInlets, numOutlets };
 
         for (int i = 0; i < infoNames.size(); i++) {
             auto localBounds = infoBounds.removeFromTop(25);
@@ -209,28 +209,26 @@ public:
         objectName = name;
         categories = "";
         origin = "";
-                
+
         // Inverse lookup :(
         for (auto const& [cat, objects] : library.getObjectCategories()) {
-            if(pd::Library::objectOrigins.contains(cat) && objects.contains(name)) {
+            if (pd::Library::objectOrigins.contains(cat) && objects.contains(name)) {
                 origin = cat;
-            }
-            else if (objects.contains(name)) {
+            } else if (objects.contains(name)) {
                 categories += cat + ", ";
             }
         }
-        
-        if(categories.isEmpty()) {
+
+        if (categories.isEmpty()) {
             categories = "Unknown";
-        }
-        else {
+        } else {
             categories = categories.dropLastCharacters(2);
         }
-        
-        if(origin.isEmpty()) {
+
+        if (origin.isEmpty()) {
             origin = "Unknown";
         }
-        
+
         description = library.getObjectDescriptions()[name];
 
         if (description.isEmpty()) {

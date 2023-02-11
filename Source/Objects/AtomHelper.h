@@ -214,7 +214,6 @@ public:
         }
     }
 
-
     float getFontHeight() const
     {
         return atom->a_fontsize;
@@ -282,17 +281,16 @@ public:
     {
         atom->a_wherelabel = wherelabel - 1;
     }
-    
+
     bool hasSendSymbol()
     {
         return atom->a_symto && atom->a_symto != pd->generateSymbol("empty") && atom->a_symto != pd->generateSymbol("");
     }
-    
+
     bool hasReceiveSymbol()
     {
         return atom->a_symfrom && atom->a_symfrom != pd->generateSymbol("empty") && atom->a_symfrom != pd->generateSymbol("");
     }
-
 
     String getSendSymbol()
     {

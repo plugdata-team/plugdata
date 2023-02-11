@@ -984,7 +984,7 @@ void PluginEditor::getCommandInfo(const CommandID commandID, ApplicationCommandI
 
         if (name.isEmpty())
             name = "object";
-        
+
         bool essential = commandID > NumEssentialObjects;
 
         result.setInfo("New " + name, "Create new " + name, essential ? "Objects" : "Extra", 0);
@@ -1157,7 +1157,7 @@ bool PluginEditor::perform(InvocationInfo const& info)
         sidebar.clearConsole();
         return true;
     }
-    case CommandIDs::ShowSettings: {        
+    case CommandIDs::ShowSettings: {
         Dialogs::showSettingsDialog(this);
 
         return true;

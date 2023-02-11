@@ -19,15 +19,16 @@ public:
         locked = static_cast<bool>(object->locked.getValue());
     }
 
-    bool hideInlets() override {
+    bool hideInlets() override
+    {
         return iemHelper.hasReceiveSymbol();
     }
-    
-    bool hideOutlets() override {
+
+    bool hideOutlets() override
+    {
         return iemHelper.hasSendSymbol();
     }
 
-    
     void updateLabel() override
     {
         iemHelper.updateLabel(label);

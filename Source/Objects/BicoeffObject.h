@@ -124,7 +124,7 @@ public:
             auto nn = (static_cast<float>(x) / getWidth()) * 120.0f + 16.766f;
             auto freq = mtof(nn);
             auto result = calcMagnitudePhase((M_PI * 2.0 * freq) / 44100.0f, a1, a2, b0, b1, b2);
-            
+
             if (!std::isfinite(result.first)) {
                 continue;
             }
@@ -141,9 +141,11 @@ public:
 
         repaint();
     }
-    
-    float mtof(float note) {
-        return 440.0f * std::pow (2.0f, (note - 69.0f) / 12.0f);;
+
+    float mtof(float note)
+    {
+        return 440.0f * std::pow(2.0f, (note - 69.0f) / 12.0f);
+        ;
     }
 
     void mouseDown(MouseEvent const& e) override
@@ -261,7 +263,7 @@ public:
 
     std::pair<float, float> calcCoefficients()
     {
-        float nn = (filterCentre) * 120.0f + 16.766f;
+        float nn = (filterCentre)*120.0f + 16.766f;
         float nn2 = (filterWidth + filterCentre) * 120.0f + 16.766f;
         float f = mtof(nn);
         float bwf = mtof(nn2);
@@ -277,7 +279,7 @@ public:
     {
         float xScale = x / getWidth();
         float previousXScale = previousX / getWidth();
-        
+
         float dx = xScale - previousXScale;
         if (previousXScale < filterCentre) {
             if (xScale < 0.0f) {

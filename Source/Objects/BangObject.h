@@ -31,12 +31,14 @@ public:
     {
         iemHelper.initialiseParameters();
     }
-    
-    bool hideInlets() override {
+
+    bool hideInlets() override
+    {
         return iemHelper.hasReceiveSymbol();
     }
-    
-    bool hideOutlets() override {
+
+    bool hideOutlets() override
+    {
         return iemHelper.hasSendSymbol();
     }
 

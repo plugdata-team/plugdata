@@ -74,7 +74,7 @@ enum ObjectIDs {
     NewMessbox,
     NewBicoeff,
     NumEssentialObjects,
-    
+
     NewMetro,
     NewSel,
     NewRoute,
@@ -119,7 +119,7 @@ enum ObjectIDs {
     NewBlImp,
     NewBlImp2,
     NewBlWavetable,
-    
+
     NewAdsr,
     NewAsr,
     NewCurve,
@@ -238,7 +238,7 @@ const std::map<ObjectIDs, String> objectNames {
     { NewFunction, "function" },
     { NewMessbox, "messbox" },
     { NewBicoeff, "bicoeff" },
-    
+
     { NewMetro, "metro" },
     { NewSel, "sel" },
     { NewRoute, "route" },
@@ -252,7 +252,7 @@ const std::map<ObjectIDs, String> objectNames {
     { NewTimer, "timer" },
     { NewDelay, "delay" },
     { NewTimedGate, "timed.gate" },
-    
+
     { NewCrusher, "crusher~" },
     { NewSignalDelay, "delay~" },
     { NewDrive, "drive~" },
@@ -265,7 +265,7 @@ const std::map<ObjectIDs, String> objectNames {
     { NewTremolo, "tremolo~" },
     { NewVibrato, "vibrato~" },
     { NewVocoder, "vocoder~" },
-    
+
     { NewOsc, "osc~" },
     { NewPhasor, "phasor~" },
     { NewSaw, "saw~" },
@@ -297,7 +297,7 @@ const std::map<ObjectIDs, String> objectNames {
     { NewSah, "sah~" },
     { NewSignalSlider, "slider~" },
     { NewVline, "vline~" },
-    
+
     { NewLop, "lop~" },
     { NewVcf, "vcf~" },
     { NewLores, "lores~" },
@@ -383,6 +383,7 @@ class ZoomLabel : public TextButton
     ComponentAnimator labelAnimator;
 
     bool initRun = true;
+
 public:
     ZoomLabel()
     {
@@ -391,11 +392,11 @@ public:
 
     void setZoomLevel(float value)
     {
-        if(initRun) {
+        if (initRun) {
             initRun = false;
             return;
         }
-        
+
         setButtonText(String(value * 100, 1) + "%");
         startTimer(2000);
 

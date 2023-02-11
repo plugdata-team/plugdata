@@ -411,7 +411,7 @@ void Canvas::mouseUp(MouseEvent const& e)
 
     wasDragDuplicated = false;
     mouseDownObjectPositions.clear();
-    
+
     // TODO: this is a hack, find a better solution
     if (connectingWithDrag) {
         for (auto* obj : objects) {
@@ -1081,7 +1081,7 @@ void Canvas::objectMouseDown(Object* component, MouseEvent const& e)
     if (auto* object = dynamic_cast<Object*>(component)) {
         componentBeingDragged = object;
     }
-    
+
     for (auto* object : getSelectionOfType<Object>()) {
         object->originalBounds = object->getBounds();
         object->setBufferedToImage(true);
@@ -1201,7 +1201,7 @@ void Canvas::objectMouseDrag(MouseEvent const& e)
 
     // alt+drag will duplicate selection
     if (!wasDragDuplicated && e.mods.isAltDown()) {
-        
+
         // Single for undo for duplicate + move
         patch.startUndoSequence("Duplicate");
 
@@ -1210,7 +1210,7 @@ void Canvas::objectMouseDrag(MouseEvent const& e)
             [this](auto* a, auto* b) -> bool {
                 return objects.indexOf(a) < objects.indexOf(b);
             });
-        
+
         // Store origin object positions
         for (auto object : selection) {
             mouseDownObjectPositions.add(object->getPosition());
@@ -1229,9 +1229,10 @@ void Canvas::objectMouseDrag(MouseEvent const& e)
             dragDistance = dragDistance.translated(10, 10);
             // Move duplicated objects according to the origin position
             for (auto object : selection) {
-                
-                if(!isPositiveAndBelow(selection.indexOf(object), mouseDownObjectPositions.size())) continue;
-                
+
+                if (!isPositiveAndBelow(selection.indexOf(object), mouseDownObjectPositions.size()))
+                    continue;
+
                 object->setTopLeftPosition(mouseDownObjectPositions[selection.indexOf(object)] + dragDistance + canvasMoveOffset);
             }
         } else {

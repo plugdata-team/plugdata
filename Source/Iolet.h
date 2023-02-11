@@ -35,7 +35,7 @@ public:
     static Iolet* findNearestIolet(Canvas* cnv, Point<int> position, bool inlet, Object* boxToExclude = nullptr);
 
     void createConnection();
-        
+
     void clearConnections();
     Array<Connection*> getConnections();
 

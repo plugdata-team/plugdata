@@ -106,7 +106,6 @@ public:
     std::unique_ptr<ObjectBoundsConstrainer> constrainer;
 
     Rectangle<int> originalBounds;
-    
 
 private:
     void initialise();
@@ -120,7 +119,7 @@ private:
     bool wasLockedOnMouseDown = false;
     bool indexShown = false;
     bool isHvccCompatible = true;
-        
+
     bool wasResized = false;
 
     std::unique_ptr<TextEditor> newObjectEditor;
