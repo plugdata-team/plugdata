@@ -60,6 +60,7 @@ public:
     {
         if (!editor)
             return;
+        
         auto editorText = editor->getText();
 
         if (editorText.startsWith(suggestionText)) {
@@ -99,6 +100,8 @@ private:
 
     void componentBeingDeleted(Component& component) override
     {
+        if (!editor)
+            return;
         editor->removeComponentListener(this);
     }
 
