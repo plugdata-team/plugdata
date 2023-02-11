@@ -28,7 +28,7 @@ inlets:
     description: pulse width (from 0 to 1)
   3rd:
   - type: float
-    description: phase sync (ressets internal phase)
+    description: phase sync (resets internal phase)
 
 outlets:
   1st:

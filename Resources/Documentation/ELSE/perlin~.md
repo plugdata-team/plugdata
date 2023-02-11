@@ -34,5 +34,5 @@ methods:
 draft: false
 ---
 
-[perlin~] is an abastraction that implements 1-dimensional Perlin Noise (a type of gradient noise developed by Ken Perlin). It uses [white~] as a noise source into a sample and hold function and generates smoothened functions according to a frequency value in hertz (values under 0 and above nyquist are aliased).
+[perlin~] is an abstraction that implements 1-dimensional Perlin Noise (a type of gradient noise developed by Ken Perlin). It uses [white~] as a noise source into a sample and hold function and generates smoothened functions according to a frequency value in hertz (values under 0 and above nyquist are aliased).
 

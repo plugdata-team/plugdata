@@ -9,7 +9,7 @@ pdcategory: ELSE, Data Management
 
 arguments:
 - type: anything
-  description: the number of elements defines the number of inlets. A float or a symbol will define an initial value
+  description: the number of elements = the number of inlets. <f> or <symbol> — initial value
   default: two floats set to '0'
 
 inlets:

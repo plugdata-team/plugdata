@@ -24,7 +24,7 @@ outlets:
     description: MIDI from learned input
   2nd:
   - type: anything
-    description: learned contoller
+    description: learned controller
 
 methods:
   - type: query

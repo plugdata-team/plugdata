@@ -49,7 +49,7 @@ methods:
   - type: continue
     description: continues recording/playing
   - type: speed <float>
-    description: sets a reading speed in perccentage of original
+    description: sets a reading speed in percentage of original
   - type: dump
     description: outputs the MIDI data stream at once
   - type: panic

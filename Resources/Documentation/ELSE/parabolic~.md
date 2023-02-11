@@ -22,7 +22,7 @@ inlets:
     description: frequency in hz
   2nd:
   - type: float/signal
-    description: phase sync (ressets internal phase)
+    description: phase sync (resets internal phase)
   3rd:
   - type: float/signal
     description: phase offset (modulation input)

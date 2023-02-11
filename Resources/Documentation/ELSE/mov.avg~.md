@@ -30,7 +30,7 @@ flags:
   - name: -size <float>
     description: sets buffer size
   - name: -abs
-    description: sets to absoliute average mode
+    description: sets to absolute average mode
 
 methods:
   - type: clear

@@ -32,5 +32,5 @@ methods:
 draft: false
 ---
 
-[freeze~] is an abstraction based on [sigmund~] (analysis & ressynthesis). It contains a bank with oscillators.
+[freeze~] is an abstraction based on [sigmund~] (analysis & resynthesis). It contains a bank with oscillators.
 
