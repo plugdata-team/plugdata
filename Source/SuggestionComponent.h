@@ -467,8 +467,7 @@ private:
         
         auto sortSuggestions = [](String query, StringArray suggestions) -> StringArray {
             
-            // If there are very few letters, there are too many suggestions and this tanks performance
-            //if(query.length() < 2) return suggestions;
+            if(query.length() == 0) return suggestions;
             
             std::sort(suggestions.begin(), suggestions.end(),
                 [&query](const String& a, const String& b) -> bool
@@ -630,7 +629,10 @@ private:
 
         // When hvcc mode is enabled, show only hvcc compatible objects
         filterNonHvccObjectsIfNeeded(found);
-        applySuggestionsToButtons(found, currentText);
+        
+        if (openedEditor) {
+            applySuggestionsToButtons(found, currentText);
+        }
 
         library.getExtraSuggestions(found.size(), currentText, [this, filterNonHvccObjectsIfNeeded, applySuggestionsToButtons, found, currentText, sortSuggestions](StringArray s) mutable {
             filterNonHvccObjectsIfNeeded(s);
