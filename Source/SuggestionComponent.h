@@ -466,8 +466,12 @@ private:
         auto& library = currentBox->cnv->pd->objectLibrary;
         
         auto sortSuggestions = [](String query, StringArray suggestions) -> StringArray {
+            
+            // If there are very few letters, there are too many suggestions and this tanks performance
+            if(query.length() < 2) return suggestions;
+            
             std::sort(suggestions.begin(), suggestions.end(),
-                [&query](String a, String b) -> bool
+                [&query](const String& a, const String& b) -> bool
             {
                 
                 auto check = [&query](const String& a, const String& b) -> bool {
@@ -632,7 +636,9 @@ private:
             if (!openedEditor || currentText != openedEditor->getText())
                 return;
             
-            s = sortSuggestions(currentText, s);
+            // Don't sort this for now because it seems to cause segfault
+            // Sorting these is less important anyway
+            //s = sortSuggestions(currentText, s);
 
             found.addArray(s);
             found.removeDuplicates(false);
