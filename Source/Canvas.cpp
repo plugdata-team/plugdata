@@ -1374,9 +1374,7 @@ void Canvas::findLassoItemsInArea(Array<WeakReference<Component>>& itemsFound, R
         // If total bounds don't intersect, there can't be an intersection with the line
         // This is cheaper than checking the path intersection, so do this first
         if (!con->getBounds().intersects(lasso.getBounds())) {
-            if(isSelected(con)) {
-                setSelected(con, false, false);
-            }
+            setSelected(con, false, false);
             continue;
         }
             
