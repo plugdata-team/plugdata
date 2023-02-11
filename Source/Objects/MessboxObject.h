@@ -102,6 +102,7 @@ public:
 
     void lock(bool locked) override
     {
+        setInterceptsMouseClicks(locked, locked);
         editor.setReadOnly(!locked);
     }
 
