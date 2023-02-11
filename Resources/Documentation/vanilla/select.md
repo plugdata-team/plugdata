@@ -27,5 +27,5 @@ outlets:
     description: value if input didn't match
 
 ---
-compare numbers or symbols.
+compare numbers or symbols
 

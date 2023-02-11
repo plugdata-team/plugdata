@@ -25,7 +25,7 @@ inlets:
 outlets:
   1st:
   - type: float
-    description: The result of the operation.
+    description: The result of the operation
 draft: false
 ---
 div and mod do integer division, where div outputs the integer quotient and mod outputs the remainder (modulus

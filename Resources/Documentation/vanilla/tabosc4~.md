@@ -14,16 +14,16 @@ last_update: '0.33'
 inlets:
   1st:
   - type: signal
-    description: frequency value in Hz.
+    description: frequency value in Hz
   - type: set <symbol>
-    description: set table name with the waveform.
+    description: set table name with the waveform
   2nd:
   - type: float
-    description: phase cycle reset (from 0 to 1).
+    description: phase cycle reset (from 0 to 1)
 outlets:
   1st:
   - type: signal
-    description: wavetable oscillator output.
+    description: wavetable oscillator output
 arguments:
   - type: float
     description: initial frequency value in Hz 

@@ -21,15 +21,15 @@ inlets:
   1st:
   - type: anything
     description: set messages to concatenate to a second list and output (a bang is
-      a zero element list).
+      a zero element list)
   2nd:
   - type: anything
     description: set messages to append to the first list (a bang is a zero element
-      list and clears it).
+      list and clears it)
 outlets:
   1st:
   - type: list
-    description: the concatenated list.
+    description: the concatenated list
 draft: false
 ---
 Short for "list append"

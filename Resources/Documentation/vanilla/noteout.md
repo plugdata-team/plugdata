@@ -14,7 +14,7 @@ arguments:
 inlets:
   1st:
   - type: float
-    description: MIDI note number.
+    description: MIDI note number
   2nd:
   - type: float
     description: MIDI velocity

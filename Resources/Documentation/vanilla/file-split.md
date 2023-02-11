@@ -28,11 +28,11 @@ see_also:
 inlets:
   1st:
   - type: symbol
-    description: file or directory name to split.
+    description: file or directory name to split
 outlets:
   1st:
   - type: list
-    description: list of split components.
+    description: list of split components
   2nd:
   - type: symbol/bang
     description: '''/'' if inputs ends with ''/'' or bang otherwise.'

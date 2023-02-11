@@ -1,6 +1,6 @@
 ---
 title: text fromlist
-description: convert from list.
+description: convert from list
 categories:
 - object
 pdcategory: vanilla, Data Management
@@ -25,17 +25,17 @@ arguments:
 .'
   type: symbol
 flags:
-- description: struct name and field name of main structure.
+- description: struct name and field name of main structure
   flag: -s <symbol, symbol>
 inlets:
   1st:
   - type: list
-    description: sets contents of text from given list.
+    description: sets contents of text from given list
   2nd:
   - type: symbol
-    description: set text name.
+    description: set text name
   - type: pointer
-    description: pointer to the text if -s flag is used.
+    description: pointer to the text if -s flag is used
 draft: false
 ---
 "text fromlist" converts a list such as "text tolist" would output and fills the text with it. Whatever the text had previously contained is discarded.

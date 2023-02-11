@@ -42,7 +42,7 @@ flags:
 
 methods:
   - type: set <float>
-    description: sets initialization and generating value with given float or sets current value if no float is given.
+    description: sets initialization and generating value with given float or sets current value if no float is given
   - type: size <float>
     description: sets font size
   - type: width <float>
