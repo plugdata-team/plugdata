@@ -502,7 +502,7 @@ struct PlugDataLook : public LookAndFeel_V4 {
 
     Font getTabButtonFont(TabBarButton&, float height) override
     {
-        return { height * 0.45f };
+        return Fonts::getCurrentFont().withHeight(height * 0.47f);
     }
 
     void drawPopupMenuBackgroundWithOptions(Graphics& g, int width, int height, PopupMenu::Options const& options) override

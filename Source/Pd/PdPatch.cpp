@@ -705,7 +705,7 @@ void Patch::setTitle(String const& title)
 
     pd_typedmess(static_cast<t_pd*>(ptr), instance->generateSymbol("rename"), 2, args);
 
-    MessageManager::callAsync([this]() {
+    MessageManager::callAsync([instance = this->instance]() {
         instance->titleChanged();
     });
 }
