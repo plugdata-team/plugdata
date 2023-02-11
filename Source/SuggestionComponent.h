@@ -51,7 +51,7 @@ public:
         repaint();
     }
         
-    bool enableAutocomplete(bool enabled)
+    void enableAutocomplete(bool enabled)
     {
         shouldAutocomplete = enabled;
     }
