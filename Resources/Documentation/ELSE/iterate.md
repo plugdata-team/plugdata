@@ -6,7 +6,7 @@ description: iterate through a list
 categories:
 - object
 
-pdcategory: ELSE, Data Management, Triggers and Clocks
+pdcategory: ELSE, Data Management
 
 arguments:
 - description: direction, >= 0 is left to right, < 0 is reverse

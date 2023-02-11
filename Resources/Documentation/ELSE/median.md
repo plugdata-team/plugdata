@@ -6,7 +6,7 @@ description: list median
 categories:
 - object
 
-pdcategory: ELSE, Data Management, Data Math
+pdcategory: ELSE, Data Math
 
 arguments:
 
