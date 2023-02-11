@@ -5,9 +5,9 @@ pdcategory: vanilla, UI
 inlets:
   1st:
   - type: symbol
-    description: Set and output symbol
+    description: set and output symbol
   - type: bang
-    description: Output symbol
+    description: output symbol
 outlets:
   1st:
   - type: symbol

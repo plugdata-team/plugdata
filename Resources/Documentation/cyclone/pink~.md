@@ -1,5 +1,5 @@
 ---
-title: pink~
+title: cyclone/pink~
 description:
 categories:
  - object

@@ -24,7 +24,7 @@ inlets:
   - type: pointer
     description: a pointer to the scalar.
 flags:
-- flag:	"-symbol"
+- name:	"-symbol"
   description: so you can set symbol values.
 arguments:
 - type: symbol

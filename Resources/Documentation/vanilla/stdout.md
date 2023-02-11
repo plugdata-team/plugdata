@@ -12,20 +12,20 @@ inlets:
   - type: anything
     description: any message to be written/sent to standard output.
 flags:
-- flag: -cr
+- name: -cr
   description:  omit trailing semicolon in output (like [print]).
-- flag: -b
+- name: -b
   description:  sets to binary mode.
-- flag: -binary
+- name: -binary
   description:  sets to binary mode.
-- flag: -f
+- name: -f
   description: same as -flush.
-- flag: -flush
+- name: -flush
   description: flush the output after each message 
   default: on W32
-- flag: -nf
+- name: -nf
   description: same as -noflush.
-- flag: -noflush
+- name: -noflush
   description: do not flush the output after each message.  
 draft: false
 ---
