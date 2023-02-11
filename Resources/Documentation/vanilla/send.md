@@ -1,6 +1,6 @@
 ---
 title: send, s
-description: Send messages without patch cords.
+description: Send messages without patch cords
 categories:
 - object
 pdcategory: vanilla, UI, Mixing and Routing

@@ -25,7 +25,7 @@ inlets:
 outlets:
   1st:
   - type: float
-    description: The result of the operation.
+    description: The result of the operation
 draft: false
 ---
 {{< md_include "objects/relational-operators.md" >}}

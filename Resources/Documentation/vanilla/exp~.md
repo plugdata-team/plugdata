@@ -14,14 +14,14 @@ see_also:
 inlets:
   1st:
   - type: signal
-    description: input value to exp function.
+    description: input value to exp function
 outlets:
   1st:
   - type: signal
-    description: output of exp function.
+    description: output of exp function
 arguments:
   - type: float 
-    description: initial base value.
+    description: initial base value
 draft: false
 ---
 Exp~ raises the Euler number 'e' (about 2.718), to the power of the input signal.

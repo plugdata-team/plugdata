@@ -10,17 +10,17 @@ see_also:
 inlets:
   1st:
   - type: float
-    description: MIDI pitch.
+    description: MIDI pitch
   2nd:
   - type: float
-    description: MIDI velocity (no output if equal to zero).
+    description: MIDI velocity (no output if equal to zero)
 outlets:
   1st:
   - type: float
-    description: MIDI pitch.
+    description: MIDI pitch
   2nd:
   - type: float
-    description: MIDI velocity.
+    description: MIDI velocity
 draft: false
 ---
 Stripnote ignores note-off (zero-velocity) messages from a stream of MIDI-style note message and passes the others through unchanged. It can deal with any kind of number (negative,  floats,  whatever) even though MIDI values need to be integers from 0 to 127!

@@ -6,13 +6,13 @@ categories:
 pdcategory: vanilla, UI, File Management
 last_update: '0.52'
 flags:
-- description: add to search path, relative to the patch or user paths.
+- description: add to search path, relative to the patch or user paths
   flag: -path <symbol>
-- description: add to search path, relative to Pd (the 'extra' folder).
+- description: add to search path, relative to Pd (the 'extra' folder)
   flag: -stdpath <symbol>
-- description: load a library, relative to the patch or user paths.
+- description: load a library, relative to the patch or user paths
   flag: -lib <symbol>
-- description: load a library, relative to Pd (the 'extra' folder).
+- description: load a library, relative to Pd (the 'extra' folder)
   flag: -stdlib <symbol>
 draft: false
 ---

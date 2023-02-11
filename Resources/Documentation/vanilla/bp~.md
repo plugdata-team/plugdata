@@ -19,17 +19,17 @@ inlets:
   - type: signal
     description: input signal to be filtered. 
   - type: clear
-    description: clear filter's memory.
+    description: clear filter's memory
   2nd:
   - type: float
-    description: center frequency in Hz.
+    description: center frequency in Hz
   3rd:
   - type: float
     description:  Q (controls bandwidth).  	
 outlets:
   1st:
   - type: signal
-    description: the filtered signal output.
+    description: the filtered signal output
 arguments:
   - type: float
     description: initial center frequency in Hz 

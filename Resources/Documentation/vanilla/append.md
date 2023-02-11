@@ -15,21 +15,21 @@ last_update: '0.47'
 inlets:
   1st:
   - type: set <symbol, symbol>
-    description: if none or just one field is given, you can use 'set' to set struct name and field.
+    description: if none or just one field is given, you can use 'set' to set struct name and field
   - type: float
-    description: set field value and append new Data Structure.
+    description: set field value and append new Data Structure
   2nd:
   - type: pointer
-    description: a pointer to the Data Structure to add.
+    description: a pointer to the Data Structure to add
 outlets:
   1st:
   - type: pointer
-    description: a pointer to added Data Structure.
+    description: a pointer to added Data Structure
 arguments:
 - type: symbol
-  description: set template name.
+  description: set template name
 - type: list
-  description: set field names and create an inlet for each (one inlet is created by default).
+  description: set field names and create an inlet for each (one inlet is created by default)
 draft: false
 
 ---

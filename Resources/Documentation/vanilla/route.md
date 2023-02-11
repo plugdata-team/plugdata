@@ -17,7 +17,7 @@ inlets:
     description: passes message on if it starts with $arg
   2nd:
   - type: float/symbol
-    description: if there's one argument,  an inlet is created to update it.
+    description: if there's one argument,  an inlet is created to update it
 outlets:
   nth:
   - type: anything

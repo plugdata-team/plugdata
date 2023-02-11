@@ -17,18 +17,18 @@ last_update: '0.42'
 inlets:
   1st:
   - type: signal
-    description: real signal to filter.
+    description: real signal to filter
   - type: set <float>
-    description: set internal state.
+    description: set internal state
   - type: clear
-    description: clear internal state to zero (same as "set 0").
+    description: clear internal state to zero (same as "set 0")
   2nd:
   - type: signal
-    description: filter coefficient.
+    description: filter coefficient
 outlets:
   1st:
   - type: signal
-    description: filtered signal.
+    description: filtered signal
 arguments:
   - type: float
     description: filter coefficient 

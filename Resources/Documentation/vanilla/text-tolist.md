@@ -1,6 +1,6 @@
 ---
 title: text tolist
-description: convert text to a list.
+description: convert text to a list
 categories:
 - object
 pdcategory: vanilla, Data Management
@@ -25,21 +25,21 @@ arguments:
 .'
   type: symbol
 flags:
-- description: struct name and field name of main structure.
+- description: struct name and field name of main structure
   flag: -s <symbol, symbol>
 inlets:
   1st:
   - type: bang
-    description: output contents as a list.
+    description: output contents as a list
   2nd:
   - type: symbol
-    description: set text name.
+    description: set text name
   - type: pointer
-    description: pointer to the text if -s flag is used.
+    description: pointer to the text if -s flag is used
 outlets:
   1st:
   - type: list
-    description: contents of text as a list.
+    description: contents of text as a list
 draft: false
 ---
 "text tolist" outputs the entire contents as a list. Semicolons, commas, and dollar signs are output as symbols (and so, if symbols like ", " are encountered, they're escaped with backslashes

@@ -15,22 +15,22 @@ last_update: '0.43'
 inlets:
   1st:
   - type: float
-    description: sets starting sample and plays the sample.
+    description: sets starting sample and plays the sample
   - type: bang
-    description: plays the whole sample (same as '0').
+    description: plays the whole sample (same as '0')
   - type: list
-    description: 1st element sets starting sample and 2nd element sets duration in samples.
+    description: 1st element sets starting sample and 2nd element sets duration in samples
   - type: stop
-    description: stop playing (outputs zeros when stopped).
+    description: stop playing (outputs zeros when stopped)
   - type: set <symbol>
-    description: set the table with the sample.
+    description: set the table with the sample
 outlets:
   1st:
   - type: signal
-    description: sample output.
+    description: sample output
   2nd:
   - type: bang
-    description: bang when finished playing the table.
+    description: bang when finished playing the table
 arguments:
   - type: symbol
     description: sets table name with the sample. 

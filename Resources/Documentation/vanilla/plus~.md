@@ -29,7 +29,7 @@ inlets:
 outlets:
   1st:
   - type: signal
-    description: The result of the operation.
+    description: The result of the operation
 draft: false
 ---
 This object combine two signals as above, or, if you give a numeric argument, the right inlet only takes floats (no signals

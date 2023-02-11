@@ -13,28 +13,28 @@ inlets:
   - type: bang
     description: output a whole line and go to the next
   - type: rewind
-    description: go to beginning (and stop).
+    description: go to beginning (and stop)
   - type: clear
-    description: empty the textfile.
+    description: empty the textfile
   - type: add <anything>
-    description: add a message to textfile.
+    description: add a message to textfile
   - type: add2 <anything>
-    description: add a message but don't terminate it.
+    description: add a message but don't terminate it
   - type: set <anything>
-    description: clear and add a message to textfile.
+    description: clear and add a message to textfile
   - type: print
-    description: print contents to Pd window.
+    description: print contents to Pd window
   - type: read <symbol, cr>
-    description: read a file (with optional 'cr' argument).
+    description: read a file (with optional 'cr' argument)
   - type: write <symbol, cr>
-    description: write to a file (with optional 'cr' argument).
+    description: write to a file (with optional 'cr' argument)
 outlets:
   1st:
   - type: anything
-    description: lines stored in the textfile object.
+    description: lines stored in the textfile object
   2nd:
   - type: bang
-    description: when reaching the end of sequence.
+    description: when reaching the end of sequence
 draft: false
 ---
 'cr' = terminating lines only with carriage return (omitting semicolons.) You can read files this way too, in which case carriage returns are mapped to semicolons.

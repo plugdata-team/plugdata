@@ -1,6 +1,6 @@
 ---
 title: text sequence
-description: sequencer/message-sender.
+description: sequencer/message-sender
 categories:
 - object
 pdcategory: vanilla, Data Management, Triggers and Clocks

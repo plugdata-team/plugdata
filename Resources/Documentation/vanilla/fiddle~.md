@@ -14,10 +14,10 @@ outlets:
     description: Cooked pitch output
   2nd:
   - type: bang
-    description: A bang is sent on new attacks.
+    description: A bang is sent on new attacks
   3rd:
   - type: list
-    description: Continuous raw pitch and amplitude.
+    description: Continuous raw pitch and amplitude
   4th:
   - type: float
     description: Amplitude in dB
@@ -45,14 +45,15 @@ methods:
 - type: amp-range <float, float>
   description: Set low and high amplitude threshold
 - type: vibrato <float, float>
-  description: Set period in msec and pitch deviation for "cooked" pitch outlet.
+  description: Set period in msec and pitch deviation for "cooked" pitch outlet
 - type: reattack <float, float>
-  description: Set period in msec and amplitude in dB to report re-attack.
+  description: Set period in msec and amplitude in dB to report re-attack
 - type: auto <float>
-  description: Nonzero sets to auto mode (default) and zero sets it off.
+  description: Nonzero sets to auto mode (default) and zero sets it off
 - type: npartial <float>
   description: Set partial number to be weighted half as strongly as the fundamental
 - type: npoints <float>
-  description: Sets number of points in analysis window.
+  description: Sets number of points in analysis window
 - type: print <float>
-  description: Print out settings.
+  description: Print out settings
+

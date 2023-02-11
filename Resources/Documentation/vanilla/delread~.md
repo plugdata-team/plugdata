@@ -1,6 +1,6 @@
 ---
 title: delread~
-description: read from a delay line.
+description: read from a delay line
 categories:
 - object
 see_also:
@@ -12,14 +12,14 @@ last_update: '0.52'
 inlets:
   1st:
   - type: float
-    description: delay time in ms.
+    description: delay time in ms
 outlets:
   1st:
   - type: signal
-    description: delayed signal.
+    description: delayed signal
 arguments:
   - type: symbol
-    description: delay line name.
+    description: delay line name
   - type: float
     description: initial delay time in ms 
   default: 0

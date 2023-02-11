@@ -1,6 +1,6 @@
 ---
 title: tabwrite~
-description: write a signal in an array.
+description: write a signal in an array
 categories:
 - object
 see_also:
