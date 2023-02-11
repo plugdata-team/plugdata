@@ -632,7 +632,7 @@ private:
             if (!openedEditor || currentText != openedEditor->getText())
                 return;
             
-            //s = sortSuggestions(currentText, s);
+            s = sortSuggestions(currentText, s);
 
             found.addArray(s);
             found.removeDuplicates(false);
