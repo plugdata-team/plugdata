@@ -126,7 +126,7 @@ enum ObjectIDs {
     NewDecay,
     NewEnvelope,
     NewEnvgen,
-    NewLfonoise,
+    NewLfnoise,
     NewSignalLine,
     NewRamp,
     NewSah,
