@@ -10,7 +10,7 @@ pdcategory: ELSE, Envelopes and LFOs
 
 arguments:
 - type: list
-  description: a float sets an initial output value, a list of floats sets the envelope
+  description: <f> — initial output value, <f,f,..> sets the envelope
   default: 0 0
 
 inlets:

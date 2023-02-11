@@ -13,7 +13,7 @@ arguments:
   description: initial threshold 
   default: 0
 - type: float
-  description: initialy held value
+  description: initially held value
   default: 0
 - type: float
   description: modes - 0 (gate) or 1 (trigger)

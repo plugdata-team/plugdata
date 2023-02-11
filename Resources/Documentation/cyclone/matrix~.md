@@ -33,7 +33,7 @@ outlets:
 
 flags:
   - name: @ramp <float>
-    description: only in non-binary mode (that is, if all 3 arguments are given, you can include a ramp value as an attribute) - default is 10 ms
+    description: only in non-binary mode (if all 3 arguments are given), default: 10 ms
 
 methods:
   - type: connect <list>

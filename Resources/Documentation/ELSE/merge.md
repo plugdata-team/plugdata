@@ -16,7 +16,7 @@ arguments:
 inlets:
   nth:
   - type: anything
-    description: any nessage tyoe to merge
+    description: any message type to merge
   - type: bang
     description: outputs last composed message
  

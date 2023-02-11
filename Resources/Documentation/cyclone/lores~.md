@@ -9,7 +9,7 @@ arguments:
   description: cutoff frequency
   default:
 - type: float
-  description: resonance: minimum is 0 (a little bit sharp) and maximum is 1 (as sharp as possible and also LOUD)
+  description: resonance: 0 (a little bit sharp) — 1 (sharp and LOUD)
   default: 0
 inlets:
   1st:
