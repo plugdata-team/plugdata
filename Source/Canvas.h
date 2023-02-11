@@ -20,6 +20,7 @@ class Iolet;
 class PluginEditor;
 class ConnectionPathUpdater;
 class ConnectionBeingCreated;
+class InsetViewport;
 
 class Canvas : public Component
     , public Value::Listener
@@ -105,7 +106,7 @@ public:
         return result;
     }
 
-    Viewport* viewport = nullptr;
+    InsetViewport* viewport = nullptr;
 
     bool connectingWithDrag = false;
     SafePointer<Iolet> nearestIolet;

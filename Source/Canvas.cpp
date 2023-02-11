@@ -16,6 +16,7 @@ extern "C" {
 #include "PluginEditor.h"
 #include "LookAndFeel.h"
 #include "SuggestionComponent.h"
+#include "Tabbar.h"
 
 #include "Utility/GraphArea.h"
 #include "Utility/RateReducer.h"
@@ -72,7 +73,7 @@ Canvas::Canvas(PluginEditor* parent, pd::Patch& p, Component* parentGraph)
     setWantsKeyboardFocus(true);
 
     if (!isGraph) {
-        viewport = new Viewport; // Owned by the tabbar, but doesn't exist for graph!
+        viewport = new InsetViewport; // Owned by the tabbar, but doesn't exist for graph!
         viewport->setViewedComponent(this, false);
 
         viewport->setScrollBarsShown(true, true, true, true);
