@@ -5,14 +5,14 @@ pdcategory: vanilla, UI
 inlets:
   1st:
   - type: list
-    description: Set and output list
+    description: set and output list
   - type: bang
-    description: Output list
+    description: output list
 outlets:
   1st:
   - type: list
-    description: List box value
+    description: list box value
 draft: false
 methods:
 - type: set <list>
-  description: Set list without output
+  description: set list without output

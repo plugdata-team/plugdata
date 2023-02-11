@@ -1,5 +1,5 @@
 ---
-title: clip, cyclone/clip
+title: cyclone/clip
 description: constrain values to a given range
 categories:
 - object

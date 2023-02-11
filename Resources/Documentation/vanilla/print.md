@@ -7,11 +7,11 @@ pdcategory: vanilla, Analysis, UI
 see_also:
 - print~
 arguments:
-- description: message to distinct one [print] from another.
+- description: message to distinct one [print] from another
   type: list
 flags:
-- description: the default "print:" prefix is suppressed.
-  flag: -n
+- name: -n
+  description: the default "print:" prefix is suppressed
 inlets:
   1st:
   - type: anything

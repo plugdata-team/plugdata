@@ -1,6 +1,6 @@
 ---
 title: makenote
-description: schedule delayed 'note off' message for a note-on
+description: send note-on and schedule note-off messages
 categories:
 - object
 pdcategory: vanilla, MIDI
@@ -12,6 +12,8 @@ arguments:
   default: 0
   type: float
 - description: initial duration value 
+  default: 0
+  type: float
 inlets:
   1st:
   - type: float
