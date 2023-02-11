@@ -1,6 +1,6 @@
 ---
 title: tabread~
-description: non-interpolating table lookup for signals.
+description: non-interpolating table lookup for signals
 categories:
 - object
 see_also:
@@ -17,13 +17,13 @@ last_update: '0.43'
 inlets:
   1st:
   - type: signal
-    description: sets table index and output its value.
+    description: sets table index and output its value
   - type: set <symbol>
-    description: set the table name.
+    description: set the table name
 outlets:
   1st:
   - type: signal
-    description: value of index input.
+    description: value of index input
 arguments:
   - type: symbol
     description: sets table name with the sample. 

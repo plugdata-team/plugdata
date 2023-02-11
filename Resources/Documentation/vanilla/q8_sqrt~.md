@@ -16,11 +16,11 @@ see_also:
 inlets:
   1st:
   - type: signal
-    description: input to square root function.
+    description: input to square root function
 outlets:
   1st:
   - type: signal
-    description: output of square root function.
+    description: output of square root function
 draft: false
 ---
 q8_sqrt~ is included in Pd for back compatibility but should probably not be used. It only gives about 8 bit accuracy.

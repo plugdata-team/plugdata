@@ -31,39 +31,39 @@ arguments:
     splitext and splitname. The default value is ''handle''.'
   type: symbol
 flags:
-- description: set quiet verbosity.
+- description: set quiet verbosity
   flag: -q
-- description: set loud verbosity.
+- description: set loud verbosity
   flag: -v
-- description: file creation mode (user/group/other permissions) in octal.
+- description: file creation mode (user/group/other permissions) in octal
   flag: -m
 inlets:
   1st:
   - type: open <symbol>
-    description: open a file.
+    description: open a file
   - type: float
-    description: read number of bytes.
+    description: read number of bytes
   - type: seek <list>
-    description: seek file.
+    description: seek file
   - type: close
-    description: close file.
+    description: close file
   - type: verbose <float>
-    description: set verbosity on or off.
+    description: set verbosity on or off
   - type: creationmode <octal>
-    description: restrict permissions of the to-be-created file.
+    description: restrict permissions of the to-be-created file
   2nd:
   - type: symbol
-    description: change the associated file-handle.
+    description: change the associated file-handle
 outlets:
   1st:
   - type: list
-    description: data bytes.
+    description: data bytes
   2nd:
   - type: bang
     description: if file can't be opened, end of the file is reached or a read error
-      occurred.
+      occurred
   - type: seek <float>
-    description: seek output.
+    description: seek output
 methods:
 - description: explicit Read-mode
   method: open <symbol> r

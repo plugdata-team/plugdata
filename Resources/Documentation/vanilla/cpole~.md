@@ -17,27 +17,27 @@ last_update: '0.43'
 inlets:
   1st:
   - type: signal
-    description: signal to filter (real part).
+    description: signal to filter (real part)
   - type: set <float, float>
-    description: set internal state (real and imaginary part).
+    description: set internal state (real and imaginary part)
   - type: clear
-    description: clear internal state to zero (same as "set 0 0").
+    description: clear internal state to zero (same as "set 0 0")
   2nd:
   - type: signal
-    description: signal to filter (imaginary part).
+    description: signal to filter (imaginary part)
   3rd:
   - type: signal
-    description: filter coefficient (real part).
+    description: filter coefficient (real part)
   4th:
   - type: signal
-    description: filter coefficient (imaginary part).
+    description: filter coefficient (imaginary part)
 outlets:
   1st:
   - type: signal
-    description: filtered signal, real part.
+    description: filtered signal, real part
   2nd:
   - type: signal
-    description: filtered signal, imaginary part.
+    description: filtered signal, imaginary part
 arguments:
   - type: list
     description: real and imaginary part of coefficient 

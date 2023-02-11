@@ -1,6 +1,6 @@
 ---
 title: text get
-description: read and output a line.
+description: read and output a line
 categories:
 - object
 pdcategory: vanilla, Data Management

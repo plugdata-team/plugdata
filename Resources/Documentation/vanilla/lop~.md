@@ -1,6 +1,6 @@
 ---
 title: lop~
-description: one-pole low pass filter.
+description: one-pole low pass filter
 categories:
 - object
 see_also:
@@ -17,9 +17,9 @@ last_update: '0.38'
 inlets:
   1st:
   - type: signal
-    description: audio signal to be filtered.
+    description: audio signal to be filtered
   - type: clear
-    description: clear filter's memory.
+    description: clear filter's memory
   2nd:
   - type: float
     description: rolloff frequency.	

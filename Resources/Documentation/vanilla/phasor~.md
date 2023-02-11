@@ -1,6 +1,6 @@
 ---
 title: phasor~
-description: phase ramp generator.
+description: phase ramp generator
 categories:
 - object
 see_also:
@@ -12,14 +12,14 @@ last_update: '0.33'
 inlets:
   1st:
   - type: signal
-    description: frequency value in Hz.
+    description: frequency value in Hz
   2nd:
   - type: float
-    description: phase cycle reset (from 0 to 1).
+    description: phase cycle reset (from 0 to 1)
 outlets:
   1st:
   - type: signal
-    description: phase ramp (in the range of 0 to 1).
+    description: phase ramp (in the range of 0 to 1)
 arguments:
   - type: float
     description: initial frequency value in Hz 

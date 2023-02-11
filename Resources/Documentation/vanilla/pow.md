@@ -25,7 +25,7 @@ inlets:
 outlets:
   1st:
   - type: float
-    description: The result of the operation.
+    description: The result of the operation
 draft: false
 ---
 Pow raises a number on the left inlet to a numeric power (given by the right inlet or argument

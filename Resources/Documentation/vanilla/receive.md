@@ -1,6 +1,6 @@
 ---
 title: receive, r
-description: Receive messages without patch cords.
+description: Receive messages without patch cords
 categories:
 - object
 pdcategory: vanilla, UI, Mixing and Routing
@@ -18,7 +18,7 @@ arguments:
 outlets:
   1st:
   - type: any message
-    description: outputs the messages destined to its receive name.
+    description: outputs the messages destined to its receive name
 aliases:
 - r
 draft: false

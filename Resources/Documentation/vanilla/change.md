@@ -12,7 +12,7 @@ arguments:
 inlets:
   1st:
   - type: bang
-    description: output current value.
+    description: output current value
   - type: float
     description: input value (repeated numbers are filtered)
 outlets:

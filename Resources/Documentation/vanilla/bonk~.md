@@ -44,7 +44,7 @@ methods:
   - type: attack-frames <float>
     description: set number of frames over which to measure growth
   - type: minlevel <float>
-    description: set minimum "velocity" to output (ignore quieter notes).
+    description: set minimum "velocity" to output (ignore quieter notes)
   - type: spew <float>
     description: nonzero turns spew mode on, zero sets it off
   - type: useloudness <float>
@@ -58,11 +58,11 @@ methods:
   - type: learn <float>
     description: forget and learn for a given number of times (10 recommended)
   - type: forget
-    description: forget the last template.
+    description: forget the last template
   - type: write <symbol>
-    description: write templates to a file.
+    description: write templates to a file
   - type: read <symbol>
-    description: read templates from a file.
+    description: read templates from a file
 
 ---
 attack detection and spectral envelope measurement

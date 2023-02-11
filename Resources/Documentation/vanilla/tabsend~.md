@@ -14,9 +14,9 @@ last_update: '0.43'
 inlets:
   1st:
   - type: signal
-    description: signal to send to matching tabreceive~ object(s).
+    description: signal to send to matching tabreceive~ object(s)
   - type: set <name>
-    description: set table name.
+    description: set table name
 arguments:
   - type: symbol
     description: send symbol name 

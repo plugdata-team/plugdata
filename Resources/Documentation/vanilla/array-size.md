@@ -20,25 +20,25 @@ arguments:
   default: none
   type: symbol
 flags:
-- description: struct name and field name of main structure.
+- description: struct name and field name of main structure
   flag: -s <symbol, symbol>
-- description: struct name and field name of element structure.
+- description: struct name and field name of element structure
   flag: -f <symbol, symbol>
 inlets:
   1st:
   - type: bang
-    description: output the array size.
+    description: output the array size
   - type: float
-    description: set the array size.
+    description: set the array size
   2nd:
   - type: symbol
-    description: set array name.
+    description: set array name
   - type: pointer
-    description: pointer to the array if '-s' flag is used.
+    description: pointer to the array if '-s' flag is used
 outlets:
   1st:
   - type: float
-    description: array size.
+    description: array size
 draft: false
 ---
 "array define" maintains an array and can name it so that other objects can find it (and later should have some alternative, anonymous way to be found

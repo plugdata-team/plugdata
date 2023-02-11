@@ -14,11 +14,11 @@ flags:
 inlets:
   1st:
   - type: anything
-    description: any message to convert to a FUDI packet.
+    description: any message to convert to a FUDI packet
 outlets:
   1st:
   - type: list
-    description: converted FUDI packet.
+    description: converted FUDI packet
 bref: FUDI messages to and from Pd lists
 draft: false
 ---
