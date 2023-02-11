@@ -24,33 +24,33 @@ arguments:
     delete, size, tolist, fromlist, search and sequence. The default value is ''define''.'
   type: symbol
 flags:
-- description: saves/keeps the contents of the text with the patch.
+- description: saves/keeps the contents of the text with the patch
   flag: -k
 inlets:
   1st:
   - type: bang
-    description: output a pointer to the scalar containing the text.
+    description: output a pointer to the scalar containing the text
   - type: clear
-    description: clear contents of the text.
+    description: clear contents of the text
   - type: send <symbol>
     description: send pointer to a named receive object
   - type: read <symbol>
-    description: read from a file (with optional -c flag).
+    description: read from a file (with optional -c flag)
   - type: write <symbol>
-    description: write to a file (with optional -c flag).
+    description: write to a file (with optional -c flag)
   - type: sort
-    description: sort the text contents.
+    description: sort the text contents
   - type: click
-    description: open text window.
+    description: open text window
   - type: close
-    description: closes the text window.
+    description: closes the text window
 outlets:
   1st:
   - type: pointer
-    description: a pointer to the scalar containing the array.
+    description: a pointer to the scalar containing the array
   2nd:
   - type: anything
-    description: outputs "updated" when text changes.
+    description: outputs "updated" when text changes
 draft: false
 ---
 

@@ -11,32 +11,32 @@ see_also:
 inlets:
   1st:
   - type: bang
-    description: start sequence automatically.
+    description: start sequence automatically
   - type: tempo <float>
-    description: set relative tempo.
+    description: set relative tempo
   - type: rewind
-    description: go to beginning (and stop).
+    description: go to beginning (and stop)
   - type: next <float>
-    description: single-step forward, optional float suppresses message sending.
+    description: single-step forward, optional float suppresses message sending
   - type: print
-    description: print contents to Pd window.
+    description: print contents to Pd window
   - type: clear
-    description: empty the qlist.
+    description: empty the qlist
   - type: add <anything>
-    description: add a message to a qlist.
+    description: add a message to a qlist
   - type: add2 <anything>
-    description: add a message to a qlist but don't terminate it.
+    description: add a message to a qlist but don't terminate it
   - type: read <symbol>
-    description: read a file into qlist.
+    description: read a file into qlist
   - type: write <symbol>
-    description: write contents to a file.
+    description: write contents to a file
 outlets:
   1st:
   - type: list
-    description: list of leading numbers for the next message.
+    description: list of leading numbers for the next message
   2nd:
   - type: bang
-    description: when reaching the end of sequence.
+    description: when reaching the end of sequence
 draft: false
 ---
 The qlist object reads text files containing time-tagged Pd messages. You can have them sequenced automatically (by sending a "bang" message, possibly changing speed via "tempo" messages) or manually via the "rewind" and "next" messages.

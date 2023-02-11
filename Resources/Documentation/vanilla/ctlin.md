@@ -16,7 +16,7 @@ arguments:
 outlets:
   1st:
   - type: float
-    description: MIDI controller value.
+    description: MIDI controller value
   2nd:
   - type: float
     description: MIDI controller number

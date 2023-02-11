@@ -26,23 +26,23 @@ see_also:
 - file splitext
 - file splitname
 flags:
-- description: set quiet verbosity.
+- description: set quiet verbosity
   flag: -q
-- description: set loud verbosity.
+- description: set loud verbosity
   flag: -v
 inlets:
   1st:
   - type: symbol
-    description: file or directory to be deleted.
+    description: file or directory to be deleted
   - type: verbose <float>
-    description: set verbosity on or off.
+    description: set verbosity on or off
 outlets:
   1st:
   - type: symbol
-    description: the deleted path on success.
+    description: the deleted path on success
   2nd:
   - type: bang
-    description: if an error occurs.
+    description: if an error occurs
 draft: false
 ---
 NOTE: deleting destroys data. there is no confirmation dialog or anything of that kind.

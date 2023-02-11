@@ -10,7 +10,7 @@ pdcategory: ELSE, Data Math
 
 arguments:
   - type: list
-    description: 2 floats — min/max, 1 float — max.
+    description: 2 floats — min/max, 1 float — max
     default: 0 and 1
   
 inlets:

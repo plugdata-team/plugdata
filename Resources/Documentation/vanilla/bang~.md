@@ -14,7 +14,7 @@ inlets:
 outlets:
   1st:
   - type: bang
-    description: at every DSP block cycle when DSP is on.
+    description: at every DSP block cycle when DSP is on
 draft: false
 ---
 bang~ outputs a bang after each DSP block cycle (at the same logical time as the DSP cycle.) This is primarily useful for sampling the outputs of analysis algorithms.

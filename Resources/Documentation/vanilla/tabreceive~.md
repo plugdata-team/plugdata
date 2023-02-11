@@ -14,11 +14,11 @@ last_update: '0.43'
 inlets:
   1st:
   - type: set <name>
-    description: set table name.
+    description: set table name
 outlets:
   1st:
   - type: signal
-    description: outputs signal from a matching tabsend~ object.
+    description: outputs signal from a matching tabsend~ object
 arguments:
   - type: symbol
     description: receive name symbol 

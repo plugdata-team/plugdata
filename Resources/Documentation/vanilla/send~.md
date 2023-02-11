@@ -1,6 +1,6 @@
 ---
 title: send~, s~
-description: send signal to one or more receive~ objects.
+description: send signal to one or more receive~ objects
 categories:
 - object
 aliases:
@@ -15,7 +15,7 @@ last_update: '0.33'
 inlets:
   1st:
   - type: signal
-    description: signal to send to matching receive~ object(s).
+    description: signal to send to matching receive~ object(s)
 arguments:
 - type: symbol
   description: send symbol name 

@@ -16,7 +16,7 @@ arguments:
 inlets:
   1st:
   - type: float
-    description: non-0 - on, 0 - off.
+    description: non-0 - on, 0 - off
   - type: bang
     description: changes status
 

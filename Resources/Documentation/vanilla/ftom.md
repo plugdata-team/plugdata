@@ -11,7 +11,7 @@ see_also:
 inlets:
   1st:
   - type: float
-    description: incomming value to be converted.
+    description: incomming value to be converted
 outlets:
   1st:
   - type: float

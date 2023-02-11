@@ -1,6 +1,6 @@
 ---
 title: trigger, t
-description: sequence messages in right-to-left order.
+description: sequence messages in right-to-left order
 categories:
 - object
 pdcategory: vanilla, Triggers and Clocks

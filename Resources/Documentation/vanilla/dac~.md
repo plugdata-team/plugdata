@@ -8,10 +8,10 @@ last_update: '0.47'
 inlets:
   1st:
   - type: set <list>
-    description: resets the channel(s).
+    description: resets the channel(s)
   nth:
   - type: signal
-    description: signal output to sound card.
+    description: signal output to sound card
 arguments:
   - type: list
     description: set output channels 

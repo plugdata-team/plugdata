@@ -25,7 +25,7 @@ inlets:
 outlets:
   1st:
   - type: float
-    description: The result of the operation.
+    description: The result of the operation
 draft: false
 ---
 As in the signal version log~, log takes a base value via an argument or the right inlet, but it defaults to [e](https://en.wikipedia.org/wiki/E_(mathematical_constant

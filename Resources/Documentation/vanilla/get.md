@@ -16,18 +16,18 @@ last_update: '0.47'
 inlets:
   1st:
   - type: pointer
-    description: pointer to a Data Structure scalar.
+    description: pointer to a Data Structure scalar
   - type: set <symbol, symbol>
-    description: set template and field name (if none or just one argument is given).
+    description: set template and field name (if none or just one argument is given)
 outlets:
   nth:
   - type: float/symbol
     description: field value. 
 arguments:
 - type: symbol
-  description: template name.
+  description: template name
 - type: list
-  description: one or more field names (defines number of outlets).
+  description: one or more field names (defines number of outlets)
 draft: false
 ---
 "Get", when sent a pointer to a scalar, retrieves fields from it by name. The fields can be floats or symbols.

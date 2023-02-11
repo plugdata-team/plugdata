@@ -1,6 +1,6 @@
 ---
 title: text delete
-description: delete a line or clear.
+description: delete a line or clear
 categories:
 - object
 pdcategory: vanilla, Data Management

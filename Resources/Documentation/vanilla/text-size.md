@@ -1,6 +1,6 @@
 ---
 title: text size
-description: get number of lines or elements.
+description: get number of lines or elements
 categories:
 - object
 pdcategory: vanilla, Data Management
@@ -25,23 +25,23 @@ arguments:
 .'
   type: symbol
 flags:
-- description: struct name and field name of main structure.
+- description: struct name and field name of main structure
   flag: -s <symbol, symbol>
 inlets:
   1st:
   - type: bang
-    description: output the number of lines.
+    description: output the number of lines
   - type: float
-    description: set line number and output its length.
+    description: set line number and output its length
   2nd:
   - type: symbol
-    description: set text name.
+    description: set text name
   - type: pointer
-    description: pointer to the text if -s flag is used.
+    description: pointer to the text if -s flag is used
 outlets:
   1st:
   - type: float
-    description: number of lines or line length.
+    description: number of lines or line length
 draft: false
 ---
 "text size" reports the number of lines in the text or the length of a specified line.
