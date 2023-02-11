@@ -832,8 +832,6 @@ AudioProcessorEditor* PluginProcessor::createEditor()
 
 void PluginProcessor::getStateInformation(MemoryBlock& destData)
 {
-    suspendProcessing(true);
-
     setThis();
 
     // Store pure-data state
@@ -842,10 +840,12 @@ void PluginProcessor::getStateInformation(MemoryBlock& destData)
     ostream.writeInt(patches.size());
 
     // Save path and content for patch
+    lockAudioThread();
     for (auto& patch : patches) {
         ostream.writeString(patch->getCanvasContent());
         ostream.writeString(patch->getCurrentFile().getFullPathName());
     }
+    unlockAudioThread();
 
     ostream.writeInt(getLatencySamples());
     ostream.writeInt(oversampling);
@@ -868,8 +868,6 @@ void PluginProcessor::getStateInformation(MemoryBlock& destData)
         ostream.writeInt(lastUIWidth);
         ostream.writeInt(lastUIHeight);
     }
-
-    suspendProcessing(false);
 }
 
 void PluginProcessor::setStateInformation(void const* data, int sizeInBytes)
