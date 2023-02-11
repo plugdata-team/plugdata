@@ -5,7 +5,7 @@ description: access file directory
 categories:
  - object
 
-pdcategory: ELSE, Data Management
+pdcategory: ELSE, File Management
 
 arguments:
 - type: float
