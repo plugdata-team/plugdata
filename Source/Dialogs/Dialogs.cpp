@@ -472,7 +472,7 @@ PopupMenu Dialogs::createObjectMenu(PluginEditor* parent)
     PopupMenu effectsMenu;
     {
         effectsMenu.addItem(createCommandItem(ObjectIDs::NewCrusher, "crusher~"));
-        effectsMenu.addItem(createCommandItem(ObjectIDs::NewDelay, "delay~"));
+        effectsMenu.addItem(createCommandItem(ObjectIDs::NewSignalDelay, "delay~"));
         effectsMenu.addItem(createCommandItem(ObjectIDs::NewDrive, "drive~"));
         effectsMenu.addItem(createCommandItem(ObjectIDs::NewFlanger, "flanger~"));
         effectsMenu.addItem(createCommandItem(ObjectIDs::NewFreeze, "freeze~"));
@@ -605,7 +605,7 @@ PopupMenu Dialogs::createObjectMenu(PluginEditor* parent)
         controlMenu.addItem(createCommandItem(ObjectIDs::NewDecay, "decay~"));
         controlMenu.addItem(createCommandItem(ObjectIDs::NewEnvelope, "envelope~"));
         controlMenu.addItem(createCommandItem(ObjectIDs::NewEnvgen, "envgen~"));
-        controlMenu.addItem(createCommandItem(ObjectIDs::NewLfonoise, "lfonoise~"));
+        controlMenu.addItem(createCommandItem(ObjectIDs::NewLfnoise, "lfnoise~"));
         controlMenu.addItem(createCommandItem(ObjectIDs::NewSignalLine, "line~"));
         controlMenu.addItem(createCommandItem(ObjectIDs::NewPhasor, "phasor~"));
         controlMenu.addItem(createCommandItem(ObjectIDs::NewRamp, "ramp~"));
