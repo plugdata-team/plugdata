@@ -434,6 +434,11 @@ void Canvas::updateSidebarSelection()
         auto* object = lassoSelection.getFirst();
         auto params = object->gui ? object->gui->getParameters() : ObjectParameters();
 
+        if(!object->gui)  {
+            editor->sidebar.hideParameters();
+            return;
+        }
+        
         if (commandLocked == var(true)) {
             editor->sidebar.hideParameters();
         } else if (!params.empty() || editor->sidebar.isPinned()) {
@@ -928,7 +933,7 @@ void Canvas::checkBounds()
 
     float scale = std::max(1.0f, 1.0f / static_cast<float>(editor->zoomScale.getValue()));
 
-    auto viewBounds = Rectangle<int>(canvasOrigin.x, canvasOrigin.y, (viewport->getWidth() - 8) * scale, (viewport->getHeight() - 8) * scale);
+    auto viewBounds = Rectangle<int>(canvasOrigin.x, canvasOrigin.y, (viewport->getWidth() - 16) * scale, (viewport->getHeight() - 16) * scale);
 
     for (auto* obj : objects) {
         viewBounds = viewBounds.getUnion(obj->getBoundsInParent().withTrimmedLeft(Object::margin).withTrimmedTop(Object::margin));
