@@ -492,7 +492,7 @@ struct PlugDataLook : public LookAndFeel_V4 {
             g.setColour(button.findColour(PlugDataColour::outlineColourId));
             g.drawLine(Line<float>(w - 0.5f, 0, w - 0.5f, h), 1.0f);
         }
-        
+
         drawTabButtonText(button, g, isMouseOver, isMouseDown);
     }
 

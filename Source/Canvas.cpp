@@ -434,11 +434,11 @@ void Canvas::updateSidebarSelection()
         auto* object = lassoSelection.getFirst();
         auto params = object->gui ? object->gui->getParameters() : ObjectParameters();
 
-        if(!object->gui)  {
+        if (!object->gui) {
             editor->sidebar.hideParameters();
             return;
         }
-        
+
         if (commandLocked == var(true)) {
             editor->sidebar.hideParameters();
         } else if (!params.empty() || editor->sidebar.isPinned()) {
@@ -518,14 +518,14 @@ bool Canvas::keyPressed(KeyPress const& key)
 void Canvas::deselectAll()
 {
     auto selection = selectedComponents;
-    
+
     selectedComponents.deselectAll();
-    
+
     // Deselect objects
     for (auto c : selection)
         if (!c.wasObjectDeleted())
             c->repaint();
-    
+
     editor->sidebar.hideParameters();
 }
 
@@ -1064,8 +1064,9 @@ bool Canvas::isSelected(Component* component) const
 
 void Canvas::objectMouseDown(Object* component, MouseEvent const& e)
 {
-    if(isGraph) return;
-    
+    if (isGraph)
+        return;
+
     if (e.mods.isRightButtonDown()) {
         setSelected(component, true);
 
@@ -1110,8 +1111,9 @@ void Canvas::objectMouseDown(Object* component, MouseEvent const& e)
 // Call from component's mouseUp
 void Canvas::objectMouseUp(Object* component, MouseEvent const& e)
 {
-    if(isGraph) return;
-    
+    if (isGraph)
+        return;
+
     if (e.mods.isShiftDown() && wasSelectedOnMouseDown && !didStartDragging) {
         // Unselect object if selected
         setSelected(component, false);
@@ -1193,8 +1195,9 @@ void Canvas::objectMouseUp(Object* component, MouseEvent const& e)
 // Call from component's mouseDrag
 void Canvas::objectMouseDrag(MouseEvent const& e)
 {
-    if(isGraph) return;
-    
+    if (isGraph)
+        return;
+
     /** Ensure tiny movements don't start a drag. */
     if (!didStartDragging && e.getDistanceFromDragStart() < minimumMovementToStartDrag)
         return;
@@ -1383,7 +1386,6 @@ void Canvas::findLassoItemsInArea(Array<WeakReference<Component>>& itemsFound, R
             setSelected(con, false, false);
             continue;
         }
-            
 
         // Check if path intersects with lasso
         if (con->intersects(lasso.getBounds().translated(-con->getX(), -con->getY()).toFloat())) {

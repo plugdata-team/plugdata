@@ -504,20 +504,22 @@ void Library::getExtraSuggestions(int currentNumSuggestions, String query, std::
         Suggestions matches;
         for (const auto& object : allObjects) {
             // Whitespace is not supported by our autocompletion, because normally it indicates the start of the arguments
-            if(object.contains(" ")) continue;
-            
+            if (object.contains(" "))
+                continue;
+
             if (object.contains(query)) {
                 matches.add(object);
             }
         }
-        
+
         matches.sort(true);
         result.addArray(matches);
         matches.clear();
-        
+
         if (currentNumSuggestions + result.size() < maxSuggestions) {
             for (const auto& [object, keywords] : objectKeywords) {
-                if(object.contains(" ")) continue;
+                if (object.contains(" "))
+                    continue;
                 for (const auto& keyword : keywords) {
                     if (keyword.contains(query)) {
                         matches.add(object);
@@ -525,27 +527,29 @@ void Library::getExtraSuggestions(int currentNumSuggestions, String query, std::
                 }
             }
         }
-        
+
         matches.sort(true);
         result.addArray(matches);
         matches.clear();
-        
+
         if (currentNumSuggestions + result.size() < maxSuggestions) {
             for (const auto& [object, description] : objectDescriptions) {
-                if(object.contains(" ")) continue;
+                if (object.contains(" "))
+                    continue;
                 if (description.contains(query)) {
                     matches.add(object);
                 }
             }
         }
-        
+
         matches.sort(true);
         result.addArray(matches);
         matches.clear();
 
         if (currentNumSuggestions + result.size() > maxSuggestions) {
             for (auto& [object, iolets] : ioletDescriptions) {
-                if(object.contains(" ")) continue;
+                if (object.contains(" "))
+                    continue;
                 for (int type = 0; type < 2; type++) {
                     auto descriptions = iolets[type];
                     for (auto& [description, type] : descriptions) {
@@ -556,7 +560,7 @@ void Library::getExtraSuggestions(int currentNumSuggestions, String query, std::
                 }
             }
         }
-        
+
         matches.sort(true);
         result.addArray(matches);
         matches.clear();

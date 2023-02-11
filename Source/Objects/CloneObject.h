@@ -29,17 +29,17 @@ struct t_out {
 
 struct t_fake_clone {
     t_object x_obj;
-    int x_n;            /* number of copies */
-    t_copy *x_vec;      /* the copies */
+    int x_n;       /* number of copies */
+    t_copy* x_vec; /* the copies */
     int x_nin;
-    t_in *x_invec;      /* inlet proxies */
+    t_in* x_invec; /* inlet proxies */
     int x_nout;
-    t_out **x_outvec;   /* outlet proxies */
-    t_symbol *x_s;      /* name of abstraction */
-    int x_argc;         /* creation arguments for abstractions */
-    t_atom *x_argv;
+    t_out** x_outvec; /* outlet proxies */
+    t_symbol* x_s;    /* name of abstraction */
+    int x_argc;       /* creation arguments for abstractions */
+    t_atom* x_argv;
     int x_phase;
-    int x_startvoice;   /* number of first voice, 0 by default */
+    int x_startvoice;    /* number of first voice, 0 by default */
     int x_suppressvoice; /* suppress voice number as $1 arg */
 };
 }
@@ -72,9 +72,10 @@ public:
     String getText() override
     {
         auto* sym = static_cast<t_fake_clone*>(ptr)->x_s;
-        
-        if(!sym || !sym->s_name) return "";
-        
+
+        if (!sym || !sym->s_name)
+            return "";
+
         return sym ? String::fromUTF8(sym->s_name) : String();
     }
 
