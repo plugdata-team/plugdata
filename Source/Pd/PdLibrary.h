@@ -59,7 +59,7 @@ public:
         }
     }
 
-    void insert(String const& key);
+    void insert(String key);
     bool deletion(Trie*&, String);
     bool search(String const&);
     bool hasChildren();
