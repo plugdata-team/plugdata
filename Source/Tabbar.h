@@ -7,19 +7,18 @@
 #pragma once
 
 // Special viewport that shows scrollbars on top of content instead of next to it
-struct InsetViewport : public Viewport
-{
-    struct ViewportPositioner : public Component::Positioner
-    {
-        ViewportPositioner(Viewport& comp) : Component::Positioner(comp), inset(comp.getScrollBarThickness())
+struct InsetViewport : public Viewport {
+    struct ViewportPositioner : public Component::Positioner {
+        ViewportPositioner(Viewport& comp)
+            : Component::Positioner(comp)
+            , inset(comp.getScrollBarThickness())
         {
         }
-        
-        void applyNewBounds (const Rectangle<int>& newBounds) override
+
+        void applyNewBounds(Rectangle<int> const& newBounds) override
         {
             auto& component = getComponent();
-            if (newBounds != component.getBounds())
-            {
+            if (newBounds != component.getBounds()) {
                 component.setBounds(newBounds.withTrimmedRight(-inset).withTrimmedBottom(-inset));
             }
         }
@@ -27,27 +26,29 @@ struct InsetViewport : public Viewport
         int inset;
     };
 
-    InsetViewport() {
+    InsetViewport()
+    {
         setPositioner(new ViewportPositioner(*this));
     }
-    
-    void adjustScrollbarBounds() {
+
+    void adjustScrollbarBounds()
+    {
         auto& vbar = getVerticalScrollBar();
         auto& hbar = getHorizontalScrollBar();
         auto thickness = getScrollBarThickness();
 
         auto contentArea = getLocalBounds().withTrimmedRight(thickness).withTrimmedBottom(thickness);
-        
+
         vbar.setBounds(contentArea.removeFromRight(thickness));
         hbar.setBounds(contentArea.removeFromBottom(thickness));
     }
-    
-    void componentMovedOrResized (Component& c, bool moved, bool resized) override
+
+    void componentMovedOrResized(Component& c, bool moved, bool resized) override
     {
         Viewport::componentMovedOrResized(c, moved, resized);
         adjustScrollbarBounds();
     }
-    
+
     void resized() override
     {
         Viewport::resized();
@@ -196,10 +197,9 @@ public:
 
         for (int c = 0; c < getNumTabs(); c++) {
             if (auto* comp = getTabContentComponent(c)) {
-                if(auto* positioner = comp->getPositioner()) {
+                if (auto* positioner = comp->getPositioner()) {
                     positioner->applyNewBounds(content);
-                }
-                else {
+                } else {
                     comp->setBounds(content);
                 }
             }

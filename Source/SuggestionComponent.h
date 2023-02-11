@@ -60,7 +60,7 @@ public:
     {
         if (!editor)
             return;
-        
+
         auto editorText = editor->getText();
 
         if (editorText.startsWith(suggestionText)) {
@@ -464,43 +464,43 @@ private:
         resized();
 
         auto& library = currentBox->cnv->pd->objectLibrary;
-        
-        auto sortSuggestions = [](String query, StringArray suggestions) -> StringArray {
-            
-            if(query.length() == 0) return suggestions;
-            
-            std::sort(suggestions.begin(), suggestions.end(),
-                [&query](const String& a, const String& b) -> bool
-            {
-                auto check = [&query](const String& a, const String& b) -> bool {
-                    // Check if suggestion exacly matches query
-                    if(a == query) {
-                        return true;
-                    }
-                    
-                    // Check if suggestion is equal to query with "~" appended
-                    if(a == (query + "~") && b != query && b != (query + "~")) {
-                        return true;
-                    }
-                    
-                    // Check if suggestion is equal to query with "." appended
-                    if(a.startsWith(query + ".") && b != query && b != (query + "~") && !b.startsWith(query + "."))
-                    {
-                        return true;
-                    }
-                    
-                    if(a.length() < b.length()) {
-                        return true;
-                    }
-                    
-                    return false;
-                };
 
-                if(check(a, b)) return true;
-                if(check(b, a)) return false;
-                
-                return a.compareNatural(b);
-            });
+        auto sortSuggestions = [](String query, StringArray suggestions) -> StringArray {
+            if (query.length() == 0)
+                return suggestions;
+
+            std::sort(suggestions.begin(), suggestions.end(),
+                [&query](const String& a, const String& b) -> bool {
+                    auto check = [&query](const String& a, const String& b) -> bool {
+                        // Check if suggestion exacly matches query
+                        if (a == query) {
+                            return true;
+                        }
+
+                        // Check if suggestion is equal to query with "~" appended
+                        if (a == (query + "~") && b != query && b != (query + "~")) {
+                            return true;
+                        }
+
+                        // Check if suggestion is equal to query with "." appended
+                        if (a.startsWith(query + ".") && b != query && b != (query + "~") && !b.startsWith(query + ".")) {
+                            return true;
+                        }
+
+                        if (a.length() < b.length()) {
+                            return true;
+                        }
+
+                        return false;
+                    };
+
+                    if (check(a, b))
+                        return true;
+                    if (check(b, a))
+                        return false;
+
+                    return a.compareNatural(b);
+                });
             return suggestions;
         };
 
@@ -629,7 +629,7 @@ private:
 
         // When hvcc mode is enabled, show only hvcc compatible objects
         filterNonHvccObjectsIfNeeded(found);
-        
+
         if (openedEditor) {
             applySuggestionsToButtons(found, currentText);
         }
@@ -640,7 +640,7 @@ private:
             // This means the extra suggestions have returned too late to still be relevant
             if (!openedEditor || currentText != openedEditor->getText())
                 return;
-            
+
             found.addArray(s);
             found.removeDuplicates(false);
 
