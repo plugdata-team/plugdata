@@ -57,7 +57,7 @@ methods:
   - type: find <float>
     description: finds the 'x' values which have a 'y' that matches the given number
   - type: interp <float>
-    description: if a given 'x' doesn't exist, interpolates the 'y' value from 2 neighbouring x/y pair
+    description: if a given 'x' doesn't exist, interpolates the 'y' value from 2 neighboring x/y pair
   - type: interptab <f, s>
     description: same as interp, but uses the table specified by the symbol <s>
   - type: min

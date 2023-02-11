@@ -12,7 +12,7 @@ arguments:
   description: sets the sync time
   default: 0
 - type: symbol
-  description: "n" sets outlets to send messages with more than 1 element
+  description: ''n' sets outlets to send messages with more than 1 element
 inlets:
   nth:
   - type: bang

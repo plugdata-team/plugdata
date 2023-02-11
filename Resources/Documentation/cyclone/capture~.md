@@ -6,7 +6,7 @@ categories:
 pdcategory: cyclone, Buffers, Analysis
 arguments:
 - type: symbol
-  description: optional flag "f" for "first mode" - where collecting data stops after receiving the specified number of samples. If not given, the default is "last mode", where it continues to collect data, throwing away old values if it has received more than the specified samples
+  description: "f" - collect data for the specified number of samples
 - type: float
   description: number of samples to store
   default: 4096
