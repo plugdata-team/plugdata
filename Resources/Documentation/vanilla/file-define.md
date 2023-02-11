@@ -26,7 +26,7 @@ see_also:
 - file splitext
 - file splitname
 arguments:
-- description: declared file-handle name.
+- description: declared file-handle name
   type: symbol
 draft: false
 ---

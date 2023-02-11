@@ -14,18 +14,18 @@ last_update: '0.47'
 inlets:
   1st:
   - type: pointer 
-    description: pointer to a scalar with an array field.
+    description: pointer to a scalar with an array field
   - type: set <symbol, symbol>
-    description: set template and field name.
+    description: set template and field name
 outlets:
   1st:
   - type: float
-    description: array's size.
+    description: array's size
 arguments:
 - type: symbol
-  description: template name.
+  description: template name
 - type: symbol
-  description: field name.
+  description: field name
 draft: false
 ---
 When sent a pointer of a scalar, "getsize" looks up a field, which should be an array, and outputs the number of elements of the array. The template and field name are specified as creation arguments. The smallest possible size is one.

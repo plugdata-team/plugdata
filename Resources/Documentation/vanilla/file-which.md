@@ -26,23 +26,23 @@ see_also:
 - file splitext
 - file splitname
 flags:
-- description: set quiet verbosity.
+- description: set quiet verbosity
   flag: -q
-- description: set loud verbosity.
+- description: set loud verbosity
   flag: -v
 inlets:
   1st:
   - type: symbol
-    description: file to locate using Pd's search-paths.
+    description: file to locate using Pd's search-paths
   - type: verbose <float>
-    description: set verbosity on or off.
+    description: set verbosity on or off
 outlets:
   1st:
   - type: list
-    description: symbol path of located file and directory flag.
+    description: symbol path of located file and directory flag
   2nd:
   - type: float
-    description: when there's an error creating the directory.
+    description: when there's an error creating the directory
 draft: false
 ---
 [file which] tries to locate the file in using Pd's search-paths and returns the resolved path.

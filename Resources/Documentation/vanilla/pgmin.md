@@ -14,7 +14,7 @@ arguments:
 outlets:
   1st:
   - type: float
-    description: MIDI program value.
+    description: MIDI program value
   2nd:
   - type: float
     description: MIDI channel/port

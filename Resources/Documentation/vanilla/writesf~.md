@@ -11,18 +11,18 @@ last_update: '0.51'
 inlets:
   1st:
   - type: signal
-    description: signal to write to a channel.
+    description: signal to write to a channel
   - type: open <list>
     description: takes a filename and optional flags -wave, -aiff, -caf, -next, - big, -little, -bytes <float>, -rate <float>
   - type: start
-    description: start streaming audio.
+    description: start streaming audio
   - type: stop
     description: stop streaming audio
   - type: print
-    description: prints information on Pd's terminal window.
+    description: prints information on Pd's terminal window
   nth:
   - type: signal
-    description: signal to write to a channel.
+    description: signal to write to a channel
 arguments:
 - type: float
   description: sets number of channels

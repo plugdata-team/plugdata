@@ -9,11 +9,11 @@ last_update: '0.48-2'
 inlets:
   1st:
   - type: seed <float>
-    description: set seed for random number generator.
+    description: set seed for random number generator
 outlets:
   1st:
   - type: signal
-    description: white noise signal (in the range from -1 to 1).
+    description: white noise signal (in the range from -1 to 1)
 
 
 draft: false

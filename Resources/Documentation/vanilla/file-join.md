@@ -28,11 +28,11 @@ see_also:
 inlets:
   1st:
   - type: list
-    description: list of components to join.
+    description: list of components to join
 outlets:
   1st:
   - type: symbol
-    description: joined path or file.
+    description: joined path or file
   2nd:
   - type: Inactive Outlet!
     description: null

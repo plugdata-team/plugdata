@@ -9,15 +9,15 @@ last_update: '0.30'
 inlets:
   1st:
   - type: print
-    description: post debugging information in the print out window.
+    description: post debugging information in the print out window
   - type: add <list>
-    description:  add vectors into the objects.
+    description:  add vectors into the objects
   - type: clear
-    description: delete all stored vectors.
+    description: delete all stored vectors
 outlets:
   1st:
   - type: float
-    description: index of best match (from zero).
+    description: index of best match (from zero)
 argumets:
 - type: float
   description: non zero avoids repeated output 

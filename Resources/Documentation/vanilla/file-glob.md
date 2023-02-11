@@ -26,24 +26,24 @@ see_also:
 - file splitext
 - file splitname
 flags:
-- description: set quiet verbosity.
+- description: set quiet verbosity
   flag: -q
-- description: set loud verbosity.
+- description: set loud verbosity
   flag: -v
 inlets:
   1st:
   - type: symbol
-    description: pattern to be found.
+    description: pattern to be found
   - type: verbose <float>
-    description: set verbosity on or off.
+    description: set verbosity on or off
 outlets:
   1st:
   - type: list
     description: found files/directories as a path symbol and type (file <0> or directory
-      <1>).
+      <1>)
   2nd:
   - type: bang
-    description: if nothing is found or an error occurs.
+    description: if nothing is found or an error occurs
 draft: false
 ---
 cross-platform notes on globbing:
