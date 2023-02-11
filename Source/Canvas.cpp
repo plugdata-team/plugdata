@@ -1064,6 +1064,8 @@ bool Canvas::isSelected(Component* component) const
 
 void Canvas::objectMouseDown(Object* component, MouseEvent const& e)
 {
+    if(isGraph) return;
+    
     if (e.mods.isRightButtonDown()) {
         setSelected(component, true);
 
@@ -1108,6 +1110,8 @@ void Canvas::objectMouseDown(Object* component, MouseEvent const& e)
 // Call from component's mouseUp
 void Canvas::objectMouseUp(Object* component, MouseEvent const& e)
 {
+    if(isGraph) return;
+    
     if (e.mods.isShiftDown() && wasSelectedOnMouseDown && !didStartDragging) {
         // Unselect object if selected
         setSelected(component, false);
@@ -1189,6 +1193,8 @@ void Canvas::objectMouseUp(Object* component, MouseEvent const& e)
 // Call from component's mouseDrag
 void Canvas::objectMouseDrag(MouseEvent const& e)
 {
+    if(isGraph) return;
+    
     /** Ensure tiny movements don't start a drag. */
     if (!didStartDragging && e.getDistanceFromDragStart() < minimumMovementToStartDrag)
         return;
