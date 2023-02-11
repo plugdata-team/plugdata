@@ -468,7 +468,7 @@ private:
         auto sortSuggestions = [](String query, StringArray suggestions) -> StringArray {
             
             // If there are very few letters, there are too many suggestions and this tanks performance
-            if(query.length() < 2) return suggestions;
+            //if(query.length() < 2) return suggestions;
             
             std::sort(suggestions.begin(), suggestions.end(),
                 [&query](const String& a, const String& b) -> bool
