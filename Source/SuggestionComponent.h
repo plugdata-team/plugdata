@@ -464,6 +464,39 @@ private:
         resized();
 
         auto& library = currentBox->cnv->pd->objectLibrary;
+        
+        auto sortSuggestions = [](String query, StringArray suggestions) -> StringArray {
+            std::sort(suggestions.begin(), suggestions.end(),
+                [&query](String a, String b) -> bool
+            {
+                
+                auto check = [&query](const String& a, const String& b) -> bool {
+                    // Check if suggestion exacly matches query
+                    if(a == query) {
+                        return true;
+                    }
+                    
+                    // Check if suggestion is equal to query with "~" appended
+                    if(a == (query + "~") && b != query && b != (query + "~")) {
+                        return true;
+                    }
+                    
+                    // Check if suggestion is equal to query with "." appended
+                    if(a.startsWith(query + ".") && b != query && b != (query + "~") && !b.startsWith(query + "."))
+                    {
+                        return true;
+                    }
+                    
+                    return false;
+                };
+
+                if(check(a, b)) return true;
+                if(check(b, a)) return false;
+                
+                return a.compareNatural(b);
+            });
+            return suggestions;
+        };
 
         // If there's a space, open arguments panel
         if (currentText.contains(" ")) {
@@ -507,6 +540,7 @@ private:
             deselectAll();
             currentidx = -1;
         } else {
+            found = sortSuggestions(currentText, found);
             currentidx = 0;
             autoCompleteComponent->enableAutocomplete(true);
         }
@@ -591,12 +625,14 @@ private:
         filterNonHvccObjectsIfNeeded(found);
         applySuggestionsToButtons(found, currentText);
 
-        library.getExtraSuggestions(found.size(), currentText, [this, filterNonHvccObjectsIfNeeded, applySuggestionsToButtons, found, currentText](StringArray s) mutable {
+        library.getExtraSuggestions(found.size(), currentText, [this, filterNonHvccObjectsIfNeeded, applySuggestionsToButtons, found, currentText, sortSuggestions](StringArray s) mutable {
             filterNonHvccObjectsIfNeeded(s);
 
             // This means the extra suggestions have returned too late to still be relevant
             if (!openedEditor || currentText != openedEditor->getText())
                 return;
+            
+            //s = sortSuggestions(currentText, s);
 
             found.addArray(s);
             found.removeDuplicates(false);
