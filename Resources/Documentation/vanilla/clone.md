@@ -28,9 +28,9 @@ outlets:
   - type: signal outlets
     description: output the sum of all instances' outputs.
 flags:
-  - flag: -x
+  - name: -x
     description: avoids including a first argument setting voice number.
-  - flag: -s <float>
+  - name: -s <float>
     description: sets starting voice number 
   default: 0
 .	

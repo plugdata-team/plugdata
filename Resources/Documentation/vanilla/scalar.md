@@ -21,7 +21,7 @@ outlets:
   - type: pointer
     description: a pointer to the scalar.
 flags:
-- flag: -k
+- name: -k
   description: saves/keeps the contents with the patch.
 arguments:
 - type: symbol

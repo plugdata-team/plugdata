@@ -1,6 +1,6 @@
 ---
 title: table
-description: subpatch with array.
+description: subpatch with array
 categories:
 - object
 pdcategory: vanilla, Arrays and Tables
@@ -14,3 +14,5 @@ arguments:
   default: internal
   type: symbol
 - description: sets array size 
+  default: 100
+---

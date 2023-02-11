@@ -20,14 +20,20 @@ see_also:
 - text search
 - text sequence
 arguments:
-- description: 'text name if no flags are given 
-  default:: none
-.'
+- description: array name if no flags are given 
+  default: none
   type: symbol
 flags:
-- description: struct name and field name of main structure.
+- description: struct name and field name of main structure
   flag: -s <symbol, symbol>
+
 inlets:
   1st:
   - type: float
-    description: line number to delete (negative deletes all lines
+    description: line number to delete (negative deletes all text)
+  2nd:
+  - type: symbol
+    description: set text name
+  - type: pointer
+    description: pointer to the text if -s flag is used
+---
