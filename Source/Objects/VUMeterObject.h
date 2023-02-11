@@ -109,9 +109,9 @@ public:
 
         if (getWidth() > g.getCurrentFont().getStringWidth(textValue + " dB")) {
             // Check noscale flag, otherwise display next to slider
-            PlugDataLook::drawFittedText(g, textValue + " dB", Rectangle<int>(getLocalBounds().removeFromBottom(20)).reduced(2), Colours::white, 1, 1.0f, Justification::centred);
+            PlugDataLook::drawFittedText(g, textValue + " dB", Rectangle<int>(getLocalBounds().removeFromBottom(20)).reduced(2), Colours::white, 1, 1.0f, 11,  Justification::centred);
         } else if (getWidth() > g.getCurrentFont().getStringWidth(textValue)) {
-            PlugDataLook::drawFittedText(g, textValue, Rectangle<int>(getLocalBounds().removeFromBottom(20)).reduced(2), Colours::white, 1, 1.0f, Justification::centred);
+            PlugDataLook::drawFittedText(g, textValue, Rectangle<int>(getLocalBounds().removeFromBottom(20)).reduced(2), Colours::white, 1, 1.0f, 11, Justification::centred);
         } else {
             PlugDataLook::drawFittedText(g, String(std::max(values[1], -96.0f), 0), Rectangle<int>(getLocalBounds().removeFromBottom(20)).reduced(2), Colours::white, 1, 1.0f, 11, Justification::centred);
         }
