@@ -6,6 +6,8 @@ description: Receive DAW playhead
 categories:
 - object
 
+pdcategories: PlugData, UI
+
 arguments:
 
 inlets:
