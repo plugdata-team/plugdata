@@ -230,7 +230,7 @@ private:
             selectionBounds.removeFromRight(5);
 
             removeButton.setBounds(selectionBounds.removeFromRight(buttonHeight));
-            changeButton.setBounds(selectionBounds.removeFromRight(buttonHeight - 4));
+            changeButton.setBounds(selectionBounds.removeFromRight(buttonHeight));
         }
 
         auto addButtonBounds = listBox.getRowPosition(getNumRows(), false).translated(0, 5).withHeight(25);
