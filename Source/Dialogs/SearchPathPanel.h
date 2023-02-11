@@ -272,7 +272,7 @@ private:
             selectionBounds.removeFromRight(5);
 
             removeButton.setBounds(selectionBounds.removeFromRight(buttonHeight));
-            changeButton.setBounds(selectionBounds.removeFromRight(buttonHeight - 4));
+            changeButton.setBounds(selectionBounds.removeFromRight(buttonHeight));
 
             selectionBounds.removeFromRight(5);
 
