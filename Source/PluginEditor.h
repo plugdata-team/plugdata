@@ -76,6 +76,7 @@ enum ObjectIDs {
     NumEssentialObjects,
 
     NewMetro,
+    NewCounter,
     NewSel,
     NewRoute,
     NewExpr,
@@ -240,6 +241,7 @@ const std::map<ObjectIDs, String> objectNames {
     { NewBicoeff, "bicoeff" },
 
     { NewMetro, "metro" },
+    { NewCounter, "counter" },
     { NewSel, "sel" },
     { NewRoute, "route" },
     { NewExpr, "expr" },
