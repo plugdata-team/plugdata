@@ -492,14 +492,8 @@ struct PlugDataLook : public LookAndFeel_V4 {
             g.setColour(button.findColour(PlugDataColour::outlineColourId));
             g.drawLine(Line<float>(w - 0.5f, 0, w - 0.5f, h), 1.0f);
         }
-
-        auto textArea = button.getLocalBounds();
-        AttributedString attributedTabTitle(button.getButtonText());
-        auto tabTextColour = findColour(isActive ? PlugDataColour::activeTabTextColourId : PlugDataColour::tabTextColourId);
-        attributedTabTitle.setColour(tabTextColour);
-        attributedTabTitle.setFont(Font(12));
-        attributedTabTitle.setJustification(Justification::centred);
-        attributedTabTitle.draw(g, textArea.toFloat());
+        
+        drawTabButtonText(button, g, isMouseOver, isMouseDown);
     }
 
     void drawTabAreaBehindFrontButton(TabbedButtonBar& bar, Graphics& g, int const w, int const h) override
@@ -508,7 +502,7 @@ struct PlugDataLook : public LookAndFeel_V4 {
 
     Font getTabButtonFont(TabBarButton&, float height) override
     {
-        return { height * 0.4f };
+        return { height * 0.45f };
     }
 
     void drawPopupMenuBackgroundWithOptions(Graphics& g, int width, int height, PopupMenu::Options const& options) override
