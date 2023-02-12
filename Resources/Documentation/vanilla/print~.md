@@ -15,7 +15,7 @@ inlets:
   - type: bang
     description: print one block on terminal window
   - type: float
-    description: sets and prints number of blocks on terminal window. 
+    description: sets and prints number of blocks on terminal window
 arguments:
 - type: symbol
   description: symbol to distinct one [print~] from another

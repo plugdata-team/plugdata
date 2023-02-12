@@ -11,14 +11,14 @@ see_also:
 inlets:
   1st:
   - type: signal
-    description: Input for absolute value
+    description: input for absolute value
 outlets:
   1st:
   - type: signal
-    description: Absolute value
+    description: absolute value
 arguments:
   - type: float 
-    description: Initial value
+    description: initial value
 draft: false
 ---
 The abs~ object passes nonnegative values unchanged, but replaces negative ones with their (positive) inverses.

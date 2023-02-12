@@ -1,4 +1,4 @@
----
+--
 title: czero~
 description: complex one-zero filter
 categories:
@@ -44,4 +44,4 @@ arguments:
   default: 0 0
 draft: false
 ---
-Czero~ filters a complex audio signal (first two inlets
+czero~ filters a complex audio signal (first two inlets

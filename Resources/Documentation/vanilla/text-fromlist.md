@@ -20,13 +20,12 @@ see_also:
 - text search
 - text sequence
 arguments:
-- description: 'text name if no flags are given 
-  default:: none
-.'
+- description: text name if no flags are given 
+  default: none
   type: symbol
 flags:
-- description: struct name and field name of main structure
-  flag: -s <symbol, symbol>
+- name: -s <symbol, symbol>
+  description: struct name and field name of main structure
 inlets:
   1st:
   - type: list

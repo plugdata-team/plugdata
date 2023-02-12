@@ -16,13 +16,13 @@ last_update: '0.47'
 inlets:
   1st:
   - type: pointer
-    description: pointer to a Data Structure scalar
+    description: pointer to a data structure scalar
   - type: set <symbol, symbol>
     description: set template and field name (if none or just one argument is given)
 outlets:
   nth:
   - type: float/symbol
-    description: field value. 
+    description: field value
 arguments:
 - type: symbol
   description: template name

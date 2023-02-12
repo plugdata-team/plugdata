@@ -9,7 +9,7 @@ see_also:
 - savepanel
 - pdcontrol
 arguments:
-- description: 'mode: 0 (file, default), 1 (directory), 2 (multiple files).'
+- description: 'mode: 0 (file, default), 1 (directory), 2 (multiple files)'
   type: float
 inlets:
   1st:
