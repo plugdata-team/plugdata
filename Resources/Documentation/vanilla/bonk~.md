@@ -52,7 +52,7 @@ methods:
   - type: debug <float>
     description: nonzero sets to debugging mode
   - type: print <float>
-    description: print out settings, templates and filterbank settings for nonzero
+    description: print out settings, templates and filter bank settings for nonzero
   - type: debounce <float>
     description: set minimum time (in msec) between attacks in learn mode
   - type: learn <float>

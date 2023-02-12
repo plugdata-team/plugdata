@@ -13,8 +13,6 @@ inlets:
   1st:
   - type: bang
     description: output a pointer to the scalar
-  - type: send <symbol>
-    description: send pointer to a named receive object
 outlets:
   1st:
   - type: pointer
@@ -25,6 +23,9 @@ flags:
 arguments:
 - type: symbol
   description: template name
+methods:
+  - type: send <symbol>
+    description: send pointer to a named receive object
 draft: false
 ---
 create, store, and/or edit one

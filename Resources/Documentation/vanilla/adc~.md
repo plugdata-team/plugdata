@@ -12,10 +12,10 @@ inlets:
 outlets:
   nth:
   - type: signal
-    description: Signal input from sound card
+    description: signal input from sound card
 arguments:
   - type: list
-    description: Set input channels
+    description: set input channels
     default: 1 2
 draft: false
 ---

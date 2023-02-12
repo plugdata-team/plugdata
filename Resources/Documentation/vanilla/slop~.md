@@ -16,13 +16,13 @@ arguments:
   - type: float
     description: maximum downward slew of linear region 
     default: 0
-  - tpye: float
+  - type: float
     description: asymptotic downward cutoff frequency
     default: 0
-  - tpye: float
+  - type: float
     description: maximum upward slew of linear region
     default: 0
-  - tpye: float
+  - type: float
     description: asymptotic upward cutoff frequency
     default: 0
 inlets:

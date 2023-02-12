@@ -26,10 +26,10 @@ see_also:
 - file splitext
 - file splitname
 flags:
-- description: set quiet verbosity
-  flag: -q
-- description: set loud verbosity
-  flag: -v
+- name: -q
+  description: set quiet verbosity
+- name: -v
+  description: set loud verbosity
 inlets:
   1st:
   - type: symbol

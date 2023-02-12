@@ -18,7 +18,7 @@ outlets:
   1st:
   - type: float
     description: index of best match (from zero)
-argumets:
+arguments:
 - type: float
   description: non zero avoids repeated output 
   default: 0
