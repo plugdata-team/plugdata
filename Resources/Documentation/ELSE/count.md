@@ -50,7 +50,7 @@ methods:
   - type: down
     description: sets count direction downwards
   - type: alt <float>
-    description: non-zero sets to alternating mode (between up/down)
+    description: non-0 sets to alternating mode (between up/down)
 
 draft: false
 ---

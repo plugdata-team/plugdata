@@ -17,7 +17,7 @@ arguments:
 inlets:
   1st:
   - type: float/signal
-    description: sets frequency in hertz (negative values allowed)
+    description: sets frequency in Hz (negative values allowed)
   2nd:
   - type: float/signal
     description: phase offset
@@ -35,7 +35,7 @@ flags:
 
 methods:
   - type: frequency <float>
-    description: sets frequency in hertz
+    description: sets frequency in Hz
   - type: phase <float>
     description: sets phase offset
   - type: set

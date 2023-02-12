@@ -9,7 +9,7 @@ categories:
 pdcategory: ELSE, Converters
 
 arguments:
-- description: minimum value (can be as low as "-inf")
+- description: minimum value (can be as low as "-Inf")
   type: float
   default: -100
 

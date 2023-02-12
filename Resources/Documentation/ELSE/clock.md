@@ -19,7 +19,7 @@ arguments:
 inlets:
   1st:
   - type: float
-    description: non-zero starts the clock, zero stops it
+    description: non-0 starts the clock, zero stops it
   - type: bang
     description: resyncs the clock
   2nd:

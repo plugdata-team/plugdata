@@ -33,7 +33,7 @@ flags:
 
 methods:
   - type: nearest <float>
-    description: sets to round (0) or truncate (non-zero) mode
+    description: sets to round (0) or truncate (non-0) mode
 
 draft: true
 ---

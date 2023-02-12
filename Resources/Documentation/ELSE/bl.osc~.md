@@ -16,7 +16,7 @@ arguments:
     description: number of partials
     default: 1
   - type: float
-    description: frequency in hertz
+    description: frequency in Hz
     default: 0
   - type: float
     description: phase offset

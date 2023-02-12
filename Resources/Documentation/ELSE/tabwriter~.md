@@ -32,7 +32,7 @@ flags:
 inlets:
   1st:
   - type: float/signals
-    description: non-zero starts recording, 0 stops it
+    description: non-0 starts recording, 0 stops it
   - type: rec
     description: (re)starts recording
   - type: stop
@@ -61,9 +61,9 @@ methods:
   - type: reset
     description: resets start/end from 0 to (current) array's size
   - type: continue <float>
-    description: non-zero continue recording from where it last stopped
+    description: non-0 continue recording from where it last stopped
  - type: loop <float>
-    description: non-zero enables loop recording, 0 disables it
+    description: non-0 enables loop recording, 0 disables it
 
 draft: false
 ---

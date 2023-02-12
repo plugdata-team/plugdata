@@ -22,7 +22,7 @@ outlets:
 
 flags:
   - name: -khz
-    description: sets to frequency in khz
+    description: sets to frequency in kHz
   - name: -ms
     description: sets to period in ms
   - name: -sec
@@ -32,7 +32,7 @@ methods:
   - type: hz
     description: set and get the nyquist frequency in Hz
   - type: khz
-    description: set and get the nyquist frequency in Khz
+    description: set and get the nyquist frequency in kHz
   - type: ms
     description: set and get the nyquist period in ms
   - type: sec
@@ -40,4 +40,4 @@ methods:
 
 ---
 
-[nyquist~] reports the nyquist (which is half the sample rate) as a frequency or period. It sends it when loading the patch, when receiving a bang or when the sample rate changes. It reports it either in hz or khz and the period either in seconds os milliseconds. like [sr~], it doesn't report up/down sampling rates.
+[nyquist~] reports the nyquist (which is half the sample rate) as a frequency or period. It sends it when loading the patch, when receiving a bang or when the sample rate changes. It reports it either in Hz or kHz and the period either in seconds os milliseconds. like [sr~], it doesn't report up/down sampling rates.

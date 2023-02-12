@@ -16,7 +16,7 @@ inlets:
     description: imaginary part of signal input
   3rd:
   - type: float/signal
-    description: frequency shift amount in hz
+    description: frequency shift amount in Hz
 outlets:
   1st:
   - type: signal

@@ -10,13 +10,13 @@ pdcategory: ELSE, Filters, Data Math
 
 arguments:
   - type: symbol
-    description: (optional) sets type <hipass/etc>, (default='off')
+    description: (optional) sets type <highpass/etc>, (default='off')
   - type: float
     description: sets cutoff/center frequency (default=0)
   - type: float
     description: sets Q/slope (default=1)
   - type: float
-    description: sets gain in db (default=0)
+    description: sets gain in dB (default=0)
 
 inlets:
   1st:
@@ -33,7 +33,7 @@ inlets:
     description: sets "Q" or "Slope" and outputs coefficients
   3rd:
   - type: float
-    description: sets gain in db
+    description: sets gain in dB
 
 outlets:
   1st:
@@ -44,7 +44,7 @@ methods:
   - type: qs <float>
     description: sets "Q" or "Slope" and outputs coefficients
   - type: gain <float>
-    description: sets gain in db and outputs coefficients
+    description: sets gain in dB and outputs coefficients
 
 draft: false
 ---

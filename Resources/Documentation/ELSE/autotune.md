@@ -34,7 +34,7 @@ methods:
   - type: base <float>
     description: MIDI pitch base
   - type: bypass <float>
-    description: non-zero sets to bypass mode
+    description: non-0 sets to bypass mode
 
 draft: false
 ---

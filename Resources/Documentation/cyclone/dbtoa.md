@@ -22,5 +22,5 @@ methods:
 
 ---
 
-Use [dbtoa] to convert decibel values to corresponding linear amplitude.
+Use [dbtoa] to convert dB values to corresponding linear amplitude.
 

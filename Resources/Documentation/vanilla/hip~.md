@@ -1,6 +1,6 @@
 ---
 title: hip~
-description: one-pole high pass filter
+description: one-pole highpass filter
 categories:
 - object
 see_also:
@@ -33,4 +33,4 @@ arguments:
   default: 0
 draft: false
 ---
-hip~ is a one-pole high pass filter with a specified cutoff frequency. Left (audio
+hip~ is a one-pole highpass filter with a specified cutoff frequency. Left (audio

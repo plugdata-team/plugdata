@@ -13,7 +13,7 @@ inlets:
     description: outputs minimum and maximum on float outlets
   2nd:
   - type: signal
-    description: a non-zero value resets minimum and maximum
+    description: a non-0 value resets minimum and maximum
 outlets:
   1st:
   - type: signal

@@ -15,7 +15,7 @@ arguments:
   - type: float
     description: decay coefficient
   - type: float
-    description: decay mode <0> or gain mode <non-zero>
+    description: decay mode <0> or gain mode <non-0>
     default: t60
 
 inlets:
@@ -42,7 +42,7 @@ methods:
   - type: clear
     description: clears the delay buffer
   - type: gain <float>
-    description: non zero sets to gain mode instead of 't60'
+    description: non-0 sets to gain mode instead of 't60'
 
 draft: false
 ---
