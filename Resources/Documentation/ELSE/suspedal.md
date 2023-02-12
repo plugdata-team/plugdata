@@ -12,7 +12,7 @@ arguments:
 - type: float
   description: float - non-0 turns on the pedal 
   default: 0 - off
-	
+
 inlets:
   1st:
   - type: float
