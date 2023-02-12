@@ -51,4 +51,4 @@ methods:
 draft: false
 ---
 
-[autofade2~] is an automatic fade in/out (with separate time for fade in/out) for multichannel inputs. It responds to a gate control and uses internal lookup tables for 7 different fading curves. A gate-on happens when the last input value was zero and the incoming value isn't. A gate-off happens when the last value was a non-zero value and the incoming value is 0 The maximum gain depends on the gate on level.
+[autofade2~] is an automatic fade in/out (with separate time for fade in/out) for multichannel inputs. It responds to a gate control and uses internal lookup tables for 7 different fading curves. A gate-on happens when the last input value was zero and the incoming value isn't. A gate-off happens when the last value was a non-0 value and the incoming value is 0 The maximum gain depends on the gate on level.

@@ -33,11 +33,11 @@ flags:
  - name:  -name <symbol>
    description: sets arrays name (default: internal), f 72;
  - name: -jump <float>
-   description: non zero sets jump on click mode (default: 0), f 72;
+   description: non-0 sets jump on click mode (default: 0), f 72;
  - name: -dim <float \, float>
    description: sets x/y dimensions (default: 200 127), f 72;
  - name: -init <float>
-    description: non zero sets to init mode (default: 0), f 72;
+    description: non-0 sets to init mode (default: 0), f 72;
  - name: -send <symbol>
     description: sets send symbol (default: empty), f 72;
  - name: -receive <symbol>
@@ -56,7 +56,7 @@ flags:
 
 methods:
   - type: mode <float>
-    description: non-zero sets to 'list mode'
+    description: non-0 sets to 'list mode'
   - type: dump
     description: outputs values sequentially as slider number / value
   - type: set <list>
@@ -76,13 +76,13 @@ methods:
   - type: n <float>
     description: sets number of sliders
   - type: jump <float>
-    description: non-zero sets jump on click mode
+    description: non-0 sets jump on click mode
   - type: import <list>
     description: sets number of sliders and values (and dumps them)
   - type: export
     description: outputs sliders values as a list
   - type: init <float>
-    description: non zero sets to jump on click mode
+    description: non-0 sets to jump on click mode
   - type: send <symbol>
     description: sets send name
   - type: receive <symbol>

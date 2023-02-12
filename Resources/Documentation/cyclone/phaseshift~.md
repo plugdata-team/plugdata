@@ -39,5 +39,5 @@ methods:
 draft: true
 ---
 
-[phaseshift~] is a 2nd allpass filter, which keeps the gain and only alters the phase from 0 (at 0 hz) to 360º (at the Nyquist frequency). The frequency at which it shifts to 180º is specified as the filter's frequency and the steepness of the curve is determined by the Q parameter (see graph below).
+[phaseshift~] is a 2nd allpass filter, which keeps the gain and only alters the phase from 0 (at 0 Hz) to 360º (at the Nyquist frequency). The frequency at which it shifts to 180º is specified as the filter's frequency and the steepness of the curve is determined by the Q parameter (see graph below).
 In this example, we add the phase shifted signal to the original, which cancels frequencies by phase opposition.

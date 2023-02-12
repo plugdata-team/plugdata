@@ -69,7 +69,7 @@ methods:
   - type: info
     description: prints soundfont info on terminal
   - type: verbose <float>
-    description: non-zero sets verbose mode
+    description: non-0 sets verbose mode
   - type: remap <list>
     description: list of 128 pitches in MIDI remaps all keys
   - type: scale <list>

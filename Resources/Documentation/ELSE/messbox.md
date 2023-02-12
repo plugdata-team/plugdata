@@ -32,7 +32,7 @@ flags:
 - name: -bgcolor <f, f, f>
   description: background color
 - name: -bold
-  description: non-zero sets to bold
+  description: non-0 sets to bold
 
 methods:
   - type: set <anything>
@@ -44,7 +44,7 @@ methods:
   - type: fontsize <float>
     description: sets font size
   - type: bold
-    description: non-zero sets to bold
+    description: non-0 sets to bold
   - type: -bgcolor <f, f, f>
     description: sets background color
   - type: fgcolor <f, f, f>

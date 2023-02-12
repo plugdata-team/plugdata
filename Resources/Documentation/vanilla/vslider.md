@@ -14,7 +14,7 @@ methods:
 - type: size <float>
   description: sets the GUI size
 - type: orientation <float>
-  description: non zero sets to vertical, zero sets to horizontal
+  description: non-0 sets to vertical, zero sets to horizontal
 - type: range <float, float>
   description: sets minimum and maximum range
 - type: lin
@@ -22,7 +22,7 @@ methods:
 - type: log
   description: sets mode to logarithmic
 - type: init <float>
-  description: non zero sets to init mode
+  description: non-0 sets to init mode
 - type: label <symbol>
   description: sets label symbol
 - type: label_font <float, float>

@@ -12,7 +12,7 @@ arguments:
 - description: number of voices 
   default: 1
   type: float
-- description: non-zero sets to voice stealing
+- description: non-0 sets to voice stealing
   type: float
 inlets:
   1st:

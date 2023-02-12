@@ -14,11 +14,11 @@ inlets:
     description: any message to pass or not
   2nd:
   - type: float
-    description: nonzero to pass messages,  zero to stop them
+    description: non-0 to pass messages,  zero to stop them
 outlets:
   1st:
   - type: anything
     description: any input message if spigot is opened
 draft: false
 ---
-Spigot passes messages from its left inlet to its outlet,  as long as a nonzero number is sent to its right inlet. When its right inlet gets zero,  incoming messages are "blocked" i.e.,  ignored.
+Spigot passes messages from its left inlet to its outlet,  as long as a non-0 number is sent to its right inlet. When its right inlet gets zero,  incoming messages are "blocked" i.e.,  ignored.

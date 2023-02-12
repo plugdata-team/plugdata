@@ -25,6 +25,6 @@ outlets:
     description: the stored values on flush message
 draft: false
 ---
-The bag object adds a value to or removes it from a collection of numbers depending on the flag. The left inlet takes the value and the right inlet takes the flag. If the flag is true (nonzero), the value is added to the collection and removed otherwise. The example here takes a list input, which gets spread at inlets (as is common in Pd).
+The bag object adds a value to or removes it from a collection of numbers depending on the flag. The left inlet takes the value and the right inlet takes the flag. If the flag is true (non-0), the value is added to the collection and removed otherwise. The example here takes a list input, which gets spread at inlets (as is common in Pd).
 
 The collection may have many copies of the same value. You can output the collection (and empty it) with a "flush" message, or just empty it with "clear." You can use this to mimic a sustain pedal, for example.
