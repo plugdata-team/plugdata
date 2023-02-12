@@ -15,10 +15,10 @@ arguments:
 
 inlets:
   1st:
-  - type: float
-    description: input degree value to convert to radians
   - type: bang
     description: convert the last value
+  - type: float
+    description: input degree value to convert to radians
 
 outlets:
   1st:
