@@ -10,9 +10,9 @@ pdcategory: ELSE, MIDI
 
 arguments:
 - type: float
-  description: float - non-zero turns on the pedal 
+  description: float - non-0 turns on the pedal 
   default: 0 - off
-	
+
 inlets:
   1st:
   - type: float
@@ -46,7 +46,7 @@ methods:
   - type: flush 
     description: outputs all held note-off messages
   - type: tonal <float> 
-    description: non zero sets to "tonal" mode
+    description: non-0 sets to "tonal" mode
   - type: retrig <float> 
     description: sets retrigger mode <0, 1, 2 or 3>
   - type: sustain <float> 

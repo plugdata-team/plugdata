@@ -41,7 +41,7 @@ inlets:
   - type: float
     description: non-0 plays, 0 stops
   - type: bang
-    description: play (same as non-zero)
+    description: play (same as non-0)
   - type: signal
     description: gate on/impulse — starts, gate off — stops (not in trigger mode)
 
@@ -55,7 +55,7 @@ outlets:
 
 methods:
   - type: tr <float>
-    description: non zero sets to trigger mode, zero sets to gate mode
+    description: non-0 sets to trigger mode, zero sets to gate mode
   - type: set <symbol>
     description: sets array name
   - type: start <float>
@@ -69,7 +69,7 @@ methods:
   - type: reset
     description: resets range from 0 to array size
   - type: speed <float>
-    description: sets playing speed in percentage 
+    description: sets playing speed in % 
     default: 100
   - type: play <f, f, f>
     description: start playing, optional <start in ms, end in ms, speed rate>
@@ -80,7 +80,7 @@ methods:
   - type: <resume>
     description: resumes playing after being paused
   - type: loop <float>
-    description: non zero enables looping, <0> disables it 
+    description: non-0 enables looping, <0> disables it 
     default: 0
   - type: fade <float>
     description: sets fade time in ms 

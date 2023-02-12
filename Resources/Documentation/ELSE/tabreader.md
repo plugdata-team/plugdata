@@ -48,9 +48,9 @@ methods:
     - type: set <symbol>
       description: sets an entire array to be used as a waveform
     - type: index <float>
-      description: non-zero sets index to read from
+      description: non-0 sets index to read from
     - type: loop <float>
-      description: non-zero sets loop mode
+      description: non-0 sets loop mode
     - type: none
       description: sets to no interpolation
     - type: lin

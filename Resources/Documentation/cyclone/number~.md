@@ -30,9 +30,9 @@ outlets:
 
 flags:
   - name: @monitormode <float>
-    description: nonzero sets monitor mode 
+    description: non-0 sets monitor mode 
   - name: @sigoutmode <float>
-    description: nonzero sets generator mode 
+    description: non-0 sets generator mode 
   - name: @ft1
     description: ramp time
   - name: @interval <float>

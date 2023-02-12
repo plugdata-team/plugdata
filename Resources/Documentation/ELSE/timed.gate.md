@@ -16,7 +16,7 @@ arguments:
     description: initial gate amplitude
     default: 1
   - type: float
-    description: non-zero sets to retrigger mode
+    description: non-0 sets to retrigger mode
     default: 0
 
 inlets:
@@ -39,7 +39,7 @@ methods:
   - type: ms <float>
     description: gate time in ms
   - type: retrigger <float>
-    description: non-zero sets to retrigger mode
+    description: non-0 sets to retrigger mode
 
 draft: false
 ---

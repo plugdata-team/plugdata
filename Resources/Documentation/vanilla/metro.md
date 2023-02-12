@@ -23,7 +23,7 @@ inlets:
   - type: bang
     description: start the metronome
   - type: float
-    description: non zero starts and zero stops the metronome
+    description: non-0 starts and zero stops the metronome
   2nd:
   - type: float
     description: set metronome time for the next tempo

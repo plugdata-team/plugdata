@@ -21,5 +21,5 @@ outlets:
 
 ---
 
-[gate2imp~] converts gates to impulses. It sends an impulse when receiving a gate (0 to non 0 transitions) where the impulse value is the same as the gate.
+[gate2imp~] converts gates to impulses. It sends an impulse when receiving a gate (0 to non-0 transitions) where the impulse value is the same as the gate.
 

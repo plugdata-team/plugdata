@@ -54,11 +54,11 @@ methods:
   - type: size <float>
     description: sets font size
   - type: bold <float>
-    description: non zero sets to bold
+    description: non-0 sets to bold
   - type: italic <float>
-    description: non zero sets to italic
+    description: non-0 sets to italic
   - type: underline <float>
-    description: non zero sets underline
+    description: non-0 sets underline
   - type: just <float>
     description: sets justification (0: left, 1: center, 2: right)
   - type: width <float>
@@ -70,7 +70,7 @@ methods:
   - type: bg <float>
     description: background flag (0 suppresses background)
   - type: outline <float>
-    description: non zero sets an outline
+    description: non-0 sets an outline
   - type: receive <symbol>
     description: sets receive symbol
 ---

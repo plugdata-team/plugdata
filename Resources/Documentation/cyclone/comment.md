@@ -47,7 +47,7 @@ methods:
   - type: fontface <float>
     description: sets face: 0-normal, 1-bold, 2-italic, 3-bold+italic
   - type: underline <float>
-    description: non zero sets underline
+    description: non-0 sets underline
   - type: textjustification <f>
     description: sets justification (0: left, 1: center, 2: right)
   - type: textcolor <f, f, f>

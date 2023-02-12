@@ -1,6 +1,6 @@
 ---
 title: slop~
-description: slew-limiting low-pass filter
+description: slew-limiting lowpass filter
 categories:
 - object
 see_also:

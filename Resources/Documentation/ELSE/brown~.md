@@ -36,4 +36,4 @@ methods:
 draft: false
 ---
 
-[brown~] is a brown noise generator (aka brownian noise or red noise), whose spectral energy drops 6dB per octave (sounding less hissy than white noise). It is implemented as a bounded random walk (based on a pseudo random number generator algorithm). By default, the maximum step is 0.125, but you can set that. If a signal is connected, non zero values generate new random steps.
+[brown~] is a brown noise generator (aka brownian noise or red noise), whose spectral energy drops 6dB per octave (sounding less hissy than white noise). It is implemented as a bounded random walk (based on a pseudo random number generator algorithm). By default, the maximum step is 0.125, but you can set that. If a signal is connected, non-0 values generate new random steps.

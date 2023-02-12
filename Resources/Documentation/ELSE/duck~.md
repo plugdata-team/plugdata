@@ -49,7 +49,7 @@ methods:
   - type: release <float>
     description: sets release time in ms
   - type: mix <float>
-    description: non zero mixes with control signal
+    description: non-0 mixes with control signal
 
 
 draft: false
