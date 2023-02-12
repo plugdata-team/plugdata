@@ -31,7 +31,7 @@ inlets:
     description: resonant or cutoff frequency in hertz
   3rd:
   - type: float/signal
-    description: resonannce
+    description: resonance
 outlets:
   1st:
   - type: signal

@@ -29,7 +29,7 @@ inlets:
 outlets:
   1st:
   - type: signal
-    description: real output (bandpasse filtered signal). 
+    description: real output (bandpasse filtered signal)
   2nd:
   - type: signal
     description: imaginary output (bandpasse filtered signal)

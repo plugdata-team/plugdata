@@ -5,7 +5,7 @@ categories:
 - object
 pdcategory: vanilla, Data Management, File Management
 arguments:
-- description: format strring with specifiers (%c,  %d,  '%i,  %e,  %E,  %f,  %g,  %G,  %o,  %s,  %u,  %x,  %X
+- description: format string with specifiers (%c,  %d,  '%i,  %e,  %E,  %f,  %g,  %G,  %o,  %s,  %u,  %x,  %X
     and %p)
   type: symbol
 inlets:

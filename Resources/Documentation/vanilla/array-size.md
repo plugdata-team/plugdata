@@ -20,10 +20,10 @@ arguments:
   default: none
   type: symbol
 flags:
-- description: struct name and field name of main structure
-  flag: -s <symbol, symbol>
-- description: struct name and field name of element structure
-  flag: -f <symbol, symbol>
+- name: -s <symbol, symbol>
+  description: struct name and field name of main structure
+- name: -f <symbol, symbol>
+  description: struct name and field name of element structure
 inlets:
   1st:
   - type: bang

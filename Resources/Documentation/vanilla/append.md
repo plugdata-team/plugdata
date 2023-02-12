@@ -10,21 +10,21 @@ see_also:
 - scalar
 - struct
 - element  
-pdcategory: vanilla, Data Management, UI
+pdcategory: vanilla, Data Structures, UI
 last_update: '0.47'
 inlets:
   1st:
   - type: set <symbol, symbol>
     description: if none or just one field is given, you can use 'set' to set struct name and field
   - type: float
-    description: set field value and append new Data Structure
+    description: set field value and append new data structure
   2nd:
   - type: pointer
-    description: a pointer to the Data Structure to add
+    description: a pointer to the data structure to add
 outlets:
   1st:
   - type: pointer
-    description: a pointer to added Data Structure
+    description: a pointer to added data structure
 arguments:
 - type: symbol
   description: set template name

@@ -49,4 +49,4 @@ flags:
 - name: -f <symbol, symbol>
   description: struct name and field name of element structure
 ---
-output the sum of the array or a range selecion
+output the sum of the array or a range selection

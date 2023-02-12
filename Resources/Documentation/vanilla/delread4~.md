@@ -19,7 +19,7 @@ outlets:
     description: delayed signal
 arguments:
   - type: symbol
-    description: delay line name. 
+    description: delay line name
 draft: false
 aliases:
 - vd~
