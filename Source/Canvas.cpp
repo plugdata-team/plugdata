@@ -129,13 +129,12 @@ void Canvas::paint(Graphics& g)
     }
 
     if (locked == var(false) && !isGraph) {
-        int const objectGridSize = 20;
         Rectangle<int> const clipBounds = g.getClipBounds();
 
         g.setColour(findColour(PlugDataColour::canvasDotsColourId));
 
-        for (int x = canvasOrigin.getX() + objectGridSize; x < clipBounds.getRight(); x += objectGridSize) {
-            for (int y = canvasOrigin.getY() + objectGridSize; y < clipBounds.getBottom(); y += objectGridSize) {
+        for (int x = canvasOrigin.getX() + grid.gridSize; x < clipBounds.getRight(); x += grid.gridSize) {
+            for (int y = canvasOrigin.getY() + grid.gridSize; y < clipBounds.getBottom(); y += grid.gridSize) {
                 g.fillRect(static_cast<float>(x), static_cast<float>(y), 1.0, 1.0);
             }
         }
