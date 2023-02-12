@@ -14,7 +14,7 @@ class ObjectGrid : public SettingsFileListener {
 
 public:
     ObjectGrid(Canvas* parent);
-
+    int gridSize = 10;
     // Point<int> handleMouseDrag(Object* toDrag, Point<int> dragOffset, Rectangle<int> viewBounds, Rectangle<int> resizeBounds = Rectangle<int>(0, 0, 0, 0));
     Point<int> handleMouseUp(Point<int> dragOffset);
 
