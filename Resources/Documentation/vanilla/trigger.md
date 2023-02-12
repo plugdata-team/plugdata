@@ -9,7 +9,7 @@ see_also:
 - bang
 - unpack
 arguments:
-- description: symbols that define outlet's message type. 'float', 'bang', 'symbol', 'list', 'anything', and 'pointer',  all of which can be abbreviatted
+- description: symbols that define outlet's message type. 'float', 'bang', 'symbol', 'list', 'anything', and 'pointer',  all of which can be abbreviated
   default: f f
   type: list
 inlets:

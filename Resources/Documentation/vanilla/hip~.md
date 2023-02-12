@@ -22,11 +22,11 @@ inlets:
     description: clear filter's memory
   2nd:
   - type: float
-    description: rolloff frequency.	
+    description: rolloff frequency
 outlets:
   1st:
   - type: signal
-    description: filtered signal. 
+    description: filtered signal
 arguments:
   - type: float
     description: rolloff frequency in Hz 

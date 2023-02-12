@@ -18,10 +18,6 @@ inlets:
   1st:
   - type: signal
     description: real signal to filter
-  - type: set <float>
-    description: set internal state
-  - type: clear
-    description: clear internal state to zero (same as "set 0")
   2nd:
   - type: signal
     description: filter coefficient
@@ -32,7 +28,12 @@ outlets:
 arguments:
   - type: float
     description: filter coefficient 
-  default: 0
+    default: 0
+methods:
+  - type: set <float>
+    description: set internal state
+  - type: clear
+    description: clear internal state to zero (same as "set 0")
 draft: false
 ---
 Rzero~ filters an audio signal (left inlet

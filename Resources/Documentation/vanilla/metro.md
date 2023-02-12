@@ -33,7 +33,7 @@ outlets:
     description: bang at periodic time
 
 methods:
-  - tpye: stop
+  - type: stop
     description: stop the metronome
   - type: tempo <float, symbol>
     description: set tempo value and time unit

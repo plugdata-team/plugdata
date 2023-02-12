@@ -8,7 +8,7 @@ arguments:
 inlets:
   1st:
   - type: float
-    description: sets table index and output its value with interpoation
+    description: sets table index and output its value with interpolation
 outlets:
   1st:
   - type: float
