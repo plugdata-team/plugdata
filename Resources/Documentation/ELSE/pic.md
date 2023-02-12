@@ -43,11 +43,11 @@ methods:
   - type: set <symbol>
     description: same as open, but pd doesn't ask to save changes
   - type: latch <float>
-    description: non-zero sets to latch mode
+    description: non-0 sets to latch mode
   - type: outline <float>
-    description: non zero sets to outline mode
+    description: non-0 sets to outline mode
   - type: size <float>
-    description: non zero sets to report size mode
+    description: non-0 sets to report size mode
   - type: send <symbol>
     description: sets a send symbol
   - type: receive <symbol>

@@ -46,7 +46,7 @@ methods:
   - type: import <list>
     description: import histogram data as a list
   - type: embed <float>
-    description: non zero embeds histogram data with the patch
+    description: non-0 embeds histogram data with the patch
   - type: size <float>
     description: clears and resizes table
   - type: name <symbol>

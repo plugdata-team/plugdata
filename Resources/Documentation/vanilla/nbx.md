@@ -20,7 +20,7 @@ methods:
 - type: log
   description: sets mode to logarithmic
 - type: init <float>
-  description: non zero sets to init mode
+  description: non-0 sets to init mode
 - type: log_height <float>
   description: sets vertical range in pixels for the log mode
 - type: label <symbol>

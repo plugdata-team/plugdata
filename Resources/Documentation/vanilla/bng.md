@@ -16,7 +16,7 @@ methods:
 - type: flashtime <float, float>
   description: set minimum and maximum flash time in ms
 - type: init <float>
-  description: non zero sets to init mode
+  description: non-0 sets to init mode
 - type: label <symbol>
   description: sets label symbol
 - type: label_font <float, float>

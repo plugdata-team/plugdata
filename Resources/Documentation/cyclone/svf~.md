@@ -16,8 +16,8 @@ arguments:
   description: Q/resonance (0-1)
   default: 0.01
 - type: symbol
-  description: frequency mode (hz, linear, radians)
-  default: hz
+  description: frequency mode (Hz, linear, radians)
+  default: Hz
 
 inlets:
   1st:
@@ -48,7 +48,7 @@ methods:
  - type: clear
    description: clears the filter in case of a blow-up
  - type: hz
-   description: sets frequency mode to hz 
+   description: sets frequency mode to Hz 
  - type: linear
     description: sets frequency mode to linear
   - type: radians

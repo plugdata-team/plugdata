@@ -31,9 +31,9 @@ methods:
   - type: frange <f, f>
     description: set minimum and maximum frequencies (default 220, 440)
   - type: freq_step <float>
-    description: set maximum frequency step in percentage (default 50)
+    description: set maximum frequency step in % (default 50)
   - type: amp_step <float>
-    description: set maximum amplitude step in percentage (default 25)
+    description: set maximum amplitude step in % (default 25)
   - type: interp <float>
     description: sets interpolation mode (default 1, linear)
   - type: seed <float>

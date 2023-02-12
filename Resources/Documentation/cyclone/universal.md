@@ -10,7 +10,7 @@ pdcategory: cyclone, Data Management
 
 arguments:
 - type: float
-  description: non-zero also sends to subpathces
+  description: non-0 also sends to subpathces
   default: 0
 
 inlets: 

@@ -1,6 +1,6 @@
 ---
 title: lop~
-description: one-pole low pass filter
+description: one-pole lowpass filter
 categories:
 - object
 see_also:
@@ -33,4 +33,4 @@ arguments:
   default: 0
 draft: false
 ---
-lop~ is a one-pole low pass filter with a specified rolloff frequency. The left inlet is the incoming audio signal. The right inlet is the cutoff frequency in Hz.
+lop~ is a one-pole lowpass filter with a specified rolloff frequency. The left inlet is the incoming audio signal. The right inlet is the cutoff frequency in Hz.

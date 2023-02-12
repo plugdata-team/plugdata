@@ -17,13 +17,13 @@ inlets:
     description: level in dB
   3rd:
   - type: float
-    description: liveness (internal feedback percentage)
+    description: liveness (internal feedback %)
   4th:
   - type: float
     description: crossover frequency in Hz
   5th:
   - type: float
-    description: high frequency damping in percentage
+    description: high frequency damping in %
 outlets:
   1st:
   - type: signal
@@ -42,12 +42,12 @@ arguments:
   description: level in dB 
   default: 0
 - type: float
-  description: liveness / internal feedback percentage
+  description: liveness / internal feedback %
   default: 0
 - type: float
   description: crossover frequency in Hz
   default: 3000
 - type: float
-  description: high frequency damping in percentage
+  description: high frequency damping in %
   default: 0
 

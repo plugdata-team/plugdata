@@ -19,7 +19,7 @@ arguments:
 inlets:
   1st:
   - type: float
-    description: non-zero starts, zero stops
+    description: non-0 starts, zero stops
   - type: bang
     description: syncs/resets
   2nd:

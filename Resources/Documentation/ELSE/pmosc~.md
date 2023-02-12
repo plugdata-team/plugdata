@@ -7,10 +7,10 @@ pdcategory: ELSE, Signal Generators
 
 arguments:
 - type: float
-  description: carrier frequency in hertz
+  description: carrier frequency in Hz
   default: 0
 - type: float
-  description: modulation frequency in hertz
+  description: modulation frequency in Hz
   default: 0
 - type: float
   description: modulation index
@@ -22,10 +22,10 @@ arguments:
 inlets:
   1st:
   - type: float/signal
-    description: carrier frequency in hz
+    description: carrier frequency in Hz
   2nd:
   - type: float/signal
-    description: modulation frequency in hz
+    description: modulation frequency in Hz
   3rd:
   - type: float/signal
     description: modulation index

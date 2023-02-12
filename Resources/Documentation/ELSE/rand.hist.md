@@ -58,7 +58,7 @@ methods:
   - type: eq <float>
     description: sets an equal number of occurrences for all elements
   - type: unrepeat
-    description: non-zero sets unrepeat mode
+    description: non-0 sets unrepeat mode
 
 draft: false
 ---

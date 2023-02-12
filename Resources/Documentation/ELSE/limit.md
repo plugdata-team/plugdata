@@ -13,7 +13,7 @@ arguments:
   description: initial time limit
   default: 0 - no limit
 - type: float
-  description: non zero sets to ignore mode
+  description: non-0 sets to ignore mode
   default: 0
 
 inlets:
