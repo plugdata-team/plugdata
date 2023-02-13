@@ -352,7 +352,7 @@ bool ObjectGrid::isAlreadySnapped(bool horizontal, bool resizing, Point<int>& dr
             clear(false);
             return true;
         }
-        dragOffset = { resizing ? dragOffset.x : snappedPosition.x, snappedPosition.y };
+        dragOffset = { resizing ? snappedPosition.x : dragOffset.x, snappedPosition.y };
         return true;
     }
 
