@@ -260,21 +260,27 @@ Statusbar::Statusbar(PluginProcessor* processor)
         PopupMenu gridSelector;
         auto settings = static_cast<SettingsFile*>(SettingsFile::getInstance());
         int gridEnabled = settings->getProperty<int>("grid_enabled");
-        gridSelector.addItem("Absolute grid", true, gridEnabled == 2 || gridEnabled == 3, [this, settings, gridEnabled]() {
-            gridButton->setColour(TextButton::textColourOffId, Colours::orange);
-            if (gridEnabled == 1) {
+        gridSelector.addItem("Snap to Grid", true, gridEnabled == 2 || gridEnabled == 3, [this, settings, gridEnabled]() {
+            if (gridEnabled == 0) {
+                settings->setProperty("grid_enabled", 2);
+            } else if (gridEnabled == 1) {
+                settings->setProperty("grid_enabled", 3);
+            } else if (gridEnabled == 2) {
+                settings->setProperty("grid_enabled", 0);
+            } else {
+                settings->setProperty("grid_enabled", 1);
+            }
+        });
+        gridSelector.addItem("Snap to Objects", true, gridEnabled == 1 || gridEnabled == 3, [this, settings, gridEnabled]() {
+            if (gridEnabled == 0) {
+                settings->setProperty("grid_enabled", 1);
+            } else if (gridEnabled == 1) {
+                settings->setProperty("grid_enabled", 0);
+            } else if (gridEnabled == 2) {
                 settings->setProperty("grid_enabled", 3);
             } else {
                 settings->setProperty("grid_enabled", 2);
             }
-        });
-        gridSelector.addItem("Relative grid", true, gridEnabled == 1 || gridEnabled == 3, [this]() {
-            gridButton->setColour(TextButton::textColourOffId, findColour(PlugDataColour::gridLineColourId));
-            SettingsFile::getInstance()->setProperty("grid_enabled", 1);
-        });
-        gridSelector.addItem("No grid", true, gridEnabled == 0, [this]() {
-            gridButton->setColour(TextButton::textColourOffId, findColour(PlugDataColour::toolbarTextColourId));
-            SettingsFile::getInstance()->setProperty("grid_enabled", 0);
         });
         gridSelector.addSeparator();
         gridSelector.addCustomItem(1, std::make_unique<gridSizeSlider>(currentCanvas), nullptr, "");
