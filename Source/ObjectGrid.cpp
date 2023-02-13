@@ -211,9 +211,7 @@ Point<int> ObjectGrid::performMove(Object* toDrag, Point<int> dragOffset)
         Point<int> newPos =  toDrag->originalBounds.reduced(Object::margin).getPosition() + dragOffset;
         newPos.setX(roundToInt(newPos.getX() / gridSize * gridSize));
         newPos.setY(roundToInt(newPos.getY() / gridSize * gridSize));
-        //toDrag->setPosition(newPos);
-        std::cout << "x " << newPos.x << std::endl;
-        std::cout << "y " << newPos.y << std::endl;
+
         snappedPosition = newPos - toDrag->originalBounds.reduced(Object::margin).getPosition();
         
 
