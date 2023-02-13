@@ -19,9 +19,7 @@ ObjectGrid::ObjectGrid(Canvas* parent) : cnv(parent)
         line.setStrokeThickness(1);
         line.setAlwaysOnTop(true);
     }
-    //gridEnabled.addListener(cnv);
-    // Initialise grid settings
-   //gridEnabled = SettingsFile::getInstance()->getProperty<int>("grid_enabled");
+    gridEnabled.referTo(SettingsFile::getInstance()->getPropertyAsValue("grid_enabled"));
 }
 
 Point<int> ObjectGrid::applySnap(SnapOrientation direction, Point<int> pos, Component* s, Component* e, bool horizontal)

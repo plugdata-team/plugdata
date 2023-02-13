@@ -123,6 +123,7 @@ public:
     Value locked;
     Value commandLocked;
     Value presentationMode;
+    Value gridEnabled;
 
     bool isGraph = false;
     bool hasParentCanvas = false;

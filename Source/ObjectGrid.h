@@ -21,11 +21,11 @@ public:
 
     Point<int> performResize(Object* toDrag, Point<int> dragOffset, Rectangle<int> newResizeBounds);
 
+    //TODO: Can we save gridSize in patch? else save in settings File
     int gridSize = 20;
+
     static constexpr int range = 5;
     static constexpr int tolerance = 3;
-
-    Value gridEnabled;
 
 private:
     enum SnapOrientation {
@@ -57,5 +57,6 @@ private:
 
     void propertyChanged(String name, var value) override;
 
+    Value gridEnabled;
     Canvas* cnv;
 };

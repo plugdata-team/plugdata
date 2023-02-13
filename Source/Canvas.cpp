@@ -52,6 +52,8 @@ Canvas::Canvas(PluginEditor* parent, pd::Patch& p, Component* parentGraph)
     commandLocked.referTo(pd->commandLocked);
     commandLocked.addListener(this);
 
+    gridEnabled.referTo(SettingsFile::getInstance()->getPropertyAsValue("grid_enabled"));
+    //gridEnabled.addListener(this);
     tabbar = &editor->tabbar;
 
     // Add draggable border for setting graph position
@@ -955,6 +957,12 @@ void Canvas::checkBounds()
 
 void Canvas::valueChanged(Value& v)
 {
+    // Changes to gridEnabled
+    if (v.refersToSameSourceAs(gridEnabled)) {
+    std::cout << "gridEnabled Changed" << std::endl;
+
+    }
+
     // When lock changes
     if (v.refersToSameSourceAs(locked)) {
         bool editMode = !static_cast<bool>(v.getValue());
