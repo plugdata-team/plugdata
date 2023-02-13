@@ -135,7 +135,7 @@ public:
     {
 
         // Add text boxes to display the interval values
-        for (int i = 5; i <= 25; i += 5) {
+        for (int i = 5; i <= 30; i += 5) {
             auto label = std::make_unique<Label>();
             Font labelFont = label->getFont();
             labelFont.setHeight(10);
@@ -147,7 +147,7 @@ public:
         }
 
         addAndMakeVisible(slider.get());
-        slider->setRange(5, 25, 5);
+        slider->setRange(5, 30, 5);
         slider->setValue(cnv->objectGrid.gridSize);
         slider->setTextBoxStyle(Slider::NoTextBox, false, 0, 0);
         slider->setColour(Slider::ColourIds::trackColourId, findColour(PlugDataColour::panelBackgroundColourId));
@@ -163,19 +163,20 @@ public:
     void getIdealSize(int& idealWidth, int& idealHeight) override
     {
         idealWidth = 150;
-        idealHeight = 20;
+        idealHeight = 25;
     }
 
     void resized() override
     {
         auto bounds = getLocalBounds();
-        bounds.reduce(10, 0);
-         int x = bounds.getX();
-        int spacing = bounds.getWidth() / 5;
+        bounds.reduce(11, 0);
+        int x = bounds.getX();
+        int spacing = bounds.getWidth() / 6;
         for (auto& textBox : intervalTextBoxes) {
             textBox->setBounds(x, bounds.getY(), spacing, bounds.getHeight() - 10);
             x += spacing;
-        } 
+        }
+        bounds.reduce(-1, 0);
         slider->setBounds(bounds.getX(), bounds.getY(), bounds.getWidth(), bounds.getHeight() + 10);
     }
 
@@ -256,7 +257,6 @@ Statusbar::Statusbar(PluginProcessor* processor)
 
     gridButton->setTooltip("Grid Options");
     gridButton->getProperties().set("Style", "SmallIcon");
-
     gridButton->onClick = [this]() {
         PopupMenu gridSelector;
         int gridEnabled = SettingsFile::getInstance()->getProperty<int>("grid_enabled");
@@ -283,7 +283,7 @@ Statusbar::Statusbar(PluginProcessor* processor)
             }
         }); 
         gridSelector.addSeparator();
-       // gridSelector.addCustomItem(1, std::make_unique<gridSizeSlider>(dynamic_cast<PluginEditor*>(pd->getActiveEditor())->getCurrentCanvas())), nullptr, "";
+        gridSelector.addCustomItem(1, std::make_unique<gridSizeSlider>(attachedCanvas), nullptr, "Grid Size");
 
         gridSelector.showMenuAsync(PopupMenu::Options().withMinimumWidth(150).withMaximumNumColumns(1).withTargetComponent(gridButton.get()).withParentComponent(pd->getActiveEditor()));
     };
@@ -378,6 +378,7 @@ void Statusbar::attachToCanvas(Canvas* cnv)
 {
     locked.referTo(cnv->locked);
     lockButton->getToggleStateValue().referTo(cnv->locked);
+    attachedCanvas = cnv;
 }
 
 void Statusbar::propertyChanged(String name, var value)

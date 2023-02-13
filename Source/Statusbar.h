@@ -97,5 +97,7 @@ public:
     std::unique_ptr<ButtonParameterAttachment> enableAttachment;
     std::unique_ptr<SliderParameterAttachment> volumeAttachment;
 
+    Canvas* attachedCanvas;
+
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(Statusbar)
 };
