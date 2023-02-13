@@ -34,14 +34,15 @@ public:
         // put back the margins
         border.addTo(bounds);
         
-
-        if(getFixedAspectRatio() != 0.0f) {
-            if((isStretchingLeft || isStretchingRight) && !(isStretchingBottom || isStretchingTop)) {
-                bounds = bounds.withY(old.getY());
-            }
-            else if(!(isStretchingLeft || isStretchingRight) && (isStretchingBottom || isStretchingTop)) {
-                bounds = bounds.withX(old.getX());
-            }
+        
+        // If we're stretching in only one direction, make sure to keep the position on the other axis the same.
+        // This prevents ice-skating when the canvas is zoomed in
+        auto isStretchingWidth = isStretchingLeft || isStretchingRight;
+        auto isStretchingHeight = isStretchingBottom || isStretchingTop;
+        
+        if(getFixedAspectRatio() != 0.0f && (isStretchingWidth ^ isStretchingHeight)) {
+            
+            bounds = isStretchingHeight ? bounds.withX(old.getX()) : bounds.withY(old.getY());
         }
     }
 };
