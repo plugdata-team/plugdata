@@ -359,14 +359,24 @@ bool ObjectGrid::isAlreadySnapped(bool horizontal, Point<int>& dragOffset)
 
 Point<int> ObjectGrid::handleMouseUp(Point<int> dragOffset)
 {
-    dragOffset = snappedPosition;
-    if (snapped[1]) {
-        //
-        clear(1);
-    }
-    if (snapped[0]) {
-        //dragOffset.y = snappedPosition.y;
-        clear(0);
+    // dragOffset = snappedPosition;
+    if (gridEnabled == 1 && !ModifierKeys::getCurrentModifiers().isShiftDown()) {
+        if (snapped[1]) {
+            dragOffset.x = snappedPosition.x;
+            clear(1);
+        }
+        if (snapped[0]) {
+            dragOffset.y = snappedPosition.y;
+            clear(0);
+        }
+    } else if ((gridEnabled == 2 || gridEnabled == 3) && !ModifierKeys::getCurrentModifiers().isShiftDown()) {
+        dragOffset = snappedPosition;
+        if (snapped[1]) {
+            clear(1);
+        }
+        if (snapped[0]) {
+            clear(0);
+        }
     }
     return dragOffset;
 }
