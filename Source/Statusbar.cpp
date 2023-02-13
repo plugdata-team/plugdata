@@ -202,8 +202,6 @@ Statusbar::Statusbar(PluginProcessor* processor)
     locked.addListener(this);
     commandLocked.addListener(this);
 
-    gridEnabled.referTo(SettingsFile::getInstance()->getProperty<Value>("grid_enabled"));
-
     oversampleSelector.setTooltip("Set oversampling");
     oversampleSelector.getProperties().set("FontScale", 0.5f);
     oversampleSelector.setColour(ComboBox::outlineColourId, Colours::transparentBlack);
@@ -261,31 +259,31 @@ Statusbar::Statusbar(PluginProcessor* processor)
 
     gridButton->onClick = [this]() {
         PopupMenu gridSelector;
-        auto settings = SettingsFile::getInstance();
-        gridSelector.addItem("Snap to Grid", true, gridEnabled == 2 || gridEnabled == 3, [this, settings]() {
+        int gridEnabled = SettingsFile::getInstance()->getProperty<int>("grid_enabled");
+        gridSelector.addItem("Snap to Grid", true, gridEnabled == 2 || gridEnabled == 3, [this, gridEnabled]() {
             if (gridEnabled == 0) {
-                gridEnabled.setValue(2);
+                SettingsFile::getInstance()->setProperty("grid_enabled", 2);
             } else if (gridEnabled == 1) {
-                gridEnabled.setValue(3);
+                SettingsFile::getInstance()->setProperty("grid_enabled", 3);
             } else if (gridEnabled == 2) {
-                gridEnabled.setValue(0);
+                SettingsFile::getInstance()->setProperty("grid_enabled", 0);
             } else {
-                gridEnabled.setValue(1);
+                SettingsFile::getInstance()->setProperty("grid_enabled", 1);
             }
         });
-        gridSelector.addItem("Snap to Objects", true, gridEnabled == 1 || gridEnabled == 3, [this, settings]() {
+        gridSelector.addItem("Snap to Objects", true, gridEnabled == 1 || gridEnabled == 3, [this, gridEnabled]() {
             if (gridEnabled == 0) {
-                gridEnabled.setValue(1);
+                SettingsFile::getInstance()->setProperty("grid_enabled", 1);
             } else if (gridEnabled == 1) {
-                gridEnabled.setValue(0);
+                SettingsFile::getInstance()->setProperty("grid_enabled", 0);
             } else if (gridEnabled == 2) {
-                gridEnabled.setValue(3);
+                SettingsFile::getInstance()->setProperty("grid_enabled", 3);
             } else {
-                gridEnabled.setValue(2);
+                SettingsFile::getInstance()->setProperty("grid_enabled", 2);
             }
         }); 
         gridSelector.addSeparator();
-        //gridSelector.addCustomItem(1, std::make_unique<gridSizeSlider>(dynamic_cast<PluginEditor*>(pd->getActiveEditor())->getCurrentCanvas())), nullptr, "";
+       // gridSelector.addCustomItem(1, std::make_unique<gridSizeSlider>(dynamic_cast<PluginEditor*>(pd->getActiveEditor())->getCurrentCanvas())), nullptr, "";
 
         gridSelector.showMenuAsync(PopupMenu::Options().withMinimumWidth(150).withMaximumNumColumns(1).withTargetComponent(gridButton.get()).withParentComponent(pd->getActiveEditor()));
     };
@@ -294,7 +292,7 @@ Statusbar::Statusbar(PluginProcessor* processor)
     addAndMakeVisible(gridButton.get());
 
     // Initialise grid state
-    //propertyChanged("grid_enabled", SettingsFile::getInstance()->getProperty<int>("grid_enabled"));
+    propertyChanged("grid_enabled", SettingsFile::getInstance()->getProperty<int>("grid_enabled"));
 
 
     powerButton->onClick = [this]() { powerButton->getToggleState() ? pd->startDSP() : pd->releaseDSP(); };
@@ -384,7 +382,8 @@ void Statusbar::attachToCanvas(Canvas* cnv)
 
 void Statusbar::propertyChanged(String name, var value)
 {
-/*     if (name == "grid_enabled") {
+    if (name == "grid_enabled") {
+        int gridEnabled = static_cast<int>(value);
         if (gridEnabled == 0) {
             gridButton->setColour(TextButton::textColourOffId, findColour(PlugDataColour::toolbarTextColourId));
             gridButton->setColour(TextButton::textColourOnId, findColour(PlugDataColour::toolbarActiveColourId));
@@ -400,7 +399,7 @@ void Statusbar::propertyChanged(String name, var value)
             // TODO: fix weird colour id usage
             gridButton->setColour(TextButton::textColourOnId, findColour(PlugDataColour::signalColourId).brighter(0.4f));
         }
-    } */
+    }
 }
 
 void Statusbar::valueChanged(Value& v)
@@ -469,8 +468,6 @@ void Statusbar::modifierKeysChanged(ModifierKeys const& modifiers)
     auto* editor = dynamic_cast<PluginEditor*>(pd->getActiveEditor());
 
     commandLocked = modifiers.isCommandDown() && locked.getValue() == var(false);
-
-    //gridDisable = modifiers.isShiftDown() && SettingsFile::getInstance()->getProperty<int>("grid_enabled");
 
     if (auto* cnv = editor->getCurrentCanvas()) {
         if (cnv->didStartDragging || cnv->isDraggingLasso || static_cast<bool>(cnv->presentationMode.getValue())) {

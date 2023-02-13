@@ -1217,7 +1217,9 @@ void Canvas::objectMouseDrag(MouseEvent const& e)
     // In case we dragged near the edge and the canvas moved
     auto canvasMoveOffset = canvasDragStartPosition - getPosition();
 
-    dragDistance = objectGrid.performMove(componentBeingDragged, dragDistance);
+    if (static_cast<bool>(gridEnabled.getValue()) && componentBeingDragged) {
+        dragDistance = objectGrid.performMove(componentBeingDragged, dragDistance);
+    }
 
 
     // alt+drag will duplicate selection
