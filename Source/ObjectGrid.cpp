@@ -185,23 +185,23 @@ Point<int> ObjectGrid::performResize(Object* toDrag, Point<int> dragOffset, Rect
             updateMarker();
         });
 
-        return dragOffset;
+        if (gridEnabled == 1) {
+            return dragOffset;
+        }
     }
 
     // Snap to Grid
     if (gridEnabled == 2 || gridEnabled == 3) { 
-        auto roundedDrag = (dragOffset / 10) * 10;
-        auto objectPos = toDrag->originalBounds.reduced(Object::margin).getPosition();
-        auto offset = ((objectPos / 10) * 10) - objectPos;
-
-        auto totalOffset = roundedDrag + offset;
-
-        snappedPosition = totalOffset;
-
-        snapped[0] = true;
-        snapped[1] = true;
-
-        return totalOffset;
+        Point<int> newPos = toDrag->originalBounds.reduced(Object::margin).getPosition() + dragOffset;
+        if (!isAlreadySnapped(true, dragOffset)) {
+            newPos.setX(roundToInt(newPos.getX() / gridSize + 1) * gridSize);
+            snappedPosition.x = newPos.x - toDrag->originalBounds.reduced(Object::margin).getX() - gridSize;
+        }
+        if (!isAlreadySnapped(false, dragOffset)) {
+            newPos.setY(roundToInt(newPos.getY() / gridSize + 1) * gridSize);
+            snappedPosition.y = newPos.y - toDrag->originalBounds.reduced(Object::margin).getY() - gridSize;
+        }
+        return snappedPosition;
     }
 }
 
