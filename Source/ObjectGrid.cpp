@@ -140,7 +140,7 @@ Point<int> ObjectGrid::performResize(Object* toDrag, Point<int> dragOffset, Rect
         auto b2 = newResizeBounds.reduced(Object::margin);
         auto ratio = toDrag->constrainer->getFixedAspectRatio();
 
-        if (!isAlreadySnapped(false, dragOffset)) {
+        if (!isAlreadySnapped(false, true, dragOffset)) {
             for (auto* object : snappable) {
                 auto b1 = object->getBounds().reduced(Object::margin);
 
@@ -157,7 +157,7 @@ Point<int> ObjectGrid::performResize(Object* toDrag, Point<int> dragOffset, Rect
             }
         }
 
-        if (!isAlreadySnapped(true, dragOffset)) {
+        if (!isAlreadySnapped(true, true, dragOffset)) {
             for (auto* object : snappable) {
 
                 auto b1 = object->getBounds().reduced(Object::margin);
@@ -187,11 +187,11 @@ Point<int> ObjectGrid::performResize(Object* toDrag, Point<int> dragOffset, Rect
     // Snap to Grid
     if (gridEnabled == 2 || gridEnabled == 3) { 
         Point<int> newPos = toDrag->originalBounds.reduced(Object::margin).getPosition() + dragOffset;
-        if (!isAlreadySnapped(true, dragOffset)) {
+        if (!isAlreadySnapped(true, true, dragOffset)) {
             newPos.setX(roundToInt(newPos.getX() / gridSize + 1) * gridSize);
             snappedPosition.x = newPos.x - toDrag->originalBounds.reduced(Object::margin).getX() - gridSize;
         }
-        if (!isAlreadySnapped(false, dragOffset)) {
+        if (!isAlreadySnapped(false, true, dragOffset)) {
             newPos.setY(roundToInt(newPos.getY() / gridSize + 1) * gridSize);
             snappedPosition.y = newPos.y - toDrag->originalBounds.reduced(Object::margin).getY() - gridSize;
         }
@@ -208,7 +208,7 @@ Point<int> ObjectGrid::performMove(Object* toDrag, Point<int> dragOffset)
         auto snappable = getSnappableObjects(toDrag->cnv);
         auto b2 = (toDrag->originalBounds + dragOffset).reduced(Object::margin);
 
-        if (!isAlreadySnapped(false, dragOffset)) {
+        if (!isAlreadySnapped(false, false, dragOffset)) {
 
             for (auto* object : snappable) {
                 auto b1 = object->getBounds().reduced(Object::margin);
@@ -231,7 +231,7 @@ Point<int> ObjectGrid::performMove(Object* toDrag, Point<int> dragOffset)
             }
         }
 
-        if (!isAlreadySnapped(true, dragOffset)) {
+        if (!isAlreadySnapped(true, false, dragOffset)) {
 
             // Find snap points based on connection alignment
             for (auto* connection : toDrag->getConnections()) {
@@ -272,7 +272,7 @@ Point<int> ObjectGrid::performMove(Object* toDrag, Point<int> dragOffset)
             }
         }
 
-        if (!isAlreadySnapped(true, dragOffset)) {
+        if (!isAlreadySnapped(true, false, dragOffset)) {
             for (auto* object : snappable) {
 
                 auto b1 = object->getBounds().reduced(Object::margin);
@@ -337,21 +337,21 @@ Array<Object*> ObjectGrid::getSnappableObjects(Canvas* cnv)
     return snappable;
 }
 
-bool ObjectGrid::isAlreadySnapped(bool horizontal, Point<int>& dragOffset)
+bool ObjectGrid::isAlreadySnapped(bool horizontal, bool resizing, Point<int>& dragOffset)
 {
     if (horizontal && snapped[1]) {
         if (std::abs(snappedPosition.x - dragOffset.x) > range) {
             clear(true);
             return true;
         }
-        dragOffset = { snappedPosition.x, snappedPosition.y };
+        dragOffset = { snappedPosition.x, resizing ? snappedPosition.y : dragOffset.y };
         return true;
     } else if (!horizontal && snapped[0]) {
         if (std::abs(snappedPosition.y - dragOffset.y) > range) {
             clear(false);
             return true;
         }
-        dragOffset = { snappedPosition.x, snappedPosition.y };
+        dragOffset = { resizing ? dragOffset.x : snappedPosition.x, snappedPosition.y };
         return true;
     }
 
