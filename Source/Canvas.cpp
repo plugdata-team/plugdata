@@ -52,9 +52,6 @@ Canvas::Canvas(PluginEditor* parent, pd::Patch& p, Component* parentGraph)
     commandLocked.referTo(pd->commandLocked);
     commandLocked.addListener(this);
 
-    // TODO: use SettingsFileListener
-    gridEnabled.referTo(SettingsFile::getInstance()->getPropertyAsValue("grid_enabled"));
-
     tabbar = &editor->tabbar;
 
     // Add draggable border for setting graph position
@@ -133,8 +130,8 @@ void Canvas::paint(Graphics& g)
 
         g.setColour(findColour(PlugDataColour::canvasDotsColourId));
 
-        for (int x = canvasOrigin.getX() + grid.gridSize; x < clipBounds.getRight(); x += grid.gridSize) {
-            for (int y = canvasOrigin.getY() + grid.gridSize; y < clipBounds.getBottom(); y += grid.gridSize) {
+        for (int x = canvasOrigin.getX() + objectGrid.gridSize; x < clipBounds.getRight(); x += objectGrid.gridSize) {
+            for (int y = canvasOrigin.getY() + objectGrid.gridSize; y < clipBounds.getBottom(); y += objectGrid.gridSize) {
                 g.fillRect(static_cast<float>(x), static_cast<float>(y), 1.0, 1.0);
             }
         }
@@ -1140,7 +1137,7 @@ void Canvas::objectMouseUp(Object* component, MouseEvent const& e)
         // In case we dragged near the iolet and the canvas moved
         auto canvasMoveOffset = canvasDragStartPosition - getPosition();
 
-        distance = grid.handleMouseUp(distance) + canvasMoveOffset;
+        distance = objectGrid.handleMouseUp(distance) + canvasMoveOffset;
 
         // When done dragging objects, update positions to pd
         patch.moveObjects(objects, distance.x, distance.y);
@@ -1212,9 +1209,8 @@ void Canvas::objectMouseDrag(MouseEvent const& e)
     // In case we dragged near the edge and the canvas moved
     auto canvasMoveOffset = canvasDragStartPosition - getPosition();
 
-    if (static_cast<bool>(gridEnabled.getValue()) && componentBeingDragged) {
-        dragDistance = grid.performMove(componentBeingDragged, dragDistance);
-    }
+    dragDistance = objectGrid.performMove(componentBeingDragged, dragDistance);
+
 
     // alt+drag will duplicate selection
     if (!wasDragDuplicated && e.mods.isAltDown()) {

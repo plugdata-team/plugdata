@@ -123,7 +123,6 @@ public:
     Value locked;
     Value commandLocked;
     Value presentationMode;
-    Value gridEnabled = Value(var(true));
 
     bool isGraph = false;
     bool hasParentCanvas = false;
@@ -134,7 +133,7 @@ public:
     Value hideNameAndArgs = Value(var(false));
     Value xRange, yRange;
 
-    ObjectGrid grid = ObjectGrid(this);
+    ObjectGrid objectGrid = ObjectGrid(this);
 
     Point<int> canvasOrigin = { 0, 0 };
     Point<int> canvasDragStartPosition = { 0, 0 };

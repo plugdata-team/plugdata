@@ -25,6 +25,8 @@ public:
     static constexpr int range = 5;
     static constexpr int tolerance = 3;
 
+    Value gridEnabled;
+
 private:
     enum SnapOrientation {
         SnappedLeft,
@@ -41,8 +43,6 @@ private:
     Component::SafePointer<Component> end[2];
     DrawablePath gridLines[2];
 
-    int gridEnabled = 1;
-
     Point<int> applySnap(SnapOrientation orientation, Point<int> position, Component* start, Component* end, bool horizontal);
     void updateMarker();
     void clear(bool horizontal);
@@ -56,4 +56,6 @@ private:
     bool isAlreadySnapped(bool horizontal, Point<int>& dragOffset);
 
     void propertyChanged(String name, var value) override;
+
+    Canvas* cnv;
 };
