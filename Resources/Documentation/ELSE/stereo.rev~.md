@@ -43,7 +43,7 @@ methods:
   - type: decay <float>
     description: decay time in seconds
   - type: damp <float>
-    description: high frequency damping in hertz
+    description: high frequency damping in Hz
   - type: size <float>
     description: room size (0-1)
   - type: wet <float>

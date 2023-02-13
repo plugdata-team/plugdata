@@ -43,7 +43,7 @@ methods:
   - type: set <list>
     description: set number of lines and min/max times
   - type: exp <float>
-    description: non zero sets delay times exponentially
+    description: non-0 sets delay times exponentially
   - type: clear
     description: clears the delay lines and reverberation
   - type: print

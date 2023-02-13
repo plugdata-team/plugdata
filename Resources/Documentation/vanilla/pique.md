@@ -14,7 +14,7 @@ inlets:
 outlets:
   1st:
   - type: list
-    description: partial index, frequency in hz, amplitude, cosine and sine components
+    description: partial index, frequency in Hz, amplitude, cosine and sine components
 draft: false
 ---
 NOTE: pique is obsolete! consider using [sigmund~]

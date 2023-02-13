@@ -18,9 +18,9 @@ inlets:
 outlets:
   1st:
   - type: bang
-    description: when detecting zero to non-zero transitions
+    description: when detecting zero to non-0 transitions
 
 draft: false
 ---
 
-[trig2bang] detects zero to non-zero transitions. This can be used to detect and convert triggers (a gate) to a bang.
+[trig2bang] detects zero to non-0 transitions. This can be used to detect and convert triggers (a gate) to a bang.

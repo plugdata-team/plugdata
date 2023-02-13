@@ -35,7 +35,7 @@ outlets:
     description: list of split components
   2nd:
   - type: symbol/bang
-    description: '''/'' if inputs ends with ''/'' or bang otherwise.'
+    description: '''/'' if inputs ends with ''/'' or bang otherwise'
 draft: false
 ---
 This objects perform common string operations on filenames. no checks are performed verifying the validity/existence of any path-component.

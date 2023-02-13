@@ -46,13 +46,13 @@ methods:
   - type: minlevel <float>
     description: set minimum "velocity" to output (ignore quieter notes)
   - type: spew <float>
-    description: nonzero turns spew mode on, zero sets it off
+    description: non-0 turns spew mode on, zero sets it off
   - type: useloudness <float>
-    description: nonzero sets to alternative loudness units (experimental)
+    description: non-0 sets to alternative loudness units (experimental)
   - type: debug <float>
-    description: nonzero sets to debugging mode
+    description: non-0 sets to debugging mode
   - type: print <float>
-    description: print out settings, templates and filterbank settings for nonzero
+    description: print out settings, templates and filter bank settings for non-0
   - type: debounce <float>
     description: set minimum time (in msec) between attacks in learn mode
   - type: learn <float>

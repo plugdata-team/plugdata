@@ -22,7 +22,7 @@ arguments:
 inlets:
   1st:
   - type: float/signal
-    description: sets frequency in hertz
+    description: sets frequency in Hz
 
   2nd:
   - type: float/signal

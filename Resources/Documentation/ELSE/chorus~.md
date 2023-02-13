@@ -9,7 +9,7 @@ categories:
 pdcategory: ELSE, Effects
 
 arguments:
-  - description: rate in hertz
+  - description: rate in Hz
     type: float
     default: 0
   - description: depth
@@ -25,7 +25,7 @@ inlets:
     description: input to chorus
   2nd:
   - type: float
-    description: rate in hertz
+    description: rate in Hz
   3rd:
   - type: float
     description: depth

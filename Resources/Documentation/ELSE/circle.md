@@ -34,9 +34,9 @@ methods:
   - type: xrange <float>
     description: sets range (minimum and maximum values of x)
   - type: line <float>
-    description: non zero sets line visibility
+    description: non-0 sets line visibility
   - type: grid <float>
-    description: non zero sets grid visibility
+    description: non-0 sets grid visibility
   - type: bgcolor1 <f, f, f>
     description: sets background color inside circle in RGB
   - type: bgcolor2 <f, f, f>
@@ -46,9 +46,9 @@ methods:
   - type: fgcolor <f, f, f>
     description: sets foreground color in RGB
   - type: init <float>
-    description: non zero sets to init mode
+    description: non-0 sets to init mode
   - type: clip <float>
-    description: non zero clips inside the circle
+    description: non-0 clips inside the circle
     
 flags:
   - name:

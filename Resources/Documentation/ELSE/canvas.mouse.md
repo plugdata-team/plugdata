@@ -13,7 +13,7 @@ arguments:
   description: depth
   default: 0
 - type: float
-  description: non zero sets "position mode"
+  description: non-0 sets "position mode"
   default: 0
 
 inlets:

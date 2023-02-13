@@ -1,6 +1,6 @@
 ---
 title: file join
-description: '''join'' a list of components using ''/'' as the separator.'
+description: '''join'' a list of components using ''/'' as the separator'
 categories:
 - object
 pdcategory: vanilla, File Management
@@ -34,8 +34,8 @@ outlets:
   - type: symbol
     description: joined path or file
   2nd:
-  - type: Inactive Outlet!
-    description: null
+  - type: null
+    description: inactive outlet!
 draft: false
 ---
 This objects perform common string operations on filenames. no checks are performed verifying the validity/existence of any path-component.

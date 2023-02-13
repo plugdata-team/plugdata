@@ -14,8 +14,6 @@ inlets:
   1st:
   - type: bang
     description: output a pointer to the scalar
-  - type: send <symbol>
-    description: send pointer to a named receive object
 outlets:
   1st:
   - type: pointer
@@ -26,6 +24,9 @@ flags:
 arguments:
 - type: symbol
   description: template name
+methods:
+  - type: send <symbol>
+    description: send pointer to a named receive object
 draft: false
 ---
 experimental - doesn't do much yet. This has been included in 0.45 to check that its design will work coherently with the array and text objects

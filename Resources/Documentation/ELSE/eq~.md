@@ -10,7 +10,7 @@ pdcategory: ELSE, Filters, Effects, Mixing and Routing
 
 arguments:
 - type: float
-  description: central frequency in Hertz
+  description: central frequency in Hz
   default: 0
 - type: float
   description: resonance, either in 'Q' or 'bw'
@@ -25,7 +25,7 @@ inlets:
     description: signal to be filtered
   2nd:
   - type: float/signal
-    description: central frequency in Hertz
+    description: central frequency in Hz
   3rd:
   - type: float/signal
     description: filter resonance (Q or bandwidth)

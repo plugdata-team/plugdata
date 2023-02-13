@@ -23,7 +23,7 @@ inlets:
     description: MIDI velocity
   3rd:
   - type: float
-    description: MIDI note duratin in ms
+    description: MIDI note duration in ms
 outlets:
   1st:
   - type: float

@@ -35,7 +35,7 @@ flags:
 
 methods:
   - type: loop <float>
-    description: non-zero sets to loop mode
+    description: non-0 sets to loop mode
   - type: record
     description: starts recording raw MIDI input
   - type: play
@@ -49,7 +49,7 @@ methods:
   - type: continue
     description: continues recording/playing
   - type: speed <float>
-    description: sets a reading speed in percentage of original
+    description: sets a reading speed in % of original
   - type: dump
     description: outputs the MIDI data stream at once
   - type: panic

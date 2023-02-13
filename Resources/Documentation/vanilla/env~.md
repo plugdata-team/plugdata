@@ -20,5 +20,5 @@ arguments:
   default: 1024
   - type: float
     description: period in samples per analysis 
-    default: half the wondow size
+    default: half the window size
 ---

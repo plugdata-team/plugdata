@@ -9,7 +9,7 @@ categories:
 pdcategory: ELSE, Triggers and Clocks
 
 arguments:
-- description: frequency in hertz
+- description: frequency in Hz
   type: float
   default: 0
 - description: pulse width
@@ -22,7 +22,7 @@ arguments:
 inlets:
   1st:
   - type: float
-    description: frequency in hz
+    description: frequency in Hz
   2nd:
   - type: float
     description: pulse width (from 0 to 1)

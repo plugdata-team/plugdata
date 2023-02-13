@@ -9,7 +9,7 @@ categories:
 pdcategory: ELSE, Triggers and Clocks, Envelopes and LFOs
 
 arguments:
-- description: frequency in hertz
+- description: frequency in Hz
   type: float
   default: 0
 - description: initial phase offset
@@ -19,7 +19,7 @@ arguments:
 inlets:
   1st:
   - type: float
-    description: frequency in hz
+    description: frequency in Hz
   2nd:
   - type: float
     description: phase sync (resets internal phase)

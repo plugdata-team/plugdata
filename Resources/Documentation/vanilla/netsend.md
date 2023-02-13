@@ -19,7 +19,7 @@ inlets:
 outlets:
   1st:
   - type: float
-    description: nonzero if connection is open, zero otherwise
+    description: non-0 if connection is open, zero otherwise
   2nd:
   - type: anything
     description: messages sent back from netreceive objects

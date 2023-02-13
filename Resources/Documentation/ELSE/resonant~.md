@@ -10,7 +10,7 @@ pdcategory: ELSE, Filters, Effects
 
 arguments:
 - type: float
-  description: center frequency in hertz
+  description: center frequency in Hz
   default: 0
 - type: float
   description: resonance
@@ -22,7 +22,7 @@ inlets:
     description: signal to be filtered or excite the resonator
   2nd:
   - type: float/signal
-    description: central frequency in hertz
+    description: central frequency in Hz
   3rd:
   - type: signal
     description: resonance (t60 decay time in ms or Q)

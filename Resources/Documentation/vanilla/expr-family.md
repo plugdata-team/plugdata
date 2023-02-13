@@ -136,8 +136,8 @@ The **fexpr~** object provides a flexible mechanism for building FIR and IIR fil
 
 |Functions |# of Args |Description|
 |:---|:---|:--- |
-|mtof() |1 |convert MIDI pitch to frequency in hertz|
-|ftom() |1 |convert frequency in hertz to MIDI pitch|
+|mtof() |1 |convert MIDI pitch to frequency in Hz|
+|ftom() |1 |convert frequency in Hz to MIDI pitch|
 |dbtorms() |1 |convert db to rms|
 |rmstodb() |1 |convert rms to db|
 |powtodb() |1 |convert power to db|

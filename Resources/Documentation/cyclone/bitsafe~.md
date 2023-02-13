@@ -1,6 +1,6 @@
 ---
 title: bitsafe~
-description: replace nan/inf and denormal signals with 0
+description: replace NaN/Inf and denormal signals with 0
 categories:
  - object
 pdcategory: cyclone, Logic, Signal Math
@@ -8,11 +8,11 @@ arguments:
 inlets:
   1st:
   - type: signal
-    description: input signals to have nan/inf values replaced with 0
+    description: input signals to have NaN/Inf values replaced with 0
 outlets:
   1st:
   - type: signal
-    description: the signal which has 0 values where nan/inf values existed
+    description: the signal which has 0 values where NaN/Inf values existed
 
 ---
 

@@ -14,23 +14,23 @@ see_also:
 pdcategory: vanilla, Data Structures
 last_update: '0.47'
 inlets:
-  1st:
-  - type: set <symbol, symbol>
-    description: if none or just one field is given, you can use 'set' to set struct name and field
-  "'n' :number of arguments set 'n' fields and we create 'n' inlets for them.":
+  nth:
   - type: float/symbol
     description: value in a scalar
   2nd:
   - type: pointer
     description: a pointer to the scalar
 flags:
-- name:	"-symbol"
+- name:	-symbol
   description: so you can set symbol values
 arguments:
 - type: symbol
   description: structure name
 - type: list
   description: symbols for field names (each creates an inlet)
+methods:
+  - type: set <symbol, symbol>
+    description: if none or just one field is given, you can use 'set' to set struct name and field
 draft: false
 ---
 "Set" takes a pointer to a scalar in its rightmost inlet. The remaining inlets set numeric fields. Symbols are handled specially, as shown below. Arrays are accessed using the "element" object, and lists using "text" objects. Only the leftmost inlet is "hot".

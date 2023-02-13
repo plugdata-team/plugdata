@@ -73,7 +73,7 @@ methods:
   - type: receive <symbol>
     description: sets receive symbol
   - type: init <float>
-    description: nonzero sets to init mode
+    description: non-0 sets to init mode
 
 ---
 

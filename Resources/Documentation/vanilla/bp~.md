@@ -17,7 +17,7 @@ last_update: '0.46'
 inlets:
   1st:
   - type: signal
-    description: input signal to be filtered. 
+    description: input signal to be filtered
   - type: clear
     description: clear filter's memory
   2nd:
@@ -25,7 +25,7 @@ inlets:
     description: center frequency in Hz
   3rd:
   - type: float
-    description:  Q (controls bandwidth).  	
+    description:  Q (controls bandwidth)
 outlets:
   1st:
   - type: signal
