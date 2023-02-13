@@ -283,6 +283,7 @@ Statusbar::Statusbar(PluginProcessor* processor)
             }
         }); 
         gridSelector.addSeparator();
+        auto attachedCanvas = dynamic_cast<PluginEditor*>(pd->getActiveEditor())->getCurrentCanvas();
         gridSelector.addCustomItem(1, std::make_unique<gridSizeSlider>(attachedCanvas), nullptr, "Grid Size");
 
         gridSelector.showMenuAsync(PopupMenu::Options().withMinimumWidth(150).withMaximumNumColumns(1).withTargetComponent(gridButton.get()).withParentComponent(pd->getActiveEditor()));
@@ -378,7 +379,6 @@ void Statusbar::attachToCanvas(Canvas* cnv)
 {
     locked.referTo(cnv->locked);
     lockButton->getToggleStateValue().referTo(cnv->locked);
-    attachedCanvas = cnv;
 }
 
 void Statusbar::propertyChanged(String name, var value)
