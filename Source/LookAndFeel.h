@@ -953,10 +953,10 @@ struct PlugDataLook : public LookAndFeel_V4 {
 
         TextLayout tl;
         tl.createLayoutWithBalancedLineLengths(s, (float)maxToolTipWidth);
-        
+
         int marginX = 22.0f;
         int marginY = 10.0f;
-        
+
         auto w = (int)(tl.getWidth() + marginX);
         auto h = (int)(tl.getHeight() + marginY);
 

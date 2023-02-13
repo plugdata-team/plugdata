@@ -241,8 +241,8 @@ public:
 
         object->setObjectBounds(bounds);
     }
-    
-    void applyBounds(const Rectangle<int> b)
+
+    void applyBounds(Rectangle<int> const b)
     {
         iemgui->x_obj.te_xpix = b.getX();
         iemgui->x_obj.te_ypix = b.getY();
