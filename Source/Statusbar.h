@@ -11,6 +11,7 @@ class Canvas;
 class LevelMeter;
 class MidiBlinker;
 class PluginProcessor;
+class CustomSlider;
 
 class StatusbarSource : public Timer {
 
@@ -71,6 +72,7 @@ public:
     void timerCallback() override;
 
     void attachToCanvas(Canvas* cnv);
+    Canvas* currentCanvas;
 
     void audioProcessedChanged(bool audioProcessed) override;
 

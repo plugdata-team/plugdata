@@ -127,6 +127,48 @@ public:
     bool blinkMidiOut = false;
 };
 
+class CustomSlider : public PopupMenu::CustomComponent, public Slider::Listener 
+{
+public:
+    CustomSlider(Canvas* cnv) : canvas(cnv)
+    {
+  /*       addAndMakeVisible(label.get());
+        label->setText("Size:", dontSendNotification);
+        label->setJustificationType(Justification::centredLeft); */
+        addAndMakeVisible(slider.get());
+        slider->setRange(5, 25, 5);
+        slider->setValue(cnv->grid.gridSize);
+        setVisible(true);
+        slider->addListener(this);
+    }
+
+    void sliderValueChanged(Slider* slider) override
+    {
+        canvas->grid.gridSize = slider->getValue();
+        canvas->repaint();
+    }
+
+
+    void getIdealSize(int& idealWidth, int& idealHeight) override
+    {
+        idealWidth = 100;
+        idealHeight = 20;
+    }
+
+    void resized() override
+    {
+        auto bounds = getLocalBounds();
+       // label->setBounds(bounds.removeFromLeft(30));
+        slider->setBounds(bounds.removeFromLeft(70));
+    }
+
+private:
+    Canvas* canvas;
+   // std::unique_ptr<Label> label = std::make_unique<Label>();
+    std::unique_ptr<Slider> slider = std::make_unique<Slider>();
+};
+
+
 Statusbar::Statusbar(PluginProcessor* processor)
     : pd(processor)
 {
@@ -201,12 +243,17 @@ Statusbar::Statusbar(PluginProcessor* processor)
 
     gridButton->onClick = [this]() {
         PopupMenu gridSelector;
-        int gridEnabled = SettingsFile::getInstance()->getProperty<int>("grid_enabled");
-        gridSelector.addItem("Absolute grid", true, gridEnabled == 2, [this]() {
+        auto settings = static_cast<SettingsFile*>(SettingsFile::getInstance());
+        int gridEnabled = settings->getProperty<int>("grid_enabled");
+        gridSelector.addItem("Absolute grid", true, gridEnabled == 2 || gridEnabled == 3, [this, settings, gridEnabled]() {
             gridButton->setColour(TextButton::textColourOffId, Colours::orange);
-            SettingsFile::getInstance()->setProperty("grid_enabled", 2);
+            if (gridEnabled == 1) {
+                settings->setProperty("grid_enabled", 3);
+            } else {
+                settings->setProperty("grid_enabled", 2);
+            }
         });
-        gridSelector.addItem("Relative grid", true, gridEnabled == 1, [this]() {
+        gridSelector.addItem("Relative grid", true,  gridEnabled == 1 || gridEnabled == 3, [this]() {
             gridButton->setColour(TextButton::textColourOffId, findColour(PlugDataColour::gridLineColourId));
             SettingsFile::getInstance()->setProperty("grid_enabled", 1);
         });
@@ -214,7 +261,12 @@ Statusbar::Statusbar(PluginProcessor* processor)
             gridButton->setColour(TextButton::textColourOffId, findColour(PlugDataColour::toolbarTextColourId));
             SettingsFile::getInstance()->setProperty("grid_enabled", 0);
         });
+        gridSelector.addSeparator();
+        gridSelector.addCustomItem(1, std::make_unique<CustomSlider>(currentCanvas), nullptr, "");
 
+
+
+        
         gridSelector.showMenuAsync(PopupMenu::Options().withMinimumWidth(150).withMaximumNumColumns(1).withTargetComponent(gridButton.get()).withParentComponent(pd->getActiveEditor()));
     };
 
@@ -306,6 +358,7 @@ void Statusbar::attachToCanvas(Canvas* cnv)
 {
     locked.referTo(cnv->locked);
     lockButton->getToggleStateValue().referTo(cnv->locked);
+    currentCanvas = cnv;
 }
 
 void Statusbar::propertyChanged(String name, var value)
