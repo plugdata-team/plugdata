@@ -11,7 +11,7 @@
 #include "LookAndFeel.h"
 #include "Utility/ObjectBoundsConstrainer.h"
 
-ObjectGrid::ObjectGrid(Canvas* parent)
+ObjectGrid::ObjectGrid(Canvas* parent) : cnv(parent)
 {
     for (auto& line : gridLines) {
         parent->addAndMakeVisible(line);
@@ -19,8 +19,9 @@ ObjectGrid::ObjectGrid(Canvas* parent)
         line.setStrokeThickness(1);
         line.setAlwaysOnTop(true);
     }
-
-    gridEnabled = SettingsFile::getInstance()->getProperty<int>("grid_enabled");
+    //gridEnabled.addListener(cnv);
+    // Initialise grid settings
+   //gridEnabled = SettingsFile::getInstance()->getProperty<int>("grid_enabled");
 }
 
 Point<int> ObjectGrid::applySnap(SnapOrientation direction, Point<int> pos, Component* s, Component* e, bool horizontal)
@@ -114,11 +115,6 @@ void ObjectGrid::clear(bool horizontal)
 
 Point<int> ObjectGrid::performResize(Object* toDrag, Point<int> dragOffset, Rectangle<int> newResizeBounds)
 {
-    // Grid is disabled
-    if (gridEnabled == 0 || ModifierKeys::getCurrentModifiers().isShiftDown()) { 
-        return dragOffset;
-    }
-
     // Snap to Objects
     if (gridEnabled == 1 || gridEnabled == 3) { 
 
@@ -203,15 +199,12 @@ Point<int> ObjectGrid::performResize(Object* toDrag, Point<int> dragOffset, Rect
         }
         return snappedPosition;
     }
+
+    return dragOffset;
 }
 
 Point<int> ObjectGrid::performMove(Object* toDrag, Point<int> dragOffset)
 {
-    // Grid is disabled
-    if (gridEnabled == 0 || ModifierKeys::getCurrentModifiers().isShiftDown()) {
-        return dragOffset;
-    }
-
     // Snap to Objects
     if (gridEnabled == 1 || gridEnabled == 3) {
         auto snappable = getSnappableObjects(toDrag->cnv);
@@ -326,6 +319,8 @@ Point<int> ObjectGrid::performMove(Object* toDrag, Point<int> dragOffset)
         }
         return snappedPosition;
     }
+
+    return dragOffset;
 }
 
 Array<Object*> ObjectGrid::getSnappableObjects(Canvas* cnv)

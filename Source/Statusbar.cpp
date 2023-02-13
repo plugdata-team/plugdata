@@ -148,14 +148,15 @@ public:
 
         addAndMakeVisible(slider.get());
         slider->setRange(5, 25, 5);
-        slider->setValue(cnv->grid.gridSize);
+        slider->setValue(cnv->objectGrid.gridSize);
         slider->setTextBoxStyle(Slider::NoTextBox, false, 0, 0);
+        slider->setColour(Slider::ColourIds::trackColourId, findColour(PlugDataColour::panelBackgroundColourId));
         slider->addListener(this);
     }
 
     void sliderValueChanged(Slider* slider) override
     {
-        canvas->grid.gridSize = slider->getValue();
+        canvas->objectGrid.gridSize = slider->getValue();
         canvas->repaint();
     }
 
@@ -169,12 +170,12 @@ public:
     {
         auto bounds = getLocalBounds();
         bounds.reduce(10, 0);
-        int x = bounds.getX();
+         int x = bounds.getX();
         int spacing = bounds.getWidth() / 5;
         for (auto& textBox : intervalTextBoxes) {
             textBox->setBounds(x, bounds.getY(), spacing, bounds.getHeight() - 10);
             x += spacing;
-        }
+        } 
         slider->setBounds(bounds.getX(), bounds.getY(), bounds.getWidth(), bounds.getHeight() + 10);
     }
 
@@ -259,7 +260,7 @@ Statusbar::Statusbar(PluginProcessor* processor)
     gridButton->onClick = [this]() {
         PopupMenu gridSelector;
         auto settings = static_cast<SettingsFile*>(SettingsFile::getInstance());
-        int gridEnabled = settings->getProperty<int>("grid_enabled");
+        auto gridEnabled = dynamic_cast<PluginEditor*>(pd->getActiveEditor())->getCurrentCanvas()->objectGrid.gridEnable;
         gridSelector.addItem("Snap to Grid", true, gridEnabled == 2 || gridEnabled == 3, [this, settings, gridEnabled]() {
             if (gridEnabled == 0) {
                 settings->setProperty("grid_enabled", 2);
@@ -270,6 +271,7 @@ Statusbar::Statusbar(PluginProcessor* processor)
             } else {
                 settings->setProperty("grid_enabled", 1);
             }
+            propertyChanged("grid_enabled", SettingsFile::getInstance()->getProperty<int>("grid_enabled"));
         });
         gridSelector.addItem("Snap to Objects", true, gridEnabled == 1 || gridEnabled == 3, [this, settings, gridEnabled]() {
             if (gridEnabled == 0) {
@@ -281,9 +283,10 @@ Statusbar::Statusbar(PluginProcessor* processor)
             } else {
                 settings->setProperty("grid_enabled", 2);
             }
-        });
+            propertyChanged("grid_enabled", SettingsFile::getInstance()->getProperty<int>("grid_enabled"));
+        }); 
         gridSelector.addSeparator();
-        gridSelector.addCustomItem(1, std::make_unique<gridSizeSlider>(currentCanvas), nullptr, "");
+        //gridSelector.addCustomItem(1, std::make_unique<gridSizeSlider>(dynamic_cast<PluginEditor*>(pd->getActiveEditor())->getCurrentCanvas())), nullptr, "";
 
         gridSelector.showMenuAsync(PopupMenu::Options().withMinimumWidth(150).withMaximumNumColumns(1).withTargetComponent(gridButton.get()).withParentComponent(pd->getActiveEditor()));
     };
@@ -378,13 +381,12 @@ void Statusbar::attachToCanvas(Canvas* cnv)
 {
     locked.referTo(cnv->locked);
     lockButton->getToggleStateValue().referTo(cnv->locked);
-    currentCanvas = cnv;
 }
 
 void Statusbar::propertyChanged(String name, var value)
 {
     if (name == "grid_enabled") {
-        int gridEnabled = static_cast<int>(value);
+        auto gridEnabled = dynamic_cast<PluginEditor*>(pd->getActiveEditor())->getCurrentCanvas()->objectGrid.gridEnable;
         if (gridEnabled == 0) {
             gridButton->setColour(TextButton::textColourOffId, findColour(PlugDataColour::toolbarTextColourId));
             gridButton->setColour(TextButton::textColourOnId, findColour(PlugDataColour::toolbarActiveColourId));
@@ -412,7 +414,7 @@ void Statusbar::valueChanged(Value& v)
         auto c = static_cast<bool>(commandLocked.getValue()) ? findColour(PlugDataColour::toolbarActiveColourId) : findColour(PlugDataColour::toolbarTextColourId);
         lockButton->setColour(PlugDataColour::toolbarTextColourId, c);
     }
-}
+} 
 
 void Statusbar::lookAndFeelChanged()
 {
@@ -469,6 +471,8 @@ void Statusbar::modifierKeysChanged(ModifierKeys const& modifiers)
     auto* editor = dynamic_cast<PluginEditor*>(pd->getActiveEditor());
 
     commandLocked = modifiers.isCommandDown() && locked.getValue() == var(false);
+
+    //gridDisable = modifiers.isShiftDown() && SettingsFile::getInstance()->getProperty<int>("grid_enabled");
 
     if (auto* cnv = editor->getCurrentCanvas()) {
         if (cnv->didStartDragging || cnv->isDraggingLasso || static_cast<bool>(cnv->presentationMode.getValue())) {
