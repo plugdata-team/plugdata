@@ -46,7 +46,7 @@ public:
 
     void applyBounds() override
     {
-        iemHelper.applyBounds();
+        iemHelper.applyBounds(object->getObjectBounds());
     }
 
     bool canReceiveMouseEvent(int x, int y) override
