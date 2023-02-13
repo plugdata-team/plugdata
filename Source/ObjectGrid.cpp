@@ -20,6 +20,7 @@ ObjectGrid::ObjectGrid(Canvas* parent)
         line.setAlwaysOnTop(true);
     }
     gridEnabled = SettingsFile::getInstance()->getProperty<int>("grid_enabled");
+    gridSize = SettingsFile::getInstance()->getProperty<int>("grid_size");
 }
 
 Point<int> ObjectGrid::applySnap(SnapOrientation direction, Point<int> pos, Component* s, Component* e, bool horizontal)
@@ -386,5 +387,8 @@ void ObjectGrid::propertyChanged(String name, var value)
 {
     if (name == "grid_enabled") {
         gridEnabled = static_cast<int>(value);
+    }
+    if (name == "grid_size") {
+        gridSize = static_cast<int>(value);
     }
 }

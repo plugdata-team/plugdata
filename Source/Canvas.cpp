@@ -53,7 +53,7 @@ Canvas::Canvas(PluginEditor* parent, pd::Patch& p, Component* parentGraph)
     commandLocked.addListener(this);
 
     gridEnabled.referTo(SettingsFile::getInstance()->getPropertyAsValue("grid_enabled"));
-    //gridEnabled.addListener(this);
+
     tabbar = &editor->tabbar;
 
     // Add draggable border for setting graph position

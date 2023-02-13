@@ -14,6 +14,7 @@ class ObjectGrid : public SettingsFileListener {
 
 public:
     ObjectGrid(Canvas* parent);
+    
     // Point<int> handleMouseDrag(Object* toDrag, Point<int> dragOffset, Rectangle<int> viewBounds, Rectangle<int> resizeBounds = Rectangle<int>(0, 0, 0, 0));
     Point<int> handleMouseUp(Point<int> dragOffset);
 
@@ -21,8 +22,8 @@ public:
 
     Point<int> performResize(Object* toDrag, Point<int> dragOffset, Rectangle<int> newResizeBounds);
 
-    //TODO: Can we save gridSize in patch? else save in settings File
-    int gridSize = 20;
+    //TODO: Can we save gridSize in patch instead of Settings File??
+    int gridSize;
 
     static constexpr int range = 5;
     static constexpr int tolerance = 3;
