@@ -115,7 +115,7 @@ void ObjectGrid::clear(bool horizontal)
 Point<int> ObjectGrid::performResize(Object* toDrag, Point<int> dragOffset, Rectangle<int> newResizeBounds)
 {
     // Grid is disabled
-    if (gridEnabled == 0) { 
+    if (gridEnabled == 0 || ModifierKeys::getCurrentModifiers().isShiftDown()) { 
         return dragOffset;
     }
 
