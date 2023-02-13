@@ -201,7 +201,7 @@ Point<int> ObjectGrid::performResize(Object* toDrag, Point<int> dragOffset, Rect
 Point<int> ObjectGrid::performMove(Object* toDrag, Point<int> dragOffset)
 {
 
-    if (gridEnabled == 0) { // Grid is disabled
+    if (gridEnabled == 0 || ModifierKeys::getCurrentModifiers().isShiftDown()) { // Grid is disabled
         return dragOffset;
     }
 
