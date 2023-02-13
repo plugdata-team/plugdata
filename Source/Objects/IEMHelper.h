@@ -241,22 +241,9 @@ public:
 
         object->setObjectBounds(bounds);
     }
-
-    // new way of applying bounds, not implemented everywhere yet
-    void applyBounds(Rectangle<int> b)
+    
+    void applyBounds(const Rectangle<int> b)
     {
-        iemgui->x_obj.te_xpix = b.getX();
-        iemgui->x_obj.te_ypix = b.getY();
-
-        iemgui->x_w = b.getWidth();
-        iemgui->x_h = b.getHeight();
-    }
-
-    // legacy way of applying bounds, remove when no longer needed
-    void applyBounds()
-    {
-        auto b = object->getObjectBounds();
-
         iemgui->x_obj.te_xpix = b.getX();
         iemgui->x_obj.te_ypix = b.getY();
 

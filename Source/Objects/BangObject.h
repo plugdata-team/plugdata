@@ -54,7 +54,7 @@ public:
 
     void applyBounds() override
     {
-        iemHelper.applyBounds();
+        iemHelper.applyBounds(object->getObjectBounds());
     }
 
     void toggleObject(Point<int> position) override
