@@ -53,7 +53,7 @@ private:
     Point<int> performAbsoluteSnap(Object* toDrag, Point<int> dragOffset);
 
     Array<Object*> getSnappableObjects(Canvas* cnv);
-    bool isAlreadySnapped(bool horizontal, Point<int>& dragOffset);
+    bool isAlreadySnapped(bool horizontal, bool resizing, Point<int>& dragOffset);
 
     void propertyChanged(String name, var value) override;
 };
