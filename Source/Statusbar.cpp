@@ -290,7 +290,7 @@ Statusbar::Statusbar(PluginProcessor* processor)
 
     
     addAndMakeVisible(gridButton.get());
-    
+
     // Initialise grid state
     propertyChanged("grid_enabled", SettingsFile::getInstance()->getProperty<int>("grid_enabled"));
 
@@ -388,11 +388,14 @@ void Statusbar::propertyChanged(String name, var value)
         if (gridEnabled == 0) {
             gridButton->setColour(TextButton::textColourOffId, findColour(PlugDataColour::toolbarTextColourId));
             gridButton->setColour(TextButton::textColourOnId, findColour(PlugDataColour::toolbarActiveColourId));
-        }
-        if (gridEnabled == 1) {
+        } else if (gridEnabled == 1) {
             gridButton->setColour(TextButton::textColourOffId, findColour(PlugDataColour::gridLineColourId));
             gridButton->setColour(TextButton::textColourOnId, findColour(PlugDataColour::gridLineColourId).brighter(0.4f));
         } else if (gridEnabled == 2) {
+            gridButton->setColour(TextButton::textColourOffId, findColour(PlugDataColour::signalColourId));
+            // TODO: fix weird colour id usage
+            gridButton->setColour(TextButton::textColourOnId, findColour(PlugDataColour::signalColourId).brighter(0.4f));
+        } else if (gridEnabled == 3) {
             gridButton->setColour(TextButton::textColourOffId, findColour(PlugDataColour::signalColourId));
             // TODO: fix weird colour id usage
             gridButton->setColour(TextButton::textColourOnId, findColour(PlugDataColour::signalColourId).brighter(0.4f));
