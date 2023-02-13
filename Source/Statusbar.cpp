@@ -253,7 +253,7 @@ Statusbar::Statusbar(PluginProcessor* processor)
     powerButton->getProperties().set("Style", "SmallIcon");
     addAndMakeVisible(powerButton.get());
 
-    gridButton->setTooltip("Enable grid");
+    gridButton->setTooltip("Grid Options");
     gridButton->getProperties().set("Style", "SmallIcon");
 
     gridButton->onClick = [this]() {
