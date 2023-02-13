@@ -148,7 +148,7 @@ public:
 
         addAndMakeVisible(slider.get());
         slider->setRange(5, 30, 5);
-        slider->setValue(cnv->objectGrid.gridSize);
+        slider->setValue(SettingsFile::getInstance()->getProperty<int>("grid_size"));
         slider->setTextBoxStyle(Slider::NoTextBox, false, 0, 0);
         slider->setColour(Slider::ColourIds::trackColourId, findColour(PlugDataColour::panelBackgroundColourId));
         slider->addListener(this);
@@ -156,7 +156,7 @@ public:
 
     void sliderValueChanged(Slider* slider) override
     {
-        canvas->objectGrid.gridSize = slider->getValue();
+        SettingsFile::getInstance()->setProperty("grid_size", slider->getValue());
         canvas->repaint();
     }
 
