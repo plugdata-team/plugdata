@@ -92,6 +92,7 @@ public:
     Value locked;
     Value commandLocked; // Temporary lock mode
     Value presentationMode;
+    Value gridEnabled;
 
     static constexpr int statusbarHeight = 30;
 
