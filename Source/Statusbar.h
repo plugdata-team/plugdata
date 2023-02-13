@@ -72,7 +72,6 @@ public:
     void timerCallback() override;
 
     void attachToCanvas(Canvas* cnv);
-    Canvas* currentCanvas;
 
     void audioProcessedChanged(bool audioProcessed) override;
 
@@ -92,7 +91,6 @@ public:
     Value locked;
     Value commandLocked; // Temporary lock mode
     Value presentationMode;
-    Value gridEnabled;
 
     static constexpr int statusbarHeight = 30;
 

@@ -11,7 +11,7 @@
 #include "LookAndFeel.h"
 #include "Utility/ObjectBoundsConstrainer.h"
 
-ObjectGrid::ObjectGrid(Canvas* parent) : cnv(parent)
+ObjectGrid::ObjectGrid(Canvas* parent)
 {
     for (auto& line : gridLines) {
         parent->addAndMakeVisible(line);
@@ -19,7 +19,7 @@ ObjectGrid::ObjectGrid(Canvas* parent) : cnv(parent)
         line.setStrokeThickness(1);
         line.setAlwaysOnTop(true);
     }
-    gridEnabled.referTo(SettingsFile::getInstance()->getPropertyAsValue("grid_enabled"));
+    gridEnabled = SettingsFile::getInstance()->getProperty<int>("grid_enabled");
 }
 
 Point<int> ObjectGrid::applySnap(SnapOrientation direction, Point<int> pos, Component* s, Component* e, bool horizontal)
@@ -307,11 +307,11 @@ Point<int> ObjectGrid::performMove(Object* toDrag, Point<int> dragOffset)
     // Snap to Grid
     if (gridEnabled == 2 || gridEnabled == 3) {
         Point<int> newPos = toDrag->originalBounds.reduced(Object::margin).getPosition() + dragOffset;
-        if (!isAlreadySnapped(true, dragOffset)) {
+        if (!isAlreadySnapped(true, false, dragOffset)) {
             newPos.setX(roundToInt(newPos.getX() / gridSize + 1) * gridSize);
             snappedPosition.x = newPos.x - toDrag->originalBounds.reduced(Object::margin).getX() - gridSize;
         }
-        if (!isAlreadySnapped(false, dragOffset)) {
+        if (!isAlreadySnapped(false, false, dragOffset)) {
             newPos.setY(roundToInt(newPos.getY() / gridSize + 1) * gridSize);
             snappedPosition.y = newPos.y - toDrag->originalBounds.reduced(Object::margin).getY() - gridSize;
         }

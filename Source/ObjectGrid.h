@@ -58,5 +58,5 @@ private:
     void propertyChanged(String name, var value) override;
 
     Value gridEnabled;
-    Canvas* cnv;
+
 };
