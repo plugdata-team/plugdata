@@ -14,7 +14,6 @@ class ObjectGrid : public SettingsFileListener {
 
 public:
     ObjectGrid(Canvas* parent);
-    int gridSize = 10;
     // Point<int> handleMouseDrag(Object* toDrag, Point<int> dragOffset, Rectangle<int> viewBounds, Rectangle<int> resizeBounds = Rectangle<int>(0, 0, 0, 0));
     Point<int> handleMouseUp(Point<int> dragOffset);
 
@@ -22,6 +21,7 @@ public:
 
     Point<int> performResize(Object* toDrag, Point<int> dragOffset, Rectangle<int> newResizeBounds);
 
+    int gridSize = 20;
     static constexpr int range = 5;
     static constexpr int tolerance = 3;
 
@@ -36,7 +36,7 @@ private:
     bool snapped[2] = { false, false };
 
     SnapOrientation orientation[2];
-    Point<int> position;
+    Point<int> snappedPosition;
     Component::SafePointer<Component> start[2];
     Component::SafePointer<Component> end[2];
     DrawablePath gridLines[2];

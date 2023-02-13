@@ -27,7 +27,7 @@ Point<int> ObjectGrid::applySnap(SnapOrientation direction, Point<int> pos, Comp
 {
     orientation[horizontal] = direction;
     snapped[horizontal] = true;
-    position = pos;
+    snappedPosition = pos;
     start[horizontal] = s;
     end[horizontal] = e;
     updateMarker();
@@ -106,7 +106,7 @@ void ObjectGrid::updateMarker()
 void ObjectGrid::clear(bool horizontal)
 {
     snapped[horizontal] = false;
-    position = Point<int>();
+    snappedPosition = Point<int>();
     start[horizontal] = nullptr;
     end[horizontal] = nullptr;
     updateMarker();
@@ -117,15 +117,14 @@ Point<int> ObjectGrid::performResize(Object* toDrag, Point<int> dragOffset, Rect
     if (gridEnabled == 0) { // Grid is disabled
         return dragOffset;
     }
-    if (gridEnabled == 2) { // Absolute grid
+    if (gridEnabled == 2 || gridEnabled == 3) { // Absolute grid
         auto roundedDrag = (dragOffset / 10) * 10;
         auto objectPos = toDrag->originalBounds.reduced(Object::margin).getPosition();
         auto offset = ((objectPos / 10) * 10) - objectPos;
 
         auto totalOffset = roundedDrag + offset;
 
-        position.x = totalOffset.x;
-        position.y = totalOffset.y;
+        snappedPosition = totalOffset;
 
         snapped[0] = true;
         snapped[1] = true;
@@ -205,20 +204,23 @@ Point<int> ObjectGrid::performMove(Object* toDrag, Point<int> dragOffset)
     if (gridEnabled == 0) { // Grid is disabled
         return dragOffset;
     }
-    if (gridEnabled == 2) { // Absolute grid
-        auto roundedDrag = (dragOffset / 10) * 10;
-        auto objectPos = toDrag->originalBounds.reduced(Object::margin).getPosition();
-        auto offset = ((objectPos / 10) * 10) - objectPos;
+    
+    Point<int> totalOffset;
 
-        auto totalOffset = roundedDrag + offset;
+    if (gridEnabled == 2 || gridEnabled == 3) { // Absolute grid
+        Point<int> newPos =  toDrag->originalBounds.reduced(Object::margin).getPosition() + dragOffset;
+        newPos.setX(roundToInt(newPos.getX() / gridSize * gridSize));
+        newPos.setY(roundToInt(newPos.getY() / gridSize * gridSize));
+        //toDrag->setPosition(newPos);
+        std::cout << "x " << newPos.x << std::endl;
+        std::cout << "y " << newPos.y << std::endl;
+        snappedPosition = newPos - toDrag->originalBounds.reduced(Object::margin).getPosition();
+        
 
-        position.x = totalOffset.x;
-        position.y = totalOffset.y;
+        //snapped[0] = true;
+        //snapped[1] = true;
 
-        snapped[0] = true;
-        snapped[1] = true;
-
-        return totalOffset;
+        return snappedPosition;
     }
 
     // Relative grid
@@ -339,18 +341,18 @@ Array<Object*> ObjectGrid::getSnappableObjects(Canvas* cnv)
 bool ObjectGrid::isAlreadySnapped(bool horizontal, Point<int>& dragOffset)
 {
     if (horizontal && snapped[1]) {
-        if (std::abs(position.x - dragOffset.x) > range) {
+        if (std::abs(snappedPosition.x - dragOffset.x) > range) {
             clear(true);
             return true;
         }
-        dragOffset = { position.x, position.y };
+        dragOffset = {snappedPosition.x, snappedPosition.y };
         return true;
     } else if (!horizontal && snapped[0]) {
-        if (std::abs(position.y - dragOffset.y) > range) {
+        if (std::abs(snappedPosition.y - dragOffset.y) > range) {
             clear(false);
             return true;
         }
-        dragOffset = { position.x, position.y };
+        dragOffset = {snappedPosition.x, snappedPosition.y };
         return true;
     }
 
@@ -359,14 +361,28 @@ bool ObjectGrid::isAlreadySnapped(bool horizontal, Point<int>& dragOffset)
 
 Point<int> ObjectGrid::handleMouseUp(Point<int> dragOffset)
 {
-    if (snapped[1]) {
-        dragOffset.x = position.x;
-        clear(1);
-    }
-
-    if (snapped[0]) {
-        dragOffset.y = position.y;
-        clear(0);
+    if (gridEnabled == 1) {
+        if (snapped[1]) {
+            dragOffset.x = snappedPosition.x;
+            clear(1);
+        }
+        if (snapped[0]) {
+            dragOffset.y = snappedPosition.y;
+            clear(0);
+        }
+        return dragOffset;
+    } else if (gridEnabled == 2) {
+        return snappedPosition;
+    } else if (gridEnabled == 3) {
+                if (snapped[1]) {
+            dragOffset.x = snappedPosition.x;
+            clear(1);
+        }
+        if (snapped[0]) {
+            dragOffset.y = snappedPosition.y;
+            clear(0);
+        }
+        return dragOffset;
     }
 
     return dragOffset;
