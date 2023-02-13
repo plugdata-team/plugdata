@@ -450,7 +450,7 @@ PopupMenu Dialogs::createObjectMenu(PluginEditor* parent)
     PopupMenu generalMenu;
     {
         generalMenu.addItem(createCommandItem(ObjectIDs::NewMetro, "metro"));
-        generalMenu.addItem(createCommandItem(ObjectIDs::NewExpr, "counter"));
+        generalMenu.addItem(createCommandItem(ObjectIDs::NewCounter, "counter"));
         generalMenu.addItem(createCommandItem(ObjectIDs::NewSel, "sel"));
         generalMenu.addItem(createCommandItem(ObjectIDs::NewRoute, "route"));
         generalMenu.addItem(createCommandItem(ObjectIDs::NewExpr, "expr"));

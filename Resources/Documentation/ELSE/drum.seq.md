@@ -53,7 +53,7 @@ methods:
   - type: size <float>
     description: sets cell size in pixels (clears data)
   - type: embed <float>
-    description: non zero save internal contents with the object
+    description: non-0 save internal contents with the object
 
   - type: export <list>
     description: array of contexts via the "export" message

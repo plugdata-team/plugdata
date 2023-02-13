@@ -13,7 +13,7 @@ arguments:
   description: density
   default: 0
 - type: float
-  description: non-zero sets to random gate value mode
+  description: non-0 sets to random gate value mode
   default: 0
 
 inlets: 
@@ -32,7 +32,7 @@ flags:
 
 methods:
   - type: rand <float>
-    description: non-zero sets to random gate value mode
+    description: non-0 sets to random gate value mode
   - type: seed <float>
     description: - a float sets seed, no float sets a unique internal
 

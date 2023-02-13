@@ -12,12 +12,12 @@ inlets:
 outlets:
   1st:
   - type: bang
-    description: at zero to non-zero transition
+    description: at zero to non-0 transition
   2nd:
   - type: bang
-    description: at non-zero to zero transition
+    description: at non-0 to zero transition
 
 ---
 
-[edge~] detects signal transitions from zero to non-zero and vice versa and reports bangs accordingly.
+[edge~] detects signal transitions from zero to non-0 and vice versa and reports bangs accordingly.
 

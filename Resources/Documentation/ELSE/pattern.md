@@ -16,7 +16,7 @@ arguments:
 inlets:
   1st:
   - type: float
-    description: non-zero starts, zero stops the sequencer
+    description: non-0 starts, zero stops the sequencer
   - type: bang
     description: (re)start sequencer
   - type: list

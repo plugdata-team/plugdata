@@ -9,8 +9,8 @@ see_also:
 - fudiparse
 - oscformat
 flags:
-- description: "switches to \u201CUDP\u201D mode"
-  flag: -u
+- name: -u
+  description: switches to "UDP" mode
 inlets:
   1st:
   - type: anything

@@ -15,7 +15,7 @@ see_also:
 - list tosymbol
 arguments:
 - description: 'sets the function of [list], possible values: append, prepend, store,
-    split, trim, length, fromsymbol and tosymbol. The default value is ''append''.'
+    split, trim, length, fromsymbol and tosymbol. The default value is ''append'''
   type: symbol
 inlets:
   1st:

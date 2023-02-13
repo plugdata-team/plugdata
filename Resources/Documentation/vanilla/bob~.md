@@ -28,10 +28,10 @@ inlets:
     description: post internal state and parameters on Pd's window
   2nd:
   - type: float/signal
-    description: resonant or cutoff frequency in hertz
+    description: resonant or cutoff frequency in Hz
   3rd:
   - type: float/signal
-    description: resonannce
+    description: resonance
 outlets:
   1st:
   - type: signal

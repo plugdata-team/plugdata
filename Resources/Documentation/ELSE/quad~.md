@@ -9,7 +9,7 @@ pdcategory: ELSE, Signal Generators
 
 arguments:
 - type: float
-  description: sets frequency in hertz
+  description: sets frequency in Hz
   default: nyquist
 - type: float
   description: sets a
@@ -27,7 +27,7 @@ arguments:
 inlets:
   1st:
   - type: float/signal
-    description: frequency in hertz (negative values accepted)
+    description: frequency in Hz (negative values accepted)
   - type: list
     description: 4 floats sets 'a', 'b', 'c', and y[n-1]
 

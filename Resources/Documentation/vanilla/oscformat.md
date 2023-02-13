@@ -29,7 +29,7 @@ methods:
   - type: set <list>
     description: set one or more addresses
   - type: format <symbol>
-    description: characters set format types: 'b' (blob), 'i' (interger), 'f' (float), or 's' (sring)
+    description: characters set format types: 'b' (blob), 'i' (integer), 'f' (float), or 's' (string)
 
 draft: false
 ---

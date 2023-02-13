@@ -9,7 +9,7 @@ categories:
 pdcategory: ELSE, Triggers and Clocks
 
 arguments:
-- description: frequency in hertz
+- description: frequency in Hz
   type: float
   default: 0
 - description: initial phase offset

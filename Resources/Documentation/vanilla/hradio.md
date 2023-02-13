@@ -5,20 +5,20 @@ pdcategory: vanilla, UI
 inlets:
   1st:
   - type: float
-    description: Set and output number
+    description: set and output number
 outlets:
   1st:
   - type: float
-    description: Selected cell number
+    description: selected cell number
 methods:
 - type: size <float>
   description: sets the GUI size
 - type: orientation <float>
-  description: non zero sets to vertical, zero sets to horizontal
+  description: non-0 sets to vertical, zero sets to horizontal
 - type: number <float>
   description: sets number of cells
 - type: init <float>
-  description: non zero sets to init mode
+  description: non-0 sets to init mode
 - type: label <symbol>
   description: sets label symbol
 - type: label_font <float, float>

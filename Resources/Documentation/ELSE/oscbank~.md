@@ -12,7 +12,7 @@ arguments:
   - description: number of oscillators 
     type: float
     default: 1
-  - description: fundamental frequency in hz
+  - description: fundamental frequency in Hz
     type: float
     default: 0
   - description: ramp time in ms
@@ -22,7 +22,7 @@ arguments:
 inlets:
   1st:
   - type: float/signal
-    description: fundamental frequency in hz
+    description: fundamental frequency in Hz
 
 outlets:
   1st:
@@ -39,7 +39,7 @@ flags:
   - name: -ramp <list>
     description: sets list of ramp times for all oscillators
   - name: -freq <float>
-    description: sets fundamental frequency in hz (default 0)
+    description: sets fundamental frequency in Hz (default 0)
   - name: -rampall <float>
     description: sets a ramp time for all oscillators (default all 10)
 

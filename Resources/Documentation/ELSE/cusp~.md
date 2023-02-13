@@ -10,7 +10,7 @@ pdcategory: ELSE, Random and Noise, Signal Generators
 
 arguments:
   - type: float
-    description: sets frequency in hertz
+    description: sets frequency in Hz
     default: Nyquist
   - type: float
     description: sets 'a'
@@ -39,5 +39,5 @@ draft: false
 
 [cusp~] is a chaotic generator using the difference equation;
 y[n] = a - b * sqrt(abs(y[n-1]))
-The output rate of the equation is given in hertz (default: Nyquist).
+The output rate of the equation is given in Hz (default: Nyquist).
 Object based on SuperCollider's "CuspN" UGEN.

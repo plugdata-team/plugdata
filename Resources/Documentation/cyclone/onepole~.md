@@ -31,7 +31,7 @@ outlets:
 
 methods:
   - type: Hz 
-    description: sets frequency input mode to 'hertz'
+    description: sets frequency input mode to 'Hz'
   - type: linear
     description: sets frequency input mode to 'linear'
   - type: radians

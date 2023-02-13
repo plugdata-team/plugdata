@@ -26,7 +26,7 @@ flags:
 - name: -nf
   description: same as -noflush
 - name: -noflush
-  description: do not flush the output after each message.  
+  description: do not flush the output after each message
 draft: false
 ---
 The 'stdout' object is useful in conjunction with the pd~ object, which starts a Pd sub-process. Messages sent to the sub-process standard output appear on the left output of the pd~ object in the owning process. This might also be useful in other situations. Note that there's no corresponding "stdin" object - there seems to be no one canonical way such a thing should act.

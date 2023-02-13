@@ -5,22 +5,22 @@ pdcategory: vanilla, UI
 inlets:
   1st:
   - type: float
-    description: set RMS value in dbFS
+    description: set RMS value in dBFS
   2nd:
   - type: float
-    description: set peak value in dbFS
+    description: set peak value in dBFS
 outlets:
   1st:
   - type: float
-    description: RMS value in dbFS
+    description: RMS value in dBFS
   2st:
   - type: float
-    description: Peak value in dbFS
+    description: Peak value in dBFS
 methods:
 - type: size <float>
   description: sets the GUI size
 - type: scale <float>
-  description: nonzero shows scale (default), zero hides it
+  description: non-0 shows scale (default), zero hides it
 - type: label <symbol>
   description: sets label symbol
 - type: label_font <float, float>

@@ -33,5 +33,5 @@ methods:
 
 ---
 
-[dust~] is based on SuperCollider's "Dust" UGEN and outputs random impulse values (only positive values up to 1) at random times according to a density parameter. The difference to SuperCollider's is that it only produces actual impulses (one non zero value in between 0 valued samples).
+[dust~] is based on SuperCollider's "Dust" UGEN and outputs random impulse values (only positive values up to 1) at random times according to a density parameter. The difference to SuperCollider's is that it only produces actual impulses (one non-0 value in between 0 valued samples).
 
