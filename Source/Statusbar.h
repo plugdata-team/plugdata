@@ -11,7 +11,7 @@ class Canvas;
 class LevelMeter;
 class MidiBlinker;
 class PluginProcessor;
-class CustomSlider;
+class gridSizeSlider;
 
 class StatusbarSource : public Timer {
 

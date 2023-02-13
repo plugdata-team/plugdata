@@ -127,18 +127,29 @@ public:
     bool blinkMidiOut = false;
 };
 
-class CustomSlider : public PopupMenu::CustomComponent, public Slider::Listener 
-{
+class gridSizeSlider : public PopupMenu::CustomComponent
+    , public Slider::Listener {
 public:
-    CustomSlider(Canvas* cnv) : canvas(cnv)
+    gridSizeSlider(Canvas* cnv)
+        : canvas(cnv)
     {
-  /*       addAndMakeVisible(label.get());
-        label->setText("Size:", dontSendNotification);
-        label->setJustificationType(Justification::centredLeft); */
+
+        // Add text boxes to display the interval values
+        for (int i = 5; i <= 25; i += 5) {
+            auto label = std::make_unique<Label>();
+            Font labelFont = label->getFont();
+            labelFont.setHeight(10);
+            label->setFont(labelFont);
+            label->setJustificationType(Justification::centred);
+            label->setText(String(i), dontSendNotification);
+            addAndMakeVisible(label.get());
+            intervalTextBoxes.add(std::move(label));
+        }
+
         addAndMakeVisible(slider.get());
         slider->setRange(5, 25, 5);
         slider->setValue(cnv->grid.gridSize);
-        setVisible(true);
+        slider->setTextBoxStyle(Slider::NoTextBox, false, 0, 0);
         slider->addListener(this);
     }
 
@@ -148,26 +159,30 @@ public:
         canvas->repaint();
     }
 
-
     void getIdealSize(int& idealWidth, int& idealHeight) override
     {
-        idealWidth = 100;
+        idealWidth = 150;
         idealHeight = 20;
     }
 
     void resized() override
     {
         auto bounds = getLocalBounds();
-       // label->setBounds(bounds.removeFromLeft(30));
-        slider->setBounds(bounds.removeFromLeft(70));
+        bounds.reduce(10, 0);
+        int x = bounds.getX();
+        int spacing = bounds.getWidth() / 5;
+        for (auto& textBox : intervalTextBoxes) {
+            textBox->setBounds(x, bounds.getY(), spacing, bounds.getHeight() - 10);
+            x += spacing;
+        }
+        slider->setBounds(bounds.getX(), bounds.getY(), bounds.getWidth(), bounds.getHeight() + 10);
     }
 
 private:
     Canvas* canvas;
-   // std::unique_ptr<Label> label = std::make_unique<Label>();
     std::unique_ptr<Slider> slider = std::make_unique<Slider>();
+    Array<std::unique_ptr<Label>> intervalTextBoxes;
 };
-
 
 Statusbar::Statusbar(PluginProcessor* processor)
     : pd(processor)
@@ -253,7 +268,7 @@ Statusbar::Statusbar(PluginProcessor* processor)
                 settings->setProperty("grid_enabled", 2);
             }
         });
-        gridSelector.addItem("Relative grid", true,  gridEnabled == 1 || gridEnabled == 3, [this]() {
+        gridSelector.addItem("Relative grid", true, gridEnabled == 1 || gridEnabled == 3, [this]() {
             gridButton->setColour(TextButton::textColourOffId, findColour(PlugDataColour::gridLineColourId));
             SettingsFile::getInstance()->setProperty("grid_enabled", 1);
         });
@@ -262,11 +277,8 @@ Statusbar::Statusbar(PluginProcessor* processor)
             SettingsFile::getInstance()->setProperty("grid_enabled", 0);
         });
         gridSelector.addSeparator();
-        gridSelector.addCustomItem(1, std::make_unique<CustomSlider>(currentCanvas), nullptr, "");
+        gridSelector.addCustomItem(1, std::make_unique<gridSizeSlider>(currentCanvas), nullptr, "");
 
-
-
-        
         gridSelector.showMenuAsync(PopupMenu::Options().withMinimumWidth(150).withMaximumNumColumns(1).withTargetComponent(gridButton.get()).withParentComponent(pd->getActiveEditor()));
     };
 
