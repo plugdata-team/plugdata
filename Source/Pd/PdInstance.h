@@ -319,7 +319,7 @@ protected:
 
         ConsoleHandler(Instance* parent)
             : instance(parent)
-            , fastStringWidth(Font(14))
+            , fastStringWidth(Font(13))
         {
         }
 

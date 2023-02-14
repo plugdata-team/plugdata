@@ -32,7 +32,7 @@ struct StringUtils {
         }
 
         // In real text, letters are slightly closer together
-        return totalWidth;
+        return totalWidth * 0.95f;
     }
 
     // used by console for a more optimised calculation
