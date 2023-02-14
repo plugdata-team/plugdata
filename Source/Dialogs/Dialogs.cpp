@@ -475,6 +475,7 @@ PopupMenu Dialogs::createObjectMenu(PluginEditor* parent)
         effectsMenu.addItem(createCommandItem(ObjectIDs::NewSignalDelay, "delay~"));
         effectsMenu.addItem(createCommandItem(ObjectIDs::NewDrive, "drive~"));
         effectsMenu.addItem(createCommandItem(ObjectIDs::NewFlanger, "flanger~"));
+        effectsMenu.addItem(createCommandItem(ObjectIDs::NewReverb, "free.rev~"));
         effectsMenu.addItem(createCommandItem(ObjectIDs::NewFreeze, "freeze~"));
 
         effectsMenu.addItem(createCommandItem(ObjectIDs::NewFreqShift, "freq.shift~"));
@@ -653,7 +654,7 @@ PopupMenu Dialogs::createObjectMenu(PluginEditor* parent)
     menu.addSeparator();
 
     menu.addItem(createCommandItem(ObjectIDs::NewObject, "Empty Object"));
-    menu.addItem(createCommandItem(ObjectIDs::NewMessage, "New Message"));
+    menu.addItem(createCommandItem(ObjectIDs::NewMessage, "Message"));
     menu.addItem(createCommandItem(ObjectIDs::NewFloatAtom, "Float box"));
     menu.addItem(createCommandItem(ObjectIDs::NewSymbolAtom, "Symbol box"));
     menu.addItem(createCommandItem(ObjectIDs::NewListAtom, "List box"));
