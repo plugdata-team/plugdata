@@ -9,7 +9,7 @@ pdcategory: ELSE, Signal Generators
 
 arguments:
 - type: float
-  description: frequency in hertz
+  description: frequency in Hz
   default: 0
 - type: float
   description: initial feedback value

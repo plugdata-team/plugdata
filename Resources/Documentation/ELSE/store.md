@@ -10,7 +10,7 @@ pdcategory: ELSE, Data Management
 
 arguments:
 - type: float
-  description: float - non-zero sets to store elements with the patch
+  description: float - non-0 sets to store elements with the patch
   default: 0
 
 inlets:

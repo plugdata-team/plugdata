@@ -16,7 +16,7 @@ inlets:
     description: input to freeze
   2nd:
   - type: float
-    description: non-zero freezes (or refreezes), 0 unfreezes
+    description: non-0 freezes (or refreezes), 0 unfreezes
 
 outlets:
   1st:

@@ -66,7 +66,6 @@ set(SOURCES_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/Source)
 
 file(GLOB PlugDataGlobalSources
     ${CMAKE_CACHEFILE_DIR}/plugdata_artefacts/JuceLibraryCode/JuceHeader.h)
-source_group("Source" FILES ${PlugDataGlobalSources})
 
 file(GLOB PlugDataSources
     ${SOURCES_DIRECTORY}/*.h
@@ -84,6 +83,8 @@ file(GLOB PlugDataSources
     ${SOURCES_DIRECTORY}/Heavy/*.cpp
     ${SOURCES_DIRECTORY}/Heavy/*.h
 )
+
+source_group("Source" FILES ${PlugDataGlobalSources})
 
 if(APPLE)
   list(APPEND PlugDataSources ${SOURCES_DIRECTORY}/Utility/FileSystemWatcher.mm ${SOURCES_DIRECTORY}/Utility/OSUtils.mm)

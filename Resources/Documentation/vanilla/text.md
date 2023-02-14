@@ -21,15 +21,23 @@ see_also:
 - text sequence
 arguments:
 - description: 'sets the function of [text], possible values: define, get, set, insert,
-    delete, size, tolist, fromlist, search and sequence. The default value is ''define''.'
+    delete, size, tolist, fromlist, search and sequence. The default value is ''define'''
   type: symbol
 flags:
-- description: saves/keeps the contents of the text with the patch
-  flag: -k
+- name: -k
+  description: saves/keeps the contents of the text with the patch
 inlets:
   1st:
   - type: bang
     description: output a pointer to the scalar containing the text
+outlets:
+  1st:
+  - type: pointer
+    description: a pointer to the scalar containing the array
+  2nd:
+  - type: anything
+    description: outputs "updated" when text changes
+methods:
   - type: clear
     description: clear contents of the text
   - type: send <symbol>
@@ -44,13 +52,6 @@ inlets:
     description: open text window
   - type: close
     description: closes the text window
-outlets:
-  1st:
-  - type: pointer
-    description: a pointer to the scalar containing the array
-  2nd:
-  - type: anything
-    description: outputs "updated" when text changes
 draft: false
 ---
 

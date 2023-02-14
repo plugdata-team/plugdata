@@ -10,7 +10,7 @@ arguments:
 inlets:
   1st:
   - type: signal
-    description: sets table index and output its value with interpoation
+    description: sets table index and output its value with interpolation
   2nd:
   - type: float
     description: sets table onset

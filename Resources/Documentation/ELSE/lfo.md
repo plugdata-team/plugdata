@@ -9,7 +9,7 @@ categories:
 pdcategory: ELSE, Envelopes and LFOs
 
 arguments:
-- description: sets frequency in hertz (default 0)
+- description: sets frequency in Hz (default 0)
   type: float
   default: 0
 - description: sets initial phase from 0 - 1 (default 0)
@@ -22,7 +22,7 @@ arguments:
 inlets:
   1st:
   - type: float
-    description: frequency in hertz up to 100 (negative values accepted)
+    description: frequency in Hz up to 100 (negative values accepted)
   - type: anything
     description: sets waveform (sine, tri, saw, vsaw, and square)
   2nd:

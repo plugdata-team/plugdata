@@ -10,7 +10,7 @@ pdcategory: ELSE, Signal Generators
 
 arguments:
   - type: float
-    description: frequency in hertz
+    description: frequency in Hz
     default: 0
   - type: float
     description: initial phase offset
@@ -19,7 +19,7 @@ arguments:
 inlets:
   1st:
   - type: float/signal
-    description: frequency in hz
+    description: frequency in Hz
   2nd:
   - type: float/signal
     description: phase sync (resets internal phase)

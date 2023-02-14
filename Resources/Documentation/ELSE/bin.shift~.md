@@ -12,7 +12,7 @@ arguments:
   - description: sets shift number
     type: float
     default: 0
-  - description: non-zero sets to wrap mode
+  - description: non-0 sets to wrap mode
     type: float
     default: 0
 
@@ -31,7 +31,7 @@ outlets:
 
 methods:
   - type: wrap <float>
-    description: non-zero sets to wrap mode
+    description: non-0 sets to wrap mode
 
 draft: false
 ---

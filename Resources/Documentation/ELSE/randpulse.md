@@ -45,7 +45,7 @@ methods:
   - type: rate <float>
     description: sets refresh rate in ms
   - type: seed <float>
-    description: non-zero sets to random gate value mode
+    description: non-0 sets to random gate value mode
 
 draft: false
 ---

@@ -17,11 +17,11 @@ inlets:
   - type: read <list>
     description: 'sets a filename to open and optionally one or more arrays to load
       channels. `Optional flags`: -wave,  -aiff,  -caf,  -next,  -skip <float>,  -maxsize
-      <float>,  -ascii,  -raw <list>.'
+      <float>,  -ascii,  -raw <list>'
   - type: write <list>
     description: 'sets a filename to write and one or more arrays to specify channels
       `Optional flags`: -wave,  -aiff,  -caf,  -next,  -big,  -little,  -skip <float>,  -nframes
-      <float>,  -ascii,  -normalize,  -rate <float>.'
+      <float>,  -ascii,  -normalize,  -rate <float>'
 outlets:
   1st:
   - type: float

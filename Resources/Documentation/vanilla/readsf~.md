@@ -13,7 +13,7 @@ inlets:
   - type: open <list>
     description: sets a filename, an onset in samples, header size to skip, number of channels, bytes per sample, and endianness
   - type: float
-    description: nonzero starts playback, zero stops
+    description: non-0 starts playback, zero stops
   - type: print
     description: prints information on Pd's terminal window
 outlets:

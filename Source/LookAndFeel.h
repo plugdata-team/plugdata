@@ -765,7 +765,7 @@ struct PlugDataLook : public LookAndFeel_V4 {
 
     void drawTooltip(Graphics& g, String const& text, int width, int height) override
     {
-        Rectangle<int> bounds(width, height);
+        auto bounds = Rectangle<float>(0, 0, width, height);
         auto cornerSize = PlugDataLook::defaultCornerRadius;
 
         g.setColour(findColour(PlugDataColour::popupMenuBackgroundColourId));
@@ -775,10 +775,10 @@ struct PlugDataLook : public LookAndFeel_V4 {
         g.drawRoundedRectangle(bounds.toFloat().reduced(0.5f, 0.5f), cornerSize, 1.0f);
 
         float const tooltipFontSize = 14.0f;
-        int const maxToolTipWidth = 400;
+        int const maxToolTipWidth = 1000;
 
         AttributedString s;
-        s.setJustification(Justification::centred);
+        s.setJustification(Justification::centredLeft);
 
         auto lines = StringArray::fromLines(text);
 
@@ -796,7 +796,7 @@ struct PlugDataLook : public LookAndFeel_V4 {
 
         TextLayout tl;
         tl.createLayoutWithBalancedLineLengths(s, (float)maxToolTipWidth);
-        tl.draw(g, { static_cast<float>(width), static_cast<float>(height) });
+        tl.draw(g, bounds.withSizeKeepingCentre(width - 20, height - 2));
     }
 
     // For drawing icons with icon font
@@ -932,17 +932,33 @@ struct PlugDataLook : public LookAndFeel_V4 {
     Rectangle<int> getTooltipBounds(String const& tipText, Point<int> screenPos, Rectangle<int> parentArea) override
     {
         float const tooltipFontSize = 14.0f;
-        int const maxToolTipWidth = 400;
+        int const maxToolTipWidth = 1000;
 
         AttributedString s;
-        s.setJustification(Justification::centred);
-        s.append(tipText, Font(tooltipFontSize, Font::bold), Colours::black);
+        s.setJustification(Justification::centredLeft);
+
+        auto lines = StringArray::fromLines(tipText);
+
+        for (auto const& line : lines) {
+            if (line.contains("(") && line.contains(")")) {
+                auto type = line.fromFirstOccurrenceOf("(", false, false).upToFirstOccurrenceOf(")", false, false);
+                auto description = line.fromFirstOccurrenceOf(")", false, false);
+                s.append(type + ":", Fonts::getSemiBoldFont().withHeight(tooltipFontSize), findColour(PlugDataColour::popupMenuTextColourId));
+
+                s.append(description + "\n", Font(tooltipFontSize), findColour(PlugDataColour::popupMenuTextColourId));
+            } else {
+                s.append(line, Font(tooltipFontSize), findColour(PlugDataColour::popupMenuTextColourId));
+            }
+        }
 
         TextLayout tl;
         tl.createLayoutWithBalancedLineLengths(s, (float)maxToolTipWidth);
 
-        auto w = (int)(tl.getWidth() + 18.0f);
-        auto h = (int)(tl.getHeight() + 10.0f);
+        int marginX = 22.0f;
+        int marginY = 10.0f;
+
+        auto w = (int)(tl.getWidth() + marginX);
+        auto h = (int)(tl.getHeight() + marginY);
 
         return Rectangle<int>(screenPos.x > parentArea.getCentreX() ? screenPos.x - (w + 12) : screenPos.x + 24,
             screenPos.y > parentArea.getCentreY() ? screenPos.y - (h + 6) : screenPos.y + 6,

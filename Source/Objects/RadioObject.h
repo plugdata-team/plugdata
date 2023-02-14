@@ -58,7 +58,11 @@ public:
 
     void applyBounds() override
     {
-        iemHelper.applyBounds(isVertical);
+        auto b = object->getObjectBounds();
+
+        // radio stores it's height and width as a square to allow changing orientation via message: "orientation 0/1"
+        b = isVertical ? b.withHeight(b.getWidth()) : b.withWidth(b.getHeight());
+        iemHelper.applyBounds(b);
     }
 
     void toggleObject(Point<int> position) override
@@ -93,6 +97,7 @@ public:
             if (atoms.size() >= 1) {
                 isVertical = static_cast<bool>(atoms[0].getFloat());
                 updateBounds();
+                updateAspectRatio();
             }
             break;
         }

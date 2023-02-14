@@ -12,7 +12,7 @@ arguments:
 inlets:
   1st:
   - type: signal
-    description: input whose nan/inf/denormal values are replaced with 0
+    description: input whose NaN/Inf/denormal values are replaced with 0
   
 outlets:
   1st:

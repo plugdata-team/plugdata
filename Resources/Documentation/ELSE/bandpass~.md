@@ -26,7 +26,7 @@ inlets:
     description: signal to be filtered
   2nd:
   - type: signal
-    description: central frequency in Hertz
+    description: central frequency in Hz
   3rd:
   - type: signal
     description: filter resonance (Q or bandwidth)

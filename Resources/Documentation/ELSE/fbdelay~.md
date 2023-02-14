@@ -46,7 +46,7 @@ methods:
   - type: size <float>
     description: changes the maximum delay size (in ms)
   - type: freeze <float>
-    description: non zero freezes, zero unfreezes
+    description: non-0 freezes, zero unfreezes
   - type: clear
     description: clears the delay buffer
   - type: gain <float>

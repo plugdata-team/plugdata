@@ -23,8 +23,8 @@ arguments:
 - description: set text name
   type: symbol
 flags:
-- description: saves/keeps the contents of the text with the patch
-  flag: -k
+- name: -k
+  description: saves/keeps the contents of the text with the patch
 inlets:
   1st:
   - type: bang

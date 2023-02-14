@@ -20,16 +20,15 @@ see_also:
 - text
 - text sequence
 arguments:
-- description: 'text name if no flags are given 
-  default:: none
-.'
+- description: text name if no flags are given 
+  default: none
   type: symbol
 - description: search field number optionally preceded by '>'. '>=', '<', '<=', or
     'near'
   type: list
 flags:
-- description: struct name and field name of main structure
-  flag: -s <symbol, symbol>
+- name: -s <symbol, symbol>
+  description: struct name and field name of main structure
 inlets:
   1st:
   - type: list

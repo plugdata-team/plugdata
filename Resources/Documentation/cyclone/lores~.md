@@ -1,6 +1,6 @@
 ---
 title: lores~
-description: low-pass resonant filter
+description: lowpass resonant filter
 categories:
  - object
 pdcategory: cyclone, Filters

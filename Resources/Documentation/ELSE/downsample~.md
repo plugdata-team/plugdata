@@ -10,7 +10,7 @@ pdcategory: ELSE, Effects
 
 arguments:
 - type: float
-  description: rate in hertz
+  description: rate in Hz
   default: Pd's sample rate
 - type: float
   description: interpolation 0 (off) or 1 (on)
@@ -24,7 +24,7 @@ inlets:
     description: restart cycle and sync output
   2nd:
   - type: float/signal
-    description: rate (in Hertz) used to downsample the input signal
+    description: rate (in Hz) used to downsample the input signal
 
 outlets:
   1st:
@@ -37,5 +37,5 @@ methods:
 
 ---
 
-[downsample~] samples a signal received in the left inlet at a frequency rate in hertz. It can operate with or without interpolation.
+[downsample~] samples a signal received in the left inlet at a frequency rate in Hz. It can operate with or without interpolation.
 

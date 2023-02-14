@@ -49,7 +49,7 @@ methods:
   - type: size <float>
     description: sets cell size in pixels
   - type: embed <float>
-    description: non zero save internal contents with the object
+    description: non-0 save internal contents with the object
 
 draft: false
 ---
