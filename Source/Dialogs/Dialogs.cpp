@@ -654,7 +654,7 @@ PopupMenu Dialogs::createObjectMenu(PluginEditor* parent)
     menu.addSeparator();
 
     menu.addItem(createCommandItem(ObjectIDs::NewObject, "Empty Object"));
-    menu.addItem(createCommandItem(ObjectIDs::NewMessage, "New Message"));
+    menu.addItem(createCommandItem(ObjectIDs::NewMessage, "Message"));
     menu.addItem(createCommandItem(ObjectIDs::NewFloatAtom, "Float box"));
     menu.addItem(createCommandItem(ObjectIDs::NewSymbolAtom, "Symbol box"));
     menu.addItem(createCommandItem(ObjectIDs::NewListAtom, "List box"));
