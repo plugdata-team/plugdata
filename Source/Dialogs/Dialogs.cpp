@@ -475,6 +475,7 @@ PopupMenu Dialogs::createObjectMenu(PluginEditor* parent)
         effectsMenu.addItem(createCommandItem(ObjectIDs::NewSignalDelay, "delay~"));
         effectsMenu.addItem(createCommandItem(ObjectIDs::NewDrive, "drive~"));
         effectsMenu.addItem(createCommandItem(ObjectIDs::NewFlanger, "flanger~"));
+        effectsMenu.addItem(createCommandItem(ObjectIDs::NewReverb, "free.rev~"));
         effectsMenu.addItem(createCommandItem(ObjectIDs::NewFreeze, "freeze~"));
 
         effectsMenu.addItem(createCommandItem(ObjectIDs::NewFreqShift, "freq.shift~"));
