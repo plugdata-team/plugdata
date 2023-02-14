@@ -1,6 +1,6 @@
 ---
 title: allpass~
-description: all pass filter
+description: allpass filter
 categories:
  - object
 pdcategory: cyclone, Filters

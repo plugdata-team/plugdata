@@ -36,4 +36,4 @@ methods:
 draft: false
 ---
 
-[blocksize~] reports the block size when the audio is turned on, when it changes or via a bang. The period is reported in samples or ms, but you can also query the corresponding frequency in hz. The default output is the block size in samples. The DSP needs to be turned on so a block size is detected!
+[blocksize~] reports the block size when the audio is turned on, when it changes or via a bang. The period is reported in samples or ms, but you can also query the corresponding frequency in Hz. The default output is the block size in samples. The DSP needs to be turned on so a block size is detected!

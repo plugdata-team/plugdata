@@ -10,7 +10,7 @@ pdcategory: ELSE, Effects
 
 arguments:
   - type: float
-    description: rate in hertz 
+    description: rate in Hz 
     default: 0
   - type: float
     description: transposition depth in cents 

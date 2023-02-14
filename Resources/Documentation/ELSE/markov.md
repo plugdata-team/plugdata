@@ -13,7 +13,7 @@ arguments:
   description: sets order
   default: 1
 - type: float
-  description: non-zero sets to savestate mode 
+  description: non-0 sets to savestate mode 
   default: 0
 
 inlets:

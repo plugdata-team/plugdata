@@ -11,9 +11,8 @@ see_also:
 - receive~
 - samplerate~
 arguments:
-- description: 'receive name symbol 
-  default:: empty symbol
-'
+- description: receive name symbol 
+  default: empty symbol
   type: symbol
 outlets:
   1st:

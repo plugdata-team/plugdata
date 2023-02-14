@@ -9,7 +9,7 @@ pdcategory: ELSE, Random and Noise, Signal Generators
 
 arguments:
 - type: float
-  description: sets frequency in hertz
+  description: sets frequency in Hz
   default: Nyquist
 - type: float
   description: sets initial feedback value of y[n-1]
@@ -21,7 +21,7 @@ arguments:
 inlets:
   1st:
   - type: float/signal
-    description: frequency in hertz (negative values accepted)
+    description: frequency in Hz (negative values accepted)
   - type: list
     description: 2 floats set y[n-1] and y[n-2], respectively
 

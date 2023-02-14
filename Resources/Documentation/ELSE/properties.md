@@ -9,7 +9,7 @@ pdcategory: ELSE, Data Management
 
 arguments:
 - type: float
-  description: sets mode, non-zero is "subpatch" mode
+  description: sets mode, non-0 is "subpatch" mode
   default: 0 ("abstraction" mode)
 
 inlets:

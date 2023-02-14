@@ -9,7 +9,7 @@ pdcategory: ELSE, Effects
 
 arguments:
 - type: float
-  description: the frequency shift value in hertz
+  description: the frequency shift value in Hz
   default: 0
 
 inlets:

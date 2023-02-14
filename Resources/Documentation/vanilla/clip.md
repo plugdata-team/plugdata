@@ -21,7 +21,7 @@ inlets:
   - type: float
     description: number to clip
   - type: bang
-    description: re-clip last incoming number between the two limits
+    description: re-clip last incoming number
   2nd:
   - type: float
     description: set lower limit

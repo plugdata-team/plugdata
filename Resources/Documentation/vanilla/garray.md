@@ -10,7 +10,7 @@ see_also:
 - namecanvas
 - array
 methods:
-- description: sets values into array, fisty element is starting index (from 0)
+- description: sets values into array, first element is starting index (from 0)
   method: list
 - description: optional float sets a constant value to all indexes 
   default: 0

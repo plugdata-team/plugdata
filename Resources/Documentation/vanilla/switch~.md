@@ -12,7 +12,7 @@ last_update: '0.43'
 inlets:
   1st:
   - type: float
-    description: nonzero turns DSP on, zero turns DSP off
+    description: non-0 turns DSP on, zero turns DSP off
   - type: bang
     description: when turned off, computes just one DSP cycle
 

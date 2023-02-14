@@ -16,7 +16,7 @@ inlets:
     description: set different values for the 4 arguments
   2nd:
   - type: float
-    description: nonzero sets internal state to 'high', 'low' otherwise
+    description: non-0 sets internal state to 'high', 'low' otherwise
 outlets:
   1st:
   - type: bang

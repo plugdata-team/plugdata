@@ -10,7 +10,7 @@ pdcategory: ELSE, Triggers and Clocks
 
 arguments:
   - type: float
-    description: bpm/hz/ms
+    description: bpm/Hz/ms
     default: 0
   - type: float
     description: swing deviation in %
@@ -23,7 +23,7 @@ flags:
     description: sets time measure to ms
     default: bpm
   - name: -hz
-    description: sets time measure to hertz
+    description: sets time measure to Hz
     default: bpm
   - name: -mul <float>
     description: sets tempo subdivision
@@ -40,7 +40,7 @@ inlets:
     description: sync the metronome
   2nd:
   - type: float
-    description: tempo in ms, hz or bpm
+    description: tempo in ms, Hz or bpm
   3rd:
   - type: float
     description: swing deviation parameter (in %)
@@ -60,7 +60,7 @@ methods:
   - type: ms <f, f>
     description: sets time to ms, optional floats set tempo and swing
   - type: hz <f, f>
-    description: sets time to hz, optional floats set tempo and swing
+    description: sets time to Hz, optional floats set tempo and swing
   - type: bpm <f, f>
     description: sets time to bpm, optional floats set tempo and swing
   - type: seed <float>

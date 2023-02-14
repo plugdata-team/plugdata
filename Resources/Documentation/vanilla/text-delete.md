@@ -24,8 +24,8 @@ arguments:
   default: none
   type: symbol
 flags:
-- description: struct name and field name of main structure
-  flag: -s <symbol, symbol>
+- name: -s <symbol, symbol>
+  description: struct name and field name of main structure
 
 inlets:
   1st:

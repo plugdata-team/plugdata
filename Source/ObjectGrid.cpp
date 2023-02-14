@@ -177,15 +177,19 @@ Point<int> ObjectGrid::performResize(Object* toDrag, Point<int> dragOffset, Rect
                 }
             }
 
-            MessageManager::callAsync([this]() {
-                updateMarker();
-            });
+    if (!isAlreadySnapped(false, true, dragOffset)) {
+        for (auto* object : snappable) {
+            auto b1 = object->getBounds().reduced(Object::margin);
 
             if (gridEnabled == 1) {
                 return dragOffset;
             }
         }
+    }
 
+    if (!isAlreadySnapped(true, true, dragOffset)) {
+        for (auto* object : snappable) {
+        
         // Snap to Grid
         if (gridEnabled == 2 || gridEnabled == 3) {
             Point<int> newPos = toDrag->originalBounds.reduced(Object::margin).getPosition() + dragOffset;
@@ -234,7 +238,6 @@ Point<int> ObjectGrid::performMove(Object* toDrag, Point<int> dragOffset)
                     }
                 }
             }
-
             if (!isAlreadySnapped(true, false, dragOffset)) {
 
                 // Find snap points based on connection alignment

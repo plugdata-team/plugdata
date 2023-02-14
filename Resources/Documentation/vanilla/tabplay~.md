@@ -33,7 +33,7 @@ outlets:
     description: bang when finished playing the table
 arguments:
   - type: symbol
-    description: sets table name with the sample. 
+    description: sets table name with the sample
 draft: false
 ---
 The tabplay~ object plays a sample, or part of one, with no transposition or interpolation. It is cheaper than tabread4~ and there are none of tabread4~'s interpolation artifacts.

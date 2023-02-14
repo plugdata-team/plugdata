@@ -1,7 +1,7 @@
 ---
 title: bandstop~
 
-description: band stop filter
+description: bandstop filter
 
 categories:
  - object

@@ -24,7 +24,7 @@ inlets:
 outlets:
   1st:
   - type: list
-    description: value(s) in hertz
+    description: value(s) in Hz
 
 draft: false
 ---

@@ -242,21 +242,13 @@ public:
         object->setObjectBounds(bounds);
     }
 
-    void applyBounds(bool isVertical = true)
+    void applyBounds(Rectangle<int> const b)
     {
-        auto b = object->getObjectBounds();
-
         iemgui->x_obj.te_xpix = b.getX();
         iemgui->x_obj.te_ypix = b.getY();
 
-        // this is needed for RadioObject due to both vertical & horizontal being saved in same values
-        if (isVertical) {
-            iemgui->x_w = b.getWidth();
-            iemgui->x_h = b.getHeight();
-        } else {
-            iemgui->x_w = b.getHeight();
-            iemgui->x_h = b.getHeight();
-        }
+        iemgui->x_w = b.getWidth();
+        iemgui->x_h = b.getHeight();
     }
 
     void updateLabel(std::unique_ptr<ObjectLabel>& label)

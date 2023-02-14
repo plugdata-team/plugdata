@@ -41,7 +41,7 @@ outlets:
 
 methods:
   - type: log <float>
-    description: - non zero sets to "log" mode, "linear" otherwise
+    description: - non-0 sets to "log" mode, "linear" otherwise
 
 draft: false
 ---

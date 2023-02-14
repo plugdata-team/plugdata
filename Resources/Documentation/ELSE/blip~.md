@@ -50,4 +50,4 @@ methods:
 draft: false
 ---
 
-[blip~] uses DSF (Discrete-Summation Formulae) to generate waveforms as a sum of cosines. It takes a frequency in hertz for the fundamental, a number of harmonics, a multiplier for the partials after the first one and the lowest harmonic number (by default it generates an impulse waveform). This object is based on Csound's 'gbuzz' opcode.
+[blip~] uses DSF (Discrete-Summation Formulae) to generate waveforms as a sum of cosines. It takes a frequency in Hz for the fundamental, a number of harmonics, a multiplier for the partials after the first one and the lowest harmonic number (by default it generates an impulse waveform). This object is based on Csound's 'gbuzz' opcode.

@@ -10,7 +10,7 @@ pdcategory: ELSE, Signal Generators
 
 arguments:
 - type: float
-  description: sets frequency in hertz
+  description: sets frequency in Hz
   default: 0
 - type: float
   description: sets p
@@ -19,7 +19,7 @@ arguments:
 inlets:
   1st:
   - type: float/signal
-    description: frequency in hertz (negative values accepted)
+    description: frequency in Hz (negative values accepted)
   2nd:
   - type: float/signal
     description: 'p' parameter (from 0 to 1)
