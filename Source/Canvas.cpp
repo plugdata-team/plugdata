@@ -409,7 +409,11 @@ void Canvas::mouseUp(MouseEvent const& e)
     for (auto* object : objects)
         object->originalBounds = Rectangle<int>(0, 0, 0, 0);
 
-    wasDragDuplicated = false;
+    if (wasDragDuplicated) {
+        patch.endUndoSequence("Duplicate");
+        wasDragDuplicated = false;
+    }
+
     mouseDownObjectPositions.clear();
 
     // TODO: this is a hack, find a better solution
@@ -1147,9 +1151,6 @@ void Canvas::objectMouseUp(Object* component, MouseEvent const& e)
 
         pd->waitForStateUpdate();
 
-        // Update undo state
-        editor->updateCommandStatus();
-
         checkBounds();
         didStartDragging = false;
     }
@@ -1179,6 +1180,7 @@ void Canvas::objectMouseUp(Object* component, MouseEvent const& e)
 
     if (wasDragDuplicated) {
         patch.endUndoSequence("Duplicate");
+        wasDragDuplicated = false;
     }
 
     for (auto* object : getSelectionOfType<Object>()) {
@@ -1186,6 +1188,7 @@ void Canvas::objectMouseUp(Object* component, MouseEvent const& e)
         object->repaint();
     }
 
+    mouseDownObjectPositions.clear();
     componentBeingDragged = nullptr;
 
     component->repaint();
@@ -1221,7 +1224,7 @@ void Canvas::objectMouseDrag(MouseEvent const& e)
     if (!wasDragDuplicated && e.mods.isAltDown()) {
 
         // Single for undo for duplicate + move
-        patch.startUndoSequence("Duplicate");
+       patch.startUndoSequence("Duplicate");
 
         // Sort selection indexes to match pd indexes
         std::sort(selection.begin(), selection.end(),
@@ -1238,6 +1241,7 @@ void Canvas::objectMouseDrag(MouseEvent const& e)
         wasDragDuplicated = true;
         duplicateSelection();
         cancelConnectionCreation();
+        componentBeingDragged.getComponent()->originalBounds.translate(-10, -10);
     }
 
     // FIXME: stop the mousedrag event from blocking the objects from redrawing, we shouldn't need to do this? JUCE bug?
