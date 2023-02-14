@@ -91,6 +91,7 @@ private:
         { "protected", var(1) },
         { "internal_synth", var(0) },
         { "grid_enabled", var(1) },
+        { "grid_size", var(20) },
         { "zoom", var(1.0f) },
         { "default_font", var("Inter") },
         { "native_window", var(false) },
