@@ -197,24 +197,31 @@ Point<int> ObjectGrid::performResize(Object* toDrag, Point<int> dragOffset, Rect
             }
         }
     }
-    
-    for (auto* object : snappable) {
-        
-        // Snap to Grid
-        if (enableGrid != 1) {
-            Point<int> newPos = toDrag->originalBounds.reduced(Object::margin).getPosition() + dragOffset;
-            if (!isAlreadySnapped(true, true, dragOffset)) {
-                newPos.setX(roundToInt(newPos.getX() / gridSize + 1) * gridSize);
-                snappedPosition.x = newPos.x - toDrag->originalBounds.reduced(Object::margin).getX() - gridSize;
-            }
-            if (!isAlreadySnapped(false, true, dragOffset)) {
-                newPos.setY(roundToInt(newPos.getY() / gridSize + 1) * gridSize);
-                snappedPosition.y = newPos.y - toDrag->originalBounds.reduced(Object::margin).getY() - gridSize;
-            }
-            return snappedPosition;
+
+    // Snap to Grid
+    if (enableGrid != 1) {
+        Point<int> newPosTopLeft = toDrag->originalBounds.reduced(Object::margin).getTopLeft() + dragOffset;
+        Point<int> newPosBotRight = toDrag->originalBounds.reduced(Object::margin).getBottomRight() + dragOffset;
+
+        if (toDrag->resizeZone.isDraggingLeftEdge() && !isAlreadySnapped(true, true, dragOffset)) {
+            newPosTopLeft.setX(roundToInt(newPosTopLeft.getX() / gridSize + 1) * gridSize);
+            snappedPosition.x = newPosTopLeft.x - toDrag->originalBounds.reduced(Object::margin).getX() - gridSize;
         }
+        if (toDrag->resizeZone.isDraggingTopEdge() && !isAlreadySnapped(false, true, dragOffset)) {
+            newPosTopLeft.setY(roundToInt(newPosTopLeft.getY() / gridSize + 1) * gridSize);
+            snappedPosition.y = newPosTopLeft.y - toDrag->originalBounds.reduced(Object::margin).getY() - gridSize;
+        }
+        if (toDrag->resizeZone.isDraggingRightEdge() && !isAlreadySnapped(true, true, dragOffset)) {
+            newPosBotRight.setX(roundToInt(newPosBotRight.getX() / gridSize + 1) * gridSize);
+            snappedPosition.x = newPosBotRight.x - toDrag->originalBounds.reduced(Object::margin).getRight() - gridSize + 1;
+        }
+        if (toDrag->resizeZone.isDraggingBottomEdge() && !isAlreadySnapped(false, true, dragOffset)) {
+            newPosBotRight.setY(roundToInt(newPosBotRight.getY() / gridSize + 1) * gridSize);
+            snappedPosition.y = newPosBotRight.y - toDrag->originalBounds.reduced(Object::margin).getBottom() - gridSize + 1;
+        }
+        return snappedPosition;
     }
-    
+
     MessageManager::callAsync([this]() {
         updateMarker();
     });
