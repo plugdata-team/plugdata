@@ -129,13 +129,12 @@ void Canvas::paint(Graphics& g)
     }
 
     if (locked == var(false) && !isGraph) {
-        int const objectGridSize = 20;
         Rectangle<int> const clipBounds = g.getClipBounds();
 
         g.setColour(findColour(PlugDataColour::canvasDotsColourId));
 
-        for (int x = canvasOrigin.getX() + objectGridSize; x < clipBounds.getRight(); x += objectGridSize) {
-            for (int y = canvasOrigin.getY() + objectGridSize; y < clipBounds.getBottom(); y += objectGridSize) {
+        for (int x = canvasOrigin.getX() + objectGrid.gridSize; x < clipBounds.getRight(); x += objectGrid.gridSize) {
+            for (int y = canvasOrigin.getY() + objectGrid.gridSize; y < clipBounds.getBottom(); y += objectGrid.gridSize) {
                 g.fillRect(static_cast<float>(x), static_cast<float>(y), 1.0, 1.0);
             }
         }
@@ -1141,7 +1140,7 @@ void Canvas::objectMouseUp(Object* component, MouseEvent const& e)
         // In case we dragged near the iolet and the canvas moved
         auto canvasMoveOffset = canvasDragStartPosition - getPosition();
 
-        distance = grid.handleMouseUp(distance) + canvasMoveOffset;
+        distance = objectGrid.handleMouseUp(distance) + canvasMoveOffset;
 
         // When done dragging objects, update positions to pd
         patch.moveObjects(objects, distance.x, distance.y);
@@ -1214,8 +1213,9 @@ void Canvas::objectMouseDrag(MouseEvent const& e)
     auto canvasMoveOffset = canvasDragStartPosition - getPosition();
 
     if (static_cast<bool>(gridEnabled.getValue()) && componentBeingDragged) {
-        dragDistance = grid.performMove(componentBeingDragged, dragDistance);
+        dragDistance = objectGrid.performMove(componentBeingDragged, dragDistance);
     }
+
 
     // alt+drag will duplicate selection
     if (!wasDragDuplicated && e.mods.isAltDown()) {

@@ -665,7 +665,7 @@ void Object::mouseUp(MouseEvent const& e)
         for (auto* obj : cnv->getSelectionOfType<Object>())
             objectsToCheck.add(obj);
 
-        cnv->grid.handleMouseUp(e.getOffsetFromDragStart());
+        cnv->objectGrid.handleMouseUp(e.getOffsetFromDragStart());
 
         cnv->pd->enqueueFunction(
             [objectsToCheck]() mutable {
@@ -721,7 +721,7 @@ void Object::mouseDrag(MouseEvent const& e)
     } else if (validResizeZone && !originalBounds.isEmpty()) {
 
         auto draggedBounds = resizeZone.resizeRectangleBy(originalBounds, e.getOffsetFromDragStart());
-        auto dragDistance = cnv->grid.performResize(this, e.getOffsetFromDragStart(), draggedBounds);
+        auto dragDistance = cnv->objectGrid.performResize(this, e.getOffsetFromDragStart(), draggedBounds);
 
         auto toResize = e.mods.isShiftDown() ? cnv->getSelectionOfType<Object>() : Array<Object*> { this };
 
