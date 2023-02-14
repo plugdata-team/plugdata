@@ -1,7 +1,7 @@
 ---
 title: bl.imp~
 
-description: bandlimited impulse oscillator
+description: bandlimited two-sided impulse oscillator
 
 categories:
 - object
@@ -9,19 +9,26 @@ categories:
 pdcategory: ELSE, Signal Generators
 
 arguments:
-  - description: frequency in Hz
-    type: float
+  - type: float
+    description: frequency in Hz
+    default: 0
+  - type: float
+    description: initial phase offset
     default: 0
 
 inlets:
   1st:
   - type: float/signal
     description: frequency in Hz
-
+  - type: float/signal
+    description: phase sync (reset internal phase)
+  - type: float/signal
+    description: phase offset (modulation input)
+    
 outlets:
   1st:
-  - type: signal 
-    description: impulse oscillator signal
+  - type: signal
+    description: two sided impulse signal
 
 draft: false
 ---
