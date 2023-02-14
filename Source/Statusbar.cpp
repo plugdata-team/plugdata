@@ -470,6 +470,13 @@ void Statusbar::modifierKeysChanged(ModifierKeys const& modifiers)
 
     commandLocked = modifiers.isCommandDown() && locked.getValue() == var(false);
 
+    if (modifiers.isShiftDown() && SettingsFile::getInstance()->getProperty<int>("grid_enabled")) {
+        gridButton->setColour(TextButton::textColourOffId, findColour(PlugDataColour::toolbarTextColourId));
+        gridButton->setColour(TextButton::textColourOnId, findColour(PlugDataColour::toolbarActiveColourId));
+    } else if (SettingsFile::getInstance()->getProperty<int>("grid_enabled")) {
+        propertyChanged("grid_enabled", SettingsFile::getInstance()->getProperty<int>("grid_enabled"));
+    }
+
     if (auto* cnv = editor->getCurrentCanvas()) {
         if (cnv->didStartDragging || cnv->isDraggingLasso || static_cast<bool>(cnv->presentationMode.getValue())) {
             return;
