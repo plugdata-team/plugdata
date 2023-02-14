@@ -226,7 +226,7 @@ Point<int> ObjectGrid::performMove(Object* toDrag, Point<int> dragOffset)
 {
     int enableGrid = static_cast<int>(gridEnabled.getValue());
     
-    if (ModifierKeys::getCurrentModifiers().isShiftDown() || enableGrid == 0) return;
+    if (ModifierKeys::getCurrentModifiers().isShiftDown() || enableGrid == 0) return dragOffset;
     
     // Snap to Objects
     if (enableGrid != 2) {
