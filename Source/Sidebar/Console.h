@@ -255,7 +255,7 @@ public:
             for (int row = 0; row < static_cast<int>(pd->getConsoleMessages().size()); row++) {
                 auto [message, type, length] = pd->getConsoleMessages()[row];
                 auto numLines = StringUtils::getNumLines(getWidth(), length);
-                auto height = numLines * 22 + 3;
+                auto height = numLines * 13 + 12;
 
                 if (messages[row]->idx != row) {
                     messages[row]->idx = row;
@@ -299,7 +299,7 @@ public:
 
             for (auto& [message, type, length] : pd->getConsoleMessages()) {
                 auto numLines = StringUtils::getNumLines(getWidth(), length);
-                auto height = numLines * 22 + 3;
+                auto height = numLines * 13 + 12;
 
                 if ((type == 1 && !showMessages) || (length == 0 && !showErrors))
                     continue;
@@ -326,7 +326,7 @@ public:
                 auto& [message, type, length] = pd->getConsoleMessages()[row];
 
                 auto numLines = StringUtils::getNumLines(getWidth(), length);
-                auto height = numLines * 22 + 3;
+                auto height = numLines * 13 + 12;
 
                 messages[row]->setBounds(0, totalHeight, getWidth(), height);
 
