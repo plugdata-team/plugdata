@@ -197,24 +197,21 @@ Point<int> ObjectGrid::performResize(Object* toDrag, Point<int> dragOffset, Rect
             }
         }
     }
-    
-    for (auto* object : snappable) {
-        
-        // Snap to Grid
-        if (enableGrid != 1) {
-            Point<int> newPos = toDrag->originalBounds.reduced(Object::margin).getPosition() + dragOffset;
-            if (!isAlreadySnapped(true, true, dragOffset)) {
-                newPos.setX(roundToInt(newPos.getX() / gridSize + 1) * gridSize);
-                snappedPosition.x = newPos.x - toDrag->originalBounds.reduced(Object::margin).getX() - gridSize;
-            }
-            if (!isAlreadySnapped(false, true, dragOffset)) {
-                newPos.setY(roundToInt(newPos.getY() / gridSize + 1) * gridSize);
-                snappedPosition.y = newPos.y - toDrag->originalBounds.reduced(Object::margin).getY() - gridSize;
-            }
-            return snappedPosition;
+
+    // Snap to Grid
+    if (enableGrid != 1) {
+        Point<int> newPos = toDrag->originalBounds.reduced(Object::margin).getPosition() + dragOffset;
+        if (!isAlreadySnapped(true, true, dragOffset)) {
+            newPos.setX(roundToInt(newPos.getX() / gridSize + 1) * gridSize);
+            snappedPosition.x = newPos.x - toDrag->originalBounds.reduced(Object::margin).getX() - gridSize;
         }
+        if (!isAlreadySnapped(false, true, dragOffset)) {
+            newPos.setY(roundToInt(newPos.getY() / gridSize + 1) * gridSize);
+            snappedPosition.y = newPos.y - toDrag->originalBounds.reduced(Object::margin).getY() - gridSize;
+        }
+        return snappedPosition;
     }
-    
+
     MessageManager::callAsync([this]() {
         updateMarker();
     });
