@@ -1239,6 +1239,7 @@ void Canvas::objectMouseDrag(MouseEvent const& e)
         wasDragDuplicated = true;
         duplicateSelection();
         cancelConnectionCreation();
+        componentBeingDragged.getComponent()->originalBounds.translate(-10, -10);
     }
 
     // FIXME: stop the mousedrag event from blocking the objects from redrawing, we shouldn't need to do this? JUCE bug?
