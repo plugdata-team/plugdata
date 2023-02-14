@@ -1186,6 +1186,7 @@ void Canvas::objectMouseUp(Object* component, MouseEvent const& e)
         object->repaint();
     }
 
+    wasDragDuplicated = false;
     componentBeingDragged = nullptr;
 
     component->repaint();
