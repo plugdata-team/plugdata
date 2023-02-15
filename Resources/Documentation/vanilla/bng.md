@@ -5,7 +5,7 @@ pdcategory: vanilla, UI
 inlets:
   1st:
   - type: anything
-    description: Triggers bang
+    description: triggers bang
 outlets:
   1st:
   - type: bang
