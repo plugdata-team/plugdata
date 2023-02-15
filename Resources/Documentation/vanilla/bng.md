@@ -8,8 +8,8 @@ inlets:
     description: Triggers bang
 outlets:
   1st:
-  - type: float
-    description: Outputs bang when activated
+  - type: bang
+    description: output when activated
 methods:
 - type: size <float>
   description: sets the GUI size
