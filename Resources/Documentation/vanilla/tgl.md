@@ -5,13 +5,13 @@ pdcategory: vanilla, UI
 inlets:
   1st:
   - type: bang
-    description: Flip toggle value
+    description: flip toggle value
   - type: float
-    description: Enables toggle if non-0
+    description: enables toggle if non-0
 outlets:
   1st:
   - type: float
-    description: Outputs toggle state if changed
+    description: outputs toggle state if changed
 methods:
 - type: size <float>
   description: sets the GUI size

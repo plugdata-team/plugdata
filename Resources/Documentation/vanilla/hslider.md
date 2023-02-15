@@ -9,7 +9,7 @@ inlets:
 outlets:
   1st:
   - type: float
-    description: number box value
+    description: slider value
 methods:
 - type: size <float>
   description: sets the GUI size
