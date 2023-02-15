@@ -5,11 +5,11 @@ pdcategory: vanilla, UI
 inlets:
   1st:
   - type: float
-    description: Set and output number
+    description: set and output number
 outlets:
   1st:
   - type: float
-    description: Number box value
+    description: slider value
 methods:
 - type: size <float>
   description: sets the GUI size
