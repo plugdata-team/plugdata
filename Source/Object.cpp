@@ -723,7 +723,7 @@ void Object::mouseDrag(MouseEvent const& e)
         auto draggedBounds = resizeZone.resizeRectangleBy(originalBounds, e.getOffsetFromDragStart());
         auto dragDistance = cnv->objectGrid.performResize(this, e.getOffsetFromDragStart(), draggedBounds);
 
-        auto toResize = e.mods.isShiftDown() ? cnv->getSelectionOfType<Object>() : Array<Object*> { this };
+        auto toResize = cnv->getSelectionOfType<Object>();
 
         for (auto* obj : toResize) {
             auto const newBounds = resizeZone.resizeRectangleBy(obj->originalBounds, dragDistance);
