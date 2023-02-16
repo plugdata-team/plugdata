@@ -136,6 +136,44 @@ PluginEditor::PluginEditor(PluginProcessor& p)
 
     tabbar.setOutline(0);
     addAndMakeVisible(tabbar);
+
+    tabbarSplitview.newTab = [this]() {
+        newProject();
+    };
+
+    tabbarSplitview.openProject = [this]() {
+        openProject();
+    };
+
+    tabbarSplitview.onTabChange = [this](int idx) {
+        auto* cnv = getCurrentCanvas();
+
+        if (!cnv || idx == -1 || pd->isPerformingGlobalSync)
+            return;
+
+        sidebar.tabChanged();
+
+        // update GraphOnParent when changing tabs
+        for (auto* object : getCurrentCanvas()->objects) {
+            if (!object->gui)
+                continue;
+            if (auto* cnv = object->gui->getCanvas())
+                cnv->synchronise();
+        }
+
+        if (cnv->patch.getPointer()) {
+            cnv->patch.setCurrent();
+        }
+
+        cnv->synchronise();
+        cnv->updateDrawables();
+
+        updateCommandStatus();
+    };
+
+    tabbarSplitview.setOutline(0);
+    addAndMakeVisible(tabbarSplitview);
+
     addAndMakeVisible(sidebar);
 
     for (auto* button : std::vector<TextButton*> { &mainMenuButton, &undoButton, &redoButton, &addObjectMenuButton, &pinButton, &hideSidebarButton }) {
@@ -206,6 +244,7 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     setResizeLimits(835, 305, 999999, 999999);
 
     tabbar.toFront(false);
+    tabbarSplitview.toFront(false);
     sidebar.toFront(false);
 
     // Make sure existing console messages are processed
@@ -225,6 +264,8 @@ PluginEditor::~PluginEditor()
     theme.removeListener(this);
 
     pd->lastTab = tabbar.getCurrentTabIndex();
+    pd->lastTabSplitview = tabbarSplitview.getCurrentTabIndex();
+
 }
 
 void PluginEditor::paint(Graphics& g)
@@ -272,8 +313,9 @@ void PluginEditor::paintOverChildren(Graphics& g)
 void PluginEditor::resized()
 {
     sidebar.setBounds(getWidth() - sidebar.getWidth(), toolbarHeight, sidebar.getWidth(), getHeight() - toolbarHeight);
-
-    tabbar.setBounds(0, toolbarHeight, (getWidth() - sidebar.getWidth()) + 1, getHeight() - toolbarHeight - (statusbar.getHeight()));
+    splitview = 2;
+    tabbar.setBounds(0, toolbarHeight, ((getWidth() - sidebar.getWidth()) + 1) / splitview, getHeight() - toolbarHeight - (statusbar.getHeight()));
+    tabbarSplitview.setBounds(getWidth() / splitview, toolbarHeight, ((getWidth() - sidebar.getWidth()) + 1) / splitview, getHeight() - toolbarHeight - (statusbar.getHeight()));
 
     statusbar.setBounds(0, getHeight() - statusbar.getHeight(), getWidth() - sidebar.getWidth(), statusbar.getHeight());
 
@@ -501,16 +543,16 @@ Canvas* PluginEditor::getCanvas(int idx)
     return nullptr;
 }
 
-void PluginEditor::addTab(Canvas* cnv, bool deleteWhenClosed)
+void PluginEditor::addTab(Canvas* cnv, bool deleteWhenClosed, bool splitview)
 {
-    tabbar.addTab(cnv->patch.getTitle(), findColour(ResizableWindow::backgroundColourId), cnv->viewport, true);
+    tabbarSplitview.addTab(cnv->patch.getTitle(), findColour(ResizableWindow::backgroundColourId), cnv->viewport, true);
 
-    int tabIdx = tabbar.getNumTabs() - 1;
+    int tabIdx = tabbarSplitview.getNumTabs() - 1;
 
-    tabbar.setCurrentTabIndex(tabIdx);
-    tabbar.setTabBackgroundColour(tabIdx, Colours::transparentBlack);
+    tabbarSplitview.setCurrentTabIndex(tabIdx);
+    tabbarSplitview.setTabBackgroundColour(tabIdx, Colours::transparentBlack);
 
-    auto* tabButton = tabbar.getTabbedButtonBar().getTabButton(tabIdx);
+    auto* tabButton = tabbarSplitview.getTabbedButtonBar().getTabButton(tabIdx);
     tabButton->setTriggeredOnMouseDown(true);
 
     auto* closeTabButton = new TextButton(Icons::Clear);
@@ -518,8 +560,8 @@ void PluginEditor::addTab(Canvas* cnv, bool deleteWhenClosed)
     closeTabButton->onClick = [this, tabButton, deleteWhenClosed]() mutable {
         // We cant use the index from earlier because it might change!
         int idx = -1;
-        for (int i = 0; i < tabbar.getNumTabs(); i++) {
-            if (tabbar.getTabbedButtonBar().getTabButton(i) == tabButton) {
+        for (int i = 0; i < tabbarSplitview.getNumTabs(); i++) {
+            if (tabbarSplitview.getTabbedButtonBar().getTabButton(i) == tabButton) {
                 idx = i;
                 break;
             }
@@ -532,7 +574,7 @@ void PluginEditor::addTab(Canvas* cnv, bool deleteWhenClosed)
             auto* cnv = getCanvas(idx);
 
             if (!cnv) {
-                tabbar.removeTab(idx);
+                tabbarSplitview.removeTab(idx);
                 return;
             }
 
@@ -545,10 +587,10 @@ void PluginEditor::addTab(Canvas* cnv, bool deleteWhenClosed)
             }
 
             canvases.removeObject(cnv);
-            tabbar.removeTab(idx);
+            tabbarSplitview.removeTab(idx);
             pd->patches.removeObject(patch);
 
-            tabbar.setCurrentTabIndex(tabbar.getNumTabs() - 1, true);
+            tabbarSplitview.setCurrentTabIndex(tabbarSplitview.getNumTabs() - 1, true);
             updateCommandStatus();
         };
 
@@ -581,7 +623,7 @@ void PluginEditor::addTab(Canvas* cnv, bool deleteWhenClosed)
     tabButton->setExtraComponent(closeTabButton, TabBarButton::beforeText);
     closeTabButton->setSize(28, 28);
 
-    tabbar.repaint();
+    tabbarSplitview.repaint();
 
     cnv->setVisible(true);
 }

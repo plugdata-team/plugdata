@@ -459,7 +459,7 @@ public:
     void saveProject(std::function<void()> const& nestedCallback = []() {});
     void saveProjectAs(std::function<void()> const& nestedCallback = []() {});
 
-    void addTab(Canvas* cnv, bool deleteWhenClosed = false);
+    void addTab(Canvas* cnv, bool deleteWhenClosed = false, bool splitview = false);
 
     Canvas* getCurrentCanvas();
     Canvas* getCanvas(int idx);
@@ -487,6 +487,9 @@ public:
     AffineTransform transform;
 
     TabComponent tabbar;
+    TabComponent tabbarSplitview;
+    int splitview = 1;
+
     OwnedArray<Canvas, CriticalSection> canvases;
     Sidebar sidebar;
     Statusbar statusbar;
