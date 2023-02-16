@@ -107,6 +107,7 @@ public:
     }
 
     InsetViewport* viewport = nullptr;
+    InsetViewport* splitViewport = nullptr;
 
     bool connectingWithDrag = false;
     SafePointer<Iolet> nearestIolet;
