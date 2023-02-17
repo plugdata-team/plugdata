@@ -365,15 +365,8 @@ void PluginEditor::resized()
     zoomLabel.setTopLeftPosition(5, statusbar.getY() - 28);
     zoomLabel.setSize(55, 23);
 
-    if (auto* viewport = dynamic_cast<Viewport*>(tabbar.getCurrentContentComponent())) {
-            if (auto* cnv = dynamic_cast<Canvas*>(viewport->getViewedComponent())) {
-                cnv->checkBounds();
-            }
-    }
-    if (auto* viewport = dynamic_cast<Viewport*>(tabbarSplitview.getCurrentContentComponent())) {
-            if (auto* cnv = dynamic_cast<Canvas*>(viewport->getViewedComponent())) {
-                cnv->checkBounds();
-            }
+    if (auto* cnv = getCurrentCanvas()) {
+        cnv->checkBounds();
     }
 
     repaint();
@@ -549,6 +542,24 @@ void PluginEditor::saveProject(std::function<void()> const& nestedCallback)
 Canvas* PluginEditor::getCurrentCanvas()
 {
     if (splitviewHasFocus) {
+        if (auto* viewport = dynamic_cast<Viewport*>(tabbarSplitview.getCurrentContentComponent())) {
+            if (auto* cnv = dynamic_cast<Canvas*>(viewport->getViewedComponent())) {
+                return cnv;
+            }
+        }
+    } else {
+        if (auto* viewport = dynamic_cast<Viewport*>(tabbar.getCurrentContentComponent())) {
+            if (auto* cnv = dynamic_cast<Canvas*>(viewport->getViewedComponent())) {
+                return cnv;
+            }
+        }
+    }
+    return nullptr;
+}
+
+Canvas* PluginEditor::getCurrentSplitviewCanvas()
+{
+    if (!splitviewHasFocus) {
         if (auto* viewport = dynamic_cast<Viewport*>(tabbarSplitview.getCurrentContentComponent())) {
             if (auto* cnv = dynamic_cast<Canvas*>(viewport->getViewedComponent())) {
                 return cnv;

@@ -462,6 +462,7 @@ public:
     void addTab(Canvas* cnv, bool deleteWhenClosed = false, bool splitview = false);
 
     Canvas* getCurrentCanvas();
+    Canvas* getCurrentSplitviewCanvas();
     Canvas* getCanvas(int idx);
 
     void modifierKeysChanged(ModifierKeys const& modifiers) override;
