@@ -994,6 +994,11 @@ void Canvas::checkBounds()
     }
 
     updatingBounds = false;
+
+    // Sync splitview bound updates
+    if (editor->splitview && editor->getCurrentSplitviewCanvas() && editor->getCurrentSplitviewCanvas() != this) {
+        editor->getCurrentSplitviewCanvas()->checkBounds();
+    }
 }
 
 void Canvas::valueChanged(Value& v)
