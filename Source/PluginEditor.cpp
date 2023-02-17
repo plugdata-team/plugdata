@@ -331,7 +331,9 @@ void PluginEditor::resized()
     int tabbarWidth = splitview ? getWidth() / 2 - splitviewWidthFromCentre - (sidebar.getWidth()/2) : getWidth() - sidebar.getWidth();
     
     tabbar.setBounds(0, toolbarHeight, tabbarWidth + 1, getHeight() - toolbarHeight - (statusbar.getHeight()));
-    tabbarSplitview.setBounds(tabbar.getWidth(), toolbarHeight, getWidth() - tabbarWidth - sidebar.getWidth() + 1, getHeight() - toolbarHeight - (statusbar.getHeight()));
+    if (splitview) {
+        tabbarSplitview.setBounds(tabbar.getWidth(), toolbarHeight, getWidth() - tabbarWidth - sidebar.getWidth() + 1, getHeight() - toolbarHeight - (statusbar.getHeight()));
+    }
     statusbar.setBounds(0, getHeight() - statusbar.getHeight(), getWidth() - sidebar.getWidth(), statusbar.getHeight());
 
     mainMenuButton.setBounds(20, 0, toolbarHeight, toolbarHeight);
@@ -363,8 +365,15 @@ void PluginEditor::resized()
     zoomLabel.setTopLeftPosition(5, statusbar.getY() - 28);
     zoomLabel.setSize(55, 23);
 
-    if (auto* cnv = getCurrentCanvas()) {
-        cnv->checkBounds();
+    if (auto* viewport = dynamic_cast<Viewport*>(tabbar.getCurrentContentComponent())) {
+            if (auto* cnv = dynamic_cast<Canvas*>(viewport->getViewedComponent())) {
+                cnv->checkBounds();
+            }
+    }
+    if (auto* viewport = dynamic_cast<Viewport*>(tabbarSplitview.getCurrentContentComponent())) {
+            if (auto* cnv = dynamic_cast<Canvas*>(viewport->getViewedComponent())) {
+                cnv->checkBounds();
+            }
     }
 
     repaint();
