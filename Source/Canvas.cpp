@@ -320,7 +320,7 @@ void Canvas::mouseDown(MouseEvent const& e)
                     Rectangle<int> dragBar(0, dragbarWidth, 15, getHeight());
                     if (dragBar.contains(e.getEventRelativeTo(this).getPosition())) {
                         draggingSplitview = true;
-                        dragStartWidth = editor->splitviewWidth;
+                        dragStartWidth = editor->splitviewWidthFromCentre;
                     } else {
                         draggingSplitview = false;
                     }
@@ -350,9 +350,9 @@ void Canvas::mouseDrag(MouseEvent const& e)
         int newWidth = dragStartWidth - e.getDistanceFromDragStartX();
         //newWidth = std::clamp(newWidth, 100, std::max(getParentWidth() / 2, 150));
 
-        editor->splitviewWidth = newWidth;
+        editor->splitviewWidthFromCentre = newWidth;
         editor->resized();
-        
+
     }
 
     if (connectingWithDrag) {

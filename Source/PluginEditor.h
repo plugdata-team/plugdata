@@ -489,7 +489,7 @@ public:
     TabComponent tabbar;
     TabComponent tabbarSplitview;
     bool splitviewHasFocus = false;
-    int splitviewWidth = 0;
+    int splitviewWidthFromCentre = 0;
     
     int splitview = 1;
 
