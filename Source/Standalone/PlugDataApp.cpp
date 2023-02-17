@@ -168,54 +168,50 @@ void PlugDataWindow::closeAllPatches()
 {
     // Show an ask to save dialog for each patch that is dirty
     // Because save dialog uses an asynchronous callback, we can't loop over them (so have to chain them)
-    if (auto* editor = dynamic_cast<PluginEditor*>(pluginHolder->processor->getActiveEditor())) {
-        int idx = editor->tabbar.getCurrentTabIndex();
-        auto* cnv = editor->getCurrentCanvas();
+    auto* editor = dynamic_cast<PluginEditor*>(pluginHolder->processor->getActiveEditor());
 
-        auto deleteFunc = [this, editor, cnv, idx]() mutable {
-            auto* deletedPatch = &cnv->patch;
-            editor->canvases.removeObject(cnv);
-            editor->tabbar.removeTab(idx);
-            editor->tabbar.setCurrentTabIndex(editor->tabbar.getNumTabs() - 1, true);
+    auto* cnv = editor->getCurrentCanvas();
+    auto* splitviewCnv = editor->getCurrentSplitviewCanvas();
 
-            if (deletedPatch) {
-                // TODO: the OS is our garbage collector
-                // deletedPatch->close();
-                dynamic_cast<PluginProcessor*>(getAudioProcessor())->patches.removeObject(deletedPatch, true);
-            }
+    auto& tabbar = splitviewCnv ? editor->tabbarSplitview : editor->tabbar;
+    auto canvas = splitviewCnv ? splitviewCnv : cnv;
+    int idx = tabbar.getCurrentTabIndex();
+    auto deleteFunc = [this, editor, canvas, &tabbar, idx]() mutable {
+        auto* deletedPatch = &canvas->patch;
+        editor->canvases.removeObject(canvas);
+        tabbar.removeTab(idx);
+        tabbar.setCurrentTabIndex(tabbar.getNumTabs() - 1, true);
 
-            closeAllPatches();
-        };
-
-        if (!cnv) {
-            JUCEApplication::quit();
-            return;
+        if (deletedPatch) {
+            // TODO: the OS is our garbage collector
+            // deletedPatch->close();
+            dynamic_cast<PluginProcessor*>(getAudioProcessor())->patches.removeObject(deletedPatch, true);
         }
 
-        else if (cnv->patch.isDirty()) {
-            MessageManager::callAsync([this, editor, cnv, deleteFunc]() mutable {
-                Dialogs::showSaveDialog(&editor->openedDialog, editor, cnv->patch.getTitle(),
-                    [this, editor, cnv, deleteFunc](int result) mutable {
-                        if (result == 2) {
-                            editor->saveProject(
-                                [this, cnv, editor, deleteFunc]() mutable {
-                                    if (cnv) {
-                                        deleteFunc();
-                                    }
-                                });
-                        } else if (result == 1) {
-                            if (cnv) {
+        closeAllPatches();
+    };
+
+    if (!cnv && !splitviewCnv) {
+        JUCEApplication::quit();
+        return;
+    }
+
+    if (canvas->patch.isDirty()) {
+        MessageManager::callAsync([this, editor, canvas, deleteFunc]() mutable {
+            Dialogs::showSaveDialog(&editor->openedDialog, editor, canvas->patch.getTitle(),
+                [this, editor, canvas, deleteFunc](int result) mutable {
+                    if (result == 2) {
+                        editor->saveProject(
+                            [this, canvas, editor, deleteFunc]() mutable {
                                 deleteFunc();
-                            }
-                        } else if (!result) {
-                        }
-                    });
-            });
-        }
-
-        else if (cnv) {
-            deleteFunc();
-        }
+                            });
+                    } else if (result == 1) {
+                        deleteFunc();
+                    }
+                });
+        });
+    } else {
+        deleteFunc();
     }
 }
 
