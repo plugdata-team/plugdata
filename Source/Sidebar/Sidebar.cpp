@@ -140,7 +140,7 @@ void Sidebar::resized()
 
 void Sidebar::mouseDown(MouseEvent const& e)
 {
-    Rectangle<int> dragBar(0, dragbarWidth, 15, getHeight());
+    Rectangle<int> dragBar(getX(), getY(), dragbarWidth, getHeight());
     if (dragBar.contains(e.getEventRelativeTo(this).getPosition()) && !sidebarHidden) {
         draggingSidebar = true;
         dragStartWidth = getWidth();
