@@ -1268,10 +1268,16 @@ void PluginProcessor::titleChanged()
 {
     if (auto* editor = dynamic_cast<PluginEditor*>(getActiveEditor())) {
         for (int n = 0; n < editor->tabbar.getNumTabs(); n++) {
-            auto* cnv = editor->getCanvas(n);
+            auto* cnv = editor->getCanvas(n, false);
             if (!cnv)
                 return;
             editor->tabbar.setTabName(n, cnv->patch.getTitle());
+        }
+        for (int n = 0; n < editor->tabbarSplitview.getNumTabs(); n++) {
+            auto* cnv = editor->getCanvas(n, true);
+            if (!cnv)
+                return;
+            editor->tabbarSplitview.setTabName(n, cnv->patch.getTitle());
         }
     }
 }
