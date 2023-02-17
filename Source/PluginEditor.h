@@ -488,6 +488,8 @@ public:
 
     TabComponent tabbar;
     TabComponent tabbarSplitview;
+    bool splitviewHasFocus = false;
+    
     int splitview = 1;
 
     OwnedArray<Canvas, CriticalSection> canvases;

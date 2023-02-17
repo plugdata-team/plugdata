@@ -101,14 +101,17 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     addAndMakeVisible(statusbar);
 
     tabbar.newTab = [this]() {
+        splitviewHasFocus = false;
         newProject();
     };
 
     tabbar.openProject = [this]() {
+        splitviewHasFocus = false;
         openProject();
     };
 
     tabbar.onTabChange = [this](int idx) {
+        splitviewHasFocus = false;
         auto* cnv = getCurrentCanvas();
 
         if (!cnv || idx == -1 || pd->isPerformingGlobalSync)
@@ -138,14 +141,17 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     addAndMakeVisible(tabbar);
 
     tabbarSplitview.newTab = [this]() {
+        splitviewHasFocus = true;
         newProject();
     };
 
     tabbarSplitview.openProject = [this]() {
+        splitviewHasFocus = true;
         openProject();
     };
 
     tabbarSplitview.onTabChange = [this](int idx) {
+        splitviewHasFocus = true;
         auto* cnv = getCurrentCanvas();
 
         if (!cnv || idx == -1 || pd->isPerformingGlobalSync)
@@ -172,6 +178,7 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     };
 
     tabbarSplitview.setOutline(0);
+    tabbarSplitview.setHasFocusOutline(true);
     addAndMakeVisible(tabbarSplitview);
 
     addAndMakeVisible(sidebar);
@@ -242,6 +249,7 @@ PluginEditor::PluginEditor(PluginProcessor& p)
 
     // Set minimum bounds
     setResizeLimits(835, 305, 999999, 999999);
+
 
     tabbar.toFront(false);
     tabbarSplitview.toFront(false);
@@ -315,8 +323,7 @@ void PluginEditor::resized()
     sidebar.setBounds(getWidth() - sidebar.getWidth(), toolbarHeight, sidebar.getWidth(), getHeight() - toolbarHeight);
     splitview = 2;
     tabbar.setBounds(0, toolbarHeight, ((getWidth() - sidebar.getWidth()) + 1) / splitview, getHeight() - toolbarHeight - (statusbar.getHeight()));
-    tabbarSplitview.setBounds(getWidth() / splitview, toolbarHeight, ((getWidth() - sidebar.getWidth()) + 1) / splitview, getHeight() - toolbarHeight - (statusbar.getHeight()));
-
+    tabbarSplitview.setBounds(tabbar.getWidth(), toolbarHeight, ((getWidth() - sidebar.getWidth()) + 1) / splitview, getHeight() - toolbarHeight - (statusbar.getHeight()));
     statusbar.setBounds(0, getHeight() - statusbar.getHeight(), getWidth() - sidebar.getWidth(), statusbar.getHeight());
 
     mainMenuButton.setBounds(20, 0, toolbarHeight, toolbarHeight);
@@ -524,9 +531,17 @@ void PluginEditor::saveProject(std::function<void()> const& nestedCallback)
 
 Canvas* PluginEditor::getCurrentCanvas()
 {
-    if (auto* viewport = dynamic_cast<Viewport*>(tabbar.getCurrentContentComponent())) {
-        if (auto* cnv = dynamic_cast<Canvas*>(viewport->getViewedComponent())) {
-            return cnv;
+    if (splitviewHasFocus) {
+        if (auto* viewport = dynamic_cast<Viewport*>(tabbarSplitview.getCurrentContentComponent())) {
+            if (auto* cnv = dynamic_cast<Canvas*>(viewport->getViewedComponent())) {
+                return cnv;
+            }
+        }
+    } else {
+        if (auto* viewport = dynamic_cast<Viewport*>(tabbar.getCurrentContentComponent())) {
+            if (auto* cnv = dynamic_cast<Canvas*>(viewport->getViewedComponent())) {
+                return cnv;
+            }
         }
     }
     return nullptr;
@@ -534,9 +549,17 @@ Canvas* PluginEditor::getCurrentCanvas()
 
 Canvas* PluginEditor::getCanvas(int idx)
 {
-    if (auto* viewport = dynamic_cast<Viewport*>(tabbar.getTabContentComponent(idx))) {
-        if (auto* cnv = dynamic_cast<Canvas*>(viewport->getViewedComponent())) {
-            return cnv;
+    if (splitviewHasFocus) {
+        if (auto* viewport = dynamic_cast<Viewport*>(tabbarSplitview.getTabContentComponent(idx))) {
+            if (auto* cnv = dynamic_cast<Canvas*>(viewport->getViewedComponent())) {
+                return cnv;
+            }
+        }
+    } else {
+        if (auto* viewport = dynamic_cast<Viewport*>(tabbar.getTabContentComponent(idx))) {
+            if (auto* cnv = dynamic_cast<Canvas*>(viewport->getViewedComponent())) {
+                return cnv;
+            }
         }
     }
 
@@ -545,89 +568,174 @@ Canvas* PluginEditor::getCanvas(int idx)
 
 void PluginEditor::addTab(Canvas* cnv, bool deleteWhenClosed, bool splitview)
 {
-    auto& tabbar = tabbarSplitview;
+    if (!splitviewHasFocus) {
+        tabbar.addTab(cnv->patch.getTitle(), findColour(ResizableWindow::backgroundColourId), cnv->viewport, true);
 
-    tabbar.addTab(cnv->patch.getTitle(), findColour(ResizableWindow::backgroundColourId), cnv->viewport, true);
+        int tabIdx = tabbar.getNumTabs() - 1;
 
-    int tabIdx = tabbar.getNumTabs() - 1;
+        tabbar.setCurrentTabIndex(tabIdx);
+        tabbar.setTabBackgroundColour(tabIdx, Colours::transparentBlack);
 
-    tabbar.setCurrentTabIndex(tabIdx);
-    tabbar.setTabBackgroundColour(tabIdx, Colours::transparentBlack);
+        auto* tabButton = tabbar.getTabbedButtonBar().getTabButton(tabIdx);
+        tabButton->setTriggeredOnMouseDown(true);
 
-    auto* tabButton = tabbar.getTabbedButtonBar().getTabButton(tabIdx);
-    tabButton->setTriggeredOnMouseDown(true);
+        auto* closeTabButton = new TextButton(Icons::Clear);
 
-    auto* closeTabButton = new TextButton(Icons::Clear);
-
-    closeTabButton->onClick = [this, tabButton, deleteWhenClosed, &tabbar]() mutable {
-        // We cant use the index from earlier because it might change!
-        int idx = -1;
-        for (int i = 0; i < tabbar.getNumTabs(); i++) {
-            if (tabbar.getTabbedButtonBar().getTabButton(i) == tabButton) {
-                idx = i;
-                break;
+        closeTabButton->onClick = [this, tabButton, deleteWhenClosed]() mutable {
+            // We cant use the index from earlier because it might change!
+            int idx = -1;
+            for (int i = 0; i < tabbar.getNumTabs(); i++) {
+                if (tabbar.getTabbedButtonBar().getTabButton(i) == tabButton) {
+                    idx = i;
+                    break;
+                }
             }
-        }
 
-        if (idx == -1)
-            return;
-
-        auto deleteFunc = [this, deleteWhenClosed, idx, tabbar]() mutable {
-            auto* cnv = getCanvas(idx);
-
-            if (!cnv) {
-                tabbar.removeTab(idx);
+            if (idx == -1)
                 return;
-            }
 
-            auto* patch = &cnv->patch;
+            auto deleteFunc = [this, deleteWhenClosed, idx]() mutable {
+                auto* cnv = getCanvas(idx);
 
-            if (deleteWhenClosed) {
-                pd->lockAudioThread();
-                patch->close();
-                pd->unlockAudioThread();
-            }
+                if (!cnv) {
+                    tabbar.removeTab(idx);
+                    return;
+                }
 
-            canvases.removeObject(cnv);
-            tabbar.removeTab(idx);
-            pd->patches.removeObject(patch);
+                auto* patch = &cnv->patch;
 
-            tabbar.setCurrentTabIndex(tabbar.getNumTabs() - 1, true);
-            updateCommandStatus();
+                if (deleteWhenClosed) {
+                    pd->lockAudioThread();
+                    patch->close();
+                    pd->unlockAudioThread();
+                }
+
+                canvases.removeObject(cnv);
+                tabbar.removeTab(idx);
+                pd->patches.removeObject(patch);
+
+                tabbar.setCurrentTabIndex(tabbar.getNumTabs() - 1, true);
+                updateCommandStatus();
+            };
+
+            MessageManager::callAsync(
+                [this, deleteFunc, idx]() mutable {
+                    auto cnv = SafePointer(getCanvas(idx));
+                    if (cnv && cnv->patch.isDirty()) {
+                        Dialogs::showSaveDialog(&openedDialog, this, cnv->patch.getTitle(),
+                            [this, deleteFunc, cnv](int result) mutable {
+                                if (!cnv)
+                                    return;
+                                if (result == 2) {
+                                    saveProject([deleteFunc]() mutable { deleteFunc(); });
+                                } else if (result == 1) {
+                                    deleteFunc();
+                                }
+                            });
+                    } else if (cnv) {
+                        deleteFunc();
+                    }
+                });
         };
 
-        MessageManager::callAsync(
-            [this, deleteFunc, idx]() mutable {
-                auto cnv = SafePointer(getCanvas(idx));
-                if (cnv && cnv->patch.isDirty()) {
-                    Dialogs::showSaveDialog(&openedDialog, this, cnv->patch.getTitle(),
-                        [this, deleteFunc, cnv](int result) mutable {
-                            if (!cnv)
-                                return;
-                            if (result == 2) {
-                                saveProject([deleteFunc]() mutable { deleteFunc(); });
-                            } else if (result == 1) {
-                                deleteFunc();
-                            }
-                        });
-                } else if (cnv) {
-                    deleteFunc();
+        closeTabButton->getProperties().set("Style", "Icon");
+        closeTabButton->getProperties().set("FontScale", 0.44f);
+        closeTabButton->setColour(TextButton::buttonColourId, Colour());
+        closeTabButton->setColour(TextButton::buttonOnColourId, Colour());
+        closeTabButton->setColour(ComboBox::outlineColourId, Colour());
+        closeTabButton->setConnectedEdges(12);
+        tabButton->setExtraComponent(closeTabButton, TabBarButton::beforeText);
+        closeTabButton->setSize(28, 28);
+
+        tabbar.repaint();
+
+        cnv->setVisible(true);
+
+    } else if (splitviewHasFocus) {
+        tabbarSplitview.addTab(cnv->patch.getTitle(), findColour(ResizableWindow::backgroundColourId), cnv->viewport, true);
+
+        int tabIdxSplitview = tabbarSplitview.getNumTabs() - 1;
+
+        tabbarSplitview.setCurrentTabIndex(tabIdxSplitview);
+        tabbarSplitview.setTabBackgroundColour(tabIdxSplitview, Colours::transparentBlack);
+
+        auto* tabButtonSplitview = tabbarSplitview.getTabbedButtonBar().getTabButton(tabIdxSplitview);
+        tabButtonSplitview->setTriggeredOnMouseDown(true);
+
+        auto* closeTabButtonSplitview = new TextButton(Icons::Clear);
+
+        closeTabButtonSplitview->onClick = [this, tabButtonSplitview, deleteWhenClosed]() mutable {
+            // We cant use the index from earlier because it might change!
+            std::cout << "HEJ" << std::endl;
+            int idx = -1;
+            for (int i = 0; i < tabbarSplitview.getNumTabs(); i++) {
+                if (tabbarSplitview.getTabbedButtonBar().getTabButton(i) == tabButtonSplitview) {
+                    idx = i;
+                    
+                    break;
                 }
-            });
-    };
+            }
+            
 
-    closeTabButton->getProperties().set("Style", "Icon");
-    closeTabButton->getProperties().set("FontScale", 0.44f);
-    closeTabButton->setColour(TextButton::buttonColourId, Colour());
-    closeTabButton->setColour(TextButton::buttonOnColourId, Colour());
-    closeTabButton->setColour(ComboBox::outlineColourId, Colour());
-    closeTabButton->setConnectedEdges(12);
-    tabButton->setExtraComponent(closeTabButton, TabBarButton::beforeText);
-    closeTabButton->setSize(28, 28);
+            if (idx == -1)
+                return;
 
-    tabbar.repaint();
+            auto deleteFunc = [this, deleteWhenClosed, idx]() mutable {
+                auto* cnv = getCanvas(idx);
+                
+                if (!cnv) {
+                    tabbarSplitview.removeTab(idx);
+                    return;
+                }
 
-    cnv->setVisible(true);
+                auto* patch = &cnv->patch;
+
+                if (deleteWhenClosed) {
+                    pd->lockAudioThread();
+                    patch->close();
+                    pd->unlockAudioThread();
+                }
+                canvases.removeObject(cnv);
+                tabbarSplitview.removeTab(idx);
+                pd->patches.removeObject(patch);
+
+                tabbarSplitview.setCurrentTabIndex(tabbarSplitview.getNumTabs() - 1, true);
+                updateCommandStatus();
+            };
+
+            MessageManager::callAsync(
+                [this, deleteFunc, idx]() mutable {
+                    auto cnv = SafePointer(getCanvas(idx));
+                    if (cnv && cnv->patch.isDirty()) {
+                        Dialogs::showSaveDialog(&openedDialog, this, cnv->patch.getTitle(),
+                            [this, deleteFunc, cnv](int result) mutable {
+                                if (!cnv)
+                                    return;
+                                if (result == 2) {
+                                    saveProject([deleteFunc]() mutable { deleteFunc(); });
+                                } else if (result == 1) {
+                                    deleteFunc();
+                                }
+                            });
+                    } else if (cnv) {
+                        deleteFunc();
+                    }
+                });
+        };
+
+        closeTabButtonSplitview->getProperties().set("Style", "Icon");
+        closeTabButtonSplitview->getProperties().set("FontScale", 0.44f);
+        closeTabButtonSplitview->setColour(TextButton::buttonColourId, Colour());
+        closeTabButtonSplitview->setColour(TextButton::buttonOnColourId, Colour());
+        closeTabButtonSplitview->setColour(ComboBox::outlineColourId, Colour());
+        closeTabButtonSplitview->setConnectedEdges(12);
+        tabButtonSplitview->setExtraComponent(closeTabButtonSplitview, TabBarButton::beforeText);
+        closeTabButtonSplitview->setSize(28, 28);
+
+        tabbarSplitview.repaint();
+
+        cnv->setVisible(true);
+    }
 }
 
 void PluginEditor::valueChanged(Value& v)
@@ -1078,6 +1186,19 @@ bool PluginEditor::perform(InvocationInfo const& info)
         return true;
     }
     case CommandIDs::CloseTab: {
+
+        if (splitviewHasFocus) {
+            if (tabbarSplitview.getNumTabs() == 0)
+                return true;
+
+            int currentIdx = tabbarSplitview.getCurrentTabIndex();
+            auto* closeTabButton = dynamic_cast<TextButton*>(tabbarSplitview.getTabbedButtonBar().getTabButton(currentIdx)->getExtraComponent());
+
+            // Virtually click the close button
+            closeTabButton->triggerClick();
+
+            return true;
+        }
         if (tabbar.getNumTabs() == 0)
             return true;
 
@@ -1088,6 +1209,8 @@ bool PluginEditor::perform(InvocationInfo const& info)
         closeTabButton->triggerClick();
 
         return true;
+
+       
     }
     case CommandIDs::Copy: {
         cnv->copySelection();
