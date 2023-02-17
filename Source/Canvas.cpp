@@ -352,7 +352,7 @@ void Canvas::mouseDrag(MouseEvent const& e)
 
         editor->splitviewWidthFromCentre = newWidth;
         editor->resized();
-
+        return;
     }
 
     if (connectingWithDrag) {
