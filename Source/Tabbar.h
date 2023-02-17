@@ -219,6 +219,6 @@ public:
 
         g.drawLine(Line<float>(getTabBarDepth() - 0.5f, 0, getTabBarDepth() - 0.5f, getTabBarDepth()), 1.0f);
 
-        g.drawLine(0, 0, getWidth(), 0);
+        g.drawLine(0, 0, getWidth(), 0);   
     }
 };
