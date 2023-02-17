@@ -56,6 +56,7 @@ Canvas::Canvas(PluginEditor* parent, pd::Patch& p, Component* parentGraph)
     gridEnabled.referTo(SettingsFile::getInstance()->getPropertyAsValue("grid_enabled"));
 
     tabbar = &editor->tabbar;
+    tabbarSplitview = &editor->tabbarSplitview;
 
     // Add draggable border for setting graph position
     if (static_cast<bool>(isGraphChild.getValue()) && !isGraph) {
@@ -307,6 +308,12 @@ void Canvas::mouseDown(MouseEvent const& e)
 
             lasso.beginLasso(e.getEventRelativeTo(this), this);
             isDraggingLasso = true;
+
+            if (!editor->splitviewHasFocus && (editor->getCurrentCanvas() != this)) {
+                editor->splitviewHasFocus = true;
+            } else if (editor->splitviewHasFocus && (editor->getCurrentCanvas() != this)) {
+                editor->splitviewHasFocus = false;
+            }
         }
 
         // Update selected object in sidebar when we click a object
