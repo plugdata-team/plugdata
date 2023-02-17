@@ -34,5 +34,5 @@ outlets:
 
 ---
 
-[parabolic~] is a parabolic oscillator that accepts negative frequencies, has inlets for phase sync and and phase modulation. A parabolic waveform is similar to a sinusoid but it is not band limited (has aliasing).
+[parabolic~] is a parabolic oscillator that accepts negative frequencies, has inlets for phase sync and phase modulation. A parabolic waveform is similar to a sinusoid but it is not band limited (has aliasing).
 

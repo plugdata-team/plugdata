@@ -16,10 +16,10 @@ inlets:
     description: resends last output
   2nd:
   - type: float
-    description: submaster "all on" switch
+    description: enable-all switch
   3rd:
   - type: float
-    description: master "disable" switch
+    description: disable-all switch
 outlets:
   nth:
   - type: float

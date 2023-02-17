@@ -1,7 +1,7 @@
 ---
 title: schmitt~
 
-description: schmitt trigger
+description: Schmitt trigger
 
 categories:
  - object

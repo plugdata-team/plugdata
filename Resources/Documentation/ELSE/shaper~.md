@@ -47,4 +47,4 @@ draft: false
 ---
 
 [shaper~] performs waveshaping with transfer functions, in which signal input values (from -1 to 1) are mapped to the the transfer function's indexes. Values outside the -1 to 1 range are wrapped inside it.
-You can set an array for [shaper~], as in this example, or use its internal transfer function for chebyshev polynomials.
+You can set an array for [shaper~], as in this example, or use its internal transfer function for Chebyshev polynomials.

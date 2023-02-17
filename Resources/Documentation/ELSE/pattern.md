@@ -41,7 +41,7 @@ flags:
 
 methods:
   - type: tempo <float>
-    description: sets tempo in (bpm)
+    description: sets tempo in bpm
   - type: start
     description: starts the sequencer
   - type: stop

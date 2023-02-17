@@ -45,4 +45,4 @@ methods:
 draft: false
 ---
 
-[spectrograph~] is an abstraction for visualizing FFT amplitudes from 0Hz to Nyquist. It uses a hann table for the analysis.
+[spectrograph~] is an abstraction for visualizing FFT amplitudes from 0Hz to Nyquist. It uses a Hann table for the analysis.

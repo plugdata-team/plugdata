@@ -60,9 +60,9 @@ methods:
     - type: cubic
       description: sets to cubic interpolation
     - type: lagrange
-      description: sets to lagrange interpolation
+      description: sets to Lagrange interpolation
     - type: hermite <f, f>
-      description: sets to hermite interpolation
+      description: sets to Hermite interpolation
 
 
 draft: false

@@ -41,7 +41,7 @@ methods:
   - type: play
     description: start playing sequence
   - type: start
-    description: sets to slave mode and expects clock ticks (bangs)
+    description: sets to synced mode and expects clock ticks (bangs)
   - type: stop
     description: stops recording/playing and goes back to start
   - type: pause

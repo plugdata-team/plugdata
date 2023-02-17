@@ -1,6 +1,6 @@
 ---
 title: pluck~
-description: a karplus-strong algorithm
+description: a Karplus-Strong algorithm
 categories:
  - object
 pdcategory: ELSE, Signal Generators
@@ -40,7 +40,7 @@ inlets:
 outlets:
   1st:
   - type: signal
-    description: the karplus-strong output
+    description: the Karplus-Strong output
 
 flags:
   - name: -in

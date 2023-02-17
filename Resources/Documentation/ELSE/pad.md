@@ -14,7 +14,7 @@ inlets:
 outlets:
   1st:
   - type: list
-    description: list of coords (x, y)
+    description: list of coordinates (x, y)
   - type: click <float>
     description: report mouse button press <1> and release <0>
 
