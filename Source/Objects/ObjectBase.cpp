@@ -255,7 +255,7 @@ void ObjectBase::openSubpatch()
 
     newPatch->setCurrentFile(path);
 
-    cnv->editor->addTab(newCanvas, false, cnv->editor->tabbarSplitview.hasKeyboardFocus(true));
+    cnv->editor->addTab(newCanvas, false);
     newCanvas->checkBounds();
 }
 
