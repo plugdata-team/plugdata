@@ -11,7 +11,7 @@ pdcategory: ELSE, Random and Noise, Signal Generators
 arguments:
 - type: float
   description: sets frequency in Hz
-  default: nyquist
+  default: Nyquist
 - type: float
   description: sets k
   default: 1
@@ -48,4 +48,4 @@ draft: false
 y[n] = (y[n-1] + k * sin(x[n-1])) % 2pi;
 x[n] = (x[n-1] + y[n]) % 2pi;
 out = (x[n] - pi) / pi;
-The output rate of the equation is given in Hz (default: nyquist).
+The output rate of the equation is given in Hz (default: Nyquist).

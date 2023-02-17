@@ -63,4 +63,4 @@ methods:
 draft: false
 ---
 
-[rand.hist] generates weighted randomnumbers based on a histogram (which specifies how many times an index is output). Below to the left we have a random sequence where 0 has a 30% chance of occurring, 1 has 20% and 2 has 50%. A list sets a new histogram. In "unrepeat" mode, a random sequence is output without repetition, below to the right, the random sequence contains index 0 three times and index 1 twice. When the sequence is finished, a bang comes out the right outlet. In this case, the 'restart' message clears the memory so you can start a new sequence.
+[rand.hist] generates weighted random numbers based on a histogram (which specifies how many times an index is output). Below to the left we have a random sequence where 0 has a 30% chance of occurring, 1 has 20% and 2 has 50%. A list sets a new histogram. In "unrepeat" mode, a random sequence is output without repetition, below to the right, the random sequence contains index 0 three times and index 1 twice. When the sequence is finished, a bang comes out the right outlet. In this case, the 'restart' message clears the memory so you can start a new sequence.
