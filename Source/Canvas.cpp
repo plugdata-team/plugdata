@@ -140,6 +140,11 @@ void Canvas::paint(Graphics& g)
             }
         }
     }
+    
+    if (editor->splitview) {
+        g.setColour(findColour(PlugDataColour::outlineColourId));
+        g.drawLine(getX(), getY(), getX(), getBottom());
+    }
 }
 
 // Synchronise state with pure-data
