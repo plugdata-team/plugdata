@@ -9,7 +9,7 @@ inlets:
 outlets:
   1st:
   - type: bang
-    description: output when activated
+    description: output when triggered
 methods:
 - type: size <float>
   description: sets the GUI size

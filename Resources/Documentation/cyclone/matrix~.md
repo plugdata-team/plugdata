@@ -6,18 +6,18 @@ categories:
 pdcategory: cyclone, Mixing and Routing
 arguments:
 - type: float
-  description: `n` number of inputs (1 to 250, default 1)
-  default: 0
+  description: number of inputs (1 to 250)
+  default: 1
 - type: float
-  description: `n` number of outputs (1 to 499, default 1)
-  default: 0
+  description: number of outputs (1 to 499)
+  default: 1
 - type: float
-  description: sets to `non-binary` mode and the gain value for connections
+  description: sets to non-binary mode and the gain value for connections
   default: binary
 inlets:
   1st:
   - type: list
-    description: in binary mode: <inlet#, outlet#, on/off>. In non binary mode: <inlet#, outlet#, gain, ramp>
+    description: binary mode: <inlet#, outlet#, on/off>. non-binary mode: <inlet#, outlet#, gain, ramp>
   - type: signal
     description: signals to route and mix
   nth:
