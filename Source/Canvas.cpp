@@ -309,10 +309,22 @@ void Canvas::mouseDown(MouseEvent const& e)
             lasso.beginLasso(e.getEventRelativeTo(this), this);
             isDraggingLasso = true;
 
-            if (!editor->splitviewHasFocus && (editor->getCurrentCanvas() != this)) {
-                editor->splitviewHasFocus = true;
-            } else if (editor->splitviewHasFocus && (editor->getCurrentCanvas() != this)) {
-                editor->splitviewHasFocus = false;
+            if (editor->splitview) {
+                if (!editor->splitviewHasFocus && (editor->getCurrentCanvas() != this)) {
+                    editor->splitviewHasFocus = true;
+                } else if (editor->splitviewHasFocus && (editor->getCurrentCanvas() != this)) {
+                    editor->splitviewHasFocus = false;
+                }
+
+                if (editor->splitviewHasFocus) {
+                    Rectangle<int> dragBar(0, dragbarWidth, 15, getHeight());
+                    if (dragBar.contains(e.getEventRelativeTo(this).getPosition())) {
+                        draggingSplitview = true;
+                        dragStartWidth = editor->splitviewWidth;
+                    } else {
+                        draggingSplitview = false;
+                    }
+                }
             }
         }
 
@@ -333,6 +345,16 @@ void Canvas::mouseDrag(MouseEvent const& e)
 {
     if (canvasRateReducer.tooFast())
         return;
+
+    if (draggingSplitview) {
+        int newWidth = dragStartWidth - e.getDistanceFromDragStartX();
+        //newWidth = std::clamp(newWidth, 100, std::max(getParentWidth() / 2, 150));
+
+        editor->splitviewWidth = newWidth;
+        editor->resized();
+        //setBounds(getParentWidth() - newWidth, getY(), newWidth, getHeight());
+        //getParentComponent()->resized();
+    }
 
     if (connectingWithDrag) {
         for (auto* obj : objects) {
@@ -433,6 +455,10 @@ void Canvas::mouseUp(MouseEvent const& e)
                 }
             }
         }
+    }
+
+    if (draggingSplitview) {
+        draggingSplitview = false;
     }
 }
 
