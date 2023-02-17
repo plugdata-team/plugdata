@@ -1,7 +1,7 @@
 ---
 title: latoocarfian~
 
-description: latoocarfian chaotic generator
+description: Latoocarfian chaotic generator
 
 categories:
  - object
@@ -11,7 +11,7 @@ pdcategory: ELSE, Signal Generators
 arguments:
 - type: float
   description: sets frequency in Hz
-  default: nyquist
+  default: Nyquist
 - type: float
   description: sets a
   default: 1
@@ -41,7 +41,7 @@ inlets:
 outlets:
   1st:
   - type: signal
-    description: latoocarfian chaotic signal
+    description: Latoocarfian chaotic signal
 
 methods:
   - type: coeffs <f, f, f, f>
