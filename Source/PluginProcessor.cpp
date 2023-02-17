@@ -813,7 +813,8 @@ bool PluginProcessor::hasEditor() const
 AudioProcessorEditor* PluginProcessor::createEditor()
 {
     auto* editor = new PluginEditor(*this);
-
+    auto& tabbar = editor->tabbar;
+    auto& tabbarSplitview = editor->tabbarSplitview;
     setThis();
 
     for (auto* patch : patches) {
@@ -824,7 +825,10 @@ AudioProcessorEditor* PluginProcessor::createEditor()
     editor->resized();
 
     if (isPositiveAndBelow(lastTab, patches.size())) {
-        editor->tabbar.setCurrentTabIndex(lastTab);
+        tabbar.setCurrentTabIndex(lastTab);
+    }
+    if (isPositiveAndBelow(lastTabSplitview, patches.size())) {
+        tabbar.setCurrentTabIndex(lastTabSplitview);
     }
 
     return editor;
@@ -887,6 +891,7 @@ void PluginProcessor::setStateInformation(void const* data, int sizeInBytes)
             if (!editor)
                 return;
             editor->tabbar.clearTabs();
+            editor->tabbarSplitview.clearTabs();
             editor->canvases.clear();
         });
     }
