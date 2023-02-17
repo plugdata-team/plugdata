@@ -167,6 +167,7 @@ private:
     SafePointer<Object> objectSnappingInbetween;
     SafePointer<Connection> connectionToSnapInbetween;
     SafePointer<TabbedComponent> tabbar;
+    SafePointer<TabbedComponent> tabbarSplitview;
 
     LassoComponent<WeakReference<Component>> lasso;
 
