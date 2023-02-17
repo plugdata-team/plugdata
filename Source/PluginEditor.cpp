@@ -316,6 +316,11 @@ void PluginEditor::paintOverChildren(Graphics& g)
         g.setColour(findColour(PlugDataColour::scrollbarThumbColourId));
         g.drawRect(getLocalBounds().reduced(1), 2.0f);
     }
+
+    if (splitview) {
+        g.setColour(findColour(PlugDataColour::outlineColourId));
+        g.drawLine(tabbarSplitview.getX(), tabbarSplitview.getY(), tabbarSplitview.getX(), tabbarSplitview.getBottom());
+    }
 }
 
 void PluginEditor::resized()
