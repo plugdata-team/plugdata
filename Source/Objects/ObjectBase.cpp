@@ -187,7 +187,7 @@ String ObjectBase::getType() const
 void ObjectBase::closeOpenedSubpatchers()
 {
     auto* editor = object->cnv->editor;
-    auto* tabbar = &editor->tabbar;
+    auto* tabbar = editor->splitviewHasFocus ? &editor->tabbarSplitview : &editor->tabbar;
 
     if (!tabbar)
         return;
