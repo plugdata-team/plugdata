@@ -352,8 +352,7 @@ void Canvas::mouseDrag(MouseEvent const& e)
 
         editor->splitviewWidth = newWidth;
         editor->resized();
-        //setBounds(getParentWidth() - newWidth, getY(), newWidth, getHeight());
-        //getParentComponent()->resized();
+        
     }
 
     if (connectingWithDrag) {
