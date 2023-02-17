@@ -10,7 +10,7 @@ pdcategory: ELSE, Signal Generators
 arguments:
 - type: float
   description: sets frequency in Hz
-  default: nyquist
+  default: Nyquist
 - type: float
   description: sets a
   default: 1

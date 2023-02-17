@@ -62,7 +62,7 @@ methods:
   - type: dry <float>
     description: dry gain level (0-1)
   - type: wet <float>
-    description: wet gain level (0-1) - master of early/late
+    description: wet gain level (0-1) - overrides early and late
   - type: clear
     description: clears delay lines
   - type: print

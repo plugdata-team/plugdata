@@ -22,7 +22,7 @@ outlets:
 
 methods:
   - type: clear
-    desctiption: clears the hanging notes that [midiflush] keeps track off
+    description: clears the hanging notes that [midiflush] keeps track of
 
 ---
 

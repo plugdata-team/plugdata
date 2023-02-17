@@ -55,7 +55,7 @@ methods:
   - type: pause
     description: stops the loop
   - type: continue
-    description: countinues the loop after being paused
+    description: continues the loop after being paused
 
 ---
 
