@@ -317,7 +317,7 @@ void Canvas::mouseDown(MouseEvent const& e)
                 }
 
                 if (editor->splitviewHasFocus) {
-                    Rectangle<int> dragBar(0, dragbarWidth, 15, getHeight());
+                    Rectangle<int> dragBar(getX(), getY(), splitviewDragbarWidth, getHeight());
                     if (dragBar.contains(e.getEventRelativeTo(this).getPosition())) {
                         draggingSplitview = true;
                         dragStartWidth = editor->splitviewWidthFromCentre;
@@ -486,10 +486,14 @@ void Canvas::updateSidebarSelection()
     }
 }
 
-// TODO: can we get rid of this?
 void Canvas::mouseMove(MouseEvent const& e)
 {
+    // TODO: can we get rid of this?
     lastMousePosition = getMouseXYRelative();
+
+    //Splitview resize cursor
+    bool resizeCursor = e.getEventRelativeTo(this).getPosition().getX() < splitviewDragbarWidth;
+    e.originalComponent->setMouseCursor(resizeCursor ? MouseCursor::LeftRightResizeCursor : MouseCursor::NormalCursor);
 }
 
 bool Canvas::keyPressed(KeyPress const& key)

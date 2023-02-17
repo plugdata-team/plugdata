@@ -163,8 +163,6 @@ public:
 
     std::unique_ptr<ConnectionPathUpdater> pathUpdater;
 
-    static constexpr int dragbarWidth = 5;
-
 private:
     SafePointer<Object> objectSnappingInbetween;
     SafePointer<Connection> connectionToSnapInbetween;
@@ -173,6 +171,7 @@ private:
 
     bool draggingSplitview = false;
     int dragStartWidth = 0;
+    int splitviewDragbarWidth = 5;
 
     LassoComponent<WeakReference<Component>> lasso;
 
