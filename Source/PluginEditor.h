@@ -463,7 +463,7 @@ public:
 
     Canvas* getCurrentCanvas();
     Canvas* getCurrentSplitviewCanvas();
-    Canvas* getCanvas(int idx);
+    Canvas* getCanvas(int idx, bool splitview);
 
     void modifierKeysChanged(ModifierKeys const& modifiers) override;
 

@@ -570,9 +570,9 @@ Canvas* PluginEditor::getCurrentSplitviewCanvas()
     return nullptr;
 }
 
-Canvas* PluginEditor::getCanvas(int idx)
+Canvas* PluginEditor::getCanvas(int idx, bool splitview)
 {
-    if (splitviewHasFocus) {
+    if (splitview) {
         if (auto* viewport = dynamic_cast<Viewport*>(tabbarSplitview.getTabContentComponent(idx))) {
             if (auto* cnv = dynamic_cast<Canvas*>(viewport->getViewedComponent())) {
                 return cnv;
@@ -589,7 +589,7 @@ Canvas* PluginEditor::getCanvas(int idx)
     return nullptr;
 }
 
-void PluginEditor::addTab(Canvas* cnv, bool deleteWhenClosed, bool splitview)
+void PluginEditor::addTab(Canvas* cnv, bool deleteWhenClosed)
 {
     if (!splitviewHasFocus) {
         tabbar.addTab(cnv->patch.getTitle(), findColour(ResizableWindow::backgroundColourId), cnv->viewport, true);
@@ -619,7 +619,7 @@ void PluginEditor::addTab(Canvas* cnv, bool deleteWhenClosed, bool splitview)
                 return;
 
             auto deleteFunc = [this, deleteWhenClosed, idx]() mutable {
-                auto* cnv = getCanvas(idx);
+                auto* cnv = getCanvas(idx, false);
 
                 if (!cnv) {
                     tabbar.removeTab(idx);
@@ -644,7 +644,7 @@ void PluginEditor::addTab(Canvas* cnv, bool deleteWhenClosed, bool splitview)
 
             MessageManager::callAsync(
                 [this, deleteFunc, idx]() mutable {
-                    auto cnv = SafePointer(getCanvas(idx));
+                    auto cnv = SafePointer(getCanvas(idx, false));
                     if (cnv && cnv->patch.isDirty()) {
                         Dialogs::showSaveDialog(&openedDialog, this, cnv->patch.getTitle(),
                             [this, deleteFunc, cnv](int result) mutable {
@@ -705,7 +705,7 @@ void PluginEditor::addTab(Canvas* cnv, bool deleteWhenClosed, bool splitview)
                 return;
 
             auto deleteFunc = [this, deleteWhenClosed, idx]() mutable {
-                auto* cnv = getCanvas(idx);
+                auto* cnv = getCanvas(idx, true);
                 
                 if (!cnv) {
                     tabbarSplitview.removeTab(idx);
@@ -729,7 +729,7 @@ void PluginEditor::addTab(Canvas* cnv, bool deleteWhenClosed, bool splitview)
 
             MessageManager::callAsync(
                 [this, deleteFunc, idx]() mutable {
-                    auto cnv = SafePointer(getCanvas(idx));
+                    auto cnv = SafePointer(getCanvas(idx, true));
                     if (cnv && cnv->patch.isDirty()) {
                         Dialogs::showSaveDialog(&openedDialog, this, cnv->patch.getTitle(),
                             [this, deleteFunc, cnv](int result) mutable {
