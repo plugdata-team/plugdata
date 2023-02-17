@@ -145,6 +145,7 @@ public:
     std::function<void(int)> onTabChange = [](int) {};
     std::function<void()> newTab = []() {};
     std::function<void()> openProject = []() {};
+    std::function<void(int tabIndex, const String &tabName)> rightClick = [](int tabIndex, const String &tabName) {};
 
     TabComponent()
         : TabbedComponent(TabbedButtonBar::TabsAtTop)
@@ -221,5 +222,9 @@ public:
 
         g.drawLine(0, 0, getWidth(), 0);
         g.drawLine(0, 0, 0, getBottom());
+    }
+
+    virtual void popupMenuClickOnTab (int tabIndex, const String &tabName) override {
+        rightClick(tabIndex, tabName);
     }
 };

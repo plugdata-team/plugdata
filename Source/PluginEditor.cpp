@@ -137,6 +137,28 @@ PluginEditor::PluginEditor(PluginProcessor& p)
         updateCommandStatus();
     };
 
+    tabbar.rightClick = [this](int tabIndex, String const& tabName) {
+        PopupMenu tabMenu;
+        tabMenu.addItem("Move to split view", [this, tabIndex]() {
+            if (auto* cnv = getCanvas(tabIndex, false)) {
+                splitview = true;
+                splitviewHasFocus = true;
+
+                addTab(cnv, false);
+                
+                tabbar.repaint();
+            }
+            
+            
+            resized();
+
+            
+        });
+
+        // Show the popup menu at the mouse position
+        tabMenu.showMenuAsync(PopupMenu::Options().withMinimumWidth(150).withMaximumNumColumns(1).withParentComponent(pd->getActiveEditor()));
+    };
+
     tabbar.setOutline(0);
     addAndMakeVisible(tabbar);
 
