@@ -343,7 +343,6 @@ void PluginEditor::paintOverChildren(Graphics& g)
 void PluginEditor::resized()
 {
     sidebar.setBounds(getWidth() - sidebar.getWidth(), toolbarHeight, sidebar.getWidth(), getHeight() - toolbarHeight);
-    splitview = 2;
     splitviewWidthFromCentre = std::clamp(splitviewWidthFromCentre, getWidth() / -4, getWidth() / 4);
     int tabbarWidth = splitview ? getWidth() / 2 - splitviewWidthFromCentre - (sidebar.getWidth()/2) : getWidth() - sidebar.getWidth();
     

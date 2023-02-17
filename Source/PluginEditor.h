@@ -490,9 +490,8 @@ public:
     TabComponent tabbar;
     TabComponent tabbarSplitview;
     bool splitviewHasFocus = false;
-    int splitviewWidthFromCentre = 0;
-    
-    int splitview = 1;
+    int splitviewWidthFromCentre = 0; 
+    bool splitview = false;
 
     OwnedArray<Canvas, CriticalSection> canvases;
     Sidebar sidebar;
