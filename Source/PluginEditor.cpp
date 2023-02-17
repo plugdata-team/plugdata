@@ -327,10 +327,11 @@ void PluginEditor::resized()
 {
     sidebar.setBounds(getWidth() - sidebar.getWidth(), toolbarHeight, sidebar.getWidth(), getHeight() - toolbarHeight);
     splitview = 2;
-    int tabbarWidth = splitview ? getWidth() / 2 - splitviewWidth : getWidth() - sidebar.getWidth();
+    //splitviewWidth = std::clamp()
+    int tabbarWidth = splitview ? getWidth() / 2 - splitviewWidth - (sidebar.getWidth()/2) : getWidth() - sidebar.getWidth();
     
     tabbar.setBounds(0, toolbarHeight, tabbarWidth + 1, getHeight() - toolbarHeight - (statusbar.getHeight()));
-    tabbarSplitview.setBounds(tabbar.getWidth(), toolbarHeight, ((getWidth() - tabbarWidth - sidebar.getWidth()) + 1), getHeight() - toolbarHeight - (statusbar.getHeight()));
+    tabbarSplitview.setBounds(tabbar.getWidth(), toolbarHeight, getWidth() - tabbarWidth - sidebar.getWidth() + 1, getHeight() - toolbarHeight - (statusbar.getHeight()));
     statusbar.setBounds(0, getHeight() - statusbar.getHeight(), getWidth() - sidebar.getWidth(), statusbar.getHeight());
 
     mainMenuButton.setBounds(20, 0, toolbarHeight, toolbarHeight);
