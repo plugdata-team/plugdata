@@ -20,7 +20,7 @@ inlets:
   - type: bang
     description: attacks the envelope with the last gate on value
   - type: list
-    description: sets and runs envelope. Lists are pairs of duration & target. If odd, 1st float is the starting point
+    description: sets and runs envelope (pairs of duration & target. if odd, 1st float is starting point)
   2nd:
   - type: list
     description: sets the envelope and doesn't run it
