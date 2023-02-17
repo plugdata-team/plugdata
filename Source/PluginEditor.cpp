@@ -605,6 +605,7 @@ void PluginEditor::addTab(Canvas* cnv, bool deleteWhenClosed, bool splitview)
         auto* closeTabButton = new TextButton(Icons::Clear);
 
         closeTabButton->onClick = [this, tabButton, deleteWhenClosed]() mutable {
+            splitviewHasFocus = false;
             // We cant use the index from earlier because it might change!
             int idx = -1;
             for (int i = 0; i < tabbar.getNumTabs(); i++) {
@@ -688,8 +689,8 @@ void PluginEditor::addTab(Canvas* cnv, bool deleteWhenClosed, bool splitview)
         auto* closeTabButtonSplitview = new TextButton(Icons::Clear);
 
         closeTabButtonSplitview->onClick = [this, tabButtonSplitview, deleteWhenClosed]() mutable {
+            splitviewHasFocus = true;
             // We cant use the index from earlier because it might change!
-            std::cout << "HEJ" << std::endl;
             int idx = -1;
             for (int i = 0; i < tabbarSplitview.getNumTabs(); i++) {
                 if (tabbarSplitview.getTabbedButtonBar().getTabButton(i) == tabButtonSplitview) {
