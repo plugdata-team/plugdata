@@ -1,5 +1,5 @@
 ---
-title: snapshot~, cyclone/snapshot~
+title: cyclone/snapshot~
 description: convert signal to float
 categories:
 - object

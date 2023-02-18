@@ -15,8 +15,7 @@ see_also:
 - pow~
 - expr~
 arguments:
-- description: initialize value of right inlet and makes it only take floats instead
-    of signals 
+- description: initialize value of right inlet and makes it only take floats
   default: 0
   type: float
 inlets:

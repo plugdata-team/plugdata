@@ -18,7 +18,6 @@ inlets:
   2nd:
   - type: float
     description: MIDI channel/port
-bref: MIDI output
 draft: false
 ---
 

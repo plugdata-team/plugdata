@@ -15,12 +15,13 @@ inlets:
   1st:
   - type: signal
     description: signal to send to matching tabreceive~ object(s)
-  - type: set <name>
-    description: set table name
 arguments:
   - type: symbol
     description: send symbol name 
-  default: empty symbol
+    default: empty symbol
+methods:
+  - type: set <name>
+    description: set table name
 draft: false
 ---
 By default a block is 64 samples but this can be changed with the block~ object.

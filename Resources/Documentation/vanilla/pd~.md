@@ -10,7 +10,7 @@ last_update: '0.42'
 inlets:
   1st:
   - type: anything
-    description: sent to corresponding objects in the sub-process with the same name as the first element in the message
+    description: first element names an object, rest is sent to that object in the sub-process
   - type: signal
     description: signal input if there's a corresponding adc~ input
   nth:

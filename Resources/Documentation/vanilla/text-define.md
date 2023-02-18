@@ -29,6 +29,14 @@ inlets:
   1st:
   - type: bang
     description: output a pointer to the scalar containing the text
+outlets:
+  1st:
+  - type: pointer
+    description: a pointer to the scalar containing the array
+  2nd:
+  - type: anything
+    description: outputs "updated" when text changes
+methods:
   - type: clear
     description: clear contents of the text
   - type: send <symbol>
@@ -43,16 +51,7 @@ inlets:
     description: open text window
   - type: close
     description: closes the text window
-outlets:
-  1st:
-  - type: pointer
-    description: a pointer to the scalar containing the array
-  2nd:
-  - type: anything
-    description: outputs "updated" when text changes
 draft: false
-aliases:
-- text
 ---
 "text define" maintains a text object and can name it so that other objects can find it (and later should have some alternative, anonymous way to be found).
 
