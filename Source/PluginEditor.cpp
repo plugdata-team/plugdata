@@ -141,28 +141,15 @@ PluginEditor::PluginEditor(PluginProcessor& p)
         PopupMenu tabMenu;
         tabMenu.addItem("Move to split view", [this, tabIndex]() {
             if (auto* cnv = getCanvas(tabIndex, false)) {
-                splitview = true;
-                splitviewHasFocus = true;
+
+                // The viewport can only have one parent at a time, so we make an independent copy of canvas
                 auto canvasCopy = new Canvas(cnv->editor, cnv->patch);
 
-                addTab(canvasCopy, true); // make an independent copy of cnv
-                //tabbar.removeTab(tabIndex);
-                tabbar.resized();
-                /* splitview = true;
+                splitview = true;
                 splitviewHasFocus = true;
-                std::unique_ptr<Canvas> canvasCopy = cnv->clone(); 
-                addTab(canvasCopy.release(), true);                // release ownership and add the copy to the tab
-                tabbar.removeTab(tabIndex);
-                tabbar.resized(); */
+                addTab(canvasCopy, true); 
+                resized(); // update tabbar bounds
             }
-            
-            
-            
-
-            
-            resized();
-
-            
         });
 
         // Show the popup menu at the mouse position
@@ -625,8 +612,6 @@ void PluginEditor::addTab(Canvas* cnv, bool deleteWhenClosed)
     if (!splitviewHasFocus) {
         tabbar.addTab(cnv->patch.getTitle(), findColour(ResizableWindow::backgroundColourId), cnv->viewport, true);
 
-        std::cout << canvases.size() << std::endl;
-
         int tabIdx = tabbar.getNumTabs() - 1;
 
         tabbar.setCurrentTabIndex(tabIdx);
@@ -748,7 +733,6 @@ void PluginEditor::addTab(Canvas* cnv, bool deleteWhenClosed)
                 return;
 
             auto deleteFunc = [this, deleteWhenClosed, idx]() mutable {
-                std::cout << "gone" << std::endl;
                 auto* cnvSplitview = getCanvas(idx, true);
                 
                 if (!cnvSplitview) {
