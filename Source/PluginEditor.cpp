@@ -143,11 +143,11 @@ PluginEditor::PluginEditor(PluginProcessor& p)
             if (auto* cnv = getCanvas(tabIndex, false)) {
                 splitview = true;
                 splitviewHasFocus = true;
+                auto canvasCopy = new Canvas(cnv->editor, cnv->patch);
 
-                addTab(cnv, false);
-                
-                tabbar.repaint();
+                addTab(canvasCopy, true); // make an independent copy of cnv
                 //tabbar.removeTab(tabIndex);
+                tabbar.resized();
                 /* splitview = true;
                 splitviewHasFocus = true;
                 std::unique_ptr<Canvas> canvasCopy = cnv->clone(); 
