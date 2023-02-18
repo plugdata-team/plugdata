@@ -670,6 +670,7 @@ void PluginEditor::addTab(Canvas* cnv, bool deleteWhenClosed)
             MessageManager::callAsync(
                 [this, deleteFunc, idx]() mutable {
                     auto cnv = SafePointer(getCanvas(idx, false));
+                    auto* patch = &cnv->patch;
 
                     // Don't show save dialog, if patch is still open in another view
                     bool patchInUse = std::any_of(canvases.begin(), canvases.end(),
@@ -706,7 +707,7 @@ void PluginEditor::addTab(Canvas* cnv, bool deleteWhenClosed)
         cnv->setVisible(true);
 
     } else if (splitviewHasFocus) {
-        //auto* editor = dynamic_cast<PluginEditor*>(cnv->editor);
+        // auto* editor = dynamic_cast<PluginEditor*>(cnv->editor);
         auto cnvSplitview = cnv;
 
         tabbarSplitview.addTab(cnvSplitview->patch.getTitle(), findColour(ResizableWindow::backgroundColourId), cnvSplitview->viewport, true);
@@ -722,74 +723,76 @@ void PluginEditor::addTab(Canvas* cnv, bool deleteWhenClosed)
         auto* closeTabButtonSplitview = new TextButton(Icons::Clear);
 
         closeTabButtonSplitview->onClick = [this, tabButtonSplitview, deleteWhenClosed]() mutable {
-            splitviewHasFocus = true;
+            splitviewHasFocus = true; // Make sure the right view has focus
+
+            int numTabs = tabbarSplitview.getNumTabs();
+            auto& tabbedButtonBar = tabbarSplitview.getTabbedButtonBar();
+
             // We cant use the index from earlier because it might change!
             int idx = -1;
-            for (int i = 0; i < tabbarSplitview.getNumTabs(); i++) {
-                if (tabbarSplitview.getTabbedButtonBar().getTabButton(i) == tabButtonSplitview) {
+            for (int i = 0; i < numTabs; i++) {
+                if (tabbedButtonBar.getTabButton(i) == tabButtonSplitview) {
                     idx = i;
-                    
                     break;
                 }
             }
-            
 
             if (idx == -1)
                 return;
 
-            auto deleteFunc = [this, deleteWhenClosed, idx]() mutable {
-                auto* cnvSplitview = getCanvas(idx, true);
+            auto cnvSplitview = SafePointer(getCanvas(idx, true));
+            auto* patch = &cnvSplitview->patch;
+
+            // Check if patch is still in use in another canvas
+            bool patchInUse = std::count_if(canvases.begin(), canvases.end(),
+                                  [patch](const auto& canvas) { return &canvas->patch == patch; }) > 1;
+
+            MessageManager::callAsync([this, cnvSplitview, patch, patchInUse, deleteWhenClosed, idx, numTabs, &tabbedButtonBar]() mutable {
                 
-                if (!cnvSplitview) {
+                std::cout << "1 : " << patchInUse << std::endl;
+                auto deleteFunc = [this, &cnvSplitview, &patch, patchInUse, deleteWhenClosed, idx]() mutable {
+                    if (!cnvSplitview) {
+                        tabbarSplitview.removeTab(idx);
+                        return;
+                    }
+
+                    if (deleteWhenClosed) {
+                        pd->lockAudioThread();
+                        patch->close();
+                        pd->unlockAudioThread();
+                    }
+                    canvases.removeObject(cnvSplitview);
                     tabbarSplitview.removeTab(idx);
-                    return;
-                }
+                    std::cout << "2 : " << patchInUse << std::endl;
 
-                auto* patch = &cnvSplitview->patch;
+                    if (!patchInUse) {
+                        pd->patches.removeObject(patch);
+                    }
 
-                if (deleteWhenClosed) {
-                    pd->lockAudioThread();
-                    patch->close();
-                    pd->unlockAudioThread();
-                }
-                canvases.removeObject(cnvSplitview);
-                tabbarSplitview.removeTab(idx);
+                    tabbarSplitview.setCurrentTabIndex(tabbarSplitview.getNumTabs() - 1, true);
+                    updateCommandStatus();
+                };
 
-                // check if patch is still in use in another canvas
-                bool patchInUse = std::any_of(canvases.begin(), canvases.end(),
-                    [&](const auto& canvas) { return &canvas->patch == patch; });
-
-                if (!patchInUse) {
-                    pd->patches.removeObject(patch);
-                }
-
-                tabbarSplitview.setCurrentTabIndex(tabbarSplitview.getNumTabs() - 1, true);
-                updateCommandStatus();
-            };
-
-            MessageManager::callAsync(
-                [this, deleteFunc, idx]() mutable {
-                    auto cnvSplitview = SafePointer(getCanvas(idx, true));
-
+                if (cnvSplitview) {
                     // Don't show save dialog, if patch is still open in another view
-                    bool patchInUse = std::any_of(canvases.begin(), canvases.end(),
-                    [&](const auto& canvas) { return &canvas->patch == patch; });
+                    if (!patchInUse && cnvSplitview->patch.isDirty()) {
+                        std::cout << "3 : " << patchInUse << std::endl;
 
-                    if (!patchInUse && cnvSplitview && cnvSplitview->patch.isDirty()) {
                         Dialogs::showSaveDialog(&openedDialog, this, cnvSplitview->patch.getTitle(),
-                            [this, deleteFunc, cnvSplitview](int result) mutable {
+                            [this, &cnvSplitview, deleteFunc](int result) mutable {
                                 if (!cnvSplitview)
                                     return;
                                 if (result == 2) {
-                                    saveProject([deleteFunc]() mutable { deleteFunc(); });
+                                    saveProject([&deleteFunc]() mutable { deleteFunc(); });
                                 } else if (result == 1) {
                                     deleteFunc();
                                 }
                             });
-                    } else if (cnvSplitview) {
+                    } else {
                         deleteFunc();
                     }
-                });
+                }
+            });
         };
 
         closeTabButtonSplitview->getProperties().set("Style", "Icon");
@@ -807,66 +810,67 @@ void PluginEditor::addTab(Canvas* cnv, bool deleteWhenClosed)
     }
 }
 
-void PluginEditor::valueChanged(Value& v)
-{
-    // Update zoom
-    if (v.refersToSameSourceAs(zoomScale)) {
-        float scale = static_cast<float>(v.getValue());
+        void
+        PluginEditor::valueChanged(Value & v)
+        {
+            // Update zoom
+            if (v.refersToSameSourceAs(zoomScale)) {
+                float scale = static_cast<float>(v.getValue());
 
-        if (scale == 0) {
-            scale = 1.0f;
-            zoomScale = 1.0f;
-        }
+                if (scale == 0) {
+                    scale = 1.0f;
+                    zoomScale = 1.0f;
+                }
 
-        transform = AffineTransform().scaled(scale);
+                transform = AffineTransform().scaled(scale);
 
-        auto lastMousePosition = Point<int>();
-        if (auto* cnv = getCurrentCanvas()) {
-            lastMousePosition = cnv->getMouseXYRelative();
-        }
+                auto lastMousePosition = Point<int>();
+                if (auto* cnv = getCurrentCanvas()) {
+                    lastMousePosition = cnv->getMouseXYRelative();
+                }
 
-        for (auto& canvas : canvases) {
-            if (!canvas->isGraph) {
-                canvas->hideSuggestions();
-                canvas->setTransform(transform);
+                for (auto& canvas : canvases) {
+                    if (!canvas->isGraph) {
+                        canvas->hideSuggestions();
+                        canvas->setTransform(transform);
+                    }
+                }
+                if (auto* cnv = getCurrentCanvas()) {
+                    cnv->checkBounds();
+
+                    if (!cnv->viewport)
+                        return;
+
+                    auto totalBounds = Rectangle<int>();
+
+                    for (auto* object : cnv->getSelectionOfType<Object>()) {
+                        totalBounds = totalBounds.getUnion(object->getBoundsInParent().reduced(Object::margin));
+                    }
+
+                    // Check if we have any selection, if so, zoom towards that
+                    if (!totalBounds.isEmpty()) {
+                        auto pos = totalBounds.getCentre() * scale;
+                        pos.x -= cnv->viewport->getViewWidth() * 0.5f;
+                        pos.y -= cnv->viewport->getViewHeight() * 0.5f;
+                        cnv->viewport->setViewPosition(pos);
+                    }
+                    // If we don't have a selection, zoom towards mouse cursor
+                    else if (totalBounds.isEmpty() && cnv->getLocalBounds().contains(lastMousePosition)) {
+                        auto pos = lastMousePosition - cnv->getMouseXYRelative();
+                        pos = pos + cnv->viewport->getViewPosition();
+                        cnv->viewport->setViewPosition(pos);
+                    }
+
+                    // Otherwise don't adjust viewport position
+                }
+
+                zoomLabel.setZoomLevel(scale);
             }
-        }
-        if (auto* cnv = getCurrentCanvas()) {
-            cnv->checkBounds();
-
-            if (!cnv->viewport)
-                return;
-
-            auto totalBounds = Rectangle<int>();
-
-            for (auto* object : cnv->getSelectionOfType<Object>()) {
-                totalBounds = totalBounds.getUnion(object->getBoundsInParent().reduced(Object::margin));
+            // Update theme
+            else if (v.refersToSameSourceAs(theme)) {
+                pd->setTheme(theme.toString());
+                getTopLevelComponent()->repaint();
             }
-
-            // Check if we have any selection, if so, zoom towards that
-            if (!totalBounds.isEmpty()) {
-                auto pos = totalBounds.getCentre() * scale;
-                pos.x -= cnv->viewport->getViewWidth() * 0.5f;
-                pos.y -= cnv->viewport->getViewHeight() * 0.5f;
-                cnv->viewport->setViewPosition(pos);
-            }
-            // If we don't have a selection, zoom towards mouse cursor
-            else if (totalBounds.isEmpty() && cnv->getLocalBounds().contains(lastMousePosition)) {
-                auto pos = lastMousePosition - cnv->getMouseXYRelative();
-                pos = pos + cnv->viewport->getViewPosition();
-                cnv->viewport->setViewPosition(pos);
-            }
-
-            // Otherwise don't adjust viewport position
-        }
-
-        zoomLabel.setZoomLevel(scale);
-    }
-    // Update theme
-    else if (v.refersToSameSourceAs(theme)) {
-        pd->setTheme(theme.toString());
-        getTopLevelComponent()->repaint();
-    }
 }
 
 void PluginEditor::modifierKeysChanged(ModifierKeys const& modifiers)
