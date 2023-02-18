@@ -342,6 +342,14 @@ public:
             if (atoms.size() >= 1)
                 setParameterExcludingListener(receiveSymbol, atoms[0].getSymbol());
         }
+        case hash("bgcolor"): {
+            if (atoms.size() == 3)
+                setParameterExcludingListener(primaryColour, Colour(atoms[0].getFloat(), atoms[1].getFloat(), atoms[2].getFloat()).toString());
+        }s
+        case hash("fgcolor"): {
+            if (atoms.size() == 3)
+                setParameterExcludingListener(secondaryColour, Colour(atoms[0].getFloat(), atoms[1].getFloat(), atoms[2].getFloat()).toString());
+        }
         default:
             break;
         }
