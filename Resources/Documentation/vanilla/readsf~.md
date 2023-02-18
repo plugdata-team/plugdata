@@ -10,8 +10,6 @@ pdcategory: vanilla, File Management, Buffers
 last_update: '0.51'
 inlets:
   1st:
-  - type: open <list>
-    description: sets a filename, an onset in samples, header size to skip, number of channels, bytes per sample, and endianness
   - type: float
     description: non-0 starts playback, zero stops
   - type: print
@@ -29,6 +27,9 @@ arguments:
   default: 1
 - type: float
   description: per channel buffer size in bytes
+methods:
+  - type: open <list>
+    description: sets a filename, an onset in samples, header size to skip, number of channels, bytes per sample, and endianness
 draft: false
 ---
 The readsf~ object reads a soundfile into its signal outputs. You must open the soundfile in advance (a couple of seconds before you'll need it

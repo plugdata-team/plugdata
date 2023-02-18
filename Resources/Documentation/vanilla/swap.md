@@ -17,9 +17,12 @@ inlets:
     description: outputs the stored values swapped
   2nd:
   - type: float
-    description: set left value,  swap and output
+    description: set left value, swap and output
 outlets:
   1st:
+  - type: float
+    description: value from right/2nd inlet
+  2nd:
   - type: float
     description: value from left/1st inlet
 draft: false

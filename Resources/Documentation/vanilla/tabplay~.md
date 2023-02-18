@@ -20,10 +20,6 @@ inlets:
     description: plays the whole sample (same as '0')
   - type: list
     description: 1st element sets starting sample and 2nd element sets duration in samples
-  - type: stop
-    description: stop playing (outputs zeros when stopped)
-  - type: set <symbol>
-    description: set the table with the sample
 outlets:
   1st:
   - type: signal
@@ -34,6 +30,11 @@ outlets:
 arguments:
   - type: symbol
     description: sets table name with the sample
+methods:
+  - type: stop
+    description: stop playing (outputs zeros when stopped)
+  - type: set <symbol>
+    description: set the table with the sample
 draft: false
 ---
 The tabplay~ object plays a sample, or part of one, with no transposition or interpolation. It is cheaper than tabread4~ and there are none of tabread4~'s interpolation artifacts.

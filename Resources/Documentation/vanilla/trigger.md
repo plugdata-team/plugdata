@@ -19,7 +19,7 @@ inlets:
 outlets:
   nth:
   - type: anything
-    description: sequenced messages from right to left, the number of outlets and message type depends on the arguments
+    description: sequenced messages from right to left
 
 ---
 

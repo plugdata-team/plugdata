@@ -1,6 +1,6 @@
 ---
 title: '%'
-description: divide two numbers, output remainder (deprecated)
+description: divide two numbers, output remainder - deprecated
 categories:
 - object
 pdcategory: vanilla, Data Math

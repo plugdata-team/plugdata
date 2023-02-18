@@ -16,11 +16,11 @@ arguments:
 inlets:
   1st:
   - type: anything
-    description: converts to symbol,  stores it and outputs it
+    description: gets converted to symbol, stored, and output
   - type: bang
     description: output the stored symbol
   - type: symbol
-    description: stores the symbol received and outputs it
+    description: stores the received symbol and outputs it
   2nd:
   - type: symbol
     description: stores the symbol (no output)

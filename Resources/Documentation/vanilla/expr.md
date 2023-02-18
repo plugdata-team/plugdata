@@ -28,9 +28,9 @@ inlets:
   - type: bang
     description: evaluate expression
   - type: float
-    description: if inlet type is '$f#' or '$i#'
+    description: if inlet type is '$f1' or '$i1'
   - type: symbol
-    description: if inlet type is '$s#' or '$i#'
+    description: if inlet type is '$s1' or '$i1'
   nth:
   - type: float
     description: if inlet type is '$f#' or '$i#'
