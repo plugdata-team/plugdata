@@ -147,8 +147,18 @@ PluginEditor::PluginEditor(PluginProcessor& p)
                 addTab(cnv, false);
                 
                 tabbar.repaint();
+                //tabbar.removeTab(tabIndex);
+                /* splitview = true;
+                splitviewHasFocus = true;
+                std::unique_ptr<Canvas> canvasCopy = cnv->clone(); 
+                addTab(canvasCopy.release(), true);                // release ownership and add the copy to the tab
+                tabbar.removeTab(tabIndex);
+                tabbar.resized(); */
             }
             
+            
+            
+
             
             resized();
 
@@ -615,6 +625,8 @@ void PluginEditor::addTab(Canvas* cnv, bool deleteWhenClosed)
     if (!splitviewHasFocus) {
         tabbar.addTab(cnv->patch.getTitle(), findColour(ResizableWindow::backgroundColourId), cnv->viewport, true);
 
+        std::cout << canvases.size() << std::endl;
+
         int tabIdx = tabbar.getNumTabs() - 1;
 
         tabbar.setCurrentTabIndex(tabIdx);
@@ -657,7 +669,14 @@ void PluginEditor::addTab(Canvas* cnv, bool deleteWhenClosed)
 
                 canvases.removeObject(cnv);
                 tabbar.removeTab(idx);
-                pd->patches.removeObject(patch);
+
+                // check if patch is still in use in another canvas
+                bool patchInUse = std::any_of(canvases.begin(), canvases.end(),
+                    [&](const auto& canvas) { return &canvas->patch == patch; });
+
+                if (!patchInUse) {
+                    pd->patches.removeObject(patch);
+                }
 
                 tabbar.setCurrentTabIndex(tabbar.getNumTabs() - 1, true);
                 updateCommandStatus();
@@ -697,7 +716,10 @@ void PluginEditor::addTab(Canvas* cnv, bool deleteWhenClosed)
         cnv->setVisible(true);
 
     } else if (splitviewHasFocus) {
-        tabbarSplitview.addTab(cnv->patch.getTitle(), findColour(ResizableWindow::backgroundColourId), cnv->viewport, true);
+        //auto* editor = dynamic_cast<PluginEditor*>(cnv->editor);
+        auto cnvSplitview = cnv;
+
+        tabbarSplitview.addTab(cnvSplitview->patch.getTitle(), findColour(ResizableWindow::backgroundColourId), cnvSplitview->viewport, true);
 
         int tabIdxSplitview = tabbarSplitview.getNumTabs() - 1;
 
@@ -726,23 +748,31 @@ void PluginEditor::addTab(Canvas* cnv, bool deleteWhenClosed)
                 return;
 
             auto deleteFunc = [this, deleteWhenClosed, idx]() mutable {
-                auto* cnv = getCanvas(idx, true);
+                std::cout << "gone" << std::endl;
+                auto* cnvSplitview = getCanvas(idx, true);
                 
-                if (!cnv) {
+                if (!cnvSplitview) {
                     tabbarSplitview.removeTab(idx);
                     return;
                 }
 
-                auto* patch = &cnv->patch;
+                auto* patch = &cnvSplitview->patch;
 
                 if (deleteWhenClosed) {
                     pd->lockAudioThread();
                     patch->close();
                     pd->unlockAudioThread();
                 }
-                canvases.removeObject(cnv);
+                canvases.removeObject(cnvSplitview);
                 tabbarSplitview.removeTab(idx);
-                pd->patches.removeObject(patch);
+
+                // check if patch is still in use in another canvas
+                bool patchInUse = std::any_of(canvases.begin(), canvases.end(),
+                    [&](const auto& canvas) { return &canvas->patch == patch; });
+
+                if (!patchInUse) {
+                    pd->patches.removeObject(patch);
+                }
 
                 tabbarSplitview.setCurrentTabIndex(tabbarSplitview.getNumTabs() - 1, true);
                 updateCommandStatus();
@@ -750,11 +780,11 @@ void PluginEditor::addTab(Canvas* cnv, bool deleteWhenClosed)
 
             MessageManager::callAsync(
                 [this, deleteFunc, idx]() mutable {
-                    auto cnv = SafePointer(getCanvas(idx, true));
-                    if (cnv && cnv->patch.isDirty()) {
-                        Dialogs::showSaveDialog(&openedDialog, this, cnv->patch.getTitle(),
-                            [this, deleteFunc, cnv](int result) mutable {
-                                if (!cnv)
+                    auto cnvSplitview = SafePointer(getCanvas(idx, true));
+                    if (cnvSplitview && cnvSplitview->patch.isDirty()) {
+                        Dialogs::showSaveDialog(&openedDialog, this, cnvSplitview->patch.getTitle(),
+                            [this, deleteFunc, cnvSplitview](int result) mutable {
+                                if (!cnvSplitview)
                                     return;
                                 if (result == 2) {
                                     saveProject([deleteFunc]() mutable { deleteFunc(); });
@@ -762,7 +792,7 @@ void PluginEditor::addTab(Canvas* cnv, bool deleteWhenClosed)
                                     deleteFunc();
                                 }
                             });
-                    } else if (cnv) {
+                    } else if (cnvSplitview) {
                         deleteFunc();
                     }
                 });
@@ -779,7 +809,7 @@ void PluginEditor::addTab(Canvas* cnv, bool deleteWhenClosed)
 
         tabbarSplitview.repaint();
 
-        cnv->setVisible(true);
+        cnvSplitview->setVisible(true);
     }
 }
 
