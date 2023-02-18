@@ -670,7 +670,12 @@ void PluginEditor::addTab(Canvas* cnv, bool deleteWhenClosed)
             MessageManager::callAsync(
                 [this, deleteFunc, idx]() mutable {
                     auto cnv = SafePointer(getCanvas(idx, false));
-                    if (cnv && cnv->patch.isDirty()) {
+
+                    // Don't show save dialog, if patch is still open in another view
+                    bool patchInUse = std::any_of(canvases.begin(), canvases.end(),
+                    [&](const auto& canvas) { return &canvas->patch == patch; });
+
+                    if (!patchInUse && cnv && cnv->patch.isDirty()) {
                         Dialogs::showSaveDialog(&openedDialog, this, cnv->patch.getTitle(),
                             [this, deleteFunc, cnv](int result) mutable {
                                 if (!cnv)
@@ -765,7 +770,12 @@ void PluginEditor::addTab(Canvas* cnv, bool deleteWhenClosed)
             MessageManager::callAsync(
                 [this, deleteFunc, idx]() mutable {
                     auto cnvSplitview = SafePointer(getCanvas(idx, true));
-                    if (cnvSplitview && cnvSplitview->patch.isDirty()) {
+
+                    // Don't show save dialog, if patch is still open in another view
+                    bool patchInUse = std::any_of(canvases.begin(), canvases.end(),
+                    [&](const auto& canvas) { return &canvas->patch == patch; });
+
+                    if (!patchInUse && cnvSplitview && cnvSplitview->patch.isDirty()) {
                         Dialogs::showSaveDialog(&openedDialog, this, cnvSplitview->patch.getTitle(),
                             [this, deleteFunc, cnvSplitview](int result) mutable {
                                 if (!cnvSplitview)
