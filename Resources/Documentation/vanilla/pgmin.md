@@ -18,8 +18,6 @@ outlets:
   2nd:
   - type: float
     description: MIDI channel/port
-  'n: (number depends on number of arguments)':
-bref: MIDI input
 draft: false
 ---
 **Known bug:** Program change values in [pgmin] and [pgmout] are indexed from 1, which means that the possible values are from 1 to 128 (not 0 to 127)!

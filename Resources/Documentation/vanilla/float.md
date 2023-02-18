@@ -21,7 +21,7 @@ inlets:
   - type: float
     description: store and output the value
   - type: list
-    description: considers the first element if it's a float,  stores and outputs it
+    description: if first element is a float, stores and outputs it
   - type: symbol
     description: symbols that look like a float are converted, stored and output
   2nd:

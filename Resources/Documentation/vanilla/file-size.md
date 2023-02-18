@@ -34,15 +34,16 @@ inlets:
   1st:
   - type: symbol
     description: file or directory name
-  - type: verbose <float>
-    description: set verbosity on or off
 outlets:
   1st:
   - type: float
-    description: true <1> of false <0>
+    description: file size in bytes (0 for directories)
   2nd:
   - type: bang
     description: if an error occurs
+methods:
+  - type: verbose <float>
+    description: set verbosity on or off
 draft: false
 ---
 

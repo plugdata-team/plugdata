@@ -53,5 +53,5 @@ outlets:
   description: a message from text or elements from it
 2nd:
 - type: float
-  description: message type: 0 if terminated by a semicolon, 1 if by a comma, or 2 if the message number was out of range
+  description: 0 if terminated by semicolon, 1 if by comma, or 2 if message number out of range
 ---

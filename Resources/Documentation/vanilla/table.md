@@ -15,4 +15,5 @@ arguments:
   type: symbol
 - description: sets array size 
   default: 100
+  type: float
 ---

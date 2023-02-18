@@ -31,10 +31,10 @@ inlets:
   description: quantile (between 0 and 1)
 2nd:
 - type: float
-  description: array onset (o is the end of array)
+  description: array onset (0 is start of array)
 3rd:
 - type: float
-  description: number or points (-1 is the end of array)
+  description: number of points (-1 is the end of array)
 4th:
 - type: symbol
   description: set array name

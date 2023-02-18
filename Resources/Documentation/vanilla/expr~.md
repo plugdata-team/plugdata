@@ -26,7 +26,7 @@ arguments:
 inlets:
   1st:
   - type: signal
-    description: inlet type '$v#'
+    description: input to '$v1'
   nth:
   - type: float
     description: if inlet type is '$f#' or '$i#'

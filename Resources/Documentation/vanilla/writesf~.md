@@ -12,14 +12,6 @@ inlets:
   1st:
   - type: signal
     description: signal to write to a channel
-  - type: open <list>
-    description: takes a filename and optional flags -wave, -aiff, -caf, -next, - big, -little, -bytes <float>, -rate <float>
-  - type: start
-    description: start streaming audio
-  - type: stop
-    description: stop streaming audio
-  - type: print
-    description: prints information on Pd's terminal window
   nth:
   - type: signal
     description: signal to write to a channel
@@ -27,6 +19,15 @@ arguments:
 - type: float
   description: sets number of channels
   default: 1
+methods:
+  - type: open <list>
+    description: filename and optional flags -wave, -aiff, -caf, -next, - big, -little, -bytes <float>, -rate <float>
+  - type: start
+    description: start streaming audio
+  - type: stop
+    description: stop streaming audio
+  - type: print
+    description: prints information on Pd's terminal window
 draft: false
 ---
 writesf~ creates a subthread whose task is to write audio streams to disk. You need not provide any disk access time between "open" and "start", but between "stop" and the next "open" you must give the object time to flush all the output to disk.

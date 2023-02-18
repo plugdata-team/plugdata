@@ -12,8 +12,6 @@ inlets:
   1st:
   - type: float
     description: set target value and start ramp
-  - type: stop
-    description: stops the ramp
   2nd:
   - type: float
     description: set next ramp time (cleared when ramp starts)
@@ -24,6 +22,9 @@ outlets:
   1st:
   - type: signal
     description: ramp values
+methods:
+  - type: stop
+    description: stops the ramp
 draft: false
 ---
 The vline~ object, like line~, generates linear ramps whose levels and timing are determined by messages you send it. It takes a target value, a time interval in milliseconds and an initial delay (also in ms). Ramps may start and stop between audio samples, in which case the output is interpolated accordingly.

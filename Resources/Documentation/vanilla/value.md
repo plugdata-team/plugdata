@@ -11,7 +11,7 @@ see_also:
 - float
 - expr
 arguments:
-- description: sets value name (if no name is given, a right inlet is created to set the name)
+- description: sets value name (optional)
   type: symbol
 inlets:
   1st:
