@@ -10,14 +10,11 @@ inlets:
   - type: browse <symbol>
     description: open a URL given by the symbol
   - type: dir <float, symbol>
-    description: output owning patch's directory. Optional float sets level (0, this
-      patch, 1, its owner, and so on). Optional symbol sets a folder relative to the
-      directory
+    description: output patch's directory. optional float and symbol set depth and file name
   - type: isvisible
     description: outputs float to specify if patch is visible (1) or not (0)
   - type: args <float>
-    description: outputs patch's argument. Optional float sets level (0, this patch,
-      1, its owner, and so on)
+    description: outputs patch's argument. optional float sets depth
 outlets:
   1st:
   - type: list

@@ -26,7 +26,7 @@ inlets:
 outlets:
   1st:
   - type: list
-    description: if incoming list is shorter than n
+    description: the first 'n' elements of the list
   2nd:
   - type: list
     description: the remaining portion of the list

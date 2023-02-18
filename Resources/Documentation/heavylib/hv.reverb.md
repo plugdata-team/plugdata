@@ -26,7 +26,7 @@ inlets:
   - type: highcut <float>
     description: frequency of highcut filter in Hz
   - type: crossfreq <float>
-    description: crossfreq in Hz
+    description: crossover freq in Hz
   - type: damp <float>
     description: damping amount (0 to 100)
   - type: predelay_ms <float>
