@@ -690,6 +690,7 @@ void PluginEditor::addTab(Canvas* cnv, bool deleteWhenClosed)
 
                 focusedTabbar->removeTab(idx);
                 if (!cnv) {
+                const int currentTabIdx = focusedTabbar->getTabbedButtonBar().getCurrentTabIndex();
                     return;
                 }
                 if (deleteWhenClosed) {
@@ -700,8 +701,15 @@ void PluginEditor::addTab(Canvas* cnv, bool deleteWhenClosed)
                 canvases.removeObject(cnv);
                 if (!patchInUse) {
                     pd->patches.removeObject(patch);
+                if (currentTabIdx == tabIdx) {
+                    if (currentTabIdx != focusedTabbar->getNumTabs()) {
+                        // Set the focused tab to the next one
+                        focusedTabbar->setCurrentTabIndex(currentTabIdx, true);
+                    } else {
+                        // Unless it's the last, then set it to the previous one
+                        focusedTabbar->setCurrentTabIndex(currentTabIdx - 1, true);
+                    }
                 }
-                focusedTabbar->setCurrentTabIndex(focusedTabbar->getNumTabs() - 1, true);
                 updateCommandStatus();
             };
 
