@@ -460,6 +460,8 @@ public:
     void saveProjectAs(std::function<void()> const& nestedCallback = []() {});
 
     void addTab(Canvas* cnv, bool deleteWhenClosed = false);
+    void splitCanvasView(Canvas* cnv, int tabIndex, bool setSplitviewFocus);
+    void moveCanvasView(Canvas* cnv, int tabIndex, bool setSplitviewFocus);
 
     Canvas* getCurrentCanvas();
     Canvas* getCurrentSplitviewCanvas();
