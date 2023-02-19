@@ -140,29 +140,39 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     tabbar.rightClick = [this](int tabIndex, String const& tabName) {
         PopupMenu tabMenu;
         tabMenu.addItem("Split to Splitview", [this, tabIndex]() {
-            if (auto* cnv = getCanvas(tabIndex, false)) {
+            if (const auto* cnv = getCanvas(tabIndex, false)) {
 
-                // The viewport can only have one parent at a time, so we make an independent copy of canvas
-                auto canvasCopy = new Canvas(cnv->editor, cnv->patch);
-
-                splitview = true;
-                splitviewHasFocus = true;
-                addTab(canvasCopy, true); 
-                canvases.add(canvasCopy); 
-                resized(); // update tabbar bounds
-            }
-        });
-        tabMenu.addItem("Move to Splitview", [this, tabIndex]() {
-            if (auto* cnv = getCanvas(tabIndex, false)) {
-                // Removing the tab deletes the canvas, so we make an independent copy of canvas
+                // The viewport can only have one parent at a time, so we clone the canvas
                 auto canvasCopy = new Canvas(cnv->editor, cnv->patch);
 
                 splitview = true;
                 splitviewHasFocus = true;
                 addTab(canvasCopy, true);
+                canvases.add(canvasCopy);
+
+                resized(); // update tabbar bounds
+            }
+        });
+        tabMenu.addItem("Move to Splitview", [this, tabIndex]() {
+            if (const auto* cnv = getCanvas(tabIndex, false)) {
+
+                // Check if patch is still in use in another canvas
+                const bool patchInUse = std::count_if(canvases.begin(), canvases.end(),
+                                            [&cnv](const auto& canvas) { return &canvas->patch == &cnv->patch; }) >= 2;
+                
+                // If the patch is already in the splitview, we just close the tab
+                if (!patchInUse) {
+                    // Closing the tab deletes the canvas, so we clone it
+                    auto canvasCopy = new Canvas(cnv->editor, cnv->patch);
+
+                    splitview = true;
+                    splitviewHasFocus = true;
+                    addTab(canvasCopy, true);
+                }
+                // Close the moved tab, by virtually clicking the close button
                 auto* closeTabButton = dynamic_cast<TextButton*>(tabbar.getTabbedButtonBar().getTabButton(tabIndex)->getExtraComponent());
-                // Virtually click the close button
                 closeTabButton->triggerClick();
+
                 resized(); // update tabbar bounds
             }
         });
