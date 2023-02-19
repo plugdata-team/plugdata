@@ -139,7 +139,7 @@ PluginEditor::PluginEditor(PluginProcessor& p)
 
     tabbar.rightClick = [this](int tabIndex, String const& tabName) {
         PopupMenu tabMenu;
-        tabMenu.addItem("Move to split view", [this, tabIndex]() {
+        tabMenu.addItem("Split to splitview", [this, tabIndex]() {
             if (auto* cnv = getCanvas(tabIndex, false)) {
 
                 // The viewport can only have one parent at a time, so we make an independent copy of canvas
@@ -148,6 +148,7 @@ PluginEditor::PluginEditor(PluginProcessor& p)
                 splitview = true;
                 splitviewHasFocus = true;
                 addTab(canvasCopy, true); 
+                canvases.add(canvasCopy); 
                 resized(); // update tabbar bounds
             }
         });
