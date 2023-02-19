@@ -170,48 +170,70 @@ void PlugDataWindow::closeAllPatches()
     // Because save dialog uses an asynchronous callback, we can't loop over them (so have to chain them)
     auto* editor = dynamic_cast<PluginEditor*>(pluginHolder->processor->getActiveEditor());
 
-    auto* cnv = editor->getCurrentCanvas();
-    auto* splitviewCnv = editor->getCurrentSplitviewCanvas();
-
-    auto& tabbar = splitviewCnv ? editor->tabbarSplitview : editor->tabbar;
-    auto canvas = splitviewCnv ? splitviewCnv : cnv;
-    int idx = tabbar.getCurrentTabIndex();
-    auto deleteFunc = [this, editor, canvas, &tabbar, idx]() mutable {
-        auto* deletedPatch = &canvas->patch;
-        editor->canvases.removeObject(canvas);
-        tabbar.removeTab(idx);
-        tabbar.setCurrentTabIndex(tabbar.getNumTabs() - 1, true);
-
-        if (deletedPatch) {
-            // TODO: the OS is our garbage collector
-            // deletedPatch->close();
-            dynamic_cast<PluginProcessor*>(getAudioProcessor())->patches.removeObject(deletedPatch, true);
-        }
-
-        closeAllPatches();
-    };
-
+    auto cnv =  SafePointer(editor->getCurrentCanvas());
+    auto splitviewCnv = SafePointer(editor->getCurrentSplitviewCanvas());
     if (!cnv && !splitviewCnv) {
         JUCEApplication::quit();
         return;
     }
 
-    if (canvas->patch.isDirty()) {
-        MessageManager::callAsync([this, editor, canvas, deleteFunc]() mutable {
-            Dialogs::showSaveDialog(&editor->openedDialog, editor, canvas->patch.getTitle(),
-                [this, editor, canvas, deleteFunc](int result) mutable {
-                    if (result == 2) {
-                        editor->saveProject(
-                            [this, canvas, editor, deleteFunc]() mutable {
-                                deleteFunc();
-                            });
-                    } else if (result == 1) {
-                        deleteFunc();
-                    }
-                });
+    auto* tabbar = splitviewCnv ? &editor->tabbarSplitview : &editor->tabbar;
+    auto& canvas = splitviewCnv ? splitviewCnv : cnv;
+    int const tabIdx = tabbar->getCurrentTabIndex();
+    auto* patch = &canvas->patch;
+
+    // Check if patch is open in two different canvases
+    bool const patchDuplicate = std::count_if(editor->canvases.begin(), editor->canvases.end(),
+                                    [&patch](auto const& cnv) { return &cnv->patch == patch; }) >= 2;
+
+    auto deleteFunc = [this, editor, tabbar, canvas, &cnv, patch, patchDuplicate, tabIdx]() {
+        tabbar->removeTab(tabIdx);
+        if (!canvas)
+            return;
+        editor->canvases.removeObject(canvas);
+        if (!patchDuplicate) {
+            // Do not remove the patch if it's used in another view
+            editor->pd->lockAudioThread();
+            patch->close();
+            editor->pd->unlockAudioThread();
+            editor->pd->patches.removeObject(patch);
+        }
+        if (tabIdx != tabbar->getNumTabs()) {
+            // Set the focused tab to the next one
+            tabbar->setCurrentTabIndex(tabIdx, true);
+        } else {
+            // Unless it's the last, then set it to the previous one
+            tabbar->setCurrentTabIndex(tabIdx - 1, true);
+        }
+
+        if (editor->splitview && !editor->tabbarSplitview.getNumTabs()) {
+            // Disable splitview if all splitview tabs are closed
+            editor->splitview = false;
+            editor->splitviewHasFocus = false;
+            editor->resized();
+        }
+        editor->updateCommandStatus();
+
+        closeAllPatches();
+    };
+
+    if (canvas) {
+        MessageManager::callAsync([this, editor, canvas, patch, patchDuplicate, deleteFunc]() mutable {
+            // Don't show save dialog, if patch is still open in another view
+            if (!patchDuplicate && patch->isDirty()) {
+                Dialogs::showSaveDialog(&editor->openedDialog, this, patch->getTitle(),
+                    [this, editor, canvas, deleteFunc](int result) mutable {
+                        if (!canvas)
+                            return;
+                        if (result == 2)
+                            editor->saveProject([&deleteFunc]() mutable { deleteFunc(); });
+                        else if (result == 1)
+                            deleteFunc();
+                    });
+            } else {
+                deleteFunc();
+            }
         });
-    } else {
-        deleteFunc();
     }
 }
 
