@@ -351,7 +351,6 @@ void PluginEditor::paintOverChildren(Graphics& g)
 
 void PluginEditor::resized()
 {
-    std::cout << "resized!" << std::endl;
     sidebar.setBounds(getWidth() - sidebar.getWidth(), toolbarHeight, sidebar.getWidth(), getHeight() - toolbarHeight);
     splitviewWidthFromCentre = std::clamp(splitviewWidthFromCentre, getWidth() / -4, getWidth() / 4);
     int tabbarWidth = splitview ? getWidth() / 2 - splitviewWidthFromCentre - (sidebar.getWidth()/2) : getWidth() - sidebar.getWidth();
@@ -359,6 +358,8 @@ void PluginEditor::resized()
     tabbar.setBounds(0, toolbarHeight, tabbarWidth + 1, getHeight() - toolbarHeight - (statusbar.getHeight()));
     if (splitview) {
         tabbarSplitview.setBounds(tabbar.getWidth(), toolbarHeight, getWidth() - tabbarWidth - sidebar.getWidth() + 1, getHeight() - toolbarHeight - (statusbar.getHeight()));
+    } else {
+        tabbarSplitview.setBounds(0, 0, 0, 0);
     }
     statusbar.setBounds(0, getHeight() - statusbar.getHeight(), getWidth() - sidebar.getWidth(), statusbar.getHeight());
 
@@ -703,7 +704,12 @@ void PluginEditor::addTab(Canvas* cnv, bool deleteWhenClosed)
                         focusedTabbar->setCurrentTabIndex(currentTabIdx - 1, true);
                     }
                 }
-
+                if (splitview && !tabbarSplitview.getNumTabs()) {
+                    // Disable splitview if all splitview tabs are closed
+                    splitview = false;
+                    splitviewHasFocus = false;
+                    resized();
+                }
                 updateCommandStatus();
             };
             if (cnv) {
