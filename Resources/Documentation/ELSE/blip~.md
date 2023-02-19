@@ -22,6 +22,12 @@ arguments:
   description: lowest harmonic
   default: 1
 
+flags:
+  - name: -m
+    description: sets frequency input in MIDI pitch (default Hz)
+  - name: -soft
+    description: sets to soft sync mode (default hard)
+
 inlets:
   1st:
   - type: float/signal
@@ -46,6 +52,10 @@ methods:
     description: number of partials
   - type: low <float>
     description: lowest harmonic
+  - type: midi <float>
+    description: non-0 sets to frequency input in MIDI pitch
+  - type: soft <float>
+    description: non-0 sets to soft sync mode
 
 draft: false
 ---

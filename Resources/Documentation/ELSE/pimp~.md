@@ -15,6 +15,12 @@ arguments:
   description: initial phase offset
   default:
 
+flags:
+  - name: -m
+    description: sets frequency input in MIDI pitch (default Hz)
+  - name: -soft
+    description: sets to soft sync mode (default hard)
+
 inlets:
   1st:
   - type: float/signal
@@ -33,6 +39,12 @@ outlets:
   2nd:
   - type: signal
     description: impulse signal (at period transitions)
+
+methods:
+  - type: midi <float>
+    description: non-0 sets to frequency input in MIDI pitch
+  - type: soft <float>
+    description: non-0 sets to soft sync mode
 
 draft: false
 ---

@@ -11,25 +11,27 @@ pdcategory: ELSE, Envelopes and LFOs
 arguments:
   - type: float
     description: attack time in ms
-    default: 0
+    default: 10
   - type: float
     description: decay time in ms
-    default: 0
+    default: 10
   - type: float
     description: sustain amplitude (ratio to gate value)
-    default: 0
+    default: 1
   - type: float
     description: release time in ms
-    default: 0
+    default: 10
 
 flags:
-- name: -log
-  description: sets to log mode (default=linear)
+- name: -lin
+  description: sets to linear mode (default=log)
 
 inlets:
   1st:
-  - type: float/signal
+  - type: signal
     description: gate value
+  - type: float
+    description: gate value in MIDI velocity range (0-127 is 0-1)
   - type: bang
     description: trigger/retrigger
   2nd:
@@ -54,8 +56,8 @@ outlets:
     description: envelope status (on=1 / off=0)
 
 methods:
-  - type: log <float>
-    description: non-0 sets to "log" mode, "linear" otherwise
+  - type: lin <float>
+    description: non-0 sets to "lin" mode, "log" otherwise
 
 draft: false
 ---

@@ -33,6 +33,8 @@ methods:
     description: forget input
   - type: set <symbol>
     description: set send name
+  - type: teach <anything>
+    description: teach a specific MIDI message
 
 draft: false
 ---

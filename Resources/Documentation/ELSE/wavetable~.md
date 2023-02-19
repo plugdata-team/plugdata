@@ -19,6 +19,18 @@ arguments:
     description: sets phase offset
     default: 0
   
+flags:
+  - name: -none/-lin/-cos/-lagrange
+    description: set interpolation mode (default spline)
+  - name: -size <float>
+    description: sets table size in points (default whole table)
+  - name: -offset <float>
+    description: sets table offset (default 0)
+  - name: -m
+    description: sets frequency input in MIDI pitch (default Hz)
+  - name: -soft
+    description: sets to soft sync mode (default hard)
+
 inlets:
   1st:
   - type: float/signal
@@ -39,6 +51,24 @@ outlets:
 methods: 
   - type: set <symbol>
     description: sets an entire array to be used as a waveform
+  - type: size <float>
+    description: sets size in number of points
+  - type: offset <float>
+    description: sets offset in table
+  - type: midi <float>
+    description: non-0 sets to frequency input in MIDI pitch
+  - type: soft <float>
+    description: non-0 sets to soft sync mode
+  - type: none
+    description: sets to no interpolation mode
+  - type: lin
+    description: sets to linear interpolation mode
+  - type: cos
+    description: sets to cosine interpolation mode
+  - type: lagrange
+    description: sets to Lagrange interpolation mode
+  - type: spline
+    description: sets to spline interpolation mode (default)
 
 
 draft: false
