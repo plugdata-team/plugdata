@@ -43,6 +43,7 @@ methods:
   - type: bypass <float>
     description: 1 (bypasses input signal) or 0 (doesn't bypass)
 
+draft: false
 ---
 
 [highshelf~] is a 2nd order highshelf filter.

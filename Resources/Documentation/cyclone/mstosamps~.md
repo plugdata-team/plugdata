@@ -17,6 +17,7 @@ outlets:
   - type: float
     description: converted number of samples
 
+draft: false
 ---
 
 [mstosamps~] takes time in milliseconds and converts to a corresponding number of samples (depending on sample rate).

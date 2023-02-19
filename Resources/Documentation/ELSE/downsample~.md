@@ -35,6 +35,7 @@ methods:
   - type: interp <float>
     description: interpolation 0 (off, default) or 1 (on)
 
+draft: false
 ---
 
 [downsample~] samples a signal received in the left inlet at a frequency rate in Hz. It can operate with or without interpolation.

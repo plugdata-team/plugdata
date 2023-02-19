@@ -14,6 +14,7 @@ outlets:
   - type: signal
     description: the arc-tangent of the input
 
+draft: false
 ---
 
 Use [atan~] to output the arc-tangent of each input sample (probably only useful for mathematical calculations).

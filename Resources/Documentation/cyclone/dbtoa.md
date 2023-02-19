@@ -20,6 +20,7 @@ methods:
   - type: set <float>
     description: sets next float value to be converted via bang
 
+draft: false
 ---
 
 Use [dbtoa] to convert dB values to corresponding linear amplitude.

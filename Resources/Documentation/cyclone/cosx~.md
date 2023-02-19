@@ -14,6 +14,7 @@ outlets:
   - type: signal
     description: output of cosine function
 
+draft: false
 ---
 
 Properly designed for mathematical operations, [cosx~] it expects an input in radians to calculate the cosine of each input sample.

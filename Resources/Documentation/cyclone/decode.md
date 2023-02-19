@@ -25,6 +25,7 @@ outlets:
   - type: float
     description: 1 or 0 based on the input
 
+draft: false
 ---
 
 [decode] receives a number and looks for a corresponding outlet (numbered from left to right, starting at 0) to switch it on (output: 1) and the others off (output: 0).

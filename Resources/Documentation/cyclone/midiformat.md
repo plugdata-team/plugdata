@@ -43,6 +43,7 @@ methods:
   - type: hires <f>
     description: sets 14-bit pitch bend input precision (see help)
 
+draft: false
 ---
 
 [midiformat] receives different MIDI information in each inlet and formats to a raw MIDI message output.

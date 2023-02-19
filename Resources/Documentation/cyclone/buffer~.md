@@ -67,6 +67,7 @@ methods:
   - type: sizeinsamps <f>
     description: sets buffer size in samples
 
+draft: false
 ---
 
 [buffer~] stores audio in a memory buffer. It read/writes multichannel audio files and can be used in conjunction with [play~] and other related objects. This is an abstraction without the full functionalities from the Max/MSP original.

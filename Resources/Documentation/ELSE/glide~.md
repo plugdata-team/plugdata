@@ -35,6 +35,7 @@ methods:
   - type: exp <float>
     description: sets exponential factor
 
+draft: false
 ---
 
 [glide~] generates a glide/portamento from its signal input changes. The glide time in ms.

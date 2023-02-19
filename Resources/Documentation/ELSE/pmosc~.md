@@ -38,6 +38,7 @@ outlets:
   - type: signal
     description: phase modulation output
 
+draft: false
 ---
 
 [pmosc~] is a pair of sinusoidal oscillators, where one modulates the phase input of another.

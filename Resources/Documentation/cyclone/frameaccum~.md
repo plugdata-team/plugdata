@@ -17,6 +17,7 @@ outlets:
   - type: signal
     description: accumulated FFT frame
 
+draft: false
 ---
 
 [frameaccum~] was specially designed to compute a running phase of FFT frames by keeping an accumulated sum of the values in each sample of an incoming signal block.

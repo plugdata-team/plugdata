@@ -16,6 +16,7 @@ outlets:
   - type: signal
     description: 1 when increasing, -1 when decreasing and 0 for no change
 
+draft: false
 ---
 
 Use [change~] to detect if signal is changing and its direction. It outputs "1" if the signal is increasing, "-1" if it's decreasing and "0" if it doesn't change.

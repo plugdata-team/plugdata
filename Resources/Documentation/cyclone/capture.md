@@ -40,6 +40,7 @@ methods:
   - type: write <symbol>
     description: saves to a file (no symbol opens dialog box)
 
+draft: false
 ---
 
 [capture] stores items in the received order for viewing, editing, and saving to a file. If the maximum number of items is exceeded, the earliest stored item is dropped.

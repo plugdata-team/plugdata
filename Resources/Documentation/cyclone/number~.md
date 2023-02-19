@@ -64,6 +64,7 @@ methods:
   - type: maximum <float>
     description: sets maximum generation value
 
+draft: false
 ---
 
 Use [number~] to monitor or generate signals. This is an abstraction with limited functionality, not a proper clone.
