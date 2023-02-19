@@ -140,60 +140,15 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     tabbar.rightClick = [this](int tabIndex, String const& tabName) {
         PopupMenu tabMenu;
         tabMenu.addItem("Split to Right", [this, tabIndex]() {
-            if (const auto* cnv = getCanvas(tabIndex, false)) {
-                auto* patch = &cnv->patch;
-
-                // Check if patch is already in use in another canvas
-                const bool patchInUse = std::count_if(canvases.begin(), canvases.end(),
-                                            [&patch](const auto& canvas) { return &canvas->patch == patch; }) >= 2;
-
-                splitview = true;
-                splitviewHasFocus = true;
-
-                if (!patchInUse) {
-                    // The viewport can only have one parent at a time, so we clone the canvas
-                    auto canvasCopy = new Canvas(cnv->editor, cnv->patch);
-
-                    addTab(canvasCopy, true);
-                    canvases.add(canvasCopy);
-                    canvasCopy->grabKeyboardFocus(); // Grab the keyboard focus for the new canvas
-                    resized();                       // Update the bounds of the tab bar
-                } else {
-                    // If patch is already used in another view, set it in focus
-                    for (int t = 0; t < tabbarSplitview.getNumTabs(); t++) {
-                        if (&getCanvas(t, splitviewHasFocus)->patch == patch) {
-                            tabbarSplitview.setCurrentTabIndex(t, true);
-                            break;
-                        }
-                    }
-                }
+            if (auto* cnv = getCanvas(tabIndex, false)) {
+                splitCanvasView(cnv, tabIndex, true);
             }
         });
         tabMenu.addItem("Move to Right", [this, tabIndex]() {
-            if (const auto* cnv = getCanvas(tabIndex, false)) {
-                auto* patch = &cnv->patch;
-
-                // Check if patch is still in use in another canvas
-                const bool patchInUse = std::count_if(canvases.begin(), canvases.end(),
-                                            [&patch](const auto& canvas) { return &canvas->patch == patch; }) >= 2;
-                
-                if (!patchInUse) {
-                    // Closing the tab deletes the canvas, so we clone it
-                    auto canvasCopy = new Canvas(cnv->editor, cnv->patch);
-
-                    splitview = true;
-                    splitviewHasFocus = true;
-                    addTab(canvasCopy, true);
-                    canvases.add(canvasCopy);
-                }
-                // Close the moved tab, by virtually clicking the close button
-                auto* closeTabButton = dynamic_cast<TextButton*>(tabbar.getTabbedButtonBar().getTabButton(tabIndex)->getExtraComponent());
-                closeTabButton->triggerClick();
-
-                resized(); // update tabbar bounds
+            if (auto* cnv = getCanvas(tabIndex, false)) {
+                moveCanvasView(cnv, tabIndex, true);
             }
         });
-
         // Show the popup menu at the mouse position
         tabMenu.showMenuAsync(PopupMenu::Options().withMinimumWidth(150).withMaximumNumColumns(1).withParentComponent(pd->getActiveEditor()));
     };
@@ -241,58 +196,15 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     tabbarSplitview.rightClick = [this](int tabIndex, String const& tabName) {
         PopupMenu tabMenu;
         tabMenu.addItem("Split to Left", [this, tabIndex]() {
-            if (const auto* cnv = getCanvas(tabIndex, false)) {
-                auto* patch = &cnv->patch;
-
-                // Check if patch is already in use in another canvas
-                const bool patchInUse = std::count_if(canvases.begin(), canvases.end(),
-                                            [&patch](const auto& canvas) { return &canvas->patch == patch; }) >= 2;
-
-                splitviewHasFocus = false;
-
-                if (!patchInUse) {
-                    // The viewport can only have one parent at a time, so we clone the canvas
-                    auto canvasCopy = new Canvas(cnv->editor, cnv->patch);
-
-                    addTab(canvasCopy, true);
-                    canvases.add(canvasCopy);
-                    canvasCopy->grabKeyboardFocus(); // Grab the keyboard focus for the new canvas
-                    resized();                       // Update the bounds of the tab bar
-                } else {
-                    // If patch is already used in another view, set it in focus
-                    for (int t = 0; t < tabbar.getNumTabs(); t++) {
-                        if (&getCanvas(t, splitviewHasFocus)->patch == patch) {
-                            tabbar.setCurrentTabIndex(t, true);
-                            break;
-                        }
-                    }
-                }
+            if (auto* cnv = getCanvas(tabIndex, true)) {
+                splitCanvasView(cnv, tabIndex, false);
             }
         });
-        tabMenu.addItem("Move to Right", [this, tabIndex]() {
-            if (const auto* cnv = getCanvas(tabIndex, false)) {
-                auto* patch = &cnv->patch;
-
-                // Check if patch is still in use in another canvas
-                const bool patchInUse = std::count_if(canvases.begin(), canvases.end(),
-                                            [&patch](const auto& canvas) { return &canvas->patch == patch; }) >= 2;
-                
-                if (!patchInUse) {
-                    // Closing the tab deletes the canvas, so we clone it
-                    auto canvasCopy = new Canvas(cnv->editor, cnv->patch);
-
-                    splitviewHasFocus = false;
-                    addTab(canvasCopy, true);
-                    canvases.add(canvasCopy);
-                }
-                // Close the moved tab, by virtually clicking the close button
-                auto* closeTabButton = dynamic_cast<TextButton*>(tabbarSplitview.getTabbedButtonBar().getTabButton(tabIndex)->getExtraComponent());
-                closeTabButton->triggerClick();
-
-                resized(); // update tabbar bounds
+        tabMenu.addItem("Move to Left", [this, tabIndex]() {
+            if (auto* cnv = getCanvas(tabIndex, true)) {
+                moveCanvasView(cnv, tabIndex, false);
             }
         });
-
         // Show the popup menu at the mouse position
         tabMenu.showMenuAsync(PopupMenu::Options().withMinimumWidth(150).withMaximumNumColumns(1).withParentComponent(pd->getActiveEditor()));
     };
@@ -439,6 +351,7 @@ void PluginEditor::paintOverChildren(Graphics& g)
 
 void PluginEditor::resized()
 {
+    std::cout << "resized!" << std::endl;
     sidebar.setBounds(getWidth() - sidebar.getWidth(), toolbarHeight, sidebar.getWidth(), getHeight() - toolbarHeight);
     splitviewWidthFromCentre = std::clamp(splitviewWidthFromCentre, getWidth() / -4, getWidth() / 4);
     int tabbarWidth = splitview ? getWidth() / 2 - splitviewWidthFromCentre - (sidebar.getWidth()/2) : getWidth() - sidebar.getWidth();
@@ -813,6 +726,61 @@ void PluginEditor::addTab(Canvas* cnv, bool deleteWhenClosed)
     };
 
     cnv->setVisible(true);
+}
+
+void PluginEditor::splitCanvasView(Canvas* cnv, int tabIndex, bool setSplitviewFocus)
+{
+    auto* patch = &cnv->patch;
+
+    // Check if patch is already in use in another canvas
+    bool const patchInUse = std::count_if(canvases.begin(), canvases.end(),
+                                [&patch](auto const& canvas) { return &canvas->patch == patch; }) >= 2;
+    splitview = true;
+    splitviewHasFocus = setSplitviewFocus;
+
+    if (!patchInUse) {
+        // The viewport can only have one parent at a time, so we clone the canvas
+        auto canvasCopy = new Canvas(cnv->editor, cnv->patch);
+
+        addTab(canvasCopy, true);
+        canvases.add(canvasCopy);
+        canvasCopy->grabKeyboardFocus(); // Grab the keyboard focus for the new canvas
+        resized();                       // Update the bounds of the tab bar
+    } else {
+        // If patch is already used in another view, set it in focus
+        auto* tabBar = setSplitviewFocus ? &tabbarSplitview : &tabbar;
+        for (int t = 0; t < tabBar->getNumTabs(); t++) {
+            if (&getCanvas(t, splitviewHasFocus)->patch == patch) {
+                tabBar->setCurrentTabIndex(t, true);
+                break;
+            }
+        }
+    }
+}
+
+void PluginEditor::moveCanvasView(Canvas* cnv, int tabIndex, bool setSplitviewFocus)
+{
+    auto* patch = &cnv->patch;
+
+    // Check if patch is still in use in another canvas
+    bool const patchInUse = std::count_if(canvases.begin(), canvases.end(),
+                                [&patch](auto const& canvas) { return &canvas->patch == patch; }) >= 2;
+    splitview = true;
+    splitviewHasFocus = setSplitviewFocus;
+
+    if (!patchInUse) {
+        // Closing the tab deletes the canvas, so we clone it
+        auto canvasCopy = new Canvas(cnv->editor, cnv->patch);
+
+        addTab(canvasCopy, true);
+        canvases.add(canvasCopy);
+    }
+    auto* tabBar = setSplitviewFocus ? &tabbar : &tabbarSplitview;
+    // Close the moved tab, by virtually clicking the close button
+    auto* closeTabButton = dynamic_cast<TextButton*>(tabBar->getTabbedButtonBar().getTabButton(tabIndex)->getExtraComponent());
+    closeTabButton->triggerClick();
+
+    resized(); // update tabbar bounds
 }
 
 void PluginEditor::valueChanged(Value& v)
