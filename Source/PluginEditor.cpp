@@ -139,7 +139,7 @@ PluginEditor::PluginEditor(PluginProcessor& p)
 
     tabbar.rightClick = [this](int tabIndex, String const& tabName) {
         PopupMenu tabMenu;
-        tabMenu.addItem("Split to splitview", [this, tabIndex]() {
+        tabMenu.addItem("Split to Splitview", [this, tabIndex]() {
             if (auto* cnv = getCanvas(tabIndex, false)) {
 
                 // The viewport can only have one parent at a time, so we make an independent copy of canvas
@@ -149,6 +149,20 @@ PluginEditor::PluginEditor(PluginProcessor& p)
                 splitviewHasFocus = true;
                 addTab(canvasCopy, true); 
                 canvases.add(canvasCopy); 
+                resized(); // update tabbar bounds
+            }
+        });
+        tabMenu.addItem("Move to Splitview", [this, tabIndex]() {
+            if (auto* cnv = getCanvas(tabIndex, false)) {
+                // Removing the tab deletes the canvas, so we make an independent copy of canvas
+                auto canvasCopy = new Canvas(cnv->editor, cnv->patch);
+
+                splitview = true;
+                splitviewHasFocus = true;
+                addTab(canvasCopy, true);
+                auto* closeTabButton = dynamic_cast<TextButton*>(tabbar.getTabbedButtonBar().getTabButton(tabIndex)->getExtraComponent());
+                // Virtually click the close button
+                closeTabButton->triggerClick();
                 resized(); // update tabbar bounds
             }
         });
@@ -660,7 +674,7 @@ void PluginEditor::addTab(Canvas* cnv, bool deleteWhenClosed)
         const bool patchInUse = std::count_if(canvases.begin(), canvases.end(),
             [&patch](const auto& canvas) { return &canvas->patch == patch; }) >= 2;
 
-        MessageManager::callAsync([this, focusedTabbar, cnv, patch, patchInUse, deleteWhenClosed, idx, numTabs, &tabbedButtonBar]() mutable {
+        MessageManager::callAsync([this, focusedTabbar, cnv, patch, patchInUse, deleteWhenClosed, idx, &tabbedButtonBar]() mutable {
             
             auto deleteFunc = [this, focusedTabbar, &cnv, &patch, patchInUse, deleteWhenClosed, idx]() {
 
