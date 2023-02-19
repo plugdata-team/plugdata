@@ -37,6 +37,7 @@ outlets:
   - type: signal
     description: pulse signal
 
+draft: false
 ---
 
 [pulse~] is a pulse train oscillator (alternates between 1 and 0, or on/off) that accepts negative frequencies, has inlets for pulse width, phase sync and phase modulation.

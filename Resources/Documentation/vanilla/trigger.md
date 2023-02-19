@@ -21,6 +21,7 @@ outlets:
   - type: anything
     description: sequenced messages from right to left
 
+draft: false
 ---
 
 sequence messages in right-to-left order

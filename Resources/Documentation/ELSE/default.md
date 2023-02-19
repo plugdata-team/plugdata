@@ -28,6 +28,7 @@ outlets:
   - type: anything
     description: the stored message
 
+draft: false
 ---
 
 The [default] sets a default message as the argument or via the right inlet. A bang outputs the default message, other messages are sent through without being stored.

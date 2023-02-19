@@ -29,4 +29,5 @@ methods:
     description: stops recording into the array
   - type: set <symbol>
     description: set the table name
+draft: false
 ---

@@ -48,4 +48,5 @@ inlets:
 - type: pointer
   description: pointer to the text if -s flag is used
 outlets:
+draft: false
 ---

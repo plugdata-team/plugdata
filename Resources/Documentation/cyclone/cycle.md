@@ -26,6 +26,7 @@ methods:
   - type: thresh <float>
     description: switches output mode
 
+draft: false
 ---
 
 Each incoming number is sent to the next outlet, wrapping around to the first outlet after the last has been reached, completing a cycle in a "round-robin scheduling" way.

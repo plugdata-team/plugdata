@@ -30,6 +30,7 @@ outlets:
   - type: signal
     description: impulse for the other trigger inputs
 
+draft: false
 ---
 
 [pulsediv~] outputs impulses when receiving triggers (signal changes from non-positive to positive). The left outlet outputs impulses according to the division value and the right outlet outputs impulses for the other trigger inputs.

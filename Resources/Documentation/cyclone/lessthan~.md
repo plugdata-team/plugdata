@@ -20,6 +20,7 @@ outlets:
   - type: signal
     description: 1 or 0 (depending on the result of the comparison)
 
+draft: false
 ---
 
 [lessthan~] or [<~] <~ outputs a 1 signal when the left input is less-than the right input or argument and a 0 when it is greater-than or equal-to the right input or argument.

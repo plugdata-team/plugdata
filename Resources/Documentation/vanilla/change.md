@@ -22,5 +22,6 @@ outlets:
 methods:
   - type: set <float>
     description: set the value
+draft: false
 ---
 

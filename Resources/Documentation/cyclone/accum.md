@@ -33,6 +33,7 @@ methods:
   - type: set <float>
     description: sets a new value to be accumulated
 
+draft: false
 ---
 
 [accum] accumulates to a value by either adding an increment value to it or multiplying it by a given factor.

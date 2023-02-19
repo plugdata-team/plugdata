@@ -17,6 +17,7 @@ outlets:
   - type: bang
     description: at non-0 to zero transition
 
+draft: false
 ---
 
 [edge~] detects signal transitions from zero to non-0 and vice versa and reports bangs accordingly.

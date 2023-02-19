@@ -27,6 +27,7 @@ outlets:
   - type: float
     description: number of active voices
 
+draft: false
 ---
 
 [noteinfo] sends number of active voices in the right outlet and a list of MIDI note information to the left.

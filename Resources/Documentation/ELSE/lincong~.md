@@ -37,6 +37,7 @@ outlets:
   - type: signal
     description: linear congruential chaotic signal
 
+draft: false
 ---
 
 [lincong~] is a chaotic generator using the difference equation;

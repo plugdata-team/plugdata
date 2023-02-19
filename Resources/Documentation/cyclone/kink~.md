@@ -20,6 +20,7 @@ outlets:
   - type: signal
     description: distorted phasor output
 
+draft: false
 ---
 
 Distort [phasor~] with [kink~]. If the phase input times the slope is less than 0.5, the value is output. Otherwise, a complentary slope is used that goes from 0.5 to 1 (creating a bend or a "kink").

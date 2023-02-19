@@ -40,6 +40,7 @@ methods:
   - type: coeffs <f, f>
     description: floats set 'a' and 'b', respectively
 
+draft: false
 ---
 
 [henon~] is a chaotic generator using the difference equation;

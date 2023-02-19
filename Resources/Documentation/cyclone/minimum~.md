@@ -20,6 +20,7 @@ outlets:
   - type: signal
     description: The minimum value (smaller of the two)
 
+draft: false
 ---
 
 [minimum~] outputs a signal which is the minimum of two input signals, or the minimum of an input signal and a given argument.

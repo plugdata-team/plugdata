@@ -29,6 +29,7 @@ methods:
   - type: clear
     description: erases the received numbers
 
+draft: false
 ---
 
 [histo] records how many times it received a positive integer (no floats allowed). An input number is sent out the left outlet and its occurrence at the right outlet. A number in the right inlet checks and outputs that number's histogram.

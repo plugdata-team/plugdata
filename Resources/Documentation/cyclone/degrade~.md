@@ -26,6 +26,7 @@ outlets:
   - type: signal
     description: degraded (resampled and quantized) signal
 
+draft: false
 ---
 
 [degrade~] takes any given signal and reduces the sampling rate and bit-depth as specified/desired.
