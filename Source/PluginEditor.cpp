@@ -703,74 +703,66 @@ void PluginEditor::addTab(Canvas* cnv, bool deleteWhenClosed)
     cnv->setVisible(true);
 }
 
+void PluginEditor::valueChanged(Value& v)
+{
+    // Update zoom
+    if (v.refersToSameSourceAs(zoomScale)) {
+        float scale = static_cast<float>(v.getValue());
 
-        tabbarSplitview.repaint();
+        if (scale == 0) {
+            scale = 1.0f;
+            zoomScale = 1.0f;
+        }
 
-        cnvSplitview->setVisible(true);
+        transform = AffineTransform().scaled(scale);
+
+        auto lastMousePosition = Point<int>();
+        if (auto* cnv = getCurrentCanvas()) {
+            lastMousePosition = cnv->getMouseXYRelative();
+        }
+
+        for (auto& canvas : canvases) {
+            if (!canvas->isGraph) {
+                canvas->hideSuggestions();
+                canvas->setTransform(transform);
+            }
+        }
+        if (auto* cnv = getCurrentCanvas()) {
+            cnv->checkBounds();
+
+            if (!cnv->viewport)
+                return;
+
+            auto totalBounds = Rectangle<int>();
+
+            for (auto* object : cnv->getSelectionOfType<Object>()) {
+                totalBounds = totalBounds.getUnion(object->getBoundsInParent().reduced(Object::margin));
+            }
+
+            // Check if we have any selection, if so, zoom towards that
+            if (!totalBounds.isEmpty()) {
+                auto pos = totalBounds.getCentre() * scale;
+                pos.x -= cnv->viewport->getViewWidth() * 0.5f;
+                pos.y -= cnv->viewport->getViewHeight() * 0.5f;
+                cnv->viewport->setViewPosition(pos);
+            }
+            // If we don't have a selection, zoom towards mouse cursor
+            else if (totalBounds.isEmpty() && cnv->getLocalBounds().contains(lastMousePosition)) {
+                auto pos = lastMousePosition - cnv->getMouseXYRelative();
+                pos = pos + cnv->viewport->getViewPosition();
+                cnv->viewport->setViewPosition(pos);
+            }
+
+            // Otherwise don't adjust viewport position
+        }
+
+        zoomLabel.setZoomLevel(scale);
     }
-}
-
-        void
-        PluginEditor::valueChanged(Value & v)
-        {
-            // Update zoom
-            if (v.refersToSameSourceAs(zoomScale)) {
-                float scale = static_cast<float>(v.getValue());
-
-                if (scale == 0) {
-                    scale = 1.0f;
-                    zoomScale = 1.0f;
-                }
-
-                transform = AffineTransform().scaled(scale);
-
-                auto lastMousePosition = Point<int>();
-                if (auto* cnv = getCurrentCanvas()) {
-                    lastMousePosition = cnv->getMouseXYRelative();
-                }
-
-                for (auto& canvas : canvases) {
-                    if (!canvas->isGraph) {
-                        canvas->hideSuggestions();
-                        canvas->setTransform(transform);
-                    }
-                }
-                if (auto* cnv = getCurrentCanvas()) {
-                    cnv->checkBounds();
-
-                    if (!cnv->viewport)
-                        return;
-
-                    auto totalBounds = Rectangle<int>();
-
-                    for (auto* object : cnv->getSelectionOfType<Object>()) {
-                        totalBounds = totalBounds.getUnion(object->getBoundsInParent().reduced(Object::margin));
-                    }
-
-                    // Check if we have any selection, if so, zoom towards that
-                    if (!totalBounds.isEmpty()) {
-                        auto pos = totalBounds.getCentre() * scale;
-                        pos.x -= cnv->viewport->getViewWidth() * 0.5f;
-                        pos.y -= cnv->viewport->getViewHeight() * 0.5f;
-                        cnv->viewport->setViewPosition(pos);
-                    }
-                    // If we don't have a selection, zoom towards mouse cursor
-                    else if (totalBounds.isEmpty() && cnv->getLocalBounds().contains(lastMousePosition)) {
-                        auto pos = lastMousePosition - cnv->getMouseXYRelative();
-                        pos = pos + cnv->viewport->getViewPosition();
-                        cnv->viewport->setViewPosition(pos);
-                    }
-
-                    // Otherwise don't adjust viewport position
-                }
-
-                zoomLabel.setZoomLevel(scale);
-            }
-            // Update theme
-            else if (v.refersToSameSourceAs(theme)) {
-                pd->setTheme(theme.toString());
-                getTopLevelComponent()->repaint();
-            }
+    // Update theme
+    else if (v.refersToSameSourceAs(theme)) {
+        pd->setTheme(theme.toString());
+        getTopLevelComponent()->repaint();
+    }
 }
 
 void PluginEditor::modifierKeysChanged(ModifierKeys const& modifiers)
