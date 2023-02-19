@@ -28,5 +28,6 @@ outlets:
   - type: float
     description: received DAW parameter value
 
+draft: false
 ---
 [param] sends and receives automation parameters to the DAW. You'll have to create an automation parameter in the sidebar.

@@ -42,4 +42,5 @@ methods:
     description: start a new sub-process. This message takes startup flags and needs a pd file to open
   - type: pd~ stop
     description: stops the pd sub-process
+draft: false
 ---

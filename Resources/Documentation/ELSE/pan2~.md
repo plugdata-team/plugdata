@@ -29,6 +29,7 @@ outlets:
   - type: signal
     description: right channel
 
+draft: false
 ---
 
 [pan2~] performs an equal power (sin/cos) panning.

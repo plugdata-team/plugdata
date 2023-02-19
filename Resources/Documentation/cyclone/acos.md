@@ -19,6 +19,7 @@ outlets:
   - type: float
     description: the arc-cosine of the input
 
+draft: false
 ---
 
 [acos] calculates the arc-cosine of a given number.

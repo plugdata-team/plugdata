@@ -58,6 +58,7 @@ methods:
   - type: rate <float>
     description: sets refresh rate in ms
 
+draft: false
 ---
 
 [numbox~] is a signal GUI number box. It can be used to display/monitor signal values at a fixed rate or generate them with a ramp time.

@@ -40,6 +40,7 @@ outlets:
   - type: signal
     description: Right-Back channel
 
+draft: false
 ---
 
 [pan4~] is a 4-channel equal power (sin/cos) panner.

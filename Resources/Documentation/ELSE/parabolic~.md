@@ -32,6 +32,7 @@ outlets:
   - type: signal
     description: parabolic wave signal
 
+draft: false
 ---
 
 [parabolic~] is a parabolic oscillator that accepts negative frequencies, has inlets for phase sync and phase modulation. A parabolic waveform is similar to a sinusoid but it is not band limited (has aliasing).

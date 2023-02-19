@@ -29,6 +29,7 @@ outlets:
   - type: float
     description: MIDI channel
 
+draft: false
 ---
 
 [pgm.in] extracts MIDI Program information from raw MIDI input (such as from [midiin]). Unlike vanilla's [pgmin] and [pgmout], the program change values are from 0 to 127!

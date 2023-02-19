@@ -47,6 +47,7 @@ methods:
   - type: coeffs <f, f, f, f>
     description: list sets values of 'a', 'b', 'c' and 'd'
 
+draft: false
 ---
 
 [latoocarfian~] is a chaotic generator using the difference equations;

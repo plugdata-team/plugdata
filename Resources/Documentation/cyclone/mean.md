@@ -25,6 +25,7 @@ methods:
   - type: clear
     description: clears memory (previously received numbers)
 
+draft: false
 ---
 
 [mean] calculates a running/moving average of all received numbers (the sum of all received values by the number of received elements).

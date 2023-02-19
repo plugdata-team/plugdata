@@ -28,6 +28,7 @@ methods:
   - type: offset <float>
     description: sets an offset for the inlet numbers
 
+draft: false
 ---
 
 [funnel] receives data from many inlets and funnels them to an outlet. The incoming data is tagged with an inlet number to be retrieved with [route] or [spray]. It can also be used to store values into a table/coll.

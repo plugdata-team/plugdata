@@ -22,6 +22,7 @@ methods:
   - type: set <anything>
     description: clears and sets new elements to match to
 
+draft: false
 ---
 
 [match] sends data when the input matches the arguments.

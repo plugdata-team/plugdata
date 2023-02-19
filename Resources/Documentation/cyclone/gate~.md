@@ -23,6 +23,7 @@ outlets:
   - type: signal
     description: outlet $nth for routing input signal
 
+draft: false
 ---
 
 [gate~] routes an input signal from the second inlet to one of 'n' specified outlets or none of them. If an outlet is not selected, it outputs zero values.

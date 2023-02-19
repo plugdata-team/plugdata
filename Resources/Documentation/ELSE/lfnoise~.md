@@ -39,6 +39,7 @@ methods:
   - type: seed <float>
     description: a float sets seed, no float sets a unique internal
 
+draft: false
 ---
 
 [lfnoise~] is a low frequency (band limited) noise with or without interpolation. It generates random values (between -1 and 1) at a rate in Hz (negative frequencies accepted). It also has a 'sync' inlet that forces the object to generate a new random value when receiving an impulse. Use the seed message if you want a reproducible output.

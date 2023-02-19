@@ -31,6 +31,7 @@ outlets:
 flags:
 - name: -rel
   description: sets the object to output release velocity and note on/off flag
+draft: false
 ---
 
 [pitchout] formats and sends raw MIDI pitch messages. An argument sets channel number (the default is 1).

@@ -33,6 +33,7 @@ methods:
   - type: ramp <float>
     description: sets a ramp time to a new target delay value in ms
 
+draft: false
 ---
 
 [delay~] delays a signal by a number of samples (thus the delay time depends on the sample rate).

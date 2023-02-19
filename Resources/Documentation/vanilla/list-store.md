@@ -46,5 +46,6 @@ methods:
     description: delete a given item for just one float or a number of items specified in the second element starting at index from the first element (-1 means delete all items from given index)
   - type: send <symbol>
     description: send stored list to a named receiver
+draft: false
 ---
 put together or break apart a list to/from sublists

@@ -32,4 +32,6 @@ outlets:
 methods:
   - type: tempo <float, symbol>
     description: set tempo value (float) and time unit (symbol)
+draft: false
+---
 

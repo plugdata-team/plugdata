@@ -46,6 +46,7 @@ flags:
   - name: -in
     description: creates an extra right inlet for noise input
 
+draft: false
 ---
 
 [pluck~] is a Karplus-Strong algorithm with a 1st order lowpass filter in the feedback loop. It takes frequency in Hz, a decay time in ms and a cutoff frequency for the filter. It is triggered by signals at zero to non-0 transitions or by floats and bangs at control rate.

@@ -41,6 +41,7 @@ methods:
   - type: stop
     description: stops & clears pending targets (still outputs last value)
 
+draft: false
 ---
 
 Similar to [line~], but [curve~] produces curved (non linear) ramp signals. Below, when receiving 2 triples (of destination, time & curve factor), [curve~] generates a simple Attack-Release envelope.

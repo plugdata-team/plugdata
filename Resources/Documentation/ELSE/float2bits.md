@@ -32,6 +32,7 @@ methods:
   - type: split
     description: sends "mantissa", "exponent" and "signal" values separately
 
+draft: false
 ---
 
 [float2bits] converts decimal float (IEEE754 Single precision 32-bit) values to binary form (a list of 32 bits). By the way, this is the type of float used in Pure Data.

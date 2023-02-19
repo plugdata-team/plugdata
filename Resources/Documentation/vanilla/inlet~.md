@@ -26,5 +26,6 @@ arguments:
 - type: symbol
   description: set upsampling method. 'hold' for sample/hold, 'pad' for zero-padded, and 'lin' for linear interpolation
   default: hold
+draft: false
 ---
 

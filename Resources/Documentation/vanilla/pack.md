@@ -25,7 +25,7 @@ outlets:
   1st:
   - type: list
     description: the packed list
-
+draft: false
 ---
 
 combine several atoms into one message

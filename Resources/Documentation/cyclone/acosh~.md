@@ -14,6 +14,7 @@ outlets:
   - type: signal
     description: the hyperbolic arc-cosine of the input
 
+draft: false
 ---
 
 Use [acosh~] to output the hyperbolic arc-cosine of each input sample (probably only useful for mathematical calculations).
