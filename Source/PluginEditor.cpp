@@ -141,18 +141,34 @@ PluginEditor::PluginEditor(PluginProcessor& p)
         PopupMenu tabMenu;
         tabMenu.addItem("Split to Splitview", [this, tabIndex]() {
             if (const auto* cnv = getCanvas(tabIndex, false)) {
+                auto* patch = &cnv->patch;
 
-                // The viewport can only have one parent at a time, so we clone the canvas
-                auto canvasCopy = new Canvas(cnv->editor, cnv->patch);
+                // Check if patch is already in use in another canvas
+                const bool patchInUse = std::count_if(canvases.begin(), canvases.end(),
+                                            [&patch](const auto& canvas) { return &canvas->patch == patch; })
+                    >= 2;
 
                 splitview = true;
                 splitviewHasFocus = true;
-                addTab(canvasCopy, true);
-                canvases.add(canvasCopy);
 
-                
-                canvasCopy->grabKeyboardFocus(); // Grab the keyboard focus for the new canvas
-                resized(); // Update the bounds of the tab bar
+                if (!patchInUse) {
+                    // The viewport can only have one parent at a time, so we clone the canvas
+                    auto canvasCopy = new Canvas(cnv->editor, cnv->patch);
+
+                    addTab(canvasCopy, true);
+                    canvases.add(canvasCopy);
+                    canvasCopy->grabKeyboardFocus(); // Grab the keyboard focus for the new canvas
+                    resized();                       // Update the bounds of the tab bar
+                } else {
+                    // If patch is already used in another view, set it in focus
+                    int numTabs = tabbarSplitview.getNumTabs();
+                    for (int t = 0; t < numTabs; t++) {
+                        if (&getCanvas(t, splitviewHasFocus)->patch == patch) {
+                            tabbarSplitview.setCurrentTabIndex(t, true);
+                            break;
+                        }
+                    }
+                }
             }
         });
         tabMenu.addItem("Move to Splitview", [this, tabIndex]() {
