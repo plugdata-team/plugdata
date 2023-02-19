@@ -25,6 +25,7 @@ outlets:
   - type: anything
     description: outlet $nth for routing any received message
 
+draft: false
 ---
 
 [gate] routes a message from the second inlet to one of 'n' specified outlets or none of them.

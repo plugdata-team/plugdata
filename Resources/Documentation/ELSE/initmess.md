@@ -22,6 +22,7 @@ outlets:
   - type: anything
     description: the message
 
+draft: false
 ---
 
 The [initmess] object sends messages when loading the patch. As an object, it can also deal with "$0" and arguments and expand them.

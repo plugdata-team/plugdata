@@ -68,6 +68,7 @@ methods:
   - type: print
     description: print parameters on Pd Window
 
+draft: false
 ---
 
 [giga.rev~] is based on the well known "Gigaverb" algorithm by Juhana Sadeharju.

@@ -23,6 +23,7 @@ methods:
   - type: mode <0/1>
     description: sets mode (details in help)
 
+draft: false
 ---
 
 [bitnot~] takes a signal and performs Bitwise NOT operation, also known as bitwise inversion or one's complement (all bit values of 1 are set to 0 and vice versa). The operation is done in two modes (see help file).

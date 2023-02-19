@@ -52,6 +52,7 @@ methods:
   - type: name <symbol>
     description: sets table name
 
+draft: false
 ---
 
 [histogram] records into a table how many times it received a positive integer number (treated as indexes, floats are truncated). A list input is treated as MIDI note messages and only note ons are recorded.

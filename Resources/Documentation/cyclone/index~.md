@@ -22,6 +22,7 @@ outlets:
   - type: signal
     description: signal read from array without interpolation
 
+draft: false
 ---
 
 [index~] reads an array without interpolation. The input signal specifies the table index. It's like [tabread~] but works with multi channel arrays and index values are rounded instead of being truncated.

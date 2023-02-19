@@ -34,6 +34,7 @@ methods:
   - type: mode <float>
     description: sets modes <0, 1, or 2>
 
+draft: false
 ---
 
 [drive~] simulates an analog "soft clipping" distortion by applying non-linear transfer functions.

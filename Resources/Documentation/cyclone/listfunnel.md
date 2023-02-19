@@ -21,6 +21,7 @@ methods:
   - type: offset <float>
     description: sets an offset for the index
 
+draft: false
 ---
 
 [listfunnel] receives any message and indexes the elements in the format: [index] [element].

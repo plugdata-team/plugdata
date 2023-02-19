@@ -22,6 +22,7 @@ outlets:
   - type: float
     description: font size
 
+draft: false
 ---
 
 The [fontsize] object outputs the patch's font size when the object is loaded and when it changes via the font menu. You can also query with a bang message.

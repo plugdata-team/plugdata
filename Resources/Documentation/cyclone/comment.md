@@ -59,6 +59,7 @@ methods:
   - type: receive <symbol>
     description: sets receive symbol
 
+draft: false
 ---
 
 [comment] is a GUI meant to be only a comment (a label or a note) that can be typed directly into it when in Edit mode. It is widely used in cyclone's documentation and (unlike pd vanilla's comments) allows you to set font, size, color, background color, bold, italic, underline and justification. This object is not being fully compliant to Max6+ versions!

@@ -32,4 +32,5 @@ outlets:
 methods:
   - type: send <symbol>
     description: send the stored value to a [receive] or [value] object that has the same name as the symbol (no output)
+draft: false
 ---

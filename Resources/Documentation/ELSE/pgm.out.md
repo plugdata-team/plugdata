@@ -26,6 +26,7 @@ outlets:
   - type: float
     description: raw MIDI stream
 
+draft: false
 ---
 
 [pgm.out] formats and sends raw MIDI program messages. An argument sets channel number (the default is 1). Unlike vanilla's [pgmin] and [pgmout], the program change values are from 0 to 127!

@@ -36,6 +36,7 @@ outlets:
   - type: signal
     description: general quadratic map chaotic signal
 
+draft: false
 ---
 
 [quad~] gerenates a chaotic signal from the difference equation;

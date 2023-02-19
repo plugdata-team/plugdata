@@ -23,6 +23,7 @@ outlets:
   - type: float
     description: connection status
 
+draft: false
 ---
 
 [osc.send] sends OSC messages over the network and is an abstraction based on [osc.format] and [netsend].

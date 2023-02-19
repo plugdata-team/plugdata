@@ -51,6 +51,7 @@ methods:
   - type: dumptarget
     description: outputs target state of all connections in the rightmost outlet a list: <inlet#, outlet#, gain>
 
+draft: false
 ---
 
 [matrix~] routs signals from any inlets to one or more outlets. If more than one inlet connects to an outlet, the output is the sum of the inlets' signals.

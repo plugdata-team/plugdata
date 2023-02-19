@@ -75,6 +75,7 @@ methods:
   - type: legato <float>
     description: non-0 sets to legato mode
 
+draft: false
 ---
 
 [envgen~] is an envelope (and an all purpose line) generator (here it creates a 1000 ms line to 1 and 500 ms line to 0).

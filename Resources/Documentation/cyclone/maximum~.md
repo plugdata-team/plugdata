@@ -20,6 +20,7 @@ outlets:
   - type: signal
     description: the maximum value (the greater of the two)
 
+draft: false
 ---
 
 [maximum~] outputs a signal which is the maximum of two input signals, or the maximum of an input signal and a given argument.

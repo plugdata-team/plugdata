@@ -29,6 +29,7 @@ outlets:
   - type: symbol
     description: the stored symbol
 
+draft: false
 ---
 
 store a symbol (i.e., string)

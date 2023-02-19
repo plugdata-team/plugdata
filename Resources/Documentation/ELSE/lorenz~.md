@@ -52,6 +52,7 @@ methods:
   - type: clear
     description: clears values of z, y and z
 
+draft: false
 ---
 
 The [lorenz~] is a strange attractor discovered by Edward N. Lorenz while studying mathematical models of the atmosphere.

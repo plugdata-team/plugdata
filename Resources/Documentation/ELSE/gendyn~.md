@@ -41,6 +41,7 @@ methods:
   - type: dist <f, f, f, f>
     description: sets distributions and parameters, see [pd distributions]
 
+draft: false
 ---
 
 [gendyn~] implements "Dynamic Stochastic Synthesis" based on Xenakis' 'GenDyn' algorithm. The waveform has a given number of points (linearly interpolated by default). The period of each point and its value changes according to a random walk (a.k.a. Brownian motion) with given distributions.

@@ -41,6 +41,7 @@ methods:
   - type: exp <float>
     description: sets exponential factor
 
+draft: false
 ---
 
 [glide2~] is just like [glide~] but has distinct ramp times for both up and down.
