@@ -645,15 +645,15 @@ void PluginEditor::addTab(Canvas* cnv, bool deleteWhenClosed)
     closeTabButton->setConnectedEdges(12);
     closeTabButton->setSize(28, 28);
 
+    // Add the close button to the tab button
     tabButton->setExtraComponent(closeTabButton, TabBarButton::beforeText);
 
-    closeTabButton->onClick = [this, focusedTabbar, tabButton, cnv, deleteWhenClosed]() mutable {
-        splitviewHasFocus = focusedTabbar == &tabbarSplitview ? true : false; // Make sure the right view has focus
-        auto& tabbedButtonBar = focusedTabbar->getTabbedButtonBar();
-
+    closeTabButton->onClick = [this, focusedTabbar, tabButton, deleteWhenClosed]() mutable {
+        splitviewHasFocus = focusedTabbar == &tabbarSplitview; // Make sure the right view has focus
+        auto* tabbedButtonBar = &focusedTabbar->getTabbedButtonBar();
         // We cant use the index from earlier because it might have changed!
         const int tabIdx = tabButton->getIndex();
-
+        auto cnv = SafePointer(getCanvas(tabIdx, splitviewHasFocus));
         /*  TODO: This might not be needed:
         for (int i = 0; i < numTabs; i++) {
             if (tabbedButtonBar.getTabButton(i) == tabButton) {
@@ -665,58 +665,61 @@ void PluginEditor::addTab(Canvas* cnv, bool deleteWhenClosed)
         if (tabIdx == -1)
             return;
 
-        auto* patch = &cnv->patch;
         // Check if patch is still in use in another canvas
         const bool patchInUse = std::count_if(canvases.begin(), canvases.end(),
-                                    [&patch](const auto& canvas) { return &canvas->patch == patch; }) >= 2;
+                                    [&cnv](const auto& canvas) { return canvas->patch == cnv->patch; }) >= 2;
 
-        MessageManager::callAsync([this, focusedTabbar, cnv, patch, patchInUse, deleteWhenClosed, tabIdx, &tabbedButtonBar]() mutable {
-            auto deleteFunc = [this, focusedTabbar, &cnv, &patch, patchInUse, deleteWhenClosed, tabIdx, &tabbedButtonBar]() {
-                const int currentTabIdx = tabbedButtonBar.getCurrentTabIndex();
-                focusedTabbar->removeTab(tabIdx);
-                if (!cnv)
-                    return;
-                canvases.removeObject(cnv);
-                if (!patchInUse) {
-                    // Do not remove the patch if it's used in another view
-                    if (deleteWhenClosed) {
-                        pd->lockAudioThread();
-                        patch->close();
-                        pd->unlockAudioThread();
+        auto deleteFunc = [this, focusedTabbar, patchInUse, deleteWhenClosed, tabIdx, tabbedButtonBar]() {
+            auto* cnv = getCanvas(tabIdx, splitviewHasFocus);
+            const int currentTabIdx = tabbedButtonBar->getCurrentTabIndex();
+
+            focusedTabbar->removeTab(tabIdx);
+            if (!cnv)
+                return;
+            canvases.removeObject(cnv);
+            if (!patchInUse) {
+                auto* patch = &cnv->patch;
+                // Do not remove the patch if it's used in another view
+                if (deleteWhenClosed) {
+                    pd->lockAudioThread();
+                    patch->close();
+                    pd->unlockAudioThread();
+                }
+                pd->patches.removeObject(patch);
+            } else {
+                // If patch is used in another view, set it in focus
+                int numTabs = splitviewHasFocus ? tabbar.getNumTabs() : tabbarSplitview.getNumTabs();
+                for (int t = 0; t < numTabs; t++) {
+                    if (getCanvas(t, !splitviewHasFocus)->patch == cnv->patch) {
+                        splitviewHasFocus ? tabbar.setCurrentTabIndex(t, true) : tabbarSplitview.setCurrentTabIndex(t, true);
+                        break;
                     }
-                    pd->patches.removeObject(patch);
+                }
+            }
+            if (currentTabIdx == tabIdx) {
+                if (currentTabIdx != focusedTabbar->getNumTabs()) {
+                    // Set the focused tab to the next one
+                    focusedTabbar->setCurrentTabIndex(currentTabIdx, true);
                 } else {
-                    // If patch is used in another view, set it in focus
-                    int numTabs = splitviewHasFocus ? tabbar.getNumTabs() : tabbarSplitview.getNumTabs();
-                    for (int t = 0; t < numTabs; t++) {
-                        if (&getCanvas(t, !splitviewHasFocus)->patch == patch) {
-                            splitviewHasFocus ? tabbar.setCurrentTabIndex(t, true) : tabbarSplitview.setCurrentTabIndex(t, true);
-                            break;
-                        }
-                    }
+                    // Unless it's the last, then set it to the previous one
+                    focusedTabbar->setCurrentTabIndex(currentTabIdx - 1, true);
                 }
-                if (currentTabIdx == tabIdx) {
-                    if (currentTabIdx != focusedTabbar->getNumTabs()) {
-                        // Set the focused tab to the next one
-                        focusedTabbar->setCurrentTabIndex(currentTabIdx, true);
-                    } else {
-                        // Unless it's the last, then set it to the previous one
-                        focusedTabbar->setCurrentTabIndex(currentTabIdx - 1, true);
-                    }
-                }
-                if (splitview && !tabbarSplitview.getNumTabs()) {
-                    // Disable splitview if all splitview tabs are closed
-                    splitview = false;
-                    splitviewHasFocus = false;
-                    resized();
-                }
-                updateCommandStatus();
-            };
-            if (cnv) {
+            }
+            if (splitview && !tabbarSplitview.getNumTabs()) {
+                // Disable splitview if all splitview tabs are closed
+                splitview = false;
+                splitviewHasFocus = false;
+                resized();
+            }
+            updateCommandStatus();
+        };
+
+        if (cnv) {
+            MessageManager::callAsync([this, cnv, patchInUse, deleteFunc]() mutable {
                 // Don't show save dialog, if patch is still open in another view
                 if (!patchInUse && cnv->patch.isDirty()) {
                     Dialogs::showSaveDialog(&openedDialog, this, cnv->patch.getTitle(),
-                        [this, &cnv, deleteFunc](int result) mutable {
+                        [this, cnv, deleteFunc](int result) mutable {
                             if (!cnv)
                                 return;
                             if (result == 2)
@@ -727,8 +730,8 @@ void PluginEditor::addTab(Canvas* cnv, bool deleteWhenClosed)
                 } else {
                     deleteFunc();
                 }
-            }
-        });
+            });
+        }
     };
 
     cnv->setVisible(true);
