@@ -626,9 +626,10 @@ void PluginEditor::addTab(Canvas* cnv, bool deleteWhenClosed)
     // Create a pointer to the TabBar in focus
     auto* focusedTabbar = splitviewHasFocus ? &tabbarSplitview : &tabbar;
 
-    focusedTabbar->addTab(cnv->patch.getTitle(), findColour(ResizableWindow::backgroundColourId), cnv->viewport, true);
+    int const tabIdx = focusedTabbar->getCurrentTabIndex() + 1; // The tab index for the added tab
 
-    int const tabIdx = focusedTabbar->getNumTabs() - 1; // The tab index for the added tab
+    // Add tab next to the currently focused tab
+    focusedTabbar->addTab(cnv->patch.getTitle(), findColour(ResizableWindow::backgroundColourId), cnv->viewport, true, tabIdx);
 
     focusedTabbar->setCurrentTabIndex(tabIdx);
     focusedTabbar->setTabBackgroundColour(tabIdx, Colours::transparentBlack);
