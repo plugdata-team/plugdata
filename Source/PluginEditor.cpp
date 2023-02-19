@@ -610,200 +610,99 @@ Canvas* PluginEditor::getCanvas(int idx, bool splitview)
 
 void PluginEditor::addTab(Canvas* cnv, bool deleteWhenClosed)
 {
-    if (!splitviewHasFocus) {
-        tabbar.addTab(cnv->patch.getTitle(), findColour(ResizableWindow::backgroundColourId), cnv->viewport, true);
+    // Create a pointer to the TabBar in focus
+    auto* focusedTabbar = splitviewHasFocus ? &tabbarSplitview : &tabbar;
 
-        int tabIdx = tabbar.getNumTabs() - 1;
+    focusedTabbar->addTab(cnv->patch.getTitle(), findColour(ResizableWindow::backgroundColourId), cnv->viewport, true);
 
-        tabbar.setCurrentTabIndex(tabIdx);
-        tabbar.setTabBackgroundColour(tabIdx, Colours::transparentBlack);
+    int const tabIdx = focusedTabbar->getNumTabs() - 1; // The tab index for the added tab
 
-        auto* tabButton = tabbar.getTabbedButtonBar().getTabButton(tabIdx);
-        tabButton->setTriggeredOnMouseDown(true);
+    focusedTabbar->setCurrentTabIndex(tabIdx);
+    focusedTabbar->setTabBackgroundColour(tabIdx, Colours::transparentBlack);
 
-        auto* closeTabButton = new TextButton(Icons::Clear);
+    auto* tabButton = focusedTabbar->getTabbedButtonBar().getTabButton(tabIdx);
+    tabButton->setTriggeredOnMouseDown(true);
 
-        closeTabButton->onClick = [this, tabButton, deleteWhenClosed]() mutable {
-            splitviewHasFocus = false;
-            // We cant use the index from earlier because it might change!
-            int idx = -1;
-            for (int i = 0; i < tabbar.getNumTabs(); i++) {
-                if (tabbar.getTabbedButtonBar().getTabButton(i) == tabButton) {
-                    idx = i;
-                    break;
-                }
+    auto* closeTabButton = new TextButton(Icons::Clear);
+    closeTabButton->getProperties().set("Style", "Icon");
+    closeTabButton->getProperties().set("FontScale", 0.44f);
+    closeTabButton->setColour(TextButton::buttonColourId, Colour());
+    closeTabButton->setColour(TextButton::buttonOnColourId, Colour());
+    closeTabButton->setColour(ComboBox::outlineColourId, Colour());
+    closeTabButton->setConnectedEdges(12);
+    closeTabButton->setSize(28, 28);
+
+    tabButton->setExtraComponent(closeTabButton, TabBarButton::beforeText);
+
+    closeTabButton->onClick = [this, focusedTabbar, tabButton, cnv, deleteWhenClosed]() mutable {
+        splitviewHasFocus = focusedTabbar == &tabbarSplitview ? true : false; // Make sure the right view has focus
+
+        auto& tabbedButtonBar = focusedTabbar->getTabbedButtonBar();
+
+        // We cant use the index from earlier because it might have changed!
+        const int idx = tabButton->getIndex();
+        
+        /*  This might not be needed:
+        for (int i = 0; i < numTabs; i++) {
+            if (tabbedButtonBar.getTabButton(i) == tabButton) {
+                idx = i;
+                break;
             }
+        } */
 
-            if (idx == -1)
-                return;
+        if (idx == -1)
+            return;
+        
+        //auto cnv = SafePointer(getCanvas(idx, splitviewHasFocus));
+        auto* patch = &cnv->patch;
 
-            auto deleteFunc = [this, deleteWhenClosed, idx]() mutable {
-                auto* cnv = getCanvas(idx, false);
+        // Check if patch is still in use in another canvas
+        const bool patchInUse = std::count_if(canvases.begin(), canvases.end(),
+            [&patch](const auto& canvas) { return &canvas->patch == patch; }) >= 2;
 
+        MessageManager::callAsync([this, focusedTabbar, cnv, patch, patchInUse, deleteWhenClosed, idx, numTabs, &tabbedButtonBar]() mutable {
+            
+            auto deleteFunc = [this, focusedTabbar, &cnv, &patch, patchInUse, deleteWhenClosed, idx]() {
+
+                focusedTabbar->removeTab(idx);
                 if (!cnv) {
-                    tabbar.removeTab(idx);
                     return;
                 }
-
-                auto* patch = &cnv->patch;
-
                 if (deleteWhenClosed) {
                     pd->lockAudioThread();
                     patch->close();
                     pd->unlockAudioThread();
                 }
-
                 canvases.removeObject(cnv);
-                tabbar.removeTab(idx);
-
-                // check if patch is still in use in another canvas
-                bool patchInUse = std::any_of(canvases.begin(), canvases.end(),
-                    [&](const auto& canvas) { return &canvas->patch == patch; });
-
                 if (!patchInUse) {
                     pd->patches.removeObject(patch);
                 }
-
-                tabbar.setCurrentTabIndex(tabbar.getNumTabs() - 1, true);
+                focusedTabbar->setCurrentTabIndex(focusedTabbar->getNumTabs() - 1, true);
                 updateCommandStatus();
             };
 
-            MessageManager::callAsync(
-                [this, deleteFunc, idx]() mutable {
-                    auto cnv = SafePointer(getCanvas(idx, false));
-                    auto* patch = &cnv->patch;
-
-                    // Don't show save dialog, if patch is still open in another view
-                    bool patchInUse = std::any_of(canvases.begin(), canvases.end(),
-                    [&](const auto& canvas) { return &canvas->patch == patch; });
-
-                    if (!patchInUse && cnv && cnv->patch.isDirty()) {
-                        Dialogs::showSaveDialog(&openedDialog, this, cnv->patch.getTitle(),
-                            [this, deleteFunc, cnv](int result) mutable {
-                                if (!cnv)
-                                    return;
-                                if (result == 2) {
-                                    saveProject([deleteFunc]() mutable { deleteFunc(); });
-                                } else if (result == 1) {
-                                    deleteFunc();
-                                }
-                            });
-                    } else if (cnv) {
-                        deleteFunc();
-                    }
-                });
-        };
-
-        closeTabButton->getProperties().set("Style", "Icon");
-        closeTabButton->getProperties().set("FontScale", 0.44f);
-        closeTabButton->setColour(TextButton::buttonColourId, Colour());
-        closeTabButton->setColour(TextButton::buttonOnColourId, Colour());
-        closeTabButton->setColour(ComboBox::outlineColourId, Colour());
-        closeTabButton->setConnectedEdges(12);
-        tabButton->setExtraComponent(closeTabButton, TabBarButton::beforeText);
-        closeTabButton->setSize(28, 28);
-
-        tabbar.repaint();
-
-        cnv->setVisible(true);
-
-    } else if (splitviewHasFocus) {
-        // auto* editor = dynamic_cast<PluginEditor*>(cnv->editor);
-        auto cnvSplitview = cnv;
-
-        tabbarSplitview.addTab(cnvSplitview->patch.getTitle(), findColour(ResizableWindow::backgroundColourId), cnvSplitview->viewport, true);
-
-        int tabIdxSplitview = tabbarSplitview.getNumTabs() - 1;
-
-        tabbarSplitview.setCurrentTabIndex(tabIdxSplitview);
-        tabbarSplitview.setTabBackgroundColour(tabIdxSplitview, Colours::transparentBlack);
-
-        auto* tabButtonSplitview = tabbarSplitview.getTabbedButtonBar().getTabButton(tabIdxSplitview);
-        tabButtonSplitview->setTriggeredOnMouseDown(true);
-
-        auto* closeTabButtonSplitview = new TextButton(Icons::Clear);
-
-        closeTabButtonSplitview->onClick = [this, tabButtonSplitview, deleteWhenClosed]() mutable {
-            splitviewHasFocus = true; // Make sure the right view has focus
-
-            int numTabs = tabbarSplitview.getNumTabs();
-            auto& tabbedButtonBar = tabbarSplitview.getTabbedButtonBar();
-
-            // We cant use the index from earlier because it might change!
-            int idx = -1;
-            for (int i = 0; i < numTabs; i++) {
-                if (tabbedButtonBar.getTabButton(i) == tabButtonSplitview) {
-                    idx = i;
-                    break;
+            if (cnv) {
+                // Don't show save dialog, if patch is still open in another view
+                if (!patchInUse && cnv->patch.isDirty()) {
+                    Dialogs::showSaveDialog(&openedDialog, this, cnv->patch.getTitle(),
+                        [this, &cnv, deleteFunc](int result) mutable {
+                            if (!cnv)
+                                return;
+                            if (result == 2) 
+                                saveProject([&deleteFunc]() mutable { deleteFunc(); });
+                            else if (result == 1)
+                                deleteFunc();
+                        });
+                } else {
+                    deleteFunc();
                 }
             }
+        });
+    };
 
-            if (idx == -1)
-                return;
+    cnv->setVisible(true);
+}
 
-            auto cnvSplitview = SafePointer(getCanvas(idx, true));
-            auto* patch = &cnvSplitview->patch;
-
-            // Check if patch is still in use in another canvas
-            bool patchInUse = std::count_if(canvases.begin(), canvases.end(),
-                                  [patch](const auto& canvas) { return &canvas->patch == patch; }) > 1;
-
-            MessageManager::callAsync([this, cnvSplitview, patch, patchInUse, deleteWhenClosed, idx, numTabs, &tabbedButtonBar]() mutable {
-                
-                std::cout << "1 : " << patchInUse << std::endl;
-                auto deleteFunc = [this, &cnvSplitview, &patch, patchInUse, deleteWhenClosed, idx]() mutable {
-                    if (!cnvSplitview) {
-                        tabbarSplitview.removeTab(idx);
-                        return;
-                    }
-
-                    if (deleteWhenClosed) {
-                        pd->lockAudioThread();
-                        patch->close();
-                        pd->unlockAudioThread();
-                    }
-                    canvases.removeObject(cnvSplitview);
-                    tabbarSplitview.removeTab(idx);
-                    std::cout << "2 : " << patchInUse << std::endl;
-
-                    if (!patchInUse) {
-                        pd->patches.removeObject(patch);
-                    }
-
-                    tabbarSplitview.setCurrentTabIndex(tabbarSplitview.getNumTabs() - 1, true);
-                    updateCommandStatus();
-                };
-
-                if (cnvSplitview) {
-                    // Don't show save dialog, if patch is still open in another view
-                    if (!patchInUse && cnvSplitview->patch.isDirty()) {
-                        std::cout << "3 : " << patchInUse << std::endl;
-
-                        Dialogs::showSaveDialog(&openedDialog, this, cnvSplitview->patch.getTitle(),
-                            [this, &cnvSplitview, deleteFunc](int result) mutable {
-                                if (!cnvSplitview)
-                                    return;
-                                if (result == 2) {
-                                    saveProject([&deleteFunc]() mutable { deleteFunc(); });
-                                } else if (result == 1) {
-                                    deleteFunc();
-                                }
-                            });
-                    } else {
-                        deleteFunc();
-                    }
-                }
-            });
-        };
-
-        closeTabButtonSplitview->getProperties().set("Style", "Icon");
-        closeTabButtonSplitview->getProperties().set("FontScale", 0.44f);
-        closeTabButtonSplitview->setColour(TextButton::buttonColourId, Colour());
-        closeTabButtonSplitview->setColour(TextButton::buttonOnColourId, Colour());
-        closeTabButtonSplitview->setColour(ComboBox::outlineColourId, Colour());
-        closeTabButtonSplitview->setConnectedEdges(12);
-        tabButtonSplitview->setExtraComponent(closeTabButtonSplitview, TabBarButton::beforeText);
-        closeTabButtonSplitview->setSize(28, 28);
 
         tabbarSplitview.repaint();
 
