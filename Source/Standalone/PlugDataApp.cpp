@@ -208,8 +208,8 @@ void PlugDataWindow::closeAllPatches()
 
         if (editor->splitview && !editor->tabbarSplitview.getNumTabs()) {
             // Disable splitview if all splitview tabs are closed
+            editor->setSplitviewFocus(false);
             editor->splitview = false;
-            editor->splitviewHasFocus = false;
             editor->resized();
         }
         editor->updateCommandStatus();

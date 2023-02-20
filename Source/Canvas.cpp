@@ -315,13 +315,13 @@ void Canvas::mouseDown(MouseEvent const& e)
             isDraggingLasso = true;
 
             if (editor->splitview) {
-                if (!editor->splitviewHasFocus.getValue() && (editor->getCurrentCanvas() != this)) {
-                    editor->splitviewHasFocus = true;
-                } else if (editor->splitviewHasFocus.getValue() && (editor->getCurrentCanvas() != this)) {
-                    editor->splitviewHasFocus = false;
+                if (!editor->getSplitviewFocus()&& (editor->getCurrentCanvas() != this)) {
+                    editor->setSplitviewFocus(true);
+                } else if (editor->getSplitviewFocus()&& (editor->getCurrentCanvas() != this)) {
+                    editor->setSplitviewFocus(false);
                 }
 
-                if (editor->splitviewHasFocus.getValue()) {
+                if (editor->getSplitviewFocus()) {
                     Rectangle<int> dragBar(getX(), getY(), splitviewDragbarWidth, getHeight());
                     if (dragBar.contains(e.getEventRelativeTo(this).getPosition())) {
                         draggingSplitview = true;
