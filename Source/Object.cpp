@@ -278,7 +278,7 @@ void Object::setType(String const& newType, void* existingObject)
             cnv->connections.add(new Connection(cnv, outlet, inlet, nullptr));
         }
     }
-    if (cnv->lastSelectedConnection) {
+    if (cnv->lastSelectedConnection && numInputs && numOutputs) {
         // if 1 connection is selected, connect the new object in middle of connection
         auto outobj = cnv->lastSelectedConnection->outobj;
         auto inobj = cnv->lastSelectedConnection->inobj;
