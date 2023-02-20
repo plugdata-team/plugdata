@@ -492,9 +492,11 @@ public:
     TabComponent tabbar;
 
     TabComponent tabbarSplitview;
-    Value splitviewHasFocus;
     int splitviewWidthFromCentre = 0; 
     bool splitview = false;
+    Value splitviewHasFocus;
+    void setSplitviewFocus(bool splitviewFocus) {splitviewHasFocus.setValue(splitviewFocus);};
+    bool getSplitviewFocus() {return static_cast<bool>(splitviewHasFocus.getValue());};
 
     OwnedArray<Canvas, CriticalSection> canvases;
     Sidebar sidebar;
