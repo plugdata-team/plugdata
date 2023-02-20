@@ -490,8 +490,9 @@ public:
     AffineTransform transform;
 
     TabComponent tabbar;
+
     TabComponent tabbarSplitview;
-    bool splitviewHasFocus = false;
+    Value splitviewHasFocus;
     int splitviewWidthFromCentre = 0; 
     bool splitview = false;
 
