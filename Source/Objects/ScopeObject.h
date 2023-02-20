@@ -337,10 +337,27 @@ public:
         case hash("send"): {
             if (atoms.size() >= 1)
                 setParameterExcludingListener(sendSymbol, atoms[0].getSymbol());
-        } break;
+            break;
+        }
         case hash("receive"): {
             if (atoms.size() >= 1)
                 setParameterExcludingListener(receiveSymbol, atoms[0].getSymbol());
+            break;
+        }
+        case hash("fgcolor"): {
+            if (atoms.size() == 3)
+                setParameterExcludingListener(primaryColour, Colour(atoms[0].getFloat(), atoms[1].getFloat(), atoms[2].getFloat()).toString());
+            break;
+        }
+        case hash("bgcolor"): {
+            if (atoms.size() == 3)
+                setParameterExcludingListener(secondaryColour, Colour(atoms[0].getFloat(), atoms[1].getFloat(), atoms[2].getFloat()).toString());
+            break;
+        }
+        case hash("gridcolor"): {
+            if (atoms.size() == 3)
+                setParameterExcludingListener(gridColour, Colour(atoms[0].getFloat(), atoms[1].getFloat(), atoms[2].getFloat()).toString());
+            break;
         }
         default:
             break;
