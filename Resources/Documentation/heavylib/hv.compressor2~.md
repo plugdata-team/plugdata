@@ -1,7 +1,7 @@
 ---
-title: hv.compressor
+title: hv.compressor2~
 
-description: mono compressor
+description: stereo compressor
 
 categories:
 - object
@@ -19,8 +19,11 @@ arguments:
 inlets:
   1st:
   - type: signal
-    description: input signal
+    description: left channel input
   2nd:
+  - type: signal
+    description: right channel input
+  3rd:
   - type: threshold <float>
     description: set threshold
   - type: ratio <float>
@@ -29,9 +32,12 @@ inlets:
 outlets:
   1st:
   - type: signal
-    description: compressed signal
+    description: left channel output
+  2nd:
+  - type: signal
+    description: right channel output
 
 draft: false
 ---
-mono compressor, static 40ms attack/release, adjustable threshold and ratio settings
+stereo compressor, static 40ms attack/release, adjustable threshold and ratio settings
 

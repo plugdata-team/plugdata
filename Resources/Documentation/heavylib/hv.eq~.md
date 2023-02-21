@@ -1,7 +1,7 @@
 ---
-title: hv.gte
+title: hv.eq~
 
-description: signal rate greater-than-or-equal-to operation
+description: signal rate equals operation
 
 categories:
 - object
@@ -21,7 +21,7 @@ inlets:
 outlets:
   1st:
   - type: signal
-    description: 1 if left input >= right input, 0 otherwise
+    description: 1 if inputs are equal, 0 otherwise
 
 draft: false
 ---

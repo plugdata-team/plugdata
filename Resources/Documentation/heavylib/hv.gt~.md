@@ -1,5 +1,5 @@
 ---
-title: hv.gt
+title: hv.gt~
 
 description: signal rate grater-than operation
 
