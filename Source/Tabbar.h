@@ -6,15 +6,123 @@
 
 #pragma once
 
+#include "Utility/GlobalMouseListener.h"
+
 // Special viewport that shows scrollbars on top of content instead of next to it
-struct InsetViewport : public Viewport {
-    struct ViewportPositioner : public Component::Positioner {
-        ViewportPositioner(Viewport& comp)
-            : Component::Positioner(comp)
-            , inset(comp.getScrollBarThickness())
+struct InsetViewport : public Viewport
+{
+    
+    struct Animator : private Timer
+    {
+        struct AutoFadeTimer : private Timer
+        {
+            std::function<bool()> callback;
+            
+            void start(int interval, std::function<bool()> cb) {
+                callback = cb;
+                startTimer(interval);
+            }
+            
+            void stop() {
+                stopTimer();
+            }
+            
+            void timerCallback() override
+            {
+                if(callback()) stopTimer();
+            }
+        };
+        
+        Animator(Component* target) : targetComponent(target)
         {
         }
-
+        
+        void timerCallback() {
+            auto alpha = targetComponent->getAlpha();
+            if(alphaTarget > alpha) {
+                targetComponent->setAlpha(alpha + 0.2f);
+            }
+            else if(alphaTarget < alpha) {
+                targetComponent->setAlpha(alpha - 0.07f);
+            }
+            else {
+                stopTimer();
+            }
+        }
+        
+        void fadeIn(bool fadeOutAfterInterval) {
+            alphaTarget = 1.0f;
+            startTimerHz(60);
+            
+            if(fadeOutAfterInterval) {
+                autoFadeTimer.start(800, [this](){
+                    fadeOut();
+                    return true;
+                });
+            }
+        }
+        
+        void fadeOut() {
+            alphaTarget = 0.0f;
+            startTimerHz(60);
+        }
+        
+        AutoFadeTimer autoFadeTimer;
+        Component* targetComponent;
+        float alphaTarget = 0.0f;
+    };
+    
+    class CustomScrollbar : public ScrollBar, public ScrollBar::Listener
+    {
+    public:
+        CustomScrollbar(bool isVertical) : ScrollBar(isVertical)
+        {
+            ScrollBar::setVisible(true);
+            addListener(this);
+            fadeOut();
+        }
+        
+        void fadeIn(bool fadeOutAfterInterval) {
+            setVisible(true);
+            animator.fadeIn(fadeOutAfterInterval);
+        }
+        
+        void fadeOut() {
+            animator.fadeOut();
+        }
+        
+    private:
+        
+        void scrollBarMoved (ScrollBar *scrollBarThatHasMoved, double newRangeStart) override
+        {
+            fadeIn(true);
+        }
+        
+        Animator animator = Animator(this);
+    
+        void mouseEnter(const MouseEvent& e) override
+        {
+            fadeIn(false);
+        }
+        
+        void mouseExit(const MouseEvent& e) override
+        {
+            fadeOut();
+        }
+        
+        // Don't allow the viewport to manage scrollbar visibility!
+        void setVisible(bool shouldBeVisible) override
+        {
+        }
+    };
+    
+    struct ViewportPositioner : public Component::Positioner {
+        ViewportPositioner(Viewport& comp)
+        : Component::Positioner(comp)
+        , inset(comp.getScrollBarThickness())
+        {
+        }
+        
         void applyNewBounds(Rectangle<int> const& newBounds) override
         {
             auto& component = getComponent();
@@ -22,38 +130,66 @@ struct InsetViewport : public Viewport {
                 component.setBounds(newBounds.withTrimmedRight(-inset).withTrimmedBottom(-inset));
             }
         }
-
+        
+        
         int inset;
     };
-
+    
     InsetViewport()
     {
+        recreateScrollbars();
+        
         setPositioner(new ViewportPositioner(*this));
+        adjustScrollbarBounds();
     }
 
+    
+    void lookAndFeelChanged() override
+    {
+        if(!vbar || !hbar) return;
+        
+        vbar->repaint();
+        hbar->repaint();
+    }
+    
     void adjustScrollbarBounds()
     {
-        auto& vbar = getVerticalScrollBar();
-        auto& hbar = getHorizontalScrollBar();
+        if(!vbar || !hbar) return;
+        
         auto thickness = getScrollBarThickness();
-
+        
         auto contentArea = getLocalBounds().withTrimmedRight(thickness).withTrimmedBottom(thickness);
-
-        vbar.setBounds(contentArea.removeFromRight(thickness));
-        hbar.setBounds(contentArea.removeFromBottom(thickness));
+        
+        vbar->setBounds(contentArea.removeFromRight(thickness));
+        hbar->setBounds(contentArea.removeFromBottom(thickness));
     }
-
+    
     void componentMovedOrResized(Component& c, bool moved, bool resized) override
     {
         Viewport::componentMovedOrResized(c, moved, resized);
         adjustScrollbarBounds();
     }
-
+    
     void resized() override
     {
         Viewport::resized();
         adjustScrollbarBounds();
     }
+    
+    ScrollBar* createScrollBarComponent (bool isVertical) override
+    {
+        if(isVertical) {
+            vbar = new CustomScrollbar(true);
+            return vbar;
+        }
+        else {
+            hbar = new CustomScrollbar(false);
+            return hbar;
+        }
+    }
+    
+    CustomScrollbar* vbar = nullptr;
+    CustomScrollbar* hbar = nullptr;
 };
 
 class WelcomePanel : public Component {

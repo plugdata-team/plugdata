@@ -378,8 +378,8 @@ void Canvas::mouseDrag(MouseEvent const& e)
             return; // Middle mouse button cancels any other drag actions
         }
 
-        // Auto scroll when dragging close to the iolet
-        if (!ObjectBase::isBeingEdited() && viewport->autoScroll(viewportEvent.x, viewportEvent.y, 50, scrollSpeed) && (viewport->canScrollHorizontally() || viewport->canScrollVertically())) {
+        // Auto scroll when dragging close to the canvas edge
+        if (!ObjectBase::isBeingEdited() && (viewport->canScrollHorizontally() || viewport->canScrollVertically()) && viewport->autoScroll(viewportEvent.x, viewportEvent.y, 5, scrollSpeed)) {
             beginDragAutoRepeat(40);
         }
     }
