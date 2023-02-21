@@ -134,7 +134,7 @@ struct InsetViewport : public Viewport
         
         int inset;
     };
-    
+
     InsetViewport()
     {
         recreateScrollbars();
@@ -142,7 +142,6 @@ struct InsetViewport : public Viewport
         setPositioner(new ViewportPositioner(*this));
         adjustScrollbarBounds();
     }
-
     
     void lookAndFeelChanged() override
     {

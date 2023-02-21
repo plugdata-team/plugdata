@@ -377,15 +377,42 @@ void Canvas::mouseDrag(MouseEvent const& e)
 
             return; // Middle mouse button cancels any other drag actions
         }
-
-        // Auto scroll when dragging close to the canvas edge
-        if (!ObjectBase::isBeingEdited() && (viewport->canScrollHorizontally() || viewport->canScrollVertically()) && viewport->autoScroll(viewportEvent.x, viewportEvent.y, 5, scrollSpeed)) {
-            beginDragAutoRepeat(40);
+        
+        if (!ObjectBase::isBeingEdited() && autoscroll(viewportEvent)) {
+            beginDragAutoRepeat(25);
         }
     }
 
     // Drag lasso
     lasso.dragLasso(e);
+}
+
+bool Canvas::autoscroll(MouseEvent const& e)
+{
+    auto ret = false;
+    auto x = viewport->getViewPositionX();
+    auto y = viewport->getViewPositionY();
+    
+    if(e.x > viewport->getWidth()) {
+        ret = true;
+        x += std::clamp((e.x - viewport->getWidth()) / 6, 1, 14);
+    }
+    else if(e.x < 0) {
+        ret = true;
+        x -= std::clamp(-e.x / 6, 1, 14);
+    }
+    if(e.y > viewport->getHeight()) {
+        ret = false;
+        y += std::clamp((e.y - viewport->getHeight()) / 6, 1, 14);
+    }
+    else if(e.y < 0) {
+        ret = false;
+        y -= std::clamp(-e.y / 6, 1, 14);
+    }
+    
+    viewport->setViewPosition(x, y);
+    
+    return ret;
 }
 
 void Canvas::mouseUp(MouseEvent const& e)
