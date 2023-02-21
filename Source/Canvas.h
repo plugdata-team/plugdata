@@ -70,6 +70,8 @@ public:
     void redo();
 
     void checkBounds();
+        
+    bool autoscroll(MouseEvent const& e);
 
     // Multi-dragger functions
     void deselectAll();
