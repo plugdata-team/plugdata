@@ -556,6 +556,9 @@ void Canvas::pasteSelection()
     patch.startUndoSequence("Paste");
     // Tell pd to paste
     patch.paste();
+    
+    deselectAll();
+    
     // Load state from pd, don't update positions
     synchronise(false);
 
@@ -620,6 +623,8 @@ void Canvas::duplicateSelection()
 
     // Tell pd to duplicate
     patch.duplicate();
+    
+    deselectAll();
 
     // Load state from pd, don't update positions
     synchronise(false);
