@@ -275,7 +275,10 @@ void Object::setType(String const& newType, void* existingObject)
         auto outlet = cnv->lastSelectedObject->iolets[cnv->lastSelectedObject->numInputs];
         auto inlet = iolets[0];
         if (outlet->isSignal == inlet->isSignal) {
-            cnv->connections.add(new Connection(cnv, outlet, inlet, nullptr));
+            // Call async to make sure the object is created before the connection
+            MessageManager::callAsync([this, outlet, inlet]() {
+                cnv->connections.add(new Connection(cnv, outlet, inlet, nullptr));
+            });
         }
     }
     if (cnv->lastSelectedConnection && numInputs && numOutputs) {
@@ -285,8 +288,11 @@ void Object::setType(String const& newType, void* existingObject)
         auto outlet = outobj->iolets[outobj->numInputs + cnv->lastSelectedConnection->outIdx];
         auto inlet = inobj->iolets[cnv->lastSelectedConnection->inIdx];
         if ((outlet->isSignal == iolets[0]->isSignal) && (inlet->isSignal == iolets[this->numInputs]->isSignal)) {
-            cnv->connections.add(new Connection(cnv, outlet, iolets[0], nullptr));
-            cnv->connections.add(new Connection(cnv, iolets[this->numInputs], inlet, nullptr));
+            // Call async to make sure the object is created before the connection
+            MessageManager::callAsync([this, outlet, inlet]() {
+                cnv->connections.add(new Connection(cnv, outlet, iolets[0], nullptr));
+                cnv->connections.add(new Connection(cnv, iolets[this->numInputs], inlet, nullptr));
+            });
             // remove the previous connection
             cnv->patch.removeConnection(outobj->getPointer(), cnv->lastSelectedConnection->outIdx, inobj->getPointer(), cnv->lastSelectedConnection->inIdx, cnv->lastSelectedConnection->getPathState());
             cnv->connections.removeObject(cnv->lastSelectedConnection);
