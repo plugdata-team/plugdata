@@ -212,12 +212,14 @@ public:
         float verticalLength = ((object->getWidth() - Object::doubleMargin) * numItems) + Object::doubleMargin;
         float horizontalLength = ((object->getHeight() - Object::doubleMargin) * numItems) + Object::doubleMargin;
 
+        auto minLongSide = object->minimumSize * numItems;
+        auto minShortSide = object->minimumSize;
         if (isVertical) {
             object->setSize(object->getWidth(), verticalLength);
-            object->constrainer->setMinimumSize(15, 15 * numItems);
+            object->constrainer->setMinimumSize(minShortSide, minLongSide);
         } else {
             object->setSize(horizontalLength, object->getHeight());
-            object->constrainer->setMinimumSize(15 * numItems, 15);
+            object->constrainer->setMinimumSize(minLongSide, minShortSide);
         }
         object->constrainer->setFixedAspectRatio(isVertical ? 1.0f / numItems : static_cast<float>(numItems) / 1.0f);
     }
