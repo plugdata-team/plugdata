@@ -1294,6 +1294,10 @@ void Canvas::objectMouseDrag(MouseEvent const& e)
                 object->setTopLeftPosition(object->originalBounds.getPosition() + dragDistance + canvasMoveOffset);
             }
         }
+        
+        if(autoscroll(e.getEventRelativeTo(viewport))) {
+            beginDragAutoRepeat(30);
+        }
     }
 
     // This handles the "unsnap" action when you shift-drag a connected object
