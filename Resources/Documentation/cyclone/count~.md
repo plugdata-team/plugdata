@@ -49,6 +49,7 @@ methods:
   - type: set <f, f>
     description: sets minimum and maximum values without triggering
 
+draft: false
 ---
 
 [count~] outputs a signal increasing by 1 for each sample elapsed. It starts at a given minimum and it can loop at a given maximum value (which is actually that value - 1).

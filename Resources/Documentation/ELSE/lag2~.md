@@ -36,6 +36,7 @@ methods:
   - type: reset
     description: resets the filter
 
+draft: false
 ---
 
 [lag2~] is like [lag~] but has a different time for ramp up and ramp down. The lag time in ms is how long it takes for the signal to converge to within 0.01% of the target value. Note that the rising ramp is different than the descending ramp, unlike [glide2~].

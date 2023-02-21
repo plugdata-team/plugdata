@@ -29,6 +29,7 @@ outlets:
   - type: signal
     description: logistic chaotic signal
 
+draft: false
 ---
 
 [logistic~] is a chaotic generator based on the difference equation: y[n] = (3 + p) * y[n-1] * (1- y[n-1]).

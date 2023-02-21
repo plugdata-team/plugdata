@@ -161,45 +161,48 @@ public:
 
     void paint(Graphics& g) override
     {
-        g.fillAll(Colour::fromString(secondaryColour.toString()));
-
-        bool selected = cnv->isSelected(object) && !cnv->isGraph;
-        auto outlineColour = object->findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : objectOutlineColourId);
-
-        g.setColour(outlineColour);
-        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), PlugDataLook::objectCornerRadius, 1.0f);
+        g.setColour(Colour::fromString(secondaryColour.toString()));
+        g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), PlugDataLook::objectCornerRadius);
 
         auto dx = getWidth() * 0.125f;
         auto dy = getHeight() * 0.25f;
 
         g.setColour(Colour::fromString(gridColour.toString()));
 
-        float xx;
-        for (int i = 0, xx = dx; i < 7; i++, xx += dx) {
-            g.drawLine(xx, 0, xx, getHeight());
+        auto xx = dx;
+        for (int i = 0; i < 7; i++) {
+            g.drawLine(xx, 0.0f, xx, static_cast<float>(getHeight()));
+            xx += dx;
         }
 
-        float yy;
-        for (int i = 0, yy = dy; i < 3; i++, yy += dy) {
-            g.drawLine(0, yy, getWidth(), yy);
+        auto yy = dy;
+        for (int i = 0; i < 3; i++) {
+            g.drawLine(0.0f, yy, static_cast<float>(getWidth()), yy);
+            yy += dy;
         }
 
-        if (y_buffer.empty() || x_buffer.empty())
-            return;
+        // skip drawing waveform if buffer is empty
+        if (!(y_buffer.empty() || x_buffer.empty())) {
+            Point<float> lastPoint = Point<float>(x_buffer[0], y_buffer[0]);
+            Point<float> newPoint;
 
-        Point<float> lastPoint = Point<float>(x_buffer[0], y_buffer[0]);
-        Point<float> newPoint;
+            g.setColour(Colour::fromString(primaryColour.toString()));
 
-        g.setColour(Colour::fromString(primaryColour.toString()));
-
-        Path p;
-        for (size_t i = 1; i < y_buffer.size(); i++) {
-            newPoint = Point<float>(x_buffer[i], y_buffer[i]);
-            Line segment(lastPoint, newPoint);
-            p.addLineSegment(segment, 1.0f);
-            lastPoint = newPoint;
+            Path p;
+            for (size_t i = 1; i < y_buffer.size(); i++) {
+                newPoint = Point<float>(x_buffer[i], y_buffer[i]);
+                Line segment(lastPoint, newPoint);
+                p.addLineSegment(segment, 1.0f);
+                lastPoint = newPoint;
+            }
+            g.fillPath(p);
         }
-        g.fillPath(p);
+
+        bool selected = cnv->isSelected(object) && !cnv->isGraph;
+        auto outlineColour = object->findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : objectOutlineColourId);
+
+        g.setColour(outlineColour);
+        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), PlugDataLook::objectCornerRadius, 1.0f);
     }
 
     // Push current object bounds into pd
@@ -248,24 +251,27 @@ public:
         }
 
         float oldx = 0, oldy = 0;
-        float dx = getWidth() / (float)bufsize;
-        float dy = getHeight() / (float)bufsize;
+        float dx = (getWidth() - 2) / (float)bufsize;
+        float dy = (getHeight() - 2) / (float)bufsize;
+
+        float waveAreaHeight = getHeight() - 2;
+        float waveAreaWidth = getWidth() - 2;
 
         for (int n = 0; n < bufsize; n++) {
             switch (mode) {
             case 1:
-                y_buffer[n] = jmap<float>(x_buffer[n], min, max, getHeight(), 0);
+                y_buffer[n] = jmap<float>(x_buffer[n], min, max, waveAreaHeight, 2.f);
                 x_buffer[n] = oldx;
                 oldx += dx;
                 break;
             case 2:
-                x_buffer[n] = jmap<float>(y_buffer[n], min, max, 0, getWidth());
+                x_buffer[n] = jmap<float>(y_buffer[n], min, max, 2.f, waveAreaWidth);
                 y_buffer[n] = oldy;
                 oldy += dy;
                 break;
             case 3:
-                x_buffer[n] = jmap<float>(x_buffer[n], min, max, 0, getWidth());
-                y_buffer[n] = jmap<float>(y_buffer[n], min, max, getHeight(), 0);
+                x_buffer[n] = jmap<float>(x_buffer[n], min, max, 2.f, waveAreaWidth);
+                y_buffer[n] = jmap<float>(y_buffer[n], min, max, waveAreaHeight, 2.f);
                 break;
             }
         }
@@ -318,9 +324,9 @@ public:
     ObjectParameters getParameters() override
     {
         return {
-            { "Background", tColour, cAppearance, &secondaryColour, {} },
             { "Foreground", tColour, cAppearance, &primaryColour, {} },
             { "Grid", tColour, cAppearance, &gridColour, {} },
+            { "Background", tColour, cAppearance, &secondaryColour, {} },
             { "Trigger mode", tCombo, cGeneral, &triggerMode, { "None", "Up", "Down" } },
             { "Trigger value", tFloat, cGeneral, &triggerValue, {} },
             { "Samples per point", tInt, cGeneral, &samplesPerPoint, {} },
@@ -337,10 +343,27 @@ public:
         case hash("send"): {
             if (atoms.size() >= 1)
                 setParameterExcludingListener(sendSymbol, atoms[0].getSymbol());
-        } break;
+            break;
+        }
         case hash("receive"): {
             if (atoms.size() >= 1)
                 setParameterExcludingListener(receiveSymbol, atoms[0].getSymbol());
+            break;
+        }
+        case hash("fgcolor"): {
+            if (atoms.size() == 3)
+                setParameterExcludingListener(primaryColour, Colour(atoms[0].getFloat(), atoms[1].getFloat(), atoms[2].getFloat()).toString());
+            break;
+        }
+        case hash("bgcolor"): {
+            if (atoms.size() == 3)
+                setParameterExcludingListener(secondaryColour, Colour(atoms[0].getFloat(), atoms[1].getFloat(), atoms[2].getFloat()).toString());
+            break;
+        }
+        case hash("gridcolor"): {
+            if (atoms.size() == 3)
+                setParameterExcludingListener(gridColour, Colour(atoms[0].getFloat(), atoms[1].getFloat(), atoms[2].getFloat()).toString());
+            break;
         }
         default:
             break;

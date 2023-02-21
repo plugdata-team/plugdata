@@ -5,11 +5,11 @@ pdcategory: vanilla, UI
 inlets:
   1st:
   - type: anything
-    description: Triggers bang
+    description: triggers bang
 outlets:
   1st:
-  - type: float
-    description: Outputs bang when activated
+  - type: bang
+    description: output when triggered
 methods:
 - type: size <float>
   description: sets the GUI size

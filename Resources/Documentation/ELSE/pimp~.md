@@ -34,6 +34,7 @@ outlets:
   - type: signal
     description: impulse signal (at period transitions)
 
+draft: false
 ---
 
 [pimp~] is a combination of [phasor~] and [imp~] (alias of [impulse~]). It's [imp~] with an extra phase output (left outlet). The impulse happens at every phase period start (in both negative or positive frequencies/directions). It also has inlets for phase sync and phase modulation like [imp~].

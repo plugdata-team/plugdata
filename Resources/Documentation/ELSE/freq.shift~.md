@@ -32,6 +32,7 @@ methods:
   - type: clear
     description: clears filter's memory
 
+draft: false
 ---
 
 [freq.shift~] has two outputs, the left outlet is the frequency shifted signal and the right outlet is the signal shifted in the opposite direction.

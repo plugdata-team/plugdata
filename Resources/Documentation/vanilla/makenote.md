@@ -37,4 +37,6 @@ methods:
     description: clear memory
   - type: stop
     description: flush hanging note on messages
+draft: false
+---
 

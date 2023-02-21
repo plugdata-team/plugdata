@@ -14,6 +14,7 @@ outlets:
   - type: signal
     description: the signal which has 0 values where NaN/Inf values existed
 
+draft: false
 ---
 
 [bitsafe~] replaces NaN (not a number) and +/- infinity values of an incoming signal with zero, which is useful in conjunction with the bitwise operators in cyclone or any other situation where these values are possible. Also, bitsafe~ in cyclone filters out denormals and turns them to zero, even though the original MAX object doesn't.

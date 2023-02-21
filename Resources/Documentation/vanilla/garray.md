@@ -24,3 +24,5 @@ methods:
     cosine components
   method: cosinesum <list>
 - description: prints array information (name, type, size
+draft: false
+---

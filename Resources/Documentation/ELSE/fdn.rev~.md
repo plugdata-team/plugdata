@@ -49,6 +49,7 @@ methods:
   - type: print
     description: print delay lines and other parameters in Pd's window
 
+draft: false
 ---
 
 [fdn.rev~] is a feedback delay network reverberator which can be used for late reflections (a.k.a reverb tail). The main parameters are: decay time (t60) and high frequency damping.

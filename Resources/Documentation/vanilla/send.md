@@ -17,12 +17,10 @@ arguments:
 inlets:
   1st:
   - type: anything
-    description: sends to the corresponding receive object, or any named object which name corresponds to the stored symbol. e.g. array, value, iemguis, directly to a named patch, etc
+    description: sends to corresponding receive object, or named object
   2nd: (if created without arguments)
   - type: symbol
     description: sets the send name
-aliases:
-- s
 draft: false
 ---
 [Send] sends messages to "receive" objects. Sends and receives are named to tell them whom to connect to. They work across windows too.

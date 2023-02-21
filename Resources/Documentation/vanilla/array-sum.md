@@ -48,5 +48,6 @@ flags:
   description: struct name and field name of main structure
 - name: -f <symbol, symbol>
   description: struct name and field name of element structure
+draft: false
 ---
 output the sum of the array or a range selection

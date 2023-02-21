@@ -42,6 +42,7 @@ methods:
   - type: hires <f>
     description: sets 14-bit pitch bend input precision (see help)
 
+draft: false
 ---
 
 [midiparse] receives raw MIDI data and retrieves different MIDI messages from it.

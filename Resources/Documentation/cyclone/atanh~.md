@@ -14,6 +14,7 @@ outlets:
   - type: signal
     description: the hyperbolic arc-tangent of the input
 
+draft: false
 ---
 
 Use [atanh~] to output the hyperbolic arc-tangent of each input sample (probably only useful for mathematical calculations).

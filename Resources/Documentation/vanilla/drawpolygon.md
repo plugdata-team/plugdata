@@ -37,4 +37,5 @@ arguments:
   default: 1
 - type: list
   description: (x, y) pairs giving coordinates of each vertex
+draft: false
 ---

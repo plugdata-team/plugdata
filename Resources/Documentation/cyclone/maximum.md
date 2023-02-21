@@ -27,6 +27,7 @@ outlets:
   - type: float
     description: the index of the maximum value
 
+draft: false
 ---
 
 [maximum] outputs the maximum of two or more values in the left outlet. The right outlet outputs the index of the maximum.

@@ -116,6 +116,7 @@ enum PlugDataColour {
     popupMenuTextColourId,
     popupMenuActiveTextColourId,
 
+    sliderThumbColourId,
     scrollbarThumbColourId,
     resizeableCornerColourId,
     gridLineColourId,
@@ -170,6 +171,7 @@ inline const std::map<PlugDataColour, std::tuple<String, String, String>> PlugDa
     { levelMeterTrackColourId, { "Level Meter Track", "levelmeter_track", "Level Meter" } },
     { levelMeterThumbColourId, { "Level Meter Thumb", "levelmeter_thumb", "Level Meter" } },
 
+    { sliderThumbColourId, { "Slider Thumb", "slider_thumb", "Other" } },
     { scrollbarThumbColourId, { "Scrollbar Thumb", "scrollbar_thumb", "Other" } },
 
     { panelBackgroundColourId, { "Panel Background", "panel_colour", "Panel" } },
@@ -982,7 +984,7 @@ struct PlugDataLook : public LookAndFeel_V4 {
         setColour(TextButton::textColourOnId,
             colours.at(PlugDataColour::toolbarActiveColourId));
         setColour(Slider::thumbColourId,
-            colours.at(PlugDataColour::scrollbarThumbColourId));
+            colours.at(PlugDataColour::sliderThumbColourId));
         setColour(ScrollBar::thumbColourId,
             colours.at(PlugDataColour::scrollbarThumbColourId));
         setColour(DirectoryContentsDisplayComponent::highlightColourId,
@@ -1017,7 +1019,7 @@ struct PlugDataLook : public LookAndFeel_V4 {
         setColour(Slider::backgroundColourId,
             colours.at(PlugDataColour::canvasBackgroundColourId));
         setColour(Slider::trackColourId,
-            colours.at(PlugDataColour::scrollbarThumbColourId));
+            colours.at(PlugDataColour::sliderThumbColourId));
         setColour(TextEditor::backgroundColourId,
             colours.at(PlugDataColour::canvasBackgroundColourId));
         setColour(FileBrowserComponent::currentPathBoxBackgroundColourId,
@@ -1119,7 +1121,7 @@ struct PlugDataLook : public LookAndFeel_V4 {
                                                   "           levelmeter_track=\"ff333333\" levelmeter_thumb=\"ffe4e4e4\" panel_colour=\"ff232323\"\n"
                                                   "           panel_text=\"ffe4e4e4\" panel_background_active=\"ff72aedf\" panel_active_text=\"ffe4e4e4\"\n"
                                                   "           popup_background=\"ff333333\" popup_background_active=\"ff72aedf\"\n"
-                                                  "           popup_text=\"ffe4e4e4\" popup_active_text=\"ffe4e4e4\" scrollbar_thumb=\"ff72aedf\"\n"
+                                                  "           popup_text=\"ffe4e4e4\" popup_active_text=\"ffe4e4e4\" slider_thumb=\"ff72aedf\" scrollbar_thumb=\"ffa9a9a9\"\n"
                                                   "           graph_resizer=\"ff72aedf\" grid_colour=\"ff72aedf\" caret_colour=\"ff72aedf\"\n"
                                                   "           dashed_signal_connections=\"1\" straight_connections=\"0\" thin_connections=\"0\"\n"
                                                   "           square_iolets=\"0\" square_object_corners=\"1\" iolet_area_colour=\"ff808080\"\n"
@@ -1138,7 +1140,7 @@ struct PlugDataLook : public LookAndFeel_V4 {
                                                   "           levelmeter_thumb=\"ff000000\" panel_colour=\"ffffffff\" panel_text=\"ff000000\"\n"
                                                   "           panel_background_active=\"ff000000\" panel_active_text=\"ffffffff\"\n"
                                                   "           popup_background=\"ffffffff\" popup_background_active=\"ff000000\"\n"
-                                                  "           popup_text=\"ff000000\" popup_active_text=\"ffffffff\" scrollbar_thumb=\"ff000000\"\n"
+                                                  "           popup_text=\"ff000000\" popup_active_text=\"ffffffff\" slider_thumb=\"ff000000\" scrollbar_thumb=\"ffa9a9a9\"\n"
                                                   "           graph_resizer=\"ff000000\" grid_colour=\"ff000000\" caret_colour=\"ff000000\"\n"
                                                   "           dashed_signal_connections=\"0\" straight_connections=\"1\" thin_connections=\"1\"\n"
                                                   "           square_iolets=\"1\" square_object_corners=\"1\"/>\n"
@@ -1154,7 +1156,7 @@ struct PlugDataLook : public LookAndFeel_V4 {
                                                   "           levelmeter_track=\"ffffffff\" levelmeter_thumb=\"ffffffff\" panel_colour=\"ff000000\"\n"
                                                   "           panel_text=\"ffffffff\" panel_background_active=\"ffffffff\" panel_active_text=\"ff000000\"\n"
                                                   "           popup_background=\"ff000000\" popup_background_active=\"ffffffff\"\n"
-                                                  "           popup_text=\"ffffffff\" popup_active_text=\"ff000000\" scrollbar_thumb=\"ffffffff\"\n"
+                                                  "           popup_text=\"ffffffff\" popup_active_text=\"ff000000\" slider_thumb=\"ffffffff\" scrollbar_thumb=\"ff7f7f7f\"\n"
                                                   "           graph_resizer=\"ffffffff\" grid_colour=\"ffffffff\" caret_colour=\"ffffffff\"\n"
                                                   "           dashed_signal_connections=\"0\" straight_connections=\"1\" thin_connections=\"1\"\n"
                                                   "           square_iolets=\"1\" square_object_corners=\"1\" iolet_area_colour=\"ff000000\"\n"
@@ -1171,7 +1173,7 @@ struct PlugDataLook : public LookAndFeel_V4 {
                                                   "           levelmeter_track=\"fff5f5f5\" levelmeter_thumb=\"fff5f5f5\" panel_colour=\"ff232323\"\n"
                                                   "           panel_text=\"ffffffff\" panel_background_active=\"ff373737\" panel_active_text=\"ffffffff\"\n"
                                                   "           popup_background=\"ff191919\" popup_background_active=\"ff282828\"\n"
-                                                  "           popup_text=\"ffffffff\" popup_active_text=\"ffffffff\" scrollbar_thumb=\"ff42a2c8\"\n"
+                                                  "           popup_text=\"ffffffff\" popup_active_text=\"ffffffff\" slider_thumb=\"ff42a2c8\" scrollbar_thumb=\"ff7f7f7f\"\n"
                                                   "           graph_resizer=\"ff42a2c8\" grid_colour=\"ff42a2c8\" caret_colour=\"ff42a2c8\"\n"
                                                   "           dashed_signal_connections=\"1\" straight_connections=\"0\" thin_connections=\"0\"\n"
                                                   "           square_iolets=\"0\" square_object_corners=\"0\" text_object_background=\"ff232323\"\n"
@@ -1188,7 +1190,7 @@ struct PlugDataLook : public LookAndFeel_V4 {
                                                   "           levelmeter_track=\"ff5a5a5a\" levelmeter_thumb=\"ff7a7a7a\" panel_colour=\"fffafafa\"\n"
                                                   "           panel_text=\"ff5a5a5a\" panel_background_active=\"ffebebeb\" panel_active_text=\"ff5a5a5a\"\n"
                                                   "           popup_background=\"ffe4e4e4\" popup_background_active=\"ffcfcfcf\"\n"
-                                                  "           popup_text=\"ff5a5a5a\" popup_active_text=\"ff5a5a5a\" scrollbar_thumb=\"ff007aff\"\n"
+                                                  "           popup_text=\"ff5a5a5a\" popup_active_text=\"ff5a5a5a\" slider_thumb=\"ff007aff\" scrollbar_thumb=\"ffa9a9a9\"\n"
                                                   "           graph_resizer=\"ff007aff\" grid_colour=\"ff007aff\" caret_colour=\"ff007aff\"\n"
                                                   "           dashed_signal_connections=\"1\" straight_connections=\"0\" thin_connections=\"0\"\n"
                                                   "           square_iolets=\"0\" square_object_corners=\"0\" text_object_background=\"fffafafa\"\n"
@@ -1205,7 +1207,7 @@ struct PlugDataLook : public LookAndFeel_V4 {
                                                   "           levelmeter_track=\"ff5a5a5a\" levelmeter_thumb=\"ff7a7a7a\" panel_colour=\"ffe3dfd9\"\n"
                                                   "           panel_text=\"ff5a5a5a\" panel_background_active=\"ffebebeb\" panel_active_text=\"ff5a5a5a\"\n"
                                                   "           popup_background=\"ffd2cdc4\" popup_background_active=\"ffdedad3\"\n"
-                                                  "           popup_text=\"ff5a5a5a\" popup_active_text=\"ff5a5a5a\" scrollbar_thumb=\"ff5da0c4\"\n"
+                                                  "           popup_text=\"ff5a5a5a\" popup_active_text=\"ff5a5a5a\" slider_thumb=\"ff5da0c4\" scrollbar_thumb=\"ffa9a9a9\"\n"
                                                   "           graph_resizer=\"ff5da0c4\" grid_colour=\"ff5da0c4\" caret_colour=\"ff5da0c4\"\n"
                                                   "           dashed_signal_connections=\"1\" straight_connections=\"0\" thin_connections=\"0\"\n"
                                                   "           square_iolets=\"0\" square_object_corners=\"0\" iolet_area_colour=\"ffe3dfd9\"\n"

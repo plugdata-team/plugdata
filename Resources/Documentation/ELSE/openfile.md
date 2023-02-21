@@ -27,5 +27,6 @@ methods:
   - type: open <symbol>
     description: opens folder/file/weblink specified by the symbol, if no symbol is given, the current folder is opened
 
+draft: false
 ---
 [openfile] can be used to open folders and files in your computer and also weblinks.

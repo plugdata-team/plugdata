@@ -52,6 +52,7 @@ methods:
   - type: q
     description: sets resonance parameter to Q (default)
 
+draft: false
 ---
 
 [eq~] is a 2nd order parametric equalizer filter, it can be used as a peak and a notch filter.

@@ -56,8 +56,6 @@ public:
             auto filePath = String::fromUTF8(pic->x_filename->s_name);
             openFile(filePath);
         }
-
-        object->constrainer->setMinimumSize(15, 15);
     }
 
     ObjectParameters getParameters() override

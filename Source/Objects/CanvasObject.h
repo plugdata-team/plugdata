@@ -81,7 +81,10 @@ public:
 
     void paint(Graphics& g) override
     {
-        g.fillAll(Colour::fromString(iemHelper.secondaryColour.toString()));
+        auto bgcolour = Colour::fromString(iemHelper.secondaryColour.toString());
+
+        g.setColour(bgcolour);
+        g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), PlugDataLook::objectCornerRadius);
     }
 
     void valueChanged(Value& v) override

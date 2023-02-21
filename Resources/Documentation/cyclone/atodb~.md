@@ -14,6 +14,7 @@ outlets:
   - type: signal
     description: converted dBFS amplitude value
 
+draft: false
 ---
 
 Use the [atodb~] to convert a signal representing a linear amplitude value to a deciBel Full Scale (dBFS) equivalent.

@@ -75,6 +75,7 @@ methods:
   - type: init <float>
     description: non-0 sets to init mode
 
+draft: false
 ---
 
 [function] is a breakpoints function GUI, mainly used with [function~] or [envgen~]. You can click and drag on it or send it lists.

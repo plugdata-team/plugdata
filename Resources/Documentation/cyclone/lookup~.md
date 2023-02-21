@@ -32,6 +32,7 @@ methods:
   - type: set <symbol>
     description: sets the array/table to be used for lookup
 
+draft: false
 ---
 
 [lookup~] uses arrays as transfer functions for waveshaping distortion, in which signal input values (from -1 to 1) are mapped to the table's indexes.

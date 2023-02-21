@@ -20,6 +20,7 @@ outlets:
   - type: list
     description: factors list
 
+draft: false
 ---
 
 [factor] is a factorization function. It receives a float and spits a list of its factors.

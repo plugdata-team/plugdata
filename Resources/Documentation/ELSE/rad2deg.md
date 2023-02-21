@@ -1,7 +1,7 @@
 ---
 title: rad2deg
 
-description: radiants to degrees conversion
+description: radians to degrees conversion
 
 categories:
 - object

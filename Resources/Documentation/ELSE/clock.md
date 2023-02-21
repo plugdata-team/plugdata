@@ -44,7 +44,7 @@ methods:
 draft: false
 ---
 
-A [clock] object sends bangs at a regular tempo and controls other synced [clock] objects with a relative tempo. This is also known as 'master' and 'slave' clocks, but we can also call them 'main' and 'synced' to avoid these terms.
+A [clock] object sends bangs at a regular tempo and controls other synced [clock] objects with a relative tempo.
 By default, [clock] works as a main clock and you can set it to 'synced' with the '-s' flag. A synced clock is controlled by the main clock, so it only works when the main clock is on. A synced clock also has a relative tempo in relation to the main clock tempo (as in a clock multiplier) and can be synced to a [metronome].
 You should have only one main clock, but you can have several clocks synced to this main one. By default, clock gets local names according to the patch window, but you can set a different name so you can have different clocks named differently.
 Below we have a main clock at 60 BPM and a synced clock that divider the tempo to a factor of two (so it plays twice as fast).

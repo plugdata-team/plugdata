@@ -1,7 +1,7 @@
 ---
 title: markov
 
-description: create/play markov chains
+description: create/play Markov chains
 
 categories:
 - object
@@ -19,12 +19,12 @@ arguments:
 inlets:
   1st:
   - type: bang
-    description: get value from markov chain and goes to the next
+    description: get value from Markov chain and goes to the next
 
 outlets:
   1st:
   - type: anything
-    description: output from markov chain
+    description: output from Markov chain
 
 flags:
   - name: seed <float>
@@ -32,7 +32,7 @@ flags:
 
 methods:
   - type: create
-    description: create markov chain from memory and go to start
+    description: create Markov chain from memory and go to start
   - type: clear
     description: clears memory
   - type: learn <anything>

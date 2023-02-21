@@ -26,6 +26,7 @@ outlets:
   - type: signal
     description: last input value
 
+draft: false
 ---
 
 [lastvalue~] reports the last value when the signal changes

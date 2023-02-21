@@ -24,6 +24,7 @@ outlets:
   - type: anything
     description: messages from corresponding input
 
+draft: false
 ---
 
 [bondo] synchronizes and outputs messages when any inlet gets a message. It can wait a time interval for input messages (see [pd sync time]) or send them automatically.

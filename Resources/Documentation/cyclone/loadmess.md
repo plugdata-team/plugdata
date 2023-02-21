@@ -25,6 +25,7 @@ methods:
   - type: set <anything>
     description: set followed by any message sets the message held by loadmess without any output
 
+draft: false
 ---
 
 [loadmess] outputs a message automatically when the patch is loaded, or when the patch is an abstraction of another patch that is opened.

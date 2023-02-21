@@ -8,7 +8,7 @@ categories:
 
 pdcategory: cyclone, UI
 
-arguments: (none)
+arguments:
 
 inlets:
   1st:

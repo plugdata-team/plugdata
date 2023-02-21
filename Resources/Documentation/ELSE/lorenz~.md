@@ -1,7 +1,7 @@
 ---
 title: lorenz~
 
-description: lorenz chaotic generator
+description: Lorenz chaotic generator
 
 categories:
  - object
@@ -11,7 +11,7 @@ pdcategory: ELSE, Signal Generators
 arguments:
 - type: float
   description: sets frequency in Hz
-  default: nyquist
+  default: Nyquist
 - type: float
   description: sets 's'
   default: 10
@@ -44,7 +44,7 @@ inlets:
 outlets:
   1st:
   - type: signal
-    description: lorenz chaotic signal
+    description: Lorenz chaotic signal
 
 methods:
   - type: coeffs <f,f,f,f>
@@ -52,6 +52,7 @@ methods:
   - type: clear
     description: clears values of z, y and z
 
+draft: false
 ---
 
 The [lorenz~] is a strange attractor discovered by Edward N. Lorenz while studying mathematical models of the atmosphere.

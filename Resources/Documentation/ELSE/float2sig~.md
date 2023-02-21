@@ -27,6 +27,7 @@ outlets:
   - type: signal
     description: converted signal
 
+draft: false
 ---
 
 [float2sig~] (or [f2s~] for short) converts floats to signals. The conversion is smoothened by a ramp time in ms.

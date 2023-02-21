@@ -36,6 +36,7 @@ methods:
   - type: range <f, f>
     description: sets min/max frequency range in Hz
 
+draft: false
 ---
 
 [scale2freq] gets a scale as a list of cents values, a base/fundamental pitch and outputs a list of frequency in Hz between a minimum and maximum value. Below we use [eqdiv] to generate a scale. Use it to feed values to things like [resonbank~], [oscbank2~] or [pvretune~].

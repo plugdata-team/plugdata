@@ -27,6 +27,7 @@ outlets:
   - type: signal
     description: folded values
 
+draft: false
 ---
 
 [fold~] folds between a low and high value. This is like a mirroring function, where an out of bounds value folds back until it is in the given range.

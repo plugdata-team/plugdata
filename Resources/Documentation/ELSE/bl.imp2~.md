@@ -12,11 +12,24 @@ arguments:
   - type: float
     description: frequency in Hz
     default: 0
+  - type: float
+    description: initial width
+    default: 0.5
+  - type: float
+    description: initial phase offset
+    default: 0
 
 inlets:
   1st:
   - type: float/signal
     description: frequency in Hz
+  - type: float/signal
+    description: pulse width (0-1)
+  - type: float/signal
+    description: phase sync (reset internal phase)
+  - type: float/signal
+    description: phase offset (modulation input)
+    
 outlets:
   1st:
   - type: signal

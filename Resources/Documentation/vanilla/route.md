@@ -14,10 +14,10 @@ arguments:
 inlets:
   1st:
   - type: anything
-    description: passes message on if it starts with $arg
+    description: message to route according to first element
   2nd:
   - type: float/symbol
-    description: if there's one argument,  an inlet is created to update it
+    description: updates argument
 outlets:
   nth:
   - type: anything
@@ -25,4 +25,7 @@ outlets:
   2nd: #this does work to choose the rightmost iolet, but should we use it?
   - type: anything
     description: when input doesn't match the arguments it's passed here
+
+draft: false
+---
 
