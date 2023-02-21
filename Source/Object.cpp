@@ -97,7 +97,7 @@ void Object::initialise()
     hvccMode.addListener(this);
 
     originalBounds.setBounds(0, 0, 0, 0);
-    constrainer->setMinimumSize(12, 12);
+    constrainer->setMinimumSize(minimumSize, minimumSize);
 }
 
 void Object::timerCallback()
