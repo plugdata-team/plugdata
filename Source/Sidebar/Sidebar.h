@@ -7,6 +7,8 @@
 #pragma once
 #include <JuceHeader.h>
 
+#include "LookAndFeel.h"
+
 struct Console;
 struct Inspector;
 struct DocumentBrowser;

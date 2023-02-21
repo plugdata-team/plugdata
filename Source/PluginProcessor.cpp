@@ -105,9 +105,11 @@ PluginProcessor::PluginProcessor()
 
     objectLibrary.appDirChanged = [this]() {
         // If we changed the settings from within the app, don't reload
-
         settingsFile->reloadSettings();
-        setTheme(settingsFile->getProperty<String>("theme"));
+        auto newTheme = settingsFile->getProperty<String>("theme");
+        if(PlugDataLook::currentTheme != newTheme) {
+            setTheme(newTheme);
+        }
 
         if (auto* editor = dynamic_cast<PluginEditor*>(getActiveEditor())) {
             for (auto* cnv : editor->canvases) {
@@ -1042,6 +1044,7 @@ pd::Patch* PluginProcessor::loadPatch(String patchText)
 
 void PluginProcessor::setTheme(String themeToUse)
 {
+    auto oldThemeTree = settingsFile->getTheme(PlugDataLook::currentTheme);
     auto themeTree = settingsFile->getTheme(themeToUse);
     // Check if theme name is valid
     if (!themeTree.isValid()) {
