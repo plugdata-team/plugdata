@@ -11,7 +11,6 @@
 #include "Pd/PdInstance.h"
 #include "Pd/PdLibrary.h"
 #include "Utility/SettingsFile.h"
-#include "LookAndFeel.h"
 #include "Statusbar.h"
 
 #if PLUGDATA_STANDALONE
@@ -19,7 +18,6 @@
 #endif
 
 class PlugDataLook;
-
 class PluginEditor;
 class PluginProcessor : public AudioProcessor
     , public pd::Instance {

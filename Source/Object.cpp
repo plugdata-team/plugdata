@@ -156,7 +156,6 @@ bool Object::hitTest(int x, int y)
             return true;
     }
 
-    // Mouse over corners - this is only needed for text objects, we use constrainer for all other objects!
     if (cnv->isSelected(this)) {
 
         for (auto& corner : getCorners()) {

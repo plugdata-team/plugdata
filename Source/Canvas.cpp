@@ -146,7 +146,6 @@ void Canvas::paint(Graphics& g)
 void Canvas::synchronise(bool updatePosition)
 {
     pd->waitForStateUpdate();
-    deselectAll();
 
     patch.setCurrent(true);
 
@@ -177,6 +176,7 @@ void Canvas::synchronise(bool updatePosition)
     for (int n = objects.size() - 1; n >= 0; n--) {
         auto* object = objects[n];
         if (object->gui && isObjectDeprecated(object->getPointer())) {
+            setSelected(object, false);
             objects.remove(n);
         }
     }
