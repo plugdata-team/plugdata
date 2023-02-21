@@ -134,7 +134,7 @@ PluginProcessor::PluginProcessor()
         themeName = PlugDataLook::selectedThemes[0];
     }
 
-    setTheme(themeName);
+    setTheme(themeName, true);
     settingsFile->saveSettings();
 
     oversampling = settingsFile->getProperty<int>("oversampling");
@@ -1042,7 +1042,7 @@ pd::Patch* PluginProcessor::loadPatch(String patchText)
     return patch;
 }
 
-void PluginProcessor::setTheme(String themeToUse)
+void PluginProcessor::setTheme(String themeToUse, bool force)
 {
     auto oldThemeTree = settingsFile->getTheme(PlugDataLook::currentTheme);
     auto themeTree = settingsFile->getTheme(themeToUse);
@@ -1051,6 +1051,8 @@ void PluginProcessor::setTheme(String themeToUse)
         themeToUse = PlugDataLook::selectedThemes[0];
         themeTree = settingsFile->getTheme(themeToUse);
     }
+    
+    if(!force && oldThemeTree.isValid() && themeTree.isEquivalentTo(oldThemeTree)) return;
 
     lnf->setTheme(themeTree);
 
