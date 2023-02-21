@@ -102,7 +102,7 @@ public:
 
     void titleChanged() override;
 
-    void setTheme(String themeToUse);
+    void setTheme(String themeToUse, bool force = false);
 
     Colour getForegroundColour() override;
     Colour getBackgroundColour() override;
