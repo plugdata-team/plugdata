@@ -1295,8 +1295,11 @@ void Canvas::objectMouseDrag(MouseEvent const& e)
             }
         }
         
-        if(autoscroll(e.getEventRelativeTo(viewport))) {
-            beginDragAutoRepeat(30);
+        auto draggedBounds = componentBeingDragged->getBounds().expanded(6);
+        auto xEdge = e.getDistanceFromDragStartX() < 0 ? draggedBounds.getX() : draggedBounds.getRight();
+        auto yEdge = e.getDistanceFromDragStartY() < 0 ? draggedBounds.getY() : draggedBounds.getBottom();
+        if(autoscroll(e.getEventRelativeTo(this).withNewPosition(Point<int>(xEdge, yEdge)).getEventRelativeTo(viewport))) {
+            beginDragAutoRepeat(25);
         }
     }
 
