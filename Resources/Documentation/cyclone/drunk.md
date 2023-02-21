@@ -36,6 +36,7 @@ methods:
   - type: set <float>
     description: sets the current value (without output)
 
+draft: false
 ---
 
 [drunk] generates random numbers within a given step range from the current number (generating a "drunk walk"). The random number is from 0 to a given maximum and differs from the previous number by a random value less than the given step size.

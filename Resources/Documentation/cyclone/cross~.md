@@ -27,6 +27,7 @@ methods:
   - type: clear
     description: clears filter's memory
 
+draft: false
 ---
 
 [cross~] is a of 3rd order butterworth crossover filter.

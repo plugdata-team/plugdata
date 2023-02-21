@@ -51,6 +51,7 @@ methods:
   - type: buffer_sizeinsamps <f>
     description: changes the buffer size to powers of 2 (16 to 65536)
 
+draft: false
 ---
 
 [cycle~] is a linear interpolating oscillator* that reads repeatedly through one cycle of a waveform. The default internal waveform is one cycle of a cosine wave (16k in size, 64 bits), but you can set other waveforms from given arrays.

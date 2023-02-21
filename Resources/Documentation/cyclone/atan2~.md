@@ -19,6 +19,7 @@ outlets:
   - type: signal
     description: result of arctan(a/b) in radians
 
+draft: false
 ---
 
 Use the [atan2~] object to output the arc-tangent of two given values ("a" and "b") calculated as: Arc-tangent (a/b).

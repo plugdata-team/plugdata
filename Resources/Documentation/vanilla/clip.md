@@ -16,6 +16,7 @@ arguments:
   type: float
 - description: initial upper limit 
   default: 0
+  type: float
 inlets:
   1st:
   - type: float
@@ -33,3 +34,5 @@ outlets:
   - type: float
     description: the clipped value
 
+draft: false
+---

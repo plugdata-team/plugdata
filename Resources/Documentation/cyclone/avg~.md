@@ -16,6 +16,7 @@ outlets:
   - type: float
     description: the input signal's absolute average
 
+draft: false
 ---
 
 Use the [avg~] object to keep track of the absolute average from the input signal when receiving a bang. The output value is the sum of the absolute values of the input divided by the number of elapsed samples.

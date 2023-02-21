@@ -9,8 +9,8 @@ pdcategory: vanilla, Triggers and Clocks
 last_update: '0.33'
 inlets:
   1st:
-  - type: NONE
-    description: (there's one actually, but it's inactive)
+  - type: null
+    description: inactive inlet
 outlets:
   1st:
   - type: bang

@@ -12,6 +12,14 @@ inlets:
   1st:
   - type: bang
     description: output a whole line and go to the next
+outlets:
+  1st:
+  - type: anything
+    description: lines stored in the textfile object
+  2nd:
+  - type: bang
+    description: when reaching the end of sequence
+methods:
   - type: rewind
     description: go to beginning (and stop)
   - type: clear
@@ -28,13 +36,6 @@ inlets:
     description: read a file (with optional 'cr' argument)
   - type: write <symbol, cr>
     description: write to a file (with optional 'cr' argument)
-outlets:
-  1st:
-  - type: anything
-    description: lines stored in the textfile object
-  2nd:
-  - type: bang
-    description: when reaching the end of sequence
 draft: false
 ---
 'cr' = terminating lines only with carriage return (omitting semicolons.) You can read files this way too, in which case carriage returns are mapped to semicolons.

@@ -33,6 +33,7 @@ methods:
   - type: clear
     description: clears filter's memory
 
+draft: false
 ---
 
 [decay~] is based on SuperCollider's "Decay" UGEN. It is a one pole filter that creates an exponential decay from impulses. The decay time (in ms) is how long it takes for the signal to decay 60dB. The same filter is also used in other objects from the ELSE library (asr~/adsr~/lag~/lag2~).

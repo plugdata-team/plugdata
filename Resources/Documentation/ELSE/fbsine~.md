@@ -44,6 +44,7 @@ methods:
   - type: filter <float>
     description: turns mean filter on <1> or off <0>
 
+draft: false
 ---
 
 [fbsine~] is a sinusoidal oscillator with phase modulation feedback. Like [sine~], it accepts negative frequencies, has inlets for phase modulation and phase sync. Additionally, it has a feedback value.

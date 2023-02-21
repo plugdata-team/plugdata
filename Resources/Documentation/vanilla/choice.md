@@ -10,10 +10,6 @@ inlets:
   1st:
   - type: print
     description: post debugging information in the print out window
-  - type: add <list>
-    description:  add vectors into the objects
-  - type: clear
-    description: delete all stored vectors
 outlets:
   1st:
   - type: float
@@ -22,6 +18,11 @@ arguments:
 - type: float
   description: non-0 avoids repeated output 
   default: 0
+methods:
+  - type: add <list>
+    description:  add vectors into the objects
+  - type: clear
+    description: delete all stored vectors
 draft: false
 ---
 The choice object holds a list of vectors, each having up to ten elements. When sent a list of numbers, it outputs the index of the known vector that matches most closely. The quality of the match is the dot product of the two vectors after normalizing them, i.e., the vector whose direction is closest to that of the input wins.

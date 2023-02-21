@@ -20,7 +20,7 @@ inlets:
   - type: bang
     description: attacks the envelope with the last gate on value
   - type: list
-    description: sets and runs envelope. Lists are pairs of duration & target. If odd, 1st float is the starting point
+    description: sets and runs envelope (pairs of duration & target. if odd, 1st float is starting point)
   2nd:
   - type: list
     description: sets the envelope and doesn't run it
@@ -75,6 +75,7 @@ methods:
   - type: legato <float>
     description: non-0 sets to legato mode
 
+draft: false
 ---
 
 [envgen~] is an envelope (and an all purpose line) generator (here it creates a 1000 ms line to 1 and 500 ms line to 0).

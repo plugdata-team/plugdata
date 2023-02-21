@@ -18,8 +18,6 @@ inlets:
   1st:
   - type: signal
     description: audio signal to be filtered
-  - type: clear
-    description: clear filter's memory
   2nd:
   - type: signal
     description: resonant frequency in Hz
@@ -36,7 +34,10 @@ outlets:
 arguments:
   - type: float
     description: initial Q 
-  default: 0
+    default: 0
+methods:
+  - type: clear
+    description: clear filter's memory
 draft: false
 ---
 Vcf~ is a resonant bandpass and lowpass filter that takes either a control or an audio signal to set center frequency, which may thus change continuously in time as in an analog voltage controlled filter (and unlike 'bp~' and 'lop~' that only take control values

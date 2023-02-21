@@ -107,6 +107,8 @@ public:
 
     Rectangle<int> originalBounds;
 
+    int minimumSize = 12;
+
 private:
     void initialise();
 

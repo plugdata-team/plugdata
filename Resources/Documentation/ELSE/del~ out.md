@@ -29,6 +29,7 @@ outlets:
 flags:
   - name: -samps
     description: sets time value to samples (default is ms)
+draft: false
 ---
 Read from a delay line. It uses a cubic (4 point) interpolation called spline and considers the buffer to be circular (so index 0 to table size is accepted).
 

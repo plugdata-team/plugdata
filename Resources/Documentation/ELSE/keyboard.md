@@ -70,6 +70,7 @@ methods:
   - type: receive <symbol>
     description: sets receive symbol
 
+draft: false
 ---
 
 [keyboard] is a GUI that receives MIDI notes and also generates them from mouse clicking. Right click it for properties!

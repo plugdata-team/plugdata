@@ -15,7 +15,7 @@ inlets:
   - type: signal
     description: signal input to be analyzed
   - type: list
-    description: analyze an array (with the '-t' flag) table name, number of points, index of first point, sample rate and debug flag
+    description: (with '-t' flag) table name, num of points, index of first point, sample rate, and debug flag
 outlets:
   pitch:
   - type: float

@@ -19,6 +19,7 @@ outlets:
   - type: float
     description: the hyperbolic arc-sine of the input
 
+draft: false
 ---
 
 Use the [asinh] object to calculate and output the hyperbolic arc-sine of any given number.

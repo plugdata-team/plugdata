@@ -1,6 +1,6 @@
 ---
 title: drawtext
-description: draw numbers, symbols or texts for Data Structures
+description: draw numbers, symbols or texts for data structures
 categories:
 - object
 see_also: 
@@ -30,4 +30,5 @@ arguments:
   default: 0
 - type: symbol
   description: optional label
+draft: false
 ---

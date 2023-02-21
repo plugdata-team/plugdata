@@ -14,6 +14,7 @@ outlets:
   - type: anything
     description: the passed messages (if the mouse button is up)
 
+draft: false
 ---
 
 [mousefilter] doesn't let messages through when the mouse button is down/clicked (but the last received message is output when the mouse button is released).

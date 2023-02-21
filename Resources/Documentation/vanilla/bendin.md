@@ -18,7 +18,6 @@ outlets:
   2nd:
   - type: float
     description: MIDI channel/port
-  'n: (number depends on number of arguments)':
 bref: MIDI input
 draft: false
 ---

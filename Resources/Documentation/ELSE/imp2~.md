@@ -37,6 +37,7 @@ outlets:
   - type: signal
     description: sided impulse signal
 
+draft: false
 ---
 
 A variant of [impulse~], [impulse2~] (or [imp2~] for short) is a two-sided impulse oscillator that accepts negative frequencies, has inlets for pulse width, phase sync and phase modulation.

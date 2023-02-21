@@ -49,6 +49,7 @@ methods:
   - type: write <symbol>
     description: in left inlet: saves a file with the symbol name (or opens a dialog box if no symbol is given). In other inlets: saves corresponding track
 
+draft: false
 ---
 
 [mtr] records any messages in different tracks and plays them back. Each track records what comes into its inlet and plays it back through the outlet directly below.

@@ -9,7 +9,7 @@ see_also:
 - pack
 - trigger
 arguments:
-- description: symbols defining atom types: float/symbol/pointer (f/s/p)
+- description: atom types: float/symbol/pointer (f/s/p)
   default: f f
   type: list
 inlets:
@@ -20,4 +20,6 @@ outlets:
   nth:
   - type: float/symbol
     description: a float or a symbol, depending on the argument
+
+draft: false
 ---

@@ -1,4 +1,4 @@
---
+---
 title: czero~
 description: complex one-zero filter
 categories:
@@ -18,10 +18,6 @@ inlets:
   1st:
   - type: signal
     description: signal to filter (real part)
-  - type: set <float, float>
-    description: set internal state (real and imaginary part)
-  - type: clear
-    description: clear internal state to zero (same as "set 0 0")
   2nd:
   - type: signal
     description: signal to filter (imaginary part)
@@ -41,7 +37,12 @@ outlets:
 arguments:
   - type: list
     description: real and imaginary part of coefficient 
-  default: 0 0
+    default: 0 0
+methods:
+  - type: set <float, float>
+    description: set internal state (real and imaginary part)
+  - type: clear
+    description: clear internal state to zero (same as "set 0 0")
 draft: false
 ---
 czero~ filters a complex audio signal (first two inlets
