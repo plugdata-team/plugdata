@@ -1,5 +1,5 @@
 ---
-title: hv.freqshift
+title: hv.freqshift~
 
 description: frequency shifter effect unit
 

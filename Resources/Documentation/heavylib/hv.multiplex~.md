@@ -1,5 +1,5 @@
 ---
-title: hv.multiplex
+title: hv.multiplex~
 
 description: signal multiplexer
 
