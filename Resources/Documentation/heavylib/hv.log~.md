@@ -1,5 +1,5 @@
 ---
-title: hv.log
+title: hv.log~
 
 description: signal rate logarithm operation
 

@@ -1,5 +1,5 @@
 ---
-title: hv.flanger
+title: hv.flanger~
 
 description: mono flanger effect unit
 
