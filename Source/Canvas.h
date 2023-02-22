@@ -24,7 +24,9 @@ class ConnectionBeingCreated;
 class Canvas : public Component
     , public Value::Listener
     , public Timer
-    , public LassoSource<WeakReference<Component>> {
+    , public LassoSource<WeakReference<Component>>
+    , public ModifierKeyListener
+{
 public:
     Canvas(PluginEditor* parent, pd::Patch& patch, Component* parentGraph = nullptr);
 
@@ -43,6 +45,9 @@ public:
     void mouseDrag(MouseEvent const& e) override;
     void mouseUp(MouseEvent const& e) override;
     void mouseMove(MouseEvent const& e) override;
+    
+    void spaceKeyChanged(bool isHeld) override;
+    void middleMouseChanged(bool isHeld) override;
 
     void synchronise(bool updatePosition = true);
 

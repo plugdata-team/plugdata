@@ -364,14 +364,6 @@ void Object::paintOverChildren(Graphics& g)
     }
 }
 
-void Object::showIndex(bool shouldShowIndex)
-{
-    if (shouldShowIndex != indexShown) {
-        indexShown = shouldShowIndex;
-        repaint();
-    }
-}
-
 void Object::paint(Graphics& g)
 {
     if ((cnv->isSelected(this) && !cnv->isGraph) || newObjectEditor) {
@@ -860,6 +852,14 @@ void Object::textEditorReturnKeyPressed(TextEditor& ed)
     if (newObjectEditor) {
         newObjectEditor->giveAwayKeyboardFocus();
         cnv->grabKeyboardFocus();
+    }
+}
+
+void Object::altKeyChanged(bool isHeld)
+{
+    if (isHeld != indexShown) {
+        indexShown = isHeld;
+        repaint();
     }
 }
 
