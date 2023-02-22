@@ -5,11 +5,13 @@
 template<typename ObjectClass>
 class OwnedArrayBroadcaster : public OwnedArray<ObjectClass>
     , public Component
+    , public ComponentListener
     , public ChangeBroadcaster {
 public:
     enum class ChangeType {
         Added,
         Removed,
+        Changed
     };
 
     ObjectClass* add(ObjectClass* newObject)
@@ -27,6 +29,7 @@ public:
                 } else {
                     sendSynchronousChangeMessage();
                 }
+                obj_->addComponentListener(this);
             }
             return newObject;
         } else if constexpr (std::is_same_v<ObjectClass, Connection>) {
@@ -38,6 +41,16 @@ public:
             }
             return newObject;
         }
+    }
+
+    ObjectClass* set(int indexToChange, ObjectClass* newObject, bool deleteOldElement = true)
+    {
+        if constexpr (std::is_same_v<ObjectClass, Object>) {
+            obj_ = static_cast<Object*>(newObject);
+            obj_->addComponentListener(this);
+            OwnedArray<Object>::set(indexToChange, newObject, deleteOldElement);
+        }
+        return newObject;
     }
 
     void remove(int indexToRemove, bool deleteObject = true)
@@ -66,10 +79,21 @@ public:
     {
         if constexpr (std::is_same_v<ObjectClass, Object>) {
             if (obj_ && attachedToMouse_) {
-                std::cout << "mousedown OWNED" << std::endl;
                 add(obj_);
                 attachedToMouse_ = false;
                 obj_ = nullptr;
+            }
+        }
+    }
+
+    virtual void componentNameChanged(Component& component) override
+    {
+        if constexpr (std::is_same_v<ObjectClass, Object>) {
+            obj_ = static_cast<Object*>(&component);
+            if (obj_ != nullptr) {
+                changeType_ = ChangeType::Changed;
+                index_ = this->indexOf(obj_);
+                sendChangeMessage(); // Called Async to make sure pd is synced before updating Object
             }
         }
     }
