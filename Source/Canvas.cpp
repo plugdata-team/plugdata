@@ -375,8 +375,6 @@ void Canvas::mouseDrag(MouseEvent const& e)
 
     if (draggingSplitview) {
         int newWidth = dragStartWidth - e.getDistanceFromDragStartX();
-        //newWidth = std::clamp(newWidth, 100, std::max(getParentWidth() / 2, 150));
-
         editor->splitviewWidthFromCentre = newWidth;
         editor->resized();
         return;
