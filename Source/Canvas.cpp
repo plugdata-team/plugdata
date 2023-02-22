@@ -1082,42 +1082,50 @@ void Canvas::valueChanged(Value& v)
 
 void Canvas::changeListenerCallback(ChangeBroadcaster* source)
 {
-    if (!editor->isProcessingChange.test_and_set()) {
+    if (!editor->isProcessingChange.test_and_set()) { // Flag to prevent infinite loop
 
         if (auto* objListener = dynamic_cast<OwnedArrayBroadcaster<Object>*>(source)) {
+            // Object is the source
             if (objListener->changeType_ == OwnedArrayBroadcaster<Object>::ChangeType::Added) {
                 auto pdObjects = patch.getObjects();
+
+                // Check if object exists in PD
                 auto pdObj = std::find_if(pdObjects.begin(), pdObjects.end(), [objListener](auto const* obj) {
                     return objListener->obj_->getPointer() == obj;
                 });
                 if (pdObj != pdObjects.end()) {
-                    std::cout << "ADDED OBJECT" << *pdObj << std::endl;
+
+                    // Add new object to this canvas
                     objects.add(new Object(*pdObj, this));
                 }
             } else if (objListener->changeType_ == OwnedArrayBroadcaster<Object>::ChangeType::Removed) {
-                std::cout << "REMOVED OBJECT " << objListener->index_ << std::endl;
+
+                // Remove object from this canvas
                 objects.remove(objListener->index_);
                 synchronise(false);
             } else if (objListener->changeType_ == OwnedArrayBroadcaster<Object>::ChangeType::Changed) {
                 auto pdObjects = patch.getObjects();
-                std::cout << "CHANGED OBJECT " << objListener->index_ << std::endl;
 
+                // Check if object exists in PD
                 auto pdObj = std::find_if(pdObjects.begin(), pdObjects.end(), [objListener](auto const* obj) {
                     return objListener->obj_->getPointer() == obj;
                 });
                 if (pdObj != pdObjects.end()) {
                     if (objects.size() == objListener->size()) {
-                        std::cout << "contained!" << std::endl;
+                        // If object already exists in this canvas, replace it
                         objects.set(objListener->index_, new Object(*pdObj, this), true);
                         synchronise(false);
                     } else {
-                        std::cout << "added" << std::endl;
+                        // Else add it to this canvas
                         objects.add(new Object(*pdObj, this));
                     }
                 }
             }
         } else if (auto* conListener = dynamic_cast<OwnedArrayBroadcaster<Connection>*>(source)) {
+            // Connection is the source
             if (conListener->changeType_ == OwnedArrayBroadcaster<Connection>::ChangeType::Added) {
+
+                // Get the newest added Connection from PD
                 auto [ptr, inno, inobj, outno, outobj] = patch.getConnections().back();
                 int srcno = patch.getIndex(&inobj->te_g);
                 int sinkno = patch.getIndex(&outobj->te_g);
@@ -1125,10 +1133,10 @@ void Canvas::changeListenerCallback(ChangeBroadcaster* source)
                 auto& srcEdges = objects[srcno]->iolets;
                 auto& sinkEdges = objects[sinkno]->iolets;
 
-                std::cout << "ADDED CONNECTION" << std::endl;
+                // Add connection to this canvas
                 connections.add(new Connection(this, srcEdges[objects[srcno]->numInputs + outno], sinkEdges[inno], ptr));
             } else if (conListener->changeType_ == OwnedArrayBroadcaster<Connection>::ChangeType::Removed) {
-                std::cout << "REMOVED CONNECTION " << conListener->index_ << std::endl;
+                // Remove connection from this canvas
                 connections.remove(conListener->index_);
             }
         }

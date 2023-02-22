@@ -816,7 +816,8 @@ AudioProcessorEditor* PluginProcessor::createEditor()
     auto& tabbar = editor->tabbar;
     auto& tabbarSplitview = editor->tabbarSplitview;
     setThis();
-
+    
+    // TODO: restore splitviews as well
     for (auto* patch : patches) {
         auto* cnv = editor->canvases.add(new Canvas(editor, *patch, nullptr));
         editor->addTab(cnv, true);
