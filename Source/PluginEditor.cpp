@@ -691,8 +691,12 @@ void PluginEditor::addTab(Canvas* cnv, bool deleteWhenClosed)
                 // If patch is used in another view, set it in focus
                 int numTabs = getSplitviewFocus() ? tabbar.getNumTabs() : tabbarSplitview.getNumTabs();
                 for (int t = 0; t < numTabs; t++) {
-                    if (getCanvas(t, !getSplitviewFocus())->patch == cnv->patch) {
+                    auto* canvas = getCanvas(t, !getSplitviewFocus());
+                    if (canvas->patch == cnv->patch) {
                         getSplitviewFocus() ? tabbar.setCurrentTabIndex(t, true) : tabbarSplitview.setCurrentTabIndex(t, true);
+                        // Remove all changeListeners
+                        canvas->objects.removeAllChangeListeners();
+                        canvas->connections.removeAllChangeListeners();
                         break;
                     }
                 }

@@ -1097,6 +1097,7 @@ void Canvas::changeListenerCallback(ChangeBroadcaster* source)
             } else if (objListener->changeType_ == OwnedArrayBroadcaster<Object>::ChangeType::Removed) {
                 std::cout << "REMOVED OBJECT " << objListener->index_ << std::endl;
                 objects.remove(objListener->index_);
+                synchronise(false);
             } else if (objListener->changeType_ == OwnedArrayBroadcaster<Object>::ChangeType::Changed) {
                 auto pdObjects = patch.getObjects();
                 std::cout << "CHANGED OBJECT " << objListener->index_ << std::endl;
@@ -1108,6 +1109,7 @@ void Canvas::changeListenerCallback(ChangeBroadcaster* source)
                     if (objects.size() == objListener->size()) {
                         std::cout << "contained!" << std::endl;
                         objects.set(objListener->index_, new Object(*pdObj, this), true);
+                        synchronise(false);
                     } else {
                         std::cout << "added" << std::endl;
                         objects.add(new Object(*pdObj, this));
