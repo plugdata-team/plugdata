@@ -379,7 +379,7 @@ static void libpd_arrange(t_canvas* cnv, t_gobj* obj, int to_front)
     canvas_undo_add(cnv, UNDO_ARRANGE, "arrange",
         canvas_undo_set_arrange(cnv, obj, to_front));
     
-    int oldidx = glist_getindex(cnv, obj);
+    int oldidx = glist_getindex(cnv, obj) - 1;
     
     // Check for an object before ours
     t_gobj *oldy_prev = NULL;
@@ -396,7 +396,7 @@ static void libpd_arrange(t_canvas* cnv, t_gobj* obj, int to_front)
     if(to_front) {
         
         // Already in the right place
-        if(obj == y_begin) return;
+        if(obj == y_end) return;
                 
         // Put the object at the end of the cue
         y_end->g_next = obj;
@@ -412,7 +412,7 @@ static void libpd_arrange(t_canvas* cnv, t_gobj* obj, int to_front)
     else {
 
         // Already in the right place
-        if(obj == y_end) return;
+        if(obj == y_begin) return;
         
         // If there is an object after ours
         if (obj->g_next)
