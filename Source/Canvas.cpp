@@ -17,6 +17,7 @@ extern "C" {
 #include "LookAndFeel.h"
 #include "SuggestionComponent.h"
 #include "Tabbar.h"
+#include "CanvasViewport.h"
 
 #include "Utility/GraphArea.h"
 #include "Utility/RateReducer.h"
@@ -73,17 +74,20 @@ Canvas::Canvas(PluginEditor* parent, pd::Patch& p, Component* parentGraph)
     setWantsKeyboardFocus(true);
 
     if (!isGraph) {
-        viewport = new InsetViewport; // Owned by the tabbar, but doesn't exist for graph!
-        viewport->setViewedComponent(this, false);
+        auto* canvasViewport = new CanvasViewport;
         
-        viewport->onScroll = [this]()
+        canvasViewport->setViewedComponent(this, false);
+        
+        canvasViewport->onScroll = [this]()
         {
             if(suggestor) {
                 suggestor->updateBounds();
             }
         };
-
-        viewport->setScrollBarsShown(true, true, true, true);
+        
+        canvasViewport->setScrollBarsShown(true, true, true, true);
+        
+        viewport = canvasViewport; // Owned by the tabbar, but doesn't exist for graph!
 
         presentationMode.referTo(editor->statusbar.presentationMode);
         presentationMode.addListener(this);
@@ -284,10 +288,10 @@ void Canvas::updateDrawables()
 
 void Canvas::mouseDown(MouseEvent const& e)
 {
-    enablePanDragMode(e.mods.isMiddleButtonDown());
+    auto mousePan = panningModifierDown();
+    enablePanDragMode(mousePan);
     
-    if (viewport->isScrollOnDragEnabled())
-        return;
+    if(mousePan) return;
     
     auto* source = e.originalComponent;
 
@@ -331,7 +335,8 @@ void Canvas::mouseDown(MouseEvent const& e)
 
 void Canvas::mouseDrag(MouseEvent const& e)
 {
-    if (canvasRateReducer.tooFast() || viewport->isScrollOnDragEnabled() || e.mods.isMiddleButtonDown())
+    
+    if (canvasRateReducer.tooFast() || panningModifierDown())
         return;
 
     if (connectingWithDrag) {
@@ -410,7 +415,7 @@ bool Canvas::autoscroll(MouseEvent const& e)
 
 void Canvas::mouseUp(MouseEvent const& e)
 {
-    if(!viewport->isScrollOnDragEnabled()) setMouseCursor(MouseCursor::NormalCursor);
+    setMouseCursor(MouseCursor::NormalCursor);
     editor->updateCommandStatus();
 
     // Double-click canvas to create new object
@@ -1094,7 +1099,7 @@ void Canvas::objectMouseDown(Object* component, MouseEvent const& e)
 {
     enablePanDragMode(e.mods.isMiddleButtonDown());
     
-    if (isGraph || viewport->isScrollOnDragEnabled())
+    if (isGraph)
         return;
 
     if (e.mods.isRightButtonDown()) {
@@ -1408,42 +1413,9 @@ void Canvas::removeSelectedComponent(Component* component)
 
 void Canvas::enablePanDragMode(bool panDragEnabled)
 {
-    if(!viewport) return;
-    
-    if(!viewport->isScrollOnDragEnabled() && panDragEnabled) {
-        
-        viewport->setScrollOnDragEnabled(true);
-        
-        setMouseCursor(MouseCursor::UpDownLeftRightResizeCursor);
-        
-        // Don't intercept mouse on children when middle-mouse panning
-        for(auto* obj : objects) {
-            obj->setInterceptsMouseClicks(false, false);
-            obj->setMouseCursor(MouseCursor::UpDownLeftRightResizeCursor);
-        }
-        for(auto* con : connections) {
-            con->setInterceptsMouseClicks(false, false);
-            con->setMouseCursor(MouseCursor::UpDownLeftRightResizeCursor);
-        }
-        
-        if(graphArea) graphArea->setInterceptsMouseClicks(false, false);
-    }
-    else if(viewport->isScrollOnDragEnabled() && !panDragEnabled) {
-        setInterceptsMouseClicks(true, true);
-        setMouseCursor(MouseCursor::NormalCursor);
-        viewport->setScrollOnDragEnabled(false);
-        
-        for(auto* obj : objects) {
-            obj->setInterceptsMouseClicks(true, true);
-            obj->setMouseCursor(MouseCursor::NormalCursor);
-        }
-        for(auto* con : connections) {
-            con->setInterceptsMouseClicks(true, true);
-            con->setMouseCursor(MouseCursor::NormalCursor);
-        }
-        
-        if(graphArea) graphArea->setInterceptsMouseClicks(true, true);
-    }
+    if(auto* v = dynamic_cast<CanvasViewport*>(viewport)) {
+        v->enableMousePanning(panDragEnabled);
+    };
 }
 
 void Canvas::findLassoItemsInArea(Array<WeakReference<Component>>& itemsFound, Rectangle<int> const& area)
@@ -1478,4 +1450,9 @@ void Canvas::findLassoItemsInArea(Array<WeakReference<Component>>& itemsFound, R
 ObjectParameters& Canvas::getInspectorParameters()
 {
     return parameters;
+}
+
+bool Canvas::panningModifierDown()
+{
+    return KeyPress::isKeyCurrentlyDown(KeyPress::spaceKey) || ModifierKeys::getCurrentModifiers().isMiddleButtonDown();
 }

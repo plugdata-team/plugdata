@@ -47,7 +47,7 @@ Rectangle<int> Iolet::getCanvasBounds()
 bool Iolet::hitTest(int x, int y)
 {
 
-    if (static_cast<bool>(locked.getValue()))
+    if (static_cast<bool>(locked.getValue()) || Canvas::panningModifierDown())
         return false;
 
     Path smallBounds;
@@ -158,19 +158,9 @@ void Iolet::mouseDrag(MouseEvent const& e)
         }
     }
 }
-void Iolet::mouseDown(MouseEvent const& e)
-{
-    if (e.mods.isMiddleButtonDown()) {
-        addMouseListener(cnv, false);
-        setMouseCursor(MouseCursor::UpDownLeftRightResizeCursor);
-        return;
-    }
-}
 
 void Iolet::mouseUp(MouseEvent const& e)
 {
-    setMouseCursor(MouseCursor::NormalCursor);
-    
     if (static_cast<bool>(locked.getValue()) || e.mods.isRightButtonDown())
         return;
 
