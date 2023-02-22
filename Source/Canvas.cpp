@@ -58,6 +58,8 @@ Canvas::Canvas(PluginEditor* parent, pd::Patch& p, Component* parentGraph)
     tabbar = &editor->tabbar;
     tabbarSplitview = &editor->tabbarSplitview;
 
+    objects.attachCanvas(this);
+
     // Add draggable border for setting graph position
     if (static_cast<bool>(isGraphChild.getValue()) && !isGraph) {
         graphArea = new GraphArea(this);
@@ -1074,6 +1076,42 @@ void Canvas::valueChanged(Value& v)
         glist->gl_y2 = static_cast<float>(yRange.getValue().getArray()->getReference(0));
         glist->gl_y1 = static_cast<float>(yRange.getValue().getArray()->getReference(1));
         updateDrawables();
+    }
+}
+
+void Canvas::changeListenerCallback(ChangeBroadcaster* source)
+{
+    if (!editor->isProcessingChange.test_and_set()) {
+        
+        auto* objListener = dynamic_cast<OwnedArrayBroadcaster<Object>*>(source);
+        auto* conListener = dynamic_cast<OwnedArrayBroadcaster<Connection>*>(source);
+
+        if (objListener != nullptr) {
+            if (objListener->changeType_ == OwnedArrayBroadcaster<Object>::ChangeType::Added) {
+                auto pdObj = patch.getObjects().back();
+                std::cout << "ADDED OBJECT" << pdObj << std::endl;
+                objects.add(new Object(pdObj, this));
+            } else if (objListener->changeType_ == OwnedArrayBroadcaster<Object>::ChangeType::Removed) {
+                std::cout << "REMOVED OBJECT " << objListener->index_ << std::endl;
+                objects.remove(objListener->index_);
+            }
+        } else if (conListener != nullptr) {
+            if (conListener->changeType_ == OwnedArrayBroadcaster<Connection>::ChangeType::Added) {
+                auto [ptr, inno, inobj, outno, outobj] = patch.getConnections().back();
+                int srcno = patch.getIndex(&inobj->te_g);
+                int sinkno = patch.getIndex(&outobj->te_g);
+
+                auto& srcEdges = objects[srcno]->iolets;
+                auto& sinkEdges = objects[sinkno]->iolets;
+
+                std::cout << "ADDED CONNECTION" << std::endl;
+                connections.add(new Connection(this, srcEdges[objects[srcno]->numInputs + outno], sinkEdges[inno], ptr));
+            } else if (conListener->changeType_ == OwnedArrayBroadcaster<Connection>::ChangeType::Removed) {
+                std::cout << "REMOVED CONNECTION " << conListener->index_ << std::endl;
+                connections.remove(conListener->index_);
+            }
+        }
+        editor->isProcessingChange.clear();
     }
 }
 
