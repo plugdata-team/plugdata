@@ -61,7 +61,7 @@ Connection::Connection(Canvas* parent, Iolet* s, Iolet* e, void* oc)
     outlet->addComponentListener(this);
     inlet->addComponentListener(this);
 
-    setInterceptsMouseClicks(true, false);
+    setInterceptsMouseClicks(true, true);
 
     addMouseListener(cnv, true);
 
