@@ -34,6 +34,8 @@ Iolet::Iolet(Object* parent, bool inlet)
 
     // Drawing cirles is more expensive than you might think, especially because there can be a lot of iolets!
     setBufferedToImage(true);
+
+    cnv = findParentComponentOfClass<Canvas>();
 }
 
 Rectangle<int> Iolet::getCanvasBounds()
@@ -122,11 +124,9 @@ void Iolet::paint(Graphics& g)
 
 void Iolet::mouseDrag(MouseEvent const& e)
 {
-    // Ignore when locked
-    if (static_cast<bool>(locked.getValue()))
+    // Ignore when locked or if middlemouseclick?
+    if (static_cast<bool>(locked.getValue()) || e.mods.isMiddleButtonDown())
         return;
-
-    auto* cnv = findParentComponentOfClass<Canvas>();
 
     if (cnv->connectionsBeingCreated.isEmpty() && e.getLengthOfMousePress() > 100) {
         MessageManager::callAsync([_this = SafePointer(this)]() {
@@ -158,9 +158,19 @@ void Iolet::mouseDrag(MouseEvent const& e)
         }
     }
 }
+void Iolet::mouseDown(MouseEvent const& e)
+{
+    if (e.mods.isMiddleButtonDown()) {
+        addMouseListener(cnv, false);
+        setMouseCursor(MouseCursor::UpDownLeftRightResizeCursor);
+        return;
+    }
+}
 
 void Iolet::mouseUp(MouseEvent const& e)
 {
+    setMouseCursor(MouseCursor::NormalCursor);
+    
     if (static_cast<bool>(locked.getValue()) || e.mods.isRightButtonDown())
         return;
 
