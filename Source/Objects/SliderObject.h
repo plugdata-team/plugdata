@@ -267,11 +267,15 @@ public:
     void setMinimum(float value)
     {
         static_cast<t_slider*>(ptr)->x_min = value;
+        slider.setRangeFlipped(static_cast<t_slider*>(ptr)->x_min>static_cast<t_slider*>(ptr)->x_max);
+
     }
 
     void setMaximum(float value)
     {
         static_cast<t_slider*>(ptr)->x_max = value;
+        slider.setRangeFlipped(static_cast<t_slider*>(ptr)->x_min>static_cast<t_slider*>(ptr)->x_max);
+
     }
 
     bool getSteadyOnClick() const
