@@ -75,6 +75,13 @@ Canvas::Canvas(PluginEditor* parent, pd::Patch& p, Component* parentGraph)
     if (!isGraph) {
         viewport = new InsetViewport; // Owned by the tabbar, but doesn't exist for graph!
         viewport->setViewedComponent(this, false);
+        
+        viewport->onScroll = [this]()
+        {
+            if(suggestor) {
+                suggestor->updateBounds();
+            }
+        };
 
         viewport->setScrollBarsShown(true, true, true, true);
 

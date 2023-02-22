@@ -9,7 +9,7 @@
 #include "Utility/GlobalMouseListener.h"
 
 // Special viewport that shows scrollbars on top of content instead of next to it
-struct InsetViewport : public Viewport
+class InsetViewport : public Viewport
 {
     
     struct Animator : private Timer
@@ -91,10 +91,13 @@ struct InsetViewport : public Viewport
             animator.fadeOut();
         }
         
+        std::function<void()> onScroll = [](){};
+        
     private:
         
         void scrollBarMoved (ScrollBar *scrollBarThatHasMoved, double newRangeStart) override
         {
+            onScroll();
             fadeIn(true);
         }
         
@@ -135,6 +138,7 @@ struct InsetViewport : public Viewport
         int inset;
     };
 
+public:
     InsetViewport()
     {
         recreateScrollbars();
@@ -179,13 +183,22 @@ struct InsetViewport : public Viewport
     {
         if(isVertical) {
             vbar = new CustomScrollbar(true);
+            vbar->onScroll = [this](){
+                onScroll();
+            };
             return vbar;
         }
         else {
             hbar = new CustomScrollbar(false);
+            hbar->onScroll = [this](){
+                onScroll();
+            };
             return hbar;
         }
     }
+    
+    std::function<void()> onScroll = [](){};
+private:
     
     CustomScrollbar* vbar = nullptr;
     CustomScrollbar* hbar = nullptr;
