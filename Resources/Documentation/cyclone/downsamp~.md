@@ -20,6 +20,7 @@ outlets:
   - type: signal
     description: downsampled signal
 
+draft: false
 ---
 
 [downsamp~] samples and holds a signal received in the left inlet at a rate expressed in samples. No interpolation of the output is performed.

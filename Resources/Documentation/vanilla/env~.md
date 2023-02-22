@@ -21,4 +21,5 @@ arguments:
   - type: float
     description: period in samples per analysis 
     default: half the window size
+draft: false
 ---

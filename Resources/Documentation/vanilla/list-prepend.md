@@ -28,5 +28,6 @@ outlets:
   1st:
   - type: list
     description: the prepended list
+draft: false
 ---
 prepend a second list to the first

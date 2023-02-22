@@ -19,6 +19,7 @@ outlets:
   - type: float
     description: the hyperbolic cosine of the input
 
+draft: false
 ---
 
 [cosh] calculates the hyperbolic cosine of a given number.

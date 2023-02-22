@@ -19,6 +19,7 @@ outlets:
   - type: float
     description: the arc-cosine of the input
 
+draft: false
 ---
 
 Use [asin~] to output the arc-sine of a given number.

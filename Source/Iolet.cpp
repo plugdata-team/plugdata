@@ -27,13 +27,15 @@ Iolet::Iolet(Object* parent, bool inlet)
     presentationMode.addListener(this);
 
     bool isLocked = static_cast<bool>(locked.getValue());
-    setInterceptsMouseClicks(!isLocked, false);
+    setInterceptsMouseClicks(!isLocked, true);
 
     bool isPresenting = static_cast<bool>(presentationMode.getValue());
     setVisible(!isPresenting && !object->cnv->isGraph);
 
     // Drawing cirles is more expensive than you might think, especially because there can be a lot of iolets!
     setBufferedToImage(true);
+
+    cnv = findParentComponentOfClass<Canvas>();
 }
 
 Rectangle<int> Iolet::getCanvasBounds()
@@ -44,7 +46,6 @@ Rectangle<int> Iolet::getCanvasBounds()
 
 bool Iolet::hitTest(int x, int y)
 {
-
     if (static_cast<bool>(locked.getValue()))
         return false;
 
@@ -122,11 +123,9 @@ void Iolet::paint(Graphics& g)
 
 void Iolet::mouseDrag(MouseEvent const& e)
 {
-    // Ignore when locked
-    if (static_cast<bool>(locked.getValue()))
+    // Ignore when locked or if middlemouseclick?
+    if (static_cast<bool>(locked.getValue()) || e.mods.isMiddleButtonDown())
         return;
-
-    auto* cnv = findParentComponentOfClass<Canvas>();
 
     if (cnv->connectionsBeingCreated.isEmpty() && e.getLengthOfMousePress() > 100) {
         MessageManager::callAsync([_this = SafePointer(this)]() {

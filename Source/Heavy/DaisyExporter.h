@@ -142,11 +142,11 @@ public:
         if (compile) {
 
             auto bin = Toolchain::dir.getChildFile("bin");
-            auto libDaisy = Toolchain::dir.getChildFile("lib").getChildFile("libDaisy");
+            auto libDaisy = Toolchain::dir.getChildFile("lib").getChildFile("libdaisy");
             auto make = bin.getChildFile("make" + exeSuffix);
             auto compiler = bin.getChildFile("arm-none-eabi-gcc" + exeSuffix);
 
-            libDaisy.copyDirectoryTo(outputFile.getChildFile("libDaisy"));
+            libDaisy.copyDirectoryTo(outputFile.getChildFile("libdaisy"));
 
             outputFile.getChildFile("ir").deleteRecursively();
             outputFile.getChildFile("hv").deleteRecursively();
@@ -258,14 +258,14 @@ public:
             }
 
             outputFile.getChildFile("daisy").deleteRecursively();
-            outputFile.getChildFile("libDaisy").deleteRecursively();
+            outputFile.getChildFile("libdaisy").deleteRecursively();
 
             return heavyExitCode && compileExitCode;
         } else {
             auto outputFile = File(outdir);
 
-            auto libDaisy = Toolchain::dir.getChildFile("lib").getChildFile("libDaisy");
-            libDaisy.copyDirectoryTo(outputFile.getChildFile("libDaisy"));
+            auto libDaisy = Toolchain::dir.getChildFile("lib").getChildFile("libdaisy");
+            libDaisy.copyDirectoryTo(outputFile.getChildFile("libdaisy"));
 
             outputFile.getChildFile("ir").deleteRecursively();
             outputFile.getChildFile("hv").deleteRecursively();

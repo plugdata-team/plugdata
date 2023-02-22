@@ -30,6 +30,7 @@ methods:
   - type: rms
     description: outputs 'root mean square' (RMS) values
 
+draft: false
 ---
 
 Use [average~] for a signal running/moving average over the last 'n' given samples. The average is done in 3 modes: bipolar (default), absolute and rms.

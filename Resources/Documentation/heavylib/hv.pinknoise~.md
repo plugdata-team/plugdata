@@ -1,5 +1,5 @@
 ---
-title: hv.pinknoise
+title: hv.pinknoise~
 
 description: pink noise
 

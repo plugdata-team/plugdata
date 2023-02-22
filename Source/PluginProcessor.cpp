@@ -105,9 +105,11 @@ PluginProcessor::PluginProcessor()
 
     objectLibrary.appDirChanged = [this]() {
         // If we changed the settings from within the app, don't reload
-
         settingsFile->reloadSettings();
-        setTheme(settingsFile->getProperty<String>("theme"));
+        auto newTheme = settingsFile->getProperty<String>("theme");
+        if(PlugDataLook::currentTheme != newTheme) {
+            setTheme(newTheme);
+        }
 
         if (auto* editor = dynamic_cast<PluginEditor*>(getActiveEditor())) {
             for (auto* cnv : editor->canvases) {
@@ -132,7 +134,7 @@ PluginProcessor::PluginProcessor()
         themeName = PlugDataLook::selectedThemes[0];
     }
 
-    setTheme(themeName);
+    setTheme(themeName, true);
     settingsFile->saveSettings();
 
     oversampling = settingsFile->getProperty<int>("oversampling");
@@ -1040,22 +1042,26 @@ pd::Patch* PluginProcessor::loadPatch(String patchText)
     return patch;
 }
 
-void PluginProcessor::setTheme(String themeToUse)
+void PluginProcessor::setTheme(String themeToUse, bool force)
 {
+    auto oldThemeTree = settingsFile->getTheme(PlugDataLook::currentTheme);
     auto themeTree = settingsFile->getTheme(themeToUse);
     // Check if theme name is valid
     if (!themeTree.isValid()) {
         themeToUse = PlugDataLook::selectedThemes[0];
         themeTree = settingsFile->getTheme(themeToUse);
     }
+    
+    if(!force && oldThemeTree.isValid() && themeTree.isEquivalentTo(oldThemeTree)) return;
 
     lnf->setTheme(themeTree);
 
     if (auto* editor = dynamic_cast<PluginEditor*>(getActiveEditor())) {
+        /* maybe we don't need this anymore?
         if (auto* cnv = editor->getCurrentCanvas()) {
             // Calling synchonise here is not neat, but it's a way to make sure both colours and other theme properties get applied...
             cnv->synchronise();
-        }
+        } */
 
         editor->getTopLevelComponent()->repaint();
         editor->repaint();

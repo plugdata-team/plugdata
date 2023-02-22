@@ -64,6 +64,7 @@ methods:
   - type: read <symbol>
     description: read templates from a file
 
+draft: false
 ---
 attack detection and spectral envelope measurement
 

@@ -46,6 +46,7 @@ methods:
   - type: q
     description: sets resonance parameter to Q (default)
 
+draft: false
 ---
 
 [lowpass~] is a 2nd order lowpass resonant filter.

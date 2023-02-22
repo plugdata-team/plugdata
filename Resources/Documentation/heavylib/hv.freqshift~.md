@@ -1,5 +1,5 @@
 ---
-title: hv.freqshift
+title: hv.freqshift~
 
 description: frequency shifter effect unit
 
@@ -15,12 +15,12 @@ inlets:
   - type: signal
     description: signal to frequency shift
   2nd:
-  - type: float/signal
+  - type: signal
     description: shift amount in Hz
 
 outlets:
   1st:
-  - type: float
+  - type: signal
     description: frequency shifted signal
 
 draft: false

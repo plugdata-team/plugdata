@@ -71,6 +71,7 @@ methods:
   - type: write <symbol>
     description: writes buffer contents to the file name specified by the symbol. If no symbol is given, a file open box is shown
 
+draft: false
 ---
 
 [funbuff] stores, manages and recalls x/y pairs of integers.

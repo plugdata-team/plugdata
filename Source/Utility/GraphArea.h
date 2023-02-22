@@ -30,13 +30,6 @@ public:
         return !getLocalBounds().reduced(8).contains(Point<int>(x, y));
     }
 
-    void mouseMove(MouseEvent const& e) override
-    {
-        if (canvas->locked == var(false)) {
-            setMouseCursor(MouseCursor::UpDownLeftRightResizeCursor);
-        }
-    }
-
     void mouseDown(MouseEvent const& e) override
     {
         startDraggingComponent(this, e);

@@ -1,5 +1,5 @@
 ---
-title: hv.pow
+title: hv.pow~
 
 description: alternative implementation to the pow~ object
 

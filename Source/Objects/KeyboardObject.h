@@ -303,7 +303,7 @@ public:
 
         object->setSize(horizontalLength + Object::doubleMargin, object->getHeight());
         object->constrainer->setFixedAspectRatio(horizontalLength / static_cast<float>(object->getHeight() - Object::doubleMargin));
-        object->constrainer->setMinimumSize((15.0f / 5) * numWhiteKeys, 15);
+        object->constrainer->setMinimumSize((object->minimumSize / 5.0f) * numWhiteKeys, object->minimumSize);
     }
 
     void valueChanged(Value& value) override

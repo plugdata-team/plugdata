@@ -1,7 +1,7 @@
 ---
-title: hv.lt
+title: hv.lte~
 
-description: signal rate less-than operation
+description: signal rate less-than-or-equal-to operation
 
 categories:
 - object
@@ -21,7 +21,7 @@ inlets:
 outlets:
   1st:
   - type: signal
-    description: 1 if left input is less than right input, 0 otherwise
+    description: 1 if left input is <= right input, 0 otherwise
 
 draft: false
 ---

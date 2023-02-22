@@ -52,6 +52,7 @@ methods:
     description: sets a send symbol
   - type: receive <symbol>
     description: sets a receive symbol
+draft: false
 ---
 
 [pic] loads image pictures that you can interact with. It only works with file types: .gif, .ppm & .pgm. you click on the picture and it sends a bang (default) or 1 when clicking and 0 when releasing (when in latch mode).

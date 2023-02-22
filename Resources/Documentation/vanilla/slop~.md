@@ -52,4 +52,5 @@ outlets:
 methods:
   - type: set <float>
     description: set state (previously stored output)
+draft: false
 ---

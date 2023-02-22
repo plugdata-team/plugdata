@@ -18,5 +18,6 @@ see_also:
 arguments:
 - description: sets the function of [array], possible values: define, size, sum, get, set, quantile, random, max and min. The default value is "define"
   type: symbol
+draft: false
 ---
 

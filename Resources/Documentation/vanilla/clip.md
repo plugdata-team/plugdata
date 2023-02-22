@@ -34,3 +34,5 @@ outlets:
   - type: float
     description: the clipped value
 
+draft: false
+---

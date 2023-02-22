@@ -13,3 +13,5 @@ outlets:
   1st:
   - type: signal
     description: pink noise
+draft: false
+---

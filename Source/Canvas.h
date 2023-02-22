@@ -20,12 +20,13 @@ class Iolet;
 class PluginEditor;
 class ConnectionPathUpdater;
 class ConnectionBeingCreated;
-class InsetViewport;
 
 class Canvas : public Component
     , public Value::Listener
     , public Timer
-    , public LassoSource<WeakReference<Component>> {
+    , public LassoSource<WeakReference<Component>>
+    , public ModifierKeyListener
+{
 public:
     Canvas(PluginEditor* parent, pd::Patch& patch, Component* parentGraph = nullptr);
 
@@ -44,6 +45,9 @@ public:
     void mouseDrag(MouseEvent const& e) override;
     void mouseUp(MouseEvent const& e) override;
     void mouseMove(MouseEvent const& e) override;
+    
+    void spaceKeyChanged(bool isHeld) override;
+    void middleMouseChanged(bool isHeld) override;
 
     void synchronise(bool updatePosition = true);
 
@@ -70,6 +74,8 @@ public:
     void redo();
 
     void checkBounds();
+        
+    bool autoscroll(MouseEvent const& e);
 
     // Multi-dragger functions
     void deselectAll();
@@ -81,6 +87,8 @@ public:
     void objectMouseDrag(MouseEvent const& e);
 
     SelectedItemSet<WeakReference<Component>>& getLassoSelection() override;
+        
+    bool checkPanDragMode();
 
     void removeSelectedComponent(Component* component);
     void findLassoItemsInArea(Array<WeakReference<Component>>& itemsFound, Rectangle<int> const& area) override;
@@ -89,6 +97,9 @@ public:
 
     void showSuggestions(Object* object, TextEditor* textEditor);
     void hideSuggestions();
+        
+        
+    static bool panningModifierDown();
 
     ObjectParameters& getInspectorParameters();
 
@@ -105,8 +116,8 @@ public:
 
         return result;
     }
-
-    InsetViewport* viewport = nullptr;
+        
+    Viewport* viewport = nullptr;
 
     bool connectingWithDrag = false;
     SafePointer<Iolet> nearestIolet;

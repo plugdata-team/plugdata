@@ -127,37 +127,35 @@ public:
     bool blinkMidiOut = false;
 };
 
-class gridSizeSlider : public PopupMenu::CustomComponent
-    , public Slider::Listener {
+class GridSizeSlider : public PopupMenu::CustomComponent
+{
 public:
-    gridSizeSlider(Canvas* cnv)
+    GridSizeSlider(Canvas* cnv)
         : canvas(cnv)
     {
-
-        // Add text boxes to display the interval values
-        for (int i = 5; i <= 30; i += 5) {
-            auto label = std::make_unique<Label>();
-            Font labelFont = label->getFont();
-            labelFont.setHeight(10);
-            label->setFont(labelFont);
-            label->setJustificationType(Justification::centred);
-            label->setText(String(i), dontSendNotification);
-            addAndMakeVisible(label.get());
-            intervalTextBoxes.add(std::move(label));
-        }
-
         addAndMakeVisible(slider.get());
         slider->setRange(5, 30, 5);
         slider->setValue(SettingsFile::getInstance()->getProperty<int>("grid_size"));
         slider->setTextBoxStyle(Slider::NoTextBox, false, 0, 0);
         slider->setColour(Slider::ColourIds::trackColourId, findColour(PlugDataColour::panelBackgroundColourId));
-        slider->addListener(this);
+        
+        slider->onValueChange = [this](){
+            SettingsFile::getInstance()->setProperty("grid_size", slider->getValue());
+            canvas->repaint();
+        };
     }
-
-    void sliderValueChanged(Slider* slider) override
+        
+    void paint(Graphics& g) override
     {
-        SettingsFile::getInstance()->setProperty("grid_size", slider->getValue());
-        canvas->repaint();
+        auto b = getLocalBounds().reduced(12, 0);
+        int x = b.getX();
+        int spacing = b.getWidth() / 6;
+        
+        for (int i = 5; i <= 30; i += 5) {
+            auto textBounds = Rectangle<int>(x, b.getY(), spacing, b.getHeight());
+            PlugDataLook::drawStyledText(g, String(i), textBounds, findColour(PlugDataColour::toolbarTextColourId), Monospace, 10, Justification::centredTop);
+            x += spacing;
+        }
     }
 
     void getIdealSize(int& idealWidth, int& idealHeight) override
@@ -169,21 +167,13 @@ public:
     void resized() override
     {
         auto bounds = getLocalBounds();
-        bounds.reduce(11, 0);
-        int x = bounds.getX();
-        int spacing = bounds.getWidth() / 6;
-        for (auto& textBox : intervalTextBoxes) {
-            textBox->setBounds(x, bounds.getY(), spacing, bounds.getHeight() - 10);
-            x += spacing;
-        }
-        bounds.reduce(-1, 0);
+        bounds.reduce(10, 0);
         slider->setBounds(bounds.getX(), bounds.getY(), bounds.getWidth(), bounds.getHeight() + 10);
     }
 
 private:
     Canvas* canvas;
     std::unique_ptr<Slider> slider = std::make_unique<Slider>();
-    Array<std::unique_ptr<Label>> intervalTextBoxes;
 };
 
 Statusbar::Statusbar(PluginProcessor* processor)
@@ -284,7 +274,7 @@ Statusbar::Statusbar(PluginProcessor* processor)
         }); 
         gridSelector.addSeparator();
         auto attachedCanvas = dynamic_cast<PluginEditor*>(pd->getActiveEditor())->getCurrentCanvas();
-        gridSelector.addCustomItem(1, std::make_unique<gridSizeSlider>(attachedCanvas), nullptr, "Grid Size");
+        gridSelector.addCustomItem(1, std::make_unique<GridSizeSlider>(attachedCanvas), nullptr, "Grid Size");
 
         gridSelector.showMenuAsync(PopupMenu::Options().withMinimumWidth(150).withMaximumNumColumns(1).withTargetComponent(gridButton.get()).withParentComponent(pd->getActiveEditor()));
     };
@@ -464,33 +454,22 @@ void Statusbar::resized()
     midiBlinker->setBounds(position(55, true), 0, 55, getHeight());
 }
 
-void Statusbar::modifierKeysChanged(ModifierKeys const& modifiers)
+
+void Statusbar::shiftKeyChanged(bool isHeld)
 {
-    auto* editor = dynamic_cast<PluginEditor*>(pd->getActiveEditor());
-
-    commandLocked = modifiers.isCommandDown() && locked.getValue() == var(false);
-
-    if (modifiers.isShiftDown() && SettingsFile::getInstance()->getProperty<int>("grid_enabled")) {
+    if (isHeld && SettingsFile::getInstance()->getProperty<int>("grid_enabled")) {
         gridButton->setColour(TextButton::textColourOffId, findColour(PlugDataColour::toolbarTextColourId));
         gridButton->setColour(TextButton::textColourOnId, findColour(PlugDataColour::toolbarActiveColourId));
     } else if (SettingsFile::getInstance()->getProperty<int>("grid_enabled")) {
         propertyChanged("grid_enabled", SettingsFile::getInstance()->getProperty<int>("grid_enabled"));
     }
-
-    if (auto* cnv = editor->getCurrentCanvas()) {
-        if (cnv->didStartDragging || cnv->isDraggingLasso || static_cast<bool>(cnv->presentationMode.getValue())) {
-            return;
-        }
-
-        for (auto* object : cnv->objects) {
-            object->showIndex(modifiers.isAltDown());
-        }
-    }
 }
-
-void Statusbar::timerCallback()
+    
+void Statusbar::commandKeyChanged(bool isHeld)
 {
-    modifierKeysChanged(ModifierKeys::getCurrentModifiersRealtime());
+    auto* editor = dynamic_cast<PluginEditor*>(pd->getActiveEditor());
+
+    commandLocked = isHeld && locked.getValue() == var(false);
 }
 
 void Statusbar::audioProcessedChanged(bool audioProcessed)
