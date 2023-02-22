@@ -1,5 +1,5 @@
 ---
-title: hv.osc
+title: hv.osc~
 
 description: polynomial band-limited polystep oscillators
 

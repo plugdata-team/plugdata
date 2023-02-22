@@ -1,5 +1,5 @@
 ---
-title: hv.filter.gain
+title: hv.filter.gain~
 
 description: generic filter module with swappable filter types and frequency, Q and gain settings
 

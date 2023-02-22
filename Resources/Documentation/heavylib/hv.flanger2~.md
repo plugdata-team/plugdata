@@ -1,5 +1,5 @@
 ---
-title: hv.flanger2
+title: hv.flanger2~
 
 description: stereo flanger effect unit
 
