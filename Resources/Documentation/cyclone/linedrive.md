@@ -29,6 +29,7 @@ outlets:
   - type: list
     description: scaled number and time
 
+draft: false
 ---
 
 [linedrive] scales numbers from one range to another with an exponential curve. First argument is the input range (127 means from -127 to 127), second is output range (1 is from -1 to 1), third is exponential factor and fourth is the time (to be used with line~).

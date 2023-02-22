@@ -27,6 +27,7 @@ methods:
   - type: set <symbol>
     description: sets the receive name (if a 2nd argument was given)
 
+draft: false
 ---
 
 [grab] sends a message to another object and "grabs" its output, sending it through its outlet(s) instead of the grabbed object.

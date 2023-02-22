@@ -38,6 +38,7 @@ methods:
   - type: reset
     description: resets (0, 0) coordinates to the default
 
+draft: false
 ---
 
 [mousestate] reports click status, cursor position coordinates and cursor delta. The click report is always given (and sampled every 50 ms), the rest needs to be polled.

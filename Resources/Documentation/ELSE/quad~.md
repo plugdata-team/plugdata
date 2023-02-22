@@ -10,7 +10,7 @@ pdcategory: ELSE, Signal Generators
 arguments:
 - type: float
   description: sets frequency in Hz
-  default: nyquist
+  default: Nyquist
 - type: float
   description: sets a
   default: 1
@@ -36,6 +36,7 @@ outlets:
   - type: signal
     description: general quadratic map chaotic signal
 
+draft: false
 ---
 
 [quad~] gerenates a chaotic signal from the difference equation;

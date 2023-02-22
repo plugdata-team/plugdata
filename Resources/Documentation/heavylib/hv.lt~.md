@@ -1,7 +1,7 @@
 ---
-title: hv.eq
+title: hv.lt~
 
-description: signal rate equals operation
+description: signal rate less-than operation
 
 categories:
 - object
@@ -21,7 +21,7 @@ inlets:
 outlets:
   1st:
   - type: signal
-    description: 1 if inputs are equal, 0 otherwise
+    description: 1 if left input is less than right input, 0 otherwise
 
 draft: false
 ---

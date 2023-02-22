@@ -35,6 +35,7 @@ methods:
   - type: clear
     description: clears the buffer
 
+draft: false
 ---
 
 Use [allpass~] for filtering and delay effects. The All Pass filter passes all frequencies without altering the gain - but changes the frequencies' phase.

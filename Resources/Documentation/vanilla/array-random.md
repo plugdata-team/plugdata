@@ -29,8 +29,6 @@ inlets:
 1st:
 - type: bang
   description: get index with a probability weighted by its value
-- type: seed <float>
-  description: sets random seed
 - type: float
   description: sets onset
 2nd:
@@ -50,5 +48,9 @@ flags:
   description: struct name and field name of main structure
 - name: -f <symbol, symbol>
   description: struct name and field name of element structure
+methods:
+- type: seed <float>
+  description: sets random seed
+draft: false
 ---
 array as weighted probabilities

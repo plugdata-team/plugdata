@@ -18,8 +18,6 @@ inlets:
   1st:
   - type: signal
     description: audio signal to be filtered
-  - type: clear
-    description: clear filter's memory
   2nd:
   - type: float
     description: rolloff frequency
@@ -30,7 +28,10 @@ outlets:
 arguments:
   - type: float
     description: rolloff frequency in Hz 
-  default: 0
+    default: 0
+methods:
+  - type: clear
+    description: clear filter's memory
 draft: false
 ---
 lop~ is a one-pole lowpass filter with a specified rolloff frequency. The left inlet is the incoming audio signal. The right inlet is the cutoff frequency in Hz.

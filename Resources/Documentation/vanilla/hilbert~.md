@@ -13,7 +13,7 @@ inlets:
     description: signal input
   2nd:
   - type: bang 
-    description: clear filter's state.	
+    description: clear filter's state
 outlets:
   1st:
   - type: signal

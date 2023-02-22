@@ -20,6 +20,7 @@ outlets:
   - type: signal
     description: the modulo of the operation (remainder of the division)
 
+draft: false
 ---
 
 [modulo~] or [%~] is a signal remainder operator. The left signal is divided by the right inlet input (or argument), and the remainder is output.

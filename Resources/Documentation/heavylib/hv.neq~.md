@@ -1,7 +1,7 @@
 ---
-title: hv.lte
+title: hv.neq~
 
-description: signal rate less-than-or-equal-to operation
+description: signal rate not-equal operation
 
 categories:
 - object
@@ -21,7 +21,7 @@ inlets:
 outlets:
   1st:
   - type: signal
-    description: 1 if left input is <= right input, 0 otherwise
+    description: 1 if left input is equal to right input, 0 otherwise
 
 draft: false
 ---

@@ -6,57 +6,8 @@
 
 #pragma once
 
-#include <JuceHeader.h>
+#include "Utility/GlobalMouseListener.h"
 
-// Special viewport that shows scrollbars on top of content instead of next to it
-struct InsetViewport : public Viewport {
-    struct ViewportPositioner : public Component::Positioner {
-        ViewportPositioner(Viewport& comp)
-            : Component::Positioner(comp)
-            , inset(comp.getScrollBarThickness())
-        {
-        }
-
-        void applyNewBounds(Rectangle<int> const& newBounds) override
-        {
-            auto& component = getComponent();
-            if (newBounds != component.getBounds()) {
-                component.setBounds(newBounds.withTrimmedRight(-inset).withTrimmedBottom(-inset));
-            }
-        }
-
-        int inset;
-    };
-
-    InsetViewport()
-    {
-        setPositioner(new ViewportPositioner(*this));
-    }
-
-    void adjustScrollbarBounds()
-    {
-        auto& vbar = getVerticalScrollBar();
-        auto& hbar = getHorizontalScrollBar();
-        auto thickness = getScrollBarThickness();
-
-        auto contentArea = getLocalBounds().withTrimmedRight(thickness).withTrimmedBottom(thickness);
-
-        vbar.setBounds(contentArea.removeFromRight(thickness));
-        hbar.setBounds(contentArea.removeFromBottom(thickness));
-    }
-
-    void componentMovedOrResized(Component& c, bool moved, bool resized) override
-    {
-        Viewport::componentMovedOrResized(c, moved, resized);
-        adjustScrollbarBounds();
-    }
-
-    void resized() override
-    {
-        Viewport::resized();
-        adjustScrollbarBounds();
-    }
-};
 
 class WelcomePanel : public Component {
 

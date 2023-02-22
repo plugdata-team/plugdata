@@ -20,23 +20,24 @@ inlets:
   1st:
   - type: bang
     description: sends the last received data after the delay time
-  - type: clear
-    description: forget all scheduled messages
   - type: float/symbol/pointer
     description: the type depends on the creation argument
-  - type: flush
-    description: sends the scheduled messages immediately
-  'n: number of inlets depends on creation arguments':
+  nth:
   - type: float/symbol/pointer
     description: the type depends on the creation argument
-  2nd:
+  2nd: #rightmost
   - type: float
     description: set the delay time in ms
 outlets:
-  'n: number of inlets depends on creation arguments':
+  nth:
   - type: float/symbol/pointer
     description: the type depends on the creation argument
-draft: false
+methods:
+  - type: clear
+    description: forget all scheduled messages
+  - type: flush
+    description: sends the scheduled messages immediately
+draft: true #this will display the wrong second inlet description when there's only 2 inlets
 ---
 Message "delay line"
 

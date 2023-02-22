@@ -29,6 +29,7 @@ outlets:
   - type: symbol
     description: the expanded symbol
 
+draft: false
 ---
 
 [dollsym] gets and expands the value of dollar symbols ("$0-x", "$1-y", and so on). It can also get and expand according to the values of a parent patch with the 'depth' argument. Symbols without dollar arguments are passed through unchanged.

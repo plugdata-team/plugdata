@@ -17,6 +17,7 @@ inlets:
 
 outlets:
 
+draft: false
 ---
 
 The [pdlua] object allows you to load Pd objects written in Lua (http://www.lua.org/) by adding support for "*.pd_lua" files.

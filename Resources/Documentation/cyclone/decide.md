@@ -22,6 +22,7 @@ outlets:
   - type: float
     description: 0 or 1, chosen randomly
 
+draft: false
 ---
 
 [decide] alternates randomly from 1 to 0 (the sequence depends on the seed value).

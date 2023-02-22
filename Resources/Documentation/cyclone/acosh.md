@@ -19,6 +19,7 @@ outlets:
   - type: float
     description: the hyperbolic arc-cosine of the input
 
+draft: false
 ---
 
 [acosh] calculates the hyperbolic arc-cosine of a given number.

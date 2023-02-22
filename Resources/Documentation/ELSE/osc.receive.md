@@ -23,6 +23,7 @@ outlets:
   - type: anything
     description: received OSC message
 
+draft: false
 ---
 
 [osc.receive] receives OSC messages from network connections and is an abstraction based on [osc.parse] and [netreceive].

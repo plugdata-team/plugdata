@@ -25,10 +25,6 @@ inlets:
     description: input signal to be filtered
   - type: list
     description: input signal to be filtered (fb1 fb2 ff1 ff2 ff3)
-  - type: set <float, float>
-    description: set last two input samples
-  - type: clear
-    description: clear filter's memory buffer
 outlets:
   1st:
   - type: signal
@@ -36,6 +32,11 @@ outlets:
 arguments:
   - type: list
     description: initializes the 5 coefficients (fb1 fb2 ff1 ff2 ff3)
+methods:
+  - type: set <float, float>
+    description: set last two input samples
+  - type: clear
+    description: clear filter's memory buffer
 draft: false
 ---
 Biquad~ calculates the following difference equation:

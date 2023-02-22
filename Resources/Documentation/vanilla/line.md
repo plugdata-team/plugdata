@@ -35,4 +35,5 @@ methods:
     description: set initial ramp value
   - type: stop
     description: stop the ramp
+draft: false
 ---

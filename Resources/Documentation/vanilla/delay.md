@@ -39,4 +39,5 @@ methods:
     description: stop the delay
   - type: tempo <float, symbol>
     description: set tempo value (float) and time unit symbol
+draft: false
 ---

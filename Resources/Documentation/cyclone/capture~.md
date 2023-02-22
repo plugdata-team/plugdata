@@ -31,6 +31,7 @@ methods:
   - type: wclose
     description: closes text window
 
+draft: false
 ---
 
 [capture~] is designed for signal debugging/investigation, it captures samples into a text window or text file.

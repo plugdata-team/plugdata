@@ -39,6 +39,7 @@ methods:
   - type: clear
     description: clears filter's memory
 
+draft: false
 ---
 
 [decay2~] is like [decay~], but it has an attack time parameter. It is based on SuperCollider's "Decay2" UGEN.

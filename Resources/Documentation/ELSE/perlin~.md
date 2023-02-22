@@ -1,7 +1,7 @@
 ---
 title: perlin~
 
-description: perlin noise generator
+description: Perlin noise generator
 
 categories:
 - object
@@ -11,7 +11,7 @@ pdcategory: ELSE, Random and Noise, Signal Generators
 arguments:
 - description: sets frequency in Hz
   type: float
-  default: nyquist
+  default: Nyquist
 
 inlets:
   1st:
@@ -21,7 +21,7 @@ inlets:
 outlets:
   1st:
   - type: signal
-    description: perlin noise signal
+    description: Perlin noise signal
 
 flags:
   - name: -seed <float>
@@ -34,5 +34,5 @@ methods:
 draft: false
 ---
 
-[perlin~] is an abstraction that implements 1-dimensional Perlin Noise (a type of gradient noise developed by Ken Perlin). It uses [white~] as a noise source into a sample and hold function and generates smoothened functions according to a frequency value in Hz (values under 0 and above nyquist are aliased).
+[perlin~] is an abstraction that implements 1-dimensional Perlin Noise (a type of gradient noise developed by Ken Perlin). It uses [white~] as a noise source into a sample and hold function and generates smoothened functions according to a frequency value in Hz (values under 0 and above Nyquist are aliased).
 

@@ -1,5 +1,5 @@
 ---
-title: hv.tanh
+title: hv.tanh~
 
 description: Pade-approximation of tanh function
 

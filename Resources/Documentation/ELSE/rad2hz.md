@@ -1,7 +1,7 @@
 ---
 title: rad2hz
 
-description: radians_per_sample/Hz conversion
+description: radians-per-sample to Hz conversion
 
 categories:
  - object
@@ -23,7 +23,7 @@ inlets:
 outlets:
   1st:
   - type: float/list
-    description: converted hez value(s)
+    description: converted Hz value(s)
 
 methods:
   - type: set <float>

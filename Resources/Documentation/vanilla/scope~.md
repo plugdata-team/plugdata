@@ -1,6 +1,6 @@
 ---
 title: scope~
-description: (use tabwrite~ now)
+description: use tabwrite~ now
 categories:
 - object
 pdcategory: vanilla

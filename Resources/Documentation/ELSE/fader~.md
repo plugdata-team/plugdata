@@ -26,6 +26,7 @@ methods:
   - type: anything
     description: fade types <quartic, sin, sqrt, hann, lin, hannsin, linsin>
 
+draft: false
 ---
 
 [fader~] is a waveshaper. It takes input from 0 to 1 and uses internal lookup tables for 7 different fading curves.

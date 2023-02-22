@@ -19,6 +19,7 @@ outlets:
   - type: float/list
     description: output value(s) of floor function
 
+draft: false
 ---
 
 [floor] is a floor math function.

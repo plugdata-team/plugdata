@@ -34,8 +34,6 @@ inlets:
   1st:
   - type: list
     description: source and destination
-  - type: verbose <float>
-    description: set verbosity on or off
 outlets:
   1st:
   - type: list
@@ -43,6 +41,9 @@ outlets:
   2nd:
   - type: bang
     description: if an error occurs
+methods:
+  - type: verbose <float>
+    description: set verbosity on or off
 draft: false
 ---
 [file move] moves (renames) files

@@ -33,4 +33,5 @@ methods:
     description: TCP connect timeout in ms (default 10000)
   - type: send <anything>
     description: sends messages over the network
+draft: false
 ---

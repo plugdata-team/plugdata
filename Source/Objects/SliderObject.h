@@ -64,10 +64,13 @@ public:
         slider.onDragEnd = [this]() {
             stopEdition();
         };
+
+        auto minLongSide = object->minimumSize * 2;
+        auto minShortSide = object->minimumSize;
         if (isVertical) {
-            object->constrainer->setMinimumSize(15, 30);
+            object->constrainer->setMinimumSize(minShortSide, minLongSide);
         } else {
-            object->constrainer->setMinimumSize(30, 15);
+            object->constrainer->setMinimumSize(minLongSide, minShortSide);
         }
     }
 

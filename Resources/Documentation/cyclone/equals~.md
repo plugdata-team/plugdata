@@ -20,6 +20,7 @@ outlets:
   - type: signal
     description: 1 or 0 (depending on the result of the comparison)
 
+draft: false
 ---
 
 [equals~] or [==~] outputs a signal that is "1" when the left input is equal to the right input/argument or "0" when it isn't.
