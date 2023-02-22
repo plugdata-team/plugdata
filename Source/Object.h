@@ -16,9 +16,6 @@ extern "C" {
 #include "Iolet.h"
 #include "Objects/ObjectBase.h"
 
-static int counter = 0;
-#define LOG std::cout << __PRETTY_FUNCTION__ <<  " : " << counter++ << std::endl;
-
 class Canvas;
 class ObjectBoundsConstrainer;
 
