@@ -239,12 +239,18 @@ void Canvas::synchronise(bool updatePosition)
             continue;
         }
 
-        // TODO: compare by pointer, not by start/end!!
         auto* it = std::find_if(connections.begin(), connections.end(),
-            [this, &connection, &srcno, &sinkno](Connection* c) {
-                auto& [ptr, inno, inobj, outno, outobj] = connection;
-                return ptr == c->getPointer();
-            });
+                    [this, &connection, &srcno, &sinkno](Connection* c) {
+                        auto& [ptr, inno, inobj, outno, outobj] = connection;
+
+                        if (!c->inlet || !c->outlet)
+                            return false;
+
+                        bool sameStart = c->outobj == objects[srcno];
+                        bool sameEnd = c->inobj == objects[sinkno];
+
+                        return c->inIdx == inno && c->outIdx == outno && sameStart && sameEnd;
+                    });
 
         if (it == connections.end()) {
             connections.add(new Connection(this, srcEdges[objects[srcno]->numInputs + outno], sinkEdges[inno], ptr));
