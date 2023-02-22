@@ -749,12 +749,18 @@ void PluginEditor::splitCanvasView(Canvas* cnv, int tabIndex, bool splitviewFocu
     setSplitviewFocus(splitviewFocus);
     if (!patchInUse) {
         // The viewport can only have one parent at a time, so we clone the canvas
-        auto canvasCopy = new Canvas(cnv->editor, cnv->patch);
+        auto* cnvCopy = new Canvas(cnv->editor, cnv->patch);
 
-        addTab(canvasCopy, true);
-        canvases.add(canvasCopy);
-        canvasCopy->grabKeyboardFocus(); // Grab the keyboard focus for the new canvas
+        cnvCopy->objects.addChangeListener(cnv);
+        cnvCopy->connections.addChangeListener(cnv);
+        cnv->objects.addChangeListener(cnvCopy);
+        cnv->connections.addChangeListener(cnvCopy);
+
+        addTab(cnvCopy, true);
+        canvases.add(cnvCopy);
+        cnvCopy->grabKeyboardFocus(); // Grab the keyboard focus for the new canvas
         resized();                       // Update the bounds of the tab bar
+
     } else {
         // If patch is already used in another view, set it in focus
         auto* tabBar = splitviewFocus ? &tabbarSplitview : &tabbar;

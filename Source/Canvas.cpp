@@ -1083,20 +1083,38 @@ void Canvas::valueChanged(Value& v)
 void Canvas::changeListenerCallback(ChangeBroadcaster* source)
 {
     if (!editor->isProcessingChange.test_and_set()) {
-        
-        auto* objListener = dynamic_cast<OwnedArrayBroadcaster<Object>*>(source);
-        auto* conListener = dynamic_cast<OwnedArrayBroadcaster<Connection>*>(source);
 
-        if (objListener != nullptr) {
+        if (auto* objListener = dynamic_cast<OwnedArrayBroadcaster<Object>*>(source)) {
             if (objListener->changeType_ == OwnedArrayBroadcaster<Object>::ChangeType::Added) {
-                auto pdObj = patch.getObjects().back();
-                std::cout << "ADDED OBJECT" << pdObj << std::endl;
-                objects.add(new Object(pdObj, this));
+                auto pdObjects = patch.getObjects();
+                auto pdObj = std::find_if(pdObjects.begin(), pdObjects.end(), [objListener](auto const* obj) {
+                    return objListener->obj_->getPointer() == obj;
+                });
+                if (pdObj != pdObjects.end()) {
+                    std::cout << "ADDED OBJECT" << *pdObj << std::endl;
+                    objects.add(new Object(*pdObj, this));
+                }
             } else if (objListener->changeType_ == OwnedArrayBroadcaster<Object>::ChangeType::Removed) {
                 std::cout << "REMOVED OBJECT " << objListener->index_ << std::endl;
                 objects.remove(objListener->index_);
+            } else if (objListener->changeType_ == OwnedArrayBroadcaster<Object>::ChangeType::Changed) {
+                auto pdObjects = patch.getObjects();
+                std::cout << "CHANGED OBJECT " << objListener->index_ << std::endl;
+
+                auto pdObj = std::find_if(pdObjects.begin(), pdObjects.end(), [objListener](auto const* obj) {
+                    return objListener->obj_->getPointer() == obj;
+                });
+                if (pdObj != pdObjects.end()) {
+                    if (objects.size() == objListener->size()) {
+                        std::cout << "contained!" << std::endl;
+                        objects.set(objListener->index_, new Object(*pdObj, this), true);
+                    } else {
+                        std::cout << "added" << std::endl;
+                        objects.add(new Object(*pdObj, this));
+                    }
+                }
             }
-        } else if (conListener != nullptr) {
+        } else if (auto* conListener = dynamic_cast<OwnedArrayBroadcaster<Connection>*>(source)) {
             if (conListener->changeType_ == OwnedArrayBroadcaster<Connection>::ChangeType::Added) {
                 auto [ptr, inno, inobj, outno, outobj] = patch.getConnections().back();
                 int srcno = patch.getIndex(&inobj->te_g);
