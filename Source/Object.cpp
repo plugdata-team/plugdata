@@ -714,6 +714,9 @@ void Object::mouseDrag(MouseEvent const& e)
 
     cnv->cancelConnectionCreation();
 
+    if (e.mods.isMiddleButtonDown())
+        return;
+
     // Let canvas handle moving
     if (resizeZone.isDraggingWholeObject()) {
         cnv->objectMouseDrag(e);

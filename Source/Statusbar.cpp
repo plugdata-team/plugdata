@@ -485,8 +485,18 @@ void Statusbar::modifierKeysChanged(ModifierKeys const& modifiers)
         for (auto* object : cnv->objects) {
             object->showIndex(modifiers.isAltDown());
         }
+        
+        cnv->enablePanDragMode(modifiers.isMiddleButtonDown() || KeyPress(KeyPress::spaceKey).isCurrentlyDown());
     }
 }
+
+bool Statusbar::keyStateChanged(bool isKeyDown) {
+    
+    if(isKeyDown && KeyPress(KeyPress::spaceKey).isCurrentlyDown()) return true;
+    
+    return false;
+}
+
 
 void Statusbar::timerCallback()
 {

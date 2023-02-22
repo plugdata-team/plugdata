@@ -284,17 +284,16 @@ void Canvas::updateDrawables()
 
 void Canvas::mouseDown(MouseEvent const& e)
 {
+    
+    if (viewport->isScrollOnDragEnabled())
+        return;
+    
     auto* source = e.originalComponent;
 
     PopupMenu::dismissAllActiveMenus();
 
-    // Middle mouse click
-    if (viewport && e.mods.isMiddleButtonDown()) {
-        setMouseCursor(MouseCursor::UpDownLeftRightResizeCursor);
-        viewportPositionBeforeMiddleDrag = viewport->getViewPosition();
-    }
     // Left-click
-    else if (!e.mods.isRightButtonDown()) {
+    if (!e.mods.isRightButtonDown()) {
         if (source == this /*|| source == graphArea */) {
 
             cancelConnectionCreation();
@@ -331,7 +330,7 @@ void Canvas::mouseDown(MouseEvent const& e)
 
 void Canvas::mouseDrag(MouseEvent const& e)
 {
-    if (canvasRateReducer.tooFast())
+    if (canvasRateReducer.tooFast() || viewport->isScrollOnDragEnabled())
         return;
 
     if (connectingWithDrag) {
@@ -371,25 +370,11 @@ void Canvas::mouseDrag(MouseEvent const& e)
         return;
     }
 
-    if (viewport) {
-        auto viewportEvent = e.getEventRelativeTo(viewport);
-        auto const scrollSpeed = 8.5f;
-
-        // Middle mouse pan
-        if (e.mods.isMiddleButtonDown() && !ObjectBase::isBeingEdited()) {
-
-            auto delta = Point<int>(viewportEvent.getDistanceFromDragStartX(), viewportEvent.getDistanceFromDragStartY());
-
-            viewport->setViewPosition(viewportPositionBeforeMiddleDrag.x - delta.x, viewportPositionBeforeMiddleDrag.y - delta.y);
-
-            return; // Middle mouse button cancels any other drag actions
-        }
-        
-        if (!ObjectBase::isBeingEdited() && autoscroll(viewportEvent)) {
-            beginDragAutoRepeat(25);
-        }
+    auto viewportEvent = e.getEventRelativeTo(viewport);
+    if (viewport && !ObjectBase::isBeingEdited() && autoscroll(viewportEvent)) {
+        beginDragAutoRepeat(25);
     }
-
+    
     // Drag lasso
     lasso.dragLasso(e);
 }
@@ -424,6 +409,9 @@ bool Canvas::autoscroll(MouseEvent const& e)
 
 void Canvas::mouseUp(MouseEvent const& e)
 {
+    if (viewport->isScrollOnDragEnabled())
+        return;
+    
     setMouseCursor(MouseCursor::NormalCursor);
     editor->updateCommandStatus();
 
@@ -498,6 +486,10 @@ bool Canvas::keyPressed(KeyPress const& key)
 {
     if (editor->getCurrentCanvas() != this || isGraph)
         return false;
+    
+    // Absorb space events for drag-scrolling
+    // This makes sure that there isn't constantly a warning sound if we map scroll-drag to a key
+    if(key == KeyPress::spaceKey) return true;
 
     int keycode = key.getKeyCode();
 
@@ -545,10 +537,6 @@ bool Canvas::keyPressed(KeyPress const& key)
         return true;
     }
 
-    // Ignore backspace, arrow keys, return key and more that might cause actions in pd
-    if (keycode == KeyPress::backspaceKey || keycode == KeyPress::pageUpKey || keycode == KeyPress::pageDownKey || keycode == KeyPress::homeKey || keycode == KeyPress::escapeKey || keycode == KeyPress::deleteKey || keycode == KeyPress::returnKey || keycode == KeyPress::tabKey) {
-        return false;
-    }
     return false;
 }
 
@@ -1416,6 +1404,23 @@ SelectedItemSet<WeakReference<Component>>& Canvas::getLassoSelection()
 void Canvas::removeSelectedComponent(Component* component)
 {
     selectedComponents.deselect(component);
+}
+
+void Canvas::enablePanDragMode(bool panDragEnabled)
+{
+    if(!viewport) return;
+    
+    if(!viewport->isScrollOnDragEnabled() && panDragEnabled) {
+        // Don't intercept mouse on children when middle-mouse panning
+        setInterceptsMouseClicks(true, false);
+        setMouseCursor(MouseCursor::UpDownLeftRightResizeCursor);
+        viewport->setScrollOnDragEnabled(true);
+    }
+    else if(viewport->isScrollOnDragEnabled() && !panDragEnabled) {
+        setInterceptsMouseClicks(true, true);
+        setMouseCursor(MouseCursor::NormalCursor);
+        viewport->setScrollOnDragEnabled(false);
+    }
 }
 
 void Canvas::findLassoItemsInArea(Array<WeakReference<Component>>& itemsFound, Rectangle<int> const& area)

@@ -83,6 +83,8 @@ public:
     void objectMouseDrag(MouseEvent const& e);
 
     SelectedItemSet<WeakReference<Component>>& getLassoSelection() override;
+        
+    void enablePanDragMode(bool panDragEnabled);
 
     void removeSelectedComponent(Component* component);
     void findLassoItemsInArea(Array<WeakReference<Component>>& itemsFound, Rectangle<int> const& area) override;
