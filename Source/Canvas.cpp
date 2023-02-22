@@ -317,12 +317,13 @@ void Canvas::mouseDown(MouseEvent const& e)
             isDraggingLasso = true;
 
             if (editor->splitview) {
+                // Set this the focused canvas if clicked
                 if (!editor->getSplitviewFocus()&& (editor->getCurrentCanvas() != this)) {
                     editor->setSplitviewFocus(true);
                 } else if (editor->getSplitviewFocus()&& (editor->getCurrentCanvas() != this)) {
                     editor->setSplitviewFocus(false);
                 }
-
+                // Splitview resizer
                 if (editor->getSplitviewFocus()) {
                     Rectangle<int> dragBar(getX(), getY(), splitviewDragbarWidth, getHeight());
                     if (dragBar.contains(e.getEventRelativeTo(this).getPosition())) {
@@ -1151,6 +1152,15 @@ bool Canvas::isSelected(Component* component) const
 
 void Canvas::objectMouseDown(Object* component, MouseEvent const& e)
 {
+    if (editor->splitview) {
+        // Set this the focused canvas if object is clicked
+        if (!editor->getSplitviewFocus() && (editor->getCurrentCanvas() != this)) {
+            editor->setSplitviewFocus(true);
+        } else if (editor->getSplitviewFocus() && (editor->getCurrentCanvas() != this)) {
+            editor->setSplitviewFocus(false);
+        }
+    }
+
     if (isGraph)
         return;
 
