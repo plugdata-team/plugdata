@@ -3,12 +3,52 @@
  // For information on usage and redistribution, and for a DISCLAIMER OF ALL
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
+#ifndef SLIDER_REVERSIBLE_H
+#define SLIDER_REVERSIBLE_H
+class Slider_reversible : public JUCE_NAMESPACE::Slider
+{
+public:
+    Slider_reversible ();
+    ~Slider_reversible();
+    bool isInverted;
+    void setRangeFlipped (bool invert)
+    	{
+    		isInverted = invert;
+    	}  
+    
+    bool isRangeFlipped ()
+    	{
+    		return isInverted;
+    	}
+    	
+    double proportionOfLengthToValue (double proportion) 
+    	{  
+    	if (isInverted) 
+    		return JUCE_NAMESPACE::Slider::proportionOfLengthToValue(1.0f-proportion);
+    		else return JUCE_NAMESPACE::Slider::proportionOfLengthToValue(proportion);
+    	};
+    double valueToProportionOfLength (double value) 
+    	{   
+    	if (isInverted)
+    		return 1.0f-(JUCE_NAMESPACE::Slider::valueToProportionOfLength(value)); 
+    		else return JUCE_NAMESPACE::Slider::valueToProportionOfLength(value);
+    	};    
+};
+
+	Slider_reversible::Slider_reversible ()
+	{}
+    Slider_reversible::~Slider_reversible()
+    {}
+#endif // SLIDER_REVERSIBLE_H
+
+
 
 class SliderObject : public ObjectBase {
     bool isVertical;
     Value isLogarithmic = Value(var(false));
 
-    Slider slider;
+    Slider_reversible slider;
+    
 
     IEMHelper iemHelper;
 
@@ -29,9 +69,13 @@ public:
         auto steady = getSteadyOnClick();
         steadyOnClick = steady;
         slider.setSliderSnapsToMousePosition(!steady);
-
+		
+		slider.setRangeFlipped((static_cast<t_slider*>(ptr)->x_min)>(static_cast<t_slider*>(ptr)->x_max));
+		
         min = getMinimum();
         max = getMaximum();
+        
+		
 
         value = getValue();
 
@@ -104,10 +148,17 @@ public:
     void updateRange()
     {
         if (isLogScale()) {
-            slider.setNormalisableRange(makeLogarithmicRange<double>(getMinimum(), getMaximum()));
+        	if (slider.isRangeFlipped())
+            	slider.setNormalisableRange(makeLogarithmicRange<double>(getMaximum(), getMinimum()));
+            else
+            	slider.setNormalisableRange(makeLogarithmicRange<double>(getMinimum(), getMaximum()));
         } else {
-            slider.setRange(getMinimum(), getMaximum(), std::numeric_limits<float>::epsilon());
-        }
+        	if (slider.isRangeFlipped())
+        		slider.setRange(getMaximum(), getMinimum(), std::numeric_limits<float>::epsilon());
+			else 
+         		slider.setRange(getMinimum(), getMaximum(), std::numeric_limits<float>::epsilon());
+		}
+        
     }
 
     void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
@@ -131,8 +182,9 @@ public:
         }
         case hash("range"): {
             if (atoms.size() >= 2) {
-                setParameterExcludingListener(min, atoms[0].getFloat());
-                setParameterExcludingListener(max, atoms[1].getFloat());
+            	slider.setRangeFlipped(atoms[0].getFloat()>atoms[1].getFloat());
+				setParameterExcludingListener(min, atoms[0].getFloat());
+               	setParameterExcludingListener(max, atoms[1].getFloat());
                 updateRange();
             }
             break;
@@ -217,11 +269,17 @@ public:
     void setMinimum(float value)
     {
         static_cast<t_slider*>(ptr)->x_min = value;
+		slider.setRangeFlipped(static_cast<t_slider*>(ptr)->x_min>static_cast<t_slider*>(ptr)->x_max);
+
+
     }
 
     void setMaximum(float value)
     {
         static_cast<t_slider*>(ptr)->x_max = value;
+        slider.setRangeFlipped(static_cast<t_slider*>(ptr)->x_min>static_cast<t_slider*>(ptr)->x_max);
+
+
     }
 
     bool getSteadyOnClick() const
