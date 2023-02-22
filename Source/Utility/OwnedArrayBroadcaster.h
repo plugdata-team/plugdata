@@ -1,7 +1,5 @@
 #pragma once
 
-#include <JuceHeader.h>
-
 // OwnedArray that broadcasts changes
 // Used for syncing canvases in splitview
 template<typename ObjectClass>

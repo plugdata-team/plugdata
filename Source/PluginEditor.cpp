@@ -657,13 +657,6 @@ void PluginEditor::addTab(Canvas* cnv, bool deleteWhenClosed)
         // We cant use the index from earlier because it might have changed!
         const int tabIdx = tabButton->getIndex();
         auto cnv = SafePointer(getCanvas(tabIdx, getSplitviewFocus()));
-        /*  TODO: This might not be needed:
-        for (int i = 0; i < numTabs; i++) {
-            if (tabbedButtonBar.getTabButton(i) == tabButton) {
-                idx = i;
-                break;
-            }
-        } */
 
         if (tabIdx == -1)
             return;
@@ -755,7 +748,7 @@ void PluginEditor::splitCanvasView(Canvas* cnv, int tabIndex, bool splitviewFocu
     setSplitviewFocus(splitviewFocus);
     if (!patchInUse) {
         // The viewport can only have one parent at a time, so we clone the canvas
-        auto* cnvCopy = new Canvas(cnv->editor, cnv->patch);
+        auto* cnvCopy = new Canvas(cnv->editor, cnv->patch, nullptr);
 
         cnvCopy->objects.addChangeListener(cnv);
         cnvCopy->connections.addChangeListener(cnv);
@@ -791,7 +784,7 @@ void PluginEditor::moveCanvasView(Canvas* cnv, int tabIndex, bool splitviewFocus
 
     if (!patchInUse) {
         // Closing the tab deletes the canvas, so we clone it
-        auto canvasCopy = new Canvas(cnv->editor, cnv->patch);
+        auto canvasCopy = new Canvas(cnv->editor, cnv->patch, nullptr);
 
         addTab(canvasCopy, true);
         canvases.add(canvasCopy);
