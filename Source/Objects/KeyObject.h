@@ -89,6 +89,12 @@ public:
         else keyStateChanged(false, nullptr);
     }
         
+    void spaceKeyChanged(bool isHeld) override
+    {
+        if(isHeld) keyPressed(KeyPress(KeyPress::spaceKey), nullptr);
+        else keyStateChanged(false, nullptr);
+    }
+        
 
     bool keyStateChanged(bool isKeyDown, Component* originatingComponent) override
     {
