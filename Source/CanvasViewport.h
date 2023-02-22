@@ -34,11 +34,18 @@ class CanvasViewport : public Viewport
         {
             e.originalComponent->setMouseCursor(MouseCursor::DraggingHandCursor);
             downPosition = viewport->getViewPosition();
+            
         }
         
         void mouseDrag(const MouseEvent& e) override
         {
-            viewport->setViewPosition(downPosition - e.getOffsetFromDragStart());
+            float scale = 1.0f;
+            if(auto* viewedComponent = viewport->getViewedComponent())
+            {
+                scale = std::sqrt(std::abs(viewedComponent->getTransform().getDeterminant()));
+            }
+            
+            viewport->setViewPosition(downPosition - (scale * e.getOffsetFromDragStart().toFloat()).roundToInt());
         }
         
         void mouseUp(const MouseEvent& e) override

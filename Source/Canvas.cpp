@@ -1456,5 +1456,5 @@ ObjectParameters& Canvas::getInspectorParameters()
 
 bool Canvas::panningModifierDown()
 {
-    return KeyPress::isKeyCurrentlyDown(KeyPress::spaceKey) || ModifierKeys::getCurrentModifiers().isMiddleButtonDown();
+    return KeyPress::isKeyCurrentlyDown(KeyPress::spaceKey) || ModifierKeys::getCurrentModifiersRealtime().isMiddleButtonDown();
 }

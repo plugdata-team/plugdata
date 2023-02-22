@@ -9,20 +9,19 @@ class KeyObject final : public TextBase
     , public KeyListener, public ModifierKeyListener {
 
     Array<KeyPress> heldKeys;
-
-public:
-    enum KeyObjectType {
-        Key,
-        KeyUp,
-        KeyName
-    };
         
     const int shiftKey = -1;
     const int commandKey = -2;
     const int altKey = -3;
     const int ctrlKey = -4;
     
-
+public:
+    
+    enum KeyObjectType {
+        Key,
+        KeyUp,
+        KeyName
+    };
     KeyObjectType type;
 
     KeyObject(void* ptr, Object* object, KeyObjectType keyObjectType)
