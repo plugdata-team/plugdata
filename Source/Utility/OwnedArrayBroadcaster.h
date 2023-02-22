@@ -18,20 +18,24 @@ public:
         // Check if ObjectClass is the same as Object or Connection
         if constexpr (std::is_same_v<ObjectClass, Object>) {
             std::cout << "ObjectClass is Object*" << std::endl;
-            obj_ = dynamic_cast<Object*>(newObject);
-            if (!attachedToMouse_)
-                OwnedArray<Object>::add(obj_);
-            if (obj_->attachedToMouse) {
-                attachedToMouse_ = true;
-            } else {
-                sendSynchronousChangeMessage();
+            obj_ = static_cast<Object*>(newObject);
+            if (obj_ != nullptr) {
+                if (!attachedToMouse_)
+                    OwnedArray<Object>::add(obj_);
+                if (obj_->attachedToMouse) {
+                    attachedToMouse_ = true;
+                } else {
+                    sendSynchronousChangeMessage();
+                }
             }
             return newObject;
         } else if constexpr (std::is_same_v<ObjectClass, Connection>) {
             std::cout << "ObjectClass is Connection*" << std::endl;
-            con_ = dynamic_cast<Connection*>(newObject);
-            OwnedArray<Connection>::add(con_);
-            sendSynchronousChangeMessage();
+            con_ = static_cast<Connection*>(newObject);
+            if (con_ != nullptr) {
+                OwnedArray<Connection>::add(con_);
+                sendSynchronousChangeMessage();
+            }
             return newObject;
         }
     }
@@ -66,7 +70,6 @@ public:
                 add(obj_);
                 attachedToMouse_ = false;
                 obj_ = nullptr;
-                
             }
         }
     }

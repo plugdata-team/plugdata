@@ -497,6 +497,7 @@ public:
     Value splitviewHasFocus;
     void setSplitviewFocus(bool splitviewFocus) {splitviewHasFocus.setValue(splitviewFocus);};
     bool getSplitviewFocus() {return static_cast<bool>(splitviewHasFocus.getValue());};
+    std::atomic_flag  isProcessingChange; // Flag for syncing splitview canvases
 
     OwnedArray<Canvas, CriticalSection> canvases;
     Sidebar sidebar;

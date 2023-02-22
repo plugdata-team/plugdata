@@ -13,6 +13,7 @@
 #include "PluginProcessor.h"
 #include "ObjectGrid.h"
 #include "Utility/RateReducer.h"
+#include "Utility/OwnedArrayBroadcaster.h"
 
 class SuggestionComponent;
 struct GraphArea;
@@ -24,6 +25,7 @@ class InsetViewport;
 
 class Canvas : public Component
     , public Value::Listener
+    , public ChangeListener
     , public Timer
     , public LassoSource<WeakReference<Component>> {
 public:
@@ -51,6 +53,8 @@ public:
 
     bool keyPressed(KeyPress const& key) override;
     void valueChanged(Value& v) override;
+
+    void changeListenerCallback(ChangeBroadcaster* source) override;
 
     void hideAllActiveEditors();
 
@@ -107,7 +111,6 @@ public:
     }
 
     InsetViewport* viewport = nullptr;
-    InsetViewport* splitViewport = nullptr;
 
     bool connectingWithDrag = false;
     SafePointer<Iolet> nearestIolet;
@@ -117,8 +120,8 @@ public:
     // Needs to be allocated before object and connection so they can deselect themselves in the destructor
     SelectedItemSet<WeakReference<Component>> selectedComponents;
 
-    OwnedArray<Object> objects;
-    OwnedArray<Connection> connections;
+    OwnedArrayBroadcaster<Object> objects;
+    OwnedArrayBroadcaster<Connection> connections;
     OwnedArray<ConnectionBeingCreated> connectionsBeingCreated;
 
     Value locked;
