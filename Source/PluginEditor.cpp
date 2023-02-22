@@ -1455,7 +1455,8 @@ bool PluginEditor::perform(InvocationInfo const& info)
                 cnv->objects.add(new Object(cnv, objectNames.at(ID), lastPosition));
             }
             cnv->deselectAll();
-            cnv->setSelected(cnv->objects.getLast(), true); // Select newly created object
+            if (auto obj = cnv->objects.getLast())
+                cnv->setSelected(obj, true); // Select newly created object
             return true;
         }
 
