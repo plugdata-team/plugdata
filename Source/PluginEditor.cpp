@@ -139,12 +139,12 @@ PluginEditor::PluginEditor(PluginProcessor& p)
 
     tabbar.rightClick = [this](int tabIndex, String const& tabName) {
         PopupMenu tabMenu;
-        tabMenu.addItem("Split to Right", [this, tabIndex]() {
+        tabMenu.addItem("Split Right", [this, tabIndex]() {
             if (auto* cnv = getCanvas(tabIndex, false)) {
                 splitCanvasView(cnv, tabIndex, true);
             }
         });
-        tabMenu.addItem("Move to Right", [this, tabIndex]() {
+        tabMenu.addItem("Move Right", [this, tabIndex]() {
             if (auto* cnv = getCanvas(tabIndex, false)) {
                 moveCanvasView(cnv, tabIndex, true);
             }
@@ -195,12 +195,12 @@ PluginEditor::PluginEditor(PluginProcessor& p)
 
     tabbarSplitview.rightClick = [this](int tabIndex, String const& tabName) {
         PopupMenu tabMenu;
-        tabMenu.addItem("Split to Left", [this, tabIndex]() {
+        tabMenu.addItem("Split Left", [this, tabIndex]() {
             if (auto* cnv = getCanvas(tabIndex, true)) {
                 splitCanvasView(cnv, tabIndex, false);
             }
         });
-        tabMenu.addItem("Move to Left", [this, tabIndex]() {
+        tabMenu.addItem("Move Left", [this, tabIndex]() {
             if (auto* cnv = getCanvas(tabIndex, true)) {
                 moveCanvasView(cnv, tabIndex, false);
             }
