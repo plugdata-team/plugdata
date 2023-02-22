@@ -26,7 +26,7 @@ flags:
     description: sets table size in points (default whole table)
   - name: -offset <float>
     description: sets table offset (default 0)
-  - name: -m
+  - name: -midi
     description: sets frequency input in MIDI pitch (default Hz)
   - name: -soft
     description: sets to soft sync mode (default hard)

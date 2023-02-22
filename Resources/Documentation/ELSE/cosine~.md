@@ -17,7 +17,7 @@ arguments:
   default: 0
 
 flags:
-  - name: -m
+  - name: -midi
     description: sets frequency input in MIDI pitch (default Hz)
   - name: -soft
     description: sets to soft sync mode (default hard)
