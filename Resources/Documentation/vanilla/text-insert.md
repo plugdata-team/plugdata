@@ -41,4 +41,5 @@ inlets:
   description: set text name
 - type: pointer
   description: pointer to the text if -s flag is used
+draft: false
 ---

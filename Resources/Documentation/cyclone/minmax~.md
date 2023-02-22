@@ -32,6 +32,7 @@ methods:
   - type: reset
     description: resets minimum and maximum (to current input value)
 
+draft: false
 ---
 
 [minmax~] outputs the minimum and maximum values (as signals and floats) of an input signal since the startup or a reset.

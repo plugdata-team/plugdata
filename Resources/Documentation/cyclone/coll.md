@@ -116,6 +116,7 @@ methods:
   - type: writeagain
     description: resaves last file - if no file had been saved, a dialog box is shown
 
+draft: false
 ---
 
 [coll] stores/edits any messages at given addresses (an integer or a symbol). If an input list starts with an int, it stores the other element(s) at that int address.

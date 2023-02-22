@@ -26,6 +26,7 @@ flags:
   - name: @separator <symbol>
     description: sets the separator character (default "space")
 
+draft: false
 ---
 
 [fromsymbol] converts a symbol message to anything (any kind of message). Start by typing a float in the atom symbol box below and see how it converts to a float message, then check more examples to the right.

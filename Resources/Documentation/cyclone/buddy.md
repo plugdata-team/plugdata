@@ -23,6 +23,7 @@ methods:
   - type: anything
     description: clears all received messages
 
+draft: false
 ---
 
 [buddy] synchronizes arriving data and outputs them only if messages have been sent to all inlets. The output is in the usual right to left order, and all input is cleared after that.

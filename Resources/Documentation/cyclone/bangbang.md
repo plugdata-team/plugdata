@@ -17,6 +17,7 @@ outlets:
   - type: bang
     description: a bang via each outlet in the right to left order
 
+draft: false
 ---
 
 When it receives any input, [bangbang] outputs bang messages out of each outlet (in the usual right-to-left order). The number of outlets is determined by the argument.

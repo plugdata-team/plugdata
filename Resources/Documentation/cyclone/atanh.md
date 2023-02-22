@@ -19,6 +19,7 @@ outlets:
   - type: float
     description: the hyperbolic arc-tangent of the input
 
+draft: false
 ---
 
 use the [atanh] object to calculate the hyperbolic arc-tangent of any given number.

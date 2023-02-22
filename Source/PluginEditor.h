@@ -13,6 +13,7 @@
 #include "Statusbar.h"
 #include "Tabbar.h"
 #include "Utility/RateReducer.h"
+#include "Utility/ModifierKeyListener.h"
 
 enum CommandIDs {
     NewProject = 1,
@@ -279,7 +280,7 @@ const std::map<ObjectIDs, String> objectNames {
     { NewImp, "imp~ 100" },
     { NewImp2, "imp2~ 100" },
     { NewWavetable, "wavetable~" },
-    { NewBlOsc, "bl.osc~ 440" },
+    { NewBlOsc, "bl.osc~ saw 1 440" },
     { NewBlSaw, "bl.saw~ 440" },
     { NewBlSaw2, "bl.saw2~ 440" },
     { NewBlSquare, "bl.square~ 440" },
@@ -423,7 +424,9 @@ class PluginEditor : public AudioProcessorEditor
     , public Value::Listener
     , public ApplicationCommandTarget
     , public ApplicationCommandManager
-    , public FileDragAndDropTarget {
+    , public FileDragAndDropTarget
+    , public ModifierKeyBroadcaster
+{
 public:
     enum ToolbarButtonType {
         Settings = 0,

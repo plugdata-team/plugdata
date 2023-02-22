@@ -14,6 +14,7 @@ outlets:
   - type: signal
     description: output of hyperbolic cosine function
 
+draft: false
 ---
 
 Use [cosh~] to output the hyperbolic cosine function of each input sample (probably only useful for mathematical calculations).

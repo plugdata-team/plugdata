@@ -59,6 +59,7 @@ methods:
   - type: ext <symbol>
     description: sets extension
 
+draft: false
 ---
 
 [dir] accesses files from directories.

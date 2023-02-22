@@ -6,6 +6,7 @@
 #pragma once
 #include <JuceHeader.h>
 #include "Utility/SettingsFile.h"
+#include "Utility/ModifierKeyListener.h"
 
 class Canvas;
 class LevelMeter;
@@ -52,7 +53,9 @@ private:
 class Statusbar : public Component
     , public SettingsFileListener
     , public Value::Listener
-    , public StatusbarSource::Listener {
+    , public StatusbarSource::Listener
+    , public ModifierKeyListener
+{
     PluginProcessor* pd;
 
 public:
@@ -63,13 +66,12 @@ public:
     void paint(Graphics& g) override;
 
     void resized() override;
-
-    void modifierKeysChanged(ModifierKeys const& modifiers) override;
+    
+    void shiftKeyChanged(bool isHeld) override;
+    void commandKeyChanged(bool isHeld) override;
 
     void propertyChanged(String name, var value) override;
     void valueChanged(Value& v) override;
-
-    void timerCallback() override;
 
     void attachToCanvas(Canvas* cnv);
 

@@ -34,6 +34,7 @@ methods:
   - type: mode <float>
     description: sets approximation mode <0, 1, 2, or 3>
 
+draft: false
 ---
 
 [quantizer] approximates a value to step values defined by the argument. There are 4 approximation modes: round (default), int, floor & ceil.

@@ -38,6 +38,7 @@ methods:
   - type: linear
     description: change peak value to linear (the default is linear)
 
+draft: false
 ---
 
 [peak~] is similar to Pd Vanilla's [env~], but it reports the peak amplitude value in linear (default) or dBFS.

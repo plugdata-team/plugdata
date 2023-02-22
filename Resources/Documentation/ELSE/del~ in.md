@@ -38,6 +38,7 @@ methods:
   - type: freeze <float>
     description: non-0 freezes, zero unfreezes
 
+draft: false
 ---
 
 Define a delay line and write to it. If neither "in" or "out" is specified as the first argument, the default it [del~ in].

@@ -14,7 +14,7 @@ inlets:
     description: any message to pass or not
   2nd:
   - type: float
-    description: non-0 to pass messages,  zero to stop them
+    description: non-0 to pass messages, zero to stop them
 outlets:
   1st:
   - type: anything

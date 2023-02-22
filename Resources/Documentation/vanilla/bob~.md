@@ -18,14 +18,6 @@ inlets:
   1st:
   - type: float/signal
     description: input to be filtered
-  - type: saturation <float>
-    description: sent saturation point of "transistors"
-  - type: oversample <float>
-    description: sent oversampling
-  - type: clear
-    description: clear internal state
-  - type: print
-    description: post internal state and parameters on Pd's window
   2nd:
   - type: float/signal
     description: resonant or cutoff frequency in Hz
@@ -36,6 +28,15 @@ outlets:
   1st:
   - type: signal
     description: filtered signal
+methods:
+  - type: saturation <float>
+    description: sent saturation point of "transistors"
+  - type: oversample <float>
+    description: sent oversampling
+  - type: clear
+    description: clear internal state
+  - type: print
+    description: post internal state and parameters on Pd's window
 draft: false
 ---
 The design of bob~ is based on papers by Tim Stilson, Timothy E. Stinchcombe, and Antti Huovilainen. See README.txt for pointers. The three audio inputs are the signal to filter, the cutoff/resonant frequency in cycles per second, and "resonance" (the sharpness of the filter). Nominally, a resonance of 4 should be the limit of stability -- above that, the filter oscillates.

@@ -16,10 +16,10 @@ arguments:
 inlets:
   1st:
   - type: float/signal
-    description: real part from the cartesian coordinates
+    description: real part from the Cartesian coordinates
   2nd:
   - type: float/signal
-    description: imaginary part from the cartesian coordinates
+    description: imaginary part from the Cartesian coordinates
 
 outlets:
   1st:
@@ -29,5 +29,5 @@ outlets:
 draft: false
 ---
 
-[mag~] gets the spectrum magnitudes (amplitudes) from cartesian coordinates (real / imaginary). This is much like the amplitude output of [car2pol~], but you can also get the power magnitudes instead with the 1st argument.
+[mag~] gets the spectrum magnitudes (amplitudes) from Cartesian coordinates (real / imaginary). This is much like the amplitude output of [car2pol~], but you can also get the power magnitudes instead with the 1st argument.
 This object is useful for spectral processing that doesn't require the phase values.

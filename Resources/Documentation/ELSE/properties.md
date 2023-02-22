@@ -19,6 +19,7 @@ outlets:
   - type: bang
     description: bang when asked for properties in the parent patch
 
+draft: false
 ---
 
 [properties] sends a bang when you put it in an abstraction or a subpatch and ask for properties on the parent patch (by selecting the "properties" option after right clicking). This is useful for making properties for graphical subpatches or abstractions.

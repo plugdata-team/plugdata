@@ -35,6 +35,7 @@ methods:
   - type: mode <float>
     description: <0-3>: modes of conversion to integers (details in help)
 
+draft: false
 ---
 
 [bitxor~] compares the bits of two values with "Bitwise eXclusive OR" (bits are set to 1 if different, 0 otherwise). It compares two signals or a signal to a given bitmask. It has 4 modes of comparison (see below).

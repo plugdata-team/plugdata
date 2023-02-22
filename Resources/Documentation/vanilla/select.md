@@ -25,7 +25,7 @@ outlets:
   2nd: #rightmost
   - type: float/symbol
     description: value if input didn't match
-
+draft: false
 ---
 compare numbers or symbols
 

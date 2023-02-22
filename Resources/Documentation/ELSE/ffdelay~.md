@@ -39,6 +39,7 @@ methods:
   - type: clear
     description: clears the delay buffer
 
+draft: false
 ---
 
 [ffdelay~] is simple feed forward delay with interpolation.

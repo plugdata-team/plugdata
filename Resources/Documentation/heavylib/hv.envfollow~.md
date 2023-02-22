@@ -1,5 +1,5 @@
 ---
-title: hv.envfollow
+title: hv.envfollow~
 
 description: envelope follower with adjustable attack parameter
 

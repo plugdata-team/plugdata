@@ -47,6 +47,7 @@ methods:
   - type: clear
     description: clears buffer
 
+draft: false
 ---
 
 [comb~] is a comb filter, use it for filtering and delay effects.

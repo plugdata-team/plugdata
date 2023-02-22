@@ -11,13 +11,14 @@ inlets:
   1st:
   - type: signal
     description: left signal input
-  - type: level <float> 
-    description: sets output level
   - type: bang
     description: mute/unmute
   2nd:
   - type: signal
     description: right signal input
+methods:
+  - type: level <float> 
+    description: sets output level
 draft: false
 ---
 This is a very simple abstraction that is widely used in Pd's documentation (help files and examples). It is included here just for convenience.

@@ -31,6 +31,7 @@ outlets:
   - type: anything
     description: ignored messages (in ignore mode)
 
+draft: false
 ---
 
 [limit] only allows messages through if a given time has elapsed since the previous input/output. Otherwise, it waits until that time passes and then sends the last received message since the previous output (ignoring the others).

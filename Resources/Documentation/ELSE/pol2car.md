@@ -1,7 +1,7 @@
 ---
 title: pol2car
 
-description: polar to cartesian conversion
+description: polar to Cartesian conversion
 
 categories:
 - object
@@ -23,13 +23,13 @@ inlets:
 outlets:
   1st:
   - type: float
-    description: real part of the cartesian form
+    description: real part of the Cartesian form
   2nd:
   - type: float
-    description: imaginary part of the cartesian form
+    description: imaginary part of the Cartesian form
 
 draft: false
 ---
 
-[pol2car] converts polar coordinates (amplitude / phase) to cartesian coordinates (real / imaginary).
+[pol2car] converts polar coordinates (amplitude / phase) to Cartesian coordinates (real / imaginary).
 

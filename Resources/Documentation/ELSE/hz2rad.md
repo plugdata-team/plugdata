@@ -28,6 +28,7 @@ methods:
   - type: set
     description: sets next value to be converted via bang (only float)
 
+draft: false
 ---
 
 [hz2rad] converts a frequency in Hz to "Radians per Sample" - which depends on the patch's sample rate (sr). The conversion formula is;

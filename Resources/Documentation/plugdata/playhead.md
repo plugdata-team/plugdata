@@ -41,6 +41,7 @@ outlets:
   - type: list <f,f,f>
     description: position <ppq position, time in samples, time in seconds>
 
+draft: false
 ---
 
 [playhead] receives the playhead from the DAW, including tempo, current time in ms or samples, and more. Only works in plugin version!

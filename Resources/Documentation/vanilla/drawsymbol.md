@@ -30,4 +30,5 @@ arguments:
   default: 0
 - type: symbol
   description: optional label
+draft: false
 ---
