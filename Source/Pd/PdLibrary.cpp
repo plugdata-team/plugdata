@@ -650,7 +650,8 @@ void Library::fsChangeCallback()
 File Library::findHelpfile(t_object* obj, File parentPatchFile)
 {
     String helpName;
-
+    String helpDir;
+    
     auto* pdclass = pd_class(reinterpret_cast<t_pd*>(obj));
 
     if (pdclass == canvas_class && canvas_isabstraction(reinterpret_cast<t_canvas*>(obj))) {
@@ -664,6 +665,7 @@ File Library::findHelpfile(t_object* obj, File parentPatchFile)
         atom_string(av, namebuf, MAXPDSTRING);
         helpName = String::fromUTF8(namebuf).fromLastOccurrenceOf("/", false, false);
     } else {
+        helpDir = class_gethelpdir(pdclass);
         helpName = class_gethelpname(pdclass);
     }
 
@@ -679,6 +681,8 @@ File Library::findHelpfile(t_object* obj, File parentPatchFile)
     if (parentPatchFile.existsAsFile()) {
         patchHelpPaths.add(parentPatchFile.getParentDirectory());
     }
+    
+    patchHelpPaths.add(helpDir);
 
     String firstName = helpName + "-help.pd";
     String secondName = "help-" + helpName + ".pd";

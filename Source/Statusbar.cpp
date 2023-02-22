@@ -478,6 +478,9 @@ void Statusbar::modifierKeysChanged(ModifierKeys const& modifiers)
     }
 
     if (auto* cnv = editor->getCurrentCanvas()) {
+        
+        cnv->enablePanDragMode(modifiers.isMiddleButtonDown() || KeyPress(KeyPress::spaceKey).isCurrentlyDown());
+        
         if (cnv->didStartDragging || cnv->isDraggingLasso || static_cast<bool>(cnv->presentationMode.getValue())) {
             return;
         }
@@ -485,8 +488,6 @@ void Statusbar::modifierKeysChanged(ModifierKeys const& modifiers)
         for (auto* object : cnv->objects) {
             object->showIndex(modifiers.isAltDown());
         }
-        
-        cnv->enablePanDragMode(modifiers.isMiddleButtonDown() || KeyPress(KeyPress::spaceKey).isCurrentlyDown());
     }
 }
 

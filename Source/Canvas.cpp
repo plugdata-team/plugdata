@@ -284,6 +284,7 @@ void Canvas::updateDrawables()
 
 void Canvas::mouseDown(MouseEvent const& e)
 {
+    enablePanDragMode(e.mods.isMiddleButtonDown());
     
     if (viewport->isScrollOnDragEnabled())
         return;
@@ -330,7 +331,7 @@ void Canvas::mouseDown(MouseEvent const& e)
 
 void Canvas::mouseDrag(MouseEvent const& e)
 {
-    if (canvasRateReducer.tooFast() || viewport->isScrollOnDragEnabled())
+    if (canvasRateReducer.tooFast() || viewport->isScrollOnDragEnabled() || e.mods.isMiddleButtonDown())
         return;
 
     if (connectingWithDrag) {
@@ -409,10 +410,7 @@ bool Canvas::autoscroll(MouseEvent const& e)
 
 void Canvas::mouseUp(MouseEvent const& e)
 {
-    if (viewport->isScrollOnDragEnabled())
-        return;
-    
-    setMouseCursor(MouseCursor::NormalCursor);
+    if(!viewport->isScrollOnDragEnabled()) setMouseCursor(MouseCursor::NormalCursor);
     editor->updateCommandStatus();
 
     // Double-click canvas to create new object
@@ -1094,7 +1092,9 @@ bool Canvas::isSelected(Component* component) const
 
 void Canvas::objectMouseDown(Object* component, MouseEvent const& e)
 {
-    if (isGraph)
+    enablePanDragMode(e.mods.isMiddleButtonDown());
+    
+    if (isGraph || viewport->isScrollOnDragEnabled())
         return;
 
     if (e.mods.isRightButtonDown()) {
@@ -1411,15 +1411,38 @@ void Canvas::enablePanDragMode(bool panDragEnabled)
     if(!viewport) return;
     
     if(!viewport->isScrollOnDragEnabled() && panDragEnabled) {
-        // Don't intercept mouse on children when middle-mouse panning
-        setInterceptsMouseClicks(true, false);
-        setMouseCursor(MouseCursor::UpDownLeftRightResizeCursor);
+        
         viewport->setScrollOnDragEnabled(true);
+        
+        setMouseCursor(MouseCursor::UpDownLeftRightResizeCursor);
+        
+        // Don't intercept mouse on children when middle-mouse panning
+        for(auto* obj : objects) {
+            obj->setInterceptsMouseClicks(false, false);
+            obj->setMouseCursor(MouseCursor::UpDownLeftRightResizeCursor);
+        }
+        for(auto* con : connections) {
+            con->setInterceptsMouseClicks(false, false);
+            con->setMouseCursor(MouseCursor::UpDownLeftRightResizeCursor);
+        }
+        
+        if(graphArea) graphArea->setInterceptsMouseClicks(false, false);
     }
     else if(viewport->isScrollOnDragEnabled() && !panDragEnabled) {
         setInterceptsMouseClicks(true, true);
         setMouseCursor(MouseCursor::NormalCursor);
         viewport->setScrollOnDragEnabled(false);
+        
+        for(auto* obj : objects) {
+            obj->setInterceptsMouseClicks(true, true);
+            obj->setMouseCursor(MouseCursor::NormalCursor);
+        }
+        for(auto* con : connections) {
+            con->setInterceptsMouseClicks(true, true);
+            con->setMouseCursor(MouseCursor::NormalCursor);
+        }
+        
+        if(graphArea) graphArea->setInterceptsMouseClicks(true, true);
     }
 }
 

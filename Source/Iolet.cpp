@@ -27,7 +27,7 @@ Iolet::Iolet(Object* parent, bool inlet)
     presentationMode.addListener(this);
 
     bool isLocked = static_cast<bool>(locked.getValue());
-    setInterceptsMouseClicks(!isLocked, false);
+    setInterceptsMouseClicks(!isLocked, true);
 
     bool isPresenting = static_cast<bool>(presentationMode.getValue());
     setVisible(!isPresenting && !object->cnv->isGraph);
