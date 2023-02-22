@@ -29,8 +29,8 @@ arguments:
     default: 0.5
 
 flags:
-  - name: -cv/-midi
-    description: set to pitch input in CV or MIDI (default Hz)
+  - name: -cv/-midi/-voct
+    description: set to pitch input in CV, MIDI, or v/oct (default Hz)
   - name: -model <float>
     description: set model number (default 0)
   - name: -trigger
@@ -55,12 +55,14 @@ outlets:
     description: chosen model name
 
 methods:
-  - type: cv
-    description: set frequency mode to CV
   - type: hz
     description: set frequency mode to Hz
   - type: midi
     description: set frequency mode to MIDI
+  - type: cv
+    description: set frequency mode to CV
+  - type: voct
+    description: set frequency mode to v/oct
   - type: trigger <float>
     description:  non-0 sets to trigger mode
   - type: model <float>
@@ -75,8 +77,12 @@ methods:
     description: set lowpass gate cutoff/color (0-1)
   - type: decay <float>
     description: set lowpass gate decay (0-1)
+  - type: print
+    description: output information on terminal window
+  - type: dump
+    description: output information on rightmost outlet
 
 draft: false
 ---
-[plaits~] is based the "Plaits" module from Mutable Instruments.
+[plaits~] is based on the "Plaits" module from Mutable Instruments.
 
