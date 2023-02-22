@@ -280,6 +280,16 @@ void Canvas::updateDrawables()
     }
 }
 
+void Canvas::spaceKeyChanged(bool isHeld)
+{
+    checkPanDragMode();
+}
+
+void Canvas::middleMouseChanged(bool isHeld)
+{
+    checkPanDragMode();
+}
+
 void Canvas::mouseDown(MouseEvent const& e)
 {
     if(checkPanDragMode()) return;

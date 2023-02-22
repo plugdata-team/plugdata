@@ -464,44 +464,22 @@ void Statusbar::resized()
     midiBlinker->setBounds(position(55, true), 0, 55, getHeight());
 }
 
-void Statusbar::modifierKeysChanged(ModifierKeys const& modifiers)
+
+void Statusbar::shiftKeyChanged(bool isHeld)
 {
-    auto* editor = dynamic_cast<PluginEditor*>(pd->getActiveEditor());
-
-    commandLocked = modifiers.isCommandDown() && locked.getValue() == var(false);
-
-    if (modifiers.isShiftDown() && SettingsFile::getInstance()->getProperty<int>("grid_enabled")) {
+    if (isHeld && SettingsFile::getInstance()->getProperty<int>("grid_enabled")) {
         gridButton->setColour(TextButton::textColourOffId, findColour(PlugDataColour::toolbarTextColourId));
         gridButton->setColour(TextButton::textColourOnId, findColour(PlugDataColour::toolbarActiveColourId));
     } else if (SettingsFile::getInstance()->getProperty<int>("grid_enabled")) {
         propertyChanged("grid_enabled", SettingsFile::getInstance()->getProperty<int>("grid_enabled"));
     }
-
-    if (auto* cnv = editor->getCurrentCanvas()) {
-        
-        cnv->checkPanDragMode();
-        
-        if (cnv->didStartDragging || cnv->isDraggingLasso || static_cast<bool>(cnv->presentationMode.getValue())) {
-            return;
-        }
-
-        for (auto* object : cnv->objects) {
-            object->showIndex(modifiers.isAltDown());
-        }
-    }
 }
-
-bool Statusbar::keyStateChanged(bool isKeyDown) {
     
-    if(isKeyDown && KeyPress(KeyPress::spaceKey).isCurrentlyDown()) return true;
-    
-    return false;
-}
-
-
-void Statusbar::timerCallback()
+void Statusbar::commandKeyChanged(bool isHeld)
 {
-    modifierKeysChanged(ModifierKeys::getCurrentModifiersRealtime());
+    auto* editor = dynamic_cast<PluginEditor*>(pd->getActiveEditor());
+
+    commandLocked = isHeld && locked.getValue() == var(false);
 }
 
 void Statusbar::audioProcessedChanged(bool audioProcessed)

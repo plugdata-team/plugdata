@@ -13,6 +13,7 @@
 #include "Statusbar.h"
 #include "Tabbar.h"
 #include "Utility/RateReducer.h"
+#include "Utility/ModifierKeyListener.h"
 
 enum CommandIDs {
     NewProject = 1,
@@ -423,7 +424,9 @@ class PluginEditor : public AudioProcessorEditor
     , public Value::Listener
     , public ApplicationCommandTarget
     , public ApplicationCommandManager
-    , public FileDragAndDropTarget {
+    , public FileDragAndDropTarget
+    , public ModifierKeyBroadcaster
+{
 public:
     enum ToolbarButtonType {
         Settings = 0,
