@@ -43,9 +43,13 @@ struct InsetViewport : public Viewport
                 targetComponent->setAlpha(alpha + 0.2f);
             }
             else if(alphaTarget < alpha) {
-                targetComponent->setAlpha(alpha - 0.07f);
-            }
-            else {
+                float easedAlpha = pow(alpha,  1.0f / 2.0f);
+                easedAlpha -= 0.01f;
+                alpha = pow(easedAlpha, 2.0f);
+                if (alpha < 0.01f)
+                    alpha = 0.0f;
+                targetComponent->setAlpha(alpha);
+            } else {
                 stopTimer();
             }
         }
