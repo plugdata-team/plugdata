@@ -141,6 +141,8 @@ void Object::valueChanged(Value& v)
 
 bool Object::hitTest(int x, int y)
 {
+    if(Canvas::panningModifierDown()) return false;
+    
     if (gui && !gui->canReceiveMouseEvent(x, y)) {
         return false;
     }
