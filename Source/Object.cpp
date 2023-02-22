@@ -97,7 +97,7 @@ void Object::initialise()
     hvccMode.addListener(this);
 
     originalBounds.setBounds(0, 0, 0, 0);
-    constrainer->setMinimumSize(12, 12);
+    constrainer->setMinimumSize(minimumSize, minimumSize);
 }
 
 void Object::timerCallback()
@@ -141,6 +141,8 @@ void Object::valueChanged(Value& v)
 
 bool Object::hitTest(int x, int y)
 {
+    if(Canvas::panningModifierDown()) return false;
+    
     if (gui && !gui->canReceiveMouseEvent(x, y)) {
         return false;
     }
@@ -156,7 +158,6 @@ bool Object::hitTest(int x, int y)
             return true;
     }
 
-    // Mouse over corners - this is only needed for text objects, we use constrainer for all other objects!
     if (cnv->isSelected(this)) {
 
         for (auto& corner : getCorners()) {
@@ -360,14 +361,6 @@ void Object::paintOverChildren(Graphics& g)
         g.fillRoundedRectangle(indexBounds.toFloat(), 2.0f);
 
         PlugDataLook::drawStyledText(g, text, indexBounds, findColour(PlugDataColour::objectSelectedOutlineColourId).contrasting(), Monospace, 10, Justification::centred);
-    }
-}
-
-void Object::showIndex(bool shouldShowIndex)
-{
-    if (shouldShowIndex != indexShown) {
-        indexShown = shouldShowIndex;
-        repaint();
     }
 }
 
@@ -664,11 +657,16 @@ void Object::mouseUp(MouseEvent const& e)
         Array<SafePointer<Object>> objectsToCheck;
         for (auto* obj : cnv->getSelectionOfType<Object>())
             objectsToCheck.add(obj);
+        
+        auto* patch = &cnv->patch;
 
         cnv->objectGrid.handleMouseUp(e.getOffsetFromDragStart());
 
         cnv->pd->enqueueFunction(
-            [objectsToCheck]() mutable {
+            [objectsToCheck, patch]() mutable {
+                
+                patch->startUndoSequence("resize");
+                
                 for (auto object : objectsToCheck) {
                     if (!object || !object->gui)
                         return;
@@ -693,6 +691,8 @@ void Object::mouseUp(MouseEvent const& e)
                         });
                     }
                 }
+                
+                patch->endUndoSequence("resize");
             });
 
         wasResized = false;
@@ -714,6 +714,9 @@ void Object::mouseDrag(MouseEvent const& e)
         return;
 
     cnv->cancelConnectionCreation();
+
+    if (e.mods.isMiddleButtonDown())
+        return;
 
     // Let canvas handle moving
     if (resizeZone.isDraggingWholeObject()) {
@@ -849,6 +852,14 @@ void Object::textEditorReturnKeyPressed(TextEditor& ed)
     if (newObjectEditor) {
         newObjectEditor->giveAwayKeyboardFocus();
         cnv->grabKeyboardFocus();
+    }
+}
+
+void Object::altKeyChanged(bool isHeld)
+{
+    if (isHeld != indexShown) {
+        indexShown = isHeld;
+        repaint();
     }
 }
 

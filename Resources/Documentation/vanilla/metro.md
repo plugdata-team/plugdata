@@ -37,4 +37,5 @@ methods:
     description: stop the metronome
   - type: tempo <float, symbol>
     description: set tempo value and time unit
+draft: false
 ---

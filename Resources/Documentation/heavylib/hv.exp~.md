@@ -1,5 +1,5 @@
 ---
-title: hv.exp
+title: hv.exp~
 
 description: alternative implementation to the exp~ object
 

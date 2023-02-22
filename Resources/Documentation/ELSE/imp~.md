@@ -31,6 +31,7 @@ outlets:
   - type: signal
     description: impulse oscillator signal
 
+draft: false
 ---
 
 The [impulse~] object (or [imp~] for short) is an impulse oscillator that accepts negative frequencies, has inlets for phase sync and phase modulation.

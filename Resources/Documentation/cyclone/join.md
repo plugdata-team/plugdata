@@ -29,6 +29,7 @@ methods:
   - type: set <anything>
     description: sets a message to that inlet without output
 
+draft: false
 ---
 
 [join] takes any type of messages (anything, float, symbol, list) in any inlet and combines them all into an output list.

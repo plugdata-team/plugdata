@@ -54,4 +54,5 @@ outlets:
 2nd:
 - type: float
   description: 0 if terminated by semicolon, 1 if by comma, or 2 if message number out of range
+draft: false
 ---

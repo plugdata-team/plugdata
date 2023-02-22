@@ -61,7 +61,7 @@ Connection::Connection(Canvas* parent, Iolet* s, Iolet* e, void* oc)
     outlet->addComponentListener(this);
     inlet->addComponentListener(this);
 
-    setInterceptsMouseClicks(true, false);
+    setInterceptsMouseClicks(true, true);
 
     addMouseListener(cnv, true);
 
@@ -178,6 +178,8 @@ t_symbol* Connection::getPathState()
 
 bool Connection::hitTest(int x, int y)
 {
+    if(Canvas::panningModifierDown()) return false;
+    
     if (locked == var(true) || !cnv->connectionsBeingCreated.isEmpty())
         return false;
 

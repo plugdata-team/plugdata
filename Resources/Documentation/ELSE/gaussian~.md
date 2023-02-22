@@ -37,6 +37,7 @@ outlets:
   - type: signal
     description: Gaussian wave signal
 
+draft: false
 ---
 
 [gaussian~] is a Gaussian oscillator. It accepts negative frequencies, has inlets for width, phase sync and phase modulation.

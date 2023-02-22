@@ -73,6 +73,7 @@ methods:
     description: non-0 sets an outline
   - type: receive <symbol>
     description: sets receive symbol
+draft: false
 ---
 
 [note] is a GUI meant only to display text notes. This is basically the same of Pd's comment but with the advantage of being able to set the font, size, color, background color, bold, italic, underline and justification.

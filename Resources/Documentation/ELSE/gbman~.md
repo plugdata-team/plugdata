@@ -30,6 +30,7 @@ outlets:
   - type: signal
     description: gingerbread man map chaotic signal
 
+draft: false
 ---
 
 [gbman~] is a gingerbread man map chaotic generator, the output is from the difference equation => y[n] = 1 + abs(y[n-1]) - y[n-2].

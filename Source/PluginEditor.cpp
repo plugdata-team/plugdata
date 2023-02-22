@@ -211,6 +211,8 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     // Make sure existing console messages are processed
     sidebar.updateConsole();
     updateCommandStatus();
+    
+    addModifierKeyListener(&statusbar);
 
     addChildComponent(zoomLabel);
 
@@ -650,7 +652,7 @@ void PluginEditor::valueChanged(Value& v)
 
 void PluginEditor::modifierKeysChanged(ModifierKeys const& modifiers)
 {
-    statusbar.modifierKeysChanged(modifiers);
+    setModifierKeys(modifiers);
 }
 
 void PluginEditor::updateCommandStatus()

@@ -57,6 +57,7 @@ methods:
   - type: continue
     description: continues the loop after being paused
 
+draft: false
 ---
 
 [loop] is a loop counter, but it can also loop bangs like [until] (using the -b flag). A float sets number of count iteration upwards. A list with two elements sets a start and end value (and allows counting upwards or downwards). A counter step value can be set with a third optional element in a list.

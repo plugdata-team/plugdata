@@ -30,6 +30,7 @@ methods:
   - type: clear
     description: clears the internal buffer's memory
 
+draft: false
 ---
 
 [lores~] implements an inexpensive resonant lowpass filter. The first argument or middle inlet sets the cutoff frequency, and the resonance is set by the second argument or the right inlet. Below, we use a LFO to control the cutoff, resulting in a filter sweep effect.

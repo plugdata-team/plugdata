@@ -36,6 +36,7 @@ methods:
   - type: roll
     description: shifts stores values in loop (according to direction)
 
+draft: false
 ---
 
 As [bucket] is input with floats, it outputs them shifting from outlet to outlet in a rotational pattern (or "passing the bucket" as in a bucket brigade).

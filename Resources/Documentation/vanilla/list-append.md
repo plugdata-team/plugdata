@@ -28,6 +28,7 @@ outlets:
   1st:
   - type: list
     description: the concatenated list
+draft: false
 ---
 append a second list to the first
 

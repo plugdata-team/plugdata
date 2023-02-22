@@ -17,6 +17,7 @@ methods:
   - type: send <symbol>
     description: sets an address to send to
 
+draft: false
 ---
 
 [forward] is similar to [send], but the destination can change with each message (like a semicolon in a message in Pd/Max) - it also sends to anything that a [send] does (like to an array, to "pd", etc..).

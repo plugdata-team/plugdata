@@ -96,6 +96,7 @@ methods:
   - type: carryflag <f>
     description: sets @carryflag attribute: (0 = carryint, 1 = carrybang)
 
+draft: false
 ---
 
 [counter] counts up and/or down by '1' in a given range.

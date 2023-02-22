@@ -19,6 +19,7 @@ outlets:
   - type: signal
     description: output of floor function
 
+draft: false
 ---
 
 [floor~] is a floor math function for signals.

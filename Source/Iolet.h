@@ -47,6 +47,7 @@ public:
 
     bool isTargeted = false;
 
+    Canvas* cnv;
 private:
     Value locked;
     Value presentationMode;

@@ -4,12 +4,6 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 #include "Canvas.h"
-
-extern "C" {
-#include <m_pd.h>
-#include <m_imp.h>
-}
-
 #include "Object.h"
 #include "Connection.h"
 #include "PluginProcessor.h"
@@ -17,6 +11,7 @@ extern "C" {
 #include "LookAndFeel.h"
 #include "SuggestionComponent.h"
 #include "Tabbar.h"
+#include "CanvasViewport.h"
 
 #include "Utility/GraphArea.h"
 #include "Utility/RateReducer.h"
@@ -73,10 +68,20 @@ Canvas::Canvas(PluginEditor* parent, pd::Patch& p, Component* parentGraph)
     setWantsKeyboardFocus(true);
 
     if (!isGraph) {
-        viewport = new InsetViewport; // Owned by the tabbar, but doesn't exist for graph!
-        viewport->setViewedComponent(this, false);
-
-        viewport->setScrollBarsShown(true, true, true, true);
+        auto* canvasViewport = new CanvasViewport;
+        
+        canvasViewport->setViewedComponent(this, false);
+        
+        canvasViewport->onScroll = [this]()
+        {
+            if(suggestor) {
+                suggestor->updateBounds();
+            }
+        };
+        
+        canvasViewport->setScrollBarsShown(true, true, true, true);
+        
+        viewport = canvasViewport; // Owned by the tabbar, but doesn't exist for graph!
 
         presentationMode.referTo(editor->statusbar.presentationMode);
         presentationMode.addListener(this);
@@ -146,7 +151,6 @@ void Canvas::paint(Graphics& g)
 void Canvas::synchronise(bool updatePosition)
 {
     pd->waitForStateUpdate();
-    deselectAll();
 
     patch.setCurrent(true);
 
@@ -177,6 +181,7 @@ void Canvas::synchronise(bool updatePosition)
     for (int n = objects.size() - 1; n >= 0; n--) {
         auto* object = objects[n];
         if (object->gui && isObjectDeprecated(object->getPointer())) {
+            setSelected(object, false);
             objects.remove(n);
         }
     }
@@ -234,12 +239,18 @@ void Canvas::synchronise(bool updatePosition)
             continue;
         }
 
-        // TODO: compare by pointer, not by start/end!!
         auto* it = std::find_if(connections.begin(), connections.end(),
-            [this, &connection, &srcno, &sinkno](Connection* c) {
-                auto& [ptr, inno, inobj, outno, outobj] = connection;
-                return ptr == c->getPointer();
-            });
+                    [this, &connection, &srcno, &sinkno](Connection* c) {
+                        auto& [ptr, inno, inobj, outno, outobj] = connection;
+
+                        if (!c->inlet || !c->outlet)
+                            return false;
+
+                        bool sameStart = c->outobj == objects[srcno];
+                        bool sameEnd = c->inobj == objects[sinkno];
+
+                        return c->inIdx == inno && c->outIdx == outno && sameStart && sameEnd;
+                    });
 
         if (it == connections.end()) {
             connections.add(new Connection(this, srcEdges[objects[srcno]->numInputs + outno], sinkEdges[inno], ptr));
@@ -275,19 +286,26 @@ void Canvas::updateDrawables()
     }
 }
 
+void Canvas::spaceKeyChanged(bool isHeld)
+{
+    checkPanDragMode();
+}
+
+void Canvas::middleMouseChanged(bool isHeld)
+{
+    checkPanDragMode();
+}
+
 void Canvas::mouseDown(MouseEvent const& e)
 {
+    if(checkPanDragMode()) return;
+    
     auto* source = e.originalComponent;
 
     PopupMenu::dismissAllActiveMenus();
 
-    // Middle mouse click
-    if (viewport && e.mods.isMiddleButtonDown()) {
-        setMouseCursor(MouseCursor::UpDownLeftRightResizeCursor);
-        viewportPositionBeforeMiddleDrag = viewport->getViewPosition();
-    }
     // Left-click
-    else if (!e.mods.isRightButtonDown()) {
+    if (!e.mods.isRightButtonDown()) {
         if (source == this /*|| source == graphArea */) {
 
             cancelConnectionCreation();
@@ -324,7 +342,8 @@ void Canvas::mouseDown(MouseEvent const& e)
 
 void Canvas::mouseDrag(MouseEvent const& e)
 {
-    if (canvasRateReducer.tooFast())
+    
+    if (canvasRateReducer.tooFast() || panningModifierDown())
         return;
 
     if (connectingWithDrag) {
@@ -364,28 +383,41 @@ void Canvas::mouseDrag(MouseEvent const& e)
         return;
     }
 
-    if (viewport) {
-        auto viewportEvent = e.getEventRelativeTo(viewport);
-        auto const scrollSpeed = 8.5f;
-
-        // Middle mouse pan
-        if (e.mods.isMiddleButtonDown() && !ObjectBase::isBeingEdited()) {
-
-            auto delta = Point<int>(viewportEvent.getDistanceFromDragStartX(), viewportEvent.getDistanceFromDragStartY());
-
-            viewport->setViewPosition(viewportPositionBeforeMiddleDrag.x - delta.x, viewportPositionBeforeMiddleDrag.y - delta.y);
-
-            return; // Middle mouse button cancels any other drag actions
-        }
-
-        // Auto scroll when dragging close to the iolet
-        if (!ObjectBase::isBeingEdited() && viewport->autoScroll(viewportEvent.x, viewportEvent.y, 50, scrollSpeed) && (viewport->canScrollHorizontally() || viewport->canScrollVertically())) {
-            beginDragAutoRepeat(40);
-        }
+    auto viewportEvent = e.getEventRelativeTo(viewport);
+    if (viewport && !ObjectBase::isBeingEdited() && autoscroll(viewportEvent)) {
+        beginDragAutoRepeat(25);
     }
-
+    
     // Drag lasso
     lasso.dragLasso(e);
+}
+
+bool Canvas::autoscroll(MouseEvent const& e)
+{
+    auto ret = false;
+    auto x = viewport->getViewPositionX();
+    auto y = viewport->getViewPositionY();
+    
+    if(e.x > viewport->getWidth()) {
+        ret = true;
+        x += std::clamp((e.x - viewport->getWidth()) / 6, 1, 14);
+    }
+    else if(e.x < 0) {
+        ret = true;
+        x -= std::clamp(-e.x / 6, 1, 14);
+    }
+    if(e.y > viewport->getHeight()) {
+        ret = false;
+        y += std::clamp((e.y - viewport->getHeight()) / 6, 1, 14);
+    }
+    else if(e.y < 0) {
+        ret = false;
+        y -= std::clamp(-e.y / 6, 1, 14);
+    }
+    
+    viewport->setViewPosition(x, y);
+    
+    return ret;
 }
 
 void Canvas::mouseUp(MouseEvent const& e)
@@ -464,6 +496,10 @@ bool Canvas::keyPressed(KeyPress const& key)
 {
     if (editor->getCurrentCanvas() != this || isGraph)
         return false;
+    
+    // Absorb space events for drag-scrolling
+    // This makes sure that there isn't constantly a warning sound if we map scroll-drag to a key
+    if(key == KeyPress::spaceKey) return true;
 
     int keycode = key.getKeyCode();
 
@@ -511,10 +547,6 @@ bool Canvas::keyPressed(KeyPress const& key)
         return true;
     }
 
-    // Ignore backspace, arrow keys, return key and more that might cause actions in pd
-    if (keycode == KeyPress::backspaceKey || keycode == KeyPress::pageUpKey || keycode == KeyPress::pageDownKey || keycode == KeyPress::homeKey || keycode == KeyPress::escapeKey || keycode == KeyPress::deleteKey || keycode == KeyPress::returnKey || keycode == KeyPress::tabKey) {
-        return false;
-    }
     return false;
 }
 
@@ -556,6 +588,9 @@ void Canvas::pasteSelection()
     patch.startUndoSequence("Paste");
     // Tell pd to paste
     patch.paste();
+    
+    deselectAll();
+    
     // Load state from pd, don't update positions
     synchronise(false);
 
@@ -620,6 +655,8 @@ void Canvas::duplicateSelection()
 
     // Tell pd to duplicate
     patch.duplicate();
+    
+    deselectAll();
 
     // Load state from pd, don't update positions
     synchronise(false);
@@ -1262,6 +1299,13 @@ void Canvas::objectMouseDrag(MouseEvent const& e)
                 object->setTopLeftPosition(object->originalBounds.getPosition() + dragDistance + canvasMoveOffset);
             }
         }
+        
+        auto draggedBounds = componentBeingDragged->getBounds().expanded(6);
+        auto xEdge = e.getDistanceFromDragStartX() < 0 ? draggedBounds.getX() : draggedBounds.getRight();
+        auto yEdge = e.getDistanceFromDragStartY() < 0 ? draggedBounds.getY() : draggedBounds.getBottom();
+        if(autoscroll(e.getEventRelativeTo(this).withNewPosition(Point<int>(xEdge, yEdge)).getEventRelativeTo(viewport))) {
+            beginDragAutoRepeat(25);
+        }
     }
 
     // This handles the "unsnap" action when you shift-drag a connected object
@@ -1372,6 +1416,16 @@ void Canvas::removeSelectedComponent(Component* component)
     selectedComponents.deselect(component);
 }
 
+bool Canvas::checkPanDragMode()
+{
+    auto panDragEnabled = panningModifierDown();
+    if(auto* v = dynamic_cast<CanvasViewport*>(viewport)) {
+        v->enableMousePanning(panDragEnabled);
+    };
+    
+    return panDragEnabled;
+}
+
 void Canvas::findLassoItemsInArea(Array<WeakReference<Component>>& itemsFound, Rectangle<int> const& area)
 {
     for (auto* object : objects) {
@@ -1404,4 +1458,9 @@ void Canvas::findLassoItemsInArea(Array<WeakReference<Component>>& itemsFound, R
 ObjectParameters& Canvas::getInspectorParameters()
 {
     return parameters;
+}
+
+bool Canvas::panningModifierDown()
+{
+    return KeyPress::isKeyCurrentlyDown(KeyPress::spaceKey) || ModifierKeys::getCurrentModifiersRealtime().isMiddleButtonDown();
 }

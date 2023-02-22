@@ -29,4 +29,5 @@ arguments:
 - type: float
   description: up/down-sampling factor
   default: 1
+draft: false
 ---

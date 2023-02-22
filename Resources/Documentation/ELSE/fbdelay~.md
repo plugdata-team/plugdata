@@ -52,6 +52,7 @@ methods:
   - type: gain <float>
     description: non-0 sets to gain mode
 
+draft: false
 ---
 
 Use [fbdelay~] for delay effects, reverberation and comb filtering. By default, you can set a delay time and a reverberation/decay time in ms ("t60"), which is the time the impulse takes to fall 60dB in energy (but you can change this parameter to a gain coefficient).

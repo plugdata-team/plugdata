@@ -14,6 +14,7 @@ outlets:
   - type: signal
     description: the arc-cosine of the input
 
+draft: false
 ---
 
 Use [acos~] to output the arc-cosine of each input sample.

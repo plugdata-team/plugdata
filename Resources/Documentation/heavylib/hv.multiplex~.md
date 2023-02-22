@@ -1,5 +1,5 @@
 ---
-title: hv.multiplex
+title: hv.multiplex~
 
 description: signal multiplexer
 
@@ -18,10 +18,10 @@ inlets:
   - type: signal
     description: signal b
   3rd:
-  - type: float/signal
+  - type: signal
     description: left-hand side
   4th:
-  - type: float/signal
+  - type: signal
     description: right-hand side
 
 outlets:

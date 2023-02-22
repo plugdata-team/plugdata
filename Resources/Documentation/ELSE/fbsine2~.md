@@ -48,6 +48,7 @@ methods:
   - type: clear
     description: clears values of x[n-1] and y[n-1]
 
+draft: false
 ---
 
 [fbsine2~] is a non-interpolating sound generator based on the difference equations below (for im = 1, fb = 0 and a = 1, a sine wave results);

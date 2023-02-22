@@ -27,6 +27,7 @@ outlets:
   - type: float
     description: the index of the minimum value
 
+draft: false
 ---
 
 [minimum] outputs the minimum of two or more values in the left outlet. The right outlet outputs the index of the minimum.

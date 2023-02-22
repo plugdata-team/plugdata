@@ -1,5 +1,5 @@
 ---
-title: hv.filter
+title: hv.filter~
 
 description: generic filter module with swappable filter types and frequency, Q settings
 
