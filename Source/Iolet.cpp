@@ -165,14 +165,11 @@ void Iolet::mouseDown(MouseEvent const& e)
         setMouseCursor(MouseCursor::UpDownLeftRightResizeCursor);
         return;
     }
-
-    Component::mouseDown(e);
 }
 
 void Iolet::mouseUp(MouseEvent const& e)
 {
     setMouseCursor(MouseCursor::NormalCursor);
-    cnv->removeMouseListener(this);
     
     if (static_cast<bool>(locked.getValue()) || e.mods.isRightButtonDown())
         return;

@@ -271,22 +271,6 @@ void ObjectBase::moveToBack()
     libpd_toback(cnv->patch.getPointer(), static_cast<t_gobj*>(ptr));
 }
 
-
-void ObjectBase::mouseDown(MouseEvent const& e)
-{
-    if (e.mods.isMiddleButtonDown()) {
-        std::cout << "middle mouse button" << std::endl;
-        addMouseListener(cnv, false);
-        setMouseCursor(MouseCursor::UpDownLeftRightResizeCursor);
-        return;
-    }
-}
-void ObjectBase::mouseUp(MouseEvent const& e)
-{
-    setMouseCursor(MouseCursor::NormalCursor);
-    cnv->removeMouseListener(this);
-}
-
 void ObjectBase::paint(Graphics& g)
 {
     g.setColour(object->findColour(PlugDataColour::guiObjectBackgroundColourId));

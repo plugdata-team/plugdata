@@ -604,13 +604,7 @@ void Object::updateIolets()
 }
 
 void Object::mouseDown(MouseEvent const& e)
-{LOG
-    if (e.mods.isMiddleButtonDown()) {
-        std::cout << "middle mouse button" << std::endl;
-        addMouseListener(cnv, false);
-        setMouseCursor(MouseCursor::UpDownLeftRightResizeCursor);
-        return;
-    }
+{
     // TODO: why would this ever happen??
     if (!getLocalBounds().contains(e.getPosition()))
         return;
@@ -656,9 +650,7 @@ void Object::mouseDown(MouseEvent const& e)
 }
 
 void Object::mouseUp(MouseEvent const& e)
-{LOG
-    cnv->removeMouseListener(this);
-
+{
     if (wasLockedOnMouseDown || (gui && gui->isEditorShown()))
         return;
 

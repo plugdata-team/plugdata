@@ -65,6 +65,7 @@ public:
     void resized() override;
 
     void modifierKeysChanged(ModifierKeys const& modifiers) override;
+    bool keyStateChanged(bool keyIsDown) override;
 
     void propertyChanged(String name, var value) override;
     void valueChanged(Value& v) override;
