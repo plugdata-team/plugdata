@@ -128,6 +128,7 @@ public:
 
     void lock(bool locked) override
     {
+        setInterceptsMouseClicks(locked, locked);
         isLocked = locked;
     }
 
