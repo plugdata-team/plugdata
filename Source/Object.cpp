@@ -665,11 +665,16 @@ void Object::mouseUp(MouseEvent const& e)
         Array<SafePointer<Object>> objectsToCheck;
         for (auto* obj : cnv->getSelectionOfType<Object>())
             objectsToCheck.add(obj);
+        
+        auto* patch = &cnv->patch;
 
         cnv->objectGrid.handleMouseUp(e.getOffsetFromDragStart());
 
         cnv->pd->enqueueFunction(
-            [objectsToCheck]() mutable {
+            [objectsToCheck, patch]() mutable {
+                
+                patch->startUndoSequence("resize");
+                
                 for (auto object : objectsToCheck) {
                     if (!object || !object->gui)
                         return;
@@ -694,6 +699,8 @@ void Object::mouseUp(MouseEvent const& e)
                         });
                     }
                 }
+                
+                patch->endUndoSequence("resize");
             });
 
         wasResized = false;
