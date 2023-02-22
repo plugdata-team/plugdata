@@ -4,12 +4,6 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 #include "Canvas.h"
-
-extern "C" {
-#include <m_pd.h>
-#include <m_imp.h>
-}
-
 #include "Object.h"
 #include "Connection.h"
 #include "PluginProcessor.h"
@@ -288,10 +282,7 @@ void Canvas::updateDrawables()
 
 void Canvas::mouseDown(MouseEvent const& e)
 {
-    auto mousePan = panningModifierDown();
-    enablePanDragMode(mousePan);
-    
-    if(mousePan) return;
+    if(checkPanDragMode()) return;
     
     auto* source = e.originalComponent;
 
@@ -1097,8 +1088,6 @@ bool Canvas::isSelected(Component* component) const
 
 void Canvas::objectMouseDown(Object* component, MouseEvent const& e)
 {
-    enablePanDragMode(e.mods.isMiddleButtonDown());
-    
     if (isGraph)
         return;
 
@@ -1411,11 +1400,14 @@ void Canvas::removeSelectedComponent(Component* component)
     selectedComponents.deselect(component);
 }
 
-void Canvas::enablePanDragMode(bool panDragEnabled)
+bool Canvas::checkPanDragMode()
 {
+    auto panDragEnabled = panningModifierDown();
     if(auto* v = dynamic_cast<CanvasViewport*>(viewport)) {
         v->enableMousePanning(panDragEnabled);
     };
+    
+    return panDragEnabled;
 }
 
 void Canvas::findLassoItemsInArea(Array<WeakReference<Component>>& itemsFound, Rectangle<int> const& area)

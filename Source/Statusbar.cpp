@@ -479,7 +479,7 @@ void Statusbar::modifierKeysChanged(ModifierKeys const& modifiers)
 
     if (auto* cnv = editor->getCurrentCanvas()) {
         
-        cnv->enablePanDragMode(modifiers.isMiddleButtonDown() || KeyPress(KeyPress::spaceKey).isCurrentlyDown());
+        cnv->checkPanDragMode();
         
         if (cnv->didStartDragging || cnv->isDraggingLasso || static_cast<bool>(cnv->presentationMode.getValue())) {
             return;
