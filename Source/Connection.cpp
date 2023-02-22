@@ -178,7 +178,7 @@ t_symbol* Connection::getPathState()
 
 bool Connection::hitTest(int x, int y)
 {
-    if(ModifierKeys::getCurrentModifiers().isMiddleButtonDown()) return false;
+    if(Canvas::panningModifierDown()) return false;
     
     if (locked == var(true) || !cnv->connectionsBeingCreated.isEmpty())
         return false;

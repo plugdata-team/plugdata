@@ -46,8 +46,7 @@ Rectangle<int> Iolet::getCanvasBounds()
 
 bool Iolet::hitTest(int x, int y)
 {
-
-    if (static_cast<bool>(locked.getValue()) || Canvas::panningModifierDown())
+    if (static_cast<bool>(locked.getValue()))
         return false;
 
     Path smallBounds;
