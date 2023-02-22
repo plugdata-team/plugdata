@@ -203,8 +203,10 @@ public:
 
     ObjectParameters getParameters() override
     {
-        return { { "Is graph", tBool, cGeneral, &isGraphChild, { "No", "Yes" } }, { "Hide name and arguments", tBool, cGeneral, &hideNameAndArgs, { "No", "Yes" } }, { "X range", tRange, cGeneral, &xRange, {} },
-            { "Y range", tRange, cGeneral, &yRange, {} } };
+        return { { "Is graph", tBool, cGeneral, &isGraphChild, { "No", "Yes" } },
+                 { "Hide name and arguments", tBool, cGeneral, &hideNameAndArgs, { "No", "Yes" } },
+                 { "X range", tRange, cGeneral, &xRange, {} },
+                 { "Y range", tRange, cGeneral, &yRange, {} } };
     };
 
     void valueChanged(Value& v) override

@@ -284,7 +284,8 @@ void Canvas::mouseDown(MouseEvent const& e)
     // Middle mouse click
     if (viewport && e.mods.isMiddleButtonDown()) {
         setMouseCursor(MouseCursor::UpDownLeftRightResizeCursor);
-        viewportPositionBeforeMiddleDrag = viewport->getViewPosition();
+        viewport->setScrollOnDragEnabled(true);
+        return;
     }
     // Left-click
     else if (!e.mods.isRightButtonDown()) {
@@ -364,23 +365,9 @@ void Canvas::mouseDrag(MouseEvent const& e)
         return;
     }
 
-    if (viewport) {
-        auto viewportEvent = e.getEventRelativeTo(viewport);
-        auto const scrollSpeed = 8.5f;
-
-        // Middle mouse pan
-        if (e.mods.isMiddleButtonDown() && !ObjectBase::isBeingEdited()) {
-
-            auto delta = Point<int>(viewportEvent.getDistanceFromDragStartX(), viewportEvent.getDistanceFromDragStartY());
-
-            viewport->setViewPosition(viewportPositionBeforeMiddleDrag.x - delta.x, viewportPositionBeforeMiddleDrag.y - delta.y);
-
-            return; // Middle mouse button cancels any other drag actions
-        }
-        
-        if (!ObjectBase::isBeingEdited() && autoscroll(viewportEvent)) {
-            beginDragAutoRepeat(25);
-        }
+    auto viewportEvent = e.getEventRelativeTo(viewport);
+    if (viewport && !ObjectBase::isBeingEdited() && autoscroll(viewportEvent)) {
+        beginDragAutoRepeat(25);
     }
 
     // Drag lasso
@@ -419,6 +406,11 @@ void Canvas::mouseUp(MouseEvent const& e)
 {
     setMouseCursor(MouseCursor::NormalCursor);
     editor->updateCommandStatus();
+
+    if (viewport && viewport->isScrollOnDragEnabled()){
+        viewport->setScrollOnDragEnabled(false);
+        return;
+    }
 
     // Double-click canvas to create new object
     if (e.mods.isLeftButtonDown() && (e.getNumberOfClicks() == 2) && (e.originalComponent == this) && !isGraph && !static_cast<bool>(locked.getValue())) {

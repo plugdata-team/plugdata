@@ -338,6 +338,12 @@ void Connection::mouseExit(MouseEvent const& e)
 
 void Connection::mouseDown(MouseEvent const& e)
 {
+    if (e.mods.isMiddleButtonDown()) {
+        addMouseListener(cnv, false);
+        setMouseCursor(MouseCursor::UpDownLeftRightResizeCursor);
+        return;
+    }
+
     wasSelected = cnv->isSelected(this);
 
     // Deselect all other connection if shift or command is not down
@@ -398,6 +404,8 @@ void Connection::mouseDrag(MouseEvent const& e)
 
 void Connection::mouseUp(MouseEvent const& e)
 {
+    cnv->removeMouseListener(this);
+
     if (dragIdx != -1) {
 
         pushPathState();

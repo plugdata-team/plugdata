@@ -86,7 +86,7 @@ public:
     }
 
     void mouseDown(MouseEvent const& e) override
-    {
+    {LOG
         auto pos = e.getPosition();
         auto* mouse = static_cast<t_fake_canvas_mouse*>(ptr);
 
@@ -96,7 +96,7 @@ public:
     }
 
     void mouseUp(MouseEvent const& e) override
-    {
+    {LOG
         auto* mouse = static_cast<t_fake_canvas_mouse*>(ptr);
         outlet_float(mouse->x_obj.ob_outlet, 0.0f);
     }
