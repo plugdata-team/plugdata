@@ -132,6 +132,8 @@ SplitView::SplitView(PluginEditor* parent) : editor(parent)
                 if (auto* cnv = tabbar.getCanvas(tabIndex)) {
                     splitCanvasView(cnv, i == 0);
                 }
+                
+                closeEmptySplits();
             });
             // Show the popup menu at the mouse position
             tabMenu.showMenuAsync(PopupMenu::Options().withMinimumWidth(150).withMaximumNumColumns(1).withParentComponent(editor->pd->getActiveEditor()));
