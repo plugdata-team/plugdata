@@ -987,14 +987,19 @@ void PluginProcessor::setStateInformation(void const* data, int sizeInBytes)
 pd::Patch* PluginProcessor::loadPatch(File const& patchFile)
 {
     // First, check if patch is already opened
-    int i = 0;
     for (auto* patch : patches) {
         if (patch->getCurrentFile() == patchFile) {
             if (auto* editor = dynamic_cast<PluginEditor*>(getActiveEditor())) {
-                MessageManager::callAsync([i, _editor = Component::SafePointer(editor)]() mutable {
+                MessageManager::callAsync([patch, _editor = Component::SafePointer(editor)]() mutable {
                     if (!_editor)
                         return;
-                    _editor->getActiveTabbar()->setCurrentTabIndex(i);
+                    
+                    for(auto* cnv : _editor->canvases) {
+                        if(cnv->patch == *patch) {
+                            cnv->getTabbar()->setCurrentTabIndex(cnv->getTabIndex());
+                        }
+                    }
+                    
                     _editor->pd->logError("Patch is already open");
                 });
             }
@@ -1002,7 +1007,6 @@ pd::Patch* PluginProcessor::loadPatch(File const& patchFile)
             // Patch is already opened
             return nullptr;
         }
-        i++;
     }
 
     // Stop the audio callback when loading a new patch
@@ -1020,7 +1024,7 @@ pd::Patch* PluginProcessor::loadPatch(File const& patchFile)
     auto* patch = patches.add(new pd::Patch(newPatch));
 
     if (auto* editor = dynamic_cast<PluginEditor*>(getActiveEditor())) {
-        MessageManager::callAsync([i, patch, _editor = Component::SafePointer(editor)]() mutable {
+        MessageManager::callAsync([patch, _editor = Component::SafePointer(editor)]() mutable {
             if (!_editor)
                 return;
             auto* cnv = _editor->canvases.add(new Canvas(_editor, *patch, true, nullptr));

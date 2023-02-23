@@ -16,9 +16,11 @@ public:
     
     void setSplitEnabled(bool splitEnabled);
     
-    void splitCanvasView(Canvas* cnv, int tabIndex, bool splitviewFocus);
+    void splitCanvasView(Canvas* cnv, bool splitviewFocus);
     
     void setFocus(Canvas* cnv);
+    
+    void closeEmptySplits();
 
 private:
     

@@ -83,6 +83,8 @@ public:
 
     // Called after creation, to initialise parameter listeners
     virtual void initialiseParameters();
+        
+    virtual void tabChanged() {};
 
     virtual bool canOpenFromMenu();
     virtual void openFromMenu();

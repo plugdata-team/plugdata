@@ -198,12 +198,8 @@ void ObjectBase::closeOpenedSubpatchers()
         for (int n = tabbar->getNumTabs() - 1; n >= 0; n--) {
             auto* cnv = tabbar->getCurrentCanvas();
             if (cnv && cnv->patch == *getPatch()) {
-                auto* deletedPatch = &cnv->patch;
-
-                editor->canvases.removeObject(cnv);
-                tabbar->removeTab(n);
-
-                editor->pd->patches.removeObject(deletedPatch, false);
+                
+                cnv->editor->closeTab(cnv, true);
                 break;
             }
         }
@@ -247,14 +243,16 @@ void ObjectBase::openSubpatch()
         path = File(String::fromUTF8(canvas_getdir(subpatch->getPointer())->s_name)).getChildFile(String::fromUTF8(glist->gl_name->s_name)).withFileExtension("pd");
     }
 
-    auto* tabbar = cnv->getTabbar();
-    for (int n = 0; n < tabbar->getNumTabs(); n++) {
-        auto* tabCanvas = tabbar->getCurrentCanvas();
-        if (tabCanvas->patch == *subpatch) {
-            tabbar->setCurrentTabIndex(n);
+    // Check if subpatch is already opened
+    for(auto* cnv : cnv->editor->canvases)
+    {
+        if (cnv->patch == *subpatch) {
+            auto* tabbar = cnv->getTabbar();
+            tabbar->setCurrentTabIndex(cnv->getTabIndex());
             return;
         }
     }
+
 
     auto* newPatch = cnv->editor->pd->patches.add(new pd::Patch(*subpatch));
     auto* newCanvas = cnv->editor->canvases.add(new Canvas(cnv->editor, *newPatch, false, nullptr));

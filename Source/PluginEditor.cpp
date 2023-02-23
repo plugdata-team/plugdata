@@ -478,10 +478,8 @@ void PluginEditor::closeTab(Canvas* cnv, bool neverDeletePatch)
             tabbar->setCurrentTabIndex(currentTabIdx - 1, true);
         }
     }
-    if (!splitView.getRightTabbar()->getNumTabs()) {
-        // Disable splitview if all splitview tabs are closed
-        splitView.setSplitEnabled(false);
-    }
+    
+    splitView.closeEmptySplits();
     updateCommandStatus();
 }
 

@@ -55,6 +55,7 @@ public:
     
     TabComponent* getTabbar();
     int getTabIndex();
+    void tabChanged();
 
     void hideAllActiveEditors();
 

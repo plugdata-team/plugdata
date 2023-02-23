@@ -161,6 +161,16 @@ TabComponent* Canvas::getTabbar()
     return nullptr;
 }
 
+void Canvas::tabChanged()
+{
+    for(auto* object : objects)
+    {
+        if(object->gui) {
+            object->gui->tabChanged();
+        }
+    }
+}
+
 int Canvas::getTabIndex() {
     auto leftIdx = editor->splitView.getLeftTabbar()->getIndexOfCanvas(this);
     auto rightIdx = editor->splitView.getRightTabbar()->getIndexOfCanvas(this);
