@@ -63,7 +63,7 @@ public:
     void mouseDown(MouseEvent const& e) override;
     void mouseUp(MouseEvent const& e) override;
     void mouseDrag(MouseEvent const& e) override;
-    
+
     void altKeyChanged(bool isHeld) override;
 
     void textEditorReturnKeyPressed(TextEditor& ed) override;
@@ -103,7 +103,7 @@ public:
         // Heavylib abstractions:
         // These won't be used for the compatibility testing (it will recognise any abstractions as a canvas)
         // These are only for the suggestions
-        "hv.comb", "hv.compressor", "hv.compressor2", "hv.dispatch", "hv.drunk", "hv.envfollow", "hv.eq", "hv.exp", "hv.filter.gain", "hv.filter", "hv.flanger", "hv.flanger2", "hv.freqshift", "hv.gt", "hv.gte", "hv.log", "hv.lt", "hv.lte", "hv.multiplex", "hv.neq", "hv.osc", "hv.pinknoise", "hv.pow", "hv.reverb", "hv.tanh", "hv.vline" };
+        "hv.comb~", "hv.compressor~", "hv.compressor2~", "hv.dispatch", "hv.drunk", "hv.envfollow~", "hv.eq~", "hv.exp~", "hv.filter.gain~", "hv.filter~", "hv.flanger~", "hv.flanger2~", "hv.freqshift~", "hv.gt~", "hv.gte~", "hv.log~", "hv.lt~", "hv.lte~", "hv.multiplex~", "hv.neq~", "hv.osc~", "hv.pinknoise~", "hv.pow~", "hv.reverb~", "hv.tanh~", "hv.vline~" };
 
     std::unique_ptr<ObjectBoundsConstrainer> constrainer;
 
