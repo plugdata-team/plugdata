@@ -144,7 +144,7 @@ inline const std::map<PlugDataColour, std::tuple<String, String, String>> PlugDa
     { outlineColourId, { "Outline Colour", "outline_colour", "Canvas" } },
 
     { guiObjectBackgroundColourId, { "GUI Object Background", "default_object_background", "Object" } },
-    { textObjectBackgroundColourId, { "GUI Object Background", "text_object_background", "Object" } },
+    { textObjectBackgroundColourId, { "Text Object Background", "text_object_background", "Object" } },
     { objectOutlineColourId, { "Object outline colour", "object_outline_colour", "Object" } },
     { objectSelectedOutlineColourId, { "Selected object outline colour", "selected_object_outline_colour", "Object" } },
 
