@@ -98,6 +98,7 @@ public:
     std::function<void(int)> onTabChange = [](int) {};
     std::function<void()> newTab = []() {};
     std::function<void()> openProject = []() {};
+    std::function<void(int tabIndex, String const& tabName)> rightClick = [](int tabIndex, String const& tabName) {};
 
     TabComponent()
         : TabbedComponent(TabbedButtonBar::TabsAtTop)
@@ -121,6 +122,7 @@ public:
 
         setVisible(false);
         setTabBarDepth(0);
+        tabs.get()->addMouseListener(this, true);
     }
 
     void currentTabChanged(int newCurrentTabIndex, String const& newCurrentTabName) override
@@ -173,5 +175,35 @@ public:
         g.drawLine(Line<float>(getTabBarDepth() - 0.5f, 0, getTabBarDepth() - 0.5f, getTabBarDepth()), 1.0f);
 
         g.drawLine(0, 0, getWidth(), 0);
+        g.drawLine(0, 0, 0, getBottom());
     }
+
+    virtual void popupMenuClickOnTab(int tabIndex, String const& tabName) override
+    {
+        rightClick(tabIndex, tabName);
+    }
+
+    void mouseDown(MouseEvent const& e) override
+    {
+        currentTabIndex = getCurrentTabIndex();
+        tabWidth = tabs->getWidth() / getNumTabs();
+    }
+
+    void mouseDrag(MouseEvent const& e) override
+    {
+        // Drag tabs to move their index
+        int const dragPosition = e.getEventRelativeTo(tabs.get()).x;
+        int const newTabIndex = (dragPosition < currentTabIndex * tabWidth) ? currentTabIndex - 1
+            : (dragPosition >= (currentTabIndex + 1) * tabWidth)            ? currentTabIndex + 1
+                                                                            : currentTabIndex;
+
+        if (newTabIndex != currentTabIndex && newTabIndex >= 0 && newTabIndex < getNumTabs()) {
+            moveTab(currentTabIndex, newTabIndex, true);
+            currentTabIndex = newTabIndex;
+        }
+    }
+
+private:
+    int currentTabIndex;
+    int tabWidth;
 };

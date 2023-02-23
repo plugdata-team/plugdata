@@ -168,54 +168,72 @@ void PlugDataWindow::closeAllPatches()
 {
     // Show an ask to save dialog for each patch that is dirty
     // Because save dialog uses an asynchronous callback, we can't loop over them (so have to chain them)
-    if (auto* editor = dynamic_cast<PluginEditor*>(pluginHolder->processor->getActiveEditor())) {
-        int idx = editor->tabbar.getCurrentTabIndex();
-        auto* cnv = editor->getCurrentCanvas();
+    auto* editor = dynamic_cast<PluginEditor*>(pluginHolder->processor->getActiveEditor());
 
-        auto deleteFunc = [this, editor, cnv, idx]() mutable {
-            auto* deletedPatch = &cnv->patch;
-            editor->canvases.removeObject(cnv);
-            editor->tabbar.removeTab(idx);
-            editor->tabbar.setCurrentTabIndex(editor->tabbar.getNumTabs() - 1, true);
+    auto cnv =  SafePointer(editor->getCurrentCanvas());
+    auto splitviewCnv = SafePointer(editor->getCurrentSplitviewCanvas());
+    if (!cnv && !splitviewCnv) {
+        JUCEApplication::quit();
+        return;
+    }
 
-            if (deletedPatch) {
-                // TODO: the OS is our garbage collector
-                // deletedPatch->close();
-                dynamic_cast<PluginProcessor*>(getAudioProcessor())->patches.removeObject(deletedPatch, true);
-            }
+    auto* tabbar = splitviewCnv ? &editor->tabbarSplitview : &editor->tabbar;
+    auto& canvas = splitviewCnv ? splitviewCnv : cnv;
+    int const tabIdx = tabbar->getCurrentTabIndex();
+    auto* patch = &canvas->patch;
 
-            closeAllPatches();
-        };
+    // Check if patch is open in two different canvases
+    bool const patchDuplicate = std::count_if(editor->canvases.begin(), editor->canvases.end(),
+                                    [&patch](auto const& cnv) { return &cnv->patch == patch; }) >= 2;
 
-        if (!cnv) {
-            JUCEApplication::quit();
+    auto deleteFunc = [this, editor, tabbar, canvas, &cnv, patch, patchDuplicate, tabIdx]() {
+        tabbar->removeTab(tabIdx);
+        if (!canvas)
             return;
+        editor->canvases.removeObject(canvas);
+        if (!patchDuplicate) {
+            // Do not remove the patch if it's used in another view
+            editor->pd->lockAudioThread();
+            patch->close();
+            editor->pd->unlockAudioThread();
+            editor->pd->patches.removeObject(patch);
+        }
+        if (tabIdx != tabbar->getNumTabs()) {
+            // Set the focused tab to the next one
+            tabbar->setCurrentTabIndex(tabIdx, true);
+        } else {
+            // Unless it's the last, then set it to the previous one
+            tabbar->setCurrentTabIndex(tabIdx - 1, true);
         }
 
-        else if (cnv->patch.isDirty()) {
-            MessageManager::callAsync([this, editor, cnv, deleteFunc]() mutable {
-                Dialogs::showSaveDialog(&editor->openedDialog, editor, cnv->patch.getTitle(),
-                    [this, editor, cnv, deleteFunc](int result) mutable {
-                        if (result == 2) {
-                            editor->saveProject(
-                                [this, cnv, editor, deleteFunc]() mutable {
-                                    if (cnv) {
-                                        deleteFunc();
-                                    }
-                                });
-                        } else if (result == 1) {
-                            if (cnv) {
-                                deleteFunc();
-                            }
-                        } else if (!result) {
-                        }
+        if (editor->splitview && !editor->tabbarSplitview.getNumTabs()) {
+            // Disable splitview if all splitview tabs are closed
+            editor->setSplitviewFocus(false);
+            editor->splitview = false;
+            editor->resized();
+        }
+        editor->updateCommandStatus();
+
+        closeAllPatches();
+    };
+
+    if (canvas) {
+        MessageManager::callAsync([this, editor, canvas, patch, patchDuplicate, deleteFunc]() mutable {
+            // Don't show save dialog, if patch is still open in another view
+            if (!patchDuplicate && patch->isDirty()) {
+                Dialogs::showSaveDialog(&editor->openedDialog, this, patch->getTitle(),
+                    [this, editor, canvas, deleteFunc](int result) mutable {
+                        if (!canvas)
+                            return;
+                        if (result == 2)
+                            editor->saveProject([&deleteFunc]() mutable { deleteFunc(); });
+                        else if (result == 1)
+                            deleteFunc();
                     });
-            });
-        }
-
-        else if (cnv) {
-            deleteFunc();
-        }
+            } else {
+                deleteFunc();
+            }
+        });
     }
 }
 

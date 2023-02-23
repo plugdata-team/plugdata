@@ -51,6 +51,9 @@ Canvas::Canvas(PluginEditor* parent, pd::Patch& p, Component* parentGraph)
     gridEnabled.referTo(SettingsFile::getInstance()->getPropertyAsValue("grid_enabled"));
 
     tabbar = &editor->tabbar;
+    tabbarSplitview = &editor->tabbarSplitview;
+
+    objects.attachCanvas(this);
 
     // Add draggable border for setting graph position
     if (static_cast<bool>(isGraphChild.getValue()) && !isGraph) {
@@ -143,6 +146,11 @@ void Canvas::paint(Graphics& g)
                 g.fillRect(static_cast<float>(x), static_cast<float>(y), 1.0, 1.0);
             }
         }
+    }
+    
+    if (editor->splitview) {
+        g.setColour(findColour(PlugDataColour::outlineColourId));
+        g.drawLine(getX(), getY(), getX(), getBottom());
     }
 }
 
@@ -325,6 +333,25 @@ void Canvas::mouseDown(MouseEvent const& e)
 
             lasso.beginLasso(e.getEventRelativeTo(this), this);
             isDraggingLasso = true;
+
+            if (editor->splitview) {
+                // Set this the focused canvas if clicked
+                if (!editor->getSplitviewFocus()&& (editor->getCurrentCanvas() != this)) {
+                    editor->setSplitviewFocus(true);
+                } else if (editor->getSplitviewFocus()&& (editor->getCurrentCanvas() != this)) {
+                    editor->setSplitviewFocus(false);
+                }
+                // Splitview resizer
+                if (editor->getSplitviewFocus()) {
+                    Rectangle<int> dragBar(getX(), getY(), splitviewDragbarWidth, getHeight());
+                    if (dragBar.contains(e.getEventRelativeTo(this).getPosition())) {
+                        draggingSplitview = true;
+                        dragStartWidth = editor->splitviewWidthFromCentre;
+                    } else {
+                        draggingSplitview = false;
+                    }
+                }
+            }
         }
 
         // Update selected object in sidebar when we click a object
@@ -345,6 +372,13 @@ void Canvas::mouseDrag(MouseEvent const& e)
     
     if (canvasRateReducer.tooFast() || panningModifierDown())
         return;
+
+    if (draggingSplitview) {
+        int newWidth = dragStartWidth - e.getDistanceFromDragStartX();
+        editor->splitviewWidthFromCentre = newWidth;
+        editor->resized();
+        return;
+    }
 
     if (connectingWithDrag) {
         for (auto* obj : objects) {
@@ -459,6 +493,10 @@ void Canvas::mouseUp(MouseEvent const& e)
             }
         }
     }
+
+    if (draggingSplitview) {
+        draggingSplitview = false;
+    }
 }
 
 void Canvas::updateSidebarSelection()
@@ -486,10 +524,14 @@ void Canvas::updateSidebarSelection()
     }
 }
 
-// TODO: can we get rid of this?
 void Canvas::mouseMove(MouseEvent const& e)
 {
+    // TODO: can we get rid of this?
     lastMousePosition = getMouseXYRelative();
+
+    //Splitview resize cursor
+    bool resizeCursor = e.getEventRelativeTo(this).getPosition().getX() < splitviewDragbarWidth;
+    e.originalComponent->setMouseCursor(resizeCursor ? MouseCursor::LeftRightResizeCursor : MouseCursor::NormalCursor);
 }
 
 bool Canvas::keyPressed(KeyPress const& key)
@@ -995,6 +1037,11 @@ void Canvas::checkBounds()
     }
 
     updatingBounds = false;
+
+    // Sync splitview bound updates
+    if (editor->splitview && editor->getCurrentSplitviewCanvas() && editor->getCurrentSplitviewCanvas() != this) {
+        editor->getCurrentSplitviewCanvas()->checkBounds();
+    }
 }
 
 void Canvas::valueChanged(Value& v)
@@ -1068,6 +1115,70 @@ void Canvas::valueChanged(Value& v)
     }
 }
 
+void Canvas::changeListenerCallback(ChangeBroadcaster* source)
+{
+    if (!editor->isProcessingChange.test_and_set()) { // Flag to prevent infinite loop
+
+        if (auto* objListener = dynamic_cast<OwnedArrayBroadcaster<Object>*>(source)) {
+            // Object is the source
+            if (objListener->changeType_ == OwnedArrayBroadcaster<Object>::ChangeType::Added) {
+                auto pdObjects = patch.getObjects();
+
+                // Check if object exists in PD
+                auto pdObj = std::find_if(pdObjects.begin(), pdObjects.end(), [objListener](auto const* obj) {
+                    return objListener->obj_->getPointer() == obj;
+                });
+                if (pdObj != pdObjects.end()) {
+
+                    // Add new object to this canvas
+                    objects.add(new Object(*pdObj, this));
+                }
+            } else if (objListener->changeType_ == OwnedArrayBroadcaster<Object>::ChangeType::Removed) {
+
+                // Remove object from this canvas
+                objects.remove(objListener->index_);
+                synchronise(false);
+            } else if (objListener->changeType_ == OwnedArrayBroadcaster<Object>::ChangeType::Changed) {
+                auto pdObjects = patch.getObjects();
+
+                // Check if object exists in PD
+                auto pdObj = std::find_if(pdObjects.begin(), pdObjects.end(), [objListener](auto const* obj) {
+                    return objListener->obj_->getPointer() == obj;
+                });
+                if (pdObj != pdObjects.end()) {
+                    if (objects.size() == objListener->size()) {
+                        // If object already exists in this canvas, replace it
+                        objects.set(objListener->index_, new Object(*pdObj, this), true);
+                        synchronise(false);
+                    } else {
+                        // Else add it to this canvas
+                        objects.add(new Object(*pdObj, this));
+                    }
+                }
+            }
+        } else if (auto* conListener = dynamic_cast<OwnedArrayBroadcaster<Connection>*>(source)) {
+            // Connection is the source
+            if (conListener->changeType_ == OwnedArrayBroadcaster<Connection>::ChangeType::Added) {
+
+                // Get the newest added Connection from PD
+                auto [ptr, inno, inobj, outno, outobj] = patch.getConnections().back();
+                int srcno = patch.getIndex(&inobj->te_g);
+                int sinkno = patch.getIndex(&outobj->te_g);
+
+                auto& srcEdges = objects[srcno]->iolets;
+                auto& sinkEdges = objects[sinkno]->iolets;
+
+                // Add connection to this canvas
+                connections.add(new Connection(this, srcEdges[objects[srcno]->numInputs + outno], sinkEdges[inno], ptr));
+            } else if (conListener->changeType_ == OwnedArrayBroadcaster<Connection>::ChangeType::Removed) {
+                // Remove connection from this canvas
+                connections.remove(conListener->index_);
+            }
+        }
+        editor->isProcessingChange.clear();
+    }
+}
+
 void Canvas::showSuggestions(Object* object, TextEditor* textEditor)
 {
     suggestor->createCalloutBox(object, textEditor);
@@ -1104,6 +1215,15 @@ bool Canvas::isSelected(Component* component) const
 
 void Canvas::objectMouseDown(Object* component, MouseEvent const& e)
 {
+    if (editor->splitview) {
+        // Set this the focused canvas if object is clicked
+        if (!editor->getSplitviewFocus() && (editor->getCurrentCanvas() != this)) {
+            editor->setSplitviewFocus(true);
+        } else if (editor->getSplitviewFocus() && (editor->getCurrentCanvas() != this)) {
+            editor->setSplitviewFocus(false);
+        }
+    }
+
     if (isGraph)
         return;
 
