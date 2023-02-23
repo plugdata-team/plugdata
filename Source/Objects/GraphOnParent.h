@@ -7,6 +7,7 @@
 class GraphOnParent final : public ObjectBase {
 
     bool isLocked = false;
+    bool isOpenedInSplitView = false;
 
     Value isGraphChild = Value(var(false));
     Value hideNameAndArgs = Value(var(false));
@@ -116,6 +117,23 @@ public:
         closeOpenedSubpatchers();
     }
 
+    void tabChanged() override
+    {
+        auto* leftTabbar = cnv->editor->splitView.getLeftTabbar();
+        auto* rightTabbar = cnv->editor->splitView.getRightTabbar();
+        
+        auto* otherTabbar = cnv->getTabbar() == leftTabbar ? rightTabbar : leftTabbar;
+        
+        if(auto* otherCnv = otherTabbar->getCurrentCanvas()) {
+            isOpenedInSplitView = otherCnv->patch == *getPatch();
+        }
+        else {
+            isOpenedInSplitView = false;
+        }
+        
+        repaint();
+    }
+    
     void applyBounds() override
     {
         auto b = object->getObjectBounds();
@@ -190,6 +208,17 @@ public:
             auto textArea = getLocalBounds().removeFromTop(20).withTrimmedLeft(5);
             PlugDataLook::drawFittedText(g, text, textArea, object->findColour(PlugDataColour::canvasTextColourId));
         }
+    }
+    
+    void paintOverChildren(Graphics& g) override
+    {
+        if(isOpenedInSplitView) {
+            g.fillAll(object->findColour(PlugDataColour::guiObjectBackgroundColourId));
+            
+            auto colour = object->findColour(PlugDataColour::canvasTextColourId);
+            PlugDataLook::drawText(g, "Graph opened in split view", getLocalBounds(), colour, 14, Justification::centred);
+        }
+
     }
 
     pd::Patch* getPatch() override

@@ -94,8 +94,8 @@ SplitView::SplitView(PluginEditor* parent) : editor(parent)
             for (auto* object : cnv->objects) {
                 if (!object->gui)
                     continue;
-                if (auto* cnv = object->gui->getCanvas())
-                    cnv->synchronise();
+                if (auto* graphCnv = object->gui->getCanvas())
+                    graphCnv->synchronise();
             }
             
             if (cnv->patch.getPointer()) {
@@ -103,8 +103,22 @@ SplitView::SplitView(PluginEditor* parent) : editor(parent)
             }
             
             cnv->synchronise();
+            cnv->tabChanged();
             cnv->updateDrawables();
             
+            if(auto* splitCnv = splits[1 - i].getCurrentCanvas()) {
+                
+                for (auto* object : splitCnv->objects) {
+                    if (!object->gui)
+                        continue;
+                    if (auto* graphCnv = object->gui->getCanvas())
+                        graphCnv->synchronise();
+                }
+                
+                splitCnv->synchronise();
+                splitCnv->tabChanged();
+            }
+  
             editor->updateCommandStatus();
         };
         
@@ -115,8 +129,8 @@ SplitView::SplitView(PluginEditor* parent) : editor(parent)
             if(i == 0 && !splitView) enabled = getLeftTabbar()->getNumTabs() > 1;
             tabMenu.addItem(i == 0 ? "Split Right" : "Split Left", enabled, false, [this, tabIndex, &tabbar, i]() {
                 
-                if (auto* cnv = tabbar.getCurrentCanvas()) {
-                    splitCanvasView(cnv, tabIndex, i == 0);
+                if (auto* cnv = tabbar.getCanvas(tabIndex)) {
+                    splitCanvasView(cnv, i == 0);
                 }
             });
             // Show the popup menu at the mouse position
@@ -146,7 +160,10 @@ void SplitView::resized() {
     getRightTabbar()->setBounds(b.removeFromRight(getWidth() - splitWidth));
     getLeftTabbar()->setBounds(b);
     
-    if(auto* cnv = getActiveTabbar()->getCurrentCanvas()) {
+    if(auto* cnv = getLeftTabbar()->getCurrentCanvas()) {
+        cnv->checkBounds();
+    }
+    if(auto* cnv = getRightTabbar()->getCurrentCanvas()) {
         cnv->checkBounds();
     }
 }
@@ -155,16 +172,36 @@ void SplitView::setFocus(Canvas* cnv) {
     splitFocusIndex = cnv->getTabbar() == getRightTabbar();
 }
 
-void SplitView::splitCanvasView(Canvas* cnv, int tabIndex, bool splitViewFocus) {
+void SplitView::closeEmptySplits()
+{
+    if (!splits[1].getNumTabs()) {
+        // Disable splitview if all splitview tabs are closed
+        setSplitEnabled(false);
+    }
+    if (splitView && !splits[0].getNumTabs()) {
+        
+        // move all tabs over to the other side
+        for(int i = splits[1].getNumTabs() - 1; i >= 0; i--)
+        {
+            splitCanvasView(splits[1].getCanvas(i), i);
+        }
+        
+        setSplitEnabled(false);
+    }
+}
+
+void SplitView::splitCanvasView(Canvas* cnv, bool splitViewFocus) {
         
     auto* patch = &cnv->patch;
     auto* editor = cnv->editor;
     bool deleteOnClose = cnv->closePatchAlongWithCanvas;
+    bool locked = static_cast<bool>(cnv->locked.getValue());
     
     editor->closeTab(cnv, true);
     
     // Closing the tab deletes the canvas, so we clone it
     auto* canvasCopy = new Canvas(editor, *patch, deleteOnClose, nullptr);
+    canvasCopy->locked = locked;
     
     setSplitEnabled(true);
     splitFocusIndex = splitViewFocus;
