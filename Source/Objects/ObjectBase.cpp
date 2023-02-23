@@ -16,6 +16,7 @@ extern "C" {
 
 #include "Object.h"
 #include "Canvas.h"
+#include "Tabbar.h"
 #include "SuggestionComponent.h"
 #include "PluginEditor.h"
 #include "LookAndFeel.h"
@@ -187,40 +188,44 @@ String ObjectBase::getType() const
 void ObjectBase::closeOpenedSubpatchers()
 {
     auto* editor = object->cnv->editor;
-    auto* tabbar = editor->getSplitviewFocus()? &editor->tabbarSplitview : &editor->tabbar;
+    auto* leftTabbar = editor->splitView.getLeftTabbar();
+    auto* rightTabbar = editor->splitView.getRightTabbar();
+    
+    for(auto* tabbar : std::vector<TabComponent*>{leftTabbar, rightTabbar})
+    {
+        auto lastTab = SafePointer(tabbar->getCurrentContentComponent());
+        int lastIndex = tabbar->getCurrentTabIndex();
+        for (int n = tabbar->getNumTabs() - 1; n >= 0; n--) {
+            auto* cnv = tabbar->getCurrentCanvas();
+            if (cnv && cnv->patch == *getPatch()) {
+                auto* deletedPatch = &cnv->patch;
 
-    if (!tabbar)
-        return;
+                editor->canvases.removeObject(cnv);
+                tabbar->removeTab(n);
 
-    auto lastTab = SafePointer(tabbar->getCurrentContentComponent());
-    int lastIndex = tabbar->getCurrentTabIndex();
-    for (int n = tabbar->getNumTabs() - 1; n >= 0; n--) {
-        auto* cnv = editor->getCanvas(n, editor->getSplitviewFocus());
-        if (cnv && cnv->patch == *getPatch()) {
-            auto* deletedPatch = &cnv->patch;
+                editor->pd->patches.removeObject(deletedPatch, false);
+                break;
+            }
+        }
 
-            editor->canvases.removeObject(cnv);
-            tabbar->removeTab(n);
+        // Makes the tabbar check if it needs to hide
+        if (tabbar->getNumTabs() == 0) {
+            tabbar->currentTabChanged(-1, String());
+            return;
+        }
 
-            editor->pd->patches.removeObject(deletedPatch, false);
-            break;
+        if (!lastTab) {
+            MessageManager::callAsync([safeTabbar = SafePointer(tabbar), lastIndex]() {
+                if (!safeTabbar)
+                    return;
+
+                safeTabbar->setCurrentTabIndex(std::min(lastIndex, safeTabbar->getNumTabs() - 1), true);
+            });
         }
     }
 
-    // Makes the tabbar check if it needs to hide
-    if (tabbar->getNumTabs() == 0) {
-        tabbar->currentTabChanged(-1, String());
-        return;
-    }
 
-    if (!lastTab) {
-        MessageManager::callAsync([safeTabbar = SafePointer(tabbar), lastIndex]() {
-            if (!safeTabbar)
-                return;
 
-            safeTabbar->setCurrentTabIndex(std::min(lastIndex, safeTabbar->getNumTabs() - 1), true);
-        });
-    }
 }
 
 void ObjectBase::openSubpatch()
@@ -242,21 +247,21 @@ void ObjectBase::openSubpatch()
         path = File(String::fromUTF8(canvas_getdir(subpatch->getPointer())->s_name)).getChildFile(String::fromUTF8(glist->gl_name->s_name)).withFileExtension("pd");
     }
 
-    auto& tabbar = cnv->editor->getSplitviewFocus()? cnv->editor->tabbarSplitview : cnv->editor->tabbar;
-    for (int n = 0; n < tabbar.getNumTabs(); n++) {
-        auto* tabCanvas = cnv->editor->getCanvas(n, cnv->editor->getSplitviewFocus());
+    auto* tabbar = cnv->getTabbar();
+    for (int n = 0; n < tabbar->getNumTabs(); n++) {
+        auto* tabCanvas = tabbar->getCurrentCanvas();
         if (tabCanvas->patch == *subpatch) {
-            tabbar.setCurrentTabIndex(n);
+            tabbar->setCurrentTabIndex(n);
             return;
         }
     }
 
     auto* newPatch = cnv->editor->pd->patches.add(new pd::Patch(*subpatch));
-    auto* newCanvas = cnv->editor->canvases.add(new Canvas(cnv->editor, *newPatch, nullptr));
+    auto* newCanvas = cnv->editor->canvases.add(new Canvas(cnv->editor, *newPatch, false, nullptr));
 
     newPatch->setCurrentFile(path);
 
-    cnv->editor->addTab(newCanvas, false);
+    cnv->editor->addTab(newCanvas);
     newCanvas->checkBounds();
 }
 

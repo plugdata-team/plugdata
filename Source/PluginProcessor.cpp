@@ -16,6 +16,8 @@
 #include "Canvas.h"
 #include "PluginEditor.h"
 #include "LookAndFeel.h"
+#include "Tabbar.h"
+
 
 #include "Utility/PluginParameter.h"
 
@@ -815,23 +817,21 @@ bool PluginProcessor::hasEditor() const
 AudioProcessorEditor* PluginProcessor::createEditor()
 {
     auto* editor = new PluginEditor(*this);
-    auto& tabbar = editor->tabbar;
-    auto& tabbarSplitview = editor->tabbarSplitview;
     setThis();
     
     // TODO: restore splitviews as well
     for (auto* patch : patches) {
-        auto* cnv = editor->canvases.add(new Canvas(editor, *patch, nullptr));
-        editor->addTab(cnv, true);
+        auto* cnv = editor->canvases.add(new Canvas(editor, *patch, true, nullptr));
+        editor->addTab(cnv);
     }
 
     editor->resized();
 
-    if (isPositiveAndBelow(lastTab, patches.size())) {
-        tabbar.setCurrentTabIndex(lastTab);
+    if (isPositiveAndBelow(lastLeftTab, patches.size())) {
+        editor->splitView.getLeftTabbar()->setCurrentTabIndex(lastLeftTab);
     }
-    if (isPositiveAndBelow(lastTabSplitview, patches.size())) {
-        tabbar.setCurrentTabIndex(lastTabSplitview);
+    if (isPositiveAndBelow(lastRightTab, patches.size())) {
+        editor->splitView.getRightTabbar()->setCurrentTabIndex(lastRightTab);
     }
 
     return editor;
@@ -893,8 +893,9 @@ void PluginProcessor::setStateInformation(void const* data, int sizeInBytes)
         MessageManager::callAsync([editor = Component::SafePointer(editor)]() {
             if (!editor)
                 return;
-            editor->tabbar.clearTabs();
-            editor->tabbarSplitview.clearTabs();
+            
+            editor->splitView.getLeftTabbar()->clearTabs();
+            editor->splitView.getRightTabbar()->clearTabs();
             editor->canvases.clear();
         });
     }
@@ -993,7 +994,7 @@ pd::Patch* PluginProcessor::loadPatch(File const& patchFile)
                 MessageManager::callAsync([i, _editor = Component::SafePointer(editor)]() mutable {
                     if (!_editor)
                         return;
-                    _editor->tabbar.setCurrentTabIndex(i);
+                    _editor->getActiveTabbar()->setCurrentTabIndex(i);
                     _editor->pd->logError("Patch is already open");
                 });
             }
@@ -1022,8 +1023,8 @@ pd::Patch* PluginProcessor::loadPatch(File const& patchFile)
         MessageManager::callAsync([i, patch, _editor = Component::SafePointer(editor)]() mutable {
             if (!_editor)
                 return;
-            auto* cnv = _editor->canvases.add(new Canvas(_editor, *patch, nullptr));
-            _editor->addTab(cnv, true);
+            auto* cnv = _editor->canvases.add(new Canvas(_editor, *patch, true, nullptr));
+            _editor->addTab(cnv);
         });
     }
 
@@ -1274,17 +1275,20 @@ void PluginProcessor::synchroniseCanvas(void* cnv)
 void PluginProcessor::titleChanged()
 {
     if (auto* editor = dynamic_cast<PluginEditor*>(getActiveEditor())) {
-        for (int n = 0; n < editor->tabbar.getNumTabs(); n++) {
-            auto* cnv = editor->getCanvas(n, false);
+        auto* leftTabbar = editor->splitView.getLeftTabbar();
+        auto* rightTabbar = editor->splitView.getRightTabbar();
+        
+        for (int n = 0; n < leftTabbar->getNumTabs(); n++) {
+            auto* cnv = leftTabbar->getCanvas(n);
             if (!cnv)
                 return;
-            editor->tabbar.setTabName(n, cnv->patch.getTitle());
+            leftTabbar->setTabName(n, cnv->patch.getTitle());
         }
-        for (int n = 0; n < editor->tabbarSplitview.getNumTabs(); n++) {
-            auto* cnv = editor->getCanvas(n, true);
+        for (int n = 0; n < rightTabbar->getNumTabs(); n++) {
+            auto* cnv = rightTabbar->getCanvas(n);
             if (!cnv)
                 return;
-            editor->tabbarSplitview.setTabName(n, cnv->patch.getTitle());
+            rightTabbar->setTabName(n, cnv->patch.getTitle());
         }
     }
 }

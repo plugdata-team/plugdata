@@ -13,7 +13,6 @@
 #include "PluginProcessor.h"
 #include "ObjectGrid.h"
 #include "Utility/RateReducer.h"
-#include "Utility/OwnedArrayBroadcaster.h"
 
 class SuggestionComponent;
 struct GraphArea;
@@ -21,16 +20,15 @@ class Iolet;
 class PluginEditor;
 class ConnectionPathUpdater;
 class ConnectionBeingCreated;
+class TabComponent;
 
 class Canvas : public Component
     , public Value::Listener
-    , public ChangeListener
-    , public Timer
     , public LassoSource<WeakReference<Component>>
     , public ModifierKeyListener
 {
 public:
-    Canvas(PluginEditor* parent, pd::Patch& patch, Component* parentGraph = nullptr);
+    Canvas(PluginEditor* parent, pd::Patch& patch, bool ownerOfPatch, Component* parentGraph = nullptr);
 
     ~Canvas() override;
 
@@ -39,9 +37,6 @@ public:
 
     void lookAndFeelChanged() override;
     void paint(Graphics& g) override;
-
-    void timerCallback() override;
-    bool rateLimit = true;
 
     void mouseDown(MouseEvent const& e) override;
     void mouseDrag(MouseEvent const& e) override;
@@ -57,8 +52,9 @@ public:
 
     bool keyPressed(KeyPress const& key) override;
     void valueChanged(Value& v) override;
-
-    void changeListenerCallback(ChangeBroadcaster* source) override;
+    
+    TabComponent* getTabbar();
+    int getTabIndex();
 
     void hideAllActiveEditors();
 
@@ -132,8 +128,8 @@ public:
     // Needs to be allocated before object and connection so they can deselect themselves in the destructor
     SelectedItemSet<WeakReference<Component>> selectedComponents;
 
-    OwnedArrayBroadcaster<Object> objects;
-    OwnedArrayBroadcaster<Connection> connections;
+    OwnedArray<Object> objects;
+    OwnedArray<Connection> connections;
     OwnedArray<ConnectionBeingCreated> connectionsBeingCreated;
 
     Value locked;
@@ -178,15 +174,12 @@ public:
 
     std::unique_ptr<ConnectionPathUpdater> pathUpdater;
 
+    bool closePatchAlongWithCanvas = false;
+    
 private:
+    
     SafePointer<Object> objectSnappingInbetween;
     SafePointer<Connection> connectionToSnapInbetween;
-    SafePointer<TabbedComponent> tabbar;
-    SafePointer<TabbedComponent> tabbarSplitview;
-
-    bool draggingSplitview = false;
-    int dragStartWidth = 0;
-    int splitviewDragbarWidth = 5;
 
     LassoComponent<WeakReference<Component>> lasso;
 

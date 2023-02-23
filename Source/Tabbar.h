@@ -7,7 +7,8 @@
 #pragma once
 
 #include "Utility/GlobalMouseListener.h"
-
+#include "LookAndFeel.h"
+#include "Canvas.h"
 
 class WelcomePanel : public Component {
 
@@ -89,6 +90,7 @@ public:
     std::unique_ptr<WelcomeButton> openButton;
 };
 
+class Canvas;
 class TabComponent : public TabbedComponent {
 
     TextButton newButton = TextButton(Icons::Add);
@@ -188,6 +190,35 @@ public:
         currentTabIndex = getCurrentTabIndex();
         tabWidth = tabs->getWidth() / getNumTabs();
     }
+    
+    int getIndexOfCanvas(Canvas* cnv) {
+        if(!cnv->viewport) return;
+        
+        for(int i = 0; i < getNumTabs(); i++) {
+            if(getTabContentComponent(i) == cnv->viewport) {
+                return i;
+            }
+        }
+        
+        return -1;
+    }
+    
+    Canvas* getCanvas(int idx) {
+        auto* viewport = dynamic_cast<Viewport*>(getTabContentComponent(idx));
+        
+        if(!viewport) return nullptr;
+        
+        return reinterpret_cast<Canvas*>(viewport->getViewedComponent());
+    }
+
+    
+    Canvas* getCurrentCanvas() {
+        auto* viewport = dynamic_cast<Viewport*>(getCurrentContentComponent());
+        
+        if(!viewport) return nullptr;
+        
+        return reinterpret_cast<Canvas*>(viewport->getViewedComponent());
+    }
 
     void mouseDrag(MouseEvent const& e) override
     {
@@ -207,3 +238,4 @@ private:
     int currentTabIndex;
     int tabWidth;
 };
+

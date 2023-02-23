@@ -135,7 +135,7 @@ public:
     void updateCanvas()
     {
         if (!canvas) {
-            canvas = std::make_unique<Canvas>(cnv->editor, subpatch, this);
+            canvas = std::make_unique<Canvas>(cnv->editor, subpatch, false, this);
 
             // Make sure that the graph doesn't become the current canvas
             cnv->patch.setCurrent(true);
