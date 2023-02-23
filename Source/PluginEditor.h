@@ -11,7 +11,7 @@
 #include "Dialogs/Dialogs.h"
 #include "Sidebar/Sidebar.h"
 #include "Statusbar.h"
-#include "Tabbar.h"
+#include "SplitView.h"
 #include "Utility/RateReducer.h"
 #include "Utility/ModifierKeyListener.h"
 
@@ -419,6 +419,7 @@ public:
 
 class WelcomeButton;
 class Canvas;
+class TabComponent;
 class PluginProcessor;
 class PluginEditor : public AudioProcessorEditor
     , public Value::Listener
@@ -462,14 +463,11 @@ public:
     void saveProject(std::function<void()> const& nestedCallback = []() {});
     void saveProjectAs(std::function<void()> const& nestedCallback = []() {});
 
-    void addTab(Canvas* cnv, bool deleteWhenClosed = false);
-    void splitCanvasView(Canvas* cnv, int tabIndex, bool setSplitviewFocus);
-    void moveCanvasView(Canvas* cnv, int tabIndex, bool setSplitviewFocus);
-
+    void addTab(Canvas* cnv);
+    void closeTab(Canvas* cnv, bool neverDeletePatch = false);
+    
     Canvas* getCurrentCanvas();
-    Canvas* getCurrentSplitviewCanvas();
-    Canvas* getCanvas(int idx, bool splitview);
-
+    
     void modifierKeysChanged(ModifierKeys const& modifiers) override;
 
     void valueChanged(Value& v) override;
@@ -487,20 +485,12 @@ public:
     bool perform(InvocationInfo const& info) override;
 
     bool wantsRoundedCorners();
+    
+    TabComponent* getActiveTabbar();
 
     PluginProcessor* pd;
 
     AffineTransform transform;
-
-    TabComponent tabbar;
-
-    TabComponent tabbarSplitview;
-    int splitviewWidthFromCentre = 0; 
-    bool splitview = false;
-    Value splitviewHasFocus;
-    void setSplitviewFocus(bool splitviewFocus) {splitviewHasFocus.setValue(splitviewFocus);};
-    bool getSplitviewFocus() {return static_cast<bool>(splitviewHasFocus.getValue());};
-    std::atomic_flag  isProcessingChange; // Flag for syncing splitview canvases
 
     OwnedArray<Canvas, CriticalSection> canvases;
     Sidebar sidebar;
@@ -516,10 +506,12 @@ public:
     Value hvccMode;
     Value autoconnect;
 
+    SplitView splitView;
+    
 private:
     std::unique_ptr<FileChooser> saveChooser;
     std::unique_ptr<FileChooser> openChooser;
-
+    
 #ifdef PLUGDATA_STANDALONE
     static constexpr int toolbarHeight = 40;
 #else

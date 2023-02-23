@@ -144,8 +144,8 @@ public:
 
     // Zero means no oversampling
     std::atomic<int> oversampling = 0;
-    int lastTab = -1;
-    int lastTabSplitview = -1;
+    int lastLeftTab = -1;
+    int lastRightTab = -1;
 
 #if PLUGDATA_STANDALONE
     OwnedArray<MidiOutput> midiOutputs;
