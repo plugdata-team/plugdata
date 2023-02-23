@@ -369,7 +369,6 @@ void Canvas::mouseDown(MouseEvent const& e)
 
 void Canvas::mouseDrag(MouseEvent const& e)
 {
-    
     if (canvasRateReducer.tooFast() || panningModifierDown())
         return;
 
@@ -456,6 +455,7 @@ bool Canvas::autoscroll(MouseEvent const& e)
 
 void Canvas::mouseUp(MouseEvent const& e)
 {
+    setPanDragMode(false);
     setMouseCursor(MouseCursor::NormalCursor);
     editor->updateCommandStatus();
 
@@ -1539,11 +1539,18 @@ void Canvas::removeSelectedComponent(Component* component)
 bool Canvas::checkPanDragMode()
 {
     auto panDragEnabled = panningModifierDown();
-    if(auto* v = dynamic_cast<CanvasViewport*>(viewport)) {
-        v->enableMousePanning(panDragEnabled);
-    };
-    
+    setPanDragMode(panDragEnabled);
+
     return panDragEnabled;
+}
+
+bool Canvas::setPanDragMode(bool shouldPan)
+{
+    if (auto* v = dynamic_cast<CanvasViewport*>(viewport)) {
+        v->enableMousePanning(shouldPan);
+        return true;
+    }
+    return false;
 }
 
 void Canvas::findLassoItemsInArea(Array<WeakReference<Component>>& itemsFound, Rectangle<int> const& area)
