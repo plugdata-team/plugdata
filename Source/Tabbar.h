@@ -192,7 +192,7 @@ public:
     }
     
     int getIndexOfCanvas(Canvas* cnv) {
-        if(!cnv->viewport) return;
+        if(!cnv->viewport) return -1;
         
         for(int i = 0; i < getNumTabs(); i++) {
             if(getTabContentComponent(i) == cnv->viewport) {
