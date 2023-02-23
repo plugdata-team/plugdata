@@ -92,7 +92,7 @@ private:
     Label label = Label("", "Create a new theme");
 
     Label nameLabel = Label("", "Name:");
-    Label baseThemeLabel = Label("", "Base theme:");
+    Label baseThemeLabel = Label("", "Based on:");
 
     TextEditor nameEditor;
     ComboBox baseThemeSelector;
