@@ -93,6 +93,7 @@ public:
     SelectedItemSet<WeakReference<Component>>& getLassoSelection() override;
         
     bool checkPanDragMode();
+    bool setPanDragMode(bool shouldPan);
 
     void removeSelectedComponent(Component* component);
     void findLassoItemsInArea(Array<WeakReference<Component>>& itemsFound, Rectangle<int> const& area) override;
