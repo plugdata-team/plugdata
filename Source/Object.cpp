@@ -222,9 +222,6 @@ void Object::setType(String const& newType, void* existingObject)
     // Change object type
     String type = newType.upToFirstOccurrenceOf(" ", false, false);
 
-    // Set name to notify any component listeners
-    setName(newType);
-
     void* objectPtr;
     // "exists" indicates that this object already exists in pd
     // When setting exists to true, the gui needs to be assigned already
