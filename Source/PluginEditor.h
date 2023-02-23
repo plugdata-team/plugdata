@@ -463,9 +463,12 @@ public:
     void saveProjectAs(std::function<void()> const& nestedCallback = []() {});
 
     void addTab(Canvas* cnv, bool deleteWhenClosed = false);
+    void splitCanvasView(Canvas* cnv, int tabIndex, bool setSplitviewFocus);
+    void moveCanvasView(Canvas* cnv, int tabIndex, bool setSplitviewFocus);
 
     Canvas* getCurrentCanvas();
-    Canvas* getCanvas(int idx);
+    Canvas* getCurrentSplitviewCanvas();
+    Canvas* getCanvas(int idx, bool splitview);
 
     void modifierKeysChanged(ModifierKeys const& modifiers) override;
 
@@ -490,6 +493,15 @@ public:
     AffineTransform transform;
 
     TabComponent tabbar;
+
+    TabComponent tabbarSplitview;
+    int splitviewWidthFromCentre = 0; 
+    bool splitview = false;
+    Value splitviewHasFocus;
+    void setSplitviewFocus(bool splitviewFocus) {splitviewHasFocus.setValue(splitviewFocus);};
+    bool getSplitviewFocus() {return static_cast<bool>(splitviewHasFocus.getValue());};
+    std::atomic_flag  isProcessingChange; // Flag for syncing splitview canvases
+
     OwnedArray<Canvas, CriticalSection> canvases;
     Sidebar sidebar;
     Statusbar statusbar;

@@ -815,9 +815,11 @@ bool PluginProcessor::hasEditor() const
 AudioProcessorEditor* PluginProcessor::createEditor()
 {
     auto* editor = new PluginEditor(*this);
-
+    auto& tabbar = editor->tabbar;
+    auto& tabbarSplitview = editor->tabbarSplitview;
     setThis();
-
+    
+    // TODO: restore splitviews as well
     for (auto* patch : patches) {
         auto* cnv = editor->canvases.add(new Canvas(editor, *patch, nullptr));
         editor->addTab(cnv, true);
@@ -826,7 +828,10 @@ AudioProcessorEditor* PluginProcessor::createEditor()
     editor->resized();
 
     if (isPositiveAndBelow(lastTab, patches.size())) {
-        editor->tabbar.setCurrentTabIndex(lastTab);
+        tabbar.setCurrentTabIndex(lastTab);
+    }
+    if (isPositiveAndBelow(lastTabSplitview, patches.size())) {
+        tabbar.setCurrentTabIndex(lastTabSplitview);
     }
 
     return editor;
@@ -889,6 +894,7 @@ void PluginProcessor::setStateInformation(void const* data, int sizeInBytes)
             if (!editor)
                 return;
             editor->tabbar.clearTabs();
+            editor->tabbarSplitview.clearTabs();
             editor->canvases.clear();
         });
     }
@@ -1269,10 +1275,16 @@ void PluginProcessor::titleChanged()
 {
     if (auto* editor = dynamic_cast<PluginEditor*>(getActiveEditor())) {
         for (int n = 0; n < editor->tabbar.getNumTabs(); n++) {
-            auto* cnv = editor->getCanvas(n);
+            auto* cnv = editor->getCanvas(n, false);
             if (!cnv)
                 return;
             editor->tabbar.setTabName(n, cnv->patch.getTitle());
+        }
+        for (int n = 0; n < editor->tabbarSplitview.getNumTabs(); n++) {
+            auto* cnv = editor->getCanvas(n, true);
+            if (!cnv)
+                return;
+            editor->tabbarSplitview.setTabName(n, cnv->patch.getTitle());
         }
     }
 }

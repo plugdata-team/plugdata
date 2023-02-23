@@ -187,7 +187,7 @@ String ObjectBase::getType() const
 void ObjectBase::closeOpenedSubpatchers()
 {
     auto* editor = object->cnv->editor;
-    auto* tabbar = &editor->tabbar;
+    auto* tabbar = editor->getSplitviewFocus()? &editor->tabbarSplitview : &editor->tabbar;
 
     if (!tabbar)
         return;
@@ -195,7 +195,7 @@ void ObjectBase::closeOpenedSubpatchers()
     auto lastTab = SafePointer(tabbar->getCurrentContentComponent());
     int lastIndex = tabbar->getCurrentTabIndex();
     for (int n = tabbar->getNumTabs() - 1; n >= 0; n--) {
-        auto* cnv = editor->getCanvas(n);
+        auto* cnv = editor->getCanvas(n, editor->getSplitviewFocus());
         if (cnv && cnv->patch == *getPatch()) {
             auto* deletedPatch = &cnv->patch;
 
@@ -242,10 +242,11 @@ void ObjectBase::openSubpatch()
         path = File(String::fromUTF8(canvas_getdir(subpatch->getPointer())->s_name)).getChildFile(String::fromUTF8(glist->gl_name->s_name)).withFileExtension("pd");
     }
 
-    for (int n = 0; n < cnv->editor->tabbar.getNumTabs(); n++) {
-        auto* tabCanvas = cnv->editor->getCanvas(n);
+    auto& tabbar = cnv->editor->getSplitviewFocus()? cnv->editor->tabbarSplitview : cnv->editor->tabbar;
+    for (int n = 0; n < tabbar.getNumTabs(); n++) {
+        auto* tabCanvas = cnv->editor->getCanvas(n, cnv->editor->getSplitviewFocus());
         if (tabCanvas->patch == *subpatch) {
-            cnv->editor->tabbar.setCurrentTabIndex(n);
+            tabbar.setCurrentTabIndex(n);
             return;
         }
     }
@@ -255,7 +256,7 @@ void ObjectBase::openSubpatch()
 
     newPatch->setCurrentFile(path);
 
-    cnv->editor->addTab(newCanvas);
+    cnv->editor->addTab(newCanvas, false);
     newCanvas->checkBounds();
 }
 

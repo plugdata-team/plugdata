@@ -13,6 +13,7 @@
 #include "PluginProcessor.h"
 #include "ObjectGrid.h"
 #include "Utility/RateReducer.h"
+#include "Utility/OwnedArrayBroadcaster.h"
 
 class SuggestionComponent;
 struct GraphArea;
@@ -23,6 +24,7 @@ class ConnectionBeingCreated;
 
 class Canvas : public Component
     , public Value::Listener
+    , public ChangeListener
     , public Timer
     , public LassoSource<WeakReference<Component>>
     , public ModifierKeyListener
@@ -55,6 +57,8 @@ public:
 
     bool keyPressed(KeyPress const& key) override;
     void valueChanged(Value& v) override;
+
+    void changeListenerCallback(ChangeBroadcaster* source) override;
 
     void hideAllActiveEditors();
 
@@ -127,8 +131,8 @@ public:
     // Needs to be allocated before object and connection so they can deselect themselves in the destructor
     SelectedItemSet<WeakReference<Component>> selectedComponents;
 
-    OwnedArray<Object> objects;
-    OwnedArray<Connection> connections;
+    OwnedArrayBroadcaster<Object> objects;
+    OwnedArrayBroadcaster<Connection> connections;
     OwnedArray<ConnectionBeingCreated> connectionsBeingCreated;
 
     Value locked;
@@ -177,6 +181,11 @@ private:
     SafePointer<Object> objectSnappingInbetween;
     SafePointer<Connection> connectionToSnapInbetween;
     SafePointer<TabbedComponent> tabbar;
+    SafePointer<TabbedComponent> tabbarSplitview;
+
+    bool draggingSplitview = false;
+    int dragStartWidth = 0;
+    int splitviewDragbarWidth = 5;
 
     LassoComponent<WeakReference<Component>> lasso;
 
