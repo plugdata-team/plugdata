@@ -99,10 +99,14 @@ Canvas::Canvas(PluginEditor* parent, pd::Patch& p, bool ownerOfPatch, Component*
     }
 
     locked.addListener(this);
+    
+    Desktop::getInstance().addFocusChangeListener(this);
 }
 
 Canvas::~Canvas()
 {
+    Desktop::getInstance().removeFocusChangeListener(this);
+    
     if(closePatchAlongWithCanvas) {
         pd->lockAudioThread();
         patch.close();
@@ -162,8 +166,32 @@ TabComponent* Canvas::getTabbar()
     return nullptr;
 }
 
+void Canvas::globalFocusChanged(Component *focusedComponent)
+{
+    if(!focusedComponent || !editor->splitView.isSplitEnabled()) return;
+    
+    if(focusedComponent == this || focusedComponent->findParentComponentOfClass<Canvas>() == this)
+    {
+        editor->splitView.setFocus(this);
+    }
+}
+
 void Canvas::tabChanged()
 {
+    // update GraphOnParent when changing tabs
+    // TODO: shouldn't we do this always on sync?
+    for (auto* obj : objects) {
+        if (!obj->gui)
+            continue;
+        if (auto* graphCnv = obj->gui->getCanvas())
+            graphCnv->synchronise();
+    }
+
+    patch.setCurrent();
+
+    synchronise();
+    updateDrawables();
+    
     for(auto* object : objects)
     {
         if(object->gui) {
@@ -331,9 +359,7 @@ void Canvas::middleMouseChanged(bool isHeld)
 
 void Canvas::mouseDown(MouseEvent const& e)
 {
-    
     PopupMenu::dismissAllActiveMenus();
-    editor->splitView.setFocus(this);
     
     if(checkPanDragMode()) return;
     

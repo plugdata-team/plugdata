@@ -71,7 +71,6 @@ public:
 
     void updateConsole() override;
 
-    void synchroniseCanvas(void* cnv) override;
     void reloadAbstractions(File changedPatch, t_glist* except) override;
 
     void process(dsp::AudioBlock<float>, MidiBuffer&);
