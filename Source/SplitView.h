@@ -27,7 +27,7 @@ public:
 private:
     void resized() override;
 
-    int splitViewWidth = 0;
+    float splitViewWidth = 0.5f;
     bool splitView = false;
     int activeTabIndex = 0;
     bool splitFocusIndex = 0;
