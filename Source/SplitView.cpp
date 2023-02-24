@@ -204,7 +204,7 @@ void SplitView::splitCanvasView(Canvas* cnv, bool splitViewFocus)
 
     setSplitEnabled(true);
     splitFocusIndex = splitViewFocus;
-    editor->addTab(canvasCopy, true);
+    editor->addTab(canvasCopy);
     editor->canvases.add(canvasCopy);
     editor->resized();
 }

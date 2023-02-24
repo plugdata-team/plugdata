@@ -86,7 +86,7 @@ public:
 
     void openFromMenu() override
     {
-        openSubpatch(true);
+        openSubpatch();
     }
 
     void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override

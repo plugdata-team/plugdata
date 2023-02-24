@@ -50,7 +50,7 @@ public:
     {
         //  If locked and it's a left click
         if (locked && !e.mods.isRightButtonDown() && !object->attachedToMouse) {
-            openSubpatch(true);
+            openSubpatch();
 
             return;
         } else {
@@ -63,7 +63,7 @@ public:
         switch (hash(symbol)) {
         case hash("vis"): {
             if(atoms[0].getFloat() == 1) {
-                openSubpatch(false);
+                openSubpatch();
             }
             else {
                 closeOpenedSubpatchers();
@@ -112,7 +112,7 @@ public:
 
     void openFromMenu() override
     {
-        openSubpatch(true);
+        openSubpatch();
     }
 
     static void checkHvccCompatibility(pd::Patch& patch, String prefix = "")
