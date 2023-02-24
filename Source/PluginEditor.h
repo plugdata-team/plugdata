@@ -483,9 +483,10 @@ public:
     void getAllCommands(Array<CommandID>& commands) override;
     void getCommandInfo(const CommandID commandID, ApplicationCommandInfo& result) override;
     bool perform(InvocationInfo const& info) override;
-
-    bool wantsRoundedCorners();
     
+    bool wantsRoundedCorners();
+
+    void updateSplitOutline();
     TabComponent* getActiveTabbar();
 
     PluginProcessor* pd;
