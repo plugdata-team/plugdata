@@ -142,6 +142,12 @@ private:
     
     void timerCallback() override
     {
+        // If a window that's not coming from our app is top-level, ignore
+        // key commands
+        if(!TopLevelWindow::getActiveTopLevelWindow()) {
+            return;
+        }
+        
         auto mods = ModifierKeys::getCurrentModifiersRealtime();
         setModifierKeys(mods);
     }
