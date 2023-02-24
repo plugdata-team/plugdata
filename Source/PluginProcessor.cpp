@@ -119,8 +119,6 @@ PluginProcessor::PluginProcessor()
                 for (auto* object : cnv->objects)
                     object->updateIolets();
             }
-
-            editor->sendLookAndFeelChange();
         }
 
         updateSearchPaths();
@@ -1068,12 +1066,7 @@ void PluginProcessor::setTheme(String themeToUse, bool force)
     lnf->setTheme(themeTree);
 
     if (auto* editor = dynamic_cast<PluginEditor*>(getActiveEditor())) {
-        /* maybe we don't need this anymore?
-        if (auto* cnv = editor->getCurrentCanvas()) {
-            // Calling synchonise here is not neat, but it's a way to make sure both colours and other theme properties get applied...
-            cnv->synchronise();
-        } */
-
+        editor->sendLookAndFeelChange();
         editor->getTopLevelComponent()->repaint();
         editor->repaint();
     }

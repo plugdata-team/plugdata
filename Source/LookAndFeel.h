@@ -485,6 +485,7 @@ struct PlugDataLook : public LookAndFeel_V4 {
         bool isActive = button.getToggleState();
         g.setColour(findColour(isActive ? PlugDataColour::activeTabBackgroundColourId : PlugDataColour::tabBackgroundColourId));
 
+
         g.fillRect(button.getLocalBounds());
 
         int w = button.getWidth();
@@ -1245,11 +1246,6 @@ struct PlugDataLook : public LookAndFeel_V4 {
         }
 
         selectedThemes = { "light", "dark" };
-    }
-
-    static void setThemeColour(ValueTree themeTree, PlugDataColour colourId, Colour colour)
-    {
-        themeTree.setProperty(std::get<1>(PlugDataColourNames.at(colourId)), colour.toString(), nullptr);
     }
 
     static Colour getThemeColour(ValueTree themeTree, PlugDataColour colourId)

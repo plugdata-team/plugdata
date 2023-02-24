@@ -474,7 +474,7 @@ public:
             || v.refersToSameSourceAs(swatches[PlugDataLook::currentTheme]["square_object_corners"])
             || v.refersToSameSourceAs(swatches[PlugDataLook::currentTheme]["thin_connections"])) {
 
-            pd->setTheme(PlugDataLook::currentTheme);
+            pd->setTheme(PlugDataLook::currentTheme, true);
             return;
         }
 
@@ -486,8 +486,8 @@ public:
                 auto& [colId, colourName, colCat] = colourInfo;
 
                 if (v.refersToSameSourceAs(swatches[themeName][colourName])) {
-                    PlugDataLook::setThemeColour(theme, colourId, Colour::fromString(v.toString()));
-                    pd->setTheme(PlugDataLook::currentTheme);
+                    theme.setProperty(colourName, v.toString(), nullptr);
+                    pd->setTheme(PlugDataLook::currentTheme, true);
                     return;
                 }
             }
