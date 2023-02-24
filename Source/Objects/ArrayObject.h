@@ -665,7 +665,6 @@ public:
 
     void openFromMenu() override
     {
-        openSubpatch();
         dialog = std::make_unique<ArrayEditorDialog>(cnv->pd, array, object);
         dialog->onClose = [this]() {
             dialog.reset(nullptr);

@@ -36,7 +36,7 @@ public:
         updateCanvas();
         resized();
     }
-
+    
     void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
     {
         switch (hash(symbol)) {
@@ -59,6 +59,15 @@ public:
                 pd->unlockAudioThread();
 
                 object->setObjectBounds(bounds);
+            }
+            break;
+        }
+        case hash("vis"): {
+            if(atoms[0].getFloat() == 1) {
+                openSubpatch(false);
+            }
+            else {
+                closeOpenedSubpatchers();
             }
             break;
         }
@@ -266,6 +275,6 @@ public:
 
     void openFromMenu() override
     {
-        openSubpatch();
+        openSubpatch(true);
     }
 };
