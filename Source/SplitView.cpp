@@ -5,6 +5,8 @@
 class SplitViewResizer : public Component
 {
 public:
+    
+    static inline constexpr int width = 6;
     std::function<void(int)> onMove = [](int){};
 
     SplitViewResizer()
@@ -31,27 +33,16 @@ private:
         setTopLeftPosition(newX, 0);
         onMove(newX + width / 2);
     }
-
-    void parentSizeChanged() override
-    {
-        auto parentBounds = getParentComponent()->getBounds();
-        int newX = parentBounds.getWidth() / 2;
-
-        if(!isVisible()) setTopLeftPosition(newX - width / 2, 0);
-        setSize(width, parentBounds.getHeight());
-        onMove(newX);
-    }
-
+    
     int dragStartWidth = 0;
     bool draggingSplitview = false;
-    const int width = 6;
 };
 
 SplitView::SplitView(PluginEditor* parent) : editor(parent)
 {
     auto* resizer = new SplitViewResizer();
     resizer->onMove = [this](int x){
-        splitViewWidth = x;
+        splitViewWidth = static_cast<float>(x) / getWidth();
         resized();
 
         if(auto* cnv = getLeftTabbar()->getCurrentCanvas()) {
@@ -60,6 +51,8 @@ SplitView::SplitView(PluginEditor* parent) : editor(parent)
         if(auto* cnv = getRightTabbar()->getCurrentCanvas()) {
             cnv->checkBounds();
         }
+        
+        editor->resized(); // To make it update the active split outline
     };
     addChildComponent(resizer);
 
@@ -137,7 +130,7 @@ bool SplitView::isSplitEnabled()
 void SplitView::resized()
 {
     auto b = getLocalBounds();
-    auto splitWidth = splitView ? splitViewWidth : getWidth();
+    auto splitWidth = splitView ? splitViewWidth * getWidth() : getWidth();
 
     getRightTabbar()->setBounds(b.removeFromRight(getWidth() - splitWidth));
     getLeftTabbar()->setBounds(b);
@@ -148,6 +141,10 @@ void SplitView::resized()
     if(auto* cnv = getRightTabbar()->getCurrentCanvas()) {
         cnv->checkBounds();
     }
+    
+    int splitResizerWidth = SplitViewResizer::width;
+    int halfSplitWidth = splitResizerWidth / 2;
+    splitViewResizer->setBounds(splitWidth - halfSplitWidth, 0, splitResizerWidth, getHeight());
 }
 
 void SplitView::setFocus(Canvas* cnv)
