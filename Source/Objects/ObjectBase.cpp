@@ -188,40 +188,18 @@ String ObjectBase::getType() const
 void ObjectBase::closeOpenedSubpatchers()
 {
     auto* editor = object->cnv->editor;
-    auto* leftTabbar = editor->splitView.getLeftTabbar();
-    auto* rightTabbar = editor->splitView.getRightTabbar();
-    
-    for(auto* tabbar : std::vector<TabComponent*>{leftTabbar, rightTabbar})
+
+    for(auto* cnv : editor->canvases)
     {
-        auto lastTab = SafePointer(tabbar->getCurrentContentComponent());
-        int lastIndex = tabbar->getCurrentTabIndex();
-        for (int n = tabbar->getNumTabs() - 1; n >= 0; n--) {
-            auto* cnv = tabbar->getCurrentCanvas();
-            if (cnv && cnv->patch == *getPatch()) {
-                
-                cnv->editor->closeTab(cnv, true);
-                break;
-            }
-        }
-
-        // Makes the tabbar check if it needs to hide
-        if (tabbar->getNumTabs() == 0) {
-            tabbar->currentTabChanged(-1, String());
-            return;
-        }
-
-        if (!lastTab) {
-            MessageManager::callAsync([safeTabbar = SafePointer(tabbar), lastIndex]() {
-                if (!safeTabbar)
-                    return;
-
-                safeTabbar->setCurrentTabIndex(std::min(lastIndex, safeTabbar->getNumTabs() - 1), true);
-            });
+        if (cnv && cnv->patch == *getPatch()) {
+            
+            cnv->editor->closeTab(cnv, true);
+            
+            break;
         }
     }
-
-
-
+    
+    editor->splitView.closeEmptySplits();
 }
 
 void ObjectBase::openSubpatch()
