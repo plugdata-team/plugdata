@@ -64,7 +64,7 @@ public:
         }
         case hash("vis"): {
             if(atoms[0].getFloat() == 1) {
-                openSubpatch(false);
+                openSubpatch();
             }
             else {
                 closeOpenedSubpatchers();
@@ -275,6 +275,6 @@ public:
 
     void openFromMenu() override
     {
-        openSubpatch(true);
+        openSubpatch();
     }
 };
