@@ -507,6 +507,7 @@ public:
     Value autoconnect;
 
     SplitView splitView;
+    DrawableRectangle selectedSplitRect;
     
 private:
     std::unique_ptr<FileChooser> saveChooser;
