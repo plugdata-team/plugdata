@@ -168,11 +168,12 @@ TabComponent* Canvas::getTabbar()
 
 void Canvas::globalFocusChanged(Component *focusedComponent)
 {
-    if(!focusedComponent || !editor->splitView.isSplitEnabled()) return;
+    if(!focusedComponent || !editor->splitView.isSplitEnabled() || editor->splitView.hasFocus(this)) return;
     
     if(focusedComponent == this || focusedComponent->findParentComponentOfClass<Canvas>() == this)
     {
         editor->splitView.setFocus(this);
+        editor->repaint();
     }
 }
 

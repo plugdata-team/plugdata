@@ -206,17 +206,6 @@ public:
         vbar->repaint();
         hbar->repaint();
     }
-
-    void paintOverChildren(Graphics& g) override
-    {
-        if (editor->splitView.isSplitEnabled()  && editor->splitView.hasFocus(cnv)) {
-            auto thickness = getScrollBarThickness();
-            auto contentArea = getLocalBounds().withTrimmedRight(thickness).withTrimmedBottom(thickness);
-
-            g.setColour(findColour(PlugDataColour::dataColourId));
-            g.drawRect(contentArea.reduced(1), 1.0f);
-        }
-    }
     
     void enableMousePanning(bool enablePanning)
     {
@@ -231,7 +220,8 @@ public:
         
         auto contentArea = getLocalBounds().withTrimmedRight(thickness).withTrimmedBottom(thickness);
         
-        vbar->setBounds(contentArea.removeFromRight(thickness));
+        
+        vbar->setBounds(contentArea.removeFromRight(thickness).withTrimmedBottom(thickness));
         hbar->setBounds(contentArea.removeFromBottom(thickness));
     }
     
