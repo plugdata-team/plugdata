@@ -26,6 +26,7 @@ class Canvas : public Component
     , public Value::Listener
     , public LassoSource<WeakReference<Component>>
     , public ModifierKeyListener
+    , public FocusChangeListener
 {
 public:
     Canvas(PluginEditor* parent, pd::Patch& patch, bool ownerOfPatch, Component* parentGraph = nullptr);
@@ -56,6 +57,8 @@ public:
     TabComponent* getTabbar();
     int getTabIndex();
     void tabChanged();
+    
+    void globalFocusChanged(Component *focusedComponent);
 
     void hideAllActiveEditors();
 

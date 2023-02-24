@@ -202,8 +202,12 @@ public:
 
         void mouseUp(MouseEvent const& e) override
         {
-            toggleStateValue = !static_cast<bool>(toggleStateValue.getValue());
-            repaint();
+            auto bounds = getLocalBounds().removeFromRight(getWidth() / (2 - hideLabel));
+            
+            if(bounds.contains(e.getMouseDownPosition())) {
+                toggleStateValue = !static_cast<bool>(toggleStateValue.getValue());
+                repaint();
+            }
         }
 
     private:

@@ -1262,20 +1262,6 @@ void PluginProcessor::reloadAbstractions(File changedPatch, t_glist* except)
     }
 }
 
-void PluginProcessor::synchroniseCanvas(void* cnv)
-{
-    MessageManager::callAsync(
-        [this, cnv]() mutable {
-            if (auto* editor = dynamic_cast<PluginEditor*>(getActiveEditor())) {
-                for (auto* canvas : editor->canvases) {
-                    if (canvas->patch.getPointer() == cnv) {
-                        canvas->synchronise();
-                    }
-                }
-            }
-        });
-}
-
 void PluginProcessor::titleChanged()
 {
     if (auto* editor = dynamic_cast<PluginEditor*>(getActiveEditor())) {
