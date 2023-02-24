@@ -182,6 +182,11 @@ PluginEditor::PluginEditor(PluginProcessor& p)
 
     // Initialise zoom factor
     valueChanged(zoomScale);
+    
+    selectedSplitRect.setStrokeThickness(1.0f);
+    selectedSplitRect.setInterceptsMouseClicks(false, false);
+    selectedSplitRect.setFill(Colours::transparentBlack);
+    addAndMakeVisible(selectedSplitRect);
 }
 PluginEditor::~PluginEditor()
 {
@@ -196,6 +201,8 @@ PluginEditor::~PluginEditor()
 
 void PluginEditor::paint(Graphics& g)
 {
+    selectedSplitRect.setStrokeFill(findColour(PlugDataColour::dataColourId));
+    
     g.setColour(findColour(PlugDataColour::canvasBackgroundColourId));
     g.fillRoundedRectangle(getLocalBounds().toFloat(), PlugDataLook::windowCornerRadius);
 
@@ -230,21 +237,16 @@ void PluginEditor::paint(Graphics& g)
 // Paint file drop outline
 void PluginEditor::paintOverChildren(Graphics& g)
 {
+    // Never want to be drawing over a dialog window
+    if(openedDialog) return;
+    
     if (isDraggingFile) {
         g.setColour(findColour(PlugDataColour::scrollbarThumbColourId));
         g.drawRect(getLocalBounds().reduced(1), 2.0f);
     }
     
-    auto* tabbar = splitView.getActiveTabbar();
-    if (splitView.isSplitEnabled() && tabbar) {
-        
-        if(auto* cnv = splitView.getActiveTabbar()->getCurrentCanvas()) {
-            bool isOnLeft = tabbar == splitView.getLeftTabbar();
-            auto bounds = getLocalArea(tabbar, tabbar->getLocalBounds()).withTrimmedTop(tabbar->getTabBarDepth()).toFloat().expanded(0.5f).withTrimmedRight(isOnLeft ? 0.0f : 0.5f).withTrimmedBottom(-0.5f);
-            g.setColour(findColour(PlugDataColour::dataColourId));
-            g.drawRect(bounds, 1.0f);
-        }
-    }
+    
+    
 }
 
 void PluginEditor::resized()
@@ -252,6 +254,7 @@ void PluginEditor::resized()
     splitView.setBounds(0, toolbarHeight, (getWidth() - sidebar.getWidth()) + 1, getHeight() - toolbarHeight - (statusbar.getHeight()));
     sidebar.setBounds(getWidth() - sidebar.getWidth(), toolbarHeight, sidebar.getWidth(), getHeight() - toolbarHeight);
     statusbar.setBounds(0, getHeight() - statusbar.getHeight(), getWidth() - sidebar.getWidth(), statusbar.getHeight());
+    
 
     mainMenuButton.setBounds(20, 0, toolbarHeight, toolbarHeight);
     undoButton.setBounds(90, 0, toolbarHeight, toolbarHeight);
@@ -285,8 +288,23 @@ void PluginEditor::resized()
     if (auto* cnv = getCurrentCanvas()) {
         cnv->checkBounds();
     }
-
-    repaint();
+    
+    selectedSplitRect.setBounds(getLocalBounds());
+    
+    auto* tabbar = splitView.getActiveTabbar();
+    if (splitView.isSplitEnabled() && tabbar) {
+        if(auto* cnv = splitView.getActiveTabbar()->getCurrentCanvas()) {
+            bool isOnLeft = tabbar == splitView.getLeftTabbar();
+            auto bounds = getLocalArea(tabbar, tabbar->getLocalBounds()).withTrimmedTop(tabbar->getTabBarDepth()).toFloat().expanded(0.5f).withTrimmedRight(isOnLeft ? 0.0f : 0.5f).withTrimmedBottom(-0.5f);
+            selectedSplitRect.setRectangle(Parallelogram<float>(bounds));
+        }
+        selectedSplitRect.toFront(false);
+        selectedSplitRect.setVisible(true);
+    }
+    else
+    {
+        selectedSplitRect.setVisible(false);
+    }
 }
 
 void PluginEditor::mouseWheelMove(MouseEvent const& e, MouseWheelDetails const& wheel)
@@ -360,6 +378,8 @@ void PluginEditor::mouseDrag(MouseEvent const& e)
 
 bool PluginEditor::isInterestedInFileDrag(StringArray const& files)
 {
+    if(openedDialog) return false;
+    
     for (auto& path : files) {
         auto file = File(path);
         if (file.exists() && (file.isDirectory() || file.hasFileExtension("pd"))) {

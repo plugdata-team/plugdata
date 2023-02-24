@@ -206,7 +206,7 @@ void SplitView::splitCanvasView(Canvas* cnv, bool splitViewFocus)
     splitFocusIndex = splitViewFocus;
     editor->addTab(canvasCopy);
     editor->canvases.add(canvasCopy);
-    editor->repaint();
+    editor->resized();
 }
 
 TabComponent* SplitView::getActiveTabbar()
