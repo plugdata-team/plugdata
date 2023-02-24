@@ -58,7 +58,7 @@ public:
     int getTabIndex();
     void tabChanged();
     
-    void globalFocusChanged(Component *focusedComponent);
+    void globalFocusChanged(Component *focusedComponent) override;
 
     void hideAllActiveEditors();
 
