@@ -218,7 +218,6 @@ public:
             auto colour = object->findColour(PlugDataColour::canvasTextColourId);
             PlugDataLook::drawText(g, "Graph opened in split view", getLocalBounds(), colour, 14, Justification::centred);
         }
-
     }
 
     pd::Patch* getPatch() override

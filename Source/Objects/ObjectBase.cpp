@@ -198,8 +198,6 @@ void ObjectBase::closeOpenedSubpatchers()
             break;
         }
     }
-    
-    editor->splitView.closeEmptySplits();
 }
 
 void ObjectBase::openSubpatch()
