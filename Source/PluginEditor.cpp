@@ -234,6 +234,17 @@ void PluginEditor::paintOverChildren(Graphics& g)
         g.setColour(findColour(PlugDataColour::scrollbarThumbColourId));
         g.drawRect(getLocalBounds().reduced(1), 2.0f);
     }
+    
+    auto* tabbar = splitView.getActiveTabbar();
+    if (splitView.isSplitEnabled() && tabbar) {
+        
+        if(auto* cnv = splitView.getActiveTabbar()->getCurrentCanvas()) {
+            bool isOnLeft = tabbar == splitView.getLeftTabbar();
+            auto bounds = getLocalArea(tabbar, tabbar->getLocalBounds()).withTrimmedTop(tabbar->getTabBarDepth()).toFloat().expanded(0.5f).withTrimmedRight(isOnLeft ? 0.0f : 0.5f).withTrimmedBottom(-0.5f);
+            g.setColour(findColour(PlugDataColour::dataColourId));
+            g.drawRect(bounds, 1.0f);
+        }
+    }
 }
 
 void PluginEditor::resized()

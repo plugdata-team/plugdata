@@ -158,6 +158,11 @@ void SplitView::setFocus(Canvas* cnv)
     }
 }
 
+int SplitView::getCurrentSplitIndex()
+{
+    return splitFocusIndex;
+}
+
 bool SplitView::hasFocus(Canvas* cnv)
 {
     if ((cnv->getTabbar() == getRightTabbar()) == splitFocusIndex)
@@ -201,6 +206,7 @@ void SplitView::splitCanvasView(Canvas* cnv, bool splitViewFocus)
     splitFocusIndex = splitViewFocus;
     editor->addTab(canvasCopy);
     editor->canvases.add(canvasCopy);
+    editor->repaint();
 }
 
 TabComponent* SplitView::getActiveTabbar()

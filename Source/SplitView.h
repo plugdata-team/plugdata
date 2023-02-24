@@ -15,9 +15,10 @@ public:
 
     void setSplitEnabled(bool splitEnabled);
     bool isSplitEnabled();
-
+    int getCurrentSplitIndex();
+    
     void splitCanvasView(Canvas* cnv, bool splitviewFocus);
-
+    
     void setFocus(Canvas* cnv);
     bool hasFocus(Canvas* cnv);
 
