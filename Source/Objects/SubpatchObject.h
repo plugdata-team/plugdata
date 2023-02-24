@@ -50,11 +50,26 @@ public:
     {
         //  If locked and it's a left click
         if (locked && !e.mods.isRightButtonDown() && !object->attachedToMouse) {
-            openSubpatch();
+            openSubpatch(true);
 
             return;
         } else {
             TextBase::mouseDown(e);
+        }
+    }
+    
+    void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
+    {
+        switch (hash(symbol)) {
+        case hash("vis"): {
+            if(atoms[0].getFloat() == 1) {
+                openSubpatch(false);
+            }
+            else {
+                closeOpenedSubpatchers();
+            }
+            break;
+        }
         }
     }
 
@@ -97,7 +112,7 @@ public:
 
     void openFromMenu() override
     {
-        openSubpatch();
+        openSubpatch(true);
     }
 
     static void checkHvccCompatibility(pd::Patch& patch, String prefix = "")

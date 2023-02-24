@@ -289,17 +289,17 @@ void PluginEditor::resized()
         cnv->checkBounds();
     }
     
-    selectedSplitRect.setBounds(getLocalBounds());
-    
     auto* tabbar = splitView.getActiveTabbar();
     if (splitView.isSplitEnabled() && tabbar) {
-        if(auto* cnv = splitView.getActiveTabbar()->getCurrentCanvas()) {
+        if(auto* cnv = tabbar->getCurrentCanvas()) {
             bool isOnLeft = tabbar == splitView.getLeftTabbar();
+
             auto bounds = getLocalArea(tabbar, tabbar->getLocalBounds()).withTrimmedTop(tabbar->getTabBarDepth()).toFloat().withTrimmedRight(isOnLeft ? 0.0f : 0.5f).withTrimmedBottom(-0.5f);
             selectedSplitRect.setRectangle(Parallelogram<float>(bounds));
+            
+            selectedSplitRect.toFront(false);
+            selectedSplitRect.setVisible(true);
         }
-        selectedSplitRect.toFront(false);
-        selectedSplitRect.setVisible(true);
     }
     else
     {
@@ -512,6 +512,12 @@ void PluginEditor::closeTab(Canvas* cnv, bool neverDeletePatch)
     
     splitView.closeEmptySplits();
     updateCommandStatus();
+    
+    MessageManager::callAsync([_this = SafePointer(this)]()
+    {
+        if(!_this) return;
+        _this->resized();
+    });
 }
 
 void PluginEditor::addTab(Canvas* cnv)
@@ -519,15 +525,15 @@ void PluginEditor::addTab(Canvas* cnv)
     // Create a pointer to the TabBar in focus
     auto* focusedTabbar = splitView.getActiveTabbar();
 
-    int const tabIdx = focusedTabbar->getCurrentTabIndex() + 1; // The tab index for the added tab
-
+    int const newTabIdx = focusedTabbar->getCurrentTabIndex() + 1; // The tab index for the added tab
+    
     // Add tab next to the currently focused tab
-    focusedTabbar->addTab(cnv->patch.getTitle(), findColour(ResizableWindow::backgroundColourId), cnv->viewport, true, tabIdx);
+    focusedTabbar->addTab(cnv->patch.getTitle(), findColour(ResizableWindow::backgroundColourId), cnv->viewport, true, newTabIdx);
 
-    focusedTabbar->setCurrentTabIndex(tabIdx);
-    focusedTabbar->setTabBackgroundColour(tabIdx, Colours::transparentBlack);
+    focusedTabbar->setCurrentTabIndex(newTabIdx);
+    focusedTabbar->setTabBackgroundColour(newTabIdx, Colours::transparentBlack);
 
-    auto* tabButton = focusedTabbar->getTabbedButtonBar().getTabButton(tabIdx);
+    auto* tabButton = focusedTabbar->getTabbedButtonBar().getTabButton(newTabIdx);
     tabButton->setTriggeredOnMouseDown(true);
 
     auto* closeTabButton = new TextButton(Icons::Clear);
