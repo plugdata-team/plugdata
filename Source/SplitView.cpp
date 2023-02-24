@@ -87,33 +87,9 @@ SplitView::SplitView(PluginEditor* parent) : editor(parent)
                 return;
             
             editor->sidebar.tabChanged();
-
-            // update GraphOnParent when changing tabs
-            for (auto* object : cnv->objects) {
-                if (!object->gui)
-                    continue;
-                if (auto* graphCnv = object->gui->getCanvas())
-                    graphCnv->synchronise();
-            }
-
-            if (cnv->patch.getPointer()) {
-                cnv->patch.setCurrent();
-            }
-
-            cnv->synchronise();
             cnv->tabChanged();
-            cnv->updateDrawables();
             
             if(auto* splitCnv = splits[1 - i].getCurrentCanvas()) {
-
-                for (auto* object : splitCnv->objects) {
-                    if (!object->gui)
-                        continue;
-                    if (auto* graphCnv = object->gui->getCanvas())
-                        graphCnv->synchronise();
-                }
-
-                splitCnv->synchronise();
                 splitCnv->tabChanged();
             }
 
