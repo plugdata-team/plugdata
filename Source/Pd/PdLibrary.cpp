@@ -667,6 +667,7 @@ File Library::findHelpfile(t_object* obj, File parentPatchFile)
     } else {
         helpDir = class_gethelpdir(pdclass);
         helpName = class_gethelpname(pdclass);
+        helpName = helpName.upToLastOccurrenceOf(".pd", false, false);
     }
 
     auto patchHelpPaths = helpPaths;
