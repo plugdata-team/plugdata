@@ -1098,27 +1098,30 @@ bool PluginEditor::perform(InvocationInfo const& info)
         return true;
     }
     case CommandIDs::NextTab: {
-        int currentIdx = canvases.indexOf(cnv) + 1;
-
-        if (currentIdx >= canvases.size())
-            currentIdx -= canvases.size();
-        if (currentIdx < 0)
-            currentIdx += canvases.size();
-
+        
         auto* tabbar = splitView.getActiveTabbar();
+        
+        int currentIdx = tabbar->getIndexOfCanvas(cnv) + 1;
+
+        if (currentIdx >= tabbar->getNumTabs())
+            currentIdx -= tabbar->getNumTabs();
+        if (currentIdx < 0)
+            currentIdx += tabbar->getNumTabs();
+
         tabbar->setCurrentTabIndex(currentIdx);
 
         return true;
     }
     case CommandIDs::PreviousTab: {
-        int currentIdx = canvases.indexOf(cnv) - 1;
-
-        if (currentIdx >= canvases.size())
-            currentIdx -= canvases.size();
-        if (currentIdx < 0)
-            currentIdx += canvases.size();
-
         auto* tabbar = splitView.getActiveTabbar();
+        
+        int currentIdx = tabbar->getIndexOfCanvas(cnv) - 1;
+
+        if (currentIdx >= tabbar->getNumTabs())
+            currentIdx -= tabbar->getNumTabs();
+        if (currentIdx < 0)
+            currentIdx += tabbar->getNumTabs();
+
         tabbar->setCurrentTabIndex(currentIdx);
 
         return true;
