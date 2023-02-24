@@ -11,6 +11,7 @@
 #include "LookAndFeel.h"
 #include "SuggestionComponent.h"
 #include "CanvasViewport.h"
+#include "SplitView.h"
 
 #include "Utility/GraphArea.h"
 #include "Utility/RateReducer.h"
@@ -66,7 +67,7 @@ Canvas::Canvas(PluginEditor* parent, pd::Patch& p, bool ownerOfPatch, Component*
     setWantsKeyboardFocus(true);
 
     if (!isGraph) {
-        auto* canvasViewport = new CanvasViewport;
+        auto* canvasViewport = new CanvasViewport(editor, this);
         
         canvasViewport->setViewedComponent(this, false);
         

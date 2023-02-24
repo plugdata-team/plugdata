@@ -7,6 +7,7 @@
 #pragma once
 
 #include "Utility/GlobalMouseListener.h"
+#include "LookAndFeel.h"
 
 // Special viewport that shows scrollbars on top of content instead of next to it
 class CanvasViewport : public Viewport
@@ -188,7 +189,9 @@ class CanvasViewport : public Viewport
     };
 
 public:
-    CanvasViewport()
+    CanvasViewport(PluginEditor* parent, Canvas* cnv)
+        : editor(parent)
+        , cnv(cnv)
     {
         recreateScrollbars();
         
@@ -202,6 +205,17 @@ public:
         
         vbar->repaint();
         hbar->repaint();
+    }
+
+    void paintOverChildren(Graphics& g) override
+    {
+        if (editor->splitView.isSplitEnabled()  && editor->splitView.hasFocus(cnv)) {
+            auto thickness = getScrollBarThickness();
+            auto contentArea = getLocalBounds().withTrimmedRight(thickness).withTrimmedBottom(thickness);
+
+            g.setColour(findColour(PlugDataColour::dataColourId));
+            g.drawRect(contentArea.reduced(1), 1.0f);
+        }
     }
     
     void enableMousePanning(bool enablePanning)
@@ -253,7 +267,8 @@ public:
     
     std::function<void()> onScroll = [](){};
 private:
-    
+    PluginEditor* editor;
+    Canvas* cnv;
     MousePanner panner = MousePanner(this);
     FadingScrollbar* vbar = nullptr;
     FadingScrollbar* hbar = nullptr;
