@@ -295,7 +295,7 @@ void PluginEditor::resized()
     if (splitView.isSplitEnabled() && tabbar) {
         if(auto* cnv = splitView.getActiveTabbar()->getCurrentCanvas()) {
             bool isOnLeft = tabbar == splitView.getLeftTabbar();
-            auto bounds = getLocalArea(tabbar, tabbar->getLocalBounds()).withTrimmedTop(tabbar->getTabBarDepth()).toFloat().expanded(0.5f).withTrimmedRight(isOnLeft ? 0.0f : 0.5f).withTrimmedBottom(-0.5f);
+            auto bounds = getLocalArea(tabbar, tabbar->getLocalBounds()).withTrimmedTop(tabbar->getTabBarDepth()).toFloat().withTrimmedRight(isOnLeft ? 0.0f : 0.5f).withTrimmedBottom(-0.5f);
             selectedSplitRect.setRectangle(Parallelogram<float>(bounds));
         }
         selectedSplitRect.toFront(false);
