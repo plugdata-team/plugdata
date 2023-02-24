@@ -880,24 +880,24 @@ void PluginEditor::getCommandInfo(const CommandID commandID, ApplicationCommandI
     }
     case CommandIDs::NextTab: {
         result.setInfo("Next Tab", "Show the next tab", "View", 0);
-
+        result.setActive(true);
+        
 #if JUCE_MAC
         result.addDefaultKeypress(KeyPress::rightKey, ModifierKeys::commandModifier);
 #else
         result.addDefaultKeypress(KeyPress::pageDownKey, ModifierKeys::commandModifier);
 #endif
-
         break;
     }
     case CommandIDs::PreviousTab: {
         result.setInfo("Previous Tab", "Show the previous tab", "View", 0);
-
+        result.setActive(true);
+        
 #if JUCE_MAC
         result.addDefaultKeypress(KeyPress::leftKey, ModifierKeys::commandModifier);
 #else
         result.addDefaultKeypress(KeyPress::pageUpKey, ModifierKeys::commandModifier);
 #endif
-
         break;
     }
     case CommandIDs::ToggleGrid: {
@@ -1099,9 +1099,9 @@ bool PluginEditor::perform(InvocationInfo const& info)
     }
     case CommandIDs::NextTab: {
         
-        auto* tabbar = splitView.getActiveTabbar();
+        auto* tabbar = cnv->getTabbar();
         
-        int currentIdx = tabbar->getIndexOfCanvas(cnv) + 1;
+        int currentIdx = cnv->getTabIndex() + 1;
 
         if (currentIdx >= tabbar->getNumTabs())
             currentIdx -= tabbar->getNumTabs();
@@ -1113,9 +1113,9 @@ bool PluginEditor::perform(InvocationInfo const& info)
         return true;
     }
     case CommandIDs::PreviousTab: {
-        auto* tabbar = splitView.getActiveTabbar();
+        auto* tabbar = cnv->getTabbar();
         
-        int currentIdx = tabbar->getIndexOfCanvas(cnv) - 1;
+        int currentIdx = cnv->getTabIndex() - 1;
 
         if (currentIdx >= tabbar->getNumTabs())
             currentIdx -= tabbar->getNumTabs();
