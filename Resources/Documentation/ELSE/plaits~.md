@@ -42,6 +42,12 @@ inlets:
     description: pitch input
   - type: bang
     description: control trigger (when in trigger mode)
+  2nd:
+  - type: signal
+    description: signal trigger input
+  3rd:
+  - type: signal
+    description: level for built-in VCA or excitation signal
 
 outlets:
   1st:
@@ -51,8 +57,8 @@ outlets:
   - type: signal
     description: secondary (auxiliary) signal output
   3rd:
-  - type: symbol
-    description: chosen model name
+  - type: anything
+    description: output info on setting model or 'dump'
 
 methods:
   - type: hz
