@@ -52,7 +52,7 @@ SplitView::SplitView(PluginEditor* parent) : editor(parent)
             cnv->checkBounds();
         }
         
-        editor->resized(); // To make it update the active split outline
+        editor->updateSplitOutline();
     };
     addChildComponent(resizer);
 
@@ -203,7 +203,7 @@ void SplitView::splitCanvasView(Canvas* cnv, bool splitViewFocus)
     splitFocusIndex = splitViewFocus;
     editor->addTab(canvasCopy);
     editor->canvases.add(canvasCopy);
-    editor->resized();
+    editor->updateSplitOutline();
 }
 
 TabComponent* SplitView::getActiveTabbar()

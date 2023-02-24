@@ -289,22 +289,7 @@ void PluginEditor::resized()
         cnv->checkBounds();
     }
     
-    auto* tabbar = splitView.getActiveTabbar();
-    if (splitView.isSplitEnabled() && tabbar) {
-        if(auto* cnv = tabbar->getCurrentCanvas()) {
-            bool isOnLeft = tabbar == splitView.getLeftTabbar();
-
-            auto bounds = getLocalArea(tabbar, tabbar->getLocalBounds()).withTrimmedTop(tabbar->getTabBarDepth()).toFloat().withTrimmedRight(isOnLeft ? 0.0f : 0.5f).withTrimmedBottom(-0.5f);
-            selectedSplitRect.setRectangle(Parallelogram<float>(bounds));
-            
-            selectedSplitRect.toFront(false);
-            selectedSplitRect.setVisible(true);
-        }
-    }
-    else
-    {
-        selectedSplitRect.setVisible(false);
-    }
+    updateSplitOutline();
 }
 
 void PluginEditor::mouseWheelMove(MouseEvent const& e, MouseWheelDetails const& wheel)
@@ -581,6 +566,7 @@ void PluginEditor::addTab(Canvas* cnv)
     };
 
     cnv->setVisible(true);
+    updateSplitOutline();
 }
 
 void PluginEditor::valueChanged(Value& v)
@@ -1246,4 +1232,23 @@ bool PluginEditor::wantsRoundedCorners()
 #else
     return false;
 #endif
+}
+
+void PluginEditor::updateSplitOutline()
+{
+    auto* tabbar = splitView.getActiveTabbar();
+    if (splitView.isSplitEnabled() && tabbar) {
+        if(auto* cnv = tabbar->getCurrentCanvas()) {
+            bool isOnLeft = tabbar == splitView.getLeftTabbar();
+
+            auto bounds = getLocalArea(tabbar, tabbar->getLocalBounds()).withTrimmedTop(tabbar->getTabBarDepth()).toFloat().withTrimmedRight(isOnLeft ? 0.0f : 0.5f).withTrimmedLeft(isOnLeft ? 0.5f : 0.0f).withTrimmedBottom(-0.5f);
+            selectedSplitRect.setRectangle(Parallelogram<float>(bounds));
+            selectedSplitRect.toFront(false);
+            selectedSplitRect.setVisible(true);
+        }
+    }
+    else
+    {
+        selectedSplitRect.setVisible(false);
+    }
 }
