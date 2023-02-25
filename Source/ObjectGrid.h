@@ -15,14 +15,14 @@ class ObjectGrid : public SettingsFileListener {
 public:
     ObjectGrid(Canvas* parent);
     
-    // Point<int> handleMouseDrag(Object* toDrag, Point<int> dragOffset, Rectangle<int> viewBounds, Rectangle<int> resizeBounds = Rectangle<int>(0, 0, 0, 0));
+    
     Point<int> handleMouseUp(Point<int> dragOffset);
 
     Point<int> performMove(Object* toDrag, Point<int> dragOffset);
-
     Point<int> performResize(Object* toDrag, Point<int> dragOffset, Rectangle<int> newResizeBounds);
 
     //TODO: Can we save gridSize in patch instead of Settings File??
+    // TS: No we can't!
     int gridSize;
 
     static constexpr int range = 5;
@@ -44,7 +44,7 @@ private:
     Component::SafePointer<Component> end[2];
     DrawablePath gridLines[2];
 
-    Point<int> applySnap(SnapOrientation orientation, Point<int> position, Component* start, Component* end, bool horizontal);
+    int applySnap(SnapOrientation orientation, int position, Component* start, Component* end, bool horizontal);
     void updateMarker();
     void clear(bool horizontal);
 
