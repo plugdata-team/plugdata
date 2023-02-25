@@ -580,11 +580,11 @@ bool Canvas::keyPressed(KeyPress const& key)
     };
 
     // Move objects with arrow keys
-    int moveDistance = 10;
+    int moveDistance = objectGrid.gridSize;
     if (key.getModifiers().isShiftDown()) {
         moveDistance = 1;
     } else if (key.getModifiers().isCommandDown()) {
-        moveDistance = 50;
+        moveDistance *= 4;
     }
 
     if(!ModifierKeys::getCurrentModifiers().isAnyModifierKeyDown()) {
