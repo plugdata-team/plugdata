@@ -186,7 +186,7 @@ void Canvas::tabChanged()
         if (auto* graphCnv = obj->gui->getCanvas())
             graphCnv->synchronise();
         
-        object->gui->tabChanged();
+        obj->gui->tabChanged();
     }
 }
 
