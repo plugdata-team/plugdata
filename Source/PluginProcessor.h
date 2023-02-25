@@ -85,6 +85,8 @@ public:
         int nbus = getBusCount(isInput);
         return nbus > 0;
     }
+        
+    void savePatchTabPositions();
 
     void initialiseFilesystem();
     void updateSearchPaths();
@@ -173,6 +175,8 @@ private:
 
     int minIn = 2;
     int minOut = 2;
+        
+    int lastSplitIndex = -1;
 
     std::unique_ptr<dsp::Oversampling<float>> oversampler;
 

@@ -106,13 +106,7 @@ Canvas::Canvas(PluginEditor* parent, pd::Patch& p, bool ownerOfPatch, Component*
 Canvas::~Canvas()
 {
     Desktop::getInstance().removeFocusChangeListener(this);
-    
-    if(closePatchAlongWithCanvas) {
-        pd->lockAudioThread();
-        patch.close();
-        pd->unlockAudioThread();
-    }
-    
+        
     delete graphArea;
     delete suggestor;
 }

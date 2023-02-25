@@ -94,6 +94,10 @@ SplitView::SplitView(PluginEditor* parent) : editor(parent)
                 setFocus(cnv);
             }
         };
+        
+        tabbar.onTabMoved = [this](){
+            editor->pd->savePatchTabPositions();
+        };
 
         tabbar.rightClick = [this, &tabbar, i](int tabIndex, String const& tabName) {
             PopupMenu tabMenu;
@@ -198,6 +202,19 @@ void SplitView::closeEmptySplits()
     }
 }
 
+void SplitView::splitCanvasesAfterIndex(int idx, bool direction)
+{
+    Array<Canvas*> splitCanvases;
+    
+    // Two loops to make sure we don't edit the order during the first loop
+    for(int i = 0; i < idx && i >= 0; i++) {
+        splitCanvases.add(editor->canvases[i]);
+    }
+    for(auto* cnv : splitCanvases)
+    {
+        splitCanvasView(cnv, direction);
+    }
+}
 void SplitView::splitCanvasView(Canvas* cnv, bool splitViewFocus)
 {
     auto* patch = &cnv->patch;
@@ -216,6 +233,7 @@ void SplitView::splitCanvasView(Canvas* cnv, bool splitViewFocus)
     editor->addTab(canvasCopy);
     editor->canvases.add(canvasCopy);
     editor->updateSplitOutline();
+    editor->pd->savePatchTabPositions();
 }
 
 TabComponent* SplitView::getActiveTabbar()
