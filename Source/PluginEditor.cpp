@@ -481,7 +481,9 @@ void PluginEditor::closeTab(Canvas* cnv, bool neverDeletePatch)
     auto* patch = &cnv->patch;
     
     cnv->getTabbar()->removeTab(tabIdx);
-    cnv->closePatchAlongWithCanvas = cnv->closePatchAlongWithCanvas && !neverDeletePatch;
+    if(!neverDeletePatch && cnv->closePatchAlongWithCanvas) {
+        patch->close();
+    }
     canvases.removeObject(cnv);
     if(!neverDeletePatch) pd->patches.removeObject(patch);
 
@@ -498,6 +500,8 @@ void PluginEditor::closeTab(Canvas* cnv, bool neverDeletePatch)
     splitView.closeEmptySplits();
     updateCommandStatus();
     
+    pd->savePatchTabPositions();
+    
     MessageManager::callAsync([_this = SafePointer(this)]()
     {
         if(!_this) return;
@@ -509,7 +513,7 @@ void PluginEditor::addTab(Canvas* cnv)
 {
     // Create a pointer to the TabBar in focus
     auto* focusedTabbar = splitView.getActiveTabbar();
-
+    
     int const newTabIdx = focusedTabbar->getCurrentTabIndex() + 1; // The tab index for the added tab
     
     // Add tab next to the currently focused tab
@@ -567,6 +571,8 @@ void PluginEditor::addTab(Canvas* cnv)
 
     cnv->setVisible(true);
     updateSplitOutline();
+    
+    pd->savePatchTabPositions();
 }
 
 void PluginEditor::valueChanged(Value& v)

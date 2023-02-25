@@ -744,11 +744,10 @@ void PluginProcessor::messageEnqueued()
     if (isNonRealtime() || isSuspended()) {
         sendMessagesFromQueue();
     } else {
-        /*
         if (tryLockAudioThread()) {
             sendMessagesFromQueue();
             unlockAudioThread();
-        } */
+        }
     }
 }
 
@@ -821,11 +820,12 @@ AudioProcessorEditor* PluginProcessor::createEditor()
     auto* editor = new PluginEditor(*this);
     setThis();
     
-    // TODO: restore splitviews as well
     for (auto* patch : patches) {
         auto* cnv = editor->canvases.add(new Canvas(editor, *patch, true, nullptr));
         editor->addTab(cnv);
     }
+    
+    editor->splitView.splitCanvasesAfterIndex(lastSplitIndex, true);
 
     editor->resized();
 
@@ -843,7 +843,9 @@ void PluginProcessor::getStateInformation(MemoryBlock& destData)
 {
     setThis();
 
-    // Store pure-data state
+    savePatchTabPositions();
+    
+    // Store pure-data and parameter state
     MemoryOutputStream ostream(destData, false);
 
     ostream.writeInt(patches.size());
@@ -862,6 +864,24 @@ void PluginProcessor::getStateInformation(MemoryBlock& destData)
 
     XmlElement xml = XmlElement("plugdata_save");
     xml.setAttribute("Version", PLUGDATA_VERSION);
+    xml.setAttribute("SplitIndex", lastSplitIndex);
+    
+    // In the future, we're gonna load everything from xml, to make it easier to add new properties
+    // By putting this here, we can prepare for making this change without breaking existing DAW saves
+    xml.setAttribute("Oversampling", oversampling);
+    xml.setAttribute("Latency", getLatencySamples());
+    xml.setAttribute("TailLength", static_cast<float>(tailLength.getValue()));
+    xml.setAttribute("Legacy", false);
+    
+    if (auto* editor = getActiveEditor()) {
+        xml.setAttribute("Width", editor->getWidth());
+        xml.setAttribute("Height", editor->getHeight());
+    } else {
+        xml.setAttribute("Width", lastUIWidth);
+        xml.setAttribute("Height", lastUIHeight);
+    }
+    
+    
     PlugDataParameter::saveStateInformation(xml, getParameters());
 
     MemoryBlock xmlBlock;
@@ -869,14 +889,6 @@ void PluginProcessor::getStateInformation(MemoryBlock& destData)
 
     ostream.writeInt(static_cast<int>(xmlBlock.getSize()));
     ostream.write(xmlBlock.getData(), xmlBlock.getSize());
-
-    if (auto* editor = getActiveEditor()) {
-        ostream.writeInt(editor->getWidth());
-        ostream.writeInt(editor->getHeight());
-    } else {
-        ostream.writeInt(lastUIWidth);
-        ostream.writeInt(lastUIHeight);
-    }
 }
 
 void PluginProcessor::setStateInformation(void const* data, int sizeInBytes)
@@ -949,16 +961,15 @@ void PluginProcessor::setStateInformation(void const* data, int sizeInBytes)
     if (xmlState) {
         PlugDataParameter::loadStateInformation(*xmlState, getParameters());
 
-        auto versionString = String("0.6.1");
+        auto versionString = String("0.6.1"); // latest version that didn't have version inside the daw state
 
         if (xmlState->hasAttribute("Version")) {
             versionString = xmlState->getStringAttribute("Version");
         }
 
-        if (versionString.startsWith("0.7") && !istream.isExhausted()) {
-            int windowWidth = istream.readInt();
-            int windowHeight = istream.readInt();
-
+        if (xmlState->hasAttribute("Height") && xmlState->hasAttribute("Width")) {
+            int windowWidth = xmlState->getIntAttribute("Width", 1000);
+            int windowHeight = xmlState->getIntAttribute("Height", 650);
             lastUIWidth = windowWidth;
             lastUIHeight = windowHeight;
             if (auto* editor = getActiveEditor()) {
@@ -967,6 +978,14 @@ void PluginProcessor::setStateInformation(void const* data, int sizeInBytes)
                         return;
                     editor->setSize(windowWidth, windowHeight);
                 });
+            }
+        }
+        if (xmlState->hasAttribute("SplitIndex")) {
+            
+            lastSplitIndex = xmlState->getIntAttribute("SplitIndex", -1);
+            
+            if (auto* editor = dynamic_cast<PluginEditor*>(getActiveEditor())) {
+                editor->splitView.splitCanvasesAfterIndex(lastSplitIndex, true);
             }
         }
     }
@@ -1277,6 +1296,44 @@ void PluginProcessor::titleChanged()
                 return;
             rightTabbar->setTabName(n, cnv->patch.getTitle());
         }
+    }
+}
+
+void PluginProcessor::savePatchTabPositions() {
+    
+    Array<std::tuple<pd::Patch*, int, int>> sortedPatches;
+    
+    if(auto* editor = dynamic_cast<PluginEditor*>(getActiveEditor())) {
+        auto* leftTabbar = editor->splitView.getLeftTabbar();
+        
+        for(auto* cnv : editor->canvases)
+        {
+            sortedPatches.add({&cnv->patch, cnv->getTabbar() != leftTabbar, cnv->getTabIndex()});
+        }
+        
+        lastSplitIndex = leftTabbar->getNumTabs();
+    }
+    else {
+        return;
+    }
+    
+    std::sort(sortedPatches.begin(), sortedPatches.end(), [](const auto& a, const auto& b){
+        auto& [patchA, splitA, idxA] = a;
+        auto& [patchB, splitB, idxB] = b;
+        
+        if(splitA == splitB)
+            return idxA < idxB;
+        
+        return splitA < splitB;
+    });
+    
+    int i = 0;
+    for(auto& [patch, splitIdx, tabIdx] : sortedPatches) {
+        
+        if(i >= patches.size()) break;
+        
+        patches.set(i, patch, false);
+        i++;
     }
 }
 

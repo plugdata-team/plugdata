@@ -188,7 +188,9 @@ void PlugDataWindow::closeAllPatches()
         
         // TODO: why not suspend audio completely when we're closing?
         editor->canvases.removeObject(canvas);
+        patch->close();
         editor->pd->patches.removeObject(patch);
+        
         
         if (tabIdx != tabbar->getNumTabs()) {
             // Set the focused tab to the next one

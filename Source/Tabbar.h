@@ -97,6 +97,7 @@ class TabComponent : public TabbedComponent {
     WelcomePanel welcomePanel;
 
 public:
+    std::function<void()> onTabMoved = [](){};
     std::function<void()> onFocusGrab = [](){};
     std::function<void(int)> onTabChange = [](int) {};
     std::function<void()> newTab = []() {};
@@ -234,6 +235,7 @@ public:
         if (newTabIndex != currentTabIndex && newTabIndex >= 0 && newTabIndex < getNumTabs()) {
             moveTab(currentTabIndex, newTabIndex, true);
             currentTabIndex = newTabIndex;
+            onTabMoved();
         }
     }
 
