@@ -460,6 +460,9 @@ bool PluginProcessor::isBusesLayoutSupported(BusesLayout const& layouts) const
 
 void PluginProcessor::processBlock(AudioBuffer<float>& buffer, MidiBuffer& midiMessages)
 {
+    
+    jassert(audioLock == &AudioProcessor::getCallbackLock());
+    
     ScopedNoDenormals noDenormals;
     auto totalNumInputChannels = getTotalNumInputChannels();
     auto totalNumOutputChannels = getTotalNumOutputChannels();
@@ -741,10 +744,11 @@ void PluginProcessor::messageEnqueued()
     if (isNonRealtime() || isSuspended()) {
         sendMessagesFromQueue();
     } else {
+        /*
         if (tryLockAudioThread()) {
             sendMessagesFromQueue();
             unlockAudioThread();
-        }
+        } */
     }
 }
 

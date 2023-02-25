@@ -508,8 +508,6 @@ void Instance::enqueueFunction(std::function<void(void)> const& fn)
 
 void Instance::enqueueFunctionAsync(std::function<void(void)> const& fn)
 {
-    // This should be the way to do it, but it currently causes some issues
-    // By calling fn directly we fix these issues at the cost of possible thread unsafety
     m_function_queue.enqueue(fn);
 }
 
@@ -551,11 +549,11 @@ void Instance::waitForStateUpdate()
     // By never blocking infinitely, and attempting to dequeue inbetween tries, we can possibly prevent deadlocks
     for (int i = 0; i < 10; i++) {
         messageEnqueued();
-        if (updateWait.wait(200))
+        if (updateWait.wait(200)) {
+            waitingForStateUpdate = false;
             return;
+        }
     }
-
-    waitingForStateUpdate = false;
 }
 
 void Instance::sendMessagesFromQueue()
@@ -692,20 +690,29 @@ bool Instance::loadLibrary(String libraryToLoad)
 
 void Instance::lockAudioThread()
 {
-    if (waitingForStateUpdate)
+    if (waitingForStateUpdate) // In this case, the message thread is waiting for the audio thread, so never lock in that case!
         return;
 
+    numLocksHeld++;
     audioLock->enter();
 }
 
 bool Instance::tryLockAudioThread()
 {
-    return audioLock->tryEnter();
+    if(audioLock->tryEnter()) {
+        numLocksHeld++;
+        return true;
+    }
+    
+    return false;
 }
 
 void Instance::unlockAudioThread()
 {
-    audioLock->exit();
+    if(numLocksHeld > 0) {
+        numLocksHeld--;
+        audioLock->exit();
+    }
 }
 
 void Instance::setCallbackLock(CriticalSection const* lock)
