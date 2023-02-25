@@ -17,7 +17,7 @@ public:
     {
         addAndMakeVisible(resizer);
         updateBounds();
-        setMouseCursor(MouseCursor::DraggingHandCursor);
+        setMouseCursor(MouseCursor::UpDownLeftRightResizeCursor);
     }
 
     void paint(Graphics& g) override
