@@ -88,6 +88,12 @@ SplitView::SplitView(PluginEditor* parent) : editor(parent)
 
             editor->updateCommandStatus();
         };
+        
+        tabbar.onFocusGrab = [this, &tabbar](){
+            if(auto* cnv = tabbar.getCurrentCanvas()) {
+                setFocus(cnv);
+            }
+        };
 
         tabbar.rightClick = [this, &tabbar, i](int tabIndex, String const& tabName) {
             PopupMenu tabMenu;
@@ -150,9 +156,15 @@ void SplitView::resized()
 void SplitView::setFocus(Canvas* cnv)
 {
     splitFocusIndex = cnv->getTabbar() == getRightTabbar();
-    for (auto canvas : editor->canvases) {
-        canvas->repaint();
+    
+    if(auto* cnv = getLeftTabbar()->getCurrentCanvas()) {
+        cnv->repaint();
     }
+    if(auto* cnv = getRightTabbar()->getCurrentCanvas()) {
+        cnv->repaint();
+    }
+
+    editor->updateSplitOutline();
 }
 
 int SplitView::getCurrentSplitIndex()

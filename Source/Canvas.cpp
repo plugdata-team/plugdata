@@ -173,7 +173,6 @@ void Canvas::globalFocusChanged(Component *focusedComponent)
     if(focusedComponent == this || focusedComponent->findParentComponentOfClass<Canvas>() == this)
     {
         editor->splitView.setFocus(this);
-        editor->updateSplitOutline();
     }
 }
 

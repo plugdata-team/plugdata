@@ -97,6 +97,7 @@ class TabComponent : public TabbedComponent {
     WelcomePanel welcomePanel;
 
 public:
+    std::function<void()> onFocusGrab = [](){};
     std::function<void(int)> onTabChange = [](int) {};
     std::function<void()> newTab = []() {};
     std::function<void()> openProject = []() {};
@@ -180,7 +181,7 @@ public:
         g.drawLine(0, 0, 0, getBottom());
     }
 
-    virtual void popupMenuClickOnTab(int tabIndex, String const& tabName) override
+    void popupMenuClickOnTab(int tabIndex, String const& tabName) override
     {
         rightClick(tabIndex, tabName);
     }
@@ -189,6 +190,8 @@ public:
     {
         currentTabIndex = getCurrentTabIndex();
         tabWidth = tabs->getWidth() / getNumTabs();
+        
+        onFocusGrab();
     }
     
     int getIndexOfCanvas(Canvas* cnv) {
