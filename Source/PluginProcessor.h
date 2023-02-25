@@ -94,7 +94,7 @@ public:
     void sendMidiBuffer();
     void sendPlayhead();
     void sendParameters();
-
+    
     void messageEnqueued() override;
     void performParameterChange(int type, String name, float value) override;
 
@@ -111,8 +111,8 @@ public:
     Colour getOutlineColour() override;
 
     // All opened patches
-    OwnedArray<pd::Patch> patches;
-
+    OwnedArray<pd::Patch, CriticalSection> patches;
+        
     int lastUIWidth = 1000, lastUIHeight = 650;
 
     std::vector<float*> channelPointers;
@@ -158,6 +158,7 @@ public:
 private:
     void processInternal();
 
+        
     int audioAdvancement = 0;
     std::vector<float> audioBufferIn;
     std::vector<float> audioBufferOut;

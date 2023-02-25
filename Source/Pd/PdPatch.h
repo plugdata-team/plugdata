@@ -23,7 +23,8 @@ class Instance;
 //! @details The class is a wrapper around a Pd patch. The lifetime of the internal patch\n
 //! is not guaranteed by the class.
 //! @see Instance, Object, Gui
-class Patch {
+class Patch
+{
 public:
     Patch(void* ptr, Instance* instance, File currentFile = File());
 
@@ -143,5 +144,7 @@ private:
     friend class Instance;
     friend class Gui;
     friend class Object;
+    
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(Patch)
 };
 } // namespace pd

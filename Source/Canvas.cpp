@@ -172,25 +172,21 @@ void Canvas::globalFocusChanged(Component *focusedComponent)
 
 void Canvas::tabChanged()
 {
-    // update GraphOnParent when changing tabs
-    // TODO: shouldn't we do this always on sync?
-    for (auto* obj : objects) {
-        if (!obj->gui)
-            continue;
-        if (auto* graphCnv = obj->gui->getCanvas())
-            graphCnv->synchronise();
-    }
-
     patch.setCurrent();
 
     synchronise();
     updateDrawables();
     
-    for(auto* object : objects)
-    {
-        if(object->gui) {
-            object->gui->tabChanged();
-        }
+    // update GraphOnParent when changing tabs
+    // TODO: shouldn't we do this always on sync?
+    for (auto* obj : objects) {
+        if (!obj->gui)
+            continue;
+        
+        if (auto* graphCnv = obj->gui->getCanvas())
+            graphCnv->synchronise();
+        
+        object->gui->tabChanged();
     }
 }
 

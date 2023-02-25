@@ -46,16 +46,18 @@ struct t_fake_clone {
 
 class CloneObject final : public TextBase {
 
-    pd::Patch subpatch;
+    std::unique_ptr<pd::Patch> subpatch;
 
 public:
     CloneObject(void* obj, Object* object)
         : TextBase(obj, object)
-        , subpatch({ nullptr, nullptr })
     {
         auto* gobj = static_cast<t_gobj*>(ptr);
         if (clone_get_n(gobj) > 0) {
-            subpatch = { clone_get_instance(gobj, 0), cnv->pd };
+            subpatch.reset(new pd::Patch(clone_get_instance(gobj, 0), cnv->pd));
+        }
+        else {
+            subpatch.reset(new pd::Patch(nullptr, nullptr));
         }
     }
 
@@ -66,7 +68,7 @@ public:
 
     pd::Patch* getPatch() override
     {
-        return &subpatch;
+        return subpatch.get();
     }
 
     String getText() override

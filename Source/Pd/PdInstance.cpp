@@ -576,7 +576,7 @@ String Instance::getExtraInfo(File const& toOpen)
     return String();
 }
 
-Patch Instance::openPatch(File const& toOpen)
+Patch* Instance::openPatch(File const& toOpen)
 {
     t_canvas* cnv = nullptr;
 
@@ -589,10 +589,8 @@ Patch Instance::openPatch(File const& toOpen)
     setThis();
 
     cnv = static_cast<t_canvas*>(libpd_create_canvas(file, dir));
-
-    auto patch = Patch(cnv, this, toOpen);
-
-    return patch;
+    
+    return new Patch(cnv, this, toOpen);;
 }
 
 void Instance::setThis() const

@@ -185,6 +185,8 @@ std::vector<void*> Patch::getObjects()
 {
     if (ptr) {
         setCurrent();
+        
+        instance->lockAudioThread();
 
         std::vector<void*> objects;
         t_canvas const* cnv = getPointer();
@@ -192,9 +194,12 @@ std::vector<void*> Patch::getObjects()
         for (t_gobj* y = cnv->gl_list; y; y = y->g_next) {
             objects.push_back(static_cast<void*>(y));
         }
+        
+        instance->unlockAudioThread();
 
         return objects;
     }
+    
     return {};
 }
 

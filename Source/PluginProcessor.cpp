@@ -852,7 +852,7 @@ void PluginProcessor::getStateInformation(MemoryBlock& destData)
 
     // Save path and content for patch
     lockAudioThread();
-    for (auto& patch : patches) {
+    for (auto* patch : patches) {
         ostream.writeString(patch->getCanvasContent());
         ostream.writeString(patch->getCurrentFile().getFullPathName());
     }
@@ -917,7 +917,7 @@ void PluginProcessor::setStateInformation(void const* data, int sizeInBytes)
     suspendProcessing(true);
     setThis();
 
-    for (auto& patch : patches)
+    for (auto* patch : patches)
         patch->close();
     patches.clear();
 
@@ -1033,16 +1033,16 @@ pd::Patch* PluginProcessor::loadPatch(File const& patchFile)
     // Stop the audio callback when loading a new patch
     suspendProcessing(true);
 
-    auto newPatch = openPatch(patchFile);
+    auto* newPatch = openPatch(patchFile);
 
     suspendProcessing(false);
 
-    if (!newPatch.getPointer()) {
+    if (!newPatch->getPointer()) {
         logError("Couldn't open patch");
         return nullptr;
     }
 
-    auto* patch = patches.add(new pd::Patch(newPatch));
+    auto* patch = patches.add(newPatch);
 
     if (auto* editor = dynamic_cast<PluginEditor*>(getActiveEditor())) {
         MessageManager::callAsync([patch, _editor = Component::SafePointer(editor)]() mutable {
@@ -1327,6 +1327,7 @@ void PluginProcessor::savePatchTabPositions() {
         return splitA < splitB;
     });
     
+    patches.getLock().enter();
     int i = 0;
     for(auto& [patch, splitIdx, tabIdx] : sortedPatches) {
         
@@ -1335,6 +1336,7 @@ void PluginProcessor::savePatchTabPositions() {
         patches.set(i, patch, false);
         i++;
     }
+    patches.getLock().exit();
 }
 
 // This creates new instances of the plugin..
