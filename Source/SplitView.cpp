@@ -207,7 +207,7 @@ void SplitView::splitCanvasesAfterIndex(int idx, bool direction)
     Array<Canvas*> splitCanvases;
     
     // Two loops to make sure we don't edit the order during the first loop
-    for(int i = 0; i < idx && i >= 0; i++) {
+    for(int i = idx; i < editor->canvases.size() && i >= 0; i++) {
         splitCanvases.add(editor->canvases[i]);
     }
     for(auto* cnv : splitCanvases)
