@@ -222,7 +222,12 @@ public:
     void paintOverChildren(Graphics& g) override
     {
         if(isOpenedInSplitView) {
-            g.fillAll(object->findColour(PlugDataColour::guiObjectBackgroundColourId));
+            
+            g.setColour(object->findColour(PlugDataColour::guiObjectBackgroundColourId));
+            g.fillRoundedRectangle(getLocalBounds().toFloat(), PlugDataLook::objectCornerRadius);
+            
+            g.setColour(object->findColour(objectOutlineColourId));
+            g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), PlugDataLook::objectCornerRadius, 1.0f);
             
             auto colour = object->findColour(PlugDataColour::canvasTextColourId);
             PlugDataLook::drawText(g, "Graph opened in split view", getLocalBounds(), colour, 14, Justification::centred);
