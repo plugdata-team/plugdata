@@ -298,7 +298,8 @@ public:
     inline static const String defaultPatch = "#N canvas 827 239 527 327 12;";
 
     bool isPerformingGlobalSync = false;
-
+    CriticalSection const* audioLock;
+    
 private:
     std::unordered_map<void*, std::vector<WeakReference<MessageListener>>> messageListeners;
 
@@ -306,9 +307,11 @@ private:
 
     std::unique_ptr<FileChooser> saveChooser;
     std::unique_ptr<FileChooser> openChooser;
+    
+    std::atomic<int> numLocksHeld = 0;
 
     WaitableEvent updateWait;
-    CriticalSection const* audioLock;
+
 
 protected:
     struct internal;
