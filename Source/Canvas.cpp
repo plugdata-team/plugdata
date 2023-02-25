@@ -316,7 +316,8 @@ void Canvas::synchronise(bool updatePosition)
     }
 
     if (!isGraph) {
-        setTransform(editor->transform);
+        auto scale = editor->getZoomScaleForCanvas(this);
+        setTransform(AffineTransform().scaled(scale));
     }
 
     // Resize canvas to fit objects
@@ -1032,7 +1033,7 @@ void Canvas::checkBounds()
 
     updatingBounds = true;
 
-    float scale = std::max(1.0f, 1.0f / static_cast<float>(editor->zoomScale.getValue()));
+    float scale = std::max(1.0f, 1.0f / editor->getZoomScaleForCanvas(this));
 
     auto viewBounds = Rectangle<int>(canvasOrigin.x, canvasOrigin.y, (viewport->getWidth() - 8) * scale, (viewport->getHeight() - 8) * scale);
 

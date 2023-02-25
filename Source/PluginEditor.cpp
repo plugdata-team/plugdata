@@ -98,6 +98,9 @@ PluginEditor::PluginEditor(PluginProcessor& p)
 
     zoomScale.referTo(settingsFile->getPropertyAsValue("zoom"));
     zoomScale.addListener(this);
+    
+    splitZoomScale.referTo(settingsFile->getPropertyAsValue("split_zoom"));
+    splitZoomScale.addListener(this);
 
     addAndMakeVisible(statusbar);
     addAndMakeVisible(splitView);
@@ -182,6 +185,7 @@ PluginEditor::PluginEditor(PluginProcessor& p)
 
     // Initialise zoom factor
     valueChanged(zoomScale);
+    valueChanged(splitZoomScale);
     
     selectedSplitRect.setStrokeThickness(1.0f);
     selectedSplitRect.setInterceptsMouseClicks(false, false);
@@ -193,6 +197,7 @@ PluginEditor::~PluginEditor()
     setConstrainer(nullptr);
 
     zoomScale.removeListener(this);
+    splitZoomScale.removeListener(this);
     theme.removeListener(this);
     
     pd->lastLeftTab = splitView.getLeftTabbar()->getCurrentTabIndex();
@@ -306,16 +311,16 @@ void PluginEditor::mouseMagnify(MouseEvent const& e, float scrollFactor)
     if (!cnv)
         return;
 
-    auto* viewport = getCurrentCanvas()->viewport;
+    auto event = e.getEventRelativeTo(getCurrentCanvas()->viewport);
+    
+    auto& scale = splitView.isRightTabbarActive() ? splitZoomScale : zoomScale;
 
-    auto event = e.getEventRelativeTo(viewport);
-
-    float value = static_cast<float>(zoomScale.getValue());
+    float value = static_cast<float>(scale.getValue());
 
     // Apply and limit zoom
     value = std::clamp(value * scrollFactor, 0.5f, 2.0f);
 
-    zoomScale = value;
+    scale = value;
 }
 
 #if PLUGDATA_STANDALONE
@@ -497,6 +502,15 @@ void PluginEditor::closeTab(Canvas* cnv, bool neverDeletePatch)
         }
     }
     
+    if(auto* leftCnv = splitView.getLeftTabbar()->getCurrentCanvas())
+    {
+        leftCnv->tabChanged();
+    }
+    if(auto* rightCnv = splitView.getRightTabbar()->getCurrentCanvas())
+    {
+        rightCnv->tabChanged();
+    }
+    
     splitView.closeEmptySplits();
     updateCommandStatus();
     
@@ -578,7 +592,7 @@ void PluginEditor::addTab(Canvas* cnv)
 void PluginEditor::valueChanged(Value& v)
 {
     // Update zoom
-    if (v.refersToSameSourceAs(zoomScale)) {
+    if (v.refersToSameSourceAs(zoomScale) || v.refersToSameSourceAs(splitZoomScale)) {
         float scale = static_cast<float>(v.getValue());
 
         if (scale == 0) {
@@ -586,19 +600,20 @@ void PluginEditor::valueChanged(Value& v)
             zoomScale = 1.0f;
         }
 
-        transform = AffineTransform().scaled(scale);
-
         auto lastMousePosition = Point<int>();
         if (auto* cnv = getCurrentCanvas()) {
             lastMousePosition = cnv->getMouseXYRelative();
         }
+        
+        auto* tabbar = v.refersToSameSourceAs(zoomScale) ? splitView.getLeftTabbar() : splitView.getRightTabbar();
 
-        for (auto& canvas : canvases) {
-            if (!canvas->isGraph) {
-                canvas->hideSuggestions();
-                canvas->setTransform(transform);
+        for(int i = 0; i < tabbar->getNumTabs(); i++) {
+            if(auto* cnv = tabbar->getCanvas(i)) {
+                cnv->hideSuggestions();
+                cnv->setTransform(AffineTransform().scaled(scale));
             }
         }
+        
         if (auto* cnv = getCurrentCanvas()) {
             cnv->checkBounds();
 
@@ -1092,14 +1107,16 @@ bool PluginEditor::perform(InvocationInfo const& info)
         return true;
     }
     case CommandIDs::ZoomIn: {
-        float newScale = static_cast<float>(zoomScale.getValue()) + 0.1f;
-        zoomScale = static_cast<float>(static_cast<int>(round(std::clamp(newScale, 0.5f, 2.0f) * 10.))) / 10.;
+        auto& scale = splitView.isRightTabbarActive() ? splitZoomScale : zoomScale;
+        float newScale = static_cast<float>(scale.getValue()) + 0.1f;
+        scale = static_cast<float>(static_cast<int>(round(std::clamp(newScale, 0.5f, 2.0f) * 10.))) / 10.;
 
         return true;
     }
     case CommandIDs::ZoomOut: {
-        float newScale = static_cast<float>(zoomScale.getValue()) - 0.1f;
-        zoomScale = static_cast<float>(static_cast<int>(round(std::clamp(newScale, 0.5f, 2.0f) * 10.))) / 10.;
+        auto& scale = splitView.isRightTabbarActive() ? splitZoomScale : zoomScale;
+        float newScale = static_cast<float>(scale.getValue()) - 0.1f;
+        scale = static_cast<float>(static_cast<int>(round(std::clamp(newScale, 0.5f, 2.0f) * 10.))) / 10.;
 
         return true;
     }
@@ -1257,4 +1274,23 @@ void PluginEditor::updateSplitOutline()
     {
         selectedSplitRect.setVisible(false);
     }
+}
+
+float PluginEditor::getZoomScale()
+{
+    return static_cast<float>(splitView.isRightTabbarActive() ? splitZoomScale.getValue() : zoomScale.getValue());
+}
+
+float PluginEditor::getZoomScaleForCanvas(Canvas* cnv)
+{
+    return static_cast<float>(getZoomScaleValueForCanvas(cnv).getValue());
+}
+
+Value& PluginEditor::getZoomScaleValueForCanvas(Canvas* cnv)
+{
+    if(cnv->getTabbar() == splitView.getRightTabbar()) {
+        return splitZoomScale;
+    }
+    
+    return zoomScale;
 }
