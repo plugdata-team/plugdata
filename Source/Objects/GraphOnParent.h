@@ -20,7 +20,7 @@ public:
     // Graph On Parent
     GraphOnParent(void* obj, Object* object)
         : ObjectBase(obj, object)
-        , subpatch({ ptr, cnv->pd })
+        , subpatch(ptr, cnv->pd)
     {
         auto* glist = static_cast<t_canvas*>(ptr);
         isGraphChild = true;

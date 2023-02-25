@@ -230,7 +230,7 @@ void ObjectBase::openSubpatch()
     }
 
 
-    auto* newPatch = cnv->editor->pd->patches.add(new pd::Patch(*subpatch));
+    auto* newPatch = cnv->editor->pd->patches.add(subpatch);
     auto* newCanvas = cnv->editor->canvases.add(new Canvas(cnv->editor, *newPatch, false, nullptr));
 
     newPatch->setCurrentFile(path);

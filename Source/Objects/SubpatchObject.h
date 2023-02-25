@@ -15,7 +15,7 @@ class SubpatchObject final : public TextBase {
 public:
     SubpatchObject(void* obj, Object* object)
         : TextBase(obj, object)
-        , subpatch({ ptr, cnv->pd })
+        , subpatch(ptr, cnv->pd)
     {
         isGraphChild = false;
         hideNameAndArgs = static_cast<bool>(subpatch.getPointer()->gl_hidetext);
