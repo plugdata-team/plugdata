@@ -190,7 +190,7 @@ public:
     void mouseDown(MouseEvent const& e) override
     {
         currentTabIndex = getCurrentTabIndex();
-        tabWidth = tabs->getWidth() / getNumTabs();
+        tabWidth = tabs->getWidth() / std::max(1, getNumTabs());
         
         onFocusGrab();
     }
