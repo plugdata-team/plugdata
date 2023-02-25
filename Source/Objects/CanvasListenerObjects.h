@@ -177,19 +177,20 @@ class CanvasZoomObject final : public TextBase {
     };
 
     float lastScale;
+    Value zoomScaleValue;
 
 public:
     CanvasZoomObject(void* ptr, Object* object)
         : TextBase(ptr, object)
     {
-        lastScale = static_cast<float>(cnv->editor->zoomScale.getValue());
-        cnv->editor->zoomScale.addListener(this);
+        zoomScaleValue.referTo(cnv->editor->getZoomScaleValueForCanvas(cnv));
+        zoomScaleValue.addListener(this);
+        lastScale = static_cast<float>(zoomScaleValue.getValue());
     }
 
     void valueChanged(Value& v) override
     {
-
-        float newScale = static_cast<float>(cnv->editor->zoomScale.getValue());
+        float newScale = static_cast<float>(zoomScaleValue.getValue());
         if (lastScale != newScale) {
             auto* zoom = static_cast<t_fake_zoom*>(ptr);
             outlet_float(zoom->x_obj.ob_outlet, newScale);

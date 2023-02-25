@@ -171,17 +171,17 @@ void SplitView::setFocus(Canvas* cnv)
     editor->updateSplitOutline();
 }
 
-int SplitView::getCurrentSplitIndex()
-{
-    return splitFocusIndex;
-}
-
 bool SplitView::hasFocus(Canvas* cnv)
 {
     if ((cnv->getTabbar() == getRightTabbar()) == splitFocusIndex)
         return true;
     else
         return false;
+}
+
+bool SplitView::isRightTabbarActive()
+{
+    return splitFocusIndex;
 }
 
 void SplitView::closeEmptySplits()

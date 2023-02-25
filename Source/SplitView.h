@@ -8,6 +8,8 @@ class SplitViewResizer;
 class SplitView : public Component {
 public:
     SplitView(PluginEditor* parent);
+    
+
 
     TabComponent* getActiveTabbar();
     TabComponent* getLeftTabbar();
@@ -15,7 +17,7 @@ public:
 
     void setSplitEnabled(bool splitEnabled);
     bool isSplitEnabled();
-    int getCurrentSplitIndex();
+    bool isRightTabbarActive();
     
     void splitCanvasesAfterIndex(int idx, bool direction);
     void splitCanvasView(Canvas* cnv, bool splitviewFocus);

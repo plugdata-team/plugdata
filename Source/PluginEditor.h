@@ -485,13 +485,15 @@ public:
     bool perform(InvocationInfo const& info) override;
     
     bool wantsRoundedCorners();
-
+    
+    float getZoomScale();
+    float getZoomScaleForCanvas(Canvas* cnv);
+    Value& getZoomScaleValueForCanvas(Canvas* cnv);
+    
     void updateSplitOutline();
     TabComponent* getActiveTabbar();
 
     PluginProcessor* pd;
-
-    AffineTransform transform;
 
     OwnedArray<Canvas, CriticalSection> canvases;
     Sidebar sidebar;
@@ -502,7 +504,6 @@ public:
     std::unique_ptr<Dialog> openedDialog = nullptr;
 
     Value theme;
-    Value zoomScale;
 
     Value hvccMode;
     Value autoconnect;
@@ -510,7 +511,11 @@ public:
     SplitView splitView;
     DrawableRectangle selectedSplitRect;
     
+    Value zoomScale;
+    Value splitZoomScale;
+    
 private:
+    
     std::unique_ptr<FileChooser> saveChooser;
     std::unique_ptr<FileChooser> openChooser;
     

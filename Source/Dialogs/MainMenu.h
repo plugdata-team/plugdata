@@ -10,7 +10,7 @@ public:
     MainMenu(PluginEditor* editor)
         : settingsTree(SettingsFile::getInstance()->getValueTree())
         , themeSelector(settingsTree)
-        , zoomSelector(settingsTree)
+        , zoomSelector(settingsTree, editor->splitView.isRightTabbarActive())
     {
         addCustomItem(1, themeSelector, 70, 45, false);
         addCustomItem(2, zoomSelector, 70, 30, false);
@@ -78,9 +78,9 @@ public:
         Value zoomValue;
 
     public:
-        ZoomSelector(ValueTree settingsTree)
+        ZoomSelector(ValueTree settingsTree, bool splitZoom)
         {
-            zoomValue = settingsTree.getPropertyAsValue("zoom", nullptr);
+            zoomValue = settingsTree.getPropertyAsValue(splitZoom ? "split_zoom" : "zoom", nullptr);
 
             zoomIn.setButtonText("+");
             zoomReset.setButtonText(String(static_cast<float>(zoomValue.getValue()) * 100, 1) + "%");
