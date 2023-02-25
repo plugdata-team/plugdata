@@ -17,6 +17,7 @@ public:
     {
         addAndMakeVisible(resizer);
         updateBounds();
+        setMouseCursor(MouseCursor::DraggingHandCursor);
     }
 
     void paint(Graphics& g) override
@@ -45,7 +46,7 @@ public:
         setPdBounds();
         repaint();
     }
-
+        
     void resized() override
     {
         int handleSize = 20;
