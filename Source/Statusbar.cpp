@@ -130,8 +130,7 @@ public:
 class GridSizeSlider : public PopupMenu::CustomComponent
 {
 public:
-    GridSizeSlider(Canvas* cnv)
-        : canvas(cnv)
+    GridSizeSlider(Canvas* leftCnv, Canvas* rightCnv)
     {
         addAndMakeVisible(slider.get());
         slider->setRange(5, 30, 5);
@@ -139,9 +138,10 @@ public:
         slider->setTextBoxStyle(Slider::NoTextBox, false, 0, 0);
         slider->setColour(Slider::ColourIds::trackColourId, findColour(PlugDataColour::panelBackgroundColourId));
         
-        slider->onValueChange = [this](){
+        slider->onValueChange = [this, leftCnv, rightCnv](){
             SettingsFile::getInstance()->setProperty("grid_size", slider->getValue());
-            canvas->repaint();
+            if(leftCnv)  leftCnv->repaint();
+            if(rightCnv) rightCnv->repaint();
         };
     }
         
@@ -172,7 +172,6 @@ public:
     }
 
 private:
-    Canvas* canvas;
     std::unique_ptr<Slider> slider = std::make_unique<Slider>();
 };
 
@@ -273,8 +272,10 @@ Statusbar::Statusbar(PluginProcessor* processor)
             }
         }); 
         gridSelector.addSeparator();
-        auto attachedCanvas = dynamic_cast<PluginEditor*>(pd->getActiveEditor())->getCurrentCanvas();
-        gridSelector.addCustomItem(1, std::make_unique<GridSizeSlider>(attachedCanvas), nullptr, "Grid Size");
+        
+        auto* leftCanvas = dynamic_cast<PluginEditor*>(pd->getActiveEditor())->splitView.getLeftTabbar()->getCurrentCanvas();
+        auto* rightCanvas = dynamic_cast<PluginEditor*>(pd->getActiveEditor())->splitView.getRightTabbar()->getCurrentCanvas();
+        gridSelector.addCustomItem(1, std::make_unique<GridSizeSlider>(leftCanvas, rightCanvas), nullptr, "Grid Size");
 
         gridSelector.showMenuAsync(PopupMenu::Options().withMinimumWidth(150).withMaximumNumColumns(1).withTargetComponent(gridButton.get()).withParentComponent(pd->getActiveEditor()));
     };
