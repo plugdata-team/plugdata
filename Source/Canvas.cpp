@@ -587,23 +587,21 @@ bool Canvas::keyPressed(KeyPress const& key)
         moveDistance *= 4;
     }
 
-    if(!ModifierKeys::getCurrentModifiers().isAnyModifierKeyDown()) {
-        if (keycode == KeyPress::leftKey) {
-            moveSelection(-moveDistance, 0);
-            return true;
-        }
-        if (keycode == KeyPress::rightKey) {
-            moveSelection(moveDistance, 0);
-            return true;
-        }
-        if (keycode == KeyPress::upKey) {
-            moveSelection(0, -moveDistance);
-            return true;
-        }
-        if (keycode == KeyPress::downKey) {
-            moveSelection(0, moveDistance);
-            return true;
-        }
+    if (keycode == KeyPress::leftKey) {
+        moveSelection(-moveDistance, 0);
+        return true;
+    }
+    if (keycode == KeyPress::rightKey) {
+        moveSelection(moveDistance, 0);
+        return true;
+    }
+    if (keycode == KeyPress::upKey) {
+        moveSelection(0, -moveDistance);
+        return true;
+    }
+    if (keycode == KeyPress::downKey) {
+        moveSelection(0, moveDistance);
+        return true;
     }
 
     return false;
