@@ -248,11 +248,9 @@ void Connection::renderConnectionPath(Graphics& g, Canvas* cnv, Path connectionP
 
     bool useThinConnection = PlugDataLook::getUseThinConnections();
 
-    if (!useThinConnection) {
-        // outer stroke
-        g.setColour(baseColour.darker(1.0f));
-        g.strokePath(connectionPath, PathStrokeType(2.5f, PathStrokeType::mitered, PathStrokeType::rounded));
-    }
+    // outer stroke
+    g.setColour(baseColour.darker(1.0f));
+    g.strokePath(connectionPath, PathStrokeType(useThinConnection ? 1.0f : 2.5f, PathStrokeType::mitered, PathStrokeType::rounded));
 
     // inner stroke
     g.setColour(baseColour);
@@ -260,7 +258,7 @@ void Connection::renderConnectionPath(Graphics& g, Canvas* cnv, Path connectionP
     PathStrokeType innerStroke(useThinConnection ? 1.0f : 1.5f);
 
     if (PlugDataLook::getUseDashedConnections() && isSignal) {
-        PathStrokeType dashedStroke(0.8f);
+        PathStrokeType dashedStroke(useThinConnection ? 0.5f : 0.8f);
         float dash[1] = { 5.0f };
         Path dashedPath;
         dashedStroke.createDashedStroke(dashedPath, connectionPath, dash, 1);
