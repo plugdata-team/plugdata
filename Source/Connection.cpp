@@ -108,6 +108,11 @@ void Connection::valueChanged(Value& v)
     }
 }
 
+void Connection::lookAndFeelChanged()
+{
+    updatePath();
+}
+
 void Connection::pushPathState()
 {
 
