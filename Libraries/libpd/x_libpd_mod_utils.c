@@ -433,6 +433,7 @@ static void libpd_arrange(t_canvas* cnv, t_gobj* obj, int to_front)
     }
     
     glist_noselect(cnv);
+    canvas_dirty(cnv, 1);
 }
 void libpd_tofront(t_canvas* cnv, t_gobj* obj)
 {
@@ -505,6 +506,8 @@ t_pd* libpd_creategraphonparent(t_canvas* cnv, int x, int y)
     t_pd* result = libpd_newest(cnv);
     ((t_glist*)result)->gl_hidetext = 1;
 
+    canvas_dirty(cnv, 1);
+    
     return result;
 }
 
@@ -531,7 +534,8 @@ t_pd* libpd_creategraph(t_canvas* cnv, char const* name, int size, int x, int y)
     t_pd* arr = libpd_newest(cnv);
 
     libpd_moveobj(cnv, pd_checkobject(arr), x, y);
-
+    canvas_dirty(cnv, 1);
+    
     return arr;
 }
 
@@ -557,7 +561,8 @@ t_pd* libpd_createobj(t_canvas* cnv, t_symbol* s, int argc, t_atom* argv)
     canvas_unsetcurrent(cnv);
     
     glist_noselect(cnv);
-
+    canvas_dirty(cnv, 1);
+    
     return new_object;
 }
 
@@ -613,6 +618,8 @@ void libpd_renameobj(t_canvas* cnv, t_gobj* obj, char const* buf, size_t bufsize
     cnv->gl_editor->e_textdirty = 0;
 
     canvas_editmode(cnv, 0);
+    
+    canvas_dirty(cnv, 1);
     sys_unlock();
 }
 
