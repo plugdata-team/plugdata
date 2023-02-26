@@ -2,7 +2,6 @@
  * For information on usage and redistribution, and for a DISCLAIMER OF ALL
  * WARRANTIES, see the file, "LICENSE.txt," in this distribution.  */
 
-#include <libgen.h>
 #include <string.h>
 #include "m_pd.h"
 #include <common/api.h>
@@ -380,6 +379,12 @@ static void funbuff_readhook(t_pd *z, t_symbol *fn, int ac, t_atom *av)
     ac = 0;
     av = NULL;
     funbuff_doread((t_funbuff *)z, fn);
+}
+
+static char* basename(const char *filename)
+{
+  char *p = strrchr (filename, '/');
+  return p ? p + 1 : (char *) filename;
 }
 
 static void funbuff_dowrite(t_funbuff *x, t_symbol *fn){
