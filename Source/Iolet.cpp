@@ -372,11 +372,13 @@ void Iolet::createConnection()
         cnv->synchronise(); // Load all newly created connection from pd patch!
 
     }
-    // Else set this iolet as start of a connection
+    // otherwise set this iolet as start of a connection
     else {
-        if (Desktop::getInstance().getMainMouseSource().getCurrentModifiers().isShiftDown() && object->cnv->isSelected(object)) {
+        if (Desktop::getInstance().getMainMouseSource().getCurrentModifiers().isShiftDown()) {
             // Auto patching - if shift is down at mouseDown
             // create connections from selected objects
+            cnv->setSelected(object, true);
+            
             int position = object->iolets.indexOf(this);
             position = isInlet ? position : position - object->numInputs;
             for (auto* selectedBox : object->cnv->getSelectionOfType<Object>()) {
