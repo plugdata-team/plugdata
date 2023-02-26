@@ -66,6 +66,7 @@ changeWorkingDir("../plugdata_version")
 
 makeDir("Abstractions")
 makeDir("Abstractions/else")
+makeDir("Abstractions/cyclone")
 
 copyDir("../../Libraries/pure-data/doc", "./Documentation")
 globCopy("../../Libraries/pure-data/extra/*.pd", "./Abstractions")
@@ -86,7 +87,7 @@ copyFile("../../Libraries/ELSE/sfont~/sfont~-help.pd", "./Documentation/9.else")
 copyFile("../Patches/param-help.pd", "./Documentation/5.reference")
 copyFile("../Patches/playhead-help.pd", "./Documentation/5.reference")
 
-globCopy("../../Libraries/cyclone/cyclone_objects/abstractions/*.pd", "./Abstractions")
+globCopy("../../Libraries/cyclone/cyclone_objects/abstractions/*.pd", "./Abstractions/cyclone")
 copyDir("../../Libraries/cyclone/documentation/help_files", "./Documentation/10.cyclone")
 copyDir("../../Libraries/ELSE/Live-Electronics-Tutorial/", "./Documentation/12.live-electronics-tutorial")
 

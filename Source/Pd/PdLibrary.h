@@ -109,6 +109,7 @@ public:
 
     static inline Array<File> const defaultPaths = {
         appDataDir.getChildFile("Library").getChildFile("Abstractions").getChildFile("else"),
+        appDataDir.getChildFile("Library").getChildFile("Abstractions").getChildFile("cyclone"),
         appDataDir.getChildFile("Library").getChildFile("Abstractions").getChildFile("heavylib"),
         appDataDir.getChildFile("Library").getChildFile("Abstractions"),
         appDataDir.getChildFile("Library").getChildFile("Deken"),
