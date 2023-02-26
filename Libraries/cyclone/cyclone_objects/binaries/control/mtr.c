@@ -188,7 +188,7 @@ static void mtrack_doadd(t_mtrack *tp, int ac, t_atom *av)
 
 static void mtrack_anything(t_mtrack *tp, t_symbol *s, int ac, t_atom *av){
     if(tp->tr_mode == MTR_RECMODE){
-        t_atom at[ac+1];
+        t_atom* at = calloc(ac+1, sizeof(t_atom));
         SETSYMBOL(&at[0], s);
         for(int i = 0; i < ac; i++){
             if((av+i)->a_type == A_FLOAT)
@@ -197,6 +197,7 @@ static void mtrack_anything(t_mtrack *tp, t_symbol *s, int ac, t_atom *av){
                 SETSYMBOL(&at[i+1], atom_getsymbolarg(i, ac, av));
         }
         mtrack_doadd(tp, ac+1, at);
+        free(at);
     }
 }
 
@@ -223,7 +224,7 @@ static void mtrack_list(t_mtrack *tp, t_symbol *s, int ac, t_atom *av){
         if(av->a_type == A_FLOAT)
             mtrack_doadd(tp, ac, av);
         else{
-            t_atom at[ac+1];
+            t_atom* at = calloc(ac+1, sizeof(t_atom));
             SETSYMBOL(&at[0], s);
             for(int i = 0; i < ac; i++){
                 if((av+i)->a_type == A_FLOAT)
@@ -232,6 +233,7 @@ static void mtrack_list(t_mtrack *tp, t_symbol *s, int ac, t_atom *av){
                     SETSYMBOL(&at[i+1], atom_getsymbolarg(i, ac, av));
             }
             mtrack_doadd(tp, ac+1, at);
+            free(at);
         }
     }
 }
