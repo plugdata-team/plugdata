@@ -51,6 +51,8 @@ public:
 
     void updatePath();
 
+    void lookAndFeelChanged() override;
+
     bool hitTest(int x, int y) override;
 
     void mouseDown(MouseEvent const& e) override;
