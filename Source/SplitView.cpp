@@ -219,9 +219,12 @@ void SplitView::splitCanvasView(Canvas* cnv, bool splitViewFocus)
 {
     auto* patch = &cnv->patch;
     auto* editor = cnv->editor;
-    bool locked = static_cast<bool>(cnv->locked.getValue());
+    auto locked = static_cast<bool>(cnv->locked.getValue());
 
+    auto ownsPatch = patch->closePatchOnDelete;
+    patch->closePatchOnDelete = false; // Set this flag to false since we're just copying the canvas
     editor->closeTab(cnv);
+    patch->closePatchOnDelete = ownsPatch; // Restore flag
     
     // Closing the tab deletes the canvas, so we clone it
     auto* canvasCopy = new Canvas(editor, *patch, nullptr);
