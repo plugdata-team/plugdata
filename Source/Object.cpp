@@ -687,6 +687,8 @@ void Object::mouseUp(MouseEvent const& e)
                     libpd_undo_apply(cnv->patch.getPointer(), obj);
 
                     object->gui->applyBounds();
+                    
+                    canvas_dirty(cnv->patch.getPointer(), 1);
 
                     // To make sure it happens after setting object bounds
                     // TODO: do we need this??
