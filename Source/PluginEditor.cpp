@@ -476,7 +476,7 @@ Canvas* PluginEditor::getCurrentCanvas()
     return getActiveTabbar()->getCurrentCanvas();
 }
 
-void PluginEditor::closeTab(Canvas* cnv, bool neverDeletePatch)
+void PluginEditor::closeTab(Canvas* cnv)
 {
     if(!cnv || !cnv->getTabbar()) return;
     
@@ -486,11 +486,9 @@ void PluginEditor::closeTab(Canvas* cnv, bool neverDeletePatch)
     auto* patch = &cnv->patch;
     
     cnv->getTabbar()->removeTab(tabIdx);
-    if(!neverDeletePatch && cnv->closePatchAlongWithCanvas) {
-        patch->close();
-    }
+    
     canvases.removeObject(cnv);
-    if(!neverDeletePatch) pd->patches.removeObject(patch);
+    pd->patches.removeObject(patch, patch->closePatchOnDelete);
 
     if (currentTabIdx == tabIdx) {
         if (currentTabIdx != tabbar->getNumTabs()) {

@@ -15,7 +15,7 @@ class SubpatchObject final : public TextBase {
 public:
     SubpatchObject(void* obj, Object* object)
         : TextBase(obj, object)
-        , subpatch(ptr, cnv->pd)
+        , subpatch(ptr, cnv->pd, false)
     {
         isGraphChild = false;
         hideNameAndArgs = static_cast<bool>(subpatch.getPointer()->gl_hidetext);
@@ -124,7 +124,7 @@ public:
             const String name = libpd_get_object_class_name(object);
 
             if (name == "canvas" || name == "graph") {
-                auto patch = pd::Patch(object, instance);
+                auto patch = pd::Patch(object, instance, false);
 
                 char* text = nullptr;
                 int size = 0;

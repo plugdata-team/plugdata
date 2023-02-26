@@ -54,10 +54,10 @@ public:
     {
         auto* gobj = static_cast<t_gobj*>(ptr);
         if (clone_get_n(gobj) > 0) {
-            subpatch.reset(new pd::Patch(clone_get_instance(gobj, 0), cnv->pd));
+            subpatch.reset(new pd::Patch(clone_get_instance(gobj, 0), cnv->pd, false));
         }
         else {
-            subpatch.reset(new pd::Patch(nullptr, nullptr));
+            subpatch.reset(new pd::Patch(nullptr, nullptr, false));
         }
     }
 

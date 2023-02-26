@@ -45,11 +45,23 @@ extern void canvas_reload(t_symbol* name, t_symbol* dir, t_glist* except);
 
 namespace pd {
 
-Patch::Patch(void* patchPtr, Instance* parentInstance, File patchFile)
+Patch::Patch(void* patchPtr, Instance* parentInstance, bool ownsPatch, File patchFile)
     : ptr(patchPtr)
     , instance(parentInstance)
     , currentFile(patchFile)
+    , closePatchOnDelete(ownsPatch)
 {
+}
+
+Patch::~Patch()
+{
+    // Only close the patch if this is a top-level patch
+    // Otherwise, this is a subpatcher and it will get cleaned up by Pd
+    // when the object is deleted
+    if(closePatchOnDelete) {
+        instance->setThis();
+        libpd_closefile(ptr);
+    }
 }
 
 Rectangle<int> Patch::getBounds() const
@@ -65,12 +77,6 @@ Rectangle<int> Patch::getBounds() const
         }
     }
     return { 0, 0, 0, 0 };
-}
-
-void Patch::close()
-{
-    instance->setThis();
-    libpd_closefile(ptr);
 }
 
 bool Patch::isDirty() const
@@ -118,6 +124,7 @@ void Patch::savePatch()
 
     instance->reloadAbstractions(currentFile, getPointer());
 }
+
 
 void Patch::setCurrent(bool lock)
 {

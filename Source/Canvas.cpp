@@ -16,12 +16,11 @@
 #include "Utility/GraphArea.h"
 #include "Utility/RateReducer.h"
 
-Canvas::Canvas(PluginEditor* parent, pd::Patch& p, bool ownerOfPatch, Component* parentGraph)
+Canvas::Canvas(PluginEditor* parent, pd::Patch& p, Component* parentGraph)
     : editor(parent)
     , pd(parent->pd)
     , patch(p)
     , pathUpdater(new ConnectionPathUpdater(this))
-    , closePatchAlongWithCanvas(ownerOfPatch)
 {
     isGraphChild = glist_isgraph(p.getPointer());
     hideNameAndArgs = static_cast<bool>(p.getPointer()->gl_hidetext);

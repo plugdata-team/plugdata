@@ -29,7 +29,7 @@ class Canvas : public Component
     , public FocusChangeListener
 {
 public:
-    Canvas(PluginEditor* parent, pd::Patch& patch, bool ownerOfPatch, Component* parentGraph = nullptr);
+    Canvas(PluginEditor* parent, pd::Patch& patch, Component* parentGraph = nullptr);
 
     ~Canvas() override;
 
@@ -178,8 +178,6 @@ public:
 
     std::unique_ptr<ConnectionPathUpdater> pathUpdater;
 
-    bool closePatchAlongWithCanvas = false;
-    
 private:
     
     SafePointer<Object> objectSnappingInbetween;
