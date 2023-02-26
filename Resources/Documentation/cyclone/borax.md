@@ -44,7 +44,7 @@ outlets:
   - type: float
     description: delta-time (time difference in ms) between Note-Ons
 
-draft: true
+draft: false
 ---
 
 [borax] sends detailed MIDI Note information.
