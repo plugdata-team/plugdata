@@ -156,6 +156,10 @@ struct ToolchainInstaller : public Component
             startThread();
         };
     }
+        
+    ~ToolchainInstaller() {
+        stopThread(-1);
+    }
 
     void paint(Graphics& g) override
     {
@@ -230,9 +234,13 @@ struct ToolchainInstaller : public Component
 
             float progress = static_cast<long double>(bytesDownloaded) / static_cast<long double>(totalBytes);
 
-            MessageManager::callAsync([this, progress]() mutable {
-                installProgress = progress;
-                repaint();
+            if (threadShouldExit())
+                return;
+            
+            MessageManager::callAsync([_this = SafePointer(this), progress]() mutable {
+                if(!_this) return;
+                _this->installProgress = progress;
+                _this->repaint();
             });
         }
 
