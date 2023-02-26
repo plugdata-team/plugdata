@@ -485,6 +485,8 @@ void PluginEditor::closeTab(Canvas* cnv)
     const int currentTabIdx = tabbar->getCurrentTabIndex();
     auto* patch = &cnv->patch;
     
+    sidebar.hideParameters();
+    
     cnv->getTabbar()->removeTab(tabIdx);
     
     canvases.removeObject(cnv);
