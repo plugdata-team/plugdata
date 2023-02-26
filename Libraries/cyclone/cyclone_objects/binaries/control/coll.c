@@ -1674,11 +1674,11 @@ static void coll_embed(t_coll *x, t_float f){
 }
 
 static void coll_read(t_coll *x, t_symbol *s){
-	if(!x->unsafe) {
+	if(!x->unsafe){
 		t_collcommon *cc = x->x_common;
-		if(s && s != &s_) {
+		if(s && s != &s_){
 			x->x_s = coll_fullfilename(x,s);
-			if(x->x_threaded == 1) {
+			if(x->x_threaded){
 				x->unsafe = 1;
 				pthread_mutex_lock(&x->unsafe_mutex);
 				pthread_cond_signal(&x->unsafe_cond);
@@ -1692,6 +1692,7 @@ static void coll_read(t_coll *x, t_symbol *s){
                     clock_delay(x->x_clock, 0);
                 };
 			}
+            coll_update(x);
 		}
 		else
 			panel_open(cc->c_filehandle, 0);
@@ -1721,20 +1722,21 @@ static void coll_write(t_coll *x, t_symbol *s){
 static void coll_readagain(t_coll *x){
     t_collcommon *cc = x->x_common;
     if(cc->c_filename){
-        if(x->x_threaded == 1){
+        if(x->x_threaded){
             x->unsafe = 2;
             pthread_mutex_lock(&x->unsafe_mutex);
             pthread_cond_signal(&x->unsafe_cond);
             pthread_mutex_unlock(&x->unsafe_mutex);
             //collcommon_doread(cc, 0, 0, 0);
         }
-        else {
+        else{
             t_msg * msg = collcommon_doread(cc, 0, x->x_canvas, 0);
             if((!COLL_ALLBANG) && msg->m_line > 0){
                 x->x_filebang = 1;
                 clock_delay(x->x_clock, 0);
             };
         }
+        coll_update(x);
     }
     else
 		panel_open(cc->c_filehandle, 0);

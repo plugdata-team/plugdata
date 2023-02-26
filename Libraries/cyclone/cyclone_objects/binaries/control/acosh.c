@@ -20,7 +20,7 @@ static void acosh_bang(t_acosh *x)  // checked: no protection against NaNs
 
 static void acosh_float(t_acosh *x, t_float f)  // checked: no protection against NaNs
 {
-    float value = acoshf(value);
+    float value = acoshf(f);
     outlet_float(((t_object *)x)->ob_outlet, x->x_value = value);
 }
 

@@ -3,12 +3,13 @@
  * WARRANTIES, see the file, "LICENSE.txt," in this distribution.  */
 
 #include "m_pd.h"
-#include <stdlib.h>
 #include <common/api.h>
+#include <common/random.h>
 
 typedef struct _decide{
     t_object      x_ob;
     unsigned int  x_seed;
+    int           x_id;
 }t_decide;
 
 static t_class *decide_class;
@@ -36,12 +37,17 @@ static void decide_float(t_decide *x, t_float f){
 }
 
 static void decide_ft1(t_decide *x, t_floatarg f){
-    x->x_seed = (int)f ? (int)f : rand(); // negative numbers accepted
+    x->x_seed = (int)f;
+    if(x->x_seed == 0)
+        x->x_seed = (int)(time(NULL)*x->x_id);
 }
 
 static void *decide_new(t_floatarg f){
     t_decide *x = (t_decide *)pd_new(decide_class);
-    x->x_seed = (int)f ? (int)f : rand();
+    x->x_id = cyclone_random_get_id();
+    x->x_seed = (int)f;
+    if(x->x_seed == 0)
+        x->x_seed = (int)(time(NULL)*x->x_id);
     inlet_new((t_object *)x, (t_pd *)x, &s_float, gensym("ft1"));
     outlet_new((t_object *)x, &s_float);
     return(x);
