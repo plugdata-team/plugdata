@@ -110,6 +110,7 @@ public:
         addAndMakeVisible(newButton);
         newButton.getProperties().set("FontScale", 0.4f);
         newButton.getProperties().set("Style", "Icon");
+        newButton.setTooltip("New patch");
         newButton.onClick = [this]() {
             newTab();
         };
