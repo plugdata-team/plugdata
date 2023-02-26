@@ -590,7 +590,7 @@ Patch* Instance::openPatch(File const& toOpen)
 
     cnv = static_cast<t_canvas*>(libpd_create_canvas(file, dir));
     
-    return new Patch(cnv, this, toOpen);;
+    return new Patch(cnv, this, true, toOpen);
 }
 
 void Instance::setThis() const

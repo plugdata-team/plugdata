@@ -595,6 +595,8 @@ public:
     {
         // Save plugin state to allow reloading
         pluginHolder->savePluginState();
+        
+        pluginHolder->processor->suspendProcessing(true);
 
         // Close all patches, allowing them to save first
         closeAllPatches();

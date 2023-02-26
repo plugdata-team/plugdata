@@ -193,8 +193,7 @@ void ObjectBase::closeOpenedSubpatchers()
     {
         if (cnv && cnv->patch == *getPatch()) {
             
-            cnv->editor->closeTab(cnv, true);
-            
+            cnv->editor->closeTab(cnv);
             break;
         }
     }
@@ -231,7 +230,7 @@ void ObjectBase::openSubpatch()
 
 
     auto* newPatch = cnv->editor->pd->patches.add(subpatch);
-    auto* newCanvas = cnv->editor->canvases.add(new Canvas(cnv->editor, *newPatch, false, nullptr));
+    auto* newCanvas = cnv->editor->canvases.add(new Canvas(cnv->editor, *newPatch, nullptr));
 
     newPatch->setCurrentFile(path);
 

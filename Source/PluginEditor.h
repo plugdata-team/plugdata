@@ -464,7 +464,7 @@ public:
     void saveProjectAs(std::function<void()> const& nestedCallback = []() {});
 
     void addTab(Canvas* cnv);
-    void closeTab(Canvas* cnv, bool neverDeletePatch = false);
+    void closeTab(Canvas* cnv);
     
     Canvas* getCurrentCanvas();
     

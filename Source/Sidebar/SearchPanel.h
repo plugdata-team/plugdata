@@ -354,7 +354,7 @@ public:
 
         // Search through subpatches
         for (auto& [object, topLevel] : subpatches) {
-            auto patch = pd::Patch(object, instance);
+            auto patch = pd::Patch(object, instance, false);
 
             char* objectText;
             int len;

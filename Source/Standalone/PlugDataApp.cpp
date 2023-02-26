@@ -178,30 +178,12 @@ void PlugDataWindow::closeAllPatches()
     
     auto* tabbar = canvas->getTabbar();
     auto* patch = &canvas->patch;
-    int tabIdx = canvas->getTabIndex();
-
     
-    auto deleteFunc = [this, editor, tabbar, canvas, patch, tabIdx]() {
-        tabbar->removeTab(tabIdx);
+    auto deleteFunc = [this, editor, tabbar, canvas, patch]() {
         if (!canvas)
             return;
         
-        // TODO: why not suspend audio completely when we're closing?
-        editor->canvases.removeObject(canvas);
-        patch->close();
-        editor->pd->patches.removeObject(patch);
-        
-        
-        if (tabIdx != tabbar->getNumTabs()) {
-            // Set the focused tab to the next one
-            tabbar->setCurrentTabIndex(tabIdx, true);
-        } else {
-            // Unless it's the last, then set it to the previous one
-            tabbar->setCurrentTabIndex(tabIdx - 1, true);
-        }
-
-        editor->updateCommandStatus();
-
+        editor->closeTab(canvas);
         closeAllPatches();
     };
 

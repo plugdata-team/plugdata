@@ -20,7 +20,7 @@ public:
     // Graph On Parent
     GraphOnParent(void* obj, Object* object)
         : ObjectBase(obj, object)
-        , subpatch(ptr, cnv->pd)
+        , subpatch(ptr, cnv->pd, false)
     {
         auto* glist = static_cast<t_canvas*>(ptr);
         isGraphChild = true;
@@ -162,7 +162,7 @@ public:
     void updateCanvas()
     {
         if (!canvas) {
-            canvas = std::make_unique<Canvas>(cnv->editor, subpatch, false, this);
+            canvas = std::make_unique<Canvas>(cnv->editor, subpatch, this);
 
             // Make sure that the graph doesn't become the current canvas
             cnv->patch.setCurrent(true);

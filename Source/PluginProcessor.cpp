@@ -173,9 +173,7 @@ PluginProcessor::PluginProcessor()
 
 PluginProcessor::~PluginProcessor()
 {
-    for (auto* patch : patches)
-        patch->close();
-
+    // Deleting the pd instance in ~PdInstance() will also free all the Pd patches
     patches.clear();
 }
 
@@ -821,7 +819,7 @@ AudioProcessorEditor* PluginProcessor::createEditor()
     setThis();
     
     for (auto* patch : patches) {
-        auto* cnv = editor->canvases.add(new Canvas(editor, *patch, true, nullptr));
+        auto* cnv = editor->canvases.add(new Canvas(editor, *patch, nullptr));
         editor->addTab(cnv);
     }
     
@@ -916,9 +914,6 @@ void PluginProcessor::setStateInformation(void const* data, int sizeInBytes)
 
     suspendProcessing(true);
     setThis();
-
-    for (auto* patch : patches)
-        patch->close();
     patches.clear();
 
     int numPatches = istream.readInt();
@@ -1048,7 +1043,7 @@ pd::Patch* PluginProcessor::loadPatch(File const& patchFile)
         MessageManager::callAsync([patch, _editor = Component::SafePointer(editor)]() mutable {
             if (!_editor)
                 return;
-            auto* cnv = _editor->canvases.add(new Canvas(_editor, *patch, true, nullptr));
+            auto* cnv = _editor->canvases.add(new Canvas(_editor, *patch, nullptr));
             _editor->addTab(cnv);
         });
     }

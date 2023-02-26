@@ -26,15 +26,15 @@ class Instance;
 class Patch
 {
 public:
-    Patch(void* ptr, Instance* instance, File currentFile = File());
+    Patch(void* ptr, Instance* instance, bool ownsPatch, File currentFile = File());
 
+    ~Patch();
+    
     // The compare equal operator.
     bool operator==(Patch const& other) const
     {
         return getPointer() == other.getPointer();
     }
-
-    void close();
 
     // Gets the bounds of the patch.
     Rectangle<int> getBounds() const;
@@ -111,8 +111,10 @@ public:
     void setTitle(String const& title);
 
     Instance* instance = nullptr;
-
+    bool closePatchOnDelete;
+    
 private:
+
     File currentFile;
 
     void* ptr = nullptr;
