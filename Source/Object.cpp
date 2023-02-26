@@ -549,23 +549,13 @@ void Object::updateIolets()
         numOutputs = libpd_noutlets(ptr);
     }
 
-    // Clear connections to iolets that are about to be hidden
-    if (gui && gui->hideInlets()) {
-        for (auto* iolet : iolets) {
-            if (iolet->isInlet) {
-                iolet->clearConnections();
-            }
+    for (auto* iolet : iolets) {
+        if (gui && !iolet->isInlet) {
+            iolet->setVisible(!gui->hideOutlets());
         }
-        numInputs = 0;
-    }
-
-    if (gui && gui->hideOutlets()) {
-        for (auto* iolet : iolets) {
-            if (!iolet->isInlet) {
-                iolet->clearConnections();
-            }
+        else if (gui && iolet->isInlet) {
+            iolet->setVisible(!gui->hideInlets());
         }
-        numOutputs = 0;
     }
 
     while (numInputs < oldNumInputs)
