@@ -96,27 +96,32 @@ globMove("./Abstractions/heavylib/*-help.pd", "./Documentation/11.heavylib")
 
 removeFile("./Documentation/Makefile.am")
 
-# pd-lua
 makeDir("Extra")
-makeDir("Extra/pdlua")
 makeDir("Extra/GS")
 
 copyDir("../../Libraries/ELSE/Extra", "Extra/else");
 copyDir("../../Libraries/ELSE/sfont~/sf", "Extra/else/sf");
 globCopy("../../Libraries/pure-data/doc/sound/*", "Extra/else");
 
+# pd-lua
+makeDir("Extra/pdlua")
+
 pdlua_srcdir = "../../Libraries/pd-lua/"
 for src in ["pd.lua", "COPYING", "README"]:
     copyFile(pdlua_srcdir+src, "./Extra/pdlua")
-
 # These are developer docs, we don't need them.
 #copyDir(pdlua_srcdir+"doc", "./Extra/pdlua/doc")
-
-# The remaining example patches go into 9.else which already has the
-# ELSE branded toplevel pdlua and pdluax help patches. NOTE: Once these
-# are also included in the ELSE source, they can be taken from there.
+makeDir("Documentation/13.pdlua")
+for src in ["pdlua*-help.pd"]:
+    globCopy(pdlua_srcdir+src, "./Documentation/13.pdlua")
 for src in ["pdlua"]:
-    copyDir(pdlua_srcdir+src, "./Documentation/9.else/"+src)
+    copyDir(pdlua_srcdir+src, "./Documentation/13.pdlua/"+src)
+
+# Make sure to get rid of these duplicates so that they don't interfere with
+# our help patches. Note that these are still in ELSE rc6, but won't be in rc7
+# which doesn't include pd-lua any more.
+for doc in glob.glob("./Documentation/9.else/pdlua*-help.pd"):
+    removeFile(doc)
 
 changeWorkingDir("./..")
 
