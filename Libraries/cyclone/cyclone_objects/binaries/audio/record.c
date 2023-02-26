@@ -272,13 +272,14 @@ static void *record_new(t_symbol *s, int argc, t_atom *argv){
     int nameset = 0; // flag if name is set
 	t_symbol *arrname = NULL;
 	if(argc > 0){ // 1st arg is array name
-        if(argv->a_type == A_SYMBOL)
+        if(argv->a_type == A_SYMBOL){
             arrname = atom_getsymbolarg(0, argc, argv);
+            nameset = 1;
+        }
         argc--;
         argv++;
 	};
 	// NOW parse the rest of the args
-	int argnum = 0;
 	while(argc > 0){
 		if(argv->a_type == A_SYMBOL){
 			t_symbol *curarg = atom_getsymbolarg(0, argc, argv);
@@ -323,15 +324,7 @@ static void *record_new(t_symbol *s, int argc, t_atom *argv){
 		}
 		else if(argv->a_type == A_FLOAT){
             if(nameset){
-                t_float argval = atom_getfloatarg(0, argc, argv);
-                switch(argnum){
-                    case 0:
-                        numchan = (int)argval;
-                    break;
-                    default:
-                    break;
-                };
-                argnum++;
+                numchan = (int)atom_getfloatarg(0, argc, argv);
                 argc--;
                 argv++;
             }

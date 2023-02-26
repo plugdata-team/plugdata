@@ -8,7 +8,7 @@
 #include <stdio.h>
 #include <string.h>
 #include "m_pd.h"
-//#include "g_canvas.h"
+#include "g_canvas.h"
 #include <common/api.h>
 #include "common/grow.h"
 #include "common/file.h"
@@ -30,8 +30,6 @@
 #define SEQ_ISPAUSED(x) ((x)->x_prevtime <= (double).0001)
 
 enum{SEQ_IDLEMODE, SEQ_RECMODE, SEQ_PLAYMODE, SEQ_SLAVEMODE};
-
-extern t_symbol* canvas_realizedollar(t_canvas *x, t_symbol *s);
 
 typedef struct _seqevent{
     double         e_delta;

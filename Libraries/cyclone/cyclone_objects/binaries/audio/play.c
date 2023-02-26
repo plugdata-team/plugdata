@@ -85,9 +85,8 @@ static void play_play(t_play *x, int toplay){
 ////////////////////////////////////////////////
 // STOP
 ////////////////////////////////////////////////
-static void play_stop(t_play *x)
-{
-    if (x->x_playing){
+static void play_stop(t_play *x){
+    if(x->x_playing){
         x->x_playing = 0;
         x->x_playnew = 0;
         outlet_bang(x->x_donelet);
@@ -403,9 +402,9 @@ static t_int *play_perform(t_int *w)
                             }
                             else{
                                 //we're done playing, just output zeroes!
+                                if(x->x_playing)
+                                    outlet_bang(x->x_donelet);
                                 x->x_playing = 0;
-                                //done bang
-                                outlet_bang(x->x_donelet);
                             };
                         }
                         else if(phase > stsamp){
@@ -453,11 +452,10 @@ static t_int *play_perform(t_int *w)
                                 //if looping, go back to the beginning
                                 phase = (double)stsamp;
                             }
-                            else{
-                                //we're done playing, just output zeroes!
+                            else{ //we're done playing, just output zeroes!
+                                if(x->x_playing) // done bang
+                                    outlet_bang(x->x_donelet);
                                 x->x_playing = 0;
-                                //done bang
-                                outlet_bang(x->x_donelet);
                             };
                         }
                         else if(phase < stsamp){

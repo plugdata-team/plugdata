@@ -1,0 +1,9 @@
+#N canvas 399 23 581 190 12;
+#X obj 318 21 cnv 15 250 40 empty empty empty 12 13 0 18 #7c7c7c #e0e4dc 0;
+#N canvas 382 141 749 319 (subpatch) 0;
+#X coords 0 -1 1 1 252 42 2 100 100;
+#X restore 317 20 pd;
+#X obj 388 30 cnv 10 10 10 empty empty cyclone 4 5 0 24 #7c7c7c #e0e4dc 0;
+#X obj 16 21 cnv 15 300 41 empty empty \$1 20 20 2 37 #e0e0e0 #000000 0;
+#X obj 339 49 cnv 10 10 10 empty empty Objects\ cloned\ from\ MAX/MSP 4 5 0 13 #7c7c7c #e0e4dc 0;
+#X coords 0 -1 1 1 554 43 1 15 20;

@@ -2,6 +2,22 @@
 | Under the maintenance of Porres, Kwan and Barber: 
 ---------------------------------------------------
 
+
+--------------------------------------------------
+cyclone 0.7-0 (needs at least Pd Vanilla 0.53-1):
+--------------------------------------------------
+
+- [number~] can now print 'nan' thanks to new features in Pd 0.53
+- [scope~]: Fixed resizing issues when zoomed. Added undo. Minor cosmetic changes that were considered unnecessary as it only tried to mimmick a bit more the original aspect in MAX when selecting the object and we're already failing in doing tha 100% perfectly anyway, plus other minor cosmetic improvements.
+- [comment]: We finally have a decent properties window (thanks to Tim Schoen)!!! Fixed some issues with zooming. Fixed many issues with resizing and also justification. Fixed saving parameters. Improved drawing the handle. Fixed resizing when maximum width wasn't set. Added undo. Added outline parameter. Added width parameter (this was only set before via dragging the handle in edit mode). This is now diverging from the original MAX object and is basically a clone of [else/note], an object from the ELSE library that was originally based on cyclone's [comment]. This also completes the updates to this object which was almost the last one to get updated.
+- [mtr] starting to update this object to MAX 7 at last (and this is the last one that never got updated). Added attributes @speed / @trackspeed / @loop and @embed. We missed updates to this one as it was included some time after 7.0! There are numerous things to add and we won't be able to add them all. More are yet to come until we can say we finally reached the goal of updating Cyclone to MAX 7!
+- [pink~] is now a whole new object stolen from ELSE, which has more features but it's also backwards compatible.
+- [pow~] added missing 'Pow~' alias for Linux and error/warning (like other objects that clash in Vanilla - can't believe we still missed getting all of these right)
+- [coll] now updates window if it's opened and when you use the 'read'/'readagain' messages
+- [acosh] fixed bug calculating the value
+- [record~] fixed regression bug in loading arguments
+- [out~] object, borrowed from ELSE, removed and not used in the documentation anymore. We now use [output~] which should be called from Pd's 'extra' library (it was included there in version 0.52).
+
 --------------------------------------------------
 cyclone 0.6-1 (needs at least Pd Vanilla 0.52-1):
 --------------------------------------------------
@@ -10,7 +26,7 @@ cyclone 0.6-1 (needs at least Pd Vanilla 0.52-1):
 - bitwise signal operators now are not "bitsafe"  
 - objects can now find and open files added to Pd's search path, affected objects: [funbuff], [mtr], [table], [seq] and [coll].
 - [scope~]/[comment]:
-  - fixed tcl error when closing a subpatch with a note object in it while in edit mode (reopening the patch would ruin things up).
+  - fixed tcl error when closing a subpatch with an object in it while in edit mode (reopening the patch would ruin things up).
   - fixed deleting the resizing handle when deleting the object.
 
 --------------------------------------------------
