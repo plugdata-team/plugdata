@@ -1,6 +1,5 @@
-#N canvas 315 138 1089 607 12;
-#X obj 289 121 hsl 128 15 -1 1 0 0 empty empty empty -2 -8 0 10 -262144
--1 -1 0 1;
+#N canvas 228 86 1089 607 12;
+#X obj 289 121 hsl 128 15 -1 1 0 0 empty empty empty -2 -8 0 10 #fcfcfc #000000 #000000 0 1;
 #N canvas 0 22 450 300 (subpatch) 0;
 #X array array5 20 float 0;
 #X coords 0 1 19 -1 200 140 1 0 0;
@@ -22,46 +21,22 @@
 #X msg 452 310 \; array6 cosinesum 512 0 0.5 0.5;
 #X msg 918 220 print;
 #X msg 61 221 rename array7;
-#X text 33 440 The "sinesum" and "cosinesum" messages draw waveforms
-by summing up harmonic sine or cosine functions. The first float is
-the table size (it always resizes it) \, then we have a list of amplitudes
-for each harmonic component. The "cosinesum" message has an extra "DC
-component" as the first item in the list., f 53;
-#X text 33 535 If harmonic series components are something new to you
-\, don't worry \, this will be addressed properly in the Live Electronics
-Tutorial., f 53;
-#X text 34 387 The "rename" message renames the array \, but note the
-name is not updated automatically in the patch unless you move it (but
-it is when the patch reloads)., f 53;
-#X text 475 25 The "normalize" message normalizes values to a given
-target (1 by default). A "resize" message resizes the array and "print"
-prints the size in Pd's window., f 79;
+#X text 33 440 The "sinesum" and "cosinesum" messages draw waveforms by summing up harmonic sine or cosine functions. The first float is the table size (it always resizes it) \, then we have a list of amplitudes for each harmonic component. The "cosinesum" message has an extra "DC component" as the first item in the list., f 53;
+#X text 33 535 If harmonic series components are something new to you \, don't worry \, this will be addressed properly in the Live Electronics Tutorial., f 53;
+#X text 34 387 The "rename" message renames the array \, but note the name is not updated automatically in the patch unless you move it (but it is when the patch reloads)., f 53;
+#X text 475 19 The "normalize" message normalizes values to a given target (1 by default). A "resize" message resizes the array and "print" prints the size in Pd's window., f 79;
 #X msg 935 250 resize 1024;
 #X obj 935 334 send array6;
 #X obj 286 176 send array5;
-#X text 474 66 The "tick" message marks the graph with "ticks". The
-first float is an offset \, then we define at which point there's a
-tick and the number of ticks until we have a bigger tick. The "xlabel"
-and "ylabel" message display coordinates values \, just send the list
-of values to be displayed \, the first number is the offset of the
-label. Both ticks and labels don't get stored when the patch., f 79
-;
 #X msg 782 380 \; array6 bounds 0 1 1024 -1;
-#X msg 782 468 \; array6 xticks 0 16 4 \, yticks 0 0.25 2 \, xlabel
--1.025 0 128 256 384 512 \, ylabel -4.5 -1 -0.5 0 0.5 1, f 38;
+#X msg 782 468 \; array6 xticks 0 16 4 \, yticks 0 0.25 2 \, xlabel -1.025 0 128 256 384 512 \, ylabel -4.5 -1 -0.5 0 0.5 1, f 38;
 #X msg 781 424 \; array6 bounds 0 1 512 -1;
-#X text 475 151 The "bounds" message sets the graphs boundaries \,
-the list is "X range from" / "Y range from" / "X range to" and "Y range
-to". The horizonatl ("X") boundaries are automatically set if you resize
-an array that's contained in a graph with a single array., f 79;
-#X text 469 564 See also examples 15.array.pd and 16.more.arrays.pd
-from 2.control.examples, f 76;
-#X text 35 27 Arrays take many messages (like "const" \, "read" and
-"write") \, and values of an array are set by sending it a list of
-floats \, where the first one specifies the index and the others set
-the values from that index on., f 55;
+#X text 475 151 The "bounds" message sets the graphs boundaries \, the list is "X range from" / "Y range from" / "X range to" and "Y range to". The horizontal ("X") boundaries are automatically set if you resize an array that's contained in a graph with a single array., f 79;
+#X text 469 564 See also examples 15.array.pd and 16.more.arrays.pd from 2.control.examples, f 76;
+#X text 35 27 Arrays take many messages (like "const" \, "read" and "write") \, and values of an array are set by sending it a list of floats \, where the first one specifies the index and the others set the values from that index on., f 55;
 #X msg 62 285 rename array5;
 #X obj 62 318 send array7;
+#X text 475 57 The "tick" message marks the graph with "ticks". The first float is an offset \, then we define at which point there's a tick and the number of ticks until we have a bigger tick. The "xlabel" and "ylabel" messages display coordinate values \, just send the list of values to be displayed \, the first number is the offset of the label. Both ticks and labels don't get stored when the patch is saved., f 79;
 #X connect 0 0 2 0;
 #X connect 2 0 22 0;
 #X connect 8 0 21 0;
@@ -69,4 +44,4 @@ the values from that index on., f 55;
 #X connect 14 0 21 0;
 #X connect 15 0 10 0;
 #X connect 20 0 21 0;
-#X connect 30 0 31 0;
+#X connect 29 0 30 0;

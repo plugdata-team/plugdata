@@ -9,7 +9,7 @@
 #X text 127 357 Linear Amp;
 #X obj 665 29 declare -path else;
 #X text 17 18 In analog audio \, we have different dB scales with different
-reference values in Watts or Volts for 0 dB \, but in digital audio
+reference values in Watts or Volts for 0 dB \. But in digital audio
 we have a scale that has no such reference point in Watts/Volts \,
 because this can't be defined in the digital domain \, as it only depends
 on the analog system it is connected to.;
@@ -32,7 +32,7 @@ is possible with the [lin2db] and [db2lin] objects from ELSE.;
 #X obj 264 263 expr 20*log10($f1);
 #X text 44 409 This is the scale used in all digital audio editors
 and workstations \, where minus infinite dB represents silence and
-0 dB a maximum peak linear amplitude of 1! The convrsion is pretty
+0 dB a maximum peak linear amplitude of 1! The conversion is pretty
 simple and the formula is given by the [expr] objects to the right.
 , f 56;
 #X obj 629 196 hsl 132 17 -100 0 0 0 empty empty empty -2 -8 0 10 #dfdfdf

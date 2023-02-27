@@ -58,11 +58,11 @@ as:;
 #X text 24 18 The main Pd distribution is also known as "Pd Vanilla"
 and comes without pre installed external libraries \, unlike other
 "flavors" or forks. But techically speaking \, an external is any object
-not part of Pd's binary. Theferoe \, Pd Vanilla itself includes some
+not part of Pd's binary. Therefore \, Pd Vanilla itself includes some
 externals in a folder called "extra" (a.k.a the "extra library") inside
 its application. This folder is searched automatically by the way \,
 so these objects are found. Below we have some of these objects \,
-like [sigmund~]. Abstractions are also externals and Pd also has some
+like [sigmund~]. Abstractions are also externals and Pd has some
 of those in the "extra" library \, like the reverb objects below.,
 f 65;
 #X text 26 192 Via the "Help => Find Externals" menu \, you can use

@@ -6,6 +6,23 @@ ELSE (EL Locus Solus's externals) with Live Electronics Tutorial
 
 ----------------------------------------------------------------------------
 
+----------------------------------------------------------------------------
+1.0-0 Release Candidate 6:
+----------------------------------------------------------------------------
+
+**LIBRARY:**
+
+Breaking changes:
+- 
+
+Enhancements/fixes:
+- 
+
+--------------------------------------
+
+**TUTORIAL:**
+- 
+
 
 ----------------------------------------------------------------------------
 1.0-0 Release Candidate 6:
@@ -42,7 +59,7 @@ Breaking changes:
 - [oscope~]: removed 'drawstyle' mode.
 - [messbox] renamed 'size' message to 'dim', removed undocumented resizing handle (wasn't working well either)
 - [table~] object removed, use [tabreader~] instead which is basically the same thing.
-- [tabplayer~]/[wavetable~]/[del~]/[ffdelay~]/[fbdelay~]/[shaper~] changed default interpolator to spline.
+- [tabplayer~]/[(bl.)wavetable~]/[del~]/[ffdelay~]/[fbdelay~]/[shaper~] changed default interpolator to spline.
 
 Enhancements/fixes:
 - [numbox~] fixed loading properties window.
@@ -53,7 +70,7 @@ Enhancements/fixes:
 - [rand.i]/[rand.i~] fixed range for negative values.
 - [rand.hist] fixed list input when not in unrepeated mode and clear message.
 - [tabgen] removed stupid cyclone dependency & allow commands as args.
-- [wavetable~] new interpolation modes.
+- [(bl.)wavetable~] new interpolation modes.
 - [scala] fix loading certain files.
 - [spread] now takes lists, which allows 'keyboard split'.
 - 3 new objects for a total of 466: [tabreader], [tabreader~] and [gendyn~].  

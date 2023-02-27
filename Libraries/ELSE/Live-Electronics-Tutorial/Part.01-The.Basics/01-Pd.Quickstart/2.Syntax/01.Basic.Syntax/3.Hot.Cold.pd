@@ -33,7 +33,7 @@ on the bangs and try it out., f 73;
 parameters. If none are given \, default values are loaded. For instance
 \, the [float] object stores numbers it receives in its inlets \, but
 it can initially store a number given as an argument. If no argument
-is given \, [float] initially stores “0”. The Argument "5.5" is
+is given \, [float] initially stores “0”. The argument "5.5" is
 the initially stored value of the [float] object below. The inlet to
 the right stores a new value and overwrites the argument \, but note
 that it is not updated inside the object box and the given argument

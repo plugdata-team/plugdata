@@ -37,7 +37,7 @@
 #X obj 281 282 setdsp~ 1;
 #X text 86 337 Running phase =>, f 8;
 #X text 83 369 waveform function, f 8;
-#X text 69 30 In Short \, we can define an oscillator with these parameters:
+#X text 69 30 In short \, we can define an oscillator with these parameters:
 , f 38;
 #X text 111 57 - Waveform function \; - Frequency \; - Initial Phase
 \; - Peak Amplitude;

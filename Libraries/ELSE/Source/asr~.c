@@ -27,11 +27,11 @@ static t_class *asr_class;
 static void asr_float(t_asr *x, t_floatarg f){
     if(f != 0 && !x->x_status) // on
         outlet_float(x->x_out2, x->x_status = 1);
-    x->x_f_gate = f;
+    x->x_f_gate = f/127;
 }
 
-static void asr_log(t_asr *x, t_floatarg f){
-    x->x_log = (int)(f != 0);
+static void asr_lin(t_asr *x, t_floatarg f){
+    x->x_log = (int)(f == 0);
 }
 
 static t_int *asr_perform(t_int *w){
@@ -134,8 +134,8 @@ static void *asr_new(t_symbol *s, int ac, t_atom *av){
     x->x_incr = 0.;
     x->x_nleft = 0;
     x->x_gate_status = 0;
-    x->x_log = 0;
-    float a = 0, r = 0;
+    x->x_log = 1;
+    float a = 10, r = 10;
     int symarg = 0;
     int argnum = 0;
     while(ac > 0){
@@ -158,9 +158,9 @@ static void *asr_new(t_symbol *s, int ac, t_atom *av){
         else if(av->a_type == A_SYMBOL && !symarg && !argnum){
             symarg = 1;
             cursym = atom_getsymbolarg(0, ac, av);
-            if(cursym == gensym("-log")){
+            if(cursym == gensym("-lin")){
                 ac--, av++;
-                x->x_log = 1;
+                x->x_log = 0;
             }
             else
                 goto errstate;
@@ -186,5 +186,5 @@ void asr_tilde_setup(void){
     class_addmethod(asr_class, nullfn, gensym("signal"), 0);
     class_addmethod(asr_class, (t_method) asr_dsp, gensym("dsp"), A_CANT, 0);
     class_addfloat(asr_class, (t_method)asr_float);
-    class_addmethod(asr_class, (t_method)asr_log, gensym("log"), A_DEFFLOAT, 0);
+    class_addmethod(asr_class, (t_method)asr_lin, gensym("lin"), A_DEFFLOAT, 0);
 }

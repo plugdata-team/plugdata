@@ -1,12 +1,10 @@
-#N canvas 691 224 608 453 12;
+#N canvas 506 43 608 453 12;
 #X declare -path else;
 #X obj 167 316 *~;
 #X obj 62 196 mtof;
 #X obj 62 233 trigger float bang;
-#X obj 62 164 nbx 3 16 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 13
--228856 -1 -1 51 256;
-#X obj 62 58 tgl 25 0 empty empty empty 17 7 0 10 -228856 -1 -1 1 1
-;
+#X obj 62 164 nbx 3 16 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 13 #dcdcdc #000000 #000000 0 256;
+#X obj 62 58 tgl 25 0 empty empty empty 17 7 0 10 #dcdcdc #000000 #000000 0 1;
 #X obj 62 32 loadbang;
 #N canvas 759 290 294 394 additive 0;
 #X obj 104 264 catch~ \$0-osc;
@@ -14,8 +12,7 @@
 #X obj 104 336 outlet~;
 #X obj 99 29 inlet;
 #X obj 99 67 v fund;
-#X text 29 100 Check the [pd partial] subpatches \, where each contains
-a pair of oscillatores., f 36;
+#X text 29 100 Check the [pd partial] subpatches \, where each contains a pair of oscillatores., f 36;
 #N canvas 829 23 446 337 partial 0;
 #X obj 94 179 osc~;
 #X obj 94 250 throw~ \$0-osc;
@@ -167,18 +164,12 @@ a pair of oscillatores., f 36;
 #X obj 167 352 out~;
 #X obj 62 100 tempo 15 50;
 #X text 175 176 Open the [pd additive] subpatch for more details.;
-#X text 209 250 ADSR envelope;
-#X obj 185 274 envgen~ 400 1 100 0.7 2000 0.7 500 0;
+#X text 209 247 ADSR envelope;
+#X obj 185 272 envgen~ 400 1 100 0.7 2000 0.7 500 0;
 #X obj 62 133 rand.i 36 73;
 #X obj 403 42 declare -path else;
-#X text 175 84 Here's another additive synthesis example. This patch
-receives a fundamental frequency \, from which an inharmonic series
-of 8 partials is generated. For each partial \, we have a pair of oscillators
-\, both of which are closely tuned but with random vibratos/pitch deviations.
-, f 56;
-#X text 295 325 As an exercise you can adapt this to use [clone]!
-For each copy to have different parameters \, use a random generator
-at load time (with loadbang)., f 39;
+#X text 175 84 Here's another additive synthesis example. This patch receives a fundamental frequency \, from which an inharmonic series of 8 partials is generated. For each partial \, we have a pair of oscillators \, both of which are closely tuned but with random vibratos/pitch deviations., f 56;
+#X text 295 325 As an exercise you can adapt this to use [clone]! For each copy to have different parameters \, use a random generator at load time (with loadbang)., f 39;
 #X connect 0 0 7 0;
 #X connect 1 0 2 0;
 #X connect 2 0 6 0;

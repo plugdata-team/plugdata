@@ -1,109 +1,81 @@
-#N canvas 364 72 918 602 12;
-#X text 23 25 Basic interaction with Pd patches is possible via GUI
-elements via mouse clicks. These elements are the GUI objects like
-number boxes \, sliders \, bang buttons \, etc. You can also interact
-with message boxes by clicking on them and by clicking and dragging
-into arrays., f 51;
-#X text 23 115 Other than this basic interaction via mouse clicks \,
-Pd also offers objects that grabs information from keys pressed on
-your computer keyboard. Check them below., f 51;
+#N canvas 349 52 918 602 12;
+#X text 23 25 Basic interaction with Pd patches is possible via GUI elements via mouse clicks. These elements are the GUI objects like number boxes \, sliders \, bang buttons \, etc. You can also interact with message boxes by clicking on them and by clicking and dragging into arrays., f 51;
+#X text 23 115 Other than this basic interaction via mouse clicks \, Pd also offers objects that grabs information from keys pressed on your computer keyboard. Check them below., f 51;
 #X obj 56 214 key;
-#X floatatom 56 242 3 0 0 0 - - -;
-#X floatatom 135 240 3 0 0 0 - - -;
+#X floatatom 56 242 3 0 0 0 - - - 0;
+#X floatatom 135 240 3 0 0 0 - - - 0;
 #X obj 135 214 keyup;
-#X floatatom 207 260 3 0 0 0 - - -;
+#X floatatom 207 260 3 0 0 0 - - - 0;
 #X obj 207 214 keyname;
-#X symbolatom 273 248 10 0 0 0 - - -;
+#X symbolatom 273 248 10 0 0 0 - - - 0;
 #X obj 56 271 sel 32;
-#X obj 56 302 bng 15 250 50 0 empty empty empty 17 7 0 10 -262144 -1
--1;
+#X obj 56 302 bng 19 250 50 0 empty empty empty 17 7 0 10 #dfdfdf #000000 #000000;
 #X obj 135 271 sel 32;
-#X obj 135 302 bng 15 250 50 0 empty empty empty 17 7 0 10 -262144
--1 -1;
 #X msg 273 311 1;
-#X obj 273 338 tgl 15 0 empty empty empty 17 7 0 10 -262144 -1 -1 0
-1;
+#X obj 273 338 tgl 19 0 empty empty empty 17 7 0 10 #dfdfdf #000000 #000000 0 1;
 #X msg 368 311 0;
 #X obj 208 303 spigot;
-#X obj 208 355 sel 1 0;
-#X obj 208 385 bng 15 250 50 0 empty empty empty 17 7 0 10 -262144
--1 -1;
-#X obj 231 386 bng 15 250 50 0 empty empty empty 17 7 0 10 -262144
--1 -1;
 #X obj 273 281 select Shift_L;
-#X text 74 301 up;
-#X text 153 299 down;
-#X text 205 402 up;
-#X text 231 403 down;
-#X text 29 347 To the right \, we have a way to grab special keys like
-"shift"., f 22;
-#X text 28 438 Your system may have been set to autorepeat keys when
-pressed and hold for a long time. You need to change this setting and
-reopen Pd \, otherwise you will see keys being released and repressed.
-, f 50;
+#X text 76 302 up;
+#X text 155 304 down;
+#X text 206 414 up;
+#X text 238 414 down;
+#X text 32 360 To the right \, we have a way to grab special keys like "shift"., f 22;
+#X text 28 438 Your system may have been set to autorepeat keys when pressed and hold for a long time. You need to change this setting and reopen Pd \, otherwise you will see keys being released and repressed., f 50;
 #X obj 533 85 midiin;
-#X text 437 24 You can also interact to Pd via external controllers
-such as MIDI devices. We'll see MIDI in more details later on in this
-tutorial. Check the help file of native MIDI objects., f 61;
+#X text 437 24 You can also interact to Pd via external controllers such as MIDI devices. We'll see MIDI in more details later on in this tutorial. Check the help file of native MIDI objects., f 61;
 #X text 589 84 <= right click for help;
 #X obj 481 456 netreceive 3001;
 #X msg 448 279 connect localhost 3001;
-#X obj 498 373 tgl 17 0 empty empty empty 17 7 0 10 -228856 -1 -1 0
-1;
-#X floatatom 498 317 5 0 0 0 - - -;
-#X floatatom 481 487 5 0 0 0 - - -;
-#X obj 663 393 tgl 17 0 empty empty empty 17 7 0 10 -228856 -1 -1 0
-1;
+#X obj 498 373 tgl 19 0 empty empty empty 17 7 0 10 #dcdcdc #000000 #000000 0 1;
+#X floatatom 498 317 5 0 0 0 - - - 0;
+#X floatatom 481 487 5 0 0 0 - - - 0;
 #X msg 662 279 connect localhost 4001;
 #X obj 664 432 netreceive -u -b 4001;
 #X obj 694 333 oscformat hz;
-#X floatatom 694 308 5 0 0 0 - - -;
+#X floatatom 694 308 5 0 0 0 - - - 0;
 #X obj 664 461 oscparse;
 #X obj 498 345 netsend;
 #X obj 663 362 netsend -u -b;
 #X obj 664 492 print OSC;
 #X text 790 324 format OSC message, f 11;
 #X text 766 363 send via UDP;
-#X text 740 464 Receive and parse OSC messages \, check the console
-window, f 19;
-#X text 440 253 Click on the connect messages below and the number
-boxes.;
+#X text 740 464 Receive and parse OSC messages \, check the console window, f 19;
+#X text 440 253 Click on the connect messages below and the number boxes.;
 #X text 451 403 Sending and receiving Pd messages via TCP, f 24;
-#X text 275 537 More is possible with externals \, which include more
-GUI objects and other interaction possibilities \, so we'll first se
-how to load them in the next example., f 52;
-#X text 430 119 Pd can also control and be controlled via network connections.
-This way patches can interact and be controlled via other patches from
-other computers. Lot's of wild stuff can happen!, f 63;
-#X text 430 172 It's also possible to interact via the OSC (Open Sound
-Control) protocol via UDP. OSC came up as a more sophisticated alternative
-to MIDI and we'll see more about this later in this tutorial. For now
-\, check the help files of the objects below., f 63;
+#X text 275 537 More is possible with externals \, which include more GUI objects and other interaction possibilities \, so we'll first see how to load them in the next example., f 52;
+#X text 430 119 Pd can also control and be controlled via network connections. This way patches can interact and be controlled via other patches from other computers. Lot's of wild stuff can happen!, f 63;
+#X text 430 172 It's also possible to interact via the OSC (Open Sound Control) protocol via UDP. OSC came up as a more sophisticated alternative to MIDI and we'll see more about this later in this tutorial. For now \, check the help files of the objects below., f 63;
+#X obj 135 302 bng 19 250 50 0 empty empty empty 17 7 0 10 #dfdfdf #000000 #000000;
+#X obj 208 395 bng 19 250 50 0 empty empty empty 17 7 0 10 #dfdfdf #000000 #000000;
+#X obj 241 395 bng 19 250 50 0 empty empty empty 17 7 0 10 #dfdfdf #000000 #000000;
+#X obj 208 365 select 1 0;
+#X obj 663 393 tgl 19 0 empty empty empty 17 7 0 10 #dcdcdc #000000 #000000 0 1;
 #X connect 2 0 3 0;
 #X connect 3 0 9 0;
 #X connect 4 0 11 0;
 #X connect 5 0 4 0;
-#X connect 6 0 16 0;
+#X connect 6 0 15 0;
 #X connect 7 0 6 0;
 #X connect 7 1 8 0;
-#X connect 8 0 20 0;
+#X connect 8 0 16 0;
 #X connect 9 0 10 0;
-#X connect 11 0 12 0;
-#X connect 13 0 14 0;
-#X connect 14 0 16 1;
-#X connect 15 0 14 0;
-#X connect 16 0 17 0;
-#X connect 17 0 18 0;
-#X connect 17 1 19 0;
-#X connect 20 0 13 0;
-#X connect 20 1 15 0;
-#X connect 30 0 34 0;
-#X connect 31 0 41 0;
-#X connect 33 0 41 0;
-#X connect 36 0 42 0;
-#X connect 37 0 40 0;
-#X connect 38 0 42 0;
-#X connect 39 0 38 0;
-#X connect 40 0 43 0;
-#X connect 41 0 32 0;
-#X connect 42 0 35 0;
+#X connect 11 0 47 0;
+#X connect 12 0 13 0;
+#X connect 13 0 15 1;
+#X connect 14 0 13 0;
+#X connect 15 0 50 0;
+#X connect 16 0 12 0;
+#X connect 16 1 14 0;
+#X connect 26 0 30 0;
+#X connect 27 0 36 0;
+#X connect 29 0 36 0;
+#X connect 31 0 37 0;
+#X connect 32 0 35 0;
+#X connect 33 0 37 0;
+#X connect 34 0 33 0;
+#X connect 35 0 38 0;
+#X connect 36 0 28 0;
+#X connect 37 0 51 0;
+#X connect 50 0 48 0;
+#X connect 50 1 49 0;

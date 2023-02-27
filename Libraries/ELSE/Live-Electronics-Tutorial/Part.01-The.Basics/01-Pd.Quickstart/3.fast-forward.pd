@@ -21,7 +21,7 @@
 #X text 138 377 =>;
 #X text 472 309 <=;
 #X text 202 273 <= time amount to render;
-#X text 104 179 This is very useful if you want to process a pre recorded
+#X text 104 179 This is very useful if you want to process a pre-recorded
 audio in a Pd patch or to generate an audio file with a generative
 (or automated) patch. You can also use [tabwrite~] to record to arrays
 used as audio buffers \, something we'll see in this tutorial later
@@ -31,7 +31,7 @@ on., f 74;
 Pd to turn DSP on and off. Here we use this message with loadbang so
 the dsp is turned on when the patch is loaded., f 74;
 #X text 104 76 But anyway \, this example is dedicated to another message
-to Pd: - the "fast-forward" message. This is a very interestng feature
+to Pd: - the "fast-forward" message. This is a very interesting feature
 because Pd is mostly used to generate and process things in realtime
 \, nonetheless \, this allows you to 'render' an amount of audio faster
 than realtime (and as fast as your process can handle). In this example

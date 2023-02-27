@@ -1,34 +1,22 @@
-#N canvas 495 87 562 689 12;
+#N canvas 620 28 562 635 12;
 #X declare -path else;
-#X obj 191 538 free.rev~;
-#X text 58 57 The [free.rev~] object from ELSE is an abstraction that
-implements the widely known 'freeverb' open source algorithm., f 59
-;
-#X text 58 106 It uses a Schroeder/Moorer model design \, with 8 comb
-filters in parallel going into 4 stages of allpass filters., f 59
-;
-#X text 58 142 This example is a bit more sophisticated. Like the FDN
-reverberastors \, it has a 'decay' parameter (which affects the feedback
-coefficient of the comb filters) and a high frequency damping parameter
-(that controls the cutoff of an internal lowpass filter).;
-#X obj 194 376 hsl 128 15 0 1 0 1 empty empty empty 20 8 0 10 -228856
--1 -1 12700 0;
-#X floatatom 191 402 5 0 0 0 - - -;
-#X floatatom 274 426 5 0 0 0 - - -;
-#X msg 274 452 damp \$1;
-#X obj 277 403 hsl 128 15 0 1 0 1 empty empty empty 20 8 0 10 -228856
--1 -1 1100 0;
-#X msg 191 428 decay \$1;
-#X obj 352 439 hsl 128 15 0 1 0 1 empty empty empty 20 8 0 10 -228856
--1 -1 12700 0;
-#X floatatom 349 462 5 0 0 0 - - -;
-#X msg 349 486 wet \$1;
+#X obj 191 508 free.rev~;
+#X text 58 57 The [free.rev~] object from ELSE is an abstraction that implements the widely known 'freeverb' open source algorithm., f 59;
+#X text 58 106 It uses a Schroeder/Moorer model design \, with 8 comb filters in parallel going into 4 stages of allpass filters., f 59;
+#X text 58 142 This example is a bit more sophisticated. Like the FDN reverberastors \, it has a 'decay' parameter (which affects the feedback coefficient of the comb filters) and a high frequency damping parameter (that controls the cutoff of an internal lowpass filter).;
+#X obj 194 346 hsl 128 15 0 1 0 1 empty empty empty 20 8 0 10 #dcdcdc #000000 #000000 12700 0;
+#X floatatom 191 372 5 0 0 0 - - - 0;
+#X floatatom 274 396 5 0 0 0 - - - 0;
+#X msg 274 422 damp \$1;
+#X obj 277 373 hsl 128 15 0 1 0 1 empty empty empty 20 8 0 10 #dcdcdc #000000 #000000 1100 0;
+#X msg 191 398 decay \$1;
+#X obj 352 409 hsl 128 15 0 1 0 1 empty empty empty 20 8 0 10 #dcdcdc #000000 #000000 12700 0;
+#X floatatom 349 432 5 0 0 0 - - - 0;
+#X msg 349 456 wet \$1;
 #X obj 331 16 declare -path else;
-#X obj 128 338 play.file~ 1 didge.aif 1 1;
-#X obj 175 577 out~;
-#X text 58 219 Additionally \, it has a 'width' parameter that controls
-how much both inputs are mixed or not. This controls the stereo spread.
-Open the abstraction to check it out. Check also its help file.;
+#X obj 128 308 play.file~ 1 didge.aif 1 1;
+#X obj 175 547 out~;
+#X text 58 219 Additionally \, it has a 'width' parameter that controls how much both inputs are mixed or not. This controls the stereo spread. Open the abstraction to check it out. Check also its help file.;
 #X connect 0 0 15 0;
 #X connect 0 1 15 1;
 #X connect 4 0 5 0;

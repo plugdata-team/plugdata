@@ -5,9 +5,9 @@
 #X text 77 227 bang;
 #X msg 121 262 symbol oi;
 #X msg 111 355 list um 2;
-#X text 71 262 Symbol;
+#X text 71 262 symbol;
 #X text 175 329 (implicit);
-#X text 68 342 List;
+#X text 68 342 list;
 #X text 151 288 (implicit);
 #X text 74 290 float;
 #X msg 307 251 turn on;

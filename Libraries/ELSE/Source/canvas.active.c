@@ -25,6 +25,7 @@ typedef struct _active{
     t_symbol        *x_cname;
     int              x_right_click;
     int              x_on;
+    int              x_name;
 }t_active;
 
 t_active_gui *gui_sink = 0;
@@ -66,7 +67,8 @@ static int active_gui_setup(void){
         }
     }
     active_gui_class = class_new(gensym("_active_gui"), 0, 0,
-        sizeof(t_active_gui), CLASS_PD | CLASS_NOINLET, 0);    class_addmethod(active_gui_class, (t_method)active_gui__refocus,
+        sizeof(t_active_gui), CLASS_PD | CLASS_NOINLET, 0);
+    class_addmethod(active_gui_class, (t_method)active_gui__refocus,
         gensym("_refocus"), 0);
     class_addmethod(active_gui_class, (t_method)active_gui__focus,
         gensym("_focus"), A_SYMBOL, A_FLOAT, 0);
@@ -118,14 +120,21 @@ void active_gui_getscreen(void){
 }
 
 static void active_dofocus(t_active *x, t_symbol *s, t_floatarg f){
-    int active = (int)(f != 0);
-    int this_window = (s == x->x_cname);
-    if(active){ // some window is active
-        if(x->x_on != this_window)
-            outlet_float(x->x_obj.ob_outlet, x->x_on = this_window);
+    if(x->x_name){
+        char buf[MAXPDSTRING];
+        snprintf(buf, MAXPDSTRING-1, "%s", s->s_name);
+        buf[strlen(s->s_name)-2] = '\0';
+        outlet_symbol(x->x_obj.ob_outlet, gensym(buf));
     }
-    else if(this_window && x->x_on && !x->x_right_click) 
-        outlet_float(x->x_obj.ob_outlet, x->x_on = 0);
+    else{
+        int active = (int)(f != 0), this_window = (s == x->x_cname);
+        if(active){ // some window is active
+            if(x->x_on != this_window)
+                outlet_float(x->x_obj.ob_outlet, x->x_on = this_window);
+        }
+        else if(this_window && x->x_on && !x->x_right_click)
+            outlet_float(x->x_obj.ob_outlet, x->x_on = 0);
+    }
 }
 
 static void mouse_proxy_any(t_mouse_proxy *p, t_symbol*s, int ac, t_atom *av){
@@ -157,11 +166,24 @@ static void active_free(t_active *x){ // unbind focus
     clock_delay(x->x_proxy->p_clock, 0);
 }
 
-static void *active_new(t_floatarg f){
+static void *active_new(t_symbol *s, int ac, t_atom *av){
+    s = NULL;
     t_active *x = (t_active *)pd_new(active_class);
     t_canvas *cnv = canvas_getcurrent();
     x->x_right_click = x->x_on = 0;
-    int depth = (int)f < 0 ? 0 : (int)f;
+    x->x_name = 0;
+    int depth = 0;
+    if(ac){
+        if(av->a_type == A_SYMBOL){
+            t_symbol *cursym = atom_getsymbolarg(0, ac, av);
+            if(cursym == gensym("-name"))
+                x->x_name = 1;
+        }
+        else{
+            t_float f = atom_getfloatarg(0, ac, av);
+            depth = (int)f < 0 ? 0 : (int)f;
+        }
+    }
     while(depth-- && cnv->gl_owner)
         cnv = cnv->gl_owner;
     char buf[MAXPDSTRING];
@@ -172,6 +194,7 @@ static void *active_new(t_floatarg f){
     buf[MAXPDSTRING-1] = 0;
     x->x_cname = gensym(buf);
     outlet_new((t_object *)x, &s_float);
+    
 // bind focus
     if(!gui_sink && (active_gui_class || active_gui_setup())){
         if(gensym("#active_gui")->s_thing)
@@ -195,7 +218,7 @@ static void *active_new(t_floatarg f){
 
 void setup_canvas0x2eactive(void){
     active_class = class_new(gensym("canvas.active"), (t_newmethod)active_new,
-        (t_method)active_free, sizeof(t_active), CLASS_NOINLET, A_DEFFLOAT, 0);
+        (t_method)active_free, sizeof(t_active), CLASS_NOINLET, A_GIMME, 0);
     mouse_proxy_class = class_new(0, 0, 0, sizeof(t_mouse_proxy), CLASS_NOINLET | CLASS_PD, 0);
     class_addanything(mouse_proxy_class, mouse_proxy_any);
     class_addmethod(active_class, (t_method)active_dofocus, gensym("_focus"), A_SYMBOL, A_FLOAT, 0);

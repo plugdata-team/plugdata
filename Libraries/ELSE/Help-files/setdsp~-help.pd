@@ -1,73 +1,40 @@
-#N canvas 487 26 560 513 10;
-#X obj 3 335 cnv 3 550 3 empty empty inlets 8 12 0 13 #dcdcdc #000000
-0;
-#X obj 3 384 cnv 3 550 3 empty empty outlets 8 12 0 13 #dcdcdc #000000
-0;
-#X obj 3 416 cnv 3 550 3 empty empty arguments 8 12 0 13 #dcdcdc #000000
-0;
-#X obj 3 482 cnv 15 552 21 empty empty empty 20 12 0 14 #e0e0e0 #202020
-0;
-#X obj 306 4 cnv 15 250 40 empty empty empty 12 13 0 18 #7c7c7c #e0e4dc
-0;
+#N canvas 660 26 560 513 10;
+#X obj 3 335 cnv 3 550 3 empty empty inlets 8 12 0 13 #dcdcdc #000000 0;
+#X obj 3 384 cnv 3 550 3 empty empty outlets 8 12 0 13 #dcdcdc #000000 0;
+#X obj 3 416 cnv 3 550 3 empty empty arguments 8 12 0 13 #dcdcdc #000000 0;
+#X obj 3 482 cnv 15 552 21 empty empty empty 20 12 0 14 #e0e0e0 #202020 0;
+#X obj 306 4 cnv 15 250 40 empty empty empty 12 13 0 18 #7c7c7c #e0e4dc 0;
 #N canvas 382 141 749 319 (subpatch) 0;
 #X coords 0 -1 1 1 252 42 2 100 100;
 #X restore 305 3 pd;
-#X obj 345 11 cnv 10 10 10 empty empty ELSE 0 15 2 30 #7c7c7c #e0e4dc
-0;
-#X obj 64 40 cnv 4 4 4 empty empty on/off 0 28 2 18 #e0e0e0 #000000
-0;
-#X obj 21 40 cnv 4 4 4 empty empty DSP 0 28 2 18 #e0e0e0 #000000 0
-;
-#X obj 458 11 cnv 10 10 10 empty empty EL 0 6 2 13 #7c7c7c #e0e4dc
-0;
-#X obj 478 11 cnv 10 10 10 empty empty Locus 0 6 2 13 #7c7c7c #e0e4dc
-0;
-#X obj 515 11 cnv 10 10 10 empty empty Solus' 0 6 2 13 #7c7c7c #e0e4dc
-0;
-#X obj 464 26 cnv 10 10 10 empty empty ELSE 0 6 2 13 #7c7c7c #e0e4dc
-0;
-#X obj 502 26 cnv 10 10 10 empty empty library 0 6 2 13 #7c7c7c #e0e4dc
-0;
-#X obj 3 4 cnv 15 301 42 empty empty setdsp~ 20 20 2 37 #e0e0e0 #000000
-0;
+#X obj 345 11 cnv 10 10 10 empty empty ELSE 0 15 2 30 #7c7c7c #e0e4dc 0;
+#X obj 64 40 cnv 4 4 4 empty empty on/off 0 28 2 18 #e0e0e0 #000000 0;
+#X obj 21 40 cnv 4 4 4 empty empty DSP 0 28 2 18 #e0e0e0 #000000 0;
+#X obj 458 11 cnv 10 10 10 empty empty EL 0 6 2 13 #7c7c7c #e0e4dc 0;
+#X obj 478 11 cnv 10 10 10 empty empty Locus 0 6 2 13 #7c7c7c #e0e4dc 0;
+#X obj 515 11 cnv 10 10 10 empty empty Solus' 0 6 2 13 #7c7c7c #e0e4dc 0;
+#X obj 464 26 cnv 10 10 10 empty empty ELSE 0 6 2 13 #7c7c7c #e0e4dc 0;
+#X obj 502 26 cnv 10 10 10 empty empty library 0 6 2 13 #7c7c7c #e0e4dc 0;
+#X obj 3 4 cnv 15 301 42 empty empty setdsp~ 20 20 2 37 #e0e0e0 #000000 0;
 #N canvas 0 22 450 278 (subpatch) 0;
 #X coords 0 1 100 -1 302 42 1 0 0;
 #X restore 2 4 graph;
-#X obj 120 40 cnv 4 4 4 empty empty interface 0 28 2 18 #e0e0e0 #000000
-0;
-#X obj 105 392 cnv 17 3 17 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
-;
-#X obj 106 344 cnv 17 3 33 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
-;
-#X obj 209 201 else/setdsp~;
-#X text 81 237 [setdsp~] object ==>;
-#X text 261 213 <=== click to change the status, f 11;
-#X obj 209 281 else/display;
-#X obj 209 311 print set_dsp;
+#X obj 120 40 cnv 4 4 4 empty empty interface 0 28 2 18 #e0e0e0 #000000 0;
+#X obj 105 392 cnv 17 3 17 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0;
+#X obj 106 344 cnv 17 3 33 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0;
+#X obj 202 303 print set_dsp;
 #X text 102 428 1) float -;
-#X text 57 88 [setdsp~] is a convenient abstraction to display and
-set Pd's audio engine (aka 'DSP') state. You can just click on it to
-change it to On/Off via its toggle interface. This object is commonly
-found in the documentation of the ELSE library audio objects \, at
-the top right corner., f 74;
-#X text 57 139 By default \, the [setdsp~] object will check the current
-DSP state and load accordingly (on or off). But you can give it an
-argument to set it on/off., f 74;
-#X text 142 345 float - sets dsp status: non-0 turns it on and 0 turns
-it off, f 63;
+#X text 57 88 [setdsp~] is a convenient abstraction to display and set Pd's audio engine (aka 'DSP') state. You can just click on it to change it to On/Off via its toggle interface. This object is commonly found in the documentation of the ELSE library audio objects \, at the top right corner., f 74;
+#X text 57 139 By default \, the [setdsp~] object will check the current DSP state and load accordingly (on or off). But you can give it an argument to set it on/off., f 74;
+#X text 142 345 float - sets dsp status: non-0 turns it on and 0 turns it off, f 63;
 #X text 142 393 float - dsp status: 1 (for on) or 0 (for off);
-#X text 171 428 a non-0 value forces the status to be on \, while a
-0 value forces it to be off. If no argument is given \, the default
-behaviour is to check the current DSP state and load the GUI interface
-accordingly (on or off), f 61;
-#X obj 232 181 nbx 2 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
-#dcdcdc #000000 #000000 0 256;
-#X text 262 179 <= set the state via a float message;
-#X obj 209 180 bng 15 250 50 0 empty empty empty 17 7 0 10 #dcdcdc
-#000000 #000000;
-#X text 109 179 change status =>;
+#X text 171 428 a non-0 value forces the status to be on \, while a 0 value forces it to be off. If no argument is given \, the default behaviour is to check the current DSP state and load the GUI interface accordingly (on or off), f 61;
+#X obj 225 182 nbx 2 19 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 14 #dcdcdc #000000 #000000 0 256;
+#X obj 202 182 bng 19 250 50 0 empty empty empty 17 7 0 10 #dcdcdc #000000 #000000;
 #X text 148 362 bang - changes status, f 62;
-#X connect 19 0 22 0;
-#X connect 22 0 23 0;
-#X connect 30 0 19 0;
-#X connect 32 0 19 0;
+#X obj 202 220 setdsp~;
+#X text 93 184 change status -->;
+#X text 263 184 <-- set the state via a float message;
+#X connect 26 0 29 0;
+#X connect 27 0 29 0;
+#X connect 29 0 19 0;

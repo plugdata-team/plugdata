@@ -9,13 +9,21 @@ categories:
 pdcategory: ELSE
 
 arguments:
+  - type: float
+    description: non-0 prevents printing on the terminal when loading
 
 inlets:
 
 outlets:
   1st:
   - type: list
-    description: version (major, minor, bugfix, status, status number)
+    description: ELSE version (major, minor, bugfix, status, status number)
+  2nd:
+  - type: list
+    description: Pd version (major, minor, bugfix)
+  3rd:
+  - type: list
+    description: Pd flavor information
 
 methods:
   - type: about

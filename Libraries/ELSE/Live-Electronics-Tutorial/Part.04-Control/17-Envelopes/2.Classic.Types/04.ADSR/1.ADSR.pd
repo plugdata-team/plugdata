@@ -1,81 +1,68 @@
-#N canvas 410 23 890 632 12;
+#N canvas 410 23 890 643 12;
 #X declare -path else;
-#X obj 605 225 *~;
-#X obj 728 231 vsl 18 100 0 1 0 0 ewtwet wefwert empty 0 -9 0 10 #dcdcdc
-#000000 #000000 0 1;
-#X text 751 321 0;
-#X text 751 227 1;
-#X obj 623 142 tgl 20 0 empty empty empty 17 7 0 10 #dcdcdc #000000
-#000000 0 1;
-#X obj 547 190 osc~ 440;
-#X text 591 144 gate;
-#X obj 612 512 *~;
-#X obj 553 468 osc~ 440;
-#X obj 603 427 bng 16 250 50 0 empty empty empty 17 7 0 10 #dcdcdc
-#000000 #000000;
-#X obj 623 173 adsr~ 100 100 0.5 250;
-#X obj 260 205 vsl 16 80 0 1 0 0 empty empty empty 0 -9 0 10 #dcdcdc
-#000000 #000000 0 1;
-#X obj 145 178 *~;
-#X obj 95 122 osc~ 440;
-#X obj 145 227 out~;
-#X obj 279 524 vsl 16 80 0 1 0 0 empty empty empty 0 -9 0 10 #dcdcdc
-#000000 #000000 0 1;
+#X obj 601 245 *~;
+#X obj 724 251 vsl 18 100 0 1 0 0 ewtwet wefwert empty 0 -9 0 10 #dcdcdc #000000 #000000 0 1;
+#X text 747 341 0;
+#X text 747 247 1;
+#X obj 619 122 tgl 20 0 empty empty empty 17 7 0 10 #dcdcdc #000000 #000000 0 1;
+#X obj 543 210 osc~ 440;
+#X text 587 124 gate;
+#X obj 612 532 *~;
+#X obj 553 488 osc~ 440;
+#X obj 603 447 bng 16 250 50 0 empty empty empty 17 7 0 10 #dcdcdc #000000 #000000;
+#X obj 619 193 adsr~ 100 100 0.5 250;
+#X obj 260 224 vsl 16 80 0 1 0 0 empty empty empty 0 -9 0 10 #dcdcdc #000000 #000000 0 1;
+#X obj 145 197 *~;
+#X obj 95 141 osc~ 440;
+#X obj 145 246 out~;
+#X obj 279 524 vsl 16 80 0 1 0 0 empty empty empty 0 -9 0 10 #dcdcdc #000000 #000000 0 1;
 #X obj 161 483 *~;
 #X obj 95 419 osc~ 440;
 #X obj 161 532 out~;
-#X obj 179 380 tgl 20 0 empty empty empty 17 7 0 10 #dcdcdc #000000
-#000000 0 1;
+#X obj 179 380 tgl 20 0 empty empty empty 17 7 0 10 #dcdcdc #000000 #000000 0 1;
 #X text 207 381 gate;
-#X text 190 96 ADSR;
-#X obj 612 549 out~;
-#X obj 605 269 out~;
-#X text 476 64 The [adsr~] object from ELSE is dedicated to ADSR envelopes.
-It expects a gate input like [asr~] \, the new parameters are a decay
-time and a sustain point \, which is a ratio of the gate input., f
-51;
-#X text 23 47 The ADSR ("Attack / Decay / Sustain / Release") has a
-Decay stage after the attack. Here's how it works on [envgen~].;
-#X obj 163 97 bng 18 250 50 0 empty empty empty 17 7 0 10 #dcdcdc #000000
-#000000;
-#X obj 163 127 envgen~ 50 1 50 0.5 500 0.5 500 0;
-#X obj 260 179 s2f~;
+#X text 190 115 ADSR;
+#X obj 612 569 out~;
+#X obj 601 289 out~;
+#X text 23 66 The ADSR ("Attack / Decay / Sustain / Release") has a Decay stage after the attack. Here's how it works on [envgen~].;
+#X obj 163 116 bng 18 250 50 0 empty empty empty 17 7 0 10 #dcdcdc #000000 #000000;
+#X obj 163 146 envgen~ 50 1 50 0.5 500 0.5 500 0;
+#X obj 260 198 s2f~;
 #X obj 279 498 s2f~;
-#X obj 728 203 s2f~;
-#X obj 654 22 declare -path else;
-#X obj 630 404 bng 16 250 50 0 empty empty empty 17 7 0 10 #dcdcdc
-#000000 #000000;
-#X obj 630 427 impseq~;
-#X obj 630 457 timed.gate~ 500;
-#X text 480 355 You can also use [timed.gate~] to trigger it with bangs
-or impulses. Like [asr~] \, it also has a "log" mode., f 49;
-#X obj 630 483 adsr~ -log 250 500 0.5 250;
-#X obj 179 415 envgen~ -suspoint 2 -exp 50 -0.25 1 50 -0.5 0.5 200
--0.5 0, f 19;
-#X text 75 335 Now exponential (with triplets of duration \, exp factor
-and target) and with a "gate" input:, f 43;
+#X obj 724 223 s2f~;
+#X obj 300 21 declare -path else;
+#X obj 630 424 bng 16 250 50 0 empty empty empty 17 7 0 10 #dcdcdc #000000 #000000;
+#X obj 630 447 impseq~;
+#X obj 630 477 timed.gate~ 500;
+#X obj 179 415 envgen~ -suspoint 2 -exp 50 -0.25 1 50 -0.5 0.5 200 -0.5 0, f 19;
+#X text 75 335 Now exponential (with triplets of duration \, exp factor and target) and with a "gate" input:, f 43;
+#X obj 630 503 adsr~ -lin 250 500 0.5 250;
+#X floatatom 619 151 5 0 0 0 - - - 0;
+#X text 480 375 You can also use [timed.gate~] to trigger it with bangs or impulses. Like [asr~] \, it also has a "lin" mode., f 49;
+#X text 476 15 The [adsr~] object from ELSE is dedicated to ADSR envelopes. It expects a gate input just like [asr~] \, the new parameters are a decay time and a sustain point \, which is a ratio of the gate input. By default it has a non linear behaviour as with the [slope~] or [lag~] objects., f 52;
 #X connect 0 0 23 0;
-#X connect 4 0 10 0;
+#X connect 4 0 37 0;
 #X connect 5 0 0 0;
 #X connect 7 0 22 0;
 #X connect 8 0 7 0;
-#X connect 9 0 34 0;
+#X connect 9 0 33 0;
 #X connect 10 0 0 1;
-#X connect 10 0 30 0;
+#X connect 10 0 29 0;
 #X connect 12 0 14 0;
 #X connect 13 0 12 0;
 #X connect 16 0 18 0;
 #X connect 17 0 16 0;
-#X connect 19 0 37 0;
+#X connect 19 0 34 0;
+#X connect 25 0 26 0;
+#X connect 26 0 12 1;
 #X connect 26 0 27 0;
-#X connect 27 0 12 1;
-#X connect 27 0 28 0;
-#X connect 28 0 11 0;
-#X connect 29 0 15 0;
-#X connect 30 0 1 0;
+#X connect 27 0 11 0;
+#X connect 28 0 15 0;
+#X connect 29 0 1 0;
+#X connect 31 0 32 0;
 #X connect 32 0 33 0;
-#X connect 33 0 34 0;
-#X connect 34 0 36 0;
+#X connect 33 0 36 0;
+#X connect 34 0 16 1;
+#X connect 34 0 28 0;
 #X connect 36 0 7 1;
-#X connect 37 0 16 1;
-#X connect 37 0 29 0;
+#X connect 37 0 10 0;

@@ -1,6 +1,6 @@
 #N canvas 482 60 564 520 12;
 #X declare -path else;
-#N canvas 887 255 553 491 Cross_Phase_Modulation 0;
+#N canvas 650 148 553 491 Cross_Phase_Modulation 0;
 #X obj 298 57 inlet~;
 #X obj 377 57 inlet~;
 #X obj 44 56 inlet~;
@@ -9,13 +9,9 @@
 #X obj 425 247 block~ 1;
 #X obj 98 240 *~;
 #X obj 362 343 *~;
-#X obj 352 366 cnv 15 150 40 empty empty empty 20 12 0 14 -233017 -66577
-0;
-#X obj 362 380 delwrite~ \$0-pm_fb 1;
-#X obj 132 104 cnv 15 150 40 empty empty empty 20 12 0 14 -233017 -66577
-0;
-#X obj 144 113 delread~ \$0-pm_fb 0;
-#X text 166 85 feedback;
+#X obj 352 369 cnv 15 90 40 empty empty empty 20 12 0 14 #e0e0e0 #404040 0;
+#X obj 132 104 cnv 15 90 40 empty empty empty 20 12 0 14 #e0e0e0 #404040 0;
+#X text 141 86 feedback;
 #X obj 44 424 outlet~;
 #X text 111 35 index 1;
 #X text 373 31 index 2;
@@ -23,48 +19,37 @@
 #X text 45 35 freq 1;
 #X obj 44 179 sine~;
 #X obj 298 299 sine~;
-#X connect 0 0 19 0;
+#X obj 362 380 s~ \$0-fb;
+#X obj 144 113 r~ \$0-fb;
+#X connect 0 0 17 0;
 #X connect 1 0 7 1;
-#X connect 2 0 18 0;
+#X connect 2 0 16 0;
 #X connect 3 0 6 1;
-#X connect 6 0 19 2;
-#X connect 7 0 9 0;
-#X connect 11 0 18 2;
-#X connect 18 0 6 0;
-#X connect 18 0 13 0;
-#X connect 19 0 7 0;
-#X connect 19 0 4 0;
+#X connect 6 0 17 2;
+#X connect 7 0 18 0;
+#X connect 16 0 6 0;
+#X connect 16 0 11 0;
+#X connect 17 0 7 0;
+#X connect 17 0 4 0;
+#X connect 19 0 16 2;
 #X restore 67 383 pd Cross_Phase_Modulation;
-#X obj 127 277 hsl 128 15 0.01 1 1 0 empty index1 empty -2 -8 0 10
--228856 -1 -1 12700 1;
-#X obj 124 304 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
--228856 -1 -1 100 256;
-#X obj 59 303 nbx 5 14 -1e+37 1e+37 0 0 empty freq1 empty 0 -8 0 10
--228856 -1 -1 150 256;
-#X obj 357 278 hsl 128 15 0.01 1 1 0 empty index2 empty -2 -8 0 10
--191407 -1 -1 12700 1;
-#X obj 354 305 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
--191407 -1 -1 100 256;
-#X obj 287 304 nbx 5 14 -1e+37 1e+37 0 0 empty freq2 empty 0 -8 0 10
--191407 -1 -1 250 256;
+#X obj 127 277 hsl 128 15 0.01 1 1 0 empty index1 empty -2 -8 0 10 #dcdcdc #000000 #000000 0 1;
+#X obj 124 304 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10 #dcdcdc #000000 #000000 0 256;
+#X obj 59 303 nbx 5 14 -1e+37 1e+37 0 0 empty freq1 empty 0 -8 0 10 #dcdcdc #000000 #000000 0 256;
+#X obj 357 278 hsl 128 15 0.01 1 1 0 empty index2 empty -2 -8 0 10 #b8b8b8 #000000 #000000 0 1;
+#X obj 354 305 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10 #b8b8b8 #000000 #000000 0 256;
+#X obj 287 304 nbx 5 14 -1e+37 1e+37 0 0 empty freq2 empty 0 -8 0 10 #b8b8b8 #000000 #000000 0 256;
 #X text 384 277 index 2;
 #X text 155 276 index 1;
 #X text 67 284 Freq 1;
 #X text 287 283 Freq 2;
-#X obj 412 364 initmess \; index1 0.3 \; index2 0.2 \; freq1 150 \;
-freq2 250;
+#X obj 412 364 initmess \; index1 0.3 \; index2 0.2 \; freq1 150 \; freq2 250;
 #X obj 269 384 xmod~ -pm;
 #X obj 327 37 declare -path else;
 #X obj 97 425 out~;
 #X obj 269 424 out~;
-#X text 74 88 This is basically the same as the last example \, but
-we get the output of both oscillators instead. Now we can't use [pmosc~]
-to implement this \, we need two [sine~] objects and get the audio
-signal from both., f 58;
-#X text 74 166 This implies we have a "stereo" output. Open the subpacth
-below to check out how to implement this. Also check the [xmod~] object
-from ELSE \, which does cross modulation for phase and frequency modulation.
-;
+#X text 74 88 This is basically the same as the last example \, but we get the output of both oscillators instead. Now we can't use [pmosc~] to implement this \, we need two [sine~] objects and get the audio signal from both., f 58;
+#X text 74 166 This implies we have a "stereo" output. Open the subpacth below to check out how to implement this. Also check the [xmod~] object from ELSE \, which does cross modulation for phase and frequency modulation.;
 #X connect 0 0 14 0;
 #X connect 0 1 14 1;
 #X connect 1 0 2 0;

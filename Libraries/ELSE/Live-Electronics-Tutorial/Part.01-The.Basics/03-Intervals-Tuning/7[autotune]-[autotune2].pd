@@ -99,7 +99,7 @@
 #X connect 21 0 2 0;
 #X restore 306 488 pd quantizer;
 #X text 30 288 For other musical scales we need more sophisticated patches \, but things are still relatively simple if you have scales based on equal division of intervals. Check the subpatch below \, to the left \, where we correct the tuning according to a Bohlen-Pierce scale. To the right we have a minor simplification with the [quantizer] object from ELSE., f 64;
-#X text 514 24 For scales with irregular steps \, the algorithm gets indeed more complicated. We need to store the scale's step values in a table and go trhough it and find the closest one., f 62;
+#X text 514 24 For scales with irregular steps \, the algorithm gets indeed more complicated. We need to store the scale's step values in a table and go through it and find the closest one., f 62;
 #X obj 660 226 keyboard 17 80 2 3 0 0 empty empty;
 #X floatatom 660 342 4 0 0 0 - - - 0;
 #X obj 660 317 stripnote;

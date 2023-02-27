@@ -1,46 +1,29 @@
 #N canvas 515 24 563 591 10;
-#X obj 306 4 cnv 15 250 40 empty empty empty 12 13 0 18 #7c7c7c #e0e4dc
-0;
+#X obj 306 4 cnv 15 250 40 empty empty empty 12 13 0 18 #7c7c7c #e0e4dc 0;
 #N canvas 382 141 749 319 (subpatch) 0;
 #X coords 0 -1 1 1 252 42 2 0 0;
 #X restore 305 3 pd;
-#X obj 345 11 cnv 10 10 10 empty empty ELSE 0 15 2 30 #7c7c7c #e0e4dc
-0;
-#X obj 105 40 cnv 4 4 4 empty empty Sine 0 28 2 18 #e0e0e0 #000000
-0;
-#X obj 458 11 cnv 10 10 10 empty empty EL 0 6 2 13 #7c7c7c #e0e4dc
-0;
-#X obj 478 11 cnv 10 10 10 empty empty Locus 0 6 2 13 #7c7c7c #e0e4dc
-0;
-#X obj 515 11 cnv 10 10 10 empty empty Solus' 0 6 2 13 #7c7c7c #e0e4dc
-0;
-#X obj 464 26 cnv 10 10 10 empty empty ELSE 0 6 2 13 #7c7c7c #e0e4dc
-0;
-#X obj 502 26 cnv 10 10 10 empty empty library 0 6 2 13 #7c7c7c #e0e4dc
-0;
-#X obj 147 40 cnv 4 4 4 empty empty oscillator 0 28 2 18 #e0e0e0 #000000
-0;
-#X obj 3 315 cnv 3 550 3 empty empty inlets 8 12 0 13 #dcdcdc #000000
-0;
-#X obj 3 435 cnv 3 550 3 empty empty outlets 8 12 0 13 #dcdcdc #000000
-0;
-#X obj 3 471 cnv 3 550 3 empty empty arguments 8 12 0 13 #dcdcdc #000000
-0;
-#X obj 122 444 cnv 17 3 17 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
-;
-#X obj 122 323 cnv 17 3 35 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
-;
-#X obj 3 561 cnv 15 552 21 empty empty empty 20 12 0 14 #e0e0e0 #202020
-0;
+#X obj 345 11 cnv 10 10 10 empty empty ELSE 0 15 2 30 #7c7c7c #e0e4dc 0;
+#X obj 105 40 cnv 4 4 4 empty empty Sine 0 28 2 18 #e0e0e0 #000000 0;
+#X obj 458 11 cnv 10 10 10 empty empty EL 0 6 2 13 #7c7c7c #e0e4dc 0;
+#X obj 478 11 cnv 10 10 10 empty empty Locus 0 6 2 13 #7c7c7c #e0e4dc 0;
+#X obj 515 11 cnv 10 10 10 empty empty Solus' 0 6 2 13 #7c7c7c #e0e4dc 0;
+#X obj 464 26 cnv 10 10 10 empty empty ELSE 0 6 2 13 #7c7c7c #e0e4dc 0;
+#X obj 502 26 cnv 10 10 10 empty empty library 0 6 2 13 #7c7c7c #e0e4dc 0;
+#X obj 147 40 cnv 4 4 4 empty empty oscillator 0 28 2 18 #e0e0e0 #000000 0;
+#X obj 3 315 cnv 3 550 3 empty empty inlets 8 12 0 13 #dcdcdc #000000 0;
+#X obj 3 435 cnv 3 550 3 empty empty outlets 8 12 0 13 #dcdcdc #000000 0;
+#X obj 3 471 cnv 3 550 3 empty empty arguments 8 12 0 13 #dcdcdc #000000 0;
+#X obj 122 444 cnv 17 3 17 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0;
+#X obj 122 323 cnv 17 3 35 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0;
+#X obj 3 561 cnv 15 552 21 empty empty empty 20 12 0 14 #e0e0e0 #202020 0;
 #X text 165 324 float/signal -;
 #X text 269 325 frequency in hz;
 #X text 200 444 signal -;
 #X text 154 480 1) float;
-#X obj 165 186 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
-#dcdcdc #000000 #000000 0 256;
+#X obj 165 186 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10 #dcdcdc #000000 #000000 0 256;
 #N canvas 207 34 366 264 (subpatch) 0;
-#X obj 51 101 tgl 42 0 \$0-tgl-s \$0-tgl-r empty 1 8 1 9 #dcdcdc #7c7c7c
-#fcfcfc 0 1;
+#X obj 51 101 tgl 42 0 \$0-tgl-s \$0-tgl-r empty 1 8 1 9 #dcdcdc #7c7c7c #fcfcfc 0 1;
 #X obj 215 68 route dsp;
 #X obj 215 37 receive pd;
 #N canvas 977 77 379 291 set_color 0;
@@ -109,8 +92,7 @@
 #X restore 215 165 pd set_color;
 #X obj 135 122 r \$0-tgl-s;
 #N canvas 121 482 450 300 (subpatch) 0;
-#X obj 101 101 cnv 25 40 25 empty \$0-cnv DSP 3 13 0 20 #dcdcdc #7c7c7c
-0;
+#X obj 101 101 cnv 25 40 25 empty \$0-cnv DSP 3 13 0 20 #dcdcdc #7c7c7c 0;
 #X coords 0 -1 1 1 42 27 1 100 100;
 #X restore 51 144 pd;
 #X obj 226 139 s \$0-tgl-r;
@@ -122,8 +104,7 @@
 #X obj 136 86 snapshot~;
 #X obj 91 52 del 5;
 #X obj 136 151 outlet;
-#X obj 74 103 tgl 15 0 empty empty empty 17 7 0 10 #fcfcfc #000000
-#000000 0 1;
+#X obj 74 103 tgl 15 0 empty empty empty 17 7 0 10 #fcfcfc #000000 #000000 0 1;
 #X obj 74 126 switch~;
 #X connect 0 0 2 0;
 #X connect 1 0 3 0;
@@ -143,44 +124,23 @@
 #X coords 0 -1 1 1 44 72 2 50 100;
 #X restore 505 71 pd;
 #N canvas 489 142 877 537 sync 0;
-#X text 525 29 Syncing the phase with control messages is useful for
-LFOs and control with MIDI. A sync with audio is useful for the "hard
-sync" technique \, where an oscillator is synced according to the frequency
-of a master frequency., f 44;
+#X text 525 29 Syncing the phase with control messages is useful for LFOs and control with MIDI. A sync with audio is useful for the "hard sync" technique \, where an oscillator is synced according to the frequency of a master frequency., f 44;
 #X obj 548 246 else/out~;
-#X obj 610 149 nbx 5 14 110 200 0 0 empty empty empty 0 -8 0 10 #dcdcdc
-#000000 #000000 0 256;
+#X obj 610 149 nbx 5 14 110 200 0 0 empty empty empty 0 -8 0 10 #dcdcdc #000000 #000000 0 256;
 #X text 711 175 Master oscillator;
 #X text 661 210 Slave oscillator;
 #X obj 610 175 else/imp~ 110;
 #X text 516 405 NOTE:;
-#X text 532 438 The "phase sync" inlet is quite different from the
-"phase offset" inlet. This means that the are completely independent.
-, f 43;
-#X text 43 389 Additionally \, you can reset the oscillator with an
-impulse signal. Inputs that are > 0 and <= 1 reset the phase Pdexpects
-an impulse signal for syncing. The impulse values need to be > 0 and
-<= 1 (otherwise ignored). Because phase is cyclical \, the value of
-1 represents the "phase 0" of the cycle \, where the impulse occurs.
-Send it impulses above and check the result. Use a multiplier to reset
-to another phase value.;
-#X text 41 19 The third inlet resets the phase and behaves in the same
-way for control data as the phase sync inlet of other objects like
-[else/sine~]. A number input resets the oscillator and restarts the
-cycle with an initial phase that corresponds to the input number \,
-so the internal phase is synced to the given value. The phase values
-are from 0 to 1 and values beyond that are wrapped within this range.
-;
-#X obj 69 261 vsl 15 100 -1 1 0 0 empty empty empty 0 -9 0 10 #dcdcdc
-#000000 #000000 0 1;
+#X text 532 438 The "phase sync" inlet is quite different from the "phase offset" inlet. This means that the are completely independent., f 43;
+#X text 43 389 Additionally \, you can reset the oscillator with an impulse signal. Inputs that are > 0 and <= 1 reset the phase Pdexpects an impulse signal for syncing. The impulse values need to be > 0 and <= 1 (otherwise ignored). Because phase is cyclical \, the value of 1 represents the "phase 0" of the cycle \, where the impulse occurs. Send it impulses above and check the result. Use a multiplier to reset to another phase value.;
+#X text 41 19 The third inlet resets the phase and behaves in the same way for control data as the phase sync inlet of other objects like [else/sine~]. A number input resets the oscillator and restarts the cycle with an initial phase that corresponds to the input number \, so the internal phase is synced to the given value. The phase values are from 0 to 1 and values beyond that are wrapped within this range.;
+#X obj 69 261 vsl 15 100 -1 1 0 0 empty empty empty 0 -9 0 10 #dcdcdc #000000 #000000 0 1;
 #X obj 69 223 else/sig2float~;
-#X obj 255 261 vsl 15 100 -1 1 0 0 empty empty empty 0 -9 0 10 #dcdcdc
-#000000 #000000 0 1;
+#X obj 255 261 vsl 15 100 -1 1 0 0 empty empty empty 0 -9 0 10 #dcdcdc #000000 #000000 0 1;
 #X obj 255 229 else/sig2float~;
 #X text 232 144 <= reset =>;
 #N canvas 207 34 366 264 (subpatch) 0;
-#X obj 51 101 tgl 42 0 \$0-tgl-s \$0-tgl-r empty 1 8 1 9 #dcdcdc #7c7c7c
-#fcfcfc 0 1;
+#X obj 51 101 tgl 42 0 \$0-tgl-s \$0-tgl-r empty 1 8 1 9 #dcdcdc #7c7c7c #fcfcfc 0 1;
 #X obj 215 68 route dsp;
 #X obj 215 37 receive pd;
 #N canvas 977 77 379 291 set_color 0;
@@ -249,8 +209,7 @@ are from 0 to 1 and values beyond that are wrapped within this range.
 #X restore 215 165 pd set_color;
 #X obj 135 122 r \$0-tgl-s;
 #N canvas 121 482 450 300 (subpatch) 0;
-#X obj 101 101 cnv 25 40 25 empty \$0-cnv DSP 3 13 0 20 #dcdcdc #7c7c7c
-0;
+#X obj 101 101 cnv 25 40 25 empty \$0-cnv DSP 3 13 0 20 #dcdcdc #7c7c7c 0;
 #X coords 0 -1 1 1 42 27 1 100 100;
 #X restore 51 144 pd;
 #X obj 226 139 s \$0-tgl-r;
@@ -262,8 +221,7 @@ are from 0 to 1 and values beyond that are wrapped within this range.
 #X obj 136 86 snapshot~;
 #X obj 91 52 del 5;
 #X obj 136 151 outlet;
-#X obj 74 103 tgl 15 0 empty empty empty 17 7 0 10 #fcfcfc #000000
-#000000 0 1;
+#X obj 74 103 tgl 15 0 empty empty empty 17 7 0 10 #fcfcfc #000000 #000000 0 1;
 #X obj 74 126 switch~;
 #X connect 0 0 2 0;
 #X connect 1 0 3 0;
@@ -314,26 +272,20 @@ are from 0 to 1 and values beyond that are wrapped within this range.
 #X connect 28 0 1 0;
 #X restore 491 256 pd sync;
 #N canvas 430 175 722 329 phase 0;
-#X text 445 45 The phase values are wrapped into the 0-1 range \, since
-the phase cycle is from 0 to 1 - where 1 is also the start of another
-cycle., f 36;
+#X text 445 45 The phase values are wrapped into the 0-1 range \, since the phase cycle is from 0 to 1 - where 1 is also the start of another cycle., f 36;
 #X obj 486 181 else/out~;
 #X text 592 148 Phase Modulation:;
 #X obj 579 121 osc~ 50.01;
 #X text 391 113 1;
 #X obj 80 231 else/out~;
-#X obj 257 113 hsl 128 15 0 1 0 0 empty empty empty -2 -8 0 10 #dcdcdc
-#000000 #000000 0 1;
+#X obj 257 113 hsl 128 15 0 1 0 0 empty empty empty -2 -8 0 10 #dcdcdc #000000 #000000 0 1;
 #X floatatom 254 138 0 0 0 0 - - - 0;
 #X text 235 113 0;
 #X obj 80 195 +~;
 #X obj 80 137 else/fbsine~ 220;
 #X obj 486 148 else/fbsine~ 200;
 #X obj 95 168 else/fbsine~ 220 0 0.5, f 27;
-#X text 31 26 The third argument sets an initial phase (or "phase offset").
-This is also settable with the fourth inlet. In such a way \, you have
-two objects with the same frequency falling in and out of phase. Another
-feature is phase modulation.;
+#X text 31 26 The third argument sets an initial phase (or "phase offset"). This is also settable with the fourth inlet. In such a way \, you have two objects with the same frequency falling in and out of phase. Another feature is phase modulation.;
 #X connect 3 0 11 3;
 #X connect 6 0 7 0;
 #X connect 7 0 12 3;
@@ -342,8 +294,7 @@ feature is phase modulation.;
 #X connect 11 0 1 0;
 #X connect 12 0 9 1;
 #X restore 443 281 pd phase offset;
-#X obj 3 3 cnv 15 301 42 empty empty fbsine~ 20 20 2 37 #e0e0e0 #000000
-0;
+#X obj 3 3 cnv 15 301 42 empty empty fbsine~ 20 20 2 37 #e0e0e0 #000000 0;
 #N canvas 0 22 450 278 (subpatch) 0;
 #X coords 0 1 100 -1 302 42 1;
 #X restore 2 3 graph;
@@ -352,62 +303,47 @@ feature is phase modulation.;
 #X text 261 444 sine wave signal;
 #X text 154 499 2) float;
 #X obj 207 214 else/fbsine~ 440;
-#X obj 241 143 hsl 128 15 -1 1 0 0 empty empty empty -2 -8 0 10 #dcdcdc
-#000000 #000000 0 1;
-#X obj 25 40 cnv 4 4 4 empty empty Feedback 0 28 2 18 #e0e0e0 #000000
-0;
+#X obj 241 143 hsl 128 15 -1 1 0 0 empty empty empty -2 -8 0 10 #dcdcdc #000000 #000000 0 1;
+#X obj 25 40 cnv 4 4 4 empty empty Feedback 0 28 2 18 #e0e0e0 #000000 0;
 #X text 126 184 hz =>;
-#X obj 238 166 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
-#dcdcdc #000000 #000000 0 256;
-#X obj 122 364 cnv 17 3 17 empty empty 1 5 9 0 16 #dcdcdc #9c9c9c 0
-;
+#X obj 238 166 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10 #dcdcdc #000000 #000000 0 256;
+#X obj 122 364 cnv 17 3 17 empty empty 1 5 9 0 16 #dcdcdc #9c9c9c 0;
 #X text 165 365 float/signal -;
 #X text 213 519 - initial phase offset (default 0);
 #X text 154 519 3) float;
 #N canvas 610 170 525 453 feedback 0;
-#X text 61 24 The feedback parameter controls how much of the signal
-output is fed back to the phase input of [fbsine~]. The phase input
-is normalized from 0-1. For a detailed implementation \, please check
-the [pd fbsine] subpacth \, where the same code/algorithm is implemented
-as a pd patch., f 62;
-#X text 63 108 [fbsine~] has no limits for the feedback values \, and
-negative values are also allowed \, but note that this parameter easily
-turns the output into chaotic noise. Common values are usually in the
--1 to 1 range.;
+#X text 61 24 The feedback parameter controls how much of the signal output is fed back to the phase input of [fbsine~]. The phase input is normalized from 0-1. For a detailed implementation \, please check the [pd fbsine] subpacth \, where the same code/algorithm is implemented as a pd patch., f 62;
+#X text 63 108 [fbsine~] has no limits for the feedback values \, and negative values are also allowed \, but note that this parameter easily turns the output into chaotic noise. Common values are usually in the -1 to 1 range.;
 #N canvas 623 128 393 405 fbsine~ 0;
 #X obj 91 186 +~;
 #X obj 91 336 outlet~;
 #X obj 106 150 *~;
 #X obj 30 149 phasor~;
 #X obj 258 214 block~ 1;
-#X obj 112 287 delwrite~ \$0-fb 1;
-#X obj 106 99 delread~ \$0-fb 0;
 #X obj 121 52 inlet~;
 #X obj 30 55 inlet~;
-#X text 226 289 for feedback;
-#X text 211 100 1 sample feedback;
+#X text 164 100 1 sample feedback;
 #X obj 91 230 else/sin~;
 #X text 136 149 * feedback index parameter;
 #X text 115 31 feedback index parameter;
 #X text 28 33 Hz;
-#X connect 0 0 11 0;
+#X obj 112 287 s~ \$0-fb;
+#X obj 106 99 r~ \$0-fb;
+#X connect 0 0 8 0;
 #X connect 2 0 0 1;
 #X connect 3 0 0 0;
-#X connect 6 0 2 0;
-#X connect 7 0 2 1;
-#X connect 8 0 3 0;
-#X connect 11 0 1 0;
-#X connect 11 0 5 0;
+#X connect 5 0 2 1;
+#X connect 6 0 3 0;
+#X connect 8 0 1 0;
+#X connect 8 0 12 0;
+#X connect 13 0 2 0;
 #X restore 117 298 pd fbsine~;
-#X obj 282 209 hsl 128 15 -1 1 0 0 empty empty empty -2 -8 0 10 #dcdcdc
-#000000 #000000 0 1;
-#X obj 279 232 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
-#dcdcdc #000000 #000000 0 256;
+#X obj 282 209 hsl 128 15 -1 1 0 0 empty empty empty -2 -8 0 10 #dcdcdc #000000 #000000 0 1;
+#X obj 279 232 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10 #dcdcdc #000000 #000000 0 256;
 #X obj 117 339 else/out~;
 #X obj 256 338 else/out~;
 #X obj 173 237 sig~ 440;
-#X obj 173 211 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
-#dcdcdc #000000 #000000 0 256;
+#X obj 173 211 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10 #dcdcdc #000000 #000000 0 256;
 #X obj 279 263 else/float2sig~ 10;
 #X obj 256 290 else/fbsine~;
 #X connect 2 0 5 0;
@@ -426,25 +362,17 @@ turns the output into chaotic noise. Common values are usually in the
 #X text 151 344 filter <float> -;
 #X text 269 345 turns mean filter on <1> or off <0>;
 #N canvas 434 126 857 420 mean 0;
-#X obj 670 141 hsl 128 15 -0.5 0.5 0 0 empty empty empty -2 -8 0 10
-#dcdcdc #000000 #000000 0 1;
-#X obj 667 164 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
-#dcdcdc #000000 #000000 0 256;
+#X obj 670 141 hsl 128 15 -0.5 0.5 0 0 empty empty empty -2 -8 0 10 #dcdcdc #000000 #000000 0 1;
+#X obj 667 164 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10 #dcdcdc #000000 #000000 0 256;
 #X obj 644 280 else/out~;
 #X obj 556 169 sig~ 440;
-#X obj 556 143 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
-#dcdcdc #000000 #000000 0 256;
+#X obj 556 143 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10 #dcdcdc #000000 #000000 0 256;
 #X obj 481 276 else/out~;
 #X msg 644 105 filter \$1;
-#X obj 644 62 tgl 15 0 empty empty empty 17 7 0 10 #dcdcdc #000000
-#000000 0 1;
+#X obj 644 62 tgl 15 0 empty empty empty 17 7 0 10 #dcdcdc #000000 #000000 0 1;
 #X obj 644 33 loadbang;
 #X text 666 58 <= compare with and without filter, f 19;
-#X text 28 105 [fbsine~] has an optional filter in the feedback loop.
-This is a simple mean average filter that takes the average of 2 samples
-and cuts very high frequencies. This filter has been used in some yamaha
-synthesizers to smoothen out the output of a self modulating oscillator.
-FM8 \, by Native Instruments (a DX7 clone) uses it too.;
+#X text 28 105 [fbsine~] has an optional filter in the feedback loop. This is a simple mean average filter that takes the average of 2 samples and cuts very high frequencies. This filter has been used in some yamaha synthesizers to smoothen out the output of a self modulating oscillator. FM8 \, by Native Instruments (a DX7 clone) uses it too.;
 #N canvas 623 128 504 395 fbsine~ 0;
 #X obj 115 172 +~;
 #X obj 115 354 outlet~;
@@ -453,30 +381,26 @@ FM8 \, by Native Instruments (a DX7 clone) uses it too.;
 #X obj 115 200 else/sin~;
 #X obj 174 42 inlet~;
 #X obj 54 43 inlet~;
-#X obj 149 305 delwrite~ \$0-fb2 1;
-#X obj 159 89 delread~ \$0-fb2 0;
-#X text 285 241 mean average filter;
+#X text 285 244 mean average filter;
 #X obj 263 164 block~ 1;
 #X obj 149 244 biquad~ 0 0 0.5 0.5 0;
-#X text 284 265 same as:;
-#X obj 299 286 else/mov.avg~ 2;
+#X text 284 281 same as:;
+#X obj 299 302 else/mov.avg~ 2;
+#X obj 149 305 s~ \$0-fb2;
+#X obj 159 89 r~ \$0-fb2;
 #X connect 0 0 4 0;
 #X connect 2 0 0 1;
 #X connect 3 0 0 0;
 #X connect 4 0 1 0;
-#X connect 4 0 11 0;
+#X connect 4 0 9 0;
 #X connect 5 0 2 1;
 #X connect 6 0 3 0;
-#X connect 8 0 2 0;
-#X connect 11 0 7 0;
+#X connect 9 0 12 0;
+#X connect 13 0 2 0;
 #X restore 480 233 pd fbsine~ (filtered);
-#X text 30 202 For more details \, you can check the subpatch [pd fbsine~
-filtered~] for a patch implementation of this oscillator with the filter
-included.;
+#X text 30 202 For more details \, you can check the subpatch [pd fbsine~ filtered~] for a patch implementation of this oscillator with the filter included.;
 #X obj 667 196 else/float2sig~ 10;
-#X text 31 256 See how you can go to a feedback index of 0.5 and still
-hold a tonal character when the filter is on. Then test without the
-filter for comparison.;
+#X text 31 256 See how you can go to a feedback index of 0.5 and still hold a tonal character when the filter is on. Then test without the filter for comparison.;
 #X obj 644 232 else/fbsine~;
 #X connect 0 0 1 0;
 #X connect 1 0 13 0;
@@ -493,17 +417,11 @@ filter for comparison.;
 #X restore 449 231 pd mean filter;
 #X obj 238 188 else/float2sig~ 10;
 #X text 213 539 - mean filter: on <1> or off <0> (default 0);
-#X obj 122 387 cnv 17 3 17 empty empty 2 5 9 0 16 #dcdcdc #9c9c9c 0
-;
-#X obj 122 409 cnv 17 3 17 empty empty 3 5 9 0 16 #dcdcdc #9c9c9c 0
-;
+#X obj 122 387 cnv 17 3 17 empty empty 2 5 9 0 16 #dcdcdc #9c9c9c 0;
+#X obj 122 409 cnv 17 3 17 empty empty 3 5 9 0 16 #dcdcdc #9c9c9c 0;
 #X text 164 410 float/signal - phase offset (modulation input);
-#X text 164 389 float/signal - phase sync (ressets internal phase)
-;
-#X text 60 86 [fbsine~] is a sinusoidal oscillator with phase modulation
-feedback. Like [else/sine~] \, it accepts negative frequencies \, has
-inlets for phase modulation and phase sync. Additionally \, it has
-a feedback value., f 61;
+#X text 164 389 float/signal - phase sync (ressets internal phase);
+#X text 60 86 [fbsine~] is a sinusoidal oscillator with phase modulation feedback. Like [else/sine~] \, it accepts negative frequencies \, has inlets for phase modulation and phase sync. Additionally \, it has a feedback value., f 61;
 #X connect 20 0 30 0;
 #X connect 30 0 27 0;
 #X connect 31 0 34 0;

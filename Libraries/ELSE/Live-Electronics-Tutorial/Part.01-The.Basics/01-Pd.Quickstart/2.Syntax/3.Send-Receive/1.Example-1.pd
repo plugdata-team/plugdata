@@ -15,7 +15,7 @@
 #X restore 687 196 graph;
 #X msg 514 114 const \$1;
 #X text 425 195 There are also audio object versions \, but besides
-[send~]/[receive~] and we also have [throw~]/[catch~]. Check their
+[send~]/[receive~] we also have [throw~]/[catch~]. Check their
 help files., f 28;
 #X obj 261 208 send midinote;
 #X msg 792 98 \; array4 const 0.5;

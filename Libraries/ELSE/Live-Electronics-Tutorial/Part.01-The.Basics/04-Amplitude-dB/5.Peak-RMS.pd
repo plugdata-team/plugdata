@@ -104,7 +104,7 @@ the root mean square line for this period window.;
 #X msg 687 347 linear;
 #X msg 704 371 db;
 #X text 51 24 Peak amplitude is the highest absolute amplitude in a
-time window \, and RMS is given as a root mean square \, which is useful
+time window \, and RMS is given as a root mean square \. This is useful
 for signals that vary from negative to positive \, as it is the case
 with audio., f 60;
 #X text 531 64 Both [peak~] and [rms~] are based on Pd's native [env~]
