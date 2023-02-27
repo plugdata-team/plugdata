@@ -61,7 +61,8 @@ public:
     {
         if (!alreadyBanged) {
             startEdition();
-            sendFloatValue(1.0f);
+            // TODO: make this thread safe!
+            pd_bang(static_cast<t_pd*>(ptr));
             stopEdition();
             update();
             alreadyBanged = true;
@@ -76,7 +77,7 @@ public:
     void mouseDown(MouseEvent const& e) override
     {
         startEdition();
-        sendFloatValue(1.0f);
+        pd_bang(static_cast<t_pd*>(ptr));
         stopEdition();
 
         // Make sure we don't re-click with an accidental drag
