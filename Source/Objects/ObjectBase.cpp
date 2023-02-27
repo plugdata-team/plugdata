@@ -228,7 +228,6 @@ void ObjectBase::openSubpatch()
         }
     }
 
-
     auto* newPatch = cnv->editor->pd->patches.add(subpatch);
     auto* newCanvas = cnv->editor->canvases.add(new Canvas(cnv->editor, *newPatch, nullptr));
 
@@ -303,7 +302,11 @@ void ObjectBase::stopEdition()
 
 void ObjectBase::sendFloatValue(float newValue)
 {
-    cnv->pd->enqueueDirectMessages(ptr, newValue);
+    // TODO: make this thread safe!
+    t_atom atom;
+    SETFLOAT(&atom, newValue);
+    pd_typedmess(static_cast<t_pd*>(ptr), pd->generateSymbol("set"), 1, &atom);
+    pd_bang(static_cast<t_pd*>(ptr));
 }
 
 ObjectBase* ObjectBase::createGui(void* ptr, Object* parent)

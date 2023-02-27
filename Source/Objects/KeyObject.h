@@ -47,7 +47,6 @@ public:
         const auto currentTime = Time::getMillisecondCounter();
         if(alreadyDown && currentTime - keyPressTimes[keyIdx] > 15) {
             keyPressTimes.set(keyIdx, currentTime);
-            
         }
         else if(!alreadyDown) {
             heldKeys.add(key);
