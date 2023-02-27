@@ -54,7 +54,7 @@ public:
         }
         else
         {
-            return;
+            return false;
         }
         
         int keyCode = key.getKeyCode();
