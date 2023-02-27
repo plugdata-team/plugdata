@@ -187,9 +187,11 @@ file(GLOB ELSE_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/ELSE/Source/*.c
     ${CMAKE_CURRENT_SOURCE_DIR}/ELSE/Aliases/*.c
     ${CMAKE_CURRENT_SOURCE_DIR}/ELSE/shared/*.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/ELSE/plaits~/plaits~.cpp
 )
 
+if(UNIX)
+list(APPEND ELSE_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/ELSE/plaits~/plaits~.cpp)
+endif()
 
 file(GLOB_RECURSE AUBIO_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/ELSE/shared/aubio/src/*.c

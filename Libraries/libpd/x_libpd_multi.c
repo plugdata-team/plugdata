@@ -637,7 +637,9 @@ void pimp_tilde_setup();
 void pimpmul_tilde_setup();
 void pink_tilde_setup();
 void pluck_tilde_setup();
+#ifndef _MSC_VER
 void plaits_tilde_setup();
+#endif
 void pmosc_tilde_setup();
 void power_tilde_setup();
 void properties_setup();
@@ -919,7 +921,9 @@ void libpd_init_else(void)
     pimp_tilde_setup();
     pimpmul_tilde_setup();
     pink_tilde_setup();
+#ifndef _MSC_VER
     plaits_tilde_setup();
+#endif
     pluck_tilde_setup();
     pmosc_tilde_setup();
     power_tilde_setup();
