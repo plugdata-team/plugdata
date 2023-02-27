@@ -70,6 +70,14 @@ public:
             }
             break;
         }
+        case hash("donecanvasdialog"): {
+            if (atoms.size() >= 11) {
+
+            updateCanvas();
+        	updateDrawables();
+            }
+            break;
+        }
         default:
             break;
         }

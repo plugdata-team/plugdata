@@ -123,6 +123,20 @@ public:
         });
     }
 
+   void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
+    {
+        switch (hash(symbol)) {
+        case hash("click"): {
+            MessageManager::callAsync([this]() {
+            openTextEditor();});
+            }
+        case hash("close"): {
+            textEditor.reset(nullptr);
+            }
+        }
+    }
+
+
     String getText() override
     {
         auto& textbuf = static_cast<t_fake_text_define*>(ptr)->x_textbuf;
