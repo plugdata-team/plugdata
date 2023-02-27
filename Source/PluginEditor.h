@@ -289,8 +289,8 @@ const std::map<ObjectIDs, String> objectNames {
     { NewBlImp2, "bl.imp2~ 100" },
     { NewBlWavetable, "bl.wavetable~" },
 
-    { NewAdsr, "adsr~ -log 10 800 0 0" },
-    { NewAsr, "asr~ -log 10 400" },
+    { NewAdsr, "adsr~ 10 800 0 0" },
+    { NewAsr, "asr~ 10 400" },
     { NewCurve, "curve~" },
     { NewDecay, "decay~ 1000" },
     { NewEnvelope, "envelope~" },
