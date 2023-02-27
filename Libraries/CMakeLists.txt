@@ -201,7 +201,6 @@ endif()
 file(GLOB_RECURSE AUBIO_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/ELSE/shared/aubio/src/*.c
     ${CMAKE_CURRENT_SOURCE_DIR}/ELSE/shared/aubio/src/*/*.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/ELSE/plaits~/*.cc   
 )
 
 include_directories(ELSE/Source/)
