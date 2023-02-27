@@ -301,22 +301,24 @@ public:
         repaint();
     }
 
-    void updateBounds() {
-        if(!currentBox) return;
-        
+    void updateBounds()
+    {
+        if (!currentBox)
+            return;
+
         auto* cnv = currentBox->cnv;
-        
+
         setTransform(cnv->editor->getTransform());
-        
+
         auto objectPos = currentBox->getScreenBounds().reduced(Object::margin).getBottomLeft().translated(0, 5);
         setTopLeftPosition(objectPos);
-        
+
         // If box is not contained in canvas bounds, hide suggestions
-        if(cnv->viewport) {
+        if (cnv->viewport) {
             setVisible(cnv->viewport->getViewArea().contains(cnv->viewport->getLocalArea(currentBox, currentBox->getBounds())));
         }
     }
-        
+
     void removeCalloutBox()
     {
         setVisible(false);

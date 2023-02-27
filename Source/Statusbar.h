@@ -54,8 +54,7 @@ class Statusbar : public Component
     , public SettingsFileListener
     , public Value::Listener
     , public StatusbarSource::Listener
-    , public ModifierKeyListener
-{
+    , public ModifierKeyListener {
     PluginProcessor* pd;
 
 public:
@@ -66,7 +65,7 @@ public:
     void paint(Graphics& g) override;
 
     void resized() override;
-    
+
     void shiftKeyChanged(bool isHeld) override;
     void commandKeyChanged(bool isHeld) override;
 

@@ -18,7 +18,6 @@
 #include "LookAndFeel.h"
 #include "Tabbar.h"
 
-
 #include "Utility/PluginParameter.h"
 
 extern "C" {
@@ -109,7 +108,7 @@ PluginProcessor::PluginProcessor()
         // If we changed the settings from within the app, don't reload
         settingsFile->reloadSettings();
         auto newTheme = settingsFile->getProperty<String>("theme");
-        if(PlugDataLook::currentTheme != newTheme) {
+        if (PlugDataLook::currentTheme != newTheme) {
             setTheme(newTheme);
         }
 
@@ -458,9 +457,9 @@ bool PluginProcessor::isBusesLayoutSupported(BusesLayout const& layouts) const
 
 void PluginProcessor::processBlock(AudioBuffer<float>& buffer, MidiBuffer& midiMessages)
 {
-    
+
     jassert(audioLock == &AudioProcessor::getCallbackLock());
-    
+
     ScopedNoDenormals noDenormals;
     auto totalNumInputChannels = getTotalNumInputChannels();
     auto totalNumOutputChannels = getTotalNumOutputChannels();
@@ -817,12 +816,12 @@ AudioProcessorEditor* PluginProcessor::createEditor()
 {
     auto* editor = new PluginEditor(*this);
     setThis();
-    
+
     for (auto* patch : patches) {
         auto* cnv = editor->canvases.add(new Canvas(editor, *patch, nullptr));
         editor->addTab(cnv);
     }
-    
+
     editor->splitView.splitCanvasesAfterIndex(lastSplitIndex, true);
 
     editor->resized();
@@ -842,7 +841,7 @@ void PluginProcessor::getStateInformation(MemoryBlock& destData)
     setThis();
 
     savePatchTabPositions();
-    
+
     // Store pure-data and parameter state
     MemoryOutputStream ostream(destData, false);
 
@@ -863,14 +862,14 @@ void PluginProcessor::getStateInformation(MemoryBlock& destData)
     XmlElement xml = XmlElement("plugdata_save");
     xml.setAttribute("Version", PLUGDATA_VERSION);
     xml.setAttribute("SplitIndex", lastSplitIndex);
-    
+
     // In the future, we're gonna load everything from xml, to make it easier to add new properties
     // By putting this here, we can prepare for making this change without breaking existing DAW saves
     xml.setAttribute("Oversampling", oversampling);
     xml.setAttribute("Latency", getLatencySamples());
     xml.setAttribute("TailLength", static_cast<float>(tailLength.getValue()));
     xml.setAttribute("Legacy", false);
-    
+
     if (auto* editor = getActiveEditor()) {
         xml.setAttribute("Width", editor->getWidth());
         xml.setAttribute("Height", editor->getHeight());
@@ -878,8 +877,7 @@ void PluginProcessor::getStateInformation(MemoryBlock& destData)
         xml.setAttribute("Width", lastUIWidth);
         xml.setAttribute("Height", lastUIHeight);
     }
-    
-    
+
     PlugDataParameter::saveStateInformation(xml, getParameters());
 
     MemoryBlock xmlBlock;
@@ -905,7 +903,7 @@ void PluginProcessor::setStateInformation(void const* data, int sizeInBytes)
         MessageManager::callAsync([editor = Component::SafePointer(editor)]() {
             if (!editor)
                 return;
-            
+
             editor->splitView.getLeftTabbar()->clearTabs();
             editor->splitView.getRightTabbar()->clearTabs();
             editor->canvases.clear();
@@ -976,9 +974,9 @@ void PluginProcessor::setStateInformation(void const* data, int sizeInBytes)
             }
         }
         if (xmlState->hasAttribute("SplitIndex")) {
-            
+
             lastSplitIndex = xmlState->getIntAttribute("SplitIndex", -1);
-            
+
             if (auto* editor = dynamic_cast<PluginEditor*>(getActiveEditor())) {
                 editor->splitView.splitCanvasesAfterIndex(lastSplitIndex, true);
             }
@@ -1009,13 +1007,13 @@ pd::Patch* PluginProcessor::loadPatch(File const& patchFile)
                 MessageManager::callAsync([patch, _editor = Component::SafePointer(editor)]() mutable {
                     if (!_editor)
                         return;
-                    
-                    for(auto* cnv : _editor->canvases) {
-                        if(cnv->patch == *patch) {
+
+                    for (auto* cnv : _editor->canvases) {
+                        if (cnv->patch == *patch) {
                             cnv->getTabbar()->setCurrentTabIndex(cnv->getTabIndex());
                         }
                     }
-                    
+
                     _editor->pd->logError("Patch is already open");
                 });
             }
@@ -1078,8 +1076,9 @@ void PluginProcessor::setTheme(String themeToUse, bool force)
         themeToUse = PlugDataLook::selectedThemes[0];
         themeTree = settingsFile->getTheme(themeToUse);
     }
-    
-    if(!force && oldThemeTree.isValid() && themeTree.isEquivalentTo(oldThemeTree)) return;
+
+    if (!force && oldThemeTree.isValid() && themeTree.isEquivalentTo(oldThemeTree))
+        return;
 
     lnf->setTheme(themeTree);
 
@@ -1278,7 +1277,7 @@ void PluginProcessor::titleChanged()
     if (auto* editor = dynamic_cast<PluginEditor*>(getActiveEditor())) {
         auto* leftTabbar = editor->splitView.getLeftTabbar();
         auto* rightTabbar = editor->splitView.getRightTabbar();
-        
+
         for (int n = 0; n < leftTabbar->getNumTabs(); n++) {
             auto* cnv = leftTabbar->getCanvas(n);
             if (!cnv)
@@ -1294,40 +1293,40 @@ void PluginProcessor::titleChanged()
     }
 }
 
-void PluginProcessor::savePatchTabPositions() {
-    
+void PluginProcessor::savePatchTabPositions()
+{
+
     Array<std::tuple<pd::Patch*, int, int>> sortedPatches;
-    
-    if(auto* editor = dynamic_cast<PluginEditor*>(getActiveEditor())) {
+
+    if (auto* editor = dynamic_cast<PluginEditor*>(getActiveEditor())) {
         auto* leftTabbar = editor->splitView.getLeftTabbar();
-        
-        for(auto* cnv : editor->canvases)
-        {
-            sortedPatches.add({&cnv->patch, cnv->getTabbar() != leftTabbar, cnv->getTabIndex()});
+
+        for (auto* cnv : editor->canvases) {
+            sortedPatches.add({ &cnv->patch, cnv->getTabbar() != leftTabbar, cnv->getTabIndex() });
         }
-        
+
         lastSplitIndex = leftTabbar->getNumTabs();
-    }
-    else {
+    } else {
         return;
     }
-    
-    std::sort(sortedPatches.begin(), sortedPatches.end(), [](const auto& a, const auto& b){
+
+    std::sort(sortedPatches.begin(), sortedPatches.end(), [](auto const& a, auto const& b) {
         auto& [patchA, splitA, idxA] = a;
         auto& [patchB, splitB, idxB] = b;
-        
-        if(splitA == splitB)
+
+        if (splitA == splitB)
             return idxA < idxB;
-        
+
         return splitA < splitB;
     });
-    
+
     patches.getLock().enter();
     int i = 0;
-    for(auto& [patch, splitIdx, tabIdx] : sortedPatches) {
-        
-        if(i >= patches.size()) break;
-        
+    for (auto& [patch, splitIdx, tabIdx] : sortedPatches) {
+
+        if (i >= patches.size())
+            break;
+
         patches.set(i, patch, false);
         i++;
     }

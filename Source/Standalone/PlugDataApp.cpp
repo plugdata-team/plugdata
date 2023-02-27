@@ -171,18 +171,18 @@ void PlugDataWindow::closeAllPatches()
     auto* editor = dynamic_cast<PluginEditor*>(pluginHolder->processor->getActiveEditor());
 
     auto* canvas = editor->canvases.getLast();
-    if(!canvas) {
+    if (!canvas) {
         JUCEApplication::quit();
         return;
     }
-    
+
     auto* tabbar = canvas->getTabbar();
     auto* patch = &canvas->patch;
-    
+
     auto deleteFunc = [this, editor, tabbar, canvas, patch]() {
         if (!canvas)
             return;
-        
+
         editor->closeTab(canvas);
         closeAllPatches();
     };

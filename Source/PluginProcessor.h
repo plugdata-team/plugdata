@@ -85,7 +85,7 @@ public:
         int nbus = getBusCount(isInput);
         return nbus > 0;
     }
-        
+
     void savePatchTabPositions();
 
     void initialiseFilesystem();
@@ -94,7 +94,7 @@ public:
     void sendMidiBuffer();
     void sendPlayhead();
     void sendParameters();
-    
+
     void messageEnqueued() override;
     void performParameterChange(int type, String name, float value) override;
 
@@ -112,7 +112,7 @@ public:
 
     // All opened patches
     OwnedArray<pd::Patch, CriticalSection> patches;
-        
+
     int lastUIWidth = 1000, lastUIHeight = 650;
 
     std::vector<float*> channelPointers;
@@ -158,7 +158,6 @@ public:
 private:
     void processInternal();
 
-        
     int audioAdvancement = 0;
     std::vector<float> audioBufferIn;
     std::vector<float> audioBufferOut;
@@ -176,7 +175,7 @@ private:
 
     int minIn = 2;
     int minOut = 2;
-        
+
     int lastSplitIndex = -1;
 
     std::unique_ptr<dsp::Oversampling<float>> oversampler;

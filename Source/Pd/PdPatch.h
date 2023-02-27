@@ -23,13 +23,12 @@ class Instance;
 //! @details The class is a wrapper around a Pd patch. The lifetime of the internal patch\n
 //! is not guaranteed by the class.
 //! @see Instance, Object, Gui
-class Patch
-{
+class Patch {
 public:
     Patch(void* ptr, Instance* instance, bool ownsPatch, File currentFile = File());
 
     ~Patch();
-    
+
     // The compare equal operator.
     bool operator==(Patch const& other) const
     {
@@ -112,9 +111,8 @@ public:
 
     Instance* instance = nullptr;
     bool closePatchOnDelete;
-    
-private:
 
+private:
     File currentFile;
 
     void* ptr = nullptr;
@@ -146,7 +144,7 @@ private:
     friend class Instance;
     friend class Gui;
     friend class Object;
-    
+
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(Patch)
 };
 } // namespace pd

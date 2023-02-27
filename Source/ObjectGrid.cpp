@@ -19,7 +19,7 @@ ObjectGrid::ObjectGrid(Canvas* parent)
         line.setStrokeThickness(1);
         line.setAlwaysOnTop(true);
     }
-    
+
     gridEnabled = SettingsFile::getInstance()->getProperty<int>("grid_enabled");
     gridSize = SettingsFile::getInstance()->getProperty<int>("grid_size");
 }
@@ -28,14 +28,13 @@ int ObjectGrid::applySnap(SnapOrientation direction, int pos, Component* s, Comp
 {
     orientation[horizontal] = direction;
     snapped[horizontal] = true;
-    
-    if(horizontal) {
+
+    if (horizontal) {
         snappedPosition.x = pos;
-    }
-    else {
+    } else {
         snappedPosition.y = pos;
     }
-    
+
     start[horizontal] = s;
     end[horizontal] = e;
     updateMarker();
@@ -81,9 +80,9 @@ void ObjectGrid::updateMarker()
         auto b1 = start[i]->getBounds().reduced(Object::margin);
         auto b2 = end[i]->getBounds().reduced(Object::margin);
 
-        auto t = b1.getY() <  b2.getY() ? b1 : b2;
+        auto t = b1.getY() < b2.getY() ? b1 : b2;
         auto b = b1.getY() >= b2.getY() ? b1 : b2;
-        auto l = b1.getX() <  b2.getX() ? b1 : b2;
+        auto l = b1.getX() < b2.getX() ? b1 : b2;
         auto r = b1.getX() >= b2.getX() ? b1 : b2;
 
         auto gridLine = Line<float>();
@@ -114,10 +113,9 @@ void ObjectGrid::updateMarker()
 void ObjectGrid::clear(bool horizontal)
 {
     snapped[horizontal] = false;
-    if(horizontal) {
+    if (horizontal) {
         snappedPosition.x = 0;
-    }
-    else {
+    } else {
         snappedPosition.y = 0;
     }
     start[horizontal] = nullptr;
@@ -128,7 +126,7 @@ void ObjectGrid::clear(bool horizontal)
 Point<int> ObjectGrid::performResize(Object* toDrag, Point<int> dragOffset, Rectangle<int> newResizeBounds)
 {
     int enableGrid = static_cast<int>(gridEnabled.getValue());
-    
+
     if (ModifierKeys::getCurrentModifiers().isShiftDown() || enableGrid == 0) {
         clear(0);
         clear(1);
@@ -137,48 +135,46 @@ Point<int> ObjectGrid::performResize(Object* toDrag, Point<int> dragOffset, Rect
 
     auto snappable = getSnappableObjects(toDrag);
     auto resizeZone = toDrag->resizeZone;
-    
-        // Snap to Objects
+
+    // Snap to Objects
     if (enableGrid != 2) {
-        
+
         auto limits = [&]() -> Rectangle<int> {
             if (auto* parent = toDrag->getParentComponent())
                 return { parent->getWidth(), parent->getHeight() };
-            
+
             const auto globalBounds = toDrag->localAreaToGlobal(newResizeBounds - toDrag->getPosition());
-            
+
             if (auto* display = Desktop::getInstance().getDisplays().getDisplayForPoint(globalBounds.getCentre()))
                 return toDrag->getLocalArea(nullptr, display->userArea) + toDrag->getPosition();
-            
+
             const auto max = std::numeric_limits<int>::max();
             return { max, max };
         }();
-        
+
         // Not great that we need to do this, but otherwise we don't really know the object bounds for sure
         toDrag->constrainer->checkBounds(newResizeBounds, toDrag->originalBounds, limits,
-                                         resizeZone.isDraggingTopEdge(), resizeZone.isDraggingLeftEdge(),
-                                         resizeZone.isDraggingBottomEdge(), resizeZone.isDraggingRightEdge());
-        
-        
+            resizeZone.isDraggingTopEdge(), resizeZone.isDraggingLeftEdge(),
+            resizeZone.isDraggingBottomEdge(), resizeZone.isDraggingRightEdge());
+
         auto b2 = newResizeBounds.reduced(Object::margin);
         auto ratio = toDrag->constrainer->getFixedAspectRatio();
-        
-        if(ratio == 1.0f)
-        {            
+
+        if (ratio == 1.0f) {
             auto max = std::abs(dragOffset.x) > std::abs(dragOffset.y) ? dragOffset.x : dragOffset.y;
             dragOffset.x = max;
             dragOffset.y = max;
         }
-        
+
         bool alreadySnappedVertically = isAlreadySnapped(false, ratio != 0.0f, dragOffset);
         bool alreadySnappedHorizontally = isAlreadySnapped(true, ratio != 0.0f, dragOffset);
         bool fixedRatio = ratio != 0.0f;
         bool dominantDirection = std::abs(dragOffset.y) >= std::abs(dragOffset.x);
-        
+
         if (!alreadySnappedVertically && !(fixedRatio && !dominantDirection)) {
             for (auto* object : snappable) {
                 auto b1 = object->getBounds().reduced(Object::margin);
-                
+
                 if (resizeZone.isDraggingTopEdge() && std::abs(b1.getY() - b2.getY()) < tolerance) {
                     auto dy = b1.getY() - b2.getY();
                     dragOffset.y = applySnap(SnappedLeft, dy + dragOffset.y, object, toDrag, false);
@@ -189,16 +185,15 @@ Point<int> ObjectGrid::performResize(Object* toDrag, Point<int> dragOffset, Rect
                 }
             }
         }
-        
-        
+
         // Update in case we just snapped
         alreadySnappedVertically = isAlreadySnapped(false, ratio != 0.0f, dragOffset);
-        
+
         if (!alreadySnappedHorizontally && !(fixedRatio && dominantDirection)) {
             for (auto* object : snappable) {
-                
+
                 auto b1 = object->getBounds().reduced(Object::margin);
-                
+
                 if (resizeZone.isDraggingLeftEdge() && std::abs(b1.getX() - b2.getX()) < tolerance) {
                     auto dx = b1.getX() - b2.getX();
                     dragOffset.x = applySnap(SnappedLeft, dx + dragOffset.x, object, toDrag, true);
@@ -213,13 +208,12 @@ Point<int> ObjectGrid::performResize(Object* toDrag, Point<int> dragOffset, Rect
         MessageManager::callAsync([this]() {
             updateMarker();
         });
-
     }
-    
+
     if (enableGrid == 1) {
         return dragOffset;
     }
-    
+
     // Snap to Grid
     Point<int> newPosTopLeft = toDrag->originalBounds.reduced(Object::margin).getTopLeft() + dragOffset;
     Point<int> newPosBotRight = toDrag->originalBounds.reduced(Object::margin).getBottomRight() + dragOffset;
@@ -240,26 +234,26 @@ Point<int> ObjectGrid::performResize(Object* toDrag, Point<int> dragOffset, Rect
         newPosBotRight.setY(roundToInt(newPosBotRight.getY() / gridSize + 1) * gridSize);
         snappedPosition.y = newPosBotRight.y - toDrag->originalBounds.reduced(Object::margin).getBottom() - gridSize + 1;
 
-    return snappedPosition;
+        return snappedPosition;
     }
 
     MessageManager::callAsync([this]() {
         updateMarker();
     });
-        
+
     return dragOffset;
 }
 
 Point<int> ObjectGrid::performMove(Object* toDrag, Point<int> dragOffset)
 {
     int enableGrid = static_cast<int>(gridEnabled.getValue());
-    
+
     if (ModifierKeys::getCurrentModifiers().isShiftDown() || enableGrid == 0) {
         clear(0);
         clear(1);
         return dragOffset;
     }
-    
+
     // Snap to Objects
     if (enableGrid != 2) {
         auto snappable = getSnappableObjects(toDrag);
@@ -364,7 +358,7 @@ Point<int> ObjectGrid::performMove(Object* toDrag, Point<int> dragOffset)
     if (gridEnabled != 1) {
         Point<int> newPos = toDrag->originalBounds.reduced(Object::margin).getPosition() + dragOffset;
         if (!isAlreadySnapped(true, false, dragOffset)) {
-            
+
             newPos.setX(floor(newPos.getX() / static_cast<float>(gridSize)) * gridSize);
             snappedPosition.x = newPos.x - toDrag->originalBounds.reduced(Object::margin).getX() - gridSize;
         }
@@ -372,11 +366,11 @@ Point<int> ObjectGrid::performMove(Object* toDrag, Point<int> dragOffset)
             newPos.setY(floor(newPos.getY() / static_cast<float>(gridSize)) * gridSize);
             snappedPosition.y = newPos.y - toDrag->originalBounds.reduced(Object::margin).getY() - gridSize;
         }
-        
+
         MessageManager::callAsync([this]() {
             updateMarker();
         });
-        
+
         return snappedPosition;
     }
 
@@ -386,7 +380,7 @@ Point<int> ObjectGrid::performMove(Object* toDrag, Point<int> dragOffset)
 Array<Object*> ObjectGrid::getSnappableObjects(Object* draggedObject)
 {
     auto& cnv = draggedObject->cnv;
-    
+
     Array<Object*> snappable;
 
     auto viewBounds = reinterpret_cast<Viewport*>(cnv->viewport)->getViewArea();

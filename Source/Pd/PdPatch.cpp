@@ -58,7 +58,7 @@ Patch::~Patch()
     // Only close the patch if this is a top-level patch
     // Otherwise, this is a subpatcher and it will get cleaned up by Pd
     // when the object is deleted
-    if(closePatchOnDelete) {
+    if (closePatchOnDelete) {
         instance->setThis();
         libpd_closefile(ptr);
     }
@@ -125,7 +125,6 @@ void Patch::savePatch()
     instance->reloadAbstractions(currentFile, getPointer());
 }
 
-
 void Patch::setCurrent(bool lock)
 {
     instance->setThis();
@@ -139,7 +138,7 @@ void Patch::setCurrent(bool lock)
     canvas_setcurrent(getPointer());
 
     canvas_vis(static_cast<t_canvas*>(ptr), 1);
-    
+
     t_atom args[1];
     SETFLOAT(args, 1);
     pd_typedmess(static_cast<t_pd*>(ptr), instance->generateSymbol("map"), 1, args);
@@ -192,7 +191,7 @@ std::vector<void*> Patch::getObjects()
 {
     if (ptr) {
         setCurrent();
-        
+
         instance->lockAudioThread();
 
         std::vector<void*> objects;
@@ -201,12 +200,12 @@ std::vector<void*> Patch::getObjects()
         for (t_gobj* y = cnv->gl_list; y; y = y->g_next) {
             objects.push_back(static_cast<void*>(y));
         }
-        
+
         instance->unlockAudioThread();
 
         return objects;
     }
-    
+
     return {};
 }
 

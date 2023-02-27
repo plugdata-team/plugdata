@@ -23,8 +23,7 @@ class Object : public Component
     , public Value::Listener
     , public Timer
     , private TextEditor::Listener
-    , private ModifierKeyListener
-{
+    , private ModifierKeyListener {
 public:
     Object(Canvas* parent, String const& name = "", Point<int> position = { 100, 100 });
 

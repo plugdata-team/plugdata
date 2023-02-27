@@ -428,8 +428,7 @@ class PluginEditor : public AudioProcessorEditor
     , public ApplicationCommandTarget
     , public ApplicationCommandManager
     , public FileDragAndDropTarget
-    , public ModifierKeyBroadcaster
-{
+    , public ModifierKeyBroadcaster {
 public:
     enum ToolbarButtonType {
         Settings = 0,
@@ -467,9 +466,9 @@ public:
 
     void addTab(Canvas* cnv);
     void closeTab(Canvas* cnv);
-    
+
     Canvas* getCurrentCanvas();
-    
+
     void modifierKeysChanged(ModifierKeys const& modifiers) override;
 
     void valueChanged(Value& v) override;
@@ -485,13 +484,13 @@ public:
     void getAllCommands(Array<CommandID>& commands) override;
     void getCommandInfo(const CommandID commandID, ApplicationCommandInfo& result) override;
     bool perform(InvocationInfo const& info) override;
-    
+
     bool wantsRoundedCorners();
-    
+
     float getZoomScale();
     float getZoomScaleForCanvas(Canvas* cnv);
     Value& getZoomScaleValueForCanvas(Canvas* cnv);
-    
+
     void updateSplitOutline();
     TabComponent* getActiveTabbar();
 
@@ -512,15 +511,14 @@ public:
 
     SplitView splitView;
     DrawableRectangle selectedSplitRect;
-    
+
     Value zoomScale;
     Value splitZoomScale;
-    
+
 private:
-    
     std::unique_ptr<FileChooser> saveChooser;
     std::unique_ptr<FileChooser> openChooser;
-    
+
 #ifdef PLUGDATA_STANDALONE
     static constexpr int toolbarHeight = 40;
 #else

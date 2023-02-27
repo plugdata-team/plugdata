@@ -589,7 +589,7 @@ Patch* Instance::openPatch(File const& toOpen)
     setThis();
 
     cnv = static_cast<t_canvas*>(libpd_create_canvas(file, dir));
-    
+
     return new Patch(cnv, this, true, toOpen);
 }
 
@@ -697,17 +697,17 @@ void Instance::lockAudioThread()
 
 bool Instance::tryLockAudioThread()
 {
-    if(audioLock->tryEnter()) {
+    if (audioLock->tryEnter()) {
         numLocksHeld++;
         return true;
     }
-    
+
     return false;
 }
 
 void Instance::unlockAudioThread()
 {
-    if(numLocksHeld > 0) {
+    if (numLocksHeld > 0) {
         numLocksHeld--;
         audioLock->exit();
     }
