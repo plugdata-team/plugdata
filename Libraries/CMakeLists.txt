@@ -189,15 +189,19 @@ file(GLOB ELSE_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/ELSE/shared/*.c
 )
 
+file(GLOB_RECURSE PLAITS_SOURCES
+    ${CMAKE_CURRENT_SOURCE_DIR}/ELSE/plaits~/plaits~.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/ELSE/plaits~/*.cc
+)
+
 if(UNIX)
-list(APPEND ELSE_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/ELSE/plaits~/plaits~.cpp)
+list(APPEND ELSE_SOURCES ${PLAITS_SOURCES})
 endif()
 
 file(GLOB_RECURSE AUBIO_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/ELSE/shared/aubio/src/*.c
     ${CMAKE_CURRENT_SOURCE_DIR}/ELSE/shared/aubio/src/*/*.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/ELSE/plaits~/*.cc
-    
+    ${CMAKE_CURRENT_SOURCE_DIR}/ELSE/plaits~/*.cc   
 )
 
 include_directories(ELSE/Source/)
