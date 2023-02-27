@@ -41,15 +41,19 @@ public:
 
     bool keyPressed(KeyPress const& key, Component* originatingComponent) override
     {
+        if(heldKeys.contains(key)) return;
+        
         heldKeys.add(key);
 
         int keyCode = key.getKeyCode();
         
         if (type == Key) {
+            t_symbol* dummy;
+            parseKey(keyCode, dummy);
             pd_float((t_pd*)ptr, keyCode);
         } else if (type == KeyName) {
             
-            String keyString = key.getTextDescription().fromLastOccurrenceOf("+ ", false, false);
+            String keyString = key.getTextDescription().fromLastOccurrenceOf(" ", false, false);
             if (!key.getModifiers().isShiftDown())
                 keyString = keyString.toLowerCase();
 
@@ -107,10 +111,12 @@ public:
                     int keyCode = key.getKeyCode();
 
                     if (type == KeyUp) {
+                        t_symbol* dummy;
+                        parseKey(keyCode, dummy);
                         pd_float((t_pd*)ptr, keyCode);
                     } else if (type == KeyName) {
                         
-                        String keyString = key.getTextDescription().fromLastOccurrenceOf("+ ", false, false);
+                        String keyString = key.getTextDescription().fromLastOccurrenceOf(" ", false, false);
                         if (!key.getModifiers().isShiftDown())
                             keyString = keyString.toLowerCase();
 
@@ -151,58 +157,81 @@ public:
             keysym = pd->generateSymbol("Control_L");
             keynum = 0;
         }
-        else if (keynum == 8)
+        else if (keynum == KeyPress::backspaceKey)
             keysym = pd->generateSymbol("BackSpace");
-        else if (keynum == 9)
+        else if (keynum == KeyPress::tabKey)
             keysym = pd->generateSymbol("Tab");
-        else if (keynum == 10)
+        else if (keynum == KeyPress::returnKey)
             keysym = pd->generateSymbol("Return");
-        else if (keynum == 27)
+        else if (keynum == KeyPress::escapeKey)
             keysym = pd->generateSymbol("Escape");
-        else if (keynum == 32)
+        else if (keynum == KeyPress::spaceKey)
             keysym = pd->generateSymbol("Space");
-        else if (keynum == 127)
+        else if (keynum == KeyPress::deleteKey)
             keysym = pd->generateSymbol("Delete");
 
-        else if (keynum == 30 || keynum == 63232)
+        else if (keynum == KeyPress::upKey)
             keynum = 0, keysym = pd->generateSymbol("Up");
-        else if (keynum == 31 || keynum == 63233)
+        else if (keynum == KeyPress::downKey)
             keynum = 0, keysym = pd->generateSymbol("Down");
-        else if (keynum == 28 || keynum == 63234)
+        else if (keynum == KeyPress::leftKey)
             keynum = 0, keysym = pd->generateSymbol("Left");
-        else if (keynum == 29 || keynum == 63235)
+        else if (keynum == KeyPress::rightKey)
             keynum = 0, keysym = pd->generateSymbol("Right");
-        else if (keynum == 63273)
+        else if (keynum == KeyPress::homeKey)
             keynum = 0, keysym = pd->generateSymbol("Home");
-        else if (keynum == 63275)
+        else if (keynum == KeyPress::endKey)
             keynum = 0, keysym = pd->generateSymbol("End");
-        else if (keynum == 63276)
+        else if (keynum == KeyPress::pageUpKey)
             keynum = 0, keysym = pd->generateSymbol("Prior");
-        else if (keynum == 63277)
+        else if (keynum == KeyPress::pageDownKey)
             keynum = 0, keysym = pd->generateSymbol("Next");
-        else if (keynum == 63236)
+        else if (keynum == KeyPress::F1Key)
             keynum = 0, keysym = pd->generateSymbol("F1");
-        else if (keynum == 63237)
+        else if (keynum == KeyPress::F2Key)
             keynum = 0, keysym = pd->generateSymbol("F2");
-        else if (keynum == 63238)
+        else if (keynum == KeyPress::F3Key)
             keynum = 0, keysym = pd->generateSymbol("F3");
-        else if (keynum == 63239)
+        else if (keynum == KeyPress::F4Key)
             keynum = 0, keysym = pd->generateSymbol("F4");
-        else if (keynum == 63240)
+        else if (keynum == KeyPress::F5Key)
             keynum = 0, keysym = pd->generateSymbol("F5");
-        else if (keynum == 63241)
+        else if (keynum == KeyPress::F6Key)
             keynum = 0, keysym = pd->generateSymbol("F6");
-        else if (keynum == 63242)
+        else if (keynum == KeyPress::F7Key)
             keynum = 0, keysym = pd->generateSymbol("F7");
-        else if (keynum == 63243)
+        else if (keynum == KeyPress::F8Key)
             keynum = 0, keysym = pd->generateSymbol("F8");
-        else if (keynum == 63244)
+        else if (keynum == KeyPress::F9Key)
             keynum = 0, keysym = pd->generateSymbol("F9");
-        else if (keynum == 63245)
+        else if (keynum == KeyPress::F10Key)
             keynum = 0, keysym = pd->generateSymbol("F10");
-        else if (keynum == 63246)
+        else if (keynum == KeyPress::F11Key)
             keynum = 0, keysym = pd->generateSymbol("F11");
-        else if (keynum == 63247)
+        else if (keynum == KeyPress::F12Key)
             keynum = 0, keysym = pd->generateSymbol("F12");
+
+        else if (keynum == KeyPress::numberPad0)
+            keynum = 48, keysym = pd->generateSymbol("0");
+        else if (keynum == KeyPress::numberPad1)
+            keynum = 49, keysym = pd->generateSymbol("1");
+        else if (keynum == KeyPress::numberPad2)
+            keynum = 50, keysym = pd->generateSymbol("2");
+        else if (keynum == KeyPress::numberPad3)
+            keynum = 51, keysym = pd->generateSymbol("3");
+        else if (keynum == KeyPress::numberPad4)
+            keynum = 52, keysym = pd->generateSymbol("4");
+        else if (keynum == KeyPress::numberPad5)
+            keynum = 53, keysym = pd->generateSymbol("5");
+        else if (keynum == KeyPress::numberPad6)
+            keynum = 54, keysym = pd->generateSymbol("6");
+        else if (keynum == KeyPress::numberPad7)
+            keynum = 55, keysym = pd->generateSymbol("7");
+        else if (keynum == KeyPress::numberPad8)
+            keynum = 56, keysym = pd->generateSymbol("8");
+        else if (keynum == KeyPress::numberPad9)
+            keynum = 57, keysym = pd->generateSymbol("9");
+
+        
     }
 };
