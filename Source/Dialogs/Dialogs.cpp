@@ -513,6 +513,7 @@ PopupMenu Dialogs::createObjectMenu(PluginEditor* parent)
         oscillatorsMenu.addItem(createCommandItem(ObjectIDs::NewImp, "imp~"));
         oscillatorsMenu.addItem(createCommandItem(ObjectIDs::NewImp2, "imp2~"));
         oscillatorsMenu.addItem(createCommandItem(ObjectIDs::NewWavetable, "wavetable~"));
+        oscillatorsMenu.addItem(createCommandItem(ObjectIDs::NewPlaits, "plaits~"));
         oscillatorsMenu.addSeparator();
         oscillatorsMenu.addItem(createCommandItem(ObjectIDs::NewBlOsc, "bl.osc~"));
         oscillatorsMenu.addItem(createCommandItem(ObjectIDs::NewBlSaw, "bl.saw~"));
