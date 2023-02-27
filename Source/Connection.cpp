@@ -375,11 +375,11 @@ void Connection::mouseDrag(MouseEvent const& e)
 {
     if (wasSelected && startReconnectHandle.contains(e.getMouseDownPosition().toFloat()) && e.getDistanceFromDragStart() > 6) {
         cnv->connectingWithDrag = true;
-        reconnect(inlet, true);
+        reconnect(inlet);
     }
     if (wasSelected && endReconnectHandle.contains(e.getMouseDownPosition().toFloat()) && e.getDistanceFromDragStart() > 6) {
         cnv->connectingWithDrag = true;
-        reconnect(outlet, true);
+        reconnect(outlet);
     }
 
     if (currentPlan.empty())
@@ -412,10 +412,10 @@ void Connection::mouseUp(MouseEvent const& e)
     }
 
     if (wasSelected && startReconnectHandle.contains(e.getMouseDownPosition().toFloat()) && startReconnectHandle.contains(e.position)) {
-        reconnect(inlet, false);
+        reconnect(inlet);
     }
     if (wasSelected && endReconnectHandle.contains(e.getMouseDownPosition().toFloat()) && endReconnectHandle.contains(e.position)) {
-        reconnect(outlet, false);
+        reconnect(outlet);
     }
     if (reconnecting.size()) {
         // Async to safely self-destruct
@@ -447,7 +447,7 @@ int Connection::getClosestLineIdx(Point<float> const& position, PathPlan const& 
     return -1;
 }
 
-void Connection::reconnect(Iolet* target, bool dragged)
+void Connection::reconnect(Iolet* target)
 {
     if (!reconnecting.isEmpty())
         return;

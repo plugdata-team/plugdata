@@ -222,19 +222,9 @@ void Dialogs::showCanvasRightClickMenu(Canvas* cnv, Component* originalComponent
     bool hasSelection = !selectedBoxes.isEmpty();
     bool multiple = selectedBoxes.size() > 1;
 
-    Object* object = nullptr;
-    if (auto* obj = dynamic_cast<Object*>(originalComponent)) {
-        object = obj;
-        cnv->setSelected(object, true);
-    } else if (auto* obj = originalComponent->findParentComponentOfClass<Object>()) {
-        object = obj;
-        if (!cnv->locked.getValue()) {
-            cnv->setSelected(object, true);
-        }
-    } else if (hasSelection && !multiple) {
-        object = selectedBoxes.getFirst();
-    }
+    Object* object = hasSelection && !multiple ? selectedBoxes.getFirst() : nullptr;
 
+    // Find top-level object, so we never trigger it on an object inside a graph
     if (object && object->findParentComponentOfClass<Object>()) {
         while (auto* nextObject = object->findParentComponentOfClass<Object>()) {
             object = nextObject;
