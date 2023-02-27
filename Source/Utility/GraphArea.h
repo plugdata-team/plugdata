@@ -46,7 +46,7 @@ public:
         setPdBounds();
         repaint();
     }
-        
+
     void resized() override
     {
         int handleSize = 20;

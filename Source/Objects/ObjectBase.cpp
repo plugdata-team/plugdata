@@ -189,10 +189,9 @@ void ObjectBase::closeOpenedSubpatchers()
 {
     auto* editor = object->cnv->editor;
 
-    for(auto* cnv : editor->canvases)
-    {
+    for (auto* cnv : editor->canvases) {
         if (cnv && cnv->patch == *getPatch()) {
-            
+
             cnv->editor->closeTab(cnv);
             break;
         }
@@ -219,8 +218,7 @@ void ObjectBase::openSubpatch()
     }
 
     // Check if subpatch is already opened
-    for(auto* cnv : cnv->editor->canvases)
-    {
+    for (auto* cnv : cnv->editor->canvases) {
         if (cnv->patch == *subpatch) {
             auto* tabbar = cnv->getTabbar();
             tabbar->setCurrentTabIndex(cnv->getTabIndex());

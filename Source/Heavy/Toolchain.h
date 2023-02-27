@@ -156,8 +156,9 @@ struct ToolchainInstaller : public Component
             startThread();
         };
     }
-        
-    ~ToolchainInstaller() {
+
+    ~ToolchainInstaller()
+    {
         stopThread(-1);
     }
 
@@ -236,9 +237,10 @@ struct ToolchainInstaller : public Component
 
             if (threadShouldExit())
                 return;
-            
+
             MessageManager::callAsync([_this = SafePointer(this), progress]() mutable {
-                if(!_this) return;
+                if (!_this)
+                    return;
                 _this->installProgress = progress;
                 _this->repaint();
             });

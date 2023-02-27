@@ -367,7 +367,7 @@ void Iolet::createConnection()
             // Auto patching - if shift is down at mouseDown
             // create connections from selected objects
             cnv->setSelected(object, true);
-            
+
             int position = object->iolets.indexOf(this);
             position = isInlet ? position : position - object->numInputs;
             for (auto* selectedBox : object->cnv->getSelectionOfType<Object>()) {

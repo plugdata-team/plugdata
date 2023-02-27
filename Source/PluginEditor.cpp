@@ -98,7 +98,7 @@ PluginEditor::PluginEditor(PluginProcessor& p)
 
     zoomScale.referTo(settingsFile->getPropertyAsValue("zoom"));
     zoomScale.addListener(this);
-    
+
     splitZoomScale.referTo(settingsFile->getPropertyAsValue("split_zoom"));
     splitZoomScale.addListener(this);
 
@@ -178,7 +178,7 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     // Make sure existing console messages are processed
     sidebar.updateConsole();
     updateCommandStatus();
-    
+
     addModifierKeyListener(&statusbar);
 
     addChildComponent(zoomLabel);
@@ -186,7 +186,7 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     // Initialise zoom factor
     valueChanged(zoomScale);
     valueChanged(splitZoomScale);
-    
+
     selectedSplitRect.setStrokeThickness(1.0f);
     selectedSplitRect.setInterceptsMouseClicks(false, false);
     selectedSplitRect.setFill(Colours::transparentBlack);
@@ -199,7 +199,7 @@ PluginEditor::~PluginEditor()
     zoomScale.removeListener(this);
     splitZoomScale.removeListener(this);
     theme.removeListener(this);
-    
+
     pd->lastLeftTab = splitView.getLeftTabbar()->getCurrentTabIndex();
     pd->lastRightTab = splitView.getRightTabbar()->getCurrentTabIndex();
 }
@@ -207,7 +207,7 @@ PluginEditor::~PluginEditor()
 void PluginEditor::paint(Graphics& g)
 {
     selectedSplitRect.setStrokeFill(findColour(PlugDataColour::dataColourId));
-    
+
     g.setColour(findColour(PlugDataColour::canvasBackgroundColourId));
     g.fillRoundedRectangle(getLocalBounds().toFloat(), PlugDataLook::windowCornerRadius);
 
@@ -243,15 +243,13 @@ void PluginEditor::paint(Graphics& g)
 void PluginEditor::paintOverChildren(Graphics& g)
 {
     // Never want to be drawing over a dialog window
-    if(openedDialog) return;
-    
+    if (openedDialog)
+        return;
+
     if (isDraggingFile) {
         g.setColour(findColour(PlugDataColour::scrollbarThumbColourId));
         g.drawRect(getLocalBounds().reduced(1), 2.0f);
     }
-    
-    
-    
 }
 
 void PluginEditor::resized()
@@ -259,7 +257,6 @@ void PluginEditor::resized()
     splitView.setBounds(0, toolbarHeight, (getWidth() - sidebar.getWidth()) + 1, getHeight() - toolbarHeight - (statusbar.getHeight()));
     sidebar.setBounds(getWidth() - sidebar.getWidth(), toolbarHeight, sidebar.getWidth(), getHeight() - toolbarHeight);
     statusbar.setBounds(0, getHeight() - statusbar.getHeight(), getWidth() - sidebar.getWidth(), statusbar.getHeight());
-    
 
     mainMenuButton.setBounds(20, 0, toolbarHeight, toolbarHeight);
     undoButton.setBounds(90, 0, toolbarHeight, toolbarHeight);
@@ -293,7 +290,7 @@ void PluginEditor::resized()
     if (auto* cnv = getCurrentCanvas()) {
         cnv->checkBounds();
     }
-    
+
     updateSplitOutline();
 }
 
@@ -312,7 +309,7 @@ void PluginEditor::mouseMagnify(MouseEvent const& e, float scrollFactor)
         return;
 
     auto event = e.getEventRelativeTo(getCurrentCanvas()->viewport);
-    
+
     auto& scale = splitView.isRightTabbarActive() ? splitZoomScale : zoomScale;
 
     float value = static_cast<float>(scale.getValue());
@@ -368,8 +365,9 @@ void PluginEditor::mouseDrag(MouseEvent const& e)
 
 bool PluginEditor::isInterestedInFileDrag(StringArray const& files)
 {
-    if(openedDialog) return false;
-    
+    if (openedDialog)
+        return false;
+
     for (auto& path : files) {
         auto file = File(path);
         if (file.exists() && (file.isDirectory() || file.hasFileExtension("pd"))) {
@@ -478,17 +476,18 @@ Canvas* PluginEditor::getCurrentCanvas()
 
 void PluginEditor::closeTab(Canvas* cnv)
 {
-    if(!cnv || !cnv->getTabbar()) return;
-    
+    if (!cnv || !cnv->getTabbar())
+        return;
+
     auto* tabbar = cnv->getTabbar();
-    const int tabIdx = cnv->getTabIndex();
-    const int currentTabIdx = tabbar->getCurrentTabIndex();
+    int const tabIdx = cnv->getTabIndex();
+    int const currentTabIdx = tabbar->getCurrentTabIndex();
     auto* patch = &cnv->patch;
-    
+
     sidebar.hideParameters();
-    
+
     cnv->getTabbar()->removeTab(tabIdx);
-    
+
     canvases.removeObject(cnv);
     pd->patches.removeObject(patch, patch->closePatchOnDelete);
 
@@ -501,24 +500,22 @@ void PluginEditor::closeTab(Canvas* cnv)
             tabbar->setCurrentTabIndex(currentTabIdx - 1, true);
         }
     }
-    
-    if(auto* leftCnv = splitView.getLeftTabbar()->getCurrentCanvas())
-    {
+
+    if (auto* leftCnv = splitView.getLeftTabbar()->getCurrentCanvas()) {
         leftCnv->tabChanged();
     }
-    if(auto* rightCnv = splitView.getRightTabbar()->getCurrentCanvas())
-    {
+    if (auto* rightCnv = splitView.getRightTabbar()->getCurrentCanvas()) {
         rightCnv->tabChanged();
     }
-    
+
     splitView.closeEmptySplits();
     updateCommandStatus();
-    
+
     pd->savePatchTabPositions();
-    
-    MessageManager::callAsync([_this = SafePointer(this)]()
-    {
-        if(!_this) return;
+
+    MessageManager::callAsync([_this = SafePointer(this)]() {
+        if (!_this)
+            return;
         _this->resized();
     });
 }
@@ -527,9 +524,9 @@ void PluginEditor::addTab(Canvas* cnv)
 {
     // Create a pointer to the TabBar in focus
     auto* focusedTabbar = splitView.getActiveTabbar();
-    
+
     int const newTabIdx = focusedTabbar->getCurrentTabIndex() + 1; // The tab index for the added tab
-    
+
     // Add tab next to the currently focused tab
     focusedTabbar->addTab(cnv->patch.getTitle(), findColour(ResizableWindow::backgroundColourId), cnv->viewport, true, newTabIdx);
 
@@ -585,7 +582,7 @@ void PluginEditor::addTab(Canvas* cnv)
 
     cnv->setVisible(true);
     updateSplitOutline();
-    
+
     pd->savePatchTabPositions();
 }
 
@@ -604,16 +601,16 @@ void PluginEditor::valueChanged(Value& v)
         if (auto* cnv = getCurrentCanvas()) {
             lastMousePosition = cnv->getMouseXYRelative();
         }
-        
+
         auto* tabbar = v.refersToSameSourceAs(zoomScale) ? splitView.getLeftTabbar() : splitView.getRightTabbar();
 
-        for(int i = 0; i < tabbar->getNumTabs(); i++) {
-            if(auto* cnv = tabbar->getCanvas(i)) {
+        for (int i = 0; i < tabbar->getNumTabs(); i++) {
+            if (auto* cnv = tabbar->getCanvas(i)) {
                 cnv->hideSuggestions();
                 cnv->setTransform(AffineTransform().scaled(scale));
             }
         }
-        
+
         if (auto* cnv = getCurrentCanvas()) {
             cnv->checkBounds();
 
@@ -914,7 +911,7 @@ void PluginEditor::getCommandInfo(const CommandID commandID, ApplicationCommandI
     case CommandIDs::NextTab: {
         result.setInfo("Next Tab", "Show the next tab", "View", 0);
         result.setActive(true);
-        
+
 #if JUCE_MAC
         result.addDefaultKeypress(KeyPress::rightKey, ModifierKeys::commandModifier);
 #else
@@ -925,7 +922,7 @@ void PluginEditor::getCommandInfo(const CommandID commandID, ApplicationCommandI
     case CommandIDs::PreviousTab: {
         result.setInfo("Previous Tab", "Show the previous tab", "View", 0);
         result.setActive(true);
-        
+
 #if JUCE_MAC
         result.addDefaultKeypress(KeyPress::leftKey, ModifierKeys::commandModifier);
 #else
@@ -1038,15 +1035,13 @@ bool PluginEditor::perform(InvocationInfo const& info)
         return true;
     }
     case CommandIDs::CloseTab: {
-        
+
         if (splitView.getActiveTabbar()->getNumTabs() == 0)
             return true;
-        
+
         closeTab(getCurrentCanvas());
 
         return true;
-
-       
     }
     case CommandIDs::Copy: {
         cnv->copySelection();
@@ -1133,9 +1128,9 @@ bool PluginEditor::perform(InvocationInfo const& info)
         return true;
     }
     case CommandIDs::NextTab: {
-        
+
         auto* tabbar = cnv->getTabbar();
-        
+
         int currentIdx = cnv->getTabIndex() + 1;
 
         if (currentIdx >= tabbar->getNumTabs())
@@ -1149,7 +1144,7 @@ bool PluginEditor::perform(InvocationInfo const& info)
     }
     case CommandIDs::PreviousTab: {
         auto* tabbar = cnv->getTabbar();
-        
+
         int currentIdx = cnv->getTabIndex() - 1;
 
         if (currentIdx >= tabbar->getNumTabs())
@@ -1261,7 +1256,7 @@ void PluginEditor::updateSplitOutline()
 {
     auto* tabbar = splitView.getActiveTabbar();
     if (splitView.isSplitEnabled() && tabbar) {
-        if(auto* cnv = tabbar->getCurrentCanvas()) {
+        if (auto* cnv = tabbar->getCurrentCanvas()) {
             bool isOnLeft = tabbar == splitView.getLeftTabbar();
 
             auto bounds = getLocalArea(tabbar, tabbar->getLocalBounds()).withTrimmedTop(tabbar->getTabBarDepth()).toFloat().withTrimmedRight(isOnLeft ? 0.0f : 0.5f).withTrimmedLeft(isOnLeft ? 0.5f : 0.0f).withTrimmedBottom(-0.5f);
@@ -1269,9 +1264,7 @@ void PluginEditor::updateSplitOutline()
             selectedSplitRect.toFront(false);
             selectedSplitRect.setVisible(true);
         }
-    }
-    else
-    {
+    } else {
         selectedSplitRect.setVisible(false);
     }
 }
@@ -1288,9 +1281,9 @@ float PluginEditor::getZoomScaleForCanvas(Canvas* cnv)
 
 Value& PluginEditor::getZoomScaleValueForCanvas(Canvas* cnv)
 {
-    if(cnv->getTabbar() == splitView.getRightTabbar()) {
+    if (cnv->getTabbar() == splitView.getRightTabbar()) {
         return splitZoomScale;
     }
-    
+
     return zoomScale;
 }

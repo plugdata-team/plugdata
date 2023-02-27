@@ -67,18 +67,17 @@ Canvas::Canvas(PluginEditor* parent, pd::Patch& p, Component* parentGraph)
 
     if (!isGraph) {
         auto* canvasViewport = new CanvasViewport(editor, this);
-        
+
         canvasViewport->setViewedComponent(this, false);
-        
-        canvasViewport->onScroll = [this]()
-        {
-            if(suggestor) {
+
+        canvasViewport->onScroll = [this]() {
+            if (suggestor) {
                 suggestor->updateBounds();
             }
         };
-        
+
         canvasViewport->setScrollBarsShown(true, true, true, true);
-        
+
         viewport = canvasViewport; // Owned by the tabbar, but doesn't exist for graph!
 
         presentationMode.referTo(editor->statusbar.presentationMode);
@@ -98,14 +97,14 @@ Canvas::Canvas(PluginEditor* parent, pd::Patch& p, Component* parentGraph)
     }
 
     locked.addListener(this);
-    
+
     Desktop::getInstance().addFocusChangeListener(this);
 }
 
 Canvas::~Canvas()
 {
     Desktop::getInstance().removeFocusChangeListener(this);
-        
+
     delete graphArea;
     delete suggestor;
 }
@@ -147,24 +146,24 @@ TabComponent* Canvas::getTabbar()
 {
     auto* leftTabbar = editor->splitView.getLeftTabbar();
     auto* rightTabbar = editor->splitView.getRightTabbar();
-    
-    if(leftTabbar->getIndexOfCanvas(this) >= 0) {
+
+    if (leftTabbar->getIndexOfCanvas(this) >= 0) {
         return leftTabbar;
     }
-    
-    if(rightTabbar->getIndexOfCanvas(this) >= 0) {
+
+    if (rightTabbar->getIndexOfCanvas(this) >= 0) {
         return rightTabbar;
     }
-    
+
     return nullptr;
 }
 
-void Canvas::globalFocusChanged(Component *focusedComponent)
+void Canvas::globalFocusChanged(Component* focusedComponent)
 {
-    if(!focusedComponent || !editor->splitView.isSplitEnabled() || editor->splitView.hasFocus(this)) return;
-    
-    if(focusedComponent == this || focusedComponent->findParentComponentOfClass<Canvas>() == this)
-    {
+    if (!focusedComponent || !editor->splitView.isSplitEnabled() || editor->splitView.hasFocus(this))
+        return;
+
+    if (focusedComponent == this || focusedComponent->findParentComponentOfClass<Canvas>() == this) {
         editor->splitView.setFocus(this);
     }
 }
@@ -175,24 +174,25 @@ void Canvas::tabChanged()
 
     synchronise();
     updateDrawables();
-    
+
     // update GraphOnParent when changing tabs
     // TODO: shouldn't we do this always on sync?
     for (auto* obj : objects) {
         if (!obj->gui)
             continue;
-        
+
         if (auto* graphCnv = obj->gui->getCanvas())
             graphCnv->synchronise();
-        
+
         obj->gui->tabChanged();
     }
 }
 
-int Canvas::getTabIndex() {
+int Canvas::getTabIndex()
+{
     auto leftIdx = editor->splitView.getLeftTabbar()->getIndexOfCanvas(this);
     auto rightIdx = editor->splitView.getRightTabbar()->getIndexOfCanvas(this);
-    
+
     return leftIdx >= 0 ? leftIdx : rightIdx;
 }
 
@@ -288,17 +288,17 @@ void Canvas::synchronise(bool updatePosition)
         }
 
         auto* it = std::find_if(connections.begin(), connections.end(),
-                    [this, &connection, &srcno, &sinkno](Connection* c) {
-                        auto& [ptr, inno, inobj, outno, outobj] = connection;
+            [this, &connection, &srcno, &sinkno](Connection* c) {
+                auto& [ptr, inno, inobj, outno, outobj] = connection;
 
-                        if (!c->inlet || !c->outlet)
-                            return false;
+                if (!c->inlet || !c->outlet)
+                    return false;
 
-                        bool sameStart = c->outobj == objects[srcno];
-                        bool sameEnd = c->inobj == objects[sinkno];
+                bool sameStart = c->outobj == objects[srcno];
+                bool sameEnd = c->inobj == objects[sinkno];
 
-                        return c->inIdx == inno && c->outIdx == outno && sameStart && sameEnd;
-                    });
+                return c->inIdx == inno && c->outIdx == outno && sameStart && sameEnd;
+            });
 
         if (it == connections.end()) {
             connections.add(new Connection(this, srcEdges[objects[srcno]->numInputs + outno], sinkEdges[inno], ptr));
@@ -348,11 +348,12 @@ void Canvas::middleMouseChanged(bool isHeld)
 void Canvas::mouseDown(MouseEvent const& e)
 {
     PopupMenu::dismissAllActiveMenus();
-    
-    if(checkPanDragMode()) return;
-    
+
+    if (checkPanDragMode())
+        return;
+
     auto* source = e.originalComponent;
-    
+
     // Left-click
     if (!e.mods.isRightButtonDown()) {
         if (source == this /*|| source == graphArea */) {
@@ -374,8 +375,6 @@ void Canvas::mouseDown(MouseEvent const& e)
 
             lasso.beginLasso(e.getEventRelativeTo(this), this);
             isDraggingLasso = true;
-
-            
         }
 
         // Update selected object in sidebar when we click a object
@@ -437,7 +436,7 @@ void Canvas::mouseDrag(MouseEvent const& e)
     if (viewport && !ObjectBase::isBeingEdited() && autoscroll(viewportEvent)) {
         beginDragAutoRepeat(25);
     }
-    
+
     // Drag lasso
     lasso.dragLasso(e);
 }
@@ -447,26 +446,24 @@ bool Canvas::autoscroll(MouseEvent const& e)
     auto ret = false;
     auto x = viewport->getViewPositionX();
     auto y = viewport->getViewPositionY();
-    
-    if(e.x > viewport->getWidth()) {
+
+    if (e.x > viewport->getWidth()) {
         ret = true;
         x += std::clamp((e.x - viewport->getWidth()) / 6, 1, 14);
-    }
-    else if(e.x < 0) {
+    } else if (e.x < 0) {
         ret = true;
         x -= std::clamp(-e.x / 6, 1, 14);
     }
-    if(e.y > viewport->getHeight()) {
+    if (e.y > viewport->getHeight()) {
         ret = false;
         y += std::clamp((e.y - viewport->getHeight()) / 6, 1, 14);
-    }
-    else if(e.y < 0) {
+    } else if (e.y < 0) {
         ret = false;
         y -= std::clamp(-e.y / 6, 1, 14);
     }
-    
+
     viewport->setViewPosition(x, y);
-    
+
     return ret;
 }
 
@@ -546,10 +543,11 @@ bool Canvas::keyPressed(KeyPress const& key)
 {
     if (editor->getCurrentCanvas() != this || isGraph)
         return false;
-    
+
     // Absorb space events for drag-scrolling
     // This makes sure that there isn't constantly a warning sound if we map scroll-drag to a key
-    if(key == KeyPress::spaceKey) return true;
+    if (key == KeyPress::spaceKey)
+        return true;
 
     int keycode = key.getKeyCode();
 
@@ -638,9 +636,9 @@ void Canvas::pasteSelection()
     patch.startUndoSequence("Paste");
     // Tell pd to paste
     patch.paste();
-    
+
     deselectAll();
-    
+
     // Load state from pd, don't update positions
     synchronise(false);
 
@@ -705,7 +703,7 @@ void Canvas::duplicateSelection()
 
     // Tell pd to duplicate
     patch.duplicate();
-    
+
     deselectAll();
 
     // Load state from pd, don't update positions
@@ -1306,12 +1304,11 @@ void Canvas::objectMouseDrag(MouseEvent const& e)
         dragDistance = objectGrid.performMove(componentBeingDragged, dragDistance);
     }
 
-
     // alt+drag will duplicate selection
     if (!wasDragDuplicated && e.mods.isAltDown()) {
 
         // Single for undo for duplicate + move
-       patch.startUndoSequence("Duplicate");
+        patch.startUndoSequence("Duplicate");
 
         // Sort selection indexes to match pd indexes
         std::sort(selection.begin(), selection.end(),
@@ -1349,11 +1346,11 @@ void Canvas::objectMouseDrag(MouseEvent const& e)
                 object->setTopLeftPosition(object->originalBounds.getPosition() + dragDistance + canvasMoveOffset);
             }
         }
-        
+
         auto draggedBounds = componentBeingDragged->getBounds().expanded(6);
         auto xEdge = e.getDistanceFromDragStartX() < 0 ? draggedBounds.getX() : draggedBounds.getRight();
         auto yEdge = e.getDistanceFromDragStartY() < 0 ? draggedBounds.getY() : draggedBounds.getBottom();
-        if(autoscroll(e.getEventRelativeTo(this).withNewPosition(Point<int>(xEdge, yEdge)).getEventRelativeTo(viewport))) {
+        if (autoscroll(e.getEventRelativeTo(this).withNewPosition(Point<int>(xEdge, yEdge)).getEventRelativeTo(viewport))) {
             beginDragAutoRepeat(25);
         }
     }

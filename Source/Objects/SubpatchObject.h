@@ -57,15 +57,14 @@ public:
             TextBase::mouseDown(e);
         }
     }
-    
+
     void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
     {
         switch (hash(symbol)) {
         case hash("vis"): {
-            if(atoms[0].getFloat() == 1) {
+            if (atoms[0].getFloat() == 1) {
                 openSubpatch();
-            }
-            else {
+            } else {
                 closeOpenedSubpatchers();
             }
             break;

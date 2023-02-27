@@ -485,7 +485,6 @@ struct PlugDataLook : public LookAndFeel_V4 {
         bool isActive = button.getToggleState();
         g.setColour(findColour(isActive ? PlugDataColour::activeTabBackgroundColourId : PlugDataColour::tabBackgroundColourId));
 
-
         g.fillRect(button.getLocalBounds());
 
         int w = button.getWidth();

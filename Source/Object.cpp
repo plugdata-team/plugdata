@@ -141,8 +141,9 @@ void Object::valueChanged(Value& v)
 
 bool Object::hitTest(int x, int y)
 {
-    if(Canvas::panningModifierDown()) return false;
-    
+    if (Canvas::panningModifierDown())
+        return false;
+
     if (gui && !gui->canReceiveMouseEvent(x, y)) {
         return false;
     }
@@ -552,8 +553,7 @@ void Object::updateIolets()
     for (auto* iolet : iolets) {
         if (gui && !iolet->isInlet) {
             iolet->setVisible(!gui->hideOutlets());
-        }
-        else if (gui && iolet->isInlet) {
+        } else if (gui && iolet->isInlet) {
             iolet->setVisible(!gui->hideInlets());
         }
     }
@@ -653,16 +653,15 @@ void Object::mouseUp(MouseEvent const& e)
         Array<SafePointer<Object>> objectsToCheck;
         for (auto* obj : cnv->getSelectionOfType<Object>())
             objectsToCheck.add(obj);
-        
+
         auto* patch = &cnv->patch;
 
         cnv->objectGrid.handleMouseUp(e.getOffsetFromDragStart());
 
         cnv->pd->enqueueFunction(
             [objectsToCheck, patch]() mutable {
-                
                 patch->startUndoSequence("resize");
-                
+
                 for (auto object : objectsToCheck) {
                     if (!object || !object->gui)
                         return;
@@ -677,7 +676,7 @@ void Object::mouseUp(MouseEvent const& e)
                     libpd_undo_apply(cnv->patch.getPointer(), obj);
 
                     object->gui->applyBounds();
-                    
+
                     canvas_dirty(cnv->patch.getPointer(), 1);
 
                     // To make sure it happens after setting object bounds
@@ -689,7 +688,7 @@ void Object::mouseUp(MouseEvent const& e)
                         });
                     }
                 }
-                
+
                 patch->endUndoSequence("resize");
             });
 

@@ -329,8 +329,7 @@ public:
 
 class AutomationComponent : public Component {
 
-    class AddParameterButton : public Component
-    {
+    class AddParameterButton : public Component {
 
         bool mouseIsOver = false;
 
@@ -342,7 +341,7 @@ class AutomationComponent : public Component {
             auto bounds = getLocalBounds().reduced(5, 2);
             auto textBounds = bounds;
             auto iconBounds = textBounds.removeFromLeft(textBounds.getHeight());
-            
+
             auto colour = findColour(PlugDataColour::sidebarTextColourId);
             if (mouseIsOver) {
                 g.setColour(findColour(PlugDataColour::sidebarActiveBackgroundColourId));
@@ -350,14 +349,14 @@ class AutomationComponent : public Component {
 
                 colour = findColour(PlugDataColour::sidebarActiveTextColourId);
             }
-            
+
             PlugDataLook::drawIcon(g, Icons::Add, iconBounds, colour, 12);
             PlugDataLook::drawText(g, "Add new parameter", textBounds, colour, 14);
         }
 
         bool hitTest(int x, int y) override
         {
-            if (getLocalBounds().reduced(5,2).contains(x,y)) {
+            if (getLocalBounds().reduced(5, 2).contains(x, y)) {
                 return true;
             };
             return false;

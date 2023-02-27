@@ -26,8 +26,7 @@ class Canvas : public Component
     , public Value::Listener
     , public LassoSource<WeakReference<Component>>
     , public ModifierKeyListener
-    , public FocusChangeListener
-{
+    , public FocusChangeListener {
 public:
     Canvas(PluginEditor* parent, pd::Patch& patch, Component* parentGraph = nullptr);
 
@@ -43,7 +42,7 @@ public:
     void mouseDrag(MouseEvent const& e) override;
     void mouseUp(MouseEvent const& e) override;
     void mouseMove(MouseEvent const& e) override;
-    
+
     void spaceKeyChanged(bool isHeld) override;
     void middleMouseChanged(bool isHeld) override;
 
@@ -53,12 +52,12 @@ public:
 
     bool keyPressed(KeyPress const& key) override;
     void valueChanged(Value& v) override;
-    
+
     TabComponent* getTabbar();
     int getTabIndex();
     void tabChanged();
-    
-    void globalFocusChanged(Component *focusedComponent) override;
+
+    void globalFocusChanged(Component* focusedComponent) override;
 
     void hideAllActiveEditors();
 
@@ -78,7 +77,7 @@ public:
     void redo();
 
     void checkBounds();
-        
+
     bool autoscroll(MouseEvent const& e);
 
     // Multi-dragger functions
@@ -91,7 +90,7 @@ public:
     void objectMouseDrag(MouseEvent const& e);
 
     SelectedItemSet<WeakReference<Component>>& getLassoSelection() override;
-        
+
     bool checkPanDragMode();
     bool setPanDragMode(bool shouldPan);
 
@@ -102,8 +101,7 @@ public:
 
     void showSuggestions(Object* object, TextEditor* textEditor);
     void hideSuggestions();
-        
-        
+
     static bool panningModifierDown();
 
     ObjectParameters& getInspectorParameters();
@@ -121,7 +119,7 @@ public:
 
         return result;
     }
-        
+
     Viewport* viewport = nullptr;
 
     bool connectingWithDrag = false;
@@ -179,7 +177,6 @@ public:
     std::unique_ptr<ConnectionPathUpdater> pathUpdater;
 
 private:
-    
     SafePointer<Object> objectSnappingInbetween;
     SafePointer<Connection> connectionToSnapInbetween;
 

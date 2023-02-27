@@ -127,8 +127,7 @@ public:
     bool blinkMidiOut = false;
 };
 
-class GridSizeSlider : public PopupMenu::CustomComponent
-{
+class GridSizeSlider : public PopupMenu::CustomComponent {
 public:
     GridSizeSlider(Canvas* leftCnv, Canvas* rightCnv)
     {
@@ -137,20 +136,22 @@ public:
         slider->setValue(SettingsFile::getInstance()->getProperty<int>("grid_size"));
         slider->setTextBoxStyle(Slider::NoTextBox, false, 0, 0);
         slider->setColour(Slider::ColourIds::trackColourId, findColour(PlugDataColour::panelBackgroundColourId));
-        
-        slider->onValueChange = [this, leftCnv, rightCnv](){
+
+        slider->onValueChange = [this, leftCnv, rightCnv]() {
             SettingsFile::getInstance()->setProperty("grid_size", slider->getValue());
-            if(leftCnv)  leftCnv->repaint();
-            if(rightCnv) rightCnv->repaint();
+            if (leftCnv)
+                leftCnv->repaint();
+            if (rightCnv)
+                rightCnv->repaint();
         };
     }
-        
+
     void paint(Graphics& g) override
     {
         auto b = getLocalBounds().reduced(12, 0);
         int x = b.getX();
         int spacing = b.getWidth() / 6;
-        
+
         for (int i = 5; i <= 30; i += 5) {
             auto textBounds = Rectangle<int>(x, b.getY(), spacing, b.getHeight());
             PlugDataLook::drawStyledText(g, String(i), textBounds, findColour(PlugDataColour::toolbarTextColourId), Monospace, 10, Justification::centredTop);
@@ -270,9 +271,9 @@ Statusbar::Statusbar(PluginProcessor* processor)
             } else {
                 SettingsFile::getInstance()->setProperty("grid_enabled", 2);
             }
-        }); 
+        });
         gridSelector.addSeparator();
-        
+
         auto* leftCanvas = dynamic_cast<PluginEditor*>(pd->getActiveEditor())->splitView.getLeftTabbar()->getCurrentCanvas();
         auto* rightCanvas = dynamic_cast<PluginEditor*>(pd->getActiveEditor())->splitView.getRightTabbar()->getCurrentCanvas();
         gridSelector.addCustomItem(1, std::make_unique<GridSizeSlider>(leftCanvas, rightCanvas), nullptr, "Grid Size");
@@ -280,12 +281,10 @@ Statusbar::Statusbar(PluginProcessor* processor)
         gridSelector.showMenuAsync(PopupMenu::Options().withMinimumWidth(150).withMaximumNumColumns(1).withTargetComponent(gridButton.get()).withParentComponent(pd->getActiveEditor()));
     };
 
-    
     addAndMakeVisible(gridButton.get());
 
     // Initialise grid state
     propertyChanged("grid_enabled", SettingsFile::getInstance()->getProperty<int>("grid_enabled"));
-
 
     powerButton->onClick = [this]() { powerButton->getToggleState() ? pd->startDSP() : pd->releaseDSP(); };
 
@@ -403,7 +402,7 @@ void Statusbar::valueChanged(Value& v)
         auto c = static_cast<bool>(commandLocked.getValue()) ? findColour(PlugDataColour::toolbarActiveColourId) : findColour(PlugDataColour::toolbarTextColourId);
         lockButton->setColour(PlugDataColour::toolbarTextColourId, c);
     }
-} 
+}
 
 void Statusbar::lookAndFeelChanged()
 {
@@ -455,7 +454,6 @@ void Statusbar::resized()
     midiBlinker->setBounds(position(55, true), 0, 55, getHeight());
 }
 
-
 void Statusbar::shiftKeyChanged(bool isHeld)
 {
     if (isHeld && SettingsFile::getInstance()->getProperty<int>("grid_enabled")) {
@@ -465,7 +463,7 @@ void Statusbar::shiftKeyChanged(bool isHeld)
         propertyChanged("grid_enabled", SettingsFile::getInstance()->getProperty<int>("grid_enabled"));
     }
 }
-    
+
 void Statusbar::commandKeyChanged(bool isHeld)
 {
     auto* editor = dynamic_cast<PluginEditor*>(pd->getActiveEditor());

@@ -36,7 +36,7 @@ public:
         updateCanvas();
         resized();
     }
-    
+
     void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
     {
         switch (hash(symbol)) {
@@ -63,10 +63,9 @@ public:
             break;
         }
         case hash("vis"): {
-            if(atoms[0].getFloat() == 1) {
+            if (atoms[0].getFloat() == 1) {
                 openSubpatch();
-            }
-            else {
+            } else {
                 closeOpenedSubpatchers();
             }
             break;
@@ -130,19 +129,18 @@ public:
     {
         auto* leftTabbar = cnv->editor->splitView.getLeftTabbar();
         auto* rightTabbar = cnv->editor->splitView.getRightTabbar();
-        
+
         auto* otherTabbar = cnv->getTabbar() == leftTabbar ? rightTabbar : leftTabbar;
-        
-        if(auto* otherCnv = otherTabbar->getCurrentCanvas()) {
+
+        if (auto* otherCnv = otherTabbar->getCurrentCanvas()) {
             isOpenedInSplitView = otherCnv->patch == *getPatch();
-        }
-        else {
+        } else {
             isOpenedInSplitView = false;
         }
-        
+
         repaint();
     }
-    
+
     void applyBounds() override
     {
         auto b = object->getObjectBounds();
@@ -218,17 +216,17 @@ public:
             PlugDataLook::drawFittedText(g, text, textArea, object->findColour(PlugDataColour::canvasTextColourId));
         }
     }
-    
+
     void paintOverChildren(Graphics& g) override
     {
-        if(isOpenedInSplitView) {
-            
+        if (isOpenedInSplitView) {
+
             g.setColour(object->findColour(PlugDataColour::guiObjectBackgroundColourId));
             g.fillRoundedRectangle(getLocalBounds().toFloat(), PlugDataLook::objectCornerRadius);
-            
+
             g.setColour(object->findColour(objectOutlineColourId));
             g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), PlugDataLook::objectCornerRadius, 1.0f);
-            
+
             auto colour = object->findColour(PlugDataColour::canvasTextColourId);
             PlugDataLook::drawText(g, "Graph opened in split view", getLocalBounds(), colour, 14, Justification::centred);
         }
@@ -247,9 +245,9 @@ public:
     ObjectParameters getParameters() override
     {
         return { { "Is graph", tBool, cGeneral, &isGraphChild, { "No", "Yes" } },
-                 { "Hide name and arguments", tBool, cGeneral, &hideNameAndArgs, { "No", "Yes" } },
-                 { "X range", tRange, cGeneral, &xRange, {} },
-                 { "Y range", tRange, cGeneral, &yRange, {} } };
+            { "Hide name and arguments", tBool, cGeneral, &hideNameAndArgs, { "No", "Yes" } },
+            { "X range", tRange, cGeneral, &xRange, {} },
+            { "Y range", tRange, cGeneral, &yRange, {} } };
     };
 
     void valueChanged(Value& v) override

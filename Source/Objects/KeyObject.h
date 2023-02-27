@@ -6,18 +6,18 @@
 
 // Wrapper for Pd's key, keyup and keyname objects
 class KeyObject final : public TextBase
-    , public KeyListener, public ModifierKeyListener {
+    , public KeyListener
+    , public ModifierKeyListener {
 
     Array<KeyPress> heldKeys;
     Array<uint32> keyPressTimes;
-        
-    const int shiftKey = -1;
-    const int commandKey = -2;
-    const int altKey = -3;
-    const int ctrlKey = -4;
-    
+
+    int const shiftKey = -1;
+    int const commandKey = -2;
+    int const altKey = -3;
+    int const ctrlKey = -4;
+
 public:
-    
     enum KeyObjectType {
         Key,
         KeyUp,
@@ -42,36 +42,33 @@ public:
 
     bool keyPressed(KeyPress const& key, Component* originatingComponent) override
     {
-        const auto keyIdx = heldKeys.indexOf(key);
-        const auto alreadyDown = keyIdx >= 0;
-        const auto currentTime = Time::getMillisecondCounter();
-        if(alreadyDown && currentTime - keyPressTimes[keyIdx] > 15) {
+        auto const keyIdx = heldKeys.indexOf(key);
+        auto const alreadyDown = keyIdx >= 0;
+        auto const currentTime = Time::getMillisecondCounter();
+        if (alreadyDown && currentTime - keyPressTimes[keyIdx] > 15) {
             keyPressTimes.set(keyIdx, currentTime);
-        }
-        else if(!alreadyDown) {
+        } else if (!alreadyDown) {
             heldKeys.add(key);
             keyPressTimes.add(Time::getMillisecondCounter());
-        }
-        else
-        {
+        } else {
             return false;
         }
-        
+
         int keyCode = key.getKeyCode();
-        
+
         if (type == Key) {
             t_symbol* dummy;
             parseKey(keyCode, dummy);
             pd_float((t_pd*)ptr, keyCode);
         } else if (type == KeyName) {
-            
+
             String keyString = key.getTextDescription().fromLastOccurrenceOf(" ", false, false);
             if (!key.getModifiers().isShiftDown())
                 keyString = keyString.toLowerCase();
 
             t_symbol* keysym = pd->generateSymbol(keyString);
             parseKey(keyCode, keysym);
-            
+
             t_atom argv[2];
             SETFLOAT(argv, 1.0f);
             SETSYMBOL(argv + 1, keysym);
@@ -82,34 +79,43 @@ public:
         // Never claim the keypress
         return false;
     }
-        
+
     void shiftKeyChanged(bool isHeld) override
     {
-        if(isHeld) keyPressed(KeyPress(shiftKey), nullptr);
-        else keyStateChanged(false, nullptr);
+        if (isHeld)
+            keyPressed(KeyPress(shiftKey), nullptr);
+        else
+            keyStateChanged(false, nullptr);
     }
     void commandKeyChanged(bool isHeld) override
     {
-        if(isHeld) keyPressed(KeyPress(commandKey), nullptr);
-        else keyStateChanged(false, nullptr);
+        if (isHeld)
+            keyPressed(KeyPress(commandKey), nullptr);
+        else
+            keyStateChanged(false, nullptr);
     }
     void altKeyChanged(bool isHeld) override
     {
-        if(isHeld) keyPressed(KeyPress(altKey), nullptr);
-        else keyStateChanged(false, nullptr);
+        if (isHeld)
+            keyPressed(KeyPress(altKey), nullptr);
+        else
+            keyStateChanged(false, nullptr);
     }
     void ctrlKeyChanged(bool isHeld) override
     {
-        if(isHeld) keyPressed(KeyPress(ctrlKey), nullptr);
-        else keyStateChanged(false, nullptr);
+        if (isHeld)
+            keyPressed(KeyPress(ctrlKey), nullptr);
+        else
+            keyStateChanged(false, nullptr);
     }
-        
+
     void spaceKeyChanged(bool isHeld) override
     {
-        if(isHeld) keyPressed(KeyPress(KeyPress::spaceKey), nullptr);
-        else keyStateChanged(false, nullptr);
+        if (isHeld)
+            keyPressed(KeyPress(KeyPress::spaceKey), nullptr);
+        else
+            keyStateChanged(false, nullptr);
     }
-        
 
     bool keyStateChanged(bool isKeyDown, Component* originatingComponent) override
     {
@@ -118,7 +124,7 @@ public:
                 auto key = heldKeys[n];
 
                 bool keyDown = key.getKeyCode() < 0 ? isKeyDown : key.isCurrentlyDown();
-                
+
                 if (!keyDown) {
                     int keyCode = key.getKeyCode();
 
@@ -127,21 +133,21 @@ public:
                         parseKey(keyCode, dummy);
                         pd_float((t_pd*)ptr, keyCode);
                     } else if (type == KeyName) {
-                        
+
                         String keyString = key.getTextDescription().fromLastOccurrenceOf(" ", false, false);
                         if (!key.getModifiers().isShiftDown())
                             keyString = keyString.toLowerCase();
 
                         t_symbol* keysym = pd->generateSymbol(keyString);
                         parseKey(keyCode, keysym);
-                        
+
                         t_atom argv[2];
                         SETFLOAT(argv, 0.0f);
                         SETSYMBOL(argv + 1, keysym);
 
                         pd_list((t_pd*)ptr, pd->generateSymbol("list"), 2, argv);
                     }
-                    
+
                     keyPressTimes.remove(n);
                     heldKeys.remove(n);
                 }
@@ -157,20 +163,16 @@ public:
         if (keynum == shiftKey) {
             keysym = pd->generateSymbol("Shift_L");
             keynum = 0;
-        }
-        else if (keynum == commandKey) {
+        } else if (keynum == commandKey) {
             keysym = pd->generateSymbol("Meta_L");
             keynum = 0;
-        }
-        else if (keynum == altKey) {
+        } else if (keynum == altKey) {
             keysym = pd->generateSymbol("Alt_L");
             keynum = 0;
-        }
-        else if (keynum == ctrlKey) {
+        } else if (keynum == ctrlKey) {
             keysym = pd->generateSymbol("Control_L");
             keynum = 0;
-        }
-        else if (keynum == KeyPress::backspaceKey)
+        } else if (keynum == KeyPress::backspaceKey)
             keysym = pd->generateSymbol("BackSpace");
         else if (keynum == KeyPress::tabKey)
             keysym = pd->generateSymbol("Tab");
@@ -244,7 +246,5 @@ public:
             keynum = 56, keysym = pd->generateSymbol("8");
         else if (keynum == KeyPress::numberPad9)
             keynum = 57, keysym = pd->generateSymbol("9");
-
-        
     }
 };
