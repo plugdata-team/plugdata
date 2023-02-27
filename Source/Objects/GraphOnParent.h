@@ -73,8 +73,8 @@ public:
         case hash("donecanvasdialog"): {
             if (atoms.size() >= 11) {
 
-            updateCanvas();
-        	updateDrawables();
+                updateCanvas();
+                updateDrawables();
             }
             break;
         }

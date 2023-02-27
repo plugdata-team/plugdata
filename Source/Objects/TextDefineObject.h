@@ -123,19 +123,17 @@ public:
         });
     }
 
-   void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
+    void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
     {
         switch (hash(symbol)) {
         case hash("click"): {
-            MessageManager::callAsync([this]() {
-            openTextEditor();});
-            }
+            MessageManager::callAsync([this]() { openTextEditor(); });
+        }
         case hash("close"): {
             textEditor.reset(nullptr);
-            }
+        }
         }
     }
-
 
     String getText() override
     {
