@@ -1,12 +1,12 @@
 // plaits ported to Pd, by Porres 2023
 // MIT Liscense
-
-#include "m_pd.h"
-#include "g_canvas.h"
 #include <stdint.h>
 #include "plaits/dsp/dsp.h"
 #include "plaits/dsp/engine/engine.h"
 #include "plaits/dsp/voice.h"
+
+#include "m_pd.h"
+#include "g_canvas.h"
 
 static t_class *plts_class;
 
