@@ -9,6 +9,7 @@ class KeyObject final : public TextBase
     , public KeyListener, public ModifierKeyListener {
 
     Array<KeyPress> heldKeys;
+    Array<uint32> keyPressTimes;
         
     const int shiftKey = -1;
     const int commandKey = -2;
@@ -41,10 +42,22 @@ public:
 
     bool keyPressed(KeyPress const& key, Component* originatingComponent) override
     {
-        if(heldKeys.contains(key)) return;
+        const auto keyIdx = heldKeys.indexOf(key);
+        const auto alreadyDown = keyIdx >= 0;
+        const auto currentTime = Time::getMillisecondCounter();
+        if(alreadyDown && currentTime - keyPressTimes[keyIdx] > 15) {
+            keyPressTimes.set(keyIdx, currentTime);
+            
+        }
+        else if(!alreadyDown) {
+            heldKeys.add(key);
+            keyPressTimes.add(Time::getMillisecondCounter());
+        }
+        else
+        {
+            return;
+        }
         
-        heldKeys.add(key);
-
         int keyCode = key.getKeyCode();
         
         if (type == Key) {
@@ -130,6 +143,7 @@ public:
                         pd_list((t_pd*)ptr, pd->generateSymbol("list"), 2, argv);
                     }
                     
+                    keyPressTimes.remove(n);
                     heldKeys.remove(n);
                 }
             }
