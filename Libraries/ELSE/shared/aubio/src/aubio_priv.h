@@ -32,10 +32,7 @@
  * External includes
  *
  */
-
-#ifdef HAVE_CONFIG_H
 #include "config.h"
-#endif
 
 #if defined(HAVE_FFTW3) || defined(HAVE_FFTW3F)
 #include <fftw3.h>
