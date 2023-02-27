@@ -65,7 +65,7 @@ public:
     Point<float> getStartPoint();
     Point<float> getEndPoint();
 
-    void reconnect(Iolet* target, bool dragged);
+    void reconnect(Iolet* target);
 
     bool intersects(Rectangle<float> toCheck, int accuracy = 4) const;
     int getClosestLineIdx(Point<float> const& position, PathPlan const& plan);
