@@ -296,17 +296,6 @@ void Iolet::mouseUp(MouseEvent const& e)
                 cnv->repaint();
                 cnv->connectingWithDrag = false;
             }
-
-            // TODO: is this needed? Else delete.. :
-
-            // Unless the call originates from a connection, clear any connections that are being created
-            /*
-             if (cnv->connectingWithDrag && !dynamic_cast<Connection*>(e.originalComponent)) {
-             cnv->connectionsBeingCreated.clear();
-             cnv->connectingWithDrag = false;
-             cnv->repaint();
-             } */
-
             if (cnv->nearestIolet) {
                 cnv->nearestIolet->isTargeted = false;
                 cnv->nearestIolet->repaint();
