@@ -421,7 +421,7 @@ void Connection::mouseUp(MouseEvent const& e)
         // Async to safely self-destruct
         MessageManager::callAsync([canvas = SafePointer(cnv), r = reconnecting]() mutable {
             for (auto& c : r) {
-                if (c && canvas && !canvas->patch.connectionWasDeleted(c->ptr)) {
+                if (c && canvas) {
                     canvas->connections.removeObject(c.getComponent());
                 }
             }
