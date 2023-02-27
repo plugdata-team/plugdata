@@ -15,10 +15,10 @@
 #X text 50 255 Oscillator (values between -1 e 1) ==>, f 19;
 #X text 221 320 Multiply between 0-1 to adjust gain!;
 #X obj 732 22 declare -path else;
-#X text 19 17 If we multiply the output of an oscillator to values
+#X text 19 17 If we multiply the output of an oscillator with values
 between 0 and 1 \, we have a gain adjustment that goes from silence
 (multiply by 0) to the original input (multiply by 1). If we multiply
-it by values greater than one \, we increase the original gain \, which
+it with values greater than one \, we increase the original gain \, which
 can cause clipping distortion., f 72;
 #X obj 81 335 setdsp~;
 #X obj 610 196 nbx 5 14 -1e+37 1e+37 0 0 bkjhgk hfjhgd empty 0 -8 0

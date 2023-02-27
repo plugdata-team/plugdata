@@ -1,4 +1,4 @@
-#N canvas 461 39 753 672 12;
+#N canvas 461 39 752 645 12;
 #X declare -path else;
 #X obj 241 484 *~;
 #X obj 259 364 vline~;
@@ -6,8 +6,7 @@
 #X obj 139 278 pack;
 #X obj 180 399 osc~ 440;
 #X obj 241 526 out~;
-#X obj 139 39 tgl 18 0 empty empty empty 17 7 0 10 #dcdcdc #000000
-#000000 0 1;
+#X obj 139 39 tgl 18 0 empty empty empty 17 7 0 10 #dcdcdc #000000 #000000 0 1;
 #X msg 369 304 250;
 #X msg 332 304 100;
 #X text 290 303 decay;
@@ -20,45 +19,39 @@
 #X obj 382 388 loadbang;
 #X obj 382 417 expr 1000./150.;
 #X text 41 264 gate/sustain values =====>, f 13;
-#X text 390 94 Here's how to implement an ADSR exponential envelope
-with vanilla. We use again the [slop~] object for that. We need to
-calculate the sustain point from the gate input value and also take
-care to set different downward periods for the decay and release part.
-The patch to the left relates to the [adsr~] object with the parameters
-below., f 43;
 #X obj 530 51 declare -path else;
 #X msg 139 304 \$1 \, \$2 0 150;
 #X msg 259 304 0;
 #X obj 174 492 s2f~;
-#X obj 174 522 vsl 18 100 0 1 0 0 empty empty empty 0 -9 0 10 #dcdcdc
-#000000 #000000 0 1;
+#X obj 174 522 vsl 18 100 0 1 0 0 empty empty empty 0 -9 0 10 #dcdcdc #000000 #000000 0 1;
 #X obj 171 249 * 0.75;
 #X obj 139 97 != 0;
 #X obj 139 125 select 1 0;
-#X obj 456 239 adsr~ -log 150 100 0.75 250;
+#X obj 456 239 adsr~ 150 100 0.75 250;
+#X text 390 94 Here's how to implement an ADSR exponential envelope with vanilla. We use again the [slop~] object for that. We need to calculate the sustain point from the gate input value and also take care to set different downward periods for the decay and release part. The patch to the left relates to the [adsr~] object with the parameters below., f 43;
 #X connect 0 0 5 0;
 #X connect 1 0 15 0;
 #X connect 2 0 3 0;
-#X connect 2 1 25 0;
-#X connect 3 0 21 0;
+#X connect 2 1 24 0;
+#X connect 3 0 20 0;
 #X connect 4 0 0 0;
 #X connect 6 0 11 0;
 #X connect 7 0 13 0;
 #X connect 8 0 13 0;
-#X connect 11 0 26 0;
+#X connect 11 0 25 0;
 #X connect 11 1 12 1;
 #X connect 12 0 2 0;
 #X connect 13 0 15 3;
 #X connect 15 0 0 1;
-#X connect 15 0 23 0;
+#X connect 15 0 22 0;
 #X connect 16 0 17 0;
 #X connect 17 0 15 5;
+#X connect 20 0 1 0;
 #X connect 21 0 1 0;
-#X connect 22 0 1 0;
-#X connect 23 0 24 0;
-#X connect 25 0 3 1;
-#X connect 26 0 27 0;
-#X connect 27 0 12 0;
-#X connect 27 0 8 0;
-#X connect 27 1 22 0;
-#X connect 27 1 7 0;
+#X connect 22 0 23 0;
+#X connect 24 0 3 1;
+#X connect 25 0 26 0;
+#X connect 26 0 12 0;
+#X connect 26 0 8 0;
+#X connect 26 1 21 0;
+#X connect 26 1 7 0;

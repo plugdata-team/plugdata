@@ -329,7 +329,8 @@ public:
 
 class AutomationComponent : public Component {
 
-    class AddParameterButton : public Component, public SettableTooltipClient{
+    class AddParameterButton : public Component
+    {
 
         bool mouseIsOver = false;
 
@@ -339,6 +340,9 @@ class AutomationComponent : public Component {
         void paint(Graphics& g) override
         {
             auto bounds = getLocalBounds().reduced(5, 2);
+            auto textBounds = bounds;
+            auto iconBounds = textBounds.removeFromLeft(textBounds.getHeight());
+            
             auto colour = findColour(PlugDataColour::sidebarTextColourId);
             if (mouseIsOver) {
                 g.setColour(findColour(PlugDataColour::sidebarActiveBackgroundColourId));
@@ -346,7 +350,9 @@ class AutomationComponent : public Component {
 
                 colour = findColour(PlugDataColour::sidebarActiveTextColourId);
             }
-            PlugDataLook::drawIcon(g, Icons::Add, bounds, colour, 12, Justification::centred);
+            
+            PlugDataLook::drawIcon(g, Icons::Add, iconBounds, colour, 12);
+            PlugDataLook::drawText(g, "Add new parameter", textBounds, colour, 14);
         }
 
         bool hitTest(int x, int y) override
@@ -380,12 +386,9 @@ public:
         : pd(processor)
         , parentComponent(parent)
     {
-
         updateSliders();
 
         addAndMakeVisible(addParameterButton);
-
-        addParameterButton.setTooltip("Add new parameter");
 
         addParameterButton.onClick = [this, parent]() {
             for (auto* row : rows) {

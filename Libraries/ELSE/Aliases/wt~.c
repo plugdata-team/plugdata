@@ -1,4 +1,4 @@
-// Porres 2018
+// Porres 2018-2023
 
 #include "m_pd.h"
 #include "magic.h"
@@ -15,7 +15,11 @@ typedef struct _wt{
     t_inlet  *x_inlet_phase;
     t_inlet  *x_inlet_sync;
     t_outlet *x_outlet;
+    t_int midi;
+    t_int soft;
     t_float   x_sr;
+    t_float   x_offset;
+    t_float   x_size;
     t_int     x_interp;
 // MAGIC:
     t_glist  *x_glist;              // object list
@@ -23,6 +27,40 @@ typedef struct _wt{
     int       x_hasfeeders;         // right inlet connection flag
     t_float   x_phase_sync_float;   // float from magic
 }t_wt;
+
+#define INDEX_2PT() \
+    double xpos = phase*(double)size; \
+    int ndx = (int)xpos; \
+    double frac = xpos - ndx; \
+    if(ndx == size) ndx = 0; \
+    int ndx1 = ndx + 1; \
+    if(ndx1 == size) ndx1 = 0; \
+    double b = (double)vector[ndx + offset].w_float; \
+    double c = (double)vector[ndx1 + offset].w_float;
+
+#define INDEX_4PT() \
+    double xpos = phase*(double)size; \
+    int ndx = (int)xpos; \
+    double frac = xpos - ndx; \
+    if(ndx == size) ndx = 0; \
+    int ndxm1 = ndx - 1; \
+    if(ndxm1 < 0) ndxm1 = size - 1; \
+    int ndx1 = ndx + 1; \
+    if(ndx1 == size) ndx1 = 0; \
+    int ndx2 = ndx1 + 1; \
+    if(ndx2 == size) ndx2 = 0; \
+    double a = (double)vector[ndxm1 + offset].w_float; \
+    double b = (double)vector[ndx + offset].w_float; \
+    double c = (double)vector[ndx1 + offset].w_float; \
+    double d = (double)vector[ndx2 + offset].w_float;
+
+static void wt_offset(t_wt *x, t_float f){
+    x->x_offset = f;
+}
+
+static void wt_size(t_wt *x, t_float f){
+    x->x_size = f;
+}
 
 static void wt_set(t_wt *x, t_symbol *s){
     buffer_setarray(x->x_buffer, s);
@@ -46,6 +84,14 @@ static void wt_lagrange(t_wt *x){
 
 static void wt_spline(t_wt *x){
     x->x_interp = 4;
+}
+
+static void wt_midi(t_wt *x, t_floatarg f){
+    x->midi = (int)(f != 0);
+}
+
+static void wt_soft(t_wt *x, t_floatarg f){
+    x->soft = (int)(f != 0);
 }
 
 static t_int *wt_perform(t_int *w){
@@ -72,16 +118,24 @@ static t_int *wt_perform(t_int *w){
     while(n--){
         if(x->x_buffer->c_playable){
             double hz = *in1++;
+            if(x->midi)
+                hz = pow(2, (hz - 69)/12) * 440;
             double phase_offset = (double)*in3++;
             double phase_step = hz / sr; // phase_step
             phase_step = phase_step > 0.5 ? 0.5 : phase_step < -0.5 ? -0.5 : phase_step; // clip nyq
+            if(x->soft)
+                phase_step *= (x->soft);
             double phase_dev = phase_offset - last_phase_offset;
             if(phase_dev >= 1 || phase_dev <= -1)
                 phase_dev = fmod(phase_dev, 1); // wrap
             if(x->x_hasfeeders){ // signal connected, no magic
                 t_float trig = *in2++;
-                if(trig > 0 && trig <= 1)
-                    phase = trig;
+                if(trig > 0 && trig <= 1){
+                    if(x->soft)
+                        x->soft = x->soft == 1 ? -1 : 1;
+                    else
+                        phase = trig;
+                }
             }
             phase = phase + phase_dev;
             if(phase <= 0)
@@ -89,21 +143,31 @@ static t_int *wt_perform(t_int *w){
             if(phase >= 1)
                 phase -= 1.; // wrap deviated phase
             if(vector){
-                int size = (t_int)(x->x_buffer->c_npts);
-                if(x->x_interp == 0){
-                    int ndx = (int)(phase*(double)size);
-                    *out++ = (double)vector[ndx].w_float;
-                }
-                else if(x->x_interp >= 3){
-                    INDEX_4PT()
-                    if(x->x_interp == 3)
-                        *out++ = interp_lagrange(frac, a, b, c, d);
-                    else
-                        *out++ = interp_spline(frac, a, b, c, d);
-                }
+                int npts = (t_int)(x->x_buffer->c_npts);
+                if(npts < 4) // minimum table size is 4 points.
+                    *out++ = 0;
                 else{
-                    INDEX_2PT()
-                    *out++ = x->x_interp ? interp_cos(frac, b, c) : interp_lin(frac, b, c);
+                    int size = x->x_size > npts ? npts : x->x_size < 0 ? npts : x->x_size;
+                    if(size < 4)
+                        size = 4;
+                    int offset =  x->x_offset;
+                    if((offset + size) > npts)
+                        offset = npts - size;
+                    if(x->x_interp == 0){
+                        int ndx = (int)(phase*(double)size);
+                        *out++ = (double)vector[ndx].w_float;
+                    }
+                    else if(x->x_interp >= 3){
+                        INDEX_4PT()
+                        if(x->x_interp == 3)
+                            *out++ = interp_lagrange(frac, a, b, c, d);
+                        else
+                            *out++ = interp_spline(frac, a, b, c, d);
+                    }
+                    else{
+                        INDEX_2PT()
+                        *out++ = x->x_interp == 2 ? interp_cos(frac, b, c) : interp_lin(frac, b, c);
+                    }
                 }
             }
             else // ??? maybe we dont need "playable"?
@@ -121,6 +185,8 @@ static t_int *wt_perform(t_int *w){
 
 static void wt_dsp(t_wt *x, t_signal **sp){
     buffer_checkdsp(x->x_buffer);
+    if(x->x_buffer->c_playable && x->x_buffer->c_npts < 4)
+        pd_error(x, "[wt~]: table too small, minimum size is 4");
     x->x_hasfeeders = else_magic_inlet_connection((t_object *)x, x->x_glist, 1, &s_signal);
     x->x_sr = sp[0]->s_sr;
     dsp_add(wt_perform, 6, x, sp[0]->s_n,
@@ -143,6 +209,8 @@ static void *wt_new(t_symbol *s, int ac, t_atom *av){
     x->x_freq = x->x_phase = x->x_last_phase_offset = 0.;
     t_float phaseoff = 0;
     x->x_interp = 4;
+    x->x_size = -1;
+    x->midi = x->soft = 0;
     while(ac){
         if(av->a_type == A_SYMBOL){
             t_symbol *curarg = atom_getsymbol(av);
@@ -165,6 +233,32 @@ static void *wt_new(t_symbol *s, int ac, t_atom *av){
                 if(nameset)
                     goto errstate;
                 wt_lagrange(x), ac--, av++;
+            }
+            else if(curarg == gensym("-offset")){
+                ac--, av++;
+                if(nameset)
+                    goto errstate;
+                x->x_offset = atom_getfloatarg(0, ac, av);
+                ac--, av++;
+            }
+            else if(curarg == gensym("-size")){
+                ac--, av++;
+                if(nameset)
+                    goto errstate;
+                x->x_size = atom_getfloatarg(0, ac, av);
+                ac--, av++;
+            }
+            else if(curarg == gensym("-midi")){
+                ac--, av++;
+                if(nameset)
+                    goto errstate;
+                x->midi = 1;
+            }
+            else if(curarg == gensym("-soft")){
+                ac--, av++;
+                if(nameset)
+                    goto errstate;
+                x->soft = 1;
             }
             else{
                 if(nameset || floatarg)
@@ -198,7 +292,7 @@ static void *wt_new(t_symbol *s, int ac, t_atom *av){
     x->x_buffer = buffer_init((t_class *)x, name, 1, 0);
     return(x);
     errstate:
-        post("wavetable~: improper args");
+        post("wt~: improper args");
         return NULL;
 }
 
@@ -212,6 +306,12 @@ void wt_tilde_setup(void){
     class_addmethod(wt_class, (t_method)wt_cos, gensym("cos"), 0);
     class_addmethod(wt_class, (t_method)wt_lagrange, gensym("lagrange"), 0);
     class_addmethod(wt_class, (t_method)wt_spline, gensym("spline"), 0);
+    class_addmethod(wt_class, (t_method)wt_size, gensym("size"), A_FLOAT, 0);
+    class_addmethod(wt_class, (t_method)wt_offset, gensym("offset"), A_FLOAT, 0);
+    class_addmethod(wt_class, (t_method)wt_soft, gensym("soft"), A_DEFFLOAT, 0);
+    class_addmethod(wt_class, (t_method)wt_midi, gensym("midi"), A_DEFFLOAT, 0);
     class_addmethod(wt_class, (t_method)wt_set, gensym("set"), A_SYMBOL, 0);
     class_sethelpsymbol(wt_class, gensym("wavetable~"));
 }
+
+

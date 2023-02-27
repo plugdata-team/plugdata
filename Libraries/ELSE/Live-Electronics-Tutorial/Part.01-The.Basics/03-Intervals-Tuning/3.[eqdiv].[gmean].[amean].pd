@@ -51,7 +51,7 @@ between two values. This relates to [eqdiv] as equal divisions of intervals
 are also geometric divisions. But [gmean] operates on the ratio values.
 Below we have a Bohlen-Pierce scale., f 42;
 #X obj 623 467 amean 1 2 13;
-#X text 535 355 The [amean] object s much like [gmean] \, but performs
+#X text 535 355 The [amean] object is much like [gmean] \, but performs
 arithmetic divisions instead. It can also be used to generate exotic
 scales., f 43;
 #X msg 227 465 12 2;

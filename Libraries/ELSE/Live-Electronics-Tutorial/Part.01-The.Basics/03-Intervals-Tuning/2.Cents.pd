@@ -32,7 +32,7 @@ from cents \, they are: [ratio2cents] and [cents2ratio]., f 55;
 equal temperament system \, where we can then compare musical intervals
 to our 12 tone system. To get the value in cents from the 12 equal
 temperament intervals \, just multiply the number of semitones to 100
-- for example \, a major sixth has 9 semintones \, therefore: 900 cents.
+- for example \, a major sixth has 9 semitones \, therefore: 900 cents.
 , f 63;
 #X obj 125 208 nbx 5 18 0 1e+37 0 0 empty empty Ratio 68 10 0 12 -228856
 -1 -1 0 256;
@@ -47,7 +47,7 @@ conversion is also presented below., f 65;
 12 -228856 -1 -1 0 256;
 #X obj 300 245 expr pow(2 \, $f1/1200);
 #X text 253 137 Try also positive ratios below 1 and negative cents.
-They indicate an interval below instead of an above., f 36;
+They indicate an interval below instead of an interval above., f 36;
 #X obj 125 296 nbx 5 18 -1e+37 1e+37 0 0 empty empty Cents 68 10 0
 12 -228856 -1 -1 0 256;
 #X connect 0 0 26 0;

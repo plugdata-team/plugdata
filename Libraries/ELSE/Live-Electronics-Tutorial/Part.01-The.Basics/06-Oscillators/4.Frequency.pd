@@ -72,7 +72,7 @@ Below we convert Hz to ms and vice versa with the same formula.;
 #X text 319 179 Hz;
 #X text 96 363 period (samples);
 #X text 240 260 period (samples);
-#X text 40 482 To converter Hz to Radians per Sample you need to multiply
+#X text 40 482 To convert Hz to Radians per Sample you need to multiply
 by 2pi and divide by the sample rate. See below the conversion to and
 from and also the [hz2rad] and [rad2hz] objects from ELSE that do this
 conversion.;
@@ -91,7 +91,7 @@ velocity in radians per sample;
 #X text 513 258 The patch below implements this formula:;
 #X text 709 304 n = sample;
 #X obj 562 339 initmess \; hz 300;
-#X text 552 549 A more complete and classic formula also tales into
+#X text 552 549 A more complete and classic formula also takes into
 account "a" as the peak amplitude and "ø" as the initial phase., f
 37;
 #X obj 748 26 declare -path else;

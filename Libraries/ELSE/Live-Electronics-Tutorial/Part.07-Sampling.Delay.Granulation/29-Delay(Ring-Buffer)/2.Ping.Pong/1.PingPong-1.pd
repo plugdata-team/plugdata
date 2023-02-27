@@ -1,18 +1,15 @@
-#N canvas 749 50 563 689 12;
+#N canvas 488 23 563 689 12;
 #X declare -path else;
 #X obj 104 270 +~;
 #X obj 164 289 *~;
-#X obj 358 174 hsl 128 15 -0.99 0.99 0 0 empty \$0-fb empty -2 -8 0
-10 #dcdcdc #000000 #000000 0 1;
+#X obj 358 174 hsl 128 15 -0.99 0.99 0 0 empty \$0-fb empty -2 -8 0 10 #dcdcdc #000000 #000000 0 1;
 #X floatatom 355 196 5 0 0 0 - - - 0;
 #X floatatom 310 164 5 0 0 0 - - - 0;
 #X obj 310 198 / 2;
 #X floatatom 310 270 5 0 0 0 - - - 0;
-#X obj 313 140 hsl 128 15 50 500 0 0 empty \$0-tempo empty -2 -8 0
-10 #dcdcdc #000000 #000000 0 1;
+#X obj 313 140 hsl 128 15 50 500 0 0 empty \$0-tempo empty -2 -8 0 10 #dcdcdc #000000 #000000 0 1;
 #X obj 104 211 *~;
-#X obj 48 37 bng 30 250 50 0 empty empty empty 17 7 0 10 #dcdcdc #000000
-#000000;
+#X obj 48 37 bng 30 250 50 0 empty empty empty 17 7 0 10 #dcdcdc #000000 #000000;
 #X obj 48 144 mtof;
 #X text 393 173 Feedback;
 #X obj 48 171 bl.saw~;
@@ -22,21 +19,15 @@
 #X obj 355 220 f2s~ 50;
 #X text 360 139 Time;
 #X obj 310 310 f2s~ 50;
-#X text 177 55 A Ping-pong delay is an effect that alternates the delay
-echoes by alternating the left and right outputs. This pretty much
-sounds like watching a ping pong match indeed., f 46;
-#X obj 278 467 bng 18 250 50 0 empty empty empty 17 7 0 10 #dcdcdc
-#000000 #000000;
-#X obj 347 494 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
-#dcdcdc #000000 #000000 0 256;
-#X obj 426 494 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
-#dcdcdc #000000 #000000 0 256;
+#X text 177 55 A Ping-pong delay is an effect that alternates the delay echoes by alternating the left and right outputs. This pretty much sounds like watching a ping pong match indeed., f 46;
+#X obj 278 467 bng 18 250 50 0 empty empty empty 17 7 0 10 #dcdcdc #000000 #000000;
+#X obj 347 494 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10 #dcdcdc #000000 #000000 0 256;
+#X obj 426 494 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10 #dcdcdc #000000 #000000 0 256;
 #X text 350 469 time;
 #X text 424 473 feedback;
 #X obj 278 498 impseq~;
 #X obj 314 538 ping.pong~ 200 0.7, f 10;
-#X text 110 547 This is the base of the [ping.pong~] object \, an abstraction
-from ELSE., f 24;
+#X text 110 547 This is the base of the [ping.pong~] object \, an abstraction from ELSE., f 24;
 #X obj 48 85 rand.i 36 60;
 #X obj 373 16 declare -path else;
 #X obj 312 594 out~;

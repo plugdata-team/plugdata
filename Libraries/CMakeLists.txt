@@ -183,15 +183,26 @@ list(APPEND SOURCE_FILES ${LIBPD_SOURCES})
 
 # ELSE SOURCES
 # ------------------------------------------------------------------------------#
-file(GLOB_RECURSE ELSE_SOURCES
+file(GLOB ELSE_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/ELSE/Source/*.c
     ${CMAKE_CURRENT_SOURCE_DIR}/ELSE/Aliases/*.c
     ${CMAKE_CURRENT_SOURCE_DIR}/ELSE/shared/*.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/ELSE/plaits~/plaits~.cpp
+)
+
+
+file(GLOB_RECURSE AUBIO_SOURCES
+    ${CMAKE_CURRENT_SOURCE_DIR}/ELSE/shared/aubio/src/*.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/ELSE/shared/aubio/src/*/*.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/ELSE/plaits~/*.cc
+    
 )
 
 include_directories(ELSE/Source/)
 include_directories(ELSE/Aliases/)
 include_directories(ELSE/shared)
+include_directories(ELSE/shared/aubio/src)
+include_directories(ELSE/plaits~)
 
 source_group(ELSE FILES ${ELSE_SOURCES})
 
@@ -353,8 +364,8 @@ endif()
 # ------------------------------------------------------------------------------#
 # TARGETS
 # ------------------------------------------------------------------------------#
-add_library(externals STATIC ${ELSE_SOURCES} ${CYCLONE_SOURCES} ${PDLUA_SOURCES})
-add_library(externals-multi STATIC ${ELSE_SOURCES} ${CYCLONE_SOURCES} ${PDLUA_SOURCES})
+add_library(externals STATIC ${ELSE_SOURCES} ${CYCLONE_SOURCES} ${PDLUA_SOURCES} ${AUBIO_SOURCES})
+add_library(externals-multi STATIC ${ELSE_SOURCES} ${CYCLONE_SOURCES} ${PDLUA_SOURCES} ${AUBIO_SOURCES})
 
 # ag: pdlua needs PLUGDATA symbol at compile time for PlugData integration.
 target_compile_definitions(externals PRIVATE ${LIBPD_COMPILE_DEFINITIONS} PLUGDATA=1)

@@ -42,7 +42,7 @@ static void adsr_bang(t_adsr *x){
 }
 
 static void adsr_float(t_adsr *x, t_floatarg f){
-    x->x_f_gate = f;
+    x->x_f_gate = f / 127;
     if(x->x_f_gate != 0){
         x->x_last_gate = x->x_f_gate;
         if(!x->x_status) // trigger it on
@@ -179,9 +179,9 @@ static void *adsr_new(t_symbol *sym, int ac, t_atom *av){
     x->x_nleft = 0;
     x->x_gate_status = 0;
     x->x_last_gate = 1;
-    x->x_log = 0;
+    x->x_log = 1;
     
-    float a = 0, d = 0, s = 0, r = 0;
+    float a = 10, d = 10, s = 1, r = 10;
     int symarg = 0;
     int argnum = 0;
     while(ac > 0){
@@ -210,9 +210,9 @@ static void *adsr_new(t_symbol *sym, int ac, t_atom *av){
         else if(av->a_type == A_SYMBOL && !symarg && !argnum){
             symarg = 1;
             cursym = atom_getsymbolarg(0, ac, av);
-            if(cursym == gensym("-log")){
+            if(cursym == gensym("-lin")){
                 ac--, av++;
-                x->x_log = 1;
+                x->x_log = 0;
             }
             else
                 goto errstate;
@@ -243,5 +243,5 @@ void adsr_tilde_setup(void){
     class_addmethod(adsr_class, (t_method) adsr_dsp, gensym("dsp"), A_CANT, 0);
     class_addfloat(adsr_class, (t_method)adsr_float);
     class_addbang(adsr_class, (t_method)adsr_bang);
-    class_addmethod(adsr_class, (t_method)adsr_log, gensym("log"), A_DEFFLOAT, 0);
+    class_addmethod(adsr_class, (t_method)adsr_log, gensym("lin"), A_DEFFLOAT, 0);
 }

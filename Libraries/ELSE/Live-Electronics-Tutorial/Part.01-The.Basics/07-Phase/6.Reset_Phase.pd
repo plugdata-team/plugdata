@@ -31,7 +31,7 @@ and resetting the oscillator., f 57;
 inlet that accepts control data to reset the phase. This way \, every
 time the inlet receives a number from 0 to 1 \, the waveform is reset
 to that initial phase. Bear in mind that resetting the waveform to
-restart the cycle in a specific initial pahse is unrelated to the phase
+restart the cycle in a specific initial phase is unrelated to the phase
 adjustments done previously with phase modulation., f 61;
 #X connect 1 0 14 0;
 #X connect 2 0 4 1;

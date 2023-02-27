@@ -17,7 +17,7 @@ Data we'll see later on., f 61;
 #X text 40 130 A number atom is always a float in Pd. More specifically
 \, it's a 32 bit floating point number. Even if a number is an integer
 \, it is considered as a 32 bit float in Pd. All that is not in the
-format of a float is considered in Pd as a symvol string. Numbers in
+format of a float is considered in Pd as a symbol string. Numbers in
 Pd have a display resolution of 6 digits and they are represented in
 scientific notation if this resolution is exceeded. All examples below
 are float atoms:, f 61;

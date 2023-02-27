@@ -1,4 +1,4 @@
-#N canvas 684 111 869 698 12;
+#N canvas 396 23 869 698 12;
 #X declare -path else;
 #X obj 546 296 +~;
 #X obj 546 322 +~;
@@ -9,42 +9,27 @@
 #X obj 43 165 s~ \$0-in;
 #X obj 560 359 delwrite~ \$0-fb 1000;
 #X obj 62 380 r~ \$0-in;
-#X obj 676 182 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
--228856 -1 -1 614.173 256;
-#X obj 599 279 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
--228856 -1 -1 0.464567 256;
-#X obj 716 311 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
--228856 -1 -1 0.631417 256;
-#X obj 487 234 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
--228856 -1 -1 0.291339 256;
-#X obj 133 194 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
--228856 -1 -1 614.173 256;
-#X obj 294 390 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
--228856 -1 -1 0.631417 256;
-#X obj 209 358 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
--228856 -1 -1 0.464567 256;
+#X obj 676 182 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10 #dcdcdc #000000 #000000 0 256;
+#X obj 599 279 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10 #dcdcdc #000000 #000000 0 256;
+#X obj 716 311 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10 #dcdcdc #000000 #000000 0 256;
+#X obj 487 234 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10 #dcdcdc #000000 #000000 0 256;
+#X obj 133 194 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10 #dcdcdc #000000 #000000 0 256;
+#X obj 294 390 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10 #dcdcdc #000000 #000000 0 256;
+#X obj 209 358 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10 #dcdcdc #000000 #000000 0 256;
 #X text 734 180 del-time;
 #X text 583 234 feedforward;
 #X text 711 265 feedback;
-#X obj 136 172 hsl 128 15 0 1000 0 1 empty empty empty -2 -8 0 10 -228856
--1 -1 7800 1;
+#X obj 136 172 hsl 128 15 0 1000 0 1 empty empty empty -2 -8 0 10 #dcdcdc #000000 #000000 7800 1;
 #X text 172 171 del-time;
-#X obj 171 277 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
--228856 -1 -1 0.291339 256;
-#X obj 174 255 hsl 128 15 -1 1 0 1 empty empty empty -2 -8 0 10 -228856
--1 -1 8200 1;
-#X obj 212 337 hsl 128 15 -1 1 0 1 empty empty empty -2 -8 0 10 -228856
--1 -1 9300 1;
+#X obj 171 277 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10 #dcdcdc #000000 #000000 0 256;
+#X obj 174 255 hsl 128 15 -1 1 0 1 empty empty empty -2 -8 0 10 #dcdcdc #000000 #000000 8200 1;
+#X obj 212 337 hsl 128 15 -1 1 0 1 empty empty empty -2 -8 0 10 #dcdcdc #000000 #000000 9300 1;
 #X text 243 336 feedforward;
-#X obj 298 372 hsl 128 15 -0.99 0.99 0 1 empty empty empty -2 -8 0
-10 -228856 -1 -1 10400 1;
+#X obj 298 372 hsl 128 15 -0.99 0.99 0 1 empty empty empty -2 -8 0 10 #dcdcdc #000000 #000000 10400 1;
 #X text 334 371 feedback;
 #X obj 96 491 out~;
 #X obj 546 390 out~;
-#X text 44 21 The [comb.rev~] object from ELSE is a comb reverberator.
-It'll be presented in more details later in this tutorial as a reverberator.
-What we need to know now is that it consists in two delay lines - a
-feedforward and feedback., f 50;
+#X text 44 21 The [comb.rev~] object from ELSE is a comb reverberator. It'll be presented in more details later in this tutorial as a reverberator. What we need to know now is that it consists in two delay lines - a feedforward and feedback., f 50;
 #X obj 599 255 r \$0-ff;
 #X obj 716 285 r \$0-fb;
 #X obj 676 155 r \$0-ms;
@@ -54,11 +39,7 @@ feedforward and feedback., f 50;
 #X obj 218 383 s \$0-ff;
 #X obj 294 424 s \$0-fb;
 #X obj 96 447 comb.rev~ 1000 1 1 0.9;
-#X text 424 47 Let's see how to implement it with native Pd objects
-to see how it works. Compare the two patches below and see how they
-are the same. The arguments for [comb.rev~] are: initial and maximum
-delay time in ms \, then we have a gain \, feedforward and feedback
-coefficients., f 52;
+#X text 424 47 Let's see how to implement it with native Pd objects to see how it works. Compare the two patches below and see how they are the same. The arguments for [comb.rev~] are: initial and maximum delay time in ms \, then we have a gain \, feedforward and feedback coefficients., f 52;
 #X obj 660 15 declare -path else;
 #X obj 43 131 play.file~ guitar.wav 1 1, f 26;
 #X obj 676 239 delread4~ \$0-fb;
@@ -82,8 +63,7 @@ coefficients., f 52;
 #X connect 4 0 3 0;
 #X restore 117 138 pd delread~;
 #X obj 191 64 inlet;
-#X obj 191 94 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
--228856 -1 -1 0 256;
+#X obj 191 94 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10 #dcdcdc #000000 #000000 0 256;
 #X text 252 91 del-time;
 #X connect 0 0 2 0;
 #X connect 2 0 3 0;
@@ -103,9 +83,7 @@ coefficients., f 52;
 #X obj 601 570 r \$0-fb;
 #X obj 404 458 r~ \$0-in;
 #X obj 485 628 out~;
-#X text 71 605 But to the right we can check how to implement this
-object with the [ffdelay~] and [fbdelay~] objects from ELSE., f 51
-;
+#X text 71 605 But to the right we can check how to implement this object with the [ffdelay~] and [fbdelay~] objects from ELSE., f 51;
 #X connect 0 0 1 0;
 #X connect 1 0 7 0;
 #X connect 1 0 28 0;

@@ -1,4 +1,4 @@
-#N canvas 386 83 980 635 12;
+#N canvas 302 23 980 635 12;
 #X declare -path else;
 #X obj 262 408 *;
 #X obj 262 431 display;
@@ -6,8 +6,7 @@
 #X msg 262 382 64;
 #X obj 546 168 setdsp~ 1;
 #X obj 664 180 osc~ 440;
-#X obj 639 181 bng 15 250 50 0 empty empty empty 17 7 0 10 #dcdcdc
-#000000 #000000;
+#X obj 638 180 bng 19 250 50 0 empty empty empty 17 7 0 10 #dcdcdc #000000 #000000;
 #X obj 83 427 display;
 #X obj 83 398 blocksize~ -ms;
 #X obj 180 181 display;
@@ -15,59 +14,41 @@
 #X obj 664 209 print~ áudio;
 #X floatatom 770 183 5 0 0 0 - - - 0;
 #X text 209 184 <=;
-#X text 33 44 For the CPU to not compute every sample one at a time
-\, audio signals are usually processed in chucks \, or in a "block".
-This is also called the vector or buffer size \, and can be specified
-in number of samples or in ms. The standard in Pd is a block of 64
-samples! The [blocksize~] object from ELSE reports the current block
-size in the patch.;
+#X text 33 44 For the CPU to not compute every sample one at a time \, audio signals are usually processed in chucks \, or in a "block". This is also called the vector or buffer size \, and can be specified in number of samples or in ms. The standard in Pd is a block of 64 samples! The [blocksize~] object from ELSE reports the current block size in the patch.;
 #X text 29 215 LATENCY:;
 #X text 197 381 click =>;
 #X text 123 459 block latency in ms;
 #X text 103 585 standard block size:;
-#N canvas 325 309 632 267 [block~] 0;
-#X obj 119 172 osc~ 440;
-#X obj 69 128 bng 15 250 50 0 empty empty empty 17 7 0 10 #dcdcdc #000000
-#000000;
-#X obj 119 209 print~;
+#N canvas 685 449 507 245 [block~] 0;
+#X obj 65 119 osc~ 440;
+#X obj 96 153 bng 19 250 50 0 empty empty empty 17 7 0 10 #dcdcdc #000000 #000000;
+#X obj 65 186 print~;
 #X obj 45 61 display;
 #X obj 45 30 blocksize~;
-#X text 93 126 <= print;
-#X text 240 125 Now when you bang [print~] \, you can see how it only
-prints one single value instead of 64 as it's the case with the parent
-window., f 48;
+#X text 234 123 Now when you bang [print~] \, you can see how it only prints one single value instead of 64 as it's the case with the parent window., f 31;
 #X obj 142 29 block~ 1;
-#X text 239 61 here we have [block~] setting a block size of just 1
-sample! The [blocksize~] object confirms and reports that just for
-illustration., f 48;
+#X text 234 29 here we have [block~] setting a block size of just 1 sample! The [blocksize~] object confirms and reports that just for illustration., f 31;
+#X text 120 153 <-- print;
 #X connect 0 0 2 0;
 #X connect 1 0 2 0;
 #X connect 4 0 3 0;
 #X restore 699 597 pd [block~];
-#N canvas 883 244 483 502 [switch~] 0;
+#N canvas 742 216 483 502 [switch~] 0;
 #X obj 206 395 osc~ 440;
-#X obj 104 240 tgl 30 0 empty empty empty 17 7 0 10 #dcdcdc #000000
-#000000 0 1;
+#X obj 104 240 tgl 30 0 empty empty empty 17 7 0 10 #dcdcdc #000000 #000000 0 1;
 #X floatatom 104 278 5 0 0 0 - - - 0;
 #X obj 300 320 display;
 #X text 51 247 On/Off;
 #X obj 300 291 blocksize~;
 #X text 341 322 samples;
-#X obj 156 249 bng 20 250 50 0 empty empty empty 17 7 0 10 #dcdcdc
-#000000 #000000;
+#X obj 156 249 bng 20 250 50 0 empty empty empty 17 7 0 10 #dcdcdc #000000 #000000;
 #X obj 156 323 switch~ 128;
-#X text 39 33 This subpatch has a block size of 128 set with [switch~].
-But you need to turn the process on with the toggle in order for the
-audio process to run., f 57;
-#X text 39 87 Additionally \, [switch~] can be banged to compute only
-a single block of audio \, which is useful to perform single block
-operations for your patch (such as precompute a waveform) and turn
-it off right away afterwards to save CPU., f 57;
-#X text 39 164 For the bang message to work like that \, the audio
-dsp needs to be on and the [switch~] object cannot be on., f 57;
-#X text 182 248 <= compute just a block of audio;
+#X text 39 33 This subpatch has a block size of 128 set with [switch~]. But you need to turn the process on with the toggle in order for the audio process to run., f 57;
+#X text 39 87 Additionally \, [switch~] can be banged to compute only a single block of audio \, which is useful to perform single block operations for your patch (such as precompute a waveform) and turn it off right away afterwards to save CPU., f 57;
+#X text 39 164 For the bang message to work like that \, the audio dsp needs to be on and the [switch~] object cannot be on., f 57;
 #X obj 206 431 numbox~ 6 12 100 #C0C0C4 #440008 10 0 0 0;
-#X connect 0 0 13 0;
+#X text 182 248 <-- compute just a block of audio;
+#X connect 0 0 12 0;
 #X connect 1 0 2 0;
 #X connect 2 0 8 0;
 #X connect 5 0 3 0;
@@ -75,48 +56,16 @@ dsp needs to be on and the [switch~] object cannot be on., f 57;
 #X restore 787 597 pd [switch~];
 #X obj 255 585 block~ 64;
 #X text 120 183 samples;
-#X text 497 48 The [print~] object prints the whole block of audio
-in Pd's terminal window when it receives a bang. Check it below.,
-f 63;
+#X text 497 48 The [print~] object prints the whole block of audio in Pd's terminal window when it receives a bang. Check it below., f 63;
 #X obj 770 210 print control;
-#X text 228 183 [display] object \, from ELSE displays control messages
-, f 27;
+#X text 228 183 [display] object \, from ELSE displays control messages, f 27;
 #X text 33 19 Audio block:;
-#X text 32 235 Latency is the time it takes for an audio process to
-come out. Within any audio application \, the latency depends mostly
-on the block size and sample rate. The 64 block size then can represent
-a lower latency if the sample rate is higher. At 44.1 Khz \, this is
-about 1.45 ms \, but a sample rate of 88.2 khz would be half of it.
-See below how the [blocksize~] object can also report the block size
-in ms and how to calculate that as we've seen before.;
-#X text 33 508 The block size needs to be always 64 samples for [adc~]
-and [dac~] \, but we can change the block size with the native [block~]
-object. Despite being redundant \, we have this object below setting
-a block size of 64 samples.;
-#X text 497 87 The control version of this object is [print]. To reinforce
-the difference between audio and control objects \, note how the [print]
-object prints ininterruptly when requested \, but [print~] only operates
-when the DSP is on., f 63;
-#X text 498 262 Changing the block size with [block~] affects its containing
-window and subpatches. We usually do this in a subpatch so it only
-affects that subwindow (and possible further subpatches). This way
-you can have a subpatch with a block size different than 64 samples
-and avoid conflicts with [adc~] and [dac~] objects in the patch's main
-window (which maintains the default block size of 64)., f 63;
-#X text 498 371 In this tutorial we use [block~] to perform one sample
-feedbacks (that is a block of audio with only one sample) and to perform
-FFT analysis (with block much larger than 64 samples). A larger block
-promotes more internal latency in the patch \, which is equal to "block
-size" minus 64 (we'll see how that works later on when dealing with
-FFT). The [block~] object can also locally change the sample rate and
-we'll see it in a bit., f 63;
-#X text 497 488 The [switch~] object has the exact same functions as
-[block~] \, but can also turn the audio process on or off locally.
-This can be the whole patch or just a subpatch (and its containing
-subwindows). This is useful because audio objects will consume CPU
-power whenever the DSP is on \, so we can save a little when we're
-not using it. Now click and open the subpatches below for more details:
-, f 63;
+#X text 32 235 Latency is the time it takes for an audio process to come out. Within any audio application \, the latency depends mostly on the block size and sample rate. The 64 block size then can represent a lower latency if the sample rate is higher. At 44.1 Khz \, this is about 1.45 ms \, but a sample rate of 88.2 khz would be half of it. See below how the [blocksize~] object can also report the block size in ms and how to calculate that as we've seen before.;
+#X text 33 508 The block size needs to be always 64 samples for [adc~] and [dac~] \, but we can change the block size with the native [block~] object. Despite being redundant \, we have this object below setting a block size of 64 samples.;
+#X text 497 87 The control version of this object is [print]. To reinforce the difference between audio and control objects \, note how the [print] object prints ininterruptly when requested \, but [print~] only operates when the DSP is on., f 63;
+#X text 498 262 Changing the block size with [block~] affects its containing window and subpatches. We usually do this in a subpatch so it only affects that subwindow (and possible further subpatches). This way you can have a subpatch with a block size different than 64 samples and avoid conflicts with [adc~] and [dac~] objects in the patch's main window (which maintains the default block size of 64)., f 63;
+#X text 498 371 In this tutorial we use [block~] to perform one sample feedbacks (that is a block of audio with only one sample) and to perform FFT analysis (with block much larger than 64 samples). A larger block promotes more internal latency in the patch \, which is equal to "block size" minus 64 (we'll see how that works later on when dealing with FFT). The [block~] object can also locally change the sample rate and we'll see it in a bit., f 63;
+#X text 497 488 The [switch~] object has the exact same functions as [block~] \, but can also turn the audio process on or off locally. This can be the whole patch or just a subpatch (and its containing subwindows). This is useful because audio objects will consume CPU power whenever the DSP is on \, so we can save a little when we're not using it. Now click and open the subpatches below for more details:, f 63;
 #X obj 796 12 declare -path else;
 #X connect 0 0 1 0;
 #X connect 2 0 0 1;

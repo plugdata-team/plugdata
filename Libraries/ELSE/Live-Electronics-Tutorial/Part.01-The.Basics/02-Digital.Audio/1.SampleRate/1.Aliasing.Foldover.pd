@@ -34,8 +34,8 @@ number values to try it out., f 63;
 it folds back and starts descending. For example \, in a Nyquist frequency
 of 22.05 Khz \, 23.1 Khz becomes 21 Khz. Mathematically speaking:,
 f 63;
-#X text 467 226 when the aliased frequency hits and passes 0 Hz \,
-it folds back again and starts raising up again., f 63;
+#X text 467 226 When the aliased frequency hits and passes 0 Hz \,
+it folds back again and starts rising again., f 63;
 #X obj 330 95 setdsp~ 1;
 #X obj 633 309 nbx 3 19 0 100 0 0 empty empty empty 0 -8 0 14 #dcdcdc
 #000000 #000000 0 256;

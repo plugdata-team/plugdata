@@ -28,7 +28,7 @@ from the signal. In the upsampling process \, one option is to hold
 this same value for all the new sample values. The [downsample~] object
 from ELSE can do this and just needs a downsampling frequency value.
 A more ellaborate way to implement this is with [sh~] \, from ELSE
-\, which is a "sample and hold" unit that collects a sample value when
+\. This is a "sample and hold" unit that collects a sample value when
 receiving impulses (given by [impulse~]) and holds such values until
 the next trigger. The frequency at which it receives impulses is the
 downsampled frequency., f 79;
@@ -46,7 +46,7 @@ things in your patch to run in the original sample rate., f 79;
 10 #dcdcdc #000000 #000000 0 1;
 #X text 17 256 This example plays a recording of a "bubul tarang" \,
 an indian string instrument (which sounds a bit like a guitar). You
-can clearly hear that the frequency content is now bounded to a new
+can clearly hear that the frequency content is now bound to a new
 Nyquist frequency according to the downsampling frequency (half of
 it \, of course). In other words \, you hear aliasing in this process.
 But since we still have the same sample rate (44.1 Khz in this case)
@@ -54,7 +54,7 @@ But since we still have the same sample rate (44.1 Khz in this case)
 content up to it is still present even though it doesn't seem so.,
 f 79;
 #X text 17 363 Check the spectral graph in [spectrograph~] from ELSE
-how the spectral energy is still present throughout the frequency range.
+- the spectral energy is still present throughout the frequency range.
 This graph shows frequencies in the horizontal axis and amplitude values
 for the frequencies in the vertical axis. More details about this process
 will be described in chapter 13 \, when presenting bandlimiting of

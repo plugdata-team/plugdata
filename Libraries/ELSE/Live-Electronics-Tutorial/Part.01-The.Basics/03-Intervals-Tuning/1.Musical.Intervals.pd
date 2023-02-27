@@ -70,7 +70,7 @@ get the number of semitones by simply multiplying it by 12!, f 62
 example \, an octave is a proportion (or ratio) of two to one (2/1)
 \, as in: 220Hz/110Hz. Therefore \, 220Hz is an octave above 110Hz
 \, and 440Hz an octave higher than 220Hz and so on. 330hz is not the
-octave of 220hz \, even though it has the same frequence difference
+octave of 220hz \, even though it has the same frequency difference
 from 220hz to 110hz., f 63;
 #X text 26 109 Hence \, the same linear frequency difference is not
 the same musical interval (330h) \, and music intervals are logarithmic!

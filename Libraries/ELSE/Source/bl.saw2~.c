@@ -16,6 +16,8 @@ typedef struct _polyblep{
     t_float pulse_width;    // Pulse width for square, morph-to-saw for triangle
     t_float phase;          // The current phase of the oscillator.
     t_float freq_in_seconds_per_sample;
+    t_int midi;
+    t_int soft;
     t_float sr;
     t_float last_phase_offset;
 }t_polyblep;
@@ -29,6 +31,14 @@ typedef struct blsaw2{
 }t_blsaw2;
 
 t_class *bl_saw2;
+
+static void blsaw2_midi(t_blsaw2 *x, t_floatarg f){
+    x->x_polyblep.midi = (int)(f != 0);
+}
+
+static void blsaw2_soft(t_blsaw2 *x, t_floatarg f){
+    x->x_polyblep.soft = (int)(f != 0);
+}
 
 static t_float phasewrap(t_float phase){
     while(phase < 0.0)
@@ -70,11 +80,18 @@ static t_int* blsaw2_perform(t_int *w) {
         t_float freq = *freq_vec++;
         t_float sync = *sync_vec++;
         t_float phase_offset = *phase_vec++;
+        if(x->midi)
+            freq = pow(2, (freq - 69)/12) * 440;
         x->freq_in_seconds_per_sample = freq / x->sr; // Update frequency
-        t_float y;
+        if(x->soft)
+            x->freq_in_seconds_per_sample *= x->soft;
         if(sync > 0 && sync <= 1){ // Phase sync
-            x->phase = sync;
-            x->phase = phasewrap(x->phase);
+            if(x->soft)
+                x->soft = x->soft == 1 ? -1 : 1;
+            else{
+                x->phase = sync;
+                x->phase = phasewrap(x->phase);
+            }
         }
         else{ // Phase modulation
             double phase_dev = phase_offset - x->last_phase_offset;
@@ -82,7 +99,7 @@ static t_int* blsaw2_perform(t_int *w) {
                 phase_dev = fmod(phase_dev, 1);
             x->phase = phasewrap(x->phase + phase_dev);
         }
-        y = saw(x);
+        t_float y = saw(x);
         x->phase += x->freq_in_seconds_per_sample;
         x->phase = phasewrap(x->phase);
         x->last_phase_offset = phase_offset;
@@ -108,7 +125,16 @@ static void* blsaw2_new(t_symbol *s, int ac, t_atom *av){
     x->x_polyblep.pulse_width = 0;
     x->x_polyblep.freq_in_seconds_per_sample = 0;
     x->x_polyblep.phase = 0.0;
+    x->x_polyblep.midi = 0;
+    x->x_polyblep.soft = 0;
     t_float init_freq = 0, init_phase = 0;
+    while(ac && av->a_type == A_SYMBOL){
+        if(atom_getsymbol(av) == gensym("-midi"))
+            x->x_polyblep.midi = 1;
+        else if(atom_getsymbol(av) == gensym("-soft"))
+            x->x_polyblep.soft = 1;
+        ac--, av++;
+    }
     if(ac && av->a_type == A_FLOAT){
         init_freq = av->a_w.w_float;
         ac--; av++;
@@ -134,5 +160,7 @@ void setup_bl0x2esaw2_tilde(void){
     bl_saw2 = class_new(gensym("bl.saw2~"), (t_newmethod)blsaw2_new,
         (t_method)blsaw2_free, sizeof(t_blsaw2), 0, A_GIMME, A_NULL);
     CLASS_MAINSIGNALIN(bl_saw2, t_blsaw2, x_f);
+    class_addmethod(bl_saw2, (t_method)blsaw2_midi, gensym("midi"), A_DEFFLOAT, 0);
+    class_addmethod(bl_saw2, (t_method)blsaw2_soft, gensym("soft"), A_DEFFLOAT, 0);
     class_addmethod(bl_saw2, (t_method)blsaw2_dsp, gensym("dsp"), A_NULL);
 }

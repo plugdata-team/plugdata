@@ -1,24 +1,21 @@
-#N canvas 745 191 543 423 12;
+#N canvas 615 74 506 393 12;
 #X declare -path else;
-#X obj 73 221 throw~ bus_1;
-#X obj 221 322 catch~ bus_1;
 #X obj 73 171 sig~ 1;
-#X obj 173 221 throw~ bus_1;
 #X obj 173 171 sig~ 1;
-#X obj 283 221 throw~ bus_1;
 #X obj 283 171 sig~ 1;
-#X obj 383 221 throw~ bus_1;
 #X obj 383 171 sig~ 1;
-#X text 62 82 The [throw~] object is a signal "bus" \, a channel that
-you create and can address a bunch of signals to. It needs a channel
-name and a [catch~] object with the same name to get the bus., f 57
-;
-#X text 98 266 Above we have 4 distinct signals thrown into the bus.
-All signals are summed when they reach [catch~]., f 53;
+#X text 62 82 The [throw~] object is a signal "bus" \, a channel that you create and can address a bunch of signals to. It needs a channel name and a [catch~] object with the same name to get the bus., f 57;
+#X text 67 274 Above we have 4 distinct signals thrown into the bus. All signals are summed when they reach [catch~]., f 25;
 #X obj 307 30 declare -path else;
-#X obj 221 355 numbox~ 6 12 100 #C0C0C4 #440008 10 0 0 0;
-#X connect 1 0 12 0;
-#X connect 2 0 0 0;
-#X connect 4 0 3 0;
-#X connect 6 0 5 0;
-#X connect 8 0 7 0;
+#X obj 270 319 numbox~ 6 12 100 #C0C0C4 #440008 10 0 0 0;
+#X obj 73 221 throw~ bus;
+#X obj 173 221 throw~ bus;
+#X obj 283 221 throw~ bus;
+#X obj 383 221 throw~ bus;
+#X obj 270 286 catch~ bus;
+#X obj 397 276 setdsp~;
+#X connect 0 0 8 0;
+#X connect 1 0 9 0;
+#X connect 2 0 10 0;
+#X connect 3 0 11 0;
+#X connect 12 0 7 0;

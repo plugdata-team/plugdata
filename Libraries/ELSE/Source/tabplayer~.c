@@ -321,7 +321,8 @@ static t_int *tabplayer_perform(t_int *w){
                                     outlet_bang(x->x_donelet);
                                 }
                                 else{ // done playing
-                                    outlet_bang(x->x_donelet);
+                                    if(x->x_playing)
+                                        outlet_bang(x->x_donelet);
                                     x->x_playing = 0;
                                 };
                             }
@@ -334,7 +335,8 @@ static t_int *tabplayer_perform(t_int *w){
                                     outlet_bang(x->x_donelet);
                                 }
                                 else{ //we're done
-                                    outlet_bang(x->x_donelet);
+                                    if(x->x_playing)
+                                        outlet_bang(x->x_donelet);
                                     x->x_playing = 0;
                                 };
                             }
@@ -387,7 +389,8 @@ static t_int *tabplayer_perform(t_int *w){
                                 outlet_bang(x->x_donelet);
                             }
                             else{ // done playing
-                                outlet_bang(x->x_donelet);
+                                if(x->x_playing)
+                                    outlet_bang(x->x_donelet);
                                 x->x_playing = 0;
                             };
                         }
@@ -400,7 +403,8 @@ static t_int *tabplayer_perform(t_int *w){
                                 outlet_bang(x->x_donelet);
                             }
                             else{ //we're done
-                                outlet_bang(x->x_donelet);
+                                if(x->x_playing)
+                                    outlet_bang(x->x_donelet);
                                 x->x_playing = 0;
                             };
                         }

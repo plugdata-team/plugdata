@@ -1,4 +1,4 @@
-//
+// tim schoen
 
 #include "m_pd.h"
 
@@ -184,6 +184,7 @@ typedef struct blimp{
     t_object x_obj;
     t_float x_f;
     t_blimpctl x_ctl;
+    t_int midi;
 }t_blimp;
 
 static inline uint32_t _float_to_phase(t_float f){return ((uint32_t)(f * 4294967296.0)) & ~(S-1);}
@@ -248,21 +249,28 @@ static void _bang_phasor(t_blimpctl *ctl, t_float freq){
 }
 
 static t_int *blimp_perform_imp(t_int *w){
-    t_float *freq     = (t_float *)(w[3]);
-    t_float *out      = (t_float *)(w[4]);
-    t_blimpctl *ctl   = (t_blimpctl *)(w[1]);
-    t_int n           = (t_int)(w[2]);
+    t_blimp* x        = (t_blimp*)(w[1]);
+    t_blimpctl *ctl   = (t_blimpctl *)(w[2]);
+    t_int n           = (t_int)(w[3]);
+    t_float *freq     = (t_float *)(w[4]);
+    t_float *out      = (t_float *)(w[5]);
     // set postfilter cutoff
     set_butter_hp(ctl->c_butter, 0.85 * (*freq / sys_getsr()));
     while(n--){
         t_float frequency = *freq++;
+        if(x->midi)
+            frequency = pow(2, (frequency - 69)/12) * 440;
         t_float sample = _get_bandlimited_discontinuity(ctl, bli);
         // highpass filter output to remove DC offset and low frequency aliasing
         butter_bang_smooth(ctl->c_butter, sample, &sample, 0.05);
         *out++ = sample * 2;
         _bang_phasor(ctl, frequency); // advance phasor
     }
-    return(w+5);
+    return(w+6);
+}
+
+static void blimp_midi(t_blimp *x, t_floatarg f){
+    x->midi = (int)(f != 0);
 }
 
 static void blimp_phase(t_blimp *x, t_float f){
@@ -396,12 +404,12 @@ static void build_tables(void){
 
 static void blimp_dsp(t_blimp *x, t_signal **sp){
     x->x_ctl.c_phase_inc_scale = 4.0 * ((t_float)(1<<(LPHASOR-2))) / sys_getsr();
-    dsp_add(blimp_perform_imp, 4, &x->x_ctl, sp[0]->s_n, sp[0]->s_vec, sp[1]->s_vec);
+    dsp_add(blimp_perform_imp, 5, x, &x->x_ctl, sp[0]->s_n, sp[0]->s_vec, sp[1]->s_vec);
 }
 
-static void *blimp_new(t_symbol *s){
+static void *blimp_new(t_symbol *s, int ac, t_atom *av){
     t_blimp *x = (t_blimp *)pd_new(blimp_class);
-    outlet_new(&x->x_obj, gensym("signal"));
+    x->midi = 0;
     butter_init(x->x_ctl.c_butter);
     // init oscillators
     for(int i = 0; i < VOICES; i++){
@@ -417,13 +425,25 @@ static void *blimp_new(t_symbol *s){
     x->x_ctl.c_scale = 1.0;
     x->x_ctl.c_scale_update = 1.0;
     x->x_ctl.c_waveshape = s;
+    
+    if(ac && av->a_type == A_SYMBOL){
+        if(atom_getsymbol(av) == gensym("-midi"))
+            x->midi = 1;
+        ac--, av++;
+    }
+    if(ac && av->a_type == A_FLOAT){
+        x->x_f = av->a_w.w_float;
+        ac--; av++;
+    }
+    outlet_new(&x->x_obj, gensym("signal"));
     return(void *)x;
 }
 
 void setup_bl0x2eimp_tilde(void){
     build_tables();
     blimp_class = class_new(gensym("bl.imp~"), (t_newmethod)blimp_new,
-        0, sizeof(t_blimp), 0, A_DEFSYMBOL, A_NULL);
+        0, sizeof(t_blimp), 0, A_GIMME, A_NULL);
     CLASS_MAINSIGNALIN(blimp_class, t_blimp, x_f);
+    class_addmethod(blimp_class, (t_method)blimp_midi, gensym("midi"), A_DEFFLOAT, 0);
     class_addmethod(blimp_class, (t_method)blimp_dsp, gensym("dsp"), A_NULL);
 }

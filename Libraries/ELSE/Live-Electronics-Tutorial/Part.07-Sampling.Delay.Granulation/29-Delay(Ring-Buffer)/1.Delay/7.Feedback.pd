@@ -1,82 +1,60 @@
-#N canvas 541 39 825 646 12;
+#N canvas 401 23 825 626 12;
 #X declare -path else;
-#X obj 92 296 *~;
-#X obj 135 261 hsl 128 15 -0.999 0.999 0 0 empty \$0-fb empty -2 -6
-0 8 #dcdcdc #000000 #000000 0 1;
-#X obj 74 329 +~;
-#X floatatom 132 283 0 0 0 0 - - - 0;
-#X floatatom 92 169 5 0 0 0 - - - 0;
-#X obj 95 144 hsl 128 15 1.45 500 1 0 empty \$0-tempo empty -2 -6 0
-8 #dcdcdc #000000 #000000 0 1;
-#X obj 74 397 out~;
-#X obj 74 70 noise~;
-#X obj 74 102 *~;
-#X obj 113 103 pulse~ 1 0.05;
-#X text 146 79 envelope;
-#X text 138 168 ms;
-#X obj 92 195 f2s~ 300;
-#X obj 132 307 f2s~ 50;
-#X obj 89 366 delwrite~ \$0-fb 3000;
-#X obj 92 224 delread4~ \$0-fb;
-#X text 106 142 delay time;
-#X obj 472 470 dac~;
-#X text 340 427 1 sample block =>;
-#X text 145 260 feedback index;
-#X text 69 48 Audio input;
-#X text 296 51 Now the delay is fed back and summed into the buffer
-input with an attenuation (a feedback index \, or it accumulates/"explodes"
-the gain). A 0.9 index makes each iteration/repetition with 90% of
-the amplitude as the last one - check the patch to the left., f 63
-;
-#X text 350 447 (click/open);
+#X obj 92 276 *~;
+#X obj 135 241 hsl 128 15 -0.999 0.999 0 0 empty \$0-fb empty -2 -6 0 8 #dcdcdc #000000 #000000 0 1;
+#X obj 74 309 +~;
+#X floatatom 132 263 0 0 0 0 - - - 0;
+#X floatatom 92 149 5 0 0 0 - - - 0;
+#X obj 95 124 hsl 128 15 1.45 500 1 0 empty \$0-tempo empty -2 -6 0 8 #dcdcdc #000000 #000000 0 1;
+#X obj 74 377 out~;
+#X obj 74 50 noise~;
+#X obj 74 82 *~;
+#X obj 113 83 pulse~ 1 0.05;
+#X text 146 59 envelope;
+#X text 138 148 ms;
+#X obj 92 175 f2s~ 300;
+#X obj 132 287 f2s~ 50;
+#X obj 89 346 delwrite~ \$0-fb 3000;
+#X obj 92 204 delread4~ \$0-fb;
+#X text 106 122 delay time;
+#X obj 472 440 dac~;
+#X text 340 397 1 sample block =>;
+#X text 145 240 feedback index;
+#X text 69 28 Audio input;
+#X text 296 51 Now the delay is fed back and summed into the buffer input with an attenuation (a feedback index \, or it accumulates/"explodes" the gain). A 0.9 index makes each iteration/repetition with 90% of the amplitude as the last one - check the patch to the left., f 63;
+#X text 350 417 (click/open);
 #X obj 602 13 declare -path else;
-#X text 297 163 The feedback implies a minimum delay \, otherwise you'd
-have an infinite loop. This delay is of at least one block of audio
-\, which is 64 samples by default (and needed by [adc~] and [dac~]
-objects)., f 63;
-#X text 297 226 We can change the block size in a subpatch with [block~]
-and go as low as a single sample. But since the [delread4~] object
-also has a minimum delay of 1 sample \, this adds up to a minimum delay
-of one block plus one sample! In the case of a block of 1 sample this
-means 2 samples delay. The [delread~] object can actually provide a
-single sample delay feedback in this situation if it has a 0 ms read
-point., f 63;
-#N canvas 933 112 762 579 vanilla 0;
+#X text 297 163 The feedback implies a minimum delay \, otherwise you'd have an infinite loop. This delay is of at least one block of audio \, which is 64 samples by default (and needed by [adc~] and [dac~] objects)., f 63;
+#X text 297 226 We can change the block size in a subpatch with [block~] and go as low as a single sample. But since the [delread4~] object also has a minimum delay of 1 sample \, this adds up to a minimum delay of one block plus one sample! In the case of a block of 1 sample this means 2 samples delay. The [delread~] object can actually provide a single sample delay feedback in this situation if it has a 0 ms read point., f 63;
+#N canvas 536 112 753 551 vanilla 0;
 #X obj 627 97 block~ 1;
 #X obj 126 302 *~;
-#X obj 147 232 hsl 128 15 -0.999 0.999 0 0 empty \$0-fb empty -2 -6
-0 8 #dcdcdc #000000 #000000 0 1;
+#X obj 147 232 hsl 128 15 -0.999 0.999 0 0 empty \$0-fb empty -2 -6 0 8 #dcdcdc #000000 #000000 0 1;
 #X obj 91 302 +~;
 #X floatatom 144 256 0 0 0 0 - - - 0;
 #X floatatom 126 142 5 0 0 0 - - - 0;
-#X obj 129 117 hsl 128 15 1.45 500 1 0 empty \$0-tempo empty -2 -6
-0 8 #dcdcdc #000000 #000000 0 1;
+#X obj 129 117 hsl 128 15 1.45 500 1 0 empty \$0-tempo empty -2 -6 0 8 #dcdcdc #000000 #000000 0 1;
 #X text 181 231 feedback;
 #X obj 91 43 noise~;
 #X obj 91 75 *~;
 #X obj 127 76 pulse~ 1 0.05;
 #X text 156 53 envelope;
 #X text 168 142 ms;
-#X obj 454 323 initmess \; \$0-tempo 300 \; \$0-fb 0.9;
+#X obj 474 344 initmess \; \$0-tempo 300 \; \$0-fb 0.9;
 #X text 148 115 delay time;
 #X obj 144 278 f2s~ 50;
 #X obj 126 165 f2s~ 300;
 #X obj 126 197 delread4~ \$0-fb2;
 #X obj 106 341 delwrite~ \$0-fb2 3000;
 #X obj 91 490 outlet~;
-#X text 358 82 This subpatch has a block of 1 sample because of this
-[block~] object ====>, f 37;
-#X text 351 144 Since the feedback loop always delays at least on block
-of audio \, this subpatch can go as low as a single sample delay. But
-since the [delread4~] object also has a minimum delay of 1 sample \,
-this adds up to a minimum delay of 2 samples., f 49;
-#X text 351 235 For these native delay objects \, if you need a single
-sample delay \, you have to use [delread~] instead., f 49;
+#X text 358 82 This subpatch has a block of 1 sample because of this [block~] object ====>, f 37;
+#X text 351 144 Since the feedback loop always delays at least on block of audio \, this subpatch can go as low as a single sample delay. But since the [delread4~] object also has a minimum delay of 1 sample \, this adds up to a minimum delay of 2 samples., f 49;
 #X obj 91 367 gain~ 1 0 20 0 0;
+#X text 351 235 For these native delay objects \, if you need a single sample delay \, you have to use [delread~] instead. Alternatively you can use [send~] and [receive~] for just a single sample delay as we've used in other examples before., f 49;
 #X connect 1 0 3 1;
 #X connect 2 0 4 0;
 #X connect 3 0 18 0;
-#X connect 3 0 23 0;
+#X connect 3 0 22 0;
 #X connect 4 0 15 0;
 #X connect 5 0 16 0;
 #X connect 6 0 5 0;
@@ -86,42 +64,32 @@ sample delay \, you have to use [delread~] instead., f 49;
 #X connect 15 0 1 1;
 #X connect 16 0 17 0;
 #X connect 17 0 1 0;
-#X connect 23 0 19 0;
-#X restore 472 429 pd vanilla;
-#X obj 574 470 dac~;
-#X text 297 334 For the ELSE object [del~] \, this is different. Even
-though it uses the same interpolation of [delread~] \, for the delay
-length between 0 and 1 sample it uses linear interpolation \, which
-means it can actually go down to a 1 sample delay., f 63;
-#N canvas 565 23 567 697 ELSE 0;
+#X connect 22 0 19 0;
+#X restore 472 399 pd vanilla;
+#X obj 574 440 dac~;
+#N canvas 683 23 444 700 ELSE 0;
 #X obj 328 43 block~ 1;
-#X obj 191 459 *~;
-#X obj 212 389 hsl 128 15 -0.999 0.999 0 0 empty \$0-fb empty -2 -6
-0 8 #dcdcdc #000000 #000000 0 1;
-#X obj 156 459 +~;
-#X floatatom 209 413 0 0 0 0 - - - 0;
-#X floatatom 191 299 5 0 0 0 - - - 0;
-#X obj 194 274 hsl 128 15 1.45 500 1 0 empty \$0-tempo empty -2 -6
-0 8 #dcdcdc #000000 #000000 0 1;
-#X text 246 388 feedback;
-#X obj 156 200 noise~;
-#X obj 156 232 *~;
-#X obj 192 233 pulse~ 1 0.05;
-#X text 221 210 envelope;
-#X text 233 299 ms;
-#X text 213 272 delay time;
-#X obj 209 435 f2s~ 50;
-#X obj 191 322 f2s~ 300;
-#X obj 156 650 outlet~;
-#X text 59 28 This subpatch has a block of 1 sample because of this
-[block~] object ====>, f 37;
-#X obj 191 354 del~ out \$0-fb3;
-#X obj 171 498 del~ in \$0-fb3 3000;
-#X text 52 90 Since the feedback loop always delays at least on block
-of audio \, this subpatch can go as low as a single sample delay. The
-[del~] object from the ELSE lbrary can achieve this minimum delay of
-just one sample., f 49;
-#X obj 156 535 gain~ 1 0 20 0 0.677778;
+#X obj 171 456 *~;
+#X obj 192 383 hsl 128 15 -0.999 0.999 0 0 empty \$0-fb empty -2 -6 0 8 #dcdcdc #000000 #000000 0 1;
+#X obj 136 456 +~;
+#X floatatom 189 407 7 0 0 0 - - - 0;
+#X floatatom 171 296 5 0 0 0 - - - 0;
+#X obj 174 271 hsl 128 15 1.45 500 1 0 empty \$0-tempo empty -2 -6 0 8 #dcdcdc #000000 #000000 0 1;
+#X text 226 382 feedback;
+#X obj 136 197 noise~;
+#X obj 136 229 *~;
+#X obj 172 230 pulse~ 1 0.05;
+#X text 201 207 envelope;
+#X text 213 296 ms;
+#X text 193 269 delay time;
+#X obj 189 432 f2s~ 50;
+#X obj 171 319 f2s~ 300;
+#X obj 136 647 outlet~;
+#X text 59 28 This subpatch has a block of 1 sample because of this [block~] object ====>, f 37;
+#X obj 171 351 del~ out \$0-fb3;
+#X obj 151 495 del~ in \$0-fb3 3000;
+#X text 52 90 Since the feedback loop always delays at least on block of audio \, this subpatch can go as low as a single sample delay. The [del~] object from the ELSE lbrary can achieve this minimum delay of just one sample., f 49;
+#X obj 136 532 gain~ 1 0 20 0 0.677778;
 #X connect 1 0 3 1;
 #X connect 2 0 4 0;
 #X connect 3 0 19 0;
@@ -136,19 +104,11 @@ just one sample., f 49;
 #X connect 15 0 18 0;
 #X connect 18 0 1 0;
 #X connect 21 0 16 0;
-#X restore 574 429 pd ELSE;
-#X text 147 520 Note that we have already done feedback loops with
-a delay of just one sample in this tutorial. Go back and ccheck the
-"6.Feedback.Cross.Modulation" sub section in the section "2.FM_PM"
-of the "19-Modulation.Synthesis" chapter., f 78;
-#X text 147 571 In those examples we used the output of the oscillator
-to be fed bacck and control its frequency or phase. To achieve that
-\, we have the native pd objects and the [delread~] object to actually
-achieve just a one sample delay., f 78;
-#X text 297 114 Negative feedback indexes are also possible. The polarity
-of each iteration will be flipped \, that's all. This does promote
-a significant change in the sound for very short delay lengths., f
-63;
+#X restore 574 399 pd ELSE;
+#X text 147 490 Note that we have already done feedback loops with a delay of just one sample in this tutorial. Go back and ccheck the "6.Feedback.Cross.Modulation" sub section in the section "2.FM_PM" of the "19-Modulation.Synthesis" chapter., f 78;
+#X text 147 541 In those examples we used the output of the oscillator to be fed bacck and control its frequency or phase. To achieve that \, we have the native pd objects and the [delread~] object to actually achieve just a one sample delay., f 78;
+#X text 297 114 Negative feedback indexes are also possible. The polarity of each iteration will be flipped \, that's all. This does promote a significant change in the sound for very short delay lengths., f 63;
+#X text 297 334 For the ELSE object [del~] \, this is different and can actually go down to a 1 sample delay., f 63;
 #X connect 0 0 2 1;
 #X connect 1 0 3 0;
 #X connect 2 0 6 0;
@@ -164,5 +124,5 @@ a significant change in the sound for very short delay lengths., f
 #X connect 15 0 0 0;
 #X connect 26 0 17 0;
 #X connect 26 0 17 1;
-#X connect 29 0 27 0;
-#X connect 29 0 27 1;
+#X connect 28 0 27 0;
+#X connect 28 0 27 1;

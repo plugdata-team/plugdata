@@ -6,6 +6,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "compat.h"
+
 #define MINDIGITS      1
 #define MAX_NUMBOX_LEN 32
 #define MINSIZE        8
@@ -336,18 +338,19 @@ static void numbox_dialog(t_numbox *x, t_symbol *s, int ac, t_atom *av){
     int size = atom_getintarg(1, ac, av);
     int ramp_ms = atom_getintarg(2, ac, av);
     int rate = atom_getintarg(3, ac, av);
-    t_symbol *bgcolor = atom_getsymbolarg(4, ac, av);
-    t_symbol *fgcolor = atom_getsymbolarg(5, ac, av);
-    t_float min = atom_getfloatarg(6, ac, av);
-    t_float max = atom_getfloatarg(7, ac, av);
+    int initial = atom_getintarg(4, ac, av);
+    t_symbol *bgcolor = atom_getsymbolarg(5, ac, av);
+    t_symbol *fgcolor = atom_getsymbolarg(6, ac, av);
+    t_float min = atom_getfloatarg(7, ac, av);
+    t_float max = atom_getfloatarg(8, ac, av);
     t_atom undo[9];
     SETFLOAT(undo+0, x->x_numwidth);
     SETFLOAT(undo+1, x->x_fontsize);
-    SETFLOAT(undo+2, 0); // why?????????????????
+    SETFLOAT(undo+2, x->x_ramp_ms);
     SETFLOAT(undo+3, x->x_rate);
-    SETSYMBOL(undo+4, x->x_bg);
-    SETSYMBOL(undo+5, x->x_fg);
-    SETFLOAT(undo+6, x->x_ramp_ms);
+    SETFLOAT(undo+4, x->x_set_val);
+    SETSYMBOL(undo+5, x->x_bg);
+    SETSYMBOL(undo+6, x->x_fg);
     SETFLOAT(undo+7, x->x_min);
     SETFLOAT(undo+8, x->x_max);
     pd_undo_set_objectstate(x->x_glist, (t_pd*)x, gensym("dialog"), 9, undo, ac, av);
@@ -355,6 +358,8 @@ static void numbox_dialog(t_numbox *x, t_symbol *s, int ac, t_atom *av){
     numbox_rate(x, rate);
     numbox_range(x, min, max);
     t_atom at[1];
+    SETFLOAT(at,initial);
+    numbox_set(x, NULL, 1, at);
     SETSYMBOL(at, bgcolor);
     numbox_bg(x, NULL, 1, at);
     SETSYMBOL(at, fgcolor);

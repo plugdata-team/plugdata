@@ -6,6 +6,8 @@
 #include "g_canvas.h"
 #include "magic.h"
 
+#include "compat.h"
+
 #define SCOPE_MINSIZE       18
 #define SCOPE_MINPERIOD     2
 #define SCOPE_MAXPERIOD     8192

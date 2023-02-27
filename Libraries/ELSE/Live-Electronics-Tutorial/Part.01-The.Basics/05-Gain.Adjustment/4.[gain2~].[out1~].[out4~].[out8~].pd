@@ -11,7 +11,7 @@
 #X text 75 308 There are also [out4~] and [out8~] for quadraphonic
 and octaphonic input/output setups., f 40;
 #X obj 119 219 out1~;
-#X text 94 113 The else library also offers [out1~] for mono input/output.
+#X text 94 113 The ELSE library also offers [out1~] for mono input/output.
 , f 36;
 #X text 190 177 mono input;
 #X connect 0 0 9 0;

@@ -1,14 +1,12 @@
-#N canvas 671 50 496 680 12;
+#N canvas 301 23 835 663 12;
 #X declare -path else;
-#X text 54 350 Slave;
-#X obj 145 410 osc~;
-#X text 224 302 master;
-#X obj 145 383 *~;
-#X obj 163 329 /~ 2;
-#X obj 95 351 nbx 5 14 -1e+37 1e+37 0 0 empty slave empty 0 -8 0 10
--228856 -1 -1 0 256;
-#X obj 163 304 nbx 5 14 -1e+37 1e+37 0 0 empty master empty 0 -8 0
-10 -228856 -1 -1 0 256;
+#X text 31 330 Slave;
+#X obj 122 390 osc~;
+#X text 201 282 master;
+#X obj 122 363 *~;
+#X obj 140 309 /~ 2;
+#X obj 72 331 nbx 5 14 -1e+37 1e+37 0 0 empty slave empty 0 -8 0 10 #dcdcdc #000000 #000000 0 256;
+#X obj 140 284 nbx 5 14 -1e+37 1e+37 0 0 empty master empty 0 -8 0 10 #dcdcdc #000000 #000000 0 256;
 #N canvas 786 159 450 300 sequencer 0;
 #X obj 195 193 mtof;
 #X obj 72 132 metro 200;
@@ -26,33 +24,60 @@
 #X connect 5 0 1 0;
 #X connect 6 0 3 0;
 #X connect 6 1 0 0;
-#X restore 95 270 pd sequencer;
-#X obj 95 247 tgl 15 0 empty empty empty 17 7 0 10 -228856 -1 -1 0
-1;
-#X obj 95 319 * 1.8;
-#X obj 163 355 square~;
-#X obj 145 442 graph~ 500 20;
-#X text 29 170 We implement this with a square wave with half of the
-master's frequency. This way \, at every period transition \, we have
-a sign reversal from 1 to -1 \, which we use to mulitpy to the slave's
-frequency., f 59;
-#X text 218 355 <== square with half the frequency, f 18;
-#X obj 292 26 declare -path else;
-#X text 29 67 In this example \, we have s Soft Sync patch where the
-direction of the oscillator reverses instead of being reset. This
-is to avoid a harsh clicks that happen when there's a big amplitude
-jump when resetting the oscillator. Hence \, this type of sync does
-not generate discontinuities in the signal and sounds much softer.
-;
-#X obj 145 596 out~;
-#X connect 1 0 11 0;
+#X restore 72 250 pd sequencer;
+#X obj 72 299 * 1.8;
+#X obj 140 335 square~;
+#X obj 122 422 graph~ 500 20;
+#X text 36 136 We implement this with a square wave with half of the master's frequency. This way \, at every period transition \, we have a sign reversal from 1 to -1 \, which we use to mulitpy to the slave's frequency., f 59;
+#X text 195 335 <== square with half the frequency, f 18;
+#X obj 642 27 declare -path else;
+#X text 36 33 In this example \, we have s Soft Sync patch where the direction of the oscillator reverses instead of being reset. This is to avoid a harsh clicks that happen when there's a big amplitude jump when resetting the oscillator. Hence \, this type of sync does not generate discontinuities in the signal and sounds much softer.;
+#X obj 122 576 out~;
+#X text 510 269 Slave;
+#X text 680 221 master;
+#X obj 619 248 /~ 2;
+#X obj 551 270 nbx 5 14 -1e+37 1e+37 0 0 empty slave empty 0 -8 0 10 #dcdcdc #000000 #000000 0 256;
+#X obj 619 223 nbx 5 14 -1e+37 1e+37 0 0 empty master empty 0 -8 0 10 #dcdcdc #000000 #000000 0 256;
+#N canvas 786 159 314 286 sequencer 0;
+#X obj 195 193 mtof;
+#X obj 72 132 metro 200;
+#X obj 72 193 v i;
+#X obj 195 221 outlet;
+#X obj 72 107 inlet;
+#X obj 72 155 expr (i + 1) % 16 \; sequencer[i] + 45;
+#X connect 0 0 3 0;
+#X connect 1 0 5 0;
+#X connect 4 0 1 0;
+#X connect 5 0 2 0;
+#X connect 5 1 0 0;
+#X restore 551 189 pd sequencer;
+#X obj 551 238 * 1.8;
+#X obj 582 339 graph~ 500 20;
+#X obj 582 493 out~;
+#X obj 619 274 imp~;
+#X obj 551 160 tgl 19 0 empty empty empty 17 7 0 10 #dcdcdc #000000 #000000 0 1;
+#X obj 582 307 sine~ -soft;
+#X obj 72 221 tgl 19 0 empty empty empty 17 7 0 10 #dcdcdc #000000 #000000 0 1;
+#X text 514 64 Oscillators from the ELSE library also provide this type of soft sync. They are also synced with impulses but a '-soft' flag or message sets to this type of syncing. Check the help file for more., f 41;
+#X text 363 568 Objects that have soft sync so far are: [pimp~] \, [sine~] \, [cosine~] \, [bl.saw~] \, [bl.saw2~] \, [bl.vsaw~] \, [bl.square~] \, [bl.tri~] \, [blip~] \, [bl.osc~] \, [wavetable~] and [bl.wavetable~]. The ones that start with 'bl' are the bandlimited versions we'll see next in this tutorial., f 64;
+#X connect 1 0 10 0;
 #X connect 3 0 1 0;
-#X connect 4 0 10 0;
+#X connect 4 0 9 0;
 #X connect 5 0 3 0;
 #X connect 6 0 4 0;
-#X connect 7 0 9 0;
+#X connect 7 0 8 0;
 #X connect 7 0 6 0;
-#X connect 8 0 7 0;
-#X connect 9 0 5 0;
-#X connect 10 0 3 1;
-#X connect 11 0 16 0;
+#X connect 8 0 5 0;
+#X connect 9 0 3 1;
+#X connect 10 0 15 0;
+#X connect 18 0 25 0;
+#X connect 19 0 27 0;
+#X connect 20 0 18 0;
+#X connect 21 0 22 0;
+#X connect 21 0 20 0;
+#X connect 22 0 19 0;
+#X connect 23 0 24 0;
+#X connect 25 0 27 1;
+#X connect 26 0 21 0;
+#X connect 27 0 23 0;
+#X connect 28 0 7 0;

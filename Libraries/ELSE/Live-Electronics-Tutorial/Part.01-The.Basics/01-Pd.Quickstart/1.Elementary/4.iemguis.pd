@@ -30,7 +30,7 @@
 #X obj 622 268 nbx 5 16 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 12 #000000 #fcfcfc #000000 0 256;
 #X obj 622 206 bng 15 250 50 1 empty empty init 0 -6 0 12 #f8c0b4 #000000 #9c3c1c;
 #X floatatom 574 194 1 0 0 0 - - - 0;
-#X obj 737 244 hsl 128 15 1.27 127 1 0 empty empty logarhythmic 4 -12 0 14 #dcdcdc #000000 #c82820 0 1;
+#X obj 737 244 hsl 128 15 1.27 127 1 0 empty empty logarhithmic 4 -12 0 14 #dcdcdc #000000 #c82820 0 1;
 #X obj 734 268 nbx 5 16 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 12 #000000 #fcfcfc #000000 0 256;
 #X msg 734 195 -100;
 #X obj 568 410 cnv 15 290 200 empty empty empty 20 12 0 14 #604048 #404040 0;
@@ -46,7 +46,7 @@
 #X text 774 195 outside range;
 #X text 438 193 number atom box => with 1 digit width, f 19;
 #X text 17 591 The sliders and radio buttons are actually unified objects since Pd 0.53 and you can set their orientation via the 'orientation' message., f 69;
-#X text 29 13 Besides atom number boxes \, Pd has more built-in graphical user interface (or “GUIs”) \, useful to develop interfaces. These are the second group of elements in the Put Menu and are also referred to as "iemguis" as they were originally externals developed at IEM (Institute for Electronic Music) in Graz. You can also create them from object boxes (unlike messages \, number/symbol atom boxes and comments). These GUIs have more properties settings like color and size. Right click for properties and also check their help files., f 57;
+#X text 29 13 Besides atom number boxes \, Pd has more built-in graphical user interfaces (or “GUIs”) \, useful to develop interfaces. These are the second group of elements in the Put Menu and are also referred to as "iemguis" as they were originally externals developed at IEM (Institute for Electronic Music) in Graz. You can also create them from object boxes (unlike messages \, number/symbol atom boxes and comments). These GUIs have more properties settings like color and size. Right click for properties and also check their help files., f 57;
 #X text 457 12 Sliders and number boxes can behave logarithmically. A toggle can have a different value for an "on" state and its state changes when it receives a bang. Note that an atom number box with a width of only 1 digit behaves like a toggle. Incoming values are passed through even though they're outside the range. All of the iemguis objects but [cnv] and [vu] have a special "init" property \, in which it outputs the last saved value when the patch is loaded. For the bang GUI ([bng]) \, "init" sends a bang at initialization - which \, by the way \, is the same as using a [loadbang] object (as it sends a bang when the patch is loaded)., f 61;
 #X connect 0 0 25 0;
 #X connect 2 0 19 0;

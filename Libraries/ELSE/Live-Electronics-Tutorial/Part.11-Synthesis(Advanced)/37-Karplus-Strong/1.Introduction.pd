@@ -1,14 +1,11 @@
-#N canvas 380 123 971 566 12;
+#N canvas 270 62 971 566 12;
 #X declare -path else;
-#X obj 295 139 tabwrite~ \$0-noise;
 #X obj 126 431 tabread4~ \$0-noise;
 #X obj 126 358 phasor~ 1;
 #X floatatom 203 390 7 0 0 0 - - - 0;
 #X obj 126 392 *~;
 #X obj 203 358 expr sr / $f1;
-#X obj 295 111 noise~;
-#X obj 29 169 cnv 15 398 98 empty empty empty 20 12 0 14 #e0e0e0 #404040
-0;
+#X obj 29 169 cnv 15 398 98 empty empty empty 20 12 0 14 #e0e0e0 #404040 0;
 #N canvas 0 22 450 300 (subpatch) 0;
 #X array \$0-noise 44100 float 0;
 #X coords 0 1 44099 -1 400 100 1 0 0;
@@ -26,27 +23,18 @@
 #X obj 826 277 expr 1000 / $f1;
 #X text 806 302 ms;
 #X msg 826 249 110;
-#X obj 203 313 nbx 5 16 -1e+37 1e+37 0 0 empty freq empty 0 -8 0 11
-#dcdcdc #000000 #000000 0 256;
+#X obj 203 313 nbx 5 16 -1e+37 1e+37 0 0 empty freq empty 0 -8 0 11 #dcdcdc #000000 #000000 0 256;
 #X obj 126 473 out~;
 #X obj 534 455 out~;
 #X obj 751 460 out~;
-#X obj 263 111 lb;
 #X text 132 311 Frequency;
 #X text 263 390 Period in samples;
 #X obj 616 272 sr~;
 #X obj 288 433 initmess \; freq 60;
-#X text 20 14 The Karplus Strong technique repeats a noise periodically
-\, which forces a pitch into the signal even in this case. To test
-it \, let's populate an array with noise and read from it with [phasor~]
-at a certain frequency (which also defines a period to read from the
-buffer).;
+#X text 20 14 The Karplus Strong technique repeats a noise periodically \, which forces a pitch into the signal even in this case. To test it \, let's populate an array with noise and read from it with [phasor~] at a certain frequency (which also defines a period to read from the buffer).;
 #X obj 486 219 tempo 60 100 -on;
 #X floatatom 486 271 5 0 0 0 - - - 0;
-#X text 482 59 Now [tabplay~] plays a grain whose period in samples
-depends on a frequency and sends it to a feedback delay line with the
-same period as the delay time. This grain gets then looped and a feedback
-parameter sets the decay time.;
+#X text 482 59 Now [tabplay~] plays a grain whose period in samples depends on a frequency and sends it to a feedback delay line with the same period as the delay time. This grain gets then looped and a feedback parameter sets the decay time.;
 #X obj 826 220 tempo 60 100 -on;
 #X obj 826 303 display 6;
 #X obj 786 343 t b f;
@@ -55,44 +43,41 @@ parameter sets the decay time.;
 #X msg 629 374 0.995;
 #X msg 676 374 0.98;
 #X msg 598 374 0.8;
-#X text 483 129 But instead of working with a fixed buffer \, we can
-work with a live noise input. There are subtle differences because
-the same grain doesn't get repeated anymore \, which makes it more
-dynamic. See both below.;
+#X text 483 129 But instead of working with a fixed buffer \, we can work with a live noise input. There are subtle differences because the same grain doesn't get repeated anymore \, which makes it more dynamic. See both below.;
 #X obj 486 244 rand.i 50 500;
 #X obj 756 19 declare -path else;
 #X obj 534 410 fbdelay~ -gain 25 0.98, f 14;
 #X obj 751 425 fbdelay~ -gain 10 0.98;
-#X connect 1 0 23 0;
-#X connect 2 0 4 0;
-#X connect 3 0 4 1;
-#X connect 4 0 1 0;
-#X connect 5 0 3 0;
-#X connect 6 0 0 0;
-#X connect 10 0 11 0;
-#X connect 11 0 46 0;
-#X connect 12 0 10 0;
-#X connect 12 1 14 0;
-#X connect 14 0 46 1;
-#X connect 16 0 17 0;
-#X connect 17 0 47 0;
-#X connect 19 0 36 0;
-#X connect 21 0 19 0;
-#X connect 22 0 5 0;
-#X connect 22 0 2 0;
-#X connect 26 0 0 0;
-#X connect 29 0 9 0;
-#X connect 32 0 44 0;
-#X connect 33 0 12 0;
-#X connect 35 0 21 0;
-#X connect 36 0 37 0;
-#X connect 36 0 47 1;
-#X connect 37 0 38 0;
-#X connect 37 1 38 1;
-#X connect 38 0 17 1;
-#X connect 40 0 46 2;
-#X connect 41 0 46 2;
-#X connect 42 0 46 2;
-#X connect 44 0 33 0;
-#X connect 46 0 24 0;
-#X connect 47 0 25 0;
+#X obj 276 143 tabgen \$0-noise noise;
+#X text 290 115 initialize array;
+#X connect 0 0 21 0;
+#X connect 1 0 3 0;
+#X connect 2 0 3 1;
+#X connect 3 0 0 0;
+#X connect 4 0 2 0;
+#X connect 8 0 9 0;
+#X connect 9 0 43 0;
+#X connect 10 0 8 0;
+#X connect 10 1 12 0;
+#X connect 12 0 43 1;
+#X connect 14 0 15 0;
+#X connect 15 0 44 0;
+#X connect 17 0 33 0;
+#X connect 19 0 17 0;
+#X connect 20 0 4 0;
+#X connect 20 0 1 0;
+#X connect 26 0 7 0;
+#X connect 29 0 41 0;
+#X connect 30 0 10 0;
+#X connect 32 0 19 0;
+#X connect 33 0 34 0;
+#X connect 33 0 44 1;
+#X connect 34 0 35 0;
+#X connect 34 1 35 1;
+#X connect 35 0 15 1;
+#X connect 37 0 43 2;
+#X connect 38 0 43 2;
+#X connect 39 0 43 2;
+#X connect 41 0 30 0;
+#X connect 43 0 22 0;
+#X connect 44 0 23 0;

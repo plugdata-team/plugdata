@@ -3,6 +3,8 @@
 #include "m_pd.h"
 #include "g_canvas.h"
 
+#include "compat.h"
+
 static t_class *button_class, *edit_proxy_class;
 static t_widgetbehavior button_widgetbehavior;
 

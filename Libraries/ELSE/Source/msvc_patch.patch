@@ -1,0 +1,364 @@
+diff --git a/Classes/Source/giga.rev~.c b/Classes/Source/giga.rev~.c
+index a5ab0804..7c8a9dc1 100644
+--- a/Classes/Source/giga.rev~.c
++++ b/Classes/Source/giga.rev~.c
+@@ -275,7 +275,7 @@ static inline void gverb_spread(t_gverb *x, t_floatarg f){
+     x->x_ldifs[2] = diffuser_make((int)(diffscale*dd), 0.625);
+     x->x_ldifs[3] = diffuser_make((int)(diffscale*e), 0.625);
+     if(!x->x_ldifs[0] || !x->x_ldifs[1] || !x->x_ldifs[2] || !x->x_ldifs[3]){
+-        error("[giga.rev~]: out of memory");
++        pd_error(x, "[giga.rev~]: out of memory");
+         return;
+     }
+ // Right
+@@ -291,7 +291,7 @@ static inline void gverb_spread(t_gverb *x, t_floatarg f){
+     x->x_rdifs[2] = diffuser_make((int)(diffscale*dd), 0.625);
+     x->x_rdifs[3] = diffuser_make((int)(diffscale*e), 0.625);
+     if(!x->x_rdifs[0] || !x->x_rdifs[1] || !x->x_rdifs[2] || !x->x_rdifs[3]){
+-        error("[giga.rev~]: out of memory");
++        pd_error(x, "[giga.rev~]: out of memory");
+         return;
+     }
+ }
+@@ -529,31 +529,31 @@ t_gverb *gverb_new(t_symbol *s, short ac, t_atom *av){
+ // FDN section
+     x->x_fdndels = (t_fixeddelay **)t_getbytes(4*sizeof(t_fixeddelay *));
+     if(!x->x_fdndels){
+-        error("[giga.rev~]: out of memory");
++        pd_error(x, "[giga.rev~]: out of memory");
+         return (NULL);
+     }
+     for(i = 0; i < 4; i++){
+         x->x_fdndels[i] = fixeddelay_make((int)x->x_maxdelay+1000);
+         if(!x->x_fdndels[i]){
+-            error("[giga.rev~]: out of memory");
++            pd_error(x, "[giga.rev~]: out of memory");
+             return (NULL);
+         }
+     }
+     x->x_fdngains = (float *)t_getbytes(4*sizeof(float));
+     x->x_fdnlens = (int *)t_getbytes(4*sizeof(int));
+     if(!x->x_fdngains || !x->x_fdnlens){
+-        error("[giga.rev~]: out of memory");
++        pd_error(x, "[giga.rev~]: out of memory");
+         return (NULL);
+     }
+     x->x_fdndamps = (t_damper **)t_getbytes(4*sizeof(t_damper *));
+     if(!x->x_fdndamps){
+-        error("[giga.rev~]: out of memory");
++        pd_error(x, "[giga.rev~]: out of memory");
+         return (NULL);
+     }
+     for(i = 0; i < 4; i++){
+         x->x_fdndamps[i] = damper_make(x->x_fdndamp);
+         if(!x->x_fdndamps[i]){
+-            error("[giga.rev~]: out of memory");
++            pd_error(x, "[giga.rev~]: out of memory");
+             return (NULL);
+         }
+     }
+@@ -575,7 +575,7 @@ t_gverb *gverb_new(t_symbol *s, short ac, t_atom *av){
+     x->x_u = (float *)t_getbytes(4*sizeof(float));
+     x->x_f = (float *)t_getbytes(4*sizeof(float));
+     if(!x->x_d || !x->x_u || !x->x_f){
+-        error("[giga.rev~]: out of memory");
++        pd_error(x, "[giga.rev~]: out of memory");
+         return (NULL);
+     }
+ // Diffuser section
+@@ -594,7 +594,7 @@ t_gverb *gverb_new(t_symbol *s, short ac, t_atom *av){
+     e = 1341-d;
+     x->x_ldifs = (t_diffuser **)t_getbytes(4*sizeof(t_diffuser *));
+     if(!x->x_ldifs){
+-        error("[giga.rev~]: out of memory");
++        pd_error(x, "[giga.rev~]: out of memory");
+         return (NULL);
+     }
+     x->x_ldifs[0] = diffuser_make((int)(diffscale*b), 0.75);
+@@ -602,7 +602,7 @@ t_gverb *gverb_new(t_symbol *s, short ac, t_atom *av){
+     x->x_ldifs[2] = diffuser_make((int)(diffscale*dd), 0.625);
+     x->x_ldifs[3] = diffuser_make((int)(diffscale*e), 0.625);
+     if(!x->x_ldifs[0] || !x->x_ldifs[1] || !x->x_ldifs[2] || !x->x_ldifs[3]){
+-        error("[giga.rev~]: out of memory");
++        pd_error(x, "[giga.rev~]: out of memory");
+         return (NULL);
+     }
+     b = 210;
+@@ -617,7 +617,7 @@ t_gverb *gverb_new(t_symbol *s, short ac, t_atom *av){
+     e = 1341-d;
+     x->x_rdifs = (t_diffuser **)t_getbytes(4*sizeof(t_diffuser *));
+     if(!x->x_rdifs){
+-        error("[giga.rev~]: out of memory");
++        pd_error(x, "[giga.rev~]: out of memory");
+         return (NULL);
+     }
+     x->x_rdifs[0] = diffuser_make((int)(diffscale*b), 0.75);
+@@ -625,7 +625,7 @@ t_gverb *gverb_new(t_symbol *s, short ac, t_atom *av){
+     x->x_rdifs[2] = diffuser_make((int)(diffscale*dd), 0.625);
+     x->x_rdifs[3] = diffuser_make((int)(diffscale*e), 0.625);
+     if(!x->x_rdifs[0] || !x->x_rdifs[1] || !x->x_rdifs[2] || !x->x_rdifs[3]){
+-        error("[giga.rev~]: out of memory");
++        pd_error(x, "[giga.rev~]: out of memory");
+         return (NULL);
+     }
+ // Tapped delay section
+@@ -633,7 +633,7 @@ t_gverb *gverb_new(t_symbol *s, short ac, t_atom *av){
+     x->x_taps = (int *)t_getbytes(4*sizeof(int));
+     x->x_tapgains = (float *)t_getbytes(4*sizeof(float));
+     if(!x->x_tapdelay || !x->x_taps || !x->x_tapgains){
+-        error("[giga.rev~]: out of memory");
++        pd_error(x, "[giga.rev~]: out of memory");
+         return (NULL);
+     }
+     x->x_taps[0] = 5+0.410*x->x_largestdelay;
+@@ -156,7 +156,7 @@ void impseq_recall(t_impseq *x, t_floatarg p)
+             x->phase = 0;
+         }
+     } else {
+-        error("no pattern stored at location %d",location);
++        pd_error(x, "no pattern stored at location %d",location);
+     }
+ }
+
+diff --git a/Classes/Source/keyboard.c b/Classes/Source/keyboard.c
+index 0a29eb7f..86946969 100755
+--- a/Classes/Source/keyboard.c
++++ b/Classes/Source/keyboard.c
+@@ -59,13 +59,12 @@ static void keyboard_note_on(t_keyboard* x, int note){
+     t_canvas *cv =  glist_getcanvas(x->x_glist);
+     short key = note % 12, black = (key == 1 || key == 3 || key == 6 || key == 8 || key == 10);
+     sys_vgui(".x%lx.c itemconfigure %xrrk%d -fill %s\n", cv, x, i, black ? BLACK_ON : WHITE_ON);
+-    int ac = 2;
+-    t_atom at[ac];
++    t_atom at[2];
+     SETFLOAT(at, note);
+     SETFLOAT(at+1, x->x_velocity);
+-    outlet_list(x->x_out, &s_list, ac, at);
++    outlet_list(x->x_out, &s_list, 2, at);
+     if(x->x_send != &s_ && x->x_send->s_thing)
+-        pd_list(x->x_send->s_thing, &s_list, ac, at);
++        pd_list(x->x_send->s_thing, &s_list, 2, at);
+ }
+
+ static void keyboard_note_off(t_keyboard* x, int note){
+@@ -76,7 +75,7 @@ static void keyboard_note_off(t_keyboard* x, int note){
+         sys_vgui(".x%lx.c itemconfigure %xrrk%d -fill %s\n", cv, x, i, black ? BLACK_OFF : c4 ? MIDDLE_C : WHITE_OFF);
+     }
+     int ac = 2;
+-    t_atom at[ac];
++    t_atom at[2];
+     SETFLOAT(at, note);
+     SETFLOAT(at+1, 0);
+     outlet_list(x->x_out, &s_list, ac, at);
+@@ -153,7 +152,7 @@ static void keyboard_play_tgl(t_keyboard* x, int note){
+      else // white
+         sys_vgui(".x%lx.c itemconfigure %xrrk%d -fill %s\n", cv, x, i, on ? WHITE_ON : note == 60 ? MIDDLE_C : WHITE_OFF);
+     int ac = 2;
+-    t_atom at[ac];
++    t_atom at[2];
+     SETFLOAT(at, note);
+     SETFLOAT(at+1, on ? x->x_velocity : 0);
+     outlet_list(x->x_out, &s_list, ac, at);
+@@ -354,7 +353,7 @@ void keyboard_float(t_keyboard *x, t_floatarg f){
+         x->x_vel_in = 127;
+     int on = x->x_tgl_notes[note] = x->x_vel_in > 0;
+     int ac = 2;
+-    t_atom at[ac];
++    t_atom at[2];
+     SETFLOAT(at, note);
+     SETFLOAT(at+1, x->x_vel_in);
+     outlet_list(x->x_out, &s_list, ac, at);
+@@ -513,7 +512,7 @@ static void keyboard_receive(t_keyboard *x, t_symbol *s){
+ static void keyboard_flush(t_keyboard* x){
+     t_canvas *cv =  glist_getcanvas(x->x_glist);
+     int ac = 2;
+-    t_atom at[ac];
++    t_atom at[2];
+     for(int note = 0; note < 256; note++){
+         if(x->x_tgl_notes[note] > 0){
+             int i = note - x->x_first_c;
+diff --git a/Classes/Source/metronome.c b/Classes/Source/metronome.c
+index 879fbc60..3466fee5 100644
+--- a/Classes/Source/metronome.c
++++ b/Classes/Source/metronome.c
+@@ -423,8 +423,7 @@ static void metronome_float(t_metronome *x, t_float f){
+
+ static void metronome_start(t_metronome *x){
+     if(x->x_s_name->s_thing){
+-        t_atom at[0];
+-        typedmess(x->x_s_name->s_thing, gensym("resync"), 0, at);
++        typedmess(x->x_s_name->s_thing, gensym("resync"), 0, NULL);
+     }
+     metronome_float(x, 1);
+ }
+diff --git a/Classes/Source/pic.c b/Classes/Source/pic.c
+index 93ca1f08..a83bd20e 100755
+--- a/Classes/Source/pic.c
++++ b/Classes/Source/pic.c
+@@ -2,12 +2,14 @@
+
+ #include <m_pd.h>
+ #include <g_canvas.h>
+-#include <unistd.h>
++
+ #include <string.h>
+
+ #ifdef _MSC_VER
+ #pragma warning( disable : 4244 )
+ #pragma warning( disable : 4305 )
++#else
++#include <unistd.h>
+ #endif
+
+ static t_class *pic_class, *edit_proxy_class;
+diff --git a/Classes/Source/rand.seq.c b/Classes/Source/rand.seq.c
+index 7181fcc1..c0c33f14 100644
+--- a/Classes/Source/rand.seq.c
++++ b/Classes/Source/rand.seq.c
+@@ -34,12 +34,12 @@ static void rand_seq_n(t_rand_seq *x, t_float f){
+         x->x_nvalues = n;
+         x->x_probs = (int*) getbytes(x->x_nvalues*sizeof(int));
+         if(!x->x_probs){
+-            error("rand_seq : could not allocate buffer");
++            pd_error(x, "rand_seq : could not allocate buffer");
+             return;
+         }
+         x->x_ovalues = (int*) getbytes(x->x_nvalues*sizeof(int));
+         if(!x->x_ovalues){
+-            error("rand_seq : could not allocate buffer");
++            pd_error(x, "rand_seq : could not allocate buffer");
+             return;
+         }
+         memset(x->x_ovalues, 0x0, x->x_nvalues*sizeof(int));
+@@ -63,7 +63,7 @@ static void rand_seq_bang(t_rand_seq *x){
+     }
+     candidates = (int*) getbytes(nevalues*sizeof(int));
+     if(!candidates){
+-        error("rand_seq : could not allocate buffer for internal computation");
++        pd_error(x, "rand_seq : could not allocate buffer for internal computation");
+         return;
+     }
+     for(ei = 0; ei < x->x_nvalues; ei++){ // select eligible values
+@@ -131,12 +131,12 @@ static t_rand_seq *rand_seq_new(t_symbol *s, int ac, t_atom *av){
+     // common fields for new and restored rand_seqs
+     x->x_probs = (int*) getbytes(x->x_nvalues*sizeof(int));
+     if(!x->x_probs){
+-        error("rand_seq : could not allocate buffer");
++        pd_error(x, "rand_seq : could not allocate buffer");
+         return NULL;
+     }
+     x->x_ovalues = (int*) getbytes(x->x_nvalues*sizeof(int));
+     if(!x->x_ovalues){
+-        error("rand_seq : could not allocate buffer");
++        pd_error(x, "rand_seq : could not allocate buffer");
+         return NULL;
+     }
+     memset(x->x_ovalues, 0x0, x->x_nvalues*sizeof(int));
+diff --git a/Classes/Source/rec.c b/Classes/Source/rec.c
+index 5520f5cd..4b8b8b19 100644
+--- a/Classes/Source/rec.c
++++ b/Classes/Source/rec.c
+@@ -16,6 +16,9 @@
+ #define REC_FILEBUFSIZE     4096
+ #define rec_FILEMAXCOLUMNS  78
+
++
++
++
+ enum{REC_STEPMODE, REC_RECMODE, REC_PLAYMODE};
+
+ typedef struct _rec_track{
+@@ -188,7 +191,8 @@ static void rec_track_list(t_rec_track *tp, t_symbol *s, int ac, t_atom *av){
+         if(av->a_type == A_FLOAT)
+             rec_track_doadd(tp, ac, av);
+         else{
+-            t_atom at[ac+1];
++
++            t_atom* at = (t_atom*)malloc(sizeof(t_atom) * (ac+1));
+             SETSYMBOL(&at[0], s);
+             for(int i = 0; i < ac; i++){
+                 if((av+i)->a_type == A_FLOAT)
+@@ -203,7 +207,7 @@ static void rec_track_list(t_rec_track *tp, t_symbol *s, int ac, t_atom *av){
+
+ static void rec_track_anything(t_rec_track *tp, t_symbol *s, int ac, t_atom *av){
+     if(tp->tr_mode == REC_RECMODE){
+-        t_atom at[ac+1];
++        t_atom* at = (t_atom*)malloc(sizeof(t_atom) * (ac+1));
+         SETSYMBOL(&at[0], s);
+         for(int i = 0; i < ac; i++){
+             if((av+i)->a_type == A_FLOAT)
+diff --git a/Classes/Source/retrieve.c b/Classes/Source/retrieve.c
+index 165cecb0..c7ebdcbd 100644
+--- a/Classes/Source/retrieve.c
++++ b/Classes/Source/retrieve.c
+@@ -287,7 +287,7 @@ void retrieve_setup(void){
+         pd_bind(&c, s);
+         if(!s->s_thing || !(bindlist_class = *s->s_thing)
+ 	    || bindlist_class->c_name != gensym("bindlist"))
+-            error("retrieve: failure to initialize remote retrievebing feature");
++            pd_error(c, "retrieve: failure to initialize remote retrievebing feature");
+ 	pd_unbind(&c, s);
+ 	pd_unbind(&retrieve_class, s);
+     }
+diff --git a/Classes/Source/rms~.c b/Classes/Source/rms~.c
+index b1a58519..eab811e5 100755
+--- a/Classes/Source/rms~.c
++++ b/Classes/Source/rms~.c
+@@ -56,7 +56,7 @@ static void rms_set(t_sigrms *x, t_floatarg f1, t_floatarg f2)
+     if (hop < x->x_block) hop = x->x_block;
+     if (!(buf = getbytes(sizeof(t_sample) * (size + INITVSTAKEN))))
+         {
+-        error("rms: couldn't allocate buffer");
++        pd_error(x, "rms: couldn't allocate buffer");
+         }
+     x->x_buf = buf;
+     x->x_phase = 0;
+@@ -130,7 +130,7 @@ static void *rms_tilde_new(t_symbol *s, int argc, t_atom *argv)
+         period = npoints / MAXOVERLAP + 1;
+     if (!(buf = getbytes(sizeof(t_sample) * (npoints + INITVSTAKEN))))
+     {
+-        error("rms: couldn't allocate buffer");
++        pd_error(x, "rms: couldn't allocate buffer");
+         return (0);
+     }
+     x->x_buf = buf;
+@@ -202,7 +202,7 @@ static void rms_tilde_dsp(t_sigrms *x, t_signal **sp)
+             (x->x_npoints + sp[0]->s_n) * sizeof(t_sample));
+         if (!xx)
+             {
+-            error("rms~: out of memory");
++            pd_error(x, "rms~: out of memory");
+             return;
+             }
+         x->x_buf = (t_sample *)xx;
+diff --git a/Classes/Source/vu~.c b/Classes/Source/vu~.c
+index 2e24653e..7ed75dc8 100755
+--- a/Classes/Source/vu~.c
++++ b/Classes/Source/vu~.c
+@@ -43,7 +43,7 @@ static void vu_set(t_sigvu *x, t_floatarg f1, t_floatarg f2){
+     if(hop < x->x_block)
+         hop = x->x_block;
+     if(!(buf = getbytes(sizeof(t_sample) * (size + INITVSTAKEN))))
+-        error("[vu~]: couldn't allocate buffer");
++        pd_error(x, "[vu~]: couldn't allocate buffer");
+     x->x_buf = buf;
+     x->x_phase = 0;
+     x->x_npoints = size;
+@@ -74,7 +74,7 @@ static void *vu_tilde_new(t_floatarg fnpoints, t_floatarg fperiod){
+     if(period < npoints / MAXOVERLAP + 1)
+         period = npoints / MAXOVERLAP + 1;
+     if(!(buf = getbytes(sizeof(t_sample) * (npoints + INITVSTAKEN)))){
+-        error("[vu~]: couldn't allocate buffer");
++        pd_error(x, "[vu~]: couldn't allocate buffer");
+         return (0);
+     }
+     x = (t_sigvu *)pd_new(vu_tilde_class);
+@@ -147,7 +147,7 @@ static void vu_tilde_dsp(t_sigvu *x, t_signal **sp){
+             (x->x_npoints + sp[0]->s_n) * sizeof(t_sample));
+         if (!xx)
+             {
+-            error("vu~: out of memory");
++            pd_error(x, "vu~: out of memory");
+             return;
+             }
+         x->x_buf = (t_sample *)xx;

@@ -1,37 +1,25 @@
-#N canvas 672 59 528 691 12;
+#N canvas 602 24 528 691 12;
 #X declare -path else;
 #X obj 346 19 declare -path else;
 #X obj 347 137 meter;
-#X floatatom 347 176 5 0 0 0 - - -;
+#X floatatom 347 176 5 0 0 0 - - - 0;
 #X msg 129 315 pd~ start patch.pd;
-#X floatatom 129 469 5 0 0 0 - - -;
+#X floatatom 129 469 5 0 0 0 - - - 0;
 #X obj 385 347 setdsp~;
-#X text 37 57 The pd~ object starts a new Pd instance \, which takes
-advantage of multi-core CPUs and can \, therefore \, be used to divide
-the cost of CPU intensive patches. You can have more than a pd~ object
-but each one can only open one patch at a time., f 62;
+#X text 37 57 The pd~ object starts a new Pd instance \, which takes advantage of multi-core CPUs and can \, therefore \, be used to divide the cost of CPU intensive patches. You can have more than a pd~ object but each one can only open one patch at a time., f 62;
 #X text 340 306 DSP needs to be on in this patch., f 17;
-#X text 53 133 The meter object from the ELSE library reports the percentage
-of the CPU usage of this Pd process., f 39;
-#X text 50 217 Below we have a CPU intensive patch. The outlet reports
-the output of meter and you can see that the CPU measure of this other
-Pd process is greater than the measure in this patch.;
+#X text 53 133 The meter object from the ELSE library reports the percentage of the CPU usage of this Pd process., f 39;
+#X text 50 217 Below we have a CPU intensive patch. The outlet reports the output of meter and you can see that the CPU measure of this other Pd process is greater than the measure in this patch.;
 #X text 65 468 CPU % =>;
 #X text 393 177 <= CPU %;
 #X text 58 293 click to open a new instance:, f 19;
 #X obj 210 450 out~;
 #X msg 160 374 tempo \$1;
-#X floatatom 160 347 5 0 0 0 - - -;
+#X floatatom 160 347 5 0 0 0 - - - 0;
 #X text 225 373 <= send control;
 #X text 246 386 messages, f 12;
 #X obj 129 419 pd~ -ninsig 0 -noutsig 2;
-#X text 54 523 You can set the number of audio inputs/outputs with
-the -nsinsig and -noutsig flags \, which will change the number of
-inlets/outlets and will communicate internally with [adc~] and [dac~]
-objects. In this example we don't need an audio input so we have "-ninsig
-0" - this still gives us an inlet for sending control messages. The
-first outlet is always a control outlet and gets messages from "stdout"
-objects. Check the subprocess' patch.;
+#X text 54 523 You can set the number of audio inputs/outputs with the -nsinsig and -noutsig flags \, which will change the number of inlets/outlets and will communicate internally with [adc~] and [dac~] objects. In this example we don't need an audio input so we have "-ninsig 0" - this still gives us an inlet for sending control messages. The first outlet is always a control outlet and gets messages from "stdout" objects. Check the subprocess' patch.;
 #X text 56 654 Check [pd~]'s help file for more details.;
 #X connect 1 0 2 0;
 #X connect 3 0 18 0;

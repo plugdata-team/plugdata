@@ -25,9 +25,9 @@
 #X floatatom 100 356 5 0 0 0 - - - 0;
 #X text 30 100 Let's take again the example of the Bohlen-Pierce scale.
 Since its scale step (about 146 cents) is larger than a semitone (100
-cents) \, eventually two adjacent picthes will approximate to the same
+cents) \, eventually two adjacent pitches will approximate to the same
 pitch. Another issue is if we divide an octave by 13 steps \, since
-the steps are smaller \, one steps eventually cannot be approximated.
+the steps are smaller \, one step eventually cannot be approximated.
 With [retune] \, each incoming pitch retunes to a corresponding scale
 step., f 59;
 #X text 30 24 The [retune] object from ELSE is a bit different than

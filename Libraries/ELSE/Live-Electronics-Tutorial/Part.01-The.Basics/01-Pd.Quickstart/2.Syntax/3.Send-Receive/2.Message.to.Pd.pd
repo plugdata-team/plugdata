@@ -16,13 +16,13 @@
 #X obj 86 202 s pd;
 #X text 57 379 Turn the DSP on \, so we can get values from the gray
 slider above and use it to control the volume of an oscillator by converting
-it to a signal with [line~] object, f 43;
+it to a signal with a [line~] object, f 43;
 #X obj 219 187 r pd-dsp-started;
 #X obj 219 212 bng 15 250 50 0 empty empty empty 17 7 0 10 #fcfcfc
 #000000 #000000;
 #X text 47 14 You can also send messages to Pd \, like the “dsp 1”
 and “dsp 0” messages that \, respectively \, turn the DSP engine
-on and off. You can also receive messages from Pd \, such as a bag
+on and off. You can also receive messages from Pd \, such as a bang
 when you turn the DSP on with 'pd-dsp-started'., f 50;
 #X obj 159 349 hsl 128 15 0 0.1 0 0 slider empty empty -2 -8 0 10 #dfdfdf
 #000000 #000000 0 1;

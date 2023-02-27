@@ -1,4 +1,4 @@
-#N canvas 702 101 569 645 12;
+#N canvas 501 23 569 645 12;
 #X obj 182 428 mtof;
 #X obj 50 46 inlet;
 #X obj 319 517 *~;
@@ -53,10 +53,7 @@
 #X obj 253 249 dollsym 1;
 #X obj 89 304 text get;
 #X obj 253 220 initmess symbol \\\$0-chords;
-#X text 195 104 [dollsym] allows us to get the value of \$0 from the
-parent. We use it to set the [text] name and receive names. For the
-receive names \, we also need [receiver] from ELSE to be able to set
-the receive name., f 47;
+#X text 195 104 [dollsym] allows us to get the value of \$0 from the parent. We use it to set the [text] name and receive names. For the receive names \, we also need [receiver] from ELSE to be able to set the receive name., f 47;
 #X connect 0 0 7 0;
 #X connect 1 0 20 0;
 #X connect 2 0 4 1;

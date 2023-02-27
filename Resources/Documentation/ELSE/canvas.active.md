@@ -12,6 +12,9 @@ arguments:
 - type: float
   description: depth
   default: 0 - current window
+flags:
+  - name: -name
+    description: sets to name mode
 inlets:
 outlets:
   1st:

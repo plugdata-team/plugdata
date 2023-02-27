@@ -3,7 +3,7 @@
 #X text 61 74 When you name a patch with the same name as the abstraction
 and add "-help" at the end \, this file works as a help file for the
 abstraction., f 50;
-#X text 61 36 This is an example on how to make help file for abstractions!
+#X text 61 36 This is an example on how to make help files for abstractions!
 , f 50;
 #X text 61 128 Same is usually true for compiled objects \, because
 by default \, Pd searches for a file with the same name as the object

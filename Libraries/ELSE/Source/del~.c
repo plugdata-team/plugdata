@@ -318,18 +318,19 @@ static void *del_out_new(t_symbol *s, int ac, t_atom *av){
 
 // ----------------------- global setup ----------------
 static void *del_new(t_symbol *s, int ac, t_atom *av){
+    t_pd *newest = pd_newest();
     if(!ac)
-        pd_this->pd_newest = del_in_new(s, ac, av);
+        newest = del_in_new(s, ac, av);
     else{
         t_symbol *s2 = av[0].a_w.w_symbol;
         if(s2 == gensym("in"))
-            pd_this->pd_newest = del_in_new(s, ac-1, av+1);
+            newest = del_in_new(s, ac-1, av+1);
         else if(s2 == gensym("out"))
-            pd_this->pd_newest = del_out_new(s, ac-1, av+1);
+            newest = del_out_new(s, ac-1, av+1);
         else
-            pd_this->pd_newest = del_in_new(s, ac, av);
+            newest = del_in_new(s, ac, av);
     }
-    return(pd_this->pd_newest);
+    return(newest);
 }
 
 void del_tilde_setup(void){

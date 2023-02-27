@@ -3,13 +3,9 @@
 #X obj 148 299 *~;
 #X obj 102 86 inlet;
 #X text 79 54 note \, velocity;
-#X obj 166 204 / 127;
-#X obj 166 173 nbx 4 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
-#dcdcdc #000000 #000000 0 256;
-#X obj 102 172 nbx 4 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
-#dcdcdc #000000 #000000 0 256;
-#X obj 359 273 tgl 15 0 empty empty empty 17 7 0 10 #dcdcdc #000000
-#000000 0 1;
+#X obj 166 173 nbx 4 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10 #dcdcdc #000000 #000000 0 256;
+#X obj 102 172 nbx 4 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10 #dcdcdc #000000 #000000 0 256;
+#X obj 359 269 tgl 22 0 empty empty empty 17 7 0 10 #dcdcdc #000000 #000000 0 1;
 #X obj 359 302 switch~;
 #X obj 148 410 outlet~;
 #X obj 390 408 outlet~;
@@ -20,22 +16,20 @@
 #X obj 166 271 else/fader~;
 #X text 294 171 Part of ELSE \; https://github.com/porres/pd-else;
 #X text 296 152 Alexandre Torres Porres (2018);
-#X text 215 91 This is a patch used in conjunction with clone as an
-example in ELSE's documentation, f 43;
+#X text 215 91 This is a patch used in conjunction with clone as an example in ELSE's documentation, f 43;
 #X obj 148 372 else/plate.rev~ 50 0.6 0.25 0.8 0.8;
-#X connect 0 0 11 0;
-#X connect 1 0 13 0;
-#X connect 2 0 12 0;
-#X connect 4 0 14 0;
-#X connect 5 0 4 0;
-#X connect 6 0 0 0;
-#X connect 7 0 8 0;
-#X connect 11 0 1 0;
-#X connect 12 0 6 0;
-#X connect 12 1 5 0;
-#X connect 13 0 19 0;
-#X connect 14 0 15 0;
-#X connect 14 1 7 0;
-#X connect 15 0 1 1;
-#X connect 19 0 9 0;
-#X connect 19 1 10 0;
+#X connect 0 0 10 0;
+#X connect 1 0 12 0;
+#X connect 2 0 11 0;
+#X connect 4 0 13 0;
+#X connect 5 0 0 0;
+#X connect 6 0 7 0;
+#X connect 10 0 1 0;
+#X connect 11 0 5 0;
+#X connect 11 1 4 0;
+#X connect 12 0 18 0;
+#X connect 13 0 14 0;
+#X connect 13 1 6 0;
+#X connect 14 0 1 1;
+#X connect 18 0 8 0;
+#X connect 18 1 9 0;

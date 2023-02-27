@@ -143,7 +143,7 @@
 #X obj 267 440 float2sig~ 50;
 #X text 18 275 See to the right the implementation with [phasor~] objects.
 Modulate the phase with the silders and see the result in the graphs.
-Again \, a phase difference of 0.5 cancells the signal out.;
+Again \, a phase difference of 0.5 cancels the signal out.;
 #X text 370 442 is the same as:;
 #X obj 892 39 declare -path else;
 #N canvas 500 141 631 262 plot 0;
@@ -179,7 +179,7 @@ a single (not continuous) variation of the running phase signal. In
 this example we have two oscillators \, and by modulating their phase
 \, they can come in and out of phase., f 59;
 #X text 18 195 On the other hand \, in this 50 ms period \, we have
-either an ascelleration or desceleration of the angular velocity \,
+either an accelleration or deceleration of the angular velocity \,
 and this promotes a frequency shift within that period \, but the original
 frequency is reestablished when reaching the new phase destination.
 ;
