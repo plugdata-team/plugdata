@@ -125,15 +125,14 @@ void Patch::savePatch()
     instance->reloadAbstractions(currentFile, getPointer());
 }
 
-void Patch::setCurrent(bool lock)
+void Patch::setCurrent()
 {
     instance->setThis();
 
     if (!getPointer())
         return;
 
-    if (lock)
-        instance->lockAudioThread();
+    instance->lockAudioThread();
 
     canvas_setcurrent(getPointer());
 
@@ -146,8 +145,7 @@ void Patch::setCurrent(bool lock)
     canvas_create_editor(getPointer()); // can't hurt to make sure of this!
     canvas_unsetcurrent(getPointer());
 
-    if (lock)
-        instance->unlockAudioThread();
+    instance->unlockAudioThread();
 }
 
 int Patch::getIndex(void* obj)

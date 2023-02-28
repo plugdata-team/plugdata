@@ -202,7 +202,7 @@ void Canvas::synchronise(bool updatePosition)
 {
     pd->waitForStateUpdate();
 
-    patch.setCurrent(true);
+    patch.setCurrent();
 
     auto pdObjects = patch.getObjects();
     auto isObjectDeprecated = [&](void* obj) {

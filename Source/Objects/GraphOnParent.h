@@ -171,7 +171,7 @@ public:
             canvas = std::make_unique<Canvas>(cnv->editor, subpatch, this);
 
             // Make sure that the graph doesn't become the current canvas
-            cnv->patch.setCurrent(true);
+            cnv->patch.setCurrent();
             cnv->editor->updateCommandStatus();
         }
 
