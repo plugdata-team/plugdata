@@ -1133,22 +1133,25 @@ public:
     explicit DAWAudioSettings(AudioProcessor* p)
         : processor(p)
     {
+        auto settingsTree = SettingsFile::getInstance()->getValueTree();
+        nativeDialogValue.referTo(settingsTree.getPropertyAsValue("NativeDialog", nullptr));
+        
+        nativeDialogToggle = std::make_unique<PropertiesPanel::BoolComponent>("Use system dialog", nativeDialogValue, std::vector<String>{ "No", "Yes" });
+        
         addAndMakeVisible(latencyNumberBox);
         addAndMakeVisible(tailLengthNumberBox);
-        addAndMakeVisible(nativeDialogToggle);
+        addAndMakeVisible(*nativeDialogToggle);
 
         dynamic_cast<DraggableNumber*>(latencyNumberBox.label.get())->setMinimum(64);
 
         auto* proc = dynamic_cast<PluginProcessor*>(processor);
-        auto settingsTree = SettingsFile::getInstance()->getValueTree();
 
         if (!settingsTree.hasProperty("NativeDialog")) {
             settingsTree.setProperty("NativeDialog", true, nullptr);
         }
-
+        
         tailLengthValue.referTo(proc->tailLength);
-        nativeDialogValue.referTo(settingsTree.getPropertyAsValue("NativeDialog", nullptr));
-
+       
         tailLengthValue.addListener(this);
         latencyValue.addListener(this);
         nativeDialogValue.addListener(this);
@@ -1161,7 +1164,7 @@ public:
         auto bounds = getLocalBounds();
         latencyNumberBox.setBounds(bounds.removeFromTop(23));
         tailLengthNumberBox.setBounds(bounds.removeFromTop(23));
-        nativeDialogToggle.setBounds(bounds.removeFromTop(23));
+        nativeDialogToggle->setBounds(bounds.removeFromTop(23));
     }
 
     void valueChanged(Value& v) override
@@ -1179,7 +1182,8 @@ public:
 
     PropertiesPanel::EditableComponent<int> latencyNumberBox = PropertiesPanel::EditableComponent<int>("Latency (samples)", latencyValue);
     PropertiesPanel::EditableComponent<float> tailLengthNumberBox = PropertiesPanel::EditableComponent<float>("Tail length (seconds)", tailLengthValue);
-    PropertiesPanel::BoolComponent nativeDialogToggle = PropertiesPanel::BoolComponent("Use system dialog", nativeDialogValue, { "No", "Yes" });
+    
+    std::unique_ptr<PropertiesPanel::BoolComponent> nativeDialogToggle;
 };
 
 #endif
