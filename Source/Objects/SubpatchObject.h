@@ -89,14 +89,34 @@ public:
         return { { "Is graph", tBool, cGeneral, &isGraphChild, { "No", "Yes" } }, { "Hide name and arguments", tBool, cGeneral, &hideNameAndArgs, { "No", "Yes" } } };
     };
 
+    void checkGraphState()
+    {
+        int isGraph = static_cast<bool>(isGraphChild.getValue());
+        int hideText = static_cast<bool>(hideNameAndArgs.getValue());
+        
+        canvas_setgraph(static_cast<t_glist*>(ptr), isGraph + 2 * hideText, 0);
+        repaint();
+
+        
+        
+        MessageManager::callAsync([this, _this = SafePointer(this)](){
+            
+            if(!_this) return;
+            
+            // Change from subpatch to graph
+            if (static_cast<t_canvas*>(ptr)->gl_isgraph) {
+                cnv->setSelected(object, false);
+                object->cnv->editor->sidebar.hideParameters();
+                object->setType(getText(), ptr);
+                return;
+            }
+        });
+    }
+    
     void valueChanged(Value& v) override
     {
-        if (v.refersToSameSourceAs(isGraphChild)) {
-            subpatch.getPointer()->gl_isgraph = static_cast<bool>(isGraphChild.getValue());
-            updateValue();
-        } else if (v.refersToSameSourceAs(hideNameAndArgs)) {
-            subpatch.getPointer()->gl_hidetext = static_cast<bool>(hideNameAndArgs.getValue());
-            repaint();
+        if (v.refersToSameSourceAs(isGraphChild) || v.refersToSameSourceAs(hideNameAndArgs)) {
+            checkGraphState();
         } else if (v.refersToSameSourceAs(object->hvccMode)) {
             if (static_cast<bool>(v.getValue())) {
                 checkHvccCompatibility(subpatch);

@@ -505,7 +505,8 @@ t_pd* libpd_creategraphonparent(t_canvas* cnv, int x, int y)
     glist_noselect(cnv);
 
     t_pd* result = libpd_newest(cnv);
-    ((t_glist*)result)->gl_hidetext = 1;
+    ((t_glist*)result)->gl_hidetext = 2;
+    ((t_glist*)result)->gl_loading = 0;
 
     canvas_dirty(cnv, 1);
     

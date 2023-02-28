@@ -16,6 +16,11 @@
 #include "Utility/GraphArea.h"
 #include "Utility/RateReducer.h"
 
+extern "C"
+{
+void canvas_setgraph(t_glist *x, int flag, int nogoprect);
+}
+
 Canvas::Canvas(PluginEditor* parent, pd::Patch& p, Component* parentGraph)
     : editor(parent)
     , pd(parent->pd)
@@ -1087,10 +1092,14 @@ void Canvas::valueChanged(Value& v)
     else if (v.refersToSameSourceAs(presentationMode)) {
         deselectAll();
         commandLocked.setValue(presentationMode.getValue());
-    } else if (v.refersToSameSourceAs(isGraphChild)) {
-        patch.getPointer()->gl_isgraph = static_cast<bool>(isGraphChild.getValue());
+    } else if (v.refersToSameSourceAs(isGraphChild) || v.refersToSameSourceAs(hideNameAndArgs)) {
+        
+        int graphChild = static_cast<bool>(isGraphChild.getValue());
+        int hideText = static_cast<bool>(hideNameAndArgs.getValue());
+        
+        canvas_setgraph(patch.getPointer(), isGraph + 2 * hideText, 0);
 
-        if (static_cast<bool>(isGraphChild.getValue()) && !isGraph) {
+        if (graphChild && !isGraph) {
             graphArea = new GraphArea(this);
             addAndMakeVisible(graphArea);
             graphArea->setAlwaysOnTop(true);
@@ -1099,11 +1108,10 @@ void Canvas::valueChanged(Value& v)
             delete graphArea;
             graphArea = nullptr;
         }
+        
         repaint();
-    } else if (v.refersToSameSourceAs(hideNameAndArgs)) {
-        patch.getPointer()->gl_hidetext = static_cast<bool>(hideNameAndArgs.getValue());
-        repaint();
-    } else if (v.refersToSameSourceAs(xRange)) {
+    }
+    else if (v.refersToSameSourceAs(xRange)) {
         auto* glist = patch.getPointer();
         glist->gl_x1 = static_cast<float>(xRange.getValue().getArray()->getReference(0));
         glist->gl_x2 = static_cast<float>(xRange.getValue().getArray()->getReference(1));

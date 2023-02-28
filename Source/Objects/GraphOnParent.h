@@ -183,18 +183,6 @@ public:
         canvas->locked.referTo(cnv->locked);
     }
 
-    void updateValue()
-    {
-        // Change from subpatch to graph
-        if (!static_cast<t_canvas*>(ptr)->gl_isgraph) {
-            cnv->setSelected(object, false);
-            object->cnv->editor->sidebar.hideParameters();
-            object->setType(getText(), ptr);
-            return;
-        }
-
-        updateCanvas();
-    }
 
     void updateDrawables() override
     {
@@ -257,16 +245,38 @@ public:
             { "X range", tRange, cGeneral, &xRange, {} },
             { "Y range", tRange, cGeneral, &yRange, {} } };
     };
+    
+    
+    void checkGraphState()
+    {
+        int isGraph = static_cast<bool>(isGraphChild.getValue());
+        int hideText = static_cast<bool>(hideNameAndArgs.getValue());
+        
+        canvas_setgraph(static_cast<t_glist*>(ptr), isGraph + 2 * hideText, 0);
+        repaint();
+        
+        MessageManager::callAsync([this, _this = SafePointer(this)](){
+            
+            if(!_this) return;
+            
+            // Change from graph to subpatch
+            if (!static_cast<t_canvas*>(ptr)->gl_isgraph) {
+                cnv->setSelected(object, false);
+                object->cnv->editor->sidebar.hideParameters();
+                object->setType(getText(), ptr);
+                return;
+            }
+
+            updateCanvas();
+        });
+    }
 
     void valueChanged(Value& v) override
     {
-        if (v.refersToSameSourceAs(isGraphChild)) {
-            subpatch.getPointer()->gl_isgraph = static_cast<bool>(isGraphChild.getValue());
-            updateValue();
-        } else if (v.refersToSameSourceAs(hideNameAndArgs)) {
-            subpatch.getPointer()->gl_hidetext = static_cast<bool>(hideNameAndArgs.getValue());
-            repaint();
-        } else if (v.refersToSameSourceAs(xRange)) {
+        if (v.refersToSameSourceAs(isGraphChild) || v.refersToSameSourceAs(hideNameAndArgs)) {
+            checkGraphState();
+        }
+        else if (v.refersToSameSourceAs(xRange)) {
             auto* glist = static_cast<t_canvas*>(ptr);
             glist->gl_x1 = static_cast<float>(xRange.getValue().getArray()->getReference(0));
             glist->gl_x2 = static_cast<float>(xRange.getValue().getArray()->getReference(1));
