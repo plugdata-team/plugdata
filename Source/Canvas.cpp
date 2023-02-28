@@ -1540,6 +1540,11 @@ void Canvas::receiveMessage(String const& symbol, int argc, t_atom* argv)
                 _this->synchronise();
                 break;
             }
+            case hash("donecanvasdialog"):
+            {
+                _this->synchronise();
+                break;
+            }
         }
     });
 }
