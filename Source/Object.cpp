@@ -198,8 +198,8 @@ void Object::mouseMove(MouseEvent const& e)
 
     resizeZone = ResizableBorderComponent::Zone::fromPositionOnBorder(getLocalBounds().reduced(margin - 2), BorderSize<int>(5), Point<int>(e.x, e.y));
 
-    validResizeZone = resizeZone.getZoneFlags() != ResizableBorderComponent::Zone::centre;
-
+    validResizeZone = resizeZone.getZoneFlags() != ResizableBorderComponent::Zone::centre && e.originalComponent == this;
+    
     setMouseCursor(validResizeZone ? resizeZone.getMouseCursor() : MouseCursor::NormalCursor);
     updateMouseCursor();
 }
@@ -715,10 +715,7 @@ void Object::mouseDrag(MouseEvent const& e)
     if (e.mods.isMiddleButtonDown())
         return;
 
-    // Let canvas handle moving
-    if (resizeZone.isDraggingWholeObject()) {
-        cnv->objectMouseDrag(e);
-    } else if (validResizeZone && !originalBounds.isEmpty()) {
+    if (validResizeZone && !originalBounds.isEmpty()) {
 
         auto draggedBounds = resizeZone.resizeRectangleBy(originalBounds, e.getOffsetFromDragStart());
         auto dragDistance = cnv->objectGrid.performResize(this, e.getOffsetFromDragStart(), draggedBounds);
@@ -739,6 +736,9 @@ void Object::mouseDrag(MouseEvent const& e)
         }
 
         wasResized = true;
+    }
+    else {
+        cnv->objectMouseDrag(e);
     }
 }
 

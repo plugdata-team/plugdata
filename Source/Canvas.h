@@ -26,7 +26,9 @@ class Canvas : public Component
     , public Value::Listener
     , public LassoSource<WeakReference<Component>>
     , public ModifierKeyListener
-    , public FocusChangeListener {
+    , public FocusChangeListener
+    , public pd::MessageListener
+{
 public:
     Canvas(PluginEditor* parent, pd::Patch& patch, Component* parentGraph = nullptr);
 
@@ -105,6 +107,8 @@ public:
     static bool panningModifierDown();
 
     ObjectParameters& getInspectorParameters();
+    
+    void receiveMessage(String const& symbol, int argc, t_atom* argv) override;
 
     template<typename T>
     Array<T*> getSelectionOfType()

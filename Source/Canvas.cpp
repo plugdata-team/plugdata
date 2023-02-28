@@ -32,6 +32,8 @@ Canvas::Canvas(PluginEditor* parent, pd::Patch& p, Component* parentGraph)
     xRange = Array<var> { var(p.getPointer()->gl_x1), var(p.getPointer()->gl_x2) };
     yRange = Array<var> { var(p.getPointer()->gl_y2), var(p.getPointer()->gl_y1) };
 
+    pd->registerMessageListener(patch.getPointer(), this);
+
     isGraphChild.addListener(this);
     hideNameAndArgs.addListener(this);
     xRange.addListener(this);
@@ -108,6 +110,8 @@ Canvas::Canvas(PluginEditor* parent, pd::Patch& p, Component* parentGraph)
 
 Canvas::~Canvas()
 {
+    pd->unregisterMessageListener(patch.getPointer(), this);
+    
     Desktop::getInstance().removeFocusChangeListener(this);
 
     delete graphArea;
@@ -185,9 +189,6 @@ void Canvas::tabChanged()
     for (auto* obj : objects) {
         if (!obj->gui)
             continue;
-
-        if (auto* graphCnv = obj->gui->getCanvas())
-            graphCnv->synchronise();
 
         obj->gui->tabChanged();
     }
@@ -1525,4 +1526,20 @@ ObjectParameters& Canvas::getInspectorParameters()
 bool Canvas::panningModifierDown()
 {
     return KeyPress::isKeyCurrentlyDown(KeyPress::spaceKey) || ModifierKeys::getCurrentModifiersRealtime().isMiddleButtonDown();
+}
+
+void Canvas::receiveMessage(String const& symbol, int argc, t_atom* argv)
+{
+    auto atoms = pd::Atom::fromAtoms(argc, argv);
+    MessageManager::callAsync([_this = SafePointer(this), symbol, atoms]() mutable {
+        if (!_this) return;
+        
+        switch (hash(symbol)) {
+            case hash("clear"):
+            {
+                _this->synchronise();
+                break;
+            }
+        }
+    });
 }
