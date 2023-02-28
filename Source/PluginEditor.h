@@ -302,7 +302,7 @@ const std::map<ObjectIDs, String> objectNames {
     { NewPhasor, "phasor~ 1" },
     { NewRamp, "ramp~ 0.1 0 1 0" },
     { NewSah, "sah~ 0.5" },
-    { NewSignalSlider, "slider~" },
+    { NewSignalSlider, "slide~ 41 41" },
     { NewVline, "vline~" },
 
     { NewLop, "lop~ 100" },
