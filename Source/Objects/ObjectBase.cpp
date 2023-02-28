@@ -7,6 +7,9 @@
 #include "ObjectBase.h"
 
 extern "C" {
+
+void canvas_setgraph(t_glist *x, int flag, int nogoprect);
+
 #include <m_pd.h>
 #include <g_canvas.h>
 #include <m_imp.h>
