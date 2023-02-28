@@ -1134,6 +1134,12 @@ public:
         : processor(p)
     {
         auto settingsTree = SettingsFile::getInstance()->getValueTree();
+        
+        
+        if (!settingsTree.hasProperty("NativeDialog")) {
+            settingsTree.setProperty("NativeDialog", true, nullptr);
+        }
+        
         nativeDialogValue.referTo(settingsTree.getPropertyAsValue("NativeDialog", nullptr));
         
         nativeDialogToggle = std::make_unique<PropertiesPanel::BoolComponent>("Use system dialog", nativeDialogValue, std::vector<String>{ "No", "Yes" });
@@ -1146,10 +1152,6 @@ public:
 
         auto* proc = dynamic_cast<PluginProcessor*>(processor);
 
-        if (!settingsTree.hasProperty("NativeDialog")) {
-            settingsTree.setProperty("NativeDialog", true, nullptr);
-        }
-        
         tailLengthValue.referTo(proc->tailLength);
        
         tailLengthValue.addListener(this);
