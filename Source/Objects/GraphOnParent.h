@@ -146,6 +146,7 @@ public:
             isOpenedInSplitView = false;
         }
 
+        updateCanvas();
         repaint();
     }
 
@@ -175,6 +176,7 @@ public:
             cnv->editor->updateCommandStatus();
         }
 
+        canvas->synchronise();
         canvas->checkBounds();
 
         auto b = getPatch()->getBounds() + canvas->canvasOrigin;
