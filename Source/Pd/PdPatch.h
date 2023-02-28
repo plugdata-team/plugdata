@@ -68,7 +68,7 @@ public:
         Move
     };
 
-    void setCurrent(bool lock = false);
+    void setCurrent();
 
     bool isDirty() const;
 

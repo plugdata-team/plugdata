@@ -496,9 +496,10 @@ t_pd* libpd_creategraphonparent(t_canvas* cnv, int x, int y)
     SETFLOAT(argv + 8, py2);
 
     sys_lock();
-    //canvas_setcurrent(cnv);
+    canvas_setcurrent(cnv);
     pd_typedmess((t_pd*)cnv, gensym("graph"), argc, argv);
-    //canvas_unsetcurrent(cnv);
+    pd_popsym(s__X.s_thing);
+    canvas_unsetcurrent(cnv);
     sys_unlock();
 
     glist_noselect(cnv);
