@@ -199,7 +199,7 @@ void Object::mouseMove(MouseEvent const& e)
     resizeZone = ResizableBorderComponent::Zone::fromPositionOnBorder(getLocalBounds().reduced(margin - 2), BorderSize<int>(5), Point<int>(e.x, e.y));
 
     validResizeZone = resizeZone.getZoneFlags() != ResizableBorderComponent::Zone::centre && e.originalComponent == this;
-    
+
     setMouseCursor(validResizeZone ? resizeZone.getMouseCursor() : MouseCursor::NormalCursor);
     updateMouseCursor();
 }
@@ -736,8 +736,7 @@ void Object::mouseDrag(MouseEvent const& e)
         }
 
         wasResized = true;
-    }
-    else {
+    } else {
         cnv->objectMouseDrag(e);
     }
 }

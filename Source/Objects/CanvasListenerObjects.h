@@ -70,15 +70,16 @@ class CanvasMouseObject final : public TextBase {
     };
 
     Canvas* canvas;
+
 public:
     CanvasMouseObject(void* ptr, Object* object)
         : TextBase(ptr, object)
     {
         locked = static_cast<float>(cnv->locked.getValue());
         setInterceptsMouseClicks(false, false);
-        
+
         canvas = cnv;
-        
+
         // TODO: implement depth argument!
         cnv->addMouseListener(this, true);
     }
@@ -90,8 +91,9 @@ public:
 
     void mouseDown(MouseEvent const& e) override
     {
-        if(!locked) return;
-        
+        if (!locked)
+            return;
+
         auto pos = e.getPosition();
         auto* mouse = static_cast<t_fake_canvas_mouse*>(ptr);
 
@@ -102,19 +104,21 @@ public:
 
     void mouseUp(MouseEvent const& e) override
     {
-        if(!locked) return;
-        
+        if (!locked)
+            return;
+
         auto* mouse = static_cast<t_fake_canvas_mouse*>(ptr);
         outlet_float(mouse->x_obj.ob_outlet, 0.0f);
     }
 
     void mouseMove(MouseEvent const& e) override
     {
-        if(!locked) return;
-        
+        if (!locked)
+            return;
+
         auto pos = e.getPosition();
         auto* mouse = static_cast<t_fake_canvas_mouse*>(ptr);
-       
+
         outlet_float(mouse->x_outlet_y, (float)pos.y);
         outlet_float(mouse->x_outlet_x, (float)pos.x);
     }
@@ -123,12 +127,12 @@ public:
     {
         mouseMove(e);
     }
-    
+
     void lock(bool isLocked) override
     {
         locked = isLocked;
     }
-    
+
     bool locked;
 };
 

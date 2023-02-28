@@ -16,9 +16,8 @@
 #include "Utility/GraphArea.h"
 #include "Utility/RateReducer.h"
 
-extern "C"
-{
-void canvas_setgraph(t_glist *x, int flag, int nogoprect);
+extern "C" {
+void canvas_setgraph(t_glist* x, int flag, int nogoprect);
 }
 
 Canvas::Canvas(PluginEditor* parent, pd::Patch& p, Component* parentGraph)
@@ -111,7 +110,7 @@ Canvas::Canvas(PluginEditor* parent, pd::Patch& p, Component* parentGraph)
 Canvas::~Canvas()
 {
     pd->unregisterMessageListener(patch.getPointer(), this);
-    
+
     Desktop::getInstance().removeFocusChangeListener(this);
 
     delete graphArea;
@@ -1094,10 +1093,10 @@ void Canvas::valueChanged(Value& v)
         deselectAll();
         commandLocked.setValue(presentationMode.getValue());
     } else if (v.refersToSameSourceAs(isGraphChild) || v.refersToSameSourceAs(hideNameAndArgs)) {
-        
+
         int graphChild = static_cast<bool>(isGraphChild.getValue());
         int hideText = static_cast<bool>(hideNameAndArgs.getValue());
-        
+
         canvas_setgraph(patch.getPointer(), isGraph + 2 * hideText, 0);
 
         if (graphChild && !isGraph) {
@@ -1109,10 +1108,9 @@ void Canvas::valueChanged(Value& v)
             delete graphArea;
             graphArea = nullptr;
         }
-        
+
         repaint();
-    }
-    else if (v.refersToSameSourceAs(xRange)) {
+    } else if (v.refersToSameSourceAs(xRange)) {
         auto* glist = patch.getPointer();
         glist->gl_x1 = static_cast<float>(xRange.getValue().getArray()->getReference(0));
         glist->gl_x2 = static_cast<float>(xRange.getValue().getArray()->getReference(1));
@@ -1532,19 +1530,18 @@ void Canvas::receiveMessage(String const& symbol, int argc, t_atom* argv)
 {
     auto atoms = pd::Atom::fromAtoms(argc, argv);
     MessageManager::callAsync([_this = SafePointer(this), symbol, atoms]() mutable {
-        if (!_this) return;
-        
+        if (!_this)
+            return;
+
         switch (hash(symbol)) {
-            case hash("clear"):
-            {
-                _this->synchronise();
-                break;
-            }
-            case hash("donecanvasdialog"):
-            {
-                _this->synchronise();
-                break;
-            }
+        case hash("clear"): {
+            _this->synchronise();
+            break;
+        }
+        case hash("donecanvasdialog"): {
+            _this->synchronise();
+            break;
+        }
         }
     });
 }

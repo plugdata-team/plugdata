@@ -93,16 +93,16 @@ public:
             alreadyToggled = true;
         }
     }
-    
+
     void sendToggleValue(bool newValue)
     {
         t_atom atom;
         SETFLOAT(&atom, newValue);
         pd_typedmess(static_cast<t_pd*>(ptr), pd->generateSymbol("set"), 1, &atom);
-        
+
         auto* iem = static_cast<t_iemgui*>(ptr);
         outlet_float(iem->x_obj.ob_outlet, newValue);
-        if(iem->x_fsf.x_snd_able && iem->x_snd->s_thing)
+        if (iem->x_fsf.x_snd_able && iem->x_snd->s_thing)
             pd_float(iem->x_snd->s_thing, newValue);
     }
 
