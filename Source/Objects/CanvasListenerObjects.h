@@ -69,14 +69,17 @@ class CanvasMouseObject final : public TextBase {
         int x_y;
     };
 
-    bool lastFocus = 0;
-
+    Canvas* canvas;
 public:
     CanvasMouseObject(void* ptr, Object* object)
         : TextBase(ptr, object)
     {
-        lastFocus = cnv->hasKeyboardFocus(true);
+        locked = static_cast<float>(cnv->locked.getValue());
         setInterceptsMouseClicks(false, false);
+        
+        canvas = cnv;
+        
+        // TODO: implement depth argument!
         cnv->addMouseListener(this, true);
     }
 
@@ -87,33 +90,46 @@ public:
 
     void mouseDown(MouseEvent const& e) override
     {
+        if(!locked) return;
+        
         auto pos = e.getPosition();
         auto* mouse = static_cast<t_fake_canvas_mouse*>(ptr);
 
-        outlet_float(mouse->x_outlet_y, (float)pos.x);
-        outlet_float(mouse->x_outlet_x, getHeight() - (float)pos.y);
+        outlet_float(mouse->x_outlet_y, (float)pos.y);
+        outlet_float(mouse->x_outlet_x, (float)pos.x);
         outlet_float(mouse->x_obj.ob_outlet, 1.0);
     }
 
     void mouseUp(MouseEvent const& e) override
     {
+        if(!locked) return;
+        
         auto* mouse = static_cast<t_fake_canvas_mouse*>(ptr);
         outlet_float(mouse->x_obj.ob_outlet, 0.0f);
     }
 
     void mouseMove(MouseEvent const& e) override
     {
+        if(!locked) return;
+        
         auto pos = e.getPosition();
         auto* mouse = static_cast<t_fake_canvas_mouse*>(ptr);
-
-        outlet_float(mouse->x_outlet_y, (float)pos.x);
-        outlet_float(mouse->x_outlet_x, getHeight() - (float)pos.y);
+       
+        outlet_float(mouse->x_outlet_y, (float)pos.y);
+        outlet_float(mouse->x_outlet_x, (float)pos.x);
     }
 
     void mouseDrag(MouseEvent const& e) override
     {
         mouseMove(e);
     }
+    
+    void lock(bool isLocked) override
+    {
+        locked = isLocked;
+    }
+    
+    bool locked;
 };
 
 class CanvasVisibleObject final : public TextBase
