@@ -1179,7 +1179,7 @@ public:
 
     PropertiesPanel::EditableComponent<int> latencyNumberBox = PropertiesPanel::EditableComponent<int>("Latency (samples)", latencyValue);
     PropertiesPanel::EditableComponent<float> tailLengthNumberBox = PropertiesPanel::EditableComponent<float>("Tail length (seconds)", tailLengthValue);
-    PropertiesPanel::BoolComponent nativeDialogToggle = PropertiesPanel::BoolComponent("Use system dialog", tailLengthValue, { "No", "Yes" });
+    PropertiesPanel::BoolComponent nativeDialogToggle = PropertiesPanel::BoolComponent("Use system dialog", nativeDialogValue, { "No", "Yes" });
 };
 
 #endif
