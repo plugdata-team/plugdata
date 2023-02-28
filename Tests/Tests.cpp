@@ -20,7 +20,7 @@ extern juce::JUCEApplicationBase* juce_CreateApplication();
                          juce::ScopedJuceInitialiser_GUI gui; \
                          PlugDataApp app; \
                          app.initialise(""); \
-                         auto editor = dynamic_cast<PlugDataPluginEditor*>(app.getWindow()->getContentComponent()->getChildComponent(0))
+                         auto editor = dynamic_cast<PluginEditor*>(app.getWindow()->getContentComponent()->getChildComponent(0))
 
 // On Mac, restarting the message manager causes a problem with the NSEvent loop
 // I've fixed this with some obj-c++ code
@@ -42,7 +42,7 @@ TEST_CASE("Plugin instance name", "[name]")
 {
     StartApplication;
     
-    CHECK_THAT(editor->pd.getName().toStdString(),
+    CHECK_THAT(editor->pd->getName().toStdString(),
                Catch::Matchers::Equals("PlugData"));
     
     StopApplicationAfter(500);
