@@ -11,7 +11,7 @@
 #include "LookAndFeel.h"
 
 Iolet::Iolet(Object* parent, bool inlet)
-    : object(parent)
+    : object(parent), insideGraph(parent->cnv->isGraph)
 {
     isInlet = inlet;
     setSize(8, 8);
@@ -30,7 +30,7 @@ Iolet::Iolet(Object* parent, bool inlet)
     setInterceptsMouseClicks(!isLocked, true);
 
     bool isPresenting = static_cast<bool>(presentationMode.getValue());
-    setVisible(!isPresenting && !object->cnv->isGraph);
+    setVisible(!isPresenting && !insideGraph);
 
     // Drawing cirles is more expensive than you might think, especially because there can be a lot of iolets!
     setBufferedToImage(true);
@@ -444,7 +444,14 @@ void Iolet::valueChanged(Value& v)
         repaint();
     }
     if (v.refersToSameSourceAs(presentationMode)) {
-        setVisible(!static_cast<bool>(presentationMode.getValue()) && !object->cnv->isGraph);
+        setVisible(!static_cast<bool>(presentationMode.getValue()) && !insideGraph && !hideIolet);
         repaint();
     }
+}
+
+
+void Iolet::setHidden(bool hidden) {
+    hideIolet = hidden;
+    setVisible(!static_cast<bool>(presentationMode.getValue()) && !insideGraph && !hideIolet);
+    repaint();
 }
