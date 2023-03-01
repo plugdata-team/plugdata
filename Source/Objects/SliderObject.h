@@ -202,6 +202,13 @@ public:
             break;
         }
         }
+        
+        // Update the colours of the actual slider
+        if(hash(symbol) == hash("color"))
+        {
+            getLookAndFeel().setColour(Slider::backgroundColourId, Colour::fromString(iemHelper.secondaryColour.toString()));
+            getLookAndFeel().setColour(Slider::trackColourId, Colour::fromString(iemHelper.primaryColour.toString()));
+        }
     }
 
     void paint(Graphics& g) override

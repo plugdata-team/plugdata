@@ -58,7 +58,7 @@ Patch::~Patch()
     // Only close the patch if this is a top-level patch
     // Otherwise, this is a subpatcher and it will get cleaned up by Pd
     // when the object is deleted
-    if (closePatchOnDelete) {
+    if (closePatchOnDelete && ptr && instance) {
         instance->setThis();
         libpd_closefile(ptr);
     }
