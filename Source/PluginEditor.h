@@ -466,6 +466,7 @@ public:
 
     void addTab(Canvas* cnv);
     void closeTab(Canvas* cnv);
+    void closeAllTabs();
 
     Canvas* getCurrentCanvas();
 
