@@ -11,6 +11,7 @@
 #include "PluginEditor.h"
 
 #include "LookAndFeel.h"
+#include "Palettes.h"
 
 #include "Canvas.h"
 #include "Connection.h"
@@ -49,7 +50,7 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     addObjectMenuButton.setButtonText(Icons::Add);
     hideSidebarButton.setButtonText(Icons::Hide);
     pinButton.setButtonText(Icons::Pin);
-
+    
     setResizable(true, false);
 
     // In the standalone, the resizer handling is done on the window class
@@ -102,6 +103,9 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     splitZoomScale.referTo(settingsFile->getPropertyAsValue("split_zoom"));
     splitZoomScale.addListener(this);
 
+    palettes = std::make_unique<Palettes>(this);
+    
+    addAndMakeVisible(*palettes);
     addAndMakeVisible(statusbar);
     addAndMakeVisible(splitView);
     addAndMakeVisible(sidebar);
@@ -254,7 +258,11 @@ void PluginEditor::paintOverChildren(Graphics& g)
 
 void PluginEditor::resized()
 {
-    splitView.setBounds(0, toolbarHeight, (getWidth() - sidebar.getWidth()) + 1, getHeight() - toolbarHeight - (statusbar.getHeight()));
+    palettes->setBounds(getLocalBounds().removeFromLeft(300).withTrimmedTop(toolbarHeight).withTrimmedBottom(statusbar.getHeight()));
+    
+    auto paletteWidth = palettes->isExpanded() ? palettes->getWidth() : 26;
+    
+    splitView.setBounds(paletteWidth, toolbarHeight, (getWidth() - sidebar.getWidth() - paletteWidth) + 1, getHeight() - toolbarHeight - (statusbar.getHeight()));
     sidebar.setBounds(getWidth() - sidebar.getWidth(), toolbarHeight, sidebar.getWidth(), getHeight() - toolbarHeight);
     statusbar.setBounds(0, getHeight() - statusbar.getHeight(), getWidth() - sidebar.getWidth(), statusbar.getHeight());
 

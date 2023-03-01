@@ -423,6 +423,7 @@ class WelcomeButton;
 class Canvas;
 class TabComponent;
 class PluginProcessor;
+class Palettes;
 class PluginEditor : public AudioProcessorEditor
     , public Value::Listener
     , public ApplicationCommandTarget
@@ -519,6 +520,8 @@ public:
 private:
     std::unique_ptr<FileChooser> saveChooser;
     std::unique_ptr<FileChooser> openChooser;
+        
+    std::unique_ptr<Palettes> palettes;
 
 #ifdef PLUGDATA_STANDALONE
     static constexpr int toolbarHeight = 40;
