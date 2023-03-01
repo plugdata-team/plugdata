@@ -474,6 +474,16 @@ Canvas* PluginEditor::getCurrentCanvas()
     return getActiveTabbar()->getCurrentCanvas();
 }
 
+void PluginEditor::closeAllTabs()
+{
+    bool complete = false;
+    while (!complete) {
+        closeTab(canvases.getFirst());
+        if (canvases.size() == 0)
+            complete = true;
+    }
+}
+
 void PluginEditor::closeTab(Canvas* cnv)
 {
     if (!cnv || !cnv->getTabbar())
@@ -1004,18 +1014,23 @@ void PluginEditor::getCommandInfo(const CommandID commandID, ApplicationCommandI
 
 bool PluginEditor::perform(InvocationInfo const& info)
 {
-    if (info.commandID == CommandIDs::NewProject) {
+    switch(info.commandID) {
+    case CommandIDs::NewProject: {
         newProject();
         return true;
-    } else if (info.commandID == CommandIDs::OpenProject) {
+    }
+    case CommandIDs::OpenProject: {
         openProject();
         return true;
-    } else if (info.commandID == CommandIDs::ShowBrowser) {
+    }
+    case CommandIDs::ShowBrowser: {
         sidebar.showPanel(sidebar.isShowingBrowser() ? 0 : 1);
         return true;
-    } else if (info.commandID == CommandIDs::Search) {
+    }
+    case CommandIDs::Search: {
         sidebar.showPanel(3);
         return true;
+    }
     }
 
     auto* cnv = getCurrentCanvas();
