@@ -7,8 +7,6 @@
 #pragma once
 
 #include <JuceHeader.h>
-// #include <map>
-// #include <utility>
 
 extern "C" {
 #include <z_libpd.h>

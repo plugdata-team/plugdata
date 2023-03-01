@@ -119,13 +119,16 @@ void Dialogs::showMainMenu(PluginEditor* editor, Component* centre)
                 break;
             }
             default: {
-                MessageManager::callAsync([popup]() {
-                    delete popup;
-                });
                 break;
             }
             }
+        
+        
+        MessageManager::callAsync([popup]() {
+            delete popup;
         });
+        });
+
 }
 
 class OkayCancelDialog : public Component {
