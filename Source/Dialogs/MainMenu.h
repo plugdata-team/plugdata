@@ -16,11 +16,11 @@ public:
         addCustomItem(2, zoomSelector, 70, 30, false);
         addSeparator();
 
-        addCustomItem(1, std::unique_ptr<IconMenuItem>(menuItems[0]), nullptr, "New patch");
+        addCustomItem(getMenuItemID(menuItem::newPatch), std::unique_ptr<IconMenuItem>(menuItems[getMenuItemIndex(menuItem::newPatch)]), nullptr, "New patch");
 
         addSeparator();
 
-        addCustomItem(2, std::unique_ptr<IconMenuItem>(menuItems[1]), nullptr, "Open patch");
+        addCustomItem(getMenuItemID(menuItem::openPatch), std::unique_ptr<IconMenuItem>(menuItems[getMenuItemIndex(menuItem::openPatch)]), nullptr, "Open patch");
 
         auto recentlyOpened = new PopupMenu();
 
@@ -37,25 +37,30 @@ public:
             menuItems[2]->isActive = recentlyOpenedTree.getNumChildren() > 0;
         }
 
-        addCustomItem(100, std::unique_ptr<IconMenuItem>(menuItems[2]), std::unique_ptr<PopupMenu const>(recentlyOpened), "Recently opened");
+        addCustomItem(getMenuItemID(menuItem::history), std::unique_ptr<IconMenuItem>(menuItems[getMenuItemIndex(menuItem::history)]), std::unique_ptr<PopupMenu const>(recentlyOpened), "Recently opened");
 
         addSeparator();
-        addCustomItem(3, std::unique_ptr<IconMenuItem>(menuItems[3]), nullptr, "Save patch");
-        addCustomItem(4, std::unique_ptr<IconMenuItem>(menuItems[4]), nullptr, "Save patch as");
-
-        addSeparator();
-
-        addCustomItem(5, std::unique_ptr<IconMenuItem>(menuItems[5]), nullptr, "Compiled mode");
-        addCustomItem(6, std::unique_ptr<IconMenuItem>(menuItems[6]), nullptr, "Compile...");
+        addCustomItem(getMenuItemID(menuItem::save), std::unique_ptr<IconMenuItem>(menuItems[getMenuItemIndex(menuItem::save)]), nullptr, "Save patch");
+        addCustomItem(getMenuItemID(menuItem::saveAs), std::unique_ptr<IconMenuItem>(menuItems[getMenuItemIndex(menuItem::saveAs)]), nullptr, "Save patch as");
 
         addSeparator();
 
-        addCustomItem(7, std::unique_ptr<IconMenuItem>(menuItems[7]), nullptr, "Auto-connect objects");
+        addCustomItem(getMenuItemID(menuItem::close), std::unique_ptr<IconMenuItem>(menuItems[getMenuItemIndex(menuItem::close)]), nullptr, "Close patch");
+        addCustomItem(getMenuItemID(menuItem::closeAll), std::unique_ptr<IconMenuItem>(menuItems[getMenuItemIndex(menuItem::closeAll)]), nullptr, "Close all patches");
 
         addSeparator();
 
-        addCustomItem(8, std::unique_ptr<IconMenuItem>(menuItems[8]), nullptr, "Settings...");
-        addCustomItem(9, std::unique_ptr<IconMenuItem>(menuItems[9]), nullptr, "About...");
+        addCustomItem(getMenuItemID(menuItem::compiledMode), std::unique_ptr<IconMenuItem>(menuItems[getMenuItemIndex(menuItem::compiledMode)]), nullptr, "Compiled mode");
+        addCustomItem(getMenuItemID(menuItem::compile), std::unique_ptr<IconMenuItem>(menuItems[getMenuItemIndex(menuItem::compile)]), nullptr, "Compile...");
+
+        addSeparator();
+
+        addCustomItem(getMenuItemID(menuItem::autoConnect), std::unique_ptr<IconMenuItem>(menuItems[getMenuItemIndex(menuItem::autoConnect)]), nullptr, "Auto-connect objects");
+
+        addSeparator();
+
+        addCustomItem(getMenuItemID(menuItem::settings), std::unique_ptr<IconMenuItem>(menuItems[getMenuItemIndex(menuItem::settings)]), nullptr, "Settings...");
+        addCustomItem(getMenuItemID(menuItem::about), std::unique_ptr<IconMenuItem>(menuItems[getMenuItemIndex(menuItem::about)]), nullptr, "About...");
 
         // Toggles hvcc compatibility mode
         bool hvccModeEnabled = settingsTree.hasProperty("hvcc_mode") ? static_cast<bool>(settingsTree.getProperty("hvcc_mode")) : false;
@@ -63,11 +68,13 @@ public:
         bool hasCanvas = editor->getCurrentCanvas() != nullptr;
         ;
 
-        menuItems[3]->isActive = hasCanvas;
-        menuItems[4]->isActive = hasCanvas;
+        menuItems[getMenuItemIndex(menuItem::save)]->isActive = hasCanvas;
+        menuItems[getMenuItemIndex(menuItem::saveAs)]->isActive = hasCanvas;
+        menuItems[getMenuItemIndex(menuItem::close)]->isActive = hasCanvas;
+        menuItems[getMenuItemIndex(menuItem::closeAll)]->isActive = hasCanvas;
 
-        menuItems[5]->isTicked = hvccModeEnabled;
-        menuItems[7]->isTicked = autoconnectEnabled;
+        menuItems[getMenuItemIndex(menuItem::compiledMode)]->isTicked = hvccModeEnabled;
+        menuItems[getMenuItemIndex(menuItem::autoConnect)]->isTicked = autoconnectEnabled;
     }
 
     class ZoomSelector : public Component {
@@ -297,6 +304,34 @@ public:
         }
     };
 
+    enum menuItem {
+        newPatch = 1,
+        openPatch,
+        history,
+        save,
+        saveAs,
+        close,
+        closeAll,
+        compiledMode,
+        compile,
+        autoConnect,
+        settings,
+        about
+    };
+
+    int getMenuItemID(menuItem item)
+    {
+        if (item == menuItem::history)
+            return 100;
+
+        return item;
+    };
+
+    int getMenuItemIndex(menuItem item)
+    {
+        return item - 1;
+    }
+
     std::vector<IconMenuItem*> menuItems = {
         new IconMenuItem(Icons::New, "New patch", false, false),
         new IconMenuItem(Icons::Open, "Open patch...", false, false),
@@ -304,6 +339,9 @@ public:
 
         new IconMenuItem(Icons::Save, "Save patch", false, false),
         new IconMenuItem(Icons::SaveAs, "Save patch as...", false, false),
+
+        new IconMenuItem(Icons::Clear, "Close patch", false, false),
+        new IconMenuItem(Icons::Clear, "Close all patches", false, false),
 
         new IconMenuItem("", "Compiled Mode", false, true),
         new IconMenuItem("", "Compile...", false, false),
