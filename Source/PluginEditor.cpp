@@ -490,8 +490,8 @@ void PluginEditor::closeTab(Canvas* cnv)
         return;
 
     auto* tabbar = cnv->getTabbar();
-    int const tabIdx = cnv->getTabIndex();
-    int const currentTabIdx = tabbar->getCurrentTabIndex();
+    auto const tabIdx = cnv->getTabIndex();
+    
     auto* patch = &cnv->patch;
 
     sidebar.hideParameters();
@@ -506,6 +506,7 @@ void PluginEditor::closeTab(Canvas* cnv)
         delete patch;
     }
 
+    auto const currentTabIdx = tabbar->getCurrentTabIndex();
     if(currentTabIdx < 0 && tabbar->getNumTabs() >= 0)
     {
         tabbar->setCurrentTabIndex(0);
