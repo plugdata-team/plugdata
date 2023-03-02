@@ -35,6 +35,8 @@ public:
 
     PluginEditor* editor;
     PluginProcessor* pd;
+        
+    void recreateViewport();
 
     void lookAndFeelChanged() override;
     void paint(Graphics& g) override;
