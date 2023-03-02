@@ -5,7 +5,7 @@
 0;
 #X obj 23 40 cnv 4 4 4 empty empty State-variable 0 28 2 18 #e0e0e0
 #000000 0;
-#X obj 134 40 cnv 4 4 4 empty empty pedal 0 28 2 18 #e0e0e0 #000000
+#X obj 134 40 cnv 4 4 4 empty empty filter 0 28 2 18 #e0e0e0 #000000
 0;
 #X obj 458 11 cnv 10 10 10 empty empty EL 0 6 2 13 #7c7c7c #e0e4dc
 0;
