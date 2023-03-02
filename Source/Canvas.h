@@ -177,7 +177,6 @@ public:
     Point<int> lastMousePosition;
     Point<int> pastedPosition;
     Point<int> pastedPadding;
-    Array<Point<int>> mouseDownObjectPositions; // Stores object positions for alt + drag
 
     std::unique_ptr<ConnectionPathUpdater> pathUpdater;
 

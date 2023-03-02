@@ -506,8 +506,6 @@ void Canvas::mouseUp(MouseEvent const& e)
         wasDragDuplicated = false;
     }
 
-    mouseDownObjectPositions.clear();
-
     // TODO: this is a hack, find a better solution
     if (connectingWithDrag) {
         for (auto* obj : objects) {
@@ -1288,7 +1286,6 @@ void Canvas::objectMouseUp(Object* component, MouseEvent const& e)
         object->repaint();
     }
 
-    mouseDownObjectPositions.clear();
     componentBeingDragged = nullptr;
 
     component->repaint();
@@ -1318,10 +1315,13 @@ void Canvas::objectMouseDrag(MouseEvent const& e)
     if (static_cast<bool>(gridEnabled.getValue()) && componentBeingDragged) {
         dragDistance = objectGrid.performMove(componentBeingDragged, dragDistance);
     }
-
+    
     // alt+drag will duplicate selection
     if (!wasDragDuplicated && e.mods.isAltDown()) {
 
+        Array<Point<int>> mouseDownObjectPositions; // Stores object positions for alt + drag
+        int draggedIdx = 0;
+        
         // Single for undo for duplicate + move
         patch.startUndoSequence("Duplicate");
 
@@ -1332,34 +1332,42 @@ void Canvas::objectMouseDrag(MouseEvent const& e)
             });
 
         // Store origin object positions
+        int i = 0;
         for (auto object : selection) {
             mouseDownObjectPositions.add(object->getPosition());
+            if(componentBeingDragged == object) draggedIdx = i;
+            i++;
         }
 
         // Duplicate once
         wasDragDuplicated = true;
         duplicateSelection();
         cancelConnectionCreation();
-        componentBeingDragged.getComponent()->originalBounds.translate(-10, -10);
+        
+        selection = getSelectionOfType<Object>();
+        
+        // Sort selection indexes to match pd indexes
+        std::sort(selection.begin(), selection.end(),
+            [this](auto* a, auto* b) -> bool {
+                return objects.indexOf(a) < objects.indexOf(b);
+            });
+        
+        i = 0;
+        for(auto* selected : selection)
+        {
+            selected->originalBounds = selected->getBounds().withPosition(mouseDownObjectPositions[i]);
+            i++;
+        }
+        
+        if(isPositiveAndBelow(draggedIdx, selection.size())) {
+            componentBeingDragged = selection[draggedIdx];
+        }
     }
 
     // FIXME: stop the mousedrag event from blocking the objects from redrawing, we shouldn't need to do this? JUCE bug?
     if (!objectRateReducer.tooFast()) {
-        if (wasDragDuplicated) {
-            // Correct distancing
-            dragDistance = dragDistance.translated(10, 10);
-            // Move duplicated objects according to the origin position
-            for (auto object : selection) {
-
-                if (!isPositiveAndBelow(selection.indexOf(object), mouseDownObjectPositions.size()))
-                    continue;
-
-                object->setTopLeftPosition(mouseDownObjectPositions[selection.indexOf(object)] + dragDistance + canvasMoveOffset);
-            }
-        } else {
-            for (auto* object : selection) {
-                object->setTopLeftPosition(object->originalBounds.getPosition() + dragDistance + canvasMoveOffset);
-            }
+        for (auto* object : selection) {
+            object->setTopLeftPosition(object->originalBounds.getPosition() + dragDistance + canvasMoveOffset);
         }
 
         auto draggedBounds = componentBeingDragged->getBounds().expanded(6);
