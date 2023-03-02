@@ -1,7 +1,7 @@
 ---
 title: svfilter~
 
-description: state-variable pedal
+description: state-variable filter
 
 categories:
  - object
