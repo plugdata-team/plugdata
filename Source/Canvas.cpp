@@ -47,6 +47,8 @@ Canvas::Canvas(PluginEditor* parent, pd::Patch& p, Component* parentGraph)
     } else {
         isGraph = false;
     }
+    
+    recreateViewport();
 
     suggestor = new SuggestionComponent;
 
@@ -72,20 +74,6 @@ Canvas::Canvas(PluginEditor* parent, pd::Patch& p, Component* parentGraph)
     setWantsKeyboardFocus(true);
 
     if (!isGraph) {
-        auto* canvasViewport = new CanvasViewport(editor, this);
-
-        canvasViewport->setViewedComponent(this, false);
-
-        canvasViewport->onScroll = [this]() {
-            if (suggestor) {
-                suggestor->updateBounds();
-            }
-        };
-
-        canvasViewport->setScrollBarsShown(true, true, true, true);
-
-        viewport = canvasViewport; // Owned by the tabbar, but doesn't exist for graph!
-
         presentationMode.referTo(editor->statusbar.presentationMode);
         presentationMode.addListener(this);
     } else {
@@ -115,6 +103,26 @@ Canvas::~Canvas()
 
     delete graphArea;
     delete suggestor;
+}
+
+void Canvas::recreateViewport()
+{
+    if(isGraph) return;
+    
+    auto* canvasViewport = new CanvasViewport(editor, this);
+
+    canvasViewport->setViewedComponent(this, false);
+
+    canvasViewport->onScroll = [this]() {
+        if (suggestor) {
+            suggestor->updateBounds();
+        }
+    };
+
+    canvasViewport->setScrollBarsShown(true, true, true, true);
+
+    viewport = canvasViewport; // Owned by the tabbar, but doesn't exist for graph!
+
 }
 
 void Canvas::lookAndFeelChanged()

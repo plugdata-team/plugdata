@@ -506,14 +506,9 @@ void PluginEditor::closeTab(Canvas* cnv)
         delete patch;
     }
 
-    if (currentTabIdx == tabIdx) {
-        if (currentTabIdx != tabbar->getNumTabs()) {
-            // Set the focused tab to the next one
-            tabbar->setCurrentTabIndex(currentTabIdx, true);
-        } else {
-            // Unless it's the last, then set it to the previous one
-            tabbar->setCurrentTabIndex(currentTabIdx - 1, true);
-        }
+    if(currentTabIdx < 0 && tabbar->getNumTabs() >= 0)
+    {
+        tabbar->setCurrentTabIndex(0);
     }
 
     if (auto* leftCnv = splitView.getLeftTabbar()->getCurrentCanvas()) {
