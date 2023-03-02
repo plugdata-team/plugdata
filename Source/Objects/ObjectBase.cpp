@@ -192,10 +192,10 @@ void ObjectBase::closeOpenedSubpatchers()
 {
     auto* editor = object->cnv->editor;
 
-    for (auto* cnv : editor->canvases) {
-        if (cnv && cnv->patch == *getPatch()) {
+    for (auto* canvas : editor->canvases) {
+        if (canvas && canvas->patch == *getPatch()) {
 
-            cnv->editor->closeTab(cnv);
+            canvas->editor->closeTab(canvas);
             break;
         }
     }

@@ -498,8 +498,13 @@ void PluginEditor::closeTab(Canvas* cnv)
 
     cnv->getTabbar()->removeTab(tabIdx);
 
+    pd->patches.removeObject(patch, false);
+    
     canvases.removeObject(cnv);
-    pd->patches.removeObject(patch, patch->closePatchOnDelete);
+    
+    if(patch->closePatchOnDelete) {
+        delete patch;
+    }
 
     if (currentTabIdx == tabIdx) {
         if (currentTabIdx != tabbar->getNumTabs()) {
