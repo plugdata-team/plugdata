@@ -181,8 +181,10 @@ void Object::mouseEnter(MouseEvent const& e)
 
 void Object::mouseExit(MouseEvent const& e)
 {
-    // we need to reset the resizeZone, otherwise it can have an old zone already selected on re-entry
+    // we need to reset the resizeZone & validResizeZone,
+    // otherwise it can have an old zone already selected on re-entry
     resizeZone = ResizableBorderComponent::Zone(ResizableBorderComponent::Zone::centre);
+    validResizeZone = false;
 
     for (auto* iolet : iolets)
         iolet->repaint();
