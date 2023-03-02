@@ -96,6 +96,8 @@ public:
 
         slider.onDragStart = [this]() {
             startEdition();
+            const float val = slider.getValue();
+            setValue(val);
         };
 
         slider.onValueChange = [this]() {
@@ -202,7 +204,7 @@ public:
             break;
         }
         }
-        
+
         // Update the colours of the actual slider
         if(hash(symbol) == hash("color"))
         {
