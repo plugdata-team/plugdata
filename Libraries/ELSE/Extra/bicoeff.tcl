@@ -18,7 +18,6 @@ namespace eval bicoeff:: {
     
     # colors
     variable markercolor "#bbbbcc"
-    variable selectcolor "blue"
 
     variable filters_with_bw_lines [list "highshelf" "lowshelf" "peaking" "allpass"]
 }
@@ -701,15 +700,18 @@ proc bicoeff::new {my canvas rname t x1 y1 x2 y2} {
         variable previousx 0
         variable previousy 0
 
-        variable filtergain 100 ;# the unit is pixels, 0-200, 100 means no gain
+        variable filtergain 0
 
         # coefficients for [biquad~]
         variable a1 0
         variable a2 0
-        variable b0 1
+        variable b0 0
         variable b1 0
         variable b2 0
     }
+
+    variable ${my}::filtergain
+    set filtergain [expr ($y2 - $y1) / 2]; 
 
     variable ${my}::receive_name $rname
     variable ${my}::tag $t
@@ -739,15 +741,6 @@ proc bicoeff::update {my canvas x1 y1 x2 y2} {
 
     variable ${my}::filterwidth [expr $filterx2 - $filterx1]
     variable ${my}::filtercenter [expr $filterx1 + ($filterwidth/2)]
-}
-
-proc bicoeff::eraseme {my} {
-    variable ${my}::tkcanvas
-    variable ${my}::tag
-    variable mys_in_tkcanvas
-    $tkcanvas delete $tag
-    set mys_in_tkcanvas($tkcanvas) \
-        [lsearch -all -inline -not -exact $mys_in_tkcanvas($tkcanvas) $my]
 }
 
 proc bicoeff::setfiltertype {my filtertype} {
@@ -839,55 +832,19 @@ proc bicoeff::drawme {my canvas name t x1 y1 x2 y2 filtertype} {
     set_for_editmode [winfo toplevel $tkcanvas]
 }
 
-proc bicoeff::select {my state} {
-    variable ${my}::tkcanvas
-    variable ${my}::tag
-    variable selectcolor
-    variable markercolor
-    if {$state} {
-        $tkcanvas itemconfigure frame$tag -outline $selectcolor -width 1
-     } else {
-        $tkcanvas itemconfigure frame$tag -outline "black" -width 1
-     }
-}
-
 # sets the biquad coefficients from a list in the first inlet
-proc bicoeff::coefficients {my aa1 aa2 bb0 bb1 bb2} {
-    variable ${my}::a1 $aa1
-    variable ${my}::a2 $aa2
-    variable ${my}::b0 $bb0
-    variable ${my}::b1 $bb1
-    variable ${my}::b2 $bb2
-    drawgraph $my
-}
+#proc bicoeff::coefficients {my aa1 aa2 bb0 bb1 bb2} {
+#    variable ${my}::a1 $aa1
+#    variable ${my}::a2 $aa2
+#    variable ${my}::b0 $bb0
+#    variable ${my}::b1 $bb1
+#    variable ${my}::b2 $bb2
+#    drawgraph $my
+#}
 
 # sets up the class
 proc bicoeff::setup {} {
     bind PatchWindow <<EditMode>> {+bicoeff::set_for_editmode %W}
-
-# if not loading within Pd, then create a window and canvas to work with
-    if {[llength [info procs ::pdtk_post]] == 0} {
-        set my ::FAKEDMY
-        set mytoplevel .
-        set tkcanvas .c
-        set tag FAKEDTAG
-        catch {console show}
-        puts stderr "setting up as standalone dev mode!"
-
-# this stuff creates a dev skeleton
-        set ::cursor_runmode_nothing center_ptr
-        array set ::editmode [list $mytoplevel 0]
-        array set bicoeff::mys_in_tkcanvas [list $tkcanvas $my]
-        proc ::pdtk_post {args} {puts stderr "pdtk_post $args"}
-        proc ::pdsend {args} {puts stderr "pdsend $args"}
-        proc ::tkcanvas_name {mytoplevel} "return $tkcanvas"
-
-        wm geometry . 400x400+500+40
-        canvas $tkcanvas
-        pack $tkcanvas -side left -expand 1 -fill both
-        bicoeff::drawme $my $tkcanvas FAKE_RECEIVE_NAME $tag 30.0 30.0 330.0 230.0 "peaking"
-        bicoeff::set_for_editmode .
-    }
 }
 
 bicoeff::setup

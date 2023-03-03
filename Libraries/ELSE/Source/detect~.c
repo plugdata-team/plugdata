@@ -37,7 +37,7 @@ static t_int *detect_perform(t_int *w){
         else if(x->x_mode == 2)
             output = x->x_sr / output;
         else if(x->x_mode == 3)
-            output = output * 60 / x->x_sr;
+            output = 60 * x->x_sr / output;
         *out++ = output;
         lastin = input;
     }

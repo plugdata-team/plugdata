@@ -55,6 +55,7 @@ canvas.edit	x
 canvas.file	x
 canvas.gop	x
 canvas.mouse	x
+canvas.name	x
 canvas.pos	x
 canvas.setname	x
 canvas.vis	x

@@ -123,7 +123,9 @@ public:
     pd::Library objectLibrary;
 
     File homeDir = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory).getChildFile("plugdata");
-    File versionDataDir = homeDir.getChildFile(ProjectInfo::versionString);
+        
+    static inline const String versionSuffix = "-0";
+    File versionDataDir = homeDir.getChildFile(ProjectInfo::versionString + versionSuffix);
 
     File abstractions = versionDataDir.getChildFile("Abstractions");
 
