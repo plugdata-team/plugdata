@@ -1100,6 +1100,10 @@ void Canvas::valueChanged(Value& v)
         commandLocked.setValue(presentationMode.getValue());
     } else if (v.refersToSameSourceAs(isGraphChild) || v.refersToSameSourceAs(hideNameAndArgs)) {
 
+        if(!patch.getPointer()) return;
+        
+        pd->setThis();
+        
         int graphChild = static_cast<bool>(isGraphChild.getValue());
         int hideText = static_cast<bool>(hideNameAndArgs.getValue());
 
