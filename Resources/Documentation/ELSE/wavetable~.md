@@ -1,5 +1,5 @@
 ---
-title: wavetable~
+title: wavetable~, wt~
 
 description: wavetable oscillator
 
