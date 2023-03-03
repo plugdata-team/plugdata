@@ -269,6 +269,8 @@ public:
 
     void setThis() const;
     t_symbol* generateSymbol(String const& symbol) const;
+    t_symbol* generateSymbol(const char* symbol) const;
+    
 
     void waitForStateUpdate();
 
