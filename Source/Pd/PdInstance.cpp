@@ -598,10 +598,15 @@ void Instance::setThis() const
     libpd_set_instance(static_cast<t_pdinstance*>(m_instance));
 }
 
-t_symbol* Instance::generateSymbol(String const& symbol) const
+t_symbol* Instance::generateSymbol(const char* symbol) const
 {
     setThis();
-    return gensym(symbol.toRawUTF8());
+    return gensym(symbol);
+}
+
+t_symbol* Instance::generateSymbol(String const& symbol) const
+{
+    return generateSymbol(symbol.toRawUTF8());
 }
 
 void Instance::logMessage(String const& message)
