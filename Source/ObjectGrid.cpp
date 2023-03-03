@@ -247,17 +247,16 @@ Point<int> ObjectGrid::performResize(Object* toDrag, Point<int> dragOffset, Rect
         resizeZone.isDraggingTopEdge(), resizeZone.isDraggingLeftEdge(),
         resizeZone.isDraggingBottomEdge(), resizeZone.isDraggingRightEdge());
 
-    if(toDrag->constrainer->getFixedAspectRatio() != 0.0)
-    {
-        return performFixedResize(toDrag, dragOffset, newResizeBounds, nonClippedBounds);
-    }
 
     auto b2 = newResizeBounds.reduced(Object::margin);
     auto snappable = getSnappableObjects(toDrag);
    
-
     // Snap to Objects
-    if (enableGrid != 2) {
+    if(enableGrid != 2 && toDrag->constrainer->getFixedAspectRatio() != 0.0)
+    {
+        dragOffset = performFixedResize(toDrag, dragOffset, newResizeBounds, nonClippedBounds);
+    }
+    else if (enableGrid != 2) {
         bool alreadySnappedVertically = isAlreadySnapped(false, dragOffset);
         bool alreadySnappedHorizontally = isAlreadySnapped(true, dragOffset);
 
