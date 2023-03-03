@@ -91,6 +91,10 @@ public:
 
     void checkGraphState()
     {
+        if(!ptr) return;
+        
+        pd->setThis();
+        
         int isGraph = static_cast<bool>(isGraphChild.getValue());
         int hideText = static_cast<bool>(hideNameAndArgs.getValue());
 
