@@ -553,5 +553,4 @@ void numbox_tilde_setup(void){
     class_setwidget(numbox_class, &numbox_widgetbehavior);
     class_setsavefn(numbox_class, numbox_save);
     class_setpropertiesfn(numbox_class, numbox_properties);
-    #include "numbox~_dialog.c"
 }

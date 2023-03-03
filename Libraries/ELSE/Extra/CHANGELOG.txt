@@ -6,22 +6,41 @@ ELSE (EL Locus Solus's externals) with Live Electronics Tutorial
 
 ----------------------------------------------------------------------------
 
+
 ----------------------------------------------------------------------------
-1.0-0 Release Candidate 6:
+1.0-0 Release Candidate 7:
 ----------------------------------------------------------------------------
 
 **LIBRARY:**
 
 Breaking changes:
-- 
+- [adsr~]/[asr~] default values now are 10 10 1 10 for [adsr~] and '10 10' for [asr~], default is now 'log', and log message flag now removed for a new 'lin' method. Float input is now in the MIDI velocity range.
+- Removed [pdlua]/[pdluax], I couldn't do anything good with it or change its design, ideally I could include a new lua scripting object with a similar design than ofelia's 
+- [canvas.name] deleted (it was mostly useful with the [gui] object that got deleted in rc6).
+
 
 Enhancements/fixes:
-- 
+- fixed output range for rand.i / rand.i~
+- [midi.learn] added 'teach' message
+- [canvas.active] a new -name now reports window name.
+- [(bl.)wavetable~], fixed linear interpolation / added size/offset messages so you can select portions of a wavetable.
+- added midi frequency input and soft sync to: [pimp~], [sine~], [cosine~], [bl.saw~], [bl.saw2~], [bl.vsaw~], [bl.square~], [bl.tri~], [blip~], [bl.osc~], [wavetable~] and [bl.wavetable~] - added only midi frequency input to [bl.imp~] and [bl.imp2~].
+- [else] 2nd and 3rd outlet that tells us the Pd and Pd-fork version
+- [note2pitch] fixed symbol input for negative octaves
+- [tabplayer~] fixed bang output
+- [mtx.ctl] fixed many thingies like arguments management and resizing
+- [numbox~] fixed bugs in handling settings via properties windows.
+- [detect~] fixed bpm output.
+- [bicoeff] fixed initialization and dim message/args; allow saving changes; plus more improvements under the hood.
+- 4 new objects for a total of 474: [beat~], [plaits~], [keycode] and [keymap].
+
 
 --------------------------------------
 
 **TUTORIAL:**
-- 
+- Updates for new else stuff like soft sync in oscillators, exponential FM using built in midi pitch in oscillators, an example for the [beat~] object. Also, new pd 0.54 stuff not yet released (I know), like [send~] being able to deal with block size of 1! 
+- New subsection on 'CV' in chapter 18
+- Total number of examples is now 498
 
 
 ----------------------------------------------------------------------------

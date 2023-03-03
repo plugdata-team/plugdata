@@ -65,53 +65,53 @@ void Dialogs::showMainMenu(PluginEditor* editor, Component* centre)
     popup->showMenuAsync(PopupMenu::Options().withMinimumWidth(220).withMaximumNumColumns(1).withTargetComponent(centre).withParentComponent(editor),
         [editor, popup, centre, settingsTree = SettingsFile::getInstance()->getValueTree()](int result) mutable {
             switch(result) {
-            case MainMenu::menuItem::newPatch: {
+            case MainMenu::MenuItem::NewPatch: {
                 editor->newProject();
                 break;
             }
-            case MainMenu::menuItem::openPatch: {
+            case MainMenu::MenuItem::OpenPatch: {
                 editor->openProject();
                 break;
             }
-            case MainMenu::menuItem::save: {
+            case MainMenu::MenuItem::Save: {
                 if (editor->getCurrentCanvas())
                     editor->saveProject();
                 break;
             }
-            case MainMenu::menuItem::saveAs: {
+            case MainMenu::MenuItem::SaveAs: {
                 if (editor->getCurrentCanvas())
                     editor->saveProjectAs();
                 break;
             }
-            case MainMenu::menuItem::close: {
+            case MainMenu::MenuItem::Close: {
                 if (editor->getCurrentCanvas())
                     editor->closeTab(editor->getCurrentCanvas());
                 break;
             }
-            case MainMenu::menuItem::closeAll: {
+            case MainMenu::MenuItem::CloseAll: {
                 if (editor->getCurrentCanvas())
                     editor->closeAllTabs();
                 break;
             }
-            case MainMenu::menuItem::compiledMode: {
+            case MainMenu::MenuItem::CompiledMode: {
                 bool ticked = settingsTree.hasProperty("hvcc_mode") ? static_cast<bool>(settingsTree.getProperty("hvcc_mode")) : false;
                 settingsTree.setProperty("hvcc_mode", !ticked, nullptr);
                 break;
             }
-            case MainMenu::menuItem::compile: {
+            case MainMenu::MenuItem::Compile: {
                 Dialogs::showHeavyExportDialog(&editor->openedDialog, editor);
                 break;
             }
-            case MainMenu::menuItem::autoConnect: {
+            case MainMenu::MenuItem::AutoConnect: {
                 bool ticked = settingsTree.hasProperty("autoconnect") ? static_cast<bool>(settingsTree.getProperty("autoconnect")) : false;
                 settingsTree.setProperty("autoconnect", !ticked, nullptr);
                 break;
             }
-            case MainMenu::menuItem::settings: {
+            case MainMenu::MenuItem::Settings: {
                 Dialogs::showSettingsDialog(editor);
                 break;
             }
-            case MainMenu::menuItem::about: {
+            case MainMenu::MenuItem::About: {
                 auto* dialog = new Dialog(&editor->openedDialog, editor, 675, 500, editor->getBounds().getCentreY() + 250, true);
                 auto* aboutPanel = new AboutPanel();
                 dialog->setViewedComponent(aboutPanel);
