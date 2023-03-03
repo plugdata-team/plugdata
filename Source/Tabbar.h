@@ -188,13 +188,6 @@ public:
         rightClick(tabIndex, tabName);
     }
 
-    void mouseDown(MouseEvent const& e) override
-    {
-        currentTabIndex = getCurrentTabIndex();
-        tabWidth = tabs->getWidth() / std::max(1, getNumTabs());
-
-        onFocusGrab();
-    }
 
     int getIndexOfCanvas(Canvas* cnv)
     {
@@ -229,23 +222,35 @@ public:
 
         return reinterpret_cast<Canvas*>(viewport->getViewedComponent());
     }
+    
+    void mouseDown(MouseEvent const& e) override
+    {
+        tabWidth = tabs->getWidth() / std::max(1, getNumTabs());
+        clickedTabIndex = getCurrentTabIndex();
 
+        onFocusGrab();
+    }
+    
     void mouseDrag(MouseEvent const& e) override
     {
+        // Don't respond to clicks on close button
+        if(dynamic_cast<TextButton*>(e.originalComponent)) return;
+        
         // Drag tabs to move their index
         int const dragPosition = e.getEventRelativeTo(tabs.get()).x;
-        int const newTabIndex = (dragPosition < currentTabIndex * tabWidth) ? currentTabIndex - 1
-            : (dragPosition >= (currentTabIndex + 1) * tabWidth)            ? currentTabIndex + 1
-                                                                            : currentTabIndex;
-
-        if (newTabIndex != currentTabIndex && newTabIndex >= 0 && newTabIndex < getNumTabs()) {
-            moveTab(currentTabIndex, newTabIndex, true);
-            currentTabIndex = newTabIndex;
+        int const newTabIndex = (dragPosition < clickedTabIndex * tabWidth) ? clickedTabIndex - 1
+            : (dragPosition >= (clickedTabIndex + 1) * tabWidth)            ? clickedTabIndex + 1
+                                                                            : clickedTabIndex;
+        int const dragDistance = std::abs(e.getDistanceFromDragStartX());
+        
+        if (newTabIndex != clickedTabIndex && newTabIndex >= 0 && newTabIndex < getNumTabs() && dragDistance > 5) {
+            moveTab(clickedTabIndex, newTabIndex, true);
+            clickedTabIndex = newTabIndex;
             onTabMoved();
         }
     }
 
 private:
-    int currentTabIndex;
+    int clickedTabIndex;
     int tabWidth;
 };
