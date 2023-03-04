@@ -202,31 +202,29 @@ void ObjectBase::closeOpenedSubpatchers()
 }
 
 
-void ObjectBase::click()
+bool ObjectBase::click()
 {
-    pd->enqueueFunction([ptr = this->ptr, pd = this->pd](){
-        
-        pd->setThis();
-        
-        auto* pdObj = *static_cast<t_pd*>(ptr);
-        
-        // Check if click method exists, if so, call it
-        t_methodentry* mlist;
-    #if PDINSTANCE
-            mlist = pdObj->c_methods[pdinstance->pd_instanceno];
-    #else
-            mlist = pdObj->c_methods;
-    #endif
-        
-        for(int i = 0; i < pdObj->c_nmethod; i++)
-        {
-            if(mlist[i].me_name == gensym("click")) {
-                pd_typedmess(static_cast<t_pd*>(ptr), gensym("click"), 0, nullptr);
-                return;
-            }
-        }
-    });
+    pd->setThis();
     
+    auto* pdObj = *static_cast<t_pd*>(ptr);
+    
+    // Check if click method exists, if so, call it
+    t_methodentry* mlist;
+#if PDINSTANCE
+        mlist = pdObj->c_methods[pdinstance->pd_instanceno];
+#else
+        mlist = pdObj->c_methods;
+#endif
+    
+    for(int i = 0; i < pdObj->c_nmethod; i++)
+    {
+        if(mlist[i].me_name == gensym("click")) {
+            pd->enqueueDirectMessages(ptr, "click", {});
+            return true;
+        }
+    }
+    
+    return false;
 }
 
 void ObjectBase::openSubpatch()

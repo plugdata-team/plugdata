@@ -115,7 +115,8 @@ public:
     void closeOpenedSubpatchers();
     void openSubpatch();
         
-    void click();
+    // Attempt to send "click" message to object. Returns false if the object has no such method
+    bool click();
 
     void receiveMessage(String const& symbol, int argc, t_atom* argv) override;
 
