@@ -507,6 +507,7 @@ void setup_canvas0x2ebounds();
 void setup_canvas0x2eedit();
 void setup_canvas0x2egop();
 void setup_canvas0x2emouse();
+void setup_canvas0x2ename();
 void setup_canvas0x2epos();
 void setup_canvas0x2esetname();
 void setup_canvas0x2evis();
@@ -791,6 +792,7 @@ void libpd_init_else(void)
     setup_canvas0x2eedit();
     setup_canvas0x2egop();
     setup_canvas0x2emouse();
+    setup_canvas0x2ename();
     setup_canvas0x2epos();
     setup_canvas0x2esetname();
     setup_canvas0x2evis();

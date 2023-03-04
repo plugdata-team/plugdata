@@ -1,5 +1,5 @@
 ---
-title: loadbanger
+title: loadbanger, lb
 
 description: multiple loadbangs
 
