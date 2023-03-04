@@ -206,7 +206,10 @@ bool ObjectBase::click()
 {
     pd->setThis();
     
-    auto* pdObj = *static_cast<t_pd*>(ptr);
+    
+    
+    
+    auto* pdObj = static_cast<t_gobj*>(ptr)->g_pd;
     
     // Check if click method exists, if so, call it
     t_methodentry* mlist;
@@ -218,7 +221,8 @@ bool ObjectBase::click()
     
     for(int i = 0; i < pdObj->c_nmethod; i++)
     {
-        if(mlist[i].me_name == gensym("click")) {
+        auto& method = mlist[i];
+        if(mlist[i].me_name == gensym("click") && mlist[i].me_arg[0] == '\0') {
             pd->enqueueDirectMessages(ptr, "click", {});
             return true;
         }
