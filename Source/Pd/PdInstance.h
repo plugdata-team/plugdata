@@ -204,7 +204,8 @@ public:
     void sendSymbol(char const* receiver, char const* symbol) const;
     void sendList(char const* receiver, std::vector<pd::Atom> const& list) const;
     void sendMessage(char const* receiver, char const* msg, std::vector<pd::Atom> const& list) const;
-
+    void sendMessage(void* object, char const* msg, std::vector<Atom> const& list) const;
+    
     virtual void receivePrint(String const& message) {};
 
     virtual void receiveBang(String const& dest)
@@ -237,7 +238,8 @@ public:
 
     void enqueueMessages(String const& dest, String const& msg, std::vector<pd::Atom>&& list);
 
-    void enqueueDirectMessages(void* object, std::vector<pd::Atom> const& list);
+    void enqueueDirectMessages(void* object, String const& msg, std::vector<Atom>&& list);
+    void enqueueDirectMessages(void* object, std::vector<pd::Atom> const&& list);
     void enqueueDirectMessages(void* object, String const& msg);
     void enqueueDirectMessages(void* object, float const msg);
 

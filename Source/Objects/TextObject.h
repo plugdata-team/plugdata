@@ -280,6 +280,11 @@ public:
             TextObjectHelper::setWidthInChars(ptr, b.getWidth() / glist_fontwidth(cnv->patch.getPointer()));
         }
     }
+        
+    void mouseDown(const MouseEvent& e) override
+    {
+        click();
+    }
 
     void hideEditor() override
     {

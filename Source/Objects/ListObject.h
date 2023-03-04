@@ -187,9 +187,9 @@ public:
         return pd::Atom::fromAtoms(ac, av);
     }
 
-    void setList(std::vector<pd::Atom> const& value)
+    void setList(std::vector<pd::Atom> const value)
     {
-        cnv->pd->enqueueDirectMessages(ptr, value);
+        cnv->pd->enqueueDirectMessages(ptr, std::move(value));
     }
 
     void mouseUp(MouseEvent const& e) override
