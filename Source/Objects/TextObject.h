@@ -162,7 +162,7 @@ protected:
     String objectText;
     int numLines = 1;
     bool isValid = true;
-    bool firstRun = true;
+    bool isLocked;
 
 public:
     TextBase(void* obj, Object* parent, bool valid = true)
@@ -170,6 +170,7 @@ public:
         , isValid(valid)
     {
         objectText = getText();
+        isLocked = static_cast<bool>(cnv->locked.getValue());
     }
 
     virtual ~TextBase()
@@ -213,8 +214,9 @@ public:
     }
 
     // Override to cancel default behaviour
-    void lock(bool isLocked) override
+    void lock(bool locked) override
     {
+        isLocked = locked;
     }
 
     void textEditorReturnKeyPressed(TextEditor& ed) override
@@ -283,7 +285,9 @@ public:
         
     void mouseDown(const MouseEvent& e) override
     {
-        click();
+        if(isLocked) {
+            click();
+        }
     }
 
     void hideEditor() override
