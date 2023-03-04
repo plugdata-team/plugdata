@@ -85,8 +85,8 @@ public:
     {
         auto* comment = static_cast<t_fake_comment*>(ptr);
 
-        int width = getBestTextWidth(getText());
-        int height = comment->x_fontsize + 6;
+        int width = getBestTextWidth(getText()) * 8;
+        int height = comment->x_fontsize + 18;
 
         width = std::max(width, 25);
 
@@ -132,8 +132,8 @@ public:
         int fontsize = comment->x_fontsize;
         pd->unlockAudioThread();
 
-        int width = getBestTextWidth(getText());
-        int height = fontsize + 6;
+        int width = getBestTextWidth(getText()) * 8;
+        int height = fontsize + 18;
 
         object->setObjectBounds({ comment->x_obj.te_xpix, comment->x_obj.te_ypix, width, height });
     }
