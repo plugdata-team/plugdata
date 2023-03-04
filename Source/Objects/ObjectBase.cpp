@@ -205,14 +205,13 @@ void ObjectBase::closeOpenedSubpatchers()
 bool ObjectBase::click()
 {
     pd->setThis();
-    
-    
-    
-    
+
     auto* pdObj = static_cast<t_gobj*>(ptr)->g_pd;
     
     // Check if click method exists, if so, call it
     t_methodentry* mlist;
+    
+    auto* pdinstance = pd_this;
 #if PDINSTANCE
         mlist = pdObj->c_methods[pdinstance->pd_instanceno];
 #else
