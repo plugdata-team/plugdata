@@ -1,5 +1,5 @@
 ---
-title: impulse2~
+title: impulse2~, imp2~
 description: two-sided impulse oscillator
 
 categories:
