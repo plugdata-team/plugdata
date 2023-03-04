@@ -463,6 +463,7 @@ void Object::updateTooltips()
     // Set object tooltip
     gui->setTooltip(cnv->pd->objectLibrary.getObjectTooltip(gui->getType()));
 
+    /*
     if (auto* subpatch = gui->getPatch()) {
 
         // Check child objects of subpatch for inlet/outlet messages
@@ -497,7 +498,7 @@ void Object::updateTooltips()
                 freebytes(static_cast<void*>(str_ptr), static_cast<size_t>(size) * sizeof(char));
             }
         }
-    }
+    } */
 
     auto sortFunc = [](std::pair<int, String>& a, std::pair<int, String>& b) {
         return a.first < b.first;
