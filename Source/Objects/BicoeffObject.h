@@ -11,7 +11,7 @@ class BicoeffGraph : public Component {
 
     float a1 = 0, a2 = 0, b0 = 1, b1 = 0, b2 = 0;
 
-    float filterGain = 0.75f;
+    float filterGain = 0.5f;
 
     float filterWidth, filterCentre;
     float filterX1, filterX2;
