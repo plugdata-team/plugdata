@@ -41,7 +41,7 @@ static t_atom* fake_gatom_getatom(t_fake_gatom* x)
 
 class AtomHelper {
 
-    int const atomSizes[7] = { 0, 8, 10, 12, 16, 24, 36 };
+    int const atomSizes[8] = { 0, 8, 10, 12, 16, 24, 36};
 
     Object* object;
     ObjectBase* gui;
@@ -131,15 +131,8 @@ public:
         atom->a_text.te_width = newCharWidth;
 
         auto newHeight = newBounds.getHeight();
-        int heightIdx = 1;
-
-        // Round to nearest atom size
-        for (int i = 1; i < 7; i++) {
-            if (newHeight > atomSizes[i] + 7) {
-                heightIdx = i;
-            }
-        }
-
+        auto heightIdx = std::clamp<int>(std::upper_bound(atomSizes, atomSizes + 7, newHeight) - atomSizes, 2, 7) - 1;
+        
         setFontHeight(atomSizes[heightIdx]);
         gui->setParameterExcludingListener(fontSize, heightIdx + 1);
     }
