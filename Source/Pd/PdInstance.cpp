@@ -365,8 +365,10 @@ void Instance::sendList(char const* receiver, std::vector<Atom> const& list) con
     libpd_list(receiver, static_cast<int>(list.size()), argv);
 }
 
-void Instance::sendMessage(char const* receiver, char const* msg, std::vector<Atom> const& list) const
+void Instance::sendMessage(void* object, char const* msg, std::vector<Atom> const& list) const
 {
+    if(!object) return;
+    
     libpd_set_instance(static_cast<t_pdinstance*>(m_instance));
 
     auto* argv = static_cast<t_atom*>(m_atoms);
@@ -377,12 +379,13 @@ void Instance::sendMessage(char const* receiver, char const* msg, std::vector<At
         else
             libpd_set_symbol(argv + i, list[i].getSymbol().toRawUTF8());
     }
-    auto* obj = generateSymbol(receiver)->s_thing;
 
-    if (!obj)
-        return;
+    pd_typedmess(static_cast<t_pd*>(object), generateSymbol(msg), static_cast<int>(list.size()), argv);
+}
 
-    pd_typedmess(generateSymbol(receiver)->s_thing, generateSymbol(msg), static_cast<int>(list.size()), argv);
+void Instance::sendMessage(char const* receiver, char const* msg, std::vector<Atom> const& list) const
+{
+    sendMessage(generateSymbol(receiver)->s_thing, msg, list);
 }
 
 void Instance::processMessage(Message mess)
@@ -445,7 +448,7 @@ void Instance::processMidiEvent(midievent event)
 
 void Instance::processSend(dmessage mess)
 {
-    if (mess.object && !mess.list.empty()) {
+    if (mess.object) {
         if (mess.selector == "list") {
             auto* argv = static_cast<t_atom*>(m_atoms);
             for (size_t i = 0; i < mess.list.size(); ++i) {
@@ -461,14 +464,17 @@ void Instance::processSend(dmessage mess)
             sys_lock();
             pd_list(static_cast<t_pd*>(mess.object), generateSymbol("list"), static_cast<int>(mess.list.size()), argv);
             sys_unlock();
-        } else if (mess.selector == "float" && mess.list[0].isFloat()) {
+        } else if (mess.selector == "float" && !mess.list.empty() && mess.list[0].isFloat()) {
             sys_lock();
             pd_float(static_cast<t_pd*>(mess.object), mess.list[0].getFloat());
             sys_unlock();
-        } else if (mess.selector == "symbol") {
+        } else if (mess.selector == "symbol" && !mess.list.empty() && mess.list[0].isSymbol()) {
             sys_lock();
             pd_symbol(static_cast<t_pd*>(mess.object), generateSymbol(mess.list[0].getSymbol()));
             sys_unlock();
+        }
+        else {
+            sendMessage(static_cast<t_pd*>(mess.object), mess.selector.toRawUTF8(), mess.list);
         }
     } else {
         sendMessage(mess.destination.toRawUTF8(), mess.selector.toRawUTF8(), mess.list);
@@ -516,9 +522,14 @@ void Instance::enqueueMessages(String const& dest, String const& msg, std::vecto
     enqueueFunction([this, dest, msg, list]() mutable { processSend(dmessage { nullptr, dest, msg, std::move(list) }); });
 }
 
-void Instance::enqueueDirectMessages(void* object, std::vector<Atom> const& list)
+void Instance::enqueueDirectMessages(void* object, String const& msg, std::vector<Atom>&& list)
 {
-    enqueueFunction([this, object, list]() mutable { processSend(dmessage { object, String(), "list", list }); });
+    enqueueFunction([this, object, msg, list]() mutable { processSend(dmessage { object, String(), msg, std::move(list) }); });
+}
+
+void Instance::enqueueDirectMessages(void* object, std::vector<Atom> const&& list)
+{
+    enqueueFunction([this, object, list]() mutable { processSend(dmessage { object, String(), "list", std::move(list) }); });
 }
 
 void Instance::enqueueDirectMessages(void* object, String const& msg)

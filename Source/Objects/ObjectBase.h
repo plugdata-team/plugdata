@@ -114,6 +114,8 @@ public:
     // Close any tabs with opened subpatchers
     void closeOpenedSubpatchers();
     void openSubpatch();
+        
+    void click();
 
     void receiveMessage(String const& symbol, int argc, t_atom* argv) override;
 
