@@ -448,7 +448,7 @@ void Instance::processMidiEvent(midievent event)
 
 void Instance::processSend(dmessage mess)
 {
-    pd->setThis();
+    setThis();
     
     if (mess.object) {
         if (mess.selector == "list") {
