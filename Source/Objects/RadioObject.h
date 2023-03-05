@@ -56,13 +56,11 @@ public:
         iemHelper.initialiseParameters();
     }
 
-    void applyBounds() override
+    void setPdBounds(Rectangle<int> b) override
     {
-        auto b = object->getObjectBounds();
-
         // radio stores it's height and width as a square to allow changing orientation via message: "orientation 0/1"
         b = isVertical ? b.withHeight(b.getWidth()) : b.withWidth(b.getHeight());
-        iemHelper.applyBounds(b);
+        iemHelper.setPdBounds(b);
     }
 
     void toggleObject(Point<int> position) override
@@ -96,7 +94,7 @@ public:
         case hash("orientation"): {
             if (atoms.size() >= 1) {
                 isVertical = static_cast<bool>(atoms[0].getFloat());
-                updateBounds();
+                object->updateBounds();
                 updateAspectRatio();
             }
             break;
@@ -138,7 +136,7 @@ public:
         return static_cast<t_radio*>(ptr)->x_on;
     }
 
-    void updateBounds() override
+    Rectangle<int> getPdBounds() override
     {
         pd->lockAudioThread();
 
@@ -156,7 +154,7 @@ public:
 
         pd->unlockAudioThread();
 
-        object->setObjectBounds(bounds);
+        return bounds;
     }
 
     void paint(Graphics& g) override

@@ -76,8 +76,12 @@ public:
 
             outgoingEditor.reset();
 
-            updateBounds(); // Recalculate bounds
-            applyBounds();  // Send new bounds to Pd
+            object->updateBounds(); // Recalculate bounds
+            
+            pd->enqueueFunction([_this = SafePointer(this)](){
+                if(!_this) return;
+                _this->setPdBounds(_this->object->getObjectBounds());
+            });
 
             setSymbol(objectText);
             repaint();
@@ -113,7 +117,7 @@ public:
         }
     }
 
-    void updateBounds() override
+    Rectangle<int> getPdBounds() override
     {
         pd->lockAudioThread();
 
@@ -125,18 +129,25 @@ public:
 
         numLines = newNumLines;
 
+        pd->unlockAudioThread();
+        
+        return newBounds;
+        
         auto objBounds = object->getBounds();
 
         // TODO: this is a hack
         // why is there a weird 1px offset, only for comment but not for textobj or message?
+        /*
         if (objBounds.getPosition().getDistanceFrom(newBounds.getPosition()) > 2) {
             object->setTopLeftPosition(newBounds.getX(), newBounds.getY());
         }
         if (newBounds.getWidth() != objBounds.getWidth() || newBounds.getHeight() != objBounds.getHeight()) {
             object->setSize(newBounds.getWidth(), newBounds.getHeight());
-        }
+        } */
 
-        pd->unlockAudioThread();
+        
+        
+        
     }
 
     bool checkBounds(Rectangle<int> oldBounds, Rectangle<int> newBounds, bool resizingOnLeft) override
@@ -144,13 +155,12 @@ public:
         auto fontWidth = glist_fontwidth(cnv->patch.getPointer());
         auto* patch = cnv->patch.getPointer();
         TextObjectHelper::checkBounds(patch, ptr, oldBounds, newBounds, resizingOnLeft, fontWidth);
-        updateBounds();
+        object->updateBounds();
         return true;
     }
 
-    void applyBounds() override
+    void setPdBounds(Rectangle<int> b) override
     {
-        auto b = object->getObjectBounds();
         libpd_moveobj(cnv->patch.getPointer(), static_cast<t_gobj*>(ptr), b.getX(), b.getY());
 
         if (TextObjectHelper::getWidthInChars(ptr)) {
@@ -232,6 +242,6 @@ public:
     // For resize-while-typing behaviour
     void textEditorTextChanged(TextEditor& ed) override
     {
-        updateBounds();
+        object->updateBounds();
     }
 };

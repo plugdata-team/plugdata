@@ -95,7 +95,7 @@ public:
         repaint();
     }
 
-    void updateBounds() override
+    Rectangle<int> getPdBounds() override
     {
         pd->lockAudioThread();
 
@@ -105,7 +105,7 @@ public:
 
         pd->unlockAudioThread();
 
-        object->setObjectBounds(bounds);
+        return bounds;
     }
 
     bool checkBounds(Rectangle<int> oldBounds, Rectangle<int> newBounds, bool resizingOnLeft) override
@@ -126,9 +126,8 @@ public:
         return true;
     }
 
-    void applyBounds() override
+    void setPdBounds(Rectangle<int> b) override
     {
-        auto b = object->getObjectBounds();
         libpd_moveobj(cnv->patch.getPointer(), static_cast<t_gobj*>(ptr), b.getX(), b.getY());
 
         auto* nbx = static_cast<t_numbox*>(ptr);

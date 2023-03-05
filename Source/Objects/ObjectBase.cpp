@@ -72,8 +72,8 @@ public:
         parent->setVisible(false);
     }
 
-    void updateBounds() override {};
-    void applyBounds() override {};
+    Rectangle<int> getPdBounds() override { return {0, 0, 0, 0}; };
+    void setPdBounds(Rectangle<int> newBounds) override {};
 };
 
 void ObjectLabel::ObjectListener::componentMovedOrResized(Component& component, bool moved, bool resized)
@@ -525,7 +525,7 @@ void ObjectBase::receiveMessage(String const& symbol, int argc, t_atom* argv)
         case hash("dim"):
         case hash("width"):
         case hash("height"):
-            _this->updateBounds();
+            _this->object->updateBounds();
             break;
         default:
             _this->receiveObjectMessage(symbol, atoms);
