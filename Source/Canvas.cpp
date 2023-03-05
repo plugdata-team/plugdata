@@ -218,32 +218,18 @@ void Canvas::synchronise(bool updatePosition)
     patch.setCurrent();
 
     auto pdObjects = patch.getObjects();
-    auto isObjectDeprecated = [&](void* obj) {
-        return std::all_of(pdObjects.begin(), pdObjects.end(), [obj](const auto* obj2) {
-            return obj != obj2;
-        });
-    };
 
-    // Remove deprecated connections
+    // Remove deleted connections
     for (int n = connections.size() - 1; n >= 0; n--) {
-        auto* connection = connections[n];
-
-        if (!connection->inlet || !connection->outlet || isObjectDeprecated(connection->inobj->getPointer()) || isObjectDeprecated(connection->outobj->getPointer())) {
+        if(patch.connectionWasDeleted(connections[n]->getPointer())) {
             connections.remove(n);
-        } else {
-            auto* inlet = static_cast<t_text*>(connection->inobj->getPointer());
-            auto* outlet = static_cast<t_text*>(connection->outobj->getPointer());
-
-            if (!canvas_isconnected(patch.getPointer(), outlet, connection->outIdx, inlet, connection->inIdx)) {
-                connections.remove(n);
-            }
         }
     }
 
-    // Clear deleted objects
+    // Remove deleted objects
     for (int n = objects.size() - 1; n >= 0; n--) {
         auto* object = objects[n];
-        if (object->gui && isObjectDeprecated(object->getPointer())) {
+        if (object->gui && patch.objectWasDeleted(object->getPointer())) {
             setSelected(object, false);
             objects.remove(n);
         }
@@ -265,8 +251,6 @@ void Canvas::synchronise(bool updatePosition)
             // Check if number of inlets/outlets is correct
             object->updateIolets();
 
-            // Only update positions if we need to and there is a significant difference
-            // There may be rounding errors when scaling the gui, this makes the experience smoother
             if (updatePosition)
                 object->updateBounds();
 
@@ -296,22 +280,17 @@ void Canvas::synchronise(bool updatePosition)
         auto& srcEdges = objects[srcno]->iolets;
         auto& sinkEdges = objects[sinkno]->iolets;
 
+        // This shouldn't be necessary, but just to be sure...
         if (srcno >= objects.size() || sinkno >= objects.size() || outno >= srcEdges.size() || inno >= sinkEdges.size()) {
+            jassertfalse;
             continue;
         }
 
         auto* it = std::find_if(connections.begin(), connections.end(),
-            [this, &connection, &srcno, &sinkno](Connection* c) {
-                auto& [ptr, inno, inobj, outno, outobj] = connection;
-
-                if (!c->inlet || !c->outlet)
-                    return false;
-
-                bool sameStart = c->outobj == objects[srcno];
-                bool sameEnd = c->inobj == objects[sinkno];
-
-                return c->inIdx == inno && c->outIdx == outno && sameStart && sameEnd;
-            });
+                    [this, &connection, &srcno, &sinkno](Connection* c) {
+                        auto& [ptr, inno, inobj, outno, outobj] = connection;
+                        return ptr == c->getPointer();
+                    });
 
         if (it == connections.end()) {
             connections.add(new Connection(this, srcEdges[objects[srcno]->numInputs + outno], sinkEdges[inno], ptr));
