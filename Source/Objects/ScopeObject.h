@@ -136,6 +136,7 @@ public:
     {
         return Colour(hex[0], hex[1], hex[2]);
     }
+    
     void colourToHexArray(Colour colour, unsigned char* hex)
     {
         hex[0] = colour.getRed();
@@ -289,11 +290,16 @@ public:
             colourToHexArray(Colour::fromString(gridColour.toString()), scope->x_gg);
         } else if (v.refersToSameSourceAs(bufferSize)) {
             bufferSize = std::clamp<int>(static_cast<int>(bufferSize.getValue()), 0, SCOPE_MAXBUFSIZE * 4);
+            
+            pd->setThis();
             sys_lock();
+            
             scope->x_bufsize = bufferSize.getValue();
             scope->x_bufphase = 0;
+            
             sys_unlock();
         } else if (v.refersToSameSourceAs(samplesPerPoint)) {
+            pd->setThis();
             sys_lock();
             scope->x_period = limitValueMin(v, 0);
             sys_unlock();
