@@ -39,6 +39,9 @@ public:
             };
             closeButton->setAlwaysOnTop(true);
         }
+        
+        // Some parts of the code check for an active dialog to decide if it needs to paint an outline
+        getTopLevelComponent()->repaint();
     }
 
     void setViewedComponent(Component* child)
@@ -59,7 +62,7 @@ public:
     {
         g.setColour(Colours::black.withAlpha(0.5f));
 
-        auto bounds = getLocalBounds().toFloat().reduced(backgroundMargin - 0.5f);
+        auto bounds = getLocalBounds().toFloat().reduced(backgroundMargin);
 
         if (wantsRoundedCorners()) {
             g.fillRoundedRectangle(bounds.toFloat(), PlugDataLook::windowCornerRadius);
