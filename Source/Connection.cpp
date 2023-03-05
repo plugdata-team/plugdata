@@ -134,7 +134,7 @@ void Connection::pushPathState()
 
 void Connection::popPathState()
 {
-    if (!ptr || cnv->patch.connectionWasDeleted(ptr) || !ptr->outconnect_path_data || !ptr->outconnect_path_data->s_name)
+    if (!ptr || !ptr->outconnect_path_data || !ptr->outconnect_path_data->s_name)
         return;
 
     auto const state = String::fromUTF8(ptr->outconnect_path_data->s_name);
