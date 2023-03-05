@@ -96,7 +96,7 @@ ObjectBase::ObjectBase(void* obj, Object* parent)
 
     setLookAndFeel(new PlugDataLook());
 
-    MessageManager::callAsync([_this = SafePointer<ObjectBase>(this)] {
+    MessageManager::callAsync([_this = SafePointer(this)] {
         if (_this) {
             _this->initialiseParameters();
         }

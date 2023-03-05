@@ -274,26 +274,45 @@ void Canvas::synchronise(bool updatePosition)
     for (auto& connection : pdConnections) {
         auto& [ptr, inno, inobj, outno, outobj] = connection;
 
-        int srcno = patch.getIndex(&inobj->te_g);
-        int sinkno = patch.getIndex(&outobj->te_g);
-
-        auto& srcEdges = objects[srcno]->iolets;
-        auto& sinkEdges = objects[sinkno]->iolets;
-
+        Iolet* inlet = nullptr, *outlet = nullptr;
+        
+        // Find the objects that this connection is connected to
+        for(auto* obj : objects) {
+            if(outobj && outobj == obj->getPointer()) {
+                
+                // Check if we have enough outlets, should never return false
+                if(isPositiveAndBelow(obj->numInputs + outno, obj->iolets.size())) {
+                    outlet = obj->iolets[obj->numInputs + outno];
+                }
+                else {
+                    break;
+                }
+            }
+            if(inobj && inobj == obj->getPointer()) {
+                
+                // Check if we have enough inlets, should never return false
+                if(isPositiveAndBelow(inno, obj->iolets.size())) {
+                    inlet = obj->iolets[inno];
+                }
+                else {
+                    break;
+                }
+            }
+        }
+                
         // This shouldn't be necessary, but just to be sure...
-        if (srcno >= objects.size() || sinkno >= objects.size() || outno >= srcEdges.size() || inno >= sinkEdges.size()) {
+        if (!inlet || !outlet) {
             jassertfalse;
             continue;
         }
 
         auto* it = std::find_if(connections.begin(), connections.end(),
-                    [this, &connection, &srcno, &sinkno](Connection* c) {
-                        auto& [ptr, inno, inobj, outno, outobj] = connection;
-                        return ptr == c->getPointer();
+                    [c_ptr = ptr](auto* c) {
+                        return c_ptr == c->getPointer();
                     });
 
         if (it == connections.end()) {
-            connections.add(new Connection(this, srcEdges[objects[srcno]->numInputs + outno], sinkEdges[inno], ptr));
+            connections.add(new Connection(this, inlet, outlet, ptr));
         } else {
             auto& c = *(*it);
             c.popPathState();
