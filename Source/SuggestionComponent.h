@@ -290,8 +290,11 @@ public:
         }
 
         addToDesktop(ComponentPeer::windowIsTemporary | ComponentPeer::windowIgnoresKeyPresses);
+        
+        // Dividing position by scale is necessary to make it appear in the right position inside audio plugin on Linux.
+        auto scale = std::sqrt(std::abs(getTransform().getDeterminant()));
 
-        auto objectPos = object->getScreenBounds().reduced(Object::margin).getBottomLeft().translated(0, 5);
+        auto objectPos = object->getScreenBounds().reduced(Object::margin).getBottomLeft().translated(0, 5) / scale;
 
         setTopLeftPosition(objectPos);
 
