@@ -179,7 +179,7 @@ Connections Patch::getConnections() const
 
     // TODO: fix data race
     while ((oc = linetraverser_next(&t))) {
-        connections.push_back({ oc, t.tr_inno, t.tr_ob, t.tr_outno, t.tr_ob2 });
+        connections.push_back({ oc, t.tr_inno, t.tr_ob2, t.tr_outno, t.tr_ob });
     }
 
     return connections;
