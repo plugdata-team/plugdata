@@ -448,6 +448,8 @@ void Instance::processMidiEvent(midievent event)
 
 void Instance::processSend(dmessage mess)
 {
+    pd->setThis();
+    
     if (mess.object) {
         if (mess.selector == "list") {
             auto* argv = static_cast<t_atom*>(m_atoms);

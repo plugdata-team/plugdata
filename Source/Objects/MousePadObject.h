@@ -56,6 +56,8 @@ public:
 
         if (!getLocalBounds().contains(relativeEvent.getPosition()) || !isLocked() || !object->cnv->isShowing() || isPressed)
             return;
+        
+        pd->setThis();
 
         auto* x = static_cast<t_pad*>(ptr);
         t_atom at[3];
@@ -90,6 +92,8 @@ public:
 
         lastPosition = { xPos, yPos };
 
+        pd->setThis();
+        
         sys_lock();
         pd->enqueueFunction([x, xPos, yPos]() {
             x->x_x = xPos;
@@ -127,6 +131,8 @@ public:
 
         lastPosition = { x->x_x, getHeight() - x->x_y };
 
+        pd->setThis();
+        
         sys_lock();
         outlet_anything(x->x_obj.ob_outlet, &s_list, 2, at);
         sys_unlock();
