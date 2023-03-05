@@ -761,7 +761,6 @@ bool Patch::objectWasDeleted(void* ptr)
 }
 bool Patch::connectionWasDeleted(void* ptr)
 {
-
     t_outconnect* oc;
     t_linetraverser t;
 

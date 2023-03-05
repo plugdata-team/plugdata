@@ -323,10 +323,11 @@ void Iolet::createConnection()
 
     cnv->hideAllActiveEditors();
 
-    cnv->patch.startUndoSequence("Connecting");
     // Check if this is the start or end action of connecting
     if (!cnv->connectionsBeingCreated.isEmpty()) {
 
+        cnv->patch.startUndoSequence("Connecting");
+        
         for (auto& c : object->cnv->connectionsBeingCreated) {
             // Check type for input and output
             bool sameDirection = isInlet == c->getIolet()->isInlet;
