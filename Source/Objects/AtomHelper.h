@@ -79,7 +79,7 @@ public:
         receiveSymbol = getReceiveSymbol();
     }
 
-    void updateBounds()
+    Rectangle<int> getPdBounds()
     {
         pd->lockAudioThread();
 
@@ -92,12 +92,11 @@ public:
 
         pd->unlockAudioThread();
 
-        object->setObjectBounds(bounds);
+        return bounds;
     }
 
-    void applyBounds()
+    void setPdBounds(Rectangle<int> b)
     {
-        auto b = object->getObjectBounds();
         libpd_moveobj(cnv->patch.getPointer(), reinterpret_cast<t_gobj*>(atom), b.getX(), b.getY());
 
         auto fontWidth = glist_fontwidth(cnv->patch.getPointer());
@@ -165,7 +164,7 @@ public:
             gui->updateLabel();
         } else if (v.refersToSameSourceAs(fontSize)) {
             gui->updateLabel();
-            gui->updateBounds();
+            object->updateBounds();
         } else if (v.refersToSameSourceAs(labelText)) {
             setLabelText(labelText.toString());
             gui->updateLabel();
@@ -214,7 +213,13 @@ public:
 
     void setFontHeight(float newSize)
     {
-        atom->a_fontsize = newSize;
+        pd->enqueueFunctionAsync([obj = atom, patch = &cnv->patch, newSize](){
+            
+            if(patch->objectWasDeleted(obj)) return;
+            
+            obj->a_fontsize = newSize;
+        });
+        
     }
 
     Rectangle<int> getLabelBounds() const

@@ -199,10 +199,10 @@ public:
 
         startTimer(150);
 
-        updateBounds();
+        object->updateBounds();
     }
 
-    void updateBounds() override
+    Rectangle<int> getPdBounds() override
     {
         pd->lockAudioThread();
 
@@ -214,12 +214,11 @@ public:
 
         pd->unlockAudioThread();
 
-        object->setObjectBounds(bounds);
+        return bounds;
     }
 
-    void applyBounds() override
+    void setPdBounds(Rectangle<int> b) override
     {
-        auto b = object->getObjectBounds();
         libpd_moveobj(cnv->patch.getPointer(), static_cast<t_gobj*>(ptr), b.getX(), b.getY());
 
         auto* elseKeyboard = static_cast<t_keyboard*>(ptr);
@@ -232,7 +231,6 @@ public:
 
         keyboard.setKeyWidth(keyWidth);
         keyboard.setSize(keyWidth * numWhiteKeys, object->getHeight() - Object::doubleMargin);
-        applyBounds();
     }
 
     void handleNoteOn(MidiKeyboardState* source, int midiChannel, int note, float velocity) override

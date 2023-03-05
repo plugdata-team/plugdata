@@ -132,20 +132,20 @@ public:
         atomHelper.updateLabel(label);
     }
 
-    void updateBounds() override
+    Rectangle<int> getPdBounds() override
     {
-        atomHelper.updateBounds();
+        return atomHelper.getPdBounds();
     }
 
-    void applyBounds() override
+    void setPdBounds(Rectangle<int> b) override
     {
-        atomHelper.applyBounds();
+        atomHelper.setPdBounds(b);
     }
 
     bool checkBounds(Rectangle<int> oldBounds, Rectangle<int> newBounds, bool resizingOnLeft) override
     {
         atomHelper.checkBounds(oldBounds, newBounds, resizingOnLeft);
-        updateBounds();
+        object->updateBounds();
         return true;
     }
 

@@ -147,9 +147,8 @@ public:
         isPressed = false;
     }
 
-    void applyBounds() override
+    void setPdBounds(Rectangle<int> b) override
     {
-        auto b = object->getObjectBounds();
         libpd_moveobj(cnv->patch.getPointer(), static_cast<t_gobj*>(ptr), b.getX(), b.getY());
 
         auto* pad = static_cast<t_pad*>(ptr);
@@ -157,7 +156,7 @@ public:
         pad->x_h = b.getHeight();
     }
 
-    void updateBounds() override
+    Rectangle<int> getPdBounds() override
     {
         pd->lockAudioThread();
 
@@ -166,7 +165,7 @@ public:
 
         pd->unlockAudioThread();
 
-        object->setObjectBounds({ x, y, w, h });
+        return { x, y, w, h };
     }
 
     // Check if top-level canvas is locked to determine if we should respond to mouse events

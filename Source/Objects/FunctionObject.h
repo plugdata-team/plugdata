@@ -73,9 +73,8 @@ public:
     // std::pair<float, float> range;
     Array<Point<float>> points;
 
-    void applyBounds() override
+    void setPdBounds(Rectangle<int> b) override
     {
-        auto b = object->getObjectBounds();
         libpd_moveobj(cnv->patch.getPointer(), static_cast<t_gobj*>(ptr), b.getX(), b.getY());
 
         auto* function = static_cast<t_fake_function*>(ptr);
@@ -83,7 +82,7 @@ public:
         function->x_height = b.getHeight();
     }
 
-    void updateBounds() override
+    Rectangle<int> getPdBounds() override
     {
         pd->lockAudioThread();
 
@@ -92,7 +91,7 @@ public:
 
         pd->unlockAudioThread();
 
-        object->setObjectBounds({ x, y, w, h });
+        return { x, y, w, h };
     }
 
     void resized() override

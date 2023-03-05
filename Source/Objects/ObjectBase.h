@@ -73,10 +73,10 @@ public:
     virtual bool checkBounds(Rectangle<int> oldBounds, Rectangle<int> newBounds, bool resizingOnLeft) { return false; };
 
     // Gets position from pd and applies it to Object
-    virtual void updateBounds() = 0;
+    virtual Rectangle<int> getPdBounds() = 0;
 
     // Push current object bounds into pd
-    virtual void applyBounds() = 0;
+    virtual void setPdBounds(Rectangle<int> newBounds) = 0;
 
     // Called whenever a drawable changes
     virtual void updateDrawables() {};
