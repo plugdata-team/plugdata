@@ -298,6 +298,8 @@ public:
 
     String getSendSymbol()
     {
+        pd->setThis();
+        
         t_symbol* srlsym[3];
         iemgui_all_sym2dollararg(iemgui, srlsym);
 
@@ -310,6 +312,8 @@ public:
 
     String getReceiveSymbol()
     {
+        pd->setThis();
+    
         t_symbol* srlsym[3];
         iemgui_all_sym2dollararg(iemgui, srlsym);
 
@@ -322,31 +326,23 @@ public:
 
     bool hasSendSymbol()
     {
-        if (!iemgui->x_snd_unexpanded)
-            return false;
-
-        auto sym = getSendSymbol();
-        return sym.isNotEmpty() && sym != "empty";
+        return iemgui->x_fsf.x_snd_able;
     }
 
     bool hasReceiveSymbol()
     {
-        if (!iemgui->x_rcv_unexpanded)
-            return false;
-
-        auto sym = getReceiveSymbol();
-        return sym.isNotEmpty() && sym != "empty";
+        return iemgui->x_fsf.x_rcv_able;
     }
 
     void setSendSymbol(String const& symbol) const
     {
-        auto* sym = symbol.isEmpty() ? nullptr : pd->generateSymbol(symbol);
+        auto* sym = symbol.isEmpty() ? pd->generateSymbol("empty") : pd->generateSymbol(symbol);
         iemgui_send(iemgui, iemgui, sym);
     }
 
     void setReceiveSymbol(String const& symbol) const
     {
-        auto* sym = symbol.isEmpty() ? nullptr : pd->generateSymbol(symbol);
+        auto* sym = symbol.isEmpty() ? pd->generateSymbol("empty") : pd->generateSymbol(symbol);
         iemgui_receive(iemgui, iemgui, sym);
     }
 
