@@ -148,24 +148,6 @@ void Patch::setCurrent()
     instance->unlockAudioThread();
 }
 
-int Patch::getIndex(void* obj)
-{
-    setCurrent();
-
-    int i = 0;
-    auto* cnv = getPointer();
-
-    for (t_gobj* y = cnv->gl_list; y; y = y->g_next) {
-        if (obj == y) {
-            return i;
-        }
-
-        i++;
-    }
-
-    return -1;
-}
-
 Connections Patch::getConnections() const
 {
 

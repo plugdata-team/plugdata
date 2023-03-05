@@ -102,8 +102,6 @@ public:
 
     static void reloadPatch(File changedPatch, t_glist* except);
 
-    int getIndex(void* obj);
-
     static t_object* checkObject(void* obj);
 
     String getTitle() const;
