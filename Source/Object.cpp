@@ -64,6 +64,8 @@ Object::Object(void* object, Canvas* parent)
 
 Object::~Object()
 {
+    cnv->editor->removeModifierKeyListener(this);
+    
     if (attachedToMouse) {
         stopTimer();
     }
@@ -84,6 +86,7 @@ void Object::initialise()
     constrainer = std::make_unique<ObjectBoundsConstrainer>();
 
     cnv->addAndMakeVisible(this);
+    cnv->editor->addModifierKeyListener(this);
 
     // Updates lock/unlock mode
     locked.referTo(cnv->locked);
