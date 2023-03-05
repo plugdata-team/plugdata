@@ -559,19 +559,7 @@ private:
             buttons[currentidx]->setToggleState(true, dontSendNotification);
         }
 
-        // Update suggestions
-        auto found = library.autocomplete(currentText);
-
-        if (found.isEmpty()) {
-            autoCompleteComponent->enableAutocomplete(false);
-            deselectAll();
-            currentidx = -1;
-        } else {
-            found = sortSuggestions(currentText, found);
-            currentidx = 0;
-            autoCompleteComponent->enableAutocomplete(true);
-        }
-
+        
         auto filterNonHvccObjectsIfNeeded = [_this = SafePointer(this)](StringArray& toFilter) {
             if (!_this || !_this->currentBox)
                 return;
@@ -588,6 +576,23 @@ private:
                 toFilter = hvccObjectsFound;
             }
         };
+
+        
+        // Update suggestions
+        auto found = library.autocomplete(currentText);
+
+        // When hvcc mode is enabled, show only hvcc compatible objects
+        filterNonHvccObjectsIfNeeded(found);
+        
+        if (found.isEmpty()) {
+            autoCompleteComponent->enableAutocomplete(false);
+            deselectAll();
+            currentidx = -1;
+        } else {
+            found = sortSuggestions(currentText, found);
+            currentidx = 0;
+            autoCompleteComponent->enableAutocomplete(true);
+        }
 
         auto applySuggestionsToButtons = [this, &library](StringArray& suggestions, String originalQuery) {
             numOptions = static_cast<int>(suggestions.size());
@@ -647,9 +652,6 @@ private:
                 autoCompleteComponent->setSuggestion("");
             }
         };
-
-        // When hvcc mode is enabled, show only hvcc compatible objects
-        filterNonHvccObjectsIfNeeded(found);
 
         if (openedEditor) {
             applySuggestionsToButtons(found, currentText);
