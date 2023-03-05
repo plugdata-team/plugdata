@@ -59,7 +59,7 @@ public:
     {
         g.setColour(Colours::black.withAlpha(0.5f));
 
-        auto bounds = getLocalBounds().toFloat().reduced(backgroundMargin - 0.5f);
+        auto bounds = getLocalBounds().toFloat().reduced(backgroundMargin);
 
         if (wantsRoundedCorners()) {
             g.fillRoundedRectangle(bounds.toFloat(), PlugDataLook::windowCornerRadius);
