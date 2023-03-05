@@ -332,11 +332,16 @@ void ObjectBase::stopEdition()
 
 void ObjectBase::sendFloatValue(float newValue)
 {
-    // TODO: make this thread safe!
-    t_atom atom;
-    SETFLOAT(&atom, newValue);
-    pd_typedmess(static_cast<t_pd*>(ptr), pd->generateSymbol("set"), 1, &atom);
-    pd_bang(static_cast<t_pd*>(ptr));
+    pd->enqueueFunction([newValue, patch = &cnv->patch, ptr = this->ptr](){
+        
+        if(patch->objectWasDeleted(ptr)) return;
+        
+        t_atom atom;
+        SETFLOAT(&atom, newValue);
+        pd_typedmess(static_cast<t_pd*>(ptr), patch->instance->generateSymbol("set"), 1, &atom);
+        pd_bang(static_cast<t_pd*>(ptr));
+    });
+
 }
 
 ObjectBase* ObjectBase::createGui(void* ptr, Object* parent)

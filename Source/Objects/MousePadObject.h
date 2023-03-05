@@ -94,7 +94,6 @@ public:
 
         pd->setThis();
         
-        sys_lock();
         pd->enqueueFunction([x, xPos, yPos]() {
             x->x_x = xPos;
             x->x_y = yPos;
@@ -105,8 +104,6 @@ public:
 
             outlet_anything(x->x_obj.ob_outlet, &s_list, 2, at);
         });
-
-        sys_unlock();
     }
 
     void mouseMove(MouseEvent const& e) override
