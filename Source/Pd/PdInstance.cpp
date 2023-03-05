@@ -151,6 +151,9 @@ Instance::Instance(String const& symbol)
     };
 
     auto message_trigger = [](void* instance, void* target, t_symbol* symbol, int argc, t_atom* argv) {
+        
+        ScopedLock lock(static_cast<Instance*>(instance)->messageListenerLock);
+        
         auto& listeners = static_cast<Instance*>(instance)->messageListeners;
         if (!symbol || !listeners.count(target))
             return;
@@ -485,11 +488,14 @@ void Instance::processSend(dmessage mess)
 
 void Instance::registerMessageListener(void* object, MessageListener* messageListener)
 {
+    ScopedLock lock(messageListenerLock);
     messageListeners[object].push_back(WeakReference(messageListener));
 }
 
 void Instance::unregisterMessageListener(void* object, MessageListener* messageListener)
 {
+    ScopedLock lock(messageListenerLock);
+    
     if (messageListeners.count(object))
         return;
 

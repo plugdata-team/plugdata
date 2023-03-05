@@ -716,7 +716,7 @@ private:
         void paintOverChildren(Graphics& g) override
         {
 #if JUCE_LINUX
-            if (!owner.isUsingNativeTitleBar() && !editor->openedDialog) {
+            if (!owner.isUsingNativeTitleBar() && !dynamic_cast<PluginEditor*>(editor.get())->openedDialog) {
                 g.setColour(findColour(PlugDataColour::outlineColourId));
 
                 if (!Desktop::canUseSemiTransparentWindows()) {

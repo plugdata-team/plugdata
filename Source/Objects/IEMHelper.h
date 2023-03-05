@@ -225,7 +225,12 @@ public:
 
     void setInit(bool init)
     {
-        iemgui->x_isa.x_loadinit = init;
+        pd->enqueueFunctionAsync([this, init](){
+            
+            if(cnv->patch.objectWasDeleted(iemgui)) return;
+            
+            iemgui->x_isa.x_loadinit = init;
+        });
     }
 
     bool getInit()
