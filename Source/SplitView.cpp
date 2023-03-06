@@ -189,9 +189,9 @@ void SplitView::closeEmptySplits()
     }
     if (splitView && !splits[0].getNumTabs()) {
 
-        // move all tabs over to the other side
+        // move all tabs over to the left side
         for (int i = splits[1].getNumTabs() - 1; i >= 0; i--) {
-            splitCanvasView(splits[1].getCanvas(i), i);
+            splitCanvasView(splits[1].getCanvas(i), 0);
         }
 
         setSplitEnabled(false);
@@ -215,7 +215,14 @@ void SplitView::splitCanvasView(Canvas* cnv, bool splitViewFocus)
     auto* editor = cnv->editor;
 
     auto* currentTabbar = cnv->getTabbar();
+    
     currentTabbar->removeTab(cnv->getTabIndex());
+    
+    if(currentTabbar->getCurrentTabIndex() < 0 && currentTabbar->getNumTabs() >= 0)
+    {
+        currentTabbar->setCurrentTabIndex(0);
+    }
+    
     cnv->recreateViewport();
     
     if(splitViewFocus) {
