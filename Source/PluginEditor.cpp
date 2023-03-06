@@ -506,8 +506,7 @@ void PluginEditor::closeTab(Canvas* cnv)
         delete patch;
     }
 
-    auto const currentTabIdx = tabbar->getCurrentTabIndex();
-    if(currentTabIdx < 0 && tabbar->getNumTabs() >= 0)
+    if(tabbar->getCurrentTabIndex() < 0 && tabbar->getNumTabs() >= 0)
     {
         tabbar->setCurrentTabIndex(0);
     }

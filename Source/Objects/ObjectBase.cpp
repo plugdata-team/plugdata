@@ -72,7 +72,7 @@ public:
         parent->setVisible(false);
     }
 
-    Rectangle<int> getPdBounds() override { return {0, 0, 0, 0}; };
+    Rectangle<int> getPdBounds() override { return {0, 0, 1, 1}; };
     void setPdBounds(Rectangle<int> newBounds) override {};
 };
 
