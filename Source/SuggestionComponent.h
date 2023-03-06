@@ -214,7 +214,7 @@ class SuggestionComponent : public Component
 public:
     SuggestionComponent()
         : resizer(this, &constrainer)
-        , currentBox(nullptr)
+        , currentBox(nullptr), windowMargin(canBeTransparent() ? 22 : 0)
     {
         // Set up the button list that contains our suggestions
         buttonholder = std::make_unique<Component>();
@@ -240,7 +240,7 @@ public:
         addAndMakeVisible(port.get());
 
         constrainer.setSizeLimits(150, 120, 500, 400);
-        setSize(350, 180);
+        setSize(310 + (2 * windowMargin), 140 + (2 * windowMargin));
 
         addAndMakeVisible(resizer);
 
@@ -303,7 +303,7 @@ public:
 
         setTransform(cnv->editor->getTransform());
 
-        auto objectPos = currentBox->getScreenBounds().reduced(Object::margin).getBottomLeft().translated(-22, -17);
+        auto objectPos = currentBox->getScreenBounds().reduced(Object::margin).getBottomLeft().translated(-windowMargin, -windowMargin + 5);
         setTopLeftPosition(objectPos);
 
         // If box is not contained in canvas bounds, hide suggestions
@@ -369,7 +369,7 @@ public:
 
     void resized() override
     {
-        auto b = getLocalBounds().reduced(22);
+        auto b = getLocalBounds().reduced(windowMargin);
 
         int yScroll = port->getViewPositionY();
         port->setBounds(b);
@@ -404,24 +404,26 @@ private:
 
     bool hitTest(int x, int y) override
     {
-        return getLocalBounds().reduced(22).contains(x, y);
+        return getLocalBounds().reduced(windowMargin).contains(x, y);
+    }
+        
+    bool canBeTransparent() {
+#if !PLUGDATA_STANDALONE
+        // Apple's hosts don't deal well with transparency,
+        auto hostType = PluginHostType();
+        if (hostType.isLogic() || hostType.isGarageBand() || hostType.isMainStage()) {
+            return false;
+        }
+#endif
+        return Desktop::canUseSemiTransparentWindows();
     }
 
     void paint(Graphics& g) override
     {
-        bool canDrawSemiTransparentWindows = Desktop::canUseSemiTransparentWindows();
+        auto b = getLocalBounds().reduced(windowMargin);
 
-        auto b = getLocalBounds().reduced(22);
-
-#if !PLUGDATA_STANDALONE
-        auto hostType = PluginHostType();
-        if (hostType.isLogic() || hostType.isGarageBand() || hostType.isMainStage()) {
-            g.fillAll();
-        }
-#endif
-        if(!canDrawSemiTransparentWindows) {
-                g.setColour(findColour(PlugDataColour::canvasBackgroundColourId));
-                g.fillRect(b);
+        if(!canBeTransparent()) {
+            g.fillAll(findColour(PlugDataColour::canvasBackgroundColourId));
         }
         else {
             Path localPath;
@@ -703,4 +705,6 @@ private:
 
     TextEditor* openedEditor = nullptr;
     SafePointer<Object> currentBox;
+        
+    int windowMargin;
 };
