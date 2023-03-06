@@ -104,8 +104,8 @@ if [[ -d $AU ]]; then
 fi
 if [[ -d $CLAP ]]; then
 	CLAP_PKG_REF="<pkg-ref id=\"com.plugdata.clap.pkg.${PRODUCT_NAME}\"/>"
-	CLAP_CHOICE="<line choice=\"com.plugdata.au.clap.${PRODUCT_NAME}\"/>"
-	CLAP_CHOICE_DEF="<choice id=\"com.plugdata.au.clap.${PRODUCT_NAME}\" visible=\"true\" start_selected=\"true\" title=\"Audio Unit Plug-in\"><pkg-ref id=\"com.plugdata.clap.pkg.${PRODUCT_NAME}\"/></choice><pkg-ref id=\"com.plugdata.clap.pkg.${PRODUCT_NAME}\" version=\"${VERSION}\" onConclusion=\"none\">${PRODUCT_NAME}_CLAP.pkg</pkg-ref>"
+	CLAP_CHOICE="<line choice=\"com.plugdata.clap.pkg.${PRODUCT_NAME}\"/>"
+	CLAP_CHOICE_DEF="<choice id=\"com.plugdata.clap.pkg.${PRODUCT_NAME}\" visible=\"true\" start_selected=\"true\" title=\"CLAP Plug-in\"><pkg-ref id=\"com.plugdata.clap.pkg.${PRODUCT_NAME}\"/></choice><pkg-ref id=\"com.plugdata.clap.pkg.${PRODUCT_NAME}\" version=\"${VERSION}\" onConclusion=\"none\">${PRODUCT_NAME}_CLAP.pkg</pkg-ref>"
 fi
 if [[ -d $APP ]]; then
 	APP_PKG_REF="<pkg-ref id=\"com.plugdata.app.pkg.${PRODUCT_NAME}\"/>"
