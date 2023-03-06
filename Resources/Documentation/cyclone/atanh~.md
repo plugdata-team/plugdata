@@ -1,9 +1,9 @@
 ---
 title: atanh~
-description: Signal hyperbolic arc-tangent function
+description: signal hyperbolic arc-tangent function
 categories:
  - object
-pdcategory: General
+pdcategory: cyclone, Signal Math
 arguments:
 inlets:
   1st:
@@ -14,6 +14,7 @@ outlets:
   - type: signal
     description: the hyperbolic arc-tangent of the input
 
+draft: false
 ---
 
 Use [atanh~] to output the hyperbolic arc-tangent of each input sample (probably only useful for mathematical calculations).

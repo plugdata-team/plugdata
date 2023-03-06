@@ -1,17 +1,13 @@
 ---
 title: fdn.rev~
-description: Feedback delay network reverberator
+description: feedback delay network reverberator
 
 categories:
  - object
 
-pdcategory: General
+pdcategory: ELSE, Effects
 
 arguments:
-- type:
-  description:
-  default:
-
 inlets:
   1st:
   - type: signal
@@ -47,12 +43,13 @@ methods:
   - type: set <list>
     description: set number of lines and min/max times
   - type: exp <float>
-    description: non zero sets delay times exponentially
+    description: non-0 sets delay times exponentially
   - type: clear
     description: clears the delay lines and reverberation
   - type: print
     description: print delay lines and other parameters in Pd's window
 
+draft: false
 ---
 
 [fdn.rev~] is a feedback delay network reverberator which can be used for late reflections (a.k.a reverb tail). The main parameters are: decay time (t60) and high frequency damping.

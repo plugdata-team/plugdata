@@ -1,0 +1,14 @@
+#N canvas 604 23 426 459 12;
+#X declare -path else;
+#X obj 247 17 declare -path else;
+#X obj 147 170 tgl 22 0 empty empty empty 0 -8 0 10 #dfdfdf #000000 #000000 0 1;
+#X obj 147 215 player~ -loop loop.wav;
+#X obj 147 364 out~;
+#X obj 175 264 beat~;
+#X floatatom 175 300 9 0 0 0 - - - 16;
+#X text 38 61 The [beat~] object from ELSE is based on 'aubio' \, a C library for signal analysis that performs not only attack detection like [bonk~] does \, but it can also perform an analysis to measure the steady beat of a rhythmic section. The output is in BPM. Check its help file., f 52;
+#X text 274 304 BPM;
+#X connect 1 0 2 0;
+#X connect 2 0 3 0;
+#X connect 2 0 4 0;
+#X connect 4 0 5 0;

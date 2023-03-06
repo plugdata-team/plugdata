@@ -1,12 +1,12 @@
 ---
 title: scope~
 
-description: Oscilloscope display
+description: oscilloscope display
 
 categories:
  - object
 
-pdcategory: General
+pdcategory: cyclone, UI
 
 arguments: (none)
 

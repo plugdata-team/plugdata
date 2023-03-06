@@ -1,12 +1,12 @@
 ---
 title: break
 
-description: Break lists
+description: break lists
 
 categories:
  - object
 
-pdcategory: General
+pdcategory: ELSE, Data Management
 
 arguments:
 - type: symbol

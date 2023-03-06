@@ -1,14 +1,14 @@
 ---
 title: symbol2any
 
-description: Convert symbol to anything
+description: convert symbol to anything
 
 categories:
  - object
 
-pdcategory: Message Management 
+pdcategory: ELSE, Converters
 
-arguments: (none)
+arguments:
 
 inlets:
   1st:

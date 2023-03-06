@@ -1,11 +1,11 @@
 ---
-title: float2sig~
-description: Convert float to signal
+title: float2sig~, f2s~
+description: convert float to signal
 
 categories:
  - object
 
-pdcategory: General
+pdcategory: ELSE, Signal Math, Data Math, Converters
 
 arguments:
 - type: float
@@ -27,6 +27,7 @@ outlets:
   - type: signal
     description: converted signal
 
+draft: false
 ---
 
 [float2sig~] (or [f2s~] for short) converts floats to signals. The conversion is smoothened by a ramp time in ms.

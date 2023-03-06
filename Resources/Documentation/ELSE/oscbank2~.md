@@ -1,19 +1,17 @@
 ---
 title: oscbank2~
 
-description: Bank of oscillators
+description: bank of oscillators
 
 categories:
 - object
 
-pdcategory:
+pdcategory: ELSE, Signal Generators
 
 arguments:
-  1st:
   - description: number of oscillators 
     type: float
     default: 1
-  2nd:
   - description: ramp time in ms
     type: float
     default: 10

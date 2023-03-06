@@ -10,23 +10,26 @@
 
 #include "Pd/PdInstance.h"
 #include "Pd/PdLibrary.h"
-#include "LookAndFeel.h"
+#include "Utility/SettingsFile.h"
 #include "Statusbar.h"
 
-class PlugDataLook;
+#if PLUGDATA_STANDALONE
+#    include "Utility/InternalSynth.h"
+#endif
 
+class PlugDataLook;
 class PluginEditor;
 class PluginProcessor : public AudioProcessor
-    , public pd::Instance
-    , public Timer
-    , public AudioProcessorParameter::Listener {
+    , public pd::Instance {
 public:
     PluginProcessor();
-    ~PluginProcessor() override;
+
+    ~PluginProcessor();
 
     static AudioProcessor::BusesProperties buildBusesProperties();
 
     void setOversampling(int amount);
+    void setProtectedMode(bool enabled);
     void prepareToPlay(double sampleRate, int samplesPerBlock) override;
     void releaseResources() override;
 
@@ -46,9 +49,6 @@ public:
     bool isMidiEffect() const override;
     double getTailLengthSeconds() const override;
 
-    std::atomic<int> callbackType = 0;
-    void timerCallback() override;
-
     int getNumPrograms() override;
     int getCurrentProgram() override;
     void setCurrentProgram(int index) override;
@@ -66,28 +66,14 @@ public:
     void receivePolyAftertouch(int const channel, int const pitch, int const value) override;
     void receiveMidiByte(int const port, int const byte) override;
 
-    void parameterValueChanged(int parameterIndex, float newValue) override;
-    void parameterGestureChanged(int parameterIndex, bool gestureIsStarting) override;
-
     void receiveDSPState(bool dsp) override;
-    void receiveGuiUpdate(int type) override;
+    void updateDrawables() override;
 
     void updateConsole() override;
 
-    void synchroniseCanvas(void* cnv) override;
     void reloadAbstractions(File changedPatch, t_glist* except) override;
 
     void process(dsp::AudioBlock<float>, MidiBuffer&);
-
-    void setCallbackLock(CriticalSection const* lock)
-    {
-        audioLock = lock;
-    };
-
-    CriticalSection const* getCallbackLock() override
-    {
-        return audioLock;
-    };
 
     bool canAddBus(bool isInput) const override
     {
@@ -100,8 +86,9 @@ public:
         return nbus > 0;
     }
 
+    void savePatchTabPositions();
+
     void initialiseFilesystem();
-    void saveSettings();
     void updateSearchPaths();
 
     void sendMidiBuffer();
@@ -109,14 +96,14 @@ public:
     void sendParameters();
 
     void messageEnqueued() override;
-    void performParameterChange(int type, int idx, float value) override;
+    void performParameterChange(int type, String name, float value) override;
 
     pd::Patch* loadPatch(String patch);
     pd::Patch* loadPatch(File const& patch);
 
     void titleChanged() override;
 
-    void setTheme(bool themeToUse);
+    void setTheme(String themeToUse, bool force = false);
 
     Colour getForegroundColour() override;
     Colour getBackgroundColour() override;
@@ -124,46 +111,50 @@ public:
     Colour getOutlineColour() override;
 
     // All opened patches
-    OwnedArray<pd::Patch> patches;
+    OwnedArray<pd::Patch, CriticalSection> patches;
 
     int lastUIWidth = 1000, lastUIHeight = 650;
 
     std::vector<float*> channelPointers;
     std::atomic<float>* volume;
 
-    ValueTree settingsTree = ValueTree("plugdatasettings");
+    SettingsFile* settingsFile;
 
     pd::Library objectLibrary;
 
     File homeDir = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory).getChildFile("plugdata");
-    File versionDataDir = homeDir.getChildFile(ProjectInfo::versionString);
+        
+    static inline const String versionSuffix = "-0";
+    File versionDataDir = homeDir.getChildFile(ProjectInfo::versionString + versionSuffix);
 
-    File settingsFile = homeDir.getChildFile("Settings.xml");
     File abstractions = versionDataDir.getChildFile("Abstractions");
 
     Value commandLocked = Value(var(false));
-
-    AudioProcessorValueTreeState parameters;
 
     StatusbarSource statusbarSource;
 
     Value tailLength = Value(0.0f);
 
+    // Just so we never have to deal with deleting the default LnF
     SharedResourcePointer<PlugDataLook> lnf;
 
     static inline constexpr int numParameters = 512;
     static inline constexpr int numInputBuses = 16;
     static inline constexpr int numOutputBuses = 16;
 
-    // Zero means no oversampling
-    int oversampling = 0;
-    int lastTab = -1;
+    // Protected mode value will decide if we apply clipping to output and remove non-finite numbers
+    std::atomic<bool> protectedMode = true;
 
-    bool settingsChangedInternally = false;
+    // Zero means no oversampling
+    std::atomic<int> oversampling = 0;
+    int lastLeftTab = -1;
+    int lastRightTab = -1;
 
 #if PLUGDATA_STANDALONE
-    std::atomic<float> standaloneParams[numParameters] = { 0 };
     OwnedArray<MidiOutput> midiOutputs;
+
+    InternalSynth internalSynth;
+    std::atomic<bool> enableInternalSynth = false;
 #endif
 
 private:
@@ -182,20 +173,17 @@ private:
     uint8 midiByteBuffer[512] = { 0 };
     size_t midiByteIndex = 0;
 
-    std::array<float, numParameters> lastParameters = { 0 };
-    std::array<float, numParameters> changeGestureState = { 0 };
-
     std::vector<pd::Atom> atoms_playhead;
 
     int minIn = 2;
     int minOut = 2;
 
+    int lastSplitIndex = -1;
+
     std::unique_ptr<dsp::Oversampling<float>> oversampler;
 
-    CriticalSection const* audioLock;
-
-    static inline const String else_version = "ELSE v1.0-rc6";
-    static inline const String cyclone_version = "cyclone v0.6-1";
+    static inline const String else_version = "ELSE v1.0-rc7";
+    static inline const String cyclone_version = "cyclone v0.7-0";
     // this gets updated with live version data later
     static String pdlua_version;
 

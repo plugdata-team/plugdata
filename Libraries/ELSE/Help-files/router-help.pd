@@ -42,7 +42,7 @@
 #X text 179 322 float;
 #X text 161 299 anything;
 #X text 161 356 anything;
-#X text 227 322 - sets outlet number (0 is none), f 33;
+#X text 227 322 - sets outlet number (-1 is none), f 33;
 #X text 227 299 - message to send through a specified outlet;
 #X text 162 391 1) float;
 #X text 162 410 2) float;

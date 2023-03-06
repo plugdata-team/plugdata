@@ -3,7 +3,7 @@ title: expr~
 description: evaluation of audio signal expressions on a vector by vector basis
 categories:
 - object
-pdcategory: Audio Math
+pdcategory: vanilla, Signal Math, Logic
 last_update: 0.51-3
 see_also:
 - +
@@ -21,12 +21,24 @@ see_also:
 - sqrt~
 - pow~
 arguments:
-- description: see below
+- description: expression including operators, functions, inlet types, float and symbols
   type: list
 inlets:
-  remark: see below
+  1st:
+  - type: signal
+    description: input to '$v1'
+  nth:
+  - type: float
+    description: if inlet type is '$f#' or '$i#'
+  - type: symbol
+    description: if inlet type is '$s#' or '$i#'
+  - type: signal
+    description: if inlet type is '$v#'
 outlets:
-  remark: see below
+  nth:
+  - type: signal
+    description: expression result
+
 draft: false
 ---
 {{< md_include "objects/expr-family.md" >}}

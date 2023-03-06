@@ -1,14 +1,14 @@
 ---
 title: sum
 
-description: Sum a list
+description: sum a list
 
 categories:
 - object
 
-pdcategory: List Management 
+pdcategory: ELSE, Data Management, Data Math 
 
-arguments: (none)
+arguments:
 
 inlets:
   1st:

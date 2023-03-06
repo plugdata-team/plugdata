@@ -15,7 +15,7 @@
 #X text 606 72 The [float2bits] object from ELSE converts floats in
 Pd to a list of 32 bits \, that is the binary representation of this
 number., f 59;
-#X text 639 470 expoent;
+#X text 639 470 exponent;
 #X text 638 259 The object can also break this into different groups
 of bits. The sign (0 = positive \, 1 = negative) \, the expoent (8
 bits) and the mantissa (23 bits)., f 61;

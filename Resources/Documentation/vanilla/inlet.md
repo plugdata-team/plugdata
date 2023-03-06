@@ -9,12 +9,12 @@ see_also:
 - outlet~
 - block~
 - pd
-pdcategory: Subwindows
+pdcategory: vanilla, UI, Mixing and Routing
 last_update: '0.51'
 outlets:
   1st:
-  - type: anything - 
-    description: any message from parent patch.  
+  - type: anything
+    description: any message from parent patch
 draft: false
 ---
 Inlets/outlets are used to receive and get information on a patch window. This can be an abstraction or a subpatch. 

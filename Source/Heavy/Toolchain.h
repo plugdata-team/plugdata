@@ -87,24 +87,19 @@ struct ToolchainInstaller : public Component
 
         void paint(Graphics& g)
         {
-            auto* lnf = dynamic_cast<PlugDataLook*>(&getLookAndFeel());
-
             g.setColour(findColour(PlugDataColour::panelActiveBackgroundColourId));
 
             if (isMouseOver()) {
-                g.fillRoundedRectangle(1, 1, getWidth() - 2, getHeight() - 2, Constants::smallCornerRadius);
+                g.fillRoundedRectangle(1, 1, getWidth() - 2, getHeight() - 2, PlugDataLook::smallCornerRadius);
             }
 
-            g.setColour(findColour(PlugDataColour::canvasTextColourId));
+            auto colour = findColour(PlugDataColour::panelTextColourId);
 
-            g.setFont(lnf->iconFont.withHeight(24));
-            g.drawText(iconText, 20, 5, 40, 40, Justification::centredLeft);
+            PlugDataLook::drawIcon(g, iconText, 20, 5, 40, colour, 24);
 
-            g.setFont(lnf->defaultFont.withHeight(16));
-            g.drawText(topText, 60, 7, getWidth() - 60, 20, Justification::centredLeft);
+            PlugDataLook::drawText(g, topText, 60, 7, getWidth() - 60, 20, colour, 16);
 
-            g.setFont(lnf->thinFont.withHeight(14));
-            g.drawText(bottomText, 60, 25, getWidth() - 60, 16, Justification::centredLeft);
+            PlugDataLook::drawStyledText(g, bottomText, 60, 25, getWidth() - 60, 16, colour, Thin, 14);
         }
 
         void mouseUp(MouseEvent const& e)
@@ -157,30 +152,29 @@ struct ToolchainInstaller : public Component
             downloadLocation += "Heavy-Linux-x64.zip";
 #endif
 
-            instream = URL(downloadLocation).createInputStream(URL::InputStreamOptions(URL::ParameterHandling::inAddress).withConnectionTimeoutMs(5000).withStatusCode(&statusCode));
+            instream = URL(downloadLocation).createInputStream(URL::InputStreamOptions(URL::ParameterHandling::inAddress).withConnectionTimeoutMs(10000).withStatusCode(&statusCode));
             startThread();
         };
     }
 
+    ~ToolchainInstaller()
+    {
+        stopThread(-1);
+    }
+
     void paint(Graphics& g) override
     {
-        auto* lnf = dynamic_cast<PlugDataLook*>(&getLookAndFeel());
-        if (!lnf)
-            return;
-
-        g.setColour(findColour(PlugDataColour::canvasTextColourId));
-        g.setFont(lnf->boldFont.withHeight(32));
+        auto colour = findColour(PlugDataColour::panelTextColourId);
         if (needsUpdate) {
-            g.drawText("Toolchain needs to be updated", 0, getHeight() / 2 - 150, getWidth(), 40, Justification::centred);
+            PlugDataLook::drawStyledText(g, "Toolchain needs to be updated", 0, getHeight() / 2 - 150, getWidth(), 40, colour, Bold, 32, Justification::centred);
         } else {
-            g.drawText("Toolchain not found", 0, getHeight() / 2 - 150, getWidth(), 40, Justification::centred);
+            PlugDataLook::drawStyledText(g, "Toolchain not found", 0, getHeight() / 2 - 150, getWidth(), 40, colour, Bold, 32, Justification::centred);
         }
 
-        g.setFont(lnf->thinFont.withHeight(23));
         if (needsUpdate) {
-            g.drawText("Update the toolchain to get started", 0, getHeight() / 2 - 120, getWidth(), 40, Justification::centred);
+            PlugDataLook::drawStyledText(g, "Update the toolchain to get started", 0, getHeight() / 2 - 120, getWidth(), 40, colour, Thin, 23, Justification::centred);
         } else {
-            g.drawText("Install the toolchain to get started", 0, getHeight() / 2 - 120, getWidth(), 40, Justification::centred);
+            PlugDataLook::drawStyledText(g, "Install the toolchain to get started", 0, getHeight() / 2 - 120, getWidth(), 40, colour, Thin, 23, Justification::centred);
         }
 
         if (installProgress != 0.0f) {
@@ -201,13 +195,11 @@ struct ToolchainInstaller : public Component
         }
 
         if (errorMessage.isNotEmpty()) {
-            g.setFont(Font(15));
-            g.setColour(Colours::red);
-            g.drawText(errorMessage, Rectangle<float>(90.0f, 300.0f, getWidth() - 90.0f, 20), Justification::centred);
+            PlugDataLook::drawText(g, errorMessage, Rectangle<int>(90, 300, getWidth(), 20), Colours::red, 15);
         }
 
         if (isTimerRunning()) {
-            lnf->drawSpinningWaitAnimation(g, findColour(PlugDataColour::canvasTextColourId), getWidth() / 2 - 16, getHeight() / 2 + 135, 32, 32);
+            getLookAndFeel().drawSpinningWaitAnimation(g, findColour(PlugDataColour::panelTextColourId), getWidth() / 2 - 16, getHeight() / 2 + 135, 32, 32);
         }
     }
 
@@ -243,9 +235,14 @@ struct ToolchainInstaller : public Component
 
             float progress = static_cast<long double>(bytesDownloaded) / static_cast<long double>(totalBytes);
 
-            MessageManager::callAsync([this, progress]() mutable {
-                installProgress = progress;
-                repaint();
+            if (threadShouldExit())
+                return;
+
+            MessageManager::callAsync([_this = SafePointer(this), progress]() mutable {
+                if (!_this)
+                    return;
+                _this->installProgress = progress;
+                _this->repaint();
             });
         }
 

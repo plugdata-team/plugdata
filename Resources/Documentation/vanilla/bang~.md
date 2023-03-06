@@ -5,16 +5,16 @@ categories:
 - object
 see_also:
 - block~
-pdcategory: General Audio Manipulation
+pdcategory: vanilla, Triggers and Clocks
 last_update: '0.33'
 inlets:
   1st:
-  - type: NONE
-    description: (there's one actually, but it's inactive)
+  - type: null
+    description: inactive inlet
 outlets:
   1st:
   - type: bang
-    description: at every DSP block cycle when DSP is on.
+    description: at every DSP block cycle when DSP is on
 draft: false
 ---
 bang~ outputs a bang after each DSP block cycle (at the same logical time as the DSP cycle.) This is primarily useful for sampling the outputs of analysis algorithms.

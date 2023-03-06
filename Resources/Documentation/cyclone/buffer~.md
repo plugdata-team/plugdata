@@ -1,9 +1,9 @@
 ---
 title: buffer~
-description: Audio buffer
+description: audio buffer
 categories:
  - object
-pdcategory: General
+pdcategory: cyclone, Buffers
 arguments:
 - type: symbol
   description: buffer name
@@ -67,7 +67,8 @@ methods:
   - type: sizeinsamps <f>
     description: sets buffer size in samples
 
+draft: false
 ---
 
-[buffer~] stores audio in a memory buffer. It read/writes multichannel audio files and can be used in conjunction with [play~] and other related objects. This is an abstraction without the full functionalitites from the Max/MSP original.
+[buffer~] stores audio in a memory buffer. It read/writes multichannel audio files and can be used in conjunction with [play~] and other related objects. This is an abstraction without the full functionalities from the Max/MSP original.
 

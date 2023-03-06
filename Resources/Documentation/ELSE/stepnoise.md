@@ -1,16 +1,16 @@
 ---
 title: stepnoise
 
-description: Control stepnoise
+description: control stepnoise
 
 categories:
 - object
 
-pdcategory: Control (Random)
+pdcategory: ELSE, Random and Noise
 
 arguments:
 - type: float
-  description: frequency in hertz
+  description: frequency in Hz
   default: 0
 
 flags:
@@ -20,7 +20,7 @@ flags:
 inlets:
   1st:
   - type: float
-    description: frequency in hertz up to 100 (negative values accepted)
+    description: frequency in Hz up to 100 (negative values accepted)
 
 outlets:
   1st:

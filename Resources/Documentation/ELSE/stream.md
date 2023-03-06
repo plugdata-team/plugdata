@@ -1,12 +1,12 @@
 ---
 title: stream
 
-description: Pack a stream of numbers
+description: pack a stream of numbers
 
 categories:
 - object
 
-pdcategory:
+pdcategory: ELSE, Data Management
 
 arguments:
 - type: float
@@ -20,7 +20,7 @@ inlets:
   - type: bang
     description: resends the last output list
   2nd:
-  - type:
+  - type: float
     description: N group size
 
 outlets:

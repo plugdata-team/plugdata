@@ -10,17 +10,24 @@
 
 #include "Object.h"
 #include "Pd/PdPatch.h"
-#include "Pd/PdStorage.h"
 #include "PluginProcessor.h"
-#include "Utility/ObjectGrid.h"
+#include "ObjectGrid.h"
+#include "Utility/RateReducer.h"
 
 class SuggestionComponent;
 struct GraphArea;
 class Iolet;
 class PluginEditor;
+class ConnectionPathUpdater;
+class ConnectionBeingCreated;
+class TabComponent;
+
 class Canvas : public Component
     , public Value::Listener
-    , public LassoSource<WeakReference<Component>> {
+    , public LassoSource<WeakReference<Component>>
+    , public ModifierKeyListener
+    , public FocusChangeListener
+    , public pd::MessageListener {
 public:
     Canvas(PluginEditor* parent, pd::Patch& patch, Component* parentGraph = nullptr);
 
@@ -28,27 +35,32 @@ public:
 
     PluginEditor* editor;
     PluginProcessor* pd;
+        
+    void recreateViewport();
 
+    void lookAndFeelChanged() override;
     void paint(Graphics& g) override;
-    void paintOverChildren(Graphics&) override;
-
-    void resized() override
-    {
-        repaint();
-    }
 
     void mouseDown(MouseEvent const& e) override;
     void mouseDrag(MouseEvent const& e) override;
     void mouseUp(MouseEvent const& e) override;
     void mouseMove(MouseEvent const& e) override;
 
+    void spaceKeyChanged(bool isHeld) override;
+    void middleMouseChanged(bool isHeld) override;
+
     void synchronise(bool updatePosition = true);
 
     void updateDrawables();
-    void updateGuiValues();
 
     bool keyPressed(KeyPress const& key) override;
     void valueChanged(Value& v) override;
+
+    TabComponent* getTabbar();
+    int getTabIndex();
+    void tabChanged();
+
+    void globalFocusChanged(Component* focusedComponent) override;
 
     void hideAllActiveEditors();
 
@@ -69,16 +81,21 @@ public:
 
     void checkBounds();
 
+    bool autoscroll(MouseEvent const& e);
+
     // Multi-dragger functions
     void deselectAll();
-    void setSelected(Component* component, bool shouldNowBeSelected);
+    void setSelected(Component* component, bool shouldNowBeSelected, bool updateCommandStatus = true);
     bool isSelected(Component* component) const;
 
-    void handleMouseDown(Component* component, MouseEvent const& e);
-    void handleMouseUp(Component* component, MouseEvent const& e);
-    void handleMouseDrag(MouseEvent const& e);
+    void objectMouseDown(Object* component, MouseEvent const& e);
+    void objectMouseUp(Object* component, MouseEvent const& e);
+    void objectMouseDrag(MouseEvent const& e);
 
     SelectedItemSet<WeakReference<Component>>& getLassoSelection() override;
+
+    bool checkPanDragMode();
+    bool setPanDragMode(bool shouldPan);
 
     void removeSelectedComponent(Component* component);
     void findLassoItemsInArea(Array<WeakReference<Component>>& itemsFound, Rectangle<int> const& area) override;
@@ -87,6 +104,12 @@ public:
 
     void showSuggestions(Object* object, TextEditor* textEditor);
     void hideSuggestions();
+
+    static bool panningModifierDown();
+
+    ObjectParameters& getInspectorParameters();
+
+    void receiveMessage(String const& symbol, int argc, t_atom* argv) override;
 
     template<typename T>
     Array<T*> getSelectionOfType()
@@ -105,8 +128,7 @@ public:
     Viewport* viewport = nullptr;
 
     bool connectingWithDrag = false;
-    Array<SafePointer<Iolet>> connectingIolets;
-    SafePointer<Iolet> nearestEdge;
+    SafePointer<Iolet> nearestIolet;
 
     pd::Patch& patch;
 
@@ -115,11 +137,12 @@ public:
 
     OwnedArray<Object> objects;
     OwnedArray<Connection> connections;
+    OwnedArray<ConnectionBeingCreated> connectionsBeingCreated;
 
     Value locked;
     Value commandLocked;
     Value presentationMode;
-    Value gridEnabled = Value(var(true));
+    Value gridEnabled;
 
     bool isGraph = false;
     bool hasParentCanvas = false;
@@ -130,7 +153,7 @@ public:
     Value hideNameAndArgs = Value(var(false));
     Value xRange, yRange;
 
-    ObjectGrid grid = ObjectGrid(this);
+    ObjectGrid objectGrid = ObjectGrid(this);
 
     Point<int> canvasOrigin = { 0, 0 };
     Point<int> canvasDragStartPosition = { 0, 0 };
@@ -147,25 +170,24 @@ public:
 
     // Multi-dragger variables
     bool didStartDragging = false;
+
     int const minimumMovementToStartDrag = 5;
     SafePointer<Object> componentBeingDragged = nullptr;
-
-    pd::Storage storage;
 
     Point<int> lastMousePosition;
     Point<int> pastedPosition;
     Point<int> pastedPadding;
-    std::vector<Point<int>> mouseDownObjectPositions; // Stores object positions for alt + drag
+
+    std::unique_ptr<ConnectionPathUpdater> pathUpdater;
 
 private:
     SafePointer<Object> objectSnappingInbetween;
     SafePointer<Connection> connectionToSnapInbetween;
-    SafePointer<TabbedComponent> tabbar;
 
     LassoComponent<WeakReference<Component>> lasso;
 
-    // Static makes sure there can only be one
-    PopupMenu popupMenu;
+    RateReducer canvasRateReducer = RateReducer(90);
+    RateReducer objectRateReducer = RateReducer(90);
 
     // Properties that can be shown in the inspector by right-clicking on canvas
     ObjectParameters parameters = { { "Is graph", tBool, cGeneral, &isGraphChild, { "No", "Yes" } },

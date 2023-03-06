@@ -44,14 +44,14 @@ and the ELSE library. Let's jump right into it!, f 59;
 #X text 512 31 These are the basic types of boxes \, you can insert
 them from the Put Menu or their shortcuts:, f 50;
 #X text 43 513 Numbers in Pd are floating point (have decimal points
-\, such "1.2") with 32 bit resolution (more on this type/resolution
+\, such as "1.2") with 32 bit resolution (more on this type/resolution
 later). Pd only represents 6 significant digits \, otherwise it uses
 an exponential format such as "1e+6". Anything that is not considered
 a number atom is treated as a symbol atom.;
 #X text 39 53 We program in Pd by connecting "boxes" from "outlets"
-to "inlets". Click on the box that says "Hello_World!" and see the
+to "inlets". Click on the box that says "Hello World!" and see the
 result at Pd's terminal window (a.k.a. 'Pd Window'). To access the
-temial go to "Window" menu and then choose "Pd Window" or use the shortcut
+terminal go to "Window" menu and then choose "Pd Window" or use the shortcut
 (command/control + R).;
 #X listbox 650 211 20 0 0 0 - - - 0;
 #X text 560 240 x) Comment;

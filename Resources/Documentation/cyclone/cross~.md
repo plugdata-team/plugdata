@@ -1,9 +1,9 @@
 ---
 title: cross~
-description: Crossover filter
+description: crossover filter
 categories:
  - object
-pdcategory: General
+pdcategory: cyclone, Filters
 arguments:
 - type: float
   description: cutoff frequency
@@ -27,6 +27,7 @@ methods:
   - type: clear
     description: clears filter's memory
 
+draft: false
 ---
 
 [cross~] is a of 3rd order butterworth crossover filter.

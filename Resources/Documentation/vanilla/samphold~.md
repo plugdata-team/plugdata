@@ -4,25 +4,26 @@ description: sample and hold unit
 categories:
 - object
 see_also: {}
-pdcategory: Audio Filters
+pdcategory: vanilla, Filters, Analysis, Effects
 last_update: '0.39'
 inlets:
   1st:
   - type: signal
-    description: input to be sampled.
-  - type: set <float>
-    description: set output value.
-  - type: reset <float>
-    description: set last value of right inlet.
-  - type: reset
-    description: set last value of right inlet to infinity (forces output).
+    description: input to be sampled
   2nd:
   - type: signal
     description: control signal (triggers when smaller than previous)	
 outlets:
   1st:
   - type: signal
-    description: sampled and held signal.
+    description: sampled and held signal
+methods:
+  - type: set <float>
+    description: set output value
+  - type: reset <float>
+    description: set last value of right inlet
+  - type: reset
+    description: set last value of right inlet to infinity (forces output)
 draft: false
 ---
 The samphold~ object samples its left input whenever its right input decreases in value (as a phasor~ does each period, for example.) Both inputs are audio signals.

@@ -1,12 +1,12 @@
 ---
 title: mov.avg
 
-description: Moving average
+description: moving average
 
 categories:
 - object
 
-pdcategory: General
+pdcategory: ELSE, Analysis, Data Math
 
 arguments:
 - type: float

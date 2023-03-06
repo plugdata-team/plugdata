@@ -1,12 +1,12 @@
 ---
 title: poltocar~
 
-description: Signal polar to cartesian conversion
+description: signal polar to cartesian conversion
 
 categories:
  - object
 
-pdcategory: General
+pdcategory: cyclone, Converters
 
 arguments: (none)
 

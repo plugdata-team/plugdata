@@ -1,11 +1,11 @@
 ---
 title: hz2rad
-description: Hertz/radians_per_sample conversion
+description: Hz to radians-per-sample conversion
 
 categories:
  - object
 
-pdcategory: General
+pdcategory: ELSE, Data Math, Converters
 
 arguments:
 - type: float
@@ -15,7 +15,7 @@ arguments:
 inlets:
   1st:
   - type: float/list
-    description: hertz value(s)
+    description: Hz value(s)
   - type: bang
     description: convert or output the last converted value (only float)
 
@@ -28,8 +28,9 @@ methods:
   - type: set
     description: sets next value to be converted via bang (only float)
 
+draft: false
 ---
 
-[hz2rad] converts a frequency in Hertz to "Radians per Sample" - which depends on the patch's sample rate (sr). The conversion formula is;
+[hz2rad] converts a frequency in Hz to "Radians per Sample" - which depends on the patch's sample rate (sr). The conversion formula is;
 rad = (hz * 2*pi / sr).
 

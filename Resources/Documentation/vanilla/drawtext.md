@@ -1,6 +1,6 @@
 ---
 title: drawtext
-description: draw numbers, symbols or texts for Data Structures.
+description: draw numbers, symbols or texts for data structures
 categories:
 - object
 see_also: 
@@ -8,22 +8,27 @@ see_also:
 - drawpolygon
 - plot
 - set
-pdcategory: Data Templates
+pdcategory: vanilla, Data Structures
 last_update: '0.50'
 inlets:
   1st:
   - type: float
-    description: "sets visibility (1: visible, 0: invisible)."
+    description: sets visibility (1 = visible, 0 = invisible)
 flags:
-- flag: -n
-  description: makes it invisible initially.
-- flag:  -v <symbol>
-  description: assigns a field to make it visible/invisible.
+- name: -n
+  description: makes it invisible initially
+- name:  -v <symbol>
+  description: assigns a field to make it visible/invisible
 arguments:
 - type: symbol
-  description: field name to draw.
-- type: list*
+  description: field name to draw
+- type: list
   description: (x, y) coordinates pair 
   default: 0 0
-- type: float*
+- type: float
   description: color 
+  default: 0
+- type: symbol
+  description: optional label
+draft: false
+---

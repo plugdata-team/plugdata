@@ -1,16 +1,16 @@
 ---
 title: universal
 
-description: Sends messages to all objects of the same type
+description: sends messages to all objects of the same type
 
 categories:
  - object
 
-pdcategory: General
+pdcategory: cyclone, Data Management
 
 arguments:
 - type: float
-  description: non-zero also sends to subpathces
+  description: non-0 also sends to subpathces
   default: 0
 
 inlets: 

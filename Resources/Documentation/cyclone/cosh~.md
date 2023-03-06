@@ -1,9 +1,9 @@
 ---
 title: cosh~
-description: Signal hyperbolic cosine function
+description: signal hyperbolic cosine function
 categories:
  - object
-pdcategory: General
+pdcategory: cyclone, Signal Math
 arguments:
 inlets:
   1st:
@@ -14,6 +14,7 @@ outlets:
   - type: signal
     description: output of hyperbolic cosine function
 
+draft: false
 ---
 
 Use [cosh~] to output the hyperbolic cosine function of each input sample (probably only useful for mathematical calculations).

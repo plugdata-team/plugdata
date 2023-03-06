@@ -1,14 +1,13 @@
 ---
 title: note
-description: Text note
+
+description: text note
+
 categories:
  - object
-pdcategory: General
+pdcategory: ELSE, UI
 
 arguments:
-- description: none
-  type:
-  default:
 
 inlets:
   1st:
@@ -55,11 +54,11 @@ methods:
   - type: size <float>
     description: sets font size
   - type: bold <float>
-    description: non zero sets to bold
+    description: non-0 sets to bold
   - type: italic <float>
-    description: non zero sets to italic
+    description: non-0 sets to italic
   - type: underline <float>
-    description: non zero sets underline
+    description: non-0 sets underline
   - type: just <float>
     description: sets justification (0: left, 1: center, 2: right)
   - type: width <float>
@@ -71,9 +70,10 @@ methods:
   - type: bg <float>
     description: background flag (0 suppresses background)
   - type: outline <float>
-    description: non zero sets an outline
+    description: non-0 sets an outline
   - type: receive <symbol>
     description: sets receive symbol
+draft: false
 ---
 
 [note] is a GUI meant only to display text notes. This is basically the same of Pd's comment but with the advantage of being able to set the font, size, color, background color, bold, italic, underline and justification.

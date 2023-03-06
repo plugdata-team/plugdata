@@ -5,42 +5,138 @@
  */
 
 #include "Canvas.h"
+#include "Utility/PluginParameter.h"
 
-struct AutomationSlider : public Component
+class AutomationSlider : public Component
     , public Value::Listener {
 
-    PluginProcessor* pd;
+    class ExpandButton : public TextButton {
+        void paint(Graphics& g)
+        {
 
-    AutomationSlider(int idx, PluginProcessor* processor)
+            auto isOpen = getToggleState();
+            auto mouseOver = isMouseOver();
+            auto area = getLocalBounds().reduced(2).toFloat();
+
+            Path p;
+            p.addTriangle(0.0f, 0.0f, 1.0f, isOpen ? 0.0f : 0.5f, isOpen ? 0.5f : 0.0f, 1.0f);
+            g.setColour(findColour(PlugDataColour::panelTextColourId).withAlpha(mouseOver ? 0.7f : 1.0f));
+
+            g.fillPath(p, p.getTransformToScaleToFit(area.reduced(2, area.getHeight() / 4), true));
+        }
+    };
+
+    PluginProcessor* pd;
+    PlugDataParameter* param;
+
+public:
+    AutomationSlider(int idx, Component* parentComponent, PluginProcessor* processor)
         : index(idx)
         , pd(processor)
     {
-        createButton.setName("statusbar:createbutton");
+        param = dynamic_cast<PlugDataParameter*>(pd->getParameters()[index + 1]);
 
-        nameLabel.setText(String(idx + 1), dontSendNotification);
+        lastName = param->getTitle();
+        nameLabel.setText(lastName, dontSendNotification);
+
+        nameLabel.setFont(Font(14.0f));
+        valueLabel.setFont(Font(14.0f));
+        minLabel.setFont(Font(14.0f));
+        maxLabel.setFont(Font(14.0f));
+        minValue.setFont(Font(14.0f));
+        maxValue.setFont(Font(14.0f));
 
         createButton.onClick = [this]() mutable {
             if (auto* editor = dynamic_cast<PluginEditor*>(pd->getActiveEditor())) {
                 auto* cnv = editor->getCurrentCanvas();
                 if (cnv) {
                     cnv->attachNextObjectToMouse = true;
-                    cnv->objects.add(new Object(cnv, "param " + String(index + 1)));
+                    cnv->objects.add(new Object(cnv, "param " + param->getTitle()));
                 }
             }
         };
 
-        // pd->locked.addListener(this);
+        deleteButton.onClick = [this]() mutable {
+            onDelete(this);
+        };
+
+        deleteButton.setTooltip("Remove parameter");
+        createButton.setTooltip("Create [param] object");
+        settingsButton.setTooltip("Expand settings");
+
+        settingsButton.onClick = [this, parentComponent]() mutable {
+            parentComponent->resized();
+
+            bool toggleState = settingsButton.getToggleState();
+
+            minLabel.setVisible(toggleState);
+            minValue.setVisible(toggleState);
+            maxLabel.setVisible(toggleState);
+            maxValue.setVisible(toggleState);
+        };
+
+        minValue.dragEnd = [this]() {
+            auto minimum = minValue.getValue();
+            auto maximum = param->getNormalisableRange().end;
+
+            valueLabel.setMinimum(minimum);
+            valueLabel.setMaximum(maximum);
+            valueLabel.setValue(std::clamp(valueLabel.getValue(), minimum, maximum));
+
+            maxValue.setMinimum(minimum + 0.000001f);
+
+            // make sure min is always smaller than max
+            minimum = std::min(minimum, maximum - 0.000001f);
+
+            slider.setRange(minimum, maximum, 0.000001f);
+            param->setRange(minimum, maximum);
+            param->notifyDAW();
+        };
+
+        maxValue.dragEnd = [this]() {
+            auto minimum = param->getNormalisableRange().start;
+            auto maximum = maxValue.getValue();
+
+            valueLabel.setMinimum(minimum);
+            valueLabel.setMaximum(maximum);
+            valueLabel.setValue(std::clamp(valueLabel.getValue(), minimum, maximum));
+
+            minValue.setMaximum(maximum);
+
+            // make sure max is always bigger than min
+            maximum = std::max(maximum, minimum + 0.000001f);
+
+            slider.setRange(minimum, maximum, 0.000001f);
+            param->setRange(minimum, maximum);
+
+            param->notifyDAW();
+        };
 
         slider.setScrollWheelEnabled(false);
         slider.setTextBoxStyle(Slider::NoTextBox, false, 45, 13);
 
+        auto range = param->getNormalisableRange().getRange();
+
+        auto minimum = range.getStart();
+        auto maximum = range.getEnd();
+
+        valueLabel.setMinimum(minimum);
+        valueLabel.setMaximum(maximum);
+
+        minValue.setValue(minimum);
+        maxValue.setValue(maximum);
+
+        maxValue.setMinimum(minimum + 0.000001f);
+        minValue.setMaximum(maximum);
+
 #if PLUGDATA_STANDALONE
-        slider.setValue(pd->standaloneParams[index]);
-        slider.setRange(0.0f, 1.0f);
-        valueLabel.setText(String(pd->standaloneParams[index], 2), dontSendNotification);
+
+        slider.setValue(param->getUnscaledValue());
+        slider.setRange(range.getStart(), range.getEnd(), 0.000001f);
+        valueLabel.setText(String(param->getUnscaledValue(), 2), dontSendNotification);
         slider.onValueChange = [this]() mutable {
             float value = slider.getValue();
-            pd->standaloneParams[index] = value;
+            param->setUnscaledValueNotifyingHost(value);
             valueLabel.setText(String(value, 2), dontSendNotification);
         };
 #else
@@ -48,32 +144,81 @@ struct AutomationSlider : public Component
             float value = slider.getValue();
             valueLabel.setText(String(value, 2), dontSendNotification);
         };
-        auto* param = pd->parameters.getParameter("param" + String(index + 1));
-        auto range = param->getNormalisableRange().getRange();
+        slider.setRange(range.getStart(), range.getEnd(), 0.000001f);
+
         attachment = std::make_unique<SliderParameterAttachment>(*param, slider, nullptr);
         valueLabel.setText(String(param->getValue(), 2), dontSendNotification);
 #endif
-        valueLabel.onEditorShow = [this]() mutable {
-            if (auto* editor = valueLabel.getCurrentTextEditor()) {
-                editor->setInputRestrictions(-1, "0123456789.");
-            }
-        };
 
-        valueLabel.onEditorHide = [this]() mutable {
-            auto* param = pd->parameters.getParameter("param" + String(index + 1));
-            param->setValue(valueLabel.getText().getFloatValue());
+        valueLabel.valueChanged = [this](float newValue) mutable {
+            auto minimum = param->getNormalisableRange().start;
+            auto maximum = param->getNormalisableRange().end;
+
+            auto value = std::clamp(newValue, minimum, maximum);
+
+            valueLabel.setText(String(value, 2), dontSendNotification);
+            param->setUnscaledValueNotifyingHost(value);
+            slider.setValue(value, dontSendNotification);
         };
 
         valueLabel.setMinimumHorizontalScale(1.0f);
+        valueLabel.setJustificationType(Justification::centred);
+
         nameLabel.setMinimumHorizontalScale(1.0f);
-        nameLabel.setJustificationType(Justification::centred);
+        nameLabel.setJustificationType(Justification::centredLeft);
 
         valueLabel.setEditable(true);
+
+        settingsButton.setClickingTogglesState(true);
+
+        nameLabel.setEditable(true, true);
+        nameLabel.onEditorShow = [this]() {
+            if (auto* editor = nameLabel.getCurrentTextEditor()) {
+                editor->setInputRestrictions(32, "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890_-");
+            }
+            lastName = nameLabel.getText(false);
+        };
+
+        nameLabel.onEditorHide = [this]() {
+            StringArray allNames;
+            for (auto* param : pd->getParameters()) {
+                allNames.add(dynamic_cast<PlugDataParameter*>(param)->getTitle());
+            }
+
+            auto newName = nameLabel.getText(true);
+            auto character = newName[0];
+
+            // Check if name is valid
+            if ((character == '_' || character == '-'
+                    || (character >= 'a' && character <= 'z')
+                    || (character >= 'A' && character <= 'Z'))
+                && newName.containsOnly("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890_-") && !allNames.contains(newName) && newName.isNotEmpty()) {
+                param->setName(nameLabel.getText(true));
+                param->notifyDAW();
+            } else {
+                nameLabel.setText(lastName, dontSendNotification);
+            }
+        };
 
         addAndMakeVisible(nameLabel);
         addAndMakeVisible(slider);
         addAndMakeVisible(valueLabel);
+
+        createButton.getProperties().set("Style", "SmallIcon");
+        settingsButton.getProperties().set("Style", "SmallIcon");
+        deleteButton.getProperties().set("Style", "SmallIcon");
+
         addAndMakeVisible(createButton);
+        addAndMakeVisible(settingsButton);
+        addAndMakeVisible(deleteButton);
+
+        addChildComponent(minLabel);
+        addChildComponent(minValue);
+        addChildComponent(maxLabel);
+        addChildComponent(maxValue);
+
+        minValue.setEditable(true);
+        maxValue.setEditable(true);
     }
 
     ~AutomationSlider()
@@ -86,28 +231,91 @@ struct AutomationSlider : public Component
         createButton.setEnabled(!static_cast<bool>(v.getValue()));
     }
 
+    int getItemHeight()
+    {
+        if (param->isEnabled()) {
+            return settingsButton.getToggleState() ? 70.0f : 50.0f;
+        } else {
+            return 0.0f;
+        }
+    }
+
+    bool isEnabled()
+    {
+        return param->isEnabled();
+    }
+
+    void setEnabled(bool shouldBeEnabled)
+    {
+        param->setEnabled(shouldBeEnabled);
+        param->notifyDAW();
+    }
+
     void resized() override
     {
-        auto bounds = getLocalBounds();
-        nameLabel.setBounds(bounds.removeFromLeft(30).expanded(4, 0));
-        slider.setBounds(bounds.removeFromLeft(getWidth() - 100));
-        valueLabel.setBounds(bounds.removeFromLeft(30).expanded(4, 0));
-        createButton.setBounds(bounds.removeFromLeft(23));
+        bool settingsVisible = settingsButton.getToggleState();
+
+        auto bounds = getLocalBounds().reduced(6, 2);
+
+        int rowHeight = 22;
+
+        auto firstRow = bounds.removeFromTop(rowHeight);
+        auto secondRow = bounds.removeFromTop(rowHeight);
+
+        if (settingsVisible) {
+            auto thirdRow = bounds;
+
+            auto oneThird = thirdRow.getWidth() / 3.0f;
+            auto oneSixth = thirdRow.getWidth() * (1.0f / 6.0f);
+
+            minLabel.setBounds(thirdRow.removeFromLeft(oneSixth));
+            minValue.setBounds(thirdRow.removeFromLeft(oneThird));
+
+            maxLabel.setBounds(thirdRow.removeFromLeft(oneSixth));
+            maxValue.setBounds(thirdRow.removeFromLeft(oneThird));
+        }
+
+        auto buttonsBounds = firstRow.removeFromRight(50).withHeight(25);
+
+        nameLabel.setBounds(firstRow);
+
+        settingsButton.setBounds(secondRow.removeFromLeft(25));
+        slider.setBounds(secondRow.removeFromLeft(getWidth() - 90));
+        valueLabel.setBounds(secondRow);
+
+        createButton.setBounds(buttonsBounds.removeFromLeft(25));
+        deleteButton.setBounds(buttonsBounds.removeFromLeft(25));
     }
 
     void paint(Graphics& g) override
     {
-        slider.setColour(Slider::backgroundColourId, findColour(PlugDataColour::toolbarBackgroundColourId));
+        slider.setColour(Slider::backgroundColourId, findColour(PlugDataColour::sidebarBackgroundColourId));
         slider.setColour(Slider::trackColourId, findColour(PlugDataColour::sidebarTextColourId));
 
-        g.setColour(findColour(PlugDataColour::sidebarBackgroundColourId));
-        g.fillRect(getLocalBounds());
+        nameLabel.setColour(Label::textColourId, findColour(PlugDataColour::sidebarTextColourId));
+        valueLabel.setColour(Label::textColourId, findColour(PlugDataColour::sidebarTextColourId));
+
+        g.setColour(findColour(PlugDataColour::sidebarActiveBackgroundColourId).withAlpha(0.5f));
+        g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(4.5f, 3.0f), PlugDataLook::defaultCornerRadius);
     }
 
+    std::function<void(AutomationSlider*)> onDelete = [](AutomationSlider*) {};
+
     TextButton createButton = TextButton(Icons::Add);
+    TextButton deleteButton = TextButton(Icons::Clear);
+    ExpandButton settingsButton;
+
+    Label minLabel = Label("", "Min:");
+    Label maxLabel = Label("", "Max:");
+
+    DraggableNumber minValue = DraggableNumber(false);
+    DraggableNumber maxValue = DraggableNumber(false);
+    DraggableNumber valueLabel = DraggableNumber(false);
 
     Label nameLabel;
-    Label valueLabel;
+
+    String lastName;
+
     Slider slider;
 
     int index;
@@ -115,38 +323,202 @@ struct AutomationSlider : public Component
 #if !PLUGDATA_STANDALONE
     std::unique_ptr<SliderParameterAttachment> attachment;
 #endif
+
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(AutomationSlider)
 };
 
-struct AutomationComponent : public Component {
-    PluginProcessor* pd;
+class AutomationComponent : public Component {
 
-    explicit AutomationComponent(PluginProcessor* processor)
-        : pd(processor)
-    {
-        for (int p = 0; p < PluginProcessor::numParameters; p++) {
-            auto* slider = rows.add(new AutomationSlider(p, processor));
-            addAndMakeVisible(slider);
+    class AddParameterButton : public Component {
+
+        bool mouseIsOver = false;
+
+    public:
+        std::function<void()> onClick = []() {};
+
+        void paint(Graphics& g) override
+        {
+            auto bounds = getLocalBounds().reduced(5, 2);
+            auto textBounds = bounds;
+            auto iconBounds = textBounds.removeFromLeft(textBounds.getHeight());
+
+            auto colour = findColour(PlugDataColour::sidebarTextColourId);
+            if (mouseIsOver) {
+                g.setColour(findColour(PlugDataColour::sidebarActiveBackgroundColourId));
+                g.fillRoundedRectangle(bounds.toFloat(), PlugDataLook::defaultCornerRadius);
+
+                colour = findColour(PlugDataColour::sidebarActiveTextColourId);
+            }
+
+            PlugDataLook::drawIcon(g, Icons::Add, iconBounds, colour, 12);
+            PlugDataLook::drawText(g, "Add new parameter", textBounds, colour, 14);
         }
+
+        bool hitTest(int x, int y) override
+        {
+            if (getLocalBounds().reduced(5, 2).contains(x, y)) {
+                return true;
+            };
+            return false;
+        }
+
+        void mouseEnter(MouseEvent const& e) override
+        {
+            mouseIsOver = true;
+            repaint();
+        }
+
+        void mouseExit(MouseEvent const& e) override
+        {
+            mouseIsOver = false;
+            repaint();
+        }
+
+        void mouseUp(MouseEvent const& e) override
+        {
+            onClick();
+        }
+    };
+
+public:
+    explicit AutomationComponent(PluginProcessor* processor, Component* parent)
+        : pd(processor)
+        , parentComponent(parent)
+    {
+        updateSliders();
+
+        addAndMakeVisible(addParameterButton);
+
+        addParameterButton.onClick = [this, parent]() {
+            for (auto* row : rows) {
+                if (!row->isEnabled()) {
+                    row->setEnabled(true);
+                    break;
+                }
+            }
+
+            resized();
+            parent->resized();
+
+            for (auto* row : rows) {
+                row->resized();
+                row->repaint();
+            }
+
+            checkMaxNumParameters();
+        };
+    }
+
+    void updateSliders()
+    {
+
+        rows.clear();
+
+        for (int p = 0; p < PluginProcessor::numParameters; p++) {
+            auto* slider = rows.add(new AutomationSlider(p, parentComponent, pd));
+            addAndMakeVisible(slider);
+
+            slider->onDelete = [this](AutomationSlider* toDelete) {
+                std::vector<std::tuple<bool, String, float, float, float>> parameterValues;
+
+                StringArray paramNames;
+
+                for (int i = 0; i < rows.size(); i++) {
+                    auto* param = dynamic_cast<PlugDataParameter*>(pd->getParameters()[i + 1]);
+
+                    parameterValues.emplace_back(param->isEnabled(), param->getTitle(), param->getUnscaledValue(), param->getNormalisableRange().start, param->getNormalisableRange().end);
+
+                    paramNames.add(param->getTitle());
+                }
+
+                auto toDeleteIdx = rows.indexOf(toDelete);
+
+                auto newParamName = String("param");
+                int i = 1;
+                while (paramNames.contains(newParamName + String(i))) {
+                    i++;
+                }
+                newParamName += String(i);
+
+                parameterValues.erase(parameterValues.begin() + toDeleteIdx);
+                parameterValues.emplace_back(false, newParamName, 0.0f, 0.0f, 1.0f);
+
+                for (int i = 0; i < rows.size(); i++) {
+                    auto* param = dynamic_cast<PlugDataParameter*>(pd->getParameters()[i + 1]);
+
+                    auto& [enabled, name, value, min, max] = parameterValues[i];
+
+                    param->setEnabled(enabled);
+                    param->setName(name);
+                    param->setRange(min, max);
+                    param->setUnscaledValueNotifyingHost(value);
+                }
+
+                dynamic_cast<PlugDataParameter*>(pd->getParameters()[0])->notifyDAW();
+
+                updateSliders();
+            };
+        }
+
+        checkMaxNumParameters();
+        parentComponent->resized();
+        resized();
+    }
+
+    void checkMaxNumParameters()
+    {
+        addParameterButton.setVisible(getNumEnabled() < PluginProcessor::numParameters);
     }
 
     void resized() override
     {
-        int height = 23;
-        int y = 0;
-        for (int p = 0; p < PluginProcessor::numParameters; p++) {
-            auto rect = Rectangle<int>(0, y, getWidth(), height);
+        int y = 2;
+        int width = getWidth();
+        for (int p = 0; p < getNumEnabled(); p++) {
+            int height = rows[p]->getItemHeight();
+            rows[p]->setBounds(0, y, width, height);
             y += height;
-            rows[p]->setBounds(rect);
         }
+
+        addParameterButton.setBounds(0, y, getWidth(), 26);
     }
 
+    int getNumEnabled()
+    {
+        int numEnabled = 0;
+
+        for (int p = 0; p < PluginProcessor::numParameters; p++) {
+            numEnabled += rows[p]->isEnabled();
+        }
+
+        return numEnabled;
+    }
+
+    int getTotalHeight()
+    {
+        int y = 28;
+        for (int p = 0; p < PluginProcessor::numParameters; p++) {
+            y += rows[p]->getItemHeight();
+        }
+
+        return y;
+    }
+
+    PluginProcessor* pd;
+    Component* parentComponent;
     OwnedArray<AutomationSlider> rows;
+    AddParameterButton addParameterButton;
+
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(AutomationComponent)
 };
 
-struct AutomationPanel : public Component
+class AutomationPanel : public Component
     , public ScrollBar::Listener {
+
+public:
     explicit AutomationPanel(PluginProcessor* processor)
-        : sliders(processor)
+        : sliders(processor, this)
+        , pd(processor)
     {
         viewport.setViewedComponent(&sliders, false);
         viewport.setScrollBarsShown(true, false, false, false);
@@ -166,37 +538,37 @@ struct AutomationPanel : public Component
 
     void paint(Graphics& g) override
     {
-        g.setColour(findColour(PlugDataColour::toolbarBackgroundColourId));
-        g.fillRect(getLocalBounds().withTrimmedLeft(Sidebar::dragbarWidth).withTrimmedBottom(30));
-        g.fillRect(getLocalBounds().withHeight(viewport.getY()));
-
-        g.setColour(findColour(PlugDataColour::sidebarTextColourId));
-        g.setFont(14);
-        g.drawFittedText("Parameters", 0, 1, getWidth(), viewport.getY(), Justification::centred, 1);
+        g.setColour(findColour(PlugDataColour::sidebarBackgroundColourId));
+        g.fillRect(getLocalBounds());
 
         // Background for statusbar part
         g.setColour(findColour(PlugDataColour::toolbarBackgroundColourId));
-        g.fillRoundedRectangle(0, getHeight() - 30, getWidth(), 30, Constants::defaultCornerRadius);
-
-        g.setColour(findColour(PlugDataColour::outlineColourId));
-        g.drawLine(0, 29, getWidth(), 29);
+        g.fillRoundedRectangle(0, getHeight() - 30, getWidth(), 30, PlugDataLook::defaultCornerRadius);
     }
 
     void resized() override
     {
-        viewport.setBounds(getLocalBounds().withTrimmedTop(28).withTrimmedBottom(30));
-        sliders.setSize(getWidth(), PluginProcessor::numParameters * 23);
+        viewport.setBounds(getLocalBounds().withTrimmedBottom(30));
+
+        sliders.setSize(getWidth(), sliders.getTotalHeight());
     }
 
-#if PLUGDATA_STANDALONE
     void updateParameters()
     {
+#if PLUGDATA_STANDALONE
         for (int p = 0; p < PluginProcessor::numParameters; p++) {
-            sliders.rows[p]->slider.setValue(sliders.pd->standaloneParams[p]);
+            auto* param = dynamic_cast<PlugDataParameter*>(pd->getParameters()[p + 1]);
+
+            sliders.rows[p]->slider.setValue(param->getUnscaledValue());
         }
-    }
+#else
+        sliders.updateSliders();
 #endif
+    }
 
     Viewport viewport;
     AutomationComponent sliders;
+    PluginProcessor* pd;
+
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(AutomationPanel)
 };

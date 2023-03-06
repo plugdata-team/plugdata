@@ -1,16 +1,16 @@
 ---
 title: vibrato~
 
-description: Vibrato
+description: vibrato
 
 categories:
 - object
 
-pdcategory: General Audio Manipulation
+pdcategory: ELSE, Effects
 
 arguments:
   - type: float
-    description: rate in hertz 
+    description: rate in Hz 
     default: 0
   - type: float
     description: transposition depth in cents 

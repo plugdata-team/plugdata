@@ -1,12 +1,12 @@
 ---
 title: morph
 
-description: Morph between lists
+description: morph between lists
 
 categories:
 - object
 
-pdcategory: List management
+pdcategory: ELSE, Data Management
 
 arguments:
 - type: float

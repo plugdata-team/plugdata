@@ -1,12 +1,12 @@
 ---
 title: poltocar
 
-description: Polar to cartesian conversion
+description: polar to cartesian conversion
 
 categories:
  - object
 
-pdcategory: General
+pdcategory: cyclone, Converters
 
 arguments: (none)
 

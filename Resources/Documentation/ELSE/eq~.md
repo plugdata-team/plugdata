@@ -1,20 +1,20 @@
 ---
 title: eq~
 
-description: Parametric equalizer filter
+description: parametric equalizer filter
 
 categories:
  - object
 
-pdcategory: General
+pdcategory: ELSE, Filters, Effects, Mixing and Routing
 
 arguments:
 - type: float
-  description: central frequency in Hertz
+  description: central frequency in Hz
   default: 0
 - type: float
-  description: resonance, either in 'Q' (default) or 'bw'
-  default: 1
+  description: resonance, either in 'Q' or 'bw'
+  default: 1 - in Q
 - type: float
   description: gain in dB
   default: 0
@@ -25,7 +25,7 @@ inlets:
     description: signal to be filtered
   2nd:
   - type: float/signal
-    description: central frequency in Hertz
+    description: central frequency in Hz
   3rd:
   - type: float/signal
     description: filter resonance (Q or bandwidth)
@@ -52,6 +52,7 @@ methods:
   - type: q
     description: sets resonance parameter to Q (default)
 
+draft: false
 ---
 
 [eq~] is a 2nd order parametric equalizer filter, it can be used as a peak and a notch filter.

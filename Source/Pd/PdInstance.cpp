@@ -19,32 +19,33 @@ extern "C" {
 #include "z_print_util.h"
 
 int sys_load_lib(t_canvas* canvas, char const* classname);
+void set_class_prefix(t_symbol* dir);
 
 struct pd::Instance::internal {
 
     static void instance_multi_bang(pd::Instance* ptr, char const* recv)
     {
-        ptr->enqueueFunctionAsync([ptr, recv]() { ptr->processMessage({ String("bang"), String(recv) }); });
+        ptr->enqueueFunctionAsync([ptr, recv]() { ptr->processMessage({ String("bang"), String::fromUTF8(recv) }); });
     }
 
     static void instance_multi_float(pd::Instance* ptr, char const* recv, float f)
     {
-        ptr->enqueueFunctionAsync([ptr, recv, f]() mutable { ptr->processMessage({ String("float"), String(recv), std::vector<Atom>(1, { f }) }); });
+        ptr->enqueueFunctionAsync([ptr, recv, f]() mutable { ptr->processMessage({ String("float"), String::fromUTF8(recv), std::vector<Atom>(1, { f }) }); });
     }
 
     static void instance_multi_symbol(pd::Instance* ptr, char const* recv, char const* sym)
     {
-        ptr->enqueueFunctionAsync([ptr, recv, sym]() mutable { ptr->processMessage({ String("symbol"), String(recv), std::vector<Atom>(1, String(sym)) }); });
+        ptr->enqueueFunctionAsync([ptr, recv, sym]() mutable { ptr->processMessage({ String("symbol"), String::fromUTF8(recv), std::vector<Atom>(1, String::fromUTF8(sym)) }); });
     }
 
     static void instance_multi_list(pd::Instance* ptr, char const* recv, int argc, t_atom* argv)
     {
-        Message mess { String("list"), String(recv), std::vector<Atom>(argc) };
+        Message mess { String("list"), String::fromUTF8(recv), std::vector<Atom>(argc) };
         for (int i = 0; i < argc; ++i) {
             if (argv[i].a_type == A_FLOAT)
                 mess.list[i] = Atom(atom_getfloat(argv + i));
             else if (argv[i].a_type == A_SYMBOL)
-                mess.list[i] = Atom(String(atom_getsymbol(argv + i)->s_name));
+                mess.list[i] = Atom(String::fromUTF8(atom_getsymbol(argv + i)->s_name));
         }
 
         ptr->enqueueFunctionAsync([ptr, mess]() mutable { ptr->processMessage(mess); });
@@ -52,12 +53,12 @@ struct pd::Instance::internal {
 
     static void instance_multi_message(pd::Instance* ptr, char const* recv, char const* msg, int argc, t_atom* argv)
     {
-        Message mess { msg, String(recv), std::vector<Atom>(argc) };
+        Message mess { msg, String::fromUTF8(recv), std::vector<Atom>(argc) };
         for (int i = 0; i < argc; ++i) {
             if (argv[i].a_type == A_FLOAT)
                 mess.list[i] = Atom(atom_getfloat(argv + i));
             else if (argv[i].a_type == A_SYMBOL)
-                mess.list[i] = Atom(String(atom_getsymbol(argv + i)->s_name));
+                mess.list[i] = Atom(String::fromUTF8(atom_getsymbol(argv + i)->s_name));
         }
         ptr->enqueueFunctionAsync([ptr, mess]() mutable { ptr->processMessage(std::move(mess)); });
     }
@@ -136,26 +137,25 @@ Instance::Instance(String const& symbol)
 
     // Register callback when pd's gui changes
     // Needs to be done on pd's thread
-    auto gui_trigger = [](void* instance, void* target) {
-        auto* pd = static_cast<t_pd*>(target);
+    auto gui_trigger = [](void* instance, char const* name, t_atom* arg1, t_atom* arg2, t_atom* arg3) {
+        if (String::fromUTF8(name) == "openpanel") {
 
-        // redraw scalar
-        if (pd && !strcmp((*pd)->c_name->s_name, "scalar")) {
-            static_cast<Instance*>(instance)->receiveGuiUpdate(2);
-        } else {
-            static_cast<Instance*>(instance)->receiveGuiUpdate(1);
+            static_cast<Instance*>(instance)->createPanel(atom_getfloat(arg1), atom_getsymbol(arg3)->s_name, atom_getsymbol(arg2)->s_name);
+        }
+        if (String::fromUTF8(name) == "openfile") {
+            File(String::fromUTF8(atom_getsymbol(arg1)->s_name)).startAsProcess();
+        }
+        if (String::fromUTF8(name) == "repaint") {
+            static_cast<Instance*>(instance)->updateDrawables();
         }
     };
 
-    auto panel_trigger = [](void* instance, int open, char const* snd, char const* location) { static_cast<Instance*>(instance)->createPanel(open, snd, location); };
-
-    auto openfile_trigger = [](void* instance, char const* fileToOpen) {
-        File(fileToOpen).startAsProcess();
-    };
-
     auto message_trigger = [](void* instance, void* target, t_symbol* symbol, int argc, t_atom* argv) {
+        
+        ScopedLock lock(static_cast<Instance*>(instance)->messageListenerLock);
+        
         auto& listeners = static_cast<Instance*>(instance)->messageListeners;
-        if (!listeners.count(target))
+        if (!symbol || !listeners.count(target))
             return;
 
         bool cleanUp = false;
@@ -166,11 +166,12 @@ Instance::Instance(String const& symbol)
                 cleanUp = true;
                 continue;
             }
-            auto sym = String(symbol->s_name);
+            auto sym = String::fromUTF8(symbol->s_name);
             listener->receiveMessage(sym, argc, argv);
         }
 
         // If any pointers were invalid, clean them up
+        // TODO: profile if this is really the best place to do that
         if (cleanUp) {
             for (int i = listeners[target].size() - 1; i >= 0; i--) {
                 if (!listeners[target][i]) {
@@ -180,66 +181,7 @@ Instance::Instance(String const& symbol)
         }
     };
 
-    register_gui_triggers(static_cast<t_pdinstance*>(m_instance), this, gui_trigger, panel_trigger, openfile_trigger, message_trigger);
-
-    // HACK: create full path names for c-coded externals
-    // Temporarily disabled because bugs
-    /*
-    int i;
-    t_class* o = pd_objectmaker;
-
-    t_methodentry *mlist, *m;
-
-#if PDINSTANCE
-    mlist = o->c_methods[pd_this->pd_instanceno];
-#else
-    mlist = o->c_methods;
-#endif
-
-    bool insideElse = false;
-    bool insideCyclone = false;
-
-    std::vector<std::tuple<String, t_newmethod, std::array<t_atomtype, 6>>> newMethods;
-
-    // First find all the objects that need a full path and put them in a list
-    // Adding new entries while iterating over them is a bad idea
-    for (i = o->c_nmethod, m = mlist; i--; m++) {
-        String name(m->me_name->s_name);
-
-        if (name == "accum") {
-            insideCyclone = true;
-        }
-        if (name == "above~") {
-            insideElse = true;
-        }
-
-        if ((insideCyclone || insideElse) && !(name.contains("cyclone") || name.contains("else") || name == "Pow~" || name == "del~")) {
-            auto newName = insideCyclone ? "cyclone/" + name : "else/" + name;
-
-            std::array<t_atomtype, 6> args;
-            for (int n = 0; n < 6; n++) {
-                args[n] = static_cast<t_atomtype>(m->me_arg[n]);
-            }
-
-            auto* method = reinterpret_cast<t_newmethod>(m->me_fun);
-
-            newMethods.push_back({ newName, method, args });
-        }
-        if (name == "zerox~") {
-            insideCyclone = false;
-        }
-        if (name == "zerocross~") {
-            insideElse = false;
-        }
-    }
-
-    // Then create aliases for all these objects
-    // We seperate this process in two parts because adding new objects while looping through objects causes problems
-    for (auto [name, method, args] : newMethods) {
-        class_addcreator(method, pd->generateSymbol(name)), args[0], args[1], args[2], args[3], args[4], args[5]);
-    }
-
-     */
+    register_gui_triggers(static_cast<t_pdinstance*>(m_instance), this, gui_trigger, message_trigger);
 
     setThis();
 }
@@ -259,16 +201,31 @@ Instance::~Instance()
 // ag: Stuff to be done after unpacking the library data on first launch.
 void Instance::loadLibs(String& pdlua_version)
 {
-    libpd_init_else();
-    libpd_init_cyclone();
-    File homeDir = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory).getChildFile("plugdata");
-    auto library = homeDir.getChildFile("Library");
-    auto extra = library.getChildFile("Extra");
-    char vers[1000];
-    *vers = 0;
-    libpd_init_pdlua(extra.getFullPathName().getCharPointer(), vers, 1000);
-    if (*vers)
-        pdlua_version = vers;
+    setThis();
+
+    static bool initialised = false;
+    if (!initialised) {
+
+        File homeDir = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory).getChildFile("plugdata");
+        auto library = homeDir.getChildFile("Library");
+        auto extra = library.getChildFile("Extra");
+
+        set_class_prefix(gensym("else"));
+        libpd_init_else();
+        set_class_prefix(gensym("cyclone"));
+        libpd_init_cyclone();
+        set_class_prefix(nullptr);
+
+        // Class prefix doesn't seem to work for pdlua
+        char vers[1000];
+        *vers = 0;
+        libpd_init_pdlua(extra.getFullPathName().getCharPointer(), vers, 1000);
+        if (*vers)
+            pdlua_version = vers;
+
+        initialised = true;
+    }
+
     // ag: need to do this here to suppress noise from chatty externals
     m_print_receiver = libpd_multi_print_new(this, reinterpret_cast<t_libpd_multi_printhook>(internal::instance_multi_print));
     libpd_set_verbose(0);
@@ -283,7 +240,6 @@ void Instance::prepareDSP(int const nins, int const nouts, double const samplera
 {
     libpd_set_instance(static_cast<t_pdinstance*>(m_instance));
     libpd_init_audio(nins, nouts, static_cast<int>(samplerate));
-    // continuityChecker.prepare(samplerate, blockSize, std::max(nins, nouts));
 }
 
 void Instance::startDSP()
@@ -412,8 +368,10 @@ void Instance::sendList(char const* receiver, std::vector<Atom> const& list) con
     libpd_list(receiver, static_cast<int>(list.size()), argv);
 }
 
-void Instance::sendMessage(char const* receiver, char const* msg, std::vector<Atom> const& list) const
+void Instance::sendMessage(void* object, char const* msg, std::vector<Atom> const& list) const
 {
+    if(!object) return;
+    
     libpd_set_instance(static_cast<t_pdinstance*>(m_instance));
 
     auto* argv = static_cast<t_atom*>(m_atoms);
@@ -424,24 +382,29 @@ void Instance::sendMessage(char const* receiver, char const* msg, std::vector<At
         else
             libpd_set_symbol(argv + i, list[i].getSymbol().toRawUTF8());
     }
-    auto* obj = generateSymbol(receiver)->s_thing;
 
-    if (!obj)
-        return;
+    pd_typedmess(static_cast<t_pd*>(object), generateSymbol(msg), static_cast<int>(list.size()), argv);
+}
 
-    pd_typedmess(generateSymbol(receiver)->s_thing, generateSymbol(msg), static_cast<int>(list.size()), argv);
+void Instance::sendMessage(char const* receiver, char const* msg, std::vector<Atom> const& list) const
+{
+    sendMessage(generateSymbol(receiver)->s_thing, msg, list);
 }
 
 void Instance::processMessage(Message mess)
 {
-    if (mess.destination == "param") {
-        int index = mess.list[0].getFloat();
-        float value = std::clamp(mess.list[1].getFloat(), 0.0f, 1.0f);
-        performParameterChange(0, index - 1, value);
-    } else if (mess.destination == "param_change") {
-        int index = mess.list[0].getFloat();
+    if (mess.destination == "param" && mess.list.size() >= 2) {
+        if (!mess.list[0].isSymbol() || !mess.list[1].isFloat())
+            return;
+        auto name = mess.list[0].getSymbol();
+        float value = mess.list[1].getFloat();
+        performParameterChange(0, name, value);
+    } else if (mess.destination == "param_change" && mess.list.size() >= 2) {
+        if (!mess.list[0].isSymbol() || !mess.list[1].isFloat())
+            return;
+        auto name = mess.list[0].getSymbol();
         int state = mess.list[1].getFloat() != 0;
-        performParameterChange(1, index - 1, state);
+        performParameterChange(1, name, state);
     } else if (mess.selector == "bang") {
         receiveBang(mess.destination);
     } else if (mess.selector == "float") {
@@ -459,25 +422,38 @@ void Instance::processMessage(Message mess)
 
 void Instance::processMidiEvent(midievent event)
 {
-    if (event.type == midievent::NOTEON)
+    switch (event.type) {
+    case midievent::NOTEON:
         receiveNoteOn(event.midi1 + 1, event.midi2, event.midi3);
-    else if (event.type == midievent::CONTROLCHANGE)
+        break;
+    case midievent::CONTROLCHANGE:
         receiveControlChange(event.midi1 + 1, event.midi2, event.midi3);
-    else if (event.type == midievent::PROGRAMCHANGE)
+        break;
+    case midievent::PROGRAMCHANGE:
         receiveProgramChange(event.midi1 + 1, event.midi2);
-    else if (event.type == midievent::PITCHBEND)
+        break;
+    case midievent::PITCHBEND:
         receivePitchBend(event.midi1 + 1, event.midi2);
-    else if (event.type == midievent::AFTERTOUCH)
+        break;
+    case midievent::AFTERTOUCH:
         receiveAftertouch(event.midi1 + 1, event.midi2);
-    else if (event.type == midievent::POLYAFTERTOUCH)
+        break;
+    case midievent::POLYAFTERTOUCH:
         receivePolyAftertouch(event.midi1 + 1, event.midi2, event.midi3);
-    else if (event.type == midievent::MIDIBYTE)
+        break;
+    case midievent::MIDIBYTE:
         receiveMidiByte(event.midi1, event.midi2);
+        break;
+    default:
+        break;
+    }
 }
 
 void Instance::processSend(dmessage mess)
 {
-    if (mess.object && !mess.list.empty()) {
+    setThis();
+    
+    if (mess.object) {
         if (mess.selector == "list") {
             auto* argv = static_cast<t_atom*>(m_atoms);
             for (size_t i = 0; i < mess.list.size(); ++i) {
@@ -493,14 +469,17 @@ void Instance::processSend(dmessage mess)
             sys_lock();
             pd_list(static_cast<t_pd*>(mess.object), generateSymbol("list"), static_cast<int>(mess.list.size()), argv);
             sys_unlock();
-        } else if (mess.selector == "float" && mess.list[0].isFloat()) {
+        } else if (mess.selector == "float" && !mess.list.empty() && mess.list[0].isFloat()) {
             sys_lock();
             pd_float(static_cast<t_pd*>(mess.object), mess.list[0].getFloat());
             sys_unlock();
-        } else if (mess.selector == "symbol") {
+        } else if (mess.selector == "symbol" && !mess.list.empty() && mess.list[0].isSymbol()) {
             sys_lock();
             pd_symbol(static_cast<t_pd*>(mess.object), generateSymbol(mess.list[0].getSymbol()));
             sys_unlock();
+        }
+        else {
+            sendMessage(static_cast<t_pd*>(mess.object), mess.selector.toRawUTF8(), mess.list);
         }
     } else {
         sendMessage(mess.destination.toRawUTF8(), mess.selector.toRawUTF8(), mess.list);
@@ -509,11 +488,14 @@ void Instance::processSend(dmessage mess)
 
 void Instance::registerMessageListener(void* object, MessageListener* messageListener)
 {
+    ScopedLock lock(messageListenerLock);
     messageListeners[object].push_back(WeakReference(messageListener));
 }
 
 void Instance::unregisterMessageListener(void* object, MessageListener* messageListener)
 {
+    ScopedLock lock(messageListenerLock);
+    
     if (messageListeners.count(object))
         return;
 
@@ -540,8 +522,6 @@ void Instance::enqueueFunction(std::function<void(void)> const& fn)
 
 void Instance::enqueueFunctionAsync(std::function<void(void)> const& fn)
 {
-    // This should be the way to do it, but it currently causes some issues
-    // By calling fn directly we fix these issues at the cost of possible thread unsafety
     m_function_queue.enqueue(fn);
 }
 
@@ -550,9 +530,14 @@ void Instance::enqueueMessages(String const& dest, String const& msg, std::vecto
     enqueueFunction([this, dest, msg, list]() mutable { processSend(dmessage { nullptr, dest, msg, std::move(list) }); });
 }
 
-void Instance::enqueueDirectMessages(void* object, std::vector<Atom> const& list)
+void Instance::enqueueDirectMessages(void* object, String const& msg, std::vector<Atom>&& list)
 {
-    enqueueFunction([this, object, list]() mutable { processSend(dmessage { object, String(), "list", list }); });
+    enqueueFunction([this, object, msg, list]() mutable { processSend(dmessage { object, String(), msg, std::move(list) }); });
+}
+
+void Instance::enqueueDirectMessages(void* object, std::vector<Atom> const&& list)
+{
+    enqueueFunction([this, object, list]() mutable { processSend(dmessage { object, String(), "list", std::move(list) }); });
 }
 
 void Instance::enqueueDirectMessages(void* object, String const& msg)
@@ -572,12 +557,22 @@ void Instance::waitForStateUpdate()
         return;
     }
 
+    waitingForStateUpdate = true;
+
     //  Append signal to resume thread at the end of the queue
     //  This will make sure that any actions we performed are definitely finished now
     //  If it can aquire a lock, it will dequeue all action immediately
     enqueueFunction([this]() { updateWait.signal(); });
 
-    updateWait.wait();
+    // Dequeuing should never take more than a few seconds, it should happen at audio rate
+    // By never blocking infinitely, and attempting to dequeue inbetween tries, we can possibly prevent deadlocks
+    for (int i = 0; i < 10; i++) {
+        messageEnqueued();
+        if (updateWait.wait(200)) {
+            waitingForStateUpdate = false;
+            return;
+        }
+    }
 }
 
 void Instance::sendMessagesFromQueue()
@@ -600,11 +595,9 @@ String Instance::getExtraInfo(File const& toOpen)
     return String();
 }
 
-Patch Instance::openPatch(File const& toOpen)
+Patch* Instance::openPatch(File const& toOpen)
 {
     t_canvas* cnv = nullptr;
-
-    bool done = false;
 
     String dirname = toOpen.getParentDirectory().getFullPathName().replace("\\", "/");
     auto const* dir = dirname.toRawUTF8();
@@ -615,11 +608,8 @@ Patch Instance::openPatch(File const& toOpen)
     setThis();
 
     cnv = static_cast<t_canvas*>(libpd_create_canvas(file, dir));
-    done = true;
 
-    auto patch = Patch(cnv, this, toOpen);
-
-    return patch;
+    return new Patch(cnv, this, true, toOpen);
 }
 
 void Instance::setThis() const
@@ -627,10 +617,15 @@ void Instance::setThis() const
     libpd_set_instance(static_cast<t_pdinstance*>(m_instance));
 }
 
-t_symbol* Instance::generateSymbol(String symbol) const
+t_symbol* Instance::generateSymbol(const char* symbol) const
 {
     setThis();
-    return gensym(symbol.toRawUTF8());
+    return gensym(symbol);
+}
+
+t_symbol* Instance::generateSymbol(String const& symbol) const
+{
+    return generateSymbol(symbol.toRawUTF8());
 }
 
 void Instance::logMessage(String const& message)
@@ -714,5 +709,37 @@ bool Instance::loadLibrary(String libraryToLoad)
 {
     return sys_load_lib(nullptr, libraryToLoad.toRawUTF8());
 }
+
+void Instance::lockAudioThread()
+{
+    if (waitingForStateUpdate) // In this case, the message thread is waiting for the audio thread, so never lock in that case!
+        return;
+
+    numLocksHeld++;
+    audioLock->enter();
+}
+
+bool Instance::tryLockAudioThread()
+{
+    if (audioLock->tryEnter()) {
+        numLocksHeld++;
+        return true;
+    }
+
+    return false;
+}
+
+void Instance::unlockAudioThread()
+{
+    if (numLocksHeld > 0) {
+        numLocksHeld--;
+        audioLock->exit();
+    }
+}
+
+void Instance::setCallbackLock(CriticalSection const* lock)
+{
+    audioLock = lock;
+};
 
 } // namespace pd

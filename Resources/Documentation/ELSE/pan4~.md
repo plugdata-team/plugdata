@@ -1,16 +1,16 @@
 ---
 title: pan4~
-description: Quadraphonic panning
+description: quadraphonic panning
+
 categories:
  - object
-pdcategory: General
+
+pdcategory: ELSE, Mixing and Routing
 
 arguments:
-  1st:
   - type: float
     description: initial X pan value
     default: 0
-  2nd:
   - type: float
     description: initial Y pan value
     default: 0
@@ -40,6 +40,7 @@ outlets:
   - type: signal
     description: Right-Back channel
 
+draft: false
 ---
 
 [pan4~] is a 4-channel equal power (sin/cos) panner.

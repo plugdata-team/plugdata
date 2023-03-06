@@ -1,9 +1,9 @@
 ---
 title: coll
-description: Store/edit message collections
+description: store/edit message collections
 categories:
  - object
-pdcategory: General
+pdcategory: cyclone, Data Management
 arguments:
 - type: symbol
   description: name or filename to load (same name colls share contents)
@@ -44,7 +44,7 @@ methods:
   - type: clear
     description: deletes all addresses (the complete data collection) from [coll]
   - type: deassoc <symbol, int>
-    description: desassociates the symbol alias of an int address
+    description: deassociates the symbol alias of an int address
   - type: delete <int/symbol>
     description: deletes the address (if an int, higher addresses are decremented by 1)
   - type: dump
@@ -56,7 +56,7 @@ methods:
   - type: filetype <symbol>
     description: sets file type to read/write (no symbol sets no extension: default)
   - type: flags <float, float>
-    description: first flag is the embed flag, second is unused (just use 'embed' isntead)
+    description: first flag is the embed flag, second is unused (just use 'embed' instead)
   - type: goto <int/symbol>
     description: sets an address to go to (only sets the pointer, no output)
   - type: insert <int, anything>
@@ -116,6 +116,7 @@ methods:
   - type: writeagain
     description: resaves last file - if no file had been saved, a dialog box is shown
 
+draft: false
 ---
 
 [coll] stores/edits any messages at given addresses (an integer or a symbol). If an input list starts with an int, it stores the other element(s) at that int address.

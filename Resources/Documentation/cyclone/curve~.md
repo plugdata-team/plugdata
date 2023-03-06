@@ -1,9 +1,9 @@
 ---
 title: curve~
-description: Curved ramp generator
+description: curved ramp generator
 categories:
  - object
-pdcategory: General
+pdcategory: cyclone, Envelopes and LFOs
 arguments:
 - type: float
   description: initial value
@@ -33,7 +33,7 @@ outlets:
 
 methods:
   - type: factor <float>
-    description: adjusts curve's expenential factor
+    description: adjusts curve's exponential factor
   - type: pause
     description: pauses the output
   - type: resume
@@ -41,6 +41,7 @@ methods:
   - type: stop
     description: stops & clears pending targets (still outputs last value)
 
+draft: false
 ---
 
 Similar to [line~], but [curve~] produces curved (non linear) ramp signals. Below, when receiving 2 triples (of destination, time & curve factor), [curve~] generates a simple Attack-Release envelope.

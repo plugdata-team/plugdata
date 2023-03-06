@@ -1,12 +1,12 @@
 ---
 title: onepole~
 
-description: One-pole lowpass filter
+description: one-pole lowpass filter
 
 categories:
  - object
 
-pdcategory: General
+pdcategory: cyclone, Filters
 
 arguments:
 - type: float
@@ -31,7 +31,7 @@ outlets:
 
 methods:
   - type: Hz 
-    description: sets frequency input mode to 'hertz'
+    description: sets frequency input mode to 'Hz'
   - type: linear
     description: sets frequency input mode to 'linear'
   - type: radians

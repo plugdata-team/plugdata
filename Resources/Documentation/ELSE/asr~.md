@@ -1,33 +1,29 @@
 ---
 title: asr~
 
-description: Attack/Sustain/Release gated envelope
+description: attack/sustain/release gated envelope
 
 categories:
  - object
 
-pdcategory: General
+pdcategory: ELSE, Envelopes and LFOs
 
 arguments:
-  1st:
   - type: float
     description: attack time in ms
-    default: 0
-  2nd:
+    default: 10
   - type: float
     description: release time in  ms
-    default: 0
+    default: 10
 
 flags:
-- name: -log
-  description: sets to log mode (no arg/default=linear)
+- name: -lin
+  description: sets to linear mode (default=log)
 
 inlets:
   1st:
   - type: float/signal
     description: gate values
-  - type: log <float>
-    description: - non zero sets to "log" mode, "linear" otherwise
   2nd:
   - type: float/signal
     description: attack time in ms
@@ -42,6 +38,10 @@ outlets:
   2nd:
   - type: float
     description: envelope status (on=1 / off=0)
+
+methods:
+  - type: lin <float>
+    description: - non-0 sets to "lin" mode, "log" otherwise
 
 draft: false
 ---

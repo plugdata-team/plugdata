@@ -7,8 +7,7 @@
 #include "PdPatch.h"
 
 #include "PdInstance.h"
-#include "PdStorage.h"
-#include "../Objects/GUIObject.h"
+#include "../Objects/ObjectBase.h"
 
 extern "C" {
 #include <m_pd.h>
@@ -41,28 +40,28 @@ struct _instanceeditor {
     unsigned int canvas_cursorwas;
 };
 
-static void canvas_bind(t_canvas* x)
-{
-    if (strcmp(x->gl_name->s_name, "Pd"))
-        pd_bind(&x->gl_pd, canvas_makebindsym(x->gl_name));
-}
-
-static void canvas_unbind(t_canvas* x)
-{
-    if (strcmp(x->gl_name->s_name, "Pd"))
-        pd_unbind(&x->gl_pd, canvas_makebindsym(x->gl_name));
-}
-
-void canvas_map(t_canvas* x, t_floatarg f);
+extern void canvas_reload(t_symbol* name, t_symbol* dir, t_glist* except);
 }
 
 namespace pd {
 
-Patch::Patch(void* patchPtr, Instance* parentInstance, File patchFile)
+Patch::Patch(void* patchPtr, Instance* parentInstance, bool ownsPatch, File patchFile)
     : ptr(patchPtr)
     , instance(parentInstance)
     , currentFile(patchFile)
+    , closePatchOnDelete(ownsPatch)
 {
+}
+
+Patch::~Patch()
+{
+    // Only close the patch if this is a top-level patch
+    // Otherwise, this is a subpatcher and it will get cleaned up by Pd
+    // when the object is deleted
+    if (closePatchOnDelete && ptr && instance) {
+        instance->setThis();
+        libpd_closefile(ptr);
+    }
 }
 
 Rectangle<int> Patch::getBounds() const
@@ -78,12 +77,6 @@ Rectangle<int> Patch::getBounds() const
         }
     }
     return { 0, 0, 0, 0 };
-}
-
-void Patch::close()
-{
-    instance->setThis();
-    libpd_closefile(ptr);
 }
 
 bool Patch::isDirty() const
@@ -102,7 +95,12 @@ void Patch::savePatch(File const& location)
     setTitle(filename);
     canvas_dirty(getPointer(), 0);
 
+    instance->lockAudioThread();
+
     libpd_savetofile(getPointer(), file, dir);
+
+    instance->unlockAudioThread();
+
     instance->reloadAbstractions(location, getPointer());
 
     currentFile = location;
@@ -119,50 +117,35 @@ void Patch::savePatch()
     setTitle(filename);
     canvas_dirty(getPointer(), 0);
 
+    instance->lockAudioThread();
+
     libpd_savetofile(getPointer(), file, dir);
+    instance->unlockAudioThread();
+
     instance->reloadAbstractions(currentFile, getPointer());
 }
 
-void Patch::setCurrent(bool lock)
+void Patch::setCurrent()
 {
     instance->setThis();
 
     if (!getPointer())
         return;
 
-    if (lock)
-        instance->getCallbackLock()->enter();
+    instance->lockAudioThread();
 
     canvas_setcurrent(getPointer());
-    canvas_vis(getPointer(), 1.);
-    canvas_map(getPointer(), 1.);
 
-    canvas_create_editor(getPointer());
+    canvas_vis(static_cast<t_canvas*>(ptr), 1);
+
+    t_atom args[1];
+    SETFLOAT(args, 1);
+    pd_typedmess(static_cast<t_pd*>(ptr), instance->generateSymbol("map"), 1, args);
+
+    canvas_create_editor(getPointer()); // can't hurt to make sure of this!
     canvas_unsetcurrent(getPointer());
 
-    if (lock)
-        instance->getCallbackLock()->exit();
-}
-
-int Patch::getIndex(void* obj)
-{
-    setCurrent();
-
-    int i = 0;
-    auto* cnv = getPointer();
-
-    for (t_gobj* y = cnv->gl_list; y; y = y->g_next) {
-        if (Storage::isInfoParent(y))
-            continue;
-
-        if (obj == y) {
-            return i;
-        }
-
-        i++;
-    }
-
-    return -1;
+    instance->unlockAudioThread();
 }
 
 Connections Patch::getConnections() const
@@ -170,21 +153,16 @@ Connections Patch::getConnections() const
 
     Connections connections;
 
-    // instance->getCallbackLock()->enter();
-
     t_outconnect* oc;
     t_linetraverser t;
-    auto* x = getPointer();
 
     // Get connections from pd
-    linetraverser_start(&t, x);
+    linetraverser_start(&t, getPointer());
 
     // TODO: fix data race
     while ((oc = linetraverser_next(&t))) {
-        connections.push_back({ t.tr_inno, t.tr_ob, t.tr_outno, t.tr_ob2 });
+        connections.push_back({ oc, t.tr_inno, t.tr_ob2, t.tr_outno, t.tr_ob });
     }
-
-    // instance->getCallbackLock()->exit();
 
     return connections;
 }
@@ -194,18 +172,20 @@ std::vector<void*> Patch::getObjects()
     if (ptr) {
         setCurrent();
 
+        instance->lockAudioThread();
+
         std::vector<void*> objects;
         t_canvas const* cnv = getPointer();
 
         for (t_gobj* y = cnv->gl_list; y; y = y->g_next) {
-            if (Storage::isInfoParent(y))
-                continue;
-
             objects.push_back(static_cast<void*>(y));
         }
 
+        instance->unlockAudioThread();
+
         return objects;
     }
+
     return {};
 }
 
@@ -358,43 +338,54 @@ void* Patch::createObject(String const& name, int x, int y)
     return pdobject;
 }
 
-static int glist_getindex(t_glist* x, t_gobj* y)
-{
-    t_gobj* y2;
-    int indx;
-
-    for (y2 = x->gl_list, indx = 0; y2 && y2 != y; y2 = y2->g_next)
-        indx++;
-    return (indx);
-}
-
 void* Patch::renameObject(void* obj, String const& name)
 {
     if (!obj || !ptr)
         return nullptr;
 
-    auto type = name.upToFirstOccurrenceOf(" ", false, false);
-    String newName = name;
-    // Also apply default style when renaming
-    if (guiDefaults.find(type) != guiDefaults.end()) {
-        auto preset = guiDefaults.at(type);
+    StringArray tokens;
+    tokens.addTokens(name, false);
 
-        auto bg = instance->getBackgroundColour().toString().substring(2);
-        auto fg = instance->getForegroundColour().toString().substring(2);
-        auto lbl = instance->getTextColour().toString().substring(2);
-        auto ln = instance->getOutlineColour().toString().substring(2);
+    // See if we have preset parameters for this object
+    // These parameters are designed to make the experience in plugdata better
+    // Mostly larger GUI objects and a different colour scheme
+    if (guiDefaults.find(tokens[0]) != guiDefaults.end()) {
+        auto preset = guiDefaults.at(tokens[0]);
 
-        preset = preset.replace("bgColour", "#" + bg);
-        preset = preset.replace("fgColour", "#" + fg);
-        preset = preset.replace("lblColour", "#" + lbl);
-        preset = preset.replace("lnColour", "#" + ln);
+        auto bg = instance->getBackgroundColour();
+        auto fg = instance->getForegroundColour();
+        auto lbl = instance->getTextColour();
+        auto ln = instance->getOutlineColour();
 
-        newName += " " + preset;
+        auto bg_str = bg.toString().substring(2);
+        auto fg_str = fg.toString().substring(2);
+        auto lbl_str = lbl.toString().substring(2);
+        auto ln_str = ln.toString().substring(2);
+
+        preset = preset.replace("bgColour_rgb", String(bg.getRed()) + " " + String(bg.getGreen()) + " " + String(bg.getBlue()));
+        preset = preset.replace("fgColour_rgb", String(fg.getRed()) + " " + String(fg.getGreen()) + " " + String(fg.getBlue()));
+        preset = preset.replace("lblColour_rgb", String(lbl.getRed()) + " " + String(lbl.getGreen()) + " " + String(lbl.getBlue()));
+        preset = preset.replace("lnColour_rgb", String(ln.getRed()) + " " + String(ln.getGreen()) + " " + String(ln.getBlue()));
+
+        preset = preset.replace("bgColour", "#" + bg_str);
+        preset = preset.replace("fgColour", "#" + fg_str);
+        preset = preset.replace("lblColour", "#" + lbl_str);
+        preset = preset.replace("lnColour", "#" + ln_str);
+
+        tokens.addTokens(preset, false);
     }
+    String newName = tokens.joinIntoString(" ");
 
     std::atomic<bool> done = false;
     t_pd* pdobject = nullptr;
     instance->enqueueFunction([this, &pdobject, &done, obj, newName]() mutable {
+        if (objectWasDeleted(obj)) {
+
+            pdobject = libpd_newest(getPointer());
+            done = true;
+            return;
+        }
+
         setCurrent();
         libpd_renameobj(getPointer(), &checkObject(obj)->te_g, newName.toRawUTF8(), newName.getNumBytesAsUTF8());
 
@@ -442,7 +433,7 @@ void Patch::selectObject(void* obj)
     instance->enqueueFunction(
         [this, obj]() {
             auto* checked = &checkObject(obj)->te_g;
-            if (!glist_isselected(getPointer(), checked)) {
+            if (!objectWasDeleted(obj) && !glist_isselected(getPointer(), checked)) {
                 glist_select(getPointer(), checked);
             }
         });
@@ -464,6 +455,9 @@ void Patch::removeObject(void* obj)
 
     instance->enqueueFunction(
         [this, obj]() {
+            if (objectWasDeleted(obj))
+                return;
+
             setCurrent();
             libpd_removeobj(getPointer(), &checkObject(obj)->te_g);
         });
@@ -472,7 +466,7 @@ void Patch::removeObject(void* obj)
 bool Patch::hasConnection(void* src, int nout, void* sink, int nin)
 {
     bool hasConnection = false;
-    bool hasReturned = false;
+    std::atomic<bool> hasReturned = false;
 
     instance->enqueueFunction(
         [this, &hasConnection, &hasReturned, src, nout, sink, nin]() mutable {
@@ -491,48 +485,104 @@ bool Patch::canConnect(void* src, int nout, void* sink, int nin)
 {
     bool canConnect = false;
 
-    instance->enqueueFunction([this, &canConnect, src, nout, sink, nin]() mutable { canConnect = libpd_canconnect(getPointer(), checkObject(src), nout, checkObject(sink), nin); });
+    instance->enqueueFunction([this, &canConnect, src, nout, sink, nin]() mutable {
+        if (objectWasDeleted(src) || objectWasDeleted(sink))
+            return;
+        canConnect = libpd_canconnect(getPointer(), checkObject(src), nout, checkObject(sink), nin);
+    });
 
     instance->waitForStateUpdate();
 
     return canConnect;
 }
 
-bool Patch::createConnection(void* src, int nout, void* sink, int nin)
+void Patch::createConnection(void* src, int nout, void* sink, int nin)
 {
-    if (!src || !sink || !ptr)
-        return false;
-
-    bool canConnect = false;
-
     instance->enqueueFunction(
-        [this, &canConnect, src, nout, sink, nin]() mutable {
-            canConnect = libpd_canconnect(getPointer(), checkObject(src), nout, checkObject(sink), nin);
-
-            if (!canConnect)
+        [this, src, nout, sink, nin]() mutable {
+            if (objectWasDeleted(src) || objectWasDeleted(sink))
                 return;
+
+            bool canConnect = libpd_canconnect(getPointer(), checkObject(src), nout, checkObject(sink), nin);
 
             setCurrent();
 
             libpd_createconnection(getPointer(), checkObject(src), nout, checkObject(sink), nin);
         });
-
-    instance->waitForStateUpdate();
-
-    return canConnect;
 }
 
-void Patch::removeConnection(void* src, int nout, void* sink, int nin)
+void* Patch::createAndReturnConnection(void* src, int nout, void* sink, int nin)
+{
+    if (!src || !sink || !ptr)
+        return nullptr;
+
+    void* outconnect = nullptr;
+    std::atomic<bool> hasReturned = false;
+
+    instance->enqueueFunction(
+        [this, &outconnect, &hasReturned, src, nout, sink, nin]() mutable {
+            if (objectWasDeleted(src) || objectWasDeleted(sink))
+                return;
+
+            bool canConnect = libpd_canconnect(getPointer(), checkObject(src), nout, checkObject(sink), nin);
+
+            if (!canConnect) {
+                hasReturned = true;
+                return;
+            }
+
+            setCurrent();
+
+            outconnect = libpd_createconnection(getPointer(), checkObject(src), nout, checkObject(sink), nin);
+
+            hasReturned = true;
+        });
+
+    while (!hasReturned) {
+        instance->waitForStateUpdate();
+    }
+
+    return outconnect;
+}
+
+void Patch::removeConnection(void* src, int nout, void* sink, int nin, t_symbol* connectionPath)
 {
     if (!src || !sink || !ptr)
         return;
 
     instance->enqueueFunction(
-        [this, src, nout, sink, nin]() mutable {
+        [this, src, nout, sink, nin, connectionPath]() mutable {
+            if (objectWasDeleted(src) || objectWasDeleted(sink))
+                return;
+
+            setCurrent();
+            libpd_removeconnection(getPointer(), checkObject(src), nout, checkObject(sink), nin, connectionPath);
+        });
+}
+
+void* Patch::setConnctionPath(void* src, int nout, void* sink, int nin, t_symbol* oldConnectionPath, t_symbol* newConnectionPath)
+{
+
+    void* outconnect = nullptr;
+    std::atomic<bool> hasReturned = false;
+
+    instance->enqueueFunction(
+        [this, &hasReturned, &outconnect, src, nout, sink, nin, oldConnectionPath, newConnectionPath]() mutable {
+            if (objectWasDeleted(src) || objectWasDeleted(sink))
+                return;
+
             setCurrent();
 
-            libpd_removeconnection(getPointer(), checkObject(src), nout, checkObject(sink), nin);
+            outconnect = libpd_setconnectionpath(getPointer(), checkObject(src), nout, checkObject(sink), nin, oldConnectionPath, newConnectionPath);
+
+            hasReturned = true;
         });
+
+    while (!hasReturned) {
+        instance->waitForStateUpdate();
+    }
+
+    return outconnect;
 }
 
 void Patch::moveObjects(std::vector<void*> const& objects, int dx, int dy)
@@ -546,7 +596,7 @@ void Patch::moveObjects(std::vector<void*> const& objects, int dx, int dy)
             glist_noselect(getPointer());
 
             for (auto* obj : objects) {
-                if (!obj)
+                if (!obj || objectWasDeleted(obj))
                     continue;
 
                 glist_select(getPointer(), &checkObject(obj)->te_g);
@@ -637,10 +687,74 @@ void Patch::setTitle(String const& title)
     if (!getPointer())
         return;
 
-    canvas_unbind(getPointer());
-    getPointer()->gl_name = instance->generateSymbol(title);
-    canvas_bind(getPointer());
-    instance->titleChanged();
+    setCurrent();
+
+    auto* pathSym = instance->generateSymbol(getCurrentFile().getFullPathName());
+
+    t_atom args[2];
+    SETSYMBOL(args, instance->generateSymbol(title));
+    SETSYMBOL(args + 1, pathSym);
+
+    pd_typedmess(static_cast<t_pd*>(ptr), instance->generateSymbol("rename"), 2, args);
+
+    MessageManager::callAsync([instance = this->instance]() {
+        instance->titleChanged();
+    });
+}
+
+File Patch::getCurrentFile() const
+{
+    return currentFile;
+}
+void Patch::setCurrentFile(File newFile)
+{
+    currentFile = newFile;
+}
+
+String Patch::getCanvasContent()
+{
+    if (!ptr)
+        return {};
+    char* buf;
+    int bufsize;
+    libpd_getcontent(static_cast<t_canvas*>(ptr), &buf, &bufsize);
+
+    auto content = String::fromUTF8(buf, static_cast<size_t>(bufsize));
+    return content;
+}
+
+void Patch::reloadPatch(File changedPatch, t_glist* except)
+{
+    auto* dir = gensym(changedPatch.getParentDirectory().getFullPathName().replace("\\", "/").toRawUTF8());
+    auto* file = gensym(changedPatch.getFileName().toRawUTF8());
+    canvas_reload(file, dir, except);
+}
+
+bool Patch::objectWasDeleted(void* ptr)
+{
+    t_canvas const* cnv = getPointer();
+
+    for (t_gobj* y = cnv->gl_list; y; y = y->g_next) {
+        if (y == ptr)
+            return false;
+    }
+
+    return true;
+}
+bool Patch::connectionWasDeleted(void* ptr)
+{
+    t_outconnect* oc;
+    t_linetraverser t;
+
+    // Get connections from pd
+    linetraverser_start(&t, getPointer());
+
+    while ((oc = linetraverser_next(&t))) {
+        if (oc == ptr)
+            return false;
+    }
+
+    return true;
 }
 
 } // namespace pd

@@ -1,15 +1,16 @@
 ---
 title: loop
-description: Loop counter
+
+description: loop counter
 
 categories:
  - object
 
-pdcategory: General
+pdcategory: ELSE, Triggers and Clocks, Data Management
 
 arguments:
 - type: float
-  description: sets the number of iterations if only one argument is given, or start value if there are more arguments
+  description: <f> — number of iterations, <f f f> — start, end, step
   default: 1
 - type: float
   description: sets the end value (optional)
@@ -54,8 +55,9 @@ methods:
   - type: pause
     description: stops the loop
   - type: continue
-    description: countinues the loop after being paused
+    description: continues the loop after being paused
 
+draft: false
 ---
 
 [loop] is a loop counter, but it can also loop bangs like [until] (using the -b flag). A float sets number of count iteration upwards. A list with two elements sets a start and end value (and allows counting upwards or downwards). A counter step value can be set with a third optional element in a list.

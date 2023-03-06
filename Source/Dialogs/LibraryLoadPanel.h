@@ -11,12 +11,55 @@ bool wantsNativeDialog();
 class LibraryLoadPanel : public Component
     , public TextEditor::Listener
     , private ListBoxModel {
+
+    class AddLibraryButton : public Component {
+
+        bool mouseIsOver = false;
+
+    public:
+        std::function<void()> onClick = []() {};
+
+        void paint(Graphics& g) override
+        {
+
+            auto bounds = getLocalBounds().reduced(5, 2);
+            auto textBounds = bounds;
+            auto iconBounds = textBounds.removeFromLeft(textBounds.getHeight());
+
+            auto colour = findColour(PlugDataColour::panelTextColourId);
+            if (mouseIsOver) {
+                g.setColour(findColour(PlugDataColour::panelActiveBackgroundColourId));
+                g.fillRoundedRectangle(bounds.toFloat(), PlugDataLook::defaultCornerRadius);
+
+                colour = findColour(PlugDataColour::panelActiveTextColourId);
+            }
+
+            PlugDataLook::drawIcon(g, Icons::Add, iconBounds, colour, 12);
+            PlugDataLook::drawText(g, "Add library to load on startup", textBounds, colour, 14);
+        }
+
+        void mouseEnter(MouseEvent const& e) override
+        {
+            mouseIsOver = true;
+            repaint();
+        }
+
+        void mouseExit(MouseEvent const& e) override
+        {
+            mouseIsOver = false;
+            repaint();
+        }
+
+        void mouseUp(MouseEvent const& e) override
+        {
+            onClick();
+        }
+    };
+
 public:
     std::unique_ptr<Dialog> confirmationDialog;
-    //==============================================================================
-    /** Creates an empty FileSearchPathListObject. */
-    LibraryLoadPanel(ValueTree libraryTree)
-        : tree(std::move(libraryTree))
+
+    LibraryLoadPanel()
     {
         listBox.setOutlineThickness(0);
         listBox.setRowHeight(25);
@@ -26,20 +69,17 @@ public:
         listBox.setColour(ListBox::backgroundColourId, Colours::transparentBlack);
         listBox.setColour(ListBox::outlineColourId, Colours::transparentBlack);
 
-        addButton.setTooltip("Add search path");
-        addButton.setName("statusbar:add");
         addAndMakeVisible(addButton);
-        addButton.onClick = [this] { addPath(); };
-        addButton.setConnectedEdges(12);
+        addButton.onClick = [this]() { addLibrary(); };
 
-        removeButton.setTooltip("Remove search path");
+        removeButton.setTooltip("Remove library");
         addAndMakeVisible(removeButton);
         removeButton.onClick = [this] { deleteSelected(); };
         removeButton.setConnectedEdges(12);
-        removeButton.setName("statusbar:remove");
+        removeButton.getProperties().set("Style", "SmallIcon");
 
-        changeButton.setTooltip("Edit search path");
-        changeButton.setName("statusbar:change");
+        changeButton.setTooltip("Edit library");
+        changeButton.getProperties().set("Style", "SmallIcon");
         addAndMakeVisible(changeButton);
         changeButton.setConnectedEdges(12);
         changeButton.onClick = [this] { editSelected(); };
@@ -51,14 +91,13 @@ public:
         editor.setColour(TextEditor::focusedOutlineColourId, Colours::transparentBlack);
         editor.setColour(TextEditor::outlineColourId, Colours::transparentBlack);
 
-        editor.setFont(Font(15));
+        editor.setFont(Font(14));
 
-        // Load state from valuetree
+        // Load state from settings file
         externalChange();
     }
 
-    /** Changes the current path. */
-    void updateLibraries(ValueTree& tree)
+    void updateLibraries()
     {
         librariesToLoad.clear();
 
@@ -69,8 +108,6 @@ public:
         internalChange();
     }
 
-    //==============================================================================
-
     int getNumRows() override
     {
         return librariesToLoad.size();
@@ -80,15 +117,12 @@ public:
     {
         if (rowIsSelected) {
             g.setColour(findColour(PlugDataColour::panelActiveBackgroundColourId));
-            g.fillRoundedRectangle({ 4.0f, 1.0f, width - 8.0f, height - 2.0f }, Constants::defaultCornerRadius);
+            g.fillRoundedRectangle({ 4.0f, 1.0f, width - 8.0f, height - 2.0f }, PlugDataLook::defaultCornerRadius);
         }
 
-        g.setColour(rowIsSelected ? findColour(PlugDataColour::panelActiveTextColourId) : findColour(PlugDataColour::panelTextColourId));
-
-        g.setFont(Font(15));
-
         if (!editor.isVisible() || rowBeingEdited != rowNumber) {
-            g.drawText(librariesToLoad[rowNumber], 12, 0, width - 9, height, Justification::centredLeft, true);
+            auto colour = rowIsSelected ? findColour(PlugDataColour::panelActiveTextColourId) : findColour(PlugDataColour::panelTextColourId);
+            PlugDataLook::drawText(g, librariesToLoad[rowNumber], 12, 0, width - 9, height, colour, 14);
         }
     }
 
@@ -130,22 +164,20 @@ public:
 
         listBox.setBounds(0, 4, getWidth(), statusbarY);
 
-        auto statusbarBounds = Rectangle<int>(2, statusbarY + 6, getWidth() - 6, statusbarHeight);
-        addButton.setBounds(statusbarBounds.removeFromLeft(statusbarHeight));
-
         if (editor.isVisible()) {
             auto selectionBounds = listBox.getRowPosition(listBox.getSelectedRow(), false).translated(0, 3);
             editor.setBounds(selectionBounds.withTrimmedRight(80).withTrimmedLeft(6).reduced(1));
         }
+
+        updateButtons();
     }
 
 private:
-    //==============================================================================
     StringArray librariesToLoad;
 
     ListBox listBox;
 
-    TextButton addButton = TextButton(Icons::Add);
+    AddLibraryButton addButton;
     TextButton removeButton = TextButton(Icons::Clear);
     TextButton changeButton = TextButton(Icons::Edit);
 
@@ -158,7 +190,7 @@ private:
     {
         librariesToLoad.clear();
 
-        for (auto child : tree) {
+        for (auto child : SettingsFile::getInstance()->getLibrariesTree()) {
             if (child.hasType("Library")) {
                 librariesToLoad.addIfNotAlreadyThere(child.getProperty("Name").toString());
             }
@@ -170,12 +202,13 @@ private:
     }
     void internalChange()
     {
-        tree.removeAllChildren(nullptr);
+        auto librariesTree = SettingsFile::getInstance()->getLibrariesTree();
+        librariesTree.removeAllChildren(nullptr);
 
         for (int i = 0; i < librariesToLoad.size(); i++) {
-            auto newPath = ValueTree("Library");
-            newPath.setProperty("Name", librariesToLoad[i], nullptr);
-            tree.appendChild(newPath, nullptr);
+            auto newLibrary = ValueTree("Library");
+            newLibrary.setProperty("Name", librariesToLoad[i], nullptr);
+            librariesTree.appendChild(newLibrary, nullptr);
         }
 
         listBox.updateContent();
@@ -197,11 +230,14 @@ private:
             selectionBounds.removeFromRight(5);
 
             removeButton.setBounds(selectionBounds.removeFromRight(buttonHeight));
-            changeButton.setBounds(selectionBounds.removeFromRight(buttonHeight - 4));
+            changeButton.setBounds(selectionBounds.removeFromRight(buttonHeight));
         }
+
+        auto addButtonBounds = listBox.getRowPosition(getNumRows(), false).translated(0, 5).withHeight(25);
+        addButton.setBounds(addButtonBounds);
     }
 
-    void addPath()
+    void addLibrary()
     {
         librariesToLoad.add("");
         internalChange();

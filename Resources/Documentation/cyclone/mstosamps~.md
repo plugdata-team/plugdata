@@ -1,15 +1,24 @@
 ---
 title: mstosamps~
-description:
+description: convert milliseconds to samples
 categories:
  - object
-pdcategory: General
+pdcategory: cyclone, Converters
 arguments:
 inlets:
+  1st:
+  - type: float/signal
+    description: time in milliseconds
 outlets:
   1st:
   - type: signal
-    description:
+    description: converted number of samples
   2nd:
   - type: float
-    description:
+    description: converted number of samples
+
+draft: false
+---
+
+[mstosamps~] takes time in milliseconds and converts to a corresponding number of samples (depending on sample rate).
+

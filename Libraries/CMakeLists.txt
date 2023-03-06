@@ -17,6 +17,12 @@ set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 
 add_subdirectory(JUCE)
 
+if(${CMAKE_VERSION} VERSION_GREATER_EQUAL "3.21")
+  set(MESSAGE_QUIET ON)
+  add_subdirectory(clap-juce-extensions EXCLUDE_FROM_ALL)
+  unset(MESSAGE_QUIET)
+endif()
+
 # ------------------------------------------------------------------------------#
 set(CMAKE_MACOSX_RPATH ON)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
@@ -89,6 +95,7 @@ file(GLOB PD_SOURCES
     ${PD_PATH}/src/m_atom.c
     ${PD_PATH}/src/m_binbuf.c
     ${PD_PATH}/src/m_conf.c
+    ${PD_PATH}/src/m_class.c
     ${PD_PATH}/src/m_glob.c
     ${PD_PATH}/src/m_imp.h
     ${PD_PATH}/src/m_memory.c
@@ -107,6 +114,9 @@ file(GLOB PD_SOURCES
     ${PD_PATH}/src/s_stuff.h
     ${PD_PATH}/src/s_utf8.c
     ${PD_PATH}/src/s_utf8.h
+    ${PD_PATH}/src/s_inter_gui.c
+    ${PD_PATH}/src/s_inter.c
+    ${PD_PATH}/src/s_inter.h
     ${PD_PATH}/src/x_acoustics.c
     ${PD_PATH}/src/x_arithmetic.c
     ${PD_PATH}/src/x_array.c
@@ -165,10 +175,6 @@ set(LIBPD_SOURCES
     ${LIBPD_PATH}/x_libpd_mod_utils.h
     ${LIBPD_PATH}/x_libpd_multi.c
     ${LIBPD_PATH}/x_libpd_multi.h
-    ${LIBPD_PATH}/s_libpd_inter_gui.c
-    ${LIBPD_PATH}/s_libpd_inter.c
-    ${LIBPD_PATH}/s_libpd_inter.h
-    ${LIBPD_PATH}/m_libpd_class.c
 )
 
 include_directories(${LIBPD_PATH})
@@ -177,15 +183,31 @@ list(APPEND SOURCE_FILES ${LIBPD_SOURCES})
 
 # ELSE SOURCES
 # ------------------------------------------------------------------------------#
-file(GLOB_RECURSE ELSE_SOURCES
+file(GLOB ELSE_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/ELSE/Source/*.c
     ${CMAKE_CURRENT_SOURCE_DIR}/ELSE/Aliases/*.c
     ${CMAKE_CURRENT_SOURCE_DIR}/ELSE/shared/*.c
 )
 
+file(GLOB_RECURSE PLAITS_SOURCES
+    ${CMAKE_CURRENT_SOURCE_DIR}/ELSE/plaits~/plaits~.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/ELSE/plaits~/*.cc
+)
+
+if(UNIX)
+list(APPEND ELSE_SOURCES ${PLAITS_SOURCES})
+endif()
+
+file(GLOB_RECURSE AUBIO_SOURCES
+    ${CMAKE_CURRENT_SOURCE_DIR}/ELSE/shared/aubio/src/*.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/ELSE/shared/aubio/src/*/*.c
+)
+
 include_directories(ELSE/Source/)
 include_directories(ELSE/Aliases/)
 include_directories(ELSE/shared)
+include_directories(ELSE/shared/aubio/src)
+include_directories(ELSE/plaits~)
 
 source_group(ELSE FILES ${ELSE_SOURCES})
 
@@ -224,8 +246,8 @@ source_group(pdlua FILES ${PDLUA_SOURCES})
 
 # live version data for pdlua.c
 # set(PDLUA_VERSION 0.11.0)
-execute_process(COMMAND git -C ${CMAKE_CURRENT_SOURCE_DIR}/pd-lua describe --tags OUTPUT_STRIP_TRAILING_WHITESPACE OUTPUT_VARIABLE PDLUA_VERSION)
-set_source_files_properties(${PDLUA_PATH}/pdlua.c PROPERTIES COMPILE_DEFINITIONS PDLUA_VERSION=${PDLUA_VERSION})
+#execute_process(COMMAND git -C ${CMAKE_CURRENT_SOURCE_DIR}/pd-lua describe --tags OUTPUT_STRIP_TRAILING_WHITESPACE OUTPUT_VARIABLE PDLUA_VERSION)
+#set_source_files_properties(${PDLUA_PATH}/pdlua.c PROPERTIES COMPILE_DEFINITIONS PDLUA_VERSION=${PDLUA_VERSION})
 
 # ------------------------------------------------------------------------------#
 # COMPILE DEFINITIONS
@@ -347,8 +369,8 @@ endif()
 # ------------------------------------------------------------------------------#
 # TARGETS
 # ------------------------------------------------------------------------------#
-add_library(externals STATIC ${ELSE_SOURCES} ${CYCLONE_SOURCES} ${PDLUA_SOURCES})
-add_library(externals-multi STATIC ${ELSE_SOURCES} ${CYCLONE_SOURCES} ${PDLUA_SOURCES})
+add_library(externals STATIC ${ELSE_SOURCES} ${CYCLONE_SOURCES} ${PDLUA_SOURCES} ${AUBIO_SOURCES})
+add_library(externals-multi STATIC ${ELSE_SOURCES} ${CYCLONE_SOURCES} ${PDLUA_SOURCES} ${AUBIO_SOURCES})
 
 # ag: pdlua needs PLUGDATA symbol at compile time for PlugData integration.
 target_compile_definitions(externals PRIVATE ${LIBPD_COMPILE_DEFINITIONS} PLUGDATA=1)

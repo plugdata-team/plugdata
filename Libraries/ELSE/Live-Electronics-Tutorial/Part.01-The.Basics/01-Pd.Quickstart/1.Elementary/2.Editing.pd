@@ -5,6 +5,6 @@
 #X obj 208 460 metro 100;
 #X obj 208 491 random 100;
 #X msg 208 428 bang;
-#X text 47 194 In order to make a connection in the Edit mode \, first go to an outlet and see when the mouse cursor becomes a circle \, now you can click and drag to create a connection cord and take it to an inlet so you can see the cursor become a circle again so you can release the mouse button to create the connection. To disconnect \, go to a cord and click when the cursor becomes an "X" to select it \, then you can press backspace/delete to remove the connection., f 60;
 #X text 250 427 <= connect boxes and click;
 #X text 47 314 When in edit mode \, you move the cursor to the right side of objects \, messages and comments and see when it indicates a resizing icon with two arrows to the sides. When this happens you can click and drag to resize the box., f 60;
+#X text 47 194 In order to make a connection in the Edit mode \, first go to an outlet and see when the mouse cursor becomes a circle. Now you can click and drag to create a connection cord and take it to an inlet. Once you can see the cursor become a circle again \, you can release the mouse button to create the connection. To disconnect \, go to a cord and click when the cursor becomes an "X" to select it \, then you can press backspace/delete to remove the connection.;

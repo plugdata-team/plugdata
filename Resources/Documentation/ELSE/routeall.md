@@ -1,12 +1,12 @@
 ---
 title: routeall
 
-description: Route all messages
+description: route all messages
 
 categories:
  - object
 
-pdcategory: Message management
+pdcategory: ELSE, Data Management
 
 arguments:
 - type: anything
@@ -24,7 +24,7 @@ inlets:
 outlets:
   nth:
   - type: anything
-    description: if an input message matches an argument, the corresponding outlet sends that message.
+    description: if an input message matches an argument, the corresponding outlet sends that message
   2nd:
   - type: anything
     description: any unmatched message

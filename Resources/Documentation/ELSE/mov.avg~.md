@@ -1,12 +1,12 @@
 ---
 title: mov.avg~
 
-description: Moving average filter
+description: moving average filter
 
 categories:
  - object
 
-pdcategory: General
+pdcategory: ELSE, Analysis, Filters, Signal Math
 
 arguments:
 - type: float
@@ -30,7 +30,7 @@ flags:
   - name: -size <float>
     description: sets buffer size
   - name: -abs
-    description: sets to absoliute average mode
+    description: sets to absolute average mode
 
 methods:
   - type: clear

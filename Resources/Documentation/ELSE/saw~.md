@@ -1,12 +1,12 @@
 ---
 title: saw~
 
-description: Sawtooth oscillator
+description: sawtooth oscillator
 
 categories:
  - object
 
-pdcategory: Oscillators 
+pdcategory: ELSE, Signal Generators
 
 arguments:
 - type: float

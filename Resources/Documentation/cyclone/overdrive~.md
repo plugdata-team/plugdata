@@ -1,12 +1,12 @@
 ---
 title: overdrive~
 
-description: Analog overdrive simulation
+description: analog overdrive simulation
 
 categories:
  - object
 
-pdcategory: General
+pdcategory: cyclone, Effects
 
 arguments:
 - type: float

@@ -6,7 +6,7 @@ description: Schmitt trigger
 categories:
  - object
 
-pdcategory: Control (Triggers)
+pdcategory: ELSE, Triggers and Clocks
 
 arguments:
 - type: float

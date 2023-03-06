@@ -1,12 +1,12 @@
 ---
 title: anal
-description: Number pairs histogram
+description: number pairs histogram
 categories:
  - object
-pdcategory: General
+pdcategory: cyclone, Data Math, Random and Noise
 arguments:
 - type: float
-  description: Maximum input, values accepted are between 0 and this number (max 16384)
+  description: maximum input (max 16384)
   default: 128
 inlets:
   1st:
@@ -14,8 +14,8 @@ inlets:
     description: the anal input data
 outlets:
   1st:
-  - type: list
-    description: three floats: <previous number, current number, occurrence>
+  - type: list <f, f, f>
+    description: <previous number, current number, occurrence>
 
 methods:
   - type: clear
@@ -23,6 +23,7 @@ methods:
   - type: reset
     description: completely erase memory
 
+draft: false
 ---
 
 [anal] reports how many times it received a number pair. The output is designed to serve as input to [prob] and is composed of: 1) the previously received number, 2) current input number, 3) occurrence (how many times this number pair has been received).

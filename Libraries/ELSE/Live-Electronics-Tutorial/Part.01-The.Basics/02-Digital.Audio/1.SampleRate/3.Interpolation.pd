@@ -19,7 +19,7 @@
 #X obj 28 269 tgl 16 0 empty empty empty 17 7 0 10 -228856 -1 -1 0
 1;
 #X obj 178 286 initmess 44100;
-#N canvas 669 119 544 609 vanila 0;
+#N canvas 669 119 544 609 vanilla 0;
 #X obj 110 242 vsnapshot~;
 #X obj 110 294 vline~;
 #X obj 151 341 graph~ 441 20;
@@ -56,7 +56,7 @@ there).;
 #X connect 10 0 4 0;
 #X connect 10 0 11 0;
 #X connect 11 0 7 0;
-#X restore 185 538 pd vanila;
+#X restore 185 538 pd vanilla;
 #X text 32 68 Besides just holding values \, another alternative when
 upsampling is to interpolate between two sample values. The [downsample~]
 object also performs a simple linear interpolation. Test it below and
@@ -65,7 +65,7 @@ check the difference., f 51;
 #X obj 600 16 declare -path else;
 #X obj 102 228 play.file~ bubul.wav 1 1;
 #X text 33 490 The subpatch below shows how to implement downsampling
-with interpolation with just native Pd Vanilla objects, f 50;
+with interpolation with just native Pd Vanilla objects., f 50;
 #X text 592 54 [graph~];
 #X text 32 146 To the right \, ELSE's [graph~] shows graphical representation
 of the resulting waveforms in both interpolated and sample and hold

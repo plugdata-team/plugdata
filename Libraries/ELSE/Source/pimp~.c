@@ -1,4 +1,4 @@
-// Porres 2016
+// Porres 2016 - 2023
 
 #include "m_pd.h"
 #include "math.h"
@@ -10,6 +10,8 @@ typedef struct _pimp{
     t_object    x_obj;
     double      x_phase;
     double      x_last_phase_offset;
+    t_int midi;
+    t_int soft;
     t_float     x_freq;
     t_inlet    *x_inlet_phase;
     t_inlet    *x_inlet_sync;
@@ -49,6 +51,8 @@ static t_int *pimp_perform_magic(t_int *w){
     double sr = x->x_sr;
     while(nblock--){
         double hz = *in1++;
+        if(x->midi)
+            hz = pow(2, (hz - 69)/12) * 440;
         posfreq = hz >= 0;
         double phase_offset = *in3++;
         double phase_step = hz / sr; // phase_step
@@ -96,6 +100,8 @@ static t_int *pimp_perform(t_int *w){
     double sr = x->x_sr;
     while(nblock--){
         double hz = *in1++;
+        if(x->midi)
+            hz = pow(2, (hz - 69)/12) * 440;
         double trig = *in2++;
         double phase_offset = *in3++;
         double phase_step = hz / sr; // phase_step
@@ -103,9 +109,15 @@ static t_int *pimp_perform(t_int *w){
         double phase_dev = phase_offset - last_phase_offset;
         if(phase_dev >= 1 || phase_dev <= -1)
             phase_dev = fmod(phase_dev, 1); // fmod(phase_dev)
+        if(x->soft)
+            phase_step *= (x->soft);
         if(hz >= 0){
-            if(trig > 0 && trig <= 1)
-                phase = trig;
+            if(trig > 0 && trig <= 1){
+                if(x->soft)
+                    x->soft = x->soft == 1 ? -1 : 1;
+                else
+                    phase = trig;
+            }
             else{
                 phase = phase + phase_dev;
                 if(phase_dev != 0 && phase <= 0)
@@ -116,10 +128,18 @@ static t_int *pimp_perform(t_int *w){
                 phase = phase - 1; // wrapped phase
         }
         else{ // hz < 0
-            if(trig > 0 && trig < 1)
-                phase = trig;
-            else if(trig == 1)
-                phase = 0;
+            if(trig > 0 && trig < 1){
+                if(x->soft)
+                    x->soft = x->soft == 1 ? -1 : 1;
+                else
+                    phase = trig;
+            }
+            else if(trig == 1){
+                if(x->soft)
+                    x->soft = x->soft == 1 ? -1 : 1;
+                else
+                    phase = 0;
+            }
             else{
                 phase = phase + phase_dev;
                 if(phase >= 1)
@@ -151,6 +171,14 @@ static void pimp_dsp(t_pimp *x, t_signal **sp){
     }
 }
 
+static void pimp_midi(t_pimp *x, t_floatarg f){
+    x->midi = (int)(f != 0);
+}
+
+static void pimp_soft(t_pimp *x, t_floatarg f){
+    x->soft = (int)(f != 0);
+}
+
 static void *pimp_free(t_pimp *x){
     inlet_free(x->x_inlet_sync);
     inlet_free(x->x_inlet_phase);
@@ -159,10 +187,26 @@ static void *pimp_free(t_pimp *x){
     return(void *)x;
 }
 
-static void *pimp_new(t_floatarg f1, t_floatarg f2){
+static void *pimp_new(t_symbol *s, int ac, t_atom *av){
+    s = NULL;
     t_pimp *x = (t_pimp *)pd_new(pimp_class);
-    t_float init_freq = f1;
-    t_float init_phase = f2;
+    x->midi = 0;
+    t_float init_freq = 0, init_phase = 0;
+    while(ac && av->a_type == A_SYMBOL){
+        if(atom_getsymbol(av) == gensym("-midi"))
+            x->midi = 1;
+        else if(atom_getsymbol(av) == gensym("-soft"))
+            x->soft = 1;
+        ac--, av++;
+    }
+    if(ac && av->a_type == A_FLOAT){
+        init_freq = av->a_w.w_float;
+        ac--, av++;
+        if(ac && av->a_type == A_FLOAT){
+            init_phase = av->a_w.w_float;
+            ac--, av++;
+        }
+    }
     init_phase = init_phase < 0 ? 0 : init_phase >= 1 ? 0 : init_phase; // clipping phase input
     if(init_freq >= 0)
         x->x_posfreq = 1;
@@ -184,7 +228,9 @@ static void *pimp_new(t_floatarg f1, t_floatarg f2){
 
 void pimp_tilde_setup(void){
     pimp_class = class_new(gensym("pimp~"), (t_newmethod)pimp_new, (t_method)pimp_free,
-        sizeof(t_pimp), CLASS_DEFAULT, A_DEFFLOAT, A_DEFFLOAT, 0);
+        sizeof(t_pimp), CLASS_DEFAULT, A_GIMME, 0);
     CLASS_MAINSIGNALIN(pimp_class, t_pimp, x_freq);
+    class_addmethod(pimp_class, (t_method)pimp_soft, gensym("soft"), A_DEFFLOAT, 0);
+    class_addmethod(pimp_class, (t_method)pimp_midi, gensym("midi"), A_DEFFLOAT, 0);
     class_addmethod(pimp_class, (t_method)pimp_dsp, gensym("dsp"), A_CANT, 0);
 }

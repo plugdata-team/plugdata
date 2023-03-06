@@ -1,15 +1,15 @@
-#N canvas 572 34 896 640 12;
+#N canvas 331 28 896 640 12;
 #X declare -path else;
-#X floatatom 614 192 5 -1 1 0 - a -;
-#X floatatom 657 239 5 -1 1 0 - b -;
-#X floatatom 700 286 5 -1 1 0 - c -;
-#X floatatom 571 142 5 0 100 0 - del -;
+#X floatatom 614 192 5 -1 1 0 - a - 0;
+#X floatatom 657 239 5 -1 1 0 - b - 0;
+#X floatatom 700 286 5 -1 1 0 - c - 0;
+#X floatatom 571 142 5 0 100 0 - del - 0;
 #X obj 105 462 noise~;
 #X obj 623 215 s \$0-a;
 #X obj 664 262 s \$0-b;
 #X obj 721 312 s \$0-c;
 #X obj 581 165 s \$0-del;
-#N canvas 844 662 407 331 comb 0;
+#N canvas 571 373 407 331 comb 0;
 #X obj 111 171 +~;
 #X obj 111 211 +~;
 #X obj 127 250 delwrite~ \$0-y 1000;
@@ -66,8 +66,7 @@
 #X connect 15 0 14 0;
 #X connect 15 0 11 1;
 #X restore 288 507 pd comb;
-#X obj 75 109 cnv 15 320 140 empty empty empty 20 12 0 14 -233017 -66577
-0;
+#X obj 75 109 cnv 15 320 140 empty empty empty 20 12 0 14 #e0e0e0 #404040 0;
 #X text 131 127 |;
 #X text 131 139 |;
 #X text 131 151 |;
@@ -117,33 +116,15 @@
 #X obj 288 478 r~ \$0-in;
 #X obj 493 193 r~ \$0-in;
 #X text 612 141 delay time;
-#X text 450 47 Note that it acts as a reverberator \, much like the
-allpass reverberator \, but it does filter the input sound (unlike
-an allpass). Note how the white noise input becomes a pitched output
-in this process \, and how the fundamental pitch depends on the delay
-time period., f 52;
-#X text 35 278 The difference to [allpass.rev~] is the independent
-coefficients for the input \, feedforward and feedback lines. This
-is also similar and basically the same thing as [comb.filt~] \, but
-is more flexible and takes a delay period in ms instead., f 53;
-#X text 35 364 The subpatch below implements a comb reverberator with
-native objects \, and to the right we have an example with the external
-from ELSE. Check its help file for more information., f 53;
-#X text 463 422 To understand the differences \, the decay parameter
-in [comb.filt~] controls both the feedforward (b) and feedback (c)
-gains \, and the input gain parameter (a) is always 1!, f 53;
-#X text 50 37 The comb reverberator has a similar formula to an allpass.
-The [comb.rev~] object from ELSE has the following diagram:, f 44
-;
-#X text 463 561 Filters and reverberators are implemented with delay
-lines. And let's remember how this object was already presented in
-this tutorial to implement variable delay effects \, such as flanger
-and chorus., f 53;
+#X text 450 47 Note that it acts as a reverberator \, much like the allpass reverberator \, but it does filter the input sound (unlike an allpass). Note how the white noise input becomes a pitched output in this process \, and how the fundamental pitch depends on the delay time period., f 52;
+#X text 35 278 The difference to [allpass.rev~] is the independent coefficients for the input \, feedforward and feedback lines. This is also similar and basically the same thing as [comb.filt~] \, but is more flexible and takes a delay period in ms instead., f 53;
+#X text 35 364 The subpatch below implements a comb reverberator with native objects \, and to the right we have an example with the external from ELSE. Check its help file for more information., f 53;
+#X text 463 422 To understand the differences \, the decay parameter in [comb.filt~] controls both the feedforward (b) and feedback (c) gains \, and the input gain parameter (a) is always 1!, f 53;
+#X text 50 37 The comb reverberator has a similar formula to an allpass. The [comb.rev~] object from ELSE has the following diagram:, f 44;
+#X text 463 561 Filters and reverberators are implemented with delay lines. And let's remember how this object was already presented in this tutorial to implement variable delay effects \, such as flanger and chorus., f 53;
 #X obj 698 12 declare -path else;
 #X obj 528 349 out~;
-#X text 463 488 The fact that a so called "filter" and "reverberator"
-are basically the same animal can again reinforce how the concept of
-filters and reverberators are intertwined., f 53;
+#X text 463 488 The fact that a so called "filter" and "reverberator" are basically the same animal can again reinforce how the concept of filters and reverberators are intertwined., f 53;
 #X connect 0 0 5 0;
 #X connect 0 0 52 2;
 #X connect 1 0 6 0;

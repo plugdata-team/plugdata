@@ -1,16 +1,13 @@
 ---
 title: pic
-description: Load pictures
+description: load pictures
 
 categories:
  - object
 
-pdcategory: General
+pdcategory: ELSE, UI
 
 arguments:
-- type:
-  description:
-  default:
 
 inlets:
   1st:
@@ -46,15 +43,16 @@ methods:
   - type: set <symbol>
     description: same as open, but pd doesn't ask to save changes
   - type: latch <float>
-    description: non-zero sets to latch mode
+    description: non-0 sets to latch mode
   - type: outline <float>
-    description: non zero sets to outline mode
+    description: non-0 sets to outline mode
   - type: size <float>
-    description: non zero sets to report size mode
+    description: non-0 sets to report size mode
   - type: send <symbol>
     description: sets a send symbol
   - type: receive <symbol>
     description: sets a receive symbol
+draft: false
 ---
 
 [pic] loads image pictures that you can interact with. It only works with file types: .gif, .ppm & .pgm. you click on the picture and it sends a bang (default) or 1 when clicking and 0 when releasing (when in latch mode).

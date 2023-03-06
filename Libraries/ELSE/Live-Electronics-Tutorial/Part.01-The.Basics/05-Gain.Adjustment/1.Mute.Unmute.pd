@@ -38,15 +38,15 @@ to jump abruptly when the sound comes in or out. In order to avoid
 clicks \, this needs to be smoothened., f 53;
 #X obj 787 257 f2s~ 10;
 #X text 597 208 Quick;
-#X text 12 32 Below \, we have [*~] \, which is multiplies to 0 by
-default and mutes the oscicllator. We use a toggle to turn the oscillator
-on (or "unmute" it) by multiplying it to "1". We can mute it back by
-multiplying it to "0". But note how this generates discontinuities
+#X text 12 32 Below \, we have [*~] \, which multiplies the signal to 0 by
+default and mutes the oscillator. We use a toggle to turn the oscillator
+on (or "unmute" it) by multiplying it with "1". We can mute it back by
+multiplying it with "0". But note how this generates discontinuities
 in the signal that do not sound good \, we call these "clicks"., f
 61;
 #X text 481 57 The native [line~] object can be used to generate a
 quick smoothened ramp to avoid clicks when muting/unmuting. This is
-like very fast fade in/out (at 10 ms here). Another option is to use
+like a very fast fade in/out (at 10 ms here). Another option is to use
 [float2sig~] (or [f2s~] for short) from ELSE \, which converts floats
 to signal but also generates linear ramps., f 61;
 #X obj 787 284 numbox~ 6 12 100 #C0C0C4 #440008 10 0 0 0;

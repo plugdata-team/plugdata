@@ -1,12 +1,12 @@
 ---
 title: meter~
 
-description: Mono VU-meter
+description: mono VU-meter
 
 categories:
 - object
 
-pdcategory: GUI
+pdcategory: ELSE, UI, Analysis
 
 arguments:
 - type: float

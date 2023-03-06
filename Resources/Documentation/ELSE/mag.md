@@ -1,12 +1,12 @@
 ---
 title: mag
 
-description: Get spectral magnitudes
+description: get spectral magnitudes
 
 categories:
 - object
 
-pdcategory: Math
+pdcategory: ELSE, Data Math, Analysis
 
 arguments:
 - type: symbol
@@ -18,10 +18,10 @@ inlets:
   - type: bang 
     description: converts the last received coordinates pair
   - type: float
-    description: real part from the cartesian coordinates
+    description: real part from the Cartesian coordinates
   2nd:
   - type: float
-    description: imaginary part from the cartesian coordinates
+    description: imaginary part from the Cartesian coordinates
 
 outlets:
   1st:
@@ -31,4 +31,4 @@ outlets:
 draft: false
 ---
 
-[mag] gets the spectrum magnitudes (amplitudes) from cartesian coordinates (real / imaginary). This is much like the amplitude output of [car2pol], but you can also get the power magnitudes instead with the 1st argument.
+[mag] gets the spectrum magnitudes (amplitudes) from Cartesian coordinates (real / imaginary). This is much like the amplitude output of [car2pol], but you can also get the power magnitudes instead with the 1st argument.

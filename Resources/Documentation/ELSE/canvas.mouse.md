@@ -1,19 +1,19 @@
 ---
 title: canvas.mouse
 
-description:
+description: canvas' mouse interaction
 
 categories:
  - object
 
-pdcategory: Patch Management
+pdcategory: ELSE, UI
 
 arguments:
 - type: float
   description: depth
   default: 0
 - type: float
-  description: non zero sets "position mode"
+  description: non-0 sets "position mode"
   default: 0
 
 inlets:
@@ -37,4 +37,4 @@ outlets:
 draft: false
 ---
 
-[canva.smouse] gets mouse click and mouse coordinates when your mouse is interacting with the canvas window. An optional argument sets the depth level. This object doesn't output anything if in edit mode.
+[canvas.mouse] gets mouse click and mouse coordinates when your mouse is interacting with the canvas window. An optional argument sets the depth level. This object doesn't output anything if in edit mode.

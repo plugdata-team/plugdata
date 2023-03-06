@@ -3,7 +3,7 @@ title: pgmout
 description: MIDI output
 categories:
 - object
-pdcategory: I/O
+pdcategory: vanilla, MIDI
 last_update: 0.48-2
 see_also:
 - notein
@@ -14,7 +14,7 @@ arguments:
 inlets:
   1st:
   - type: float
-    description: MIDI program value.
+    description: MIDI program value
   2nd:
   - type: float
     description: MIDI channel/port

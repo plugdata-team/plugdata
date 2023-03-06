@@ -1,9 +1,9 @@
 ---
 title: asinh
-description: Hyperbolic arc-sine function
+description: hyperbolic arc-sine function
 categories:
  - object
-pdcategory: General
+pdcategory: cyclone, Data Math
 arguments:
 - type: float
   description: initially stored input value
@@ -19,6 +19,7 @@ outlets:
   - type: float
     description: the hyperbolic arc-sine of the input
 
+draft: false
 ---
 
 Use the [asinh] object to calculate and output the hyperbolic arc-sine of any given number.

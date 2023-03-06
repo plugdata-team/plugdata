@@ -1,12 +1,12 @@
 ---
 title: trapezoid~
 
-description: Trapezoidal wavetable
+description: trapezoidal wavetable
 
 categories:
  - object
 
-pdcategory: General
+pdcategory: cyclone, Signal Generators
 
 arguments:
 - type: float

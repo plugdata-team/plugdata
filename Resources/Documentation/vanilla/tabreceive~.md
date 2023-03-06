@@ -9,20 +9,20 @@ see_also:
 - array
 - tabwrite~
 - tabsend~
-pdcategory: Audio Oscillators And Tables
+pdcategory: vanilla, Mixing and Routing, Arrays and Tables
 last_update: '0.43'
 inlets:
   1st:
   - type: set <name>
-    description: set table name.
+    description: set table name
 outlets:
   1st:
   - type: signal
-    description: outputs signal from a matching tabsend~ object.
+    description: outputs signal from a matching tabsend~ object
 arguments:
   - type: symbol
     description: receive name symbol 
-  default: empty symbol
+    default: empty symbol
 draft: false
 ---
 By default a block is 64 samples but this can be changed with the block~ object.

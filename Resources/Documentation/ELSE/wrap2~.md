@@ -1,16 +1,16 @@
 ---
 title: wrap2~
 
-description: Wraps between two values
+description: wraps between two values
 
 categories:
  - object
  
-pdcategory: Math Functions
+pdcategory: ELSE, Signal Math
 
 arguments:
   - type: list
-    description: 2 floats — min/max, 1 float — max.
+    description: 2 floats — min/max, 1 float — max
     default: -1 and 1
   
 inlets:

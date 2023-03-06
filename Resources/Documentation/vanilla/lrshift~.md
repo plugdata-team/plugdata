@@ -5,16 +5,16 @@ categories:
 - object
 see_also:
 - tabread4~
-pdcategory: Extra
+pdcategory: vanilla, Signal Math, Effects
 last_update: '0.31'
 inlets:
   1st:
   - type: signal
-    description: input signal vector to shift.
+    description: input signal vector to shift
 outlets:
   1st:
   - type: signal
-    description: shifted signal vector.
+    description: shifted signal vector
 arguments:
 - type: float
   description: shift amount, positive or negative 

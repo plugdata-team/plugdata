@@ -1,16 +1,16 @@
 ---
 title: quad~
-description: General quadratic map chaotic generator
+description: general quadratic map chaotic generator
 
 categories:
  - object
 
-pdcategory: General
+pdcategory: ELSE, Signal Generators
 
 arguments:
 - type: float
-  description: sets frequency in hertz
-  default: nyquist
+  description: sets frequency in Hz
+  default: Nyquist
 - type: float
   description: sets a
   default: 1
@@ -27,7 +27,7 @@ arguments:
 inlets:
   1st:
   - type: float/signal
-    description: frequency in hertz (negative values accepted)
+    description: frequency in Hz (negative values accepted)
   - type: list
     description: 4 floats sets 'a', 'b', 'c', and y[n-1]
 
@@ -36,6 +36,7 @@ outlets:
   - type: signal
     description: general quadratic map chaotic signal
 
+draft: false
 ---
 
 [quad~] gerenates a chaotic signal from the difference equation;

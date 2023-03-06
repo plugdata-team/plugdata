@@ -1,12 +1,12 @@
 ---
 title: sustain
 
-description: Sustain pedal emulator
+description: sustain pedal emulator
 
 categories:
  - object
 
-pdcategory: General
+pdcategory: cyclone, MIDI
 
 arguments: (none)
 
@@ -15,7 +15,7 @@ inlets:
   - type: float
     description: pitch
   - type: list 
-    description: a pair of pitch/velocity velues from note message
+    description: a pair of pitch/velocity values from note message
   2nd:
   - type: float
     description: velocity

@@ -1,11 +1,11 @@
 ---
 title: fbdelay~
-description: Feedback delay line
+description: feedback delay line
 
 categories:
  - object
 
-pdcategory: General
+pdcategory: ELSE, Effects
 
 arguments:
 - type: float
@@ -46,12 +46,13 @@ methods:
   - type: size <float>
     description: changes the maximum delay size (in ms)
   - type: freeze <float>
-    description: non zero freezes, zero unfreezes
+    description: non-0 freezes, zero unfreezes
   - type: clear
     description: clears the delay buffer
   - type: gain <float>
     description: non-0 sets to gain mode
 
+draft: false
 ---
 
 Use [fbdelay~] for delay effects, reverberation and comb filtering. By default, you can set a delay time and a reverberation/decay time in ms ("t60"), which is the time the impulse takes to fall 60dB in energy (but you can change this parameter to a gain coefficient).

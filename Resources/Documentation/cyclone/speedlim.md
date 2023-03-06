@@ -1,12 +1,12 @@
 ---
 title: speedlim
 
-description: Limit the speed of messages
+description: limit the speed of messages
 
 categories:
  - object
 
-pdcategory: General
+pdcategory: cyclone, Data Management
 
 arguments:
 - type: float

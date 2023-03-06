@@ -1,15 +1,15 @@
 ---
 title: envelope~
 
-description: Envelope waveforms
+description: envelope waveforms
 
 categories:
 - object
 
-pdcategory:
+pdcategory: ELSE, Envelopes and LFOs
 
 arguments:
-- description: envelope symbol and optional arguments: sin, hann, tri, vsaw <float>, gauss <float>, and trapezoid <float, float>
+- description: sin, hann, tri, vsaw <float>, gauss <float>, trapezoid <float, float>
   type: anything
   default: sin
 

@@ -3,7 +3,7 @@ title: bang, b
 description: output a bang message
 categories:
 - object
-pdcategory: General
+pdcategory: vanilla, Data Management, Triggers and Clocks
 last_update: '0.27'
 inlets:
   1st:

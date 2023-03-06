@@ -1,11 +1,12 @@
 ---
 title: lastvalue~
-description: Report last value
+
+description: report last value
 
 categories:
  - object
 
-pdcategory: General
+pdcategory: ELSE, Analysis
 
 arguments:
 - type: float
@@ -25,6 +26,7 @@ outlets:
   - type: signal
     description: last input value
 
+draft: false
 ---
 
 [lastvalue~] reports the last value when the signal changes

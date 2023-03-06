@@ -1,12 +1,12 @@
 ---
 title: rad2hz
 
-description: Radians_per_sample/Hertz conversion
+description: radians-per-sample to Hz conversion
 
 categories:
  - object
 
-pdcategory: Math
+pdcategory: ELSE, Data Math, Converters
 
 arguments:
 - type: float
@@ -23,7 +23,7 @@ inlets:
 outlets:
   1st:
   - type: float/list
-    description: converted hez value(s)
+    description: converted Hz value(s)
 
 methods:
   - type: set <float>
@@ -32,5 +32,5 @@ methods:
 draft: false
 ---
 
-Use [rad2hz] to convert a signal representing a frequency in "Radians per Sample" to Hertz. This depends on the patch's sample rate (sr). The conversion formula is;
+Use [rad2hz] to convert a signal representing a frequency in "Radians per Sample" to Hz. This depends on the patch's sample rate (sr). The conversion formula is;
 hz = rad * sr / 2pi

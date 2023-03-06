@@ -3,19 +3,19 @@ title: adc~
 description: Audio input from sound card
 categories:
 - object
-pdcategory: General Audio Manipulation
+pdcategory: vanilla, Audio I/O
 last_update: '0.47'
 inlets:
   1st:
   - type: set <list>
-    description: resets the channel(s).
+    description: resets the channel(s)
 outlets:
   nth:
   - type: signal
-    description: Signal input from sound card.
+    description: signal input from sound card
 arguments:
   - type: list
-    description: Set input channels
+    description: set input channels
     default: 1 2
 draft: false
 ---

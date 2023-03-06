@@ -1,12 +1,12 @@
 ---
 title: record~
 
-description: Record signals in arrays
+description: record signals in arrays
 
 categories:
  - object
 
-pdcategory: General
+pdcategory: cyclone, Arrays and Tables
 
 arguments:
 - type: symbol

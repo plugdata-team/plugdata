@@ -1,12 +1,12 @@
 ---
 title: wave~
 
-description:
+description: wavetable reader
 
 categories:
  - object
 
-pdcategory: General
+pdcategory: cyclone, Arrays and Tables
 
 arguments:
 - type: symbol

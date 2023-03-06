@@ -3,6 +3,8 @@
 #include <m_pd.h>
 #include <g_canvas.h>
 
+#include "compat.h"
+
 #ifdef _MSC_VER
 #include <io.h>
 #else

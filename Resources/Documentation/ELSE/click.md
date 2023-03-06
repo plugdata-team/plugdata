@@ -1,20 +1,19 @@
 ---
 title: click
 
-description: Responds to clicks on parent
+description: responds to clicks on parent
 
 categories:
  - object
 
-pdcategory: Patch Management
+pdcategory: ELSE, UI, Triggers and Clocks
 
 arguments:
 - type: float
-  description: sets mode, 0 (default) is "abstraction" mode, non-zero is "subpatch" mode
+  description: sets mode, 0 is "abstraction" mode, non-0 is "subpatch" mode
   default: 0
 
-inlets: none
-
+inlets:
 outlets:
   1st:
   - type: bang

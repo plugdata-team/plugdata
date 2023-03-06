@@ -3,7 +3,7 @@ title: rfft~
 description: forward real FFT
 categories:
 - object
-pdcategory: Audio Math
+pdcategory: vanilla, Signal Math, Analysis
 last_update: '0.33'
 see_also:
 - block~
@@ -13,14 +13,14 @@ see_also:
 inlets:
   1st:
   - type: signal
-    description: time domain real signal to transform.
+    description: time domain real signal to transform
 outlets:
   1st:
   - type: signal
-    description: real part of frequency domain signal.
+    description: real part of frequency domain signal
   2nd:
   - type: signal
-    description: imaginary part of frequency domain signal.
+    description: imaginary part of frequency domain signal
 draft: false
 ---
 The FFT objects do Fourier analyses and resyntheses of incoming real or complex signals. Complex signals are handled as pairs of signals (real and imaginary part.) The analysis size is one block. You can use the block~ or switch~ objects to control block size.

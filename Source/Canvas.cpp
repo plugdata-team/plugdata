@@ -4,31 +4,34 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 #include "Canvas.h"
-
-extern "C" {
-#include <m_pd.h>
-#include <m_imp.h>
-}
-
 #include "Object.h"
 #include "Connection.h"
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
 #include "LookAndFeel.h"
+#include "SuggestionComponent.h"
+#include "CanvasViewport.h"
+#include "SplitView.h"
 
 #include "Utility/GraphArea.h"
-#include "Utility/SuggestionComponent.h"
+#include "Utility/RateReducer.h"
+
+extern "C" {
+void canvas_setgraph(t_glist* x, int flag, int nogoprect);
+}
 
 Canvas::Canvas(PluginEditor* parent, pd::Patch& p, Component* parentGraph)
     : editor(parent)
     , pd(parent->pd)
     , patch(p)
-    , storage(patch.getPointer(), pd)
+    , pathUpdater(new ConnectionPathUpdater(this))
 {
     isGraphChild = glist_isgraph(p.getPointer());
     hideNameAndArgs = static_cast<bool>(p.getPointer()->gl_hidetext);
     xRange = Array<var> { var(p.getPointer()->gl_x1), var(p.getPointer()->gl_x2) };
     yRange = Array<var> { var(p.getPointer()->gl_y2), var(p.getPointer()->gl_y1) };
+
+    pd->registerMessageListener(patch.getPointer(), this);
 
     isGraphChild.addListener(this);
     hideNameAndArgs.addListener(this);
@@ -44,15 +47,16 @@ Canvas::Canvas(PluginEditor* parent, pd::Patch& p, Component* parentGraph)
     } else {
         isGraph = false;
     }
+    
+    recreateViewport();
 
     suggestor = new SuggestionComponent;
 
     commandLocked.referTo(pd->commandLocked);
     commandLocked.addListener(this);
 
-    gridEnabled.referTo(pd->settingsTree.getPropertyAsValue("GridEnabled", nullptr));
-
-    tabbar = &editor->tabbar;
+    // TODO: use SettingsFileListener
+    gridEnabled.referTo(SettingsFile::getInstance()->getPropertyAsValue("grid_enabled"));
 
     // Add draggable border for setting graph position
     if (static_cast<bool>(isGraphChild.getValue()) && !isGraph) {
@@ -70,11 +74,6 @@ Canvas::Canvas(PluginEditor* parent, pd::Patch& p, Component* parentGraph)
     setWantsKeyboardFocus(true);
 
     if (!isGraph) {
-        viewport = new Viewport; // Owned by the tabbar, but doesn't exist for graph!
-        viewport->setViewedComponent(this, false);
-
-        viewport->setScrollBarsShown(true, true, true, true);
-        
         presentationMode.referTo(editor->statusbar.presentationMode);
         presentationMode.addListener(this);
     } else {
@@ -92,18 +91,48 @@ Canvas::Canvas(PluginEditor* parent, pd::Patch& p, Component* parentGraph)
     }
 
     locked.addListener(this);
+
+    Desktop::getInstance().addFocusChangeListener(this);
 }
 
 Canvas::~Canvas()
 {
+    pd->unregisterMessageListener(patch.getPointer(), this);
+
+    Desktop::getInstance().removeFocusChangeListener(this);
+
     delete graphArea;
     delete suggestor;
+}
+
+void Canvas::recreateViewport()
+{
+    if(isGraph) return;
+    
+    auto* canvasViewport = new CanvasViewport(editor, this);
+
+    canvasViewport->setViewedComponent(this, false);
+
+    canvasViewport->onScroll = [this]() {
+        if (suggestor) {
+            suggestor->updateBounds();
+        }
+    };
+
+    canvasViewport->setScrollBarsShown(true, true, true, true);
+
+    viewport = canvasViewport; // Owned by the tabbar, but doesn't exist for graph!
+
+}
+
+void Canvas::lookAndFeelChanged()
+{
+    lasso.setColour(LassoComponent<Object>::lassoFillColourId, findColour(PlugDataColour::objectSelectedOutlineColourId).withAlpha(0.3f));
 }
 
 void Canvas::paint(Graphics& g)
 {
     if (!isGraph) {
-        lasso.setColour(LassoComponent<Object>::lassoFillColourId, findColour(PlugDataColour::objectSelectedOutlineColourId).withAlpha(0.3f));
 
         g.fillAll(findColour(PlugDataColour::toolbarBackgroundColourId));
 
@@ -117,17 +146,67 @@ void Canvas::paint(Graphics& g)
     }
 
     if (locked == var(false) && !isGraph) {
-        int const objectGridSize = 25;
         Rectangle<int> const clipBounds = g.getClipBounds();
 
         g.setColour(findColour(PlugDataColour::canvasDotsColourId));
 
-        for (int x = canvasOrigin.getX() + objectGridSize; x < clipBounds.getRight(); x += objectGridSize) {
-            for (int y = canvasOrigin.getY() + objectGridSize; y < clipBounds.getBottom(); y += objectGridSize) {
+        for (int x = canvasOrigin.getX() + objectGrid.gridSize; x < clipBounds.getRight(); x += objectGrid.gridSize) {
+            for (int y = canvasOrigin.getY() + objectGrid.gridSize; y < clipBounds.getBottom(); y += objectGrid.gridSize) {
                 g.fillRect(static_cast<float>(x), static_cast<float>(y), 1.0, 1.0);
             }
         }
     }
+}
+
+TabComponent* Canvas::getTabbar()
+{
+    auto* leftTabbar = editor->splitView.getLeftTabbar();
+    auto* rightTabbar = editor->splitView.getRightTabbar();
+
+    if (leftTabbar->getIndexOfCanvas(this) >= 0) {
+        return leftTabbar;
+    }
+
+    if (rightTabbar->getIndexOfCanvas(this) >= 0) {
+        return rightTabbar;
+    }
+
+    return nullptr;
+}
+
+void Canvas::globalFocusChanged(Component* focusedComponent)
+{
+    if (!focusedComponent || !editor->splitView.isSplitEnabled() || editor->splitView.hasFocus(this))
+        return;
+
+    if (focusedComponent == this || focusedComponent->findParentComponentOfClass<Canvas>() == this) {
+        editor->splitView.setFocus(this);
+    }
+}
+
+void Canvas::tabChanged()
+{
+    patch.setCurrent();
+
+    synchronise();
+    updateDrawables();
+
+    // update GraphOnParent when changing tabs
+    // TODO: shouldn't we do this always on sync?
+    for (auto* obj : objects) {
+        if (!obj->gui)
+            continue;
+
+        obj->gui->tabChanged();
+    }
+}
+
+int Canvas::getTabIndex()
+{
+    auto leftIdx = editor->splitView.getLeftTabbar()->getIndexOfCanvas(this);
+    auto rightIdx = editor->splitView.getRightTabbar()->getIndexOfCanvas(this);
+
+    return leftIdx >= 0 ? leftIdx : rightIdx;
 }
 
 // Synchronise state with pure-data
@@ -135,37 +214,23 @@ void Canvas::paint(Graphics& g)
 void Canvas::synchronise(bool updatePosition)
 {
     pd->waitForStateUpdate();
-    deselectAll();
 
-    patch.setCurrent(true);
+    patch.setCurrent();
 
     auto pdObjects = patch.getObjects();
-    auto isObjectDeprecated = [&](void* obj) {
-        return std::all_of(pdObjects.begin(), pdObjects.end(), [obj](const auto* obj2) {
-            return obj != obj2;
-        });
-    };
 
-    // Remove deprecated connections
+    // Remove deleted connections
     for (int n = connections.size() - 1; n >= 0; n--) {
-        auto* connection = connections[n];
-
-        if (!connection->inlet || !connection->outlet || isObjectDeprecated(connection->inobj->getPointer()) || isObjectDeprecated(connection->outobj->getPointer())) {
+        if(patch.connectionWasDeleted(connections[n]->getPointer())) {
             connections.remove(n);
-        } else {
-            auto* inlet = static_cast<t_text*>(connection->inobj->getPointer());
-            auto* outlet = static_cast<t_text*>(connection->outobj->getPointer());
-
-            if (!canvas_isconnected(patch.getPointer(), outlet, connection->outIdx, inlet, connection->inIdx)) {
-                connections.remove(n);
-            }
         }
     }
 
-    // Clear deleted objects
+    // Remove deleted objects
     for (int n = objects.size() - 1; n >= 0; n--) {
         auto* object = objects[n];
-        if (object->gui && isObjectDeprecated(object->getPointer())) {
+        if (object->gui && patch.objectWasDeleted(object->getPointer())) {
+            setSelected(object, false);
             objects.remove(n);
         }
     }
@@ -184,10 +249,8 @@ void Canvas::synchronise(bool updatePosition)
             auto* object = *it;
 
             // Check if number of inlets/outlets is correct
-            object->updatePorts();
+            object->updateIolets();
 
-            // Only update positions if we need to and there is a significant difference
-            // There may be rounding errors when scaling the gui, this makes the experience smoother
             if (updatePosition)
                 object->updateBounds();
 
@@ -209,61 +272,56 @@ void Canvas::synchronise(bool updatePosition)
     auto pdConnections = patch.getConnections();
 
     for (auto& connection : pdConnections) {
-        auto& [inno, inobj, outno, outobj] = connection;
+        auto& [ptr, inno, inobj, outno, outobj] = connection;
 
-        int srcno = patch.getIndex(&inobj->te_g);
-        int sinkno = patch.getIndex(&outobj->te_g);
-
-        auto& srcEdges = objects[srcno]->iolets;
-        auto& sinkEdges = objects[sinkno]->iolets;
-
-        // TEMP: remove when we're sure this works
-        if (srcno >= objects.size() || sinkno >= objects.size() || outno >= srcEdges.size() || inno >= sinkEdges.size()) {
-            pd->logError("Error: impossible connection");
+        Iolet* inlet = nullptr, *outlet = nullptr;
+        
+        // Find the objects that this connection is connected to
+        for(auto* obj : objects) {
+            if(outobj && outobj == obj->getPointer()) {
+                
+                // Check if we have enough outlets, should never return false
+                if(isPositiveAndBelow(obj->numInputs + outno, obj->iolets.size())) {
+                    outlet = obj->iolets[obj->numInputs + outno];
+                }
+                else {
+                    break;
+                }
+            }
+            if(inobj && inobj == obj->getPointer()) {
+                
+                // Check if we have enough inlets, should never return false
+                if(isPositiveAndBelow(inno, obj->iolets.size())) {
+                    inlet = obj->iolets[inno];
+                }
+                else {
+                    break;
+                }
+            }
+        }
+                
+        // This shouldn't be necessary, but just to be sure...
+        if (!inlet || !outlet) {
+            jassertfalse;
             continue;
         }
 
         auto* it = std::find_if(connections.begin(), connections.end(),
-            [this, &connection, &srcno, &sinkno](Connection* c) {
-                auto& [inno, inobj, outno, outobj] = connection;
-
-                if (!c->inlet || !c->outlet)
-                    return false;
-
-                bool sameStart = c->outobj == objects[srcno];
-                bool sameEnd = c->inobj == objects[sinkno];
-
-                return c->inIdx == inno && c->outIdx == outno && sameStart && sameEnd;
-            });
+                    [c_ptr = ptr](auto* c) {
+                        return c_ptr == c->getPointer();
+                    });
 
         if (it == connections.end()) {
-            connections.add(new Connection(this, srcEdges[objects[srcno]->numInputs + outno], sinkEdges[inno], true));
+            connections.add(new Connection(this, inlet, outlet, ptr));
         } else {
-            // Update storage ids for connections
             auto& c = *(*it);
-
-            c.inIdx = c.inlet->ioletIdx;
-            c.outIdx = c.outlet->ioletIdx;
-
-            auto currentId = c.getId();
-            if (c.lastId.isNotEmpty() && c.lastId != currentId) {
-                storage.setInfoId(c.lastId, currentId);
-            }
-
-            c.lastId = currentId;
-
-            auto info = storage.getInfo(currentId, "Path");
-            if (info.length())
-                c.setState(info);
-
-            c.repaint();
+            c.popPathState();
         }
     }
 
-    storage.confirmIds();
-
     if (!isGraph) {
-        setTransform(editor->transform);
+        auto scale = editor->getZoomScaleForCanvas(this);
+        setTransform(AffineTransform().scaled(scale));
     }
 
     // Resize canvas to fit objects
@@ -281,7 +339,6 @@ void Canvas::synchronise(bool updatePosition)
 
 void Canvas::updateDrawables()
 {
-
     for (auto* object : objects) {
         if (object->gui) {
             object->gui->updateDrawables();
@@ -289,29 +346,28 @@ void Canvas::updateDrawables()
     }
 }
 
-void Canvas::updateGuiValues()
+void Canvas::spaceKeyChanged(bool isHeld)
 {
-    for (auto* object : objects) {
-        if (object->gui) {
-            object->gui->updateValue();
-        }
-    }
+    checkPanDragMode();
+}
+
+void Canvas::middleMouseChanged(bool isHeld)
+{
+    checkPanDragMode();
 }
 
 void Canvas::mouseDown(MouseEvent const& e)
 {
-    auto* source = e.originalComponent;
-
     PopupMenu::dismissAllActiveMenus();
 
-    // Middle mouse click
-    if (viewport && e.mods.isMiddleButtonDown()) {
-        setMouseCursor(MouseCursor::UpDownLeftRightResizeCursor);
-        viewportPositionBeforeMiddleDrag = viewport->getViewPosition();
-    }
+    if (checkPanDragMode())
+        return;
+
+    auto* source = e.originalComponent;
+
     // Left-click
-    else if (!e.mods.isRightButtonDown()) {
-        if (source == this || source == graphArea) {
+    if (!e.mods.isRightButtonDown()) {
+        if (source == this /*|| source == graphArea */) {
 
             cancelConnectionCreation();
 
@@ -333,7 +389,7 @@ void Canvas::mouseDown(MouseEvent const& e)
         }
 
         // Update selected object in sidebar when we click a object
-        if (source && (dynamic_cast<Object*>(source) || source->findParentComponentOfClass<Object>())) {
+        if (source && source->findParentComponentOfClass<Object>()) {
             updateSidebarSelection();
         }
 
@@ -341,121 +397,14 @@ void Canvas::mouseDown(MouseEvent const& e)
     }
     // Right click
     else {
-
-        cancelConnectionCreation();
-
-        // Info about selection status
-        auto selectedBoxes = getSelectionOfType<Object>();
-
-        bool hasSelection = !selectedBoxes.isEmpty();
-        bool multiple = selectedBoxes.size() > 1;
-
-        Object* object = nullptr;
-        if (auto* obj = dynamic_cast<Object*>(e.originalComponent)) {
-            object = obj;
-            setSelected(object, true);
-        } else if (auto* obj = e.originalComponent->findParentComponentOfClass<Object>()) {
-            object = obj;
-            if (!locked.getValue()) {
-                setSelected(object, true);
-            }
-        } else if (hasSelection && !multiple) {
-            object = selectedBoxes.getFirst();
-        }
-
-        Array<Object*> parents;
-        for (auto* p = source->getParentComponent(); p != nullptr; p = p->getParentComponent()) {
-            if (auto* target = dynamic_cast<Object*>(p))
-                parents.add(target);
-        }
-
-        auto* originalComponent = e.originalComponent;
-
-        // Get top-level parent object... A bit clumsy but otherwise it will open subpatchers deeper down the chain
-        if (parents.size() && originalComponent != this) {
-            object = parents.getLast();
-            hasSelection = true;
-        }
-
-        auto params = object && object->gui ? object->gui->getParameters() : ObjectParameters();
-        bool canBeOpened = object && object->gui && object->gui->canOpenFromMenu();
-
-        // Create popup menu
-        popupMenu.clear();
-
-        popupMenu.addItem(1, "Open", object && !multiple && canBeOpened); // for opening subpatches
-        popupMenu.addSeparator();
-
-        popupMenu.addCommandItem(editor, CommandIDs::Cut);
-        popupMenu.addCommandItem(editor, CommandIDs::Copy);
-        popupMenu.addCommandItem(editor, CommandIDs::Paste);
-        popupMenu.addCommandItem(editor, CommandIDs::Duplicate);
-        popupMenu.addCommandItem(editor, CommandIDs::Encapsulate);
-        popupMenu.addCommandItem(editor, CommandIDs::Delete);
-        popupMenu.addSeparator();
-
-        popupMenu.addItem(8, "To Front", object != nullptr);
-        popupMenu.addItem(9, "To Back", object != nullptr);
-        popupMenu.addSeparator();
-        popupMenu.addItem(10, "Help", object != nullptr);
-        popupMenu.addItem(11, "Reference", object != nullptr);
-        popupMenu.addSeparator();
-        popupMenu.addItem(12, "Properties", originalComponent == this || (object && !params.empty()));
-        // showObjectReferenceDialog
-        auto callback = [this, object, originalComponent, params](int result) mutable {
-            popupMenu.clear();
-
-            if (object)
-                object->repaint();
-
-            if (result < 1)
-                return;
-
-            switch (result) {
-            case 1: // Open subpatch
-                object->gui->openFromMenu();
-                break;
-            case 8: // To Front
-                object->toFront(false);
-                if (object->gui)
-                    object->gui->moveToFront();
-                synchronise();
-                break;
-            case 9: // To Back
-                object->toBack();
-                if (object->gui)
-                    object->gui->moveToBack();
-                synchronise();
-                break;
-            case 10: // Open help
-                object->openHelpPatch();
-                break;
-            case 11: // Open reference
-                Dialogs::showObjectReferenceDialog(&editor->openedDialog, editor, object->gui->getType());
-                break;
-            case 12:
-                if (originalComponent == this) {
-                    // Open help
-                    editor->sidebar.showParameters("canvas", parameters);
-                } else {
-                    editor->sidebar.showParameters(object->gui->getText(), params);
-                }
-
-                break;
-            default:
-                break;
-            }
-        };
-
-        popupMenu.showMenuAsync(PopupMenu::Options().withMinimumWidth(100).withMaximumNumColumns(1).withParentComponent(editor).withTargetScreenArea(Rectangle<int>(e.getScreenX(), e.getScreenY(), 2, 2)), ModalCallbackFunction::create(callback));
+        Dialogs::showCanvasRightClickMenu(this, source, e.getScreenPosition());
     }
 }
 
 void Canvas::mouseDrag(MouseEvent const& e)
 {
-    if (!connectingIolets.isEmpty()) {
-        repaint();
-    }
+    if (canvasRateReducer.tooFast() || panningModifierDown())
+        return;
 
     if (connectingWithDrag) {
         for (auto* obj : objects) {
@@ -465,10 +414,10 @@ void Canvas::mouseDrag(MouseEvent const& e)
         }
     }
 
-    bool draggingLabel = dynamic_cast<Label*>(e.originalComponent) != nullptr;
-    bool draggingSlider = GUIObject::draggingSlider;
+    bool objectIsBeingEdited = ObjectBase::isBeingEdited();
+
     // Ignore on graphs or when locked
-    if ((isGraph || locked == var(true) || commandLocked == var(true)) && !draggingLabel && !draggingSlider) {
+    if ((isGraph || locked == var(true) || commandLocked == var(true)) && !objectIsBeingEdited) {
         bool hasToggled = false;
 
         // Behaviour for dragging over toggles, bang and radiogroup to toggle them
@@ -476,7 +425,7 @@ void Canvas::mouseDrag(MouseEvent const& e)
             if (!object->getBounds().contains(e.getEventRelativeTo(this).getPosition()) || !object->gui)
                 continue;
 
-            if (auto* obj = dynamic_cast<GUIObject*>(object->gui.get())) {
+            if (auto* obj = object->gui.get()) {
                 obj->toggleObject(e.getEventRelativeTo(obj).getPosition());
                 hasToggled = true;
                 break;
@@ -485,7 +434,7 @@ void Canvas::mouseDrag(MouseEvent const& e)
 
         if (!hasToggled) {
             for (auto* object : objects) {
-                if (auto* obj = dynamic_cast<GUIObject*>(object->gui.get())) {
+                if (auto* obj = object->gui.get()) {
                     obj->untoggleObject();
                 }
             }
@@ -494,37 +443,45 @@ void Canvas::mouseDrag(MouseEvent const& e)
         return;
     }
 
-    if (viewport) {
-        auto viewportEvent = e.getEventRelativeTo(viewport);
-        auto const scrollSpeed = 8.5f;
-
-        // Middle mouse pan
-        if (e.mods.isMiddleButtonDown() && !draggingLabel) {
-
-            auto delta = Point<int> { viewportEvent.getDistanceFromDragStartX(), viewportEvent.getDistanceFromDragStartY() };
-
-            viewport->setViewPosition(viewportPositionBeforeMiddleDrag.x - delta.x, viewportPositionBeforeMiddleDrag.y - delta.y);
-
-            return; // Middle mouse button cancels any other drag actions
-        }
-
-        // For fixing coords when zooming
-        float scale = (1.0f / static_cast<float>(editor->zoomScale.getValue()));
-
-        // Auto scroll when dragging close to the iolet
-        if (viewport->autoScroll(viewportEvent.x * scale, viewportEvent.y * scale, 50, scrollSpeed)) {
-            beginDragAutoRepeat(40);
-        }
+    auto viewportEvent = e.getEventRelativeTo(viewport);
+    if (viewport && !ObjectBase::isBeingEdited() && autoscroll(viewportEvent)) {
+        beginDragAutoRepeat(25);
     }
 
     // Drag lasso
     lasso.dragLasso(e);
 }
 
+bool Canvas::autoscroll(MouseEvent const& e)
+{
+    auto ret = false;
+    auto x = viewport->getViewPositionX();
+    auto y = viewport->getViewPositionY();
+
+    if (e.x > viewport->getWidth()) {
+        ret = true;
+        x += std::clamp((e.x - viewport->getWidth()) / 6, 1, 14);
+    } else if (e.x < 0) {
+        ret = true;
+        x -= std::clamp(-e.x / 6, 1, 14);
+    }
+    if (e.y > viewport->getHeight()) {
+        ret = false;
+        y += std::clamp((e.y - viewport->getHeight()) / 6, 1, 14);
+    } else if (e.y < 0) {
+        ret = false;
+        y -= std::clamp(-e.y / 6, 1, 14);
+    }
+
+    viewport->setViewPosition(x, y);
+
+    return ret;
+}
+
 void Canvas::mouseUp(MouseEvent const& e)
 {
+    setPanDragMode(false);
     setMouseCursor(MouseCursor::NormalCursor);
-    editor->updateCommandStatus();
 
     // Double-click canvas to create new object
     if (e.mods.isLeftButtonDown() && (e.getNumberOfClicks() == 2) && (e.originalComponent == this) && !isGraph && !static_cast<bool>(locked.getValue())) {
@@ -540,10 +497,12 @@ void Canvas::mouseUp(MouseEvent const& e)
     lasso.endLasso();
     isDraggingLasso = false;
     for (auto* object : objects)
-        object->mouseDownPos = { 0, 0 };
+        object->originalBounds = Rectangle<int>(0, 0, 0, 0);
 
-    wasDragDuplicated = false;
-    mouseDownObjectPositions.clear();
+    if (wasDragDuplicated) {
+        patch.endUndoSequence("Duplicate");
+        wasDragDuplicated = false;
+    }
 
     // TODO: this is a hack, find a better solution
     if (connectingWithDrag) {
@@ -566,6 +525,11 @@ void Canvas::updateSidebarSelection()
         auto* object = lassoSelection.getFirst();
         auto params = object->gui ? object->gui->getParameters() : ObjectParameters();
 
+        if (!object->gui) {
+            editor->sidebar.hideParameters();
+            return;
+        }
+
         if (commandLocked == var(true)) {
             editor->sidebar.hideParameters();
         } else if (!params.empty() || editor->sidebar.isPinned()) {
@@ -578,41 +542,9 @@ void Canvas::updateSidebarSelection()
     }
 }
 
-void Canvas::paintOverChildren(Graphics& g)
-{
-    Point<float> mousePos = getMouseXYRelative().toFloat();
-
-    // Draw connections in the making over everything else
-    for (auto& iolet : connectingIolets) {
-        // In case we delete the object while connecting
-        if (!iolet)
-            continue;
-
-        Point<int> ioletPos = iolet->getCanvasBounds().getCentre();
-
-        Path path;
-        path.startNewSubPath(ioletPos.toFloat());
-        path.lineTo(mousePos);
-
-        auto baseColour = findColour(PlugDataColour::connectionColourId);
-
-        g.setColour(baseColour.darker(0.1));
-        g.strokePath(path, PathStrokeType(2.5f, PathStrokeType::mitered, PathStrokeType::square));
-
-        g.setColour(baseColour.darker(0.2));
-        g.strokePath(path, PathStrokeType(1.5f, PathStrokeType::mitered, PathStrokeType::square));
-
-        g.setColour(baseColour);
-        g.strokePath(path, PathStrokeType(0.5f, PathStrokeType::mitered, PathStrokeType::square));
-    }
-}
-
 void Canvas::mouseMove(MouseEvent const& e)
 {
-    if (!connectingIolets.isEmpty()) {
-        repaint();
-    }
-
+    // TODO: can we get rid of this?
     lastMousePosition = getMouseXYRelative();
 }
 
@@ -620,6 +552,11 @@ bool Canvas::keyPressed(KeyPress const& key)
 {
     if (editor->getCurrentCanvas() != this || isGraph)
         return false;
+
+    // Absorb space events for drag-scrolling
+    // This makes sure that there isn't constantly a warning sound if we map scroll-drag to a key
+    if (key == KeyPress::spaceKey)
+        return true;
 
     int keycode = key.getKeyCode();
 
@@ -643,38 +580,44 @@ bool Canvas::keyPressed(KeyPress const& key)
     };
 
     // Move objects with arrow keys
+    int moveDistance = objectGrid.gridSize;
+    if (key.getModifiers().isShiftDown()) {
+        moveDistance = 1;
+    } else if (key.getModifiers().isCommandDown()) {
+        moveDistance *= 4;
+    }
+
     if (keycode == KeyPress::leftKey) {
-        moveSelection(-10, 0);
+        moveSelection(-moveDistance, 0);
         return true;
     }
     if (keycode == KeyPress::rightKey) {
-        moveSelection(10, 0);
+        moveSelection(moveDistance, 0);
         return true;
     }
     if (keycode == KeyPress::upKey) {
-        moveSelection(0, -10);
+        moveSelection(0, -moveDistance);
         return true;
     }
     if (keycode == KeyPress::downKey) {
-        moveSelection(0, 10);
+        moveSelection(0, moveDistance);
         return true;
     }
 
-    // Ignore backspace, arrow keys, return key and more that might cause actions in pd
-    if (keycode == KeyPress::backspaceKey || keycode == KeyPress::pageUpKey || keycode == KeyPress::pageDownKey || keycode == KeyPress::homeKey || keycode == KeyPress::escapeKey || keycode == KeyPress::deleteKey || keycode == KeyPress::returnKey || keycode == KeyPress::tabKey) {
-        return false;
-    }
     return false;
 }
 
 void Canvas::deselectAll()
 {
+    auto selection = selectedComponents;
+
+    selectedComponents.deselectAll();
+
     // Deselect objects
-    for (auto c : selectedComponents)
+    for (auto c : selection)
         if (!c.wasObjectDeleted())
             c->repaint();
 
-    selectedComponents.deselectAll();
     editor->sidebar.hideParameters();
 }
 
@@ -702,6 +645,9 @@ void Canvas::pasteSelection()
     patch.startUndoSequence("Paste");
     // Tell pd to paste
     patch.paste();
+
+    deselectAll();
+
     // Load state from pd, don't update positions
     synchronise(false);
 
@@ -767,6 +713,8 @@ void Canvas::duplicateSelection()
     // Tell pd to duplicate
     patch.duplicate();
 
+    deselectAll();
+
     // Load state from pd, don't update positions
     synchronise(false);
 
@@ -788,12 +736,12 @@ void Canvas::duplicateSelection()
                     for (auto* dup : duplicated) {
                         for (auto* conIn : conInlets) {
                             if ((conIn->outlet == objIolet) && object->iolets[iolet] && !dup->iolets.contains(conIn->outlet)) {
-                                connections.add(new Connection(this, dup->iolets[0], object->iolets[iolet], false));
+                                connections.add(new Connection(this, dup->iolets[0], object->iolets[iolet], nullptr));
                             }
                         }
                         for (auto* conOut : conOutlets) {
                             if ((conOut->inlet == objIolet) && (iolet < object->numInputs)) {
-                                connections.add(new Connection(this, dup->iolets[dup->numInputs], object->iolets[iolet], false));
+                                connections.add(new Connection(this, dup->iolets[dup->numInputs], object->iolets[iolet], nullptr));
                             }
                         }
                     }
@@ -817,7 +765,7 @@ void Canvas::duplicateSelection()
                     duplicated[0]->updateBounds();
                 }
             }
-        };
+        }
 
         patch.moveObjects(moveObjects, moveDistance - 10, -10);
         moveObjects.clear();
@@ -856,7 +804,7 @@ void Canvas::removeSelection()
     for (auto* con : connections) {
         if (isSelected(con)) {
             if (!(objects.contains(con->outobj->getPointer()) || objects.contains(con->inobj->getPointer()))) {
-                patch.removeConnection(con->outobj->getPointer(), con->outIdx, con->inobj->getPointer(), con->inIdx);
+                patch.removeConnection(con->outobj->getPointer(), con->outIdx, con->inobj->getPointer(), con->inIdx, con->getPathState());
             }
         }
     }
@@ -1004,8 +952,9 @@ bool Canvas::canConnectSelectedObjects()
         return false;
 
     Object* topObject = selection[0]->getY() > selection[1]->getY() ? selection[1] : selection[0];
-    Object* bottom = selection[0] == topObject ? selection[1] : selection[0];
-    bool hasInlet = topObject->numInputs > 0;
+    Object* bottomObject = selection[0] == topObject ? selection[1] : selection[0];
+
+    bool hasInlet = bottomObject->numInputs > 0;
     bool hasOutlet = topObject->numOutputs > 0;
 
     return hasInlet && hasOutlet;
@@ -1031,17 +980,11 @@ bool Canvas::connectSelectedObjects()
 
 void Canvas::cancelConnectionCreation()
 {
-    if (!connectingIolets.isEmpty()) {
-        connectingIolets.clear();
-        repaint();
-    }
+    connectionsBeingCreated.clear();
 }
 
 void Canvas::undo()
 {
-    // Performs undo on storage data if the next undo event if a dummy
-    storage.undoIfNeeded();
-
     // Tell pd to undo the last action
     patch.undo();
 
@@ -1053,9 +996,6 @@ void Canvas::undo()
 
 void Canvas::redo()
 {
-    // Performs redo on storage data if the next redo event if a dummy
-    storage.redoIfNeeded();
-
     // Tell pd to undo the last action
     patch.redo();
 
@@ -1091,12 +1031,12 @@ void Canvas::checkBounds()
 
     updatingBounds = true;
 
-    float scale = std::max(1.0f, 1.0f / static_cast<float>(editor->zoomScale.getValue()));
+    float scale = std::max(1.0f, 1.0f / editor->getZoomScaleForCanvas(this));
 
     auto viewBounds = Rectangle<int>(canvasOrigin.x, canvasOrigin.y, (viewport->getWidth() - 8) * scale, (viewport->getHeight() - 8) * scale);
 
     for (auto* obj : objects) {
-        viewBounds = viewBounds.getUnion(obj->getBoundsInParent());
+        viewBounds = viewBounds.getUnion(obj->getBoundsInParent().withTrimmedLeft(Object::margin).withTrimmedTop(Object::margin));
     }
 
     canvasOrigin -= { viewBounds.getX(), viewBounds.getY() };
@@ -1156,10 +1096,18 @@ void Canvas::valueChanged(Value& v)
     else if (v.refersToSameSourceAs(presentationMode)) {
         deselectAll();
         commandLocked.setValue(presentationMode.getValue());
-    } else if (v.refersToSameSourceAs(isGraphChild)) {
-        patch.getPointer()->gl_isgraph = static_cast<bool>(isGraphChild.getValue());
+    } else if (v.refersToSameSourceAs(isGraphChild) || v.refersToSameSourceAs(hideNameAndArgs)) {
 
-        if (static_cast<bool>(isGraphChild.getValue()) && !isGraph) {
+        if(!patch.getPointer()) return;
+        
+        pd->setThis();
+        
+        int graphChild = static_cast<bool>(isGraphChild.getValue());
+        int hideText = static_cast<bool>(hideNameAndArgs.getValue());
+
+        canvas_setgraph(patch.getPointer(), isGraph + 2 * hideText, 0);
+
+        if (graphChild && !isGraph) {
             graphArea = new GraphArea(this);
             addAndMakeVisible(graphArea);
             graphArea->setAlwaysOnTop(true);
@@ -1168,9 +1116,7 @@ void Canvas::valueChanged(Value& v)
             delete graphArea;
             graphArea = nullptr;
         }
-        repaint();
-    } else if (v.refersToSameSourceAs(hideNameAndArgs)) {
-        patch.getPointer()->gl_hidetext = static_cast<bool>(hideNameAndArgs.getValue());
+
         repaint();
     } else if (v.refersToSameSourceAs(xRange)) {
         auto* glist = patch.getPointer();
@@ -1195,7 +1141,7 @@ void Canvas::hideSuggestions()
 }
 
 // Makes component selected
-void Canvas::setSelected(Component* component, bool shouldNowBeSelected)
+void Canvas::setSelected(Component* component, bool shouldNowBeSelected, bool updateCommandStatus)
 {
     bool isAlreadySelected = isSelected(component);
 
@@ -1209,7 +1155,9 @@ void Canvas::setSelected(Component* component, bool shouldNowBeSelected)
         component->repaint();
     }
 
-    editor->updateCommandStatus();
+    if (updateCommandStatus) {
+        editor->updateCommandStatus();
+    }
 }
 
 bool Canvas::isSelected(Component* component) const
@@ -1217,31 +1165,40 @@ bool Canvas::isSelected(Component* component) const
     return selectedComponents.isSelected(component);
 }
 
-void Canvas::handleMouseDown(Component* component, MouseEvent const& e)
+void Canvas::objectMouseDown(Object* component, MouseEvent const& e)
 {
-    if (e.mods.isLeftButtonDown()) {
-        if (e.mods.isShiftDown()) {
-            // select multiple objects
-            wasSelectedOnMouseDown = isSelected(component);
-        } else if (!isSelected(component)) {
-            // not interfeering with alt + drag
-            // unselect all & select clicked object
-            for (auto* object : objects) {
-                setSelected(object, false);
-            }
-            for (auto* connection : connections) {
-                setSelected(connection, false);
-            }
-        }
+    if (isGraph)
+        return;
+
+    if (e.mods.isRightButtonDown()) {
         setSelected(component, true);
+
+        PopupMenu::dismissAllActiveMenus();
+        Dialogs::showCanvasRightClickMenu(this, component, e.getScreenPosition());
+
+        return;
     }
+    if (e.mods.isShiftDown()) {
+        // select multiple objects
+        wasSelectedOnMouseDown = isSelected(component);
+    } else if (!isSelected(component)) {
+        // not interfeering with alt + drag
+        // unselect all & select clicked object
+        for (auto* object : objects) {
+            setSelected(object, false);
+        }
+        for (auto* connection : connections) {
+            setSelected(connection, false);
+        }
+    }
+    setSelected(component, true);
 
     if (auto* object = dynamic_cast<Object*>(component)) {
         componentBeingDragged = object;
     }
 
     for (auto* object : getSelectionOfType<Object>()) {
-        object->mouseDownPos = object->getPosition();
+        object->originalBounds = object->getBounds();
         object->setBufferedToImage(true);
     }
 
@@ -1250,21 +1207,29 @@ void Canvas::handleMouseDown(Component* component, MouseEvent const& e)
     }
 
     canvasDragStartPosition = getPosition();
+
+    updateSidebarSelection();
 }
 
 // Call from component's mouseUp
-void Canvas::handleMouseUp(Component* component, MouseEvent const& e)
+void Canvas::objectMouseUp(Object* component, MouseEvent const& e)
 {
+    if (isGraph)
+        return;
 
     if (e.mods.isShiftDown() && wasSelectedOnMouseDown && !didStartDragging) {
         // Unselect object if selected
         setSelected(component, false);
     } else if (!e.mods.isShiftDown() && !e.mods.isAltDown() && isSelected(component) && !didStartDragging && !e.mods.isRightButtonDown()) {
 
-        deselectAll();
+        // Don't run normal deselectAll, that would clear the sidebar inspector as well
+        // We'll update sidebar selection later in this function
+        selectedComponents.deselectAll();
 
         setSelected(component, true);
     }
+
+    updateSidebarSelection();
 
     if (didStartDragging) {
         auto objects = std::vector<void*>();
@@ -1279,15 +1244,12 @@ void Canvas::handleMouseUp(Component* component, MouseEvent const& e)
         // In case we dragged near the iolet and the canvas moved
         auto canvasMoveOffset = canvasDragStartPosition - getPosition();
 
-        distance = grid.handleMouseUp(distance) + canvasMoveOffset;
+        distance = objectGrid.handleMouseUp(distance) + canvasMoveOffset;
 
         // When done dragging objects, update positions to pd
         patch.moveObjects(objects, distance.x, distance.y);
 
         pd->waitForStateUpdate();
-
-        // Update undo state
-        editor->updateCommandStatus();
 
         checkBounds();
         didStartDragging = false;
@@ -1302,7 +1264,7 @@ void Canvas::handleMouseUp(Component* component, MouseEvent const& e)
 
         patch.startUndoSequence("SnapInbetween");
 
-        patch.removeConnection(c->outobj->getPointer(), c->outIdx, c->inobj->getPointer(), c->inIdx);
+        patch.removeConnection(c->outobj->getPointer(), c->outIdx, c->inobj->getPointer(), c->inIdx, c->getPathState());
 
         patch.createConnection(c->outobj->getPointer(), c->outIdx, objectSnappingInbetween->getPointer(), 0);
         patch.createConnection(objectSnappingInbetween->getPointer(), 0, c->inobj->getPointer(), c->inIdx);
@@ -1318,6 +1280,7 @@ void Canvas::handleMouseUp(Component* component, MouseEvent const& e)
 
     if (wasDragDuplicated) {
         patch.endUndoSequence("Duplicate");
+        wasDragDuplicated = false;
     }
 
     for (auto* object : getSelectionOfType<Object>()) {
@@ -1331,15 +1294,17 @@ void Canvas::handleMouseUp(Component* component, MouseEvent const& e)
 }
 
 // Call from component's mouseDrag
-void Canvas::handleMouseDrag(MouseEvent const& e)
+void Canvas::objectMouseDrag(MouseEvent const& e)
 {
+    if (isGraph)
+        return;
+
     /** Ensure tiny movements don't start a drag. */
     if (!didStartDragging && e.getDistanceFromDragStart() < minimumMovementToStartDrag)
         return;
 
     if (!didStartDragging) {
         didStartDragging = true;
-        editor->updateCommandStatus();
     }
 
     auto selection = getSelectionOfType<Object>();
@@ -1350,11 +1315,15 @@ void Canvas::handleMouseDrag(MouseEvent const& e)
     auto canvasMoveOffset = canvasDragStartPosition - getPosition();
 
     if (static_cast<bool>(gridEnabled.getValue()) && componentBeingDragged) {
-        dragDistance = grid.handleMouseDrag(componentBeingDragged, dragDistance, viewport->getViewArea());
+        dragDistance = objectGrid.performMove(componentBeingDragged, dragDistance);
     }
-
+    
     // alt+drag will duplicate selection
     if (!wasDragDuplicated && e.mods.isAltDown()) {
+
+        Array<Point<int>> mouseDownObjectPositions; // Stores object positions for alt + drag
+        int draggedIdx = 0;
+        
         // Single for undo for duplicate + move
         patch.startUndoSequence("Duplicate");
 
@@ -1365,27 +1334,49 @@ void Canvas::handleMouseDrag(MouseEvent const& e)
             });
 
         // Store origin object positions
+        int i = 0;
         for (auto object : selection) {
-            mouseDownObjectPositions.emplace_back(object->getPosition());
+            mouseDownObjectPositions.add(object->getPosition());
+            if(componentBeingDragged == object) draggedIdx = i;
+            i++;
         }
 
         // Duplicate once
         wasDragDuplicated = true;
         duplicateSelection();
         cancelConnectionCreation();
+        
+        selection = getSelectionOfType<Object>();
+        
+        // Sort selection indexes to match pd indexes
+        std::sort(selection.begin(), selection.end(),
+            [this](auto* a, auto* b) -> bool {
+                return objects.indexOf(a) < objects.indexOf(b);
+            });
+        
+        i = 0;
+        for(auto* selected : selection)
+        {
+            selected->originalBounds = selected->getBounds().withPosition(mouseDownObjectPositions[i]);
+            i++;
+        }
+        
+        if(isPositiveAndBelow(draggedIdx, selection.size())) {
+            componentBeingDragged = selection[draggedIdx];
+        }
     }
 
-    // move all selected objects
-    if (wasDragDuplicated) {
-        // Correct distancing
-        dragDistance = Point<int>(e.getOffsetFromDragStart().x + 10, e.getOffsetFromDragStart().y + 10);
-        // Move duplicated objects according to the origin position
-        for (auto object : selection) {
-            object->setTopLeftPosition(mouseDownObjectPositions[selection.indexOf(object)] + dragDistance + canvasMoveOffset);
-        }
-    } else {
+    // FIXME: stop the mousedrag event from blocking the objects from redrawing, we shouldn't need to do this? JUCE bug?
+    if (!objectRateReducer.tooFast()) {
         for (auto* object : selection) {
-            object->setTopLeftPosition(object->mouseDownPos + dragDistance + canvasMoveOffset);
+            object->setTopLeftPosition(object->originalBounds.getPosition() + dragDistance + canvasMoveOffset);
+        }
+
+        auto draggedBounds = componentBeingDragged->getBounds().expanded(6);
+        auto xEdge = e.getDistanceFromDragStartX() < 0 ? draggedBounds.getX() : draggedBounds.getRight();
+        auto yEdge = e.getDistanceFromDragStartY() < 0 ? draggedBounds.getY() : draggedBounds.getBottom();
+        if (autoscroll(e.getEventRelativeTo(this).withNewPosition(Point<int>(xEdge, yEdge)).getEventRelativeTo(viewport))) {
+            beginDragAutoRepeat(25);
         }
     }
 
@@ -1409,14 +1400,14 @@ void Canvas::handleMouseDrag(MouseEvent const& e)
             auto* outlet = inputs[0]->outlet.getComponent();
 
             for (auto* c : outputs) {
-                patch.removeConnection(c->outobj->getPointer(), c->outIdx, c->inobj->getPointer(), c->inIdx);
+                patch.removeConnection(c->outobj->getPointer(), c->outIdx, c->inobj->getPointer(), c->inIdx, c->getPathState());
 
-                connections.add(new Connection(this, outlet, c->inlet, false));
+                connections.add(new Connection(this, outlet, c->inlet, nullptr));
                 connections.removeObject(c);
             }
 
             auto* c = inputs[0];
-            patch.removeConnection(c->outobj->getPointer(), c->outIdx, c->inobj->getPointer(), c->inIdx);
+            patch.removeConnection(c->outobj->getPointer(), c->outIdx, c->inobj->getPointer(), c->inIdx, c->getPathState());
             connections.removeObject(c);
 
             object->iolets[0]->isTargeted = false;
@@ -1429,14 +1420,14 @@ void Canvas::handleMouseDrag(MouseEvent const& e)
             auto* inlet = outputs[0]->inlet.getComponent();
 
             for (auto* c : inputs) {
-                patch.removeConnection(c->outobj->getPointer(), c->outIdx, c->inobj->getPointer(), c->inIdx);
+                patch.removeConnection(c->outobj->getPointer(), c->outIdx, c->inobj->getPointer(), c->inIdx, c->getPathState());
 
-                connections.add(new Connection(this, c->outlet, inlet, false));
+                connections.add(new Connection(this, c->outlet, inlet, nullptr));
                 connections.removeObject(c);
             }
 
             auto* c = outputs[0];
-            patch.removeConnection(c->outobj->getPointer(), c->outIdx, c->inobj->getPointer(), c->inIdx);
+            patch.removeConnection(c->outobj->getPointer(), c->outIdx, c->inobj->getPointer(), c->inIdx, c->getPathState());
             connections.removeObject(c);
 
             object->iolets[0]->isTargeted = false;
@@ -1497,29 +1488,78 @@ void Canvas::removeSelectedComponent(Component* component)
     selectedComponents.deselect(component);
 }
 
+bool Canvas::checkPanDragMode()
+{
+    auto panDragEnabled = panningModifierDown();
+    setPanDragMode(panDragEnabled);
+
+    return panDragEnabled;
+}
+
+bool Canvas::setPanDragMode(bool shouldPan)
+{
+    if (auto* v = dynamic_cast<CanvasViewport*>(viewport)) {
+        v->enableMousePanning(shouldPan);
+        return true;
+    }
+    return false;
+}
+
 void Canvas::findLassoItemsInArea(Array<WeakReference<Component>>& itemsFound, Rectangle<int> const& area)
 {
-    for (auto* element : objects) {
-        if (area.intersects(element->getBounds())) {
-            itemsFound.add(element);
-            setSelected(element, true);
+    for (auto* object : objects) {
+        if (area.intersects(object->getBounds().reduced(Object::margin))) {
+            itemsFound.add(object);
+            setSelected(object, true, false);
         } else if (!ModifierKeys::getCurrentModifiers().isAnyModifierKeyDown()) {
-            setSelected(element, false);
+            setSelected(object, false, false);
         }
     }
 
     for (auto& con : connections) {
         // If total bounds don't intersect, there can't be an intersection with the line
         // This is cheaper than checking the path intersection, so do this first
-        if (!con->getBounds().intersects(lasso.getBounds()))
+        if (!con->getBounds().intersects(lasso.getBounds())) {
+            setSelected(con, false, false);
             continue;
+        }
 
         // Check if path intersects with lasso
         if (con->intersects(lasso.getBounds().translated(-con->getX(), -con->getY()).toFloat())) {
             itemsFound.add(con);
-            setSelected(con, true);
+            setSelected(con, true, false);
         } else if (!ModifierKeys::getCurrentModifiers().isAnyModifierKeyDown()) {
-            setSelected(con, false);
+            setSelected(con, false, false);
         }
     }
+}
+
+ObjectParameters& Canvas::getInspectorParameters()
+{
+    return parameters;
+}
+
+bool Canvas::panningModifierDown()
+{
+    return KeyPress::isKeyCurrentlyDown(KeyPress::spaceKey) || ModifierKeys::getCurrentModifiersRealtime().isMiddleButtonDown();
+}
+
+void Canvas::receiveMessage(String const& symbol, int argc, t_atom* argv)
+{
+    auto atoms = pd::Atom::fromAtoms(argc, argv);
+    MessageManager::callAsync([_this = SafePointer(this), symbol, atoms]() mutable {
+        if (!_this)
+            return;
+
+        switch (hash(symbol)) {
+        case hash("clear"): {
+            _this->synchronise();
+            break;
+        }
+        case hash("donecanvasdialog"): {
+            _this->synchronise();
+            break;
+        }
+        }
+    });
 }

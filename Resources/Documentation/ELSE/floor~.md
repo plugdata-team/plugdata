@@ -1,11 +1,11 @@
 ---
 title: floor~
-description: Floor function
+description: floor function
 
 categories:
  - object
 
-pdcategory: General
+pdcategory: ELSE, Signal Math
 
 arguments:
 
@@ -19,6 +19,7 @@ outlets:
   - type: signal
     description: output of floor function
 
+draft: false
 ---
 
 [floor~] is a floor math function for signals.

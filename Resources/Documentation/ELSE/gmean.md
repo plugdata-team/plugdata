@@ -1,12 +1,12 @@
 ---
 title: gmean
 
-description: Generate list with geometric means
+description: generate list with geometric means
 
 categories:
 - object
 
-pdcategory:
+pdcategory: ELSE, Data Math
 
 arguments:
 - description: sets start

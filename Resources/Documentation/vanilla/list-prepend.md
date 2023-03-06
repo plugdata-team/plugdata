@@ -3,7 +3,7 @@ title: list prepend
 description: manipulate lists
 categories:
 - object
-pdcategory: General
+pdcategory: vanilla, Data Management
 see_also:
 - list
 - list append
@@ -20,5 +20,14 @@ arguments:
 inlets:
   1st:
   - type: anything
-    description: set messages to be prepended by a second list and output (a bang
-      is a zero element list
+    description: set messages to be prepended by a second list and output (a bang is a zero element list)
+  2nd:
+  - type: anything
+    description: set messages to prepend to the first list (a bang is a zero element list and clears it)
+outlets:
+  1st:
+  - type: list
+    description: the prepended list
+draft: false
+---
+prepend a second list to the first

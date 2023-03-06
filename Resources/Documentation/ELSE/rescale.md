@@ -1,16 +1,16 @@
 ---
 title: rescale
 
-description: Rescale MIDI values
+description: rescale MIDI values
 
 categories:
  - object
 
-pdcategory: Math
+pdcategory: ELSE, MIDI, Data Math
 
 arguments:
 - type: list
-  description: 3 arguments: minimum output, maximum output, exponential factor. 5: minimum input, maximum input, minimum output, maximum output, exponential factor
+  description: <min out, max out, exp factor> or <min in, max in, min out, max out, exp factor>
   default: 0, 127, 0, 1, 1
 
 inlets:

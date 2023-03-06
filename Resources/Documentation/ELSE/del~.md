@@ -1,12 +1,12 @@
 ---
 title: del~
 
-description: Delay line
+description: delay line
 
 categories:
  - object
 
-pdcategory: General
+pdcategory: ELSE, Effects, Buffers
 
 arguments:
 - type: symbol
@@ -17,6 +17,7 @@ inlets:
 
 outlets:
 
+draft: false
 ---
 
 [del~] sets and writes to a delay line if created as [del~ in] (default) and reads from it (with interpolation) if created as [del~ out]. It's quite similar to [delread~]/[delread4~], but with more features.

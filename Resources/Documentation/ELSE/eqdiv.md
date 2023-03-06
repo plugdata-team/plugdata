@@ -1,12 +1,12 @@
 ---
 title: eqdiv
 
-description: Equal divisions of intervals
+description: equal divisions of intervals
 
 categories:
 - object
 
-pdcategory:
+pdcategory: ELSE, Tuning
 
 arguments:
 - description: number of equal divisions
@@ -18,10 +18,10 @@ arguments:
 
 inlets:
   1st:
-  - type: float
-    description: set number of equal divisions and generate scale
   - type: bang
     description: generate scale
+  - type: float
+    description: set number of divisions and generate scale
   2nd:
   - type: float
     description: set interval ratio

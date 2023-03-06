@@ -1,15 +1,15 @@
 ---
 title: pulse
 
-description: Control pulse
+description: control pulse
 
 categories:
 - object
 
-pdcategory:
+pdcategory: ELSE, Triggers and Clocks
 
 arguments:
-- description: frequency in hertz
+- description: frequency in Hz
   type: float
   default: 0
 - description: pulse width
@@ -22,13 +22,13 @@ arguments:
 inlets:
   1st:
   - type: float
-    description: frequency in hz
+    description: frequency in Hz
   2nd:
   - type: float
     description: pulse width (from 0 to 1)
   3rd:
   - type: float
-    description: phase sync (ressets internal phase)
+    description: phase sync (resets internal phase)
 
 outlets:
   1st:

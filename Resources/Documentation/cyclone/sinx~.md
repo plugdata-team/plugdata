@@ -1,12 +1,12 @@
 ---
 title: sinx~
 
-description: Signal sine function (radian input)
+description: signal sine function (radian input)
 
 categories:
  - object
 
-pdcategory: General
+pdcategory: cyclone, Signal Math
 
 arguments: (none)
 

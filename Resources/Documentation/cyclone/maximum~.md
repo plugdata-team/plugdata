@@ -1,21 +1,27 @@
 ---
 title: maximum~
-description:
+description: signal maximum of two values
 categories:
  - object
-pdcategory: General
+pdcategory: cyclone, Signal Math
 arguments:
 - type: float
-  description:
-  default:
+  description: value to compare maximum with
+  default: 0
 inlets:
   1st:
   - type: signal
-    description:
+    description: value to compare maximum with argument or right inlet
   2nd:
-  - type: signal
-    description:
+  - type: float/signal
+    description: value to compare maximum with left inlet
 outlets:
   1st:
   - type: signal
-    description:
+    description: the maximum value (the greater of the two)
+
+draft: false
+---
+
+[maximum~] outputs a signal which is the maximum of two input signals, or the maximum of an input signal and a given argument.
+

@@ -6,22 +6,22 @@ categories:
 see_also:
 - rev2~
 - rev3~
-pdcategory: Extra
+pdcategory: vanilla, Effects
 last_update: '0.30'
 inlets:
   1st:
   - type: signal
-    description: reverb input.
+    description: reverb input
   2nd:
   - type: float
-    description: dB after 1 second.
+    description: dB after 1 second
   3rd:
   - type: bang
-    description: clear the reverb.
+    description: clear the reverb
 outlets:
   1st:
   - type: signal
-    description: reverb output.
+    description: reverb output
 draft: false
 ---
 This is an experimental reverberator design composed of a series of allpass filters with exponentially growing delay times. Each allpass filter has a gain of 0.7. The reverb time is adjusted by adjusting the input gains of the allpass filters. The last unit is modified so that its first two "echos" mimic those of an allpass but its loop gain depends on reverb time.

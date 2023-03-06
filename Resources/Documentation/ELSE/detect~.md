@@ -1,11 +1,11 @@
 ---
 title: detect~
-description: Period/frequency detection
+description: period/frequency detection
 
 categories:
  - object
 
-pdcategory: General
+pdcategory: ELSE, Analysis
 
 arguments:
 - type: symbol
@@ -22,6 +22,7 @@ outlets:
     - type: signal
       description: detected period/frequency
 
+draft: false
 ---
 
 [detect~] detects the frequency/period between trigger events. A trigger happens on a transition from non positive to positive.

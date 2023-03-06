@@ -1,17 +1,17 @@
 ---
 title: canvas.edit
 
-description: Report edit status
+description: report edit status
 
 categories:
  - object
 
-pdcategory: Patch Management
+pdcategory: ELSE, UI
 
 arguments:
 - type: float
   description: depth
-  default: 0 (current window)
+  default: 0 - current window
 
 inlets:
   1st:

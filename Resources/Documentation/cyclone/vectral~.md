@@ -1,12 +1,12 @@
 ---
 title: vectral~
 
-description: Smooth/filter frame based signal data
+description: smooth/filter frame based signal data
 
 categories:
  - object
 
-pdcategory: General
+pdcategory: cyclone, Signal Math
 
 arguments:
 - type: float

@@ -1,12 +1,12 @@
 ---
 title: expand~
 
-description: Expander
+description: expander
 
 categories:
 - object
 
-pdcategory:
+pdcategory: ELSE, Effects, Mixing and Routing
 
 arguments:
 - description: threshold in dB

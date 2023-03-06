@@ -1,17 +1,20 @@
 ---
 title: canvas.active
 
-description: Report window activity
+description: report window activity
 
 categories:
  - object
 
-pdcategory: Patch Management
+pdcategory: ELSE, UI
 
 arguments:
 - type: float
   description: depth
-  default: 0 (current window)
+  default: 0 - current window
+flags:
+  - name: -name
+    description: sets to name mode
 inlets:
 outlets:
   1st:

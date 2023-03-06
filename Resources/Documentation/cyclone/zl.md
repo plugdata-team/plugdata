@@ -1,12 +1,12 @@
 ---
 title: zl
 
-description: List processor
+description: list processor
 
 categories:
  - object
 
-pdcategory: General
+pdcategory: cyclone, Data Management
 
 arguments:
 - type: float

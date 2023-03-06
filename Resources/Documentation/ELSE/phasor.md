@@ -1,15 +1,15 @@
 ---
 title: phasor
 
-description: Control phasor
+description: control phasor
 
 categories:
 - object
 
-pdcategory:
+pdcategory: ELSE, Triggers and Clocks, Envelopes and LFOs
 
 arguments:
-- description: frequency in hertz
+- description: frequency in Hz
   type: float
   default: 0
 - description: initial phase offset
@@ -19,10 +19,10 @@ arguments:
 inlets:
   1st:
   - type: float
-    description: frequency in hz
+    description: frequency in Hz
   2nd:
   - type: float
-    description: phase sync (ressets internal phase)
+    description: phase sync (resets internal phase)
 
 outlets:
   1st:

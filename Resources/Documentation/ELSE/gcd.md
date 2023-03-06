@@ -1,11 +1,11 @@
 ---
 title: gcd
-description: Greatest common divisor
+description: greatest common divisor
 
 categories:
  - object
 
-pdcategory: General
+pdcategory: ELSE, Data Math
 
 arguments:
 - type: float
@@ -27,6 +27,7 @@ outlets:
   - type: float
     description: greatest common divisor
 
+draft: false
 ---
 
 [gcd] returns the greatest common divisor of two or more numbers. Floats are truncated to integers. Negative values are accepted, "0" is treated as "1". It has two inlets for setting two floats, but a list input to the left sets 2 or more floats to get their gcd.

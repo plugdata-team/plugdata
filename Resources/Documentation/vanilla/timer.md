@@ -3,7 +3,7 @@ title: timer
 description: measure time intervals
 categories:
 - object
-pdcategory: Time
+pdcategory: vanilla, Triggers and Clocks
 last_update: '0.47'
 see_also:
 - cputime
@@ -32,4 +32,6 @@ outlets:
 methods:
   - type: tempo <float, symbol>
     description: set tempo value (float) and time unit (symbol)
+draft: false
+---
 

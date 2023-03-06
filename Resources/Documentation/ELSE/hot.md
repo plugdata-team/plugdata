@@ -1,11 +1,11 @@
 ---
 title: hot
-description: Make all inputs hot
+description: make all inputs hot
 
 categories:
  - object
 
-pdcategory: General
+pdcategory: ELSE, Data Management
 
 arguments:
 - type: float
@@ -28,6 +28,7 @@ methods:
   - type: set <anything>
     description: set any input message without output
 
+draft: false
 ---
 
 [hot] outputs messages when any inlet gets a message, making them all hot. Output is from right to left.

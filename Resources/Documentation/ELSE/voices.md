@@ -1,19 +1,19 @@
 ---
 title: voices
 
-description: Polyphonic voice allocator
+description: polyphonic voice allocator
 
 categories:
  - object
  
-pdcategory: General
+pdcategory: ELSE, Data Management, MIDI
 
 arguments:
   - type: float
     description: sets number of voices 
     default: 1
   - type: float
-    description: non zero sets voice stealing
+    description: non-0 sets voice stealing
     default: 0
 
 flags:
@@ -49,7 +49,7 @@ methods:
   - type: offset <float>
     description: sets index offset (in the context of "list" mode)
   - type: retrig <float>
-    description: non zero sets to retrigger mode
+    description: non-0 sets to retrigger mode
   - type: clear
     description: clears memory without output
   - type: flush

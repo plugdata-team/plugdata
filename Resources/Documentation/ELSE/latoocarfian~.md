@@ -1,16 +1,17 @@
 ---
 title: latoocarfian~
+
 description: Latoocarfian chaotic generator
 
 categories:
  - object
 
-pdcategory: General
+pdcategory: ELSE, Signal Generators
 
 arguments:
 - type: float
-  description: sets frequency in hertz
-  default: nyquist
+  description: sets frequency in Hz
+  default: Nyquist
 - type: float
   description: sets a
   default: 1
@@ -33,19 +34,20 @@ arguments:
 inlets:
   1st:
   - type: float/signal
-    description: frequency in hertz (negative values accepted)
+    description: frequency in Hz (negative values accepted)
   - type: list
     description: 2 floats set x[n-1] and y[n-1], respectively
 
 outlets:
   1st:
   - type: signal
-    description: latoocarfian chaotic signal
+    description: Latoocarfian chaotic signal
 
 methods:
   - type: coeffs <f, f, f, f>
     description: list sets values of 'a', 'b', 'c' and 'd'
 
+draft: false
 ---
 
 [latoocarfian~] is a chaotic generator using the difference equations;

@@ -7,6 +7,8 @@
 #pragma once
 #include <JuceHeader.h>
 
+#include "LookAndFeel.h"
+
 struct Console;
 struct Inspector;
 struct DocumentBrowser;
@@ -39,7 +41,9 @@ using ObjectParameter = std::tuple<String, ParameterType, ParameterCategory, Val
 
 using ObjectParameters = std::vector<ObjectParameter>; // List of elements and update function
 
-struct Sidebar : public Component {
+class Sidebar : public Component {
+
+public:
     explicit Sidebar(PluginProcessor* instance, PluginEditor* parent);
 
     ~Sidebar() override;
@@ -73,9 +77,7 @@ struct Sidebar : public Component {
 
     void tabChanged();
 
-#if PLUGDATA_STANDALONE
     void updateAutomationParameters();
-#endif
 
     static constexpr int dragbarWidth = 5;
 

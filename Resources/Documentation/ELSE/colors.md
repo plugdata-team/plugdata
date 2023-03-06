@@ -1,39 +1,18 @@
 ---
 title: colors
 
-description: Pick/Convert colors
+description: pick/convert colors
 
 categories:
  - object
 
-pdcategory: GUI
+pdcategory: ELSE, UI
 
-arguments: none
-
+arguments:
 inlets:
   1st:
   - type: bang
     description: output/convert color
-  - type: pick
-    description: open color picker
-  - type: rgb <f, f, f>
-    description: RGB (Red, Green, Blue) color values
-  - type: hex <symbol>
-    description: hexadecimal color value
-  - type: iemgui <float>
-    description: iemgui's color format value
-  - type: ds <float>
-    description: Data Structures' color value
-  - type: cmyk <f, f, f, f>
-    description: CMYK (Cyan, Magente Yellow and Key) color values
-  - type: hsl <f, f, f>
-    description: HSL (Hue, Saturation, and Lightness) color values
-  - type: hsv <f, f, f>
-    description: HSV (Hue, Saturation, and Value) color values
-  - type: gray <float>
-    description: grayscale value from 0 to 100
-  - type: to <symbol>
-    description: set conversion to "rgb," "hex," "gui" or "ds"
 
 outlets:
   1st:
@@ -48,8 +27,27 @@ flags:
   - name: -ds
   description: sets to Data Structures output (default hexadecimal)
 
-click:
-  - description: clicking on the object opens color picker
+methods:
+  - type: pick
+    description: open color picker
+  - type: rgb <f, f, f>
+    description: RGB (Red, Green, Blue) color values
+  - type: hex <symbol>
+    description: hexadecimal color value
+  - type: iemgui <float>
+    description: iemgui's color format value
+  - type: ds <float>
+    description: Data Structures' color value
+  - type: cmyk <f, f, f, f>
+    description: CMYK (Cyan, Magenta, Yellow, and Key) color values
+  - type: hsl <f, f, f>
+    description: HSL (Hue, Saturation, and Lightness) color values
+  - type: hsv <f, f, f>
+    description: HSV (Hue, Saturation, and Value) color values
+  - type: gray <float>
+    description: grayscale value from 0 to 100
+  - type: to <symbol>
+    description: set conversion to "rgb," "hex," "gui" or "ds"
 
 draft: false
 ---

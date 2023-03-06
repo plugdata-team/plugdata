@@ -7,19 +7,19 @@ see_also:
 - fexpr~
 - delwrite~
 - delread~
-pdcategory: Audio Delay
+pdcategory: vanilla, Effects, Buffers
 last_update: '0.52'
 inlets:
   1st:
   - type: signal
-    description: delay time in ms.
+    description: delay time in ms
 outlets:
   1st:
   - type: signal
-    description: delayed signal.
+    description: delayed signal
 arguments:
   - type: symbol
-    description: delay line name. 
+    description: delay line name
 draft: false
 aliases:
 - vd~

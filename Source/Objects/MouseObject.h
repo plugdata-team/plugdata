@@ -4,8 +4,11 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
+#include "Utility/GlobalMouseListener.h"
+
 // Else "mouse" component
-struct MouseObject final : public TextBase {
+class MouseObject final : public TextBase
+    , public Timer {
     typedef struct _mouse {
         t_object x_obj;
         int x_hzero;
@@ -18,46 +21,61 @@ struct MouseObject final : public TextBase {
         t_outlet* x_vertical;
     } t_mouse;
 
+public:
     MouseObject(void* ptr, Object* object)
         : TextBase(ptr, object)
+        , mouseSource(Desktop::getInstance().getMainMouseSource())
     {
-        cnv->addMouseListener(this, true);
+        lastPosition = mouseSource.getScreenPosition();
+        lastMouseDownTime = mouseSource.getLastMouseDownTime();
+        startTimer(timerInterval);
     }
 
-    ~MouseObject()
+    void timerCallback() override
     {
-        cnv->removeMouseListener(this);
+        if (lastPosition != mouseSource.getScreenPosition()) {
+            auto pos = mouseSource.getScreenPosition();
+
+            t_atom args[2];
+            SETFLOAT(args, pos.x);
+            SETFLOAT(args + 1, pos.y);
+
+            pd_typedmess((t_pd*)(this->ptr), pd->generateSymbol("_getscreen"), 2, args);
+
+            lastPosition = pos;
+        }
+        if (mouseSource.isDragging()) {
+            if (!isDown) {
+                t_atom args[1];
+                SETFLOAT(args, 0);
+
+                pd_typedmess((t_pd*)(this->ptr), pd->generateSymbol("_up"), 1, args);
+            }
+            isDown = true;
+            lastMouseDownTime = mouseSource.getLastMouseDownTime();
+        } else if (mouseSource.getLastMouseDownTime() > lastMouseDownTime) {
+            if (!isDown) {
+                t_atom args[1];
+                SETFLOAT(args, 0);
+
+                pd_typedmess((t_pd*)(this->ptr), pd->generateSymbol("_up"), 1, args);
+            }
+            isDown = true;
+            lastMouseDownTime = mouseSource.getLastMouseDownTime();
+        } else if (isDown) {
+            t_atom args[1];
+            SETFLOAT(args, 1);
+
+            pd_typedmess((t_pd*)(this->ptr), pd->generateSymbol("_up"), 1, args);
+
+            isDown = false;
+        }
     }
 
-    void mouseDown(MouseEvent const& e) override
-    {
-        t_atom args[1];
-        SETFLOAT(args, 0);
+    MouseInputSource mouseSource;
 
-        pd_typedmess((t_pd*)ptr, pd->generateSymbol("_up"), 1, args);
-    }
-
-    void mouseUp(MouseEvent const& e) override
-    {
-        t_atom args[1];
-        SETFLOAT(args, 1);
-
-        pd_typedmess((t_pd*)ptr, pd->generateSymbol("_up"), 1, args);
-    }
-
-    void mouseMove(MouseEvent const& e) override
-    {
-        auto pos = e.getPosition();
-
-        t_atom args[2];
-        SETFLOAT(args, pos.x);
-        SETFLOAT(args + 1, pos.y);
-
-        pd_typedmess((t_pd*)ptr, pd->generateSymbol("_getscreen"), 2, args);
-    }
-
-    void mouseDrag(MouseEvent const& e) override
-    {
-        mouseMove(e);
-    }
+    Time lastMouseDownTime;
+    Point<float> lastPosition;
+    bool isDown = false;
+    int const timerInterval = 30;
 };

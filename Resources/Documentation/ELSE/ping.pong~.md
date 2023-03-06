@@ -1,12 +1,12 @@
 ---
 title: ping.pong~
 
-description: Ping pong delay
+description: ping pong delay
 
 categories:
 - object
 
-pdcategory:
+pdcategory: ELSE, Effects
 
 arguments:
 - description: delay time

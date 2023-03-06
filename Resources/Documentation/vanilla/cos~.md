@@ -8,16 +8,16 @@ see_also:
 - cos
 - tabread4~
 - expr~
-pdcategory: Audio Oscillators And Tables
+pdcategory: vanilla, Effects, Signal Math
 last_update: '0.41'
 inlets:
   1st:
   - type: signal
-    description: input from 0-1 (wraps into 0-1 if outside this range).
+    description: input from 0-1 (wraps into 0-1 if outside this range)
 outlets:
   1st:
   - type: signal
-    description: phase ramp (in the range of 0 to 1).
+    description: phase ramp (in the range of 0 to 1)
 arguments:
   - type: float
     description: sets input value

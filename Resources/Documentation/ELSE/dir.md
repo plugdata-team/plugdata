@@ -1,15 +1,15 @@
 ---
 title: dir
-description: Access file directory
+description: access file directory
 
 categories:
  - object
 
-pdcategory: General
+pdcategory: ELSE, File Management
 
 arguments:
 - type: float
-  description: relative directory level, 0 is current patch's directory, 1 is parent's patch's, 2 parent's parent's and so on
+  description: directory level, 0 — current patch's directory, 1 — parent's patch's, etc
   default: 0
 - type: symbol
   description: directory to open
@@ -18,7 +18,7 @@ arguments:
 inlets:
   1st:
   - type: bang
-    description: outputs 'n', 'directory' and dumps files
+    description: outputs <n>, <directory> and dumps files
 
 outlets:
   1st:
@@ -29,10 +29,10 @@ outlets:
     description: the current directory
   3rd:
   - type: float
-    description: 'n' number of found files
+    description: <n> number of found files
   4th:
   - type: float
-    description: "1" if opened a new directory, "0" if it couldn't open
+    description: 1 if opened a new directory, 0 if it couldn't open
 
 flags:
   - name: -ext <symbol>
@@ -59,6 +59,7 @@ methods:
   - type: ext <symbol>
     description: sets extension
 
+draft: false
 ---
 
 [dir] accesses files from directories.

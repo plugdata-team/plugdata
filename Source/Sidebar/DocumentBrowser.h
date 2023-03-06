@@ -8,8 +8,6 @@
 // 1. Sort by folders first
 // 2. Improve simplicity and efficiency by not using OS file icons (they look bad anyway)
 
-#include "../Utility/FileSystemWatcher.h"
-
 #if JUCE_WINDOWS
 #    include "../Utility/OSUtils.h"
 #endif
@@ -17,13 +15,17 @@
 bool wantsNativeDialog();
 
 // Base classes for communication between parent and child classes
-struct DocumentBrowserViewBase : public TreeView
+class DocumentBrowserViewBase : public TreeView
     , public DirectoryContentsDisplayComponent {
+
+public:
     DocumentBrowserViewBase(DirectoryContentsList& listToShow)
         : DirectoryContentsDisplayComponent(listToShow) {};
 };
 
-struct DocumentBrowserBase : public Component {
+class DocumentBrowserBase : public Component {
+
+public:
     DocumentBrowserBase(PluginProcessor* processor)
         : pd(processor)
         , filter("*", "*", "All files")
@@ -40,7 +42,6 @@ struct DocumentBrowserBase : public Component {
     WildcardFileFilter filter;
 };
 
-//==============================================================================
 class DocumentBrowserItem : public TreeViewItem
     , private AsyncUpdater
     , private ChangeListener {
@@ -74,11 +75,10 @@ public:
         p.addTriangle(0.0f, 0.0f, 1.0f, isOpen() ? 0.0f : 0.5f, isOpen() ? 0.5f : 0.0f, 1.0f);
         g.setColour(isSelected() ? getOwnerView()->findColour(PlugDataColour::sidebarActiveTextColourId) : getOwnerView()->findColour(PlugDataColour::sidebarTextColourId).withAlpha(isMouseOver ? 0.7f : 1.0f));
 
-        auto pathArea = area.translated(10, 0);
-        g.fillPath(p, p.getTransformToScaleToFit(pathArea.reduced(2, pathArea.getHeight() / 4), true));
+        auto pathArea = area.translated(3, 0);
+        g.fillPath(p, p.getTransformToScaleToFit(pathArea.reduced(2, pathArea.getHeight() / 3.5f), true));
     }
 
-    //==============================================================================
     bool mightContainSubItems() override
     {
         return isDirectory;
@@ -165,23 +165,17 @@ public:
 
     void paintItem(Graphics& g, int width, int height) override
     {
-        int const x = 40;
+        int const x = 24;
 
-        if (isSelected())
-            g.setColour(owner.findColour(PlugDataColour::sidebarActiveTextColourId));
-        else
-            g.setColour(owner.findColour(PlugDataColour::sidebarTextColourId));
-
-        g.setFont(dynamic_cast<PlugDataLook*>(&owner.getLookAndFeel())->iconFont);
+        auto colour = isSelected() ? owner.findColour(PlugDataColour::sidebarActiveTextColourId) : owner.findColour(PlugDataColour::sidebarTextColourId);
 
         if (isDirectory) {
-            g.drawFittedText(Icons::Folder, Rectangle<int>(6, 2, x - 4, height - 4), Justification::centred, 1);
+            PlugDataLook::drawIcon(g, Icons::Folder, Rectangle<int>(6, 2, x - 4, height - 4), colour, 12, false);
         } else {
-            g.drawFittedText(Icons::File, Rectangle<int>(6, 2, x - 4, height - 4), Justification::centred, 1);
+            PlugDataLook::drawIcon(g, Icons::File, Rectangle<int>(6, 2, x - 4, height - 4), colour, 12, false);
         }
 
-        g.setFont(Font());
-        g.drawFittedText(file.getFileName(), x, 0, width - x, height, Justification::centredLeft, 1);
+        PlugDataLook::drawFittedText(g, file.getFileName(), x, 0, width - x, height, colour);
     }
 
     String getAccessibilityName() override
@@ -255,20 +249,32 @@ private:
 
 class DocumentBrowserView : public DocumentBrowserViewBase
     , public FileBrowserListener
-    , public ScrollBar::Listener {
+    , public ScrollBar::Listener
+    , public Timer {
 public:
-    //==============================================================================
     /** Creates a listbox to show the contents of a specified directory.
      */
     DocumentBrowserView(DirectoryContentsList& listToShow, DocumentBrowserBase* parent)
         : DocumentBrowserViewBase(listToShow)
         , itemHeight(24)
         , browser(parent)
+        , lastUpdateTime(listToShow.getDirectory().getLastModificationTime())
     {
+        setIndentSize(16);
         setRootItemVisible(false);
         refresh();
         addListener(this);
         getViewport()->getVerticalScrollBar().addListener(this);
+        startTimer(1500);
+    }
+
+    void timerCallback() override
+    {
+        auto lastModificationTime = directoryContentsList.getDirectory().getLastModificationTime();
+        if (lastModificationTime > lastUpdateTime) {
+            refresh();
+            lastUpdateTime = lastModificationTime;
+        }
     }
 
     /** Destructor. */
@@ -291,7 +297,6 @@ public:
                 clearSelectedItems();
     }
 
-    //==============================================================================
     /** Returns the number of files the user has got selected.
         @see getSelectedFile
     */
@@ -321,6 +326,8 @@ public:
     /** Updates the files in the list. */
     void refresh()
     {
+        directoryContentsList.refresh();
+
         // Mouse events during update can cause a crash!
         setEnabled(false);
 
@@ -349,7 +356,7 @@ public:
             auto y = getSelectedItem(0)->getItemPosition(true).getY();
             auto selectedRect = Rectangle<float>(3.0f, y + 2.0f, getWidth() - 6.0f, 20.0f);
 
-            g.fillRoundedRectangle(selectedRect, Constants::smallCornerRadius);
+            g.fillRoundedRectangle(selectedRect, PlugDataLook::smallCornerRadius);
         }
     }
     // Paint file drop outline
@@ -373,6 +380,7 @@ public:
             file.revealToUser();
         } else if (file.existsAsFile() && file.hasFileExtension("pd")) {
             browser->pd->loadPatch(file);
+            SettingsFile::getInstance()->addToRecentlyOpened(file);
         } else if (file.existsAsFile()) {
             auto* editor = dynamic_cast<PluginEditor*>(browser->pd->getActiveEditor());
             if (auto* cnv = editor->getCurrentCanvas()) {
@@ -459,11 +467,10 @@ public:
     }
 
 private:
-    //==============================================================================
-
     DocumentBrowserBase* browser;
     bool isDraggingFile = false;
 
+    Time lastUpdateTime;
     int itemHeight;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(DocumentBrowserView)
@@ -484,7 +491,7 @@ public:
 
         listBox.getViewport()->setScrollBarsShown(true, false, false, false);
 
-        input.setName("sidebar::searcheditor");
+        input.getProperties().set("NoOutline", true);
         input.addKeyListener(this);
         input.onTextChange = [this]() {
             bool notEmpty = input.getText().isNotEmpty();
@@ -497,7 +504,7 @@ public:
             updateResults(input.getText());
         };
 
-        closeButton.setName("statusbar:clearsearch");
+        closeButton.getProperties().set("Style", "SmallIcon");
         closeButton.onClick = [this]() {
             input.clear();
             input.giveAwayKeyboardFocus();
@@ -524,6 +531,7 @@ public:
         listBox.getViewport()->getVerticalScrollBar().addListener(this);
 
         setInterceptsMouseClicks(false, true);
+        repaint();
     }
 
     void mouseDoubleClick(MouseEvent const& e) override
@@ -562,16 +570,16 @@ public:
 
     void paintOverChildren(Graphics& g) override
     {
-        g.setFont(getLookAndFeel().getTextButtonFont(closeButton, 30));
-        g.setColour(findColour(PlugDataColour::sidebarTextColourId));
+        auto backgroundColour = findColour(PlugDataColour::sidebarBackgroundColourId);
+        auto textColour = findColour(PlugDataColour::sidebarTextColourId);
 
-        g.drawText(Icons::Search, 0, 0, 30, 30, Justification::centred);
+        input.setColour(TextEditor::backgroundColourId, backgroundColour.brighter(0.7f));
+        input.setColour(TextEditor::textColourId, textColour);
+
+        PlugDataLook::drawIcon(g, Icons::Search, 0, 0, 30, textColour, 12);
 
         if (input.getText().isEmpty()) {
-            g.setFont(Font(14));
-            g.setColour(findColour(PlugDataColour::sidebarTextColourId).withAlpha(0.5f));
-
-            g.drawText("Type to search documentation", 30, 0, 300, 30, Justification::centredLeft);
+            PlugDataLook::drawText(g, "Type to search documentation", 30, 0, 300, 30, textColour.withAlpha(0.5f), 14);
         }
     }
 
@@ -579,17 +587,14 @@ public:
     {
         if (rowIsSelected) {
             g.setColour(findColour(PlugDataColour::sidebarActiveBackgroundColourId));
-            g.fillRoundedRectangle(4, 2, w - 8, h - 4, Constants::smallCornerRadius);
+            g.fillRoundedRectangle(4, 2, w - 8, h - 4, PlugDataLook::smallCornerRadius);
         }
 
-        g.setColour(rowIsSelected ? findColour(PlugDataColour::sidebarActiveTextColourId) : findColour(ComboBox::textColourId));
+        auto colour = rowIsSelected ? findColour(PlugDataColour::sidebarActiveTextColourId) : findColour(ComboBox::textColourId);
         const String item = searchResult[rowNumber].getFileName();
 
-        g.setFont(Font());
-        g.drawText(item, 28, 0, w - 4, h, Justification::centredLeft, true);
-
-        g.setFont(getLookAndFeel().getTextButtonFont(closeButton, 23));
-        g.drawText(Icons::File, 12, 0, 24, 24, Justification::centredLeft);
+        PlugDataLook::drawText(g, item, h + 4, 0, w - 4, h, colour);
+        PlugDataLook::drawIcon(g, Icons::File, 12, 0, h, colour, 12, false);
     }
 
     int getNumRows() override
@@ -622,12 +627,12 @@ public:
                 return;
 
             // Insert in front if the query matches a whole word
-            if (fileName.containsWholeWordIgnoreCase(query)) {
+            if (fileName.containsWholeWordIgnoreCase(query) && !searchResult.contains(file)) {
                 searchResult.insert(0, file);
             }
             // Insert in back if it contains the query
             else if (fileName.containsIgnoreCase(query)) {
-                searchResult.add(file);
+                searchResult.addIfNotAlreadyThere(file);
             }
         };
 
@@ -695,8 +700,9 @@ private:
     TextButton closeButton = TextButton(Icons::Clear);
 };
 
-struct DocumentBrowser : public DocumentBrowserBase
-    , public FileSystemWatcher::Listener {
+class DocumentBrowser : public DocumentBrowserBase {
+
+public:
     DocumentBrowser(PluginProcessor* processor)
         : DocumentBrowserBase(processor)
         , fileList(directory, this)
@@ -704,31 +710,29 @@ struct DocumentBrowser : public DocumentBrowserBase
     {
         auto location = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory).getChildFile("plugdata").getChildFile("Library");
 
-        if (pd->settingsTree.hasProperty("BrowserPath")) {
-            auto customLocation = File(pd->settingsTree.getProperty("BrowserPath"));
+        if (SettingsFile::getInstance()->hasProperty("browser_path")) {
+            auto customLocation = File(pd->settingsFile->getProperty<String>("browser_path"));
             if (customLocation.exists()) {
                 location = customLocation;
             }
         }
 
-        watcher.addFolder(location);
         directory.setDirectory(location, true, true);
 
         updateThread.startThread();
 
         addAndMakeVisible(fileList);
 
-        watcher.addListener(this);
-
         searchComponent.openFile = [this](File& file) {
             if (file.existsAsFile()) {
                 pd->loadPatch(file);
+                SettingsFile::getInstance()->addToRecentlyOpened(file);
             }
         };
 
-        revealButton.setName("statusbar:reveal");
-        loadFolderButton.setName("statusbar:browserpathopen");
-        resetFolderButton.setName("statusbar:browserpathreset");
+        revealButton.getProperties().set("Style", "SmallIcon");
+        loadFolderButton.getProperties().set("Style", "SmallIcon");
+        resetFolderButton.getProperties().set("Style", "SmallIcon");
 
 #if JUCE_MAC
         String revealTip = "Show in Finder";
@@ -755,9 +759,8 @@ struct DocumentBrowser : public DocumentBrowserBase
                     const auto file = fileChooser.getResult();
                     if (file.exists()) {
                         auto path = file.getFullPathName();
-                        pd->settingsTree.setProperty("BrowserPath", path, nullptr);
+                        pd->settingsFile->setProperty("browser_path", path);
                         directory.setDirectory(path, true, true);
-                        watcher.addFolder(file);
                     }
                 });
         };
@@ -765,7 +768,7 @@ struct DocumentBrowser : public DocumentBrowserBase
         resetFolderButton.onClick = [this]() {
             auto location = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory).getChildFile("plugdata").getChildFile("Library");
             auto path = location.getFullPathName();
-            pd->settingsTree.setProperty("BrowserPath", path, nullptr);
+            pd->settingsFile->setProperty("browser_path", path);
             directory.setDirectory(path, true, true);
         };
 
@@ -786,13 +789,6 @@ struct DocumentBrowser : public DocumentBrowserBase
     ~DocumentBrowser()
     {
         updateThread.stopThread(1000);
-    }
-
-    // Called when folder changes
-    void fsChangeCallback() override
-    {
-        directory.refresh();
-        fileList.refresh();
     }
 
     bool isSearching() override
@@ -834,7 +830,7 @@ struct DocumentBrowser : public DocumentBrowserBase
     {
         // Background for statusbar part
         g.setColour(findColour(PlugDataColour::toolbarBackgroundColourId));
-        g.fillRoundedRectangle(0, getHeight() - 30, getWidth(), 30, Constants::defaultCornerRadius);
+        g.fillRoundedRectangle(0, getHeight() - 30, getWidth(), 30, PlugDataLook::defaultCornerRadius);
     }
 
     void paintOverChildren(Graphics& g) override
@@ -856,5 +852,4 @@ private:
 public:
     DocumentBrowserView fileList;
     FileSearchComponent searchComponent;
-    FileSystemWatcher watcher;
 };

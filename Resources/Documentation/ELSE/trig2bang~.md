@@ -1,17 +1,14 @@
 ---
 title: trig2bang~
 
-description: Trigger to bang conversion
+description: trigger to bang conversion
 
 categories:
 - object
 
-pdcategory:
+pdcategory: ELSE, Triggers and Clocks
 
 arguments:
-- description:
-  type:
-  default:
 
 inlets:
   1st:
@@ -21,9 +18,9 @@ inlets:
 outlets:
   1st:
   - type: bang
-    description: when detecting zero to non-zero transitions
+    description: when detecting zero to non-0 transitions
 
 draft: false
 ---
 
-[trig2bang~] detects zero to non-zero transitions. This can be used to detect and convert trigger signals (impulses and gate) to a bang.
+[trig2bang~] detects zero to non-0 transitions. This can be used to detect and convert trigger signals (impulses and gate) to a bang.

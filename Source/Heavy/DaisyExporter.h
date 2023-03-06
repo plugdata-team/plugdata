@@ -125,7 +125,7 @@ public:
         start(args.joinIntoString(" "));
         waitForProcessToFinish(-1);
         exportingView->flushConsole();
-        
+
         exportingView->logToConsole("Compiling...");
 
         if (shouldQuit)
@@ -142,11 +142,11 @@ public:
         if (compile) {
 
             auto bin = Toolchain::dir.getChildFile("bin");
-            auto libDaisy = Toolchain::dir.getChildFile("lib").getChildFile("libDaisy");
+            auto libDaisy = Toolchain::dir.getChildFile("lib").getChildFile("libdaisy");
             auto make = bin.getChildFile("make" + exeSuffix);
             auto compiler = bin.getChildFile("arm-none-eabi-gcc" + exeSuffix);
 
-            libDaisy.copyDirectoryTo(outputFile.getChildFile("libDaisy"));
+            libDaisy.copyDirectoryTo(outputFile.getChildFile("libdaisy"));
 
             outputFile.getChildFile("ir").deleteRecursively();
             outputFile.getChildFile("hv").deleteRecursively();
@@ -184,7 +184,7 @@ public:
 
             waitForProcessToFinish(-1);
             exportingView->flushConsole();
-            
+
             // Restore original working directory
             workingDir.setAsCurrentWorkingDirectory();
 
@@ -217,7 +217,7 @@ public:
 
                     waitForProcessToFinish(-1);
                     exportingView->flushConsole();
-                    
+
                     Time::waitForMillisecondCounter(Time::getMillisecondCounter() + 600);
 
                     // We need to enable DFU mode again after flashing the bootloader
@@ -245,7 +245,7 @@ public:
 
                 waitForProcessToFinish(-1);
                 exportingView->flushConsole();
-                
+
                 // Delay to get correct exit code
                 Time::waitForMillisecondCounter(Time::getMillisecondCounter() + 300);
 
@@ -258,14 +258,14 @@ public:
             }
 
             outputFile.getChildFile("daisy").deleteRecursively();
-            outputFile.getChildFile("libDaisy").deleteRecursively();
+            outputFile.getChildFile("libdaisy").deleteRecursively();
 
             return heavyExitCode && compileExitCode;
         } else {
             auto outputFile = File(outdir);
 
-            auto libDaisy = Toolchain::dir.getChildFile("lib").getChildFile("libDaisy");
-            libDaisy.copyDirectoryTo(outputFile.getChildFile("libDaisy"));
+            auto libDaisy = Toolchain::dir.getChildFile("lib").getChildFile("libdaisy");
+            libDaisy.copyDirectoryTo(outputFile.getChildFile("libdaisy"));
 
             outputFile.getChildFile("ir").deleteRecursively();
             outputFile.getChildFile("hv").deleteRecursively();

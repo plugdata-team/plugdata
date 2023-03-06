@@ -1,16 +1,16 @@
 ---
 title: pmosc~
-description: Phase modulation oscillator pair
+description: phase modulation oscillator pair
 categories:
  - object
-pdcategory: General
+pdcategory: ELSE, Signal Generators
 
 arguments:
 - type: float
-  description: carrier frequency in hertz
+  description: carrier frequency in Hz
   default: 0
 - type: float
-  description: modulation frequency in hertz
+  description: modulation frequency in Hz
   default: 0
 - type: float
   description: modulation index
@@ -22,10 +22,10 @@ arguments:
 inlets:
   1st:
   - type: float/signal
-    description: carrier frequency in hz
+    description: carrier frequency in Hz
   2nd:
   - type: float/signal
-    description: modulation frequency in hz
+    description: modulation frequency in Hz
   3rd:
   - type: float/signal
     description: modulation index
@@ -38,6 +38,7 @@ outlets:
   - type: signal
     description: phase modulation output
 
+draft: false
 ---
 
 [pmosc~] is a pair of sinusoidal oscillators, where one modulates the phase input of another.

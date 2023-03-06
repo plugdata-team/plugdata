@@ -1,9 +1,9 @@
 ---
-title: clip
-description: Constrain values to a given range
+title: cyclone/clip
+description: constrain values to a given range
 categories:
 - object
-pdcategory:
+pdcategory: cyclone, Data Math
 arguments:
 - description: sets minimum
   type: float
@@ -24,7 +24,7 @@ inlets:
 outlets:
   1st:
   - type: float/list
-    description: cliped value(s)
+    description: clipped value(s)
 
 methods:
   - type: set <f f>
@@ -33,5 +33,5 @@ methods:
 draft: false
 ---
 
-Use [clip~] to constrain values from floats or lists between a range specified by a minimum and a maximum value.
+Use [clip] to constrain values from floats or lists between a range specified by a minimum and a maximum value.
 

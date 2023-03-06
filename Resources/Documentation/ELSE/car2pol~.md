@@ -1,22 +1,21 @@
 ---
 title: car2pol~
 
-description:
+description: signal Cartesian to polar conversion
 
 categories:
 - object
 
-pdcategory: Math (Conversion)
+pdcategory: ELSE, Converters, Signal Math
 
-arguments: none
-
+arguments:
 inlets:
   1st:
   - type: float/signal
-    description: real part from the cartesian coordinates
+    description: real part from the Cartesian coordinates
   2nd:
   - type: float/signal
-    description: imaginary part form the cartesian coordinates
+    description: imaginary part form the Cartesian coordinates
 
 outlets:
   1st:
@@ -29,4 +28,4 @@ outlets:
 draft: false
 ---
 
-[car2pol~] converts cartesian coordinates (real / imaginary) to polar coordinates (amplitude / phase).
+[car2pol~] converts Cartesian coordinates (real / imaginary) to polar coordinates (amplitude / phase).

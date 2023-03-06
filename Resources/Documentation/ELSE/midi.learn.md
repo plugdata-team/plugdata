@@ -6,7 +6,7 @@ description: MIDI learn
 categories:
 - object
 
-pdcategory: MIDI
+pdcategory: ELSE, MIDI
 
 arguments:
 - type: symbol
@@ -24,7 +24,7 @@ outlets:
     description: MIDI from learned input
   2nd:
   - type: anything
-    description: learned contoller
+    description: learned controller
 
 methods:
   - type: query
@@ -33,6 +33,8 @@ methods:
     description: forget input
   - type: set <symbol>
     description: set send name
+  - type: teach <anything>
+    description: teach a specific MIDI message
 
 draft: false
 ---

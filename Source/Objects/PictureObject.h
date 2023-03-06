@@ -5,7 +5,7 @@
  */
 
 // ELSE pic
-struct PictureObject final : public GUIObject {
+class PictureObject final : public ObjectBase {
     typedef struct _edit_proxy {
         t_object p_obj;
         t_symbol* p_sym;
@@ -42,20 +42,23 @@ struct PictureObject final : public GUIObject {
         t_outlet* x_outlet;
     } t_pic;
 
+    Value path;
+    File imageFile;
+    Image img;
+
+public:
     PictureObject(void* ptr, Object* object)
-        : GUIObject(ptr, object)
+        : ObjectBase(ptr, object)
     {
         auto* pic = static_cast<t_pic*>(ptr);
 
         if (pic && pic->x_filename) {
             auto filePath = String::fromUTF8(pic->x_filename->s_name);
-            if (File(filePath).existsAsFile()) {
-                path = filePath;
-            }
+            openFile(filePath);
         }
     }
 
-    ObjectParameters defineParameters() override
+    ObjectParameters getParameters() override
     {
         return { { "File", tString, cGeneral, &path, {} } };
     };
@@ -65,16 +68,14 @@ struct PictureObject final : public GUIObject {
         if (imageFile.existsAsFile()) {
             g.drawImageAt(img, 0, 0);
         } else {
-            g.setFont(30);
-            g.setColour(object->findColour(PlugDataColour::canvasTextColourId));
-            g.drawText("?", getLocalBounds(), Justification::centred);
+            PlugDataLook::drawText(g, "?", getLocalBounds(), object->findColour(PlugDataColour::canvasTextColourId), 30, Justification::centred);
         }
 
         bool selected = cnv->isSelected(object) && !cnv->isGraph;
         auto outlineColour = object->findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : objectOutlineColourId);
 
         g.setColour(outlineColour);
-        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Constants::objectCornerRadius, 1.0f);
+        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), PlugDataLook::objectCornerRadius, 1.0f);
     }
 
     void valueChanged(Value& value) override
@@ -84,9 +85,8 @@ struct PictureObject final : public GUIObject {
         }
     }
 
-    void applyBounds() override
+    void setPdBounds(Rectangle<int> b) override
     {
-        auto b = object->getObjectBounds();
         libpd_moveobj(cnv->patch.getPointer(), static_cast<t_gobj*>(ptr), b.getX(), b.getY());
 
         auto* pic = static_cast<t_pic*>(ptr);
@@ -94,64 +94,61 @@ struct PictureObject final : public GUIObject {
         pic->x_height = b.getHeight();
     }
 
-    void updateBounds() override
+    Rectangle<int> getPdBounds() override
     {
-        pd->getCallbackLock()->enter();
+        pd->lockAudioThread();
 
         int x = 0, y = 0, w = 0, h = 0;
         libpd_get_object_bounds(cnv->patch.getPointer(), ptr, &x, &y, &w, &h);
         auto bounds = Rectangle<int>(x, y, w, h);
 
-        pd->getCallbackLock()->exit();
+        pd->unlockAudioThread();
 
-        object->setObjectBounds(bounds);
+        return bounds;
     }
 
-    void checkBounds() override
-    {
-        auto* pic = static_cast<t_pic*>(ptr);
-
-        if (!imageFile.existsAsFile()) {
-            object->setSize(50, 50);
-        } else if (pic->x_height != img.getHeight() || pic->x_width != img.getWidth()) {
-            object->setSize(img.getWidth(), img.getHeight());
-        }
-    }
-    
     void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
     {
-        if(symbol == "open" && atoms.size() >= 1) {
-            openFile(atoms[0].getSymbol());
+        switch (hash(symbol)) {
+        case hash("open"): {
+            if (atoms.size() >= 1)
+                openFile(atoms[0].getSymbol());
+            break;
+        }
+        default:
+            break;
         }
     }
 
     void openFile(String location)
     {
-        
-        auto findFile = [this](const String& name){
-            if(File(name).existsAsFile()) {
+        if (location.isEmpty() || location == "empty")
+            return;
+
+        auto findFile = [this](String const& name) {
+            if ((name.startsWith("/") || name.startsWith("./") || name.startsWith("../")) && File(name).existsAsFile()) {
                 return File(name);
             }
-            if(File(String::fromUTF8(canvas_getdir(cnv->patch.getPointer())->s_name)).getChildFile(name).existsAsFile()) {
+            if (File(String::fromUTF8(canvas_getdir(cnv->patch.getPointer())->s_name)).getChildFile(name).existsAsFile()) {
                 return File(String::fromUTF8(canvas_getdir(cnv->patch.getPointer())->s_name)).getChildFile(name);
             }
-            
+
             // Get pd's search paths
             char* paths[1024];
             int numItems;
             libpd_get_search_paths(paths, &numItems);
-            
-            for(int i = 0; i < numItems; i++) {
+
+            for (int i = 0; i < numItems; i++) {
                 auto file = File(String::fromUTF8(paths[i])).getChildFile(name);
-                
-                if(file.existsAsFile()) {
+
+                if (file.existsAsFile()) {
                     return file;
                 }
             }
-            
+
             return File(name);
         };
- 
+
         auto* pic = static_cast<t_pic*>(ptr);
 
         imageFile = findFile(location);
@@ -183,8 +180,4 @@ struct PictureObject final : public GUIObject {
         } else
             return (0);
     }
-
-    Value path;
-    File imageFile;
-    Image img;
 };

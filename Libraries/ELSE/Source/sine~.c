@@ -12,6 +12,8 @@ typedef struct _sine{
     t_object x_obj;
     double  x_phase;
     double  x_last_phase_offset;
+    t_int midi;
+    t_int soft;
     t_float  x_freq;
     t_inlet  *x_inlet_phase;
     t_inlet  *x_inlet_sync;
@@ -45,6 +47,8 @@ static t_int *sine_perform(t_int *w){
     double sr = x->x_sr;
     while(nblock--){
         double hz = *in1++;
+        if(x->midi)
+            hz = pow(2, (hz - 69)/12) * 440;
         double phase_offset = *in3++;
         double phase_step = hz / sr; // phase_step
         phase_step = phase_step > 0.5 ? 0.5 : phase_step < -0.5 ? -0.5 : phase_step; // clipped to nyq
@@ -77,6 +81,8 @@ static t_int *sine_perform_sig(t_int *w){
     double sr = x->x_sr;
     while(nblock--){
         double hz = *in1++;
+        if(x->midi)
+            hz = pow(2, (hz - 69)/12) * 440;
         t_float trig = *in2++;
         double phase_offset = *in3++;
         double phase_step = hz / sr; // phase_step
@@ -84,8 +90,14 @@ static t_int *sine_perform_sig(t_int *w){
         double phase_dev = phase_offset - last_phase_offset;
         if(phase_dev >= 1 || phase_dev <= -1)
             phase_dev = fmod(phase_dev, 1); // fmod(phase_dev)
-        if(trig > 0 && trig <= 1)
-            phase = trig;
+        if(x->soft)
+            phase_step *= (x->soft);
+        if(trig > 0 && trig <= 1){
+            if(x->soft)
+                x->soft = x->soft == 1 ? -1 : 1;
+            else
+                phase = trig;
+        }
         else{
             phase = phase + phase_dev;
             if(phase <= 0)
@@ -113,6 +125,14 @@ static void sine_dsp(t_sine *x, t_signal **sp){
         dsp_add(sine_perform, 6, x, sp[0]->s_n, sp[0]->s_vec, sp[1]->s_vec, sp[2]->s_vec, sp[3]->s_vec);
 }
 
+static void sine_midi(t_sine *x, t_floatarg f){
+    x->midi = (int)(f != 0);
+}
+
+static void sine_soft(t_sine *x, t_floatarg f){
+    x->soft = (int)(f != 0);
+}
+
 static void *sine_free(t_sine *x){
     inlet_free(x->x_inlet_sync);
     inlet_free(x->x_inlet_phase);
@@ -124,6 +144,14 @@ static void *sine_new(t_symbol *s, int ac, t_atom *av){
     s = NULL;
     t_sine *x = (t_sine *)pd_new(sine_class);
     t_float f1 = 0, f2 = 0;
+    x->midi = x->soft = 0;
+    while(ac && av->a_type == A_SYMBOL){
+        if(atom_getsymbol(av) == gensym("-midi"))
+            x->midi = 1;
+        else if(atom_getsymbol(av) == gensym("-soft"))
+            x->soft = 1;
+        ac--, av++;
+    }
     if(ac && av->a_type == A_FLOAT){
         f1 = av->a_w.w_float;
         ac--, av++;
@@ -156,5 +184,7 @@ void sine_tilde_setup(void){
     sine_class = class_new(gensym("sine~"), (t_newmethod)sine_new, (t_method)sine_free,
         sizeof(t_sine), CLASS_DEFAULT, A_GIMME, 0);
     CLASS_MAINSIGNALIN(sine_class, t_sine, x_freq);
+    class_addmethod(sine_class, (t_method)sine_soft, gensym("soft"), A_DEFFLOAT, 0);
+    class_addmethod(sine_class, (t_method)sine_midi, gensym("midi"), A_DEFFLOAT, 0);
     class_addmethod(sine_class, (t_method)sine_dsp, gensym("dsp"), A_CANT, 0);
 }

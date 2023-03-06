@@ -1,12 +1,12 @@
 ---
 title: del~ in
 
-description: Delay line input
+description: delay line input
 
 categories:
  - object
 
-pdcategory: General
+pdcategory: ELSE, Effects, Buffers
 
 arguments:
 - type: symbol
@@ -17,6 +17,7 @@ arguments:
   default: 1 sample
 
 inlets:
+  1st:
   - type: signal
     description: signal input into the delay line
 
@@ -35,8 +36,9 @@ methods:
   - type: size <float>
     description: changes the delay size
   - type: freeze <float>
-    description: non zero freezes, zero unfreezes
+    description: non-0 freezes, zero unfreezes
 
+draft: false
 ---
 
 Define a delay line and write to it. If neither "in" or "out" is specified as the first argument, the default it [del~ in].

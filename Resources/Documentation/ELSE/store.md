@@ -1,16 +1,16 @@
 ---
 title: store
 
-description: Store messages sequentially
+description: store messages sequentially
 
 categories:
 - object
 
-pdcategory: Message Management 
+pdcategory: ELSE, Data Management 
 
 arguments:
 - type: float
-  description: float - non-zero sets to store elements with the patch
+  description: float - non-0 sets to store elements with the patch
   default: 0
 
 inlets:

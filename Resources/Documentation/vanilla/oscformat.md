@@ -3,7 +3,7 @@ title: oscformat
 description: OSC messages to and from Pd lists
 categories:
 - object
-pdcategory: I/O 
+pdcategory: vanilla, Networking
 last_update: 0.51.
 see_also:
 - oscparse
@@ -13,19 +13,24 @@ see_also:
 arguments:
 - description: list of one or more addresses
   type: list
+flags:
+- name: -f <symbol>
+  description: sets format as in the 'format' message
 inlets:
   1st:
-  - type: format <symbol>
-    description: 'characters set format types: ''b'' (blob),  ''i'' (interger),  ''f''
-      (float) or ''s'' (sring).'
   - type: list
-    description: list to format into a OSC packet.
-  - type: set <list>
-    description: set one or more adresses.
+    description: list to format into an OSC packet
 outlets:
   1st:
   - type: list
-    description: converted OSC packet from lists.
+    description: converted OSC packet from lists
+
+methods:
+  - type: set <list>
+    description: set one or more addresses
+  - type: format <symbol>
+    description: characters set format types: 'b' (blob), 'i' (integer), 'f' (float), or 's' (string)
+
 draft: false
 ---
 Oscformat makes OSC (Open Sound Control) packets (byte by byte) suitable for sending over the network via netsend (in UDP binary mode). The OSC address (the strings between the slashes) are given by the creation arguments or by "set" messages. Oscparse takes lists of numbers interpreting them as the bytes in an OSC message and outputs a list containing, first, the symbols making up the address of the OSC packet, and following that, numbers and symbols as present in the OSC message.

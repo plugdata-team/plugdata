@@ -1,12 +1,12 @@
 ---
 title: slide~
 
-description: Smooth signals logarithmically
+description: smooth signals logarithmically
 
 categories:
  - object
 
-pdcategory: General
+pdcategory: cyclone, Envelopes and LFOs
 
 arguments:
 - type: float

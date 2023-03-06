@@ -1,12 +1,12 @@
 ---
 title: randpulse
 
-description: Random pulses
+description: random pulses
 
 categories:
 - object
 
-pdcategory: General
+pdcategory: ELSE, Random and Noise, Signal Generators
 
 arguments:
 - type: float
@@ -45,7 +45,7 @@ methods:
   - type: rate <float>
     description: sets refresh rate in ms
   - type: seed <float>
-    description: non-zero sets to random gate value mode
+    description: non-0 sets to random gate value mode
 
 draft: false
 ---

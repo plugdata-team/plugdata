@@ -6,6 +6,8 @@
 #include "g_canvas.h"
 #include "magic.h"
 
+#include "compat.h"
+
 #define SCOPE_MINSIZE       18
 #define SCOPE_MINPERIOD     2
 #define SCOPE_MAXPERIOD     8192
@@ -1266,7 +1268,6 @@ void oscope_tilde_setup(void){
     scope_widgetbehavior.w_deletefn   = scope_delete;
     scope_widgetbehavior.w_visfn      = scope_vis;
     scope_widgetbehavior.w_clickfn    = (t_clickfn)scope_click;
-    #include "oscope~_dialog.c"
 }
 
 

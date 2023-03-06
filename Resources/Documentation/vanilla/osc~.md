@@ -7,19 +7,19 @@ see_also:
 - phasor~
 - cos~
 - tabread4~
-pdcategory: Audio Oscillators And Tables
+pdcategory: vanilla, Signal Generators
 last_update: '0.33'
 inlets:
   1st:
   - type: signal
-    description: frequency value in Hz.
+    description: frequency value in Hz
   2nd:
   - type: float
-    description: phase cycle reset (from 0 to 1).
+    description: phase cycle reset (from 0 to 1)
 outlets:
   1st:
   - type: signal
-    description: cosine waveform (in the range of -1 to 1).
+    description: cosine waveform (in the range of -1 to 1)
 arguments:
   - type: float
     description: initial frequency value in Hz 

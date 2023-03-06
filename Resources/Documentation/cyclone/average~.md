@@ -1,9 +1,9 @@
 ---
 title: average~
-description: Signal moving average
+description: signal moving average
 categories:
  - object
-pdcategory: General
+pdcategory: cyclone, Signal Math
 arguments:
 - type: float
   description: maximum and initial 'n' samples (minimum 1)
@@ -16,7 +16,7 @@ inlets:
   - type: signal
     description: the signal to be averaged
   - type: float
-    description: 'n': number of last samples to apply the average to
+    description: number of last samples to apply the average to
 outlets:
   1st:
   - type: signal
@@ -30,6 +30,7 @@ methods:
   - type: rms
     description: outputs 'root mean square' (RMS) values
 
+draft: false
 ---
 
 Use [average~] for a signal running/moving average over the last 'n' given samples. The average is done in 3 modes: bipolar (default), absolute and rms.

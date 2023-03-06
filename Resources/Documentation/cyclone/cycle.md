@@ -1,9 +1,9 @@
 ---
 title: cycle
-description: Round-robin messages to outlets
+description: round-robin messages to outlets
 categories:
  - object
-pdcategory: General
+pdcategory: cyclone, Data Management
 arguments:
 - type: float
   description: sets number of outlets (max 128)
@@ -26,6 +26,7 @@ methods:
   - type: thresh <float>
     description: switches output mode
 
+draft: false
 ---
 
 Each incoming number is sent to the next outlet, wrapping around to the first outlet after the last has been reached, completing a cycle in a "round-robin scheduling" way.

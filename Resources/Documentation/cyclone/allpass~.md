@@ -1,9 +1,9 @@
 ---
 title: allpass~
-description: All pass filter
+description: allpass filter
 categories:
  - object
-pdcategory: General
+pdcategory: cyclone, Filters
 arguments:
 - type: float
   description: maximum delay time in ms
@@ -35,6 +35,7 @@ methods:
   - type: clear
     description: clears the buffer
 
+draft: false
 ---
 
 Use [allpass~] for filtering and delay effects. The All Pass filter passes all frequencies without altering the gain - but changes the frequencies' phase.

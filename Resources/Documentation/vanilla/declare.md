@@ -3,17 +3,17 @@ title: declare
 description: set environment for loading patch
 categories:
 - object
-pdcategory: Misc
+pdcategory: vanilla, UI, File Management
 last_update: '0.52'
 flags:
-- description: add to search path, relative to the patch or user paths.
-  flag: -path <symbol>
-- description: add to search path, relative to Pd (the 'extra' folder).
-  flag: -stdpath <symbol>
-- description: load a library, relative to the patch or user paths.
-  flag: -lib <symbol>
-- description: load a library, relative to Pd (the 'extra' folder).
-  flag: -stdlib <symbol>
+- name: -path <symbol>
+  description: add to search path, relative to the patch or user paths
+- name: -stdpath <symbol>
+  description: add to search path, relative to Pd (the 'extra' folder)
+- name: -lib <symbol>
+  description: load a library, relative to the patch or user paths
+- name: -stdlib <symbol>
+  description: load a library, relative to Pd (the 'extra' folder)
 draft: false
 ---
 Compiled external libraries come either as a single binary pack (the "classic" library format) or as a set of separate binaries and/or abstractions. A single binary pack is what we refer to as a 'library' and needs to be pre loaded - whereas external libraries that have separate binaries/abstractions can be loaded by simply adding its directory to the search path. Adding a directory to the path is also needed if you want to load things like audio and text files that are in it.

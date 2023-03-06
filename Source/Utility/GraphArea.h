@@ -5,35 +5,30 @@
  */
 
 // Graph bounds component
-struct GraphArea : public Component
+class GraphArea : public Component
     , public ComponentDragger {
     ResizableCornerComponent resizer;
     Canvas* canvas;
 
+public:
     explicit GraphArea(Canvas* parent)
         : resizer(this, nullptr)
         , canvas(parent)
     {
         addAndMakeVisible(resizer);
         updateBounds();
+        setMouseCursor(MouseCursor::UpDownLeftRightResizeCursor);
     }
 
     void paint(Graphics& g) override
     {
         g.setColour(findColour(PlugDataColour::resizeableCornerColourId));
-        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(1.f), Constants::objectCornerRadius, Constants::smallCornerRadius);
+        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(1.f), PlugDataLook::objectCornerRadius, PlugDataLook::smallCornerRadius);
     }
 
     bool hitTest(int x, int y) override
     {
-        return !getLocalBounds().reduced(8).contains(Point<int> { x, y });
-    }
-
-    void mouseMove(MouseEvent const& e) override
-    {
-        if (canvas->locked == var(false)) {
-            setMouseCursor(MouseCursor::UpDownLeftRightResizeCursor);
-        }
+        return !getLocalBounds().reduced(8).contains(Point<int>(x, y));
     }
 
     void mouseDown(MouseEvent const& e) override
@@ -67,14 +62,16 @@ struct GraphArea : public Component
     void setPdBounds()
     {
         t_canvas* cnv = canvas->patch.getPointer();
-        // TODO: make this thread safe
-        if (cnv) {
-            cnv->gl_pixwidth = getWidth();
-            cnv->gl_pixheight = getHeight();
+        
+        canvas->pd->enqueueFunction([cnv, _this = SafePointer(this)](){
+            if (_this && cnv) {
+                cnv->gl_pixwidth = _this->getWidth();
+                cnv->gl_pixheight = _this->getHeight();
 
-            cnv->gl_xmargin = getX() - canvas->canvasOrigin.x;
-            cnv->gl_ymargin = getY() - canvas->canvasOrigin.y;
-        }
+                cnv->gl_xmargin = _this->getX() - _this->canvas->canvasOrigin.x;
+                cnv->gl_ymargin = _this->getY() - _this->canvas->canvasOrigin.y;
+            }
+        });
     }
 
     void updateBounds()

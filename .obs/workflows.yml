@@ -1,11 +1,10 @@
 workflow:
     steps:
     - trigger_services:
-        if: github.ref == 'refs/heads/main'
         project: home:plugdata
         package: plugdata
     - filters:
         event: push
         branches:
           only:
-            - main
+            - develop

@@ -1,12 +1,12 @@
 ---
 title: peek~
 
-description: Read/write to array
+description: read/write to array
 
 categories:
  - object
 
-pdcategory: General
+pdcategory: cyclone, Arrays and Tables
 
 arguments:
 - type: symbol

@@ -1,12 +1,12 @@
 ---
 title: metronome~
 
-description: Metronome clicks
+description: metronome clicks
 
 categories:
 - object
 
-pdcategory: Control
+pdcategory: ELSE, Triggers and Clocks
 
 arguments:
 - type: list
@@ -16,7 +16,7 @@ arguments:
 inlets:
   1st:
   - type: list
-    description: count ouput from [metronome]
+    description: count output from [metronome]
 
 outlets:
   1st:

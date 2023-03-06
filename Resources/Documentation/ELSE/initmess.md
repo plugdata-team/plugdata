@@ -1,15 +1,15 @@
 ---
 title: initmess
-description: Initialization message
+description: initialization message
 
 categories:
  - object
 
-pdcategory: General
+pdcategory: ELSE, Data Management, Triggers and Clocks
 
 arguments:
 - type: anything
-  description: the message, where commas and semicolons behave as usual in message boxes, dollarsigns behave as usual inside objects too
+  description: commas and semicolons behave as in message boxes, $ behave as in objects
   default: none
 
 inlets:
@@ -22,6 +22,7 @@ outlets:
   - type: anything
     description: the message
 
+draft: false
 ---
 
 The [initmess] object sends messages when loading the patch. As an object, it can also deal with "$0" and arguments and expand them.

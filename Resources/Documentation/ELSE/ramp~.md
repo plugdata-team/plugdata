@@ -1,12 +1,12 @@
 ---
 title: ramp~
 
-description: Resettable ramp
+description: resettable ramp
 
 categories:
  - object
 
-pdcategory: General
+pdcategory: ELSE, Envelopes and LFOs
 
 arguments:
 - type: float

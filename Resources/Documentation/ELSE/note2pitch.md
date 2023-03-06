@@ -1,17 +1,14 @@
 ---
 title: note2pitch
 
-description: Convert note name to MIDI pitch
+description: convert note name to MIDI pitch
 
 categories:
 - object
 
-pdcategory:
+pdcategory: ELSE, Converters, MIDI
 
 arguments:
-- description: none
-  type:
-  default:
 
 inlets:
   1st:

@@ -1,12 +1,12 @@
 ---
 title: deg2rad
 
-description: Degrees to radians conversion
+description: degrees to radians conversion
 
 categories:
 - object
 
-pdcategory:
+pdcategory: ELSE, Data Math, Converters
 
 arguments:
 - description: initial degree value
@@ -15,10 +15,10 @@ arguments:
 
 inlets:
   1st:
-  - type: float
-    description: input degree value to convert to radians
   - type: bang
     description: convert the last value
+  - type: float
+    description: input degree value to convert to radians
 
 outlets:
   1st:

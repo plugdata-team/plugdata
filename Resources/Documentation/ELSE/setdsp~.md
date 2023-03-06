@@ -6,17 +6,17 @@ description: DSP on/off interface
 categories:
 - object
 
-pdcategory: GUI 
+pdcategory: ELSE, UI, Audio I/O 
 
 arguments:
 - type: float
-  description: non-0 - on, 0 - off. 
+  description: non-0 - on, 0 - off 
   default: current DSP state
 
 inlets:
   1st:
   - type: float
-    description: non-0 - on, 0 - off.
+    description: non-0 - on, 0 - off
   - type: bang
     description: changes status
 

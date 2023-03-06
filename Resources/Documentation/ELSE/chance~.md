@@ -1,12 +1,12 @@
 ---
 title: chance~
 
-description: Weighted random
+description: weighted random
 
 categories:
  - object
 
-pdcategory: Control (Triggers)
+pdcategory: ELSE, Triggers and Clocks, Random and Noise, Signal Generators
 
 arguments:
 - type: list
@@ -16,18 +16,20 @@ arguments:
 inlets:
   1st:
   - type: signal
-    description: a bang to be passed or not
-  - type: seed <float>
-    description: a float sets seed, no float sets a unique internal
+    description: impulse input
 
 outlets:
-  Nth:
+  nth:
   - type: signal
     description: impulse according to a chance
 
 flags:
   - name: -seed <float>
   description: seed value (default=unique internal)
+
+methods:
+  - type: seed <float>
+    description: a float sets seed, no float sets a unique internal
 
 draft: false
 ---

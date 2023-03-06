@@ -1,9 +1,9 @@
 ---
 title: file splitname
-description: separates directory an file components.
+description: separates directory an file components
 categories:
 - object
-pdcategory: Misc
+pdcategory: vanilla, File Management
 last_update: '0.52'
 see_also:
 - text
@@ -28,14 +28,14 @@ see_also:
 inlets:
   1st:
   - type: symbol
-    description: file name.
+    description: file name
 outlets:
   1st:
   - type: list
-    description: the separated directory and file components.
+    description: the separated directory and file components
   2nd:
   - type: symbol
-    description: file component if no directory component is found.
+    description: file component if no directory component is found
 draft: false
 ---
 This object perform common string operations on filenames. no checks are performed verifying the validity/existence of any path-component.

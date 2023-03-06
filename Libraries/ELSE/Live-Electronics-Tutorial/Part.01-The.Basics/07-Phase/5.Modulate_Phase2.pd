@@ -125,8 +125,8 @@
 #X obj 121 407 *~ 1;
 #X text 50 325 invert polarity:, f 9;
 #X text 30 96 Now we can put sawtooth waves to the test and see how
-there's no cancelling when modulating and opposing the phase. But we
-can also invert the polarity and see how it does cancell out., f 54
+there's no canceling when modulating and opposing the phase. But we
+can also invert the polarity and see how it does cancel out., f 54
 ;
 #X text 30 164 Change the sliders below to put the oscillators in and
 out of phase and note that a phase opposition actually doubles the frequency!

@@ -62,7 +62,7 @@ public:
         auto listboxBounds = getLocalBounds().removeFromLeft(200);
 
         g.setColour(findColour(PlugDataColour::sidebarBackgroundColourId));
-        g.fillRoundedRectangle(listboxBounds.toFloat(), Constants::windowCornerRadius);
+        g.fillRoundedRectangle(listboxBounds.toFloat(), PlugDataLook::windowCornerRadius);
         g.fillRect(listboxBounds.removeFromRight(10));
     }
 
@@ -71,7 +71,7 @@ public:
         auto listboxBounds = getLocalBounds().removeFromLeft(200);
 
         g.setColour(findColour(PlugDataColour::outlineColourId));
-        g.drawLine(Line<float> { listboxBounds.getTopRight().toFloat(), listboxBounds.getBottomRight().toFloat() });
+        g.drawLine(Line<float>(listboxBounds.getTopRight().toFloat(), listboxBounds.getBottomRight().toFloat()));
     }
 
     void selectedRowsChanged(int lastRowSelected) override
@@ -115,13 +115,12 @@ public:
         if (isPositiveAndBelow(row, items.size())) {
             if (rowIsSelected) {
                 g.setColour(findColour(PlugDataColour::sidebarActiveBackgroundColourId));
-                g.fillRoundedRectangle(5, 3, width - 10, height - 6, Constants::smallCornerRadius);
+                g.fillRoundedRectangle(5, 3, width - 10, height - 6, PlugDataLook::smallCornerRadius);
             }
 
             auto const textColour = findColour(rowIsSelected ? PlugDataColour::sidebarActiveTextColourId : PlugDataColour::sidebarTextColourId);
-            g.setColour(textColour);
-            g.setFont(15);
-            g.drawText(items[row], Rectangle<int>(15, 0, width - 30, height), Justification::centredLeft);
+
+            PlugDataLook::drawText(g, items[row], Rectangle<int>(15, 0, width - 30, height), textColour, 15);
         }
     }
 
@@ -185,7 +184,7 @@ HeavyExportDialog::~HeavyExportDialog()
 void HeavyExportDialog::paint(Graphics& g)
 {
     g.setColour(findColour(PlugDataColour::panelBackgroundColourId));
-    g.fillRoundedRectangle(getLocalBounds().toFloat(), Constants::windowCornerRadius);
+    g.fillRoundedRectangle(getLocalBounds().toFloat(), PlugDataLook::windowCornerRadius);
 }
 
 void HeavyExportDialog::resized()

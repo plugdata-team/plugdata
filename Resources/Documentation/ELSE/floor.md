@@ -1,11 +1,11 @@
 ---
 title: floor
-description: Floor function
+description: floor function
 
 categories:
  - object
 
-pdcategory: General
+pdcategory: ELSE, Data Math
 
 arguments:
 
@@ -19,6 +19,7 @@ outlets:
   - type: float/list
     description: output value(s) of floor function
 
+draft: false
 ---
 
 [floor] is a floor math function.

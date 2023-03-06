@@ -1,9 +1,9 @@
 ---
 title: buddy
-description: Sync input messages
+description: sync input messages
 categories:
  - object
-pdcategory: General
+pdcategory: cyclone, Data Management
 arguments:
 - type: float
   description: sets the 'n' number of inlets/outlets
@@ -23,6 +23,7 @@ methods:
   - type: anything
     description: clears all received messages
 
+draft: false
 ---
 
 [buddy] synchronizes arriving data and outputs them only if messages have been sent to all inlets. The output is in the usual right to left order, and all input is cleared after that.

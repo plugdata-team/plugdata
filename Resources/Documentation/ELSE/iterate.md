@@ -1,12 +1,12 @@
 ---
 title: iterate
 
-description: Iterate through a list
+description: iterate through a list
 
 categories:
 - object
 
-pdcategory:
+pdcategory: ELSE, Data Management
 
 arguments:
 - description: direction, >= 0 is left to right, < 0 is reverse

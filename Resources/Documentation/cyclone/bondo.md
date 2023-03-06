@@ -1,9 +1,9 @@
 ---
 title: bondo
-description: Sync a group of messages
+description: sync a group of messages
 categories:
  - object
-pdcategory: General
+pdcategory: cyclone, Data Management
 arguments:
 - type: float
   description: sets the number of inlets/outlets
@@ -12,7 +12,7 @@ arguments:
   description: sets the sync time
   default: 0
 - type: symbol
-  description: "n" sets outlets to send messages with more than 1 element
+  description: ''n' sets outlets to send messages with more than 1 element
 inlets:
   nth:
   - type: bang
@@ -24,6 +24,7 @@ outlets:
   - type: anything
     description: messages from corresponding input
 
+draft: false
 ---
 
 [bondo] synchronizes and outputs messages when any inlet gets a message. It can wait a time interval for input messages (see [pd sync time]) or send them automatically.

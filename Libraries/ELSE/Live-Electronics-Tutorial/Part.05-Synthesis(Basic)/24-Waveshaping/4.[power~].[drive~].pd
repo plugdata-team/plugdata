@@ -1,96 +1,61 @@
-#N canvas 312 50 1097 763 12;
+#N canvas 215 23 1069 714 12;
 #X declare -path else;
 #X obj 193 151 *~;
-#X obj 293 152 hsl 128 15 0.5 2 0 0 empty empty empty -2 -8 0 10 -228856
--1 -1 0 1;
-#X obj 290 174 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
--228856 -1 -1 0 256;
+#X obj 293 152 hsl 128 15 0.5 2 0 0 empty empty empty -2 -8 0 10 #dcdcdc #000000 #000000 0 1;
+#X obj 290 174 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10 #dcdcdc #000000 #000000 0 256;
 #X obj 193 95 osc~ 400;
-#X obj 412 473 catch~ \$0-out;
+#X obj 412 453 catch~ \$0-out;
 #X obj 193 237 throw~ \$0-out;
-#X obj 412 506 graph~ 446 11 -1 1;
-#X obj 412 660 out~;
+#X obj 412 486 graph~ 446 11 -1 1;
+#X obj 412 640 out~;
 #X text 130 197 Transfer Function, f 8;
-#X obj 904 23 declare -path else;
+#X obj 901 23 declare -path else;
 #X obj 193 203 pow~;
 #X obj 290 199 f2s~ 50 1;
-#X obj 286 69 hsl 128 15 0 1 0 1 empty empty -2 -8 0 0 4 -228856 -1
--1 0 0;
-#X obj 283 91 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
--228856 -1 -1 0 256;
+#X obj 286 69 hsl 128 15 0 1 0 1 empty empty -2 -8 0 0 4 #dcdcdc #000000 #000000 0 0;
+#X obj 283 91 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10 #dcdcdc #000000 #000000 0 256;
 #X obj 283 116 f2s~ 50;
-#X text 24 14 We can also use many different kinds of functions that
-alter the shape of a sound \, such as power functions., f 70;
-#X obj 107 542 *~;
-#X obj 207 543 hsl 128 15 0.1 10 1 0 empty empty empty -2 -8 0 10 -228856
--1 -1 0 1;
-#X obj 204 565 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
--228856 -1 -1 0 256;
-#X obj 107 486 osc~ 400;
-#X obj 107 628 throw~ \$0-out;
-#X text 44 588 Transfer Function, f 8;
-#X obj 204 590 f2s~ 50 1;
-#X obj 200 460 hsl 128 15 0 1 0 1 empty empty -2 -8 0 0 4 -228856 -1
--1 0 0;
-#X obj 197 482 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
--228856 -1 -1 0 256;
-#X obj 197 507 f2s~ 50;
-#X obj 107 594 power~;
-#X obj 773 163 drive~;
-#X obj 634 308 *~;
-#X obj 886 259 hsl 128 15 0.1 10 1 0 empty empty empty -2 -8 0 10 -228856
--1 -1 7400 1;
-#X obj 883 281 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
--228856 -1 -1 1.46337 256;
-#X obj 634 252 osc~ 400;
-#X obj 634 386 throw~ \$0-out;
-#X obj 883 306 f2s~ 50 1;
-#X obj 727 226 hsl 128 15 0 1 0 1 empty empty -2 -8 0 0 4 -228856 -1
--1 0 0;
-#X obj 724 248 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
--228856 -1 -1 0 256;
-#X obj 724 273 f2s~ 50;
-#X obj 634 340 expr~ if($v1 > 0 \, 1 - pow(1. - $v1 \, $v2) \, pow(1.
-+ $v1 \, $v2) - 1.), f 36;
-#X text 840 160 <= check its help file, f 12;
-#X text 897 339 Transfer Function, f 8;
-#X text 26 281 Above \, we have [pow~] \, note that a power function
-would originally give us a 'nan' (Not a Number) if a negative signal
-'a' is raised by a non integer exponent 'b'. In this case \, [pow~]
-gives us "0" instead. for the case of integer exponentials \, the negative
-values become positive., f 72;
-#X obj 44 700 expr~ copysign(pow(abs($v1) \, $v2) \, $v1);
-#X text 27 672 Here's a way to implement [power~] in [expr~];
-#X obj 690 627 expr~ if(abs($v1) <= $v2 \, $v1 \, copysign((1-($v2*($v2-2)+1)
-/ (abs($v1)-2*$v2+1)) \, $v1)), f 30;
-#X text 612 68 Check also the [drive~] object from ELSE. It has three
-modes of waveshaping distortion \, mode 0 is the 'tanh' function presented
-earlier. Mode 1 is another power function described in the equation
-below., f 54;
-#X obj 690 691 throw~ \$0-out;
-#X obj 929 603 hsl 128 15 0.1 10 1 0 empty empty empty -2 -8 0 10 -228856
--1 -1 0 1;
-#X obj 926 625 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
--228856 -1 -1 0.1 256;
-#X obj 926 650 f2s~ 50 1;
-#X obj 690 560 osc~ 400;
-#X obj 690 596 *~;
-#X obj 802 551 hsl 128 15 0 1 0 0 empty empty empty -2 -8 0 10 -228856
--1 -1 12700 1;
-#X obj 799 573 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
--228856 -1 -1 1 256;
-#X obj 799 598 f2s~ 50;
-#X text 26 344 Below \, the [power~] object from ELSE gives us -pow(-a
-\, b) in the case of a negative input \, which extends the usual definition
-of exponentiation and allows exponentiation of negative signal values.
-This makes it a kind of power function waveshaper. Try also [power~]
-with samples and live input. Exponential values below 1 and towards
-zero result in a harsh distortion., f 72;
-#X text 671 446 Mode 2 of [drive~] is the same as the [expr~] equation
-below \, the drive factor sets a threshold (and is limited from 0 to
-1). Absolute input values below the threshold are passed through while
-others are soft clipped. When set to 1 \, any input above 1 or below
--1 is hard clipped., f 56;
+#X text 24 14 We can also use many different kinds of functions that alter the shape of a sound \, such as power functions., f 70;
+#X obj 107 522 *~;
+#X obj 207 523 hsl 128 15 0.1 10 1 0 empty empty empty -2 -8 0 10 #dcdcdc #000000 #000000 0 1;
+#X obj 204 545 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10 #dcdcdc #000000 #000000 0 256;
+#X obj 107 466 osc~ 400;
+#X obj 107 608 throw~ \$0-out;
+#X text 44 568 Transfer Function, f 8;
+#X obj 204 570 f2s~ 50 1;
+#X obj 200 440 hsl 128 15 0 1 0 1 empty empty -2 -8 0 0 4 #dcdcdc #000000 #000000 0 0;
+#X obj 197 462 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10 #dcdcdc #000000 #000000 0 256;
+#X obj 197 487 f2s~ 50;
+#X obj 107 574 power~;
+#X obj 751 163 drive~;
+#X obj 612 302 *~;
+#X obj 864 253 hsl 128 15 0.1 10 1 0 empty empty empty -2 -8 0 10 #dcdcdc #000000 #000000 0 1;
+#X obj 861 275 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10 #dcdcdc #000000 #000000 0 256;
+#X obj 612 246 osc~ 400;
+#X obj 612 380 throw~ \$0-out;
+#X obj 861 300 f2s~ 50 1;
+#X obj 705 220 hsl 128 15 0 1 0 1 empty empty -2 -8 0 0 4 #dcdcdc #000000 #000000 0 0;
+#X obj 702 242 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10 #dcdcdc #000000 #000000 0 256;
+#X obj 702 267 f2s~ 50;
+#X obj 612 334 expr~ if($v1 > 0 \, 1 - pow(1. - $v1 \, $v2) \, pow(1. + $v1 \, $v2) - 1.), f 36;
+#X text 818 160 <= check its help file, f 12;
+#X text 875 333 Transfer Function, f 8;
+#X text 26 272 Above \, we have [pow~] \, note that a power function would originally give us a 'nan' (Not a Number) if a negative signal 'a' is raised by a non integer exponent 'b'. In this case \, [pow~] gives us "0" instead. for the case of integer exponentials \, the negative values become positive., f 72;
+#X obj 44 680 expr~ copysign(pow(abs($v1) \, $v2) \, $v1);
+#X text 27 652 Here's a way to implement [power~] in [expr~];
+#X obj 668 607 expr~ if(abs($v1) <= $v2 \, $v1 \, copysign((1-($v2*($v2-2)+1) / (abs($v1)-2*$v2+1)) \, $v1)), f 30;
+#X text 590 68 Check also the [drive~] object from ELSE. It has three modes of waveshaping distortion \, mode 0 is the 'tanh' function presented earlier. Mode 1 is another power function described in the equation below., f 54;
+#X obj 668 671 throw~ \$0-out;
+#X obj 907 583 hsl 128 15 0.1 10 1 0 empty empty empty -2 -8 0 10 #dcdcdc #000000 #000000 0 1;
+#X obj 904 605 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10 #dcdcdc #000000 #000000 0 256;
+#X obj 904 630 f2s~ 50 1;
+#X obj 668 540 osc~ 400;
+#X obj 668 576 *~;
+#X obj 780 531 hsl 128 15 0 1 0 0 empty empty empty -2 -8 0 10 #dcdcdc #000000 #000000 0 1;
+#X obj 777 553 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10 #dcdcdc #000000 #000000 0 256;
+#X obj 777 578 f2s~ 50;
+#X text 26 335 Below \, the [power~] object from ELSE gives us -pow(-a \, b) in the case of a negative input \, which extends the usual definition of exponentiation and allows exponentiation of negative signal values. This makes it a kind of power function waveshaper. Try also [power~] with samples and live input. Exponential values below 1 and towards zero result in a harsh distortion., f 72;
+#X text 649 426 Mode 2 of [drive~] is the same as the [expr~] equation below \, the drive factor sets a threshold (and is limited from 0 to 1). Absolute input values below the threshold are passed through while others are soft clipped. When set to 1 \, any input above 1 or below -1 is hard clipped., f 56;
 #X connect 0 0 10 0;
 #X connect 1 0 2 0;
 #X connect 2 0 11 0;

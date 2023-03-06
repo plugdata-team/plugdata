@@ -1,12 +1,12 @@
 ---
 title: grain.sampler~
 
-description: Granular sampler
+description: granular sampler
 
 categories:
 - object
 
-pdcategory:
+pdcategory: ELSE, Effects, Buffers
 
 arguments:
 
@@ -30,7 +30,7 @@ flags:
   - name: -n <f>
     description:
   - name: -t <symbol>
-    description: (table name)
+    description: table name
   - name: -dur <f>
     description:
   - name: -size <f, f>
@@ -58,7 +58,7 @@ methods:
   - type: n <float>
     description: number of grains in cloud event (minimum 1, maximum 256)
   - type: sync <f>
-    description: non zero sets to synchronous mode (default 0)
+    description: non-0 sets to synchronous mode (default 0)
   - type: dur <f>
     description: sets cloud event duration in ms (default 500)
   - type: set <symbol>
@@ -80,7 +80,7 @@ methods:
   - type: env <any>
     description: envelope type (sin, hann, tri, gauss) or function list
   - type: autotune <f>
-    description: non-zero autotunes to a given scale (default 0)
+    description: non-0 autotunes to a given scale (default 0)
   - type: scale <list>
     description: scale to autotune to in cents (default equal temperament)
 

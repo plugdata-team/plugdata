@@ -1,9 +1,9 @@
 ---
 title: cosh
-description: Hyperbolic cosine function
+description: hyperbolic cosine function
 categories:
  - object
-pdcategory: General
+pdcategory: cyclone, Data Math
 arguments:
 - type: float
   description: initially stored input value
@@ -19,6 +19,7 @@ outlets:
   - type: float
     description: the hyperbolic cosine of the input
 
+draft: false
 ---
 
 [cosh] calculates the hyperbolic cosine of a given number.

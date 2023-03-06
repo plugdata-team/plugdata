@@ -1,63 +1,43 @@
-#N canvas 638 40 563 534 10;
-#X obj 4 322 cnv 3 550 3 empty empty inlets 8 12 0 13 #dcdcdc #000000
-0;
-#X obj 4 396 cnv 3 550 3 empty empty outlets 8 12 0 13 #dcdcdc #000000
-0;
-#X obj 4 448 cnv 3 550 3 empty empty arguments 8 12 0 13 #dcdcdc #000000
-0;
-#X obj 133 403 cnv 17 3 17 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
-;
-#X obj 4 506 cnv 15 552 21 empty empty empty 20 12 0 14 #e0e0e0 #202020
-0;
-#X obj 133 329 cnv 17 3 62 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
-;
-#X obj 4 2 cnv 15 301 42 empty empty midi.learn 20 20 2 37 #e0e0e0
-#000000 0;
-#X obj 307 3 cnv 15 250 40 empty empty empty 12 13 0 18 #7c7c7c #e0e4dc
-0;
+#N canvas 638 40 561 581 10;
+#X obj 4 352 cnv 3 550 3 empty empty inlets 8 12 0 13 #dcdcdc #000000 0;
+#X obj 4 443 cnv 3 550 3 empty empty outlets 8 12 0 13 #dcdcdc #000000 0;
+#X obj 4 495 cnv 3 550 3 empty empty arguments 8 12 0 13 #dcdcdc #000000 0;
+#X obj 123 450 cnv 17 3 17 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0;
+#X obj 4 553 cnv 15 552 21 empty empty empty 20 12 0 14 #e0e0e0 #202020 0;
+#X obj 123 359 cnv 17 3 79 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0;
+#X obj 4 2 cnv 15 301 42 empty empty midi.learn 20 20 2 37 #e0e0e0 #000000 0;
+#X obj 307 3 cnv 15 250 40 empty empty empty 12 13 0 18 #7c7c7c #e0e4dc 0;
 #N canvas 0 22 450 278 (subpatch) 0;
 #X coords 0 1 100 -1 302 42 1;
 #X restore 3 2 graph;
-#X obj 346 10 cnv 10 10 10 empty empty ELSE 0 15 2 30 #7c7c7c #e0e4dc
-0;
-#X obj 22 39 cnv 4 4 4 empty empty MIDI 0 28 2 18 #e0e0e0 #000000 0
-;
-#X obj 459 10 cnv 10 10 10 empty empty EL 0 6 2 13 #7c7c7c #e0e4dc
-0;
-#X obj 479 10 cnv 10 10 10 empty empty Locus 0 6 2 13 #7c7c7c #e0e4dc
-0;
-#X obj 516 10 cnv 10 10 10 empty empty Solus' 0 6 2 13 #7c7c7c #e0e4dc
-0;
-#X obj 465 25 cnv 10 10 10 empty empty ELSE 0 6 2 13 #7c7c7c #e0e4dc
-0;
-#X obj 503 25 cnv 10 10 10 empty empty library 0 6 2 13 #7c7c7c #e0e4dc
-0;
+#X obj 346 10 cnv 10 10 10 empty empty ELSE 0 15 2 30 #7c7c7c #e0e4dc 0;
+#X obj 22 39 cnv 4 4 4 empty empty MIDI 0 28 2 18 #e0e0e0 #000000 0;
+#X obj 459 10 cnv 10 10 10 empty empty EL 0 6 2 13 #7c7c7c #e0e4dc 0;
+#X obj 479 10 cnv 10 10 10 empty empty Locus 0 6 2 13 #7c7c7c #e0e4dc 0;
+#X obj 516 10 cnv 10 10 10 empty empty Solus' 0 6 2 13 #7c7c7c #e0e4dc 0;
+#X obj 465 25 cnv 10 10 10 empty empty ELSE 0 6 2 13 #7c7c7c #e0e4dc 0;
+#X obj 503 25 cnv 10 10 10 empty empty library 0 6 2 13 #7c7c7c #e0e4dc 0;
 #N canvas 0 22 450 278 (subpatch) 0;
 #X coords 0 1 100 -1 252 42 1 0 0;
 #X restore 306 2 graph;
-#X obj 72 39 cnv 4 4 4 empty empty learn 0 28 2 18 #e0e0e0 #000000
-0;
-#X obj 4 477 cnv 3 550 3 empty empty click 8 12 0 13 #dcdcdc #000000
-0;
-#X text 148 249 click to learn =>, f 8;
-#X obj 206 184 bng 18 250 50 0 empty empty empty 17 7 0 10 #dfdfdf
-#000000 #000000;
-#X text 186 404 list -;
-#X text 196 346 query;
-#X msg 227 235 query;
-#X obj 317 254 else/display;
-#X msg 218 210 forget;
-#X text 232 361 - forget input, f 47;
-#X obj 133 425 cnv 17 3 17 empty empty 1 5 9 0 16 #dcdcdc #9c9c9c 0
-;
-#X text 190 361 forget;
-#X text 161 426 anything -;
-#X text 232 346 - print send stored input on right outlet, f 47;
-#X text 202 330 bang -;
+#X obj 72 39 cnv 4 4 4 empty empty learn 0 28 2 18 #e0e0e0 #000000 0;
+#X obj 4 524 cnv 3 550 3 empty empty click 8 12 0 13 #dcdcdc #000000 0;
+#X text 148 279 click to learn =>, f 8;
+#X obj 213 208 bng 18 250 50 0 empty empty empty 17 7 0 10 #dfdfdf #000000 #000000;
+#X text 186 451 list -;
+#X text 196 376 query;
+#X msg 237 262 query;
+#X obj 317 284 else/display;
+#X msg 228 237 forget;
+#X text 232 391 - forget input, f 47;
+#X obj 123 472 cnv 17 3 17 empty empty 1 5 9 0 16 #dcdcdc #9c9c9c 0;
+#X text 190 391 forget;
+#X text 161 473 anything -;
+#X text 232 376 - print send stored input on right outlet, f 47;
+#X text 202 360 bang -;
 #N canvas 928 188 548 367 send-name 0;
 #X text 56 238 click to learn =>, f 8;
-#X obj 116 105 bng 18 250 50 0 empty empty empty 17 7 0 10 #dfdfdf
-#000000 #000000;
+#X obj 116 105 bng 18 250 50 0 empty empty empty 17 7 0 10 #dfdfdf #000000 #000000;
 #X text 140 105 <= click to learn, f 18;
 #X msg 169 215 query;
 #X obj 251 289 else/display;
@@ -70,8 +50,7 @@
 #X msg 135 138 set \\\$0-name-2;
 #X listbox 404 154 9 0 0 0 - - - 16;
 #X obj 404 130 r \$0-name-2;
-#X text 131 45 An optional argumemt sets a send name. You can also
-set or change it with the 'set' message., f 47;
+#X text 131 45 An optional argumemt sets a send name. You can also set or change it with the 'set' message., f 47;
 #X text 232 146 set send name;
 #X msg 146 161 set \\\$0-name;
 #X connect 1 0 9 0;
@@ -82,32 +61,27 @@ set or change it with the 'set' message., f 47;
 #X connect 10 0 9 0;
 #X connect 12 0 11 0;
 #X connect 15 0 9 0;
-#X restore 457 289 pd send-name;
-#X obj 206 260 else/midi.learn;
-#A saved;
-#X text 195 456 1) symbol - send name (default none);
-#X text 154 376 set <symbol> - set send name, f 60;
-#X text 232 426 learned controller, f 47;
-#X text 244 330 activate MIDI learn, f 45;
-#X text 120 485 clicking on the object activates MIDI learn (same as
-bang);
-#X text 62 81 [midi.learn] is an abstraction based on [savestate] that
-learns and saves any MIDI input data. Activate it via bang or click
-and send it MIDI data so it learns where it comes from. The information
-gets stored in the owning patch., f 73;
-#X text 62 129 The Learned control/program change are followed by numbers
-that specify 'control/program number' and 'channel' or just a 'channel
-number' for note and bend messages (touch and polytouch are not supported).
-, f 73;
-#X text 232 404 MIDI from learned input, f 47;
-#X obj 209 289 hsl 150 18 0 127 0 0 empty empty empty -2 -8 0 10 #dfdfdf
-#000000 #000000 0 1;
-#X text 94 185 click to learn =>;
-#X text 303 182 Whenever the abstraction learns something new \, you'll
-be prompted to save your patch when you close it \, so it'll remember
-when you reopen ir., f 38;
+#X restore 457 319 pd send-name;
+#X obj 206 290 else/midi.learn;
+#A saved ctlin 19 3;
+#X text 195 503 1) symbol - send name (default none);
+#X text 154 422 set <symbol> - set send name, f 60;
+#X text 232 473 learned controller, f 47;
+#X text 244 360 activate MIDI learn, f 45;
+#X text 120 532 clicking on the object activates MIDI learn (same as bang);
+#X text 62 81 [midi.learn] is an abstraction based on [savestate] that learns and saves any MIDI input data. Activate it via bang or click and send it MIDI data so it learns where it comes from. The information gets stored in the owning patch., f 73;
+#X text 62 129 The Learned control/program change are followed by numbers that specify 'control/program number' and 'channel' or just a 'channel number' for note and bend messages (touch and polytouch are not supported)., f 73;
+#X text 232 451 MIDI from learned input, f 47;
+#X obj 209 319 hsl 150 18 0 127 0 0 empty empty empty -2 -8 0 10 #dfdfdf #000000 #000000 0 1;
+#X text 100 211 click to learn =>;
+#X text 303 212 Whenever the abstraction learns something new \, you'll be prompted to save your patch when you close it \, so it'll remember when you reopen ir., f 38;
+#X msg 206 185 teach ctlin 19 3;
+#X text 313 185 teach a specific MIDI message;
+#X text 232 407 - teach a specific MIDI message, f 47;
+#X text 130 407 teach <anything>;
 #X connect 20 0 33 0;
 #X connect 23 0 33 0;
 #X connect 25 0 33 0;
 #X connect 33 0 42 0;
 #X connect 33 1 24 0;
+#X connect 45 0 33 0;

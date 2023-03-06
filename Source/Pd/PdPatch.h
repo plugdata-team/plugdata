@@ -10,15 +10,13 @@
 #include <array>
 #include <vector>
 
-#include "PdStorage.h"
-
 extern "C" {
 #include "x_libpd_mod_utils.h"
 }
 
 namespace pd {
 
-using Connections = std::vector<std::tuple<int, t_object*, int, t_object*>>;
+using Connections = std::vector<std::tuple<void*, int, t_object*, int, t_object*>>;
 class Instance;
 
 // The Pd patch.
@@ -27,15 +25,15 @@ class Instance;
 //! @see Instance, Object, Gui
 class Patch {
 public:
-    Patch(void* ptr, Instance* instance, File currentFile = File());
+    Patch(void* ptr, Instance* instance, bool ownsPatch, File currentFile = File());
+
+    ~Patch();
 
     // The compare equal operator.
     bool operator==(Patch const& other) const
     {
         return getPointer() == other.getPointer();
     }
-
-    void close();
 
     // Gets the bounds of the patch.
     Rectangle<int> getBounds() const;
@@ -70,26 +68,25 @@ public:
         Move
     };
 
-    void setCurrent(bool lock = false);
+    void setCurrent();
 
     bool isDirty() const;
 
     void savePatch(File const& location);
     void savePatch();
 
-    File getCurrentFile() const
-    {
-        return currentFile;
-    }
-    void setCurrentFile(File newFile)
-    {
-        currentFile = newFile;
-    }
+    File getCurrentFile() const;
+    void setCurrentFile(File newFile);
+
+    bool objectWasDeleted(void* ptr);
+    bool connectionWasDeleted(void* ptr);
 
     bool hasConnection(void* src, int nout, void* sink, int nin);
     bool canConnect(void* src, int nout, void* sink, int nin);
-    bool createConnection(void* src, int nout, void* sink, int nin);
-    void removeConnection(void* src, int nout, void* sink, int nin);
+    void createConnection(void* src, int nout, void* sink, int nin);
+    void* createAndReturnConnection(void* src, int nout, void* sink, int nin);
+    void removeConnection(void* src, int nout, void* sink, int nin, t_symbol* connectionPath);
+    void* setConnctionPath(void* src, int nout, void* sink, int nin, t_symbol* oldConnectionPath, t_symbol* newConnectionPath);
 
     Connections getConnections() const;
 
@@ -101,19 +98,9 @@ public:
     // Gets the objects of the patch.
     std::vector<void*> getObjects();
 
-    String getCanvasContent()
-    {
-        if (!ptr)
-            return {};
-        char* buf;
-        int bufsize;
-        libpd_getcontent(static_cast<t_canvas*>(ptr), &buf, &bufsize);
+    String getCanvasContent();
 
-        auto content = String(buf, static_cast<size_t>(bufsize));
-        return content;
-    }
-
-    int getIndex(void* obj);
+    static void reloadPatch(File changedPatch, t_glist* except);
 
     static t_object* checkObject(void* obj);
 
@@ -121,6 +108,7 @@ public:
     void setTitle(String const& title);
 
     Instance* instance = nullptr;
+    bool closePatchOnDelete;
 
 private:
     File currentFile;
@@ -147,11 +135,14 @@ private:
         { "button", "25 25 bgColour_rgb fgColour_rgb" },
         { "oscope~", "130 130 256 3 128 -1 1 0 0 0 0 fgColour_rgb bgColour_rgb lnColour_rgb 0 empty" },
         { "scope~", "130 130 256 3 128 -1 1 0 0 0 0 fgColour_rgb bgColour_rgb lnColour_rgb 0 empty" },
-        { "function", "200 100 empty empty 0 1 bgColour_rgb lblColour_rgb 0 0 0 0 0 1000 0" }
+        { "function", "200 100 empty empty 0 1 bgColour_rgb lblColour_rgb 0 0 0 0 0 1000 0" },
+        { "messbox", "180 60 bgColour_rgb lblColour_rgb 0 12" }
     };
 
     friend class Instance;
     friend class Gui;
     friend class Object;
+
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(Patch)
 };
 } // namespace pd

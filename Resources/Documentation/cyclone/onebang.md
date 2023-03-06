@@ -1,12 +1,12 @@
 ---
 title: onebang
 
-description: Gate a bang with a bang
+description: gate a bang with a bang
 
 categories:
  - object
 
-pdcategory: General
+pdcategory: cyclone, Data Management
 
 arguments:
 - type: float
@@ -16,12 +16,12 @@ arguments:
 inlets:
   1st:
   - type: anything
-    description: any message is treatd as a bang
+    description: any message is treated as a bang
   - type: bang
     description: a bang to be gated
   2nd:
   - type: anything
-    description: any message is toreatd as a bang
+    description: any message is treated as a bang
   - type: bang
     description: allows a bang in the left inlet through left outlet once
 

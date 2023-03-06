@@ -1,19 +1,17 @@
 ---
 title: bangdiv
 
-description: Bang divider
+description: bang divider
 
 categories:
 - object
 
-pdcategory: General
+pdcategory: ELSE, Triggers and Clocks
 
 arguments:
-  1st:
   - description: divisor value
     type: float
     default: 1
-  2nd:
   - description: start count value
     type: float
     default: 0
@@ -22,12 +20,6 @@ inlets:
   1st:
   - type: bang
     description: bang signal to be divided
-  - type: div <float>
-    description: sets the divisor value
-  - type: start <float>
-    description: sets the start value
-  - type: reset
-    description: resets the counter to the start value
   2nd:
   - type: float
     description: sets the divisor value (minimum=1)
@@ -35,10 +27,18 @@ inlets:
 outlets:
   1st:
   - type: bang
-    description: 1st bang count
-  1st:
+    description: first bang
+  2nd:
   - type: bang
     description: subsequent bangs until divisor value is hit
+
+methods:
+  - type: div <float>
+    description: sets the divisor value
+  - type: start <float>
+    description: sets the start value
+  - type: reset
+    description: resets the counter to the start value
 
 draft: false
 ---

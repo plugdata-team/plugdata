@@ -6,13 +6,18 @@
 
 #pragma once
 
-struct WelcomePanel : public Component {
+#include "Utility/GlobalMouseListener.h"
+#include "LookAndFeel.h"
+#include "Canvas.h"
 
-    struct WelcomeButton : public Component {
+class WelcomePanel : public Component {
+
+    class WelcomeButton : public Component {
         String iconText;
         String topText;
         String bottomText;
 
+    public:
         std::function<void(void)> onClick = []() {};
 
         WelcomeButton(String icon, String mainText, String subText)
@@ -26,23 +31,16 @@ struct WelcomePanel : public Component {
 
         void paint(Graphics& g)
         {
-            auto* lnf = dynamic_cast<PlugDataLook*>(&getLookAndFeel());
-
+            auto colour = findColour(PlugDataColour::panelTextColourId);
             if (isMouseOver()) {
                 g.setColour(findColour(PlugDataColour::panelActiveBackgroundColourId));
                 g.fillRoundedRectangle(1, 1, getWidth() - 2, getHeight() - 2, 6.0f);
+                colour = findColour(PlugDataColour::panelActiveTextColourId);
             }
 
-            g.setColour(findColour(PlugDataColour::canvasTextColourId));
-
-            g.setFont(lnf->iconFont.withHeight(24));
-            g.drawText(iconText, 20, 5, 40, 40, Justification::centredLeft);
-
-            g.setFont(lnf->defaultFont.withHeight(16));
-            g.drawText(topText, 60, 7, getWidth() - 60, 20, Justification::centredLeft);
-
-            g.setFont(lnf->thinFont.withHeight(14));
-            g.drawText(bottomText, 60, 25, getWidth() - 60, 16, Justification::centredLeft);
+            PlugDataLook::drawIcon(g, iconText, 20, 5, 40, colour, 24, false);
+            PlugDataLook::drawText(g, topText, 60, 7, getWidth() - 60, 20, colour, 16);
+            PlugDataLook::drawStyledText(g, bottomText, 60, 25, getWidth() - 60, 16, colour, Thin, 14);
         }
 
         void mouseUp(MouseEvent const& e)
@@ -61,10 +59,11 @@ struct WelcomePanel : public Component {
         }
     };
 
+public:
     WelcomePanel()
     {
-        newButton = std::make_unique<WelcomeButton>(Icons::New, "New Patch", "Create a new empty patch");
-        openButton = std::make_unique<WelcomeButton>(Icons::Open, "Open Patch...", "Open a saved patch");
+        newButton = std::make_unique<WelcomeButton>(Icons::New, "New patch", "Create a new empty patch");
+        openButton = std::make_unique<WelcomeButton>(Icons::Open, "Open patch...", "Open a saved patch");
 
         addAndMakeVisible(newButton.get());
         addAndMakeVisible(openButton.get());
@@ -80,36 +79,38 @@ struct WelcomePanel : public Component {
     {
         auto styles = Font(32).getAvailableStyles();
 
-        auto* lnf = dynamic_cast<PlugDataLook*>(&getLookAndFeel());
+        g.fillAll(findColour(PlugDataColour::panelBackgroundColourId));
 
-        g.fillAll(findColour(PlugDataColour::canvasBackgroundColourId));
+        PlugDataLook::drawStyledText(g, "No Patch Open", 0, getHeight() / 2 - 150, getWidth(), 40, findColour(PlugDataColour::panelTextColourId), Bold, 32, Justification::centred);
 
-        g.setColour(findColour(PlugDataColour::canvasTextColourId));
-        g.setFont(lnf->boldFont.withHeight(32));
-        g.drawText("No Patch Open", 0, getHeight() / 2 - 150, getWidth(), 40, Justification::centred);
-
-        g.setFont(lnf->thinFont.withHeight(23));
-        g.drawText("Open a file to begin patching", 0, getHeight() / 2 - 120, getWidth(), 40, Justification::centred);
-
-        g.setColour(findColour(PlugDataColour::outlineColourId));
+        PlugDataLook::drawStyledText(g, "Open a file to begin patching", 0, getHeight() / 2 - 120, getWidth(), 40, findColour(PlugDataColour::panelTextColourId), Thin, 23, Justification::centred);
     }
 
     std::unique_ptr<WelcomeButton> newButton;
     std::unique_ptr<WelcomeButton> openButton;
 };
 
-struct TabComponent : public TabbedComponent {
+class Canvas;
+class TabComponent : public TabbedComponent {
+
+    TextButton newButton = TextButton(Icons::Add);
+    WelcomePanel welcomePanel;
+
+public:
+    std::function<void()> onTabMoved = []() {};
+    std::function<void()> onFocusGrab = []() {};
     std::function<void(int)> onTabChange = [](int) {};
     std::function<void()> newTab = []() {};
     std::function<void()> openProject = []() {};
-
-    TextButton newButton = TextButton(Icons::Add);
+    std::function<void(int tabIndex, String const& tabName)> rightClick = [](int tabIndex, String const& tabName) {};
 
     TabComponent()
         : TabbedComponent(TabbedButtonBar::TabsAtTop)
     {
         addAndMakeVisible(newButton);
-        newButton.setName("tabbar:newbutton");
+        newButton.getProperties().set("FontScale", 0.4f);
+        newButton.getProperties().set("Style", "Icon");
+        newButton.setTooltip("New patch");
         newButton.onClick = [this]() {
             newTab();
         };
@@ -126,6 +127,7 @@ struct TabComponent : public TabbedComponent {
 
         setVisible(false);
         setTabBarDepth(0);
+        tabs.get()->addMouseListener(this, true);
     }
 
     void currentTabChanged(int newCurrentTabIndex, String const& newCurrentTabName) override
@@ -137,10 +139,9 @@ struct TabComponent : public TabbedComponent {
         } else {
             getTabbedButtonBar().setVisible(true);
             welcomePanel.setVisible(false);
-            setTabBarDepth(28);
+            setTabBarDepth(26);
+            onTabChange(newCurrentTabIndex);
         }
-
-        onTabChange(newCurrentTabIndex);
     }
 
     void resized() override
@@ -156,9 +157,19 @@ struct TabComponent : public TabbedComponent {
 
         for (int c = 0; c < getNumTabs(); c++) {
             if (auto* comp = getTabContentComponent(c)) {
-                comp->setBounds(content);
+                if (auto* positioner = comp->getPositioner()) {
+                    positioner->applyNewBounds(content);
+                } else {
+                    comp->setBounds(content);
+                }
             }
         }
+    }
+
+    void paint(Graphics& g) override
+    {
+        g.setColour(findColour(PlugDataColour::tabBackgroundColourId));
+        g.fillRect(getLocalBounds().removeFromTop(26));
     }
 
     void paintOverChildren(Graphics& g) override
@@ -169,7 +180,77 @@ struct TabComponent : public TabbedComponent {
         g.drawLine(Line<float>(getTabBarDepth() - 0.5f, 0, getTabBarDepth() - 0.5f, getTabBarDepth()), 1.0f);
 
         g.drawLine(0, 0, getWidth(), 0);
+        g.drawLine(0, 0, 0, getBottom());
     }
 
-    WelcomePanel welcomePanel;
+    void popupMenuClickOnTab(int tabIndex, String const& tabName) override
+    {
+        rightClick(tabIndex, tabName);
+    }
+
+
+    int getIndexOfCanvas(Canvas* cnv)
+    {
+        if (!cnv->viewport)
+            return -1;
+
+        for (int i = 0; i < getNumTabs(); i++) {
+            if (getTabContentComponent(i) == cnv->viewport) {
+                return i;
+            }
+        }
+
+        return -1;
+    }
+
+    Canvas* getCanvas(int idx)
+    {
+        auto* viewport = dynamic_cast<Viewport*>(getTabContentComponent(idx));
+
+        if (!viewport)
+            return nullptr;
+
+        return reinterpret_cast<Canvas*>(viewport->getViewedComponent());
+    }
+
+    Canvas* getCurrentCanvas()
+    {
+        auto* viewport = dynamic_cast<Viewport*>(getCurrentContentComponent());
+
+        if (!viewport)
+            return nullptr;
+
+        return reinterpret_cast<Canvas*>(viewport->getViewedComponent());
+    }
+    
+    void mouseDown(MouseEvent const& e) override
+    {
+        tabWidth = tabs->getWidth() / std::max(1, getNumTabs());
+        clickedTabIndex = getCurrentTabIndex();
+
+        onFocusGrab();
+    }
+    
+    void mouseDrag(MouseEvent const& e) override
+    {
+        // Don't respond to clicks on close button
+        if(dynamic_cast<TextButton*>(e.originalComponent)) return;
+        
+        // Drag tabs to move their index
+        int const dragPosition = e.getEventRelativeTo(tabs.get()).x;
+        int const newTabIndex = (dragPosition < clickedTabIndex * tabWidth) ? clickedTabIndex - 1
+            : (dragPosition >= (clickedTabIndex + 1) * tabWidth)            ? clickedTabIndex + 1
+                                                                            : clickedTabIndex;
+        int const dragDistance = std::abs(e.getDistanceFromDragStartX());
+        
+        if (newTabIndex != clickedTabIndex && newTabIndex >= 0 && newTabIndex < getNumTabs() && dragDistance > 5) {
+            moveTab(clickedTabIndex, newTabIndex, true);
+            clickedTabIndex = newTabIndex;
+            onTabMoved();
+        }
+    }
+
+private:
+    int clickedTabIndex;
+    int tabWidth;
 };

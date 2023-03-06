@@ -1,19 +1,17 @@
 ---
 title: noisegate~
 
-description: Noise gate
+description: noise gate
 
 categories:
 - object
 
-pdcategory:
+pdcategory: ELSE, Effects
 
 arguments:
-  1st:
   - description: threshold in dBFS
     type: float
     default: -100
-  2nd:
   - description: attack/release time in ms
     type: float
     default: 10

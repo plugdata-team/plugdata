@@ -1,12 +1,12 @@
 ---
 title: router
 
-description: Route messages
+description: route messages
 
 categories:
  - object
 
-pdcategory: Message management
+pdcategory: ELSE, Data Management
 
 arguments:
 - type: float
@@ -22,7 +22,7 @@ inlets:
     description: message to send through a specified outlet
   2nd:
   - type: float
-    description: - sets outlet number (0 is none)
+    description: sets outlet number (-1 is none)
 
 outlets:
  nth:

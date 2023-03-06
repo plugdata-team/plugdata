@@ -1,15 +1,15 @@
 ---
 title: bucket
-description: Pass numbers from outlet to outlet
+description: pass numbers from outlet to outlet
 categories:
  - object
-pdcategory: General
+pdcategory: cyclone, Data Management
 arguments:
 - type: float
   description: sets number of outlets
   default: 1
 - type: float
-  description: output flag: <0> holds the input and passes it on the next round, <1> outputs the input immediately
+  description: <0> holds the input and passes it on the next round, <1> outputs the inputs immediately
   default: 0
 inlets:
   1st:
@@ -36,7 +36,8 @@ methods:
   - type: roll
     description: shifts stores values in loop (according to direction)
 
+draft: false
 ---
 
-As [bucket] is input with floats, it outputs them shiftting from outlet to outlet in a rotational pattern (or "passing the bucket" as in a ucket brigade).
+As [bucket] is input with floats, it outputs them shifting from outlet to outlet in a rotational pattern (or "passing the bucket" as in a bucket brigade).
 

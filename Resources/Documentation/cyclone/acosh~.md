@@ -1,9 +1,9 @@
 ---
 title: acosh~
-description: Signal hyperbolic arc-cosine function
+description: signal hyperbolic arc-cosine function
 categories:
  - object
-pdcategory: General
+pdcategory: cyclone, Signal Math
 arguments:
 inlets:
   1st:
@@ -14,6 +14,7 @@ outlets:
   - type: signal
     description: the hyperbolic arc-cosine of the input
 
+draft: false
 ---
 
 Use [acosh~] to output the hyperbolic arc-cosine of each input sample (probably only useful for mathematical calculations).

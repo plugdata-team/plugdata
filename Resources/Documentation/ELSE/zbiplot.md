@@ -1,14 +1,14 @@
 ---
 title: zbiplot
 
-description: Z-plane Biquad plot
+description: z-plane biquad plot
 
 categories:
 - object
 
-pdcategory: GUI
+pdcategory: ELSE, UI, Filters
 
-arguments: (none)
+arguments:
 
 inlets:
   1st:

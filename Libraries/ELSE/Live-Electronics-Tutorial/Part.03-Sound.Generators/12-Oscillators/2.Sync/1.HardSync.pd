@@ -2,72 +2,51 @@
 #X declare -path else;
 #X obj 198 325 tempo 60 50 -on;
 #X obj 658 291 out~;
-#X obj 661 170 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
--228856 -1 -1 120 256;
+#X obj 661 170 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10 #dcdcdc #000000 #000000 0 256;
 #X obj 646 364 graph~ 500 20;
-#X obj 598 230 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
--228856 -1 -1 192 256;
+#X obj 598 230 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10 #dcdcdc #000000 #000000 0 256;
 #X obj 598 204 * 1.6;
-#X text 29 20 The "hard sync" technique synchronizes two oscillators
-\, where one (called slave) is forced to reset at the period of another
-(called master). The result is that the slave oscillator generates
-a new waveform with the same period/frequency than the master's.,
-f 62;
-#X text 29 242 The right inlet of the native objects [osc~] \, [phasor~]
-and [tabosc4~] do reset the oscillator \, but this is a control inlet
-\, so it's time resolution is not enough for a proper hard sync implementation.
-An audio rate inlet is needed for that!, f 62;
+#X text 29 20 The "hard sync" technique synchronizes two oscillators \, where one (called slave) is forced to reset at the period of another (called master). The result is that the slave oscillator generates a new waveform with the same period/frequency than the master's., f 62;
+#X text 29 242 The right inlet of the native objects [osc~] \, [phasor~] and [tabosc4~] do reset the oscillator \, but this is a control inlet \, so it's time resolution is not enough for a proper hard sync implementation. An audio rate inlet is needed for that!, f 62;
 #X msg 198 374 0;
-#X obj 102 425 vsl 16 70 -1 1 0 0 empty empty empty 0 -9 0 10 -228856
--1 -1 6662 1;
+#X obj 102 425 vsl 16 70 -1 1 0 0 empty empty empty 0 -9 0 10 #dcdcdc #000000 #000000 0 1;
 #X obj 102 357 osc~ 0.25;
-#X obj 198 352 bng 15 250 50 0 empty empty empty 17 7 0 10 -228856
--1 -1;
+#X obj 198 352 bng 15 250 50 0 empty empty empty 17 7 0 10 #dcdcdc #000000 #000000;
 #X text 228 376 <= reset to the beginning of the cycle, f 16;
 #X obj 661 141 initmess 120;
 #X obj 661 228 impulse~;
 #X text 723 169 master;
 #X text 558 228 slave;
 #X obj 645 257 sine~;
-#X text 494 61 Now \, every oscillator from the ELSE library also has
-an inlet that can reset the phase with a control input \, like these
-native objects in Pd \, but they also allow you to reset the oscillator
-with audio signals. The way to trigger them is with impulses.;
-#X text 29 190 You can set a fixed interval relationship between the
-master and the slave as the patch to the right. But before trying it
-\, let's see how native Pd objects work., f 62;
-#N canvas 897 162 343 225 other 0;
-#X obj 64 104 sine~;
-#X obj 199 104 cosine~;
-#X obj 122 129 impulse~;
-#X obj 188 129 impulse2~;
-#X obj 153 153 parabolic~;
-#X obj 144 177 pulse~;
-#X obj 112 104 saw~;
-#X obj 154 104 saw2~;
-#X obj 63 129 square~;
-#X obj 63 152 tri~;
-#X obj 105 152 vsaw~;
-#X obj 63 177 wavetable~;
-#X text 29 15 These sare all the oscillators previously presented in
-the ELSE library. All of which can be synced with impulses. We'll also
-see band limited versions of them in the next section., f 41;
+#X text 494 61 Now \, every oscillator from the ELSE library also has an inlet that can reset the phase with a control input \, like these native objects in Pd \, but they also allow you to reset the oscillator with audio signals. The way to trigger them is with impulses.;
+#X text 29 190 You can set a fixed interval relationship between the master and the slave as the patch to the right. But before trying it \, let's see how native Pd objects work., f 62;
+#N canvas 897 162 343 252 other 0;
+#X obj 92 117 sine~;
+#X obj 227 117 cosine~;
+#X obj 150 142 impulse~;
+#X obj 216 142 impulse2~;
+#X obj 181 166 parabolic~;
+#X obj 172 190 pulse~;
+#X obj 140 117 saw~;
+#X obj 182 117 saw2~;
+#X obj 91 142 square~;
+#X obj 91 165 tri~;
+#X obj 133 165 vsaw~;
+#X obj 91 190 wavetable~;
+#X text 30 15 These sare all the oscillators previously presented in the ELSE library. All of which can be synced with impulses. We'll also see band limited versions of them in the next section that also have hard sync., f 41;
 #X restore 797 209 pd other \; oscillators;
 #N canvas 655 361 544 422 vanilla 0;
 #X obj 244 153 *~;
-#X obj 317 78 nbx 5 14 -1e+37 1e+37 0 0 empty \$0-slave empty 0 -8
-0 10 -262144 -1 -1 204 256;
+#X obj 317 78 nbx 5 14 -1e+37 1e+37 0 0 empty \$0-slave empty 0 -8 0 10 #fcfcfc #000000 #000000 0 256;
 #X obj 244 185 wrap~;
 #X obj 244 121 phasor~;
-#X obj 244 66 nbx 5 14 -1e+37 1e+37 0 0 empty \$0-master empty 0 -8
-0 10 -262144 -1 -1 109 256;
+#X obj 244 66 nbx 5 14 -1e+37 1e+37 0 0 empty \$0-master empty 0 -8 0 10 #fcfcfc #000000 #000000 0 256;
 #X obj 317 146 /~;
 #X obj 112 299 out~;
 #X text 244 45 master;
 #X text 317 54 slave;
 #X obj 112 263 cos~;
-#X text 48 84 multiply the phase by a ratio of master/slave frequencies
-\, then wrap to have a synced phase., f 23;
+#X text 48 84 multiply the phase by a ratio of master/slave frequencies \, then wrap to have a synced phase., f 23;
 #X obj 393 113 initmess \; \$0-master 100 \; \$0-slave 170;
 #X obj 244 241 graph~ 441 10 -1 1 200 140;
 #X connect 0 0 2 0;
@@ -83,12 +62,7 @@ see band limited versions of them in the next section., f 41;
 #X text 420 402 Here's a vanilla trick to force hard sync, f 22;
 #X obj 102 389 s2f~;
 #X obj 728 25 declare -path else;
-#X text 29 98 If the slave's frequency is lower than the master's \,
-then it is forced to restart the cycle before it finishes it. Whereas
-if the slave's frequency is higher \, then it repeats at least a portion
-of the period before resetting - but if its frequency is high enough
-\, it can generate multiple periods before resetting \, and this adds
-lots of shaprness to the sound., f 62;
+#X text 29 98 If the slave's frequency is lower than the master's \, then it is forced to restart the cycle before it finishes it. Whereas if the slave's frequency is higher \, then it repeats at least a portion of the period before resetting - but if its frequency is high enough \, it can generate multiple periods before resetting \, and this adds lots of shaprness to the sound., f 62;
 #X connect 0 0 11 0;
 #X connect 2 0 5 0;
 #X connect 2 0 14 0;

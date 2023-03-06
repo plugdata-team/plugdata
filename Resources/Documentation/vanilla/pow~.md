@@ -3,7 +3,7 @@ title: pow~
 description: power function for signals
 categories:
 - object
-pdcategory: Audio Math
+pdcategory: vanilla, Signal Math
 last_update: '0.42'
 see_also:
 - pow
@@ -15,17 +15,17 @@ see_also:
 inlets:
   1st:
   - type: signal
-    description: input value to power function.
+    description: input value to power function
   2nd:
   - type: signal
-    description: set numeric power to raise to.
+    description: set numeric power to raise to
 outlets:
   1st:
   - type: signal
-    description: output of power function.
+    description: output of power function
 arguments:
   - type: float 
-    description: initial numeric power.
+    description: initial numeric power
 draft: false
 ---
 pow~ raises a signal to a numeric power (given by another signal or argument/float). The inputs may be positive, zero, or negative.

@@ -9,26 +9,27 @@ see_also:
 - getsize
 - setsize
 - plot
-pdcategory: Accessing Data
+pdcategory: vanilla, Arrays and Tables
 last_update: '0.47'
 inlets:
   1st:
   - type: float
-    description: set element index and output pointer.
-  - type: set <symbol, symbol>
-    description: set template and field name.
+    description: set element index and output pointer
   2nd:
   - type: pointer
-    description: pointer to an array.
+    description: pointer to an array
 outlets:
   1st:
   - type: pointer 
-    description: pointer to element in an array.
+    description: pointer to element in an array
 arguments:
 - type: symbol
-  description: template name.
+  description: template name
 - type: symbol
-  description: field name.
+  description: field name
+methods:
+  - type: set <symbol, symbol>
+    description: set template and field name
 draft: false
 ---
 "element" takes a pointer at right and an index number at left. It looks up a field from the pointer, which should be an array, and outputs the element of the array specified by the index number. There are no pointers to arrays themselves, just to individual elements. The template and field name are specified as creation arguments.

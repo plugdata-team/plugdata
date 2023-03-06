@@ -1,15 +1,14 @@
 ---
 title: coeff2pz
 
-description: Biquad coefficients to Poles/Zeros conversion
+description: biquad coefficients to poles/zeros conversion
 
 categories:
 - object
 
-pdcategory: Math (Conversion)
+pdcategory: ELSE, Filters, Data Math, Converters
 
-arguments: none
-
+arguments:
 inlets:
   1st:
   - type: list
@@ -22,7 +21,7 @@ outlets:
   2nd:
   - type: list
     description: coordinates of 2 Zeros
-  1st:
+  3rd:
   - type: float
     description: overall gain of the filter response
 

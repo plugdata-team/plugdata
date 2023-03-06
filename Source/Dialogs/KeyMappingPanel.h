@@ -5,9 +5,8 @@
 class KeyMappingComponent : public Component
     , public ChangeListener {
 public:
-    KeyMappingComponent(KeyPressMappingSet& mappingSet, ValueTree settingsValueTree)
+    KeyMappingComponent(KeyPressMappingSet& mappingSet)
         : mappings(mappingSet)
-        , settingsTree(settingsValueTree)
         , resetPdButton("Reset to Pd defaults")
         , resetMaxButton("Reset to Max defaults")
     {
@@ -50,14 +49,10 @@ public:
 
     void changeListenerCallback(ChangeBroadcaster* source) override
     {
+        auto keyMapTree = SettingsFile::getInstance()->getKeyMapTree();
+
         auto newTree = mappings.createXml(true)->toString();
-        if (settingsTree.getChildWithName("Keymap").isValid()) {
-            settingsTree.getChildWithName("Keymap").setProperty("keyxml", newTree, nullptr);
-        } else {
-            auto keyMap = ValueTree("Keymap");
-            keyMap.setProperty("keyxml", newTree, nullptr);
-            settingsTree.appendChild(keyMap, nullptr);
-        }
+        keyMapTree.setProperty("keyxml", newTree, nullptr);
     }
 
     static void resetKeyMappingsToPdCallback(int result, KeyMappingComponent* owner)
@@ -77,18 +72,18 @@ public:
 
         mappings.resetToDefaultMappings();
 
-        for (int i = CommandIDs::NewObject; i < mappings.getCommandManager().getNumCommands(); i++) {
+        for (int i = ObjectIDs::NewObject; i < ObjectIDs::NumObjects; i++) {
             mappings.clearAllKeyPresses(static_cast<CommandIDs>(i));
         }
 
-        mappings.addKeyPress(CommandIDs::NewObject, KeyPress(78, ModifierKeys::noModifiers, 'n'));
-        mappings.addKeyPress(CommandIDs::NewComment, KeyPress(67, ModifierKeys::noModifiers, 'c'));
-        mappings.addKeyPress(CommandIDs::NewBang, KeyPress(66, ModifierKeys::noModifiers, 'b'));
-        mappings.addKeyPress(CommandIDs::NewMessage, KeyPress(77, ModifierKeys::noModifiers, 'm'));
-        mappings.addKeyPress(CommandIDs::NewToggle, KeyPress(84, ModifierKeys::noModifiers, 't'));
-        mappings.addKeyPress(CommandIDs::NewNumbox, KeyPress(73, ModifierKeys::noModifiers, 'i'));
-        mappings.addKeyPress(CommandIDs::NewFloatAtom, KeyPress(70, ModifierKeys::noModifiers, 'f'));
-        mappings.addKeyPress(CommandIDs::NewVerticalSlider, KeyPress(83, ModifierKeys::noModifiers, 's'));
+        mappings.addKeyPress(ObjectIDs::NewObject, KeyPress(78, ModifierKeys::noModifiers, 'n'));
+        mappings.addKeyPress(ObjectIDs::NewComment, KeyPress(67, ModifierKeys::noModifiers, 'c'));
+        mappings.addKeyPress(ObjectIDs::NewBang, KeyPress(66, ModifierKeys::noModifiers, 'b'));
+        mappings.addKeyPress(ObjectIDs::NewMessage, KeyPress(77, ModifierKeys::noModifiers, 'm'));
+        mappings.addKeyPress(ObjectIDs::NewToggle, KeyPress(84, ModifierKeys::noModifiers, 't'));
+        mappings.addKeyPress(ObjectIDs::NewNumbox, KeyPress(73, ModifierKeys::noModifiers, 'i'));
+        mappings.addKeyPress(ObjectIDs::NewFloatAtom, KeyPress(70, ModifierKeys::noModifiers, 'f'));
+        mappings.addKeyPress(ObjectIDs::NewVerticalSlider, KeyPress(83, ModifierKeys::noModifiers, 's'));
 
         mappings.sendChangeMessage();
     }
@@ -135,7 +130,6 @@ public:
     }
 
 private:
-    //==============================================================================
     KeyPressMappingSet& mappings;
     TreeView tree;
     TextButton resetPdButton;
@@ -149,7 +143,6 @@ private:
     std::unique_ptr<TopLevelItem> treeItem;
 
     std::unique_ptr<Dialog> confirmationDialog;
-    ValueTree settingsTree;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(KeyMappingComponent)
 
@@ -212,7 +205,6 @@ private:
                 setSize(jlimit(h * 4, h * 8, 6 + Font((float)h * 0.6f).getStringWidth(getName())), h);
         }
 
-        //==============================================================================
         class KeyEntryWindow : public AlertWindow {
         public:
             KeyEntryWindow(KeyMappingComponent& kec)
@@ -321,7 +313,6 @@ private:
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(ChangeKeyButton)
     };
 
-    //==============================================================================
     class ItemComponent : public Component {
     public:
         ItemComponent(KeyMappingComponent& kec, CommandID command)
@@ -349,12 +340,9 @@ private:
 
         void paint(Graphics& g) override
         {
-            g.setFont((float)getHeight() * 0.6f);
-            g.setColour(owner.findColour(KeyMappingEditorComponent::textColourId));
-
-            g.drawFittedText(owner.getCommandManager().getNameOfCommand(commandID),
+            PlugDataLook::drawFittedText(g, owner.getCommandManager().getNameOfCommand(commandID),
                 6, 0, jmax(40, getChildComponent(0)->getX() - 5), getHeight(),
-                Justification::centredLeft, true);
+                owner.findColour(KeyMappingEditorComponent::textColourId), (float)getHeight() * 0.6f);
         }
 
         void resized() override
@@ -385,7 +373,6 @@ private:
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(ItemComponent)
     };
 
-    //==============================================================================
     class MappingItem : public TreeViewItem {
     public:
         MappingItem(KeyMappingComponent& kec, CommandID command)
@@ -407,7 +394,6 @@ private:
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(MappingItem)
     };
 
-    //==============================================================================
     class CategoryItem : public TreeViewItem {
     public:
         CategoryItem(KeyMappingComponent& kec, String const& name)
@@ -423,10 +409,7 @@ private:
 
         void paintItem(Graphics& g, int width, int height) override
         {
-            g.setFont(Font((float)height * 0.6f, Font::bold));
-            g.setColour(owner.findColour(KeyMappingEditorComponent::textColourId));
-
-            g.drawText(categoryName, 6, 0, width - 2, height, Justification::centredLeft, true);
+            PlugDataLook::drawStyledText(g, categoryName, 6, 0, width - 2, height, owner.findColour(KeyMappingEditorComponent::textColourId), Bold, (float)height * 0.6f);
         }
 
         void paintOpenCloseButton(Graphics& g, Rectangle<float> const& area, Colour backgroundColour, bool isMouseOver) override
@@ -452,7 +435,6 @@ private:
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(CategoryItem)
     };
 
-    //==============================================================================
     class TopLevelItem : public TreeViewItem
         , private ChangeListener {
     public:

@@ -1,19 +1,19 @@
 ---
 title: mtx.ctl
 
-description: Matrix control GUI
+description: matrix control GUI
 
 categories:
 - object
 
-pdcategory: GUI
+pdcategory: ELSE, UI, Mixing and Routing
 
-arguments: (none)
+arguments:
 
 inlets:
   1st:
   - type: list
-    description: sets and ouputs column, row and status
+    description: sets and outputs column, row and status
 
 outlets:
   1st:
@@ -33,7 +33,7 @@ methods:
   - type: set <list>
     description: sets column, row and status (no output)
   - type: get <list>
-    description: ouputs value of row/column
+    description: outputs value of row/column
   - type: clear
     description: clears active cells
   - type: flush
@@ -49,7 +49,7 @@ methods:
   - type: size <float>
     description: sets cell size in pixels
   - type: embed <float>
-    description: non zero save internal contents with the object
+    description: non-0 save internal contents with the object
 
 draft: false
 ---

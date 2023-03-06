@@ -1,73 +1,44 @@
 #N canvas 426 39 560 455 10;
-#X obj 3 265 cnv 3 550 3 empty empty inlets 8 12 0 13 -228856 -1 0
-;
-#X obj 3 339 cnv 3 550 3 empty empty outlets 8 12 0 13 -228856 -1 0
-;
-#X obj 3 375 cnv 3 550 3 empty empty arguments 8 12 0 13 -228856 -1
-0;
-#X obj 122 348 cnv 17 3 17 empty empty 0 5 9 0 16 -228856 -162280 0
-;
-#X obj 123 273 cnv 17 3 17 empty empty 0 5 9 0 16 -228856 -162280 0
-;
-#X obj 3 425 cnv 15 552 21 empty empty empty 20 12 0 14 -233017 -33289
-0;
+#X obj 3 265 cnv 3 550 3 empty empty inlets 8 12 0 13 #dcdcdc #000000 0;
+#X obj 3 339 cnv 3 550 3 empty empty outlets 8 12 0 13 #dcdcdc #000000 0;
+#X obj 3 375 cnv 3 550 3 empty empty arguments 8 12 0 13 #dcdcdc #000000 0;
+#X obj 122 348 cnv 17 3 17 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0;
+#X obj 123 273 cnv 17 3 17 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0;
+#X obj 3 425 cnv 15 552 21 empty empty empty 20 12 0 14 #e0e0e0 #202020 0;
 #X text 165 274 float/signal -;
 #X text 269 274 frequency in hz;
-#X obj 122 295 cnv 17 3 17 empty empty 1 5 9 0 16 -228856 -162280 0
-;
+#X obj 122 295 cnv 17 3 17 empty empty 1 5 9 0 16 #dcdcdc #9c9c9c 0;
 #X text 165 316 float/signal -;
-#X obj 122 315 cnv 17 3 17 empty empty 2 5 9 0 16 -228856 -162280 0
-;
+#X obj 122 315 cnv 17 3 17 empty empty 2 5 9 0 16 #dcdcdc #9c9c9c 0;
 #X text 206 348 signal -;
 #X text 184 384 1) float;
 #X text 270 316 phase offset (modulation input);
 #X text 270 296 phase sync (ressets internal phase);
-#X obj 218 141 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
--228856 -1 -1 0 256;
+#X obj 218 141 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10 #dcdcdc #000000 #000000 0 256;
 #X text 278 140 <= hz;
 #N canvas 403 51 858 494 sync 0;
 #X msg 49 134 0;
-#X obj 60 249 vsl 15 100 -1 1 0 0 empty empty empty 0 -9 0 10 -228856
--1 -1 0 1;
+#X obj 60 249 vsl 15 100 -1 1 0 0 empty empty empty 0 -9 0 10 #dcdcdc #000000 #000000 0 1;
 #X obj 60 211 else/sig2float~;
 #X msg 83 134 0.25;
 #X msg 160 133 0.75;
 #X msg 203 133 1;
 #X msg 125 133 0.5;
-#X obj 287 249 vsl 15 100 -1 1 0 0 empty empty empty 0 -9 0 10 -228856
--1 -1 0 1;
+#X obj 287 249 vsl 15 100 -1 1 0 0 empty empty empty 0 -9 0 10 #dcdcdc #000000 #000000 0 1;
 #X obj 287 217 else/sig2float~;
 #X text 237 132 <= reset =>;
-#X text 34 15 The second inlet resets the phase ands behaves in the
-same way for control data as objects like [osc~] and [phasor~] in Pd.
-A number input resets the oscillator and restarts the cycle with an
-initial phase that corresponds to the input number \, so the internal
-phase is synced to the given value. The phase values are from 0 to
-1 and values beyond that are wrapped within this range.;
-#X text 518 25 Syncing the phase with control messages is useful for
-LFOs and control with MIDI. A sync with audio is useful for the "hard
-sync" technique \, where an oscillator is synced according to the frequency
-of a master frequency., f 44;
+#X text 34 15 The second inlet resets the phase ands behaves in the same way for control data as objects like [osc~] and [phasor~] in Pd. A number input resets the oscillator and restarts the cycle with an initial phase that corresponds to the input number \, so the internal phase is synced to the given value. The phase values are from 0 to 1 and values beyond that are wrapped within this range.;
+#X text 518 25 Syncing the phase with control messages is useful for LFOs and control with MIDI. A sync with audio is useful for the "hard sync" technique \, where an oscillator is synced according to the frequency of a master frequency., f 44;
 #X obj 557 252 else/out~;
-#X obj 594 149 nbx 5 14 110 200 0 0 empty empty empty 0 -8 0 10 -228856
--1 -1 110 256;
+#X obj 594 149 nbx 5 14 110 200 0 0 empty empty empty 0 -8 0 10 #dcdcdc #000000 #000000 0 256;
 #X text 695 175 Master oscillator;
 #X text 666 210 Slave oscillator;
 #X obj 594 175 else/imp~ 110;
 #X text 509 349 NOTE:;
-#X text 525 382 The "phase sync" inlet is quite different from the
-"phase offset" inlet. This means that the are completely independent.
-, f 43;
-#X text 36 370 Additionally \, you can reset the oscillator with an
-impulse signal. Inputs that are > 0 and <= 1 reset the phase Pdexpects
-an impulse signal for syncing. The impulse values need to be > 0 and
-<= 1 (otherwise ignored). Because phase is cyclical \, the value of
-1 represents the "phase 0" of the cycle \, where the impulse occurs.
-Send it impulses above and check the result. Use a multiplier to reset
-to another phase value.;
+#X text 525 382 The "phase sync" inlet is quite different from the "phase offset" inlet. This means that the are completely independent., f 43;
+#X text 36 370 Additionally \, you can reset the oscillator with an impulse signal. Inputs that are > 0 and <= 1 reset the phase Pdexpects an impulse signal for syncing. The impulse values need to be > 0 and <= 1 (otherwise ignored). Because phase is cyclical \, the value of 1 represents the "phase 0" of the cycle \, where the impulse occurs. Send it impulses above and check the result. Use a multiplier to reset to another phase value.;
 #N canvas 207 34 366 264 (subpatch) 0;
-#X obj 51 101 tgl 42 0 \$0-tgl-s \$0-tgl-r empty 1 8 1 9 -228856 -128992
--262144 0 1;
+#X obj 51 101 tgl 42 0 \$0-tgl-s \$0-tgl-r empty 1 8 1 9 #dcdcdc #7c7c7c #fcfcfc 0 1;
 #X obj 215 68 route dsp;
 #X obj 215 37 receive pd;
 #N canvas 977 77 379 291 set_color 0;
@@ -136,8 +107,7 @@ to another phase value.;
 #X restore 215 165 pd set_color;
 #X obj 135 122 r \$0-tgl-s;
 #N canvas 121 482 450 300 (subpatch) 0;
-#X obj 101 101 cnv 25 40 25 empty \$0-cnv DSP 3 13 0 20 -228856 -128992
-0;
+#X obj 101 101 cnv 25 40 25 empty \$0-cnv DSP 3 13 0 20 #dcdcdc #7c7c7c 0;
 #X coords 0 -1 1 1 42 27 1 100 100;
 #X restore 51 144 pd;
 #X obj 226 139 s \$0-tgl-r;
@@ -149,8 +119,7 @@ to another phase value.;
 #X obj 136 86 snapshot~;
 #X obj 91 52 del 5;
 #X obj 136 151 outlet;
-#X obj 74 103 tgl 15 0 empty empty empty 17 7 0 10 -262144 -1 -1 0
-1;
+#X obj 74 103 tgl 15 0 empty empty empty 17 7 0 10 #fcfcfc #000000 #000000 0 1;
 #X obj 74 126 switch~;
 #X connect 0 0 2 0;
 #X connect 1 0 3 0;
@@ -199,23 +168,16 @@ to another phase value.;
 #X obj 576 184 else/out~;
 #X text 670 131 Phase Modulation:;
 #X obj 651 103 osc~ 50.01;
-#X text 28 31 The second argument sets an initial phase (or "phase
-offset"). This is also settable with the third inlet. This allows you
-to control two oscillators with the same frequency falling in and out
-of phase. Another feature is phase modulation., f 53;
-#X text 464 43 The phase values are wrapped into the 0-1 range \, since
-the phase cycle is from 0 to 1 (where 1 is also the start of another
-cycle).;
+#X text 28 31 The second argument sets an initial phase (or "phase offset"). This is also settable with the third inlet. This allows you to control two oscillators with the same frequency falling in and out of phase. Another feature is phase modulation., f 53;
+#X text 464 43 The phase values are wrapped into the 0-1 range \, since the phase cycle is from 0 to 1 (where 1 is also the start of another cycle).;
 #X obj 121 255 else/out~;
 #X obj 121 219 +~;
 #X text 346 118 1;
-#X obj 214 118 hsl 128 15 0 1 0 0 empty empty empty -2 -8 0 10 -228856
--1 -1 0 1;
-#X floatatom 211 142 4 0 0 0 - - -;
+#X obj 214 118 hsl 128 15 0 1 0 0 empty empty empty -2 -8 0 10 #dcdcdc #000000 #000000 0 1;
+#X floatatom 211 142 4 0 0 0 - - - 0;
 #X text 194 118 0;
 #X obj 211 166 else/float2sig~ 10;
-#X text 240 235 Note that out of phase sawtooth waveforms do not cancel
-each other, f 23;
+#X text 240 235 Note that out of phase sawtooth waveforms do not cancel each other, f 23;
 #X obj 88 154 else/saw~ 220 0.5;
 #X obj 136 192 else/saw~ 220;
 #X obj 576 131 else/saw~ 200;
@@ -233,71 +195,27 @@ each other, f 23;
 #X obj 218 204 else/out~;
 #X text 184 403 2) float;
 #X text 165 296 float/signal -;
-#X obj 306 4 cnv 15 250 40 empty empty empty 12 13 0 18 -128992 -233080
-0;
+#X obj 306 4 cnv 15 250 40 empty empty empty 12 13 0 18 #7c7c7c #e0e4dc 0;
 #N canvas 382 141 749 319 (subpatch) 0;
 #X coords 0 -1 1 1 252 42 2 0 0;
 #X restore 305 3 pd;
-#X obj 345 11 cnv 10 10 10 empty empty ELSE 0 15 2 30 -128992 -233080
-0;
-#X obj 25 40 cnv 4 4 4 empty empty Sawtooth 0 28 2 18 -233017 -1 0
-;
-#X obj 458 11 cnv 10 10 10 empty empty EL 0 6 2 13 -128992 -233080
-0;
-#X obj 478 11 cnv 10 10 10 empty empty Locus 0 6 2 13 -128992 -233080
-0;
-#X obj 515 11 cnv 10 10 10 empty empty Solus' 0 6 2 13 -128992 -233080
-0;
-#X obj 464 26 cnv 10 10 10 empty empty ELSE 0 6 2 13 -128992 -233080
-0;
-#X obj 502 26 cnv 10 10 10 empty empty library 0 6 2 13 -128992 -233080
-0;
-#X obj 103 40 cnv 4 4 4 empty empty oscillator 0 28 2 18 -233017 -1
-0;
-#X obj 3 3 cnv 15 301 42 empty empty saw~ 20 20 2 37 -233017 -1 0;
+#X obj 345 11 cnv 10 10 10 empty empty ELSE 0 15 2 30 #7c7c7c #e0e4dc 0;
+#X obj 25 40 cnv 4 4 4 empty empty Sawtooth 0 28 2 18 #e0e0e0 #000000 0;
+#X obj 458 11 cnv 10 10 10 empty empty EL 0 6 2 13 #7c7c7c #e0e4dc 0;
+#X obj 478 11 cnv 10 10 10 empty empty Locus 0 6 2 13 #7c7c7c #e0e4dc 0;
+#X obj 515 11 cnv 10 10 10 empty empty Solus' 0 6 2 13 #7c7c7c #e0e4dc 0;
+#X obj 464 26 cnv 10 10 10 empty empty ELSE 0 6 2 13 #7c7c7c #e0e4dc 0;
+#X obj 502 26 cnv 10 10 10 empty empty library 0 6 2 13 #7c7c7c #e0e4dc 0;
+#X obj 103 40 cnv 4 4 4 empty empty oscillator 0 28 2 18 #e0e0e0 #000000 0;
+#X obj 3 3 cnv 15 301 42 empty empty saw~ 20 20 2 37 #e0e0e0 #000000 0;
 #N canvas 0 22 450 278 (subpatch) 0;
 #X coords 0 1 100 -1 302 42 1;
 #X restore 2 3 graph;
 #N canvas 836 191 391 475 waveform 0;
-#X obj 101 79 cnv 15 198 148 empty empty empty 20 12 0 14 -241406 -66577
-0;
+#X obj 101 79 cnv 15 198 148 empty empty empty 20 12 0 14 #e8ecf4 #404040 0;
 #N canvas 0 22 450 278 (subpatch) 0;
 #X array \$0-waveform 400 float 1;
-#A 0 0 0.995 0.99 0.985 0.98 0.975 0.97 0.965 0.96 0.955 0.95 0.945
-0.94 0.935 0.93 0.925 0.92 0.915 0.91 0.905 0.9 0.895 0.89 0.885 0.88
-0.875 0.87 0.865 0.86 0.855 0.85 0.845 0.84 0.835 0.83 0.825 0.82 0.815
-0.81 0.805 0.8 0.795 0.79 0.785 0.78 0.775 0.77 0.765 0.76 0.755 0.75
-0.745 0.74 0.735 0.73 0.725 0.72 0.715 0.71 0.705 0.7 0.695 0.69 0.685
-0.68 0.675 0.67 0.665 0.66 0.655 0.65 0.645 0.64 0.635 0.63 0.625 0.62
-0.615 0.61 0.605 0.6 0.595 0.59 0.585 0.58 0.575 0.57 0.565 0.56 0.555
-0.55 0.545 0.54 0.535 0.53 0.525 0.52 0.515 0.51 0.505 0.5 0.495 0.49
-0.485 0.48 0.475 0.47 0.465 0.46 0.455 0.45 0.445 0.44 0.435 0.43 0.425
-0.42 0.415 0.41 0.405 0.4 0.395 0.39 0.385 0.38 0.375 0.37 0.365 0.36
-0.355 0.35 0.345 0.34 0.335 0.33 0.325 0.32 0.315 0.31 0.305 0.3 0.295
-0.29 0.285 0.28 0.275 0.27 0.265 0.26 0.255 0.25 0.245 0.24 0.235 0.23
-0.225 0.22 0.215 0.21 0.205 0.2 0.195 0.19 0.185 0.18 0.175 0.17 0.165
-0.16 0.155 0.15 0.145 0.14 0.135 0.13 0.125 0.12 0.115 0.11 0.105 0.1
-0.095 0.09 0.085 0.08 0.075 0.07 0.065 0.06 0.055 0.05 0.045 0.04 0.035
-0.03 0.025 0.02 0.015 0.00999999 0.005 0 -0.005 -0.00999999 -0.015
--0.02 -0.025 -0.03 -0.035 -0.04 -0.045 -0.05 -0.0549999 -0.0599999
--0.0650001 -0.0700001 -0.075 -0.08 -0.085 -0.09 -0.095 -0.1 -0.105
--0.11 -0.115 -0.12 -0.125 -0.13 -0.135 -0.14 -0.145 -0.15 -0.155 -0.16
--0.165 -0.17 -0.175 -0.18 -0.185 -0.19 -0.195 -0.2 -0.205 -0.21 -0.215
--0.22 -0.225 -0.23 -0.235 -0.24 -0.245 -0.25 -0.255 -0.26 -0.265 -0.27
--0.275 -0.28 -0.285 -0.29 -0.295 -0.3 -0.305 -0.31 -0.315 -0.32 -0.325
--0.33 -0.335 -0.34 -0.345 -0.35 -0.355 -0.36 -0.365 -0.37 -0.375 -0.38
--0.385 -0.39 -0.395 -0.4 -0.405 -0.41 -0.415 -0.42 -0.425 -0.43 -0.435
--0.44 -0.445 -0.45 -0.455 -0.46 -0.465 -0.47 -0.475 -0.48 -0.485 -0.49
--0.495 -0.5 -0.505 -0.51 -0.515 -0.52 -0.525 -0.53 -0.535 -0.54 -0.545
--0.55 -0.555 -0.56 -0.565 -0.57 -0.575 -0.58 -0.585 -0.59 -0.595 -0.6
--0.605 -0.61 -0.615 -0.62 -0.625 -0.63 -0.635 -0.64 -0.645 -0.65 -0.655
--0.66 -0.665 -0.67 -0.675 -0.68 -0.685 -0.69 -0.695 -0.7 -0.705 -0.71
--0.715 -0.72 -0.725 -0.73 -0.735 -0.74 -0.745 -0.75 -0.755 -0.76 -0.765
--0.77 -0.775 -0.78 -0.785 -0.79 -0.795 -0.8 -0.805 -0.81 -0.815 -0.82
--0.825 -0.83 -0.835 -0.84 -0.845 -0.85 -0.855 -0.86 -0.865 -0.87 -0.875
--0.88 -0.885 -0.89 -0.895 -0.9 -0.905 -0.91 -0.915 -0.92 -0.925 -0.93
--0.935 -0.94 -0.945 -0.95 -0.955 -0.96 -0.965 -0.97 -0.975 -0.98 -0.985
--0.99 0;
+#A 0 0 0.995 0.99 0.985 0.98 0.975 0.97 0.965 0.96 0.955 0.95 0.945 0.94 0.935 0.93 0.925 0.92 0.915 0.91 0.905 0.9 0.895 0.89 0.885 0.88 0.875 0.87 0.865 0.86 0.855 0.85 0.845 0.84 0.835 0.83 0.825 0.82 0.815 0.81 0.805 0.8 0.795 0.79 0.785 0.78 0.775 0.77 0.765 0.76 0.755 0.75 0.745 0.74 0.735 0.73 0.725 0.72 0.715 0.71 0.705 0.7 0.695 0.69 0.685 0.68 0.675 0.67 0.665 0.66 0.655 0.65 0.645 0.64 0.635 0.63 0.625 0.62 0.615 0.61 0.605 0.6 0.595 0.59 0.585 0.58 0.575 0.57 0.565 0.56 0.555 0.55 0.545 0.54 0.535 0.53 0.525 0.52 0.515 0.51 0.505 0.5 0.495 0.49 0.485 0.48 0.475 0.47 0.465 0.46 0.455 0.45 0.445 0.44 0.435 0.43 0.425 0.42 0.415 0.41 0.405 0.4 0.395 0.39 0.385 0.38 0.375 0.37 0.365 0.36 0.355 0.35 0.345 0.34 0.335 0.33 0.325 0.32 0.315 0.31 0.305 0.3 0.295 0.29 0.285 0.28 0.275 0.27 0.265 0.26 0.255 0.25 0.245 0.24 0.235 0.23 0.225 0.22 0.215 0.21 0.205 0.2 0.195 0.19 0.185 0.18 0.175 0.17 0.165 0.16 0.155 0.15 0.145 0.14 0.135 0.13 0.125 0.12 0.115 0.11 0.105 0.1 0.095 0.09 0.085 0.08 0.075 0.07 0.065 0.06 0.055 0.05 0.045 0.04 0.035 0.03 0.025 0.02 0.015 0.00999999 0.005 0 -0.005 -0.00999999 -0.015 -0.02 -0.025 -0.03 -0.035 -0.04 -0.045 -0.05 -0.0549999 -0.0599999 -0.0650001 -0.0700001 -0.075 -0.08 -0.085 -0.09 -0.095 -0.1 -0.105 -0.11 -0.115 -0.12 -0.125 -0.13 -0.135 -0.14 -0.145 -0.15 -0.155 -0.16 -0.165 -0.17 -0.175 -0.18 -0.185 -0.19 -0.195 -0.2 -0.205 -0.21 -0.215 -0.22 -0.225 -0.23 -0.235 -0.24 -0.245 -0.25 -0.255 -0.26 -0.265 -0.27 -0.275 -0.28 -0.285 -0.29 -0.295 -0.3 -0.305 -0.31 -0.315 -0.32 -0.325 -0.33 -0.335 -0.34 -0.345 -0.35 -0.355 -0.36 -0.365 -0.37 -0.375 -0.38 -0.385 -0.39 -0.395 -0.4 -0.405 -0.41 -0.415 -0.42 -0.425 -0.43 -0.435 -0.44 -0.445 -0.45 -0.455 -0.46 -0.465 -0.47 -0.475 -0.48 -0.485 -0.49 -0.495 -0.5 -0.505 -0.51 -0.515 -0.52 -0.525 -0.53 -0.535 -0.54 -0.545 -0.55 -0.555 -0.56 -0.565 -0.57 -0.575 -0.58 -0.585 -0.59 -0.595 -0.6 -0.605 -0.61 -0.615 -0.62 -0.625 -0.63 -0.635 -0.64 -0.645 -0.65 -0.655 -0.66 -0.665 -0.67 -0.675 -0.68 -0.685 -0.69 -0.695 -0.7 -0.705 -0.71 -0.715 -0.72 -0.725 -0.73 -0.735 -0.74 -0.745 -0.75 -0.755 -0.76 -0.765 -0.77 -0.775 -0.78 -0.785 -0.79 -0.795 -0.8 -0.805 -0.81 -0.815 -0.82 -0.825 -0.83 -0.835 -0.84 -0.845 -0.85 -0.855 -0.86 -0.865 -0.87 -0.875 -0.88 -0.885 -0.89 -0.895 -0.9 -0.905 -0.91 -0.915 -0.92 -0.925 -0.93 -0.935 -0.94 -0.945 -0.95 -0.955 -0.96 -0.965 -0.97 -0.975 -0.98 -0.985 -0.99 0;
 #X coords -10 1.05 410 -1.05 200 150 1 0 0;
 #X restore 100 78 graph;
 #X text 48 235 phase:;
@@ -311,16 +229,14 @@ each other, f 23;
 #X text 87 295 see also:;
 #X text 90 378 see also:;
 #X obj 162 377 else/vsaw~;
-#X text 46 407 A variable sawtooth waveform oscillator that also becomes
-a triangular osccilator., f 43;
+#X text 46 407 A variable sawtooth waveform oscillator that also becomes a triangular osccilator., f 43;
 #X text 38 323 For a different sawtooth waveform;
 #X obj 159 294 else/saw2~;
 #X restore 466 175 pd waveform;
 #X text 267 348 sawtooth wave signal;
 #X obj 218 169 else/saw~ 440;
-#X text 60 89 [saw~] is a sawtooth oscillator that accepts negative
-frequencies \, has inlets for phase sync and phase modulation.;
-#X text 393 150 see also:;
-#X obj 461 150 else/bl.saw~;
+#X text 60 89 [saw~] is a sawtooth oscillator that accepts negative frequencies \, has inlets for phase sync and phase modulation.;
+#X text 25 199 see also:;
+#X obj 24 226 else/bl.saw~;
 #X connect 15 0 38 0;
 #X connect 38 0 21 0;

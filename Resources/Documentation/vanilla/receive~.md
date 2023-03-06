@@ -1,6 +1,6 @@
 ---
 title: receive~, r~
-description: receive signal from a send~ object.
+description: receive signal from a send~ object
 categories:
 - object
 aliases:
@@ -10,16 +10,16 @@ see_also:
 - send
 - send~
 - tabsend~
-pdcategory: General Audio Manipulation
+pdcategory: vanilla, UI, Mixing and Routing, Audio I/O
 last_update: '0.33'
 inlets:
   1st:
   - type: set <name>
-    description: set receive name.
+    description: set receive name
 outlets:
   1st:
   - type: signal
-    description: outputs signal from a matching send~ object.
+    description: outputs signal from a matching send~ object
 arguments:
 - type: symbol
   description: receive name symbol 

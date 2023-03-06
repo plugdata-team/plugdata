@@ -6,11 +6,11 @@ description: MIDI control output
 categories:
  - object
 
-pdcategory: MIDI
+pdcategory: ELSE, MIDI
 
 arguments:
 - type: list
-  description: float sets channel number. Two floats set control number and channel
+  description: one float sets channel number. two floats set control number and channel
   default: 1
 
 inlets:

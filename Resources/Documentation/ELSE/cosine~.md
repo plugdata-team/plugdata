@@ -1,27 +1,31 @@
 ---
 title: cosine~
 
-description:
+description: cosine oscillator
 
 categories:
  - object
 
-pdcategory: Oscillators
+pdcategory: ELSE, Signal Generators
 
 arguments:
-  1st:
-  - type: float
-    description: frequency in hz
-    default: 0
-  2nd:
-  - type: float
-    description: initial phase offset
-    default: 0
+- type: float
+  description: frequency in Hz
+  default: 0
+- type: float
+  description: initial phase offset
+  default: 0
+
+flags:
+  - name: -midi
+    description: sets frequency input in MIDI pitch (default Hz)
+  - name: -soft
+    description: sets to soft sync mode (default hard)
 
 inlets:
   1st:
   - type: float/signal
-    description: frequency in hz
+    description: frequency in Hz
   2nd:
   - type: float/signal
     description: phase sync (resets internal phase)
@@ -33,6 +37,12 @@ outlets:
   1st:
   - type: signal
     description: cosine wave signal
+
+methods:
+  - type: midi <float>
+    description: non-0 sets to frequency input in MIDI pitch
+  - type: soft <float>
+    description: non-0 sets to soft sync mode
 
 draft: false
 ---

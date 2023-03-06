@@ -1,25 +1,25 @@
 ---
 title: phasor~
-description: phase ramp generator.
+description: phase ramp generator
 categories:
 - object
 see_also:
 - osc~
 - cos~
 - tabread4~
-pdcategory: Audio Oscillators And Tables
+pdcategory: vanilla, Signal Generators, Envelopes and LFOs
 last_update: '0.33'
 inlets:
   1st:
   - type: signal
-    description: frequency value in Hz.
+    description: frequency value in Hz
   2nd:
   - type: float
-    description: phase cycle reset (from 0 to 1).
+    description: phase cycle reset (from 0 to 1)
 outlets:
   1st:
   - type: signal
-    description: phase ramp (in the range of 0 to 1).
+    description: phase ramp (in the range of 0 to 1)
 arguments:
   - type: float
     description: initial frequency value in Hz 

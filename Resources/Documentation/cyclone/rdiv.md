@@ -1,12 +1,12 @@
 ---
-title: rdiv
+title: rdiv, !/, cyclone/!/
 
-description: Reversed inlets division
+description: reversed inlets division
 
 categories:
  - object
 
-pdcategory: General
+pdcategory: cyclone, Data Math
 
 arguments:
 - type: float

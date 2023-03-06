@@ -1,9 +1,9 @@
 ---
 title: cycle~
-description: Wavetable oscillator
+description: wavetable oscillator
 categories:
  - object
-pdcategory: General
+pdcategory: cyclone, Signal Generators
 arguments:
 - type: float
   description: sets frequency in Hz
@@ -17,7 +17,7 @@ arguments:
 inlets:
   1st:
   - type: float/signal
-    description: sets frequency in hertz (negative values allowed)
+    description: sets frequency in Hz (negative values allowed)
   2nd:
   - type: float/signal
     description: phase offset
@@ -35,7 +35,7 @@ flags:
 
 methods:
   - type: frequency <float>
-    description: sets frequency in hertz
+    description: sets frequency in Hz
   - type: phase <float>
     description: sets phase offset
   - type: set
@@ -51,6 +51,7 @@ methods:
   - type: buffer_sizeinsamps <f>
     description: changes the buffer size to powers of 2 (16 to 65536)
 
+draft: false
 ---
 
 [cycle~] is a linear interpolating oscillator* that reads repeatedly through one cycle of a waveform. The default internal waveform is one cycle of a cosine wave (16k in size, 64 bits), but you can set other waveforms from given arrays.

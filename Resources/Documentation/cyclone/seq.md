@@ -6,7 +6,7 @@ description: MIDI sequencer
 categories:
  - object
 
-pdcategory: General
+pdcategory: cyclone, MIDI, Triggers and Clocks
 
 arguments:
 - type: symbol

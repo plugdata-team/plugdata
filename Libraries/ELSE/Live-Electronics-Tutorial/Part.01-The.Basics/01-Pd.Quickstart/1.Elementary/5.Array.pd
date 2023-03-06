@@ -28,8 +28,8 @@
 #X restore 774 320 graph;
 #X text 346 219 <==;
 #X text 371 219 click on the array elements and drag, f 9;
-#X text 33 346 You can change both the graph and array properties. Array's properties include name (all arrays must be named differently!) \, size \, if data is saved with the patch (save contents box) and how to display the data (polyogn/points/bezier curve - see the difference to the right with a 4 point table). Note that the data keeps the same no matter how you display it., f 64;
-#X text 581 508 you can read from and save values to arrays with the [expr] object \, check its help file., f 45;
+#X text 33 346 You can change both the graph and array properties. An array's properties include name (all arrays must be named differently!) \, size \, if data is saved with the patch (save contents box) and how to display the data (polygon/points/bezier curve - see the difference to the right with a 4 point table). Note that the data keeps the same no matter how you display it., f 64;
+#X text 581 508 You can read from and save values to arrays with the [expr] object \, check its help file., f 45;
 #X obj 702 550 expr;
 #X obj 828 467 tabwrite;
 #X text 93 536 Objects for reading values:;
@@ -37,5 +37,5 @@
 #X obj 95 596 tabread4;
 #X text 157 567 without interpolation;
 #X text 32 452 Arrays can be used in many different occasions. You can use them to store and manipulate lists of values \, as a sequence data and even as a buffer to load audio files and record sound into. We'll see all about them throughout this tutorial., f 64;
-#X text 548 467 An object for writting into tables is:;
+#X text 548 467 An object for writing into tables is:;
 #X text 164 595 with interpolation (we'll see more about interpolation later on in this tutorial)., f 83;

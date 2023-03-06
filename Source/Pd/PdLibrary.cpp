@@ -28,11 +28,11 @@ struct _canvasenvironment {
 namespace pd {
 
 // Iterative function to insert a key into a Trie
-void Trie::insert(String const& key)
+void Trie::insert(String key)
 {
     // Names with spaces not supported yet by the suggestor
     if (key.containsChar(' '))
-        return;
+        key = key.upToFirstOccurrenceOf(" ", false, false);
 
     // start from the root node
     Trie* curr = this;
@@ -135,7 +135,7 @@ void Trie::suggestionsRec(String currPrefix, Suggestions& result)
 {
     // found aString in Trie with the given prefix
     if (isLeaf) {
-        result.push_back({ currPrefix, true });
+        result.add(currPrefix);
     }
 
     // All children struct node pointers are nullptr
@@ -189,7 +189,7 @@ int Trie::autocomplete(String query, Suggestions& result)
     // there is no subtree below the last
     // matching node.
     if (isWord && isLast) {
-        result.push_back({ query, true });
+        result.add(query);
         return -1;
     }
 
@@ -215,8 +215,6 @@ void Library::initialiseLibrary()
         pd_setinstance(pdinstance);
 #endif
 
-        appDataDir = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory).getChildFile("plugdata");
-
         auto pddocPath = appDataDir.getChildFile("Library").getChildFile("Documentation").getChildFile("pddp").getFullPathName();
 
         updateLibrary();
@@ -228,6 +226,8 @@ void Library::initialiseLibrary()
         helpPaths = { appDataDir.getChildFile("Library").getChildFile("Documentation").getChildFile("5.reference"), appDataDir.getChildFile("Library").getChildFile("Documentation"),
             appDataDir.getChildFile("Deken") };
 
+        libraryLock.unlock();
+
         // Update docs in GUI
         MessageManager::callAsync([this]() {
             watcher.addFolder(appDataDir);
@@ -236,8 +236,6 @@ void Library::initialiseLibrary()
             if (appDirChanged)
                 appDirChanged();
         });
-
-        libraryLock.unlock();
     };
 
     libraryUpdateThread.addJob(updateFn);
@@ -268,34 +266,24 @@ void Library::updateLibrary()
         allObjects.clear();
 
         for (i = o->c_nmethod, m = mlist; i--; m++) {
-            String name(m->me_name->s_name);
-            searchTree->insert(m->me_name->s_name);
-            allObjects.add(m->me_name->s_name);
+
+            auto newName = String(m->me_name->s_name);
+            if (!(newName.startsWith("else/") || newName.startsWith("cyclone/"))) {
+                allObjects.add(newName);
+                searchTree->insert(m->me_name->s_name);
+            }
         }
 
         searchTree->insert("graph");
 
-        // TODO: fix this hack
-        auto elsePath = appDataDir.getChildFile("Library").getChildFile("Abstractions").getChildFile("else");
-
-        for (const auto& iter : RangedDirectoryIterator(elsePath, false)) {
-            auto file = iter.getFile();
-            // Get pd files but not help files
-            if (file.getFileExtension() == ".pd" && !(file.getFileNameWithoutExtension().startsWith("help-") || file.getFileNameWithoutExtension().endsWith("-help"))) {
-                searchTree->insert(file.getFileNameWithoutExtension().toStdString());
-                allObjects.add(file.getFileNameWithoutExtension().toStdString());
-            }
-        }
-
-        // TODO: fix this hack as well
-        auto heavylibPath = appDataDir.getChildFile("Library").getChildFile("Abstractions").getChildFile("heavylib");
-
-        for (const auto& iter : RangedDirectoryIterator(heavylibPath, false)) {
-            auto file = iter.getFile();
-            // Get pd files but not help files
-            if (file.getFileExtension() == ".pd" && !(file.getFileNameWithoutExtension().startsWith("help-") || file.getFileNameWithoutExtension().endsWith("-help"))) {
-                searchTree->insert(file.getFileNameWithoutExtension().toStdString());
-                allObjects.add(file.getFileNameWithoutExtension().toStdString());
+        for (auto& path : defaultPaths) {
+            for (const auto& iter : RangedDirectoryIterator(path, false)) {
+                auto file = iter.getFile();
+                // Get pd files but not help files
+                if (file.getFileExtension() == ".pd" && !(file.getFileNameWithoutExtension().startsWith("help-") || file.getFileNameWithoutExtension().endsWith("-help"))) {
+                    searchTree->insert(file.getFileNameWithoutExtension().toStdString());
+                    allObjects.add(file.getFileNameWithoutExtension().toStdString());
+                }
             }
         }
 
@@ -406,6 +394,16 @@ void Library::parseDocumentation(String const& path)
             if (sections.count("description")) {
                 objectDescriptions[name] = sections["description"].first;
             }
+            if (sections.count("methods")) {
+
+                Methods methodList;
+                for (auto& method : sectionsFromHyphens(sections["methods"].first)) {
+                    auto sectionMap = getSections(method, { "type", "description" });
+                    methodList.push_back({ sectionMap["type"].first, sectionMap["description"].first });
+                }
+
+                methods[name] = methodList;
+            }
 
             if (sections.count("pdcategory")) {
                 auto categories = sections["pdcategory"].first;
@@ -435,7 +433,7 @@ void Library::parseDocumentation(String const& path)
             auto numbers = { "1st", "2nd", "3rd", "4th", "5th", "6th", "7th", "8th", "nth" };
             if (sections.count("inlets")) {
                 auto section = getSections(sections["inlets"].first, numbers);
-                inletDescriptions[name].resize(static_cast<int>(section.size()));
+                ioletDescriptions[name][0].resize(static_cast<int>(section.size()));
                 for (auto [number, content] : section) {
                     String tooltip;
                     for (auto& argument : sectionsFromHyphens(content.first)) {
@@ -446,12 +444,12 @@ void Library::parseDocumentation(String const& path)
                         tooltip += "(" + sectionMap["type"].first + ") " + sectionMap["description"].first + "\n";
                     }
 
-                    inletDescriptions[name].getReference(content.second) = { tooltip, number == "nth" };
+                    ioletDescriptions[name][0].getReference(content.second) = { tooltip, number == "nth" };
                 }
             }
             if (sections.count("outlets")) {
                 auto section = getSections(sections["outlets"].first, numbers);
-                outletDescriptions[name].resize(static_cast<int>(section.size()));
+                ioletDescriptions[name][1].resize(static_cast<int>(section.size()));
                 for (auto [number, content] : section) {
                     String tooltip;
 
@@ -462,7 +460,7 @@ void Library::parseDocumentation(String const& path)
                         tooltip += "(" + sectionMap["type"].first + ") " + sectionMap["description"].first + "\n";
                     }
 
-                    outletDescriptions[name].getReference(content.second) = { tooltip, number == "nth" };
+                    ioletDescriptions[name][1].getReference(content.second) = { tooltip, number == "nth" };
                 }
             }
         }
@@ -486,40 +484,157 @@ Suggestions Library::autocomplete(String query) const
     Suggestions result;
     if (searchTree)
         searchTree->autocomplete(std::move(query), result);
+
     return result;
 }
 
-String Library::getInletOutletTooltip(String type, String name, int idx, int total, bool isInlet)
+void Library::getExtraSuggestions(int currentNumSuggestions, String query, std::function<void(Suggestions)> callback)
 {
-    auto args = StringArray::fromTokens(name.fromFirstOccurrenceOf(" ", false, false), true);
+    int const maxSuggestions = 20;
+    if (currentNumSuggestions > maxSuggestions)
+        return;
 
-    auto findInfo = [&type, &args, &total, &idx](IODescriptionMap map) {
-        if (map.count(type)) {
-            auto descriptions = map.at(type);
+    libraryUpdateThread.addJob([this, callback, currentNumSuggestions, query]() mutable {
+        // if(!libraryLock.try_lock()) {
+        //    return;
+        //}
 
-            // if the amount of inlets is not equal to the amount in the spec, look for repeating inlets
-            if (descriptions.size() < total) {
-                for (int i = 0; i < descriptions.size(); i++) {
-                    if (descriptions[i].second) { // repeating inlet found
-                        for (int j = 0; j < total - descriptions.size(); j++) {
-                            descriptions.insert(i, descriptions[i]);
+        Suggestions result;
+
+        Suggestions matches;
+        for (const auto& object : allObjects) {
+            // Whitespace is not supported by our autocompletion, because normally it indicates the start of the arguments
+            if (object.contains(" "))
+                continue;
+
+            if (object.contains(query)) {
+                matches.add(object);
+            }
+        }
+
+        matches.sort(true);
+        result.addArray(matches);
+        matches.clear();
+
+        if (currentNumSuggestions + result.size() < maxSuggestions) {
+            for (const auto& [object, keywords] : objectKeywords) {
+                if (object.contains(" "))
+                    continue;
+                for (const auto& keyword : keywords) {
+                    if (keyword.contains(query)) {
+                        matches.add(object);
+                    }
+                }
+            }
+        }
+
+        matches.sort(true);
+        result.addArray(matches);
+        matches.clear();
+
+        if (currentNumSuggestions + result.size() < maxSuggestions) {
+            for (const auto& [object, description] : objectDescriptions) {
+                if (object.contains(" "))
+                    continue;
+                if (description.contains(query)) {
+                    matches.add(object);
+                }
+            }
+        }
+
+        matches.sort(true);
+        result.addArray(matches);
+        matches.clear();
+
+        if (currentNumSuggestions + result.size() > maxSuggestions) {
+            for (auto& [object, iolets] : ioletDescriptions) {
+                if (object.contains(" "))
+                    continue;
+                for (int type = 0; type < 2; type++) {
+                    auto descriptions = iolets[type];
+                    for (auto& [description, type] : descriptions) {
+                        if (description.contains(query)) {
+                            matches.add(object);
                         }
                     }
                 }
             }
-
-            auto result = isPositiveAndBelow(idx, descriptions.size()) ? descriptions[idx].first : String();
-            result = result.replace("$mth", String(idx));
-            result = result.replace("$nth", String(idx + 1));
-            result = result.replace("$arg", args[idx]);
-
-            return result;
         }
 
-        return String();
-    };
+        matches.sort(true);
+        result.addArray(matches);
+        matches.clear();
 
-    return isInlet ? findInfo(getInletDescriptions()) : findInfo(getOutletDescriptions());
+        // libraryLock.unlock();
+
+        MessageManager::callAsync([callback, result]() {
+            callback(result);
+        });
+    });
+}
+
+String Library::getObjectTooltip(String const& type)
+{
+    if (libraryLock.try_lock()) {
+        return objectDescriptions[type];
+        libraryLock.unlock();
+    }
+
+    return "";
+}
+
+std::array<StringArray, 2> Library::getIoletTooltips(String type, String name, int numIn, int numOut)
+{
+    auto args = StringArray::fromTokens(name.fromFirstOccurrenceOf(" ", false, false), true);
+
+    IODescriptionMap const* map = nullptr;
+    if (libraryLock.try_lock()) {
+        map = &ioletDescriptions;
+        libraryLock.unlock();
+    }
+
+    auto result = std::array<StringArray, 2>();
+
+    if (!map) {
+        return result;
+    }
+
+    // TODO: replace with map.contains once all compilers support this!
+    if (map->count(type)) {
+        auto const& ioletDescriptions = map->at(type);
+
+        for (int type = 0; type < 2; type++) {
+            int total = type ? numOut : numIn;
+            auto descriptions = ioletDescriptions[type];
+            // if the amount of inlets is not equal to the amount in the spec, look for repeating iolets
+            if (descriptions.size() < total) {
+                for (int i = 0; i < descriptions.size(); i++) {
+                    if (descriptions[i].second) { // repeating inlet found
+                        for (int j = 0; j < (total - descriptions.size()) + 1; j++) {
+
+                            auto description = descriptions[i].first;
+                            description = description.replace("$mth", String(j));
+                            description = description.replace("$nth", String(j + 1));
+
+                            if (isPositiveAndBelow(j, args.size())) {
+                                description = description.replace("$arg", args[j]);
+                            }
+
+                            result[type].add(description);
+                        }
+                    } else {
+                        result[type].add(descriptions[i].first);
+                    }
+                }
+            } else {
+                for (int i = 0; i < descriptions.size(); i++) {
+                    result[type].add(descriptions[i].first);
+                }
+            }
+        }
+    }
+
+    return result;
 }
 
 StringArray Library::getAllObjects()
@@ -532,9 +647,10 @@ void Library::fsChangeCallback()
     appDirChanged();
 }
 
-File Library::findHelpfile(t_object* obj)
+File Library::findHelpfile(t_object* obj, File parentPatchFile)
 {
     String helpName;
+    String helpDir;
 
     auto* pdclass = pd_class(reinterpret_cast<t_pd*>(obj));
 
@@ -549,8 +665,25 @@ File Library::findHelpfile(t_object* obj)
         atom_string(av, namebuf, MAXPDSTRING);
         helpName = String::fromUTF8(namebuf).fromLastOccurrenceOf("/", false, false);
     } else {
+        helpDir = class_gethelpdir(pdclass);
         helpName = class_gethelpname(pdclass);
+        helpName = helpName.upToLastOccurrenceOf(".pd", false, false);
     }
+
+    auto patchHelpPaths = helpPaths;
+
+    // Add abstraction dir to search paths
+    if (pd_class(reinterpret_cast<t_pd*>(obj)) == canvas_class && canvas_isabstraction(reinterpret_cast<t_canvas*>(obj))) {
+        auto* cnv = reinterpret_cast<t_canvas*>(obj);
+        patchHelpPaths.add(File(String::fromUTF8(canvas_getenv(cnv)->ce_dir->s_name)));
+    }
+
+    // Add parent patch dir to search paths
+    if (parentPatchFile.existsAsFile()) {
+        patchHelpPaths.add(parentPatchFile.getParentDirectory());
+    }
+
+    patchHelpPaths.add(helpDir);
 
     String firstName = helpName + "-help.pd";
     String secondName = "help-" + helpName + ".pd";
@@ -565,7 +698,7 @@ File Library::findHelpfile(t_object* obj)
         return File();
     };
 
-    for (auto& path : helpPaths) {
+    for (auto& path : patchHelpPaths) {
         auto file = findHelpPatch(path, true);
         if (file.existsAsFile()) {
             return file;
@@ -610,24 +743,17 @@ CategoryMap Library::getObjectCategories()
     }
     return {};
 }
-IODescriptionMap Library::getInletDescriptions()
+IODescriptionMap Library::getIoletDescriptions()
 {
     if (libraryLock.try_lock()) {
-        auto descriptions = inletDescriptions;
+        auto descriptions = ioletDescriptions;
         libraryLock.unlock();
         return descriptions;
     }
+
     return {};
 }
-IODescriptionMap Library::getOutletDescriptions()
-{
-    if (libraryLock.try_lock()) {
-        auto descriptions = outletDescriptions;
-        libraryLock.unlock();
-        return descriptions;
-    }
-    return {};
-}
+
 ArgumentMap Library::getArguments()
 {
     if (libraryLock.try_lock()) {
@@ -638,171 +764,14 @@ ArgumentMap Library::getArguments()
     return {};
 }
 
+MethodMap Library::getMethods()
+{
+    if (libraryLock.try_lock()) {
+        auto m = methods;
+        libraryLock.unlock();
+        return m;
+    }
+    return {};
+}
+
 } // namespace pd
-
-/* Code for generating library markdown files, not in usage but useful for later
-
- // wait for pd to initialise
- Timer::callAfterDelay(1200, [this](){
-
-     enqueueFunction([this](){
-     t_class* o = pd_objectmaker;
-#if PDINSTANCE
-     t_methodentry* mlist = o->c_methods[pd_this->pd_instanceno];
-#else
-     t_methodentry* mlist = o->c_methods;
-#endif
-
- t_methodentry* m;
-
- int i;
- for (i = o->c_nmethod, m = mlist; i--; m++)
- {
-     String name(m->me_name->s_name);
-     StringArray arguments;
-
-     if(name == "onebang_proxy" || name == "midi") continue;
-
-     t_atom args[9];
-     int nargs = 3;
-     for(int i = 0; i < 6; i++) {
-         auto atomtype = (t_atomtype)m->me_arg[i];
-         String type;
-         auto* target = args + i + 3;
-
-         if(atomtype == A_NULL) {
-             break;
-         }
-
-         nargs++;
-         if(atomtype == A_FLOAT) {
-             type = "float";
-             SETFLOAT(target, 0);
-         }
-         else if(atomtype == A_SYMBOL) {
-             type = "symbol";
-             SETSYMBOL(target, generateSymbol("0"));
-         }
-         else if(atomtype == A_GIMME) {
-             type = "gimme";
-             SETFLOAT(target, 0);
-             arguments.add(type);
-             break;
-         }
-         else if(atomtype == A_POINTER) {
-             type = "pointer";
-             SETPOINTER(target, 0);
-         }
-         else if(atomtype == A_SEMI) {
-             type = "semi";
-             SETSEMI(target);
-         }
-         else if(atomtype == A_COMMA) {
-             type = "comma";
-             SETCOMMA(target);
-         }
-         else if(atomtype == A_DEFFLOAT) {
-             type = "float";
-             SETFLOAT(target, 0);
-         }
-         else if(atomtype == A_DEFSYM) {
-             type = "symbol";
-             SETSYMBOL(target, generateSymbol("0"));
-         }
-         else if(atomtype == A_DOLLSYM) {
-             type = "dollsym";
-             SETDOLLSYM(target, generateSymbol("$1"));
-         }
-
-         arguments.add(type);
-     }
-
-     SETFLOAT(args, 20.0f);
-     SETFLOAT(args + 1, 20.0f);
-     SETSYMBOL(args + 2, generateSymbol(name)));
-
-     auto* obj = pd_checkobject(libpd_createobj(patches[0]->getPointer(), generateSymbol("obj"), nargs, args));
-
-     if(!obj) continue;
-     int nin = libpd_ninlets(obj);
-     int nout = libpd_noutlets(obj);
-
-     t_inlet* i;
-     t_outlet* i_out;
-
-     StringArray inletTypes;
-     StringArray outletTypes;
-
-     for (i = (t_inlet*)obj->ob_inlet; i; i = i->i_next) {
-         if(!i->i_symfrom) {
-             inletTypes.add("?");
-             continue;
-         }
-         inletTypes.add(i->i_symfrom->s_name);
-     }
-     while(inletTypes.size() && nin > inletTypes.size()) {
-         inletTypes.add(inletTypes.getReference(inletTypes.size() - 1));
-         nin--;
-     }
-
-     for (i_out = (t_outlet*)obj->ob_outlet; i_out; i_out = i_out->o_next) {
-         if(!i_out->o_sym) {
-             outletTypes.add("?");
-             continue;
-         }
-         outletTypes.add(i_out->o_sym->s_name);
-     }
-
-     while(outletTypes.size() && nout > outletTypes.size()) {
-         outletTypes.add(outletTypes.getReference(outletTypes.size() - 1));
-         nout--;
-     }
-
-     auto file = File("/Users/timschoen/Projecten/plugdata/Resources/pddp/NEW/" + name + ".md");
-
-     String newFile;
-     newFile += "---\n";
-     newFile += "title: " + name + "\n";
-     newFile += "description:\n";
-     newFile += "categories:\n";
-     newFile += " - object\n";
-     newFile += "pdcategory: General\n";
-     newFile += "arguments:\n";
-
-     StringArray numbers = {"1st", "2nd", "3rd", "4th", "5th", "6th", "7th", "8th", "9th", "10th"};
-
-
-     for(auto& arg : arguments) {
-
-         newFile += "- type: " + arg + "\n";
-         newFile += "  description:\n";
-         newFile += "  default:\n";
-     }
-
-     int idx = 0;
-     newFile += "inlets:\n";
-     for(auto& inlet : inletTypes) {
-         newFile += "  " + numbers[idx] + ":\n";
-         newFile += "  - type: " + inlet + "\n";
-         newFile += "    description:\n";
-         idx++;
-     }
-
-     idx = 0;
-     newFile += "outlets:\n";
-     for(auto& outlet : outletTypes) {
-         newFile += "  " + numbers[idx] + ":\n";
-         newFile += "  - type: " + outlet + "\n";
-         newFile += "    description:\n";
-         idx++;
-     }
-
-     file.create();
-     file.replaceWithText(newFile);
-
- }
-
-     });
- });
-
- */

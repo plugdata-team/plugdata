@@ -1,12 +1,12 @@
 ---
 title: sampstoms~
 
-description: Convert samples to milliseconds
+description: convert samples to milliseconds
 
 categories:
  - object
 
-pdcategory: General
+pdcategory: cyclone, Converters
 
 arguments: (none)
 

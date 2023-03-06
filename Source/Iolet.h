@@ -21,7 +21,6 @@ public:
     Iolet(Object* parent, bool isInlet);
 
     void paint(Graphics&) override;
-    void resized() override;
 
     void mouseDrag(MouseEvent const& e) override;
     void mouseUp(MouseEvent const& e) override;
@@ -29,11 +28,18 @@ public:
     void mouseEnter(MouseEvent const& e) override;
     void mouseExit(MouseEvent const& e) override;
 
+    bool hitTest(int x, int y) override;
+
     void valueChanged(Value& v) override;
 
-    static Iolet* findNearestEdge(Canvas* cnv, Point<int> position, bool inlet, Object* boxToExclude = nullptr);
+    static Iolet* findNearestIolet(Canvas* cnv, Point<int> position, bool inlet, Object* boxToExclude = nullptr);
 
     void createConnection();
+        
+    void setHidden(bool hidden);
+
+    void clearConnections();
+    Array<Connection*> getConnections();
 
     Rectangle<int> getCanvasBounds();
 
@@ -42,8 +48,15 @@ public:
     bool isSignal;
 
     bool isTargeted = false;
+        
+    const bool insideGraph;
+        
+
+    Canvas* cnv;
 
 private:
+    bool hideIolet = false;
+        
     Value locked;
     Value presentationMode;
 

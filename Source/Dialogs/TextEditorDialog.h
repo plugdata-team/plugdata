@@ -589,6 +589,7 @@ public:
 
     void resized() override;
     void paint(Graphics& g) override;
+    void paintOverChildren(Graphics& g) override;
 
     void mouseDown(MouseEvent const& e) override;
     void mouseDrag(MouseEvent const& e) override;
@@ -613,7 +614,7 @@ private:
     bool enableSyntaxHighlighting = false;
     bool allowCoreGraphics = true;
 
-    RenderScheme renderScheme = RenderScheme::usingGlyphArrangement;
+    RenderScheme renderScheme = RenderScheme::usingAttributedStringSingle;
 
     double lastTransactionTime;
     bool tabKeyUsed = true;
@@ -714,8 +715,7 @@ void GutterComponent::paint(Graphics& g)
      Draw the gutter background, shadow, and outline
      ------------------------------------------------------------------
      */
-    auto bg = getParentComponent()->findColour(PlugDataColour::canvasBackgroundColourId);
-    auto ln = bg.overlaidWith(getParentComponent()->findColour(PlugDataColour::toolbarBackgroundColourId));
+    auto ln = getParentComponent()->findColour(PlugDataColour::sidebarBackgroundColourId);
 
     g.setColour(ln);
     g.fillRect(getLocalBounds().removeFromLeft(GUTTER_WIDTH));
@@ -740,7 +740,7 @@ void GutterComponent::paint(Graphics& g)
     auto rowData = document.findRowsIntersecting(area);
     auto verticalTransform = transform.withAbsoluteTranslation(0.f, transform.getTranslationY());
 
-    g.setColour(ln.contrasting(0.1f));
+    g.setColour(findColour(PlugDataColour::sidebarActiveBackgroundColourId));
 
     for (auto const& r : rowData) {
         if (r.isRowSelected) {
@@ -749,12 +749,12 @@ void GutterComponent::paint(Graphics& g)
                          .withX(0)
                          .withWidth(GUTTER_WIDTH);
 
-            g.fillRect(A);
+            g.fillRoundedRectangle(A.reduced(4, 1), PlugDataLook::smallCornerRadius);
         }
     }
 
     for (auto const& r : rowData) {
-        g.setColour(getParentComponent()->findColour(r.isRowSelected ? PlugDataColour::objectSelectedOutlineColourId : PlugDataColour::canvasTextColourId));
+        g.setColour(getParentComponent()->findColour(r.isRowSelected ? PlugDataColour::panelActiveTextColourId : PlugDataColour::panelTextColourId));
         memoizedGlyphArrangements(r.rowNumber).draw(g, verticalTransform);
     }
 }
@@ -1581,7 +1581,7 @@ PlugDataTextEditor::PlugDataTextEditor()
     lastTransactionTime = Time::getApproximateMillisecondCounter();
     document.setSelections({ Selection() });
 
-    setFont(Font(Font::getDefaultMonospacedFontName(), 16, 0));
+    setFont(Font(Fonts::getCurrentFont().withHeight(15)));
 
     translateView(GUTTER_WIDTH, 0);
     setWantsKeyboardFocus(true);
@@ -1589,6 +1589,13 @@ PlugDataTextEditor::PlugDataTextEditor()
     addAndMakeVisible(highlight);
     addAndMakeVisible(caret);
     addAndMakeVisible(gutter);
+}
+
+void PlugDataTextEditor::paintOverChildren(Graphics& g)
+{
+    g.setColour(findColour(PlugDataColour::outlineColourId));
+    g.drawHorizontalLine(0, 0, getWidth());
+    g.drawHorizontalLine(getHeight() - 1, 0, getWidth());
 }
 
 void PlugDataTextEditor::setFont(Font font)
@@ -1667,7 +1674,6 @@ void PlugDataTextEditor::resized()
 
 void PlugDataTextEditor::paint(Graphics& g)
 {
-    auto start = Time::getMillisecondCounterHiRes();
     g.fillAll(findColour(PlugDataColour::canvasBackgroundColourId));
 
     String renderSchemeString;
@@ -1753,14 +1759,13 @@ void PlugDataTextEditor::mouseMagnify(MouseEvent const& e, float scaleFactor)
 
 bool PlugDataTextEditor::keyPressed(KeyPress const& key)
 {
-    // =======================================================================================
+
     using Target = TextDocument::Target;
     using Direction = TextDocument::Direction;
     auto mods = key.getModifiers();
     auto isTab = tabKeyUsed && key == KeyPress::tabKey;
     auto isBackspace = key == KeyPress::backspaceKey;
 
-    // =======================================================================================
     auto nav = [this, mods](Target target, Direction direction) {
         if (mods.isShiftDown())
             document.navigateSelections(target, direction, Selection::Part::head);
@@ -1807,8 +1812,6 @@ bool PlugDataTextEditor::keyPressed(KeyPress const& key)
         updateSelections();
         return true;
     };
-
-    // =======================================================================================
     if (key.isKeyCode(KeyPress::escapeKey)) {
         document.setSelections(document.getSelections().getLast());
         updateSelections();
@@ -1954,11 +1957,10 @@ void PlugDataTextEditor::renderTextUsingAttributedStringSingle(Graphics& g)
 
     CppTokeniserFunctions::StringIterator si(content);
     auto previous = si.t;
-    auto start = Time::getMillisecondCounterHiRes();
 
     while (!si.isEOF()) {
         auto tokenType = CppTokeniserFunctions::readNextToken(si);
-        auto colour = enableSyntaxHighlighting ? colourScheme.types[tokenType].colour : findColour(PlugDataColour::canvasTextColourId);
+        auto colour = enableSyntaxHighlighting ? colourScheme.types[tokenType].colour : findColour(PlugDataColour::panelTextColourId);
         auto token = String(previous, si.t);
 
         previous = si.t;
@@ -1998,14 +2000,12 @@ void PlugDataTextEditor::renderTextUsingAttributedString(Graphics& g)
         if (!enableSyntaxHighlighting) {
             s.append(line, font);
         } else {
-            auto start = Time::getMillisecondCounterHiRes();
-
             CppTokeniserFunctions::StringIterator si(line);
             auto previous = si.t;
 
             while (!si.isEOF()) {
                 auto tokenType = CppTokeniserFunctions::readNextToken(si);
-                auto colour = enableSyntaxHighlighting ? colourScheme.types[tokenType].colour : findColour(PlugDataColour::canvasTextColourId);
+                auto colour = enableSyntaxHighlighting ? colourScheme.types[tokenType].colour : findColour(PlugDataColour::panelTextColourId);
                 auto token = String(previous, si.t);
 
                 previous = si.t;
@@ -2036,7 +2036,6 @@ void PlugDataTextEditor::renderTextUsingGlyphArrangement(Graphics& g)
         auto it = TextDocument::Iterator(document, index);
         auto previous = it.getIndex();
         auto zones = Array<Selection>();
-        auto start = Time::getMillisecondCounterHiRes();
 
         while (it.getIndex().x < rows.getEnd() && !it.isEOF()) {
             auto tokenType = CppTokeniserFunctions::readNextToken(it);
@@ -2051,7 +2050,7 @@ void PlugDataTextEditor::renderTextUsingGlyphArrangement(Graphics& g)
             document.findGlyphsIntersecting(g.getClipBounds().toFloat(), n).draw(g);
         }
     } else {
-        g.setColour(findColour(PlugDataColour::canvasTextColourId));
+        g.setColour(findColour(PlugDataColour::panelTextColourId));
         document.findGlyphsIntersecting(g.getClipBounds().toFloat()).draw(g);
     }
     g.restoreState();
@@ -2120,28 +2119,27 @@ struct TextEditorDialog : public Component {
     void paintOverChildren(Graphics& g)
     {
         g.setColour(findColour(PlugDataColour::outlineColourId));
-        g.drawRoundedRectangle(getLocalBounds().reduced(15).toFloat(), Constants::windowCornerRadius, 1.0f);
+        g.drawRoundedRectangle(getLocalBounds().reduced(15).toFloat(), PlugDataLook::windowCornerRadius, 1.0f);
     }
 
     void paint(Graphics& g)
     {
         auto shadowPath = Path();
-        shadowPath.addRoundedRectangle(getLocalBounds().reduced(20), Constants::windowCornerRadius);
+        shadowPath.addRoundedRectangle(getLocalBounds().reduced(20), PlugDataLook::windowCornerRadius);
 
         StackShadow::renderDropShadow(g, shadowPath, Colour(0, 0, 0).withAlpha(0.6f), 12.0f);
 
         auto b = getLocalBounds().reduced(15);
 
         g.setColour(findColour(PlugDataColour::toolbarBackgroundColourId));
-        g.fillRoundedRectangle(b.toFloat(), Constants::windowCornerRadius);
+        g.fillRoundedRectangle(b.toFloat(), PlugDataLook::windowCornerRadius);
 
         g.setColour(findColour(PlugDataColour::outlineColourId));
         g.drawHorizontalLine(b.getX() + 39, b.getY() + 48, b.getWidth());
         g.drawHorizontalLine(b.getHeight() - 20, b.getY() + 48, b.getWidth());
 
         if (!title.isEmpty()) {
-            g.setColour(findColour(PlugDataColour::toolbarTextColourId));
-            g.drawText(title, b.getX(), b.getY(), b.getWidth(), 40, Justification::centred);
+            PlugDataLook::drawText(g, title, b.getX(), b.getY(), b.getWidth(), 40, findColour(PlugDataColour::toolbarTextColourId), 15, Justification::centred);
         }
     }
 };

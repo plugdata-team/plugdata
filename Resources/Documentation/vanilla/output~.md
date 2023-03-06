@@ -1,23 +1,24 @@
 ---
 title: output~
-description: simple stereo output GUI abstraction.
+description: simple stereo output GUI abstraction
 categories:
 - object
 see_also:
 - dac~
-pdcategory: Extra
+pdcategory: vanilla, Audio I/O
 last_update: '0.52'
 inlets:
   1st:
   - type: signal
-    description: left signal input.
-  - type: level <float> 
-    description: sets output level.
+    description: left signal input
   - type: bang
-    description: mute/unmute.
+    description: mute/unmute
   2nd:
   - type: signal
-    description: right signal input.
+    description: right signal input
+methods:
+  - type: level <float> 
+    description: sets output level
 draft: false
 ---
 This is a very simple abstraction that is widely used in Pd's documentation (help files and examples). It is included here just for convenience.

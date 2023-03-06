@@ -1,9 +1,9 @@
 ---
 title: file splitext
-description: separates directory+file and extension.
+description: separates directory+file and extension
 categories:
 - object
-pdcategory: Misc
+pdcategory: vanilla, File Management
 last_update: '0.52'
 see_also:
 - text
@@ -28,14 +28,14 @@ see_also:
 inlets:
   1st:
   - type: symbol
-    description: file name.
+    description: file name
 outlets:
   1st:
   - type: list
-    description: the separated directory and file components.
+    description: the separated directory and file components
   2nd:
   - type: symbol
-    description: path if no extension is found.
+    description: path if no extension is found
 draft: false
 ---
 'splitext' separates the directory+file component from the extension of the given path, and outputs a list with both on the 1st outlet.

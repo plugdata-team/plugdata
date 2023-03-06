@@ -1,9 +1,9 @@
 ---
 title: acos
-description: Arc-cosine function
+description: arc-cosine function
 categories:
  - object
-pdcategory: General
+pdcategory: cyclone, Data Math
 arguments:
 - type: float
   description: initially stored value
@@ -19,6 +19,7 @@ outlets:
   - type: float
     description: the arc-cosine of the input
 
+draft: false
 ---
 
 [acos] calculates the arc-cosine of a given number.

@@ -1,11 +1,11 @@
 ---
 title: rec
-description: Multi-track message recorder
+description: multi-track message recorder
 
 categories:
  - object
 
-pdcategory: General
+pdcategory: ELSE, Data Management
 
 arguments:
 - type: float
@@ -20,7 +20,7 @@ inlets:
   - type: play <list>
     description: plays all tracks or tracks from the given list
   - type: speed <float>
-    description: sets playback speed in percentage
+    description: sets playback speed in %
   - type: record <list>
     description: records all tracks or tracks from the given list
   - type: stop <list>
@@ -37,7 +37,7 @@ inlets:
     description: saves to a text file
   2nd:
   - type: anything
-    description: any message to be recorded in that intlet/track
+    description: any message to be recorded in that inlet/track
 
 
 outlets:

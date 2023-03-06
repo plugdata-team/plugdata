@@ -1,23 +1,20 @@
 ---
 title: amean
 
-description: Generate list with arithmetic means
+description: generate list with arithmetic means
 
 categories:
 - object
 
-pdcategory: Math
+pdcategory: ELSE, Data Math
 
 arguments:
-  1st:
   - description: sets start
     type: float
     default: 1
-  2nd:
   - description: sets end
     type: float
     default: 2
-  3rd:
   - description: sets step-count
     type: float
     default: 2

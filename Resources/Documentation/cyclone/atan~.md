@@ -1,9 +1,9 @@
 ---
 title: atan~
-description: Signal arc-tangent function
+description: signal arc-tangent function
 categories:
  - object
-pdcategory: General
+pdcategory: cyclone, Signal Math
 arguments:
 inlets:
   1st:
@@ -14,6 +14,7 @@ outlets:
   - type: signal
     description: the arc-tangent of the input
 
+draft: false
 ---
 
 Use [atan~] to output the arc-tangent of each input sample (probably only useful for mathematical calculations).

@@ -1,16 +1,16 @@
 ---
 title: mono
 
-description: Monophonic voice manager
+description: monophonic voice manager
 
 categories:
 - object
 
-pdcategory: MIDI
+pdcategory: ELSE, MIDI
 
 arguments:
 - type: float
-  description: non-zero sets to legato mode
+  description: non-0 sets to legato mode
   default:
 
 inlets:
@@ -43,7 +43,7 @@ methods:
   - type: mode <float>
     description: priority mode (0: last, 1: high, 2: low)
   - type: legato <float>
-    description: non-zero - legato mode, zero - restores default
+    description: non-0 - legato mode, zero - restores default
   - type: flush
     description: sends a note off for the hanging note and clears memory
   - type: clear
@@ -52,4 +52,4 @@ methods:
 draft: false
 ---
 
-[mono] takes note messages and handles them to emulate monophonic synth behaviour. Its internal memory can remember up to the last 10 input voices *and pitches need to be >= 0).
+[mono] takes note messages and handles them to emulate monophonic synth behavior. Its internal memory can remember up to the last 10 input voices *and pitches need to be >= 0).

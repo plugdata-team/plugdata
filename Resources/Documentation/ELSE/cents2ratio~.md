@@ -1,15 +1,14 @@
 ---
 title: cents2ratio~
 
-description: Cents/Rational conversion (for signals)
+description: cents/rational conversion for signals
 
 categories:
  - object
 
-pdcategory: Math (Conversion)
+pdcategory: ELSE, Tuning, Converters
 
-arguments: none
-
+arguments:
 inlets: 
   1st:
   - type: signal
@@ -23,5 +22,5 @@ outlets:
 draft: false
 ---
 
-Use [cents2ratio~] to convert a signal representing an interval in cents to an interval respresented as a decmal rational number. The conversion formula is;
+Use [cents2ratio~] to convert a signal representing an interval in cents to an interval represented as a decimal rational number. The conversion formula is;
 ratio = pow(2, (cents/1200))

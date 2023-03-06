@@ -1,17 +1,14 @@
 ---
 title: pvoc.freeze~
 
-description: Phase-vocoder freeze
+description: phase-vocoder freeze
 
 categories:
 - object
 
-pdcategory:
+pdcategory: ELSE, Effects
 
 arguments:
-- description:
-  type:
-  default:
 
 inlets:
   1st:
@@ -19,7 +16,7 @@ inlets:
     description: input to freeze
   2nd:
   - type: float
-    description: non-zero (re)freezes, 0 unfreezes
+    description: non-0 (re)freezes, 0 unfreezes
 
 outlets:
   1st:

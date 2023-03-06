@@ -1,9 +1,11 @@
 ---
 title: panic
-description: Flush hanging MIDI notes
+
+description: flush hanging MIDI notes
+
 categories:
  - object
-pdcategory: General
+pdcategory: ELSE, MIDI
 
 arguments:
 
@@ -20,8 +22,9 @@ outlets:
 
 methods:
   - type: clear
-    desctiption: clears the hanging notes that [midiflush] keeps track off
+    description: clears the hanging notes that [midiflush] keeps track of
 
+draft: false
 ---
 
 Like a "panic button", [panic] keeps track of raw Note-on messages that weren't switched off and "flushes" them by sending corresponding note-offs when it receives a bang.

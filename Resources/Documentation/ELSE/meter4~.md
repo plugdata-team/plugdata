@@ -1,12 +1,12 @@
 ---
 title: meter4~
 
-description: Quatrophonic VU-meter
+description: quadraphonic VU-meter
 
 categories:
 - object
 
-pdcategory: GUI
+pdcategory: ELSE, UI, Analysis
 
 arguments:
 - type: float
@@ -32,4 +32,4 @@ outlets:
 draft: false
 ---
 
-[meter4~] is a convenient qudraphonic VU-meter abstraction based on [vu~] and vanilla's [vu] GUI - see also: [meter~], [meter2~] and [meter8~].
+[meter4~] is a convenient quadraphonic VU-meter abstraction based on [vu~] and vanilla's [vu] GUI - see also: [meter~], [meter2~] and [meter8~].

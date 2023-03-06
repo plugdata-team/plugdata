@@ -1,15 +1,15 @@
 ---
 title: pimp
 
-description: Control phasor+imp
+description: control phasor + imp
 
 categories:
 - object
 
-pdcategory:
+pdcategory: ELSE, Signal Generators
 
 arguments:
-- description: frequency in hertz
+- description: frequency in Hz
   type: float
   default: 0
 - description: initial phase offset
@@ -19,10 +19,10 @@ arguments:
 inlets:
   1st:
   - type: float
-    description: frequency in hz
+    description: frequency in Hz
   2nd:
   - type: float
-    description: phase sync (ressets internal phase)
+    description: phase sync (resets internal phase)
 
 outlets:
   1st:
@@ -34,7 +34,8 @@ outlets:
 
 flags:
   - name: -rate <float>
-    description: rate period in ms (default 5, min 0.1)
+    description: rate period in ms 
+    default: 5, min 0.1
 
 methods:
   - type: rate <float>

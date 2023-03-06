@@ -1,9 +1,9 @@
 ---
 title: asin~
-description: Signal arc-sine function
+description: signal arc-sine function
 categories:
  - object
-pdcategory: General
+pdcategory: cyclone, Signal Math
 arguments:
 inlets:
   1st:
@@ -14,6 +14,7 @@ outlets:
   - type: signal
     description: the arc-sine of the input
 
+draft: false
 ---
 
 Use [asin~] to output the arc-sine of each input sample.

@@ -1,12 +1,12 @@
 ---
 title: xgate2~
 
-description: Route an input with crossfade
+description: route an input with crossfade
 
 categories:
  - object
  
-pdcategory: Control(Fader/Panning/Routing)
+pdcategory: ELSE, Mixing and Routing
 
 arguments:
 - type: float
@@ -30,7 +30,7 @@ outlets:
     description: routed outputs with crossfade
 
 methods:
-  - name: -index <float>
+  - type: index <float>
     description: <1> — indexed mode, <0> — non-indexed (default)
 
 draft: false

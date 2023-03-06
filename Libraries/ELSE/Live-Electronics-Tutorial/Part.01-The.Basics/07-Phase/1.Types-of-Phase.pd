@@ -104,7 +104,7 @@
 #X obj 36 535 cnv 15 448 198 empty empty empty 20 12 0 14 -228856 -66577
 0;
 #N canvas 0 22 450 300 (subpatch) 0;
-#X array Initial-Phase 441 float 0;
+#X array initial-phase 441 float 0;
 #X coords 0 1 440 -1 450 200 1 0 0;
 #X restore 35 534 graph;
 #X text 22 527 1;
@@ -114,18 +114,18 @@
 #X obj 172 419 hsl 200 20 0 1 0 1 empty empty empty -2 -8 0 10 -228856
 -1 -1 0 1;
 #X obj 555 543 phasor~ 200;
-#X text 46 420 Initial Phase:;
+#X text 46 420 initial phase:;
 #X text 253 448 Initial phase is just where in the cycle it started
 to oscillate., f 21;
-#X obj 169 496 tabwrite~ Initial-Phase;
+#X obj 169 496 tabwrite~ initial-phase;
 #X text 380 420 1;
 #X text 154 420 0;
-#X text 493 51 Instant Phase: just "phase" usually refers to instant
+#X text 493 51 Instant phase: just "phase" usually refers to instant
 phase in music theory. So it doesn't concern a stage \, but a moment
-in time. It doesn't hurt to explicitly adopt "instant pahse" instead
+in time. It doesn't hurt to explicitly adopt "instant phase" instead
 of just "phase" \, and indicate a single position within a given cycle.
 , f 68;
-#X text 546 209 Instant Phase as an "Angle"/"Position", f 19;
+#X text 546 209 Instant phase as an "angle"/"position", f 19;
 #X text 466 497 On the other hand \, as with amplitude \, besides an
 "instant" measure \, we also, f 75;
 #X text 711 515 have the "running signal". This "running phase" concept
@@ -135,7 +135,7 @@ the output of [phasor~]., f 40;
 #X obj 456 282 cnv 15 498 202 empty \$0-time . -20 82 0 66 -228856
 -258113 0;
 #N canvas 391 118 975 563 (subpatch) 0;
-#X array Instant-Phase 200 float 1;
+#X array instant-phase 200 float 1;
 #A 0 8.59499e-06 0.0314189 0.0627987 0.0941156 0.12534 0.156442 0.187387
 0.218151 0.248694 0.278999 0.30902 0.338743 0.368128 0.397151 0.425784
 0.453991 0.481761 0.509041 0.535832 0.562082 0.587786 0.612907 0.637422
@@ -166,7 +166,7 @@ the output of [phasor~]., f 40;
 #X coords 0 1.01 199 -1.01 499 203 1 0 0;
 #X restore 455 281 graph;
 #X obj 833 17 declare -path else;
-#X text 27 20 The term "Phase" can be used in different contexts \,
+#X text 27 20 The term "phase" can be used in different contexts \,
 being ambiguous and confusing. One way to avoid is to use more specific
 terminology instead of just abbreviating as "phase". On its own \,
 "phase" indicates a stage within a cycle \, such as the four different

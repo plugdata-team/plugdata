@@ -1,15 +1,16 @@
 ---
 title: lowpass~
-description: Lowpass resonant filter
+
+description: lowpass resonant filter
 
 categories:
  - object
 
-pdcategory: General
+pdcategory: ELSE, Filters
 
 arguments:
 - type: float
-  description: central frequency in Hertz
+  description: central frequency in Hz
   default: 0
 - type: float
   description: resonance, either in 'Q' (default) or 'bw'
@@ -21,7 +22,7 @@ inlets:
     description: signal to be filtered
   2nd:
   - type: float/signal
-    description: central frequency in Hertz
+    description: central frequency in Hz
   3rd:
   - type: float/signal
     description: filter resonance (Q or bandwidth)
@@ -45,6 +46,7 @@ methods:
   - type: q
     description: sets resonance parameter to Q (default)
 
+draft: false
 ---
 
 [lowpass~] is a 2nd order lowpass resonant filter.

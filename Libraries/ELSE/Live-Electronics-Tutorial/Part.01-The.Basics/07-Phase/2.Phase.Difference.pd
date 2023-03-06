@@ -175,8 +175,8 @@
 0.04273 0.028492 0.0142482;
 #X coords 0 1 440 -1 200 140 1 0 0;
 #X restore 470 207 graph;
-#X text 21 35 Two oscillators with the same frequency may be "In Phase"
-or "Out of Phase". Being in phase means that they are in sync \, with
+#X text 21 35 Two oscillators with the same frequency may be "in phase"
+or "out of phase". Being in phase means that they are in sync \, with
 no phase difference. Conversely \, out of phase means out of sync \,
 that is with some phase difference. This can be any kind of difference
 \, but there are two special ones \, phase quadrature and phase opposition.

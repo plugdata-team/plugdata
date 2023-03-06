@@ -6,14 +6,16 @@
 
 #pragma once
 
-struct AdvancedSettingsPanel : public Component {
-    AdvancedSettingsPanel(ValueTree tree)
-        : settingsTree(tree)
-    {
-        nativeTitlebar.referTo(settingsTree.getPropertyAsValue("NativeWindow", nullptr));
-        reloadPatch.referTo(settingsTree.getPropertyAsValue("ReloadLastState", nullptr));
+class AdvancedSettingsPanel : public Component {
 
-        useNativeTitlebar.reset(new PropertiesPanel::BoolComponent("Use native titlebar", nativeTitlebar, { "No", "Yes" }));
+public:
+    AdvancedSettingsPanel()
+    {
+        auto* settingsFile = SettingsFile::getInstance();
+        nativeTitlebar.referTo(settingsFile->getPropertyAsValue("native_window"));
+        reloadPatch.referTo(settingsFile->getPropertyAsValue("reload_last_state"));
+
+        useNativeTitlebar.reset(new PropertiesPanel::BoolComponent("Use system titlebar", nativeTitlebar, { "No", "Yes" }));
 
         reloadLastOpenedPatch.reset(new PropertiesPanel::BoolComponent("Reload last opened patch on startup", reloadPatch, { "No", "Yes" }));
 

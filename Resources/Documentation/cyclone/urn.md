@@ -1,12 +1,12 @@
 ---
 title: urn
 
-description: Unrepeated random numbers
+description: unrepeated random numbers
 
 categories:
  - object
 
-pdcategory: General
+pdcategory: cyclone, Random and Noise
 
 arguments:
 - type: float

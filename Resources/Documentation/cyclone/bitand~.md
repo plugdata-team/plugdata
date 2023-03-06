@@ -1,9 +1,9 @@
 ---
 title: bitand~
-description: Signal Bitwise-AND
+description: signal Bitwise-AND
 categories:
  - object
-pdcategory: General
+pdcategory: cyclone, Logic, Signal Math
 arguments:
 - type: float
   description: converted to integer and used as bitmask
@@ -31,6 +31,7 @@ methods:
   - type: mode <float>
     description: <0-3>: modes of conversion to integers (details in help)
 
+draft: false
 ---
 
 [bitand~] compares the bits of two values with "Bitwise-AND" (bits are set to 1 if both are "1", 0 otherwise). It compares two signals or a signal to a given bitmask. It has 4 modes of comparison (see help file).

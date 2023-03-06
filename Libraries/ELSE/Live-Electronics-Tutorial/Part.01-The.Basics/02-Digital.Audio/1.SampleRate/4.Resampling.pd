@@ -35,8 +35,8 @@ reports us a new sample rate according to the resampling.;
 effect in the same way we've seen so far. This is because we also need
 to do an "upsampling" and either hold or create interpolated values.
 , f 59;
-#X text 471 238 Whenever there's an "upsamplig" \, new samples are
-created and need to be filled. this is done in the [inlet~] and [outlet~]
+#X text 471 238 Whenever there's an "upsampling" \, new samples are
+created and need to be filled. This is done in the [inlet~] and [outlet~]
 objects. The argument specifies what to do with the extra samples \,
 "lin" performs a linear interpolation \, "hold" just holds the values.
 A third option is "pad" (the default) \, which just fills the extra

@@ -1,12 +1,12 @@
 ---
 title: canvas.name
 
-description: Get canvase name
+description: get canvas name
 
 categories:
  - object
 
-pdcategory: Patch Management
+pdcategory: ELSE, UI
 
 arguments:
 - type: float
@@ -32,4 +32,4 @@ flags:
 draft: false
 ---
 
-[canvas.name] gives you the canvas/window name symbol. See the help file of else/gui that shows how to manipulate canvas widgets with this.
+[canvas.name] gives you the canvas/window name symbol.

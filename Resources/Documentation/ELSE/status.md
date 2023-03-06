@@ -1,15 +1,15 @@
 ---
 title: status
 
-description: Report 0/non-0 transitions
+description: report 0/non-0 transitions
 
 categories:
 - object
 
-pdcategory: Control (Triggers)
+pdcategory: ELSE, Triggers and Clocks
 
 arguments:
-- description: initial status value (default no status)
+- description: initial status value
   type: float
   default: no status
 
@@ -23,10 +23,10 @@ inlets:
 outlets:
   1st:
   - type: bang
-    description: if a zero to non-zero transition is detected
+    description: if a zero to non-0 transition is detected
   2nd:
   - type: bang
-    description: if a non-zero to zero transition is detected
+    description: if a non-0 to zero transition is detected
 
 methods:
   - type: change
@@ -35,4 +35,4 @@ methods:
 draft: false
 ---
 
-[status] sends a bang in the left outlet for "zero to non-zero" transitions and a bang in the right outlet for "non-zero to zero" transitions.
+[status] sends a bang in the left outlet for "zero to non-0" transitions and a bang in the right outlet for "non-0 to zero" transitions.

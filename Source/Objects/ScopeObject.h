@@ -89,16 +89,17 @@ struct t_fake_scope {
 };
 
 template<typename S>
-struct ScopeBase : public GUIObject
+class ScopeBase : public ObjectBase
     , public Timer {
 
     std::vector<float> x_buffer;
     std::vector<float> y_buffer;
 
-    Value gridColour, triggerMode, triggerValue, samplesPerPoint, bufferSize, delay, signalRange;
+    Value gridColour, triggerMode, triggerValue, samplesPerPoint, bufferSize, delay, signalRange, primaryColour, secondaryColour, sendSymbol, receiveSymbol;
 
+public:
     ScopeBase(void* ptr, Object* object)
-        : GUIObject(ptr, object)
+        : ObjectBase(ptr, object)
     {
         startTimerHz(25);
 
@@ -112,7 +113,7 @@ struct ScopeBase : public GUIObject
         primaryColour = colourFromHexArray(scope->x_fg).toString();
         gridColour = colourFromHexArray(scope->x_gg).toString();
 
-        auto rcv = String(scope->x_rcv_raw->s_name);
+        auto rcv = String::fromUTF8(scope->x_rcv_raw->s_name);
         if (rcv == "empty")
             rcv = "";
         receiveSymbol = rcv;
@@ -135,6 +136,7 @@ struct ScopeBase : public GUIObject
     {
         return Colour(hex[0], hex[1], hex[2]);
     }
+    
     void colourToHexArray(Colour colour, unsigned char* hex)
     {
         hex[0] = colour.getRed();
@@ -142,81 +144,71 @@ struct ScopeBase : public GUIObject
         hex[2] = colour.getBlue();
     }
 
-    void updateBounds() override
+    Rectangle<int> getPdBounds() override
     {
-        pd->getCallbackLock()->enter();
+        pd->lockAudioThread();
 
         int x = 0, y = 0, w = 0, h = 0;
         libpd_get_object_bounds(cnv->patch.getPointer(), ptr, &x, &y, &w, &h);
 
-        pd->getCallbackLock()->exit();
+        pd->unlockAudioThread();
 
-        object->setObjectBounds({ x, y, w, h });
+        return { x, y, w, h };
     }
 
     void resized() override
     {
     }
 
-    void checkBounds() override
-    {
-        // Apply size limits
-        int w = jlimit(20, maxSize, object->getWidth());
-        int h = jlimit(20, maxSize, object->getHeight());
-
-        if (w != object->getWidth() || h != object->getHeight()) {
-            object->setSize(w, h);
-        }
-    }
-
     void paint(Graphics& g) override
     {
-        g.fillAll(Colour::fromString(secondaryColour.toString()));
-
-        bool selected = cnv->isSelected(object) && !cnv->isGraph;
-        auto outlineColour = object->findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : objectOutlineColourId);
-
-        g.setColour(outlineColour);
-        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Constants::objectCornerRadius, 1.0f);
+        g.setColour(Colour::fromString(secondaryColour.toString()));
+        g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), PlugDataLook::objectCornerRadius);
 
         auto dx = getWidth() * 0.125f;
         auto dy = getHeight() * 0.25f;
 
         g.setColour(Colour::fromString(gridColour.toString()));
 
-        float xx;
-        for (int i = 0, xx = dx; i < 7; i++, xx += dx) {
-            g.drawLine(xx, 0, xx, getHeight());
+        auto xx = dx;
+        for (int i = 0; i < 7; i++) {
+            g.drawLine(xx, 0.0f, xx, static_cast<float>(getHeight()));
+            xx += dx;
         }
 
-        float yy;
-        for (int i = 0, yy = dy; i < 3; i++, yy += dy) {
-            g.drawLine(0, yy, getWidth(), yy);
+        auto yy = dy;
+        for (int i = 0; i < 3; i++) {
+            g.drawLine(0.0f, yy, static_cast<float>(getWidth()), yy);
+            yy += dy;
         }
 
-        if (y_buffer.empty() || x_buffer.empty())
-            return;
+        // skip drawing waveform if buffer is empty
+        if (!(y_buffer.empty() || x_buffer.empty())) {
+            Point<float> lastPoint = Point<float>(x_buffer[0], y_buffer[0]);
+            Point<float> newPoint;
 
-        Point<float> lastPoint = Point<float>(x_buffer[0], y_buffer[0]);
-        Point<float> newPoint;
+            g.setColour(Colour::fromString(primaryColour.toString()));
 
-        g.setColour(Colour::fromString(primaryColour.toString()));
-
-        Path p;
-        for (size_t i = 1; i < y_buffer.size(); i++) {
-            newPoint = Point<float>(x_buffer[i], y_buffer[i]);
-            Line segment(lastPoint, newPoint);
-            p.addLineSegment(segment, 1.0f);
-            lastPoint = newPoint;
+            Path p;
+            for (size_t i = 1; i < y_buffer.size(); i++) {
+                newPoint = Point<float>(x_buffer[i], y_buffer[i]);
+                Line segment(lastPoint, newPoint);
+                p.addLineSegment(segment, 1.0f);
+                lastPoint = newPoint;
+            }
+            g.fillPath(p);
         }
-        g.fillPath(p);
+
+        bool selected = cnv->isSelected(object) && !cnv->isGraph;
+        auto outlineColour = object->findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : objectOutlineColourId);
+
+        g.setColour(outlineColour);
+        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), PlugDataLook::objectCornerRadius, 1.0f);
     }
 
     // Push current object bounds into pd
-    void applyBounds() override
+    void setPdBounds(Rectangle<int> b) override
     {
-
-        auto b = object->getObjectBounds();
         libpd_moveobj(cnv->patch.getPointer(), static_cast<t_gobj*>(ptr), b.getX(), b.getY());
 
         static_cast<S*>(ptr)->x_width = getWidth();
@@ -231,7 +223,10 @@ struct ScopeBase : public GUIObject
         if (object->iolets.size() == 3)
             object->iolets[2]->setVisible(false);
 
-        if (pd->getCallbackLock()->tryEnter()) {
+        { // With locked audio thread, copy oscilloscope values
+            if (!pd->tryLockAudioThread())
+                return;
+
             auto* x = static_cast<S*>(ptr);
             bufsize = x->x_bufsize;
             min = x->x_min;
@@ -245,9 +240,7 @@ struct ScopeBase : public GUIObject
 
             std::copy(x->x_xbuflast, x->x_xbuflast + bufsize, x_buffer.data());
             std::copy(x->x_ybuflast, x->x_ybuflast + bufsize, y_buffer.data());
-            pd->getCallbackLock()->exit();
-        } else {
-            return;
+            pd->unlockAudioThread();
         }
 
         if (min > max) {
@@ -257,31 +250,32 @@ struct ScopeBase : public GUIObject
         }
 
         float oldx = 0, oldy = 0;
-        float dx = getWidth() / (float)bufsize;
-        float dy = getHeight() / (float)bufsize;
+        float dx = (getWidth() - 2) / (float)bufsize;
+        float dy = (getHeight() - 2) / (float)bufsize;
+
+        float waveAreaHeight = getHeight() - 2;
+        float waveAreaWidth = getWidth() - 2;
 
         for (int n = 0; n < bufsize; n++) {
             switch (mode) {
             case 1:
-                y_buffer[n] = jmap<float>(x_buffer[n], min, max, getHeight(), 0);
+                y_buffer[n] = jmap<float>(x_buffer[n], min, max, waveAreaHeight, 2.f);
                 x_buffer[n] = oldx;
                 oldx += dx;
                 break;
             case 2:
-                x_buffer[n] = jmap<float>(y_buffer[n], min, max, 0, getWidth());
+                x_buffer[n] = jmap<float>(y_buffer[n], min, max, 2.f, waveAreaWidth);
                 y_buffer[n] = oldy;
                 oldy += dy;
                 break;
             case 3:
-                x_buffer[n] = jmap<float>(x_buffer[n], min, max, 0, getWidth());
-                y_buffer[n] = jmap<float>(y_buffer[n], min, max, getHeight(), 0);
+                x_buffer[n] = jmap<float>(x_buffer[n], min, max, 2.f, waveAreaWidth);
+                y_buffer[n] = jmap<float>(y_buffer[n], min, max, waveAreaHeight, 2.f);
                 break;
             }
         }
         repaint();
     }
-
-    void updateValue() override {};
 
     void valueChanged(Value& v) override
     {
@@ -294,11 +288,16 @@ struct ScopeBase : public GUIObject
             colourToHexArray(Colour::fromString(gridColour.toString()), scope->x_gg);
         } else if (v.refersToSameSourceAs(bufferSize)) {
             bufferSize = std::clamp<int>(static_cast<int>(bufferSize.getValue()), 0, SCOPE_MAXBUFSIZE * 4);
+            
+            pd->setThis();
             sys_lock();
+            
             scope->x_bufsize = bufferSize.getValue();
             scope->x_bufphase = 0;
+            
             sys_unlock();
         } else if (v.refersToSameSourceAs(samplesPerPoint)) {
+            pd->setThis();
             sys_lock();
             scope->x_period = limitValueMin(v, 0);
             sys_unlock();
@@ -328,36 +327,65 @@ struct ScopeBase : public GUIObject
 
     ObjectParameters getParameters() override
     {
-        ObjectParameters params;
+        return {
+            { "Foreground", tColour, cAppearance, &primaryColour, {} },
+            { "Grid", tColour, cAppearance, &gridColour, {} },
+            { "Background", tColour, cAppearance, &secondaryColour, {} },
+            { "Trigger mode", tCombo, cGeneral, &triggerMode, { "None", "Up", "Down" } },
+            { "Trigger value", tFloat, cGeneral, &triggerValue, {} },
+            { "Samples per point", tInt, cGeneral, &samplesPerPoint, {} },
+            { "Buffer size", tInt, cGeneral, &bufferSize, {} },
+            { "Delay", tInt, cGeneral, &delay, {} },
+            { "Signal range", tRange, cGeneral, &signalRange, {} },
+            { "Receive symbol", tString, cGeneral, &receiveSymbol, {} }
+        };
+    }
 
-        params.push_back({ "Background", tColour, cAppearance, &secondaryColour, {} });
-        params.push_back({ "Foreground", tColour, cAppearance, &primaryColour, {} });
-        params.push_back({ "Grid", tColour, cAppearance, &gridColour, {} });
-
-        params.push_back({ "Trigger mode", tCombo, cGeneral, &triggerMode, { "None", "Up", "Down" } });
-        params.push_back({ "Trigger value", tFloat, cGeneral, &triggerValue, {} });
-
-        params.push_back({ "Samples per point", tInt, cGeneral, &samplesPerPoint, {} });
-        params.push_back({ "Buffer size", tInt, cGeneral, &bufferSize, {} });
-        params.push_back({ "Delay", tInt, cGeneral, &delay, {} });
-
-        params.push_back({ "Signal range", tRange, cGeneral, &signalRange, {} });
-
-        params.push_back({ "Receive symbol", tString, cGeneral, &receiveSymbol, {} });
-
-        return params;
+    void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
+    {
+        switch (hash(symbol)) {
+        case hash("send"): {
+            if (atoms.size() >= 1)
+                setParameterExcludingListener(sendSymbol, atoms[0].getSymbol());
+            break;
+        }
+        case hash("receive"): {
+            if (atoms.size() >= 1)
+                setParameterExcludingListener(receiveSymbol, atoms[0].getSymbol());
+            break;
+        }
+        case hash("fgcolor"): {
+            if (atoms.size() == 3)
+                setParameterExcludingListener(primaryColour, Colour(atoms[0].getFloat(), atoms[1].getFloat(), atoms[2].getFloat()).toString());
+            break;
+        }
+        case hash("bgcolor"): {
+            if (atoms.size() == 3)
+                setParameterExcludingListener(secondaryColour, Colour(atoms[0].getFloat(), atoms[1].getFloat(), atoms[2].getFloat()).toString());
+            break;
+        }
+        case hash("gridcolor"): {
+            if (atoms.size() == 3)
+                setParameterExcludingListener(gridColour, Colour(atoms[0].getFloat(), atoms[1].getFloat(), atoms[2].getFloat()).toString());
+            break;
+        }
+        default:
+            break;
+        }
     }
 };
 
 // Hilarious use of templates to support both cyclone/scope and else/oscope in the same code
-struct ScopeObject final : public ScopeBase<t_fake_scope> {
+class ScopeObject final : public ScopeBase<t_fake_scope> {
+public:
     ScopeObject(void* ptr, Object* object)
         : ScopeBase<t_fake_scope>(ptr, object)
     {
     }
 };
 
-struct OscopeObject final : public ScopeBase<t_fake_oscope> {
+class OscopeObject final : public ScopeBase<t_fake_oscope> {
+public:
     OscopeObject(void* ptr, Object* object)
         : ScopeBase<t_fake_oscope>(ptr, object)
     {

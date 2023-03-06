@@ -1,12 +1,12 @@
 ---
 title: rampsmooth~
 
-description: Smooth signals linearly
+description: smooth signals linearly
 
 categories:
  - object
 
-pdcategory: General
+pdcategory: cyclone, Envelopes and LFOs
 
 arguments:
 - type: float

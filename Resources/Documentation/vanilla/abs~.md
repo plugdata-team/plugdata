@@ -1,9 +1,9 @@
 ---
 title: abs~
-description: Calculates absolute value of signal
+description: calculates absolute value of signal
 categories:
 - object
-pdcategory: Audio Math
+pdcategory: vanilla, Signal Math
 last_update: '0.42'
 see_also:
 - abs
@@ -11,14 +11,14 @@ see_also:
 inlets:
   1st:
   - type: signal
-    description: Input for absolute value
+    description: input for absolute value
 outlets:
   1st:
   - type: signal
-    description: Absolute value
+    description: absolute value
 arguments:
   - type: float 
-    description: Initial value
+    description: initial value
 draft: false
 ---
 The abs~ object passes nonnegative values unchanged, but replaces negative ones with their (positive) inverses.

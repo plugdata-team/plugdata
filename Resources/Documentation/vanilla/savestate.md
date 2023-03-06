@@ -3,19 +3,19 @@ title: savestate
 description: save and restore run-time state from within an abstraction
 categories:
 - object
-pdcategory: Misc
+pdcategory: vanilla, UI, File Management
 last_update: '0.49'
 inlets:
   1st:
   - type: list
-    description: one or more list when the parent patch gets saved.
+    description: one or more list when the parent patch gets saved
 outlets:
   1st:
   - type: list
-    description: one or more list when the parent patch is opened.
+    description: one or more list when the parent patch is opened
   2nd:
   - type: bang
-    description: when the parent patch is saved.
+    description: when the parent patch is saved
 draft: false
 ---
 The savestate object is used inside abstractions to save their state as they are used in a calling (parent) patch. When the parent patch (such as this one, which calls the "savestate-example" abstraction) is saved, the included savestate object sends a 'bang' message out its right outlet, with which the abstraction may respond by presenting one or more 'list' messages back to the 'savestate' object. These lists are saved as part of the calling patch. If the calling patch is reopened later, the lists are sent out the left outlet of the savestate object. The abstraction can then use them to restore its state.

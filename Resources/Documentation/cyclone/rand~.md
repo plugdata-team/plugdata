@@ -1,12 +1,12 @@
 ---
 title: rand~
 
-description: Interplated bandlimited noise
+description: interpolated bandlimited noise
 
 categories:
  - object
 
-pdcategory: General
+pdcategory: cyclone, Random and Noise
 
 arguments:
 - type: float

@@ -1,12 +1,12 @@
 ---
 title: rand.list
 
-description: Choose randomly from a list
+description: choose randomly from a list
 
 categories:
 - object
 
-pdcategory: Control
+pdcategory: ELSE, Random and Noise
 
 arguments:
 - type: list
@@ -25,7 +25,6 @@ outlets:
   1st:
   - type: float
     description: random element from list
-
 
 flags:
   - name: -seed <float>

@@ -1,12 +1,12 @@
 ---
 title: thresh~
 
-description: Detect signal above threshold
+description: detect signal above threshold
 
 categories:
  - object
 
-pdcategory: General
+pdcategory: cyclone, Analysis
 
 arguments:
 - type: float

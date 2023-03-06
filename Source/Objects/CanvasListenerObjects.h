@@ -4,13 +4,14 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
-struct CanvasActiveObject final : public TextBase
+class CanvasActiveObject final : public TextBase
     , public FocusChangeListener {
 
     bool lastFocus = 0;
 
     t_symbol* canvasName;
 
+public:
     CanvasActiveObject(void* ptr, Object* object)
         : TextBase(ptr, object)
     {
@@ -52,7 +53,7 @@ struct CanvasActiveObject final : public TextBase
     }
 };
 
-struct CanvasMouseObject final : public TextBase {
+class CanvasMouseObject final : public TextBase {
 
     struct t_fake_canvas_mouse {
         t_object x_obj;
@@ -68,13 +69,18 @@ struct CanvasMouseObject final : public TextBase {
         int x_y;
     };
 
-    bool lastFocus = 0;
+    Canvas* canvas;
 
+public:
     CanvasMouseObject(void* ptr, Object* object)
         : TextBase(ptr, object)
     {
-        lastFocus = cnv->hasKeyboardFocus(true);
+        locked = static_cast<float>(cnv->locked.getValue());
         setInterceptsMouseClicks(false, false);
+
+        canvas = cnv;
+
+        // TODO: implement depth argument!
         cnv->addMouseListener(this, true);
     }
 
@@ -85,36 +91,52 @@ struct CanvasMouseObject final : public TextBase {
 
     void mouseDown(MouseEvent const& e) override
     {
+        if (!locked)
+            return;
+
         auto pos = e.getPosition();
         auto* mouse = static_cast<t_fake_canvas_mouse*>(ptr);
 
-        outlet_float(mouse->x_outlet_y, (float)pos.x);
-        outlet_float(mouse->x_outlet_x, getHeight() - (float)pos.y);
+        outlet_float(mouse->x_outlet_y, (float)pos.y);
+        outlet_float(mouse->x_outlet_x, (float)pos.x);
         outlet_float(mouse->x_obj.ob_outlet, 1.0);
     }
 
     void mouseUp(MouseEvent const& e) override
     {
+        if (!locked)
+            return;
+
         auto* mouse = static_cast<t_fake_canvas_mouse*>(ptr);
         outlet_float(mouse->x_obj.ob_outlet, 0.0f);
     }
 
     void mouseMove(MouseEvent const& e) override
     {
+        if (!locked)
+            return;
+
         auto pos = e.getPosition();
         auto* mouse = static_cast<t_fake_canvas_mouse*>(ptr);
 
-        outlet_float(mouse->x_outlet_y, (float)pos.x);
-        outlet_float(mouse->x_outlet_x, getHeight() - (float)pos.y);
+        outlet_float(mouse->x_outlet_y, (float)pos.y);
+        outlet_float(mouse->x_outlet_x, (float)pos.x);
     }
 
     void mouseDrag(MouseEvent const& e) override
     {
         mouseMove(e);
     }
+
+    void lock(bool isLocked) override
+    {
+        locked = isLocked;
+    }
+
+    bool locked;
 };
 
-struct CanvasVisibleObject final : public TextBase
+class CanvasVisibleObject final : public TextBase
     , public ComponentListener
     , public Timer {
     struct t_fake_canvas_vis {
@@ -125,6 +147,7 @@ struct CanvasVisibleObject final : public TextBase
 
     bool lastFocus = 0;
 
+public:
     CanvasVisibleObject(void* ptr, Object* object)
         : TextBase(ptr, object)
     {
@@ -136,7 +159,7 @@ struct CanvasVisibleObject final : public TextBase
 
     ~CanvasVisibleObject()
     {
-        cnv->addComponentListener(this);
+        cnv->removeComponentListener(this);
     }
 
     void updateVisibility()
@@ -165,8 +188,7 @@ struct CanvasVisibleObject final : public TextBase
     }
 };
 
-struct CanvasZoomObject final : public TextBase
-    , public Value::Listener {
+class CanvasZoomObject final : public TextBase {
     struct t_fake_zoom {
         t_object x_obj;
         void* x_proxy;
@@ -175,18 +197,20 @@ struct CanvasZoomObject final : public TextBase
     };
 
     float lastScale;
+    Value zoomScaleValue;
 
+public:
     CanvasZoomObject(void* ptr, Object* object)
         : TextBase(ptr, object)
     {
-        lastScale = static_cast<float>(cnv->editor->zoomScale.getValue());
-        cnv->editor->zoomScale.addListener(this);
+        zoomScaleValue.referTo(cnv->editor->getZoomScaleValueForCanvas(cnv));
+        zoomScaleValue.addListener(this);
+        lastScale = static_cast<float>(zoomScaleValue.getValue());
     }
 
     void valueChanged(Value& v) override
     {
-
-        float newScale = static_cast<float>(cnv->editor->zoomScale.getValue());
+        float newScale = static_cast<float>(zoomScaleValue.getValue());
         if (lastScale != newScale) {
             auto* zoom = static_cast<t_fake_zoom*>(ptr);
             outlet_float(zoom->x_obj.ob_outlet, newScale);
@@ -195,8 +219,7 @@ struct CanvasZoomObject final : public TextBase
     }
 };
 
-struct CanvasEditObject final : public TextBase
-    , public Value::Listener {
+class CanvasEditObject final : public TextBase {
     struct t_fake_edit {
         t_object x_obj;
         void* x_proxy;
@@ -206,6 +229,7 @@ struct CanvasEditObject final : public TextBase
 
     bool lastEditMode;
 
+public:
     CanvasEditObject(void* ptr, Object* object)
         : TextBase(ptr, object)
     {

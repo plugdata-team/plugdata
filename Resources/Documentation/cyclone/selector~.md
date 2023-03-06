@@ -1,12 +1,12 @@
 ---
 title: selector~
 
-description: Select messages from an inlet
+description: select messages from an inlet
 
 categories:
  - object
 
-pdcategory: General
+pdcategory: cyclone, Mixing and Routing, Data Management
 
 arguments:
 - type: float

@@ -1,17 +1,21 @@
 ---
 title: tabread4
 description: 4-point-interpolating table lookup
-pdcategory: Arrays & Tables
+pdcategory: vanilla, Arrays and Tables
+arguments:
+- type: symbol
+  description: sets table name with the sample
 inlets:
   1st:
   - type: float
-    description: Sets table index and output its value with interpoation.
+    description: sets table index and output its value with interpolation
 outlets:
   1st:
   - type: float
-    description: Value of index input
+    description: value of index input
 
-draft: false
 methods:
 - type: set <symbol>
-  description: Set the table name
+  description: set the table name
+draft: false
+---

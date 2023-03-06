@@ -3,7 +3,7 @@ title: clip~
 description: restrict a signal between two limits
 categories:
 - object
-pdcategory: Audio Math
+pdcategory: vanilla, Signal Math, Effects
 last_update: '0.33'
 see_also:
 - min~
@@ -15,6 +15,8 @@ arguments:
   default: 0
   type: float
 - description: initial upper limit 
+  default: 0
+  type: float
 inlets:
   1st:
   - type: signal
@@ -30,3 +32,5 @@ outlets:
   - type: signal
     description: the clipped signal
 
+draft: false
+---

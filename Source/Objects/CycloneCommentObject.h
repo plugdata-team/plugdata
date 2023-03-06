@@ -62,24 +62,21 @@ typedef struct _comment {
 } t_fake_comment;
 
 // This object is a dumb version of [cyclone/comment] that only serves to make cyclone's documentation readable
-struct CycloneCommentObject final : public GUIObject {
+class CycloneCommentObject final : public ObjectBase {
 
     Colour textColour;
-    Font font;
     BorderSize<int> border { 1, 7, 1, 2 };
 
+public:
     CycloneCommentObject(void* obj, Object* object)
-        : GUIObject(obj, object)
+        : ObjectBase(obj, object)
     {
         auto* comment = static_cast<t_fake_comment*>(ptr);
-        font = font.withHeight(comment->x_fontsize);
-
         textColour = Colour(comment->x_red, comment->x_green, comment->x_blue);
     }
 
-    void applyBounds() override
+    void setPdBounds(Rectangle<int> b) override
     {
-        auto b = object->getObjectBounds();
         libpd_moveobj(cnv->patch.getPointer(), static_cast<t_gobj*>(ptr), b.getX(), b.getY());
     }
 
@@ -87,8 +84,8 @@ struct CycloneCommentObject final : public GUIObject {
     {
         auto* comment = static_cast<t_fake_comment*>(ptr);
 
-        int width = getBestTextWidth(getText());
-        int height = comment->x_fontsize + 6;
+        int width = getBestTextWidth(getText()) * 8;
+        int height = comment->x_fontsize + 18;
 
         width = std::max(width, 25);
 
@@ -101,11 +98,8 @@ struct CycloneCommentObject final : public GUIObject {
     {
         auto* comment = static_cast<t_fake_comment*>(ptr);
 
-        g.setColour(textColour);
-        g.setFont(font.withHeight(comment->x_fontsize));
-
         auto textArea = border.subtractedFrom(getLocalBounds());
-        g.drawFittedText(getText(), textArea, Justification::centredLeft, 1, 0.9f);
+        PlugDataLook::drawFittedText(g, getText(), textArea, textColour, comment->x_fontsize);
 
         auto selected = cnv->isSelected(object);
         if (object->locked == var(false) && (object->isMouseOverOrDragging(true) || selected) && !cnv->isGraph) {
@@ -130,17 +124,19 @@ struct CycloneCommentObject final : public GUIObject {
         return false;
     }
 
-    void updateBounds() override
+    Rectangle<int> getPdBounds() override
     {
-        pd->getCallbackLock()->enter();
+        int width = getBestTextWidth(getText()) * 8;
+      
+        pd->lockAudioThread();
         auto* comment = static_cast<t_fake_comment*>(ptr);
-        int fontsize = comment->x_fontsize;
-        pd->getCallbackLock()->exit();
+        int height = comment->x_fontsize + 18;
+        auto bounds = Rectangle<int>(comment->x_obj.te_xpix, comment->x_obj.te_ypix, width, height);
+        pd->unlockAudioThread();
 
-        int width = getBestTextWidth(getText());
-        int height = fontsize + 6;
 
-        object->setObjectBounds({ comment->x_obj.te_xpix, comment->x_obj.te_ypix, width, height });
+
+        return bounds;
     }
 
     String getText() override
@@ -151,6 +147,8 @@ struct CycloneCommentObject final : public GUIObject {
 
     int getBestTextWidth(String const& text)
     {
-        return std::max<float>(round(font.getStringWidthFloat(text) + 14.0f), 32);
+        auto* comment = static_cast<t_fake_comment*>(ptr);
+
+        return std::max<float>(round(Font(comment->x_fontsize).getStringWidthFloat(text) + 14.0f), 32);
     }
 };

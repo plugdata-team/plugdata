@@ -5,7 +5,7 @@ description: [pimp~] multiplier
 categories:
  - object
 
-pdcategory: General
+pdcategory: ELSE, Signal Math
 
 arguments:
 - type: float
@@ -22,11 +22,12 @@ inlets:
 outlets:
   1st:
   - type: signal
-    description: muliplied phase signal
+    description: multiplied phase signal
   2nd:
   - type: signal
-    description: impulse at period transitoins
+    description: impulse at period transitions
 
+draft: false
 ---
 
 [pimpmul~] is a "pimp~" multiplier. The [pimp~] object from ELSE is both a [phasor~] and an [imp~] oscillator. Use [pimpul~] to keep [phasor~] or [pimp~] objects in sync with different frequency ratios.

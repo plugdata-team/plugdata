@@ -1,12 +1,12 @@
 ---
 title: gain~
 
-description: Mono gain
+description: mono gain
 
 categories:
 - object
 
-pdcategory:
+pdcategory: ELSE, Effects, Mixing and Routing
 
 arguments:
 
@@ -45,7 +45,7 @@ methods:
   - type: ramp <float>
     description: sets ramp time in ms for slider values (default 20)
   - type: init <float>
-    description: non zero sets to init mode
+    description: non-0 sets to init mode
 
 draft: false
 ---

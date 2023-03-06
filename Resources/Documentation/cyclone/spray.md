@@ -1,12 +1,12 @@
 ---
 title: spray
 
-description: Distribute values to outlets
+description: distribute values to outlets
 
 categories:
  - object
 
-pdcategory: General
+pdcategory: cyclone, Mixing and Routing, Data Management
 
 arguments:
 - type: float

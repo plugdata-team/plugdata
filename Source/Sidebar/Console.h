@@ -4,7 +4,9 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
-struct Console : public Component {
+class Console : public Component {
+
+public:
     explicit Console(pd::Instance* instance)
     {
         // Viewport takes ownership
@@ -29,7 +31,7 @@ struct Console : public Component {
 
         auto i = 0;
         for (auto& button : buttons) {
-            button.setName("statusbar:console");
+            button.getProperties().set("Style", "SmallIcon");
             button.setConnectedEdges(12);
             addAndMakeVisible(button);
 
@@ -105,10 +107,13 @@ struct Console : public Component {
         }
     }
 
-    struct ConsoleComponent : public Component {
-        struct ConsoleMessage : public Component {
-            int idx;
+    class ConsoleComponent : public Component {
+        class ConsoleMessage : public Component {
+
             ConsoleComponent& console;
+
+        public:
+            int idx;
 
             ConsoleMessage(int index, ConsoleComponent& parent)
                 : idx(index)
@@ -130,9 +135,6 @@ struct Console : public Component {
 
             void paint(Graphics& g)
             {
-                auto font = Font(Font::getDefaultSansSerifFontName(), 13, 0);
-                g.setFont(font);
-
                 bool isSelected = console.selectedItems.contains(this);
 
                 bool showMessages = console.buttons[2].getToggleState();
@@ -141,7 +143,7 @@ struct Console : public Component {
                 if (isSelected) {
                     // Draw selected background
                     g.setColour(findColour(PlugDataColour::sidebarActiveBackgroundColourId));
-                    g.fillRoundedRectangle(getLocalBounds().reduced(6, 2).toFloat(), Constants::smallCornerRadius);
+                    g.fillRoundedRectangle(getLocalBounds().reduced(6, 2).toFloat(), PlugDataLook::smallCornerRadius);
 
                     bool connectedOnTop = false;
                     bool connectedOnBottom = false;
@@ -185,18 +187,16 @@ struct Console : public Component {
                     textColour = Colours::red;
 
                 // Draw text
-                g.setColour(textColour);
-                g.drawFittedText(message, getLocalBounds().reduced(14, 2), Justification::centredLeft, numLines, 0.9f);
+                PlugDataLook::drawFittedText(g, message, getLocalBounds().reduced(14, 2), textColour, numLines, 0.9f, 13);
             }
         };
-
-        std::deque<std::unique_ptr<ConsoleMessage>> messages;
 
         std::array<TextButton, 5>& buttons;
         Viewport& viewport;
 
         pd::Instance* pd; // instance to get console messages from
-
+    public:
+        std::deque<std::unique_ptr<ConsoleMessage>> messages;
         Array<SafePointer<ConsoleMessage>> selectedItems;
 
         ConsoleComponent(pd::Instance* instance, std::array<TextButton, 5>& b, Viewport& v)
@@ -255,7 +255,7 @@ struct Console : public Component {
             for (int row = 0; row < static_cast<int>(pd->getConsoleMessages().size()); row++) {
                 auto [message, type, length] = pd->getConsoleMessages()[row];
                 auto numLines = StringUtils::getNumLines(getWidth(), length);
-                auto height = numLines * 22 + 3;
+                auto height = numLines * 13 + 12;
 
                 if (messages[row]->idx != row) {
                     messages[row]->idx = row;
@@ -295,13 +295,11 @@ struct Console : public Component {
         {
             auto showMessages = buttons[2].getToggleState();
             auto showErrors = buttons[3].getToggleState();
-
-            auto font = Font(Font::getDefaultSansSerifFontName(), 13, 0);
             auto totalHeight = 0;
 
             for (auto& [message, type, length] : pd->getConsoleMessages()) {
                 auto numLines = StringUtils::getNumLines(getWidth(), length);
-                auto height = numLines * 22 + 3;
+                auto height = numLines * 13 + 12;
 
                 if ((type == 1 && !showMessages) || (length == 0 && !showErrors))
                     continue;
@@ -328,7 +326,7 @@ struct Console : public Component {
                 auto& [message, type, length] = pd->getConsoleMessages()[row];
 
                 auto numLines = StringUtils::getNumLines(getWidth(), length);
-                auto height = numLines * 22 + 3;
+                auto height = numLines * 13 + 12;
 
                 messages[row]->setBounds(0, totalHeight, getWidth(), height);
 

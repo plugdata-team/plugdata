@@ -4,52 +4,57 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
-struct t_fake_function {
-    t_object x_obj;
-    t_glist* x_glist;
-    t_edit_proxy* x_proxy;
-    int x_state;
-    int x_n_states;
-    int x_flag;
-    int x_s_flag;
-    int x_r_flag;
-    int x_sel;
-    int x_width;
-    int x_height;
-    int x_init;
-    int x_grabbed; // number of grabbed point, for moving it/deleting it
-    int x_shift;
-    int x_snd_set;
-    int x_rcv_set;
-    int x_zoom;
-    int x_edit;
-    t_symbol* x_send;
-    t_symbol* x_receive;
-    t_symbol* x_snd_raw;
-    t_symbol* x_rcv_raw;
-    float* x_points;
-    float* x_dur;
-    float x_total_duration;
-    float x_min;
-    float x_max;
-    float x_min_point;
-    float x_max_point;
-    float x_pointer_x;
-    float x_pointer_y;
-    unsigned char x_fgcolor[3];
-    unsigned char x_bgcolor[3];
-} t_function;
+class FunctionObject final : public ObjectBase {
 
-struct FunctionObject final : public GUIObject {
+    struct t_fake_function {
+        t_object x_obj;
+        t_glist* x_glist;
+        t_edit_proxy* x_proxy;
+        int x_state;
+        int x_n_states;
+        int x_flag;
+        int x_s_flag;
+        int x_r_flag;
+        int x_sel;
+        int x_width;
+        int x_height;
+        int x_init;
+        int x_grabbed; // number of grabbed point, for moving it/deleting it
+        int x_shift;
+        int x_snd_set;
+        int x_rcv_set;
+        int x_zoom;
+        int x_edit;
+        t_symbol* x_send;
+        t_symbol* x_receive;
+        t_symbol* x_snd_raw;
+        t_symbol* x_rcv_raw;
+        float* x_points;
+        float* x_dur;
+        float x_total_duration;
+        float x_min;
+        float x_max;
+        float x_min_point;
+        float x_max_point;
+        float x_pointer_x;
+        float x_pointer_y;
+        unsigned char x_fgcolor[3];
+        unsigned char x_bgcolor[3];
+    };
 
     int hoverIdx = -1;
     int dragIdx = -1;
     bool newPointAdded = false;
 
     Value range;
+    Value primaryColour;
+    Value secondaryColour;
+    Value sendSymbol;
+    Value receiveSymbol;
 
+public:
     FunctionObject(void* ptr, Object* object)
-        : GUIObject(ptr, object)
+        : ObjectBase(ptr, object)
     {
         auto* function = static_cast<t_fake_function*>(ptr);
         secondaryColour = colourFromHexArray(function->x_bgcolor).toString();
@@ -58,8 +63,8 @@ struct FunctionObject final : public GUIObject {
         Array<var> arr = { function->x_min, function->x_max };
         range = var(arr);
 
-        auto sndSym = String(function->x_send->s_name);
-        auto rcvSym = String(function->x_receive->s_name);
+        auto sndSym = String::fromUTF8(function->x_send->s_name);
+        auto rcvSym = String::fromUTF8(function->x_receive->s_name);
 
         sendSymbol = sndSym != "empty" ? sndSym : "";
         receiveSymbol = rcvSym != "empty" ? rcvSym : "";
@@ -68,9 +73,8 @@ struct FunctionObject final : public GUIObject {
     // std::pair<float, float> range;
     Array<Point<float>> points;
 
-    void applyBounds() override
+    void setPdBounds(Rectangle<int> b) override
     {
-        auto b = object->getObjectBounds();
         libpd_moveobj(cnv->patch.getPointer(), static_cast<t_gobj*>(ptr), b.getX(), b.getY());
 
         auto* function = static_cast<t_fake_function*>(ptr);
@@ -78,33 +82,22 @@ struct FunctionObject final : public GUIObject {
         function->x_height = b.getHeight();
     }
 
-    void updateBounds() override
+    Rectangle<int> getPdBounds() override
     {
-        pd->getCallbackLock()->enter();
+        pd->lockAudioThread();
 
         int x = 0, y = 0, w = 0, h = 0;
         libpd_get_object_bounds(cnv->patch.getPointer(), ptr, &x, &y, &w, &h);
 
-        pd->getCallbackLock()->exit();
+        pd->unlockAudioThread();
 
-        object->setObjectBounds({ x, y, w, h });
+        return { x, y, w, h };
     }
 
     void resized() override
     {
-        static_cast<t_my_canvas*>(ptr)->x_vis_w = getWidth();
-        static_cast<t_my_canvas*>(ptr)->x_vis_h = getHeight();
-    }
-
-    void checkBounds() override
-    {
-        // Apply size limits
-        int w = jlimit(20, maxSize, object->getWidth());
-        int h = jlimit(20, maxSize, object->getHeight());
-
-        if (w != object->getWidth() || h != object->getHeight()) {
-            object->setSize(w, h);
-        }
+        static_cast<t_fake_function*>(ptr)->x_width = getWidth();
+        static_cast<t_fake_function*>(ptr)->x_height = getHeight();
     }
 
     Array<Point<float>> getRealPoints()
@@ -130,14 +123,15 @@ struct FunctionObject final : public GUIObject {
 
     void paint(Graphics& g) override
     {
-        g.fillAll(Colour::fromString(secondaryColour.toString()));
+        g.setColour(Colour::fromString(secondaryColour.toString()));
+        g.fillRoundedRectangle(getLocalBounds().toFloat(), PlugDataLook::objectCornerRadius);
 
         bool selected = cnv->isSelected(object) && !cnv->isGraph;
         bool editing = cnv->locked == var(true) || cnv->presentationMode == var(true) || ModifierKeys::getCurrentModifiers().isCtrlDown();
         auto outlineColour = object->findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : objectOutlineColourId);
 
         g.setColour(outlineColour);
-        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Constants::objectCornerRadius, 1.0f);
+        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), PlugDataLook::objectCornerRadius, 1.0f);
 
         g.setColour(Colour::fromString(primaryColour.toString()));
 
@@ -160,7 +154,7 @@ struct FunctionObject final : public GUIObject {
         }
     }
 
-    void updateValue() override
+    void getPointsFromFunction()
     {
         // Don't update while dragging
         if (dragIdx != -1)
@@ -211,7 +205,7 @@ struct FunctionObject final : public GUIObject {
                 setHoverIdx(i);
             }
         }
-        return GUIObject::hitTest(x, y);
+        return ObjectBase::hitTest(x, y);
     }
 
     void mouseExit(MouseEvent const& e) override
@@ -234,10 +228,12 @@ struct FunctionObject final : public GUIObject {
                     if (i == 0 || i == realPoints.size() - 1) {
                         points.getReference(i).y = 0.0f;
                         resetHoverIdx();
+                        triggerOutput();
                         return;
                     }
                     points.remove(i);
                     resetHoverIdx();
+                    triggerOutput();
                     return;
                 }
                 return;
@@ -248,6 +244,8 @@ struct FunctionObject final : public GUIObject {
         float newY = jmap(static_cast<float>(e.y), 3.0f, getHeight() - 3.0f, 1.0f, 0.0f);
 
         dragIdx = points.addSorted(*this, { newX, newY });
+
+        triggerOutput();
     }
 
     std::pair<float, float> getRange()
@@ -303,9 +301,6 @@ struct FunctionObject final : public GUIObject {
 
     void mouseUp(MouseEvent const& e) override
     {
-        if (dragIdx < 0)
-            return;
-
         auto* function = static_cast<t_fake_function*>(ptr);
         points.sort(*this);
 
@@ -320,7 +315,7 @@ struct FunctionObject final : public GUIObject {
 
         dragIdx = -1;
 
-        updateValue();
+        getPointsFromFunction();
     }
 
     void triggerOutput()
@@ -350,7 +345,10 @@ struct FunctionObject final : public GUIObject {
             SETFLOAT(at.data() + i, point);
         }
 
-        pd->enqueueFunction([x, at, ac]() mutable {
+        pd->enqueueFunction([_this = SafePointer(this), x, at, ac]() mutable {
+            if (!_this || _this->cnv->patch.objectWasDeleted(x))
+                return;
+
             outlet_list(x->x_obj.ob_outlet, &s_list, ac - 2, at.data());
             if (x->x_send != &s_ && x->x_send->s_thing)
                 pd_list(x->x_send->s_thing, &s_list, ac - 2, at.data());
@@ -380,20 +378,19 @@ struct FunctionObject final : public GUIObject {
 
         } else if (v.refersToSameSourceAs(range)) {
             setRange(getRange());
-            updateValue();
+            getPointsFromFunction();
         }
     }
 
     ObjectParameters getParameters() override
     {
-        ObjectParameters params;
-        params.push_back({ "Foreground", tColour, cAppearance, &primaryColour, {} });
-        params.push_back({ "Background", tColour, cAppearance, &secondaryColour, {} });
-        params.push_back({ "Range", tRange, cGeneral, &range, {} });
-        params.push_back({ "Send Symbol", tString, cGeneral, &sendSymbol, {} });
-        params.push_back({ "Receive Symbol", tString, cGeneral, &receiveSymbol, {} });
-
-        return params;
+        return {
+            { "Foreground", tColour, cAppearance, &primaryColour, {} },
+            { "Background", tColour, cAppearance, &secondaryColour, {} },
+            { "Range", tRange, cGeneral, &range, {} },
+            { "Receive Symbol", tString, cGeneral, &receiveSymbol, {} },
+            { "Send Symbol", tString, cGeneral, &sendSymbol, {} },
+        };
     }
 
     Colour colourFromHexArray(unsigned char* hex)
@@ -409,11 +406,31 @@ struct FunctionObject final : public GUIObject {
 
     void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
     {
-        if (symbol == "min" || symbol == "max") {
+        switch (hash(symbol)) {
+        case hash("send"): {
+            if (atoms.size() >= 1)
+                setParameterExcludingListener(sendSymbol, atoms[0].getSymbol());
+            break;
+        }
+        case hash("receive"): {
+            if (atoms.size() >= 1)
+                setParameterExcludingListener(receiveSymbol, atoms[0].getSymbol());
+            break;
+        }
+        case hash("list"): {
+            getPointsFromFunction();
+            break;
+        }
+        case hash("min"):
+        case hash("max"): {
             auto* function = static_cast<t_fake_function*>(ptr);
             Array<var> arr = { function->x_min, function->x_max };
             setParameterExcludingListener(range, var(arr));
-            updateValue();
+            getPointsFromFunction();
+            break;
+        }
+        default:
+            break;
         }
     }
 };

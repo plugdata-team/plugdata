@@ -1,16 +1,17 @@
 ---
 title: lincong~
-description: Linear congruential chaotic generator
+
+description: linear congruential chaotic generator
 
 categories:
  - object
 
-pdcategory: General
+pdcategory: ELSE, Signal Generators
 
 arguments:
 - type: float
-  description: sets frequency in hertz
-  default: nyquist
+  description: sets frequency in Hz
+  default: Nyquist
 - type: float
   description: sets 'a'
   default: 1.1
@@ -27,7 +28,7 @@ arguments:
 inlets:
   1st:
   - type: float/signal
-    description: frequency in hertz (negative values accepted)
+    description: frequency in Hz (negative values accepted)
   - type: list
     description: 4 floats sets 'a', 'c', 'm' and y[n-1]
 
@@ -36,6 +37,7 @@ outlets:
   - type: signal
     description: linear congruential chaotic signal
 
+draft: false
 ---
 
 [lincong~] is a chaotic generator using the difference equation;

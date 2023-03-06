@@ -1,17 +1,17 @@
 ---
 title: canvas.bounds
 
-description: Report canvas bounds
+description: report canvas bounds
 
 categories:
  - object
 
-pdcategory: Patch Management
+pdcategory: ELSE, UI
 
 arguments:
 - type: float
   description: depth
-  default: 0 (current window)
+  default: 0 - current window
 inlets:
 outlets:
   1st:

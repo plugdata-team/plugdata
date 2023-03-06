@@ -1,12 +1,12 @@
 ---
 title: chrono
 
-description: Chronometer/timer
+description: chronometer/timer
 
 categories:
  - object
 
-pdcategory: Time
+pdcategory: ELSE, Triggers and Clocks
 
 arguments:
 - type: list
@@ -16,7 +16,7 @@ inlets:
   - type: bang
     description: rewinds chronometer or timer
   - type: float
-    description: rewinds chronometer or non-zero starts or continues, zero stops
+    description: rewinds chronometer or non-0 starts or continues, zero stops
   - type: list
     description: sets timer length in minutes / seconds
 

@@ -5,18 +5,19 @@ categories:
 - object
 see_also:
 - sig~
-pdcategory: General Audio Manipulation
+pdcategory: vanilla, Signal Math, Data Math, Analysis
 last_update: '0.37'
 inlets:
   1st:
   - type: bang
-    description: convert a signal to a float.
-  - type: set <float>
-    description: set a float value for the next DSP block.
+    description: convert a signal to a float
 outlets:
   1st:
   - type: float
-    description: the converted signal at every bang.
+    description: the converted signal at every bang
+methods:
+  - type: set <float>
+    description: set a float value for the next DSP block
 draft: false
 ---
 The snapshot~ object takes a signal and converts it to a control value whenever it receives a bang in its left outlet. This object is particularly useful for monitoring outputs.

@@ -1,16 +1,17 @@
 ---
 title: parabolic~
-description: Parabolic oscillator
+
+description: parabolic oscillator
+
 categories:
  - object
-pdcategory: General
+
+pdcategory: ELSE, Signal Generators
 
 arguments:
-  1st:
   - type: float
-    description: frequency in hertz
+    description: frequency in Hz
     default: 0
-  2nd:
   - type: float
     description: initial phase offset
     default: 0
@@ -18,10 +19,10 @@ arguments:
 inlets:
   1st:
   - type: float/signal
-    description: frequency in hz
+    description: frequency in Hz
   2nd:
   - type: float/signal
-    description: phase sync (ressets internal phase)
+    description: phase sync (resets internal phase)
   3rd:
   - type: float/signal
     description: phase offset (modulation input)
@@ -31,7 +32,8 @@ outlets:
   - type: signal
     description: parabolic wave signal
 
+draft: false
 ---
 
-[parabolic~] is a parabolic oscillator that accepts negative frequencies, has inlets for phase sync and and phase modulation. A parabolic waveform is similar to a sinusoid but it is not band limited (has aliasing).
+[parabolic~] is a parabolic oscillator that accepts negative frequencies, has inlets for phase sync and phase modulation. A parabolic waveform is similar to a sinusoid but it is not band limited (has aliasing).
 

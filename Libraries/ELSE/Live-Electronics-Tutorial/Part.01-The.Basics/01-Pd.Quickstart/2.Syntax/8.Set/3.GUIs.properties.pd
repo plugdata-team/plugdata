@@ -1,27 +1,21 @@
-#N canvas 451 124 570 606 12;
+#N canvas 451 76 570 606 12;
 #X msg 87 142 label \$1;
-#X symbolatom 87 115 10 0 0 0 - - -;
+#X symbolatom 87 115 10 0 0 0 - - - 0;
 #X obj 87 260 send bng;
 #X msg 125 231 size \$1;
-#X floatatom 125 203 5 12 120 0 - - -;
+#X floatatom 125 203 5 12 120 0 - - - 0;
 #X obj 363 121 receive bng;
-#X obj 363 166 bng 120 250 50 0 empty empty hi 8 -10 0 16 -228856 -261689
--4160;
+#X obj 363 166 bng 120 250 50 0 empty empty hi 8 -10 0 16 #dcdcdc #fce0e0 #0400fc;
 #X obj 115 523 s GUI-cnv;
-#X obj 310 419 cnv 15 150 100 empty GUI-cnv empty 20 12 0 14 -128992
--241291 0;
+#X obj 310 419 cnv 15 150 100 empty GUI-cnv empty 20 12 0 14 #7c7c7c #e8e828 0;
 #X msg 115 417 color 11 15;
 #X msg 137 453 vis_size 180 30;
 #X msg 67 391 color 15 11;
 #X msg 144 482 vis_size 150 100;
 #X text 159 141 changes the "label";
 #X text 188 230 changes the "size";
-#X text 41 25 You can also set iemguis. Check the help file of the
-GUI objects to see a full list of messages that allow you to set them.
-You can edit all of their properties with messages \, such as such:
-;
-#X text 86 326 Remember that GUIs have bily-in [send]/[receive] \,
-this is the only way to send messages to canvases., f 50;
+#X text 41 25 You can also set iemguis. Check the help file of the GUI objects to see a full list of messages that allow you to set them. You can edit all of their properties with messages \, such as such:;
+#X text 86 326 Remember that GUIs have built-in [send]/[receive] \, this is the only way to send messages to canvases., f 50;
 #X connect 0 0 2 0;
 #X connect 1 0 0 0;
 #X connect 3 0 2 0;

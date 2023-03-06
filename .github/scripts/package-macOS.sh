@@ -12,6 +12,7 @@ PRODUCT_NAME=plugdata
 LV2="./Plugins/LV2/."
 VST3="./Plugins/VST3/."
 AU="./Plugins/AU/."
+CLAP="./Plugins/CLAP/."
 APP="./Plugins/Standalone/."
 
 OUTPUT_BASE_FILENAME="${PRODUCT_NAME}.pkg"
@@ -56,6 +57,8 @@ build_flavor()
 /usr/bin/codesign --force -s "Developer ID Application: Timothy Schoen (7SV7JPRR2L)" ./Plugins/AU/*.component
 /usr/bin/codesign --force -s "Developer ID Application: Timothy Schoen (7SV7JPRR2L)" ./Plugins/LV2/plugdata.lv2/libplugdata.so
 /usr/bin/codesign --force -s "Developer ID Application: Timothy Schoen (7SV7JPRR2L)" ./Plugins/LV2/plugdata-fx.lv2/libplugdata-fx.so
+/usr/bin/codesign --force -s "Developer ID Application: Timothy Schoen (7SV7JPRR2L)" ./Plugins/CLAP/plugdata.clap/Contents/MacOS/plugdata
+/usr/bin/codesign --force -s "Developer ID Application: Timothy Schoen (7SV7JPRR2L)" ./Plugins/CLAP/plugdata-fx.clap/Contents/MacOS/plugdata-fx
 
 # # try to build VST3 package
 if [[ -d $VST3 ]]; then
@@ -72,10 +75,16 @@ if [[ -d $AU ]]; then
   build_flavor "AU" $AU "com.plugdata.au.pkg.${PRODUCT_NAME}" "/Library/Audio/Plug-Ins/Components"
 fi
 
+# # try to build CLAP package
+if [[ -d $APP ]]; then
+  build_flavor "CLAP" $APP "com.plugdata.clap.pkg.${PRODUCT_NAME}" "/Library/Audio/Plug-Ins/CLAP"
+fi
+
 # try to build App package
 if [[ -d $APP ]]; then
   build_flavor "APP" $APP "com.plugdata.app.pkg.${PRODUCT_NAME}" "/Applications"
 fi
+
 
 
 if [[ -d $VST3 ]]; then
@@ -93,6 +102,11 @@ if [[ -d $AU ]]; then
 	AU_CHOICE="<line choice=\"com.plugdata.au.pkg.${PRODUCT_NAME}\"/>"
 	AU_CHOICE_DEF="<choice id=\"com.plugdata.au.pkg.${PRODUCT_NAME}\" visible=\"true\" start_selected=\"true\" title=\"Audio Unit Plug-in\"><pkg-ref id=\"com.plugdata.au.pkg.${PRODUCT_NAME}\"/></choice><pkg-ref id=\"com.plugdata.au.pkg.${PRODUCT_NAME}\" version=\"${VERSION}\" onConclusion=\"none\">${PRODUCT_NAME}_AU.pkg</pkg-ref>"
 fi
+if [[ -d $CLAP ]]; then
+	CLAP_PKG_REF="<pkg-ref id=\"com.plugdata.clap.pkg.${PRODUCT_NAME}\"/>"
+	CLAP_CHOICE="<line choice=\"com.plugdata.au.clap.${PRODUCT_NAME}\"/>"
+	CLAP_CHOICE_DEF="<choice id=\"com.plugdata.au.clap.${PRODUCT_NAME}\" visible=\"true\" start_selected=\"true\" title=\"Audio Unit Plug-in\"><pkg-ref id=\"com.plugdata.clap.pkg.${PRODUCT_NAME}\"/></choice><pkg-ref id=\"com.plugdata.clap.pkg.${PRODUCT_NAME}\" version=\"${VERSION}\" onConclusion=\"none\">${PRODUCT_NAME}_CLAP.pkg</pkg-ref>"
+fi
 if [[ -d $APP ]]; then
 	APP_PKG_REF="<pkg-ref id=\"com.plugdata.app.pkg.${PRODUCT_NAME}\"/>"
 	APP_CHOICE="<line choice=\"com.plugdata.app.pkg.${PRODUCT_NAME}\"/>"
@@ -109,6 +123,7 @@ cat > ${TARGET_DIR}/distribution.xml << XMLEND
     ${VST3_PKG_REF}
     ${AU_PKG_REF}
     ${LV2_PKG_REF}
+    ${CLAP_PKG_REF}
     ${APP_PKG_REF}
     <options require-scripts="false" customize="always" />
     <options hostArchitectures="arm64,x86_64" />
@@ -116,11 +131,13 @@ cat > ${TARGET_DIR}/distribution.xml << XMLEND
         ${VST3_CHOICE}
         ${AU_CHOICE}
         ${LV2_CHOICE}
+        ${CLAP_CHOICE}
         ${APP_CHOICE}
     </choices-outline>
     ${VST3_CHOICE_DEF}
     ${AU_CHOICE_DEF}
     ${LV2_CHOICE_DEF}
+    ${CLAP_CHOICE_DEF}
     ${APP_CHOICE_DEF}
 </installer-gui-script>
 XMLEND

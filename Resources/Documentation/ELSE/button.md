@@ -2,15 +2,14 @@
 
 title: button
 
-description: Button GUI
+description: button GUI
 
 categories:
  - object
 
-pdcategory: General
+pdcategory: ELSE, UI
 
-arguments: none
-
+arguments:
 inlets:
   1st:
   - type: dim <f, f>
@@ -41,7 +40,21 @@ flags:
 - name: -fgcolor <float, float>
   description: foreground color in RGB (default 255 255 255)
 
-draft: false
+methods:
+  - type: dim <f, f>
+    description: sets horizontal and vertical size in pixels
+  - type: size <float>
+    description: sets both horizontal and vertical size in pixels
+  - type: width <float>
+    description: sets horizontal size in pixels
+  - type: height <float>
+    description: sets vertical size in pixels
+  - type: bgcolor <f, f, f>
+    description: sets background color in RGB
+  - type: fgcolor <f, f, f>
+    description: sets foreground color in RGB
+
+draft: true #you wanna remove them from the inlet?
 ---
 
 [button] is a GUI button that responds to mouse clicks. When clicked on, it sends a "1" value, and outputs "0" when releasing the mouse button.

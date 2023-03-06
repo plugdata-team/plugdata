@@ -5,31 +5,42 @@ categories:
 - object
 see_also:
 - stdout
-pdcategory: Extra
+pdcategory: vanilla, UI
 last_update: '0.42'
 inlets:
   1st:
-  - type: pd~ start <anything>
-    description: start a new sub-process. This message takes startup flags and needs a pd file to open.
-  - type: pd~ stop
-    description: stops the pd sub-process.
   - type: anything
-    description: messages besides "pd~" are sent to corresponding objects in the sub-process with the same name as the first element in the message.
+    description: first element names an object, rest is sent to that object in the sub-process
   - type: signal
-    description: signal input if there's a corresponding adc~ input.
-  "'n' total number of 'n' signal inlets is given as a creation argument.":
+    description: signal input if there's a corresponding adc~ input
+  nth:
   - type: signal
-    description: signal input if there's a corresponding adc~ input.
+    description: signal input if there's a corresponding adc~ input
 outlets:
   1st:
   - type: anything
-    description: messages from the sub-process sent via "stdout" objects.
-  "'n' total number of 'n' signal outlets is given as a creation argument.":
+    description: messages from sub-process sent via "stdout" objects
+  nth:
   - type: signal
-    description: signal output if there's a corresponding dac~ output.
+    description: signal output if there's a corresponding dac~ output
 flags:
-- flag: -ninsig <float>
-  description: sets number of input audio channels 
-  default: 2
-- flag: -noutsig <float>
-  description: sets number of output audio channels 
+- name: -ninsig <float>
+  description: sets number of input audio channels (default 2)
+- name: -noutsig <float>
+  description: sets number of output audio channels (default 2)
+- name: -sr <float>
+  description: sets sample rate of subprocess (default pd's current)
+- name: -fifo <float>
+  description: sets number of blocks for round-trip (default 5)
+- name: -pddir <symbol>
+  description: sets Pd's directory (needed if different than default)
+- name: -scheddir <symbol>
+  description: sets scheduler's directory (also needed if different)
+
+methods:
+  - type: pd~ start <anything>
+    description: start a new sub-process. This message takes startup flags and needs a pd file to open
+  - type: pd~ stop
+    description: stops the pd sub-process
+draft: false
+---

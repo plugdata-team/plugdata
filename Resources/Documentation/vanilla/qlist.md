@@ -3,7 +3,7 @@ title: qlist
 description: text-based sequencer
 categories:
 - object
-pdcategory: Misc
+pdcategory: vanilla, Triggers and Clocks
 last_update: '0.35'
 see_also:
 - textfile
@@ -11,32 +11,33 @@ see_also:
 inlets:
   1st:
   - type: bang
-    description: start sequence automatically.
-  - type: tempo <float>
-    description: set relative tempo.
-  - type: rewind
-    description: go to beginning (and stop).
-  - type: next <float>
-    description: single-step forward, optional float suppresses message sending.
-  - type: print
-    description: print contents to Pd window.
-  - type: clear
-    description: empty the qlist.
-  - type: add <anything>
-    description: add a message to a qlist.
-  - type: add2 <anything>
-    description: add a message to a qlist but don't terminate it.
-  - type: read <symbol>
-    description: read a file into qlist.
-  - type: write <symbol>
-    description: write contents to a file.
+    description: start sequence automatically
 outlets:
   1st:
   - type: list
-    description: list of leading numbers for the next message.
+    description: list of leading numbers for the next message
   2nd:
   - type: bang
-    description: when reaching the end of sequence.
+    description: when reaching the end of sequence
+methods:
+  - type: tempo <float>
+    description: set relative tempo
+  - type: rewind
+    description: go to beginning (and stop)
+  - type: next <float>
+    description: single-step forward, optional float suppresses message sending
+  - type: print
+    description: print contents to Pd window
+  - type: clear
+    description: empty the qlist
+  - type: add <anything>
+    description: add a message to a qlist
+  - type: add2 <anything>
+    description: add a message to a qlist but don't terminate it
+  - type: read <symbol>
+    description: read a file into qlist
+  - type: write <symbol>
+    description: write contents to a file
 draft: false
 ---
 The qlist object reads text files containing time-tagged Pd messages. You can have them sequenced automatically (by sending a "bang" message, possibly changing speed via "tempo" messages) or manually via the "rewind" and "next" messages.

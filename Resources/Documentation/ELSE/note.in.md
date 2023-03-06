@@ -1,9 +1,13 @@
 ---
 title: note.in
-description: Midi pitch input
+
+description: MIDI pitch input
+
 categories:
  - object
-pdcategory: General
+
+pdcategory: ELSE, MIDI
+
 arguments:
 - type: float
   description: sets channel number
@@ -33,6 +37,7 @@ flags:
 - name: -rel
   description: sets the object to output release velocity and note on/off flag
 
+draft: false
 ---
 
 [note.in] extracts MIDI Pitch information from raw MIDI input (such as from [midiin]).

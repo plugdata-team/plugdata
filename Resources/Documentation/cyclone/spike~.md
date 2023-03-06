@@ -1,12 +1,12 @@
 ---
 title: spike~
 
-description: Report zero to non-zero transition intervals
+description: report zero to non-0 transition intervals
 
 categories:
  - object
 
-pdcategory: General
+pdcategory: cyclone, Analysis
 
 arguments: (none)
 
@@ -28,4 +28,4 @@ outlets:
 draft: true
 ---
 
-[spike~] reports intervals of zero to non-zero transitions from the signal input. The refractory period is set at the second inlet, which defines how soon after detecting a transition the spike~ object will report the next instance.
+[spike~] reports intervals of zero to non-0 transitions from the signal input. The refractory period is set at the second inlet, which defines how soon after detecting a transition the spike~ object will report the next instance.

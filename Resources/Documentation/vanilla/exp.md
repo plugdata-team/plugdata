@@ -1,9 +1,9 @@
 ---
 title: exp
-description: math functions
+description: exponential function
 categories:
 - object
-pdcategory: Math
+pdcategory: vanilla, Data Math
 see_also:
 - +~
 - +
@@ -12,11 +12,11 @@ see_also:
 inlets:
   1st:
   - type: float
-    description: Input value.
+    description: input value
 outlets:
   1st:
   - type: float
-    description: The result of the operation.
+    description: the result of the operation
 draft: false
 ---
 

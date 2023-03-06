@@ -3,15 +3,15 @@ title: pipe
 description: dynamically growable delay line for numbers
 categories:
 - object
-pdcategory: Time
+pdcategory: vanilla, Triggers and Clocks
 last_update: '0.33'
 see_also:
 - delay
 - timer
 arguments:
-- description: (optional) symbols sets number of inlets and type (f default,  s,  p)
-    and floats set float type and initial value.
+- description: (optional) symbols sets number of inlets and type (f, s, p) and floats set float type and initial value
   type: list
+  default: f
 - description: sets delay time in ms 
   default: 0
   order: last
@@ -19,26 +19,27 @@ arguments:
 inlets:
   1st:
   - type: bang
-    description: sends the last received data after the delay time.
-  - type: clear
-    description: forget all scheduled messages.
+    description: sends the last received data after the delay time
   - type: float/symbol/pointer
-    description: the type depends on the creation argument.
-  - type: flush
-    description: sends the scheduled messages immediately.
-  'n: number of inlets depends on creation arguments':
+    description: the type depends on the creation argument
+  nth:
   - type: float/symbol/pointer
-    description: the type depends on the creation argument.
-  2nd:
+    description: the type depends on the creation argument
+  2nd: #rightmost
   - type: float
-    description: set the delay time in ms.
+    description: set the delay time in ms
 outlets:
-  'n: number of inlets depends on creation arguments':
+  nth:
   - type: float/symbol/pointer
-    description: the type depends on the creation argument.
-draft: false
+    description: the type depends on the creation argument
+methods:
+  - type: clear
+    description: forget all scheduled messages
+  - type: flush
+    description: sends the scheduled messages immediately
+draft: true #this will display the wrong second inlet description when there's only 2 inlets
 ---
-Message "delay line".
+Message "delay line"
 
 The [pipe] object stores a sequence of messages and outputs them after a specified delay time in milliseconds. The output is scheduled when storing the incoming message. Thus changing the delay time doesn't affect the messages that are already scheduled.
 

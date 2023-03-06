@@ -1,12 +1,12 @@
 ---
 title: hex2dec
 
-description: Convert hexadecimal to decimal
+description: convert hexadecimal to decimal
 
 categories:
 - object
 
-pdcategory:
+pdcategory: ELSE, Data Math, Converters
 
 arguments:
 - description: hexadecimal values to convert

@@ -1,9 +1,9 @@
 ---
 title: cartopol
-description: Cartesian to polar conversion
+description: cartesian to polar conversion
 categories:
  - object
-pdcategory: General
+pdcategory: cyclone, Converters
 arguments:
 inlets:
   1st:
@@ -22,6 +22,7 @@ outlets:
   - type: float
     description: phase in radians (-pi to pi) of the polar form
 
+draft: false
 ---
 
 [cartopol~] converts cartesian coordinates (real / imaginary) to polar coordinates (amplitude / phase).

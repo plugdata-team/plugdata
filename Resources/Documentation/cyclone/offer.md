@@ -1,19 +1,19 @@
 ---
 title: offer
 
-description: Store one-timer number pairs
+description: store one-timer number pairs
 
 categories:
  - object
 
-pdcategory: General
+pdcategory: cyclone, Data Management
 
 arguments: (none)
 
 inlets:
   1st:
   - type: float
-    description: sets 'x' value, ouputs 'y' value, destroys pair
+    description: sets 'x' value, outputs 'y' value, destroys pair
   - type: list
     description: x/y pair to store
   - type: bang

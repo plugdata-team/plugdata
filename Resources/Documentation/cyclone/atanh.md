@@ -1,9 +1,9 @@
 ---
 title: atanh
-description: Hyperbolic arc-tangent function
+description: hyperbolic arc-tangent function
 categories:
  - object
-pdcategory: General
+pdcategory: cyclone, Data Math
 arguments:
 - type: float
   description: initially stored input value
@@ -19,6 +19,7 @@ outlets:
   - type: float
     description: the hyperbolic arc-tangent of the input
 
+draft: false
 ---
 
 use the [atanh] object to calculate the hyperbolic arc-tangent of any given number.

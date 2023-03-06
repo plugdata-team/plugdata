@@ -5,22 +5,22 @@ categories:
 - object
 see_also:
 - tabread4~
-pdcategory: Extra
+pdcategory: vanilla, Signal Generators, Envelopes and LFOs
 last_update: '0.52'
 inlets:
   1st:
   - type: float/signal
-    description: transposition value.
+    description: transposition value
   2nd:
   - type: float/signal
-    description: window size in samples.
+    description: window size in samples
 outlets:
   1st:
   - type: signal
     description: phase output from 0 to 1
   2nd:
   - type: signal
-    description: sampled window size.
+    description: sampled window size
 draft: false
 ---
 loop~ takes input signals to set transposition and window size, and outputs a phase and a sampled window size. The window size only changes at phase zero crossings and the phase output is adjusted so that changing window size doesn't change the transposition.

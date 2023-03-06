@@ -3,7 +3,7 @@ title: list split
 description: manipulate lists
 categories:
 - object
-pdcategory: General
+pdcategory: vanilla, Data Management
 see_also:
 - list
 - list append
@@ -14,19 +14,25 @@ see_also:
 - list fromsymbol
 - list tosymbol
 arguments:
-- description: initialize split point.
+- description: initialize split point
   type: float
 inlets:
   1st:
   - type: anything
-    description: messages to be split into smaller lists.
+    description: messages to be split into smaller lists
   2nd:
   - type: float
-    description: sets new 'n' split point.
+    description: sets new 'n' split point
 outlets:
   1st:
   - type: list
-    description: if incoming list is shorter than n.
+    description: the first 'n' elements of the list
+  2nd:
+  - type: list
+    description: the remaining portion of the list
+  3rd:
+  - type: list
+    description: if incoming list is shorter than n
 draft: false
 ---
 Cut a list into smaller ones.

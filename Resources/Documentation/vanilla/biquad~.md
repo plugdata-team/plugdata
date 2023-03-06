@@ -17,25 +17,26 @@ see_also:
 - cpole~
 - czero~
 - czero_rev~
-pdcategory: Audio Filters
+pdcategory: vanilla, Filters
 last_update: '0.30'
 inlets:
   1st:
   - type: signal
-    description: input signal to be filtered.
+    description: input signal to be filtered
   - type: list
-    description: input signal to be filtered (fb1 fb2 ff1 ff2 ff3).
-  - type: set <float, float>
-    description: set last two input samples.
-  - type: clear
-    description: clear filter's memory buffer.
+    description: input signal to be filtered (fb1 fb2 ff1 ff2 ff3)
 outlets:
   1st:
   - type: signal
-    description: the filtered signal output.
+    description: the filtered signal output
 arguments:
   - type: list
-    description: initializes the 5 coefficients (fb1 fb2 ff1 ff2 ff3).
+    description: initializes the 5 coefficients (fb1 fb2 ff1 ff2 ff3)
+methods:
+  - type: set <float, float>
+    description: set last two input samples
+  - type: clear
+    description: clear filter's memory buffer
 draft: false
 ---
 Biquad~ calculates the following difference equation:

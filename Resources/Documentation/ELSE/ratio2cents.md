@@ -1,12 +1,12 @@
 ---
 title: ratio2cents
 
-description: Rational/Cents conversion
+description: rational/Cents conversion
 
 categories:
  - object
 
-pdcategory: Math
+pdcategory: ELSE, Data Math, Converters
 
 arguments:
 - type: float

@@ -7,6 +7,7 @@
 #pragma once
 
 #include <JuceHeader.h>
+#include <m_pd.h>
 
 #include "../Utility/FileSystemWatcher.h"
 
@@ -16,13 +17,15 @@
 namespace pd {
 
 using IODescription = Array<std::pair<String, bool>>;
-using IODescriptionMap = std::unordered_map<String, IODescription>;
+using IODescriptionMap = std::unordered_map<String, std::array<IODescription, 2>>;
 
-using Suggestion = std::pair<String, bool>;
-using Suggestions = std::vector<Suggestion>;
+using Suggestions = StringArray;
 
 using Arguments = std::vector<std::tuple<String, String, String>>;
 using ArgumentMap = std::unordered_map<String, Arguments>;
+
+using Methods = std::vector<std::pair<String, String>>;
+using MethodMap = std::unordered_map<String, Methods>;
 
 using ObjectMap = std::unordered_map<String, String>;
 using KeywordMap = std::unordered_map<String, StringArray>;
@@ -56,7 +59,7 @@ public:
         }
     }
 
-    void insert(String const& key);
+    void insert(String key);
     bool deletion(Trie*&, String);
     bool search(String const&);
     bool hasChildren();
@@ -65,8 +68,9 @@ public:
     int autocomplete(String query, Suggestions& result);
 };
 
-struct Library : public FileSystemWatcher::Listener {
+class Library : public FileSystemWatcher::Listener {
 
+public:
     ~Library()
     {
         appDirChanged = nullptr;
@@ -78,42 +82,57 @@ struct Library : public FileSystemWatcher::Listener {
     void parseDocumentation(String const& path);
 
     Suggestions autocomplete(String query) const;
+    void getExtraSuggestions(int currentNumSuggestions, String query, std::function<void(Suggestions)> callback);
 
-    String getInletOutletTooltip(String type, String name, int idx, int total, bool isInlet);
+    String getObjectTooltip(String const& type);
+    std::array<StringArray, 2> getIoletTooltips(String type, String name, int numIn, int numOut);
 
     void fsChangeCallback() override;
 
-    File findHelpfile(t_object* obj);
+    File findHelpfile(t_object* obj, File parentPatchFile);
 
-    std::vector<File> helpPaths;
+    Array<File> helpPaths;
 
     ThreadPool libraryUpdateThread = ThreadPool(1);
 
     ObjectMap getObjectDescriptions();
     KeywordMap getObjectKeywords();
     CategoryMap getObjectCategories();
-    IODescriptionMap getInletDescriptions();
-    IODescriptionMap getOutletDescriptions();
+    IODescriptionMap getIoletDescriptions();
     StringArray getAllObjects();
     ArgumentMap getArguments();
+    MethodMap getMethods();
 
     std::function<void()> appDirChanged;
+
+    static inline const File appDataDir = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory).getChildFile("plugdata");
+
+    static inline Array<File> const defaultPaths = {
+        appDataDir.getChildFile("Library").getChildFile("Abstractions").getChildFile("else"),
+        appDataDir.getChildFile("Library").getChildFile("Abstractions").getChildFile("cyclone"),
+        appDataDir.getChildFile("Library").getChildFile("Abstractions").getChildFile("heavylib"),
+        appDataDir.getChildFile("Library").getChildFile("Abstractions"),
+        appDataDir.getChildFile("Library").getChildFile("Deken"),
+        appDataDir.getChildFile("Library").getChildFile("Extra").getChildFile("else"),
+        appDataDir.getChildFile("Library").getChildFile("Extra")
+    };
+
+    static inline StringArray objectOrigins = { "vanilla", "ELSE", "cyclone", "heavylib", "pdlua" };
 
 private:
     ObjectMap objectDescriptions;
     KeywordMap objectKeywords;
     CategoryMap objectCategories;
-    IODescriptionMap inletDescriptions;
-    IODescriptionMap outletDescriptions;
+    IODescriptionMap ioletDescriptions;
     ArgumentMap arguments;
+    MethodMap methods;
 
     StringArray allObjects;
 
-    std::mutex libraryLock;
+    std::recursive_mutex libraryLock;
 
     std::unique_ptr<Trie> searchTree = nullptr;
 
-    File appDataDir;
     FileSystemWatcher watcher;
 };
 

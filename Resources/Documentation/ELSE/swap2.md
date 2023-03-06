@@ -1,14 +1,14 @@
 ---
 title: swap2
 
-description: Swap two messages
+description: swap two messages
 
 categories:
 - object
 
-pdcategory: Message Management 
+pdcategory: ELSE, Data Management 
 
-arguments: (none)
+arguments:
 
 inlets:
   1st:

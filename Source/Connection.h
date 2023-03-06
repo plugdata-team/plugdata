@@ -12,14 +12,21 @@ extern "C" {
 #include <m_pd.h>
 }
 
+#include <concurrentqueue.h>
 #include "Iolet.h"
+#include "Pd/PdInstance.h"
+#include "Utility/RateReducer.h"
 
 using PathPlan = std::vector<Point<float>>;
 
 class Canvas;
+class PathUpdater;
+
 class Connection : public Component
     , public ComponentListener
-    , public Value::Listener {
+    , public Value::Listener
+    , public pd::MessageListener
+    , public SettableTooltipClient {
 public:
     int inIdx;
     int outIdx;
@@ -30,8 +37,12 @@ public:
     Path toDraw;
     String lastId;
 
-    Connection(Canvas* parent, Iolet* start, Iolet* end, bool exists = false);
+    Connection(Canvas* parent, Iolet* start, Iolet* end, void* oc);
     ~Connection() override;
+
+    static void renderConnectionPath(Graphics& g, Canvas* cnv, Path connectionPath, bool isSignal, bool isMouseOver = false, bool isSelected = false, Point<int> mousePos = { 0, 0 }, bool isHovering = false);
+
+    static Path getNonSegmentedPath(Point<float> start, Point<float> end);
 
     void paint(Graphics&) override;
 
@@ -40,26 +51,33 @@ public:
 
     void updatePath();
 
+    void lookAndFeelChanged() override;
+
     bool hitTest(int x, int y) override;
 
     void mouseDown(MouseEvent const& e) override;
     void mouseMove(MouseEvent const& e) override;
     void mouseDrag(MouseEvent const& e) override;
     void mouseUp(MouseEvent const& e) override;
+    void mouseEnter(MouseEvent const& e) override;
     void mouseExit(MouseEvent const& e) override;
 
     Point<float> getStartPoint();
     Point<float> getEndPoint();
 
-    void reconnect(Iolet* target, bool dragged);
+    void reconnect(Iolet* target);
 
     bool intersects(Rectangle<float> toCheck, int accuracy = 4) const;
     int getClosestLineIdx(Point<float> const& position, PathPlan const& plan);
 
     String getId() const;
 
-    String getState();
-    void setState(String const& block);
+    void setPointer(void* ptr);
+    void* getPointer();
+
+    t_symbol* getPathState();
+    void pushPathState();
+    void popPathState();
 
     void componentMovedOrResized(Component& component, bool wasMoved, bool wasResized) override;
 
@@ -70,6 +88,8 @@ public:
 
     bool intersectsObject(Object* object);
     bool straightLineIntersectsObject(Line<float> toCheck, Array<Object*>& objects);
+
+    void receiveMessage(String const& name, int argc, t_atom* argv) override;
 
 private:
     bool wasSelected = false;
@@ -91,14 +111,111 @@ private:
     int dragIdx = -1;
 
     float mouseDownPosition = 0;
-
-    Value useStraightConnections;
-    bool useStraight;
-
-    Value useDashedSignalConnection;
-    bool useDashed;
+    bool isHovering = false;
 
     void valueChanged(Value& v) override;
 
+    struct t_fake_outconnect {
+        void* oc_next;
+        t_pd* oc_to;
+        t_symbol* outconnect_path_data;
+    };
+
+    t_fake_outconnect* ptr;
+
+    friend class ConnectionPathUpdater;
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(Connection)
+};
+
+class ConnectionBeingCreated : public Component {
+    SafePointer<Iolet> iolet;
+    Component* cnv;
+    Path connectionPath;
+
+public:
+    ConnectionBeingCreated(Iolet* target, Component* canvas)
+        : iolet(target)
+        , cnv(canvas)
+    {
+
+        // Only listen for mouse-events on canvas and the original iolet
+        setInterceptsMouseClicks(false, true);
+        cnv->addMouseListener(this, true);
+        iolet->addMouseListener(this, false);
+
+        cnv->addAndMakeVisible(this);
+
+        setAlwaysOnTop(true);
+    }
+
+    ~ConnectionBeingCreated()
+    {
+        cnv->removeMouseListener(this);
+        iolet->removeMouseListener(this);
+    }
+
+    void mouseDrag(MouseEvent const& e) override
+    {
+        mouseMove(e);
+    }
+
+    void mouseMove(MouseEvent const& e) override
+    {
+        if (rateReducer.tooFast())
+            return;
+
+        auto ioletPoint = cnv->getLocalPoint((Component*)iolet->object, iolet->getBounds().getCentre());
+        auto cursorPoint = cnv->getLocalPoint(nullptr, e.getScreenPosition());
+
+        auto& startPoint = iolet->isInlet ? cursorPoint : ioletPoint;
+        auto& endPoint = iolet->isInlet ? ioletPoint : cursorPoint;
+
+        connectionPath = Connection::getNonSegmentedPath(startPoint.toFloat(), endPoint.toFloat());
+
+        auto bounds = connectionPath.getBounds().getSmallestIntegerContainer().expanded(3);
+
+        // Make sure we have minimal bounds, expand slightly to take line thickness into account
+        setBounds(bounds);
+
+        // Remove bounds offset from path, because we've already set our origin by setting component bounds
+        connectionPath.applyTransform(AffineTransform::translation(-bounds.getX(), -bounds.getY()));
+
+        repaint();
+        iolet->repaint();
+    }
+
+    void paint(Graphics& g) override
+    {
+        if (!iolet) {
+            jassertfalse; // shouldn't happen
+            return;
+        }
+        Connection::renderConnectionPath(g, (Canvas*)cnv, connectionPath, iolet->isSignal, true);
+    }
+
+    Iolet* getIolet()
+    {
+        return iolet;
+    }
+
+    RateReducer rateReducer = RateReducer(90);
+};
+
+// Helper class to group connection path changes together into undoable/redoable actions
+class ConnectionPathUpdater : public Timer {
+    Canvas* canvas;
+
+    moodycamel::ConcurrentQueue<std::pair<Component::SafePointer<Connection>, t_symbol*>> connectionUpdateQueue = moodycamel::ConcurrentQueue<std::pair<Component::SafePointer<Connection>, t_symbol*>>(4096);
+
+    void timerCallback() override;
+
+public:
+    ConnectionPathUpdater(Canvas* cnv)
+        : canvas(cnv) {};
+
+    void pushPathState(Connection* connection, t_symbol* newPathState)
+    {
+        connectionUpdateQueue.enqueue({ connection, newPathState });
+        startTimer(50);
+    }
 };

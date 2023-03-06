@@ -1,12 +1,12 @@
 ---
 title: prepend
 
-description: Prepend a message to the incoming message
+description: prepend a message to the incoming message
 
 categories:
  - object
 
-pdcategory: General
+pdcategory: cyclone, Data Management
 
 arguments:
 - type: anything

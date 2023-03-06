@@ -3,14 +3,14 @@ title: loadbang
 description: bang on load
 categories:
 - object
-pdcategory: Misc
+pdcategory: vanilla, Triggers and Clocks
 last_update: '0.47'
 see_also:
 - bang
 outlets:
   1st:
   - type: bang
-    description: when loading the patch.
+    description: when loading the patch
 draft: false
 ---
 The loadbang object outputs a 'bang' message when the containing patch is opened as a document or included in another patch as an abstraction.

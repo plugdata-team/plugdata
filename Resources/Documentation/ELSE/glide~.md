@@ -1,11 +1,11 @@
 ---
 title: glide~
-description: Signal glide/portamento
+description: signal glide/portamento
 
 categories:
  - object
 
-pdcategory: General
+pdcategory: ELSE, Envelopes and LFOs, Effects
 
 arguments:
 - type: float
@@ -27,7 +27,7 @@ outlets:
 
 flags:
   - name: -exp <float>
-    description: sets exponential factor (default '1', linear)
+    description: sets exponential factor (default 1 - linear)
 
 methods:
   - type: reset
@@ -35,6 +35,7 @@ methods:
   - type: exp <float>
     description: sets exponential factor
 
+draft: false
 ---
 
 [glide~] generates a glide/portamento from its signal input changes. The glide time in ms.

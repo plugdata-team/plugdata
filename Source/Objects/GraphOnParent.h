@@ -4,14 +4,23 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
-struct GraphOnParent final : public GUIObject {
+class GraphOnParent final : public ObjectBase {
+
     bool isLocked = false;
+    bool isOpenedInSplitView = false;
+
+    Value isGraphChild = Value(var(false));
+    Value hideNameAndArgs = Value(var(false));
+    Value xRange, yRange;
+
+    pd::Patch subpatch;
+    std::unique_ptr<Canvas> canvas;
 
 public:
     // Graph On Parent
     GraphOnParent(void* obj, Object* object)
-        : GUIObject(obj, object)
-        , subpatch({ ptr, cnv->pd })
+        : ObjectBase(obj, object)
+        , subpatch(ptr, cnv->pd, false)
     {
         auto* glist = static_cast<t_canvas*>(ptr);
         isGraphChild = true;
@@ -30,30 +39,53 @@ public:
 
     void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
     {
-        // TODO: actually read atoms
-        if (symbol == "coords" && atoms.size() >= 8) {
-            updateBounds();
-            // x_range: 0 1
-            // y_range: 1 -1
-            // w: $4 h: 22
-            // hidetext: 2
-            // margin: 100 100
-            // isgraph: 1
+        switch (hash(symbol)) {
+        case hash("coords"): {
+            if (atoms.size() >= 8) {
 
-            pd->getCallbackLock()->enter();
+                // x_range: 0 1
+                // y_range: 1 -1
+                // w: $4 h: 22
+                // hidetext: 2
+                // margin: 100 100
+                // isgraph: 1
 
-            int x = 0, y = 0, w = 0, h = 0;
-            libpd_get_object_bounds(cnv->patch.getPointer(), ptr, &x, &y, &w, &h);
-            auto bounds = Rectangle<int>(x, y, atoms[4].getFloat(), atoms[5].getFloat());
+                pd->lockAudioThread();
 
-            pd->getCallbackLock()->exit();
+                int x = 0, y = 0, w = 0, h = 0;
+                libpd_get_object_bounds(cnv->patch.getPointer(), ptr, &x, &y, &w, &h);
+                auto bounds = Rectangle<int>(x, y, atoms[4].getFloat(), atoms[5].getFloat());
 
-            object->setObjectBounds(bounds);
+                pd->unlockAudioThread();
+
+                object->setObjectBounds(bounds);
+            }
+            break;
+        }
+        case hash("vis"): {
+            if (atoms[0].getFloat() == 1) {
+                openSubpatch();
+            } else {
+                closeOpenedSubpatchers();
+            }
+            break;
+        }
+        case hash("donecanvasdialog"): {
+            if (atoms.size() >= 11) {
+
+                updateCanvas();
+                updateDrawables();
+            }
+            break;
+        }
+        default:
+            break;
         }
     }
 
     void resized() override
     {
+        updateCanvas();
         updateDrawables();
     }
 
@@ -83,28 +115,17 @@ public:
         return false;
     }
 
-    void checkBounds() override
+    Rectangle<int> getPdBounds() override
     {
-        // Apply size limits
-        int w = jlimit(25, maxSize, object->getWidth());
-        int h = jlimit(25, maxSize, object->getHeight());
-
-        if (w != object->getWidth() || h != object->getHeight()) {
-            object->setSize(w, h);
-        }
-    }
-
-    void updateBounds() override
-    {
-        pd->getCallbackLock()->enter();
+        pd->lockAudioThread();
 
         int x = 0, y = 0, w = 0, h = 0;
         libpd_get_object_bounds(cnv->patch.getPointer(), ptr, &x, &y, &w, &h);
         auto bounds = Rectangle<int>(x, y, w, h);
 
-        pd->getCallbackLock()->exit();
+        pd->unlockAudioThread();
 
-        object->setObjectBounds(bounds);
+        return bounds;
     }
 
     ~GraphOnParent() override
@@ -112,9 +133,25 @@ public:
         closeOpenedSubpatchers();
     }
 
-    void applyBounds() override
+    void tabChanged() override
     {
-        auto b = object->getObjectBounds();
+        auto* leftTabbar = cnv->editor->splitView.getLeftTabbar();
+        auto* rightTabbar = cnv->editor->splitView.getRightTabbar();
+
+        auto* otherTabbar = cnv->getTabbar() == leftTabbar ? rightTabbar : leftTabbar;
+
+        if (auto* otherCnv = otherTabbar->getCurrentCanvas()) {
+            isOpenedInSplitView = otherCnv->patch == *getPatch();
+        } else {
+            isOpenedInSplitView = false;
+        }
+
+        updateCanvas();
+        repaint();
+    }
+
+    void setPdBounds(Rectangle<int> b) override
+    {
         libpd_moveobj(cnv->patch.getPointer(), static_cast<t_gobj*>(ptr), b.getX(), b.getY());
 
         auto* graph = static_cast<_glist*>(ptr);
@@ -124,6 +161,7 @@ public:
 
     void lock(bool locked) override
     {
+        setInterceptsMouseClicks(locked, locked);
         isLocked = locked;
     }
 
@@ -133,38 +171,17 @@ public:
             canvas = std::make_unique<Canvas>(cnv->editor, subpatch, this);
 
             // Make sure that the graph doesn't become the current canvas
-            cnv->patch.setCurrent(true);
+            cnv->patch.setCurrent();
             cnv->editor->updateCommandStatus();
         }
 
+        canvas->synchronise();
         canvas->checkBounds();
 
         auto b = getPatch()->getBounds() + canvas->canvasOrigin;
         canvas->setBounds(-b.getX(), -b.getY(), b.getWidth() + b.getX(), b.getHeight() + b.getY());
         canvas->setLookAndFeel(&LookAndFeel::getDefaultLookAndFeel());
         canvas->locked.referTo(cnv->locked);
-    }
-
-    void updateValue() override
-    {
-        // Change from subpatch to graph
-        if (!static_cast<t_canvas*>(ptr)->gl_isgraph) {
-            cnv->setSelected(object, false);
-            object->cnv->editor->sidebar.hideParameters();
-            object->setType(getText(), ptr);
-            return;
-        }
-
-        updateCanvas();
-
-        if (!canvas)
-            return;
-
-        for (auto& object : canvas->objects) {
-            if (object->gui) {
-                object->gui->updateValue();
-            }
-        }
     }
 
     void updateDrawables() override
@@ -185,15 +202,29 @@ public:
         auto outlineColour = object->findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : objectOutlineColourId);
 
         g.setColour(outlineColour);
-        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Constants::objectCornerRadius, 1.0f);
+        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), PlugDataLook::objectCornerRadius, 1.0f);
 
         // Strangly, the title goes below the graph content in pd
         if (!static_cast<bool>(hideNameAndArgs.getValue()) && getText() != "graph") {
             auto text = getText();
-            g.setColour(object->findColour(PlugDataColour::canvasTextColourId));
-            g.setFont(Font(15));
+
             auto textArea = getLocalBounds().removeFromTop(20).withTrimmedLeft(5);
-            g.drawFittedText(text, textArea, Justification::left, 1, 1.0f);
+            PlugDataLook::drawFittedText(g, text, textArea, object->findColour(PlugDataColour::canvasTextColourId));
+        }
+    }
+
+    void paintOverChildren(Graphics& g) override
+    {
+        if (isOpenedInSplitView) {
+
+            g.setColour(object->findColour(PlugDataColour::guiObjectBackgroundColourId));
+            g.fillRoundedRectangle(getLocalBounds().toFloat(), PlugDataLook::objectCornerRadius);
+
+            g.setColour(object->findColour(objectOutlineColourId));
+            g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), PlugDataLook::objectCornerRadius, 1.0f);
+
+            auto colour = object->findColour(PlugDataColour::canvasTextColourId);
+            PlugDataLook::drawText(g, "Graph opened in split view", getLocalBounds(), colour, 14, Justification::centred);
         }
     }
 
@@ -209,18 +240,44 @@ public:
 
     ObjectParameters getParameters() override
     {
-        return { { "Is graph", tBool, cGeneral, &isGraphChild, { "No", "Yes" } }, { "Hide name and arguments", tBool, cGeneral, &hideNameAndArgs, { "No", "Yes" } }, { "X range", tRange, cGeneral, &xRange, {} },
+        return { { "Is graph", tBool, cGeneral, &isGraphChild, { "No", "Yes" } },
+            { "Hide name and arguments", tBool, cGeneral, &hideNameAndArgs, { "No", "Yes" } },
+            { "X range", tRange, cGeneral, &xRange, {} },
             { "Y range", tRange, cGeneral, &yRange, {} } };
     };
 
+    void checkGraphState()
+    {
+        if(!ptr) return;
+        
+        pd->setThis();
+        
+        int isGraph = static_cast<bool>(isGraphChild.getValue());
+        int hideText = static_cast<bool>(hideNameAndArgs.getValue());
+
+        canvas_setgraph(static_cast<t_glist*>(ptr), isGraph + 2 * hideText, 0);
+        repaint();
+
+        MessageManager::callAsync([this, _this = SafePointer(this)]() {
+            if (!_this)
+                return;
+
+            // Change from graph to subpatch
+            if (!static_cast<t_canvas*>(ptr)->gl_isgraph) {
+                cnv->setSelected(object, false);
+                object->cnv->editor->sidebar.hideParameters();
+                object->setType(getText(), ptr);
+                return;
+            }
+
+            updateCanvas();
+        });
+    }
+
     void valueChanged(Value& v) override
     {
-        if (v.refersToSameSourceAs(isGraphChild)) {
-            subpatch.getPointer()->gl_isgraph = static_cast<bool>(isGraphChild.getValue());
-            updateValue();
-        } else if (v.refersToSameSourceAs(hideNameAndArgs)) {
-            subpatch.getPointer()->gl_hidetext = static_cast<bool>(hideNameAndArgs.getValue());
-            repaint();
+        if (v.refersToSameSourceAs(isGraphChild) || v.refersToSameSourceAs(hideNameAndArgs)) {
+            checkGraphState();
         } else if (v.refersToSameSourceAs(xRange)) {
             auto* glist = static_cast<t_canvas*>(ptr);
             glist->gl_x1 = static_cast<float>(xRange.getValue().getArray()->getReference(0));
@@ -243,12 +300,4 @@ public:
     {
         openSubpatch();
     }
-
-private:
-    Value isGraphChild = Value(var(false));
-    Value hideNameAndArgs = Value(var(false));
-    Value xRange, yRange;
-
-    pd::Patch subpatch;
-    std::unique_ptr<Canvas> canvas;
 };

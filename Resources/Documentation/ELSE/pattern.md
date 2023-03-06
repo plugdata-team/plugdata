@@ -1,12 +1,12 @@
 ---
 title: pattern
 
-description: Rhythmic pattern sequencer
+description: rhythmic pattern sequencer
 
 categories:
 - object
 
-pdcategory:
+pdcategory: ELSE, Triggers and Clocks
 
 arguments:
 - description: sets sequence
@@ -16,7 +16,7 @@ arguments:
 inlets:
   1st:
   - type: float
-    description: non-zero starts, zero stops the sequencer
+    description: non-0 starts, zero stops the sequencer
   - type: bang
     description: (re)start sequencer
   - type: list
@@ -41,7 +41,7 @@ flags:
 
 methods:
   - type: tempo <float>
-    description: sets tempo in (bpm)
+    description: sets tempo in bpm
   - type: start
     description: starts the sequencer
   - type: stop

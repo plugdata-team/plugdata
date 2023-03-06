@@ -3,7 +3,7 @@ title: route
 description: route messages according to first element
 categories:
 - object
-pdcategory: General
+pdcategory: vanilla, Mixing and Routing
 last_update: '0.43'
 see_also:
 - select
@@ -14,15 +14,18 @@ arguments:
 inlets:
   1st:
   - type: anything
-    description: any message to route according to the first element.
+    description: message to route according to first element
   2nd:
   - type: float/symbol
-    description: if there's one argument,  an inlet is created to update it.
+    description: updates argument
 outlets:
   nth:
   - type: anything
-    description: routed message with the first element trimmed
+    description: routed message with $arg trimmed off
   2nd: #this does work to choose the rightmost iolet, but should we use it?
   - type: anything
     description: when input doesn't match the arguments it's passed here
+
+draft: false
+---
 

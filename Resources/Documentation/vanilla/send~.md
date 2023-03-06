@@ -1,6 +1,6 @@
 ---
 title: send~, s~
-description: send signal to one or more receive~ objects.
+description: send signal to one or more receive~ objects
 categories:
 - object
 aliases:
@@ -10,12 +10,12 @@ see_also:
 - send
 - receive~
 - tabsend~
-pdcategory: General Audio Manipulation
+pdcategory: vanilla, UI, Mixing and Routing, Audio I/O
 last_update: '0.33'
 inlets:
   1st:
   - type: signal
-    description: signal to send to matching receive~ object(s).
+    description: signal to send to matching receive~ object(s)
 arguments:
 - type: symbol
   description: send symbol name 

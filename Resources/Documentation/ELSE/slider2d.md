@@ -1,14 +1,14 @@
 ---
 title: slider2d
 
-description: Two-dimensional slider
+description: two-dimensional slider
 
 categories:
 - object
 
-pdcategory: GUI
+pdcategory: ELSE, UI
 
-arguments: (none)
+arguments:
 
 flags:
 - name: -size <f>
@@ -20,15 +20,15 @@ flags:
 - name: -xrange/-yrange
   description: sets x/y range independently
 - name: -line <f>
-  description: non zero sets line visibility (default: 1)
+  description: non-0 sets line visibility (default: 1)
 - name: -grid <f>
-  description: non zero sets grid visibility (default: 0)
+  description: non-0 sets grid visibility (default: 0)
 - name: -bgcolor <f,f,f>
   description: sets background color (default: 255 255 255)
 - name: -fgcolor <f,f,f>
   description: sets foreground color (default: 0 0 0)
 - name: -init <f>
-  description: non zero sets to init mode (default 0)
+  description: non-0 sets to init mode (default 0)
 
 
 inlets:
@@ -38,39 +38,6 @@ inlets:
   default:
 - type: list
   description: sets x, y and output it
-  default:
-- type: set <f,f>
-  description: sets x and y
-  default:
-- type: size <f>
-  description: sets size
-  default:
-- type: width <f>
-  description: sets x (horizontal) size
-  default:
-- type: height <f>
-  description: sets y (vertical) size
-  default:
-- type: xrange <f,f>
-  description: sets x range
-  default:
-- type: yrange <f,f>
-  description: sets y range
-  default:
-- type: line <f>
-  description: - non zero sets line visibility
-  default:
-- type: grid <f>
-  description: non zero sets grid visibility
-  default:
-- type: bgcolor <f,f,f>
-  description: sets background color in RGB
-  default:
-- type: fgcolor <f,f,f>
-  description: sets foreground color in RGB
-  default:
-- type: init <f>
-  description: non zero sets to init mode
   default:
 
 outlets:
@@ -98,10 +65,10 @@ methods:
   description: sets y range
   default:
 - type: line <f>
-  description: - non zero sets line visibility
+  description: - non-0 sets line visibility
   default:
 - type: grid <f>
-  description: non zero sets grid visibility
+  description: non-0 sets grid visibility
   default:
 - type: bgcolor <f,f,f>
   description: sets background color in RGB
@@ -110,7 +77,7 @@ methods:
   description: sets foreground color in RGB
   default:
 - type: init <f>
-  description: non zero sets to init mode
+  description: non-0 sets to init mode
   default:
 
 draft: false

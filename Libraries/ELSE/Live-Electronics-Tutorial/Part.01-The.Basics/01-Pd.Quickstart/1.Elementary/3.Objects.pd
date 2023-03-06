@@ -37,7 +37,7 @@
 #X text 634 368 click on the messages below:, f 15;
 #X msg 656 410 0.25 1000;
 #X text 734 410 generate a line to 0.25 in 1000 ms;
-#X text 40 333 In this way \, when the DSP is on \, all audio objects that output audio generate signal values for each sample in this given rate. For instance \, the oscillator below spits 44100 amplitude samples per second. There's also a difference between audio and control conncetions. Note that audio connections are thicker., f 63;
+#X text 40 333 In this way \, when the DSP is on \, all objects that output audio generate signal values for each sample in this given rate. For instance \, the oscillator below spits 44100 amplitude samples per second. There's also a difference between audio and control connections. Note that audio connections are thicker., f 63;
 #X text 473 492 audio connection => (thicker), f 20;
 #X text 281 497 <= control connection;
 #X text 529 247 There's also a difference between audio and control connections. Note that audio connections are thicker., f 62;

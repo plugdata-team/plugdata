@@ -2,12 +2,20 @@ cmake_minimum_required(VERSION 3.15)
 
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 option(RUN_CLANG_TIDY "" OFF)
 option(ENABLE_TESTING "" OFF)
 option(ENABLE_SFONT "" ON)
+option(VERBOSE "" OFF)
 
 set (CMAKE_CXX_STANDARD 20)
+
+function(message)
+    if (NOT MESSAGE_QUIET)
+        _message(${ARGN})
+    endif()
+endfunction()
 
 if(APPLE)
   set(CMAKE_XCODE_BUILD_SYSTEM "12" CACHE STRING "" FORCE)
@@ -20,8 +28,7 @@ if(APPLE)
 endif()
 
 if(RUN_CLANG_TIDY)
-  set(CMAKE_CXX_STANDARD_INCLUDE_DIRECTORIES ${CMAKE_CXX_IMPLICIT_INCLUDE_DIRECTORIES}) 
-  set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+  set(CMAKE_CXX_STANDARD_INCLUDE_DIRECTORIES ${CMAKE_CXX_IMPLICIT_INCLUDE_DIRECTORIES})
 endif()
 
 set(HARDENED_RUNTIME_ENABLED YES)
@@ -30,7 +37,7 @@ set(HARDENED_RUNTIME_OPTIONS "com.apple.security.device.audio-input")
 set(JUCE_ENABLE_MODULE_SOURCE_GROUPS ON CACHE BOOL "" FORCE)
 set_property(GLOBAL PROPERTY USE_FOLDERS YES)
 
-project(plugdata VERSION 0.6.4 LANGUAGES C CXX)
+project(plugdata VERSION 0.7.0 LANGUAGES C CXX)
 
 add_subdirectory(Libraries/ EXCLUDE_FROM_ALL)
 
@@ -41,7 +48,7 @@ message("-- Packaging resources")
 execute_process(COMMAND python3 package_resources.py WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Scripts)
 
 
-set(PLUGDATA_VERSION                    "0.6.4")
+set(PLUGDATA_VERSION                    "0.7.0")
 set(PLUGDATA_COMPANY_NAME               "plugdata")
 set(PLUGDATA_COMPANY_COPYRIGHT          "plugdata by Timothy Schoen")
 set(PLUGDATA_COMPANY_WEBSITE            "github.com/plugdata-team/plugdata")
@@ -59,7 +66,6 @@ set(SOURCES_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/Source)
 
 file(GLOB PlugDataGlobalSources
     ${CMAKE_CACHEFILE_DIR}/plugdata_artefacts/JuceLibraryCode/JuceHeader.h)
-source_group("Source" FILES ${PlugDataGlobalSources})
 
 file(GLOB PlugDataSources
     ${SOURCES_DIRECTORY}/*.h
@@ -78,8 +84,10 @@ file(GLOB PlugDataSources
     ${SOURCES_DIRECTORY}/Heavy/*.h
 )
 
+source_group("Source" FILES ${PlugDataGlobalSources})
+
 if(APPLE)
-  list(APPEND PlugDataSources ${SOURCES_DIRECTORY}/Utility/FileSystemWatcher.mm)
+  list(APPEND PlugDataSources ${SOURCES_DIRECTORY}/Utility/FileSystemWatcher.mm ${SOURCES_DIRECTORY}/Utility/OSUtils.mm)
 else()
   list(APPEND PlugDataSources ${SOURCES_DIRECTORY}/Utility/FileSystemWatcher.cxx)
 endif()
@@ -132,7 +140,7 @@ juce_add_plugin(plugdata
     COPY_PLUGIN_AFTER_BUILD     FALSE
     PLUGIN_MANUFACTURER_CODE    PlDt
     PLUGIN_CODE                 PdIn
-    FORMATS                     AU VST3 LV2
+    FORMATS                     AU VST3 LV2 CLAP
     LV2URI                      https://github.com/timothyschoen/plugdata
     PRODUCT_NAME                "plugdata"
     AU_MAIN_TYPE                kAudioUnitType_MusicDevice
@@ -156,12 +164,14 @@ juce_add_plugin(plugdata_fx
     COPY_PLUGIN_AFTER_BUILD     FALSE
     PLUGIN_MANUFACTURER_CODE    PlDt
     PLUGIN_CODE                 PdFx
-    FORMATS                     AU VST3 LV2
-    LV2URI                      https://github.com/timothyschoen/plugdata_fx
+    FORMATS                     AU VST3 LV2 CLAP
+    LV2URI                      https://github.com/timothyschoen/plugdata-fx
     PRODUCT_NAME                "plugdata-fx"
     AU_MAIN_TYPE                kAudioUnitType_MusicEffect
     VST3_CATEGORIES             Fx
     VST2_CATEGORY               kPlugCategEffect)
+
+
 
 if(APPLE)
 juce_add_plugin(plugdata_midi
@@ -184,6 +194,30 @@ juce_add_plugin(plugdata_midi
     FORMATS                     AU
     PRODUCT_NAME                "plugdata-midi"
     AU_MAIN_TYPE                kAudioUnitType_MIDIProcessor)
+endif()
+
+if(${CMAKE_VERSION} VERSION_GREATER_EQUAL "3.21")
+  # Silence excessive messaging from juce-clap-extensions
+  # Enable verbose flag to see these messages
+  if(VERBOSE)
+  else()
+  set(MESSAGE_QUIET ON)
+  endif()
+  clap_juce_extensions_plugin(TARGET plugdata
+      CLAP_ID "com.timothyschoen.plugdata"
+      CLAP_FEATURES "instrument")
+
+  clap_juce_extensions_plugin(TARGET plugdata_fx
+      CLAP_ID "com.timothyschoen.plugdata-fx"
+      CLAP_FEATURES "effect")
+
+  if(VERBOSE)
+  else()
+  unset(MESSAGE_QUIET)
+  endif()
+else()
+  message("\n-- Warning: Building CLAP plugins requires at least cmake 3.21, you have ${CMAKE_MAJOR_VERSION}.${CMAKE_MINOR_VERSION}")
+  message("-- CLAP plugin build will be disabed\n")
 endif()
 
 if(APPLE)
@@ -257,10 +291,10 @@ target_compile_definitions(plugdata_midi PUBLIC ${PLUGDATA_COMPILE_DEFINITIONS})
 target_compile_definitions(plugdata_midi PUBLIC ${LIBPD_MULTI_COMPILE_DEFINITIONS})
 endif()
 
+list(APPEND PLUGDATA_INCLUDE_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/Libraries/ELSE/sfont~/")
 list(APPEND PLUGDATA_INCLUDE_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/Libraries/pure-data/src")
 list(APPEND PLUGDATA_INCLUDE_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/Libraries/libpd/")
 list(APPEND PLUGDATA_INCLUDE_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/Libraries/concurrentqueue/")
-
 list(APPEND PLUGDATA_INCLUDE_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/Source/")
 
 target_include_directories(plugdata_standalone PUBLIC "$<BUILD_INTERFACE:${PLUGDATA_INCLUDE_DIRECTORY}>")
@@ -273,17 +307,25 @@ endif()
 
 file(GLOB PlugDataBinaryDataSources
     ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Fonts/IconFont.ttf
-    ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Fonts/InterRegular.ttf
+    ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Fonts/InterUnicode_*.ttf
     ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Fonts/InterBold.ttf
     ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Fonts/InterSemiBold.ttf
     ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Fonts/InterThin.ttf
     ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Fonts/IBMPlexMono.ttf
+    ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Fonts/GoNotoCurrent.ttf
     ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Icons/plugdata_logo.png
-    ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Filesystem.zip
+    ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Filesystem_*.zip
+    )
+
+file(GLOB StandaloneBinarySources
+    ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Extra/GeneralUser_GS.sf3
     )
 
 juce_add_binary_data(PlugDataBinaryData SOURCES ${PlugDataBinaryDataSources})
 set_target_properties(PlugDataBinaryData PROPERTIES POSITION_INDEPENDENT_CODE ON)
+
+juce_add_binary_data(StandaloneBinaryData HEADER_NAME "StandaloneBinaryData.h" NAMESPACE StandaloneBinaryData SOURCES ${StandaloneBinarySources} )
+set_target_properties(StandaloneBinaryData PROPERTIES POSITION_INDEPENDENT_CODE ON)
 
 set(libs
   PlugDataBinaryData
@@ -307,9 +349,9 @@ elseif(UNIX AND NOT APPLE)
 endif()
 
 if(MSVC)
-target_link_libraries(plugdata_standalone PRIVATE pd ${CMAKE_CURRENT_SOURCE_DIR}/Plugins/Standalone/pd.lib ${libs})
+target_link_libraries(plugdata_standalone PRIVATE pd ${CMAKE_CURRENT_SOURCE_DIR}/Plugins/Standalone/pd.lib ${libs} StandaloneBinaryData)
 else()
-target_link_libraries(plugdata_standalone PRIVATE pd ${libs})
+target_link_libraries(plugdata_standalone PRIVATE pd ${libs} StandaloneBinaryData)
 endif()
 
 target_link_libraries(plugdata PRIVATE pd-multi ${libs})
@@ -338,15 +380,14 @@ set_target_properties(plugdata_midi PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${PLUGDA
 endif()
 
 if(RUN_CLANG_TIDY)
-  find_program( CLANG_TIDY_EXE NAMES "clang-tidy" DOC "Path to clang-tidy executable" ) 
-  if(NOT CLANG_TIDY_EXE) 
-    message(STATUS "clang-tidy not found.") 
-  else() 
-    message(STATUS "clang-tidy found: ${CLANG_TIDY_EXE}") 
-    set(DO_CLANG_TIDY "${CLANG_TIDY_EXE}" "-checks=clang-diagnostic-*,clang-diagnostic-unused-value,clang-analyzer-*,bugprone-*,performance-*,readability-*,-readability-magic-numbers,-readability-braces-around-statements,-readability-inconsistent-declaration-parameter-name,-readability-named-parameter  --header-filter='.*'") 
+  find_program( CLANG_TIDY_EXE NAMES "clang-tidy" DOC "Path to clang-tidy executable" )
+  if(NOT CLANG_TIDY_EXE)
+    message(STATUS "clang-tidy not found.")
+  else()
+    message(STATUS "clang-tidy found: ${CLANG_TIDY_EXE}")
+    set(DO_CLANG_TIDY "${CLANG_TIDY_EXE}" "-checks=clang-diagnostic-*,clang-diagnostic-unused-value,clang-analyzer-*,bugprone-*,performance-*,readability-*,-readability-magic-numbers,-readability-braces-around-statements,-readability-inconsistent-declaration-parameter-name,-readability-named-parameter  --header-filter='.*'")
   endif()
   set_target_properties(plugdata_standalone PROPERTIES CXX_CLANG_TIDY "${DO_CLANG_TIDY}")
-
 endif()
 
 # Set up testing framework
@@ -399,19 +440,19 @@ set(CMAKE_INSTALL_DEFAULT_DIRECTORY_PERMISSIONS
 )
 
 if(APPLE)
-  install(DIRECTORY ${PLUGDATA_PLUGINS_LOCATION}/VST3/plugdata.vst3 DESTINATION "/Library/Audio/Plug-ins/VST3/")
-  install(DIRECTORY ${PLUGDATA_PLUGINS_LOCATION}/VST3/plugdata_fx.vst3 DESTINATION "/Library/Audio/Plug-ins/VST3/")
-  install(DIRECTORY ${PLUGDATA_PLUGINS_LOCATION}/LV2/plugdata.lv2 DESTINATION "/Library/Audio/Plug-ins/LV2/")
-  install(DIRECTORY ${PLUGDATA_PLUGINS_LOCATION}/LV2/plugdata_fx.lv2 DESTINATION "/Library/Audio/Plug-ins/LV2/")
-  install(DIRECTORY ${PLUGDATA_PLUGINS_LOCATION}/AU/plugdata.component DESTINATION "/Library/Audio/Plug-ins/Components/")
-  install(DIRECTORY ${PLUGDATA_PLUGINS_LOCATION}/AU/plugdata_fx.component DESTINATION "/Library/Audio/Plug-ins/Components/")
-  install(DIRECTORY ${PLUGDATA_PLUGINS_LOCATION}/AU/plugdata_midi.component DESTINATION "/Library/Audio/Plug-ins/Components/")
+  install(DIRECTORY ${PLUGDATA_PLUGINS_LOCATION}/VST3/plugdata.vst3 DESTINATION "/Library/Audio/Plug-ins/VST3")
+  install(DIRECTORY ${PLUGDATA_PLUGINS_LOCATION}/VST3/plugdata-fx.vst3 DESTINATION "/Library/Audio/Plug-ins/VST3")
+  install(DIRECTORY ${PLUGDATA_PLUGINS_LOCATION}/LV2/plugdata.lv2 DESTINATION "/Library/Audio/Plug-ins/LV2")
+  install(DIRECTORY ${PLUGDATA_PLUGINS_LOCATION}/LV2/plugdata-fx.lv2 DESTINATION "/Library/Audio/Plug-ins/LV2")
+  install(DIRECTORY ${PLUGDATA_PLUGINS_LOCATION}/AU/plugdata.component DESTINATION "/Library/Audio/Plug-ins/Components")
+  install(DIRECTORY ${PLUGDATA_PLUGINS_LOCATION}/AU/plugdata-fx.component DESTINATION "/Library/Audio/Plug-ins/Components")
+  install(DIRECTORY ${PLUGDATA_PLUGINS_LOCATION}/AU/plugdata-midi.component DESTINATION "/Library/Audio/Plug-ins/Components")
   install(DIRECTORY ${PLUGDATA_PLUGINS_LOCATION}/Standalone/plugdata.app DESTINATION "/Applications")
 elseif(WIN32)
   install(DIRECTORY ${PLUGDATA_PLUGINS_LOCATION}/VST3/plugdata.vst3 DESTINATION "$ENV{PROGRAMFILES}/Common Files/VST3")
-  install(DIRECTORY ${PLUGDATA_PLUGINS_LOCATION}/VST3/plugdata_fx.vst3 DESTINATION "$ENV{PROGRAMFILES}/Common Files/VST3")
+  install(DIRECTORY ${PLUGDATA_PLUGINS_LOCATION}/VST3/plugdata-fx.vst3 DESTINATION "$ENV{PROGRAMFILES}/Common Files/VST3")
   install(DIRECTORY ${PLUGDATA_PLUGINS_LOCATION}/LV2/plugdata.lv2 DESTINATION "$ENV{PROGRAMFILES}/Common Files/LV2")
-  install(DIRECTORY ${PLUGDATA_PLUGINS_LOCATION}/LV2/plugdata_fx.lv2 DESTINATION "$ENV{PROGRAMFILES}/Common Files/LV2")
+  install(DIRECTORY ${PLUGDATA_PLUGINS_LOCATION}/LV2/plugdata-fx.lv2 DESTINATION "$ENV{PROGRAMFILES}/Common Files/LV2")
   install(PROGRAMS ${PLUGDATA_PLUGINS_LOCATION}/Standalone/plugdata.exe DESTINATION "$ENV{PROGRAMFILES}/plugdata/")
   install(PROGRAMS ${PLUGDATA_PLUGINS_LOCATION}/LV2/pd.dll DESTINATION "$ENV{PROGRAMFILES}/plugdata/")
 elseif(UNIX AND NOT APPLE) # Linux or BSD
@@ -424,4 +465,4 @@ endif()
 
 #add_custom_target(plugdata_standalone ALL)
 
-# 
+#

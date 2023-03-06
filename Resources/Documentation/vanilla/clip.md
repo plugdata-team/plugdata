@@ -3,7 +3,7 @@ title: clip
 description: force a number into a range
 categories:
 - object
-pdcategory: Math
+pdcategory: vanilla, Data Math
 last_update: '0.47'
 see_also:
 - clip~
@@ -15,12 +15,14 @@ arguments:
   default: 0
   type: float
 - description: initial upper limit 
+  default: 0
+  type: float
 inlets:
   1st:
   - type: float
     description: number to clip
   - type: bang
-    description: re-clip last incoming number between the two limits
+    description: re-clip last incoming number
   2nd:
   - type: float
     description: set lower limit
@@ -32,3 +34,5 @@ outlets:
   - type: float
     description: the clipped value
 
+draft: false
+---

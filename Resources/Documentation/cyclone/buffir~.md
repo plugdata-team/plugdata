@@ -1,9 +1,9 @@
 ---
 title: buffir~
-description: Convolve with a buffer
+description: convolve with a buffer
 categories:
  - object
-pdcategory: General
+pdcategory: cyclone, Buffers
 arguments:
 - type: symbol
   description: table name
@@ -34,6 +34,7 @@ methods:
   - type: set <list>
     description: set <buffer/table name, offset, size> (resets arguments)
 
+draft: false
 ---
 
 [buffir~] is a table/buffer based FIR (finite impulse response) filter. An input signal is convolved with 'n' samples of a buffer.

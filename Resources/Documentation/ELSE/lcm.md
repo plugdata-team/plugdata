@@ -1,12 +1,12 @@
 ---
 title: lcm
 
-description: Least common multiple
+description: least common multiple
 
 categories:
 - object
 
-pdcategory:
+pdcategory: ELSE, Data Math
 
 arguments:
 - description: right inlet value

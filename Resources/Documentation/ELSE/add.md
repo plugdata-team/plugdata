@@ -1,12 +1,12 @@
 ---
 title: add
 
-description: Number accumulator
+description: number accumulator
 
 categories:
 - object
 
-pdcategory: Math
+pdcategory: ELSE, Data Math
 
 arguments:
 - description: starting sum
@@ -19,13 +19,15 @@ inlets:
     description: value to accumulate
   - type: bang
     description: resets sum to starting point
-  - type: set <float>
-    description: sets starting sum
 
 outlets:
   1st:
   - type: float
     description: the accumulated value
+
+methods:
+  - type: set <float>
+    description: sets starting sum
 
 draft: false
 ---

@@ -1,6 +1,6 @@
 ---
 title: vcf~
-description: voltage-controlled band/low-pass filter
+description: voltage-controlled band/lowpass filter
 categories:
 - object
 see_also:
@@ -12,31 +12,32 @@ see_also:
 - slop~
 - cpole~
 - fexpr~
-pdcategory: Audio Filters
+pdcategory: vanilla, Filters
 last_update: '0.46'
 inlets:
   1st:
   - type: signal
-    description: audio signal to be filtered.
-  - type: clear
-    description: clear filter's memory.
+    description: audio signal to be filtered
   2nd:
   - type: signal
-    description: resonant frequency in Hz.
+    description: resonant frequency in Hz
   3rd:
   - type: float
-    description: set Q.
+    description: set Q
 outlets:
   1st:
   - type: signal
-    description: real output (bandpasse filtered signal). 
+    description: real output (bandpasse filtered signal)
   2nd:
   - type: signal
-    description: imaginary output (bandpasse filtered signal).
+    description: imaginary output (bandpasse filtered signal)
 arguments:
   - type: float
     description: initial Q 
-  default: 0
+    default: 0
+methods:
+  - type: clear
+    description: clear filter's memory
 draft: false
 ---
-Vcf~ is a resonant band-pass and low-pass filter that takes either a control or an audio signal to set center frequency, which may thus change continuously in time as in an analog voltage controlled filter (and unlike 'bp~' and 'lop~' that only take control values
+Vcf~ is a resonant bandpass and lowpass filter that takes either a control or an audio signal to set center frequency, which may thus change continuously in time as in an analog voltage controlled filter (and unlike 'bp~' and 'lop~' that only take control values

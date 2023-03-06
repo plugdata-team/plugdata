@@ -1,9 +1,9 @@
 ---
 title: borax
-description: Reports note on/off info
+description: reports note on/off info
 categories:
  - object
-pdcategory: General
+pdcategory: cyclone, MIDI
 arguments:
 inlets:
   1st:
@@ -44,6 +44,7 @@ outlets:
   - type: float
     description: delta-time (time difference in ms) between Note-Ons
 
+draft: false
 ---
 
 [borax] sends detailed MIDI Note information.

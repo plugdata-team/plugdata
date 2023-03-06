@@ -7,11 +7,15 @@
 #pragma once
 #include "DraggableNumber.h"
 
-struct PropertiesPanel : public PropertyPanel {
+class PropertiesPanel : public PropertyPanel {
 
-    struct Property : public PropertyComponent {
+public:
+    class Property : public PropertyComponent {
+
+    protected:
         bool hideLabel = false;
 
+    public:
         Property(String const& propertyName)
             : PropertyComponent(propertyName, 23)
         {
@@ -42,7 +46,7 @@ struct PropertiesPanel : public PropertyPanel {
                 comboBox.addItem(options[n], n + 1);
             }
 
-            comboBox.setName("inspector:combo");
+            comboBox.getProperties().set("Style", "Inspector");
             comboBox.getSelectedIdAsValue().referTo(value);
 
             addAndMakeVisible(comboBox);
@@ -66,11 +70,10 @@ struct PropertiesPanel : public PropertyPanel {
 
         void paint(Graphics& g) override
         {
-            g.setColour(findColour(PlugDataColour::panelTextColourId));
-
             auto font = Font(fontName, 15, Font::plain);
             g.setFont(font);
-            g.drawText(fontName, getLocalBounds().reduced(2), Justification::left);
+            g.setColour(findColour(PlugDataColour::panelTextColourId));
+            g.drawText(fontName, getLocalBounds().reduced(2), Justification::centredLeft);
         }
 
         void getIdealSize(int& idealWidth, int& idealHeight) override
@@ -94,7 +97,7 @@ struct PropertiesPanel : public PropertyPanel {
             }
 
             comboBox.setText(value.toString());
-            comboBox.setName("inspector:combo");
+            comboBox.getProperties().set("Style", "Inspector");
             fontValue.referTo(value);
 
             comboBox.onChange = [this]() {
@@ -136,6 +139,17 @@ struct PropertiesPanel : public PropertyPanel {
             }
         }
 
+        MultiPropertyComponent(String const& propertyName, Array<Value*> values, std::vector<String> options)
+            : Property(propertyName)
+            , numProperties(values.size())
+        {
+            for (int i = 0; i < numProperties; i++) {
+                auto* property = properties.add(new T(propertyName, *values[i], options));
+                property->setHideLabel(true);
+                addAndMakeVisible(property);
+            }
+        }
+
         void resized() override
         {
 
@@ -151,95 +165,157 @@ struct PropertiesPanel : public PropertyPanel {
     struct BoolComponent : public Property {
         BoolComponent(String const& propertyName, Value& value, std::vector<String> options)
             : Property(propertyName)
+            , textOptions(options)
         {
-            toggleButton.setClickingTogglesState(true);
-
-            toggleButton.setConnectedEdges(12);
-
-            toggleButton.getToggleStateValue().referTo(value);
-            toggleButton.setButtonText(static_cast<bool>(value.getValue()) ? options[1] : options[0]);
-
-            toggleButton.setName("inspector:toggle");
-
-            addAndMakeVisible(toggleButton);
-
-            toggleButton.onStateChange = [this, value, options]() mutable {
-                toggleButton.setButtonText(toggleButton.getToggleState() ? options[1] : options[0]);
-            };
+            toggleStateValue.referTo(value);
         }
 
-        void resized() override
+        void paint(Graphics& g) override
         {
-            toggleButton.setBounds(getLocalBounds().removeFromRight(getWidth() / (2 - hideLabel)));
+            bool isDown = static_cast<bool>(toggleStateValue.getValue());
+            bool isHovered = isMouseOver();
+
+            auto bounds = getLocalBounds().removeFromRight(getWidth() / (2 - hideLabel));
+
+            if (isDown || isHovered) {
+                // Add some alpha to make it look good on any background...
+                g.setColour(findColour(TextButton::buttonColourId).withAlpha(isDown ? 0.9f : 0.7f));
+                g.fillRect(bounds);
+            }
+
+            auto textColour = isDown ? findColour(PlugDataColour::panelActiveTextColourId) : findColour(PlugDataColour::panelTextColourId);
+            PlugDataLook::drawText(g, textOptions[isDown], bounds, textColour, 14.0f, Justification::centred);
+
+            // Paint label
+            Property::paint(g);
+        }
+
+        void mouseEnter(MouseEvent const& e) override
+        {
+            repaint();
+        }
+
+        void mouseExit(MouseEvent const& e) override
+        {
+            repaint();
+        }
+
+        void mouseUp(MouseEvent const& e) override
+        {
+            auto bounds = getLocalBounds().removeFromRight(getWidth() / (2 - hideLabel));
+
+            if (bounds.contains(e.getMouseDownPosition())) {
+                toggleStateValue = !static_cast<bool>(toggleStateValue.getValue());
+                repaint();
+            }
         }
 
     private:
-        TextButton toggleButton;
+        std::vector<String> textOptions;
+        Value toggleStateValue;
     };
 
-    struct ColourComponent : public Property
+    struct ColourPicker : public ColourSelector
         , public ChangeListener {
+        static inline bool isShowing = false;
+
+        ColourPicker(std::function<void(Colour)> cb)
+            : ColourSelector(ColourSelector::showColourAtTop | ColourSelector::showSliders | ColourSelector::showColourspace)
+            , callback(cb)
+        {
+            setSize(300, 400);
+            addChangeListener(this);
+
+            auto& lnf = LookAndFeel::getDefaultLookAndFeel();
+
+            setColour(ColourSelector::backgroundColourId, lnf.findColour(PlugDataColour::panelBackgroundColourId));
+        }
+
+        ~ColourPicker()
+        {
+            removeChangeListener(this);
+            isShowing = false;
+        }
+
+        static void show(Colour currentColour, Rectangle<int> bounds, std::function<void(Colour)> callback)
+        {
+
+            if (isShowing)
+                return;
+
+            isShowing = true;
+
+            std::unique_ptr<ColourPicker> colourSelector = std::make_unique<ColourPicker>(callback);
+
+            colourSelector->setCurrentColour(currentColour);
+            CallOutBox::launchAsynchronously(std::move(colourSelector), bounds, nullptr);
+        }
+
+    private:
+        void changeListenerCallback(ChangeBroadcaster* source) override
+        {
+            callback(dynamic_cast<ColourSelector*>(source)->getCurrentColour());
+        }
+
+        std::function<void(Colour)> callback = [](Colour) {};
+    };
+
+    struct ColourComponent : public Property {
         ColourComponent(String const& propertyName, Value& value)
             : Property(propertyName)
             , currentColour(value)
         {
-            String strValue = currentColour.toString();
-            if (strValue.length() > 2) {
-                button.setButtonText(String("#") + strValue.substring(2).toUpperCase());
-            }
-            button.setConnectedEdges(12);
-            button.setColour(ComboBox::outlineColourId, Colours::transparentBlack);
-
-            addAndMakeVisible(button);
-            updateColour();
-
-            button.onClick = [this]() {
-                std::unique_ptr<ColourSelector> colourSelector = std::make_unique<ColourSelector>(ColourSelector::showColourAtTop | ColourSelector::showSliders | ColourSelector::showColourspace);
-                colourSelector->setName("background");
-                colourSelector->addChangeListener(this);
-                colourSelector->setSize(300, 400);
-                colourSelector->setColour(ColourSelector::backgroundColourId, findColour(PlugDataColour::panelBackgroundColourId));
-                colourSelector->setCurrentColour(Colour::fromString(currentColour.toString()));
-
-                CallOutBox::launchAsynchronously(std::move(colourSelector), button.getScreenBounds(), nullptr);
-            };
-        }
-
-        void updateColour()
-        {
-            auto colour = Colour::fromString(currentColour.toString());
-
-            button.setColour(TextButton::buttonColourId, colour);
-            button.setColour(TextButton::buttonOnColourId, colour.brighter());
-
-            auto textColour = colour.getPerceivedBrightness() > 0.5 ? Colours::black : Colours::white;
-
-            // make sure text is readable
-            button.setColour(TextButton::textColourOffId, textColour);
-            button.setColour(TextButton::textColourOnId, textColour);
-
-            button.setButtonText(String("#") + currentColour.toString().substring(2).toUpperCase());
-        }
-
-        void changeListenerCallback(ChangeBroadcaster* source) override
-        {
-            auto* cs = dynamic_cast<ColourSelector*>(source);
-
-            auto colour = cs->getCurrentColour();
-            currentColour = colour.toString();
-
-            updateColour();
+            repaint();
         }
 
         ~ColourComponent() override = default;
 
-        void resized() override
+        void paint(Graphics& g) override
         {
-            button.setBounds(getLocalBounds().removeFromRight(getWidth() / (2 - hideLabel)));
+            auto colour = Colour::fromString(currentColour.toString());
+            auto textColour = colour.getPerceivedBrightness() > 0.5 ? Colours::black : Colours::white;
+
+            auto bounds = getLocalBounds().removeFromRight(getWidth() / (2 - hideLabel));
+
+            g.setColour(isMouseOver() ? colour.brighter(0.4f) : colour);
+            g.fillRect(bounds);
+
+            PlugDataLook::drawText(g, String("#") + currentColour.toString().substring(2).toUpperCase(), bounds, textColour, 14.0f, Justification::centred);
+
+            // Paint label
+            Property::paint(g);
+        }
+
+        void mouseEnter(MouseEvent const& e) override
+        {
+            repaint();
+        }
+
+        void mouseExit(MouseEvent const& e) override
+        {
+            repaint();
+        }
+
+        void mouseDown(MouseEvent const& e) override
+        {
+            if (hideLabel && e.getPosition().x < getWidth() / 2)
+                return;
+
+            ColourPicker::show(Colour::fromString(currentColour.toString()), getScreenBounds(), [_this = SafePointer(this)](Colour c) {
+                if (!_this)
+                    return;
+
+                _this->currentColour = c.toString();
+            });
+        }
+
+        bool hitTest(int x, int y) override
+        {
+            auto bounds = getLocalBounds().removeFromRight(getWidth() / (2 - hideLabel));
+            return bounds.contains(x, y);
         }
 
     private:
-        TextButton button;
         Value& currentColour;
     };
 
@@ -312,31 +388,37 @@ struct PropertiesPanel : public PropertyPanel {
             , property(value)
         {
             if constexpr (std::is_arithmetic<T>::value) {
-                label = std::make_unique<DraggableNumber>(std::is_integral<T>::value);
+                auto* draggableNumber = new DraggableNumber(std::is_integral<T>::value);
+                label = std::unique_ptr<DraggableNumber>(draggableNumber);
 
-                dynamic_cast<DraggableNumber*>(label.get())->valueChanged = [this](float value) {
+                draggableNumber->getTextValue().referTo(property);
+                draggableNumber->setFont(Font(14));
+
+                draggableNumber->valueChanged = [this](float value) {
                     property = value;
+                };
+
+                draggableNumber->setEditableOnClick(true);
+
+                draggableNumber->onEditorShow = [this, draggableNumber]() {
+                    auto* editor = draggableNumber->getCurrentTextEditor();
+
+                    if constexpr (std::is_floating_point<T>::value) {
+                        editor->setInputRestrictions(0, "0123456789.-");
+                    } else if constexpr (std::is_integral<T>::value) {
+                        editor->setInputRestrictions(0, "0123456789-");
+                    }
                 };
             } else {
                 label = std::make_unique<Label>();
+                label->setEditable(true, false);
+                label->getTextValue().referTo(property);
+                label->setFont(Font(14));
             }
 
             addAndMakeVisible(label.get());
-            label->setEditable(true, false);
-            label->getTextValue().referTo(property);
+
             label->addMouseListener(this, true);
-
-            label->setFont(Font(14));
-
-            label->onEditorShow = [this]() {
-                auto* editor = label->getCurrentTextEditor();
-
-                if constexpr (std::is_floating_point<T>::value) {
-                    editor->setInputRestrictions(0, "0123456789.-");
-                } else if constexpr (std::is_integral<T>::value) {
-                    editor->setInputRestrictions(0, "0123456789-");
-                }
-            };
         }
 
         void resized() override
@@ -362,7 +444,7 @@ struct PropertiesPanel : public PropertyPanel {
             label.addMouseListener(this, true);
             label.setFont(Font(14));
 
-            browseButton.setName("statusbar::browse");
+            browseButton.getProperties().set("Style", "SmallIcon");
 
             addAndMakeVisible(label);
             addAndMakeVisible(browseButton);

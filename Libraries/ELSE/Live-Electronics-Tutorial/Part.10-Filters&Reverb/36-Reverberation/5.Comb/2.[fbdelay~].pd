@@ -1,9 +1,8 @@
 #N canvas 279 50 967 391 12;
 #X declare -path else;
 #X floatatom 763 223 5 -0.99 0.99 0 - a - 0;
-#X floatatom 687 220 5 0 100 0 - del - 0;
-#X obj 91 184 cnv 15 320 140 empty empty empty 20 12 0 14 #e0e0e0 #404040
-0;
+#X floatatom 687 192 5 0 100 0 - del - 0;
+#X obj 91 184 cnv 15 320 140 empty empty empty 20 12 0 14 #e0e0e0 #404040 0;
 #X text 270 207 |;
 #X text 270 219 |;
 #X text 270 231 |;
@@ -23,26 +22,17 @@
 #X text 217 251 -(*c)-;
 #X text 251 252 | z^-d |;
 #X obj 612 293 out~;
-#X text 683 192 delay time;
+#X text 731 191 delay time;
 #X text 125 198 x[n] -------(+)----------- y[n];
 #X text 158 294 y[n] = x[n] + a * y[n-d];
 #X obj 557 197 noise~;
 #X obj 590 226 *~;
 #X obj 608 198 pulse~ 1;
-#X text 496 53 And it sounds much like a comb filter/reverberator as
-well. Note how it can filter frequencies by promoting harmonic peaks
-that depend on the delay period.;
+#X text 496 53 And it sounds much like a comb filter/reverberator as well. Note how it can filter frequencies by promoting harmonic peaks that depend on the delay period.;
 #X text 806 223 feedback;
-#X text 46 57 The [fbdelay~] object can also be used as a reverberator
-for reflections in a reverb system. It can be viewed as a simplification
-of the comb filter diagram \, with just the feedback section. With
-[comb.rev~] you could achieve the same by just zeroing the feedforward
-gain and setting the input gain to 1!;
+#X text 46 57 The [fbdelay~] object can also be used as a reverberator for reflections in a reverb system. It can be viewed as a simplification of the comb filter diagram \, with just the feedback section. With [comb.rev~] you could achieve the same by just zeroing the feedforward gain and setting the input gain to 1!;
 #X obj 738 17 declare -path else;
-#X text 496 105 One difference between [fbdelay~] and [comb.rev~] is
-that [fbdelay~] can also set the feedback parameter as t60 - this is
-actually the default setting \, but here we have a gain coefficient
-instead. Check its help file.;
+#X text 496 105 One difference between [fbdelay~] and [comb.rev~] is that [fbdelay~] can also set the feedback parameter as t60 - this is actually the default setting \, but here we have a gain coefficient instead. Check its help file.;
 #X obj 612 256 fbdelay~ -gain 100 0.8;
 #X connect 0 0 33 2;
 #X connect 1 0 33 1;

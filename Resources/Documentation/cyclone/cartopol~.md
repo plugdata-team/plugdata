@@ -1,9 +1,9 @@
 ---
 title: cartopol~
-description: Signal cartesian to polar conversion
+description: signal cartesian to polar conversion
 categories:
  - object
-pdcategory: General
+pdcategory: cyclone, Converters
 arguments:
 inlets:
   1st:
@@ -20,6 +20,7 @@ outlets:
   - type: signal
     description: phase in radians (-pi to pi) output of the polar form
 
+draft: false
 ---
 
 Use the [cartopol~] object to convert signal values representing cartesian coordinates to a signal composed of polar coordinates - useful for spectral processing.

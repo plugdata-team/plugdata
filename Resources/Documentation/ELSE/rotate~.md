@@ -1,12 +1,12 @@
 ---
 title: rotate~
 
-description: Channel rotation
+description: channel rotation
 
 categories:
  - object
 
-pdcategory: Control
+pdcategory: ELSE, Mixing and Routing
 
 arguments:
 - type: float

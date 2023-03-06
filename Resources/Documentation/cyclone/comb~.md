@@ -1,9 +1,9 @@
 ---
 title: comb~
-description: Comb filter
+description: comb filter
 categories:
  - object
-pdcategory: General
+pdcategory: cyclone, Filters, Effects
 arguments:
 - type: float
   description: maximum delay time in ms
@@ -47,6 +47,7 @@ methods:
   - type: clear
     description: clears buffer
 
+draft: false
 ---
 
 [comb~] is a comb filter, use it for filtering and delay effects.

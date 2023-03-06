@@ -4,28 +4,69 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
-struct ToggleObject final : public IEMObject {
+class ToggleObject final : public ObjectBase {
     bool toggleState = false;
     bool alreadyToggled = false;
     Value nonZero;
 
-    ToggleObject(void* obj, Object* parent)
-        : IEMObject(obj, parent)
+    float value = 0.0f;
+
+    IEMHelper iemHelper;
+
+public:
+    ToggleObject(void* ptr, Object* object)
+        : ObjectBase(ptr, object)
+        , iemHelper(ptr, object, this)
     {
+        value = getValue();
+        object->constrainer->setFixedAspectRatio(1);
     }
 
-    void updateParameters() override
+    bool hideInlets() override
+    {
+        return iemHelper.hasReceiveSymbol();
+    }
+
+    bool hideOutlets() override
+    {
+        return iemHelper.hasSendSymbol();
+    }
+
+    void updateLabel() override
+    {
+        iemHelper.updateLabel(label);
+    }
+
+    Rectangle<int> getPdBounds() override
+    {
+        return iemHelper.getPdBounds();
+    }
+
+    void setPdBounds(Rectangle<int> b) override
+    {
+        iemHelper.setPdBounds(b);
+    }
+
+    void initialiseParameters() override
     {
         nonZero = static_cast<t_toggle*>(ptr)->x_nonzero;
-        IEMObject::updateParameters();
+        iemHelper.initialiseParameters();
+        setToggleStateFromFloat(value);
     }
 
     void paint(Graphics& g) override
     {
-        IEMObject::paint(g);
+        g.setColour(iemHelper.getBackgroundColour());
+        g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), PlugDataLook::objectCornerRadius);
 
-        auto toggledColour = getForegroundColour();
-        auto untoggledColour = toggledColour.interpolatedWith(getBackgroundColour(), 0.8f);
+        bool selected = cnv->isSelected(object) && !cnv->isGraph;
+        auto outlineColour = object->findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : objectOutlineColourId);
+
+        g.setColour(outlineColour);
+        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), PlugDataLook::objectCornerRadius, 1.0f);
+
+        auto toggledColour = iemHelper.getForegroundColour();
+        auto untoggledColour = toggledColour.interpolatedWith(iemHelper.getBackgroundColour(), 0.8f);
         g.setColour(toggleState ? toggledColour : untoggledColour);
 
         auto crossBounds = getLocalBounds().reduced((getWidth() * 0.08f) + 4.5f).toFloat();
@@ -45,14 +86,29 @@ struct ToggleObject final : public IEMObject {
     {
         if (!alreadyToggled) {
             startEdition();
-            auto newValue = getValueOriginal() != 0 ? 0 : static_cast<float>(nonZero.getValue());
-            setValueOriginal(newValue);
-            toggleState = newValue;
+            auto newValue = value != 0 ? 0 : static_cast<float>(nonZero.getValue());
+            sendToggleValue(newValue);
+            setToggleStateFromFloat(newValue);
             stopEdition();
             alreadyToggled = true;
-
-            repaint();
         }
+    }
+
+    void sendToggleValue(bool newValue)
+    {
+        pd->enqueueFunction([ptr = this->ptr, pd = this->pd, patch = &cnv->patch, newValue](){
+            
+            if(patch->objectWasDeleted(ptr)) return;
+            
+            t_atom atom;
+            SETFLOAT(&atom, newValue);
+            pd_typedmess(static_cast<t_pd*>(ptr), pd->generateSymbol("set"), 1, &atom);
+
+            auto* iem = static_cast<t_iemgui*>(ptr);
+            outlet_float(iem->x_obj.ob_outlet, newValue);
+            if (iem->x_fsf.x_snd_able && iem->x_snd->s_thing)
+                pd_float(iem->x_snd->s_thing, newValue);
+        });
     }
 
     void untoggleObject() override
@@ -64,40 +120,57 @@ struct ToggleObject final : public IEMObject {
     void mouseDown(MouseEvent const& e) override
     {
         startEdition();
-        auto newValue = getValueOriginal() != 0 ? 0 : static_cast<float>(nonZero.getValue());
-        setValueOriginal(newValue);
-        toggleState = newValue;
+        auto newValue = value != 0 ? 0 : static_cast<float>(nonZero.getValue());
+        sendToggleValue(newValue);
+        setToggleStateFromFloat(newValue);
         stopEdition();
 
         // Make sure we don't re-toggle with an accidental drag
         alreadyToggled = true;
-
-        repaint();
     }
 
-    void checkBounds() override
+    ObjectParameters getParameters() override
     {
-        // Fix aspect ratio and apply limits
-        int size = jlimit(30, maxSize, object->getWidth());
-        if (size != object->getHeight() || size != object->getWidth()) {
-            object->setSize(size, size);
-        }
-    }
-
-    ObjectParameters defineParameters() override
-    {
-        return {
-            { "Non-zero value", tInt, cGeneral, &nonZero, {} },
+        ObjectParameters allParameters = {
+            { "Non-zero value", tFloat, cGeneral, &nonZero, {} }
         };
+
+        auto iemParameters = iemHelper.getParameters();
+        allParameters.insert(allParameters.end(), iemParameters.begin(), iemParameters.end());
+
+        return allParameters;
+    }
+
+    void setToggleStateFromFloat(float newValue)
+    {
+        value = newValue;
+        toggleState = std::abs(newValue) > std::numeric_limits<float>::epsilon();
+        repaint();
     }
 
     void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
     {
-
-        if (symbol == "nonzero" && atoms.size() >= 1) {
-            setParameterExcludingListener(nonZero, atoms[0].getFloat());
-        } else {
-            IEMObject::receiveObjectMessage(symbol, atoms);
+        switch (hash(symbol)) {
+        case hash("bang"): {
+            value = !value;
+            setToggleStateFromFloat(value);
+            break;
+        }
+        case hash("float"):
+        case hash("set"): {
+            value = atoms[0].getFloat();
+            setToggleStateFromFloat(value);
+            break;
+        }
+        case hash("nonzero"): {
+            if (atoms.size() >= 1)
+                setParameterExcludingListener(nonZero, atoms[0].getFloat());
+            break;
+        }
+        default: {
+            iemHelper.receiveObjectMessage(symbol, atoms);
+            break;
+        }
         }
     }
 
@@ -105,21 +178,14 @@ struct ToggleObject final : public IEMObject {
     {
         if (value.refersToSameSourceAs(nonZero)) {
             float val = nonZero.getValue();
-            max = val;
             static_cast<t_toggle*>(ptr)->x_nonzero = val;
         } else {
-            IEMObject::valueChanged(value);
+            iemHelper.valueChanged(value);
         }
     }
 
-    float getValue() override
+    float getValue()
     {
         return (static_cast<t_toggle*>(ptr))->x_on;
-    }
-
-    void update() override
-    {
-        toggleState = getValueOriginal() > std::numeric_limits<float>::epsilon();
-        repaint();
     }
 };

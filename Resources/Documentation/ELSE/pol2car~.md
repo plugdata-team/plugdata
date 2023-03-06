@@ -1,17 +1,14 @@
 ---
 title: pol2car~
 
-description: Polar to cartesian conversion
+description: polar to Cartesian conversion
 
 categories:
 - object
 
-pdcategory:
+pdcategory: ELSE, Signal Math, Converters
 
 arguments:
-- description:
-  type:
-  default:
 
 inlets:
   1st:
@@ -24,13 +21,13 @@ inlets:
 outlets:
   1st:
   - type: signal
-    description: real part of the signal in the cartesian form
+    description: real part of the signal in the Cartesian form
   2nd:
   - type: signal
-    description: imaginary part of the signal in the cartesian form
+    description: imaginary part of the signal in the Cartesian form
 
 draft: false
 ---
 
-[pol2car~] converts polar coordinates (amplitude / phase) to cartesian coordinates (real / imaginary).
+[pol2car~] converts polar coordinates (amplitude / phase) to Cartesian coordinates (real / imaginary).
 

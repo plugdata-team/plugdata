@@ -55,6 +55,7 @@ cmake --build .
 ```
 
 **Important:**
+- plugdata requires cmake 3.21 or later
 - Please ensure that the git submodules are initialized and updated! You can use the `--recursive` option while cloning or `git submodule update --init --recursive` in the plugdata repository .
 - On Linux, Juce framework requires to install dependencies, please refer to [Linux Dependencies.md](https://github.com/juce-framework/JUCE/blob/master/docs/Linux%20Dependencies.md) and use the full command.
 - The CMake build system has been tested with *Unix Makefiles*, *XCode* and *Visual Studio 16 2019*.
@@ -73,6 +74,8 @@ Supported by [Deskew Technologies](https://gigperformer.com)
 - [MoodyCamel](https://github.com/cameron314/concurrentqueue) by Cameron Desrochers
 - [Inter](https://rsms.me/inter/) font by Rasmus Andersson
 - [Kiwi](https://github.com/Musicoll/Kiwi) by Eliott Paris, Pierre Guillot and Jean Millot
+- [FluidLite](https://github.com/divideconcept/FluidLite) by divideconcept, based on [Fluidsynth](https://github.com/FluidSynth/fluidsynth)
+- [FluidR3Mono](https://github.com/musescore/MuseScore/blob/master/share/sound/FluidR3Mono_License.md) soundfont by Frank Wen,  Michael Cowgill, S. Christian Collins, Ethan Winer, Michael Schorsch
 - [LV2 PlugIn Technology](http://lv2plug.in) by Steve Harris, David Robillard and others
 - [VST PlugIn Technology](https://www.steinberg.net/en/company/technologies/vst3.html) by Steinberg Media Technologies
 - [Audio Unit PlugIn Technology](https://developer.apple.com/documentation/audiounit) by Apple

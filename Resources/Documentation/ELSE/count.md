@@ -1,12 +1,12 @@
 ---
 title: count
 
-description: A counter
+description: a counter
 
 categories:
 - object
 
-pdcategory: Math Functions
+pdcategory: ELSE, Data Math
 
 arguments:
 - description: 1 float sets max / 2 floats set min & max
@@ -18,20 +18,6 @@ inlets:
     description: counts
   - type: float
     description: sets new count value and outputs it
-  - type: set <float>
-    description: sets new count value
-  - type: reset <float>
-    description: without a float, resets to the reset point, but a float sets a new reset point as well
-  - type: max <float>
-    description: sets maximum value
-  - type: min <float>
-    description: sets minimum value
-  - type: up
-    description: sets count direction upwards
-  - type: down
-    description: sets count direction downwards
-  - type: alt <float>
-    description: non-zero sets to alternating mode (between up/down)
   2nd:
   - type: list
     description: updates arguments
@@ -49,6 +35,22 @@ flags:
     description: sets to alternating mode
   - name: reset <float>
     description: sets start & reset value
+
+methods:
+  - type: set <float>
+    description: sets new count value
+  - type: reset <float>
+    description: without a float, resets to the reset point, but a float sets a new reset point as well
+  - type: max <float>
+    description: sets maximum value
+  - type: min <float>
+    description: sets minimum value
+  - type: up
+    description: sets count direction upwards
+  - type: down
+    description: sets count direction downwards
+  - type: alt <float>
+    description: non-0 sets to alternating mode (between up/down)
 
 draft: false
 ---

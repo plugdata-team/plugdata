@@ -1,12 +1,12 @@
 ---
-title: plusequals~
+title: plusequals~, +=~, cyclone/+=~
 
-description: Signal accumulator
+description: signal accumulator
 
 categories:
  - object
 
-pdcategory: General
+pdcategory: cyclone, Signal Math
 
 arguments:
 - type: float

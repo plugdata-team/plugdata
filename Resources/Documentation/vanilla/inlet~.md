@@ -9,21 +9,23 @@ see_also:
 - outlet~
 - block~
 - pd
-pdcategory: Subwindows
+pdcategory: vanilla, UI, Mixing and Routing, Audio I/O
 last_update: '0.51'
 inlets:
   1st:
   - type: float
-    description: set default value for no signal connected.
+    description: set default value for no signal connected
 outlets:
   1st:
   - type: signal
-    description: signal from parent patch.
+    description: signal from parent patch
   2nd:
   - type: anything
-    description: any message from parent patch when give a 'fwd' argument.
+    description: any message from parent patch or inlet
 arguments:
 - type: symbol
-  description: "'fwd' to turn message forwarding on. Alternatively, you can set upsampling method: 'hold' for sample/hold 
-  default:
-, 'pad' for zero-padded and 'lin' for linear interpolation
+  description: set upsampling method. 'hold' for sample/hold, 'pad' for zero-padded, and 'lin' for linear interpolation
+  default: hold
+draft: false
+---
+

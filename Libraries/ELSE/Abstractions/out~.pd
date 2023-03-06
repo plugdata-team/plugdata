@@ -1,9 +1,9 @@
-#N canvas 745 65 448 310 10;
+#N canvas 527 76 448 310 10;
 #X declare -path else;
 #X obj 54 227 *~;
 #X obj 105 36 inlet~;
 #X obj 106 226 *~;
-#N canvas 627 117 636 328 set_GUI 0;
+#N canvas 150 171 649 301 set_GUI 1;
 #X obj 66 225 s \$0-set-slider;
 #X obj 98 18 inlet;
 #X obj 66 191 clip 0 1;
@@ -45,21 +45,16 @@
 #X connect 20 0 18 0;
 #X connect 20 0 19 0;
 #X restore 159 77 pd set_GUI;
-#N canvas 965 168 332 251 GUI 0;
-#X obj 103 116 hsl 89 20 0 1 0 0 \$0-slider \$0-set-slider volume 17
-9 0 14 #dcdcdc #000000 #000000 0 1;
+#N canvas 389 180 275 208 GUI 0;
+#X obj 103 116 hsl 89 20 0 1 0 0 \$0-slider \$0-set-slider volume 17 9 0 14 #dcdcdc #000000 #000000 0 1;
 #N canvas 565 338 514 332 DSP 0;
-#X obj 100 100 tgl 16 0 \$0-dsp-toggle \$0-dsp-toggle-set empty 19
-8 0 12 #dcdcdc #7c7c7c #fcfcfc 0 1;
-#X obj 117 101 cnv 5 24 14 empty \$0-cnv_dsp dsp 2 6 0 12 #dcdcdc #585854
-0;
+#X obj 100 100 tgl 16 0 \$0-dsp-toggle \$0-dsp-toggle-set empty 19 8 0 12 #dcdcdc #7c7c7c #fcfcfc 0 1;
+#X obj 117 101 cnv 5 24 14 empty \$0-cnv_dsp dsp 2 6 0 12 #dcdcdc #585854 0;
 #X coords 0 -1 1 1 42 16 2 100 100;
 #X restore 100 100 pd DSP;
 #N canvas 830 23 409 332 mute 0;
-#X obj 101 101 cnv 5 34 14 empty \$0-cnv_mute mute 4 6 0 12 #dcdcdc
-#585854 0;
-#X obj 64 133 tgl 16 0 \$0-mute \$0-mute-set empty 19 7 0 12 #dcdcdc
-#7c7c7c #fcfcfc 0 1;
+#X obj 101 101 cnv 5 34 14 empty \$0-cnv_mute mute 4 6 0 12 #dcdcdc #585854 0;
+#X obj 64 133 tgl 16 0 \$0-mute \$0-mute-set empty 19 7 0 12 #dcdcdc #7c7c7c #fcfcfc 0 1;
 #X obj 130 162 select 0 1;
 #N canvas 612 446 324 271 set_tgl_color 0;
 #X obj 47 30 inlet;
@@ -214,8 +209,7 @@
 #X connect 28 2 25 0;
 #X restore 310 198 pd on;
 #X obj 267 233 s \$0-set-slider;
-#X obj 136 100 bng 16 500 250 0 \$0-mute-bng \$0-mute-bng-set empty
-17 7 0 10 #dcdcdc #000000 #000000;
+#X obj 136 100 bng 16 500 250 0 \$0-mute-bng \$0-mute-bng-set empty 17 7 0 10 #dcdcdc #000000 #000000;
 #X obj 64 47 else/lb;
 #X connect 1 0 2 0;
 #X connect 1 0 3 0;
@@ -230,7 +224,7 @@
 #X restore 142 100 pd mute;
 #X coords 0 -1 1 1 94 36 2 100 100;
 #X restore 260 105 pd GUI;
-#N canvas 977 100 407 422 Gui_control 0;
+#N canvas 959 100 407 422 Gui_control 0;
 #X msg 242 154 0;
 #X msg 29 303 \; pd dsp 1;
 #X obj 56 97 value slider_\$0;

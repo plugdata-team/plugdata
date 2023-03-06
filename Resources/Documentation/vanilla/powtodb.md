@@ -1,9 +1,9 @@
 ---
 title: powtodb
-description: convert acoustical units
+description: power units to dB
 categories:
 - object
-pdcategory: Math
+pdcategory: vanilla, Converters
 last_update: '0.40'
 see_also:
 - mtof~
@@ -11,7 +11,7 @@ see_also:
 inlets:
   1st:
   - type: float
-    description: incomming value to be converted.
+    description: incoming value to be converted
 outlets:
   1st:
   - type: float

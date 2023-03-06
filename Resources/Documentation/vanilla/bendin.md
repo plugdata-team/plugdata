@@ -3,7 +3,7 @@ title: bendin
 description: MIDI input
 categories:
 - object
-pdcategory: I/O 
+pdcategory: vanilla, MIDI
 last_update: 0.48-2
 see_also:
 - notein
@@ -14,11 +14,10 @@ arguments:
 outlets:
   1st:
   - type: float
-    description: MIDI bend value.
+    description: MIDI bend value
   2nd:
   - type: float
     description: MIDI channel/port
-  'n: (number depends on number of arguments)':
 bref: MIDI input
 draft: false
 ---

@@ -1,12 +1,12 @@
 ---
 title: prob
 
-description: Probability matrix
+description: probability matrix
 
 categories:
  - object
 
-pdcategory: General
+pdcategory: cyclone, Random and Noise
 
 arguments: (none)
 

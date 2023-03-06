@@ -1,12 +1,12 @@
 ---
-title: append
+title: append, cyclone/append
 
-description: Append a message to the incoming message
+description: append a message to the incoming message
 
 categories:
 - object
 
-pdcategory:
+pdcategory: cyclone, Data Management
 
 arguments:
 - description: sets message to append to the input

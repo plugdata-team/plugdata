@@ -1,15 +1,15 @@
 ---
 title: lop.bw~
 
-description: Lowpass butterworth filter
+description: lowpass butterworth filter
 
 categories:
 - object
 
-pdcategory:
+pdcategory: ELSE, Filters
 
 arguments:
-- description: cutoff in hertz
+- description: cutoff in Hz
   type: float
   default: 0
 - description: order of the filter from 2 to 100
@@ -22,7 +22,7 @@ inlets:
     description: the signal to be filtered
   2nd:
   - type: float
-    description: cutoff frequency in hertz
+    description: cutoff frequency in Hz
   3rd:
   - type: float
     description: order of the filter
@@ -35,5 +35,5 @@ outlets:
 draft: false
 ---
 
-[lop.bw~] is a lowpass butterworth filter abstraction based on [biquads~]. You can specify the cuttoff frequency and the order of the filter (from 2nd order to 100th order).
+[lop.bw~] is a lowpass butterworth filter abstraction based on [biquads~]. You can specify the cutoff frequency and the order of the filter (from 2nd order to 100th order).
 

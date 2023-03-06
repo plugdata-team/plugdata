@@ -1,22 +1,22 @@
 ---
 title: xmod~
 
-description: Cross-modulation
+description: cross-modulation
 
 categories:
  - object
  
-pdcategory: Noise, General Audio Manipulation
+pdcategory: ELSE, Signal Generators
 
 arguments:
   - type: float
-    description: frequency of oscillator 1 in hertz
+    description: frequency of oscillator 1 in Hz
     default: 0
   - type: float
     description: modulation index 1
     default: 0
   - type: float
-    description: frequency of oscillator 2 in hertz
+    description: frequency of oscillator 2 in Hz
     default: 0
   - type: float
     description: modulation index 2

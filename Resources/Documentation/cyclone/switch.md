@@ -1,12 +1,12 @@
 ---
 title: switch
 
-description: Pass messages from a specified inlet
+description: pass messages from a specified inlet
 
 categories:
  - object
 
-pdcategory: General
+pdcategory: cyclone, Mixing and Routing, Data Management
 
 arguments:
 - type: float

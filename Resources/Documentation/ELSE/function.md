@@ -1,11 +1,11 @@
 ---
 title: function
-description: Function GUI
+description: function GUI
 
 categories:
  - object
 
-pdcategory: General
+pdcategory: ELSE, UI, Data Math, Envelopes and LFOs
 
 arguments:
 
@@ -73,8 +73,9 @@ methods:
   - type: receive <symbol>
     description: sets receive symbol
   - type: init <float>
-    description: nonzero sets to init mode
+    description: non-0 sets to init mode
 
+draft: false
 ---
 
 [function] is a breakpoints function GUI, mainly used with [function~] or [envgen~]. You can click and drag on it or send it lists.

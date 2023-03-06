@@ -16,6 +16,7 @@
 #include "Canvas.h"
 #include "PluginEditor.h"
 #include "LookAndFeel.h"
+#include "Tabbar.h"
 
 #include "Utility/PluginParameter.h"
 
@@ -55,54 +56,32 @@ PluginProcessor::PluginProcessor()
     ,
 #endif
     pd::Instance("plugdata")
-    , parameters(*this, nullptr)
 {
     // Make sure to use dots for decimal numbers, pd requires that
     std::setlocale(LC_ALL, "C");
-
-    // continuityChecker keeps track of whether audio is running and creates a backup scheduler in case it isn't
-    /*
-    continuityChecker.setCallback([this](t_float* in, t_float* out){
-
-        if(isNonRealtime()) return;
-
-        if(getCallbackLock()->tryEnter()) {
-
-            // Dequeue messages
-            sendMessagesFromQueue();
-
-            libpd_set_instance(static_cast<t_pdinstance*>(m_instance));
-            libpd_process_nodsp();
-            getCallbackLock()->exit();
-        }
-    }); */
 
     {
         const MessageManagerLock mmLock;
 
         LookAndFeel::setDefaultLookAndFeel(&lnf.get());
 
-        // On first startup, initialise abstractions and settings
+        // Initialise directory structure and settings file
         initialiseFilesystem();
+        settingsFile = SettingsFile::getInstance()->initialise();
     }
 
-    parameters.createAndAddParameter(std::make_unique<AudioParameterFloat>(ParameterID("volume", 1), "Volume", NormalisableRange<float>(0.0f, 1.0f, 0.001f, 0.75f, false), 1.0f));
+    auto* volumeParameter = new PlugDataParameter(this, "volume", 1.0f, true);
+    addParameter(volumeParameter);
+    volume = volumeParameter->getValuePointer();
 
     // General purpose automation parameters you can get by using "receive param1" etc.
     for (int n = 0; n < numParameters; n++) {
-        auto id = ParameterID("param" + String(n + 1), 1);
-        // auto* parameter = parameters.createAndAddParameter(std::make_unique<PlugDataParameter>(this, "Parameter " + String(n + 1),  "", 0.0f));
-
-        auto* parameter = parameters.createAndAddParameter(std::make_unique<AudioParameterFloat>(id, "Parameter " + String(n + 1), 0.0f, 1.0f, 0.0f));
-
-        lastParameters[n] = 0;
-        parameter->addListener(this);
+        auto* parameter = new PlugDataParameter(this, "param" + String(n + 1), 0.0f, false);
+        addParameter(parameter);
     }
 
-    volume = parameters.getRawParameterValue("volume");
-
     // Make sure that the parameter valuetree has a name, to prevent assertion failures
-    parameters.replaceState(ValueTree("plugdata"));
+    // parameters.replaceState(ValueTree("plugdata"));
 
     logMessage("plugdata v" + String(ProjectInfo::versionString));
     logMessage("Based on " + String(pd_version).upToFirstOccurrenceOf("(", false, false));
@@ -127,49 +106,44 @@ PluginProcessor::PluginProcessor()
 
     objectLibrary.appDirChanged = [this]() {
         // If we changed the settings from within the app, don't reload
-        if (!settingsChangedInternally) {
-
-            auto newTree = ValueTree::fromXml(settingsFile.loadFileAsString());
-
-            // Prevents causing an update loop
-            if (auto* editor = dynamic_cast<PluginEditor*>(getActiveEditor())) {
-                settingsTree.removeListener(editor);
-            }
-
-            settingsTree.getChildWithName("Paths").copyPropertiesAndChildrenFrom(newTree.getChildWithName("Paths"), nullptr);
-
-            // Direct children shouldn't be overwritten as that would break some valueTree links, for example in SettingsDialog
-            for (auto child : settingsTree) {
-                child.copyPropertiesAndChildrenFrom(newTree.getChildWithName(child.getType()), nullptr);
-            }
-            settingsTree.copyPropertiesFrom(newTree, nullptr);
-
-            if (auto* editor = dynamic_cast<PluginEditor*>(getActiveEditor())) {
-                settingsTree.addListener(editor);
-
-                for (auto* cnv : editor->canvases) {
-                    // Make sure inlets/outlets are updated
-                    for (auto* object : cnv->objects)
-                        object->updatePorts();
-                }
-            }
-
-            setTheme(static_cast<bool>(settingsTree.getProperty("Theme")));
+        settingsFile->reloadSettings();
+        auto newTheme = settingsFile->getProperty<String>("theme");
+        if (PlugDataLook::currentTheme != newTheme) {
+            setTheme(newTheme);
         }
 
-        settingsChangedInternally = false;
+        if (auto* editor = dynamic_cast<PluginEditor*>(getActiveEditor())) {
+            for (auto* cnv : editor->canvases) {
+                // Make sure inlets/outlets are updated
+                for (auto* object : cnv->objects)
+                    object->updateIolets();
+            }
+        }
 
         updateSearchPaths();
         objectLibrary.updateLibrary();
     };
 
-    if (settingsTree.hasProperty("Theme")) {
-        setTheme(static_cast<bool>(settingsTree.getProperty("Theme")));
+    auto themeName = settingsFile->getProperty<String>("theme");
+
+    // Make sure theme exists
+    if (!settingsFile->getTheme(themeName).isValid()) {
+
+        settingsFile->setProperty("theme", PlugDataLook::selectedThemes[0]);
+        themeName = PlugDataLook::selectedThemes[0];
     }
 
-    if (settingsTree.hasProperty("Oversampling")) {
-        oversampling = static_cast<int>(settingsTree.getProperty("Oversampling"));
-    }
+    setTheme(themeName, true);
+    settingsFile->saveSettings();
+
+    oversampling = settingsFile->getProperty<int>("oversampling");
+
+    setProtectedMode(settingsFile->getProperty<int>("protected"));
+#if PLUGDATA_STANDALONE
+    enableInternalSynth = settingsFile->getProperty<int>("internal_synth");
+#endif
+
+    auto currentThemeTree = settingsFile->getCurrentTheme();
 
     updateSearchPaths();
 
@@ -198,232 +172,110 @@ PluginProcessor::PluginProcessor()
 
 PluginProcessor::~PluginProcessor()
 {
-    // Save current settings before quitting
-    saveSettings();
+    // Deleting the pd instance in ~PdInstance() will also free all the Pd patches
+    patches.clear();
 }
 
 void PluginProcessor::initialiseFilesystem()
 {
+    auto library = homeDir.getChildFile("Library");
+    auto deken = homeDir.getChildFile("Deken");
+
     // Check if the abstractions directory exists, if not, unzip it from binaryData
     if (!homeDir.exists() || !abstractions.exists()) {
-        MemoryInputStream binaryFilesystem(BinaryData::Filesystem_zip, BinaryData::Filesystem_zipSize, false);
-        auto file = ZipFile(binaryFilesystem);
+
+        // Binary data shouldn't be too big, then the compiler will run out of memory
+        // To prevent this, we split the binarydata into multiple files, and add them back together here
+        std::vector<char> allData;
+        int i = 0;
+        while (true) {
+            int size;
+            auto* resource = BinaryData::getNamedResource((String("Filesystem_") + String(i) + "_zip").toRawUTF8(), size);
+
+            if (!resource) {
+                break;
+            }
+
+            allData.insert(allData.end(), resource, resource + size);
+            i++;
+        }
+
+        MemoryInputStream memstream(allData.data(), allData.size(), false);
+
+        homeDir.createDirectory();
+
+        auto file = ZipFile(memstream);
         file.uncompressTo(homeDir);
 
         // Create filesystem for this specific version
         homeDir.getChildFile("plugdata_version").moveFileTo(versionDataDir);
 
-        auto library = homeDir.getChildFile("Library");
-        auto deken = homeDir.getChildFile("Deken");
-
-        // For transitioning between v0.5.3 -> v0.6.0
-        // TODO: remove this soon
-        auto library_backup = homeDir.getChildFile("Library_backup");
-        if (!library.exists()) {
-            library.createDirectory();
-        }
-
-#if !JUCE_WINDOWS
-        // This may not work on Windows, Windows users REALLY need to thrash their plugdata folder
-        else if (library.getChildFile("Deken").isDirectory() && !library.getChildFile("Deken").isSymbolicLink()) {
-            library.moveFileTo(library_backup);
-            library.createDirectory();
-        }
-#endif
-
         deken.createDirectory();
+    }
 
+    library.deleteRecursively();
+    library.createDirectory();
+
+    // We always want to update the symlinks in case an older version of plugdata is was used
 #if JUCE_WINDOWS
+    // Get paths that need symlinks
+    auto abstractionsPath = versionDataDir.getChildFile("Abstractions").getFullPathName().replaceCharacters("/", "\\");
+    auto documentationPath = versionDataDir.getChildFile("Documentation").getFullPathName().replaceCharacters("/", "\\");
+    auto extraPath = versionDataDir.getChildFile("Extra").getFullPathName().replaceCharacters("/", "\\");
+    auto dekenPath = deken.getFullPathName();
 
-        // Get paths that need symlinks
-        auto abstractionsPath = versionDataDir.getChildFile("Abstractions").getFullPathName().replaceCharacters("/", "\\");
-        auto documentationPath = versionDataDir.getChildFile("Documentation").getFullPathName().replaceCharacters("/", "\\");
-        auto extraPath = versionDataDir.getChildFile("Extra").getFullPathName().replaceCharacters("/", "\\");
-        auto dekenPath = deken.getFullPathName();
+    // Create NTFS directory junctions
+    createJunction(library.getChildFile("Abstractions").getFullPathName().replaceCharacters("/", "\\").toStdString(), abstractionsPath.toStdString());
 
-        // Create NTFS directory junctions
-        createJunction(library.getChildFile("Abstractions").getFullPathName().replaceCharacters("/", "\\").toStdString(), abstractionsPath.toStdString());
+    createJunction(library.getChildFile("Documentation").getFullPathName().replaceCharacters("/", "\\").toStdString(), documentationPath.toStdString());
 
-        createJunction(library.getChildFile("Documentation").getFullPathName().replaceCharacters("/", "\\").toStdString(), documentationPath.toStdString());
+    createJunction(library.getChildFile("Extra").getFullPathName().replaceCharacters("/", "\\").toStdString(), extraPath.toStdString());
 
-        createJunction(library.getChildFile("Extra").getFullPathName().replaceCharacters("/", "\\").toStdString(), extraPath.toStdString());
-
-        createJunction(library.getChildFile("Deken").getFullPathName().replaceCharacters("/", "\\").toStdString(), dekenPath.toStdString());
+    createJunction(library.getChildFile("Deken").getFullPathName().replaceCharacters("/", "\\").toStdString(), dekenPath.toStdString());
 
 #else
-        versionDataDir.getChildFile("Abstractions").createSymbolicLink(library.getChildFile("Abstractions"), true);
-        versionDataDir.getChildFile("Documentation").createSymbolicLink(library.getChildFile("Documentation"), true);
-        versionDataDir.getChildFile("Extra").createSymbolicLink(library.getChildFile("Extra"), true);
-        versionDataDir.createSymbolicLink(library.getChildFile("Deken"), true);
+    versionDataDir.getChildFile("Abstractions").createSymbolicLink(library.getChildFile("Abstractions"), true);
+    versionDataDir.getChildFile("Documentation").createSymbolicLink(library.getChildFile("Documentation"), true);
+    versionDataDir.getChildFile("Extra").createSymbolicLink(library.getChildFile("Extra"), true);
+    deken.createSymbolicLink(library.getChildFile("Deken"), true);
 #endif
-    }
-
-    // Check if settings file exists, if not, create the default
-    if (!settingsFile.existsAsFile()) {
-        settingsFile.create();
-
-        // Add default settings
-        settingsTree.setProperty("BrowserPath", homeDir.getChildFile("Library").getFullPathName(), nullptr);
-        settingsTree.setProperty("Theme", 1, nullptr);
-        settingsTree.setProperty("GridEnabled", 1, nullptr);
-        settingsTree.setProperty("Zoom", 1.0f, nullptr);
-
-        auto pathTree = ValueTree("Paths");
-        auto library = homeDir.getChildFile("Library");
-
-        auto firstPath = ValueTree("Path");
-        firstPath.setProperty("Path", library.getChildFile("Abstractions").getFullPathName(), nullptr);
-
-        auto secondPath = ValueTree("Path");
-        secondPath.setProperty("Path", library.getChildFile("Deken").getFullPathName(), nullptr);
-
-        pathTree.appendChild(firstPath, nullptr);
-        pathTree.appendChild(secondPath, nullptr);
-
-        settingsTree.appendChild(pathTree, nullptr);
-
-        settingsTree.appendChild(ValueTree("Keymap"), nullptr);
-
-        settingsTree.setProperty("DefaultFont", "Inter", nullptr);
-        auto colourThemesTree = ValueTree("ColourThemes");
-
-        for (auto const& theme : lnf->colourSettings) {
-            auto themeName = theme.first;
-            auto themeColours = theme.second;
-            auto themeTree = ValueTree(themeName);
-            colourThemesTree.appendChild(themeTree, nullptr);
-            themeTree.setProperty("theme", themeName, nullptr);
-            for (auto const& defaultColours : lnf->defaultDarkTheme) {
-                auto [colourId, colourName, colourCategory] = PlugDataColourNames.at(defaultColours.first);
-                themeTree.setProperty(colourName, themeColours.at(defaultColours.first).toString(), nullptr);
-            }
-        }
-
-        settingsTree.appendChild(colourThemesTree, nullptr);
-        saveSettings();
-    } else {
-        // Or load the settings when they exist already
-        settingsTree = ValueTree::fromXml(settingsFile.loadFileAsString());
-
-        if (settingsTree.hasProperty("DefaultFont")) {
-            auto fontname = settingsTree.getProperty("DefaultFont").toString();
-            PlugDataLook::setDefaultFont(fontname);
-        }
-
-        if (!settingsTree.getChildWithName("ColourThemes").isValid()) {
-            auto colourThemesTree = ValueTree("ColourThemes");
-
-            for (auto const& theme : lnf->colourSettings) {
-                auto themeName = theme.first;
-                auto themeColours = theme.second;
-                auto themeTree = ValueTree(themeName);
-
-                colourThemesTree.appendChild(themeTree, nullptr);
-                themeTree.setProperty("theme", themeName, nullptr);
-                for (auto const& [colourId, colour] : PlugDataLook::defaultThemes.at(themeName)) {
-                    auto [id, colourName, category] = PlugDataColourNames.at(colourId);
-                    themeTree.setProperty(colourName, colour.toString(), nullptr);
-                }
-            }
-
-            settingsTree.appendChild(colourThemesTree, nullptr);
-            saveSettings();
-        } else {
-            bool wasMissingColours = false;
-            auto colourThemesTree = settingsTree.getChildWithName("ColourThemes");
-            for (auto themeTree : colourThemesTree) {
-                auto themeName = themeTree.getProperty("theme");
-
-                for (auto const& [colourId, colour] : PlugDataLook::defaultThemes.at(themeName)) {
-                    auto [id, colourName, category] = PlugDataColourNames.at(colourId);
-
-                    // For when we add new colours in the future
-                    if (!themeTree.hasProperty(colourName)) {
-                        themeTree.setProperty(colourName, colour.toString(), nullptr);
-                        wasMissingColours = true;
-                    }
-
-                    lnf->colourSettings[themeName][colourId] = Colour::fromString(themeTree.getProperty(colourName).toString());
-                }
-            }
-
-            if (wasMissingColours)
-                saveSettings();
-        }
-    }
-
-    if (!settingsTree.hasProperty("NativeWindow")) {
-        settingsTree.setProperty("NativeWindow", false, nullptr);
-    }
-
-    if (!settingsTree.hasProperty("ReloadLastState")) {
-        settingsTree.setProperty("ReloadLastState", false, nullptr);
-    }
-
-    if (!settingsTree.hasProperty("DashedSignalConnection")) {
-        settingsTree.setProperty("DashedSignalConnection", false, nullptr);
-    }
-
-    if (!settingsTree.hasProperty("StraighConnections")) {
-        settingsTree.setProperty("StraighConnections", false, nullptr);
-    }
-
-    if (!settingsTree.hasProperty("Zoom")) {
-        settingsTree.setProperty("Zoom", 1.0f, nullptr);
-    }
-
-    if (!settingsTree.getChildWithName("Libraries").isValid()) {
-        settingsTree.appendChild(ValueTree("Libraries"), nullptr);
-    }
-
-    if (!settingsTree.hasProperty("AutoConnect")) {
-        settingsTree.setProperty("AutoConnect", true, nullptr);
-    }
-}
-
-void PluginProcessor::saveSettings()
-{
-    // Save settings to file
-    auto xml = settingsTree.toXmlString();
-    settingsFile.replaceWithText(xml);
 }
 
 void PluginProcessor::updateSearchPaths()
 {
     // Reload pd search paths from settings
-    auto pathTree = settingsTree.getChildWithName("Paths");
+    auto pathTree = settingsFile->getPathsTree();
 
     setThis();
 
-    getCallbackLock()->enter();
+    lockAudioThread();
 
-    libpd_clear_search_path();
+    // Get pd's search paths
+    char* p[1024];
+    int numItems;
+    libpd_get_search_paths(p, &numItems);
+    auto currentPaths = StringArray(p, numItems);
+
+    auto paths = pd::Library::defaultPaths;
+
     for (auto child : pathTree) {
         auto path = child.getProperty("Path").toString().replace("\\", "/");
-        libpd_add_to_search_path(path.toRawUTF8());
+        paths.addIfNotAlreadyThere(path);
     }
 
-    // Add ELSE path
-    auto elsePath = versionDataDir.getChildFile("Abstractions").getChildFile("else");
-    if (elsePath.exists()) {
-        auto location = elsePath.getFullPathName().replace("\\", "/");
-        ;
-        libpd_add_to_search_path(location.toRawUTF8());
-    }
-
-    // Add heavylib path
-    auto heavylibPath = versionDataDir.getChildFile("Abstractions").getChildFile("heavylib");
-    if (heavylibPath.exists()) {
-        auto location = heavylibPath.getFullPathName().replace("\\", "/");
-        ;
-        libpd_add_to_search_path(location.toRawUTF8());
+    for (auto path : paths) {
+        if (currentPaths.contains(path.getFullPathName()))
+            continue;
+        libpd_add_to_search_path(path.getFullPathName().toRawUTF8());
     }
 
     for (auto path : DekenInterface::getExternalPaths()) {
+        if (currentPaths.contains(path))
+            continue;
         libpd_add_to_search_path(path.replace("\\", "/").toRawUTF8());
     }
 
-    auto librariesTree = settingsTree.getChildWithName("Libraries");
+    auto librariesTree = settingsFile->getLibrariesTree();
 
     for (auto library : librariesTree) {
         if (!library.hasProperty("Name") || library.getProperty("Name").toString().isEmpty()) {
@@ -444,7 +296,7 @@ void PluginProcessor::updateSearchPaths()
         }
     }
 
-    getCallbackLock()->exit();
+    unlockAudioThread();
 }
 
 const String PluginProcessor::getName() const
@@ -506,8 +358,8 @@ void PluginProcessor::changeProgramName(int index, String const& newName)
 
 void PluginProcessor::setOversampling(int amount)
 {
-    settingsTree.setProperty("Oversampling", var(amount), nullptr);
-    saveSettings();
+    settingsFile->setProperty("Oversampling", var(amount));
+    settingsFile->saveSettings(); // TODO: i think this is unnecessary?
 
     oversampling = amount;
     auto blockSize = AudioProcessor::getBlockSize();
@@ -516,6 +368,11 @@ void PluginProcessor::setOversampling(int amount)
     suspendProcessing(true);
     prepareToPlay(sampleRate, blockSize);
     suspendProcessing(false);
+}
+
+void PluginProcessor::setProtectedMode(bool enabled)
+{
+    protectedMode = enabled;
 }
 
 void PluginProcessor::prepareToPlay(double sampleRate, int samplesPerBlock)
@@ -528,6 +385,12 @@ void PluginProcessor::prepareToPlay(double sampleRate, int samplesPerBlock)
     oversampler.reset(new dsp::Oversampling<float>(maxChannels, oversampling, dsp::Oversampling<float>::filterHalfBandPolyphaseIIR, false));
 
     oversampler->initProcessing(samplesPerBlock);
+
+#if PLUGDATA_STANDALONE
+    if (enableInternalSynth) {
+        internalSynth.prepare(sampleRate, samplesPerBlock, maxChannels);
+    }
+#endif
 
     audioAdvancement = 0;
     auto const blksize = static_cast<size_t>(Instance::getBlockSize());
@@ -594,14 +457,16 @@ bool PluginProcessor::isBusesLayoutSupported(BusesLayout const& layouts) const
 
 void PluginProcessor::processBlock(AudioBuffer<float>& buffer, MidiBuffer& midiMessages)
 {
+
+    jassert(audioLock == &AudioProcessor::getCallbackLock());
+
     ScopedNoDenormals noDenormals;
     auto totalNumInputChannels = getTotalNumInputChannels();
     auto totalNumOutputChannels = getTotalNumOutputChannels();
 
-    // continuityChecker.setNonRealtime(isNonRealtime());
-    // continuityChecker.setTimer();
-
     setThis();
+    sendPlayhead();
+    sendParameters();
 
     for (int i = totalNumInputChannels; i < totalNumOutputChannels; ++i) {
         buffer.clear(i, 0, buffer.getNumSamples());
@@ -628,7 +493,30 @@ void PluginProcessor::processBlock(AudioBuffer<float>& buffer, MidiBuffer& midiM
             Time::getMillisecondCounterHiRes(),
             AudioProcessor::getSampleRate());
     }
+
+    // If the internalSynth is enabled and loaded, let it process the midi
+    if (enableInternalSynth && internalSynth.isReady()) {
+        internalSynth.process(buffer, midiMessages);
+    } else if (!enableInternalSynth && internalSynth.isReady()) {
+        internalSynth.unprepare();
+    } else if (enableInternalSynth && !internalSynth.isReady()) {
+        internalSynth.prepare(getSampleRate(), AudioProcessor::getBlockSize(), std::max(totalNumInputChannels, totalNumOutputChannels));
+    }
+
 #endif
+
+    if (protectedMode) {
+        auto* const* writePtr = buffer.getArrayOfWritePointers();
+        for (int ch = 0; ch < buffer.getNumChannels(); ch++) {
+            for (int n = 0; n < buffer.getNumSamples(); n++) {
+                if (!std::isfinite(writePtr[ch][n])) {
+                    writePtr[ch][n] = 0.0f;
+                } else {
+                    writePtr[ch][n] = std::clamp(writePtr[ch][n], -1.0f, 1.0f);
+                }
+            }
+        }
+    }
 }
 
 void PluginProcessor::process(dsp::AudioBlock<float> buffer, MidiBuffer& midiMessages)
@@ -754,6 +642,7 @@ void PluginProcessor::process(dsp::AudioBlock<float> buffer, MidiBuffer& midiMes
 void PluginProcessor::sendPlayhead()
 {
     AudioPlayHead* playhead = getPlayHead();
+
     if (!playhead)
         return;
 
@@ -834,15 +723,27 @@ void PluginProcessor::sendPlayhead()
     }
 }
 
+void PluginProcessor::sendParameters()
+{
+    for (auto* param : getParameters()) {
+        auto* pldParam = dynamic_cast<PlugDataParameter*>(param);
+        auto newvalue = pldParam->getUnscaledValue();
+        if (pldParam->isEnabled() && pldParam->getLastValue() != newvalue) {
+            auto title = pldParam->getTitle();
+            sendFloat(title.toRawUTF8(), pldParam->getUnscaledValue());
+            pldParam->setLastValue(newvalue);
+        }
+    }
+}
+
 void PluginProcessor::messageEnqueued()
 {
     if (isNonRealtime() || isSuspended()) {
         sendMessagesFromQueue();
     } else {
-        CriticalSection const* cs = getCallbackLock();
-        if (cs->tryEnter()) {
+        if (tryLockAudioThread()) {
             sendMessagesFromQueue();
-            cs->exit();
+            unlockAudioThread();
         }
     }
 }
@@ -899,9 +800,7 @@ void PluginProcessor::processInternal()
 
     // Dequeue messages
     sendMessagesFromQueue();
-    sendPlayhead();
     sendMidiBuffer();
-    sendParameters();
 
     // Process audio
     FloatVectorOperations::copy(audioBufferIn.data() + (2 * 64), audioBufferOut.data() + (2 * 64), (minOut - 2) * 64);
@@ -916,18 +815,22 @@ bool PluginProcessor::hasEditor() const
 AudioProcessorEditor* PluginProcessor::createEditor()
 {
     auto* editor = new PluginEditor(*this);
-
     setThis();
 
     for (auto* patch : patches) {
         auto* cnv = editor->canvases.add(new Canvas(editor, *patch, nullptr));
-        editor->addTab(cnv, true);
+        editor->addTab(cnv);
     }
+
+    editor->splitView.splitCanvasesAfterIndex(lastSplitIndex, true);
 
     editor->resized();
 
-    if (isPositiveAndBelow(lastTab, patches.size())) {
-        editor->tabbar.setCurrentTabIndex(lastTab);
+    if (isPositiveAndBelow(lastLeftTab, patches.size())) {
+        editor->splitView.getLeftTabbar()->setCurrentTabIndex(lastLeftTab);
+    }
+    if (isPositiveAndBelow(lastRightTab, patches.size())) {
+        editor->splitView.getRightTabbar()->setCurrentTabIndex(lastRightTab);
     }
 
     return editor;
@@ -935,35 +838,53 @@ AudioProcessorEditor* PluginProcessor::createEditor()
 
 void PluginProcessor::getStateInformation(MemoryBlock& destData)
 {
-    MemoryBlock xmlBlock;
-
-    suspendProcessing(true); // These functions can be called from any thread, so suspend processing prevent threading issues
-
     setThis();
-    auto stateXml = parameters.copyState().createXml();
 
-    stateXml->setAttribute("Version", PLUGDATA_VERSION);
+    savePatchTabPositions();
 
-    copyXmlToBinary(*stateXml, xmlBlock);
-
-    // Store pure-data state
+    // Store pure-data and parameter state
     MemoryOutputStream ostream(destData, false);
 
     ostream.writeInt(patches.size());
 
     // Save path and content for patch
-    for (auto& patch : patches) {
+    lockAudioThread();
+    for (auto* patch : patches) {
         ostream.writeString(patch->getCanvasContent());
         ostream.writeString(patch->getCurrentFile().getFullPathName());
     }
+    unlockAudioThread();
 
     ostream.writeInt(getLatencySamples());
     ostream.writeInt(oversampling);
     ostream.writeFloat(static_cast<float>(tailLength.getValue()));
+
+    XmlElement xml = XmlElement("plugdata_save");
+    xml.setAttribute("Version", PLUGDATA_VERSION);
+    xml.setAttribute("SplitIndex", lastSplitIndex);
+
+    // In the future, we're gonna load everything from xml, to make it easier to add new properties
+    // By putting this here, we can prepare for making this change without breaking existing DAW saves
+    xml.setAttribute("Oversampling", oversampling);
+    xml.setAttribute("Latency", getLatencySamples());
+    xml.setAttribute("TailLength", static_cast<float>(tailLength.getValue()));
+    xml.setAttribute("Legacy", false);
+
+    if (auto* editor = getActiveEditor()) {
+        xml.setAttribute("Width", editor->getWidth());
+        xml.setAttribute("Height", editor->getHeight());
+    } else {
+        xml.setAttribute("Width", lastUIWidth);
+        xml.setAttribute("Height", lastUIHeight);
+    }
+
+    PlugDataParameter::saveStateInformation(xml, getParameters());
+
+    MemoryBlock xmlBlock;
+    copyXmlToBinary(xml, xmlBlock);
+
     ostream.writeInt(static_cast<int>(xmlBlock.getSize()));
     ostream.write(xmlBlock.getData(), xmlBlock.getSize());
-
-    suspendProcessing(false);
 }
 
 void PluginProcessor::setStateInformation(void const* data, int sizeInBytes)
@@ -971,94 +892,128 @@ void PluginProcessor::setStateInformation(void const* data, int sizeInBytes)
     if (sizeInBytes == 0)
         return;
 
-    // Copy data to make sure it doesn't expire before our async function is called
-    void* copy = malloc(sizeInBytes);
-    memcpy(copy, data, sizeInBytes);
-
     // By calling this asynchronously on the message thread and also suspending processing on the audio thread, we can make sure this is safe
     // The DAW can call this function from basically any thread, hence the need for this
     // Audio will only be reactivated once this action is completed
-    MessageManager::callAsync(
-        [this, copy, sizeInBytes]() mutable {
-            MemoryInputStream istream(copy, sizeInBytes, false);
 
-            suspendProcessing(true);
+    MemoryInputStream istream(data, sizeInBytes, false);
 
-            // Close any opened patches
-            if (auto* editor = dynamic_cast<PluginEditor*>(getActiveEditor())) {
-                editor->tabbar.clearTabs();
-                editor->canvases.clear();
-            }
+    // Close any opened patches
+    if (auto* editor = dynamic_cast<PluginEditor*>(getActiveEditor())) {
+        MessageManager::callAsync([editor = Component::SafePointer(editor)]() {
+            if (!editor)
+                return;
 
-            for (auto& patch : patches)
-                patch->close();
-            patches.clear();
-
-            int numPatches = istream.readInt();
-
-            for (int i = 0; i < numPatches; i++) {
-                auto state = istream.readString();
-                auto location = File(istream.readString());
-
-                auto parentPath = location.getParentDirectory().getFullPathName();
-
-                // Add patch path to search path to make sure it finds abstractions in the saved patch!
-                setThis();
-                libpd_add_to_search_path(parentPath.toRawUTF8());
-
-                auto* patch = loadPatch(state);
-
-                if ((location.exists() && location.getParentDirectory() == File::getSpecialLocation(File::tempDirectory)) || !location.exists()) {
-                    patch->setTitle("Untitled Patcher");
-                } else if (location.existsAsFile()) {
-                    patch->setCurrentFile(location);
-                    patch->setTitle(location.getFileName());
-                }
-            }
-
-            auto latency = istream.readInt();
-            auto oversampling = istream.readInt();
-            auto tail = istream.readFloat();
-            auto xmlSize = istream.readInt();
-
-            tailLength = var(tail);
-
-            void* xmlData = static_cast<void*>(new char[xmlSize]);
-            istream.read(xmlData, xmlSize);
-
-            std::unique_ptr<XmlElement> xmlState(getXmlFromBinary(xmlData, xmlSize));
-
-            auto saveVersion = String("0.6.1");
-            if (xmlState->hasAttribute("Version")) {
-                saveVersion = xmlState->getStringAttribute("Version");
-            }
-
-            if (xmlState) {
-                if (xmlState->hasTagName(parameters.state.getType())) {
-                    parameters.replaceState(ValueTree::fromXml(*xmlState));
-                }
-            }
-
-            setLatencySamples(latency);
-            setOversampling(oversampling);
-
-            suspendProcessing(false);
-
-            freebytes(copy, sizeInBytes);
+            editor->splitView.getLeftTabbar()->clearTabs();
+            editor->splitView.getRightTabbar()->clearTabs();
+            editor->canvases.clear();
         });
+    }
+
+    suspendProcessing(true);
+    setThis();
+    patches.clear();
+
+    int numPatches = istream.readInt();
+
+    for (int i = 0; i < numPatches; i++) {
+        auto state = istream.readString();
+        auto location = File(istream.readString());
+
+        if (location.getParentDirectory().exists()) {
+            auto parentPath = location.getParentDirectory().getFullPathName();
+            // Add patch path to search path to make sure it finds abstractions in the saved patch!
+            // TODO: is there any way to make this local the the canvas?
+            libpd_add_to_search_path(parentPath.toRawUTF8());
+        }
+
+        auto* patch = loadPatch(state);
+
+        if ((location.exists() && location.getParentDirectory() == File::getSpecialLocation(File::tempDirectory)) || !location.exists()) {
+            patch->setTitle("Untitled Patcher");
+        } else if (location.existsAsFile()) {
+            patch->setCurrentFile(location);
+            patch->setTitle(location.getFileName());
+        }
+    }
+
+    auto latency = istream.readInt();
+    auto oversampling = istream.readInt();
+    auto tail = istream.readFloat();
+    auto xmlSize = istream.readInt();
+
+    tailLength = var(tail);
+
+    auto* xmlData = new char[xmlSize];
+    istream.read(xmlData, xmlSize);
+
+    std::unique_ptr<XmlElement> xmlState(getXmlFromBinary(xmlData, xmlSize));
+
+    jassert(xmlState);
+
+    if (xmlState) {
+        PlugDataParameter::loadStateInformation(*xmlState, getParameters());
+
+        auto versionString = String("0.6.1"); // latest version that didn't have version inside the daw state
+
+        if (xmlState->hasAttribute("Version")) {
+            versionString = xmlState->getStringAttribute("Version");
+        }
+
+        if (xmlState->hasAttribute("Height") && xmlState->hasAttribute("Width")) {
+            int windowWidth = xmlState->getIntAttribute("Width", 1000);
+            int windowHeight = xmlState->getIntAttribute("Height", 650);
+            lastUIWidth = windowWidth;
+            lastUIHeight = windowHeight;
+            if (auto* editor = getActiveEditor()) {
+                MessageManager::callAsync([editor = Component::SafePointer(editor), windowWidth, windowHeight]() {
+                    if (!editor)
+                        return;
+                    editor->setSize(windowWidth, windowHeight);
+                });
+            }
+        }
+        if (xmlState->hasAttribute("SplitIndex")) {
+
+            lastSplitIndex = xmlState->getIntAttribute("SplitIndex", -1);
+
+            if (auto* editor = dynamic_cast<PluginEditor*>(getActiveEditor())) {
+                editor->splitView.splitCanvasesAfterIndex(lastSplitIndex, true);
+            }
+        }
+    }
+
+    setLatencySamples(latency);
+    setOversampling(oversampling);
+    delete[] xmlData;
+
+    suspendProcessing(false);
+
+    if (auto* editor = dynamic_cast<PluginEditor*>(getActiveEditor())) {
+        MessageManager::callAsync([editor = Component::SafePointer(editor)]() {
+            if (!editor)
+                return;
+            editor->sidebar.updateAutomationParameters();
+        });
+    }
 }
 
 pd::Patch* PluginProcessor::loadPatch(File const& patchFile)
 {
     // First, check if patch is already opened
-    int i = 0;
     for (auto* patch : patches) {
         if (patch->getCurrentFile() == patchFile) {
             if (auto* editor = dynamic_cast<PluginEditor*>(getActiveEditor())) {
-                MessageManager::callAsync([i, _editor = Component::SafePointer(editor)]() mutable {
+                MessageManager::callAsync([patch, _editor = Component::SafePointer(editor)]() mutable {
                     if (!_editor)
                         return;
-                    _editor->tabbar.setCurrentTabIndex(i);
+
+                    for (auto* cnv : _editor->canvases) {
+                        if (cnv->patch == *patch) {
+                            cnv->getTabbar()->setCurrentTabIndex(cnv->getTabIndex());
+                        }
+                    }
+
                     _editor->pd->logError("Patch is already open");
                 });
             }
@@ -1066,29 +1021,28 @@ pd::Patch* PluginProcessor::loadPatch(File const& patchFile)
             // Patch is already opened
             return nullptr;
         }
-        i++;
     }
 
     // Stop the audio callback when loading a new patch
     suspendProcessing(true);
 
-    auto newPatch = openPatch(patchFile);
+    auto* newPatch = openPatch(patchFile);
 
     suspendProcessing(false);
 
-    if (!newPatch.getPointer()) {
+    if (!newPatch->getPointer()) {
         logError("Couldn't open patch");
         return nullptr;
     }
 
-    auto* patch = patches.add(new pd::Patch(newPatch));
+    auto* patch = patches.add(newPatch);
 
     if (auto* editor = dynamic_cast<PluginEditor*>(getActiveEditor())) {
-        MessageManager::callAsync([i, patch, _editor = Component::SafePointer(editor)]() mutable {
+        MessageManager::callAsync([patch, _editor = Component::SafePointer(editor)]() mutable {
             if (!_editor)
                 return;
             auto* cnv = _editor->canvases.add(new Canvas(_editor, *patch, nullptr));
-            _editor->addTab(cnv, true);
+            _editor->addTab(cnv);
         });
     }
 
@@ -1113,30 +1067,25 @@ pd::Patch* PluginProcessor::loadPatch(String patchText)
     return patch;
 }
 
-void PluginProcessor::setTheme(bool themeToUse)
+void PluginProcessor::setTheme(String themeToUse, bool force)
 {
-    lnf->setTheme(themeToUse);
+    auto oldThemeTree = settingsFile->getTheme(PlugDataLook::currentTheme);
+    auto themeTree = settingsFile->getTheme(themeToUse);
+    // Check if theme name is valid
+    if (!themeTree.isValid()) {
+        themeToUse = PlugDataLook::selectedThemes[0];
+        themeTree = settingsFile->getTheme(themeToUse);
+    }
+
+    if (!force && oldThemeTree.isValid() && themeTree.isEquivalentTo(oldThemeTree))
+        return;
+
+    lnf->setTheme(themeTree);
+
     if (auto* editor = dynamic_cast<PluginEditor*>(getActiveEditor())) {
+        editor->sendLookAndFeelChange();
         editor->getTopLevelComponent()->repaint();
         editor->repaint();
-
-        if (auto* cnv = editor->getCurrentCanvas()) {
-            cnv->viewport->repaint();
-
-            // Some objects with setBufferedToImage need manual repainting
-            for (auto* object : cnv->objects) {
-
-                object->gui->repaint();
-
-                // Make sure label colour gets updated
-                if (auto* gui = dynamic_cast<GUIObject*>(object->gui.get())) {
-                    gui->updateLabel();
-                }
-            }
-            for (auto* con : cnv->connections)
-                reinterpret_cast<Component*>(con)->repaint();
-            cnv->repaint();
-        }
     }
 }
 
@@ -1152,7 +1101,7 @@ Colour PluginProcessor::getForegroundColour()
 
 Colour PluginProcessor::getBackgroundColour()
 {
-    return lnf->findColour(PlugDataColour::defaultObjectBackgroundColourId);
+    return lnf->findColour(PlugDataColour::guiObjectBackgroundColourId);
 }
 
 Colour PluginProcessor::getTextColour()
@@ -1218,69 +1167,44 @@ void PluginProcessor::receiveMidiByte(int const port, int const byte)
     }
 }
 
-// Only for standalone: check which parameters have changed and forward them to pd
-void PluginProcessor::sendParameters()
-{
-#if PLUGDATA_STANDALONE
-    for (int idx = 0; idx < numParameters; idx++) {
-        float value = standaloneParams[idx].load();
-        if (value != lastParameters[idx]) {
-            auto paramID = "param" + String(idx + 1);
-            sendFloat(paramID.toRawUTF8(), value);
-            lastParameters[idx] = value;
-        }
-    }
-#endif
-}
-
-void PluginProcessor::performParameterChange(int type, int idx, float value)
+void PluginProcessor::performParameterChange(int type, String name, float value)
 {
     // Type == 1 means it sets the change gesture state
     if (type) {
-        if (changeGestureState[idx] == value) {
-            logMessage("parameter change " + String(idx) + (value ? " already started" : " not started"));
-        } else {
-#if !PLUGDATA_STANDALONE
-            auto* parameter = parameters.getParameter("param" + String(idx + 1));
-            value ? parameter->beginChangeGesture() : parameter->endChangeGesture();
-#endif
-            changeGestureState[idx] = value;
+        for (auto* param : getParameters()) {
+            auto* pldParam = dynamic_cast<PlugDataParameter*>(param);
+
+            if (!pldParam->isEnabled() || pldParam->getTitle() != name)
+                continue;
+
+            if (pldParam->getGestureState() == value) {
+                logMessage("parameter change " + name + (value ? " already started" : " not started"));
+            } else if (pldParam->isEnabled() && pldParam->getTitle() == name) {
+                pldParam->setGestureState(value);
+            }
         }
     } else { // otherwise set parameter value
+        for (auto* param : getParameters()) {
+            auto* pldParam = dynamic_cast<PlugDataParameter*>(param);
+            if (!pldParam->isEnabled() || pldParam->getTitle() != name)
+                continue;
+
+            // Update values in automation panel
+            // if (pldParam->getLastValue() == value)
+            //    return;
+
+            // pldParam->setLastValue(value);
+
+            // Send new value to DAW
+            pldParam->setUnscaledValueNotifyingHost(value);
+
 #if PLUGDATA_STANDALONE
-        // Set the value
-        standaloneParams[idx].store(value);
-
-        // Update values in automation panel
-        if (lastParameters[idx] == value)
-            return;
-        if (auto* editor = dynamic_cast<PluginEditor*>(getActiveEditor())) {
-            editor->sidebar.updateAutomationParameters();
-        }
-        lastParameters[idx] = value;
-#else
-        auto paramID = "param" + String(idx + 1);
-        if (lastParameters[idx] == value)
-            return; // Prevent feedback
-        // Send new value to DAW
-        parameters.getParameter(paramID)->setValueNotifyingHost(value);
-        lastParameters[idx] = value;
+            if (auto* editor = dynamic_cast<PluginEditor*>(getActiveEditor())) {
+                editor->sidebar.updateAutomationParameters();
+            }
 #endif
+        }
     }
-}
-
-// Callback when parameter values change
-void PluginProcessor::parameterValueChanged(int idx, float value)
-{
-    enqueueFunction([this, idx, value]() mutable {
-        auto paramID = "param" + String(idx);
-        sendFloat(paramID.toRawUTF8(), value);
-        lastParameters[idx - 1] = value;
-    });
-}
-
-void PluginProcessor::parameterGestureChanged(int parameterIndex, bool gestureIsStarting)
-{
 }
 
 void PluginProcessor::receiveDSPState(bool dsp)
@@ -1293,32 +1217,13 @@ void PluginProcessor::receiveDSPState(bool dsp)
         });
 }
 
-void PluginProcessor::receiveGuiUpdate(int type)
-{
-    callbackType |= (1 << type);
-
-    if (!isTimerRunning()) {
-        startTimer(16);
-    }
-}
-
-void PluginProcessor::timerCallback()
+void PluginProcessor::updateDrawables()
 {
     if (auto* editor = dynamic_cast<PluginEditor*>(getActiveEditor())) {
-        if (!callbackType)
-            return;
-
-        if (auto* cnv = editor->getCurrentCanvas()) {
-            if (callbackType & 2 || callbackType & 8) {
-                cnv->updateGuiValues();
-            }
-            if (callbackType & 4) {
+        MessageManager::callAsync([cnv = editor->getCurrentCanvas()]() {
+            if (cnv)
                 cnv->updateDrawables();
-            }
-        }
-
-        callbackType = 0;
-        stopTimer();
+        });
     }
 }
 
@@ -1342,10 +1247,7 @@ void PluginProcessor::reloadAbstractions(File changedPatch, t_glist* except)
 
     isPerformingGlobalSync = true;
 
-    auto* dir = generateSymbol(changedPatch.getParentDirectory().getFullPathName().replace("\\", "/"));
-    auto* file = generateSymbol(changedPatch.getFileName());
-
-    canvas_reload(file, dir, except);
+    pd::Patch::reloadPatch(changedPatch, except);
 
     // Synchronising can potentially delete some other canvases, so make sure we use a safepointer
     Array<Component::SafePointer<Canvas>> canvases;
@@ -1370,27 +1272,65 @@ void PluginProcessor::reloadAbstractions(File changedPatch, t_glist* except)
     }
 }
 
-void PluginProcessor::synchroniseCanvas(void* cnv)
-{
-    MessageManager::callAsync(
-        [this, cnv]() mutable {
-            if (auto* editor = dynamic_cast<PluginEditor*>(getActiveEditor())) {
-                for (auto* canvas : editor->canvases) {
-                    if (canvas->patch.getPointer() == cnv) {
-                        canvas->synchronise();
-                    }
-                }
-            }
-        });
-}
-
 void PluginProcessor::titleChanged()
 {
     if (auto* editor = dynamic_cast<PluginEditor*>(getActiveEditor())) {
-        for (int n = 0; n < editor->tabbar.getNumTabs(); n++) {
-            editor->tabbar.setTabName(n, editor->getCanvas(n)->patch.getTitle());
+        auto* leftTabbar = editor->splitView.getLeftTabbar();
+        auto* rightTabbar = editor->splitView.getRightTabbar();
+
+        for (int n = 0; n < leftTabbar->getNumTabs(); n++) {
+            auto* cnv = leftTabbar->getCanvas(n);
+            if (!cnv)
+                return;
+            leftTabbar->setTabName(n, cnv->patch.getTitle());
+        }
+        for (int n = 0; n < rightTabbar->getNumTabs(); n++) {
+            auto* cnv = rightTabbar->getCanvas(n);
+            if (!cnv)
+                return;
+            rightTabbar->setTabName(n, cnv->patch.getTitle());
         }
     }
+}
+
+void PluginProcessor::savePatchTabPositions()
+{
+
+    Array<std::tuple<pd::Patch*, int, int>> sortedPatches;
+
+    if (auto* editor = dynamic_cast<PluginEditor*>(getActiveEditor())) {
+        auto* leftTabbar = editor->splitView.getLeftTabbar();
+
+        for (auto* cnv : editor->canvases) {
+            sortedPatches.add({ &cnv->patch, cnv->getTabbar() != leftTabbar, cnv->getTabIndex() });
+        }
+
+        lastSplitIndex = leftTabbar->getNumTabs();
+    } else {
+        return;
+    }
+
+    std::sort(sortedPatches.begin(), sortedPatches.end(), [](auto const& a, auto const& b) {
+        auto& [patchA, splitA, idxA] = a;
+        auto& [patchB, splitB, idxB] = b;
+
+        if (splitA == splitB)
+            return idxA < idxB;
+
+        return splitA < splitB;
+    });
+
+    patches.getLock().enter();
+    int i = 0;
+    for (auto& [patch, splitIdx, tabIdx] : sortedPatches) {
+
+        if (i >= patches.size())
+            break;
+
+        patches.set(i, patch, false);
+        i++;
+    }
+    patches.getLock().exit();
 }
 
 // This creates new instances of the plugin..

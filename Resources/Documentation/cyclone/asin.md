@@ -1,9 +1,9 @@
 ---
 title: asin
-description: Arc-sine function
+description: arc-sine function
 categories:
  - object
-pdcategory: General
+pdcategory: cyclone, Data Math
 arguments:
 - type: float
   description: initially stored value
@@ -19,6 +19,7 @@ outlets:
   - type: float
     description: the arc-cosine of the input
 
+draft: false
 ---
 
 Use [asin~] to output the arc-sine of a given number.

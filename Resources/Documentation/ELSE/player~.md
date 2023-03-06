@@ -1,12 +1,12 @@
 ---
 title: player~
 
-description: Multi-channel player
+description: multi-channel player
 
 categories:
 - object
 
-pdcategory:
+pdcategory: ELSE, Buffers
 
 arguments:
 - description: (optional) number of channels (max 64)
@@ -25,9 +25,9 @@ arguments:
 inlets:
   1st:
   - type: float
-    description: non-zero plays, <0> stops
+    description: non-0 plays, <0> stops
   - type: bang
-    description: play (same as non-zero)
+    description: play (same as non-0)
 
 outlets:
   nth:
@@ -65,7 +65,7 @@ methods:
   - type: range <f, f>
     description: sets start and end point proportionally (from 0 to 1)
   - type: speed <float>
-    description: sets playing speed in percentage
+    description: sets playing speed in %
   - type: pos <float>
     description: sets position (from 0 to 1) and starts playing it
   - type: play <f, f, f>
@@ -79,9 +79,9 @@ methods:
   - type: fade <float>
     description: sets fading time in ms (default 0)
   - type: xfade <float>
-    description: non zero sets to crossfading mode (default 0)
+    description: non-0 sets to crossfading mode (default 0)
   - type: loop <float>
-    description: non zero enables looping, <0> disables it (default 0)
+    description: non-0 enables looping, <0> disables it (default 0)
 
 draft: false
 ---

@@ -1,11 +1,11 @@
 ---
 title: osc.send
-description: Send OSC messages
+description: send OSC messages
 
 categories:
  - object
 
-pdcategory: General
+pdcategory: ELSE, Networking
 
 arguments:
   - type: anything
@@ -23,6 +23,7 @@ outlets:
   - type: float
     description: connection status
 
+draft: false
 ---
 
 [osc.send] sends OSC messages over the network and is an abstraction based on [osc.format] and [netsend].

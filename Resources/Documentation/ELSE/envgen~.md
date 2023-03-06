@@ -1,16 +1,16 @@
 ---
 title: envgen~
 
-description: Envelope generator
+description: envelope generator
 
 categories:
  - object
 
-pdcategory: General
+pdcategory: ELSE, Envelopes and LFOs
 
 arguments:
 - type: list
-  description: a float sets an initial output value, a list of floats sets the envelope
+  description: <f> — initial output value, <f,f,..> sets the envelope
   default: 0 0
 
 inlets:
@@ -20,7 +20,7 @@ inlets:
   - type: bang
     description: attacks the envelope with the last gate on value
   - type: list
-    description: sets and runs envelope. Lists are pairs of duration & target. If odd, 1st float is the starting point
+    description: sets and runs envelope (pairs of duration & target. if odd, 1st float is starting point)
   2nd:
   - type: list
     description: sets the envelope and doesn't run it
@@ -69,12 +69,13 @@ methods:
   - type: suspoint <float>
     description: sets sustain point
   - type: maxsustain <float>
-    description: sets maximum sustain lengthn in ms
+    description: sets maximum sustain length in ms
   - type: retrigger <float>
     description: retrigger time in ms
   - type: legato <float>
     description: non-0 sets to legato mode
 
+draft: false
 ---
 
 [envgen~] is an envelope (and an all purpose line) generator (here it creates a 1000 ms line to 1 and 500 ms line to 0).

@@ -3,7 +3,7 @@ title: vline~
 description: high-precision audio ramp generator
 categories:
 - object
-pdcategory: General Audio Manipulation
+pdcategory: vanilla, Signal Generators, Envelopes and LFOs
 last_update: '0.33'
 see_also:
 - line
@@ -11,19 +11,20 @@ see_also:
 inlets:
   1st:
   - type: float
-    description: set target value and start ramp.
-  - type: stop
-    description: stops the ramp.
+    description: set target value and start ramp
   2nd:
   - type: float
-    description: set next ramp time (cleared when ramp starts).
+    description: set next ramp time (cleared when ramp starts)
   3rd:
   - type: float
-    description: sets delay time.
+    description: sets delay time
 outlets:
   1st:
   - type: signal
-    description: ramp values.
+    description: ramp values
+methods:
+  - type: stop
+    description: stops the ramp
 draft: false
 ---
 The vline~ object, like line~, generates linear ramps whose levels and timing are determined by messages you send it. It takes a target value, a time interval in milliseconds and an initial delay (also in ms). Ramps may start and stop between audio samples, in which case the output is interpolated accordingly.

@@ -1,11 +1,11 @@
 ---
 title: impseq~
-description: Impulse generator and sequencer
+description: impulse generator and sequencer
 
 categories:
  - object
 
-pdcategory: General
+pdcategory: ELSE, Signal Generators, Triggers and Clocks
 
 arguments:
 - type: list
@@ -35,6 +35,7 @@ methods:
   - type: goto <float>
     description: goes to a position index in the sequence (from 1)
 
+draft: false
 ---
 
 When receiving a signal trigger (0 to non-0 transition) or a bang, [impseq~] sends an impulse from a given sequence.

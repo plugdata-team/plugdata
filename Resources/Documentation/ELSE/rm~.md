@@ -1,17 +1,17 @@
 ---
 title: rm~
 
-description: Ring Modulator
+description: ring modulator
 
 categories:
 - object
 
-pdcategory: DSP
+pdcategory: ELSE, Effects
 
 arguments:
 - type: float
   description: modulation frequency
-  default: o
+  default: 0
 
 inlets:
   1st:

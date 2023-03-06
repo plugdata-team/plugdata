@@ -1,19 +1,17 @@
 ---
 title: out4~
 
-description: Quadraphonic output
+description: quadraphonic output
 
 categories:
 - object
 
-pdcategory:
+pdcategory: ELSE, Audio I/O
 
 arguments:
-  1st:
   - description: max gain (needs to be > 0)
     type: float
     default: 1
-  2nd:
   - description: scaling mode: 0 (quartic), 1 (dB), or 2 (linear)
     type: float
     default: 0

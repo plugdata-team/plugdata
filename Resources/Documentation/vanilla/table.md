@@ -1,9 +1,9 @@
 ---
 title: table
-description: subpatch with array.
+description: subpatch with array
 categories:
 - object
-pdcategory: Arrays & Tables
+pdcategory: vanilla, Arrays and Tables
 last_update: '0.52'
 see_also:
 - inlet
@@ -14,3 +14,7 @@ arguments:
   default: internal
   type: symbol
 - description: sets array size 
+  default: 100
+  type: float
+draft: false
+---

@@ -1,9 +1,9 @@
 ---
 title: cosx~
-description: Signal cosine function with radian input
+description: signal cosine function with radian input
 categories:
  - object
-pdcategory: General
+pdcategory: cyclone, Signal Math
 arguments:
 inlets:
   1st:
@@ -14,6 +14,7 @@ outlets:
   - type: signal
     description: output of cosine function
 
+draft: false
 ---
 
 Properly designed for mathematical operations, [cosx~] it expects an input in radians to calculate the cosine of each input sample.

@@ -1,12 +1,12 @@
 ---
 title: counter
-description: Counts over a range
+description: counts over a range
 categories:
  - object
-pdcategory: General
+pdcategory: cyclone, Data Math
 arguments:
 - type: list
-  description: 1 float: max / 2 floats: min & max / 3 floats: direction (0: up / 1: down / 2: updown), min & max
+  description: <f>: max; <f,f>: min, max;  <f,f,f>: direction (0-up,1-down,2-updown), min, max
   default: direction = 0 (up), min = 0, max = 2^24
 inlets:
   1st:
@@ -96,6 +96,7 @@ methods:
   - type: carryflag <f>
     description: sets @carryflag attribute: (0 = carryint, 1 = carrybang)
 
+draft: false
 ---
 
 [counter] counts up and/or down by '1' in a given range.

@@ -26,15 +26,12 @@
 
 #include <JuceHeader.h>
 
-#if JUCE_LINUX
-bool isMaximised(void* handle);
-void maximiseLinuxWindow(void* handle);
-#endif
-
 #include "../PluginEditor.h"
 
 #include "../Utility/StackShadow.h"
-
+#include "../Utility/OSUtils.h"
+#include "../Utility/SettingsFile.h"
+#include "../Utility/RateReducer.h"
 // For each OS, we have a different approach to rendering the window shadow
 // macOS:
 // - Use the native shadow, it works fine
@@ -420,12 +417,11 @@ private:
  @tags{Audio}
  */
 class PlugDataWindow : public DocumentWindow
-    , public Value::Listener {
+    , public SettingsFileListener {
 
     Image shadowImage;
-    std::unique_ptr<ResizableBorderComponent> resizer;
+    std::unique_ptr<MouseRateReducedComponent<ResizableBorderComponent>> resizer;
     std::unique_ptr<StackDropShadower> dropShadower;
-    Value useNativeWindow;
 
 public:
     typedef StandalonePluginHolder::PluginInOuts PluginInOuts;
@@ -453,12 +449,12 @@ public:
         mainComponent = new MainContentComponent(*this);
         auto* editor = mainComponent->getEditor();
 
-        auto settingsTree = getSettingsTree();
-        bool hasReloadStateProperty = settingsTree.hasProperty("ReloadLastState");
+        auto settingsTree = SettingsFile::getInstance()->getValueTree();
+        bool hasReloadStateProperty = settingsTree.hasProperty("reload_last_state");
 
         // When starting with any sysargs, assume we don't want the last patch to open
         // Prevents a possible crash and generally kinda makes sense
-        if (systemArguments.isEmpty() && hasReloadStateProperty && static_cast<bool>(settingsTree.getProperty("ReloadLastState"))) {
+        if (systemArguments.isEmpty() && hasReloadStateProperty && static_cast<bool>(settingsTree.getProperty("reload_last_state"))) {
             pluginHolder->reloadPluginState();
         }
 
@@ -467,14 +463,8 @@ public:
 
         setContentOwned(mainComponent, true);
 
-        // Attach useNativeWindow to the native window property
-        useNativeWindow.referTo(settingsTree.getPropertyAsValue("NativeWindow", nullptr));
-
-        // Listen for window style changes
-        useNativeWindow.addListener(this);
-
         // Make sure it gets updated on init
-        valueChanged(useNativeWindow);
+        propertyChanged("native_window", settingsTree.getProperty("native_window"));
 
         auto const getWindowScreenBounds = [this]() -> Rectangle<int> {
             const auto width = getWidth();
@@ -503,6 +493,57 @@ public:
         setBoundsConstrained(getWindowScreenBounds());
     }
 
+    void propertyChanged(String name, var value) override
+    {
+        if (name == "native_window") {
+
+            bool nativeWindow = static_cast<bool>(value);
+
+            setUsingNativeTitleBar(nativeWindow);
+
+            if (!nativeWindow) {
+
+                setOpaque(false);
+
+                setResizable(false, false);
+
+                resizer = std::make_unique<MouseRateReducedComponent<ResizableBorderComponent>>(this, getConstrainer());
+                resizer->setBorderThickness(BorderSize(4));
+                resizer->setAlwaysOnTop(true);
+                Component::addAndMakeVisible(resizer.get());
+
+                if (drawWindowShadow) {
+
+#if JUCE_MAC
+                    setDropShadowEnabled(true);
+#else
+                    setDropShadowEnabled(false);
+#endif
+
+#if JUCE_WINDOWS
+                    dropShadower = std::make_unique<StackDropShadower>(DropShadow(Colour(0, 0, 0).withAlpha(0.8f), 22, { 0, 3 }));
+                    dropShadower->setOwner(this);
+#endif
+                } else {
+                    setDropShadowEnabled(false);
+                }
+            } else {
+                setOpaque(true);
+                resizer.reset(nullptr);
+                dropShadower.reset(nullptr);
+                setDropShadowEnabled(true);
+                setResizable(true, false);
+            }
+
+            if (auto* editor = getAudioProcessor()->getActiveEditor()) {
+                editor->resized();
+            }
+
+            resized();
+            repaint();
+        }
+    }
+
     int parseSystemArguments(String const& arguments);
 
     ~PlugDataWindow() override
@@ -515,55 +556,6 @@ public:
     BorderSize<int> getBorderThickness() override
     {
         return BorderSize<int>(0);
-    }
-
-    // Called when switching between native vs non-native titlebar
-    void valueChanged(Value& v) override
-    {
-        bool nativeWindow = static_cast<bool>(v.getValue());
-
-        setUsingNativeTitleBar(nativeWindow);
-
-        if (!nativeWindow) {
-
-            setOpaque(false);
-
-            setResizable(false, false);
-
-            resizer = std::make_unique<ResizableBorderComponent>(this, getConstrainer());
-            resizer->setBorderThickness(BorderSize(4));
-            resizer->setAlwaysOnTop(true);
-            Component::addAndMakeVisible(resizer.get());
-
-            if (drawWindowShadow) {
-
-#if JUCE_MAC
-                setDropShadowEnabled(true);
-#else
-                setDropShadowEnabled(false);
-#endif
-
-#if JUCE_WINDOWS
-                dropShadower = std::make_unique<StackDropShadower>(DropShadow(Colour(0, 0, 0).withAlpha(0.8f), 22, { 0, 3 }));
-                dropShadower->setOwner(this);
-#endif
-            } else {
-                setDropShadowEnabled(false);
-            }
-        } else {
-            setOpaque(true);
-            resizer.reset(nullptr);
-            dropShadower.reset(nullptr);
-            setDropShadowEnabled(true);
-            setResizable(true, false);
-        }
-
-        if (auto* editor = getAudioProcessor()->getActiveEditor()) {
-            editor->resized();
-        }
-
-        resized();
-        repaint();
     }
 
     AudioProcessor* getAudioProcessor() const noexcept
@@ -604,12 +596,13 @@ public:
         // Save plugin state to allow reloading
         pluginHolder->savePluginState();
 
+        pluginHolder->processor->suspendProcessing(true);
+
         // Close all patches, allowing them to save first
         closeAllPatches();
     }
 
-    void closeAllPatches();      // implemented in PlugDataApp.cpp
-    ValueTree getSettingsTree(); // implemented in PlugDataApp.cpp
+    void closeAllPatches(); // implemented in PlugDataApp.cpp
 
     void maximiseButtonPressed() override
     {
@@ -635,7 +628,7 @@ public:
         if (drawWindowShadow && !isUsingNativeTitleBar()) {
             auto b = getLocalBounds();
             Path localPath;
-            localPath.addRoundedRectangle(b.toFloat().reduced(22.0f), Constants::windowCornerRadius);
+            localPath.addRoundedRectangle(b.toFloat().reduced(22.0f), PlugDataLook::windowCornerRadius);
 
             int radius = isActiveWindow() ? 21 : 16;
             StackShadow::renderDropShadow(g, localPath, Colour(0, 0, 0).withAlpha(0.6f), radius, { 0, 3 });
@@ -662,11 +655,11 @@ public:
             Rectangle<int> titleBarArea;
             if (drawWindowShadow && SystemStats::getOperatingSystemType() == SystemStats::Linux) {
                 auto margin = mainComponent ? mainComponent->getMargin() : 18;
-                titleBarArea = Rectangle<int>(0, 10 + margin, getWidth() - (6 + margin), 25);
+                titleBarArea = Rectangle<int>(0, 7 + margin, getWidth() - (6 + margin), 23);
                 if (resizer)
                     resizer->setBounds(getLocalBounds().reduced(margin));
             } else {
-                titleBarArea = Rectangle<int>(0, 10, getWidth() - 6, 25);
+                titleBarArea = Rectangle<int>(0, 7, getWidth() - 6, 23);
                 if (auto* b = getMaximiseButton())
                     b->setToggleState(isFullScreen(), dontSendNotification);
 
@@ -723,20 +716,20 @@ private:
         void paintOverChildren(Graphics& g) override
         {
 #if JUCE_LINUX
-            if (!owner.isUsingNativeTitleBar()) {
+            if (!owner.isUsingNativeTitleBar() && !dynamic_cast<PluginEditor*>(editor.get())->openedDialog) {
                 g.setColour(findColour(PlugDataColour::outlineColourId));
 
                 if (!Desktop::canUseSemiTransparentWindows()) {
                     g.drawRect(getLocalBounds().toFloat().reduced(getMargin()), 1.0f);
                 } else {
-                    g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(getMargin()), Constants::windowCornerRadius, 1.0f);
+                    g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(getMargin()), PlugDataLook::windowCornerRadius, 1.0f);
                 }
             }
 #elif JUCE_WINDOWS
-            
+
             g.setColour(findColour(PlugDataColour::outlineColourId));
-            
-            g.drawRoundedRectangle(getLocalBounds().toFloat(), Constants::windowCornerRadius, 1.0f);
+
+            g.drawRoundedRectangle(getLocalBounds().toFloat(), PlugDataLook::windowCornerRadius, 1.0f);
 #endif
         }
 

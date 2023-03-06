@@ -3,7 +3,7 @@ title: midiin
 description: MIDI input
 categories:
 - object
-pdcategory: I/O 
+pdcategory: vanilla, MIDI
 last_update: 0.48-2
 see_also:
 - notein

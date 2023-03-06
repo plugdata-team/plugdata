@@ -1,14 +1,14 @@
 ---
 title: median
 
-description: List median
+description: list median
 
 categories:
 - object
 
-pdcategory:
+pdcategory: ELSE, Data Math
 
-arguments: (none)
+arguments:
 
 inlets:
   1st:

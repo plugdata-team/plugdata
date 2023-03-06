@@ -133,8 +133,11 @@ static void click_bang(t_click *x){
 static void click_click(t_gobj *z, t_canvas *x){
     x = NULL;
     t_cnv_objlist *objs = objectsInCanvas((t_pd*)z);
-    if(objs == NULL)
-      canvas_vis((t_glist*)z, 1);
+    if(objs == NULL) {
+        t_atom arg;
+        SETFLOAT(&arg, 1);
+        pd_typedmess(z, gensym("vis"), 1, &arg);
+    }
     while(objs){
         t_canvas* cv = (t_canvas*)objs->obj;
         click_bang((t_click*)cv);

@@ -1,20 +1,18 @@
 ---
 title: bin.shift~
 
-description: Shift bins
+description: shift bins
 
 categories:
 - object
 
-pdcategory: General Audio Manipulation
+pdcategory: ELSE, Effects
 
 arguments:
-  1st:
   - description: sets shift number
     type: float
     default: 0
-  2nd:
-  - description: non-zero sets to wrap mode
+  - description: non-0 sets to wrap mode
     type: float
     default: 0
 
@@ -22,8 +20,6 @@ inlets:
   1st:
   - type: signal
     description: the signal to be shifted
-  - type: wrap <float>
-    description: non-zero sets to wrap mode
   2nd:
   - type: float
     description: sets number of bins to shift
@@ -32,6 +28,10 @@ outlets:
   1st:
   - type: signal
     description: the bin shifted signal
+
+methods:
+  - type: wrap <float>
+    description: non-0 sets to wrap mode
 
 draft: false
 ---

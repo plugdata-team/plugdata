@@ -4,11 +4,18 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
-struct SubpatchObject final : public TextBase
-    , public Value::Listener {
+class SubpatchObject final : public TextBase {
+
+    pd::Patch subpatch;
+    Value isGraphChild = Value(var(false));
+    Value hideNameAndArgs = Value(var(false));
+
+    bool locked = false;
+
+public:
     SubpatchObject(void* obj, Object* object)
         : TextBase(obj, object)
-        , subpatch({ ptr, cnv->pd })
+        , subpatch(ptr, cnv->pd, false)
     {
         isGraphChild = false;
         hideNameAndArgs = static_cast<bool>(subpatch.getPointer()->gl_hidetext);
@@ -29,7 +36,7 @@ struct SubpatchObject final : public TextBase
         closeOpenedSubpatchers();
     }
 
-    void updateValue() override
+    void updateValue()
     {
         // Change from subpatch to graph
         if (static_cast<t_canvas*>(ptr)->gl_isgraph) {
@@ -41,13 +48,31 @@ struct SubpatchObject final : public TextBase
 
     void mouseDown(MouseEvent const& e) override
     {
+        if(locked && click()) {
+            return;
+        }
+        
         //  If locked and it's a left click
-        if (locked && !e.mods.isRightButtonDown()) {
+        if (locked && !e.mods.isRightButtonDown() && !object->attachedToMouse) {
             openSubpatch();
 
             return;
         } else {
             TextBase::mouseDown(e);
+        }
+    }
+
+    void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
+    {
+        switch (hash(symbol)) {
+        case hash("vis"): {
+            if (atoms[0].getFloat() == 1) {
+                openSubpatch();
+            } else {
+                closeOpenedSubpatchers();
+            }
+            break;
+        }
         }
     }
 
@@ -68,14 +93,36 @@ struct SubpatchObject final : public TextBase
         return { { "Is graph", tBool, cGeneral, &isGraphChild, { "No", "Yes" } }, { "Hide name and arguments", tBool, cGeneral, &hideNameAndArgs, { "No", "Yes" } } };
     };
 
+    void checkGraphState()
+    {
+        if(!ptr) return;
+        
+        pd->setThis();
+        
+        int isGraph = static_cast<bool>(isGraphChild.getValue());
+        int hideText = static_cast<bool>(hideNameAndArgs.getValue());
+
+        canvas_setgraph(static_cast<t_glist*>(ptr), isGraph + 2 * hideText, 0);
+        repaint();
+
+        MessageManager::callAsync([this, _this = SafePointer(this)]() {
+            if (!_this)
+                return;
+
+            // Change from subpatch to graph
+            if (static_cast<t_canvas*>(ptr)->gl_isgraph) {
+                cnv->setSelected(object, false);
+                object->cnv->editor->sidebar.hideParameters();
+                object->setType(getText(), ptr);
+                return;
+            }
+        });
+    }
+
     void valueChanged(Value& v) override
     {
-        if (v.refersToSameSourceAs(isGraphChild)) {
-            subpatch.getPointer()->gl_isgraph = static_cast<bool>(isGraphChild.getValue());
-            updateValue();
-        } else if (v.refersToSameSourceAs(hideNameAndArgs)) {
-            subpatch.getPointer()->gl_hidetext = static_cast<bool>(hideNameAndArgs.getValue());
-            repaint();
+        if (v.refersToSameSourceAs(isGraphChild) || v.refersToSameSourceAs(hideNameAndArgs)) {
+            checkGraphState();
         } else if (v.refersToSameSourceAs(object->hvccMode)) {
             if (static_cast<bool>(v.getValue())) {
                 checkHvccCompatibility(subpatch);
@@ -102,23 +149,18 @@ struct SubpatchObject final : public TextBase
             const String name = libpd_get_object_class_name(object);
 
             if (name == "canvas" || name == "graph") {
-                auto patch = pd::Patch(object, instance);
+                auto patch = pd::Patch(object, instance, false);
 
                 char* text = nullptr;
                 int size = 0;
                 libpd_get_object_text(object, &text, &size);
 
-                checkHvccCompatibility(patch, prefix + String(text) + " -> ");
+                checkHvccCompatibility(patch, prefix + String::fromUTF8(text) + " -> ");
+                freebytes(static_cast<void*>(text), static_cast<size_t>(size) * sizeof(char));
+
             } else if (!Object::hvccObjects.contains(name)) {
-                instance->logWarning(String("Warning: object \"" + prefix + name + "\" is not supported in Compiled Mode").toRawUTF8());
+                instance->logWarning(String("Warning: object \"" + prefix + name + "\" is not supported in Compiled Mode"));
             }
         }
     }
-
-protected:
-    pd::Patch subpatch;
-    Value isGraphChild = Value(var(false));
-    Value hideNameAndArgs = Value(var(false));
-
-    bool locked = false;
 };

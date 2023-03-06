@@ -1,15 +1,15 @@
 ---
 title: hip.bw~
 
-description: Highpass butterworth filter
+description: highpass butterworth filter
 
 categories:
 - object
 
-pdcategory:
+pdcategory: ELSE, Filters
 
 arguments:
-- description: cutoff in hertz
+- description: cutoff in Hz
   type: float
   default: 0
 - description: order of the filter from 2 to 100
@@ -22,7 +22,7 @@ inlets:
     description: the signal to be filtered
   2nd:
   - type: float
-    description: cutoff frequency in hertz
+    description: cutoff frequency in Hz
   3rd:
   - type: float
     description: order of the filter

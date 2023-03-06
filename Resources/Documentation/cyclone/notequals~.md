@@ -1,12 +1,12 @@
 ---
-title: notequals~
+title: notequals~, !=~, cyclone/!=~
 
-description: "Not equal to" comparison for signals
+description: `not equal to` comparison for signals
 
 categories:
  - object
 
-pdcategory: General
+pdcategory: cyclone, Signal Math, Logic
 
 arguments:
 - type: float

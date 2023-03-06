@@ -3,7 +3,7 @@ title: file glob
 description: find pathnames matching a pattern
 categories:
 - object
-pdcategory: Misc
+pdcategory: vanilla, File Management
 last_update: '0.52'
 see_also:
 - text
@@ -26,24 +26,24 @@ see_also:
 - file splitext
 - file splitname
 flags:
-- description: set quiet verbosity.
-  flag: -q
-- description: set loud verbosity.
-  flag: -v
+- name: -q
+  description: set quiet verbosity
+- name: -v
+  description: set loud verbosity
 inlets:
   1st:
   - type: symbol
-    description: pattern to be found.
-  - type: verbose <float>
-    description: set verbosity on or off.
+    description: pattern to be found
 outlets:
   1st:
   - type: list
-    description: found files/directories as a path symbol and type (file <0> or directory
-      <1>).
+    description: found files/directories as a path symbol and type (file <0>, directory <1>)
   2nd:
   - type: bang
-    description: if nothing is found or an error occurs.
+    description: if nothing is found or an error occurs
+methods:
+  - type: verbose <float>
+    description: set verbosity on or off
 draft: false
 ---
 cross-platform notes on globbing:

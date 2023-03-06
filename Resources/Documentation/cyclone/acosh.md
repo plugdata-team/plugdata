@@ -1,9 +1,9 @@
 ---
 title: acosh
-description: Hyperbolic arc-cosine function
+description: hyperbolic arc-cosine function
 categories:
  - object
-pdcategory: General
+pdcategory: cyclone, Data Math
 arguments:
 - type: float
   description: initially stored input value
@@ -19,6 +19,7 @@ outlets:
   - type: float
     description: the hyperbolic arc-cosine of the input
 
+draft: false
 ---
 
 [acosh] calculates the hyperbolic arc-cosine of a given number.

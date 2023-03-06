@@ -1,4 +1,4 @@
-#N canvas 513 89 1068 647 12;
+#N canvas 259 43 1068 647 12;
 #X floatatom 88 341 5 0 0 0 - - - 0;
 #X floatatom 88 407 5 0 0 0 - - - 0;
 #X floatatom 141 340 5 0 0 0 - - - 0;
@@ -19,8 +19,7 @@
 #X text 220 209 Corresponds to;
 #X text 100 229 LEFT OUTLET;
 #X text 236 227 RIGH OUTLET;
-#X text 57 284 Note that the name of the subpatch is shown in the title
-bar on top of the patch window!, f 45;
+#X text 57 284 Note that the name of the subpatch is shown in the title bar on top of the patch window!, f 45;
 #X connect 0 0 2 0;
 #X connect 2 0 1 0;
 #X connect 3 0 5 0;
@@ -36,15 +35,9 @@ bar on top of the patch window!, f 45;
 #X text 512 353 click to open =>;
 #X obj 692 552 savestate;
 #X obj 832 552 clone;
-#X text 23 114 Data goes in and out of a subpatch via inlets/outlets
-\, created by corresponding [inlet] / [outlet] objects. To deal with
-audio signal \, use the signal variants: [inlet~] and [outlet~]. Note
-that [inlet~] can also receive control data with the 'fwd' argument.
-Check the help file of [inlet~] for more details and how it can also
-take default signal values., f 63;
+#X text 23 114 Data goes in and out of a subpatch via inlets/outlets \, created by corresponding [inlet] / [outlet] objects. To deal with audio signal \, use the signal variants: [inlet~] and [outlet~]. Note that [inlet~] can also receive control data with the 'fwd' argument. Check the help file of [inlet~] for more details and how it can also take default signal values., f 63;
 #X msg 260 328 volume \$1;
-#X obj 263 301 hsl 128 15 0 0.1 0 0 empty empty empty -2 -8 0 10 #dcdcdc
-#000000 #000000 0 1;
+#X obj 263 301 hsl 128 15 0 0.1 0 0 empty empty empty -2 -8 0 10 #dcdcdc #000000 #000000 0 1;
 #N canvas 438 321 729 287 gain 0;
 #X obj 79 136 *~;
 #X obj 79 195 outlet~;
@@ -52,10 +45,7 @@ take default signal values., f 63;
 #X obj 146 77 route volume;
 #X obj 146 134 line~;
 #X msg 146 105 \$1 10;
-#X text 276 79 the 'fwd' argument creates a second outlet that receives
-control messages \, such as the "volume" messages from the parent patch.
-Here we use the [route] object to get the float values from the "volume"
-messages.;
+#X text 276 79 the 'fwd' argument creates a second outlet that receives control messages \, such as the "volume" messages from the parent patch. Here we use the [route] object to get the float values from the "volume" messages.;
 #X connect 0 0 1 0;
 #X connect 2 0 0 0;
 #X connect 2 1 3 0;
@@ -66,71 +56,34 @@ messages.;
 #X msg 378 391 \; pd dsp 1;
 #X obj 378 365 loadbang;
 #X text 518 369 (right click & choose help), f 14;
-#X text 890 356 <= right click and choose "open" or load properties
-, f 18;
+#X text 890 356 <= right click and choose "open" or load properties, f 18;
 #X listbox 782 298 8 0 0 0 - - - 0;
 #X listbox 782 419 8 0 0 0 - - - 0;
 #X obj 782 326 abstraction-2 17 1 hi;
 #X text 72 287 One-Off Subpatches:;
-#X text 537 141 An abstraction is also a kind of external \, even though
-not being a compiled object. For a patch to be loaded as an abstraction
-\, it must be in a folder that Pd automatically searches for such as
-the user added paths (Pd => Preferences => Path) or in the same folder
-as the patch that loads it., f 64;
-#X text 23 20 There are 2 types of subpatches in Pd: "one-off subpatches"
-and "abstractions". The first is just a subwindow as part of the same
-patch file and used to better organize your code into sections \, whereas
-an abstraction is a separate Pd patch (a separate file document) that
-can be loaded in another patch multiple times., f 63;
+#X text 537 141 An abstraction is also a kind of external \, even though not being a compiled object. For a patch to be loaded as an abstraction \, it must be in a folder that Pd automatically searches for such as the user added paths (Pd => Preferences => Path) or in the same folder as the patch that loads it., f 64;
+#X text 23 20 There are 2 types of subpatches in Pd: "one-off subpatches" and "abstractions". The first is just a subwindow as part of the same patch file and used to better organize your code into sections \, whereas an abstraction is a separate Pd patch (a separate file document) that can be loaded in another patch multiple times., f 63;
 #N canvas 585 347 480 308 (subpatch) 0;
 #X floatatom 13 11 5 0 0 0 - - - 0;
-#X obj 15 39 bng 15 250 50 0 empty empty empty 17 7 0 10 #fcfcfc #000000
-#000000;
-#X obj 17 75 hsl 128 15 0 127 0 0 empty empty empty -2 -8 0 10 #fcfcfc
-#000000 #000000 0 1;
+#X obj 15 39 bng 15 250 50 0 empty empty empty 17 7 0 10 #fcfcfc #000000 #000000;
+#X obj 17 75 hsl 128 15 0 127 0 0 empty empty empty -2 -8 0 10 #fcfcfc #000000 #000000 0 1;
 #X text 98 7 'Graph' from Put Menu., f 12;
-#X obj 55 14 tgl 15 0 empty empty empty 17 7 0 10 #fcfcfc #000000 #000000
-0 1;
+#X obj 55 14 tgl 15 0 empty empty empty 17 7 0 10 #fcfcfc #000000 #000000 0 1;
 #X listbox 46 46 20 0 0 0 - - - 0;
 #X connect 1 0 2 0;
 #X connect 2 0 0 0;
 #X connect 4 0 0 0;
 #X coords 0 1 100 -1 200 100 1 0 0;
 #X restore 778 14 graph;
-#X text 23 207 Although that's the official documentation \, the name
-"one-off subpatch" didn't really catch and it's commonly just called
-"subpatch" (I know \, it's confusing). To create it \, use the [pd]
-object. An argument can be given just to give the subpatch a name.
-, f 63;
+#X text 23 207 Although that's the official documentation \, the name "one-off subpatch" didn't really catch and it's commonly just called "subpatch" (I know \, it's confusing). To create it \, use the [pd] object. An argument can be given just to give the subpatch a name., f 63;
 #X text 69 310 (or just "subpatch");
-#X text 23 454 A patch that has a one-off subpatch or an abstraction
-is called the "parent" (so subpatches are "children"). There's a “Graph
-on Parent” option in a patch window’s properties to allow it to
-display graphical contents on the parent patch so it hides object boxes
-\, message boxes and cord connections \, but other GUI elements are
-shown (including arrays \, atom boxes and comments)., f 63;
-#X text 29 549 To open the properties window \, right click on the
-object or right click on an empty space inside the subpatch. You can
-also hide the name of the objct and its arguments. A way to create
-a one-off subpatch with 'graph on parent' and object name/arguments
-hidden is by selecting a 'Graph' from the Put Menu., f 61;
-#X text 497 120 ----------------------------------------------------------------------------
-, f 76;
-#X text 517 33 To the right we have a 'Graph' from the Put Menu. You
-can also turn a [pd] object into something like this if you change
-its properties., f 35;
-#X text 551 470 Check out the help file of [savestate] \, which can
-save a list of parameters (or its 'state') from the abstraction when
-you save the parent patch (note that "owning" patch is also another
-term for parent). The 'state' is saved as a hidden list in the parent
-patch's file., f 66;
-#X text 557 594 Please also check out the help file of [clone] \, which
-can load multiple instances/copies of an abstraction in a Pd patch.
-, f 66;
-#X text 537 219 Abstractions load arguments like objects by the usage
-of the [pdcontrol] object and dollar signs within objects - not to
-be confused with the usage of dollar signs inside messages!, f 64
-;
+#X text 23 454 A patch that has a one-off subpatch or an abstraction is called the "parent" (so subpatches are "children"). There's a “Graph on Parent” option in a patch window’s properties to allow it to display graphical contents on the parent patch so it hides object boxes \, message boxes and cord connections \, but other GUI elements are shown (including arrays \, atom boxes and comments)., f 63;
+#X text 29 549 To open the properties window \, right click on the object or right click on an empty space inside the subpatch. You can also hide the name of the object and its arguments. A way to create a one-off subpatch with 'graph on parent' and object name/arguments hidden is by selecting a 'Graph' from the Put Menu., f 61;
+#X text 497 120 ----------------------------------------------------------------------------, f 76;
+#X text 517 33 To the right we have a 'Graph' from the Put Menu. You can also turn a [pd] object into something like this if you change its properties., f 35;
+#X text 551 470 Check out the help file of [savestate] \, which can save a list of parameters (or its 'state') from the abstraction when you save the parent patch (note that "owning" patch is also another term for parent). The 'state' is saved as a hidden list in the parent patch's file., f 66;
+#X text 557 594 Please also check out the help file of [clone] \, which can load multiple instances/copies of an abstraction in a Pd patch., f 66;
+#X text 537 219 Abstractions load arguments like objects by the usage of the [pdcontrol] object and dollar signs within objects - not to be confused with the usage of dollar signs inside messages!, f 64;
 #X connect 0 0 5 0;
 #X connect 2 0 5 1;
 #X connect 5 0 1 0;

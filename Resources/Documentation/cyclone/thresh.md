@@ -1,12 +1,12 @@
 ---
-title: thresh~
+title: thresh
 
-description: Combine data recieved close together
+description: combine data received close together
 
 categories:
  - object
 
-pdcategory: General
+pdcategory: cyclone, Data Management
 
 arguments:
 - type: float

@@ -1,11 +1,11 @@
 ---
 title: gate2imp~
-description: Gate to impulse
+description: gate to impulse
 
 categories:
  - object
 
-pdcategory: General
+pdcategory: ELSE, Triggers and Clocks
 
 arguments:
 
@@ -19,7 +19,8 @@ outlets:
   - type: signal
     description: impulse converted from gate
 
+draft: false
 ---
 
-[gate2imp~] converts gates to impulses. It sends an impulse when receiving a gate (0 to non 0 transitions) where the impulse value is the same as the gate.
+[gate2imp~] converts gates to impulses. It sends an impulse when receiving a gate (0 to non-0 transitions) where the impulse value is the same as the gate.
 

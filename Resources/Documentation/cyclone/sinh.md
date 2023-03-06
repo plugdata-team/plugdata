@@ -1,12 +1,12 @@
 ---
 title: sinh
 
-description: Hyperbolic sine function
+description: hyperbolic sine function
 
 categories:
  - object
 
-pdcategory: General
+pdcategory: cyclone, Data Math
 
 arguments:
 - type: float

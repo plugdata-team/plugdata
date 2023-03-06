@@ -1,12 +1,12 @@
 ---
 title: freeze~
 
-description: Freeze
+description: freeze
 
 categories:
 - object
 
-pdcategory:
+pdcategory: ELSE, Effects
 
 arguments:
 
@@ -16,7 +16,7 @@ inlets:
     description: input to freeze
   2nd:
   - type: float
-    description: non-zero freezes (or refreezes), 0 unfreezes
+    description: non-0 freezes (or refreezes), 0 unfreezes
 
 outlets:
   1st:
@@ -32,5 +32,5 @@ methods:
 draft: false
 ---
 
-[freeze~] is an abstraction based on [sigmund~] (analysis & ressynthesis). It contains a bank with oscillators.
+[freeze~] is an abstraction based on [sigmund~] (analysis & resynthesis). It contains a bank with oscillators.
 

@@ -5,12 +5,12 @@ description: Henon map chaotic generator
 categories:
  - object
 
-pdcategory: General
+pdcategory: ELSE, Random and Noise, Signal Generators
 
 arguments:
 - type: float
-  description: sets frequency in hertz
-  default: nyquist
+  description: sets frequency in Hz
+  default: Nyquist
 - type: float
   description: sets a
   default: 1.4
@@ -27,19 +27,20 @@ arguments:
 inlets:
   1st:
   - type: float/signal
-    description: frequency in hertz (negative values accepted)
+    description: frequency in Hz (negative values accepted)
   - type: list
     description: 2 floats set y[n-1] and y[n-2], respectively
 
 outlets:
   1st:
   - type: signal
-    description: henon map chaotic signal
+    description: Henon map chaotic signal
 
 methods:
   - type: coeffs <f, f>
     description: floats set 'a' and 'b', respectively
 
+draft: false
 ---
 
 [henon~] is a chaotic generator using the difference equation;

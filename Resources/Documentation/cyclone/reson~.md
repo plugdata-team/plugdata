@@ -1,12 +1,12 @@
 ---
 title: reson~
 
-description: Bandpass resonant filter
+description: bandpass resonant filter
 
 categories:
  - object
 
-pdcategory: General
+pdcategory: cyclone, Filters
 
 arguments:
 - type: float

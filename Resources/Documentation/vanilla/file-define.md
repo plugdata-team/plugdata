@@ -1,9 +1,9 @@
 ---
 title: file define
-description: share file handles.
+description: share file handles
 categories:
 - object
-pdcategory: Misc
+pdcategory: vanilla, File Management
 last_update: '0.52'
 see_also:
 - text
@@ -26,7 +26,7 @@ see_also:
 - file splitext
 - file splitname
 arguments:
-- description: declared file-handle name.
+- description: declared file-handle name
   type: symbol
 draft: false
 ---

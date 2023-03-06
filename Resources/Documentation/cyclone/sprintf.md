@@ -1,12 +1,12 @@
 ---
 title: sprintf
 
-description: Message formatter
+description: message formatter
 
 categories:
  - object
 
-pdcategory: General
+pdcategory: cyclone, Data Management
 
 arguments:
 - type: symbol

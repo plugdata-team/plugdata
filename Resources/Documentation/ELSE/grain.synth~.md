@@ -1,19 +1,22 @@
 ---
 title: grain.synth~
 
-description: Granular synthesis
+description: granular synthesis
 
 categories:
 - object
 
-pdcategory:
+pdcategory: ELSE, Effects, Buffers
 
 arguments:
 
 inlets:
   1st:
   - type: bang
-    description: plays an dur of pitch clouds
+    description: plays <dur> of pitched clouds
+  2nd:
+  - type: float
+    description: density (number of grains)
 
 outlets:
   1st:
@@ -27,7 +30,7 @@ flags:
   - name: -n <float>
     description: 
   - name: -t <symbol>
-    description: (table name)
+    description: table name
   - name: -dur <f>
     description: 
   - name: -size <f, f>
@@ -55,7 +58,7 @@ methods:
   - type: set <symbol>
     description: sets table name with waveform
   - type: sync <f>
-    description: non zero sets to synchronous mode (default 0)
+    description: non-0 sets to synchronous mode (default 0)
   - type: dur <f>
     description: sets cloud event duration in ms (default 500)
   - type: size <f, f>
@@ -69,7 +72,7 @@ methods:
   - type: env <any>
     description: envelope type (sin, hann, tri, gauss) or function list
   - type: autotune <f>
-    description: non-zero autotunes to a given scale (default 0)
+    description: non-0 autotunes to a given scale (default 0)
   - type: scale <list>
     description: scale to autotune to in cents (default equal temperament)
   - type: base <f>

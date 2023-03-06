@@ -1,17 +1,17 @@
 ---
 title: floatbox
-description: Number box
-pdcategory: GUI
+description: number box
+pdcategory: vanilla, UI
 inlets:
   1st:
   - type: float
-    description: Set and output number
+    description: set and output number
   - type: bang
-    description: Output number
+    description: output number
 outlets:
   1st:
   - type: float
-    description: Number box value
+    description: number box value
 draft: false
 methods:
 - type: set <float>

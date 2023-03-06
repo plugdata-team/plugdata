@@ -1,19 +1,17 @@
 ---
 title: args
 
-description: Manage arguments
+description: manage arguments
 
 categories:
  - object
 
-pdcategory: General
+pdcategory: ELSE, Data Management
 
 arguments:
-  1st:
   - type: symbol
     description: (optional) break character
     default: none
-  2nd:
   - type: float
     description: depth level
     default: 0
@@ -22,7 +20,6 @@ inlets:
   1st:
   - type: bang
     description: output arguments list
-  2nd:
   - type: anything
     description: sets new arguments
 

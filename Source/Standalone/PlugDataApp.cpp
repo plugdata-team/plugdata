@@ -114,6 +114,7 @@ public:
 
             if (pd && file.existsAsFile()) {
                 pd->loadPatch(file);
+                SettingsFile::getInstance()->addToRecentlyOpened(file);
             }
         }
     }
@@ -167,54 +168,42 @@ void PlugDataWindow::closeAllPatches()
 {
     // Show an ask to save dialog for each patch that is dirty
     // Because save dialog uses an asynchronous callback, we can't loop over them (so have to chain them)
-    if (auto* editor = dynamic_cast<PluginEditor*>(pluginHolder->processor->getActiveEditor())) {
-        int idx = editor->tabbar.getCurrentTabIndex();
-        auto* cnv = editor->getCurrentCanvas();
+    auto* editor = dynamic_cast<PluginEditor*>(pluginHolder->processor->getActiveEditor());
 
-        auto deleteFunc = [this, editor, cnv, idx]() mutable {
-            auto* deletedPatch = &cnv->patch;
-            editor->canvases.removeObject(cnv);
-            editor->tabbar.removeTab(idx);
-            editor->tabbar.setCurrentTabIndex(editor->tabbar.getNumTabs() - 1, true);
+    auto* canvas = editor->canvases.getLast();
+    if (!canvas) {
+        JUCEApplication::quit();
+        return;
+    }
 
-            if (deletedPatch) {
-                // TODO: the OS is our garbage collector
-                // deletedPatch->close();
-                dynamic_cast<PluginProcessor*>(getAudioProcessor())->patches.removeObject(deletedPatch, true);
-            }
+    auto* tabbar = canvas->getTabbar();
+    auto* patch = &canvas->patch;
 
-            closeAllPatches();
-        };
-
-        if (!cnv) {
-            JUCEApplication::quit();
+    auto deleteFunc = [this, editor, tabbar, canvas, patch]() {
+        if (!canvas)
             return;
-        }
 
-        else if (cnv->patch.isDirty()) {
-            MessageManager::callAsync([this, editor, cnv, deleteFunc]() mutable {
-                Dialogs::showSaveDialog(&editor->openedDialog, editor, cnv->patch.getTitle(),
-                    [this, editor, cnv, deleteFunc](int result) mutable {
-                        if (result == 2) {
-                            editor->saveProject(
-                                [this, cnv, editor, deleteFunc]() mutable {
-                                    if (cnv) {
-                                        deleteFunc();
-                                    }
-                                });
-                        } else if (result == 1) {
-                            if (cnv) {
-                                deleteFunc();
-                            }
-                        } else if (!result) {
-                        }
+        editor->closeTab(canvas);
+        closeAllPatches();
+    };
+
+    if (canvas) {
+        MessageManager::callAsync([this, editor, canvas, patch, deleteFunc]() mutable {
+            // Don't show save dialog, if patch is still open in another view
+            if (patch->isDirty()) {
+                Dialogs::showSaveDialog(&editor->openedDialog, editor, patch->getTitle(),
+                    [this, editor, canvas, deleteFunc](int result) mutable {
+                        if (!canvas)
+                            return;
+                        if (result == 2)
+                            editor->saveProject([&deleteFunc]() mutable { deleteFunc(); });
+                        else if (result == 1)
+                            deleteFunc();
                     });
-            });
-        }
-
-        else if (cnv) {
-            deleteFunc();
-        }
+            } else {
+                deleteFunc();
+            }
+        });
     }
 }
 
@@ -240,6 +229,7 @@ int PlugDataWindow::parseSystemArguments(String const& arguments)
         if (toOpen.existsAsFile() && toOpen.hasFileExtension(".pd")) {
             if (auto* pd = dynamic_cast<PluginProcessor*>(getAudioProcessor())) {
                 pd->loadPatch(toOpen);
+                SettingsFile::getInstance()->addToRecentlyOpened(toOpen);
                 openedPatches.add(toOpen.getFullPathName());
             }
         }
@@ -258,6 +248,7 @@ int PlugDataWindow::parseSystemArguments(String const& arguments)
         if (toOpen.existsAsFile() && toOpen.hasFileExtension(".pd") && !openedPatches.contains(toOpen.getFullPathName())) {
             if (auto* pd = dynamic_cast<PluginProcessor*>(getAudioProcessor())) {
                 pd->loadPatch(toOpen);
+                SettingsFile::getInstance()->addToRecentlyOpened(toOpen);
             }
         }
     }
@@ -276,12 +267,6 @@ int PlugDataWindow::parseSystemArguments(String const& arguments)
     messagelist = nullptr;
 
     return retval;
-}
-
-ValueTree PlugDataWindow::getSettingsTree()
-{
-    auto* editor = dynamic_cast<PluginEditor*>(mainComponent->getEditor());
-    return editor->pd->settingsTree;
 }
 
 // This macro generates the main() routine that launches the app.

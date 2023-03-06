@@ -1,12 +1,12 @@
 ---
 title: e
 
-description: Get the value of 'e'
+description: get the value of 'e'
 
 categories:
 - object
 
-pdcategory:
+pdcategory: ELSE, Data Math
 
 arguments:
 - description: multiplier

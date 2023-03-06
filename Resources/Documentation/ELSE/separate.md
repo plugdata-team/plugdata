@@ -1,12 +1,12 @@
 ---
 title: separate
 
-description: Separate symbols
+description: separate symbols
 
 categories:
  - object
 
-pdcategory: General
+pdcategory: ELSE, Data Management
 
 arguments:
 - type: symbol

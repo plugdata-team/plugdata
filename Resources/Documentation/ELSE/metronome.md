@@ -1,12 +1,12 @@
 ---
 title: metronome
 
-description: High level metronome
+description: high level metronome
 
 categories:
  - object
 
-pdcategory: Control
+pdcategory: ELSE, Triggers and Clocks
 
 arguments:
 - type: float
@@ -18,7 +18,7 @@ inlets:
   - type: bang
     description: start or restart metronome
   - type: float
-    description: non-zero (re)starts, zero stops
+    description: non-0 (re)starts, zero stops
   2nd:
   - type: float
     description: set tempo value in BPM

@@ -1,12 +1,12 @@
 ---
 title: xselect~
 
-description: Select input with crossfade
+description: select input with crossfade
 
 categories:
  - object
  
-pdcategory: Control(Fader/Panning/Routing), General Audio Manipulation
+pdcategory: ELSE, Mixing and Routing
 
 arguments:
   - type: float
@@ -36,7 +36,7 @@ outlets:
     description: reports input number and off status
 
 methods:
-  - name: -time <float>
+  - type: time <float>
     description: crossfade time in ms
 
 draft: false

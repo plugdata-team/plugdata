@@ -3,7 +3,7 @@ title: list tosymbol
 description: manipulate lists
 categories:
 - object
-pdcategory: General
+pdcategory: vanilla, Data Management
 see_also:
 - list
 - list append
@@ -16,11 +16,11 @@ see_also:
 inlets:
   1st:
   - type: list
-    description: list of character codes to convert to a symbol.
+    description: list of character codes to convert to a symbol
 outlets:
   1st:
   - type: symbol
-    description: converted symbol from list of character codes.
+    description: converted symbol from list of character codes
 draft: false
 ---
 Convert from list of numeric character codes to symbols.

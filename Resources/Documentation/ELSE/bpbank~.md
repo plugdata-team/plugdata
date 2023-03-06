@@ -1,19 +1,17 @@
 ---
 title: bpbank~
 
-description: Bank of bandpass filters
+description: bank of bandpass filters
 
 categories:
 - object
 
-pdcategory: Audio Filters
+pdcategory: ELSE, Filters
 
 arguments:
-  1st:
   - description: number of bandpass filters
     type: float
     default: 1
-  2nd:
   - description: ramp time in ms
     type: float
     default: 10
@@ -22,16 +20,6 @@ inlets:
   1st:
   - type: signal
     description: signal to be filtered via a bank of bandpass filters
-  - type: freq <list>
-    description: list of frequencies for all filters in the bank
-  - type: q <list>
-    description: list of resonance (Q) for all filters in the bank
-  - type: amp <list>
-    description: list of amplitudes for all filters in the bank
-  - type: ramp <list>
-    description: list of ramp time for all filters in the bank
-  - type: rampal <float>
-    description: ramp time for all filters in the bank
 
 outlets:
   1st:
@@ -44,11 +32,23 @@ flags:
 - name: -amp <list>
   description: sets list of amplitudes for all filters
 - name: -q <list>
-  description: sets list of resonsance (Q) for all filters
+  description: sets list of resonance (Q) for all filters
 - name: -ramp <list>
   description: sets list of ramp time for all filters
 - name: -rampall <float>
   description: sets ramp time for all filters
+
+methods:
+  - type: freq <list>
+    description: list of frequencies for all filters in the bank
+  - type: q <list>
+    description: list of resonance (Q) for all filters in the bank
+  - type: amp <list>
+    description: list of amplitudes for all filters in the bank
+  - type: ramp <list>
+    description: list of ramp time for all filters in the bank
+  - type: rampal <float>
+    description: ramp time for all filters in the bank
 
 draft: false
 ---

@@ -46,15 +46,21 @@ static void *pow_new(t_floatarg f){
     return (x);
 }
 
-CYCLONE_OBJ_API void pow_tilde_setup(void){
-    pow_class = class_new(gensym("Pow~"), (t_newmethod)pow_new,
-                          (t_method)pow_free, sizeof(t_pow), CLASS_DEFAULT, A_DEFFLOAT, 0);
-    class_addcreator((t_newmethod)pow_new, gensym("cyclone/pow~"), A_GIMME, 0);
-    class_addcreator((t_newmethod)pow_new, gensym("cyclone/Pow~"), A_GIMME, 0);
+CYCLONE_OBJ_API void pow_tilde_setup(void)
+{
+    pow_class = class_new(gensym("cyclone/pow~"),
+        (t_newmethod)pow_new, 0, sizeof(t_pow), CLASS_DEFAULT, A_DEFFLOAT, 0);
     class_addmethod(pow_class, nullfn, gensym("signal"), 0);
-    class_addmethod(pow_class, (t_method)pow_dsp, gensym("dsp"), A_CANT, 0);
+    class_addmethod(pow_class, (t_method) pow_dsp, gensym("dsp"), A_CANT, 0);
+    class_sethelpsymbol(pow_class, gensym("pow~"));
 }
 
-void Pow_tilde_setup(void){
-    pow_tilde_setup();
+CYCLONE_OBJ_API void Pow_tilde_setup(void)
+{
+    pow_class = class_new(gensym("Pow~"),
+        (t_newmethod)pow_new, 0, sizeof(t_pow), CLASS_DEFAULT, A_DEFFLOAT, 0);
+    class_addmethod(pow_class, nullfn, gensym("signal"), 0);
+    class_addmethod(pow_class, (t_method) pow_dsp, gensym("dsp"), A_CANT, 0);
+    class_sethelpsymbol(pow_class, gensym("Pow~"));
+    pd_error(pow_class, "Cyclone: please use [cyclone/pow~] instead of [Pow~] to suppress this error");
 }

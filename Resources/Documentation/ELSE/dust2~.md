@@ -1,12 +1,12 @@
 ---
 title: dust2~
 
-description: Random impulses
+description: random impulses
 
 categories:
  - object
 
-pdcategory: General
+pdcategory: ELSE, Random and Noise, Signal Generators
 
 arguments:
 - type: float
@@ -31,6 +31,7 @@ methods:
   - type: seed <float>
     description: a float sets seed, no float sets a unique internal
 
+draft: false
 ---
 
-[dust2~] is based on SuperCollider's "Dust2" UGEN and outputs random impulse values (from -1 to 1) at random times according to a density parameter. The difference to SuperCollider's is that it only produces actual impulses (one non zero value in between 0 valued samples).
+[dust2~] is based on SuperCollider's "Dust2" UGEN and outputs random impulse values (from -1 to 1) at random times according to a density parameter. The difference to SuperCollider's is that it only produces actual impulses (one non-0 value in between 0 valued samples).

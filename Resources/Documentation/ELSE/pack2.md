@@ -1,15 +1,15 @@
 ---
 title: pack2
-description: Combine atoms
+description: combine atoms
 
 categories:
  - object
 
-pdcategory: General
+pdcategory: ELSE, Data Management
 
 arguments:
 - type: anything
-  description: the number of elements defines the number of inlets. A float or a symbol will define an initial value
+  description: the number of elements = the number of inlets. <f> or <symbol> — initial value
   default: two floats set to '0'
 
 inlets:
@@ -28,6 +28,7 @@ methods:
   - type: anything
     description: same as "set", but it forces an output
 
+draft: false
 ---
 
 [pack2] is kinda similar to Pd Vanilla's [pack], but any inlet triggers the output (though a "set" message avoids the output). It can also initialize a symbol value and it doesn't create a list selector for you. Moreover, you can change many elements with a list message and an element that was initialized as a float can become a symbol and vice versa.

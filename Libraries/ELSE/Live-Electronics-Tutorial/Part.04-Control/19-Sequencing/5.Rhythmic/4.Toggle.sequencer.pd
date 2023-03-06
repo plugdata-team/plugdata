@@ -1,84 +1,48 @@
 #N canvas 405 110 745 493 12;
 #X declare -path else;
-#X obj 87 38 tgl 30 0 empty empty empty 17 7 0 10 -228856 -1 -1 0 1
-;
+#X obj 87 38 tgl 30 0 empty empty empty 17 7 0 10 #dcdcdc #000000 #000000 0 1;
 #X text 218 46 TEMPO;
-#X obj 138 43 nbx 5 18 60 100 0 0 empty empty empty 0 -8 0 15 -228856
--1 -1 60 256;
+#X obj 138 43 nbx 5 18 60 100 0 0 empty empty empty 0 -8 0 15 #dcdcdc #000000 #000000 0 256;
 #X obj 26 82 moses 1;
 #X obj 582 389 table tgl_\$0 16;
 #X obj 582 413 table seq_\$0 16;
 #X obj 101 295 mtof;
 #X obj 115 374 *~;
-#X obj 135 272 nbx 5 14 -1e+37 1e+37 0 0 empty transp empty 0 -8 0
-10 -228856 -1 -1 60 256;
+#X obj 135 272 nbx 5 14 -1e+37 1e+37 0 0 empty transp empty 0 -8 0 10 #dcdcdc #000000 #000000 0 256;
 #N canvas 429 47 878 708 drum 0;
-#X obj 54 56 hradio 25 1 0 16 NADA h_radio empty 0 -6 0 15 -116513
--183280 -1 15;
-#X obj 61 88 tgl 15 1 \$0-tgl0 NIENTE empty 0 -6 0 10 -104946 -1 -1
-1 1;
-#X obj 87 88 tgl 15 1 \$0-tgl1 NIENTE empty 0 -6 0 10 -204800 -1 -1
-1 1;
-#X obj 112 88 tgl 15 1 \$0-tgl2 NIENTE empty 0 -6 0 10 -204800 -1 -1
-0 1;
-#X obj 135 88 tgl 15 1 \$0-tgl3 NIENTE empty 0 -6 0 10 -204800 -1 -1
-1 1;
-#X obj 186 88 tgl 15 1 \$0-tgl5 NIENTE empty 0 -6 0 10 -204800 -1 -1
-0 1;
-#X obj 211 88 tgl 15 1 \$0-tgl6 NIENTE empty 0 -6 0 10 -204800 -1 -1
-1 1;
-#X obj 236 88 tgl 15 0 \$0-tgl7 NIENTE empty 0 -6 0 10 -204800 -1 -1
-0 1;
-#X obj 287 88 tgl 15 1 \$0-tgl9 NIENTE empty 0 -6 0 10 -204800 -1 -1
-1 1;
-#X obj 312 88 tgl 15 1 \$0-tgl10 NIENTE empty 0 -6 0 10 -204800 -1
--1 1 1;
-#X obj 335 88 tgl 15 1 \$0-tgl11 NIENTE empty 0 -6 0 10 -204800 -1
--1 0 1;
-#X obj 384 88 tgl 15 1 \$0-tgl13 NIENTE empty 0 -6 0 10 -204800 -1
--1 1 1;
-#X obj 409 88 tgl 15 1 \$0-tgl14 NIENTE empty 0 -6 0 10 -204800 -1
--1 1 1;
-#X obj 435 88 tgl 15 1 \$0-tgl15 NIENTE empty 0 -6 0 10 -204800 -1
--1 1 1;
-#X obj 261 88 tgl 15 1 \$0-tgl8 NIENTE empty 0 -6 0 10 -104946 -1 -1
-1 1;
-#X obj 161 88 tgl 15 1 \$0-tgl4 NIENTE empty 0 -6 0 10 -104946 -1 -1
-1 1;
-#X obj 359 88 tgl 15 1 \$0-tgl12 NIENTE empty 0 -6 0 10 -104946 -1
--1 1 1;
-#X obj 61 110 vsl 15 128 -12 12 0 0 \$0-sl_0 sl1 empty 0 -9 0 10 -125171
--1 -1 3175 1;
-#X obj 87 110 vsl 15 128 -12 12 0 0 \$0-sl_1 sl2 empty 0 -9 0 10 -204800
--1 -1 2117 1;
-#X obj 113 110 vsl 15 128 -12 12 0 0 \$0-sl_2 sl3 empty 0 -9 0 10 -204800
--1 -1 2117 1;
-#X obj 135 110 vsl 15 128 -12 12 0 0 \$0-sl_3 sl4 empty 0 -9 0 10 -204800
--1 -1 4762 1;
-#X obj 161 110 vsl 15 128 -12 12 0 0 \$0-sl_4 sl5 empty 0 -9 0 10 -125171
--1 -1 2117 1;
-#X obj 187 110 vsl 15 128 -12 12 0 0 \$0-sl_5 sl6 empty 0 -9 0 10 -204800
--1 -1 6879 1;
-#X obj 211 110 vsl 15 128 -12 12 0 0 \$0-sl_6 sl7 empty 0 -9 0 10 -204800
--1 -1 8467 1;
-#X obj 236 110 vsl 15 128 -12 12 0 0 \$0-sl_7 sl8 empty 0 -9 0 10 -204800
--1 -1 8467 1;
-#X obj 261 110 vsl 15 128 -12 12 0 0 \$0-sl_8 sl9 empty 0 -9 0 10 -125171
--1 -1 4762 1;
-#X obj 287 110 vsl 15 128 -12 12 0 0 \$0-sl_9 sl10 empty 0 -9 0 10
--204800 -1 -1 3704 1;
-#X obj 312 110 vsl 15 128 -12 12 0 0 \$0-sl_10 sl11 empty 0 -9 0 10
--204800 -1 -1 3704 1;
-#X obj 335 110 vsl 15 128 -12 12 0 0 \$0-sl_11 sl12 empty 0 -9 0 10
--204800 -1 -1 5821 1;
-#X obj 359 110 vsl 15 128 -12 12 0 0 \$0-sl_12 sl13 empty 0 -9 0 10
--125171 -1 -1 7408 1;
-#X obj 384 110 vsl 15 128 -12 12 0 0 \$0-sl_13 sl14 empty 0 -9 0 10
--204800 -1 -1 9525 1;
-#X obj 409 110 vsl 15 128 -12 12 0 0 \$0-sl_14 sl15 empty 0 -9 0 10
--204800 -1 -1 10054 1;
-#X obj 435 110 vsl 15 128 -12 12 0 0 \$0-sl_15 sl16 empty 0 -9 0 10
--204800 -1 -1 10054 1;
+#X obj 54 56 hradio 25 1 0 16 NADA h_radio empty 0 -6 0 15 #707080 #b0bcbc #000000 0;
+#X obj 61 88 tgl 15 1 \$0-tgl0 NIENTE empty 0 -6 0 10 #649cc4 #000000 #000000 1 1;
+#X obj 87 88 tgl 15 1 \$0-tgl1 NIENTE empty 0 -6 0 10 #c4fcfc #000000 #000000 1 1;
+#X obj 112 88 tgl 15 1 \$0-tgl2 NIENTE empty 0 -6 0 10 #c4fcfc #000000 #000000 0 1;
+#X obj 135 88 tgl 15 1 \$0-tgl3 NIENTE empty 0 -6 0 10 #c4fcfc #000000 #000000 1 1;
+#X obj 186 88 tgl 15 1 \$0-tgl5 NIENTE empty 0 -6 0 10 #c4fcfc #000000 #000000 0 1;
+#X obj 211 88 tgl 15 1 \$0-tgl6 NIENTE empty 0 -6 0 10 #c4fcfc #000000 #000000 1 1;
+#X obj 236 88 tgl 15 0 \$0-tgl7 NIENTE empty 0 -6 0 10 #c4fcfc #000000 #000000 0 1;
+#X obj 287 88 tgl 15 1 \$0-tgl9 NIENTE empty 0 -6 0 10 #c4fcfc #000000 #000000 1 1;
+#X obj 312 88 tgl 15 1 \$0-tgl10 NIENTE empty 0 -6 0 10 #c4fcfc #000000 #000000 1 1;
+#X obj 335 88 tgl 15 1 \$0-tgl11 NIENTE empty 0 -6 0 10 #c4fcfc #000000 #000000 0 1;
+#X obj 384 88 tgl 15 1 \$0-tgl13 NIENTE empty 0 -6 0 10 #c4fcfc #000000 #000000 1 1;
+#X obj 409 88 tgl 15 1 \$0-tgl14 NIENTE empty 0 -6 0 10 #c4fcfc #000000 #000000 1 1;
+#X obj 435 88 tgl 15 1 \$0-tgl15 NIENTE empty 0 -6 0 10 #c4fcfc #000000 #000000 1 1;
+#X obj 261 88 tgl 15 1 \$0-tgl8 NIENTE empty 0 -6 0 10 #649cc4 #000000 #000000 1 1;
+#X obj 161 88 tgl 15 1 \$0-tgl4 NIENTE empty 0 -6 0 10 #649cc4 #000000 #000000 1 1;
+#X obj 359 88 tgl 15 1 \$0-tgl12 NIENTE empty 0 -6 0 10 #649cc4 #000000 #000000 1 1;
+#X obj 61 110 vsl 15 128 -12 12 0 0 \$0-sl_0 sl1 empty 0 -9 0 10 #788cc8 #000000 #000000 0 1;
+#X obj 87 110 vsl 15 128 -12 12 0 0 \$0-sl_1 sl2 empty 0 -9 0 10 #c4fcfc #000000 #000000 0 1;
+#X obj 113 110 vsl 15 128 -12 12 0 0 \$0-sl_2 sl3 empty 0 -9 0 10 #c4fcfc #000000 #000000 0 1;
+#X obj 135 110 vsl 15 128 -12 12 0 0 \$0-sl_3 sl4 empty 0 -9 0 10 #c4fcfc #000000 #000000 0 1;
+#X obj 161 110 vsl 15 128 -12 12 0 0 \$0-sl_4 sl5 empty 0 -9 0 10 #788cc8 #000000 #000000 0 1;
+#X obj 187 110 vsl 15 128 -12 12 0 0 \$0-sl_5 sl6 empty 0 -9 0 10 #c4fcfc #000000 #000000 0 1;
+#X obj 211 110 vsl 15 128 -12 12 0 0 \$0-sl_6 sl7 empty 0 -9 0 10 #c4fcfc #000000 #000000 0 1;
+#X obj 236 110 vsl 15 128 -12 12 0 0 \$0-sl_7 sl8 empty 0 -9 0 10 #c4fcfc #000000 #000000 0 1;
+#X obj 261 110 vsl 15 128 -12 12 0 0 \$0-sl_8 sl9 empty 0 -9 0 10 #788cc8 #000000 #000000 0 1;
+#X obj 287 110 vsl 15 128 -12 12 0 0 \$0-sl_9 sl10 empty 0 -9 0 10 #c4fcfc #000000 #000000 0 1;
+#X obj 312 110 vsl 15 128 -12 12 0 0 \$0-sl_10 sl11 empty 0 -9 0 10 #c4fcfc #000000 #000000 0 1;
+#X obj 335 110 vsl 15 128 -12 12 0 0 \$0-sl_11 sl12 empty 0 -9 0 10 #c4fcfc #000000 #000000 0 1;
+#X obj 359 110 vsl 15 128 -12 12 0 0 \$0-sl_12 sl13 empty 0 -9 0 10 #788cc8 #000000 #000000 0 1;
+#X obj 384 110 vsl 15 128 -12 12 0 0 \$0-sl_13 sl14 empty 0 -9 0 10 #c4fcfc #000000 #000000 0 1;
+#X obj 409 110 vsl 15 128 -12 12 0 0 \$0-sl_14 sl15 empty 0 -9 0 10 #c4fcfc #000000 #000000 0 1;
+#X obj 435 110 vsl 15 128 -12 12 0 0 \$0-sl_15 sl16 empty 0 -9 0 10 #c4fcfc #000000 #000000 0 1;
 #X obj 527 375 r \$0-tgl0;
 #X msg 527 397 0 \$1;
 #X obj 527 419 s tgl_\$0;
@@ -127,10 +91,7 @@
 #X msg 526 545 8 \$1;
 #X obj 600 567 s tgl_\$0;
 #X msg 600 545 9 \$1;
-#X msg 75 438 \; sl1 \$1 \; sl2 \$2 \; sl3 \$3 \; sl4 \$4 \; sl5 \$5
-\; sl6 \$6 \; sl7 \$7 \; sl8 \$8 \; sl9 \$9 \; sl10 \$10 \; sl11 \$11
-\; sl12 \$12 \; sl13 \$13 \; sl14 \$14 \; sl15 \$15 \; sl16 \$16 \;
-;
+#X msg 75 438 \; sl1 \$1 \; sl2 \$2 \; sl3 \$3 \; sl4 \$4 \; sl5 \$5 \; sl6 \$6 \; sl7 \$7 \; sl8 \$8 \; sl9 \$9 \; sl10 \$10 \; sl11 \$11 \; sl12 \$12 \; sl13 \$13 \; sl14 \$14 \; sl15 \$15 \; sl16 \$16 \;;
 #X obj 75 408 receive seq;
 #X msg 197 396 0 \$1;
 #X msg 271 396 1 \$1;
@@ -180,10 +141,8 @@
 #X obj 272 592 r \$0-sl_13;
 #X obj 350 592 r \$0-sl_14;
 #X obj 428 593 r \$0-sl_15;
-#X obj 62 281 initmess \; transp 60 \; seq -6 -8 -8 -3 -8 1 4 4 -3
--5 -5 -1 2 6 7 7;
-#X text 56 356 Get velues from sequence and send to sliders., f 17
-;
+#X obj 62 281 initmess \; transp 60 \; seq -6 -8 -8 -3 -8 1 4 4 -3 -5 -5 -1 2 6 7 7;
+#X text 56 356 Get velues from sequence and send to sliders., f 17;
 #X text 205 343 get values from sliders and send to table;
 #X text 522 341 get values from toggles and send to table;
 #X text 62 259 initialization, f 15;
@@ -269,16 +228,13 @@
 #X msg 26 107 set 0;
 #X obj 73 345 bl.saw~;
 #X text 529 397 arrays:;
-#X obj 87 82 tempo 60 -div 4;
 #X obj 555 43 declare -path else;
-#X text 266 85 Now we join the structure from the array sequencer with
-the drrum sequencer example to implement a note sequencer that is controlled
-by toggles. This way you can generate melodic rhythms. The notes sequence
-is now controlled by sliders. Open the subpatch below for more info.
-, f 61;
+#X text 266 85 Now we join the structure from the array sequencer with the drrum sequencer example to implement a note sequencer that is controlled by toggles. This way you can generate melodic rhythms. The notes sequence is now controlled by sliders. Open the subpatch below for more info., f 61;
+#X obj 87 82 tempo 60 -mul 4;
+#X floatatom 140 246 5 0 0 0 - - - 0;
 #X connect 0 0 3 0;
-#X connect 0 0 25 0;
-#X connect 2 0 25 1;
+#X connect 0 0 27 0;
+#X connect 2 0 27 1;
 #X connect 3 0 22 0;
 #X connect 6 0 12 0;
 #X connect 7 0 13 0;
@@ -292,9 +248,10 @@ is now controlled by sliders. Open the subpatch below for more info.
 #X connect 17 1 18 0;
 #X connect 17 1 11 0;
 #X connect 18 0 19 1;
+#X connect 18 0 28 0;
 #X connect 19 0 21 0;
 #X connect 20 0 19 0;
 #X connect 21 0 6 0;
 #X connect 22 0 15 0;
 #X connect 23 0 7 0;
-#X connect 25 0 15 0;
+#X connect 27 0 15 0;

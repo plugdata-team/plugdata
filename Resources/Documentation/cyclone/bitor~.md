@@ -1,9 +1,9 @@
 ---
 title: bitor~
-description: Signal Bitwise-OR
+description: signal Bitwise-OR
 categories:
  - object
-pdcategory: General
+pdcategory: cyclone, Logic, Signal Math
 arguments:
 - type: float
   description: converted to integer and used as bitmask
@@ -31,6 +31,7 @@ methods:
   - type: mode <float>
     description: <0-3>: modes of conversion to integers (details in help)
 
+draft: false
 ---
 
 [bitor~] compares the bits of two values with "Bitwise OR" (bits are set to 1 if any of them is "1", 0 otherwise). It compares two signals or a signal to a given bitmask. TIt has 4 modes of comparison (see help file).

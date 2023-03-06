@@ -1,12 +1,12 @@
 ---
 title: score
 
-description: Score sequencer
+description: score sequencer
 
 categories:
 - object
 
-pdcategory: Control (Sequencers) 
+pdcategory: ELSE, Triggers and Clocks
 
 arguments:
 - type: symbol
@@ -30,7 +30,7 @@ outlets:
     description: event data
   2nd:
   - type: anything
-    description: score data (bar number, tempo and other things by the user
+    description: score data (bar number, tempo, etc)
   3rd:
   - type: bang
     description: when sequence is over

@@ -1,11 +1,9 @@
-#N canvas 458 51 908 579 12;
+#N canvas 343 24 908 579 12;
 #X declare -path else;
 #X obj 87 150 noise~;
 #X obj 132 190 *~;
-#X obj 248 205 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
-#dcdcdc #000000 #000000 0 256;
-#X obj 190 183 nbx 3 14 0 300 0 0 empty empty empty 0 -8 0 10 #dcdcdc
-#000000 #000000 0 256;
+#X obj 248 205 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10 #dcdcdc #000000 #000000 0 256;
+#X obj 190 183 nbx 3 14 0 300 0 0 empty empty empty 0 -8 0 10 #dcdcdc #000000 #000000 0 256;
 #X text 233 181 Delay time (ms);
 #X obj 132 228 fbdelay~ 100 2000;
 #X obj 132 262 out~;
@@ -14,53 +12,26 @@
 #X obj 711 22 declare -path else;
 #X obj 82 368 noise~;
 #X obj 127 408 *~;
-#X obj 334 415 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
-#dcdcdc #000000 #000000 0 256;
-#X obj 230 415 nbx 3 14 0 300 0 0 empty empty empty 0 -8 0 10 #dcdcdc
-#000000 #000000 0 256;
+#X obj 334 415 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10 #dcdcdc #000000 #000000 0 256;
+#X obj 230 415 nbx 3 14 0 300 0 0 empty empty empty 0 -8 0 10 #dcdcdc #000000 #000000 0 256;
 #X obj 127 475 out~;
 #X obj 145 371 pulse~ 1 0.05;
 #X text 170 405 time in samples, f 7;
 #X text 315 369 Feedback index (multiplier), f 14;
-#X text 24 25 The [fbdelay~] object from ELSE is a feedback delay line.
-By default the feedback index is not a multiplication factor \, but
-a decay time \, which is the time in ms that the input decays 60 dB
-\, but this can be changed to a multiplication factor. Like [del~]
-\, it can resize the delay line and freeze it. Check the help file
-for more details. Check the help file for more details., f 64;
-#X text 511 57 The minimum delay length is a single sample \, so this
-object easily performs a one sample feedback delay. This is clearly
-much more convenient than the last example \, which needs a reasonable
-amount of patching and a dedicated subpatch for a single sample delay.
-, f 51;
-#X text 512 150 So why not just forget about [del~] from ELSE and the
-native [delwrite~] \, [delread~] \, and [delreead4~] objects?, f 51
-;
-#X text 512 210 The answer is simple \, depending on what you want
-to do \, you need independent objects. For instance \, if you need
-anything else inside the feedback loop \, like other objects \, you
-have to modularize., f 51;
-#X text 512 280 One example is the feedback loop example we've seen
-before for frequency modulation feedback. The delay objects are use
-to feed back \, for intsance \, the output of an oscillator to control
-its frequency input. Hence \, the oscillator needs to be inserted in
-the feedback loop. In another example we also had a filter in the feedback
-loop \, let's check that again., f 51;
-#X obj 700 409 hsl 128 15 0 1 0 0 empty fb empty -2 -8 0 10 #dcdcdc
-#000000 #000000 0 1;
-#X obj 697 436 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
-#dcdcdc #000000 #000000 0 256;
-#X obj 581 434 nbx 5 14 -1e+37 1e+37 0 0 empty Hz empty 0 -8 0 10 #dcdcdc
-#000000 #000000 0 256;
+#X text 24 25 The [fbdelay~] object from ELSE is a feedback delay line. By default the feedback index is not a multiplication factor \, but a decay time \, which is the time in ms that the input decays 60 dB \, but this can be changed to a multiplication factor. Like [del~] \, it can resize the delay line and freeze it. Check the help file for more details. Check the help file for more details., f 64;
+#X text 511 57 The minimum delay length is a single sample \, so this object easily performs a one sample feedback delay. This is clearly much more convenient than the last example \, which needs a reasonable amount of patching and a dedicated subpatch for a single sample delay., f 51;
+#X text 512 150 So why not just forget about [del~] from ELSE and the native [delwrite~] \, [delread~] \, and [delreead4~] objects?, f 51;
+#X text 512 210 The answer is simple \, depending on what you want to do \, you need independent objects. For instance \, if you need anything else inside the feedback loop \, like other objects \, you have to modularize., f 51;
+#X obj 700 409 hsl 128 15 0 1 0 0 empty fb empty -2 -8 0 10 #dcdcdc #000000 #000000 0 1;
+#X obj 697 436 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10 #dcdcdc #000000 #000000 0 256;
+#X obj 581 434 nbx 5 14 -1e+37 1e+37 0 0 empty Hz empty 0 -8 0 10 #dcdcdc #000000 #000000 0 256;
 #X text 557 433 Hz;
 #X text 716 408 feedback index;
 #N canvas 660 242 670 398 pm-fb-filtered 0;
 #X obj 110 331 outlet~;
 #X obj 142 198 *~;
-#X obj 291 168 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
-#dcdcdc #000000 #000000 0 256;
-#X obj 59 191 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
-#dcdcdc #000000 #000000 0 256;
+#X obj 291 168 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10 #dcdcdc #000000 #000000 0 256;
+#X obj 59 191 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10 #dcdcdc #000000 #000000 0 256;
 #X obj 59 60 inlet;
 #X obj 291 60 inlet;
 #X obj 308 264 block~ 1;
@@ -69,11 +40,10 @@ loop \, let's check that again., f 51;
 #X obj 291 199 f2s~ 10;
 #X obj 110 229 sine~;
 #X text 303 149 index;
-#X obj 131 264 delwrite~ \$0-pm 1;
-#X obj 142 119 delread~ \$0-pm 0;
-#X text 398 150 This patch has a moving average filter and an oscillator
-in the feedback loop. Hence \, [fbdelay~] is useless here., f 32;
+#X text 398 150 This patch has a moving average filter and an oscillator in the feedback loop. Hence \, [fbdelay~] is useless here., f 32;
 #X text 374 265 <= one sample delay feedback;
+#X obj 131 264 s~ \$0-fb;
+#X obj 142 119 r~ \$0-fb;
 #X connect 1 0 10 2;
 #X connect 2 0 9 0;
 #X connect 3 0 10 0;
@@ -82,12 +52,13 @@ in the feedback loop. Hence \, [fbdelay~] is useless here., f 32;
 #X connect 7 0 1 0;
 #X connect 9 0 1 1;
 #X connect 10 0 0 0;
-#X connect 10 0 12 0;
-#X connect 13 0 7 0;
+#X connect 10 0 14 0;
+#X connect 15 0 7 0;
 #X restore 581 461 pd pm-fb-filtered;
 #X text 527 461 open =>;
 #X obj 581 496 out~;
 #X obj 127 446 fbdelay~ -samps -gain 1000 0.9;
+#X text 512 280 One example is the feedback loop example we've seen before for frequency modulation feedback. We used [send~]/[receive~] but the principle is the same. In it \, the output of an oscillator control its frequency input. Hence \, the oscillator needs to be inserted in a feedback loop. In another example we also had a filter in the feedback loop \, let's check it again., f 51;
 #X connect 0 0 1 0;
 #X connect 1 0 5 0;
 #X connect 2 0 5 2;
@@ -95,12 +66,12 @@ in the feedback loop. Hence \, [fbdelay~] is useless here., f 32;
 #X connect 5 0 6 0;
 #X connect 8 0 1 1;
 #X connect 10 0 11 0;
-#X connect 11 0 31 0;
-#X connect 12 0 31 2;
-#X connect 13 0 31 1;
+#X connect 11 0 30 0;
+#X connect 12 0 30 2;
+#X connect 13 0 30 1;
 #X connect 15 0 11 1;
-#X connect 23 0 24 0;
-#X connect 24 0 28 1;
-#X connect 25 0 28 0;
-#X connect 28 0 30 0;
-#X connect 31 0 14 0;
+#X connect 22 0 23 0;
+#X connect 23 0 27 1;
+#X connect 24 0 27 0;
+#X connect 27 0 29 0;
+#X connect 30 0 14 0;

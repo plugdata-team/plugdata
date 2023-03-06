@@ -5,8 +5,7 @@
  */
 
 // ELSE mousepad
-struct MousePadObject final : public GUIObject {
-    bool isLocked = false;
+class MousePadObject final : public ObjectBase {
     bool isPressed = false;
 
     Point<int> lastPosition;
@@ -26,15 +25,11 @@ struct MousePadObject final : public GUIObject {
         unsigned char x_color[3];
     } t_pad;
 
+public:
     MousePadObject(void* ptr, Object* object)
-        : GUIObject(ptr, object)
+        : ObjectBase(ptr, object)
     {
         cnv->addMouseListener(this, true);
-
-        // Only intercept global mouse events
-        setInterceptsMouseClicks(false, false);
-        
-        isLocked = static_cast<bool>(cnv->locked.getValue());
     }
 
     ~MousePadObject()
@@ -47,20 +42,22 @@ struct MousePadObject final : public GUIObject {
         auto* x = static_cast<t_pad*>(ptr);
         auto fillColour = Colour(x->x_color[0], x->x_color[1], x->x_color[2]);
         g.setColour(fillColour);
-        g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Constants::objectCornerRadius);
+        g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), PlugDataLook::objectCornerRadius);
 
         auto outlineColour = object->findColour(cnv->isSelected(object) && !cnv->isGraph ? PlugDataColour::objectSelectedOutlineColourId : PlugDataColour::outlineColourId);
 
         g.setColour(outlineColour);
-        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Constants::objectCornerRadius, 1.0f);
+        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), PlugDataLook::objectCornerRadius, 1.0f);
     };
 
     void mouseDown(MouseEvent const& e) override
     {
         auto relativeEvent = e.getEventRelativeTo(this);
 
-        if (!getLocalBounds().contains(relativeEvent.getPosition()) || !isLocked || !object->cnv->isShowing())
+        if (!getLocalBounds().contains(relativeEvent.getPosition()) || !isLocked() || !object->cnv->isShowing() || isPressed)
             return;
+        
+        pd->setThis();
 
         auto* x = static_cast<t_pad*>(ptr);
         t_atom at[3];
@@ -78,11 +75,10 @@ struct MousePadObject final : public GUIObject {
 
     void mouseDrag(MouseEvent const& e) override
     {
-        if ((!getScreenBounds().contains(e.getMouseDownScreenPosition()) && !isPressed) || !isLocked)
+        if ((!getScreenBounds().contains(e.getMouseDownScreenPosition()) && !isPressed) || !isLocked())
             return;
 
         auto* x = static_cast<t_pad*>(ptr);
-        t_atom at[3];
 
         auto relativeEvent = e.getEventRelativeTo(this);
 
@@ -90,22 +86,29 @@ struct MousePadObject final : public GUIObject {
         if (relativeEvent.getPosition() == lastPosition)
             return;
 
-        x->x_x = relativeEvent.getPosition().x;
-        x->x_y = getHeight() - relativeEvent.getPosition().y;
+        int xPos = relativeEvent.getPosition().x;
+        ;
+        int yPos = getHeight() - relativeEvent.getPosition().y;
 
-        SETFLOAT(at, x->x_x);
-        SETFLOAT(at + 1, x->x_y);
+        lastPosition = { xPos, yPos };
 
-        lastPosition = { x->x_x, x->x_y };
+        pd->setThis();
+        
+        pd->enqueueFunction([x, xPos, yPos]() {
+            x->x_x = xPos;
+            x->x_y = yPos;
 
-        sys_lock();
-        outlet_anything(x->x_obj.ob_outlet, &s_list, 2, at);
-        sys_unlock();
+            t_atom at[3];
+            SETFLOAT(at, xPos);
+            SETFLOAT(at + 1, yPos);
+
+            outlet_anything(x->x_obj.ob_outlet, &s_list, 2, at);
+        });
     }
 
     void mouseMove(MouseEvent const& e) override
     {
-        if (!getScreenBounds().contains(e.getScreenPosition()) || isPressed || !isLocked)
+        if (!getScreenBounds().contains(e.getScreenPosition()) || isPressed || !isLocked())
             return;
 
         auto* x = static_cast<t_pad*>(ptr);
@@ -123,17 +126,18 @@ struct MousePadObject final : public GUIObject {
         SETFLOAT(at, x->x_x);
         SETFLOAT(at + 1, x->x_y);
 
-        lastPosition = { x->x_x, x->x_y };
+        lastPosition = { x->x_x, getHeight() - x->x_y };
 
+        pd->setThis();
+        
         sys_lock();
         outlet_anything(x->x_obj.ob_outlet, &s_list, 2, at);
         sys_unlock();
-        
     }
 
     void mouseUp(MouseEvent const& e) override
     {
-        if ((!getScreenBounds().contains(e.getMouseDownScreenPosition()) && !isPressed))
+        if ((!getScreenBounds().contains(e.getMouseDownScreenPosition()) || !isPressed) || !isLocked())
             return;
 
         auto* x = static_cast<t_pad*>(ptr);
@@ -143,9 +147,8 @@ struct MousePadObject final : public GUIObject {
         isPressed = false;
     }
 
-    void applyBounds() override
+    void setPdBounds(Rectangle<int> b) override
     {
-        auto b = object->getObjectBounds();
         libpd_moveobj(cnv->patch.getPointer(), static_cast<t_gobj*>(ptr), b.getX(), b.getY());
 
         auto* pad = static_cast<t_pad*>(ptr);
@@ -153,27 +156,40 @@ struct MousePadObject final : public GUIObject {
         pad->x_h = b.getHeight();
     }
 
-    void updateBounds() override
+    Rectangle<int> getPdBounds() override
     {
-        pd->getCallbackLock()->enter();
+        pd->lockAudioThread();
 
         int x = 0, y = 0, w = 0, h = 0;
         libpd_get_object_bounds(cnv->patch.getPointer(), ptr, &x, &y, &w, &h);
 
-        pd->getCallbackLock()->exit();
+        pd->unlockAudioThread();
 
-        object->setObjectBounds({ x, y, w, h });
+        return { x, y, w, h };
     }
 
-    void lock(bool locked) override
+    // Check if top-level canvas is locked to determine if we should respond to mouse events
+    bool isLocked()
     {
-        isLocked = locked;
+
+        // Find top-level canvas
+        auto* topLevel = findParentComponentOfClass<Canvas>();
+        while (auto* nextCanvas = topLevel->findParentComponentOfClass<Canvas>()) {
+            topLevel = nextCanvas;
+        }
+
+        return static_cast<bool>(topLevel->locked.getValue());
     }
 
     void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
     {
-        if (symbol == "color") {
+        switch (hash(symbol)) {
+        case hash("color"): {
             repaint();
+            break;
+        }
+        default:
+            break;
         }
     }
 };

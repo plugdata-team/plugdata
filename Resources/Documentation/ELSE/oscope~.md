@@ -1,15 +1,14 @@
 ---
 title: oscope~
-description: Oscilloscope display
+
+description: oscilloscope display
+
 categories:
  - object
 
-pdcategory: General
+pdcategory: ELSE, UI, Analysis
 
 arguments:
-- type: none
-  description:
-  default:
 
 inlets:
   1st:
@@ -63,6 +62,7 @@ methods:
   - type: receive <symbol>
     description: receive symbol (default empty)
 
+draft: false
 ---
 
 [oscope~] displays a signal in the style of an oscilloscope.

@@ -1,11 +1,11 @@
 ---
 title: keyboard
-description: Keyboard GUI
+description: keyboard GUI
 
 categories:
  - object
 
-pdcategory: General
+pdcategory: ELSE, UI, Tuning
 
 arguments:
 
@@ -70,6 +70,7 @@ methods:
   - type: receive <symbol>
     description: sets receive symbol
 
+draft: false
 ---
 
 [keyboard] is a GUI that receives MIDI notes and also generates them from mouse clicking. Right click it for properties!

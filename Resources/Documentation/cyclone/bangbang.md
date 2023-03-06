@@ -1,9 +1,9 @@
 ---
 title: bangbang
-description: Send a numer of bangs
+description: send a number of bangs
 categories:
  - object
-pdcategory: General
+pdcategory: cyclone, Data Management
 arguments:
 - type: float
   description: sets the 'n' number of bangs/outlets (maximum 40)
@@ -17,6 +17,7 @@ outlets:
   - type: bang
     description: a bang via each outlet in the right to left order
 
+draft: false
 ---
 
 When it receives any input, [bangbang] outputs bang messages out of each outlet (in the usual right-to-left order). The number of outlets is determined by the argument.

@@ -1,10 +1,12 @@
 ---
 title: pan2~
-description: Stereo panning
+
+description: stereo panning
 
 categories:
  - object
-pdcategory: General
+
+pdcategory: ELSE, Mixing and Routing
 
 arguments:
 - type: float
@@ -27,6 +29,7 @@ outlets:
   - type: signal
     description: right channel
 
+draft: false
 ---
 
 [pan2~] performs an equal power (sin/cos) panning.

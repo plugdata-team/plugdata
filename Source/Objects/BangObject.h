@@ -4,7 +4,7 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
-struct BangObject final : public IEMObject {
+class BangObject final : public ObjectBase {
     uint32_t lastBang = 0;
 
     Value bangInterrupt = Value(100.0f);
@@ -13,29 +13,62 @@ struct BangObject final : public IEMObject {
     bool bangState = false;
     bool alreadyBanged = false;
 
+    IEMHelper iemHelper;
+
+public:
     BangObject(void* obj, Object* parent)
-        : IEMObject(obj, parent)
+        : ObjectBase(obj, parent)
+        , iemHelper(obj, parent, this)
     {
         auto* bng = static_cast<t_bng*>(ptr);
         bangInterrupt = bng->x_flashtime_break;
         bangHold = bng->x_flashtime_hold;
+
+        parent->constrainer->setFixedAspectRatio(1);
     }
 
-    void checkBounds() override
+    void initialiseParameters() override
     {
-        // Fix aspect ratio and apply limits
-        int size = jlimit(30, maxSize, object->getWidth());
-        if (size != object->getHeight() || size != object->getWidth()) {
-            object->setSize(size, size);
-        }
+        iemHelper.initialiseParameters();
     }
+
+    bool hideInlets() override
+    {
+        return iemHelper.hasReceiveSymbol();
+    }
+
+    bool hideOutlets() override
+    {
+        return iemHelper.hasSendSymbol();
+    }
+
+    void updateLabel() override
+    {
+        iemHelper.updateLabel(label);
+    }
+
+    Rectangle<int> getPdBounds() override
+    {
+        return iemHelper.getPdBounds();
+    }
+
+    void setPdBounds(Rectangle<int> b) override
+    {
+        iemHelper.setPdBounds(b);
+    }
+
     void toggleObject(Point<int> position) override
     {
         if (!alreadyBanged) {
-            startEdition();
-            setValueOriginal(1);
-            stopEdition();
-            update();
+            pd->enqueueFunction([this](){
+                if(cnv->patch.objectWasDeleted(ptr)) return;
+                
+                startEdition();
+                pd_bang(static_cast<t_pd*>(ptr));
+                stopEdition();
+            });
+            
+            trigger();
             alreadyBanged = true;
         }
     }
@@ -47,19 +80,29 @@ struct BangObject final : public IEMObject {
 
     void mouseDown(MouseEvent const& e) override
     {
-        startEdition();
-        setValueOriginal(1);
-        stopEdition();
+        pd->enqueueFunction([this](){
+            if(cnv->patch.objectWasDeleted(ptr)) return;
+            
+            startEdition();
+            pd_bang(static_cast<t_pd*>(ptr));
+            stopEdition();
+        });
 
         // Make sure we don't re-click with an accidental drag
         alreadyBanged = true;
-
-        update();
+        trigger();
     }
 
     void paint(Graphics& g) override
     {
-        IEMObject::paint(g);
+        g.setColour(iemHelper.getBackgroundColour());
+        g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), PlugDataLook::objectCornerRadius);
+
+        bool selected = cnv->isSelected(object) && !cnv->isGraph;
+        auto outlineColour = object->findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : objectOutlineColourId);
+
+        g.setColour(outlineColour);
+        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), PlugDataLook::objectCornerRadius, 1.0f);
 
         auto const bounds = getLocalBounds().reduced(1).toFloat();
         auto const width = std::max(bounds.getWidth(), bounds.getHeight());
@@ -71,62 +114,57 @@ struct BangObject final : public IEMObject {
         g.drawEllipse(bounds.reduced(width - circleOuter), circleThickness);
 
         if (bangState) {
-            g.setColour(getForegroundColour());
+            g.setColour(iemHelper.getForegroundColour());
             g.fillEllipse(bounds.reduced(width - circleOuter + circleThickness));
         }
     }
 
-    float getValue() override
+    void trigger()
     {
-        // hack to trigger off the bang if no GUI update
-        if ((static_cast<t_bng*>(ptr))->x_flashed > 0) {
-            static_cast<t_bng*>(ptr)->x_flashed = 0;
-            return 1.0f;
+        if(bangState) return;
+        
+        bangState = true;
+        repaint();
+
+        auto currentTime = Time::getCurrentTime().getMillisecondCounter();
+        auto timeSinceLast = currentTime - lastBang;
+
+        int holdTime = bangHold.getValue();
+
+        if (timeSinceLast < static_cast<int>(bangHold.getValue()) * 2) {
+            holdTime = timeSinceLast / 2;
         }
-        return 0.0f;
+        if (holdTime < bangInterrupt) {
+            holdTime = bangInterrupt.getValue();
+        }
+
+        lastBang = currentTime;
+
+        auto deletionChecker = SafePointer(this);
+        Timer::callAfterDelay(holdTime,
+            [deletionChecker, this]() mutable {
+                // First check if this object still exists
+                if (!deletionChecker)
+                    return;
+
+                if (bangState) {
+                    bangState = false;
+                    repaint();
+                }
+            });
     }
 
-    void update() override
+    ObjectParameters getParameters() override
     {
-        if (getValueOriginal() > std::numeric_limits<float>::epsilon()) {
-            bangState = true;
-            repaint();
-
-            auto currentTime = Time::getCurrentTime().getMillisecondCounter();
-            auto timeSinceLast = currentTime - lastBang;
-
-            int holdTime = bangHold.getValue();
-
-            if (timeSinceLast < static_cast<int>(bangHold.getValue()) * 2) {
-                holdTime = timeSinceLast / 2;
-            }
-            if (holdTime < bangInterrupt) {
-                holdTime = bangInterrupt.getValue();
-            }
-
-            lastBang = currentTime;
-
-            auto deletionChecker = SafePointer(this);
-            Timer::callAfterDelay(holdTime,
-                [deletionChecker, this]() mutable {
-                    // First check if this object still exists
-                    if (!deletionChecker)
-                        return;
-
-                    if (bangState) {
-                        bangState = false;
-                        repaint();
-                    }
-                });
-        }
-    }
-
-    ObjectParameters defineParameters() override
-    {
-        return {
+        ObjectParameters allParameters = {
             { "Minimum flash time", tInt, cGeneral, &bangInterrupt, {} },
             { "Maximum flash time", tInt, cGeneral, &bangHold, {} },
         };
+
+        auto iemParameters = iemHelper.getParameters();
+        allParameters.insert(allParameters.end(), iemParameters.begin(), iemParameters.end());
+
+        return allParameters;
     }
 
     void valueChanged(Value& value) override
@@ -137,19 +175,29 @@ struct BangObject final : public IEMObject {
         if (value.refersToSameSourceAs(bangHold)) {
             static_cast<t_bng*>(ptr)->x_flashtime_hold = bangHold.getValue();
         } else {
-            IEMObject::valueChanged(value);
+            iemHelper.valueChanged(value);
         }
     }
 
     void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
     {
-        if (symbol == "flashtime") {
+        switch (hash(symbol)) {
+        case hash("float"):
+        case hash("bang"):
+        case hash("list"):
+            trigger();
+            break;
+        case hash("flashtime"): {
             if (atoms.size() > 0)
                 setParameterExcludingListener(bangInterrupt, atoms[0].getFloat());
             if (atoms.size() > 1)
                 setParameterExcludingListener(bangHold, atoms[1].getFloat());
-        } else {
-            IEMObject::receiveObjectMessage(symbol, atoms);
+            break;
+        }
+        default: {
+            iemHelper.receiveObjectMessage(symbol, atoms);
+            break;
+        }
         }
     }
 };

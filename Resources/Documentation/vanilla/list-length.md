@@ -3,7 +3,7 @@ title: list length
 description: manipulate lists
 categories:
 - object
-pdcategory: General
+pdcategory: vanilla, Data Management
 see_also:
 - list
 - list append
@@ -16,11 +16,11 @@ see_also:
 inlets:
   1st:
   - type: anything
-    description: messages to have its elements counted.
+    description: messages to have its elements counted
 outlets:
   1st:
   - type: float
-    description: list length.
+    description: list length
 draft: false
 ---
 Number of items in list.

@@ -1,19 +1,19 @@
 ---
 title: highpass~
-description: Highpass resonant filter
+description: highpass resonant filter
 
 categories:
  - object
 
-pdcategory: General
+pdcategory: ELSE, Filters
 
 arguments:
 - type: float
-  description: central frequency in Hertz
+  description: central frequency in Hz
   default: 0
 - type: float
-  description: resonance, either in 'Q' (default) or 'bw'
-  default: 1
+  description: resonance, either in 'Q' or 'bw'
+  default: 1 - in Q
 
 inlets:
   1st:
@@ -21,7 +21,7 @@ inlets:
     description: signal to be filtered
   2nd:
   - type: float/signal
-    description: central frequency in Hertz
+    description: central frequency in Hz
   3rd:
   - type: float/signal
     description: filter resonance (Q or bandwidth)
@@ -45,6 +45,7 @@ methods:
   - type: q
     description: sets resonance parameter to Q (default)
 
+draft: false
 ---
 
 [highpass~] is a 2nd order highpass resonant filter.

@@ -1,9 +1,9 @@
 ---
 title: acos~
-description: Signal arc-cosine function
+description: signal arc-cosine function
 categories:
  - object
-pdcategory: General
+pdcategory: cyclone, Signal Math
 arguments:
 inlets:
   1st:
@@ -14,6 +14,7 @@ outlets:
   - type: signal
     description: the arc-cosine of the input
 
+draft: false
 ---
 
 Use [acos~] to output the arc-cosine of each input sample.

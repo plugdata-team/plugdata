@@ -3,7 +3,7 @@ title: keyup
 description: grab keyboard input
 categories:
 - object
-pdcategory: Misc
+pdcategory: vanilla, UI
 last_update: '0.32'
 see_also:
 - key
@@ -11,7 +11,7 @@ see_also:
 outlets:
   1st:
   - type: float
-    description: key number when released.
+    description: key number when released
 draft: false
 ---
 Key and keyup report the (system dependent) numbers of "printing" keys of the keyboard. Key outputs when the keyboard key is pressed while keyup outputs it when you release the key. Check your system's preferences for 'autorepeat' as it affects the output of these objects.

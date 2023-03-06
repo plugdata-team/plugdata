@@ -1,9 +1,9 @@
 ---
-title: clip~
-description: Constrain a signal to a given range
+title: cyclone/clip~
+description: constrain a signal to a given range
 categories:
 - object
-pdcategory:
+pdcategory: cyclone, Signal Math
 arguments:
 - description: sets minimum value
   type: float

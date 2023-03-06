@@ -1,12 +1,12 @@
 ---
 title: xgate~
 
-description: Route an input with crossfade 
+description: route an input with crossfade 
 
 categories:
  - object
  
-pdcategory: Control(Fader/Panning/Routing)
+pdcategory: ELSE, Mixing and Routing
 
 arguments:
   - type: float
@@ -36,7 +36,7 @@ outlets:
     description: reports output number and off status
 
 methods:
-  - name: -time <float>
+  - type: time <float>
     description: crossfade time in ms
 
 draft: false

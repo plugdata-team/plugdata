@@ -1,26 +1,29 @@
 ---
 title: bl.vsaw~
 
-description: Bandlimited sawtooth-triangular oscillator
+description: bandlimited sawtooth-triangular oscillator
 
 categories:
 - object
 
-pdcategory: Audio Oscillators and Tables
+pdcategory: ELSE, Signal Generators
 
 arguments:
-  1st:
   - description: frequency in Hz
     type: float
     default: 0
-  2nd:
   - description: initial width
     type: float
     default: 0
-  3rd:
   - description: initial phase offset
     type: float
     default: 0
+
+flags:
+  - name: -midi
+    description: sets frequency input in MIDI pitch (default Hz)
+  - name: -soft
+    description: sets to soft sync mode (default hard)
 
 inlets:
   1st:
@@ -40,6 +43,12 @@ outlets:
   1st:
   - type: signal
     description: variable sawtooth-triangle wave signal
+
+methods:
+  - type: midi <float>
+    description: non-0 sets to frequency input in MIDI pitch
+  - type: soft <float>
+    description: non-0 sets to soft sync mode
 
 draft: false
 ---

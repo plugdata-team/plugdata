@@ -1,14 +1,14 @@
 ---
 title: range.hsl
 
-description: Range horizontal slider
+description: range horizontal slider
 
 categories:
 - object
 
-pdcategory: GUI
+pdcategory: ELSE, UI
 
-arguments: (none)
+arguments:
 
 inlets:
   1st:

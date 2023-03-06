@@ -38,7 +38,7 @@ equal temperament. See the default values to the right \, we load a
 equal temperament has 7 semitones and 700 cents. So we see a tiny difference
 where the just intonation interval is almost only 2 cents higher.,
 f 59;
-#X text 25 320 Again \, what's more interesting about cents \, being
+#X text 25 320 Again \, what's more interesting about cents \, is being
 able to compare intervals to the equal temperament. Try now other just
 interval ratios such as major third (5/4) \, perfect fourth (4/3) \,
 minor seventh (7/4) and others. Note that if you invert the ratio \,

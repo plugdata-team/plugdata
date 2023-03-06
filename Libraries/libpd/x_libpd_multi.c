@@ -489,10 +489,10 @@ void setup_bl0x2eimp2_tilde();
 void setup_bl0x2esquare_tilde();
 void setup_bl0x2etri_tilde();
 void setup_bl0x2evsaw_tilde();
-void setup_bl0x2eosc_tilde();
 void setup_osc0x2eformat();
 void setup_osc0x2eparse();
 void setup_osc0x2eroute();
+void beat_tilde_setup();
 void bicoeff_setup();
 void bicoeff2_setup();
 void bitnormal_tilde_setup();
@@ -577,7 +577,6 @@ void setup_giga0x2erev_tilde();
 void glide_tilde_setup();
 void glide2_tilde_setup();
 void gray_tilde_setup();
-void gui_setup();
 void henon_tilde_setup();
 void highpass_tilde_setup();
 void highshelf_tilde_setup();
@@ -639,6 +638,9 @@ void pimp_tilde_setup();
 void pimpmul_tilde_setup();
 void pink_tilde_setup();
 void pluck_tilde_setup();
+#ifndef _MSC_VER
+void plaits_tilde_setup();
+#endif
 void pmosc_tilde_setup();
 void power_tilde_setup();
 void properties_setup();
@@ -772,10 +774,10 @@ void libpd_init_else(void)
     setup_bl0x2esquare_tilde();
     setup_bl0x2etri_tilde();
     setup_bl0x2evsaw_tilde();
-    setup_bl0x2eosc_tilde();
     setup_osc0x2eformat();
     setup_osc0x2eparse();
     setup_osc0x2eroute();
+    beat_tilde_setup();
     bicoeff_setup();
     bicoeff2_setup();
     bitnormal_tilde_setup();
@@ -861,7 +863,6 @@ void libpd_init_else(void)
     glide_tilde_setup();
     glide2_tilde_setup();
     gray_tilde_setup();
-    gui_setup();
     henon_tilde_setup();
     highpass_tilde_setup();
     highshelf_tilde_setup();
@@ -922,6 +923,9 @@ void libpd_init_else(void)
     pimp_tilde_setup();
     pimpmul_tilde_setup();
     pink_tilde_setup();
+#ifndef _MSC_VER
+    plaits_tilde_setup();
+#endif
     pluck_tilde_setup();
     pmosc_tilde_setup();
     power_tilde_setup();
@@ -1387,7 +1391,7 @@ int parse_startup_arguments(char const** argv, size_t argc, t_namelist** sys_ope
             if (argc < 2)
                 goto usage;
             
-            // TODO: load libraries that we added manually
+            // TODO: load libraries that we added manually (??)
 
             STUFF->st_externlist = namelist_append_files(STUFF->st_externlist, argv[1]);
             argc -= 2;

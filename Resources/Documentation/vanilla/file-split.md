@@ -3,7 +3,7 @@ title: file split
 description: '''split'' path into components'
 categories:
 - object
-pdcategory: Misc
+pdcategory: vanilla, File Management
 last_update: '0.52'
 see_also:
 - text
@@ -28,14 +28,14 @@ see_also:
 inlets:
   1st:
   - type: symbol
-    description: file or directory name to split.
+    description: file or directory name to split
 outlets:
   1st:
   - type: list
-    description: list of split components.
+    description: list of split components
   2nd:
   - type: symbol/bang
-    description: '''/'' if inputs ends with ''/'' or bang otherwise.'
+    description: '''/'' if inputs ends with ''/'' or bang otherwise'
 draft: false
 ---
 This objects perform common string operations on filenames. no checks are performed verifying the validity/existence of any path-component.

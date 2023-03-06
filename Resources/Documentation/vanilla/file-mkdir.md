@@ -3,7 +3,7 @@ title: file mkdir
 description: create directories
 categories:
 - object
-pdcategory: Misc
+pdcategory: vanilla, File Management
 last_update: '0.52'
 see_also:
 - text
@@ -26,30 +26,31 @@ see_also:
 - file splitext
 - file splitname
 flags:
-- description: set quiet verbosity.
-  flag: -q
-- description: set loud verbosity.
-  flag: -v
-- description: file creation mode (user/group/other permissions) in octal.
-  flag: -m
+- name: -q
+  description: set quiet verbosity
+- name: -v
+  description: set loud verbosity
+- name: -m
+  description: file creation mode (user/group/other permissions) in octal
 inlets:
   1st:
   - type: symbol
-    description: directory to be created.
-  - type: verbose <float>
-    description: set verbosity on or off.
-  - type: creationmode <octal>
-    description: restrict permissions of the to-be-created file.
+    description: directory to be created
 outlets:
   1st:
   - type: symbol
-    description: created directory on success.
+    description: created directory on success
   2nd:
   - type: bang
-    description: when there's an error creating the directory.
+    description: when there's an error creating the directory
+methods:
+  - type: verbose <float>
+    description: set verbosity on or off
+  - type: creationmode <octal>
+    description: restrict permissions of file to be created
 draft: false
 ---
-This ensures that a given directory exists by creating it.
+This ensures that a given directory exists by creating it
 
 parent directories are created as needed.
 

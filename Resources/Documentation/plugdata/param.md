@@ -1,26 +1,33 @@
 ---
 title: param
 
-description: daw parameter
+description: interact with DAW automation parameters
 
 categories:
 - object
 
+pdcategories: PlugData, UI
+
 arguments:
+  - type: symbol
+    description: parameter name
   - type: float
-    description: number of the parameter (1 to 512)
+    description: 1 enables automatically handling change state when interacting with GUI objects
+    default: 0
 
 inlets:
   1st:
-  - type: ?
-    description: ?
+  - type: float
+    description: set DAW parameter value
   2nd:
-  - type: ?
-    description: ?
+  - type: float
+    description: inform DAW about change state (0 = reading, 1 = writing)
 
 outlets:
   1st:
   - type: float
-    description: the received value from daw
+    description: received DAW parameter value
 
+draft: false
 ---
+[param] sends and receives automation parameters to the DAW. You'll have to create an automation parameter in the sidebar.

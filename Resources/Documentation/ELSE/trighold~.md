@@ -1,17 +1,14 @@
 ---
 title: trighold~
 
-description: Hold a trigger value
+description: hold a trigger value
 
 categories:
 - object
 
-pdcategory: General
+pdcategory: ELSE, Triggers and Clocks
 
 arguments:
-- description:
-  type:
-  default:
 
 inlets:
   1st:
@@ -28,4 +25,4 @@ outlets:
 draft: false
 ---
 
-[trighold~] holds a trigger value. A trigger happens when a transition from 0 to non-zero occurs.
+[trighold~] holds a trigger value. A trigger happens when a transition from 0 to non-0 occurs.

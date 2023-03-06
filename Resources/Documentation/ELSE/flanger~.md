@@ -1,15 +1,15 @@
 ---
 title: flanger~
 
-description: Flanger
+description: flanger effect
 
 categories:
 - object
 
-pdcategory:
+pdcategory: ELSE, Effects
 
 arguments:
-- description: rate in hertz
+- description: rate in Hz
   type: float
   default: 0
 - description: depth in ms

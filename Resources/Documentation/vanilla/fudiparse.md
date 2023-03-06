@@ -3,7 +3,7 @@ title: fudiparse
 description: FUDI messages to and from Pd lists
 categories:
 - object
-pdcategory: I/O 
+pdcategory: vanilla, Networking
 last_update: '0.48'
 see_also:
 - fudiformat
@@ -11,11 +11,11 @@ see_also:
 inlets:
   1st:
   - type: list
-    description: FUDI packet to convert to Pd messages.
+    description: FUDI packet to convert to Pd messages
 outlets:
   1st:
   - type: anything
-    description: Pd messages.
+    description: Pd messages
 draft: false
 ---
 The fudiparse object takes incoming lists of numbers, interpreting them as the bytes in a FUDI message (as received when sending Pd-messages via [netreceive -b]).

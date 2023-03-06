@@ -1,12 +1,12 @@
 ---
 title: tanh
 
-description: Hyperbolic tangent function
+description: hyperbolic tangent function
 
 categories:
  - object
 
-pdcategory: General
+pdcategory: cyclone, Data Math
 
 arguments:
 - type: float

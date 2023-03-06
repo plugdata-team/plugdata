@@ -1,18 +1,19 @@
 ---
 title: limit
-description: Limit message with time
+
+description: limit message with time
 
 categories:
  - object
 
-pdcategory: General
+pdcategory: ELSE, Data Management
 
 arguments:
 - type: float
   description: initial time limit
   default: 0 - no limit
 - type: float
-  description: non zero sets to ignore mode
+  description: non-0 sets to ignore mode
   default: 0
 
 inlets:
@@ -30,6 +31,7 @@ outlets:
   - type: anything
     description: ignored messages (in ignore mode)
 
+draft: false
 ---
 
 [limit] only allows messages through if a given time has elapsed since the previous input/output. Otherwise, it waits until that time passes and then sends the last received message since the previous output (ignoring the others).

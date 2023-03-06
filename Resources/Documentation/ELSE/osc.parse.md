@@ -1,11 +1,11 @@
 ---
 title: osc.parse
-description: Parse OSC messages
+description: parse OSC messages
 
 categories:
  - object
 
-pdcategory: General
+pdcategory: ELSE, Networking
 
 arguments:
 
@@ -21,6 +21,7 @@ outlets:
   2nd:
   - type: float
     description: timetag offset in milliseconds
+draft: false
 ---
 
 [osc.parse] is similar to Vanilla's [oscparse] but the output is not a list and more closely related on how OSC messages are generally dealt with. It is still in the [osc.receive] abstraction and you can use the object for more edge and lower level cases.
