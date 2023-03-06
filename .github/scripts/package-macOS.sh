@@ -76,7 +76,7 @@ if [[ -d $AU ]]; then
 fi
 
 # # try to build CLAP package
-if [[ -d $APP ]]; then
+if [[ -d $CLAP ]]; then
   build_flavor "CLAP" $APP "com.plugdata.clap.pkg.${PRODUCT_NAME}" "/Library/Audio/Plug-Ins/CLAP"
 fi
 
