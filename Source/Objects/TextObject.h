@@ -247,12 +247,6 @@ public:
         }
 
         auto newNumLines = 0;
-
-        bool resizingOnLeft = object->resizeZone.isDraggingLeftEdge();
-        int oldWidth = object->originalBounds.getWidth() - Object::doubleMargin;
-        int currentWidth = getWidth();
-        int oldX = object->originalBounds.getX();
-
         auto newBounds = TextObjectHelper::recalculateTextObjectBounds(cnvPtr, ptr, objText, 15, newNumLines, true, std::max({ 1, object->numInputs, object->numOutputs }));
 
         numLines = newNumLines;

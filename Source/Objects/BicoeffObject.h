@@ -238,8 +238,6 @@ public:
         float magnitude = numerMag / denomMag;
         float phase = numerArg - denomArg;
 
-        float fHz = f * 44100.0f / (2.0f * M_PI);
-
         // convert magnitude to dB scale
         float logMagnitude = std::clamp<float>(20.0f * std::log(magnitude) / std::log(10.0), -25.f, 25.f);
 
