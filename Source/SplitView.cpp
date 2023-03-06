@@ -212,9 +212,7 @@ void SplitView::splitCanvasesAfterIndex(int idx, bool direction)
 }
 void SplitView::splitCanvasView(Canvas* cnv, bool splitViewFocus)
 {
-    auto* patch = &cnv->patch;
     auto* editor = cnv->editor;
-    auto locked = static_cast<bool>(cnv->locked.getValue());
 
     auto* currentTabbar = cnv->getTabbar();
     currentTabbar->removeTab(cnv->getTabIndex());

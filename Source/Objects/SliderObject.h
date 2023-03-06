@@ -260,8 +260,6 @@ public:
 
     float getValue()
     {
-        auto* slid = static_cast<t_slider*>(ptr);
-
         return static_cast<t_slider*>(ptr)->x_fval;
     }
 

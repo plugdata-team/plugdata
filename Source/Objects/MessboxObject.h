@@ -116,8 +116,6 @@ public:
 
     void paintOverChildren(Graphics& g) override
     {
-        auto b = getLocalBounds().reduced(1);
-
         bool selected = cnv->isSelected(object) && !cnv->isGraph;
         auto outlineColour = object->findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : PlugDataColour::objectOutlineColourId);
 
@@ -315,11 +313,11 @@ public:
             auto size = static_cast<int>(fontSize.getValue());
             if (static_cast<bool>(bold.getValue())) {
                 auto boldFont = Fonts::getBoldFont();
-                editor.applyFontToAllText(boldFont.withHeight(15));
+                editor.applyFontToAllText(boldFont.withHeight(size));
                 messbox->x_font_weight = pd->generateSymbol("normal");
             } else {
                 auto defaultFont = Fonts::getCurrentFont();
-                editor.applyFontToAllText(defaultFont.withHeight(15));
+                editor.applyFontToAllText(defaultFont.withHeight(size));
                 messbox->x_font_weight = pd->generateSymbol("bold");
             }
         }

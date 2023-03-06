@@ -114,11 +114,11 @@ public:
 
         nbx->x_fontsize = getHeight() - 4;
 
-        int width = getWidth();
+        int width = newBounds.reduced(Object::margin).getWidth();
         int numWidth = (2.0f * (-6.0f + width - nbx->x_fontsize)) / (4.0f + nbx->x_fontsize);
         width = (nbx->x_fontsize - (nbx->x_fontsize / 2) + 2) * (numWidth + 2) + 2;
 
-        int height = jlimit(18, maxSize, getHeight());
+        int height = jlimit(18, maxSize, newBounds.getHeight() - Object::doubleMargin);
         if (getWidth() != width || getHeight() != height) {
             object->setSize(width + Object::doubleMargin, height + Object::doubleMargin);
         }

@@ -670,7 +670,7 @@ void Object::mouseUp(MouseEvent const& e)
             [newObjectSizes, patch]() mutable {
                 patch->startUndoSequence("resize");
 
-                for (auto [object, bounds] : newObjectSizes) {
+                for (auto& [object, bounds] : newObjectSizes) {
                     if (!object || !object->gui)
                         return;
 
