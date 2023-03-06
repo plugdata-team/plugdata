@@ -77,7 +77,7 @@ fi
 
 # # try to build CLAP package
 if [[ -d $CLAP ]]; then
-  build_flavor "CLAP" $APP "com.plugdata.clap.pkg.${PRODUCT_NAME}" "/Library/Audio/Plug-Ins/CLAP"
+  build_flavor "CLAP" $CLAP "com.plugdata.clap.pkg.${PRODUCT_NAME}" "/Library/Audio/Plug-Ins/CLAP"
 fi
 
 # try to build App package
