@@ -125,29 +125,13 @@ public:
         auto objText = editor ? editor->getText() : objectText;
         auto newNumLines = 0;
 
-        auto newBounds = TextObjectHelper::recalculateTextObjectBounds(cnvPtr, ptr, objText, 14, newNumLines).expanded(Object::margin) + cnv->canvasOrigin;
+        auto newBounds = TextObjectHelper::recalculateTextObjectBounds(cnvPtr, ptr, objText, 14, newNumLines);
 
         numLines = newNumLines;
 
         pd->unlockAudioThread();
         
         return newBounds;
-        
-        auto objBounds = object->getBounds();
-
-        // TODO: this is a hack
-        // why is there a weird 1px offset, only for comment but not for textobj or message?
-        /*
-        if (objBounds.getPosition().getDistanceFrom(newBounds.getPosition()) > 2) {
-            object->setTopLeftPosition(newBounds.getX(), newBounds.getY());
-        }
-        if (newBounds.getWidth() != objBounds.getWidth() || newBounds.getHeight() != objBounds.getHeight()) {
-            object->setSize(newBounds.getWidth(), newBounds.getHeight());
-        } */
-
-        
-        
-        
     }
 
     bool checkBounds(Rectangle<int> oldBounds, Rectangle<int> newBounds, bool resizingOnLeft) override
