@@ -884,7 +884,7 @@ void PluginProcessor::getStateInformation(MemoryBlock& destData)
     // JYG added This
     m_temp_xml = &xml;
     // signal to patches that we need to collect extra data to save into the host session
-    sendMessage("fromPlugdata", "save", {});
+    sendMessage("from_plugdata", "save", {});
 
 
     PlugDataParameter::saveStateInformation(xml, getParameters());
