@@ -27,7 +27,9 @@ class Canvas : public Component
     , public LassoSource<WeakReference<Component>>
     , public ModifierKeyListener
     , public FocusChangeListener
-    , public pd::MessageListener {
+    , public pd::MessageListener
+    , public Timer
+{
 public:
     Canvas(PluginEditor* parent, pd::Patch& patch, Component* parentGraph = nullptr);
 
@@ -49,7 +51,9 @@ public:
     void spaceKeyChanged(bool isHeld) override;
     void middleMouseChanged(bool isHeld) override;
 
-    void synchronise(bool updatePosition = true);
+    void synchronise();
+    void performSynchronise();
+    void timerCallback() override;
 
     void updateDrawables();
 

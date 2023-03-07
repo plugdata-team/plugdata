@@ -209,9 +209,21 @@ int Canvas::getTabIndex()
     return leftIdx >= 0 ? leftIdx : rightIdx;
 }
 
+void Canvas::timerCallback()
+{
+    performSynchronise();
+    stopTimer();
+}
+
+void Canvas::synchronise()
+{
+    // Group every synchronise action within 3ms from eachother
+    startTimer(3);
+}
+
 // Synchronise state with pure-data
 // Used for loading and for complicated actions like undo/redo
-void Canvas::synchronise(bool updatePosition)
+void Canvas::performSynchronise()
 {
     pd->waitForStateUpdate();
 
@@ -250,9 +262,7 @@ void Canvas::synchronise(bool updatePosition)
 
             // Check if number of inlets/outlets is correct
             object->updateIolets();
-
-            if (updatePosition)
-                object->updateBounds();
+            object->updateBounds();
 
             object->toFront(false);
             if (object->gui && object->gui->getLabel())
@@ -648,8 +658,8 @@ void Canvas::pasteSelection()
 
     deselectAll();
 
-    // Load state from pd, don't update positions
-    synchronise(false);
+    // Load state from pd
+    synchronise();
 
     patch.setCurrent();
 
@@ -715,8 +725,8 @@ void Canvas::duplicateSelection()
 
     deselectAll();
 
-    // Load state from pd, don't update positions
-    synchronise(false);
+    // Load state from pd
+    synchronise();
 
     // Store the duplicated objects for later selection
     Array<Object*> duplicated;
@@ -813,8 +823,8 @@ void Canvas::removeSelection()
 
     deselectAll();
 
-    // Load state from pd, don't update positions
-    synchronise(false);
+    // Load state from pd
+    synchronise();
 
     patch.deselectAll();
 }
@@ -939,7 +949,7 @@ void Canvas::encapsulateSelection()
         patch.endUndoSequence("encapsulate");
     });
 
-    synchronise(true);
+    synchronise();
     patch.deselectAll();
 }
 
@@ -1547,19 +1557,22 @@ bool Canvas::panningModifierDown()
 void Canvas::receiveMessage(String const& symbol, int argc, t_atom* argv)
 {
     auto atoms = pd::Atom::fromAtoms(argc, argv);
-    MessageManager::callAsync([_this = SafePointer(this), symbol, atoms]() mutable {
-        if (!_this)
-            return;
-
-        switch (hash(symbol)) {
-        case hash("clear"): {
-            _this->synchronise();
-            break;
-        }
-        case hash("donecanvasdialog"): {
-            _this->synchronise();
-            break;
-        }
-        }
-    });
+    
+    switch (hash(symbol)) {
+    case hash("obj"):
+    case hash("msg"):
+    case hash("floatatom"):
+    case hash("listbox"):
+    case hash("symbolatom"):
+    case hash("text"):
+    case hash("graph"):
+    case hash("scalar"):
+    case hash("connect"):
+    case hash("clear"):
+    case hash("donecanvasdialog"):
+    {
+        // This will start a timer, so it's thread-safe to do this here
+        synchronise();
+    }
+    }
 }
