@@ -7,9 +7,9 @@
 #pragma once
 
 #include <JuceHeader.h>
-#include <concurrentqueue.h>
-#include "Iolet.h"
-#include "Pd/PdInstance.h"
+#include <concurrentqueue.h> // Move to impl
+#include "Iolet.h" // Move to impl
+#include "Pd/PdInstance.h" // TODO: separate out messageListener
 #include "Utility/RateReducer.h"
 
 using PathPlan = std::vector<Point<float>>;
