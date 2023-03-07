@@ -1567,12 +1567,24 @@ void Canvas::receiveMessage(String const& symbol, int argc, t_atom* argv)
     case hash("text"):
     case hash("graph"):
     case hash("scalar"):
+    case hash("bng"):
+    case hash("toggle"):
+    case hash("vslider"):
+    case hash("hslider"):
+    case hash("hdial"):
+    case hash("vdial"):
+    case hash("hradio"):
+    case hash("vradio"):
+    case hash("vumeter"):
+    case hash("mycnv"):
+    case hash("numbox"):
     case hash("connect"):
     case hash("clear"):
     case hash("donecanvasdialog"):
     {
         // This will start a timer, so it's thread-safe to do this here
         synchronise();
+        break;
     }
     }
 }
