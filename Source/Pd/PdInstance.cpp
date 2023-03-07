@@ -130,6 +130,10 @@ Instance::Instance(String const& symbol)
     m_parameter_receiver = libpd_multi_receiver_new(this, "param", reinterpret_cast<t_libpd_multi_banghook>(internal::instance_multi_bang), reinterpret_cast<t_libpd_multi_floathook>(internal::instance_multi_float), reinterpret_cast<t_libpd_multi_symbolhook>(internal::instance_multi_symbol),
         reinterpret_cast<t_libpd_multi_listhook>(internal::instance_multi_list), reinterpret_cast<t_libpd_multi_messagehook>(internal::instance_multi_message));
 
+    // JYG added This
+    m_databuffer_receiver = libpd_multi_receiver_new(this, "databuffer", reinterpret_cast<t_libpd_multi_banghook>(internal::instance_multi_bang), reinterpret_cast<t_libpd_multi_floathook>(internal::instance_multi_float), reinterpret_cast<t_libpd_multi_symbolhook>(internal::instance_multi_symbol),
+            reinterpret_cast<t_libpd_multi_listhook>(internal::instance_multi_list), reinterpret_cast<t_libpd_multi_messagehook>(internal::instance_multi_message));
+
     m_parameter_change_receiver = libpd_multi_receiver_new(this, "param_change", reinterpret_cast<t_libpd_multi_banghook>(internal::instance_multi_bang), reinterpret_cast<t_libpd_multi_floathook>(internal::instance_multi_float), reinterpret_cast<t_libpd_multi_symbolhook>(internal::instance_multi_symbol),
         reinterpret_cast<t_libpd_multi_listhook>(internal::instance_multi_list), reinterpret_cast<t_libpd_multi_messagehook>(internal::instance_multi_message));
 
@@ -193,6 +197,9 @@ Instance::~Instance()
     pd_free(static_cast<t_pd*>(m_print_receiver));
     pd_free(static_cast<t_pd*>(m_parameter_receiver));
     pd_free(static_cast<t_pd*>(m_parameter_change_receiver));
+
+    // JYG added this
+    pd_free(static_cast<t_pd*>(m_databuffer_receiver));
 
     libpd_set_instance(static_cast<t_pdinstance*>(m_instance));
     libpd_free_instance(static_cast<t_pdinstance*>(m_instance));
@@ -371,7 +378,7 @@ void Instance::sendList(char const* receiver, std::vector<Atom> const& list) con
 void Instance::sendMessage(void* object, char const* msg, std::vector<Atom> const& list) const
 {
     if(!object) return;
-    
+
     libpd_set_instance(static_cast<t_pdinstance*>(m_instance));
 
     auto* argv = static_cast<t_atom*>(m_atoms);
@@ -405,6 +412,10 @@ void Instance::processMessage(Message mess)
         auto name = mess.list[0].getSymbol();
         int state = mess.list[1].getFloat() != 0;
         performParameterChange(1, name, state);
+    // JYG added This
+    } else if (mess.destination == "databuffer")  {
+        fillDataBuffer(mess.list);
+
     } else if (mess.selector == "bang") {
         receiveBang(mess.destination);
     } else if (mess.selector == "float") {
@@ -452,7 +463,7 @@ void Instance::processMidiEvent(midievent event)
 void Instance::processSend(dmessage mess)
 {
     setThis();
-    
+
     if (mess.object) {
         if (mess.selector == "list") {
             auto* argv = static_cast<t_atom*>(m_atoms);
