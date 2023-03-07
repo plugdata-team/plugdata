@@ -1225,8 +1225,6 @@ void PluginProcessor::performParameterChange(int type, String name, float value)
 // JYG added this
 void PluginProcessor::fillDataBuffer(const std::vector<pd::Atom>& list)
 {
-    // was: void CamomileAudioProcessor::parseSaveInformation(const std::vector<pd::Atom>& list)
-
     if(m_temp_xml)
     {
         XmlElement* patch = m_temp_xml->getChildByName("patch");
@@ -1235,7 +1233,7 @@ void PluginProcessor::fillDataBuffer(const std::vector<pd::Atom>& list)
             patch = m_temp_xml->createNewChildElement("patch");
             if(!patch)
             {
-                post ("Error:can't allocate memory for saving plugin state.");
+                logMessage("Error:can't allocate memory for saving plugin state.");
                 return;
             }
         }
@@ -1256,12 +1254,12 @@ void PluginProcessor::fillDataBuffer(const std::vector<pd::Atom>& list)
         }
         else
         {
-            post("Error: can't allocate memory for saving plugin databuffer.");
+            logMessage("Error: can't allocate memory for saving plugin databuffer.");
         }
     }
     else
     {
-        post("Error, databuffer method should be called after databuffer save notification.");
+        logMessage("Error, databuffer method should be called after databuffer save notification.");
     }
 }
 
