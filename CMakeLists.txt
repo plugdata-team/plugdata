@@ -153,7 +153,6 @@ if(UNIX AND NOT APPLE)
     JUCE_MODAL_LOOPS_PERMITTED=1
     JUCE_USE_XRENDER=1
     )
-    target_link_libraries(plugdata_standalone PUBLIC "-Wl,-export-dynamic")
 endif()
 
 
@@ -355,6 +354,10 @@ elseif(APPLE)
   target_link_libraries(plugdata_midi PRIVATE plugdata_core)
 elseif(UNIX AND NOT APPLE)
   list(APPEND libs curl X11)
+endif()
+
+if(UNIX AND NOT APPLE)
+    target_link_libraries(plugdata_standalone PUBLIC "-Wl,-export-dynamic")
 endif()
 
 if(MSVC)
