@@ -3,6 +3,8 @@
  // For information on usage and redistribution, and for a DISCLAIMER OF ALL
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
+
+#include "Statusbar.h"
 #include "Canvas.h"
 #include "Object.h"
 #include "Connection.h"
@@ -13,6 +15,9 @@
 #include "CanvasViewport.h"
 #include "SplitView.h"
 
+#include "Objects/ObjectBase.h"
+
+#include "Dialogs/Dialogs.h"
 #include "Utility/GraphArea.h"
 #include "Utility/RateReducer.h"
 
@@ -74,7 +79,7 @@ Canvas::Canvas(PluginEditor* parent, pd::Patch& p, Component* parentGraph)
     setWantsKeyboardFocus(true);
 
     if (!isGraph) {
-        presentationMode.referTo(editor->statusbar.presentationMode);
+        presentationMode.referTo(editor->statusbar->presentationMode);
         presentationMode.addListener(this);
     } else {
         presentationMode = false;
@@ -507,10 +512,6 @@ void Canvas::mouseUp(MouseEvent const& e)
     for (auto* object : objects)
         object->originalBounds = Rectangle<int>(0, 0, 0, 0);
 
-    if (wasDragDuplicated) {
-        patch.endUndoSequence("Duplicate");
-        wasDragDuplicated = false;
-    }
 
     // TODO: this is a hack, find a better solution
     if (connectingWithDrag) {
@@ -705,7 +706,7 @@ void Canvas::duplicateSelection()
         // Tell pd to select all objects that are currently selected
         patch.selectObject(object->getPointer());
 
-        if (!wasDragDuplicated && editor->autoconnect.getValue()) {
+        if (!dragState.wasDragDuplicated && editor->autoconnect.getValue()) {
             // Store connections for auto patching
             for (auto* connection : connections) {
                 if (connection->inlet == object->iolets[0]) {
@@ -735,7 +736,7 @@ void Canvas::duplicateSelection()
     }
 
     // Auto patching
-    if (!wasDragDuplicated && editor->autoconnect.getValue()) {
+    if (!dragState.wasDragDuplicated && editor->autoconnect.getValue()) {
         std::vector<void*> moveObjects;
         for (auto* object : objects) {
             int iolet = 1;
@@ -1173,318 +1174,6 @@ bool Canvas::isSelected(Component* component) const
     return selectedComponents.isSelected(component);
 }
 
-void Canvas::objectMouseDown(Object* component, MouseEvent const& e)
-{
-    if (isGraph)
-        return;
-
-    if (e.mods.isRightButtonDown()) {
-        setSelected(component, true);
-
-        PopupMenu::dismissAllActiveMenus();
-        Dialogs::showCanvasRightClickMenu(this, component, e.getScreenPosition());
-
-        return;
-    }
-    if (e.mods.isShiftDown()) {
-        // select multiple objects
-        wasSelectedOnMouseDown = isSelected(component);
-    } else if (!isSelected(component)) {
-        // not interfeering with alt + drag
-        // unselect all & select clicked object
-        for (auto* object : objects) {
-            setSelected(object, false);
-        }
-        for (auto* connection : connections) {
-            setSelected(connection, false);
-        }
-    }
-    setSelected(component, true);
-
-    if (auto* object = dynamic_cast<Object*>(component)) {
-        componentBeingDragged = object;
-    }
-
-    for (auto* object : getSelectionOfType<Object>()) {
-        object->originalBounds = object->getBounds();
-        object->setBufferedToImage(true);
-    }
-
-    if (component) {
-        component->repaint();
-    }
-
-    canvasDragStartPosition = getPosition();
-
-    updateSidebarSelection();
-}
-
-// Call from component's mouseUp
-void Canvas::objectMouseUp(Object* component, MouseEvent const& e)
-{
-    if (isGraph)
-        return;
-
-    if (e.mods.isShiftDown() && wasSelectedOnMouseDown && !didStartDragging) {
-        // Unselect object if selected
-        setSelected(component, false);
-    } else if (!e.mods.isShiftDown() && !e.mods.isAltDown() && isSelected(component) && !didStartDragging && !e.mods.isRightButtonDown()) {
-
-        // Don't run normal deselectAll, that would clear the sidebar inspector as well
-        // We'll update sidebar selection later in this function
-        selectedComponents.deselectAll();
-
-        setSelected(component, true);
-    }
-
-    updateSidebarSelection();
-
-    if (didStartDragging) {
-        auto objects = std::vector<void*>();
-
-        for (auto* object : getSelectionOfType<Object>()) {
-            if (object->getPointer())
-                objects.push_back(object->getPointer());
-        }
-
-        auto distance = Point<int>(e.getDistanceFromDragStartX(), e.getDistanceFromDragStartY());
-
-        // In case we dragged near the iolet and the canvas moved
-        auto canvasMoveOffset = canvasDragStartPosition - getPosition();
-
-        distance = objectGrid.handleMouseUp(distance) + canvasMoveOffset;
-
-        // When done dragging objects, update positions to pd
-        patch.moveObjects(objects, distance.x, distance.y);
-
-        pd->waitForStateUpdate();
-
-        checkBounds();
-        didStartDragging = false;
-    }
-
-    if (objectSnappingInbetween) {
-        auto* c = connectionToSnapInbetween.getComponent();
-
-        // TODO: this is potentially problematic
-        // since some of these actions might be executed on different threads,
-        // depending on if we can get a lock
-
-        patch.startUndoSequence("SnapInbetween");
-
-        patch.removeConnection(c->outobj->getPointer(), c->outIdx, c->inobj->getPointer(), c->inIdx, c->getPathState());
-
-        patch.createConnection(c->outobj->getPointer(), c->outIdx, objectSnappingInbetween->getPointer(), 0);
-        patch.createConnection(objectSnappingInbetween->getPointer(), 0, c->inobj->getPointer(), c->inIdx);
-
-        patch.endUndoSequence("SnapInbetween");
-
-        objectSnappingInbetween->iolets[0]->isTargeted = false;
-        objectSnappingInbetween->iolets[objectSnappingInbetween->numInputs]->isTargeted = false;
-        objectSnappingInbetween = nullptr;
-
-        synchronise();
-    }
-
-    if (wasDragDuplicated) {
-        patch.endUndoSequence("Duplicate");
-        wasDragDuplicated = false;
-    }
-
-    for (auto* object : getSelectionOfType<Object>()) {
-        object->setBufferedToImage(false);
-        object->repaint();
-    }
-
-    componentBeingDragged = nullptr;
-
-    component->repaint();
-}
-
-// Call from component's mouseDrag
-void Canvas::objectMouseDrag(MouseEvent const& e)
-{
-    if (isGraph)
-        return;
-
-    /** Ensure tiny movements don't start a drag. */
-    if (!didStartDragging && e.getDistanceFromDragStart() < minimumMovementToStartDrag)
-        return;
-
-    if (!didStartDragging) {
-        didStartDragging = true;
-    }
-
-    auto selection = getSelectionOfType<Object>();
-
-    auto dragDistance = e.getOffsetFromDragStart();
-
-    // In case we dragged near the edge and the canvas moved
-    auto canvasMoveOffset = canvasDragStartPosition - getPosition();
-
-    if (static_cast<bool>(gridEnabled.getValue()) && componentBeingDragged) {
-        dragDistance = objectGrid.performMove(componentBeingDragged, dragDistance);
-    }
-    
-    // alt+drag will duplicate selection
-    if (!wasDragDuplicated && e.mods.isAltDown()) {
-
-        Array<Point<int>> mouseDownObjectPositions; // Stores object positions for alt + drag
-        int draggedIdx = 0;
-        
-        // Single for undo for duplicate + move
-        patch.startUndoSequence("Duplicate");
-
-        // Sort selection indexes to match pd indexes
-        std::sort(selection.begin(), selection.end(),
-            [this](auto* a, auto* b) -> bool {
-                return objects.indexOf(a) < objects.indexOf(b);
-            });
-
-        // Store origin object positions
-        int i = 0;
-        for (auto object : selection) {
-            mouseDownObjectPositions.add(object->getPosition());
-            if(componentBeingDragged == object) draggedIdx = i;
-            i++;
-        }
-
-        // Duplicate once
-        wasDragDuplicated = true;
-        duplicateSelection();
-        cancelConnectionCreation();
-        
-        selection = getSelectionOfType<Object>();
-        
-        // Sort selection indexes to match pd indexes
-        std::sort(selection.begin(), selection.end(),
-            [this](auto* a, auto* b) -> bool {
-                return objects.indexOf(a) < objects.indexOf(b);
-            });
-        
-        i = 0;
-        for(auto* selected : selection)
-        {
-            selected->originalBounds = selected->getBounds().withPosition(mouseDownObjectPositions[i]);
-            i++;
-        }
-        
-        if(isPositiveAndBelow(draggedIdx, selection.size())) {
-            componentBeingDragged = selection[draggedIdx];
-        }
-    }
-
-    // FIXME: stop the mousedrag event from blocking the objects from redrawing, we shouldn't need to do this? JUCE bug?
-    if (!objectRateReducer.tooFast()) {
-        for (auto* object : selection) {
-            object->setTopLeftPosition(object->originalBounds.getPosition() + dragDistance + canvasMoveOffset);
-        }
-
-        auto draggedBounds = componentBeingDragged->getBounds().expanded(6);
-        auto xEdge = e.getDistanceFromDragStartX() < 0 ? draggedBounds.getX() : draggedBounds.getRight();
-        auto yEdge = e.getDistanceFromDragStartY() < 0 ? draggedBounds.getY() : draggedBounds.getBottom();
-        if (autoscroll(e.getEventRelativeTo(this).withNewPosition(Point<int>(xEdge, yEdge)).getEventRelativeTo(viewport))) {
-            beginDragAutoRepeat(25);
-        }
-    }
-
-    // This handles the "unsnap" action when you shift-drag a connected object
-    if (e.mods.isShiftDown() && selection.size() == 1 && e.getDistanceFromDragStart() > 15) {
-        auto* object = selection.getFirst();
-
-        Array<Connection*> inputs, outputs;
-        for (auto* connection : connections) {
-            if (connection->inlet == object->iolets[0]) {
-                inputs.add(connection);
-            }
-            if (connection->outlet == object->iolets[object->numInputs]) {
-                outputs.add(connection);
-            }
-        }
-
-        // Two cases that are allowed: either 1 input and multiple outputs,
-        // or 1 output and multiple inputs
-        if (inputs.size() == 1 && outputs.size()) {
-            auto* outlet = inputs[0]->outlet.getComponent();
-
-            for (auto* c : outputs) {
-                patch.removeConnection(c->outobj->getPointer(), c->outIdx, c->inobj->getPointer(), c->inIdx, c->getPathState());
-
-                connections.add(new Connection(this, outlet, c->inlet, nullptr));
-                connections.removeObject(c);
-            }
-
-            auto* c = inputs[0];
-            patch.removeConnection(c->outobj->getPointer(), c->outIdx, c->inobj->getPointer(), c->inIdx, c->getPathState());
-            connections.removeObject(c);
-
-            object->iolets[0]->isTargeted = false;
-            object->iolets[object->numInputs]->isTargeted = false;
-            object->iolets[0]->repaint();
-            object->iolets[object->numInputs]->repaint();
-
-            objectSnappingInbetween = nullptr;
-        } else if (inputs.size() && outputs.size() == 1) {
-            auto* inlet = outputs[0]->inlet.getComponent();
-
-            for (auto* c : inputs) {
-                patch.removeConnection(c->outobj->getPointer(), c->outIdx, c->inobj->getPointer(), c->inIdx, c->getPathState());
-
-                connections.add(new Connection(this, c->outlet, inlet, nullptr));
-                connections.removeObject(c);
-            }
-
-            auto* c = outputs[0];
-            patch.removeConnection(c->outobj->getPointer(), c->outIdx, c->inobj->getPointer(), c->inIdx, c->getPathState());
-            connections.removeObject(c);
-
-            object->iolets[0]->isTargeted = false;
-            object->iolets[object->numInputs]->isTargeted = false;
-            object->iolets[0]->repaint();
-            object->iolets[object->numInputs]->repaint();
-
-            objectSnappingInbetween = nullptr;
-        }
-    }
-
-    // Behaviour for shift-dragging objects over
-    if (objectSnappingInbetween) {
-        if (connectionToSnapInbetween->intersectsObject(objectSnappingInbetween)) {
-            return;
-        }
-
-        // If we're here, it's not snapping anymore
-        objectSnappingInbetween->iolets[0]->isTargeted = false;
-        objectSnappingInbetween->iolets[objectSnappingInbetween->numInputs]->isTargeted = false;
-        objectSnappingInbetween = nullptr;
-    }
-
-    if (e.mods.isShiftDown() && selection.size() == 1) {
-        auto* object = selection.getFirst();
-        if (object->numInputs && object->numOutputs) {
-            bool intersected = false;
-            for (auto* connection : connections) {
-                if (connection->intersectsObject(object)) {
-                    object->iolets[0]->isTargeted = true;
-                    object->iolets[object->numInputs]->isTargeted = true;
-                    object->iolets[0]->repaint();
-                    object->iolets[object->numInputs]->repaint();
-                    connectionToSnapInbetween = connection;
-                    objectSnappingInbetween = object;
-                    intersected = true;
-                    break;
-                }
-            }
-
-            if (!intersected) {
-                object->iolets[0]->isTargeted = false;
-                object->iolets[object->numInputs]->isTargeted = false;
-                object->iolets[0]->repaint();
-                object->iolets[object->numInputs]->repaint();
-            }
-        }
-    }
-}
 
 SelectedItemSet<WeakReference<Component>>& Canvas::getLassoSelection()
 {
@@ -1580,7 +1269,7 @@ void Canvas::receiveMessage(String const& symbol, int argc, t_atom* argv)
     case hash("clear"):
     case hash("donecanvasdialog"):
     {
-        // This will start a timer, so it's thread-safe to do this here
+        // This will trigger an asyncupdater, so it's thread-safe to do this here
         synchronise();
         break;
     }

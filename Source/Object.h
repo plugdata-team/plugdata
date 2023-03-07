@@ -7,16 +7,13 @@
 #pragma once
 
 #include <JuceHeader.h>
+#include "Utility/ModifierKeyListener.h"
 
-extern "C" {
-#include <m_pd.h>
-}
-
-#include "ObjectGrid.h"
-#include "Iolet.h"
-#include "Objects/ObjectBase.h"
-
+class ObjectBase;
+class Iolet;
+class ObjectDragState;
 class Canvas;
+class Connection;
 class ObjectBoundsConstrainer;
 
 class Object : public Component
@@ -83,7 +80,7 @@ public:
 
     Canvas* cnv;
 
-    std::unique_ptr<ObjectBase> gui = nullptr;
+    std::unique_ptr<ObjectBase> gui;
 
     OwnedArray<Iolet> iolets;
     ResizableBorderComponent::Zone resizeZone;
@@ -110,6 +107,7 @@ public:
 
     int minimumSize = 12;
 
+        
 private:
     void initialise();
 
@@ -122,9 +120,9 @@ private:
     bool wasLockedOnMouseDown = false;
     bool indexShown = false;
     bool isHvccCompatible = true;
-
-    bool wasResized = false;
-
+        
+    ObjectDragState& ds;
+        
     std::unique_ptr<TextEditor> newObjectEditor;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(Object)
