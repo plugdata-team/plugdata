@@ -74,6 +74,9 @@ PluginProcessor::PluginProcessor()
     addParameter(volumeParameter);
     volume = volumeParameter->getValuePointer();
 
+    // JYG added this
+    m_temp_xml = nullptr;
+
     // General purpose automation parameters you can get by using "receive param1" etc.
     for (int n = 0; n < numParameters; n++) {
         auto* parameter = new PlugDataParameter(this, "param" + String(n + 1), 0.0f, false);
@@ -878,10 +881,19 @@ void PluginProcessor::getStateInformation(MemoryBlock& destData)
         xml.setAttribute("Height", lastUIHeight);
     }
 
+    // JYG added This
+    m_temp_xml = &xml;
+    // signal to patches that we need to collect extra data to save into the host session
+    sendMessage("fromPlugdata", "save", {});
+
+
     PlugDataParameter::saveStateInformation(xml, getParameters());
 
     MemoryBlock xmlBlock;
     copyXmlToBinary(xml, xmlBlock);
+
+    // JYG added this
+    m_temp_xml = nullptr;
 
     ostream.writeInt(static_cast<int>(xmlBlock.getSize()));
     ostream.write(xmlBlock.getData(), xmlBlock.getSize());
@@ -981,6 +993,9 @@ void PluginProcessor::setStateInformation(void const* data, int sizeInBytes)
                 editor->splitView.splitCanvasesAfterIndex(lastSplitIndex, true);
             }
         }
+        // JYG added this
+        parseDataBuffer(*xmlState);
+
     }
 
     setLatencySamples(latency);
@@ -1206,6 +1221,92 @@ void PluginProcessor::performParameterChange(int type, String name, float value)
         }
     }
 }
+
+// JYG added this
+void PluginProcessor::fillDataBuffer(const std::vector<pd::Atom>& list)
+{
+    // was: void CamomileAudioProcessor::parseSaveInformation(const std::vector<pd::Atom>& list)
+
+    if(m_temp_xml)
+    {
+        XmlElement* patch = m_temp_xml->getChildByName("patch");
+        if(!patch)
+        {
+            patch = m_temp_xml->createNewChildElement("patch");
+            if(!patch)
+            {
+                post ("Error:can't allocate memory for saving plugin state.");
+                return;
+            }
+        }
+        const int nchilds = patch->getNumChildElements();
+        XmlElement* preset = patch->createNewChildElement(String("list") + String(nchilds+1));
+        if(preset)
+        {
+            for(size_t i = 0; i < list.size(); ++i)
+            {
+                if(list[i].isFloat()) {
+                    preset->setAttribute(String("float") + String(i+1), list[i].getFloat()); }
+                else if(list[i].isSymbol())  {
+                    preset->setAttribute(String("string") + String(i+1), String(list[i].getSymbol()));
+                 }
+                else {
+                    preset->setAttribute(String("atom") + String(i+1), String("unknown")); }
+            }
+        }
+        else
+        {
+            post("Error: can't allocate memory for saving plugin databuffer.");
+        }
+    }
+    else
+    {
+        post("Error, databuffer method should be called after databuffer save notification.");
+    }
+}
+
+void PluginProcessor::parseDataBuffer(XmlElement const& xml)
+{
+    // was : void CamomileAudioProcessor::loadInformation(XmlElement const& xml)
+
+    bool loaded = false;
+    XmlElement const* patch = xml.getChildByName(juce::StringRef("patch"));
+    if(patch)
+    {
+        const int nlists = patch->getNumChildElements();
+        std::vector<pd::Atom> vec;
+        for(int i = 0; i < nlists; ++i)
+        {
+            XmlElement const* list = patch->getChildElement(i);
+            if(list)
+            {
+                const int natoms = list->getNumAttributes();
+                vec.resize(natoms);
+
+                for(int j = 0; j < natoms; ++j)
+                {
+                    String const& name = list->getAttributeName(j);
+                    if(name.startsWith("float")) {
+                        vec[j] = static_cast<float>(list->getDoubleAttribute(name)); }
+                    else if(name.startsWith("string")){
+                        vec[j] = list->getStringAttribute(name); }
+                    else {
+                        vec[j] = String("unknown"); }
+                }
+
+                sendList("load", vec);
+                loaded = true;
+            }
+        }
+    }
+
+    if(!loaded)
+    {
+        sendBang("load");
+    }
+}
+////////////////////
+
 
 void PluginProcessor::receiveDSPState(bool dsp)
 {

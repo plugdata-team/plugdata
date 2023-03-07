@@ -98,6 +98,11 @@ public:
     void messageEnqueued() override;
     void performParameterChange(int type, String name, float value) override;
 
+    // Jyg added this
+    void fillDataBuffer(const std::vector<pd::Atom>& list);
+    void parseDataBuffer(XmlElement const& xml);
+    XmlElement* m_temp_xml;
+
     pd::Patch* loadPatch(String patch);
     pd::Patch* loadPatch(File const& patch);
 
@@ -123,7 +128,7 @@ public:
     pd::Library objectLibrary;
 
     File homeDir = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory).getChildFile("plugdata");
-        
+
     static inline const String versionSuffix = "-0";
     File versionDataDir = homeDir.getChildFile(ProjectInfo::versionString + versionSuffix);
 
