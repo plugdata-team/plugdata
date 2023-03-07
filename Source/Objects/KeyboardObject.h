@@ -228,6 +228,9 @@ public:
     void resized() override
     {
         float keyWidth = static_cast<float>(object->getHeight() - Object::doubleMargin) / keyRatio;
+        
+        
+        if(keyWidth <= 0) return;
 
         keyboard.setKeyWidth(keyWidth);
         keyboard.setSize(keyWidth * numWhiteKeys, object->getHeight() - Object::doubleMargin);

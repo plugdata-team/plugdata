@@ -175,7 +175,7 @@ public:
             cnv->editor->updateCommandStatus();
         }
 
-        canvas->synchronise();
+        canvas->performSynchronise();
         canvas->checkBounds();
 
         auto b = getPatch()->getBounds() + canvas->canvasOrigin;
