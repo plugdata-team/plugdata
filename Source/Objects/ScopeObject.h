@@ -144,7 +144,7 @@ public:
         hex[2] = colour.getBlue();
     }
 
-    void updateBounds() override
+    Rectangle<int> getPdBounds() override
     {
         pd->lockAudioThread();
 
@@ -153,7 +153,7 @@ public:
 
         pd->unlockAudioThread();
 
-        object->setObjectBounds({ x, y, w, h });
+        return { x, y, w, h };
     }
 
     void resized() override
@@ -207,10 +207,8 @@ public:
     }
 
     // Push current object bounds into pd
-    void applyBounds() override
+    void setPdBounds(Rectangle<int> b) override
     {
-
-        auto b = object->getObjectBounds();
         libpd_moveobj(cnv->patch.getPointer(), static_cast<t_gobj*>(ptr), b.getX(), b.getY());
 
         static_cast<S*>(ptr)->x_width = getWidth();

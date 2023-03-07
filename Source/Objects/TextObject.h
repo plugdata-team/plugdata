@@ -228,10 +228,10 @@ public:
 
     void textEditorTextChanged(TextEditor& ed) override
     {
-        updateBounds();
+        object->updateBounds();
     }
 
-    void updateBounds() override
+    Rectangle<int> getPdBounds() override
     {
         pd->lockAudioThread();
 
@@ -247,21 +247,13 @@ public:
         }
 
         auto newNumLines = 0;
-
-        bool resizingOnLeft = object->resizeZone.isDraggingLeftEdge();
-        int oldWidth = object->originalBounds.getWidth() - Object::doubleMargin;
-        int currentWidth = getWidth();
-        int oldX = object->originalBounds.getX();
-
         auto newBounds = TextObjectHelper::recalculateTextObjectBounds(cnvPtr, ptr, objText, 15, newNumLines, true, std::max({ 1, object->numInputs, object->numOutputs }));
 
         numLines = newNumLines;
 
-        if (newBounds != object->getObjectBounds()) {
-            object->setObjectBounds(newBounds);
-        }
-
         pd->unlockAudioThread();
+        
+        return newBounds;
     }
 
     bool checkBounds(Rectangle<int> oldBounds, Rectangle<int> newBounds, bool resizingOnLeft) override
@@ -269,13 +261,12 @@ public:
         auto fontWidth = glist_fontwidth(cnv->patch.getPointer());
         auto* patch = cnv->patch.getPointer();
         TextObjectHelper::checkBounds(patch, ptr, oldBounds, newBounds, resizingOnLeft, fontWidth, std::max(object->numInputs, object->numOutputs));
-        updateBounds();
+        object->updateBounds();
         return true;
     }
 
-    void applyBounds() override
+    void setPdBounds(Rectangle<int> b) override
     {
-        auto b = object->getObjectBounds();
         libpd_moveobj(cnv->patch.getPointer(), static_cast<t_gobj*>(ptr), b.getX(), b.getY());
 
         if (TextObjectHelper::getWidthInChars(ptr)) {

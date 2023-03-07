@@ -225,7 +225,12 @@ public:
 
     void setInit(bool init)
     {
-        iemgui->x_isa.x_loadinit = init;
+        pd->enqueueFunctionAsync([this, init](){
+            
+            if(cnv->patch.objectWasDeleted(iemgui)) return;
+            
+            iemgui->x_isa.x_loadinit = init;
+        });
     }
 
     bool getInit()
@@ -233,16 +238,16 @@ public:
         return iemgui->x_isa.x_loadinit;
     }
 
-    void updateBounds()
+    Rectangle<int> getPdBounds()
     {
         pd->lockAudioThread();
         auto bounds = Rectangle<int>(iemgui->x_obj.te_xpix, iemgui->x_obj.te_ypix, iemgui->x_w, iemgui->x_h);
         pd->unlockAudioThread();
 
-        object->setObjectBounds(bounds);
+        return bounds;
     }
 
-    void applyBounds(Rectangle<int> const b)
+    void setPdBounds(Rectangle<int> const b)
     {
         iemgui->x_obj.te_xpix = b.getX();
         iemgui->x_obj.te_ypix = b.getY();

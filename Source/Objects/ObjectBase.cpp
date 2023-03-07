@@ -72,8 +72,8 @@ public:
         parent->setVisible(false);
     }
 
-    void updateBounds() override {};
-    void applyBounds() override {};
+    Rectangle<int> getPdBounds() override { return {0, 0, 1, 1}; };
+    void setPdBounds(Rectangle<int> newBounds) override {};
 };
 
 void ObjectLabel::ObjectListener::componentMovedOrResized(Component& component, bool moved, bool resized)
@@ -332,11 +332,16 @@ void ObjectBase::stopEdition()
 
 void ObjectBase::sendFloatValue(float newValue)
 {
-    // TODO: make this thread safe!
-    t_atom atom;
-    SETFLOAT(&atom, newValue);
-    pd_typedmess(static_cast<t_pd*>(ptr), pd->generateSymbol("set"), 1, &atom);
-    pd_bang(static_cast<t_pd*>(ptr));
+    pd->enqueueFunction([newValue, patch = &cnv->patch, ptr = this->ptr](){
+        
+        if(patch->objectWasDeleted(ptr)) return;
+        
+        t_atom atom;
+        SETFLOAT(&atom, newValue);
+        pd_typedmess(static_cast<t_pd*>(ptr), patch->instance->generateSymbol("set"), 1, &atom);
+        pd_bang(static_cast<t_pd*>(ptr));
+    });
+
 }
 
 ObjectBase* ObjectBase::createGui(void* ptr, Object* parent)
@@ -520,7 +525,7 @@ void ObjectBase::receiveMessage(String const& symbol, int argc, t_atom* argv)
         case hash("dim"):
         case hash("width"):
         case hash("height"):
-            _this->updateBounds();
+            _this->object->updateBounds();
             break;
         default:
             _this->receiveObjectMessage(symbol, atoms);

@@ -95,7 +95,7 @@ public:
         repaint();
     }
 
-    void updateBounds() override
+    Rectangle<int> getPdBounds() override
     {
         pd->lockAudioThread();
 
@@ -105,7 +105,7 @@ public:
 
         pd->unlockAudioThread();
 
-        object->setObjectBounds(bounds);
+        return bounds;
     }
 
     bool checkBounds(Rectangle<int> oldBounds, Rectangle<int> newBounds, bool resizingOnLeft) override
@@ -114,11 +114,11 @@ public:
 
         nbx->x_fontsize = getHeight() - 4;
 
-        int width = getWidth();
+        int width = newBounds.reduced(Object::margin).getWidth();
         int numWidth = (2.0f * (-6.0f + width - nbx->x_fontsize)) / (4.0f + nbx->x_fontsize);
         width = (nbx->x_fontsize - (nbx->x_fontsize / 2) + 2) * (numWidth + 2) + 2;
 
-        int height = jlimit(18, maxSize, getHeight());
+        int height = jlimit(18, maxSize, newBounds.getHeight() - Object::doubleMargin);
         if (getWidth() != width || getHeight() != height) {
             object->setSize(width + Object::doubleMargin, height + Object::doubleMargin);
         }
@@ -126,9 +126,8 @@ public:
         return true;
     }
 
-    void applyBounds() override
+    void setPdBounds(Rectangle<int> b) override
     {
-        auto b = object->getObjectBounds();
         libpd_moveobj(cnv->patch.getPointer(), static_cast<t_gobj*>(ptr), b.getX(), b.getY());
 
         auto* nbx = static_cast<t_numbox*>(ptr);

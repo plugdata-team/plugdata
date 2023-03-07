@@ -466,8 +466,6 @@ void Statusbar::shiftKeyChanged(bool isHeld)
 
 void Statusbar::commandKeyChanged(bool isHeld)
 {
-    auto* editor = dynamic_cast<PluginEditor*>(pd->getActiveEditor());
-
     commandLocked = isHeld && locked.getValue() == var(false);
 }
 
