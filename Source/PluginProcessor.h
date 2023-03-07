@@ -99,8 +99,8 @@ public:
     void performParameterChange(int type, String name, float value) override;
 
     // Jyg added this
-    void fillDataBuffer(const std::vector<pd::Atom>& list);
-    void parseDataBuffer(XmlElement const& xml);
+    void fillDataBuffer(const std::vector<pd::Atom>& list) override;
+    void parseDataBuffer(XmlElement const& xml) override;
     XmlElement* m_temp_xml;
 
     pd::Patch* loadPatch(String patch);
