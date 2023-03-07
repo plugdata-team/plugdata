@@ -4,7 +4,8 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
-#include "../PluginEditor.h"
+#include "PluginEditor.h"
+#include "Pd/PdPatch.h"
 
 struct ExporterBase : public Component
     , public Value::Listener

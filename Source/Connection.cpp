@@ -7,7 +7,10 @@
 
 #include "Canvas.h"
 #include "Iolet.h"
+#include "Object.h"
+#include "PluginProcessor.h"
 #include "LookAndFeel.h"
+#include "Pd/PdPatch.h"
 
 Connection::Connection(Canvas* parent, Iolet* s, Iolet* e, void* oc)
     : cnv(parent)

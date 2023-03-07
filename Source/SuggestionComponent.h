@@ -5,6 +5,7 @@
  */
 
 #include "PluginEditor.h"
+#include "PluginProcessor.h"
 
 // Component that sits on top of a TextEditor and will draw auto-complete suggestions over it
 class AutoCompleteComponent
@@ -115,7 +116,7 @@ private:
         auto completionBounds = getLocalBounds().toFloat().withTrimmedLeft(editorTextWidth + 7.5f);
 
         auto colour = findColour(PlugDataColour::canvasTextColourId).withAlpha(0.65f);
-        PlugDataLook::drawText(g, suggestion, completionBounds, colour);
+        Fonts::drawText(g, suggestion, completionBounds, colour);
     }
 };
 // Suggestions component that shows up when objects are edited
@@ -169,7 +170,7 @@ class SuggestionComponent : public Component
             auto buttonArea = getLocalBounds().reduced(6, 2).withTrimmedRight(scrollbarIndent).toFloat();
 
             g.setColour(backgroundColour);
-            g.fillRoundedRectangle(buttonArea, PlugDataLook::defaultCornerRadius);
+            g.fillRoundedRectangle(buttonArea, Corners::defaultCornerRadius);
 
             auto colour = getToggleState() ? findColour(PlugDataColour::popupMenuActiveTextColourId) : findColour(PlugDataColour::popupMenuTextColourId);
 
@@ -179,7 +180,7 @@ class SuggestionComponent : public Component
             auto textWidth = getWidth() - leftIndent - rightIndent;
 
             if (textWidth > 0)
-                PlugDataLook::drawStyledText(g, getButtonText(), leftIndent, yIndent, textWidth, getHeight() - yIndent * 2, colour, Semibold, 13);
+                Fonts::drawStyledText(g, getButtonText(), leftIndent, yIndent, textWidth, getHeight() - yIndent * 2, colour, Semibold, 13);
 
             if (objectDescription.isNotEmpty()) {
                 auto textLength = Fonts::getSemiBoldFont().withHeight(13).getStringWidth(getButtonText());
@@ -188,7 +189,7 @@ class SuggestionComponent : public Component
                 auto textWidth = getWidth() - leftIndent - rightIndent;
 
                 // Draw seperator (which is an en dash)
-                PlugDataLook::drawText(g, String::fromUTF8("  \xe2\x80\x93  ") + objectDescription, Rectangle<int>(leftIndent, yIndent, textWidth, getHeight() - yIndent * 2), colour, 13);
+                Fonts::drawText(g, String::fromUTF8("  \xe2\x80\x93  ") + objectDescription, Rectangle<int>(leftIndent, yIndent, textWidth, getHeight() - yIndent * 2), colour, 13);
             }
 
             if (type == -1)
@@ -201,9 +202,9 @@ class SuggestionComponent : public Component
                 auto iconbound = getLocalBounds().reduced(4);
                 iconbound.setWidth(getHeight() - 8);
                 iconbound.translate(6, 0);
-                g.fillRoundedRectangle(iconbound.toFloat(), PlugDataLook::smallCornerRadius);
+                g.fillRoundedRectangle(iconbound.toFloat(), Corners::smallCornerRadius);
 
-                PlugDataLook::drawFittedText(g, type ? "~" : "pd", iconbound.reduced(1), Colours::white, 1, 1.0f, type ? 12 : 10, Justification::centred);
+                Fonts::drawFittedText(g, type ? "~" : "pd", iconbound.reduced(1), Colours::white, 1, 1.0f, type ? 12 : 10, Justification::centred);
             }
         }
 
@@ -427,18 +428,18 @@ private:
         }
         else {
             Path localPath;
-            localPath.addRoundedRectangle(b.toFloat().reduced(4.0f), PlugDataLook::windowCornerRadius);
+            localPath.addRoundedRectangle(b.toFloat().reduced(4.0f), Corners::windowCornerRadius);
             StackShadow::renderDropShadow(g, localPath, Colour(0, 0, 0).withAlpha(0.6f), 16, { 0, 3 });
         }
 
         g.setColour(findColour(PlugDataColour::popupMenuBackgroundColourId));
-        g.fillRoundedRectangle(port->getBounds().reduced(1).toFloat(), PlugDataLook::defaultCornerRadius);
+        g.fillRoundedRectangle(port->getBounds().reduced(1).toFloat(), Corners::defaultCornerRadius);
     }
 
     void paintOverChildren(Graphics& g) override
     {
         g.setColour(findColour(PlugDataColour::outlineColourId).darker(0.1f));
-        g.drawRoundedRectangle(port->getBounds().toFloat().reduced(0.5f), PlugDataLook::defaultCornerRadius, 1.0f);
+        g.drawRoundedRectangle(port->getBounds().toFloat().reduced(0.5f), Corners::defaultCornerRadius, 1.0f);
     }
 
     bool keyPressed(KeyPress const& key, Component* originatingComponent) override

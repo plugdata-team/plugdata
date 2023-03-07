@@ -181,7 +181,7 @@ public:
     {
         auto backgroundColour = object->findColour(PlugDataColour::textObjectBackgroundColourId);
         g.setColour(backgroundColour);
-        g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), PlugDataLook::objectCornerRadius);
+        g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius);
 
         auto ioletAreaColour = object->findColour(PlugDataColour::ioletAreaColourId);
 
@@ -195,7 +195,7 @@ public:
             auto textArea = border.subtractedFrom(getLocalBounds());
 
             auto scale = getWidth() < 40 ? 0.9f : 1.0f;
-            PlugDataLook::drawFittedText(g, objectText, textArea, object->findColour(PlugDataColour::canvasTextColourId), numLines, scale);
+            Fonts::drawFittedText(g, objectText, textArea, object->findColour(PlugDataColour::canvasTextColourId), numLines, scale);
         }
     }
 
@@ -210,7 +210,7 @@ public:
         }
 
         g.setColour(outlineColour);
-        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), PlugDataLook::objectCornerRadius, 1.0f);
+        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius, 1.0f);
     }
 
     // Override to cancel default behaviour

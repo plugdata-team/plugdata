@@ -523,16 +523,16 @@ public:
     void paint(Graphics& g) override
     {
         if (errorMessage.isNotEmpty()) {
-            PlugDataLook::drawText(g, errorMessage, getLocalBounds().removeFromBottom(28).withTrimmedLeft(8).translated(0, 2), Colours::red);
+            Fonts::drawText(g, errorMessage, getLocalBounds().removeFromBottom(28).withTrimmedLeft(8).translated(0, 2), Colours::red);
         }
     }
 
     void paintOverChildren(Graphics& g) override
     {
-        PlugDataLook::drawIcon(g, Icons::Search, 0, 0, 30, findColour(PlugDataColour::panelTextColourId), 12);
+        Fonts::drawIcon(g, Icons::Search, 0, 0, 30, findColour(PlugDataColour::panelTextColourId), 12);
 
         if (input.getText().isEmpty()) {
-            PlugDataLook::drawText(g, "Type to search for objects or libraries", 32, 0, 350, 30, findColour(PlugDataColour::panelTextColourId).withAlpha(0.5f));
+            Fonts::drawText(g, "Type to search for objects or libraries", 32, 0, 350, 30, findColour(PlugDataColour::panelTextColourId).withAlpha(0.5f));
         }
 
         g.setColour(findColour(PlugDataColour::outlineColourId));
@@ -810,7 +810,7 @@ private:
 
         void paint(Graphics& g) override
         {
-            PlugDataLook::drawFittedText(g, packageInfo.name, 5, 0, 200, getHeight(), findColour(ComboBox::textColourId));
+            Fonts::drawFittedText(g, packageInfo.name, 5, 0, 200, getHeight(), findColour(ComboBox::textColourId));
 
             // draw progressbar
             if (deken.packageManager->getDownloadForPackage(packageInfo)) {
@@ -829,9 +829,9 @@ private:
                 g.setColour(findColour(PlugDataColour::panelActiveBackgroundColourId));
                 g.strokePath(downloadPath, PathStrokeType(8.0f, PathStrokeType::JointStyle::curved, PathStrokeType::EndCapStyle::rounded));
             } else {
-                PlugDataLook::drawFittedText(g, packageInfo.version, 150, 0, 150, getHeight(), findColour(PlugDataColour::panelTextColourId));
-                PlugDataLook::drawFittedText(g, packageInfo.author, 330, 0, 110, getHeight(), findColour(PlugDataColour::panelTextColourId));
-                PlugDataLook::drawFittedText(g, packageInfo.timestamp, 435, 0, 200, getHeight(), findColour(PlugDataColour::panelTextColourId));
+                Fonts::drawFittedText(g, packageInfo.version, 150, 0, 150, getHeight(), findColour(PlugDataColour::panelTextColourId));
+                Fonts::drawFittedText(g, packageInfo.author, 330, 0, 110, getHeight(), findColour(PlugDataColour::panelTextColourId));
+                Fonts::drawFittedText(g, packageInfo.timestamp, 435, 0, 200, getHeight(), findColour(PlugDataColour::panelTextColourId));
             }
         }
 

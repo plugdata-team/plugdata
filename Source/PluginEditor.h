@@ -8,12 +8,11 @@
 
 #include <JuceHeader.h>
 
-#include "Dialogs/Dialogs.h"
 #include "Sidebar/Sidebar.h"
-#include "Statusbar.h"
 #include "SplitView.h"
 #include "Utility/RateReducer.h"
 #include "Utility/ModifierKeyListener.h"
+#include "Utility/StackShadow.h" // TODO: move to impl
 
 enum CommandIDs {
     NewProject = 1,
@@ -384,41 +383,9 @@ const std::map<ObjectIDs, String> objectNames {
     { NewSignalNotEquals, "!=~" },
 };
 
-class ZoomLabel : public TextButton
-    , public Timer {
-
-    ComponentAnimator labelAnimator;
-
-    bool initRun = true;
-
-public:
-    ZoomLabel()
-    {
-        setInterceptsMouseClicks(false, false);
-    }
-
-    void setZoomLevel(float value)
-    {
-        if (initRun) {
-            initRun = false;
-            return;
-        }
-
-        setButtonText(String(value * 100, 1) + "%");
-        startTimer(2000);
-
-        if (!labelAnimator.isAnimating(this)) {
-            labelAnimator.fadeIn(this, 200);
-        }
-    }
-
-    void timerCallback() override
-    {
-        labelAnimator.fadeOut(this, 200);
-        stopTimer();
-    }
-};
-
+class Statusbar;
+class ZoomLabel;
+class Dialog;
 class WelcomeButton;
 class Canvas;
 class TabComponent;
@@ -499,11 +466,11 @@ public:
 
     OwnedArray<Canvas, CriticalSection> canvases;
     Sidebar sidebar;
-    Statusbar statusbar;
+    std::unique_ptr<Statusbar> statusbar;
 
     std::atomic<bool> canUndo = false, canRedo = false;
 
-    std::unique_ptr<Dialog> openedDialog = nullptr;
+    std::unique_ptr<Dialog> openedDialog;
 
     Value theme;
 
@@ -533,7 +500,7 @@ private:
 
     TextButton seperators[8];
 
-    ZoomLabel zoomLabel;
+    std::unique_ptr<ZoomLabel> zoomLabel;
 
 #if PLUGDATA_STANDALONE && JUCE_MAC
     Rectangle<int> unmaximisedSize;

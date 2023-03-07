@@ -90,16 +90,16 @@ struct ToolchainInstaller : public Component
             g.setColour(findColour(PlugDataColour::panelActiveBackgroundColourId));
 
             if (isMouseOver()) {
-                g.fillRoundedRectangle(1, 1, getWidth() - 2, getHeight() - 2, PlugDataLook::smallCornerRadius);
+                g.fillRoundedRectangle(1, 1, getWidth() - 2, getHeight() - 2, Corners::smallCornerRadius);
             }
 
             auto colour = findColour(PlugDataColour::panelTextColourId);
 
-            PlugDataLook::drawIcon(g, iconText, 20, 5, 40, colour, 24);
+            Fonts::drawIcon(g, iconText, 20, 5, 40, colour, 24);
 
-            PlugDataLook::drawText(g, topText, 60, 7, getWidth() - 60, 20, colour, 16);
+            Fonts::drawText(g, topText, 60, 7, getWidth() - 60, 20, colour, 16);
 
-            PlugDataLook::drawStyledText(g, bottomText, 60, 25, getWidth() - 60, 16, colour, Thin, 14);
+            Fonts::drawStyledText(g, bottomText, 60, 25, getWidth() - 60, 16, colour, Thin, 14);
         }
 
         void mouseUp(MouseEvent const& e)
@@ -166,15 +166,15 @@ struct ToolchainInstaller : public Component
     {
         auto colour = findColour(PlugDataColour::panelTextColourId);
         if (needsUpdate) {
-            PlugDataLook::drawStyledText(g, "Toolchain needs to be updated", 0, getHeight() / 2 - 150, getWidth(), 40, colour, Bold, 32, Justification::centred);
+            Fonts::drawStyledText(g, "Toolchain needs to be updated", 0, getHeight() / 2 - 150, getWidth(), 40, colour, Bold, 32, Justification::centred);
         } else {
-            PlugDataLook::drawStyledText(g, "Toolchain not found", 0, getHeight() / 2 - 150, getWidth(), 40, colour, Bold, 32, Justification::centred);
+            Fonts::drawStyledText(g, "Toolchain not found", 0, getHeight() / 2 - 150, getWidth(), 40, colour, Bold, 32, Justification::centred);
         }
 
         if (needsUpdate) {
-            PlugDataLook::drawStyledText(g, "Update the toolchain to get started", 0, getHeight() / 2 - 120, getWidth(), 40, colour, Thin, 23, Justification::centred);
+            Fonts::drawStyledText(g, "Update the toolchain to get started", 0, getHeight() / 2 - 120, getWidth(), 40, colour, Thin, 23, Justification::centred);
         } else {
-            PlugDataLook::drawStyledText(g, "Install the toolchain to get started", 0, getHeight() / 2 - 120, getWidth(), 40, colour, Thin, 23, Justification::centred);
+            Fonts::drawStyledText(g, "Install the toolchain to get started", 0, getHeight() / 2 - 120, getWidth(), 40, colour, Thin, 23, Justification::centred);
         }
 
         if (installProgress != 0.0f) {
@@ -195,7 +195,7 @@ struct ToolchainInstaller : public Component
         }
 
         if (errorMessage.isNotEmpty()) {
-            PlugDataLook::drawText(g, errorMessage, Rectangle<int>(90, 300, getWidth(), 20), Colours::red, 15);
+            Fonts::drawText(g, errorMessage, Rectangle<int>(90, 300, getWidth(), 20), Colours::red, 15);
         }
 
         if (isTimerRunning()) {

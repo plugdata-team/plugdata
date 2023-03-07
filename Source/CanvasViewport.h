@@ -7,7 +7,6 @@
 #pragma once
 
 #include "Utility/GlobalMouseListener.h"
-#include "LookAndFeel.h"
 
 // Special viewport that shows scrollbars on top of content instead of next to it
 class CanvasViewport : public Viewport {

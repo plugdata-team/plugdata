@@ -13,7 +13,7 @@ class Canvas;
 class ObjectGrid : public SettingsFileListener {
 
 public:
-    ObjectGrid(Canvas* parent);
+    ObjectGrid(Component* parent);
 
     Point<int> handleMouseUp(Point<int> dragOffset);
 

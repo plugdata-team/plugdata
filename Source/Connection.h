@@ -7,11 +7,6 @@
 #pragma once
 
 #include <JuceHeader.h>
-
-extern "C" {
-#include <m_pd.h>
-}
-
 #include <concurrentqueue.h>
 #include "Iolet.h"
 #include "Pd/PdInstance.h"
@@ -127,6 +122,7 @@ private:
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(Connection)
 };
 
+// TODO: hide behind Connection interface to reduce includes!
 class ConnectionBeingCreated : public Component {
     SafePointer<Iolet> iolet;
     Component* cnv;

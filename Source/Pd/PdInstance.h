@@ -15,7 +15,6 @@ extern "C" {
 
 #include <concurrentqueue.h>
 
-#include "PdPatch.h"
 #include "../Utility/StringUtils.h"
 
 namespace pd {
@@ -122,6 +121,7 @@ struct MessageListener {
     JUCE_DECLARE_WEAK_REFERENCEABLE(MessageListener);
 };
 
+class Patch;
 class Instance {
     struct Message {
         String selector;
@@ -248,8 +248,6 @@ public:
     // JYG added this
     virtual void fillDataBuffer(const std::vector<pd::Atom>& list) {};
     virtual void parseDataBuffer(XmlElement const& xml) {};
-
-
 
     void logMessage(String const& message);
     void logError(String const& message);

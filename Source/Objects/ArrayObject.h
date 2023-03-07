@@ -261,11 +261,11 @@ public:
     void paint(Graphics& g) override
     {
         g.setColour(object->findColour(PlugDataColour::guiObjectBackgroundColourId));
-        g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), PlugDataLook::objectCornerRadius);
+        g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius);
 
         if (error) {
             // TODO: error colour
-            PlugDataLook::drawText(g, "array " + array.getUnexpandedName() + " is invalid", 0, 0, getWidth(), getHeight(), object->findColour(PlugDataColour::canvasTextColourId), 15, Justification::centred);
+            Fonts::drawText(g, "array " + array.getUnexpandedName() + " is invalid", 0, 0, getWidth(), getHeight(), object->findColour(PlugDataColour::canvasTextColourId), 15, Justification::centred);
             error = false;
         } else {
             paintGraph(g);
@@ -449,19 +449,19 @@ public:
     void paintOverChildren(Graphics& g) override
     {
         g.setColour(findColour(PlugDataColour::guiObjectBackgroundColourId));
-        g.drawRoundedRectangle(getLocalBounds().toFloat(), PlugDataLook::windowCornerRadius, 1.0f);
+        g.drawRoundedRectangle(getLocalBounds().toFloat(), Corners::windowCornerRadius, 1.0f);
     }
 
     void paint(Graphics& g) override
     {
         g.setColour(findColour(PlugDataColour::guiObjectBackgroundColourId));
-        g.fillRoundedRectangle(getLocalBounds().toFloat(), PlugDataLook::windowCornerRadius);
+        g.fillRoundedRectangle(getLocalBounds().toFloat(), Corners::windowCornerRadius);
 
         g.setColour(findColour(PlugDataColour::canvasTextColourId));
         g.drawHorizontalLine(39, 0, getWidth());
 
         if (!title.isEmpty()) {
-            PlugDataLook::drawText(g, title, 0, 0, getWidth(), 40, findColour(PlugDataColour::canvasTextColourId), 15, Justification::centred);
+            Fonts::drawText(g, title, 0, 0, getWidth(), 40, findColour(PlugDataColour::canvasTextColourId), 15, Justification::centred);
         }
     }
 };
@@ -646,7 +646,7 @@ public:
         auto outlineColour = object->findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : objectOutlineColourId);
 
         g.setColour(outlineColour);
-        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), PlugDataLook::objectCornerRadius, 1.0f);
+        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius, 1.0f);
     }
 
     PdArray getArray() const

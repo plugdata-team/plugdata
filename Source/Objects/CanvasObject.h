@@ -78,7 +78,7 @@ public:
         auto bgcolour = Colour::fromString(iemHelper.secondaryColour.toString());
 
         g.setColour(bgcolour);
-        g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), PlugDataLook::objectCornerRadius);
+        g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius);
     }
 
     void valueChanged(Value& v) override

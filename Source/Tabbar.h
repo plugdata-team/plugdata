@@ -7,7 +7,7 @@
 #pragma once
 
 #include "Utility/GlobalMouseListener.h"
-#include "LookAndFeel.h"
+#include "Constants.h"
 #include "Canvas.h"
 
 class WelcomePanel : public Component {
@@ -38,9 +38,9 @@ class WelcomePanel : public Component {
                 colour = findColour(PlugDataColour::panelActiveTextColourId);
             }
 
-            PlugDataLook::drawIcon(g, iconText, 20, 5, 40, colour, 24, false);
-            PlugDataLook::drawText(g, topText, 60, 7, getWidth() - 60, 20, colour, 16);
-            PlugDataLook::drawStyledText(g, bottomText, 60, 25, getWidth() - 60, 16, colour, Thin, 14);
+            Fonts::drawIcon(g, iconText, 20, 5, 40, colour, 24, false);
+            Fonts::drawText(g, topText, 60, 7, getWidth() - 60, 20, colour, 16);
+            Fonts::drawStyledText(g, bottomText, 60, 25, getWidth() - 60, 16, colour, Thin, 14);
         }
 
         void mouseUp(MouseEvent const& e)
@@ -81,9 +81,9 @@ public:
 
         g.fillAll(findColour(PlugDataColour::panelBackgroundColourId));
 
-        PlugDataLook::drawStyledText(g, "No Patch Open", 0, getHeight() / 2 - 150, getWidth(), 40, findColour(PlugDataColour::panelTextColourId), Bold, 32, Justification::centred);
+        Fonts::drawStyledText(g, "No Patch Open", 0, getHeight() / 2 - 150, getWidth(), 40, findColour(PlugDataColour::panelTextColourId), Bold, 32, Justification::centred);
 
-        PlugDataLook::drawStyledText(g, "Open a file to begin patching", 0, getHeight() / 2 - 120, getWidth(), 40, findColour(PlugDataColour::panelTextColourId), Thin, 23, Justification::centred);
+        Fonts::drawStyledText(g, "Open a file to begin patching", 0, getHeight() / 2 - 120, getWidth(), 40, findColour(PlugDataColour::panelTextColourId), Thin, 23, Justification::centred);
     }
 
     std::unique_ptr<WelcomeButton> newButton;

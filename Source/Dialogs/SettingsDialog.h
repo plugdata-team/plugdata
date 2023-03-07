@@ -134,12 +134,12 @@ public:
     void paint(Graphics& g) override
     {
         g.setColour(findColour(PlugDataColour::panelBackgroundColourId));
-        g.fillRoundedRectangle(getLocalBounds().reduced(1).toFloat(), PlugDataLook::windowCornerRadius);
+        g.fillRoundedRectangle(getLocalBounds().reduced(1).toFloat(), Corners::windowCornerRadius);
 
         g.setColour(findColour(PlugDataColour::toolbarBackgroundColourId));
 
         auto toolbarBounds = Rectangle<float>(1, 1, getWidth() - 2, toolbarHeight);
-        g.fillRoundedRectangle(toolbarBounds, PlugDataLook::windowCornerRadius);
+        g.fillRoundedRectangle(toolbarBounds, Corners::windowCornerRadius);
         g.fillRect(toolbarBounds.withTrimmedTop(15.0f));
 
 #ifdef PLUGDATA_STANDALONE
@@ -153,7 +153,7 @@ public:
             g.setColour(findColour(PlugDataColour::toolbarBackgroundColourId));
 
             g.fillRect(statusbarBounds.withHeight(20));
-            g.fillRoundedRectangle(statusbarBounds, PlugDataLook::windowCornerRadius);
+            g.fillRoundedRectangle(statusbarBounds, Corners::windowCornerRadius);
         }
 
         g.setColour(findColour(PlugDataColour::outlineColourId));

@@ -62,7 +62,7 @@ public:
         auto listboxBounds = getLocalBounds().removeFromLeft(200);
 
         g.setColour(findColour(PlugDataColour::sidebarBackgroundColourId));
-        g.fillRoundedRectangle(listboxBounds.toFloat(), PlugDataLook::windowCornerRadius);
+        g.fillRoundedRectangle(listboxBounds.toFloat(), Corners::windowCornerRadius);
         g.fillRect(listboxBounds.removeFromRight(10));
     }
 
@@ -115,12 +115,12 @@ public:
         if (isPositiveAndBelow(row, items.size())) {
             if (rowIsSelected) {
                 g.setColour(findColour(PlugDataColour::sidebarActiveBackgroundColourId));
-                g.fillRoundedRectangle(5, 3, width - 10, height - 6, PlugDataLook::smallCornerRadius);
+                g.fillRoundedRectangle(5, 3, width - 10, height - 6, Corners::smallCornerRadius);
             }
 
             auto const textColour = findColour(rowIsSelected ? PlugDataColour::sidebarActiveTextColourId : PlugDataColour::sidebarTextColourId);
 
-            PlugDataLook::drawText(g, items[row], Rectangle<int>(15, 0, width - 30, height), textColour, 15);
+            Fonts::drawText(g, items[row], Rectangle<int>(15, 0, width - 30, height), textColour, 15);
         }
     }
 
@@ -184,7 +184,7 @@ HeavyExportDialog::~HeavyExportDialog()
 void HeavyExportDialog::paint(Graphics& g)
 {
     g.setColour(findColour(PlugDataColour::panelBackgroundColourId));
-    g.fillRoundedRectangle(getLocalBounds().toFloat(), PlugDataLook::windowCornerRadius);
+    g.fillRoundedRectangle(getLocalBounds().toFloat(), Corners::windowCornerRadius);
 }
 
 void HeavyExportDialog::resized()

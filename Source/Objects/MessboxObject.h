@@ -111,7 +111,7 @@ public:
         auto bounds = getLocalBounds();
         // Draw background
         g.setColour(Colour::fromString(secondaryColour.toString()));
-        g.fillRoundedRectangle(bounds.toFloat().reduced(0.5f), PlugDataLook::objectCornerRadius);
+        g.fillRoundedRectangle(bounds.toFloat().reduced(0.5f), Corners::objectCornerRadius);
     }
 
     void paintOverChildren(Graphics& g) override
@@ -120,7 +120,7 @@ public:
         auto outlineColour = object->findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : PlugDataColour::objectOutlineColourId);
 
         g.setColour(outlineColour);
-        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), PlugDataLook::objectCornerRadius, 1.0f);
+        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius, 1.0f);
     }
 
     void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override

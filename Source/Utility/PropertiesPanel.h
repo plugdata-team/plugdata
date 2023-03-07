@@ -184,7 +184,7 @@ public:
             }
 
             auto textColour = isDown ? findColour(PlugDataColour::panelActiveTextColourId) : findColour(PlugDataColour::panelTextColourId);
-            PlugDataLook::drawText(g, textOptions[isDown], bounds, textColour, 14.0f, Justification::centred);
+            Fonts::drawText(g, textOptions[isDown], bounds, textColour, 14.0f, Justification::centred);
 
             // Paint label
             Property::paint(g);
@@ -280,7 +280,7 @@ public:
             g.setColour(isMouseOver() ? colour.brighter(0.4f) : colour);
             g.fillRect(bounds);
 
-            PlugDataLook::drawText(g, String("#") + currentColour.toString().substring(2).toUpperCase(), bounds, textColour, 14.0f, Justification::centred);
+            Fonts::drawText(g, String("#") + currentColour.toString().substring(2).toUpperCase(), bounds, textColour, 14.0f, Justification::centred);
 
             // Paint label
             Property::paint(g);

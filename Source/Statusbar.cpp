@@ -99,7 +99,7 @@ class MidiBlinker : public Component
 public:
     void paint(Graphics& g) override
     {
-        PlugDataLook::drawText(g, "MIDI", getLocalBounds().removeFromLeft(28), findColour(ComboBox::textColourId), 11, Justification::centredRight);
+        Fonts::drawText(g, "MIDI", getLocalBounds().removeFromLeft(28), findColour(ComboBox::textColourId), 11, Justification::centredRight);
 
         auto midiInRect = Rectangle<float>(38.0f, 8.0f, 15.0f, 3.0f);
         auto midiOutRect = Rectangle<float>(38.0f, 17.0f, 15.0f, 3.0f);
@@ -154,7 +154,7 @@ public:
 
         for (int i = 5; i <= 30; i += 5) {
             auto textBounds = Rectangle<int>(x, b.getY(), spacing, b.getHeight());
-            PlugDataLook::drawStyledText(g, String(i), textBounds, findColour(PlugDataColour::toolbarTextColourId), Monospace, 10, Justification::centredTop);
+            Fonts::drawStyledText(g, String(i), textBounds, findColour(PlugDataColour::toolbarTextColourId), Monospace, 10, Justification::centredTop);
             x += spacing;
         }
     }
@@ -182,9 +182,9 @@ Statusbar::Statusbar(PluginProcessor* processor)
     levelMeter = new LevelMeter();
     midiBlinker = new MidiBlinker();
 
-    pd->statusbarSource.addListener(levelMeter);
-    pd->statusbarSource.addListener(midiBlinker);
-    pd->statusbarSource.addListener(this);
+    pd->statusbarSource->addListener(levelMeter);
+    pd->statusbarSource->addListener(midiBlinker);
+    pd->statusbarSource->addListener(this);
 
     setWantsKeyboardFocus(true);
 
@@ -357,9 +357,9 @@ Statusbar::Statusbar(PluginProcessor* processor)
 
 Statusbar::~Statusbar()
 {
-    pd->statusbarSource.removeListener(levelMeter);
-    pd->statusbarSource.removeListener(midiBlinker);
-    pd->statusbarSource.removeListener(this);
+    pd->statusbarSource->removeListener(levelMeter);
+    pd->statusbarSource->removeListener(midiBlinker);
+    pd->statusbarSource->removeListener(this);
 
     delete midiBlinker;
     delete levelMeter;

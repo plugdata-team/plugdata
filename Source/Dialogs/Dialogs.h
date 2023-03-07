@@ -7,7 +7,7 @@
 #pragma once
 
 #include <JuceHeader.h>
-#include "LookAndFeel.h"
+#include "Constants.h"
 
 class PluginEditor;
 class Canvas;
@@ -65,17 +65,17 @@ public:
         auto bounds = getLocalBounds().toFloat().reduced(backgroundMargin);
 
         if (wantsRoundedCorners()) {
-            g.fillRoundedRectangle(bounds.toFloat(), PlugDataLook::windowCornerRadius);
+            g.fillRoundedRectangle(bounds.toFloat(), Corners::windowCornerRadius);
         } else {
             g.fillRect(bounds);
         }
 
         if (viewedComponent) {
             g.setColour(findColour(PlugDataColour::dialogBackgroundColourId));
-            g.fillRoundedRectangle(viewedComponent->getBounds().toFloat(), PlugDataLook::windowCornerRadius);
+            g.fillRoundedRectangle(viewedComponent->getBounds().toFloat(), Corners::windowCornerRadius);
 
             g.setColour(findColour(PlugDataColour::outlineColourId));
-            g.drawRoundedRectangle(viewedComponent->getBounds().toFloat(), PlugDataLook::windowCornerRadius, 1.0f);
+            g.drawRoundedRectangle(viewedComponent->getBounds().toFloat(), Corners::windowCornerRadius, 1.0f);
         }
     }
 

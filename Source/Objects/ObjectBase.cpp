@@ -8,16 +8,18 @@
 
 extern "C" {
 
-void canvas_setgraph(t_glist* x, int flag, int nogoprect);
-
 #include <m_pd.h>
 #include <g_canvas.h>
 #include <m_imp.h>
 #include <g_all_guis.h>
 #include <g_undo.h>
+
+void canvas_setgraph(t_glist* x, int flag, int nogoprect);
+
 }
 
 #include "Object.h"
+#include "Iolet.h"
 #include "Canvas.h"
 #include "Tabbar.h"
 #include "SuggestionComponent.h"
@@ -282,13 +284,13 @@ void ObjectBase::moveToBack()
 void ObjectBase::paint(Graphics& g)
 {
     g.setColour(object->findColour(PlugDataColour::guiObjectBackgroundColourId));
-    g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), PlugDataLook::objectCornerRadius);
+    g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius);
 
     bool selected = cnv->isSelected(object) && !cnv->isGraph;
     auto outlineColour = object->findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : objectOutlineColourId);
 
     g.setColour(outlineColour);
-    g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), PlugDataLook::objectCornerRadius, 1.0f);
+    g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius, 1.0f);
 }
 
 void ObjectBase::initialiseParameters()

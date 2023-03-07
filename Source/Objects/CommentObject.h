@@ -35,7 +35,7 @@ public:
 
             auto scale = getWidth() < 50 ? 0.5f : 1.0f;
 
-            PlugDataLook::drawFittedText(g, objectText, textArea, object->findColour(PlugDataColour::canvasTextColourId), numLines, scale, 14.0f, Justification::centredLeft);
+            Fonts::drawFittedText(g, objectText, textArea, object->findColour(PlugDataColour::canvasTextColourId), numLines, scale, 14.0f, Justification::centredLeft);
         }
     }
 

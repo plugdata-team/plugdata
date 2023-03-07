@@ -628,7 +628,7 @@ public:
         if (drawWindowShadow && !isUsingNativeTitleBar()) {
             auto b = getLocalBounds();
             Path localPath;
-            localPath.addRoundedRectangle(b.toFloat().reduced(22.0f), PlugDataLook::windowCornerRadius);
+            localPath.addRoundedRectangle(b.toFloat().reduced(22.0f), Corners::windowCornerRadius);
 
             int radius = isActiveWindow() ? 21 : 16;
             StackShadow::renderDropShadow(g, localPath, Colour(0, 0, 0).withAlpha(0.6f), radius, { 0, 3 });
@@ -722,14 +722,14 @@ private:
                 if (!Desktop::canUseSemiTransparentWindows()) {
                     g.drawRect(getLocalBounds().toFloat().reduced(getMargin()), 1.0f);
                 } else {
-                    g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(getMargin()), PlugDataLook::windowCornerRadius, 1.0f);
+                    g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(getMargin()), Corners::windowCornerRadius, 1.0f);
                 }
             }
 #elif JUCE_WINDOWS
 
             g.setColour(findColour(PlugDataColour::outlineColourId));
 
-            g.drawRoundedRectangle(getLocalBounds().toFloat(), PlugDataLook::windowCornerRadius, 1.0f);
+            g.drawRoundedRectangle(getLocalBounds().toFloat(), Corners::windowCornerRadius, 1.0f);
 #endif
         }
 
