@@ -214,15 +214,10 @@ class SuggestionComponent : public Component
 public:
     SuggestionComponent()
         : resizer(this, &constrainer)
-        , currentBox(nullptr)
-        , dropShadower(DropShadow(Colour(0, 0, 0).withAlpha(0.25f), 7, { 0, 2 }))
+        , currentBox(nullptr), windowMargin(canBeTransparent() ? 22 : 0)
     {
         // Set up the button list that contains our suggestions
         buttonholder = std::make_unique<Component>();
-
-        if (Desktop::canUseSemiTransparentWindows()) {
-            dropShadower.setOwner(this);
-        }
 
         for (int i = 0; i < 20; i++) {
             Suggestion* but = buttons.add(new Suggestion(this, i));
@@ -245,7 +240,7 @@ public:
         addAndMakeVisible(port.get());
 
         constrainer.setSizeLimits(150, 120, 500, 400);
-        setSize(300, 140);
+        setSize(310 + (2 * windowMargin), 140 + (2 * windowMargin));
 
         addAndMakeVisible(resizer);
 
@@ -291,12 +286,7 @@ public:
 
         addToDesktop(ComponentPeer::windowIsTemporary | ComponentPeer::windowIgnoresKeyPresses);
         
-        // Dividing position by scale is necessary to make it appear in the right position inside audio plugin on Linux.
-        auto scale = std::sqrt(std::abs(getTransform().getDeterminant()));
-
-        auto objectPos = object->getScreenBounds().reduced(Object::margin).getBottomLeft().translated(0, 5) / scale;
-
-        setTopLeftPosition(objectPos);
+        updateBounds();
 
         setVisible(false);
         toFront(false);
@@ -313,7 +303,7 @@ public:
 
         setTransform(cnv->editor->getTransform());
 
-        auto objectPos = currentBox->getScreenBounds().reduced(Object::margin).getBottomLeft().translated(0, 5);
+        auto objectPos = currentBox->getScreenBounds().reduced(Object::margin).getBottomLeft().translated(-windowMargin, -windowMargin + 5);
         setTopLeftPosition(objectPos);
 
         // If box is not contained in canvas bounds, hide suggestions
@@ -379,16 +369,18 @@ public:
 
     void resized() override
     {
+        auto b = getLocalBounds().reduced(windowMargin);
+
         int yScroll = port->getViewPositionY();
-        port->setBounds(getLocalBounds());
-        buttonholder->setBounds(6, 0, getWidth(), std::min(numOptions, 20) * 25 + 8);
+        port->setBounds(b);
+        buttonholder->setBounds(b.getX() + 6, b.getY(), b.getWidth(), std::min(numOptions, 20) * 25 + 8);
 
         for (int i = 0; i < buttons.size(); i++)
             buttons[i]->setBounds(2, (i * 25) + 4, getWidth() - 4, 24);
 
         int const resizerSize = 12;
 
-        resizer.setBounds(getWidth() - (resizerSize + 1), getHeight() - (resizerSize + 1), resizerSize, resizerSize);
+        resizer.setBounds(b.getRight() - (resizerSize + 1), b.getBottom() - (resizerSize + 1), resizerSize, resizerSize);
 
         port->setViewPosition(0, yScroll);
         repaint();
@@ -410,20 +402,34 @@ private:
             openedEditor->grabKeyboardFocus();
     }
 
-    void paint(Graphics& g) override
+    bool hitTest(int x, int y) override
     {
-
-#if PLUGDATA_STANDALONE
-        if (!Desktop::canUseSemiTransparentWindows()) {
-            g.fillAll(findColour(PlugDataColour::canvasBackgroundColourId));
-        }
-#else
+        return getLocalBounds().reduced(windowMargin).contains(x, y);
+    }
+        
+    bool canBeTransparent() {
+#if !PLUGDATA_STANDALONE
+        // Apple's hosts don't deal well with transparency,
         auto hostType = PluginHostType();
         if (hostType.isLogic() || hostType.isGarageBand() || hostType.isMainStage()) {
+            return false;
+        }
+#endif
+        return Desktop::canUseSemiTransparentWindows();
+    }
+
+    void paint(Graphics& g) override
+    {
+        auto b = getLocalBounds().reduced(windowMargin);
+
+        if(!canBeTransparent()) {
             g.fillAll(findColour(PlugDataColour::canvasBackgroundColourId));
         }
-
-#endif
+        else {
+            Path localPath;
+            localPath.addRoundedRectangle(b.toFloat().reduced(4.0f), PlugDataLook::windowCornerRadius);
+            StackShadow::renderDropShadow(g, localPath, Colour(0, 0, 0).withAlpha(0.6f), 16, { 0, 3 });
+        }
 
         g.setColour(findColour(PlugDataColour::popupMenuBackgroundColourId));
         g.fillRoundedRectangle(port->getBounds().reduced(1).toFloat(), PlugDataLook::defaultCornerRadius);
@@ -695,10 +701,10 @@ private:
     ResizableCornerComponent resizer;
     ComponentBoundsConstrainer constrainer;
 
-    StackDropShadower dropShadower;
-
     SugesstionState state = Hidden;
 
     TextEditor* openedEditor = nullptr;
     SafePointer<Object> currentBox;
+        
+    int windowMargin;
 };

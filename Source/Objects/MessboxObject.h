@@ -78,7 +78,7 @@ public:
         repaint();
     }
 
-    void updateBounds() override
+    Rectangle<int> getPdBounds() override
     {
         pd->lockAudioThread();
 
@@ -87,15 +87,15 @@ public:
 
         pd->unlockAudioThread();
 
-        object->setObjectBounds({ x, y, w, h });
+        return { x, y, w, h };
     }
 
-    void applyBounds() override
+    void setPdBounds(Rectangle<int> b) override
     {
         auto* messbox = static_cast<t_fake_messbox*>(ptr);
-
-        auto b = object->getObjectBounds();
-
+        
+        libpd_moveobj(object->cnv->patch.getPointer(), static_cast<t_gobj*>(ptr), b.getX(), b.getY());
+        
         messbox->x_width = b.getWidth();
         messbox->x_height = b.getHeight();
     }
@@ -116,8 +116,6 @@ public:
 
     void paintOverChildren(Graphics& g) override
     {
-        auto b = getLocalBounds().reduced(1);
-
         bool selected = cnv->isSelected(object) && !cnv->isGraph;
         auto outlineColour = object->findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : PlugDataColour::objectOutlineColourId);
 
@@ -175,7 +173,7 @@ public:
     // For resize-while-typing behaviour
     void textEditorTextChanged(TextEditor& ed) override
     {
-        updateBounds();
+        object->updateBounds();
     }
 
     void setSymbols(String const& symbols)
@@ -315,11 +313,11 @@ public:
             auto size = static_cast<int>(fontSize.getValue());
             if (static_cast<bool>(bold.getValue())) {
                 auto boldFont = Fonts::getBoldFont();
-                editor.applyFontToAllText(boldFont.withHeight(15));
+                editor.applyFontToAllText(boldFont.withHeight(size));
                 messbox->x_font_weight = pd->generateSymbol("normal");
             } else {
                 auto defaultFont = Fonts::getCurrentFont();
-                editor.applyFontToAllText(defaultFont.withHeight(15));
+                editor.applyFontToAllText(defaultFont.withHeight(size));
                 messbox->x_font_weight = pd->generateSymbol("bold");
             }
         }

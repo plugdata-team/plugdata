@@ -12,6 +12,7 @@ PRODUCT_NAME=plugdata
 LV2="./Plugins/LV2/."
 VST3="./Plugins/VST3/."
 AU="./Plugins/AU/."
+CLAP="./Plugins/CLAP/."
 APP="./Plugins/Standalone/."
 
 OUTPUT_BASE_FILENAME="${PRODUCT_NAME}.pkg"

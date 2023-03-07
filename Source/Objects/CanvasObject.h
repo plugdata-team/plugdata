@@ -44,9 +44,9 @@ public:
         iemHelper.initialiseParameters();
     }
 
-    void applyBounds() override
+    void setPdBounds(Rectangle<int> b) override
     {
-        iemHelper.applyBounds(object->getObjectBounds());
+        iemHelper.setPdBounds(b.removeFromRight(1).removeFromBottom(1));
     }
 
     bool canReceiveMouseEvent(int x, int y) override
@@ -59,7 +59,7 @@ public:
         locked = isLocked;
     }
 
-    void updateBounds() override
+    Rectangle<int> getPdBounds() override
     {
         pd->lockAudioThread();
 
@@ -70,15 +70,9 @@ public:
 
         pd->unlockAudioThread();
 
-        object->setObjectBounds(bounds);
+        return bounds;
     }
-
-    void resized() override
-    {
-        static_cast<t_my_canvas*>(ptr)->x_vis_w = getWidth() - 1;
-        static_cast<t_my_canvas*>(ptr)->x_vis_h = getHeight() - 1;
-    }
-
+    
     void paint(Graphics& g) override
     {
         auto bgcolour = Colour::fromString(iemHelper.secondaryColour.toString());

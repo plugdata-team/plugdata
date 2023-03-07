@@ -270,8 +270,6 @@ public:
 #define DRAWNUMBER_BUFSIZE 1024
     void update() override
     {
-        // TODO: hacky workaround for potential crash. Doens't always work. Fix this.
-        // may have been fixed already by correctly setting pd_this??
         if (!scalar || !scalar->sc_template)
             return;
 
@@ -394,6 +392,6 @@ struct ScalarObject final : public ObjectBase {
         }
     }
 
-    void updateBounds() override {};
-    void applyBounds() override {};
+    Rectangle<int> getPdBounds() override { return Rectangle(0, 0, 1, 1); };
+    void setPdBounds(Rectangle<int> b) override {};
 };

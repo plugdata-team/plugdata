@@ -191,7 +191,7 @@ void PlugDataWindow::closeAllPatches()
         MessageManager::callAsync([this, editor, canvas, patch, deleteFunc]() mutable {
             // Don't show save dialog, if patch is still open in another view
             if (patch->isDirty()) {
-                Dialogs::showSaveDialog(&editor->openedDialog, this, patch->getTitle(),
+                Dialogs::showSaveDialog(&editor->openedDialog, editor, patch->getTitle(),
                     [this, editor, canvas, deleteFunc](int result) mutable {
                         if (!canvas)
                             return;

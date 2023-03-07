@@ -37,14 +37,14 @@ public:
         iemHelper.updateLabel(label);
     }
 
-    void updateBounds() override
+    Rectangle<int> getPdBounds() override
     {
-        iemHelper.updateBounds();
+        return iemHelper.getPdBounds();
     }
 
-    void applyBounds() override
+    void setPdBounds(Rectangle<int> b) override
     {
-        iemHelper.applyBounds(object->getObjectBounds());
+        iemHelper.setPdBounds(b);
     }
 
     void initialiseParameters() override
@@ -96,14 +96,19 @@ public:
 
     void sendToggleValue(bool newValue)
     {
-        t_atom atom;
-        SETFLOAT(&atom, newValue);
-        pd_typedmess(static_cast<t_pd*>(ptr), pd->generateSymbol("set"), 1, &atom);
+        pd->enqueueFunction([ptr = this->ptr, pd = this->pd, patch = &cnv->patch, newValue](){
+            
+            if(patch->objectWasDeleted(ptr)) return;
+            
+            t_atom atom;
+            SETFLOAT(&atom, newValue);
+            pd_typedmess(static_cast<t_pd*>(ptr), pd->generateSymbol("set"), 1, &atom);
 
-        auto* iem = static_cast<t_iemgui*>(ptr);
-        outlet_float(iem->x_obj.ob_outlet, newValue);
-        if (iem->x_fsf.x_snd_able && iem->x_snd->s_thing)
-            pd_float(iem->x_snd->s_thing, newValue);
+            auto* iem = static_cast<t_iemgui*>(ptr);
+            outlet_float(iem->x_obj.ob_outlet, newValue);
+            if (iem->x_fsf.x_snd_able && iem->x_snd->s_thing)
+                pd_float(iem->x_snd->s_thing, newValue);
+        });
     }
 
     void untoggleObject() override

@@ -258,8 +258,7 @@ Point<int> ObjectGrid::performResize(Object* toDrag, Point<int> dragOffset, Rect
     }
     else if (enableGrid != 2) {
         bool alreadySnappedVertically = isAlreadySnapped(false, dragOffset);
-        bool alreadySnappedHorizontally = isAlreadySnapped(true, dragOffset);
-
+        
         if (!alreadySnappedVertically) {
             for (auto* object : snappable) {
                 auto b1 = object->getBounds().reduced(Object::margin);
@@ -276,7 +275,7 @@ Point<int> ObjectGrid::performResize(Object* toDrag, Point<int> dragOffset, Rect
         }
 
         // Update in case we just snapped
-        alreadySnappedVertically = isAlreadySnapped(false, dragOffset);
+        bool alreadySnappedHorizontally = isAlreadySnapped(false, dragOffset);
 
         if (!alreadySnappedHorizontally) {
             for (auto* object : snappable) {

@@ -75,9 +75,8 @@ public:
         textColour = Colour(comment->x_red, comment->x_green, comment->x_blue);
     }
 
-    void applyBounds() override
+    void setPdBounds(Rectangle<int> b) override
     {
-        auto b = object->getObjectBounds();
         libpd_moveobj(cnv->patch.getPointer(), static_cast<t_gobj*>(ptr), b.getX(), b.getY());
     }
 
@@ -125,17 +124,19 @@ public:
         return false;
     }
 
-    void updateBounds() override
+    Rectangle<int> getPdBounds() override
     {
+        int width = getBestTextWidth(getText()) * 8;
+      
         pd->lockAudioThread();
         auto* comment = static_cast<t_fake_comment*>(ptr);
-        int fontsize = comment->x_fontsize;
+        int height = comment->x_fontsize + 18;
+        auto bounds = Rectangle<int>(comment->x_obj.te_xpix, comment->x_obj.te_ypix, width, height);
         pd->unlockAudioThread();
 
-        int width = getBestTextWidth(getText()) * 8;
-        int height = fontsize + 18;
 
-        object->setObjectBounds({ comment->x_obj.te_xpix, comment->x_obj.te_ypix, width, height });
+
+        return bounds;
     }
 
     String getText() override

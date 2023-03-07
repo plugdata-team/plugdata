@@ -138,14 +138,14 @@ public:
         iemHelper.initialiseParameters();
     }
 
-    void updateBounds() override
+    Rectangle<int> getPdBounds() override
     {
-        iemHelper.updateBounds();
+        return iemHelper.getPdBounds();
     }
 
-    void applyBounds() override
+    void setPdBounds(Rectangle<int> b) override
     {
-        iemHelper.applyBounds(object->getObjectBounds());
+        iemHelper.setPdBounds(b);
     }
 
     void updateRange()
@@ -260,8 +260,6 @@ public:
 
     float getValue()
     {
-        auto* slid = static_cast<t_slider*>(ptr);
-
         return static_cast<t_slider*>(ptr)->x_fval;
     }
 

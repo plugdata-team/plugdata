@@ -47,24 +47,28 @@ public:
         iemHelper.updateLabel(label);
     }
 
-    void updateBounds() override
+    Rectangle<int> getPdBounds() override
     {
-        iemHelper.updateBounds();
+        return iemHelper.getPdBounds();
     }
 
-    void applyBounds() override
+    void setPdBounds(Rectangle<int> b) override
     {
-        iemHelper.applyBounds(object->getObjectBounds());
+        iemHelper.setPdBounds(b);
     }
 
     void toggleObject(Point<int> position) override
     {
         if (!alreadyBanged) {
-            startEdition();
-            // TODO: make this thread safe!
-            pd_bang(static_cast<t_pd*>(ptr));
-            stopEdition();
-            update();
+            pd->enqueueFunction([this](){
+                if(cnv->patch.objectWasDeleted(ptr)) return;
+                
+                startEdition();
+                pd_bang(static_cast<t_pd*>(ptr));
+                stopEdition();
+            });
+            
+            trigger();
             alreadyBanged = true;
         }
     }
@@ -76,13 +80,17 @@ public:
 
     void mouseDown(MouseEvent const& e) override
     {
-        startEdition();
-        pd_bang(static_cast<t_pd*>(ptr));
-        stopEdition();
+        pd->enqueueFunction([this](){
+            if(cnv->patch.objectWasDeleted(ptr)) return;
+            
+            startEdition();
+            pd_bang(static_cast<t_pd*>(ptr));
+            stopEdition();
+        });
 
         // Make sure we don't re-click with an accidental drag
         alreadyBanged = true;
-        update();
+        trigger();
     }
 
     void paint(Graphics& g) override
@@ -111,49 +119,39 @@ public:
         }
     }
 
-    float getValue()
+    void trigger()
     {
-        // hack to trigger off the bang if no GUI update
-        if ((static_cast<t_bng*>(ptr))->x_flashed > 0) {
-            static_cast<t_bng*>(ptr)->x_flashed = 0;
-            return 1.0f;
+        if(bangState) return;
+        
+        bangState = true;
+        repaint();
+
+        auto currentTime = Time::getCurrentTime().getMillisecondCounter();
+        auto timeSinceLast = currentTime - lastBang;
+
+        int holdTime = bangHold.getValue();
+
+        if (timeSinceLast < static_cast<int>(bangHold.getValue()) * 2) {
+            holdTime = timeSinceLast / 2;
         }
-        return 0.0f;
-    }
-
-    void update()
-    {
-        if (getValue() > std::numeric_limits<float>::epsilon()) {
-            bangState = true;
-            repaint();
-
-            auto currentTime = Time::getCurrentTime().getMillisecondCounter();
-            auto timeSinceLast = currentTime - lastBang;
-
-            int holdTime = bangHold.getValue();
-
-            if (timeSinceLast < static_cast<int>(bangHold.getValue()) * 2) {
-                holdTime = timeSinceLast / 2;
-            }
-            if (holdTime < bangInterrupt) {
-                holdTime = bangInterrupt.getValue();
-            }
-
-            lastBang = currentTime;
-
-            auto deletionChecker = SafePointer(this);
-            Timer::callAfterDelay(holdTime,
-                [deletionChecker, this]() mutable {
-                    // First check if this object still exists
-                    if (!deletionChecker)
-                        return;
-
-                    if (bangState) {
-                        bangState = false;
-                        repaint();
-                    }
-                });
+        if (holdTime < bangInterrupt) {
+            holdTime = bangInterrupt.getValue();
         }
+
+        lastBang = currentTime;
+
+        auto deletionChecker = SafePointer(this);
+        Timer::callAfterDelay(holdTime,
+            [deletionChecker, this]() mutable {
+                // First check if this object still exists
+                if (!deletionChecker)
+                    return;
+
+                if (bangState) {
+                    bangState = false;
+                    repaint();
+                }
+            });
     }
 
     ObjectParameters getParameters() override
@@ -187,7 +185,7 @@ public:
         case hash("float"):
         case hash("bang"):
         case hash("list"):
-            update();
+            trigger();
             break;
         case hash("flashtime"): {
             if (atoms.size() > 0)

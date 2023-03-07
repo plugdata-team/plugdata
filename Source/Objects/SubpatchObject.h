@@ -159,7 +159,7 @@ public:
                 freebytes(static_cast<void*>(text), static_cast<size_t>(size) * sizeof(char));
 
             } else if (!Object::hvccObjects.contains(name)) {
-                instance->logWarning(String("Warning: object \"" + prefix + name + "\" is not supported in Compiled Mode").toRawUTF8());
+                instance->logWarning(String("Warning: object \"" + prefix + name + "\" is not supported in Compiled Mode"));
             }
         }
     }

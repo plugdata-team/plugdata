@@ -238,8 +238,6 @@ public:
         float magnitude = numerMag / denomMag;
         float phase = numerArg - denomArg;
 
-        float fHz = f * 44100.0f / (2.0f * M_PI);
-
         // convert magnitude to dB scale
         float logMagnitude = std::clamp<float>(20.0f * std::log(magnitude) / std::log(10.0), -25.f, 25.f);
 
@@ -539,7 +537,7 @@ public:
         graph.setBounds(getLocalBounds());
     }
 
-    void updateBounds() override
+    Rectangle<int> getPdBounds() override
     {
         pd->lockAudioThread();
 
@@ -549,12 +547,11 @@ public:
 
         pd->unlockAudioThread();
 
-        object->setObjectBounds(bounds);
+        return bounds;
     }
 
-    void applyBounds() override
+    void setPdBounds(Rectangle<int> b) override
     {
-        auto b = object->getObjectBounds();
         libpd_moveobj(object->cnv->patch.getPointer(), static_cast<t_gobj*>(ptr), b.getX(), b.getY());
 
         t_atom size[2];

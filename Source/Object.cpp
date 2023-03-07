@@ -213,7 +213,9 @@ void Object::updateBounds()
 {
     if (gui) {
         cnv->pd->setThis();
-        gui->updateBounds();
+        
+        auto newBounds = gui->getPdBounds();
+        setObjectBounds(newBounds);
     }
 
     if (newObjectEditor) {
@@ -612,11 +614,11 @@ void Object::mouseDown(MouseEvent const& e)
 
         // Tell pd about new position
         cnv->pd->enqueueFunction(
-            [_this = SafePointer(this)]() {
+            [_this = SafePointer(this), b = getObjectBounds()]() {
                 if (!_this || !_this->gui || _this->cnv->patch.objectWasDeleted(_this->gui->ptr)) {
                     return;
                 }
-                _this->gui->applyBounds();
+                _this->gui->setPdBounds(b);
             });
 
         if (createEditorOnMouseDown) {
@@ -656,19 +658,19 @@ void Object::mouseUp(MouseEvent const& e)
     }
 
     if (wasResized) {
-        Array<SafePointer<Object>> objectsToCheck;
+        std::map<SafePointer<Object>, Rectangle<int>> newObjectSizes;
         for (auto* obj : cnv->getSelectionOfType<Object>())
-            objectsToCheck.add(obj);
+            newObjectSizes[obj] = obj->getObjectBounds();
 
         auto* patch = &cnv->patch;
 
         cnv->objectGrid.handleMouseUp(e.getOffsetFromDragStart());
-
+        
         cnv->pd->enqueueFunction(
-            [objectsToCheck, patch]() mutable {
+            [newObjectSizes, patch]() mutable {
                 patch->startUndoSequence("resize");
 
-                for (auto object : objectsToCheck) {
+                for (auto& [object, bounds] : newObjectSizes) {
                     if (!object || !object->gui)
                         return;
 
@@ -681,16 +683,15 @@ void Object::mouseUp(MouseEvent const& e)
                     // Used for size changes, could also be used for properties
                     libpd_undo_apply(cnv->patch.getPointer(), obj);
 
-                    object->gui->applyBounds();
+                    object->gui->setPdBounds(bounds);
 
                     canvas_dirty(cnv->patch.getPointer(), 1);
 
                     // To make sure it happens after setting object bounds
                     // TODO: do we need this??
                     if (!cnv->viewport->getViewArea().contains(object->getBounds())) {
-                        MessageManager::callAsync([object]() {
-                            if (object)
-                                object->cnv->checkBounds();
+                        MessageManager::callAsync([o = object]() {
+                            if (o) o->cnv->checkBounds();
                         });
                     }
                 }
