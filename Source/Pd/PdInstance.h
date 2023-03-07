@@ -205,7 +205,7 @@ public:
     void sendList(char const* receiver, std::vector<pd::Atom> const& list) const;
     void sendMessage(char const* receiver, char const* msg, std::vector<pd::Atom> const& list) const;
     void sendMessage(void* object, char const* msg, std::vector<Atom> const& list) const;
-    
+
     virtual void receivePrint(String const& message) {};
 
     virtual void receiveBang(String const& dest)
@@ -245,6 +245,12 @@ public:
 
     virtual void performParameterChange(int type, String name, float value) {};
 
+    // JYG added this
+    virtual void fillDataBuffer(const std::vector<pd::Atom>& list) {};
+    virtual void parseDataBuffer(XmlElement const& xml) {};
+
+
+
     void logMessage(String const& message);
     void logError(String const& message);
     void logWarning(String const& message);
@@ -272,7 +278,7 @@ public:
     void setThis() const;
     t_symbol* generateSymbol(String const& symbol) const;
     t_symbol* generateSymbol(const char* symbol) const;
-    
+
 
     void waitForStateUpdate();
 
@@ -292,6 +298,9 @@ public:
     void* m_parameter_change_receiver = nullptr;
     void* m_midi_receiver = nullptr;
     void* m_print_receiver = nullptr;
+
+    // JYG added this
+    void* m_databuffer_receiver = nullptr;
 
     std::atomic<bool> canUndo = false;
     std::atomic<bool> canRedo = false;
