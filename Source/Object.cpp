@@ -11,10 +11,16 @@
 #include "SuggestionComponent.h"
 #include "Connection.h"
 #include "Iolet.h"
-#include "LookAndFeel.h"
+#include "Constants.h"
 #include "PluginEditor.h"
+#include "PluginProcessor.h"
+#include "ObjectGrid.h"
+#include "Objects/ObjectBase.h"
+
+#include "Dialogs/Dialogs.h"
 
 #include "Utility/ObjectBoundsConstrainer.h"
+#include "Pd/PdPatch.h"
 
 extern "C" {
 #include <m_pd.h>
@@ -23,7 +29,7 @@ extern "C" {
 }
 
 Object::Object(Canvas* parent, String const& name, Point<int> position)
-    : cnv(parent)
+    : cnv(parent), ds(parent->dragState), gui(nullptr)
 {
     setTopLeftPosition(position - Point<int>(margin, margin));
 
@@ -53,7 +59,7 @@ Object::Object(Canvas* parent, String const& name, Point<int> position)
     }
 }
 
-Object::Object(void* object, Canvas* parent)
+Object::Object(void* object, Canvas* parent) : ds(parent->dragState), gui(nullptr)
 {
     cnv = parent;
 
@@ -331,7 +337,7 @@ void Object::paintOverChildren(Graphics& g)
         }
 
         g.setColour(Colours::violet);
-        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(Object::margin + 1.0f), PlugDataLook::objectCornerRadius, 2.0f);
+        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(Object::margin + 1.0f), Corners::objectCornerRadius, 2.0f);
 
         g.restoreState();
     } else if (!isHvccCompatible) {
@@ -343,7 +349,7 @@ void Object::paintOverChildren(Graphics& g)
         }
 
         g.setColour(Colours::orange);
-        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(Object::margin + 1.0f), PlugDataLook::objectCornerRadius, 2.0f);
+        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(Object::margin + 1.0f), Corners::objectCornerRadius, 2.0f);
 
         g.restoreState();
     } else if (attachedToMouse) {
@@ -355,7 +361,7 @@ void Object::paintOverChildren(Graphics& g)
         }
 
         g.setColour(Colours::lightgreen);
-        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(Object::margin + 1.0f), PlugDataLook::objectCornerRadius, 2.0f);
+        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(Object::margin + 1.0f), Corners::objectCornerRadius, 2.0f);
 
         g.restoreState();
     } else if (indexShown) {
@@ -370,7 +376,7 @@ void Object::paintOverChildren(Graphics& g)
         g.setColour(findColour(PlugDataColour::objectSelectedOutlineColourId));
         g.fillRoundedRectangle(indexBounds.toFloat(), 2.0f);
 
-        PlugDataLook::drawStyledText(g, text, indexBounds, findColour(PlugDataColour::objectSelectedOutlineColourId).contrasting(), Monospace, 10, Justification::centred);
+        Fonts::drawStyledText(g, text, indexBounds, findColour(PlugDataColour::objectSelectedOutlineColourId).contrasting(), Monospace, 10, Justification::centred);
     }
 }
 
@@ -381,10 +387,10 @@ void Object::paint(Graphics& g)
         if (newObjectEditor) {
 
             g.setColour(findColour(PlugDataColour::textObjectBackgroundColourId));
-            g.fillRoundedRectangle(getLocalBounds().reduced(Object::margin + 1).toFloat(), PlugDataLook::objectCornerRadius);
+            g.fillRoundedRectangle(getLocalBounds().reduced(Object::margin + 1).toFloat(), Corners::objectCornerRadius);
 
             g.setColour(findColour(PlugDataColour::objectSelectedOutlineColourId));
-            g.drawRoundedRectangle(getLocalBounds().reduced(Object::margin + 1).toFloat(), PlugDataLook::objectCornerRadius, 1.0f);
+            g.drawRoundedRectangle(getLocalBounds().reduced(Object::margin + 1).toFloat(), Corners::objectCornerRadius, 1.0f);
         }
 
         g.setColour(findColour(PlugDataColour::objectSelectedOutlineColourId));
@@ -393,7 +399,7 @@ void Object::paint(Graphics& g)
         g.excludeClipRegion(getLocalBounds().reduced(margin + 1));
 
         for (auto& rect : getCorners()) {
-            g.fillRoundedRectangle(rect, PlugDataLook::objectCornerRadius);
+            g.fillRoundedRectangle(rect, Corners::objectCornerRadius);
         }
         g.restoreState();
     }
@@ -636,7 +642,34 @@ void Object::mouseDown(MouseEvent const& e)
 
     bool wasSelected = cnv->isSelected(this);
 
-    cnv->objectMouseDown(this, e);
+    if (e.mods.isRightButtonDown()) {
+        cnv->setSelected(this, true);
+
+        PopupMenu::dismissAllActiveMenus();
+        Dialogs::showCanvasRightClickMenu(cnv, this, e.getScreenPosition());
+
+        return;
+    }
+    if (e.mods.isShiftDown()) {
+        // select multiple objects
+        ds.wasSelectedOnMouseDown = cnv->isSelected(this);
+    } else if (!cnv->isSelected(this)) {
+        cnv->deselectAll();
+    }
+    cnv->setSelected(this, true); // TODO: can we move this up, so we don't need it twice?
+
+    ds.componentBeingDragged = this;
+
+    for (auto* object : cnv->getSelectionOfType<Object>()) {
+        object->originalBounds = object->getBounds();
+        object->setBufferedToImage(true);
+    }
+
+    repaint();
+    
+    ds.canvasDragStartPosition = cnv->getPosition();
+
+    cnv->updateSidebarSelection();
 
     if (cnv->isSelected(this) != wasSelected) {
         selectionStateChanged = true;
@@ -648,12 +681,12 @@ void Object::mouseUp(MouseEvent const& e)
     if (wasLockedOnMouseDown || (gui && gui->isEditorShown()))
         return;
 
-    if (!cnv->didStartDragging && !static_cast<bool>(locked.getValue()) && e.mods.isAltDown()) {
+    if (!ds.didStartDragging && !static_cast<bool>(locked.getValue()) && e.mods.isAltDown()) {
         // Show help file on alt+mouseup if object were not draged
         openHelpPatch();
     }
 
-    if (wasResized) {
+    if (ds.wasResized) {
         std::map<SafePointer<Object>, Rectangle<int>> newObjectSizes;
         for (auto* obj : cnv->getSelectionOfType<Object>())
             newObjectSizes[obj] = obj->getObjectBounds();
@@ -695,10 +728,87 @@ void Object::mouseUp(MouseEvent const& e)
                 patch->endUndoSequence("resize");
             });
 
-        wasResized = false;
+        ds.wasResized = false;
         originalBounds.setBounds(0, 0, 0, 0);
     } else {
-        cnv->objectMouseUp(this, e);
+        if (cnv->isGraph)
+            return;
+
+        if (e.mods.isShiftDown() && ds.wasSelectedOnMouseDown && !ds.didStartDragging) {
+            // Unselect object if selected
+            cnv->setSelected(this, false);
+        } else if (!e.mods.isShiftDown() && !e.mods.isAltDown() && cnv->isSelected(this) && !ds.didStartDragging && !e.mods.isRightButtonDown()) {
+
+            // Don't run normal deselectAll, that would clear the sidebar inspector as well
+            // We'll update sidebar selection later in this function
+            cnv->selectedComponents.deselectAll();
+
+            cnv->setSelected(this, true);
+        }
+
+        cnv->updateSidebarSelection();
+
+        if (ds.didStartDragging) {
+            auto objects = std::vector<void*>();
+
+            for (auto* object : cnv->getSelectionOfType<Object>()) {
+                if (object->getPointer())
+                    objects.push_back(object->getPointer());
+            }
+
+            auto distance = Point<int>(e.getDistanceFromDragStartX(), e.getDistanceFromDragStartY());
+
+            // In case we dragged near the iolet and the canvas moved
+            auto canvasMoveOffset = ds.canvasDragStartPosition - cnv->getPosition();
+
+            distance = cnv->objectGrid.handleMouseUp(distance) + canvasMoveOffset;
+
+            // When done dragging objects, update positions to pd
+            cnv->patch.moveObjects(objects, distance.x, distance.y);
+
+            cnv->pd->waitForStateUpdate();
+
+            cnv->checkBounds();
+            ds.didStartDragging = false;
+        }
+
+        if (ds.objectSnappingInbetween) {
+            auto* c = ds.connectionToSnapInbetween.getComponent();
+
+            cnv->patch.startUndoSequence("SnapInbetween");
+
+            cnv->patch.removeConnection(c->outobj->getPointer(), c->outIdx, c->inobj->getPointer(), c->inIdx, c->getPathState());
+
+            cnv->patch.createConnection(c->outobj->getPointer(), c->outIdx, ds.objectSnappingInbetween->getPointer(), 0);
+            cnv->patch.createConnection(ds.objectSnappingInbetween->getPointer(), 0, c->inobj->getPointer(), c->inIdx);
+
+            cnv->patch.endUndoSequence("SnapInbetween");
+
+            ds.objectSnappingInbetween->iolets[0]->isTargeted = false;
+            ds.objectSnappingInbetween->iolets[ds.objectSnappingInbetween->numInputs]->isTargeted = false;
+            ds.objectSnappingInbetween = nullptr;
+
+            cnv->synchronise();
+        }
+
+        if (ds.wasDragDuplicated) {
+            cnv->patch.endUndoSequence("Duplicate");
+            ds.wasDragDuplicated = false;
+        }
+
+        for (auto* object : cnv->getSelectionOfType<Object>()) {
+            object->setBufferedToImage(false);
+            object->repaint();
+        }
+
+        ds.componentBeingDragged = nullptr;
+
+        repaint();
+    }
+    
+    if (ds.wasDragDuplicated) {
+        cnv->patch.endUndoSequence("Duplicate");
+        ds.wasDragDuplicated = false;
     }
 
     if (gui && !selectionStateChanged && cnv->isSelected(this) && !e.mouseWasDraggedSinceMouseDown() && !e.mods.isRightButtonDown()) {
@@ -738,9 +848,183 @@ void Object::mouseDrag(MouseEvent const& e)
             }
         }
 
-        wasResized = true;
-    } else {
-        cnv->objectMouseDrag(e);
+        ds.wasResized = true;
+    } else if(!cnv->isGraph) {
+        /** Ensure tiny movements don't start a drag. */
+        if (!ds.didStartDragging && e.getDistanceFromDragStart() < cnv->minimumMovementToStartDrag)
+            return;
+
+        if (!ds.didStartDragging) {
+            ds.didStartDragging = true;
+        }
+
+        auto selection = cnv->getSelectionOfType<Object>();
+
+        auto dragDistance = e.getOffsetFromDragStart();
+
+        // In case we dragged near the edge and the canvas moved
+        auto canvasMoveOffset = ds.canvasDragStartPosition - getPosition();
+
+        if (static_cast<bool>(cnv->gridEnabled.getValue()) && ds.componentBeingDragged) {
+            dragDistance = cnv->objectGrid.performMove(this, dragDistance);
+        }
+        
+        // alt+drag will duplicate selection
+        if (!ds.wasDragDuplicated && e.mods.isAltDown()) {
+
+            Array<Point<int>> mouseDownObjectPositions; // Stores object positions for alt + drag
+            
+            // Single for undo for duplicate + move
+            cnv->patch.startUndoSequence("Duplicate");
+
+            // Sort selection indexes to match pd indexes
+            std::sort(selection.begin(), selection.end(),
+                [this](auto* a, auto* b) -> bool {
+                    return cnv->objects.indexOf(a) < cnv->objects.indexOf(b);
+                });
+
+            int draggedIdx = selection.indexOf(ds.componentBeingDragged.getComponent());
+            
+            // Store origin object positions
+            for (auto object : selection) {
+                mouseDownObjectPositions.add(object->getPosition());
+            }
+
+            // Duplicate once
+            ds.wasDragDuplicated = true;
+            cnv->duplicateSelection();
+            cnv->cancelConnectionCreation();
+            
+            selection = cnv->getSelectionOfType<Object>();
+            
+            // Sort selection indexes to match pd indexes
+            std::sort(selection.begin(), selection.end(),
+                [this](auto* a, auto* b) -> bool {
+                    return cnv->objects.indexOf(a) < cnv->objects.indexOf(b);
+                });
+            
+            int i = 0;
+            for(auto* selected : selection)
+            {
+                selected->originalBounds = selected->getBounds().withPosition(mouseDownObjectPositions[i]);
+                i++;
+            }
+            
+            if(isPositiveAndBelow(draggedIdx, selection.size())) {
+                ds.componentBeingDragged = selection[draggedIdx];
+            }
+        }
+
+        // FIXME: stop the mousedrag event from blocking the objects from redrawing, we shouldn't need to do this? JUCE bug?
+        if (!cnv->objectRateReducer.tooFast()) {
+            for (auto* object : selection) {
+                object->setTopLeftPosition(object->originalBounds.getPosition() + dragDistance + canvasMoveOffset);
+            }
+
+            auto draggedBounds = ds.componentBeingDragged->getBounds().expanded(6);
+            auto xEdge = e.getDistanceFromDragStartX() < 0 ? draggedBounds.getX() : draggedBounds.getRight();
+            auto yEdge = e.getDistanceFromDragStartY() < 0 ? draggedBounds.getY() : draggedBounds.getBottom();
+            if (cnv->autoscroll(e.getEventRelativeTo(this).withNewPosition(Point<int>(xEdge, yEdge)).getEventRelativeTo(cnv->viewport))) {
+                beginDragAutoRepeat(25);
+            }
+        }
+
+        // This handles the "unsnap" action when you shift-drag a connected object
+        if (e.mods.isShiftDown() && selection.size() == 1 && e.getDistanceFromDragStart() > 15) {
+            auto* object = selection.getFirst();
+
+            Array<Connection*> inputs, outputs;
+            for (auto* connection : cnv->connections) {
+                if (connection->inlet == object->iolets[0]) {
+                    inputs.add(connection);
+                }
+                if (connection->outlet == object->iolets[object->numInputs]) {
+                    outputs.add(connection);
+                }
+            }
+
+            // Two cases that are allowed: either 1 input and multiple outputs,
+            // or 1 output and multiple inputs
+            if (inputs.size() == 1 && outputs.size()) {
+                auto* outlet = inputs[0]->outlet.getComponent();
+
+                for (auto* c : outputs) {
+                    cnv->patch.removeConnection(c->outobj->getPointer(), c->outIdx, c->inobj->getPointer(), c->inIdx, c->getPathState());
+
+                    cnv->connections.add(new Connection(cnv, outlet, c->inlet, nullptr));
+                    cnv->connections.removeObject(c);
+                }
+
+                auto* c = inputs[0];
+                cnv->patch.removeConnection(c->outobj->getPointer(), c->outIdx, c->inobj->getPointer(), c->inIdx, c->getPathState());
+                cnv->connections.removeObject(c);
+
+                object->iolets[0]->isTargeted = false;
+                object->iolets[object->numInputs]->isTargeted = false;
+                object->iolets[0]->repaint();
+                object->iolets[object->numInputs]->repaint();
+
+                ds.objectSnappingInbetween = nullptr;
+            } else if (inputs.size() && outputs.size() == 1) {
+                auto* inlet = outputs[0]->inlet.getComponent();
+
+                for (auto* c : inputs) {
+                    cnv->patch.removeConnection(c->outobj->getPointer(), c->outIdx, c->inobj->getPointer(), c->inIdx, c->getPathState());
+
+                    cnv->connections.add(new Connection(cnv, c->outlet, inlet, nullptr));
+                    cnv->connections.removeObject(c);
+                }
+
+                auto* c = outputs[0];
+                cnv->patch.removeConnection(c->outobj->getPointer(), c->outIdx, c->inobj->getPointer(), c->inIdx, c->getPathState());
+                cnv->connections.removeObject(c);
+
+                object->iolets[0]->isTargeted = false;
+                object->iolets[object->numInputs]->isTargeted = false;
+                object->iolets[0]->repaint();
+                object->iolets[object->numInputs]->repaint();
+
+                ds.objectSnappingInbetween = nullptr;
+            }
+        }
+
+        // Behaviour for shift-dragging objects over
+        if (ds.objectSnappingInbetween) {
+            if (ds.connectionToSnapInbetween->intersectsObject(ds.objectSnappingInbetween)) {
+                return;
+            }
+
+            // If we're here, it's not snapping anymore
+            ds.objectSnappingInbetween->iolets[0]->isTargeted = false;
+            ds.objectSnappingInbetween->iolets[ds.objectSnappingInbetween->numInputs]->isTargeted = false;
+            ds.objectSnappingInbetween = nullptr;
+        }
+
+        if (e.mods.isShiftDown() && selection.size() == 1) {
+            auto* object = selection.getFirst();
+            if (object->numInputs && object->numOutputs) {
+                bool intersected = false;
+                for (auto* connection : cnv->connections) {
+                    if (connection->intersectsObject(object)) {
+                        object->iolets[0]->isTargeted = true;
+                        object->iolets[object->numInputs]->isTargeted = true;
+                        object->iolets[0]->repaint();
+                        object->iolets[object->numInputs]->repaint();
+                        ds.connectionToSnapInbetween = connection;
+                        ds.objectSnappingInbetween = object;
+                        intersected = true;
+                        break;
+                    }
+                }
+
+                if (!intersected) {
+                    object->iolets[0]->isTargeted = false;
+                    object->iolets[object->numInputs]->isTargeted = false;
+                    object->iolets[0]->repaint();
+                    object->iolets[object->numInputs]->repaint();
+                }
+            }
+        }
     }
 }
 

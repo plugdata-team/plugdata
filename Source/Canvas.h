@@ -8,19 +8,39 @@
 
 #include <JuceHeader.h>
 
-#include "Object.h"
-#include "Pd/PdPatch.h"
-#include "PluginProcessor.h"
-#include "ObjectGrid.h"
-#include "Utility/RateReducer.h"
+#include "ObjectGrid.h" // move to impl
+#include "Utility/RateReducer.h" // move to impl
+#include "Utility/ModifierKeyListener.h"
+#include "Pd/PdInstance.h"
+#include "Constants.h"
+
+namespace pd
+{
+    class Patch;
+}
 
 class SuggestionComponent;
 struct GraphArea;
 class Iolet;
+class Object;
+class Connection;
 class PluginEditor;
+class PluginProcessor;
 class ConnectionPathUpdater;
 class ConnectionBeingCreated;
 class TabComponent;
+
+struct ObjectDragState
+{
+    bool wasDragDuplicated = false;
+    bool didStartDragging = false;
+    bool wasSelectedOnMouseDown = false;
+    bool wasResized = false;
+    Point<int> canvasDragStartPosition = { 0, 0 };
+    Component::SafePointer<Object> componentBeingDragged;
+    Component::SafePointer<Object> objectSnappingInbetween;
+    Component::SafePointer<Connection> connectionToSnapInbetween;
+};
 
 class Canvas : public Component
     , public Value::Listener
@@ -92,10 +112,6 @@ public:
     void setSelected(Component* component, bool shouldNowBeSelected, bool updateCommandStatus = true);
     bool isSelected(Component* component) const;
 
-    void objectMouseDown(Object* component, MouseEvent const& e);
-    void objectMouseUp(Object* component, MouseEvent const& e);
-    void objectMouseDrag(MouseEvent const& e);
-
     SelectedItemSet<WeakReference<Component>>& getLassoSelection() override;
 
     bool checkPanDragMode();
@@ -160,38 +176,33 @@ public:
     ObjectGrid objectGrid = ObjectGrid(this);
 
     Point<int> canvasOrigin = { 0, 0 };
-    Point<int> canvasDragStartPosition = { 0, 0 };
     Point<int> viewportPositionBeforeMiddleDrag = { 0, 0 };
 
     GraphArea* graphArea = nullptr;
     SuggestionComponent* suggestor = nullptr;
 
     bool attachNextObjectToMouse = false;
-    bool wasDragDuplicated = false;
-    bool wasSelectedOnMouseDown = false;
-    SafePointer<Object> lastSelectedObject = nullptr; // For auto patching
+    // TODO: Move to drag state!
+    SafePointer<Object> lastSelectedObject; // For auto patching
     SafePointer<Connection> lastSelectedConnection;   // For auto patching
 
-    // Multi-dragger variables
-    bool didStartDragging = false;
-
     int const minimumMovementToStartDrag = 5;
-    SafePointer<Object> componentBeingDragged = nullptr;
 
     Point<int> lastMousePosition;
     Point<int> pastedPosition;
     Point<int> pastedPadding;
 
     std::unique_ptr<ConnectionPathUpdater> pathUpdater;
-
+    RateReducer objectRateReducer = RateReducer(90);
+        
+    ObjectDragState dragState;
+    
 private:
-    SafePointer<Object> objectSnappingInbetween;
-    SafePointer<Connection> connectionToSnapInbetween;
 
     LassoComponent<WeakReference<Component>> lasso;
 
     RateReducer canvasRateReducer = RateReducer(90);
-    RateReducer objectRateReducer = RateReducer(90);
+
 
     // Properties that can be shown in the inspector by right-clicking on canvas
     ObjectParameters parameters = { { "Is graph", tBool, cGeneral, &isGraphChild, { "No", "Yes" } },
