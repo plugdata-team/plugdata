@@ -28,7 +28,7 @@ class Canvas : public Component
     , public ModifierKeyListener
     , public FocusChangeListener
     , public pd::MessageListener
-    , public Timer
+    , public AsyncUpdater
 {
 public:
     Canvas(PluginEditor* parent, pd::Patch& patch, Component* parentGraph = nullptr);
@@ -53,7 +53,7 @@ public:
 
     void synchronise();
     void performSynchronise();
-    void timerCallback() override;
+    void handleAsyncUpdate() override;
 
     void updateDrawables();
 

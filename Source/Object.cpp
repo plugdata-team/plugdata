@@ -244,11 +244,7 @@ void Object::setType(String const& newType, void* existingObject)
             objectPtr = patch->renameObject(getPointer(), newType);
 
             // Synchronise to make sure connections are preserved correctly
-            // Asynchronous because it could possibly delete this object
-            MessageManager::callAsync([cnv = SafePointer(cnv)]() {
-                if (cnv)
-                    cnv->synchronise();
-            });
+            cnv->synchronise();
         } else {
             auto rect = getObjectBounds();
             objectPtr = patch->createObject(newType, rect.getX(), rect.getY());

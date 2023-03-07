@@ -209,16 +209,14 @@ int Canvas::getTabIndex()
     return leftIdx >= 0 ? leftIdx : rightIdx;
 }
 
-void Canvas::timerCallback()
+void Canvas::handleAsyncUpdate()
 {
     performSynchronise();
-    stopTimer();
 }
 
 void Canvas::synchronise()
 {
-    // Group every synchronise action within 3ms from eachother
-    startTimer(3);
+    triggerAsyncUpdate();
 }
 
 // Synchronise state with pure-data
@@ -659,7 +657,7 @@ void Canvas::pasteSelection()
     deselectAll();
 
     // Load state from pd
-    synchronise();
+    performSynchronise();
 
     patch.setCurrent();
 
@@ -725,8 +723,8 @@ void Canvas::duplicateSelection()
 
     deselectAll();
 
-    // Load state from pd
-    synchronise();
+    // Load state from pd immediately
+    performSynchronise();
 
     // Store the duplicated objects for later selection
     Array<Object*> duplicated;
@@ -769,7 +767,7 @@ void Canvas::duplicateSelection()
         while (overlap) {
             overlap = false;
             for (auto* object : objects) {
-                if (!duplicated.contains(object) && duplicated[0]->getBounds().translated(moveDistance, 0).intersects(object->getBounds())) {
+                if (!duplicated.isEmpty() && !duplicated.contains(object) && duplicated[0]->getBounds().translated(moveDistance, 0).intersects(object->getBounds())) {
                     overlap = true;
                     moveDistance += object->getWidth() - 10;
                     duplicated[0]->updateBounds();
