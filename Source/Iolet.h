@@ -48,13 +48,13 @@ public:
     bool isSignal;
 
     bool isTargeted = false;
-        
-    const bool insideGraph;
-        
 
     Canvas* cnv;
 
 private:
+        
+        
+    const bool insideGraph;
     bool hideIolet = false;
         
     Value locked;

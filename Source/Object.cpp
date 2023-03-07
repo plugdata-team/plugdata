@@ -247,7 +247,7 @@ void Object::setType(String const& newType, void* existingObject)
             // Asynchronous because it could possibly delete this object
             MessageManager::callAsync([cnv = SafePointer(cnv)]() {
                 if (cnv)
-                    cnv->synchronise(false);
+                    cnv->synchronise();
             });
         } else {
             auto rect = getObjectBounds();
