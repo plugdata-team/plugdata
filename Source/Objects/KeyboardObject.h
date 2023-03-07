@@ -64,12 +64,12 @@ public:
         // Rounded first and last keys to fix objects
         if (midiNoteNumber == getRangeStart()) {
             Path keyPath;
-            keyPath.addRoundedRectangle(area.getX(), area.getY(), area.getWidth(), area.getHeight(), PlugDataLook::objectCornerRadius, PlugDataLook::objectCornerRadius, true, false, true, false);
+            keyPath.addRoundedRectangle(area.getX(), area.getY(), area.getWidth(), area.getHeight(), Corners::objectCornerRadius, Corners::objectCornerRadius, true, false, true, false);
 
             g.fillPath(keyPath);
         } else if (midiNoteNumber == getRangeEnd()) {
             Path keyPath;
-            keyPath.addRoundedRectangle(area.getX(), area.getY(), area.getWidth(), area.getHeight(), PlugDataLook::objectCornerRadius, PlugDataLook::objectCornerRadius, false, true, false, true);
+            keyPath.addRoundedRectangle(area.getX(), area.getY(), area.getWidth(), area.getHeight(), Corners::objectCornerRadius, Corners::objectCornerRadius, false, true, false, true);
 
             g.fillPath(keyPath);
         } else {
@@ -380,6 +380,6 @@ public:
         auto outlineColour = object->findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : PlugDataColour::objectOutlineColourId);
 
         g.setColour(outlineColour);
-        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), PlugDataLook::objectCornerRadius, 1.0f);
+        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius, 1.0f);
     }
 };

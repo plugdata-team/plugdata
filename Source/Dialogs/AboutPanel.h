@@ -15,7 +15,7 @@ class AboutPanel : public Component {
 public:
     void paint(Graphics& g) override
     {
-        PlugDataLook::drawStyledText(g, "plugdata " + String(ProjectInfo::versionString), 150, 20, 300, 30, findColour(PlugDataColour::panelTextColourId), Bold, 30);
+        Fonts::drawStyledText(g, "plugdata " + String(ProjectInfo::versionString), 150, 20, 300, 30, findColour(PlugDataColour::panelTextColourId), Bold, 30);
 
         g.setFont(Font(16));
         g.drawFittedText("By Timothy Schoen", 150, 50, getWidth() - 150, 30, Justification::left, 1);

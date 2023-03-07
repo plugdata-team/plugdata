@@ -17,8 +17,11 @@
 #include "PluginEditor.h"
 #include "LookAndFeel.h"
 #include "Tabbar.h"
+#include "Object.h"
 
 #include "Utility/PluginParameter.h"
+#include "Statusbar.h"
+#include "Dialogs/Dialogs.h"
 
 extern "C" {
 #include "x_libpd_extra_utils.h"
@@ -70,6 +73,8 @@ PluginProcessor::PluginProcessor()
         settingsFile = SettingsFile::getInstance()->initialise();
     }
 
+    statusbarSource = std::make_unique<StatusbarSource>();
+     
     auto* volumeParameter = new PlugDataParameter(this, "volume", 1.0f, true);
     addParameter(volumeParameter);
     volume = volumeParameter->getValuePointer();
@@ -307,7 +312,7 @@ const String PluginProcessor::getName() const
 #if PLUGDATA_STANDALONE
     return "plugdata";
 #else
-    return JucePlugin_Name;
+    return "plugdata";
 #endif
 }
 
@@ -414,7 +419,7 @@ void PluginProcessor::prepareToPlay(double sampleRate, int samplesPerBlock)
 
     startDSP();
 
-    statusbarSource.prepareToPlay(getTotalNumOutputChannels());
+    statusbarSource->prepareToPlay(getTotalNumOutputChannels());
 }
 
 void PluginProcessor::releaseResources()
@@ -488,7 +493,7 @@ void PluginProcessor::processBlock(AudioBuffer<float>& buffer, MidiBuffer& midiM
     }
 
     buffer.applyGain(getParameters()[0]->getValue());
-    statusbarSource.processBlock(buffer, midiBufferCopy, midiMessages, totalNumOutputChannels);
+    statusbarSource->processBlock(buffer, midiBufferCopy, midiMessages, totalNumOutputChannels);
 
 #if PLUGDATA_STANDALONE
     for (auto* midiOutput : midiOutputs) {
@@ -1311,7 +1316,7 @@ void PluginProcessor::receiveDSPState(bool dsp)
     MessageManager::callAsync(
         [this, dsp]() mutable {
             if (auto* editor = dynamic_cast<PluginEditor*>(getActiveEditor())) {
-                editor->statusbar.powerButton->setToggleState(dsp, dontSendNotification);
+                editor->statusbar->powerButton->setToggleState(dsp, dontSendNotification);
             }
         });
 }

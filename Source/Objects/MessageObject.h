@@ -83,14 +83,14 @@ public:
     {
         // Draw background
         g.setColour(object->findColour(PlugDataColour::guiObjectBackgroundColourId));
-        g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), PlugDataLook::objectCornerRadius);
+        g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius);
 
         // Draw text
         if (!editor) {
             auto textArea = border.subtractedFrom(getLocalBounds().withTrimmedRight(5));
             auto scale = getWidth() < 50 ? 0.5f : 1.0f;
 
-            PlugDataLook::drawFittedText(g, objectText, textArea, object->findColour(PlugDataColour::canvasTextColourId), numLines, scale);
+            Fonts::drawFittedText(g, objectText, textArea, object->findColour(PlugDataColour::canvasTextColourId), numLines, scale);
         }
     }
 
@@ -103,7 +103,7 @@ public:
 
         if (isDown) {
             g.setColour(object->findColour(PlugDataColour::outlineColourId));
-            g.drawRoundedRectangle(b.reduced(1).toFloat(), PlugDataLook::objectCornerRadius, 3.0f);
+            g.drawRoundedRectangle(b.reduced(1).toFloat(), Corners::objectCornerRadius, 3.0f);
 
             g.setColour(object->findColour(PlugDataColour::objectSelectedOutlineColourId));
             g.fillPath(flagPath);
@@ -116,7 +116,7 @@ public:
         auto outlineColour = object->findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : PlugDataColour::objectOutlineColourId);
 
         g.setColour(outlineColour);
-        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), PlugDataLook::objectCornerRadius, 1.0f);
+        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius, 1.0f);
     }
 
     void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override

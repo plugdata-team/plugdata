@@ -6,8 +6,7 @@
 
 #pragma once
 #include <JuceHeader.h>
-
-#include "LookAndFeel.h"
+#include "Constants.h"
 
 struct Console;
 struct Inspector;
@@ -20,27 +19,8 @@ namespace pd {
 struct Instance;
 }
 
-enum ParameterType {
-    tString,
-    tInt,
-    tFloat,
-    tColour,
-    tBool,
-    tCombo,
-    tRange
-};
 
-enum ParameterCategory {
-    cGeneral,
-    cAppearance,
-    cLabel,
-    cExtra
-};
-
-using ObjectParameter = std::tuple<String, ParameterType, ParameterCategory, Value*, std::vector<String>>; // name, type and pointer to value, list of items only for combobox and bool
-
-using ObjectParameters = std::vector<ObjectParameter>; // List of elements and update function
-
+class PluginEditor;
 class Sidebar : public Component {
 
 public:

@@ -4,6 +4,8 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
+#include "Object.h"
+
 #include <m_pd.h>
 #include <m_imp.h>
 #include <x_libpd_extra_utils.h>
@@ -199,10 +201,10 @@ public:
         g.drawLine(0, 29, getWidth(), 29);
 
         auto colour = findColour(PlugDataColour::sidebarTextColourId);
-        PlugDataLook::drawIcon(g, Icons::Search, 0, 0, 30, colour, 12);
+        Fonts::drawIcon(g, Icons::Search, 0, 0, 30, colour, 12);
 
         if (input.getText().isEmpty()) {
-            PlugDataLook::drawText(g, "Type to search in patch", 30, 0, 300, 30, colour.withAlpha(0.5f), 14);
+            Fonts::drawText(g, "Type to search in patch", 30, 0, 300, 30, colour.withAlpha(0.5f), 14);
         }
     }
 
@@ -235,7 +237,7 @@ public:
 
         if (rowIsSelected) {
             g.setColour(findColour(PlugDataColour::sidebarActiveBackgroundColourId));
-            g.fillRoundedRectangle(4, 2, w - 8, h - 4, PlugDataLook::smallCornerRadius);
+            g.fillRoundedRectangle(4, 2, w - 8, h - 4, Corners::smallCornerRadius);
         }
 
         auto colour = rowIsSelected ? findColour(PlugDataColour::sidebarActiveTextColourId) : findColour(ComboBox::textColourId);
@@ -249,8 +251,8 @@ public:
         auto positionTextWidth = Fonts::getCurrentFont().getStringWidth(size);
         auto positionTextX = getWidth() - positionTextWidth - 16;
 
-        PlugDataLook::drawText(g, text, 12, 0, positionTextX - 16, h, colour, 14);
-        PlugDataLook::drawFittedText(g, size, positionTextX, 0, positionTextWidth, h, colour, 1, 0.9f, 14);
+        Fonts::drawText(g, text, 12, 0, positionTextX - 16, h, colour, 14);
+        Fonts::drawFittedText(g, size, positionTextX, 0, positionTextWidth, h, colour, 1, 0.9f, 14);
     }
 
     int getNumRows() override

@@ -24,6 +24,8 @@
 #include "../Canvas.h"
 #include "../PluginProcessor.h"
 
+#include "Dialogs/Dialogs.h"
+
 extern "C" {
 #include <x_libpd_multi.h>
 }

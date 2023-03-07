@@ -5,6 +5,7 @@
  */
 
 #include "Canvas.h"
+#include "Object.h"
 #include "Utility/PluginParameter.h"
 
 class AutomationSlider : public Component
@@ -296,7 +297,7 @@ public:
         valueLabel.setColour(Label::textColourId, findColour(PlugDataColour::sidebarTextColourId));
 
         g.setColour(findColour(PlugDataColour::sidebarActiveBackgroundColourId).withAlpha(0.5f));
-        g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(4.5f, 3.0f), PlugDataLook::defaultCornerRadius);
+        g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(4.5f, 3.0f), Corners::defaultCornerRadius);
     }
 
     std::function<void(AutomationSlider*)> onDelete = [](AutomationSlider*) {};
@@ -345,13 +346,13 @@ class AutomationComponent : public Component {
             auto colour = findColour(PlugDataColour::sidebarTextColourId);
             if (mouseIsOver) {
                 g.setColour(findColour(PlugDataColour::sidebarActiveBackgroundColourId));
-                g.fillRoundedRectangle(bounds.toFloat(), PlugDataLook::defaultCornerRadius);
+                g.fillRoundedRectangle(bounds.toFloat(), Corners::defaultCornerRadius);
 
                 colour = findColour(PlugDataColour::sidebarActiveTextColourId);
             }
 
-            PlugDataLook::drawIcon(g, Icons::Add, iconBounds, colour, 12);
-            PlugDataLook::drawText(g, "Add new parameter", textBounds, colour, 14);
+            Fonts::drawIcon(g, Icons::Add, iconBounds, colour, 12);
+            Fonts::drawText(g, "Add new parameter", textBounds, colour, 14);
         }
 
         bool hitTest(int x, int y) override
@@ -543,7 +544,7 @@ public:
 
         // Background for statusbar part
         g.setColour(findColour(PlugDataColour::toolbarBackgroundColourId));
-        g.fillRoundedRectangle(0, getHeight() - 30, getWidth(), 30, PlugDataLook::defaultCornerRadius);
+        g.fillRoundedRectangle(0, getHeight() - 30, getWidth(), 30, Corners::defaultCornerRadius);
     }
 
     void resized() override

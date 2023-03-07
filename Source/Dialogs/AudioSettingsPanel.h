@@ -19,13 +19,13 @@ public:
     void paint(Graphics& g) override
     {
         g.setColour(findColour(PlugDataColour::toolbarBackgroundColourId));
-        g.fillRoundedRectangle(getLocalBounds().toFloat(), PlugDataLook::defaultCornerRadius);
+        g.fillRoundedRectangle(getLocalBounds().toFloat(), Corners::defaultCornerRadius);
     }
 
     void paintOverChildren(Graphics& g) override
     {
         g.setColour(findColour(PlugDataColour::outlineColourId));
-        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), PlugDataLook::defaultCornerRadius, 1.0f);
+        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::defaultCornerRadius, 1.0f);
     }
 };
 
@@ -169,7 +169,7 @@ public:
 
         if (items.isEmpty()) {
             // TODO: fix colour
-            PlugDataLook::drawText(g, noItemsMessage, 0, 0, getWidth(), getHeight() / 2, Colours::grey, 0.5f * (float)getRowHeight(), Justification::centred);
+            Fonts::drawText(g, noItemsMessage, 0, 0, getWidth(), getHeight() / 2, Colours::grey, 0.5f * (float)getRowHeight(), Justification::centred);
         }
     }
 
@@ -997,7 +997,7 @@ private:
                 RoundedListBox::paint(g);
 
                 if (items.isEmpty()) {
-                    PlugDataLook::drawText(g, noItemsMessage,
+                    Fonts::drawText(g, noItemsMessage,
                         0, 0, getWidth(), getHeight() / 2,
                         Colours::grey, 0.5f * (float)getRowHeight(), Justification::centred);
                 }

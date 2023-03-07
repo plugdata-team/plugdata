@@ -12,7 +12,7 @@
 #pragma once
 #include <JuceHeader.h>
 
-#include "../LookAndFeel.h"
+#include "../Constants.h"
 
 #define GUTTER_WIDTH 48.f
 #define CURSOR_WIDTH 3.f
@@ -749,7 +749,7 @@ void GutterComponent::paint(Graphics& g)
                          .withX(0)
                          .withWidth(GUTTER_WIDTH);
 
-            g.fillRoundedRectangle(A.reduced(4, 1), PlugDataLook::smallCornerRadius);
+            g.fillRoundedRectangle(A.reduced(4, 1), Corners::smallCornerRadius);
         }
     }
 
@@ -2119,27 +2119,27 @@ struct TextEditorDialog : public Component {
     void paintOverChildren(Graphics& g)
     {
         g.setColour(findColour(PlugDataColour::outlineColourId));
-        g.drawRoundedRectangle(getLocalBounds().reduced(15).toFloat(), PlugDataLook::windowCornerRadius, 1.0f);
+        g.drawRoundedRectangle(getLocalBounds().reduced(15).toFloat(), Corners::windowCornerRadius, 1.0f);
     }
 
     void paint(Graphics& g)
     {
         auto shadowPath = Path();
-        shadowPath.addRoundedRectangle(getLocalBounds().reduced(20), PlugDataLook::windowCornerRadius);
+        shadowPath.addRoundedRectangle(getLocalBounds().reduced(20), Corners::windowCornerRadius);
 
         StackShadow::renderDropShadow(g, shadowPath, Colour(0, 0, 0).withAlpha(0.6f), 12.0f);
 
         auto b = getLocalBounds().reduced(15);
 
         g.setColour(findColour(PlugDataColour::toolbarBackgroundColourId));
-        g.fillRoundedRectangle(b.toFloat(), PlugDataLook::windowCornerRadius);
+        g.fillRoundedRectangle(b.toFloat(), Corners::windowCornerRadius);
 
         g.setColour(findColour(PlugDataColour::outlineColourId));
         g.drawHorizontalLine(b.getX() + 39, b.getY() + 48, b.getWidth());
         g.drawHorizontalLine(b.getHeight() - 20, b.getY() + 48, b.getWidth());
 
         if (!title.isEmpty()) {
-            PlugDataLook::drawText(g, title, b.getX(), b.getY(), b.getWidth(), 40, findColour(PlugDataColour::toolbarTextColourId), 15, Justification::centred);
+            Fonts::drawText(g, title, b.getX(), b.getY(), b.getWidth(), 40, findColour(PlugDataColour::toolbarTextColourId), 15, Justification::centred);
         }
     }
 };

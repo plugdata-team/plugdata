@@ -247,7 +247,7 @@ private:
     std::atomic<float> value;
     NormalisableRange<float> range;
     String name;
-    bool enabled = false;
+    std::atomic<bool> enabled = false;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PlugDataParameter)
 };

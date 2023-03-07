@@ -6,12 +6,11 @@
 
 #include "ObjectGrid.h"
 #include "Object.h"
-#include "Connection.h"
 #include "Canvas.h"
-#include "LookAndFeel.h"
+#include "Connection.h"
 #include "Utility/ObjectBoundsConstrainer.h"
 
-ObjectGrid::ObjectGrid(Canvas* parent)
+ObjectGrid::ObjectGrid(Component* parent)
 {
     for (auto& line : gridLines) {
         parent->addAndMakeVisible(line);

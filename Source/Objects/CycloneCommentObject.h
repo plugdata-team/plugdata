@@ -99,7 +99,7 @@ public:
         auto* comment = static_cast<t_fake_comment*>(ptr);
 
         auto textArea = border.subtractedFrom(getLocalBounds());
-        PlugDataLook::drawFittedText(g, getText(), textArea, textColour, comment->x_fontsize);
+        Fonts::drawFittedText(g, getText(), textArea, textColour, comment->x_fontsize);
 
         auto selected = cnv->isSelected(object);
         if (object->locked == var(false) && (object->isMouseOverOrDragging(true) || selected) && !cnv->isGraph) {

@@ -9,12 +9,54 @@
 #endif
 
 #include "PluginEditor.h"
+#include "PluginProcessor.h"
+
+#include "Pd/PdPatch.h"
 
 #include "LookAndFeel.h"
 
 #include "Canvas.h"
 #include "Connection.h"
+#include "Objects/ObjectBase.h"
 #include "Dialogs/Dialogs.h"
+#include "Statusbar.h"
+#include "Object.h"
+
+class ZoomLabel : public TextButton
+    , public Timer {
+
+    ComponentAnimator labelAnimator;
+
+    bool initRun = true;
+
+public:
+    ZoomLabel()
+    {
+        setInterceptsMouseClicks(false, false);
+    }
+
+    void setZoomLevel(float value)
+    {
+        if (initRun) {
+            initRun = false;
+            return;
+        }
+
+        setButtonText(String(value * 100, 1) + "%");
+        startTimer(2000);
+
+        if (!labelAnimator.isAnimating(this)) {
+            labelAnimator.fadeIn(this, 200);
+        }
+    }
+
+    void timerCallback() override
+    {
+        labelAnimator.fadeOut(this, 200);
+        stopTimer();
+    }
+};
+
 
 bool wantsNativeDialog()
 {
@@ -37,11 +79,13 @@ bool wantsNativeDialog()
 PluginEditor::PluginEditor(PluginProcessor& p)
     : AudioProcessorEditor(&p)
     , pd(&p)
-    , statusbar(&p)
+    , statusbar(std::make_unique<Statusbar>(&p))
+    , zoomLabel(std::make_unique<ZoomLabel>())
     , sidebar(&p, this)
     , tooltipWindow(this, 500)
-    , tooltipShadow(DropShadow(Colour(0, 0, 0).withAlpha(0.2f), 4, { 0, 0 }), PlugDataLook::defaultCornerRadius)
+    , tooltipShadow(DropShadow(Colour(0, 0, 0).withAlpha(0.2f), 4, { 0, 0 }), Corners::defaultCornerRadius)
     , splitView(this)
+    , openedDialog(nullptr)
 {
     mainMenuButton.setButtonText(Icons::Menu);
     undoButton.setButtonText(Icons::Undo);
@@ -102,7 +146,7 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     splitZoomScale.referTo(settingsFile->getPropertyAsValue("split_zoom"));
     splitZoomScale.addListener(this);
 
-    addAndMakeVisible(statusbar);
+    addAndMakeVisible(*statusbar);
     addAndMakeVisible(splitView);
     addAndMakeVisible(sidebar);
 
@@ -179,9 +223,9 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     sidebar.updateConsole();
     updateCommandStatus();
 
-    addModifierKeyListener(&statusbar);
+    addModifierKeyListener(statusbar.get());
 
-    addChildComponent(zoomLabel);
+    addChildComponent(*zoomLabel);
 
     // Initialise zoom factor
     valueChanged(zoomScale);
@@ -209,7 +253,7 @@ void PluginEditor::paint(Graphics& g)
     selectedSplitRect.setStrokeFill(findColour(PlugDataColour::dataColourId));
 
     g.setColour(findColour(PlugDataColour::canvasBackgroundColourId));
-    g.fillRoundedRectangle(getLocalBounds().toFloat(), PlugDataLook::windowCornerRadius);
+    g.fillRoundedRectangle(getLocalBounds().toFloat(), Corners::windowCornerRadius);
 
     auto baseColour = findColour(PlugDataColour::toolbarBackgroundColourId);
 
@@ -219,12 +263,12 @@ void PluginEditor::paint(Graphics& g)
         // Toolbar background
         g.setColour(baseColour);
         g.fillRect(0, 10, getWidth(), toolbarHeight - 9);
-        g.fillRoundedRectangle(0.0f, 0.0f, getWidth(), toolbarHeight, PlugDataLook::windowCornerRadius);
+        g.fillRoundedRectangle(0.0f, 0.0f, getWidth(), toolbarHeight, Corners::windowCornerRadius);
 
         // Statusbar background
         g.setColour(baseColour);
-        g.fillRect(0, getHeight() - statusbar.getHeight(), getWidth(), statusbar.getHeight() - 12);
-        g.fillRoundedRectangle(0.0f, getHeight() - statusbar.getHeight(), getWidth(), statusbar.getHeight(), PlugDataLook::windowCornerRadius);
+        g.fillRect(0, getHeight() - statusbar->getHeight(), getWidth(), statusbar->getHeight() - 12);
+        g.fillRoundedRectangle(0.0f, getHeight() - statusbar->getHeight(), getWidth(), statusbar->getHeight(), Corners::windowCornerRadius);
     } else {
         // Toolbar background
         g.setColour(baseColour);
@@ -232,7 +276,7 @@ void PluginEditor::paint(Graphics& g)
 
         // Statusbar background
         g.setColour(baseColour);
-        g.fillRect(0, getHeight() - statusbar.getHeight(), getWidth(), statusbar.getHeight());
+        g.fillRect(0, getHeight() - statusbar->getHeight(), getWidth(), statusbar->getHeight());
     }
 
     g.setColour(findColour(PlugDataColour::outlineColourId));
@@ -254,9 +298,9 @@ void PluginEditor::paintOverChildren(Graphics& g)
 
 void PluginEditor::resized()
 {
-    splitView.setBounds(0, toolbarHeight, (getWidth() - sidebar.getWidth()) + 1, getHeight() - toolbarHeight - (statusbar.getHeight()));
+    splitView.setBounds(0, toolbarHeight, (getWidth() - sidebar.getWidth()) + 1, getHeight() - toolbarHeight - (statusbar->getHeight()));
     sidebar.setBounds(getWidth() - sidebar.getWidth(), toolbarHeight, sidebar.getWidth(), getHeight() - toolbarHeight);
-    statusbar.setBounds(0, getHeight() - statusbar.getHeight(), getWidth() - sidebar.getWidth(), statusbar.getHeight());
+    statusbar->setBounds(0, getHeight() - statusbar->getHeight(), getWidth() - sidebar.getWidth(), statusbar->getHeight());
 
     mainMenuButton.setBounds(20, 0, toolbarHeight, toolbarHeight);
     undoButton.setBounds(90, 0, toolbarHeight, toolbarHeight);
@@ -284,8 +328,8 @@ void PluginEditor::resized()
     pd->lastUIWidth = getWidth();
     pd->lastUIHeight = getHeight();
 
-    zoomLabel.setTopLeftPosition(5, statusbar.getY() - 28);
-    zoomLabel.setSize(55, 23);
+    zoomLabel->setTopLeftPosition(5, statusbar->getY() - 28);
+    zoomLabel->setSize(55, 23);
 
     if (auto* cnv = getCurrentCanvas()) {
         cnv->checkBounds();
@@ -650,7 +694,7 @@ void PluginEditor::valueChanged(Value& v)
             // Otherwise don't adjust viewport position
         }
 
-        zoomLabel.setZoomLevel(scale);
+        zoomLabel->setZoomLevel(scale);
     }
     // Update theme
     else if (v.refersToSameSourceAs(theme)) {
@@ -672,19 +716,19 @@ void PluginEditor::updateCommandStatus()
         bool allNotSegmented = true;
         bool hasSelection = false;
 
-        bool isDragging = cnv->didStartDragging && !cnv->isDraggingLasso && statusbar.locked == var(false);
+        bool isDragging = cnv->dragState.didStartDragging && !cnv->isDraggingLasso && statusbar->locked == var(false);
         for (auto& connection : cnv->getSelectionOfType<Connection>()) {
             allSegmented = allSegmented && connection->isSegmented();
             allNotSegmented = allNotSegmented && !connection->isSegmented();
             hasSelection = true;
         }
 
-        statusbar.connectionStyleButton->setEnabled(!isDragging && hasSelection);
-        statusbar.connectionPathfind->setEnabled(!isDragging && hasSelection);
-        statusbar.connectionStyleButton->setToggleState(!isDragging && hasSelection && allSegmented, dontSendNotification);
+        statusbar->connectionStyleButton->setEnabled(!isDragging && hasSelection);
+        statusbar->connectionPathfind->setEnabled(!isDragging && hasSelection);
+        statusbar->connectionStyleButton->setToggleState(!isDragging && hasSelection && allSegmented, dontSendNotification);
 
-        statusbar.lockButton->setEnabled(!isDragging);
-        statusbar.attachToCanvas(cnv);
+        statusbar->lockButton->setEnabled(!isDragging);
+        statusbar->attachToCanvas(cnv);
 
         auto* patchPtr = cnv->patch.getPointer();
         if (!patchPtr)
@@ -717,19 +761,19 @@ void PluginEditor::updateCommandStatus()
                     });
             });
 
-        statusbar.lockButton->setEnabled(true);
-        statusbar.presentationButton->setEnabled(true);
-        statusbar.gridButton->setEnabled(true);
+        statusbar->lockButton->setEnabled(true);
+        statusbar->presentationButton->setEnabled(true);
+        statusbar->gridButton->setEnabled(true);
 
         addObjectMenuButton.setEnabled(!locked);
     } else {
-        statusbar.connectionStyleButton->setEnabled(false);
-        statusbar.connectionPathfind->setEnabled(false);
-        statusbar.lockButton->setEnabled(false);
+        statusbar->connectionStyleButton->setEnabled(false);
+        statusbar->connectionPathfind->setEnabled(false);
+        statusbar->lockButton->setEnabled(false);
 
-        statusbar.lockButton->setEnabled(false);
-        statusbar.presentationButton->setEnabled(false);
-        statusbar.gridButton->setEnabled(false);
+        statusbar->lockButton->setEnabled(false);
+        statusbar->presentationButton->setEnabled(false);
+        statusbar->gridButton->setEnabled(false);
 
         undoButton.setEnabled(false);
         redoButton.setEnabled(false);
@@ -770,7 +814,7 @@ void PluginEditor::getCommandInfo(const CommandID commandID, ApplicationCommandI
 
         hasBoxSelection = !selectedBoxes.isEmpty();
         hasSelection = hasBoxSelection || !selectedConnections.isEmpty();
-        isDragging = cnv->didStartDragging && !cnv->isDraggingLasso && statusbar.locked == var(false);
+        isDragging = cnv->dragState.didStartDragging && !cnv->isDraggingLasso && statusbar->locked == var(false);
         hasCanvas = true;
 
         locked = static_cast<bool>(cnv->locked.getValue());
@@ -834,7 +878,7 @@ void PluginEditor::getCommandInfo(const CommandID commandID, ApplicationCommandI
     }
     case CommandIDs::ConnectionStyle: {
         result.setInfo("Connection style", "Set connection style", "Edit", 0);
-        result.setActive(hasCanvas && !isDragging && statusbar.connectionStyleButton->isEnabled());
+        result.setActive(hasCanvas && !isDragging && statusbar->connectionStyleButton->isEnabled());
         break;
     }
     case CommandIDs::ZoomIn: {
@@ -1098,13 +1142,13 @@ bool PluginEditor::perform(InvocationInfo const& info)
         return true;
     }
     case CommandIDs::Lock: {
-        statusbar.lockButton->triggerClick();
+        statusbar->lockButton->triggerClick();
         return true;
     }
     case CommandIDs::ConnectionPathfind: {
         cnv->patch.startUndoSequence("ConnectionPathFind");
 
-        statusbar.connectionStyleButton->setToggleState(true, sendNotification);
+        statusbar->connectionStyleButton->setToggleState(true, sendNotification);
         for (auto* con : cnv->connections) {
             if (cnv->isSelected(con)) {
                 con->findPath();

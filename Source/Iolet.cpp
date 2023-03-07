@@ -6,9 +6,11 @@
 
 #include "Iolet.h"
 
+#include "Object.h"
 #include "Canvas.h"
 #include "Connection.h"
 #include "LookAndFeel.h"
+#include "Pd/PdPatch.h"
 
 Iolet::Iolet(Object* parent, bool inlet)
     : object(parent), insideGraph(parent->cnv->isGraph)

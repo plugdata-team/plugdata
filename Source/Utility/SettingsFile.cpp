@@ -5,7 +5,7 @@
  */
 
 #include "SettingsFile.h"
-#include "LookAndFeel.h"
+#include "../LookAndFeel.h"
 
 SettingsFileListener::SettingsFileListener()
 {

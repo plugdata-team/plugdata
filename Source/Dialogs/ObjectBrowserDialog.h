@@ -43,12 +43,12 @@ public:
         }
         if (rowIsSelected) {
             g.setColour(findColour(PlugDataColour::panelActiveBackgroundColourId));
-            g.fillRoundedRectangle({ 4.0f, 1.0f, width - 8.0f, height - 2.0f }, PlugDataLook::defaultCornerRadius);
+            g.fillRoundedRectangle({ 4.0f, 1.0f, width - 8.0f, height - 2.0f }, Corners::defaultCornerRadius);
         }
 
         auto colour = rowIsSelected ? findColour(PlugDataColour::panelActiveTextColourId) : findColour(PlugDataColour::panelTextColourId);
 
-        PlugDataLook::drawText(g, categories[rowNumber], 12, 0, width - 9, height, colour, 15);
+        Fonts::drawText(g, categories[rowNumber], 12, 0, width - 9, height, colour, 15);
     }
 
     void initialise(StringArray newCategories)
@@ -92,16 +92,16 @@ public:
 
         if (rowIsSelected) {
             g.setColour(findColour(PlugDataColour::panelActiveBackgroundColourId));
-            g.fillRoundedRectangle({ 4.0f, 1.0f, width - 8.0f, height - 2.0f }, PlugDataLook::defaultCornerRadius);
+            g.fillRoundedRectangle({ 4.0f, 1.0f, width - 8.0f, height - 2.0f }, Corners::defaultCornerRadius);
         }
 
         auto colour = rowIsSelected ? findColour(PlugDataColour::panelActiveTextColourId) : findColour(PlugDataColour::panelTextColourId);
 
         auto textBounds = Rectangle<int>(0, 0, width, height).reduced(18, 6);
 
-        PlugDataLook::drawStyledText(g, objectName, textBounds.removeFromTop(textBounds.proportionOfHeight(0.5f)), colour, Bold, 14);
+        Fonts::drawStyledText(g, objectName, textBounds.removeFromTop(textBounds.proportionOfHeight(0.5f)), colour, Bold, 14);
 
-        PlugDataLook::drawText(g, objectDescription, textBounds, colour, 14);
+        Fonts::drawText(g, objectDescription, textBounds, colour, 14);
     }
 
     void selectedRowsChanged(int row) override
@@ -192,7 +192,7 @@ public:
         auto objectDisplayBounds = infoBounds.removeFromTop(100).reduced(60);
 
         auto colour = findColour(PlugDataColour::panelTextColourId);
-        PlugDataLook::drawStyledText(g, objectName, getLocalBounds().removeFromTop(35).translated(0, 4), colour, Bold, 16.0f, Justification::centred);
+        Fonts::drawStyledText(g, objectName, getLocalBounds().removeFromTop(35).translated(0, 4), colour, Bold, 16.0f, Justification::centred);
 
         auto numInlets = unknownInletLayout ? "Unknown" : String(inlets.size());
         auto numOutlets = unknownOutletLayout ? "Unknown" : String(outlets.size());
@@ -202,21 +202,21 @@ public:
 
         for (int i = 0; i < infoNames.size(); i++) {
             auto localBounds = infoBounds.removeFromTop(25);
-            PlugDataLook::drawText(g, infoNames[i], localBounds.removeFromLeft(90), colour, 15, Justification::topLeft);
-            PlugDataLook::drawText(g, infoText[i], localBounds, colour, 15, Justification::topLeft);
+            Fonts::drawText(g, infoNames[i], localBounds.removeFromLeft(90), colour, 15, Justification::topLeft);
+            Fonts::drawText(g, infoText[i], localBounds, colour, 15, Justification::topLeft);
         }
 
         auto descriptionBounds = infoBounds.removeFromTop(25);
-        PlugDataLook::drawText(g, "Description: ", descriptionBounds.removeFromLeft(90), colour, 15, Justification::topLeft);
+        Fonts::drawText(g, "Description: ", descriptionBounds.removeFromLeft(90), colour, 15, Justification::topLeft);
 
-        PlugDataLook::drawFittedText(g, description, descriptionBounds.withHeight(180), colour, 10, 0.9f, 15, Justification::topLeft);
+        Fonts::drawFittedText(g, description, descriptionBounds.withHeight(180), colour, 10, 0.9f, 15, Justification::topLeft);
 
         if (!unknownInletLayout && !unknownOutletLayout) {
             drawObject(g, objectDisplayBounds);
         } else {
             auto questionMarkBounds = objectDisplayBounds.withSizeKeepingCentre(48, 48);
             g.drawRoundedRectangle(questionMarkBounds.toFloat(), 6.0f, 3.0f);
-            PlugDataLook::drawText(g, "?", questionMarkBounds, colour, 40, Justification::centred);
+            Fonts::drawText(g, "?", questionMarkBounds, colour, 40, Justification::centred);
         }
     }
 
@@ -229,7 +229,7 @@ public:
 
         auto outlineBounds = objectRect.withSizeKeepingCentre(width, 22).toFloat();
         g.setColour(findColour(PlugDataColour::objectOutlineColourId));
-        g.drawRoundedRectangle(outlineBounds, PlugDataLook::objectCornerRadius, 1.0f);
+        g.drawRoundedRectangle(outlineBounds, Corners::objectCornerRadius, 1.0f);
 
         auto squareIolets = PlugDataLook::getUseSquareIolets();
 
@@ -251,7 +251,7 @@ public:
         };
 
         auto textBounds = outlineBounds.reduced(2.0f);
-        PlugDataLook::drawText(g, objectName, textBounds.toNearestInt(), findColour(PlugDataColour::panelTextColourId), 15, Justification::centred);
+        Fonts::drawText(g, objectName, textBounds.toNearestInt(), findColour(PlugDataColour::panelTextColourId), 15, Justification::centred);
 
         auto ioletBounds = outlineBounds.reduced(8, 0);
 
@@ -486,10 +486,10 @@ public:
     void paintOverChildren(Graphics& g) override
     {
         auto colour = findColour(PlugDataColour::sidebarTextColourId);
-        PlugDataLook::drawIcon(g, Icons::Search, 0, 0, 30, colour, 12);
+        Fonts::drawIcon(g, Icons::Search, 0, 0, 30, colour, 12);
 
         if (input.getText().isEmpty()) {
-            PlugDataLook::drawText(g, "Type to search for objects", 30, 0, 300, 30, findColour(PlugDataColour::sidebarTextColourId).withAlpha(0.5f), 14);
+            Fonts::drawText(g, "Type to search for objects", 30, 0, 300, 30, findColour(PlugDataColour::sidebarTextColourId).withAlpha(0.5f), 14);
         }
     }
 
@@ -497,7 +497,7 @@ public:
     {
         if (rowIsSelected) {
             g.setColour(findColour(PlugDataColour::panelActiveBackgroundColourId));
-            g.fillRoundedRectangle(4, 2, w - 8, h - 4, PlugDataLook::smallCornerRadius);
+            g.fillRoundedRectangle(4, 2, w - 8, h - 4, Corners::smallCornerRadius);
         }
 
         g.setColour(rowIsSelected ? findColour(PlugDataColour::panelActiveTextColourId) : findColour(ComboBox::textColourId));
@@ -511,7 +511,7 @@ public:
         auto textWidth = w - leftIndent - rightIndent;
 
         if (textWidth > 0)
-            PlugDataLook::drawStyledText(g, item, leftIndent, yIndent, textWidth, h - yIndent * 2, colour, Semibold, 12, Justification::left);
+            Fonts::drawStyledText(g, item, leftIndent, yIndent, textWidth, h - yIndent * 2, colour, Semibold, 12, Justification::left);
 
         auto objectDescription = objectDescriptions[item];
 
@@ -538,9 +538,9 @@ public:
         auto iconbound = g.getClipBounds().reduced(6);
         iconbound.setWidth(iconbound.getHeight());
         iconbound.translate(6, 0);
-        g.fillRoundedRectangle(iconbound.toFloat(), PlugDataLook::smallCornerRadius);
+        g.fillRoundedRectangle(iconbound.toFloat(), Corners::smallCornerRadius);
 
-        PlugDataLook::drawFittedText(g, type ? "~" : "pd", iconbound.reduced(1), Colours::white, 1, 1.0f, type ? 12 : 10, Justification::centred);
+        Fonts::drawFittedText(g, type ? "~" : "pd", iconbound.reduced(1), Colours::white, 1, 1.0f, type ? 12 : 10, Justification::centred);
     }
 
     int getNumRows() override
@@ -721,7 +721,7 @@ public:
     void paint(Graphics& g) override
     {
         g.setColour(findColour(PlugDataColour::panelBackgroundColourId));
-        g.fillRoundedRectangle(getLocalBounds().reduced(1).toFloat(), PlugDataLook::windowCornerRadius);
+        g.fillRoundedRectangle(getLocalBounds().reduced(1).toFloat(), Corners::windowCornerRadius);
     }
 
 private:

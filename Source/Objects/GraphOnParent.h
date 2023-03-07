@@ -202,14 +202,14 @@ public:
         auto outlineColour = object->findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : objectOutlineColourId);
 
         g.setColour(outlineColour);
-        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), PlugDataLook::objectCornerRadius, 1.0f);
+        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius, 1.0f);
 
         // Strangly, the title goes below the graph content in pd
         if (!static_cast<bool>(hideNameAndArgs.getValue()) && getText() != "graph") {
             auto text = getText();
 
             auto textArea = getLocalBounds().removeFromTop(20).withTrimmedLeft(5);
-            PlugDataLook::drawFittedText(g, text, textArea, object->findColour(PlugDataColour::canvasTextColourId));
+            Fonts::drawFittedText(g, text, textArea, object->findColour(PlugDataColour::canvasTextColourId));
         }
     }
 
@@ -218,13 +218,13 @@ public:
         if (isOpenedInSplitView) {
 
             g.setColour(object->findColour(PlugDataColour::guiObjectBackgroundColourId));
-            g.fillRoundedRectangle(getLocalBounds().toFloat(), PlugDataLook::objectCornerRadius);
+            g.fillRoundedRectangle(getLocalBounds().toFloat(), Corners::objectCornerRadius);
 
             g.setColour(object->findColour(objectOutlineColourId));
-            g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), PlugDataLook::objectCornerRadius, 1.0f);
+            g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius, 1.0f);
 
             auto colour = object->findColour(PlugDataColour::canvasTextColourId);
-            PlugDataLook::drawText(g, "Graph opened in split view", getLocalBounds(), colour, 14, Justification::centred);
+            Fonts::drawText(g, "Graph opened in split view", getLocalBounds(), colour, 14, Justification::centred);
         }
     }
 

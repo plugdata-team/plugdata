@@ -194,7 +194,7 @@ public:
     void paint(Graphics& g) override
     {
         g.setColour(object->findColour(PlugDataColour::guiObjectBackgroundColourId));
-        g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), PlugDataLook::objectCornerRadius);
+        g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius);
 
         g.setColour(object->findColour(PlugDataColour::outlineColourId));
 
@@ -216,7 +216,7 @@ public:
         bool selected = object->cnv->isSelected(object) && !object->cnv->isGraph;
 
         g.setColour(object->findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : objectOutlineColourId));
-        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), PlugDataLook::objectCornerRadius, 1.0f);
+        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius, 1.0f);
     }
 
     std::pair<float, float> calcMagnitudePhase(float f, float a1, float a2, float b0, float b1, float b2)

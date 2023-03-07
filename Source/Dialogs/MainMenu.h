@@ -192,7 +192,7 @@ public:
             auto iconArea = r.removeFromLeft(roundToInt(maxFontHeight)).withSizeKeepingCentre(maxFontHeight, maxFontHeight);
 
             if (menuItemIcon.isNotEmpty()) {
-                PlugDataLook::drawIcon(g, menuItemIcon, iconArea, colour, std::min(15.0f, maxFontHeight), false);
+                Fonts::drawIcon(g, menuItemIcon, iconArea, colour, std::min(15.0f, maxFontHeight), false);
             } else if (hasTickBox) {
 
                 g.setColour(colour);
@@ -227,11 +227,11 @@ public:
             }
 
             r.removeFromRight(3);
-            PlugDataLook::drawFittedText(g, menuItemText, r, colour, fontHeight);
+            Fonts::drawFittedText(g, menuItemText, r, colour, fontHeight);
 
             /*
             if (shortcutKeyText.isNotEmpty()) {
-             PlugDataLook::drawText(g, shortcutKeyText, r.translated(-2, 0), findColour(PopupMenu::textColourId), f2.getHeight() * 0.75f, Justification::centredRight);
+             Fonts::drawText(g, shortcutKeyText, r.translated(-2, 0), findColour(PopupMenu::textColourId), f2.getHeight() * 0.75f, Justification::centredRight);
             } */
         }
     };

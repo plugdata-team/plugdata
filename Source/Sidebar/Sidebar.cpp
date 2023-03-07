@@ -6,7 +6,6 @@
 
 #include <JuceHeader.h>
 #include "Pd/PdInstance.h"
-#include "LookAndFeel.h"
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
 #include "Canvas.h"

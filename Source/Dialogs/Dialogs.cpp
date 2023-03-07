@@ -7,9 +7,12 @@
 
 #include "Dialogs.h"
 
+#include "LookAndFeel.h"
 #include "PluginEditor.h"
 #include "PluginProcessor.h"
 
+#include "Object.h"
+#include "Objects/ObjectBase.h"
 #include "SaveDialog.h"
 #include "ArrayDialog.h"
 #include "SettingsDialog.h"

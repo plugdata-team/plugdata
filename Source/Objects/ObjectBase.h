@@ -8,10 +8,11 @@
 
 #include <JuceHeader.h>
 
-#include "PluginProcessor.h"
-#include "Sidebar/Sidebar.h"
 #include "Utility/HashUtils.h"
+#include "Pd/PdInstance.h" // TODO: separate out MessageListener
+#include "Constants.h"
 
+class PluginProcessor;
 class Canvas;
 
 namespace pd {

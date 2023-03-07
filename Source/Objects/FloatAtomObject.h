@@ -102,7 +102,7 @@ public:
     void paint(Graphics& g) override
     {
         g.setColour(object->findColour(PlugDataColour::guiObjectBackgroundColourId));
-        g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), PlugDataLook::objectCornerRadius);
+        g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius);
     }
 
     void paintOverChildren(Graphics& g) override
@@ -117,13 +117,13 @@ public:
         auto outlineColour = object->findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : objectOutlineColourId);
 
         g.setColour(outlineColour);
-        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), PlugDataLook::objectCornerRadius, 1.0f);
+        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius, 1.0f);
 
         bool highlighed = hasKeyboardFocus(true) && static_cast<bool>(object->locked.getValue());
 
         if (highlighed) {
             g.setColour(object->findColour(PlugDataColour::objectSelectedOutlineColourId));
-            g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(1.0f), PlugDataLook::objectCornerRadius, 2.0f);
+            g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(1.0f), Corners::objectCornerRadius, 2.0f);
         }
     }
 

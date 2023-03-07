@@ -160,7 +160,7 @@ public:
     void paint(Graphics& g) override
     {
         g.setColour(iemHelper.getBackgroundColour());
-        g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), PlugDataLook::objectCornerRadius);
+        g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius);
 
         int size = (isVertical ? getHeight() / numItems : getHeight());
         // int minSize = 12;
@@ -183,7 +183,7 @@ public:
         int selectionY = isVertical ? currentValue * size : 0;
 
         auto selectionBounds = Rectangle<int>(selectionX, selectionY, size, size);
-        g.fillRoundedRectangle(selectionBounds.reduced(5).toFloat(), PlugDataLook::objectCornerRadius / 2.0f);
+        g.fillRoundedRectangle(selectionBounds.reduced(5).toFloat(), Corners::objectCornerRadius / 2.0f);
     }
 
     void paintOverChildren(Graphics& g) override
@@ -192,7 +192,7 @@ public:
         auto outlineColour = object->findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : objectOutlineColourId);
 
         g.setColour(outlineColour);
-        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), PlugDataLook::objectCornerRadius, 1.0f);
+        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius, 1.0f);
     }
 
     ObjectParameters getParameters() override

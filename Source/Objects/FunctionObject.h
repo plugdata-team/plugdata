@@ -124,14 +124,14 @@ public:
     void paint(Graphics& g) override
     {
         g.setColour(Colour::fromString(secondaryColour.toString()));
-        g.fillRoundedRectangle(getLocalBounds().toFloat(), PlugDataLook::objectCornerRadius);
+        g.fillRoundedRectangle(getLocalBounds().toFloat(), Corners::objectCornerRadius);
 
         bool selected = cnv->isSelected(object) && !cnv->isGraph;
         bool editing = cnv->locked == var(true) || cnv->presentationMode == var(true) || ModifierKeys::getCurrentModifiers().isCtrlDown();
         auto outlineColour = object->findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : objectOutlineColourId);
 
         g.setColour(outlineColour);
-        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), PlugDataLook::objectCornerRadius, 1.0f);
+        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius, 1.0f);
 
         g.setColour(Colour::fromString(primaryColour.toString()));
 

@@ -10,13 +10,14 @@
 
 #include "Pd/PdInstance.h"
 #include "Pd/PdLibrary.h"
+#include "Pd/PdPatch.h"
 #include "Utility/SettingsFile.h"
-#include "Statusbar.h"
 
 #if PLUGDATA_STANDALONE
 #    include "Utility/InternalSynth.h"
 #endif
 
+class StatusbarSource;
 class PlugDataLook;
 class PluginEditor;
 class PluginProcessor : public AudioProcessor
@@ -136,7 +137,7 @@ public:
 
     Value commandLocked = Value(var(false));
 
-    StatusbarSource statusbarSource;
+    std::unique_ptr<StatusbarSource> statusbarSource;
 
     Value tailLength = Value(0.0f);
 

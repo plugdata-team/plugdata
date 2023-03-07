@@ -1,6 +1,7 @@
 #include "SplitView.h"
 #include "Canvas.h"
 #include "PluginEditor.h"
+#include "PluginProcessor.h"
 
 class SplitViewResizer : public Component {
 public:

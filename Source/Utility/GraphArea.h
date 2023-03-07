@@ -23,7 +23,7 @@ public:
     void paint(Graphics& g) override
     {
         g.setColour(findColour(PlugDataColour::resizeableCornerColourId));
-        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(1.f), PlugDataLook::objectCornerRadius, PlugDataLook::smallCornerRadius);
+        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(1.f), Corners::objectCornerRadius, Corners::smallCornerRadius);
     }
 
     bool hitTest(int x, int y) override
