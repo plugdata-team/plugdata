@@ -5,7 +5,7 @@
  */
 
 #include "PluginEditor.h"
-#include "PluginProcessor.h"
+#include "PluginProcessor.h" // TODO: We shouldn't need this!
 
 // Component that sits on top of a TextEditor and will draw auto-complete suggestions over it
 class AutoCompleteComponent

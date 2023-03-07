@@ -17,7 +17,7 @@
 
 #include "Canvas.h"
 #include "Connection.h"
-#include "Objects/ObjectBase.h"
+#include "Objects/ObjectBase.h" // TODO: We shouldn't need this!
 #include "Dialogs/Dialogs.h"
 #include "Statusbar.h"
 #include "Object.h"

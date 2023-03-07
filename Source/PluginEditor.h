@@ -8,9 +8,9 @@
 
 #include <JuceHeader.h>
 
-#include "Sidebar/Sidebar.h"
-#include "SplitView.h"
-#include "Utility/RateReducer.h"
+#include "Sidebar/Sidebar.h" // TODO: move to impl
+#include "SplitView.h" // TODO: move to impl
+#include "Utility/RateReducer.h" // TODO: move to impl
 #include "Utility/ModifierKeyListener.h"
 #include "Utility/StackShadow.h" // TODO: move to impl
 

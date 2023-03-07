@@ -7,11 +7,8 @@
 
 #include <JuceHeader.h>
 
-#include <array>
-#include <vector>
-
 extern "C" {
-#include "x_libpd_mod_utils.h"
+#include "x_libpd_mod_utils.h" //  TODO: we only need t_object
 }
 
 namespace pd {
