@@ -153,6 +153,7 @@ if(UNIX AND NOT APPLE)
     JUCE_MODAL_LOOPS_PERMITTED=1
     JUCE_USE_XRENDER=1
     )
+    list(APPEND libs curl X11)
 endif()
 
 
@@ -348,16 +349,11 @@ set_target_properties(plugdata_standalone PROPERTIES
   RESOURCE "${CMAKE_CURRENT_SOURCE_DIR}/Resources/Icons/pd-file.icns")
 endif()
 
-if(MSVC)
-  list(APPEND libs pthreadVC3)
-elseif(APPLE)
-  target_link_libraries(plugdata_midi PRIVATE plugdata_core)
-elseif(UNIX AND NOT APPLE)
-  list(APPEND libs curl X11)
-endif()
 
 if(UNIX AND NOT APPLE)
     target_link_libraries(plugdata_standalone PUBLIC "-Wl,-export-dynamic")
+elseif(APPLE)
+  target_link_libraries(plugdata_midi PRIVATE plugdata_core)
 endif()
 
 if(MSVC)
