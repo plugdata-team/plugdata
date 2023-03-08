@@ -223,6 +223,7 @@ Statusbar::Statusbar(PluginProcessor* processor)
     connectionPathfind = std::make_unique<TextButton>(Icons::Wand);
     presentationButton = std::make_unique<TextButton>(Icons::Presentation);
     gridButton = std::make_unique<TextButton>(Icons::Grid);
+    directionButton = std::make_unique<TextButton>(Icons::Direction);
     protectButton = std::make_unique<TextButton>(Icons::Protection);
 
     presentationButton->setTooltip("Presentation Mode");
@@ -285,6 +286,16 @@ Statusbar::Statusbar(PluginProcessor* processor)
 
     // Initialise grid state
     propertyChanged("grid_enabled", SettingsFile::getInstance()->getProperty<int>("grid_enabled"));
+
+    directionButton->setTooltip("Show Connection Direction");
+    directionButton->getProperties().set("Style", "SmallIcon");
+    directionButton->setClickingTogglesState(true);
+    directionButton->setToggleState(false, sendNotification);
+    directionButton->onClick = [=]() {
+        showDirection = directionButton->getToggleState();
+    };
+    
+    addAndMakeVisible(directionButton.get());
 
     powerButton->onClick = [this]() { powerButton->getToggleState() ? pd->startDSP() : pd->releaseDSP(); };
 
@@ -369,6 +380,8 @@ void Statusbar::attachToCanvas(Canvas* cnv)
 {
     locked.referTo(cnv->locked);
     lockButton->getToggleStateValue().referTo(cnv->locked);
+    showDirection.referTo(cnv->showDirection);
+    directionButton->getToggleStateValue().referTo(cnv->showDirection);
 }
 
 void Statusbar::propertyChanged(String name, var value)
@@ -437,6 +450,8 @@ void Statusbar::resized()
     position(3); // Seperator
 
     gridButton->setBounds(position(getHeight()), 0, getHeight(), getHeight());
+
+    directionButton->setBounds(position(getHeight()), 0, getHeight(), getHeight());
 
     pos = 0; // reset position for elements on the left
 

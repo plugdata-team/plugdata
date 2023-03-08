@@ -11,6 +11,7 @@
 #include "Iolet.h" // Move to impl
 #include "Pd/PdInstance.h" // TODO: separate out messageListener
 #include "Utility/RateReducer.h"
+#include "Utility/ModifierKeyListener.h"
 
 using PathPlan = std::vector<Point<float>>;
 
@@ -35,7 +36,7 @@ public:
     Connection(Canvas* parent, Iolet* start, Iolet* end, void* oc);
     ~Connection() override;
 
-    static void renderConnectionPath(Graphics& g, Canvas* cnv, Path connectionPath, bool isSignal, bool isMouseOver = false, bool isSelected = false, Point<int> mousePos = { 0, 0 }, bool isHovering = false);
+    static void renderConnectionPath(Graphics& g, Canvas* cnv, Path connectionPath, bool isSignal, bool showDirection, bool isMouseOver = false, bool isSelected = false, Point<int> mousePos = { 0, 0 }, bool isHovering = false);
 
     static Path getNonSegmentedPath(Point<float> start, Point<float> end);
 
@@ -98,6 +99,8 @@ private:
 
     Value locked;
     Value presentationMode;
+
+    Value showDirection;
 
     Canvas* cnv;
 
@@ -186,7 +189,7 @@ public:
             jassertfalse; // shouldn't happen
             return;
         }
-        Connection::renderConnectionPath(g, (Canvas*)cnv, connectionPath, iolet->isSignal, true);
+        Connection::renderConnectionPath(g, (Canvas*)cnv, connectionPath, iolet->isSignal, false, true);
     }
 
     Iolet* getIolet()

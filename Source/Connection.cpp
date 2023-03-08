@@ -25,6 +25,9 @@ Connection::Connection(Canvas* parent, Iolet* s, Iolet* e, void* oc)
     presentationMode.referTo(parent->presentationMode);
     presentationMode.addListener(this);
 
+    showDirection.referTo(parent->showDirection);
+    showDirection.addListener(this);
+
     // Make sure it's not 2x the same iolet
     if (!outlet || !inlet || outlet->isInlet == inlet->isInlet) {
         outlet = nullptr;
@@ -108,6 +111,9 @@ void Connection::valueChanged(Value& v)
 {
     if (v.refersToSameSourceAs(presentationMode)) {
         setVisible(presentationMode != var(true) && !cnv->isGraph);
+    }
+    if (v.refersToSameSourceAs(showDirection)) {
+        repaint();
     }
 }
 
@@ -240,13 +246,14 @@ bool Connection::intersects(Rectangle<float> toCheck, int accuracy) const
     return false;
 }
 
-void Connection::renderConnectionPath(Graphics& g, Canvas* cnv, Path connectionPath, bool isSignal, bool isMouseOver, bool isSelected, Point<int> mousePos, bool isHovering)
+void Connection::renderConnectionPath(Graphics& g, Canvas* cnv, Path connectionPath, bool isSignal, bool showDirection, bool isMouseOver, bool isSelected, Point<int> mousePos, bool isHovering)
 {
-
     auto baseColour = cnv->findColour(PlugDataColour::connectionColourId);
     auto dataColour = cnv->findColour(PlugDataColour::dataColourId);
     auto signalColour = cnv->findColour(PlugDataColour::signalColourId);
     auto handleColour = isSignal ? dataColour : signalColour;
+
+    auto connectionLength = connectionPath.getLength();
 
     if (isSelected) {
         baseColour = isSignal ? signalColour : dataColour;
@@ -277,10 +284,51 @@ void Connection::renderConnectionPath(Graphics& g, Canvas* cnv, Path connectionP
     innerStroke.setEndStyle(PathStrokeType::EndCapStyle::rounded);
     g.strokePath(innerPath, innerStroke);
 
+    // draw direction arrow if button is toggled (per canvas, default state is false)
+    //            c
+    //            |\
+    //            | \
+    //            |  \
+    //  ___path___|   \a___path___
+    //            |   /
+    //            |  /
+    //            | /
+    //            |/
+    //            b
+
+    // setup arrow parameters
+    float arrowWidth = 8.0f;
+    float arrowLength = 12.0f;
+
+    if (showDirection && connectionLength > arrowLength * 2) {
+        // get the center point of the connection path
+        auto arrowCenter = connectionLength * 0.5f;
+        auto arrowBase = connectionPath.getPointAlongPath(arrowCenter - (arrowLength * 0.5f));
+        auto arrowTip = connectionPath.getPointAlongPath(arrowCenter + (arrowLength * 0.5f));
+
+        Line<float> arrowLine(arrowBase, arrowTip);
+        auto point_a = arrowTip;
+        auto point_b = arrowLine.getPointAlongLine(0.0f, -(arrowWidth * 0.5f));
+        auto point_c = arrowLine.getPointAlongLine(0.0f, (arrowWidth * 0.5f));
+
+        // create the arrow path
+        Path arrow;
+        arrow.addTriangle(point_a, point_b, point_c);
+
+        // draw the arrow
+        g.setColour(baseColour);
+        g.fillPath(arrow);
+
+        // draw arrow outline to aid in visibility for dark / light themes
+        g.setColour(baseColour.darker(1.0f));
+        PathStrokeType arrowOutline(0.5f);
+        g.strokePath(arrow, arrowOutline);
+    }
+
     // draw reconnect handles if connection is both selected & mouse is hovering over
     if (isSelected && isHovering) {
         auto startReconnectHandle = Rectangle<float>(5, 5).withCentre(connectionPath.getPointAlongPath(8.5f));
-        auto endReconnectHandle = Rectangle<float>(5, 5).withCentre(connectionPath.getPointAlongPath(std::max(connectionPath.getLength() - 8.5f, 9.5f)));
+        auto endReconnectHandle = Rectangle<float>(5, 5).withCentre(connectionPath.getPointAlongPath(std::max(connectionLength - 8.5f, 9.5f)));
 
         bool overStart = startReconnectHandle.contains(mousePos.toFloat());
         bool overEnd = endReconnectHandle.contains(mousePos.toFloat());
@@ -298,7 +346,7 @@ void Connection::renderConnectionPath(Graphics& g, Canvas* cnv, Path connectionP
 
 void Connection::paint(Graphics& g)
 {
-    renderConnectionPath(g, cnv, toDraw, outlet->isSignal, isMouseOver(), cnv->isSelected(this), getMouseXYRelative(), isHovering);
+    renderConnectionPath(g, cnv, toDraw, outlet->isSignal, showDirection.getValue(), isMouseOver(), cnv->isSelected(this), getMouseXYRelative(), isHovering);
 }
 
 bool Connection::isSegmented()
