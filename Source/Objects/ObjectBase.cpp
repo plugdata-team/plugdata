@@ -4,6 +4,12 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
+#include <juce_gui_basics/juce_gui_basics.h>
+#include <juce_audio_utils/juce_audio_utils.h>
+
+#include "Utility/Config.h"
+#include "Utility/Fonts.h"
+
 #include "ObjectBase.h"
 
 extern "C" {
@@ -27,6 +33,7 @@ void canvas_setgraph(t_glist* x, int flag, int nogoprect);
 #include "LookAndFeel.h"
 #include "Pd/PdPatch.h"
 #include "Utility/ObjectBoundsConstrainer.h"
+#include "Sidebar/Sidebar.h"
 
 #include "IEMHelper.h"
 #include "AtomHelper.h"
@@ -213,7 +220,7 @@ bool ObjectBase::click()
     // Check if click method exists, if so, call it
     t_methodentry* mlist;
     
-    auto* pdinstance = pd_this;
+    auto* pdinstance = libpd_this_instance();
 #if PDINSTANCE
         mlist = pdObj->c_methods[pdinstance->pd_instanceno];
 #else

@@ -3,7 +3,6 @@
  // For information on usage and redistribution, and for a DISCLAIMER OF ALL
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
-#include <JuceHeader.h>
 
 // Inherit to customise drawing
 class MIDIKeyboard : public MidiKeyboardComponent {
@@ -253,9 +252,9 @@ public:
                 SETFLOAT(at, note);
                 SETFLOAT(at + 1, velocity * 127);
 
-                outlet_list(elseKeyboard->x_out, &s_list, ac, at);
-                if (elseKeyboard->x_send != &s_ && elseKeyboard->x_send->s_thing)
-                    pd_list(elseKeyboard->x_send->s_thing, &s_list, ac, at);
+                outlet_list(elseKeyboard->x_out, &libpd_this_instance()->pd_s_list, ac, at);
+                if (elseKeyboard->x_send != &libpd_this_instance()->pd_s_ && elseKeyboard->x_send->s_thing)
+                    pd_list(elseKeyboard->x_send->s_thing, &libpd_this_instance()->pd_s_list, ac, at);
             });
     }
 
@@ -276,9 +275,9 @@ public:
                 SETFLOAT(at, note);
                 SETFLOAT(at + 1, 0);
 
-                outlet_list(elseKeyboard->x_out, &s_list, ac, at);
-                if (elseKeyboard->x_send != &s_ && elseKeyboard->x_send->s_thing)
-                    pd_list(elseKeyboard->x_send->s_thing, &s_list, ac, at);
+                outlet_list(elseKeyboard->x_out, &libpd_this_instance()->pd_s_list, ac, at);
+                if (elseKeyboard->x_send != &libpd_this_instance()->pd_s_ && elseKeyboard->x_send->s_thing)
+                    pd_list(elseKeyboard->x_send->s_thing, &libpd_this_instance()->pd_s_list, ac, at);
             });
     }
 

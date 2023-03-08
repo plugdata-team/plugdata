@@ -836,3 +836,11 @@ int libpd_issignaloutlet(t_object const* x, int m)
         ;
     return (o2 && (o2->o_sym == &s_signal));
 }
+
+void* libpd_get_class_methods(t_class* o) {
+#if PDINSTANCE
+    return o->c_methods[pd_this->pd_instanceno]
+#else
+    return o->c_methods;
+#endif
+}

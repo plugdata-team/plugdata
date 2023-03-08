@@ -6,8 +6,6 @@
 
 #pragma once
 
-#include <JuceHeader.h>
-
 class PlugDataParameter : public RangedAudioParameter {
 public:
     PluginProcessor& processor;
@@ -66,10 +64,10 @@ public:
 
     void notifyDAW()
     {
-#if !PLUGDATA_STANDALONE
-        auto const details = AudioProcessorListener::ChangeDetails {}.withParameterInfoChanged(true);
-        processor.updateHostDisplay(details);
-#endif
+        if(!ProjectInfo::isStandalone) {
+            auto const details = AudioProcessorListener::ChangeDetails {}.withParameterInfoChanged(true);
+            processor.updateHostDisplay(details);
+        }
     }
 
     float getUnscaledValue() const
@@ -231,10 +229,10 @@ public:
     void setGestureState(float v)
     {
 
-#if !PLUGDATA_STANDALONE
-        // Send new value to DAW
-        v ? beginChangeGesture() : endChangeGesture();
-#endif
+        if(!ProjectInfo::isStandalone) {
+            // Send new value to DAW
+            v ? beginChangeGesture() : endChangeGesture();
+        }
 
         gestureState = v;
     }

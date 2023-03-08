@@ -4,7 +4,8 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
 */
 #pragma once
-#include <JuceHeader.h>
+#include <juce_audio_processors/juce_audio_processors.h>
+
 #include "Utility/SettingsFile.h"
 #include "Utility/ModifierKeyListener.h"
 

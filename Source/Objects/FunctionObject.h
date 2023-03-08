@@ -349,9 +349,9 @@ public:
             if (!_this || _this->cnv->patch.objectWasDeleted(x))
                 return;
 
-            outlet_list(x->x_obj.ob_outlet, &s_list, ac - 2, at.data());
-            if (x->x_send != &s_ && x->x_send->s_thing)
-                pd_list(x->x_send->s_thing, &s_list, ac - 2, at.data());
+            outlet_list(x->x_obj.ob_outlet, &libpd_this_instance()->pd_s_list, ac - 2, at.data());
+            if (x->x_send != &libpd_this_instance()->pd_s_ && x->x_send->s_thing)
+                pd_list(x->x_send->s_thing, &libpd_this_instance()->pd_s_list, ac - 2, at.data());
         });
     }
 

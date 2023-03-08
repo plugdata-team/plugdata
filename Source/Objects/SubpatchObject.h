@@ -41,7 +41,7 @@ public:
         // Change from subpatch to graph
         if (static_cast<t_canvas*>(ptr)->gl_isgraph) {
             cnv->setSelected(object, false);
-            object->cnv->editor->sidebar.hideParameters();
+            object->cnv->editor->sidebar->hideParameters();
             object->setType(objectText, ptr);
         }
     };
@@ -112,7 +112,7 @@ public:
             // Change from subpatch to graph
             if (static_cast<t_canvas*>(ptr)->gl_isgraph) {
                 cnv->setSelected(object, false);
-                object->cnv->editor->sidebar.hideParameters();
+                object->cnv->editor->sidebar->hideParameters();
                 object->setType(getText(), ptr);
                 return;
             }

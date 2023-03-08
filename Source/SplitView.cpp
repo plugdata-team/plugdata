@@ -1,7 +1,12 @@
+#include <juce_gui_basics/juce_gui_basics.h>
+#include "Utility/Config.h"
+#include "Utility/Fonts.h"
+
 #include "SplitView.h"
 #include "Canvas.h"
 #include "PluginEditor.h"
 #include "PluginProcessor.h"
+#include "Sidebar/Sidebar.h"
 
 class SplitViewResizer : public Component {
 public:
@@ -78,7 +83,7 @@ SplitView::SplitView(PluginEditor* parent)
             if (!cnv || idx == -1 || editor->pd->isPerformingGlobalSync)
                 return;
 
-            editor->sidebar.tabChanged();
+            editor->sidebar->tabChanged();
             cnv->tabChanged();
 
             if (auto* splitCnv = splits[1 - i].getCurrentCanvas()) {

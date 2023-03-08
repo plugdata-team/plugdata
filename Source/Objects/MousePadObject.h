@@ -102,7 +102,7 @@ public:
             SETFLOAT(at, xPos);
             SETFLOAT(at + 1, yPos);
 
-            outlet_anything(x->x_obj.ob_outlet, &s_list, 2, at);
+            outlet_anything(x->x_obj.ob_outlet, &libpd_this_instance()->pd_s_list, 2, at);
         });
     }
 
@@ -131,7 +131,7 @@ public:
         pd->setThis();
         
         sys_lock();
-        outlet_anything(x->x_obj.ob_outlet, &s_list, 2, at);
+        outlet_anything(x->x_obj.ob_outlet, &libpd_this_instance()->pd_s_list, 2, at);
         sys_unlock();
     }
 

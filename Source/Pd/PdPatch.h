@@ -5,8 +5,6 @@
  */
 #pragma once
 
-#include <JuceHeader.h>
-
 extern "C" {
 #include "x_libpd_mod_utils.h" //  TODO: we only need t_object
 }

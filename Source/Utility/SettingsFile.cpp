@@ -4,8 +4,12 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
+#include <juce_gui_basics/juce_gui_basics.h>
+#include "Utility/Config.h"
+#include "Utility/Fonts.h"
+
 #include "SettingsFile.h"
-#include "../LookAndFeel.h"
+#include "LookAndFeel.h"
 
 SettingsFileListener::SettingsFileListener()
 {

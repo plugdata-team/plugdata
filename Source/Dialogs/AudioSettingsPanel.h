@@ -3,9 +3,7 @@
  // For information on usage and redistribution, and for a DISCLAIMER OF ALL
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
-#include <JuceHeader.h>
-
-#if PLUGDATA_STANDALONE
+#include <juce_audio_utils/juce_audio_utils.h>
 
 class RoundedListBox : public ListBox {
 
@@ -1124,7 +1122,6 @@ public:
     }
 };
 
-#else
 
 class DAWAudioSettings : public Component
     , public Value::Listener {
@@ -1186,5 +1183,3 @@ public:
 
     std::unique_ptr<PropertiesPanel::BoolComponent> nativeDialogToggle;
 };
-
-#endif

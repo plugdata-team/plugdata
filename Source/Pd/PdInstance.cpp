@@ -4,6 +4,11 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
+#include <juce_gui_basics/juce_gui_basics.h>
+
+#include "Utility/Config.h"
+#include "Utility/Fonts.h"
+
 #include <algorithm>
 #include "PdInstance.h"
 #include "PdPatch.h"
@@ -326,12 +331,8 @@ void Instance::sendMidiByte(int const port, int const byte) const
 
 void Instance::sendBang(char const* receiver) const
 {
-#if !PLUGDATA_STANDALONE
-    if (!m_instance)
+    if (!ProjectInfo::isStandalone && !m_instance)
         return;
-
-    libpd_set_instance(static_cast<t_pdinstance*>(m_instance));
-#endif
 
     libpd_set_instance(static_cast<t_pdinstance*>(m_instance));
     libpd_bang(receiver);
@@ -339,24 +340,18 @@ void Instance::sendBang(char const* receiver) const
 
 void Instance::sendFloat(char const* receiver, float const value) const
 {
-#if !PLUGDATA_STANDALONE
-    if (!m_instance)
+    if (!ProjectInfo::isStandalone && !m_instance)
         return;
 
     libpd_set_instance(static_cast<t_pdinstance*>(m_instance));
-#endif
 
     libpd_float(receiver, value);
 }
 
 void Instance::sendSymbol(char const* receiver, char const* symbol) const
 {
-#if !PLUGDATA_STANDALONE
-    if (!m_instance)
+    if (!ProjectInfo::isStandalone && !m_instance)
         return;
-
-    libpd_set_instance(static_cast<t_pdinstance*>(m_instance));
-#endif
 
     libpd_set_instance(static_cast<t_pdinstance*>(m_instance));
     libpd_symbol(receiver, symbol);

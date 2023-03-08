@@ -6,9 +6,8 @@
 
 #pragma once
 
-#include <JuceHeader.h>
 #include <m_pd.h>
-#include "../Utility/FileSystemWatcher.h"
+#include "Utility/FileSystemWatcher.h"
 
 namespace pd {
 

@@ -1,6 +1,4 @@
 #pragma once
-
-#include <JuceHeader.h>
 #include "Object.h"
 
 class ObjectBoundsConstrainer : public ComponentBoundsConstrainer {

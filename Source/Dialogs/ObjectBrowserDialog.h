@@ -5,7 +5,7 @@
  */
 
 #include "ObjectReferenceDialog.h"
-#include "../Canvas.h"
+#include "Canvas.h"
 
 class CategoriesListBox : public ListBox
     , public ListBoxModel {

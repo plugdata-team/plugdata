@@ -7,7 +7,7 @@
 #include "FluidLite/include/fluidlite.h"
 #include "FluidLite/src/fluid_sfont.h"
 
-#include <StandaloneBinaryData.h>
+//#include <StandaloneBinaryData.h>
 
 // InternalSynth is an internal General MIDI synthesizer that can be used as a MIDI output device
 // The goal is to get something similar to the "AU DLS Synth" in Max/MSP on macOS, but cross-platform
@@ -21,9 +21,10 @@ public:
     {
         // Unpack soundfont
         if (!soundFont.existsAsFile()) {
-            FileOutputStream ostream(soundFont);
-            ostream.write(StandaloneBinaryData::GeneralUser_GS_sf3, StandaloneBinaryData::GeneralUser_GS_sf3Size);
-            ostream.flush();
+            // TODO: fix this!
+            //FileOutputStream ostream(soundFont);
+            //ostream.write(StandaloneBinaryData::GeneralUser_GS_sf3, StandaloneBinaryData::GeneralUser_GS_sf3Size);
+            //ostream.flush();
         }
     }
 

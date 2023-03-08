@@ -5,7 +5,6 @@
  */
 
 #pragma once
-#include <JuceHeader.h>
 #include "Utility/SettingsFile.h"
 
 class Object;

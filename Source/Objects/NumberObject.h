@@ -4,7 +4,7 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
-#include "../Utility/DraggableNumber.h"
+#include "Utility/DraggableNumber.h"
 
 class NumberObject final : public ObjectBase {
 

@@ -5,7 +5,6 @@
  */
 
 #pragma once
-#include <JuceHeader.h>
 
 // Class that blocks events that are too close together, up to a certain rate
 // We use this to reduce the rate at which MouseEvents come in, to improve performance (especially on Linux)

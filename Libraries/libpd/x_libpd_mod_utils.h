@@ -100,6 +100,8 @@ void libpd_canvas_saveto(t_canvas* cnv, t_binbuf* b);
 void* libpd_tryconnect(t_canvas* cnv, t_object* src, int nout, t_object* sink, int nin);
 int libpd_canconnect(t_canvas* cnv, t_object* src, int nout, t_object* sink, int nin);
 
+void* libpd_get_class_methods(t_class* o);
+
 #ifdef __cplusplus
 }
 #endif

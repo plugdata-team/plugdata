@@ -5,7 +5,6 @@
  */
 
 #pragma once
-#include <JuceHeader.h>
 
 class DraggableNumber : public Label
     , public Label::Listener {

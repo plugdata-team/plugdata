@@ -265,7 +265,7 @@ public:
             // Change from graph to subpatch
             if (!static_cast<t_canvas*>(ptr)->gl_isgraph) {
                 cnv->setSelected(object, false);
-                object->cnv->editor->sidebar.hideParameters();
+                object->cnv->editor->sidebar->hideParameters();
                 object->setType(getText(), ptr);
                 return;
             }

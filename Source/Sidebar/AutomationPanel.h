@@ -130,26 +130,26 @@ public:
         maxValue.setMinimum(minimum + 0.000001f);
         minValue.setMaximum(maximum);
 
-#if PLUGDATA_STANDALONE
+        if(ProjectInfo::isStandalone) {
+            slider.setValue(param->getUnscaledValue());
+            slider.setRange(range.getStart(), range.getEnd(), 0.000001f);
+            valueLabel.setText(String(param->getUnscaledValue(), 2), dontSendNotification);
+            slider.onValueChange = [this]() mutable {
+                float value = slider.getValue();
+                param->setUnscaledValueNotifyingHost(value);
+                valueLabel.setText(String(value, 2), dontSendNotification);
+            };
+        }
+        else {
+            slider.onValueChange = [this]() mutable {
+                float value = slider.getValue();
+                valueLabel.setText(String(value, 2), dontSendNotification);
+            };
+            slider.setRange(range.getStart(), range.getEnd(), 0.000001f);
 
-        slider.setValue(param->getUnscaledValue());
-        slider.setRange(range.getStart(), range.getEnd(), 0.000001f);
-        valueLabel.setText(String(param->getUnscaledValue(), 2), dontSendNotification);
-        slider.onValueChange = [this]() mutable {
-            float value = slider.getValue();
-            param->setUnscaledValueNotifyingHost(value);
-            valueLabel.setText(String(value, 2), dontSendNotification);
-        };
-#else
-        slider.onValueChange = [this]() mutable {
-            float value = slider.getValue();
-            valueLabel.setText(String(value, 2), dontSendNotification);
-        };
-        slider.setRange(range.getStart(), range.getEnd(), 0.000001f);
-
-        attachment = std::make_unique<SliderParameterAttachment>(*param, slider, nullptr);
-        valueLabel.setText(String(param->getValue(), 2), dontSendNotification);
-#endif
+            attachment = std::make_unique<SliderParameterAttachment>(*param, slider, nullptr);
+            valueLabel.setText(String(param->getValue(), 2), dontSendNotification);
+        }
 
         valueLabel.valueChanged = [this](float newValue) mutable {
             auto minimum = param->getNormalisableRange().start;
@@ -321,9 +321,7 @@ public:
 
     int index;
 
-#if !PLUGDATA_STANDALONE
     std::unique_ptr<SliderParameterAttachment> attachment;
-#endif
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(AutomationSlider)
 };
@@ -556,15 +554,16 @@ public:
 
     void updateParameters()
     {
-#if PLUGDATA_STANDALONE
-        for (int p = 0; p < PluginProcessor::numParameters; p++) {
-            auto* param = dynamic_cast<PlugDataParameter*>(pd->getParameters()[p + 1]);
-
-            sliders.rows[p]->slider.setValue(param->getUnscaledValue());
+        if(ProjectInfo::isStandalone) {
+            for (int p = 0; p < PluginProcessor::numParameters; p++) {
+                auto* param = dynamic_cast<PlugDataParameter*>(pd->getParameters()[p + 1]);
+                
+                sliders.rows[p]->slider.setValue(param->getUnscaledValue());
+            }
         }
-#else
-        sliders.updateSliders();
-#endif
+        else {
+            sliders.updateSliders();
+        }
     }
 
     Viewport viewport;

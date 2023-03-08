@@ -6,8 +6,6 @@
 
 #pragma once
 
-#include <JuceHeader.h>
-
 #include "Utility/HashUtils.h"
 #include "Pd/PdInstance.h" // TODO: separate out MessageListener
 #include "Constants.h"
