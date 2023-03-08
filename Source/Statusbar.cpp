@@ -295,7 +295,7 @@ Statusbar::Statusbar(PluginProcessor* processor)
     directionButton->getProperties().set("Style", "SmallIcon");
     directionButton->setClickingTogglesState(true);
     directionButton->setToggleState(false, sendNotification);
-    directionButton->onClick = [=]() {
+    directionButton->onClick = [this]() {
         showDirection = directionButton->getToggleState();
     };
     
