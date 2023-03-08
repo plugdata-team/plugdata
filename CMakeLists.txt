@@ -181,8 +181,9 @@ foreach(core_SOURCE ${plugdata_sources})
 endforeach()
 
 file(GLOB plugdata_standalone_sources
-    ${SOURCES_DIRECTORY}/Standalone/*.cpp
-    ${SOURCES_DIRECTORY}/Standalone/*.h)
+    ${SOURCES_DIRECTORY}/Standalone/PlugDataApp.cpp
+    ${SOURCES_DIRECTORY}/Standalone/PlugDataWindow.h
+    ${SOURCES_DIRECTORY}/Standalone/InternalSynth.h)
 source_group("Source\\Standalone" FILES ${plugdata_standalone_sources})
 
 juce_add_gui_app(plugdata_standalone
@@ -295,11 +296,11 @@ else()
   message("-- CLAP plugin build will be disabed\n")
 endif()
 
-target_sources(plugdata_standalone PRIVATE ${SOURCES_DIRECTORY}/Utility/Config.cpp ${SOURCES_DIRECTORY}/Standalone/PlugDataApp.cpp)
-target_sources(plugdata PRIVATE ${SOURCES_DIRECTORY}/Utility/Config.cpp)
-target_sources(plugdata_fx PRIVATE ${SOURCES_DIRECTORY}/Utility/Config.cpp)
+target_sources(plugdata_standalone PRIVATE ${plugdata_standalone_sources} ${SOURCES_DIRECTORY}/Utility/Config.cpp ${SOURCES_DIRECTORY}/Standalone/InternalSynth.cpp)
+target_sources(plugdata PRIVATE ${SOURCES_DIRECTORY}/Utility/Config.cpp ${SOURCES_DIRECTORY}/Standalone/InternalSynth.cpp)
+target_sources(plugdata_fx PRIVATE ${SOURCES_DIRECTORY}/Utility/Config.cpp ${SOURCES_DIRECTORY}/Standalone/InternalSynth.cpp)
 if(APPLE)
-target_sources(plugdata_midi PRIVATE ${SOURCES_DIRECTORY}/Utility/Config.cpp)
+target_sources(plugdata_midi PRIVATE ${SOURCES_DIRECTORY}/Utility/Config.cpp ${SOURCES_DIRECTORY}/Standalone/InternalSynth.cpp)
 endif()
 
 target_compile_definitions(plugdata_standalone PUBLIC ${PLUGDATA_COMPILE_DEFINITIONS} JUCE_USE_CUSTOM_PLUGIN_STANDALONE_APP=1 PLUGDATA_STANDALONE=1)
@@ -326,7 +327,7 @@ endif()
 
 
 if(UNIX AND NOT APPLE)
-    target_link_libraries(plugdata_standalone PUBLIC "-Wl,-export-dynamic")
+    target_link_libraries(plugdata_standalone PUBLIC pd plugdata_core StandaloneBinaryData "-Wl,-export-dynamic")
 elseif(APPLE)
   target_link_libraries(plugdata_midi PRIVATE pd-multi plugdata_core)
 endif()

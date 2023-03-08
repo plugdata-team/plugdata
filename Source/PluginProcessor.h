@@ -8,14 +8,14 @@
 #include <juce_audio_processors/juce_audio_processors.h>
 #include <juce_audio_devices/juce_audio_devices.h>
 #include <juce_dsp/juce_dsp.h>
+#include "Utility/Config.h"
 
 #include "Pd/PdInstance.h"
 #include "Pd/PdLibrary.h"
 #include "Pd/PdPatch.h"
-#include "Utility/SettingsFile.h"
 
-#include "Utility/InternalSynth.h" // Move to impl?
-
+class InternalSynth;
+class SettingsFile;
 class StatusbarSource;
 class PlugDataLook;
 class PluginEditor;
@@ -158,7 +158,7 @@ public:
 
     // Only used by standalone!
     OwnedArray<MidiOutput> midiOutputs;
-    InternalSynth internalSynth;
+    std::unique_ptr<InternalSynth> internalSynth;
     std::atomic<bool> enableInternalSynth = false;
 
 private:
