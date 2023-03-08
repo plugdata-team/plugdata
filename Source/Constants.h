@@ -60,6 +60,7 @@ struct Icons {
     inline static const String Info = "W";
     inline static const String History = "X";
     inline static const String Protection = "Y";
+    inline static const String Direction = "{";
     
     inline static const String SavePatch = "Z";
     inline static const String ClosePatch = "[";
