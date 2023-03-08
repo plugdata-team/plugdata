@@ -765,6 +765,8 @@ void PluginEditor::updateCommandStatus()
         statusbar->presentationButton->setEnabled(true);
         statusbar->gridButton->setEnabled(true);
 
+        statusbar->directionButton->setEnabled(true);
+
         addObjectMenuButton.setEnabled(!locked);
     } else {
         statusbar->connectionStyleButton->setEnabled(false);
@@ -774,6 +776,8 @@ void PluginEditor::updateCommandStatus()
         statusbar->lockButton->setEnabled(false);
         statusbar->presentationButton->setEnabled(false);
         statusbar->gridButton->setEnabled(false);
+
+        statusbar->directionButton->setEnabled(false);
 
         undoButton.setEnabled(false);
         redoButton.setEnabled(false);
