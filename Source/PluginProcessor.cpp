@@ -3,31 +3,31 @@
  // For information on usage and redistribution, and for a DISCLAIMER OF ALL
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
+#include <clocale>
 
 #include <juce_gui_basics/juce_gui_basics.h>
 #include <juce_audio_basics/juce_audio_basics.h>
 #include <juce_dsp/juce_dsp.h>
+
+#include "PluginProcessor.h"
+
 #include "Utility/Config.h"
 #include "Utility/Fonts.h"
-
-#include "Sidebar/Sidebar.h"
-
-#ifdef JUCE_WINDOWS
-#    include "Utility/OSUtils.h"
-#endif
-
-#include <clocale>
-#include "PluginProcessor.h"
+#include "Utility/SettingsFile.h"
+#include "Utility/PluginParameter.h"
+#include "Utility/OSUtils.h"
 
 #include "Canvas.h"
 #include "PluginEditor.h"
 #include "LookAndFeel.h"
 #include "Tabbar.h"
 #include "Object.h"
-
-#include "Utility/PluginParameter.h"
 #include "Statusbar.h"
+
 #include "Dialogs/Dialogs.h"
+#include "Sidebar/Sidebar.h"
+
+#include "Standalone/InternalSynth.h"
 
 extern "C" {
 #include "x_libpd_extra_utils.h"
@@ -63,10 +63,10 @@ String PluginProcessor::pdlua_version = "pdlua 0.11.0 (lua 5.4)";
 
 PluginProcessor::PluginProcessor()
 #ifndef JucePlugin_PreferredChannelConfigurations
-    : AudioProcessor(buildBusesProperties())
-    ,
+    : AudioProcessor(buildBusesProperties()),
 #endif
-    pd::Instance("plugdata")
+    pd::Instance("plugdata"),
+    internalSynth(std::make_unique<InternalSynth>())
 {
     // Make sure to use dots for decimal numbers, pd requires that
     std::setlocale(LC_ALL, "C");
@@ -399,7 +399,7 @@ void PluginProcessor::prepareToPlay(double sampleRate, int samplesPerBlock)
     oversampler->initProcessing(samplesPerBlock);
 
     if (enableInternalSynth && ProjectInfo::isStandalone) {
-        internalSynth.prepare(sampleRate, samplesPerBlock, maxChannels);
+        internalSynth->prepare(sampleRate, samplesPerBlock, maxChannels);
     }
 
     audioAdvancement = 0;
@@ -505,12 +505,12 @@ void PluginProcessor::processBlock(AudioBuffer<float>& buffer, MidiBuffer& midiM
         }
         
         // If the internalSynth is enabled and loaded, let it process the midi
-        if (enableInternalSynth && internalSynth.isReady()) {
-            internalSynth.process(buffer, midiMessages);
-        } else if (!enableInternalSynth && internalSynth.isReady()) {
-            internalSynth.unprepare();
-        } else if (enableInternalSynth && !internalSynth.isReady()) {
-            internalSynth.prepare(getSampleRate(), AudioProcessor::getBlockSize(), std::max(totalNumInputChannels, totalNumOutputChannels));
+        if (enableInternalSynth && internalSynth->isReady()) {
+            internalSynth->process(buffer, midiMessages);
+        } else if (!enableInternalSynth && internalSynth->isReady()) {
+            internalSynth->unprepare();
+        } else if (enableInternalSynth && !internalSynth->isReady()) {
+            internalSynth->prepare(getSampleRate(), AudioProcessor::getBlockSize(), std::max(totalNumInputChannels, totalNumOutputChannels));
         }
     }
 
