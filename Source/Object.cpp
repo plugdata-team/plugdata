@@ -71,7 +71,7 @@ Object::Object(void* object, Canvas* parent) : ds(parent->dragState), gui(nullpt
 Object::~Object()
 {
     cnv->editor->removeModifierKeyListener(this);
-    
+
     if (attachedToMouse) {
         stopTimer();
     }
@@ -219,7 +219,7 @@ void Object::updateBounds()
 {
     if (gui) {
         cnv->pd->setThis();
-        
+
         auto newBounds = gui->getPdBounds();
         setObjectBounds(newBounds);
     }
@@ -666,7 +666,7 @@ void Object::mouseDown(MouseEvent const& e)
     }
 
     repaint();
-    
+
     ds.canvasDragStartPosition = cnv->getPosition();
 
     cnv->updateSidebarSelection();
@@ -694,7 +694,7 @@ void Object::mouseUp(MouseEvent const& e)
         auto* patch = &cnv->patch;
 
         cnv->objectGrid.handleMouseUp(e.getOffsetFromDragStart());
-        
+
         cnv->pd->enqueueFunction(
             [newObjectSizes, patch]() mutable {
                 patch->startUndoSequence("resize");
@@ -805,7 +805,7 @@ void Object::mouseUp(MouseEvent const& e)
 
         repaint();
     }
-    
+
     if (ds.wasDragDuplicated) {
         cnv->patch.endUndoSequence("Duplicate");
         ds.wasDragDuplicated = false;
@@ -863,17 +863,17 @@ void Object::mouseDrag(MouseEvent const& e)
         auto dragDistance = e.getOffsetFromDragStart();
 
         // In case we dragged near the edge and the canvas moved
-        auto canvasMoveOffset = ds.canvasDragStartPosition - getPosition();
+        auto canvasMoveOffset = ds.canvasDragStartPosition - cnv->getPosition();
 
         if (static_cast<bool>(cnv->gridEnabled.getValue()) && ds.componentBeingDragged) {
             dragDistance = cnv->objectGrid.performMove(this, dragDistance);
         }
-        
+
         // alt+drag will duplicate selection
         if (!ds.wasDragDuplicated && e.mods.isAltDown()) {
 
             Array<Point<int>> mouseDownObjectPositions; // Stores object positions for alt + drag
-            
+
             // Single for undo for duplicate + move
             cnv->patch.startUndoSequence("Duplicate");
 
@@ -884,7 +884,7 @@ void Object::mouseDrag(MouseEvent const& e)
                 });
 
             int draggedIdx = selection.indexOf(ds.componentBeingDragged.getComponent());
-            
+
             // Store origin object positions
             for (auto object : selection) {
                 mouseDownObjectPositions.add(object->getPosition());
@@ -894,22 +894,22 @@ void Object::mouseDrag(MouseEvent const& e)
             ds.wasDragDuplicated = true;
             cnv->duplicateSelection();
             cnv->cancelConnectionCreation();
-            
+
             selection = cnv->getSelectionOfType<Object>();
-            
+
             // Sort selection indexes to match pd indexes
             std::sort(selection.begin(), selection.end(),
                 [this](auto* a, auto* b) -> bool {
                     return cnv->objects.indexOf(a) < cnv->objects.indexOf(b);
                 });
-            
+
             int i = 0;
             for(auto* selected : selection)
             {
                 selected->originalBounds = selected->getBounds().withPosition(mouseDownObjectPositions[i]);
                 i++;
             }
-            
+
             if(isPositiveAndBelow(draggedIdx, selection.size())) {
                 ds.componentBeingDragged = selection[draggedIdx];
             }
