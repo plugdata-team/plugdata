@@ -34,7 +34,7 @@ static t_atom* fake_gatom_getatom(t_fake_gatom* x)
         binbuf_addv(x->a_text.te_binbuf, "f", 0.);
     } else if (x->a_flavor == A_SYMBOL && (ac != 1 || av[0].a_type != A_SYMBOL)) {
         binbuf_clear(x->a_text.te_binbuf);
-        binbuf_addv(x->a_text.te_binbuf, "s", &s_);
+        binbuf_addv(x->a_text.te_binbuf, "s", &libpd_this_instance()->pd_s_);
     }
     return (binbuf_getvec(x->a_text.te_binbuf));
 }

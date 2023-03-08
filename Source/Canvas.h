@@ -6,8 +6,6 @@
 
 #pragma once
 
-#include <JuceHeader.h>
-
 #include "ObjectGrid.h" // move to impl
 #include "Utility/RateReducer.h" // move to impl
 #include "Utility/ModifierKeyListener.h"

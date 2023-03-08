@@ -6,8 +6,7 @@
 
 #pragma once
 
-#include <JuceHeader.h>
-#include <map>
+#include <juce_gui_extra/juce_gui_extra.h>
 
 #include "Utility/StackShadow.h"
 #include "Utility/SettingsFile.h"

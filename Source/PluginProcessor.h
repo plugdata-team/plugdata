@@ -5,17 +5,16 @@
 */
 
 #pragma once
-
-#include <JuceHeader.h>
+#include <juce_audio_processors/juce_audio_processors.h>
+#include <juce_audio_devices/juce_audio_devices.h>
+#include <juce_dsp/juce_dsp.h>
 
 #include "Pd/PdInstance.h"
 #include "Pd/PdLibrary.h"
 #include "Pd/PdPatch.h"
 #include "Utility/SettingsFile.h"
 
-#if PLUGDATA_STANDALONE
-#    include "Utility/InternalSynth.h"
-#endif
+#include "Utility/InternalSynth.h" // Move to impl?
 
 class StatusbarSource;
 class PlugDataLook;
@@ -156,12 +155,11 @@ public:
     int lastLeftTab = -1;
     int lastRightTab = -1;
 
-#if PLUGDATA_STANDALONE
-    OwnedArray<MidiOutput> midiOutputs;
 
+    // Only used by standalone!
+    OwnedArray<MidiOutput> midiOutputs;
     InternalSynth internalSynth;
     std::atomic<bool> enableInternalSynth = false;
-#endif
 
 private:
     void processInternal();

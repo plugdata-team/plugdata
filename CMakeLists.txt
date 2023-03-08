@@ -116,13 +116,7 @@ else()
   list(APPEND plugdata_sources ${SOURCES_DIRECTORY}/Utility/FileSystemWatcher.cxx)
 endif()
 
-
-set(STANDALONE_COMPILE_DEFINITIONS
-    JUCE_USE_CUSTOM_PLUGIN_STANDALONE_APP=1
-    PLUGDATA_STANDALONE=1)
-
 set(PLUGDATA_COMPILE_DEFINITIONS
-    JUCE_APP_CONFIG_HEADER="${SOURCES_DIRECTORY}/PluginConfig.h"
     JUCE_DONT_DECLARE_PROJECTINFO=1
     JUCE_ALLOW_STATIC_NULL_VARIABLES=0
     JUCE_DISPLAY_SPLASH_SCREEN=0
@@ -130,7 +124,8 @@ set(PLUGDATA_COMPILE_DEFINITIONS
     JUCE_REPORT_APP_USAGE=0
     JUCE_LOG_ASSERTIONS=1
     JUCE_STRICT_REFCOUNTEDPOINTER=1
-    JUCE_WEB_BROWSER=0
+    JUCE_WEB_BROWSER=0 
+    JUCE_GLOBAL_MODULE_SETTINGS_INCLUDED=1
     PLUGDATA_VERSION="${PLUGDATA_VERSION}"
 )
 
@@ -160,13 +155,14 @@ endif()
 list(APPEND PLUGDATA_INCLUDE_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/Libraries/ELSE/sfont~/")
 list(APPEND PLUGDATA_INCLUDE_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/Libraries/pure-data/src")
 list(APPEND PLUGDATA_INCLUDE_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/Libraries/libpd/")
+list(APPEND PLUGDATA_INCLUDE_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/Libraries/JUCE/modules")
 list(APPEND PLUGDATA_INCLUDE_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/Libraries/concurrentqueue/")
 list(APPEND PLUGDATA_INCLUDE_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/Source/")
 
 add_library(plugdata_core STATIC ${plugdata_sources} ${plugdata_global_sources})
 target_compile_definitions(plugdata_core PUBLIC ${PLUGDATA_COMPILE_DEFINITIONS} ${LIBPD_MULTI_COMPILE_DEFINITIONS})
 target_include_directories(plugdata_core PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/Tests ${CMAKE_CURRENT_SOURCE_DIR}/Libraries/JUCE/modules ${CMAKE_CURRENT_SOURCE_DIR}/Libraries/pure-data/src ${CMAKE_CURRENT_SOURCE_DIR}/Source)
-target_link_libraries(plugdata_core PUBLIC pd-multi ${libs})
+target_link_libraries(plugdata_core PUBLIC ${libs})
 target_include_directories(plugdata_core PUBLIC "$<BUILD_INTERFACE:${PLUGDATA_INCLUDE_DIRECTORY}>")
 
 source_group("Source" FILES ${plugdata_global_sources})
@@ -299,41 +295,20 @@ else()
   message("-- CLAP plugin build will be disabed\n")
 endif()
 
+target_sources(plugdata_standalone PRIVATE ${SOURCES_DIRECTORY}/Utility/Config.cpp ${SOURCES_DIRECTORY}/Standalone/PlugDataApp.cpp)
+target_sources(plugdata PRIVATE ${SOURCES_DIRECTORY}/Utility/Config.cpp)
+target_sources(plugdata_fx PRIVATE ${SOURCES_DIRECTORY}/Utility/Config.cpp)
 if(APPLE)
-set_target_properties(plugdata PROPERTIES CMAKE_XCODE_ATTRIBUTE_CLANG_CXX_LIBRARY "libc++")
-set_target_properties(plugdata_fx PROPERTIES CMAKE_XCODE_ATTRIBUTE_CLANG_CXX_LIBRARY "libc++")
+target_sources(plugdata_midi PRIVATE ${SOURCES_DIRECTORY}/Utility/Config.cpp)
 endif()
 
-juce_generate_juce_header(plugdata_standalone)
-set_target_properties(plugdata_standalone PROPERTIES CXX_STANDARD 20)
-target_sources(plugdata_standalone PRIVATE ${plugdata_sources} ${plugdata_standalone_sources})
-
-juce_generate_juce_header(plugdata)
-set_target_properties(plugdata PROPERTIES CXX_STANDARD 20)
-
-juce_generate_juce_header(plugdata_fx)
-set_target_properties(plugdata_fx PROPERTIES CXX_STANDARD 20)
+target_compile_definitions(plugdata_standalone PUBLIC ${PLUGDATA_COMPILE_DEFINITIONS} JUCE_USE_CUSTOM_PLUGIN_STANDALONE_APP=1 PLUGDATA_STANDALONE=1)
+target_compile_definitions(plugdata PUBLIC ${PLUGDATA_COMPILE_DEFINITIONS} ${LIBPD_MULTI_COMPILE_DEFINITIONS})
+target_compile_definitions(plugdata_fx PUBLIC ${PLUGDATA_COMPILE_DEFINITIONS} ${LIBPD_MULTI_COMPILE_DEFINITIONS} PLUGDATA_FX=1)
 
 if(APPLE)
-juce_generate_juce_header(plugdata_midi)
-
-set_target_properties(plugdata_midi PROPERTIES CXX_STANDARD 20)
-set_target_properties(plugdata_midi PROPERTIES CMAKE_XCODE_ATTRIBUTE_CLANG_CXX_LIBRARY "libc++")
+target_compile_definitions(plugdata_midi PUBLIC ${PLUGDATA_COMPILE_DEFINITIONS} ${LIBPD_MULTI_COMPILE_DEFINITIONS} PLUGDATA_MIDI=1)
 endif()
-
-target_compile_definitions(plugdata_standalone PUBLIC ${PLUGDATA_COMPILE_DEFINITIONS} ${STANDALONE_COMPILE_DEFINITIONS})
-
-target_compile_definitions(plugdata PUBLIC ${PLUGDATA_COMPILE_DEFINITIONS})
-target_compile_definitions(plugdata PUBLIC ${LIBPD_MULTI_COMPILE_DEFINITIONS})
-
-target_compile_definitions(plugdata_fx PUBLIC ${PLUGDATA_COMPILE_DEFINITIONS})
-target_compile_definitions(plugdata_fx PUBLIC ${LIBPD_MULTI_COMPILE_DEFINITIONS})
-
-if(APPLE)
-target_compile_definitions(plugdata_midi PUBLIC ${PLUGDATA_COMPILE_DEFINITIONS})
-target_compile_definitions(plugdata_midi PUBLIC ${LIBPD_MULTI_COMPILE_DEFINITIONS})
-endif()
-
 
 target_include_directories(plugdata_standalone PUBLIC "$<BUILD_INTERFACE:${PLUGDATA_INCLUDE_DIRECTORY}>")
 target_include_directories(plugdata PUBLIC "$<BUILD_INTERFACE:${PLUGDATA_INCLUDE_DIRECTORY}>")
@@ -353,17 +328,17 @@ endif()
 if(UNIX AND NOT APPLE)
     target_link_libraries(plugdata_standalone PUBLIC "-Wl,-export-dynamic")
 elseif(APPLE)
-  target_link_libraries(plugdata_midi PRIVATE plugdata_core)
+  target_link_libraries(plugdata_midi PRIVATE pd-multi plugdata_core)
 endif()
 
 if(MSVC)
-target_link_libraries(plugdata_standalone PRIVATE pd ${CMAKE_CURRENT_SOURCE_DIR}/Plugins/Standalone/pd.lib ${libs} StandaloneBinaryData)
+target_link_libraries(plugdata_standalone PRIVATE pd ${CMAKE_CURRENT_SOURCE_DIR}/Plugins/Standalone/pd.lib plugdata_core StandaloneBinaryData)
 else()
-target_link_libraries(plugdata_standalone PRIVATE pd ${libs} StandaloneBinaryData)
+target_link_libraries(plugdata_standalone PRIVATE pd plugdata_core StandaloneBinaryData)
 endif()
 
-target_link_libraries(plugdata PRIVATE plugdata_core)
-target_link_libraries(plugdata_fx PRIVATE plugdata_core)
+target_link_libraries(plugdata PRIVATE pd-multi plugdata_core)
+target_link_libraries(plugdata_fx PRIVATE pd-multi plugdata_core)
 
 set_target_properties(plugdata_standalone PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${PLUGDATA_PLUGINS_LOCATION}/Standalone)
 set_target_properties(plugdata_standalone PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${PLUGDATA_PLUGINS_LOCATION}/Standalone)

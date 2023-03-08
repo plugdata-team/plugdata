@@ -6,8 +6,6 @@
 
 #pragma once
 
-#include <JuceHeader.h>
-
 class Connection;
 class Object;
 class Canvas;

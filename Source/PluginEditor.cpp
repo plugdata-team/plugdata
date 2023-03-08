@@ -4,9 +4,10 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
 */
 
-#if PLUGDATA_STANDALONE
-#    include "Standalone/PlugDataWindow.h"
-#endif
+#include <juce_gui_basics/juce_gui_basics.h>
+#include <juce_audio_processors/juce_audio_processors.h>
+#include "Utility/Config.h"
+#include "Utility/Fonts.h"
 
 #include "PluginEditor.h"
 #include "PluginProcessor.h"
@@ -20,6 +21,7 @@
 #include "Objects/ObjectBase.h" // TODO: We shouldn't need this!
 #include "Dialogs/Dialogs.h"
 #include "Statusbar.h"
+#include "Sidebar/Sidebar.h"
 #include "Object.h"
 
 class ZoomLabel : public TextButton
@@ -60,9 +62,9 @@ public:
 
 bool wantsNativeDialog()
 {
-#if PLUGDATA_STANDALONE
-    return true;
-#endif
+    if(ProjectInfo::isStandalone) {
+        return true;
+    }
 
     File homeDir = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory).getChildFile("plugdata");
     File settingsFile = homeDir.getChildFile("Settings.xml");
@@ -81,7 +83,7 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     , pd(&p)
     , statusbar(std::make_unique<Statusbar>(&p))
     , zoomLabel(std::make_unique<ZoomLabel>())
-    , sidebar(&p, this)
+    , sidebar(std::make_unique<Sidebar>(&p, this))
     , tooltipWindow(this, 500)
     , tooltipShadow(DropShadow(Colour(0, 0, 0).withAlpha(0.2f), 4, { 0, 0 }), Corners::defaultCornerRadius)
     , splitView(this)
@@ -97,11 +99,11 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     setResizable(true, false);
 
     // In the standalone, the resizer handling is done on the window class
-#if !PLUGDATA_STANDALONE
-    cornerResizer = std::make_unique<MouseRateReducedComponent<ResizableCornerComponent>>(this, getConstrainer());
-    cornerResizer->setAlwaysOnTop(true);
-    addAndMakeVisible(cornerResizer.get());
-#endif
+    if(!ProjectInfo::isStandalone) {
+        cornerResizer = std::make_unique<MouseRateReducedComponent<ResizableCornerComponent>>(this, getConstrainer());
+        cornerResizer->setAlwaysOnTop(true);
+        addAndMakeVisible(cornerResizer.get());
+    }
 
     tooltipWindow.setOpaque(false);
     tooltipWindow.setLookAndFeel(&pd->lnf.get());
@@ -148,7 +150,7 @@ PluginEditor::PluginEditor(PluginProcessor& p)
 
     addAndMakeVisible(*statusbar);
     addAndMakeVisible(splitView);
-    addAndMakeVisible(sidebar);
+    addAndMakeVisible(*sidebar);
 
     for (auto* button : std::vector<TextButton*> { &mainMenuButton, &undoButton, &redoButton, &addObjectMenuButton, &pinButton, &hideSidebarButton }) {
         button->getProperties().set("Style", "LargeIcon");
@@ -159,11 +161,7 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     // Show settings
     mainMenuButton.setTooltip("Settings");
     mainMenuButton.onClick = [this]() {
-#ifdef PLUGDATA_STANDALONE
-        Dialogs::showMainMenu(this, &mainMenuButton);
-#else
-        Dialogs::showMainMenu(this, &mainMenuButton);
-#endif
+    Dialogs::showMainMenu(this, &mainMenuButton);
     };
 
     addAndMakeVisible(mainMenuButton);
@@ -192,7 +190,7 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     hideSidebarButton.onClick = [this]() {
         bool show = !hideSidebarButton.getToggleState();
 
-        sidebar.showSidebar(show);
+        sidebar->showSidebar(show);
         hideSidebarButton.setButtonText(show ? Icons::Hide : Icons::Show);
         hideSidebarButton.setTooltip(show ? "Hide Sidebar" : "Show Sidebar");
         pinButton.setVisible(show);
@@ -207,20 +205,20 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     pinButton.setClickingTogglesState(true);
     pinButton.setColour(ComboBox::outlineColourId, findColour(TextButton::buttonColourId));
     pinButton.setConnectedEdges(12);
-    pinButton.onClick = [this]() { sidebar.pinSidebar(pinButton.getToggleState()); };
+    pinButton.onClick = [this]() { sidebar->pinSidebar(pinButton.getToggleState()); };
 
     addAndMakeVisible(hideSidebarButton);
 
-    sidebar.setSize(250, pd->lastUIHeight - 40);
+    sidebar->setSize(250, pd->lastUIHeight - 40);
     setSize(pd->lastUIWidth, pd->lastUIHeight);
 
     // Set minimum bounds
     setResizeLimits(835, 305, 999999, 999999);
 
-    sidebar.toFront(false);
+    sidebar->toFront(false);
 
     // Make sure existing console messages are processed
-    sidebar.updateConsole();
+    sidebar->updateConsole();
     updateCommandStatus();
 
     addModifierKeyListener(statusbar.get());
@@ -298,26 +296,25 @@ void PluginEditor::paintOverChildren(Graphics& g)
 
 void PluginEditor::resized()
 {
-    splitView.setBounds(0, toolbarHeight, (getWidth() - sidebar.getWidth()) + 1, getHeight() - toolbarHeight - (statusbar->getHeight()));
-    sidebar.setBounds(getWidth() - sidebar.getWidth(), toolbarHeight, sidebar.getWidth(), getHeight() - toolbarHeight);
-    statusbar->setBounds(0, getHeight() - statusbar->getHeight(), getWidth() - sidebar.getWidth(), statusbar->getHeight());
+    splitView.setBounds(0, toolbarHeight, (getWidth() - sidebar->getWidth()) + 1, getHeight() - toolbarHeight - (statusbar->getHeight()));
+    sidebar->setBounds(getWidth() - sidebar->getWidth(), toolbarHeight, sidebar->getWidth(), getHeight() - toolbarHeight);
+    statusbar->setBounds(0, getHeight() - statusbar->getHeight(), getWidth() - sidebar->getWidth(), statusbar->getHeight());
 
     mainMenuButton.setBounds(20, 0, toolbarHeight, toolbarHeight);
     undoButton.setBounds(90, 0, toolbarHeight, toolbarHeight);
     redoButton.setBounds(160, 0, toolbarHeight, toolbarHeight);
     addObjectMenuButton.setBounds(230, 0, toolbarHeight, toolbarHeight);
 
-#ifdef PLUGDATA_STANDALONE
-    auto useNativeTitlebar = SettingsFile::getInstance()->getProperty<bool>("native_window");
-    auto windowControlsOffset = useNativeTitlebar ? 70.0f : 170.0f;
-#else
-    int const resizerSize = 18;
-    cornerResizer->setBounds(getWidth() - resizerSize,
-        getHeight() - resizerSize,
-        resizerSize, resizerSize);
+    auto useNonNativeTitlebar = ProjectInfo::isStandalone && !SettingsFile::getInstance()->getProperty<bool>("native_window");
+    
+    auto windowControlsOffset = useNonNativeTitlebar ? 170.0f : 70.0f;
 
-    auto windowControlsOffset = 70.0f;
-#endif
+    if(!ProjectInfo::isStandalone) {
+        int const resizerSize = 18;
+        cornerResizer->setBounds(getWidth() - resizerSize,
+            getHeight() - resizerSize,
+            resizerSize, resizerSize);
+    }
 
     int hidePosition = getWidth() - windowControlsOffset;
     int pinPosition = hidePosition - 65;
@@ -364,11 +361,12 @@ void PluginEditor::mouseMagnify(MouseEvent const& e, float scrollFactor)
     scale = value;
 }
 
-#if PLUGDATA_STANDALONE
 
 void PluginEditor::mouseDown(MouseEvent const& e)
 {
-
+    // no window dragging by toolbar in plugin!
+    if(!ProjectInfo::isStandalone) return;
+    
     if (e.getNumberOfClicks() >= 2) {
 
 #    if JUCE_MAC
@@ -384,12 +382,12 @@ void PluginEditor::mouseDown(MouseEvent const& e)
         return;
 
 #    else
-        findParentComponentOfClass<PlugDataWindow>()->maximiseButtonPressed();
+        findParentComponentOfClass<DocumentWindow>()->maximiseButtonPressed();
 #    endif
     }
 
     if (e.getPosition().getY() < toolbarHeight) {
-        if (auto* window = findParentComponentOfClass<PlugDataWindow>()) {
+        if (auto* window = findParentComponentOfClass<DocumentWindow>()) {
             if (!window->isUsingNativeTitleBar())
                 windowDragger.startDraggingComponent(window, e.getEventRelativeTo(window));
         }
@@ -398,14 +396,15 @@ void PluginEditor::mouseDown(MouseEvent const& e)
 
 void PluginEditor::mouseDrag(MouseEvent const& e)
 {
+    if(!ProjectInfo::isStandalone) return;
+    
     if (!isMaximised) {
-        if (auto* window = findParentComponentOfClass<PlugDataWindow>()) {
+        if (auto* window = findParentComponentOfClass<DocumentWindow>()) {
             if (!window->isUsingNativeTitleBar())
                 windowDragger.dragComponent(window, e.getEventRelativeTo(window), nullptr);
         }
     }
 }
-#endif
 
 bool PluginEditor::isInterestedInFileDrag(StringArray const& files)
 {
@@ -538,7 +537,7 @@ void PluginEditor::closeTab(Canvas* cnv)
     
     auto* patch = &cnv->patch;
 
-    sidebar.hideParameters();
+    sidebar->hideParameters();
 
     cnv->getTabbar()->removeTab(tabIdx);
 
@@ -1072,11 +1071,11 @@ bool PluginEditor::perform(InvocationInfo const& info)
         return true;
     }
     case CommandIDs::ShowBrowser: {
-        sidebar.showPanel(sidebar.isShowingBrowser() ? 0 : 1);
+        sidebar->showPanel(sidebar->isShowingBrowser() ? 0 : 1);
         return true;
     }
     case CommandIDs::Search: {
-        sidebar.showPanel(3);
+        sidebar->showPanel(3);
         return true;
     }
     }
@@ -1226,7 +1225,7 @@ bool PluginEditor::perform(InvocationInfo const& info)
         return true;
     }
     case CommandIDs::ClearConsole: {
-        sidebar.clearConsole();
+        sidebar->clearConsole();
         return true;
     }
     case CommandIDs::ShowSettings: {
@@ -1304,15 +1303,13 @@ bool PluginEditor::perform(InvocationInfo const& info)
 
 bool PluginEditor::wantsRoundedCorners()
 {
-#if PLUGDATA_STANDALONE
-    if (auto* window = findParentComponentOfClass<PlugDataWindow>()) {
+    if(!ProjectInfo::isStandalone) return false;
+    
+    if (auto* window = findParentComponentOfClass<DocumentWindow>()) {
         return !window->isUsingNativeTitleBar() && Desktop::canUseSemiTransparentWindows();
     } else {
         return true;
     }
-#else
-    return false;
-#endif
 }
 
 void PluginEditor::updateSplitOutline()

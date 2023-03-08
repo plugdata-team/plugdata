@@ -4,7 +4,7 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
-#include "../Dialogs/Dialogs.h"
+#include "Dialogs/Dialogs.h"
 
 struct t_fake_textbuf {
     t_object b_ob;

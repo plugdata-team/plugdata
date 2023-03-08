@@ -3,11 +3,14 @@
  // For information on usage and redistribution, and for a DISCLAIMER OF ALL
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
+#include <juce_gui_basics/juce_gui_basics.h>
+
+#include "Utility/Config.h"
+#include "Utility/Fonts.h"
 
 #include "PdPatch.h"
-
 #include "PdInstance.h"
-#include "../Objects/ObjectBase.h"
+#include "Objects/ObjectBase.h"
 
 extern "C" {
 #include <m_pd.h>
@@ -444,7 +447,7 @@ void Patch::deselectAll()
     instance->enqueueFunction(
         [this]() {
             glist_noselect(getPointer());
-            EDITOR->canvas_undo_already_set_move = 0;
+            libpd_this_instance()->pd_gui->i_editor->canvas_undo_already_set_move = 0;
         });
 }
 
@@ -605,7 +608,8 @@ void Patch::moveObjects(std::vector<void*> const& objects, int dx, int dy)
             libpd_moveselection(getPointer(), dx, dy);
 
             glist_noselect(getPointer());
-            EDITOR->canvas_undo_already_set_move = 0;
+            
+            libpd_this_instance()->pd_gui->i_editor->canvas_undo_already_set_move = 0;
             setCurrent();
         });
 }
@@ -649,7 +653,7 @@ void Patch::undo()
         [this]() {
             setCurrent();
             glist_noselect(getPointer());
-            EDITOR->canvas_undo_already_set_move = 0;
+            libpd_this_instance()->pd_gui->i_editor->canvas_undo_already_set_move = 0;
 
             libpd_undo(getPointer());
 
@@ -663,7 +667,7 @@ void Patch::redo()
         [this]() {
             setCurrent();
             glist_noselect(getPointer());
-            EDITOR->canvas_undo_already_set_move = 0;
+            libpd_this_instance()->pd_gui->i_editor->canvas_undo_already_set_move = 0;
 
             libpd_redo(getPointer());
 

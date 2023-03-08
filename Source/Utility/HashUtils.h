@@ -1,7 +1,5 @@
 #pragma once
 
-#include <JuceHeader.h>
-
 typedef uint32_t hash32;
 typedef uint8_t u8;
 #define EMPTY_HASH ((hash32)0x811c9dc5)

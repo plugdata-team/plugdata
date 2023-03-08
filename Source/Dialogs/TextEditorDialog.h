@@ -10,9 +10,8 @@
  */
 
 #pragma once
-#include <JuceHeader.h>
 
-#include "../Constants.h"
+#include "Constants.h"
 
 #define GUTTER_WIDTH 48.f
 #define CURSOR_WIDTH 3.f

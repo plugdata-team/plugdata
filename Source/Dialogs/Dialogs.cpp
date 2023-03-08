@@ -3,7 +3,11 @@
  // For information on usage and redistribution, and for a DISCLAIMER OF ALL
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
-#include <JuceHeader.h>
+
+#include <juce_gui_basics/juce_gui_basics.h>
+#include <juce_audio_devices/juce_audio_devices.h>
+#include "Utility/Config.h"
+#include "Utility/Fonts.h"
 
 #include "Dialogs.h"
 
@@ -11,6 +15,7 @@
 #include "PluginEditor.h"
 #include "PluginProcessor.h"
 
+#include "Sidebar/Sidebar.h"
 #include "Object.h"
 #include "Objects/ObjectBase.h"
 #include "SaveDialog.h"
@@ -19,7 +24,7 @@
 #include "TextEditorDialog.h"
 #include "ObjectBrowserDialog.h"
 #include "ObjectReferenceDialog.h"
-#include "../Heavy/HeavyExportDialog.h"
+#include "Heavy/HeavyExportDialog.h"
 #include "MainMenu.h"
 #include "Canvas.h"
 
@@ -353,9 +358,9 @@ void Dialogs::showCanvasRightClickMenu(Canvas* cnv, Component* originalComponent
         case 12:
             if (originalComponent == cnv) {
                 // Open help
-                editor->sidebar.showParameters("canvas", cnv->getInspectorParameters());
+                editor->sidebar->showParameters("canvas", cnv->getInspectorParameters());
             } else {
-                editor->sidebar.showParameters(object->gui->getText(), params);
+                editor->sidebar->showParameters(object->gui->getText(), params);
             }
 
             break;

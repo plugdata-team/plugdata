@@ -3,7 +3,11 @@
  // For information on usage and redistribution, and for a DISCLAIMER OF ALL
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
+#include <juce_gui_basics/juce_gui_basics.h>
+#include "Utility/Config.h"
+#include "Utility/Fonts.h"
 
+#include "Sidebar/Sidebar.h"
 #include "Statusbar.h"
 #include "Canvas.h"
 #include "Object.h"
@@ -535,19 +539,19 @@ void Canvas::updateSidebarSelection()
         auto params = object->gui ? object->gui->getParameters() : ObjectParameters();
 
         if (!object->gui) {
-            editor->sidebar.hideParameters();
+            editor->sidebar->hideParameters();
             return;
         }
 
         if (commandLocked == var(true)) {
-            editor->sidebar.hideParameters();
-        } else if (!params.empty() || editor->sidebar.isPinned()) {
-            editor->sidebar.showParameters(object->gui->getText(), params);
+            editor->sidebar->hideParameters();
+        } else if (!params.empty() || editor->sidebar->isPinned()) {
+            editor->sidebar->showParameters(object->gui->getText(), params);
         } else {
-            editor->sidebar.hideParameters();
+            editor->sidebar->hideParameters();
         }
     } else {
-        editor->sidebar.hideParameters();
+        editor->sidebar->hideParameters();
     }
 }
 
@@ -627,7 +631,7 @@ void Canvas::deselectAll()
         if (!c.wasObjectDeleted())
             c->repaint();
 
-    editor->sidebar.hideParameters();
+    editor->sidebar->hideParameters();
 }
 
 void Canvas::hideAllActiveEditors()
@@ -792,7 +796,7 @@ void Canvas::duplicateSelection()
 void Canvas::removeSelection()
 {
     // Make sure object isn't selected and stop updating gui
-    editor->sidebar.hideParameters();
+    editor->sidebar->hideParameters();
 
     // Make sure nothing is selected
     patch.deselectAll();

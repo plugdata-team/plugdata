@@ -5,7 +5,7 @@
  */
 
 #include "Canvas.h"
-#include "../Utility/OSUtils.h"
+#include "Utility/OSUtils.h"
 
 #if JUCE_LINUX
 #    include <unistd.h>

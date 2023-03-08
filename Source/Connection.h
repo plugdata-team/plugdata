@@ -6,7 +6,6 @@
 
 #pragma once
 
-#include <JuceHeader.h>
 #include <concurrentqueue.h> // Move to impl
 #include "Iolet.h" // Move to impl
 #include "Pd/PdInstance.h" // TODO: separate out messageListener

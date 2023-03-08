@@ -24,14 +24,15 @@
 
 #pragma once
 
-#include <JuceHeader.h>
+#include <juce_audio_plugin_client/juce_audio_plugin_client.h>
+#include <juce_audio_utils/juce_audio_utils.h>
 
-#include "../PluginEditor.h"
+#include "Constants.h"
+#include "Utility/StackShadow.h"
+#include "Utility/OSUtils.h"
+#include "Utility/SettingsFile.h"
+#include "Utility/RateReducer.h"
 
-#include "../Utility/StackShadow.h"
-#include "../Utility/OSUtils.h"
-#include "../Utility/SettingsFile.h"
-#include "../Utility/RateReducer.h"
 // For each OS, we have a different approach to rendering the window shadow
 // macOS:
 // - Use the native shadow, it works fine
@@ -236,7 +237,7 @@ public:
     {
         return false;
     }
-
+        
     Image getIAAHostIcon(int size)
     {
         return {};
@@ -562,10 +563,12 @@ public:
     {
         return pluginHolder->processor.get();
     }
+        
+    /*
     AudioDeviceManager& getDeviceManager() const noexcept
     {
         return pluginHolder->deviceManager;
-    }
+    } */
 
     /** Deletes and re-creates the plugin, resetting it to its default state. */
     void resetToDefaultState()
@@ -679,6 +682,8 @@ public:
     {
         return pluginHolder.get();
     }
+        
+    bool hasOpenedDialog();
 
     std::unique_ptr<StandalonePluginHolder> pluginHolder;
 
@@ -716,7 +721,7 @@ private:
         void paintOverChildren(Graphics& g) override
         {
 #if JUCE_LINUX
-            if (!owner.isUsingNativeTitleBar() && !dynamic_cast<PluginEditor*>(editor.get())->openedDialog) {
+            if (!owner.isUsingNativeTitleBar() && !owner.hasOpenedDialog()) {
                 g.setColour(findColour(PlugDataColour::outlineColourId));
 
                 if (!Desktop::canUseSemiTransparentWindows()) {

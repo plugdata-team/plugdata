@@ -18,11 +18,15 @@
    EXPRESSED OR IMPLIED, INCLUDING MERCHANTABILITY AND FITNESS FOR PURPOSE, ARE
    DISCLAIMED.
 */
+#include <juce_gui_basics/juce_gui_basics.h>
 
-#include <JuceHeader.h>
+#include "Utility/Config.h"
+#include "Utility/Fonts.h"
+
 #include "PlugDataWindow.h"
-#include "../Canvas.h"
-#include "../PluginProcessor.h"
+#include "Canvas.h"
+#include "PluginProcessor.h"
+#include "PluginEditor.h"
 
 #include "Dialogs/Dialogs.h"
 
@@ -165,6 +169,13 @@ protected:
     ApplicationProperties appProperties;
     std::unique_ptr<PlugDataWindow> mainWindow;
 };
+
+
+bool PlugDataWindow::hasOpenedDialog()
+{
+    auto* editor = dynamic_cast<PluginEditor*>(mainComponent->getEditor());
+    return editor->openedDialog.get() != nullptr;
+}
 
 void PlugDataWindow::closeAllPatches()
 {

@@ -6,8 +6,6 @@
 
 #pragma once
 
-#include <JuceHeader.h>
-
 extern "C" {
 #include <z_libpd.h>
 #include <s_inter.h>
@@ -15,7 +13,7 @@ extern "C" {
 
 #include <concurrentqueue.h>
 
-#include "../Utility/StringUtils.h"
+#include "Utility/StringUtils.h"
 
 namespace pd {
 

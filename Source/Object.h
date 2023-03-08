@@ -6,7 +6,6 @@
 
 #pragma once
 
-#include <JuceHeader.h>
 #include "Utility/ModifierKeyListener.h"
 
 class ObjectBase;

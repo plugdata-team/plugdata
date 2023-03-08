@@ -6,7 +6,8 @@
 
 #pragma once
 
-#include <JuceHeader.h>
+#include "Utility/Config.h"
+#include <juce_data_structures/juce_data_structures.h>
 
 struct Icons {
     inline static const String Open = "b";
@@ -128,160 +129,373 @@ enum PlugDataColour {
 };
 
 
-enum FontStyle {
-    Regular,
-    Bold,
-    Semibold,
-    Thin,
-    Monospace,
+enum CommandIDs {
+    NewProject = 1,
+    OpenProject,
+    SaveProject,
+    SaveProjectAs,
+    CloseTab,
+    Undo,
+    Redo,
+
+    Lock,
+    ConnectionStyle,
+    ConnectionPathfind,
+    ZoomIn,
+    ZoomOut,
+    ZoomNormal,
+    Copy,
+    Paste,
+    Cut,
+    Delete,
+    Duplicate,
+    Encapsulate,
+    CreateConnection,
+    SelectAll,
+    ShowBrowser,
+    Search,
+    NextTab,
+    PreviousTab,
+    ToggleGrid,
+    ClearConsole,
+    ShowSettings,
+    ShowReference,
+    NumItems
 };
 
-struct Fonts {
-    Fonts()
-    {
-        Typeface::setTypefaceCacheSize(7);
+enum ObjectIDs {
+    NewObject = 100,
+    NewComment,
+    NewBang,
+    NewMessage,
+    NewToggle,
+    NewNumbox,
+    NewVerticalSlider,
+    NewHorizontalSlider,
+    NewVerticalRadio,
+    NewHorizontalRadio,
+    NewFloatAtom,
+    NewSymbolAtom,
+    NewListAtom,
+    NewArray,
+    NewGraphOnParent,
+    NewCanvas,
+    NewKeyboard,
+    NewVUMeterObject,
+    NewButton,
+    NewNumboxTilde,
+    NewOscilloscope,
+    NewFunction,
+    NewMessbox,
+    NewBicoeff,
+    NumEssentialObjects,
 
-        // jassert(!instance);
+    NewMetro,
+    NewCounter,
+    NewSel,
+    NewRoute,
+    NewExpr,
+    NewLoadbang,
+    NewPack,
+    NewUnpack,
+    NewPrint,
+    NewNetsend,
+    NewNetreceive,
+    NewTimer,
+    NewDelay,
+    NewTimedGate,
 
-        // Our unicode font is too big, the compiler will run out of memory
-        // To prevent this, we split the BinaryData into multiple files, and add them back together here
-        std::vector<char> interUnicode;
-        int i = 0;
-        while (true) {
-            int size;
-            auto* resource = BinaryData::getNamedResource((String("InterUnicode_") + String(i) + "_ttf").toRawUTF8(), size);
+    NewCrusher,
+    NewDrive,
+    NewFlanger,
+    NewReverb,
+    NewFreeze,
+    NewFreqShift,
+    NewPhaser,
+    NewShaper,
+    NewRm,
+    NewTremolo,
+    NewVibrato,
+    NewVocoder,
+    NewSignalDelay,
 
-            if (!resource) {
-                break;
-            }
+    NewOsc,
+    NewPhasor,
+    NewSaw,
+    NewSaw2,
+    NewSquare,
+    NewTriangle,
+    NewImp,
+    NewImp2,
+    NewWavetable,
+    NewPlaits,
+    NewBlOsc,
+    NewBlSaw,
+    NewBlSaw2,
+    NewBlSquare,
+    NewBlTriangle,
+    NewBlImp,
+    NewBlImp2,
+    NewBlWavetable,
 
-            interUnicode.insert(interUnicode.end(), resource, resource + size);
-            i++;
-        }
+    NewAdsr,
+    NewAsr,
+    NewCurve,
+    NewDecay,
+    NewEnvelope,
+    NewEnvgen,
+    NewLfnoise,
+    NewSignalLine,
+    NewRamp,
+    NewSah,
+    NewSignalSlider,
+    NewVline,
 
-        // Initialise typefaces
-        defaultTypeface = Typeface::createSystemTypefaceFor(interUnicode.data(), interUnicode.size());
-        currentTypeface = defaultTypeface;
+    NewLop,
+    NewVcf,
+    NewLores,
+    NewSvf,
+    NewBob,
+    NewOnepole,
+    NewReson,
+    NewAllpass,
+    NewComb,
+    NewHip,
 
-        thinTypeface = Typeface::createSystemTypefaceFor(BinaryData::InterThin_ttf, BinaryData::InterThin_ttfSize);
+    NewDac,
+    NewAdc,
+    NewOut,
+    NewBlocksize,
+    NewSamplerate,
+    NewSetdsp,
 
-        boldTypeface = Typeface::createSystemTypefaceFor(BinaryData::InterBold_ttf, BinaryData::InterBold_ttfSize);
+    NewMidiIn,
+    NewMidiOut,
+    NewNoteIn,
+    NewNoteOut,
+    NewCtlIn,
+    NewCtlOut,
+    NewPgmIn,
+    NewPgmOut,
+    NewSysexIn,
+    NewSysexOut,
+    NewMtof,
+    NewFtom,
 
-        semiBoldTypeface = Typeface::createSystemTypefaceFor(BinaryData::InterSemiBold_ttf, BinaryData::InterSemiBold_ttfSize);
+    NewArraySet,
+    NewArrayGet,
+    NewArrayDefine,
+    NewArraySize,
+    NewArrayMin,
+    NewArrayMax,
+    NewArrayRandom,
+    NewArrayQuantile,
 
-        iconTypeface = Typeface::createSystemTypefaceFor(BinaryData::IconFont_ttf, BinaryData::IconFont_ttfSize);
+    NewListAppend,
+    NewListPrepend,
+    NewListStore,
+    NewListSplit,
+    NewListTrim,
+    NewListLength,
+    NewListFromSymbol,
+    NewListToSymbol,
 
-        monoTypeface = Typeface::createSystemTypefaceFor(BinaryData::IBMPlexMono_ttf, BinaryData::IBMPlexMono_ttfSize);
+    NewAdd,
+    NewSubtract,
+    NewMultiply,
+    NewDivide,
+    NewModulo,
+    NewInverseSubtract,
+    NewInverseDivide,
+    NewBiggerThan,
+    NewSmallerThan,
+    NewBiggerThanOrEqual,
+    NewSmallerThanOrEqual,
+    NewEquals,
+    NewNotEquals,
 
-        instance = this;
-    }
+    NewSignalAdd,
+    NewSignalSubtract,
+    NewSignalMultiply,
+    NewSignalDivide,
+    NewSignalModulo,
+    NewSignalInverseSubtract,
+    NewSignalInverseDivide,
+    NewSignalBiggerThan,
+    NewSignalSmallerThan,
+    NewSignalBiggerThanOrEqual,
+    NewSignalSmallerThanOrEqual,
+    NewSignalEquals,
+    NewSignalNotEquals,
 
-    static Font getCurrentFont() { return Font(instance->currentTypeface); }
-    static Font getDefaultFont() { return Font(instance->defaultTypeface); }
-    static Font getBoldFont() { return Font(instance->boldTypeface); }
-    static Font getSemiBoldFont() { return Font(instance->semiBoldTypeface); }
-    static Font getThinFont() { return Font(instance->thinTypeface); }
-    static Font getIconFont() { return Font(instance->iconTypeface); }
-    static Font getMonospaceFont() { return Font(instance->monoTypeface); }
+    NumObjects
+};
 
-    static Font setCurrentFont(Font font) { return instance->currentTypeface = font.getTypefacePtr(); }
-    
-    // For drawing icons with icon font
-    static void drawIcon(Graphics& g, String const& icon, Rectangle<int> bounds, Colour colour, int fontHeight = -1, bool centred = true)
-    {
-        if (fontHeight < 0)
-            fontHeight = bounds.getHeight() / 1.2f;
+const std::map<ObjectIDs, String> objectNames {
+    { NewObject, "" },
+    { NewComment, "comment" },
+    { NewBang, "bng" },
+    { NewMessage, "msg" },
+    { NewToggle, "tgl" },
+    { NewNumbox, "nbx" },
+    { NewVerticalSlider, "vsl" },
+    { NewHorizontalSlider, "hsl" },
+    { NewVerticalRadio, "vradio" },
+    { NewHorizontalRadio, "hradio" },
+    { NewFloatAtom, "floatatom" },
+    { NewSymbolAtom, "symbolatom" },
+    { NewListAtom, "listbox" },
+    { NewArray, "array" },
+    { NewGraphOnParent, "graph" },
+    { NewCanvas, "cnv" },
+    { NewKeyboard, "keyboard" },
+    { NewVUMeterObject, "vu" },
+    { NewButton, "button" },
+    { NewNumboxTilde, "numbox~" },
+    { NewOscilloscope, "oscope~" },
+    { NewFunction, "function" },
+    { NewMessbox, "messbox" },
+    { NewBicoeff, "bicoeff" },
 
-        auto justification = centred ? Justification::centred : Justification::centredLeft;
-        g.setFont(Fonts::getIconFont().withHeight(fontHeight));
-        g.setColour(colour);
-        g.drawText(icon, bounds, justification, false);
-    }
+    { NewMetro, "metro 500" },
+    { NewCounter, "counter 0 5" },
+    { NewSel, "sel" },
+    { NewRoute, "route" },
+    { NewExpr, "expr" },
+    { NewLoadbang, "loadbang" },
+    { NewPack, "pack" },
+    { NewUnpack, "unpack" },
+    { NewPrint, "print" },
+    { NewNetsend, "netsend" },
+    { NewNetreceive, "netreceive" },
+    { NewTimer, "timer" },
+    { NewDelay, "delay 1 60 permin" },
+    { NewTimedGate, "timed.gate" },
 
-    static void drawIcon(Graphics& g, String const& icon, int x, int y, int size, Colour colour, int fontHeight = -1, bool centred = true)
-    {
-        drawIcon(g, icon, { x, y, size, size }, colour, fontHeight, centred);
-    }
+    { NewCrusher, "crusher~ 0.1 0.1" },
+    { NewSignalDelay, "delay~ 22050 14700" },
+    { NewDrive, "drive~" },
+    { NewFlanger, "flanger~ 0.1 20 -0.6" },
+    { NewReverb, "free.rev~ 0.7 0.6 0.5 0.7" },
+    { NewFreeze, "freeze~" },
+    { NewFreqShift, "freq.shift~ 200" },
+    { NewPhaser, "phaser~ 6 2 0.7" },
+    { NewShaper, "shaper~" },
+    { NewRm, "rm~ 150" },
+    { NewTremolo, "tremolo~ 2 0.5" },
+    { NewVibrato, "vibrato~ 6 30" },
+    { NewVocoder, "vocoder~" },
 
-    // For drawing bold, semibold or thin text
-    static void drawStyledText(Graphics& g, String const& textToDraw, Rectangle<int> bounds, Colour colour, FontStyle style, int fontHeight = 15, Justification justification = Justification::centredLeft)
-    {
-        Font font;
-        switch (style) {
-        case Regular:
-            font = Fonts::getCurrentFont();
-            break;
-        case Bold:
-            font = Fonts::getBoldFont();
-            break;
-        case Semibold:
-            font = Fonts::getSemiBoldFont();
-            break;
-        case Thin:
-            font = Fonts::getThinFont();
-            break;
-        case Monospace:
-            font = Fonts::getMonospaceFont();
-            break;
-        }
+    { NewOsc, "osc~ 440" },
+    { NewPhasor, "phasor~" },
+    { NewSaw, "saw~ 440" },
+    { NewSaw2, "saw2~ 440" },
+    { NewSquare, "square~ 440" },
+    { NewTriangle, "triangle~ 440" },
+    { NewImp, "imp~ 100" },
+    { NewImp2, "imp2~ 100" },
+    { NewWavetable, "wavetable~" },
+    { NewPlaits, "plaits~ -model 0 440 0.25 0.5 0.1" },
+    { NewBlOsc, "bl.osc~ saw 1 440" },
+    { NewBlSaw, "bl.saw~ 440" },
+    { NewBlSaw2, "bl.saw2~ 440" },
+    { NewBlSquare, "bl.square~ 440" },
+    { NewBlTriangle, "bl.tri~ 440" },
+    { NewBlImp, "bl.imp~ 100" },
+    { NewBlImp2, "bl.imp2~ 100" },
+    { NewBlWavetable, "bl.wavetable~" },
 
-        g.setFont(font.withHeight(fontHeight));
-        g.setColour(colour);
-        g.drawText(textToDraw, bounds, justification);
-    }
+    { NewAdsr, "adsr~ 10 800 0 0" },
+    { NewAsr, "asr~ 10 400" },
+    { NewCurve, "curve~" },
+    { NewDecay, "decay~ 1000" },
+    { NewEnvelope, "envelope~" },
+    { NewEnvgen, "envgen~ 100 1 500 0" },
+    { NewLfnoise, "lfnoise~ 5" },
+    { NewSignalLine, "line~" },
+    { NewPhasor, "phasor~ 1" },
+    { NewRamp, "ramp~ 0.1 0 1 0" },
+    { NewSah, "sah~ 0.5" },
+    { NewSignalSlider, "slide~ 41 41" },
+    { NewVline, "vline~" },
 
-    static void drawStyledText(Graphics& g, String const& textToDraw, int x, int y, int w, int h, Colour colour, FontStyle style, int fontHeight = 15, Justification justification = Justification::centredLeft)
-    {
-        drawStyledText(g, textToDraw, { x, y, w, h }, colour, style, fontHeight, justification);
-    }
+    { NewLop, "lop~ 100" },
+    { NewVcf, "vcf~" },
+    { NewLores, "lores~ 800 0.1" },
+    { NewSvf, "svf~ 800 0.1" },
+    { NewBob, "bob~" },
+    { NewOnepole, "onepole~ 800" },
+    { NewReson, "reson~ 1 800 23" },
+    { NewAllpass, "allpass~ 100 60 0.7" },
+    { NewComb, "comb~ 500 12 0.5 1 0.5" },
+    { NewHip, "hip~ 800" },
 
-    // For drawing regular text
-    static void drawText(Graphics& g, String const& textToDraw, Rectangle<float> bounds, Colour colour, int fontHeight = 15, Justification justification = Justification::centredLeft)
-    {
-        g.setFont(Fonts::getCurrentFont().withHeight(fontHeight));
-        g.setColour(colour);
-        g.drawText(textToDraw, bounds, justification);
-    }
+    { NewDac, "dac~" },
+    { NewAdc, "adc~" },
+    { NewOut, "out~" },
+    { NewBlocksize, "blocksize~" },
+    { NewSamplerate, "samplerate~" },
+    { NewSetdsp, "setdsp~" },
 
-    // For drawing regular text
-    static void drawText(Graphics& g, String const& textToDraw, Rectangle<int> bounds, Colour colour, int fontHeight = 15, Justification justification = Justification::centredLeft)
-    {
-        g.setFont(Fonts::getCurrentFont().withHeight(fontHeight));
-        g.setColour(colour);
-        g.drawText(textToDraw, bounds, justification);
-    }
+    { NewMidiIn, "midiin" },
+    { NewMidiOut, "midiout" },
+    { NewNoteIn, "notein" },
+    { NewNoteOut, "noteout" },
+    { NewCtlIn, "ctlin" },
+    { NewCtlOut, "ctlout" },
+    { NewPgmIn, "pgmin" },
+    { NewPgmOut, "pgmout" },
+    { NewSysexIn, "sysexin" },
+    { NewSysexOut, "sysexout" },
+    { NewMtof, "mtof" },
+    { NewFtom, "ftom" },
 
-    static void drawText(Graphics& g, String const& textToDraw, int x, int y, int w, int h, Colour colour, int fontHeight = 15, Justification justification = Justification::centredLeft)
-    {
-        drawText(g, textToDraw, Rectangle<int>(x, y, w, h), colour, fontHeight, justification);
-    }
+    { NewArraySet, "array set" },
+    { NewArrayGet, "array get" },
+    { NewArrayDefine, "array define" },
+    { NewArraySize, "array size" },
+    { NewArrayMin, "array min" },
+    { NewArrayMax, "array max" },
+    { NewArrayRandom, "array random" },
+    { NewArrayQuantile, "array quantile" },
 
-    static void drawFittedText(Graphics& g, String const& textToDraw, Rectangle<int> bounds, Colour colour, int numLines = 1, float minimumHoriontalScale = 1.0f, int fontHeight = 15, Justification justification = Justification::centredLeft)
-    {
-        g.setFont(Fonts::getCurrentFont().withHeight(fontHeight));
-        g.setColour(colour);
-        g.drawFittedText(textToDraw, bounds, justification, numLines, minimumHoriontalScale);
-    }
+    { NewListAppend, "list append" },
+    { NewListPrepend, "list prepend" },
+    { NewListStore, "list store" },
+    { NewListSplit, "list split" },
+    { NewListTrim, "list trim" },
+    { NewListLength, "list length" },
+    { NewListFromSymbol, "list fromsymbol" },
+    { NewListToSymbol, "list tosymbol" },
 
-    static void drawFittedText(Graphics& g, String const& textToDraw, int x, int y, int w, int h, Colour const& colour, int numLines = 1, float minimumHoriontalScale = 1.0f, int fontHeight = 15, Justification justification = Justification::centredLeft)
-    {
-        drawFittedText(g, textToDraw, { x, y, w, h }, colour, numLines, minimumHoriontalScale, fontHeight, justification);
-    }
+    { NewAdd, "+" },
+    { NewSubtract, "-" },
+    { NewMultiply, "*" },
+    { NewDivide, "/" },
+    { NewModulo, "%" },
+    { NewInverseSubtract, "!-" },
+    { NewInverseDivide, "!/" },
 
-private:
-    // This is effectively a singleton because it's loaded through SharedResourcePointer
-    static inline Fonts* instance = nullptr;
+    { NewBiggerThan, ">" },
+    { NewSmallerThan, "<" },
+    { NewBiggerThanOrEqual, ">=" },
+    { NewSmallerThanOrEqual, "<=" },
+    { NewEquals, "==" },
+    { NewNotEquals, "!=" },
 
-    // Default typeface is Inter combined with Unicode symbols from GoNotoUniversal and emojis from NotoEmoji
-    Typeface::Ptr defaultTypeface;
-
-    Typeface::Ptr currentTypeface;
-
-    Typeface::Ptr thinTypeface;
-    Typeface::Ptr boldTypeface;
-    Typeface::Ptr semiBoldTypeface;
-    Typeface::Ptr iconTypeface;
-    Typeface::Ptr monoTypeface;
+    { NewSignalAdd, "+~" },
+    { NewSignalSubtract, "-~" },
+    { NewSignalMultiply, "*~" },
+    { NewSignalDivide, "/~" },
+    { NewSignalModulo, "%~" },
+    { NewSignalInverseSubtract, "!-~" },
+    { NewSignalInverseDivide, "!/~" },
+    { NewSignalBiggerThan, ">~" },
+    { NewSignalSmallerThan, "<~" },
+    { NewSignalBiggerThanOrEqual, ">=~" },
+    { NewSignalSmallerThanOrEqual, "<=~" },
+    { NewSignalEquals, "==~" },
+    { NewSignalNotEquals, "!=~" },
 };
 
 struct Corners

@@ -4,7 +4,13 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
-#include <JuceHeader.h>
+#include <juce_gui_basics/juce_gui_basics.h>
+#include <juce_audio_basics/juce_audio_basics.h>
+#include <juce_dsp/juce_dsp.h>
+#include "Utility/Config.h"
+#include "Utility/Fonts.h"
+
+#include "Sidebar/Sidebar.h"
 
 #ifdef JUCE_WINDOWS
 #    include "Utility/OSUtils.h"
@@ -31,21 +37,23 @@ EXTERN char* pd_version;
 AudioProcessor::BusesProperties PluginProcessor::buildBusesProperties()
 {
     AudioProcessor::BusesProperties busesProperties;
-#if PLUGDATA_STANDALONE
-    busesProperties.addBus(true, "Main Input", AudioChannelSet::canonicalChannelSet(16), true);
-    busesProperties.addBus(false, "Main Output", AudioChannelSet::canonicalChannelSet(16), true);
-#else
-    busesProperties.addBus(true, "Main Input", AudioChannelSet::stereo(), true);
-
-    for (int i = 1; i < numInputBuses; i++)
-        busesProperties.addBus(true, "Aux Input " + String(i), AudioChannelSet::stereo(), false);
-
-    busesProperties.addBus(false, "Main Output", AudioChannelSet::stereo(), true);
-
-    for (int i = 1; i < numOutputBuses; i++)
-        busesProperties.addBus(false, "Aux " + String(i), AudioChannelSet::stereo(), false);
-
-#endif
+    
+    if(ProjectInfo::isStandalone) {
+        busesProperties.addBus(true, "Main Input", AudioChannelSet::canonicalChannelSet(16), true);
+        busesProperties.addBus(false, "Main Output", AudioChannelSet::canonicalChannelSet(16), true);
+    }
+    else {
+        busesProperties.addBus(true, "Main Input", AudioChannelSet::stereo(), true);
+        
+        for (int i = 1; i < numInputBuses; i++)
+            busesProperties.addBus(true, "Aux Input " + String(i), AudioChannelSet::stereo(), false);
+        
+        busesProperties.addBus(false, "Main Output", AudioChannelSet::stereo(), true);
+        
+        for (int i = 1; i < numOutputBuses; i++)
+            busesProperties.addBus(false, "Aux " + String(i), AudioChannelSet::stereo(), false);
+    }
+    
     return busesProperties;
 }
 
@@ -147,9 +155,7 @@ PluginProcessor::PluginProcessor()
     oversampling = settingsFile->getProperty<int>("oversampling");
 
     setProtectedMode(settingsFile->getProperty<int>("protected"));
-#if PLUGDATA_STANDALONE
     enableInternalSynth = settingsFile->getProperty<int>("internal_synth");
-#endif
 
     auto currentThemeTree = settingsFile->getCurrentTheme();
 
@@ -171,9 +177,11 @@ PluginProcessor::PluginProcessor()
 
     setLatencySamples(pd::Instance::getBlockSize());
 
-#if PLUGDATA_STANDALONE && !JUCE_WINDOWS
-    if (auto* newOut = MidiOutput::createNewDevice("from plugdata").release()) {
-        midiOutputs.add(newOut)->startBackgroundThread();
+#if !JUCE_WINDOWS
+    if(ProjectInfo::isStandalone) {
+        if (auto* newOut = MidiOutput::createNewDevice("from plugdata").release()) {
+            midiOutputs.add(newOut)->startBackgroundThread();
+        }
     }
 #endif
 }
@@ -309,11 +317,7 @@ void PluginProcessor::updateSearchPaths()
 
 const String PluginProcessor::getName() const
 {
-#if PLUGDATA_STANDALONE
-    return "plugdata";
-#else
-    return "plugdata";
-#endif
+    return ProjectInfo::projectName;
 }
 
 bool PluginProcessor::acceptsMidi() const
@@ -394,11 +398,9 @@ void PluginProcessor::prepareToPlay(double sampleRate, int samplesPerBlock)
 
     oversampler->initProcessing(samplesPerBlock);
 
-#if PLUGDATA_STANDALONE
-    if (enableInternalSynth) {
+    if (enableInternalSynth && ProjectInfo::isStandalone) {
         internalSynth.prepare(sampleRate, samplesPerBlock, maxChannels);
     }
-#endif
 
     audioAdvancement = 0;
     auto const blksize = static_cast<size_t>(Instance::getBlockSize());
@@ -495,23 +497,22 @@ void PluginProcessor::processBlock(AudioBuffer<float>& buffer, MidiBuffer& midiM
     buffer.applyGain(getParameters()[0]->getValue());
     statusbarSource->processBlock(buffer, midiBufferCopy, midiMessages, totalNumOutputChannels);
 
-#if PLUGDATA_STANDALONE
-    for (auto* midiOutput : midiOutputs) {
-        midiOutput->sendBlockOfMessages(midiMessages,
-            Time::getMillisecondCounterHiRes(),
-            AudioProcessor::getSampleRate());
+    if(ProjectInfo::isStandalone) {
+        for (auto* midiOutput : midiOutputs) {
+            midiOutput->sendBlockOfMessages(midiMessages,
+                                            Time::getMillisecondCounterHiRes(),
+                                            AudioProcessor::getSampleRate());
+        }
+        
+        // If the internalSynth is enabled and loaded, let it process the midi
+        if (enableInternalSynth && internalSynth.isReady()) {
+            internalSynth.process(buffer, midiMessages);
+        } else if (!enableInternalSynth && internalSynth.isReady()) {
+            internalSynth.unprepare();
+        } else if (enableInternalSynth && !internalSynth.isReady()) {
+            internalSynth.prepare(getSampleRate(), AudioProcessor::getBlockSize(), std::max(totalNumInputChannels, totalNumOutputChannels));
+        }
     }
-
-    // If the internalSynth is enabled and loaded, let it process the midi
-    if (enableInternalSynth && internalSynth.isReady()) {
-        internalSynth.process(buffer, midiMessages);
-    } else if (!enableInternalSynth && internalSynth.isReady()) {
-        internalSynth.unprepare();
-    } else if (enableInternalSynth && !internalSynth.isReady()) {
-        internalSynth.prepare(getSampleRate(), AudioProcessor::getBlockSize(), std::max(totalNumInputChannels, totalNumOutputChannels));
-    }
-
-#endif
 
     if (protectedMode) {
         auto* const* writePtr = buffer.getArrayOfWritePointers();
@@ -1013,7 +1014,7 @@ void PluginProcessor::setStateInformation(void const* data, int sizeInBytes)
         MessageManager::callAsync([editor = Component::SafePointer(editor)]() {
             if (!editor)
                 return;
-            editor->sidebar.updateAutomationParameters();
+            editor->sidebar->updateAutomationParameters();
         });
     }
 }
@@ -1218,11 +1219,11 @@ void PluginProcessor::performParameterChange(int type, String name, float value)
             // Send new value to DAW
             pldParam->setUnscaledValueNotifyingHost(value);
 
-#if PLUGDATA_STANDALONE
-            if (auto* editor = dynamic_cast<PluginEditor*>(getActiveEditor())) {
-                editor->sidebar.updateAutomationParameters();
+            if(ProjectInfo::isStandalone) {
+                if (auto* editor = dynamic_cast<PluginEditor*>(getActiveEditor())) {
+                    editor->sidebar->updateAutomationParameters();
+                }
             }
-#endif
         }
     }
 }
@@ -1334,7 +1335,7 @@ void PluginProcessor::updateDrawables()
 void PluginProcessor::updateConsole()
 {
     if (auto* editor = dynamic_cast<PluginEditor*>(getActiveEditor())) {
-        editor->sidebar.updateConsole();
+        editor->sidebar->updateConsole();
     }
 }
 
