@@ -81,7 +81,7 @@ public:
     LevelMeter* levelMeter;
     MidiBlinker* midiBlinker;
 
-    std::unique_ptr<TextButton> powerButton, lockButton, connectionStyleButton, connectionPathfind, presentationButton, gridButton, protectButton;
+    std::unique_ptr<TextButton> powerButton, lockButton, connectionStyleButton, connectionPathfind, presentationButton, gridButton, protectButton, directionButton;
 
     TextButton oversampleSelector;
 
@@ -92,6 +92,8 @@ public:
     Value locked;
     Value commandLocked; // Temporary lock mode
     Value presentationMode;
+
+    Value showDirection;
 
     static constexpr int statusbarHeight = 30;
 
