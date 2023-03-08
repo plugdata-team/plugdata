@@ -839,7 +839,7 @@ int libpd_issignaloutlet(t_object const* x, int m)
 
 void* libpd_get_class_methods(t_class* o) {
 #if PDINSTANCE
-    return o->c_methods[pd_this->pd_instanceno]
+    return o->c_methods[pd_this->pd_instanceno];
 #else
     return o->c_methods;
 #endif
