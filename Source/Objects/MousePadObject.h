@@ -106,7 +106,7 @@ public:
             SETFLOAT(at, xPos);
             SETFLOAT(at + 1, yPos);
 
-            outlet_list(x->x_obj.ob_outlet, gensym("list"), 2, at);
+            outlet_anything(x->x_obj.ob_outlet, gensym("list"), 2, at);
         });
     }
 

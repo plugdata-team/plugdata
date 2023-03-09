@@ -252,9 +252,9 @@ public:
                 SETFLOAT(at, note);
                 SETFLOAT(at + 1, velocity * 127);
 
-                outlet_list(elseKeyboard->x_out, &libpd_this_instance()->pd_s_list, ac, at);
-                if (elseKeyboard->x_send != &libpd_this_instance()->pd_s_ && elseKeyboard->x_send->s_thing)
-                    pd_list(elseKeyboard->x_send->s_thing, &libpd_this_instance()->pd_s_list, ac, at);
+                outlet_list(elseKeyboard->x_out, gensym("list"), ac, at);
+                if (elseKeyboard->x_send != gensym("") && elseKeyboard->x_send->s_thing)
+                    pd_list(elseKeyboard->x_send->s_thing, gensym("list"), ac, at);
             });
     }
 
@@ -275,9 +275,9 @@ public:
                 SETFLOAT(at, note);
                 SETFLOAT(at + 1, 0);
 
-                outlet_list(elseKeyboard->x_out, &libpd_this_instance()->pd_s_list, ac, at);
-                if (elseKeyboard->x_send != &libpd_this_instance()->pd_s_ && elseKeyboard->x_send->s_thing)
-                    pd_list(elseKeyboard->x_send->s_thing, &libpd_this_instance()->pd_s_list, ac, at);
+                outlet_list(elseKeyboard->x_out, gensym("list"), ac, at);
+                if (elseKeyboard->x_send != gensym("") && elseKeyboard->x_send->s_thing)
+                    pd_list(elseKeyboard->x_send->s_thing, gensym("list"), ac, at);
             });
     }
 
