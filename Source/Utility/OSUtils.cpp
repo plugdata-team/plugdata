@@ -135,9 +135,13 @@ OSUtils::KeyboardLayout OSUtils::getKeyboardLayout()
 // Selects Linux and BSD
 #if defined(__unix__) && !defined(__APPLE__)
 extern "C" {
-#    include <X11/Xlib.h>
-#    include <X11/Xatom.h>
+#include <X11/Xlib.h>
+#include <X11/Xatom.h>
 }
+
+#include <unistd.h>
+#include <cstdio>
+
 
 
 bool OSUtils::isMaximised(void* handle)
