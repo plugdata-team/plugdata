@@ -1051,7 +1051,24 @@ void PluginEditor::getCommandInfo(const CommandID commandID, ApplicationCommandI
             };
             break;
         case OSUtils::KeyboardLayout::AZERTY:
-            
+            defaultShortcuts = {
+                { NewObject, { 38, cmdMod } },
+                { NewComment, { 40, cmdMod } },
+                { NewBang, { 66, cmdMod | shiftMod } },
+                { NewMessage, { 223, cmdMod } },
+                { NewToggle, { 84, cmdMod | shiftMod } },
+                { NewNumbox, { 73, cmdMod | shiftMod } },
+                { NewVerticalSlider, { 86, cmdMod | shiftMod } },
+                { NewHorizontalSlider, { 74, cmdMod | shiftMod } },
+                { NewVerticalRadio, { 68, cmdMod | shiftMod } },
+                { NewHorizontalRadio, { 73, cmdMod | shiftMod } },
+                { NewFloatAtom, { 51, cmdMod } },
+                { NewListAtom, { 52, cmdMod } },
+                { NewArray, { 65, cmdMod | shiftMod } },
+                { NewGraphOnParent, { 71, cmdMod | shiftMod } },
+                { NewCanvas, { 67, cmdMod | shiftMod } },
+                { NewVUMeterObject, { 85, cmdMod | shiftMod } }
+            };
             break;
             
         default: break;

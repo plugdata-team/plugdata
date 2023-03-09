@@ -15,19 +15,17 @@ struct OSUtils
         /* QWERTZ */
     };
     
-#if JUCE_WINDOWS
-    
+#if defined(_WIN32) || defined(_WIN64)
     static void createJunction(std::string from, std::string to);
     static void createHardLink(std::string from, std::string to);
     static bool runAsAdmin(std::string file, std::string lpParameters, void* hWnd);
-    
-#elif JUCE_MAC
-    static void enableInsetTitlebarButtons(void* nativeHandle, bool enabled);
-    
-#else // Linux or BSD
+#elif defined(__unix__) && !defined(__APPLE__)
     static void maximiseLinuxWindow(void* handle);
     static bool isMaximised(void* handle);
+#elif JUCE_MAC
+    static void enableInsetTitlebarButtons(void* nativeHandle, bool enabled);
 #endif
+
     
     static KeyboardLayout getKeyboardLayout();
 };
