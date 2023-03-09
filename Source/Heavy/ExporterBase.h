@@ -5,7 +5,7 @@
  */
 
 #include "PluginEditor.h"
-#include "Pd/PdPatch.h"
+#include "Pd/Patch.h"
 
 struct ExporterBase : public Component
     , public Value::Listener

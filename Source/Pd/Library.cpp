@@ -21,7 +21,7 @@ extern "C" {
 #include <utility>
 #include <vector>
 
-#include "PdLibrary.h"
+#include "Library.h"
 
 struct _canvasenvironment {
     t_symbol* ce_dir;    /* directory patch lives in */

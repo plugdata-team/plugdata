@@ -7,7 +7,8 @@
 #pragma once
 
 #include "Utility/HashUtils.h"
-#include "Pd/PdInstance.h" // TODO: separate out MessageListener
+#include "Pd/Instance.h"
+#include "Pd/MessageListener.h"
 #include "Constants.h"
 
 class PluginProcessor;

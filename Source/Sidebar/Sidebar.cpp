@@ -8,7 +8,7 @@
 #include "Utility/Config.h"
 #include "Utility/Fonts.h"
 
-#include "Pd/PdInstance.h"
+#include "Pd/Instance.h"
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
 #include "Canvas.h"

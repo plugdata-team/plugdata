@@ -392,6 +392,6 @@ struct ScalarObject final : public ObjectBase {
         }
     }
 
-    Rectangle<int> getPdBounds() override { return Rectangle(0, 0, 1, 1); };
+    Rectangle<int> getPdBounds() override { return Rectangle(0, 0, 0, 0); };
     void setPdBounds(Rectangle<int> b) override {};
 };

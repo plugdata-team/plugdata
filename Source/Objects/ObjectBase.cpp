@@ -31,7 +31,7 @@ void canvas_setgraph(t_glist* x, int flag, int nogoprect);
 #include "SuggestionComponent.h"
 #include "PluginEditor.h"
 #include "LookAndFeel.h"
-#include "Pd/PdPatch.h"
+#include "Pd/Patch.h"
 #include "Utility/ObjectBoundsConstrainer.h"
 #include "Sidebar/Sidebar.h"
 
