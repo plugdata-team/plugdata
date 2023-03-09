@@ -118,7 +118,7 @@ bool OSUtils::runAsAdmin(std::string command, std::string parameters, void* hWnd
     return (bool)retval;
 }
 
-KeyboardLayout OSUtils::getKeyboardLayout()
+OSUtils::KeyboardLayout OSUtils::getKeyboardLayout()
 {
     TCHAR buff[KL_NAMELENGTH];
     bool result = GetKeyboardLayoutNameA(buff);
@@ -264,7 +264,7 @@ void OSUtils::maximiseLinuxWindow(void* handle)
     XCloseDisplay(display);
 }
 
-KeyboardLayout OSUtils::getKeyboardLayout()
+OSUtils::KeyboardLayout OSUtils::getKeyboardLayout()
 {
     char   *line = NULL;
     size_t  size = 0;
