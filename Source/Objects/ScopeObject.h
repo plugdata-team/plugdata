@@ -317,7 +317,7 @@ public:
             scope->x_receive = canvas_realizedollar(scope->x_glist, scope->x_rcv_raw = rcv);
 
             pd->setThis();
-            if (scope->x_receive != &libpd_this_instance()->pd_s_) {
+            if (scope->x_receive != gensym("")) {
                 pd_bind(&scope->x_obj.ob_pd, scope->x_receive);
             } else {
                 scope->x_rcv_raw = pd->generateSymbol("empty");

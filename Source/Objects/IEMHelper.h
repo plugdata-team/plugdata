@@ -8,7 +8,7 @@
 
 static int srl_is_valid(t_symbol const* s)
 {
-    return (!!s && s != &libpd_this_instance()->pd_s_);
+    return (!!s && s != gensym(""));
 }
 
 extern "C" {
