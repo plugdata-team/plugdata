@@ -13,6 +13,7 @@
 #include "Iolet.h"
 #include "Object.h"
 #include "PluginProcessor.h"
+#include "PluginEditor.h" // might not need this?
 #include "LookAndFeel.h"
 #include "Pd/Patch.h"
 
@@ -25,7 +26,7 @@ Connection::Connection(Canvas* parent, Iolet* s, Iolet* e, void* oc)
 , ptr(static_cast<t_fake_outconnect*>(oc))
 {
     
-    reinterpret_cast<ModifierKeyBroadcaster*>(cnv->editor)->addModifierKeyListener(this);
+    cnv->editor->addModifierKeyListener(this);
     
     locked.referTo(parent->locked);
     presentationMode.referTo(parent->presentationMode);

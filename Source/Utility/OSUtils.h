@@ -6,8 +6,6 @@
 
 #pragma once
 
-#include "OSUtils.h"
-
 struct OSUtils
 {
     enum KeyboardLayout
