@@ -9,7 +9,7 @@
 #include "ObjectGrid.h" // move to impl
 #include "Utility/RateReducer.h" // move to impl
 #include "Utility/ModifierKeyListener.h"
-#include "Pd/PdInstance.h"
+#include "Pd/MessageListener.h"
 #include "Constants.h"
 
 namespace pd

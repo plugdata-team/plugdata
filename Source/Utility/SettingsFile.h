@@ -5,7 +5,7 @@
  */
 
 #pragma once
-#include "Pd/PdLibrary.h"
+#include "Pd/Library.h"
 
 struct SettingsFileListener {
     SettingsFileListener();

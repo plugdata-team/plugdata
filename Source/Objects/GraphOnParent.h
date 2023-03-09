@@ -253,9 +253,9 @@ public:
         pd->setThis();
         
         int isGraph = static_cast<bool>(isGraphChild.getValue());
-        int hideText = static_cast<bool>(hideNameAndArgs.getValue());
-
-        canvas_setgraph(static_cast<t_glist*>(ptr), isGraph + 2 * hideText, 0);
+        int hideText = isGraph && static_cast<bool>(hideNameAndArgs.getValue());
+        
+        canvas_setgraph(static_cast<t_glist*>(ptr), isGraph + 2*hideText, 0);
         repaint();
 
         MessageManager::callAsync([this, _this = SafePointer(this)]() {
@@ -267,7 +267,7 @@ public:
                 cnv->setSelected(object, false);
                 object->cnv->editor->sidebar->hideParameters();
                 object->setType(getText(), ptr);
-                return;
+                return; // Make sure we don't run updateCanvas because class might be deleted!
             }
 
             updateCanvas();
@@ -276,15 +276,15 @@ public:
 
     void valueChanged(Value& v) override
     {
+        auto* glist = static_cast<t_canvas*>(ptr);
+        
         if (v.refersToSameSourceAs(isGraphChild) || v.refersToSameSourceAs(hideNameAndArgs)) {
             checkGraphState();
         } else if (v.refersToSameSourceAs(xRange)) {
-            auto* glist = static_cast<t_canvas*>(ptr);
             glist->gl_x1 = static_cast<float>(xRange.getValue().getArray()->getReference(0));
             glist->gl_x2 = static_cast<float>(xRange.getValue().getArray()->getReference(1));
             updateDrawables();
         } else if (v.refersToSameSourceAs(yRange)) {
-            auto* glist = static_cast<t_canvas*>(ptr);
             glist->gl_y2 = static_cast<float>(yRange.getValue().getArray()->getReference(0));
             glist->gl_y1 = static_cast<float>(yRange.getValue().getArray()->getReference(1));
             updateDrawables();

@@ -612,13 +612,13 @@ public:
 #if JUCE_LINUX
         if (auto* b = getMaximiseButton()) {
             if (auto* peer = getPeer()) {
-                b->setToggleState(!isMaximised(peer->getNativeHandle()), dontSendNotification);
+                b->setToggleState(!OSUtils::isMaximised(peer->getNativeHandle()), dontSendNotification);
             } else {
                 b->setToggleState(false, dontSendNotification);
             }
         }
 
-        maximiseLinuxWindow(getPeer()->getNativeHandle());
+        OSUtils::maximiseLinuxWindow(getPeer()->getNativeHandle());
 
 #else
         setFullScreen(!isFullScreen());

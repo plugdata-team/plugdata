@@ -113,12 +113,7 @@ private:
     String symbol;
 };
 
-struct MessageListener {
-    virtual void receiveMessage(String const& name, int argc, t_atom* argv) {};
-
-    JUCE_DECLARE_WEAK_REFERENCEABLE(MessageListener);
-};
-
+class MessageListener;
 class Patch;
 class Instance {
     struct Message {

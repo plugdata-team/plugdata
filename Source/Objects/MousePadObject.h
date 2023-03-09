@@ -75,6 +75,11 @@ public:
 
     void mouseDrag(MouseEvent const& e) override
     {
+        mouseMove(e);
+    }
+
+    void mouseMove(MouseEvent const& e) override
+    {
         if ((!getScreenBounds().contains(e.getMouseDownScreenPosition()) && !isPressed) || !isLocked())
             return;
 
@@ -87,7 +92,6 @@ public:
             return;
 
         int xPos = relativeEvent.getPosition().x;
-        ;
         int yPos = getHeight() - relativeEvent.getPosition().y;
 
         lastPosition = { xPos, yPos };
@@ -102,37 +106,8 @@ public:
             SETFLOAT(at, xPos);
             SETFLOAT(at + 1, yPos);
 
-            outlet_anything(x->x_obj.ob_outlet, &libpd_this_instance()->pd_s_list, 2, at);
+            outlet_list(x->x_obj.ob_outlet, gensym("list"), 2, at);
         });
-    }
-
-    void mouseMove(MouseEvent const& e) override
-    {
-        if (!getScreenBounds().contains(e.getScreenPosition()) || isPressed || !isLocked())
-            return;
-
-        auto* x = static_cast<t_pad*>(ptr);
-        t_atom at[3];
-
-        auto relativeEvent = e.getEventRelativeTo(this);
-
-        // Don't repeat values
-        if (relativeEvent.getPosition() == lastPosition)
-            return;
-
-        x->x_x = relativeEvent.getPosition().x;
-        x->x_y = getHeight() - relativeEvent.getPosition().y;
-
-        SETFLOAT(at, x->x_x);
-        SETFLOAT(at + 1, x->x_y);
-
-        lastPosition = { x->x_x, getHeight() - x->x_y };
-
-        pd->setThis();
-        
-        sys_lock();
-        outlet_anything(x->x_obj.ob_outlet, &libpd_this_instance()->pd_s_list, 2, at);
-        sys_unlock();
     }
 
     void mouseUp(MouseEvent const& e) override

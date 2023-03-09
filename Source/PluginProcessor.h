@@ -10,9 +10,9 @@
 #include <juce_dsp/juce_dsp.h>
 #include "Utility/Config.h"
 
-#include "Pd/PdInstance.h"
-#include "Pd/PdLibrary.h"
-#include "Pd/PdPatch.h"
+#include "Pd/Instance.h"
+#include "Pd/Library.h"
+#include "Pd/Patch.h"
 
 class InternalSynth;
 class SettingsFile;
@@ -129,7 +129,7 @@ public:
 
     File homeDir = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory).getChildFile("plugdata");
 
-    static inline const String versionSuffix = "-0";
+    static inline const String versionSuffix = "-test";
     File versionDataDir = homeDir.getChildFile(ProjectInfo::versionString + versionSuffix);
 
     File abstractions = versionDataDir.getChildFile("Abstractions");

@@ -5,6 +5,7 @@
  */
 
 #include <juce_gui_basics/juce_gui_basics.h>
+
 #include "Utility/Config.h"
 #include "Utility/Fonts.h"
 
@@ -23,7 +24,7 @@
 #include "Dialogs/Dialogs.h"
 
 #include "Utility/ObjectBoundsConstrainer.h"
-#include "Pd/PdPatch.h"
+#include "Pd/Patch.h"
 
 extern "C" {
 #include <m_pd.h>
@@ -223,8 +224,12 @@ void Object::updateBounds()
     if (gui) {
         cnv->pd->setThis();
 
+        // Get the bounds of the object in Pd
         auto newBounds = gui->getPdBounds();
-        setObjectBounds(newBounds);
+        
+        // Objects may return empty bounds if they are not a real object (like scalars)
+        if(!newBounds.isEmpty())
+            setObjectBounds(newBounds);
     }
 
     if (newObjectEditor) {

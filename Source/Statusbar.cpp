@@ -291,15 +291,6 @@ Statusbar::Statusbar(PluginProcessor* processor)
     // Initialise grid state
     propertyChanged("grid_enabled", SettingsFile::getInstance()->getProperty<int>("grid_enabled"));
 
-    directionButton->setTooltip("Show Connection Direction");
-    directionButton->getProperties().set("Style", "SmallIcon");
-    directionButton->setClickingTogglesState(true);
-    directionButton->setToggleState(false, sendNotification);
-    directionButton->onClick = [this]() {
-        showDirection = directionButton->getToggleState();
-    };
-    
-    addAndMakeVisible(directionButton.get());
 
     powerButton->onClick = [this]() { powerButton->getToggleState() ? pd->startDSP() : pd->releaseDSP(); };
 
@@ -384,8 +375,6 @@ void Statusbar::attachToCanvas(Canvas* cnv)
 {
     locked.referTo(cnv->locked);
     lockButton->getToggleStateValue().referTo(cnv->locked);
-    showDirection.referTo(cnv->showDirection);
-    directionButton->getToggleStateValue().referTo(cnv->showDirection);
 }
 
 void Statusbar::propertyChanged(String name, var value)

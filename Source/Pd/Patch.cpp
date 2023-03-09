@@ -8,8 +8,8 @@
 #include "Utility/Config.h"
 #include "Utility/Fonts.h"
 
-#include "PdPatch.h"
-#include "PdInstance.h"
+#include "Patch.h"
+#include "Instance.h"
 #include "Objects/ObjectBase.h"
 
 extern "C" {

@@ -6,9 +6,11 @@
 
 #pragma once
 
+#include <m_pd.h>
+
 #include <concurrentqueue.h> // Move to impl
 #include "Iolet.h" // Move to impl
-#include "Pd/PdInstance.h" // TODO: separate out messageListener
+#include "Pd/MessageListener.h"
 #include "Utility/RateReducer.h"
 #include "Utility/ModifierKeyListener.h"
 
@@ -21,7 +23,9 @@ class Connection : public Component
     , public ComponentListener
     , public Value::Listener
     , public pd::MessageListener
-    , public SettableTooltipClient {
+    , public SettableTooltipClient
+    , public ModifierKeyListener
+{
 public:
     int inIdx;
     int outIdx;
@@ -34,6 +38,8 @@ public:
 
     Connection(Canvas* parent, Iolet* start, Iolet* end, void* oc);
     ~Connection() override;
+        
+    void altKeyChanged(bool isHeld) override;
 
     static void renderConnectionPath(Graphics& g, Canvas* cnv, Path connectionPath, bool isSignal, bool showDirection, bool isMouseOver = false, bool isSelected = false, Point<int> mousePos = { 0, 0 }, bool isHovering = false);
 
@@ -99,7 +105,7 @@ private:
     Value locked;
     Value presentationMode;
 
-    Value showDirection;
+    bool showDirection;
 
     Canvas* cnv;
 

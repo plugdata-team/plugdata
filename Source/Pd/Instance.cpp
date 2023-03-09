@@ -10,8 +10,9 @@
 #include "Utility/Fonts.h"
 
 #include <algorithm>
-#include "PdInstance.h"
-#include "PdPatch.h"
+#include "Instance.h"
+#include "Patch.h"
+#include "MessageListener.h"
 
 extern "C" {
 

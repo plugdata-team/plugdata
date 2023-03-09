@@ -8,11 +8,13 @@
 #include <juce_audio_processors/juce_audio_processors.h>
 #include "Utility/Config.h"
 #include "Utility/Fonts.h"
+#include "Utility/OSUtils.h"
 
 #include "PluginEditor.h"
 #include "PluginProcessor.h"
 
-#include "Pd/PdPatch.h"
+#include "Pd/Patch.h"
+
 
 #include "LookAndFeel.h"
 
@@ -1022,25 +1024,39 @@ void PluginEditor::getCommandInfo(const CommandID commandID, ApplicationCommandI
 
     static auto const cmdMod = ModifierKeys::commandModifier;
     static auto const shiftMod = ModifierKeys::shiftModifier;
-    static const std::map<ObjectIDs, std::pair<int, int>> defaultShortcuts = {
-        { NewObject, { 49, cmdMod } },
-        { NewComment, { 53, cmdMod } },
-        { NewBang, { 66, cmdMod | shiftMod } },
-        { NewMessage, { 50, cmdMod } },
-        { NewToggle, { 84, cmdMod | shiftMod } },
-        { NewNumbox, { 78, cmdMod | shiftMod } },
-        { NewVerticalSlider, { 86, cmdMod | shiftMod } },
-        { NewHorizontalSlider, { 74, cmdMod | shiftMod } },
-        { NewVerticalRadio, { 68, cmdMod | shiftMod } },
-        { NewHorizontalRadio, { 73, cmdMod | shiftMod } },
-        { NewFloatAtom, { 51, cmdMod } },
-        { NewListAtom, { 52, cmdMod } },
-        { NewArray, { 65, cmdMod | shiftMod } },
-        { NewGraphOnParent, { 71, cmdMod | shiftMod } },
-        { NewCanvas, { 67, cmdMod | shiftMod } },
-        { NewVUMeterObject, { 85, cmdMod | shiftMod } }
+    
+    
+    std::map<ObjectIDs, std::pair<int, int>> defaultShortcuts;
+    
+    switch(OSUtils::getKeyboardLayout())
+    {
+        case OSUtils::KeyboardLayout::QWERTY:
+            defaultShortcuts = {
+                { NewObject, { 49, cmdMod } },
+                { NewComment, { 53, cmdMod } },
+                { NewBang, { 66, cmdMod | shiftMod } },
+                { NewMessage, { 50, cmdMod } },
+                { NewToggle, { 84, cmdMod | shiftMod } },
+                { NewNumbox, { 78, cmdMod | shiftMod } },
+                { NewVerticalSlider, { 86, cmdMod | shiftMod } },
+                { NewHorizontalSlider, { 74, cmdMod | shiftMod } },
+                { NewVerticalRadio, { 68, cmdMod | shiftMod } },
+                { NewHorizontalRadio, { 73, cmdMod | shiftMod } },
+                { NewFloatAtom, { 51, cmdMod } },
+                { NewListAtom, { 52, cmdMod } },
+                { NewArray, { 65, cmdMod | shiftMod } },
+                { NewGraphOnParent, { 71, cmdMod | shiftMod } },
+                { NewCanvas, { 67, cmdMod | shiftMod } },
+                { NewVUMeterObject, { 85, cmdMod | shiftMod } }
+            };
+            break;
+        case OSUtils::KeyboardLayout::AZERTY:
+            
+            break;
+            
+        default: break;
     };
-
+    
     if (commandID >= ObjectIDs::NewObject) {
         auto name = objectNames.at(static_cast<ObjectIDs>(commandID));
 
