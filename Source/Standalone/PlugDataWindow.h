@@ -865,7 +865,6 @@ private:
 
 inline StandalonePluginHolder* StandalonePluginHolder::getInstance()
 {
-#if JucePlugin_Enable_IAA || JucePlugin_Build_Standalone
     if (PluginHostType::getPluginLoadedAs() == AudioProcessor::wrapperType_Standalone) {
         auto& desktop = Desktop::getInstance();
         int const numTopLevelWindows = desktop.getNumComponents();
@@ -874,7 +873,6 @@ inline StandalonePluginHolder* StandalonePluginHolder::getInstance()
             if (auto window = dynamic_cast<PlugDataWindow*>(desktop.getComponent(i)))
                 return window->getPluginHolder();
     }
-#endif
 
     return nullptr;
 }
