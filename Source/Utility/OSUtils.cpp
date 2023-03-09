@@ -141,8 +141,8 @@ extern "C" {
 
 #include <unistd.h>
 #include <cstdio>
-
-
+#include <cstring>
+#include <cstdlib>
 
 bool OSUtils::isMaximised(void* handle)
 {
