@@ -4,6 +4,8 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
+#include "OSUtils.h"
+
 #if defined(_WIN32) || defined(_WIN64)
 
 #    define REPARSE_MOUNTPOINT_HEADER_SIZE 8
