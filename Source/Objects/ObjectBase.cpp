@@ -536,8 +536,6 @@ void ObjectBase::receiveMessage(String const& symbol, int argc, t_atom* argv)
         case hash("height"):
             _this->object->updateBounds();
             break;
-        default:
-            _this->receiveObjectMessage(symbol, atoms);
         }
     });
 }

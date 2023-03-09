@@ -90,8 +90,10 @@ Connection::Connection(Canvas* parent, Iolet* s, Iolet* e, void* oc)
     cnv->pd->registerMessageListener(ptr, this);
 }
 
+
 Connection::~Connection()
 {
+    cnv->editor->removeModifierKeyListener(this);
     cnv->pd->unregisterMessageListener(ptr, this);
     
     if (outlet) {

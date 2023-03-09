@@ -828,6 +828,7 @@ void Canvas::removeSelection()
 
     // Load state from pd
     synchronise();
+    handleUpdateNowIfNeeded();
 
     patch.deselectAll();
 }
@@ -1003,7 +1004,8 @@ void Canvas::undo()
 
     // Load state from pd
     synchronise();
-
+    handleUpdateNowIfNeeded();
+    
     patch.deselectAll();
 }
 
@@ -1014,7 +1016,8 @@ void Canvas::redo()
 
     // Load state from pd
     synchronise();
-
+    handleUpdateNowIfNeeded();
+    
     patch.deselectAll();
 }
 
