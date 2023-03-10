@@ -173,6 +173,9 @@ class KeyboardObject final : public ObjectBase
     Value octaves;
     int numWhiteKeys = 0;
 
+    Value sendSymbol;
+    Value receiveSymbol;
+
     MidiKeyboardState state;
     MIDIKeyboard keyboard;
     int keyRatio = 5;
@@ -192,6 +195,12 @@ public:
         auto* elseKeyboard = static_cast<t_keyboard*>(ptr);
         lowC.setValue(elseKeyboard->x_low_c);
         octaves.setValue(elseKeyboard->x_octaves);
+
+        auto sndSym = String::fromUTF8(elseKeyboard->x_send->s_name);
+        auto rcvSym = String::fromUTF8(elseKeyboard->x_receive->s_name);
+
+        sendSymbol = sndSym != "empty" ? sndSym : "";
+        receiveSymbol = rcvSym != "empty" ? rcvSym : "";
 
         valueChanged(lowC);
         valueChanged(octaves);
@@ -285,7 +294,9 @@ public:
     {
         return {
             { "Start octave", tInt, cGeneral, &lowC, {} },
-            { "Num. octaves", tInt, cGeneral, &octaves, {} }
+            { "Num. octaves", tInt, cGeneral, &octaves, {} },
+            { "Receive Symbol", tString, cGeneral, &receiveSymbol, {} },
+            { "Send Symbol", tString, cGeneral, &sendSymbol, {} }
         };
     }
 
@@ -318,6 +329,16 @@ public:
             octaves = std::clamp<int>(static_cast<int>(octaves.getValue()), 1, 11);
             elseKeyboard->x_octaves = static_cast<int>(octaves.getValue());
             updateAspectRatio();
+        } else if (value.refersToSameSourceAs(sendSymbol)) {
+            auto symbol = sendSymbol.toString();
+            t_atom atom;
+            SETSYMBOL(&atom, pd->generateSymbol(symbol));
+            pd_typedmess((t_pd*)elseKeyboard, pd->generateSymbol("send"), 1, &atom);
+        } else if (value.refersToSameSourceAs(receiveSymbol)) {
+            auto symbol = receiveSymbol.toString();
+            t_atom atom;
+            SETSYMBOL(&atom, pd->generateSymbol(symbol));
+            pd_typedmess((t_pd*)elseKeyboard, pd->generateSymbol("receive"), 1, &atom);
         }
     }
 
@@ -357,6 +378,16 @@ public:
         case hash("8ves"): {
             setParameterExcludingListener(octaves, static_cast<int>(atoms[0].getFloat()));
             updateAspectRatio();
+            break;
+        }
+        case hash("send"): {
+            if (atoms.size() >= 1)
+                setParameterExcludingListener(sendSymbol, atoms[0].getSymbol());
+            break;
+        }
+        case hash("receive"): {
+            if (atoms.size() >= 1)
+                setParameterExcludingListener(receiveSymbol, atoms[0].getSymbol());
             break;
         }
         default:
