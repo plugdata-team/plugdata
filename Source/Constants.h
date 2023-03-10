@@ -66,6 +66,7 @@ struct Icons {
     inline static const String SavePatch = "Z";
     inline static const String ClosePatch = "[";
     inline static const String CloseAllPatches = "]";
+    inline static const String Centre = "}";
 };
 
 enum PlugDataColour {

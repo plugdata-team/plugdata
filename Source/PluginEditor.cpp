@@ -1024,8 +1024,7 @@ void PluginEditor::getCommandInfo(const CommandID commandID, ApplicationCommandI
 
     static auto const cmdMod = ModifierKeys::commandModifier;
     static auto const shiftMod = ModifierKeys::shiftModifier;
-    
-    
+
     std::map<ObjectIDs, std::pair<int, int>> defaultShortcuts;
     
     switch(OSUtils::getKeyboardLayout())

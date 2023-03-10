@@ -229,7 +229,8 @@ Statusbar::Statusbar(PluginProcessor* processor)
     gridButton = std::make_unique<TextButton>(Icons::Grid);
     directionButton = std::make_unique<TextButton>(Icons::Direction);
     protectButton = std::make_unique<TextButton>(Icons::Protection);
-
+    centreButton = std::make_unique<TextButton>(Icons::Centre);
+    
     presentationButton->setTooltip("Presentation Mode");
     presentationButton->setClickingTogglesState(true);
     presentationButton->getProperties().set("Style", "SmallIcon");
@@ -307,6 +308,17 @@ Statusbar::Statusbar(PluginProcessor* processor)
             presentationMode = false;
         }
     };
+    
+    centreButton->setTooltip("Move view to origin");
+    centreButton->getProperties().set("Style", "SmallIcon");
+    centreButton->onClick = [this]() {
+        auto* cnv = dynamic_cast<PluginEditor*>(pd->getActiveEditor())->getCurrentCanvas();
+        auto& origin = cnv->canvasOrigin;
+        cnv->viewport->setViewPosition(origin);
+        
+    };
+    
+    addAndMakeVisible(centreButton.get());
 
     connectionStyleButton->setTooltip("Enable segmented connections");
     connectionStyleButton->setClickingTogglesState(true);
@@ -325,7 +337,8 @@ Statusbar::Statusbar(PluginProcessor* processor)
 
         // cnv->patch.endUndoSequence("ChangeSegmentedPaths");
     };
-
+    addAndMakeVisible(connectionStyleButton.get());
+    
     addAndMakeVisible(connectionStyleButton.get());
 
     connectionPathfind->setTooltip("Find best connection path");
@@ -443,8 +456,10 @@ void Statusbar::resized()
     position(3); // Seperator
 
     gridButton->setBounds(position(getHeight()), 0, getHeight(), getHeight());
-
-    directionButton->setBounds(position(getHeight()), 0, getHeight(), getHeight());
+    
+    centreButton->setBounds(position(getHeight()), 0, getHeight(), getHeight());
+    
+    //directionButton->setBounds(position(getHeight()), 0, getHeight(), getHeight());
 
     pos = 0; // reset position for elements on the left
 

@@ -932,7 +932,7 @@ void Object::mouseDrag(MouseEvent const& e)
             auto draggedBounds = ds.componentBeingDragged->getBounds().expanded(6);
             auto xEdge = e.getDistanceFromDragStartX() < 0 ? draggedBounds.getX() : draggedBounds.getRight();
             auto yEdge = e.getDistanceFromDragStartY() < 0 ? draggedBounds.getY() : draggedBounds.getBottom();
-            if (cnv->autoscroll(e.getEventRelativeTo(this).withNewPosition(Point<int>(xEdge, yEdge)).getEventRelativeTo(cnv->viewport))) {
+            if (cnv->autoscroll(e.getEventRelativeTo(cnv).withNewPosition(Point<int>(xEdge, yEdge)).getEventRelativeTo(cnv->viewport))) {
                 beginDragAutoRepeat(25);
             }
         }
