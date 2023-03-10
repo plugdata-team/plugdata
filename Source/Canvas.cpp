@@ -1026,8 +1026,11 @@ void Canvas::checkBounds()
     if(viewport) viewport->visibleAreaChanged(viewport->getViewArea());
     
     // TODO: not sure if we need to do this
-    for (auto& object : objects) {
+    for (auto* object : objects) {
         object->updateBounds();
+    }
+    for (auto* connection : connections) {
+        connection->updatePath();
     }
     if (graphArea) {
         graphArea->updateBounds();
