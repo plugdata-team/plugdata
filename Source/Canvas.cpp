@@ -147,8 +147,8 @@ void Canvas::paint(Graphics& g)
 
         // draw origin
         g.setColour(findColour(PlugDataColour::canvasDotsColourId));
-        g.drawLine(canvasOrigin.x - 1, canvasOrigin.y - 1, canvasOrigin.x - 1, getHeight() + 2);
-        g.drawLine(canvasOrigin.x - 1, canvasOrigin.y - 1, getWidth() + 2, canvasOrigin.y - 1);
+        g.drawLine(canvasOrigin.x - 0.5f, canvasOrigin.y - 0.5f, canvasOrigin.x - 0.5f, getHeight() + 1.0f);
+        g.drawLine(canvasOrigin.x - 0.5f, canvasOrigin.y - 0.5f, getWidth() + 1.0f, canvasOrigin.y - 0.5f);
     }
 
     if (locked == var(false) && !isGraph) {
