@@ -143,13 +143,10 @@ void Canvas::paint(Graphics& g)
 {
     if (!isGraph) {
 
-        g.fillAll(findColour(PlugDataColour::toolbarBackgroundColourId));
-
-        g.setColour(findColour(PlugDataColour::canvasBackgroundColourId));
-        g.fillRect(canvasOrigin.x, canvasOrigin.y, getWidth(), getHeight());
+        g.fillAll(findColour(PlugDataColour::canvasBackgroundColourId));
 
         // draw origin
-        g.setColour(Colour(100, 100, 100));
+        g.setColour(findColour(PlugDataColour::canvasDotsColourId));
         g.drawLine(canvasOrigin.x - 1, canvasOrigin.y - 1, canvasOrigin.x - 1, getHeight() + 2);
         g.drawLine(canvasOrigin.x - 1, canvasOrigin.y - 1, getWidth() + 2, canvasOrigin.y - 1);
     }
@@ -158,10 +155,11 @@ void Canvas::paint(Graphics& g)
         Rectangle<int> const clipBounds = g.getClipBounds();
 
         g.setColour(findColour(PlugDataColour::canvasDotsColourId));
-
-        for (int x = canvasOrigin.getX() + objectGrid.gridSize; x < clipBounds.getRight(); x += objectGrid.gridSize) {
-            for (int y = canvasOrigin.getY() + objectGrid.gridSize; y < clipBounds.getBottom(); y += objectGrid.gridSize) {
-                g.fillRect(static_cast<float>(x), static_cast<float>(y), 1.0, 1.0);
+        
+        
+        for (int x = canvasOrigin.getX() % objectGrid.gridSize; x < clipBounds.getRight(); x += objectGrid.gridSize) {
+            for (int y = canvasOrigin.getY() % objectGrid.gridSize; y < clipBounds.getBottom(); y += objectGrid.gridSize) {
+                g.fillRect(static_cast<float>(x) - 1.0f, static_cast<float>(y) - 1.0f, 1.0, 1.0);
             }
         }
     }
@@ -471,28 +469,30 @@ void Canvas::mouseDrag(MouseEvent const& e)
 
 bool Canvas::autoscroll(MouseEvent const& e)
 {
-    auto ret = false;
     auto x = viewport->getViewPositionX();
     auto y = viewport->getViewPositionY();
+    auto oldY = y;
+    auto oldX = x;
+    
+    auto pos = e.getPosition();
 
-    if (e.x > viewport->getWidth()) {
-        ret = true;
-        x += std::clamp((e.x - viewport->getWidth()) / 6, 1, 14);
-    } else if (e.x < 0) {
-        ret = true;
-        x -= std::clamp(-e.x / 6, 1, 14);
+    if (pos.x > viewport->getWidth()) {
+        x += std::clamp((pos.x - viewport->getWidth()) / 6, 1, 14);
+    } else if (pos.x < 0) {
+        x -= std::clamp(-pos.x / 6, 1, 14);
     }
-    if (e.y > viewport->getHeight()) {
-        ret = false;
-        y += std::clamp((e.y - viewport->getHeight()) / 6, 1, 14);
-    } else if (e.y < 0) {
-        ret = false;
-        y -= std::clamp(-e.y / 6, 1, 14);
+    if (pos.y > viewport->getHeight()) {
+        y += std::clamp((pos.y - viewport->getHeight()) / 6, 1, 14);
+    } else if (pos.y < 0) {
+        y -= std::clamp(-pos.y / 6, 1, 14);
     }
-
-    viewport->setViewPosition(x, y);
-
-    return ret;
+    
+    if(x != oldX || y != oldY) {
+        viewport->setViewPosition(x, y);
+        return true;
+    }
+    
+    return false;
 }
 
 void Canvas::mouseUp(MouseEvent const& e)
@@ -1023,6 +1023,17 @@ void Canvas::redo()
 
 void Canvas::checkBounds()
 {
+    if(viewport) viewport->visibleAreaChanged(viewport->getViewArea());
+    
+    // TODO: not sure if we need to do this
+    for (auto& object : objects) {
+        object->updateBounds();
+    }
+    if (graphArea) {
+        graphArea->updateBounds();
+    }
+    
+    /*
     if (isGraph) {
 
         auto viewBounds = Rectangle<int>(canvasOrigin.x, canvasOrigin.y, getWidth(), getHeight());
@@ -1067,7 +1078,7 @@ void Canvas::checkBounds()
         graphArea->updateBounds();
     }
 
-    updatingBounds = false;
+    updatingBounds = false; */
 }
 
 void Canvas::valueChanged(Value& v)

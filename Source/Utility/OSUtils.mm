@@ -49,7 +49,7 @@ OSUtils::KeyboardLayout OSUtils::getKeyboardLayout()
     NSString *s = (__bridge NSString *)(TISGetInputSourceProperty(source, kTISPropertyInputSourceID));
     auto const* locale = [[s substringWithRange:NSMakeRange(20, [s length]-20)] UTF8String];
     
-    if(!strcmp(locale, "French") || !strcmp(locale, "ABC-AZERTY")) {
+    if(!strcmp(locale, "Belgian") || !strcmp(locale, "French") || !strcmp(locale, "ABC-AZERTY")) {
         return AZERTY;
     }
     

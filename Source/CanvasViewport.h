@@ -8,8 +8,13 @@
 
 #include "Utility/GlobalMouseListener.h"
 
+// TODO: find a way not to include these!
+#include "Object.h"
+#include "Connection.h"
+#include "Canvas.h"
+
 // Special viewport that shows scrollbars on top of content instead of next to it
-class CanvasViewport : public Viewport {
+class CanvasViewport : public Viewport, public AsyncUpdater {
     class MousePanner : public MouseListener {
     public:
         MousePanner(Viewport* v)
@@ -124,6 +129,7 @@ class CanvasViewport : public Viewport {
         {
             ScrollBar::setVisible(true);
             addListener(this);
+            setAutoHide(false);
             fadeOut();
         }
 
@@ -246,21 +252,107 @@ public:
         if (isVertical) {
             vbar = new FadingScrollbar(true);
             vbar->onScroll = [this]() {
-                onScroll();
+                //onScrollAttempt();
             };
             return vbar;
         } else {
             hbar = new FadingScrollbar(false);
             hbar->onScroll = [this]() {
-                onScroll();
+                //onScrollAttempt();
             };
             return hbar;
         }
     }
+    
+    void visibleAreaChanged(const Rectangle<int>& newVisibleArea) override
+    {
+        /*
+         
 
-    std::function<void()> onScroll = []() {};
+         auto viewBounds = Rectangle<int>(canvasOrigin.x, canvasOrigin.y, (viewport->getWidth() - 8) * scale, (viewport->getHeight() - 8) * scale);
+
+         */
+        if(alreadyUpdatedArea) return;
+        
+        alreadyUpdatedArea = true;
+        MessageManager::callAsync([_this = SafePointer(this)](){
+            if(_this) _this->alreadyUpdatedArea = false;
+        });
+        
+        auto* child = getViewedComponent();
+        if(!child) return;
+        
+        float scale = std::max(1.0f, 1.0f / editor->getZoomScaleForCanvas(cnv));
+        // TODO: fix zooming
+        
+        
+        auto newBounds = getLocalBounds().withTrimmedRight(getScrollBarThickness()).withTrimmedBottom(getScrollBarThickness());
+        auto newOrigin = Point<int>();
+        auto visibleArea = newVisibleArea.expanded(16);
+        
+        auto negativeArea = Rectangle<int>();
+        
+        for(auto* c : child->getChildren())
+        {
+            if(dynamic_cast<Object*>(c) || dynamic_cast<Connection*>(c))
+            {
+                newBounds = newBounds.getUnion(c->getBoundsInParent());
+                //negativeArea = negativeArea.getUnion(c->getBoundsInParent() + child->getPosition());
+            }
+        }
+        
+        if(visibleArea.getRight() > newBounds.getRight())
+        {
+            newBounds = newBounds.withRight(visibleArea.getRight());
+        }
+        if(visibleArea.getBottom() > newBounds.getBottom())
+        {
+            newBounds = newBounds.withBottom(visibleArea.getBottom());
+        }
+        
+        newOrigin = newOrigin.withX(visibleArea.getX());
+        newOrigin = newOrigin.withY(visibleArea.getY());
+        
+        child->setSize(newBounds.getRight(), newBounds.getBottom());
+        cnv->canvasOrigin -= newOrigin;
+        
+        if(cnv->canvasOrigin.x < 0.0f)  {
+            newOrigin.x += cnv->canvasOrigin.x;
+            cnv->canvasOrigin.x = 0.0f;
+        }
+        
+        if(cnv->canvasOrigin.y < 0.0f) {
+            newOrigin.y += cnv->canvasOrigin.y;
+            cnv->canvasOrigin.y = 0.0f;
+        }
+        
+        if(!newOrigin.isOrigin())
+        {
+            child->setTopLeftPosition(child->getPosition() + newOrigin);
+            for(auto* c : child->getChildren())
+            {
+                c->setBounds(c->getBounds() - newOrigin);
+            }
+        }
+        
+        onScroll();
+    }
+    
+    void handleAsyncUpdate() override
+    {
+        
+    }
+    
+    /*
+    void mouseWheelMove(MouseEvent const& e, MouseWheelDetails const& d) override
+    {
+        Viewport::mouseWheelMove(e, d);
+    } */
+
+    std::function<void()> onScroll = [](){};
 
 private:
+    bool alreadyUpdatedArea = false;
     PluginEditor* editor;
     Canvas* cnv;
     MousePanner panner = MousePanner(this);
