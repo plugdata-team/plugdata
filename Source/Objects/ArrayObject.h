@@ -664,7 +664,12 @@ public:
 
     void openFromMenu() override
     {
-        if(dialog) return;
+        if(dialog)
+        {
+            dialog->toFront(true);
+            return;
+        }
+        
         
         dialog = std::make_unique<ArrayEditorDialog>(cnv->pd, array, object);
         dialog->onClose = [this]() {
@@ -680,13 +685,13 @@ public:
         case hash("list"): {
             break;
         }
-            /*
-    case objectMessage::msg_edit: {
-        if(!atoms.empty()) {
-            editable = atoms[0].getFloat();
-            setInterceptsMouseClicks(false, editable);
+        case hash("edit"):
+        {
+            if(!atoms.empty()) {
+                editable = atoms[0].getFloat();
+                setInterceptsMouseClicks(false, editable);
+            }
         }
-    } */
         default:
             break;
         }
@@ -697,7 +702,7 @@ private:
 
     PdArray array;
     GraphicalArray graph;
-    std::unique_ptr<ArrayEditorDialog> dialog;
+    std::unique_ptr<ArrayEditorDialog> dialog = nullptr;
 
     Value labelColour;
     bool editable = true;
@@ -705,7 +710,7 @@ private:
 
 // Actual text object, marked final for optimisation
 class ArrayDefineObject final : public TextBase {
-    std::unique_ptr<ArrayEditorDialog> editor;
+    std::unique_ptr<ArrayEditorDialog> editor = nullptr;
 
 public:
     ArrayDefineObject(void* obj, Object* parent, bool isValid = true)
@@ -730,6 +735,12 @@ public:
 
     void openArrayEditor()
     {
+        if(editor)
+        {
+            editor->toFront(true);
+            return;
+        }
+        
         auto* c = reinterpret_cast<t_canvas*>(static_cast<t_canvas*>(ptr)->gl_list);
         auto* glist = reinterpret_cast<t_garray*>(c->gl_list);
         auto array = PdArray(glist, cnv->pd->m_instance);
