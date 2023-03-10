@@ -8,20 +8,19 @@
 
 #if defined(_WIN32) || defined(_WIN64)
 
-#    define REPARSE_MOUNTPOINT_HEADER_SIZE 8
+#define REPARSE_MOUNTPOINT_HEADER_SIZE 8
 
-#    define _WIN32_WINNT 0x0500 // Windows 2000 or later
-#    define WIN32_LEAN_AND_MEAN
-#    define WIN32_NO_STATUS
+#define _WIN32_WINNT 0x0500 // Windows 2000 or later
+#define WIN32_LEAN_AND_MEAN
+#define WIN32_NO_STATUS
 
-#    include <windows.h>
-#    include <WINIOCTL.H>
-#    include <shlobj.h>
-#    include <ShellAPI.h>
+#include <windows.h>
+#include <WINIOCTL.H>
+#include <shlobj.h>
+#include <ShellAPI.h>
 
-#    include <stdio.h>
-#    include <string>
-#    include <filesystem>
+#include <stdio.h>
+#include <filesystem>
 
 void OSUtils::createJunction(std::string from, std::string to)
 {
