@@ -664,6 +664,8 @@ public:
 
     void openFromMenu() override
     {
+        if(dialog) return;
+        
         dialog = std::make_unique<ArrayEditorDialog>(cnv->pd, array, object);
         dialog->onClose = [this]() {
             dialog.reset(nullptr);
