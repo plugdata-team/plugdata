@@ -282,13 +282,14 @@ public:
         auto* child = getViewedComponent();
         if(!child) return;
         
-        float scale = std::max(1.0f, 1.0f / editor->getZoomScaleForCanvas(cnv));
+        float scale = 1.0f / editor->getZoomScaleForCanvas(cnv);
+        float smallerScale = std::max(1.0f, scale);
         
-        auto minWidth = (getWidth() - getScrollBarThickness()) * scale;
-        auto minHeight = (getHeight() - getScrollBarThickness()) * scale;
+        auto minWidth = (getWidth() - getScrollBarThickness()) * smallerScale;
+        auto minHeight = (getHeight() - getScrollBarThickness()) * smallerScale;
         auto newBounds = Rectangle<int>(0, 0, minWidth, minHeight);
         auto newOrigin = Point<int>();
-        auto visibleArea = newVisibleArea.expanded(16);
+        auto visibleArea = newVisibleArea.expanded(16) * scale;
 
         for(auto* c : child->getChildren())
         {
@@ -325,7 +326,7 @@ public:
         
         if(!newOrigin.isOrigin())
         {
-            child->setTopLeftPosition(child->getPosition() + newOrigin);
+            child->setTopLeftPosition((child->getPosition() + newOrigin));
             for(auto* c : child->getChildren())
             {
                 c->setBounds(c->getBounds() - newOrigin);
