@@ -283,21 +283,18 @@ public:
         if(!child) return;
         
         float scale = std::max(1.0f, 1.0f / editor->getZoomScaleForCanvas(cnv));
-        // TODO: fix zooming
         
-        
-        auto newBounds = getLocalBounds().withTrimmedRight(getScrollBarThickness()).withTrimmedBottom(getScrollBarThickness());
+        auto minWidth = (getWidth() - getScrollBarThickness()) * scale;
+        auto minHeight = (getHeight() - getScrollBarThickness()) * scale;
+        auto newBounds = Rectangle<int>(0, 0, minWidth, minHeight);
         auto newOrigin = Point<int>();
         auto visibleArea = newVisibleArea.expanded(16);
-        
-        auto negativeArea = Rectangle<int>();
-        
+
         for(auto* c : child->getChildren())
         {
             if(dynamic_cast<Object*>(c) || dynamic_cast<Connection*>(c))
             {
                 newBounds = newBounds.getUnion(c->getBoundsInParent());
-                //negativeArea = negativeArea.getUnion(c->getBoundsInParent() + child->getPosition());
             }
         }
         
