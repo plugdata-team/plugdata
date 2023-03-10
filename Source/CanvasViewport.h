@@ -14,7 +14,8 @@
 #include "Canvas.h"
 
 // Special viewport that shows scrollbars on top of content instead of next to it
-class CanvasViewport : public Viewport, public AsyncUpdater {
+class CanvasViewport : public Viewport
+{
     class MousePanner : public MouseListener {
     public:
         MousePanner(Viewport* v)
@@ -334,11 +335,6 @@ public:
         }
         
         onScroll();
-    }
-    
-    void handleAsyncUpdate() override
-    {
-        
     }
     
     /*
