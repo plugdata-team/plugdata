@@ -105,7 +105,7 @@ private:
     Value locked;
     Value presentationMode;
 
-    bool showDirection;
+    bool showDirection = false;
 
     Canvas* cnv;
 

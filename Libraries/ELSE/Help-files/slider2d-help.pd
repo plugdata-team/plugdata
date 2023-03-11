@@ -315,7 +315,7 @@ the patch., f 46;
 0;
 #X obj 18 180 cnv 3 550 3 empty empty empty 8 12 0 13 #dcdcdc #000000
 0;
-#X text 100 44 -dim <float \, floar: sets x/y sizes independently (default:
+#X text 100 44 -dim <float \, float>: sets x/y sizes independently (default:
 127), f 70;
 #X restore 153 514 pd flags;
 #X text 212 514 <= click to open;

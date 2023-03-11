@@ -16,7 +16,7 @@ arguments:
 inlets:
   1st:
   - type: float
-    description: sets index to write to
+    description: sets y value
   2nd:
   - type: float
     description: sets index to write to
