@@ -19,15 +19,15 @@ arguments:
 inlets:
   nth:
   - type: signal
-    description: left inlets are the 'n' channels of input A
-    middle inlets are the 'n' channels of input B
+    description: left 'n' inlets are channels of input A. middle 'n' inlets are channels of input B
+  2nd: #rightmost
   - type: float/signal
-    description: rightmost inlet is the mix value from -1 (A) to 1 (B)
+    description: mix value from -1 (A) to 1 (B)
     
 outlets:
-  1st:
+  nth:
   - type: signal
-    description: 'n' crossfaded channels
+    description: crossfaded output(s)
 
 draft: false
 ---
