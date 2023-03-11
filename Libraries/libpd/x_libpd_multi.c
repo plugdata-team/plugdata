@@ -590,6 +590,7 @@ void impulse_tilde_setup();
 void impulse2_tilde_setup();
 void initmess_setup();
 void keyboard_setup();
+void keycode_setup();
 void lag_tilde_setup();
 void lag2_tilde_setup();
 void lastvalue_tilde_setup();
@@ -876,6 +877,7 @@ void libpd_init_else(void)
     impulse2_tilde_setup();
     initmess_setup();
     keyboard_setup();
+    keycode_setup();
     lag_tilde_setup();
     lag2_tilde_setup();
     lastvalue_tilde_setup();
