@@ -35,10 +35,8 @@ inlets:
   1st:
 - type: bang
   description: outputs last values 
-  default:
 - type: list
   description: sets x, y and output it
-  default:
 
 outlets:
   1st:
