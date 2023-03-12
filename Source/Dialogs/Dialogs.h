@@ -31,7 +31,7 @@ public:
         grabKeyboardFocus();
 
         if (showCloseButton) {
-            closeButton.reset(getLookAndFeel().createDocumentWindowButton(4));
+            closeButton.reset(getLookAndFeel().createDocumentWindowButton(5));
             addAndMakeVisible(closeButton.get());
             closeButton->onClick = [this]() {
                 closeDialog();

@@ -304,18 +304,18 @@ void PluginEditor::resized()
 
     auto useLeftButtons = SettingsFile::getInstance()->getProperty<bool>("left_window_buttons");
     auto useNonNativeTitlebar = ProjectInfo::isStandalone && !SettingsFile::getInstance()->getProperty<bool>("native_window");
+#if JUCE_LINUX
     auto offset = useLeftButtons && useNonNativeTitlebar ? 90 : 0;
-
+#else
+    auto offset = useLeftButtons && useNonNativeTitlebar ? 70 : 0;
+#endif
+    
     mainMenuButton.setBounds(20 + offset, 0, toolbarHeight, toolbarHeight);
     undoButton.setBounds(90 + offset, 0, toolbarHeight, toolbarHeight);
     redoButton.setBounds(160 + offset, 0, toolbarHeight, toolbarHeight);
     addObjectMenuButton.setBounds(230 + offset, 0, toolbarHeight, toolbarHeight);
 
-#if JUCE_LINUX
     auto windowControlsOffset = (useNonNativeTitlebar && !useLeftButtons) ? 130.0f : 70.0f;
-#else
-    auto windowControlsOffset = (useNonNativeTitlebar && !useLeftButtons) ? 110.0f : 70.0f;
-#endif
 
     if(!ProjectInfo::isStandalone) {
         int const resizerSize = 18;
