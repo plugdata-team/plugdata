@@ -315,7 +315,7 @@ void PluginEditor::resized()
     redoButton.setBounds(160 + offset, 0, toolbarHeight, toolbarHeight);
     addObjectMenuButton.setBounds(230 + offset, 0, toolbarHeight, toolbarHeight);
 
-    auto windowControlsOffset = (useNonNativeTitlebar && !useLeftButtons) ? 130.0f : 70.0f;
+    auto windowControlsOffset = (useNonNativeTitlebar && !useLeftButtons) ? 170.0f : 70.0f;
 
     if(!ProjectInfo::isStandalone) {
         int const resizerSize = 18;

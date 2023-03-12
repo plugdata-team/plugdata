@@ -2072,7 +2072,7 @@ struct TextEditorDialog : public Component {
         , title(name)
     {
 
-        closeButton.reset(LookAndFeel::getDefaultLookAndFeel().createDocumentWindowButton(DocumentWindow::closeButton));
+        closeButton.reset(LookAndFeel::getDefaultLookAndFeel().createDocumentWindowButton(5));
         addAndMakeVisible(closeButton.get());
 
         constrainer.setMinimumSize(500, 200);
