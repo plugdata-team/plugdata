@@ -34,6 +34,7 @@
 #include "stmlib/stmlib.h"
 
 #include <math.h>
+#include <cstdint>
 
 namespace stmlib {
 
