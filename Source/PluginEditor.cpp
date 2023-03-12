@@ -304,11 +304,7 @@ void PluginEditor::resized()
 
     auto useLeftButtons = SettingsFile::getInstance()->getProperty<bool>("macos_buttons");
     auto useNonNativeTitlebar = ProjectInfo::isStandalone && !SettingsFile::getInstance()->getProperty<bool>("native_window");
-#if JUCE_LINUX
-    auto offset = useLeftButtons && useNonNativeTitlebar ? 90 : 0;
-#else
     auto offset = useLeftButtons && useNonNativeTitlebar ? 70 : 0;
-#endif
     
     mainMenuButton.setBounds(20 + offset, 0, toolbarHeight, toolbarHeight);
     undoButton.setBounds(90 + offset, 0, toolbarHeight, toolbarHeight);
