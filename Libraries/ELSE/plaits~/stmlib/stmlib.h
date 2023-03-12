@@ -35,7 +35,7 @@
 #ifdef _MSC_VER
   #define forcedinline __forceinline
 #else
-  #define forcedinline inline __attribute__((always_inline))
+  #define forcedinline __attribute__((always_inline))
 #endif
 
 #define DISALLOW_COPY_AND_ASSIGN(TypeName) \
