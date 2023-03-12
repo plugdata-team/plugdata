@@ -314,8 +314,9 @@ Statusbar::Statusbar(PluginProcessor* processor)
     centreButton->onClick = [this]() {
         auto* cnv = dynamic_cast<PluginEditor*>(pd->getActiveEditor())->getCurrentCanvas();
         auto& origin = cnv->canvasOrigin;
-        cnv->viewport->setViewPosition(origin);
-        
+        cnv->updatingBounds = true;
+        cnv->viewport->setViewPosition(origin + Point<int>(1, 1));
+        cnv->updatingBounds = false;
     };
     
     addAndMakeVisible(centreButton.get());
