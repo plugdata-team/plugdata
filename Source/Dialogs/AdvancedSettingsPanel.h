@@ -14,7 +14,6 @@ public:
     {
         auto* settingsFile = SettingsFile::getInstance();
         nativeTitlebar.referTo(settingsFile->getPropertyAsValue("native_window"));
-        leftWindowButtons.referTo(settingsFile->getPropertyAsValue("left_window_buttons"));
         macOS_Buttons.referTo(settingsFile->getPropertyAsValue("macos_buttons"));
         reloadPatch.referTo(settingsFile->getPropertyAsValue("reload_last_state"));
 
@@ -22,12 +21,10 @@ public:
         macOS_Buttons.addListener(this);
 
         useNativeTitlebar.reset(new PropertiesPanel::BoolComponent("Use system titlebar", nativeTitlebar, { "No", "Yes" }));
-        useLeftWindowButtons.reset(new PropertiesPanel::BoolComponent("Place window buttons left", leftWindowButtons, { "No", "Yes" }));
         use_macOS_Buttons.reset(new PropertiesPanel::BoolComponent("Use macOS style window buttons", macOS_Buttons, { "No", "Yes" }));
         reloadLastOpenedPatch.reset(new PropertiesPanel::BoolComponent("Reload last opened patch on startup", reloadPatch, { "No", "Yes" }));
 
         addAndMakeVisible(*useNativeTitlebar);
-        addAndMakeVisible(*useLeftWindowButtons);
         addAndMakeVisible(*use_macOS_Buttons);
         addAndMakeVisible(*reloadLastOpenedPatch);
     }
@@ -36,7 +33,6 @@ public:
     {
         auto bounds = getLocalBounds();
         useNativeTitlebar->setBounds(bounds.removeFromTop(23));
-        useLeftWindowButtons->setBounds(bounds.removeFromTop(23));
         use_macOS_Buttons->setBounds(bounds.removeFromTop(23));
         reloadLastOpenedPatch->setBounds(bounds.removeFromTop(23));
     }
@@ -61,9 +57,7 @@ public:
     Value macOS_Buttons;
     Value reloadPatch;
 
-
     std::unique_ptr<PropertiesPanel::BoolComponent> useNativeTitlebar;
-    std::unique_ptr<PropertiesPanel::BoolComponent> useLeftWindowButtons;
     std::unique_ptr<PropertiesPanel::BoolComponent> use_macOS_Buttons;
     std::unique_ptr<PropertiesPanel::BoolComponent> reloadLastOpenedPatch;
 };

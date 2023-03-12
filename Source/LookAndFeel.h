@@ -389,7 +389,7 @@ struct PlugDataLook : public LookAndFeel_V4 {
                                         Button* closeButton,
                                         bool positionTitleBarButtonsOnLeft) override
     {
-        auto areButtonsLeft = SettingsFile::getInstance()->getProperty<bool>("left_window_buttons");
+        auto areButtonsLeft = SettingsFile::getInstance()->getProperty<bool>("macos_buttons");
         
         // heuristic to offset the buttons when positioned left, as we are drawing larger to provide a shadow
         // we check if the system is drawing with a dropshadow- hence semi transparent will be true
@@ -398,8 +398,11 @@ struct PlugDataLook : public LookAndFeel_V4 {
 #else
         auto leftOffset = areButtonsLeft && Desktop::canUseSemiTransparentWindows() ? titleBarX + 12 : titleBarX;
 #endif
-        titleBarY += 3;
-        titleBarH -= 4;
+        
+        if(areButtonsLeft) {
+            titleBarY += 3;
+            titleBarH -= 4;
+        }
        
         auto buttonW = static_cast<int> (titleBarH * 1.2);
 
