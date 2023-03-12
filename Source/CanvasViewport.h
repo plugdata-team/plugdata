@@ -267,86 +267,52 @@ public:
     
     void visibleAreaChanged(const Rectangle<int>& newVisibleArea) override
     {
-        /*
-         
-
-         auto viewBounds = Rectangle<int>(canvasOrigin.x, canvasOrigin.y, (viewport->getWidth() - 8) * scale, (viewport->getHeight() - 8) * scale);
-
-         */
-        if(alreadyUpdatedArea) return;
+        if(cnv->updatingBounds) return;
         
-        alreadyUpdatedArea = true;
-        MessageManager::callAsync([_this = SafePointer(this)](){
-            if(_this) _this->alreadyUpdatedArea = false;
-        });
-        
-        auto* child = getViewedComponent();
-        if(!child) return;
+        cnv->updatingBounds = true;
         
         float scale = 1.0f / editor->getZoomScaleForCanvas(cnv);
         float smallerScale = std::max(1.0f, scale);
-        
-        auto minWidth = (getWidth() - getScrollBarThickness()) * smallerScale;
-        auto minHeight = (getHeight() - getScrollBarThickness()) * smallerScale;
-        auto newBounds = Rectangle<int>(0, 0, minWidth, minHeight);
-        auto newOrigin = Point<int>();
-        auto visibleArea = newVisibleArea.expanded(16) * scale;
 
-        for(auto* c : child->getChildren())
+        auto minimumBounds = Rectangle<int>(cnv->canvasOrigin.x, cnv->canvasOrigin.y, (getWidth() - getScrollBarThickness()) * smallerScale, (getHeight() - getScrollBarThickness()) * smallerScale);
+
+        auto newBounds = minimumBounds.getUnion(newVisibleArea.expanded(16) * scale);
+        
+        for(auto* obj : cnv->objects)
         {
-            if(dynamic_cast<Object*>(c) || dynamic_cast<Connection*>(c))
-            {
-                newBounds = newBounds.getUnion(c->getBoundsInParent());
-            }
+            newBounds = newBounds.getUnion(obj->getBoundsInParent());
         }
-        
-        if(visibleArea.getRight() > newBounds.getRight())
+        for(auto* c : cnv->connections)
         {
-            newBounds = newBounds.withRight(visibleArea.getRight());
+            newBounds = newBounds.getUnion(c->getBoundsInParent());
         }
-        if(visibleArea.getBottom() > newBounds.getBottom())
+         
+        cnv->canvasOrigin -= newBounds.getPosition();
+        cnv->setBounds(newBounds + cnv->getPosition());
+        
+        for(auto* obj : cnv->objects)
         {
-            newBounds = newBounds.withBottom(visibleArea.getBottom());
+            obj->setBounds(obj->getBounds() - newBounds.getPosition());
         }
-        
-        newOrigin = newOrigin.withX(visibleArea.getX());
-        newOrigin = newOrigin.withY(visibleArea.getY());
-        
-        child->setSize(newBounds.getRight(), newBounds.getBottom());
-        cnv->canvasOrigin -= newOrigin;
-        
-        if(cnv->canvasOrigin.x < 0.0f)  {
-            newOrigin.x += cnv->canvasOrigin.x;
-            cnv->canvasOrigin.x = 0.0f;
-        }
-        
-        if(cnv->canvasOrigin.y < 0.0f) {
-            newOrigin.y += cnv->canvasOrigin.y;
-            cnv->canvasOrigin.y = 0.0f;
-        }
-        
-        if(!newOrigin.isOrigin())
+        for(auto* c : cnv->connections)
         {
-            child->setTopLeftPosition((child->getPosition() + newOrigin));
-            for(auto* c : child->getChildren())
-            {
-                c->setBounds(c->getBounds() - newOrigin);
-            }
+            c->componentMovedOrResized(*this, true, false);
         }
         
         onScroll();
+        
+        cnv->updatingBounds = false;
     }
     
-    /*
     void mouseWheelMove(MouseEvent const& e, MouseWheelDetails const& d) override
     {
+        visibleAreaChanged(getViewArea());
         Viewport::mouseWheelMove(e, d);
-    } */
+    }
 
     std::function<void()> onScroll = [](){};
 
 private:
-    bool alreadyUpdatedArea = false;
     PluginEditor* editor;
     Canvas* cnv;
     MousePanner panner = MousePanner(this);
