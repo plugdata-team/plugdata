@@ -99,8 +99,6 @@ private:
         { "split_zoom", var(1.0f) },
         { "default_font", var("Inter") },
         { "native_window", var(false) },
-        { "left_window_buttons", var(false) },
-        { "macos_buttons", var(false) },
         { "reload_last_state", var(false) },
         { "autoconnect", var(true) },
         { "macos_buttons",
@@ -110,13 +108,6 @@ private:
             var(false)
 #endif
         },
-        { "left_window_buttons",
-#if JUCE_MAC
-            var(true)
-#else
-            var(false)
-#endif
-        }
     };
 
     StringArray childTrees {

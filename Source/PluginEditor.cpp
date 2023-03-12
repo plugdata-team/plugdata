@@ -302,7 +302,7 @@ void PluginEditor::resized()
     sidebar->setBounds(getWidth() - sidebar->getWidth(), toolbarHeight, sidebar->getWidth(), getHeight() - toolbarHeight);
     statusbar->setBounds(0, getHeight() - statusbar->getHeight(), getWidth() - sidebar->getWidth(), statusbar->getHeight());
 
-    auto useLeftButtons = SettingsFile::getInstance()->getProperty<bool>("left_window_buttons");
+    auto useLeftButtons = SettingsFile::getInstance()->getProperty<bool>("macos_buttons");
     auto useNonNativeTitlebar = ProjectInfo::isStandalone && !SettingsFile::getInstance()->getProperty<bool>("native_window");
 #if JUCE_LINUX
     auto offset = useLeftButtons && useNonNativeTitlebar ? 90 : 0;
