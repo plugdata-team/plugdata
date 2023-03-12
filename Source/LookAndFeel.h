@@ -81,13 +81,137 @@ struct PlugDataLook : public LookAndFeel_V4 {
         setDefaultSansSerifTypeface(Fonts::getCurrentFont().getTypefacePtr());
     }
 
+    class PlugData_DocumentWindowButton_macOS : public Button, public FocusChangeListener {
+    public:
+        PlugData_DocumentWindowButton_macOS(int buttonType)
+            : Button("")
+            , buttonType(buttonType)
+        {
+            Desktop::getInstance().addFocusChangeListener(this);
+
+            auto crossThickness = 0.25f;
+            String name;
+
+            switch(buttonType) {
+                case DocumentWindow::closeButton: {
+                    name = "close";
+                    bgColour = Colour(0xFFFF605C); // Sunset Orange (#FF605C)
+
+                    shape.addLineSegment({ 0.0f, 0.0f, 1.0f, 1.0f }, crossThickness);
+                    shape.addLineSegment({ 1.0f, 0.0f, 0.0f, 1.0f }, crossThickness);
+                    break;
+                }
+                case DocumentWindow::minimiseButton: {
+                    name = "minimise";
+                    bgColour = Colour(0xFFFFBD44); // Pastel Orange (#FFBD44)
+
+                    shape.addLineSegment({ 0.0f, 0.5f, 1.0f, 0.5f }, crossThickness);
+                    break;
+                }
+                case DocumentWindow::maximiseButton: {
+                    name = "maximise";
+                    bgColour = Colour(0xFF00CA4E); // Malachite (#00CA4E)
+
+                    // we add a rectangle, and make it two triangles by drawing an oblique line on top
+                    shape.addRectangle(0.0f, 0.0f, 1.0f, 1.0f);
+                    break;
+                }
+            }
+            setName(name);
+            setButtonText(name);
+        }
+
+        ~PlugData_DocumentWindowButton_macOS() override
+        {
+            Desktop::getInstance().removeFocusChangeListener(this);
+        }
+
+        void globalFocusChanged(Component* focusedComponent) override
+        {
+            buttonColour = getParentComponent()->hasKeyboardFocus(true) ? bgColour : Colours::lightgrey;
+            repaint();
+        }
+
+        void paintButton(Graphics& g, bool shouldDrawButtonAsHighlighted, bool shouldDrawButtonAsDown) override
+        {
+            auto rect = Justification(Justification::centred).appliedToRectangle(Rectangle<int>(getHeight(), getHeight()), getLocalBounds()).toFloat();
+            auto reducedRect = rect.reduced(getHeight() * 0.22f);
+            auto reducedRectShape = reducedRect.reduced(getHeight() * 0.15f);
+
+            // draw macOS filled background circle
+            g.setColour(buttonColour);
+            g.fillEllipse(reducedRect);
+
+            // draw macOS circle border
+            g.setColour(buttonColour.darker(0.1));
+            g.drawEllipse(reducedRect, 1.0f);
+
+            // draw icons on mouse hover
+            if (shouldDrawButtonAsHighlighted) {
+                g.setColour(buttonColour.darker(0.8f));
+                g.fillPath(shape, shape.getTransformToScaleToFit(reducedRectShape, true));
+
+                // perfectly fine hack to draw maximise macOS style button
+                if (buttonType == DocumentWindow::maximiseButton) {
+                    g.setColour(buttonColour);
+                    auto bar = Line<float>({0.0f, 0.0f, 1.0f, 1.0f});
+                    Path barPath;
+                    barPath.addLineSegment(bar, 0.3f);
+                    auto rectBarSegment = rect.reduced(getHeight() * 0.3f);
+                    g.fillPath(barPath, barPath.getTransformToScaleToFit(rectBarSegment, true));
+                }
+            }
+        }
+
+    private:
+        Colour bgColour;
+        Colour buttonColour;
+        Path shape;
+        int buttonType;
+
+        JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PlugData_DocumentWindowButton_macOS)
+    };
+
     class PlugData_DocumentWindowButton : public Button {
     public:
-        PlugData_DocumentWindowButton(String const& name, Path normal, Path toggled)
-            : Button(name)
-            , normalShape(std::move(normal))
-            , toggledShape(std::move(toggled))
+        PlugData_DocumentWindowButton(int buttonType)
+            : Button("")
+            , buttonType(buttonType)
         {
+            auto crossThickness = 0.15f;
+            String name;
+
+            switch(buttonType) {
+                case DocumentWindow::closeButton: {
+                    name = "close";
+                    shape.addLineSegment({ 0.0f, 0.0f, 1.0f, 1.0f }, crossThickness);
+                    shape.addLineSegment({ 1.0f, 0.0f, 0.0f, 1.0f }, crossThickness);
+                    toggledShape = shape;
+                    break;
+                }
+                case DocumentWindow::minimiseButton: {
+                    name = "minimise";
+                    shape.addLineSegment({ 0.0f, 0.5f, 1.0f, 0.5f }, crossThickness);
+                    toggledShape = shape;
+                    break;
+                }
+                case DocumentWindow::maximiseButton: {
+                    name = "maximise";
+                    shape.addLineSegment({ 0.5f, 0.0f, 0.5f, 1.0f }, crossThickness);
+                    shape.addLineSegment({ 0.0f, 0.5f, 1.0f, 0.5f }, crossThickness);
+
+                    toggledShape.startNewSubPath(45.0f, 100.0f);
+                    toggledShape.lineTo(0.0f, 100.0f);
+                    toggledShape.lineTo(0.0f, 0.0f);
+                    toggledShape.lineTo(100.0f, 0.0f);
+                    toggledShape.lineTo(100.0f, 45.0f);
+                    toggledShape.addRectangle(45.0f, 45.0f, 100.0f, 100.0f);
+                    PathStrokeType(30.0f).createStrokedPath(toggledShape, toggledShape);
+                    break;
+                }
+            }
+            setName(name);
+            setButtonText(name);
         }
 
         void paintButton(Graphics& g, bool shouldDrawButtonAsHighlighted, bool shouldDrawButtonAsDown) override
@@ -100,7 +224,7 @@ struct PlugDataLook : public LookAndFeel_V4 {
                 g.setColour(findColour(Slider::thumbColourId));
             }
 
-            auto& p = getToggleState() ? toggledShape : normalShape;
+            auto& p = getToggleState() ? toggledShape : shape;
 
             auto reducedRect = Justification(Justification::centred).appliedToRectangle(Rectangle<int>(getHeight(), getHeight()), getLocalBounds()).toFloat().reduced(getHeight() * 0.3f);
 
@@ -109,7 +233,8 @@ struct PlugDataLook : public LookAndFeel_V4 {
 
     private:
         Colour colour;
-        Path normalShape, toggledShape;
+        Path shape, toggledShape;
+        int buttonType;
 
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PlugData_DocumentWindowButton)
     };
@@ -245,40 +370,32 @@ struct PlugDataLook : public LookAndFeel_V4 {
 
     Button* createDocumentWindowButton(int buttonType) override
     {
-        Path shape;
-        auto crossThickness = 0.15f;
-
-        if (buttonType == DocumentWindow::closeButton) {
-            shape.addLineSegment({ 0.0f, 0.0f, 1.0f, 1.0f }, crossThickness);
-            shape.addLineSegment({ 1.0f, 0.0f, 0.0f, 1.0f }, crossThickness);
-
-            return new PlugData_DocumentWindowButton("close", shape, shape);
-        }
-
-        if (buttonType == DocumentWindow::minimiseButton) {
-            shape.addLineSegment({ 0.0f, 0.5f, 1.0f, 0.5f }, crossThickness);
-
-            return new PlugData_DocumentWindowButton("minimise", shape, shape);
-        }
-
-        if (buttonType == DocumentWindow::maximiseButton) {
-            shape.addLineSegment({ 0.5f, 0.0f, 0.5f, 1.0f }, crossThickness);
-            shape.addLineSegment({ 0.0f, 0.5f, 1.0f, 0.5f }, crossThickness);
-
-            Path fullscreenShape;
-            fullscreenShape.startNewSubPath(45.0f, 100.0f);
-            fullscreenShape.lineTo(0.0f, 100.0f);
-            fullscreenShape.lineTo(0.0f, 0.0f);
-            fullscreenShape.lineTo(100.0f, 0.0f);
-            fullscreenShape.lineTo(100.0f, 45.0f);
-            fullscreenShape.addRectangle(45.0f, 45.0f, 100.0f, 100.0f);
-            PathStrokeType(30.0f).createStrokedPath(fullscreenShape, fullscreenShape);
-
-            return new PlugData_DocumentWindowButton("maximise", shape, fullscreenShape);
-        }
+        if (SettingsFile::getInstance()->getProperty<bool>("macos_buttons"))
+            return new PlugData_DocumentWindowButton_macOS(buttonType);
+        else
+            return new PlugData_DocumentWindowButton(buttonType);
 
         jassertfalse;
         return nullptr;
+    }
+
+    void positionDocumentWindowButtons(DocumentWindow& window,
+                                        int titleBarX, int titleBarY, int titleBarW, int titleBarH,
+                                        Button* minimiseButton,
+                                        Button* maximiseButton,
+                                        Button* closeButton,
+                                        bool positionTitleBarButtonsOnLeft) override
+    {
+        auto areButtonsLeft = SettingsFile::getInstance()->getProperty<bool>("left_window_buttons");
+        // heuristic to offset the buttons when positioned left, as we are drawing larger to provide a shadow
+        // we check if the system is drawing with a dropshadow- hence semi transparent will be true
+        auto leftOffset = areButtonsLeft && Desktop::canUseSemiTransparentWindows() ? titleBarX + 25 : titleBarX;
+        LookAndFeel_V4::positionDocumentWindowButtons(window,
+                                                      leftOffset, titleBarY, titleBarW, titleBarH,
+                                                      minimiseButton,
+                                                      maximiseButton,
+                                                      closeButton,
+                                                      areButtonsLeft);
     }
 
     int getTabButtonBestWidth(TabBarButton& button, int tabDepth) override
