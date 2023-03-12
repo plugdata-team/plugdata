@@ -57,8 +57,11 @@ public:
     template<typename T>
     T getProperty(String name)
     {
-        jassert(isInitialised);
-
+        if(!isInitialised)
+        {
+            initialise();
+        }
+        
         if constexpr (std::is_same<T, String>::value) {
             return settingsTree.getProperty(name).toString();
         } else {
@@ -99,7 +102,21 @@ private:
         { "left_window_buttons", var(false) },
         { "macos_buttons", var(false) },
         { "reload_last_state", var(false) },
-        { "autoconnect", var(true) }
+        { "autoconnect", var(true) },
+        { "macos_buttons",
+#if JUCE_MAC
+            var(true)
+#else
+            var(false)
+#endif
+        },
+        { "left_window_buttons",
+#if JUCE_MAC
+            var(true)
+#else
+            var(false)
+#endif
+        }
     };
 
     StringArray childTrees {
