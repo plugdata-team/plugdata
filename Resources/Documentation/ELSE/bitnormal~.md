@@ -1,7 +1,7 @@
 ---
 title: bitnormal~
 
-description: biquad Series
+description: replace NaN/Inf and denormal signals with 0
 
 categories:
  - object
