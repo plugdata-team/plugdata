@@ -125,6 +125,11 @@ struct PlugDataLook : public LookAndFeel_V4 {
         {
             Desktop::getInstance().removeFocusChangeListener(this);
         }
+        
+        void setWindow(DocumentWindow* window)
+        {
+            owner = window;
+        }
 
         void globalFocusChanged(Component* focusedComponent) override
         {
@@ -137,6 +142,11 @@ struct PlugDataLook : public LookAndFeel_V4 {
             auto rect = Justification(Justification::centred).appliedToRectangle(Rectangle<int>(getHeight(), getHeight()), getLocalBounds()).toFloat();
             auto reducedRect = rect.reduced(getHeight() * 0.22f);
             auto reducedRectShape = reducedRect.reduced(getHeight() * 0.15f);
+            
+            for(auto* button : getAllButtons())
+            {
+                if(button->isMouseOver()) shouldDrawButtonAsHighlighted = true;
+            }
 
             // draw macOS filled background circle
             g.setColour(buttonColour);
@@ -162,8 +172,41 @@ struct PlugDataLook : public LookAndFeel_V4 {
                 }
             }
         }
-
+    
+        void mouseEnter (const MouseEvent& e) override
+        {
+            for(auto* button : getAllButtons()) button->repaint();
+            Button::mouseEnter(e);
+        }
+        void mouseExit (const MouseEvent& e) override
+        {
+            for(auto* button : getAllButtons()) button->repaint();
+            Button::mouseExit(e);
+        }
+        
+        std::vector<Button*> getAllButtons()
+        {
+            std::vector<Button*> allButtons;
+            
+            if(!owner) return allButtons;
+            
+            if(auto* minButton = owner->getMinimiseButton())
+            {
+                allButtons.push_back(minButton);
+            }
+            if(auto* maxButton = owner->getMaximiseButton())
+            {
+                allButtons.push_back(maxButton);
+            }
+            if(auto* closeButton = owner->getCloseButton())
+            {
+                allButtons.push_back(closeButton);
+            }
+            
+            return allButtons;
+        }
     private:
+        DocumentWindow* owner;
         Colour bgColour;
         Colour buttonColour;
         Path shape;
@@ -407,9 +450,14 @@ struct PlugDataLook : public LookAndFeel_V4 {
         auto buttonW = static_cast<int> (titleBarH * 1.2);
 
         auto x = areButtonsLeft ? leftOffset : leftOffset + titleBarW - buttonW;
+        
+        auto setWindow = [](Button* button, DocumentWindow& window){
+            if(auto* b = dynamic_cast<PlugData_DocumentWindowButton_macOS*>(button)) b->setWindow(&window);
+        };
 
         if (closeButton != nullptr)
         {
+            setWindow(closeButton, window);
             closeButton->setBounds (x, titleBarY, buttonW, titleBarH);
             x += areButtonsLeft ? titleBarH * 1.1 : -buttonW;
         }
@@ -419,12 +467,15 @@ struct PlugDataLook : public LookAndFeel_V4 {
 
         if (maximiseButton != nullptr)
         {
+            setWindow(maximiseButton, window);
             maximiseButton->setBounds (x, titleBarY, buttonW, titleBarH);
             x += areButtonsLeft ? titleBarH * 1.1 : -buttonW;
         }
 
-        if (minimiseButton != nullptr)
+        if (minimiseButton != nullptr) {
+            setWindow(minimiseButton, window);
             minimiseButton->setBounds (x, titleBarY, buttonW, titleBarH);
+        }
     }
 
     int getTabButtonBestWidth(TabBarButton& button, int tabDepth) override

@@ -2071,7 +2071,6 @@ struct TextEditorDialog : public Component {
         : resizer(this, &constrainer)
         , title(name)
     {
-
         closeButton.reset(LookAndFeel::getDefaultLookAndFeel().createDocumentWindowButton(5));
         addAndMakeVisible(closeButton.get());
 
