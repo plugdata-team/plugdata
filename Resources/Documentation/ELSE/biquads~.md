@@ -1,7 +1,7 @@
 ---
 title: biquads~
 
-description: biquad Series
+description: biquad series
 
 categories:
  - object
