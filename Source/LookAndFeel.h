@@ -387,15 +387,38 @@ struct PlugDataLook : public LookAndFeel_V4 {
                                         bool positionTitleBarButtonsOnLeft) override
     {
         auto areButtonsLeft = SettingsFile::getInstance()->getProperty<bool>("left_window_buttons");
+        
         // heuristic to offset the buttons when positioned left, as we are drawing larger to provide a shadow
         // we check if the system is drawing with a dropshadow- hence semi transparent will be true
+#if JUCE_LINUX
         auto leftOffset = areButtonsLeft && Desktop::canUseSemiTransparentWindows() ? titleBarX + 25 : titleBarX;
-        LookAndFeel_V4::positionDocumentWindowButtons(window,
-                                                      leftOffset, titleBarY, titleBarW, titleBarH,
-                                                      minimiseButton,
-                                                      maximiseButton,
-                                                      closeButton,
-                                                      areButtonsLeft);
+#else
+        auto leftOffset = areButtonsLeft && Desktop::canUseSemiTransparentWindows() ? titleBarX + 12 : titleBarX;
+#endif
+        titleBarY += 3;
+        titleBarH -= 4;
+       
+        auto buttonW = static_cast<int> (titleBarH * 1.2);
+
+        auto x = areButtonsLeft ? leftOffset : leftOffset + titleBarW - buttonW;
+
+        if (closeButton != nullptr)
+        {
+            closeButton->setBounds (x, titleBarY, buttonW, titleBarH);
+            x += areButtonsLeft ? titleBarH * 1.1 : -buttonW;
+        }
+
+        if (areButtonsLeft)
+            std::swap (minimiseButton, maximiseButton);
+
+        if (maximiseButton != nullptr)
+        {
+            maximiseButton->setBounds (x, titleBarY, buttonW, titleBarH);
+            x += areButtonsLeft ? titleBarH * 1.1 : -buttonW;
+        }
+
+        if (minimiseButton != nullptr)
+            minimiseButton->setBounds (x, titleBarY, buttonW, titleBarH);
     }
 
     int getTabButtonBestWidth(TabBarButton& button, int tabDepth) override
