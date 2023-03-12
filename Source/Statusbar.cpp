@@ -312,10 +312,12 @@ Statusbar::Statusbar(PluginProcessor* processor)
     centreButton->setTooltip("Move view to origin");
     centreButton->getProperties().set("Style", "SmallIcon");
     centreButton->onClick = [this]() {
-        auto* cnv = dynamic_cast<PluginEditor*>(pd->getActiveEditor())->getCurrentCanvas();
-        auto& origin = cnv->canvasOrigin;
+        auto* editor = dynamic_cast<PluginEditor*>(pd->getActiveEditor());
+        auto* cnv = editor->getCurrentCanvas();
+        auto origin = cnv->canvasOrigin + Point<int>(1, 1);
+        float scale = editor->getZoomScaleForCanvas(cnv);
         cnv->updatingBounds = true;
-        cnv->viewport->setViewPosition(origin + Point<int>(1, 1));
+        cnv->viewport->setViewPosition(origin * scale);
         cnv->updatingBounds = false;
     };
     
