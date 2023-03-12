@@ -370,6 +370,9 @@ struct PlugDataLook : public LookAndFeel_V4 {
 
     Button* createDocumentWindowButton(int buttonType) override
     {
+        // For dialogs
+        if(buttonType == 5) return new PlugData_DocumentWindowButton(4);
+        
         if (SettingsFile::getInstance()->getProperty<bool>("macos_buttons"))
             return new PlugData_DocumentWindowButton_macOS(buttonType);
         else
