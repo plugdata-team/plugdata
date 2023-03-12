@@ -302,14 +302,16 @@ void PluginEditor::resized()
     sidebar->setBounds(getWidth() - sidebar->getWidth(), toolbarHeight, sidebar->getWidth(), getHeight() - toolbarHeight);
     statusbar->setBounds(0, getHeight() - statusbar->getHeight(), getWidth() - sidebar->getWidth(), statusbar->getHeight());
 
-    mainMenuButton.setBounds(20, 0, toolbarHeight, toolbarHeight);
-    undoButton.setBounds(90, 0, toolbarHeight, toolbarHeight);
-    redoButton.setBounds(160, 0, toolbarHeight, toolbarHeight);
-    addObjectMenuButton.setBounds(230, 0, toolbarHeight, toolbarHeight);
-
+    auto useLeftButtons = SettingsFile::getInstance()->getProperty<bool>("left_window_buttons");
     auto useNonNativeTitlebar = ProjectInfo::isStandalone && !SettingsFile::getInstance()->getProperty<bool>("native_window");
-    
-    auto windowControlsOffset = useNonNativeTitlebar ? 170.0f : 70.0f;
+    auto offset = useLeftButtons && useNonNativeTitlebar ? 90 : 0;
+
+    mainMenuButton.setBounds(20 + offset, 0, toolbarHeight, toolbarHeight);
+    undoButton.setBounds(90 + offset, 0, toolbarHeight, toolbarHeight);
+    redoButton.setBounds(160 + offset, 0, toolbarHeight, toolbarHeight);
+    addObjectMenuButton.setBounds(230 + offset, 0, toolbarHeight, toolbarHeight);
+
+    auto windowControlsOffset = (useNonNativeTitlebar && !useLeftButtons) ? 170.0f : 70.0f;
 
     if(!ProjectInfo::isStandalone) {
         int const resizerSize = 18;
