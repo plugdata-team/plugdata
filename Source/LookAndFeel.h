@@ -99,6 +99,7 @@ struct PlugDataLook : public LookAndFeel_V4 {
 
                     shape.addLineSegment({ 0.0f, 0.0f, 1.0f, 1.0f }, crossThickness);
                     shape.addLineSegment({ 1.0f, 0.0f, 0.0f, 1.0f }, crossThickness);
+                    toggledShape = shape;
                     break;
                 }
                 case DocumentWindow::minimiseButton: {
@@ -106,6 +107,7 @@ struct PlugDataLook : public LookAndFeel_V4 {
                     bgColour = Colour(0xFFFFBD44); // Pastel Orange (#FFBD44)
 
                     shape.addLineSegment({ 0.0f, 0.5f, 1.0f, 0.5f }, crossThickness);
+                    toggledShape = shape;
                     break;
                 }
                 case DocumentWindow::maximiseButton: {
@@ -114,11 +116,25 @@ struct PlugDataLook : public LookAndFeel_V4 {
 
                     // we add a rectangle, and make it two triangles by drawing an oblique line on top
                     shape.addRectangle(0.0f, 0.0f, 1.0f, 1.0f);
+
+                    // top triangle
+                    auto point_a_a = Point<float>(0.5f, 0.0f);
+                    auto point_a_b = Point<float>(0.5f, 0.5f);
+                    auto point_a_c = Point<float>(0.0f, 0.5f);
+                    // bottom triangle
+                    auto point_b_a = Point<float>(0.5f, 0.5f);
+                    auto point_b_b = Point<float>(1.0f, 0.5f);
+                    auto point_b_c = Point<float>(0.5f, 1.0f);
+
+                    toggledShape.addTriangle(point_a_a, point_a_b, point_a_c);
+                    toggledShape.addTriangle(point_b_a, point_b_b, point_b_c);
                     break;
                 }
             }
             setName(name);
             setButtonText(name);
+
+            buttonColour = bgColour;
         }
 
         ~PlugData_DocumentWindowButton_macOS() override
@@ -148,23 +164,31 @@ struct PlugDataLook : public LookAndFeel_V4 {
                 if(button->isMouseOver()) shouldDrawButtonAsHighlighted = true;
             }
             
+            auto finalColour = shouldDrawButtonAsDown ? buttonColour.darker(0.4f) : buttonColour;
+
             // draw macOS filled background circle
-            g.setColour(shouldDrawButtonAsDown ? buttonColour.darker(0.4f) : buttonColour);
+            g.setColour(finalColour);
             g.fillEllipse(reducedRect);
 
             // draw macOS circle border
-            g.setColour(buttonColour.darker(0.1f));
+            g.setColour(finalColour.darker(0.1f));
             g.drawEllipse(reducedRect, 1.0f);
 
             // draw icons on mouse hover
             if (shouldDrawButtonAsHighlighted) {
-                g.setColour(buttonColour.darker(0.8f));
-                g.fillPath(shape, shape.getTransformToScaleToFit(reducedRectShape, true));
+                auto p = shape;
+                auto s = reducedRectShape;
+                if (getToggleState()){
+                    p = toggledShape;
+                    s = rect.reduced(getHeight() * 0.26f);
+                }
+                g.setColour(finalColour.darker(0.8f));
+                g.fillPath(p, p.getTransformToScaleToFit(s, true));
 
                 // perfectly fine hack to draw maximise macOS style button
-                if (buttonType == DocumentWindow::maximiseButton) {
-                    g.setColour(buttonColour);
-                    auto bar = Line<float>({0.0f, 0.0f, 1.0f, 1.0f});
+                if (buttonType == DocumentWindow::maximiseButton && !getToggleState()) {
+                    g.setColour(finalColour);
+                    auto bar = Line<float>({0.0f, 1.0f, 1.0f, 0.0f});
                     Path barPath;
                     barPath.addLineSegment(bar, 0.3f);
                     auto rectBarSegment = rect.reduced(getHeight() * 0.3f);
@@ -216,7 +240,7 @@ struct PlugDataLook : public LookAndFeel_V4 {
         DocumentWindow* owner;
         Colour bgColour;
         Colour buttonColour;
-        Path shape;
+        Path shape, toggledShape;
         int buttonType;
 
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PlugData_DocumentWindowButton_macOS)
