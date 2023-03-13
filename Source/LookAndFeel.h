@@ -133,6 +133,8 @@ struct PlugDataLook : public LookAndFeel_V4 {
             }
             setName(name);
             setButtonText(name);
+
+            buttonColour = bgColour;
         }
 
         ~PlugData_DocumentWindowButton_macOS() override
