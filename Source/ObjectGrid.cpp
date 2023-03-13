@@ -320,12 +320,12 @@ Point<int> ObjectGrid::performResize(Object* toDrag, Point<int> dragOffset, Rect
     }
     if (resizeZone.isDraggingRightEdge() && !isAlreadySnapped(true, dragOffset)) {
         newPosBotRight.setX(roundToInt(newPosBotRight.getX() / gridSize + 1) * gridSize);
-        snappedPosition.x = newPosBotRight.x - toDrag->originalBounds.reduced(Object::margin).getRight() - gridSize + 1;
+        snappedPosition.x = newPosBotRight.x - toDrag->originalBounds.reduced(Object::margin).getRight() - gridSize;
         dragOffset.x = snappedPosition.x;
     }
     if (resizeZone.isDraggingBottomEdge() && !isAlreadySnapped(false, dragOffset)) {
         newPosBotRight.setY(roundToInt(newPosBotRight.getY() / gridSize + 1) * gridSize);
-        snappedPosition.y = newPosBotRight.y - toDrag->originalBounds.reduced(Object::margin).getBottom() - gridSize + 1;
+        snappedPosition.y = newPosBotRight.y - toDrag->originalBounds.reduced(Object::margin).getBottom() - gridSize;
         dragOffset.y = snappedPosition.y;
     }
 
