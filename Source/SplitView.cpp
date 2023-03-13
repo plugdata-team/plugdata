@@ -123,8 +123,8 @@ SplitView::SplitView(PluginEditor* parent)
         tabbar.setOutline(0);
         addAndMakeVisible(tabbar);
         i++;
-        tabbar.addMouseListener(this, true);
     }
+    addMouseListener(this, true);
 }
 
 void SplitView::setSplitEnabled(bool splitEnabled)
