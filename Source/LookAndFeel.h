@@ -178,12 +178,19 @@ struct PlugDataLook : public LookAndFeel_V4 {
             for(auto* button : getAllButtons()) button->repaint();
             Button::mouseEnter(e);
         }
+
         void mouseExit (const MouseEvent& e) override
         {
             for(auto* button : getAllButtons()) button->repaint();
             Button::mouseExit(e);
         }
-        
+
+        void mouseDrag (const MouseEvent& e) override
+        {
+            for(auto* button : getAllButtons()) button->repaint();
+            Button::mouseDrag(e);
+        }
+
         std::vector<Button*> getAllButtons()
         {
             std::vector<Button*> allButtons;
