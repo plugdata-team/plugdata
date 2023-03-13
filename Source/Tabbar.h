@@ -182,8 +182,8 @@ public:
         g.drawLine(0, 0, getWidth(), 0);
         g.drawLine(0, 0, 0, getBottom());
 
-        if (tabSnapshot.isValid()){
-        g.drawImage(tabSnapshot, tabSnapshotBounds.toFloat());
+        if (tabSnapshot.isValid()) {
+            g.drawImage(tabSnapshot, tabSnapshotBounds.toFloat());
         }
     }
 
@@ -231,9 +231,10 @@ public:
     {
         tabWidth = tabs->getWidth() / std::max(1, getNumTabs());
         clickedTabIndex = getCurrentTabIndex();
-        currentTabBounds = tabs->getBounds().withTrimmedLeft(tabWidth * clickedTabIndex).withTrimmedRight(tabWidth * (tabs->getNumTabs() - clickedTabIndex - 1));
+        currentTabBounds =  tabs->getTabButton(clickedTabIndex)->getBounds().translated(getTabBarDepth(), 0);
         tabSnapshot = createComponentSnapshot(currentTabBounds);
         tabSnapshotBounds = currentTabBounds;
+        tabs->getTabButton(clickedTabIndex)->setVisible(false);
 
         onFocusGrab();
     }
@@ -249,19 +250,23 @@ public:
                                                                             : clickedTabIndex;
         int const dragDistance = std::abs(e.getDistanceFromDragStartX());
         
-        if (newTabIndex != clickedTabIndex && newTabIndex >= 0 && newTabIndex < getNumTabs() && dragDistance > 5) {
-            moveTab(clickedTabIndex, newTabIndex, true);
-            clickedTabIndex = newTabIndex;
-            onTabMoved();
-        }
+        if (dragDistance > 5) {
+            if (tabs->contains(e.getEventRelativeTo(tabs.get()).getPosition()) && newTabIndex != clickedTabIndex && newTabIndex >= 0 && newTabIndex < getNumTabs()) {
+                moveTab(clickedTabIndex, newTabIndex, true);
+                clickedTabIndex = newTabIndex;
+                onTabMoved();
+                tabs->getTabButton(clickedTabIndex)->setVisible(false);
+            }
 
-        tabSnapshotBounds.setPosition(currentTabBounds.getX() + e.getDistanceFromDragStartX(), currentTabBounds.getY() + e.getDistanceFromDragStartY());
-        repaint();
+            tabSnapshotBounds.setPosition(currentTabBounds.getX() + e.getDistanceFromDragStartX(), currentTabBounds.getY() + e.getDistanceFromDragStartY());
+            repaint();
+        }
     }
 
     void mouseUp(MouseEvent const& e) override
     {
         tabSnapshot = Image();
+        tabs->getTabButton(clickedTabIndex)->setVisible(true);
         repaint(tabSnapshotBounds);
     } 
 
