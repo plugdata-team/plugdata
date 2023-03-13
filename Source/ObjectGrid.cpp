@@ -450,11 +450,11 @@ Point<int> ObjectGrid::performMove(Object* toDrag, Point<int> dragOffset)
         Point<int> newPos = toDrag->originalBounds.reduced(Object::margin).getPosition() + dragOffset;
         if (!isAlreadySnapped(true, dragOffset)) {
 
-            newPos.setX(floor(newPos.getX() / static_cast<float>(gridSize)) * gridSize);
+            newPos.setX(floor(newPos.getX() / static_cast<float>(gridSize) + 1) * gridSize);
             snappedPosition.x = newPos.x - toDrag->originalBounds.reduced(Object::margin).getX() - gridSize;
         }
         if (!isAlreadySnapped(false, dragOffset)) {
-            newPos.setY(floor(newPos.getY() / static_cast<float>(gridSize)) * gridSize);
+            newPos.setY(floor(newPos.getY() / static_cast<float>(gridSize) + 1) * gridSize);
             snappedPosition.y = newPos.y - toDrag->originalBounds.reduced(Object::margin).getY() - gridSize;
         }
 
