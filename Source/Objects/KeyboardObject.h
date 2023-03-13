@@ -218,7 +218,7 @@ public:
         libpd_get_object_bounds(cnv->patch.getPointer(), ptr, &x, &y, &w, &h);
 
         auto* elseKeyboard = static_cast<t_keyboard*>(ptr);
-        auto bounds = Rectangle<int>(x, y, keyboard.getWidth(), elseKeyboard->x_height);
+        auto bounds = Rectangle<int>(x, y, elseKeyboard->x_width, elseKeyboard->x_height);
 
         pd->unlockAudioThread();
 
