@@ -160,7 +160,7 @@ public:
 
     void updateValue()
     {
-        if (!edited && !listLabel.isBeingEdited()) {
+        if (!listLabel.isBeingEdited()) {
             auto const array = getList();
             String message;
             for (auto const& atom : array) {
