@@ -148,13 +148,6 @@ void SplitView::resized()
     getRightTabbar()->setBounds(b.removeFromRight(getWidth() - splitWidth));
     getLeftTabbar()->setBounds(b);
 
-    if (auto* cnv = getLeftTabbar()->getCurrentCanvas()) {
-        cnv->checkBounds();
-    }
-    if (auto* cnv = getRightTabbar()->getCurrentCanvas()) {
-        cnv->checkBounds();
-    }
-
     int splitResizerWidth = SplitViewResizer::width;
     int halfSplitWidth = splitResizerWidth / 2;
     splitViewResizer->setBounds(splitWidth - halfSplitWidth, 0, splitResizerWidth, getHeight());

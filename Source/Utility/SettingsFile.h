@@ -101,6 +101,7 @@ private:
         { "native_window", var(false) },
         { "reload_last_state", var(false) },
         { "autoconnect", var(true) },
+        { "infinite_canvas", var(true) },
         { "macos_buttons",
 #if JUCE_MAC
             var(true)
