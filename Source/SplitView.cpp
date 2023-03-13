@@ -191,9 +191,9 @@ void SplitView::closeEmptySplits()
 void SplitView::paintOverChildren(Graphics& g)
 {
     auto* tabbar = getActiveTabbar();
-    g.setColour(findColour(PlugDataColour::objectSelectedOutlineColourId).withAlpha(0.5f));
+    g.setColour(findColour(PlugDataColour::objectSelectedOutlineColourId).withAlpha(0.3f));
     if (splitView) {
-        g.drawRect(tabbar->getBounds());
+        g.drawRect(tabbar->getBounds(), 2.0f);
     }
     if (tabbar->tabSnapshot.isValid()) {
         //auto snapshotBounds = tabbar->tabSnapshotBounds.translated(tabbar->getX(), toolbarHeight);
@@ -266,29 +266,37 @@ TabComponent* SplitView::getRightTabbar()
 
 void SplitView::mouseDrag(MouseEvent const& e)
 {
-    auto* tabbar = getActiveTabbar();
-    if (!splitView && tabbar->tabSnapshot.isValid()) {
+    auto* activeTabbar = getActiveTabbar();
 
-        if (tabbar->tabSnapshotBounds.getRight() > tabbar->getWidth() - 5 && tabbar->tabSnapshotBounds.getY() > tabbar->getY() - tabbar->currentTabBounds.getHeight()) {
-            drawSplitviewIndicator = true;
-            splitviewAtMouseup = true;
+    // Check if the active tabbar has a valid tab snapshot and if the tab snapshot is below the current tab
+    if (activeTabbar->tabSnapshot.isValid() && activeTabbar->tabSnapshotBounds.getY() > activeTabbar->getY() + activeTabbar->currentTabBounds.getHeight()) {
+        if (!splitView) {
+            // If splitView is not active, check if the tab snapshot is close to the right edge of the tabbar
+            if (activeTabbar->tabSnapshotBounds.getRight() > activeTabbar->getWidth() - 5) {
+                drawSplitviewIndicator = true;
+                splitviewAtMouseup = true;
+            } else {
+                drawSplitviewIndicator = false;
+                splitviewAtMouseup = false;
+            }
         } else {
-            drawSplitviewIndicator = false;
-            splitviewAtMouseup = false;
+            auto* leftTabbar = getLeftTabbar();
+            auto* rightTabbar = getRightTabbar();
+            if (activeTabbar == leftTabbar && !leftTabbar->contains(activeTabbar->tabSnapshotBounds.getCentre())) {
+                drawSplitviewIndicator = true;
+                splitviewAtMouseup = true;
+            }
+            else if (activeTabbar == rightTabbar && leftTabbar->contains(activeTabbar->tabSnapshotBounds.getCentre())) {
+                drawSplitviewIndicator = true;
+                splitviewAtMouseup = true;
+            } else {
+                drawSplitviewIndicator = false;
+                splitviewAtMouseup = false;
+            }
         }
-    } else if (splitView && tabbar->tabSnapshot.isValid()) {
-        auto* leftTabbar = getLeftTabbar();
-        auto* rightTabbar = getRightTabbar();
-        if (tabbar == leftTabbar && !leftTabbar->contains(tabbar->tabSnapshotBounds.getCentre())) {
-            drawSplitviewIndicator = true;
-            splitviewAtMouseup = true;
-        } else if (tabbar == rightTabbar && leftTabbar->contains(tabbar->tabSnapshotBounds.getCentre())) {
-            drawSplitviewIndicator = true;
-            splitviewAtMouseup = true;
-        } else {
-            drawSplitviewIndicator = false;
-            splitviewAtMouseup = false;
-        }
+    } else {
+        drawSplitviewIndicator = false;
+        splitviewAtMouseup = false;
     }
 }
 
