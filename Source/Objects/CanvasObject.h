@@ -46,7 +46,7 @@ public:
 
     void setPdBounds(Rectangle<int> b) override
     {
-        iemHelper.setPdBounds(b.removeFromRight(1).removeFromBottom(1));
+        iemHelper.setPdBounds(b.withTrimmedRight(1).withTrimmedBottom(1));
     }
 
     bool canReceiveMouseEvent(int x, int y) override
