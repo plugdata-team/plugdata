@@ -8,7 +8,6 @@
 
 #include "Utility/GlobalMouseListener.h"
 
-// TODO: find a way not to include these!
 #include "Object.h"
 #include "Connection.h"
 #include "Canvas.h"
@@ -155,6 +154,7 @@ class CanvasViewport : public Viewport, public AsyncUpdater
         }
         
     private:
+        
         void scrollBarMoved(ScrollBar* scrollBarThatHasMoved, double newRangeStart) override
         {
             fadeIn(true);
@@ -246,12 +246,10 @@ public:
         adjustScrollbarBounds();
         
         // In case the window resizes, make sure we maintain the same origin point
-        //auto oldViewPosition = getViewPosition();
-        //auto oldCanvasOrigin = cnv->canvasOrigin;
+        auto oldCanvasOrigin = cnv->canvasOrigin;
         Viewport::resized();
-        //handleUpdateNowIfNeeded();
-        //setViewPosition(oldViewPosition);
-        //setCanvasOrigin(oldCanvasOrigin);
+        handleUpdateNowIfNeeded();
+        setCanvasOrigin(oldCanvasOrigin);
     }
     
     ScrollBar* createScrollBarComponent(bool isVertical) override
