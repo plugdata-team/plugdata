@@ -112,7 +112,7 @@ struct PlugDataLook : public LookAndFeel_V4 {
                     name = "maximise";
                     bgColour = Colour(0xFF00CA4E); // Malachite (#00CA4E)
 
-                    // we add a rectangle, and make it two triangles by drawing an oblique line on top
+                    // we add a rectangle, and make it two triangles by drawing an oblique line on top inside paintButton()
                     shape.addRectangle(0.0f, 0.0f, 1.0f, 1.0f);
                     break;
                 }
@@ -148,25 +148,26 @@ struct PlugDataLook : public LookAndFeel_V4 {
                 if(button->isMouseOver()) shouldDrawButtonAsHighlighted = true;
             }
             
-            if(shouldDrawButtonAsDown) buttonColour = buttonColour.darker(0.4f);
+            
+            auto finalButtonColour = shouldDrawButtonAsDown ? buttonColour.darker(0.4f) : buttonColour;
 
             // draw macOS filled background circle
-            g.setColour(buttonColour);
+            g.setColour(finalButtonColour);
             g.fillEllipse(reducedRect);
 
             // draw macOS circle border
-            g.setColour(buttonColour.darker(0.1f));
+            g.setColour(finalButtonColour.darker(0.1f));
             g.drawEllipse(reducedRect, 1.0f);
 
             // draw icons on mouse hover
             if (shouldDrawButtonAsHighlighted) {
-                g.setColour(buttonColour.darker(0.8f));
+                g.setColour(finalButtonColour.darker(0.8f));
                 g.fillPath(shape, shape.getTransformToScaleToFit(reducedRectShape, true));
 
                 // perfectly fine hack to draw maximise macOS style button
                 if (buttonType == DocumentWindow::maximiseButton) {
-                    g.setColour(buttonColour);
-                    auto bar = Line<float>({0.0f, 0.0f, 1.0f, 1.0f});
+                    g.setColour(finalButtonColour);
+                    auto bar = Line<float>({1.0f, 0.0f, 0.0f, 1.0f});
                     Path barPath;
                     barPath.addLineSegment(bar, 0.3f);
                     auto rectBarSegment = rect.reduced(getHeight() * 0.3f);
@@ -180,6 +181,13 @@ struct PlugDataLook : public LookAndFeel_V4 {
             for(auto* button : getAllButtons()) button->repaint();
             Button::mouseEnter(e);
         }
+
+        void mouseDrag (const MouseEvent& e) override
+        {
+            for(auto* button : getAllButtons()) button->repaint();
+            Button::mouseDrag(e);
+        }
+
         void mouseExit (const MouseEvent& e) override
         {
             for(auto* button : getAllButtons()) button->repaint();
