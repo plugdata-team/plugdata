@@ -227,8 +227,6 @@ public:
     {
         tabWidth = tabs->getWidth() / std::max(1, getNumTabs());
         clickedTabIndex = getCurrentTabIndex();
-        cnv = getCanvas(clickedTabIndex);
-
         onFocusGrab();
     }
     
