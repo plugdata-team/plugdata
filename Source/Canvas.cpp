@@ -142,20 +142,19 @@ void Canvas::lookAndFeelChanged()
 void Canvas::paint(Graphics& g)
 {
     if (!isGraph) {
-
         g.fillAll(findColour(PlugDataColour::canvasBackgroundColourId));
+    }
 
+    if (locked == var(false) && !isGraph) {
+        
         // draw origin
         g.setColour(findColour(PlugDataColour::canvasDotsColourId));
         g.drawLine(canvasOrigin.x - 0.5f, canvasOrigin.y - 0.5f, canvasOrigin.x - 0.5f, getHeight() + 1.0f);
         g.drawLine(canvasOrigin.x - 0.5f, canvasOrigin.y - 0.5f, getWidth() + 1.0f, canvasOrigin.y - 0.5f);
-    }
-
-    if (locked == var(false) && !isGraph) {
+        
         Rectangle<int> const clipBounds = g.getClipBounds();
 
         g.setColour(findColour(PlugDataColour::canvasDotsColourId));
-        
         
         for (int x = canvasOrigin.getX() % objectGrid.gridSize; x < clipBounds.getRight(); x += objectGrid.gridSize) {
             for (int y = canvasOrigin.getY() % objectGrid.gridSize; y < clipBounds.getBottom(); y += objectGrid.gridSize) {
