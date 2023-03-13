@@ -209,9 +209,9 @@ void SplitView::paintOverChildren(Graphics& g)
             if (!splitView) {
                 g.fillRect(tabbar->getBounds().withTrimmedLeft(getWidth() / 2).withTrimmedTop(tabbar->currentTabBounds.getHeight()));
             } else if (tabbar == getLeftTabbar()) {
-                g.fillRect(getRightTabbar()->getBounds());
+                g.fillRect(getRightTabbar()->getBounds().withTrimmedTop(tabbar->currentTabBounds.getHeight()));
             } else {
-                g.fillRect(getLeftTabbar()->getBounds());
+                g.fillRect(getLeftTabbar()->getBounds().withTrimmedTop(tabbar->currentTabBounds.getHeight()));
             }
         }
     }
