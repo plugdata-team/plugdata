@@ -155,13 +155,7 @@ void SplitView::resized()
 void SplitView::setFocus(Canvas* cnv)
 {
     splitFocusIndex = cnv->getTabbar() == getRightTabbar();
-
-    if (auto* cnv = getLeftTabbar()->getCurrentCanvas()) {
-        cnv->repaint();
-    }
-    if (auto* cnv = getRightTabbar()->getCurrentCanvas()) {
-        cnv->repaint();
-    }
+    repaint();
 }
 
 bool SplitView::hasFocus(Canvas* cnv)
