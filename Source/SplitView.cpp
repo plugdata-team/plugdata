@@ -271,7 +271,7 @@ void SplitView::mouseDrag(MouseEvent const& e)
     // Check if the active tabbar has a valid tab snapshot and if the tab snapshot is below the current tab
     if (activeTabbar->tabSnapshot.isValid() && activeTabbar->tabSnapshotBounds.getY() > activeTabbar->getY() + activeTabbar->currentTabBounds.getHeight()) {
         if (!splitView) {
-            // If splitView is not active, check if the tab snapshot is close to the right edge of the tabbar
+            // Check if the tab snapshot is close to the right edge of the tabbar
             if (activeTabbar->tabSnapshotBounds.getRight() > activeTabbar->getWidth() - 5) {
                 drawSplitviewIndicator = true;
                 splitviewAtMouseup = true;

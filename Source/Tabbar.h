@@ -249,7 +249,7 @@ public:
                 tabs->getTabButton(clickedTabIndex)->setVisible(false);
             }
 
-            if (tabSnapshot.isNull()) {
+            if (tabSnapshot.isNull() && (getParentWidth() != getWidth() || getNumTabs() > 1)) {
                 // Create ghost tab & hide dragged tab
                 currentTabBounds = tabs->getTabButton(clickedTabIndex)->getBounds().translated(getTabBarDepth(), 0);
                 tabSnapshot = createComponentSnapshot(currentTabBounds, true, 2.0f);
