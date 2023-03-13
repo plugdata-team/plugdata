@@ -273,7 +273,6 @@ void ObjectBase::openSubpatch()
     newPatch->setCurrentFile(path);
 
     cnv->editor->addTab(newCanvas);
-    newCanvas->checkBounds();
 }
 
 void ObjectBase::moveToFront()

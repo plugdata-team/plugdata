@@ -954,6 +954,8 @@ void Canvas::encapsulateSelection()
     });
 
     synchronise();
+    handleUpdateNowIfNeeded();
+    
     patch.deselectAll();
 }
 
@@ -1023,65 +1025,13 @@ void Canvas::redo()
 
 void Canvas::checkBounds()
 {
-    if(viewport) viewport->visibleAreaChanged(viewport->getViewArea());
+    if(viewport) {
+        dynamic_cast<AsyncUpdater*>(viewport)->triggerAsyncUpdate();
+    }
     
-    // TODO: not sure if we need to do this
-    for (auto* object : objects) {
-        object->updateBounds();
-    }
-    for (auto* connection : connections) {
-        connection->updatePath();
-    }
     if (graphArea) {
         graphArea->updateBounds();
     }
-    
-    /*
-    if (isGraph) {
-
-        auto viewBounds = Rectangle<int>(canvasOrigin.x, canvasOrigin.y, getWidth(), getHeight());
-
-        for (auto* obj : objects) {
-            viewBounds = viewBounds.getUnion(obj->getBoundsInParent());
-        }
-
-        canvasOrigin -= { viewBounds.getX(), viewBounds.getY() };
-
-        setSize(viewBounds.getWidth(), viewBounds.getHeight());
-
-        for (auto& object : objects) {
-            object->updateBounds();
-        }
-
-        return;
-    }
-
-    if (!viewport)
-        return;
-
-    updatingBounds = true;
-
-    float scale = std::max(1.0f, 1.0f / editor->getZoomScaleForCanvas(this));
-
-    auto viewBounds = Rectangle<int>(canvasOrigin.x, canvasOrigin.y, (viewport->getWidth() - 8) * scale, (viewport->getHeight() - 8) * scale);
-
-    for (auto* obj : objects) {
-        viewBounds = viewBounds.getUnion(obj->getBoundsInParent().withTrimmedLeft(Object::margin).withTrimmedTop(Object::margin));
-    }
-
-    canvasOrigin -= { viewBounds.getX(), viewBounds.getY() };
-
-    setSize(viewBounds.getWidth(), viewBounds.getHeight());
-
-    for (auto& object : objects) {
-        object->updateBounds();
-    }
-
-    if (graphArea) {
-        graphArea->updateBounds();
-    }
-
-    updatingBounds = false; */
 }
 
 void Canvas::valueChanged(Value& v)

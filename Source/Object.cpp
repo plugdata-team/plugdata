@@ -724,8 +724,7 @@ void Object::mouseUp(MouseEvent const& e)
 
                     canvas_dirty(cnv->patch.getPointer(), 1);
 
-                    // To make sure it happens after setting object bounds
-                    // TODO: do we need this??
+                    // Resize canvas in case we dragged object out of bounds
                     if (!cnv->viewport->getViewArea().contains(object->getBounds())) {
                         MessageManager::callAsync([o = object]() {
                             if (o) o->cnv->checkBounds();

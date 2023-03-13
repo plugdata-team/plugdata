@@ -176,7 +176,6 @@ public:
         }
 
         canvas->performSynchronise();
-        canvas->checkBounds();
 
         auto b = getPatch()->getBounds() + canvas->canvasOrigin;
         canvas->setBounds(-b.getX(), -b.getY(), b.getWidth() + b.getX(), b.getHeight() + b.getY());

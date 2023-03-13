@@ -332,10 +332,6 @@ void PluginEditor::resized()
     zoomLabel->setTopLeftPosition(5, statusbar->getY() - 28);
     zoomLabel->setSize(55, 23);
 
-    if (auto* cnv = getCurrentCanvas()) {
-        cnv->checkBounds();
-    }
-
     updateSplitOutline();
 }
 
