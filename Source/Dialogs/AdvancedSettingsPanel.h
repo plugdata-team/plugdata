@@ -20,7 +20,6 @@ public:
             macTitlebarButtons.referTo(settingsFile->getPropertyAsValue("macos_buttons"));
             reloadPatch.referTo(settingsFile->getPropertyAsValue("reload_last_state"));
             
-            leftWindowButtons.addListener(this);
             macTitlebarButtons.addListener(this);
 
             useNativeTitlebar.reset(new PropertiesPanel::BoolComponent("Use system titlebar", nativeTitlebar, { "No", "Yes" }));
@@ -52,7 +51,7 @@ public:
 
     void valueChanged(Value& v) override
     {
-        if (v.refersToSameSourceAs(leftWindowButtons) || v.refersToSameSourceAs(macTitlebarButtons)) {
+        if (v.refersToSameSourceAs(macTitlebarButtons)) {
             auto window = Desktop::getInstance().getComponent(0);
             // TODO: BUG: for some reason this doesn't change the lnf of the current settings window
             window->sendLookAndFeelChange();
@@ -66,7 +65,6 @@ public:
     ValueTree settingsTree;
 
     Value nativeTitlebar;
-    Value leftWindowButtons;
     Value macTitlebarButtons;
     Value reloadPatch;
     Value infiniteCanvas;
