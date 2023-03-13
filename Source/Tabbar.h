@@ -255,15 +255,17 @@ public:
             }
 
             if (tabSnapshot.isNull()) {
+                // Create ghost tab & hide dragged tab
                 currentTabBounds = tabs->getTabButton(clickedTabIndex)->getBounds().translated(getTabBarDepth(), 0);
                 tabSnapshot = createComponentSnapshot(currentTabBounds, true, 2.0f);
                 tabSnapshotBounds = currentTabBounds;
                 tabs->getTabButton(clickedTabIndex)->setVisible(false);
             }
-
-            tabSnapshotBounds.setPosition(currentTabBounds.getX() + e.getDistanceFromDragStartX(), currentTabBounds.getY() + e.getDistanceFromDragStartY());
+            // Keep ghost tab within view
+            auto newPosition = Point<int>(std::clamp(currentTabBounds.getX() + e.getDistanceFromDragStartX(), 0, getWidth() - tabWidth)
+                                        , std::clamp(currentTabBounds.getY() + e.getDistanceFromDragStartY(), 0, getHeight() - tabs->getHeight()));
+            tabSnapshotBounds.setPosition(newPosition);
             repaint();
-
         }
     }
 
