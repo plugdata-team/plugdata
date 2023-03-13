@@ -159,7 +159,7 @@ void Canvas::paint(Graphics& g)
         
         for (int x = canvasOrigin.getX() % objectGrid.gridSize; x < clipBounds.getRight(); x += objectGrid.gridSize) {
             for (int y = canvasOrigin.getY() % objectGrid.gridSize; y < clipBounds.getBottom(); y += objectGrid.gridSize) {
-                g.fillRect(static_cast<float>(x) - 1.0f, static_cast<float>(y) - 1.0f, 1.0, 1.0);
+                g.fillRect(static_cast<float>(x) - 0.5f, static_cast<float>(y) - 0.5f, 1.0, 1.0);
             }
         }
     }
