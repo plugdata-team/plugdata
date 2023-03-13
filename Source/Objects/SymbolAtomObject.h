@@ -33,7 +33,9 @@ public:
 
         input.onEditorShow = [this]() {
             auto* editor = input.getCurrentTextEditor();
-            editor->setBorder({ 1, 1, 0, 0 });
+            editor->setBorder({ 0, 1, 3, 0 });
+            
+            editor->setColour(TextEditor::focusedOutlineColourId, Colours::transparentBlack);
             editor->addKeyListener(this);
         };
 
@@ -124,6 +126,13 @@ public:
 
         g.setColour(outlineColour);
         g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius, 1.0f);
+        
+        bool highlighed = hasKeyboardFocus(true) && static_cast<bool>(object->locked.getValue());
+
+        if (highlighed) {
+            g.setColour(object->findColour(PlugDataColour::objectSelectedOutlineColourId));
+            g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(1.0f), Corners::objectCornerRadius, 2.0f);
+        }
     }
 
     bool hideInlets() override

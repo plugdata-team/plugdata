@@ -30,7 +30,8 @@ public:
             startEdition();
 
             editor->setBorder({ 0, 1, 3, 0 });
-
+            editor->setColour(TextEditor::focusedOutlineColourId, Colours::transparentBlack);
+            
             if (editor != nullptr) {
                 editor->setInputRestrictions(0, ".-0123456789");
             }

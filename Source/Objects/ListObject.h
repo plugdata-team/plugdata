@@ -20,7 +20,7 @@ public:
         listLabel.setBounds(2, 0, getWidth() - 2, getHeight() - 1);
         listLabel.setMinimumHorizontalScale(1.f);
         listLabel.setJustificationType(Justification::centredLeft);
-        listLabel.setBorderSize(BorderSize<int>(2, 6, 2, 2));
+        //listLabel.setBorderSize(BorderSize<int>(2, 6, 2, 2));
 
         addAndMakeVisible(listLabel);
         
@@ -35,8 +35,9 @@ public:
 
         listLabel.onEditorShow = [this]() {
             auto* editor = listLabel.getCurrentTextEditor();
+            editor->setColour(TextEditor::focusedOutlineColourId, Colours::transparentBlack);
             if (editor != nullptr) {
-                editor->setBorder({ 1, 2, 0, 0 });
+                editor->setBorder({ 0, 1, 3, 0 });
             }
         };
 
@@ -159,6 +160,13 @@ public:
 
         g.setColour(outlineColour);
         g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius, 1.0f);
+        
+        bool highlighed = hasKeyboardFocus(true) && static_cast<bool>(object->locked.getValue());
+
+        if (highlighed) {
+            g.setColour(object->findColour(PlugDataColour::objectSelectedOutlineColourId));
+            g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(1.0f), Corners::objectCornerRadius, 2.0f);
+        }
     }
 
     void lookAndFeelChanged() override
