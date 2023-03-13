@@ -67,7 +67,7 @@ public:
         }
         else if(value.refersToSameSourceAs(max))
         {
-            auto v = static_cast<float>(min.getValue());
+            auto v = static_cast<float>(max.getValue());
             listLabel.setMaximum(v);
             atomHelper.setMaximum(v);
         }
