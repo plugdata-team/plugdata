@@ -284,7 +284,7 @@ public:
         }
         for(auto* obj : cnv->objects)
         {
-            newBounds = newBounds.getUnion(obj->getBoundsInParent());
+            newBounds = newBounds.getUnion(obj->getBoundsInParent().reduced(Object::margin));
         }
         for(auto* c : cnv->connections)
         {
