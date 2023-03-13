@@ -207,7 +207,10 @@ public:
 
         startTimer(150);
 
-        object->updateBounds();
+        MessageManager::callAsync([this, object] {
+            // Call async to make sure pd obj has updated
+            object->updateBounds(); 
+            });
     }
 
     Rectangle<int> getPdBounds() override
