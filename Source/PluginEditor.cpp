@@ -763,6 +763,7 @@ void PluginEditor::updateCommandStatus()
         statusbar->lockButton->setEnabled(true);
         statusbar->presentationButton->setEnabled(true);
         statusbar->gridButton->setEnabled(true);
+        statusbar->centreButton->setEnabled(true);
 
         statusbar->directionButton->setEnabled(true);
 
@@ -775,6 +776,7 @@ void PluginEditor::updateCommandStatus()
         statusbar->lockButton->setEnabled(false);
         statusbar->presentationButton->setEnabled(false);
         statusbar->gridButton->setEnabled(false);
+        statusbar->centreButton->setEnabled(false);
 
         statusbar->directionButton->setEnabled(false);
 
