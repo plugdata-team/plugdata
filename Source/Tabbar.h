@@ -231,10 +231,6 @@ public:
     {
         tabWidth = tabs->getWidth() / std::max(1, getNumTabs());
         clickedTabIndex = getCurrentTabIndex();
-        currentTabBounds =  tabs->getTabButton(clickedTabIndex)->getBounds().translated(getTabBarDepth(), 0);
-        tabSnapshot = createComponentSnapshot(currentTabBounds);
-        tabSnapshotBounds = currentTabBounds;
-        tabs->getTabButton(clickedTabIndex)->setVisible(false);
 
         onFocusGrab();
     }
@@ -249,7 +245,7 @@ public:
             : (dragPosition >= (clickedTabIndex + 1) * tabWidth)            ? clickedTabIndex + 1
                                                                             : clickedTabIndex;
         int const dragDistance = std::abs(e.getDistanceFromDragStartX());
-        
+
         if (dragDistance > 5) {
             if (tabs->contains(e.getEventRelativeTo(tabs.get()).getPosition()) && newTabIndex != clickedTabIndex && newTabIndex >= 0 && newTabIndex < getNumTabs()) {
                 moveTab(clickedTabIndex, newTabIndex, true);
@@ -258,8 +254,16 @@ public:
                 tabs->getTabButton(clickedTabIndex)->setVisible(false);
             }
 
+            if (tabSnapshot.isNull()) {
+                currentTabBounds = tabs->getTabButton(clickedTabIndex)->getBounds().translated(getTabBarDepth(), 0);
+                tabSnapshot = createComponentSnapshot(currentTabBounds, true, 2.0f);
+                tabSnapshotBounds = currentTabBounds;
+                tabs->getTabButton(clickedTabIndex)->setVisible(false);
+            }
+
             tabSnapshotBounds.setPosition(currentTabBounds.getX() + e.getDistanceFromDragStartX(), currentTabBounds.getY() + e.getDistanceFromDragStartY());
             repaint();
+
         }
     }
 
