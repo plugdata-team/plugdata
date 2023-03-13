@@ -123,6 +123,7 @@ SplitView::SplitView(PluginEditor* parent)
         tabbar.setOutline(0);
         addAndMakeVisible(tabbar);
         i++;
+        tabbar.addMouseListener(this, true);
     }
 }
 
@@ -197,6 +198,25 @@ void SplitView::closeEmptySplits()
     }
 }
 
+void SplitView::paintOverChildren(Graphics& g)
+{
+    auto* tabbar = getActiveTabbar();
+    if (tabbar->tabSnapshot.isValid()) {
+        //auto snapshotBounds = tabbar->tabSnapshotBounds.translated(tabbar->getX(), toolbarHeight);
+        g.drawImage(tabbar->tabSnapshot, tabbar->tabSnapshotBounds.toFloat());
+        if (drawSplitviewIndicator) {
+            g.setColour(findColour(PlugDataColour::objectSelectedOutlineColourId).withAlpha(0.5f));
+            if (!splitView) {
+                g.fillRect(tabbar->getBounds().withTrimmedLeft(getWidth() / 2).withTrimmedTop(tabbar->currentTabBounds.getHeight()));
+            } else if (tabbar == getLeftTabbar()) {
+                g.fillRect(getRightTabbar()->getBounds());
+            } else {
+                g.fillRect(getLeftTabbar()->getBounds());
+            }
+        }
+    }
+}
+
 void SplitView::splitCanvasesAfterIndex(int idx, bool direction)
 {
     Array<Canvas*> splitCanvases;
@@ -249,4 +269,46 @@ TabComponent* SplitView::getLeftTabbar()
 TabComponent* SplitView::getRightTabbar()
 {
     return &splits[1];
+}
+
+void SplitView::mouseDrag(MouseEvent const& e)
+{
+    auto* tabbar = getActiveTabbar();
+    if (!splitView && tabbar->tabSnapshot.isValid()) {
+
+        if (tabbar->tabSnapshotBounds.getRight() > tabbar->getWidth() - 5 && tabbar->tabSnapshotBounds.getY() > tabbar->getY() - tabbar->currentTabBounds.getHeight()) {
+            drawSplitviewIndicator = true;
+            splitviewAtMouseup = true;
+        } else {
+            drawSplitviewIndicator = false;
+            splitviewAtMouseup = false;
+        }
+    } else if (splitView && tabbar->tabSnapshot.isValid()) {
+        auto* leftTabbar = getLeftTabbar();
+        auto* rightTabbar = getRightTabbar();
+        if (tabbar == leftTabbar && !leftTabbar->contains(tabbar->tabSnapshotBounds.getCentre())) {
+            drawSplitviewIndicator = true;
+            splitviewAtMouseup = true;
+        } else if (tabbar == rightTabbar && leftTabbar->contains(tabbar->tabSnapshotBounds.getCentre())) {
+            drawSplitviewIndicator = true;
+            splitviewAtMouseup = true;
+        } else {
+            drawSplitviewIndicator = false;
+            splitviewAtMouseup = false;
+        }
+    }
+}
+
+void SplitView::mouseUp(MouseEvent const& e)
+{
+    if (splitviewAtMouseup) {
+        auto* tabbar = getActiveTabbar();
+        if (tabbar == getLeftTabbar()) {
+            splitCanvasView(tabbar->getCurrentCanvas(), true);
+        } else {
+            splitCanvasView(tabbar->getCurrentCanvas(), false);
+        }
+        splitviewAtMouseup = false;
+        closeEmptySplits();
+    }
 }
