@@ -181,6 +181,10 @@ public:
 
         g.drawLine(0, 0, getWidth(), 0);
         g.drawLine(0, 0, 0, getBottom());
+
+        if (tabSnapshot.isValid()){
+        g.drawImage(tabSnapshot, tabSnapshotBounds.toFloat());
+        }
     }
 
     void popupMenuClickOnTab(int tabIndex, String const& tabName) override
@@ -227,6 +231,9 @@ public:
     {
         tabWidth = tabs->getWidth() / std::max(1, getNumTabs());
         clickedTabIndex = getCurrentTabIndex();
+        currentTabBounds = tabs->getBounds().withTrimmedLeft(tabWidth * clickedTabIndex).withTrimmedRight(tabWidth * (tabs->getNumTabs() - clickedTabIndex - 1));
+        tabSnapshot = createComponentSnapshot(currentTabBounds);
+        tabSnapshotBounds = currentTabBounds;
 
         onFocusGrab();
     }
@@ -235,7 +242,6 @@ public:
     {
         // Don't respond to clicks on close button
         if(dynamic_cast<TextButton*>(e.originalComponent)) return;
-        
         // Drag tabs to move their index
         int const dragPosition = e.getEventRelativeTo(tabs.get()).x;
         int const newTabIndex = (dragPosition < clickedTabIndex * tabWidth) ? clickedTabIndex - 1
@@ -248,9 +254,21 @@ public:
             clickedTabIndex = newTabIndex;
             onTabMoved();
         }
+
+        tabSnapshotBounds.setPosition(currentTabBounds.getX() + e.getDistanceFromDragStartX(), currentTabBounds.getY() + e.getDistanceFromDragStartY());
+        repaint();
     }
+
+    void mouseUp(MouseEvent const& e) override
+    {
+        tabSnapshot = Image();
+        repaint(tabSnapshotBounds);
+    } 
 
 private:
     int clickedTabIndex;
     int tabWidth;
+    Image tabSnapshot;
+    Rectangle<int> currentTabBounds;
+    Rectangle<int> tabSnapshotBounds;
 };
