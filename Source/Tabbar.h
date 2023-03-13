@@ -181,6 +181,10 @@ public:
 
         g.drawLine(0, 0, getWidth(), 0);
         g.drawLine(0, 0, 0, getBottom());
+
+        if (tabSnapshot.isValid()) {
+            g.drawImage(tabSnapshot, tabSnapshotBounds.toFloat());
+        }
     }
 
     void popupMenuClickOnTab(int tabIndex, String const& tabName) override
@@ -235,22 +239,47 @@ public:
     {
         // Don't respond to clicks on close button
         if(dynamic_cast<TextButton*>(e.originalComponent)) return;
-        
         // Drag tabs to move their index
         int const dragPosition = e.getEventRelativeTo(tabs.get()).x;
         int const newTabIndex = (dragPosition < clickedTabIndex * tabWidth) ? clickedTabIndex - 1
             : (dragPosition >= (clickedTabIndex + 1) * tabWidth)            ? clickedTabIndex + 1
                                                                             : clickedTabIndex;
         int const dragDistance = std::abs(e.getDistanceFromDragStartX());
-        
-        if (newTabIndex != clickedTabIndex && newTabIndex >= 0 && newTabIndex < getNumTabs() && dragDistance > 5) {
-            moveTab(clickedTabIndex, newTabIndex, true);
-            clickedTabIndex = newTabIndex;
-            onTabMoved();
+
+        if (dragDistance > 5) {
+            if (tabs->contains(e.getEventRelativeTo(tabs.get()).getPosition()) && newTabIndex != clickedTabIndex && newTabIndex >= 0 && newTabIndex < getNumTabs()) {
+                moveTab(clickedTabIndex, newTabIndex, true);
+                clickedTabIndex = newTabIndex;
+                onTabMoved();
+                tabs->getTabButton(clickedTabIndex)->setVisible(false);
+            }
+
+            if (tabSnapshot.isNull()) {
+                // Create ghost tab & hide dragged tab
+                currentTabBounds = tabs->getTabButton(clickedTabIndex)->getBounds().translated(getTabBarDepth(), 0);
+                tabSnapshot = createComponentSnapshot(currentTabBounds, true, 2.0f);
+                tabSnapshotBounds = currentTabBounds;
+                tabs->getTabButton(clickedTabIndex)->setVisible(false);
+            }
+            // Keep ghost tab within view
+            auto newPosition = Point<int>(std::clamp(currentTabBounds.getX() + e.getDistanceFromDragStartX(), 0, getWidth() - tabWidth)
+                                        , std::clamp(currentTabBounds.getY() + e.getDistanceFromDragStartY(), 0, getHeight() - tabs->getHeight()));
+            tabSnapshotBounds.setPosition(newPosition);
+            repaint();
         }
     }
+
+    void mouseUp(MouseEvent const& e) override
+    {
+        tabSnapshot = Image();
+        tabs->getTabButton(clickedTabIndex)->setVisible(true);
+        repaint(tabSnapshotBounds);
+    } 
 
 private:
     int clickedTabIndex;
     int tabWidth;
+    Image tabSnapshot;
+    Rectangle<int> currentTabBounds;
+    Rectangle<int> tabSnapshotBounds;
 };
