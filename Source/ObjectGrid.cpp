@@ -311,25 +311,21 @@ Point<int> ObjectGrid::performResize(Object* toDrag, Point<int> dragOffset, Rect
     if (resizeZone.isDraggingLeftEdge() && !isAlreadySnapped(true, dragOffset)) {
         newPosTopLeft.setX(roundToInt(newPosTopLeft.getX() / gridSize + 1) * gridSize);
         snappedPosition.x = newPosTopLeft.x - toDrag->originalBounds.reduced(Object::margin).getX() - gridSize;
-        snappedPosition.x += toDrag->cnv->canvasOrigin.x % gridSize;
         dragOffset.x = snappedPosition.x;
     }
     if (resizeZone.isDraggingTopEdge() && !isAlreadySnapped(false, dragOffset)) {
         newPosTopLeft.setY(roundToInt(newPosTopLeft.getY() / gridSize + 1) * gridSize);
         snappedPosition.y = newPosTopLeft.y - toDrag->originalBounds.reduced(Object::margin).getY() - gridSize;
-        snappedPosition.y += (toDrag->cnv->canvasOrigin.y % gridSize) + 2;
         dragOffset.y = snappedPosition.y;
     }
     if (resizeZone.isDraggingRightEdge() && !isAlreadySnapped(true, dragOffset)) {
         newPosBotRight.setX(roundToInt(newPosBotRight.getX() / gridSize + 1) * gridSize);
-        snappedPosition.x = newPosBotRight.x - toDrag->originalBounds.reduced(Object::margin).getRight() - gridSize + 1;
-        snappedPosition.x += toDrag->cnv->canvasOrigin.x % gridSize;
+        snappedPosition.x = newPosBotRight.x - toDrag->originalBounds.reduced(Object::margin).getRight() - gridSize;
         dragOffset.x = snappedPosition.x;
     }
     if (resizeZone.isDraggingBottomEdge() && !isAlreadySnapped(false, dragOffset)) {
         newPosBotRight.setY(roundToInt(newPosBotRight.getY() / gridSize + 1) * gridSize);
-        snappedPosition.y = newPosBotRight.y - toDrag->originalBounds.reduced(Object::margin).getBottom() - gridSize + 1;
-        snappedPosition.y += (toDrag->cnv->canvasOrigin.y % gridSize) + 2;
+        snappedPosition.y = newPosBotRight.y - toDrag->originalBounds.reduced(Object::margin).getBottom() - gridSize;
         dragOffset.y = snappedPosition.y;
     }
 
@@ -454,13 +450,11 @@ Point<int> ObjectGrid::performMove(Object* toDrag, Point<int> dragOffset)
         Point<int> newPos = toDrag->originalBounds.reduced(Object::margin).getPosition() + dragOffset;
         if (!isAlreadySnapped(true, dragOffset)) {
 
-            newPos.setX(floor(newPos.getX() / static_cast<float>(gridSize)) * gridSize);
-            newPos.x += (toDrag->cnv->canvasOrigin.x % gridSize) - 2;
+            newPos.setX(floor(newPos.getX() / static_cast<float>(gridSize) + 1) * gridSize);
             snappedPosition.x = newPos.x - toDrag->originalBounds.reduced(Object::margin).getX() - gridSize;
         }
         if (!isAlreadySnapped(false, dragOffset)) {
-            newPos.setY(floor(newPos.getY() / static_cast<float>(gridSize)) * gridSize);
-            newPos.y += (toDrag->cnv->canvasOrigin.y % gridSize) - 2;
+            newPos.setY(floor(newPos.getY() / static_cast<float>(gridSize) + 1) * gridSize);
             snappedPosition.y = newPos.y - toDrag->originalBounds.reduced(Object::margin).getY() - gridSize;
         }
 
@@ -548,7 +542,6 @@ void ObjectGrid::propertyChanged(String name, var value)
         gridSize = static_cast<int>(value);
     }
 }
-
 
 
 
