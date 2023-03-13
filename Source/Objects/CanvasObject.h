@@ -46,7 +46,12 @@ public:
 
     void setPdBounds(Rectangle<int> b) override
     {
-        iemHelper.setPdBounds(b.withTrimmedRight(1).withTrimmedBottom(1));
+        auto* cnvObj = reinterpret_cast<t_my_canvas*>(iemHelper.iemgui);
+        
+        cnvObj->x_gui.x_obj.te_xpix = b.getX();
+        cnvObj->x_gui.x_obj.te_ypix = b.getY();
+        cnvObj->x_vis_w = b.getWidth() - 1;
+        cnvObj->x_vis_h = b.getHeight() - 1;
     }
 
     bool canReceiveMouseEvent(int x, int y) override
