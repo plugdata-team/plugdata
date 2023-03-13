@@ -87,7 +87,6 @@ public:
     float getZoomScaleForCanvas(Canvas* cnv);
     Value& getZoomScaleValueForCanvas(Canvas* cnv);
 
-    void updateSplitOutline();
     TabComponent* getActiveTabbar();
 
     PluginProcessor* pd;

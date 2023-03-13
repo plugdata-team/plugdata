@@ -56,8 +56,6 @@ SplitView::SplitView(PluginEditor* parent)
         if (auto* cnv = getRightTabbar()->getCurrentCanvas()) {
             cnv->checkBounds();
         }
-
-        editor->updateSplitOutline();
     };
     addChildComponent(resizer);
 
@@ -164,8 +162,6 @@ void SplitView::setFocus(Canvas* cnv)
     if (auto* cnv = getRightTabbar()->getCurrentCanvas()) {
         cnv->repaint();
     }
-
-    editor->updateSplitOutline();
 }
 
 bool SplitView::hasFocus(Canvas* cnv)
@@ -201,11 +197,14 @@ void SplitView::closeEmptySplits()
 void SplitView::paintOverChildren(Graphics& g)
 {
     auto* tabbar = getActiveTabbar();
+    g.setColour(findColour(PlugDataColour::objectSelectedOutlineColourId).withAlpha(0.5f));
+    if (splitView) {
+        g.drawRect(tabbar->getBounds());
+    }
     if (tabbar->tabSnapshot.isValid()) {
         //auto snapshotBounds = tabbar->tabSnapshotBounds.translated(tabbar->getX(), toolbarHeight);
         g.drawImage(tabbar->tabSnapshot, tabbar->tabSnapshotBounds.toFloat());
         if (drawSplitviewIndicator) {
-            g.setColour(findColour(PlugDataColour::objectSelectedOutlineColourId).withAlpha(0.5f));
             if (!splitView) {
                 g.fillRect(tabbar->getBounds().withTrimmedLeft(getWidth() / 2).withTrimmedTop(tabbar->currentTabBounds.getHeight()));
             } else if (tabbar == getLeftTabbar()) {
