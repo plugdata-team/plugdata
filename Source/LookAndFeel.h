@@ -148,10 +148,8 @@ struct PlugDataLook : public LookAndFeel_V4 {
                 if(button->isMouseOver()) shouldDrawButtonAsHighlighted = true;
             }
             
-            if(shouldDrawButtonAsDown) buttonColour = buttonColour.darker(0.4f);
-
             // draw macOS filled background circle
-            g.setColour(buttonColour);
+            g.setColour(shouldDrawButtonAsDown ? buttonColour.darker(0.4f) : buttonColour);
             g.fillEllipse(reducedRect);
 
             // draw macOS circle border
