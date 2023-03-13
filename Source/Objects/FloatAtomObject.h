@@ -45,8 +45,8 @@ public:
 
         input.setText(input.formatNumber(value), dontSendNotification);
 
-        min = getMinimum();
-        max = getMaximum();
+        min = atomHelper.getMinimum();
+        max = atomHelper.getMaximum();
 
         addMouseListener(this, true);
 
@@ -172,10 +172,16 @@ public:
 
     void valueChanged(Value& value) override
     {
-        if (value.refersToSameSourceAs(min)) {
-            setMinimum(static_cast<float>(min.getValue()));
-        } else if (value.refersToSameSourceAs(max)) {
-            setMaximum(static_cast<float>(max.getValue()));
+        if(value.refersToSameSourceAs(min)) {
+            auto v = static_cast<float>(min.getValue());
+            input.setMinimum(v);
+            atomHelper.setMinimum(v);
+        }
+        else if(value.refersToSameSourceAs(max))
+        {
+            auto v = static_cast<float>(min.getValue());
+            input.setMaximum(v);
+            atomHelper.setMaximum(v);
         } else {
             atomHelper.valueChanged(value);
         }
@@ -186,39 +192,14 @@ public:
         return atom_getfloat(fake_gatom_getatom(static_cast<t_fake_gatom*>(ptr)));
     }
 
-    float getMinimum()
-    {
-        auto const* gatom = static_cast<t_fake_gatom const*>(ptr);
-        return gatom->a_draglo;
-    }
-
-    float getMaximum()
-    {
-        auto const* gatom = static_cast<t_fake_gatom const*>(ptr);
-        return gatom->a_draghi;
-    }
-
-    void setMinimum(float value)
-    {
-        auto* gatom = static_cast<t_fake_gatom*>(ptr);
-        input.setMinimum(value);
-        gatom->a_draglo = value;
-    }
-    void setMaximum(float value)
-    {
-        auto* gatom = static_cast<t_fake_gatom*>(ptr);
-        input.setMaximum(value);
-        gatom->a_draghi = value;
-    }
-
     void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
     {
         switch (hash(symbol)) {
 
         case hash("set"):
         case hash("float"): {
-            auto min = getMinimum();
-            auto max = getMaximum();
+            auto min = atomHelper.getMinimum();
+            auto max = atomHelper.getMaximum();
 
             if (min != 0 || max != 0) {
                 value = std::clamp(atoms[0].getFloat(), min, max);

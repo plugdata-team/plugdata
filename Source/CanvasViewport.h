@@ -280,7 +280,7 @@ public:
         
         if(SettingsFile::getInstance()->getProperty<int>("infinite_canvas"))
         {
-            newBounds = newBounds.getUnion(viewArea.expanded(16) * scale);
+            newBounds = newBounds.getUnion(viewArea.expanded(32) * scale);
         }
         for(auto* obj : cnv->objects)
         {

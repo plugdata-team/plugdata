@@ -176,6 +176,26 @@ public:
             object->updateIolets();
         }
     }
+    
+    float getMinimum()
+    {
+        return atom->a_draglo;
+    }
+
+    float getMaximum()
+    {
+        return atom->a_draghi;
+    }
+
+    void setMinimum(float value)
+    {
+        atom->a_draglo = value;
+    }
+    void setMaximum(float value)
+    {
+        atom->a_draghi = value;
+    }
+
 
     void updateLabel(std::unique_ptr<ObjectLabel>& label)
     {

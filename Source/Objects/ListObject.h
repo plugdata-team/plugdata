@@ -9,6 +9,9 @@ class ListObject final : public ObjectBase {
     AtomHelper atomHelper;
     DraggableListNumber listLabel;
 
+    Value min = Value(0.0f);
+    Value max = Value(0.0f);
+    
 public:
     ListObject(void* obj, Object* parent)
         : ObjectBase(obj, parent)
@@ -20,6 +23,9 @@ public:
         listLabel.setBorderSize(BorderSize<int>(2, 6, 2, 2));
 
         addAndMakeVisible(listLabel);
+        
+        min = atomHelper.getMinimum();
+        max = atomHelper.getMaximum();
 
         listLabel.onEditorHide = [this]() {
             startEdition();
@@ -52,9 +58,22 @@ public:
         updateValue();
     }
 
-    void valueChanged(Value& v) override
+    void valueChanged(Value& value) override
     {
-        atomHelper.valueChanged(v);
+        if(value.refersToSameSourceAs(min)) {
+            auto v = static_cast<float>(min.getValue());
+            listLabel.setMinimum(v);
+            atomHelper.setMinimum(v);
+        }
+        else if(value.refersToSameSourceAs(max))
+        {
+            auto v = static_cast<float>(min.getValue());
+            listLabel.setMaximum(v);
+            atomHelper.setMaximum(v);
+        }
+        else {
+            atomHelper.valueChanged(value);
+        }
     }
 
     void updateFromGui()
@@ -104,9 +123,14 @@ public:
 
     ObjectParameters getParameters() override
     {
-        return atomHelper.getParameters();
-    }
+        ObjectParameters allParameters = { { "Minimum", tFloat, cGeneral, &min, {} }, { "Maximum", tFloat, cGeneral, &max, {} } };
 
+        auto atomParameters = atomHelper.getParameters();
+        allParameters.insert(allParameters.end(), atomParameters.begin(), atomParameters.end());
+
+        return allParameters;
+    }
+    
     void updateLabel() override
     {
         atomHelper.updateLabel(label);
