@@ -409,6 +409,9 @@ ObjectBase* ObjectBase::createGui(void* ptr, Object* parent)
             return new PictureObject(ptr, parent);
         case hash("text define"):
             return new TextDefineObject(ptr, parent);
+        case hash("textfile"):
+        case hash("qlist"):
+            return new TextFileObject(ptr, parent);
         case hash("gatom"): {
             if (static_cast<t_fake_gatom*>(ptr)->a_flavor == A_FLOAT) {
                 return new FloatAtomObject(ptr, parent);
@@ -476,6 +479,7 @@ ObjectBase* ObjectBase::createGui(void* ptr, Object* parent)
             return new CanvasZoomObject(ptr, parent);
         case hash("canvas.edit"):
             return new CanvasEditObject(ptr, parent);
+                
         default:
             break;
         }
