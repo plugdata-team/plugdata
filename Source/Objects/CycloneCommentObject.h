@@ -89,6 +89,7 @@ public:
 
         width = std::max(width, 25);
 
+        // TODO: don't do this!
         if (getWidth() != width || getHeight() != height) {
             object->setSize(width + Object::doubleMargin, height + Object::doubleMargin);
         }

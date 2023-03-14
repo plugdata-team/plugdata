@@ -270,10 +270,23 @@ void Dialogs::showCanvasRightClickMenu(Canvas* cnv, Component* originalComponent
     auto params = object && object->gui ? object->gui->getParameters() : ObjectParameters();
     bool canBeOpened = object && object->gui && object->gui->canOpenFromMenu();
 
+    enum MenuOptions
+    {
+        Open = 1,
+        Help,
+        Reference,
+        ToFront,
+        ToBack,
+        Properties
+    };
     // Create popup menu
     PopupMenu popupMenu;
 
-    popupMenu.addItem(1, "Open", object && !multiple && canBeOpened); // for opening subpatches
+    popupMenu.addItem(Open, "Open", object && !multiple && canBeOpened); // for opening subpatches
+    
+    popupMenu.addSeparator();
+    popupMenu.addItem(Help, "Help", object != nullptr);
+    popupMenu.addItem(Reference, "Reference", object != nullptr);
     popupMenu.addSeparator();
 
     auto* editor = cnv->editor;
@@ -289,13 +302,10 @@ void Dialogs::showCanvasRightClickMenu(Canvas* cnv, Component* originalComponent
     popupMenu.addCommandItem(editor, CommandIDs::Delete);
     popupMenu.addSeparator();
 
-    popupMenu.addItem(8, "To Front", object != nullptr);
-    popupMenu.addItem(9, "To Back", object != nullptr);
+    popupMenu.addItem(ToFront, "To Front", object != nullptr);
+    popupMenu.addItem(ToBack, "To Back", object != nullptr);
     popupMenu.addSeparator();
-    popupMenu.addItem(10, "Help", object != nullptr);
-    popupMenu.addItem(11, "Reference", object != nullptr);
-    popupMenu.addSeparator();
-    popupMenu.addItem(12, "Properties", originalComponent == cnv || (object && !params.empty()));
+    popupMenu.addItem(Properties, "Properties", originalComponent == cnv || (object && !params.empty()));
     // showObjectReferenceDialog
     auto callback = [cnv, editor, object, originalComponent, params, createObjectCallback, position, selectedBoxes](int result) mutable {
         // Set position where new objet will be created
@@ -310,10 +320,10 @@ void Dialogs::showCanvasRightClickMenu(Canvas* cnv, Component* originalComponent
             object->repaint();
 
         switch (result) {
-        case 1: // Open subpatch
+        case Open: // Open subpatch
             object->gui->openFromMenu();
             break;
-        case 8: { // To Front
+        case ToFront: { // To Front
             // The double for loop makes sure that they keep their original order
             auto objects = cnv->patch.getObjects();
 
@@ -331,7 +341,7 @@ void Dialogs::showCanvasRightClickMenu(Canvas* cnv, Component* originalComponent
             cnv->synchronise();
             break;
         }
-        case 9: { // To Back
+        case ToBack: {
             auto objects = cnv->patch.getObjects();
 
             cnv->patch.startUndoSequence("ToBack");
@@ -349,13 +359,13 @@ void Dialogs::showCanvasRightClickMenu(Canvas* cnv, Component* originalComponent
             cnv->synchronise();
             break;
         }
-        case 10: // Open help
+        case Help:
             object->openHelpPatch();
             break;
-        case 11: // Open reference
+        case Reference:
             Dialogs::showObjectReferenceDialog(&editor->openedDialog, editor, object->gui->getType());
             break;
-        case 12:
+        case Properties:
             if (originalComponent == cnv) {
                 // Open help
                 editor->sidebar->showParameters("canvas", cnv->getInspectorParameters());

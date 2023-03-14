@@ -136,13 +136,6 @@ public:
     {
         return Colour(hex[0], hex[1], hex[2]);
     }
-    
-    void colourToHexArray(Colour colour, unsigned char* hex)
-    {
-        hex[0] = colour.getRed();
-        hex[1] = colour.getGreen();
-        hex[2] = colour.getBlue();
-    }
 
     Rectangle<int> getPdBounds() override
     {

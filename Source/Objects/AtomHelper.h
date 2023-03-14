@@ -109,10 +109,6 @@ public:
 
         auto fontWidth = glist_fontwidth(patch);
 
-        // Remove margin
-        newBounds = newBounds.reduced(Object::margin);
-        oldBounds = oldBounds.reduced(Object::margin);
-
         // Calculate the width in text characters for both
         auto oldCharWidth = oldBounds.getWidth() / fontWidth;
         auto newCharWidth = std::max(minWidth, newBounds.getWidth() / fontWidth);

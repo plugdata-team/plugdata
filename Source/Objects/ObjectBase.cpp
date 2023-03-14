@@ -70,6 +70,7 @@ void canvas_setgraph(t_glist* x, int flag, int nogoprect);
 #include "ScopeObject.h"
 #include "FunctionObject.h"
 #include "BicoeffObject.h"
+#include "NoteObject.h"
 
 // Class for non-patchable objects
 class NonPatchable : public ObjectBase {
@@ -469,6 +470,8 @@ ObjectBase* ObjectBase::createGui(void* ptr, Object* parent)
             return new BicoeffObject(ptr, parent);
         case hash("messbox"):
             return new MessboxObject(ptr, parent);
+        case hash("note"):
+            return new NoteObject(ptr, parent);
         case hash("canvas.active"):
             return new CanvasActiveObject(ptr, parent);
         case hash("canvas.mouse"):
@@ -479,7 +482,6 @@ ObjectBase* ObjectBase::createGui(void* ptr, Object* parent)
             return new CanvasZoomObject(ptr, parent);
         case hash("canvas.edit"):
             return new CanvasEditObject(ptr, parent);
-                
         default:
             break;
         }
@@ -544,6 +546,8 @@ void ObjectBase::receiveMessage(String const& symbol, int argc, t_atom* argv)
         }
     });
 }
+
+
 
 void ObjectBase::setParameterExcludingListener(Value& parameter, var value)
 {

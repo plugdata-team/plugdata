@@ -154,6 +154,17 @@ protected:
 
     // Send a float value to Pd
     void sendFloatValue(float value);
+    
+    
+    // Used by various ELSE objects, though sometimes with char*, sometimes with unsigned char*
+    template<typename T>
+    void colourToHexArray(Colour colour, T* hex)
+    {
+        hex[0] = colour.getRed();
+        hex[1] = colour.getGreen();
+        hex[2] = colour.getBlue();
+    }
+
 
     // Min and max limit a juce::Value
     template<typename T>

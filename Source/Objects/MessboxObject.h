@@ -289,19 +289,15 @@ public:
         auto* messbox = static_cast<t_fake_messbox*>(ptr);
         if (value.refersToSameSourceAs(primaryColour)) {
 
-            editor.setColour(TextEditor::textColourId, object->findColour(PlugDataColour::canvasTextColourId));
-
             auto col = Colour::fromString(primaryColour.toString());
-            messbox->x_fg[0] = col.getRed();
-            messbox->x_fg[1] = col.getGreen();
-            messbox->x_fg[2] = col.getBlue();
+            editor.applyColourToAllText(col);
+            
+            colourToHexArray(col, messbox->x_fg);
             repaint();
         }
         if (value.refersToSameSourceAs(secondaryColour)) {
             auto col = Colour::fromString(secondaryColour.toString());
-            messbox->x_bg[0] = col.getRed();
-            messbox->x_bg[1] = col.getGreen();
-            messbox->x_bg[2] = col.getBlue();
+            colourToHexArray(col, messbox->x_bg);
             repaint();
         }
         if (value.refersToSameSourceAs(fontSize)) {
