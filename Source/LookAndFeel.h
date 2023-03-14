@@ -468,7 +468,13 @@ struct PlugDataLook : public LookAndFeel_V4 {
         // heuristic to offset the buttons when positioned left, as we are drawing larger to provide a shadow
         // we check if the system is drawing with a dropshadow- hence semi transparent will be true
 #if JUCE_LINUX
-        auto leftOffset = areButtonsLeft && Desktop::canUseSemiTransparentWindows() ? titleBarX + 25 : titleBarX;
+        auto leftOffset = titleBarX;
+        if (areButtonsLeft && Desktop::canUseSemiTransparentWindows()) {
+            if (maximiseButton->getToggleState())
+                leftOffset += 8;
+            else 
+                leftOffset += 25;
+        }
 #else
         auto leftOffset = areButtonsLeft && Desktop::canUseSemiTransparentWindows() ? titleBarX + 12 : titleBarX;
 #endif
