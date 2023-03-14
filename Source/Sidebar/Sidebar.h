@@ -58,7 +58,7 @@ public:
 
     void updateAutomationParameters();
 
-    static constexpr int dragbarWidth = 5;
+    static constexpr int dragbarWidth = 6;
 
 private:
     PluginProcessor* pd;

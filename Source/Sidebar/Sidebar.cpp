@@ -142,7 +142,7 @@ void Sidebar::resized()
 
 void Sidebar::mouseDown(MouseEvent const& e)
 {
-    Rectangle<int> dragBar(0, dragbarWidth, 15, getHeight());
+    Rectangle<int> dragBar(0, 0, dragbarWidth, getHeight()-30);
     if (dragBar.contains(e.getEventRelativeTo(this).getPosition()) && !sidebarHidden) {
         draggingSidebar = true;
         dragStartWidth = getWidth();
@@ -172,7 +172,7 @@ void Sidebar::mouseUp(MouseEvent const& e)
 void Sidebar::mouseMove(MouseEvent const& e)
 {
 
-    bool resizeCursor = e.getEventRelativeTo(this).getPosition().getX() < dragbarWidth;
+    bool resizeCursor = e.getEventRelativeTo(this).getPosition().getX() < dragbarWidth && e.getEventRelativeTo(this).getPosition().getY() < getHeight() - 30;
     e.originalComponent->setMouseCursor(resizeCursor ? MouseCursor::LeftRightResizeCursor : MouseCursor::NormalCursor);
 }
 
@@ -234,7 +234,7 @@ void Sidebar::showSidebar(bool show)
 
     if (!show) {
         lastWidth = getWidth();
-        int newWidth = dragbarWidth;
+        int newWidth = 0;
         setBounds(getParentWidth() - newWidth, getY(), newWidth, getHeight());
     } else {
         int newWidth = lastWidth;

@@ -211,7 +211,7 @@ PluginEditor::PluginEditor(PluginProcessor& p)
 
     addAndMakeVisible(hideSidebarButton);
 
-    sidebar->setSize(250, pd->lastUIHeight - 40);
+    sidebar->setSize(250, pd->lastUIHeight - statusbar->getHeight());
     setSize(pd->lastUIWidth, pd->lastUIHeight);
 
     // Set minimum bounds
