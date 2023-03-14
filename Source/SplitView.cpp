@@ -36,7 +36,7 @@ public:
 private:
     void timerCallback() override
     {
-        float const stepSize = 0.03f;
+        float const stepSize = 0.025f;
         if (alphaTarget > indicatorAlpha) {
             indicatorAlpha += stepSize;
             if (indicatorAlpha >= alphaTarget) {
@@ -97,6 +97,8 @@ private:
 SplitView::SplitView(PluginEditor* parent)
     : editor(parent)
     , fadeAnimation(new FadeAnimation(this))
+    , fadeAnimationLeft(new FadeAnimation(this))
+    , fadeAnimationRight(new FadeAnimation(this))
 {
     auto* resizer = new SplitViewResizer();
     resizer->onMove = [this](int x) {
@@ -248,11 +250,25 @@ void SplitView::closeEmptySplits()
 void SplitView::paintOverChildren(Graphics& g)
 {
     auto* tabbar = getActiveTabbar();
-    g.setColour(findColour(PlugDataColour::objectSelectedOutlineColourId).withAlpha(0.3f));
+    Colour indicatorColour = findColour(PlugDataColour::objectSelectedOutlineColourId);
+
     if (splitView) {
-        g.drawRect(tabbar->getBounds(), 2.0f);
+        Colour leftTabbarOutline;
+        Colour rightTabbarOutline;
+        if (tabbar == getLeftTabbar()) {
+            leftTabbarOutline = indicatorColour.withAlpha(fadeAnimationLeft->fadeIn());
+            rightTabbarOutline = indicatorColour.withAlpha(fadeAnimationRight->fadeOut());
+        } else {
+            rightTabbarOutline = indicatorColour.withAlpha(fadeAnimationRight->fadeIn());
+            leftTabbarOutline = indicatorColour.withAlpha(fadeAnimationLeft->fadeOut());
+        }
+        g.setColour(leftTabbarOutline);
+        g.drawRect(getLeftTabbar()->getBounds().withTrimmedRight(-1), 2.0f);
+        g.setColour(rightTabbarOutline);
+        g.drawRect(getRightTabbar()->getBounds().withTrimmedLeft(-1), 2.0f);
     }
     if (tabbar->tabSnapshot.isValid()) {
+        g.setColour(indicatorColour);
         g.drawImage(tabbar->tabSnapshot, tabbar->tabSnapshotBounds.toFloat());
         if (splitviewIndicator) {
             g.setOpacity(fadeAnimation->fadeIn());

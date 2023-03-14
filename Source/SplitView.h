@@ -42,6 +42,8 @@ private:
     TabComponent splits[2];
 
     std::unique_ptr<FadeAnimation> fadeAnimation;
+    std::unique_ptr<FadeAnimation> fadeAnimationLeft;
+    std::unique_ptr<FadeAnimation> fadeAnimationRight;
 
     bool splitviewIndicator = false;
 
