@@ -1172,7 +1172,7 @@ Rectangle<float> TextDocument::getBounds() const
         auto bounds = Rectangle<float>();
 
         for (int n = 0; n < getNumRows(); ++n) {
-            bounds = bounds.getUnion(getBoundsOnRow(n, Range<int>(0, getNumColumns(n))));
+            bounds = bounds.getUnion(getBoundsOnRow(n, Range<int>(0, std::max(1, getNumColumns(n)))));
         }
         return cachedBounds = bounds;
     }
@@ -1620,8 +1620,8 @@ void PlugDataTextEditor::translateView(float dx, float dy)
     auto H = viewScaleFactor * document.getBounds().getHeight();
 
     translation.x = jlimit(jmin(GUTTER_WIDTH, -W + getWidth()), GUTTER_WIDTH, translation.x + dx);
-    translation.y = jlimit(jmin(-0.f, -H + getHeight()), 0.0f, translation.y + dy);
-
+    translation.y = jlimit(jmin(-0.f, -H + (getHeight() - 10)), 0.0f, translation.y + dy);
+    
     updateViewTransform();
 }
 
