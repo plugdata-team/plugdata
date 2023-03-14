@@ -230,11 +230,6 @@ PluginEditor::PluginEditor(PluginProcessor& p)
     // Initialise zoom factor
     valueChanged(zoomScale);
     valueChanged(splitZoomScale);
-
-    selectedSplitRect.setStrokeThickness(1.0f);
-    selectedSplitRect.setInterceptsMouseClicks(false, false);
-    selectedSplitRect.setFill(Colours::transparentBlack);
-    addAndMakeVisible(selectedSplitRect);
 }
 PluginEditor::~PluginEditor()
 {
@@ -250,8 +245,6 @@ PluginEditor::~PluginEditor()
 
 void PluginEditor::paint(Graphics& g)
 {
-    selectedSplitRect.setStrokeFill(findColour(PlugDataColour::dataColourId));
-
     g.setColour(findColour(PlugDataColour::canvasBackgroundColourId));
     g.fillRoundedRectangle(getLocalBounds().toFloat(), Corners::windowCornerRadius);
 
@@ -331,8 +324,6 @@ void PluginEditor::resized()
 
     zoomLabel->setTopLeftPosition(5, statusbar->getY() - 28);
     zoomLabel->setSize(55, 23);
-
-    updateSplitOutline();
 }
 
 void PluginEditor::mouseWheelMove(MouseEvent const& e, MouseWheelDetails const& wheel)
@@ -634,7 +625,6 @@ void PluginEditor::addTab(Canvas* cnv)
     };
 
     cnv->setVisible(true);
-    updateSplitOutline();
 
     pd->savePatchTabPositions();
 }
@@ -1341,23 +1331,6 @@ bool PluginEditor::wantsRoundedCorners()
         return !window->isUsingNativeTitleBar() && Desktop::canUseSemiTransparentWindows();
     } else {
         return true;
-    }
-}
-
-void PluginEditor::updateSplitOutline()
-{
-    auto* tabbar = splitView.getActiveTabbar();
-    if (splitView.isSplitEnabled() && tabbar) {
-        if (auto* cnv = tabbar->getCurrentCanvas()) {
-            bool isOnLeft = tabbar == splitView.getLeftTabbar();
-
-            auto bounds = getLocalArea(tabbar, tabbar->getLocalBounds()).withTrimmedTop(tabbar->getTabBarDepth()).toFloat().withTrimmedRight(isOnLeft ? 0.0f : 0.5f).withTrimmedLeft(isOnLeft ? 0.5f : 0.0f).withTrimmedBottom(-0.5f);
-            selectedSplitRect.setRectangle(Parallelogram<float>(bounds));
-            selectedSplitRect.toFront(false);
-            selectedSplitRect.setVisible(true);
-        }
-    } else {
-        selectedSplitRect.setVisible(false);
     }
 }
 
