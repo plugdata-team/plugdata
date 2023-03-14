@@ -250,7 +250,11 @@ void SplitView::paintOverChildren(Graphics& g)
     auto* tabbar = getActiveTabbar();
     g.setColour(findColour(PlugDataColour::objectSelectedOutlineColourId).withAlpha(0.3f));
     if (splitView) {
-        g.drawRect(tabbar->getBounds(), 2.0f);
+        if (tabbar == getLeftTabbar()) {
+            g.drawRect(tabbar->getBounds().withTrimmedRight(-1), 2.0f);
+        } else {
+            g.drawRect(tabbar->getBounds().withTrimmedLeft(-1), 2.0f);
+        }
     }
     if (tabbar->tabSnapshot.isValid()) {
         g.drawImage(tabbar->tabSnapshot, tabbar->tabSnapshotBounds.toFloat());
