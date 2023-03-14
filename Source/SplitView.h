@@ -5,7 +5,8 @@
 class PluginEditor;
 class Canvas;
 class SplitViewResizer;
-class SplitView : public Component {
+class SplitView : public Component
+                , private Timer {
 public:
     SplitView(PluginEditor* parent);
 
@@ -39,8 +40,44 @@ private:
     bool splitFocusIndex = 0;
     TabComponent splits[2];
 
-    bool drawSplitviewIndicator = false;
-    bool splitviewAtMouseup = false;
+    bool splitviewIndicator = false;
+    float indicatorAlpha;
+    float alphaTarget;
+    void timerCallback() override
+    {
+        float const stepSize = 0.03f;
+        if (alphaTarget > indicatorAlpha) {
+            indicatorAlpha += stepSize;
+            if (indicatorAlpha >= alphaTarget) {
+                indicatorAlpha = alphaTarget;
+                stopTimer();
+            }
+        } else if (alphaTarget < indicatorAlpha) {
+            indicatorAlpha -= stepSize;
+            if (indicatorAlpha <= alphaTarget) {
+                indicatorAlpha = alphaTarget;
+                stopTimer();
+            }
+        }
+        repaint();
+    }
+    float fadeIn()
+    {
+        alphaTarget = 0.3f;
+        if (!isTimerRunning())
+            startTimerHz(60);
+
+        return indicatorAlpha;
+    }
+
+    float fadeOut()
+    {
+        alphaTarget = 0.0f;
+        if (!isTimerRunning())
+            startTimerHz(60);
+
+        return indicatorAlpha;
+    }
 
     PluginEditor* editor;
 
