@@ -653,25 +653,26 @@ public:
     {
         ResizableWindow::resized();
 
-        if (!isUsingNativeTitleBar()) {
+        if (resizer) {
+            if (isFullScreen()) {
+                resizer->setVisible(false);
+            } else if (!isUsingNativeTitleBar()){
+                resizer->setVisible(true);
 
-            Rectangle<int> titleBarArea;
-            if (drawWindowShadow && SystemStats::getOperatingSystemType() == SystemStats::Linux) {
-                auto margin = mainComponent ? mainComponent->getMargin() : 18;
-                titleBarArea = Rectangle<int>(0, 7 + margin, getWidth() - (6 + margin), 23);
-                if (resizer)
+                Rectangle<int> titleBarArea(0, 7, getWidth() - 6, 23);
+
+                if (drawWindowShadow && SystemStats::getOperatingSystemType() == SystemStats::Linux) {
+                    auto margin = mainComponent ? mainComponent->getMargin() : 18;
+                    titleBarArea = Rectangle<int>(0, 7 + margin, getWidth() - (6 + margin), 23);
                     resizer->setBounds(getLocalBounds().reduced(margin));
-            } else {
-                titleBarArea = Rectangle<int>(0, 7, getWidth() - 6, 23);
-                if (auto* b = getMaximiseButton())
-                    b->setToggleState(isFullScreen(), dontSendNotification);
-
-                if (resizer)
+                } else {
                     resizer->setBounds(getLocalBounds());
-            }
+                }
 
-            getLookAndFeel().positionDocumentWindowButtons(*this, titleBarArea.getX(), titleBarArea.getY(), titleBarArea.getWidth(), titleBarArea.getHeight(), getMinimiseButton(), getMaximiseButton(), getCloseButton(), false);
+                getLookAndFeel().positionDocumentWindowButtons(*this, titleBarArea.getX(), titleBarArea.getY(), titleBarArea.getWidth(), titleBarArea.getHeight(), getMinimiseButton(), getMaximiseButton(), getCloseButton(), false);
+            }
         }
+
         if (auto* content = getContentComponent()) {
             content->resized();
             content->repaint();
