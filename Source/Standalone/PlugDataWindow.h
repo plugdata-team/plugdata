@@ -676,6 +676,10 @@ public:
         if (auto* content = getContentComponent()) {
             content->resized();
             content->repaint();
+            MessageManager::callAsync([this, content] {
+                if (content->isShowing())
+                content->grabKeyboardFocus();
+            });
         }
     }
 
