@@ -1064,12 +1064,6 @@ pd::Patch* PluginProcessor::loadPatch(File const& patchFile)
                 return;
             auto* cnv = _editor->canvases.add(new Canvas(_editor, *patch, nullptr));
             _editor->addTab(cnv);
-            
-            // All help files open in Locked Mode
-            auto fileName = patch->getCurrentFile().getFileNameWithoutExtension();
-            if (fileName.endsWith("-help")) {
-                cnv->locked.setValue(true);
-            }
         });
     }
 

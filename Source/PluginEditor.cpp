@@ -572,7 +572,12 @@ void PluginEditor::addTab(Canvas* cnv)
     int const newTabIdx = focusedTabbar->getCurrentTabIndex() + 1; // The tab index for the added tab
 
     // Add tab next to the currently focused tab
-    focusedTabbar->addTab(cnv->patch.getTitle(), findColour(ResizableWindow::backgroundColourId), cnv->viewport, true, newTabIdx);
+    auto patchTitle = cnv->patch.getTitle();
+    focusedTabbar->addTab(patchTitle, findColour(ResizableWindow::backgroundColourId), cnv->viewport, true, newTabIdx);
+    
+    // Open help files and references in Locked Mode
+    if (patchTitle.contains("-help") || patchTitle.equalsIgnoreCase("reference"))
+        cnv->locked.setValue(true);
 
     focusedTabbar->setCurrentTabIndex(newTabIdx);
     focusedTabbar->setTabBackgroundColour(newTabIdx, Colours::transparentBlack);
