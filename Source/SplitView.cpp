@@ -8,6 +8,58 @@
 #include "PluginProcessor.h"
 #include "Sidebar/Sidebar.h"
 
+class FadeAnimation : private Timer {
+public:
+    FadeAnimation(SplitView* splitView)
+        : splitView(splitView)
+    {
+    }
+
+    float fadeIn()
+    {
+        alphaTarget = 0.3f;
+        if (!isTimerRunning())
+            startTimerHz(60);
+
+        return indicatorAlpha;
+    }
+
+    float fadeOut()
+    {
+        alphaTarget = 0.0f;
+        if (!isTimerRunning())
+            startTimerHz(60);
+
+        return indicatorAlpha;
+    }
+
+private:
+    void timerCallback() override
+    {
+        float const stepSize = 0.03f;
+        if (alphaTarget > indicatorAlpha) {
+            indicatorAlpha += stepSize;
+            if (indicatorAlpha >= alphaTarget) {
+                indicatorAlpha = alphaTarget;
+                stopTimer();
+            }
+        } else if (alphaTarget < indicatorAlpha) {
+            indicatorAlpha -= stepSize;
+            if (indicatorAlpha <= alphaTarget) {
+                indicatorAlpha = alphaTarget;
+                stopTimer();
+            }
+        }
+        if (splitView != nullptr)
+            splitView->repaint();
+    }
+
+private:
+    SplitView* splitView;
+    float indicatorAlpha = 0.0f;
+    float alphaTarget = 0.0f;
+};
+
 class SplitViewResizer : public Component {
 public:
     static inline constexpr int width = 6;
@@ -44,6 +96,7 @@ private:
 
 SplitView::SplitView(PluginEditor* parent)
     : editor(parent)
+    , fadeAnimation(new FadeAnimation(this))
 {
     auto* resizer = new SplitViewResizer();
     resizer->onMove = [this](int x) {
@@ -125,6 +178,10 @@ SplitView::SplitView(PluginEditor* parent)
     addMouseListener(this, true);
 }
 
+SplitView::~SplitView()
+{
+}
+
 void SplitView::setSplitEnabled(bool splitEnabled)
 {
     splitView = splitEnabled;
@@ -199,7 +256,7 @@ void SplitView::paintOverChildren(Graphics& g)
         // auto snapshotBounds = tabbar->tabSnapshotBounds.translated(tabbar->getX(), toolbarHeight);
         g.drawImage(tabbar->tabSnapshot, tabbar->tabSnapshotBounds.toFloat());
         if (splitviewIndicator) {
-            g.setOpacity(fadeIn());
+            g.setOpacity(fadeAnimation->fadeIn());
             if (!splitView) {
                 g.fillRect(tabbar->getBounds().withTrimmedLeft(getWidth() / 2).withTrimmedTop(tabbar->currentTabBounds.getHeight()));
             } else if (tabbar == getLeftTabbar()) {
@@ -208,7 +265,7 @@ void SplitView::paintOverChildren(Graphics& g)
                 g.fillRect(getLeftTabbar()->getBounds().withTrimmedTop(tabbar->currentTabBounds.getHeight()));
             }
         } else {
-            g.setOpacity(fadeOut());
+            g.setOpacity(fadeAnimation->fadeOut());
             if (!splitView) {
                 g.fillRect(tabbar->getBounds().withTrimmedLeft(getWidth() / 2).withTrimmedTop(tabbar->currentTabBounds.getHeight()));
             } else if (tabbar == getLeftTabbar()) {
@@ -237,28 +294,25 @@ void SplitView::splitCanvasView(Canvas* cnv, bool splitViewFocus)
     auto* editor = cnv->editor;
 
     auto* currentTabbar = cnv->getTabbar();
-    
+
     currentTabbar->removeTab(cnv->getTabIndex());
-    
-    if(currentTabbar->getCurrentTabIndex() < 0 && currentTabbar->getNumTabs() >= 0)
-    {
+
+    if (currentTabbar->getCurrentTabIndex() < 0 && currentTabbar->getNumTabs() >= 0) {
         currentTabbar->setCurrentTabIndex(0);
     }
-    
+
     cnv->recreateViewport();
-    
-    if(splitViewFocus) {
+
+    if (splitViewFocus) {
         setSplitEnabled(true);
-    }
-    else {
+    } else {
         // Check if the right tabbar has any tabs left after performing split
         setSplitEnabled(getRightTabbar()->getNumTabs());
     }
-    
+
     splitFocusIndex = splitViewFocus;
     editor->addTab(cnv);
-    // splitviewIndicator = true;
-    fadeOut();
+    fadeAnimation->fadeOut();
 }
 
 TabComponent* SplitView::getActiveTabbar()

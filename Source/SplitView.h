@@ -4,11 +4,12 @@
 
 class PluginEditor;
 class Canvas;
+class FadeAnimation;
 class SplitViewResizer;
-class SplitView : public Component
-                , private Timer {
+class SplitView : public Component {
 public:
     SplitView(PluginEditor* parent);
+    ~SplitView();
 
     TabComponent* getActiveTabbar();
     TabComponent* getLeftTabbar();
@@ -40,44 +41,9 @@ private:
     bool splitFocusIndex = 0;
     TabComponent splits[2];
 
+    std::unique_ptr<FadeAnimation> fadeAnimation;
+
     bool splitviewIndicator = false;
-    float indicatorAlpha;
-    float alphaTarget;
-    void timerCallback() override
-    {
-        float const stepSize = 0.03f;
-        if (alphaTarget > indicatorAlpha) {
-            indicatorAlpha += stepSize;
-            if (indicatorAlpha >= alphaTarget) {
-                indicatorAlpha = alphaTarget;
-                stopTimer();
-            }
-        } else if (alphaTarget < indicatorAlpha) {
-            indicatorAlpha -= stepSize;
-            if (indicatorAlpha <= alphaTarget) {
-                indicatorAlpha = alphaTarget;
-                stopTimer();
-            }
-        }
-        repaint();
-    }
-    float fadeIn()
-    {
-        alphaTarget = 0.3f;
-        if (!isTimerRunning())
-            startTimerHz(60);
-
-        return indicatorAlpha;
-    }
-
-    float fadeOut()
-    {
-        alphaTarget = 0.0f;
-        if (!isTimerRunning())
-            startTimerHz(60);
-
-        return indicatorAlpha;
-    }
 
     PluginEditor* editor;
 
