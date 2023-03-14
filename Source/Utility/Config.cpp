@@ -1,5 +1,4 @@
 #include "Config.h"
-#define JUCE_GLOBAL_MODULE_SETTINGS_INCLUDED 1
 #include <juce_audio_devices/juce_audio_devices.h>
 #include "Standalone/PlugDataWindow.h"
 

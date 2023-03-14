@@ -10,7 +10,8 @@
 class AdvancedSettingsPanel : public Component, public Value::Listener {
 
 public:
-    AdvancedSettingsPanel()
+    AdvancedSettingsPanel(Component* editor)
+        : editor(editor)
     {
         auto* settingsFile = SettingsFile::getInstance();
         
@@ -53,14 +54,12 @@ public:
     {
         if (v.refersToSameSourceAs(macTitlebarButtons)) {
             auto window = Desktop::getInstance().getComponent(0);
-            // TODO: BUG: for some reason this doesn't change the lnf of the current settings window
             window->sendLookAndFeelChange();
 
-            // TODO: replace this horrible hack
-            Desktop::getInstance().setGlobalScaleFactor(Desktop::getInstance().getGlobalScaleFactor() - 0.01f);
-            Desktop::getInstance().setGlobalScaleFactor(Desktop::getInstance().getGlobalScaleFactor() + 0.01f);
+            editor->resized();
         }
     }
+    Component* editor;
 
     ValueTree settingsTree;
 

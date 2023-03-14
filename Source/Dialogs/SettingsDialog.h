@@ -89,7 +89,7 @@ public:
         panels.add(new Deken());
 
         if(ProjectInfo::isStandalone) {
-            panels.add(new AdvancedSettingsPanel());
+            panels.add(new AdvancedSettingsPanel(editor));
         }
 
         for (int i = 0; i < toolbarButtons.size(); i++) {
