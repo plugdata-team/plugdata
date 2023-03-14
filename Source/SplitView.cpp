@@ -253,7 +253,6 @@ void SplitView::paintOverChildren(Graphics& g)
         g.drawRect(tabbar->getBounds(), 2.0f);
     }
     if (tabbar->tabSnapshot.isValid()) {
-        // auto snapshotBounds = tabbar->tabSnapshotBounds.translated(tabbar->getX(), toolbarHeight);
         g.drawImage(tabbar->tabSnapshot, tabbar->tabSnapshotBounds.toFloat());
         if (splitviewIndicator) {
             g.setOpacity(fadeAnimation->fadeIn());

@@ -229,11 +229,12 @@ public:
         clickedTabIndex = getCurrentTabIndex();
         onFocusGrab();
     }
-    
+
     void mouseDrag(MouseEvent const& e) override
     {
         // Don't respond to clicks on close button
-        if(dynamic_cast<TextButton*>(e.originalComponent)) return;
+        if (dynamic_cast<TextButton*>(e.originalComponent))
+            return;
         // Drag tabs to move their index
         int const dragPosition = e.getEventRelativeTo(tabs.get()).x;
         int const newTabIndex = (dragPosition < clickedTabIndex * tabWidth) ? clickedTabIndex - 1
@@ -260,7 +261,7 @@ public:
             auto newPosition = Point<int>(std::clamp(currentTabBounds.getX() + getX() + e.getDistanceFromDragStartX(), 0, getParentWidth() - tabWidth)
                                         , std::clamp(currentTabBounds.getY() + e.getDistanceFromDragStartY(), 0, getHeight() - tabs->getHeight()));
             tabSnapshotBounds.setPosition(newPosition);
-             getParentComponent()->repaint();
+            getParentComponent()->repaint();
         }
     }
 
@@ -269,7 +270,7 @@ public:
         tabSnapshot = Image();
         tabs->getTabButton(clickedTabIndex)->setVisible(true);
         getParentComponent()->repaint(tabSnapshotBounds);
-    } 
+    }
 
     Image tabSnapshot;
     Rectangle<int> tabSnapshotBounds;
@@ -277,5 +278,5 @@ public:
 
 private:
     int clickedTabIndex;
-    int tabWidth; 
+    int tabWidth;
 };
