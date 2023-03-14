@@ -234,7 +234,7 @@ void Sidebar::showSidebar(bool show)
 
     if (!show) {
         lastWidth = getWidth();
-        int newWidth = dragbarWidth;
+        int newWidth = 0;
         setBounds(getParentWidth() - newWidth, getY(), newWidth, getHeight());
     } else {
         int newWidth = lastWidth;
