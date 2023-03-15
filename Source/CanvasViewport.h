@@ -11,7 +11,6 @@
 #include "Object.h"
 #include "Connection.h"
 #include "Canvas.h"
-#include <JuceHeader.h>
 
 #include "Utility/SettingsFile.h"
 
