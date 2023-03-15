@@ -619,7 +619,16 @@ bool Canvas::keyPressed(KeyPress const& key)
         return true;
     }
 
-    return false;
+    // Cancel connections being created by ESC key
+    if (keycode == 27) {
+        MessageManager::callAsync([this] {
+            if (connectionsBeingCreated.size())
+                cancelConnectionCreation();
+            return true;
+        });
+    }
+
+        return false;
 }
 
 void Canvas::deselectAll()
