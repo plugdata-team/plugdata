@@ -160,7 +160,7 @@ void Object::valueChanged(Value& v)
     setVisible(!((cnv->isGraph || cnv->presentationMode == var(true)) && gui && gui->hideInGraph()));
 
     if (gui) {
-        gui->lock(locked == var(true) || commandLocked == var(true));
+        gui->lock(cnv->isGraph || locked == var(true) || commandLocked == var(true));
     }
 
     repaint();
