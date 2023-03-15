@@ -109,6 +109,22 @@ void Patch::savePatch(File const& location)
     currentFile = location;
 }
 
+t_glist* Patch::getRoot()
+{
+    return canvas_getrootfor(getPointer());
+}
+    
+bool Patch::isSubpatch()
+{
+    return getRoot() != ptr && !canvas_isabstraction(getPointer());
+}
+
+bool Patch::isAbstraction()
+{
+    return canvas_isabstraction(getPointer());
+}
+
+
 void Patch::savePatch()
 {
     String fullPathname = currentFile.getParentDirectory().getFullPathName();

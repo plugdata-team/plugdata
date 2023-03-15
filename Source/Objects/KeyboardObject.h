@@ -54,7 +54,7 @@ public:
     bool mouseDownOnKey(int midiNoteNumber, MouseEvent const& e) override
     {
         if (toggleMode) {
-            if (heldKeys.contains(midiNoteNumber)) {
+            if (heldKeys.count(midiNoteNumber)) {
                 heldKeys.erase(midiNoteNumber);
                 noteOff(midiNoteNumber);
             } else {
@@ -72,7 +72,7 @@ public:
 
     bool mouseDraggedToKey(int midiNoteNumber, MouseEvent const& e) override
     {
-        if(!toggleMode && !heldKeys.contains(midiNoteNumber))
+        if(!toggleMode && !heldKeys.count(midiNoteNumber))
         {
             for(auto& note : heldKeys)
             {
@@ -120,7 +120,7 @@ public:
         // TODO: this should be a theme preference, or setting for keyboard
         // yeah but we can set a less ugly default colour for now!
 
-        isDown = heldKeys.contains(midiNoteNumber);
+        isDown = heldKeys.count(midiNoteNumber);
 
         auto c = Colour(225, 225, 225);
         if (isOver)
@@ -187,7 +187,7 @@ public:
         // TODO: this should be a theme preference, or setting for keyboard
         auto c = Colour(90, 90, 90);
 
-        isDown = heldKeys.contains(midiNoteNumber);
+        isDown = heldKeys.count(midiNoteNumber);
 
         if (isOver)
             c = Colour(101, 101, 101);

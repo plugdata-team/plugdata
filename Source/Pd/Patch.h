@@ -47,7 +47,12 @@ public:
 
     void selectObject(void*);
     void deselectAll();
+    
+    bool isSubpatch();
+    bool isAbstraction();
 
+    t_glist* getRoot();
+    
     void copy();
     void paste();
     void duplicate();

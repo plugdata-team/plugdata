@@ -487,10 +487,22 @@ void PluginEditor::saveProject(std::function<void()> const& nestedCallback)
     for (auto* patch : pd->patches) {
         patch->deselectAll();
     }
-
-    if (getCurrentCanvas()->patch.getCurrentFile().existsAsFile()) {
-        getCurrentCanvas()->patch.savePatch();
-        SettingsFile::getInstance()->addToRecentlyOpened(getCurrentCanvas()->patch.getCurrentFile());
+    
+    auto* cnv = getCurrentCanvas();
+    
+    if(cnv->patch.isSubpatch())
+    {
+        for(auto& parentCanvas : canvases)
+        {
+            if(cnv->patch.getRoot() == parentCanvas->patch.getPointer()) {
+                cnv = parentCanvas;
+            }
+        }
+    }
+    
+    if (cnv->patch.getCurrentFile().existsAsFile()) {
+        cnv->patch.savePatch();
+        SettingsFile::getInstance()->addToRecentlyOpened(cnv->patch.getCurrentFile());
         nestedCallback();
     } else {
         saveProjectAs(nestedCallback);
