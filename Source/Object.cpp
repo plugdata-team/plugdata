@@ -90,6 +90,16 @@ Rectangle<int> Object::getObjectBounds()
     return getBounds().reduced(margin) - cnv->canvasOrigin;
 }
 
+Rectangle<int> Object::getSelectableBounds()
+{
+    if(gui)
+    {
+        return gui->getSelectableBounds().translated(Object::margin, Object::margin);
+    }
+    
+    return getBounds().reduced(margin);
+}
+
 void Object::setObjectBounds(Rectangle<int> bounds)
 {
     setBounds(bounds.expanded(margin) + cnv->canvasOrigin);
@@ -161,15 +171,6 @@ bool Object::hitTest(int x, int y)
     if (Canvas::panningModifierDown())
         return false;
 
-    if (gui && !gui->canReceiveMouseEvent(x, y)) {
-        return false;
-    }
-
-    // Mouse over object
-    if (getLocalBounds().reduced(margin).contains(x, y)) {
-        return true;
-    }
-
     // Mouse over iolets
     for (auto* iolet : iolets) {
         if (iolet->getBounds().contains(x, y))
@@ -184,6 +185,15 @@ bool Object::hitTest(int x, int y)
         }
 
         return getLocalBounds().reduced(margin).contains(x, y);
+    }
+    
+    if (gui && !gui->canReceiveMouseEvent(x, y)) {
+        return false;
+    }
+
+    // Mouse over object
+    if (getLocalBounds().reduced(margin).contains(x, y)) {
+        return true;
     }
 
     return false;

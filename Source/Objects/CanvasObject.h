@@ -53,10 +53,16 @@ public:
         cnvObj->x_vis_w = b.getWidth() - 1;
         cnvObj->x_vis_h = b.getHeight() - 1;
     }
+    
+    Rectangle<int> getSelectableBounds() override
+    {
+        auto* cnvObj = reinterpret_cast<t_my_canvas*>(iemHelper.iemgui);
+        return {cnvObj->x_gui.x_obj.te_xpix, cnvObj->x_gui.x_obj.te_ypix, cnvObj->x_gui.x_w, cnvObj->x_gui.x_h};
+    }
 
     bool canReceiveMouseEvent(int x, int y) override
     {
-        return !locked;
+        return !locked && Rectangle<int>(static_cast<t_iemgui*>(ptr)->x_w, static_cast<t_iemgui*>(ptr)->x_h).contains(x - Object::margin, y - Object::margin);
     }
 
     void lock(bool isLocked) override
@@ -81,9 +87,13 @@ public:
     void paint(Graphics& g) override
     {
         auto bgcolour = Colour::fromString(iemHelper.secondaryColour.toString());
-
+        
         g.setColour(bgcolour);
         g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), Corners::objectCornerRadius);
+        
+        auto draggableRect = Rectangle<float>(static_cast<t_iemgui*>(ptr)->x_w, static_cast<t_iemgui*>(ptr)->x_h);
+        g.setColour(cnv->isSelected(object) ? object->findColour(PlugDataColour::objectSelectedOutlineColourId) : object->findColour(PlugDataColour::objectOutlineColourId));
+        g.drawRoundedRectangle(draggableRect.reduced(1.0f), Corners::objectCornerRadius, 1.0f);
     }
 
     void valueChanged(Value& v) override

@@ -1185,7 +1185,7 @@ bool Canvas::setPanDragMode(bool shouldPan)
 void Canvas::findLassoItemsInArea(Array<WeakReference<Component>>& itemsFound, Rectangle<int> const& area)
 {
     for (auto* object : objects) {
-        if (area.intersects(object->getBounds().reduced(Object::margin))) {
+        if (area.intersects(object->getSelectableBounds())) {
             itemsFound.add(object);
             setSelected(object, true, false);
         } else if (!ModifierKeys::getCurrentModifiers().isAnyModifierKeyDown()) {

@@ -43,9 +43,10 @@ public:
     void showEditor();
     void hideEditor();
 
+    Rectangle<int> getSelectableBounds();
     Rectangle<int> getObjectBounds();
     void setObjectBounds(Rectangle<int> bounds);
-
+        
     void openHelpPatch() const;
     void* getPointer() const;
 

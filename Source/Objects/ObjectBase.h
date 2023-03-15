@@ -74,6 +74,11 @@ public:
 
     // Gets position from pd and applies it to Object
     virtual Rectangle<int> getPdBounds() = 0;
+        
+    // Gets position from pd and applies it to Object
+    virtual Rectangle<int> getSelectableBounds() {
+        return getPdBounds();
+    }
 
     // Push current object bounds into pd
     virtual void setPdBounds(Rectangle<int> newBounds) = 0;
