@@ -163,7 +163,6 @@ class CanvasViewport : public Viewport, public AsyncUpdater
         
         void scrollBarMoved(ScrollBar* scrollBarThatHasMoved, double newRangeStart) override
         {
-            
             fadeIn(true);
         }
         
@@ -183,15 +182,10 @@ class CanvasViewport : public Viewport, public AsyncUpdater
         {
             auto mousePos = isVertical() ? e.y : e.x;
             
-            auto totalRange = getRangeLimit();
-            
-            
-
             if (isDraggingThumb && lastMousePos != mousePos)
             {
-                auto deltaPixels = mousePos - lastMousePos;
-         
-                deltaPixels = jmap<int>(deltaPixels, 0, isVertical() ? getHeight() : getWidth() ,totalRange.getStart(), totalRange.getEnd());
+                auto totalRange = getRangeLimit();
+                auto deltaPixels = jmap<int>(mousePos - lastMousePos, 0, isVertical() ? getHeight() : getWidth() ,totalRange.getStart(), totalRange.getEnd());
                 
                 setCurrentRangeStart (getCurrentRangeStart()
                                         + deltaPixels * 2.5);
