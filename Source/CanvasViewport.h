@@ -11,6 +11,7 @@
 #include "Object.h"
 #include "Connection.h"
 #include "Canvas.h"
+#include <JuceHeader.h>
 
 #include "Utility/SettingsFile.h"
 
@@ -41,6 +42,8 @@ class CanvasViewport : public Viewport, public AsyncUpdater
         {
             e.originalComponent->setMouseCursor(MouseCursor::DraggingHandCursor);
             downPosition = viewport->getViewPosition();
+            downCanvasOrigin = static_cast<CanvasViewport*>(viewport)->cnv->canvasOrigin;
+
         }
         
         void mouseDrag(MouseEvent const& e) override
@@ -49,8 +52,9 @@ class CanvasViewport : public Viewport, public AsyncUpdater
             if (auto* viewedComponent = viewport->getViewedComponent()) {
                 scale = std::sqrt(std::abs(viewedComponent->getTransform().getDeterminant()));
             }
-            
-            viewport->setViewPosition(downPosition - (scale * e.getOffsetFromDragStart().toFloat()).roundToInt());
+
+            auto infiniteCanvasOriginOffset = (static_cast<CanvasViewport*>(viewport)->cnv->canvasOrigin - downCanvasOrigin) * scale;
+            viewport->setViewPosition(infiniteCanvasOriginOffset + downPosition - (scale * e.getOffsetFromDragStart().toFloat()).roundToInt());
         }
         
         void mouseUp(MouseEvent const& e) override
@@ -61,6 +65,7 @@ class CanvasViewport : public Viewport, public AsyncUpdater
     private:
         Viewport* viewport;
         Point<int> downPosition;
+        Point<int> downCanvasOrigin;
     };
     
     class FadingScrollbar : public ScrollBar
