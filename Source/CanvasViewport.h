@@ -296,7 +296,7 @@ public:
         cnv->setBounds(newBounds + cnv->getPosition());
         
         moveCanvasOrigin(-newBounds.getPosition());
-
+        
         onScroll();
         
         cnv->updatingBounds = false;

@@ -226,7 +226,7 @@ void Object::updateBounds()
 
         // Get the bounds of the object in Pd
         auto newBounds = gui->getPdBounds();
-        
+                
         // Objects may return empty bounds if they are not a real object (like scalars)
         if(!newBounds.isEmpty())
             setObjectBounds(newBounds);
@@ -675,7 +675,7 @@ void Object::mouseDown(MouseEvent const& e)
 
     repaint();
 
-    ds.canvasDragStartPosition = cnv->getPosition();
+    ds.canvasDragStartPosition = cnv->canvasOrigin;
 
     cnv->updateSidebarSelection();
 
@@ -756,6 +756,9 @@ void Object::mouseUp(MouseEvent const& e)
         cnv->updateSidebarSelection();
 
         if (ds.didStartDragging) {
+            
+            cnv->checkBounds();
+            
             auto objects = std::vector<void*>();
 
             for (auto* object : cnv->getSelectionOfType<Object>()) {
@@ -765,17 +768,13 @@ void Object::mouseUp(MouseEvent const& e)
 
             auto distance = Point<int>(e.getDistanceFromDragStartX(), e.getDistanceFromDragStartY());
 
-            // In case we dragged near the iolet and the canvas moved
-            auto canvasMoveOffset = ds.canvasDragStartPosition - cnv->getPosition();
-
-            distance = cnv->objectGrid.handleMouseUp(distance) + canvasMoveOffset;
+            distance = cnv->objectGrid.handleMouseUp(distance) + (ds.canvasDragStartPosition - cnv->canvasOrigin);
 
             // When done dragging objects, update positions to pd
             cnv->patch.moveObjects(objects, distance.x, distance.y);
 
             cnv->pd->waitForStateUpdate();
 
-            cnv->checkBounds();
             ds.didStartDragging = false;
         }
 
@@ -869,9 +868,6 @@ void Object::mouseDrag(MouseEvent const& e)
 
         auto dragDistance = e.getOffsetFromDragStart();
 
-        // In case we dragged near the edge and the canvas moved
-        auto canvasMoveOffset = ds.canvasDragStartPosition - cnv->getPosition();
-
         if (static_cast<bool>(cnv->gridEnabled.getValue()) && ds.componentBeingDragged) {
             dragDistance = cnv->objectGrid.performMove(this, dragDistance);
         }
@@ -925,7 +921,7 @@ void Object::mouseDrag(MouseEvent const& e)
         // FIXME: stop the mousedrag event from blocking the objects from redrawing, we shouldn't need to do this? JUCE bug?
         if (!cnv->objectRateReducer.tooFast()) {
             for (auto* object : selection) {
-                object->setTopLeftPosition(object->originalBounds.getPosition() + dragDistance + canvasMoveOffset);
+                object->setTopLeftPosition(object->originalBounds.getPosition() + dragDistance);
             }
 
             auto draggedBounds = ds.componentBeingDragged->getBounds().expanded(6);
