@@ -94,7 +94,7 @@ Rectangle<int> Object::getSelectableBounds()
 {
     if(gui)
     {
-        return gui->getSelectableBounds().translated(Object::margin, Object::margin);
+        return gui->getSelectableBounds().translated(Object::margin, Object::margin) + cnv->canvasOrigin;
     }
     
     return getBounds().reduced(margin);
