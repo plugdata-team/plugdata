@@ -34,6 +34,17 @@ struct StringUtils {
         return totalWidth * 0.95f;
     }
 
+    static float getPreciseStringWidth(String text, Font font)
+    {
+        float maxLineLength = 0;
+        for(auto& line : StringArray::fromLines(text))
+        {
+            maxLineLength = std::max(maxLineLength, font.getStringWidthFloat(line));
+        }
+        
+        return maxLineLength;
+    }
+    
     // used by console for a more optimised calculation
     static int getNumLines(int width, int stringWidth)
     {

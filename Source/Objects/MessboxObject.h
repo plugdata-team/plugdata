@@ -280,7 +280,7 @@ public:
             { "Text colour", tColour, cAppearance, &primaryColour, {} },
             { "Background colour", tColour, cAppearance, &secondaryColour, {} },
             { "Font size", tInt, cAppearance, &fontSize, {} },
-            { "Bold", tBool, cAppearance, &bold, { "no", "yes" } }
+            { "Bold", tBool, cAppearance, &bold, { "No", "Yes" } }
         };
     }
 

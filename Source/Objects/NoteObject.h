@@ -75,12 +75,10 @@ class NoteObject final : public ObjectBase {
     
     TextEditor noteEditor;
     
-    Value primaryColour;
-    Value secondaryColour;
-    Value fontSize;
-    Value bold;
+    Value primaryColour, secondaryColour, fontSize, bold, italic, underline, fillBackground, justification, outline, receiveSymbol;
     
     bool locked;
+    bool wasSelectedOnMouseDown = false;
 
 public:
     NoteObject(void* obj, Object* object)
@@ -88,15 +86,11 @@ public:
     {
         auto* note = static_cast<t_fake_note*>(ptr);
         textColour = Colour(note->x_red, note->x_green, note->x_blue);
+        noteEditor.setText(getText());
         
-        if(note->x_width == 8)
-        {
-            note->x_width = noteEditor.getTextWidth() + 50;
-        }
+        locked = static_cast<bool>(object->locked.getValue());
         
         addAndMakeVisible(noteEditor);
-        
-        noteEditor.setText(getText());
         
         noteEditor.setColour(TextEditor::textColourId, object->findColour(PlugDataColour::canvasTextColourId));
         noteEditor.setColour(TextEditor::backgroundColourId, Colours::transparentBlack);
@@ -108,22 +102,21 @@ public:
         noteEditor.setMultiLine(true);
         noteEditor.setReturnKeyStartsNewLine(true);
         noteEditor.setScrollbarsShown(false);
-        noteEditor.setIndents(0, 0);
+        noteEditor.setIndents(0, 2);
         noteEditor.setScrollToShowCursor(true);
-        noteEditor.setJustification(Justification::centredLeft);
+        noteEditor.setJustification(Justification::topLeft);
         noteEditor.setBorder(border);
-        noteEditor.setBounds(getLocalBounds().withTrimmedRight(5));
         noteEditor.setColour(TextEditor::textColourId, Colour::fromString(primaryColour.toString()));
-
         noteEditor.addMouseListener(this, true);
+        noteEditor.setReadOnly(true);
         
         noteEditor.onFocusLost = [this](){
+            noteEditor.setText(noteEditor.getText().trim());
             noteEditor.setReadOnly(true);
         };
         
-        locked = static_cast<bool>(object->locked.getValue());
-        noteEditor.setReadOnly(locked);
-        
+        updateFont();
+
         noteEditor.onTextChange = [this](){
             auto* x = static_cast<t_fake_note*>(ptr);
             
@@ -139,9 +132,11 @@ public:
                 }
             }
             
+            pd->lockAudioThread();
             binbuf_clear(x->x_binbuf);
             binbuf_restore(x->x_binbuf, atoms.size(), atoms.data());
             binbuf_gettext(x->x_binbuf, &x->x_buf, &x->x_bufsize);
+            pd->unlockAudioThread();
             
             this->object->updateBounds();
         };
@@ -153,7 +148,15 @@ public:
 
         primaryColour = Colour(note->x_color[0], note->x_color[1], note->x_color[2]).toString();
         secondaryColour = Colour(note->x_bg[0], note->x_bg[1], note->x_bg[2]).toString();
-
+        fontSize = note->x_fontsize;
+        bold = note->x_bold;
+        italic = note->x_italic;
+        underline = note->x_underline;
+        fillBackground = note->x_bg_flag;
+        justification  = note->x_textjust + 1;
+        outline = note->x_outline;
+        receiveSymbol = String::fromUTF8(note->x_rcv_raw->s_name);
+        
         auto params = getParameters();
         for (auto& [name, type, cat, value, list] : params) {
             value->addListener(this);
@@ -167,7 +170,12 @@ public:
     
     void mouseDown(const MouseEvent& e) override
     {
-        if(!locked && cnv->isSelected(object))
+        wasSelectedOnMouseDown = cnv->isSelected(object);
+    }
+    
+    void mouseUp(const MouseEvent& e) override
+    {
+        if(!locked && wasSelectedOnMouseDown && !e.mouseWasDraggedSinceMouseDown())
         {
             noteEditor.setReadOnly(false);
             noteEditor.grabKeyboardFocus();
@@ -177,7 +185,6 @@ public:
     void lock(bool isLocked) override
     {
         locked = isLocked;
-        //noteEditor.setReadOnly(isLocked);
         repaint();
         
         object->updateIolets();
@@ -195,7 +202,7 @@ public:
 
     void paint(Graphics& g) override
     {
-        if(!locked) {
+        if(static_cast<bool>(fillBackground.getValue())) {
             auto bounds = getLocalBounds();
             // Draw background
             g.setColour(Colour::fromString(secondaryColour.toString()));
@@ -205,7 +212,7 @@ public:
 
     void paintOverChildren(Graphics& g) override
     {
-        if(!locked) {
+        if(static_cast<bool>(outline.getValue())) {
             bool selected = cnv->isSelected(object) && !cnv->isGraph;
             auto outlineColour = object->findColour(selected ? PlugDataColour::objectSelectedOutlineColourId : PlugDataColour::objectOutlineColourId);
             
@@ -242,15 +249,12 @@ public:
     Rectangle<int> getPdBounds() override
     {
         pd->lockAudioThread();
-        
+
         auto* note = static_cast<t_fake_note*>(ptr);
-        int maxWidth = note->x_width;
-        
-        auto numLines = std::max(1, (noteEditor.getTextWidth() + 50) / maxWidth);
-        
+        int width = note->x_resized ? note->x_max_pixwidth : StringUtils::getPreciseStringWidth(getText(), getFont()) + 15;
         auto height = noteEditor.getTextHeight();
         
-        auto bounds = Rectangle<int>(note->x_obj.te_xpix, note->x_obj.te_ypix, maxWidth, height + 4);
+        auto bounds = Rectangle<int>(note->x_obj.te_xpix, note->x_obj.te_ypix, width, height + 4);
         pd->unlockAudioThread();
 
         return bounds;
@@ -261,7 +265,9 @@ public:
         newBounds.reduce(Object::margin, Object::margin);
         
         auto* note = static_cast<t_fake_note*>(ptr);
-        note->x_width = newBounds.getWidth();
+        note->x_resized = 1;
+        note->x_max_pixwidth = newBounds.getWidth();
+        
         object->updateBounds();
 
         return true;
@@ -270,7 +276,7 @@ public:
     void setPdBounds(Rectangle<int> b) override
     {
         auto* note = static_cast<t_fake_note*>(ptr);
-        note->x_width = b.getWidth();
+        note->x_max_pixwidth = b.getWidth();
         note->x_height = b.getHeight();
         libpd_moveobj(cnv->patch.getPointer(), static_cast<t_gobj*>(ptr), b.getX(), b.getY());
     }
@@ -295,6 +301,70 @@ public:
             colourToHexArray(Colour::fromString(secondaryColour.toString()), note->x_bgcolor);
             repaint();
         }
+       else if (v.refersToSameSourceAs(fontSize)) {
+           note->x_fontsize = static_cast<int>(fontSize.getValue());
+           updateFont();
+       }
+       else if (v.refersToSameSourceAs(bold)) {
+           note->x_bold = static_cast<int>(bold.getValue());
+           updateFont();
+       }
+       else if (v.refersToSameSourceAs(italic)) {
+           note->x_italic = static_cast<int>(italic.getValue());
+           updateFont();
+       }
+       else if (v.refersToSameSourceAs(underline)) {
+           note->x_underline = static_cast<int>(underline.getValue());
+           updateFont();
+       }
+       else if (v.refersToSameSourceAs(fillBackground)) {
+           note->x_bg_flag = static_cast<int>(fillBackground.getValue());
+           repaint();
+       }
+       else if (v.refersToSameSourceAs(receiveSymbol)) {
+           auto receive = receiveSymbol.toString();
+           note->x_rcv_raw = pd->generateSymbol(receive);
+           note->x_rcv_set = receive.isNotEmpty();
+           repaint();
+       }
+       else if (v.refersToSameSourceAs(justification)) {
+           auto justificationType = static_cast<int>(justification.getValue());
+           note->x_textjust = justificationType - 1;
+           if(justificationType == 1)
+           {
+               noteEditor.setJustification(Justification::topLeft);
+           }
+           else if(justificationType == 2)
+           {
+               noteEditor.setJustification(Justification::centredTop);
+           }
+           else if(justificationType == 3)
+           {
+               noteEditor.setJustification(Justification::topRight);
+           }
+           
+       }
+       else if (v.refersToSameSourceAs(outline)) {
+           note->x_outline = static_cast<int>(outline.getValue());
+           repaint();
+       }
+    }
+    
+    Font getFont()
+    {
+        auto isBold = static_cast<bool>(bold.getValue());
+        auto isItalic = static_cast<bool>(italic.getValue());
+        auto isUnderlined = static_cast<bool>(underline.getValue());
+        auto fontHeight = static_cast<int>(fontSize.getValue());
+        
+        auto style = (isBold * Font::bold) | (isItalic * Font::italic) | (isUnderlined * Font::underlined);
+        return Fonts::getVariableFont().withStyle(style).withHeight(fontHeight);
+    }
+    
+    void updateFont()
+    {
+        noteEditor.applyFontToAllText(getFont());
+        object->updateBounds();
     }
     
     ObjectParameters getParameters() override
@@ -303,7 +373,13 @@ public:
             { "Text colour", tColour, cAppearance, &primaryColour, {} },
             { "Background colour", tColour, cAppearance, &secondaryColour, {} },
             { "Font size", tInt, cAppearance, &fontSize, {} },
-            { "Bold", tBool, cAppearance, &bold, { "no", "yes" } }
+            { "Outline", tBool, cAppearance, &outline, { "No", "Yes" } },
+            { "Bold", tBool, cAppearance, &bold, { "No", "Yes" } },
+            { "Italic", tBool, cAppearance, &italic, { "No", "Yes" } },
+            { "Underline", tBool, cAppearance, &underline, { "No", "Yes" } },
+            { "Fill background", tBool, cAppearance, &fillBackground, { "No", "Yes" } },
+            { "Justification", tCombo, cAppearance, &justification, { "Left", "Centered", "Right" } },
+            { "Receive Symbol", tString, cGeneral, &receiveSymbol, { "Left", "Centered", "Right" } }
         };
     }
 };

@@ -248,7 +248,7 @@ public:
         ObjectParameters allParameters = {
             { "Minimum", tFloat, cGeneral, &min, {} },
             { "Maximum", tFloat, cGeneral, &max, {} },
-            { "Logarithmic", tBool, cGeneral, &isLogarithmic, { "off", "on" } },
+            { "Logarithmic", tBool, cGeneral, &isLogarithmic, { "Off", "On" } },
             { "Steady", tBool, cGeneral, &steadyOnClick, { "Jump on click", "Steady on click" } }
         };
 

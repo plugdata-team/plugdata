@@ -45,6 +45,8 @@ struct Fonts {
 
         monoTypeface = Typeface::createSystemTypefaceFor(BinaryData::IBMPlexMono_ttf, BinaryData::IBMPlexMono_ttfSize);
 
+        variableTypeface = Typeface::createSystemTypefaceFor(BinaryData::InterVariable_ttf, BinaryData::InterVariable_ttfSize);
+        
         instance = this;
     }
 
@@ -55,7 +57,8 @@ struct Fonts {
     static Font getThinFont() { return Font(instance->thinTypeface); }
     static Font getIconFont() { return Font(instance->iconTypeface); }
     static Font getMonospaceFont() { return Font(instance->monoTypeface); }
-
+    static Font getVariableFont() { return Font(instance->variableTypeface); }
+    
     static Font setCurrentFont(Font font) { return instance->currentTypeface = font.getTypefacePtr(); }
     
     // For drawing icons with icon font
@@ -154,4 +157,5 @@ private:
     Typeface::Ptr semiBoldTypeface;
     Typeface::Ptr iconTypeface;
     Typeface::Ptr monoTypeface;
+    Typeface::Ptr variableTypeface;
 };

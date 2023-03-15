@@ -856,7 +856,7 @@ void Object::mouseDrag(MouseEvent const& e)
 
         ds.wasResized = true;
     } else if(!cnv->isGraph) {
-        /** Ensure tiny movements don't start a drag. */
+        // Ensure tiny movements don't start a drag.
         if (!ds.didStartDragging && e.getDistanceFromDragStart() < cnv->minimumMovementToStartDrag)
             return;
 
