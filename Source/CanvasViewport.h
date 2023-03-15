@@ -161,7 +161,35 @@ class CanvasViewport : public Viewport, public AsyncUpdater
         
         void scrollBarMoved(ScrollBar* scrollBarThatHasMoved, double newRangeStart) override
         {
+            
             fadeIn(true);
+        }
+        
+        void mouseDown(const MouseEvent& e) override
+        {
+            auto currentRange = getCurrentRange();
+            auto totalRange = getRangeLimit();
+            auto thumbStart = jmap<int>(currentRange.getStart(), totalRange.getStart(), totalRange.getEnd(), 0, isVertical() ? getHeight() : getWidth());
+            auto thumbEnd = jmap<int>(currentRange.getEnd(), totalRange.getStart(), totalRange.getEnd(), 0, isVertical() ? getHeight() : getWidth());
+            
+            isDraggingThumb = isVertical() ? (e.y >= thumbStart && e.y < thumbEnd) : (e.x >= thumbStart && e.x < thumbEnd);
+            lastMousePos = isVertical() ? e.y : e.x;
+            ScrollBar::mouseDown(e);
+        }
+        
+        void mouseDrag (const MouseEvent& e) override
+        {
+            auto mousePos = isVertical() ? e.y : e.x;
+
+            if (isDraggingThumb && lastMousePos != mousePos)
+            {
+                auto deltaPixels = mousePos - lastMousePos;
+         
+                setCurrentRangeStart (getCurrentRangeStart()
+                                        + deltaPixels * 2.5);
+            }
+
+            lastMousePos = mousePos;
         }
         
         void mouseEnter(MouseEvent const& e) override
@@ -179,6 +207,8 @@ class CanvasViewport : public Viewport, public AsyncUpdater
         {
         }
         
+        bool isDraggingThumb = false;
+        int lastMousePos = 0;
         FadeAnimator animator = FadeAnimator(this);
         FadeTimer fadeTimer;
     };
