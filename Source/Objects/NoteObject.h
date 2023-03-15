@@ -86,7 +86,7 @@ public:
     {
         auto* note = static_cast<t_fake_note*>(ptr);
         textColour = Colour(note->x_red, note->x_green, note->x_blue);
-        noteEditor.setText(getText());
+        noteEditor.setText(getNote());
         
         locked = static_cast<bool>(object->locked.getValue());
         
@@ -251,7 +251,7 @@ public:
         pd->lockAudioThread();
 
         auto* note = static_cast<t_fake_note*>(ptr);
-        int width = note->x_resized ? note->x_max_pixwidth : StringUtils::getPreciseStringWidth(getText(), getFont()) + 15;
+        int width = note->x_resized ? note->x_max_pixwidth : StringUtils::getPreciseStringWidth(getNote(), getFont()) + 12;
         auto height = noteEditor.getTextHeight();
         
         auto bounds = Rectangle<int>(note->x_obj.te_xpix, note->x_obj.te_ypix, width, height + 4);
@@ -282,10 +282,10 @@ public:
     }
 
     
-    String getText() override
+    String getNote()
     {
         auto* note = static_cast<t_fake_note*>(ptr);
-        return String::fromUTF8(note->x_buf, note->x_bufsize);
+        return String::fromUTF8(note->x_buf, note->x_bufsize).trim();
     }
     
     void valueChanged(Value& v) override
@@ -381,5 +381,50 @@ public:
             { "Justification", tCombo, cAppearance, &justification, { "Left", "Centered", "Right" } },
             { "Receive Symbol", tString, cGeneral, &receiveSymbol, { "Left", "Centered", "Right" } }
         };
+    }
+    
+    void receiveObjectMessage(String const& symbol, std::vector<pd::Atom>& atoms) override
+    {
+        auto* note = static_cast<t_fake_note*>(ptr);
+        
+        switch (hash(symbol)) {
+            case hash("font"):
+            case hash("italic"):
+            case hash("size"):
+            case hash("underline"):
+            case hash("bold"): {
+                updateFont();
+                break;
+            }
+            case hash("prepend"):
+            case hash("append"):
+            case hash("set"): {
+                noteEditor.setText(getNote());
+                object->updateBounds();
+                break;
+            }
+            case hash("color"): {
+                primaryColour = Colour(note->x_color[0], note->x_color[1], note->x_color[2]).toString();
+                break;
+            }
+            case hash("bgcolor"): {
+                secondaryColour = Colour(note->x_bg[0], note->x_bg[1], note->x_bg[2]).toString();
+                break;
+            }
+            case hash("justification"): {
+                justification = note->x_textjust;
+                break;
+            }
+            case hash("width"): {
+                object->updateBounds();
+                break;
+            }
+            case hash("outline"):
+            {
+                outline = note->x_outline;
+            }
+            default:
+                break;
+        }
     }
 };
