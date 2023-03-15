@@ -58,6 +58,8 @@ public:
             return new PropertiesPanel::ComboComponent(name, *value, options);
         case tRange:
             return new PropertiesPanel::RangeComponent(name, *value);
+        case tFont:
+            return new PropertiesPanel::FontComponent(name, *value);
         default:
             return new PropertiesPanel::EditableComponent<String>(name, *value);
         }

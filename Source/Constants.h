@@ -512,7 +512,8 @@ enum ParameterType {
     tColour,
     tBool,
     tCombo,
-    tRange
+    tRange,
+    tFont
 };
 
 enum ParameterCategory {

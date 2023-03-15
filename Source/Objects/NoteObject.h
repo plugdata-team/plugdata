@@ -73,7 +73,7 @@ class NoteObject final : public ObjectBase {
 
     TextEditor noteEditor;
 
-    Value primaryColour, secondaryColour, fontSize, bold, italic, underline, fillBackground, justification, outline, receiveSymbol;
+    Value primaryColour, secondaryColour, font, fontSize, bold, italic, underline, fillBackground, justification, outline, receiveSymbol;
 
     bool locked;
     bool wasSelectedOnMouseDown = false;
@@ -113,8 +113,6 @@ public:
             noteEditor.setReadOnly(true);
         };
 
-        updateFont();
-
         noteEditor.onTextChange = [this]() {
             auto* x = static_cast<t_fake_note*>(ptr);
 
@@ -147,12 +145,20 @@ public:
         primaryColour = Colour(note->x_color[0], note->x_color[1], note->x_color[2]).toString();
         secondaryColour = Colour(note->x_bg[0], note->x_bg[1], note->x_bg[2]).toString();
         fontSize = note->x_fontsize;
+
         bold = note->x_bold;
         italic = note->x_italic;
         underline = note->x_underline;
         fillBackground = note->x_bg_flag;
         justification = note->x_textjust + 1;
         outline = note->x_outline;
+        
+        if(note->x_fontname && String::fromUTF8(note->x_fontname->s_name).isNotEmpty()) {
+            font = String::fromUTF8(note->x_fontname->s_name);
+        }
+        else {
+            font = "Inter Variable";
+        }
         
         auto receiveSym = String::fromUTF8(note->x_rcv_raw->s_name);
         receiveSymbol = receiveSym == "empty" ? "" : note->x_rcv_raw->s_name;
@@ -166,6 +172,8 @@ public:
         }
 
         repaint();
+        
+        updateFont();
     }
 
     void mouseDown(MouseEvent const& e) override
@@ -333,6 +341,13 @@ public:
             note->x_outline = static_cast<int>(outline.getValue());
             repaint();
         }
+        else if (v.refersToSameSourceAs(font)) {
+            auto fontName = font.toString();
+            note->x_fontname = gensym(fontName.toRawUTF8());
+            updateFont();
+        }
+        
+        
     }
 
     Font getFont()
@@ -341,9 +356,16 @@ public:
         auto isItalic = static_cast<bool>(italic.getValue());
         auto isUnderlined = static_cast<bool>(underline.getValue());
         auto fontHeight = static_cast<int>(fontSize.getValue());
-
+  
         auto style = (isBold * Font::bold) | (isItalic * Font::italic) | (isUnderlined * Font::underlined);
-        return Fonts::getVariableFont().withStyle(style).withHeight(fontHeight);
+        auto typefaceName = font.toString();
+        
+        if(typefaceName.isEmpty())
+        {
+            return Fonts::getVariableFont().withStyle(style).withHeight(fontHeight);
+        }
+        
+        return Font(typefaceName, fontHeight, style);
     }
 
     void updateFont()
@@ -357,6 +379,7 @@ public:
         return {
             { "Text colour", tColour, cAppearance, &primaryColour, {} },
             { "Background colour", tColour, cAppearance, &secondaryColour, {} },
+            { "Font", tFont, cAppearance, &font, {} },
             { "Font size", tInt, cAppearance, &fontSize, {} },
             { "Outline", tBool, cAppearance, &outline, { "No", "Yes" } },
             { "Bold", tBool, cAppearance, &bold, { "No", "Yes" } },
@@ -364,7 +387,7 @@ public:
             { "Underline", tBool, cAppearance, &underline, { "No", "Yes" } },
             { "Fill background", tBool, cAppearance, &fillBackground, { "No", "Yes" } },
             { "Justification", tCombo, cAppearance, &justification, { "Left", "Centered", "Right" } },
-            { "Receive Symbol", tString, cGeneral, &receiveSymbol, { "Left", "Centered", "Right" } }
+            { "Receive Symbol", tString, cGeneral, &receiveSymbol, { "Left", "Centered", "Right" } },
         };
     }
 
