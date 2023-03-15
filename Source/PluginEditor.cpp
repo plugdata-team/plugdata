@@ -551,9 +551,7 @@ void PluginEditor::closeTab(Canvas* cnv)
         delete patch;
     }
 
-    if (tabbar->getCurrentTabIndex() < 0 && tabbar->getNumTabs() >= 0) {
-        tabbar->setCurrentTabIndex(0);
-    }
+    tabbar->setCurrentTabIndex(tabIdx > 0 ? tabIdx - 1 : tabIdx);
 
     if (auto* leftCnv = splitView.getLeftTabbar()->getCurrentCanvas()) {
         leftCnv->tabChanged();
