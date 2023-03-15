@@ -153,7 +153,9 @@ public:
         fillBackground = note->x_bg_flag;
         justification = note->x_textjust + 1;
         outline = note->x_outline;
-        receiveSymbol = String::fromUTF8(note->x_rcv_raw->s_name);
+        
+        auto receiveSym = String::fromUTF8(note->x_rcv_raw->s_name);
+        receiveSymbol = receiveSym == "empty" ? "" : note->x_rcv_raw->s_name;
 
         auto params = getParameters();
         for (auto& [name, type, cat, value, list] : params) {

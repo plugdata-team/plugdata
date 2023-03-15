@@ -46,6 +46,8 @@ class CanvasViewport : public Viewport
 
         void mouseDrag(MouseEvent const& e) override
         {
+            // We shouldn't need to do this, but there is something going wrong when you drag very quicly, then stop
+            // Auto-repeating the drag makes it smoother, but it's not a perfect solution
             beginDragAutoRepeat(10);
 
             float scale = 1.0f;

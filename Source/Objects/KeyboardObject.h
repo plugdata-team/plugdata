@@ -54,7 +54,6 @@ public:
     bool mouseDownOnKey(int midiNoteNumber, MouseEvent const& e) override
     {
         if (toggleMode) {
-
             if (heldKeys.contains(midiNoteNumber)) {
                 heldKeys.erase(midiNoteNumber);
                 noteOff(midiNoteNumber);
@@ -71,12 +70,43 @@ public:
         return false;
     }
 
+    bool mouseDraggedToKey(int midiNoteNumber, MouseEvent const& e) override
+    {
+        if(!toggleMode && !heldKeys.contains(midiNoteNumber))
+        {
+            for(auto& note : heldKeys)
+            {
+                noteOff(midiNoteNumber);
+            }
+            
+            heldKeys.clear();
+            
+            heldKeys.insert(midiNoteNumber);
+            noteOn(midiNoteNumber, getNoteAndVelocityAtPosition(e.position).velocity * 127);
+            
+            repaint();
+        }
+        
+        return true;
+    }
+    
     void mouseUpOnKey(int midiNoteNumber, MouseEvent const& e) override
     {
         if (!toggleMode) {
             heldKeys.erase(midiNoteNumber);
             noteOff(midiNoteNumber);
-            repaint();
+        }
+        
+        repaint();
+    }
+    
+    // Override to fix bug in JUCE
+    void mouseUp (const MouseEvent& e) override
+    {
+        auto keys = heldKeys;
+        for(auto& key : keys)
+        {
+            mouseUpOnKey (key, e);
         }
     }
 
