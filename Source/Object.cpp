@@ -335,6 +335,8 @@ void Object::setType(String const& newType, void* existingObject)
     cnv->lastSelectedConnection = nullptr;
 
     cnv->editor->updateCommandStatus();
+    
+    cnv->synchroniseSplitCanvas();
 }
 
 Array<Rectangle<float>> Object::getCorners() const

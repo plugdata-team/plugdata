@@ -228,6 +228,24 @@ void Canvas::synchronise()
     triggerAsyncUpdate();
 }
 
+void Canvas::synchroniseSplitCanvas()
+{
+    auto* leftTabbar = editor->splitView.getLeftTabbar();
+    auto* rightTabbar = editor->splitView.getRightTabbar();
+    if(getTabbar() == leftTabbar)
+    {
+        if(auto* rightCnv = rightTabbar->getCurrentCanvas()) {
+            rightCnv->synchronise();
+        }
+    }
+    if(getTabbar() == rightTabbar)
+    {
+        if(auto* leftCnv = leftTabbar->getCurrentCanvas()) {
+            leftCnv->synchronise();
+        }
+    }
+}
+
 // Synchronise state with pure-data
 // Used for loading and for complicated actions like undo/redo
 void Canvas::performSynchronise()
@@ -840,6 +858,8 @@ void Canvas::removeSelection()
     handleUpdateNowIfNeeded();
 
     patch.deselectAll();
+    
+    synchroniseSplitCanvas();
 }
 
 void Canvas::encapsulateSelection()
@@ -1018,6 +1038,8 @@ void Canvas::undo()
     handleUpdateNowIfNeeded();
 
     patch.deselectAll();
+    
+    synchroniseSplitCanvas();
 }
 
 void Canvas::redo()
@@ -1030,6 +1052,8 @@ void Canvas::redo()
     handleUpdateNowIfNeeded();
 
     patch.deselectAll();
+    
+    synchroniseSplitCanvas();
 }
 
 void Canvas::checkBounds()

@@ -66,6 +66,7 @@ public:
     void spaceKeyChanged(bool isHeld) override;
     void middleMouseChanged(bool isHeld) override;
 
+    void synchroniseSplitCanvas();
     void synchronise();
     void performSynchronise();
     void handleAsyncUpdate() override;
